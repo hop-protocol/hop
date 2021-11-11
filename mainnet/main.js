@@ -417,6 +417,25 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
         timestamp
         token
       }
+      ${transferId
+      ? `,transferSents2: transferSents(
+        where: {
+          transactionHash: $transferId
+        },
+        first: $perPage,
+        orderBy: timestamp,
+        orderDirection: desc,
+        skip: $skip
+      ) {
+        transferId
+        destinationChainId
+        amount
+        bonderFee
+        transactionHash
+        timestamp
+        token
+      }`
+: ''}
     }
   `
   const url = getUrl(chain)
@@ -434,10 +453,13 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
     skip,
     transferId
   })
-  let transfers = (data ? data.transferSents : []).map(x => {
-    x.destinationChainId = Number(x.destinationChainId)
-    return x
-  })
+
+  let transfers = (data ? data.transferSents.concat(data.transferSents2) : [])
+    .filter(x => x)
+    .map(x => {
+      x.destinationChainId = Number(x.destinationChainId)
+      return x
+    })
 
   if (transfers.length === 1000) {
     try {

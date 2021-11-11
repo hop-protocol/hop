@@ -378,15 +378,25 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
   const queryL1 = `
     query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String) {
       transferSents: transferSentToL2S(
+      ${transferId
+? `
+        where: {
+          transactionHash: $transferId
+        },
+        first: $perPage,
+        orderBy: timestamp,
+        orderDirection: desc
+      `
+      : `
         where: {
           timestamp_gte: $startTime,
-          timestamp_lte: $endTime,
-          transferId: $transferId
+          timestamp_lte: $endTime
         },
         first: $perPage,
         orderBy: timestamp,
         orderDirection: desc,
         skip: $skip
+        `}
       ) {
         id
         destinationChainId
@@ -409,6 +419,7 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
         orderDirection: desc,
         skip: $skip
       ) {
+        id
         transferId
         destinationChainId
         amount
@@ -424,9 +435,9 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
         },
         first: $perPage,
         orderBy: timestamp,
-        orderDirection: desc,
-        skip: $skip
+        orderDirection: desc
       ) {
+        id
         transferId
         destinationChainId
         amount

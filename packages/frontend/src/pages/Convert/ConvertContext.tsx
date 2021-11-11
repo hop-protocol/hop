@@ -296,7 +296,9 @@ const ConvertContextProvider: FC = ({ children }) => {
         _amountOutMin = amountOut.mul(minBps).div(10000)
       }
 
-      if (ctx !== debouncer.current) return
+      if (ctx !== debouncer.current) {
+        return
+      }
 
       setError(undefined)
       setWarning(warning)
@@ -478,7 +480,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const enoughBalance = sourceBalance?.gte(parsedSourceTokenAmount)
   const withinMax = true
   let sendButtonText = 'Convert'
-  const validFormFields = !!(sourceTokenAmount && destTokenAmount && enoughBalance && withinMax) && !!bonderFee
+  const validFormFields = !!(sourceTokenAmount && destTokenAmount && enoughBalance && withinMax) && !!details
   if (sourceBalance === undefined) {
     sendButtonText = 'Fetching balance...'
   } else if (!enoughBalance) {

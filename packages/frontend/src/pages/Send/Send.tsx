@@ -4,7 +4,7 @@ import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
+import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/modal/TxStatusModal'
 import DetailRow from 'src/components/DetailRow'
@@ -179,8 +179,9 @@ const Send: FC = () => {
 
   // Reset error message when fromNetwork changes
   useEffect(() => {
+    setWarning('')
     setError('')
-  }, [fromNetwork])
+  }, [fromNetwork, toNetwork])
 
   // Check if there is sufficient available liquidity
   useEffect(() => {
@@ -191,7 +192,6 @@ const Send: FC = () => {
       }
 
       const isAvailable = BigNumber.from(availableLiquidity).gte(requiredLiquidity)
-
       const formattedAmount = toTokenDisplay(availableLiquidity, sourceToken.decimals)
 
       const warningMessage = (
@@ -499,7 +499,7 @@ const Send: FC = () => {
         handleBridgeChange={handleBridgeChange}
       />
 
-      <AmountSelectorCard
+      <SendAmountSelectorCard
         value={fromTokenAmount}
         token={sourceToken ?? placeholderToken}
         label={'From'}
@@ -521,13 +521,14 @@ const Send: FC = () => {
         deadline={deadline}
         toNetwork={toNetwork}
         fromNetwork={fromNetwork}
+        setWarning={setWarning}
       />
 
       <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>
         <ArrowDownIcon color="primary" className={styles.downArrow} />
       </MuiButton>
 
-      <AmountSelectorCard
+      <SendAmountSelectorCard
         value={toTokenAmount}
         token={destToken ?? placeholderToken}
         label={'To (estimated)'}

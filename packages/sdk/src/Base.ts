@@ -381,19 +381,11 @@ class Base {
   // Transaction overrides options
   public async txOverrides (chain: Chain) {
     const txOptions: any = {}
-    if (chain.equals(Chain.xDai)) {
-      txOptions.gasLimit = 5000000
-    }
     if (this.gasPriceMultiplier) {
       txOptions.gasPrice = await this.getBumpedGasPrice(
         this.signer,
         this.gasPriceMultiplier
       )
-    }
-
-    if (chain.equals(Chain.Optimism)) {
-      txOptions.gasPrice = 15_000_000
-      txOptions.gasLimit = undefined
     }
 
     return txOptions

@@ -11,6 +11,7 @@ import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
 import { isMainnet } from 'src/config'
 import Settings from 'src/pages/Send/Settings'
 import WalletWarning from './WalletWarning'
+import Banner from 'src/components/Banner'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -45,6 +46,7 @@ const Header: FC = () => {
 
   return (
     <>
+      <Banner>Optimism is undergoing regenesis. Sending from or to Optimism in temporarily disabled for the next few hours.</Banner>
       <Box className={styles.root} display="flex" alignItems="center">
         <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-start">
           <Link to="/">

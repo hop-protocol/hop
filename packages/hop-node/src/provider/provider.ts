@@ -1,12 +1,44 @@
+import fs from 'fs'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
 import { Deferrable } from '@ethersproject/properties'
 import { Network } from '@ethersproject/networks'
+import { monitorProviderCalls } from 'src/config'
 import { providers } from 'ethers'
+
+const calls: Record<string, any> = {}
+
+if (monitorProviderCalls) {
+  setInterval(() => {
+    fs.writeFileSync('provider_calls.json', JSON.stringify(calls, null, 2))
+  }, 5 * 1000)
+}
 
 // reference: https://github.com/ethers-io/ethers.js/blob/b1458989761c11bf626591706aa4ce98dae2d6a9/packages/abstract-provider/src.ts/index.ts#L225
 export class Provider extends providers.StaticJsonRpcProvider implements EthersProvider {
+  async perform (method: string, params: any): Promise<any> {
+    await this._monitor(method, params)
+    return super.perform(method, params)
+  }
+
+  private async _monitor (method: string, params: any): Promise<any> {
+    if (!monitorProviderCalls) {
+      return false
+    }
+    const host = this.connection.url
+    if (!calls[host]) {
+      calls[host] = {}
+    }
+    if (!calls[host][method]) {
+      calls[host][method] = {}
+    }
+    if (!calls[host][method][JSON.stringify(params)]) {
+      calls[host][method][JSON.stringify(params)] = 0
+    }
+    calls[host][method][JSON.stringify(params)]++
+  }
+
   // Network
   getNetwork = rateLimitRetry(async (): Promise<Network> => {
     return super.getNetwork()

@@ -44,6 +44,7 @@ export type Config = {
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000
+  gasCostPollMs: number = 60 * 1000
   syncIndex: number = 0
   syncFromDate: string
   customStartBlockNumber: number
@@ -1472,7 +1473,7 @@ class SyncWatcher extends BaseWatcher {
       } catch (err) {
         this.logger.error(`pollGasCost error: ${err.message}`)
       }
-      await wait(30 * 1000)
+      await wait(this.gasCostPollMs)
     }
   }
 

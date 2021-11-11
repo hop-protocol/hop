@@ -298,7 +298,7 @@ const Send: FC = () => {
   }, [lpFees])
 
   useEffect(() => {
-    if (!amountOutMin || !sourceToken) {
+    if (!amountOutMin || !destToken) {
       setAmountOutMinDisplay(undefined)
       return
     }
@@ -311,8 +311,8 @@ const Send: FC = () => {
       _amountOutMin = BigNumber.from(0)
     }
 
-    const amountOutMinFormatted = commafy(formatUnits(_amountOutMin, sourceToken.decimals), 4)
-    setAmountOutMinDisplay(`${amountOutMinFormatted} ${sourceToken.symbol}`)
+    const amountOutMinFormatted = commafy(formatUnits(_amountOutMin, destToken.decimals), 4)
+    setAmountOutMinDisplay(`${amountOutMinFormatted} ${destToken.symbol}`)
   }, [amountOutMin])
 
   // ==============================================================================================

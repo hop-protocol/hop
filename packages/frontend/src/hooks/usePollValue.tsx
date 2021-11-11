@@ -10,7 +10,7 @@ function usePollValue<T>(
   const resultRef = useRef<T>()
   const prevDependencies = React.useRef([])
 
-  const fetch = async () => {
+  const fn = async () => {
     resultRef.current = await factory()
   }
 
@@ -19,11 +19,11 @@ function usePollValue<T>(
       return
     }
 
-    fetch()
-  }, [deps])
+    fn()
+  }, deps || [])
 
   useInterval(async () => {
-    fetch()
+    fn()
   }, interval)
 
   return resultRef.current

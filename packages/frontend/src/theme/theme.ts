@@ -41,7 +41,7 @@ export const palette = {
     contrastText: 'white',
   },
   background: {
-    default: '#F0F0F3',
+    default: '#FDF7F9',
     paper: '#F0F0F3',
   },
   action: {

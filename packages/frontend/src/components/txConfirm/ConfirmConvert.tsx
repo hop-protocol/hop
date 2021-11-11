@@ -43,7 +43,6 @@ const ConfirmConvert = (props: Props) => {
     } catch (err) {
       logger.error(err)
     }
-    setSending(false)
   }
 
   return (

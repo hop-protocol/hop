@@ -51,7 +51,6 @@ const Approval = (props: Props) => {
     } catch (err) {
       logger.error(err)
     }
-    setSending(false)
   }
 
   const handleApproveAll = (event: ChangeEvent<HTMLInputElement>) => {

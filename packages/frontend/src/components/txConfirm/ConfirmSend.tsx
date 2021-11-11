@@ -54,7 +54,6 @@ const ConfirmSend = (props: Props) => {
     } catch (err) {
       logger.error(err)
     }
-    // setSending(false)
   }
 
   let warning = ''

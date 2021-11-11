@@ -20,7 +20,7 @@ function usePollValue<T>(
     }
 
     fn()
-  }, deps)
+  }, deps || [])
 
   useInterval(async () => {
     fn()

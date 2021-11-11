@@ -99,7 +99,7 @@ const StakeWidget: FC<Props> = props => {
       const _ern = await stakingRewards?.earned(address.toString())
       return _ern
     },
-    5e3,
+    5 * 1000,
     [stakingRewards, address]
   )
 

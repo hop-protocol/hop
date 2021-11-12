@@ -4,8 +4,8 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Checkbox from '@material-ui/core/Checkbox'
-import logger from 'src/logger'
 import { commafy } from 'src/utils'
+import { useSendingTransaction } from './useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -40,18 +40,10 @@ interface Props {
 const Approval = (props: Props) => {
   const { amount, tokenSymbol, onConfirm, tagline } = props
   const styles = useStyles()
-  const [sending, setSending] = useState<boolean>(false)
   const [approveAll, setApproveAll] = useState<boolean>(true)
   const showApproveAll = !!amount
 
-  const handleSubmit = async () => {
-    try {
-      setSending(true)
-      onConfirm(true, approveAll)
-    } catch (err) {
-      logger.error(err)
-    }
-  }
+  const { sending, handleSubmit } = useSendingTransaction({ onConfirm })
 
   const handleApproveAll = (event: ChangeEvent<HTMLInputElement>) => {
     const checked = event.target.checked
@@ -88,7 +80,7 @@ const Approval = (props: Props) => {
       <div className={styles.action}>
         <Button
           className={styles.sendButton}
-          onClick={handleSubmit}
+          onClick={() => handleSubmit(approveAll)}
           loading={sending}
           large
           highlighted

@@ -56,7 +56,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796',
         l2SaddleSwap: '0x3c0FFAca566fCcfD9Cc95139FEF6CBA143795963',
         l2SaddleLpToken: '0x2e17b8193566345a2Dd467183526dEdc42d2d5A8',
-        bridgeDeployedBlockNumber: 856160
+        bridgeDeployedBlockNumber: 0
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
@@ -117,7 +117,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F',
         l2SaddleSwap: '0xeC4B41Af04cF917b54AEb6Df58c0f8D78895b5Ef',
         l2SaddleLpToken: '0xF753A50fc755c6622BBCAa0f59F0522f264F006e',
-        bridgeDeployedBlockNumber: 856444
+        bridgeDeployedBlockNumber: 0
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
@@ -215,7 +215,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0xb3C68a491608952Cb1257FC9909a537a0173b63B',
         l2SaddleSwap: '0xF181eD90D6CfaC84B8073FdEA6D34Aa744B41810',
         l2SaddleLpToken: '0x22D63A26c730d49e5Eab461E4f5De1D8BdF89C92',
-        bridgeDeployedBlockNumber: 1746403
+        bridgeDeployedBlockNumber: 0
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
@@ -276,7 +276,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x86cA30bEF97fB651b8d866D45503684b90cb3312',
         l2SaddleSwap: '0xaa30D6bba6285d0585722e2440Ff89E23EF68864',
         l2SaddleLpToken: '0x5C2048094bAaDe483D0b1DA85c3Da6200A88a849',
-        bridgeDeployedBlockNumber: 3153382
+        bridgeDeployedBlockNumber: 0
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
@@ -337,7 +337,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x2A11a98e2fCF4674F30934B5166645fE6CA35F56',
         l2SaddleSwap: '0x46fc3Af3A47792cA3ED06fdF3D657145A675a8D8',
         l2SaddleLpToken: '0x07CE97eb3f375901D26Ec1e32144292318839802',
-        bridgeDeployedBlockNumber: 3564522
+        bridgeDeployedBlockNumber: 0
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',

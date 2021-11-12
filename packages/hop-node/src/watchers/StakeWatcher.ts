@@ -299,6 +299,9 @@ class StakeWatcher extends BaseWatcher {
   }
 
   async getTokenAllowance () {
+    if (this.tokenSymbol === 'ETH') {
+      return constants.MaxUint256
+    }
     const spender = this.bridge.getAddress()
     return await this.token.getAllowance(spender)
   }

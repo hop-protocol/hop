@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.231",
+  "version": "0.0.1-beta.234",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -37,7 +37,7 @@
   "license": "MIT",
   "dependencies": {
     "@ethersproject/abi": "^5.4.0",
-    "@hop-protocol/core": "0.0.1-beta.47",
+    "@hop-protocol/core": "0.0.1-beta.49",
     "@maticnetwork/maticjs": "^2.0.38",
     "dotenv": "^8.2.0",
     "ethereum-block-by-date": "^1.4.2",

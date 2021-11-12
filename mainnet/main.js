@@ -3,7 +3,7 @@
 const poll = true
 const fetchInterval = 20 * 1000
 const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
-const enabledChains = ['ethereum', 'xdai', 'polygon', 'arbitrum']
+const enabledChains = ['ethereum', 'xdai', 'polygon', 'arbitrum', 'optimism']
 
 let queryParams = {}
 try {
@@ -353,7 +353,14 @@ function explorerLinkTx (chain, transactionHash) {
   return `${base}/tx/${transactionHash}`
 }
 
+const subgraphMappings = {
+  optimism: 'optimism1'
+}
+
 function getUrl (chain) {
+  if (subgraphMappings[chain]) {
+    chain = subgraphMappings[chain]
+  }
   return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
 }
 
@@ -633,8 +640,8 @@ async function fetchVolume (chain) {
 async function updateData () {
   Vue.set(app, 'loadingData', true)
   await Promise.all([
-    updateTvl().catch(err => console.error(err)),
-    updateVolume().catch(err => console.error(err)),
+    // updateTvl().catch(err => console.error(err)),
+    // updateVolume().catch(err => console.error(err)),
     updateTransfers().catch(err => console.error(err))
   ])
   Vue.set(app, 'loadingData', false)
@@ -769,13 +776,13 @@ async function updateTransfers () {
   const [
     xdaiTransfers,
     polygonTransfers,
-    // optimismTransfers,
+    optimismTransfers,
     arbitrumTransfers,
     mainnetTransfers
   ] = await Promise.all([
     enabledChains.includes('xdai') ? fetchTransfers('xdai', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('polygon') ? fetchTransfers('polygon', startTime, endTime) : Promise.resolve([]),
-    // enabledChains.includes('optimism') ? fetchTransfers('optimism', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchTransfers('optimism', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('arbitrum') ? fetchTransfers('arbitrum', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('ethereum') ? fetchTransfers('mainnet', startTime, endTime) : Promise.resolve([])
   ])
@@ -804,7 +811,6 @@ async function updateTransfers () {
       token: x.token
     })
   }
-  /*
   for (const x of optimismTransfers) {
     data.push({
       sourceChain: 10,
@@ -817,7 +823,6 @@ async function updateTransfers () {
       token: x.token
     })
   }
-*/
   for (const x of arbitrumTransfers) {
     data.push({
       sourceChain: 42161,
@@ -862,39 +867,39 @@ async function updateTransfers () {
   const [
     xdaiBondedWithdrawals,
     polygonBondedWithdrawals,
-    // optimismBondedWithdrawals,
+    optimismBondedWithdrawals,
     arbitrumBondedWithdrawals,
     mainnetBondedWithdrawals,
 
     xdaiWithdrews,
     polygonWithdrews,
-    // optimismWithdrews,
+    optimismWithdrews,
     arbitrumWithdrews,
     mainnetWithdrews
   ] = await Promise.all([
     enabledChains.includes('xdai') ? fetchBonds('xdai', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('polygon') ? fetchBonds('polygon', startTime, endTime) : Promise.resolve([]),
-    // enabledChains.includes('optimism') ? fetchBonds('optimism', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchBonds('optimism', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('arbitrum') ? fetchBonds('arbitrum', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('ethereum') ? fetchBonds('mainnet', startTime, endTime) : Promise.resolve([]),
 
     enabledChains.includes('xdai') ? fetchWithdrews('xdai', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('polygon') ? fetchWithdrews('polygon', startTime, endTime) : Promise.resolve([]),
-    // enabledChains.includes('optimism') ? fetchWithdrews('optimism', startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchWithdrews('optimism', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('arbitrum') ? fetchWithdrews('arbitrum', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('ethereum') ? fetchWithdrews('mainnet', startTime, endTime) : Promise.resolve([])
   ])
 
   const xdaiBonds = [...xdaiBondedWithdrawals, ...xdaiWithdrews]
   const polygonBonds = [...polygonBondedWithdrawals, ...polygonWithdrews]
-  // const optimismBonds = [...optimismBondedWithdrawals, ...optimismWithdrews]
+  const optimismBonds = [...optimismBondedWithdrawals, ...optimismWithdrews]
   const arbitrumBonds = [...arbitrumBondedWithdrawals, ...arbitrumWithdrews]
   const mainnetBonds = [...mainnetBondedWithdrawals, ...mainnetWithdrews]
 
   const bondsMap = {
     xdai: xdaiBonds,
     polygon: polygonBonds,
-    // optimism: optimismBonds,
+    optimism: optimismBonds,
     arbitrum: arbitrumBonds,
     ethereum: mainnetBonds
   }

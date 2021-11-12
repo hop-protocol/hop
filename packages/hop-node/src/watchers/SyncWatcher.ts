@@ -652,6 +652,30 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer it, transferId: ${transferId}`)
     }
 
+    // Filter old transfers from before Optimism regenesis
+    const skipTransfers: string[] = [
+      '0xb892e1a324dd0a550f9cc392f5b4cb6b16e091fd5a6124ff6cde14e2ebc4f652',
+      '0x1878084f881676ca5ec4e50a7b2a9a99e32349c6ca825357c3e3ac350cddb1f1',
+      '0x3bc50e322e6b60cab24dfd15c2d224cbaf9d2d6c230c32d9ec9ab25f9fc2a65c',
+      '0x169e4f5c9e54f360a8f5123dbd5d5aea9df1cc3d25c16ceb6cc7661e3a57ed53',
+      '0xc25f176eeb34f40d401905c82babb0666375e076095598ddbd1d69e5be66696e',
+      '0x23ee642f2f61599ce005ef7c9eb2f7df884e87df2f03fcb6bd42b054d4e30fe7',
+      '0xb0a0cd11ea3aebb4db73dfd5be0978e379b3b4a5329a901e153dce0472407ca8',
+      '0x0bf1d20b89552ea1734fa81731c5d6f22fb88d3ef00ede5aed5b0abcc81d5632',
+      '0xd256d5506ecba8af6026521a599f22ca62c356627d5eda171c4cacff246cb881',
+      '0xe594cae78b79c6e2864afeb4c5cc36310e00fcec1abb0931801f3eabcda4b8b8',
+      '0x21524e577c812c34ea4f10bc3d1a3143182ab12059fd30f54bc2fc4669700201',
+      '0x70874af0612759a0eaaec2d50e8b09b4d138a1b3aa1e612583de649af8f9bf1a',
+      '0x0310840bd6e2b4640b838aa11fd0197ed8becdab15300379219d3783848f5174',
+      '0x35e3c87c77ff63f350b5a2f5f661796e203e939f8ab070e9833e1e568869b2e0',
+      '0x936d481834e26dffb1757b6cf8de024bccc7fa6caef7e3dbe3618387c96639a7',
+      '0xd799fb93f8894985e2d9f0fb782d2388ca09ec70e5cde256b21a506696f7bee0',
+      '0x7103275350d3774aa0f6db2c0fc5dbc83d322b05bcf75216169aa58cfd491aad',
+    ]
+    if (skipTransfers.includes(transferId)) {
+      return
+    }
+
     await this.populateTransferSentEvent(transferId)
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferWithdrawalBonder(transferId)

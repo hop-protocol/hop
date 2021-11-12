@@ -1,6 +1,6 @@
 import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
 import Token from './Token'
-import erc20Abi from '@hop-protocol/core/abi/static/ArbERC20.json'
+import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.json'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'

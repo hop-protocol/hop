@@ -172,7 +172,7 @@ export const config: Config = {
     },
     [Chain.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 1000
     },
     [Chain.xDai]: {
       totalBlocks: TotalBlocks.xDai,

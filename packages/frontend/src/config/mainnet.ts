@@ -46,7 +46,6 @@ export const networks: Networks = {
     nativeBridgeUrl: _networks.arbitrum.nativeBridgeUrl,
     waitConfirmations: _networks.arbitrum.waitConfirmations,
   },
-  /*
   optimism: {
     networkId: _networks.optimism.networkId.toString(),
     rpcUrls: _networks.optimism.rpcUrls,
@@ -55,7 +54,6 @@ export const networks: Networks = {
     nativeBridgeUrl: _networks.optimism.nativeBridgeUrl,
     waitConfirmations: _networks.optimism.waitConfirmations,
   },
-  */
   xdai: {
     networkId: _networks.xdai.networkId.toString(),
     rpcUrls: _networks.xdai.rpcUrls,

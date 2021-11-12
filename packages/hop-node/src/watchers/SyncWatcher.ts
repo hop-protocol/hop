@@ -39,11 +39,14 @@ export type Config = {
   syncFromDate?: string
   s3Upload?: boolean
   s3Namespace?: string
+  gasCostPollEnabled?: boolean
 }
 
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000
+  gasCostPollMs: number = 60 * 1000
+  gasCostPollEnabled: boolean = false
   syncIndex: number = 0
   syncFromDate: string
   customStartBlockNumber: number
@@ -72,6 +75,9 @@ class SyncWatcher extends BaseWatcher {
         bucket: 'assets.hop.exchange',
         key: `${config.s3Namespace ?? globalConfig.network}/v1-available-liquidity.json`
       })
+    }
+    if (typeof config.gasCostPollEnabled === 'boolean') {
+      this.gasCostPollEnabled = config.gasCostPollEnabled
     }
     this.init()
       .catch(err => {
@@ -356,7 +362,6 @@ class SyncWatcher extends BaseWatcher {
       amount,
       transferNonce,
       bonderFee,
-      index,
       amountOutMin,
       deadline
     } = event.args
@@ -462,10 +467,7 @@ class SyncWatcher extends BaseWatcher {
 
   async handleTransferRootConfirmedEvent (event: TransferRootConfirmedEvent) {
     const {
-      originChainId: sourceChainId,
-      destinationChainId,
-      rootHash: transferRootHash,
-      totalAmount
+      rootHash: transferRootHash
     } = event.args
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling TransferRootConfirmed event')
@@ -1405,6 +1407,9 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async pollGasCost () {
+    if (!this.gasCostPollEnabled) {
+      return
+    }
     const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
@@ -1472,7 +1477,7 @@ class SyncWatcher extends BaseWatcher {
       } catch (err) {
         this.logger.error(`pollGasCost error: ${err.message}`)
       }
-      await wait(30 * 1000)
+      await wait(this.gasCostPollMs)
     }
   }
 

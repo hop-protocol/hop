@@ -663,6 +663,15 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer root item, transferRootHash: ${transferRootHash}`)
     }
 
+    // Filter old transferRoots from before Optimism regenesis
+    const skipRoots: string[] = [
+      '0x063d5d24ca64f0c662b3f3339990ef6550eb4a5dee7925448d85b712dd38b9e5',
+      '0x4c131e7af19d7dd1bc8ffe8e937ff8fcdb99bb1f09cc2e041f031e8c48d4d275'
+    ]
+    if (skipRoots.includes(transferRootHash)) {
+      return
+    }
+
     await this.populateTransferRootCommittedEvent(transferRootHash)
     await this.populateTransferRootCommittedAt(transferRootHash)
     await this.populateTransferRootBondedAt(transferRootHash)

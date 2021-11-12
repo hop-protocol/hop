@@ -2529,22 +2529,22 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@hop-protocol/core@0.0.1-beta.44":
-  version "0.0.1-beta.44"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.44.tgz#2b48088325269caf361b45a1ca51d9e181f9edc7"
-  integrity sha512-S9vFAvIdq+93mY1urxyTPvcAZMELueqmnN7r8jBbQtH8psJl6fo4cykdIRlMGslcyY9uhTdJn+1Ni0/rHTAyAw==
+"@hop-protocol/core@0.0.1-beta.47":
+  version "0.0.1-beta.47"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.47.tgz#18ac12028d31cde9d0812c04c16a7cf6f0515ff9"
+  integrity sha512-4h8n1gVZjwj4W8Pd+RX2YGlA/rFR8cPt/NF9Gq76C+qo89+zwlgirNEK2UlJrcclvV6LtzwKMiGL4rdviybNNA==
   dependencies:
     deepmerge "^4.2.2"
     eslint-plugin-json "^3.1.0"
-    ethers "^5.4.7"
+    ethers "^5.5.1"
 
-"@hop-protocol/sdk@0.0.1-beta.221":
-  version "0.0.1-beta.221"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.221.tgz#f0a05cbab412e3376c7a9a926b7f7804b9231306"
-  integrity sha512-OINtZNH15YLoPU43Y6to2lsVp0JAjeM/1R9SEAQHUi5af3mI4Fh/gXgB8YT+IxRvqHNZ847g6SGVTPAqgVr6Rg==
+"@hop-protocol/sdk@0.0.1-beta.228":
+  version "0.0.1-beta.228"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.228.tgz#5b572e3da56336f350c0b439f667b0411f459efe"
+  integrity sha512-BS4ycAoAHk6uwent0t4cPpM/pnQB+Fefjc/CBzXKHEMngGRcvOPBph5aL2YaCgZROHNf2EcFhCDnqaU8nyNj6Q==
   dependencies:
     "@ethersproject/abi" "^5.4.0"
-    "@hop-protocol/core" "0.0.1-beta.44"
+    "@hop-protocol/core" "0.0.1-beta.47"
     "@maticnetwork/maticjs" "^2.0.38"
     dotenv "^8.2.0"
     ethereum-block-by-date "^1.4.2"

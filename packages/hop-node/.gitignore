@@ -10,3 +10,4 @@ src/scripts
 *.dump
 *.log
 .build-info.json
+provider_calls.json

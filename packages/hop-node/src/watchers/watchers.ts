@@ -206,6 +206,8 @@ export async function getWatchers (config: GetWatchersConfig) {
   }
 
   const syncWatchers = getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    const gasCostPollEnabled = enabledWatchers.includes(Watchers.BondWithdrawal)
+
     return new SyncWatcher({
       chainSlug: network,
       tokenSymbol: token,
@@ -214,7 +216,8 @@ export async function getWatchers (config: GetWatchersConfig) {
       bridgeContract,
       syncFromDate,
       s3Upload,
-      s3Namespace
+      s3Namespace,
+      gasCostPollEnabled
     })
   })
 

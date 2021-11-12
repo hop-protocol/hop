@@ -3,7 +3,7 @@
 const poll = true
 const fetchInterval = 20 * 1000
 const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
-const enabledChains = ['ethereum', 'xdai', 'polygon', 'optimism', 'arbitrum']
+const enabledChains = ['ethereum', 'xdai', 'polygon', 'arbitrum']
 
 let queryParams = {}
 try {
@@ -370,6 +370,9 @@ async function queryFetch (url, query, variables) {
     })
   })
   const jsonRes = await res.json()
+  if (jsonRes.errors) {
+    throw new Error(jsonRes.errors[0].message)
+  }
   return jsonRes.data
 }
 
@@ -671,23 +674,24 @@ async function updateTvl () {
   const [
     xdaiTvl,
     polygonTvl,
-    optimismTvl,
+    // optimismTvl,
     arbitrumTvl,
     mainnetTvl
   ] = await Promise.all([
     fetchTvl('xdai'),
     fetchTvl('polygon'),
-    fetchTvl('optimism'),
+    // fetchTvl('optimism'),
     fetchTvl('arbitrum'),
     fetchTvl('mainnet')
   ])
 
   const xdai = formatTvl(xdaiTvl)
   const polygon = formatTvl(polygonTvl)
-  const optimism = formatTvl(optimismTvl)
+  // const optimism = formatTvl(optimismTvl)
   const arbitrum = formatTvl(arbitrumTvl)
   const ethereum = formatTvl(mainnetTvl)
-  const totalAmount = xdai.amount + polygon.amount + optimism.amount + arbitrum.amount + ethereum.amount
+  // const totalAmount = xdai.amount + polygon.amount + optimism.amount + arbitrum.amount + ethereum.amount
+  const totalAmount = xdai.amount + polygon.amount + arbitrum.amount + ethereum.amount
   const total = {
     amount: totalAmount,
     formattedAmount: formatCurrency(totalAmount)
@@ -696,7 +700,7 @@ async function updateTvl () {
   const tvl = {
     xdai,
     polygon,
-    optimism,
+    // optimism,
     arbitrum,
     ethereum,
     total
@@ -715,24 +719,25 @@ async function updateVolume () {
   const [
     xdaiVolume,
     polygonVolume,
-    optimismVolume,
+    // optimismVolume,
     arbitrumVolume,
     mainnetVolume
   ] = await Promise.all([
     fetchVolume('xdai'),
     fetchVolume('polygon'),
-    fetchVolume('optimism'),
+    // fetchVolume('optimism'),
     fetchVolume('arbitrum'),
     fetchVolume('mainnet')
   ])
 
   const xdai = formatVolume(xdaiVolume)
   const polygon = formatVolume(polygonVolume)
-  const optimism = formatVolume(optimismVolume)
+  // const optimism = formatVolume(optimismVolume)
   const arbitrum = formatVolume(arbitrumVolume)
   const ethereum = formatVolume(mainnetVolume)
 
-  const totalAmount = xdai.amount + polygon.amount + optimism.amount + arbitrum.amount + ethereum.amount
+  // const totalAmount = xdai.amount + polygon.amount + optimism.amount + arbitrum.amount + ethereum.amount
+  const totalAmount = xdai.amount + polygon.amount + arbitrum.amount + ethereum.amount
   const total = {
     amount: totalAmount,
     formattedAmount: formatCurrency(totalAmount)
@@ -741,7 +746,7 @@ async function updateVolume () {
   const volume = {
     xdai,
     polygon,
-    optimism,
+    // optimism,
     arbitrum,
     ethereum,
     total
@@ -764,13 +769,13 @@ async function updateTransfers () {
   const [
     xdaiTransfers,
     polygonTransfers,
-    optimismTransfers,
+    // optimismTransfers,
     arbitrumTransfers,
     mainnetTransfers
   ] = await Promise.all([
     enabledChains.includes('xdai') ? fetchTransfers('xdai', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('polygon') ? fetchTransfers('polygon', startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes('optimism') ? fetchTransfers('optimism', startTime, endTime) : Promise.resolve([]),
+    // enabledChains.includes('optimism') ? fetchTransfers('optimism', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('arbitrum') ? fetchTransfers('arbitrum', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('ethereum') ? fetchTransfers('mainnet', startTime, endTime) : Promise.resolve([])
   ])
@@ -799,6 +804,7 @@ async function updateTransfers () {
       token: x.token
     })
   }
+  /*
   for (const x of optimismTransfers) {
     data.push({
       sourceChain: 10,
@@ -811,6 +817,7 @@ async function updateTransfers () {
       token: x.token
     })
   }
+*/
   for (const x of arbitrumTransfers) {
     data.push({
       sourceChain: 42161,
@@ -855,39 +862,39 @@ async function updateTransfers () {
   const [
     xdaiBondedWithdrawals,
     polygonBondedWithdrawals,
-    optimismBondedWithdrawals,
+    // optimismBondedWithdrawals,
     arbitrumBondedWithdrawals,
     mainnetBondedWithdrawals,
 
     xdaiWithdrews,
     polygonWithdrews,
-    optimismWithdrews,
+    // optimismWithdrews,
     arbitrumWithdrews,
     mainnetWithdrews
   ] = await Promise.all([
     enabledChains.includes('xdai') ? fetchBonds('xdai', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('polygon') ? fetchBonds('polygon', startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes('optimism') ? fetchBonds('optimism', startTime, endTime) : Promise.resolve([]),
+    // enabledChains.includes('optimism') ? fetchBonds('optimism', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('arbitrum') ? fetchBonds('arbitrum', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('ethereum') ? fetchBonds('mainnet', startTime, endTime) : Promise.resolve([]),
 
     enabledChains.includes('xdai') ? fetchWithdrews('xdai', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('polygon') ? fetchWithdrews('polygon', startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes('optimism') ? fetchWithdrews('optimism', startTime, endTime) : Promise.resolve([]),
+    // enabledChains.includes('optimism') ? fetchWithdrews('optimism', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('arbitrum') ? fetchWithdrews('arbitrum', startTime, endTime) : Promise.resolve([]),
     enabledChains.includes('ethereum') ? fetchWithdrews('mainnet', startTime, endTime) : Promise.resolve([])
   ])
 
   const xdaiBonds = [...xdaiBondedWithdrawals, ...xdaiWithdrews]
   const polygonBonds = [...polygonBondedWithdrawals, ...polygonWithdrews]
-  const optimismBonds = [...optimismBondedWithdrawals, ...optimismWithdrews]
+  // const optimismBonds = [...optimismBondedWithdrawals, ...optimismWithdrews]
   const arbitrumBonds = [...arbitrumBondedWithdrawals, ...arbitrumWithdrews]
   const mainnetBonds = [...mainnetBondedWithdrawals, ...mainnetWithdrews]
 
   const bondsMap = {
     xdai: xdaiBonds,
     polygon: polygonBonds,
-    optimism: optimismBonds,
+    // optimism: optimismBonds,
     arbitrum: arbitrumBonds,
     ethereum: mainnetBonds
   }

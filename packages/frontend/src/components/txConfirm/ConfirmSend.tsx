@@ -75,7 +75,6 @@ const ConfirmSend = (props: Props) => {
           className={styles.sendButton}
           onClick={handleSubmit}
           loading={sending}
-          disabled={sending}
           large
           highlighted
         >

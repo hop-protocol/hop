@@ -45,6 +45,10 @@ program
       }
 
       const { transferRootHash } = transfer
+      if (!transferRootHash) {
+        throw new Error('no transfer root hash found for transfer Id. Has the transferId been committed (pendingTransferIdsForChainId)?')
+      }
+
       const transferRoot = await getTransferRoot(
         chain,
         token,
@@ -52,7 +56,7 @@ program
       )
 
       if (!transferRoot) {
-        throw new Error('transfer root hash')
+        throw new Error('no transfer root item found for transfer Id')
       }
 
       const rootTotalAmount = transferRoot.totalAmount.toString()

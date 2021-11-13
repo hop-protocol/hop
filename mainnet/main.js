@@ -353,14 +353,7 @@ function explorerLinkTx (chain, transactionHash) {
   return `${base}/tx/${transactionHash}`
 }
 
-const subgraphMappings = {
-  optimism: 'optimism1'
-}
-
 function getUrl (chain) {
-  if (subgraphMappings[chain]) {
-    chain = subgraphMappings[chain]
-  }
   return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
 }
 

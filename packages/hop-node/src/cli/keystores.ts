@@ -76,19 +76,34 @@ Press [Enter] when you have written down your mnemonic.`
 
         clearConsole()
         if (mnemonic) {
-          let { mnemonicConfirm } = await prompt.get({
-            properties: {
-              mnemonicConfirm: {
-                message:
-                  'Please type mnemonic (separated by spaces) to confirm you have written it down\n\n:'
+          let mnemonicConfirmed = false
+          while (!mnemonicConfirmed) {
+            let { mnemonicConfirm } = await prompt.get({
+              properties: {
+                mnemonicConfirm: {
+                  message:
+                    'Please type mnemonic (separated by spaces) to confirm you have written it down\n\n:'
+                }
               }
-            }
-          } as any)
+            } as any)
 
-          clearConsole()
-          mnemonicConfirm = (mnemonicConfirm as string).trim()
-          if (mnemonicConfirm !== mnemonic) {
-            throw new Error('ERROR: mnemonic entered is incorrect')
+            clearConsole()
+            mnemonicConfirm = (mnemonicConfirm as string).trim()
+            if (mnemonicConfirm === mnemonic) {
+              mnemonicConfirmed = true
+            } else {
+              await prompt.get({
+                properties: {
+                  blank: {
+                    message: `
+The seed phrase you entered was incorrect.
+
+Press [Enter] to try again.`
+                  }
+                }
+              } as any)
+              clearConsole()
+            }
           }
         }
 

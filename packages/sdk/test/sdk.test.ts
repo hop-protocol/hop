@@ -432,8 +432,8 @@ describe('custom chain providers', () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
     let provider = bridge.getChainProvider('polygon')
-    const currentUrl = 'https://polygon.rpc.hop.exchange'
-    const newUrl = 'https://polygon-rpc.com/'
+    const currentUrl = 'https://polygon-rpc.com'
+    const newUrl = 'https://polygon-rpc2.com'
     expect((provider as any).connection.url).toBe(currentUrl)
     const newProvider = new providers.StaticJsonRpcProvider(newUrl)
     sdk.setChainProvider('polygon', newProvider)
@@ -445,10 +445,10 @@ describe('custom chain providers', () => {
     const bridge = sdk.bridge('USDC')
     let polygonProvider = bridge.getChainProvider('polygon')
     let xDaiProvider = bridge.getChainProvider('xdai')
-    const currentPolygonUrl = 'https://polygon.rpc.hop.exchange'
-    const currentxDaiUrl = 'https://xdai.rpc.hop.exchange'
-    const newPolygonUrl = 'https://polygon-rpc.com/'
-    const newxDaiUrl = 'https://rpc.xdaichain.com/'
+    const currentPolygonUrl = 'https://polygon-rpc.com'
+    const currentxDaiUrl = 'https://rpc.xdaichain.com'
+    const newPolygonUrl = 'https://polygon-rpc2.com'
+    const newxDaiUrl = 'https://rpc.xdaichain2.com'
     expect((polygonProvider as any).connection.url).toBe(currentPolygonUrl)
     expect((xDaiProvider as any).connection.url).toBe(currentxDaiUrl)
     sdk.setChainProviders({

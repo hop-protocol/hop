@@ -13,11 +13,10 @@ const getProviderChainSlug = (provider: any): Chain | undefined => {
     return cache[providerUrl]
   }
   for (const chain in globalConfig.networks) {
-    for (const url of globalConfig.networks[chain].rpcUrls) {
-      if (new URL(providerUrl).host === new URL(url).host) {
-        cache[providerUrl] = chain
-        return chain as Chain
-      }
+    const url = globalConfig.networks[chain].rpcUrl
+    if (new URL(providerUrl).host === new URL(url).host) {
+      cache[providerUrl] = chain
+      return chain as Chain
     }
   }
 }

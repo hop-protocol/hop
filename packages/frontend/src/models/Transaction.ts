@@ -11,13 +11,15 @@ import {
   fetchTransferFromL1Completeds,
   fetchWithdrawalBondedsByTransferId,
   L1Transfer,
+  networkIdToSlug,
 } from 'src/utils'
 import { network as defaultNetwork } from 'src/config'
 import logger from 'src/logger'
 import { formatError } from 'src/utils/format'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
+import { sigHashes } from 'src/hooks/useTransaction'
 
-interface Config {
+interface ContructorArgs {
   hash: string
   networkName: string
   destNetworkName?: string | null
@@ -25,6 +27,7 @@ interface Config {
   pending?: boolean
   token?: Token
   timestamp?: number
+  blockNumber?: number
   transferId?: string | null
   pendingDestinationConfirmation?: boolean
   destTxHash?: string
@@ -34,87 +37,72 @@ interface Config {
 class Transaction extends EventEmitter {
   readonly hash: string
   readonly networkName: string
-  readonly destNetworkName: string | null = null
+  destNetworkName: string | null = null
   readonly isCanonicalTransfer: boolean = false
   readonly provider: ethers.providers.Provider
-  readonly destProvider: ethers.providers.Provider | null = null
+  destProvider: ethers.providers.Provider | null = null
   pending: boolean = true
   token: Token | null = null
   timestamp: number
+  blockNumber?: number
   status: null | boolean = null
   transferId: string | null = null
   pendingDestinationConfirmation: boolean = true
-  destTxHash?: string
+  destTxHash: string = ''
   replaced: boolean | string = false
+  methodName: string = ''
 
   constructor({
     hash,
     networkName,
-    destNetworkName,
+    destNetworkName = null,
     isCanonicalTransfer,
     pending = true,
     token,
     timestamp,
-    transferId,
+    transferId = null,
     pendingDestinationConfirmation = true,
-    destTxHash,
+    destTxHash = '',
     replaced = false,
-  }: Config) {
+  }: ContructorArgs) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
     this.networkName = (networkName || defaultNetwork).trim().toLowerCase()
-    let rpcUrl = ''
-    if (networkName.startsWith('arbitrum')) {
-      rpcUrl = getRpcUrl('arbitrum')
-    } else if (networkName.startsWith('optimism')) {
-      rpcUrl = getRpcUrl('optimism')
-    } else if (networkName.startsWith('xdai')) {
-      rpcUrl = getRpcUrl('xdai')
-    } else if (networkName.startsWith('matic') || networkName.startsWith('polygon')) {
-      rpcUrl = getRpcUrl('polygon')
-    } else {
-      rpcUrl = getRpcUrl(L1_NETWORK)
-    }
+    const rpcUrl = this.getRpcUrl(networkName)
 
+    // TODO: not sure if changing pendingDestinationConfirmation will have big effects
     if (destNetworkName) {
       this.destNetworkName = destNetworkName
       this.pendingDestinationConfirmation = pendingDestinationConfirmation
 
-      let destRpcUrl = ''
-      if (destNetworkName.startsWith('arbitrum')) {
-        destRpcUrl = getRpcUrl('arbitrum')
-      } else if (destNetworkName.startsWith('optimism')) {
-        destRpcUrl = getRpcUrl('optimism')
-      } else if (destNetworkName.startsWith('xdai')) {
-        destRpcUrl = getRpcUrl('xdai')
-      } else if (destNetworkName.startsWith('matic') || destNetworkName.startsWith('polygon')) {
-        destRpcUrl = getRpcUrl('polygon')
-      } else {
-        destRpcUrl = getRpcUrl(L1_NETWORK)
-      }
-
+      const destRpcUrl = this.getRpcUrl(destNetworkName)
       this.destProvider = getProvider(destRpcUrl)
     }
 
-    // TODO: cleanup
     this.provider = getProvider(rpcUrl)
     this.timestamp = timestamp || Date.now()
     this.pending = pending
-    if (destTxHash) {
-      this.destTxHash = destTxHash
-    }
-    if (token) {
-      this.token = token
-    }
-    if (transferId) {
-      this.transferId = transferId
-    }
-    if (replaced) {
-      this.replaced = replaced
-    }
+    this.transferId = transferId
+    this.replaced = replaced
+    this.destTxHash = destTxHash
+    this.token = token || null
 
-    this.receipt().then((receipt: providers.TransactionReceipt) => {
+    this.getTransaction().then((txResponse: providers.TransactionResponse) => {
+      const funcSig = txResponse.data.slice(0, 10)
+      this.methodName = sigHashes[funcSig]
+    })
+
+    this.receipt().then(async (receipt: providers.TransactionReceipt) => {
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
+      this.blockNumber = receipt.blockNumber
+      const block = await this.provider.getBlock(receipt.blockNumber)
+      this.timestamp = block.timestamp
+
+      if (tsDetails?.chainId) {
+        this.destNetworkName = networkIdToSlug(tsDetails.chainId)
+        const destRpcUrl = this.getRpcUrl(this.destNetworkName)
+        this.destProvider = getProvider(destRpcUrl)
+      }
 
       // Source: L2
       if (tsDetails?.transferId) {
@@ -130,6 +118,53 @@ class Transaction extends EventEmitter {
     })
     if (typeof isCanonicalTransfer === 'boolean') {
       this.isCanonicalTransfer = isCanonicalTransfer
+    }
+  }
+
+  getRpcUrl(networkName): string {
+    let rpcUrl = ''
+    if (networkName.startsWith('arbitrum')) {
+      rpcUrl = getRpcUrl('arbitrum')
+    } else if (networkName.startsWith('optimism')) {
+      rpcUrl = getRpcUrl('optimism')
+    } else if (networkName.startsWith('xdai')) {
+      rpcUrl = getRpcUrl('xdai')
+    } else if (networkName.startsWith('matic') || networkName.startsWith('polygon')) {
+      rpcUrl = getRpcUrl('polygon')
+    } else {
+      rpcUrl = getRpcUrl(L1_NETWORK)
+    }
+    return rpcUrl
+  }
+
+  getExplorerLink(srcOrDest: 'source' | 'destination'): string {
+    let networkName = this.networkName
+    let optionalHash: string | undefined
+
+    const isDestNetwork = srcOrDest === 'destination'
+    if (isDestNetwork) {
+      if (!this.destTxHash) return ''
+
+      optionalHash = this.destTxHash
+      if (this.destNetworkName) {
+        networkName = this.destNetworkName
+      }
+    }
+
+    if (networkName.startsWith('ethereum')) {
+      // TODO: maybe not necessary??
+      if (isDestNetwork) return this._etherscanLink('ethereum', optionalHash)
+      return this._etherscanLink(optionalHash)
+    } else if (networkName.startsWith('arbitrum')) {
+      return this._arbitrumLink(optionalHash)
+    } else if (networkName.startsWith('optimism')) {
+      return this._optimismLink(optionalHash)
+    } else if (networkName.startsWith('xdai')) {
+      return this._xdaiLink(optionalHash)
+    } else if (networkName.startsWith('polygon')) {
+      return this._polygonLink(optionalHash)
+    } else {
+      return ''
     }
   }
 

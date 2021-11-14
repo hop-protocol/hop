@@ -58,3 +58,7 @@ export function amountToBN(amount: string, decimals: number = 18) {
   const fixedAmount = fixedDecimals(amount, decimals)
   return utils.parseUnits(fixedAmount || '0', decimals)
 }
+
+export function truncateHash(hash) {
+  return `${hash.substring(0, 6)}…${hash.substring(62, 66)}`
+}

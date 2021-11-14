@@ -17,7 +17,7 @@ const useQueryParams = () => {
     })
   }
 
-  return { queryParams, updateQueryParams }
+  return { queryParams, updateQueryParams, location }
 }
 
 export default useQueryParams

@@ -3,6 +3,54 @@ import find from 'lodash/find'
 import { eventTopics } from '@hop-protocol/sdk'
 import { EventNames } from 'src/constants'
 import { isSameAddress } from './addresses'
+import isBoolean from 'lodash/isBoolean'
+
+// Convert BNs, booleans -> strings
+function parseString(name: string, argValue: any) {
+  if (BigNumber.isBigNumber(argValue) || isBoolean(argValue)) {
+    return argValue.toString()
+  }
+
+  return argValue
+}
+
+// List of Wei args to convert (to Eth)
+const weiArgsToConvert = ['amount', 'amountOutMin', 'bonderFee']
+
+export function formatArgValues(arg, value) {
+  // Convert to string
+  value = parseString(arg, value)
+
+  // Convert Wei -> Eth
+  if (weiArgsToConvert.includes(arg)) {
+    value = utils.formatEther(value)
+  }
+
+  return value
+}
+
+// Filter and format event args
+export function formatLogArgs(args) {
+  const formatted = Object.keys(args).reduce((acc, arg) => {
+    // Filter numerical keys
+    if (Number.isInteger(parseInt(arg))) {
+      return acc
+    }
+
+    // Format all event args -> string
+    const argValue = formatArgValues(arg, args[arg])
+
+    return {
+      ...acc,
+      [arg]: argValue,
+    }
+  }, {})
+  return formatted
+}
+
+export function getLastLog(logs: any[]) {
+  return logs[logs.length - 1]
+}
 
 export function findTransferSentLog(logs: providers.Log[]) {
   return find(logs, log => log.topics[0] === eventTopics.transferSentTopic)

@@ -29,18 +29,63 @@ async function queryFetch(url, query, variables?: any) {
   }
 }
 
+export interface L2Transfer {
+  token: string
+  amount: string
+  timestamp: string
+  deadline: string
+  transferId: string
+}
+
 export interface L1Transfer {
   timestamp: string
   token: string
   transactionHash: string
 }
 
-function normalizeBN(str: BigNumberish) {
+export function normalizeBN(str: BigNumberish) {
   if (typeof str === 'string') {
     return str
   }
 
   return str.toString()
+}
+
+export async function fetchTransferSents(
+  chain,
+  recipient: string,
+  txHash: string
+): Promise<L2Transfer[]> {
+  recipient = recipient.toLowerCase()
+  txHash = txHash.toLowerCase()
+
+  const query = `
+    {
+      transferSents(
+        where: {
+          recipient: "${recipient}",
+          transactionHash: "${txHash}",
+        }
+      ) {
+        amount
+        amountOutMin
+        blockNumber
+        bonderFee
+        deadline
+        destinationChainId
+        index
+        timestamp
+        token
+        transferId
+        transferNonce
+      }
+    }
+  `
+
+  const url = getUrl(chain)
+  const data = await queryFetch(url, query)
+
+  return data?.transferSents
 }
 
 export async function fetchTransferFromL1Completeds(

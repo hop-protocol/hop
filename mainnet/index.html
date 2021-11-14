@@ -163,7 +163,7 @@
           <table>
             <thead>
               <tr>
-                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Amount</th><th>Token</th><th>Bonder Fee</th><th>Bonded</th><th>Bonded Date</th><th>Bonded Within</th><th>Bonder</th>
+                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Transfer Tx</th><th>Amount</th><th>Token</th><th>Bonder Fee</th><th>Bonded</th><th>Bonded Tx</th><th>Bonded Date</th><th>Bonded Within</th><th>Bonder</th>
               </tr>
             </thead>
             <tbody>
@@ -185,6 +185,12 @@
                     {{ x.transferIdTruncated }}
                   </a>
                 </td>
+                <td class="transferTx">
+                  <a class="clipboard" :data-clipboard-text="x.transactionHash" title="Copy transaction hash to clipboard" onclick="this.innerText='✅';setTimeout(()=>this.innerText='📋',1000)">📋</a>
+                  <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank" :title="`View on block explorer - ${x.transactionHash}`">
+                    {{ x.transactionHashTruncated }}
+                  </a>
+                </td>
                 <td class="amount" :title="x.amount">{{ x.displayAmount }}</td>
                 <td class="token">
                   <img :src="x.tokenImageUrl" :alt="x.token">
@@ -199,6 +205,17 @@
                   <span v-if="!x.bondTxExplorerUrl && x.sourceChain !== 1" :class="`${x.bonded ? 'yes' : 'no'}`">
                     <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
                     Pending
+                  </span>
+                  <span class="na" v-if="x.sourceChain === 1">
+                    <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
+                  </span>
+                </td>
+                <td class="bondTx">
+                  <span v-if="x.bondTransactionHash">
+                    <a class="clipboard" :data-clipboard-text="x.bondTransactionHash" title="Copy transaction hash to clipboard" onclick="this.innerText='✅';setTimeout(()=>this.innerText='📋',1000)">📋</a>
+                    <a :class="x.destinationChainSlug" :href="x.bondTxExplorerUrl" target="_blank" :title="`View on block explorer - ${x.bondTransactionHash}`">
+                      {{ x.bondTransactionHashTruncated }}
+                    </a>
                   </span>
                   <span class="na" v-if="x.sourceChain === 1">
                     <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>

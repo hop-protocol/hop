@@ -945,6 +945,8 @@ async function updateTransfers () {
 }
 
 function populateTransfer (x, i) {
+  x.transactionHashTruncated = truncateHash(x.transactionHash)
+
   const transferTime = luxon.DateTime.fromSeconds(x.timestamp)
   x.transferIdTruncated = truncateHash(x.transferId)
   x.isoTimestamp = transferTime.toISO()
@@ -963,6 +965,7 @@ function populateTransfer (x, i) {
   x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLinkTx(x.destinationChainSlug, x.bondTransactionHash) : ''
   x.bonderTruncated = truncateAddress(x.bonder)
   x.bonderUrl = x.bonder ? explorerLinkAddress(x.destinationChainSlug, x.bonder) : ''
+  x.bondTransactionHashTruncated = x.bondTransactionHash ? truncateHash(x.bondTransactionHash) : ''
 
   if (x.bondedTimestamp) {
     const bondedTime = luxon.DateTime.fromSeconds(x.bondedTimestamp)

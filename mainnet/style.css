@@ -105,7 +105,7 @@ table {
   background: #161a1ca8;
   padding: 2rem;
   border-radius: 10px;
-  min-width: 1500px;
+  min-width: 1850px;
 }
 thead {
   text-align: left;
@@ -162,12 +162,16 @@ table img {
   text-overflow: ellipsis;
   word-break: break-word;
 }
-.transferId .clipboard {
+.transferId .clipboard,
+.transferTx .clipboard,
+.bondTx .clipboard {
   display: inline-block;
   opacity: 0.2;
   filter: grayscale(1);
 }
-.transferId:hover .clipboard {
+.transferId:hover .clipboard,
+.transferTx:hover .clipboard,
+.bondTx:hover .clipboard {
   opacity: 1;
   filter: grayscale(0);
 }

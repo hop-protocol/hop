@@ -209,24 +209,29 @@ table img {
   margin-top: 1rem;
 }
 .filters {
+  width: 100%;
+  display: flex;
+  flex-flow: row wrap;
 }
 .filters div {
-  display: inline-block;
+  display: flex;
   margin-right: 1rem;
+  margin-bottom: 0.4rem;
 }
 .filters label {
   display: inline-block;
-  margin-right: 0.2rem;
+  margin-right: 0.5rem;
+}
+.filters .select {
+  width: 80px;
+}
+.filters .selectSmall {
+  width: 30px;
+}
+.filters input {
+  width: 140px;
 }
 
-@media (max-width: 2100px) {
-  .filters div {
-    display: block;
-  }
-  .filters label {
-    width: 100px;
-  }
-}
 .perPageSelection {
 }
 .pagination {

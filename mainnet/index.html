@@ -74,7 +74,7 @@
           <div class="filters">
             <div>
               <label>Per page:</label>
-              <select class="perPageSelection" v-model="perPage" @change="setPerPage">
+              <select class="perPageSelection select" v-model="perPage" @change="setPerPage">
                 <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -87,7 +87,7 @@
             </div>
             <div>
               <label>Source:</label>
-              <select v-model="filterSource" @change="setFilterSource">
+              <select class="select" v-model="filterSource" @change="setFilterSource">
                 <option value="">All</option>
                 <option value="ethereum">Ethereum</option>
                 <option value="polygon">Polygon</option>
@@ -98,7 +98,7 @@
             </div>
             <div>
               <label>Destination:</label>
-              <select v-model="filterDestination" @change="setFilterDestination">
+              <select class="select" v-model="filterDestination" @change="setFilterDestination">
                 <option value="">All</option>
                 <option value="ethereum">Ethereum</option>
                 <option value="polygon">Polygon</option>
@@ -109,7 +109,7 @@
             </div>
             <div>
               <label>Token:</label>
-              <select v-model="filterToken" @change="setFilterToken">
+              <select class="select" v-model="filterToken" @change="setFilterToken">
                 <option value="">All</option>
                 <option value="USDC">USDC</option>
                 <option value="USDT">USDT</option>
@@ -121,7 +121,7 @@
             </div>
             <div>
               <label>Bonded:</label>
-              <select v-model="filterBonded" @change="setFilterBonded">
+              <select class="select" v-model="filterBonded" @change="setFilterBonded">
                 <option value="">All</option>
                 <option value="pending">Pending</option>
                 <option value="bonded">Bonded</option>
@@ -129,7 +129,7 @@
             </div>
             <div>
               <label>Amount:</label>
-              <select v-model="filterAmountComparator" @change="setFilterAmountComparator">
+              <select class="select selectSmall" v-model="filterAmountComparator" @change="setFilterAmountComparator">
                 <option value="eq">=</option>
                 <option value="gt">&gt;</option>
                 <option value="lt">&lt;</option>

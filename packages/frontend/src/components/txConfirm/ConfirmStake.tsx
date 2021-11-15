@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import { Token } from '@hop-protocol/sdk'
 import Button from 'src/components/buttons/Button'
-import logger from 'src/logger'
 import { commafy } from 'src/utils'
+import { useSendingTransaction } from './useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -26,20 +26,11 @@ interface Props {
   onConfirm: (confirmed: boolean) => void
 }
 
-const Stake = (props: Props) => {
+const ConfirmStake = (props: Props) => {
   const { amount, token, onConfirm } = props
   const styles = useStyles()
-  const [sending, setSending] = useState<boolean>(false)
 
-  const handleSubmit = async () => {
-    try {
-      setSending(true)
-      onConfirm(true)
-    } catch (err) {
-      logger.error(err)
-    }
-    setSending(false)
-  }
+  const { sending, handleSubmit } = useSendingTransaction({ onConfirm })
 
   return (
     <div className={styles.root}>
@@ -63,4 +54,4 @@ const Stake = (props: Props) => {
   )
 }
 
-export default Stake
+export default ConfirmStake

@@ -9,14 +9,6 @@ export const networks: Networks = {
     explorerUrls: ['https://kovan.etherscan.io'],
     waitConfirmations: 1
   },
-  arbitrum: {
-    name: chains.arbitrum.name,
-    networkId: 212984383488152,
-    publicRpcUrl: 'https://kovan4.arbitrum.io/rpc',
-    explorerUrls: ['https://explorer.offchainlabs.com/#/'],
-    nativeBridgeUrl: 'https://bridge.arbitrum.io/',
-    waitConfirmations: 1
-  },
   optimism: {
     name: chains.optimism.name,
     networkId: 69,

@@ -10,7 +10,7 @@ import {
   config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
-  setNetworkRpcUrls,
+  setNetworkRpcUrl,
   setNetworkWaitConfirmations,
   slackAuthToken,
   slackChannel,
@@ -87,15 +87,9 @@ program
           enabledNetworks[k] = !!config.chains[k]
           const v = config.chains[k]
           if (v instanceof Object) {
-            const _rpcUrls: string[] = []
-            const { rpcUrl, rpcUrls, waitConfirmations } = v
+            const { rpcUrl, waitConfirmations } = v
             if (rpcUrl) {
-              _rpcUrls.push(rpcUrl)
-            } else if (rpcUrls.length) {
-              _rpcUrls.push(...rpcUrls)
-            }
-            if (_rpcUrls.length > 0) {
-              setNetworkRpcUrls(k, _rpcUrls)
+              setNetworkRpcUrl(k, rpcUrl)
             }
             if (typeof waitConfirmations === 'number') {
               setNetworkWaitConfirmations(k, waitConfirmations)
@@ -133,9 +127,9 @@ program
         logger.debug(`slack notifications enabled. channel #${slackChannel}`)
       }
       for (const k in globalConfig.networks) {
-        const { waitConfirmations, rpcUrls } = globalConfig.networks[k]
+        const { waitConfirmations, rpcUrl } = globalConfig.networks[k]
         logger.info(`${k} wait confirmations: ${waitConfirmations || 0}`)
-        logger.info(`${k} rpc: ${rpcUrls?.join(',')}`)
+        logger.info(`${k} rpc: ${rpcUrl}`)
       }
       const dryMode = !!source.dry
       if (dryMode) {

@@ -113,6 +113,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })
     logger.debug('processing bondWithdrawal')
+    logger.debug('amount:', amount && this.bridge.formatUnits(amount))
+    logger.debug('recipient:', recipient)
+    logger.debug('transferNonce:', transferNonce)
+    logger.debug('bonderFee:', bonderFee && this.bridge.formatUnits(bonderFee))
+
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       .bridge
@@ -161,6 +166,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
         isBondable: false
       })
       return
+    }
+
+    const isBonderFeeOk = await this.getIsBonderFeeOk(transferId, attemptSwap)
+    if (!isBonderFeeOk) {
+      throw new BonderFeeTooLowError(`Total bonder fee is too low. Cannot bond withdrawal.`)
     }
 
     await this.db.transfers.update(transferId, {
@@ -228,14 +238,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline
     } = params
     const logger = this.logger.create({ id: transferId })
-
-    logger.debug('amount:', this.bridge.formatUnits(amount))
-    logger.debug('recipient:', recipient)
-    logger.debug('transferNonce:', transferNonce)
-    logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
-
-    await this.checkBonderFee(transferId, attemptSwap)
-
     if (attemptSwap) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
@@ -262,10 +264,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async checkBonderFee (
+  async getIsBonderFeeOk (
     transferId: string,
     attemptSwap: boolean
-  ) {
+  ): Promise<boolean> {
     const logger = this.logger.create({ id: transferId })
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     if (!dbTransfer) {
@@ -302,10 +304,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const minBpsFee = await this.bridge.getBonderFeeBps(amount!, minBonderFeeAbsolute) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const minTxFee = gasCostInToken.div(2)
     const minBonderFeeTotal = minBpsFee.add(minTxFee)
-    const isTooLow = bonderFee!.lt(minBonderFeeTotal) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    if (isTooLow) {
-      throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
-    }
+    const isBonderFeeOk = bonderFee!.gte(minBonderFeeTotal) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, isBonderFeeOk: ${isBonderFeeOk}`)
+
+    return isBonderFeeOk
   }
 
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)

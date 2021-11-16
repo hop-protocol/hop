@@ -54,7 +54,12 @@ program
         throw new Error('watcher not found')
       }
 
-      await watcher.checkTransferId(transferId)
+      const dbTransfer: any = await watcher.db.transfers.getByTransferId(transferId)
+      if (!dbTransfer) {
+        throw new Error('TransferId does not exist in the DB')
+      }
+      dbTransfer.attemptSwap = watcher.bridge.shouldAttemptSwap(dbTransfer.amountOutMin!, dbTransfer.deadline!)
+      await watcher.sendBondWithdrawalTx(dbTransfer)
 
       process.exit(0)
     } catch (err) {

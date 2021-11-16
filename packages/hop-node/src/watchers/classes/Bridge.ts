@@ -723,6 +723,9 @@ export default class Bridge extends ContractBase {
     if (destinationChain === Chain.Ethereum) {
       bonderFeeBps = fees.L2ToL1
     }
+    if (destinationChain === Chain.xDai && fees.anyToxDai) {
+      bonderFeeBps = fees.anyToxDai
+    }
 
     const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
     let minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)

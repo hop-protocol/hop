@@ -1,7 +1,7 @@
 export interface Chain {
   name: string
   chainId: number
-  rpcUrls: string[]
+  rpcUrl: string
   explorerUrl: string
 }
 

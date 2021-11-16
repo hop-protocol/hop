@@ -7,7 +7,6 @@ import {
   networkSlugToId,
   networkIdToSlug,
   getRpcUrl,
-  getPublicRpcUrl,
   getBaseExplorerUrl,
 } from 'src/utils'
 import { networks, blocknativeDappid, fortmaticApiKey, portisDappId } from 'src/config'
@@ -268,8 +267,8 @@ const Web3ContextProvider: FC = ({ children }) => {
   const walletConnected = !!address
 
   const checkConnectedNetworkId = async (networkId: number): Promise<boolean> => {
-    logger.debug('checkConnectedNetworkId')
     const signerNetworkId = (await provider?.getNetwork())?.chainId
+    logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
     if (networkId.toString() !== signerNetworkId?.toString()) {
       onboard.config({ networkId })
       if (onboard.getState().address) {
@@ -297,7 +296,7 @@ const Web3ContextProvider: FC = ({ children }) => {
             const rpcObj = {
               chainId: `0x${Number(networkId).toString(16)}`,
               chainName: networkNames[networkId.toString()],
-              rpcUrls: [getPublicRpcUrl(networkIdToSlug(networkId.toString()))],
+              rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
               blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
               nativeCurrency,
             }

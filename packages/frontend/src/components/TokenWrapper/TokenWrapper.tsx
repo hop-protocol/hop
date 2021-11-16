@@ -37,6 +37,7 @@ export type Props = {
 const TokenWrapper: FC<Props> = (props: Props) => {
   const styles = useStyles()
   const {
+    selectedNetwork,
     setSelectedNetwork,
     canonicalToken,
     wrappedToken,
@@ -78,17 +79,10 @@ const TokenWrapper: FC<Props> = (props: Props) => {
     return null
   }
 
-  let wethWarning = ''
-  if (canonicalToken?.symbol === 'ETH' && props.network?.slug === 'optimism') {
-    wethWarning =
-      'ETH and WETH are the same asset on Optimism and wrapping/unwrapping will do nothing.'
-  }
-
   return (
     <Expandable title="Wrap/Unwrap">
       <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
         <Box display="flex" flexDirection="column" alignItems="center" className={styles.root}>
-          <Alert severity="warning" text={wethWarning} className={styles.warning} />
           <AmountSelectorCard
             secondaryToken={canonicalToken}
             secondaryBalance={canonicalTokenBalance}
@@ -104,6 +98,8 @@ const TokenWrapper: FC<Props> = (props: Props) => {
             loadingBalance={loadingBalance}
             hideSymbol
             decimalPlaces={2}
+            methodName="wrapToken"
+            selectedNetwork={selectedNetwork}
           />
           <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
             <Button

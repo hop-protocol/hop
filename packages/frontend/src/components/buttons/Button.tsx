@@ -7,6 +7,7 @@ interface StyleProps {
   highlighted: boolean
   large: boolean
   flat: boolean
+  size?: number | string
 }
 
 interface StateProps {
@@ -76,6 +77,7 @@ const LargeButton: FC<ButtonProps> = props => {
     flat = false,
     disabled = false,
     loading = false,
+    size = 40,
     ...buttonProps
   } = props
   const styles = useStyles({ highlighted, large, flat })
@@ -90,7 +92,7 @@ const LargeButton: FC<ButtonProps> = props => {
       {children}
       {loading ? (
         <div className={styles.spinner}>
-          <CircularProgress />
+          <CircularProgress size={large ? '2rem' : size} />
         </div>
       ) : null}
     </MuiButton>

@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/hop-node",
-  "version": "0.0.1-beta.3",
+  "version": "0.0.1-beta.6",
   "description": "The Hop Node for Hop Protocol",
   "main": "dist/index.js",
   "engines": {
@@ -15,6 +15,7 @@
     "typecheck": "tsc",
     "dev": "npm run build-info && tsc -p tsconfig.build.json --watch",
     "build-info": "echo \"{\\\"rev\\\": \\\"${GIT_REV:-`git rev-parse --short HEAD`}\\\"}\" > src/.build-info.json",
+    "postinstall": "npm run build-info && cp src/.build-info.json dist/src/.build-info.json",
     "build": "npm run build-info && tsc -p tsconfig.build.json",
     "lint": "eslint --fix \"src/**/*\" \"test/**/*\"",
     "clean": "rm -rf dist",
@@ -44,8 +45,8 @@
     "@eth-optimism/message-relayer": "^0.1.11",
     "@eth-optimism/watcher": "0.0.1-alpha.9",
     "@ethersproject/hdnode": "^5.0.9",
-    "@hop-protocol/core": "0.0.1-beta.47",
-    "@hop-protocol/sdk": "0.0.1-beta.226",
+    "@hop-protocol/core": "0.0.1-beta.50",
+    "@hop-protocol/sdk": "0.0.1-beta.235",
     "@maticnetwork/maticjs": "2.0.45",
     "@slack/web-api": "^6.1.0",
     "@types/debounce-promise": "^3.1.3",

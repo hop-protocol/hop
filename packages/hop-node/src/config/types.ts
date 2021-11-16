@@ -1,6 +1,6 @@
 export type Network = {
   networkId: number
-  rpcUrls: string[]
+  rpcUrl: string
   explorerUrls: string[]
   waitConfirmations?: number
 }

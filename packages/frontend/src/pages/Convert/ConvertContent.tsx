@@ -11,6 +11,7 @@ import TxStatusModal from 'src/components/modal/TxStatusModal'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import TokenWrapper from 'src/components/TokenWrapper'
 import { sanitizeNumericalString } from 'src/utils'
+import { MethodNames } from 'src/hooks'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -124,6 +125,9 @@ const Convert: FC = () => {
             titleIconUrl={sourceNetwork?.imageUrl}
             balance={sourceBalance}
             loadingBalance={loadingSourceBalance}
+            methodName={MethodNames.convertTokens}
+            selectedNetwork={sourceNetwork}
+            destNetwork={destNetwork}
           />
           <MuiButton className={styles.switchDirectionButton} onClick={switchDirection}>
             <ArrowDownIcon color="primary" className={styles.downArrow} />
@@ -156,7 +160,6 @@ const Convert: FC = () => {
             </Button>
             <Button
               className={styles.button}
-              startIcon={sendButtonActive}
               onClick={handleSend}
               disabled={!sendButtonActive}
               loading={sending}

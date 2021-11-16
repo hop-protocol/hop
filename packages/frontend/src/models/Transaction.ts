@@ -15,6 +15,7 @@ import {
 import { network as defaultNetwork } from 'src/config'
 import logger from 'src/logger'
 import { formatError } from 'src/utils/format'
+import { getNetworkWaitConfirmations } from 'src/utils/networks'
 
 interface Config {
   hash: string
@@ -121,7 +122,10 @@ class Transaction extends EventEmitter {
       }
 
       this.status = !!receipt.status
-      this.pending = false
+      const waitConfirmations = getNetworkWaitConfirmations(this.networkName)
+      if (waitConfirmations && receipt.status === 1 && receipt.confirmations > waitConfirmations) {
+        this.pending = false
+      }
       this.emit('pending', false, this)
     })
     if (typeof isCanonicalTransfer === 'boolean') {

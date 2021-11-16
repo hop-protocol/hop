@@ -327,7 +327,7 @@ class HopBridge extends Base {
         destinationChain
       )
 
-      const requiredLiquidity = await this.calcToHTokenAmount(tokenAmount, sourceChain)
+      const requiredLiquidity = await this.getRequiredLiquidity(tokenAmount, sourceChain)
       const isAvailable = availableLiquidity.gte(requiredLiquidity)
       if (!isAvailable) {
         throw new Error('Insufficient liquidity available by bonder. Try again in a few minutes')
@@ -791,10 +791,14 @@ class HopBridge extends Base {
    */
   public async getRequiredLiquidity (
     tokenAmountIn: TAmount,
-    sourceChain?: TChain
+    sourceChain: TChain
   ): Promise<BigNumber> {
     tokenAmountIn = BigNumber.from(tokenAmountIn.toString())
     sourceChain = this.toChainModel(sourceChain)
+
+    if (sourceChain.equals(Chain.Ethereum)) {
+      return BigNumber.from(0)
+    }
 
     const hTokenAmount = await this.calcToHTokenAmount(
       tokenAmountIn,
@@ -1754,7 +1758,7 @@ class HopBridge extends Base {
 
       const l1Bridge = await this.getL1Bridge(this.signer)
       const isNativeToken = this.isNativeToken(sourceChain)
-      return l1Bridge.sendToL2(
+      const txOptions = [
         destinationChain.chainId,
         recipient,
         tokenAmount,
@@ -1766,14 +1770,19 @@ class HopBridge extends Base {
           ...(await this.txOverrides(Chain.Ethereum)),
           value: isNativeToken ? tokenAmount : undefined
         }
-      )
+      ]
+
+      if (options.estimateGasOnly) {
+        return l1Bridge.estimateGas.sendToL2(...txOptions)
+      }
+      return l1Bridge.sendToL2(...txOptions)
     } else {
       if (bonderFee.eq(0)) {
         throw new Error('Send at least the minimum Bonder fee')
       }
 
       const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
-      return l2Bridge.send(
+      const txOptions = [
         destinationChain.chainId,
         recipient,
         tokenAmount,
@@ -1781,7 +1790,12 @@ class HopBridge extends Base {
         amountOutMin,
         deadline,
         await this.txOverrides(sourceChain)
-      )
+      ]
+
+      if (options.estimateGasOnly) {
+        return l2Bridge.estimateGas.send(...txOptions)
+      }
+      return l2Bridge.send(...txOptions)
     }
   }
 

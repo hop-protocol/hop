@@ -1,7 +1,7 @@
 import { networks } from 'src/config'
 
 export const getRpcUrl = (network: string) => {
-  return networks[network]?.rpcUrls[0]
+  return networks[network]?.rpcUrl
 }
 
 export default getRpcUrl

@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React from 'react'
 import Button from 'src/components/buttons/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import Typography from '@material-ui/core/Typography'
-import logger from 'src/logger'
 import { commafy } from 'src/utils'
+import { useSendingTransaction } from './useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -36,17 +36,8 @@ interface Props {
 const AddLiquidity = (props: Props) => {
   const { token0, token1, onConfirm } = props
   const styles = useStyles()
-  const [sending, setSending] = useState<boolean>(false)
 
-  const handleSubmit = async () => {
-    try {
-      setSending(true)
-      onConfirm(true)
-    } catch (err) {
-      logger.error(err)
-    }
-    setSending(false)
-  }
+  const { sending, handleSubmit } = useSendingTransaction({ onConfirm })
 
   return (
     <div className={styles.root}>

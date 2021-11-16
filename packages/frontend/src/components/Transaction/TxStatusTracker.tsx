@@ -6,17 +6,15 @@ import { useApp } from 'src/contexts/AppContext'
 import { findNetworkBySlug } from 'src/utils/networks'
 
 function TxStatusTracker({ tx }) {
-  const { networks } = useApp()
   const styles = useTxStatusStyles()
-
-  const network = useMemo(() => findNetworkBySlug(networks, tx.networkName), [tx, networks])
-  // const destNetwork = findNetworkBySlug(networks, tx.destNetworkName)
-
-  // TODO: turn this or just the tx status part into a FC
+  const { networks } = useApp()
   const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
     tx,
     tx.networkName
   )
+
+  const network = useMemo(() => findNetworkBySlug(networks, tx.networkName), [tx, networks])
+
   return (
     <Div mb={4}>
       <Flex justifyAround alignCenter>

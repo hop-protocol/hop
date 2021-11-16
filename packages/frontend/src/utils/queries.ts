@@ -80,8 +80,8 @@ export async function fetchTransferSents(
         deadline
         destinationChainId
         index
-        timestamp
         token
+        timestamp
         transferId
         transferNonce
         transactionHash
@@ -113,9 +113,9 @@ export async function fetchTransferFromL1Completeds(
           deadline: "${deadline}"
         }
       ) {
+        transactionHash
         timestamp
         token
-        transactionHash
       }
     }
   `

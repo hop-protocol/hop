@@ -22,9 +22,9 @@ export function formatArgValues(arg, value) {
   value = parseString(arg, value)
 
   // Convert Wei -> Eth
-  if (weiArgsToConvert.includes(arg)) {
-    value = utils.formatEther(value)
-  }
+  // if (weiArgsToConvert.includes(arg)) {
+  //   value = utils.formatUnits(value)
+  // }
 
   return value
 }

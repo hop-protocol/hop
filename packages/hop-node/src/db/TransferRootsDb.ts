@@ -1,8 +1,8 @@
+import BaseDb, { KeyFilter } from './BaseDb'
 import TimestampedKeysDb from './TimestampedKeysDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
-import { KeyFilter } from './BaseDb'
 import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
@@ -48,6 +48,65 @@ export type TransferRoot = {
 }
 
 class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
+  subDbIncompletes: any
+
+  constructor (prefix: string, _namespace?: string) {
+    super(prefix, _namespace)
+    this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
+
+    this.ready = false
+    this.migrations()
+      .then(() => {
+        this.ready = true
+        this.logger.debug('db ready')
+      })
+      .catch(this.logger.error)
+  }
+
+  async migrations () {
+    // this only needs to be ran once on start up to backfill keys.
+    // this function can be removed once all bonders update.
+    this.trackIncompleteItems()
+      .then(() => {
+        this.ready = true
+        this.logger.debug('db ready')
+      })
+      .catch(this.logger.error)
+  }
+
+  async trackIncompleteItems () {
+    const kv = await this.getKeyValues()
+    for (const { key, value } of kv) {
+      // backfill items with missing transferRootHash
+      if (!value.transferRootHash) {
+        value.transferRootHash = key
+        await this._update(key, value)
+      }
+      await this.updateIncompleteItem(value)
+    }
+  }
+
+  async updateIncompleteItem (item: Partial<TransferRoot>) {
+    if (!item) {
+      this.logger.error('expected item', item)
+      return
+    }
+    const { transferRootHash } = item
+    if (!transferRootHash) {
+      this.logger.error('expected transferRootHash', item)
+      return
+    }
+    const isIncomplete = this.isItemIncomplete(item)
+    const exists = await this.subDbIncompletes.getById(transferRootHash)
+    const shouldUpsert = isIncomplete && !exists
+    const shouldDelete = !isIncomplete && exists
+    if (shouldUpsert) {
+      await this.subDbIncompletes._update(transferRootHash, { transferRootHash })
+    } else if (shouldDelete) {
+      await this.subDbIncompletes.deleteById(transferRootHash)
+    }
+  }
+
   async trackTimestampedKey (transferRoot: Partial<TransferRoot>) {
     const data = await this.getTimestampedKeyValueForUpdate(transferRoot)
     if (data != null) {
@@ -109,6 +168,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     promises.push(this._update(transferRootHash, transferRoot).then(async () => {
       const entry = await this.getById(transferRootHash)
       logger.debug(`updated db transferRoot item. ${JSON.stringify(entry)}`)
+      await this.updateIncompleteItem(entry)
     }))
     await Promise.all(promises)
   }
@@ -352,26 +412,44 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     })
   }
 
+  isItemIncomplete (item: Partial<TransferRoot>) {
+    if (!item?.transferRootHash) {
+      return false
+    }
+
+    return (
+      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+      !item.sourceChainId ||
+      !item.destinationChainId ||
+      !item.commitTxBlockNumber ||
+      (item.commitTxHash && !item.committedAt) ||
+      (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
+      (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
+      (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||
+      (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds)
+      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    )
+  }
+
   async getIncompleteItems (
     filter: Partial<TransferRoot> = {}
   ) {
-    const transferRoots: TransferRoot[] = await this.getTransferRoots()
+    const kv = await this.subDbIncompletes.getKeyValues()
+    const transferRootHashes = kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)
+    if (!transferRootHashes.length) {
+      return []
+    }
+
+    const batchedItems = await this.batchGetByIds(transferRootHashes)
+    const transferRoots = batchedItems.map(this.normalizeItem)
     return transferRoots.filter(item => {
-      if (filter.sourceChainId) {
+      if (filter.sourceChainId && item.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
         }
       }
 
-      return (
-        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-        (item.commitTxHash && !item.committedAt) ||
-        (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
-        (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
-        (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||
-        (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds)
-        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
-      )
+      return this.isItemIncomplete(item)
     })
   }
 }

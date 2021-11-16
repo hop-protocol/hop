@@ -8,8 +8,6 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Button from 'src/components/buttons/Button'
-import useBalance from 'src/hooks/useBalance'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import useStakeBalance from 'src/pages/Stake/useStakeBalance'
@@ -17,8 +15,8 @@ import { toTokenDisplay, toPercentDisplay, commafy, shiftBNDecimals } from 'src/
 import Alert from 'src/components/alert/Alert'
 import usePollValue from 'src/hooks/usePollValue'
 import DetailRow from 'src/components/DetailRow'
-import useApprove from 'src/hooks/useApprove'
 import { amountToBN } from 'src/utils/format'
+import { useTransactionReplacement, useApprove, useAsyncMemo, useBalance } from 'src/hooks'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -66,10 +64,10 @@ const StakeWidget: FC<Props> = props => {
   const styles = useStyles()
   const { network, bridge, stakingToken, rewardsToken, stakingRewards } = props
 
-  const { networks, txConfirm, txHistory, sdk } = useApp()
+  const { networks, txConfirm, sdk } = useApp()
   const { checkConnectedNetworkId, address } = useWeb3Context()
   const { stakeBalance } = useStakeBalance(stakingRewards, address)
-
+  const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const formattedStakeBalance = toTokenDisplay(stakeBalance, stakingToken?.decimals)
 
   const tokenUsdPrice = useAsyncMemo(async () => {
@@ -101,7 +99,7 @@ const StakeWidget: FC<Props> = props => {
       const _ern = await stakingRewards?.earned(address.toString())
       return _ern
     },
-    5e3,
+    5 * 1000,
     [stakingRewards, address]
   )
 
@@ -125,7 +123,7 @@ const StakeWidget: FC<Props> = props => {
       }
       return stakingToken?.allowance(stakingRewards.address)
     },
-    5e3,
+    5 * 1000,
     [stakingToken, stakingRewards]
   )
 
@@ -227,7 +225,7 @@ const StakeWidget: FC<Props> = props => {
     rewardsToken?.symbol
   )
 
-  const { approve } = useApprove()
+  const { approve } = useApprove(stakingToken)
   const approveToken = async () => {
     if (!stakingRewards || !network || !stakingToken) {
       throw new Error('Undefined approval parameter')
@@ -340,13 +338,15 @@ const StakeWidget: FC<Props> = props => {
 
       if (tx?.hash && network) {
         setAmount('')
-        txHistory?.addTransaction(
+        addTransaction(
           new Transaction({
             hash: tx.hash,
             networkName: network.slug,
             token: stakingToken,
           })
         )
+
+        await waitForTransaction(tx, { networkName: network.slug, token: stakingToken })
       }
     } catch (err: any) {
       console.error(err)
@@ -407,13 +407,15 @@ const StakeWidget: FC<Props> = props => {
       })
 
       if (tx?.hash && network) {
-        txHistory?.addTransaction(
+        addTransaction(
           new Transaction({
             hash: tx.hash,
             networkName: network.slug,
             token: stakingToken,
           })
         )
+
+        await waitForTransaction(tx, { networkName: network.slug, token: stakingToken })
       }
     } catch (err: any) {
       console.error(err)

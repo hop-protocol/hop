@@ -1,32 +1,35 @@
 import { ethers, providers } from 'ethers'
 import { EventEmitter } from 'events'
-import { L1_NETWORK } from 'src/constants'
-import { getRpcUrl, getProvider, getBaseExplorerUrl } from 'src/utils'
-
 import { Hop, Token } from '@hop-protocol/sdk'
-import { network as defaultNetwork } from 'src/config'
-import { findTransferFromL1CompletedLog, getTransferSentDetailsFromLogs } from 'src/utils/logs'
-import logger from 'src/logger'
+import { L1_NETWORK } from 'src/constants'
 import {
+  getRpcUrl,
+  getProvider,
+  getBaseExplorerUrl,
+  findTransferFromL1CompletedLog,
+  getTransferSentDetailsFromLogs,
   fetchTransferFromL1Completeds,
   fetchWithdrawalBondedsByTransferId,
   L1Transfer,
-} from '../utils/queries'
+} from 'src/utils'
+import { network as defaultNetwork } from 'src/config'
+import logger from 'src/logger'
+import { formatError } from 'src/utils/format'
+import { getNetworkWaitConfirmations } from 'src/utils/networks'
 
 interface Config {
+  hash: string
   networkName: string
   destNetworkName?: string | null
-  destTxHash?: string
-  hash: string
-  pending?: boolean
-  timestamp?: number
-  token?: Token
   isCanonicalTransfer?: boolean
-  pendingDestinationConfirmation?: boolean
+  pending?: boolean
+  token?: Token
+  timestamp?: number
   transferId?: string | null
+  pendingDestinationConfirmation?: boolean
+  destTxHash?: string
+  replaced?: boolean | string
 }
-
-const standardNetworks = new Set(['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'])
 
 class Transaction extends EventEmitter {
   readonly hash: string
@@ -35,25 +38,27 @@ class Transaction extends EventEmitter {
   readonly isCanonicalTransfer: boolean = false
   readonly provider: ethers.providers.Provider
   readonly destProvider: ethers.providers.Provider | null = null
+  pending: boolean = true
   token: Token | null = null
-  pending: boolean
   timestamp: number
   status: null | boolean = null
-  pendingDestinationConfirmation?: boolean
   transferId: string | null = null
+  pendingDestinationConfirmation: boolean = true
   destTxHash?: string
+  replaced: boolean | string = false
 
   constructor({
     hash,
     networkName,
     destNetworkName,
-    destTxHash,
-    pending = true,
-    timestamp,
-    token,
     isCanonicalTransfer,
-    pendingDestinationConfirmation = true,
+    pending = true,
+    token,
+    timestamp,
     transferId,
+    pendingDestinationConfirmation = true,
+    destTxHash,
+    replaced = false,
   }: Config) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
@@ -91,18 +96,21 @@ class Transaction extends EventEmitter {
       this.destProvider = getProvider(destRpcUrl)
     }
 
+    // TODO: cleanup
+    this.provider = getProvider(rpcUrl)
+    this.timestamp = timestamp || Date.now()
+    this.pending = pending
     if (destTxHash) {
       this.destTxHash = destTxHash
     }
-
-    this.provider = getProvider(rpcUrl)
-    this.timestamp = timestamp || Date.now()
     if (token) {
       this.token = token
     }
-    this.pending = pending
     if (transferId) {
       this.transferId = transferId
+    }
+    if (replaced) {
+      this.replaced = replaced
     }
 
     this.receipt().then((receipt: providers.TransactionReceipt) => {
@@ -114,7 +122,10 @@ class Transaction extends EventEmitter {
       }
 
       this.status = !!receipt.status
-      this.pending = false
+      const waitConfirmations = getNetworkWaitConfirmations(this.networkName)
+      if (waitConfirmations && receipt.status === 1 && receipt.confirmations > waitConfirmations) {
+        this.pending = false
+      }
       this.emit('pending', false, this)
     })
     if (typeof isCanonicalTransfer === 'boolean') {
@@ -175,7 +186,18 @@ class Transaction extends EventEmitter {
   }
 
   async checkIsTransferIdSpent(sdk: Hop) {
-    if (this.provider && this.token && this.destNetworkName) {
+    if (
+      !(
+        this.provider &&
+        this.token &&
+        this.destNetworkName &&
+        this.networkName !== this.destNetworkName
+      )
+    ) {
+      return
+    }
+
+    try {
       const receipt = await this.receipt()
       // Get the event data (topics)
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
@@ -191,12 +213,13 @@ class Transaction extends EventEmitter {
         )
 
         if ('amount' in decodedData) {
-          const { amount } = decodedData
+          const { amount, deadline } = decodedData
           // Query Graph Protocol for TransferFromL1Completed events
           const transferFromL1Completeds = await fetchTransferFromL1Completeds(
             this.destNetworkName,
             tsDetails.recipient,
-            amount.toString()
+            amount,
+            deadline
           )
 
           if (transferFromL1Completeds?.length) {
@@ -219,7 +242,12 @@ class Transaction extends EventEmitter {
 
           if (evs?.length) {
             // Find the matching amount
-            const tfl1Completed = findTransferFromL1CompletedLog(evs, amount, tsDetails.recipient)
+            const tfl1Completed = findTransferFromL1CompletedLog(
+              evs,
+              tsDetails.recipient,
+              amount,
+              deadline
+            )
             if (tfl1Completed) {
               this.destTxHash = tfl1Completed.transactionHash
               this.pendingDestinationConfirmation = false
@@ -227,7 +255,7 @@ class Transaction extends EventEmitter {
             }
           }
 
-          logger.debug(`isSpent ${tsDetails.txHash}:`, false)
+          logger.debug(`tx ${tsDetails.txHash.slice(0, 10)} isSpent:`, false)
         }
       }
 
@@ -256,7 +284,7 @@ class Transaction extends EventEmitter {
           if (isSpent) {
             this.pendingDestinationConfirmation = false
           }
-          // console.log(`isSpent ${this.transferId}:`, isSpent)
+          logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
           return isSpent
         }
 
@@ -266,9 +294,11 @@ class Transaction extends EventEmitter {
         if (isSpent) {
           this.pendingDestinationConfirmation = false
         }
-        logger.debug(`isSpent ${this.transferId}:`, isSpent)
+        logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
         return isSpent
       }
+    } catch (error) {
+      logger.error(formatError(error))
     }
 
     return false
@@ -311,6 +341,7 @@ class Transaction extends EventEmitter {
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
     } = this
     return {
       hash,
@@ -323,6 +354,7 @@ class Transaction extends EventEmitter {
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
     }
   }
 
@@ -338,6 +370,7 @@ class Transaction extends EventEmitter {
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
     } = obj
     return new Transaction({
       hash,
@@ -350,6 +383,7 @@ class Transaction extends EventEmitter {
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
     })
   }
 }

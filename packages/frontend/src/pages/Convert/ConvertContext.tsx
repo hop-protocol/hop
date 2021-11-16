@@ -21,12 +21,10 @@ import logger from 'src/logger'
 import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
-import useBalance from 'src/hooks/useBalance'
-import { toTokenDisplay, commafy, amountToBN } from 'src/utils'
-import useApprove from 'src/hooks/useApprove'
-import useQueryParams from 'src/hooks/useQueryParams'
+import { toTokenDisplay, commafy } from 'src/utils'
 import { reactAppNetwork } from 'src/config'
-import { formatError } from 'src/utils/format'
+import { useTransactionReplacement, useApprove, useQueryParams, useBalance } from 'src/hooks'
+import { formatError, amountToBN } from 'src/utils/format'
 
 type ConvertContextProps = {
   convertOptions: ConvertOption[]
@@ -104,7 +102,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const {
     networks,
-    txHistory,
     l2Networks,
     defaultL2Network,
     selectedBridge,
@@ -116,7 +113,6 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { slippageTolerance, deadline } = settings
   const { pathname } = useLocation()
   const { queryParams } = useQueryParams()
-  const { approve, checkApproval } = useApprove()
 
   const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(l2Networks[0])
   const [isForwardDirection, setIsForwardDirection] = useState(true)
@@ -129,6 +125,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [sending, setSending] = useState<boolean>(false)
   const [approving, setApproving] = useState<boolean>(false)
   const [sourceToken, setSourceToken] = useState<Token>()
+  const { approve, checkApproval } = useApprove(sourceToken)
   const [destToken, setDestToken] = useState<Token>()
   const [details, setDetails] = useState<ReactNode>()
   const [warning, setWarning] = useState<ReactNode>()
@@ -136,6 +133,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
   const debouncer = useRef(0)
+  const { waitForTransaction, addTransaction } = useTransactionReplacement()
 
   useEffect(() => {
     if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
@@ -264,6 +262,11 @@ const ConvertContextProvider: FC = ({ children }) => {
   // Fetch send data
   useEffect(() => {
     const getSendData = async () => {
+      setWarning(undefined)
+      setAmountOutMin(undefined)
+      setDetails(undefined)
+      setBonderFee(undefined)
+
       if (!selectedBridge || !sourceTokenAmount || !sourceNetwork || !destNetwork || !sourceToken) {
         setDestTokenAmount('')
         return
@@ -271,7 +274,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
       const ctx = ++debouncer.current
 
-      const { amountOut, details, bonderFee } = await convertOption.getSendData(
+      const { amountOut, details, bonderFee, warning } = await convertOption.getSendData(
         sdk,
         sourceNetwork,
         destNetwork,
@@ -293,9 +296,12 @@ const ConvertContextProvider: FC = ({ children }) => {
         _amountOutMin = amountOut.mul(minBps).div(10000)
       }
 
-      if (ctx !== debouncer.current) return
+      if (ctx !== debouncer.current) {
+        return
+      }
 
       setError(undefined)
+      setWarning(warning)
       setDestTokenAmount(formattedAmount)
       setAmountOutMin(_amountOutMin)
       setDetails(details)
@@ -438,18 +444,28 @@ const ConvertContextProvider: FC = ({ children }) => {
       })
 
       if (tx?.hash && sourceNetwork?.name) {
-        const txObj = new Transaction({
-          hash: tx?.hash,
+        const txModelArgs = {
           networkName: sourceNetwork.slug,
           destNetworkName: destNetwork.slug,
           token: sourceToken,
           isCanonicalTransfer,
+        }
+        const txObj = new Transaction({
+          hash: tx?.hash,
+          ...txModelArgs,
         })
         // don't set tx status modal if it's tx to the same chain
         if (sourceNetwork.isLayer1 !== destNetwork?.isLayer1) {
           setTx(txObj)
         }
-        txHistory?.addTransaction(txObj)
+        addTransaction(txObj)
+
+        const res = await waitForTransaction(tx, txModelArgs)
+        if (res && 'replacementTxModel' in res) {
+          if (sourceNetwork.isLayer1 !== destNetwork?.isLayer1) {
+            setTx(res.replacementTxModel)
+          }
+        }
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
@@ -464,7 +480,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const enoughBalance = sourceBalance?.gte(parsedSourceTokenAmount)
   const withinMax = true
   let sendButtonText = 'Convert'
-  const validFormFields = !!(sourceTokenAmount && destTokenAmount && enoughBalance && withinMax)
+  const validFormFields = !!(sourceTokenAmount && destTokenAmount && enoughBalance && withinMax) && !!details
   if (sourceBalance === undefined) {
     sendButtonText = 'Fetching balance...'
   } else if (!enoughBalance) {

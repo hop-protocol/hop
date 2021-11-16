@@ -1,5 +1,5 @@
 import ContractBase from './ContractBase'
-import { BigNumber, ethers, providers } from 'ethers'
+import { BigNumber, constants, ethers, providers } from 'ethers'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
@@ -14,6 +14,12 @@ export default class Token extends ContractBase {
 
   getBalance = async (): Promise<BigNumber> => {
     const address = await this.tokenContract.signer.getAddress()
+    if (!address) {
+      throw new Error('expected signer address')
+    }
+    if (this.tokenContract.address === constants.AddressZero) {
+      return this.tokenContract.signer.getBalance(address)
+    }
     const balance = await this.tokenContract.balanceOf(address)
     return balance
   }
@@ -36,6 +42,9 @@ export default class Token extends ContractBase {
     spender: string,
     amount: BigNumber = ethers.constants.MaxUint256
   ): Promise<providers.TransactionResponse | undefined> => {
+    if (this.tokenContract.address === constants.AddressZero) {
+      return
+    }
     const allowance = await this.getAllowance(spender)
     if (allowance.lt(amount)) {
       return await this.tokenContract.approve(
@@ -50,6 +59,9 @@ export default class Token extends ContractBase {
     recipient: string,
     amount: BigNumber
   ): Promise<providers.TransactionResponse> => {
+    if (this.tokenContract.address === constants.AddressZero) {
+      throw new Error('token is ETH')
+    }
     return await this.tokenContract.transfer(
       recipient,
       amount,

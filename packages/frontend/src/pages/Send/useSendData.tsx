@@ -27,10 +27,18 @@ const useSendData = (
   const updateSendData = useCallback(
     async (isCancelled: () => boolean) => {
       try {
-        if (!token) return 0
-        if (!fromNetwork) return 0
-        if (!toNetwork) return 0
-        if (!fromAmount) return 0
+        setAmountOut(undefined)
+        setRate(undefined)
+        setPriceImpact(undefined)
+        setLpFees(undefined)
+        setAdjustedBonderFee(undefined)
+        setAdjustedDestinationTxFee(undefined)
+        setTotalFee(undefined)
+        setRequiredLiquidity(undefined)
+        setEstimatedReceived(undefined)
+        if (!(token && fromNetwork && toNetwork && fromAmount)) {
+          return
+        }
 
         const bridge = sdk.bridge(token?.symbol)
         const sendData = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug, settings.deadline())

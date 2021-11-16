@@ -18,7 +18,7 @@ describe('db', () => {
     },
     5 * 1000
   )
-  it(
+  it.only(
     'multiple updates',
     async () => {
       const max = 1000

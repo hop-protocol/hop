@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
+import React from 'react'
 import Button from 'src/components/buttons/Button'
 import Alert from 'src/components/alert/Alert'
 import { makeStyles } from '@material-ui/core/styles'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import Typography from '@material-ui/core/Typography'
-import logger from 'src/logger'
 import { commafy } from 'src/utils'
 import Address from 'src/models/Address'
+import { useSendingTransaction } from './useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -42,20 +42,11 @@ interface Props {
   onConfirm: (confirmed: boolean) => void
 }
 
-const Send = (props: Props) => {
+const ConfirmSend = (props: Props) => {
   const { customRecipient, source, dest, onConfirm } = props
   const styles = useStyles()
-  const [sending, setSending] = useState<boolean>(false)
 
-  const handleSubmit = async () => {
-    try {
-      setSending(true)
-      onConfirm(true)
-    } catch (err) {
-      logger.error(err)
-    }
-    setSending(false)
-  }
+  const { sending, handleSubmit } = useSendingTransaction({ onConfirm })
 
   let warning = ''
   if (customRecipient && !dest?.network?.isLayer1) {
@@ -94,4 +85,4 @@ const Send = (props: Props) => {
   )
 }
 
-export default Send
+export default ConfirmSend

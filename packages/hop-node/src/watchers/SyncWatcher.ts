@@ -39,11 +39,14 @@ export type Config = {
   syncFromDate?: string
   s3Upload?: boolean
   s3Namespace?: string
+  gasCostPollEnabled?: boolean
 }
 
 class SyncWatcher extends BaseWatcher {
   initialSyncCompleted: boolean = false
   resyncIntervalMs: number = 60 * 1000
+  gasCostPollMs: number = 60 * 1000
+  gasCostPollEnabled: boolean = false
   syncIndex: number = 0
   syncFromDate: string
   customStartBlockNumber: number
@@ -72,6 +75,9 @@ class SyncWatcher extends BaseWatcher {
         bucket: 'assets.hop.exchange',
         key: `${config.s3Namespace ?? globalConfig.network}/v1-available-liquidity.json`
       })
+    }
+    if (typeof config.gasCostPollEnabled === 'boolean') {
+      this.gasCostPollEnabled = config.gasCostPollEnabled
     }
     this.init()
       .catch(err => {
@@ -125,38 +131,28 @@ class SyncWatcher extends BaseWatcher {
 
   async incompletePollSync () {
     try {
+      await Promise.all([
+        this.incompleteTransfersPollSync(),
+        this.incompleteTransferRootsPollSync()
+      ])
+    } catch (err) {
+      this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+    }
+  }
+
+  async incompleteTransferRootsPollSync () {
+    try {
       const chunkSize = 20
-      const incompleteTransfers = await this.db.transfers.getIncompleteItems({
-        sourceChainId: this.chainSlugToId(this.chainSlug)
-      })
-      if (incompleteTransfers.length) {
-        this.logger.debug(`incomplete transfer items: ${incompleteTransfers.length}`)
-        const allChunks = chunk(incompleteTransfers, chunkSize)
-        for (const chunks of allChunks) {
-          await Promise.all(chunks.map(async (transfer: Transfer) => {
-            const { transferId } = transfer
-            return await this.populateTransferDbItem(transferId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-              .then(async () => {
-                // fill in missing db timestamped keys
-                return this.db.transfers.trackTimestampedKeyByTransferId(transferId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-              })
-              .catch((err: Error) => {
-                this.logger.error('populateTransferDbItem error:', err)
-                this.notifier.error(`populateTransferDbItem error: ${err.message}`)
-              })
-          }))
-        }
-      }
       const incompleteTransferRoots = await this.db.transferRoots.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
+      this.logger.info(`transfer roots incomplete items: ${incompleteTransferRoots.length}`)
       if (incompleteTransferRoots.length) {
-        this.logger.debug(`incomplete transfer root items: ${incompleteTransferRoots.length}`)
         const allChunks = chunk(incompleteTransferRoots, chunkSize)
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
             const { transferRootHash } = transferRoot
-            return await this.populateTransferRootDbItem(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+            return this.populateTransferRootDbItem(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
               .then(async () => {
                 // fill in missing db timestamped keys
                 return this.db.transferRoots.trackTimestampedKeyByTransferRootHash(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -169,8 +165,38 @@ class SyncWatcher extends BaseWatcher {
         }
       }
     } catch (err: any) {
-      this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
-      this.notifier.error(`incomplete poll sync watcher error: ${err.message}`)
+      this.logger.error(`incomplete transfer roots poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+      this.notifier.error(`incomplete transfer roots poll sync watcher error: ${err.message}`)
+    }
+  }
+
+  async incompleteTransfersPollSync () {
+    try {
+      const chunkSize = 20
+      const incompleteTransfers = await this.db.transfers.getIncompleteItems({
+        sourceChainId: this.chainSlugToId(this.chainSlug)
+      })
+      this.logger.info(`transfers incomplete items: ${incompleteTransfers.length}`)
+      if (incompleteTransfers.length) {
+        const allChunks = chunk(incompleteTransfers, chunkSize)
+        for (const chunks of allChunks) {
+          await Promise.all(chunks.map(async (transfer: Transfer) => {
+            const { transferId } = transfer
+            return this.populateTransferDbItem(transferId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+              .then(async () => {
+                // fill in missing db timestamped keys
+                return this.db.transfers.trackTimestampedKeyByTransferId(transferId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+              })
+              .catch((err: Error) => {
+                this.logger.error('populateTransferDbItem error:', err)
+                this.notifier.error(`populateTransferDbItem error: ${err.message}`)
+              })
+          }))
+        }
+      }
+    } catch (err: any) {
+      this.logger.error(`incomplete transfers poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
+      this.notifier.error(`incomplete transfer poll sync watcher error: ${err.message}`)
     }
   }
 
@@ -336,7 +362,6 @@ class SyncWatcher extends BaseWatcher {
       amount,
       transferNonce,
       bonderFee,
-      index,
       amountOutMin,
       deadline
     } = event.args
@@ -442,10 +467,7 @@ class SyncWatcher extends BaseWatcher {
 
   async handleTransferRootConfirmedEvent (event: TransferRootConfirmedEvent) {
     const {
-      originChainId: sourceChainId,
-      destinationChainId,
-      rootHash: transferRootHash,
-      totalAmount
+      rootHash: transferRootHash
     } = event.args
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('handling TransferRootConfirmed event')
@@ -648,12 +670,13 @@ class SyncWatcher extends BaseWatcher {
       '0x35e3c87c77ff63f350b5a2f5f661796e203e939f8ab070e9833e1e568869b2e0',
       '0x936d481834e26dffb1757b6cf8de024bccc7fa6caef7e3dbe3618387c96639a7',
       '0xd799fb93f8894985e2d9f0fb782d2388ca09ec70e5cde256b21a506696f7bee0',
-      '0x7103275350d3774aa0f6db2c0fc5dbc83d322b05bcf75216169aa58cfd491aad',
+      '0x7103275350d3774aa0f6db2c0fc5dbc83d322b05bcf75216169aa58cfd491aad'
     ]
     if (skipTransfers.includes(transferId)) {
       return
     }
 
+    await this.populateTransferSentEvent(transferId)
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
   }
@@ -673,11 +696,63 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
+    await this.populateTransferRootCommittedEvent(transferRootHash)
     await this.populateTransferRootCommittedAt(transferRootHash)
     await this.populateTransferRootBondedAt(transferRootHash)
     await this.populateTransferRootTimestamp(transferRootHash)
     await this.populateTransferRootMultipleWithdrawSettled(transferRootHash)
     await this.populateTransferRootTransferIds(transferRootHash)
+  }
+
+  async populateTransferSentEvent (transferId: string) {
+    const logger = this.logger.create({ id: transferId })
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    let { sourceChainId, destinationChainId, transferSentBlockNumber, transferRootHash } = dbTransfer
+    if (sourceChainId && destinationChainId && transferSentBlockNumber) {
+      return
+    }
+
+    if (!sourceChainId) {
+      // attempt to find source chain id from root transfer belongs to.
+      // this will save a lot of time compared to traversing event log history
+      if (transferRootHash) {
+        const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+        if (dbTransferRoot?.sourceChainId) {
+          sourceChainId = dbTransferRoot.sourceChainId
+          await this.db.transfers.update(transferId, {
+            sourceChainId
+          })
+        }
+      }
+    }
+
+    if (!sourceChainId) {
+      if (this.isL1) {
+        return
+      }
+
+      // attempt to find transfer event on chain this bridge belongs to
+      sourceChainId = await this.bridge.getChainId()
+    }
+
+    if (!this.hasSiblingWatcher(sourceChainId)) {
+      logger.error('sibling watcher not found')
+      return
+    }
+    const sourceWatcher = this.getSiblingWatcherByChainId(sourceChainId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const sourceBridge = sourceWatcher?.bridge
+    if (!sourceBridge) {
+      logger.error('source bridge not found')
+      return
+    }
+    const event = await sourceBridge.getTransferSentEvent(transferId)
+    if (!event) {
+      logger.warn('TransferSent event not found. isNotFound: true, dbItem:', JSON.stringify(dbTransfer))
+      // await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+    logger.debug(`found TransferSent event on chainId ${sourceChainId}`)
+    await sourceWatcher.handleTransferSentEvent(event)
   }
 
   async populateTransferSentTimestamp (transferId: string) {
@@ -690,8 +765,16 @@ class SyncWatcher extends BaseWatcher {
     ) {
       return
     }
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (!sourceChainId) {
+      logger.error('expected sourceChainId')
+      return
+    }
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
+    if (transferSentTimestamp) {
+      logger.warn(`transferSentTimestamp not found for block number ${transferSentBlockNumber} on sourceChainId ${sourceChainId}`)
+      return
+    }
     logger.debug(`transferSentTimestamp: ${transferSentTimestamp}`)
     await this.db.transfers.update(transferId, {
       transferSentTimestamp: timestamp
@@ -703,21 +786,60 @@ class SyncWatcher extends BaseWatcher {
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     const { destinationChainId, withdrawalBondedTxHash, withdrawalBonder } = dbTransfer
     if (
+      !destinationChainId ||
       !withdrawalBondedTxHash ||
       withdrawalBonder
     ) {
       return
     }
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const tx = await destinationBridge.getTransaction(withdrawalBondedTxHash)
     if (!tx) {
-      throw new Error(`expected tx object. transferId: ${transferId}`)
+      logger.error(`expected tx object. transferId: ${transferId}`)
+      return
     }
     const { from } = tx
     logger.debug(`withdrawalBonder: ${from}`)
     await this.db.transfers.update(transferId, {
       withdrawalBonder: from
     })
+  }
+
+  async populateTransferRootCommittedEvent (transferRootHash: string) {
+    const logger = this.logger.create({ root: transferRootHash })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    let { sourceChainId, destinationChainId, committedAt } = dbTransferRoot
+    if (sourceChainId && destinationChainId && committedAt) {
+      return
+    }
+
+    if (!sourceChainId) {
+      if (this.isL1) {
+        return
+      }
+
+      // attempt to find transfer event on chain this bridge belongs to
+      sourceChainId = await this.bridge.getChainId()
+    }
+
+    if (!this.hasSiblingWatcher(sourceChainId)) {
+      logger.error('sibling watcher not found')
+      return
+    }
+    const sourceWatcher = this.getSiblingWatcherByChainId(sourceChainId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const sourceBridge = sourceWatcher?.bridge
+    if (!sourceBridge) {
+      logger.error('source bridge not found')
+      return
+    }
+    const event = await sourceBridge.getTransfersCommittedEvent(transferRootHash)
+    if (!event) {
+      logger.warn('TransfersCommitted event not found. isNotFound: true, dbItem:', JSON.stringify(dbTransferRoot))
+      // await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+    logger.debug(`found TransfersCommitted event on chainId ${sourceChainId}`)
+    await sourceWatcher.handleTransfersCommittedEvent(event)
   }
 
   async populateTransferRootCommittedAt (transferRootHash: string) {
@@ -732,8 +854,12 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
+    if (!sourceChainId) {
+      logger.error('expected sourceChainId')
+      return
+    }
     logger.debug('populating committedAt')
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await sourceBridge.getTransactionTimestamp(commitTxHash)
     logger.debug(`committedAt: ${timestamp}`)
     await this.db.transferRoots.update(transferRootHash, {
@@ -755,7 +881,8 @@ class SyncWatcher extends BaseWatcher {
     const destinationBridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge
     const tx = await destinationBridge.getTransaction(bondTxHash)
     if (!tx) {
-      throw new Error(`expected tx object. transactionHash: ${bondTxHash} transferRootHash: ${transferRootHash} chain: ${Chain.Ethereum}`)
+      logger.error(`expected tx object. transactionHash: ${bondTxHash} transferRootHash: ${transferRootHash} chain: ${Chain.Ethereum}`)
+      return
     }
     const { from } = tx
     const timestamp = await destinationBridge.getBlockTimestamp(bondBlockNumber)
@@ -781,7 +908,6 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     if (!destinationChainId) {
-      logger.error('expected destinationChainId')
       return
     }
     if (!transferRootId) {
@@ -813,7 +939,10 @@ class SyncWatcher extends BaseWatcher {
     ) {
       return
     }
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (!destinationChainId) {
+      return
+    }
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await destinationBridge.getBlockTimestamp(rootSetBlockNumber)
     logger.debug(`rootSetTimestamp: ${timestamp}`)
     await this.db.transferRoots.update(transferRootHash, {
@@ -833,7 +962,10 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId!).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (!destinationChainId) {
+      return
+    }
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const _transferIds = await destinationBridge.getTransferIdsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
     const tree = new MerkleTree(_transferIds)
     const computedTransferRootHash = tree.getHexRoot()
@@ -1308,6 +1440,9 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async pollGasCost () {
+    if (!this.gasCostPollEnabled) {
+      return
+    }
     const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
@@ -1346,7 +1481,7 @@ class SyncWatcher extends BaseWatcher {
           estimates.push({ gasLimit, attemptSwap: true })
         }
 
-        this.logger.debug(`pollGasCost estimate. estimates complete`)
+        this.logger.debug('pollGasCost estimate. estimates complete')
         await Promise.all(estimates.map(async ({ gasLimit, attemptSwap }) => {
           const { gasCost, gasCostInToken, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
             gasLimit,
@@ -1375,7 +1510,7 @@ class SyncWatcher extends BaseWatcher {
       } catch (err) {
         this.logger.error(`pollGasCost error: ${err.message}`)
       }
-      await wait(30 * 1000)
+      await wait(this.gasCostPollMs)
     }
   }
 

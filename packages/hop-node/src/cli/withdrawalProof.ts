@@ -45,6 +45,10 @@ program
       }
 
       const { transferRootHash } = transfer
+      if (!transferRootHash) {
+        throw new Error('no transfer root hash found for transfer Id. Has the transferId been committed (pendingTransferIdsForChainId)?')
+      }
+
       const transferRoot = await getTransferRoot(
         chain,
         token,
@@ -52,7 +56,7 @@ program
       )
 
       if (!transferRoot) {
-        throw new Error('transfer root hash')
+        throw new Error('no transfer root item found for transfer Id')
       }
 
       const rootTotalAmount = transferRoot.totalAmount.toString()
@@ -62,6 +66,7 @@ program
       }
       const tree = new MerkleTree(transferIds)
       const leaves = tree.getHexLeaves()
+      const numLeaves = leaves.length
       const transferIndex = leaves.indexOf(transferId)
       const proof = tree.getHexProof(leaves[transferIndex])
       const output = {
@@ -70,7 +75,8 @@ program
         leaves,
         proof,
         transferIndex,
-        rootTotalAmount
+        rootTotalAmount,
+        numLeaves
       }
 
       console.log(JSON.stringify(output, null, 2))

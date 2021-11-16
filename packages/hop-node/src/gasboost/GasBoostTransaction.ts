@@ -578,8 +578,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     while (true) {
       i++
       try {
-        this.logger.debug(`sending tx index ${i}`)
+        this.logger.debug(`tx index ${i}: sending`)
         if (i > 1) {
+          this.logger.debug(`tx index ${i}: retrieving gasFeeData`)
           gasFeeData = await this.getBumpedGasFeeData(this.gasPriceMultiplier * i)
         }
 
@@ -598,8 +599,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           payload.maxPriorityFeePerGas = gasFeeData.maxPriorityFeePerGas
         }
 
+        this.logger.debug(`tx index ${i}: checking for enough funds`)
         await this.checkHasEnoughFunds(payload, gasFeeData)
 
+        this.logger.debug(`tx index ${i}: sending transaction`)
         // await here is intentional to catch error below
         const tx = await this.signer.sendTransaction(payload)
 

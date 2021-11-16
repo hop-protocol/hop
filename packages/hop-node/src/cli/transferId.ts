@@ -1,8 +1,10 @@
-import { logger, program } from './shared'
+import isL1 from 'src/utils/isL1'
 import {
+  getEnabledNetworks,
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
+import { logger, program } from './shared'
 
 import getTransferId from 'src/theGraph/getTransfer'
 
@@ -26,19 +28,23 @@ program
       if (!transferId) {
         throw new Error('transfer ID is required')
       }
-      if (!chain) {
-        throw new Error('chain is required')
-      }
       if (!token) {
         throw new Error('token is required')
       }
-      const transfer = await getTransferId(
-        chain,
-        token,
-        transferId
-      )
-      const showInfo = source.info
-      console.log(JSON.stringify(transfer, null, 2))
+      const chains = chain ? [chain] : getEnabledNetworks()
+      for (const _chain of chains) {
+        if (isL1(_chain)) {
+          continue
+        }
+        logger.debug(`chain: ${_chain}`)
+        const transfer = await getTransferId(
+          _chain,
+          token,
+          transferId
+        )
+        const showInfo = source.info
+        console.log(JSON.stringify(transfer, null, 2))
+      }
     } catch (err) {
       logger.error(err)
       process.exit(1)

@@ -39,6 +39,7 @@ export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION
 export const awsProfile = process.env.AWS_PROFILE
 export const gitRev = buildInfo.rev
+export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 const envNetwork = process.env.NETWORK ?? Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
@@ -203,10 +204,10 @@ export const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
 }
 
-export const setNetworkRpcUrls = (network: string, rpcUrls: string[]) => {
+export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   network = normalizeNetwork(network)
   if (config.networks[network]) {
-    config.networks[network].rpcUrls = rpcUrls
+    config.networks[network].rpcUrl = rpcUrl
   }
 }
 

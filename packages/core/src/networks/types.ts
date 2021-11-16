@@ -1,7 +1,6 @@
 export type Network = {
   name: string
   networkId: number
-  rpcUrls: string[]
   publicRpcUrl?: string
   explorerUrls: string[]
   nativeBridgeUrl?: string

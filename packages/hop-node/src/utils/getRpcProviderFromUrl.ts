@@ -4,27 +4,15 @@ import { providers } from 'ethers'
 const cache: any = {}
 
 const getRpcProviderFromUrl = (
-  rpcUrls: string | string[]
+  rpcUrl: string
 ): providers.Provider => {
-  if (!Array.isArray(rpcUrls)) {
-    rpcUrls = [rpcUrls]
-  }
-  const cacheKey = rpcUrls.join(',')
+  const cacheKey = rpcUrl
   if (cache[cacheKey]) {
     return cache[cacheKey]
   }
-  const _providers: Provider[] = []
-  for (const rpcUrl of rpcUrls) {
-    const provider = new Provider(rpcUrl)
-    if (rpcUrls.length === 1) {
-      cache[cacheKey] = provider
-      return provider
-    }
-    _providers.push(provider)
-  }
-  const fallbackProvider = new providers.FallbackProvider(_providers, 1)
-  cache[cacheKey] = fallbackProvider
-  return fallbackProvider
+  const provider = new Provider(rpcUrl)
+  cache[cacheKey] = provider
+  return provider
 }
 
 export default getRpcProviderFromUrl

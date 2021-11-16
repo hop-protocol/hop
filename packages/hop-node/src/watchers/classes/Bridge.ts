@@ -395,7 +395,7 @@ export default class Bridge extends ContractBase {
   async getChainIds (): Promise<number[]> {
     const chainIds: number[] = []
     for (const key in globalConfig.networks) {
-      const { networkId: chainId } = globalConfig.networks[key]
+      const { chainId } = globalConfig.networks[key]
       chainIds.push(chainId)
     }
     return chainIds

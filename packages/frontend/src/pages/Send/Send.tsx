@@ -476,19 +476,33 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
-  const validFormFields = !!(
-    fromTokenAmount &&
-    toTokenAmount &&
-    rate &&
-    enoughBalance &&
-    !needsTokenForFee &&
-    isLiquidityAvailable &&
-    !checkingLiquidity &&
-    estimatedReceived?.gt(0)
-  )
-
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
-  const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval
+
+  const sendButtonActive = useMemo(() => {
+    return !!(
+      !approveButtonActive &&
+      !checkingLiquidity &&
+      !loadingToBalance &&
+      !loadingSendData &&
+      fromTokenAmount &&
+      toTokenAmount &&
+      rate &&
+      enoughBalance &&
+      isLiquidityAvailable &&
+      estimatedReceived?.gt(0)
+    )
+  }, [
+    approveButtonActive,
+    checkingLiquidity,
+    loadingToBalance,
+    loadingSendData,
+    fromTokenAmount,
+    toTokenAmount,
+    rate,
+    enoughBalance,
+    isLiquidityAvailable,
+    estimatedReceived,
+  ])
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">

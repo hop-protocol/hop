@@ -15,7 +15,7 @@
     "typecheck": "tsc",
     "dev": "npm run build-info && tsc -p tsconfig.build.json --watch",
     "build-info": "echo \"{\\\"rev\\\": \\\"${GIT_REV:-`git rev-parse --short HEAD`}\\\"}\" > src/.build-info.json",
-    "postinstall": "npm run build-info && cp src/.build-info.json dist/src/.build-info.json",
+    "postinstall": "mkdir -p dist/src && npm run build-info && cp src/.build-info.json dist/src/.build-info.json",
     "build": "npm run build-info && tsc -p tsconfig.build.json",
     "lint": "eslint --fix \"src/**/*\" \"test/**/*\"",
     "clean": "rm -rf dist",

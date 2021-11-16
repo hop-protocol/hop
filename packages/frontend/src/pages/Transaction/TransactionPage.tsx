@@ -3,43 +3,43 @@ import { useParams } from 'react-router'
 import { Div, Flex } from 'src/components/ui'
 import { useTransaction } from 'src/hooks'
 import SmallTextField from 'src/components/SmallTextField'
-import { Box, Button, Link, makeStyles, MenuItem, Typography } from '@material-ui/core'
-import FlatSelect from 'src/components/selects/FlatSelect'
+import { Button, Link, makeStyles } from '@material-ui/core'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
-import Transaction from 'src/models/Transaction'
-import TxStatusModal from 'src/components/modal/TxStatusModal'
-import { getBaseExplorerUrl, normalizeBN, truncateHash } from 'src/utils'
+import { networkIdToSlug, truncateHash, weiArgsToConvert } from 'src/utils'
 import { utils } from 'ethers'
 import { Text } from 'src/components/ui/Text'
+import { TxStatusTracker } from 'src/components/Transaction'
+import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
+import { metadata } from 'src/config'
+import { useWeb3Context } from 'src/contexts/Web3Context'
+import { NetworkSelector } from 'src/components/NetworkSelector'
 
-function TransactionParams({ params }: { params?: any[] }) {
-  const [args, setArgs] = useState<any[]>()
-
-  useEffect(() => {
-    const ps = params?.reduce((acc, p, i) => {
-      console.log(`p, i:`, p, i)
-      if (p === i) {
-        return acc
-      }
-      if (typeof p === 'string') {
-        return [...acc, p]
-      }
-      if (p._isBigNumber) {
-        return [...acc, p.toString()]
-      }
-      return acc
-    }, [])
-
-    setArgs(ps)
-  }, [params])
-
+function TransactionParams({ params, eventValues }) {
   return (
     <>
-      {args?.map((arg, i) => (
-        <Div key={arg}>
-          {i}: {arg}
-        </Div>
+      <Flex mt={4} bold>
+        Transaction Params
+      </Flex>
+
+      {Object.keys(params).map(param => (
+        <Flex key={param} justifyBetween mb={2}>
+          <Div>{param}:</Div>
+          <Div>{weiArgsToConvert.includes(param) ? `${params[param]} ETH` : params[param]}</Div>
+        </Flex>
+      ))}
+
+      <Flex mt={4} bold>
+        Event Values
+      </Flex>
+
+      {Object.keys(eventValues).map(param => (
+        <Flex key={param} justifyBetween mb={2}>
+          <Div>{param}:</Div>
+          <Div>
+            {weiArgsToConvert.includes(param) ? `${eventValues[param]} ETH` : eventValues[param]}
+          </Div>
+        </Flex>
       ))}
     </>
   )
@@ -105,8 +105,8 @@ function TransactionPage() {
   const [txHash, setTxHash] = useState<string>(hash)
   const [sourceNetwork, setSourceNetwork] = useState<Network>()
 
-  const { networks } = useApp()
-  const styles = useStyles()
+  const { sdk, tokens } = useApp()
+  const { connectedNetworkId } = useWeb3Context()
 
   // STATE
   // balances
@@ -114,12 +114,9 @@ function TransactionPage() {
   // contract: address, name, network id
   // method name, params, parsed args
   // type of tx / transfer: (send, approve, convert, wrap, unwrap, addLiquidity, removeLiquidity, stake)
-  // bonder fees
-  // lp fees
   // timing (x minutes ago)
   // error messages
   // link to graph
-  // link to notion: shared external
   // add token to MM
 
   // txHash + network -> sourceNetworkProvider.getTransaction(txHash)
@@ -136,23 +133,20 @@ function TransactionPage() {
   // if no transferId (L1ToL2) -> fetchTransferFromL1Completeds(transferId)
   // if transferId found in TransferSent -> fetchWithdrawalBondedsByTransferId(destNetworkName, transferId)
 
-  // TODO: turn network selector into its own component
-
-  const {
-    tx,
-    txObj,
-    loading,
-    initState,
-    confirmations,
-    networkConfirmations,
-    getTransactionDetails,
-  } = useTransaction(txHash, sourceNetwork?.slug)
+  const { txObj, loading, initState, confirmations, networkConfirmations } = useTransaction(
+    txHash,
+    sourceNetwork?.slug
+  )
 
   useEffect(() => {
     if (hash) {
       setTxHash(hash)
     }
   }, [hash])
+
+  useEffect(() => {
+    console.log(`txObj:`, txObj)
+  }, [txObj])
 
   async function handleInit() {
     if (txHash && sourceNetwork) {
@@ -162,42 +156,38 @@ function TransactionPage() {
     }
   }
 
+  async function addToken() {
+    if (txObj?.tokenSymbol) {
+      console.log(`tokens['DAI']:`, (tokens as any).DAI)
+      const { tokenSymbol } = txObj
+      const tokenImageUrl = metadata.tokens[tokenSymbol].image
+      const tokenModel = sdk.toTokenModel(txObj.tokenSymbol)
+      const networkName = networkIdToSlug(connectedNetworkId)
+      if (networkName === 'ethereum') {
+        return
+      }
+      console.log(`tokenImageUrl:`, tokenImageUrl)
+      const addr = tokens[tokenSymbol][networkName].l2CanonicalToken.address
+      ;(window as any).ethereum.request({
+        method: 'wallet_watchAsset',
+        params: {
+          type: 'ERC20', // Initially only supports ERC20, but eventually more!
+          options: {
+            address: addr,
+            symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
+            decimals: tokenModel.decimals, // The number of decimals in the token
+            image: tokenImageUrl, // A string url of the token logo
+          },
+        },
+      })
+    }
+  }
+
   return (
     <Div>
       <Flex justifyAround>
         <Flex>
-          <FlatSelect
-            value={sourceNetwork || 'default'}
-            onChange={event => {
-              const network = networks.find(_network => _network.slug === event.target.value)
-              setSourceNetwork(network)
-            }}
-          >
-            <MenuItem value="default">
-              <Box
-                display="flex"
-                flexDirection="row"
-                alignItems="center"
-                className={styles.defaultLabel}
-              >
-                <Typography variant="subtitle2" className={styles.networkLabel}>
-                  Select Network
-                </Typography>
-              </Box>
-            </MenuItem>
-            {networks.map(network => (
-              <MenuItem value={network.slug} key={network.slug}>
-                <Box className={styles.networkSelectionBox}>
-                  <Box className={styles.networkIconContainer}>
-                    <img src={network.imageUrl} className={styles.networkIcon} alt={network.name} />
-                  </Box>
-                  <Typography variant="subtitle2" className={styles.networkLabel}>
-                    {network.name}
-                  </Typography>
-                </Box>
-              </MenuItem>
-            ))}
-          </FlatSelect>
+          <NetworkSelector network={sourceNetwork} setNetwork={setSourceNetwork} />
         </Flex>
 
         <Div width="70%">
@@ -223,13 +213,19 @@ function TransactionPage() {
         {loading ? (
           <Div>Loading...</Div>
         ) : (
-          tx && (
+          txObj && (
             <Div>
+              <Flex justifyBetween mb={4}>
+                <Div>Tx Type:</Div> {txObj?.type}
+              </Flex>
+
               <Flex justifyBetween mb={2}>
                 <Div>Source Network:</Div>
-                <Link href={tx.explorerLink} target="_blank">
-                  {tx.networkName}: {truncateHash(tx.hash)}
-                </Link>
+                {sourceNetwork && (
+                  <Link href={getExplorerTxUrl(sourceNetwork.slug, txHash)} target="_blank">
+                    {sourceNetwork?.slug}: {truncateHash(txHash)}
+                  </Link>
+                )}
               </Flex>
 
               <Flex justifyBetween mb={2}>
@@ -268,7 +264,8 @@ function TransactionPage() {
               </Flex>
 
               <Flex justifyBetween mb={2}>
-                <Div>Tx Nonce:</Div> {txObj?.response?.nonce}
+                <Div>Tx Nonce:</Div>
+                <Div>{txObj?.response?.nonce}</Div>
               </Flex>
 
               <Flex justifyBetween mb={2}>
@@ -280,68 +277,52 @@ function TransactionPage() {
 
               {/* SPECIFICS */}
               <Flex justifyBetween mb={2} mt={4}>
-                <Div>Tx Type:</Div> {txObj?.type}
+                <Div>Method Name:</Div>
+                <Div>{txObj?.methodName}</Div>
               </Flex>
               <Flex justifyBetween mb={2}>
-                <Div>Method Name:</Div> {txObj?.methodName}
+                <Div mr={4}>Token:</Div>
+                <Div onClick={addToken}>{txObj?.tokenSymbol}</Div>
               </Flex>
               <Flex justifyBetween mb={2}>
-                <Div>Datetime:</Div> {txObj?.timestamp}
+                <Div mr={4}>Datetime:</Div>
+                <Div>{txObj?.datetime}</Div>
               </Flex>
 
-              <Flex justifyBetween mb={2}>
+              <Flex justifyBetween my={4}>
                 <Div>Destination Network:</Div>
-                {tx.destExplorerLink ? (
-                  <Link href={tx.destExplorerLink} target="_blank">
-                    {tx.destNetworkName}: {truncateHash(tx.destTxHash)}
+                {txObj.destExplorerLink ? (
+                  <Link href={txObj.destExplorerLink} target="_blank">
+                    {txObj.destNetworkName}: {truncateHash(txObj.destTxHash)}
                   </Link>
                 ) : (
-                  <Div>{tx.destNetworkName}</Div>
+                  <Div>{txObj.destNetworkName}</Div>
                 )}
               </Flex>
 
-              {txObj &&
-                txObj.eventValues &&
-                Object.keys(txObj.eventValues).map(param => (
-                  <Flex key={param} justifyBetween mb={2}>
-                    <Div>{param}:</Div>
-                    <Div>{txObj.eventValues[param]}</Div>
-                  </Flex>
-                ))}
-              <Flex justifyBetween mb={2}>
-                <Div>Token:</Div> {txObj?.eventValues?.token}
-              </Flex>
-
-              <Flex justifyBetween mb={2}>
-                <Div>Transfer ID:</Div> {tx.transferId}
-              </Flex>
-              {/* <Flex column>
-              Params: <TransactionParams params={txObj?.params} />
-            </Flex> */}
-              {/* {Object.keys(tx.toObject()).map(k => (
-              <Div key={k}>
-                {k}: {typeof tx[k] === 'string' ? tx[k] : JSON.stringify(tx[k])}
-              </Div>
-            ))}
-            <Typography noWrap={true}>{JSON.stringify(tx.toObject())}</Typography> */}
+              {txObj && txObj.params && txObj.eventValues && (
+                <TransactionParams params={txObj.params} eventValues={txObj.eventValues} />
+              )}
             </Div>
           )
         )}
 
-        {/* {tx && <TxStatusModal onClose={() => setTx(null)} tx={tx} />} */}
+        {/* {tx && <TxStatusTracker tx={tx} />} */}
 
-        <Link
-          href="https://www.notion.so/authereum/How-to-find-out-if-a-transaction-has-arrived-on-the-Destination-Chain-using-The-Graph-5c65d441fe894ccfb75e01f8e10ff651"
-          target="_blank"
-        >
-          How to find out if a transaction has arrived on the Destination Chain using The Graph
-        </Link>
-        <Link
-          href="https://authereum.notion.site/Hop-Direct-Contract-Integration-b3a7030ba9264ae79d96087dec448d10"
-          target="_blank"
-        >
-          Hop Direct Contract Integration
-        </Link>
+        <Flex column mt={4}>
+          <Link
+            href="https://www.notion.so/authereum/How-to-find-out-if-a-transaction-has-arrived-on-the-Destination-Chain-using-The-Graph-5c65d441fe894ccfb75e01f8e10ff651"
+            target="_blank"
+          >
+            How to find out if a transaction has arrived on the Destination Chain using The Graph
+          </Link>
+          <Link
+            href="https://authereum.notion.site/Hop-Direct-Contract-Integration-b3a7030ba9264ae79d96087dec448d10"
+            target="_blank"
+          >
+            Hop Direct Contract Integration
+          </Link>
+        </Flex>
       </Flex>
     </Div>
   )

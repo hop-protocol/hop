@@ -5,6 +5,10 @@ export function getUrl(chain) {
   if (chain === 'ethereum') {
     chain = 'mainnet'
   }
+
+  if (chain === 'optimism') {
+    chain = 'optimism1'
+  }
   return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
 }
 
@@ -35,6 +39,8 @@ export interface L2Transfer {
   timestamp: string
   deadline: string
   transferId: string
+  destinationChainId: string
+  transactionHash: string
 }
 
 export interface L1Transfer {
@@ -78,6 +84,7 @@ export async function fetchTransferSents(
         token
         transferId
         transferNonce
+        transactionHash
       }
     }
   `
@@ -97,7 +104,6 @@ export async function fetchTransferFromL1Completeds(
   recipient = recipient.toLowerCase()
   amount = normalizeBN(amount)
   deadline = normalizeBN(deadline)
-
   const query = `
     {
       transferFromL1Completeds(

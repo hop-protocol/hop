@@ -15,7 +15,7 @@ function parseString(name: string, argValue: any) {
 }
 
 // List of Wei args to convert (to Eth)
-const weiArgsToConvert = ['amount', 'amountOutMin', 'bonderFee']
+export const weiArgsToConvert = ['amount', 'amountOutMin', 'bonderFee', 'destinationAmountOutMin']
 
 export function formatArgValues(arg, value) {
   // Convert to string

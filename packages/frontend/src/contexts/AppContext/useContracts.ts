@@ -23,6 +23,7 @@ export type Contracts = {
   }
   getContract: (address: string, abi: ABI[], provider: Provider) => Contract | undefined
   getErc20Contract: (address: string, provider: Provider) => Contract
+  l1BridgeInterface: any
 }
 
 type TokenContracts = {
@@ -94,6 +95,7 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
     providers,
     getContract,
     getErc20Contract,
+    l1BridgeInterface: tokenContracts.ETH.ethereum.l1Bridge.interface,
   }
 }
 

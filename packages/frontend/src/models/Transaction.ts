@@ -4,7 +4,6 @@ import { Hop, Token } from '@hop-protocol/sdk'
 import { L1_NETWORK } from 'src/constants'
 import {
   getRpcUrl,
-  getProvider,
   getBaseExplorerUrl,
   findTransferFromL1CompletedLog,
   getTransferSentDetailsFromLogs,
@@ -12,12 +11,14 @@ import {
   fetchWithdrawalBondedsByTransferId,
   L1Transfer,
   networkIdToSlug,
+  queryFilterTransferFromL1CompletedEvents,
 } from 'src/utils'
 import { network as defaultNetwork } from 'src/config'
 import logger from 'src/logger'
 import { formatError } from 'src/utils/format'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 import { sigHashes } from 'src/hooks/useTransaction'
+import { getProviderByNetworkName } from 'src/utils/getProvider'
 
 interface ContructorArgs {
   hash: string
@@ -68,18 +69,15 @@ class Transaction extends EventEmitter {
     super()
     this.hash = (hash || '').trim().toLowerCase()
     this.networkName = (networkName || defaultNetwork).trim().toLowerCase()
-    const rpcUrl = this.getRpcUrl(networkName)
 
     // TODO: not sure if changing pendingDestinationConfirmation will have big effects
     if (destNetworkName) {
       this.destNetworkName = destNetworkName
       this.pendingDestinationConfirmation = pendingDestinationConfirmation
-
-      const destRpcUrl = this.getRpcUrl(destNetworkName)
-      this.destProvider = getProvider(destRpcUrl)
+      this.destProvider = getProviderByNetworkName(destNetworkName)
     }
 
-    this.provider = getProvider(rpcUrl)
+    this.provider = getProviderByNetworkName(networkName)
     this.timestamp = timestamp || Date.now()
     this.pending = pending
     this.transferId = transferId
@@ -88,7 +86,7 @@ class Transaction extends EventEmitter {
     this.token = token || null
 
     this.getTransaction().then((txResponse: providers.TransactionResponse) => {
-      const funcSig = txResponse.data.slice(0, 10)
+      const funcSig = txResponse?.data?.slice(0, 10)
       this.methodName = sigHashes[funcSig]
     })
 
@@ -100,8 +98,7 @@ class Transaction extends EventEmitter {
 
       if (tsDetails?.chainId) {
         this.destNetworkName = networkIdToSlug(tsDetails.chainId)
-        const destRpcUrl = this.getRpcUrl(this.destNetworkName)
-        this.destProvider = getProvider(destRpcUrl)
+        this.destProvider = getProviderByNetworkName(this.destNetworkName)
       }
 
       // Source: L2
@@ -229,6 +226,7 @@ class Transaction extends EventEmitter {
         this.networkName !== this.destNetworkName
       )
     ) {
+      console.log(`missing provider, token, destNetworkName, or same network:`, this)
       return
     }
 
@@ -267,13 +265,7 @@ class Transaction extends EventEmitter {
           }
 
           // If TheGraph is not working...
-          const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
-          const bln = await destL2Bridge.provider.getBlockNumber()
-          const evs = await destL2Bridge.queryFilter(
-            destL2Bridge.filters.TransferFromL1Completed(),
-            bln - 9999,
-            bln
-          )
+          const evs = await queryFilterTransferFromL1CompletedEvents(bridge, this.destNetworkName)
 
           if (evs?.length) {
             // Find the matching amount
@@ -377,6 +369,7 @@ class Transaction extends EventEmitter {
       pendingDestinationConfirmation,
       transferId,
       replaced,
+      methodName,
     } = this
     return {
       hash,
@@ -390,6 +383,7 @@ class Transaction extends EventEmitter {
       pendingDestinationConfirmation,
       transferId,
       replaced,
+      methodName,
     }
   }
 

@@ -11,7 +11,7 @@ for (const chain in networks) {
   }
   chains[chain].name = network?.name
   chains[chain].chainId = network?.networkId
-  chains[chain].rpcUrls = network?.rpcUrls
+  chains[chain].rpcUrl = network?.publicRpcUrl
   chains[chain].explorerUrl = network?.explorerUrls?.[0]
 }
 

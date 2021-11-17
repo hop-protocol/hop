@@ -9,18 +9,14 @@ export type ChainProviders = { [chain: string]: providers.Provider }
 
 // cache provider
 const getProvider = memoize((network: string, chain: string) => {
-  const rpcUrls = config.chains[network][chain].rpcUrls.slice(0, 3) // max of 3 endpoints
-  const ethersProviders: providers.Provider[] = []
-  for (const rpcUrl of rpcUrls) {
-    const provider = new providers.StaticJsonRpcProvider(rpcUrl)
-    ethersProviders.push(provider)
+  const rpcUrl = config.chains[network][chain].rpcUrl
+  if (!rpcUrl) {
+    if (network === 'staging') {
+      network = 'mainnet'
+    }
+    return providers.getDefaultProvider(network)
   }
-
-  if (ethersProviders.length === 1) {
-    return ethersProviders[0]
-  }
-
-  return new providers.FallbackProvider(ethersProviders, 1)
+  return new providers.StaticJsonRpcProvider(rpcUrl)
 })
 
 const getContractMemo = memoize(
@@ -418,6 +414,10 @@ class Base {
     if (destinationChain.isL1) {
       feeBps = fees?.L2ToL1
     }
+    if (destinationChain === Chain.xDai && fees?.anyToxDai) {
+      feeBps = fees?.anyToxDai
+    }
+
     return feeBps
   }
 

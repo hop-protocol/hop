@@ -17,7 +17,7 @@ const useNetworks = () => {
           name: meta.name,
           slug: key,
           imageUrl: meta.image,
-          rpcUrl: net.rpcUrls[0],
+          rpcUrl: net.rpcUrl,
           networkId: net.networkId,
           nativeTokenSymbol: meta.nativeTokenSymbol,
           isLayer1: meta.isLayer1,

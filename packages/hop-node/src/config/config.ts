@@ -64,6 +64,7 @@ type MetricsConfig = {
   port?: number
 }
 type Bps = {
+  anyToxDai?: number
   L2ToL1: number
   L2ToL2: number
 }
@@ -204,10 +205,10 @@ export const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
 }
 
-export const setNetworkRpcUrls = (network: string, rpcUrls: string[]) => {
+export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   network = normalizeNetwork(network)
   if (config.networks[network]) {
-    config.networks[network].rpcUrls = rpcUrls
+    config.networks[network].rpcUrl = rpcUrl
   }
 }
 

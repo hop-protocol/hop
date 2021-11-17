@@ -170,7 +170,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const isBonderFeeOk = await this.getIsBonderFeeOk(transferId, attemptSwap)
     if (!isBonderFeeOk) {
-      throw new BonderFeeTooLowError(`Total bonder fee is too low. Cannot bond withdrawal.`)
+      throw new BonderFeeTooLowError('Total bonder fee is too low. Cannot bond withdrawal.')
     }
 
     await this.db.transfers.update(transferId, {

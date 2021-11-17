@@ -58,7 +58,7 @@ program
       if (!dbTransfer) {
         throw new Error('TransferId does not exist in the DB')
       }
-      dbTransfer.attemptSwap = watcher.bridge.shouldAttemptSwap(dbTransfer.amountOutMin!, dbTransfer.deadline!)
+      dbTransfer.attemptSwap = watcher.bridge.shouldAttemptSwap(dbTransfer.amountOutMin, dbTransfer.deadline)
       await watcher.sendBondWithdrawalTx(dbTransfer)
 
       process.exit(0)

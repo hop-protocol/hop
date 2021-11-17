@@ -169,7 +169,7 @@ program
     }
   })
 
-function getIsWrappedToken(token: string): boolean {
+function getIsWrappedToken (token: string): boolean {
   token = token.toLowerCase()
   return ['weth', 'wmatic', 'wxdai'].includes(token)
 }

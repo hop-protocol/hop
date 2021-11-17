@@ -1452,9 +1452,10 @@ class SyncWatcher extends BaseWatcher {
     const transferNonce = `0x${'0'.repeat(64)}`
 
     while (true) {
-      const txOverrides = await this.bridge.txOverrides()
-      txOverrides.from = bonder
       try {
+        const txOverrides = await this.bridge.txOverrides()
+        txOverrides.from = bonder
+
         const timestamp = Math.floor(Date.now() / 1000)
         const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
         const payload = [

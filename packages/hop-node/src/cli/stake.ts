@@ -1,9 +1,5 @@
-import StakeWatcher from 'src/watchers/StakeWatcher'
-import { Chain } from 'src/constants'
-import {
-  findWatcher,
-  getStakeWatchers
-} from 'src/watchers/watchers'
+import chainSlugToId from 'src/utils/chainSlugToId'
+import { BigNumber } from 'ethers'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
@@ -11,54 +7,47 @@ import {
 
 import { logger, program } from './shared'
 
-export enum StakerAction {
-  Stake,
-  Unstake,
-  Status
-}
-
-export async function staker (
+async function stake (
   chain: string,
   token: string,
   amount: number,
-  action: StakerAction
+  skipSendToL2: boolean = false
 ) {
-  if (!chain) {
-    throw new Error(
-      'chain is required. Options are: ethereum, xdai, polygon, optimism, arbitrum'
-    )
+  logger.debug('Staking')
+  const isBonder = await this.bridge.isBonder()
+  if (!isBonder) {
+    throw new Error('not an allowed bonder on chain')
   }
+
+  let tx
+  if (!skipSendToL2) {
+    const chainId: number = chainSlugToId(chain)!
+    tx = await this.bridge.sendCanonicalTokensToL2(
+      chainId,
+      amount
+    )
+    await tx.wait()
+  }
+
   if (!token) {
+  const hTokenBalance = await this.bridge.getBalance()
+  const parsedAmount: BigNumber = this.bridge.parseUnits(amount)
+  if (hTokenBalance.lt(parsedAmount)) {
     throw new Error(
-      'token is required: Options are: USDC, DAI, etc... Use correct capitalization.'
+      `not enough hToken balance to stake. Have ${this.bridge.formatUnits(
+        hTokenBalance
+      )}, need ${amount}`
     )
   }
 
-  const watchers = getStakeWatchers({
-    tokens: [token],
-    networks: [Chain.Optimism, Chain.Arbitrum, Chain.xDai, Chain.Polygon, Chain.Ethereum]
-  })
-  const stakeWatcher = findWatcher(watchers, StakeWatcher, chain) as StakeWatcher
-  if (action === StakerAction.Stake) {
-    logger.debug('action: stake')
-    if (!amount) {
-      throw new Error('amount is required. E.g. 100')
-    }
-    const parsedAmount = stakeWatcher.bridge.parseUnits(amount)
-    const isEthSend = token === 'ETH'
-    if (!isEthSend) {
-      await stakeWatcher.approveTokens()
-    }
-    await stakeWatcher.convertAndStake(parsedAmount)
-  } else if (action === StakerAction.Unstake) {
-    logger.debug('action: unstake')
-    if (!amount) {
-      throw new Error('amount is required. E.g. 100')
-    }
-    const parsedAmount = stakeWatcher.bridge.parseUnits(amount)
-    await stakeWatcher.unstake(parsedAmount)
+  this.logger.debug(`attempting to stake ${amount} tokens`)
+  tx = await this.bridge.stake(amount)
+  this.logger.info(`stake tx: ${(tx.hash)}`)
+  const receipt = await tx.wait()
+  if (receipt.status) {
+    this.logger.debug(`stake successful`)
   } else {
-    await stakeWatcher.printAmounts()
+    this.logger.error('stake unsuccessful')
   }
 }
 
@@ -70,6 +59,7 @@ program
   .option('-c, --chain <string>', 'Chain')
   .option('-t, --token <string>', 'Token')
   .option('-a, --amount <number>', 'Amount (in human readable format)')
+  .option('-s, --skip-send-to-l2 <boolean>', 'Stake hTokens that already exist on L2')
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -80,7 +70,13 @@ program
       const chain = source.chain
       const token = source.token
       const amount = Number(source.args[0] || source.amount)
-      await staker(chain, token, amount, StakerAction.Stake)
+      const skipSendToL2 = source.skipSendToL2
+
+      if (!amount) {
+        throw new Error('amount is required. E.g. 100')
+      }
+
+      await stake(chain, token, amount, skipSendToL2)
       process.exit(0)
     } catch (err) {
       logger.error(err)

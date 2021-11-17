@@ -239,9 +239,7 @@ program
       const isHToken = !!source.htoken
       const isNativeSend = !!source.native
       const isSelfSend = !!source.self
-      console.log('aaa')
       const gasPrice = source.gasPrice
-      console.log('bbb', gasPrice)
       const isSameChain = (fromChain && toChain) && (fromChain === toChain)
       if (isHToken && isNativeSend) {
         throw new Error('Cannot use --htoken and --native flag together')

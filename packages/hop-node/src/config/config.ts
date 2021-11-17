@@ -64,6 +64,7 @@ type MetricsConfig = {
   port?: number
 }
 type Bps = {
+  anyToxDai?: number
   L2ToL1: number
   L2ToL2: number
 }

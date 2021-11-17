@@ -414,6 +414,10 @@ class Base {
     if (destinationChain.isL1) {
       feeBps = fees?.L2ToL1
     }
+    if (destinationChain === Chain.xDai && fees?.anyToxDai) {
+      feeBps = fees?.anyToxDai
+    }
+
     return feeBps
   }
 

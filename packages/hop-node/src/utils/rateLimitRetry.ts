@@ -22,17 +22,29 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         }
         return result
       } catch (err) {
-        const errorRegex = /(timeout|time-out|time out|timedout|ETIMEDOUT|ENETUNREACH|ECONNRESET|bad response|response error|missing response|rate limit|too many concurrent requests|socket hang up)/i
+        const errMsg = err.message
+        const rateLimitErrorRegex = /(rate limit|too many concurrent requests|socket hang up)/i
+        const timeoutErrorRegex = /(timeout|time-out|time out|timedout)/i
+        const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED)/i
+        const badResponseErrorRegex = /(bad response|response error|missing response)/i
         const revertErrorRegex = /revert/i
 
-        const isRateLimitError = errorRegex.test(err.message)
-        const isRevertError = revertErrorRegex.test(err.message)
-        const shouldRetry = isRateLimitError && !isRevertError
-        log.debug(`isRateLimitError: ${isRateLimitError} isRevertError: ${isRevertError}`)
+        const isRateLimitError = rateLimitErrorRegex.test(errMsg)
+        const isTimeoutError = timeoutErrorRegex.test(errMsg)
+        const isConnectionError = connectionErrorRegex.test(errMsg)
+        const isBadResponseError = badResponseErrorRegex.test(errMsg)
+
+        // a connection error, such as 'ECONNREFUSED', will cause ethers to return a "missing revert data in call exception" error,
+        // so we want to exclude server connection errors from actual contract call revert errors.
+        const isRevertError = revertErrorRegex.test(errMsg) && !isConnectionError
+
+        const shouldRetry = (isRateLimitError || isTimeoutError || isConnectionError || isBadResponseError) && !isRevertError
+
+        log.debug(`isRateLimitError: ${isRateLimitError}, isTimeoutError: ${isTimeoutError}, isConnectionError: ${isConnectionError}, isGenericError: ${isBadResponseError}, isRevertError: ${isRevertError}, shouldRetry: ${shouldRetry}`)
 
         // throw error as usual if it's not a rate limit error
         if (!shouldRetry) {
-          log.error(err.message)
+          log.error(errMsg)
           throw err
         }
         retries++
@@ -41,14 +53,14 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
           logger.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${err}`)
           // this must be a regular console log to print original function name
           console.log(fn, id, ...args)
-          notifier.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${err.message}`)
+          notifier.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${errMsg}`)
           throw err
         }
 
         const delayMs = (1 << retries) * 1000
         log.warn(
           `retry attempt #${retries} failed with error "${
-            err.message
+            errMsg
           }". retrying again in ${delayMs / 1000} seconds.`
         )
         // this must be a regular console log to print original function name

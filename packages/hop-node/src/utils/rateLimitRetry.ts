@@ -23,10 +23,10 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         return result
       } catch (err) {
         const errMsg = err.message
-        const rateLimitErrorRegex = /(rate limit|too many concurrent requests|socket hang up)/i
-        const timeoutErrorRegex = /(timeout|time-out|time out|timedout)/i
-        const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED)/i
-        const badResponseErrorRegex = /(bad response|response error|missing response)/i
+        const rateLimitErrorRegex = /(rate limit|too many concurrent requests|exceeded|socket hang up)/i
+        const timeoutErrorRegex = /(timeout|time-out|time out|timedout|timed out)/i
+        const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED|SERVER_ERROR)/i
+        const badResponseErrorRegex = /(bad response|response error|missing response|processing response error)/i
         const revertErrorRegex = /revert/i
 
         const isRateLimitError = rateLimitErrorRegex.test(errMsg)
@@ -36,7 +36,7 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
 
         // a connection error, such as 'ECONNREFUSED', will cause ethers to return a "missing revert data in call exception" error,
         // so we want to exclude server connection errors from actual contract call revert errors.
-        const isRevertError = revertErrorRegex.test(errMsg) && !isConnectionError
+        const isRevertError = revertErrorRegex.test(errMsg) && !isConnectionError && !isTimeoutError
 
         const shouldRetry = (isRateLimitError || isTimeoutError || isConnectionError || isBadResponseError) && !isRevertError
 

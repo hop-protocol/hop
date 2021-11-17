@@ -145,6 +145,22 @@ async function sendNativeToken (
   logger.debug(`send complete. new balance: ${formatEther(balance)}`)
 }
 
+async function sendToSelf (chain: string, gasPrice: string) {
+  const provider = getRpcProvider(chain)
+  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  const selfAddress = await wallet.signer.getAddress()
+  const nonce = await provider?.getTransactionCount(selfAddress)
+  const tx = await wallet.sendTransaction({
+    value: 0,
+    to: selfAddress,
+    nonce,
+    gasPrice: BigNumber.from(gasPrice)
+  })
+  logger.info(`send tx: ${tx.hash}`)
+  await tx.wait()
+  logger.debug(`send with ${nonce} complete`)
+}
+
 async function transferTokens (
   chain: string,
   token: string,
@@ -206,6 +222,8 @@ program
   .option('--recipient <string>', 'Recipient to send tokens to')
   .option('--htoken', 'Send hTokens')
   .option('--native', 'Send the native token')
+  .option('--self', 'Send to self and reset nonce')
+  .option('--gas-price <string>', 'Gas price to use')
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -220,11 +238,18 @@ program
       const recipient = source.recipient
       const isHToken = !!source.htoken
       const isNativeSend = !!source.native
+      const isSelfSend = !!source.self
+      console.log('aaa')
+      const gasPrice = source.gasPrice
+      console.log('bbb', gasPrice)
       const isSameChain = (fromChain && toChain) && (fromChain === toChain)
       if (isHToken && isNativeSend) {
         throw new Error('Cannot use --htoken and --native flag together')
       }
-      if (isSameChain) {
+
+      if (isSelfSend) {
+        await sendToSelf(fromChain, gasPrice)
+      } else if (isSameChain) {
         await transferTokens(fromChain, token, amount, recipient, isHToken)
       } else if (isNativeSend) {
         await sendNativeToken(fromChain, amount, recipient)

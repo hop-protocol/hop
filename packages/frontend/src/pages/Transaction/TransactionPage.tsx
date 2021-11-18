@@ -5,21 +5,17 @@ import { useTransaction } from 'src/hooks'
 import SmallTextField from 'src/components/SmallTextField'
 import { Link } from '@material-ui/core'
 import { useApp } from 'src/contexts/AppContext'
-import Network from 'src/models/Network'
 import { networkIdToSlug, truncateHash } from 'src/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { NetworkSelector } from 'src/components/NetworkSelector'
 import { DisplayObjectValues } from './DisplayObjectValues'
 import { getTokenImage } from 'src/utils/tokens'
 import { TransactionDetails } from '.'
-import { findNetworkBySlug } from 'src/utils/networks'
 
 function TransactionPage() {
   const { hash } = useParams<{ hash: string }>()
   const [txHash, setTxHash] = useState<string>(hash)
-  const [sourceNetwork, setSourceNetwork] = useState<Network>()
 
-  const { sdk, tokens, networks } = useApp()
+  const { sdk } = useApp()
   const { connectedNetworkId } = useWeb3Context()
 
   useEffect(() => {
@@ -35,23 +31,11 @@ function TransactionPage() {
   // link to graph
   // add token to MM
 
-  const { tx, loading, error } = useTransaction(txHash, sourceNetwork?.slug)
+  const { tx, loading, error } = useTransaction(txHash)
 
   useEffect(() => {
     console.log(`tx:`, tx)
   }, [tx])
-
-  async function handleSetNetwork(network) {
-    if (txHash && network) {
-      setSourceNetwork(network)
-    }
-  }
-
-  function handleClickTxHash(txHash, networkName) {
-    const srcNetwork = findNetworkBySlug(networks, networkName)
-    setTxHash(txHash)
-    setSourceNetwork(srcNetwork)
-  }
 
   async function addToken() {
     if (tx.tokenSymbol) {
@@ -83,10 +67,6 @@ function TransactionPage() {
   return (
     <Div>
       <Flex justifyAround>
-        <Flex>
-          <NetworkSelector network={sourceNetwork} setNetwork={handleSetNetwork} />
-        </Flex>
-
         <Div width="70%">
           <SmallTextField
             style={{
@@ -168,8 +148,7 @@ function TransactionPage() {
                   token={tx.token}
                   params={tx.destTx.eventValues}
                   title="Destination Event Values"
-                  network={tx.destTx.networkName}
-                  onClickTxHash={handleClickTxHash}
+                  onClickTxHash={setTxHash}
                 />
               )}
             </Div>

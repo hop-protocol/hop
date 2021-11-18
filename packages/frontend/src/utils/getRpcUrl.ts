@@ -21,4 +21,14 @@ export function getRpcUrlByNetworkName(networkName: string) {
   return rpcUrl
 }
 
+export function getAllRpcUrls() {
+  return {
+    arbitrum: getRpcUrl('arbitrum'),
+    optimism: getRpcUrl('optimism'),
+    xdai: getRpcUrl('xdai'),
+    polygon: getRpcUrl('polygon'),
+    ethereum: getRpcUrl(L1_NETWORK),
+  }
+}
+
 export default getRpcUrl

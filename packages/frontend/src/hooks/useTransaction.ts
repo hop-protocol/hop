@@ -18,10 +18,11 @@ import {
   TxDetails,
   getTxDetails,
 } from 'src/utils/transactions'
-import { BigNumber, utils } from 'ethers'
-import { getProviderByNetworkName } from 'src/utils/getProvider'
+import { BigNumber, providers, utils } from 'ethers'
+import { getAllProviders } from 'src/utils/getProvider'
 import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
 import { useApp } from 'src/contexts/AppContext'
+import { TransactionResponse } from '@ethersproject/abstract-provider'
 
 // TODO: use typechain
 export const methodToSigHashes = {
@@ -52,7 +53,7 @@ const initialState: TxState = {
   txHash: '',
 }
 
-const useTransaction = (txHash?: string, slug?: string) => {
+const useTransaction = (txHash?: string) => {
   const [tx, dispatch] = useReducer(txReducer, initialState)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<any>()
@@ -64,19 +65,32 @@ const useTransaction = (txHash?: string, slug?: string) => {
 
   useEffect(() => {
     async function initState() {
-      if (txHash && slug) {
+      if (txHash) {
         setError(false)
         setLoading(true)
         try {
-          const provider = getProviderByNetworkName(slug)
-          const [response, receipt]: any = await Promise.all([
-            provider.getTransaction(txHash),
-            provider.getTransactionReceipt(txHash),
-          ])
+          let provider: providers.WebSocketProvider | providers.StaticJsonRpcProvider | undefined
+          let response: TransactionResponse | undefined
+          let networkName: string | undefined
 
-          if (!response) {
-            throw new Error(`Could not get tx on network: ${slug}`)
+          const allProviders = getAllProviders()
+          for (const networkKey in allProviders) {
+            try {
+              if (!response) {
+                response = await allProviders[networkKey].getTransaction(txHash)
+                networkName = networkKey
+                provider = allProviders[networkKey]
+              }
+            } catch (error) {
+              // continue / ignore errors
+            }
           }
+
+          if (!(response && provider)) {
+            throw new Error(`Could not get tx on any network: ${txHash}`)
+          }
+
+          const receipt = await provider.getTransactionReceipt(txHash)
 
           // TODO: add util to get token symbol by address
           const txDetails = getTxDetails(response, receipt)
@@ -88,14 +102,14 @@ const useTransaction = (txHash?: string, slug?: string) => {
           const gasCost = utils.formatEther(gasUsed.mul(response.gasPrice!))
 
           let completed = false
-          const waitConfirmations = getNetworkWaitConfirmations(slug as string)
+          const waitConfirmations = getNetworkWaitConfirmations(networkName as string)
           if (waitConfirmations && response.confirmations >= waitConfirmations) {
             completed = true
           }
 
           dispatchAction(TxActionType.setTxState, {
-            networkName: slug,
-            network: findNetworkBySlug(networks, slug),
+            networkName,
+            network: findNetworkBySlug(networks, networkName),
             txHash,
             response,
             receipt,
@@ -134,7 +148,7 @@ const useTransaction = (txHash?: string, slug?: string) => {
     }
 
     initState()
-  }, [txHash, slug])
+  }, [txHash])
 
   async function handleSendToL2(txDetails: TxDetails) {
     const { params, eventValues } = txDetails

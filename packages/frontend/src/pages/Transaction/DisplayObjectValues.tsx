@@ -3,7 +3,7 @@ import { utils } from 'ethers'
 import { Div, Flex } from 'src/components/ui'
 import { weiArgsToConvert } from 'src/utils'
 
-export function DisplayObjectValues({ params, title, network, onClickTxHash, token }: any) {
+export function DisplayObjectValues({ params, title, onClickTxHash, token }: any) {
   function convertWeiValues(key: string, value: string) {
     if (weiArgsToConvert.includes(key) && token) {
       return `${utils.formatUnits(value, token.decimals)} ${token.symbol}`
@@ -20,8 +20,8 @@ export function DisplayObjectValues({ params, title, network, onClickTxHash, tok
       {Object.keys(params).map(param => (
         <Flex key={param} justifyBetween mb={2}>
           <Div mr={4}>{param}:</Div>
-          {param === 'transactionHash' && network ? (
-            <Div color="red" cursor="true" onClick={() => onClickTxHash(params[param], network)}>
+          {param === 'transactionHash' ? (
+            <Div color="red" cursor="true" onClick={() => onClickTxHash(params[param])}>
               {convertWeiValues(param, params[param])}
             </Div>
           ) : (

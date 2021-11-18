@@ -26,8 +26,7 @@ async function sendTokensToL2 (
 
   let tx
   if (token) {
-    logger.debug('Approving L2 token send')
-
+    logger.debug('Approving L2 token send, if needed')
     tx = await token.approve(spender, parsedAmount)
     await tx?.wait()
   }
@@ -59,7 +58,7 @@ async function stake (
 
   let tx
   if (token) {
-    logger.debug('Approving token stake')
+    logger.debug('Approving token stake, if needed')
     const spender = bridge.getAddress()
     tx = await token.approve(spender, parsedAmount)
     await tx?.wait()
@@ -165,7 +164,8 @@ program
       }
 
       const isStakeOnL2 = chain !== Chain.Ethereum
-      if (isStakeOnL2 && !skipSendToL2) {
+      const shouldSendToL2 = isStakeOnL2 && !skipSendToL2
+      if (shouldSendToL2) {
         const l1Watcher = findWatcher(watchers, BondWithdrawalWatcher, Chain.Ethereum) as BondWithdrawalWatcher
         if (!l1Watcher) {
           throw new Error('Watcher not found')

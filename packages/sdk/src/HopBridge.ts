@@ -657,13 +657,23 @@ class HopBridge extends Base {
       gasPrice = gasPrice.div(2)
       bondTransferGasLimit = bondTransferGasLimit.div(2)
     }
-    const txFeeEth = gasPrice.mul(bondTransferGasLimit)
 
+    let txFeeEth = gasPrice.mul(bondTransferGasLimit)
     const oneEth = ethers.utils.parseEther('1')
     const rateBN = ethers.utils.parseUnits(
       rate.toFixed(canonicalToken.decimals),
       canonicalToken.decimals
     )
+
+    if (destinationChain.equals(Chain.Optimism)) {
+      const minFeeUsd = 4
+      const additionalFee = parseUnits(
+        (minFeeUsd / chainNativeTokenPrice).toFixed(chainNativeToken.decimals),
+        chainNativeToken.decimals
+      )
+      txFeeEth = txFeeEth.add(additionalFee)
+    }
+
     let fee = txFeeEth.mul(rateBN).div(oneEth)
 
     let multiplier = BigNumber.from(0)

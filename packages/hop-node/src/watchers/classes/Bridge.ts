@@ -425,10 +425,13 @@ export default class Bridge extends ContractBase {
   stake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
     const bonder = await this.getBonderAddress()
     const txOverrides = await this.txOverrides()
-    const isEthSend = this.chainSlug === Chain.Ethereum
-    if (isEthSend) {
+    if (
+      this.chainSlug === Chain.Ethereum &&
+      this.tokenSymbol === 'ETH'
+    ) {
       txOverrides.value = amount
     }
+
     const tx = await this.bridgeContract.stake(
       bonder,
       amount,

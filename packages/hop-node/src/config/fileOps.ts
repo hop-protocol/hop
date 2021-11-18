@@ -27,7 +27,6 @@ export const defaultEnabledWatchers: { [key: string]: boolean } = {
   challenge: true, // only active if role.challenger is also true
   commitTransfers: true,
   settleBondedWithdrawals: true,
-  stake: false,
   xDomainMessageRelay: false
 }
 
@@ -64,7 +63,6 @@ type WatchersConfig = {
   challenge: boolean
   commitTransfers: boolean
   settleBondedWithdrawals: boolean
-  stake: boolean
   xDomainMessageRelay: boolean
 }
 
@@ -102,7 +100,6 @@ export type FileConfig = {
   db?: DbConfig
   logging?: LoggingConfig
   keystore?: KeystoreConfig
-  stake?: any
   settleBondedWithdrawals?: any
   commitTransfers?: any
   order?: number

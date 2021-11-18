@@ -129,7 +129,23 @@ class Base {
           `unsupported chain "${chain.slug}" for network ${this.network}`
         )
       }
-      this.chainProviders[chain.slug] = chainProviders[chainSlug]
+      if (chainProviders[chainSlug]) {
+        this.chainProviders[chain.slug] = chainProviders[chainSlug]
+      }
+    }
+  }
+
+  setChainProviderUrls (chainProviders: Record<string, string>) {
+    for (const chainSlug in chainProviders) {
+      const chain = this.toChainModel(chainSlug)
+      if (!this.isValidChain(chain.slug)) {
+        throw new Error(
+          `unsupported chain "${chain.slug}" for network ${this.network}`
+        )
+      }
+      if (chainProviders[chainSlug]) {
+        this.chainProviders[chain.slug] = new providers.StaticJsonRpcProvider(chainProviders[chainSlug])
+      }
     }
   }
 
@@ -235,6 +251,26 @@ class Base {
       return this.chainProviders[chainSlug]
     }
     return getProvider(this.network, chainSlug)
+  }
+
+  public getChainProviders = () => {
+    const obj : Record<string, providers.Provider> = {}
+    for (const chainSlug of this.supportedChains) {
+      const provider = this.getChainProvider(chainSlug)
+      obj[chainSlug] = provider
+    }
+
+    return obj
+  }
+
+  public getChainProviderUrls = () => {
+    const obj : Record<string, string> = {}
+    for (const chainSlug of this.supportedChains) {
+      const provider = this.getChainProvider(chainSlug)
+      obj[chainSlug] = (provider as any)?.connection?.url
+    }
+
+    return obj
   }
 
   /**

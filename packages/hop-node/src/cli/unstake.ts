@@ -1,12 +1,12 @@
-import { logger, program } from './shared'
-import { BigNumber } from 'ethers'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
+import { BigNumber } from 'ethers'
 import {
   findWatcher,
   getWatchers
 } from 'src/watchers/watchers'
+import { logger, program } from './shared'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
@@ -26,11 +26,10 @@ export async function unstake (
   if (parsedAmount.gt(availableCredit)) {
     throw new Error(
       `Cannot unstake more than the available credit ${bridge.formatUnits(
-       availableCredit 
+       availableCredit
       )}`
     )
   }
-
 
   logger.debug(`attempting to unstake ${bridge.formatUnits(parsedAmount)} tokens`)
   const tx = await bridge.unstake(parsedAmount)

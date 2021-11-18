@@ -28,28 +28,34 @@ const bonders: { [network: string]: { [token: string]: string[] } } = {
 type Bps = {
   L2ToL1: number
   L2ToL2: number
+  anyToxDai: number
 }
 
 const fees: Record<string, Bps> = {
   USDC: {
     L2ToL1: 18,
-    L2ToL2: 18
+    L2ToL2: 18,
+    anyToxDai: 18
   },
   USDT: {
     L2ToL1: 18,
-    L2ToL2: 18
+    L2ToL2: 18,
+    anyToxDai: 18
   },
   DAI: {
     L2ToL1: 18,
-    L2ToL2: 18
+    L2ToL2: 18,
+    anyToxDai: 18
   },
   MATIC: {
     L2ToL1: 18,
-    L2ToL2: 18
+    L2ToL2: 18,
+    anyToxDai: 18
   },
   ETH: {
-    L2ToL1: 9,
-    L2ToL2: 9
+    L2ToL1: 4,
+    L2ToL2: 5,
+    anyToxDai: 18
   }
 }
 

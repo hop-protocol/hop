@@ -1,9 +1,8 @@
 import { constants } from 'ethers'
+import { ethereumRpc, xdaiRpc, polygonRpc, optimismRpc, arbitrumRpc } from './config'
 import { Hop } from '@hop-protocol/sdk'
 import wait from 'wait'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-
-const sdk = new Hop('mainnet')
 
 type PoolData = {
   apr: number
@@ -17,6 +16,20 @@ type Response = {
 }
 
 class Stats {
+  sdk = new Hop('mainnet')
+
+  constructor() {
+    this.sdk.setChainProviderUrls({
+      ethereum: ethereumRpc,
+      xdai: xdaiRpc,
+      polygon: polygonRpc,
+      optimism: optimismRpc,
+      arbitrum: arbitrumRpc
+    })
+
+    console.log('provider urls:', JSON.stringify(this.sdk.getChainProviderUrls()))
+  }
+
   async getAllAprs () {
     const timestamp = (Date.now() / 1000) | 0
     const data: Data = {}
@@ -63,7 +76,7 @@ class Stats {
   }
 
   async getApr (token: string, chain: string) {
-    const bridge = sdk.bridge(token)
+    const bridge = this.sdk.bridge(token)
     const amm = bridge.getAmm(chain)
     const apr = await amm.getApr()
     return apr

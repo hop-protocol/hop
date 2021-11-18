@@ -3,7 +3,7 @@ import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
-import { BigNumber } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { Chain } from 'src/constants'
 import {
   findWatcher,
@@ -18,11 +18,22 @@ import { logger, program } from './shared'
 
 async function sendTokensToL2 (
   bridge: L1Bridge,
-  chain: string,
-  parsedAmount: BigNumber
+  parsedAmount: BigNumber,
+  chain: string
 ) {
-  logger.debug('Sending tokens to L1')
-  const tx = await bridge.convertCanonicalTokenToHopToken(
+  const spender = bridge.getAddress()
+  const token: Token | void = await getToken(bridge)
+
+  let tx
+  if (token) {
+    logger.debug('Approving L2 token send')
+
+    tx = await token.approve(spender, parsedAmount)
+    await tx?.wait()
+  }
+
+  logger.debug('Sending tokens to L2')
+  tx = await bridge.convertCanonicalTokenToHopToken(
     chainSlugToId(chain)!,
     parsedAmount
   )
@@ -34,37 +45,34 @@ async function stake (
   parsedAmount: BigNumber
 ) {
   logger.debug('Staking')
-  const isBonder = await bridge.isBonder()
-  if (!isBonder) {
-    throw new Error('not an allowed bonder on chain')
-  }
 
-  let stakeTokenBalance: BigNumber
-  const isStakeOnL2 = bridge.chainSlug !== Chain.Ethereum
-  if (isStakeOnL2) {
-    let token: Token = await (bridge as L2Bridge).hToken()
-    stakeTokenBalance = await token.getBalance()
-  } else {
-    stakeTokenBalance = await bridge.getBalance(await bridge.getBonderAddress())
-  }
-
+  const token: Token | void = await getToken(bridge)
+  const stakeTokenBalance: BigNumber = await getTokenBalance(bridge, token)
   const formattedAmount = bridge.formatUnits(parsedAmount)
   if (stakeTokenBalance.lt(parsedAmount)) {
     throw new Error(
-      `not enough hToken balance to stake. Have ${this.bridge.formatUnits(
+      `not enough hToken balance to stake. Have ${bridge.formatUnits(
         stakeTokenBalance
       )}, need ${formattedAmount}`
     )
   }
 
-  logger.debug(`attempting to stake ${formattedAmount} tokens`)
-  const tx = await bridge.stake(parsedAmount)
-  logger.info(`stake tx: ${(tx.hash)}`)
+  let tx
+  if (token) {
+    logger.debug('Approving token stake')
+    const spender = bridge.getAddress()
+    tx = await token.approve(spender, parsedAmount)
+    await tx?.wait()
+  }
+
+  logger.debug(`Attempting to stake ${formattedAmount} tokens`)
+  tx = await bridge.stake(parsedAmount)
+  logger.info(`Stake tx: ${(tx.hash)}`)
   const receipt = await tx.wait()
   if (receipt.status) {
-    logger.debug(`stake successful`)
+    logger.debug(`Stake successful`)
   } else {
-    logger.error('stake unsuccessful')
+    logger.error('Stake unsuccessful')
   }
 }
 
@@ -91,6 +99,23 @@ async function pollConvertTxReceive (bridge: L2Bridge, convertAmount: BigNumber)
     }
     await wait(10 * 1000)
   }
+}
+
+async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> {
+  const isEthSend: boolean = bridge.l1CanonicalTokenAddress === constants.AddressZero
+  if (isEthSend) {
+    return
+  } else if (bridge.chainSlug !== Chain.Ethereum) {
+    return (bridge as L2Bridge).hToken()
+  }
+  return (bridge as L1Bridge).l1CanonicalToken()
+}
+
+async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void): Promise<BigNumber> {
+  if (!token) {
+    return bridge.getEthBalance()
+  }
+  return token.getBalance()
 }
 
 program
@@ -129,19 +154,24 @@ program
 
       const watcher = findWatcher(watchers, BondWithdrawalWatcher, chain) as BondWithdrawalWatcher
       if (!watcher) {
-        throw new Error('watcher not found')
+        throw new Error('Watcher not found')
       }
       const bridge: L2Bridge | L1Bridge = watcher.bridge
       const parsedAmount: BigNumber = bridge.parseUnits(amount)
+
+      const isBonder = await bridge.isBonder()
+      if (!isBonder) {
+        throw new Error('Not a valid bonder on the stake chain')
+      }
 
       const isStakeOnL2 = chain !== Chain.Ethereum
       if (isStakeOnL2 && !skipSendToL2) {
         const l1Watcher = findWatcher(watchers, BondWithdrawalWatcher, Chain.Ethereum) as BondWithdrawalWatcher
         if (!l1Watcher) {
-          throw new Error('watcher not found')
+          throw new Error('Watcher not found')
         }
         const l1Bridge: L1Bridge = (l1Watcher.bridge as L1Bridge)
-        await sendTokensToL2(l1Bridge, chain, parsedAmount)
+        await sendTokensToL2(l1Bridge, parsedAmount, chain)
         logger.debug('Tokens sent to L2. Waiting for receipt on L2.')
         await pollConvertTxReceive(bridge as L2Bridge, parsedAmount)
         logger.debug('Tokens received on L2.')

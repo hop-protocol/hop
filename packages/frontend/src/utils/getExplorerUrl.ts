@@ -17,12 +17,10 @@ export function getExplorerTxUrl(networkName, txHash) {
         return ''
       }
     }
-    case 'dai':
     case 'xdai': {
       return `${getBaseExplorerUrl('xdai')}/tx/${txHash}`
     }
-    case 'polygon':
-    case 'matic': {
+    case 'polygon': {
       return `${getBaseExplorerUrl('polygon')}/tx/${txHash}`
     }
   }

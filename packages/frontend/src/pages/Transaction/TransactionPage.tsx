@@ -7,20 +7,19 @@ import { Link } from '@material-ui/core'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
 import { networkIdToSlug, truncateHash } from 'src/utils'
-import { utils } from 'ethers'
-import { Text } from 'src/components/ui/Text'
-import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
-import { metadata } from 'src/config'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { NetworkSelector } from 'src/components/NetworkSelector'
 import { DisplayObjectValues } from './DisplayObjectValues'
+import { getTokenImage } from 'src/utils/tokens'
+import { TransactionDetails } from '.'
+import { findNetworkBySlug } from 'src/utils/networks'
 
 function TransactionPage() {
   const { hash } = useParams<{ hash: string }>()
   const [txHash, setTxHash] = useState<string>(hash)
   const [sourceNetwork, setSourceNetwork] = useState<Network>()
 
-  const { sdk, tokens } = useApp()
+  const { sdk, tokens, networks } = useApp()
   const { connectedNetworkId } = useWeb3Context()
 
   useEffect(() => {
@@ -36,14 +35,11 @@ function TransactionPage() {
   // link to graph
   // add token to MM
 
-  const { txObj, loading, error, confirmations, networkConfirmations } = useTransaction(
-    txHash,
-    sourceNetwork?.slug
-  )
+  const { tx, loading, error } = useTransaction(txHash, sourceNetwork?.slug)
 
   useEffect(() => {
-    console.log(`txObj:`, txObj)
-  }, [txObj])
+    console.log(`tx:`, tx)
+  }, [tx])
 
   async function handleSetNetwork(network) {
     if (txHash && network) {
@@ -51,30 +47,36 @@ function TransactionPage() {
     }
   }
 
+  function handleClickTxHash(txHash, networkName) {
+    const srcNetwork = findNetworkBySlug(networks, networkName)
+    setTxHash(txHash)
+    setSourceNetwork(srcNetwork)
+  }
+
   async function addToken() {
-    if (txObj?.tokenSymbol) {
-      console.log(`tokens['DAI']:`, (tokens as any).DAI)
-      const { tokenSymbol } = txObj
-      const tokenImageUrl = metadata.tokens[tokenSymbol].image
-      const tokenModel = sdk.toTokenModel(txObj.tokenSymbol)
+    if (tx.tokenSymbol) {
+      const { tokenSymbol } = tx
+      const tokenImageUrl = getTokenImage(tokenSymbol)
+      const tokenModel = sdk.toTokenModel(tokenSymbol)
       const networkName = networkIdToSlug(connectedNetworkId)
-      if (networkName === 'ethereum') {
+      if (networkName === sdk.Chain.Ethereum.slug) {
         return
       }
-      console.log(`tokenImageUrl:`, tokenImageUrl)
-      const addr = tokens[tokenSymbol][networkName].l2CanonicalToken.address
-      ;(window as any).ethereum.request({
-        method: 'wallet_watchAsset',
-        params: {
-          type: 'ERC20',
-          options: {
-            address: addr,
-            symbol: tokenSymbol,
-            decimals: tokenModel.decimals,
-            image: tokenImageUrl,
+      const addr = sdk.getL2CanonicalTokenAddress(tokenSymbol, networkName)
+      if (typeof (window as any)?.ethereum !== 'undefined') {
+        ;(window as any).ethereum.request({
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'ERC20',
+            options: {
+              address: addr,
+              symbol: tokenSymbol,
+              decimals: tokenModel.decimals,
+              image: tokenImageUrl,
+            },
           },
-        },
-      })
+        })
+      }
     }
   }
 
@@ -107,104 +109,68 @@ function TransactionPage() {
         ) : loading ? (
           <Div>Loading...</Div>
         ) : (
-          txObj && (
+          tx.networkName && (
             <Div my={4}>
               <Div my={4} bold>
                 <Flex justifyBetween my={2}>
                   <Div>Tx Type:</Div>
-                  <Div>{txObj?.type}</Div>
+                  <Div>{tx.txType}</Div>
                 </Flex>
                 <Flex justifyBetween mb={2}>
                   <Div>Token:</Div>
-                  <Div onClick={addToken}>{txObj?.tokenSymbol}</Div>
+                  <Div onClick={addToken}>{tx.tokenSymbol}</Div>
                 </Flex>
               </Div>
 
-              <Flex justifyBetween mb={2}>
-                <Div bold>Source Network:</Div>
-                {sourceNetwork && (
-                  <Link href={getExplorerTxUrl(sourceNetwork.slug, txHash)} target="_blank">
-                    {sourceNetwork?.slug}: {truncateHash(txHash)}
-                  </Link>
-                )}
-              </Flex>
-
-              <Flex justifyBetween mb={2}>
-                <Div>From:</Div>
-                <Text mono>{txObj?.response.from}</Text>
-              </Flex>
-              <Flex justifyBetween mb={2}>
-                <Div>To:</Div>
-                <Text mono>{txObj?.response.to}</Text>
-              </Flex>
-
-              <Flex justifyBetween mb={2}>
-                <Div>Value:</Div>
-                <Div>{txObj?.response?.value?.toString()} ETH</Div>
-              </Flex>
-
-              <Flex justifyBetween mb={2}>
-                <Div>Gas Price:</Div>
-                <Div>
-                  {utils.formatUnits(txObj?.response?.gasPrice?.toString() || '0', 'gwei')} Gwei
-                </Div>
-              </Flex>
-
-              <Flex justifyBetween mb={2}>
-                <Div>Gas Limit:</Div>
-                <Div>{txObj?.response?.gasLimit?.toString()}</Div>
-              </Flex>
-
-              <Flex justifyBetween mb={2}>
-                <Div>Gas Cost:</Div>
-                <Div>
-                  {txObj?.gasCost}
-                  &nbsp;ETH
-                </Div>
-              </Flex>
-
-              <Flex justifyBetween mb={2}>
-                <Div>Tx Nonce:</Div>
-                <Div>{txObj?.response?.nonce}</Div>
-              </Flex>
-
-              <Flex justifyBetween mb={2}>
-                <Div>Confirmations / Needed:</Div>
-                <Div>
-                  {confirmations} / {networkConfirmations}
-                </Div>
-              </Flex>
+              <TransactionDetails {...tx} />
 
               <Flex justifyBetween bold mb={2} mt={4}>
                 <Div>Method Name:</Div>
-                <Div>{txObj?.methodName}</Div>
+                <Div>{tx.methodName}</Div>
               </Flex>
 
-              {txObj?.params && (
-                <DisplayObjectValues params={txObj.params} title="Transaction Params" />
+              {tx.params && (
+                <DisplayObjectValues
+                  token={tx.token}
+                  params={tx.params}
+                  title="Transaction Params"
+                />
+              )}
+              {tx.eventValues && (
+                <DisplayObjectValues
+                  token={tx.token}
+                  params={tx.eventValues}
+                  title="Event Values"
+                />
               )}
 
-              {txObj.destNetworkName && (
+              {tx.destTx?.networkName && (
                 <>
                   <Flex justifyBetween mt={4} mb={2}>
                     <Div bold>Destination Network:</Div>
-                    {txObj.destExplorerLink ? (
-                      <Link href={txObj.destExplorerLink} target="_blank">
-                        {txObj.destNetworkName}: {truncateHash(txObj.destTxHash)}
+                    {tx.destTx?.explorerLink ? (
+                      <Link href={tx.destTx?.explorerLink} target="_blank">
+                        {tx.destTx.networkName}: {truncateHash(tx.destTx?.txHash)}
                       </Link>
                     ) : (
-                      <Div>{txObj.destNetworkName}</Div>
+                      <Div>{tx.destTx.networkName}</Div>
                     )}
                   </Flex>
                   <Flex justifyBetween mb={2}>
                     <Div>Destination tx confirmed:</Div>
-                    <Div>{txObj?.datetime}</Div>
+                    <Div>{tx.destTx?.datetime}</Div>
                   </Flex>
                 </>
               )}
 
-              {txObj?.eventValues && (
-                <DisplayObjectValues params={txObj.eventValues} title="Event Values" />
+              {tx.destTx?.eventValues && (
+                <DisplayObjectValues
+                  token={tx.token}
+                  params={tx.destTx.eventValues}
+                  title="Destination Event Values"
+                  network={tx.destTx.networkName}
+                  onClickTxHash={handleClickTxHash}
+                />
               )}
             </Div>
           )

@@ -30,10 +30,10 @@ export function formatArgValues(arg, value) {
 }
 
 // Filter and format event args
-export function formatLogArgs(args) {
+export function formatLogArgs(args): any {
   const formatted = Object.keys(args).reduce((acc, arg) => {
     // Filter numerical keys
-    if (Number.isInteger(parseInt(arg))) {
+    if (Number.isInteger(parseInt(arg)) || arg === 'log') {
       return acc
     }
 
@@ -49,7 +49,9 @@ export function formatLogArgs(args) {
 }
 
 export function getLastLog(logs: any[]) {
-  return logs[logs.length - 1]
+  if (logs.length > 0) {
+    return logs[logs.length - 1]
+  }
 }
 
 export function findTransferSentLog(logs: providers.Log[]) {

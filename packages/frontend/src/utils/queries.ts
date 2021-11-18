@@ -6,9 +6,6 @@ export function getUrl(chain) {
     chain = 'mainnet'
   }
 
-  if (chain === 'optimism') {
-    chain = 'optimism1'
-  }
   return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
 }
 

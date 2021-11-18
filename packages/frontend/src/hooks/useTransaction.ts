@@ -1,28 +1,39 @@
-import { useState, useEffect } from 'react'
-import { getNetworkWaitConfirmations } from 'src/utils/networks'
+import { useState, useEffect, useReducer } from 'react'
+import { findNetworkBySlug, getNetworkWaitConfirmations } from 'src/utils/networks'
 import {
   fetchTransferFromL1Completeds,
   fetchWithdrawalBondedsByTransferId,
-  getTransferSentDetailsFromLogs,
   L1Transfer,
   getLastLog,
   formatLogArgs,
   networkIdToSlug,
 } from 'src/utils'
-import { TransactionResponse, TransactionReceipt } from '@ethersproject/providers'
-import { formatEther } from '@ethersproject/units'
+import {
+  createDispatchAction,
+  TxActionType,
+  TxState,
+  txReducer,
+  MethodNames,
+  TxType,
+  TxDetails,
+  getTxDetails,
+} from 'src/utils/transactions'
+import { BigNumber, utils } from 'ethers'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
-import { Interface, Result } from '@ethersproject/abi'
 import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
-import { hopBridgeTokenAbi, l1BridgeAbi, l2AmmWrapperAbi } from '@hop-protocol/core/abi'
+import { useApp } from 'src/contexts/AppContext'
 
+// TODO: use typechain
 export const methodToSigHashes = {
-  // L1_Bridge
+  // HopBridgeToken
+  approve: '0x095ea7b3',
+  // L1Bridge
   sendToL2: '0xdeace8f5', // L1 -> L2
-  // L2_Bridge
+  // L2AmmWrapper
   swapAndSend: '0xeea0d7b2', // L2 -> L2 / L2 -> L1
-  // L1_Bridge / L2_Bridge
+  // L1Bridge / L2AmmWrapper
   withdraw: '0x0f7aadb7', // L2 -> L2 / L2 -> L1 (bonder offline)
+  bondWithdrawalAndDistribute: '0x3d12a85a',
 }
 
 export const sigHashes = {
@@ -33,48 +44,23 @@ export const sigHashes = {
   '0xeea0d7b2': 'swapAndSend', // L2 -> L2 / L2 -> L1
   // L1_Bridge / L2_Bridge
   '0x0f7aadb7': 'withdraw', // L2 -> L2 / L2 -> L1 (bonder offline)
+  '0x3d12a85a': 'bondWithdrawalAndDistribute',
 }
 
-enum TxType {
-  approve = 'approve',
-  sendL1ToL2 = 'L1 to L2',
-  sendL2ToL2 = 'L2 to L2',
-  sendL2ToL1 = 'L2 to L1',
-  convert = 'convert',
-  wrap = 'wrap',
-  unwrap = 'unwrap',
-  addLiquidity = 'addLiquidity',
-  removeLiquidity = 'removeLiquidity',
-  stake = 'stake',
-  unstake = 'unstake',
-}
-
-interface TxObj {
-  type?: TxType
-  response: TransactionResponse
-  receipt: TransactionReceipt
-  gasCost: string
-  datetime?: string
-  methodName?: string
-  tokenSymbol?: string
-  params?: any[]
-  eventValues?: any
-  destNetworkName?: string
-  destTxHash?: string
-  destExplorerLink?: string
+const initialState: TxState = {
+  networkName: '',
+  txHash: '',
 }
 
 const useTransaction = (txHash?: string, slug?: string) => {
-  const [tx, setTx] = useState<any>()
-  const [completed, setCompleted] = useState<boolean>(tx?.pending === false)
-  const [networkConfirmations, setNetworkConfirmations] = useState<number>()
-  const [confirmations, setConfirmations] = useState<number>()
-  const [destCompleted, setDestCompleted] = useState<boolean>(
-    tx?.pendingDestinationConfirmation === false
-  )
+  const [tx, dispatch] = useReducer(txReducer, initialState)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<any>()
-  const [txObj, setTxObj] = useState<TxObj>()
+  const { sdk, networks } = useApp()
+
+  function dispatchAction(type: TxActionType, payload: TxState) {
+    dispatch(createDispatchAction(type, payload))
+  }
 
   useEffect(() => {
     async function initState() {
@@ -83,134 +69,62 @@ const useTransaction = (txHash?: string, slug?: string) => {
         setLoading(true)
         try {
           const provider = getProviderByNetworkName(slug)
-          const response = await provider.getTransaction(txHash)
-          const receipt = await provider.getTransactionReceipt(txHash)
+          const [response, receipt]: any = await Promise.all([
+            provider.getTransaction(txHash),
+            provider.getTransactionReceipt(txHash),
+          ])
 
           if (!response) {
             throw new Error(`Could not get tx on network: ${slug}`)
           }
 
-          const { data, gasPrice } = response
-          const { gasUsed } = receipt
-          const gasCost = formatEther(gasUsed.mul(gasPrice!))
-
-          const funcSig = data.slice(0, 10)
-          const methodName = sigHashes[funcSig]
+          // TODO: add util to get token symbol by address
+          const txDetails = getTxDetails(response, receipt)
+          const { methodName, params, eventValues, txType } = txDetails
 
           setLoading(false)
 
-          setTxObj({
-            response,
-            receipt,
-            methodName,
-            gasCost,
-          })
+          const gasUsed = receipt?.gasUsed || BigNumber.from(0)
+          const gasCost = utils.formatEther(gasUsed.mul(response.gasPrice!))
 
-          let params: any = []
-          let eventValues: any
-          let txType
-          let tokenSymbol
-          let destNetworkName
-          let destTxHash
-          let destExplorerLink
-          let ts
-
-          console.log(`methodName:`, methodName)
-
-          if (methodName === 'approve') {
-            txType = TxType.approve
-            const tokenInterface = new Interface(hopBridgeTokenAbi)
-            console.log(`tokenInterface:`, tokenInterface)
-            const decodedData = tokenInterface.decodeFunctionData(methodName, response.data)
-            if (decodedData) {
-              params = formatLogArgs(decodedData)
-            }
-          }
-
-          if (methodName === 'sendToL2') {
-            txType = TxType.sendL1ToL2
-            const l1BridgeInterface = new Interface(l1BridgeAbi)
-            const decodedData: Result = l1BridgeInterface?.decodeFunctionData(
-              methodName,
-              response.data
-            )
-
-            if (decodedData) {
-              params = formatLogArgs(decodedData)
-
-              const { amount, deadline, chainId, recipient } = decodedData
-              destNetworkName = networkIdToSlug(chainId)
-
-              const transferFromL1Completeds = await fetchTransferFromL1Completeds(
-                destNetworkName,
-                recipient,
-                amount,
-                deadline
-              )
-
-              if (transferFromL1Completeds?.length) {
-                const lastTransfer: L1Transfer = getLastLog(transferFromL1Completeds)
-                const { token, transactionHash, timestamp } = lastTransfer
-                ts = timestamp
-                tokenSymbol = token
-                destTxHash = transactionHash
-                destExplorerLink = getExplorerTxUrl(destNetworkName, transactionHash)
-                eventValues = lastTransfer
-              }
-            }
-          }
-
-          if (methodName === 'swapAndSend') {
-            txType = TxType.sendL2ToL2
-            const ammWrapperInterface = new Interface(l2AmmWrapperAbi)
-            const decodedData = ammWrapperInterface.decodeFunctionData(methodName, response.data)
-            if (decodedData) {
-              params = formatLogArgs(decodedData)
-              destNetworkName = networkIdToSlug(params.chainId)
-
-              const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
-              const { chainId, transferId } = tsDetails!
-              destNetworkName = networkIdToSlug(chainId)
-
-              const withdrawalBondeds = await fetchWithdrawalBondedsByTransferId(
-                destNetworkName,
-                transferId!
-              )
-              if (withdrawalBondeds?.length) {
-                const wbDetails = getLastLog(withdrawalBondeds)
-                console.log(`wbDetails:`, wbDetails)
-                const { transactionHash, token, timestamp } = wbDetails
-                ts = timestamp
-                tokenSymbol = token
-                destTxHash = transactionHash
-                destExplorerLink = getExplorerTxUrl(destNetworkName, transactionHash)
-                eventValues = wbDetails
-              }
-            }
-          }
-
+          let completed = false
           const waitConfirmations = getNetworkWaitConfirmations(slug as string)
-          setNetworkConfirmations(waitConfirmations)
-          setConfirmations(response.confirmations)
-
           if (waitConfirmations && response.confirmations >= waitConfirmations) {
-            setCompleted(true)
+            completed = true
           }
 
-          setTxObj({
-            type: txType,
+          dispatchAction(TxActionType.setTxState, {
+            networkName: slug,
+            network: findNetworkBySlug(networks, slug),
+            txHash,
             response,
             receipt,
+            confirmations: response.confirmations,
+            networkConfirmations: waitConfirmations,
+            completed,
             methodName,
-            params,
             gasCost,
-            datetime: new Date(ts * 1000).toString(),
-            tokenSymbol,
+            params,
             eventValues,
-            destNetworkName,
-            destTxHash,
-            destExplorerLink,
+            txType,
           })
+
+          switch (methodName) {
+            case MethodNames.sendToL2: {
+              return handleSendToL2(txDetails)
+            }
+            case MethodNames.swapAndSend: {
+              return handleSwapAndSend(txDetails)
+            }
+
+            default: {
+              return {
+                methodName,
+                params,
+                eventValues,
+              }
+            }
+          }
         } catch (error) {
           setLoading(false)
           setError(error)
@@ -222,16 +136,90 @@ const useTransaction = (txHash?: string, slug?: string) => {
     initState()
   }, [txHash, slug])
 
+  async function handleSendToL2(txDetails: TxDetails) {
+    const { params, eventValues } = txDetails
+    const { amount, deadline, chainId, recipient } = params
+    const destNetworkName = networkIdToSlug(chainId)
+
+    dispatchAction(TxActionType.setTx, {
+      params,
+      txType: TxType.sendL1ToL2,
+      destTx: {
+        networkName: destNetworkName,
+      },
+      ...(eventValues && { eventValues: formatLogArgs(eventValues) }),
+    })
+
+    const transferFromL1Completeds = await fetchTransferFromL1Completeds(
+      destNetworkName,
+      recipient,
+      amount,
+      deadline
+    )
+
+    if (transferFromL1Completeds?.length) {
+      const tfl1: L1Transfer = getLastLog(transferFromL1Completeds)
+      console.log(`tfl1:`, tfl1)
+      const { token, transactionHash, timestamp } = tfl1
+
+      dispatchAction(TxActionType.setTx, {
+        tokenSymbol: token,
+        token: sdk.toTokenModel(token),
+        destTx: {
+          networkName: destNetworkName,
+          txHash: transactionHash,
+          eventValues: tfl1,
+          completed: true,
+          datetime: new Date(parseInt(timestamp || '0') * 1000).toString(),
+          explorerLink: getExplorerTxUrl(destNetworkName, transactionHash),
+        },
+      })
+    }
+  }
+
+  async function handleSwapAndSend(txDetails: TxDetails) {
+    const { params, eventValues } = txDetails
+    const destNetworkName = networkIdToSlug(params.chainId)
+
+    dispatchAction(TxActionType.setTx, {
+      params,
+      txType: TxType.sendL2ToL2,
+      destTx: {
+        networkName: destNetworkName,
+      },
+      ...(eventValues && { eventValues: formatLogArgs(eventValues) }),
+    })
+
+    if (eventValues?.transferId) {
+      const withdrawalBondeds = await fetchWithdrawalBondedsByTransferId(
+        destNetworkName,
+        eventValues.transferId
+      )
+      if (withdrawalBondeds?.length) {
+        const wbDetails = getLastLog(withdrawalBondeds)
+        console.log(`wbDetails:`, wbDetails)
+        const { transactionHash, token, timestamp } = wbDetails
+
+        dispatchAction(TxActionType.setTx, {
+          tokenSymbol: token,
+          token: sdk.toTokenModel(token),
+          destTx: {
+            networkName: destNetworkName,
+            txHash: transactionHash,
+            eventValues: wbDetails,
+            completed: true,
+            datetime: new Date(parseInt(timestamp || '0') * 1000).toString(),
+            explorerLink: getExplorerTxUrl(destNetworkName, transactionHash),
+          },
+        })
+      }
+    }
+  }
+
   return {
     tx,
-    txObj,
     loading,
     error,
-    setTx,
-    completed,
-    destCompleted,
-    confirmations,
-    networkConfirmations,
   }
 }
 

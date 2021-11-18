@@ -11,7 +11,8 @@ import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
 import { State } from 'src/db/SyncStateDb'
-import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
+import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
@@ -740,9 +741,11 @@ export default class Bridge extends ContractBase {
   }
 
   async getGasCostEstimation (
-    gasLimit: BigNumber,
     chain: string,
-    tokenSymbol: string
+    tokenSymbol: string,
+    gasLimit: BigNumber,
+    data?: string,
+    to?: string
   ) {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const provider = getRpcProvider(chain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -752,7 +755,24 @@ export default class Bridge extends ContractBase {
       gasPrice = gasPrice.div(2)
       gasLimit = gasLimit.div(2)
     }
-    const gasCost = gasLimit.mul(gasPrice)
+    let gasCost = gasLimit.mul(gasPrice)
+
+    if (this.chainSlug === Chain.Optimism && data && to) {
+      try {
+        const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
+          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug))
+        const serializedTx = serializeTransaction({
+          value: parseEther('0'),
+          gasPrice,
+          gasLimit,
+          to,
+          data
+        })
+        gasCost = await ovmGasPriceOracle.getL1Fee(serializedTx)
+      } catch (err) {
+        console.error(err)
+      }
+    }
 
     const {
       decimals: tokenDecimals,

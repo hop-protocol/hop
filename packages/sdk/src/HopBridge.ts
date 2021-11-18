@@ -24,7 +24,7 @@ import {
 import { PriceFeed } from './priceFeed'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata } from './config'
-import { getAddress, parseEther, parseUnits } from 'ethers/lib/utils'
+import { getAddress, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 
 type SendL1ToL2Input = {
@@ -670,7 +670,7 @@ class HopBridge extends Base {
       try {
         const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
           .attach(predeploys.OVM_GasPriceOracle).connect(destinationChain.provider)
-        const serializedTx = ethers.utils.serializeTransaction({
+        const serializedTx = serializeTransaction({
           value: parseEther('0'),
           gasPrice,
           gasLimit: bondTransferGasLimit,

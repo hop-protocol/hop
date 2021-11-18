@@ -117,6 +117,22 @@ async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void
   return token.getBalance()
 }
 
+async function getBridge (token: string, chain: string): Promise<L2Bridge | L1Bridge> {
+  // Arbitrary watcher since only the bridge is needed
+  const watchers = await getWatchers({
+    enabledWatchers: ['bondWithdrawal'],
+    tokens: [token],
+    dryMode: false
+  })
+
+  const watcher = findWatcher(watchers, BondWithdrawalWatcher, chain) as BondWithdrawalWatcher
+  if (!watcher) {
+    throw new Error('Watcher not found')
+  }
+  
+  return watcher.bridge
+} 
+
 program
   .command('stake')
   .description('Stake amount')
@@ -144,18 +160,7 @@ program
       if (!chain) {
         throw new Error('chain is required')
       }
-      // Arbitrary watcher since only the bridge is needed
-      const watchers = await getWatchers({
-        enabledWatchers: ['bondWithdrawal'],
-        tokens: [token],
-        dryMode: false
-      })
-
-      const watcher = findWatcher(watchers, BondWithdrawalWatcher, chain) as BondWithdrawalWatcher
-      if (!watcher) {
-        throw new Error('Watcher not found')
-      }
-      const bridge: L2Bridge | L1Bridge = watcher.bridge
+      const bridge: L2Bridge | L1Bridge = await getBridge(token, chain)
       const parsedAmount: BigNumber = bridge.parseUnits(amount)
 
       const isBonder = await bridge.isBonder()
@@ -166,11 +171,7 @@ program
       const isStakeOnL2 = chain !== Chain.Ethereum
       const shouldSendToL2 = isStakeOnL2 && !skipSendToL2
       if (shouldSendToL2) {
-        const l1Watcher = findWatcher(watchers, BondWithdrawalWatcher, Chain.Ethereum) as BondWithdrawalWatcher
-        if (!l1Watcher) {
-          throw new Error('Watcher not found')
-        }
-        const l1Bridge: L1Bridge = (l1Watcher.bridge as L1Bridge)
+        const l1Bridge: L1Bridge = (await getBridge(token, Chain.Ethereum)) as L1Bridge
         await sendTokensToL2(l1Bridge, parsedAmount, chain)
         logger.debug('Tokens sent to L2. Waiting for receipt on L2.')
         await pollConvertTxReceive(bridge as L2Bridge, parsedAmount)

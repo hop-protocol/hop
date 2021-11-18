@@ -675,6 +675,15 @@ class HopBridge extends Base {
       fee = fee.mul(multiplier).div(oneEth)
     }
 
+    if (destinationChain.equals(Chain.Optimism)) {
+      const minFeeUsd = 3
+      const additionalFee = parseUnits(
+        (minFeeUsd / chainNativeTokenPrice).toFixed(chainNativeToken.decimals),
+        chainNativeToken.decimals
+      )
+      fee = fee.add(additionalFee)
+    }
+
     return fee
   }
 

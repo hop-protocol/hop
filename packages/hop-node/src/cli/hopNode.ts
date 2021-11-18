@@ -104,10 +104,6 @@ program
       if (order) {
         logger.info('order:', order)
       }
-      let maxStakeAmounts: any
-      if (config?.stake) {
-        maxStakeAmounts = config.stake
-      }
       let commitTransfersMinThresholdAmounts: any = {}
       if (config?.commitTransfers) {
         if (config.commitTransfers?.minThresholdAmount) {
@@ -156,7 +152,6 @@ program
         ),
         bonder,
         challenger,
-        maxStakeAmounts,
         commitTransfersMinThresholdAmounts,
         settleBondedWithdrawalsThresholdPercent,
         dryMode,

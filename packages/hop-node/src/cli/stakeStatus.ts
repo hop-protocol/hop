@@ -54,7 +54,7 @@ async function getTokenAllowance (bridge: L2Bridge | L1Bridge) {
     return constants.MaxUint256
   }
   const spender: string = bridge.getAddress()
-  const token = await getToken(bridge)
+  const token: Token = (await getToken(bridge)) as Token
   return await token.getAllowance(spender)
 }
 

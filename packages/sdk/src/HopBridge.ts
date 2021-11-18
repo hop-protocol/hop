@@ -692,7 +692,12 @@ class HopBridge extends Base {
     destinationChain: Chain
   ): Promise<BigNumber> {
     try {
-      const destinationBridge = await this.getL2Bridge(destinationChain)
+      let destinationBridge
+      if (destinationChain.isL1) {
+        destinationBridge = await this.getL1Bridge()
+      } else {
+        destinationBridge = await this.getL2Bridge(destinationChain)
+      }
       const bonder = this.getBonderAddress()
       const amount = BigNumber.from(10)
       const amountOutMin = BigNumber.from(0)
@@ -851,7 +856,6 @@ class HopBridge extends Base {
       token.decimals
     )
 
-    const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
     const minBonderFeeRelative = hTokenAmount.mul(feeBps).div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative

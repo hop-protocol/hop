@@ -395,7 +395,7 @@ export default class Bridge extends ContractBase {
   async getChainIds (): Promise<number[]> {
     const chainIds: number[] = []
     for (const key in globalConfig.networks) {
-      const { networkId: chainId } = globalConfig.networks[key]
+      const { chainId } = globalConfig.networks[key]
       chainIds.push(chainId)
     }
     return chainIds
@@ -722,6 +722,9 @@ export default class Bridge extends ContractBase {
     let bonderFeeBps = fees.L2ToL2
     if (destinationChain === Chain.Ethereum) {
       bonderFeeBps = fees.L2ToL1
+    }
+    if (destinationChain === Chain.xDai && fees.anyToxDai) {
+      bonderFeeBps = fees.anyToxDai
     }
 
     const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)

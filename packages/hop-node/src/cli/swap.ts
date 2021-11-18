@@ -3,7 +3,8 @@ import Token from 'src/watchers/classes/Token'
 import contracts from 'src/contracts'
 import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import isHToken from 'src/utils/isHToken'
-import { BigNumber } from 'ethers'
+import wallets from 'src/wallets'
+import { BigNumber, utils as ethersUtils } from 'ethers'
 import { Chain, TokenIndex } from 'src/constants'
 import { logger, program } from './shared'
 import {
@@ -50,17 +51,31 @@ program
         throw new Error('"to" token is required')
       }
       if (!max && !amount) {
-        throw new Error('"from" token amount is required')
+        throw new Error('"max" or "amount" is required')
       }
       if (fromToken === toToken) {
         throw new Error('from-token and to-token cannot be the same')
       }
+      const isWrapperWithdrawal = getIsWrappedToken(fromToken)
       const fromTokenIsHToken = isHToken(fromToken)
       const toTokenIsHToken = isHToken(toToken)
       const isAmmSwap = fromTokenIsHToken || toTokenIsHToken
       const deadlineBn = source.deadline ? BigNumber.from(source.deadline) : undefined
       let tx: any
-      if (isAmmSwap) {
+      if (isWrapperWithdrawal) {
+        const wallet = wallets.get(chain)
+        const wrappedTokenAddress = wrappedTokenAddresses[chain]
+        const abi = ['function withdraw(uint256)']
+        const ethersInterface = new ethersUtils.Interface(abi)
+        const parsedAmount = ethersUtils.parseUnits(amount.toString())
+        const data = ethersInterface.encodeFunctionData(
+          'withdraw', [parsedAmount]
+        )
+        tx = await wallet.sendTransaction({
+          to: wrappedTokenAddress,
+          data
+        })
+      } else if (isAmmSwap) {
         logger.debug('L2 AMM swap')
         if (fromTokenIsHToken && toTokenIsHToken) {
           throw new Error('both from-token and to-token cannot be hTokens')
@@ -153,3 +168,16 @@ program
       process.exit(1)
     }
   })
+
+function getIsWrappedToken (token: string): boolean {
+  token = token.toLowerCase()
+  return ['weth', 'wmatic', 'wxdai'].includes(token)
+}
+
+const wrappedTokenAddresses: any = {
+  ethereum: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+  optimism: '0x4200000000000000000000000000000000000006',
+  arbitrum: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+  polygon: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
+  xdai: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'
+}

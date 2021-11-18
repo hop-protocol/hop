@@ -264,8 +264,10 @@ export default class L1Bridge extends Bridge {
     const amountOutMin = '0' // must be 0
 
     const txOverrides = await this.txOverrides()
-    const isEthSend = this.chainSlug === Chain.Ethereum
-    if (isEthSend) {
+    if (
+      this.chainSlug === Chain.Ethereum &&
+      this.tokenSymbol === 'ETH'
+    ) {
       txOverrides.value = amount
     }
 
@@ -303,8 +305,10 @@ export default class L1Bridge extends Bridge {
     const amountOutMin = amountOut.mul(minBps).div(10000)
 
     const txOverrides = await this.txOverrides()
-    const isEthSend = this.chainSlug === Chain.Ethereum
-    if (isEthSend) {
+    if (
+      this.chainSlug === Chain.Ethereum &&
+      this.tokenSymbol === 'ETH'
+    ) {
       txOverrides.value = amount
     }
 

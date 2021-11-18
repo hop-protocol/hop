@@ -24,7 +24,8 @@ import {
 import { PriceFeed } from './priceFeed'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata } from './config'
-import { getAddress, parseUnits } from 'ethers/lib/utils'
+import { getAddress, parseEther, parseUnits } from 'ethers/lib/utils'
+import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 
 type SendL1ToL2Input = {
   destinationChainId: number | string
@@ -648,7 +649,7 @@ class HopBridge extends Base {
     const rate = chainNativeTokenPrice / tokenPrice
 
     let gasPrice = await destinationChain.provider.getGasPrice()
-    let bondTransferGasLimit = await this.getBondWithdrawalEstimatedGas(
+    let { gasLimit: bondTransferGasLimit, data, to } = await this.getBondWithdrawalEstimatedGas(
       destinationChain
     )
 
@@ -665,13 +666,21 @@ class HopBridge extends Base {
       canonicalToken.decimals
     )
 
-    if (destinationChain.equals(Chain.Optimism)) {
-      const minFeeUsd = 4
-      const additionalFee = parseUnits(
-        (minFeeUsd / chainNativeTokenPrice).toFixed(chainNativeToken.decimals),
-        chainNativeToken.decimals
-      )
-      txFeeEth = txFeeEth.add(additionalFee)
+    if (destinationChain.equals(Chain.Optimism) && data && to) {
+      try {
+        const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
+          .attach(predeploys.OVM_GasPriceOracle).connect(destinationChain.provider)
+        const serializedTx = ethers.utils.serializeTransaction({
+          value: parseEther('0'),
+          gasPrice,
+          gasLimit: bondTransferGasLimit,
+          to,
+          data
+        })
+        txFeeEth = await ovmGasPriceOracle.getL1Fee(serializedTx)
+      } catch (err) {
+        console.error(err)
+      }
     }
 
     let fee = txFeeEth.mul(rateBN).div(oneEth)
@@ -688,9 +697,9 @@ class HopBridge extends Base {
     return fee
   }
 
-  async getBondWithdrawalEstimatedGas (
+  private async getBondWithdrawalEstimatedGas (
     destinationChain: Chain
-  ): Promise<BigNumber> {
+  ): Promise<any> {
     try {
       const destinationBridge = await this.getL2Bridge(destinationChain)
       const bonder = this.getBonderAddress()
@@ -713,10 +722,16 @@ class HopBridge extends Base {
             from: bonder
           }
         ]
-        const estimatedGas = await destinationBridge.estimateGas.bondWithdrawalAndDistribute(
+        const tx = await destinationBridge.populateTransaction.bondWithdrawalAndDistribute(
           ...payload
         )
-        return estimatedGas
+        const gasLimit = await destinationBridge.estimateGas.bondWithdrawalAndDistribute(
+          ...payload
+        )
+        return {
+          gasLimit,
+          ...tx
+        }
       } else {
         const payload = [
           recipient,
@@ -727,10 +742,16 @@ class HopBridge extends Base {
             from: bonder
           }
         ]
-        const estimatedGas = await destinationBridge.estimateGas.bondWithdrawal(
+        const tx = await destinationBridge.populateTransaction.bondWithdrawal(
           ...payload
         )
-        return estimatedGas
+        const gasLimit = await destinationBridge.estimateGas.bondWithdrawal(
+          ...payload
+        )
+        return {
+          gasLimit,
+          ...tx
+        }
       }
     } catch (err) {
       console.error(err, {
@@ -742,7 +763,9 @@ class HopBridge extends Base {
       } else if (destinationChain.equals(Chain.Arbitrum)) {
         bondTransferGasLimit = BondTransferGasLimit.Arbitrum
       }
-      return BigNumber.from(bondTransferGasLimit)
+      return {
+        gasLimit: BigNumber.from(bondTransferGasLimit)
+      }
     }
   }
 

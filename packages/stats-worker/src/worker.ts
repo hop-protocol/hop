@@ -5,9 +5,11 @@ import wait from 'wait'
 class Worker {
   stats = new Stats()
   hosting = new S3Upload()
+  pollIntervalMs : number = 60 * 60 * 1000
 
   async start () {
     console.log('worker started')
+    console.log(`polling every ${this.pollIntervalMs}ms`)
     while (true) {
       try {
         console.log('fetching')
@@ -16,7 +18,7 @@ class Worker {
       } catch (err) {
         console.error(err)
       }
-      await wait(15 * 60 * 1000)
+      await wait(this.pollIntervalMs)
     }
   }
 }

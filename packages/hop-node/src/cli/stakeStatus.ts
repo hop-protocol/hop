@@ -1,14 +1,14 @@
-import { logger, program } from './shared'
-import { constants } from 'ethers'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
 import { Chain } from 'src/constants'
+import { constants } from 'ethers'
 import {
   findWatcher,
   getWatchers
 } from 'src/watchers/watchers'
+import { logger, program } from './shared'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
@@ -29,7 +29,7 @@ async function printAmounts (bridge: L2Bridge | L1Bridge) {
   const token = await getToken(bridge)
   let balance
   if (token) {
-    balance = await token!.getBalance()
+    balance = await token.getBalance()
   }
   logger.debug('eth balance:', bridge.formatEth(eth))
   logger.debug('token balance:', balance && bridge.formatUnits(balance))
@@ -39,7 +39,7 @@ async function printAmounts (bridge: L2Bridge | L1Bridge) {
   logger.debug('allowance:', bridge.formatUnits(allowance))
 }
 
-async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> {
+async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { // eslint-disable-line @typescript-eslint/no-invalid-void-type
   const isEthSend: boolean = bridge.l1CanonicalTokenAddress === constants.AddressZero
   if (isEthSend) {
     return
@@ -55,7 +55,7 @@ async function getTokenAllowance (bridge: L2Bridge | L1Bridge) {
   }
   const spender: string = bridge.getAddress()
   const token = await getToken(bridge)
-  return await token!.getAllowance(spender)
+  return await token.getAllowance(spender)
 }
 
 program
@@ -86,7 +86,7 @@ program
       if (!watcher) {
         throw new Error('Watcher not found')
       }
-      
+
       const bridge: L2Bridge | L1Bridge = watcher.bridge
       await printAmounts(bridge)
       process.exit(0)

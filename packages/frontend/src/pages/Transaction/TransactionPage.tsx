@@ -148,7 +148,6 @@ function TransactionPage() {
                   token={tx.token}
                   params={tx.destTx.eventValues}
                   title="Destination Event Values"
-                  onClickTxHash={setTxHash}
                 />
               )}
             </Div>

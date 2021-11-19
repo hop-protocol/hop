@@ -677,7 +677,8 @@ class HopBridge extends Base {
           to,
           data
         })
-        txFeeEth = await ovmGasPriceOracle.getL1Fee(serializedTx)
+        const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+        txFeeEth = txFeeEth.add(l1FeeInWei)
       } catch (err) {
         console.error(err)
       }

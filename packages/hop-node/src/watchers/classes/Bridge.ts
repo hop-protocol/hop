@@ -768,7 +768,8 @@ export default class Bridge extends ContractBase {
           to,
           data
         })
-        gasCost = await ovmGasPriceOracle.getL1Fee(serializedTx)
+        const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+        gasCost = gasCost.add(l1FeeInWei)
       } catch (err) {
         console.error(err)
       }

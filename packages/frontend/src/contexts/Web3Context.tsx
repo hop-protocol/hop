@@ -224,6 +224,8 @@ const Web3ContextProvider: FC = ({ children }) => {
             }
           } catch (err) {
             logger.error(err)
+            setProvider(undefined)
+            setAddress(undefined)
           }
         },
         network: (connectedNetworkId: number) => {

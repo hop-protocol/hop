@@ -16,7 +16,10 @@ const getProvider = memoize((network: string, chain: string) => {
     }
     return providers.getDefaultProvider(network)
   }
-  return new providers.StaticJsonRpcProvider(rpcUrl)
+  return new providers.StaticJsonRpcProvider({
+    url: rpcUrl,
+    timeout: 10000
+  })
 })
 
 const getContractMemo = memoize(

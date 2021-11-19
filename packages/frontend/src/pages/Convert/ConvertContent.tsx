@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from 'react'
+import React, { FC, useEffect, useState } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
@@ -11,7 +11,7 @@ import TxStatusModal from 'src/components/modal/TxStatusModal'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import TokenWrapper from 'src/components/TokenWrapper'
 import { sanitizeNumericalString } from 'src/utils'
-import { MethodNames } from 'src/hooks'
+import { MethodNames, useNeedsTokenForFee } from 'src/hooks'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -64,6 +64,7 @@ const Convert: FC = () => {
     switchDirection,
     details,
     warning,
+    setWarning,
     error,
     setError,
     tx,
@@ -81,6 +82,17 @@ const Convert: FC = () => {
     setSourceTokenAmount('')
     setDestTokenAmount('')
   }, [setSourceTokenAmount, setDestTokenAmount])
+  const needsTokenForFee = useNeedsTokenForFee(sourceNetwork)
+
+  useEffect(() => {
+    if (needsTokenForFee && sourceNetwork) {
+      setWarning(
+        `Add ${sourceNetwork.nativeTokenSymbol} to your account on ${sourceNetwork.name} for the transaction fee.`
+      )
+    } else {
+      setWarning('')
+    }
+  }, [needsTokenForFee, sourceNetwork])
 
   const handleSourceTokenAmountChange = async (amount: string) => {
     try {
@@ -103,7 +115,7 @@ const Convert: FC = () => {
 
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning: High Price Impact!')
   const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval && sendableWarning
-  const approvalButtonActive = needsApproval && validFormFields
+  const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">

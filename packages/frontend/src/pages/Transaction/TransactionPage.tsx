@@ -10,6 +10,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import { DisplayObjectValues } from './DisplayObjectValues'
 import { getTokenImage } from 'src/utils/tokens'
 import { TransactionDetails } from '.'
+import { Chain } from 'src/utils/constants'
 
 function TransactionPage() {
   const { hash } = useParams<{ hash: string }>()
@@ -43,7 +44,7 @@ function TransactionPage() {
       const tokenImageUrl = getTokenImage(tokenSymbol)
       const tokenModel = sdk.toTokenModel(tokenSymbol)
       const networkName = networkIdToSlug(connectedNetworkId)
-      if (networkName === sdk.Chain.Ethereum.slug) {
+      if (networkName === Chain.Ethereum) {
         return
       }
       const addr = sdk.getL2CanonicalTokenAddress(tokenSymbol, networkName)

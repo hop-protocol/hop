@@ -1,5 +1,6 @@
 import { L1_NETWORK } from 'src/constants'
 import { networks } from 'src/config'
+import { Chain } from './constants'
 
 export const getRpcUrl = (network: string) => {
   return networks[network]?.rpcUrl
@@ -7,14 +8,14 @@ export const getRpcUrl = (network: string) => {
 
 export function getRpcUrlByNetworkName(networkName: string) {
   let rpcUrl = ''
-  if (networkName.startsWith('arbitrum')) {
-    rpcUrl = getRpcUrl('arbitrum')
-  } else if (networkName.startsWith('optimism')) {
-    rpcUrl = getRpcUrl('optimism')
-  } else if (networkName.startsWith('xdai')) {
-    rpcUrl = getRpcUrl('xdai')
-  } else if (networkName.startsWith('polygon')) {
-    rpcUrl = getRpcUrl('polygon')
+  if (networkName === Chain.Arbitrum) {
+    rpcUrl = getRpcUrl(Chain.Arbitrum)
+  } else if (networkName === Chain.Optimism) {
+    rpcUrl = getRpcUrl(Chain.Optimism)
+  } else if (networkName === Chain.xDai) {
+    rpcUrl = getRpcUrl(Chain.xDai)
+  } else if (networkName === Chain.Polygon) {
+    rpcUrl = getRpcUrl(Chain.Polygon)
   } else {
     rpcUrl = getRpcUrl(L1_NETWORK)
   }
@@ -23,10 +24,10 @@ export function getRpcUrlByNetworkName(networkName: string) {
 
 export function getAllRpcUrls() {
   return {
-    arbitrum: getRpcUrl('arbitrum'),
-    optimism: getRpcUrl('optimism'),
-    xdai: getRpcUrl('xdai'),
-    polygon: getRpcUrl('polygon'),
+    arbitrum: getRpcUrl(Chain.Arbitrum),
+    optimism: getRpcUrl(Chain.Optimism),
+    xdai: getRpcUrl(Chain.xDai),
+    polygon: getRpcUrl(Chain.Polygon),
     ethereum: getRpcUrl(L1_NETWORK),
   }
 }

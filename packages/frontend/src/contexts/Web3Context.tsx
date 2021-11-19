@@ -18,6 +18,7 @@ import MetamaskAddNetworkHighlight from 'src/assets/onboard/metamask-add-network
 import MetamaskNewCustomNetworkHighlight from 'src/assets/onboard/metamask-new-custom-network-highlight.png'
 import MetamaskCustomNetworkHighlight from 'src/assets/onboard/metamask-custom-network-highlight.png'
 import logger from 'src/logger'
+import { Chain } from 'src/utils/constants'
 
 type Props = {
   onboard: any
@@ -84,17 +85,17 @@ const Web3ContextProvider: FC = ({ children }) => {
       {
         walletName: 'walletConnect',
         rpc: {
-          1: getRpcUrl('ethereum'),
-          42: getRpcUrl('ethereum'),
-          42161: getRpcUrl('arbitrum'),
-          421611: getRpcUrl('arbitrum'),
-          200: getRpcUrl('arbitrum'),
-          10: getRpcUrl('optimism'),
-          69: getRpcUrl('optimism'),
-          420: getRpcUrl('optimism'),
-          100: getRpcUrl('xdai'),
-          137: getRpcUrl('polygon'),
-          80001: getRpcUrl('polygon'),
+          1: getRpcUrl(Chain.Ethereum),
+          42: getRpcUrl(Chain.Ethereum),
+          42161: getRpcUrl(Chain.Arbitrum),
+          421611: getRpcUrl(Chain.Arbitrum),
+          200: getRpcUrl(Chain.Arbitrum),
+          10: getRpcUrl(Chain.Optimism),
+          69: getRpcUrl(Chain.Optimism),
+          420: getRpcUrl(Chain.Optimism),
+          100: getRpcUrl(Chain.xDai),
+          137: getRpcUrl(Chain.Polygon),
+          80001: getRpcUrl(Chain.Polygon),
         },
       },
     ]
@@ -110,27 +111,27 @@ const Web3ContextProvider: FC = ({ children }) => {
       const gotNetworkName = networkNames[gotNetworkId] || 'local'
       const wantNetworkName = networkNames[wantNetworkId] || 'local'
       let wantRpcUrl = ''
-      if (wantNetworkId === networkSlugToId('arbitrum')) {
-        wantRpcUrl = getRpcUrl('arbitrum')
+      if (wantNetworkId === networkSlugToId(Chain.Arbitrum)) {
+        wantRpcUrl = getRpcUrl(Chain.Arbitrum)
       }
-      if (wantNetworkId === networkSlugToId('optimism')) {
-        wantRpcUrl = getRpcUrl('optimism')
+      if (wantNetworkId === networkSlugToId(Chain.Optimism)) {
+        wantRpcUrl = getRpcUrl(Chain.Optimism)
       }
-      if (wantNetworkId === networkSlugToId('xdai')) {
-        wantRpcUrl = getRpcUrl('xdai')
+      if (wantNetworkId === networkSlugToId(Chain.xDai)) {
+        wantRpcUrl = getRpcUrl(Chain.xDai)
       }
-      if (wantNetworkId === networkSlugToId('polygon')) {
-        wantRpcUrl = getRpcUrl('polygon')
+      if (wantNetworkId === networkSlugToId(Chain.Polygon)) {
+        wantRpcUrl = getRpcUrl(Chain.Polygon)
       }
 
       let html = ''
       if (walletName === 'MetaMask') {
         let stepImages: string[] = []
         if (
-          wantNetworkId === networkSlugToId('arbitrum') ||
-          wantNetworkId === networkSlugToId('optimism') ||
-          wantNetworkId === networkSlugToId('xdai') ||
-          wantNetworkId === networkSlugToId('polygon')
+          wantNetworkId === networkSlugToId(Chain.Arbitrum) ||
+          wantNetworkId === networkSlugToId(Chain.Optimism) ||
+          wantNetworkId === networkSlugToId(Chain.xDai) ||
+          wantNetworkId === networkSlugToId(Chain.Polygon)
         ) {
           stepImages = [
             MetamaskAccountsSettingsHighlight,
@@ -194,7 +195,6 @@ const Web3ContextProvider: FC = ({ children }) => {
         { checkName: 'derivationPath' },
         { checkName: 'accounts' },
         { checkName: 'connect' },
-        // { checkName: 'network' },
         networkCheck,
         { checkName: 'balance' },
       ],
@@ -212,8 +212,8 @@ const Web3ContextProvider: FC = ({ children }) => {
             if (provider) {
               localStorage.setItem(cacheKey, name)
               const ethersProvider = new ethers.providers.Web3Provider(provider, 'any')
-              if (provider.enable) {
-                await provider.enable()
+              if (ethersProvider) {
+                await ethersProvider.send('eth_requestAccounts', [])
               }
               setProvider(ethersProvider)
               setWalletName(name)

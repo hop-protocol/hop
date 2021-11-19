@@ -13,6 +13,7 @@ import { utils, BigNumber, providers } from 'ethers'
 import { Interface, LogDescription } from '@ethersproject/abi'
 import Network from 'src/models/Network'
 import { TokenModel } from '@hop-protocol/sdk'
+import range from 'lodash/range'
 
 export const sortByRecentTimestamp = (txs: Transaction[]) => {
   return txs.sort((a, b) => b.timestamp - a.timestamp)
@@ -22,14 +23,21 @@ export function filterByHash(txs: Transaction[] = [], hash: string = '') {
   return txs.filter(tx => tx.hash !== hash)
 }
 
+export function getBlockTagChunks(toBlock: number, numBlocks = 9999, step = 1000) {
+  const fromBlocks = range(toBlock - numBlocks, toBlock, step)
+  const blockTags = fromBlocks.map(fromBlock => [fromBlock, fromBlock + step - 1])
+  return blockTags
+}
+
 export async function queryFilterTransferFromL1CompletedEvents(bridge, networkName) {
   const destL2Bridge = await bridge.getL2Bridge(networkName)
-  const bln = await destL2Bridge.provider.getBlockNumber()
-  // TODO: batch query 1k blocks (x10)
-  const evs = await destL2Bridge.queryFilter(
-    destL2Bridge.filters.TransferFromL1Completed(),
-    bln - 999,
-    bln
+  const filter = destL2Bridge.filters.TransferFromL1Completed()
+
+  const blockNumber = await destL2Bridge.provider.getBlockNumber()
+  const blockTags = getBlockTagChunks(blockNumber)
+
+  const evs = await Promise.all(
+    blockTags.map(([fromBlock, toBlock]) => destL2Bridge.queryFilter(filter, fromBlock, toBlock))
   )
   return evs
 }

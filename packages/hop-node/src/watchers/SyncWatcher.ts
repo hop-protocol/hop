@@ -1466,7 +1466,8 @@ class SyncWatcher extends BaseWatcher {
           txOverrides
         ] as const
         const gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
-        const estimates = [{ gasLimit, attemptSwap: false }]
+        const tx = await bridgeContract.populateTransaction.bondWithdrawal(...payload)
+        const estimates = [{ gasLimit, ...tx, attemptSwap: false }]
 
         if (this._isL2BridgeContract(bridgeContract) && bridgeContract.bondWithdrawalAndDistribute) {
           const payload = [
@@ -1479,15 +1480,18 @@ class SyncWatcher extends BaseWatcher {
             txOverrides
           ] as const
           const gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
-          estimates.push({ gasLimit, attemptSwap: true })
+          const tx = await bridgeContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
+          estimates.push({ gasLimit, ...tx, attemptSwap: true })
         }
 
         this.logger.debug('pollGasCost estimate. estimates complete')
-        await Promise.all(estimates.map(async ({ gasLimit, attemptSwap }) => {
+        await Promise.all(estimates.map(async ({ gasLimit, data, to, attemptSwap }) => {
           const { gasCost, gasCostInToken, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
-            gasLimit,
             this.chainSlug,
-            this.tokenSymbol
+            this.tokenSymbol,
+            gasLimit,
+            data,
+            to
           )
 
           this.logger.debug(`pollGasCost estimate. attemptSwap: ${attemptSwap}, gasLimit: ${gasLimit?.toString()}, gasPrice: ${gasPrice?.toString()}, gasCost: ${gasCost?.toString()}, gasCostInToken: ${gasCostInToken?.toString()}, tokenPriceUsd: ${tokenPriceUsd?.toString()}`)

@@ -104,10 +104,6 @@ program
       if (order) {
         logger.info('order:', order)
       }
-      let maxStakeAmounts: any
-      if (config?.stake) {
-        maxStakeAmounts = config.stake
-      }
       let commitTransfersMinThresholdAmounts: any = {}
       if (config?.commitTransfers) {
         if (config.commitTransfers?.minThresholdAmount) {
@@ -128,7 +124,10 @@ program
       }
       for (const k in globalConfig.networks) {
         const { waitConfirmations, rpcUrl } = globalConfig.networks[k]
-        logger.info(`${k} wait confirmations: ${waitConfirmations || 0}`)
+        if (!waitConfirmations) {
+          throw new Error('waitConfirmations required')
+        }
+        logger.info(`${k} wait confirmations: ${waitConfirmations}`)
         logger.info(`${k} rpc: ${rpcUrl}`)
       }
       const dryMode = !!source.dry
@@ -156,7 +155,6 @@ program
         ),
         bonder,
         challenger,
-        maxStakeAmounts,
         commitTransfersMinThresholdAmounts,
         settleBondedWithdrawalsThresholdPercent,
         dryMode,

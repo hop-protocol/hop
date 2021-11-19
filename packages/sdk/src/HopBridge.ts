@@ -708,6 +708,7 @@ class HopBridge extends Base {
       } else {
         destinationBridge = await this.getL2Bridge(destinationChain)
       }
+      destinationBridge = destinationBridge.connect(destinationChain.provider)
       const bonder = this.getBonderAddress()
       const amount = BigNumber.from(10)
       const amountOutMin = BigNumber.from(0)

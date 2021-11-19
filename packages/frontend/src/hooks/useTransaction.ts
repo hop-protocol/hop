@@ -99,7 +99,6 @@ const useTransaction = (txHash?: string) => {
           const txDetails = getTxDetails(response, receipt)
           const { methodName, params, eventValues, txType } = txDetails
           const tokenSymbol = getTokenByAddress(networkName, response.to!)
-          const token = sdk.toTokenModel(tokenSymbol)
 
           setLoading(false)
 
@@ -126,8 +125,8 @@ const useTransaction = (txHash?: string) => {
             params,
             eventValues,
             txType,
-            token,
             tokenSymbol,
+            ...(tokenSymbol && { token: sdk.toTokenModel(tokenSymbol) }),
           })
 
           switch (methodName) {

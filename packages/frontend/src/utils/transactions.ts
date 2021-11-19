@@ -217,6 +217,13 @@ export function getTxDetails(
 
     // This works with bondWithdrawalAndDistribute() as well as distribute() !!!
     default: {
+      if (!theOne.iface) {
+        return {
+          methodName,
+          params: {},
+        }
+      }
+
       const decodedData = theOne.iface.decodeFunctionData(funcSig, response.data)
       const params = formatLogArgs(decodedData)
       let evs = {}

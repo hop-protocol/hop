@@ -27,6 +27,4 @@ export function getTokenByAddress(network: string, address?: string) {
       return token
     }
   }
-
-  return `unknown token: ${address}`
 }

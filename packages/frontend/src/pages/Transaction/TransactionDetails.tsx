@@ -40,7 +40,7 @@ function TransactionDetails(props: TxState) {
       <Flex justifyBetween mb={2}>
         <Div>Value:</Div>
         <Div>
-          {response?.value?.toString()} {network?.nativeTokenSymbol}
+          {utils.formatEther(response?.value?.toString() || '0')} {network?.nativeTokenSymbol}
         </Div>
       </Flex>
 

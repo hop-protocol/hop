@@ -2538,10 +2538,10 @@
     eslint-plugin-json "^3.1.0"
     ethers "^5.5.1"
 
-"@hop-protocol/sdk@0.0.1-beta.236":
-  version "0.0.1-beta.236"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.236.tgz#e628d39991b9416ac42afaccd1293fe974905c34"
-  integrity sha512-zqXQvPW9Q/hGSFydP2glbrH8/gONklux6IVZ4Ii+ZB2oaicK0HFbFc96Xc9X8Ca+bteeklFUUcYfb7FZYzE4iA==
+"@hop-protocol/sdk@0.0.1-beta.240":
+  version "0.0.1-beta.240"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.240.tgz#6ffb9fe825a3f78fef0bf6b779a0cf8fd14abdc1"
+  integrity sha512-vDEinpk5Zdu/yZrBXqRlB4W1uFHvy77KTeRBuhXUKOIFiTynsYAeFCZrXEbm+S0e11oGp3hjIX7IAX5D3MNHEA==
   dependencies:
     "@ethersproject/abi" "^5.4.0"
     "@hop-protocol/core" "0.0.1-beta.50"

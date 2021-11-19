@@ -33,7 +33,6 @@ export async function validateConfig (config?: FileConfig) {
     'chains',
     'sync',
     'tokens',
-    'stake',
     'commitTransfers',
     'bondWithdrawals',
     'settleBondedWithdrawals',
@@ -55,7 +54,6 @@ export async function validateConfig (config?: FileConfig) {
     'challenge',
     'commitTransfers',
     'settleBondedWithdrawals',
-    'stake',
     'xDomainMessageRelay'
   ]
 

@@ -34,6 +34,9 @@ interface ContructorArgs {
   pendingDestinationConfirmation?: boolean
   destTxHash?: string
   replaced?: boolean | string
+  nonce?: number | undefined
+  from?: string | undefined
+  to?: string | undefined
 }
 
 class Transaction extends EventEmitter {
@@ -53,6 +56,9 @@ class Transaction extends EventEmitter {
   destTxHash: string = ''
   replaced: boolean | string = false
   methodName: string = ''
+  nonce?: number | undefined = undefined
+  from?: string | undefined = undefined
+  to?: string | undefined = undefined
 
   constructor({
     hash,
@@ -66,6 +72,9 @@ class Transaction extends EventEmitter {
     pendingDestinationConfirmation = true,
     destTxHash = '',
     replaced = false,
+    nonce,
+    from,
+    to,
   }: ContructorArgs) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
@@ -84,6 +93,9 @@ class Transaction extends EventEmitter {
     this.transferId = transferId
     this.replaced = replaced
     this.destTxHash = destTxHash
+    this.nonce = nonce
+    this.from = from
+    this.to = to
     this.token = token || null
 
     this.getTransaction().then((txResponse: providers.TransactionResponse) => {
@@ -95,7 +107,7 @@ class Transaction extends EventEmitter {
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
       this.blockNumber = receipt.blockNumber
       const block = await this.provider.getBlock(receipt.blockNumber)
-      this.timestamp = block.timestamp
+      this.timestamp = block.timestamp * 1000
 
       if (tsDetails?.chainId) {
         this.destNetworkName = networkIdToSlug(tsDetails.chainId)
@@ -324,6 +336,9 @@ class Transaction extends EventEmitter {
       transferId,
       replaced,
       methodName,
+      nonce,
+      from,
+      to,
     } = this
     return {
       hash,
@@ -338,6 +353,9 @@ class Transaction extends EventEmitter {
       transferId,
       replaced,
       methodName,
+      nonce,
+      from,
+      to,
     }
   }
 
@@ -354,6 +372,9 @@ class Transaction extends EventEmitter {
       pendingDestinationConfirmation,
       transferId,
       replaced,
+      nonce,
+      from,
+      to,
     } = obj
     return new Transaction({
       hash,
@@ -367,6 +388,9 @@ class Transaction extends EventEmitter {
       pendingDestinationConfirmation,
       transferId,
       replaced,
+      nonce,
+      from,
+      to,
     })
   }
 }

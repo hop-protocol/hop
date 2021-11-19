@@ -33,6 +33,7 @@ export enum MethodNames {
   sendToL2 = 'sendToL2',
   swapAndSend = 'swapAndSend',
   bondWithdrawalAndDistribute = 'bondWithdrawalAndDistribute',
+  distribute = 'distribute',
 }
 
 export enum TxType {
@@ -48,6 +49,8 @@ export enum TxType {
   stake = 'stake',
   unstake = 'unstake',
   bondWithdrawalAndDistribute = 'bondWithdrawalAndDistribute',
+  distribute = 'distribute',
+  unknown = 'unknown',
 }
 
 export interface Tx {
@@ -212,15 +215,15 @@ export function getTxDetails(
       }
     }
 
-    case MethodNames.bondWithdrawalAndDistribute: {
-      const decodedData = theOne.iface.decodeFunctionData(
-        MethodNames.bondWithdrawalAndDistribute,
-        response.data
-      )
+    // This works with bondWithdrawalAndDistribute() as well as distribute() !!!
+    default: {
+      const decodedData = theOne.iface.decodeFunctionData(funcSig, response.data)
       const params = formatLogArgs(decodedData)
-      const eventsWithValues: any = receipt.logs.reduce((acc, log) => {
+      let evs = {}
+      const eventWithValues: any = receipt.logs.reduce((acc, log) => {
         try {
           const parsedLog: LogDescription = theOne.iface.parseLog(log)
+          evs = formatLogArgs(parsedLog.args)
           return parsedLog
         } catch (error) {
           return acc
@@ -228,18 +231,22 @@ export function getTxDetails(
       }, {})
 
       return {
-        txType: TxType.bondWithdrawalAndDistribute,
+        txType: TxType[sigHashes[funcSig] || 'unknown'],
         methodName,
         params,
-        eventValues: formatLogArgs(eventsWithValues.args),
+        eventValues: {
+          eventName: eventWithValues?.name,
+          topic: eventWithValues?.topic,
+          ...evs,
+        },
       }
     }
 
-    default: {
-      return {
-        methodName: `unknown method name ${methodName} (${funcSig})`,
-        params: {},
-      }
-    }
+    // default: {
+    //   return {
+    //     methodName: `unknown method name (${funcSig})`,
+    //     params: {},
+    //   }
+    // }
   }
 }

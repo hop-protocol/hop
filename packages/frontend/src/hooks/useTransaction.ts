@@ -23,6 +23,7 @@ import { getAllProviders } from 'src/utils/getProvider'
 import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
 import { useApp } from 'src/contexts/AppContext'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
+import { getTokenByAddress } from 'src/utils/tokens'
 
 // TODO: use typechain
 export const methodToSigHashes = {
@@ -35,6 +36,7 @@ export const methodToSigHashes = {
   // L1Bridge / L2AmmWrapper
   withdraw: '0x0f7aadb7', // L2 -> L2 / L2 -> L1 (bonder offline)
   bondWithdrawalAndDistribute: '0x3d12a85a',
+  distribute: '0xcc29a306',
 }
 
 export const sigHashes = {
@@ -46,6 +48,7 @@ export const sigHashes = {
   // L1_Bridge / L2_Bridge
   '0x0f7aadb7': 'withdraw', // L2 -> L2 / L2 -> L1 (bonder offline)
   '0x3d12a85a': 'bondWithdrawalAndDistribute',
+  '0xcc29a306': 'distribute',
 }
 
 const initialState: TxState = {
@@ -86,7 +89,7 @@ const useTransaction = (txHash?: string) => {
             }
           }
 
-          if (!(response && provider)) {
+          if (!(response && provider && networkName)) {
             throw new Error(`Could not get tx on any network: ${txHash}`)
           }
 
@@ -95,6 +98,8 @@ const useTransaction = (txHash?: string) => {
           // TODO: add util to get token symbol by address
           const txDetails = getTxDetails(response, receipt)
           const { methodName, params, eventValues, txType } = txDetails
+          const tokenSymbol = getTokenByAddress(networkName, response.to!)
+          const token = sdk.toTokenModel(tokenSymbol)
 
           setLoading(false)
 
@@ -121,6 +126,8 @@ const useTransaction = (txHash?: string) => {
             params,
             eventValues,
             txType,
+            token,
+            tokenSymbol,
           })
 
           switch (methodName) {

@@ -16,9 +16,9 @@ const useBalance = (
   const [loading, setLoading] = useState(false)
   const currentToken = useRef<Token>()
   const currentNetwork = useRef<Network>()
-  const debouncer = useRef<number>(0)
 
   const getBalance = useCallback(() => {
+    let isSubscribed = true
     const _getBalance = async () => {
       if (token && network && address) {
         if (
@@ -28,22 +28,29 @@ const useBalance = (
           setLoading(true)
         }
 
-        const ctx = ++debouncer.current
         const _balance = await token.balanceOf(address.toString())
 
-        if (ctx === debouncer.current) {
+        if (isSubscribed) {
           setBalance(_balance as BigNumber)
           setLoading(false)
         }
       } else {
-        setBalance(undefined)
-        setLoading(false)
+        if (isSubscribed) {
+          setBalance(undefined)
+          setLoading(false)
+        }
       }
-      currentToken.current = token
-      currentNetwork.current = network
+      if (isSubscribed) {
+        currentToken.current = token
+        currentNetwork.current = network
+      }
     }
 
     _getBalance().catch(logger.error)
+
+    return () => {
+      isSubscribed = false
+    }
   }, [token, network, address])
 
   useEffect(() => {

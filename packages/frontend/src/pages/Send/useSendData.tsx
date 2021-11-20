@@ -23,10 +23,12 @@ const useSendData = (
   const [totalFee, setTotalFee] = useState<BigNumber>()
   const [requiredLiquidity, setRequiredLiquidity] = useState<BigNumber>()
   const [estimatedReceived, setEstimatedReceived] = useState<BigNumber>()
+  const [error, setError] = useState<string | undefined>()
 
   const updateSendData = useCallback(
     async (isCancelled: () => boolean) => {
       try {
+        setError(undefined)
         setAmountOut(undefined)
         setRate(undefined)
         setPriceImpact(undefined)
@@ -54,8 +56,9 @@ const useSendData = (
         setTotalFee(sendData.totalFee)
         setRequiredLiquidity(sendData.requiredLiquidity as BigNumber)
         setEstimatedReceived(sendData.estimatedReceived)
-      } catch (err) {
+      } catch (err: any) {
         console.error(err)
+        setError(err.message)
       }
     },
     [
@@ -111,6 +114,7 @@ const useSendData = (
     requiredLiquidity,
     loading,
     estimatedReceived,
+    error
   }
 }
 

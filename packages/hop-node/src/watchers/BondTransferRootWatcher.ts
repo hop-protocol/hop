@@ -132,6 +132,10 @@ class BondTransferRootWatcher extends BaseWatcher {
       }
     }
 
+    await this.db.transferRoots.update(transferRootHash, {
+      sentBondTxAt: Date.now()
+    })
+
     const availableCredit = await l1Bridge.getBaseAvailableCredit()
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
     if (availableCredit.lt(bondAmount)) {
@@ -152,9 +156,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     logger.debug(
       `bonding transfer root ${transferRootHash} with destination chain ${destinationChainId}`
     )
-    await this.db.transferRoots.update(transferRootHash, {
-      sentBondTxAt: Date.now()
-    })
 
     try {
       const tx = await l1Bridge.bondTransferRoot(

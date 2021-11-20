@@ -12,7 +12,7 @@ import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
 import { State } from 'src/db/SyncStateDb'
 import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
-import { getContractFactory, predeploys } from '@eth-optimism/contracts'
+import { getContractFactory, predeploys } from '@eth-optimism/contracts-latest'
 import { config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
@@ -763,7 +763,7 @@ export default class Bridge extends ContractBase {
     if (this.chainSlug === Chain.Optimism && data && to) {
       try {
         const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug))
+          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug)!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
         const serializedTx = serializeTransaction({
           value: parseEther('0'),
           gasPrice,

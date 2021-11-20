@@ -62,7 +62,9 @@ type PoolsContextProps = {
   validFormFields: boolean
   sendButtonText: string
   error: string | null | undefined
+  warning: string | undefined
   setError: (error: string | null | undefined) => void
+  setWarning: (warning: string | undefined) => void
   isNativeToken: boolean
   fee: number | undefined
   apr: number | undefined
@@ -107,7 +109,9 @@ const PoolsContext = createContext<PoolsContextProps>({
   validFormFields: false,
   sendButtonText: '',
   error: null,
+  warning: undefined,
   setError: (error: string | null | undefined) => {},
+  setWarning: (warning: string | undefined) => {},
   isNativeToken: false,
   fee: undefined,
   apr: undefined,
@@ -144,6 +148,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const minBps = Math.ceil(10000 - slippageToleranceBps)
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const [error, setError] = useState<string | null | undefined>(null)
+  const [warning, setWarning] = useState<string>()
   const l2Networks = useMemo(() => {
     return networks.filter(network => !network.isLayer1)
   }, [networks])
@@ -265,9 +270,11 @@ const PoolsContextProvider: FC = ({ children }) => {
           TOTAL_AMOUNTS_DECIMALS - canonicalToken.decimals
         )
         if (isSubscribed) {
-          setReserveTotalsUsd(Number(
-            formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(precision), TOTAL_AMOUNTS_DECIMALS)
-          ))
+          setReserveTotalsUsd(
+            Number(
+              formatUnits(ammTotal18d.mul(tokenUsdPriceBn).div(precision), TOTAL_AMOUNTS_DECIMALS)
+            )
+          )
         }
       } catch (err) {
         console.error(err)
@@ -811,6 +818,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         sendButtonText,
         error,
         setError,
+        warning,
+        setWarning,
         isNativeToken,
         fee,
         apr,

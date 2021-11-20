@@ -55,6 +55,7 @@ type ConvertContextProps = {
   switchDirection: () => void
   details: ReactNode | undefined
   warning: ReactNode | undefined
+  setWarning: (warning: string | undefined) => void
   error: string | undefined
   setError: (error: string | undefined) => void
   tx: Transaction | undefined
@@ -91,6 +92,7 @@ const ConvertContext = createContext<ConvertContextProps>({
   switchDirection: () => {},
   details: [],
   warning: undefined,
+  setWarning: (warning: string | undefined) => {},
   error: undefined,
   setError: (error: string | undefined) => {},
   tx: undefined,
@@ -518,6 +520,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         switchDirection,
         details,
         warning,
+        setWarning,
         error,
         setError,
         tx,

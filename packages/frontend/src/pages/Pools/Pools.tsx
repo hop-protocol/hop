@@ -17,6 +17,7 @@ import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
 import useQueryParams from 'src/hooks/useQueryParams'
 import Network from 'src/models/Network'
+import { useNeedsTokenForFee } from 'src/hooks'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -123,6 +124,8 @@ const Pools: FC = () => {
     loadingHopBalance,
     error,
     setError,
+    warning,
+    setWarning,
     removeLiquidity,
     isNativeToken,
     poolReserves,
@@ -203,6 +206,18 @@ const Pools: FC = () => {
   const poolSharePercentageFormatted = poolSharePercentage ? `${commafy(poolSharePercentage)}%` : ''
   const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : ''
   const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
+
+  const needsTokenForFee = useNeedsTokenForFee(selectedNetwork)
+
+  useEffect(() => {
+    if (needsTokenForFee && selectedNetwork) {
+      setWarning(
+        `Add ${selectedNetwork.nativeTokenSymbol} to your account on ${selectedNetwork.name} for the transaction fee.`
+      )
+    } else {
+      setWarning('')
+    }
+  }, [needsTokenForFee, selectedNetwork])
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -345,6 +360,7 @@ const Pools: FC = () => {
               </Box>
             </div>
           </details>
+          <Alert severity="warning">{warning}</Alert>
           <Alert severity="error" onClose={() => setError(null)} text={error} />
           <SendButton />
           {hasBalance && (

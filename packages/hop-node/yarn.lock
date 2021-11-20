@@ -1115,29 +1115,6 @@
     pino-sentry "^0.7.0"
     prom-client "^13.1.0"
 
-"@eth-optimism/contracts-latest@npm:@eth-optimism/contracts@^0.5.2", "@eth-optimism/contracts@^0.5.2":
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@eth-optimism/contracts/-/contracts-0.5.3.tgz#b4312c3e9af2c9e527a231dc3c337b2c46c56e28"
-  integrity sha512-hJapXGyIL/rQDoI92KzOPNyZJ2XC346r18DVwDrET08FqOGQ5KqSYgyrKybE7nkJzBq4GiZ/btLDg2ww7NePIw==
-  dependencies:
-    "@eth-optimism/core-utils" "0.7.1"
-    "@ethersproject/abstract-provider" "^5.4.1"
-    "@ethersproject/abstract-signer" "^5.4.1"
-    "@ethersproject/hardware-wallets" "^5.4.0"
-
-"@eth-optimism/contracts@0.4.14":
-  version "0.4.14"
-  resolved "https://registry.yarnpkg.com/@eth-optimism/contracts/-/contracts-0.4.14.tgz#e9b29f84e85d3db37e956c0df07c8af3d99e766d"
-  integrity sha512-E2IfkevM6DbTPhVpEvEo3Ws5tDWz5qmtGMzWZGSgZvcyC/GY0t0XKkZUUOrYDzYjOK9lAO21fa7WCPYP6Ay2IA==
-  dependencies:
-    "@eth-optimism/core-utils" "^0.6.1"
-    "@ethersproject/abstract-provider" "^5.4.1"
-    "@ethersproject/abstract-signer" "^5.4.1"
-    "@ethersproject/contracts" "^5.4.1"
-    "@ethersproject/hardware-wallets" "^5.4.0"
-    "@nomiclabs/hardhat-etherscan" "^2.1.5"
-    glob "^7.1.6"
-
 "@eth-optimism/contracts@^0.4.13":
   version "0.4.13"
   resolved "https://registry.yarnpkg.com/@eth-optimism/contracts/-/contracts-0.4.13.tgz#37bf157d481b0d904fe02591f3c0b99b32b254aa"
@@ -1150,6 +1127,16 @@
     "@ethersproject/hardware-wallets" "^5.4.0"
     "@nomiclabs/hardhat-etherscan" "^2.1.5"
     glob "^7.1.6"
+
+"@eth-optimism/contracts@^0.5.2", "@eth-optimism/contracts@^0.5.3":
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/@eth-optimism/contracts/-/contracts-0.5.3.tgz#b4312c3e9af2c9e527a231dc3c337b2c46c56e28"
+  integrity sha512-hJapXGyIL/rQDoI92KzOPNyZJ2XC346r18DVwDrET08FqOGQ5KqSYgyrKybE7nkJzBq4GiZ/btLDg2ww7NePIw==
+  dependencies:
+    "@eth-optimism/core-utils" "0.7.1"
+    "@ethersproject/abstract-provider" "^5.4.1"
+    "@ethersproject/abstract-signer" "^5.4.1"
+    "@ethersproject/hardware-wallets" "^5.4.0"
 
 "@eth-optimism/core-utils@0.7.1":
   version "0.7.1"
@@ -1177,16 +1164,6 @@
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/@eth-optimism/core-utils/-/core-utils-0.6.0.tgz#e20dbdce1b3122bd6db0bc3286a4942336ff173b"
   integrity sha512-WOia8t324ZbG6WUOFszwUGJSCCMh6dWen4fElW/OjtpmSHGTmOG9PCMxtw0wLTSR9fr/g9S7DhDpwhrN6q1QDQ==
-  dependencies:
-    "@ethersproject/abstract-provider" "^5.4.1"
-    "@ethersproject/providers" "^5.4.5"
-    ethers "^5.4.5"
-    lodash "^4.17.21"
-
-"@eth-optimism/core-utils@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@eth-optimism/core-utils/-/core-utils-0.6.1.tgz#ace2f9c31e995e48d1fa6229e3afaa7f4c53e11d"
-  integrity sha512-mTNEpUIaYXf+fSXxJCbWO9+1+vKzAPc3mC4TU3ukCfL19IdFf9ytG/9YKAM3Ls6bAhpwgKdIy1G+OEHvt4vxmA==
   dependencies:
     "@ethersproject/abstract-provider" "^5.4.1"
     "@ethersproject/providers" "^5.4.5"

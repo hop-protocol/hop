@@ -16,7 +16,10 @@ const getProvider = memoize((network: string, chain: string) => {
     }
     return providers.getDefaultProvider(network)
   }
-  return new providers.StaticJsonRpcProvider(rpcUrl)
+  return new providers.StaticJsonRpcProvider({
+    url: rpcUrl,
+    timeout: 10000
+  })
 })
 
 const getContractMemo = memoize(
@@ -450,7 +453,7 @@ class Base {
     if (destinationChain.isL1) {
       feeBps = fees?.L2ToL1
     }
-    if (destinationChain === Chain.xDai && fees?.anyToxDai) {
+    if (destinationChain.equals(Chain.xDai) && fees?.anyToxDai) {
       feeBps = fees?.anyToxDai
     }
 

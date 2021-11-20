@@ -130,6 +130,7 @@ const Send: FC = () => {
     requiredLiquidity,
     loading: loadingSendData,
     estimatedReceived,
+    error: sendDataError,
   } = useSendData(sourceToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
 
   // Set toAmount
@@ -166,6 +167,9 @@ const Send: FC = () => {
   // ==============================================================================================
   // Error and warning messages
   // ==============================================================================================
+  useEffect(() => {
+    setError(formatError(sendDataError))
+  }, [sendDataError])
 
   // Set error message if asset is unsupported
   useEffect(() => {

@@ -124,7 +124,10 @@ program
       }
       for (const k in globalConfig.networks) {
         const { waitConfirmations, rpcUrl } = globalConfig.networks[k]
-        logger.info(`${k} wait confirmations: ${waitConfirmations || 0}`)
+        if (!waitConfirmations) {
+          throw new Error('waitConfirmations required')
+        }
+        logger.info(`${k} wait confirmations: ${waitConfirmations}`)
         logger.info(`${k} rpc: ${rpcUrl}`)
       }
       const dryMode = !!source.dry

@@ -33,9 +33,9 @@ type Bps = {
 
 const fees: Record<string, Bps> = {
   USDC: {
-    L2ToL1: 18,
-    L2ToL2: 18,
-    anyToxDai: 18
+    L2ToL1: 9,
+    L2ToL2: 9,
+    anyToxDai: 25
   },
   USDT: {
     L2ToL1: 18,

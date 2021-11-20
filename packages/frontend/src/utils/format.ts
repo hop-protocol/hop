@@ -3,27 +3,28 @@ import Network from 'src/models/Network'
 import { prettifyErrorMessage } from '.'
 
 export function formatError(error: any, network?: Network) {
-  if (typeof error === 'string') {
-    return prettifyErrorMessage(error)
+  if (!error) {
+    return
   }
 
-  const { data } = error
+  let errMsg = 'Something went wrong. Please try again.'
+  if (typeof error === 'string') {
+    errMsg = error
+  } else if (error?.message) {
+    errMsg = error.message
+  } else if (error?.data?.message) {
+    errMsg = error.data.message
+  }
 
   // TODO: handle custom error messages elsewhere (and better)
-  if (data?.message === 'not enough funds for gas') {
+  if (errMsg === 'not enough funds for gas') {
     const feeToken = network?.nativeTokenSymbol || 'funds'
-    return `Insufficient balance. Please add ${feeToken} to pay for tx fees.`
+    errMsg = `Insufficient balance. Please add ${feeToken} to pay for tx fees.`
+  } else if (errMsg.includes('NetworkError when attempting to fetch resource')) {
+    errMsg = `${errMsg} Please check your wallet network settings are correct and try again. More info: https://docs.hop.exchange/rpc-endpoints`
   }
 
-  if (data?.message) {
-    return data.message
-  }
-
-  if (error?.message) {
-    return error.message
-  }
-
-  return 'Something went wrong. Please try again.'
+  return prettifyErrorMessage(errMsg)
 }
 
 export function sanitizeNumericalString(numStr: string) {

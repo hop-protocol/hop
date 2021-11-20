@@ -59,10 +59,10 @@ class OptimismBridgeWatcher extends BaseWatcher {
       }
     })
 
-    this.l1Messenger = getContractFactory('iOVM_L1CrossDomainMessenger')
+    this.l1Messenger = getContractFactory('IL1CrossDomainMessenger')
       .connect(this.l1Wallet)
       .attach(this.watcher.l1.messengerAddress)
-    this.scc = getContractFactory('iOVM_StateCommitmentChain')
+    this.scc = getContractFactory('IStateCommitmentChain')
       .connect(this.l1Wallet)
       .attach(sccAddress)
   }

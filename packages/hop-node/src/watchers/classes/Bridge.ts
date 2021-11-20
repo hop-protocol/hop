@@ -12,7 +12,7 @@ import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
 import { State } from 'src/db/SyncStateDb'
 import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
-import { getContractFactory, predeploys } from '@eth-optimism/contracts-latest'
+import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {

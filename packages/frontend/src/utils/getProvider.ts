@@ -6,7 +6,10 @@ const getProvider = memoize((rpcUrl: string) => {
     return new ethers.providers.WebSocketProvider(rpcUrl)
   }
 
-  return new ethers.providers.StaticJsonRpcProvider(rpcUrl)
+  return new ethers.providers.StaticJsonRpcProvider({
+    url: rpcUrl,
+    timeout: 10000
+  })
 })
 
 export default getProvider

@@ -50,7 +50,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.ready = true
   }
 
-  async relayMessage (
+  async relayXDomainMessage(
     txHash: string
   ): Promise<any> {
     if (!this.ready) {
@@ -96,7 +96,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     )
     await this.handleStateSwitch()
     if (this.isDryOrPauseMode) {
-      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
+      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
       return
     }
 
@@ -104,7 +104,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       sentConfirmTxAt: Date.now()
     })
     try {
-      const tx = await this.relayMessage(commitTxHash)
+      const tx = await this.relayXDomainMessage(commitTxHash)
       if (!tx) {
         logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
         return

@@ -67,7 +67,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
       .attach(sccAddress)
   }
 
-  async relayXDomainMessages (
+  async relayXDomainMessage (
     txHash: string
   ): Promise<any> {
     const messagePairs = await getMessagesAndProofsForL2Transaction(
@@ -106,7 +106,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
 
     await this.handleStateSwitch()
     if (this.isDryOrPauseMode) {
-      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
+      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
       return
     }
 
@@ -115,7 +115,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
     })
 
     try {
-      const tx = await this.relayXDomainMessages(commitTxHash)
+      const tx = await this.relayXDomainMessage(commitTxHash)
       if (!tx) {
         logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
         return

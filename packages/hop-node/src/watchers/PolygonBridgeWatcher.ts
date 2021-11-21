@@ -136,7 +136,8 @@ class PolygonBridgeWatcher extends BaseWatcher {
     return json.message === 'success'
   }
 
-  async relayMessage (txHash: string, tokenSymbol: string) {
+  async relayXDomainMessage(txHash: string) {
+    const tokenSymbol: string = this.tokenSymbol
     const recipient = await this.l1Wallet.getAddress()
     const maticPOSClient = new MaticPOSClient({
       network: this.chainId === this.polygonMainnetChainId ? 'mainnet' : 'testnet',
@@ -216,14 +217,14 @@ class PolygonBridgeWatcher extends BaseWatcher {
     )
     await this.handleStateSwitch()
     if (this.isDryOrPauseMode) {
-      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayMessage`)
+      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
       return
     }
     await this.db.transferRoots.update(transferRootHash, {
       sentConfirmTxAt: Date.now()
     })
     try {
-      const tx = await this.relayMessage(commitTxHash, this.tokenSymbol)
+      const tx = await this.relayXDomainMessage(commitTxHash)
       const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
       logger.info(msg)
       this.notifier.info(msg)

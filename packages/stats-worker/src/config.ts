@@ -9,3 +9,4 @@ export const xdaiRpc = process.env.XDAI_RPC
 export const polygonRpc = process.env.POLYGON_RPC
 export const optimismRpc = process.env.OPTIMISM_RPC
 export const arbitrumRpc = process.env.ARBITRUM_RPC
+export const dbPath = process.env.SQLITE3_DB || './sqlite3.db'

@@ -1,5 +1,11 @@
 import { constants } from 'ethers'
-import { ethereumRpc, xdaiRpc, polygonRpc, optimismRpc, arbitrumRpc } from './config'
+import {
+  ethereumRpc,
+  xdaiRpc,
+  polygonRpc,
+  optimismRpc,
+  arbitrumRpc
+} from './config'
 import { Hop } from '@hop-protocol/sdk'
 import wait from 'wait'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
@@ -15,10 +21,10 @@ type Response = {
   data: Data
 }
 
-class Stats {
+class AprStats {
   sdk = new Hop('mainnet')
 
-  constructor() {
+  constructor () {
     this.sdk.setChainProviderUrls({
       ethereum: ethereumRpc,
       xdai: xdaiRpc,
@@ -27,7 +33,10 @@ class Stats {
       arbitrum: arbitrumRpc
     })
 
-    console.log('provider urls:', JSON.stringify(this.sdk.getChainProviderUrls()))
+    console.log(
+      'provider urls:',
+      JSON.stringify(this.sdk.getChainProviderUrls())
+    )
   }
 
   async getAllAprs () {
@@ -83,4 +92,4 @@ class Stats {
   }
 }
 
-export default Stats
+export default AprStats

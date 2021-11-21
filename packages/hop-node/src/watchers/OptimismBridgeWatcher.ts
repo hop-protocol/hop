@@ -78,6 +78,10 @@ class OptimismBridgeWatcher extends BaseWatcher {
       txHash
     )
 
+    if (!messagePairs) {
+      throw new Error('messagePairs not found')
+    }
+
     const { message, proof } = messagePairs[0]
     const inChallengeWindow = await this.scc.insideFraudProofWindow(proof.stateRootBatchHeader)
     if (inChallengeWindow) {
@@ -123,7 +127,9 @@ class OptimismBridgeWatcher extends BaseWatcher {
     } catch (err) {
       this.logger.error(err.message)
       const isNotCheckpointedYet = err.message.includes('unable to find state root batch for tx')
-      if (isNotCheckpointedYet) {
+      const isProofNotFound = err.message.includes('messagePairs not found')
+      const notReadyForExit = isNotCheckpointedYet || isProofNotFound
+      if (notReadyForExit) {
         logger.debug('state root batch not yet on L1. cannot exit yet')
         return
       }

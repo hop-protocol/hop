@@ -1,10 +1,10 @@
 import getIncompleteSettlements from 'src/theGraph/getIncompleteSettlements'
+import { Chain } from 'src/constants'
 import { logger, program } from './shared'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
 } from 'src/config'
-import { Chain } from 'src/constants'
 
 const chains = [
   Chain.Ethereum,
@@ -57,7 +57,6 @@ program
       } else {
         destinationChains.push(destinationChain)
       }
-
 
       for (const chain of destinationChains) {
         console.log(`\n\n\nGetting incomplete settlements for token ${token}: source ${sourceChain} and destination ${chain}`)

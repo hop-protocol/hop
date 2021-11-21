@@ -74,7 +74,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
       this.l1Provider,
       this.l2Provider,
       this.scc.address,
-      predeploys.OVM_L2CrossDomainMessenger,
+      predeploys.L2CrossDomainMessenger,
       txHash
     )
 

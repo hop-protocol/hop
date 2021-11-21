@@ -303,11 +303,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('gasCostInToken:', gasCostInToken?.toString())
     logger.debug('minBonderFeeAbsolute:', minBonderFeeAbsolute?.toString())
 
-    const minBpsFee = await this.bridge.getBonderFeeBps(amount!, minBonderFeeAbsolute) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const minBpsFee = await this.bridge.getBonderFeeBps(destinationChain, amount!, minBonderFeeAbsolute) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const minTxFee = gasCostInToken.div(2)
     const minBonderFeeTotal = minBpsFee.add(minTxFee)
     const isBonderFeeOk = bonderFee!.gte(minBonderFeeTotal) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, isBonderFeeOk: ${isBonderFeeOk}`)
+    logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, minBpsFee: ${minBpsFee}, isBonderFeeOk: ${isBonderFeeOk}`)
 
     return isBonderFeeOk
   }

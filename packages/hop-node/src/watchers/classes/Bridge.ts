@@ -711,13 +711,13 @@ export default class Bridge extends ContractBase {
   }
 
   async getBonderFeeBps (
+    destinationChain: Chain,
     amountIn: BigNumber,
     minBonderFeeAbsolute: BigNumber
   ) {
     if (amountIn.lte(0)) {
       return BigNumber.from(0)
     }
-    const destinationChain = this.chainSlug
     const fees = globalConfig?.fees?.[this.tokenSymbol]
     if (!fees) {
       throw new Error(`fee config not found for ${this.tokenSymbol}`)
@@ -763,7 +763,7 @@ export default class Bridge extends ContractBase {
     if (this.chainSlug === Chain.Optimism && data && to) {
       try {
         const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug))
+          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug)!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
         const serializedTx = serializeTransaction({
           value: parseEther('0'),
           gasPrice,

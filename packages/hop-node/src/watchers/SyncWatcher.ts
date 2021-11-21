@@ -671,7 +671,8 @@ class SyncWatcher extends BaseWatcher {
       '0x35e3c87c77ff63f350b5a2f5f661796e203e939f8ab070e9833e1e568869b2e0',
       '0x936d481834e26dffb1757b6cf8de024bccc7fa6caef7e3dbe3618387c96639a7',
       '0xd799fb93f8894985e2d9f0fb782d2388ca09ec70e5cde256b21a506696f7bee0',
-      '0x7103275350d3774aa0f6db2c0fc5dbc83d322b05bcf75216169aa58cfd491aad'
+      '0x7103275350d3774aa0f6db2c0fc5dbc83d322b05bcf75216169aa58cfd491aad',
+      '0x9cf4b8b99a21104fde99cdf30b413ec300fddb61bd1dc525f9b65e8bda80e25f'
     ]
     if (skipTransfers.includes(transferId)) {
       return

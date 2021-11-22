@@ -86,22 +86,21 @@ class xDaiBridgeWatcher extends BaseWatcher {
     const l2Amb = getL2Amb(token)
 
     const sigEvent = await this.getValidSigEvent(commitTxHash)
-    if (!sigEvent) {
-      this.logger.error(`sigEvent not found for ${commitTxHash}`)
+    if (!sigEvent?.args) {
+      throw new Error(`args for sigEvent not found for ${commitTxHash}`)
     }
 
-    this.logger.info('found sigEvent event')
-    const message = sigEvent!.args.encodedData // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    this.logger.info('found sigEvent event args')
+    const message = sigEvent.args.encodedData
     if (!message) {
-      this.logger.error(`message not found for ${commitTxHash}`)
+      throw new Error(`message not found for ${commitTxHash}`)
     }
 
     const msgHash = solidityKeccak256(['bytes'], [message])
     const id = await l2Amb.numMessagesSigned(msgHash)
     const alreadyProcessed = await l2Amb.isAlreadyProcessed(id)
     if (!alreadyProcessed) {
-      this.logger.error(`commit already processed found for ${commitTxHash}`)
-      return
+      throw new Error(`commit already processed found for ${commitTxHash}`)
     }
 
     const messageId =
@@ -111,7 +110,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
         .toString('hex')
     const alreadyRelayed = await l1Amb.relayedMessages(messageId)
     if (alreadyRelayed) {
-      return
+      throw new Error(`message already relayed for ${commitTxHash}`)
     }
 
     const requiredSigs = (await l2Amb.requiredSignatures()).toNumber()

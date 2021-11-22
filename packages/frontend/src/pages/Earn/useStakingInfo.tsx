@@ -4,7 +4,7 @@ import useCurrentBlockTimestamp from 'src/hooks/useCurrentBlockTimestamp'
 import Token from 'src/models/Token'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
-import { L1_NETWORK } from 'src/constants'
+import { L1_NETWORK } from 'src/utils/constants'
 
 type TokenArrayType = [Contract | undefined, Contract | undefined]
 export interface StakingInfo {

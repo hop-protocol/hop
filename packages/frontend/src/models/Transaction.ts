@@ -28,7 +28,7 @@ interface ContructorArgs {
   isCanonicalTransfer?: boolean
   pending?: boolean
   token?: Token
-  timestamp?: number
+  timestampMs?: number
   blockNumber?: number
   transferId?: string | null
   pendingDestinationConfirmation?: boolean
@@ -48,7 +48,7 @@ class Transaction extends EventEmitter {
   destProvider: ethers.providers.Provider | null = null
   pending: boolean = true
   token: Token | null = null
-  timestamp: number
+  timestampMs: number
   blockNumber?: number
   status: null | boolean = null
   transferId: string | null = null
@@ -67,7 +67,7 @@ class Transaction extends EventEmitter {
     isCanonicalTransfer,
     pending = true,
     token,
-    timestamp,
+    timestampMs,
     transferId = null,
     pendingDestinationConfirmation = true,
     destTxHash = '',
@@ -88,7 +88,7 @@ class Transaction extends EventEmitter {
     }
 
     this.provider = getProviderByNetworkName(networkName)
-    this.timestamp = timestamp || Date.now()
+    this.timestampMs = timestampMs || Date.now()
     this.pending = pending
     this.transferId = transferId
     this.replaced = replaced
@@ -107,7 +107,7 @@ class Transaction extends EventEmitter {
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
       this.blockNumber = receipt.blockNumber
       const block = await this.provider.getBlock(receipt.blockNumber)
-      this.timestamp = block.timestamp * 1000
+      this.timestampMs = block.timestamp * 1000
 
       if (tsDetails?.chainId) {
         this.destNetworkName = networkIdToSlug(tsDetails.chainId)

@@ -19,7 +19,7 @@ export async function getRecentTransactionsByFromAddress(
 
   for (const block of blocks) {
     for (const transaction of block.transactions) {
-      if (transaction.from === fromAddress) {
+      if (transaction.from.toLowerCase() === fromAddress.toLowerCase()) {
         txs.push(transaction)
       }
     }

@@ -16,7 +16,7 @@ import { TokenModel } from '@hop-protocol/sdk'
 import range from 'lodash/range'
 
 export const sortByRecentTimestamp = (txs: Transaction[]) => {
-  return txs.sort((a, b) => b.timestamp - a.timestamp)
+  return txs.sort((a, b) => b.timestampMs - a.timestampMs)
 }
 
 export function filterByHash(txs: Transaction[] = [], hash: string = '') {

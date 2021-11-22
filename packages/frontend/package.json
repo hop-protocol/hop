@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@hop-protocol/core": "0.0.1-beta.51",
-    "@hop-protocol/sdk": "0.0.1-beta.245",
+    "@hop-protocol/sdk": "0.0.1-beta.247",
     "@material-ui/core": "^4.12.3",
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "4.0.0-alpha.60",
@@ -17,6 +17,7 @@
     "classnames": "2.2.6",
     "clsx": "1.1.1",
     "copy-to-clipboard": "^3.3.1",
+    "dayjs": "^1.10.7",
     "deepmerge": "^4.2.2",
     "dotenv": "8.2.0",
     "ethers": "^5.5.1",

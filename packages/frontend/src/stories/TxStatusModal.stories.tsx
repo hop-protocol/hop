@@ -24,7 +24,7 @@ const Template: ComponentStory<typeof TxStatusModal> = args => {
   return <TxStatusModal onClose={handleClose} {...args} />
 }
 
-const sts = storyTransactions.map(tx =>
+const sts = storyTransactions.map((tx: any) =>
   createTransaction(tx, tx.networkName, tx.destNetworkName, tx.token, {
     pendingDestinationConfirmation: tx.pendingDestinationConfirmation,
     destTxHash: tx.destTxHash,

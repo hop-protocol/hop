@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Button from 'src/components/buttons/Button'
@@ -23,20 +23,24 @@ const TxPill = () => {
   const { address } = useWeb3Context()
   const transactions = app?.txHistory?.transactions
   const styles = useStyles()
+  const [numPendingTxs, setNumPendingTxs] = useState(0)
 
   const handleClick = () => {
     accountDetails?.show(true)
   }
 
-  const pendingTxs = transactions?.filter((tx: Transaction) => {
-    return tx.pending
-  })
+  useEffect(() => {
+    if (transactions && transactions?.length > 0) {
+      const pts = transactions.filter(tx => tx.pending)
+      setNumPendingTxs(pts.length)
+    }
+  }, [transactions])
 
   return (
     <div className={styles.root}>
-      {pendingTxs?.length ? (
+      {numPendingTxs > 0 ? (
         <Button className={styles.pendingButton} flat onClick={handleClick}>
-          {pendingTxs.length} Pending <CircularProgress size={18} className={styles.spinner} />
+          {numPendingTxs} Pending <CircularProgress size={18} className={styles.spinner} />
         </Button>
       ) : (
         <Button flat onClick={handleClick}>

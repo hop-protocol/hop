@@ -1,10 +1,9 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import { Token, Chain } from '@hop-protocol/sdk'
 import Transaction from 'src/models/Transaction'
 import { toTokenDisplay } from 'src/utils'
-import { UINT256 } from 'src/constants'
 import { useTransactionReplacement } from './useTransactionReplacement'
 
 const useApprove = token => {
@@ -59,7 +58,7 @@ const useApprove = token => {
         token: token.symbol,
       },
       onConfirm: async (approveAll: boolean) => {
-        const approveAmount = approveAll ? UINT256 : amount
+        const approveAmount = approveAll ? constants.MaxUint256 : amount
         return token.approve(spender, approveAmount)
       },
     })

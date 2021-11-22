@@ -1,8 +1,8 @@
-import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import ArbitrumBridgeWatcher from 'src/watchers/ArbitrumBridgeWatcher'
 import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
+import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { findWatcher, getWatchers } from 'src/watchers/watchers'
 import { logger, program } from './shared'
 import {

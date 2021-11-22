@@ -28,7 +28,7 @@ import {
   VOTE_STATUS,
   PROPOSAL_LENGTH_IN_SECS,
   COMMON_CONTRACT_NAMES,
-} from 'src/constants'
+} from 'src/utils/constants'
 
 const useStyles = makeStyles(theme => ({
   componentBox: {

@@ -15,7 +15,7 @@ import {
   githubUrl,
   mediumUrl,
   twitterUrl,
-} from 'src/constants'
+} from 'src/utils/constants'
 
 const useStyles = makeStyles(theme => ({
   root: {

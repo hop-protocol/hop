@@ -1,9 +1,7 @@
 import { ethers, providers } from 'ethers'
 import { EventEmitter } from 'events'
 import { Hop, Token } from '@hop-protocol/sdk'
-import { L1_NETWORK } from 'src/constants'
 import {
-  getRpcUrl,
   getBaseExplorerUrl,
   findTransferFromL1CompletedLog,
   getTransferSentDetailsFromLogs,

@@ -32,3 +32,22 @@ export const saveState = (key: string = 'state', state: any) => {
     console.error(err)
   }
 }
+
+export function putState(key: string = 'state', subKey: string = 'substate', moreState: any) {
+  const state = loadState(key)
+
+  const subState = {
+    [subKey]: moreState,
+  }
+
+  if (state) {
+    const accState = {
+      ...state,
+      ...subState,
+    }
+
+    return saveState(key, accState)
+  }
+
+  return saveState(key, subState)
+}

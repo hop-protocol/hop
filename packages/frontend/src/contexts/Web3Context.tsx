@@ -9,8 +9,8 @@ import {
   getRpcUrl,
   getBaseExplorerUrl,
 } from 'src/utils'
-import { networks, blocknativeDappid, fortmaticApiKey, portisDappId } from 'src/config'
-import { L1_NETWORK } from 'src/constants'
+import { Chain, L1_NETWORK } from 'src/utils/constants'
+import { networks, blocknativeDappid } from 'src/config'
 
 import MetamaskAccountsSettingsHighlight from 'src/assets/onboard/metamask-accounts-settings-highlight.png'
 import MetamaskSettingsHighlight from 'src/assets/onboard/metamask-settings-highlight.png'
@@ -18,7 +18,6 @@ import MetamaskAddNetworkHighlight from 'src/assets/onboard/metamask-add-network
 import MetamaskNewCustomNetworkHighlight from 'src/assets/onboard/metamask-new-custom-network-highlight.png'
 import MetamaskCustomNetworkHighlight from 'src/assets/onboard/metamask-custom-network-highlight.png'
 import logger from 'src/logger'
-import { Chain } from 'src/utils/constants'
 
 type Props = {
   onboard: any

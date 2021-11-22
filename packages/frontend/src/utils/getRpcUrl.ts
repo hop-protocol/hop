@@ -1,4 +1,4 @@
-import { L1_NETWORK } from 'src/constants'
+import { L1_NETWORK } from 'src/utils/constants'
 import { networks } from 'src/config'
 import { Chain } from './constants'
 

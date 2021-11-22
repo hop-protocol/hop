@@ -3,7 +3,7 @@ import { Contract, providers } from 'ethers'
 import { l1BridgeAbi } from '@hop-protocol/core/abi'
 import { addresses } from 'src/config'
 import Token from 'src/models/Token'
-import { L1_NETWORK } from 'src/constants'
+import { L1_NETWORK } from 'src/utils/constants'
 
 const useL1BridgeContracts = (provider: providers.Provider, token: Token): Contract | undefined => {
   // logger.debug('useL1BridgeContracts render')

@@ -131,20 +131,17 @@ class OptimismBridgeWatcher extends BaseWatcher {
       const isInsideFraudProofWindow = err.message.includes('exit within challenge window')
       const notReadyForExit = isNotCheckpointedYet || isProofNotFound || isInsideFraudProofWindow
       if (notReadyForExit) {
-        logger.debug('too early to exit')
-        return
+        throw new Error('too early to exit')
       }
       const isAlreadyRelayed = err.message.includes('message has already been received')
       if (isAlreadyRelayed) {
-        logger.debug('message has already been relayed')
-        return
+        throw new Error('message has already been relayed')
       }
       // isEventLow() does not handle the case where `batchEvents` is null
       // https://github.com/ethereum-optimism/optimism/blob/26b39199bef0bea62a2ff070cd66fd92918a556f/packages/message-relayer/src/relay-tx.ts#L179
       const cannotReadProperty = err.message.includes('Cannot read property')
       if (cannotReadProperty) {
-        logger.debug('event not found in optimism sdk')
-        return
+        throw new Error('event not found in optimism sdk')
       }
       throw err
     }

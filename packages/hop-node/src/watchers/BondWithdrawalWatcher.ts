@@ -313,12 +313,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const isBonderFeeOk = bonderFee.gte(minBonderFeeTotal)
     logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, minBpsFee: ${minBpsFee}, isBonderFeeOk: ${isBonderFeeOk}`)
 
-    const bonderFeeOverage = bonderFee.div(minBonderFeeTotal).div(100)
-    logger.debug(`bonder fee overage: ${bonderFeeOverage}`)
+    const precision = this.bridge.parseEth('1')
+    const bonderFeeOverage = bonderFee.mul(precision).div(minBonderFeeTotal)
+    logger.debug(`bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}`)
 
-    const expectedMinBonderFeeOverage = BigNumber.from(1)
-    if (bonderFeeOverage.lte(expectedMinBonderFeeOverage)) {
-      const msg = `Bonder fee too low. bonder fee overage: ${bonderFeeOverage}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`
+    const expectedMinBonderFeeOverage = precision
+    if (bonderFeeOverage.lt(expectedMinBonderFeeOverage)) {
+      const msg = `Bonder fee too low. bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`
       logger.error(msg)
       this.notifier.error(msg)
     }

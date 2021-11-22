@@ -1,6 +1,7 @@
 import { ethers } from 'ethers'
 import memoize from 'fast-memoize'
-import { getAllRpcUrls, getRpcUrlByNetworkName } from './getRpcUrl'
+import { getRpcUrl } from '.'
+import { getAllRpcUrls } from './getRpcUrl'
 
 const getProvider = memoize((rpcUrl: string) => {
   if (rpcUrl.startsWith('ws')) {
@@ -11,7 +12,7 @@ const getProvider = memoize((rpcUrl: string) => {
 })
 
 export function getProviderByNetworkName(networkName) {
-  const rpcUrl = getRpcUrlByNetworkName(networkName)
+  const rpcUrl = getRpcUrl(networkName)
   return getProvider(rpcUrl)
 }
 

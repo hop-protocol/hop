@@ -19,6 +19,7 @@ import { formatError } from 'src/utils/format'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 import { sigHashes } from 'src/hooks/useTransaction'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
+import { Chain } from 'src/utils/constants'
 
 interface ContructorArgs {
   hash: string
@@ -118,63 +119,16 @@ class Transaction extends EventEmitter {
     }
   }
 
-  getRpcUrl(networkName): string {
-    let rpcUrl = ''
-    if (networkName.startsWith('arbitrum')) {
-      rpcUrl = getRpcUrl('arbitrum')
-    } else if (networkName.startsWith('optimism')) {
-      rpcUrl = getRpcUrl('optimism')
-    } else if (networkName.startsWith('xdai')) {
-      rpcUrl = getRpcUrl('xdai')
-    } else if (networkName.startsWith('polygon')) {
-      rpcUrl = getRpcUrl('polygon')
-    } else {
-      rpcUrl = getRpcUrl(L1_NETWORK)
-    }
-    return rpcUrl
-  }
-
-  getExplorerLink(srcOrDest: 'source' | 'destination'): string {
-    let networkName = this.networkName
-    let optionalHash: string | undefined
-
-    const isDestNetwork = srcOrDest === 'destination'
-    if (isDestNetwork) {
-      if (!this.destTxHash) return ''
-
-      optionalHash = this.destTxHash
-      if (this.destNetworkName) {
-        networkName = this.destNetworkName
-      }
-    }
-
-    if (networkName.startsWith('ethereum')) {
-      // TODO: maybe not necessary??
-      if (isDestNetwork) return this._etherscanLink('ethereum', optionalHash)
-      return this._etherscanLink(optionalHash)
-    } else if (networkName.startsWith('arbitrum')) {
-      return this._arbitrumLink(optionalHash)
-    } else if (networkName.startsWith('optimism')) {
-      return this._optimismLink(optionalHash)
-    } else if (networkName.startsWith('xdai')) {
-      return this._xdaiLink(optionalHash)
-    } else if (networkName.startsWith('polygon')) {
-      return this._polygonLink(optionalHash)
-    } else {
-      return ''
-    }
-  }
-
   get explorerLink(): string {
     if (this.networkName.startsWith('ethereum')) {
       return this._etherscanLink()
-    } else if (this.networkName.startsWith('arbitrum')) {
+    } else if (this.networkName.startsWith(Chain.Arbitrum)) {
       return this._arbitrumLink()
-    } else if (this.networkName.startsWith('optimism')) {
+    } else if (this.networkName.startsWith(Chain.Optimism)) {
       return this._optimismLink()
-    } else if (this.networkName.startsWith('xdai')) {
+    } else if (this.networkName.startsWith(Chain.xDai)) {
       return this._xdaiLink()
-    } else if (this.networkName.startsWith('polygon')) {
+    } else if (this.networkName.startsWith(Chain.Polygon)) {
       return this._polygonLink()
     } else {
       return ''
@@ -186,13 +140,13 @@ class Transaction extends EventEmitter {
 
     if (this.destNetworkName?.startsWith('ethereum')) {
       return this._etherscanLink('ethereum', this.destTxHash)
-    } else if (this.destNetworkName?.startsWith('arbitrum')) {
+    } else if (this.destNetworkName?.startsWith(Chain.Arbitrum)) {
       return this._arbitrumLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith('optimism')) {
+    } else if (this.destNetworkName?.startsWith(Chain.Optimism)) {
       return this._optimismLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith('xdai')) {
+    } else if (this.destNetworkName?.startsWith(Chain.xDai)) {
       return this._xdaiLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith('polygon')) {
+    } else if (this.destNetworkName?.startsWith(Chain.Polygon)) {
       return this._polygonLink(this.destTxHash)
     } else {
       return ''

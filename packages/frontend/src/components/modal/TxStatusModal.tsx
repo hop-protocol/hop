@@ -1,16 +1,12 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import MuiButton from '@material-ui/core/Button'
 import Transaction from 'src/models/Transaction'
 import Modal from 'src/components/modal'
 import { Chain } from '@hop-protocol/sdk'
-import { Div, Flex } from '../ui'
-import TransactionStatus from '../accountDetails/TransactionStatus'
-import useTransactionStatus from 'src/hooks/useTransactionStatus'
-import { useTxStatusStyles } from '../accountDetails/useTxStatusStyles'
-import { useApp } from 'src/contexts/AppContext'
-import { findNetworkBySlug } from 'src/utils/networks'
+import { useTxStatusStyles } from '../Transaction'
+import TxStatusTracker from 'src/components/Transaction/TxStatusTracker'
 
 type Props = {
   tx: Transaction
@@ -18,7 +14,6 @@ type Props = {
 }
 
 function TxStatusModal(props: Props) {
-  const { networks } = useApp()
   const styles = useTxStatusStyles()
   const { onClose, tx } = props
   const handleTxStatusClose = () => {
@@ -27,9 +22,6 @@ function TxStatusModal(props: Props) {
     }
   }
 
-  const network = useMemo(() => findNetworkBySlug(networks, tx.networkName), [tx, networks])
-  // const destNetwork = findNetworkBySlug(networks, tx.destNetworkName)
-
   const sourceChain = tx?.networkName ? Chain.fromSlug(tx.networkName) : null
   const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
   let timeEstimate = '5 minutes'
@@ -37,54 +29,9 @@ function TxStatusModal(props: Props) {
     timeEstimate = '15 minutes'
   }
 
-  const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
-    tx,
-    tx.networkName
-  )
-
   return (
     <Modal onClose={handleTxStatusClose}>
-      <Div mb={4}>
-        <Flex justifyAround alignCenter>
-          {network && (
-            <Flex column alignCenter textAlign="center" width="5em">
-              {/* <Icon src={network?.imageUrl} /> */}
-              {/* <Div>{network.name}</Div> */}
-              <Div mt={2}>Source</Div>
-            </Flex>
-          )}
-          {tx.destNetworkName !== tx.networkName && (
-            <Flex column alignCenter textAlign="center" width="5em">
-              {/* <Icon src={destNetwork?.imageUrl} /> */}
-              {/* <Div>{destNetwork?.name}</Div> */}
-              <Div mt={2}>Destination</Div>
-            </Flex>
-          )}
-        </Flex>
-
-        <Flex justifyAround alignCenter mt={3}>
-          <TransactionStatus
-            txConfirmed={completed}
-            link={tx.explorerLink}
-            destNetworkName={tx.destNetworkName}
-            styles={styles}
-            confirmations={confirmations}
-            networkWaitConfirmations={networkConfirmations}
-          />
-
-          {tx.destNetworkName !== tx.networkName && (
-            <TransactionStatus
-              srcConfirmed={completed}
-              txConfirmed={destCompleted}
-              link={tx.destExplorerLink}
-              destNetworkName={tx.destNetworkName}
-              networkName={tx.networkName}
-              destTx
-              styles={styles}
-            />
-          )}
-        </Flex>
-      </Div>
+      <TxStatusTracker tx={tx} />
 
       <Box display="flex" alignItems="center" className={styles.txStatusInfo}>
         <Typography variant="body1">

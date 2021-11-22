@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Link from '@material-ui/core/Link'
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
@@ -8,12 +8,24 @@ import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import useTransactionStatus from 'src/hooks/useTransactionStatus'
 import TransactionStatus from './TransactionStatus'
 import { useTxStatusStyles } from './useTxStatusStyles'
+import { isOlderThanOneHour } from 'src/utils'
 
-function TransactionRow({ tx, styles }: { tx: Transaction; styles: any }) {
-  const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
-    tx,
-    tx.networkName
-  )
+function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rmTx: any }) {
+  const {
+    completed,
+    destCompleted,
+    confirmations,
+    networkConfirmations,
+    replaced,
+  } = useTransactionStatus(tx, tx.networkName)
+
+  useEffect(() => {
+    if (replaced) {
+      if (isOlderThanOneHour(replaced.timestamp)) {
+        return rmTx(replaced)
+      }
+    }
+  }, [replaced])
 
   return (
     <Flex justifyBetween mb=".5rem" alignCenter>
@@ -49,7 +61,7 @@ function TransactionRow({ tx, styles }: { tx: Transaction; styles: any }) {
 
 function TransactionsList(props: any) {
   const styles = useTxStatusStyles()
-  const { transactions, clear } = useTxHistory(props.transactions)
+  const { transactions, clear, removeTransaction } = useTxHistory(props.transactions)
 
   if (!transactions || transactions.length === 0) {
     return <Typography variant="body1">Your transactions will appear here...</Typography>
@@ -78,7 +90,7 @@ function TransactionsList(props: any) {
       </Flex>
 
       {transactions?.map((tx: Transaction) => (
-        <TransactionRow key={tx.hash} tx={tx} styles={styles} />
+        <TransactionRow key={tx.hash} tx={tx} styles={styles} rmTx={removeTransaction} />
       ))}
     </>
   )

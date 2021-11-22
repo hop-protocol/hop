@@ -34,13 +34,14 @@ export default async function getIncompleteSettlements (token: string, chain: st
   const destinationChainId: number = chainSlugToId(destinationChain)! // eslint-disable-line
 
   const isDestinationOptimism = destinationChain === Chain.Optimism
-  if(isDestinationOptimism)
-  console.warn(`
+  if (isDestinationOptimism) {
+    console.warn(`
 **********
 Optimism performed a regenesis on 20211111. Because of this, we do not have access to data prior.
 to that period. Queries here will appear incomplete for those items.
 **********
 `)
+  }
 
   const transfersCommitted: TransferCommitted[] = await getTransfersCommitted(
     token,

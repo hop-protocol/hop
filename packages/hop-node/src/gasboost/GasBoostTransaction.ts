@@ -541,7 +541,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   private shouldBoost (item: InflightItem) {
     const timeOk = item.sentAt < (Date.now() - this.timeTilBoostMs)
     const isConfirmed = this.confirmations
-    return timeOk && !isConfirmed
+    const isMaxGasPriceReached = this.maxGasPriceReached
+    return timeOk && !isConfirmed && !isMaxGasPriceReached
   }
 
   private async boost (item: InflightItem) {

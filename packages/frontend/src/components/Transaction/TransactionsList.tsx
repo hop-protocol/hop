@@ -21,7 +21,7 @@ function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rm
 
   useEffect(() => {
     if (replaced) {
-      if (isOlderThanOneHour(replaced.timestamp)) {
+      if (isOlderThanOneHour(replaced.timestampMs)) {
         return rmTx(replaced)
       }
     }

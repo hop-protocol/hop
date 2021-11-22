@@ -50,7 +50,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.ready = true
   }
 
-  async relayXDomainMessage(
+  async relayXDomainMessage (
     txHash: string
   ): Promise<any> {
     if (!this.ready) {
@@ -103,20 +103,15 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     await this.db.transferRoots.update(transferRootHash, {
       sentConfirmTxAt: Date.now()
     })
-    try {
-      const tx = await this.relayXDomainMessage(commitTxHash)
-      if (!tx) {
-        logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
-        return
-      }
-
-      const msg = `sent chain ${this.bridge.chainId} confirmTransferRoot exit tx ${tx.hash}`
-      logger.info(msg)
-      this.notifier.info(msg)
-    } catch (err) {
-      logger.error(err.message)
-      throw err
+    const tx = await this.relayXDomainMessage(commitTxHash)
+    if (!tx) {
+      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+      return
     }
+
+    const msg = `sent chain ${this.bridge.chainId} confirmTransferRoot exit tx ${tx.hash}`
+    logger.info(msg)
+    this.notifier.info(msg)
   }
 }
 

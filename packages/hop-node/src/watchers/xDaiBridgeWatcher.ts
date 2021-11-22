@@ -69,20 +69,15 @@ class xDaiBridgeWatcher extends BaseWatcher {
       sentConfirmTxAt: Date.now()
     })
 
-    try {
-      const result = await this.relayXDomainMessage(commitTxHash)
-      if (result == null) {
-        logger.error('no result returned from exit tx')
-        return
-      }
-      const { tx } = result
-      const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
-      logger.info(msg)
-      this.notifier.info(msg)
-    } catch (err) {
-      logger.error(err)
-      throw err
+    const result = await this.relayXDomainMessage(commitTxHash)
+    if (result == null) {
+      logger.error('no result returned from exit tx')
+      return
     }
+    const { tx } = result
+    const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
+    logger.info(msg)
+    this.notifier.info(msg)
   }
 
   async relayXDomainMessage (commitTxHash: string) {
@@ -96,7 +91,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
     }
 
     this.logger.info('found sigEvent event')
-    const message = sigEvent!.args.encodedData
+    const message = sigEvent!.args.encodedData // eslint-disable-line @typescript-eslint/no-non-null-assertion
     if (!message) {
       this.logger.error(`message not found for ${commitTxHash}`)
     }

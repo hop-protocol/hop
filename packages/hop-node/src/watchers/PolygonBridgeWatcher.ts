@@ -136,7 +136,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
     return json.message === 'success'
   }
 
-  async relayXDomainMessage(txHash: string) {
+  async relayXDomainMessage (txHash: string) {
     const tokenSymbol: string = this.tokenSymbol
     const recipient = await this.l1Wallet.getAddress()
     const maticPOSClient = new MaticPOSClient({
@@ -203,8 +203,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const destinationChainId = dbTransferRoot?.destinationChainId
     const commitTx: any = await this.bridge.getTransaction(commitTxHash)
     const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
     if (!isCheckpointed) {
@@ -223,15 +221,10 @@ class PolygonBridgeWatcher extends BaseWatcher {
     await this.db.transferRoots.update(transferRootHash, {
       sentConfirmTxAt: Date.now()
     })
-    try {
-      const tx = await this.relayXDomainMessage(commitTxHash)
-      const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
-      logger.info(msg)
-      this.notifier.info(msg)
-    } catch (err) {
-      logger.log(err.message)
-      throw err
-    }
+    const tx = await this.relayXDomainMessage(commitTxHash)
+    const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
+    logger.info(msg)
+    this.notifier.info(msg)
   }
 }
 export default PolygonBridgeWatcher

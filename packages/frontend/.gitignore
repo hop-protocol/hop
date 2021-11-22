@@ -20,5 +20,6 @@
 .node-version
 .nvmrc
 .prettierignore
+.prettierrc
 
 _archive

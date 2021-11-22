@@ -25,6 +25,7 @@
     "no-unreachable": 0,
     "indent": 0,
     "comma-dangle": 0,
+    "camelcase": 0,
     "no-constant-condition": 0,
     "multiline-ternary": 0,
     "semi": 0,

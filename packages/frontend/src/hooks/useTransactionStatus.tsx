@@ -7,15 +7,18 @@ import { loadState, saveState } from 'src/utils/localStorage'
 import logger from 'src/logger'
 import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
+import { getRecentTransactionsByFromAddress } from 'src/utils/blocks'
+import { find } from 'lodash'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
-  const { transactions, updateTransaction } = useTxHistory()
+  const { transactions, updateTransaction, addTransaction } = useTxHistory()
   const [completed, setCompleted] = useState<boolean>(transaction?.pending === false)
   const [networkConfirmations, setNetworkConfirmations] = useState<number>()
   const [confirmations, setConfirmations] = useState<number>()
   const [destCompleted, setDestCompleted] = useState<boolean>(
     transaction?.pendingDestinationConfirmation === false
   )
+  const [replaced, setReplaced] = useState<Transaction>()
 
   const { sdk } = useApp()
   const provider = useMemo(() => {
@@ -47,7 +50,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
       if (tx) {
         saveState(cacheKey, tx)
       } else {
-        logger.warn(`Failed to save state: ${cacheKey}`, txHash)
+        logger.warn(`Could not get tx receipt: ${txHash}`)
       }
     }
 
@@ -55,6 +58,24 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     setNetworkConfirmations(waitConfirmations)
 
     const txResponse = await transaction.getTransaction()
+    if (!txResponse && transaction.from) {
+      const txCount = await provider.getTransactionCount(transaction.from)
+      if (transaction.nonce && txCount > transaction.nonce) {
+        const matchingTxs = await getRecentTransactionsByFromAddress(provider, transaction.from)
+        if (matchingTxs.length) {
+          const match = find(matchingTxs, ['nonce', transaction.nonce])
+          if (match) {
+            return updateTransaction(transaction, {
+              hash: match.hash,
+              pendingDestinationConfirmation: true,
+              replaced: transaction.hash,
+            })
+          }
+        }
+        return setReplaced(transaction)
+      }
+    }
+
     setConfirmations(txResponse?.confirmations)
 
     if (waitConfirmations && txResponse?.confirmations >= waitConfirmations) {
@@ -101,6 +122,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
     destCompleted,
     confirmations,
     networkConfirmations,
+    replaced,
   }
 }
 

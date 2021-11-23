@@ -10,18 +10,26 @@ export function formatError(error: any, network?: Network) {
   let errMsg = 'Something went wrong. Please try again.'
   if (typeof error === 'string') {
     errMsg = error
-  } else if (error?.message) {
-    errMsg = error.message
   } else if (error?.data?.message) {
     errMsg = error.data.message
+  } else if (error?.message) {
+    errMsg = error.message
   }
 
   // TODO: handle custom error messages elsewhere (and better)
-  if (errMsg === 'not enough funds for gas') {
+  if (errMsg.includes('not enough funds for gas') || errMsg.includes('insufficient funds')) {
     const feeToken = network?.nativeTokenSymbol || 'funds'
     errMsg = `Insufficient balance. Please add ${feeToken} to pay for tx fees.`
   } else if (errMsg.includes('NetworkError when attempting to fetch resource')) {
     errMsg = `${errMsg} Please check your wallet network settings are correct and try again. More info: https://docs.hop.exchange/rpc-endpoints`
+  } else if (errMsg.includes('[ethjs-query]') || errMsg.includes('while formatting outputs from RPC')) {
+    errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
+  } else if (errMsg.includes('Failed to fetch')) {
+    errMsg = `There was a network error. Please refresh page and try again. Error: ${errMsg}`
+  } else if (errMsg.includes('Internal JSON-RPC error')) {
+    errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
+  } else if (errMsg.includes('call revert exception')) {
+    errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   }
 
   return prettifyErrorMessage(errMsg)

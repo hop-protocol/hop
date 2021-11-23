@@ -1,7 +1,7 @@
 import { BigNumber, BigNumberish, utils, Event, providers } from 'ethers'
 import find from 'lodash/find'
 import { eventTopics } from '@hop-protocol/sdk'
-import { EventNames } from 'src/constants'
+import { EventNames } from 'src/utils/constants'
 import { isSameAddress } from './addresses'
 import isBoolean from 'lodash/isBoolean'
 

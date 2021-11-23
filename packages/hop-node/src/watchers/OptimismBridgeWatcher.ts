@@ -2,7 +2,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract, Wallet } from 'ethers'
+import { Contract, Wallet, providers } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
@@ -69,7 +69,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
 
   async relayXDomainMessage (
     txHash: string
-  ): Promise<any> {
+  ): Promise<providers.TransactionResponse> {
     const messagePairs = await getMessagesAndProofsForL2Transaction(
       this.l1Provider,
       this.l2Provider,

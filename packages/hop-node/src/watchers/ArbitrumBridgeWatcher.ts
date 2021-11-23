@@ -6,7 +6,7 @@ import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Wallet } from 'ethers'
+import { Wallet, providers } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -52,10 +52,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
 
   async relayXDomainMessage (
     txHash: string
-  ): Promise<any> {
-    if (!this.ready) {
-      return
-    }
+  ): Promise<providers.TransactionResponse> {
     const initiatingTxnReceipt = await this.arbBridge.l2Provider.getTransactionReceipt(
       txHash
     )
@@ -80,11 +77,11 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     if (outgoingMessageState === OutgoingMessageState.NOT_FOUND) {
       throw new Error('outgoing message not found')
     } else if (outgoingMessageState === OutgoingMessageState.EXECUTED) {
-      return
+      throw new Error('outgoing message executed')
     } else if (outgoingMessageState === OutgoingMessageState.UNCONFIRMED) {
-      return
+      throw new Error('outgoing message unconfirmed')
     } else if (outgoingMessageState !== OutgoingMessageState.CONFIRMED) {
-      return
+      throw new Error('outgoing message already confirmed')
     }
 
     return await this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)

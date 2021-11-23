@@ -5,7 +5,7 @@ import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract } from 'ethers'
+import { Contract, providers } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L1XDaiAMB, L2XDaiAMB } from '@hop-protocol/core/contracts'
@@ -69,18 +69,17 @@ class xDaiBridgeWatcher extends BaseWatcher {
       sentConfirmTxAt: Date.now()
     })
 
-    const result = await this.relayXDomainMessage(commitTxHash)
-    if (result == null) {
-      logger.error('no result returned from exit tx')
+    const tx = await this.relayXDomainMessage(commitTxHash)
+    if (!tx) {
+      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
       return
     }
-    const { tx } = result
     const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
     logger.info(msg)
     this.notifier.info(msg)
   }
 
-  async relayXDomainMessage (commitTxHash: string) {
+  async relayXDomainMessage (commitTxHash: string): Promise<providers.TransactionResponse> {
     const token: string = this.tokenSymbol
     const l1Amb = getL1Amb(token)
     const l2Amb = getL2Amb(token)
@@ -126,13 +125,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
     }
     const packedSigs = packSignatures(sigs)
 
-    const tx = await l1Amb.executeSignatures(message, packedSigs)
-    return {
-      tx,
-      msgHash,
-      message,
-      packedSigs
-    }
+    return l1Amb.executeSignatures(message, packedSigs)
   }
 
   async getValidSigEvent (commitTxHash: string) {

@@ -328,12 +328,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
     // Log how much additional % is being paid
     const precision = this.bridge.parseEth('1')
     const bonderFeeOverage = bonderFee.mul(precision).div(minBonderFeeTotal)
-    logger.debug(`dest ${destinationChain}, bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}`)
+    logger.debug(`dest: ${destinationChain}, bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}`)
 
     // Log how much additional % is being paid without destination tx fee buffer
     const minBonderFeeWithoutBuffer = minBpsFee.add(gasCostInToken)
     const bonderFeeOverageWithoutBuffer = bonderFee.mul(precision).div(minBonderFeeWithoutBuffer)
-    logger.debug(`dest ${destinationChain}, bonder fee overage (without buffer): ${this.bridge.formatEth(bonderFeeOverageWithoutBuffer)}`)
+    logger.debug(`dest: ${destinationChain}, bonder fee overage (without buffer): ${this.bridge.formatEth(bonderFeeOverageWithoutBuffer)}`)
 
     const expectedMinBonderFeeOverage = precision
     if (bonderFeeOverage.lt(expectedMinBonderFeeOverage)) {

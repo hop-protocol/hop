@@ -42,13 +42,13 @@ export const palette = {
   },
   background: {
     default: '#FDF7F9',
-    paper: '#F0F0F3',
+    paper: '#FDF7F9',
   },
   action: {
     active: '#B32EFF',
     hover: '#c462fc',
     selected: '#B32EFF',
-    disabled: 'rgba(5, 21, 36, 0.2)',
+    disabled: 'rgba(102, 96, 119, 0.5)',
   },
   secondary: {
     main: 'rgba(70, 82, 92)',
@@ -68,8 +68,8 @@ export const palette = {
   },
   text: {
     primary: '#051524',
-    secondary: '#46525C',
-    disabled: 'rgba(5, 21, 36, 0.2)',
+    secondary: '#666077',
+    disabled: 'rgba(102, 96, 119, 0.5)',
   },
 }
 
@@ -154,10 +154,9 @@ const theme = createMuiTheme({
         padding: '2.8rem',
         borderRadius: '3.0rem',
         boxShadow: `
-          -8px -8px 30px rgba(255, 255, 255, 0.95),
-          8px 8px 30px rgba(174, 174, 192, 0.35),
-          inset -8px -8px 12px rgba(255, 255, 255, 0.15),
-          inset 8px 8px 8px rgba(174, 174, 192, 0.04);
+          inset 4px -4px 3px #FFFFFF,
+          inset 8px -8px 60px -5px #F1E9EC,
+          inset -7px 7px 5px -4px rgba(174, 174, 192, 0.4);
         `,
       },
     },
@@ -186,6 +185,11 @@ const theme = createMuiTheme({
         },
       },
     },
+    MuiTypography: {
+      root: {
+        color: '#0F0524',
+      },
+    },
     MuiListItem: {
       root: {
         '&$selected': {
@@ -210,8 +214,11 @@ const theme = createMuiTheme({
     MuiPopover: {
       paper: {
         borderRadius: '3.0rem',
-        boxShadow:
-          '0px 5px 15px -3px rgba(0,0,0,0.1), 0px 8px 20px 1px rgba(0,0,0,0.07), 0px 3px 24px 2px rgba(0,0,0,0.06);',
+        boxShadow: `
+          0px 5px 15px -3px rgba(0,0,0,0.1),
+          0px 8px 20px 1px rgba(0,0,0,0.07),
+          0px 3px 24px 2px rgba(0,0,0,0.06);
+        `,
       },
     },
     MuiTooltip: {
@@ -240,6 +247,15 @@ const theme = createMuiTheme({
       },
       valueLabel: {
         fontSize: '1.4rem',
+      },
+    },
+    MuiSelect: {
+      root: {
+        boxShadow: `
+          -6px 6px 12px #D8D5DC, 5px -5px 12px #FFFFFF,
+          inset -6px 6px 12px rgba(233, 229, 232, 0.4),
+          inset -5px -5px 14px rgba(255, 255, 255, 0.15) !important;
+        `,
       },
     },
   },

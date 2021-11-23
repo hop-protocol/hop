@@ -23,7 +23,7 @@ import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import { toTokenDisplay, commafy } from 'src/utils'
 import { reactAppNetwork } from 'src/config'
-import { useTransactionReplacement, useApprove, useQueryParams, useBalance } from 'src/hooks'
+import { useTransactionReplacement, useApprove, useQueryParams, useBalance, useNeedsTokenForFee } from 'src/hooks'
 import { formatError, amountToBN } from 'src/utils/format'
 
 type ConvertContextProps = {
@@ -47,7 +47,6 @@ type ConvertContextProps = {
   sending: boolean
   approving: boolean
   needsApproval: boolean | undefined
-  sendButtonText: string
   sourceBalance: BigNumber | undefined
   loadingSourceBalance: boolean
   destBalance: BigNumber | undefined
@@ -61,6 +60,7 @@ type ConvertContextProps = {
   tx: Transaction | undefined
   setTx: (tx: Transaction | undefined) => void
   unsupportedAsset: any
+  needsTokenForFee: boolean | undefined
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
@@ -84,7 +84,6 @@ const ConvertContext = createContext<ConvertContextProps>({
   sending: false,
   approving: false,
   needsApproval: false,
-  sendButtonText: '',
   sourceBalance: undefined,
   loadingSourceBalance: false,
   destBalance: undefined,
@@ -98,6 +97,7 @@ const ConvertContext = createContext<ConvertContextProps>({
   tx: undefined,
   setTx: (tx: Transaction | undefined) => {},
   unsupportedAsset: null,
+  needsTokenForFee: undefined
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
@@ -130,7 +130,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { approve, checkApproval } = useApprove(sourceToken)
   const [destToken, setDestToken] = useState<Token>()
   const [details, setDetails] = useState<ReactNode>()
-  const [warning, setWarning] = useState<ReactNode>()
+  let [warning, setWarning] = useState<ReactNode>()
   const [bonderFee, setBonderFee] = useState<BigNumber>()
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
@@ -222,6 +222,8 @@ const ConvertContextProvider: FC = ({ children }) => {
       setError('')
     }
   }, [unsupportedAsset])
+
+  const needsTokenForFee = useNeedsTokenForFee(sourceNetwork)
 
   // Fetch source token
   useEffect(() => {
@@ -481,12 +483,13 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const enoughBalance = sourceBalance?.gte(parsedSourceTokenAmount)
   const withinMax = true
-  let sendButtonText = 'Convert'
   const validFormFields = !!(sourceTokenAmount && destTokenAmount && enoughBalance && withinMax) && !!details
-  if (sourceBalance === undefined) {
-    sendButtonText = 'Fetching balance...'
-  } else if (!enoughBalance) {
-    sendButtonText = 'Insufficient funds'
+
+  if (sourceBalance !== undefined && !enoughBalance) {
+    warning = 'Insufficient funds'
+  } else if (needsTokenForFee && sourceNetwork) {
+    warning = `Add ${sourceNetwork.nativeTokenSymbol} to your account on ${sourceNetwork.name} for the transaction fee.`
+
   }
 
   return (
@@ -512,7 +515,6 @@ const ConvertContextProvider: FC = ({ children }) => {
         sending,
         approving,
         needsApproval,
-        sendButtonText,
         sourceBalance,
         loadingSourceBalance,
         destBalance,
@@ -526,6 +528,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         tx,
         setTx,
         unsupportedAsset,
+        needsTokenForFee
       }}
     >
       {children}

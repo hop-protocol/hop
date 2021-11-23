@@ -1,12 +1,11 @@
 import { useState, useCallback } from 'react'
-import { BigNumber } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
 import { Token, TProvider } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
-import { ZERO_ADDRESS } from 'src/constants'
 
 export enum MethodNames {
   convertTokens = 'convertTokens',
@@ -75,7 +74,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
           fromNetwork.slug as string,
           toNetwork.slug as string,
           {
-            recipient: ZERO_ADDRESS,
+            recipient: constants.AddressZero,
             bonderFee: '1',
             amountOutMin: '0',
             deadline: deadline(),

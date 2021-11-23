@@ -5,7 +5,7 @@ import { erc20Abi } from '@hop-protocol/core/abi'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { addresses, metadata } from 'src/config'
-import { L1_NETWORK } from 'src/constants'
+import { L1_NETWORK } from 'src/utils/constants'
 
 type Contracts = {
   [key: string]: {

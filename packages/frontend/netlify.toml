@@ -17,4 +17,4 @@
   base    = "packages/frontend/"
   command = "yarn build"
   publish = "build/"
-  ignore  = "git diff HEAD^ HEAD packages/frontend/"
+

@@ -12,3 +12,9 @@
     X-Content-Type-Options = "nosniff"
     Strict-Transport-Security = "max-age=15780000; includeSubDomains; preload"
     Feature-Policy = "geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none'; speaker 'none'; fullscreen 'none'; payment 'none'"
+
+[build]
+  base    = "packages/frontend/"
+  command = "yarn build"
+  publish = "build/"
+  ignore  = "git diff HEAD^ HEAD packages/frontend/"

@@ -2,7 +2,7 @@ import { addresses as mainnetAddresses, networks as mainnetNetworks } from './ma
 import { addresses as kovanAddresses, networks as kovanNetworks } from './kovan'
 import { addresses as goerliAddresses, networks as goerliNetworks } from './goerli'
 
-const reactAppNetwork = process.env.REACT_APP_NETWORK || 'kovan'
+const reactAppNetwork = process.env.REACT_APP_NETWORK || 'mainnet'
 let network = reactAppNetwork
 if (reactAppNetwork === 'staging') {
   network = 'mainnet'
@@ -59,7 +59,17 @@ if (process.env.NODE_ENV !== 'test') {
   console.debug('config addresses:', addresses.tokens)
 }
 
-export { addresses, reactAppNetwork, network, networks, isMainnet }
-export const blocknativeDappid = process.env.REACT_APP_BNC_DAPP_ID || '328621b8-952f-4a86-bd39-724ba822d416'
-export const fortmaticApiKey = 'pk_live_AB6F615F133473CA'
-export const portisDappId = 'fbde3745-1363-4ae4-a517-00d98ab2dfbc'
+const blocknativeDappid = process.env.REACT_APP_BNC_DAPP_ID
+const fortmaticApiKey = process.env.REACT_APP_FORTMATIC_KEY
+const portisDappId = process.env.REACT_APP_PORTIS_ID
+
+export {
+  addresses,
+  reactAppNetwork,
+  network,
+  networks,
+  isMainnet,
+  blocknativeDappid,
+  fortmaticApiKey,
+  portisDappId,
+}

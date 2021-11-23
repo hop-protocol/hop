@@ -277,7 +277,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const { amount, bonderFee, destinationChainId } = dbTransfer
-    const destinationChain = this.chainIdToSlug(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (!amount || !bonderFee || !destinationChainId) {
+      throw new Error('expected complete dbTransfer data')
+    }
+    const destinationChain = this.chainIdToSlug(destinationChainId)
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
     if (!transferSentTimestamp) {
       throw new Error('expected transferSentTimestamp')
@@ -293,6 +296,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
       gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
       minBonderFeeAbsolute = BNMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
+      this.logger.debug('using nearestItemToTransferSent')
     } else if (nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToNow)
       this.logger.warn('nearestItemToTransferSent not found, using only nearestItemToNow')
@@ -303,11 +307,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('gasCostInToken:', gasCostInToken?.toString())
     logger.debug('minBonderFeeAbsolute:', minBonderFeeAbsolute?.toString())
 
-    const minBpsFee = await this.bridge.getBonderFeeBps(amount!, minBonderFeeAbsolute) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const minBpsFee = await this.bridge.getBonderFeeBps(destinationChain, amount, minBonderFeeAbsolute)
     const minTxFee = gasCostInToken.div(2)
     const minBonderFeeTotal = minBpsFee.add(minTxFee)
-    const isBonderFeeOk = bonderFee!.gte(minBonderFeeTotal) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, isBonderFeeOk: ${isBonderFeeOk}`)
+    const isBonderFeeOk = bonderFee.gte(minBonderFeeTotal)
+    logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, minBpsFee: ${minBpsFee}, isBonderFeeOk: ${isBonderFeeOk}`)
+
+    const bonderFeeOverage = bonderFee.div(minBonderFeeTotal)
+    logger.debug(`bonder fee overage: ${bonderFeeOverage}`)
 
     return isBonderFeeOk
   }

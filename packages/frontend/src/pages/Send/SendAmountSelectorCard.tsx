@@ -1,23 +1,19 @@
-import React, { useMemo, FC, ChangeEvent, useEffect } from 'react'
-import { BigNumber, utils } from 'ethers'
+import React, { useMemo, FC, ChangeEvent } from 'react'
+import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
-import MenuItem from '@material-ui/core/MenuItem'
 import Skeleton from '@material-ui/lab/Skeleton'
 import { Token } from '@hop-protocol/sdk'
 import LargeTextField from 'src/components/LargeTextField'
-import FlatSelect from 'src/components/selects/FlatSelect'
 import Network from 'src/models/Network'
 import { toTokenDisplay } from 'src/utils'
-import { useApp } from 'src/contexts/AppContext'
-import { ZERO_ADDRESS } from 'src/constants'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import { useNativeTokenMaxValue } from 'src/hooks'
+import { NetworkSelector } from 'src/components/NetworkSelector'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -188,38 +184,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
       </Box>
       <Grid container alignItems="center">
         <Grid item xs={5}>
-          <FlatSelect
-            value={selectedNetwork?.slug || 'default'}
-            onChange={event => {
-              const network = networkOptions.find(_network => _network.slug === event.target.value)
-              onNetworkChange(network)
-            }}
-          >
-            <MenuItem value="default">
-              <Box
-                display="flex"
-                flexDirection="row"
-                alignItems="center"
-                className={styles.defaultLabel}
-              >
-                <Typography variant="subtitle2" className={styles.networkLabel}>
-                  Select Network
-                </Typography>
-              </Box>
-            </MenuItem>
-            {networkOptions.map(network => (
-              <MenuItem value={network.slug} key={network.slug}>
-                <Box className={styles.networkSelectionBox}>
-                  <Box className={styles.networkIconContainer}>
-                    <img src={network.imageUrl} className={styles.networkIcon} alt={network.name} />
-                  </Box>
-                  <Typography variant="subtitle2" className={styles.networkLabel}>
-                    {network.name}
-                  </Typography>
-                </Box>
-              </MenuItem>
-            ))}
-          </FlatSelect>
+          <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} />
         </Grid>
         <Grid item xs={7}>
           <LargeTextField

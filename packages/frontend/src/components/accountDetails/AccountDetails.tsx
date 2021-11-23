@@ -6,7 +6,7 @@ import { useApp } from 'src/contexts/AppContext'
 import Modal from 'src/components/modal/Modal'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import ClipboardCopyButton from 'src/components/buttons/ClipboardCopyButton'
-import TransactionsList from './TransactionsList'
+import TransactionsList from '../Transaction/TransactionsList'
 import { Div } from '../ui'
 
 const useStyles = makeStyles((theme: Theme) => ({

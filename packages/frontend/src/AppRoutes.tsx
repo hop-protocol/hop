@@ -11,6 +11,7 @@ import Stake from 'src/pages/Stake'
 import Convert from 'src/pages/Convert'
 import Stats from 'src/pages/Stats'
 import { isMainnet, IProposal } from 'src/config'
+import TransactionPage from 'src/pages/Transaction'
 
 type Props = {}
 
@@ -102,6 +103,9 @@ const COMPONENT_NAME: FC<Props> = () => {
       </Route>
       <Route path="/stats">
         <Stats />
+      </Route>
+      <Route path="/tx/:hash">
+        <TransactionPage />
       </Route>
 
       {/* Vote Pages */}

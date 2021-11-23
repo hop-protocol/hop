@@ -329,8 +329,9 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       const sourceChain = chainIdToSlug(item.sourceChainId)
       const isSourceOru = oruChains.includes(sourceChain)
       if (isSourceOru && item.committedAt) {
+        const committedAtMs = item.committedAt * 1000
         oruTimestampOk =
-          item.committedAt + OneWeekMs < Date.now()
+          committedAtMs + OneWeekMs < Date.now()
       }
 
       return (

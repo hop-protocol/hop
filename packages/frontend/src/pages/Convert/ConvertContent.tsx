@@ -46,7 +46,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const Convert: FC = () => {
+const ConvertContent: FC = () => {
   const styles = useStyles()
   const {
     sourceNetwork,
@@ -76,23 +76,13 @@ const Convert: FC = () => {
     needsApproval,
     convertTokens,
     approveTokens,
+    needsTokenForFee
   } = useConvert()
 
   useEffect(() => {
     setSourceTokenAmount('')
     setDestTokenAmount('')
   }, [setSourceTokenAmount, setDestTokenAmount])
-  const needsTokenForFee = useNeedsTokenForFee(sourceNetwork)
-
-  useEffect(() => {
-    if (needsTokenForFee && sourceNetwork) {
-      setWarning(
-        `Add ${sourceNetwork.nativeTokenSymbol} to your account on ${sourceNetwork.name} for the transaction fee.`
-      )
-    } else {
-      setWarning('')
-    }
-  }, [needsTokenForFee, sourceNetwork])
 
   const handleSourceTokenAmountChange = async (amount: string) => {
     try {
@@ -187,4 +177,4 @@ const Convert: FC = () => {
   )
 }
 
-export default Convert
+export default ConvertContent

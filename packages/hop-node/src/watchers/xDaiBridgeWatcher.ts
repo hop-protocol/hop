@@ -3,10 +3,9 @@ import L1Bridge from 'src/watchers/classes/L1Bridge'
 import Logger from 'src/logger'
 import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
-import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract } from 'ethers'
+import { Contract, providers } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L1XDaiAMB, L2XDaiAMB } from '@hop-protocol/core/contracts'
@@ -36,50 +35,6 @@ export const getL2Amb = (token: string) => {
   return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2XDaiAMB
 }
 
-export const executeExitTx = async (event: any, token: string) => {
-  const l1Amb = getL1Amb(token)
-  const l2Amb = getL2Amb(token)
-
-  const message = event.args.encodedData
-  const msgHash = solidityKeccak256(['bytes'], [message])
-  const id = await l2Amb.numMessagesSigned(msgHash)
-  const alreadyProcessed = await l2Amb.isAlreadyProcessed(id)
-  if (!alreadyProcessed) {
-    return
-  }
-
-  const messageId =
-    '0x' +
-    Buffer.from(strip0x(message), 'hex')
-      .slice(0, 32)
-      .toString('hex')
-  const alreadyRelayed = await l1Amb.relayedMessages(messageId)
-  if (alreadyRelayed) {
-    return
-  }
-
-  const requiredSigs = (await l2Amb.requiredSignatures()).toNumber()
-  const sigs: any[] = []
-  for (let i = 0; i < requiredSigs; i++) {
-    const sig = await l2Amb.signature(msgHash, i)
-    const [v, r, s]: any[] = [[], [], []]
-    const vrs = signatureToVRS(sig)
-    v.push(vrs.v)
-    r.push(vrs.r)
-    s.push(vrs.s)
-    sigs.push(vrs)
-  }
-  const packedSigs = packSignatures(sigs)
-
-  const tx = await l1Amb.executeSignatures(message, packedSigs)
-  return {
-    tx,
-    msgHash,
-    message,
-    packedSigs
-  }
-}
-
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
 class xDaiBridgeWatcher extends BaseWatcher {
@@ -101,89 +56,97 @@ class xDaiBridgeWatcher extends BaseWatcher {
     }
   }
 
-  async start () {
-    this.started = true
-    try {
-      const l1Amb = getL1Amb(this.tokenSymbol)
-      const l2Amb = getL2Amb(this.tokenSymbol)
-
-      this.logger.debug(`xDai ${this.tokenSymbol} bridge watcher started`)
-      while (true) {
-        if (!this.started) {
-          return
-        }
-        const blockNumber = await l2Amb.provider.getBlockNumber()
-        const events = await l2Amb.queryFilter(
-          l2Amb.filters.UserRequestForSignature(),
-          blockNumber - 100
-        )
-
-        for (const event of events) {
-          try {
-            const result = await executeExitTx(event, this.tokenSymbol)
-            if (result == null) {
-              continue
-            }
-            const { tx, msgHash } = result
-            this.logger.debug(`executeSignatures. tx hash: ${tx.hash} messageHash: ${msgHash}`)
-          } catch (err) {
-            this.logger.error('tx error:', err.message)
-          }
-        }
-        await wait(10 * 1000)
-      }
-    } catch (err) {
-      this.logger.error('xDai bridge watcher error:', err)
-      this.quit()
+  async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
+    logger.debug(
+      `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
+    )
+    await this.handleStateSwitch()
+    if (this.isDryOrPauseMode) {
+      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
+      return
     }
+    await this.db.transferRoots.update(transferRootHash, {
+      sentConfirmTxAt: Date.now()
+    })
+
+    const tx = await this.relayXDomainMessage(commitTxHash)
+    if (!tx) {
+      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+      return
+    }
+    const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
+    logger.info(msg)
+    this.notifier.info(msg)
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const destinationChainId = dbTransferRoot?.destinationChainId
-    const l2Amb = getL2Amb(this.tokenSymbol)
+  async relayXDomainMessage (commitTxHash: string): Promise<providers.TransactionResponse> {
+    const token: string = this.tokenSymbol
+    const l1Amb = getL1Amb(token)
+    const l2Amb = getL2Amb(token)
+
+    const sigEvent = await this.getValidSigEvent(commitTxHash)
+    if (!sigEvent?.args) {
+      throw new Error(`args for sigEvent not found for ${commitTxHash}`)
+    }
+
+    this.logger.info('found sigEvent event args')
+    const message = sigEvent.args.encodedData
+    if (!message) {
+      throw new Error(`message not found for ${commitTxHash}`)
+    }
+
+    const msgHash = solidityKeccak256(['bytes'], [message])
+    const id = await l2Amb.numMessagesSigned(msgHash)
+    const alreadyProcessed = await l2Amb.isAlreadyProcessed(id)
+    if (!alreadyProcessed) {
+      throw new Error(`commit already processed found for ${commitTxHash}`)
+    }
+
+    const messageId =
+      '0x' +
+      Buffer.from(strip0x(message), 'hex')
+        .slice(0, 32)
+        .toString('hex')
+    const alreadyRelayed = await l1Amb.relayedMessages(messageId)
+    if (alreadyRelayed) {
+      throw new Error(`message already relayed for ${commitTxHash}`)
+    }
+
+    const requiredSigs = (await l2Amb.requiredSignatures()).toNumber()
+    const sigs: any[] = []
+    for (let i = 0; i < requiredSigs; i++) {
+      const sig = await l2Amb.signature(msgHash, i)
+      const [v, r, s]: any[] = [[], [], []]
+      const vrs = signatureToVRS(sig)
+      v.push(vrs.v)
+      r.push(vrs.r)
+      s.push(vrs.s)
+      sigs.push(vrs)
+    }
+    const packedSigs = packSignatures(sigs)
+
+    return l1Amb.executeSignatures(message, packedSigs)
+  }
+
+  async getValidSigEvent (commitTxHash: string) {
     const tx = await this.bridge.getTransactionReceipt(commitTxHash)
+    const l2Amb = getL2Amb(this.tokenSymbol)
     const sigEvents = await l2Amb.queryFilter(
       l2Amb.filters.UserRequestForSignature(),
       tx.blockNumber - 1,
       tx.blockNumber + 1
     )
 
-    logger.info(`found ${sigEvents.length} events`)
+    // Only return the first item. There should never be more than one in a 3 block range
+    // per token, as there are griefing protections enforced in the contracts.
     for (const sigEvent of sigEvents) {
       const { encodedData } = sigEvent.args
       // TODO: better way of slicing by method id
       const data = encodedData.includes('ef6ebe5e00000')
         ? encodedData.replace(/.*(ef6ebe5e00000.*)/, '$1')
         : ''
-      if (!data) {
-        continue
-      }
-      logger.debug(
-        `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
-      )
-      await this.handleStateSwitch()
-      if (this.isDryOrPauseMode) {
-        logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
-        return
-      }
-      await this.db.transferRoots.update(transferRootHash, {
-        sentConfirmTxAt: Date.now()
-      })
-
-      try {
-        const result = await executeExitTx(sigEvent, this.tokenSymbol)
-        if (result == null) {
-          logger.error('no result returned from exit tx')
-          return
-        }
-        const { tx } = result
-        const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
-        logger.info(msg)
-        this.notifier.info(msg)
-      } catch (err) {
-        logger.error(err)
-        throw err
+      if (data) {
+        return sigEvent
       }
     }
   }

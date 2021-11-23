@@ -6,7 +6,7 @@ import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Wallet } from 'ethers'
+import { Wallet, providers } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -50,12 +50,9 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.ready = true
   }
 
-  async relayMessage (
+  async relayXDomainMessage (
     txHash: string
-  ): Promise<any> {
-    if (!this.ready) {
-      return
-    }
+  ): Promise<providers.TransactionResponse> {
     const initiatingTxnReceipt = await this.arbBridge.l2Provider.getTransactionReceipt(
       txHash
     )
@@ -80,11 +77,11 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     if (outgoingMessageState === OutgoingMessageState.NOT_FOUND) {
       throw new Error('outgoing message not found')
     } else if (outgoingMessageState === OutgoingMessageState.EXECUTED) {
-      return
+      throw new Error('outgoing message executed')
     } else if (outgoingMessageState === OutgoingMessageState.UNCONFIRMED) {
-      return
+      throw new Error('outgoing message unconfirmed')
     } else if (outgoingMessageState !== OutgoingMessageState.CONFIRMED) {
-      return
+      throw new Error('outgoing message already confirmed')
     }
 
     return await this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
@@ -96,27 +93,22 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     )
     await this.handleStateSwitch()
     if (this.isDryOrPauseMode) {
-      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping executeExitTx`)
+      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
       return
     }
 
     await this.db.transferRoots.update(transferRootHash, {
       sentConfirmTxAt: Date.now()
     })
-    try {
-      const tx = await this.relayMessage(commitTxHash)
-      if (!tx) {
-        logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
-        return
-      }
-
-      const msg = `sent chain ${this.bridge.chainId} confirmTransferRoot exit tx ${tx.hash}`
-      logger.info(msg)
-      this.notifier.info(msg)
-    } catch (err) {
-      logger.error(err.message)
-      throw err
+    const tx = await this.relayXDomainMessage(commitTxHash)
+    if (!tx) {
+      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+      return
     }
+
+    const msg = `sent chain ${this.bridge.chainId} confirmTransferRoot exit tx ${tx.hash}`
+    logger.info(msg)
+    this.notifier.info(msg)
   }
 }
 

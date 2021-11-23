@@ -44,7 +44,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
     this.l1Provider = this.l1Wallet.provider
     this.l2Provider = this.l2Wallet.provider
 
-    const sccAddress = '0xE969C2724d2448F1d1A6189d3e2aA1F37d5998c1'
+    const sccAddress = '0xBe5dAb4A2e9cd0F27300dB4aB94BeE3A233AEB19'
     const l1MessengerAddress = '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1'
     const l2MessengerAddress = '0x4200000000000000000000000000000000000007'
 

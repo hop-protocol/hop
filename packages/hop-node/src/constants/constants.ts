@@ -55,8 +55,6 @@ export const MaxGasPriceMultiplier = 1.25
 export const MinPriorityFeePerGas = 4
 export const PriorityFeePerGasCap = 20
 
-export const MinBonderFeeAbsolute = BigNumber.from('0')
-
 export enum TokenIndex {
   CanonicalToken = 0,
   HopBridgeToken = 1

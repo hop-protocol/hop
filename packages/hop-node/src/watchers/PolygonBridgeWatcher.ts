@@ -7,7 +7,7 @@ import fetch from 'node-fetch'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract, Wallet, constants } from 'ethers'
+import { Contract, Wallet, constants, providers } from 'ethers'
 import { Event } from 'src/types'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
@@ -136,7 +136,8 @@ class PolygonBridgeWatcher extends BaseWatcher {
     return json.message === 'success'
   }
 
-  async relayMessage (txHash: string, tokenSymbol: string) {
+  async relayXDomainMessage (txHash: string): Promise<providers.TransactionResponse> {
+    const tokenSymbol: string = this.tokenSymbol
     const recipient = await this.l1Wallet.getAddress()
     const maticPOSClient = new MaticPOSClient({
       network: this.chainId === this.polygonMainnetChainId ? 'mainnet' : 'testnet',
@@ -202,8 +203,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const destinationChainId = dbTransferRoot?.destinationChainId
     const commitTx: any = await this.bridge.getTransaction(commitTxHash)
     const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
     if (!isCheckpointed) {
@@ -216,21 +215,20 @@ class PolygonBridgeWatcher extends BaseWatcher {
     )
     await this.handleStateSwitch()
     if (this.isDryOrPauseMode) {
-      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayMessage`)
+      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
       return
     }
     await this.db.transferRoots.update(transferRootHash, {
       sentConfirmTxAt: Date.now()
     })
-    try {
-      const tx = await this.relayMessage(commitTxHash, this.tokenSymbol)
-      const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
-      logger.info(msg)
-      this.notifier.info(msg)
-    } catch (err) {
-      logger.log(err.message)
-      throw err
+    const tx = await this.relayXDomainMessage(commitTxHash)
+    if (!tx) {
+      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+      return
     }
+    const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
+    logger.info(msg)
+    this.notifier.info(msg)
   }
 }
 export default PolygonBridgeWatcher

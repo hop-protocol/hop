@@ -3,7 +3,7 @@ export const storyTransactions = [
     hash: '0x2f0532fea4307129ffe7586bd931a57a11eb06cbeec9fc842957ed0901696d29',
     networkName: 'polygon',
     pending: false,
-    timestamp: 1633546482699,
+    timestampMs: 1633546482699,
     token: {
       gasPriceMultiplier: 0,
       network: 'mainnet',
@@ -23,7 +23,7 @@ export const storyTransactions = [
     hash: '0x04b88cbf811f13284035113687d02aa50c09ced642b2dd774b58b8725019b3b1',
     networkName: 'xdai',
     pending: false,
-    timestamp: 1633481818229,
+    timestampMs: 1633481818229,
     token: {
       gasPriceMultiplier: 0,
       network: 'mainnet',
@@ -44,7 +44,7 @@ export const storyTransactions = [
     hash: '0x8178a274abcb6a8321a487241fcc20ee8b96a8c9836a2e3d91d4ae7458afc3c7',
     networkName: 'xdai',
     pending: true,
-    timestamp: 1633480791056,
+    timestampMs: 1633480791056,
     token: {
       gasPriceMultiplier: 0,
       network: 'mainnet',
@@ -64,7 +64,7 @@ export const storyTransactions = [
     hash: '0x07900749c10ea374cd48b6665237c106f837234748e687efbb29f2384870b0f9',
     networkName: 'xdai',
     pending: false,
-    timestamp: 1633479335513,
+    timestampMs: 1633479335513,
     token: {
       gasPriceMultiplier: 0,
       network: 'mainnet',

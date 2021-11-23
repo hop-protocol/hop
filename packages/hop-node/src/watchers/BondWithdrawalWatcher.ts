@@ -277,7 +277,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const { amount, bonderFee, destinationChainId } = dbTransfer
-    const destinationChain = this.chainIdToSlug(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (!amount || !bonderFee || !destinationChainId) {
+      throw new Error('expected complete dbTransfer data')
+    }
+    const destinationChain = this.chainIdToSlug(destinationChainId)
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
     if (!transferSentTimestamp) {
       throw new Error('expected transferSentTimestamp')
@@ -293,6 +296,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
       gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
       minBonderFeeAbsolute = BNMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
+      this.logger.debug('using nearestItemToTransferSent')
     } else if (nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToNow)
       this.logger.warn('nearestItemToTransferSent not found, using only nearestItemToNow')
@@ -303,13 +307,40 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('gasCostInToken:', gasCostInToken?.toString())
     logger.debug('minBonderFeeAbsolute:', minBonderFeeAbsolute?.toString())
 
-    const minBpsFee = await this.bridge.getBonderFeeBps(amount!, minBonderFeeAbsolute) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const minBpsFee = await this.bridge.getBonderFeeBps(destinationChain, amount, minBonderFeeAbsolute)
     const minTxFee = gasCostInToken.div(2)
     const minBonderFeeTotal = minBpsFee.add(minTxFee)
-    const isBonderFeeOk = bonderFee!.gte(minBonderFeeTotal) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, isBonderFeeOk: ${isBonderFeeOk}`)
+    const isBonderFeeOk = bonderFee.gte(minBonderFeeTotal)
+    logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, minBpsFee: ${minBpsFee}, isBonderFeeOk: ${isBonderFeeOk}`)
 
+    this.logAdditionalBonderFeeData(bonderFee, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, logger)
     return isBonderFeeOk
+  }
+
+  logAdditionalBonderFeeData (
+    bonderFee: BigNumber,
+    minBonderFeeTotal: BigNumber,
+    minBpsFee: BigNumber,
+    gasCostInToken: BigNumber,
+    destinationChain: string,
+    logger: Logger
+  ) {
+    // Log how much additional % is being paid
+    const precision = this.bridge.parseEth('1')
+    const bonderFeeOverage = bonderFee.mul(precision).div(minBonderFeeTotal)
+    logger.debug(`dest ${destinationChain}, bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}`)
+
+    // Log how much additional % is being paid without destination tx fee buffer
+    const minBonderFeeWithoutBuffer = minBpsFee.add(gasCostInToken)
+    const bonderFeeOverageWithoutBuffer = bonderFee.mul(precision).div(minBonderFeeWithoutBuffer)
+    logger.debug(`dest ${destinationChain}, bonder fee overage (without buffer): ${this.bridge.formatEth(bonderFeeOverageWithoutBuffer)}`)
+
+    const expectedMinBonderFeeOverage = precision
+    if (bonderFeeOverage.lt(expectedMinBonderFeeOverage)) {
+      const msg = `Bonder fee too low. bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`
+      logger.error(msg)
+      this.notifier.error(msg)
+    }
   }
 
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)

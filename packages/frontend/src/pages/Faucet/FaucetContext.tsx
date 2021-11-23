@@ -6,7 +6,7 @@ import Transaction from 'src/models/Transaction'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
-import { L1_NETWORK } from 'src/constants'
+import { L1_NETWORK } from 'src/utils/constants'
 import { formatError } from 'src/utils/format'
 
 type FaucetContextProps = {

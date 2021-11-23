@@ -3,7 +3,7 @@ import { formatUnits } from 'ethers/lib/utils'
 import useInterval from 'src/hooks/useInterval'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { ZERO_ADDRESS } from 'src/constants'
+import { constants } from 'ethers'
 
 type VoteContextProps = {
   balance: string
@@ -13,7 +13,7 @@ type VoteContextProps = {
 
 const initialState: VoteContextProps = {
   balance: '0.00',
-  delegate: ZERO_ADDRESS,
+  delegate: constants.AddressZero,
   humanReadableDelegate: '',
 }
 
@@ -28,7 +28,7 @@ export const VoteContextProvider: FC<{}> = ({ children }) => {
   const l1HopToken = tokens[1]
 
   const [balance, setBalance] = useState('0.00')
-  const [delegate, setDelegate] = useState(ZERO_ADDRESS)
+  const [delegate, setDelegate] = useState(constants.AddressZero)
   const [humanReadableDelegate, setHumanReadableDelegate] = useState('')
 
   const getBalance = useCallback(() => {

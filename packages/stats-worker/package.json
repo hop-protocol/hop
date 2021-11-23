@@ -19,12 +19,17 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.29.0",
     "@hop-protocol/core": "0.0.1-beta.51",
-    "@hop-protocol/sdk": "0.0.1-beta.242",
+    "@hop-protocol/sdk": "0.0.1-beta.247",
     "@pinata/sdk": "^1.1.23",
+    "@types/luxon": "^2.0.7",
     "@types/node": "^16.7.10",
+    "@types/uuid": "^8.3.3",
     "dotenv": "^10.0.0",
     "ethers": "^5.4.6",
+    "luxon": "^2.1.1",
+    "sqlite3": "^5.0.2",
     "typescript": "^4.4.2",
+    "uuid": "^8.3.2",
     "wait": "^0.4.2"
   },
   "devDependencies": {

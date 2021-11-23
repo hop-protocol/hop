@@ -3,27 +3,36 @@ import Network from 'src/models/Network'
 import { prettifyErrorMessage } from '.'
 
 export function formatError(error: any, network?: Network) {
-  if (typeof error === 'string') {
-    return prettifyErrorMessage(error)
+  if (!error) {
+    return
   }
 
-  const { data } = error
+  let errMsg = 'Something went wrong. Please try again.'
+  if (typeof error === 'string') {
+    errMsg = error
+  } else if (error?.data?.message) {
+    errMsg = error.data.message
+  } else if (error?.message) {
+    errMsg = error.message
+  }
 
   // TODO: handle custom error messages elsewhere (and better)
-  if (data?.message === 'not enough funds for gas') {
+  if (errMsg.includes('not enough funds for gas') || errMsg.includes('insufficient funds')) {
     const feeToken = network?.nativeTokenSymbol || 'funds'
-    return `Insufficient balance. Please add ${feeToken} to pay for tx fees.`
+    errMsg = `Insufficient balance. Please add ${feeToken} to pay for tx fees.`
+  } else if (errMsg.includes('NetworkError when attempting to fetch resource')) {
+    errMsg = `${errMsg} Please check your wallet network settings are correct and try again. More info: https://docs.hop.exchange/rpc-endpoints`
+  } else if (errMsg.includes('[ethjs-query]') || errMsg.includes('while formatting outputs from RPC')) {
+    errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
+  } else if (errMsg.includes('Failed to fetch')) {
+    errMsg = `There was a network error. Please refresh page and try again. Error: ${errMsg}`
+  } else if (errMsg.includes('Internal JSON-RPC error')) {
+    errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
+  } else if (errMsg.includes('call revert exception')) {
+    errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   }
 
-  if (data?.message) {
-    return data.message
-  }
-
-  if (error?.message) {
-    return error.message
-  }
-
-  return 'Something went wrong. Please try again.'
+  return prettifyErrorMessage(errMsg)
 }
 
 export function sanitizeNumericalString(numStr: string) {
@@ -57,4 +66,8 @@ export function fixedDecimals(amount: string, decimals: number = 18) {
 export function amountToBN(amount: string, decimals: number = 18) {
   const fixedAmount = fixedDecimals(amount, decimals)
   return utils.parseUnits(fixedAmount || '0', decimals)
+}
+
+export function truncateHash(hash) {
+  return `${hash.substring(0, 6)}…${hash.substring(62, 66)}`
 }

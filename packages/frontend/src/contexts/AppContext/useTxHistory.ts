@@ -8,6 +8,7 @@ export interface TxHistory {
   transactions?: Transaction[]
   setTransactions: Dispatch<SetStateAction<Transaction[] | undefined>>
   addTransaction: (tx: Transaction) => void
+  removeTransaction: (tx: Transaction) => void
   updateTransaction: (tx: Transaction, updateOpts?: any) => void
   clear: () => void
 }
@@ -56,6 +57,15 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     [transactions]
   )
 
+  const removeTransaction = useCallback(
+    (tx: Transaction) => {
+      // If tx exists with hash == tx.replaced, remove it
+      const filtered = filterByHash(transactions, tx.hash)
+      setTransactions(sortByRecentTimestamp(filtered).slice(0, 3))
+    },
+    [transactions]
+  )
+
   const updateTransaction = useCallback(
     (tx: Transaction, updateOpts: UpdateTransactionOptions) => {
       for (const key in updateOpts) {
@@ -70,6 +80,7 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     transactions,
     setTransactions,
     addTransaction,
+    removeTransaction,
     updateTransaction,
     clear,
   }

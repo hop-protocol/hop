@@ -1,12 +1,14 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
 import makeRequest from './makeRequest'
 import { BigNumber } from 'ethers'
+import { Chain } from 'src/constants'
 
 type TransferCommitted = {
   blockNumber: string
   rootHash: string
   totalAmount: string
   transactionIndex: string
+  timestamp: string
 }
 
 type MultipleWithdrawalsSettled = {
@@ -31,6 +33,16 @@ type BondedTransfer = {
 export default async function getIncompleteSettlements (token: string, chain: string, destinationChain: string): Promise<any> {
   const destinationChainId: number = chainSlugToId(destinationChain)! // eslint-disable-line
 
+  const isDestinationOptimism = destinationChain === Chain.Optimism
+  if (isDestinationOptimism) {
+    console.warn(`
+**********
+Optimism performed a regenesis on 20211111. Because of this, we do not have access to data prior.
+to that period. Queries here will appear incomplete for those items.
+**********
+`)
+  }
+
   const transfersCommitted: TransferCommitted[] = await getTransfersCommitted(
     token,
     chain,
@@ -40,11 +52,17 @@ export default async function getIncompleteSettlements (token: string, chain: st
     throw new Error('there are no committed transfers')
   }
 
+  const regenesisDateUnix = 1636704000
   const numTransfersCommitted = transfersCommitted.length
   console.log(`Number of transfersCommitted: ${numTransfersCommitted}`)
   for (let i = 0; i < transfersCommitted.length; i++) {
     console.log(`checking ${i + 1}/${numTransfersCommitted}`)
-    const { rootHash, totalAmount, blockNumber, transactionIndex } = transfersCommitted[i]
+    const { rootHash, totalAmount, blockNumber, transactionIndex, timestamp } = transfersCommitted[i]
+
+    if (isDestinationOptimism && Number(timestamp) < regenesisDateUnix) {
+      console.warn('Transfer committed before regenesis. Skipping')
+      continue
+    }
     const totalAmountBn: BigNumber = BigNumber.from(totalAmount)
 
     const multipleWithdrawalsSettled: MultipleWithdrawalsSettled[] = await getMultipleWithdrawalsSettled(
@@ -113,12 +131,18 @@ export default async function getIncompleteSettlements (token: string, chain: st
         calcAmountBn = calcAmountBn.add(transferAmount)
 
         // If a transfer was neither bonded nor withdrawn, log it
-        console.log(`transfer ${transferId} was not bonded, not withdrawn, or bonded with incorrect parameters (which produced an incorrect transferId)`)
+        console.log(`transfer ${transferId} was not bonded, not withdrawn, existed on optimism before regenesis, or bonded with incorrect parameters (which produced an incorrect transferId)`)
       }
     }
 
     if (!totalAmountBn.eq(calcAmountBn)) {
       const diff = (totalAmountBn.sub(calcAmountBn))
+      if (isEarliestCommit) {
+        console.log(`
+WARNING: The first commit may be missing withdrawals or bonds because it does not know how far to look back.
+If you are seeing this, there is a good chance that the root below is actually complete.
+`)
+      }
       console.log(
         `root: ${rootHash}, totalAmount: ${totalAmountBn}, calculatedAmount: ${calcAmountBn}. diff: ${diff}`
       )
@@ -205,6 +229,7 @@ function getTransfersCommittedsQuery (token: string) {
         totalAmount
         blockNumber
         transactionIndex
+        timestamp
       }
     }
   `

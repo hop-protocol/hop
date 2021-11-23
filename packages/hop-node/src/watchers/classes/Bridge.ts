@@ -6,7 +6,7 @@ import getTransferRootId from 'src/utils/getTransferRootId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { Bridge as BridgeContract, MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
-import { Chain, MinBonderFeeAbsolute } from 'src/constants'
+import { Chain } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
@@ -734,7 +734,7 @@ export default class Bridge extends ContractBase {
     const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
     let minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
-      : MinBonderFeeAbsolute
+      : minBonderFeeAbsolute
 
     // add 10% buffer for in the case amountIn is greater than originally
     // estimated in frontend due to user receiving more hTokens during swap

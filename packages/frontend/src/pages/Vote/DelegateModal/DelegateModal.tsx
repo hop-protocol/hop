@@ -11,7 +11,7 @@ import DelegateModalTransaction from 'src/pages/Vote/DelegateModal/DelegateModal
 import { Contract } from 'ethers'
 import { useApp } from 'src/contexts/AppContext'
 import Transaction from 'src/models/Transaction'
-import { L1_NETWORK } from 'src/constants'
+import { L1_NETWORK } from 'src/utils/constants'
 
 const useStyles = makeStyles(() => ({
   modalContainer: {

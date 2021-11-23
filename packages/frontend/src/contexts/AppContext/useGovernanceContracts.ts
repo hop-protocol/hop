@@ -10,7 +10,7 @@ import {
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import Network from 'src/models/Network'
-import { L1_NETWORK } from 'src/constants'
+import { L1_NETWORK } from 'src/utils/constants'
 
 export type GovernanceContracts = {
   l1Hop: Contract | undefined

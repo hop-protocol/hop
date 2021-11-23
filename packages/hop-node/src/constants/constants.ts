@@ -1,5 +1,3 @@
-import { BigNumber } from 'ethers'
-
 export enum Network {
   Mainnet = 'mainnet',
   Staging = 'staging',

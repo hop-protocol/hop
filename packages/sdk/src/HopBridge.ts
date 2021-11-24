@@ -666,18 +666,9 @@ class HopBridge extends Base {
       canonicalToken.decimals
     )
 
-    if (destinationChain.equals(Chain.Optimism) && data && to) {
+    if (destinationChain.equals(Chain.Optimism)) {
       try {
-        const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-          .attach(predeploys.OVM_GasPriceOracle).connect(destinationChain.provider)
-        const serializedTx = serializeTransaction({
-          value: parseEther('0'),
-          gasPrice,
-          gasLimit: bondTransferGasLimit,
-          to,
-          data
-        })
-        const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+        const l1FeeInWei = await this.getOptimismL1Fee()
         txFeeEth = txFeeEth.add(l1FeeInWei)
       } catch (err) {
         console.error(err)
@@ -696,6 +687,23 @@ class HopBridge extends Base {
     }
 
     return fee
+  }
+
+  async getOptimismL1Fee () {
+    const chain = this.toChainModel(Chain.Optimism)
+    const gasPrice = await chain.provider.getGasPrice()
+    const { gasLimit, data, to } = await this.getBondWithdrawalEstimatedGas(chain)
+    const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
+      .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider)
+    const serializedTx = serializeTransaction({
+      value: parseEther('0'),
+      gasPrice,
+      gasLimit,
+      to,
+      data
+    })
+    const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+    return l1FeeInWei
   }
 
   private async getBondWithdrawalEstimatedGas (

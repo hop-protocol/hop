@@ -90,6 +90,7 @@ class SyncWatcher extends BaseWatcher {
     if (this.syncFromDate) {
       const date = DateTime.fromISO(this.syncFromDate)
       const timestamp = date.toSeconds()
+      this.logger.debug(`syncing from syncFromDate with timestamp ${timestamp}`)
       this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
     }
     this.ready = true
@@ -709,7 +710,7 @@ class SyncWatcher extends BaseWatcher {
       '0x12a648e1dd69a7ae52e09eddc274d289280d80d5d5de7d0255a410de17ec3208',
       '0x00cd29b12bc3041a37a2cb64474f0726783c9b7cf6ce243927d5dc9f3473fb80',
       '0xa601b46a44a7a62c80560949eee70b437ba4a26049b0787a3eab76ad60b1c391',
-      '0xbe12aa5c65bf2ebc59a8ebf65225d7496c59153e83d134102c5c3abaf3fd92e9',
+      '0xbe12aa5c65bf2ebc59a8ebf65225d7496c59153e83d134102c5c3abaf3fd92e9'
     ]
     if (skipRoots.includes(transferRootHash)) {
       return

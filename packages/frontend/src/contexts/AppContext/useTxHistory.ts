@@ -1,4 +1,4 @@
-import { useCallback, Dispatch, SetStateAction } from 'react'
+import { useEffect, useCallback, Dispatch, SetStateAction } from 'react'
 import { useLocalStorage } from 'react-use'
 import Transaction from 'src/models/Transaction'
 import find from 'lodash/find'
@@ -14,6 +14,7 @@ export interface TxHistory {
 }
 
 export interface UpdateTransactionOptions {
+  pending?: boolean
   pendingDestinationConfirmation?: boolean
   destNetworkName?: string
   destTxHash?: string
@@ -75,6 +76,34 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
     },
     [transactions]
   )
+
+  // this will make sure to update in local storage the updated pending status,
+  // so it doesn't show as pending indefinitely on reload.
+  // This wouldn't be an issue if useEffect worked properly with array nested
+  // of nested objects and it detected property changes.
+  useEffect(() => {
+    transactions?.forEach(tx => {
+      const oldPending = tx.pending
+      const oldPendingDC = tx.pendingDestinationConfirmation
+      const cbPending = (pending: boolean) => {
+        if (oldPending !== pending) {
+          updateTransaction(tx, { pending })
+        }
+      }
+      const cbPendingDC = (pendingDestinationConfirmation: boolean) => {
+        if (oldPendingDC !== pendingDestinationConfirmation) {
+          updateTransaction(tx, { pendingDestinationConfirmation })
+        }
+      }
+      tx.once('pending', cbPending)
+      tx.once('pendingDestinationConfirmation', cbPendingDC)
+    })
+    return () => {
+      transactions?.forEach(tx => {
+        tx.removeAllListeners()
+      })
+    }
+  }, [transactions])
 
   return {
     transactions,

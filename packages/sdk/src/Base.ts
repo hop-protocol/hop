@@ -18,7 +18,7 @@ const getProvider = memoize((network: string, chain: string) => {
   }
   return new providers.StaticJsonRpcProvider({
     url: rpcUrl,
-    timeout: 10000
+    timeout: 60 * 1000
   })
 })
 

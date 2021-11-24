@@ -37,6 +37,7 @@ function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rm
           link={tx.explorerLink}
           destNetworkName={tx.destNetworkName}
           styles={styles}
+          showConfirmations={tx.isBridgeTransfer}
           confirmations={confirmations}
           networkWaitConfirmations={networkConfirmations}
         />

@@ -10,7 +10,7 @@ const getProvider = memoize((rpcUrl: string) => {
 
   return new ethers.providers.StaticJsonRpcProvider({
     url: rpcUrl,
-    timeout: 10000
+    timeout: 60 * 1000
   })
 })
 

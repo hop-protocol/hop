@@ -94,7 +94,7 @@ const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
         transaction.pendingDestinationConfirmation)
     ) {
       const isSpent = await transaction?.checkIsTransferIdSpent(sdk)
-      logger.debug(`tx ${transaction.hash.slice(0, 10)} isSpent:`, isSpent)
+      // logger.debug(`tx ${transaction.hash.slice(0, 10)} isSpent:`, isSpent)
       if (isSpent) {
         setDestCompleted(true)
         updateTransaction(transaction, { pendingDestinationConfirmation: false })

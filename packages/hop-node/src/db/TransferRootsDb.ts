@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import TimestampedKeysDb from './TimestampedKeysDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
+import { Chain, OneHourMs, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
@@ -330,8 +330,12 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       const isSourceOru = oruChains.includes(sourceChain)
       if (isSourceOru && item.committedAt) {
         const committedAtMs = item.committedAt * 1000
+        // Add a buffer to allow validators to actually make the assertion transactions
+        // https://discord.com/channels/585084330037084172/585085215605653504/912843949855604736
+        const validatorBufferMs = OneHourMs * 10
+        const oruExitTimeMs = OneWeekMs + validatorBufferMs
         oruTimestampOk =
-          committedAtMs + OneWeekMs < Date.now()
+          committedAtMs + oruExitTimeMs < Date.now()
       }
 
       return (

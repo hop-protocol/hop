@@ -59,6 +59,7 @@ type PoolsContextProps = {
   loadingHopBalance: boolean
   txHash: string | undefined
   sending: boolean
+  removing: boolean
   validFormFields: boolean
   sendButtonText: string
   error: string | null | undefined
@@ -106,6 +107,7 @@ const PoolsContext = createContext<PoolsContextProps>({
   loadingHopBalance: false,
   txHash: undefined,
   sending: false,
+  removing: false,
   validFormFields: false,
   sendButtonText: '',
   error: null,
@@ -186,6 +188,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const [txHash, setTxHash] = useState<string | undefined>()
   const [sending, setSending] = useState<boolean>(false)
+  const [removing, setRemoving] = useState<boolean>(false)
 
   const { balance: canonicalBalance, loading: loadingCanonicalBalance } = useBalance(
     canonicalToken,
@@ -691,6 +694,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
+      setRemoving(true)
       const bridge = sdk.bridge(canonicalToken.symbol)
       const amm = bridge.getAmm(selectedNetwork.slug)
       const saddleSwap = await amm.getSaddleSwap()
@@ -762,7 +766,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       logger.error(err)
     }
 
-    setSending(false)
+    setRemoving(false)
   }
 
   // ToDo: Use BigNumber everywhere and get rid of this conversion
@@ -810,6 +814,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         token1Deposited,
         txHash,
         sending,
+        removing,
         validFormFields,
         canonicalBalance,
         hopBalance,

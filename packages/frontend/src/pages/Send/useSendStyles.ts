@@ -24,7 +24,6 @@ export const useSendStyles = makeStyles(theme => ({
     margin: '1.0rem',
   },
   details: {
-    marginTop: '4.2rem',
     marginBottom: '5.4rem',
     width: '46.0rem',
     [theme.breakpoints.down('xs')]: {

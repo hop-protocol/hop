@@ -11,7 +11,7 @@ import {
   networkIdToSlug,
   queryFilterTransferFromL1CompletedEvents,
 } from 'src/utils'
-import { network as defaultNetwork } from 'src/config'
+import { network as defaultNetwork, reactAppNetwork } from 'src/config'
 import logger from 'src/logger'
 import { formatError } from 'src/utils/format'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
@@ -127,10 +127,15 @@ class Transaction extends EventEmitter {
     if (typeof isCanonicalTransfer === 'boolean') {
       this.isCanonicalTransfer = isCanonicalTransfer
     }
+
+    if (this.pendingDestinationConfirmation && this.destNetworkName) {
+      const sdk = new Hop(reactAppNetwork)
+      this.checkIsTransferIdSpent(sdk)
+    }
   }
 
   get explorerLink(): string {
-    if (this.networkName.startsWith('ethereum')) {
+    if (this.networkName.startsWith(Chain.Ethereum)) {
       return this._etherscanLink()
     } else if (this.networkName.startsWith(Chain.Arbitrum)) {
       return this._arbitrumLink()
@@ -148,8 +153,8 @@ class Transaction extends EventEmitter {
   get destExplorerLink(): string {
     if (!this.destTxHash) return ''
 
-    if (this.destNetworkName?.startsWith('ethereum')) {
-      return this._etherscanLink('ethereum', this.destTxHash)
+    if (this.destNetworkName?.startsWith(Chain.Ethereum)) {
+      return this._etherscanLink(Chain.Ethereum, this.destTxHash)
     } else if (this.destNetworkName?.startsWith(Chain.Arbitrum)) {
       return this._arbitrumLink(this.destTxHash)
     } else if (this.destNetworkName?.startsWith(Chain.Optimism)) {
@@ -190,11 +195,14 @@ class Transaction extends EventEmitter {
         this.networkName !== this.destNetworkName
       )
     ) {
-      console.log(`missing provider, token, destNetworkName, or same network:`, this)
+      logger.warn(`missing provider, token, destNetworkName, or same network:`, this)
       return
     }
 
     try {
+      if (!this.pendingDestinationConfirmation) {
+        return true
+      }
       const receipt = await this.receipt()
       // Get the event data (topics)
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
@@ -224,7 +232,7 @@ class Transaction extends EventEmitter {
               transferFromL1Completeds[transferFromL1Completeds.length - 1]
 
             this.destTxHash = lastTransfer.transactionHash
-            this.pendingDestinationConfirmation = false
+            this.setPendingDestinationConfirmed()
             return true
           }
 
@@ -241,7 +249,7 @@ class Transaction extends EventEmitter {
             )
             if (tfl1Completed) {
               this.destTxHash = tfl1Completed.transactionHash
-              this.pendingDestinationConfirmation = false
+              this.setPendingDestinationConfirmed()
               return true
             }
           }
@@ -269,11 +277,11 @@ class Transaction extends EventEmitter {
         }
 
         // L2 -> L1
-        if (this.destNetworkName === 'ethereum') {
+        if (this.destNetworkName === Chain.Ethereum) {
           const destL1Bridge = await bridge.getL1Bridge(this.provider)
           const isSpent = await destL1Bridge.isTransferIdSpent(this.transferId)
           if (isSpent) {
-            this.pendingDestinationConfirmation = false
+              this.setPendingDestinationConfirmed()
           }
           logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
           return isSpent
@@ -283,7 +291,7 @@ class Transaction extends EventEmitter {
         const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
         const isSpent = await destL2Bridge.isTransferIdSpent(this.transferId)
         if (isSpent) {
-          this.pendingDestinationConfirmation = false
+          this.setPendingDestinationConfirmed()
         }
         logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
         return isSpent
@@ -293,6 +301,10 @@ class Transaction extends EventEmitter {
     }
 
     return false
+  }
+
+  public get isBridgeTransfer() {
+    return ['sendToL2', 'swapAndSend'].includes(this.methodName)
   }
 
   private _etherscanLink(networkName: string = this.networkName, txHash: string = this.hash) {
@@ -318,6 +330,11 @@ class Transaction extends EventEmitter {
 
   private _polygonLink(txHash: string = this.hash) {
     return `${getBaseExplorerUrl('polygon')}/tx/${txHash}`
+  }
+
+  private setPendingDestinationConfirmed() {
+    this.pendingDestinationConfirmation = false
+    this.emit('pendingDestinationConfirmation', false, this)
   }
 
   toObject() {

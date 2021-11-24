@@ -90,6 +90,7 @@ class SyncWatcher extends BaseWatcher {
     if (this.syncFromDate) {
       const date = DateTime.fromISO(this.syncFromDate)
       const timestamp = date.toSeconds()
+      this.logger.debug(`syncing from syncFromDate with timestamp ${timestamp}`)
       this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
     }
     this.ready = true

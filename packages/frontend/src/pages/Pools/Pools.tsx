@@ -135,6 +135,7 @@ const Pools: FC = () => {
     virtualPrice,
     reserveTotalsUsd,
     unsupportedAsset,
+    removing
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -367,6 +368,7 @@ const Pools: FC = () => {
             <Button
               className={styles.removeLiquidityButton}
               onClick={handleRemoveLiquidityClick}
+              loading={removing}
               large
             >
               Remove Liquidity

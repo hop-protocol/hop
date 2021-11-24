@@ -14,6 +14,7 @@ function TransactionStatus(props) {
     styles,
     srcConfirmed,
     txConfirmed,
+    showConfirmations = true,
     confirmations,
     networkWaitConfirmations,
   } = props
@@ -28,12 +29,16 @@ function TransactionStatus(props) {
       return setText('Pending')
     }
 
-    if (confirmations && networkWaitConfirmations) {
-      setText(`${confirmations} / ${networkWaitConfirmations} Confirmations`)
-    }
+    if (showConfirmations) {
+      if (confirmations && networkWaitConfirmations) {
+        setText(`${confirmations} / ${networkWaitConfirmations} Confirmations`)
+      }
 
-    if (!confirmations) {
-      return setText(`... / ${networkWaitConfirmations} Confirmations`)
+      if (!confirmations) {
+        return setText(`• / ${networkWaitConfirmations} Confirmations`)
+      }
+    } else if (confirmations) {
+      return setText('Complete')
     }
   }, [txConfirmed, confirmations, networkWaitConfirmations])
 
@@ -41,12 +46,10 @@ function TransactionStatus(props) {
     <>
       <Flex justifyCenter height={60} width="5em">
         {destTx && (!destNetworkName || destNetworkName === networkName) ? (
-          <Flex justifyCenter alignCenter height="100%" fontSize="20px" width="5em">
-            -
-          </Flex>
+          <Flex justifyCenter alignCenter height="100%" fontSize="20px" width="5em"></Flex>
         ) : (
           <Flex column height="100%" justifyAround alignCenter fontSize="20px" width="5em">
-            {txConfirmed ? (
+            {txConfirmed || (!showConfirmations && confirmations) ? (
               <Check className={styles.completed} />
             ) : destTx && !srcConfirmed ? (
               <Div width={20} height={20} borderRadius="50%" bg="darkgrey" />

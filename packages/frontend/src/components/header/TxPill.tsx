@@ -33,6 +33,8 @@ const TxPill = () => {
     if (transactions && transactions?.length > 0) {
       const pts = transactions.filter(tx => tx.pending)
       setNumPendingTxs(pts.length)
+    } else {
+      setNumPendingTxs(0)
     }
   }, [transactions])
 

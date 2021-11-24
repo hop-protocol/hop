@@ -416,6 +416,7 @@ const Send: FC = () => {
     toNetwork,
     txConfirm,
     txHistory,
+    estimatedReceived: estimatedReceivedDisplay
   })
 
   // ==============================================================================================

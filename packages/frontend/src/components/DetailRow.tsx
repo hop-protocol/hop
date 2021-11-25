@@ -49,8 +49,12 @@ const useStyles = makeStyles<Theme, StyleProps>(theme => {
     },
     label,
     xlabel: Object.assign({
-      fontSize: '2.8rem'
-    }, label)
+      fontSize: '2.8rem',
+      textAlign: 'right',
+      [theme.breakpoints.down('xs')]: {
+        fontSize: '2rem',
+      },
+    } as any, label)
   }
 })
 

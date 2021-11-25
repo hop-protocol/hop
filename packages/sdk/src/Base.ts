@@ -1,9 +1,11 @@
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
-import { BigNumber, Contract, Signer, providers } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
+import { getContractFactory, predeploys } from '@eth-optimism/contracts'
+import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
 export type ChainProviders = { [chain: string]: providers.Provider }
 
@@ -483,6 +485,27 @@ class Base {
     chain = this.toChainModel(chain)
     const supported = this.getSupportedAssets()
     return supported[chain.slug]
+  }
+
+  async getOptimismL1Fee (
+    gasLimit : BigNumberish,
+    data: string = '0x',
+    to: string = constants.AddressZero
+  ) {
+    gasLimit = BigNumber.from(gasLimit.toString())
+    const chain = this.toChainModel(Chain.Optimism)
+    const gasPrice = await chain.provider.getGasPrice()
+    const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
+      .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider)
+    const serializedTx = serializeTransaction({
+      value: parseEther('0'),
+      gasPrice,
+      gasLimit,
+      to,
+      data
+    })
+    const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+    return l1FeeInWei
   }
 }
 

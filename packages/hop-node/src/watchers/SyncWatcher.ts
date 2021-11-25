@@ -90,7 +90,9 @@ class SyncWatcher extends BaseWatcher {
     if (this.syncFromDate) {
       const date = DateTime.fromISO(this.syncFromDate)
       const timestamp = date.toSeconds()
+      this.logger.debug(`syncing from syncFromDate with timestamp ${timestamp}`)
       this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
+      this.logger.debug(`syncing from syncFromDate with blockNumber ${this.customStartBlockNumber}`)
     }
     this.ready = true
   }
@@ -249,10 +251,12 @@ class SyncWatcher extends BaseWatcher {
     }
 
     const getOptions = (keyName: string) => {
-      return {
+      const options = {
         cacheKey: useCacheKey ? this.cacheKey(keyName) : undefined,
         startBlockNumber
       }
+      this.logger.debug(`syncing with options: ${JSON.stringify(options)}`)
+      return options
     }
 
     if (this.isL1) {
@@ -620,7 +624,7 @@ class SyncWatcher extends BaseWatcher {
 
     logger.debug(`transferIds count: ${transferIds.length}`)
     const dbTransfers: Transfer[] = []
-    for (const transferId of transferIds) {
+    await Promise.all(transferIds.map(async transferId => {
       const dbTransfer = await this.db.transfers.getByTransferId(transferId)
       if (!dbTransfer) {
         logger.warn(`transfer id ${transferId} db item not found`)
@@ -630,7 +634,9 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transfers.update(transferId, {
         withdrawalBondSettled
       })
-    }
+    }))
+
+    logger.debug('transferIds checking allSettled')
     let rootAmountAllSettled = false
     if (totalBondsSettled) {
       rootAmountAllSettled = dbTransferRoot?.totalAmount?.eq(totalBondsSettled) ?? false
@@ -638,7 +644,7 @@ class SyncWatcher extends BaseWatcher {
     const allBondableTransfersSettled = dbTransfers.every(
       (dbTransfer: Transfer) => {
         // A transfer should not be settled if it is unbondable
-        return !dbTransfer.isBondable || dbTransfer?.withdrawalBondSettled
+        return !dbTransfer?.isBondable || dbTransfer?.withdrawalBondSettled
       })
     const allSettled = rootAmountAllSettled || allBondableTransfersSettled
     logger.debug(`all settled: ${allSettled}`)
@@ -709,7 +715,7 @@ class SyncWatcher extends BaseWatcher {
       '0x12a648e1dd69a7ae52e09eddc274d289280d80d5d5de7d0255a410de17ec3208',
       '0x00cd29b12bc3041a37a2cb64474f0726783c9b7cf6ce243927d5dc9f3473fb80',
       '0xa601b46a44a7a62c80560949eee70b437ba4a26049b0787a3eab76ad60b1c391',
-      '0xbe12aa5c65bf2ebc59a8ebf65225d7496c59153e83d134102c5c3abaf3fd92e9',
+      '0xbe12aa5c65bf2ebc59a8ebf65225d7496c59153e83d134102c5c3abaf3fd92e9'
     ]
     if (skipRoots.includes(transferRootHash)) {
       return
@@ -1158,12 +1164,12 @@ class SyncWatcher extends BaseWatcher {
       sourceChainId
     })
 
-    for (const transferId of transferIds) {
+    await Promise.all(transferIds.map(async transferId => {
       await this.db.transfers.update(transferId, {
         transferRootHash,
         transferRootId
       })
-    }
+    }))
   }
 
   handleMultipleWithdrawalsSettledEvent = async (event: MultipleWithdrawalsSettledEvent) => {
@@ -1311,6 +1317,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async syncPendingAmounts () {
+    this.logger.debug('syncing pending amounts: start')
     const pendingAmounts = BigNumber.from(0)
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
@@ -1320,6 +1327,7 @@ class SyncWatcher extends BaseWatcher {
         this.chainSlug === Chain.Ethereum ||
         this.chainSlug === destinationChain
       ) {
+        this.logger.debug('syncing pending amounts: skipping')
         continue
       }
       await this.updatePendingAmountsMap(destinationChainId)
@@ -1329,6 +1337,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async syncUnbondedTransferRootAmounts () {
+    this.logger.debug('syncing unbonded transferRoot amounts: start')
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
@@ -1339,6 +1348,7 @@ class SyncWatcher extends BaseWatcher {
         !this.hasSiblingWatcher(destinationChainId)
       )
       if (shouldSkip) {
+        this.logger.debug(`syncing unbonded transferRoot amounts: skipping ${destinationChainId}`)
         continue
       }
       await this.updateUnbondedTransferRootAmountsMap(destinationChainId)
@@ -1348,6 +1358,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   private async syncAvailableCredit () {
+    this.logger.debug('syncing available credit: start')
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
@@ -1358,6 +1369,7 @@ class SyncWatcher extends BaseWatcher {
         !this.hasSiblingWatcher(destinationChainId)
       )
       if (shouldSkip) {
+        this.logger.debug(`syncing available credit: skipping ${destinationChainId}`)
         continue
       }
       await this.updateAvailableCreditMap(destinationChainId)

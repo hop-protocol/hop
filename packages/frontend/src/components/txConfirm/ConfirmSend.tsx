@@ -40,10 +40,11 @@ interface Props {
   source: TokenEntity
   dest: Partial<TokenEntity>
   onConfirm: (confirmed: boolean) => void
+  estimatedReceived: string
 }
 
 const ConfirmSend = (props: Props) => {
-  const { customRecipient, source, dest, onConfirm } = props
+  const { customRecipient, source, dest, onConfirm, estimatedReceived } = props
   const styles = useStyles()
 
   const { sending, handleSubmit } = useSendingTransaction({ onConfirm })
@@ -57,10 +58,22 @@ const ConfirmSend = (props: Props) => {
   return (
     <div className={styles.root}>
       <div className={styles.title}>
-        <Typography variant="h5" color="textPrimary">
-          Send {commafy(source.amount, 5)} {source.token.symbol} from {source.network.name} to{' '}
-          {dest?.network?.name}
-        </Typography>
+        <div style={{
+          marginBottom: '1rem'
+        }}>
+          <Typography variant="h6" color="textSecondary">
+            Send <strong>{commafy(source.amount, 5)} {source.token.symbol}</strong> from {source.network.name} to{' '}
+            {dest?.network?.name}
+          </Typography>
+        </div>
+        <div>
+          <Typography variant="subtitle2" color="textSecondary">
+            Estimated Received:
+          </Typography>
+          <Typography variant="subtitle2" color="textPrimary">
+            {estimatedReceived}
+          </Typography>
+        </div>
         {!!customRecipient && (
           <>
             <Typography variant="body1" color="textPrimary" className={styles.customRecipient}>

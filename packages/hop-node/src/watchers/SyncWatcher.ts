@@ -624,7 +624,7 @@ class SyncWatcher extends BaseWatcher {
 
     logger.debug(`transferIds count: ${transferIds.length}`)
     const dbTransfers: Transfer[] = []
-    for (const transferId of transferIds) {
+    await Promise.all(transferIds.map(async transferId => {
       const dbTransfer = await this.db.transfers.getByTransferId(transferId)
       if (!dbTransfer) {
         logger.warn(`transfer id ${transferId} db item not found`)
@@ -634,7 +634,9 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transfers.update(transferId, {
         withdrawalBondSettled
       })
-    }
+    }))
+
+    logger.debug(`transferIds checking allSettled`)
     let rootAmountAllSettled = false
     if (totalBondsSettled) {
       rootAmountAllSettled = dbTransferRoot?.totalAmount?.eq(totalBondsSettled) ?? false
@@ -1162,12 +1164,12 @@ class SyncWatcher extends BaseWatcher {
       sourceChainId
     })
 
-    for (const transferId of transferIds) {
+    await Promise.all(transferIds.map(async transferId => {
       await this.db.transfers.update(transferId, {
         transferRootHash,
         transferRootId
       })
-    }
+    }))
   }
 
   handleMultipleWithdrawalsSettledEvent = async (event: MultipleWithdrawalsSettledEvent) => {

@@ -44,6 +44,7 @@ export function useSendTransaction(props) {
     sourceToken,
     toNetwork,
     txConfirm,
+    estimatedReceived
   } = props
   const [tx, setTx] = useState<Transaction | null>(null)
   const [sending, setSending] = useState<boolean>(false)
@@ -189,6 +190,7 @@ export function useSendTransaction(props) {
         dest: {
           network: toNetwork,
         },
+        estimatedReceived
       },
       onConfirm: async () => {
         if (!amountOutMin || !bridge) return
@@ -219,6 +221,7 @@ export function useSendTransaction(props) {
         dest: {
           network: toNetwork,
         },
+        estimatedReceived
       },
       onConfirm: async () => {
         if (!amountOutMin || !totalFee || !bridge) return
@@ -255,6 +258,7 @@ export function useSendTransaction(props) {
         dest: {
           network: toNetwork,
         },
+        estimatedReceived
       },
       onConfirm: async () => {
         if (!totalFee || !bridge) return

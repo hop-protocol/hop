@@ -266,6 +266,27 @@ class Token extends Base {
     return contract.withdraw(amount)
   }
 
+  async getWrapTokenEstimatedGas (
+    chain: TChain
+  ) {
+    chain = this.toChainModel(chain)
+    const amount = BigNumber.from(1)
+    const contract = await this.getWethContract(chain)
+    const [gasLimit, tx] = await Promise.all([
+      contract.estimateGas.deposit({
+        value: amount
+      }),
+      contract.populateTransaction.deposit({
+        value: amount
+      })
+    ])
+
+    return {
+      gasLimit,
+      ...tx
+    }
+  }
+
   static fromJSON (json: any):Token {
     return new Token(
       json.network,

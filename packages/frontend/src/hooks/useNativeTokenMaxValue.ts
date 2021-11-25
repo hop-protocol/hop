@@ -50,7 +50,13 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
       })
 
       if (estimatedGasLimit) {
-        return estimateGasCost(token.signer, estimatedGasLimit)
+        let gasCost = await estimateGasCost(token.signer, estimatedGasLimit)
+        if (gasCost && network.slug === Chain.Optimism) {
+          const { gasLimit, data, to } = await bridge.getSendHTokensEstimatedGas(network.slug, destNetwork.slug)
+          const l1FeeInWei = await bridge.getOptimismL1Fee(gasLimit, data, to)
+          gasCost = gasCost.add(l1FeeInWei)
+        }
+        return gasCost
       }
     },
     [sdk, selectedNetwork]
@@ -88,7 +94,8 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
         if (estimatedGasLimit) {
           let gasCost = await estimateGasCost(token.signer, estimatedGasLimit)
           if (gasCost && fromNetwork.slug === Chain.Optimism) {
-            const l1FeeInWei = await bridge.getOptimismL1Fee()
+            const { gasLimit, data, to } = await bridge.getBondWithdrawalEstimatedGas(toNetwork.slug)
+            const l1FeeInWei = await bridge.getOptimismL1Fee(gasLimit, data, to)
             gasCost = gasCost.add(l1FeeInWei)
           }
           return gasCost
@@ -116,7 +123,13 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
         const estimatedGasLimit = await token.wrapToken(BigNumber.from(10), true)
 
         if (estimatedGasLimit) {
-          return estimateGasCost(token.signer, estimatedGasLimit)
+          let gasCost = await estimateGasCost(token.signer, estimatedGasLimit)
+          if (gasCost && network.slug === Chain.Optimism) {
+            const { gasLimit, data, to } = await token.getWrapTokenEstimatedGas(network.slug)
+            const l1FeeInWei = await token.getOptimismL1Fee(gasLimit, data, to)
+            gasCost = gasCost.add(l1FeeInWei)
+          }
+          return gasCost
         }
       } catch (error) {
         logger.error(error)

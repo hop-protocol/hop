@@ -24,8 +24,7 @@ import {
 import { PriceFeed } from './priceFeed'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata } from './config'
-import { getAddress, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
-import { getContractFactory, predeploys } from '@eth-optimism/contracts'
+import { getAddress, parseUnits } from 'ethers/lib/utils'
 
 type SendL1ToL2Input = {
   destinationChainId: number | string
@@ -79,6 +78,7 @@ type SendOptions = {
   destinationDeadline: BigNumberish
   estimateGasOnly?: boolean
   estimateGasCostOnly?: boolean
+  populateTxOnly?: boolean
 }
 
 type AddLiquidityOptions = {
@@ -423,6 +423,16 @@ class HopBridge extends Base {
     )
   }
 
+  public async getSendHTokensEstimatedGas (
+    sourceChain: TChain,
+    destinationChain: TChain,
+    options: Partial<SendOptions> = {}
+  ) {
+    options.populateTxOnly = true
+    const tokenAmount = BigNumber.from(1)
+    return this.sendHToken(tokenAmount, sourceChain, destinationChain, options)
+  }
+
   // ToDo: Docs
   public getTokenSymbol () {
     return this.tokenSymbol
@@ -701,7 +711,8 @@ class HopBridge extends Base {
 
     if (destinationChain.equals(Chain.Optimism)) {
       try {
-        const l1FeeInWei = await this.getOptimismL1Fee()
+        const { gasLimit, data, to } = await this.getBondWithdrawalEstimatedGas(destinationChain)
+        const l1FeeInWei = await this.getOptimismL1Fee(gasLimit, data, to)
         txFeeEth = txFeeEth.add(l1FeeInWei)
       } catch (err) {
         console.error(err)
@@ -726,26 +737,10 @@ class HopBridge extends Base {
     return fee
   }
 
-  async getOptimismL1Fee () {
-    const chain = this.toChainModel(Chain.Optimism)
-    const gasPrice = await chain.provider.getGasPrice()
-    const { gasLimit, data, to } = await this.getBondWithdrawalEstimatedGas(chain)
-    const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-      .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider)
-    const serializedTx = serializeTransaction({
-      value: parseEther('0'),
-      gasPrice,
-      gasLimit,
-      to,
-      data
-    })
-    const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
-    return l1FeeInWei
-  }
-
-  private async getBondWithdrawalEstimatedGas (
-    destinationChain: Chain
+  async getBondWithdrawalEstimatedGas (
+    destinationChain: TChain
   ): Promise<any> {
+    destinationChain = this.toChainModel(destinationChain)
     try {
       let destinationBridge
       if (destinationChain.isL1) {
@@ -774,12 +769,14 @@ class HopBridge extends Base {
             from: bonder
           }
         ]
-        const tx = await destinationBridge.populateTransaction.bondWithdrawalAndDistribute(
-          ...payload
-        )
-        const gasLimit = await destinationBridge.estimateGas.bondWithdrawalAndDistribute(
-          ...payload
-        )
+        const [gasLimit, tx] = await Promise.all([
+          destinationBridge.estimateGas.bondWithdrawalAndDistribute(
+            ...payload
+          ),
+          destinationBridge.populateTransaction.bondWithdrawalAndDistribute(
+            ...payload
+          )
+        ])
         return {
           gasLimit,
           ...tx
@@ -794,12 +791,14 @@ class HopBridge extends Base {
             from: bonder
           }
         ]
-        const tx = await destinationBridge.populateTransaction.bondWithdrawal(
-          ...payload
-        )
-        const gasLimit = await destinationBridge.estimateGas.bondWithdrawal(
-          ...payload
-        )
+        const [gasLimit, tx] = await Promise.all([
+          destinationBridge.estimateGas.bondWithdrawal(
+            ...payload
+          ),
+          destinationBridge.populateTransaction.bondWithdrawal(
+            ...payload
+          )
+        ])
         return {
           gasLimit,
           ...tx
@@ -1868,6 +1867,12 @@ class HopBridge extends Base {
 
       if (options.estimateGasOnly) {
         return l1Bridge.estimateGas.sendToL2(...txOptions)
+      } else if (options.populateTxOnly) {
+        const [gasLimit, tx] = await Promise.all([
+          l1Bridge.estimateGas.sendToL2(...txOptions),
+          l1Bridge.populateTransaction.sendToL2(...txOptions)
+        ])
+        return { gasLimit, ...tx }
       }
       return l1Bridge.sendToL2(...txOptions)
     } else {

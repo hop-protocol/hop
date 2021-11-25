@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react'
 import Link from '@material-ui/core/Link'
+import RightArrow from '@material-ui/icons/ArrowRightAlt'
 import Transaction from 'src/models/Transaction'
 import { Flex } from '../ui'
 import useTransactionStatus from 'src/hooks/useTransactionStatus'
 import TransactionStatus from './TransactionStatus'
-import { isOlderThanOneHour } from 'src/utils'
+import { isOlderThanOneHour, networkSlugToName } from 'src/utils'
 
 function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rmTx: any }) {
   const {
@@ -24,33 +25,43 @@ function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rm
   }, [replaced])
 
   return (
-    <Flex justifyBetween mb=".5rem" alignCenter>
-      <Flex alignCenter width="50%">
-        <Link href={tx.explorerLink} target="_blank" rel="noopener noreferrer">
-          <span className={styles.network}>{tx.networkName}:</span> {tx.truncatedHash} ↗
-        </Link>
+    <Flex justifyBetween mb=".5rem" alignCenter marginBottom="1rem" paddingBottom="1rem">
+      <Flex flexDirection="column" alignItems="flex-start" width="50%">
+        <div>
+          <span className={styles.network}>{networkSlugToName(tx.networkName)}:</span>
+          <Link href={tx.explorerLink} target="_blank" rel="noopener noreferrer">
+            {tx.truncatedHash} ↗
+          </Link>
+        </div>
+        <div>
+          {tx.methodName && <small className={styles.methodName}>({tx.methodName})</small>}
+        </div>
       </Flex>
 
-      <Flex justifyAround alignCenter width="50%">
+      <Flex justifyContent="space-between" alignItems="center" width="50%">
         <TransactionStatus
           txConfirmed={completed}
           link={tx.explorerLink}
+          networkName={tx.networkName}
           destNetworkName={tx.destNetworkName}
           styles={styles}
           showConfirmations={tx.isBridgeTransfer}
           confirmations={confirmations}
           networkWaitConfirmations={networkConfirmations}
         />
-
-        <TransactionStatus
-          srcConfirmed={completed}
-          txConfirmed={destCompleted}
-          link={tx.destExplorerLink}
-          destNetworkName={tx.destNetworkName}
-          networkName={tx.networkName}
-          destTx
-          styles={styles}
-        />
+        {tx.destNetworkName && (tx.networkName !== tx.destNetworkName) &&
+        <>
+          <div><RightArrow fontSize="large" color="primary" /></div>
+          <TransactionStatus
+            srcConfirmed={completed}
+            txConfirmed={destCompleted}
+            link={tx.destExplorerLink}
+            destNetworkName={tx.destNetworkName}
+            networkName={tx.networkName}
+            destTx
+            styles={styles}
+          />
+      </>}
       </Flex>
     </Flex>
   )

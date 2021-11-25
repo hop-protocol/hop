@@ -7,7 +7,7 @@ export const useTxStatusStyles = makeStyles((theme: Theme) => ({
   row: {
     display: 'flex',
     justifyContent: 'space-between',
-    marginBottom: '0.5rem',
+    marginBottom: '1rem',
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
     },
@@ -42,4 +42,10 @@ export const useTxStatusStyles = makeStyles((theme: Theme) => ({
   txStatusCloseButton: {
     marginTop: '1rem',
   },
+  topLabel: {
+    opacity: '0.5',
+  },
+  methodName: {
+    opacity: '0.5',
+  }
 }))

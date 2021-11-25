@@ -636,7 +636,7 @@ class SyncWatcher extends BaseWatcher {
       })
     }))
 
-    logger.debug(`transferIds checking allSettled`)
+    logger.debug('transferIds checking allSettled')
     let rootAmountAllSettled = false
     if (totalBondsSettled) {
       rootAmountAllSettled = dbTransferRoot?.totalAmount?.eq(totalBondsSettled) ?? false
@@ -1327,7 +1327,7 @@ class SyncWatcher extends BaseWatcher {
         this.chainSlug === Chain.Ethereum ||
         this.chainSlug === destinationChain
       ) {
-        this.logger.debug(`syncing pending amounts: skipping`)
+        this.logger.debug('syncing pending amounts: skipping')
         continue
       }
       await this.updatePendingAmountsMap(destinationChainId)

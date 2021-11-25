@@ -25,18 +25,6 @@ function TransactionsList(props: any) {
           (clear all)
         </Button>
       </Flex>
-
-      <Flex justifyEnd alignCenter my={1}>
-        <Flex width="50%" justifyAround>
-          <Div textAlign="center" width="5em">
-            Source
-          </Div>
-          <Div textAlign="center" width="5em">
-            Destination
-          </Div>
-        </Flex>
-      </Flex>
-
       {transactions?.map((tx: Transaction) => (
         <TransactionRow key={tx.hash} tx={tx} styles={styles} rmTx={removeTransaction} />
       ))}

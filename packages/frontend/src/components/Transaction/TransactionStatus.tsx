@@ -4,6 +4,7 @@ import Check from '@material-ui/icons/Check'
 import Link from '@material-ui/core/Link'
 import { Div, Flex } from '../ui'
 import { Text } from '../ui/Text'
+import { networkSlugToName } from 'src/utils'
 
 function TransactionStatus(props) {
   const {
@@ -49,6 +50,10 @@ function TransactionStatus(props) {
           <Flex justifyCenter alignCenter height="100%" fontSize="20px" width="5em"></Flex>
         ) : (
           <Flex column height="100%" justifyAround alignCenter fontSize="20px" width="5em">
+            <Div mb={1} fontSize={0}>
+              <Text className={styles.topLabel}>{destTx ? networkSlugToName(destNetworkName) : networkSlugToName(networkName)}</Text>
+            </Div>
+
             {txConfirmed || (!showConfirmations && confirmations) ? (
               <Check className={styles.completed} />
             ) : destTx && !srcConfirmed ? (
@@ -57,7 +62,7 @@ function TransactionStatus(props) {
               <CircularProgress size={20} thickness={5} />
             )}
 
-            <Div mt={2} fontSize={0}>
+            <Div mt={1} fontSize={0}>
               {link ? (
                 <Link color="inherit" href={link} target="_blank" rel="noopener noreferrer">
                   <Text>{text}</Text>

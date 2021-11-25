@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { Div, Flex } from 'src/components/ui'
 import useTransactionStatus from 'src/hooks/useTransactionStatus'
+import RightArrow from '@material-ui/icons/ArrowRightAlt'
 import { TransactionStatus, useTxStatusStyles } from 'src/components/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { findNetworkBySlug } from 'src/utils/networks'
@@ -34,10 +35,11 @@ function TxStatusTracker({ tx }) {
         )}
       </Flex>
 
-      <Flex justifyAround alignCenter mt={3}>
+      <Flex justifyContent="space-evenly" alignCenter mt={3}>
         <TransactionStatus
           txConfirmed={completed}
           link={tx.explorerLink}
+          networkName={tx.networkName}
           destNetworkName={tx.destNetworkName}
           styles={styles}
           confirmations={confirmations}
@@ -45,6 +47,8 @@ function TxStatusTracker({ tx }) {
         />
 
         {tx.destNetworkName !== tx.networkName && (
+          <>
+          <div><RightArrow fontSize="large" color="primary" /></div>
           <TransactionStatus
             srcConfirmed={completed}
             txConfirmed={destCompleted}
@@ -54,6 +58,7 @@ function TxStatusTracker({ tx }) {
             destTx
             styles={styles}
           />
+      </>
         )}
       </Flex>
     </Div>

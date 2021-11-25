@@ -92,6 +92,7 @@ class SyncWatcher extends BaseWatcher {
       const timestamp = date.toSeconds()
       this.logger.debug(`syncing from syncFromDate with timestamp ${timestamp}`)
       this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
+      this.logger.debug(`syncing from syncFromDate with blockNumber ${this.customStartBlockNumber}`)
     }
     this.ready = true
   }
@@ -250,10 +251,12 @@ class SyncWatcher extends BaseWatcher {
     }
 
     const getOptions = (keyName: string) => {
-      return {
+      const options = {
         cacheKey: useCacheKey ? this.cacheKey(keyName) : undefined,
         startBlockNumber
       }
+      this.logger.debug(`syncing with options: ${JSON.stringify(options)}`)
+      return options
     }
 
     if (this.isL1) {
@@ -1312,6 +1315,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async syncPendingAmounts () {
+    this.logger.debug('syncing pending amounts: start')
     const pendingAmounts = BigNumber.from(0)
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
@@ -1321,6 +1325,7 @@ class SyncWatcher extends BaseWatcher {
         this.chainSlug === Chain.Ethereum ||
         this.chainSlug === destinationChain
       ) {
+        this.logger.debug(`syncing pending amounts: skipping`)
         continue
       }
       await this.updatePendingAmountsMap(destinationChainId)
@@ -1330,6 +1335,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async syncUnbondedTransferRootAmounts () {
+    this.logger.debug('syncing unbonded transferRoot amounts: start')
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
@@ -1340,6 +1346,7 @@ class SyncWatcher extends BaseWatcher {
         !this.hasSiblingWatcher(destinationChainId)
       )
       if (shouldSkip) {
+        this.logger.debug(`syncing unbonded transferRoot amounts: skipping ${destinationChainId}`)
         continue
       }
       await this.updateUnbondedTransferRootAmountsMap(destinationChainId)
@@ -1349,6 +1356,7 @@ class SyncWatcher extends BaseWatcher {
   }
 
   private async syncAvailableCredit () {
+    this.logger.debug('syncing available credit: start')
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
@@ -1359,6 +1367,7 @@ class SyncWatcher extends BaseWatcher {
         !this.hasSiblingWatcher(destinationChainId)
       )
       if (shouldSkip) {
+        this.logger.debug(`syncing available credit: skipping ${destinationChainId}`)
         continue
       }
       await this.updateAvailableCreditMap(destinationChainId)

@@ -416,6 +416,7 @@ const Send: FC = () => {
     toNetwork,
     txConfirm,
     txHistory,
+    estimatedReceived: estimatedReceivedDisplay
   })
 
   // ==============================================================================================
@@ -568,6 +569,11 @@ const Send: FC = () => {
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
           {totalBonderFee?.gt(0) && (
+            <div
+              style={{
+                marginBottom: '1rem'
+              }}
+            >
             <DetailRow
               title={'Fees'}
               tooltip={
@@ -579,6 +585,7 @@ const Send: FC = () => {
               value={totalBonderFeeDisplay}
               large
             />
+            </div>
           )}
           <DetailRow
             title="Estimated Received"
@@ -591,7 +598,7 @@ const Send: FC = () => {
               />
             }
             value={estimatedReceivedDisplay}
-            large
+            xlarge
             bold
           />
         </div>

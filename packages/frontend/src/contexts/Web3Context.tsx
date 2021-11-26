@@ -211,7 +211,11 @@ const Web3ContextProvider: FC = ({ children }) => {
             if (provider) {
               localStorage.setItem(cacheKey, name)
               const ethersProvider = new ethers.providers.Web3Provider(provider, 'any')
-              if (ethersProvider) {
+              if (provider.enable) {
+                // needed for WalletConnect and some wallets
+                await provider.enable()
+              } else {
+                // note: this method may not be supported by all wallets
                 await ethersProvider.send('eth_requestAccounts', [])
               }
               setProvider(ethersProvider)
@@ -248,6 +252,8 @@ const Web3ContextProvider: FC = ({ children }) => {
   const requestWallet = () => {
     const _requestWallet = async () => {
       try {
+        localStorage.clear()
+        await onboard.walletReset()
         await onboard.walletSelect()
       } catch (err) {
         logger.error(err)
@@ -259,6 +265,7 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   const disconnectWallet = () => {
     try {
+      localStorage.clear()
       onboard.walletReset()
     } catch (error) {
       logger.error(error)

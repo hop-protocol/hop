@@ -10,6 +10,7 @@ import {
   background,
   shadow,
   position,
+  margin,
   FlexboxProps,
   SpaceProps,
   ColorProps,
@@ -19,6 +20,7 @@ import {
   BackgroundProps,
   ShadowProps,
   PositionProps,
+  MarginProps,
 } from 'styled-system'
 
 interface FlexBaseProps {
@@ -55,6 +57,7 @@ type FlexProps = BackgroundProps &
   TypographyProps &
   SpaceProps &
   FlexBaseProps &
+  MarginProps &
   CustomFlexProps
 
 const Flex: React.FC<FlexProps> = styled.div`
@@ -95,6 +98,7 @@ const Flex: React.FC<FlexProps> = styled.div`
   ${shadow};
   ${position};
   ${flexbox};
+  ${margin};
 `
 
 export default Flex

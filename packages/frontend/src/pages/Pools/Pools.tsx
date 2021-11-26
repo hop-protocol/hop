@@ -146,7 +146,7 @@ const Pools: FC = () => {
     }
   }
 
-  const { queryParams } = useQueryParams()
+  const { queryParams, updateQueryParams } = useQueryParams()
 
   useEffect(() => {
     if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
@@ -164,6 +164,9 @@ const Pools: FC = () => {
     const newSelectedNetwork = networks.find(network => network.slug === networkName)
     if (newSelectedNetwork) {
       setSelectedNetwork(newSelectedNetwork)
+      updateQueryParams({
+        sourceNetwork: newSelectedNetwork?.slug ?? '',
+      })
     }
   }
 

@@ -55,24 +55,24 @@ class ChallengeWatcher extends BaseWatcher {
     )
 
     for (const dbTransferRoot of dbTransferRoots) {
-      const rootHash = dbTransferRoot.transferRootHash
+      const { transferRootHash, bondTotalAmount } = dbTransferRoot
 
-      if (!rootHash) {
+      if (!transferRootHash || !bondTotalAmount) {
         continue
       }
 
       // Define new object on first run after server restart
-      if (!this.transferRootIdConfirmed[rootHash]) {
-        this.transferRootIdConfirmed[rootHash] = false
+      if (!this.transferRootIdConfirmed[transferRootHash]) {
+        this.transferRootIdConfirmed[transferRootHash] = false
       }
 
-      if (this.transferRootIdConfirmed[rootHash]) {
+      if (this.transferRootIdConfirmed[transferRootHash]) {
         continue
       }
 
       await this.checkChallengeableTransferRoot(
-        rootHash!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        dbTransferRoot.bondTotalAmount! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        transferRootHash,
+        bondTotalAmount
       )
     }
   }

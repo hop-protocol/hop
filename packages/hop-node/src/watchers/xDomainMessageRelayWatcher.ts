@@ -5,7 +5,7 @@ import L1Bridge from './classes/L1Bridge'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import xDaiBridgeWatcher from './xDaiBridgeWatcher'
-import { Chain, TenMinutesMs } from 'src/constants'
+import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
@@ -96,7 +96,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
   }
 
   async checkTransfersCommittedFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getUnconfirmedTransferRoots({
+    const dbTransferRoots = await this.db.transferRoots.getExitableTransferRoots({
       sourceChainId: await this.bridge.getChainId()
     })
     if (!dbTransferRoots.length) {
@@ -107,7 +107,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     )
     for (const { transferRootHash } of dbTransferRoots) {
       // Parallelizing these calls produces RPC errors on Optimism
-      await this.checkTransfersCommitted(transferRootHash!)
+      await this.checkTransfersCommitted(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     }
   }
 

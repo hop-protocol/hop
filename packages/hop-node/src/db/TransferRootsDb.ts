@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import TimestampedKeysDb from './TimestampedKeysDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, OneHourMs, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
+import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
@@ -304,7 +304,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     })
   }
 
-  async getUnconfirmedTransferRoots (
+  async getExitableTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
@@ -338,6 +338,17 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
           committedAtMs + oruExitTimeMs < Date.now()
       }
 
+      // Do not exit ORU if there is no risk of challenge
+      let oruShouldExit = true
+      const isChallenged = item?.challenged === true
+      if (isSourceOru && item?.bondedAt && !isChallenged) {
+        const bondedAtMs: number = item.bondedAt * 1000
+        const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
+        if (isChallengePeriodOver) {
+          oruShouldExit = false
+        }
+      }
+
       return (
         item.commitTxHash &&
         !item.confirmed &&
@@ -346,7 +357,8 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         item.committed &&
         item.committedAt &&
         timestampOk &&
-        oruTimestampOk
+        oruTimestampOk &&
+        oruShouldExit
       )
     })
   }

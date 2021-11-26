@@ -103,24 +103,11 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       return
     }
     this.logger.debug(
-        `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
+      `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
     )
     for (const { transferRootHash } of dbTransferRoots) {
-      /* eslint-disable @typescript-eslint/no-non-null-assertion */
-
-      // only process message after waiting 10 minutes
-      if (!this.lastSeen[transferRootHash!]) {
-        this.lastSeen[transferRootHash!] = Date.now()
-      }
-
-      const timestampOk = this.lastSeen[transferRootHash!] + TenMinutesMs < Date.now()
-      if (!timestampOk) {
-        return
-      }
-
       // Parallelizing these calls produces RPC errors on Optimism
       await this.checkTransfersCommitted(transferRootHash!)
-      /* eslint-enable @typescript-eslint/no-non-null-assertion */
     }
   }
 

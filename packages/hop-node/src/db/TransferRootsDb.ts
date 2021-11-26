@@ -41,7 +41,6 @@ export type TransferRoot = {
   bondTotalAmount?: BigNumber
   bondTransferRootId?: string
   challenged?: boolean
-  challengeExpired?: boolean
   allSettled?: boolean
   multipleWithdrawalsSettledTxHash?: string
   multipleWithdrawalsSettledTotalAmount?: BigNumber
@@ -372,9 +371,24 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       // but if the bond uses a different totalAmount then it is fraudulent. Instead, use the
       // transferRootId. If transferRootIds do not match then we know the bond is fraudulent.
 
+      if (!item.sourceChainId) {
+        return false
+      }
+
       let isValidItem = false
       if (item?.transferRootId) {
         isValidItem = item?.bondTransferRootId === item.transferRootId
+      }
+
+      let isChallengePeriodOk = true
+      const sourceChain = chainIdToSlug(item?.sourceChainId)
+      const isSourceOru = oruChains.includes(sourceChain)
+      if (isSourceOru && item?.bondedAt) {
+        const bondedAtMs: number = item.bondedAt * 1000
+        const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
+        if (isChallengePeriodOver) {
+          isChallengePeriodOk = false
+        }
       }
 
       return (
@@ -384,7 +398,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         item.destinationChainId &&
         !isValidItem &&
         !item.challenged &&
-        !item.challengeExpired
+        isChallengePeriodOk
       )
     })
   }

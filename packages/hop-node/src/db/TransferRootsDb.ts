@@ -380,14 +380,14 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         isValidItem = item?.bondTransferRootId === item.transferRootId
       }
 
-      let isChallengePeriodOk = true
+      let isWithinChallengePeriod = true
       const sourceChain = chainIdToSlug(item?.sourceChainId)
       const isSourceOru = oruChains.includes(sourceChain)
       if (isSourceOru && item?.bondedAt) {
         const bondedAtMs: number = item.bondedAt * 1000
         const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
         if (isChallengePeriodOver) {
-          isChallengePeriodOk = false
+          isWithinChallengePeriod = false
         }
       }
 
@@ -398,7 +398,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         item.destinationChainId &&
         !isValidItem &&
         !item.challenged &&
-        isChallengePeriodOk
+        isWithinChallengePeriod
       )
     })
   }

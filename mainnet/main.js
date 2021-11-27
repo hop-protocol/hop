@@ -44,6 +44,7 @@ const app = new Vue({
     filterAmount: queryParams.amount || '',
     filterAmountComparator: queryParams.amountCmp || 'gt',
     filterBonder: queryParams.bonder || '',
+    filterAccount: queryParams.account || '',
     filterTransferId: queryParams.transferId || '',
     chartAmountSize: false,
     page: 0,
@@ -232,6 +233,12 @@ const app = new Vue({
       this.resetPage()
       this.refreshTransfers()
     },
+    setFilterAccount (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterAccount', value)
+      this.resetPage()
+      updateData()
+    },
     setFilterTransferId (event) {
       const value = event.target.value
       Vue.set(app, 'filterTransferId', value)
@@ -378,10 +385,21 @@ async function queryFetch (url, query, variables) {
 
 async function fetchTransfers (chain, startTime, endTime, skip) {
   const transferId = app.filterTransferId
+  const account = app.filterAccount?.toLowerCase()
   const queryL1 = `
-    query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String) {
+    query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String, $account: String) {
       transferSents: transferSentToL2S(
-      ${transferId
+      ${
+      account
+? `
+        where: {
+          from: $account
+        },
+        first: $perPage,
+        orderBy: timestamp,
+        orderDirection: desc
+      `
+        : (transferId
 ? `
         where: {
           transactionHash: $transferId
@@ -399,7 +417,7 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
         orderBy: timestamp,
         orderDirection: desc,
         skip: $skip
-        `}
+        `)}
       ) {
         id
         destinationChainId
@@ -412,10 +430,10 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
     }
   `
   const queryL2 = `
-    query TransferSents($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String) {
+    query TransferSents($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String, $account: String) {
       transferSents(
         where: {
-          ${transferId ? 'transferId: $transferId' : 'timestamp_gte: $startTime, timestamp_lte: $endTime'}
+          ${account ? 'from: $account' : (transferId ? 'transferId: $transferId' : 'timestamp_gte: $startTime, timestamp_lte: $endTime')}
         },
         first: $perPage,
         orderBy: timestamp,
@@ -465,7 +483,8 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
     startTime,
     endTime,
     skip,
-    transferId
+    transferId,
+    account
   })
 
   let transfers = (data ? data.transferSents.concat(data.transferSents2) : [])
@@ -494,12 +513,12 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
 }
 
 async function fetchBonds (chain, startTime, endTime, skip) {
+  const transferId = app.filterTransferId
   const query = `
-    query WithdrawalBondeds($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
+    query WithdrawalBondeds($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String) {
       withdrawalBondeds(
         where: {
-          timestamp_gte: $startTime,
-          timestamp_lte: $endTime
+          ${transferId ? 'transferId: $transferId' : 'timestamp_gte: $startTime, timestamp_lte: $endTime'}
         },
         first: $perPage,
         orderBy: timestamp,
@@ -523,7 +542,8 @@ async function fetchBonds (chain, startTime, endTime, skip) {
     perPage: 1000,
     startTime,
     endTime,
-    skip
+    skip,
+    transferId
   })
   let bonds = data.withdrawalBondeds || []
 

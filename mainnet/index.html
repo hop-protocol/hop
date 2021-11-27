@@ -147,6 +147,10 @@
               <input class="filterTransferId" v-model="filterTransferId" @input="setFilterTransferId" placeholder="transfer ID or tx hash" />
             </div>
             <div>
+              <label>Account:</label>
+              <input class="filterAccount" v-model="filterAccount" @input="setFilterAccount" placeholder="Account address" />
+            </div>
+            <div>
               <label>Date:</label>
               <input type="date" id="date" name="date"
                v-model="filterDate"

@@ -26,36 +26,55 @@ const bonders: { [network: string]: { [token: string]: string[] } } = {
 }
 
 type Bps = {
-  L2ToL1: number
-  L2ToL2: number
-  anyToxDai: number
+  ethereum: number
+  polygon: number
+  xdai: number
+  optimism: number
+  arbitrum: number
 }
 
 const fees: Record<string, Bps> = {
   USDC: {
-    L2ToL1: 14,
-    L2ToL2: 14,
-    anyToxDai: 25
+    ethereum: 14,
+    polygon: 14,
+    xdai: 25,
+    optimism: 14,
+    arbitrum: 14
   },
   USDT: {
-    L2ToL1: 18,
-    L2ToL2: 18,
-    anyToxDai: 18
+    ethereum: 18,
+    polygon: 18,
+    xdai: 25,
+    optimism: 18,
+    arbitrum: 18
   },
   DAI: {
-    L2ToL1: 18,
-    L2ToL2: 18,
-    anyToxDai: 18
+    ethereum: 18,
+    polygon: 18,
+    xdai: 25,
+    optimism: 18,
+    arbitrum: 18
   },
   MATIC: {
-    L2ToL1: 18,
-    L2ToL2: 18,
-    anyToxDai: 18
+    ethereum: 18,
+    polygon: 18,
+    xdai: 25,
+    optimism: 0,
+    arbitrum: 0
   },
   ETH: {
-    L2ToL1: 8,
-    L2ToL2: 9,
-    anyToxDai: 18
+    ethereum: 8,
+    polygon: 9,
+    xdai: 18,
+    optimism: 9,
+    arbitrum: 9
+  },
+  WBTC: {
+    ethereum: 18,
+    polygon: 18,
+    xdai: 25,
+    optimism: 18,
+    arbitrum: 18
   }
 }
 

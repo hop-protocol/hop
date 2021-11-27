@@ -723,14 +723,7 @@ export default class Bridge extends ContractBase {
       throw new Error(`fee config not found for ${this.tokenSymbol}`)
     }
 
-    let bonderFeeBps = fees.L2ToL2
-    if (destinationChain === Chain.Ethereum) {
-      bonderFeeBps = fees.L2ToL1
-    }
-    if (destinationChain === Chain.xDai && fees.anyToxDai) {
-      bonderFeeBps = fees.anyToxDai
-    }
-
+    const bonderFeeBps = fees[destinationChain]
     const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
     let minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative

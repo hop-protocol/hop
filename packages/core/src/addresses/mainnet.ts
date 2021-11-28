@@ -28,7 +28,6 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x9D373d22FD091d7f9A6649EB067557cc12Fb1A0A',
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
-        canonicalBridgeMaxPerTx: 1000000000,
         bridgeDeployedBlockNumber: 16617211
       },
       polygon: {
@@ -89,7 +88,6 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x5b10222f2Ada260AAf6C6fC274bd5810AF9d33c0',
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
-        canonicalBridgeMaxPerTx: 1000000000,
         bridgeDeployedBlockNumber: 17155195
       },
       polygon: {
@@ -150,7 +148,6 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x5C2048094bAaDe483D0b1DA85c3Da6200A88a849',
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
-        canonicalBridgeMaxPerTx: 1000000000,
         bridgeDeployedBlockNumber: 17444924
       },
       polygon: {
@@ -187,7 +184,6 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x5300648b1cFaa951bbC1d56a4457083D92CFa33F',
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
-        canonicalBridgeMaxPerTx: 1000000000,
         bridgeDeployedBlockNumber: 18093617
       },
       polygon: {
@@ -248,7 +244,6 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0xb9cca4Ed3f082a459c0851058D9FBA0B78dD6C7d',
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
-        canonicalBridgeMaxPerTx: 1000000000,
         bridgeDeployedBlockNumber: 18359713
       },
       polygon: {
@@ -309,7 +304,6 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x300aa02c86BDceFb9B7AF85b736823C56a302512',
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
-        canonicalBridgeMaxPerTx: 1000000000,
         bridgeDeployedBlockNumber: 18723032
       },
       polygon: {

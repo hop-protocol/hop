@@ -732,9 +732,7 @@ export class User {
       ),
       parentProvider: new Web3.providers.HttpProvider(
         'https://goerli.rpc.hop.exchange'
-      ),
-      posRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-      posERC20Predicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34'
+      )
     })
 
     const tx = await maticPOSClient.exitERC20(txHash, {

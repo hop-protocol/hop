@@ -45,7 +45,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     this.logger.debug('starting watcher')
     const enabledNetworks = getEnabledNetworks()
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    if (enabledNetworks.includes(Chain.xDai)) {
+    if (this.chainSlug === Chain.xDai && enabledNetworks.includes(Chain.xDai)) {
       this.watchers[Chain.xDai] = new xDaiBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
@@ -56,7 +56,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         dryMode: config.dryMode
       })
     }
-    if (enabledNetworks.includes(Chain.Polygon)) {
+    if (this.chainSlug === Chain.Polygon && enabledNetworks.includes(Chain.Polygon)) {
       this.watchers[Chain.Polygon] = new PolygonBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
@@ -66,7 +66,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         dryMode: config.dryMode
       })
     }
-    if (enabledNetworks.includes(Chain.Optimism)) {
+    if (this.chainSlug === Chain.Optimism && enabledNetworks.includes(Chain.Optimism)) {
       this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
@@ -76,7 +76,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         dryMode: config.dryMode
       })
     }
-    if (enabledNetworks.includes(Chain.Arbitrum)) {
+    if (this.chainSlug === Chain.Arbitrum && enabledNetworks.includes(Chain.Arbitrum)) {
       this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,

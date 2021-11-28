@@ -411,32 +411,10 @@ class CanonicalBridge extends Base {
     const { MaticPOSClient } = require('@maticnetwork/maticjs')
     const Web3 = require('web3')
 
-    const posRootChainManagerAddress = this.getL1PosRootChainManagerAddress(
-      this.tokenSymbol,
-      chain
-    )
-    if (!posRootChainManagerAddress) {
-      throw new Error(
-        `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
-      )
-    }
-
-    const posERC20PredicateAddress = this.getL1PosErc20PredicateAddress(
-      this.tokenSymbol,
-      chain
-    )
-    if (!posERC20PredicateAddress) {
-      throw new Error(
-        `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
-      )
-    }
-
     const maticPOSClient = new MaticPOSClient({
       network: Chain.Ethereum.chainId === 1 ? 'mainnet' : 'testnet',
       maticProvider: new Web3.providers.HttpProvider(Chain.Polygon.rpcUrl),
-      parentProvider: new Web3.providers.HttpProvider(Chain.Ethereum.rpcUrl),
-      posRootChainManager: posRootChainManagerAddress,
-      posERC20Predicate: posERC20PredicateAddress
+      parentProvider: new Web3.providers.HttpProvider(Chain.Ethereum.rpcUrl)
     })
 
     const tx = await maticPOSClient.exitERC20(txHash, {

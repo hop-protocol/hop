@@ -48,7 +48,7 @@ export type TransferRoot = {
 }
 
 const invalidTransferRoots: Record<string, boolean> = {
-  // Optimism pre-regenesis txs
+  // Optimism pre-regenesis roots
   '0x063d5d24ca64f0c662b3f3339990ef6550eb4a5dee7925448d85b712dd38b9e5': true,
   '0x4c131e7af19d7dd1bc8ffe8e937ff8fcdb99bb1f09cc2e041f031e8c48d4d275': true,
   '0x843314ec24c31a00385ae66fb9f3bfe15b29bcd998681f0ba09b49ac500ffaee': true,

@@ -497,7 +497,7 @@ class HopBridge extends Base {
     )
 
     // adjustedFee is the fee in the canonical token after adjusting for the hToken price.
-    const adjustedBonderFee = await this.calcFromHTokenAmount(
+    let adjustedBonderFee = await this.calcFromHTokenAmount(
       bonderFee,
       destinationChain
     )
@@ -507,6 +507,11 @@ class HopBridge extends Base {
       destinationChain
     )
 
+    // enforce minBonderFeeAbsolute after adjustment
+    const minBonderFeeAbsolute = await this.getMinBonderFeeAbsolute()
+    adjustedBonderFee = adjustedBonderFee.gt(minBonderFeeAbsolute)
+      ? adjustedBonderFee
+      : minBonderFeeAbsolute
     const totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
 
     const sourceToken = this.getCanonicalToken(sourceChain)
@@ -917,14 +922,7 @@ class HopBridge extends Base {
     )
 
     const feeBps = this.getFeeBps(this.tokenSymbol, destinationChain)
-    const token = this.toTokenModel(this.tokenSymbol)
-    const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.symbol)
-
-    const minBonderFeeUsd = 0.25
-    const minBonderFeeAbsolute = parseUnits(
-      (minBonderFeeUsd / tokenPrice).toFixed(token.decimals),
-      token.decimals
-    )
+    const minBonderFeeAbsolute = await this.getMinBonderFeeAbsolute()
 
     const minBonderFeeRelative = hTokenAmount.mul(feeBps).div(10000)
     const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
@@ -1943,6 +1941,17 @@ class HopBridge extends Base {
     )
 
     return amountOut
+  }
+
+  private async getMinBonderFeeAbsolute (): Promise<BigNumber> {
+    const token = this.toTokenModel(this.tokenSymbol)
+    const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.symbol)
+    const minBonderFeeUsd = 0.25
+    const minBonderFeeAbsolute = parseUnits(
+      (minBonderFeeUsd / tokenPrice).toFixed(token.decimals),
+      token.decimals
+    )
+    return minBonderFeeAbsolute
   }
 
   private getRate (

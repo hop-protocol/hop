@@ -702,10 +702,15 @@ export default class Bridge extends ContractBase {
 
     const minBonderFeeUsd = 0.25
     const tokenDecimals = getTokenDecimals(tokenSymbol)
-    const minBonderFeeAbsolute = parseUnits(
+    let minBonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),
       tokenDecimals
     )
+
+    // add 10% buffer for in the case that the token price materially
+    // changes after the transaction send but before bond
+    const tolerance = 0.10
+    minBonderFeeAbsolute = minBonderFeeAbsolute.sub(minBonderFeeAbsolute.mul(tolerance * 100).div(100))
 
     return minBonderFeeAbsolute
   }

@@ -495,8 +495,8 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
 
   isInvalidOrNotFound (item: Partial<TransferRoot>) {
     const isNotFound = item?.isNotFound
-    const isInvalid = invalidTransferRoots[item.transferRootHash!]
-    return isNotFound || isInvalid
+    const isInvalid = invalidTransferRoots[item.transferRootHash!] // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
   }
 }
 

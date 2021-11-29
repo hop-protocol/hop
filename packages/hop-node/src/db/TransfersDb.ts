@@ -442,8 +442,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
 
   isInvalidOrNotFound (item: Partial<Transfer>) {
     const isNotFound = item?.isNotFound
-    const isInvalid = invalidTransferIds[item.transferId!]
-    return isNotFound || isInvalid
+    const isInvalid = invalidTransferIds[item.transferId!] // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
   }
 }
 

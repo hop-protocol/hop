@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import TimestampedKeysDb from './TimestampedKeysDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, OneHourMs, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
+import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
@@ -41,7 +41,6 @@ export type TransferRoot = {
   bondTotalAmount?: BigNumber
   bondTransferRootId?: string
   challenged?: boolean
-  challengeExpired?: boolean
   allSettled?: boolean
   multipleWithdrawalsSettledTxHash?: string
   multipleWithdrawalsSettledTotalAmount?: BigNumber
@@ -304,7 +303,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     })
   }
 
-  async getUnconfirmedTransferRoots (
+  async getExitableTransferRoots (
     filter: Partial<TransferRoot> = {}
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
@@ -338,6 +337,17 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
           committedAtMs + oruExitTimeMs < Date.now()
       }
 
+      // Do not exit ORU if there is no risk of challenge
+      let oruShouldExit = true
+      const isChallenged = item?.challenged === true
+      if (isSourceOru && item?.bondedAt && !isChallenged) {
+        const bondedAtMs: number = item.bondedAt * 1000
+        const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
+        if (isChallengePeriodOver) {
+          oruShouldExit = false
+        }
+      }
+
       return (
         item.commitTxHash &&
         !item.confirmed &&
@@ -346,7 +356,8 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         item.committed &&
         item.committedAt &&
         timestampOk &&
-        oruTimestampOk
+        oruTimestampOk &&
+        oruShouldExit
       )
     })
   }
@@ -360,9 +371,24 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       // but if the bond uses a different totalAmount then it is fraudulent. Instead, use the
       // transferRootId. If transferRootIds do not match then we know the bond is fraudulent.
 
+      if (!item.sourceChainId) {
+        return false
+      }
+
       let isValidItem = false
       if (item?.transferRootId) {
         isValidItem = item?.bondTransferRootId === item.transferRootId
+      }
+
+      let isWithinChallengePeriod = true
+      const sourceChain = chainIdToSlug(item?.sourceChainId)
+      const isSourceOru = oruChains.includes(sourceChain)
+      if (isSourceOru && item?.bondedAt) {
+        const bondedAtMs: number = item.bondedAt * 1000
+        const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
+        if (isChallengePeriodOver) {
+          isWithinChallengePeriod = false
+        }
       }
 
       return (
@@ -372,7 +398,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         item.destinationChainId &&
         !isValidItem &&
         !item.challenged &&
-        !item.challengeExpired
+        isWithinChallengePeriod
       )
     })
   }

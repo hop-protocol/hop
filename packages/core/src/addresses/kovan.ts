@@ -24,7 +24,6 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0xC888C7071F8B9d2c3b8034F1Da7cBd35595191BD',
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
-        canonicalBridgeMaxPerTx: 10000,
         bridgeDeployedBlockNumber: 21377885
       },
       optimism: {

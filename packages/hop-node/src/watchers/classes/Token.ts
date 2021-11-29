@@ -11,11 +11,7 @@ export default class Token extends ContractBase {
   constructor (tokenContract: ERC20) {
     super(tokenContract)
     this.tokenContract = tokenContract
-    if (this.tokenContract.address === constants.AddressZero) {
-      this.isEth = true
-    } else {
-      this.isEth = false
-    }
+    this.isEth = (this.tokenContract.address === constants.AddressZero)
   }
 
   getBalance = async (): Promise<BigNumber> => {

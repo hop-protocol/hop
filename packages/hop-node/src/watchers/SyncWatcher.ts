@@ -959,7 +959,7 @@ class SyncWatcher extends BaseWatcher {
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
       logger.error(
-        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. List: ${JSON.stringify(_transferIds)}`
+        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(_transferIds)}`
       )
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
     } else {

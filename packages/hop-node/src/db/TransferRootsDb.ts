@@ -44,6 +44,29 @@ export type TransferRoot = {
   allSettled?: boolean
   multipleWithdrawalsSettledTxHash?: string
   multipleWithdrawalsSettledTotalAmount?: BigNumber
+  isNotFound?: boolean
+}
+
+const invalidTransferRoots: Record<string, boolean> = {
+  // Optimism pre-regenesis txs
+  '0x063d5d24ca64f0c662b3f3339990ef6550eb4a5dee7925448d85b712dd38b9e5': true,
+  '0x4c131e7af19d7dd1bc8ffe8e937ff8fcdb99bb1f09cc2e041f031e8c48d4d275': true,
+  '0x843314ec24c31a00385ae66fb9f3bfe15b29bcd998681f0ba09b49ac500ffaee': true,
+  '0x693d04548e6f7b6cafbd3761744411a2db98230de2d2ac372b310b59de42530a': true,
+  '0xdcfab2fe9e84837b1cece4b3585ab355f8e51750f7e55a7a282da81bbdc0a5dd': true,
+  '0xe3de2861ff4ca7046da4bd0345beb0a6fcb6fa09b108cc2d66f8bdfa7768fd70': true,
+  '0xdfa48ba341de6478a8236a9efd9dd832569f2e7045d357a27ec89c8aeed25d19': true,
+  '0xf3c01d73de571edcddc5a627726c1b5e1301da394a65d713cb489d3999cba52a': true,
+  '0x8ce859861c32ee6608b45501e3a007165c9053b22e8f482edd2585746aa479b8': true,
+  '0x3a098609751fa52d284ae86293873123238d2b676a6fc2b6620a34d3d83b362b': true,
+  '0xd8b02ee1f0512ced8be25959c7650aeb9f6a5c60e3e63b1e322b5179545e9b73': true,
+  '0x7d6cb1ee007a95756050f63d7f522b095eb2b3818207c2198fcdb90dc7fdc00c': true,
+  '0x590778a6138164cfe808673fb3f707f3b16432c29c2d341cc97873bbc3218eae': true,
+  '0xf2ccd9600ff6bf107fd16b076bf310ea456f14c9cee2a9c6abf1f394b2fe2489': true,
+  '0x12a648e1dd69a7ae52e09eddc274d289280d80d5d5de7d0255a410de17ec3208': true,
+  '0x00cd29b12bc3041a37a2cb64474f0726783c9b7cf6ce243927d5dc9f3473fb80': true,
+  '0xa601b46a44a7a62c80560949eee70b437ba4a26049b0787a3eab76ad60b1c391': true,
+  '0xbe12aa5c65bf2ebc59a8ebf65225d7496c59153e83d134102c5c3abaf3fd92e9': true
 }
 
 class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
@@ -54,35 +77,6 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
 
     this.ready = false
-    this.migrations()
-      .then(() => {
-        this.ready = true
-        this.logger.debug('db ready')
-      })
-      .catch(this.logger.error)
-  }
-
-  async migrations () {
-    // this only needs to be ran once on start up to backfill keys.
-    // this function can be removed once all bonders update.
-    this.trackIncompleteItems()
-      .then(() => {
-        this.ready = true
-        this.logger.debug('db ready')
-      })
-      .catch(this.logger.error)
-  }
-
-  async trackIncompleteItems () {
-    const kv = await this.getKeyValues()
-    for (const { key, value } of kv) {
-      // backfill items with missing transferRootHash
-      if (!value.transferRootHash) {
-        value.transferRootHash = key
-        await this._update(key, value)
-      }
-      await this.updateIncompleteItem(value)
-    }
   }
 
   async updateIncompleteItem (item: Partial<TransferRoot>) {
@@ -279,6 +273,11 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         }
       }
 
+      const shouldIgnoreItem = this.isInvalidOrNotFound(item)
+      if (shouldIgnoreItem) {
+        return false
+      }
+
       let timestampOk = true
       if (item.sentBondTxAt) {
         timestampOk =
@@ -448,6 +447,11 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       return false
     }
 
+    const shouldIgnoreItem = this.isInvalidOrNotFound(item)
+    if (shouldIgnoreItem) {
+      return false
+    }
+
     return (
       /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
       !item.sourceChainId ||
@@ -480,8 +484,19 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         }
       }
 
+      const shouldIgnoreItem = this.isInvalidOrNotFound(item)
+      if (shouldIgnoreItem) {
+        return false
+      }
+
       return this.isItemIncomplete(item)
     })
+  }
+
+  isInvalidOrNotFound (item: Partial<TransferRoot>) {
+    const isNotFound = item?.isNotFound
+    const isInvalid = invalidTransferRoots[item.transferRootHash!]
+    return isNotFound || isInvalid
   }
 }
 

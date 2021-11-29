@@ -388,7 +388,7 @@ class SyncWatcher extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
-      const isBondable = this.getIsBondable(transferId, amountOutMin, deadline, destinationChainId)
+      const isBondable = this.getIsBondable(amountOutMin, deadline, destinationChainId)
 
       logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
@@ -659,32 +659,6 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer it, transferId: ${transferId}`)
     }
 
-    // Filter old transfers from before Optimism regenesis
-    const skipTransfers: string[] = [
-      '0xb892e1a324dd0a550f9cc392f5b4cb6b16e091fd5a6124ff6cde14e2ebc4f652',
-      '0x1878084f881676ca5ec4e50a7b2a9a99e32349c6ca825357c3e3ac350cddb1f1',
-      '0x3bc50e322e6b60cab24dfd15c2d224cbaf9d2d6c230c32d9ec9ab25f9fc2a65c',
-      '0x169e4f5c9e54f360a8f5123dbd5d5aea9df1cc3d25c16ceb6cc7661e3a57ed53',
-      '0xc25f176eeb34f40d401905c82babb0666375e076095598ddbd1d69e5be66696e',
-      '0x23ee642f2f61599ce005ef7c9eb2f7df884e87df2f03fcb6bd42b054d4e30fe7',
-      '0xb0a0cd11ea3aebb4db73dfd5be0978e379b3b4a5329a901e153dce0472407ca8',
-      '0x0bf1d20b89552ea1734fa81731c5d6f22fb88d3ef00ede5aed5b0abcc81d5632',
-      '0xd256d5506ecba8af6026521a599f22ca62c356627d5eda171c4cacff246cb881',
-      '0xe594cae78b79c6e2864afeb4c5cc36310e00fcec1abb0931801f3eabcda4b8b8',
-      '0x21524e577c812c34ea4f10bc3d1a3143182ab12059fd30f54bc2fc4669700201',
-      '0x70874af0612759a0eaaec2d50e8b09b4d138a1b3aa1e612583de649af8f9bf1a',
-      '0x0310840bd6e2b4640b838aa11fd0197ed8becdab15300379219d3783848f5174',
-      '0x35e3c87c77ff63f350b5a2f5f661796e203e939f8ab070e9833e1e568869b2e0',
-      '0x936d481834e26dffb1757b6cf8de024bccc7fa6caef7e3dbe3618387c96639a7',
-      '0xd799fb93f8894985e2d9f0fb782d2388ca09ec70e5cde256b21a506696f7bee0',
-      '0x7103275350d3774aa0f6db2c0fc5dbc83d322b05bcf75216169aa58cfd491aad',
-      '0x9cf4b8b99a21104fde99cdf30b413ec300fddb61bd1dc525f9b65e8bda80e25f',
-      '0x4adf2dc4542b8b4f1c9066143c1d76ef12b728e9f92500256756b2bd300275fc'
-    ]
-    if (skipTransfers.includes(transferId)) {
-      return
-    }
-
     await this.populateTransferSentEvent(transferId)
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
@@ -694,31 +668,6 @@ class SyncWatcher extends BaseWatcher {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     if (!dbTransferRoot) {
       throw new Error(`expected db transfer root item, transferRootHash: ${transferRootHash}`)
-    }
-
-    // Filter old transferRoots from before Optimism regenesis
-    const skipRoots: string[] = [
-      '0x063d5d24ca64f0c662b3f3339990ef6550eb4a5dee7925448d85b712dd38b9e5',
-      '0x4c131e7af19d7dd1bc8ffe8e937ff8fcdb99bb1f09cc2e041f031e8c48d4d275',
-      '0x843314ec24c31a00385ae66fb9f3bfe15b29bcd998681f0ba09b49ac500ffaee',
-      '0x693d04548e6f7b6cafbd3761744411a2db98230de2d2ac372b310b59de42530a',
-      '0xdcfab2fe9e84837b1cece4b3585ab355f8e51750f7e55a7a282da81bbdc0a5dd',
-      '0xe3de2861ff4ca7046da4bd0345beb0a6fcb6fa09b108cc2d66f8bdfa7768fd70',
-      '0xdfa48ba341de6478a8236a9efd9dd832569f2e7045d357a27ec89c8aeed25d19',
-      '0xf3c01d73de571edcddc5a627726c1b5e1301da394a65d713cb489d3999cba52a',
-      '0x8ce859861c32ee6608b45501e3a007165c9053b22e8f482edd2585746aa479b8',
-      '0x3a098609751fa52d284ae86293873123238d2b676a6fc2b6620a34d3d83b362b',
-      '0xd8b02ee1f0512ced8be25959c7650aeb9f6a5c60e3e63b1e322b5179545e9b73',
-      '0x7d6cb1ee007a95756050f63d7f522b095eb2b3818207c2198fcdb90dc7fdc00c',
-      '0x590778a6138164cfe808673fb3f707f3b16432c29c2d341cc97873bbc3218eae',
-      '0xf2ccd9600ff6bf107fd16b076bf310ea456f14c9cee2a9c6abf1f394b2fe2489',
-      '0x12a648e1dd69a7ae52e09eddc274d289280d80d5d5de7d0255a410de17ec3208',
-      '0x00cd29b12bc3041a37a2cb64474f0726783c9b7cf6ce243927d5dc9f3473fb80',
-      '0xa601b46a44a7a62c80560949eee70b437ba4a26049b0787a3eab76ad60b1c391',
-      '0xbe12aa5c65bf2ebc59a8ebf65225d7496c59153e83d134102c5c3abaf3fd92e9'
-    ]
-    if (skipRoots.includes(transferRootHash)) {
-      return
     }
 
     await this.populateTransferRootCommittedEvent(transferRootHash)
@@ -775,7 +724,7 @@ class SyncWatcher extends BaseWatcher {
     const event = await sourceBridge.getTransferSentEvent(transferId)
     if (!event) {
       logger.warn('TransferSent event not found. isNotFound: true, dbItem:', JSON.stringify(dbTransfer))
-      // await this.db.transfers.update(transferId, { isNotFound: true })
+      await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
     logger.debug(`found TransferSent event on chainId ${sourceChainId}`)
@@ -866,7 +815,7 @@ class SyncWatcher extends BaseWatcher {
     const event = await sourceBridge.getTransfersCommittedEvent(transferRootHash)
     if (!event) {
       logger.warn('TransfersCommitted event not found. isNotFound: true, dbItem:', JSON.stringify(dbTransferRoot))
-      // await this.db.transfers.update(transferId, { isNotFound: true })
+      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }
     logger.debug(`found TransfersCommitted event on chainId ${sourceChainId}`)
@@ -959,7 +908,8 @@ class SyncWatcher extends BaseWatcher {
     logger.debug('searching for TransferRootBonded event')
     const event = await l1Bridge.getTransferRootBondedEvent(transferRootHash)
     if (!event) {
-      logger.error('expected event object')
+      logger.warn('TransferRootBonded event not found. isNotFound: true, dbItem:', JSON.stringify(dbTransferRoot))
+      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }
     await this.handleTransferRootBondedEvent(event)
@@ -1011,6 +961,7 @@ class SyncWatcher extends BaseWatcher {
       logger.error(
         `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. List: ${JSON.stringify(_transferIds)}`
       )
+      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
     } else {
       await this.db.transferRoots.update(transferRootHash, {
         transferIds: _transferIds
@@ -1201,19 +1152,10 @@ class SyncWatcher extends BaseWatcher {
   }
 
   getIsBondable = (
-    transferId: string,
     amountOutMin: BigNumber,
     deadline: BigNumber,
     destinationChainId: number
   ): boolean => {
-    // Remove when this hash has been resolved
-    const invalidTransferIds: string[] = [
-      '0x99b304c55afc0b56456dc4999913bafff224080b8a3bbe0e5a04aaf1eedf76b6'
-    ]
-    if (invalidTransferIds.includes(transferId)) {
-      return false
-    }
-
     const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin, deadline)
     if (attemptSwap && isL1ChainId(destinationChainId)) {
       return false

@@ -147,11 +147,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       ),
       parentProvider: new Web3.providers.HttpProvider(
         this.l1Provider.connection.url
-      ),
-      posRootChainManager:
-        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
-      posERC20Predicate:
-        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
+      )
     })
 
     const rootTunnel =
@@ -183,11 +179,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       ),
       parentProvider: new Web3.providers.HttpProvider(
         this.l1Provider.connection.url
-      ),
-      posRootChainManager:
-        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosRootChainManager,
-      posERC20Predicate:
-        globalConfig.tokens[tokenSymbol][Chain.Polygon].l1PosPredicate
+      )
     })
     const tx = await maticPOSClient.exitERC20(txHash, {
       from: recipient,

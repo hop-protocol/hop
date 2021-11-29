@@ -35,6 +35,7 @@ import {
   useQueryParams,
   useNeedsTokenForFee,
   useBalance,
+  useNativeTokenMaxValue
 } from 'src/hooks'
 
 const Send: FC = () => {
@@ -64,6 +65,7 @@ const Send: FC = () => {
   const [noLiquidityWarning, setNoLiquidityWarning] = useState<any>(null)
   const [needsNativeTokenWarning, setNeedsNativeTokenWarning] = useState<string>()
   const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
+  const [insufficientFundsWarning, setInsufficientFundsWarning] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
@@ -164,6 +166,48 @@ const Send: FC = () => {
     return true
   }, [fromBalance, fromTokenAmountBN])
 
+  const { estimateSend } = useNativeTokenMaxValue(fromNetwork)
+
+  useEffect(() => {
+    let isSubscribed = true
+    const update = async () => {
+      let warning = ''
+      try {
+        if (!(sourceToken && fromNetwork && toNetwork && deadline && fromTokenAmountBN && fromBalance)) {
+          return
+        }
+        const bridge = sdk.bridge(sourceToken.symbol)
+        const isNativeToken = bridge.isNativeToken(fromNetwork.slug)
+        if (isNativeToken) {
+          const options = {
+            token: sourceToken,
+            fromNetwork,
+            toNetwork,
+            deadline,
+          }
+          const estimatedGasCost = await estimateSend(options)
+          if (estimatedGasCost) {
+            const insufficientFunds = fromBalance.lt(estimatedGasCost.add(fromTokenAmountBN))
+            if (insufficientFunds) {
+              warning = `Insufficient balance. Please add ${sourceToken.symbol} to pay for tx fees or reduce from token amount.`
+            }
+          }
+        }
+      } catch (err) {
+        logger.error(err)
+      }
+      if (isSubscribed) {
+        setInsufficientFundsWarning(warning)
+      }
+    }
+
+    update().catch(logger.error)
+
+    return () => {
+      isSubscribed = false
+    }
+  }, [sourceToken, fromNetwork, toNetwork, deadline, fromTokenAmountBN, fromBalance])
+
   // ==============================================================================================
   // Error and warning messages
   // ==============================================================================================
@@ -257,7 +301,7 @@ const Send: FC = () => {
   }, [estimatedReceived, adjustedDestinationTxFee])
 
   useEffect(() => {
-    let message = noLiquidityWarning || minimumSendWarning
+    let message = noLiquidityWarning || minimumSendWarning || insufficientFundsWarning
 
     if (!enoughBalance) {
       message = 'Insufficient funds'
@@ -281,6 +325,7 @@ const Send: FC = () => {
     enoughBalance,
     estimatedReceived,
     priceImpact,
+    insufficientFundsWarning
   ])
 
   useEffect(() => {

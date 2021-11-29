@@ -27,7 +27,8 @@ export function formatError(error: any, network?: Network) {
   } else if (errMsg.includes('Failed to fetch')) {
     errMsg = `There was a network error. Please refresh page and try again. Error: ${errMsg}`
   } else if (errMsg.includes('Internal JSON-RPC error')) {
-    errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
+    const feeToken = network?.nativeTokenSymbol || 'funds'
+    errMsg = `An RPC error occured. Please check you have enough ${feeToken} to pay for fees and check your wallet network settings are correct. Refresh to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   } else if (errMsg.includes('call revert exception')) {
     errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   }

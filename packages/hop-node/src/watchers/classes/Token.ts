@@ -5,11 +5,13 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 export default class Token extends ContractBase {
   tokenContract: ERC20
+  isEth: boolean
   _decimals: number
 
   constructor (tokenContract: ERC20) {
     super(tokenContract)
     this.tokenContract = tokenContract
+    this.isEth = (this.tokenContract.address === constants.AddressZero)
   }
 
   getBalance = async (): Promise<BigNumber> => {
@@ -17,8 +19,8 @@ export default class Token extends ContractBase {
     if (!address) {
       throw new Error('expected signer address')
     }
-    if (this.tokenContract.address === constants.AddressZero) {
-      return this.tokenContract.signer.getBalance(address)
+    if (this.isEth) {
+      return this.tokenContract.signer.getBalance()
     }
     const balance = await this.tokenContract.balanceOf(address)
     return balance
@@ -26,13 +28,20 @@ export default class Token extends ContractBase {
 
   decimals = async () => {
     if (!this._decimals) {
-      const _decimals = await this.tokenContract.decimals()
-      this._decimals = Number(_decimals.toString())
+      if (this.isEth) {
+        this._decimals = 18
+      } else {
+        const _decimals = await this.tokenContract.decimals()
+        this._decimals = Number(_decimals.toString())
+      }
     }
     return this._decimals
   }
 
   getAllowance = async (spender: string): Promise<BigNumber> => {
+    if (this.isEth) {
+      return constants.MaxUint256
+    }
     const owner = await this.tokenContract.signer.getAddress()
     const allowance = await this.tokenContract.allowance(owner, spender)
     return allowance
@@ -42,7 +51,7 @@ export default class Token extends ContractBase {
     spender: string,
     amount: BigNumber = ethers.constants.MaxUint256
   ): Promise<providers.TransactionResponse | undefined> => {
-    if (this.tokenContract.address === constants.AddressZero) {
+    if (this.isEth) {
       return
     }
     const allowance = await this.getAllowance(spender)
@@ -59,14 +68,19 @@ export default class Token extends ContractBase {
     recipient: string,
     amount: BigNumber
   ): Promise<providers.TransactionResponse> => {
-    if (this.tokenContract.address === constants.AddressZero) {
-      throw new Error('token is ETH')
+    if (this.isEth) {
+      const tx = {
+        to: recipient,
+        value: amount
+      }
+      return await this.tokenContract.signer.sendTransaction(tx)
+    } else {
+      return await this.tokenContract.transfer(
+        recipient,
+        amount,
+        await this.txOverrides()
+      )
     }
-    return await this.tokenContract.transfer(
-      recipient,
-      amount,
-      await this.txOverrides()
-    )
   }
 
   async formatUnits (value: BigNumber) {

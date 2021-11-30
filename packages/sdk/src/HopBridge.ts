@@ -93,7 +93,7 @@ type RemoveLiquidityOptions = {
 }
 
 /**
- * Class reprensenting Hop bridge.
+ * Class representing Hop bridge.
  * @namespace HopBridge
  */
 class HopBridge extends Base {

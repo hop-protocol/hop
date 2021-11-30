@@ -468,7 +468,7 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    const bonderFeePromise = this.getBonderFee(
+    const bonderFeeRelativePromise = this.getBonderFeeRelative(
       amountIn,
       sourceChain,
       destinationChain
@@ -482,12 +482,12 @@ class HopBridge extends Base {
     const [
       amountOutWithoutFee,
       amountOutNoSlippage,
-      bonderFee,
+      bonderFeeRelative,
       destinationTxFee
     ] = await Promise.all([
       amountOutWithoutFeePromise,
       amountOutNoSlippagePromise,
-      bonderFeePromise,
+      bonderFeeRelativePromise,
       destinationTxFeePromise
     ])
 
@@ -498,7 +498,7 @@ class HopBridge extends Base {
 
     // adjustedFee is the fee in the canonical token after adjusting for the hToken price.
     let adjustedBonderFee = await this.calcFromHTokenAmount(
-      bonderFee,
+      bonderFeeRelative,
       destinationChain
     )
 
@@ -507,11 +507,11 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    // enforce minBonderFeeAbsolute after adjustment
-    const minBonderFeeAbsolute = await this.getMinBonderFeeAbsolute()
-    adjustedBonderFee = adjustedBonderFee.gt(minBonderFeeAbsolute)
+    // enforce bonderFeeAbsolute after adjustment
+    const bonderFeeAbsolute = await this.getBonderFeeAbsolute()
+    adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute)
       ? adjustedBonderFee
-      : minBonderFeeAbsolute
+      : bonderFeeAbsolute
     const totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
 
     const sourceToken = this.getCanonicalToken(sourceChain)
@@ -619,21 +619,6 @@ class HopBridge extends Base {
       amountOutMin,
       lpFeeAmount
     }
-  }
-
-  public async getBonderFee (
-    amountIn: BigNumberish,
-    sourceChain: TChain,
-    destinationChain: TChain
-  ): Promise<BigNumber> {
-    sourceChain = this.toChainModel(sourceChain)
-    destinationChain = this.toChainModel(destinationChain)
-
-    return this.getMinBonderFee(
-      amountIn.toString(),
-      sourceChain,
-      destinationChain
-    )
   }
 
   public async getTotalFee (
@@ -895,40 +880,6 @@ class HopBridge extends Base {
     )
 
     return hTokenAmount
-  }
-
-  /**
-   * @desc Returns the suggested bonder fee.
-   * @param {Object} amountIn - Token amount input.
-   * @param {Object} sourceChain - Source chain model.
-   * @param {Object} destinationChain - Destination chain model.
-   * @returns {Object} Bonder fee as BigNumber.
-   */
-  public async getMinBonderFee (
-    amountIn: TAmount,
-    sourceChain: TChain,
-    destinationChain: TChain
-  ) {
-    sourceChain = this.toChainModel(sourceChain)
-    destinationChain = this.toChainModel(destinationChain)
-
-    if (sourceChain.isL1) {
-      return BigNumber.from(0)
-    }
-
-    const hTokenAmount = await this.calcToHTokenAmount(
-      amountIn.toString(),
-      sourceChain
-    )
-
-    const feeBps = this.getFeeBps(this.tokenSymbol, destinationChain)
-    const minBonderFeeAbsolute = await this.getMinBonderFeeAbsolute()
-
-    const minBonderFeeRelative = hTokenAmount.mul(feeBps).div(10000)
-    const minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
-      ? minBonderFeeRelative
-      : minBonderFeeAbsolute
-    return minBonderFee
   }
 
   public async getAvailableLiquidity (
@@ -1823,21 +1774,23 @@ class HopBridge extends Base {
       throw new Error('Invalid sendHTokenHandler option')
     }
 
-    let minBonderFee = BigNumber.from(0)
+    let bonderFee = BigNumber.from(0)
     if (!sourceChain.isL1) {
-      minBonderFee = await this.getBonderFee(
+      const deadline = 0
+      bonderFee = await this.getTotalFee(
         tokenAmount,
         sourceChain,
-        destinationChain
+        destinationChain,
+        deadline
       )
     }
 
     const recipient = getAddress(
       options?.recipient ?? (await this.getSignerAddress())
     )
-    const bonderFee = options?.bonderFee
+    bonderFee = options?.bonderFee
       ? BigNumber.from(options?.bonderFee)
-      : minBonderFee
+      : bonderFee
     const amountOutMin = BigNumber.from(0)
     const deadline = BigNumber.from(0)
     const relayer = ethers.constants.AddressZero
@@ -1943,15 +1896,37 @@ class HopBridge extends Base {
     return amountOut
   }
 
-  private async getMinBonderFeeAbsolute (): Promise<BigNumber> {
+  private async getBonderFeeRelative (
+    amountIn: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    if (sourceChain.isL1) {
+      return BigNumber.from(0)
+    }
+
+    const hTokenAmount = await this.calcToHTokenAmount(
+      amountIn.toString(),
+      sourceChain
+    )
+
+    const feeBps = this.getFeeBps(this.tokenSymbol, destinationChain)
+    const bonderFeeRelative = hTokenAmount.mul(feeBps).div(10000)
+    return bonderFeeRelative
+  }
+
+  private async getBonderFeeAbsolute (): Promise<BigNumber> {
     const token = this.toTokenModel(this.tokenSymbol)
     const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.symbol)
     const minBonderFeeUsd = 0.25
-    const minBonderFeeAbsolute = parseUnits(
+    const bonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPrice).toFixed(token.decimals),
       token.decimals
     )
-    return minBonderFeeAbsolute
+    return bonderFeeAbsolute
   }
 
   private getRate (

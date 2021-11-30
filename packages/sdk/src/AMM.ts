@@ -147,6 +147,40 @@ class AMM extends Base {
     )
   }
 
+  public async removeLiquidityOneToken (
+    lpAmount: TAmount,
+    tokenIndex: number,
+    amountMin: TAmount = BigNumber.from(0),
+    deadline: BigNumberish = this.defaultDeadlineSeconds
+  ) {
+    deadline = this.normalizeDeadline(deadline)
+    const saddleSwap = await this.getSaddleSwap()
+    return saddleSwap.removeLiquidityOneToken(
+      lpAmount,
+      tokenIndex,
+      amountMin,
+      deadline,
+      await this.txOverrides(this.chain)
+    )
+  }
+
+  public async removeLiquidityImbalance (
+    amount0: TAmount,
+    amount1: TAmount,
+    maxBurnAmount: TAmount = BigNumber.from(0),
+    deadline: BigNumberish = this.defaultDeadlineSeconds
+  ) {
+    deadline = this.normalizeDeadline(deadline)
+    const saddleSwap = await this.getSaddleSwap()
+    const amounts = [amount0, amount1]
+    return saddleSwap.removeLiquidityImbalance(
+      amounts,
+      maxBurnAmount,
+      deadline,
+      await this.txOverrides(this.chain)
+    )
+  }
+
   // ToDo: Docs
   public async calculateToHToken (amount: BigNumberish) {
     return this.calculateSwap(
@@ -192,6 +226,23 @@ class AMM extends Base {
     return saddleSwap.calculateRemoveLiquidity(
       recipient,
       lpTokenAmount,
+      await this.txOverrides(this.chain)
+    )
+  }
+
+  public async calculateRemoveLiquidityMinimumLpTokens (
+    amount0: TAmount,
+    amount1: TAmount
+  ) {
+    const amounts = [amount0, amount1]
+    const saddleSwap = await this.getSaddleSwap()
+    const recipient = await this.getSignerAddress()
+    const isDeposit = false
+
+    return saddleSwap.calculateTokenAmount(
+      recipient,
+      amounts,
+      isDeposit,
       await this.txOverrides(this.chain)
     )
   }

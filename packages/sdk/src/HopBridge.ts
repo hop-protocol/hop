@@ -92,6 +92,16 @@ type RemoveLiquidityOptions = {
   deadline: BigNumberish
 }
 
+type RemoveLiquidityOneTokenOptions = {
+  amountMin: TAmount
+  deadline: BigNumberish
+}
+
+type RemoveLiquidityImbalanceOptions = {
+  maxBurnAmount: TAmount
+  deadline: BigNumberish
+}
+
 /**
  * Class reprensenting Hop bridge.
  * @namespace HopBridge
@@ -1374,6 +1384,58 @@ class HopBridge extends Base {
       options.amount0Min,
       options.amount1Min,
       options.deadline
+    )
+  }
+
+  public async removeLiquidityOneToken (
+    lpTokenAmount: TAmount,
+    tokenIndex: number,
+    chain?: TChain,
+    options: Partial<RemoveLiquidityOneTokenOptions> = {}
+  ) {
+    if (!chain) {
+      chain = this.sourceChain
+    }
+    chain = this.toChainModel(chain)
+    const amm = new AMM(
+      this.network,
+      this.tokenSymbol,
+      chain,
+      this.signer,
+      this.chainProviders
+    )
+    const deadline = this.defaultDeadlineSeconds
+    return amm.removeLiquidityOneToken(
+      lpTokenAmount,
+      tokenIndex,
+      options?.amountMin,
+      options?.deadline
+    )
+  }
+
+  public async removeLiquidityImbalance (
+    token0Amount: TAmount,
+    token1Amount: TAmount,
+    chain?: TChain,
+    options: Partial<RemoveLiquidityImbalanceOptions> = {}
+  ) {
+    if (!chain) {
+      chain = this.sourceChain
+    }
+    chain = this.toChainModel(chain)
+    const amm = new AMM(
+      this.network,
+      this.tokenSymbol,
+      chain,
+      this.signer,
+      this.chainProviders
+    )
+    const deadline = this.defaultDeadlineSeconds
+    return amm.removeLiquidityImbalance(
+      token0Amount,
+      token1Amount,
+      options?.maxBurnAmount,
+      options?.deadline
     )
   }
 

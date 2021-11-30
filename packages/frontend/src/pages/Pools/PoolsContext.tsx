@@ -148,6 +148,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const slippageToleranceBps = slippageTolerance * 100
   const minBps = Math.ceil(10000 - slippageToleranceBps)
+  const maxBps = Math.ceil(10000 + slippageToleranceBps)
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const [error, setError] = useState<string | null | undefined>(null)
   const [warning, setWarning] = useState<string>()
@@ -724,9 +725,32 @@ const PoolsContextProvider: FC = ({ children }) => {
             network: selectedNetwork,
           },
         },
-        onConfirm: async (amountPercent: number) => {
-          const liquidityTokenAmount = balance.mul(amountPercent).div(100)
-          const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
+        onConfirm: async (amounts: any) => {
+          const { tokenAmount0, tokenAmount1 } = amounts
+          const tokenAmount0BN = amountToBN(tokenAmount0, canonicalToken.decimals)
+          const tokenAmount1BN = amountToBN(tokenAmount1, hopToken.decimals)
+
+          const tokenAmount0MinBN = BigNumber.from(0)
+          const tokenAmount1MinBN = BigNumber.from(0)
+
+          if (tokenAmount0BN.gt(0) && tokenAmount1BN.eq(0)) {
+            const lpTokenAmount = await amm.calculateRemoveLiquidityMinimumLpTokens(tokenAmount0BN, tokenAmount1BN)
+          return bridge
+            .connect(signer as Signer)
+            .removeLiquidityOneToken(lpTokenAmount, 0, selectedNetwork.slug, {
+              amountMin: tokenAmount0MinBN,
+              deadline: deadline(),
+            })
+          } else if (tokenAmount1BN.gt(0) && tokenAmount0BN.eq(0)) {
+            const lpTokenAmount = await amm.calculateRemoveLiquidityMinimumLpTokens(tokenAmount0BN, tokenAmount1BN)
+          return bridge
+            .connect(signer as Signer)
+            .removeLiquidityOneToken(lpTokenAmount, 1, selectedNetwork.slug, {
+              amountMin: tokenAmount1MinBN,
+              deadline: deadline(),
+            })
+          } else if ((Number(tokenAmount0).toFixed(2) === token0Deposited) && (Number(tokenAmount1).toFixed(2) === token1Deposited)) { // max
+          const liquidityTokenAmountWithSlippage = balance.mul(minBps).div(10000)
           const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
             liquidityTokenAmountWithSlippage
           )
@@ -735,9 +759,20 @@ const PoolsContextProvider: FC = ({ children }) => {
 
           return bridge
             .connect(signer as Signer)
-            .removeLiquidity(liquidityTokenAmount, selectedNetwork.slug, {
+            .removeLiquidity(balance, selectedNetwork.slug, {
               amount0Min,
               amount1Min,
+              deadline: deadline(),
+            })
+          }
+
+          const liquidityTokenAmount = await amm.calculateRemoveLiquidityMinimumLpTokens(tokenAmount0BN, tokenAmount1BN)
+          const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(maxBps).div(10000)
+
+          return bridge
+            .connect(signer as Signer)
+            .removeLiquidityImbalance(tokenAmount0BN, tokenAmount1BN, selectedNetwork.slug, {
+              maxBurnAmount: liquidityTokenAmountWithSlippage,
               deadline: deadline(),
             })
         },

@@ -688,7 +688,8 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     if (!sourceChainId) {
-      logger.error('expected sourceChainId')
+      logger.warn('populateTransferSentTimestamp sourceChainId not found. isNotFound: true, dbItem:', JSON.stringify(dbTransfer))
+      await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -742,7 +743,8 @@ class SyncWatcher extends BaseWatcher {
     }
 
     if (!sourceChainId) {
-      logger.error('expected sourceChainId')
+      logger.warn('populateTransferRootCommittedAt sourceChainId not found. isNotFound: true, dbItem:', JSON.stringify(dbTransferRoot))
+      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }
     logger.debug('populating committedAt')
@@ -782,44 +784,6 @@ class SyncWatcher extends BaseWatcher {
       bonder: from,
       bondedAt: timestamp
     })
-  }
-
-  async populateTransferRootBonded (transferRootHash: string) {
-    const logger = this.logger.create({ root: transferRootHash })
-    logger.debug('starting populateTransferRootBonded')
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    if (!dbTransferRoot) {
-      logger.error('expected dbTransferRoot')
-      return
-    }
-    const { bonded, destinationChainId, transferRootId } = dbTransferRoot
-    if (bonded) {
-      return
-    }
-    if (!destinationChainId) {
-      return
-    }
-    if (!transferRootId) {
-      logger.error('expected transferRootId')
-      return
-    }
-    logger.debug('checking on-chain bonded status')
-    const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
-    const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    logger.debug(`isBonded: ${isBonded}`)
-    if (!isBonded) {
-      return
-    }
-
-    logger.debug('searching for TransferRootBonded event')
-    const event = await l1Bridge.getTransferRootBondedEvent(transferRootHash)
-    if (!event) {
-      logger.warn('TransferRootBonded event not found. isNotFound: true, dbItem:', JSON.stringify(dbTransferRoot))
-      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
-      return
-    }
-    await this.handleTransferRootBondedEvent(event)
-    await this.populateTransferRootBondedAt(transferRootHash)
   }
 
   async populateTransferRootTimestamp (transferRootHash: string) {
@@ -864,7 +828,7 @@ class SyncWatcher extends BaseWatcher {
     const tree = new MerkleTree(_transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
-      logger.error(
+      logger.warn(
         `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(_transferIds)}`
       )
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
@@ -1128,8 +1092,9 @@ class SyncWatcher extends BaseWatcher {
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
       const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       if (isBonded) {
-        this.logger.debug(`calculateUnbondedTransferRootAmounts transferRootHash: ${transferRootHash} root is bonded. calling populateTransferRootBonded`)
-        await this.populateTransferRootBonded(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        const logger = this.logger.create({ root: transferRootHash })
+        logger.warn('calculateUnbondedTransferRootAmounts already bonded. isNotFound: true')
+        await this.db.transferRoots.update(transferRootHash!, { isNotFound: true }) // eslint-disable-line @typescript-eslint/no-non-null-assertion
         continue
       }
 

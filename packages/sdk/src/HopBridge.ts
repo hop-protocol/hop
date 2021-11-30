@@ -1592,12 +1592,13 @@ class HopBridge extends Base {
     }
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     recipient = getAddress(recipient || (await this.getSignerAddress()))
-    this.checkConnectedChain(this.signer, sourceChain)
     amountOutMin = BigNumber.from((amountOutMin || 0).toString())
-    const l1Bridge = await this.getL1Bridge(this.signer)
     const isNativeToken = this.isNativeToken(sourceChain)
+    let l1Bridge = await this.getL1Bridge(sourceChain.provider)
 
     if (!estimateGasOnly) {
+      this.checkConnectedChain(this.signer, sourceChain)
+      l1Bridge = await this.getL1Bridge(this.signer)
       if (!isNativeToken) {
         const l1Token = this.getL1Token()
         if (approval) {
@@ -1662,9 +1663,8 @@ class HopBridge extends Base {
       (destinationAmountOutMin || 0).toString()
     )
     recipient = getAddress(recipient || (await this.getSignerAddress()))
-    this.checkConnectedChain(this.signer, sourceChain)
-    const ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
-    const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
+    let ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
+    let l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
     const attemptSwap = deadline || destinationDeadline
     const spender = attemptSwap ? ammWrapper.address : l2Bridge.address
 
@@ -1675,6 +1675,9 @@ class HopBridge extends Base {
     const isNativeToken = this.isNativeToken(sourceChain)
 
     if (!estimateGasOnly) {
+      this.checkConnectedChain(this.signer, sourceChain)
+      ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
+      l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
       if (!isNativeToken) {
         const l2CanonicalToken = this.getCanonicalToken(sourceChain)
         if (approval) {
@@ -1763,12 +1766,12 @@ class HopBridge extends Base {
       throw new Error('Amount must be greater than bonder fee')
     }
 
-    this.checkConnectedChain(this.signer, sourceChain)
-    const ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
-
+    let ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
     const isNativeToken = this.isNativeToken(sourceChain)
 
     if (!estimateGasOnly) {
+      this.checkConnectedChain(this.signer, sourceChain)
+      ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
       if (!isNativeToken) {
         const l2CanonicalToken = this.getCanonicalToken(sourceChain)
         if (approval) {
@@ -1807,7 +1810,7 @@ class HopBridge extends Base {
     ]
 
     if (estimateGasOnly) {
-      return ammWrapper.estimateGas.swapAndSend(...txOptions)
+      return ammWrapper.connect(sourceChain.provider).estimateGas.swapAndSend(...txOptions)
     }
 
     return ammWrapper.swapAndSend(...txOptions)
@@ -1879,11 +1882,11 @@ class HopBridge extends Base {
       ]
 
       if (options.estimateGasOnly) {
-        return l1Bridge.estimateGas.sendToL2(...txOptions)
+        return l1Bridge.connect(sourceChain.provider).estimateGas.sendToL2(...txOptions)
       } else if (options.populateTxOnly) {
         const [gasLimit, tx] = await Promise.all([
-          l1Bridge.estimateGas.sendToL2(...txOptions),
-          l1Bridge.populateTransaction.sendToL2(...txOptions)
+          l1Bridge.connect(sourceChain.provider).estimateGas.sendToL2(...txOptions),
+          l1Bridge.connect(sourceChain.provider).populateTransaction.sendToL2(...txOptions)
         ])
         return { gasLimit, ...tx }
       }
@@ -1905,7 +1908,7 @@ class HopBridge extends Base {
       ]
 
       if (options.estimateGasOnly) {
-        return l2Bridge.estimateGas.send(...txOptions)
+        return l2Bridge.connect(sourceChain.provider).estimateGas.send(...txOptions)
       }
       return l2Bridge.send(...txOptions)
     }

@@ -31,6 +31,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
   chainId: number
   apiUrl: string
   polygonMainnetChainId: number = 137
+  maticPOSClient: any
 
   constructor (config: Config) {
     super({
@@ -53,17 +54,23 @@ class PolygonBridgeWatcher extends BaseWatcher {
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === this.polygonMainnetChainId ? 'matic' : 'mumbai'
     }/block-included`
+
+    this.maticPOSClient = new MaticPOSClient({
+      network: this.chainId === this.polygonMainnetChainId ? 'mainnet' : 'testnet',
+      version: this.chainId === this.polygonMainnetChainId ? 'v1' : 'mumbai',
+      maticProvider: new Web3.providers.HttpProvider(
+        this.l2Provider.connection.url
+      ),
+      parentProvider: new Web3.providers.HttpProvider(
+        this.l1Provider.connection.url
+      )
+    })
   }
 
   async start () {
     this.logger.debug(`polygon ${this.tokenSymbol} bridge watcher started`)
     this.started = true
     try {
-      // const l1Wallet = wallets.get(Chain.Ethereum)
-      // const tokenAddress = addresses.DAI.polygon.l2CanonicalToken
-
-      // const l1RootChainAddress = addresses[token][Chain.Polygon].l1PosRootChainManager
-      // const l2TokenAddress = '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1' // dummy erc20
       const l2TokenAddress =
         globalConfig.tokens[this.tokenSymbol][Chain.Polygon]?.l2CanonicalToken
       if (!l2TokenAddress) {
@@ -72,13 +79,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
         )
       }
       const l2Token = new Contract(l2TokenAddress, erc20Abi, this.l2Wallet)
-      /*
-      const l1RootChain = new Contract(
-        l1RootChainAddress,
-        l1PolygonPosRootChainManagerAbi,
-        this.l2Wallet
-      )
-      */
 
       const transactionHashes: any = {}
       l2Token
@@ -139,20 +139,10 @@ class PolygonBridgeWatcher extends BaseWatcher {
   async relayXDomainMessage (txHash: string): Promise<providers.TransactionResponse> {
     const tokenSymbol: string = this.tokenSymbol
     const recipient = await this.l1Wallet.getAddress()
-    const maticPOSClient = new MaticPOSClient({
-      network: this.chainId === this.polygonMainnetChainId ? 'mainnet' : 'testnet',
-      version: this.chainId === this.polygonMainnetChainId ? 'v1' : 'mumbai',
-      maticProvider: new Web3.providers.HttpProvider(
-        this.l2Provider.connection.url
-      ),
-      parentProvider: new Web3.providers.HttpProvider(
-        this.l1Provider.connection.url
-      )
-    })
 
     const rootTunnel =
       globalConfig.tokens[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
-    const tx = await (maticPOSClient as any).posRootChainManager.processReceivedMessage(
+    const tx = await (this.maticPOSClient as any).posRootChainManager.processReceivedMessage(
       rootTunnel,
       txHash,
       {
@@ -171,17 +161,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
 
   async sendTransaction (txHash: string, tokenSymbol: string) {
     const recipient = await this.l1Wallet.getAddress()
-    const maticPOSClient = new MaticPOSClient({
-      network: this.chainId === 1 ? 'mainnet' : 'testnet',
-      version: this.chainId === 1 ? 'v1' : 'mumbai',
-      maticProvider: new Web3.providers.HttpProvider(
-        this.l2Provider.connection.url
-      ),
-      parentProvider: new Web3.providers.HttpProvider(
-        this.l1Provider.connection.url
-      )
-    })
-    const tx = await maticPOSClient.exitERC20(txHash, {
+    const tx = await this.maticPOSClient.exitERC20(txHash, {
       from: recipient,
       encodeAbi: true
     })

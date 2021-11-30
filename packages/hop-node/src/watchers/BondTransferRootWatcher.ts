@@ -106,7 +106,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
     if (isBonded) {
-      logger.warn('checkTransfersCommitted already bonded. item not found.')
+      logger.warn('checkTransfersCommitted already bonded. marking item not found.')
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }

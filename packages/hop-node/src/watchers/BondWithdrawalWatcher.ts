@@ -125,7 +125,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
     logger.debug(`processing bondWithdrawal. isTransferSpent: ${isTransferSpent?.toString()}`)
     if (isTransferSpent) {
-      logger.warn('checkTransferId already bonded. item not found')
+      logger.warn('checkTransferId already bonded. marking item not found')
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }

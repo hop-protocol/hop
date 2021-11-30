@@ -688,14 +688,14 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     if (!sourceChainId) {
-      logger.warn(`populateTransferSentTimestamp item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
+      logger.warn(`populateTransferSentTimestamp marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
     if (!timestamp) {
-      logger.warn(`populateTransferSentTimestamp item not found: timestamp for block number ${transferSentBlockNumber} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
+      logger.warn(`populateTransferSentTimestamp marking item not found: timestamp for block number ${transferSentBlockNumber} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
@@ -720,7 +720,7 @@ class SyncWatcher extends BaseWatcher {
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const tx = await destinationBridge.getTransaction(withdrawalBondedTxHash)
     if (!tx) {
-      logger.warn(`populateTransferWithdrawalBonder item not found: tx object with withdrawalBondedTxHash ${withdrawalBondedTxHash}. dbItem: ${JSON.stringify(dbTransfer)}`)
+      logger.warn(`populateTransferWithdrawalBonder marking item not found: tx object with withdrawalBondedTxHash ${withdrawalBondedTxHash}. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
@@ -745,7 +745,7 @@ class SyncWatcher extends BaseWatcher {
     }
 
     if (!sourceChainId) {
-      logger.warn(`populateTransferRootCommittedAt item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      logger.warn(`populateTransferRootCommittedAt marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransferRoot)}`)
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }
@@ -778,7 +778,7 @@ class SyncWatcher extends BaseWatcher {
     const destinationBridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge
     const tx = await destinationBridge.getTransaction(bondTxHash)
     if (!tx) {
-      logger.warn(`populateTransferRootBondedAt item not found: tx object for transactionHash: ${bondTxHash} on chain: ${Chain.Ethereum}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      logger.warn(`populateTransferRootBondedAt marking item not found: tx object for transactionHash: ${bondTxHash} on chain: ${Chain.Ethereum}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }
@@ -786,7 +786,7 @@ class SyncWatcher extends BaseWatcher {
     const timestamp = await destinationBridge.getBlockTimestamp(bondBlockNumber)
 
     if (!timestamp) {
-      logger.warn(`populateTransferRootBondedAt item not found. timestamp for bondBlockNumber: ${bondBlockNumber}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      logger.warn(`populateTransferRootBondedAt marking item not found. timestamp for bondBlockNumber: ${bondBlockNumber}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }
@@ -816,7 +816,7 @@ class SyncWatcher extends BaseWatcher {
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await destinationBridge.getBlockTimestamp(rootSetBlockNumber)
     if (!timestamp) {
-      logger.warn(`populateTransferRootTimestamp item not found. timestamp for rootSetBlockNumber: ${rootSetBlockNumber}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      logger.warn(`populateTransferRootTimestamp marking item not found. timestamp for rootSetBlockNumber: ${rootSetBlockNumber}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }

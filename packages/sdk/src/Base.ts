@@ -2,6 +2,7 @@ import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
+import { Chain as ChainEnum } from './constants'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
@@ -451,14 +452,8 @@ class Base {
     if (!fees) {
       throw new Error('fee data not found')
     }
-    let feeBps = fees?.L2ToL2
-    if (destinationChain.isL1) {
-      feeBps = fees?.L2ToL1
-    }
-    if (destinationChain.equals(Chain.xDai) && fees?.anyToxDai) {
-      feeBps = fees?.anyToxDai
-    }
 
+    const feeBps: number = fees[destinationChain.slug as ChainEnum]
     return feeBps
   }
 

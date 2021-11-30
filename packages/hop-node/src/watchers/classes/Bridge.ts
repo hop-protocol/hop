@@ -702,10 +702,15 @@ export default class Bridge extends ContractBase {
 
     const minBonderFeeUsd = 0.25
     const tokenDecimals = getTokenDecimals(tokenSymbol)
-    const minBonderFeeAbsolute = parseUnits(
+    let minBonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),
       tokenDecimals
     )
+
+    // add 10% buffer for in the case that the token price materially
+    // changes after the transaction send but before bond
+    const tolerance = 0.10
+    minBonderFeeAbsolute = minBonderFeeAbsolute.sub(minBonderFeeAbsolute.mul(tolerance * 100).div(100))
 
     return minBonderFeeAbsolute
   }
@@ -723,14 +728,7 @@ export default class Bridge extends ContractBase {
       throw new Error(`fee config not found for ${this.tokenSymbol}`)
     }
 
-    let bonderFeeBps = fees.L2ToL2
-    if (destinationChain === Chain.Ethereum) {
-      bonderFeeBps = fees.L2ToL1
-    }
-    if (destinationChain === Chain.xDai && fees.anyToxDai) {
-      bonderFeeBps = fees.anyToxDai
-    }
-
+    const bonderFeeBps = fees[destinationChain]
     const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
     let minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative

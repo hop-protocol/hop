@@ -63,10 +63,13 @@ type MetricsConfig = {
   enabled: boolean
   port?: number
 }
+
 type Bps = {
-  anyToxDai?: number
-  L2ToL1: number
-  L2ToL2: number
+  ethereum: number
+  polygon: number
+  xdai: number
+  optimism: number
+  arbitrum: number
 }
 
 export type Fees = Record<string, Bps>
@@ -131,28 +134,46 @@ export const config: Config = {
   stateUpdateAddress: '',
   fees: {
     USDC: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 18,
+      polygon: 18,
+      xdai: 25,
+      optimism: 18,
+      arbitrum: 18
     },
     USDT: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 25,
+      polygon: 25,
+      xdai: 30,
+      optimism: 25,
+      arbitrum: 25
     },
     DAI: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 25,
+      polygon: 25,
+      xdai: 30,
+      optimism: 25,
+      arbitrum: 25
     },
     MATIC: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 25,
+      polygon: 25,
+      xdai: 30,
+      optimism: 0,
+      arbitrum: 0
     },
     ETH: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 8,
+      polygon: 9,
+      xdai: 18,
+      optimism: 9,
+      arbitrum: 9
     },
     WBTC: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 25,
+      polygon: 25,
+      xdai: 30,
+      optimism: 25,
+      arbitrum: 25
     }
   },
   db: {

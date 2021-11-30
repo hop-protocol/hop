@@ -15,7 +15,7 @@ import { Tokens } from './types'
 export const tokens: Tokens = {
   ETH: {
     symbol: 'ETH',
-    name: 'ETH',
+    name: 'Ethereum',
     decimals: 18,
     image: ETHImage
   },

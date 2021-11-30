@@ -55,13 +55,7 @@ async function sendTokens (
     throw new Error('recipient address is required')
   }
 
-  const isNativeToken = token === 'MATIC' && fromChain === Chain.Polygon
-  let balance: BigNumber
-  if (isNativeToken) {
-    balance = await signer.getBalance()
-  } else {
-    balance = await tokenClass.getBalance()
-  }
+  let balance = await tokenClass.getBalance()
   const label = `${fromChain}.${isHToken ? 'h' : ''}${token}`
   logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
   const parsedAmount = await tokenClass.parseUnits(amount)

@@ -16,7 +16,7 @@ import Network from 'src/models/Network'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    width: '51.6rem',
+    maxWidth: '51.6rem',
     boxSizing: 'border-box',
     [theme.breakpoints.down('xs')]: {
       width: 'auto',

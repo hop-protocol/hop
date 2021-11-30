@@ -13,10 +13,10 @@ export enum MethodNames {
   wrapToken = 'wrapToken',
 }
 
-async function estimateGasCost(signer: TProvider, estimatedGasLimit: BigNumber) {
+async function estimateGasCost(network: Network, estimatedGasLimit: BigNumber) {
   try {
     // Get current gas price
-    const gasPrice = await signer.getGasPrice()
+    const gasPrice = await network.provider.getGasPrice()
     // Add some wiggle room
     const bufferGas = BigNumber.from(70_000)
     return estimatedGasLimit.add(bufferGas).mul(gasPrice)
@@ -26,7 +26,6 @@ async function estimateGasCost(signer: TProvider, estimatedGasLimit: BigNumber) 
 }
 
 export function useNativeTokenMaxValue(selectedNetwork?: Network) {
-  const { checkConnectedNetworkId } = useWeb3Context()
   const { sdk } = useApp()
   const [tx, setTx] = useState<Transaction | null>(null)
 
@@ -39,9 +38,6 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
         return
       }
 
-      const isNetworkConnected = await checkConnectedNetworkId(Number(network.networkId))
-      if (!isNetworkConnected) return
-
       const bridge = sdk.bridge(token.symbol)
 
       const estimatedGasLimit = await bridge.sendHToken('420', network.slug, destNetwork.slug, {
@@ -50,7 +46,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
       })
 
       if (estimatedGasLimit) {
-        let gasCost = await estimateGasCost(token.signer, estimatedGasLimit)
+        let gasCost = await estimateGasCost(network, estimatedGasLimit)
         if (gasCost && network.slug === Chain.Optimism) {
           const { gasLimit, data, to } = await bridge.getSendHTokensEstimatedGas(network.slug, destNetwork.slug)
           const l1FeeInWei = await bridge.getOptimismL1Fee(gasLimit, data, to)
@@ -70,10 +66,6 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
       }
 
       try {
-        // Switch networks
-        const isNetworkConnected = await checkConnectedNetworkId(Number(fromNetwork.networkId))
-        if (!isNetworkConnected) return
-
         const bridge = sdk.bridge(token.symbol)
         // Get estimated gas limit
         const estimatedGasLimit = await bridge.send(
@@ -92,7 +84,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
         )
 
         if (estimatedGasLimit) {
-          let gasCost = await estimateGasCost(token.signer, estimatedGasLimit)
+          let gasCost = await estimateGasCost(fromNetwork, estimatedGasLimit)
           if (gasCost && fromNetwork.slug === Chain.Optimism) {
             const { gasLimit, data, to } = await bridge.getBondWithdrawalEstimatedGas(toNetwork.slug)
             const l1FeeInWei = await bridge.getOptimismL1Fee(gasLimit, data, to)
@@ -115,15 +107,11 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
       }
 
       try {
-        // Switch networks
-        const isNetworkConnected = await checkConnectedNetworkId(Number(network.networkId))
-        if (!isNetworkConnected) return
-
         // Get estimated gas cost
         const estimatedGasLimit = await token.wrapToken(BigNumber.from(10), true)
 
         if (estimatedGasLimit) {
-          let gasCost = await estimateGasCost(token.signer, estimatedGasLimit)
+          let gasCost = await estimateGasCost(network, estimatedGasLimit)
           if (gasCost && network.slug === Chain.Optimism) {
             const { gasLimit, data, to } = await token.getWrapTokenEstimatedGas(network.slug)
             const l1FeeInWei = await token.getOptimismL1Fee(gasLimit, data, to)

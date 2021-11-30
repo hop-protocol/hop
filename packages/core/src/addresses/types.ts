@@ -56,7 +56,6 @@ export type Bridges = {
       l2SaddleLpToken: string
       l1Amb: string
       l2Amb: string
-      canonicalBridgeMaxPerTx: number
       bridgeDeployedBlockNumber: number
     }
   }>

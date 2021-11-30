@@ -120,9 +120,9 @@ class SyncWatcher extends BaseWatcher {
         }
         await this.preSyncHandler()
         await this.syncHandler()
-        this.logger.debug('done syncing pure handlers. index:', this.syncIndex)
+        this.logger.debug(`done syncing pure handlers. index: ${this.syncIndex}`)
         await this.incompletePollSync()
-        this.logger.debug('done syncing incomplete items. index:', this.syncIndex)
+        this.logger.debug(`done syncing incomplete items. index: ${this.syncIndex}`)
         await this.postSyncHandler()
       } catch (err) {
         this.notifier.error(`pollSync error: ${err.message}`)
@@ -688,14 +688,15 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     if (!sourceChainId) {
-      logger.warn('populateTransferSentTimestamp sourceChainId not found. isNotFound: true, dbItem:', JSON.stringify(dbTransfer))
+      logger.warn(`populateTransferSentTimestamp item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
     if (!timestamp) {
-      logger.warn(`timestamp not found for block number ${transferSentBlockNumber} on sourceChainId ${sourceChainId}`)
+      logger.warn(`populateTransferSentTimestamp item not found: timestamp for block number ${transferSentBlockNumber} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
+      await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
     logger.debug(`transferSentTimestamp: ${timestamp}`)
@@ -719,7 +720,8 @@ class SyncWatcher extends BaseWatcher {
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const tx = await destinationBridge.getTransaction(withdrawalBondedTxHash)
     if (!tx) {
-      logger.error(`expected tx object. transferId: ${transferId}`)
+      logger.warn(`populateTransferWithdrawalBonder item not found: tx object with withdrawalBondedTxHash ${withdrawalBondedTxHash}. dbItem: ${JSON.stringify(dbTransfer)}`)
+      await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
     const { from } = tx
@@ -743,13 +745,18 @@ class SyncWatcher extends BaseWatcher {
     }
 
     if (!sourceChainId) {
-      logger.warn('populateTransferRootCommittedAt sourceChainId not found. isNotFound: true, dbItem:', JSON.stringify(dbTransferRoot))
+      logger.warn(`populateTransferRootCommittedAt item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransferRoot)}`)
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }
     logger.debug('populating committedAt')
     const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await sourceBridge.getTransactionTimestamp(commitTxHash)
+    if (!timestamp) {
+      logger.warn(`populateTransferRootCommittedAt item not found. timestamp for commitTxHash: ${commitTxHash}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
+      return
+    }
     logger.debug(`committedAt: ${timestamp}`)
     await this.db.transferRoots.update(transferRootHash, {
       committedAt: timestamp
@@ -771,11 +778,18 @@ class SyncWatcher extends BaseWatcher {
     const destinationBridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge
     const tx = await destinationBridge.getTransaction(bondTxHash)
     if (!tx) {
-      logger.error(`expected tx object. transactionHash: ${bondTxHash} transferRootHash: ${transferRootHash} chain: ${Chain.Ethereum}`)
+      logger.warn(`populateTransferRootBondedAt item not found: tx object for transactionHash: ${bondTxHash} on chain: ${Chain.Ethereum}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }
     const { from } = tx
     const timestamp = await destinationBridge.getBlockTimestamp(bondBlockNumber)
+
+    if (!timestamp) {
+      logger.warn(`populateTransferRootBondedAt item not found. timestamp for bondBlockNumber: ${bondBlockNumber}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
+      return
+    }
 
     logger.debug(`bonder: ${from}`)
     logger.debug(`bondedAt: ${timestamp}`)
@@ -801,6 +815,11 @@ class SyncWatcher extends BaseWatcher {
     }
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
     const timestamp = await destinationBridge.getBlockTimestamp(rootSetBlockNumber)
+    if (!timestamp) {
+      logger.warn(`populateTransferRootTimestamp item not found. timestamp for rootSetBlockNumber: ${rootSetBlockNumber}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
+      return
+    }
     logger.debug(`rootSetTimestamp: ${timestamp}`)
     await this.db.transferRoots.update(transferRootHash, {
       rootSetTimestamp: timestamp
@@ -829,7 +848,7 @@ class SyncWatcher extends BaseWatcher {
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
       logger.warn(
-        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(_transferIds)}`
+        `populateTransferRootTimestamp computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(_transferIds)}`
       )
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
     } else {
@@ -963,9 +982,10 @@ class SyncWatcher extends BaseWatcher {
     const tree = new MerkleTree(transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
-      logger.error(
-        `computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. List: ${JSON.stringify(transferIds)}`
+      logger.warn(
+        `populateTransferRootTransferIds computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(transferIds)}`
       )
+      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }
 

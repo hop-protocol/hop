@@ -1,0 +1,74 @@
+import React, { FC, useEffect, useState, ChangeEvent } from 'react'
+import MuiSlider from '@material-ui/core/Slider'
+import { makeStyles } from '@material-ui/core/styles'
+import Typography from '@material-ui/core/Typography'
+
+const useStyles = makeStyles(() => ({
+  root: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    textAlign: 'center',
+  },
+  title: {
+    marginBottom: '2rem',
+  },
+  amounts: {
+    fontSize: '2rem',
+  },
+  action: {},
+  sendButton: {},
+  sliderContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    marginBottom: '2rem',
+  },
+  slider: {
+    width: '100%',
+    maxWidth: '260px',
+    margin: '0 auto',
+  },
+}))
+
+type SliderProps = {
+  onChange?: (value: number) => void
+}
+
+const Slider: FC<SliderProps> = (props: SliderProps) => {
+  const styles = useStyles()
+  const [value, setValue] = useState<number>(0)
+  const handleChange = (event: any, _value: number | number[]) => {
+    setValue(_value as number)
+  }
+
+  useEffect(() => {
+    if (props.onChange) {
+      props.onChange(value)
+    }
+  }, [value])
+
+  return (
+    <div className={styles.sliderContainer}>
+      <Typography variant="body1" color="textPrimary">
+        Amount
+      </Typography>
+      <Typography variant="h4" color="textPrimary">
+        {value}%
+      </Typography>
+      <div className={styles.slider}>
+        <MuiSlider
+          value={value}
+          valueLabelDisplay="auto"
+          step={1}
+          marks
+          min={0}
+          max={100}
+          onChange={handleChange}
+        />
+      </div>
+    </div>
+  )
+}
+
+export default Slider

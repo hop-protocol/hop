@@ -1810,7 +1810,7 @@ class HopBridge extends Base {
     ]
 
     if (estimateGasOnly) {
-      return ammWrapper.connect(sourceChain.provider).estimateGas.swapAndSend(...txOptions)
+      return ammWrapper.estimateGas.swapAndSend(...txOptions)
     }
 
     return ammWrapper.swapAndSend(...txOptions)
@@ -1865,7 +1865,6 @@ class HopBridge extends Base {
         throw new Error('Bonder fee should be 0 when sending hToken to L2')
       }
 
-      const l1Bridge = await this.getL1Bridge(this.signer)
       const isNativeToken = this.isNativeToken(sourceChain)
       const txOptions = [
         destinationChain.chainId,
@@ -1882,21 +1881,25 @@ class HopBridge extends Base {
       ]
 
       if (options.estimateGasOnly) {
-        return l1Bridge.connect(sourceChain.provider).estimateGas.sendToL2(...txOptions)
+        const l1Bridge = await this.getL1Bridge(sourceChain.provider)
+        return l1Bridge.estimateGas.sendToL2(...txOptions)
       } else if (options.populateTxOnly) {
+        const l1Bridge = await this.getL1Bridge(sourceChain.provider)
         const [gasLimit, tx] = await Promise.all([
-          l1Bridge.connect(sourceChain.provider).estimateGas.sendToL2(...txOptions),
-          l1Bridge.connect(sourceChain.provider).populateTransaction.sendToL2(...txOptions)
+          l1Bridge.estimateGas.sendToL2(...txOptions),
+          l1Bridge.populateTransaction.sendToL2(...txOptions)
         ])
         return { gasLimit, ...tx }
       }
+
+      this.checkConnectedChain(this.signer, sourceChain)
+      const l1Bridge = await this.getL1Bridge(this.signer)
       return l1Bridge.sendToL2(...txOptions)
     } else {
       if (bonderFee.eq(0)) {
         throw new Error('Send at least the minimum Bonder fee')
       }
 
-      const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
       const txOptions = [
         destinationChain.chainId,
         recipient,
@@ -1908,8 +1911,12 @@ class HopBridge extends Base {
       ]
 
       if (options.estimateGasOnly) {
-        return l2Bridge.connect(sourceChain.provider).estimateGas.send(...txOptions)
+        const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
+        return l2Bridge.estimateGas.send(...txOptions)
       }
+
+      const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
+      this.checkConnectedChain(this.signer, sourceChain)
       return l2Bridge.send(...txOptions)
     }
   }

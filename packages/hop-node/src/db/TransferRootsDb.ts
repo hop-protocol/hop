@@ -76,7 +76,8 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     super(prefix, _namespace)
     this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
 
-    this.ready = false
+    this.ready = true
+    this.logger.debug('db ready')
   }
 
   async updateIncompleteItem (item: Partial<TransferRoot>) {

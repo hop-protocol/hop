@@ -1632,9 +1632,13 @@ class HopBridge extends Base {
     ]
 
     if (estimateGasOnly) {
-      return l1Bridge.estimateGas.sendToL2(
-        ...txOptions
-      )
+      try {
+        return l1Bridge.estimateGas.sendToL2(
+          ...txOptions
+        )
+      } catch (error) {
+        throw new Error(error.message)
+      }
     }
 
     return l1Bridge.sendToL2(
@@ -1720,10 +1724,14 @@ class HopBridge extends Base {
       ]
 
       if (estimateGasOnly) {
-        return ammWrapper.estimateGas.swapAndSend(
-          ...txOptions,
-          ...additionalOptions
-        )
+        try {
+          return ammWrapper.estimateGas.swapAndSend(
+            ...txOptions,
+            ...additionalOptions
+          )
+        } catch (error) {
+          throw new Error(error.message)
+        }
       }
 
       return ammWrapper.swapAndSend(
@@ -1810,7 +1818,11 @@ class HopBridge extends Base {
     ]
 
     if (estimateGasOnly) {
-      return ammWrapper.estimateGas.swapAndSend(...txOptions)
+      try {
+        return ammWrapper.estimateGas.swapAndSend(...txOptions)
+      } catch (error) {
+        throw new Error(error.message)
+      }
     }
 
     return ammWrapper.swapAndSend(...txOptions)

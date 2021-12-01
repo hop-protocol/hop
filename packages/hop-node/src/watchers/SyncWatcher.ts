@@ -498,7 +498,7 @@ class SyncWatcher extends BaseWatcher {
     logger.debug('handling TransferRootBonded event')
 
     try {
-      const bondTransferRootId = await this.bridge.getTransferRootId(
+      const bondTransferRootId = this.bridge.getTransferRootId(
         root,
         amount
       )
@@ -538,7 +538,7 @@ class SyncWatcher extends BaseWatcher {
       const { transactionHash, blockNumber } = event
       const sourceChainId = await this.bridge.getChainId()
       const destinationChainId = Number(destinationChainIdBn.toString())
-      const transferRootId = await this.bridge.getTransferRootId(
+      const transferRootId = this.bridge.getTransferRootId(
         transferRootHash,
         totalAmount
       )
@@ -680,7 +680,7 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ id: transferId })
     logger.debug('starting populateTransferSentTimestamp')
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { transferSentTimestamp, transferSentBlockNumber, sourceChainId, destinationChainId } = dbTransfer
+    const { transferSentTimestamp, transferSentBlockNumber, sourceChainId } = dbTransfer
     if (
       !transferSentBlockNumber ||
       transferSentTimestamp
@@ -735,7 +735,7 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('starting populateTransferRootCommittedAt')
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const { sourceChainId, destinationChainId, commitTxHash, committedAt } = dbTransferRoot
+    const { sourceChainId, commitTxHash, committedAt } = dbTransferRoot
 
     if (
       !commitTxHash ||
@@ -767,7 +767,7 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootHash })
     logger.debug('starting populateTransferRootBondedAt')
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const { bondTxHash, bondBlockNumber, bonder, bondedAt, sourceChainId, destinationChainId } = dbTransferRoot
+    const { bondTxHash, bondBlockNumber, bonder, bondedAt } = dbTransferRoot
     if (
       !bondTxHash ||
       (bonder && bondedAt)
@@ -994,7 +994,7 @@ class SyncWatcher extends BaseWatcher {
       JSON.stringify(transferIds)
     )
 
-    const transferRootId = await this.bridge.getTransferRootId(
+    const transferRootId = this.bridge.getTransferRootId(
       transferRootHash,
       totalAmount
     )

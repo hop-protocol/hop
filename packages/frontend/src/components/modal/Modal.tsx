@@ -101,7 +101,12 @@ const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(function Mo
   const styles = useStyles()
   const { events } = useApp()
   const keypress = events?.keypress
-  const handleClose = useCallback(() => {
+  const handleClose = useCallback((event: any) => {
+    // clicking on RaisedSelect component in body seems to exit modal,
+    // so this check prevents it
+    if (!event?.key && event?.target?.tagName !== 'DIV') {
+      return
+    }
     if (onClose) {
       onClose()
     }

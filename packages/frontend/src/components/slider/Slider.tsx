@@ -32,21 +32,27 @@ const useStyles = makeStyles(() => ({
 }))
 
 type SliderProps = {
-  onChange?: (value: number) => void
+  onChange?: (value: number) => void,
+  value?: number
+  defaultValue?: number
 }
 
 const Slider: FC<SliderProps> = (props: SliderProps) => {
   const styles = useStyles()
-  const [value, setValue] = useState<number>(0)
+  const [value, setValue] = useState<number>(props?.defaultValue ?? 0)
   const handleChange = (event: any, _value: number | number[]) => {
     setValue(_value as number)
-  }
-
-  useEffect(() => {
     if (props.onChange) {
       props.onChange(value)
     }
-  }, [value])
+  }
+
+  useEffect(() => {
+    if (typeof props.value === 'number') {
+      const _value = Number(Math.max(0, Math.min(props.value || 0, 100)).toFixed(0))
+      setValue(_value)
+    }
+  }, [props?.value])
 
   return (
     <div className={styles.sliderContainer}>
@@ -71,4 +77,4 @@ const Slider: FC<SliderProps> = (props: SliderProps) => {
   )
 }
 
-export default Slider
+export { Slider }

@@ -1719,7 +1719,8 @@ class HopBridge extends Base {
         destinationDeadline,
         {
           ...(await this.txOverrides(sourceChain)),
-          value: isNativeToken ? amount : undefined
+          value: isNativeToken ? amount : undefined,
+          from: this.getSignerAddress(),
         }
       ]
 
@@ -1813,7 +1814,8 @@ class HopBridge extends Base {
       destinationDeadline,
       {
         ...(await this.txOverrides(sourceChain)),
-        value: isNativeToken ? amount : undefined
+        value: isNativeToken ? amount : undefined,
+        from: this.getSignerAddress(),
       }
     ]
 
@@ -1888,7 +1890,8 @@ class HopBridge extends Base {
         bonderFee,
         {
           ...(await this.txOverrides(Chain.Ethereum)),
-          value: isNativeToken ? tokenAmount : undefined
+          value: isNativeToken ? tokenAmount : undefined,
+          from: this.getSignerAddress(),
         }
       ]
 

@@ -1,7 +1,6 @@
 import React, { useMemo, FC, ChangeEvent } from 'react'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
-import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
@@ -12,62 +11,8 @@ import LargeTextField from 'src/components/LargeTextField'
 import Network from 'src/models/Network'
 import { toTokenDisplay } from 'src/utils'
 import logger from 'src/logger'
-import { useNativeTokenMaxValue } from 'src/hooks'
+import { useAmountSelectorCardStyles, useNativeTokenMaxValue } from 'src/hooks'
 import { NetworkSelector } from 'src/components/NetworkSelector'
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    width: '51.6rem',
-    boxSizing: 'border-box',
-    [theme.breakpoints.down('xs')]: {
-      width: 'auto',
-    },
-  },
-  topRow: {
-    marginBottom: '1.8rem',
-  },
-  networkSelectionBox: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  defaultLabel: {
-    height: '3.8rem',
-    marginLeft: '1.2rem',
-  },
-  networkLabel: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginLeft: '0.4rem',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  networkIconContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    width: '4rem',
-    height: '4rem',
-  },
-  networkIcon: {
-    display: 'flex',
-    height: '2.2rem',
-    margin: '0.7rem',
-  },
-  balance: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  maxButton: {
-    border: 'none',
-    background: '#f8f8f9',
-    borderRadius: '1rem',
-    padding: '0.5rem 1rem',
-    fontSize: '1.2rem',
-    marginRight: '1rem',
-    cursor: 'pointer',
-  },
-}))
 
 type Props = {
   value?: string
@@ -105,7 +50,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
     deadline,
     setWarning,
   } = props
-  const styles = useStyles()
+  const styles = useAmountSelectorCardStyles()
 
   const { estimateSend } = useNativeTokenMaxValue(selectedNetwork)
 

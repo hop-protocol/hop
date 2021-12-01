@@ -2,6 +2,7 @@ import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import MuiButton, { ButtonProps as MuiButtonProps } from '@material-ui/core/Button'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import { isDarkMode } from 'src/theme/theme'
 
 interface StyleProps {
   highlighted: boolean
@@ -25,42 +26,29 @@ const useStyles = makeStyles(theme => ({
     fontSize: large ? '2.2rem' : '1.6rem',
     color: highlighted ? 'white' : theme.palette.text.secondary,
     background: highlighted
-      ? 'linear-gradient(99.85deg, #B32EFF -18.29%, #F2A498 109.86%)'
+      ? theme.bgGradient.main
+      : isDarkMode(theme)
+      ? '#3A3547'
       : flat
       ? '#E2E2E5'
       : 'none',
-    boxShadow: highlighted
-      ? `
-        -10px -10px 30px #FFFFFF,
-        10px 10px 30px rgba(174, 174, 192, 0.4),
-        inset -15px -15px 25px rgba(179, 46, 255, 0.15),
-        inset 15px 15px 25px rgba(179, 46, 255, 0.1)
-      `
-      : flat
-      ? 'none'
-      : `
-        -10px -10px 30px rgba(255, 255, 255, 0.95),
-        10px 10px 30px rgba(174, 174, 192, 0.35)
-      `,
+    boxShadow: highlighted ? theme.boxShadow.button.highlighted : theme.boxShadow.button.default,
     '&:hover': {
       background: highlighted
-        ? 'linear-gradient(99.85deg, #c462fc -18.29%, #f7bdb5 109.86%)'
+        ? theme.bgGradient.main
         : flat
         ? '#E5E6Ea'
         : 'rgba(255, 255, 255, 0.2)',
     },
     '&:disabled': {
-      background: '#e2e2e8',
-      boxShadow: 'none',
+      // background: '#272332',
+      // boxShadow: theme.boxShadow.button.default,
+      // color: 'rgba(102, 96, 119, 0.5)',
     },
   }),
   disabled: {
-    color: '#46525C',
+    color: '#FDF7F9',
     background: 'none',
-    boxShadow: `
-      -10px -10px 30px rgba(255, 255, 255, 0.95),
-      10px 10px 30px rgba(174, 174, 192, 0.35)
-    `,
   },
   spinner: {
     display: 'inline-flex',

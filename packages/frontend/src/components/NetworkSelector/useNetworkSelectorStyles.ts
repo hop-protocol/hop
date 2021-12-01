@@ -6,10 +6,6 @@ export const useNetworkSelectorStyles = makeStyles(theme => ({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  defaultLabel: {
-    height: '3.8rem',
-    marginLeft: '1.2rem',
-  },
   networkLabel: {
     display: 'flex',
     flexDirection: 'row',

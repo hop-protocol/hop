@@ -38,13 +38,13 @@ type DivProps = SpaceProps &
   BackgroundProps &
   ShadowProps &
   PositionProps &
-  DivBaseProps & { cursor?: string; bold?: boolean; id?: string; style?: any }
+  DivBaseProps & { pointer?: boolean; bold?: boolean; id?: string; style?: any }
 
 const Div: React.FC<DivProps> = styled.div`
   box-sizing: border-box;
 
   ${({ bold }: any) => bold && 'font-weight: bold;'}
-  ${({ cursor }: any) => cursor && 'cursor: pointer;'}
+  ${({ pointer }: any) => pointer && 'cursor: pointer;'}
 
   ${space};
   ${color};

@@ -64,8 +64,8 @@ export function fixedDecimals(amount: string, decimals: number = 18) {
   return FixedNumber.from(mdAmount).toString()
 }
 
-export function amountToBN(amount: string, decimals: number = 18) {
-  const fixedAmount = fixedDecimals(amount, decimals)
+export function amountToBN(amount: string | number, decimals: number = 18) {
+  const fixedAmount = fixedDecimals(amount.toString(), decimals)
   return utils.parseUnits(fixedAmount || '0', decimals)
 }
 

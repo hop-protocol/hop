@@ -1,4 +1,5 @@
 import React, { FC, ChangeEvent, useEffect } from 'react'
+import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import find from 'lodash/find'
 import Typography from '@material-ui/core/Typography'
@@ -212,6 +213,8 @@ const Pools: FC = () => {
   const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
 
   const needsTokenForFee = useNeedsTokenForFee(selectedNetwork)
+  const token0DepositedFormatted = token0Deposited ? commafy(Number(formatUnits(token0Deposited, canonicalToken?.decimals)), 5) : ''
+  const token1DepositedFormatted = token1Deposited ? commafy(Number(formatUnits(token1Deposited, hopToken?.decimals)), 5) : ''
 
   useEffect(() => {
     if (needsTokenForFee && selectedNetwork) {
@@ -316,10 +319,10 @@ const Pools: FC = () => {
                 />
               )}
               {token0Deposited && (
-                <DetailRow title={canonicalTokenSymbol} value={`${commafy(token0Deposited, 5)}`} />
+                <DetailRow title={canonicalTokenSymbol} value={token0DepositedFormatted} />
               )}
               {token1Deposited && (
-                <DetailRow title={hopTokenSymbol} value={`${commafy(token1Deposited, 5)}`} />
+                <DetailRow title={hopTokenSymbol} value={token1DepositedFormatted} />
               )}
             </Box>
           )}

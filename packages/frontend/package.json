@@ -115,7 +115,7 @@
     "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
-    "ipfs-deploy": "8.0.1",
+    "ipfs-deploy": "^11.1.0",
     "lerna-sync-version": "0.0.5",
     "prettier-standard": "^16.4.1",
     "rimraf": "^3.0.2",

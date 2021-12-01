@@ -464,6 +464,13 @@ const Send: FC = () => {
     estimatedReceived: estimatedReceivedDisplay
   })
 
+  useEffect(() => {
+    if (tx) {
+      // clear from token input field
+      setFromTokenAmount('')
+    }
+  }, [tx])
+
   // ==============================================================================================
   // User actions
   // - Bridge / Network selection

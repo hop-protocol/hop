@@ -506,23 +506,28 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    // adjustedFee is the fee in the canonical token after adjusting for the hToken price.
-    let adjustedBonderFee = await this.calcFromHTokenAmount(
-      bonderFeeRelative,
-      destinationChain
-    )
+    let totalFee = BigNumber.from(0)
+    let adjustedBonderFee = BigNumber.from(0)
+    let adjustedDestinationTxFee = BigNumber.from(0)
+    if (!sourceChain.isL1) {
+      // adjustedFee is the fee in the canonical token after adjusting for the hToken price.
+      adjustedBonderFee = await this.calcFromHTokenAmount(
+        bonderFeeRelative,
+        destinationChain
+      )
 
-    const adjustedDestinationTxFee = await this.calcFromHTokenAmount(
-      destinationTxFee,
-      destinationChain
-    )
+      adjustedDestinationTxFee = await this.calcFromHTokenAmount(
+        destinationTxFee,
+        destinationChain
+      )
 
-    // enforce bonderFeeAbsolute after adjustment
-    const bonderFeeAbsolute = await this.getBonderFeeAbsolute()
-    adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute)
-      ? adjustedBonderFee
-      : bonderFeeAbsolute
-    const totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
+      // enforce bonderFeeAbsolute after adjustment
+      const bonderFeeAbsolute = await this.getBonderFeeAbsolute()
+      adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute)
+        ? adjustedBonderFee
+        : bonderFeeAbsolute
+      totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
+    }
 
     const sourceToken = this.getCanonicalToken(sourceChain)
     const destToken = this.getCanonicalToken(destinationChain)
@@ -1845,10 +1850,10 @@ class HopBridge extends Base {
       throw new Error('Invalid sendHTokenHandler option')
     }
 
-    let bonderFee = BigNumber.from(0)
+    let defaultBonderFee = BigNumber.from(0)
     if (!sourceChain.isL1) {
       const deadline = 0
-      bonderFee = await this.getTotalFee(
+      defaultBonderFee = await this.getTotalFee(
         tokenAmount,
         sourceChain,
         destinationChain,
@@ -1859,9 +1864,9 @@ class HopBridge extends Base {
     const recipient = getAddress(
       options?.recipient ?? (await this.getSignerAddress())
     )
-    bonderFee = options?.bonderFee
+    const bonderFee = options?.bonderFee
       ? BigNumber.from(options?.bonderFee)
-      : bonderFee
+      : defaultBonderFee
     const amountOutMin = BigNumber.from(0)
     const deadline = BigNumber.from(0)
     const relayer = ethers.constants.AddressZero

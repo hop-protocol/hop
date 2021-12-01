@@ -94,8 +94,6 @@ const invalidTransferIds: Record<string, boolean> = {
   '0x4c131e7af19d7dd1bc8ffe8e937ff8fcdb99bb1f09cc2e041f031e8c48d4d275': true,
   '0x372607f93258c73eb9a7e3298bede2a317ec66708ee542fd9772fae18808b980': true,
   '0xcfd09fc9dca36047347ee31e7580b43071b8ee4aacd7394e46037b10c40d3f98': true,
-  // Unexpected data (old DBs only)
-  '0x99b304c55afc0b56456dc4999913bafff224080b8a3bbe0e5a04aaf1eedf76b6': true,
   // Optimism pre-regenesis txs
   '0xb892e1a324dd0a550f9cc392f5b4cb6b16e091fd5a6124ff6cde14e2ebc4f652': true,
   '0x1878084f881676ca5ec4e50a7b2a9a99e32349c6ca825357c3e3ac350cddb1f1': true,
@@ -115,7 +113,9 @@ const invalidTransferIds: Record<string, boolean> = {
   '0xd799fb93f8894985e2d9f0fb782d2388ca09ec70e5cde256b21a506696f7bee0': true,
   '0x7103275350d3774aa0f6db2c0fc5dbc83d322b05bcf75216169aa58cfd491aad': true,
   '0x9cf4b8b99a21104fde99cdf30b413ec300fddb61bd1dc525f9b65e8bda80e25f': true,
-  '0x4adf2dc4542b8b4f1c9066143c1d76ef12b728e9f92500256756b2bd300275fc': true
+  '0x4adf2dc4542b8b4f1c9066143c1d76ef12b728e9f92500256756b2bd300275fc': true,
+  // Other
+  '0x99b304c55afc0b56456dc4999913bafff224080b8a3bbe0e5a04aaf1eedf76b6': true
 }
 
 class TransfersDb extends TimestampedKeysDb<Transfer> {

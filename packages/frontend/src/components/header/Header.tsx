@@ -7,21 +7,27 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import HeaderRoutes from 'src/components/header/HeaderRoutes'
 import TxPill from 'src/components/header/TxPill'
-import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
+import HopLogoBlack from 'src/assets/logos/hop-logo-black.svg'
+import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
 import { isMainnet } from 'src/config'
 import Settings from 'src/pages/Send/Settings'
 import WalletWarning from './WalletWarning'
-import { toTokenDisplay, networkIdToName, networkIdNativeTokenSymbol, networkIdToSlug } from 'src/utils'
+import {
+  toTokenDisplay,
+  networkIdToName,
+  networkIdNativeTokenSymbol,
+  networkIdToSlug,
+} from 'src/utils'
 import { findNetworkBySlug } from 'src/utils/networks'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
-import {
-  useInterval
-} from 'src/hooks'
+import { useInterval } from 'src/hooks'
+import { useThemeMode } from 'src/theme/ThemeProvider'
+import { isDarkMode } from 'src/theme/theme'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
-    minHeight: '10.0rem',
+    minHeight: '8rem',
     padding: '0 4.2rem',
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
@@ -34,7 +40,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   hopLogo: {
     marginTop: '-1.0rem',
-    width: '19.1rem',
+    width: '8.2rem',
   },
   label: {
     fontSize: '1rem',
@@ -51,24 +57,25 @@ const useStyles = makeStyles((theme: Theme) => ({
     borderRadius: '3rem',
     marginRight: '1rem',
     padding: '0.4rem 2rem',
-    boxShadow: 'rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset',
-    color: theme.palette.text.secondary
+    boxShadow:
+      'rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset',
+    color: theme.palette.text.secondary,
   },
   balance: {
     fontWeight: 'bold',
     fontSize: '1.5rem',
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap',
   },
   network: {
     fontSize: '1.4rem',
     display: 'flex',
     justifyContent: 'center',
-    alignContent: 'center'
+    alignContent: 'center',
   },
   image: {
     marginRight: '0.5rem',
-    width: '16px'
-  }
+    width: '16px',
+  },
 }))
 
 const Header: FC = () => {
@@ -106,6 +113,7 @@ const Header: FC = () => {
   }, 5 * 1000)
 
   const showBalance = !!displayBalance && !!connectedNetwork
+  const { mode } = useThemeMode()
 
   return (
     <>
@@ -113,7 +121,11 @@ const Header: FC = () => {
         <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-start">
           <Link to="/">
             <h1 className={styles.title}>
-              <img className={styles.hopLogo} src={HopLogoFullColor} alt="Hop" />
+              <img
+                className={styles.hopLogo}
+                src={isDarkMode(mode) ? HopLogoWhite : HopLogoBlack}
+                alt="Hop"
+              />
               {!isMainnet ? <span className={styles.label}>{l1Network?.name}</span> : null}
             </h1>
           </Link>
@@ -123,7 +135,7 @@ const Header: FC = () => {
         </Box>
         <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-end">
           <Settings />
-          {showBalance &&
+          {showBalance && (
             <div className={styles.balancePill}>
               <div className={styles.balance}>{displayBalance}</div>
               <div className={styles.network}>
@@ -131,7 +143,7 @@ const Header: FC = () => {
                 {connectedNetwork?.name}
               </div>
             </div>
-          }
+          )}
           {address ? (
             <TxPill />
           ) : (

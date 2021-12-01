@@ -35,7 +35,7 @@ import {
   useQueryParams,
   useNeedsTokenForFee,
   useBalance,
-  useNativeTokenMaxValue
+  useNativeTokenMaxValue,
 } from 'src/hooks'
 
 const Send: FC = () => {
@@ -65,7 +65,9 @@ const Send: FC = () => {
   const [noLiquidityWarning, setNoLiquidityWarning] = useState<any>(null)
   const [needsNativeTokenWarning, setNeedsNativeTokenWarning] = useState<string>()
   const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
-  const [insufficientFundsWarning, setInsufficientFundsWarning] = useState<string | null | undefined>(null)
+  const [insufficientFundsWarning, setInsufficientFundsWarning] = useState<
+    string | null | undefined
+  >(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
@@ -173,7 +175,9 @@ const Send: FC = () => {
     const update = async () => {
       let warning = ''
       try {
-        if (!(sourceToken && fromNetwork && toNetwork && deadline && fromTokenAmountBN && fromBalance)) {
+        if (
+          !(sourceToken && fromNetwork && toNetwork && deadline && fromTokenAmountBN && fromBalance)
+        ) {
           return
         }
         const bridge = sdk.bridge(sourceToken.symbol)
@@ -325,7 +329,7 @@ const Send: FC = () => {
     enoughBalance,
     estimatedReceived,
     priceImpact,
-    insufficientFundsWarning
+    insufficientFundsWarning,
   ])
 
   useEffect(() => {
@@ -461,7 +465,7 @@ const Send: FC = () => {
     toNetwork,
     txConfirm,
     txHistory,
-    estimatedReceived: estimatedReceivedDisplay
+    estimatedReceived: estimatedReceivedDisplay,
   })
 
   useEffect(() => {
@@ -595,9 +599,9 @@ const Send: FC = () => {
         setWarning={setWarning}
       />
 
-      <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>
+      <Flex justifyCenter alignCenter my={2} onClick={handleSwitchDirection} pointer hover>
         <ArrowDownIcon color="primary" className={styles.downArrow} />
-      </MuiButton>
+      </Flex>
 
       <SendAmountSelectorCard
         value={toTokenAmount}
@@ -623,20 +627,20 @@ const Send: FC = () => {
           {totalBonderFee?.gt(0) && (
             <div
               style={{
-                marginBottom: '1rem'
+                marginBottom: '1rem',
               }}
             >
-            <DetailRow
-              title={'Fees'}
-              tooltip={
-                <FeeDetails
-                  bonderFee={bonderFeeDisplay}
-                  destinationTxFee={destinationTxFeeDisplay}
-                />
-              }
-              value={totalBonderFeeDisplay}
-              large
-            />
+              <DetailRow
+                title={'Fees'}
+                tooltip={
+                  <FeeDetails
+                    bonderFee={bonderFeeDisplay}
+                    destinationTxFee={destinationTxFeeDisplay}
+                  />
+                }
+                value={totalBonderFeeDisplay}
+                large
+              />
             </div>
           )}
           <DetailRow

@@ -3,6 +3,7 @@ import { Box, MenuItem, Typography } from '@material-ui/core'
 import { useApp } from 'src/contexts/AppContext'
 import FlatSelect from '../selects/FlatSelect'
 import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'
+import { Flex, Text } from '../ui'
 
 function NetworkSelector({ network, setNetwork }) {
   const { networks } = useApp()
@@ -16,11 +17,17 @@ function NetworkSelector({ network, setNetwork }) {
   return (
     <FlatSelect value={network?.slug || 'default'} onChange={selectNetwork}>
       <MenuItem value="default">
-        <Box display="flex" flexDirection="row" alignItems="center" className={styles.defaultLabel}>
-          <Typography variant="subtitle2" className={styles.networkLabel}>
+        <Flex alignCenter height="3.8rem" pl="1.2rem">
+          <Text
+            fontSize="1.6rem"
+            fontWeight={700}
+            ml=".4rem"
+            overflow="hidden"
+            textOverflow="ellipsis"
+          >
             Select Network
-          </Typography>
-        </Box>
+          </Text>
+        </Flex>
       </MenuItem>
 
       {networks.map(network => (

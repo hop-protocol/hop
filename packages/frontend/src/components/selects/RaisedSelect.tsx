@@ -22,12 +22,7 @@ const useStyles = makeStyles(theme => ({
       borderRadius: '2.3rem',
       backgroundColor: theme.palette.background.paper,
     },
-    boxShadow: `
-      6px 6px 12px rgba(174, 174, 192, 0.3),
-      -5px -5px 12px #FFFFFF,
-      inset 6px 6px 12px rgba(174, 174, 192, 0.08),
-      inset -5px -5px 12px rgba(255, 255, 255, 0.02)
-    `,
+    boxShadow: theme.boxShadow.select,
   },
   selectMenu: {
     paddingRight: '4.8rem',

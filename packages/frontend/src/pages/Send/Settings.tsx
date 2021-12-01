@@ -5,11 +5,17 @@ import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import Popover from '@material-ui/core/Popover'
 import SettingsIcon from '@material-ui/icons/Settings'
+import SunIcon from '@material-ui/icons/Brightness5'
+import MoonIcon from '@material-ui/icons/Brightness2'
+// import SunIcon from 'src/assets/sun-icon.svg'
+// import MoonIcon from 'src/assets/moon-icon.svg'
 import { useApp } from 'src/contexts/AppContext'
 import SmallTextField from 'src/components/SmallTextField'
 import InfoTooltip from 'src/components/infoTooltip'
 import Alert from 'src/components/alert/Alert'
 import { sanitizeNumericalString } from 'src/utils'
+import { useThemeMode } from 'src/theme/ThemeProvider'
+import { isDarkMode } from 'src/theme/theme'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -55,6 +61,7 @@ const Settings: FC = () => {
   const styles = useStyles()
   const [open, setOpen] = useState<boolean>(false)
   const { settings } = useApp()
+  const { mode, toggleMode } = useThemeMode()
   const { slippageTolerance, setSlippageTolerance, deadlineMinutes, setDeadlineMinutes } = settings
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
   const handleClick = (event: any) => {
@@ -97,8 +104,13 @@ const Settings: FC = () => {
 
   const deadlineError = Number(deadlineMinutes) < 10
 
+  const ThemeModeIcon = isDarkMode(mode) ? SunIcon : MoonIcon
+
   return (
     <div className={styles.root}>
+      <IconButton onClick={toggleMode} color="primary">
+        <ThemeModeIcon />
+      </IconButton>
       <IconButton onClick={handleClick} color="secondary">
         <SettingsIcon className={styles.settingsIcon} />
       </IconButton>

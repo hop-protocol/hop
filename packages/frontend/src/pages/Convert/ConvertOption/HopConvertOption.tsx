@@ -37,6 +37,10 @@ class HopConvertOption extends ConvertOption {
       bonderFee = getBonderFeeWithId(BigNumber.from(bonderFee))
     }
 
+    if (sourceNetwork.isLayer1) {
+      bonderFee = BigNumber.from(0)
+    }
+
     return bridge.sendHToken(amountIn, sourceNetwork.slug, destNetwork.slug, {
       bonderFee
     })
@@ -173,7 +177,7 @@ class HopConvertOption extends ConvertOption {
         {totalFees.gt(0) && (
           <DetailRow
             title="L1 Transaction Fee"
-            tooltip="This fee covers the L1 transaction fee paid by the Bonder."
+            tooltip="This fee covers the L1 transaction fee paid by the Bonder when sending to L1."
             value={feeDisplay}
             large
           />

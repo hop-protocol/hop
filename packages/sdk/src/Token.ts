@@ -253,7 +253,9 @@ class Token extends Base {
     const contract = await this.getWethContract(this.chain)
     if (estimateGasOnly) {
       return contract.connect(this.chain.provider).estimateGas.deposit({
-        value: amount
+        value: amount,
+        // a `from` address is required if using only provider (not signer)
+        from: this.getBonderAddress(this._symbol)
       })
     }
     return contract.deposit({
@@ -272,12 +274,16 @@ class Token extends Base {
     chain = this.toChainModel(chain)
     const amount = BigNumber.from(1)
     const contract = await this.getWethContract(chain)
+    // a `from` address is required if using only provider (not signer)
+    const from = this.getBonderAddress(this._symbol)
     const [gasLimit, tx] = await Promise.all([
       contract.connect(this.chain.provider).estimateGas.deposit({
-        value: amount
+        value: amount,
+        from
       }),
       contract.connect(this.chain.provider).populateTransaction.deposit({
-        value: amount
+        value: amount,
+        from
       })
     ])
 

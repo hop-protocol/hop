@@ -44,8 +44,8 @@ export type Transfer = {
   isNotFound?: boolean
 }
 
-// these transfer ids are in weird state due to arbitrum forked node
 const invalidTransferIds: Record<string, boolean> = {
+  // Arbitrum forked node
   '0x8395ab39248878d5defddff3df327b77799edd01f028ba62e16bedd1f372015b': true,
   '0xa92c1740f4ab054cdc09f6e77d232ab2c728bbf1c073cafe708cb7fa9df6526e': true,
   '0x73a5569c26af5b6d4f3f258a22097b7e3721fa77e3ba32d3c596ca9b08b8ab46': true,
@@ -93,7 +93,29 @@ const invalidTransferIds: Record<string, boolean> = {
   '0xd9bc333371cf9f57c9b0b7c9981754d9909124ca47a6083b80a7e6d65b48f9c9': true,
   '0x4c131e7af19d7dd1bc8ffe8e937ff8fcdb99bb1f09cc2e041f031e8c48d4d275': true,
   '0x372607f93258c73eb9a7e3298bede2a317ec66708ee542fd9772fae18808b980': true,
-  '0xcfd09fc9dca36047347ee31e7580b43071b8ee4aacd7394e46037b10c40d3f98': true
+  '0xcfd09fc9dca36047347ee31e7580b43071b8ee4aacd7394e46037b10c40d3f98': true,
+  // Unexpected data (old DBs only)
+  '0x99b304c55afc0b56456dc4999913bafff224080b8a3bbe0e5a04aaf1eedf76b6': true,
+  // Optimism pre-regenesis txs
+  '0xb892e1a324dd0a550f9cc392f5b4cb6b16e091fd5a6124ff6cde14e2ebc4f652': true,
+  '0x1878084f881676ca5ec4e50a7b2a9a99e32349c6ca825357c3e3ac350cddb1f1': true,
+  '0x3bc50e322e6b60cab24dfd15c2d224cbaf9d2d6c230c32d9ec9ab25f9fc2a65c': true,
+  '0x169e4f5c9e54f360a8f5123dbd5d5aea9df1cc3d25c16ceb6cc7661e3a57ed53': true,
+  '0xc25f176eeb34f40d401905c82babb0666375e076095598ddbd1d69e5be66696e': true,
+  '0x23ee642f2f61599ce005ef7c9eb2f7df884e87df2f03fcb6bd42b054d4e30fe7': true,
+  '0xb0a0cd11ea3aebb4db73dfd5be0978e379b3b4a5329a901e153dce0472407ca8': true,
+  '0x0bf1d20b89552ea1734fa81731c5d6f22fb88d3ef00ede5aed5b0abcc81d5632': true,
+  '0xd256d5506ecba8af6026521a599f22ca62c356627d5eda171c4cacff246cb881': true,
+  '0xe594cae78b79c6e2864afeb4c5cc36310e00fcec1abb0931801f3eabcda4b8b8': true,
+  '0x21524e577c812c34ea4f10bc3d1a3143182ab12059fd30f54bc2fc4669700201': true,
+  '0x70874af0612759a0eaaec2d50e8b09b4d138a1b3aa1e612583de649af8f9bf1a': true,
+  '0x0310840bd6e2b4640b838aa11fd0197ed8becdab15300379219d3783848f5174': true,
+  '0x35e3c87c77ff63f350b5a2f5f661796e203e939f8ab070e9833e1e568869b2e0': true,
+  '0x936d481834e26dffb1757b6cf8de024bccc7fa6caef7e3dbe3618387c96639a7': true,
+  '0xd799fb93f8894985e2d9f0fb782d2388ca09ec70e5cde256b21a506696f7bee0': true,
+  '0x7103275350d3774aa0f6db2c0fc5dbc83d322b05bcf75216169aa58cfd491aad': true,
+  '0x9cf4b8b99a21104fde99cdf30b413ec300fddb61bd1dc525f9b65e8bda80e25f': true,
+  '0x4adf2dc4542b8b4f1c9066143c1d76ef12b728e9f92500256756b2bd300275fc': true
 }
 
 class TransfersDb extends TimestampedKeysDb<Transfer> {
@@ -103,36 +125,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     super(prefix, _namespace)
     this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
 
-    this.ready = false
-    this.migrations()
-      .then(() => {
-        this.ready = true
-        this.logger.debug('db ready')
-      })
-      .catch(this.logger.error)
-  }
-
-  async migrations () {
-    // this only needs to be ran once on start up to backfill keys.
-    // this function can be removed once all bonders update.
-    this.trackIncompleteItems()
-      .then(() => {
-        this.ready = true
-        this.logger.debug('db ready')
-      })
-      .catch(this.logger.error)
-  }
-
-  async trackIncompleteItems () {
-    const kv = await this.getKeyValues()
-    for (const { key, value } of kv) {
-      // backfill items with missing transferId
-      if (!value.transferId) {
-        value.transferId = key
-        await this._update(key, value)
-      }
-      await this.updateIncompleteItem(value)
-    }
+    this.ready = true
+    this.logger.debug('db ready')
   }
 
   async updateIncompleteItem (item: Partial<Transfer>) {
@@ -351,6 +345,11 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
         }
       }
 
+      const shouldIgnoreItem = this.isInvalidOrNotFound(item)
+      if (shouldIgnoreItem) {
+        return false
+      }
+
       let timestampOk = true
       if (item.bondWithdrawalAttemptedAt) {
         if (TxError.BonderFeeTooLow === item.withdrawalBondTxError) {
@@ -399,12 +398,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       return false
     }
 
-    // skip any items that cannot be found on-chain
-    // if (item.isNotFound) {
-    // return false
-    // }
-
-    if (invalidTransferIds[item.transferId]) {
+    const shouldIgnoreItem = this.isInvalidOrNotFound(item)
+    if (shouldIgnoreItem) {
       return false
     }
 
@@ -437,8 +432,19 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
         }
       }
 
+      const shouldIgnoreItem = this.isInvalidOrNotFound(item)
+      if (shouldIgnoreItem) {
+        return false
+      }
+
       return this.isItemIncomplete(item)
     })
+  }
+
+  isInvalidOrNotFound (item: Partial<Transfer>) {
+    const isNotFound = item?.isNotFound
+    const isInvalid = invalidTransferIds[item.transferId!] // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
   }
 }
 

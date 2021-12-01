@@ -92,6 +92,16 @@ type RemoveLiquidityOptions = {
   deadline: BigNumberish
 }
 
+type RemoveLiquidityOneTokenOptions = {
+  amountMin: TAmount
+  deadline: BigNumberish
+}
+
+type RemoveLiquidityImbalanceOptions = {
+  maxBurnAmount: TAmount
+  deadline: BigNumberish
+}
+
 /**
  * Class representing Hop bridge.
  * @namespace HopBridge
@@ -1326,6 +1336,58 @@ class HopBridge extends Base {
     )
   }
 
+  public async removeLiquidityOneToken (
+    lpTokenAmount: TAmount,
+    tokenIndex: number,
+    chain?: TChain,
+    options: Partial<RemoveLiquidityOneTokenOptions> = {}
+  ) {
+    if (!chain) {
+      chain = this.sourceChain
+    }
+    chain = this.toChainModel(chain)
+    const amm = new AMM(
+      this.network,
+      this.tokenSymbol,
+      chain,
+      this.signer,
+      this.chainProviders
+    )
+    const deadline = this.defaultDeadlineSeconds
+    return amm.removeLiquidityOneToken(
+      lpTokenAmount,
+      tokenIndex,
+      options?.amountMin,
+      options?.deadline
+    )
+  }
+
+  public async removeLiquidityImbalance (
+    token0Amount: TAmount,
+    token1Amount: TAmount,
+    chain?: TChain,
+    options: Partial<RemoveLiquidityImbalanceOptions> = {}
+  ) {
+    if (!chain) {
+      chain = this.sourceChain
+    }
+    chain = this.toChainModel(chain)
+    const amm = new AMM(
+      this.network,
+      this.tokenSymbol,
+      chain,
+      this.signer,
+      this.chainProviders
+    )
+    const deadline = this.defaultDeadlineSeconds
+    return amm.removeLiquidityImbalance(
+      token0Amount,
+      token1Amount,
+      options?.maxBurnAmount,
+      options?.deadline
+    )
+  }
+
   /**
    * @desc Returns the connected signer address.
    * @returns {String} Ethers signer address
@@ -1530,12 +1592,13 @@ class HopBridge extends Base {
     }
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     recipient = getAddress(recipient || (await this.getSignerAddress()))
-    this.checkConnectedChain(this.signer, sourceChain)
     amountOutMin = BigNumber.from((amountOutMin || 0).toString())
-    const l1Bridge = await this.getL1Bridge(this.signer)
     const isNativeToken = this.isNativeToken(sourceChain)
+    let l1Bridge = await this.getL1Bridge(sourceChain.provider)
 
     if (!estimateGasOnly) {
+      this.checkConnectedChain(this.signer, sourceChain)
+      l1Bridge = await this.getL1Bridge(this.signer)
       if (!isNativeToken) {
         const l1Token = this.getL1Token()
         if (approval) {
@@ -1600,9 +1663,8 @@ class HopBridge extends Base {
       (destinationAmountOutMin || 0).toString()
     )
     recipient = getAddress(recipient || (await this.getSignerAddress()))
-    this.checkConnectedChain(this.signer, sourceChain)
-    const ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
-    const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
+    let ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
+    let l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
     const attemptSwap = deadline || destinationDeadline
     const spender = attemptSwap ? ammWrapper.address : l2Bridge.address
 
@@ -1613,6 +1675,9 @@ class HopBridge extends Base {
     const isNativeToken = this.isNativeToken(sourceChain)
 
     if (!estimateGasOnly) {
+      this.checkConnectedChain(this.signer, sourceChain)
+      ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
+      l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
       if (!isNativeToken) {
         const l2CanonicalToken = this.getCanonicalToken(sourceChain)
         if (approval) {
@@ -1701,12 +1766,12 @@ class HopBridge extends Base {
       throw new Error('Amount must be greater than bonder fee')
     }
 
-    this.checkConnectedChain(this.signer, sourceChain)
-    const ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
-
+    let ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
     const isNativeToken = this.isNativeToken(sourceChain)
 
     if (!estimateGasOnly) {
+      this.checkConnectedChain(this.signer, sourceChain)
+      ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
       if (!isNativeToken) {
         const l2CanonicalToken = this.getCanonicalToken(sourceChain)
         if (approval) {
@@ -1800,7 +1865,6 @@ class HopBridge extends Base {
         throw new Error('Bonder fee should be 0 when sending hToken to L2')
       }
 
-      const l1Bridge = await this.getL1Bridge(this.signer)
       const isNativeToken = this.isNativeToken(sourceChain)
       const txOptions = [
         destinationChain.chainId,
@@ -1817,21 +1881,25 @@ class HopBridge extends Base {
       ]
 
       if (options.estimateGasOnly) {
+        const l1Bridge = await this.getL1Bridge(sourceChain.provider)
         return l1Bridge.estimateGas.sendToL2(...txOptions)
       } else if (options.populateTxOnly) {
+        const l1Bridge = await this.getL1Bridge(sourceChain.provider)
         const [gasLimit, tx] = await Promise.all([
           l1Bridge.estimateGas.sendToL2(...txOptions),
           l1Bridge.populateTransaction.sendToL2(...txOptions)
         ])
         return { gasLimit, ...tx }
       }
+
+      this.checkConnectedChain(this.signer, sourceChain)
+      const l1Bridge = await this.getL1Bridge(this.signer)
       return l1Bridge.sendToL2(...txOptions)
     } else {
       if (bonderFee.eq(0)) {
         throw new Error('Send at least the minimum Bonder fee')
       }
 
-      const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
       const txOptions = [
         destinationChain.chainId,
         recipient,
@@ -1843,8 +1911,12 @@ class HopBridge extends Base {
       ]
 
       if (options.estimateGasOnly) {
+        const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
         return l2Bridge.estimateGas.send(...txOptions)
       }
+
+      const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
+      this.checkConnectedChain(this.signer, sourceChain)
       return l2Bridge.send(...txOptions)
     }
   }

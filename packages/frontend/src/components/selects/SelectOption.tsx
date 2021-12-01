@@ -42,17 +42,19 @@ const SelectOption: FC<Props> = props => {
   const styles = useStyles()
   const { label, icon } = props
 
-  if (!icon) {
+  if (!(icon || label)) {
     return null
   }
 
   return (
     <div className={styles.root}>
+      {icon &&
       <ListItemIcon className={styles.listItemIcon}>
         <Icon className={styles.icon}>
           <img src={icon} className={styles.image} alt="" />
         </Icon>
       </ListItemIcon>
+      }
       {label && (
         <Typography component="span" variant="h6">
           {label}

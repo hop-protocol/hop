@@ -125,8 +125,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
     logger.debug(`processing bondWithdrawal. isTransferSpent: ${isTransferSpent?.toString()}`)
     if (isTransferSpent) {
-      logger.warn('transfer already bonded. Adding to db and skipping')
-      await this.handleTransferSpentTx(transferId, destBridge)
+      logger.warn('checkTransferId already bonded. marking item not found')
+      await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
 
@@ -348,75 +348,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
   getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
     const availableCredit = this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
     return availableCredit
-  }
-
-  async handleTransferSpentTx (transferId: string, destBridge: any): Promise<void> {
-    const logger: Logger = this.logger.create({ id: transferId })
-    let didFindEvent = await this.checkBondedWithdrawalEvent(transferId, destBridge)
-    if (didFindEvent) {
-      logger.debug('bondWithdrawal event found')
-      return
-    }
-
-    didFindEvent = await this.checkWithdrewEvent(transferId, destBridge)
-    if (didFindEvent) {
-      logger.debug('withdrew event found')
-      return
-    }
-
-    logger.warn('no transfer spent event found')
-  }
-
-  async checkBondedWithdrawalEvent (transferId: string, destBridge: any): Promise<boolean> {
-    const logger: Logger = this.logger.create({ id: transferId })
-    const event = await destBridge.getBondedWithdrawalEvent(transferId)
-    if (event) {
-      const { transactionHash } = event
-      const { from: sender } = await destBridge.getTransaction(transactionHash)
-
-      logger.debug('handling missed WithdrawalBonded event')
-      logger.debug('transferId:', transferId)
-      logger.debug('bonder:', sender)
-
-      await this.db.transfers.update(transferId, {
-        isBondable: true,
-        withdrawalBonded: true,
-        withdrawalBonder: sender,
-        isTransferSpent: true,
-        transferSpentTxHash: transactionHash
-      })
-      return true
-    }
-    return false
-  }
-
-  async checkWithdrewEvent (transferId: string, destBridge: any): Promise<boolean> {
-    const logger: Logger = this.logger.create({ id: transferId })
-    const event = await destBridge.getWithdrewEvent(transferId)
-    if (event) {
-      const {
-        transferId,
-        recipient,
-        amount,
-        transferNonce
-      } = event.args
-      const { transactionHash } = event
-
-      logger.debug('handling missed Withdrew event')
-      logger.debug('transferId:', transferId)
-      logger.debug('transactionHash:', transactionHash)
-      logger.debug('recipient:', recipient)
-      logger.debug('amount:', amount)
-      logger.debug('transferNonce:', transferNonce)
-
-      await this.db.transfers.update(transferId, {
-        isTransferSpent: true,
-        transferSpentTxHash: transactionHash,
-        isBondable: false
-      })
-      return true
-    }
-    return false
   }
 }
 

@@ -14,7 +14,7 @@ const useEvents = (): Events => {
   useEffect(() => {
     const cb = (event: any) => {
       if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
-        keypress.emit('escape')
+        keypress.emit('escape', event)
       }
     }
 

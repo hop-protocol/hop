@@ -51,8 +51,8 @@ type PoolsContextProps = {
   userPoolBalance: BigNumber | undefined
   userPoolBalanceFormatted: string | undefined
   userPoolTokenPercentage: string | undefined
-  token0Deposited: string | undefined
-  token1Deposited: string | undefined
+  token0Deposited: BigNumber | undefined
+  token1Deposited: BigNumber | undefined
   canonicalBalance: BigNumber | undefined
   hopBalance: BigNumber | undefined
   loadingCanonicalBalance: boolean
@@ -135,8 +135,8 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [userPoolBalance, setUserPoolBalance] = useState<BigNumber>()
   const [userPoolBalanceFormatted, setUserPoolBalanceFormatted] = useState<string>()
   const [userPoolTokenPercentage, setUserPoolTokenPercentage] = useState<string>('')
-  const [token0Deposited, setToken0Deposited] = useState<string>('')
-  const [token1Deposited, setToken1Deposited] = useState<string>('')
+  const [token0Deposited, setToken0Deposited] = useState<BigNumber | undefined>()
+  const [token1Deposited, setToken1Deposited] = useState<BigNumber | undefined>()
   const [apr, setApr] = useState<number | undefined>()
   const aprRef = useRef<string>('')
   const [reserveTotalsUsd, setReserveTotalsUsd] = useState<number | undefined>()
@@ -493,8 +493,8 @@ const PoolsContextProvider: FC = ({ children }) => {
     try {
       if (!(canonicalToken && provider && selectedNetwork.provider && poolReserves)) {
         setToken1Rate('')
-        setToken0Deposited('')
-        setToken1Deposited('')
+        setToken0Deposited(undefined)
+        setToken1Deposited(undefined)
         setTotalSupply('')
         setUserPoolTokenPercentage('')
         return
@@ -533,14 +533,12 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       const token0Deposited = balance.mul(reserve0).div(totalSupply)
       const token1Deposited = balance.mul(reserve1).div(totalSupply)
-      const token0DepositedFormatted = Number(formatUnits(token0Deposited, tokenDecimals))
-      const token1DepositedFormatted = Number(formatUnits(token1Deposited, tokenDecimals))
 
-      if (token0DepositedFormatted) {
-        setToken0Deposited(token0DepositedFormatted.toFixed(2))
+      if (token0Deposited.gt(0)) {
+        setToken0Deposited(token0Deposited)
       }
-      if (token1DepositedFormatted) {
-        setToken1Deposited(token1DepositedFormatted.toFixed(2))
+      if (token1Deposited.gt(0)) {
+        setToken1Deposited(token1Deposited)
       }
       if (reserve0?.eq(0) && reserve1?.eq(0)) {
         setToken1Rate('0')
@@ -724,22 +722,40 @@ const PoolsContextProvider: FC = ({ children }) => {
             network: selectedNetwork,
           },
         },
-        onConfirm: async (amountPercent: number) => {
-          const liquidityTokenAmount = balance.mul(amountPercent).div(100)
-          const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
-          const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
-            liquidityTokenAmountWithSlippage
-          )
-          const amount0Min = minimumAmounts[0]
-          const amount1Min = minimumAmounts[1]
+        onConfirm: async (amounts: any) => {
+          const { proportional, tokenIndex, amountPercent, amount } = amounts
 
-          return bridge
-            .connect(signer as Signer)
-            .removeLiquidity(liquidityTokenAmount, selectedNetwork.slug, {
-              amount0Min,
-              amount1Min,
-              deadline: deadline(),
-            })
+          if (proportional) {
+            const liquidityTokenAmount = balance.mul(amountPercent).div(100)
+            const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
+            const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
+              liquidityTokenAmountWithSlippage
+            )
+            const amount0Min = minimumAmounts[0]
+            const amount1Min = minimumAmounts[1]
+
+            return bridge
+              .connect(signer as Signer)
+              .removeLiquidity(liquidityTokenAmount, selectedNetwork.slug, {
+                amount0Min,
+                amount1Min,
+                deadline: deadline(),
+              })
+          } else {
+            const tokenAmount0 = tokenIndex === 0 ? amount : BigNumber.from(0)
+            const tokenAmount1 = tokenIndex === 1 ? amount : BigNumber.from(0)
+            const tokenAmountMin = amount.mul(minBps).div(10000)
+            let lpTokenAmount = await amm.calculateRemoveLiquidityMinimumLpTokens(tokenAmount0, tokenAmount1)
+            if (lpTokenAmount.gt(balance)) {
+              lpTokenAmount = balance
+            }
+            return bridge
+              .connect(signer as Signer)
+              .removeLiquidityOneToken(lpTokenAmount, tokenIndex, selectedNetwork.slug, {
+                amountMin: tokenAmountMin,
+                deadline: deadline(),
+              })
+          }
         },
       })
 

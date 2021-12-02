@@ -23,5 +23,5 @@
   to = "/451.html"
   status = 451
   force = true
-  conditions = {Country=["BY","MM","BI","CF","CD","CU","IR","LB","LY","RU","CI","SO","SS","LR","KP","SD","SY","VE","YE","ZW"]}
+  conditions = {Country=["BI","BY","CD","CF","CI","CU","IR","KP","LB","LR","LY","MM","RU","SD","SO","SS","SY","VE","YE","ZW"]}
   headers = {Link = "<https://app.hop.exchange>"}

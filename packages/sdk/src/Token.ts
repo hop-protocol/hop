@@ -252,10 +252,11 @@ class Token extends Base {
   async wrapToken (amount: TAmount, estimateGasOnly: boolean = false) {
     const contract = await this.getWethContract(this.chain)
     if (estimateGasOnly) {
+      // a `from` address is required if using only provider (not signer)
+      const from = await this.getGasEstimateFromAddress()
       return contract.connect(this.chain.provider).estimateGas.deposit({
         value: amount,
-        // a `from` address is required if using only provider (not signer)
-        from: this.getBonderAddress(this._symbol)
+        from
       })
     }
     return contract.deposit({
@@ -275,7 +276,7 @@ class Token extends Base {
     const amount = BigNumber.from(1)
     const contract = await this.getWethContract(chain)
     // a `from` address is required if using only provider (not signer)
-    const from = this.getBonderAddress(this._symbol)
+    const from = await this.getGasEstimateFromAddress()
     const [gasLimit, tx] = await Promise.all([
       contract.connect(this.chain.provider).estimateGas.deposit({
         value: amount,
@@ -290,6 +291,14 @@ class Token extends Base {
     return {
       gasLimit,
       ...tx
+    }
+  }
+
+  private async getGasEstimateFromAddress () {
+    try {
+      return await this.getSignerAddress()
+    } catch (err) {
+      return await this.getBonderAddress(this._symbol)
     }
   }
 

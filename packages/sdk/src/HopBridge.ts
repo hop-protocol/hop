@@ -1638,7 +1638,7 @@ class HopBridge extends Base {
 
     if (estimateGasOnly) {
       // a `from` address is required if using only provider (not signer)
-      txOptions[txOptions.length - 1].from = this.getBonderAddress()
+      txOptions[txOptions.length - 1].from = await this.getGasEstimateFromAddress()
       return l1Bridge.estimateGas.sendToL2(
         ...txOptions
       )
@@ -1728,7 +1728,7 @@ class HopBridge extends Base {
 
       if (estimateGasOnly) {
         // a `from` address is required if using only provider (not signer)
-        additionalOptions[additionalOptions.length - 1].from = this.getBonderAddress()
+        additionalOptions[additionalOptions.length - 1].from = await this.getGasEstimateFromAddress()
         return ammWrapper.estimateGas.swapAndSend(
           ...txOptions,
           ...additionalOptions
@@ -1820,7 +1820,7 @@ class HopBridge extends Base {
 
     if (estimateGasOnly) {
       // a `from` address is required if using only provider (not signer)
-      txOptions[txOptions.length - 1].from = this.getBonderAddress()
+      txOptions[txOptions.length - 1].from = await this.getGasEstimateFromAddress()
       return ammWrapper.estimateGas.swapAndSend(...txOptions)
     }
 
@@ -1924,7 +1924,7 @@ class HopBridge extends Base {
       if (options.estimateGasOnly) {
         const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
         // a `from` address is required if using only provider (not signer)
-        txOptions[txOptions.length - 1].from = this.getBonderAddress()
+        txOptions[txOptions.length - 1].from = await this.getGasEstimateFromAddress()
         return l2Bridge.estimateGas.send(...txOptions)
       }
 
@@ -2093,6 +2093,14 @@ class HopBridge extends Base {
   shouldAttemptSwap (amountOutMin: BigNumber, deadline: BigNumberish): boolean {
     deadline = BigNumber.from(deadline?.toString() || 0)
     return amountOutMin?.gt(0) || deadline?.gt(0)
+  }
+
+  private async getGasEstimateFromAddress () {
+    try {
+      return await this.getSignerAddress()
+    } catch (err) {
+      return await this.getBonderAddress()
+    }
   }
 }
 

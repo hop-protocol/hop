@@ -1384,12 +1384,33 @@ class HopBridge extends Base {
       this.signer,
       this.chainProviders
     )
-    const deadline = this.defaultDeadlineSeconds
     return amm.removeLiquidityImbalance(
       token0Amount,
       token1Amount,
       options?.maxBurnAmount,
       options?.deadline
+    )
+  }
+
+  public async calculateWithdrawOneToken (
+    tokenAmount: TAmount,
+    tokenIndex: number,
+    chain?: TChain
+  ) {
+    if (!chain) {
+      chain = this.sourceChain
+    }
+    chain = this.toChainModel(chain)
+    const amm = new AMM(
+      this.network,
+      this.tokenSymbol,
+      chain,
+      this.signer,
+      this.chainProviders
+    )
+    return amm.calculateRemoveLiquidityOneToken(
+      tokenAmount,
+      tokenIndex
     )
   }
 

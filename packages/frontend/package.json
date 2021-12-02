@@ -51,7 +51,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "deploy": "netlify deploy --prod",
-    "deploy:ipfs": "ipd -p pinata build --no-open --no-clipboard",
+    "deploy:ipfs": "ipd -p infura build --no-open --no-clipboard",
     "dnslink": "IPFS_HASH=$(npm run deploy:ipfs 2>&1 | tail -1) node ./scripts/update_dnslink.js",
     "storybook": "start-storybook -p 6006 -s public",
     "build-storybook": "build-storybook -s public"

@@ -172,6 +172,14 @@ program
         })
       }
 
+      if (config?.routes) {
+        for (const sourceChain in config?.routes) {
+          for (const destinationChain in config.routes[sourceChain]) {
+            logger.info(`route: ${sourceChain}→${destinationChain}`)
+          }
+        }
+      }
+
       const promises: Array<Promise<void>> = []
       if (config?.roles?.xdaiBridge) {
         for (const token of tokens) {

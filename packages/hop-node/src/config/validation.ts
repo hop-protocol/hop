@@ -45,7 +45,8 @@ export async function validateConfig (config?: FileConfig) {
     'order',
     'stateUpdateAddress',
     'metrics',
-    'fees'
+    'fees',
+    'routes'
   ]
 
   const validWatcherKeys = [
@@ -59,15 +60,15 @@ export async function validateConfig (config?: FileConfig) {
 
   const sectionKeys = Object.keys(config)
   await validateKeys(validSectionKeys, sectionKeys)
+  const validNetworkKeys = [
+    Chain.Ethereum,
+    Chain.Optimism,
+    Chain.Arbitrum,
+    Chain.xDai,
+    Chain.Polygon
+  ]
 
   if (config.chains) {
-    const validNetworkKeys = [
-      Chain.Ethereum,
-      Chain.Optimism,
-      Chain.Arbitrum,
-      Chain.xDai,
-      Chain.Polygon
-    ]
     const networkKeys = Object.keys(config.chains)
     await validateKeys(validNetworkKeys, networkKeys)
   }
@@ -129,5 +130,14 @@ export async function validateConfig (config?: FileConfig) {
     ]
     const addressesProps = Object.keys(config.addresses)
     await validateKeys(validAddressesProps, addressesProps)
+  }
+
+  if (config.routes) {
+    const sourceChains = Object.keys(config.routes)
+    await validateKeys(validNetworkKeys, sourceChains)
+    for (const sourceChain in config.routes) {
+      const destinationChains = Object.keys(config.routes[sourceChain])
+      await validateKeys(validNetworkKeys, destinationChains)
+    }
   }
 }

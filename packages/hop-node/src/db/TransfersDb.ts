@@ -44,6 +44,10 @@ export type Transfer = {
   isNotFound?: boolean
 }
 
+export type GetItemsFilter = Partial<Transfer> & {
+  destinationChainIds?: number[]
+}
+
 const invalidTransferIds: Record<string, boolean> = {
   // Arbitrum forked node
   '0x8395ab39248878d5defddff3df327b77799edd01f028ba62e16bedd1f372015b': true,
@@ -308,12 +312,18 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   }
 
   async getUncommittedTransfers (
-    filter: Partial<Transfer> = {}
+    filter: GetItemsFilter = {}
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
       if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
+      if (filter.destinationChainIds) {
+        if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
           return false
         }
       }
@@ -328,7 +338,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   }
 
   async getUnbondedSentTransfers (
-    filter: Partial<Transfer> = {}
+    filter: GetItemsFilter = {}
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
@@ -341,6 +351,12 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
 
       if (filter.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
+          return false
+        }
+      }
+
+      if (filter.destinationChainIds) {
+        if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
           return false
         }
       }
@@ -379,7 +395,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   }
 
   async getBondedTransfersWithoutRoots (
-    filter: Partial<Transfer> = {}
+    filter: GetItemsFilter = {}
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
@@ -415,7 +431,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   }
 
   async getIncompleteItems (
-    filter: Partial<Transfer> = {}
+    filter: GetItemsFilter = {}
   ) {
     const kv = await this.subDbIncompletes.getKeyValues()
     const transferIds = kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)

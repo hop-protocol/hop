@@ -47,6 +47,10 @@ export type TransferRoot = {
   isNotFound?: boolean
 }
 
+export type GetItemsFilter = Partial<TransferRoot> & {
+  destinationChainIds?: number[]
+}
+
 const invalidTransferRoots: Record<string, boolean> = {
   // Optimism pre-regenesis roots
   '0x063d5d24ca64f0c662b3f3339990ef6550eb4a5dee7925448d85b712dd38b9e5': true,
@@ -252,7 +256,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   }
 
   async getUncommittedBondedTransferRoots (
-    filter: Partial<TransferRoot> = {}
+    filter: GetItemsFilter = {}
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
@@ -261,7 +265,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   }
 
   async getUnbondedTransferRoots (
-    filter: Partial<TransferRoot> = {}
+    filter: GetItemsFilter = {}
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
@@ -272,6 +276,12 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
       }
       if (filter.destinationChainId) {
         if (filter.destinationChainId !== item.destinationChainId) {
+          return false
+        }
+      }
+
+      if (filter.destinationChainIds) {
+        if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
           return false
         }
       }
@@ -306,7 +316,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   }
 
   async getExitableTransferRoots (
-    filter: Partial<TransferRoot> = {}
+    filter: GetItemsFilter = {}
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
@@ -365,7 +375,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   }
 
   async getChallengeableTransferRoots (
-    filter: Partial<TransferRoot> = {}
+    filter: GetItemsFilter = {}
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
@@ -406,7 +416,7 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   }
 
   async getUnsettledTransferRoots (
-    filter: Partial<TransferRoot> = {}
+    filter: GetItemsFilter = {}
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {

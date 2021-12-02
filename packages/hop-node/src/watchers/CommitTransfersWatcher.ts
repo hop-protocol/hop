@@ -6,7 +6,8 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TxRetryDelayMs } from 'src/constants'
-import { getEnabledNetworks } from 'src/config'
+import { getEnabledNetworks, config as globalConfig } from 'src/config'
+
 export type Config = {
   chainSlug: string
   tokenSymbol: string
@@ -78,8 +79,22 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
+    const sourceChainId = await this.bridge.getChainId()
+    let filterDestinationChainIds: number[] | undefined
+    const customRouteSourceChains = Object.keys(globalConfig.routes)
+    const hasCustomRoutes = customRouteSourceChains.length > 0
+    if (hasCustomRoutes) {
+      const isSourceRouteOk = customRouteSourceChains.includes(this.chainSlug)
+      if (!isSourceRouteOk) {
+        return
+      }
+      const customRouteDestinationChains = Object.keys(globalConfig.routes[this.chainSlug])
+      filterDestinationChainIds = customRouteDestinationChains.map(chainSlug => this.chainSlugToId(chainSlug))
+    }
+
     const dbTransfers = await this.db.transfers.getUncommittedTransfers({
-      sourceChainId: await this.bridge.getChainId()
+      sourceChainId,
+      destinationChainIds: filterDestinationChainIds
     })
     if (!dbTransfers.length) {
       return
@@ -88,6 +103,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.logger.info(
         `checking ${dbTransfers.length} uncommitted transfers db items`
     )
+
     const destinationChainIds: number[] = []
     for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer

@@ -60,8 +60,8 @@ const useStyles = makeStyles(theme => ({
 const Settings: FC = () => {
   const styles = useStyles()
   const [open, setOpen] = useState<boolean>(false)
-  const { settings } = useApp()
-  const { mode, toggleMode } = useThemeMode()
+  const { settings, theme } = useApp()
+  const { toggleMode } = useThemeMode()
   const { slippageTolerance, setSlippageTolerance, deadlineMinutes, setDeadlineMinutes } = settings
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
   const handleClick = (event: any) => {
@@ -104,7 +104,7 @@ const Settings: FC = () => {
 
   const deadlineError = Number(deadlineMinutes) < 10
 
-  const ThemeModeIcon = isDarkMode(mode) ? SunIcon : MoonIcon
+  const ThemeModeIcon = theme?.palette.type === 'dark' ? SunIcon : MoonIcon
 
   return (
     <div className={styles.root}>

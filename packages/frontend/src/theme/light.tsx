@@ -11,15 +11,16 @@ export const boxShadows = {
     inset 8px 8px 8px rgba(174, 174, 192, 0.04)`,
   button: {
     default: `
-      -10px -10px 30px rgba(255, 255, 255, 0.95),
-      10px 10px 30px rgba(174, 174, 192, 0.35)`,
+      10px -10px 30px #FFFFFF,
+      -10px 10px 30px #D8D5DC,
+      inset -8px 4px 10px rgba(102, 96, 119, 0.04)`,
     disabled: `
       10px -10px 30px #FFFFFF,
       -10px 10px 30px #D8D5DC,
       inset -8px 4px 10px rgba(102, 96, 119, 0.04)`,
     highlighted: `
-      5px -5px 10px #FFFFFF,
-      -5px 5px 10px rgba(102, 96, 119, 0.2)`,
+    10px -10px 30px #FFFFFF,
+    -10px 10px 30px rgba(216, 213, 220, 0.8)`,
   },
   select: `
     -6px 6px 12px #D8D5DC,
@@ -50,7 +51,7 @@ export const overrides = {
       '&:disabled': {
         background: '#FDF7F9',
         boxShadow: boxShadows.button.default,
-        color: 'rgba(102, 96, 119, 0.5)',
+        color: palette.text.disabled,
       },
     },
   },
@@ -82,16 +83,16 @@ export const overrides = {
   MuiListItem: {
     root: {
       '&$selected': {
-        backgroundColor: 'rgba(179, 46, 255, 0.1)',
+        backgroundColor: '#b32eff19',
         color: palette.text.primary,
         '&:hover': {
-          backgroundColor: 'rgba(179, 46, 255, 0.12)',
+          backgroundColor: '#b32eff1e',
         },
       },
     },
     button: {
       '&:hover': {
-        backgroundColor: 'rgba(179, 46, 255, 0.05)',
+        backgroundColor: palette.action.hover,
       },
     },
   },
@@ -141,7 +142,8 @@ export const overrides = {
   },
   MuiSelect: {
     root: {
-      boxShadow: boxShadows.select,
+      backgroundColor: 'white',
+      // boxShadow: boxShadows.select,
     },
   },
 }

@@ -37,13 +37,13 @@ const useStyles = makeStyles(theme => ({
       background: highlighted
         ? theme.bgGradient.main
         : flat
-        ? '#E5E6Ea'
-        : 'rgba(255, 255, 255, 0.2)',
+        ? theme.palette.secondary.light
+        : '#ffffff33',
     },
     '&:disabled': {
       // background: '#272332',
       // boxShadow: theme.boxShadow.button.default,
-      // color: 'rgba(102, 96, 119, 0.5)',
+      // color: '#0202027f',
     },
   }),
   disabled: {

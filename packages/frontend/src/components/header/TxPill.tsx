@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import CircularProgress from '@material-ui/core/CircularProgress'
-import Button from 'src/components/buttons/Button'
 import { useApp } from 'src/contexts/AppContext'
-import Transaction from 'src/models/Transaction'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import { StyledButton } from '../buttons/StyledButton'
 
 const useStyles = makeStyles(theme => ({
-  root: {},
-  button: {},
+  root: {
+    boxShadow: 'none',
+  },
   pendingButton: {
     backgroundColor: 'rgba(179, 46, 255, 0.12)',
   },
@@ -41,13 +41,13 @@ const TxPill = () => {
   return (
     <div className={styles.root}>
       {numPendingTxs > 0 ? (
-        <Button className={styles.pendingButton} flat onClick={handleClick}>
+        <StyledButton className={styles.pendingButton} flat onClick={handleClick}>
           {numPendingTxs} Pending <CircularProgress size={18} className={styles.spinner} />
-        </Button>
+        </StyledButton>
       ) : (
-        <Button flat onClick={handleClick}>
+        <StyledButton flat onClick={handleClick} boxShadow={0}>
           {address?.truncate()}
-        </Button>
+        </StyledButton>
       )}
     </div>
   )

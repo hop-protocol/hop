@@ -14,6 +14,7 @@ import useSettings, { Settings } from 'src/contexts/AppContext/useSettings'
 import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAccountDetails'
 import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
 import { reactAppNetwork } from 'src/config'
+import { Theme, useTheme } from '@material-ui/core'
 
 type AppContextProps = {
   sdk: Hop
@@ -32,6 +33,7 @@ type AppContextProps = {
   txHistory?: TxHistory
   txConfirm: TxConfirm | undefined
   settings: Settings
+  theme: Theme | undefined
 }
 
 const AppContext = createContext<AppContextProps>({
@@ -51,6 +53,7 @@ const AppContext = createContext<AppContextProps>({
   selectedBridge: undefined,
   setSelectedBridge: (bridge: HopBridge) => {},
   settings: {} as Settings,
+  theme: undefined,
 })
 
 const AppContextProvider: FC = ({ children }) => {
@@ -78,6 +81,7 @@ const AppContextProvider: FC = ({ children }) => {
   const l1Network = networks?.[0]
   const { bridges, selectedBridge, setSelectedBridge } = useBridges(sdk)
   const settings = useSettings()
+  const theme = useTheme()
 
   return (
     <AppContext.Provider
@@ -98,6 +102,7 @@ const AppContextProvider: FC = ({ children }) => {
         accountDetails,
         txConfirm,
         settings,
+        theme,
       }}
     >
       {children}

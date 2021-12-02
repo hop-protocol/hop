@@ -19,6 +19,7 @@ import {
   GasPriceMultiplier,
   LpFeeBps,
   PendingAmountBuffer,
+  SettlementCostPerTx,
   TokenIndex
 } from './constants'
 import { PriceFeed } from './priceFeed'
@@ -707,7 +708,11 @@ class HopBridge extends Base {
       bondTransferGasLimit = bondTransferGasLimit.div(2)
     }
 
-    let txFeeEth = gasPrice.mul(bondTransferGasLimit)
+    // Include the cost to settle an individual transfer
+    const settlementCostPerTx: number = SettlementCostPerTx[destinationChain.slug]
+    const bondTransferGasLimitWithSettlementCost = bondTransferGasLimit.add(settlementCostPerTx)
+
+    let txFeeEth = gasPrice.mul(bondTransferGasLimitWithSettlementCost)
     const oneEth = ethers.utils.parseEther('1')
     const rateBN = ethers.utils.parseUnits(
       rate.toFixed(canonicalToken.decimals),
@@ -726,16 +731,12 @@ class HopBridge extends Base {
 
     let fee = txFeeEth.mul(rateBN).div(oneEth)
 
-    let multiplier = BigNumber.from(0)
     if (
       destinationChain.equals(Chain.Ethereum) ||
       destinationChain.equals(Chain.Optimism) ||
       destinationChain.equals(Chain.Arbitrum)
     ) {
-      multiplier = ethers.utils.parseEther(GasPriceMultiplier)
-    }
-
-    if (multiplier.gt(0)) {
+      const multiplier = ethers.utils.parseEther(GasPriceMultiplier)
       fee = fee.mul(multiplier).div(oneEth)
     }
 

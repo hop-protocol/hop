@@ -6,7 +6,7 @@ import getTransferRootId from 'src/utils/getTransferRootId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { Bridge as BridgeContract, MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
-import { Chain } from 'src/constants'
+import { Chain, SettlementCostPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
@@ -756,7 +756,12 @@ export default class Bridge extends ContractBase {
       gasPrice = gasPrice.div(2)
       gasLimit = gasLimit.div(2)
     }
-    let gasCost = gasLimit.mul(gasPrice)
+
+    // Include the cost to settle an individual transfer
+    const settlementCostPerTx: number = SettlementCostPerTx[chain]
+    const gasLimitWithSettlementCost = gasLimit.add(settlementCostPerTx)
+
+    let gasCost = gasLimitWithSettlementCost.mul(gasPrice)
 
     if (this.chainSlug === Chain.Optimism && data && to) {
       try {

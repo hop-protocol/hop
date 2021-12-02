@@ -1,3 +1,4 @@
+export { default as BNMin } from './BNMin'
 export { default as commafy } from './commafy'
 export { default as getArbitrumAlias } from './getArbitrumAlias'
 export { default as getBaseExplorerUrl } from './getBaseExplorerUrl'

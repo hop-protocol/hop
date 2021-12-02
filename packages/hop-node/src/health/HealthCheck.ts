@@ -253,7 +253,7 @@ class HealthCheck {
 
     const rootHash = transfersCommittedEvent.args.rootHash
     const totalAmount = transfersCommittedEvent.args.totalAmount
-    const committedTransferRootId = await l1Bridge.getTransferRootId(
+    const committedTransferRootId = l1Bridge.getTransferRootId(
       rootHash,
       totalAmount
     )

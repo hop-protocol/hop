@@ -45,6 +45,7 @@ interface TokenEntity {
   network: Network
   token: Token
   amount: BigNumber
+  max: BigNumber
 }
 
 interface Result {
@@ -78,9 +79,9 @@ const RemoveLiquidity = (props: Props) => {
   const [amountPercent, setAmountPercent] = useState<number>(100)
   const [tokenIndex, setTokenIndex] = useState<number>(0)
   const selectedToken = tokenIndex ? token1.token : token0.token
-  const tokenBalance = token0.amount.add(token1.amount)
+  const maxBalance = tokenIndex ? token1.max : token0.max
   const tokenDecimals = token0.token.decimals
-  const disabled = proportional ? !amountPercent : (amountBN.lte(0) || amountBN.gt(tokenBalance))
+  const disabled = proportional ? !amountPercent : (amountBN.lte(0) || amountBN.gt(maxBalance))
 
   const handleSubmit = async () => {
     try {
@@ -112,11 +113,11 @@ const RemoveLiquidity = (props: Props) => {
   }
 
   const handleAmountSliderChange = (percent: number) => {
-    const _tokenBalance = Number(formatUnits(tokenBalance, tokenDecimals))
-    const _amount = (_tokenBalance ?? 0) * (percent / 100)
+    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const _amount = (_balance ?? 0) * (percent / 100)
     setAmount(_amount.toFixed(5))
     if (percent === 100) {
-      setAmountBN(tokenBalance)
+      setAmountBN(maxBalance)
     }
   }
 
@@ -133,8 +134,8 @@ const RemoveLiquidity = (props: Props) => {
 
   const handleAmountChange = (_amount: string) => {
     const value = Number(_amount)
-    const _tokenBalance = Number(formatUnits(tokenBalance, tokenDecimals))
-    const sliderValue = 100 / (_tokenBalance / value)
+    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const sliderValue = 100 / (_balance / value)
     setAmount(_amount)
     setAmountSliderValue(sliderValue)
   }
@@ -183,7 +184,7 @@ const RemoveLiquidity = (props: Props) => {
           <div className={styles.amountInput}>
             <AmountSelectorCard
               label={`${selectedToken.symbol} to withdraw`}
-              balance={tokenBalance}
+              balance={maxBalance}
               balanceLabel={'Available:'}
               value={amount}
               token={selectedToken as any}

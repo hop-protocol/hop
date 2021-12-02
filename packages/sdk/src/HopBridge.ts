@@ -506,23 +506,28 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    // adjustedFee is the fee in the canonical token after adjusting for the hToken price.
-    let adjustedBonderFee = await this.calcFromHTokenAmount(
-      bonderFeeRelative,
-      destinationChain
-    )
+    let totalFee = BigNumber.from(0)
+    let adjustedBonderFee = BigNumber.from(0)
+    let adjustedDestinationTxFee = BigNumber.from(0)
+    if (!sourceChain.isL1) {
+      // adjustedFee is the fee in the canonical token after adjusting for the hToken price.
+      adjustedBonderFee = await this.calcFromHTokenAmount(
+        bonderFeeRelative,
+        destinationChain
+      )
 
-    const adjustedDestinationTxFee = await this.calcFromHTokenAmount(
-      destinationTxFee,
-      destinationChain
-    )
+      adjustedDestinationTxFee = await this.calcFromHTokenAmount(
+        destinationTxFee,
+        destinationChain
+      )
 
-    // enforce bonderFeeAbsolute after adjustment
-    const bonderFeeAbsolute = await this.getBonderFeeAbsolute()
-    adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute)
-      ? adjustedBonderFee
-      : bonderFeeAbsolute
-    const totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
+      // enforce bonderFeeAbsolute after adjustment
+      const bonderFeeAbsolute = await this.getBonderFeeAbsolute()
+      adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute)
+        ? adjustedBonderFee
+        : bonderFeeAbsolute
+      totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
+    }
 
     const sourceToken = this.getCanonicalToken(sourceChain)
     const destToken = this.getCanonicalToken(destinationChain)
@@ -1379,12 +1384,33 @@ class HopBridge extends Base {
       this.signer,
       this.chainProviders
     )
-    const deadline = this.defaultDeadlineSeconds
     return amm.removeLiquidityImbalance(
       token0Amount,
       token1Amount,
       options?.maxBurnAmount,
       options?.deadline
+    )
+  }
+
+  public async calculateWithdrawOneToken (
+    tokenAmount: TAmount,
+    tokenIndex: number,
+    chain?: TChain
+  ) {
+    if (!chain) {
+      chain = this.sourceChain
+    }
+    chain = this.toChainModel(chain)
+    const amm = new AMM(
+      this.network,
+      this.tokenSymbol,
+      chain,
+      this.signer,
+      this.chainProviders
+    )
+    return amm.calculateRemoveLiquidityOneToken(
+      tokenAmount,
+      tokenIndex
     )
   }
 
@@ -1632,6 +1658,8 @@ class HopBridge extends Base {
     ]
 
     if (estimateGasOnly) {
+      // a `from` address is required if using only provider (not signer)
+      txOptions[txOptions.length - 1].from = await this.getGasEstimateFromAddress()
       return l1Bridge.estimateGas.sendToL2(
         ...txOptions
       )
@@ -1720,6 +1748,8 @@ class HopBridge extends Base {
       ]
 
       if (estimateGasOnly) {
+        // a `from` address is required if using only provider (not signer)
+        additionalOptions[additionalOptions.length - 1].from = await this.getGasEstimateFromAddress()
         return ammWrapper.estimateGas.swapAndSend(
           ...txOptions,
           ...additionalOptions
@@ -1810,6 +1840,8 @@ class HopBridge extends Base {
     ]
 
     if (estimateGasOnly) {
+      // a `from` address is required if using only provider (not signer)
+      txOptions[txOptions.length - 1].from = await this.getGasEstimateFromAddress()
       return ammWrapper.estimateGas.swapAndSend(...txOptions)
     }
 
@@ -1839,10 +1871,10 @@ class HopBridge extends Base {
       throw new Error('Invalid sendHTokenHandler option')
     }
 
-    let bonderFee = BigNumber.from(0)
+    let defaultBonderFee = BigNumber.from(0)
     if (!sourceChain.isL1) {
       const deadline = 0
-      bonderFee = await this.getTotalFee(
+      defaultBonderFee = await this.getTotalFee(
         tokenAmount,
         sourceChain,
         destinationChain,
@@ -1853,9 +1885,9 @@ class HopBridge extends Base {
     const recipient = getAddress(
       options?.recipient ?? (await this.getSignerAddress())
     )
-    bonderFee = options?.bonderFee
+    const bonderFee = options?.bonderFee
       ? BigNumber.from(options?.bonderFee)
-      : bonderFee
+      : defaultBonderFee
     const amountOutMin = BigNumber.from(0)
     const deadline = BigNumber.from(0)
     const relayer = ethers.constants.AddressZero
@@ -1912,6 +1944,8 @@ class HopBridge extends Base {
 
       if (options.estimateGasOnly) {
         const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
+        // a `from` address is required if using only provider (not signer)
+        txOptions[txOptions.length - 1].from = await this.getGasEstimateFromAddress()
         return l2Bridge.estimateGas.send(...txOptions)
       }
 
@@ -2080,6 +2114,14 @@ class HopBridge extends Base {
   shouldAttemptSwap (amountOutMin: BigNumber, deadline: BigNumberish): boolean {
     deadline = BigNumber.from(deadline?.toString() || 0)
     return amountOutMin?.gt(0) || deadline?.gt(0)
+  }
+
+  private async getGasEstimateFromAddress () {
+    try {
+      return await this.getSignerAddress()
+    } catch (err) {
+      return await this.getBonderAddress()
+    }
   }
 }
 

@@ -13,7 +13,7 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
-import { commafy, sanitizeNumericalString, toPercentDisplay } from 'src/utils'
+import { commafy, sanitizeNumericalString, toPercentDisplay, toTokenDisplay } from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
 import useQueryParams from 'src/hooks/useQueryParams'
@@ -200,8 +200,8 @@ const Pools: FC = () => {
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
   const hopTokenSymbol = hopToken?.symbol || ''
 
-  const reserve0 = poolReserves?.[0]
-  const reserve1 = poolReserves?.[1]
+  const reserve0 = toTokenDisplay(poolReserves?.[0], canonicalToken?.decimals)
+  const reserve1 = toTokenDisplay(poolReserves?.[1], canonicalToken?.decimals)
   const reserve0Formatted = `${commafy(reserve0, 0) || '-'} ${canonicalTokenSymbol}`
   const reserve1Formatted = `${commafy(reserve1, 0) || '-'} ${hopTokenSymbol}`
   const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`

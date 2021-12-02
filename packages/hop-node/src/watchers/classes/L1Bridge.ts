@@ -143,7 +143,7 @@ export default class L1Bridge extends Bridge {
     transferRootHash: string,
     amount: BigNumber
   ): Promise<boolean> {
-    const transferRootId = await this.getTransferRootId(
+    const transferRootId = this.getTransferRootId(
       transferRootHash,
       amount
     )

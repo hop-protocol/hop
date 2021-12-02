@@ -70,7 +70,7 @@ export const tokens: Tokens = {
   WBTC: {
     symbol: 'WBTC',
     name: 'Wrapped BTC',
-    decimals: 18,
+    decimals: 8,
     image: WBTCImage
   }
 }

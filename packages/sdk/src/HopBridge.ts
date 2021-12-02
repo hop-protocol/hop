@@ -737,7 +737,9 @@ class HopBridge extends Base {
       destinationChain.equals(Chain.Arbitrum)
     ) {
       const multiplier = ethers.utils.parseEther(GasPriceMultiplier)
-      fee = fee.mul(multiplier).div(oneEth)
+      if (multiplier.gt(0)) {
+        fee = fee.mul(multiplier).div(oneEth)
+      }
     }
 
     return fee

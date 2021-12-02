@@ -13,7 +13,7 @@ import { typographyOptions } from './typography'
 
 // https://stackoverflow.com/a/64135466/1439168
 import { unstable_createMuiStrictModeTheme as createMuiTheme } from '@material-ui/core/styles'
-import { palette } from './palette'
+import { palette, paletteDark } from './palette'
 
 declare module '@material-ui/core/styles/overrides' {
   export interface ComponentNameToClassKey {
@@ -95,7 +95,7 @@ export const lightTheme = createMuiTheme({
 export const darkTheme = createMuiTheme({
   palette: {
     type: 'dark',
-    ...palette,
+    ...paletteDark,
   },
   padding,
   typography: typographyOptions,

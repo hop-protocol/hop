@@ -5,6 +5,15 @@ import { ThemeProvider as SCThemeProvider } from 'styled-components'
 import { lightTheme, darkTheme } from './theme'
 import { boxShadows } from './light'
 
+const shadows = {
+  top: `
+    5px -5px 10px #666077b5,
+    -5px 5px 10px rgba(11, 9, 30, 0.6)`,
+  bottom: `
+    5px -5px 10px #FFFFFF,
+    -5px 5px 10px #66607733`,
+}
+
 export const styledSystemTheme = {
   // 640px, 832px, 1024px, 1440px
   // '40em', '52em', '64em', '90em'
@@ -20,12 +29,7 @@ export const styledSystemTheme = {
   fonts: ['Helvetica', 'sans-serif'],
   borders: [0, '1px solid black', '1px solid #00FFFF'],
   radii: [0, 2, 4, 16, 9999, '100%'],
-  shadows: [
-    '0px 5px 20px rgba(0, 0, 0, 0.1)',
-    '0px 4px 10px #00000099',
-    'inset 0px 2px 4px rgba(0, 0, 0, 0.25)',
-    // ...Object.values(boxShadows),
-  ],
+  shadows: ['none', shadows.top, shadows.bottom],
   sizes: [16, 32, 64, 128, 256],
   colors: {
     light: lightTheme.palette,

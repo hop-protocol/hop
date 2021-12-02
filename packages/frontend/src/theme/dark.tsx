@@ -1,11 +1,13 @@
-import { palette } from './palette'
+import { paletteDark as palette } from './palette'
 import { overrides } from './light'
 
-export const boxShadowsDark = {
+export const boxShadows = {
   inner: `
     inset -8px -8px 60px -5px rgba(21, 20, 29, 0.6),
     inset 4px -4px 3px rgba(102, 96, 119, 0.5),
     inset -7px 7px 5px -4px #161222`,
+  card: `
+    8px 8px 30px rgba(174, 174, 192, 0.35)`,
   button: {
     default: `
       10px -10px 30px rgba(79, 74, 94, 0.3),
@@ -33,6 +35,7 @@ export const overridesDark = {
     root: {
       padding: '2.8rem',
       borderRadius: '3.0rem',
+      // boxShadow: boxShadows.card,
     },
   },
   MuiPaper: {
@@ -43,20 +46,20 @@ export const overridesDark = {
   MuiButton: {
     root: {
       margin: 'inherit',
-      backgroundColor: '#3A3547',
-      boxShadow: boxShadowsDark.button.default,
-      color: 'rgba(102, 96, 119, 0.5)',
+      backgroundColor: '#272332',
+      boxShadow: boxShadows.button.default,
+      color: palette.primary.main,
       '&:disabled': {
-        background: '#3A3547',
-        boxShadow: boxShadowsDark.button.default,
-        color: 'rgba(102, 96, 119, 0.5)',
+        background: '#272332',
+        boxShadow: boxShadows.button.default,
+        color: '#6660777f',
       },
     },
   },
   MuiTab: {
     root: {
       '&.MuiTab-root': {
-        color: '#968FA8',
+        color: palette.text.secondary,
         minWidth: 0,
         borderRadius: '3rem',
       },
@@ -73,9 +76,36 @@ export const overridesDark = {
       color: '#E3DDF1',
     },
   },
+  MuiListItem: {
+    root: {
+      '&$selected': {
+        backgroundColor: '#b32eff19',
+        color: palette.text.primary,
+        '&:hover': {
+          backgroundColor: '#b32eff1e',
+        },
+      },
+    },
+    button: {
+      '&:hover': {
+        backgroundColor: palette.action.hover,
+      },
+    },
+  },
+  MuiPopover: {
+    paper: {
+      borderRadius: '3.0rem',
+      boxShadow: `
+          0px 5px 15px -3px rgba(0,0,0,0.1),
+          0px 8px 20px 1px rgba(0,0,0,0.07),
+          0px 3px 24px 2px rgba(0,0,0,0.06);
+        `,
+    },
+  },
   MuiSelect: {
     root: {
-      boxShadow: boxShadowsDark.select,
+      backgroundColor: '#66607738',
+      // boxShadow: boxShadows.select,
     },
   },
 }

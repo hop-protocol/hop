@@ -1,6 +1,6 @@
 import React from 'react'
 import 'src/App.css'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles, useTheme } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import AppRoutes from 'src/AppRoutes'
 import Header from 'src/components/header/Header'
@@ -10,13 +10,12 @@ import TxConfirm from 'src/components/txConfirm/TxConfirm'
 import styled from 'styled-components/macro'
 import bgImage from 'src/assets/circles-bg.svg'
 import bgImageDark from 'src/assets/circles-bg-dark.svg'
-import { useThemeMode } from './theme/ThemeProvider'
 import { isDarkMode } from './theme/theme'
 
 const useStyles = makeStyles(theme => ({
-  app: ({ mode }: any) => ({
-    backgroundColor: isDarkMode(mode) ? '#272332' : '#FDF7F9',
-  }),
+  app: {
+    backgroundColor: theme.palette.background.default,
+  },
   content: {
     padding: '4.2rem',
     flexGrow: 1,
@@ -26,19 +25,19 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const Wrapper = styled.div<any>`
+const Circles = styled.div<any>`
   background: ${({ mode }: any) => (isDarkMode(mode) ? `url(${bgImageDark})` : `url(${bgImage})`)};
   background-repeat: repeat-y;
   background-size: cover;
 `
 
 function App() {
-  const { mode } = useThemeMode()
-  const styles = useStyles({ mode })
+  const theme = useTheme()
+  const styles = useStyles()
 
   return (
     <Box display="flex" flexDirection="column" className={styles.app}>
-      <Wrapper mode={mode}>
+      <Circles mode={theme.palette.type}>
         <Box display="flex" flexDirection="column" minHeight="100vh">
           <Header />
           <AccountDetails />
@@ -48,7 +47,7 @@ function App() {
           <TxConfirm />
           <Footer />
         </Box>
-      </Wrapper>
+      </Circles>
     </Box>
   )
 }

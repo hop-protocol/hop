@@ -1,5 +1,5 @@
 export { boxShadows, overrides } from './light'
-export { boxShadowsDark, overridesDark } from './dark'
+export { boxShadows as boxShadowsDark, overridesDark } from './dark'
 
 export const bgGradients = {
   flat: 'linear-gradient(101.98deg, #B32EFF -23.47%, #E185B3 125.55%)',

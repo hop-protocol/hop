@@ -1,8 +1,7 @@
 import React, { FC, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Theme, makeStyles } from '@material-ui/core/styles'
+import { Theme, makeStyles } from '@material-ui/core'
 import Box from '@material-ui/core/Box'
-import Button from 'src/components/buttons/Button'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import HeaderRoutes from 'src/components/header/HeaderRoutes'
@@ -12,18 +11,12 @@ import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
 import { isMainnet } from 'src/config'
 import Settings from 'src/pages/Send/Settings'
 import WalletWarning from './WalletWarning'
-import {
-  toTokenDisplay,
-  networkIdToName,
-  networkIdNativeTokenSymbol,
-  networkIdToSlug,
-} from 'src/utils'
+import { toTokenDisplay, networkIdNativeTokenSymbol, networkIdToSlug } from 'src/utils'
 import { findNetworkBySlug } from 'src/utils/networks'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
 import { useInterval } from 'src/hooks'
-import { useThemeMode } from 'src/theme/ThemeProvider'
-import { isDarkMode } from 'src/theme/theme'
+import ConnectWalletButton from './ConnectWalletButton'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -81,7 +74,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 const Header: FC = () => {
   const styles = useStyles()
   const { address, requestWallet, provider, connectedNetworkId } = useWeb3Context()
-  const { l1Network, networks } = useApp()
+  const { l1Network, networks, theme } = useApp()
   const [displayBalance, setDisplayBalance] = useState<string>('')
   const [connectedNetwork, setConnectedNetwork] = useState<Network | undefined>()
 
@@ -113,7 +106,6 @@ const Header: FC = () => {
   }, 5 * 1000)
 
   const showBalance = !!displayBalance && !!connectedNetwork
-  const { mode } = useThemeMode()
 
   return (
     <>
@@ -123,7 +115,7 @@ const Header: FC = () => {
             <h1 className={styles.title}>
               <img
                 className={styles.hopLogo}
-                src={isDarkMode(mode) ? HopLogoWhite : HopLogoBlack}
+                src={theme?.palette.type === 'dark' ? HopLogoWhite : HopLogoBlack}
                 alt="Hop"
               />
               {!isMainnet ? <span className={styles.label}>{l1Network?.name}</span> : null}
@@ -144,13 +136,7 @@ const Header: FC = () => {
               </div>
             </div>
           )}
-          {address ? (
-            <TxPill />
-          ) : (
-            <Button highlighted onClick={requestWallet}>
-              Connect a Wallet
-            </Button>
-          )}
+          {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
         </Box>
       </Box>
       <WalletWarning />

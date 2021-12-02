@@ -6,7 +6,7 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 const useStyles = makeStyles(theme => ({
   root: ({ value }: any) => ({
     color: value === 'default' ? 'white' : theme.palette.text.secondary,
-    background: value === 'default' ? theme.bgGradient.flat : 'rgba(255, 255, 255, 0.55)',
+    background: value === 'default' ? theme.bgGradient.flat : theme.palette.action.disabled,
     width: '13.5rem',
     borderRadius: '2.3rem',
     padding: '0 2.8rem 0 0',
@@ -18,7 +18,7 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '3.6rem',
     '&:focus': {
       borderRadius: '2.3rem',
-      backgroundColor: 'white',
+      backgroundColor: theme.palette.action.disabled,
     },
     [theme.breakpoints.down('xs')]: {
       width: '12.4rem',

@@ -298,7 +298,7 @@ class Token extends Base {
     try {
       return await this.getSignerAddress()
     } catch (err) {
-      return await this.getBonderAddress(this._symbol)
+      return await this._getBonderAddress(this._symbol, this.chain)
     }
   }
 

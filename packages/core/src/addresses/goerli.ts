@@ -2,8 +2,22 @@ import { Addresses } from './types'
 
 export const addresses: Addresses = {
   bonders: {
-    USDC: ['0x81682250D4566B2986A2B33e23e7c52D401B7aB7'],
-    DAI: ['0x81682250D4566B2986A2B33e23e7c52D401B7aB7']
+    USDC: {
+      ethereum: {
+        polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      },
+      polygon: {
+        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      }
+    },
+    DAI: {
+      ethereum: {
+        polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      },
+      polygon: {
+        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      }
+    }
   },
   bridges: {
     USDC: {

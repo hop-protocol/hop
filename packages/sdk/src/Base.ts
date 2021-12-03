@@ -429,12 +429,18 @@ class Base {
     return txOptions
   }
 
-  public getBonderAddress (token: TToken): string {
+  protected _getBonderAddress (token: TToken, sourceChain: TChain, destinationChain?: TChain): string {
     token = this.toTokenModel(token)
-    return this.bonders?.[this.network]?.[token.canonicalSymbol]?.[0]
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    const sourceBonders = this.bonders?.[this.network]?.[token.canonicalSymbol]?.[sourceChain.slug]
+    if (destinationChain) {
+      return sourceBonders?.[destinationChain.slug]
+    }
+    return sourceBonders?.[Object.keys(sourceBonders)[0]]
   }
 
-  public getBonderAddresses (token: TToken): string[] {
+  public getBonderAddresses (token: TToken): string[] | any {
     token = this.toTokenModel(token)
     return this.bonders?.[this.network]?.[token.canonicalSymbol]
   }

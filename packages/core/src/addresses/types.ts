@@ -62,7 +62,7 @@ export type Bridges = {
 }
 
 export type Bonders = {
-  [token: string]: string[]
+  [token: string]: Record<string, Record<string, string>>
 }
 
 export type Addresses = {

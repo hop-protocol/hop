@@ -22,7 +22,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       background: 'transparent',
     },
     '&.entered': {
-      background: isDarkMode(theme) ? '#1d1d1dc5' : '#f4f4f491',
+      background: isDarkMode(theme) ? '#0000005a' : '#f4f4f491',
     },
     '&.exiting': {
       background: '#f4f4f491',
@@ -85,7 +85,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     overflow: 'auto',
     maxHeight: '100%',
     border: isDarkMode(theme) ? '1px solid #353535' : 'none',
-    backgroundColor: isDarkMode(theme) ? '' : '',
+    boxShadow: isDarkMode(theme) ? 'none' : theme.boxShadow.card,
   },
   content: {
     padding: '4rem',

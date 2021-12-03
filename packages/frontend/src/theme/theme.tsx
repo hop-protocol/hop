@@ -2,18 +2,18 @@ import { CSSProperties } from 'react'
 import createBreakpoints from '@material-ui/core/styles/createBreakpoints'
 import { SkeletonClassKey } from '@material-ui/lab/Skeleton'
 import {
-  boxShadows,
+  boxShadowsLight,
   boxShadowsDark,
   bgGradients,
-  bgGradientsDark,
-  overrides,
+  overridesLight,
   overridesDark,
 } from './overrides'
 import { typographyOptions } from './typography'
 
 // https://stackoverflow.com/a/64135466/1439168
 import { unstable_createMuiStrictModeTheme as createMuiTheme } from '@material-ui/core/styles'
-import { palette, paletteDark } from './palette'
+import { palette as paletteLight } from './light'
+import { palette as paletteDark } from './dark'
 
 declare module '@material-ui/core/styles/overrides' {
   export interface ComponentNameToClassKey {
@@ -30,6 +30,10 @@ declare module '@material-ui/core/styles/createTheme' {
       extraLight: CSSProperties['paddingTop']
     }
     boxShadow: {
+      input: {
+        bold: CSSProperties['boxShadow']
+        normal: CSSProperties['boxShadow']
+      }
       inner: CSSProperties['boxShadow']
       card: CSSProperties['boxShadow']
       button: {
@@ -54,6 +58,10 @@ declare module '@material-ui/core/styles/createTheme' {
       extraLight?: CSSProperties['paddingTop']
     }
     boxShadow?: {
+      input?: {
+        bold?: CSSProperties['boxShadow']
+        normal?: CSSProperties['boxShadow']
+      }
       inner?: CSSProperties['boxShadow']
       card?: CSSProperties['boxShadow']
       button?: {
@@ -82,14 +90,14 @@ const breakpoints = createBreakpoints({})
 export const lightTheme = createMuiTheme({
   palette: {
     type: 'light',
-    ...palette,
+    ...paletteLight,
   },
   padding,
   typography: typographyOptions,
   breakpoints,
-  boxShadow: boxShadows,
+  boxShadow: boxShadowsLight,
   bgGradient: bgGradients,
-  overrides: overrides,
+  overrides: overridesLight,
 })
 
 export const darkTheme = createMuiTheme({
@@ -101,7 +109,7 @@ export const darkTheme = createMuiTheme({
   typography: typographyOptions,
   breakpoints,
   boxShadow: boxShadowsDark,
-  bgGradient: bgGradientsDark,
+  bgGradient: bgGradients,
   overrides: overridesDark,
 })
 

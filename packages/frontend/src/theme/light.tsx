@@ -1,6 +1,52 @@
-import { palette } from './palette'
+export const palette = {
+  primary: {
+    light: '#c462fc',
+    main: '#B32EFF',
+    dark: '#7213a8',
+    contrastText: 'white',
+  },
+  background: {
+    default: '#FDF7F9',
+    paper: '#FDF7F9',
+  },
+  action: {
+    active: '#B32EFF',
+    hover: '#c462fc',
+    selected: '#B32EFF',
+    disabled: 'white',
+  },
+  secondary: {
+    main: '#666077',
+    light: '#6660777f',
+  },
+  success: {
+    main: '#00a72f',
+    light: '#00a72f33',
+  },
+  error: {
+    main: '#c50602',
+    light: '#c506021e',
+  },
+  info: {
+    main: '#2172e5',
+    light: '#2172e51e',
+  },
+  text: {
+    primary: '#0F0524',
+    secondary: '#666077',
+    disabled: '#6660777f',
+  },
+}
 
 export const boxShadows = {
+  input: {
+    normal: `
+      inset -3px -3px 6px rgba(255, 255, 255, 0.5),
+      inset 3px 3px 6px rgba(174, 174, 192, 0.16)`,
+    bold: `
+      inset -12px -12px 24px rgba(255, 255, 255, 0.5),
+      inset 12px 12px 24px rgba(174, 174, 192, 0.16)`,
+  },
   inner: `
     inset 4px -4px 3px #FFFFFF,
     inset 8px -8px 60px -5px #F1E9EC,
@@ -19,8 +65,8 @@ export const boxShadows = {
       -10px 10px 30px #D8D5DC,
       inset -8px 4px 10px rgba(102, 96, 119, 0.04)`,
     highlighted: `
-    10px -10px 30px #FFFFFF,
-    -10px 10px 30px rgba(216, 213, 220, 0.8)`,
+      10px -10px 30px #FFFFFF,
+      -10px 10px 30px rgba(216, 213, 220, 0.8)`,
   },
   select: `
     -6px 6px 12px #D8D5DC,
@@ -29,19 +75,7 @@ export const boxShadows = {
     inset -5px -5px 14px rgba(255, 255, 255, 0.15)`,
 }
 
-export const overrides = {
-  MuiCard: {
-    root: {
-      padding: '2.8rem',
-      borderRadius: '3.0rem',
-      boxShadow: boxShadows.card,
-    },
-  },
-  MuiPaper: {
-    root: {
-      backgroundColor: '#FDF7F9',
-    },
-  },
+export const overridesLight = {
   MuiButton: {
     root: {
       margin: 'inherit',
@@ -55,29 +89,11 @@ export const overrides = {
       },
     },
   },
-  MuiTabs: {
-    indicator: {
-      display: 'none',
-    },
-  },
-  MuiTab: {
+  MuiCard: {
     root: {
-      '&.MuiTab-root': {
-        color: palette.text.secondary,
-        minWidth: 0,
-        borderRadius: '3rem',
-      },
-      '&$selected': {
-        color: palette.primary.main,
-      },
-      '&:hover:not($selected)': {
-        color: palette.text.primary,
-      },
-    },
-  },
-  MuiTypography: {
-    root: {
-      color: '#0F0524',
+      padding: '2.8rem',
+      borderRadius: '3.0rem',
+      boxShadow: boxShadows.card,
     },
   },
   MuiListItem: {
@@ -102,6 +118,11 @@ export const overrides = {
       fontSize: '1.8rem',
     },
   },
+  MuiPaper: {
+    root: {
+      backgroundColor: '#FDF7F9',
+    },
+  },
   MuiPopover: {
     paper: {
       borderRadius: '3.0rem',
@@ -112,9 +133,10 @@ export const overrides = {
         `,
     },
   },
-  MuiTooltip: {
-    tooltip: {
-      fontSize: '1.6rem',
+  MuiSelect: {
+    root: {
+      backgroundColor: 'white',
+      // boxShadow: boxShadows.select,
     },
   },
   MuiSlider: {
@@ -140,10 +162,34 @@ export const overrides = {
       fontSize: '1.4rem',
     },
   },
-  MuiSelect: {
+  MuiTabs: {
+    indicator: {
+      display: 'none',
+    },
+  },
+  MuiTab: {
     root: {
-      backgroundColor: 'white',
-      // boxShadow: boxShadows.select,
+      '&.MuiTab-root': {
+        color: palette.text.secondary,
+        minWidth: 0,
+        borderRadius: '3rem',
+      },
+      '&$selected': {
+        color: palette.primary.main,
+      },
+      '&:hover:not($selected)': {
+        color: palette.text.primary,
+      },
+    },
+  },
+  MuiTooltip: {
+    tooltip: {
+      fontSize: '1.6rem',
+    },
+  },
+  MuiTypography: {
+    root: {
+      color: '#0F0524',
     },
   },
 }

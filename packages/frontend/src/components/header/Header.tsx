@@ -17,6 +17,7 @@ import Network from 'src/models/Network'
 import logger from 'src/logger'
 import { useInterval } from 'src/hooks'
 import ConnectWalletButton from './ConnectWalletButton'
+import { isDarkMode } from 'src/theme/theme'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -50,8 +51,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     borderRadius: '3rem',
     marginRight: '1rem',
     padding: '0.4rem 2rem',
-    boxShadow:
-      'rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset',
+    boxShadow: isDarkMode(theme)
+      ? theme.boxShadow.inner
+      : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`,
     color: theme.palette.text.secondary,
   },
   balance: {

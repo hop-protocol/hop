@@ -8,6 +8,9 @@ import { StyledButton } from '../buttons/StyledButton'
 const useStyles = makeStyles(theme => ({
   root: {
     boxShadow: 'none',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   pendingButton: {
     backgroundColor: 'rgba(179, 46, 255, 0.12)',

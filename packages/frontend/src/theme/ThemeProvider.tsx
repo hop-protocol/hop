@@ -1,9 +1,8 @@
 import React, { createContext, FC, useContext, useEffect, useState } from 'react'
 import { ThemeProvider as MuiThemeProvider } from '@material-ui/core/styles'
-import useMediaQuery from '@material-ui/core/useMediaQuery'
 import { ThemeProvider as SCThemeProvider } from 'styled-components'
 import { lightTheme, darkTheme } from './theme'
-import { boxShadows } from './light'
+import { useLocalStorage } from 'react-use'
 
 const shadows = {
   top: `
@@ -32,50 +31,42 @@ export const styledSystemTheme = {
   shadows: ['none', shadows.top, shadows.bottom],
   sizes: [16, 32, 64, 128, 256],
   colors: {
-    light: lightTheme.palette,
+    ...lightTheme.palette,
     dark: darkTheme.palette,
   },
 }
 
 interface ThemeContextValues {
-  mode: string
+  mode?: string
   toggleMode: any
 }
 
 const ThemeContext = createContext<ThemeContextValues>({
-  mode: '',
+  mode: 'light',
   toggleMode: () => {},
 })
 
-const ThemeProvider: FC = ({ children }) => {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
-  const defaultTheme = React.useMemo(() => (prefersDarkMode ? darkTheme : lightTheme), [
-    prefersDarkMode,
-  ])
+const cacheKey = 'ui-theme-mode'
 
-  const [theme, setTheme] = useState(defaultTheme)
-  const [mode, setMode] = useState(prefersDarkMode ? 'dark' : 'light')
+const ThemeProvider: FC = ({ children }) => {
+  const [mode, setMode] = useLocalStorage(cacheKey, 'light')
+  const [theme, setTheme] = useState(mode === 'light' ? lightTheme : darkTheme)
 
   function toggleMode() {
-    setMode(val => (val === 'light' ? 'dark' : 'light'))
-  }
-
-  useEffect(() => {
     if (mode === 'light') {
-      setTheme(lightTheme)
-    } else if (mode === 'dark') {
-      setTheme(darkTheme)
-    }
-  }, [mode])
-
-  useEffect(() => {
-    console.log(`prefersDarkMode:`, prefersDarkMode)
-    if (prefersDarkMode) {
       setMode('dark')
     } else {
       setMode('light')
     }
-  }, [prefersDarkMode])
+  }
+
+  useEffect(() => {
+    if (mode === 'dark') {
+      setTheme(darkTheme)
+    } else {
+      setTheme(lightTheme)
+    }
+  }, [mode])
 
   return (
     <ThemeContext.Provider

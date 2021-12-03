@@ -24,7 +24,7 @@ export enum BondTransferGasLimit {
   Arbitrum = '2500000'
 }
 
-export const SettlementCostPerTx: Record<string, number> = {
+export const SettlementGasLimitPerTx: Record<string, number> = {
   ethereum: 5141,
   polygon: 5933,
   xdai: 3218,

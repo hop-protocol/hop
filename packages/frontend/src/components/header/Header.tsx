@@ -50,6 +50,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     marginRight: '1rem',
     padding: '0.4rem 2rem',
     boxShadow: 'rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset',
+    color: theme.palette.text.secondary
   },
   balance: {
     fontWeight: 'bold',

@@ -8,7 +8,7 @@
   to = "/451.html"
   status = 451
   force = true
-  conditions = {Country=["BI","BY","CD","CF","CI","CU","IR","KP","LB","LR","LY","MM","RU","SD","SO","SS","SY","VE","YE","ZW"]}
+  conditions = {Country=["BY","CU","IR","IQ","CI","LR","KP","SD","SY","ZW"]}
 
 [[redirects]]
   from = "/*"

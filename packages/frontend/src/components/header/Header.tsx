@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Theme, makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
@@ -11,6 +11,11 @@ import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
 import { isMainnet } from 'src/config'
 import Settings from 'src/pages/Send/Settings'
 import WalletWarning from './WalletWarning'
+import { toTokenDisplay, networkIdToName, networkIdNativeTokenSymbol } from 'src/utils'
+import logger from 'src/logger'
+import {
+  useInterval
+} from 'src/hooks'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -36,12 +41,61 @@ const useStyles = makeStyles((theme: Theme) => ({
     right: '0',
     opacity: '0.2',
   },
+  balancePill: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'column',
+    borderRadius: '3rem',
+    marginRight: '1rem',
+    padding: '0.4rem 2rem',
+    boxShadow: 'rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset',
+    color: theme.palette.text.secondary
+  },
+  balance: {
+    fontWeight: 'bold',
+    fontSize: '1.5rem',
+    whiteSpace: 'nowrap'
+  },
+  network: {
+    fontSize: '1.4rem'
+  }
 }))
 
 const Header: FC = () => {
   const styles = useStyles()
-  const { address, requestWallet } = useWeb3Context()
+  const { address, requestWallet, provider, connectedNetworkId } = useWeb3Context()
   const { l1Network } = useApp()
+  const [displayBalance, setDisplayBalance] = useState<string>('')
+  const [connectedNetworkName, setConnectedNetworkName] = useState<string>('')
+
+  const updateDisplayBalance = async () => {
+    try {
+      if (!(address && provider && connectedNetworkId)) {
+        setDisplayBalance('')
+        return
+      }
+      const balance = await provider.getBalance(address.address)
+      const formattedBalance = toTokenDisplay(balance, 18)
+      const tokenSymbol = networkIdNativeTokenSymbol(connectedNetworkId)
+      const _displayBalance = `${formattedBalance} ${tokenSymbol}`
+      setDisplayBalance(_displayBalance)
+      setConnectedNetworkName(networkIdToName(connectedNetworkId))
+    } catch (err) {
+      logger.error(err)
+      setDisplayBalance('')
+    }
+  }
+
+  useEffect(() => {
+    updateDisplayBalance().catch(logger.error)
+  }, [address, provider, connectedNetworkId])
+
+  useInterval(() => {
+    updateDisplayBalance().catch(logger.error)
+  }, 5 * 1000)
+
+  const showBalance = !!displayBalance && !!connectedNetworkName
 
   return (
     <>
@@ -59,6 +113,12 @@ const Header: FC = () => {
         </Box>
         <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-end">
           <Settings />
+          {showBalance &&
+            <div className={styles.balancePill}>
+              <div className={styles.balance}>{displayBalance}</div>
+              <div className={styles.network}>{connectedNetworkName}</div>
+            </div>
+          }
           {address ? (
             <TxPill />
           ) : (

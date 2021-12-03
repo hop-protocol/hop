@@ -18,7 +18,7 @@ import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { shiftBNDecimals } from 'src/utils'
+import { shiftBNDecimals, BNMin } from 'src/utils'
 import { reactAppNetwork } from 'src/config'
 import { amountToBN, formatError } from 'src/utils/format'
 import {
@@ -44,7 +44,7 @@ type PoolsContextProps = {
   poolSharePercentage: string | undefined
   token0Price: string | undefined
   token1Price: string | undefined
-  poolReserves: string[]
+  poolReserves: BigNumber[]
   token1Rate: string | undefined
   addLiquidity: () => void
   removeLiquidity: () => void
@@ -128,7 +128,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [token1Amount, setToken1Amount] = useState<string>('')
   const [totalSupply, setTotalSupply] = useState<string>('')
   const [token1Rate, setToken1Rate] = useState<string>('')
-  const [poolReserves, setPoolReserves] = useState<string[]>([])
+  const [poolReserves, setPoolReserves] = useState<BigNumber[]>([])
   const [poolSharePercentage, setPoolSharePercentage] = useState<string>('0')
   const [token0Price, setToken0Price] = useState<string>('-')
   const [token1Price, setToken1Price] = useState<string>('-')
@@ -427,7 +427,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const updatePrices = useCallback(async () => {
     try {
-      if (!totalSupply) return
+      if (!(totalSupply && canonicalToken && poolReserves)) return
       if (Number(token1Rate)) {
         const price = new Price(token1Rate, '1')
         setToken0Price(price.toFixed(2))
@@ -437,11 +437,15 @@ const PoolsContextProvider: FC = ({ children }) => {
       if (token0Amount || token1Amount) {
         let amount0 = 0
         let amount1 = 0
+
+        const reserve0 = Number(formatUnits(poolReserves[0].toString(), canonicalToken?.decimals))
+        const reserve1 = Number(formatUnits(poolReserves[1].toString(), canonicalToken.decimals))
+
         if (token0Amount) {
-          amount0 = (Number(token0Amount) * Number(totalSupply)) / Number(poolReserves[0])
+          amount0 = (Number(token0Amount) * Number(totalSupply)) / reserve0
         }
         if (token1Amount) {
-          amount1 = (Number(token1Amount) * Number(totalSupply)) / Number(poolReserves[1])
+          amount1 = (Number(token1Amount) * Number(totalSupply)) / reserve1
         }
         const liquidity = amount0 + amount1
         const sharePercentage = Math.max(
@@ -455,7 +459,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     } catch (err) {
       logger.error(err)
     }
-  }, [token0Amount, totalSupply, token1Amount, token1Rate, poolReserves])
+  }, [token0Amount, totalSupply, token1Amount, token1Rate, poolReserves, canonicalToken])
 
   useEffect(() => {
     updatePrices()
@@ -476,10 +480,8 @@ const PoolsContextProvider: FC = ({ children }) => {
       ])
 
       const lpDecimals = Number(lpDecimalsBn.toString())
-      const reserve0 = formatUnits(reserves[0].toString(), canonicalToken.decimals)
-      const reserve1 = formatUnits(reserves[1].toString(), hopToken.decimals)
       if (isSubscribed) {
-        setPoolReserves([reserve0, reserve1])
+        setPoolReserves(reserves)
       }
     }
 
@@ -698,15 +700,13 @@ const PoolsContextProvider: FC = ({ children }) => {
       const saddleSwap = await amm.getSaddleSwap()
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
       const lpTokenDecimals = await lpToken.decimals
-
-      const signer = provider?.getSigner()
-      const balance = await lpToken?.balanceOf()
-
-      const approvalTx = await approve(balance, lpToken, saddleSwap.address)
-      await approvalTx?.wait()
-
       const token0Amount = token0Deposited
       const token1Amount = token1Deposited
+      const totalAmount = token0Amount?.add(token1Amount || 0)
+      const signer = provider?.getSigner()
+      const balance = await lpToken?.balanceOf()
+      const approvalTx = await approve(balance, lpToken, saddleSwap.address)
+      await approvalTx?.wait()
 
       const removeLiquidityTx = await txConfirm?.show({
         kind: 'removeLiquidity',
@@ -715,11 +715,13 @@ const PoolsContextProvider: FC = ({ children }) => {
             amount: token0Amount,
             token: canonicalToken,
             network: selectedNetwork,
+            max: BNMin(poolReserves[0], totalAmount)
           },
           token1: {
             amount: token1Amount,
             token: hopToken,
             network: selectedNetwork,
+            max: BNMin(poolReserves[1], totalAmount)
           },
         },
         onConfirm: async (amounts: any) => {
@@ -742,17 +744,20 @@ const PoolsContextProvider: FC = ({ children }) => {
                 deadline: deadline(),
               })
           } else {
-            const tokenAmount0 = tokenIndex === 0 ? amount : BigNumber.from(0)
-            const tokenAmount1 = tokenIndex === 1 ? amount : BigNumber.from(0)
-            const tokenAmountMin = amount.mul(minBps).div(10000)
-            let lpTokenAmount = await amm.calculateRemoveLiquidityMinimumLpTokens(tokenAmount0, tokenAmount1)
-            if (lpTokenAmount.gt(balance)) {
-              lpTokenAmount = balance
+            let liquidityTokenAmount = await amm.calculateRemoveLiquidityOneToken(amount, tokenIndex)
+            if (liquidityTokenAmount.gt(balance)) {
+              liquidityTokenAmount = balance
             }
+            const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
+            const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
+              liquidityTokenAmountWithSlippage
+            )
+            const amountMin = minimumAmounts[tokenIndex].mul(minBps).div(10000)
+
             return bridge
               .connect(signer as Signer)
-              .removeLiquidityOneToken(lpTokenAmount, tokenIndex, selectedNetwork.slug, {
-                amountMin: tokenAmountMin,
+              .removeLiquidityOneToken(liquidityTokenAmount, tokenIndex, selectedNetwork.slug, {
+                amountMin: amountMin,
                 deadline: deadline(),
               })
           }

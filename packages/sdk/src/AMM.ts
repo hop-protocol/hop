@@ -181,6 +181,20 @@ class AMM extends Base {
     )
   }
 
+  public async calculateRemoveLiquidityOneToken (
+    tokenAmount: TAmount,
+    tokenIndex: number
+  ) {
+    const account = await this.getSignerAddress()
+    const saddleSwap = await this.getSaddleSwap()
+    return saddleSwap.calculateRemoveLiquidityOneToken(
+      account,
+      tokenAmount,
+      tokenIndex,
+      await this.txOverrides(this.chain)
+    )
+  }
+
   // ToDo: Docs
   public async calculateToHToken (amount: BigNumberish) {
     return this.calculateSwap(

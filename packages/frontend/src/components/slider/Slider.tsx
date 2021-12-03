@@ -43,7 +43,7 @@ const Slider: FC<SliderProps> = (props: SliderProps) => {
   const handleChange = (event: any, _value: number | number[]) => {
     setValue(_value as number)
     if (props.onChange) {
-      props.onChange(value)
+      props.onChange(_value as number)
     }
   }
 

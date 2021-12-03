@@ -397,9 +397,6 @@ export default class L2Bridge extends Bridge {
     deadline: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
-    if (this.chainSlug === Chain.Polygon) {
-      txOverrides.gasLimit = 1_000_000
-    }
 
     const payload = [
       recipient,

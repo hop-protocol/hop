@@ -1,3 +1,15 @@
+[build]
+  base    = "packages/frontend/"
+  command = "yarn build"
+  publish = "build/"
+
+[[redirects]]
+  from = "/*"
+  to = "/451.html"
+  status = 451
+  force = true
+  conditions = {Country=["BI","BY","CD","CF","CI","CU","IR","KP","LB","LR","LY","MM","RU","SD","SO","SS","SY","VE","YE","ZW"]}
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -11,4 +23,4 @@
     Referrer-Policy = "no-referrer"
     X-Content-Type-Options = "nosniff"
     Strict-Transport-Security = "max-age=15780000; includeSubDomains; preload"
-    Feature-Policy = "geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none'; speaker 'none'; fullscreen 'none'; payment 'none'"
+    Feature-Policy = "geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none'; speaker-selection 'none'; fullscreen 'none'; payment 'none'"

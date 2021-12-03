@@ -1,7 +1,54 @@
-import { paletteDark as palette } from './palette'
-import { overrides } from './light'
+export const palette = {
+  primary: {
+    light: '#c462fc',
+    main: '#B32EFF',
+    dark: '#7213a8',
+    contrastText: 'white',
+  },
+  background: {
+    default: '#272332',
+    paper: '#272332',
+  },
+  action: {
+    active: '#B32EFF',
+    hover: '#c462fc',
+    selected: '#B32EFF',
+    disabled: '#66607738',
+  },
+  secondary: {
+    main: '#968FA8',
+    light: '#968FA87f',
+  },
+  success: {
+    main: '#00a72f',
+    light: '#00a72f33',
+  },
+  error: {
+    main: '#c50602',
+    light: '#c506021e',
+  },
+  info: {
+    main: '#2172e5',
+    light: '#2172e51e',
+  },
+  text: {
+    primary: '#E3DDF1',
+    secondary: '#968FA8',
+    disabled: '#968FA87f',
+  },
+}
 
 export const boxShadows = {
+  input: {
+    normal: `
+      inset -8px -8px 60px -5px rgba(21, 20, 29, 0.6),
+      inset 4px -4px 3px rgba(102, 96, 119, 0.5),
+      inset -7px 7px 5px -4px #161222`,
+    bold: `
+      inset -16px -16px 60px -5px rgba(21, 20, 29, 0.6),
+      inset 8px -8px 6px rgba(102, 96, 119, 0.5),
+      inset -14px 14px 10px -8px #161222`,
+  },
   inner: `
     inset -8px -8px 60px -5px rgba(21, 20, 29, 0.6),
     inset 4px -4px 3px rgba(102, 96, 119, 0.5),
@@ -30,19 +77,6 @@ export const boxShadows = {
 }
 
 export const overridesDark = {
-  ...overrides,
-  MuiCard: {
-    root: {
-      padding: '2.8rem',
-      borderRadius: '3.0rem',
-      // boxShadow: boxShadows.card,
-    },
-  },
-  MuiPaper: {
-    root: {
-      backgroundColor: '#272332',
-    },
-  },
   MuiButton: {
     root: {
       margin: 'inherit',
@@ -52,28 +86,15 @@ export const overridesDark = {
       '&:disabled': {
         background: '#272332',
         boxShadow: boxShadows.button.default,
-        color: '#6660777f',
+        color: palette.text.disabled,
       },
     },
   },
-  MuiTab: {
+  MuiCard: {
     root: {
-      '&.MuiTab-root': {
-        color: palette.text.secondary,
-        minWidth: 0,
-        borderRadius: '3rem',
-      },
-      '&$selected': {
-        color: palette.primary.main,
-      },
-      '&:hover:not($selected)': {
-        color: palette.text.primary,
-      },
-    },
-  },
-  MuiTypography: {
-    root: {
-      color: '#E3DDF1',
+      padding: '2.8rem',
+      borderRadius: '3.0rem',
+      boxShadow: boxShadows.card,
     },
   },
   MuiListItem: {
@@ -92,6 +113,17 @@ export const overridesDark = {
       },
     },
   },
+  MuiMenuItem: {
+    root: {
+      fontWeight: 700,
+      fontSize: '1.8rem',
+    },
+  },
+  MuiPaper: {
+    root: {
+      backgroundColor: '#272332',
+    },
+  },
   MuiPopover: {
     paper: {
       borderRadius: '3.0rem',
@@ -106,6 +138,59 @@ export const overridesDark = {
     root: {
       backgroundColor: '#66607738',
       // boxShadow: boxShadows.select,
+    },
+  },
+  MuiSlider: {
+    root: {
+      height: 3,
+    },
+    thumb: {
+      height: 14,
+      width: 14,
+    },
+    track: {
+      height: 3,
+      borderRadius: 8,
+    },
+    rail: {
+      height: 3,
+      borderRadius: 8,
+    },
+    mark: {
+      height: 3,
+    },
+    valueLabel: {
+      fontSize: '1.4rem',
+    },
+  },
+  MuiTabs: {
+    indicator: {
+      display: 'none',
+    },
+  },
+  MuiTab: {
+    root: {
+      '&.MuiTab-root': {
+        color: palette.text.secondary,
+        minWidth: 0,
+        borderRadius: '3rem',
+      },
+      '&$selected': {
+        color: palette.primary.main,
+      },
+      '&:hover:not($selected)': {
+        color: palette.text.primary,
+      },
+    },
+  },
+  MuiTooltip: {
+    tooltip: {
+      fontSize: '1.6rem',
+    },
+  },
+  MuiTypography: {
+    root: {
+      color: '#E3DDF1',
     },
   },
 }

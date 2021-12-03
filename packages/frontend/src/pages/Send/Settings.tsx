@@ -16,9 +16,12 @@ import Alert from 'src/components/alert/Alert'
 import { sanitizeNumericalString } from 'src/utils'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { isDarkMode } from 'src/theme/theme'
+import { Div } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   root: {
+    display: 'flex',
+    alignItems: 'center',
     padding: `0 ${theme.padding.extraLight}`,
   },
   header: {
@@ -104,16 +107,19 @@ const Settings: FC = () => {
 
   const deadlineError = Number(deadlineMinutes) < 10
 
-  const ThemeModeIcon = theme?.palette.type === 'dark' ? SunIcon : MoonIcon
+  const darkMode = isDarkMode(theme)
+  const ThemeModeIcon = darkMode ? SunIcon : MoonIcon
 
   return (
     <div className={styles.root}>
-      <IconButton onClick={toggleMode} color="primary">
-        <ThemeModeIcon />
+      <IconButton onClick={toggleMode}>
+        <Div color="#666077">
+          <ThemeModeIcon style={{ height: 20, width: 20 }} />
+        </Div>
       </IconButton>
-      <IconButton onClick={handleClick} color="secondary">
+      {/* <IconButton onClick={handleClick} color="secondary">
         <SettingsIcon className={styles.settingsIcon} />
-      </IconButton>
+      </IconButton> */}
       <Popover
         open={open}
         onClose={handleClose}

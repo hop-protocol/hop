@@ -20,16 +20,6 @@ interface StyleProps {
   loadingValue: boolean
 }
 
-const normalShadow = `
-  inset -3px -3px 6px rgba(255, 255, 255, 0.5),
-  inset 3px 3px 6px rgba(174, 174, 192, 0.16)
-`
-
-const boldShadow = `
-  inset -12px -12px 24px rgba(255, 255, 255, 0.5),
-  inset 12px 12px 24px rgba(174, 174, 192, 0.16)
-`
-
 const useStyles = makeStyles(theme => ({
   root: {
     margin: `-0.8rem -${theme.padding.extraLight} -0.8rem 0`,
@@ -63,15 +53,15 @@ const useInputStyles = makeStyles(theme => ({
     padding: '0.8rem 0',
     transition: 'box-shadow 0.3s ease-in-out',
     borderRadius: '1.5rem',
-    boxShadow: defaultShadow ? normalShadow : 'none',
+    boxShadow: defaultShadow ? theme.boxShadow.input.normal : 'none',
     '&:hover': {
       boxShadow: () => {
         if (hideShadow) {
           return 'none'
         } else if (defaultShadow) {
-          return boldShadow
+          return theme.boxShadow.input.bold
         } else {
-          return normalShadow
+          return theme.boxShadow.input.normal
         }
       },
     },
@@ -92,7 +82,7 @@ const useInputStyles = makeStyles(theme => ({
   }),
   focused: {
     borderRadius: '1.5rem',
-    boxShadow: normalShadow,
+    boxShadow: theme.boxShadow.input.normal,
   },
 }))
 

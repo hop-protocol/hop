@@ -11,6 +11,7 @@
 
 # misc
 .env.local
+.env
 
 .eslintcache
 .prettierignore

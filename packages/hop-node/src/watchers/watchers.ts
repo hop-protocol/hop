@@ -6,8 +6,8 @@ import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import Logger from 'src/logger'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import SyncWatcher from 'src/watchers/SyncWatcher'
-import chainSlugToId from 'src/utils/chainSlugToId'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
@@ -269,9 +269,9 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
 
   const filteredSourceChains = new Set()
   const filteredDestinationChains = new Set()
-  for (let sourceChain in globalConfig.routes) {
+  for (const sourceChain in globalConfig.routes) {
     filteredSourceChains.add(sourceChain)
-    for (let destinationChain in globalConfig.routes[sourceChain]) {
+    for (const destinationChain in globalConfig.routes[sourceChain]) {
       filteredDestinationChains.add(destinationChain)
     }
   }

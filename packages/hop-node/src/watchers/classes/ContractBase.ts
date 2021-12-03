@@ -3,7 +3,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, MinPolygonGasPrice } from 'src/constants'
 import { Event } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
@@ -146,12 +146,19 @@ export default class ContractBase extends EventEmitter {
   async txOverrides (): Promise<any> {
     const txOptions: any = {}
     if (globalConfig.isMainnet) {
+      // Not all Polygon nodes follow recommended 30 Gwei gasPrice
+      // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
+      if (this.chainSlug === Chain.Polygon) {
+        txOptions.gasPrice = (await this.getBumpedGasPrice(1)).toString()
+
+        if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
+          txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
+        }
+      }
+
       // increasing more gas multiplier for xdai
       // to avoid the error "code:-32010, message: FeeTooLowToCompete"
-      if (
-        this.chainSlug === Chain.xDai ||
-        this.chainSlug === Chain.Polygon
-      ) {
+      if (this.chainSlug === Chain.xDai) {
         const multiplier = 3
         txOptions.gasPrice = (await this.getBumpedGasPrice(multiplier)).toString()
       }

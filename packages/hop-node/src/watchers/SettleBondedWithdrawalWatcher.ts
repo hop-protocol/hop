@@ -48,10 +48,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
     }
 
+    const sourceChainId = await this.getFilterSourceChainId()
+    const destinationChainIds = await this.getFilterDestinationChainIds()
+
     // only process transfer where this bridge is the source chain
     const dbTransferRoots = await this.db.transferRoots.getUnsettledTransferRoots(
       {
-        sourceChainId: await this.bridge.getChainId()
+        sourceChainId,
+        destinationChainIds
       }
     )
 

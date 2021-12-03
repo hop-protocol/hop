@@ -6,7 +6,7 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TxRetryDelayMs } from 'src/constants'
-import { getEnabledNetworks, config as globalConfig } from 'src/config'
+import { getEnabledNetworks } from 'src/config'
 
 export type Config = {
   chainSlug: string
@@ -79,22 +79,11 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
-    const sourceChainId = await this.bridge.getChainId()
-    let filterDestinationChainIds: number[] | undefined
-    const customRouteSourceChains = Object.keys(globalConfig.routes)
-    const hasCustomRoutes = customRouteSourceChains.length > 0
-    if (hasCustomRoutes) {
-      const isSourceRouteOk = customRouteSourceChains.includes(this.chainSlug)
-      if (!isSourceRouteOk) {
-        return
-      }
-      const customRouteDestinationChains = Object.keys(globalConfig.routes[this.chainSlug])
-      filterDestinationChainIds = customRouteDestinationChains.map(chainSlug => this.chainSlugToId(chainSlug))
-    }
-
+    const sourceChainId = await this.getFilterSourceChainId()
+    const destinationChainIds = await this.getFilterDestinationChainIds()
     const dbTransfers = await this.db.transfers.getUncommittedTransfers({
       sourceChainId,
-      destinationChainIds: filterDestinationChainIds
+      destinationChainIds
     })
     if (!dbTransfers.length) {
       return
@@ -104,15 +93,13 @@ class CommitTransfersWatcher extends BaseWatcher {
         `checking ${dbTransfers.length} uncommitted transfers db items`
     )
 
-    const destinationChainIds: number[] = []
+    const seen: Record<number, boolean> = {}
     for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer
-      if (!destinationChainIds.includes(destinationChainId!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        destinationChainIds.push(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      if (!seen[destinationChainId!]) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        seen[destinationChainId!] = true // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        await this.checkIfShouldCommit(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       }
-    }
-    for (const destinationChainId of destinationChainIds) {
-      await this.checkIfShouldCommit(destinationChainId)
     }
   }
 

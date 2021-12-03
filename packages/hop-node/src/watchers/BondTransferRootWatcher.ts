@@ -7,7 +7,6 @@ import { BigNumber } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { config as globalConfig } from 'src/config'
 
 export type Config = {
   chainSlug: string
@@ -43,24 +42,13 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async checkTransfersCommittedFromDb () {
-    let filterSourceChainId: number | undefined
-    let filterDestinationChainIds: number[] | undefined
-    const customRouteSourceChains = Object.keys(globalConfig.routes)
-    const hasCustomRoutes = customRouteSourceChains.length > 0
-    if (hasCustomRoutes) {
-      const isSourceRouteOk = customRouteSourceChains.includes(this.chainSlug)
-      if (!isSourceRouteOk) {
-        return
-      }
-      const customRouteDestinationChains = Object.keys(globalConfig.routes[this.chainSlug])
-      filterDestinationChainIds = customRouteDestinationChains.map(chainSlug => this.chainSlugToId(chainSlug))
-      filterSourceChainId = await this.bridge.getChainId()
-    }
-
+    const sourceChainId = await this.getFilterSourceChainId()
+    const destinationChainIds = await this.getFilterDestinationChainIds()
     const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots({
-      sourceChainId: filterSourceChainId,
-      destinationChainIds: filterDestinationChainIds
+      sourceChainId,
+      destinationChainIds
     })
+
     if (!dbTransferRoots.length) {
       return
     }

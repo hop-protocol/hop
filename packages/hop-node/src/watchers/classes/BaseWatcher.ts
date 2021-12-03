@@ -12,7 +12,7 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Notifier } from 'src/notifier'
-import { hostname } from 'src/config'
+import { config as globalConfig, hostname } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -234,6 +234,27 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       this.logger.warn(`Pause mode updated: ${enabled}`)
       this.pauseMode = enabled
     }
+  }
+
+  async getFilterSourceChainId () {
+    const sourceChainId = await this.bridge.getChainId()
+    return sourceChainId
+  }
+
+  async getFilterDestinationChainIds () {
+    const sourceChainId = await this.bridge.getChainId()
+    let filterDestinationChainIds: number[] | undefined
+    const customRouteSourceChains = Object.keys(globalConfig.routes)
+    const hasCustomRoutes = customRouteSourceChains.length > 0
+    if (hasCustomRoutes) {
+      const isSourceRouteOk = customRouteSourceChains.includes(this.chainSlug)
+      if (!isSourceRouteOk) {
+        return
+      }
+      const customRouteDestinationChains = Object.keys(globalConfig.routes[this.chainSlug])
+      filterDestinationChainIds = customRouteDestinationChains.map(chainSlug => this.chainSlugToId(chainSlug))
+    }
+    return filterDestinationChainIds
   }
 
   // force quit so docker can restart

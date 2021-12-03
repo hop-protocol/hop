@@ -426,6 +426,12 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         }
       }
 
+      if (filter.destinationChainIds) {
+        if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
+          return false
+        }
+      }
+
       // https://github.com/hop-protocol/hop/pull/140#discussion_r697919256
       let rootSetTimestampOk = true
       const checkRootSetTimestamp = item.rootSetTimestamp && filter.destinationChainId && chainIdToSlug(filter.destinationChainId) === Chain.xDai

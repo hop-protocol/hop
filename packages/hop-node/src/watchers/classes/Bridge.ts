@@ -829,6 +829,7 @@ export default class Bridge extends ContractBase {
   }
 
   getConfigBonderAddress (): string {
-    return globalConfig?.bonders?.[this.tokenSymbol]?.[0]
+    const sourceBonders = globalConfig?.bonders?.[this.tokenSymbol]?.[this.chainSlug]
+    return sourceBonders?.[Object.keys(sourceBonders)[0]]
   }
 }

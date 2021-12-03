@@ -72,23 +72,7 @@ class ContractStateWatcher {
       }
     }
 
-    const bonderStates: any = {}
-    for (const bonder of globalConfig.bonders[this.token] ?? []) {
-      if (!bonderStates[bonder]) {
-        bonderStates[bonder] = {}
-      }
-
-      const credit = (await l1Bridge.getCredit(bonder)).toString()
-      const debitAndAdditionalDebit = (await l1Bridge.getDebitAndAdditionalDebit(bonder)).toString()
-      const isBonder = (await l1Bridge.getIsBonder(bonder)).toString()
-      const rawDebit = (await l1Bridge.getRawDebit(bonder)).toString()
-
-      bonderStates[bonder] = {
-        credit,
-        debitAndAdditionalDebit,
-        isBonder
-      }
-    }
+    const bonderStates: any = await this.getBonderStates(l1Bridge)
 
     return {
       challengeAmountDivisor,
@@ -101,6 +85,35 @@ class ContractStateWatcher {
       chainStates,
       bonderStates
     }
+  }
+
+  private async getBonderStates (bridge: any) {
+    const bonderStates: any = {}
+    const bonders = new Set<string>()
+    for (const sourceChain in globalConfig.bonders[this.token]) {
+      for (const destinationChain in globalConfig.bonders[this.token]?.[sourceChain]) {
+        const bonder = globalConfig.bonders[this.token]?.[sourceChain]?.[destinationChain]
+        bonders.add(bonder)
+      }
+    }
+    for (const bonder of bonders) {
+      if (!bonderStates[bonder]) {
+        bonderStates[bonder] = {}
+      }
+
+      const credit = (await bridge.getCredit(bonder)).toString()
+      const debitAndAdditionalDebit = (await bridge.getDebitAndAdditionalDebit(bonder)).toString()
+      const isBonder = (await bridge.getIsBonder(bonder)).toString()
+      const rawDebit = (await bridge.getRawDebit(bonder)).toString()
+
+      bonderStates[bonder] = {
+        credit,
+        debitAndAdditionalDebit,
+        isBonder
+      }
+    }
+
+    return bonderStates
   }
 
   async getL2BridgeState (chain: string) {
@@ -139,23 +152,7 @@ class ContractStateWatcher {
       }
     }
 
-    const bonderStates: any = {}
-    for (const bonder of globalConfig.bonders[this.token] ?? []) {
-      if (!bonderStates[bonder]) {
-        bonderStates[bonder] = {}
-      }
-
-      const credit = (await l2Bridge.getCredit(bonder)).toString()
-      const debitAndAdditionalDebit = (await l2Bridge.getDebitAndAdditionalDebit(bonder)).toString()
-      const isBonder = (await l2Bridge.getIsBonder(bonder)).toString()
-      const rawDebit = (await l2Bridge.getRawDebit(bonder)).toString()
-
-      bonderStates[bonder] = {
-        credit,
-        debitAndAdditionalDebit,
-        isBonder
-      }
-    }
+    const bonderStates: any = await this.getBonderStates(l2Bridge)
 
     return {
       ammWrapper,

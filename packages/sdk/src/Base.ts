@@ -440,7 +440,7 @@ class Base {
     return sourceBonders?.[Object.keys(sourceBonders)[0]]
   }
 
-  public getBonderAddresses (token: TToken): string[] | any {
+  public getBonderAddresses (token: TToken): Record<string, Record<string, string>> {
     token = this.toTokenModel(token)
     return this.bonders?.[this.network]?.[token.canonicalSymbol]
   }

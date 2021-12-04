@@ -708,6 +708,31 @@ const PoolsContextProvider: FC = ({ children }) => {
       const approvalTx = await approve(balance, lpToken, saddleSwap.address)
       await approvalTx?.wait()
 
+      const calculatePriceImpact = async (amounts: any) => {
+        try {
+          const { proportional, tokenIndex, amountPercent, amount } = amounts
+          if (proportional) {
+            const liquidityTokenAmount = balance.mul(amountPercent).div(100)
+            const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
+              liquidityTokenAmount
+            )
+            const amount0 = minimumAmounts[0]
+            const amount1 = minimumAmounts[1]
+            const price = await amm.getRemoveLiquidityPriceImpact(amount0, amount1)
+            const formatted = Number(formatUnits(price.toString(), 18))
+            return formatted
+          } else {
+            const amount0 = !tokenIndex ? amount : BigNumber.from(0)
+            const amount1 = tokenIndex ? amount : BigNumber.from(0)
+            const price = await amm.getRemoveLiquidityPriceImpact(amount0, amount1)
+            const formatted = Number(formatUnits(price.toString(), 18))
+            return formatted
+          }
+        } catch (err) {
+          logger.error(err)
+        }
+      }
+
       const removeLiquidityTx = await txConfirm?.show({
         kind: 'removeLiquidity',
         inputProps: {
@@ -723,6 +748,7 @@ const PoolsContextProvider: FC = ({ children }) => {
             network: selectedNetwork,
             max: BNMin(poolReserves[1], totalAmount)
           },
+          calculatePriceImpact
         },
         onConfirm: async (amounts: any) => {
           const { proportional, tokenIndex, amountPercent, amount } = amounts

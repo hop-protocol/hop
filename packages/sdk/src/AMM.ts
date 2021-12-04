@@ -396,7 +396,31 @@ class AMM extends Base {
     return this.calculatePriceImpact(
       tokenInputSum,
       depositLpTokenAmount,
-      virtualPrice
+      virtualPrice,
+      false
+    )
+  }
+
+  public async getRemoveLiquidityPriceImpact (amount0: TAmount, amount1: TAmount) {
+    const token = this.toTokenModel(this.tokenSymbol)
+    const decimals = token.decimals
+    const saddleSwap = await this.getSaddleSwap()
+    const [virtualPrice, withdrawLpTokenAmount] = await Promise.all([
+      this.getVirtualPrice(),
+      this.calculateRemoveLiquidityMinimumLpTokens(amount0, amount1)
+    ])
+    let tokenInputSum = BigNumber.from(amount0.toString()).add(
+      BigNumber.from(amount1.toString())
+    )
+
+    // convert to 18 decimals
+    tokenInputSum = shiftBNDecimals(tokenInputSum, 18 - decimals)
+
+    return this.calculatePriceImpact(
+      withdrawLpTokenAmount,
+      tokenInputSum,
+      virtualPrice,
+      true
     )
   }
 
@@ -436,11 +460,23 @@ class AMM extends Base {
     return priceImpact.lte(negOne)
   }
 
-  calculatePriceImpact (
+  private calculatePriceImpact (
     tokenInputAmount: BigNumber, // assumed to be 18d precision
     tokenOutputAmount: BigNumber,
-    virtualPrice = BigNumber.from(10).pow(18)
+    virtualPrice = BigNumber.from(10).pow(18),
+    isWithdraw: boolean = false
   ): BigNumber {
+    if (tokenInputAmount.eq(0) && tokenOutputAmount.eq(0)) {
+      return BigNumber.from(0)
+    }
+
+    if (isWithdraw) {
+      return tokenOutputAmount
+        .mul(BigNumber.from(10).pow(36))
+        .div(tokenInputAmount.mul(virtualPrice))
+        .sub(BigNumber.from(10).pow(18))
+    }
+
     return tokenInputAmount.gt(0)
       ? virtualPrice
         .mul(tokenOutputAmount)

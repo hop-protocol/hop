@@ -9,15 +9,16 @@ import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
-import { amountToBN, commafy } from 'src/utils'
+import { amountToBN, commafy, toPercentDisplay } from 'src/utils'
 import { BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Slider } from 'src/components/slider'
 import MenuItem from '@material-ui/core/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
+import DetailRow from 'src/components/DetailRow'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -39,6 +40,10 @@ const useStyles = makeStyles(() => ({
   },
   action: {},
   sendButton: {},
+  details: {
+    width: '20rem',
+    margin: '0 auto 3rem auto'
+  },
 }))
 
 interface TokenEntity {
@@ -59,10 +64,11 @@ interface Props {
   token0: TokenEntity
   token1: TokenEntity
   onConfirm: (confirmed: boolean, result: Result) => void
+  calculatePriceImpact: (result: Result) => number
 }
 
 const RemoveLiquidity = (props: Props) => {
-  const { token0, token1, onConfirm } = props
+  const { token0, token1, onConfirm, calculatePriceImpact } = props
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
   const selections :any[] = [
@@ -78,6 +84,7 @@ const RemoveLiquidity = (props: Props) => {
   const [displayAmount, setDisplayAmount] = useState<string>('')
   const [amountPercent, setAmountPercent] = useState<number>(100)
   const [tokenIndex, setTokenIndex] = useState<number>(0)
+  const [priceImpact, setPriceImpact] = useState<number | undefined>()
   const selectedToken = tokenIndex ? token1.token : token0.token
   const maxBalance = tokenIndex ? token1.max : token0.max
   const tokenDecimals = token0.token.decimals
@@ -107,7 +114,7 @@ const RemoveLiquidity = (props: Props) => {
     setDisplayAmount(display)
   }
 
-  const handleProportionSliderChange = (percent: number) => {
+  const handleProportionSliderChange = async (percent: number) => {
     setAmountPercent(percent)
     updateDisplayAmount(percent)
   }
@@ -147,6 +154,36 @@ const RemoveLiquidity = (props: Props) => {
   useEffect(() => {
     setAmountBN(parseUnits((amount || 0).toString(), tokenDecimals))
   }, [amount])
+
+  useEffect(() => {
+    let isSubscribed = true
+    const update = async () => {
+      try {
+        const _priceImpact = await calculatePriceImpact({
+          proportional,
+          amountPercent,
+          tokenIndex,
+          amount: amountBN
+        })
+        if (isSubscribed) {
+          setPriceImpact(_priceImpact)
+        }
+      } catch (err) {
+        console.log(err)
+        if (isSubscribed) {
+          setPriceImpact(undefined)
+        }
+      }
+    }
+
+    update().catch(console.error)
+    return () => {
+      isSubscribed = false
+    }
+  }, [amountBN, proportional, amountPercent, tokenIndex])
+
+  const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
+  const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
 
   return (
     <div className={styles.root}>
@@ -193,6 +230,13 @@ const RemoveLiquidity = (props: Props) => {
             />
           </div>
           <Slider onChange={handleAmountSliderChange} defaultValue={0} value={amountSliderValue} />
+          <div className={styles.details}>
+            <DetailRow
+              title={priceImpactLabel}
+              tooltip="Withdrawing overpooled assets will give you bonus tokens. Withdrawaing underpooled assets will give you less tokens."
+              value={`${priceImpactFormatted}`}
+            />
+          </div>
       </div>
       }
       <div className={styles.action}>

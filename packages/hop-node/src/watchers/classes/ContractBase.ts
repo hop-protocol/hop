@@ -151,8 +151,9 @@ export default class ContractBase extends EventEmitter {
       if (this.chainSlug === Chain.Polygon) {
         txOptions.gasPrice = (await this.getBumpedGasPrice(1)).toString()
 
-        if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
-          txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
+        const gasPriceBn = BigNumber.from(txOptions.gasPrice)
+        if (gasPriceBn.lt(MinPolygonGasPrice)) {
+          txOptions.gasPrice = MinPolygonGasPrice.toString()
         }
       }
 

@@ -32,10 +32,10 @@ export default class L2AmmWrapper extends ContractBase {
   swapAndSend = async (
     destinationChainId: number,
     amount: BigNumber,
-    token: string
+    token: string,
+    recipient: string
   ): Promise<providers.TransactionResponse> => {
     const sdk = new Hop(globalConfig.network)
-    const recipient = await this.contract.signer.getAddress()
     const bridge = sdk.bridge(token)
     // let bonderFee = await bridge.getBonderFee(
     //   amount,

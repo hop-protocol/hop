@@ -170,7 +170,8 @@ export default class L2Bridge extends Bridge {
 
   sendHTokens = async (
     destinationChainId: number,
-    amount: BigNumber
+    amount: BigNumber,
+    recipient: string
   ): Promise<providers.TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
@@ -179,9 +180,6 @@ export default class L2Bridge extends Bridge {
 
     const sdk = new Hop(globalConfig.network)
     const bridge = sdk.bridge(this.tokenSymbol)
-    const recipient = await this.getBonderAddress()
-    const relayer = recipient
-    const relayerFee = '0'
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
     const destinationChain = this.chainIdToSlug(destinationChainId)
@@ -215,12 +213,14 @@ export default class L2Bridge extends Bridge {
 
   sendCanonicalTokens = async (
     destinationChainId: number,
-    amount: BigNumber
+    amount: BigNumber,
+    recipient: string
   ): Promise<providers.TransactionResponse> => {
     return await this.ammWrapper.swapAndSend(
       destinationChainId,
       amount,
-      this.tokenSymbol
+      this.tokenSymbol,
+      recipient
     )
   }
 

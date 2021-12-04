@@ -1,3 +1,5 @@
+import { constants as ethersConstants } from 'ethers'
+
 export enum Network {
   Mainnet = 'mainnet',
   Staging = 'staging',
@@ -68,3 +70,5 @@ export enum TokenIndex {
   CanonicalToken = 0,
   HopBridgeToken = 1
 }
+
+export const DefaultRelayerAddress = ethersConstants.AddressZero

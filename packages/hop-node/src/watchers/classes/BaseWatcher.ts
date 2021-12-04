@@ -262,6 +262,15 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     return filterDestinationChainIds
   }
 
+  async getFilterRoute (): Promise<any> {
+    const sourceChainId = await this.getFilterSourceChainId()
+    const destinationChainIds = await this.getFilterDestinationChainIds()
+    return {
+      sourceChainId,
+      destinationChainIds
+    }
+  }
+
   // force quit so docker can restart
   public async quit () {
     console.trace()

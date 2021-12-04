@@ -42,13 +42,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async checkTransfersCommittedFromDb () {
-    const sourceChainId = await this.getFilterSourceChainId()
-    const destinationChainIds = await this.getFilterDestinationChainIds()
-    const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots({
-      sourceChainId,
-      destinationChainIds
-    })
-
+    const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       return
     }

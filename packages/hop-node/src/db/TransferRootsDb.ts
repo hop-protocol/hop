@@ -269,21 +269,8 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
-      if (filter.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
-      }
-      if (filter.destinationChainId) {
-        if (filter.destinationChainId !== item.destinationChainId) {
-          return false
-        }
-      }
-
-      if (filter.destinationChainIds) {
-        if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
-          return false
-        }
+      if (!this.isRouteOk(filter, item)) {
+        return false
       }
 
       const shouldIgnoreItem = this.isInvalidOrNotFound(item)
@@ -420,16 +407,8 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
-      if (filter.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
-      }
-
-      if (filter.destinationChainIds) {
-        if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
-          return false
-        }
+      if (!this.isRouteOk(filter, item)) {
+        return false
       }
 
       // https://github.com/hop-protocol/hop/pull/140#discussion_r697919256
@@ -516,6 +495,28 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     const isNotFound = item?.isNotFound
     const isInvalid = invalidTransferRoots[item.transferRootHash!] // eslint-disable-line @typescript-eslint/no-non-null-assertion
     return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+  }
+
+  isRouteOk (filter: GetItemsFilter = {}, item: Partial<TransferRoot>) {
+    if (filter.sourceChainId) {
+      if (!item.sourceChainId || filter.sourceChainId !== item.sourceChainId) {
+        return false
+      }
+    }
+
+    if (filter.destinationChainId) {
+      if (!item.destinationChainId || filter.destinationChainId !== item.destinationChainId) {
+        return false
+      }
+    }
+
+    if (filter.destinationChainIds) {
+      if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
+        return false
+      }
+    }
+
+    return true
   }
 }
 

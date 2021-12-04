@@ -759,7 +759,6 @@ export default class Bridge extends ContractBase {
 
     // Include the cost to settle an individual transfer
     const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[chain]
-    // @ts-ignore
     const gasLimitWithSettlement = gasLimit.add(settlementGasLimitPerTx)
 
     let gasCost = gasLimit.mul(gasPrice)

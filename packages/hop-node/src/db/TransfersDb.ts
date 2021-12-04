@@ -316,16 +316,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
-      if (filter.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
-      }
-
-      if (filter.destinationChainIds) {
-        if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
-          return false
-        }
+      if (!this.isRouteOk(filter, item)) {
+        return false
       }
 
       return (
@@ -349,16 +341,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
         return false
       }
 
-      if (filter.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
-      }
-
-      if (filter.destinationChainIds) {
-        if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
-          return false
-        }
+      if (!this.isRouteOk(filter, item)) {
+        return false
       }
 
       const shouldIgnoreItem = this.isInvalidOrNotFound(item)
@@ -461,6 +445,22 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     const isNotFound = item?.isNotFound
     const isInvalid = invalidTransferIds[item.transferId!] // eslint-disable-line @typescript-eslint/no-non-null-assertion
     return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+  }
+
+  isRouteOk (filter: GetItemsFilter = {}, item: Partial<Transfer>) {
+    if (filter.sourceChainId) {
+      if (!item.sourceChainId || filter.sourceChainId !== item.sourceChainId) {
+        return false
+      }
+    }
+
+    if (filter.destinationChainIds) {
+      if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
+        return false
+      }
+    }
+
+    return true
   }
 }
 

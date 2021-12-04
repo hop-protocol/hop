@@ -79,12 +79,7 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
-    const sourceChainId = await this.getFilterSourceChainId()
-    const destinationChainIds = await this.getFilterDestinationChainIds()
-    const dbTransfers = await this.db.transfers.getUncommittedTransfers({
-      sourceChainId,
-      destinationChainIds
-    })
+    const dbTransfers = await this.db.transfers.getUncommittedTransfers(await this.getFilterRoute())
     if (!dbTransfers.length) {
       return
     }

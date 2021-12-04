@@ -7,6 +7,7 @@ import { getArbitrumAlias } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import * as config from 'src/config'
+import {Chain} from 'src/utils/constants'
 
 type StatsContextProps = {
   stats: any[]
@@ -168,10 +169,10 @@ const StatsContextProvider: FC = ({ children }) => {
       return
     }
     const [credit, debit, totalDebit, availableLiquidity, eth] = await Promise.all([
-      bridge.getCredit(selectedNetwork.slug, bonder),
-      bridge.getDebit(selectedNetwork.slug, bonder),
-      bridge.getTotalDebit(selectedNetwork.slug, bonder),
-      bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
+      bridge.getCredit(selectedNetwork.slug, Chain.Ethereum, bonder),
+      bridge.getDebit(selectedNetwork.slug, Chain.Ethereum, bonder),
+      bridge.getTotalDebit(selectedNetwork.slug, Chain.Ethereum, bonder),
+      bridge.getAvailableLiquidity(selectedNetwork.slug, Chain.Ethereum, bonder),
       bridge.getEthBalance(selectedNetwork.slug, bonder),
     ])
 

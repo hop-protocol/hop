@@ -1325,7 +1325,7 @@ class SyncWatcher extends BaseWatcher {
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const bonderFee = BigNumber.from(1)
-    const bonder = this.bridge.getConfigBonderAddress(Chain.Ethereum)
+    const bonder = this.bridge.getBonderAddress()
     const recipient = `0x${'1'.repeat(40)}`
     const transferNonce = `0x${'0'.repeat(64)}`
 

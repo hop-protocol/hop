@@ -90,9 +90,10 @@ class ContractStateWatcher {
   private async getBonderStates (bridge: any) {
     const bonderStates: any = {}
     const bonders = new Set<string>()
-    for (const sourceChain in globalConfig.bonders[this.token]) {
-      for (const destinationChain in globalConfig.bonders[this.token]?.[sourceChain]) {
-        const bonder = globalConfig.bonders[this.token]?.[sourceChain]?.[destinationChain]
+    const tokenBonderRoutes = (globalConfig.bonders as any)?.[this.token]
+    for (const sourceChain in tokenBonderRoutes) {
+      for (const destinationChain in tokenBonderRoutes?.[sourceChain]) {
+        const bonder = tokenBonderRoutes?.[sourceChain]?.[destinationChain]
         bonders.add(bonder)
       }
     }

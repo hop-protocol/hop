@@ -7,7 +7,7 @@ import { getArbitrumAlias } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import * as config from 'src/config'
-import {Chain} from 'src/utils/constants'
+import { Chain } from 'src/utils/constants'
 
 type StatsContextProps = {
   stats: any[]

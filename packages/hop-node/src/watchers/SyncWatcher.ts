@@ -1130,7 +1130,7 @@ class SyncWatcher extends BaseWatcher {
     this.availableCredit[destinationChain] = availableCredit
 
     if (this.s3Upload) {
-      const bonder = globalConfig.bonders[this.tokenSymbol]?.[this.chainSlug]?.[destinationChain]
+      const bonder = this.bridge.getConfigBonderAddress(destinationChain)
       const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
       this.s3AvailableCredit[destinationChain] = availableCredit
     }
@@ -1325,7 +1325,7 @@ class SyncWatcher extends BaseWatcher {
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const bonderFee = BigNumber.from(1)
-    const bonder = this.bridge.getConfigBonderAddress()
+    const bonder = this.bridge.getConfigBonderAddress(Chain.Ethereum)
     const recipient = `0x${'1'.repeat(40)}`
     const transferNonce = `0x${'0'.repeat(64)}`
 

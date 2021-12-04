@@ -24,6 +24,15 @@ export enum BondTransferGasLimit {
   Arbitrum = '2500000'
 }
 
+export const SettlementGasLimitPerTx: Record<string, number> = {
+  ethereum: 5141,
+  polygon: 5933,
+  xdai: 3218,
+  optimism: 8545,
+  arbitrum: 59105
+}
+
 export const LpFeeBps = '4'
 export const GasPriceMultiplier = '1.2'
 export const PendingAmountBuffer = '50000'
+export const MinPolygonGasPrice = 30_000_000_000

@@ -24,6 +24,14 @@ export const AvgBlockTimeSeconds = {
   xDai: 5
 }
 
+export const SettlementGasLimitPerTx: Record<string, number> = {
+  ethereum: 5141,
+  polygon: 5933,
+  xdai: 3218,
+  optimism: 8545,
+  arbitrum: 59105
+}
+
 export const SecondsInDay = 86400
 export const SecondsInWeek = SecondsInDay * 7
 export const TotalBlocks = {
@@ -54,6 +62,7 @@ export enum TxError {
 export const MaxGasPriceMultiplier = 1.25
 export const MinPriorityFeePerGas = 4
 export const PriorityFeePerGasCap = 20
+export const MinPolygonGasPrice = 30_000_000_000
 
 export enum TokenIndex {
   CanonicalToken = 0,

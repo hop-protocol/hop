@@ -62,6 +62,7 @@ export enum TxError {
 export const MaxGasPriceMultiplier = 1.25
 export const MinPriorityFeePerGas = 4
 export const PriorityFeePerGasCap = 20
+export const MinPolygonGasPrice = 30_000_000_000
 
 export enum TokenIndex {
   CanonicalToken = 0,

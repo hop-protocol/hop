@@ -142,7 +142,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
 
     const rootTunnel =
       globalConfig.tokens[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
-    const tx = await (this.maticPOSClient as any).posRootChainManager.processReceivedMessage(
+    const tx = await (this.maticPOSClient).posRootChainManager.processReceivedMessage(
       rootTunnel,
       txHash,
       {

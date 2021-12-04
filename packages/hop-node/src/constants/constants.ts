@@ -24,6 +24,14 @@ export const AvgBlockTimeSeconds = {
   xDai: 5
 }
 
+export const SettlementGasLimitPerTx: Record<string, number> = {
+  ethereum: 5141,
+  polygon: 5933,
+  xdai: 3218,
+  optimism: 8545,
+  arbitrum: 59105
+}
+
 export const SecondsInDay = 86400
 export const SecondsInWeek = SecondsInDay * 7
 export const TotalBlocks = {

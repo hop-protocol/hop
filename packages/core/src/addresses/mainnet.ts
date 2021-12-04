@@ -68,34 +68,16 @@ export const addresses: Addresses = {
     },
     MATIC: {
       ethereum: {
-        optimism: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        arbitrum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        xdai: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        polygon: '0xd8781ca9163e9f132a4d8392332e64115688013a'
-      },
-      optimism: {
-        ethereum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        arbitrum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        xdai: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        polygon: '0xd8781ca9163e9f132a4d8392332e64115688013a'
-      },
-      arbitrum: {
-        ethereum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        optimism: '0xd8781ca9163e9f132a4d8392332e64115688013a',
         xdai: '0xd8781ca9163e9f132a4d8392332e64115688013a',
         polygon: '0xd8781ca9163e9f132a4d8392332e64115688013a'
       },
       xdai: {
         ethereum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        arbitrum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        optimism: '0xd8781ca9163e9f132a4d8392332e64115688013a',
         polygon: '0xd8781ca9163e9f132a4d8392332e64115688013a'
       },
       polygon: {
         ethereum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        arbitrum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        xdai: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        optimism: '0xd8781ca9163e9f132a4d8392332e64115688013a'
+        xdai: '0xd8781ca9163e9f132a4d8392332e64115688013a'
       }
     },
     DAI: {

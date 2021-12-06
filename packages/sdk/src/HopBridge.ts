@@ -41,7 +41,7 @@ type SendL1ToL2Input = {
 }
 
 type SendL2ToL1Input = {
-  destinationChainId: number | string
+  destinationChain: Chain
   sourceChain: Chain
   amount: TAmount
   amountOutMin: TAmount
@@ -1563,7 +1563,7 @@ class HopBridge extends Base {
         )
       }
       return this.sendL2ToL1({
-        destinationChainId: destinationChain.chainId,
+        destinationChain: destinationChain,
         sourceChain,
         amount: tokenAmount,
         bonderFee,
@@ -1675,7 +1675,7 @@ class HopBridge extends Base {
 
   private async sendL2ToL1 (input: SendL2ToL1Input) {
     let {
-      destinationChainId,
+      destinationChain,
       sourceChain,
       amount,
       destinationAmountOutMin,
@@ -1687,12 +1687,21 @@ class HopBridge extends Base {
       approval,
       estimateGasOnly
     } = input
+    const destinationChainId = destinationChain.chainId
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     destinationDeadline = destinationDeadline || 0
     amountOutMin = BigNumber.from((amountOutMin || 0).toString())
     destinationAmountOutMin = BigNumber.from(
       (destinationAmountOutMin || 0).toString()
     )
+
+    if (destinationChain.isL1) {
+      destinationDeadline = 0
+      if (destinationAmountOutMin.gt(0)) {
+        throw new Error('"destinationAmountOutMin" must be 0 when sending to an L1')
+      }
+    }
+
     recipient = getAddress(recipient || (await this.getSignerAddress()))
     let ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
     let l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)

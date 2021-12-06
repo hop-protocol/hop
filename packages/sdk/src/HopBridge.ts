@@ -924,11 +924,11 @@ class HopBridge extends Base {
   public async getFrontendAvailableLiquidity (
     sourceChain: TChain,
     destinationChain: TChain,
-    bonder = this.getBonderAddress(sourceChain, destinationChain)
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
+    const bonder = this.getBonderAddress(sourceChain, destinationChain)
     let availableLiquidity = await this.getAvailableLiquidity(
       sourceChain,
       bonder

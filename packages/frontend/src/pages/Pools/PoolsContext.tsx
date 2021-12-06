@@ -53,6 +53,7 @@ type PoolsContextProps = {
   userPoolTokenPercentage: string | undefined
   token0Deposited: BigNumber | undefined
   token1Deposited: BigNumber | undefined
+  tokenSumDeposited: BigNumber | undefined
   canonicalBalance: BigNumber | undefined
   hopBalance: BigNumber | undefined
   loadingCanonicalBalance: boolean
@@ -101,6 +102,7 @@ const PoolsContext = createContext<PoolsContextProps>({
   userPoolTokenPercentage: undefined,
   token0Deposited: undefined,
   token1Deposited: undefined,
+  tokenSumDeposited: undefined,
   canonicalBalance: undefined,
   hopBalance: undefined,
   loadingCanonicalBalance: false,
@@ -137,6 +139,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [userPoolTokenPercentage, setUserPoolTokenPercentage] = useState<string>('')
   const [token0Deposited, setToken0Deposited] = useState<BigNumber | undefined>()
   const [token1Deposited, setToken1Deposited] = useState<BigNumber | undefined>()
+  const [tokenSumDeposited, setTokenSumDeposited] = useState<BigNumber | undefined>()
   const [apr, setApr] = useState<number | undefined>()
   const aprRef = useRef<string>('')
   const [reserveTotalsUsd, setReserveTotalsUsd] = useState<number | undefined>()
@@ -497,6 +500,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         setToken1Rate('')
         setToken0Deposited(undefined)
         setToken1Deposited(undefined)
+        setTokenSumDeposited(undefined)
         setTotalSupply('')
         setUserPoolTokenPercentage('')
         return
@@ -535,12 +539,16 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       const token0Deposited = balance.mul(reserve0).div(totalSupply)
       const token1Deposited = balance.mul(reserve1).div(totalSupply)
+      const tokenSumDeposited = token0Deposited.add(token1Deposited)
 
       if (token0Deposited.gt(0)) {
         setToken0Deposited(token0Deposited)
       }
       if (token1Deposited.gt(0)) {
         setToken1Deposited(token1Deposited)
+      }
+      if (tokenSumDeposited.gt(0)) {
+        setTokenSumDeposited(tokenSumDeposited)
       }
       if (reserve0?.eq(0) && reserve1?.eq(0)) {
         setToken1Rate('0')
@@ -859,6 +867,7 @@ const PoolsContextProvider: FC = ({ children }) => {
         userPoolTokenPercentage,
         token0Deposited,
         token1Deposited,
+        tokenSumDeposited,
         txHash,
         sending,
         removing,

@@ -1,5 +1,5 @@
 import memoize from 'fast-memoize'
-import { Addresses, Routes } from '@hop-protocol/core/addresses'
+import { Addresses } from '@hop-protocol/core/addresses'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { Chain as ChainEnum, MinPolygonGasPrice } from './constants'
@@ -442,11 +442,6 @@ class Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     return this.bonders?.[this.network]?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
-  }
-
-  public getBonderAddresses (token: TToken): Routes {
-    token = this.toTokenModel(token)
-    return this.bonders?.[this.network]?.[token.canonicalSymbol]
   }
 
   public getFeeBps (token: TToken, destinationChain: TChain) {

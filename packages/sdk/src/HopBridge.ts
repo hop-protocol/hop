@@ -904,12 +904,11 @@ class HopBridge extends Base {
 
   public async getAvailableLiquidity (
     sourceChain: TChain,
-    destinationChain: TChain,
     bonder: string
   ): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
-      this.getCredit(sourceChain, destinationChain, bonder),
-      this.getTotalDebit(sourceChain, destinationChain, bonder)
+      this.getCredit(sourceChain, bonder),
+      this.getTotalDebit(sourceChain, bonder)
     ])
 
     const availableLiquidity = credit.sub(debit)
@@ -932,7 +931,6 @@ class HopBridge extends Base {
     const token = this.toTokenModel(this.tokenSymbol)
     let availableLiquidity = await this.getAvailableLiquidity(
       sourceChain,
-      destinationChain,
       bonder
     )
     const unbondedTransferRootAmount = await this.getUnbondedTransferRootAmount(
@@ -1061,11 +1059,9 @@ class HopBridge extends Base {
    */
   public async getCredit (
     sourceChain: TChain,
-    destinationChain: TChain,
-    bonder: string = this.getBonderAddress(sourceChain, destinationChain)
+    bonder: string
   ): Promise<BigNumber> {
     const bridge = await this.getBridgeContract(sourceChain)
-
     return bridge.getCredit(bonder)
   }
 
@@ -1076,11 +1072,9 @@ class HopBridge extends Base {
    */
   public async getTotalDebit (
     sourceChain: TChain,
-    destinationChain: TChain,
-    bonder: string = this.getBonderAddress(sourceChain, destinationChain)
+    bonder: string
   ): Promise<BigNumber> {
     const bridge = await this.getBridgeContract(sourceChain)
-
     return bridge.getDebitAndAdditionalDebit(bonder)
   }
 
@@ -1091,11 +1085,9 @@ class HopBridge extends Base {
    */
   public async getDebit (
     sourceChain: TChain,
-    destinationChain: TChain,
-    bonder: string = this.getBonderAddress(sourceChain, destinationChain)
+    bonder: string
   ): Promise<BigNumber> {
     const bridge = await this.getBridgeContract(sourceChain)
-
     return bridge.getRawDebit(bonder)
   }
 

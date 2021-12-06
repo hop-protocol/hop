@@ -169,10 +169,10 @@ const StatsContextProvider: FC = ({ children }) => {
       return
     }
     const [credit, debit, totalDebit, availableLiquidity, eth] = await Promise.all([
-      bridge.getCredit(selectedNetwork.slug, Chain.Ethereum, bonder),
-      bridge.getDebit(selectedNetwork.slug, Chain.Ethereum, bonder),
-      bridge.getTotalDebit(selectedNetwork.slug, Chain.Ethereum, bonder),
-      bridge.getAvailableLiquidity(selectedNetwork.slug, Chain.Ethereum, bonder),
+      bridge.getCredit(selectedNetwork.slug, bonder),
+      bridge.getDebit(selectedNetwork.slug, bonder),
+      bridge.getTotalDebit(selectedNetwork.slug, bonder),
+      bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
       bridge.getEthBalance(selectedNetwork.slug, bonder),
     ])
 

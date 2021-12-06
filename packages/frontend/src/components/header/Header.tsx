@@ -11,7 +11,9 @@ import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
 import { isMainnet } from 'src/config'
 import Settings from 'src/pages/Send/Settings'
 import WalletWarning from './WalletWarning'
-import { toTokenDisplay, networkIdToName, networkIdNativeTokenSymbol } from 'src/utils'
+import { toTokenDisplay, networkIdToName, networkIdNativeTokenSymbol, networkIdToSlug } from 'src/utils'
+import { findNetworkBySlug } from 'src/utils/networks'
+import Network from 'src/models/Network'
 import logger from 'src/logger'
 import {
   useInterval
@@ -58,16 +60,23 @@ const useStyles = makeStyles((theme: Theme) => ({
     whiteSpace: 'nowrap'
   },
   network: {
-    fontSize: '1.4rem'
+    fontSize: '1.4rem',
+    display: 'flex',
+    justifyContent: 'center',
+    alignContent: 'center'
+  },
+  image: {
+    marginRight: '0.5rem',
+    width: '16px'
   }
 }))
 
 const Header: FC = () => {
   const styles = useStyles()
   const { address, requestWallet, provider, connectedNetworkId } = useWeb3Context()
-  const { l1Network } = useApp()
+  const { l1Network, networks } = useApp()
   const [displayBalance, setDisplayBalance] = useState<string>('')
-  const [connectedNetworkName, setConnectedNetworkName] = useState<string>('')
+  const [connectedNetwork, setConnectedNetwork] = useState<Network | undefined>()
 
   const updateDisplayBalance = async () => {
     try {
@@ -79,8 +88,9 @@ const Header: FC = () => {
       const formattedBalance = toTokenDisplay(balance, 18)
       const tokenSymbol = networkIdNativeTokenSymbol(connectedNetworkId)
       const _displayBalance = `${formattedBalance} ${tokenSymbol}`
+      const network = findNetworkBySlug(networks, networkIdToSlug(connectedNetworkId))
       setDisplayBalance(_displayBalance)
-      setConnectedNetworkName(networkIdToName(connectedNetworkId))
+      setConnectedNetwork(network)
     } catch (err) {
       logger.error(err)
       setDisplayBalance('')
@@ -95,7 +105,7 @@ const Header: FC = () => {
     updateDisplayBalance().catch(logger.error)
   }, 5 * 1000)
 
-  const showBalance = !!displayBalance && !!connectedNetworkName
+  const showBalance = !!displayBalance && !!connectedNetwork
 
   return (
     <>
@@ -116,7 +126,10 @@ const Header: FC = () => {
           {showBalance &&
             <div className={styles.balancePill}>
               <div className={styles.balance}>{displayBalance}</div>
-              <div className={styles.network}>{connectedNetworkName}</div>
+              <div className={styles.network}>
+                <img className={styles.image} alt="" src={connectedNetwork?.imageUrl} />
+                {connectedNetwork?.name}
+              </div>
             </div>
           }
           {address ? (

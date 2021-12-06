@@ -170,7 +170,8 @@ export default class L2Bridge extends Bridge {
 
   sendHTokens = async (
     destinationChainId: number,
-    amount: BigNumber
+    amount: BigNumber,
+    recipient: string
   ): Promise<providers.TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
@@ -179,21 +180,11 @@ export default class L2Bridge extends Bridge {
 
     const sdk = new Hop(globalConfig.network)
     const bridge = sdk.bridge(this.tokenSymbol)
-    const recipient = await this.getBonderAddress()
-    const relayer = recipient
-    const relayerFee = '0'
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const isNativeToken = this.tokenSymbol === 'MATIC' && this.chainSlug === Chain.Polygon
     const { totalFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
-    // let bonderFee = await bridge.getBonderFee(
-    //   amount,
-    //   this.chainSlug,
-    //   destinationChain
-    // )
-
-    // bonderFee = bonderFee.add(destinationTxFee)
 
     if (totalFee.gt(amount)) {
       throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(totalFee)}`)
@@ -215,12 +206,14 @@ export default class L2Bridge extends Bridge {
 
   sendCanonicalTokens = async (
     destinationChainId: number,
-    amount: BigNumber
+    amount: BigNumber,
+    recipient: string
   ): Promise<providers.TransactionResponse> => {
     return await this.ammWrapper.swapAndSend(
       destinationChainId,
       amount,
-      this.tokenSymbol
+      this.tokenSymbol,
+      recipient
     )
   }
 
@@ -397,6 +390,11 @@ export default class L2Bridge extends Bridge {
     deadline: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
+    // Polygon's gas estimates do not always work for this call. They result in an OOG
+    // with either a failed tx or a successful tx with a failed AMM swap
+    if (this.chainSlug === Chain.Polygon) {
+      txOverrides.gasLimit = 500_000
+    }
 
     const payload = [
       recipient,

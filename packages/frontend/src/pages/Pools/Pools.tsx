@@ -309,7 +309,7 @@ const Pools: FC = () => {
                 </Typography>
               </Box>
               <DetailRow
-                title={`${canonicalTokenSymbol}/${hopTokenSymbol}`}
+                title={`LP Tokens`}
                 value={`${commafy(userPoolBalanceFormatted, 5)}`}
               />
               {userPoolTokenPercentage && (

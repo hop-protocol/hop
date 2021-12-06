@@ -119,6 +119,7 @@ const Pools: FC = () => {
     userPoolTokenPercentage,
     token0Deposited,
     token1Deposited,
+    tokenSumDeposited,
     canonicalBalance,
     hopBalance,
     loadingCanonicalBalance,
@@ -215,6 +216,7 @@ const Pools: FC = () => {
   const needsTokenForFee = useNeedsTokenForFee(selectedNetwork)
   const token0DepositedFormatted = token0Deposited ? commafy(Number(formatUnits(token0Deposited, canonicalToken?.decimals)), 5) : ''
   const token1DepositedFormatted = token1Deposited ? commafy(Number(formatUnits(token1Deposited, hopToken?.decimals)), 5) : ''
+  const tokenSumDepositedFormatted = tokenSumDeposited ? commafy(Number(formatUnits(tokenSumDeposited, hopToken?.decimals)), 5) : ''
 
   useEffect(() => {
     if (needsTokenForFee && selectedNetwork) {
@@ -309,12 +311,12 @@ const Pools: FC = () => {
                 </Typography>
               </Box>
               <DetailRow
-                title={`${canonicalTokenSymbol}/${hopTokenSymbol}`}
+                title={`LP Tokens`}
                 value={`${commafy(userPoolBalanceFormatted, 5)}`}
               />
               {userPoolTokenPercentage && (
                 <DetailRow
-                  title={'Your pool share'}
+                  title={'Pool share'}
                   value={`${commafy(userPoolTokenPercentage)}%`}
                 />
               )}
@@ -323,6 +325,11 @@ const Pools: FC = () => {
               )}
               {token1Deposited && (
                 <DetailRow title={hopTokenSymbol} value={token1DepositedFormatted} />
+              )}
+              {tokenSumDeposited && (
+                <DetailRow
+                  title={`${canonicalTokenSymbol}/${hopTokenSymbol}`}
+                  value={tokenSumDepositedFormatted} />
               )}
             </Box>
           )}

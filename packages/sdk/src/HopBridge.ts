@@ -19,6 +19,7 @@ import {
   GasPriceMultiplier,
   LpFeeBps,
   PendingAmountBuffer,
+  SettlementGasLimitPerTx,
   TokenIndex
 } from './constants'
 import { PriceFeed } from './priceFeed'
@@ -40,7 +41,7 @@ type SendL1ToL2Input = {
 }
 
 type SendL2ToL1Input = {
-  destinationChainId: number | string
+  destinationChain: Chain
   sourceChain: Chain
   amount: TAmount
   amountOutMin: TAmount
@@ -707,7 +708,11 @@ class HopBridge extends Base {
       bondTransferGasLimit = bondTransferGasLimit.div(2)
     }
 
-    let txFeeEth = gasPrice.mul(bondTransferGasLimit)
+    // Include the cost to settle an individual transfer
+    const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[destinationChain.slug]
+    const bondTransferGasLimitWithSettlement = bondTransferGasLimit.add(settlementGasLimitPerTx)
+
+    let txFeeEth = gasPrice.mul(bondTransferGasLimitWithSettlement)
     const oneEth = ethers.utils.parseEther('1')
     const rateBN = ethers.utils.parseUnits(
       rate.toFixed(canonicalToken.decimals),
@@ -726,17 +731,15 @@ class HopBridge extends Base {
 
     let fee = txFeeEth.mul(rateBN).div(oneEth)
 
-    let multiplier = BigNumber.from(0)
     if (
       destinationChain.equals(Chain.Ethereum) ||
       destinationChain.equals(Chain.Optimism) ||
       destinationChain.equals(Chain.Arbitrum)
     ) {
-      multiplier = ethers.utils.parseEther(GasPriceMultiplier)
-    }
-
-    if (multiplier.gt(0)) {
-      fee = fee.mul(multiplier).div(oneEth)
+      const multiplier = ethers.utils.parseEther(GasPriceMultiplier)
+      if (multiplier.gt(0)) {
+        fee = fee.mul(multiplier).div(oneEth)
+      }
     }
 
     return fee
@@ -1560,7 +1563,7 @@ class HopBridge extends Base {
         )
       }
       return this.sendL2ToL1({
-        destinationChainId: destinationChain.chainId,
+        destinationChain: destinationChain,
         sourceChain,
         amount: tokenAmount,
         bonderFee,
@@ -1672,7 +1675,7 @@ class HopBridge extends Base {
 
   private async sendL2ToL1 (input: SendL2ToL1Input) {
     let {
-      destinationChainId,
+      destinationChain,
       sourceChain,
       amount,
       destinationAmountOutMin,
@@ -1684,12 +1687,21 @@ class HopBridge extends Base {
       approval,
       estimateGasOnly
     } = input
+    const destinationChainId = destinationChain.chainId
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     destinationDeadline = destinationDeadline || 0
     amountOutMin = BigNumber.from((amountOutMin || 0).toString())
     destinationAmountOutMin = BigNumber.from(
       (destinationAmountOutMin || 0).toString()
     )
+
+    if (destinationChain.isL1) {
+      destinationDeadline = 0
+      if (destinationAmountOutMin.gt(0)) {
+        throw new Error('"destinationAmountOutMin" must be 0 when sending to an L1')
+      }
+    }
+
     recipient = getAddress(recipient || (await this.getSignerAddress()))
     let ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
     let l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)

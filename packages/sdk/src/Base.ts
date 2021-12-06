@@ -2,7 +2,7 @@ import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { Chain as ChainEnum } from './constants'
+import { Chain as ChainEnum, MinPolygonGasPrice } from './constants'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
@@ -424,6 +424,14 @@ class Base {
         this.signer,
         this.gasPriceMultiplier
       )
+
+      // Not all Polygon nodes follow recommended 30 Gwei gasPrice
+      // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
+      if (chain === Chain.Polygon) {
+        if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
+          txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
+        }
+      }
     }
 
     return txOptions

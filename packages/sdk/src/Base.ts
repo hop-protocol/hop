@@ -437,14 +437,11 @@ class Base {
     return txOptions
   }
 
-  public getBonderAddress (token: TToken): string {
+  protected _getBonderAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): string {
     token = this.toTokenModel(token)
-    return this.bonders?.[this.network]?.[token.canonicalSymbol]?.[0]
-  }
-
-  public getBonderAddresses (token: TToken): string[] {
-    token = this.toTokenModel(token)
-    return this.bonders?.[this.network]?.[token.canonicalSymbol]
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    return this.bonders?.[this.network]?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
   }
 
   public getFeeBps (token: TToken, destinationChain: TChain) {

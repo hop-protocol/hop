@@ -378,21 +378,6 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     })
   }
 
-  async getBondedTransfersWithoutRoots (
-    filter: GetItemsFilter = {}
-  ): Promise<Transfer[]> {
-    const transfers: Transfer[] = await this.getTransfersFromWeek()
-    return transfers.filter(item => {
-      if (filter.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
-      }
-
-      return item.withdrawalBonded && !item.transferRootHash
-    })
-  }
-
   isItemIncomplete (item: Partial<Transfer>) {
     if (!item?.transferId) {
       return false

@@ -88,13 +88,15 @@ class CommitTransfersWatcher extends BaseWatcher {
         `checking ${dbTransfers.length} uncommitted transfers db items`
     )
 
-    const seen: Record<number, boolean> = {}
+    const destinationChainIds: number[] = []
     for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer
-      if (!seen[destinationChainId!]) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        seen[destinationChainId!] = true // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        await this.checkIfShouldCommit(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      if (!destinationChainIds.includes(destinationChainId!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        destinationChainIds.push(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       }
+    }
+    for (const destinationChainId of destinationChainIds) {
+      await this.checkIfShouldCommit(destinationChainId)
     }
   }
 

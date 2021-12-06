@@ -111,13 +111,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
 
       for (const bonder of bonderSet.values()) {
-        // if bonder has custom routes configured, then it should only check it's own
-        // bonded withdrawals to see if they need settlement
-        if (this.hasCustomRoutes) {
-          const bonderAddress = await this.bridge.getBonderAddress()
-          if (bonder !== bonderAddress) {
-            continue
-          }
+        const bonderAddress = await this.bridge.getBonderAddress()
+        if (bonder !== bonderAddress) {
+          continue
         }
 
         // if all transfers have been settled that belong to a bonder

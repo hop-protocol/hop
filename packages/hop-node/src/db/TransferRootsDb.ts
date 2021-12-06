@@ -255,15 +255,6 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     })
   }
 
-  async getUncommittedBondedTransferRoots (
-    filter: GetItemsFilter = {}
-  ): Promise<TransferRoot[]> {
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
-    return transferRoots.filter(item => {
-      return !item.committed && item.transferIds?.length
-    })
-  }
-
   async getUnbondedTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<TransferRoot[]> {
@@ -271,6 +262,12 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     return transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
+      }
+
+      if (filter.destinationChainId) {
+        if (!item.destinationChainId || filter.destinationChainId !== item.destinationChainId) {
+          return false
+        }
       }
 
       const shouldIgnoreItem = this.isInvalidOrNotFound(item)
@@ -307,13 +304,11 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
-      if (filter.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
+      if (!item.sourceChainId) {
+        return false
       }
 
-      if (!item.sourceChainId) {
+      if (!this.isRouteOk(filter, item)) {
         return false
       }
 
@@ -374,6 +369,10 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
         return false
       }
 
+      if (!this.isRouteOk(filter, item)) {
+        return false
+      }
+
       let isValidItem = false
       if (item?.transferRootId) {
         isValidItem = item?.bondTransferRootId === item.transferRootId
@@ -409,6 +408,12 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
     return transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
+      }
+
+      if (filter.destinationChainId) {
+        if (!item.destinationChainId || filter.destinationChainId !== item.destinationChainId) {
+          return false
+        }
       }
 
       // https://github.com/hop-protocol/hop/pull/140#discussion_r697919256
@@ -500,12 +505,6 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   isRouteOk (filter: GetItemsFilter = {}, item: Partial<TransferRoot>) {
     if (filter.sourceChainId) {
       if (!item.sourceChainId || filter.sourceChainId !== item.sourceChainId) {
-        return false
-      }
-    }
-
-    if (filter.destinationChainId) {
-      if (!item.destinationChainId || filter.destinationChainId !== item.destinationChainId) {
         return false
       }
     }

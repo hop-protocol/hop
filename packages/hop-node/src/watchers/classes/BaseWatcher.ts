@@ -236,11 +236,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
   }
 
-  get hasCustomRoutes () {
-    const customRouteSourceChains = Object.keys(globalConfig.routes)
-    return customRouteSourceChains.length > 0
-  }
-
   async getFilterSourceChainId () {
     const sourceChainId = await this.bridge.getChainId()
     return sourceChainId

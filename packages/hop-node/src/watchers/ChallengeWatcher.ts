@@ -45,7 +45,7 @@ class ChallengeWatcher extends BaseWatcher {
   }
 
   async checkChallengeableTransferRootFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getChallengeableTransferRoots()
+    const dbTransferRoots = await this.db.transferRoots.getChallengeableTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       return
     }

@@ -21,6 +21,7 @@ async function sendTokensToL2 (
   parsedAmount: BigNumber,
   chain: string
 ) {
+  const recipient = await bridge.getBonderAddress()
   const spender = bridge.getAddress()
   const token: Token | void = await getToken(bridge) // eslint-disable-line @typescript-eslint/no-invalid-void-type
 
@@ -34,7 +35,8 @@ async function sendTokensToL2 (
   logger.debug('Sending tokens to L2')
   tx = await bridge.convertCanonicalTokenToHopToken(
     chainSlugToId(chain)!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    parsedAmount
+    parsedAmount,
+    recipient
   )
   await tx.wait()
 }

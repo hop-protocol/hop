@@ -85,24 +85,28 @@ async function sendTokens (
     if (isHToken) {
       tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(
         destinationChainId,
-        parsedAmount
+        parsedAmount,
+        recipient
       )
     } else {
       tx = await (bridge as L1Bridge).sendCanonicalTokensToL2(
         destinationChainId,
-        parsedAmount
+        parsedAmount,
+        recipient
       )
     }
   } else {
     if (isHToken) {
       tx = await (bridge as L2Bridge).sendHTokens(
         destinationChainId,
-        parsedAmount
+        parsedAmount,
+        recipient
       )
     } else {
       tx = await (bridge as L2Bridge).sendCanonicalTokens(
         destinationChainId,
-        parsedAmount
+        parsedAmount,
+        recipient
       )
     }
   }

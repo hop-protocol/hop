@@ -458,8 +458,7 @@ class HopBridge extends Base {
   public async getSendData (
     amountIn: BigNumberish,
     sourceChain?: TChain,
-    destinationChain?: TChain,
-    deadline?: BigNumberish
+    destinationChain?: TChain
   ) {
     amountIn = BigNumber.from(amountIn)
     sourceChain = this.toChainModel(sourceChain)
@@ -640,14 +639,12 @@ class HopBridge extends Base {
   public async getTotalFee (
     amountIn: BigNumberish,
     sourceChain: TChain,
-    destinationChain: TChain,
-    deadline?: BigNumberish
+    destinationChain: TChain
   ): Promise<BigNumber> {
     const { totalFee } = await this.getSendData(
       amountIn,
       sourceChain,
-      destinationChain,
-      deadline
+      destinationChain
     )
 
     return totalFee
@@ -1357,7 +1354,6 @@ class HopBridge extends Base {
       this.signer,
       this.chainProviders
     )
-    const deadline = this.defaultDeadlineSeconds
     return amm.removeLiquidityOneToken(
       lpTokenAmount,
       tokenIndex,
@@ -1546,18 +1542,17 @@ class HopBridge extends Base {
     }
     // else:
     // L2 -> L1 or L2
+    let bonderFee = options?.bonderFee
+    if (!bonderFee) {
+      bonderFee = await this.getTotalFee(
+        tokenAmount,
+        sourceChain,
+        destinationChain
+      )
+    }
 
     // L2 -> L1
     if (destinationChain.isL1) {
-      let bonderFee = options?.bonderFee
-      if (!bonderFee) {
-        bonderFee = await this.getTotalFee(
-          tokenAmount,
-          sourceChain,
-          destinationChain,
-          options?.destinationDeadline
-        )
-      }
       return this.sendL2ToL1({
         destinationChain: destinationChain,
         sourceChain,
@@ -1574,15 +1569,6 @@ class HopBridge extends Base {
     }
 
     // L2 -> L2
-    let bonderFee = options?.bonderFee
-    if (!bonderFee) {
-      bonderFee = await this.getTotalFee(
-        tokenAmount,
-        sourceChain,
-        destinationChain,
-        options?.destinationDeadline
-      )
-    }
     return this.sendL2ToL2({
       destinationChain: destinationChain,
       sourceChain,
@@ -1686,24 +1672,24 @@ class HopBridge extends Base {
     } = input
     const destinationChainId = destinationChain.chainId
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
-    destinationDeadline = destinationDeadline || 0
     amountOutMin = BigNumber.from((amountOutMin || 0).toString())
+    destinationDeadline = destinationDeadline || 0
     destinationAmountOutMin = BigNumber.from(
       (destinationAmountOutMin || 0).toString()
     )
 
     if (destinationChain.isL1) {
-      destinationDeadline = 0
-      if (destinationAmountOutMin.gt(0)) {
-        throw new Error('"destinationAmountOutMin" must be 0 when sending to an L1')
+      const attemptSwap = this.shouldAttemptSwap(destinationAmountOutMin, destinationDeadline)
+      if (attemptSwap) {
+        throw new Error('"destinationAmountOutMin" and "destinationDeadline" must be 0 when sending to an L1')
       }
     }
 
     recipient = getAddress(recipient || (await this.getSignerAddress()))
     let ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
     let l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
-    const attemptSwap = deadline || destinationDeadline
-    const spender = attemptSwap ? ammWrapper.address : l2Bridge.address
+    const attemptSwapAtSource = this.shouldAttemptSwap(amountOutMin, deadline)
+    const spender = attemptSwapAtSource ? ammWrapper.address : l2Bridge.address
 
     if (BigNumber.from(bonderFee).gt(amount)) {
       throw new Error('amount must be greater than bonder fee')
@@ -1746,7 +1732,7 @@ class HopBridge extends Base {
       deadline
     ]
 
-    if (attemptSwap) {
+    if (attemptSwapAtSource) {
       const additionalOptions = [
         destinationAmountOutMin,
         destinationDeadline,
@@ -1796,7 +1782,7 @@ class HopBridge extends Base {
     } = input
     const destinationChainId = destinationChain.chainId
     deadline = deadline || this.defaultDeadlineSeconds
-    destinationDeadline = destinationDeadline || deadline
+    destinationDeadline = destinationDeadline || this.defaultDeadlineSeconds
     amountOutMin = BigNumber.from((amountOutMin || 0).toString())
     destinationAmountOutMin = BigNumber.from(
       (destinationAmountOutMin || 0).toString()
@@ -1883,12 +1869,10 @@ class HopBridge extends Base {
 
     let defaultBonderFee = BigNumber.from(0)
     if (!sourceChain.isL1) {
-      const deadline = 0
       defaultBonderFee = await this.getTotalFee(
         tokenAmount,
         sourceChain,
-        destinationChain,
-        deadline
+        destinationChain
       )
     }
 

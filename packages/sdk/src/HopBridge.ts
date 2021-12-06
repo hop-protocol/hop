@@ -1676,7 +1676,10 @@ class HopBridge extends Base {
     const destinationChainId = destinationChain.chainId
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     amountOutMin = BigNumber.from((amountOutMin || 0).toString())
-    destinationAmountOutMin = BigNumber.from(destinationAmountOutMin.toString())
+    destinationDeadline = destinationDeadline || 0
+    destinationAmountOutMin = BigNumber.from(
+      (destinationAmountOutMin || 0).toString()
+    )
 
     if (destinationChain.isL1) {
       const attemptSwap = this.shouldAttemptSwap(destinationAmountOutMin, destinationDeadline)

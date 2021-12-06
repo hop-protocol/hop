@@ -48,12 +48,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
     }
 
-    // only process transfer where this bridge is the source chain
-    const dbTransferRoots = await this.db.transferRoots.getUnsettledTransferRoots(
-      {
-        sourceChainId: await this.bridge.getChainId()
-      }
-    )
+    const dbTransferRoots = await this.db.transferRoots.getUnsettledTransferRoots(await this.getFilterRoute())
 
     const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
@@ -116,6 +111,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
 
       for (const bonder of bonderSet.values()) {
+        const bonderAddress = await this.bridge.getBonderAddress()
+        if (bonder !== bonderAddress) {
+          continue
+        }
+
         // if all transfers have been settled that belong to a bonder
         // then don't attempt to settle root with that bonder
         // because there is nothing to settle anymore

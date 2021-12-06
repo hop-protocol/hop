@@ -5,12 +5,13 @@ import path from 'path'
 import yaml from 'js-yaml'
 import { Chain } from 'src/constants'
 import {
-  Fees, defaultConfigFilePath, setBonderPrivateKey,
+  Fees, Routes, defaultConfigFilePath, setBonderPrivateKey,
   setConfigAddresses,
   setConfigByNetwork,
   setDbPath,
   setFeesConfig,
   setMetricsConfig,
+  setRoutesConfig,
   setStateUpdateAddress,
   setSyncConfig,
   validateConfig
@@ -107,6 +108,7 @@ export type FileConfig = {
   stateUpdateAddress?: string
   metrics?: MetricsConfig
   fees?: Fees
+  routes?: Routes
 }
 
 export async function setGlobalConfigFromConfigFile (
@@ -174,6 +176,9 @@ export async function setGlobalConfigFromConfigFile (
   }
   if (config?.fees) {
     setFeesConfig(config.fees)
+  }
+  if (config?.routes) {
+    setRoutesConfig(config.routes)
   }
 }
 

@@ -52,9 +52,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
-    const dbTransfers = await this.db.transfers.getUnbondedSentTransfers({
-      sourceChainId: await this.bridge.getChainId()
-    })
+    const dbTransfers = await this.db.transfers.getUnbondedSentTransfers(await this.getFilterRoute())
     if (!dbTransfers.length) {
       return
     }

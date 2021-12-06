@@ -7,6 +7,7 @@ import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contr
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TxRetryDelayMs } from 'src/constants'
 import { getEnabledNetworks } from 'src/config'
+
 export type Config = {
   chainSlug: string
   tokenSymbol: string
@@ -78,9 +79,7 @@ class CommitTransfersWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
-    const dbTransfers = await this.db.transfers.getUncommittedTransfers({
-      sourceChainId: await this.bridge.getChainId()
-    })
+    const dbTransfers = await this.db.transfers.getUncommittedTransfers(await this.getFilterRoute())
     if (!dbTransfers.length) {
       return
     }
@@ -88,6 +87,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.logger.info(
         `checking ${dbTransfers.length} uncommitted transfers db items`
     )
+
     const destinationChainIds: number[] = []
     for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer

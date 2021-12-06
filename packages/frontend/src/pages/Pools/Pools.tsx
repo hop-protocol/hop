@@ -328,7 +328,7 @@ const Pools: FC = () => {
               )}
               {tokenSumDeposited && (
                 <DetailRow
-                  title={`${canonicalTokenSymbol}/${hopTokenSymbol}`}
+                  title={`${canonicalTokenSymbol}+${hopTokenSymbol}`}
                   value={tokenSumDepositedFormatted} />
               )}
             </Box>

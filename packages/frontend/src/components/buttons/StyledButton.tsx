@@ -1,4 +1,5 @@
 import { FC } from 'react'
+import { isDarkMode } from 'src/theme/theme'
 import styled from 'styled-components/macro'
 import {
   layout,

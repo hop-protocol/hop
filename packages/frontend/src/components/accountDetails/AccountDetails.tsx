@@ -24,6 +24,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     top: '1rem',
     right: '1rem',
     borderRadius: '1.5rem',
+    boxShadow: 'none',
   },
   disconnectButton: {
     position: 'absolute',
@@ -32,6 +33,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     fontSize: '1.2rem',
     marginBottom: 0,
     borderRadius: '1.5rem',
+    boxShadow: 'none',
   },
   address: {
     fontSize: '2rem',

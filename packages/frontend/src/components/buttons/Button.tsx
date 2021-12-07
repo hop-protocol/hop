@@ -15,7 +15,9 @@ interface StateProps {
   loading: boolean
 }
 
-export type ButtonProps = Partial<StyleProps> & Partial<StateProps> & MuiButtonProps
+export type ButtonProps = Partial<StyleProps> &
+  Partial<StateProps> &
+  MuiButtonProps & { boxShadow?: any; minWidth?: string }
 
 const useStyles = makeStyles(theme => ({
   root: ({ highlighted, large, flat }: StyleProps) => ({
@@ -66,6 +68,8 @@ const LargeButton: FC<ButtonProps> = props => {
     disabled = false,
     loading = false,
     size = 40,
+    boxShadow,
+    minWidth,
     ...buttonProps
   } = props
   const styles = useStyles({ highlighted, large, flat })

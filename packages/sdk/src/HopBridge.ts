@@ -920,7 +920,7 @@ class HopBridge extends Base {
    */
   public async getFrontendAvailableLiquidity (
     sourceChain: TChain,
-    destinationChain: TChain,
+    destinationChain: TChain
   ): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)

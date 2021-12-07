@@ -101,8 +101,10 @@ const Settings: FC = () => {
 
   return (
     <Flex alignCenter>
-      <Flex alignCenter p={[1, 1]} mx={[2, 0]} onClick={handleClick}>
-        <Icon src={SettingsIcon} width={20} />
+      <Flex alignCenter p={[1, 1]} mx={[2, 0]}>
+        <IconButton onClick={handleClick}>
+          <Icon src={SettingsIcon} width={20} />
+        </IconButton>
       </Flex>
 
       <Popover

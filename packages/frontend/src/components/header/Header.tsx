@@ -18,6 +18,7 @@ import logger from 'src/logger'
 import { useInterval } from 'src/hooks'
 import ConnectWalletButton from './ConnectWalletButton'
 import { isDarkMode } from 'src/theme/theme'
+import IconButton from '@material-ui/core/IconButton'
 import SunIcon from 'src/assets/sun-icon.svg'
 import MoonIcon from 'src/assets/moon-icon.svg'
 import { Flex, Icon } from '../ui'
@@ -54,32 +55,32 @@ const useStyles = makeStyles((theme: Theme) => ({
     right: '0',
     opacity: '0.2',
   },
+  walletPill: {
+    margin: '0rem 1rem',
+  },
   balancePill: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'column',
     borderRadius: '3rem',
-    marginRight: '1rem',
-    padding: '0.4rem 2rem',
+    margin: '0rem 1rem',
+    padding: '1rem 2rem',
     boxShadow: isDarkMode(theme)
       ? theme.boxShadow.inner
       : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`,
     color: theme.palette.text.secondary,
+    [theme.breakpoints.down('xs')]: {
+      display: 'none'
+    },
   },
   balance: {
+    display: 'flex',
+    alignContent: 'center',
+    justifyContent: 'center',
     fontWeight: 'bold',
     fontSize: '1.5rem',
     whiteSpace: 'nowrap',
-    [theme.breakpoints.down('sm')]: {
-      fontSize: '1.2rem',
-    },
-  },
-  network: {
-    fontSize: '1.4rem',
-    display: 'flex',
-    justifyContent: 'center',
-    alignContent: 'center',
     [theme.breakpoints.down('sm')]: {
       fontSize: '1.2rem',
     },
@@ -149,24 +150,25 @@ const Header: FC = () => {
           <HeaderRoutes />
         </Box>
 
-        <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-end">
+        <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-end" alignItems="center">
+          <Flex alignCenter p={[1, 1]} mx={[2, 0]}>
+            <IconButton onClick={toggleMode}>
+              <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
+            </IconButton>
+          </Flex>
+
           <Settings />
 
           {showBalance && (
-            <div className={styles.balancePill}>
-              <div className={styles.balance}>{displayBalance}</div>
-              <div className={styles.network}>
-                <img className={styles.image} alt="" src={connectedNetwork?.imageUrl} />
-                {connectedNetwork?.name}
+            <div className={styles.balancePill} title={connectedNetwork?.name}>
+              <div className={styles.balance}>
+              <img className={styles.image} alt="" src={connectedNetwork?.imageUrl} />
+              {displayBalance}
               </div>
             </div>
           )}
 
-          {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
-
-          <Flex alignCenter p={[1, 2]} mx={[2, 0]} onClick={toggleMode}>
-            <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
-          </Flex>
+          <div className={styles.walletPill}>{address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}</div>
         </Box>
       </Box>
       <WalletWarning />

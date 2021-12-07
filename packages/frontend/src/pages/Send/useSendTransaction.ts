@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { BigNumber, constants, Signer } from 'ethers'
+import { getAddress } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
@@ -96,6 +97,14 @@ export function useSendTransaction(props) {
       const networkId = Number(fromNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
+
+      try {
+        if (customRecipient) {
+          getAddress(customRecipient) // attempts to checksum
+        }
+      } catch (err) {
+        throw new Error('Custom recipient address is invalid')
+      }
 
       if (!signer) {
         throw new Error('Cannot send: signer does not exist.')

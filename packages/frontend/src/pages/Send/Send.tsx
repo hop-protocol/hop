@@ -1,6 +1,4 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
-import Box from '@material-ui/core/Box'
-import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
@@ -599,7 +597,7 @@ const Send: FC = () => {
         setWarning={setWarning}
       />
 
-      <Flex justifyCenter alignCenter my={2} onClick={handleSwitchDirection} pointer hover>
+      <Flex justifyCenter alignCenter my={1} onClick={handleSwitchDirection} pointer hover>
         <ArrowDownIcon color="primary" className={styles.downArrow} />
       </Flex>
 

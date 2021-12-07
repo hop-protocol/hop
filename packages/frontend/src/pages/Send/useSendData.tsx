@@ -43,7 +43,7 @@ const useSendData = (
         }
 
         const bridge = sdk.bridge(token?.symbol)
-        const sendData = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug, settings.deadline())
+        const sendData = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
 
         if (isCancelled()) return
 
@@ -114,7 +114,7 @@ const useSendData = (
     requiredLiquidity,
     loading,
     estimatedReceived,
-    error
+    error,
   }
 }
 

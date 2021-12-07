@@ -127,13 +127,8 @@ const Header: FC = () => {
         </Box>
 
         <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-end">
-          <IconButton onClick={toggleMode}>
-            <Div color="#666077" height="20px">
-              <Icon src={ThemeModeIcon} width={20} />
-            </Div>
-          </IconButton>
-
           <Settings />
+
           {showBalance && (
             <div className={styles.balancePill}>
               <div className={styles.balance}>{displayBalance}</div>
@@ -143,7 +138,14 @@ const Header: FC = () => {
               </div>
             </div>
           )}
+
           {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
+
+          <IconButton onClick={toggleMode}>
+            <Div color="#666077" height="20px">
+              <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
+            </Div>
+          </IconButton>
         </Box>
       </Box>
       <WalletWarning />

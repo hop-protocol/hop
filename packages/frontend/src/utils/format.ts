@@ -24,12 +24,12 @@ export function formatError(error: any, network?: Network) {
     errMsg = `${errMsg} Please check your wallet network settings are correct and try again. More info: https://docs.hop.exchange/rpc-endpoints`
   } else if (errMsg.includes('[ethjs-query]') || errMsg.includes('while formatting outputs from RPC')) {
     errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
-  } else if (errMsg.includes('Failed to fetch')) {
+  } else if (errMsg.includes('Failed to fetch') || errMsg.includes('could not detect network')) {
     errMsg = `There was a network error. Please disable any ad blockers and check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   } else if (errMsg.includes('Internal JSON-RPC error') || errMsg.includes('Internal error')) {
     const feeToken = network?.nativeTokenSymbol || 'funds'
     errMsg = `An RPC error occured. Please check you have enough ${feeToken} to pay for fees and check your wallet network settings are correct. Refresh to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
-  } else if (errMsg.includes('call revert exception')) {
+  } else if (errMsg.includes('call revert exception') || errMsg.includes('missing revert data')) {
     errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   }
 

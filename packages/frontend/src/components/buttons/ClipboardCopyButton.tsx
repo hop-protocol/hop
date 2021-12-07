@@ -28,6 +28,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     '&:hover': {
       opacity: 0.7,
     },
+    color: theme.palette.secondary.main,
   },
 }))
 

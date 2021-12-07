@@ -168,7 +168,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   getSiblingWatcherByChainId (chainId: number): any {
     if (!this.hasSiblingWatcher(chainId)) {
       throw new Error(
-        `sibling watcher for chain id ${chainId} not found. Check configuration`
+        `sibling watcher (chainId: ${chainId}) not found. Check configuration`
       )
     }
     return this.siblingWatchers[chainId]
@@ -243,13 +243,13 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   async getFilterDestinationChainIds () {
     const sourceChainId = await this.bridge.getChainId()
-    let filterDestinationChainIds: number[] | undefined
+    let filterDestinationChainIds: number[] = []
     const customRouteSourceChains = Object.keys(globalConfig.routes)
     const hasCustomRoutes = customRouteSourceChains.length > 0
     if (hasCustomRoutes) {
       const isSourceRouteOk = customRouteSourceChains.includes(this.chainSlug)
       if (!isSourceRouteOk) {
-        return
+        return filterDestinationChainIds
       }
       const customRouteDestinationChains = Object.keys(globalConfig.routes[this.chainSlug])
       filterDestinationChainIds = customRouteDestinationChains.map(chainSlug => this.chainSlugToId(chainSlug))

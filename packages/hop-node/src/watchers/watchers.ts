@@ -306,14 +306,8 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
       }
 
       if (filteredSourceChains.size > 0) {
-        if (!filteredSourceChains.has(chainIdToSlug(chainId))) {
-          // SyncWatcher should be enabled for both source and destination chain
-          if (!(watcher instanceof SyncWatcher)) {
-            continue
-          }
-          if (!filteredDestinationChains.has(chainIdToSlug(chainId))) {
-            continue
-          }
+        if (!filteredSourceChains.has(chainIdToSlug(chainId) && filteredDestinationChains.has(chainIdToSlug(chainId)))) {
+          continue
         }
       }
 

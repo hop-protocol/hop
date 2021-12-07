@@ -18,6 +18,7 @@ import logger from 'src/logger'
 import { useInterval } from 'src/hooks'
 import ConnectWalletButton from './ConnectWalletButton'
 import { isDarkMode } from 'src/theme/theme'
+import IconButton from '@material-ui/core/IconButton'
 import SunIcon from 'src/assets/sun-icon.svg'
 import MoonIcon from 'src/assets/moon-icon.svg'
 import { Flex, Icon } from '../ui'
@@ -150,6 +151,12 @@ const Header: FC = () => {
         </Box>
 
         <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-end">
+          <Flex alignCenter p={[1, 2]} mx={[2, 0]}>
+            <IconButton onClick={toggleMode}>
+              <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
+            </IconButton>
+          </Flex>
+
           <Settings />
 
           {showBalance && (
@@ -163,10 +170,6 @@ const Header: FC = () => {
           )}
 
           {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
-
-          <Flex alignCenter p={[1, 2]} mx={[2, 0]} onClick={toggleMode}>
-            <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
-          </Flex>
         </Box>
       </Box>
       <WalletWarning />

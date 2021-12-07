@@ -3,8 +3,6 @@ import { useLocation, useHistory } from 'react-router-dom'
 import { Theme, makeStyles } from '@material-ui/core/styles'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
-import Box from '@material-ui/core/Box'
-import LaunchIcon from '@material-ui/icons/Launch'
 import { isMainnet } from 'src/config'
 
 type Props = {}
@@ -27,7 +25,6 @@ const useStyles = makeStyles((theme: Theme) => ({
 const HeaderRoutes: FC<Props> = () => {
   const { pathname, search } = useLocation()
   const history = useHistory()
-  const styles = useStyles()
 
   const handleChange = (event: ChangeEvent<{}>, value: string) => {
     event.preventDefault()

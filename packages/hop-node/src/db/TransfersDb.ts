@@ -44,6 +44,10 @@ export type Transfer = {
   isNotFound?: boolean
 }
 
+export type GetItemsFilter = Partial<Transfer> & {
+  destinationChainIds?: number[]
+}
+
 const invalidTransferIds: Record<string, boolean> = {
   // Arbitrum forked node
   '0x8395ab39248878d5defddff3df327b77799edd01f028ba62e16bedd1f372015b': true,
@@ -308,14 +312,12 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   }
 
   async getUncommittedTransfers (
-    filter: Partial<Transfer> = {}
+    filter: GetItemsFilter = {}
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
-      if (filter.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
+      if (!this.isRouteOk(filter, item)) {
+        return false
       }
 
       return (
@@ -328,7 +330,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   }
 
   async getUnbondedSentTransfers (
-    filter: Partial<Transfer> = {}
+    filter: GetItemsFilter = {}
   ): Promise<Transfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     return transfers.filter(item => {
@@ -339,10 +341,8 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
         return false
       }
 
-      if (filter.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
+      if (!this.isRouteOk(filter, item)) {
+        return false
       }
 
       const shouldIgnoreItem = this.isInvalidOrNotFound(item)
@@ -378,21 +378,6 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     })
   }
 
-  async getBondedTransfersWithoutRoots (
-    filter: Partial<Transfer> = {}
-  ): Promise<Transfer[]> {
-    const transfers: Transfer[] = await this.getTransfersFromWeek()
-    return transfers.filter(item => {
-      if (filter.sourceChainId) {
-        if (filter.sourceChainId !== item.sourceChainId) {
-          return false
-        }
-      }
-
-      return item.withdrawalBonded && !item.transferRootHash
-    })
-  }
-
   isItemIncomplete (item: Partial<Transfer>) {
     if (!item?.transferId) {
       return false
@@ -415,7 +400,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
   }
 
   async getIncompleteItems (
-    filter: Partial<Transfer> = {}
+    filter: GetItemsFilter = {}
   ) {
     const kv = await this.subDbIncompletes.getKeyValues()
     const transferIds = kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)
@@ -445,6 +430,22 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     const isNotFound = item?.isNotFound
     const isInvalid = invalidTransferIds[item.transferId!] // eslint-disable-line @typescript-eslint/no-non-null-assertion
     return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+  }
+
+  isRouteOk (filter: GetItemsFilter = {}, item: Partial<Transfer>) {
+    if (filter.sourceChainId) {
+      if (!item.sourceChainId || filter.sourceChainId !== item.sourceChainId) {
+        return false
+      }
+    }
+
+    if (filter.destinationChainIds) {
+      if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
+        return false
+      }
+    }
+
+    return true
   }
 }
 

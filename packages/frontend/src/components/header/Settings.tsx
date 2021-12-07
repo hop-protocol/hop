@@ -1,19 +1,21 @@
-import React, { FC, useState, useEffect } from 'react'
+import React, { FC, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import Popover from '@material-ui/core/Popover'
-import SettingsIcon from '@material-ui/icons/Settings'
+import SettingsIcon from 'src/assets/settings-icon.svg'
 import { useApp } from 'src/contexts/AppContext'
 import SmallTextField from 'src/components/SmallTextField'
 import InfoTooltip from 'src/components/infoTooltip'
 import Alert from 'src/components/alert/Alert'
 import { sanitizeNumericalString } from 'src/utils'
+import { Icon, Flex } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: `0 ${theme.padding.extraLight}`,
+    display: 'flex',
+    alignItems: 'center',
   },
   header: {
     fontSize: '1.7rem',
@@ -98,10 +100,11 @@ const Settings: FC = () => {
   const deadlineError = Number(deadlineMinutes) < 10
 
   return (
-    <div className={styles.root}>
-      <IconButton onClick={handleClick} color="secondary">
-        <SettingsIcon className={styles.settingsIcon} />
-      </IconButton>
+    <Flex alignCenter>
+      <Flex alignCenter p={[1, 1]} mx={[2, 0]} onClick={handleClick}>
+        <Icon src={SettingsIcon} width={20} />
+      </Flex>
+
       <Popover
         open={open}
         onClose={handleClose}
@@ -188,7 +191,7 @@ const Settings: FC = () => {
           </Box>
         </div>
       </Popover>
-    </div>
+    </Flex>
   )
 }
 

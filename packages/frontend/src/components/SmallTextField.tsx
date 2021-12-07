@@ -21,18 +21,11 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const normalShadow = `
-  inset -3px -3px 6px rgba(255, 255, 255, 0.5),
-  inset 3px 3px 6px rgba(174, 174, 192, 0.16)
-`
-
 const useInputStyles = makeStyles(theme => ({
   root: (props: StyleProps) => ({
     padding: '0.1rem 0.4rem',
     borderRadius: '2rem',
-    boxShadow: normalShadow,
-    '&:hover': {},
-    '&.Mui-focused': {},
+    boxShadow: theme.boxShadow.input.normal,
   }),
   input: ({ centerAlign }: StyleProps) => ({
     textAlign: centerAlign ? 'center' : 'right',
@@ -43,7 +36,7 @@ const useInputStyles = makeStyles(theme => ({
   }),
   focused: {
     borderRadius: '2rem',
-    boxShadow: normalShadow,
+    boxShadow: theme.boxShadow.input.normal,
   },
 }))
 

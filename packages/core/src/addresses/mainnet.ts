@@ -2,12 +2,180 @@ import { Addresses } from './types'
 
 export const addresses: Addresses = {
   bonders: {
-    USDC: ['0xa6a688F107851131F0E1dce493EbBebFAf99203e'],
-    USDT: ['0xa6a688F107851131F0E1dce493EbBebFAf99203e'],
-    MATIC: ['0xd8781ca9163e9f132a4d8392332e64115688013a'],
-    DAI: ['0x305933e09871D4043b5036e09af794FACB3f6170'],
-    ETH: ['0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A'],
-    WBTC: ['0x2A6303e6b99d451Df3566068EBb110708335658f']
+    USDC: {
+      ethereum: {
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      optimism: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      arbitrum: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      xdai: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      polygon: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      }
+    },
+    USDT: {
+      ethereum: {
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      optimism: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      arbitrum: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      xdai: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      },
+      polygon: {
+        ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
+      }
+    },
+    MATIC: {
+      ethereum: {
+        xdai: '0xd8781ca9163e9f132a4d8392332e64115688013a',
+        polygon: '0xd8781ca9163e9f132a4d8392332e64115688013a'
+      },
+      xdai: {
+        ethereum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
+        polygon: '0xd8781ca9163e9f132a4d8392332e64115688013a'
+      },
+      polygon: {
+        ethereum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
+        xdai: '0xd8781ca9163e9f132a4d8392332e64115688013a'
+      }
+    },
+    DAI: {
+      ethereum: {
+        optimism: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        polygon: '0x305933e09871D4043b5036e09af794FACB3f6170'
+      },
+      optimism: {
+        ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        polygon: '0x305933e09871D4043b5036e09af794FACB3f6170'
+      },
+      arbitrum: {
+        ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        optimism: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        polygon: '0x305933e09871D4043b5036e09af794FACB3f6170'
+      },
+      xdai: {
+        ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        optimism: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        polygon: '0x305933e09871D4043b5036e09af794FACB3f6170'
+      },
+      polygon: {
+        ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        optimism: '0x305933e09871D4043b5036e09af794FACB3f6170'
+      }
+    },
+    ETH: {
+      ethereum: {
+        optimism: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        arbitrum: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        xdai: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        polygon: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A'
+      },
+      optimism: {
+        ethereum: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        arbitrum: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        xdai: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        polygon: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A'
+      },
+      arbitrum: {
+        ethereum: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        optimism: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        xdai: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        polygon: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A'
+      },
+      xdai: {
+        ethereum: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        arbitrum: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        optimism: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        polygon: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A'
+      },
+      polygon: {
+        ethereum: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        arbitrum: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        xdai: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A',
+        optimism: '0x9137a628546e2b1bc26F60A5D1262fb6D58eA44A'
+      }
+    },
+    WBTC: {
+      ethereum: {
+        optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        polygon: '0x2A6303e6b99d451Df3566068EBb110708335658f'
+      },
+      optimism: {
+        ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        polygon: '0x2A6303e6b99d451Df3566068EBb110708335658f'
+      },
+      arbitrum: {
+        ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        polygon: '0x2A6303e6b99d451Df3566068EBb110708335658f'
+      },
+      xdai: {
+        ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        polygon: '0x2A6303e6b99d451Df3566068EBb110708335658f'
+      },
+      polygon: {
+        ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f'
+      }
+    }
   },
   bridges: {
     USDC: {

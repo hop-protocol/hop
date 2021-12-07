@@ -73,6 +73,7 @@ type Bps = {
 }
 
 export type Fees = Record<string, Bps>
+export type Routes = Record<string, Record<string, boolean>>
 
 type Config = {
   isMainnet: boolean
@@ -87,6 +88,7 @@ type Config = {
   sync: SyncConfigs
   metrics: MetricsConfig
   fees: Fees
+  routes: Routes
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -176,6 +178,7 @@ export const config: Config = {
       arbitrum: 25
     }
   },
+  routes: {},
   db: {
     path: defaultDbPath
   },
@@ -286,6 +289,10 @@ export const setMetricsConfig = (metricsConfig: MetricsConfig) => {
 
 export const setFeesConfig = (fees: Fees) => {
   config.fees = { ...config.fees, ...fees }
+}
+
+export const setRoutesConfig = (routes: Routes) => {
+  config.routes = { ...config.routes, ...routes }
 }
 
 export const chainNativeTokens = ['ETH', 'MATIC', 'DAI']

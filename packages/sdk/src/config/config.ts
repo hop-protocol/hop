@@ -18,7 +18,7 @@ const chains: { [network: string]: any } = {
   goerli: goerli.chains
 }
 
-const bonders: { [network: string]: { [token: string]: string[] } } = {
+const bonders: { [network: string]: { [token: string]: Record<string, Record<string, string>>} } = {
   mainnet: mainnet.bonders,
   staging: staging.bonders,
   kovan: kovan.bonders,

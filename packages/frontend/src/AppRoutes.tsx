@@ -104,7 +104,7 @@ const COMPONENT_NAME: FC<Props> = () => {
       <Route path="/stats">
         <Stats />
       </Route>
-      <Route path="/tx/:hash">
+      <Route exact path={['/tx', '/tx/:hash']}>
         <TransactionPage />
       </Route>
 

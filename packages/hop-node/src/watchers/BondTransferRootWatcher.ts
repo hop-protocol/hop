@@ -7,6 +7,7 @@ import { BigNumber } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+
 export type Config = {
   chainSlug: string
   tokenSymbol: string
@@ -41,7 +42,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async checkTransfersCommittedFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots()
+    const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       return
     }

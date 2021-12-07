@@ -2,8 +2,34 @@ import { Addresses } from './types'
 
 export const addresses: Addresses = {
   bonders: {
-    USDC: ['0x81682250D4566B2986A2B33e23e7c52D401B7aB7'],
-    ETH: ['0x81682250D4566B2986A2B33e23e7c52D401B7aB7']
+    USDC: {
+      ethereum: {
+        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      },
+      optimism: {
+        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      },
+      xdai: {
+        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      }
+    },
+    ETH: {
+      ethereum: {
+        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      },
+      optimism: {
+        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      },
+      xdai: {
+        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      }
+    }
   },
   bridges: {
     USDC: {

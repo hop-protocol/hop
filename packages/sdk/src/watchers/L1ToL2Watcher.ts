@@ -88,7 +88,7 @@ class L1ToL2Watcher extends BaseWatcher {
         const amountOutMin = Number(decodedLog.amountOutMin.toString())
         const deadline = Number(decodedLog.deadline.toString())
         amount = decodedLog.amount
-        attemptedSwap = deadline > 0 && amountOutMin > 0
+        attemptedSwap = deadline > 0 || amountOutMin > 0
       }
     }
 

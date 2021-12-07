@@ -20,28 +20,22 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '4.6rem',
     '&:focus': {
       borderRadius: '2.3rem',
-      backgroundColor: theme.palette.background.paper,
     },
-    boxShadow: `
-      6px 6px 12px rgba(174, 174, 192, 0.3),
-      -5px -5px 12px #FFFFFF,
-      inset 6px 6px 12px rgba(174, 174, 192, 0.08),
-      inset -5px -5px 12px rgba(255, 255, 255, 0.02)
-    `,
+    boxShadow: theme.boxShadow.select,
   },
   selectMenu: {
     paddingRight: '4.8rem',
     height: '4.6rem',
   },
-  icon: {
+  icon: ({ value }: any) => ({
     top: 'calc(50% - 0.75rem)',
     right: '0.8rem',
-    color: theme.palette.text.secondary,
-  },
+    color: value === 'default' ? 'white' : theme.palette.text.secondary,
+  }),
 }))
 
 const RaisedSelect: FC<SelectProps & { children: any }> = props => {
-  const styles = useStyles()
+  const styles = useStyles(props)
   const isSingle = props?.children?.filter((x: any) => x).length <= 1
   const icon = isSingle ? () => null : ArrowDropDownIcon
 

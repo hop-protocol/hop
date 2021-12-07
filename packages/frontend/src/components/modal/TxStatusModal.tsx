@@ -1,12 +1,12 @@
 import React from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import MuiButton from '@material-ui/core/Button'
 import Transaction from 'src/models/Transaction'
 import Modal from 'src/components/modal'
 import { Chain } from '@hop-protocol/sdk'
 import { useTxStatusStyles } from '../Transaction'
 import TxStatusTracker from 'src/components/Transaction/TxStatusTracker'
+import Button from 'src/components/buttons/Button'
 
 type Props = {
   tx: Transaction
@@ -44,9 +44,9 @@ function TxStatusModal(props: Props) {
             <em>This may take a few minutes</em>
           )}
         </Typography>
-        <MuiButton className={styles.txStatusCloseButton} onClick={handleTxStatusClose}>
+        <Button className={styles.txStatusCloseButton} onClick={handleTxStatusClose}>
           Close
-        </MuiButton>
+        </Button>
       </Box>
     </Modal>
   )

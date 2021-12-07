@@ -18,6 +18,8 @@ export const useTxStatusStyles = makeStyles((theme: Theme) => ({
   },
   clearButton: {
     fontSize: '1.2rem',
+    borderRadius: '2rem',
+    boxShadow: 'none',
   },
   recentsHeader: {
     display: 'flex',
@@ -47,5 +49,5 @@ export const useTxStatusStyles = makeStyles((theme: Theme) => ({
   },
   methodName: {
     opacity: '0.5',
-  }
+  },
 }))

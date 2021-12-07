@@ -1,9 +1,8 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useEffect } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
@@ -11,7 +10,8 @@ import TxStatusModal from 'src/components/modal/TxStatusModal'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import TokenWrapper from 'src/components/TokenWrapper'
 import { sanitizeNumericalString } from 'src/utils'
-import { MethodNames, useNeedsTokenForFee } from 'src/hooks'
+import { MethodNames } from 'src/hooks'
+import { Flex } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -42,7 +42,7 @@ const useStyles = makeStyles(theme => ({
   },
   button: {
     margin: `0 ${theme.padding.light}`,
-    width: '17.5rem',
+    minWidth: '17.5rem',
   },
 }))
 
@@ -76,7 +76,7 @@ const ConvertContent: FC = () => {
     needsApproval,
     convertTokens,
     approveTokens,
-    needsTokenForFee
+    needsTokenForFee,
   } = useConvert()
 
   useEffect(() => {
@@ -131,9 +131,9 @@ const ConvertContent: FC = () => {
             selectedNetwork={sourceNetwork}
             destNetwork={destNetwork}
           />
-          <MuiButton className={styles.switchDirectionButton} onClick={switchDirection}>
+          <Flex justifyCenter alignCenter my={1} onClick={switchDirection} pointer hover>
             <ArrowDownIcon color="primary" className={styles.downArrow} />
-          </MuiButton>
+          </Flex>
           <AmountSelectorCard
             className={styles.lastSelector}
             value={destTokenAmount as string}
@@ -149,17 +149,26 @@ const ConvertContent: FC = () => {
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error" onClose={() => setError(undefined)} text={error} />
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
-          <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
-            <Button
-              className={styles.button}
-              large
-              highlighted={!!needsApproval}
-              disabled={!approvalButtonActive}
-              onClick={handleApprove}
-              loading={approving}
-            >
-              Approve
-            </Button>
+          <Box
+            className={styles.buttons}
+            display="flex"
+            flexDirection="row"
+            alignItems="center"
+            width="450px"
+          >
+            {!sendButtonActive && (
+              <Button
+                className={styles.button}
+                large
+                highlighted={!!needsApproval}
+                disabled={!approvalButtonActive}
+                onClick={handleApprove}
+                loading={approving}
+                fullWidth
+              >
+                Approve
+              </Button>
+            )}
             <Button
               className={styles.button}
               onClick={handleSend}
@@ -167,6 +176,7 @@ const ConvertContent: FC = () => {
               loading={sending}
               large
               highlighted
+              fullWidth
             >
               Convert
             </Button>

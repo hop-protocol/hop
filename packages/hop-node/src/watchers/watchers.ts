@@ -6,6 +6,7 @@ import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import Logger from 'src/logger'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
@@ -266,6 +267,15 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
   const watchers: {[token: string]: {[chainId: string]: Watcher}} = {}
   const list: Watcher[] = []
 
+  const filteredSourceChains = new Set()
+  const filteredDestinationChains = new Set()
+  for (const sourceChain in globalConfig.routes) {
+    filteredSourceChains.add(sourceChain)
+    for (const destinationChain in globalConfig.routes[sourceChain]) {
+      filteredDestinationChains.add(destinationChain)
+    }
+  }
+
   for (const token of tokens) {
     for (const network of networks) {
       const label = `${network}.${token}`
@@ -274,6 +284,7 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
       if (!contracts.has(token, network)) {
         continue
       }
+
       const tokenContracts = contracts.get(token, network)
       let bridgeContract = tokenContracts.l2Bridge
       let tokenContract = tokenContracts.l2HopBridgeToken
@@ -293,6 +304,14 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
       if (!watcher) {
         continue
       }
+
+      if (filteredSourceChains.size > 0) {
+        const slug = chainIdToSlug(chainId)
+        if (!(filteredSourceChains.has(slug) || filteredDestinationChains.has(slug))) {
+          continue
+        }
+      }
+
       watchers[token] = watchers[token] || {}
       watchers[token][chainId] = watcher
       list.push(watcher)

@@ -1,7 +1,17 @@
-import React, { FC } from 'react'
+import React, { createContext, FC, useContext, useEffect, useState } from 'react'
 import { ThemeProvider as MuiThemeProvider } from '@material-ui/core/styles'
 import { ThemeProvider as SCThemeProvider } from 'styled-components'
-import theme from './theme'
+import { lightTheme, darkTheme } from './theme'
+import { useLocalStorage } from 'react-use'
+
+const shadows = {
+  top: `
+    5px -5px 10px #666077b5,
+    -5px 5px 10px rgba(11, 9, 30, 0.6)`,
+  bottom: `
+    5px -5px 10px #FFFFFF,
+    -5px 5px 10px #66607733`,
+}
 
 export const styledSystemTheme = {
   // 640px, 832px, 1024px, 1440px
@@ -18,26 +28,59 @@ export const styledSystemTheme = {
   fonts: ['Helvetica', 'sans-serif'],
   borders: [0, '1px solid black', '1px solid #00FFFF'],
   radii: [0, 2, 4, 16, 9999, '100%'],
-  shadows: ['0px 5px 20px rgba(0, 0, 0, 0.1)', '0px 4px 10px #00000099'],
+  shadows: ['none', shadows.top, shadows.bottom],
   sizes: [16, 32, 64, 128, 256],
   colors: {
-    ...theme.palette,
-    steps: {
-      bg: '#f0f0f3',
-      active: '#B32EFF',
-      completed: '#B32EFF',
-      failed: '#ff00a7',
-      warning: '#ffb47c',
-    },
+    ...lightTheme.palette,
+    dark: darkTheme.palette,
   },
 }
 
+interface ThemeContextValues {
+  mode?: string
+  toggleMode: any
+}
+
+const ThemeContext = createContext<ThemeContextValues>({
+  mode: 'light',
+  toggleMode: () => {},
+})
+
+const cacheKey = 'ui-theme-mode'
+
 const ThemeProvider: FC = ({ children }) => {
+  const [mode, setMode] = useLocalStorage(cacheKey, 'light')
+  const [theme, setTheme] = useState(mode === 'light' ? lightTheme : darkTheme)
+
+  function toggleMode() {
+    if (mode === 'light') {
+      setMode('dark')
+    } else {
+      setMode('light')
+    }
+  }
+
+  useEffect(() => {
+    if (mode === 'dark') {
+      setTheme(darkTheme)
+    } else {
+      setTheme(lightTheme)
+    }
+  }, [mode])
+
   return (
-    <MuiThemeProvider theme={theme}>
-      <SCThemeProvider theme={styledSystemTheme}>{children}</SCThemeProvider>
-    </MuiThemeProvider>
+    <ThemeContext.Provider
+      value={{
+        mode,
+        toggleMode,
+      }}
+    >
+      <MuiThemeProvider theme={theme}>
+        <SCThemeProvider theme={styledSystemTheme}>{children}</SCThemeProvider>
+      </MuiThemeProvider>
+    </ThemeContext.Provider>
   )
 }
+export const useThemeMode = () => useContext(ThemeContext)
 
 export default ThemeProvider

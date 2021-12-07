@@ -2,7 +2,38 @@ import { Addresses } from './types'
 
 export const addresses: Addresses = {
   bonders: {
-    USDC: ['0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62']
+    USDC: {
+      ethereum: {
+        optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        polygon: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
+      },
+      optimism: {
+        ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        polygon: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
+      },
+      arbitrum: {
+        ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        polygon: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
+      },
+      xdai: {
+        ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        polygon: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
+      },
+      polygon: {
+        ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
+      }
+    }
   },
   bridges: {
     USDC: {

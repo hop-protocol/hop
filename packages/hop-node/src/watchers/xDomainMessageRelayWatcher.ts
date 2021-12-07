@@ -96,9 +96,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
   }
 
   async checkTransfersCommittedFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getExitableTransferRoots({
-      sourceChainId: await this.bridge.getChainId()
-    })
+    const dbTransferRoots = await this.db.transferRoots.getExitableTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       return
     }

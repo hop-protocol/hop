@@ -834,7 +834,7 @@ export default class Bridge extends ContractBase {
     return 'ETH'
   }
 
-  getConfigBonderAddress (): string {
-    return globalConfig?.bonders?.[this.tokenSymbol]?.[0]
+  getConfigBonderAddress (destinationChain: string): string {
+    return (globalConfig?.bonders as any)?.[this.tokenSymbol]?.[this.chainSlug]?.[destinationChain]
   }
 }

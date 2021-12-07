@@ -5,6 +5,7 @@ import Card, { CardProps } from '@material-ui/core/Card'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import ClickAwayListener from '@material-ui/core/ClickAwayListener'
 import { useApp } from 'src/contexts/AppContext'
+import { isDarkMode } from 'src/theme/theme'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -21,7 +22,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       background: 'transparent',
     },
     '&.entered': {
-      background: '#f4f4f491',
+      background: isDarkMode(theme) ? '#0000005a' : '#f4f4f491',
     },
     '&.exiting': {
       background: '#f4f4f491',
@@ -83,6 +84,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     padding: 0,
     overflow: 'auto',
     maxHeight: '100%',
+    border: isDarkMode(theme) ? '1px solid #353535' : 'none',
+    boxShadow: isDarkMode(theme) ? 'none' : theme.boxShadow.card,
   },
   content: {
     padding: '4rem',

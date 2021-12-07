@@ -14,7 +14,7 @@ import { Chain } from 'src/utils/constants'
 
 function TransactionPage() {
   const { hash } = useParams<{ hash: string }>()
-  const [txHash, setTxHash] = useState<string>(hash)
+  const [txHash, setTxHash] = useState<string>(hash || '')
 
   const { sdk } = useApp()
   const { connectedNetworkId } = useWeb3Context()

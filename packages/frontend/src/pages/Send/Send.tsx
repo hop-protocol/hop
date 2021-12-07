@@ -1,6 +1,4 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
-import Box from '@material-ui/core/Box'
-import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
@@ -35,7 +33,7 @@ import {
   useQueryParams,
   useNeedsTokenForFee,
   useBalance,
-  useNativeTokenMaxValue
+  useNativeTokenMaxValue,
 } from 'src/hooks'
 
 const Send: FC = () => {
@@ -65,7 +63,9 @@ const Send: FC = () => {
   const [noLiquidityWarning, setNoLiquidityWarning] = useState<any>(null)
   const [needsNativeTokenWarning, setNeedsNativeTokenWarning] = useState<string>()
   const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
-  const [insufficientFundsWarning, setInsufficientFundsWarning] = useState<string | null | undefined>(null)
+  const [insufficientFundsWarning, setInsufficientFundsWarning] = useState<
+    string | null | undefined
+  >(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
@@ -173,7 +173,9 @@ const Send: FC = () => {
     const update = async () => {
       let warning = ''
       try {
-        if (!(sourceToken && fromNetwork && toNetwork && deadline && fromTokenAmountBN && fromBalance)) {
+        if (
+          !(sourceToken && fromNetwork && toNetwork && deadline && fromTokenAmountBN && fromBalance)
+        ) {
           return
         }
         const bridge = sdk.bridge(sourceToken.symbol)
@@ -325,7 +327,7 @@ const Send: FC = () => {
     enoughBalance,
     estimatedReceived,
     priceImpact,
-    insufficientFundsWarning
+    insufficientFundsWarning,
   ])
 
   useEffect(() => {
@@ -461,7 +463,7 @@ const Send: FC = () => {
     toNetwork,
     txConfirm,
     txHistory,
-    estimatedReceived: estimatedReceivedDisplay
+    estimatedReceived: estimatedReceivedDisplay,
   })
 
   useEffect(() => {
@@ -562,7 +564,7 @@ const Send: FC = () => {
   ])
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
+    <Flex column alignCenter>
       <SendHeader
         styles={styles}
         bridges={bridges}
@@ -595,9 +597,9 @@ const Send: FC = () => {
         setWarning={setWarning}
       />
 
-      <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>
+      <Flex justifyCenter alignCenter my={1} onClick={handleSwitchDirection} pointer hover>
         <ArrowDownIcon color="primary" className={styles.downArrow} />
-      </MuiButton>
+      </Flex>
 
       <SendAmountSelectorCard
         value={toTokenAmount}
@@ -623,20 +625,20 @@ const Send: FC = () => {
           {totalBonderFee?.gt(0) && (
             <div
               style={{
-                marginBottom: '1rem'
+                marginBottom: '1rem',
               }}
             >
-            <DetailRow
-              title={'Fees'}
-              tooltip={
-                <FeeDetails
-                  bonderFee={bonderFeeDisplay}
-                  destinationTxFee={destinationTxFeeDisplay}
-                />
-              }
-              value={totalBonderFeeDisplay}
-              large
-            />
+              <DetailRow
+                title={'Fees'}
+                tooltip={
+                  <FeeDetails
+                    bonderFee={bonderFeeDisplay}
+                    destinationTxFee={destinationTxFeeDisplay}
+                  />
+                }
+                value={totalBonderFeeDisplay}
+                large
+              />
             </div>
           )}
           <DetailRow
@@ -659,17 +661,20 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
 
-      <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
-        <Button
-          className={styles.button}
-          large
-          highlighted={!!needsApproval}
-          disabled={!approveButtonActive}
-          onClick={handleApprove}
-          loading={approving}
-        >
-          Approve
-        </Button>
+      <Flex m="2rem" alignCenter width="450px" justifyAround>
+        {!sendButtonActive && (
+          <Button
+            className={styles.button}
+            large
+            highlighted={!!needsApproval}
+            disabled={!approveButtonActive}
+            onClick={handleApprove}
+            loading={approving}
+            fullWidth
+          >
+            Approve
+          </Button>
+        )}
         <Button
           className={styles.button}
           startIcon={sendButtonActive && <SendIcon />}
@@ -677,17 +682,18 @@ const Send: FC = () => {
           disabled={!sendButtonActive}
           loading={sending}
           large
+          fullWidth
           highlighted
         >
           Send
         </Button>
-      </Box>
+      </Flex>
 
       <Flex mt={1}>
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />
         {tx && <TxStatusModal onClose={() => setTx(null)} tx={tx} />}
       </Flex>
-    </Box>
+    </Flex>
   )
 }
 

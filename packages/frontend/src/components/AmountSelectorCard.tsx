@@ -1,7 +1,6 @@
 import React, { useMemo, FC, ChangeEvent, useCallback } from 'react'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
-import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
@@ -11,65 +10,8 @@ import { Token } from '@hop-protocol/sdk'
 import clsx from 'clsx'
 import LargeTextField from 'src/components/LargeTextField'
 import { commafy } from 'src/utils'
-import { useNativeTokenMaxValue } from 'src/hooks'
+import { useAmountSelectorCardStyles, useNativeTokenMaxValue } from 'src/hooks'
 import Network from 'src/models/Network'
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    maxWidth: '51.6rem',
-    boxSizing: 'border-box',
-    [theme.breakpoints.down('xs')]: {
-      width: 'auto',
-    },
-  },
-  topRow: {
-    marginBottom: '1.8rem',
-  },
-  networkSelectionBox: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  networkLabel: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginLeft: '0.4rem',
-    overflow: 'hidden',
-    textOverflow: 'clip',
-  },
-  networkIconContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    width: '4rem',
-    height: '4rem',
-  },
-  networkIcon: {
-    display: 'flex',
-    height: '2.2rem',
-    margin: '0.7rem',
-  },
-  balance: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  maxButton: {
-    border: 'none',
-    background: '#f8f8f9',
-    borderRadius: '1rem',
-    padding: '0.5rem 1rem',
-    fontSize: '1.2rem',
-    marginRight: '1rem',
-    cursor: 'pointer',
-  },
-  container: {
-    flexWrap: 'nowrap',
-  },
-  networkContainer: {
-    width: '180px',
-  },
-  inputContainer: {},
-}))
 
 type AmountSelectorProps = {
   value?: string
@@ -123,7 +65,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
     destNetwork,
     selectedNetwork,
   } = props
-  const styles = useStyles()
+  const styles = useAmountSelectorCardStyles()
   const { estimateMaxValue } = useNativeTokenMaxValue(selectedNetwork)
 
   const balanceDisplay = useMemo(() => {

@@ -86,7 +86,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
         if (estimatedGasLimit) {
           let gasCost = await estimateGasCost(fromNetwork, estimatedGasLimit)
           if (gasCost && fromNetwork.slug === Chain.Optimism) {
-            const { gasLimit, data, to } = await bridge.getBondWithdrawalEstimatedGas(toNetwork.slug)
+            const { gasLimit, data, to } = await bridge.getBondWithdrawalEstimatedGas(fromNetwork.slug, toNetwork.slug)
             const l1FeeInWei = await bridge.getOptimismL1Fee(gasLimit, data, to)
             gasCost = gasCost.add(l1FeeInWei)
           }

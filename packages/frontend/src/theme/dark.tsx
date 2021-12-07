@@ -11,7 +11,7 @@ export const palette = {
   },
   action: {
     active: '#B32EFF',
-    hover: '#c462fc',
+    hover: '#af64c5',
     selected: '#B32EFF',
     disabled: '#66607738',
   },

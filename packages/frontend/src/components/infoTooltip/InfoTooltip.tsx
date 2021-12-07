@@ -35,7 +35,7 @@ const HelpTooltip: FC<Props> = props => {
       placement={props.placement || 'top'}
       arrow={true}
     >
-      {children || <HelpIcon />}
+      {children || <HelpIcon color="secondary" />}
     </Tooltip>
   )
 }

@@ -1,6 +1,5 @@
 import React, { FC, useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { Theme, makeStyles } from '@material-ui/core'
+import { Theme, makeStyles, IconButton } from '@material-ui/core'
 import Box from '@material-ui/core/Box'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -18,6 +17,10 @@ import logger from 'src/logger'
 import { useInterval } from 'src/hooks'
 import ConnectWalletButton from './ConnectWalletButton'
 import { isDarkMode } from 'src/theme/theme'
+import SunIcon from 'src/assets/sun-icon.svg'
+import MoonIcon from 'src/assets/moon-icon.svg'
+import { Div, Icon } from '../ui'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -29,11 +32,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       marginBottom: '4rem',
     },
   },
-  title: {
-    position: 'relative',
-  },
   hopLogo: {
-    marginTop: '-1.0rem',
     width: '8.2rem',
   },
   label: {
@@ -75,7 +74,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 const Header: FC = () => {
   const styles = useStyles()
-  const { address, requestWallet, provider, connectedNetworkId } = useWeb3Context()
+  const { address, provider, connectedNetworkId } = useWeb3Context()
   const { l1Network, networks, theme } = useApp()
   const [displayBalance, setDisplayBalance] = useState<string>('')
   const [connectedNetwork, setConnectedNetwork] = useState<Network | undefined>()
@@ -107,27 +106,33 @@ const Header: FC = () => {
     updateDisplayBalance().catch(logger.error)
   }, 5 * 1000)
 
+  const { toggleMode, mode } = useThemeMode()
   const showBalance = !!displayBalance && !!connectedNetwork
+  const ThemeModeIcon: any = isDarkMode(mode) ? SunIcon : MoonIcon
 
   return (
     <>
       <Box className={styles.root} display="flex" alignItems="center">
         <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-start">
-          <Link to="/">
-            <h1 className={styles.title}>
-              <img
-                className={styles.hopLogo}
-                src={theme?.palette.type === 'dark' ? HopLogoWhite : HopLogoBlack}
-                alt="Hop"
-              />
-              {!isMainnet ? <span className={styles.label}>{l1Network?.name}</span> : null}
-            </h1>
-          </Link>
+          <img
+            className={styles.hopLogo}
+            src={theme?.palette.type === 'dark' ? HopLogoWhite : HopLogoBlack}
+            alt="Hop"
+          />
+          {!isMainnet ? <span className={styles.label}>{l1Network?.name}</span> : null}
         </Box>
-        <Box display="flex" flexDirection="row" flex={1} justifyContent="center">
+
+        <Box display="flex" flexDirection="row" flex={1} justifyContent="center" alignSelf="center">
           <HeaderRoutes />
         </Box>
+
         <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-end">
+          <IconButton onClick={toggleMode}>
+            <Div color="#666077" height="20px">
+              <Icon src={ThemeModeIcon} width={20} />
+            </Div>
+          </IconButton>
+
           <Settings />
           {showBalance && (
             <div className={styles.balancePill}>

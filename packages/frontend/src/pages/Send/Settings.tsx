@@ -1,28 +1,21 @@
-import React, { FC, useState, useEffect } from 'react'
+import React, { FC, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import Popover from '@material-ui/core/Popover'
-import SettingsIcon from '@material-ui/icons/Settings'
-import SunIcon from '@material-ui/icons/Brightness5'
-import MoonIcon from '@material-ui/icons/Brightness2'
-// import SunIcon from 'src/assets/sun-icon.svg'
-// import MoonIcon from 'src/assets/moon-icon.svg'
+import SettingsIcon from 'src/assets/settings-icon.svg'
 import { useApp } from 'src/contexts/AppContext'
 import SmallTextField from 'src/components/SmallTextField'
 import InfoTooltip from 'src/components/infoTooltip'
 import Alert from 'src/components/alert/Alert'
 import { sanitizeNumericalString } from 'src/utils'
-import { useThemeMode } from 'src/theme/ThemeProvider'
-import { isDarkMode } from 'src/theme/theme'
-import { Div } from 'src/components/ui'
+import { Icon, Div, Flex } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
     alignItems: 'center',
-    padding: `0 ${theme.padding.extraLight}`,
   },
   header: {
     fontSize: '1.7rem',
@@ -63,8 +56,7 @@ const useStyles = makeStyles(theme => ({
 const Settings: FC = () => {
   const styles = useStyles()
   const [open, setOpen] = useState<boolean>(false)
-  const { settings, theme } = useApp()
-  const { toggleMode } = useThemeMode()
+  const { settings } = useApp()
   const { slippageTolerance, setSlippageTolerance, deadlineMinutes, setDeadlineMinutes } = settings
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
   const handleClick = (event: any) => {
@@ -107,19 +99,12 @@ const Settings: FC = () => {
 
   const deadlineError = Number(deadlineMinutes) < 10
 
-  const darkMode = isDarkMode(theme)
-  const ThemeModeIcon = darkMode ? SunIcon : MoonIcon
-
   return (
-    <div className={styles.root}>
-      <IconButton onClick={toggleMode}>
-        <Div color="#666077" height="20px">
-          <ThemeModeIcon style={{ height: 20, width: 20 }} />
+    <Flex alignCenter>
+      <IconButton onClick={handleClick}>
+        <Div color="white" height="20px">
+          <Icon src={SettingsIcon} width={20} />
         </Div>
-      </IconButton>
-
-      <IconButton onClick={handleClick} color="secondary">
-        <SettingsIcon className={styles.settingsIcon} />
       </IconButton>
 
       <Popover
@@ -208,7 +193,7 @@ const Settings: FC = () => {
           </Box>
         </div>
       </Popover>
-    </div>
+    </Flex>
   )
 }
 

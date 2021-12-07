@@ -13,3 +13,7 @@ body {
   transition: background 0.2s ease-out;
   font-size: 1.6rem;
 }
+
+span {
+  line-height: normal;
+}

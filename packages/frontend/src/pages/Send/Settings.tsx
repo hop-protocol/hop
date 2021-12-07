@@ -113,13 +113,15 @@ const Settings: FC = () => {
   return (
     <div className={styles.root}>
       <IconButton onClick={toggleMode}>
-        <Div color="#666077">
+        <Div color="#666077" height="20px">
           <ThemeModeIcon style={{ height: 20, width: 20 }} />
         </Div>
       </IconButton>
-      {/* <IconButton onClick={handleClick} color="secondary">
+
+      <IconButton onClick={handleClick} color="secondary">
         <SettingsIcon className={styles.settingsIcon} />
-      </IconButton> */}
+      </IconButton>
+
       <Popover
         open={open}
         onClose={handleClose}

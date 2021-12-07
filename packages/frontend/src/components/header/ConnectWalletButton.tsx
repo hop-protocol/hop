@@ -7,7 +7,13 @@ function ConnectWalletButton({ mode }) {
   const { requestWallet } = useWeb3Context()
 
   return (
-    <StyledButton highlighted onClick={requestWallet} boxShadow={isDarkMode(mode) ? 1 : 2}>
+    <StyledButton
+      highlighted
+      onClick={requestWallet}
+      boxShadow={isDarkMode(mode) ? 1 : 2}
+      fontSize={[0, 0, 1, 2]}
+      minWidth="12rem"
+    >
       Connect a Wallet
     </StyledButton>
   )

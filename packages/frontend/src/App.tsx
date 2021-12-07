@@ -17,7 +17,7 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: theme.palette.background.default,
   },
   content: {
-    padding: '4.2rem',
+    padding: '2.5rem',
     flexGrow: 1,
     [theme.breakpoints.down('xs')]: {
       padding: '2.2rem',

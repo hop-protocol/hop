@@ -15,7 +15,7 @@ const Icon = ({
   color,
 }: SpaceProps &
   LayoutProps &
-  ColorProps & { src?: string; width?: number; alt?: string; color?: string }) => {
+  ColorProps & { src?: string; width?: any; alt?: string; color?: string }) => {
   if (!src) return null
 
   return (

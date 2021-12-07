@@ -661,7 +661,7 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
 
-      <Flex p="2.8rem" alignCenter width="450px" justifyAround>
+      <Flex m="2rem" alignCenter width="450px" justifyAround>
         {!sendButtonActive && (
           <Button
             className={styles.button}

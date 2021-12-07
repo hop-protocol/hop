@@ -24,7 +24,10 @@ export const useSendStyles = makeStyles(theme => ({
     margin: '1.0rem',
   },
   details: {
-    marginBottom: '5.4rem',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    minHeight: '12rem',
     width: '46.0rem',
     [theme.breakpoints.down('xs')]: {
       width: '90%',
@@ -98,7 +101,7 @@ export const useSendStyles = makeStyles(theme => ({
     marginBottom: '1.5rem',
   },
   buttons: {
-    marginTop: theme.padding.default,
+    marginTop: theme.padding.light,
   },
   button: {
     margin: `0 ${theme.padding.light}`,

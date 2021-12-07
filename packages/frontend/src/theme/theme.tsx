@@ -97,7 +97,17 @@ export const lightTheme = createMuiTheme({
   breakpoints,
   boxShadow: boxShadowsLight,
   bgGradient: bgGradients,
-  overrides: overridesLight,
+  overrides: {
+    ...overridesLight,
+    MuiTab: {
+      root: {
+        ...overridesLight.MuiTab.root,
+        [breakpoints.down('sm')]: {
+          fontSize: '1.5rem',
+        },
+      },
+    },
+  },
 })
 
 export const darkTheme = createMuiTheme({
@@ -110,7 +120,17 @@ export const darkTheme = createMuiTheme({
   breakpoints,
   boxShadow: boxShadowsDark,
   bgGradient: bgGradients,
-  overrides: overridesDark,
+  overrides: {
+    ...overridesDark,
+    MuiTab: {
+      root: {
+        ...overridesDark.MuiTab.root,
+        [breakpoints.down('sm')]: {
+          fontSize: '1.5rem',
+        },
+      },
+    },
+  },
 })
 
 interface PaletteType {

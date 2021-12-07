@@ -10,7 +10,7 @@ import SmallTextField from 'src/components/SmallTextField'
 import InfoTooltip from 'src/components/infoTooltip'
 import Alert from 'src/components/alert/Alert'
 import { sanitizeNumericalString } from 'src/utils'
-import { Icon, Div, Flex } from 'src/components/ui'
+import { Icon, Flex } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -101,11 +101,9 @@ const Settings: FC = () => {
 
   return (
     <Flex alignCenter>
-      <IconButton onClick={handleClick}>
-        <Div color="white" height="20px">
-          <Icon src={SettingsIcon} width={20} />
-        </Div>
-      </IconButton>
+      <Flex alignCenter p={[1, 1]} mx={[2, 0]} onClick={handleClick}>
+        <Icon src={SettingsIcon} width={20} />
+      </Flex>
 
       <Popover
         open={open}

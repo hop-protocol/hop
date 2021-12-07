@@ -1,5 +1,6 @@
 import React, { FC, useState, useEffect } from 'react'
-import { Theme, makeStyles, IconButton } from '@material-ui/core'
+import { Link } from 'react-router-dom'
+import { Theme, makeStyles } from '@material-ui/core'
 import Box from '@material-ui/core/Box'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -19,13 +20,19 @@ import ConnectWalletButton from './ConnectWalletButton'
 import { isDarkMode } from 'src/theme/theme'
 import SunIcon from 'src/assets/sun-icon.svg'
 import MoonIcon from 'src/assets/moon-icon.svg'
-import { Div, Icon } from '../ui'
+import { Flex, Icon } from '../ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
+    display: 'flex',
+    flexWrap: 'wrap',
     minHeight: '8rem',
     padding: '0 4.2rem',
+    [theme.breakpoints.down('sm')]: {
+      minHeight: '7rem',
+      padding: '0 2rem',
+    },
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
       paddingTop: '2rem',
@@ -33,7 +40,12 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   },
   hopLogo: {
+    display: 'flex',
+    alignItems: 'center',
     width: '8.2rem',
+    [theme.breakpoints.down('sm')]: {
+      width: '7rem',
+    },
   },
   label: {
     fontSize: '1rem',
@@ -59,16 +71,25 @@ const useStyles = makeStyles((theme: Theme) => ({
     fontWeight: 'bold',
     fontSize: '1.5rem',
     whiteSpace: 'nowrap',
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '1.2rem',
+    },
   },
   network: {
     fontSize: '1.4rem',
     display: 'flex',
     justifyContent: 'center',
     alignContent: 'center',
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '1.2rem',
+    },
   },
   image: {
     marginRight: '0.5rem',
     width: '16px',
+    [theme.breakpoints.down('sm')]: {
+      width: '12px',
+    },
   },
 }))
 
@@ -114,12 +135,14 @@ const Header: FC = () => {
     <>
       <Box className={styles.root} display="flex" alignItems="center">
         <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-start">
-          <img
-            className={styles.hopLogo}
-            src={theme?.palette.type === 'dark' ? HopLogoWhite : HopLogoBlack}
-            alt="Hop"
-          />
-          {!isMainnet ? <span className={styles.label}>{l1Network?.name}</span> : null}
+          <Link to="/">
+            <img
+              className={styles.hopLogo}
+              src={theme?.palette.type === 'dark' ? HopLogoWhite : HopLogoBlack}
+              alt="Hop"
+            />
+            {!isMainnet ? <span className={styles.label}>{l1Network?.name}</span> : null}
+          </Link>
         </Box>
 
         <Box display="flex" flexDirection="row" flex={1} justifyContent="center" alignSelf="center">
@@ -141,11 +164,9 @@ const Header: FC = () => {
 
           {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
 
-          <IconButton onClick={toggleMode}>
-            <Div color="#666077" height="20px">
-              <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
-            </Div>
-          </IconButton>
+          <Flex alignCenter p={[1, 2]} mx={[2, 0]} onClick={toggleMode}>
+            <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
+          </Flex>
         </Box>
       </Box>
       <WalletWarning />

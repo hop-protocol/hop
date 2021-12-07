@@ -566,7 +566,7 @@ const Send: FC = () => {
   ])
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
+    <Flex column alignCenter>
       <SendHeader
         styles={styles}
         bridges={bridges}
@@ -663,17 +663,20 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
 
-      <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
-        <Button
-          className={styles.button}
-          large
-          highlighted={!!needsApproval}
-          disabled={!approveButtonActive}
-          onClick={handleApprove}
-          loading={approving}
-        >
-          Approve
-        </Button>
+      <Flex p="2.8rem" alignCenter width="450px" justifyAround>
+        {!sendButtonActive && (
+          <Button
+            className={styles.button}
+            large
+            highlighted={!!needsApproval}
+            disabled={!approveButtonActive}
+            onClick={handleApprove}
+            loading={approving}
+            fullWidth
+          >
+            Approve
+          </Button>
+        )}
         <Button
           className={styles.button}
           startIcon={sendButtonActive && <SendIcon />}
@@ -681,17 +684,18 @@ const Send: FC = () => {
           disabled={!sendButtonActive}
           loading={sending}
           large
+          fullWidth
           highlighted
         >
           Send
         </Button>
-      </Box>
+      </Flex>
 
       <Flex mt={1}>
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />
         {tx && <TxStatusModal onClose={() => setTx(null)} tx={tx} />}
       </Flex>
-    </Box>
+    </Flex>
   )
 }
 

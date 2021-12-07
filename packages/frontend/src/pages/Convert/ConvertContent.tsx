@@ -42,7 +42,7 @@ const useStyles = makeStyles(theme => ({
   },
   button: {
     margin: `0 ${theme.padding.light}`,
-    width: '17.5rem',
+    minWidth: '17.5rem',
   },
 }))
 
@@ -76,7 +76,7 @@ const ConvertContent: FC = () => {
     needsApproval,
     convertTokens,
     approveTokens,
-    needsTokenForFee
+    needsTokenForFee,
   } = useConvert()
 
   useEffect(() => {
@@ -149,17 +149,26 @@ const ConvertContent: FC = () => {
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error" onClose={() => setError(undefined)} text={error} />
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
-          <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
-            <Button
-              className={styles.button}
-              large
-              highlighted={!!needsApproval}
-              disabled={!approvalButtonActive}
-              onClick={handleApprove}
-              loading={approving}
-            >
-              Approve
-            </Button>
+          <Box
+            className={styles.buttons}
+            display="flex"
+            flexDirection="row"
+            alignItems="center"
+            width="450px"
+          >
+            {!sendButtonActive && (
+              <Button
+                className={styles.button}
+                large
+                highlighted={!!needsApproval}
+                disabled={!approvalButtonActive}
+                onClick={handleApprove}
+                loading={approving}
+                fullWidth
+              >
+                Approve
+              </Button>
+            )}
             <Button
               className={styles.button}
               onClick={handleSend}
@@ -167,6 +176,7 @@ const ConvertContent: FC = () => {
               loading={sending}
               large
               highlighted
+              fullWidth
             >
               Convert
             </Button>

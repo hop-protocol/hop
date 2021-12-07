@@ -102,6 +102,6 @@ export const useSendStyles = makeStyles(theme => ({
   },
   button: {
     margin: `0 ${theme.padding.light}`,
-    width: '17.5rem',
+    minWidth: '17.5rem',
   },
 }))

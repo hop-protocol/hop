@@ -61,9 +61,9 @@ export const boxShadows = {
       -10px 10px 30px rgba(11, 9, 30, 0.48),
       inset -8px 4px 10px rgba(11, 9, 30, 0.1)`,
     disabled: `
-      10px -10px 30px #FFFFFF,
-      -10px 10px 30px #D8D5DC,
-      inset -8px 4px 10px rgba(102, 96, 119, 0.04)`,
+      10px -10px 30px rgba(79, 74, 94, 0.3),
+      -10px 10px 30px rgba(11, 9, 30, 0.48),
+      inset -8px 4px 10px rgba(11, 9, 30, 0.1)`,
     highlighted: `
       10px -10px 30px rgba(79, 74, 94, 0.3),
       -10px 10px 30px rgba(11, 9, 30, 0.48),

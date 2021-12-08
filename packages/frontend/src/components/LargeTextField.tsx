@@ -73,8 +73,8 @@ const useInputStyles = makeStyles(theme => ({
     color: theme.palette.text.primary,
     textOverflow: 'clip',
     padding: `6px ${theme.padding.extraLight} 7px ${theme.padding.extraLight}`,
-    transition: loadingValue
-      ? `loadingEffect 0.2s ease-in`
+    animation: loadingValue
+      ? `loadingEffect 1s ${theme.transitions.easing.sharp} infinite`
       : 'none',
     [theme.breakpoints.down('xs')]: {
       fontSize: theme.typography.h6.fontSize,

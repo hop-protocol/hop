@@ -30,7 +30,7 @@ type S3JsonData = {
 const s3JsonData: S3JsonData = {}
 let s3LastUpload: number
 
-export type Config = {
+type Config = {
   chainSlug: string
   tokenSymbol: string
   label: string

@@ -15,7 +15,7 @@ import { config as globalConfig } from 'src/config'
 
 const dbMap: { [key: string]: any } = {}
 
-export enum Event {
+enum Event {
   Error = 'error',
   Batch = 'batch',
 }
@@ -25,12 +25,12 @@ export type BaseItem = {
   _createdAt?: number
 }
 
-export type KV = {
+type KV = {
   key: string
   value: any
 }
 
-export type QueueItem = {
+type QueueItem = {
   key: string
   value: any
   cb: any

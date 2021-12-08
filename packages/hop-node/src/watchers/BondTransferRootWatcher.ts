@@ -8,7 +8,7 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 
-export type Config = {
+type Config = {
   chainSlug: string
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract

@@ -9,7 +9,7 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { Notifier } from 'src/notifier'
 import { hostname } from 'src/config'
 
-export type Config = {
+type Config = {
   chainSlug: string
   bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   tokenSymbol: string

@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { DateTime } from 'luxon'
 
-export type Options = {
+type Options = {
   tag?: string
   prefix?: string
   color: string
@@ -12,7 +12,7 @@ type AdditionalDataLabel = {
   root?: string
 }
 
-export enum LogLevels {
+enum LogLevels {
   Critical,
   Error,
   Warn,

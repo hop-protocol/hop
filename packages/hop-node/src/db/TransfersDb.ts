@@ -5,11 +5,6 @@ import { BigNumber } from 'ethers'
 import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
-export type TransfersDateFilter = {
-  fromUnix?: number
-  toUnix?: number
-}
-
 export type Transfer = {
   transferRootId?: string
   transferRootHash?: string
@@ -44,7 +39,12 @@ export type Transfer = {
   isNotFound?: boolean
 }
 
-export type GetItemsFilter = Partial<Transfer> & {
+type TransfersDateFilter = {
+  fromUnix?: number
+  toUnix?: number
+}
+
+type GetItemsFilter = Partial<Transfer> & {
   destinationChainIds?: number[]
 }
 

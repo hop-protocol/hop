@@ -11,10 +11,8 @@ import './exitCommitTx'
 import './hopNode'
 import './incompleteSettlements'
 import './keystores'
-import './loadTest'
 import './logs'
 import './pendingTransfers'
-import './polygonBridge'
 import './send'
 import './settle'
 import './showConfig'
@@ -32,7 +30,6 @@ import './unbondedTransferRoots'
 import './unstake'
 import './updateConfig'
 import './withdrawalProof'
-import './xdaiBridge'
 
 program.parse(process.argv)
 

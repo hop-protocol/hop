@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     height: '100%',
     zIndex: 4,
     overflow: 'auto',
-    transition: 'background 0.1s ease-out',
+    transition: 'background 0.15s ease-in',
     background: '#00000070',
     '&.entering': {
       background: 'transparent',
@@ -57,7 +57,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     top: '40%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    transition: 'all 0.2s ease-out',
+    transition: 'all 0.15s ease-in',
     padding: '5rem',
     '&.entering': {
       opacity: 0,

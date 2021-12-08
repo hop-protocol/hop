@@ -57,8 +57,8 @@ export const useSendStyles = makeStyles(theme => ({
     marginTop: '2.4rem',
   },
   detailsDropdown: {
+    width: '51.6rem',
     marginTop: '2rem',
-    width: '50.0rem',
     '&[open] summary span::before': {
       content: '"▾"',
     },
@@ -94,10 +94,14 @@ export const useSendStyles = makeStyles(theme => ({
     },
   },
   customRecipient: {
-    width: '100%',
-    padding: '2rem 0',
+    width: '51.6rem',
+    marginTop: '1rem',
+    boxSizing: 'border-box',
+    borderRadius: '3rem',
+    boxShadow: theme.boxShadow.inner,
   },
   customRecipientLabel: {
+    textAlign: 'right',
     marginBottom: '1.5rem',
   },
   buttons: {

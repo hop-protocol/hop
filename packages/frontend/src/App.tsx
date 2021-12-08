@@ -26,6 +26,12 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const Circles = styled.div<any>`
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  top: 40px;
+  width: 100vw;
+  height: 110vh;
   background: ${({ mode }: any) => (isDarkMode(mode) ? `url(${bgImageDark})` : `url(${bgImage})`)};
   background-repeat: repeat-y;
   background-size: cover;
@@ -36,8 +42,9 @@ function App() {
   const styles = useStyles()
 
   return (
-    <Box display="flex" flexDirection="column" className={styles.app}>
-      <Circles mode={theme.palette.type}>
+    <>
+      <Circles mode={theme.palette.type} />
+      <Box display="flex" flexDirection="column" className={styles.app}>
         <Box display="flex" flexDirection="column" minHeight="100vh">
           <Header />
           <AccountDetails />
@@ -47,8 +54,8 @@ function App() {
           <TxConfirm />
           <Footer />
         </Box>
-      </Circles>
-    </Box>
+      </Box>
+    </>
   )
 }
 

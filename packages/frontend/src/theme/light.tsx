@@ -121,6 +121,7 @@ export const overridesLight = {
   MuiPaper: {
     root: {
       backgroundColor: '#FDF7F9',
+      transition: 'box-shadow 0.15s ease-in',
     },
   },
   MuiPopover: {

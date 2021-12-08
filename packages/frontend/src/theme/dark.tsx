@@ -61,9 +61,8 @@ export const boxShadows = {
       -10px 10px 30px rgba(11, 9, 30, 0.48),
       inset -8px 4px 10px rgba(11, 9, 30, 0.1)`,
     disabled: `
-      10px -10px 30px rgba(79, 74, 94, 0.3),
-      -10px 10px 30px rgba(11, 9, 30, 0.48),
-      inset -8px 4px 10px rgba(11, 9, 30, 0.1)`,
+    -10px 10px 30px rgba(11, 9, 30, 0.48),
+    inset -8px 4px 10px rgba(11, 9, 30, 0.1)`,
     highlighted: `
       10px -10px 30px rgba(79, 74, 94, 0.3),
       -10px 10px 30px rgba(11, 9, 30, 0.48),
@@ -85,7 +84,7 @@ export const overridesDark = {
       color: palette.primary.main,
       '&:disabled': {
         background: '#272332',
-        boxShadow: boxShadows.button.default,
+        boxShadow: boxShadows.button.disabled,
         color: palette.text.disabled,
       },
     },
@@ -122,6 +121,7 @@ export const overridesDark = {
   MuiPaper: {
     root: {
       backgroundColor: '#272332',
+      transition: 'box-shadow 0.15s ease-in',
     },
   },
   MuiPopover: {

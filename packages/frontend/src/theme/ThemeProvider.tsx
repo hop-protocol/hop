@@ -11,6 +11,13 @@ const shadows = {
   bottom: `
     5px -5px 10px #FFFFFF,
     -5px 5px 10px #66607733`,
+  innerDark: `
+    inset -8px -8px 60px -5px rgba(21, 20, 29, 0.6),
+    inset 4px -4px 3px rgba(102, 96, 119, 0.5),
+    inset -7px 7px 5px -4px #161222`,
+  innerLight: `inset 4px -4px 3px #FFFFFF,
+    inset 8px -8px 60px -5px #F1E9EC,
+    inset -7px 7px 5px -4px rgba(174, 174, 192, 0.4)`,
 }
 
 export const styledSystemTheme = {
@@ -28,7 +35,7 @@ export const styledSystemTheme = {
   fonts: ['Helvetica', 'sans-serif'],
   borders: [0, '1px solid black', '1px solid #00FFFF'],
   radii: [0, 2, 4, 16, 9999, '100%'],
-  shadows: ['none', shadows.top, shadows.bottom],
+  shadows: ['none', shadows.top, shadows.bottom, shadows.innerDark, shadows.innerLight],
   sizes: [16, 32, 64, 128, 256],
   colors: {
     ...lightTheme.palette,

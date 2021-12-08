@@ -1,3 +1,5 @@
+export const defaultTransition = 'all 0.15s ease-out'
+
 export const palette = {
   primary: {
     light: '#c462fc',
@@ -82,6 +84,7 @@ export const overridesDark = {
       backgroundColor: '#272332',
       boxShadow: boxShadows.button.default,
       color: palette.primary.main,
+      transition: defaultTransition,
       '&:disabled': {
         background: '#272332',
         boxShadow: boxShadows.button.disabled,
@@ -94,10 +97,12 @@ export const overridesDark = {
       padding: '2.8rem',
       borderRadius: '3.0rem',
       boxShadow: boxShadows.card,
+      transition: defaultTransition,
     },
   },
   MuiListItem: {
     root: {
+      transition: defaultTransition,
       '&$selected': {
         backgroundColor: '#b32eff19',
         color: palette.text.primary,
@@ -110,22 +115,30 @@ export const overridesDark = {
       '&:hover': {
         backgroundColor: palette.action.hover,
       },
+      transition: defaultTransition,
     },
   },
   MuiMenuItem: {
     root: {
       fontWeight: 700,
       fontSize: '1.8rem',
+      transition: defaultTransition,
+    },
+  },
+  MuiInputBase: {
+    root: {
+      transition: defaultTransition,
     },
   },
   MuiPaper: {
     root: {
       backgroundColor: '#272332',
-      transition: 'box-shadow 0.15s ease-in',
+      transition: defaultTransition,
     },
   },
   MuiPopover: {
     paper: {
+      transition: defaultTransition,
       borderRadius: '3.0rem',
       boxShadow: `
           0px 5px 15px -3px rgba(0,0,0,0.1),
@@ -138,6 +151,7 @@ export const overridesDark = {
     root: {
       backgroundColor: '#66607738',
       // boxShadow: boxShadows.select,
+      transition: defaultTransition,
     },
   },
   MuiSlider: {
@@ -170,6 +184,7 @@ export const overridesDark = {
   },
   MuiTab: {
     root: {
+      transition: defaultTransition,
       '&.MuiTab-root': {
         color: palette.text.secondary,
         minWidth: 0,
@@ -191,6 +206,7 @@ export const overridesDark = {
   MuiTypography: {
     root: {
       color: '#E3DDF1',
+      transition: defaultTransition,
     },
   },
 }

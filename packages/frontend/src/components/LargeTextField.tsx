@@ -51,7 +51,7 @@ const useInputStyles = makeStyles(theme => ({
   },
   root: ({ defaultShadow, hideShadow }: StyleProps) => ({
     padding: '0.8rem 0',
-    transition: 'box-shadow 0.15s ease-in',
+    transition: 'all 0.15s ease-out',
     borderRadius: '1.5rem',
     boxShadow: defaultShadow ? theme.boxShadow.input.normal : 'none',
     '&:hover': {

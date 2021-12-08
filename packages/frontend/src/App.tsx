@@ -19,6 +19,7 @@ const useStyles = makeStyles(theme => ({
     background: isDarkMode(theme) ? `url(${bgImageDark})` : `url(${bgImage})`,
     backgroundRepeat: 'no-repeat',
     backgroundSize: 'cover',
+    transition: 'all 0.15s ease-out'
   },
   content: {
     padding: '2.5rem',
@@ -26,6 +27,7 @@ const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       padding: '2.2rem',
     },
+    transition: 'all 0.15s ease-out'
   },
 }))
 

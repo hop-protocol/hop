@@ -20,4 +20,5 @@ export const StyledButton: FC<
   ${space};
   ${layout};
   ${shadow};
+  transition: all 0.15s ease-out;
 `

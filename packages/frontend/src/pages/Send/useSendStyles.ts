@@ -6,6 +6,7 @@ export const useSendStyles = makeStyles(theme => ({
     justifyContent: 'center',
     width: '46.0rem',
     position: 'relative',
+    transition: 'all 0.15s ease-out',
   },
   sendSelect: {
     marginBottom: '4.2rem',

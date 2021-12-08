@@ -5,9 +5,9 @@ import { BigNumber } from 'ethers'
 import { OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
-export const varianceSeconds = 10 * 60
+const varianceSeconds = 10 * 60
 
-export type GasCost = BaseItem & {
+type GasCost = BaseItem & {
   id?: string
   chain: string
   token: string

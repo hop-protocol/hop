@@ -238,7 +238,7 @@ export function startChallengeWatchers (config: GetChallengeWatchersConfig) {
   return { stop, watchers }
 }
 
-export function getChallengeWatchers (config: GetChallengeWatchersConfig) {
+function getChallengeWatchers (config: GetChallengeWatchersConfig) {
   const {
     tokens = getAllTokens(),
     networks = getAllChains(),

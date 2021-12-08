@@ -8,7 +8,7 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { TxRetryDelayMs } from 'src/constants'
 import { getEnabledNetworks } from 'src/config'
 
-export type Config = {
+type Config = {
   chainSlug: string
   tokenSymbol: string
   label: string

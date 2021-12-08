@@ -2,7 +2,6 @@ import Logger, { setLogLevel } from 'src/logger'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import yaml from 'js-yaml'
 import { Chain } from 'src/constants'
 import {
   Fees, Routes, defaultConfigFilePath, setBonderPrivateKey,
@@ -211,11 +210,7 @@ export async function parseConfigFile (
       throw new Error(`no config file found at ${configPath}`)
     }
 
-    if (configPath.endsWith('.yml') || configPath.endsWith('.yaml')) {
-      config = yaml.load(fs.readFileSync(configPath, 'utf8')) as any
-    } else {
-      config = require(configPath)
-    }
+    config = require(configPath)
   }
   if (config != null) {
     await validateConfig(config)

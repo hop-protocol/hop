@@ -20,7 +20,7 @@ export enum Token {
   DAI = 'DAI'
 }
 
-export const AvgBlockTimeSeconds = {
+const AvgBlockTimeSeconds = {
   Ethereum: 13,
   Polygon: 2,
   xDai: 5
@@ -34,8 +34,8 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   arbitrum: 59105
 }
 
-export const SecondsInDay = 86400
-export const SecondsInWeek = SecondsInDay * 7
+const SecondsInDay = 86400
+const SecondsInWeek = SecondsInDay * 7
 export const TotalBlocks = {
   Ethereum: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Ethereum),
   Polygon: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Polygon),

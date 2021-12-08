@@ -13,7 +13,7 @@ const dbSets: {[db: string]: {[tokenSymbol: string]: any}} = {
   gasCostDb: {}
 }
 
-export type Db = GasBoostDb | SyncStateDb | TransferRootsDb | TransfersDb | GasCostDb
+type Db = GasBoostDb | SyncStateDb | TransferRootsDb | TransfersDb | GasCostDb
 export type DbSet = {
   gasBoost: GasBoostDb
   syncState: SyncStateDb
@@ -61,5 +61,3 @@ export function getDbSet (tokenSymbol: string): DbSet {
     }
   }
 }
-
-export default { getDbSet }

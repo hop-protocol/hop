@@ -11,7 +11,7 @@ import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contr
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { getEnabledNetworks } from 'src/config'
 
-export type Config = {
+type Config = {
   chainSlug: string
   tokenSymbol: string
   isL1: boolean

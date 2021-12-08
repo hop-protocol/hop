@@ -7,8 +7,8 @@ import { IProposal } from 'src/config'
 import { useApp } from 'src/contexts/AppContext'
 import ProposalPreviewCard from 'src/pages/Vote/ProposalPreviewCard'
 import DelegateModal from 'src/pages/Vote/DelegateModal/DelegateModal'
-import { ZERO_ADDRESS } from 'src/constants'
 import { VoteContextProvider, useVoteContext } from 'src/pages/Vote/VoteContext'
+import { constants } from 'ethers'
 
 const useStyles = makeStyles(() => ({
   headerWrapper: {
@@ -67,7 +67,7 @@ const VoteChild: FC<VoteProps> = props => {
       />
       <Box display="flex" alignItems="center" className={styles.headerWrapper}>
         <Typography variant="h6">Participating Pools</Typography>
-        {balance !== '0.00' && delegate === ZERO_ADDRESS ? (
+        {balance !== '0.00' && delegate === constants.AddressZero ? (
           <Button flat className={styles.buttonStyle} onClick={() => setModalIsOpen(true)}>
             Unlock Voting
           </Button>

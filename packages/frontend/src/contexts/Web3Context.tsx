@@ -7,11 +7,10 @@ import {
   networkSlugToId,
   networkIdToSlug,
   getRpcUrl,
-  getPublicRpcUrl,
   getBaseExplorerUrl,
 } from 'src/utils'
-import { networks, blocknativeDappid, fortmaticApiKey, portisDappId } from 'src/config'
-import { L1_NETWORK } from 'src/constants'
+import { Chain, L1_NETWORK } from 'src/utils/constants'
+import { networks, blocknativeDappid } from 'src/config'
 
 import MetamaskAccountsSettingsHighlight from 'src/assets/onboard/metamask-accounts-settings-highlight.png'
 import MetamaskSettingsHighlight from 'src/assets/onboard/metamask-settings-highlight.png'
@@ -81,23 +80,22 @@ const Web3ContextProvider: FC = ({ children }) => {
     const rpcUrl = getRpcUrl(L1_NETWORK)
     const walletOptions = [
       { walletName: 'metamask', preferred: true },
-      { walletName: 'walletLink', rpcUrl, appName: 'Hop', preferred: true },
+      { walletName: 'walletLink', rpcUrl, appName: 'Hop' },
       {
         walletName: 'walletConnect',
         rpc: {
-          1: getRpcUrl('ethereum'),
-          42: getRpcUrl('ethereum'),
-          42161: getRpcUrl('arbitrum'),
-          421611: getRpcUrl('arbitrum'),
-          200: getRpcUrl('arbitrum'),
-          10: getRpcUrl('optimism'),
-          69: getRpcUrl('optimism'),
-          420: getRpcUrl('optimism'),
-          100: getRpcUrl('xdai'),
-          137: getRpcUrl('polygon'),
-          80001: getRpcUrl('polygon')
+          1: getRpcUrl(Chain.Ethereum),
+          42: getRpcUrl(Chain.Ethereum),
+          42161: getRpcUrl(Chain.Arbitrum),
+          421611: getRpcUrl(Chain.Arbitrum),
+          200: getRpcUrl(Chain.Arbitrum),
+          10: getRpcUrl(Chain.Optimism),
+          69: getRpcUrl(Chain.Optimism),
+          420: getRpcUrl(Chain.Optimism),
+          100: getRpcUrl(Chain.xDai),
+          137: getRpcUrl(Chain.Polygon),
+          80001: getRpcUrl(Chain.Polygon),
         },
-        preferred: true,
       },
     ]
 
@@ -112,27 +110,27 @@ const Web3ContextProvider: FC = ({ children }) => {
       const gotNetworkName = networkNames[gotNetworkId] || 'local'
       const wantNetworkName = networkNames[wantNetworkId] || 'local'
       let wantRpcUrl = ''
-      if (wantNetworkId === networkSlugToId('arbitrum')) {
-        wantRpcUrl = getRpcUrl('arbitrum')
+      if (wantNetworkId === networkSlugToId(Chain.Arbitrum)) {
+        wantRpcUrl = getRpcUrl(Chain.Arbitrum)
       }
-      if (wantNetworkId === networkSlugToId('optimism')) {
-        wantRpcUrl = getRpcUrl('optimism')
+      if (wantNetworkId === networkSlugToId(Chain.Optimism)) {
+        wantRpcUrl = getRpcUrl(Chain.Optimism)
       }
-      if (wantNetworkId === networkSlugToId('xdai')) {
-        wantRpcUrl = getRpcUrl('xdai')
+      if (wantNetworkId === networkSlugToId(Chain.xDai)) {
+        wantRpcUrl = getRpcUrl(Chain.xDai)
       }
-      if (wantNetworkId === networkSlugToId('polygon')) {
-        wantRpcUrl = getRpcUrl('polygon')
+      if (wantNetworkId === networkSlugToId(Chain.Polygon)) {
+        wantRpcUrl = getRpcUrl(Chain.Polygon)
       }
 
       let html = ''
       if (walletName === 'MetaMask') {
         let stepImages: string[] = []
         if (
-          wantNetworkId === networkSlugToId('arbitrum') ||
-          wantNetworkId === networkSlugToId('optimism') ||
-          wantNetworkId === networkSlugToId('xdai') ||
-          wantNetworkId === networkSlugToId('polygon')
+          wantNetworkId === networkSlugToId(Chain.Arbitrum) ||
+          wantNetworkId === networkSlugToId(Chain.Optimism) ||
+          wantNetworkId === networkSlugToId(Chain.xDai) ||
+          wantNetworkId === networkSlugToId(Chain.Polygon)
         ) {
           stepImages = [
             MetamaskAccountsSettingsHighlight,
@@ -196,7 +194,6 @@ const Web3ContextProvider: FC = ({ children }) => {
         { checkName: 'derivationPath' },
         { checkName: 'accounts' },
         { checkName: 'connect' },
-        // { checkName: 'network' },
         networkCheck,
         { checkName: 'balance' },
       ],
@@ -215,7 +212,11 @@ const Web3ContextProvider: FC = ({ children }) => {
               localStorage.setItem(cacheKey, name)
               const ethersProvider = new ethers.providers.Web3Provider(provider, 'any')
               if (provider.enable) {
+                // needed for WalletConnect and some wallets
                 await provider.enable()
+              } else {
+                // note: this method may not be supported by all wallets
+                await ethersProvider.send('eth_requestAccounts', [])
               }
               setProvider(ethersProvider)
               setWalletName(name)
@@ -226,6 +227,8 @@ const Web3ContextProvider: FC = ({ children }) => {
             }
           } catch (err) {
             logger.error(err)
+            setProvider(undefined)
+            setAddress(undefined)
           }
         },
         network: (connectedNetworkId: number) => {
@@ -249,6 +252,8 @@ const Web3ContextProvider: FC = ({ children }) => {
   const requestWallet = () => {
     const _requestWallet = async () => {
       try {
+        localStorage.clear()
+        await onboard.walletReset()
         await onboard.walletSelect()
       } catch (err) {
         logger.error(err)
@@ -260,6 +265,7 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   const disconnectWallet = () => {
     try {
+      localStorage.clear()
       onboard.walletReset()
     } catch (error) {
       logger.error(error)
@@ -269,8 +275,8 @@ const Web3ContextProvider: FC = ({ children }) => {
   const walletConnected = !!address
 
   const checkConnectedNetworkId = async (networkId: number): Promise<boolean> => {
-    logger.debug('checkConnectedNetworkId')
     const signerNetworkId = (await provider?.getNetwork())?.chainId
+    logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
     if (networkId.toString() !== signerNetworkId?.toString()) {
       onboard.config({ networkId })
       if (onboard.getState().address) {
@@ -298,7 +304,7 @@ const Web3ContextProvider: FC = ({ children }) => {
             const rpcObj = {
               chainId: `0x${Number(networkId).toString(16)}`,
               chainName: networkNames[networkId.toString()],
-              rpcUrls: [getPublicRpcUrl(networkIdToSlug(networkId.toString()))],
+              rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
               blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
               nativeCurrency,
             }

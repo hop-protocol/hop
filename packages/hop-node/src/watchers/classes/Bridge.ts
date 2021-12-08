@@ -6,12 +6,13 @@ import getTransferRootId from 'src/utils/getTransferRootId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { Bridge as BridgeContract, MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
-import { Chain, MinBonderFeeAbsolute } from 'src/constants'
+import { Chain, SettlementGasLimitPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { PriceFeed } from 'src/priceFeed'
 import { State } from 'src/db/SyncStateDb'
-import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
+import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { config as globalConfig } from 'src/config'
 
 export type EventsBatchOptions = {
@@ -65,7 +66,11 @@ export default class Bridge extends ContractBase {
   }
 
   async getBonderAddress (): Promise<string> {
-    return await (this.bridgeContract as Contract).signer.getAddress()
+    const address = await (this.bridgeContract as Contract).signer.getAddress()
+    if (!address) {
+      throw new Error('expected signer address')
+    }
+    return address
   }
 
   isBonder = async (): Promise<boolean> => {
@@ -391,7 +396,7 @@ export default class Bridge extends ContractBase {
   async getChainIds (): Promise<number[]> {
     const chainIds: number[] = []
     for (const key in globalConfig.networks) {
-      const { networkId: chainId } = globalConfig.networks[key]
+      const { chainId } = globalConfig.networks[key]
       chainIds.push(chainId)
     }
     return chainIds
@@ -421,10 +426,13 @@ export default class Bridge extends ContractBase {
   stake = async (amount: BigNumber): Promise<providers.TransactionResponse> => {
     const bonder = await this.getBonderAddress()
     const txOverrides = await this.txOverrides()
-    const isEthSend = this.chainSlug === Chain.Ethereum
-    if (isEthSend) {
+    if (
+      this.chainSlug === Chain.Ethereum &&
+      this.tokenSymbol === 'ETH'
+    ) {
       txOverrides.value = amount
     }
+
     const tx = await this.bridgeContract.stake(
       bonder,
       amount,
@@ -493,6 +501,9 @@ export default class Bridge extends ContractBase {
 
   async getEthBalance (): Promise<BigNumber> {
     const bonder = await this.getBonderAddress()
+    if (!bonder) {
+      throw new Error('expected bonder address')
+    }
     return await this.getBalance(bonder)
   }
 
@@ -691,36 +702,37 @@ export default class Bridge extends ContractBase {
 
     const minBonderFeeUsd = 0.25
     const tokenDecimals = getTokenDecimals(tokenSymbol)
-    const minBonderFeeAbsolute = parseUnits(
+    let minBonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),
       tokenDecimals
     )
+
+    // add 10% buffer for in the case that the token price materially
+    // changes after the transaction send but before bond
+    const tolerance = 0.10
+    minBonderFeeAbsolute = minBonderFeeAbsolute.sub(minBonderFeeAbsolute.mul(tolerance * 100).div(100))
 
     return minBonderFeeAbsolute
   }
 
   async getBonderFeeBps (
+    destinationChain: Chain,
     amountIn: BigNumber,
     minBonderFeeAbsolute: BigNumber
   ) {
     if (amountIn.lte(0)) {
       return BigNumber.from(0)
     }
-    const destinationChain = this.chainSlug
     const fees = globalConfig?.fees?.[this.tokenSymbol]
     if (!fees) {
       throw new Error(`fee config not found for ${this.tokenSymbol}`)
     }
 
-    let bonderFeeBps = fees.L2ToL2
-    if (destinationChain === Chain.Ethereum) {
-      bonderFeeBps = fees.L2ToL1
-    }
-
+    const bonderFeeBps = fees[destinationChain]
     const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
     let minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
-      : MinBonderFeeAbsolute
+      : minBonderFeeAbsolute
 
     // add 10% buffer for in the case amountIn is greater than originally
     // estimated in frontend due to user receiving more hTokens during swap
@@ -730,9 +742,11 @@ export default class Bridge extends ContractBase {
   }
 
   async getGasCostEstimation (
-    gasLimit: BigNumber,
     chain: string,
-    tokenSymbol: string
+    tokenSymbol: string,
+    gasLimit: BigNumber,
+    data?: string,
+    to?: string
   ) {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const provider = getRpcProvider(chain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -742,7 +756,31 @@ export default class Bridge extends ContractBase {
       gasPrice = gasPrice.div(2)
       gasLimit = gasLimit.div(2)
     }
-    const gasCost = gasLimit.mul(gasPrice)
+
+    // Include the cost to settle an individual transfer
+    const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[chain]
+    const gasLimitWithSettlement = gasLimit.add(settlementGasLimitPerTx)
+    console.log(`gasLimitWithSettlement: ${gasLimitWithSettlement}`)
+
+    let gasCost = gasLimit.mul(gasPrice)
+
+    if (this.chainSlug === Chain.Optimism && data && to) {
+      try {
+        const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
+          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug)!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        const serializedTx = serializeTransaction({
+          value: parseEther('0'),
+          gasPrice,
+          gasLimit,
+          to,
+          data
+        })
+        const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+        gasCost = gasCost.add(l1FeeInWei)
+      } catch (err) {
+        console.error(err)
+      }
+    }
 
     const {
       decimals: tokenDecimals,
@@ -796,7 +834,7 @@ export default class Bridge extends ContractBase {
     return 'ETH'
   }
 
-  getConfigBonderAddress (): string {
-    return globalConfig?.bonders?.[this.tokenSymbol]?.[0]
+  getConfigBonderAddress (destinationChain: string): string {
+    return (globalConfig?.bonders as any)?.[this.tokenSymbol]?.[this.chainSlug]?.[destinationChain]
   }
 }

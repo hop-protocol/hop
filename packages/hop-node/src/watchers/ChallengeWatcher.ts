@@ -9,7 +9,7 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { Notifier } from 'src/notifier'
 import { hostname } from 'src/config'
 
-export type Config = {
+type Config = {
   chainSlug: string
   bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   tokenSymbol: string
@@ -20,6 +20,7 @@ export type Config = {
 
 class ChallengeWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: ChallengeWatcher }
+  transferRootIdConfirmed: { [rootHash: string]: boolean } = {}
 
   constructor (config: Config) {
     super({
@@ -44,7 +45,7 @@ class ChallengeWatcher extends BaseWatcher {
   }
 
   async checkChallengeableTransferRootFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getChallengeableTransferRoots()
+    const dbTransferRoots = await this.db.transferRoots.getChallengeableTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       return
     }
@@ -54,10 +55,24 @@ class ChallengeWatcher extends BaseWatcher {
     )
 
     for (const dbTransferRoot of dbTransferRoots) {
-      const rootHash = dbTransferRoot.transferRootHash
+      const { transferRootHash, bondTotalAmount } = dbTransferRoot
+
+      if (!transferRootHash || !bondTotalAmount) {
+        continue
+      }
+
+      // Define new object on first run after server restart
+      if (!this.transferRootIdConfirmed[transferRootHash]) {
+        this.transferRootIdConfirmed[transferRootHash] = false
+      }
+
+      if (this.transferRootIdConfirmed[transferRootHash]) {
+        continue
+      }
+
       await this.checkChallengeableTransferRoot(
-        rootHash!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        dbTransferRoot.bondTotalAmount! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        transferRootHash,
+        bondTotalAmount
       )
     }
   }
@@ -85,9 +100,8 @@ class ChallengeWatcher extends BaseWatcher {
     const isRootHashConfirmed = !!transferRootCommittedAt
     if (isRootHashConfirmed) {
       logger.info('rootHash is already confirmed on L1')
-      await this.db.transferRoots.update(transferRootHash, {
-        challengeExpired: true
-      })
+      // TODO: Store this in DB when we index transferRoots by transferRootId instead of transferRootHash
+      this.transferRootIdConfirmed[transferRootHash] = true
       return
     }
 
@@ -98,19 +112,6 @@ class ChallengeWatcher extends BaseWatcher {
       await this.db.transferRoots.update(transferRootHash, {
         challenged: true
       })
-      return
-    }
-
-    const challengePeriod: number = await l1Bridge.getChallengePeriod()
-    const bondedAtMs: number = dbTransferRoot.bondedAt! * 1000 // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    const challengePeriodMs: number = challengePeriod * 1000
-    const isChallengePeriodOver = bondedAtMs + challengePeriodMs < Date.now()
-    if (isChallengePeriodOver) {
-      logger.info('challenge period over')
-      await this.db.transferRoots.update(transferRootHash, {
-        challengeExpired: true
-      })
-
       return
     }
 

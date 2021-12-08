@@ -15,7 +15,7 @@ import { Tokens } from './types'
 export const tokens: Tokens = {
   ETH: {
     symbol: 'ETH',
-    name: 'ETH',
+    name: 'Ethereum',
     decimals: 18,
     image: ETHImage
   },
@@ -70,7 +70,7 @@ export const tokens: Tokens = {
   WBTC: {
     symbol: 'WBTC',
     name: 'Wrapped BTC',
-    decimals: 18,
+    decimals: 8,
     image: WBTCImage
   }
 }

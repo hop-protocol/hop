@@ -7,7 +7,8 @@ import { BigNumber } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-export type Config = {
+
+type Config = {
   chainSlug: string
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
@@ -41,7 +42,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async checkTransfersCommittedFromDb () {
-    const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots()
+    const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       return
     }
@@ -106,8 +107,8 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
     if (isBonded) {
-      logger.debug('already bonded. will attempt to add to db and skip bond attempt.')
-      await this.syncWatcher.populateTransferRootBonded(transferRootHash)
+      logger.warn('checkTransfersCommitted already bonded. marking item not found.')
+      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }
 
@@ -132,6 +133,10 @@ class BondTransferRootWatcher extends BaseWatcher {
       }
     }
 
+    await this.db.transferRoots.update(transferRootHash, {
+      sentBondTxAt: Date.now()
+    })
+
     const availableCredit = await l1Bridge.getBaseAvailableCredit()
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
     if (availableCredit.lt(bondAmount)) {
@@ -152,9 +157,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     logger.debug(
       `bonding transfer root ${transferRootHash} with destination chain ${destinationChainId}`
     )
-    await this.db.transferRoots.update(transferRootHash, {
-      sentBondTxAt: Date.now()
-    })
 
     try {
       const tx = await l1Bridge.bondTransferRoot(

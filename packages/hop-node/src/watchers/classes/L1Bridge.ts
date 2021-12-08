@@ -1,10 +1,10 @@
 import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
 import Token from './Token'
-import erc20Abi from '@hop-protocol/core/abi/static/ArbERC20.json'
+import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.json'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, DefaultRelayerAddress } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
 import { L1Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent } from '@hop-protocol/core/contracts/L1Bridge'
@@ -143,7 +143,7 @@ export default class L1Bridge extends Bridge {
     transferRootHash: string,
     amount: BigNumber
   ): Promise<boolean> {
-    const transferRootId = await this.getTransferRootId(
+    const transferRootId = this.getTransferRootId(
       transferRootHash,
       amount
     )
@@ -250,22 +250,24 @@ export default class L1Bridge extends Bridge {
 
   convertCanonicalTokenToHopToken = async (
     destinationChainId: number,
-    amount: BigNumber
+    amount: BigNumber,
+    recipient: string
   ): Promise<providers.TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
       throw new Error(`chain ID "${destinationChainId}" is not supported`)
     }
 
-    const recipient = await this.getBonderAddress()
-    const relayer = recipient
+    const relayer = DefaultRelayerAddress
     const relayerFee = '0'
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
 
     const txOverrides = await this.txOverrides()
-    const isEthSend = this.chainSlug === Chain.Ethereum
-    if (isEthSend) {
+    if (
+      this.chainSlug === Chain.Ethereum &&
+      this.tokenSymbol === 'ETH'
+    ) {
       txOverrides.value = amount
     }
 
@@ -283,7 +285,8 @@ export default class L1Bridge extends Bridge {
 
   sendCanonicalTokensToL2 = async (
     destinationChainId: number,
-    amount: BigNumber
+    amount: BigNumber,
+    recipient: string
   ): Promise<providers.TransactionResponse> => {
     const isSupportedChainId = await this.isSupportedChainId(destinationChainId)
     if (!isSupportedChainId) {
@@ -292,8 +295,7 @@ export default class L1Bridge extends Bridge {
 
     const sdk = new Hop(globalConfig.network)
     const bridge = sdk.bridge(this.tokenSymbol)
-    const recipient = await this.getBonderAddress()
-    const relayer = recipient
+    const relayer = DefaultRelayerAddress
     const relayerFee = '0'
     const deadline = bridge.defaultDeadlineSeconds
     const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.chainIdToSlug(destinationChainId))
@@ -303,8 +305,10 @@ export default class L1Bridge extends Bridge {
     const amountOutMin = amountOut.mul(minBps).div(10000)
 
     const txOverrides = await this.txOverrides()
-    const isEthSend = this.chainSlug === Chain.Ethereum
-    if (isEthSend) {
+    if (
+      this.chainSlug === Chain.Ethereum &&
+      this.tokenSymbol === 'ETH'
+    ) {
       txOverrides.value = amount
     }
 

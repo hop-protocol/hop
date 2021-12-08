@@ -18,7 +18,7 @@ import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
 import { gasBoostErrorSlackChannel, gasBoostWarnSlackChannel, hostname } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
 
-export enum State {
+enum State {
   Confirmed = 'confirmed',
   Boosted = 'boosted',
   MaxGasPriceReached = 'maxGasPriceReached',
@@ -56,15 +56,16 @@ export type Options = {
   compareMarketGasPrice: boolean
 }
 
-export type Type0GasData = {
+type Type0GasData = {
   gasPrice: BigNumber
 }
-export type Type2GasData = {
+
+type Type2GasData = {
   maxFeePerGas: BigNumber
   maxPriorityFeePerGas: BigNumber
 }
 
-export type GasFeeData = Type0GasData & Type2GasData
+type GasFeeData = Type0GasData & Type2GasData
 
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
@@ -541,7 +542,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   private shouldBoost (item: InflightItem) {
     const timeOk = item.sentAt < (Date.now() - this.timeTilBoostMs)
     const isConfirmed = this.confirmations
-    return timeOk && !isConfirmed
+    const isMaxGasPriceReached = this.maxGasPriceReached
+    return timeOk && !isConfirmed && !isMaxGasPriceReached
   }
 
   private async boost (item: InflightItem) {
@@ -578,8 +580,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     while (true) {
       i++
       try {
-        this.logger.debug(`sending tx index ${i}`)
+        this.logger.debug(`tx index ${i}: sending`)
         if (i > 1) {
+          this.logger.debug(`tx index ${i}: retrieving gasFeeData`)
           gasFeeData = await this.getBumpedGasFeeData(this.gasPriceMultiplier * i)
         }
 
@@ -598,8 +601,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           payload.maxPriorityFeePerGas = gasFeeData.maxPriorityFeePerGas
         }
 
+        this.logger.debug(`tx index ${i}: checking for enough funds`)
         await this.checkHasEnoughFunds(payload, gasFeeData)
 
+        this.logger.debug(`tx index ${i}: sending transaction`)
         // await here is intentional to catch error below
         const tx = await this.signer.sendTransaction(payload)
 

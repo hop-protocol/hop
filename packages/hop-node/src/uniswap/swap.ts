@@ -120,7 +120,7 @@ function getToken (address: string, provider: any) {
   )
 }
 
-export type Config = {
+type Config = {
   chain: string
   fromToken: string
   toToken: string
@@ -144,9 +144,9 @@ const addresses: any = {
   optimism: {
     swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
     ethPools: {
-      USDC: '0xc2c0786e85ac9b0b223966d040ebc641fa44225e',
-      USDT: '0xcf438c19332d507326210da527fb9cf792fd3e18',
-      DAI: '0x2e9c575206288f2219409289035facac0b670c2f'
+      USDC: '0xB589969D38CE76D3d7AA319De7133bC9755fD840',
+      USDT: '0xc858A329Bf053BE78D6239C4A4343B8FbD21472b',
+      DAI: '0x03aF20bDAaFfB4cC0A521796a223f7D85e2aAc31'
     }
   },
   arbitrum: {

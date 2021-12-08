@@ -1,13 +1,10 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
-import Box from '@material-ui/core/Box'
-import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
-import AmountSelectorCard from 'src/pages/Send/AmountSelectorCard'
+import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
-import TxStatusModal from 'src/components/txStatus/TxStatusModal'
+import TxStatusModal from 'src/components/modal/TxStatusModal'
 import DetailRow from 'src/components/DetailRow'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
@@ -17,23 +14,27 @@ import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import { commafy, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
-import useBalance from 'src/hooks/useBalance'
 import useSendData from 'src/pages/Send/useSendData'
-import useNeedsTokenForFee from 'src/hooks/useNeedsTokenForFee'
-import useQueryParams from 'src/hooks/useQueryParams'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
-import useApprove from 'src/hooks/useApprove'
 import { reactAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/infoTooltip'
 import { amountToBN, formatError } from 'src/utils/format'
-import { useFeeConversions } from 'src/hooks/useFeeConversions'
 import { useSendStyles } from './useSendStyles'
-import { useAssets } from 'src/hooks/useAssets'
 import SendHeader from './SendHeader'
 import CustomRecipientDropdown from './CustomRecipientDropdown'
 import { Flex } from 'src/components/ui'
 import { useSendTransaction } from './useSendTransaction'
+import {
+  useAssets,
+  useAsyncMemo,
+  useFeeConversions,
+  useApprove,
+  useQueryParams,
+  useNeedsTokenForFee,
+  useBalance,
+  useNativeTokenMaxValue,
+} from 'src/hooks'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -62,16 +63,19 @@ const Send: FC = () => {
   const [noLiquidityWarning, setNoLiquidityWarning] = useState<any>(null)
   const [needsNativeTokenWarning, setNeedsNativeTokenWarning] = useState<string>()
   const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
+  const [insufficientFundsWarning, setInsufficientFundsWarning] = useState<
+    string | null | undefined
+  >(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
 
   // Set fromNetwork and toNetwork using query params
   useEffect(() => {
-    const _fromNetwork = networks.find((network) => network.slug === queryParams.sourceNetwork)
+    const _fromNetwork = networks.find(network => network.slug === queryParams.sourceNetwork)
     _setFromNetwork(_fromNetwork)
 
-    const _toNetwork = networks.find((network) => network.slug === queryParams.destNetwork)
+    const _toNetwork = networks.find(network => network.slug === queryParams.destNetwork)
 
     if (_fromNetwork?.name === _toNetwork?.name) {
       // Leave destination network empty
@@ -128,6 +132,7 @@ const Send: FC = () => {
     requiredLiquidity,
     loading: loadingSendData,
     estimatedReceived,
+    error: sendDataError,
   } = useSendData(sourceToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
 
   // Set toAmount
@@ -161,9 +166,56 @@ const Send: FC = () => {
     return true
   }, [fromBalance, fromTokenAmountBN])
 
+  const { estimateSend } = useNativeTokenMaxValue(fromNetwork)
+
+  useEffect(() => {
+    let isSubscribed = true
+    const update = async () => {
+      let warning = ''
+      try {
+        if (
+          !(sourceToken && fromNetwork && toNetwork && deadline && fromTokenAmountBN && fromBalance)
+        ) {
+          return
+        }
+        const bridge = sdk.bridge(sourceToken.symbol)
+        const isNativeToken = bridge.isNativeToken(fromNetwork.slug)
+        if (isNativeToken) {
+          const options = {
+            token: sourceToken,
+            fromNetwork,
+            toNetwork,
+            deadline,
+          }
+          const estimatedGasCost = await estimateSend(options)
+          if (estimatedGasCost) {
+            const insufficientFunds = fromBalance.lt(estimatedGasCost.add(fromTokenAmountBN))
+            if (insufficientFunds) {
+              warning = `Insufficient balance. Please add ${sourceToken.symbol} to pay for tx fees or reduce from token amount.`
+            }
+          }
+        }
+      } catch (err) {
+        logger.error(err)
+      }
+      if (isSubscribed) {
+        setInsufficientFundsWarning(warning)
+      }
+    }
+
+    update().catch(logger.error)
+
+    return () => {
+      isSubscribed = false
+    }
+  }, [sourceToken, fromNetwork, toNetwork, deadline, fromTokenAmountBN, fromBalance])
+
   // ==============================================================================================
   // Error and warning messages
   // ==============================================================================================
+  useEffect(() => {
+    setError(formatError(sendDataError))
+  }, [sendDataError])
 
   // Set error message if asset is unsupported
   useEffect(() => {
@@ -177,8 +229,9 @@ const Send: FC = () => {
 
   // Reset error message when fromNetwork changes
   useEffect(() => {
+    setWarning('')
     setError('')
-  }, [fromNetwork])
+  }, [fromNetwork, toNetwork])
 
   // Check if there is sufficient available liquidity
   useEffect(() => {
@@ -189,7 +242,6 @@ const Send: FC = () => {
       }
 
       const isAvailable = BigNumber.from(availableLiquidity).gte(requiredLiquidity)
-
       const formattedAmount = toTokenDisplay(availableLiquidity, sourceToken.decimals)
 
       const warningMessage = (
@@ -251,7 +303,7 @@ const Send: FC = () => {
   }, [estimatedReceived, adjustedDestinationTxFee])
 
   useEffect(() => {
-    let message = noLiquidityWarning || minimumSendWarning
+    let message = noLiquidityWarning || minimumSendWarning || insufficientFundsWarning
 
     if (!enoughBalance) {
       message = 'Insufficient funds'
@@ -275,6 +327,7 @@ const Send: FC = () => {
     enoughBalance,
     estimatedReceived,
     priceImpact,
+    insufficientFundsWarning,
   ])
 
   useEffect(() => {
@@ -296,7 +349,7 @@ const Send: FC = () => {
   }, [lpFees])
 
   useEffect(() => {
-    if (!amountOutMin || !sourceToken) {
+    if (!amountOutMin || !destToken) {
       setAmountOutMinDisplay(undefined)
       return
     }
@@ -309,15 +362,15 @@ const Send: FC = () => {
       _amountOutMin = BigNumber.from(0)
     }
 
-    const amountOutMinFormatted = commafy(formatUnits(_amountOutMin, sourceToken.decimals), 4)
-    setAmountOutMinDisplay(`${amountOutMinFormatted} ${sourceToken.symbol}`)
+    const amountOutMinFormatted = commafy(formatUnits(_amountOutMin, destToken.decimals), 4)
+    setAmountOutMinDisplay(`${amountOutMinFormatted} ${destToken.symbol}`)
   }, [amountOutMin])
 
   // ==============================================================================================
   // Approve fromNetwork / fromToken
   // ==============================================================================================
 
-  const { approve, checkApproval } = useApprove()
+  const { approve, checkApproval } = useApprove(sourceToken)
 
   const needsApproval = useAsyncMemo(async () => {
     try {
@@ -410,7 +463,15 @@ const Send: FC = () => {
     toNetwork,
     txConfirm,
     txHistory,
+    estimatedReceived: estimatedReceivedDisplay,
   })
+
+  useEffect(() => {
+    if (tx) {
+      // clear from token input field
+      setFromTokenAmount('')
+    }
+  }, [tx])
 
   // ==============================================================================================
   // User actions
@@ -421,7 +482,7 @@ const Send: FC = () => {
   // Change the bridge if user selects different token to send
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const bridge = bridges.find((bridge) => bridge.getTokenSymbol() === tokenSymbol)
+    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
     if (bridge) {
       setSelectedBridge(bridge)
     }
@@ -474,22 +535,36 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
-  const validFormFields = !!(
-    fromTokenAmount &&
-    toTokenAmount &&
-    rate &&
-    enoughBalance &&
-    !needsTokenForFee &&
-    isLiquidityAvailable &&
-    !checkingLiquidity &&
-    estimatedReceived?.gt(0)
-  )
-
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
-  const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval
+
+  const sendButtonActive = useMemo(() => {
+    return !!(
+      !approveButtonActive &&
+      !checkingLiquidity &&
+      !loadingToBalance &&
+      !loadingSendData &&
+      fromTokenAmount &&
+      toTokenAmount &&
+      rate &&
+      enoughBalance &&
+      isLiquidityAvailable &&
+      estimatedReceived?.gt(0)
+    )
+  }, [
+    approveButtonActive,
+    checkingLiquidity,
+    loadingToBalance,
+    loadingSendData,
+    fromTokenAmount,
+    toTokenAmount,
+    rate,
+    enoughBalance,
+    isLiquidityAvailable,
+    estimatedReceived,
+  ])
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
+    <Flex column alignCenter>
       <SendHeader
         styles={styles}
         bridges={bridges}
@@ -497,11 +572,11 @@ const Send: FC = () => {
         handleBridgeChange={handleBridgeChange}
       />
 
-      <AmountSelectorCard
+      <SendAmountSelectorCard
         value={fromTokenAmount}
         token={sourceToken ?? placeholderToken}
         label={'From'}
-        onChange={(value) => {
+        onChange={value => {
           if (!value) {
             setFromTokenAmount('')
             setToTokenAmount('')
@@ -519,13 +594,14 @@ const Send: FC = () => {
         deadline={deadline}
         toNetwork={toNetwork}
         fromNetwork={fromNetwork}
+        setWarning={setWarning}
       />
 
-      <MuiButton className={styles.switchDirectionButton} onClick={handleSwitchDirection}>
+      <Flex justifyCenter alignCenter my={1} onClick={handleSwitchDirection} pointer hover>
         <ArrowDownIcon color="primary" className={styles.downArrow} />
-      </MuiButton>
+      </Flex>
 
-      <AmountSelectorCard
+      <SendAmountSelectorCard
         value={toTokenAmount}
         token={destToken ?? placeholderToken}
         label={'To (estimated)'}
@@ -547,17 +623,23 @@ const Send: FC = () => {
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
           {totalBonderFee?.gt(0) && (
-            <DetailRow
-              title={'Fees'}
-              tooltip={
-                <FeeDetails
-                  bonderFee={bonderFeeDisplay}
-                  destinationTxFee={destinationTxFeeDisplay}
-                />
-              }
-              value={totalBonderFeeDisplay}
-              large
-            />
+            <div
+              style={{
+                marginBottom: '1rem',
+              }}
+            >
+              <DetailRow
+                title={'Fees'}
+                tooltip={
+                  <FeeDetails
+                    bonderFee={bonderFeeDisplay}
+                    destinationTxFee={destinationTxFeeDisplay}
+                  />
+                }
+                value={totalBonderFeeDisplay}
+                large
+              />
+            </div>
           )}
           <DetailRow
             title="Estimated Received"
@@ -570,7 +652,7 @@ const Send: FC = () => {
               />
             }
             value={estimatedReceivedDisplay}
-            large
+            xlarge
             bold
           />
         </div>
@@ -579,17 +661,20 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
 
-      <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
-        <Button
-          className={styles.button}
-          large
-          highlighted={!!needsApproval}
-          disabled={!approveButtonActive}
-          onClick={handleApprove}
-          loading={approving}
-        >
-          Approve
-        </Button>
+      <Flex m="2rem" alignCenter width="450px" justifyAround>
+        {!sendButtonActive && (
+          <Button
+            className={styles.button}
+            large
+            highlighted={!!needsApproval}
+            disabled={!approveButtonActive}
+            onClick={handleApprove}
+            loading={approving}
+            fullWidth
+          >
+            Approve
+          </Button>
+        )}
         <Button
           className={styles.button}
           startIcon={sendButtonActive && <SendIcon />}
@@ -597,17 +682,18 @@ const Send: FC = () => {
           disabled={!sendButtonActive}
           loading={sending}
           large
+          fullWidth
           highlighted
         >
           Send
         </Button>
-      </Box>
+      </Flex>
 
       <Flex mt={1}>
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />
         {tx && <TxStatusModal onClose={() => setTx(null)} tx={tx} />}
       </Flex>
-    </Box>
+    </Flex>
   )
 }
 

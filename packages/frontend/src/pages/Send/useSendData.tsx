@@ -23,17 +23,27 @@ const useSendData = (
   const [totalFee, setTotalFee] = useState<BigNumber>()
   const [requiredLiquidity, setRequiredLiquidity] = useState<BigNumber>()
   const [estimatedReceived, setEstimatedReceived] = useState<BigNumber>()
+  const [error, setError] = useState<string | undefined>()
 
   const updateSendData = useCallback(
     async (isCancelled: () => boolean) => {
       try {
-        if (!token) return 0
-        if (!fromNetwork) return 0
-        if (!toNetwork) return 0
-        if (!fromAmount) return 0
+        setError(undefined)
+        setAmountOut(undefined)
+        setRate(undefined)
+        setPriceImpact(undefined)
+        setLpFees(undefined)
+        setAdjustedBonderFee(undefined)
+        setAdjustedDestinationTxFee(undefined)
+        setTotalFee(undefined)
+        setRequiredLiquidity(undefined)
+        setEstimatedReceived(undefined)
+        if (!(token && fromNetwork && toNetwork && fromAmount)) {
+          return
+        }
 
         const bridge = sdk.bridge(token?.symbol)
-        const sendData = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug, settings.deadline())
+        const sendData = await bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
 
         if (isCancelled()) return
 
@@ -46,8 +56,9 @@ const useSendData = (
         setTotalFee(sendData.totalFee)
         setRequiredLiquidity(sendData.requiredLiquidity as BigNumber)
         setEstimatedReceived(sendData.estimatedReceived)
-      } catch (err) {
+      } catch (err: any) {
         console.error(err)
+        setError(err.message)
       }
     },
     [
@@ -103,6 +114,7 @@ const useSendData = (
     requiredLiquidity,
     loading,
     estimatedReceived,
+    error,
   }
 }
 

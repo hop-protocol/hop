@@ -18,7 +18,7 @@ describe('db', () => {
     },
     5 * 1000
   )
-  it(
+  it.only(
     'multiple updates',
     async () => {
       const max = 1000
@@ -30,10 +30,18 @@ describe('db', () => {
       for (let i = 0; i < max; i++) {
         const transferId = i.toString()
         ids.push(transferId)
-        promises.push(db.update(transferId, { withdrawalBonded: true }))
+        promises.push(db.update(transferId, { transferSentTimestamp: i }))
+        promises.push(db.update(transferId, { bondWithdrawalAttemptedAt: i }))
       }
       await Promise.all(promises)
-      expect((await db.getTransferIds()).length).toStrictEqual(ids.length)
+      const items = await db.getTransfers()
+      expect(items.length).toStrictEqual(ids.length)
+
+      for (let i = 1; i < items.length; i++) {
+        const transfer = items[i]
+        const ok = (transfer.transferSentTimestamp && transfer.bondWithdrawalAttemptedAt)
+        expect(ok).toBeTruthy()
+      }
     },
     60 * 1000
   )

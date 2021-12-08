@@ -1,4 +1,4 @@
-export type IOptions = {
+type IOptions = {
   snakeCase: boolean
   omitFalsy: boolean
 }

@@ -10,6 +10,7 @@ import {
   background,
   shadow,
   position,
+  margin,
   FlexboxProps,
   SpaceProps,
   ColorProps,
@@ -19,6 +20,7 @@ import {
   BackgroundProps,
   ShadowProps,
   PositionProps,
+  MarginProps,
 } from 'styled-system'
 
 interface FlexBaseProps {
@@ -39,10 +41,11 @@ interface CustomFlexProps {
   onMouseLeave?: (e: any) => void
   ref?: any
   disabled?: boolean
-  cursor?: boolean
+  pointer?: boolean
   id?: string
   style?: any
   bold?: boolean
+  hover?: boolean
 }
 
 type FlexProps = BackgroundProps &
@@ -55,6 +58,7 @@ type FlexProps = BackgroundProps &
   TypographyProps &
   SpaceProps &
   FlexBaseProps &
+  MarginProps &
   CustomFlexProps
 
 const Flex: React.FC<FlexProps> = styled.div`
@@ -84,7 +88,15 @@ const Flex: React.FC<FlexProps> = styled.div`
   flex-direction: ${(props: any) => (props.column ? 'column' : 'row')};
 
   ${({ bold }: any) => bold && 'font-weight: bold;'}
-  ${({ cursor }: any) => cursor && 'cursor: pointer;'}
+  ${({ pointer }: any) => pointer && 'cursor: pointer;'}
+
+  &:hover {
+    ${({ hover }: any) => {
+      if (hover) {
+        return `background: #6969691a`
+      }
+    }};
+  }
 
   ${space};
   ${color};
@@ -95,6 +107,7 @@ const Flex: React.FC<FlexProps> = styled.div`
   ${shadow};
   ${position};
   ${flexbox};
+  ${margin};
 `
 
 export default Flex

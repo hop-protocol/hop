@@ -4,9 +4,9 @@ import Select, { SelectProps } from '@material-ui/core/Select'
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 
 const useStyles = makeStyles(theme => ({
-  root: {
-    color: theme.palette.text.secondary,
-    backgroundColor: 'rgba(255, 255, 255, 0.55)',
+  root: ({ value }: any) => ({
+    color: value === 'default' ? 'white' : theme.palette.text.secondary,
+    background: value === 'default' ? theme.bgGradient.flat : theme.palette.action.disabled,
     width: '13.5rem',
     borderRadius: '2.3rem',
     padding: '0 2.8rem 0 0',
@@ -18,25 +18,25 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '3.6rem',
     '&:focus': {
       borderRadius: '2.3rem',
-      backgroundColor: 'white',
+      backgroundColor: theme.palette.action.disabled,
     },
     [theme.breakpoints.down('xs')]: {
       width: '12.4rem',
     },
-  },
+  }),
   selectMenu: {
     paddingRight: '4.8rem',
     height: '3.6rem',
   },
-  icon: {
+  icon: ({ value }: any) => ({
     top: 'calc(50% - 0.75rem)',
     right: '0.8rem',
-    color: theme.palette.text.secondary,
-  },
+    color: value === 'default' ? 'white' : theme.palette.text.secondary,
+  }),
 }))
 
 const FlatSelect: FC<SelectProps & { children: any }> = props => {
-  const styles = useStyles()
+  const styles = useStyles(props)
   const isSingle = props?.children?.filter((x: any) => x).length <= 1
   const icon = isSingle ? () => null : ArrowDropDownIcon
 

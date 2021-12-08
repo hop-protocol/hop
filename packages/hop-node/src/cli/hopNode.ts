@@ -1,5 +1,4 @@
 import OsWatcher from 'src/watchers/OsWatcher'
-import arbbots from 'src/arb-bot/bots'
 import clearDb from 'src/db/clearDb'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import { Chain } from 'src/constants'
@@ -10,7 +9,7 @@ import {
   config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
-  setNetworkRpcUrls,
+  setNetworkRpcUrl,
   setNetworkWaitConfirmations,
   slackAuthToken,
   slackChannel,
@@ -87,15 +86,9 @@ program
           enabledNetworks[k] = !!config.chains[k]
           const v = config.chains[k]
           if (v instanceof Object) {
-            const _rpcUrls: string[] = []
-            const { rpcUrl, rpcUrls, waitConfirmations } = v
+            const { rpcUrl, waitConfirmations } = v
             if (rpcUrl) {
-              _rpcUrls.push(rpcUrl)
-            } else if (rpcUrls.length) {
-              _rpcUrls.push(...rpcUrls)
-            }
-            if (_rpcUrls.length > 0) {
-              setNetworkRpcUrls(k, _rpcUrls)
+              setNetworkRpcUrl(k, rpcUrl)
             }
             if (typeof waitConfirmations === 'number') {
               setNetworkWaitConfirmations(k, waitConfirmations)
@@ -109,10 +102,6 @@ program
       const order = Number(config?.order ?? 0)
       if (order) {
         logger.info('order:', order)
-      }
-      let maxStakeAmounts: any
-      if (config?.stake) {
-        maxStakeAmounts = config.stake
       }
       let commitTransfersMinThresholdAmounts: any = {}
       if (config?.commitTransfers) {
@@ -133,9 +122,12 @@ program
         logger.debug(`slack notifications enabled. channel #${slackChannel}`)
       }
       for (const k in globalConfig.networks) {
-        const { waitConfirmations, rpcUrls } = globalConfig.networks[k]
-        logger.info(`${k} wait confirmations: ${waitConfirmations || 0}`)
-        logger.info(`${k} rpc: ${rpcUrls?.join(',')}`)
+        const { waitConfirmations, rpcUrl } = globalConfig.networks[k]
+        if (!waitConfirmations) {
+          throw new Error('waitConfirmations required')
+        }
+        logger.info(`${k} wait confirmations: ${waitConfirmations}`)
+        logger.info(`${k} rpc: ${rpcUrl}`)
       }
       const dryMode = !!source.dry
       if (dryMode) {
@@ -162,7 +154,6 @@ program
         ),
         bonder,
         challenger,
-        maxStakeAmounts,
         commitTransfersMinThresholdAmounts,
         settleBondedWithdrawalsThresholdPercent,
         dryMode,
@@ -171,13 +162,13 @@ program
         s3Upload,
         s3Namespace
       })
-      if (config?.roles?.arbBot) {
-        const maxTradeAmount = 0
-        const minThreshold = 0
-        arbbots.start({
-          maxTradeAmount,
-          minThreshold
-        })
+
+      if (config?.routes) {
+        for (const sourceChain in config?.routes) {
+          for (const destinationChain in config.routes[sourceChain]) {
+            logger.info(`route: ${sourceChain}→${destinationChain}`)
+          }
+        }
       }
 
       const promises: Array<Promise<void>> = []

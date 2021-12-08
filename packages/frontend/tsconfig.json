@@ -21,7 +21,8 @@
     "noUnusedLocals": false,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "downlevelIteration": true
   },
   "include": [
     "src"

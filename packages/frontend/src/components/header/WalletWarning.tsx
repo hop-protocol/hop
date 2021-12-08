@@ -1,17 +1,8 @@
 import React, { FC, useEffect, useState } from 'react'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import Alert from 'src/components/alert/Alert'
-import { Link } from 'react-router-dom'
 import { Theme, makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
-import Button from 'src/components/buttons/Button'
-import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import HeaderRoutes from 'src/components/header/HeaderRoutes'
-import TxPill from 'src/components/header/TxPill'
-import HopLogoFullColor from 'src/assets/logos/hop-logo-full-color.svg'
-import { isMainnet } from 'src/config'
-import Settings from 'src/pages/Send/Settings'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {},
@@ -39,7 +30,7 @@ const WalletWarning: FC = () => {
       }
 
       if (walletName === 'WalletConnect') {
-        return 'Only send funds on networks supported by your wallet provider if it is a smart contract wallet or there may permanent be loss of funds.'
+        return 'Only send funds on networks supported by your wallet provider if it is a smart contract wallet or there may be permanent loss of funds.'
       }
 
       return ''

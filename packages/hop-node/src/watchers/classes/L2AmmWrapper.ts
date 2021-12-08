@@ -32,16 +32,11 @@ export default class L2AmmWrapper extends ContractBase {
   swapAndSend = async (
     destinationChainId: number,
     amount: BigNumber,
-    token: string
+    token: string,
+    recipient: string
   ): Promise<providers.TransactionResponse> => {
     const sdk = new Hop(globalConfig.network)
-    const recipient = await this.contract.signer.getAddress()
     const bridge = sdk.bridge(token)
-    // let bonderFee = await bridge.getBonderFee(
-    //   amount,
-    //   this.chainSlug,
-    //   this.chainIdToSlug(destinationChainId)
-    // )
 
     const deadline = bridge.defaultDeadlineSeconds
     let destinationDeadline = bridge.defaultDeadlineSeconds
@@ -54,7 +49,6 @@ export default class L2AmmWrapper extends ContractBase {
     let destinationAmountOutMin = amountOutMin
     const isNativeToken = token === 'MATIC' && this.chainSlug === Chain.Polygon
     const tokenDecimals = getTokenMetadata(token)?.decimals
-    // bonderFee = bonderFee.add(destinationTxFee)
     if (destinationChain === Chain.Ethereum) {
       destinationDeadline = 0
       destinationAmountOutMin = BigNumber.from(0)

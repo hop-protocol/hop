@@ -2,8 +2,34 @@ import { Addresses } from './types'
 
 export const addresses: Addresses = {
   bonders: {
-    USDC: ['0x81682250D4566B2986A2B33e23e7c52D401B7aB7'],
-    ETH: ['0x81682250D4566B2986A2B33e23e7c52D401B7aB7']
+    USDC: {
+      ethereum: {
+        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      },
+      optimism: {
+        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      },
+      xdai: {
+        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      }
+    },
+    ETH: {
+      ethereum: {
+        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      },
+      optimism: {
+        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      },
+      xdai: {
+        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      }
+    }
   },
   bridges: {
     USDC: {
@@ -24,7 +50,6 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0xC888C7071F8B9d2c3b8034F1Da7cBd35595191BD',
         l1Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
         l2Amb: '0xFe446bEF1DbF7AFE24E81e05BC8B271C1BA9a560',
-        canonicalBridgeMaxPerTx: 10000,
         bridgeDeployedBlockNumber: 21377885
       },
       optimism: {

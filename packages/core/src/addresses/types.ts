@@ -56,14 +56,51 @@ export type Bridges = {
       l2SaddleLpToken: string
       l1Amb: string
       l2Amb: string
-      canonicalBridgeMaxPerTx: number
       bridgeDeployedBlockNumber: number
     }
   }>
 }
 
+export type Routes = {
+  ethereum?: {
+    optimism?: string
+    arbitrum?: string
+    xdai?: string
+    polygon?: string
+  },
+  optimism?: {
+    ethereum?: string
+    arbitrum?: string
+    xdai?: string
+    polygon?: string
+  },
+  arbitrum?: {
+    ethereum?: string
+    optimism?: string
+    xdai?: string
+    polygon?: string
+  },
+  xdai?: {
+    ethereum?: string
+    arbitrum?: string
+    optimism?: string
+    polygon?: string
+  },
+  polygon?: {
+    ethereum?: string
+    arbitrum?: string
+    xdai?: string
+    optimism?: string
+  }
+}
+
 export type Bonders = {
-  [token: string]: string[]
+  USDC?: Routes
+  USDT?: Routes
+  DAI?: Routes
+  MATIC?: Routes
+  ETH?: Routes
+  WBTC?: Routes
 }
 
 export type Addresses = {

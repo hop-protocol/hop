@@ -15,7 +15,7 @@ import { config as globalConfig } from 'src/config'
 
 const dbMap: { [key: string]: any } = {}
 
-export enum Event {
+enum Event {
   Error = 'error',
   Batch = 'batch',
 }
@@ -25,12 +25,12 @@ export type BaseItem = {
   _createdAt?: number
 }
 
-export type KV = {
+type KV = {
   key: string
   value: any
 }
 
-export type QueueItem = {
+type QueueItem = {
   key: string
   value: any
   cb: any
@@ -187,43 +187,45 @@ class BaseDb extends EventEmitter {
   }
 
   public async putBatch (putItems: QueueItem[]) {
-    const ops: any[] = []
-    for (const data of putItems) {
-      const { key, value } = await this._getUpdateData(data.key, data.value)
-      ops.push({
-        type: 'put',
-        key,
-        value
-      })
-    }
-
-    // merge all properties belong to same key
-    const groups = groupBy(ops, 'key')
-    const keys = Object.keys(groups)
-    const groupedOps = Object.values(groups).map((items: any[], i) => {
-      const value = spread(merge)(items.map(this.getValue))
-      return {
-        type: 'put',
-        key: keys[i],
-        value
+    return this.mutex.runExclusive(async () => {
+      const ops: any[] = []
+      for (const data of putItems) {
+        const { key, value } = await this._getUpdateData(data.key, data.value)
+        ops.push({
+          type: 'put',
+          key,
+          value
+        })
       }
-    })
 
-    return new Promise((resolve, reject) => {
-      this.db.batch(groupedOps, (err: Error) => {
-        for (const { cb } of putItems) {
-          if (cb) {
-            cb(err, putItems)
+      // merge all properties belong to same key
+      const groups = groupBy(ops, 'key')
+      const keys = Object.keys(groups)
+      const groupedOps = Object.values(groups).map((items: any[], i) => {
+        const value = spread(merge)(items.map(this.getValue))
+        return {
+          type: 'put',
+          key: keys[i],
+          value
+        }
+      })
+
+      return new Promise((resolve, reject) => {
+        this.db.batch(groupedOps, (err: Error) => {
+          for (const { cb } of putItems) {
+            if (cb) {
+              cb(err, putItems)
+            }
           }
-        }
 
-        if (err) {
-          this._emitError(err)
-          reject(err)
-          return
-        }
+          if (err) {
+            this._emitError(err)
+            reject(err)
+            return
+          }
 
-        resolve(null)
+          resolve(null)
+        })
       })
     })
   }

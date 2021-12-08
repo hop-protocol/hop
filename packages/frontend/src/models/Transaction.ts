@@ -1,112 +1,116 @@
 import { ethers, providers } from 'ethers'
 import { EventEmitter } from 'events'
-import { L1_NETWORK } from 'src/constants'
-import { getRpcUrl, getProvider, getBaseExplorerUrl } from 'src/utils'
-
 import { Hop, Token } from '@hop-protocol/sdk'
-import { network as defaultNetwork } from 'src/config'
-import { findTransferFromL1CompletedLog, getTransferSentDetailsFromLogs } from 'src/utils/logs'
-import logger from 'src/logger'
 import {
+  getBaseExplorerUrl,
+  findTransferFromL1CompletedLog,
+  getTransferSentDetailsFromLogs,
   fetchTransferFromL1Completeds,
   fetchWithdrawalBondedsByTransferId,
   L1Transfer,
-} from '../utils/queries'
+  networkIdToSlug,
+  queryFilterTransferFromL1CompletedEvents,
+} from 'src/utils'
+import { network as defaultNetwork, reactAppNetwork } from 'src/config'
+import logger from 'src/logger'
+import { formatError } from 'src/utils/format'
+import { getNetworkWaitConfirmations } from 'src/utils/networks'
+import { sigHashes } from 'src/hooks/useTransaction'
+import { getProviderByNetworkName } from 'src/utils/getProvider'
+import { Chain } from 'src/utils/constants'
 
-interface Config {
+interface ContructorArgs {
+  hash: string
   networkName: string
   destNetworkName?: string | null
-  destTxHash?: string
-  hash: string
-  pending?: boolean
-  timestamp?: number
-  token?: Token
   isCanonicalTransfer?: boolean
-  pendingDestinationConfirmation?: boolean
+  pending?: boolean
+  token?: Token
+  timestampMs?: number
+  blockNumber?: number
   transferId?: string | null
+  pendingDestinationConfirmation?: boolean
+  destTxHash?: string
+  replaced?: boolean | string
+  nonce?: number | undefined
+  from?: string | undefined
+  to?: string | undefined
 }
-
-const standardNetworks = new Set(['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'])
 
 class Transaction extends EventEmitter {
   readonly hash: string
   readonly networkName: string
-  readonly destNetworkName: string | null = null
+  destNetworkName: string | null = null
   readonly isCanonicalTransfer: boolean = false
   readonly provider: ethers.providers.Provider
-  readonly destProvider: ethers.providers.Provider | null = null
+  destProvider: ethers.providers.Provider | null = null
+  pending: boolean = true
   token: Token | null = null
-  pending: boolean
-  timestamp: number
+  timestampMs: number
+  blockNumber?: number
   status: null | boolean = null
-  pendingDestinationConfirmation?: boolean
   transferId: string | null = null
-  destTxHash?: string
+  pendingDestinationConfirmation: boolean = true
+  destTxHash: string = ''
+  replaced: boolean | string = false
+  methodName: string = ''
+  nonce?: number | undefined = undefined
+  from?: string | undefined = undefined
+  to?: string | undefined = undefined
 
   constructor({
     hash,
     networkName,
-    destNetworkName,
-    destTxHash,
-    pending = true,
-    timestamp,
-    token,
+    destNetworkName = null,
     isCanonicalTransfer,
+    pending = true,
+    token,
+    timestampMs,
+    transferId = null,
     pendingDestinationConfirmation = true,
-    transferId,
-  }: Config) {
+    destTxHash = '',
+    replaced = false,
+    nonce,
+    from,
+    to,
+  }: ContructorArgs) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
     this.networkName = (networkName || defaultNetwork).trim().toLowerCase()
-    let rpcUrl = ''
-    if (networkName.startsWith('arbitrum')) {
-      rpcUrl = getRpcUrl('arbitrum')
-    } else if (networkName.startsWith('optimism')) {
-      rpcUrl = getRpcUrl('optimism')
-    } else if (networkName.startsWith('xdai')) {
-      rpcUrl = getRpcUrl('xdai')
-    } else if (networkName.startsWith('matic') || networkName.startsWith('polygon')) {
-      rpcUrl = getRpcUrl('polygon')
-    } else {
-      rpcUrl = getRpcUrl(L1_NETWORK)
-    }
 
+    // TODO: not sure if changing pendingDestinationConfirmation will have big effects
     if (destNetworkName) {
       this.destNetworkName = destNetworkName
       this.pendingDestinationConfirmation = pendingDestinationConfirmation
-
-      let destRpcUrl = ''
-      if (destNetworkName.startsWith('arbitrum')) {
-        destRpcUrl = getRpcUrl('arbitrum')
-      } else if (destNetworkName.startsWith('optimism')) {
-        destRpcUrl = getRpcUrl('optimism')
-      } else if (destNetworkName.startsWith('xdai')) {
-        destRpcUrl = getRpcUrl('xdai')
-      } else if (destNetworkName.startsWith('matic') || destNetworkName.startsWith('polygon')) {
-        destRpcUrl = getRpcUrl('polygon')
-      } else {
-        destRpcUrl = getRpcUrl(L1_NETWORK)
-      }
-
-      this.destProvider = getProvider(destRpcUrl)
+      this.destProvider = getProviderByNetworkName(destNetworkName)
     }
 
-    if (destTxHash) {
-      this.destTxHash = destTxHash
-    }
-
-    this.provider = getProvider(rpcUrl)
-    this.timestamp = timestamp || Date.now()
-    if (token) {
-      this.token = token
-    }
+    this.provider = getProviderByNetworkName(networkName)
+    this.timestampMs = timestampMs || Date.now()
     this.pending = pending
-    if (transferId) {
-      this.transferId = transferId
-    }
+    this.transferId = transferId
+    this.replaced = replaced
+    this.destTxHash = destTxHash
+    this.nonce = nonce
+    this.from = from
+    this.to = to
+    this.token = token || null
 
-    this.receipt().then((receipt: providers.TransactionReceipt) => {
+    this.getTransaction().then((txResponse: providers.TransactionResponse) => {
+      const funcSig = txResponse?.data?.slice(0, 10)
+      this.methodName = sigHashes[funcSig]
+    })
+
+    this.receipt().then(async (receipt: providers.TransactionReceipt) => {
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
+      this.blockNumber = receipt.blockNumber
+      const block = await this.provider.getBlock(receipt.blockNumber)
+      this.timestampMs = block.timestamp * 1000
+
+      if (tsDetails?.chainId) {
+        this.destNetworkName = networkIdToSlug(tsDetails.chainId)
+        this.destProvider = getProviderByNetworkName(this.destNetworkName)
+      }
 
       // Source: L2
       if (tsDetails?.transferId) {
@@ -114,24 +118,32 @@ class Transaction extends EventEmitter {
       }
 
       this.status = !!receipt.status
-      this.pending = false
+      const waitConfirmations = getNetworkWaitConfirmations(this.networkName)
+      if (waitConfirmations && receipt.status === 1 && receipt.confirmations > waitConfirmations) {
+        this.pending = false
+      }
       this.emit('pending', false, this)
     })
     if (typeof isCanonicalTransfer === 'boolean') {
       this.isCanonicalTransfer = isCanonicalTransfer
     }
+
+    if (this.pendingDestinationConfirmation && this.destNetworkName) {
+      const sdk = new Hop(reactAppNetwork)
+      this.checkIsTransferIdSpent(sdk)
+    }
   }
 
   get explorerLink(): string {
-    if (this.networkName.startsWith('ethereum')) {
+    if (this.networkName.startsWith(Chain.Ethereum)) {
       return this._etherscanLink()
-    } else if (this.networkName.startsWith('arbitrum')) {
+    } else if (this.networkName.startsWith(Chain.Arbitrum)) {
       return this._arbitrumLink()
-    } else if (this.networkName.startsWith('optimism')) {
+    } else if (this.networkName.startsWith(Chain.Optimism)) {
       return this._optimismLink()
-    } else if (this.networkName.startsWith('xdai')) {
+    } else if (this.networkName.startsWith(Chain.xDai)) {
       return this._xdaiLink()
-    } else if (this.networkName.startsWith('polygon')) {
+    } else if (this.networkName.startsWith(Chain.Polygon)) {
       return this._polygonLink()
     } else {
       return ''
@@ -141,15 +153,15 @@ class Transaction extends EventEmitter {
   get destExplorerLink(): string {
     if (!this.destTxHash) return ''
 
-    if (this.destNetworkName?.startsWith('ethereum')) {
-      return this._etherscanLink('ethereum', this.destTxHash)
-    } else if (this.destNetworkName?.startsWith('arbitrum')) {
+    if (this.destNetworkName?.startsWith(Chain.Ethereum)) {
+      return this._etherscanLink(Chain.Ethereum, this.destTxHash)
+    } else if (this.destNetworkName?.startsWith(Chain.Arbitrum)) {
       return this._arbitrumLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith('optimism')) {
+    } else if (this.destNetworkName?.startsWith(Chain.Optimism)) {
       return this._optimismLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith('xdai')) {
+    } else if (this.destNetworkName?.startsWith(Chain.xDai)) {
       return this._xdaiLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith('polygon')) {
+    } else if (this.destNetworkName?.startsWith(Chain.Polygon)) {
       return this._polygonLink(this.destTxHash)
     } else {
       return ''
@@ -175,7 +187,22 @@ class Transaction extends EventEmitter {
   }
 
   async checkIsTransferIdSpent(sdk: Hop) {
-    if (this.provider && this.token && this.destNetworkName) {
+    if (
+      !(
+        this.provider &&
+        this.token &&
+        this.destNetworkName &&
+        this.networkName !== this.destNetworkName
+      )
+    ) {
+      logger.warn(`missing provider, token, destNetworkName, or same network:`, this)
+      return
+    }
+
+    try {
+      if (!this.pendingDestinationConfirmation) {
+        return true
+      }
       const receipt = await this.receipt()
       // Get the event data (topics)
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
@@ -191,12 +218,13 @@ class Transaction extends EventEmitter {
         )
 
         if ('amount' in decodedData) {
-          const { amount } = decodedData
+          const { amount, deadline } = decodedData
           // Query Graph Protocol for TransferFromL1Completed events
           const transferFromL1Completeds = await fetchTransferFromL1Completeds(
             this.destNetworkName,
             tsDetails.recipient,
-            amount.toString()
+            amount,
+            deadline
           )
 
           if (transferFromL1Completeds?.length) {
@@ -204,30 +232,29 @@ class Transaction extends EventEmitter {
               transferFromL1Completeds[transferFromL1Completeds.length - 1]
 
             this.destTxHash = lastTransfer.transactionHash
-            this.pendingDestinationConfirmation = false
+            this.setPendingDestinationConfirmed()
             return true
           }
 
           // If TheGraph is not working...
-          const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
-          const bln = await destL2Bridge.provider.getBlockNumber()
-          const evs = await destL2Bridge.queryFilter(
-            destL2Bridge.filters.TransferFromL1Completed(),
-            bln - 9999,
-            bln
-          )
+          const evs = await queryFilterTransferFromL1CompletedEvents(bridge, this.destNetworkName)
 
           if (evs?.length) {
             // Find the matching amount
-            const tfl1Completed = findTransferFromL1CompletedLog(evs, amount, tsDetails.recipient)
+            const tfl1Completed = findTransferFromL1CompletedLog(
+              evs,
+              tsDetails.recipient,
+              amount,
+              deadline
+            )
             if (tfl1Completed) {
               this.destTxHash = tfl1Completed.transactionHash
-              this.pendingDestinationConfirmation = false
+              this.setPendingDestinationConfirmed()
               return true
             }
           }
 
-          logger.debug(`isSpent ${tsDetails.txHash}:`, false)
+          logger.debug(`tx ${tsDetails.txHash.slice(0, 10)} isSpent:`, false)
         }
       }
 
@@ -250,13 +277,13 @@ class Transaction extends EventEmitter {
         }
 
         // L2 -> L1
-        if (this.destNetworkName === 'ethereum') {
+        if (this.destNetworkName === Chain.Ethereum) {
           const destL1Bridge = await bridge.getL1Bridge(this.provider)
           const isSpent = await destL1Bridge.isTransferIdSpent(this.transferId)
           if (isSpent) {
-            this.pendingDestinationConfirmation = false
+              this.setPendingDestinationConfirmed()
           }
-          // console.log(`isSpent ${this.transferId}:`, isSpent)
+          logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
           return isSpent
         }
 
@@ -264,14 +291,20 @@ class Transaction extends EventEmitter {
         const destL2Bridge = await bridge.getL2Bridge(this.destNetworkName)
         const isSpent = await destL2Bridge.isTransferIdSpent(this.transferId)
         if (isSpent) {
-          this.pendingDestinationConfirmation = false
+          this.setPendingDestinationConfirmed()
         }
-        logger.debug(`isSpent ${this.transferId}:`, isSpent)
+        logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
         return isSpent
       }
+    } catch (error) {
+      logger.error(formatError(error))
     }
 
     return false
+  }
+
+  public get isBridgeTransfer() {
+    return ['sendToL2', 'swapAndSend'].includes(this.methodName)
   }
 
   private _etherscanLink(networkName: string = this.networkName, txHash: string = this.hash) {
@@ -299,30 +332,45 @@ class Transaction extends EventEmitter {
     return `${getBaseExplorerUrl('polygon')}/tx/${txHash}`
   }
 
+  private setPendingDestinationConfirmed() {
+    this.pendingDestinationConfirmation = false
+    this.emit('pendingDestinationConfirmation', false, this)
+  }
+
   toObject() {
     const {
       hash,
       networkName,
       pending,
-      timestamp,
+      timestampMs,
       token,
       destNetworkName,
       destTxHash,
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
+      methodName,
+      nonce,
+      from,
+      to,
     } = this
     return {
       hash,
       networkName,
       pending,
-      timestamp,
+      timestampMs,
       token,
       destNetworkName,
       destTxHash,
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
+      methodName,
+      nonce,
+      from,
+      to,
     }
   }
 
@@ -331,25 +379,33 @@ class Transaction extends EventEmitter {
       hash,
       networkName,
       pending,
-      timestamp,
+      timestampMs,
       token,
       destNetworkName,
       destTxHash,
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
+      nonce,
+      from,
+      to,
     } = obj
     return new Transaction({
       hash,
       networkName,
       pending,
-      timestamp,
+      timestampMs,
       token,
       destNetworkName,
       destTxHash,
       isCanonicalTransfer,
       pendingDestinationConfirmation,
       transferId,
+      replaced,
+      nonce,
+      from,
+      to,
     })
   }
 }

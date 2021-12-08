@@ -1,7 +1,6 @@
-import React, { useMemo, FC, ChangeEvent } from 'react'
+import React, { useMemo, FC, ChangeEvent, useCallback } from 'react'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
-import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Grid from '@material-ui/core/Grid'
@@ -11,65 +10,10 @@ import { Token } from '@hop-protocol/sdk'
 import clsx from 'clsx'
 import LargeTextField from 'src/components/LargeTextField'
 import { commafy } from 'src/utils'
+import { useAmountSelectorCardStyles, useNativeTokenMaxValue } from 'src/hooks'
+import Network from 'src/models/Network'
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    width: '51.6rem',
-    boxSizing: 'border-box',
-    [theme.breakpoints.down('xs')]: {
-      width: 'auto',
-    },
-  },
-  topRow: {
-    marginBottom: '1.8rem',
-  },
-  networkSelectionBox: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  networkLabel: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginLeft: '0.4rem',
-    overflow: 'hidden',
-    textOverflow: 'clip',
-  },
-  networkIconContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    width: '4rem',
-    height: '4rem',
-  },
-  networkIcon: {
-    display: 'flex',
-    height: '2.2rem',
-    margin: '0.7rem',
-  },
-  balance: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  maxButton: {
-    border: 'none',
-    background: '#f8f8f9',
-    borderRadius: '1rem',
-    padding: '0.5rem 1rem',
-    fontSize: '1.2rem',
-    marginRight: '1rem',
-    cursor: 'pointer',
-  },
-  container: {
-    flexWrap: 'nowrap',
-  },
-  networkContainer: {
-    width: '180px',
-  },
-  inputContainer: {},
-}))
-
-type Props = {
+type AmountSelectorProps = {
   value?: string
   label?: string
   loadingLabel?: boolean
@@ -90,9 +34,12 @@ type Props = {
   hideMaxButton?: boolean
   className?: string
   decimalPlaces?: number
+  methodName?: string
+  destNetwork?: Network
+  selectedNetwork?: Network
 }
 
-const AmountSelectorCard: FC<Props> = props => {
+const AmountSelectorCard: FC<AmountSelectorProps> = props => {
   const {
     value = '',
     label,
@@ -114,8 +61,12 @@ const AmountSelectorCard: FC<Props> = props => {
     hideMaxButton = false,
     decimalPlaces = 4,
     className,
+    methodName,
+    destNetwork,
+    selectedNetwork,
   } = props
-  const styles = useStyles()
+  const styles = useAmountSelectorCardStyles()
+  const { estimateMaxValue } = useNativeTokenMaxValue(selectedNetwork)
 
   const balanceDisplay = useMemo(() => {
     let label: string = ''
@@ -141,25 +92,62 @@ const AmountSelectorCard: FC<Props> = props => {
       onChange(value)
     }
   }
-  const handleMaxClick = () => {
-    if (onChange) {
-      let max = ''
-      if (balance && token) {
-        max = formatUnits(balance, token.decimals)
-      }
-      onChange(max)
+
+  async function getEstimatedMaxValue(methodName: string, options: any) {
+    const { balance, token: selectedToken } = options
+
+    if (!selectedToken?.isNativeToken) {
+      return ''
     }
+
+    const nativeTokenMaxGasCost = await estimateMaxValue(methodName, options)
+
+    if (nativeTokenMaxGasCost) {
+      const totalAmount = balance.sub(nativeTokenMaxGasCost)
+      return formatUnits(totalAmount, selectedToken.decimals)
+    }
+
+    return formatUnits(balance, selectedToken.decimals)
   }
 
-  const handleSecondaryMaxClick = () => {
-    if (onChange) {
-      let max = ''
-      if (secondaryBalance && secondaryToken) {
-        max = formatUnits(secondaryBalance, secondaryToken.decimals)
-      }
-      onChange(max)
+  const handleMaxClick = useCallback(async () => {
+    if (!(onChange && balance && token)) {
+      return
     }
-  }
+
+    let maxValue = formatUnits(balance, token.decimals)
+
+    if (token?.isNativeToken && methodName) {
+      const opts = {
+        token,
+        balance,
+        network: selectedNetwork,
+        destNetwork,
+      }
+      maxValue = await getEstimatedMaxValue(methodName, opts)
+    }
+
+    onChange(maxValue)
+  }, [onChange, token, balance, methodName])
+
+  const handleSecondaryMaxClick = useCallback(async () => {
+    if (!(onChange && secondaryBalance && secondaryToken)) {
+      return
+    }
+
+    let maxValue = formatUnits(secondaryBalance, secondaryToken.decimals)
+
+    if (secondaryToken?.isNativeToken && methodName) {
+      const opts = {
+        token: secondaryToken,
+        balance: secondaryBalance,
+        network: selectedNetwork,
+      }
+      maxValue = await getEstimatedMaxValue(methodName, opts)
+    }
+
+    onChange(maxValue)
+  }, [onChange, secondaryToken, secondaryBalance, methodName, selectedNetwork])
 
   return (
     <Card className={clsx(styles.root, className)}>

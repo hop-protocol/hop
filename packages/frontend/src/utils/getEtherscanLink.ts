@@ -1,4 +1,4 @@
-import { ETHERSCAN_PREFIXES, NetworkId } from 'src/constants'
+import { ETHERSCAN_PREFIXES, NetworkId } from 'src/utils/constants'
 
 function getEtherscanLink(
   networkId: string | NetworkId,

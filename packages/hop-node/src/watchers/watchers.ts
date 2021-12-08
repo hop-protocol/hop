@@ -5,8 +5,8 @@ import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import Logger from 'src/logger'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
-import StakeWatcher from 'src/watchers/StakeWatcher'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
@@ -16,7 +16,7 @@ import { config as globalConfig } from 'src/config'
 
 const logger = new Logger('config')
 
-type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | StakeWatcher | SyncWatcher | xDomainMessageRelayWatcher
+type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | SyncWatcher | xDomainMessageRelayWatcher
 
 enum Watchers {
   BondWithdrawal = 'bondWithdrawal',
@@ -24,11 +24,6 @@ enum Watchers {
   SettleBondedWithdrawals = 'settleBondedWithdrawals',
   CommitTransfers = 'commitTransfers',
   xDomainMessageRelay = 'xDomainMessageRelay',
-  Stake = 'stake'
-}
-
-type StakeAmounts = {
-  [token: string]: number
 }
 
 type CommitTransfersMinThresholdAmounts = {
@@ -50,7 +45,6 @@ type GetWatchersConfig = {
   networks?: string[]
   bonder?: boolean
   challenger?: boolean
-  maxStakeAmounts?: StakeAmounts
   commitTransfersMinThresholdAmounts?: CommitTransfersMinThresholdAmounts
   settleBondedWithdrawalsThresholdPercent?: SettleBondedWithdrawalsThresholdPercent
   dryMode?: boolean
@@ -58,14 +52,6 @@ type GetWatchersConfig = {
   syncFromDate?: string
   s3Upload?: boolean
   s3Namespace?: string
-}
-
-type GetStakeWatchersConfig = {
-  tokens?: string[]
-  networks?: string[]
-  maxStakeAmounts?: StakeAmounts
-  dryMode?: boolean
-  stateUpdateAddress?: string
 }
 
 type GetChallengeWatchersConfig = {
@@ -82,7 +68,6 @@ export async function getWatchers (config: GetWatchersConfig) {
     networks = getAllChains(),
     bonder = true,
     challenger = false,
-    maxStakeAmounts = {},
     commitTransfersMinThresholdAmounts = {},
     settleBondedWithdrawalsThresholdPercent = {},
     dryMode = false,
@@ -185,18 +170,6 @@ export async function getWatchers (config: GetWatchersConfig) {
     }))
   }
 
-  if (enabledWatchers.includes(Watchers.Stake)) {
-    watchers.push(
-      ...getStakeWatchers({
-        tokens,
-        networks,
-        maxStakeAmounts,
-        dryMode,
-        stateUpdateAddress
-      })
-    )
-  }
-
   if (challenger) {
     watchers.push(...getChallengeWatchers({
       tokens,
@@ -206,6 +179,8 @@ export async function getWatchers (config: GetWatchersConfig) {
   }
 
   const syncWatchers = getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    const gasCostPollEnabled = enabledWatchers.includes(Watchers.BondWithdrawal)
+
     return new SyncWatcher({
       chainSlug: network,
       tokenSymbol: token,
@@ -214,7 +189,8 @@ export async function getWatchers (config: GetWatchersConfig) {
       bridgeContract,
       syncFromDate,
       s3Upload,
-      s3Namespace
+      s3Namespace,
+      gasCostPollEnabled
     })
   })
 
@@ -262,34 +238,7 @@ export function startChallengeWatchers (config: GetChallengeWatchersConfig) {
   return { stop, watchers }
 }
 
-export function getStakeWatchers (config: GetStakeWatchersConfig) {
-  const {
-    tokens = getAllTokens(),
-    networks = getAllChains(),
-    maxStakeAmounts = {},
-    dryMode = false,
-    stateUpdateAddress
-  } = config
-
-  const watchers = getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
-    return new StakeWatcher({
-      isL1,
-      chainSlug: network,
-      tokenSymbol: token,
-      label,
-      bridgeContract,
-      tokenContract,
-      stakeMinThreshold: 0,
-      maxStakeAmount: maxStakeAmounts[token],
-      dryMode,
-      stateUpdateAddress
-    })
-  })
-
-  return watchers
-}
-
-export function getChallengeWatchers (config: GetChallengeWatchersConfig) {
+function getChallengeWatchers (config: GetChallengeWatchersConfig) {
   const {
     tokens = getAllTokens(),
     networks = getAllChains(),
@@ -318,6 +267,15 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
   const watchers: {[token: string]: {[chainId: string]: Watcher}} = {}
   const list: Watcher[] = []
 
+  const filteredSourceChains = new Set()
+  const filteredDestinationChains = new Set()
+  for (const sourceChain in globalConfig.routes) {
+    filteredSourceChains.add(sourceChain)
+    for (const destinationChain in globalConfig.routes[sourceChain]) {
+      filteredDestinationChains.add(destinationChain)
+    }
+  }
+
   for (const token of tokens) {
     for (const network of networks) {
       const label = `${network}.${token}`
@@ -326,6 +284,7 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
       if (!contracts.has(token, network)) {
         continue
       }
+
       const tokenContracts = contracts.get(token, network)
       let bridgeContract = tokenContracts.l2Bridge
       let tokenContract = tokenContracts.l2HopBridgeToken
@@ -345,6 +304,14 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
       if (!watcher) {
         continue
       }
+
+      if (filteredSourceChains.size > 0) {
+        const slug = chainIdToSlug(chainId)
+        if (!(filteredSourceChains.has(slug) || filteredDestinationChains.has(slug))) {
+          continue
+        }
+      }
+
       watchers[token] = watchers[token] || {}
       watchers[token][chainId] = watcher
       list.push(watcher)

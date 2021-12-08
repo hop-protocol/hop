@@ -1,13 +1,13 @@
 import getRpcProviderFromUrl from './getRpcProviderFromUrl'
-import getRpcUrls from './getRpcUrls'
+import getRpcUrl from './getRpcUrl'
 import { providers } from 'ethers'
 
 const getRpcProvider = (network: string): providers.Provider | null => {
-  const rpcUrls = getRpcUrls(network)
-  if (!rpcUrls?.length) {
+  const rpcUrl = getRpcUrl(network)
+  if (!rpcUrl) {
     return null
   }
-  return getRpcProviderFromUrl(rpcUrls)
+  return getRpcProviderFromUrl(rpcUrl)
 }
 
 export default getRpcProvider

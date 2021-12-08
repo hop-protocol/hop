@@ -39,6 +39,7 @@ export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 export const awsRegion = process.env.AWS_REGION
 export const awsProfile = process.env.AWS_PROFILE
 export const gitRev = buildInfo.rev
+export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 const envNetwork = process.env.NETWORK ?? Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
@@ -62,12 +63,17 @@ type MetricsConfig = {
   enabled: boolean
   port?: number
 }
+
 type Bps = {
-  L2ToL1: number
-  L2ToL2: number
+  ethereum: number
+  polygon: number
+  xdai: number
+  optimism: number
+  arbitrum: number
 }
 
 export type Fees = Record<string, Bps>
+export type Routes = Record<string, Record<string, boolean>>
 
 type Config = {
   isMainnet: boolean
@@ -82,6 +88,7 @@ type Config = {
   sync: SyncConfigs
   metrics: MetricsConfig
   fees: Fees
+  routes: Routes
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -129,30 +136,49 @@ export const config: Config = {
   stateUpdateAddress: '',
   fees: {
     USDC: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 18,
+      polygon: 18,
+      xdai: 25,
+      optimism: 18,
+      arbitrum: 18
     },
     USDT: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 25,
+      polygon: 25,
+      xdai: 30,
+      optimism: 25,
+      arbitrum: 25
     },
     DAI: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 25,
+      polygon: 25,
+      xdai: 30,
+      optimism: 25,
+      arbitrum: 25
     },
     MATIC: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 25,
+      polygon: 25,
+      xdai: 30,
+      optimism: 0,
+      arbitrum: 0
     },
     ETH: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 8,
+      polygon: 9,
+      xdai: 18,
+      optimism: 9,
+      arbitrum: 9
     },
     WBTC: {
-      L2ToL1: 10,
-      L2ToL2: 10
+      ethereum: 25,
+      polygon: 25,
+      xdai: 30,
+      optimism: 25,
+      arbitrum: 25
     }
   },
+  routes: {},
   db: {
     path: defaultDbPath
   },
@@ -171,7 +197,7 @@ export const config: Config = {
     },
     [Chain.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 1000
     },
     [Chain.xDai]: {
       totalBlocks: TotalBlocks.xDai,
@@ -203,10 +229,10 @@ export const setBonderPrivateKey = (privateKey: string) => {
   config.bonderPrivateKey = privateKey
 }
 
-export const setNetworkRpcUrls = (network: string, rpcUrls: string[]) => {
+export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   network = normalizeNetwork(network)
   if (config.networks[network]) {
-    config.networks[network].rpcUrls = rpcUrls
+    config.networks[network].rpcUrl = rpcUrl
   }
 }
 
@@ -263,6 +289,10 @@ export const setMetricsConfig = (metricsConfig: MetricsConfig) => {
 
 export const setFeesConfig = (fees: Fees) => {
   config.fees = { ...config.fees, ...fees }
+}
+
+export const setRoutesConfig = (routes: Routes) => {
+  config.routes = { ...config.routes, ...routes }
 }
 
 export const chainNativeTokens = ['ETH', 'MATIC', 'DAI']

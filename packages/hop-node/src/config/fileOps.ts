@@ -2,15 +2,15 @@ import Logger, { setLogLevel } from 'src/logger'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import yaml from 'js-yaml'
 import { Chain } from 'src/constants'
 import {
-  Fees, defaultConfigFilePath, setBonderPrivateKey,
+  Fees, Routes, defaultConfigFilePath, setBonderPrivateKey,
   setConfigAddresses,
   setConfigByNetwork,
   setDbPath,
   setFeesConfig,
   setMetricsConfig,
+  setRoutesConfig,
   setStateUpdateAddress,
   setSyncConfig,
   validateConfig
@@ -27,7 +27,6 @@ export const defaultEnabledWatchers: { [key: string]: boolean } = {
   challenge: true, // only active if role.challenger is also true
   commitTransfers: true,
   settleBondedWithdrawals: true,
-  stake: true,
   xDomainMessageRelay: false
 }
 
@@ -64,7 +63,6 @@ type WatchersConfig = {
   challenge: boolean
   commitTransfers: boolean
   settleBondedWithdrawals: boolean
-  stake: boolean
   xDomainMessageRelay: boolean
 }
 
@@ -102,7 +100,6 @@ export type FileConfig = {
   db?: DbConfig
   logging?: LoggingConfig
   keystore?: KeystoreConfig
-  stake?: any
   settleBondedWithdrawals?: any
   commitTransfers?: any
   order?: number
@@ -110,6 +107,7 @@ export type FileConfig = {
   stateUpdateAddress?: string
   metrics?: MetricsConfig
   fees?: Fees
+  routes?: Routes
 }
 
 export async function setGlobalConfigFromConfigFile (
@@ -178,6 +176,9 @@ export async function setGlobalConfigFromConfigFile (
   if (config?.fees) {
     setFeesConfig(config.fees)
   }
+  if (config?.routes) {
+    setRoutesConfig(config.routes)
+  }
 }
 
 export async function writeConfigFile (
@@ -209,11 +210,7 @@ export async function parseConfigFile (
       throw new Error(`no config file found at ${configPath}`)
     }
 
-    if (configPath.endsWith('.yml') || configPath.endsWith('.yaml')) {
-      config = yaml.load(fs.readFileSync(configPath, 'utf8')) as any
-    } else {
-      config = require(configPath)
-    }
+    config = require(configPath)
   }
   if (config != null) {
     await validateConfig(config)

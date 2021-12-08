@@ -21,10 +21,11 @@ async function sendTokens (
   token: string,
   amount: number,
   recipient: string,
-  isHToken: boolean = false
+  isHToken: boolean,
+  shouldSendMax: boolean
 ) {
-  if (!amount) {
-    throw new Error('amount is required. E.g. 100')
+  if (!amount && !shouldSendMax) {
+    throw new Error('max flag or amount is required. E.g. 100')
   }
   if (!token) {
     throw new Error('token is required')
@@ -55,16 +56,15 @@ async function sendTokens (
     throw new Error('recipient address is required')
   }
 
-  const isNativeToken = token === 'MATIC' && fromChain === Chain.Polygon
-  let balance: BigNumber
-  if (isNativeToken) {
-    balance = await signer.getBalance()
-  } else {
-    balance = await tokenClass.getBalance()
-  }
+  let balance = await tokenClass.getBalance()
   const label = `${fromChain}.${isHToken ? 'h' : ''}${token}`
   logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
-  const parsedAmount = await tokenClass.parseUnits(amount)
+  let parsedAmount
+  if (shouldSendMax) {
+    parsedAmount = balance
+  } else {
+    parsedAmount = await tokenClass.parseUnits(amount)
+  }
   if (balance.lt(parsedAmount)) {
     throw new Error('not enough token balance to send')
   }
@@ -78,30 +78,35 @@ async function sendTokens (
     logger.debug('approve tx:', tx.hash)
   }
 
-  logger.debug(`attempting to send ${amount} ${label} ⟶  ${toChain} to ${recipient}`)
+  const formattedAmount = (await tokenClass.formatUnits(parsedAmount)).toString()
+  logger.debug(`attempting to send ${formattedAmount} ${label} ⟶  ${toChain} to ${recipient}`)
   const destinationChainId = chainSlugToId(toChain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
   if (fromChain === Chain.Ethereum) {
     if (isHToken) {
       tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(
         destinationChainId,
-        parsedAmount
+        parsedAmount,
+        recipient
       )
     } else {
       tx = await (bridge as L1Bridge).sendCanonicalTokensToL2(
         destinationChainId,
-        parsedAmount
+        parsedAmount,
+        recipient
       )
     }
   } else {
     if (isHToken) {
       tx = await (bridge as L2Bridge).sendHTokens(
         destinationChainId,
-        parsedAmount
+        parsedAmount,
+        recipient
       )
     } else {
       tx = await (bridge as L2Bridge).sendCanonicalTokens(
         destinationChainId,
-        parsedAmount
+        parsedAmount,
+        recipient
       )
     }
   }
@@ -115,7 +120,8 @@ async function sendTokens (
 async function sendNativeToken (
   chain: string,
   amount: number,
-  recipient: string
+  recipient: string,
+  shouldSendMax: boolean
 ) {
   if (!amount) {
     throw new Error('amount is required. E.g. 100')
@@ -123,6 +129,10 @@ async function sendNativeToken (
 
   if (!recipient) {
     throw new Error('recipient is required for sending a native asset')
+  }
+
+  if (shouldSendMax) {
+    throw new Error('please specify an amount when sending native tokens')
   }
 
   const provider = getRpcProvider(chain)
@@ -145,12 +155,29 @@ async function sendNativeToken (
   logger.debug(`send complete. new balance: ${formatEther(balance)}`)
 }
 
+async function sendToSelf (chain: string, gasPrice: string) {
+  const provider = getRpcProvider(chain)
+  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  const selfAddress = await wallet.signer.getAddress()
+  const nonce = await provider?.getTransactionCount(selfAddress)
+  const tx = await wallet.sendTransaction({
+    value: 0,
+    to: selfAddress,
+    nonce,
+    gasPrice: BigNumber.from(gasPrice)
+  })
+  logger.info(`send tx: ${tx.hash}`)
+  await tx.wait()
+  logger.debug(`send with ${nonce} complete`)
+}
+
 async function transferTokens (
   chain: string,
   token: string,
   amount: number,
   recipient: string,
-  isHToken: boolean = false
+  isHToken: boolean,
+  shouldSendMax: boolean
 ) {
   if (!chain) {
     throw new Error('chain is required')
@@ -158,8 +185,8 @@ async function transferTokens (
   if (!recipient) {
     throw new Error('recipient address is required')
   }
-  if (!amount) {
-    throw new Error('amount is required. E.g. 100')
+  if (!amount && !shouldSendMax) {
+    throw new Error('max flag or amount is required. E.g. 100')
   }
   if (!token) {
     throw new Error('token is required')
@@ -182,11 +209,19 @@ async function transferTokens (
   let balance = await instance.getBalance()
   const label = `${chain}.${isHToken ? 'h' : ''}${token}`
   logger.debug(`${label} balance: ${await instance.formatUnits(balance)}`)
-  const parsedAmount = await instance.parseUnits(amount)
+  let parsedAmount
+  if (shouldSendMax) {
+    parsedAmount = balance
+  } else {
+    parsedAmount = await instance.parseUnits(amount)
+  }
+
   if (balance.lt(parsedAmount)) {
     throw new Error('not enough token balance to send')
   }
-  logger.debug(`attempting to send ${amount} ${label} to ${recipient}`)
+
+  const formattedAmount = (await (instance.formatUnits(parsedAmount))).toString()
+  logger.debug(`attempting to send ${formattedAmount} ${label} to ${recipient}`)
   const tx = await instance.transfer(recipient, parsedAmount)
   logger.info(`transfer tx: ${tx.hash}`)
   await tx.wait()
@@ -206,6 +241,9 @@ program
   .option('--recipient <string>', 'Recipient to send tokens to')
   .option('--htoken', 'Send hTokens')
   .option('--native', 'Send the native token')
+  .option('--self', 'Send to self and reset nonce')
+  .option('--gas-price <string>', 'Gas price to use')
+  .option('--max', 'Use max tokens instead of specific amount')
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config
@@ -220,16 +258,22 @@ program
       const recipient = source.recipient
       const isHToken = !!source.htoken
       const isNativeSend = !!source.native
+      const isSelfSend = !!source.self
+      const gasPrice = source.gasPrice
+      const shouldSendMax = !!source.max
       const isSameChain = (fromChain && toChain) && (fromChain === toChain)
       if (isHToken && isNativeSend) {
         throw new Error('Cannot use --htoken and --native flag together')
       }
-      if (isSameChain) {
-        await transferTokens(fromChain, token, amount, recipient, isHToken)
+
+      if (isSelfSend) {
+        await sendToSelf(fromChain, gasPrice)
+      } else if (isSameChain) {
+        await transferTokens(fromChain, token, amount, recipient, isHToken, shouldSendMax)
       } else if (isNativeSend) {
-        await sendNativeToken(fromChain, amount, recipient)
+        await sendNativeToken(fromChain, amount, recipient, shouldSendMax)
       } else {
-        await sendTokens(fromChain, toChain, token, amount, recipient, isHToken)
+        await sendTokens(fromChain, toChain, token, amount, recipient, isHToken, shouldSendMax)
       }
       process.exit(0)
     } catch (err) {

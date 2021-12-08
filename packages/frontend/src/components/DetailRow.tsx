@@ -11,6 +11,7 @@ export type DetailRowProps = {
   tooltip?: ReactFragment
   highlighted?: boolean
   large?: boolean
+  xlarge?: boolean
   bold?: boolean
   contrastText?: boolean
 }
@@ -21,13 +22,8 @@ type StyleProps = {
   contrastText: boolean
 }
 
-const useStyles = makeStyles<Theme, StyleProps>(theme => ({
-  detailLabel: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
-  label: {
+const useStyles = makeStyles<Theme, StyleProps>(theme => {
+  const label = {
     color: ({ highlighted, contrastText }) => {
       if (highlighted) {
         return theme.palette.primary.main
@@ -38,8 +34,29 @@ const useStyles = makeStyles<Theme, StyleProps>(theme => ({
       }
     },
     fontWeight: ({ bold }) => (bold ? 800 : 700),
-  },
-}))
+  }
+
+  return {
+    box: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    detailLabel: {
+      display: 'flex',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+    },
+    label,
+    xlabel: Object.assign({
+      fontSize: '2.8rem',
+      textAlign: 'right',
+      [theme.breakpoints.down('xs')]: {
+        fontSize: '2rem',
+      },
+    } as any, label)
+  }
+})
 
 const DetailRow: FC<DetailRowProps> = props => {
   const {
@@ -48,15 +65,17 @@ const DetailRow: FC<DetailRowProps> = props => {
     value,
     highlighted = false,
     large = false,
+    xlarge = false,
     bold = false,
     contrastText = false,
   } = props
   const styles = useStyles({ highlighted, bold, contrastText })
+  const variant : any = xlarge || large ? 'h6' : 'subtitle2'
 
   return (
-    <Box display="flex" alignItems="center" justifyContent="space-between">
+    <Box className={styles.box}>
       <Typography
-        variant={large ? 'h6' : 'subtitle2'}
+        variant={variant}
         color="textSecondary"
         className={classnames(styles.detailLabel, styles.label)}
       >
@@ -64,11 +83,11 @@ const DetailRow: FC<DetailRowProps> = props => {
         {tooltip ? <InfoTooltip title={tooltip} /> : null}
       </Typography>
       <Typography
-        variant={large ? 'h6' : 'subtitle2'}
+        variant={variant}
         color="textSecondary"
-        className={styles.label}
+        className={xlarge ? styles.xlabel : styles.label}
       >
-        {value || '-'}
+        {value || '•'}
       </Typography>
     </Box>
   )

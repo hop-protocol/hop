@@ -249,8 +249,16 @@ class Token extends Base {
     )
   }
 
-  async wrapToken (amount: TAmount) {
+  async wrapToken (amount: TAmount, estimateGasOnly: boolean = false) {
     const contract = await this.getWethContract(this.chain)
+    if (estimateGasOnly) {
+      // a `from` address is required if using only provider (not signer)
+      const from = await this.getGasEstimateFromAddress()
+      return contract.connect(this.chain.provider).estimateGas.deposit({
+        value: amount,
+        from
+      })
+    }
     return contract.deposit({
       value: amount
     })
@@ -259,6 +267,39 @@ class Token extends Base {
   async unwrapToken (amount: TAmount) {
     const contract = await this.getWethContract(this.chain)
     return contract.withdraw(amount)
+  }
+
+  async getWrapTokenEstimatedGas (
+    chain: TChain
+  ) {
+    chain = this.toChainModel(chain)
+    const amount = BigNumber.from(1)
+    const contract = await this.getWethContract(chain)
+    // a `from` address is required if using only provider (not signer)
+    const from = await this.getGasEstimateFromAddress()
+    const [gasLimit, tx] = await Promise.all([
+      contract.connect(this.chain.provider).estimateGas.deposit({
+        value: amount,
+        from
+      }),
+      contract.connect(this.chain.provider).populateTransaction.deposit({
+        value: amount,
+        from
+      })
+    ])
+
+    return {
+      gasLimit,
+      ...tx
+    }
+  }
+
+  private async getGasEstimateFromAddress () {
+    try {
+      return await this.getSignerAddress()
+    } catch (err) {
+      return await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
+    }
   }
 
   static fromJSON (json: any):Token {

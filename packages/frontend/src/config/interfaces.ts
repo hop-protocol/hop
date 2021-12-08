@@ -1,4 +1,4 @@
-import { Bridges } from '@hop-protocol/core/addresses'
+import { Bridges, Bonders } from '@hop-protocol/core/addresses'
 
 export interface IProposalDetail {
   target: string
@@ -27,14 +27,13 @@ export interface HopAddresses {
     governorAlpha: string
   }
   tokens: Bridges
-  bonders: { [token: string]: string[] }
+  bonders: Bonders
 }
 
 export type Networks = {
   [key: string]: {
     networkId: string
-    rpcUrls: string[]
-    publicRpcUrl?: string
+    rpcUrl: string
     explorerUrl: string
     nativeBridgeUrl?: string
     waitConfirmations?: number

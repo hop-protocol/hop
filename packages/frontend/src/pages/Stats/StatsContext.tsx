@@ -7,6 +7,7 @@ import { getArbitrumAlias } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import * as config from 'src/config'
+import { Chain } from 'src/utils/constants'
 
 type StatsContextProps = {
   stats: any[]
@@ -212,7 +213,17 @@ const StatsContextProvider: FC = ({ children }) => {
       const promises: Promise<any>[] = []
       for (const network of networks) {
         for (const token of tokens) {
-          for (const bonder of config.addresses.bonders?.[token.symbol]) {
+          const bonders = new Set<string>()
+          if (!config.addresses.bonders?.[token.symbol]?.[network.slug]) {
+            continue
+          }
+          for (const destinationChain in config.addresses.bonders?.[token.symbol]?.[network.slug]) {
+            const bonder = config.addresses.bonders?.[token.symbol][network.slug][destinationChain]
+            if (bonder) {
+              bonders.add(bonder)
+            }
+          }
+          for (const bonder of bonders) {
             promises.push(fetchBonderStats(network, token, bonder).catch(logger.error))
           }
         }
@@ -399,7 +410,18 @@ const StatsContextProvider: FC = ({ children }) => {
       setFetchingDebitWindowStats(true)
       const promises: Promise<any>[] = []
       for (const token of tokens) {
-        for (const bonder of config.addresses.bonders?.[token.symbol]) {
+        const bonders = new Set<string>()
+        for (const bonder in config.addresses.bonders?.[token.symbol]) {
+          for (const sourceChain in config.addresses.bonders?.[token.symbol]) {
+            for (const destinationChain in config.addresses.bonders?.[token.symbol][sourceChain as string]) {
+              const bonder = config.addresses.bonders?.[token.symbol][sourceChain][destinationChain]
+              if (bonder) {
+                bonders.add(bonder)
+              }
+            }
+          }
+        }
+        for (const bonder of bonders) {
           promises.push(fetchDebitWindowStats(token, bonder).catch(logger.error))
         }
       }

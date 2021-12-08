@@ -1,26 +1,28 @@
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
-import { BigNumber, Contract, Signer, providers } from 'ethers'
+import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
+import { Chain as ChainEnum, MinPolygonGasPrice } from './constants'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
+import { getContractFactory, predeploys } from '@eth-optimism/contracts'
+import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
 export type ChainProviders = { [chain: string]: providers.Provider }
 
 // cache provider
 const getProvider = memoize((network: string, chain: string) => {
-  const rpcUrls = config.chains[network][chain].rpcUrls.slice(0, 3) // max of 3 endpoints
-  const ethersProviders: providers.Provider[] = []
-  for (const rpcUrl of rpcUrls) {
-    const provider = new providers.StaticJsonRpcProvider(rpcUrl)
-    ethersProviders.push(provider)
+  const rpcUrl = config.chains[network][chain].rpcUrl
+  if (!rpcUrl) {
+    if (network === 'staging') {
+      network = 'mainnet'
+    }
+    return providers.getDefaultProvider(network)
   }
-
-  if (ethersProviders.length === 1) {
-    return ethersProviders[0]
-  }
-
-  return new providers.FallbackProvider(ethersProviders, 1)
+  return new providers.StaticJsonRpcProvider({
+    url: rpcUrl,
+    timeout: 60 * 1000
+  })
 })
 
 const getContractMemo = memoize(
@@ -133,7 +135,23 @@ class Base {
           `unsupported chain "${chain.slug}" for network ${this.network}`
         )
       }
-      this.chainProviders[chain.slug] = chainProviders[chainSlug]
+      if (chainProviders[chainSlug]) {
+        this.chainProviders[chain.slug] = chainProviders[chainSlug]
+      }
+    }
+  }
+
+  setChainProviderUrls (chainProviders: Record<string, string>) {
+    for (const chainSlug in chainProviders) {
+      const chain = this.toChainModel(chainSlug)
+      if (!this.isValidChain(chain.slug)) {
+        throw new Error(
+          `unsupported chain "${chain.slug}" for network ${this.network}`
+        )
+      }
+      if (chainProviders[chainSlug]) {
+        this.chainProviders[chain.slug] = new providers.StaticJsonRpcProvider(chainProviders[chainSlug])
+      }
     }
   }
 
@@ -239,6 +257,26 @@ class Base {
       return this.chainProviders[chainSlug]
     }
     return getProvider(this.network, chainSlug)
+  }
+
+  public getChainProviders = () => {
+    const obj : Record<string, providers.Provider> = {}
+    for (const chainSlug of this.supportedChains) {
+      const provider = this.getChainProvider(chainSlug)
+      obj[chainSlug] = provider
+    }
+
+    return obj
+  }
+
+  public getChainProviderUrls = () => {
+    const obj : Record<string, string> = {}
+    for (const chainSlug of this.supportedChains) {
+      const provider = this.getChainProvider(chainSlug)
+      obj[chainSlug] = (provider as any)?.connection?.url
+    }
+
+    return obj
   }
 
   /**
@@ -381,32 +419,29 @@ class Base {
   // Transaction overrides options
   public async txOverrides (chain: Chain) {
     const txOptions: any = {}
-    if (chain.equals(Chain.xDai)) {
-      txOptions.gasLimit = 5000000
-    }
     if (this.gasPriceMultiplier) {
       txOptions.gasPrice = await this.getBumpedGasPrice(
         this.signer,
         this.gasPriceMultiplier
       )
-    }
 
-    if (chain.equals(Chain.Optimism)) {
-      txOptions.gasPrice = 15_000_000
-      txOptions.gasLimit = undefined
+      // Not all Polygon nodes follow recommended 30 Gwei gasPrice
+      // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
+      if (chain === Chain.Polygon) {
+        if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
+          txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
+        }
+      }
     }
 
     return txOptions
   }
 
-  public getBonderAddress (token: TToken): string {
+  protected _getBonderAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): string {
     token = this.toTokenModel(token)
-    return this.bonders?.[this.network]?.[token.canonicalSymbol]?.[0]
-  }
-
-  public getBonderAddresses (token: TToken): string[] {
-    token = this.toTokenModel(token)
-    return this.bonders?.[this.network]?.[token.canonicalSymbol]
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    return this.bonders?.[this.network]?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
   }
 
   public getFeeBps (token: TToken, destinationChain: TChain) {
@@ -422,10 +457,8 @@ class Base {
     if (!fees) {
       throw new Error('fee data not found')
     }
-    let feeBps = fees?.L2ToL2
-    if (destinationChain.isL1) {
-      feeBps = fees?.L2ToL1
-    }
+
+    const feeBps: number = fees[destinationChain.slug as ChainEnum]
     return feeBps
   }
 
@@ -452,6 +485,27 @@ class Base {
     chain = this.toChainModel(chain)
     const supported = this.getSupportedAssets()
     return supported[chain.slug]
+  }
+
+  async getOptimismL1Fee (
+    gasLimit : BigNumberish,
+    data: string = '0x',
+    to: string = constants.AddressZero
+  ) {
+    gasLimit = BigNumber.from(gasLimit.toString())
+    const chain = this.toChainModel(Chain.Optimism)
+    const gasPrice = await chain.provider.getGasPrice()
+    const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
+      .attach(predeploys.OVM_GasPriceOracle).connect(chain.provider)
+    const serializedTx = serializeTransaction({
+      value: parseEther('0'),
+      gasPrice,
+      gasLimit,
+      to,
+      data
+    })
+    const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
+    return l1FeeInWei
   }
 }
 

@@ -1,4 +1,5 @@
 import React, { FC, ChangeEvent, useEffect } from 'react'
+import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import find from 'lodash/find'
 import Typography from '@material-ui/core/Typography'
@@ -12,11 +13,12 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
-import { commafy, sanitizeNumericalString, toPercentDisplay } from 'src/utils'
+import { commafy, sanitizeNumericalString, toPercentDisplay, toTokenDisplay } from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
 import useQueryParams from 'src/hooks/useQueryParams'
 import Network from 'src/models/Network'
+import { useNeedsTokenForFee } from 'src/hooks'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -117,12 +119,15 @@ const Pools: FC = () => {
     userPoolTokenPercentage,
     token0Deposited,
     token1Deposited,
+    tokenSumDeposited,
     canonicalBalance,
     hopBalance,
     loadingCanonicalBalance,
     loadingHopBalance,
     error,
     setError,
+    warning,
+    setWarning,
     removeLiquidity,
     isNativeToken,
     poolReserves,
@@ -132,6 +137,7 @@ const Pools: FC = () => {
     virtualPrice,
     reserveTotalsUsd,
     unsupportedAsset,
+    removing
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -142,7 +148,7 @@ const Pools: FC = () => {
     }
   }
 
-  const { queryParams } = useQueryParams()
+  const { queryParams, updateQueryParams } = useQueryParams()
 
   useEffect(() => {
     if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
@@ -160,6 +166,9 @@ const Pools: FC = () => {
     const newSelectedNetwork = networks.find(network => network.slug === networkName)
     if (newSelectedNetwork) {
       setSelectedNetwork(newSelectedNetwork)
+      updateQueryParams({
+        sourceNetwork: newSelectedNetwork?.slug ?? '',
+      })
     }
   }
 
@@ -188,13 +197,12 @@ const Pools: FC = () => {
     removeLiquidity()
   }
 
-  console.log('userPoolBalance: ', userPoolBalance)
   const hasBalance = userPoolBalance?.gt(0)
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
   const hopTokenSymbol = hopToken?.symbol || ''
 
-  const reserve0 = poolReserves?.[0]
-  const reserve1 = poolReserves?.[1]
+  const reserve0 = toTokenDisplay(poolReserves?.[0], canonicalToken?.decimals)
+  const reserve1 = toTokenDisplay(poolReserves?.[1], canonicalToken?.decimals)
   const reserve0Formatted = `${commafy(reserve0, 0) || '-'} ${canonicalTokenSymbol}`
   const reserve1Formatted = `${commafy(reserve1, 0) || '-'} ${hopTokenSymbol}`
   const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
@@ -204,6 +212,21 @@ const Pools: FC = () => {
   const poolSharePercentageFormatted = poolSharePercentage ? `${commafy(poolSharePercentage)}%` : ''
   const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : ''
   const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
+
+  const needsTokenForFee = useNeedsTokenForFee(selectedNetwork)
+  const token0DepositedFormatted = token0Deposited ? commafy(Number(formatUnits(token0Deposited, canonicalToken?.decimals)), 5) : ''
+  const token1DepositedFormatted = token1Deposited ? commafy(Number(formatUnits(token1Deposited, hopToken?.decimals)), 5) : ''
+  const tokenSumDepositedFormatted = tokenSumDeposited ? commafy(Number(formatUnits(tokenSumDeposited, hopToken?.decimals)), 5) : ''
+
+  useEffect(() => {
+    if (needsTokenForFee && selectedNetwork) {
+      setWarning(
+        `Add ${selectedNetwork.nativeTokenSymbol} to your account on ${selectedNetwork.name} for the transaction fee.`
+      )
+    } else {
+      setWarning('')
+    }
+  }, [needsTokenForFee, selectedNetwork])
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -288,20 +311,25 @@ const Pools: FC = () => {
                 </Typography>
               </Box>
               <DetailRow
-                title={`${canonicalTokenSymbol}/${hopTokenSymbol}`}
+                title={`LP Tokens`}
                 value={`${commafy(userPoolBalanceFormatted, 5)}`}
               />
               {userPoolTokenPercentage && (
                 <DetailRow
-                  title={'Your pool share'}
+                  title={'Pool share'}
                   value={`${commafy(userPoolTokenPercentage)}%`}
                 />
               )}
               {token0Deposited && (
-                <DetailRow title={canonicalTokenSymbol} value={`${commafy(token0Deposited, 5)}`} />
+                <DetailRow title={canonicalTokenSymbol} value={token0DepositedFormatted} />
               )}
               {token1Deposited && (
-                <DetailRow title={hopTokenSymbol} value={`${commafy(token1Deposited, 5)}`} />
+                <DetailRow title={hopTokenSymbol} value={token1DepositedFormatted} />
+              )}
+              {tokenSumDeposited && (
+                <DetailRow
+                  title={`${canonicalTokenSymbol}+${hopTokenSymbol}`}
+                  value={tokenSumDepositedFormatted} />
               )}
             </Box>
           )}
@@ -346,12 +374,14 @@ const Pools: FC = () => {
               </Box>
             </div>
           </details>
+          <Alert severity="warning">{warning}</Alert>
           <Alert severity="error" onClose={() => setError(null)} text={error} />
           <SendButton />
           {hasBalance && (
             <Button
               className={styles.removeLiquidityButton}
               onClick={handleRemoveLiquidityClick}
+              loading={removing}
               large
             >
               Remove Liquidity

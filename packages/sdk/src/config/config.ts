@@ -18,7 +18,7 @@ const chains: { [network: string]: any } = {
   goerli: goerli.chains
 }
 
-const bonders: { [network: string]: { [token: string]: string[] } } = {
+const bonders: { [network: string]: { [token: string]: Record<string, Record<string, string>>} } = {
   mainnet: mainnet.bonders,
   staging: staging.bonders,
   kovan: kovan.bonders,
@@ -26,30 +26,55 @@ const bonders: { [network: string]: { [token: string]: string[] } } = {
 }
 
 type Bps = {
-  L2ToL1: number
-  L2ToL2: number
+  ethereum: number
+  polygon: number
+  xdai: number
+  optimism: number
+  arbitrum: number
 }
 
 const fees: Record<string, Bps> = {
   USDC: {
-    L2ToL1: 18,
-    L2ToL2: 18
+    ethereum: 18,
+    polygon: 18,
+    xdai: 25,
+    optimism: 18,
+    arbitrum: 18
   },
   USDT: {
-    L2ToL1: 18,
-    L2ToL2: 18
+    ethereum: 25,
+    polygon: 25,
+    xdai: 30,
+    optimism: 25,
+    arbitrum: 25
   },
   DAI: {
-    L2ToL1: 18,
-    L2ToL2: 18
+    ethereum: 25,
+    polygon: 25,
+    xdai: 30,
+    optimism: 25,
+    arbitrum: 25
   },
   MATIC: {
-    L2ToL1: 18,
-    L2ToL2: 18
+    ethereum: 25,
+    polygon: 25,
+    xdai: 30,
+    optimism: 0,
+    arbitrum: 0
   },
   ETH: {
-    L2ToL1: 18,
-    L2ToL2: 18
+    ethereum: 8,
+    polygon: 9,
+    xdai: 18,
+    optimism: 9,
+    arbitrum: 9
+  },
+  WBTC: {
+    ethereum: 25,
+    polygon: 25,
+    xdai: 30,
+    optimism: 25,
+    arbitrum: 25
   }
 }
 

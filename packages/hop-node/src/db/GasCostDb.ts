@@ -5,9 +5,10 @@ import { BigNumber } from 'ethers'
 import { OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
-export const varianceSeconds = 10 * 60
+const varianceSeconds = 10 * 60
 
-export type GasCost = BaseItem & {
+type GasCost = BaseItem & {
+  id?: string
   chain: string
   token: string
   timestamp: number // in seconds
@@ -30,8 +31,8 @@ class GasCostDb extends BaseDb {
   private async startPrunePoller () {
     while (true) {
       try {
-        await wait(OneHourMs)
         await this.prune()
+        await wait(OneHourMs)
       } catch (err) {
         this.logger.error(`prune poller error: ${err.message}`)
       }
@@ -83,7 +84,11 @@ class GasCostDb extends BaseDb {
 
   private async getOldEntries (): Promise<GasCost[]> {
     const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
-    const items = (await this.getItems())
+    const items = (await this.getKeyValues())
+      .map((kv: any) => {
+        kv.value.id = kv.key
+        return kv.value
+      })
       .filter((item: GasCost) => item.timestamp < oneWeekAgo)
 
     return items
@@ -91,11 +96,16 @@ class GasCostDb extends BaseDb {
 
   private async prune (): Promise<void> {
     const items = await this.getOldEntries()
-    for (const { chain, token, timestamp, _id } of items) {
-      if (_id === undefined) {
-        throw new Error(`id undefined for ${chain}:${token}:${timestamp}`)
+    this.logger.debug(`items to prune: ${items.length}`)
+    for (const { chain, token, timestamp, id } of items) {
+      try {
+        if (!id) {
+          throw new Error(`id not found for ${chain}:${token}:${timestamp}`)
+        }
+        await this.deleteById(id)
+      } catch (err) {
+        this.logger.error(`error pruning db item: ${err.message}`)
       }
-      await this.deleteById(_id)
     }
   }
 }

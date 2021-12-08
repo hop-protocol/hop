@@ -12,7 +12,7 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { TxError } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
-export type Config = {
+type Config = {
   chainSlug: string
   tokenSymbol: string
   isL1: boolean
@@ -52,9 +52,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async checkTransferSentFromDb () {
-    const dbTransfers = await this.db.transfers.getUnbondedSentTransfers({
-      sourceChainId: await this.bridge.getChainId()
-    })
+    const dbTransfers = await this.db.transfers.getUnbondedSentTransfers(await this.getFilterRoute())
     if (!dbTransfers.length) {
       return
     }
@@ -113,6 +111,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })
     logger.debug('processing bondWithdrawal')
+    logger.debug('amount:', amount && this.bridge.formatUnits(amount))
+    logger.debug('recipient:', recipient)
+    logger.debug('transferNonce:', transferNonce)
+    logger.debug('bonderFee:', bonderFee && this.bridge.formatUnits(bonderFee))
+
     const sourceL2Bridge = this.bridge as L2Bridge
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       .bridge
@@ -120,8 +123,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
     logger.debug(`processing bondWithdrawal. isTransferSpent: ${isTransferSpent?.toString()}`)
     if (isTransferSpent) {
-      logger.warn('transfer already bonded. Adding to db and skipping')
-      await this.handleTransferSpentTx(transferId, destBridge)
+      logger.warn('checkTransferId already bonded. marking item not found')
+      await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
 
@@ -168,6 +171,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
     })
 
     try {
+      const isBonderFeeOk = await this.getIsBonderFeeOk(transferId, attemptSwap)
+      if (!isBonderFeeOk) {
+        const msg = 'Total bonder fee is too low. Cannot bond withdrawal.'
+        logger.debug(msg)
+        throw new BonderFeeTooLowError(msg)
+      }
+
       const tx = await this.sendBondWithdrawalTx({
         transferId,
         sender,
@@ -228,14 +238,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline
     } = params
     const logger = this.logger.create({ id: transferId })
-
-    logger.debug('amount:', this.bridge.formatUnits(amount))
-    logger.debug('recipient:', recipient)
-    logger.debug('transferNonce:', transferNonce)
-    logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
-
-    await this.checkBonderFee(transferId, attemptSwap)
-
     if (attemptSwap) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
@@ -262,10 +264,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async checkBonderFee (
+  async getIsBonderFeeOk (
     transferId: string,
     attemptSwap: boolean
-  ) {
+  ): Promise<boolean> {
     const logger = this.logger.create({ id: transferId })
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     if (!dbTransfer) {
@@ -273,7 +275,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const { amount, bonderFee, destinationChainId } = dbTransfer
-    const destinationChain = this.chainIdToSlug(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (!amount || !bonderFee || !destinationChainId) {
+      throw new Error('expected complete dbTransfer data')
+    }
+    const destinationChain = this.chainIdToSlug(destinationChainId)
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
     if (!transferSentTimestamp) {
       throw new Error('expected transferSentTimestamp')
@@ -289,6 +294,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
       gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
       minBonderFeeAbsolute = BNMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
+      this.logger.debug('using nearestItemToTransferSent')
     } else if (nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToNow)
       this.logger.warn('nearestItemToTransferSent not found, using only nearestItemToNow')
@@ -299,12 +305,39 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('gasCostInToken:', gasCostInToken?.toString())
     logger.debug('minBonderFeeAbsolute:', minBonderFeeAbsolute?.toString())
 
-    const minBpsFee = await this.bridge.getBonderFeeBps(amount!, minBonderFeeAbsolute) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const minBpsFee = await this.bridge.getBonderFeeBps(destinationChain, amount, minBonderFeeAbsolute)
     const minTxFee = gasCostInToken.div(2)
     const minBonderFeeTotal = minBpsFee.add(minTxFee)
-    const isTooLow = bonderFee!.lt(minBonderFeeTotal) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    if (isTooLow) {
-      throw new BonderFeeTooLowError(`total bonder fee is too low. Cannot bond withdrawal. bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`)
+    const isBonderFeeOk = bonderFee.gte(minBonderFeeTotal)
+    logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, minBpsFee: ${minBpsFee}, isBonderFeeOk: ${isBonderFeeOk}`)
+
+    this.logAdditionalBonderFeeData(bonderFee, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, logger)
+    return isBonderFeeOk
+  }
+
+  logAdditionalBonderFeeData (
+    bonderFee: BigNumber,
+    minBonderFeeTotal: BigNumber,
+    minBpsFee: BigNumber,
+    gasCostInToken: BigNumber,
+    destinationChain: string,
+    logger: Logger
+  ) {
+    // Log how much additional % is being paid
+    const precision = this.bridge.parseEth('1')
+    const bonderFeeOverage = bonderFee.mul(precision).div(minBonderFeeTotal)
+    logger.debug(`dest: ${destinationChain}, bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}`)
+
+    // Log how much additional % is being paid without destination tx fee buffer
+    const minBonderFeeWithoutBuffer = minBpsFee.add(gasCostInToken)
+    const bonderFeeOverageWithoutBuffer = bonderFee.mul(precision).div(minBonderFeeWithoutBuffer)
+    logger.debug(`dest: ${destinationChain}, bonder fee overage (without buffer): ${this.bridge.formatEth(bonderFeeOverageWithoutBuffer)}`)
+
+    const expectedMinBonderFeeOverage = precision
+    if (bonderFeeOverage.lt(expectedMinBonderFeeOverage)) {
+      const msg = `Bonder fee too low. bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`
+      logger.error(msg)
+      this.notifier.error(msg)
     }
   }
 
@@ -313,75 +346,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
   getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
     const availableCredit = this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
     return availableCredit
-  }
-
-  async handleTransferSpentTx (transferId: string, destBridge: any): Promise<void> {
-    const logger: Logger = this.logger.create({ id: transferId })
-    let didFindEvent = await this.checkBondedWithdrawalEvent(transferId, destBridge)
-    if (didFindEvent) {
-      logger.debug('bondWithdrawal event found')
-      return
-    }
-
-    didFindEvent = await this.checkWithdrewEvent(transferId, destBridge)
-    if (didFindEvent) {
-      logger.debug('withdrew event found')
-      return
-    }
-
-    logger.warn('no transfer spent event found')
-  }
-
-  async checkBondedWithdrawalEvent (transferId: string, destBridge: any): Promise<boolean> {
-    const logger: Logger = this.logger.create({ id: transferId })
-    const event = await destBridge.getBondedWithdrawalEvent(transferId)
-    if (event) {
-      const { transactionHash } = event
-      const { from: sender } = await destBridge.getTransaction(transactionHash)
-
-      logger.debug('handling missed WithdrawalBonded event')
-      logger.debug('transferId:', transferId)
-      logger.debug('bonder:', sender)
-
-      await this.db.transfers.update(transferId, {
-        isBondable: true,
-        withdrawalBonded: true,
-        withdrawalBonder: sender,
-        isTransferSpent: true,
-        transferSpentTxHash: transactionHash
-      })
-      return true
-    }
-    return false
-  }
-
-  async checkWithdrewEvent (transferId: string, destBridge: any): Promise<boolean> {
-    const logger: Logger = this.logger.create({ id: transferId })
-    const event = await destBridge.getWithdrewEvent(transferId)
-    if (event) {
-      const {
-        transferId,
-        recipient,
-        amount,
-        transferNonce
-      } = event.args
-      const { transactionHash } = event
-
-      logger.debug('handling missed Withdrew event')
-      logger.debug('transferId:', transferId)
-      logger.debug('transactionHash:', transactionHash)
-      logger.debug('recipient:', recipient)
-      logger.debug('amount:', amount)
-      logger.debug('transferNonce:', transferNonce)
-
-      await this.db.transfers.update(transferId, {
-        isTransferSpent: true,
-        transferSpentTxHash: transactionHash,
-        isBondable: false
-      })
-      return true
-    }
-    return false
   }
 }
 

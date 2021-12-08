@@ -2,7 +2,38 @@ import { Addresses } from './types'
 
 export const addresses: Addresses = {
   bonders: {
-    USDC: ['0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62']
+    USDC: {
+      ethereum: {
+        optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        polygon: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
+      },
+      optimism: {
+        ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        polygon: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
+      },
+      arbitrum: {
+        ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        polygon: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
+      },
+      xdai: {
+        ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        polygon: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
+      },
+      polygon: {
+        ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
+      }
+    }
   },
   bridges: {
     USDC: {
@@ -23,7 +54,6 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x3b507422EBe64440f03BCbE5EEe4bdF76517f320',
         l1Amb: '0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e',
         l2Amb: '0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59',
-        canonicalBridgeMaxPerTx: 1000000000,
         bridgeDeployedBlockNumber: 17055334
       },
       polygon: {

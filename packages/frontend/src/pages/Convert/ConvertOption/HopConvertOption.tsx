@@ -3,7 +3,8 @@ import { Signer, BigNumber, BigNumberish } from 'ethers'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
-import { toTokenDisplay } from 'src/utils'
+import toTokenDisplay from 'src/utils/toTokenDisplay'
+import getBonderFeeWithId from 'src/utils/getBonderFeeWithId'
 import DetailRow from 'src/components/DetailRow'
 
 class HopConvertOption extends ConvertOption {
@@ -32,9 +33,16 @@ class HopConvertOption extends ConvertOption {
     bonderFee?: BigNumberish
   ) {
     const bridge = sdk.bridge(l1TokenSymbol).connect(signer as Signer)
+    if (bonderFee) {
+      bonderFee = getBonderFeeWithId(BigNumber.from(bonderFee))
+    }
+
+    if (sourceNetwork.isLayer1) {
+      bonderFee = BigNumber.from(0)
+    }
 
     return bridge.sendHToken(amountIn, sourceNetwork.slug, destNetwork.slug, {
-      bonderFee,
+      bonderFee
     })
   }
 
@@ -59,24 +67,18 @@ class HopConvertOption extends ConvertOption {
       ? bridge.getCanonicalToken(sourceNetwork?.slug)
       : bridge.getL2HopToken(sourceNetwork?.slug)
 
-    const bonderFee = await bridge.getBonderFee(amountIn, sourceNetwork.slug, destNetwork.slug)
-
-    const amountOutMin = BigNumber.from(0)
-    const deadline = BigNumber.from(0)
-    const destinationTxFee =
-      (await bridge.getDestinationTransactionFee(
-        sourceNetwork.slug,
-        destNetwork.slug
-      )) || BigNumber.from(0)
-
+    const totalFees = await bridge.getTotalFee(amountIn, sourceNetwork.slug, destNetwork.slug)
     const availableLiquidity = await bridge.getFrontendAvailableLiquidity(
       sourceNetwork.slug,
       destNetwork.slug
     )
 
-    const totalFees = bonderFee.add(destinationTxFee)
     let estimatedReceived = amountIn
     let warning
+
+    if (estimatedReceived && totalFees?.gt(estimatedReceived)) {
+      warning = 'Bonder fee greater than estimated received'
+    }
 
     if (!sourceNetwork?.isLayer1 && amountIn.gt(availableLiquidity)) {
       const formattedAmount = toTokenDisplay(availableLiquidity, token.decimals)
@@ -175,7 +177,7 @@ class HopConvertOption extends ConvertOption {
         {totalFees.gt(0) && (
           <DetailRow
             title="L1 Transaction Fee"
-            tooltip="This fee covers the L1 transaction fee paid by the Bonder."
+            tooltip="This fee covers the L1 transaction fee paid by the Bonder when sending to L1."
             value={feeDisplay}
             large
           />

@@ -35,46 +35,46 @@ type Bps = {
 
 const fees: Record<string, Bps> = {
   USDC: {
-    ethereum: 18,
-    polygon: 18,
+    ethereum: 14,
+    polygon: 14,
     xdai: 25,
-    optimism: 18,
-    arbitrum: 18
+    optimism: 14,
+    arbitrum: 14
   },
   USDT: {
-    ethereum: 25,
-    polygon: 25,
-    xdai: 30,
-    optimism: 25,
-    arbitrum: 25
+    ethereum: 23,
+    polygon: 23,
+    xdai: 25,
+    optimism: 23,
+    arbitrum: 23
   },
   DAI: {
-    ethereum: 25,
-    polygon: 25,
-    xdai: 30,
-    optimism: 25,
-    arbitrum: 25
+    ethereum: 23,
+    polygon: 23,
+    xdai: 25,
+    optimism: 23,
+    arbitrum: 23
   },
   MATIC: {
-    ethereum: 25,
-    polygon: 25,
-    xdai: 30,
+    ethereum: 20,
+    polygon: 20,
+    xdai: 25,
     optimism: 0,
     arbitrum: 0
   },
   ETH: {
-    ethereum: 8,
-    polygon: 9,
+    ethereum: 6,
+    polygon: 6,
     xdai: 18,
-    optimism: 9,
-    arbitrum: 9
+    optimism: 6,
+    arbitrum: 6
   },
   WBTC: {
-    ethereum: 25,
-    polygon: 25,
-    xdai: 30,
-    optimism: 25,
-    arbitrum: 25
+    ethereum: 23,
+    polygon: 23,
+    xdai: 25,
+    optimism: 23,
+    arbitrum: 23
   }
 }
 

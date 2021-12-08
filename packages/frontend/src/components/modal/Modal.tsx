@@ -37,7 +37,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     right: 0,
     padding: '2rem',
     display: 'inline-block',
-    color: '#000',
+    color: isDarkMode(theme) ? 'white' : '#000',
     opacity: 0.4,
     fontSize: '2rem',
     fontWeight: 'bold',
@@ -104,16 +104,19 @@ const Modal = forwardRef<HTMLElement, Partial<ActivityDetailsProps>>(function Mo
   const styles = useStyles()
   const { events } = useApp()
   const keypress = events?.keypress
-  const handleClose = useCallback((event: any) => {
-    // clicking on RaisedSelect component in body seems to exit modal,
-    // so this check prevents it
-    if (!event?.key && event?.target?.tagName !== 'DIV') {
-      return
-    }
-    if (onClose) {
-      onClose()
-    }
-  }, [onClose])
+  const handleClose = useCallback(
+    (event: any) => {
+      // clicking on RaisedSelect component in body seems to exit modal,
+      // so this check prevents it
+      if (!event?.key && event?.target?.tagName !== 'DIV') {
+        return
+      }
+      if (onClose) {
+        onClose()
+      }
+    },
+    [onClose]
+  )
 
   useEffect(() => {
     keypress?.on('escape', handleClose)

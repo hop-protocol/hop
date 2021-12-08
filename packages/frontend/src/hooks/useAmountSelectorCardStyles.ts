@@ -8,6 +8,7 @@ export const useAmountSelectorCardStyles = makeStyles(theme => ({
       width: 'auto',
     },
     boxShadow: theme.boxShadow.inner,
+    transition: 'all 0.15s ease-out',
   },
   topRow: {
     marginBottom: '1.8rem',
@@ -16,6 +17,7 @@ export const useAmountSelectorCardStyles = makeStyles(theme => ({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
+    transition: 'all 0.15s ease-out',
   },
   networkLabel: {
     display: 'flex',

@@ -15,6 +15,11 @@ import { isDarkMode } from './theme/theme'
 const useStyles = makeStyles(theme => ({
   app: {
     backgroundColor: theme.palette.background.default,
+    backgroundPositionY: '50px',
+    background: isDarkMode(theme) ? `url(${bgImageDark})` : `url(${bgImage})`,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    transition: 'all 0.15s ease-out'
   },
   content: {
     padding: '2.5rem',
@@ -22,33 +27,26 @@ const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       padding: '2.2rem',
     },
+    transition: 'all 0.15s ease-out'
   },
 }))
-
-const Circles = styled.div<any>`
-  background: ${({ mode }: any) => (isDarkMode(mode) ? `url(${bgImageDark})` : `url(${bgImage})`)};
-  background-repeat: repeat-y;
-  background-size: cover;
-`
 
 function App() {
   const theme = useTheme()
   const styles = useStyles()
 
   return (
-    <Box display="flex" flexDirection="column" className={styles.app}>
-      <Circles mode={theme.palette.type}>
-        <Box display="flex" flexDirection="column" minHeight="100vh">
-          <Header />
-          <AccountDetails />
-          <div className={styles.content}>
-            <AppRoutes />
-          </div>
-          <TxConfirm />
-          <Footer />
-        </Box>
-      </Circles>
-    </Box>
+    <>
+      <Box display="flex" flexDirection="column" minHeight="100vh" className={styles.app}>
+        <Header />
+        <AccountDetails />
+        <div className={styles.content}>
+          <AppRoutes />
+        </div>
+        <TxConfirm />
+        <Footer />
+      </Box>
+    </>
   )
 }
 

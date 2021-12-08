@@ -5,6 +5,7 @@ export const useNetworkSelectorStyles = makeStyles(theme => ({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
+    transition: 'all 0.15s ease-out',
   },
   networkLabel: {
     display: 'flex',

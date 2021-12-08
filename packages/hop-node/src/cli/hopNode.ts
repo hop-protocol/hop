@@ -1,5 +1,4 @@
 import OsWatcher from 'src/watchers/OsWatcher'
-import arbbots from 'src/arb-bot/bots'
 import clearDb from 'src/db/clearDb'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import { Chain } from 'src/constants'
@@ -163,14 +162,6 @@ program
         s3Upload,
         s3Namespace
       })
-      if (config?.roles?.arbBot) {
-        const maxTradeAmount = 0
-        const minThreshold = 0
-        arbbots.start({
-          maxTradeAmount,
-          minThreshold
-        })
-      }
 
       if (config?.routes) {
         for (const sourceChain in config?.routes) {

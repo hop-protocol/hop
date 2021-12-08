@@ -23,13 +23,13 @@ type Config = {
   dryMode?: boolean
 }
 
-export const getL1Amb = (token: string) => {
+const getL1Amb = (token: string) => {
   const l1Wallet = wallets.get(Chain.Ethereum)
   const l1AmbAddress = globalConfig.tokens[token].xdai.l1Amb
   return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1XDaiAMB
 }
 
-export const getL2Amb = (token: string) => {
+const getL2Amb = (token: string) => {
   const l2xDaiProvider = wallets.get(Chain.xDai).provider
   const l2AmbAddress = globalConfig.tokens[token].xdai.l2Amb
   return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2XDaiAMB
@@ -158,69 +158,9 @@ export default xDaiBridgeWatcher
 const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires
 const { toHex, numberToHex, padLeft } = require('web3-utils') // eslint-disable-line @typescript-eslint/no-var-requires
 
-export const strip0x = (value: string) => value.replace(/^0x/i, '')
+const strip0x = (value: string) => value.replace(/^0x/i, '')
 
-export function createMessage ({
-  recipient,
-  value,
-  transactionHash,
-  bridgeAddress,
-  expectedMessageLength
-}: any) {
-  recipient = strip0x(recipient)
-  assert.strictEqual(recipient.length, 20 * 2)
-
-  value = numberToHex(value)
-  value = padLeft(value, 32 * 2)
-
-  value = strip0x(value)
-  assert.strictEqual(value.length, 64)
-
-  transactionHash = strip0x(transactionHash)
-  assert.strictEqual(transactionHash.length, 32 * 2)
-
-  bridgeAddress = strip0x(bridgeAddress)
-  assert.strictEqual(bridgeAddress.length, 20 * 2)
-
-  const message = `0x${recipient}${value}${transactionHash}${bridgeAddress}`
-  assert.strictEqual(message.length, 2 + 2 * expectedMessageLength)
-  return message
-}
-
-export function parseMessage (message: any) {
-  message = strip0x(message)
-
-  const recipientStart = 0
-  const recipientLength = 40
-  const recipient = `0x${message.slice(
-    recipientStart,
-    recipientStart + recipientLength
-  )}`
-
-  const amountStart = recipientStart + recipientLength
-  const amountLength = 32 * 2
-  const amount = `0x${message.slice(amountStart, amountStart + amountLength)}`
-
-  const txHashStart = amountStart + amountLength
-  const txHashLength = 32 * 2
-  const txHash = `0x${message.slice(txHashStart, txHashStart + txHashLength)}`
-
-  const contractAddressStart = txHashStart + txHashLength
-  const contractAddressLength = 32 * 2
-  const contractAddress = `0x${message.slice(
-    contractAddressStart,
-    contractAddressStart + contractAddressLength
-  )}`
-
-  return {
-    recipient,
-    amount,
-    txHash,
-    contractAddress
-  }
-}
-
-export function signatureToVRS (rawSignature: any) {
+function signatureToVRS (rawSignature: any) {
   const signature = strip0x(rawSignature)
   assert.strictEqual(signature.length, 2 + 32 * 2 + 32 * 2)
   const v = signature.substr(64 * 2)
@@ -229,7 +169,7 @@ export function signatureToVRS (rawSignature: any) {
   return { v, r, s }
 }
 
-export function packSignatures (array: any[]) {
+function packSignatures (array: any[]) {
   const length = strip0x(toHex(array.length))
   const msgLength = length.length === 1 ? `0${length}` : length
   let v = ''
@@ -241,40 +181,4 @@ export function packSignatures (array: any[]) {
     s = s.concat(e.s)
   })
   return `0x${msgLength}${v}${r}${s}`
-}
-
-export function parseAMBHeader (message: any) {
-  message = strip0x(message)
-
-  const messageIdStart = 0
-  const messageIdLength = 32 * 2
-  const messageId = `0x${message.slice(
-    messageIdStart,
-    messageIdStart + messageIdLength
-  )}`
-
-  const senderStart = messageIdStart + messageIdLength
-  const senderLength = 20 * 2
-  const sender = `0x${message.slice(senderStart, senderStart + senderLength)}`
-
-  const executorStart = senderStart + senderLength
-  const executorLength = 20 * 2
-  const executor = `0x${message.slice(
-    executorStart,
-    executorStart + executorLength
-  )}`
-
-  const gasLimitStart = executorStart + executorLength
-  const gasLimitLength = 4 * 2
-  const gasLimit = parseInt(
-    message.slice(gasLimitStart, gasLimitStart + gasLimitLength),
-    16
-  )
-
-  return {
-    messageId,
-    sender,
-    executor,
-    gasLimit
-  }
 }

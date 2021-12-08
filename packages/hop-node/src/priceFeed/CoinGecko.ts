@@ -4,7 +4,7 @@ import wait from 'src/utils/wait'
 import { constants } from 'ethers'
 import { getAddress } from 'ethers/lib/utils'
 
-export type IResult = {
+type IResult = {
   id: string
   symbol: string
   name: string

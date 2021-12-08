@@ -120,7 +120,7 @@ function getToken (address: string, provider: any) {
   )
 }
 
-export type Config = {
+type Config = {
   chain: string
   fromToken: string
   toToken: string

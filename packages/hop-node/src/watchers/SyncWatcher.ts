@@ -58,6 +58,7 @@ class SyncWatcher extends BaseWatcher {
   private lastCalculated: { [destinationChain: string]: number } = {}
   s3Upload: S3Upload
   s3Namespace: S3Upload
+  bonderCreditPollerIncrementer: number = 0
 
   constructor (config: Config) {
     super({
@@ -357,7 +358,22 @@ class SyncWatcher extends BaseWatcher {
     // these must come after db is done syncing,
     // and syncAvailableCredit must be last
     await Promise.all(promises)
-      .then(async () => await this.syncUnbondedTransferRootAmounts())
+      .then(async () => await this.syncBonderCredit())
+  }
+
+  async syncBonderCredit() {
+    this.bonderCreditPollerIncrementer++
+    const bonderCreditSyncInterval = 10
+    // Don't check the 0 remainder so that the bonder has a valid credit immediately on startup
+    const shouldSync = this.bonderCreditPollerIncrementer % bonderCreditSyncInterval === 1
+
+    // When not uploading to S3, only sync on certain poll intervals
+    if (!this.s3Upload && !shouldSync) {
+      return
+    }
+
+    this.logger.debug('syncing bonder credit')
+    await this.syncUnbondedTransferRootAmounts()
       .then(async () => await this.syncPendingAmounts())
       .then(async () => await this.syncAvailableCredit())
   }

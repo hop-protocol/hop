@@ -216,14 +216,14 @@ export async function getWatchers (config: GetWatchersConfig) {
 
 export async function startWatchers (config: GetWatchersConfig) {
   const watchers = await getWatchers(config)
-  watchers.forEach(async (watcher: Watcher) => watcher.start())
+  const starts = watchers.map(async (watcher: Watcher) => watcher.start())
   const stop = () => {
     return watchers.map(async (watcher: Watcher) => {
       return await watcher.stop()
     })
   }
 
-  return { stop, watchers }
+  return { starts, stop, watchers }
 }
 
 export function startChallengeWatchers (config: GetChallengeWatchersConfig) {

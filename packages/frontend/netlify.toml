@@ -8,7 +8,7 @@
   to = "/451.html"
   status = 451
   force = true
-  conditions = {Country=["BY","CU","IR","IQ","CI","LR","KP","SD","SY","ZW"]}
+  conditions = {Country=["BY","BI","CF","CI","CU","CD","ET","IR","IQ","KP","LB","LR","LY","MM","NI","SO","SS","SD","SY","VE","YE","ZW"]}
 
 [[redirects]]
   from = "/*"
@@ -23,4 +23,4 @@
     Referrer-Policy = "no-referrer"
     X-Content-Type-Options = "nosniff"
     Strict-Transport-Security = "max-age=15780000; includeSubDomains; preload"
-    Feature-Policy = "geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none'; speaker-selection 'none'; fullscreen 'none'; payment 'none'"
+    Feature-Policy = "geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none'; fullscreen 'none'; payment 'none'"

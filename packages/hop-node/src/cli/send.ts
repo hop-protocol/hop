@@ -21,11 +21,11 @@ root
   .option('--token <symbol>', 'Token', parseString)
   .option('--amount <number>', 'Amount (in human readable format)', parseNumber)
   .option('--recipient <address>', 'Recipient to send tokens to', parseString)
-  .option('--htoken', 'Send hTokens', parseBool)
-  .option('--native', 'Send the native token', parseBool)
-  .option('--self', 'Send to self and reset nonce', parseBool)
+  .option('--htoken [boolean]', 'Send hTokens', parseBool)
+  .option('--native [boolean]', 'Send the native token', parseBool)
+  .option('--self [boolean]', 'Send to self and reset nonce', parseBool)
   .option('--gas-price <price>', 'Gas price to use', parseString)
-  .option('--max', 'Use max tokens instead of specific amount', parseBool)
+  .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {

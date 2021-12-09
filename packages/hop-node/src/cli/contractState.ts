@@ -6,10 +6,10 @@ root
   .command('contract-state')
   .description('Print contract state')
   .option('--token <symbol>', 'Token symbol', parseString)
-  .option('--l1bridge', 'Show L1 Bridge state', parseBool)
-  .option('--l2bridge', 'Show L2 Bridge state', parseBool)
-  .option('--l2amm', 'Show L2 AMM state', parseBool)
-  .option('--l2ammwrapper', 'Show L2 AMM wrapper state', parseBool)
+  .option('--l1bridge [boolean]', 'Show L1 Bridge state', parseBool)
+  .option('--l2bridge [boolean]', 'Show L2 Bridge state', parseBool)
+  .option('--l2amm [boolean]', 'Show L2 AMM state', parseBool)
+  .option('--l2ammwrapper [boolean]', 'Show L2 AMM wrapper state', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {

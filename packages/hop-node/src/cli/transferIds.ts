@@ -8,7 +8,7 @@ root
   .description('Get recent transfer IDs or transfer IDs for transfer root hash')
   .option('--chain <slug>', 'Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
-  .option('--info', 'Show transfer ID info', parseBool)
+  .option('--info [boolean]', 'Show transfer ID info', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {

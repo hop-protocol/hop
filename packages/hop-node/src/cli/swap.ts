@@ -17,7 +17,7 @@ root
   .option('--from <symbol>', 'From token', parseString)
   .option('--to <symbol>', 'To token', parseString)
   .option('--amount <number>', 'From token amount', parseNumber)
-  .option('--max', 'Use max tokens instead of specific amount', parseBool)
+  .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
   .option('--deadline <seconds>', 'Deadline in seconds', parseNumber)
   .option('--slippage <number>', 'Slippage tolerance. E.g. 0.5', parseNumber)
   .option('--recipient <address>', 'Recipient', parseString)

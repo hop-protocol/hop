@@ -12,7 +12,7 @@ root
   .option('--token <slug>', 'Token', parseString)
   .option('--transfer-id <id>', 'Transfer ID', parseString)
   .option(
-    '--dry',
+    '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
     parseBool
   )

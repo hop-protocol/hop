@@ -1124,13 +1124,12 @@ class SyncWatcher extends BaseWatcher {
   }
 
   private async updateAvailableCreditMap (destinationChainId: number) {
-    const availableCredit = await this.calculateAvailableCredit(destinationChainId)
     const destinationChain = this.chainIdToSlug(destinationChainId)
+    const bonder = this.bridge.getConfigBonderAddress(destinationChain)
+    const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
 
     if (this.s3Upload) {
-      const bonder = this.bridge.getConfigBonderAddress(destinationChain)
-      const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
       this.s3AvailableCredit[destinationChain] = availableCredit
     }
   }

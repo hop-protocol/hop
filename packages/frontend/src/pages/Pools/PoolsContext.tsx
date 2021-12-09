@@ -779,6 +779,10 @@ const PoolsContextProvider: FC = ({ children }) => {
               amount1Min
             })
 
+            if (liquidityTokenAmount.eq(0)) {
+              throw new Error('calculation error: liquidityTokenAmount cannot be 0')
+            }
+
             return bridge
               .connect(signer as Signer)
               .removeLiquidity(liquidityTokenAmount, selectedNetwork.slug, {
@@ -787,11 +791,13 @@ const PoolsContextProvider: FC = ({ children }) => {
                 deadline: deadline(),
               })
           } else {
-            let liquidityTokenAmount = await amm.calculateRemoveLiquidityOneToken(amount, tokenIndex)
-            if (liquidityTokenAmount.gt(balance)) {
-              liquidityTokenAmount = balance
+            const amount18d = shiftBNDecimals(amount, lpTokenDecimals - canonicalToken.decimals)
+            let tokenAmount = await amm.calculateRemoveLiquidityOneToken(amount18d, tokenIndex)
+            tokenAmount = shiftBNDecimals(tokenAmount, lpTokenDecimals - canonicalToken.decimals)
+            if (tokenAmount.gt(balance)) {
+              tokenAmount = balance
             }
-            const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
+            const liquidityTokenAmountWithSlippage = tokenAmount.mul(minBps).div(10000)
             const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
               liquidityTokenAmountWithSlippage
             )
@@ -801,14 +807,18 @@ const PoolsContextProvider: FC = ({ children }) => {
               balance,
               amount,
               tokenIndex,
-              liquidityTokenAmount,
+              tokenAmount,
               liquidityTokenAmountWithSlippage,
               amountMin
             })
 
+            if (tokenAmount.eq(0)) {
+              throw new Error('calculation error: tokenAmount cannot be 0')
+            }
+
             return bridge
               .connect(signer as Signer)
-              .removeLiquidityOneToken(liquidityTokenAmount, tokenIndex, selectedNetwork.slug, {
+              .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork.slug, {
                 amountMin: amountMin,
                 deadline: deadline(),
               })

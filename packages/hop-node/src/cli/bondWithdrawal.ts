@@ -3,67 +3,49 @@ import {
   findWatcher,
   getWatchers
 } from 'src/watchers/watchers'
-import {
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from 'src/config'
 
-import { logger, program } from './shared'
+import { actionHandler, parseBool, parseString, root } from './shared'
 
-program
+root
   .command('bond-withdrawal')
   .description('Bond withdrawal')
-  .option('--config <string>', 'Config file to use.')
-  .option('--env <string>', 'Environment variables file')
-  .option('--source-chain <string>', 'Source chain')
-  .option('--token <string>', 'Token')
-  .option('--transfer-id <string>', 'Transfer ID')
+  .option('--source-chain <slug>', 'Source chain', parseString)
+  .option('--token <symbol>', 'Token', parseString)
+  .option('--transfer-id <id>', 'Transfer ID', parseString)
   .option(
-    '-d, --dry',
-    'Start in dry mode. If enabled, no transactions will be sent.'
+    '--dry',
+    'Start in dry mode. If enabled, no transactions will be sent.',
+    parseBool
   )
-  .action(async source => {
-    try {
-      const configPath = source?.config || source?.parent?.config
-      if (configPath) {
-        const config = await parseConfigFile(configPath)
-        await setGlobalConfigFromConfigFile(config)
-      }
-      const chain = source.sourceChain
-      const token = source.token
-      const transferId = source.transferId
-      const dryMode = !!source.dry
-      if (!chain) {
-        throw new Error('chain is required')
-      }
-      if (!token) {
-        throw new Error('token is required')
-      }
-      if (!transferId) {
-        throw new Error('transfer ID is required')
-      }
+  .action(actionHandler(main))
 
-      const watchers = await getWatchers({
-        enabledWatchers: ['bondWithdrawal'],
-        tokens: [token],
-        dryMode
-      })
+async function main (source: any) {
+  const { config, sourceChain: chain, token, dry: dryMode, transferId } = source
+  if (!chain) {
+    throw new Error('chain is required')
+  }
+  if (!token) {
+    throw new Error('token is required')
+  }
+  if (!transferId) {
+    throw new Error('transfer ID is required')
+  }
 
-      const watcher = findWatcher(watchers, BondWithdrawalWatcher, chain) as BondWithdrawalWatcher
-      if (!watcher) {
-        throw new Error('watcher not found')
-      }
-
-      const dbTransfer: any = await watcher.db.transfers.getByTransferId(transferId)
-      if (!dbTransfer) {
-        throw new Error('TransferId does not exist in the DB')
-      }
-      dbTransfer.attemptSwap = watcher.bridge.shouldAttemptSwap(dbTransfer.amountOutMin, dbTransfer.deadline)
-      await watcher.sendBondWithdrawalTx(dbTransfer)
-
-      process.exit(0)
-    } catch (err) {
-      logger.error(err)
-      process.exit(1)
-    }
+  const watchers = await getWatchers({
+    enabledWatchers: ['bondWithdrawal'],
+    tokens: [token],
+    dryMode
   })
+
+  const watcher = findWatcher(watchers, BondWithdrawalWatcher, chain) as BondWithdrawalWatcher
+  if (!watcher) {
+    throw new Error('watcher not found')
+  }
+
+  const dbTransfer: any = await watcher.db.transfers.getByTransferId(transferId)
+  if (!dbTransfer) {
+    throw new Error('TransferId does not exist in the DB')
+  }
+  dbTransfer.attemptSwap = watcher.bridge.shouldAttemptSwap(dbTransfer.amountOutMin, dbTransfer.deadline)
+  await watcher.sendBondWithdrawalTx(dbTransfer)
+}

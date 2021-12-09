@@ -1,6 +1,6 @@
 import BaseDb from './BaseDb'
 
-export type State = {
+type State = {
   key: string
 }
 

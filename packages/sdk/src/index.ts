@@ -1,5 +1,3 @@
-import * as utils from './utils'
-
 export { default as Hop } from './Hop'
 export { default as HopBridge } from './HopBridge'
 export { default as CanonicalBridge } from './CanonicalBridge'
@@ -11,4 +9,3 @@ export { Route } from './models'
 export { TokenAmount, Token as TokenModel } from './models'
 export * from './types'
 export { eventTopics } from './constants'
-export { utils }

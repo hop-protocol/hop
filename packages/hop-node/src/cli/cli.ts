@@ -1,10 +1,9 @@
 import '../moduleAlias'
 import Logger from 'src/logger'
+import packageJson from '../../package.json'
 import { program } from './shared'
 
-import './arbBot'
 import './bondWithdrawal'
-import './bonder'
 import './challenger'
 import './commitTransfers'
 import './contractState'
@@ -13,10 +12,8 @@ import './exitCommitTx'
 import './hopNode'
 import './incompleteSettlements'
 import './keystores'
-import './loadTest'
 import './logs'
 import './pendingTransfers'
-import './polygonBridge'
 import './send'
 import './settle'
 import './showConfig'
@@ -34,8 +31,8 @@ import './unbondedTransferRoots'
 import './unstake'
 import './updateConfig'
 import './withdrawalProof'
-import './xdaiBridge'
 
+program.version(packageJson.version)
 program.parse(process.argv)
 
 const logger = new Logger('process')

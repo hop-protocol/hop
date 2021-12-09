@@ -6,11 +6,6 @@ import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs, T
 import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
-export type TransferRootsDateFilter = {
-  fromUnix?: number
-  toUnix?: number
-}
-
 export type TransferRoot = {
   transferRootId?: string
   transferRootHash?: string
@@ -47,7 +42,12 @@ export type TransferRoot = {
   isNotFound?: boolean
 }
 
-export type GetItemsFilter = Partial<TransferRoot> & {
+type TransferRootsDateFilter = {
+  fromUnix?: number
+  toUnix?: number
+}
+
+type GetItemsFilter = Partial<TransferRoot> & {
   destinationChainIds?: number[]
 }
 

@@ -18,24 +18,21 @@ function CustomRecipientDropdown(props) {
           <span>Options</span>
         </Typography>
       </summary>
-      <div>
-        <div className={styles.customRecipient}>
-          <Card>
-            <Typography variant="body1" className={styles.customRecipientLabel}>
-              Custom recipient
-            </Typography>
-            <LargeTextField
-              style={{
-                width: '100%',
-              }}
-              leftAlign
-              value={customRecipient}
-              onChange={handleCustomRecipientInput}
-              placeholder="0x"
-            />
-          </Card>
-        </div>
-      </div>
+
+      <Card className={styles.customRecipient}>
+        <Typography variant="body1" className={styles.customRecipientLabel}>
+          Custom recipient
+        </Typography>
+        <LargeTextField
+          style={{
+            width: '100%',
+          }}
+          leftAlign
+          value={customRecipient}
+          onChange={handleCustomRecipientInput}
+          placeholder="0x"
+        />
+      </Card>
     </details>
   )
 }

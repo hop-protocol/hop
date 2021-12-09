@@ -3,7 +3,7 @@ import EventEmitter from 'eventemitter3'
 import HopBridge from '../HopBridge'
 import { Chain, Token } from '../models'
 import { TChain, TProvider, TToken } from '../types'
-import { wait } from '../utils'
+import wait from '../utils/wait'
 
 /**
  * @desc Event types for transaction watcher.
@@ -14,7 +14,7 @@ export enum Event {
   DestinationTxReceipt = 'destinationTxReceipt'
 }
 
-export type WatchOptions = {
+type WatchOptions = {
   destinationHeadBlockNumber?: number
 }
 

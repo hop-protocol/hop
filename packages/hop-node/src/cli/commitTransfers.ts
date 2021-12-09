@@ -1,62 +1,45 @@
 import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import { actionHandler, parseBool, parseString, root } from './shared'
 import { findWatcher, getWatchers } from 'src/watchers/watchers'
-import { logger, program } from './shared'
-import {
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from 'src/config'
 
-program
+root
   .command('commit-transfers')
   .description('Start the relayer watcher')
-  .option('--config <string>', 'Config file to use.')
-  .option('--env <string>', 'Environment variables file')
-  .option('--source-chain <string>', 'Source chain')
-  .option('--destination-chain <string>', 'Destination chain')
-  .option('--token <string>', 'Token')
-  .option('--transfer-id <string>', 'Transfer ID')
+  .option('--source-chain <slug>', 'Source chain', parseString)
+  .option('--destination-chain <slug>', 'Destination chain', parseString)
+  .option('--token <symbol>', 'Token', parseString)
+  .option('--transfer-id <id>', 'Transfer ID', parseString)
   .option(
-    '-d, --dry',
-    'Start in dry mode. If enabled, no transactions will be sent.'
+    '--dry',
+    'Start in dry mode. If enabled, no transactions will be sent.',
+    parseBool
   )
-  .action(async (source: any) => {
-    try {
-      const configPath = source?.config || source?.parent?.config
-      if (configPath) {
-        const config = await parseConfigFile(configPath)
-        await setGlobalConfigFromConfigFile(config)
-      }
+  .action(actionHandler(main))
 
-      const sourceChain = source.sourceChain
-      const destinationChain = source.destinationChain
-      const token = source.token
-      const dryMode = !!source.dry
-      if (!sourceChain) {
-        throw new Error('source chain is required')
-      }
-      if (!destinationChain) {
-        throw new Error('destination chain is required')
-      }
-      if (!token) {
-        throw new Error('token is required')
-      }
+async function main (source: any) {
+  const { config, sourceChain, destinationChain, token, dry: dryMode } = source
+  if (!sourceChain) {
+    throw new Error('source chain is required')
+  }
+  if (!destinationChain) {
+    throw new Error('destination chain is required')
+  }
+  if (!token) {
+    throw new Error('token is required')
+  }
 
-      const watchers = await getWatchers({
-        enabledWatchers: ['commitTransfers'],
-        tokens: [token],
-        dryMode
-      })
-
-      const watcher = findWatcher(watchers, CommitTransfersWatcher, sourceChain) as CommitTransfersWatcher
-      if (!watcher) {
-        throw new Error('watcher not found')
-      }
-
-      const destinationChainId = chainSlugToId(destinationChain)
-      await watcher.checkIfShouldCommit(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    } catch (err) {
-      logger.error(err)
-      process.exit(1)
-    }
+  const watchers = await getWatchers({
+    enabledWatchers: ['commitTransfers'],
+    tokens: [token],
+    dryMode
   })
+
+  const watcher = findWatcher(watchers, CommitTransfersWatcher, sourceChain) as CommitTransfersWatcher
+  if (!watcher) {
+    throw new Error('watcher not found')
+  }
+
+  const destinationChainId = chainSlugToId(destinationChain)
+  await watcher.checkIfShouldCommit(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+}

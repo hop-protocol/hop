@@ -6,15 +6,50 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import wait from 'src/utils/wait'
 import { BigNumber, constants } from 'ethers'
 import { Chain } from 'src/constants'
+import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import {
   findWatcher,
   getWatchers
 } from 'src/watchers/watchers'
-import { logger, program } from './shared'
-import {
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from 'src/config'
+
+root
+  .command('stake')
+  .description('Stake amount')
+  .option('--chain <slug>', 'Chain', parseString)
+  .option('--token <symbol>', 'Token', parseString)
+  .option('--amount <number>', 'Amount (in human readable format)', parseNumber)
+  .option('--skip-send-to-l2 <boolean>', 'Stake hTokens that already exist on L2', parseBool)
+  .action(actionHandler(main))
+
+async function main (source: any) {
+  const { chain, token, amount, skipSendToL2 } = source
+
+  if (!amount) {
+    throw new Error('amount is required. E.g. 100')
+  }
+  if (!chain) {
+    throw new Error('chain is required')
+  }
+  const bridge: L2Bridge | L1Bridge = await getBridge(token, chain)
+  const parsedAmount: BigNumber = bridge.parseUnits(amount)
+
+  const isBonder = await bridge.isBonder()
+  if (!isBonder) {
+    throw new Error('Not a valid bonder on the stake chain')
+  }
+
+  const isStakeOnL2 = chain !== Chain.Ethereum
+  const shouldSendToL2 = isStakeOnL2 && !skipSendToL2
+  if (shouldSendToL2) {
+    const l1Bridge: L1Bridge = (await getBridge(token, Chain.Ethereum)) as L1Bridge
+    await sendTokensToL2(l1Bridge, parsedAmount, chain)
+    logger.debug('Tokens sent to L2. Waiting for receipt on L2.')
+    await pollConvertTxReceive(bridge as L2Bridge, parsedAmount)
+    logger.debug('Tokens received on L2.')
+  }
+
+  await stake(bridge, parsedAmount)
+}
 
 async function sendTokensToL2 (
   bridge: L1Bridge,
@@ -134,56 +169,3 @@ async function getBridge (token: string, chain: string): Promise<L2Bridge | L1Br
 
   return watcher.bridge
 }
-
-program
-  .command('stake')
-  .description('Stake amount')
-  .option('--config <string>', 'Config file to use.')
-  .option('--env <string>', 'Environment variables file')
-  .option('-c, --chain <string>', 'Chain')
-  .option('-t, --token <string>', 'Token')
-  .option('-a, --amount <number>', 'Amount (in human readable format)')
-  .option('-s, --skip-send-to-l2 <boolean>', 'Stake hTokens that already exist on L2')
-  .action(async source => {
-    try {
-      const configPath = source?.config || source?.parent?.config
-      if (configPath) {
-        const config = await parseConfigFile(configPath)
-        await setGlobalConfigFromConfigFile(config)
-      }
-      const chain = source.chain
-      const token = source.token
-      const amount = Number(source.args[0] || source.amount)
-      const skipSendToL2 = source.skipSendToL2
-
-      if (!amount) {
-        throw new Error('amount is required. E.g. 100')
-      }
-      if (!chain) {
-        throw new Error('chain is required')
-      }
-      const bridge: L2Bridge | L1Bridge = await getBridge(token, chain)
-      const parsedAmount: BigNumber = bridge.parseUnits(amount)
-
-      const isBonder = await bridge.isBonder()
-      if (!isBonder) {
-        throw new Error('Not a valid bonder on the stake chain')
-      }
-
-      const isStakeOnL2 = chain !== Chain.Ethereum
-      const shouldSendToL2 = isStakeOnL2 && !skipSendToL2
-      if (shouldSendToL2) {
-        const l1Bridge: L1Bridge = (await getBridge(token, Chain.Ethereum)) as L1Bridge
-        await sendTokensToL2(l1Bridge, parsedAmount, chain)
-        logger.debug('Tokens sent to L2. Waiting for receipt on L2.')
-        await pollConvertTxReceive(bridge as L2Bridge, parsedAmount)
-        logger.debug('Tokens received on L2.')
-      }
-
-      await stake(bridge, parsedAmount)
-      process.exit(0)
-    } catch (err) {
-      logger.error(err)
-      process.exit(1)
-    }
-  })

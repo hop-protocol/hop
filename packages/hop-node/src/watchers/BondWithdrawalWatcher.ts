@@ -12,7 +12,7 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { TxError } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
-export type Config = {
+type Config = {
   chainSlug: string
   tokenSymbol: string
   isL1: boolean

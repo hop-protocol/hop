@@ -3,16 +3,38 @@ import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
 import { Chain } from 'src/constants'
+import { actionHandler, logger, parseString, root } from './shared'
 import { constants } from 'ethers'
 import {
   findWatcher,
   getWatchers
 } from 'src/watchers/watchers'
-import { logger, program } from './shared'
-import {
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from 'src/config'
+
+root
+  .command('stake-status')
+  .description('Stake status')
+  .option('--chain <slug>', 'Chain', parseString)
+  .option('--token <symbol>', 'Token', parseString)
+  .action(actionHandler(main))
+
+async function main (source: any) {
+  const { chain, token } = source
+
+  // Arbitrary watcher since only the bridge is needed
+  const watchers = await getWatchers({
+    enabledWatchers: ['bondWithdrawal'],
+    tokens: [token],
+    dryMode: false
+  })
+
+  const watcher = findWatcher(watchers, BondWithdrawalWatcher, chain) as BondWithdrawalWatcher
+  if (!watcher) {
+    throw new Error('Watcher not found')
+  }
+
+  const bridge: L2Bridge | L1Bridge = watcher.bridge
+  await printAmounts(bridge)
+}
 
 async function printAmounts (bridge: L2Bridge | L1Bridge) {
   const bonderAddress = await bridge.getBonderAddress()
@@ -57,41 +79,3 @@ async function getTokenAllowance (bridge: L2Bridge | L1Bridge) {
   const token: Token = (await getToken(bridge)) as Token
   return await token.getAllowance(spender)
 }
-
-program
-  .command('stake-status')
-  .description('Stake status')
-  .option('--config <string>', 'Config file to use.')
-  .option('--env <string>', 'Environment variables file')
-  .option('-c, --chain <string>', 'Chain')
-  .option('-t, --token <string>', 'Token')
-  .action(async source => {
-    try {
-      const configPath = source?.config || source?.parent?.config
-      if (configPath) {
-        const config = await parseConfigFile(configPath)
-        await setGlobalConfigFromConfigFile(config)
-      }
-      const chain = source.chain
-      const token = source.token
-
-      // Arbitrary watcher since only the bridge is needed
-      const watchers = await getWatchers({
-        enabledWatchers: ['bondWithdrawal'],
-        tokens: [token],
-        dryMode: false
-      })
-
-      const watcher = findWatcher(watchers, BondWithdrawalWatcher, chain) as BondWithdrawalWatcher
-      if (!watcher) {
-        throw new Error('Watcher not found')
-      }
-
-      const bridge: L2Bridge | L1Bridge = watcher.bridge
-      await printAmounts(bridge)
-      process.exit(0)
-    } catch (err) {
-      logger.error(err)
-      process.exit(1)
-    }
-  })

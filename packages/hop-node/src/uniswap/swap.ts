@@ -120,7 +120,7 @@ function getToken (address: string, provider: any) {
   )
 }
 
-export type Config = {
+type Config = {
   chain: string
   fromToken: string
   toToken: string
@@ -231,7 +231,7 @@ export async function swap (config: Config) {
 
   const slippageTolerance = new Percent((slippage ?? 1) * 100, 10000)
   recipient = recipient ?? sender
-  deadline = (Date.now() / 1000 + (deadline ?? 300)) | 0
+  deadline = (Date.now() / 1000 + (deadline || 300)) | 0 // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
 
   const { calldata, value } = SwapRouter.swapCallParameters(trade, {
     slippageTolerance,

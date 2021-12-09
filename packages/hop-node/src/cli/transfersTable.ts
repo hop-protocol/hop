@@ -1,136 +1,117 @@
 import chalk from 'chalk'
 import getTransfer from 'src/theGraph/getTransfer'
 import getTransfers from 'src/theGraph/getTransfers'
-import { logger, program } from './shared'
-import {
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from 'src/config'
+import { actionHandler, parseBool, parseString, root } from './shared'
 
-program
+root
   .command('transfers-table')
   .description('Get unsettled transfers')
-  .option('--config <string>', 'Config file to use.')
-  .option('--env <string>', 'Environment variables file')
-  .option('--chain <string>', 'Chain')
-  .option('--token <string>', 'Token')
-  .option('--unbonded', 'Return only unbonded transfers')
-  .option('--uncommitted', 'Return only uncommitted transfers')
-  .option('--unconfirmed', 'Return only unconfirmed transfers')
-  .option('--confirmed', 'Return only confirmed transfers')
-  .option('--unsettled', 'Return only unsettled transfers')
-  .option('--transfer-id <string>', 'Transfer ID')
-  .option('--from-date <string>', 'Start date in ISO format')
-  .option('--to-date <string>', 'End date in ISO format')
-  .option('--order <string>', 'Order direction. Options are "desc", "asc"')
-  .action(async (source: any) => {
-    try {
-      const configPath = source?.config || source?.parent?.config
-      if (configPath) {
-        const config = await parseConfigFile(configPath)
-        await setGlobalConfigFromConfigFile(config)
-      }
-      const chain = source.chain
-      const token = source.token
-      const transferId = source.transferId
-      const orderDirection = source.order
-      const startDate = source.fromDate
-      const endDate = source.toDate
-      const filters = {
-        unbonded: !!source.unbonded,
-        uncommitted: !!source.uncommitted,
-        unconfirmed: !!source.unconfirmed,
-        unsettled: !!source.unsettled
-      }
-      if (!chain) {
-        throw new Error('chain is required')
-      }
-      const printHeaders = () => {
-        const headers = [
-          'transfer ID'.padEnd(68, ' '),
-          'bonded'.padEnd(10, ' '),
-          'committed'.padEnd(10, ' '),
-          'confirmed'.padEnd(10, ' '),
-          'rootSet'.padEnd(10, ' '),
-          'settled'.padEnd(10, ' '),
-          'amount'.padEnd(14, ' '),
-          'token'.padEnd(6, ' '),
-          'source'.padEnd(10, ' '),
-          'destination'.padEnd(12, ' '),
-          'timestamp'.padEnd(18, ' '),
-          'root'.padEnd(68, ' ')
-        ]
-        console.log(headers.join(' '))
-      }
-      const printTransfer = (transfer: any) => {
-        const { transferId, formattedAmount, token, sourceChain, destinationChain, bonded, committed, settled, transferRoot, timestampRelative } = transfer
-        const root = transferRoot?.rootHash
-        const confirmed = !!transferRoot?.rootConfirmed
-        const rootSet = !!transferRoot?.rootSet
-        const needsSettlement = !!(bonded && confirmed && !settled)
-        const completed = !!(bonded && confirmed && settled)
-        const fields = [
-          `${transferId}`.padEnd(68, ' '),
-          `${bonded}`.padEnd(10, ' '),
-          `${committed}`.padEnd(10, ' '),
-          `${confirmed}`.padEnd(10, ' '),
-          `${rootSet}`.padEnd(10, ' '),
-          `${settled}`.padEnd(10, ' '),
-          `${formattedAmount}`.padEnd(14, ' '),
-          `${token}`.padEnd(6, ' '),
-          `${sourceChain}`.padEnd(10, ' '),
-          `${destinationChain}`.padEnd(12, ' '),
-          `${timestampRelative}`.padEnd(18, ' '),
-          `${root || ''}`.padEnd(68, ' ')
-        ]
-        const str = fields.join(' ')
-        let color: string | undefined
-        if (needsSettlement) {
-          color = 'magenta'
-        } else if (!bonded) {
-          color = 'yellow'
-        } if (!committed) {
-          color = 'white'
-        } else if (completed) {
-          color = 'green'
-        }
-        if (filters.unbonded && bonded) {
-          return false
-        }
-        if (filters.uncommitted && committed) {
-          return false
-        }
-        if (filters.unconfirmed && confirmed) {
-          return false
-        }
-        if (filters.unsettled && settled) {
-          return false
-        }
-        if (source.confirmed !== undefined) {
-          if (!confirmed) {
-            return false
-          }
-        }
-        console.log(color ? chalk[color](str) : str)
-      }
-      if (transferId) {
-        const transfer = await getTransfer(chain, token, transferId)
-        printHeaders()
-        printTransfer(transfer)
-      } else {
-        console.log('searching all transfers. This will take a few minutes to complete.')
-        printHeaders()
-        await getTransfers(chain, token, (transfer: any) => {
-          printTransfer(transfer)
-        }, {
-          startDate,
-          endDate,
-          orderDesc: orderDirection !== 'asc'
-        })
-        console.log('done')
-      }
-    } catch (err) {
-      logger.error(err)
-      process.exit(1)
+  .option('--chain <slug>', 'Chain', parseString)
+  .option('--token <symbol>', 'Token', parseString)
+  .option('--unbonded', 'Return only unbonded transfers', parseBool)
+  .option('--uncommitted', 'Return only uncommitted transfers', parseBool)
+  .option('--unconfirmed', 'Return only unconfirmed transfers', parseBool)
+  .option('--confirmed', 'Return only confirmed transfers', parseBool)
+  .option('--unsettled', 'Return only unsettled transfers', parseBool)
+  .option('--transfer-id <id>', 'Transfer ID', parseString)
+  .option('--from-date <datetime>', 'Start date in ISO format', parseString)
+  .option('--to-date <datetime>', 'End date in ISO format', parseString)
+  .option('--order <direction>', 'Order direction. Options are "desc", "asc"', parseString)
+  .action(actionHandler(main))
+
+async function main (source: any) {
+  const { chain, token, transferId, order: orderDirection, fromDate: startDate, toDate: endDate, confirmed, unbonded, uncommitted, unconfirmed, unsettled } = source
+  const filters = {
+    unbonded: unbonded,
+    uncommitted: uncommitted,
+    unconfirmed: unconfirmed,
+    unsettled: unsettled
+  }
+  if (!chain) {
+    throw new Error('chain is required')
+  }
+  const printHeaders = () => {
+    const headers = [
+      'transfer ID'.padEnd(68, ' '),
+      'bonded'.padEnd(10, ' '),
+      'committed'.padEnd(10, ' '),
+      'confirmed'.padEnd(10, ' '),
+      'rootSet'.padEnd(10, ' '),
+      'settled'.padEnd(10, ' '),
+      'amount'.padEnd(14, ' '),
+      'token'.padEnd(6, ' '),
+      'source'.padEnd(10, ' '),
+      'destination'.padEnd(12, ' '),
+      'timestamp'.padEnd(18, ' '),
+      'root'.padEnd(68, ' ')
+    ]
+    console.log(headers.join(' '))
+  }
+  const printTransfer = (transfer: any) => {
+    const { transferId, formattedAmount, token, sourceChain, destinationChain, bonded, committed, settled, transferRoot, timestampRelative } = transfer
+    const root = transferRoot?.rootHash
+    const confirmed = !!transferRoot?.rootConfirmed
+    const rootSet = !!transferRoot?.rootSet
+    const needsSettlement = !!(bonded && confirmed && !settled)
+    const completed = !!(bonded && confirmed && settled)
+    const fields = [
+      `${transferId}`.padEnd(68, ' '),
+      `${bonded}`.padEnd(10, ' '),
+      `${committed}`.padEnd(10, ' '),
+      `${confirmed}`.padEnd(10, ' '),
+      `${rootSet}`.padEnd(10, ' '),
+      `${settled}`.padEnd(10, ' '),
+      `${formattedAmount}`.padEnd(14, ' '),
+      `${token}`.padEnd(6, ' '),
+      `${sourceChain}`.padEnd(10, ' '),
+      `${destinationChain}`.padEnd(12, ' '),
+      `${timestampRelative}`.padEnd(18, ' '),
+      `${root || ''}`.padEnd(68, ' ')
+    ]
+    const str = fields.join(' ')
+    let color: string | undefined
+    if (needsSettlement) {
+      color = 'magenta'
+    } else if (!bonded) {
+      color = 'yellow'
+    } if (!committed) {
+      color = 'white'
+    } else if (completed) {
+      color = 'green'
     }
-  })
+    if (filters.unbonded && bonded) {
+      return false
+    }
+    if (filters.uncommitted && committed) {
+      return false
+    }
+    if (filters.unconfirmed && confirmed) {
+      return false
+    }
+    if (filters.unsettled && settled) {
+      return false
+    }
+    if (confirmed !== undefined) {
+      if (!confirmed) {
+        return false
+      }
+    }
+    console.log(color ? chalk[color](str) : str)
+  }
+  if (transferId) {
+    const transfer = await getTransfer(chain, token, transferId)
+    printHeaders()
+    printTransfer(transfer)
+  } else {
+    console.log('searching all transfers. This will take a few minutes to complete.')
+    printHeaders()
+    await getTransfers(chain, token, (transfer: any) => {
+      printTransfer(transfer)
+    }, {
+      startDate,
+      endDate,
+      orderDesc: orderDirection !== 'asc'
+    })
+    console.log('done')
+  }
+}

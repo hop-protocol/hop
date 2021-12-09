@@ -1,4 +1,4 @@
-export interface Chain {
+interface Chain {
   name: string
   chainId: number
   rpcUrl: string

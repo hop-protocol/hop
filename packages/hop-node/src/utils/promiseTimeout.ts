@@ -1,4 +1,4 @@
-export class TimeoutError extends Error {}
+class TimeoutError extends Error {}
 
 async function promiseTimeout<T> (promise: Promise<T>, timeout: number): Promise<T> {
   return await new Promise(async (resolve, reject) => {

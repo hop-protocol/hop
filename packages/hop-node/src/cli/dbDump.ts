@@ -2,83 +2,67 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import { getDbSet } from 'src/db'
 import {
   config as globalConfig,
-  parseConfigFile,
-  setDbPath,
-  setGlobalConfigFromConfigFile
+  setDbPath
 } from 'src/config'
 
-import { logger, program } from './shared'
+import { actionHandler, logger, parseNumber, parseString, root } from './shared'
 
-program
+root
   .command('db-dump')
   .option(
-    '--db <string>',
-    'Name of db. Options are "transfers", "transfer-roots", "sync-state", "token-prices", "gas-cost"'
+    '--db <name>',
+    'Name of db. Options are "transfers", "transfer-roots", "sync-state", "token-prices", "gas-cost"',
+    parseString
   )
-  .option('--db-path <string>', 'Path to leveldb.')
-  .option('--token <string>', 'Token symbol')
-  .option('--config <string>', 'Config file to use.')
-  .option('--chain <string>', 'Chain')
-  .option('--nearest <string>', 'Nearest timestamp')
-  .option('--from-date <string>', 'From date timestamp')
-  .option('--to-date <string>', 'To date timestamp')
+  .option('--db-path <path>', 'Path to leveldb.', parseString)
+  .option('--token <symbol>', 'Token symbol', parseString)
+  .option('--chain <slug>', 'Chain', parseString)
+  .option('--nearest <timestamp>', 'Nearest timestamp in seconds', parseNumber)
+  .option('--from-date <timestamp>', 'From date timestamp in seconds', parseNumber)
+  .option('--to-date <timestamp>', 'To date timestamp in seconds', parseNumber)
   .description('Dump leveldb database')
-  .action(async (source: any) => {
-    try {
-      const configPath = source?.config || source?.parent?.config
-      if (configPath) {
-        const config = await parseConfigFile(configPath)
-        await setGlobalConfigFromConfigFile(config)
-      }
-      if (source.dbPath) {
-        setDbPath(source.dbPath)
-      }
-      const tokenSymbol = source.token
-      if (!tokenSymbol) {
-        throw new Error('token is required')
-      }
-      const dbName = source.db || 'transfers'
-      const db = getDbSet(tokenSymbol)
-      const chain = source.chain
-      const nearest = Number(source.nearest)
-      const fromDate = Number(source.fromDate)
-      const toDate = Number(source.toDate)
-      let items: any[] = []
-      if (dbName === 'transfer-roots') {
-        items = await db.transferRoots.getTransferRoots({
-          fromUnix: fromDate,
-          toUnix: toDate
-        })
-      } else if (dbName === 'unbonded-roots') {
-        items = await db.transferRoots.getUnbondedTransferRoots({
-          sourceChainId: chainSlugToId(chain)
-        })
-      } else if (dbName === 'transfers') {
-        items = await db.transfers.getTransfers({
-          fromUnix: fromDate,
-          toUnix: toDate
-        })
-      } else if (dbName === 'sync-state') {
-        items = await db.syncState.getItems()
-      } else if (dbName === 'gas-cost') {
-        if (tokenSymbol && nearest) {
-          items = [
-            await db.gasCost.getNearest(chain, tokenSymbol, false, nearest),
-            await db.gasCost.getNearest(chain, tokenSymbol, true, nearest)
-          ]
-        } else {
-          items = await db.gasCost.getItems()
-        }
-      } else {
-        throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices, token-prices`)
-      }
+  .action(actionHandler(main))
 
-      logger.debug(`dumping ${dbName} db located at ${globalConfig.db.path}`)
-      console.log(JSON.stringify(items, null, 2))
-      logger.debug(`count: ${items.length}`)
-      process.exit(0)
-    } catch (err) {
-      logger.error(err)
-      process.exit(1)
+async function main (source: any) {
+  const { dbPath, db: dbName, chain, token: tokenSymbol, nearest, fromDate, toDate } = source
+  if (dbPath) {
+    setDbPath(dbPath)
+  }
+  if (!tokenSymbol) {
+    throw new Error('token is required')
+  }
+  const db = getDbSet(tokenSymbol)
+  let items: any[] = []
+  if (dbName === 'transfer-roots') {
+    items = await db.transferRoots.getTransferRoots({
+      fromUnix: fromDate,
+      toUnix: toDate
+    })
+  } else if (dbName === 'unbonded-roots') {
+    items = await db.transferRoots.getUnbondedTransferRoots({
+      sourceChainId: chainSlugToId(chain)
+    })
+  } else if (dbName === 'transfers') {
+    items = await db.transfers.getTransfers({
+      fromUnix: fromDate,
+      toUnix: toDate
+    })
+  } else if (dbName === 'sync-state') {
+    items = await db.syncState.getItems()
+  } else if (dbName === 'gas-cost') {
+    if (tokenSymbol && nearest) {
+      items = [
+        await db.gasCost.getNearest(chain, tokenSymbol, false, nearest),
+        await db.gasCost.getNearest(chain, tokenSymbol, true, nearest)
+      ]
+    } else {
+      items = await db.gasCost.getItems()
     }
-  })
+  } else {
+    throw new Error(`the db "${dbName}" does not exist. Options are: transfers, transfer-roots, sync-state, gas-prices, token-prices`)
+  }
+
+  logger.debug(`dumping ${dbName} db located at ${globalConfig.db.path}`)
+  console.log(JSON.stringify(items, null, 2))
+  logger.debug(`count: ${items.length}`)
+}

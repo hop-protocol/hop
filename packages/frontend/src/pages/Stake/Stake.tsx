@@ -11,6 +11,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import StakeWidget from 'src/pages/Stake/StakeWidget'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { isMainnet } from 'src/config'
+import { Flex } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -28,7 +29,7 @@ const Stake: FC = () => {
     USDC: '0x2C2Ab81Cf235e86374468b387e241DF22459A265',
     USDT: '0x07932e9A5AB8800922B2688FB1FA0DAAd8341772',
     MATIC: '0x7dEEbCaD1416110022F444B03aEb1D20eB4Ea53f',
-    ETH: '0x7bceda1db99d64f25efa279bb11ce48e15fda427'
+    ETH: '0x7bceda1db99d64f25efa279bb11ce48e15fda427',
   }
 
   // ETH
@@ -130,7 +131,7 @@ const Stake: FC = () => {
   const enabledTokens = tokens.map(token => token.symbol)
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
+    <Flex column alignCenter>
       <Typography variant="h4">Stake</Typography>
       <div className={styles.container}>
         {enabledTokens.includes('ETH') && (
@@ -174,7 +175,7 @@ const Stake: FC = () => {
           />
         )}
       </div>
-    </Box>
+    </Flex>
   )
 }
 

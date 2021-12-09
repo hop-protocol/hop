@@ -1149,7 +1149,6 @@ class SyncWatcher extends BaseWatcher {
 
   async syncPendingAmounts () {
     this.logger.debug('syncing pending amounts: start')
-    const pendingAmounts = BigNumber.from(0)
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
@@ -1162,7 +1161,7 @@ class SyncWatcher extends BaseWatcher {
         continue
       }
       await this.updatePendingAmountsMap(destinationChainId)
-      const pendingAmounts = await this.getPendingAmounts(destinationChainId)
+      const pendingAmounts = this.getPendingAmounts(destinationChainId)
       this.logger.debug(`pendingAmounts (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(pendingAmounts)}`)
     }
   }
@@ -1204,10 +1203,10 @@ class SyncWatcher extends BaseWatcher {
         continue
       }
       await this.updateAvailableCreditMap(destinationChainId)
-      const availableCredit = await this.getEffectiveAvailableCredit(destinationChainId)
+      const availableCredit = this.getEffectiveAvailableCredit(destinationChainId)
       this.logger.debug(`availableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(availableCredit)}`)
       if (this.s3Upload) {
-        const s3AvailableCredit = await this.getS3EffectiveAvailableCredit(destinationChainId)
+        const s3AvailableCredit = this.getS3EffectiveAvailableCredit(destinationChainId)
         this.logger.debug(`s3AvailableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(s3AvailableCredit)}`)
       }
     }

@@ -1148,6 +1148,11 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async syncPendingAmounts () {
+    // Individual bonders are not concerned about pending amounts
+    if (!this.s3Upload) {
+      return
+    }
+
     this.logger.debug('syncing pending amounts: start')
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {

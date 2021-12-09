@@ -1172,9 +1172,9 @@ class SyncWatcher extends BaseWatcher {
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
       const destinationChain = this.chainIdToSlug(destinationChainId)
-      const isSourceOru = oruChains.includes(sourceChain)
+      const isSourceChainOru = oruChains.includes(sourceChain)
       const shouldSkip = (
-        !isSourceOru ||
+        !isSourceChainOru ||
         sourceChain === Chain.Ethereum ||
         sourceChain === destinationChain ||
         !this.hasSiblingWatcher(destinationChainId)

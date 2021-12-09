@@ -47,9 +47,9 @@ program
   .description('Unstake amount')
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
-  .option('-c, --chain <string>', 'Chain')
-  .option('-t, --token <string>', 'Token')
-  .option('-a, --amount <number>', 'Amount (in human readable format)')
+  .option('--chain <string>', 'Chain')
+  .option('--token <string>', 'Token')
+  .option('--amount <number>', 'Amount (in human readable format)')
   .action(async (source: any) => {
     try {
       const configPath = source?.config || source?.parent?.config

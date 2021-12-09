@@ -12,7 +12,7 @@ program
   .description('Start the challenger watcher')
   .option('--config <string>', 'Config file to use.')
   .option(
-    '-d, --dry',
+    '--dry',
     'Start in dry mode. If enabled, no transactions will be sent.'
   )
   .option('--env <string>', 'Environment variables file')

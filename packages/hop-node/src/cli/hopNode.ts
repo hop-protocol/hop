@@ -25,12 +25,12 @@ import {
 program
   .description('Start Hop node')
   .option(
-    '-c, --config <string>',
+    '--config <string>',
     'Config file to use. Can be in JSON or YAML format'
   )
   .option('--env <string>', 'Environment variables file')
   .option(
-    '-d, --dry',
+    '--dry',
     'Start in dry mode. If enabled, no transactions will be sent.'
   )
   .option(

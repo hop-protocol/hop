@@ -140,10 +140,10 @@ program
   .description('Stake amount')
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
-  .option('-c, --chain <string>', 'Chain')
-  .option('-t, --token <string>', 'Token')
-  .option('-a, --amount <number>', 'Amount (in human readable format)')
-  .option('-s, --skip-send-to-l2 <boolean>', 'Stake hTokens that already exist on L2')
+  .option('--chain <string>', 'Chain')
+  .option('--token <string>', 'Token')
+  .option('--amount <number>', 'Amount (in human readable format)')
+  .option('--skip-send-to-l2 <boolean>', 'Stake hTokens that already exist on L2')
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config

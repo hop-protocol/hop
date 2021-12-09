@@ -63,8 +63,8 @@ program
   .description('Stake status')
   .option('--config <string>', 'Config file to use.')
   .option('--env <string>', 'Environment variables file')
-  .option('-c, --chain <string>', 'Chain')
-  .option('-t, --token <string>', 'Token')
+  .option('--chain <string>', 'Chain')
+  .option('--token <string>', 'Token')
   .action(async source => {
     try {
       const configPath = source?.config || source?.parent?.config

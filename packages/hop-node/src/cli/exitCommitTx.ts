@@ -21,7 +21,7 @@ program
   .option('--token <string>', 'Token')
   .option('--tx-hash <string>', 'Tx hash with CommitTransfers event log')
   .option(
-    '-d, --dry',
+    '--dry',
     'Start in dry mode. If enabled, no transactions will be sent.'
   )
   .action(async (source: any) => {

@@ -19,7 +19,7 @@ program
   .option('--token <string>', 'Token')
   .option('--transfer-id <string>', 'Transfer ID')
   .option(
-    '-d, --dry',
+    '--dry',
     'Start in dry mode. If enabled, no transactions will be sent.'
   )
   .action(async source => {

@@ -3,7 +3,7 @@ import serializeQueryParams from '../utils/serializeQueryParams'
 import toChecksumAddress from 'ethereum-checksum-address'
 import wait from '../utils/wait'
 
-export interface IResult {
+interface IResult {
   id: string
   symbol: string
   name: string

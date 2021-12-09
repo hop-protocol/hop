@@ -39,6 +39,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       paddingTop: '2rem',
       marginBottom: '4rem',
     },
+    transition: 'all 0.15s ease-out',
   },
   hopLogo: {
     display: 'flex',
@@ -71,8 +72,9 @@ const useStyles = makeStyles((theme: Theme) => ({
       : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`,
     color: theme.palette.text.secondary,
     [theme.breakpoints.down('xs')]: {
-      display: 'none'
+      display: 'none',
     },
+      transition: 'all 0.15s ease-out',
   },
   balance: {
     display: 'flex',
@@ -150,7 +152,13 @@ const Header: FC = () => {
           <HeaderRoutes />
         </Box>
 
-        <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-end" alignItems="center">
+        <Box
+          display="flex"
+          flexDirection="row"
+          flex={1}
+          justifyContent="flex-end"
+          alignItems="center"
+        >
           <Flex alignCenter p={[1, 1]} mx={[2, 0]}>
             <IconButton onClick={toggleMode}>
               <Icon src={ThemeModeIcon} width={20} alt="Change theme" />
@@ -162,13 +170,15 @@ const Header: FC = () => {
           {showBalance && (
             <div className={styles.balancePill} title={connectedNetwork?.name}>
               <div className={styles.balance}>
-              <img className={styles.image} alt="" src={connectedNetwork?.imageUrl} />
-              {displayBalance}
+                <img className={styles.image} alt="" src={connectedNetwork?.imageUrl} />
+                {displayBalance}
               </div>
             </div>
           )}
 
-          <div className={styles.walletPill}>{address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}</div>
+          <div className={styles.walletPill}>
+            {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
+          </div>
         </Box>
       </Box>
       <WalletWarning />

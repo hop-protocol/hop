@@ -51,7 +51,6 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate: string
   customStartBlockNumber: number
   ready: boolean = false
-  private s3AvailableCredit: { [destinationChain: string]: BigNumber } = {} // bonder from core package config
   private availableCredit: { [destinationChain: string]: BigNumber } = {} // own bonder
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
@@ -1144,10 +1143,6 @@ class SyncWatcher extends BaseWatcher {
     const bonder = this.bridge.getConfigBonderAddress(destinationChain)
     const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
-
-    if (this.s3Upload) {
-      this.s3AvailableCredit[destinationChain] = availableCredit
-    }
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {
@@ -1228,10 +1223,6 @@ class SyncWatcher extends BaseWatcher {
       await this.updateAvailableCreditMap(destinationChainId)
       const availableCredit = this.getEffectiveAvailableCredit(destinationChainId)
       this.logger.debug(`availableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(availableCredit)}`)
-      if (this.s3Upload) {
-        const s3AvailableCredit = this.getS3EffectiveAvailableCredit(destinationChainId)
-        this.logger.debug(`s3AvailableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(s3AvailableCredit)}`)
-      }
     }
   }
 
@@ -1269,16 +1260,6 @@ class SyncWatcher extends BaseWatcher {
   public getEffectiveAvailableCredit (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
-    if (!availableCredit) {
-      return BigNumber.from(0)
-    }
-
-    return availableCredit
-  }
-
-  public getS3EffectiveAvailableCredit (destinationChainId: number) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
-    const availableCredit = this.s3AvailableCredit[destinationChain]
     if (!availableCredit) {
       return BigNumber.from(0)
     }
@@ -1325,7 +1306,7 @@ class SyncWatcher extends BaseWatcher {
       if (shouldSkip) {
         continue
       }
-      data.availableCredit[sourceChain] = watcher.s3AvailableCredit
+      data.availableCredit[sourceChain] = watcher.availableCredit
       data.pendingAmounts[sourceChain] = watcher.pendingAmounts
       data.unbondedTransferRootAmounts[sourceChain] = watcher.unbondedTransferRootAmounts
     }

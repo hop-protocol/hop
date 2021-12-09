@@ -3,7 +3,6 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import { Bridge as BridgeContract, MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
 import { Chain, SettlementGasLimitPerTx } from 'src/constants'
@@ -252,72 +251,11 @@ export default class Bridge extends ContractBase {
     )
   }
 
-  async getTransferRootSetTxHash (
-    transferRootHash: string
-  ): Promise<string | undefined> {
-    let txHash: string | undefined
-    await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.getTransferRootSetEvents(
-        start,
-        end
-      )
-
-      for (const event of events) {
-        if (transferRootHash === event.args.rootHash) {
-          txHash = event.transactionHash
-          return false
-        }
-      }
-      return true
-    })
-
-    return txHash
-  }
-
   async mapTransferRootSetEvents<R> (
     cb: EventCb<TransferRootSetEvent, R>,
     options?: Partial<EventsBatchOptions>
   ) {
     return await this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
-  }
-
-  getWithdrawalBondSettledEvents = async (
-    startBlockNumber: number,
-    endBlockNumber: number
-  ) => {
-    return await this.bridgeContract.queryFilter(
-      this.bridgeContract.filters.WithdrawalBondSettled(),
-      startBlockNumber,
-      endBlockNumber
-    )
-  }
-
-  decodeSettleBondedWithdrawalData (data: string): any {
-    if (!data) {
-      throw new Error('data to decode is required')
-    }
-    const decoded = this.bridgeContract.interface.decodeFunctionData(
-      'settleBondedWithdrawal',
-      data
-    )
-
-    const bonder = decoded.bonder
-    const transferId = decoded.transferId.toString()
-    const rootHash = decoded.rootHash.toString()
-    const transferRootTotalAmount = decoded.transferRootTotalAmount
-    const transferIdTreeIndex = Number(decoded.transferIdTreeIndex.toString())
-    const siblings = decoded.siblings.map((sibling: any) => sibling.toString())
-    const totalLeaves = Number(decoded.totalLeaves.toString())
-
-    return {
-      bonder,
-      transferId,
-      rootHash,
-      transferRootTotalAmount,
-      transferIdTreeIndex,
-      siblings,
-      totalLeaves
-    }
   }
 
   getTransferIdsFromSettleEventTransaction = async (multipleWithdrawalsSettledTxHash: string) => {
@@ -397,27 +335,6 @@ export default class Bridge extends ContractBase {
     const chainIds: number[] = []
     for (const key in globalConfig.networks) {
       const { chainId } = globalConfig.networks[key]
-      chainIds.push(chainId)
-    }
-    return chainIds
-  }
-
-  async getL1ChainId (): Promise<number | undefined> {
-    for (const key in globalConfig.networks) {
-      const { networkId: chainId } = globalConfig.networks[key]
-      if (isL1ChainId(chainId)) {
-        return chainId
-      }
-    }
-  }
-
-  async getL2ChainIds (): Promise<number[]> {
-    const chainIds: number[] = []
-    for (const key in globalConfig.networks) {
-      const { networkId: chainId } = globalConfig.networks[key]
-      if (isL1ChainId(chainId)) {
-        continue
-      }
       chainIds.push(chainId)
     }
     return chainIds

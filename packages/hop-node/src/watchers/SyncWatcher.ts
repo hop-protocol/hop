@@ -360,7 +360,7 @@ class SyncWatcher extends BaseWatcher {
       .then(async () => await this.syncBonderCredit())
   }
 
-  async syncBonderCredit() {
+  async syncBonderCredit () {
     this.bonderCreditPollerIncrementer++
     const bonderCreditSyncInterval = 10
     // Don't check the 0 remainder so that the bonder has a valid credit immediately on startup

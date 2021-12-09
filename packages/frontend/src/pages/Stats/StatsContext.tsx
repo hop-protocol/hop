@@ -73,15 +73,15 @@ type DebitWindowStats = {
 const StatsContextProvider: FC = ({ children }) => {
   const { networks, tokens, sdk } = useApp()
   const [stats, setStats] = useState<any[]>([])
-  const [fetching, setFetching] = useState<boolean>(false)
+  const [fetching, setFetching] = useState<boolean>(true)
   const [bonderStats, setBonderStats] = useState<any[]>([])
-  const [fetchingBonderStats, setFetchingBonderStats] = useState<boolean>(false)
+  const [fetchingBonderStats, setFetchingBonderStats] = useState<boolean>(true)
   const [pendingAmounts, setPendingAmounts] = useState<any[]>([])
-  const [fetchingPendingAmounts, setFetchingPendingAmounts] = useState<boolean>(false)
+  const [fetchingPendingAmounts, setFetchingPendingAmounts] = useState<boolean>(true)
   const [balances, setBalances] = useState<any[]>([])
-  const [fetchingBalances, setFetchingBalances] = useState<boolean>(false)
+  const [fetchingBalances, setFetchingBalances] = useState<boolean>(true)
   const [debitWindowStats, setDebitWindowStats] = useState<any[]>([])
-  const [fetchingDebitWindowStats, setFetchingDebitWindowStats] = useState<boolean>(false)
+  const [fetchingDebitWindowStats, setFetchingDebitWindowStats] = useState<boolean>(true)
   const filteredNetworks = networks?.filter(token => !token.isLayer1)
 
   async function fetchStats(selectedNetwork: Network, selectedToken: Token) {
@@ -206,10 +206,10 @@ const StatsContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     const update = async () => {
+      setFetchingBonderStats(true)
       if (!networks) {
         return
       }
-      setFetchingBonderStats(true)
       const promises: Promise<any>[] = []
       for (const network of networks) {
         for (const token of tokens) {
@@ -228,9 +228,10 @@ const StatsContextProvider: FC = ({ children }) => {
           }
         }
       }
-      const results: any[] = await Promise.all(promises)
-      setFetchingBonderStats(false)
-      setBonderStats(results.filter(x => x))
+      let results: any[] = await Promise.all(promises)
+      results = results.filter(x => x)
+      setFetchingBonderStats(!results.length)
+      setBonderStats(results)
     }
 
     update().catch(logger.error)
@@ -404,10 +405,10 @@ const StatsContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     const update = async () => {
+      setFetchingDebitWindowStats(true)
       if (!networks) {
         return
       }
-      setFetchingDebitWindowStats(true)
       const promises: Promise<any>[] = []
       for (const token of tokens) {
         const bonders = new Set<string>()
@@ -425,9 +426,10 @@ const StatsContextProvider: FC = ({ children }) => {
           promises.push(fetchDebitWindowStats(token, bonder).catch(logger.error))
         }
       }
-      const results: any[] = await Promise.all(promises)
-      setFetchingDebitWindowStats(false)
-      setDebitWindowStats(results.filter(x => x))
+      let results: any[] = await Promise.all(promises)
+      results = results.filter(x => x)
+      setFetchingDebitWindowStats(!results.length)
+      setDebitWindowStats(results)
     }
 
     update().catch(logger.error)

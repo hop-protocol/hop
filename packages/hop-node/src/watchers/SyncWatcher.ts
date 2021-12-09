@@ -1069,7 +1069,6 @@ class SyncWatcher extends BaseWatcher {
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   private async calculateAvailableCredit (destinationChainId: number, bonder?: string) {
-    const sourceChain = this.chainSlug
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const destinationWatcher = this.getSiblingWatcherByChainSlug(destinationChain)
     if (!destinationWatcher) {

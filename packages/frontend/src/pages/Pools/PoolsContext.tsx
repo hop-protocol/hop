@@ -769,6 +769,15 @@ const PoolsContextProvider: FC = ({ children }) => {
             )
             const amount0Min = minimumAmounts[0]
             const amount1Min = minimumAmounts[1]
+            logger.debug('removeLiquidity:', {
+              balance,
+              proportional,
+              amountPercent,
+              liquidityTokenAmount,
+              liquidityTokenAmountWithSlippage,
+              amount0Min,
+              amount1Min
+            })
 
             return bridge
               .connect(signer as Signer)
@@ -787,6 +796,15 @@ const PoolsContextProvider: FC = ({ children }) => {
               liquidityTokenAmountWithSlippage
             )
             const amountMin = minimumAmounts[tokenIndex].mul(minBps).div(10000)
+
+            logger.debug('removeLiquidity:', {
+              balance,
+              amount,
+              tokenIndex,
+              liquidityTokenAmount,
+              liquidityTokenAmountWithSlippage,
+              amountMin
+            })
 
             return bridge
               .connect(signer as Signer)

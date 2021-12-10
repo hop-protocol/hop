@@ -641,11 +641,7 @@ class SyncWatcher extends BaseWatcher {
     if (totalBondsSettled) {
       rootAmountAllSettled = dbTransferRoot?.totalAmount?.eq(totalBondsSettled) ?? false
     }
-    const allBondableTransfersSettled = dbTransfers.every(
-      (dbTransfer: Transfer) => {
-        // A transfer should not be settled if it is unbondable
-        return !dbTransfer?.isBondable || dbTransfer?.withdrawalBondSettled
-      })
+    const allBondableTransfersSettled = this.syncWatcher.getIsDbTransfersAllSettled(dbTransfers)
     const allSettled = rootAmountAllSettled || allBondableTransfersSettled
     logger.debug(`all settled: ${allSettled}`)
     await this.db.transferRoots.update(transferRootHash, {
@@ -1315,6 +1311,20 @@ class SyncWatcher extends BaseWatcher {
       s3LastUpload = Date.now()
       await this.s3Upload.upload(s3JsonData)
     }
+  }
+
+  public getIsDbTransfersAllSettled (dbTransfers: Transfer[]) {
+    const allBondableTransfersSettled = dbTransfers.every(
+      (dbTransfer: Transfer) => {
+        const isAlreadySettled = dbTransfer?.withdrawalBondSettled
+        // Check that isBondable has been explicitly set to false.
+        // Checking !dbTransfer.isBondable is not correct since isBondable can be undefined
+        const isExplicitySetUnbondable = dbTransfer?.isBondable === false
+        return isAlreadySettled || isExplicitySetUnbondable
+      }
+    )
+
+    return allBondableTransfersSettled
   }
 
   async pollGasCost () {

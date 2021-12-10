@@ -1,6 +1,6 @@
 import React, { FC, createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { formatUnits } from 'ethers/lib/utils'
-import useInterval from 'src/hooks/useInterval'
+import { useInterval } from 'react-use'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { constants } from 'ethers'

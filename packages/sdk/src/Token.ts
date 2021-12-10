@@ -202,7 +202,7 @@ class Token extends Base {
 
   public eq (token: Token): boolean {
     return (
-      this._symbol.toLowerCase() === token.symbol.toLowerCase() &&
+      this.symbol.toLowerCase() === token.symbol.toLowerCase() &&
       this.address.toLowerCase() === token.address.toLowerCase() &&
       this.chain.equals(token.chain)
     )

@@ -1,10 +1,10 @@
 import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import GasBoostTransaction from 'src/gasboost/GasBoostTransaction'
 import MemoryStore from 'src/gasboost/MemoryStore'
+import expectDefined from './utils/expectDefined'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import wait from 'src/utils/wait'
 import { Wallet } from 'ethers'
-import { expectDefined } from './helpers'
 import { privateKey } from './config'
 
 describe('GasBoostSigner', () => {

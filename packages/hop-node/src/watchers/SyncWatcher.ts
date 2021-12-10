@@ -51,7 +51,7 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate: string
   customStartBlockNumber: number
   ready: boolean = false
-  private availableCredit: { [destinationChain: string]: BigNumber } = {} // own bonder
+  private availableCredit: { [destinationChain: string]: BigNumber } = {}
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
   private lastCalculated: { [destinationChain: string]: number } = {}

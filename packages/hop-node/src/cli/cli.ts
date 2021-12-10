@@ -1,5 +1,6 @@
 import '../moduleAlias'
 import Logger from 'src/logger'
+import packageJson from '../../package.json'
 import { program } from './shared'
 
 import './bondWithdrawal'
@@ -31,6 +32,7 @@ import './unstake'
 import './updateConfig'
 import './withdrawalProof'
 
+program.version(packageJson.version)
 program.parse(process.argv)
 
 const logger = new Logger('process')

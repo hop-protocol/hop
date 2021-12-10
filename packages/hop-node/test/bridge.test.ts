@@ -1,6 +1,6 @@
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import contracts from 'src/contracts'
-import { expectDefined } from './helpers'
+import expectDefined from './utils/expectDefined'
 import { config as globalConfig } from 'src/config'
 require('dotenv').config() // eslint-disable-line @typescript-eslint/no-var-requires
 

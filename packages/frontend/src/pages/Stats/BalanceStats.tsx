@@ -55,7 +55,7 @@ const BalanceStats: FC = () => {
                   <th>Network</th>
                   <th>Name</th>
                   <th>Address</th>
-                  <th>Balance</th>
+                  <th>ETH Balance</th>
                 </TableRow>
               </TableHead>
               <TableBody>

@@ -38,17 +38,6 @@ export default class ContractBase extends EventEmitter {
     return _chainId
   }
 
-  async getChainSlug () {
-    if (this.chainSlug) {
-      return this.chainSlug
-    }
-
-    const chainId = await this.getChainId()
-    const chainSlug = chainIdToSlug(chainId)
-    this.chainSlug = chainSlug
-    return chainSlug
-  }
-
   chainIdToSlug (chainId: number): Chain {
     return chainIdToSlug(chainId)
   }

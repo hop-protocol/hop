@@ -1,57 +1,41 @@
 import ContractStateWatcher, { Contracts } from 'src/watchers/ContractStateWatcher'
-import {
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from 'src/config'
 
-import { logger, program } from './shared'
+import { actionHandler, parseBool, parseString, root } from './shared'
 
-program
+root
   .command('contract-state')
   .description('Print contract state')
-  .option('--config <string>', 'Config file to use.')
-  .option('--env <string>', 'Environment variables file')
-  .option('--token <string>', 'Token symbol')
-  .option('--l1bridge', 'Show L1 Bridge state')
-  .option('--l2bridge', 'Show L2 Bridge state')
-  .option('--l2amm', 'Show L2 AMM state')
-  .option('--l2ammwrapper', 'Show L2 AMM wrapper state')
-  .action(async source => {
-    try {
-      const configPath = source?.config || source?.parent?.config
-      if (configPath) {
-        const config = await parseConfigFile(configPath)
-        await setGlobalConfigFromConfigFile(config)
-      }
-      const token = source.token
-      if (!token) {
-        throw new Error('token is required')
-      }
-      const contracts: string[] = []
-      if (source.l1bridge) {
-        contracts.push(Contracts.L1Bridge)
-      }
-      if (source.l2bridge) {
-        contracts.push(Contracts.L2Bridge)
-      }
-      if (source.l2amm) {
-        contracts.push(Contracts.L2Amm)
-      }
-      if (source.l2ammwrapper) {
-        contracts.push(Contracts.L2AmmWrapper)
-      }
-      const watcher = new ContractStateWatcher({
-        token,
-        contracts
-      })
+  .option('--token <symbol>', 'Token symbol', parseString)
+  .option('--l1bridge [boolean]', 'Show L1 Bridge state', parseBool)
+  .option('--l2bridge [boolean]', 'Show L2 Bridge state', parseBool)
+  .option('--l2amm [boolean]', 'Show L2 AMM state', parseBool)
+  .option('--l2ammwrapper [boolean]', 'Show L2 AMM wrapper state', parseBool)
+  .action(actionHandler(main))
 
-      console.log('fetching state for contracts')
-      const state = await watcher.getState()
-      console.log(JSON.stringify(state, null, 2))
-
-      process.exit(0)
-    } catch (err) {
-      logger.error(err)
-      process.exit(1)
-    }
+async function main (source: any) {
+  const { token, l1bridge, l2bridge, l2amm, l2ammwrapper } = source
+  if (!token) {
+    throw new Error('token is required')
+  }
+  const contracts: string[] = []
+  if (l1bridge) {
+    contracts.push(Contracts.L1Bridge)
+  }
+  if (l2bridge) {
+    contracts.push(Contracts.L2Bridge)
+  }
+  if (l2amm) {
+    contracts.push(Contracts.L2Amm)
+  }
+  if (l2ammwrapper) {
+    contracts.push(Contracts.L2AmmWrapper)
+  }
+  const watcher = new ContractStateWatcher({
+    token,
+    contracts
   })
+
+  console.log('fetching state for contracts')
+  const state = await watcher.getState()
+  console.log(JSON.stringify(state, null, 2))
+}

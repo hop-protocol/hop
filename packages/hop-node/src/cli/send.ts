@@ -7,114 +7,43 @@ import contracts from 'src/contracts'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
+import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import { formatEther, parseEther } from 'ethers/lib/utils'
 import {
-  config as globalConfig,
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
+  config as globalConfig
 } from 'src/config'
-import { logger, program } from './shared'
 
-async function sendTokens (
-  fromChain: string,
-  toChain: string,
-  token: string,
-  amount: number,
-  recipient: string,
-  isHToken: boolean,
-  shouldSendMax: boolean
-) {
-  if (!amount && !shouldSendMax) {
-    throw new Error('max flag or amount is required. E.g. 100')
+root
+  .command('send')
+  .description('Send tokens over Hop bridge or send to another recipient')
+  .option('--from-chain <slug>', 'From chain', parseString)
+  .option('--to-chain <slug>', 'To chain', parseString)
+  .option('--token <symbol>', 'Token', parseString)
+  .option('--amount <number>', 'Amount (in human readable format)', parseNumber)
+  .option('--recipient <address>', 'Recipient to send tokens to', parseString)
+  .option('--htoken [boolean]', 'Send hTokens', parseBool)
+  .option('--native [boolean]', 'Send the native token', parseBool)
+  .option('--self [boolean]', 'Send to self and reset nonce', parseBool)
+  .option('--gas-price <price>', 'Gas price to use', parseString)
+  .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
+  .action(actionHandler(main))
+
+async function main (source: any) {
+  const { fromChain, toChain, token, amount, recipient, htoken: isHToken, native: isNativeSend, self: isSelfSend, gasPrice, max: shouldSendMax } = source
+  const isSameChain = (fromChain && toChain) && (fromChain === toChain)
+  if (isHToken && isNativeSend) {
+    throw new Error('Cannot use --htoken and --native flag together')
   }
-  if (!token) {
-    throw new Error('token is required')
-  }
-  const tokenContracts = contracts.get(token, fromChain)
-  if (!tokenContracts) {
-    throw new Error('token contracts not found')
-  }
-  let tokenClass: Token
-  let bridge: L1Bridge | L2Bridge
-  if (fromChain === Chain.Ethereum) {
-    tokenClass = new Token(tokenContracts.l1CanonicalToken)
-    bridge = new L1Bridge(tokenContracts.l1Bridge)
+
+  if (isSelfSend) {
+    await sendToSelf(fromChain, gasPrice)
+  } else if (isSameChain) {
+    await transferTokens(fromChain, token, amount, recipient, isHToken, shouldSendMax)
+  } else if (isNativeSend) {
+    await sendNativeToken(fromChain, amount, recipient, shouldSendMax)
   } else {
-    bridge = new L2Bridge(tokenContracts.l2Bridge)
-    if (isHToken) {
-      tokenClass = new Token(tokenContracts.l2HopBridgeToken)
-    } else {
-      tokenClass = new Token(tokenContracts.l2CanonicalToken)
-    }
+    await sendTokens(fromChain, toChain, token, amount, recipient, isHToken, shouldSendMax)
   }
-
-  const signer = tokenClass.contract.signer
-  if (!recipient) {
-    recipient = await signer.getAddress()
-  }
-  if (!recipient) {
-    throw new Error('recipient address is required')
-  }
-
-  let balance = await tokenClass.getBalance()
-  const label = `${fromChain}.${isHToken ? 'h' : ''}${token}`
-  logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
-  let parsedAmount
-  if (shouldSendMax) {
-    parsedAmount = balance
-  } else {
-    parsedAmount = await tokenClass.parseUnits(amount)
-  }
-  if (balance.lt(parsedAmount)) {
-    throw new Error('not enough token balance to send')
-  }
-
-  let spender = bridge.address
-  if (fromChain !== Chain.Ethereum && !isHToken) {
-    spender = (bridge as L2Bridge).ammWrapper.contract.address
-  }
-  let tx = await tokenClass.approve(spender, parsedAmount)
-  if (tx) {
-    logger.debug('approve tx:', tx.hash)
-  }
-
-  const formattedAmount = (await tokenClass.formatUnits(parsedAmount)).toString()
-  logger.debug(`attempting to send ${formattedAmount} ${label} ⟶  ${toChain} to ${recipient}`)
-  const destinationChainId = chainSlugToId(toChain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
-  if (fromChain === Chain.Ethereum) {
-    if (isHToken) {
-      tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(
-        destinationChainId,
-        parsedAmount,
-        recipient
-      )
-    } else {
-      tx = await (bridge as L1Bridge).sendCanonicalTokensToL2(
-        destinationChainId,
-        parsedAmount,
-        recipient
-      )
-    }
-  } else {
-    if (isHToken) {
-      tx = await (bridge as L2Bridge).sendHTokens(
-        destinationChainId,
-        parsedAmount,
-        recipient
-      )
-    } else {
-      tx = await (bridge as L2Bridge).sendCanonicalTokens(
-        destinationChainId,
-        parsedAmount,
-        recipient
-      )
-    }
-  }
-  logger.info(`send tx: ${tx.hash}`)
-  await tx.wait()
-  balance = await tokenClass.getBalance()
-  logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
-  logger.debug('tokens should arrive at destination in 5-15 minutes')
 }
 
 async function sendNativeToken (
@@ -229,55 +158,104 @@ async function transferTokens (
   logger.debug(`${label} balance: ${await instance.formatUnits(balance)}`)
 }
 
-program
-  .command('send')
-  .description('Send tokens over Hop bridge or send to another recipient')
-  .option('--config <string>', 'Config file to use.')
-  .option('--env <string>', 'Environment variables file')
-  .option('--from-chain <string>', 'From chain')
-  .option('--to-chain <string>', 'To chain')
-  .option('--token <string>', 'Token')
-  .option('--amount <number>', 'Amount (in human readable format)')
-  .option('--recipient <string>', 'Recipient to send tokens to')
-  .option('--htoken', 'Send hTokens')
-  .option('--native', 'Send the native token')
-  .option('--self', 'Send to self and reset nonce')
-  .option('--gas-price <string>', 'Gas price to use')
-  .option('--max', 'Use max tokens instead of specific amount')
-  .action(async source => {
-    try {
-      const configPath = source?.config || source?.parent?.config
-      if (configPath) {
-        const config = await parseConfigFile(configPath)
-        await setGlobalConfigFromConfigFile(config)
-      }
-      const fromChain = source.fromChain
-      const toChain = source.toChain
-      const token = source.token
-      const amount = Number(source.args[0] || source.amount)
-      const recipient = source.recipient
-      const isHToken = !!source.htoken
-      const isNativeSend = !!source.native
-      const isSelfSend = !!source.self
-      const gasPrice = source.gasPrice
-      const shouldSendMax = !!source.max
-      const isSameChain = (fromChain && toChain) && (fromChain === toChain)
-      if (isHToken && isNativeSend) {
-        throw new Error('Cannot use --htoken and --native flag together')
-      }
-
-      if (isSelfSend) {
-        await sendToSelf(fromChain, gasPrice)
-      } else if (isSameChain) {
-        await transferTokens(fromChain, token, amount, recipient, isHToken, shouldSendMax)
-      } else if (isNativeSend) {
-        await sendNativeToken(fromChain, amount, recipient, shouldSendMax)
-      } else {
-        await sendTokens(fromChain, toChain, token, amount, recipient, isHToken, shouldSendMax)
-      }
-      process.exit(0)
-    } catch (err) {
-      logger.error(err)
-      process.exit(1)
+async function sendTokens (
+  fromChain: string,
+  toChain: string,
+  token: string,
+  amount: number,
+  recipient: string,
+  isHToken: boolean,
+  shouldSendMax: boolean
+) {
+  if (!amount && !shouldSendMax) {
+    throw new Error('max flag or amount is required. E.g. 100')
+  }
+  if (!token) {
+    throw new Error('token is required')
+  }
+  const tokenContracts = contracts.get(token, fromChain)
+  if (!tokenContracts) {
+    throw new Error('token contracts not found')
+  }
+  let tokenClass: Token
+  let bridge: L1Bridge | L2Bridge
+  if (fromChain === Chain.Ethereum) {
+    tokenClass = new Token(tokenContracts.l1CanonicalToken)
+    bridge = new L1Bridge(tokenContracts.l1Bridge)
+  } else {
+    bridge = new L2Bridge(tokenContracts.l2Bridge)
+    if (isHToken) {
+      tokenClass = new Token(tokenContracts.l2HopBridgeToken)
+    } else {
+      tokenClass = new Token(tokenContracts.l2CanonicalToken)
     }
-  })
+  }
+
+  const signer = tokenClass.contract.signer
+  if (!recipient) {
+    recipient = await signer.getAddress()
+  }
+  if (!recipient) {
+    throw new Error('recipient address is required')
+  }
+
+  let balance = await tokenClass.getBalance()
+  const label = `${fromChain}.${isHToken ? 'h' : ''}${token}`
+  logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
+  let parsedAmount
+  if (shouldSendMax) {
+    parsedAmount = balance
+  } else {
+    parsedAmount = await tokenClass.parseUnits(amount)
+  }
+  if (balance.lt(parsedAmount)) {
+    throw new Error('not enough token balance to send')
+  }
+
+  let spender = bridge.address
+  if (fromChain !== Chain.Ethereum && !isHToken) {
+    spender = (bridge as L2Bridge).ammWrapper.contract.address
+  }
+  let tx = await tokenClass.approve(spender, parsedAmount)
+  if (tx) {
+    logger.debug('approve tx:', tx.hash)
+  }
+
+  const formattedAmount = (await tokenClass.formatUnits(parsedAmount)).toString()
+  logger.debug(`attempting to send ${formattedAmount} ${label} ⟶  ${toChain} to ${recipient}`)
+  const destinationChainId = chainSlugToId(toChain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  if (fromChain === Chain.Ethereum) {
+    if (isHToken) {
+      tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(
+        destinationChainId,
+        parsedAmount,
+        recipient
+      )
+    } else {
+      tx = await (bridge as L1Bridge).sendCanonicalTokensToL2(
+        destinationChainId,
+        parsedAmount,
+        recipient
+      )
+    }
+  } else {
+    if (isHToken) {
+      tx = await (bridge as L2Bridge).sendHTokens(
+        destinationChainId,
+        parsedAmount,
+        recipient
+      )
+    } else {
+      tx = await (bridge as L2Bridge).sendCanonicalTokens(
+        destinationChainId,
+        parsedAmount,
+        recipient
+      )
+    }
+  }
+  logger.info(`send tx: ${tx.hash}`)
+  await tx.wait()
+  balance = await tokenClass.getBalance()
+  logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
+  logger.debug('tokens should arrive at destination in 5-15 minutes')
+}

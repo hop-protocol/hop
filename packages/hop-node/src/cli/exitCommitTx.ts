@@ -3,65 +3,47 @@ import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
+import { actionHandler, parseBool, parseString, root } from './shared'
 import { findWatcher, getWatchers } from 'src/watchers/watchers'
-import { logger, program } from './shared'
-import {
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from 'src/config'
 
 type ExitWatcher = xDaiBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
 
-program
+root
   .command('exit-commit-tx')
   .description('Exit the commit transaction')
-  .option('--config <string>', 'Config file to use.')
-  .option('--env <string>', 'Environment variables file')
-  .option('--chain <string>', 'Chain')
-  .option('--token <string>', 'Token')
-  .option('--tx-hash <string>', 'Tx hash with CommitTransfers event log')
+  .option('--chain <slug>', 'Chain', parseString)
+  .option('--token <symbol>', 'Token', parseString)
+  .option('--tx-hash <hash>', 'Tx hash with CommitTransfers event log', parseString)
   .option(
-    '-d, --dry',
-    'Start in dry mode. If enabled, no transactions will be sent.'
+    '--dry [boolean]',
+    'Start in dry mode. If enabled, no transactions will be sent.',
+    parseBool
   )
-  .action(async (source: any) => {
-    try {
-      const configPath = source?.config || source?.parent?.config
-      if (configPath) {
-        const config = await parseConfigFile(configPath)
-        await setGlobalConfigFromConfigFile(config)
-      }
+  .action(actionHandler(main))
 
-      const chain = source.chain
-      const token = source.token
-      const commitTxHash = source.txHash
-      const dryMode = !!source.dry
-      if (!chain) {
-        throw new Error('chain is required')
-      }
-      if (!token) {
-        throw new Error('token is required')
-      }
-      if (!commitTxHash) {
-        throw new Error('commit tx hash is required')
-      }
+async function main (source: any) {
+  const { chain, token, txHash: commitTxHash, dry: dryMode } = source
+  if (!chain) {
+    throw new Error('chain is required')
+  }
+  if (!token) {
+    throw new Error('token is required')
+  }
+  if (!commitTxHash) {
+    throw new Error('commit tx hash is required')
+  }
 
-      const watchers = await getWatchers({
-        enabledWatchers: ['xDomainMessageRelay'],
-        tokens: [token],
-        dryMode
-      })
-
-      const watcher = findWatcher(watchers, xDomainMessageRelayWatcher, chain) as xDomainMessageRelayWatcher
-      if (!watcher) {
-        throw new Error('watcher not found')
-      }
-
-      const chainSpecificWatcher: ExitWatcher = watcher.watchers[chain]
-      await chainSpecificWatcher.relayXDomainMessage(commitTxHash)
-      process.exit(0)
-    } catch (err) {
-      logger.error(err)
-      process.exit(1)
-    }
+  const watchers = await getWatchers({
+    enabledWatchers: ['xDomainMessageRelay'],
+    tokens: [token],
+    dryMode
   })
+
+  const watcher = findWatcher(watchers, xDomainMessageRelayWatcher, chain) as xDomainMessageRelayWatcher
+  if (!watcher) {
+    throw new Error('watcher not found')
+  }
+
+  const chainSpecificWatcher: ExitWatcher = watcher.watchers[chain]
+  await chainSpecificWatcher.relayXDomainMessage(commitTxHash)
+}

@@ -1,68 +1,51 @@
 import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import { actionHandler, logger, parseString, root } from './shared'
 import {
   findWatcher,
   getWatchers
 } from 'src/watchers/watchers'
-import { logger, program } from './shared'
-import {
-  parseConfigFile,
-  setGlobalConfigFromConfigFile
-} from 'src/config'
 
-program
+root
   .command('pending-transfers')
   .description('Get pending transfer IDs')
-  .option('--config <string>', 'Config file to use.')
-  .option('--env <string>', 'Environment variables file')
-  .option('--source-chain <string>', 'Source chain')
-  .option('--destination-chain <string>', 'Destination chain')
-  .option('--token <string>', 'Token')
-  .action(async (source: any) => {
-    try {
-      const configPath = source?.config || source?.parent?.config
-      if (configPath) {
-        const config = await parseConfigFile(configPath)
-        await setGlobalConfigFromConfigFile(config)
-      }
-      const sourceChain = source.sourceChain
-      const destinationChain = source.destinationChain
-      const token = source.token
-      if (!sourceChain) {
-        throw new Error('source chain is required')
-      }
-      if (!destinationChain) {
-        throw new Error('destination chain is required')
-      }
-      if (!token) {
-        throw new Error('token is required')
-      }
+  .option('--source-chain <slug>', 'Source chain', parseString)
+  .option('--destination-chain <slug>', 'Destination chain', parseString)
+  .option('--token <symbol>', 'Token', parseString)
+  .action(actionHandler(main))
 
-      const watchers = await getWatchers({
-        enabledWatchers: ['commitTransfers'],
-        tokens: [token],
-        dryMode: true
-      })
+async function main (source: any) {
+  const { sourceChain, destinationChain, token } = source
+  if (!sourceChain) {
+    throw new Error('source chain is required')
+  }
+  if (!destinationChain) {
+    throw new Error('destination chain is required')
+  }
+  if (!token) {
+    throw new Error('token is required')
+  }
 
-      const watcher = findWatcher(watchers, CommitTransfersWatcher, sourceChain) as CommitTransfersWatcher
-      if (!watcher) {
-        throw new Error('watcher not found')
-      }
-
-      const destinationChainId = chainSlugToId(destinationChain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
-      const bridge = (watcher.bridge as L2Bridge)
-      const exists = await bridge.doPendingTransfersExist(destinationChainId)
-      if (!exists) {
-        logger.debug('no pending transfers exists')
-        process.exit(0)
-      }
-
-      const pendingTransfers = await bridge.getPendingTransfers(destinationChainId)
-      logger.debug(pendingTransfers)
-      process.exit(0)
-    } catch (err) {
-      logger.error(err)
-      process.exit(1)
-    }
+  const watchers = await getWatchers({
+    enabledWatchers: ['commitTransfers'],
+    tokens: [token],
+    dryMode: true
   })
+
+  const watcher = findWatcher(watchers, CommitTransfersWatcher, sourceChain) as CommitTransfersWatcher
+  if (!watcher) {
+    throw new Error('watcher not found')
+  }
+
+  const destinationChainId = chainSlugToId(destinationChain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  const bridge = (watcher.bridge as L2Bridge)
+  const exists = await bridge.doPendingTransfersExist(destinationChainId)
+  if (!exists) {
+    logger.debug('no pending transfers exists')
+    process.exit(0)
+  }
+
+  const pendingTransfers = await bridge.getPendingTransfers(destinationChainId)
+  logger.debug(pendingTransfers)
+}

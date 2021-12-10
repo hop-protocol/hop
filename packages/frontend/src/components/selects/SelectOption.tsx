@@ -10,6 +10,7 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    transition: 'all 0.15s ease-out',
   },
   listItemIcon: {
     display: 'flex',
@@ -48,13 +49,13 @@ const SelectOption: FC<Props> = props => {
 
   return (
     <div className={styles.root}>
-      {icon &&
-      <ListItemIcon className={styles.listItemIcon}>
-        <Icon className={styles.icon}>
-          <img src={icon} className={styles.image} alt="" />
-        </Icon>
-      </ListItemIcon>
-      }
+      {icon && (
+        <ListItemIcon className={styles.listItemIcon}>
+          <Icon className={styles.icon}>
+            <img src={icon} className={styles.image} alt="" />
+          </Icon>
+        </ListItemIcon>
+      )}
       {label && (
         <Typography component="span" variant="h6">
           {label}

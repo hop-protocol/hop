@@ -51,7 +51,7 @@ const useInputStyles = makeStyles(theme => ({
   },
   root: ({ defaultShadow, hideShadow }: StyleProps) => ({
     padding: '0.8rem 0',
-    transition: 'box-shadow 0.3s ease-in-out',
+    transition: 'all 0.15s ease-out',
     borderRadius: '1.5rem',
     boxShadow: defaultShadow ? theme.boxShadow.input.normal : 'none',
     '&:hover': {
@@ -74,7 +74,7 @@ const useInputStyles = makeStyles(theme => ({
     textOverflow: 'clip',
     padding: `6px ${theme.padding.extraLight} 7px ${theme.padding.extraLight}`,
     animation: loadingValue
-      ? `loadingEffect 1200ms ${theme.transitions.easing.sharp} infinite`
+      ? `loadingEffect 1s ${theme.transitions.easing.sharp} infinite`
       : 'none',
     [theme.breakpoints.down('xs')]: {
       fontSize: theme.typography.h6.fontSize,

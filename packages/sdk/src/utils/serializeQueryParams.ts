@@ -1,4 +1,4 @@
-export interface IOptions {
+interface IOptions {
   snakeCase: boolean
   omitFalsy: boolean
 }

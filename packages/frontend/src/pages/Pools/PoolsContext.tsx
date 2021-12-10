@@ -769,6 +769,19 @@ const PoolsContextProvider: FC = ({ children }) => {
             )
             const amount0Min = minimumAmounts[0]
             const amount1Min = minimumAmounts[1]
+            logger.debug('removeLiquidity:', {
+              balance,
+              proportional,
+              amountPercent,
+              liquidityTokenAmount,
+              liquidityTokenAmountWithSlippage,
+              amount0Min,
+              amount1Min
+            })
+
+            if (liquidityTokenAmount.eq(0)) {
+              throw new Error('calculation error: liquidityTokenAmount cannot be 0')
+            }
 
             return bridge
               .connect(signer as Signer)
@@ -778,19 +791,34 @@ const PoolsContextProvider: FC = ({ children }) => {
                 deadline: deadline(),
               })
           } else {
-            let liquidityTokenAmount = await amm.calculateRemoveLiquidityOneToken(amount, tokenIndex)
-            if (liquidityTokenAmount.gt(balance)) {
-              liquidityTokenAmount = balance
+            const amount18d = shiftBNDecimals(amount, lpTokenDecimals - canonicalToken.decimals)
+            let tokenAmount = await amm.calculateRemoveLiquidityOneToken(amount18d, tokenIndex)
+            tokenAmount = shiftBNDecimals(tokenAmount, lpTokenDecimals - canonicalToken.decimals)
+            if (tokenAmount.gt(balance)) {
+              tokenAmount = balance
             }
-            const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
+            const liquidityTokenAmountWithSlippage = tokenAmount.mul(minBps).div(10000)
             const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
               liquidityTokenAmountWithSlippage
             )
             const amountMin = minimumAmounts[tokenIndex].mul(minBps).div(10000)
 
+            logger.debug('removeLiquidity:', {
+              balance,
+              amount,
+              tokenIndex,
+              tokenAmount,
+              liquidityTokenAmountWithSlippage,
+              amountMin
+            })
+
+            if (tokenAmount.eq(0)) {
+              throw new Error('calculation error: tokenAmount cannot be 0')
+            }
+
             return bridge
               .connect(signer as Signer)
-              .removeLiquidityOneToken(liquidityTokenAmount, tokenIndex, selectedNetwork.slug, {
+              .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork.slug, {
                 amountMin: amountMin,
                 deadline: deadline(),
               })

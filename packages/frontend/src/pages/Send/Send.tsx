@@ -246,13 +246,13 @@ const Send: FC = () => {
 
       const warningMessage = (
         <>
-          Insufficient liquidity. There is {formattedAmount} {sourceToken.symbol} available on{' '}
-          {toNetwork.name}.{' '}
+          Insufficient liquidity. There is {formattedAmount} {sourceToken.symbol} bonder liquidity available on{' '}
+          {toNetwork.name}. Please try again in a few minutes when liquidity becomes available again.{' '}
           <InfoTooltip
             title={
               <>
                 <div>
-                  The Bonder does not have enough liquidity to bond the transfer at the destination.
+                  The Bonder does not have enough liquidity to bond the transfer at the destination. Liquidity will become available again after the bonder has settled any bonded transfers.
                 </div>
                 <div>Available liquidity: {formattedAmount}</div>
                 <div>

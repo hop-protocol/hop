@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { BigNumber, Contract } from 'ethers'
 import logger from 'src/logger'
-import useInterval from 'src/hooks/useInterval'
+import { useInterval } from 'react-use'
 import Address from 'src/models/Address'
 
 const useStakeBalance = (stakingRewards: Contract | undefined, address: Address | undefined) => {
@@ -39,9 +39,7 @@ const useStakeBalance = (stakingRewards: Contract | undefined, address: Address 
     getBalance()
   }, [stakingRewards, address])
 
-  useInterval(() => {
-    getBalance()
-  }, 8e3)
+  useInterval(getBalance, 8e3)
 
   return { stakeBalance, loadingStakeBalance }
 }

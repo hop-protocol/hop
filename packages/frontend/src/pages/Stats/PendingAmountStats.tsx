@@ -50,7 +50,7 @@ const PoolStats: FC = () => {
                 <TableRow>
                   <th>Source</th>
                   <th>Destination</th>
-                  <th>Pending Amount</th>
+                  <th><div>Pending Amount</div><div>for Commit</div></th>
                 </TableRow>
               </TableHead>
               <TableBody>

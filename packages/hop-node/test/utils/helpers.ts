@@ -1400,7 +1400,3 @@ async function getTokenDecimals (token: string | Contract): Promise<number> {
   // The decimals will be the same on all networks
   return hopMetadata.mainnet.tokens[tokenSymbol]?.decimals! // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
 }
-
-export function expectDefined<T> (arg: T): asserts arg is NonNullable<T> {
-  expect(arg).toBeDefined()
-}

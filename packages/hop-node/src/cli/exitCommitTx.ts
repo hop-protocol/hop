@@ -15,7 +15,7 @@ root
   .option('--token <symbol>', 'Token', parseString)
   .option('--tx-hash <hash>', 'Tx hash with CommitTransfers event log', parseString)
   .option(
-    '--dry',
+    '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
     parseBool
   )

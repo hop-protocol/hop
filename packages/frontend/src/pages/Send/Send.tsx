@@ -13,7 +13,6 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import { commafy, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
-import useAvailableLiquidity from 'src/pages/Send/useAvailableLiquidity'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
@@ -104,13 +103,6 @@ const Send: FC = () => {
     address
   )
 
-  // Get available liquidity
-  const availableLiquidity = useAvailableLiquidity(
-    selectedBridge,
-    fromNetwork?.slug,
-    toNetwork?.slug
-  )
-
   // Set fromToken -> BN
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
     if (fromTokenAmount && sourceToken) {
@@ -130,10 +122,18 @@ const Send: FC = () => {
     adjustedDestinationTxFee,
     totalFee,
     requiredLiquidity,
+    availableLiquidity,
     loading: loadingSendData,
     estimatedReceived,
     error: sendDataError,
-  } = useSendData(sourceToken, slippageTolerance, fromNetwork, toNetwork, fromTokenAmountBN)
+  } = useSendData(
+    sourceToken,
+    slippageTolerance,
+    fromNetwork,
+    toNetwork,
+    fromTokenAmountBN,
+    selectedBridge
+  )
 
   // Set toAmount
   useEffect(() => {
@@ -246,13 +246,16 @@ const Send: FC = () => {
 
       const warningMessage = (
         <>
-          Insufficient liquidity. There is {formattedAmount} {sourceToken.symbol} bonder liquidity available on{' '}
-          {toNetwork.name}. Please try again in a few minutes when liquidity becomes available again.{' '}
+          Insufficient liquidity. There is {formattedAmount} {sourceToken.symbol} bonder liquidity
+          available on {toNetwork.name}. Please try again in a few minutes when liquidity becomes
+          available again.{' '}
           <InfoTooltip
             title={
               <>
                 <div>
-                  The Bonder does not have enough liquidity to bond the transfer at the destination. Liquidity will become available again after the bonder has settled any bonded transfers.
+                  The Bonder does not have enough liquidity to bond the transfer at the destination.
+                  Liquidity will become available again after the bonder has settled any bonded
+                  transfers.
                 </div>
                 <div>Available liquidity: {formattedAmount}</div>
                 <div>

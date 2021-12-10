@@ -43,5 +43,5 @@ export function parseString (value: string) {
 }
 
 export function parseBool (value: string) {
-  return !!value
+  return value !== 'false'
 }

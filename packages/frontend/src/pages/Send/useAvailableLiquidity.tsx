@@ -1,43 +1,36 @@
 import { useState, useEffect } from 'react'
 import { HopBridge } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
-import useInterval from 'src/hooks/useInterval'
+import { useInterval } from 'react-use'
+import logger from 'src/logger'
 
 const useAvailableLiquidity = (
-  bridge: HopBridge | undefined,
-  sourceChain: string | undefined,
-  destinationChain: string | undefined
-): BigNumber | undefined => {
+  bridge?: HopBridge,
+  sourceChain?: string,
+  destinationChain?: string
+) => {
   const [availableLiquidity, setAvailableLiquidity] = useState<BigNumber>()
-
-  useEffect(() => {
-    setAvailableLiquidity(undefined)
-    updateAvailableLiquidity()
-  }, [destinationChain])
 
   const updateAvailableLiquidity = async () => {
     try {
-      if (!bridge) {
-        setAvailableLiquidity(undefined)
-        return
+      if (bridge && sourceChain && destinationChain) {
+        const liquidity = await bridge.getFrontendAvailableLiquidity(sourceChain, destinationChain)
+        setAvailableLiquidity(liquidity)
       }
-
-      let liquidity
-      if (sourceChain && destinationChain) {
-        liquidity = await bridge.getFrontendAvailableLiquidity(sourceChain, destinationChain)
-      }
-
-      setAvailableLiquidity(liquidity)
-    } catch (err) {
+    } catch (err: any) {
+      logger.error(err)
       setAvailableLiquidity(undefined)
     }
   }
 
-  useInterval(() => {
+  useEffect(() => {
+    setAvailableLiquidity(undefined)
     updateAvailableLiquidity()
-  }, 15e3)
+  }, [bridge, sourceChain, destinationChain])
 
-  return availableLiquidity
+  useInterval(updateAvailableLiquidity, 15e3)
+
+  return { availableLiquidity }
 }
 
 export default useAvailableLiquidity

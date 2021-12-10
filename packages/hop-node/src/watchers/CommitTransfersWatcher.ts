@@ -52,10 +52,6 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.pollIntervalMs = 6 * 10 * 1000
   }
 
-  getMinThresholdAmount (destinationChainId: number) {
-    return this.minThresholdAmounts[this.chainIdToSlug(destinationChainId)] || BigNumber.from(0)
-  }
-
   async start () {
     const chains = getEnabledNetworks()
     for (const destinationChain of chains) {
@@ -164,6 +160,10 @@ class CommitTransfersWatcher extends BaseWatcher {
       this.logger.error(err.message)
       throw err
     }
+  }
+
+  getMinThresholdAmount (destinationChainId: number) {
+    return this.minThresholdAmounts[this.chainIdToSlug(destinationChainId)] || BigNumber.from(0)
   }
 }
 

@@ -625,7 +625,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           this.logger.error(`nonce ${this.nonce} too low`)
           throw new NonceTooLowError('NonceTooLow')
         } else if (estimateGasFailed) {
-          this.logger.error(`estimateGas failed`)
+          this.logger.error('estimateGas failed')
           throw new EstimateGasError('EstimateGasError')
         }
 

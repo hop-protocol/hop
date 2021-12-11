@@ -260,9 +260,9 @@ class TransferRootsDb extends TimestampedKeysDb<TransferRoot> {
   ): Promise<TransferRoot[]> {
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
-      // if (!this.isRouteOk(filter, item)) {
-      //   return false
-      // }
+      if (!this.isRouteOk(filter, item)) {
+        return false
+      }
 
       if (filter.destinationChainId) {
         if (!item.destinationChainId || filter.destinationChainId !== item.destinationChainId) {

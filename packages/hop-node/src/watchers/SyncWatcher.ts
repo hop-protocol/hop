@@ -625,7 +625,7 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
-  async checkTransferRootSettledState (transferRootHash: string, totalBondsSettled: BigNumber) {
+  async checkTransferRootSettledState (transferRootHash: string, totalBondsSettled: BigNumber, bonder: string) {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     if (!dbTransferRoot) {
       throw new Error('expected db transfer root item')
@@ -645,9 +645,11 @@ class SyncWatcher extends BaseWatcher {
         logger.warn(`transfer id ${transferId} db item not found`)
       }
       dbTransfers.push(dbTransfer)
-      const withdrawalBondSettled = dbTransfer?.withdrawalBonded ?? false
+      const isBonded = dbTransfer?.withdrawalBonded ?? false
+      const isSameBonder = dbTransfer?.withdrawalBonder === bonder
+      const isWithdrawalSettled = isBonded && isSameBonder
       await this.db.transfers.update(transferId, {
-        withdrawalBondSettled
+        withdrawalBondSettled:  isWithdrawalSettled
       })
     }))
 
@@ -854,7 +856,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    const _transferIds = await destinationBridge.getTransferIdsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
+    const { transferIds: _transferIds, bonder }= await destinationBridge.getParamsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
     const tree = new MerkleTree(_transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
@@ -866,7 +868,7 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transferRoots.update(transferRootHash, {
         transferIds: _transferIds
       })
-      await this.checkTransferRootSettledState(transferRootHash, multipleWithdrawalsSettledTotalAmount)
+      await this.checkTransferRootSettledState(transferRootHash, multipleWithdrawalsSettledTotalAmount, bonder)
     }
   }
 
@@ -1049,7 +1051,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    await this.checkTransferRootSettledState(transferRootHash, totalBondsSettled)
+    await this.checkTransferRootSettledState(transferRootHash, totalBondsSettled, bonder)
   }
 
   getIsBondable = (

@@ -160,6 +160,10 @@ class SyncWatcher extends BaseWatcher {
                 this.logger.info(`populated transferRoot: ${transferRootHash}`)
                 // fill in missing db timestamped keys
                 return this.db.transferRoots.trackTimestampedKeyByTransferRootHash(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+                  .then(async () => {
+                    // fill in missing db transfer root ID keys
+                    return this.db.transferRoots.trackTransferRootIdKeyByTransferRootHash(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+                  })
               })
               .catch((err: Error) => {
                 this.logger.error('populateTransferRootDbItem error:', err)

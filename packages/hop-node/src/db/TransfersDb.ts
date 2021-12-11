@@ -1,5 +1,4 @@
 import BaseDb, { KeyFilter } from './BaseDb'
-import TimestampedKeysDb from './TimestampedKeysDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
 import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
@@ -122,11 +121,13 @@ const invalidTransferIds: Record<string, boolean> = {
   '0x99b304c55afc0b56456dc4999913bafff224080b8a3bbe0e5a04aaf1eedf76b6': true
 }
 
-class TransfersDb extends TimestampedKeysDb<Transfer> {
+class TransfersDb extends BaseDb {
+  subDbTimestamps: any
   subDbIncompletes: any
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
+    this.subDbTimestamps = new BaseDb(`${prefix}:timestampedKeys`, _namespace)
     this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
 
     this.ready = true
@@ -161,7 +162,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       const transferId = data.value.transferId
       this.logger.debug(`storing timestamped key. key: ${key} transferId: ${transferId}`)
       const value = { transferId }
-      await this.subDb._update(key, value)
+      await this.subDbTimestamps._update(key, value)
     }
   }
 
@@ -192,7 +193,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       this.logger.warn(`expected transfer id for timestamped key. key: ${key} incomplete transfer: `, JSON.stringify(transfer))
       return
     }
-    const item = await this.subDb.getById(key)
+    const item = await this.subDbTimestamps.getById(key)
     const exists = !!item
     if (!exists) {
       const value = { transferId }
@@ -208,7 +209,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     const promises: Array<Promise<any>> = []
     if (timestampedKv) {
       logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferId: ${transferId}`)
-      promises.push(this.subDb._update(timestampedKv.key, timestampedKv.value).then(() => {
+      promises.push(this.subDbTimestamps._update(timestampedKv.key, timestampedKv.value).then(() => {
         logger.debug(`updated db item. key: ${timestampedKv.key}`)
       }))
     }
@@ -262,7 +263,7 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
       if (dateFilter.toUnix) {
         filter.lte = `transfer:${dateFilter.toUnix}~` // tilde is intentional
       }
-      const kv = await this.subDb.getKeyValues(filter)
+      const kv = await this.subDbTimestamps.getKeyValues(filter)
       return kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)
     }
 

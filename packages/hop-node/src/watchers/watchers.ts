@@ -132,9 +132,6 @@ export async function getWatchers (config: GetWatchersConfig) {
 
   if (enabledWatchers.includes(Watchers.BondTransferRoot)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
-      if (!isL1) {
-        return
-      }
       return new BondTransferRootWatcher({
         chainSlug: network,
         tokenSymbol: token,
@@ -305,9 +302,12 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
         continue
       }
 
-      if (filteredSourceChains.size > 0) {
-        const slug = chainIdToSlug(chainId)
-        if (!(filteredSourceChains.has(slug) || filteredDestinationChains.has(slug))) {
+      const slug = chainIdToSlug(chainId)
+
+      // Skip watcher if it's not specified as route
+      if (!(filteredSourceChains.has(slug) || filteredDestinationChains.has(slug))) {
+        // The BondTransferRootWatcher should always have the L1 watcher regardless of route
+        if (!(isL1 && watcher instanceof BondTransferRootWatcher)) {
           continue
         }
       }

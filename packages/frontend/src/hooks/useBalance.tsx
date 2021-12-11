@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { BigNumber } from 'ethers'
 import { Token } from '@hop-protocol/sdk'
-import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
-import useInterval from 'src/hooks/useInterval'
+import { useInterval } from 'react-use'
 import { Addressish } from 'src/models/Address'
 
 const useBalance = (
@@ -57,9 +56,7 @@ const useBalance = (
     getBalance()
   }, [token, network, address])
 
-  useInterval(() => {
-    getBalance()
-  }, 8e3)
+  useInterval(getBalance, 8e3)
 
   return { balance, loading }
 }

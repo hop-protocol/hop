@@ -15,7 +15,7 @@ import { toTokenDisplay, networkIdNativeTokenSymbol, networkIdToSlug } from 'src
 import { findNetworkBySlug } from 'src/utils/networks'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
-import { useInterval } from 'src/hooks'
+import { useInterval } from 'react-use'
 import ConnectWalletButton from './ConnectWalletButton'
 import { isDarkMode } from 'src/theme/theme'
 import IconButton from '@material-ui/core/IconButton'
@@ -74,7 +74,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     [theme.breakpoints.down('xs')]: {
       display: 'none',
     },
-      transition: 'all 0.15s ease-out',
+    transition: 'all 0.15s ease-out',
   },
   balance: {
     display: 'flex',
@@ -123,12 +123,12 @@ const Header: FC = () => {
   }
 
   useEffect(() => {
-    updateDisplayBalance().catch(logger.error)
+    if (address && provider && connectedNetworkId) {
+      updateDisplayBalance()
+    }
   }, [address, provider, connectedNetworkId])
 
-  useInterval(() => {
-    updateDisplayBalance().catch(logger.error)
-  }, 5 * 1000)
+  useInterval(updateDisplayBalance, 5000)
 
   const { toggleMode, mode } = useThemeMode()
   const showBalance = !!displayBalance && !!connectedNetwork

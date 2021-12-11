@@ -21,13 +21,8 @@ import logger from 'src/logger'
 import { shiftBNDecimals, BNMin } from 'src/utils'
 import { reactAppNetwork } from 'src/config'
 import { amountToBN, formatError } from 'src/utils/format'
-import {
-  useTransactionReplacement,
-  useAsyncMemo,
-  useInterval,
-  useBalance,
-  useApprove,
-} from 'src/hooks'
+import { useTransactionReplacement, useAsyncMemo, useBalance, useApprove } from 'src/hooks'
+import { useInterval } from 'react-use'
 
 type PoolsContextProps = {
   networks: Network[]
@@ -565,13 +560,9 @@ const PoolsContextProvider: FC = ({ children }) => {
     updateUserPoolPositions()
   }, [provider, selectedNetwork, canonicalToken, hopToken, updateUserPoolPositions])
 
-  useInterval(() => {
-    updatePrices()
-  }, 5 * 1000)
+  useInterval(updatePrices, 5 * 1000)
 
-  useInterval(() => {
-    updateUserPoolPositions()
-  }, 5 * 1000)
+  useInterval(updateUserPoolPositions, 5 * 1000)
 
   const { approve } = useApprove(canonicalToken)
   const approveTokens = async (isHop: boolean, amount: string, network: Network) => {
@@ -721,9 +712,7 @@ const PoolsContextProvider: FC = ({ children }) => {
           const { proportional, tokenIndex, amountPercent, amount } = amounts
           if (proportional) {
             const liquidityTokenAmount = balance.mul(amountPercent).div(100)
-            const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
-              liquidityTokenAmount
-            )
+            const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(liquidityTokenAmount)
             const amount0 = minimumAmounts[0]
             const amount1 = minimumAmounts[1]
             const price = await amm.getRemoveLiquidityPriceImpact(amount0, amount1)
@@ -748,15 +737,15 @@ const PoolsContextProvider: FC = ({ children }) => {
             amount: token0Amount,
             token: canonicalToken,
             network: selectedNetwork,
-            max: BNMin(poolReserves[0], totalAmount)
+            max: BNMin(poolReserves[0], totalAmount),
           },
           token1: {
             amount: token1Amount,
             token: hopToken,
             network: selectedNetwork,
-            max: BNMin(poolReserves[1], totalAmount)
+            max: BNMin(poolReserves[1], totalAmount),
           },
-          calculatePriceImpact
+          calculatePriceImpact,
         },
         onConfirm: async (amounts: any) => {
           const { proportional, tokenIndex, amountPercent, amount } = amounts
@@ -776,7 +765,7 @@ const PoolsContextProvider: FC = ({ children }) => {
               liquidityTokenAmount,
               liquidityTokenAmountWithSlippage,
               amount0Min,
-              amount1Min
+              amount1Min,
             })
 
             if (liquidityTokenAmount.eq(0)) {
@@ -809,7 +798,7 @@ const PoolsContextProvider: FC = ({ children }) => {
               tokenIndex,
               tokenAmount,
               liquidityTokenAmountWithSlippage,
-              amountMin
+              amountMin,
             })
 
             if (tokenAmount.eq(0)) {

@@ -927,7 +927,7 @@ class HopBridge extends Base {
     const token = this.toTokenModel(this.tokenSymbol)
     const bonder = this.getBonderAddress(sourceChain, destinationChain)
     let availableLiquidity = await this.getAvailableLiquidity(
-      sourceChain,
+      destinationChain,
       bonder
     )
     const unbondedTransferRootAmount = await this.getUnbondedTransferRootAmount(

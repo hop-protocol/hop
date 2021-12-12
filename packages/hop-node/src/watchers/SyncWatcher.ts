@@ -456,7 +456,8 @@ class SyncWatcher extends BaseWatcher {
       withdrawalBonded: true,
       withdrawalBondedTxHash: transactionHash,
       isTransferSpent: true,
-      transferSpentTxHash: transactionHash
+      transferSpentTxHash: transactionHash,
+      withdrawalBondSettled: false
     })
   }
 

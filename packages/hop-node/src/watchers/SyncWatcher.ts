@@ -133,10 +133,10 @@ class SyncWatcher extends BaseWatcher {
 
   async incompletePollSync () {
     try {
-      await Promise.all([
-        this.incompleteTransfersPollSync(),
-        this.incompleteTransferRootsPollSync()
-      ])
+      // Needs to be run synchronously because the transfers need to have the 
+      // withdrawalBonder entry completed
+      await this.incompleteTransfersPollSync()
+        .then(async () => await this.incompleteTransferRootsPollSync())
     } catch (err) {
       this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
     }

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { ethers } from 'ethers';
 import { makeStyles } from '@material-ui/core/styles'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import { useApp } from 'src/contexts/AppContext'
@@ -26,10 +27,11 @@ const useStyles = makeStyles(theme => ({
 const TxPill = () => {
   const app = useApp()
   const { accountDetails } = app
-  const { address } = useWeb3Context()
+  const { address, provider } = useWeb3Context()
   const transactions = app?.txHistory?.transactions
   const styles = useStyles()
   const [numPendingTxs, setNumPendingTxs] = useState(0)
+  const [ensName, setENSName] = useState<string | null>(null);
 
   const handleClick = () => {
     accountDetails?.show(true)
@@ -44,6 +46,12 @@ const TxPill = () => {
     }
   }, [transactions])
 
+  useEffect(() => {
+    if (address) {
+      provider?.lookupAddress(address.toString()).then(setENSName);
+    }
+  })
+
   return (
     <div className={styles.root}>
       {numPendingTxs > 0 ? (
@@ -52,7 +60,7 @@ const TxPill = () => {
         </StyledButton>
       ) : (
         <StyledButton flat onClick={handleClick} boxShadow={0} fontSize={[0, 0, 1]}>
-          {address?.truncate()}
+          {ensName || address?.truncate()}
         </StyledButton>
       )}
     </div>

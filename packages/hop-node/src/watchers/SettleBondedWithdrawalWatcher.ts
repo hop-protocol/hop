@@ -84,26 +84,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       // find all unique bonders that have bonded transfers in this transfer root
       const bonderSet = new Set<string>()
       for (const dbTransfer of dbTransfers) {
-        if (!dbTransfer.withdrawalBonder) {
+        const doesBonderExist = dbTransfer?.withdrawalBonder
+        const shouldTransferBeSettled = dbTransfer?.withdrawalBondSettled === false
+        if (!doesBonderExist || !shouldTransferBeSettled) {
           continue
         }
-        bonderSet.add(dbTransfer.withdrawalBonder)
+        bonderSet.add(dbTransfer.withdrawalBonder!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       }
 
       for (const bonder of bonderSet.values()) {
-        // if all transfers have been settled that belong to a bonder
-        // then don't attempt to settle root with that bonder
-        // because there is nothing to settle anymore
-        const allSettledByBonder = dbTransfers.filter(
-          (dbTransfer: Transfer) => dbTransfer.withdrawalBonder === bonder
-        )
-          .every((dbTransfer: Transfer) =>
-            dbTransfer.withdrawalBondSettled
-          )
-        if (allSettledByBonder) {
-          continue
-        }
-
         // check settle-able transfer root
         promises.push(
           this.checkTransferRootHash(transferRootHash!, bonder) // eslint-disable-line @typescript-eslint/no-non-null-assertion

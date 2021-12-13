@@ -3,69 +3,12 @@ version: '3.9'
 services:
   bonder:
     image: hopprotocol/hop-node:latest
-    command: bonder
     env_file:
-      - bridgenode.env
+      - docker.env
     restart: unless-stopped
     logging:
       driver: awslogs
       options:
         awslogs-region: us-east-1
-        awslogs-group: HopNodeKovan
+        awslogs-group: HopNode
         awslogs-create-group: 'true'
-
-  arb-bot:
-    image: hopprotocol/hop-node:latest
-    command: arb-bot
-    env_file:
-      - bridgenode.env
-    restart: unless-stopped
-    logging:
-      driver: awslogs
-      options:
-        awslogs-region: us-east-1
-        awslogs-group: HopNodeKovan
-        awslogs-create-group: 'true'
-
-  challenger:
-    image: hopprotocol/hop-node:latest
-    command: challenger
-    env_file:
-      - bridgenode.env
-    restart: unless-stopped
-    logging:
-      driver: awslogs
-      options:
-        awslogs-region: us-east-1
-        awslogs-group: HopNodeKovan
-        awslogs-create-group: 'true'
-
-  relayer:
-    image: hopprotocol/hop-node:latest
-    command: relayer
-    env_file:
-      - bridgenode.env
-    logging:
-      driver: awslogs
-      options:
-        awslogs-region: us-east-1
-        awslogs-group: HopNodeKovan
-        awslogs-create-group: 'true'
-
-  xdaiBridge:
-    image: hopprotocol/hop-node:latest
-    command: xdai-bridge
-    env_file:
-      - bridgenode.env
-    logging:
-      driver: awslogs
-      options:
-        awslogs-region: us-east-1
-        awslogs-group: HopNodeKovan
-        awslogs-create-group: 'true'
-
-  ipfs:
-    image: ipfs/go-ipfs
-    ports:
-      - 5001:5001
-    command: daemon --enable-pubsub-experiment

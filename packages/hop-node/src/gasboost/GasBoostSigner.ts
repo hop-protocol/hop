@@ -7,8 +7,7 @@ import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import { Signer, Wallet, providers } from 'ethers'
-import { TenMinutesMs } from 'src/constants'
-import { gasBoostErrorSlackChannel, hostname } from 'src/config'
+import { hostname } from 'src/config'
 
 class GasBoostSigner extends Wallet {
   store: Store
@@ -89,17 +88,6 @@ class GasBoostSigner extends Wallet {
   private async getNonce () {
     if (!this.nonce) {
       this.nonce = await this.signer.getTransactionCount('pending')
-    }
-
-    const timeSinceLastTxMs = Date.now() - this.lastTxSentTimestamp
-    if (this.lastTxSentTimestamp && timeSinceLastTxMs > TenMinutesMs) {
-      this.logger.info(`checking on-chain nonce. timeSinceLastTxMs ${timeSinceLastTxMs}`)
-      const onChainNonce = await this.signer.getTransactionCount('pending')
-      if (onChainNonce !== this.nonce) {
-        const errMsg = `Nonces out of sync. on chain nonce: ${onChainNonce}, local nonce: ${this.nonce}`
-        this.logger.error(errMsg)
-        this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
-      }
     }
 
     return this.nonce

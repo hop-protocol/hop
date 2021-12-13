@@ -1614,10 +1614,10 @@
     eslint-plugin-json "^3.1.0"
     ethers "^5.5.1"
 
-"@hop-protocol/sdk@0.0.1-beta.272":
-  version "0.0.1-beta.272"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.272.tgz#76b56edb8c9bcefa01bf96a13ab3d282ce78bd68"
-  integrity sha512-QeKzX26Swxjs91RUAvDPcCCsQvOKkf5LX1QD44eZiWW55AnzvzCu4UyNrU3BjAxOsqeih0P+Uwenlj91gTTmog==
+"@hop-protocol/sdk@0.0.1-beta.275":
+  version "0.0.1-beta.275"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.275.tgz#bd84490ca2ae1dc46c83b7f9d67d36e883fb341f"
+  integrity sha512-xRfUg279J8G0w5D3BDvPvTiVCSGIlsIh11YxGWAPXP//0dWg8p59oMDNIt9Mkg4m86Zww0fNr3vpk2fObverbA==
   dependencies:
     "@eth-optimism/contracts" "^0.5.2"
     "@ethersproject/abi" "^5.4.0"
@@ -9635,10 +9635,10 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typescript@^4.5.0-beta:
-  version "4.5.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.2.tgz#8ac1fba9f52256fdb06fb89e4122fa6a346c2998"
-  integrity sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==
+typescript@4.5.3:
+  version "4.5.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.3.tgz#afaa858e68c7103317d89eb90c5d8906268d353c"
+  integrity sha512-eVYaEHALSt+s9LbvgEv4Ef+Tdq7hBiIZgii12xXJnukryt3pMgJf6aKhoCZ3FWQsu6sydEnkg11fYXLzhLBjeQ==
 
 u2f-api@0.2.7:
   version "0.2.7"

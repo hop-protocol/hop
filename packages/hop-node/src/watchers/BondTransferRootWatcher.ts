@@ -4,6 +4,7 @@ import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber } from 'ethers'
+import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
@@ -85,7 +86,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   ) => {
     const logger = this.logger.create({ root: transferRootHash })
 
-    const l1Bridge = this.bridge as L1Bridge
+    const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     const transferRootId = getTransferRootId(
       transferRootHash,
       totalAmount

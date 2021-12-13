@@ -18,7 +18,7 @@ root
   .option('--chain <slug>', 'Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
   .option('--amount <number>', 'Amount (in human readable format)', parseNumber)
-  .option('--skip-send-to-l2 <boolean>', 'Stake hTokens that already exist on L2', parseBool)
+  .option('--skip-send-to-l2 [boolean]', 'Stake hTokens that already exist on L2', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {

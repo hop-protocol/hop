@@ -51,13 +51,13 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate: string
   customStartBlockNumber: number
   ready: boolean = false
-  private s3AvailableCredit: { [destinationChain: string]: BigNumber } = {} // bonder from core package config
-  private availableCredit: { [destinationChain: string]: BigNumber } = {} // own bonder
+  private availableCredit: { [destinationChain: string]: BigNumber } = {}
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
   private lastCalculated: { [destinationChain: string]: number } = {}
   s3Upload: S3Upload
   s3Namespace: S3Upload
+  bonderCreditPollerIncrementer: number = 0
 
   constructor (config: Config) {
     super({
@@ -357,7 +357,22 @@ class SyncWatcher extends BaseWatcher {
     // these must come after db is done syncing,
     // and syncAvailableCredit must be last
     await Promise.all(promises)
-      .then(async () => await this.syncUnbondedTransferRootAmounts())
+      .then(async () => await this.syncBonderCredit())
+  }
+
+  async syncBonderCredit () {
+    this.bonderCreditPollerIncrementer++
+    const bonderCreditSyncInterval = 10
+    // Don't check the 0 remainder so that the bonder has a valid credit immediately on startup
+    const shouldSync = this.bonderCreditPollerIncrementer % bonderCreditSyncInterval === 1
+
+    // When not uploading to S3, only sync on certain poll intervals
+    if (!this.s3Upload && !shouldSync) {
+      return
+    }
+
+    this.logger.debug('syncing bonder credit')
+    await this.syncUnbondedTransferRootAmounts()
       .then(async () => await this.syncPendingAmounts())
       .then(async () => await this.syncAvailableCredit())
   }
@@ -1069,7 +1084,6 @@ class SyncWatcher extends BaseWatcher {
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   private async calculateAvailableCredit (destinationChainId: number, bonder?: string) {
-    const sourceChain = this.chainSlug
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const destinationWatcher = this.getSiblingWatcherByChainSlug(destinationChain)
     if (!destinationWatcher) {
@@ -1125,15 +1139,10 @@ class SyncWatcher extends BaseWatcher {
   }
 
   private async updateAvailableCreditMap (destinationChainId: number) {
-    const availableCredit = await this.calculateAvailableCredit(destinationChainId)
     const destinationChain = this.chainIdToSlug(destinationChainId)
+    const bonder = this.bridge.getConfigBonderAddress(destinationChain)
+    const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
-
-    if (this.s3Upload) {
-      const bonder = this.bridge.getConfigBonderAddress(destinationChain)
-      const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
-      this.s3AvailableCredit[destinationChain] = availableCredit
-    }
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {
@@ -1150,8 +1159,12 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async syncPendingAmounts () {
+    // Individual bonders are not concerned about pending amounts
+    if (!this.s3Upload) {
+      return
+    }
+
     this.logger.debug('syncing pending amounts: start')
-    const pendingAmounts = BigNumber.from(0)
     const chains = await this.bridge.getChainIds()
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
@@ -1164,7 +1177,7 @@ class SyncWatcher extends BaseWatcher {
         continue
       }
       await this.updatePendingAmountsMap(destinationChainId)
-      const pendingAmounts = await this.getPendingAmounts(destinationChainId)
+      const pendingAmounts = this.getPendingAmounts(destinationChainId)
       this.logger.debug(`pendingAmounts (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(pendingAmounts)}`)
     }
   }
@@ -1175,7 +1188,9 @@ class SyncWatcher extends BaseWatcher {
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
       const destinationChain = this.chainIdToSlug(destinationChainId)
+      const isSourceChainOru = oruChains.includes(sourceChain)
       const shouldSkip = (
+        !isSourceChainOru ||
         sourceChain === Chain.Ethereum ||
         sourceChain === destinationChain ||
         !this.hasSiblingWatcher(destinationChainId)
@@ -1206,12 +1221,8 @@ class SyncWatcher extends BaseWatcher {
         continue
       }
       await this.updateAvailableCreditMap(destinationChainId)
-      const availableCredit = await this.getEffectiveAvailableCredit(destinationChainId)
+      const availableCredit = this.getEffectiveAvailableCredit(destinationChainId)
       this.logger.debug(`availableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(availableCredit)}`)
-      if (this.s3Upload) {
-        const s3AvailableCredit = await this.getS3EffectiveAvailableCredit(destinationChainId)
-        this.logger.debug(`s3AvailableCredit (${this.tokenSymbol} ${sourceChain}→${destinationChain}): ${this.bridge.formatUnits(s3AvailableCredit)}`)
-      }
     }
   }
 
@@ -1249,16 +1260,6 @@ class SyncWatcher extends BaseWatcher {
   public getEffectiveAvailableCredit (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
-    if (!availableCredit) {
-      return BigNumber.from(0)
-    }
-
-    return availableCredit
-  }
-
-  public getS3EffectiveAvailableCredit (destinationChainId: number) {
-    const destinationChain = this.chainIdToSlug(destinationChainId)
-    const availableCredit = this.s3AvailableCredit[destinationChain]
     if (!availableCredit) {
       return BigNumber.from(0)
     }
@@ -1305,7 +1306,7 @@ class SyncWatcher extends BaseWatcher {
       if (shouldSkip) {
         continue
       }
-      data.availableCredit[sourceChain] = watcher.s3AvailableCredit
+      data.availableCredit[sourceChain] = watcher.availableCredit
       data.pendingAmounts[sourceChain] = watcher.pendingAmounts
       data.unbondedTransferRootAmounts[sourceChain] = watcher.unbondedTransferRootAmounts
     }

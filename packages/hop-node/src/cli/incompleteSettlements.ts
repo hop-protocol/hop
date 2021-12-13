@@ -16,7 +16,7 @@ root
   .option('--source-chain <slug>', 'Source chain', parseString)
   .option('--destination-chain <slug>', 'Destination Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
-  .option('--all-chains', 'Check all destination chains', parseBool)
+  .option('--all-chains [boolean]', 'Check all destination chains', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {

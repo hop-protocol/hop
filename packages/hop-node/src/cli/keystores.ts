@@ -17,7 +17,7 @@ root
   .description('Keystore')
   .option('--pass <secret>', 'Passphrase to encrypt keystore with.', parseString)
   .option('-o, --output <path>', 'Output file path of encrypted keystore.', parseString)
-  .option('--override', 'Override existing keystore if it exists.', parseBool)
+  .option('--override [boolean]', 'Override existing keystore if it exists.', parseBool)
   .option('--private-key <private-key>', 'The private key to encrypt.', parseString)
   .action(actionHandler(main))
 

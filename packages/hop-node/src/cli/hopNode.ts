@@ -20,7 +20,7 @@ import {
 root
   .description('Start Hop node')
   .option(
-    '--dry',
+    '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
     parseBool
   )
@@ -29,12 +29,12 @@ root
     'File containing password to unlock keystore',
     parseString
   )
-  .option('--clear-db', 'Clear cache database on start', parseBool)
-  .option('--log-db-state', 'Log db state periodically', parseBool)
+  .option('--clear-db [boolean]', 'Clear cache database on start', parseBool)
+  .option('--log-db-state [boolean]', 'Log db state periodically', parseBool)
   .option('--sync-from-date <string>', 'Date to start syncing db from, in ISO format YYYY-MM-DD', parseString)
-  .option('--s3-upload', 'Upload available liquidity info as JSON to S3', parseBool)
+  .option('--s3-upload [boolean]', 'Upload available liquidity info as JSON to S3', parseBool)
   .option('--s3-namespace <name>', 'S3 bucket namespace', parseString)
-  .option('--heapdump', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
+  .option('--heapdump [boolean]', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {
@@ -118,9 +118,7 @@ async function main (source: any) {
     logger.info(`${k} wait confirmations: ${waitConfirmations}`)
     logger.info(`${k} rpc: ${rpcUrl}`)
   }
-  if (dryMode) {
-    logger.warn('dry mode enabled')
-  }
+  logger.warn(`dry mode: ${dryMode}`)
   const enabledWatchers: { [key: string]: boolean } = Object.assign(
     {},
     defaultEnabledWatchers

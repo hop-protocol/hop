@@ -1,9 +1,9 @@
 import Base, { ChainProviders } from '../Base'
 import EventEmitter from 'eventemitter3'
 import HopBridge from '../HopBridge'
+import wait from '../utils/wait'
 import { Chain, Token } from '../models'
 import { TChain, TProvider, TToken } from '../types'
-import wait from '../utils/wait'
 
 /**
  * @desc Event types for transaction watcher.

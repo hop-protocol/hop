@@ -32,42 +32,6 @@ export default class L1Bridge extends Bridge {
     return new L1Bridge(contract as L1BridgeContract)
   }
 
-  decodeBondTransferRootData (data: string): any {
-    if (!data) {
-      throw new Error('data to decode is required')
-    }
-    const decoded = this.l1BridgeContract.interface.decodeFunctionData(
-      'bondTransferRoot',
-      data
-    )
-    const transferRootHash = decoded.rootHash.toString()
-    const destinationChainId = decoded.destinationChainId.toString()
-    const totalAmount = decoded.totalAmount.toString()
-    return {
-      transferRootHash,
-      destinationChainId,
-      totalAmount
-    }
-  }
-
-  decodeConfirmTransferRootData (data: string): any {
-    if (!data) {
-      throw new Error('data to decode is required')
-    }
-    const decoded = this.l1BridgeContract.interface.decodeFunctionData(
-      'confirmTransferRoot',
-      data
-    )
-
-    return {
-      originChainId: Number(decoded.originChainId.toString()),
-      rootHash: decoded.rootHash,
-      destinationChainId: Number(decoded.destinationChainId.toString()),
-      totalAmount: decoded.totalAmount,
-      rootCommittedAt: Number(decoded.rootCommittedAt.toString())
-    }
-  }
-
   getTransferBond = async (transferRootId: string) => {
     return await this.l1BridgeContract.transferBonds(transferRootId)
   }
@@ -108,19 +72,6 @@ export default class L1Bridge extends Bridge {
     return await this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
   }
 
-  async getLastTransferRootBondedEvent (): Promise<TransferRootBondedEvent | undefined> {
-    let match: TransferRootBondedEvent | undefined
-    await this.eventsBatch(async (start: number, end: number) => {
-      const events = await this.getTransferRootBondedEvents(start, end)
-      if (events.length) {
-        match = events[events.length - 1]
-        return false
-      }
-    })
-
-    return match
-  }
-
   async getTransferRootBondedEvent (
     transferRootHash: string
   ) {
@@ -137,17 +88,6 @@ export default class L1Bridge extends Bridge {
     })
 
     return match
-  }
-
-  async isTransferRootHashBonded (
-    transferRootHash: string,
-    amount: BigNumber
-  ): Promise<boolean> {
-    const transferRootId = this.getTransferRootId(
-      transferRootHash,
-      amount
-    )
-    return await this.isTransferRootIdBonded(transferRootId)
   }
 
   async isTransferRootIdBonded (transferRootId: string): Promise<boolean> {
@@ -329,11 +269,6 @@ export default class L1Bridge extends Bridge {
       chainId
     )
     return address !== constants.AddressZero
-  }
-
-  getChallengePeriod = async (): Promise<number> => {
-    const challengePeriod = await this.l1BridgeContract.challengePeriod()
-    return Number(challengePeriod.toString())
   }
 
   getBondForTransferAmount = async (amount: BigNumber): Promise<BigNumber> => {

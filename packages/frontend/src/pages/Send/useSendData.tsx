@@ -1,18 +1,20 @@
 import { useState, useMemo, useCallback } from 'react'
 import { BigNumber } from 'ethers'
-import { Token } from '@hop-protocol/sdk'
+import { HopBridge, Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
 import useDebounceAsync from 'src/hooks/useDebounceAsync'
+import useAvailableLiquidity from './useAvailableLiquidity'
 
 const useSendData = (
   token: Token | undefined,
   slippageTolerance: number,
   fromNetwork: Network | undefined,
   toNetwork: Network | undefined,
-  fromAmount: BigNumber | undefined
+  fromAmount: BigNumber | undefined,
+  selectedBridge?: HopBridge
 ) => {
-  const { sdk, settings } = useApp()
+  const { sdk } = useApp()
 
   const [amountOut, setAmountOut] = useState<BigNumber>()
   const [rate, setRate] = useState<number | undefined>()
@@ -24,6 +26,13 @@ const useSendData = (
   const [requiredLiquidity, setRequiredLiquidity] = useState<BigNumber>()
   const [estimatedReceived, setEstimatedReceived] = useState<BigNumber>()
   const [error, setError] = useState<string | undefined>()
+
+  // Get available liquidity
+  const { availableLiquidity } = useAvailableLiquidity(
+    selectedBridge,
+    fromNetwork?.slug,
+    toNetwork?.slug
+  )
 
   const updateSendData = useCallback(
     async (isCancelled: () => boolean) => {
@@ -112,6 +121,7 @@ const useSendData = (
     adjustedDestinationTxFee,
     totalFee,
     requiredLiquidity,
+    availableLiquidity,
     loading,
     estimatedReceived,
     error,

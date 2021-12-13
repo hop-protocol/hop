@@ -8,7 +8,7 @@ root
   .command('challenger')
   .description('Start the challenger watcher')
   .option(
-    '--dry',
+    '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
     parseBool
   )

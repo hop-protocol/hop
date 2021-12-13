@@ -659,7 +659,7 @@ class SyncWatcher extends BaseWatcher {
     if (totalBondsSettled) {
       rootAmountAllSettled = dbTransferRoot?.totalAmount?.eq(totalBondsSettled) ?? false
     }
-    const allBondableTransfersSettled = this.syncWatcher.getIsDbTransfersAllSettled(dbTransfers)
+    const allBondableTransfersSettled = this.getIsDbTransfersAllSettled(dbTransfers)
     const allSettled = rootAmountAllSettled || allBondableTransfersSettled
     logger.debug(`all settled: ${allSettled}`)
     await this.db.transferRoots.update(transferRootHash, {
@@ -856,7 +856,7 @@ class SyncWatcher extends BaseWatcher {
     if (!destinationChainId) {
       return
     }
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
     const { transferIds: _transferIds, bonder }= await destinationBridge.getParamsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
     const tree = new MerkleTree(_transferIds)
     const computedTransferRootHash = tree.getHexRoot()
@@ -865,12 +865,9 @@ class SyncWatcher extends BaseWatcher {
         `populateTransferRootTimestamp computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(_transferIds)}`
       )
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
-    } else {
-      await this.db.transferRoots.update(transferRootHash, {
-        transferIds: _transferIds
-      })
-      await this.checkTransferRootSettledState(transferRootHash, multipleWithdrawalsSettledTotalAmount, bonder)
+      return
     }
+    await this.checkTransferRootSettledState(transferRootHash, multipleWithdrawalsSettledTotalAmount, bonder)
   }
 
   async populateTransferRootTransferIds (transferRootHash: string) {

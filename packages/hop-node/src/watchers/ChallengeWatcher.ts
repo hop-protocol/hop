@@ -20,7 +20,6 @@ type Config = {
 
 class ChallengeWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: ChallengeWatcher }
-  transferRootIdConfirmed: { [rootHash: string]: boolean } = {}
 
   constructor (config: Config) {
     super({
@@ -55,18 +54,9 @@ class ChallengeWatcher extends BaseWatcher {
     )
 
     for (const dbTransferRoot of dbTransferRoots) {
-      const { transferRootHash, bondTotalAmount } = dbTransferRoot
+      const { transferRootId, transferRootHash, bondTotalAmount } = dbTransferRoot
 
-      if (!transferRootHash || !bondTotalAmount) {
-        continue
-      }
-
-      // Define new object on first run after server restart
-      if (!this.transferRootIdConfirmed[transferRootHash]) {
-        this.transferRootIdConfirmed[transferRootHash] = false
-      }
-
-      if (this.transferRootIdConfirmed[transferRootHash]) {
+      if (!transferRootId || !transferRootHash || !bondTotalAmount) {
         continue
       }
 
@@ -89,27 +79,20 @@ class ChallengeWatcher extends BaseWatcher {
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferRootId:', transferRootId)
 
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-      transferRootHash
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
+      transferRootId
     )
 
     const l1Bridge = this.bridge as L1Bridge
     const transferRootCommittedAt = await l1Bridge.getTransferRootCommittedAt(
       dbTransferRoot.destinationChainId!, transferRootId // eslint-disable-line @typescript-eslint/no-non-null-assertion
     )
-    const isRootHashConfirmed = !!transferRootCommittedAt
-    if (isRootHashConfirmed) {
-      logger.info('rootHash is already confirmed on L1')
-      // TODO: Store this in DB when we index transferRoots by transferRootId instead of transferRootHash
-      this.transferRootIdConfirmed[transferRootHash] = true
-      return
-    }
 
     const bond = await l1Bridge.getTransferBond(transferRootId)
     const isChallenged = bond.challengeStartTime.toNumber() > 0
     if (isChallenged) {
       logger.info('challenge already started')
-      await this.db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootId, {
         challenged: true
       })
       return
@@ -121,10 +104,10 @@ class ChallengeWatcher extends BaseWatcher {
       return
     }
 
-    const challengeMsg = `TransferRoot should be challenged! Root hash: ${transferRootHash}. Total amt: ${totalAmount}.`
+    const challengeMsg = `TransferRoot should be challenged! Root id: ${transferRootId}. Root hash: ${transferRootHash} Total amt: ${totalAmount}.`
     logger.debug(challengeMsg)
     await this.notifier.warn(challengeMsg)
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       challenged: true
     })
   }

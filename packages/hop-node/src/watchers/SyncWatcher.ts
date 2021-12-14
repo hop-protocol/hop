@@ -153,17 +153,13 @@ class SyncWatcher extends BaseWatcher {
         const allChunks = chunk(incompleteTransferRoots, chunkSize)
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
-            const { transferRootHash } = transferRoot
-            this.logger.info(`populating transferRoot: ${transferRootHash}`)
-            return this.populateTransferRootDbItem(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+            const { transferRootId } = transferRoot
+            this.logger.info(`populating transferRoot id: ${transferRootId}`)
+            return this.populateTransferRootDbItem(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
               .then(async () => {
-                this.logger.info(`populated transferRoot: ${transferRootHash}`)
+                this.logger.info(`populated transferRoot id: ${transferRootId}`)
                 // fill in missing db timestamped keys
-                return this.db.transferRoots.trackTimestampedKeyByTransferRootHash(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-                  .then(async () => {
-                    // fill in missing db transfer root ID keys
-                    return this.db.transferRoots.trackTransferRootIdKeyByTransferRootHash(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-                  })
+                return this.db.transferRoots.trackTimestampedKeyByTransferRootId(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
               })
               .catch((err: Error) => {
                 this.logger.error('populateTransferRootDbItem error:', err)
@@ -491,14 +487,16 @@ class SyncWatcher extends BaseWatcher {
 
   async handleTransferRootConfirmedEvent (event: TransferRootConfirmedEvent) {
     const {
-      rootHash: transferRootHash
+      rootHash,
+      totalAmount
     } = event.args
-    const logger = this.logger.create({ root: transferRootHash })
+    const transferRootId = this.bridge.getTransferRootId(rootHash, totalAmount)
+    const logger = this.logger.create({ root: transferRootId })
     logger.debug('handling TransferRootConfirmed event')
 
     try {
       const { transactionHash } = event
-      await this.db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootId, {
         confirmed: true,
         confirmTxHash: transactionHash
       })
@@ -513,28 +511,27 @@ class SyncWatcher extends BaseWatcher {
   async handleTransferRootBondedEvent (event: TransferRootBondedEvent) {
     const { transactionHash, blockNumber } = event
     const { root, amount } = event.args
-    const logger = this.logger.create({ root })
+    const transferRootId = this.bridge.getTransferRootId(
+      root,
+      amount
+    )
+
+    const logger = this.logger.create({ root: transferRootId })
     logger.debug('handling TransferRootBonded event')
 
     try {
-      const bondTransferRootId = this.bridge.getTransferRootId(
-        root,
-        amount
-      )
-
       logger.debug(`transferRootHash from event: ${root}`)
       logger.debug(`event transactionHash: ${transactionHash}`)
       logger.debug(`event blockNumber: ${blockNumber}`)
       logger.debug(`bondAmount: ${this.bridge.formatUnits(amount)}`)
-      logger.debug(`bondTransferRootId: ${bondTransferRootId}`)
+      logger.debug(`transferRootId: ${transferRootId}`)
 
-      await this.db.transferRoots.update(root, {
+      await this.db.transferRoots.update(transferRootId, {
         transferRootHash: root,
         bonded: true,
         bondTotalAmount: amount,
         bondTxHash: transactionHash,
-        bondBlockNumber: blockNumber,
-        bondTransferRootId
+        bondBlockNumber: blockNumber
       })
     } catch (err) {
       logger.error(`handleTransferRootBondedEvent error: ${err.message}`)
@@ -549,7 +546,11 @@ class SyncWatcher extends BaseWatcher {
       totalAmount,
       rootCommittedAt: committedAtBn
     } = event.args
-    const logger = this.logger.create({ root: transferRootHash })
+    const transferRootId = this.bridge.getTransferRootId(
+      transferRootHash,
+      totalAmount
+    )
+    const logger = this.logger.create({ root: transferRootId })
     logger.debug('handling TransfersCommitted event')
 
     try {
@@ -557,10 +558,6 @@ class SyncWatcher extends BaseWatcher {
       const { transactionHash, blockNumber } = event
       const sourceChainId = await this.bridge.getChainId()
       const destinationChainId = Number(destinationChainIdBn.toString())
-      const transferRootId = this.bridge.getTransferRootId(
-        transferRootHash,
-        totalAmount
-      )
 
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
       const shouldBondTransferRoot = oruChains.includes(sourceChainSlug)
@@ -572,7 +569,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('destinationChainId:', destinationChainId)
       logger.debug('shouldBondTransferRoot:', shouldBondTransferRoot)
 
-      await this.db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootId, {
         transferRootHash,
         transferRootId,
         totalAmount,
@@ -596,7 +593,7 @@ class SyncWatcher extends BaseWatcher {
       rootHash,
       originalAmount
     } = event.args
-    const logger = this.logger.create({ root: rootHash })
+    const logger = this.logger.create({ root: transferRootId })
     const { transactionHash } = event
 
     logger.debug('handling TransferBondChallenged event')
@@ -605,7 +602,9 @@ class SyncWatcher extends BaseWatcher {
     logger.debug(`originalAmount: ${this.bridge.formatUnits(originalAmount)}`)
     logger.debug(`event transactionHash: ${transactionHash}`)
 
-    await this.db.transferRoots.update(rootHash, {
+    await this.db.transferRoots.update(transferRootId, {
+      transferRootId,
+      transferRootHash: rootHash,
       challenged: true
     })
   }
@@ -615,7 +614,11 @@ class SyncWatcher extends BaseWatcher {
       rootHash: transferRootHash,
       totalAmount
     } = event.args
-    const logger = this.logger.create({ root: transferRootHash })
+    const transferRootId = this.bridge.getTransferRootId(
+      transferRootHash,
+      totalAmount
+    )
+    const logger = this.logger.create({ root: transferRootId })
     const { transactionHash, blockNumber } = event
 
     logger.debug('handling TransferRootSet event')
@@ -623,19 +626,21 @@ class SyncWatcher extends BaseWatcher {
     logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
     logger.debug(`event transactionHash: ${transactionHash}`)
 
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
+      transferRootId,
+      transferRootHash,
       rootSetTxHash: transactionHash,
       rootSetBlockNumber: blockNumber
     })
   }
 
-  async checkTransferRootSettledState (transferRootHash: string, totalBondsSettled: BigNumber) {
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+  async checkTransferRootSettledState (transferRootId: string, totalBondsSettled: BigNumber) {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
       throw new Error('expected db transfer root item')
     }
 
-    const logger = this.logger.create({ root: transferRootHash })
+    const logger = this.logger.create({ root: transferRootId })
     const { transferIds } = dbTransferRoot
     if (transferIds === undefined || !transferIds.length) {
       return
@@ -667,7 +672,8 @@ class SyncWatcher extends BaseWatcher {
       })
     const allSettled = rootAmountAllSettled || allBondableTransfersSettled
     logger.debug(`all settled: ${allSettled}`)
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
+      transferRootId,
       allSettled
     })
   }
@@ -682,17 +688,17 @@ class SyncWatcher extends BaseWatcher {
     await this.populateTransferWithdrawalBonder(transferId)
   }
 
-  async populateTransferRootDbItem (transferRootHash: string) {
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+  async populateTransferRootDbItem (transferRootId: string) {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
-      throw new Error(`expected db transfer root item, transferRootHash: ${transferRootHash}`)
+      throw new Error(`expected db transfer root item, transferRootId: ${transferRootId}`)
     }
 
-    await this.populateTransferRootCommittedAt(transferRootHash)
-    await this.populateTransferRootBondedAt(transferRootHash)
-    await this.populateTransferRootTimestamp(transferRootHash)
-    await this.populateTransferRootMultipleWithdrawSettled(transferRootHash)
-    await this.populateTransferRootTransferIds(transferRootHash)
+    await this.populateTransferRootCommittedAt(transferRootId)
+    await this.populateTransferRootBondedAt(transferRootId)
+    await this.populateTransferRootTimestamp(transferRootId)
+    await this.populateTransferRootMultipleWithdrawSettled(transferRootId)
+    await this.populateTransferRootTransferIds(transferRootId)
   }
 
   async populateTransferSentTimestamp (transferId: string) {
@@ -750,10 +756,10 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
-  async populateTransferRootCommittedAt (transferRootHash: string) {
-    const logger = this.logger.create({ root: transferRootHash })
+  async populateTransferRootCommittedAt (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting populateTransferRootCommittedAt')
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     const { sourceChainId, commitTxHash, committedAt } = dbTransferRoot
 
     if (
@@ -765,7 +771,7 @@ class SyncWatcher extends BaseWatcher {
 
     if (!sourceChainId) {
       logger.warn(`populateTransferRootCommittedAt marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransferRoot)}`)
-      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
     logger.debug('populating committedAt')
@@ -773,19 +779,19 @@ class SyncWatcher extends BaseWatcher {
     const timestamp = await sourceBridge.getTransactionTimestamp(commitTxHash)
     if (!timestamp) {
       logger.warn(`populateTransferRootCommittedAt item not found. timestamp for commitTxHash: ${commitTxHash}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
-      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
     logger.debug(`committedAt: ${timestamp}`)
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       committedAt: timestamp
     })
   }
 
-  async populateTransferRootBondedAt (transferRootHash: string) {
-    const logger = this.logger.create({ root: transferRootHash })
+  async populateTransferRootBondedAt (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting populateTransferRootBondedAt')
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     const { bondTxHash, bondBlockNumber, bonder, bondedAt } = dbTransferRoot
     if (
       !bondTxHash ||
@@ -798,7 +804,7 @@ class SyncWatcher extends BaseWatcher {
     const tx = await destinationBridge.getTransaction(bondTxHash)
     if (!tx) {
       logger.warn(`populateTransferRootBondedAt marking item not found: tx object for transactionHash: ${bondTxHash} on chain: ${Chain.Ethereum}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
-      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
     const { from } = tx
@@ -806,23 +812,23 @@ class SyncWatcher extends BaseWatcher {
 
     if (!timestamp) {
       logger.warn(`populateTransferRootBondedAt marking item not found. timestamp for bondBlockNumber: ${bondBlockNumber}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
-      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
 
     logger.debug(`bonder: ${from}`)
     logger.debug(`bondedAt: ${timestamp}`)
 
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       bonder: from,
       bondedAt: timestamp
     })
   }
 
-  async populateTransferRootTimestamp (transferRootHash: string) {
-    const logger = this.logger.create({ root: transferRootHash })
+  async populateTransferRootTimestamp (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting populateTransferRootTimestamp')
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     const { rootSetBlockNumber, rootSetTimestamp, destinationChainId } = dbTransferRoot
     if (
       !rootSetBlockNumber || rootSetTimestamp
@@ -836,20 +842,20 @@ class SyncWatcher extends BaseWatcher {
     const timestamp = await destinationBridge.getBlockTimestamp(rootSetBlockNumber)
     if (!timestamp) {
       logger.warn(`populateTransferRootTimestamp marking item not found. timestamp for rootSetBlockNumber: ${rootSetBlockNumber}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
-      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
     logger.debug(`rootSetTimestamp: ${timestamp}`)
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       rootSetTimestamp: timestamp
     })
   }
 
-  async populateTransferRootMultipleWithdrawSettled (transferRootHash: string) {
-    const logger = this.logger.create({ root: transferRootHash })
+  async populateTransferRootMultipleWithdrawSettled (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting transferRootMultipleWithdrawSettled')
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const { multipleWithdrawalsSettledTxHash, multipleWithdrawalsSettledTotalAmount, transferIds, destinationChainId } = dbTransferRoot
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    const { transferRootHash, multipleWithdrawalsSettledTxHash, multipleWithdrawalsSettledTotalAmount, transferIds, destinationChainId } = dbTransferRoot
     if (
       !multipleWithdrawalsSettledTxHash ||
       !multipleWithdrawalsSettledTotalAmount ||
@@ -869,23 +875,23 @@ class SyncWatcher extends BaseWatcher {
       logger.warn(
         `populateTransferRootTimestamp computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(_transferIds)}`
       )
-      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
     } else {
-      await this.db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootId, {
         transferIds: _transferIds
       })
-      await this.checkTransferRootSettledState(transferRootHash, multipleWithdrawalsSettledTotalAmount)
+      await this.checkTransferRootSettledState(transferRootId, multipleWithdrawalsSettledTotalAmount)
     }
   }
 
-  async populateTransferRootTransferIds (transferRootHash: string) {
-    const logger = this.logger.create({ root: transferRootHash })
+  async populateTransferRootTransferIds (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting populateTransferRootTransferIds')
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
       throw new Error('expected db transfer root item')
     }
-    const { sourceChainId, destinationChainId, totalAmount, commitTxBlockNumber, transferIds: dbTransferIds } = dbTransferRoot
+    const { transferRootHash, sourceChainId, destinationChainId, totalAmount, commitTxBlockNumber, transferIds: dbTransferIds } = dbTransferRoot
 
     if (
       (dbTransferIds !== undefined && dbTransferIds.length > 0) ||
@@ -1004,7 +1010,7 @@ class SyncWatcher extends BaseWatcher {
       logger.warn(
         `populateTransferRootTransferIds computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(transferIds)}`
       )
-      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
 
@@ -1013,12 +1019,7 @@ class SyncWatcher extends BaseWatcher {
       JSON.stringify(transferIds)
     )
 
-    const transferRootId = this.bridge.getTransferRootId(
-      transferRootHash,
-      totalAmount
-    )
-
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       transferIds,
       totalAmount,
       sourceChainId
@@ -1039,25 +1040,27 @@ class SyncWatcher extends BaseWatcher {
       rootHash: transferRootHash,
       totalBondsSettled
     } = event.args
-    const logger = this.logger.create({ root: transferRootHash })
+    // TODO: look up correct transfer root ID based on transfer root hash
+    const transferRootId = this.bridge.getTransferRootId(transferRootHash, totalBondsSettled)
+    const logger = this.logger.create({ root: transferRootId })
 
     logger.debug('handling MultipleWithdrawalsSettled event')
     logger.debug(`tx hash from event: ${transactionHash}`)
     logger.debug(`transferRootHash from event: ${transferRootHash}`)
     logger.debug(`bonder : ${bonder}`)
     logger.debug(`totalBondSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       multipleWithdrawalsSettledTxHash: transactionHash,
       multipleWithdrawalsSettledTotalAmount: totalBondsSettled
     })
 
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     const transferIds = dbTransferRoot?.transferIds
     if (!transferIds) {
       return
     }
 
-    await this.checkTransferRootSettledState(transferRootHash, totalBondsSettled)
+    await this.checkTransferRootSettledState(transferRootId, totalBondsSettled)
   }
 
   getIsBondable = (
@@ -1132,7 +1135,7 @@ class SyncWatcher extends BaseWatcher {
       if (isBonded) {
         const logger = this.logger.create({ root: transferRootHash })
         logger.warn('calculateUnbondedTransferRootAmounts already bonded. isNotFound: true')
-        await this.db.transferRoots.update(transferRootHash!, { isNotFound: true }) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        await this.db.transferRoots.update(transferRootId!, { isNotFound: true }) // eslint-disable-line @typescript-eslint/no-non-null-assertion
         continue
       }
 

@@ -5,6 +5,7 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
+import { OneHourMs } from 'src/constants'
 
 type Config = {
   chainSlug: string
@@ -20,6 +21,7 @@ type Config = {
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
+  settleAttemptedAt: { [rootHash: string]: number } = {}
 
   constructor (config: Config) {
     super({
@@ -46,13 +48,28 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
       const { transferRootHash, transferIds } = dbTransferRoot
+      if (!transferRootHash) {
+        throw new Error('expected transferRootHash')
+      }
+
       if (!transferIds) {
         throw new Error('expected transferIds list')
       }
 
+      // Mark a settlement as attempted here so that multiple db reads are not attempted every poll
+      // This comes into play when a transfer is bonded after others in the same root have been settled
+      if (!this.settleAttemptedAt[transferRootHash]) {
+        this.settleAttemptedAt[transferRootHash] = 0
+      }
+      const timestampOk = this.settleAttemptedAt[transferRootHash] + OneHourMs < Date.now()
+      if (!timestampOk) {
+        return
+      }
+      this.settleAttemptedAt[transferRootHash] = Date.now()
+
       // get all db transfer items that belong to root
       const dbTransfers: Transfer[] = []
-      for (const transferId of transferIds) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      for (const transferId of transferIds) {
         const dbTransfer = await this.db.transfers.getByTransferId(transferId)
         if (!dbTransfer) {
           continue
@@ -75,7 +92,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
       const allBondableTransfersSettled = this.syncWatcher.getIsDbTransfersAllSettled(dbTransfers)
       if (allBondableTransfersSettled) {
-        await this.db.transferRoots.update(transferRootHash!, { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        await this.db.transferRoots.update(transferRootHash, {
           allSettled: true
         })
         continue
@@ -95,7 +112,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       for (const bonder of bonderSet.values()) {
         // check settle-able transfer root
         promises.push(
-          this.checkTransferRootHash(transferRootHash!, bonder) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+          this.checkTransferRootHash(transferRootHash, bonder)
             .catch((err: Error) => {
               this.logger.error('checkTransferRootHash error:', err.message)
             })

@@ -87,6 +87,14 @@ class ChallengeWatcher extends BaseWatcher {
     const transferRootCommittedAt = await l1Bridge.getTransferRootCommittedAt(
       dbTransferRoot.destinationChainId!, transferRootId // eslint-disable-line @typescript-eslint/no-non-null-assertion
     )
+    const isRootHashConfirmed = !!transferRootCommittedAt
+    if (isRootHashConfirmed) {
+      logger.info('rootHash is already confirmed on L1')
+      await this.db.transferRoots.update(transferRootId, {
+        confirmed: true
+      })
+      return
+    }
 
     const bond = await l1Bridge.getTransferBond(transferRootId)
     const isChallenged = bond.challengeStartTime.toNumber() > 0

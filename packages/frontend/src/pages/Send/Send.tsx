@@ -287,14 +287,34 @@ const Send: FC = () => {
   const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
 
   useEffect(() => {
-    if (needsTokenForFee && fromNetwork) {
-      setNeedsNativeTokenWarning(
-        `Add ${fromNetwork.nativeTokenSymbol} to your account on ${fromNetwork.name} for the transaction fee.`
-      )
-    } else {
-      setNeedsNativeTokenWarning('')
+    const update = async () => {
+      let warning = ''
+      try {
+        if (needsTokenForFee && fromNetwork && toNetwork && fromTokenAmountBN && fromBalance && deadline) {
+          const options = {
+            balance: fromBalance,
+            token: sourceToken,
+            fromNetwork,
+            toNetwork,
+            deadline,
+          }
+    
+          var estimatedGasCost = await estimateSend(options) 
+
+          if (estimatedGasCost && fromBalance?.lt(estimatedGasCost)) {
+            var shortBalance = estimatedGasCost.sub(fromBalance)
+            warning = `Add ${toTokenDisplay(shortBalance, sourceToken?.decimals)} ${fromNetwork.nativeTokenSymbol} to your account on ${fromNetwork.name} for the transaction fee.`
+          }
+        }
+      } catch (err) {
+        logger.error(err)
+      }
+
+      setNeedsNativeTokenWarning(warning)
     }
-  }, [needsTokenForFee, fromNetwork])
+
+    update().catch(logger.error)
+  }, [sourceToken, needsTokenForFee, fromNetwork, toNetwork, fromTokenAmountBN, fromBalance, deadline])
 
   useEffect(() => {
     const warningMessage = `Send at least ${destinationTxFeeDisplay} to cover the transaction fee`

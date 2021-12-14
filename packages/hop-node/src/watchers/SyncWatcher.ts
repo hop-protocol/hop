@@ -156,11 +156,6 @@ class SyncWatcher extends BaseWatcher {
             const { transferRootId } = transferRoot
             this.logger.info(`populating transferRoot id: ${transferRootId}`)
             return this.populateTransferRootDbItem(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-              .then(async () => {
-                this.logger.info(`populated transferRoot id: ${transferRootId}`)
-                // fill in missing db timestamped keys
-                return this.db.transferRoots.trackTimestampedKeyByTransferRootId(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-              })
               .catch((err: Error) => {
                 this.logger.error('populateTransferRootDbItem error:', err)
                 this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
@@ -1040,8 +1035,11 @@ class SyncWatcher extends BaseWatcher {
       rootHash: transferRootHash,
       totalBondsSettled
     } = event.args
-    // TODO: look up correct transfer root ID based on transfer root hash
-    const transferRootId = this.bridge.getTransferRootId(transferRootHash, totalBondsSettled)
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+    if (!dbTransferRoot?.transferRootId) {
+      throw new Error(`expected db item for transfer root hash "${transferRootHash}"`)
+    }
+    const { transferRootId } = dbTransferRoot
     const logger = this.logger.create({ root: transferRootId })
 
     logger.debug('handling MultipleWithdrawalsSettled event')
@@ -1054,7 +1052,6 @@ class SyncWatcher extends BaseWatcher {
       multipleWithdrawalsSettledTotalAmount: totalBondsSettled
     })
 
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     const transferIds = dbTransferRoot?.transferIds
     if (!transferIds) {
       return

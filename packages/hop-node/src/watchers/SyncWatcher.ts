@@ -867,6 +867,10 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
       return
     }
+
+    await this.db.transferRoots.update(transferRootHash, {
+      transferIds: _transferIds
+    })
     await this.checkTransferRootSettledState(transferRootHash, multipleWithdrawalsSettledTotalAmount, bonder)
   }
 

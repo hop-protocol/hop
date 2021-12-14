@@ -63,7 +63,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
       const timestampOk = this.settleAttemptedAt[transferRootHash] + OneHourMs < Date.now()
       if (!timestampOk) {
-        return
+        continue
       }
       this.settleAttemptedAt[transferRootHash] = Date.now()
 

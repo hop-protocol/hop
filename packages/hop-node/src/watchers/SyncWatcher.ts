@@ -482,10 +482,10 @@ class SyncWatcher extends BaseWatcher {
 
   async handleTransferRootConfirmedEvent (event: TransferRootConfirmedEvent) {
     const {
-      rootHash,
+      rootHash: transferRootHash,
       totalAmount
     } = event.args
-    const transferRootId = this.bridge.getTransferRootId(rootHash, totalAmount)
+    const transferRootId = this.bridge.getTransferRootId(transferRootHash, totalAmount)
     const logger = this.logger.create({ root: transferRootId })
     logger.debug('handling TransferRootConfirmed event')
 
@@ -505,9 +505,9 @@ class SyncWatcher extends BaseWatcher {
 
   async handleTransferRootBondedEvent (event: TransferRootBondedEvent) {
     const { transactionHash, blockNumber } = event
-    const { root, amount } = event.args
+    const { root: transferRootHash, amount } = event.args
     const transferRootId = this.bridge.getTransferRootId(
-      root,
+      transferRootHash,
       amount
     )
 
@@ -515,14 +515,14 @@ class SyncWatcher extends BaseWatcher {
     logger.debug('handling TransferRootBonded event')
 
     try {
-      logger.debug(`transferRootHash from event: ${root}`)
+      logger.debug(`transferRootHash from event: ${transferRootHash}`)
       logger.debug(`event transactionHash: ${transactionHash}`)
       logger.debug(`event blockNumber: ${blockNumber}`)
       logger.debug(`bondAmount: ${this.bridge.formatUnits(amount)}`)
       logger.debug(`transferRootId: ${transferRootId}`)
 
       await this.db.transferRoots.update(transferRootId, {
-        transferRootHash: root,
+        transferRootHash,
         bonded: true,
         bondTotalAmount: amount,
         bondTxHash: transactionHash,
@@ -585,7 +585,7 @@ class SyncWatcher extends BaseWatcher {
   async handleTransferBondChallengedEvent (event: TransferBondChallengedEvent) {
     const {
       transferRootId,
-      rootHash,
+      rootHash: transferRootHash,
       originalAmount
     } = event.args
     const logger = this.logger.create({ root: transferRootId })
@@ -593,13 +593,13 @@ class SyncWatcher extends BaseWatcher {
 
     logger.debug('handling TransferBondChallenged event')
     logger.debug(`transferRootId: ${transferRootId}`)
-    logger.debug(`rootHash: ${rootHash}`)
+    logger.debug(`transferRootHash: ${transferRootHash}`)
     logger.debug(`originalAmount: ${this.bridge.formatUnits(originalAmount)}`)
     logger.debug(`event transactionHash: ${transactionHash}`)
 
     await this.db.transferRoots.update(transferRootId, {
       transferRootId,
-      transferRootHash: rootHash,
+      transferRootHash,
       challenged: true
     })
   }
@@ -1130,7 +1130,7 @@ class SyncWatcher extends BaseWatcher {
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
       const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       if (isBonded) {
-        const logger = this.logger.create({ root: transferRootHash })
+        const logger = this.logger.create({ root: transferRootId })
         logger.warn('calculateUnbondedTransferRootAmounts already bonded. isNotFound: true')
         await this.db.transferRoots.update(transferRootId!, { isNotFound: true }) // eslint-disable-line @typescript-eslint/no-non-null-assertion
         continue

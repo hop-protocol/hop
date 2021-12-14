@@ -98,20 +98,24 @@ class TransferRootsDb extends BaseDb {
   async migration () {
     // re-index timestamped db keys by transfer root id
     let items = await this.subDbTimestamps.getKeyValues()
-    let promises : Promise<any>[] = []
+    let promises: Array<Promise<any>> = []
     for (const { key, value } of items) {
       promises.push(new Promise(async (resolve) => {
         if (!value?.transferRootHash) {
           resolve(null)
           return
         }
-        const parts = key.split(':')
         const item = await this.getById(value.transferRootHash)
-        if (!item) {
+        if (!item?.transferRootId) {
           resolve(null)
           return
         }
         const { transferRootId } = item
+        const parts = key.split(':')
+        if (parts.length < 2) {
+          resolve(null)
+          return
+        }
         const newKey = `${parts[0]}:${parts[1]}:${transferRootId}`
         await this.subDbTimestamps._update(newKey, { transferRootId })
         await this.subDbTimestamps.deleteById(key)
@@ -131,7 +135,7 @@ class TransferRootsDb extends BaseDb {
           return
         }
         const item = await this.getById(value.transferRootHash)
-        if (!item) {
+        if (!item?.transferRootId) {
           resolve(null)
           return
         }
@@ -184,33 +188,11 @@ class TransferRootsDb extends BaseDb {
     }
   }
 
-  /*
-  async trackTimestampedKey (transferRoot: Partial<TransferRoot>) {
-    const data = await this.getTimestampedKeyValueForUpdate(transferRoot)
-    if (data != null) {
-      const key = data.key
-      const transferRootId = data.value.transferRootId
-      this.logger.debug(`storing timestamped key. key: ${key} transferRootId: ${transferRootId}`)
-      const value = { transferRootId }
-      await this.subDbTimestamps._update(key, value)
-    }
-  }
-
-  async trackTimestampedKeyByTransferRootId (transferRootId: string) {
-    const transferRoot = await this.getByTransferRootId(transferRootId)
-    return await this.trackTimestampedKey(transferRoot)
-  }
-  */
-
   getTimestampedKey (transferRoot: Partial<TransferRoot>) {
     if (transferRoot.committedAt && transferRoot.transferRootId) {
       const key = `transferRoot:${transferRoot.committedAt}:${transferRoot.transferRootId}`
       return key
     }
-  }
-
-  getTransferRootIdKey (transferRoot: Partial<TransferRoot>) {
-    return transferRoot?.transferRootId
   }
 
   async getTimestampedKeyValueForUpdate (transferRoot: Partial<TransferRoot>) {
@@ -307,7 +289,7 @@ class TransferRootsDb extends BaseDb {
   ): Promise<TransferRoot | null> {
     await this.tilReady()
     let item = await this.subDbRootHashes.getById(transferRootHash)
-    if (!item) {
+    if (!item?.transferRootId) {
       return null
     }
     item = await this.getById(item.transferRootId)
@@ -322,15 +304,15 @@ class TransferRootsDb extends BaseDb {
     await this.tilReady()
     // return only transfer-root keys that are within specified range (filter by timestamped keys)
     const filter: KeyFilter = {
-      gte: 'transferRootId:',
-      lte: 'transferRootId:~'
+      gte: 'transferRoot:',
+      lte: 'transferRoot:~'
     }
     if (dateFilter != null) {
       if (dateFilter.fromUnix) {
-        filter.gte = `transferRootId:${dateFilter.fromUnix}`
+        filter.gte = `transferRoot:${dateFilter.fromUnix}`
       }
       if (dateFilter.toUnix) {
-        filter.lte = `transferRootId:${dateFilter.toUnix}~` // tilde is intentional
+        filter.lte = `transferRoot:${dateFilter.toUnix}~` // tilde is intentional
       }
     }
     const kv = await this.subDbTimestamps.getKeyValues(filter)

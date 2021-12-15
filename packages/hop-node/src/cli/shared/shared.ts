@@ -20,10 +20,14 @@ export function actionHandler (fn: Function) {
   return async (source: any = {}) => {
     try {
       const configFilePath = source.config || source?.parent?.config
-      const config = await parseConfigFile(configFilePath)
-      await setGlobalConfigFromConfigFile(config, source.passwordFile)
-      source.configFilePath = configFilePath
-      source.config = config
+      if (configFilePath) {
+        const config = await parseConfigFile(configFilePath)
+        await setGlobalConfigFromConfigFile(config, source.passwordFile)
+        source.configFilePath = configFilePath
+        source.config = config
+      } else {
+        source.config = {}
+      }
 
       await fn(source)
       process.exit(0)

@@ -1,10 +1,11 @@
 import '../moduleAlias'
 import BNMin from 'src/utils/BNMin'
+import isNativeToken from 'src/utils/isNativeToken'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import isL1ChainId from 'src/utils/isL1ChainId'
-import { BigNumber } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
@@ -126,6 +127,17 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logger.warn('checkTransferId already bonded. marking item not found')
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
+    }
+
+    const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
+    if (isReceivingNativeToken) {
+      const isRecipientReceivable = await this.getIsRecipientReceivable(recipient!, destBridge) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      logger.debug(`processing bondWithdrawal. isRecipientReceivable: ${isRecipientReceivable}`)
+      if (!isRecipientReceivable) {
+        logger.warn('recipient cannot receive transfer. marking item not bondable')
+        await this.db.transfers.update(transferId, { isBondable:  false})
+        return
+      }
     }
 
     const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!, amount!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -346,6 +358,22 @@ class BondWithdrawalWatcher extends BaseWatcher {
   getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
     const availableCredit = this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
     return availableCredit
+  }
+
+  async getIsRecipientReceivable (recipient: string, destinationBridge: L2BridgeContract | L1BridgeContract) {
+    // It has been verified that all chains have at least 1 wei at 0x0.
+    const tx = {
+      from: constants.AddressZero,
+      to: recipient,
+      value: '1'
+    }
+
+    try {
+      await destinationBridge.provider.call(tx)
+      return true
+    } catch {
+      return false
+    }
   }
 }
 

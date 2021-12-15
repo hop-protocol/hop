@@ -892,8 +892,33 @@ class SyncWatcher extends BaseWatcher {
     }
 
     logger.debug(
-      `looking for transfer ids for transferRootHash ${transferRootHash}`
+      `looking in db for transfer ids for transferRootHash ${transferRootHash}`
     )
+
+    const items = await this.db.transfers.getTransfersWithTransferRootHash(transferRootHash)
+    if (items.length) {
+      const transferIds = items.map(item => item.transferId) as string[]
+      const tree = new MerkleTree(transferIds)
+      const computedTransferRootHash = tree.getHexRoot()
+      if (computedTransferRootHash === transferRootHash) {
+        const transferRootId = this.bridge.getTransferRootId(
+          transferRootHash,
+          totalAmount
+        )
+
+        await this.db.transferRoots.update(transferRootHash, {
+          transferIds,
+          totalAmount,
+          sourceChainId
+        })
+        return
+      }
+
+      logger.debug(
+        `no db transfer ids found for transferRootHash ${transferRootHash}`
+      )
+    }
+
     if (!this.hasSiblingWatcher(sourceChainId)) {
       logger.error(`no sibling watcher found for ${sourceChainId}`)
       return
@@ -904,6 +929,10 @@ class SyncWatcher extends BaseWatcher {
     const eventBlockNumber: number = commitTxBlockNumber
     let startEvent: TransfersCommittedEvent | undefined
     let endEvent: TransfersCommittedEvent | undefined
+
+    logger.debug(
+      `looking on-chain for transfer ids for transferRootHash ${transferRootHash}`
+    )
 
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
@@ -985,15 +1014,9 @@ class SyncWatcher extends BaseWatcher {
       { startBlockNumber, endBlockNumber }
     )
 
-    logger.debug(`Original transfer ids: ${JSON.stringify(transfers)}}`)
+    logger.debug(`transfer ids: ${JSON.stringify(transfers)}}`)
 
-    // this gets only the last set of sequence of transfers {0, 1,.., n}
-    // where n is the transfer id index.
-    // example: {0, 0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 1, 2, 3} ⟶  {0, 1, 2, 3}
-    const lastIndexZero = transfers.map((x: any) => x.index).lastIndexOf(0)
-    const filtered = transfers.slice(lastIndexZero)
-    const transferIds = filtered.map((x: any) => x.transferId)
-
+    const transferIds = transfers.map((x: any) => x.transferId)
     const tree = new MerkleTree(transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {

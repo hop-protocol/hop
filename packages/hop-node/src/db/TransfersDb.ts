@@ -311,6 +311,19 @@ class TransfersDb extends TimestampedKeysDb<Transfer> {
     })
   }
 
+  async getTransfersWithTransferRootHash (transferRootHash: string) {
+    await this.tilReady()
+    const transfers = await this.getTransfersFromWeek()
+    const items = transfers.filter((item: Transfer) => {
+      if (!item.transferId) {
+        return false
+      }
+      return item.transferRootHash === transferRootHash
+    })
+
+    return items.sort(this.sortItems)
+  }
+
   async getUncommittedTransfers (
     filter: GetItemsFilter = {}
   ): Promise<Transfer[]> {

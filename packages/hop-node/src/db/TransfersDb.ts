@@ -254,22 +254,23 @@ class TransfersDb extends BaseDb {
   }
 
   async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {
+    const filter: KeyFilter = {
+      gte: 'transfer:',
+      lte: 'transfer:~'
+    }
+
     // return only transfer-id keys that are within specified range (filter by timestamped keys)
     if (dateFilter?.fromUnix || dateFilter?.toUnix) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-      const filter: KeyFilter = {}
       if (dateFilter.fromUnix) {
         filter.gte = `transfer:${dateFilter.fromUnix}`
       }
       if (dateFilter.toUnix) {
         filter.lte = `transfer:${dateFilter.toUnix}~` // tilde is intentional
       }
-      const kv = await this.subDbTimestamps.getKeyValues(filter)
-      return kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)
     }
 
-    // return all transfer-id keys if no filter is used (filter out timestamped keys)
-    const keys = (await this.getKeys()).filter(this.filterOutTimestampedKeys)
-    return keys
+    const kv = await this.subDbTimestamps.getKeyValues(filter)
+    return kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)
   }
 
   sortItems = (a: any, b: any) => {

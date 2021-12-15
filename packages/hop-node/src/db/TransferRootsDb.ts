@@ -295,7 +295,7 @@ class TransferRootsDb extends BaseDb {
     return this.normalizeItem(item)
   }
 
-  filterTimestampedKeyValues = (x: any) => {
+  private readonly filterTimestampedKeyValues = (x: any) => {
     return x?.value?.transferRootId
   }
 

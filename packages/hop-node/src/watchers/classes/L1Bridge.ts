@@ -279,7 +279,7 @@ export default class L1Bridge extends Bridge {
     if (!data) {
       throw new Error('data to decode is required')
     }
-    const decoded = await this.l1BridgeContract.interface.decodeFunctionData(
+    const decoded = this.l1BridgeContract.interface.decodeFunctionData(
       'bondTransferRoot',
       data
     )

@@ -249,9 +249,10 @@ class SyncWatcher extends BaseWatcher {
       return options
     }
 
+    const transferRootInitialEventPromises: Array<Promise<any>> = []
     if (this.isL1) {
       const l1Bridge = this.bridge as L1Bridge
-      promises.push(
+      transferRootInitialEventPromises.push(
         l1Bridge.mapTransferRootBondedEvents(
           async (event: TransferRootBondedEvent) => {
             return await this.handleTransferRootBondedEvent(event)
@@ -279,7 +280,6 @@ class SyncWatcher extends BaseWatcher {
       )
     }
 
-    const transfersCommittedPromises: Array<Promise<any>> = []
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
@@ -291,7 +291,7 @@ class SyncWatcher extends BaseWatcher {
         )
       )
 
-      transfersCommittedPromises.push(
+      transferRootInitialEventPromises.push(
         l2Bridge.mapTransfersCommittedEvents(
           async (event: TransfersCommittedEvent) => {
             return await Promise.all([
@@ -323,7 +323,7 @@ class SyncWatcher extends BaseWatcher {
     )
 
     promises.push(
-      Promise.all(transferSpentPromises.concat(transfersCommittedPromises))
+      Promise.all(transferSpentPromises.concat(transferRootInitialEventPromises))
         .then(async () => {
         // This must be executed after the Withdrew and WithdrawalBonded event handlers
         // on initial sync since it relies on data from those handlers.

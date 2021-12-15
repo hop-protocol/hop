@@ -1,5 +1,4 @@
 import buildInfo from 'src/.build-info.json'
-import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'

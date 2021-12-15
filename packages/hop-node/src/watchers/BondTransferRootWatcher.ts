@@ -2,7 +2,6 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
-import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
@@ -55,6 +54,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
       const {
+        transferRootId,
         transferRootHash,
         totalAmount,
         destinationChainId,
@@ -64,6 +64,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       } = dbTransferRoot
 
       promises.push(this.checkTransfersCommitted(
+        transferRootId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
         transferRootHash!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
         totalAmount!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
         destinationChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -77,6 +78,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   checkTransfersCommitted = async (
+    transferRootId: string,
     transferRootHash: string,
     totalAmount: BigNumber,
     destinationChainId: number,
@@ -84,13 +86,8 @@ class BondTransferRootWatcher extends BaseWatcher {
     sourceChainId: number,
     transferIds: string[]
   ) => {
-    const logger = this.logger.create({ root: transferRootHash })
-
+    const logger = this.logger.create({ root: transferRootId })
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
-    const transferRootId = getTransferRootId(
-      transferRootHash,
-      totalAmount
-    )
 
     const minDelaySec = await l1Bridge.getMinTransferRootBondDelaySeconds()
     const minDelayMs = minDelaySec * 1000
@@ -109,16 +106,16 @@ class BondTransferRootWatcher extends BaseWatcher {
     const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
     if (isBonded) {
       logger.warn('checkTransfersCommitted already bonded. marking item not found.')
-      await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
 
-    logger.info(`source: ${sourceChainId} transferRootHash: ${transferRootHash}`)
+    logger.info(`source: ${sourceChainId} transferRootId: ${transferRootId} transferRootHash: ${transferRootHash}`)
     logger.debug('committedAt:', committedAt)
     logger.debug('destinationChainId:', destinationChainId)
     logger.debug('sourceChainId:', sourceChainId)
-    logger.debug('transferRootHash:', transferRootHash)
     logger.debug('transferRootId:', transferRootId)
+    logger.debug('transferRootHash:', transferRootHash)
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferRootId:', transferRootId)
 
@@ -134,7 +131,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       }
     }
 
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       sentBondTxAt: Date.now()
     })
 
@@ -156,7 +153,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
 
     logger.debug(
-      `bonding transfer root ${transferRootHash} with destination chain ${destinationChainId}`
+      `bonding transfer root id ${transferRootId} with destination chain ${destinationChainId}`
     )
 
     try {

@@ -87,7 +87,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     return await this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
     logger.debug(
       `attempting to send relay message on arbitrum for commit tx hash ${commitTxHash}`
     )
@@ -97,7 +97,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       return
     }
 
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
     const tx = await this.relayXDomainMessage(commitTxHash)

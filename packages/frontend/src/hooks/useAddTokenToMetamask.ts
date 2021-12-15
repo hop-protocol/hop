@@ -42,8 +42,6 @@ export function useAddTokenToMetamask(
     [token, provider, connectedNetworkId]
   )
 
-  useEffect(() => {}, [provider])
-
   const addTokenToDestNetwork = useCallback(async () => {
     if (provider && token && destNetworkName) {
       const destinationChain = sdk.toChainModel(destNetworkName)

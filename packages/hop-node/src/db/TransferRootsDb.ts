@@ -32,7 +32,6 @@ export type TransferRoot = {
   transferIds?: string[]
   bonder?: string
   withdrawalBondSettleTxSentAt?: number
-  bondTotalAmount?: BigNumber
   challenged?: boolean
   allSettled?: boolean
   multipleWithdrawalsSettledTxHash?: string

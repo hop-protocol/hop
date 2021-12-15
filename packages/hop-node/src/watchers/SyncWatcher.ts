@@ -516,7 +516,6 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transferRoots.update(transferRootId, {
         transferRootHash,
         bonded: true,
-        bondTotalAmount: amount,
         bondTxHash: transactionHash,
         bondBlockNumber: blockNumber
       })

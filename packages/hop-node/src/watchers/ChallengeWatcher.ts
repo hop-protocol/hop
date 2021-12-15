@@ -1,8 +1,6 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
-import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
@@ -54,29 +52,18 @@ class ChallengeWatcher extends BaseWatcher {
     )
 
     for (const dbTransferRoot of dbTransferRoots) {
-      const { transferRootId, transferRootHash, bondTotalAmount } = dbTransferRoot
-
-      if (!transferRootId || !transferRootHash || !bondTotalAmount) {
-        continue
-      }
-
-      await this.checkChallengeableTransferRoot(
-        transferRootHash,
-        bondTotalAmount
-      )
+      const { transferRootId } = dbTransferRoot
+      await this.checkChallengeableTransferRoot(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     }
   }
 
-  async checkChallengeableTransferRoot (
-    transferRootHash: string,
-    totalAmount: BigNumber
-  ) {
-    const logger = this.logger.create({ root: transferRootHash })
-    const transferRootId = getTransferRootId(transferRootHash, totalAmount)
+  async checkChallengeableTransferRoot (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
 
-    logger.debug('Challenging transfer root', transferRootHash)
-    logger.debug('transferRootHash:', transferRootHash)
-    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
+    const { transferRootHash, totalAmount } = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    logger.debug('Challenging transfer root', transferRootId)
+    logger.debug('transferRootId:', transferRootId)
+    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount!)) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     logger.debug('transferRootId:', transferRootId)
 
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(

@@ -155,22 +155,6 @@ class TransfersDb extends BaseDb {
     }
   }
 
-  async trackTimestampedKey (transfer: Partial<Transfer>) {
-    const data = await this.getTimestampedKeyValueForUpdate(transfer)
-    if (data != null) {
-      const key = data.key
-      const transferId = data.value.transferId
-      this.logger.debug(`storing timestamped key. key: ${key} transferId: ${transferId}`)
-      const value = { transferId }
-      await this.subDbTimestamps._update(key, value)
-    }
-  }
-
-  async trackTimestampedKeyByTransferId (transferId: string) {
-    const transfer = await this.getByTransferId(transferId)
-    return await this.trackTimestampedKey(transfer)
-  }
-
   getTimestampedKey (transfer: Partial<Transfer>) {
     if (transfer.transferSentTimestamp && transfer.transferId) {
       const key = `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`
@@ -247,10 +231,6 @@ class TransfersDb extends BaseDb {
 
   private readonly filterTimestampedKeyValues = (x: any) => {
     return x?.value?.transferId
-  }
-
-  private readonly filterOutTimestampedKeys = (key: string) => {
-    return !key.startsWith('transfer:')
   }
 
   async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {

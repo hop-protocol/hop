@@ -387,10 +387,12 @@ class SyncWatcher extends BaseWatcher {
       const { transactionHash, transactionIndex } = event
       const blockNumber: number = event.blockNumber
       if (!transactionHash) {
-        throw new Error('event transaction hash not found')
+        logger.error('event transaction hash not found')
+        return
       }
       if (!blockNumber) {
-        throw new Error('event block number not found')
+        logger.error('event block number not found')
+        return
       }
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
@@ -502,8 +504,8 @@ class SyncWatcher extends BaseWatcher {
 
   async handleTransferRootBondedEvent (event: TransferRootBondedEvent) {
     const { transactionHash, blockNumber } = event
-    const { root: transferRootHash, amount } = event.args
-    const transferRootId = this.bridge.getTransferRootId(transferRootHash, amount)
+    const { root: transferRootHash, amount: totalAmount } = event.args
+    const transferRootId = this.bridge.getTransferRootId(transferRootHash, totalAmount)
 
     const logger = this.logger.create({ root: transferRootId })
     logger.debug('handling TransferRootBonded event')
@@ -512,14 +514,15 @@ class SyncWatcher extends BaseWatcher {
       logger.debug(`transferRootHash from event: ${transferRootHash}`)
       logger.debug(`event transactionHash: ${transactionHash}`)
       logger.debug(`event blockNumber: ${blockNumber}`)
-      logger.debug(`bondAmount: ${this.bridge.formatUnits(amount)}`)
+      logger.debug(`bondAmount: ${this.bridge.formatUnits(totalAmount)}`)
       logger.debug(`transferRootId: ${transferRootId}`)
 
       await this.db.transferRoots.update(transferRootId, {
         transferRootHash,
         bonded: true,
         bondTxHash: transactionHash,
-        bondBlockNumber: blockNumber
+        bondBlockNumber: blockNumber,
+        totalAmount
       })
     } catch (err) {
       logger.error(`handleTransferRootBondedEvent error: ${err.message}`)

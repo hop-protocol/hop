@@ -274,4 +274,22 @@ export default class L1Bridge extends Bridge {
   getBondForTransferAmount = async (amount: BigNumber): Promise<BigNumber> => {
     return await this.l1BridgeContract.getBondForTransferAmount(amount)
   }
+
+  async decodeBondTransferRootCalldata (data: string): Promise<any> {
+    if (!data) {
+      throw new Error('data to decode is required')
+    }
+    const decoded = await this.l1BridgeContract.interface.decodeFunctionData(
+      'bondTransferRoot',
+      data
+    )
+    const transferRootHash = decoded.rootHash
+    const totalAmount = decoded.totalAmount
+    const destinationChainId = Number(decoded.destinationChainId.toString())
+    return {
+      transferRootHash,
+      totalAmount,
+      destinationChainId
+    }
+  }
 }

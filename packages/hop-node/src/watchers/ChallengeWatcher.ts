@@ -83,9 +83,19 @@ class ChallengeWatcher extends BaseWatcher {
       transferRootId
     )
 
+    const { bondTxHash } = dbTransferRoot
+    if (!bondTxHash) {
+      throw new Error('expected bondTxHash')
+    }
+
     const l1Bridge = this.bridge as L1Bridge
+    const tx = await l1Bridge.getTransaction(bondTxHash)
+    if (!tx) {
+      throw new Error('expected transaction object')
+    }
+    const { destinationChainId } = await l1Bridge.decodeBondTransferRootCalldata(tx.data)
     const transferRootCommittedAt = await l1Bridge.getTransferRootCommittedAt(
-      dbTransferRoot.destinationChainId!, transferRootId // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      destinationChainId, transferRootId
     )
     const isRootHashConfirmed = !!transferRootCommittedAt
     if (isRootHashConfirmed) {

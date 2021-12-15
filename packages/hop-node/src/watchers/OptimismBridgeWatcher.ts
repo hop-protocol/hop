@@ -99,7 +99,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
       )
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
     logger.debug(
       `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
     )
@@ -110,7 +110,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
       return
     }
 
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
 

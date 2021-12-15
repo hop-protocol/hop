@@ -103,30 +103,29 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     this.logger.debug(
       `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
     )
-    for (const { transferRootHash } of dbTransferRoots) {
+    for (const { transferRootId } of dbTransferRoots) {
       // Parallelizing these calls produces RPC errors on Optimism
-      await this.checkTransfersCommitted(transferRootHash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      await this.checkTransfersCommitted(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     }
   }
 
-  checkTransfersCommitted = async (transferRootHash: string) => {
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+  checkTransfersCommitted = async (transferRootId: string) => {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
-      throw new Error(`transfer root db item not found, root hash "${transferRootHash}"`)
+      throw new Error(`transfer root db item not found, root id "${transferRootId}"`)
     }
 
     const { destinationChainId, commitTxHash } = dbTransferRoot
 
-    const logger = this.logger.create({ root: transferRootHash })
+    const logger = this.logger.create({ root: transferRootId })
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
-    const { transferRootId } = dbTransferRoot
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
       destinationChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-      transferRootId! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      transferRootId // eslint-disable-line @typescript-eslint/no-non-null-assertion
     )
     if (isTransferRootIdConfirmed) {
       logger.warn('Transfer root already confirmed')
-      await this.db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootId, {
         confirmed: true
       })
       return
@@ -139,7 +138,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
 
     logger.debug(`handling commit tx hash ${commitTxHash} from ${destinationChainId}`)
-    await watcher.handleCommitTxHash(commitTxHash!, transferRootHash, logger) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    await watcher.handleCommitTxHash(commitTxHash!, transferRootId, logger) // eslint-disable-line @typescript-eslint/no-non-null-assertion
   }
 }
 

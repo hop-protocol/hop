@@ -49,6 +49,7 @@ export type KeyFilter = {
 }
 
 class BaseDb extends EventEmitter {
+  ready = false
   public db: any
   public prefix: string
   logger: Logger
@@ -120,6 +121,15 @@ class BaseDb extends EventEmitter {
       })
 
     this.pollBatchQueue()
+  }
+
+  protected async tilReady (): Promise<boolean> {
+    if (this.ready) {
+      return true
+    }
+
+    await wait(100)
+    return await this.tilReady()
   }
 
   async pollBatchQueue () {

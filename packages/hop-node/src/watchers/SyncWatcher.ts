@@ -1126,7 +1126,7 @@ class SyncWatcher extends BaseWatcher {
     this.logger.debug(`getUnbondedTransferRoots ${this.chainSlug}→${destinationChain}:`, JSON.stringify(transferRoots.map(({ transferRootHash, totalAmount }: TransferRoot) => ({ transferRootHash, totalAmount }))))
     let totalAmount = BigNumber.from(0)
     for (const transferRoot of transferRoots) {
-      const { transferRootHash, transferRootId } = transferRoot
+      const { transferRootId } = transferRoot
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
       const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       if (isBonded) {

@@ -279,6 +279,7 @@ class SyncWatcher extends BaseWatcher {
       )
     }
 
+    const transfersCommittedPromises: Array<Promise<any>> = []
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
@@ -287,6 +288,17 @@ class SyncWatcher extends BaseWatcher {
             return await this.handleTransferSentEvent(event)
           },
           getOptions(l2Bridge.TransferSent)
+        )
+      )
+
+      transfersCommittedPromises.push(
+        l2Bridge.mapTransfersCommittedEvents(
+          async (event: TransfersCommittedEvent) => {
+            return await Promise.all([
+              this.handleTransfersCommittedEvent(event)
+            ])
+          },
+          getOptions(l2Bridge.TransfersCommitted)
         )
       )
     }
@@ -311,29 +323,16 @@ class SyncWatcher extends BaseWatcher {
     )
 
     promises.push(
-      Promise.all(transferSpentPromises)
-        .then(() => {
-          if (!this.isL1) {
-            const l2Bridge = this.bridge as L2Bridge
-            return l2Bridge.mapTransfersCommittedEvents(
-              async (event: TransfersCommittedEvent) => {
-                return await Promise.all([
-                  this.handleTransfersCommittedEvent(event)
-                ])
-              },
-              getOptions(l2Bridge.TransfersCommitted)
-            )
-              .then(async () => {
-                // This must be executed after the Withdrew and WithdrawalBonded event handlers
-                // on initial sync since it relies on data from those handlers.
-                return await this.bridge.mapMultipleWithdrawalsSettledEvents(
-                  async (event: MultipleWithdrawalsSettledEvent) => {
-                    return await this.handleMultipleWithdrawalsSettledEvent(event)
-                  },
-                  getOptions(this.bridge.MultipleWithdrawalsSettled)
-                )
-              })
-          }
+      Promise.all(transferSpentPromises.concat(transfersCommittedPromises))
+        .then(async () => {
+        // This must be executed after the Withdrew and WithdrawalBonded event handlers
+        // on initial sync since it relies on data from those handlers.
+          return await this.bridge.mapMultipleWithdrawalsSettledEvents(
+            async (event: MultipleWithdrawalsSettledEvent) => {
+              return await this.handleMultipleWithdrawalsSettledEvent(event)
+            },
+            getOptions(this.bridge.MultipleWithdrawalsSettled)
+          )
         })
     )
 

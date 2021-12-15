@@ -1,4 +1,5 @@
 import React from 'react'
+import { Circle } from 'react-feather'
 import styled from 'styled-components/macro'
 import { color, layout, space, SpaceProps, LayoutProps, ColorProps } from 'styled-system'
 
@@ -22,5 +23,12 @@ const Icon = ({
     <StyledIcon src={src} width={width || 24} alt={alt || `${src.slice(4)} icon`} color={color} />
   )
 }
+
+Icon.Circle = styled(Circle)<any>`
+  ${({ size }) => size || '16px'};
+  ${space};
+  ${layout};
+  ${color};
+`
 
 export default Icon

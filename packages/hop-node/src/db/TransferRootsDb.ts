@@ -246,8 +246,8 @@ class TransferRootsDb extends BaseDb {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug('update called')
     transferRoot.transferRootId = transferRootId
-    const timestampedKv = await this.getTimestampedKeyValueForUpdate(transferRoot)
     const promises: Array<Promise<any>> = []
+    const timestampedKv = await this.getTimestampedKeyValueForUpdate(transferRoot)
     if (timestampedKv) {
       logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferRootId: ${transferRootId}`)
       promises.push(this.subDbTimestamps._update(timestampedKv.key, timestampedKv.value).then(() => {
@@ -461,10 +461,6 @@ class TransferRootsDb extends BaseDb {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
-      // Do not check if a rootHash has been committed. A rootHash can be committed and bonded,
-      // but if the bond uses a different totalAmount then it is fraudulent. Instead, use the
-      // transferRootId. If transferRootIds do not match then we know the bond is fraudulent.
-
       if (!item.sourceChainId) {
         return false
       }
@@ -490,7 +486,6 @@ class TransferRootsDb extends BaseDb {
         !item.committed &&
         item.totalAmount &&
         item.bonded &&
-        item.destinationChainId &&
         !item.challenged &&
         isWithinChallengePeriod
       )

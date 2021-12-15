@@ -133,7 +133,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         promises.push(
           this.checkTransferRootId(transferRootId!, bonder) // eslint-disable-line @typescript-eslint/no-non-null-assertion
             .catch((err: Error) => {
-              this.logger.error('checkTransferRootHash error:', err.message)
+              this.logger.error('checkTransferRootId error:', err.message)
             })
         )
       }

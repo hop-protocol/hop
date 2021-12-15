@@ -133,10 +133,10 @@ class SyncWatcher extends BaseWatcher {
 
   async incompletePollSync () {
     try {
-      await Promise.all([
-        this.incompleteTransfersPollSync(),
-        this.incompleteTransferRootsPollSync()
-      ])
+      // Needs to be run synchronously because the transfers need to have the 
+      // withdrawalBonder entry completed
+      await this.incompleteTransfersPollSync()
+        .then(async () => await this.incompleteTransferRootsPollSync())
     } catch (err) {
       this.logger.error(`incomplete poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
     }
@@ -456,7 +456,8 @@ class SyncWatcher extends BaseWatcher {
       withdrawalBonded: true,
       withdrawalBondedTxHash: transactionHash,
       isTransferSpent: true,
-      transferSpentTxHash: transactionHash
+      transferSpentTxHash: transactionHash,
+      withdrawalBondSettled: false
     })
   }
 
@@ -625,7 +626,7 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
-  async checkTransferRootSettledState (transferRootHash: string, totalBondsSettled: BigNumber) {
+  async checkTransferRootSettledState (transferRootHash: string, totalBondsSettled: BigNumber, bonder: string) {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     if (!dbTransferRoot) {
       throw new Error('expected db transfer root item')
@@ -645,9 +646,11 @@ class SyncWatcher extends BaseWatcher {
         logger.warn(`transfer id ${transferId} db item not found`)
       }
       dbTransfers.push(dbTransfer)
-      const withdrawalBondSettled = dbTransfer?.withdrawalBonded ?? false
+      const isBonded = dbTransfer?.withdrawalBonded ?? false
+      const isSameBonder = dbTransfer?.withdrawalBonder === bonder
+      const isWithdrawalSettled = isBonded && isSameBonder
       await this.db.transfers.update(transferId, {
-        withdrawalBondSettled
+        withdrawalBondSettled:  isWithdrawalSettled
       })
     }))
 
@@ -656,11 +659,7 @@ class SyncWatcher extends BaseWatcher {
     if (totalBondsSettled) {
       rootAmountAllSettled = dbTransferRoot?.totalAmount?.eq(totalBondsSettled) ?? false
     }
-    const allBondableTransfersSettled = dbTransfers.every(
-      (dbTransfer: Transfer) => {
-        // A transfer should not be settled if it is unbondable
-        return !dbTransfer?.isBondable || dbTransfer?.withdrawalBondSettled
-      })
+    const allBondableTransfersSettled = this.getIsDbTransfersAllSettled(dbTransfers)
     const allSettled = rootAmountAllSettled || allBondableTransfersSettled
     logger.debug(`all settled: ${allSettled}`)
     await this.db.transferRoots.update(transferRootHash, {
@@ -857,8 +856,8 @@ class SyncWatcher extends BaseWatcher {
     if (!destinationChainId) {
       return
     }
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    const _transferIds = await destinationBridge.getTransferIdsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    const { transferIds: _transferIds, bonder }= await destinationBridge.getParamsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
     const tree = new MerkleTree(_transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
@@ -866,12 +865,13 @@ class SyncWatcher extends BaseWatcher {
         `populateTransferRootTimestamp computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${computedTransferRootHash}. isNotFound: true, List: ${JSON.stringify(_transferIds)}`
       )
       await this.db.transferRoots.update(transferRootHash, { isNotFound: true })
-    } else {
-      await this.db.transferRoots.update(transferRootHash, {
-        transferIds: _transferIds
-      })
-      await this.checkTransferRootSettledState(transferRootHash, multipleWithdrawalsSettledTotalAmount)
+      return
     }
+
+    await this.db.transferRoots.update(transferRootHash, {
+      transferIds: _transferIds
+    })
+    await this.checkTransferRootSettledState(transferRootHash, multipleWithdrawalsSettledTotalAmount, bonder)
   }
 
   async populateTransferRootTransferIds (transferRootHash: string) {
@@ -1053,7 +1053,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    await this.checkTransferRootSettledState(transferRootHash, totalBondsSettled)
+    await this.checkTransferRootSettledState(transferRootHash, totalBondsSettled, bonder)
   }
 
   getIsBondable = (
@@ -1316,6 +1316,20 @@ class SyncWatcher extends BaseWatcher {
       s3LastUpload = Date.now()
       await this.s3Upload.upload(s3JsonData)
     }
+  }
+
+  public getIsDbTransfersAllSettled (dbTransfers: Transfer[]) {
+    const allBondableTransfersSettled = dbTransfers.every(
+      (dbTransfer: Transfer) => {
+        const isAlreadySettled = dbTransfer?.withdrawalBondSettled
+        // Check that isBondable has been explicitly set to false.
+        // Checking !dbTransfer.isBondable is not correct since isBondable can be undefined
+        const isExplicitySetUnbondable = dbTransfer?.isBondable === false
+        return isAlreadySettled || isExplicitySetUnbondable
+      }
+    )
+
+    return allBondableTransfersSettled
   }
 
   async pollGasCost () {

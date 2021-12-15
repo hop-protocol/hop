@@ -135,7 +135,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logger.debug(`processing bondWithdrawal. isRecipientReceivable: ${isRecipientReceivable}`)
       if (!isRecipientReceivable) {
         logger.warn('recipient cannot receive transfer. marking item not bondable')
-        await this.db.transfers.update(transferId, { isBondable:  false})
+        await this.db.transfers.update(transferId, { isBondable:  false })
         return
       }
     }

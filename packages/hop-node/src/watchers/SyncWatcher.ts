@@ -289,17 +289,6 @@ class SyncWatcher extends BaseWatcher {
           getOptions(l2Bridge.TransferSent)
         )
       )
-
-      promises.push(
-        l2Bridge.mapTransfersCommittedEvents(
-          async (event: TransfersCommittedEvent) => {
-            return await Promise.all([
-              this.handleTransfersCommittedEvent(event)
-            ])
-          },
-          getOptions(l2Bridge.TransfersCommitted)
-        )
-      )
     }
 
     const transferSpentPromises: Array<Promise<any>> = []
@@ -323,15 +312,28 @@ class SyncWatcher extends BaseWatcher {
 
     promises.push(
       Promise.all(transferSpentPromises)
-        .then(async () => {
-        // This must be executed after the Withdrew and WithdrawalBonded event handlers
-        // on initial sync since it relies on data from those handlers.
-          return await this.bridge.mapMultipleWithdrawalsSettledEvents(
-            async (event: MultipleWithdrawalsSettledEvent) => {
-              return await this.handleMultipleWithdrawalsSettledEvent(event)
-            },
-            getOptions(this.bridge.MultipleWithdrawalsSettled)
-          )
+        .then(() => {
+          if (!this.isL1) {
+            const l2Bridge = this.bridge as L2Bridge
+            return l2Bridge.mapTransfersCommittedEvents(
+              async (event: TransfersCommittedEvent) => {
+                return await Promise.all([
+                  this.handleTransfersCommittedEvent(event)
+                ])
+              },
+              getOptions(l2Bridge.TransfersCommitted)
+            )
+              .then(async () => {
+                // This must be executed after the Withdrew and WithdrawalBonded event handlers
+                // on initial sync since it relies on data from those handlers.
+                return await this.bridge.mapMultipleWithdrawalsSettledEvents(
+                  async (event: MultipleWithdrawalsSettledEvent) => {
+                    return await this.handleMultipleWithdrawalsSettledEvent(event)
+                  },
+                  getOptions(this.bridge.MultipleWithdrawalsSettled)
+                )
+              })
+          }
         })
     )
 
@@ -1018,7 +1020,8 @@ class SyncWatcher extends BaseWatcher {
     } = event.args
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     if (!dbTransferRoot?.transferRootId) {
-      throw new Error(`expected db item for transfer root hash "${transferRootHash}"`)
+      this.logger.error(`expected db item for transfer root hash "${transferRootHash}"`)
+      return
     }
     const { transferRootId } = dbTransferRoot
     const logger = this.logger.create({ root: transferRootId })

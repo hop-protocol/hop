@@ -46,7 +46,7 @@ export default class ContractBase extends EventEmitter {
     return Number(chainSlugToId(chainSlug))
   }
 
-  get provider() {
+  get provider () {
     return this.contract.provider
   }
 

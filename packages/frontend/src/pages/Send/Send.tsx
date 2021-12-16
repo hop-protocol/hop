@@ -287,33 +287,39 @@ const Send: FC = () => {
   const needsTokenForFee = useNeedsTokenForFee(fromNetwork)
 
   useEffect(() => {
+    let isSubscribed = true
     const update = async () => {
-      let warning = ''
       try {
-        if (needsTokenForFee && fromNetwork && toNetwork && fromTokenAmountBN && fromBalance && deadline) {
+        if (needsTokenForFee && fromNetwork && toNetwork && fromTokenAmountBN && fromBalance && deadline && sourceToken?.isNativeToken) {
           const options = {
-            balance: fromBalance,
             token: sourceToken,
             fromNetwork,
             toNetwork,
             deadline,
           }
     
-          var estimatedGasCost = await estimateSend(options) 
+          const estimatedGasCost = await estimateSend(options) 
 
           if (estimatedGasCost && fromBalance?.lt(estimatedGasCost)) {
-            var shortBalance = estimatedGasCost.sub(fromBalance)
-            warning = `Add ${toTokenDisplay(shortBalance, sourceToken?.decimals)} ${fromNetwork.nativeTokenSymbol} to your account on ${fromNetwork.name} for the transaction fee.`
+            const shortBalance = estimatedGasCost.sub(fromBalance)
+            const warning = `Add ${toTokenDisplay(shortBalance, sourceToken?.decimals)} ${fromNetwork.nativeTokenSymbol} to your account on ${fromNetwork.name} for the transaction fee.`
+            if (isSubscribed) {
+              setNeedsNativeTokenWarning(warning)
+            }
+          } else {
+            setNeedsNativeTokenWarning('')
           }
         }
       } catch (err) {
         logger.error(err)
       }
-
-      setNeedsNativeTokenWarning(warning)
     }
 
     update().catch(logger.error)
+
+    return () => {
+      isSubscribed = false
+    }
   }, [sourceToken, needsTokenForFee, fromNetwork, toNetwork, fromTokenAmountBN, fromBalance, deadline])
 
   useEffect(() => {

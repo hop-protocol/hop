@@ -40,10 +40,12 @@ function TxStatusModal(props: Props) {
   )
   const { success, addTokenToDestNetwork } = useAddTokenToMetamask(tx.token, tx.destNetworkName)
 
-  const showAddToMM =
-    (completed && destCompleted) ||
-    (completed && !tx.destNetworkName) ||
-    (completed && tx.destNetworkName === tx.networkName)
+  // TODO: if no complaints after a week or so of this feature being live,
+  // we can revert to using this and only display add-to-mm button if tx is completed
+  // const showAddToMM =
+  //   (completed && destCompleted) ||
+  //   (completed && !tx.destNetworkName) ||
+  //   (completed && tx.destNetworkName === tx.networkName)
 
   return (
     <Modal onClose={handleTxStatusClose}>
@@ -67,7 +69,7 @@ function TxStatusModal(props: Props) {
           )}
         </Typography>
 
-        {tx?.token?.symbol && showAddToMM && (
+        {tx?.token?.symbol && (
           <Flex mt={2} justifyCenter>
             <StyledButton onClick={addTokenToDestNetwork}>
               {!success ? (

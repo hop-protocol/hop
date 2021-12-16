@@ -73,9 +73,9 @@ const invalidTransferRoots: Record<string, boolean> = {
 }
 
 class TransferRootsDb extends BaseDb {
-  subDbIncompletes: any
-  subDbTimestamps: any
-  subDbRootHashes: any
+  subDbIncompletes: BaseDb
+  subDbTimestamps: BaseDb
+  subDbRootHashes: BaseDb
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)

@@ -122,13 +122,15 @@ const invalidTransferIds: Record<string, boolean> = {
 }
 
 class TransfersDb extends BaseDb {
-  subDbTimestamps: any
-  subDbIncompletes: any
+  subDbTimestamps: BaseDb
+  subDbIncompletes: BaseDb
+  subDbRootHashes: BaseDb
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
     this.subDbTimestamps = new BaseDb(`${prefix}:timestampedKeys`, _namespace)
     this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
+    this.subDbRootHashes = new BaseDb(`${prefix}:transferRootHashes`, _namespace)
 
     this.ready = true
     this.logger.debug('db ready')
@@ -158,6 +160,13 @@ class TransfersDb extends BaseDb {
   getTimestampedKey (transfer: Partial<Transfer>) {
     if (transfer.transferSentTimestamp && transfer.transferId) {
       const key = `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`
+      return key
+    }
+  }
+
+  getTransferRootHashKey (transfer: Partial<Transfer>) {
+    if (transfer.transferRootHash && transfer.transferId) {
+      const key = `${transfer.transferRootHash}:${transfer.transferId}`
       return key
     }
   }
@@ -197,6 +206,12 @@ class TransfersDb extends BaseDb {
         logger.debug(`updated db item. key: ${timestampedKv.key}`)
       }))
     }
+    if (transfer.transferRootHash) {
+      const key = this.getTransferRootHashKey(transfer)
+      if (key) {
+        promises.push(this.subDbRootHashes._update(key, { transferId }))
+      }
+    }
     promises.push(this._update(transferId, transfer).then(async () => {
       const entry = await this.getById(transferId)
       logger.debug(`updated db transfer item. ${JSON.stringify(entry)}`)
@@ -229,7 +244,7 @@ class TransfersDb extends BaseDb {
     return this.normalizeItem(item)
   }
 
-  private readonly filterTimestampedKeyValues = (x: any) => {
+  private readonly filterValueTransferId = (x: any) => {
     return x?.value?.transferId
   }
 
@@ -250,7 +265,7 @@ class TransfersDb extends BaseDb {
     }
 
     const kv = await this.subDbTimestamps.getKeyValues(filter)
-    return kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)
+    return kv.map(this.filterValueTransferId).filter(this.filterExisty)
   }
 
   sortItems = (a: any, b: any) => {
@@ -295,15 +310,20 @@ class TransfersDb extends BaseDb {
 
   async getTransfersWithTransferRootHash (transferRootHash: string) {
     await this.tilReady()
-    const transfers = await this.getTransfersFromWeek()
-    const items = transfers.filter((item: Transfer) => {
-      if (!item.transferId) {
-        return false
-      }
-      return item.transferRootHash === transferRootHash
-    })
+    if (!transferRootHash) {
+      throw new Error('expected transfer root hash')
+    }
 
-    return items.sort(this.sortItems)
+    const filter: KeyFilter = {
+      gte: `${transferRootHash}`,
+      lte: `${transferRootHash}~` // tilde is intentional
+    }
+
+    const kv = await this.subDbRootHashes.getKeyValues(filter)
+    const unsortedTransferIds = kv.map(this.filterValueTransferId).filter(this.filterExisty)
+    const items = await this.batchGetByIds(unsortedTransferIds)
+    const sortedTransferids = items.sort(this.sortItems).map(this.filterValueTransferId)
+    return sortedTransferids
   }
 
   async getUncommittedTransfers (
@@ -398,7 +418,7 @@ class TransfersDb extends BaseDb {
     filter: GetItemsFilter = {}
   ) {
     const kv = await this.subDbIncompletes.getKeyValues()
-    const transferIds = kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)
+    const transferIds = kv.map(this.filterValueTransferId).filter(this.filterExisty)
     if (!transferIds.length) {
       return []
     }

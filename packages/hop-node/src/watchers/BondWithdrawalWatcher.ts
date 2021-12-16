@@ -1,10 +1,10 @@
 import '../moduleAlias'
 import BNMin from 'src/utils/BNMin'
-import isNativeToken from 'src/utils/isNativeToken'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import isL1ChainId from 'src/utils/isL1ChainId'
+import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, constants } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
@@ -135,7 +135,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logger.debug(`processing bondWithdrawal. isRecipientReceivable: ${isRecipientReceivable}`)
       if (!isRecipientReceivable) {
         logger.warn('recipient cannot receive transfer. marking item not bondable')
-        await this.db.transfers.update(transferId, { isBondable:  false })
+        await this.db.transfers.update(transferId, { isBondable: false })
         return
       }
     }

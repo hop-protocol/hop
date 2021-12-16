@@ -1,6 +1,7 @@
 import '../moduleAlias'
 import BNMin from 'src/utils/BNMin'
 import BaseWatcher from './classes/BaseWatcher'
+import Bridge from './classes/Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import isL1ChainId from 'src/utils/isL1ChainId'
@@ -360,7 +361,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return availableCredit
   }
 
-  async getIsRecipientReceivable (recipient: string, destinationBridge: L2BridgeContract | L1BridgeContract) {
+  async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge) {
     // It has been verified that all chains have at least 1 wei at 0x0.
     const tx = {
       from: constants.AddressZero,

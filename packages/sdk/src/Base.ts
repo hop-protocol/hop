@@ -77,7 +77,7 @@ class Base {
   private chains = config.chains
   private bonders = config.bonders
   fees : { [token: string]: Record<string, number>}
-  gasPriceMultiplier: number = 0
+  gasPriceMultiplier: number = 1
   destinationFeeGasPriceMultiplier : number
 
   /**
@@ -467,6 +467,10 @@ class Base {
     destinationChain = this.toChainModel(destinationChain)
 
     const bonder = this.bonders?.[this.network]?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
+    if (!bonder) {
+      console.warn(`bonder address not found for route ${token.symbol}.${sourceChain.slug}->${destinationChain.slug}`)
+    }
+
     return bonder
   }
 
@@ -484,7 +488,7 @@ class Base {
       throw new Error('fee data not found')
     }
 
-    const feeBps: number = fees[destinationChain.slug as ChainEnum]
+    const feeBps = fees[destinationChain.slug as ChainEnum] || 0
     return feeBps
   }
 

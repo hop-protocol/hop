@@ -853,6 +853,13 @@ class SyncWatcher extends BaseWatcher {
       transferIds: _transferIds
     })
 
+    await Promise.all(_transferIds.map(async (transferId: string) => {
+      await this.db.transfers.update(transferId, {
+        transferRootHash,
+        transferRootId
+      })
+    }))
+
     await this.checkTransferRootSettledState(transferRootId, multipleWithdrawalsSettledTotalAmount, bonder)
   }
 
@@ -873,9 +880,66 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
+    let transferIds = await this.checkTransferRootFromDb(transferRootId)
+    if (!transferIds) {
+      transferIds = await this.checkTransferRootFromChain(transferRootId)
+    }
+
+    if (transferIds?.length) {
+      await this.db.transferRoots.update(transferRootId, {
+        transferIds,
+        totalAmount,
+        sourceChainId
+      })
+    }
+  }
+
+  async checkTransferRootFromDb (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      throw new Error('expected db transfer root item')
+    }
+    const { transferRootHash } = dbTransferRoot
+    if (!transferRootHash) {
+      throw new Error('expected transfer root hash')
+    }
     logger.debug(
-      `looking for transfer ids for transferRootHash ${transferRootHash}`
+      `looking in db for transfer ids for transferRootHash ${transferRootHash}`
     )
+    const items = await this.db.transfers.getTransfersWithTransferRootHash(transferRootHash)
+    if (items.length) {
+      const transferIds = items.map((item: Transfer) => item.transferId) as string[]
+      if (transferIds.length) {
+        const tree = new MerkleTree(transferIds)
+        const computedTransferRootHash = tree.getHexRoot()
+        if (computedTransferRootHash === transferRootHash) {
+          logger.debug(
+            `found db transfer ids in db for transferRootHash ${transferRootHash}`
+          )
+          return transferIds
+        }
+      }
+    }
+
+    logger.debug(
+      `no db transfer ids found for transferRootHash ${transferRootHash}`
+    )
+  }
+
+  async checkTransferRootFromChain (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      throw new Error('expected db transfer root item')
+    }
+    const { transferRootHash, sourceChainId, destinationChainId, totalAmount, commitTxBlockNumber, transferIds: dbTransferIds } = dbTransferRoot
+    if (!sourceChainId) {
+      throw new Error('expected source chain id')
+    }
+    if (!commitTxBlockNumber) {
+      throw new Error('expected commit tx block number')
+    }
     if (!this.hasSiblingWatcher(sourceChainId)) {
       logger.error(`no sibling watcher found for ${sourceChainId}`)
       return
@@ -886,6 +950,10 @@ class SyncWatcher extends BaseWatcher {
     const eventBlockNumber: number = commitTxBlockNumber
     let startEvent: TransfersCommittedEvent | undefined
     let endEvent: TransfersCommittedEvent | undefined
+
+    logger.debug(
+      `looking on-chain for transfer ids for transferRootHash ${transferRootHash}`
+    )
 
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
@@ -967,15 +1035,9 @@ class SyncWatcher extends BaseWatcher {
       { startBlockNumber, endBlockNumber }
     )
 
-    logger.debug(`Original transfer ids: ${JSON.stringify(transfers)}}`)
+    logger.debug(`transfer ids: ${JSON.stringify(transfers)}}`)
 
-    // this gets only the last set of sequence of transfers {0, 1,.., n}
-    // where n is the transfer id index.
-    // example: {0, 0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 1, 2, 3} ⟶  {0, 1, 2, 3}
-    const lastIndexZero = transfers.map((x: any) => x.index).lastIndexOf(0)
-    const filtered = transfers.slice(lastIndexZero)
-    const transferIds = filtered.map((x: any) => x.transferId)
-
+    const transferIds = transfers.map((x: any) => x.transferId)
     const tree = new MerkleTree(transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
@@ -991,18 +1053,14 @@ class SyncWatcher extends BaseWatcher {
       JSON.stringify(transferIds)
     )
 
-    await this.db.transferRoots.update(transferRootId, {
-      transferIds,
-      totalAmount,
-      sourceChainId
-    })
-
     await Promise.all(transferIds.map(async transferId => {
       await this.db.transfers.update(transferId, {
         transferRootHash,
         transferRootId
       })
     }))
+
+    return transferIds
   }
 
   handleMultipleWithdrawalsSettledEvent = async (event: MultipleWithdrawalsSettledEvent) => {

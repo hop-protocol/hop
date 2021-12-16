@@ -921,11 +921,11 @@ class SyncWatcher extends BaseWatcher {
           return transferIds
         }
       }
-
-      logger.debug(
-        `no db transfer ids found for transferRootHash ${transferRootHash}`
-      )
     }
+
+    logger.debug(
+      `no db transfer ids found for transferRootHash ${transferRootHash}`
+    )
   }
 
   async checkTransferRootFromChain (transferRootId: string) {
@@ -935,14 +935,20 @@ class SyncWatcher extends BaseWatcher {
       throw new Error('expected db transfer root item')
     }
     const { transferRootHash, sourceChainId, destinationChainId, totalAmount, commitTxBlockNumber, transferIds: dbTransferIds } = dbTransferRoot
-    if (!this.hasSiblingWatcher(sourceChainId!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (!sourceChainId) {
+      throw new Error('expected source chain id')
+    }
+    if (!commitTxBlockNumber) {
+      throw new Error('expected commit tx block number')
+    }
+    if (!this.hasSiblingWatcher(sourceChainId)) {
       logger.error(`no sibling watcher found for ${sourceChainId}`)
       return
     }
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
       .bridge as L2Bridge
 
-    const eventBlockNumber: number = commitTxBlockNumber! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const eventBlockNumber: number = commitTxBlockNumber
     let startEvent: TransfersCommittedEvent | undefined
     let endEvent: TransfersCommittedEvent | undefined
 

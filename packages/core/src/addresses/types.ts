@@ -1,5 +1,5 @@
 export type Bridges = {
-  [key: string]: Partial<{
+  [tokenSymbol: string]: Partial<{
     ethereum: {
       l1CanonicalToken: string
       l1Bridge: string
@@ -103,7 +103,43 @@ export type Bonders = {
   WBTC?: Routes
 }
 
+type Bps = {
+  ethereum: number
+  polygon: number
+  xdai: number
+  optimism: number
+  arbitrum: number
+}
+
+export type Fees = {
+  USDC?: Bps
+  USDT?: Bps
+  DAI?: Bps
+  MATIC?: Bps
+  ETH?: Bps
+  WBTC?: Bps
+}
+
+type Multiplier = {
+  ethereum: number
+  polygon: number
+  xdai: number
+  optimism: number
+  arbitrum: number
+}
+
+export type Multipliers = {
+  USDC?: Multiplier
+  USDT?: Multiplier
+  DAI?: Multiplier
+  MATIC?: Multiplier
+  ETH?: Multiplier
+  WBTC?: Multiplier
+}
+
 export type Addresses = {
   bridges: Bridges
   bonders: Bonders
+  fees?: Fees
+  multipliers?: Multipliers
 }

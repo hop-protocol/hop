@@ -12,6 +12,7 @@ docs
 /addresses
 /metadata
 /networks
+/s3upload
 /index.js
 /version.js
 /index.d.ts

@@ -28,7 +28,8 @@
     "release": "npm run clean && npm test && npm run publish:latest",
     "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
     "prepare": "npm run lint && npm run build",
-    "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json"
+    "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json",
+    "upload": "node s3upload/main"
   },
   "directories": {},
   "author": "",
@@ -39,6 +40,7 @@
     "ethers": "^5.5.1"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.44.0",
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.2",
     "@babel/node": "^7.7.0",
@@ -56,7 +58,7 @@
     "babelify": "^10.0.0",
     "browserify": "^16.5.0",
     "concat-md": "^0.3.5",
-    "dotenv": "^8.2.0",
+    "dotenv": "^10.0.0",
     "eslint": "^7.30.0",
     "eslint-config-standard": "^16.0.3",
     "eslint-plugin-import": "^2.23.4",

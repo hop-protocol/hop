@@ -17,3 +17,5 @@
 !version.d.ts
 
 *.env
+src/s3upload
+s3upload

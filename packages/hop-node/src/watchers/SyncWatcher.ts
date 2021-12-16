@@ -1013,7 +1013,14 @@ class SyncWatcher extends BaseWatcher {
       totalBondsSettled
     } = event.args
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    const transferRootId = dbTransferRoot?.transferRootId!
+    // Throwing here is not ideal, but it is required because we don't have the context of the transferId
+    // with this event data. We can only get it from prior events. We should always see other events
+    // first, but in the case where we completely miss an event, we will explicitly throw here.
+    if (!dbTransferRoot?.transferRootId) {
+      throw new Error(`expected db item for transfer root hash "${transferRootHash}"`)
+    }
+
+    const { transferRootId } = dbTransferRoot
     const logger = this.logger.create({ root: transferRootId })
 
     logger.debug('handling MultipleWithdrawalsSettled event')

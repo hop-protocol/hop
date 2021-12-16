@@ -132,7 +132,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
     if (isReceivingNativeToken) {
-      const isRecipientReceivable = await this.getIsRecipientReceivable(recipient!, destBridge) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      const isRecipientReceivable = await this.getIsRecipientReceivable(recipient!, destBridge, logger) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       logger.debug(`processing bondWithdrawal. isRecipientReceivable: ${isRecipientReceivable}`)
       if (!isRecipientReceivable) {
         logger.warn('recipient cannot receive transfer. marking item not bondable')
@@ -361,7 +361,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return availableCredit
   }
 
-  async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge) {
+  async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge, logger: Logger) {
     // It has been verified that all chains have at least 1 wei at 0x0.
     const tx = {
       from: constants.AddressZero,
@@ -372,7 +372,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     try {
       await destinationBridge.provider.call(tx)
       return true
-    } catch {
+    } catch (err) {
+      logger.error(`getIsRecipientReceivable err: ${err.message}`)
       return false
     }
   }

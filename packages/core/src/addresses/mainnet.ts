@@ -515,7 +515,7 @@ export const addresses: Addresses = {
       }
     }
   },
-  fees: {
+  bonderFeeBps: {
     USDC: {
       ethereum: 14,
       polygon: 14,
@@ -558,5 +558,6 @@ export const addresses: Addresses = {
       optimism: 23,
       arbitrum: 23
     }
-  }
+  },
+  gasPriceMultiplier: 1.2
 }

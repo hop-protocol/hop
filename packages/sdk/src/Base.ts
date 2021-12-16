@@ -76,8 +76,9 @@ class Base {
   private addresses = config.addresses
   private chains = config.chains
   private bonders = config.bonders
-  private fees = config.fees
+  fees : { [token: string]: Record<string, number>}
   gasPriceMultiplier: number = 0
+  destinationFeeGasPriceMultiplier : number
 
   /**
    * @desc Instantiates Base class.
@@ -108,6 +109,9 @@ class Base {
       this.chainProviders = chainProviders
     }
 
+    this.fees = config.bonderFeeBps[network]
+    this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
+
     this.init()
   }
 
@@ -117,8 +121,11 @@ class Base {
       if (data.bonders) {
         this.bonders = data.bonders
       }
-      if (data.fees) {
-        this.fees = data.fees
+      if (data.bonderFeeBps) {
+        this.fees = data.bonderFeeBps
+      }
+      if (data.gasPriceMultiplier) {
+        this.destinationFeeGasPriceMultiplier = data.gasPriceMultiplier
       }
     } catch (err) {
       console.error(err)

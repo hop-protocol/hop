@@ -17,4 +17,7 @@ for (const chain in networks) {
 
 const addresses = stagingAddresses.bridges
 const bonders = stagingAddresses.bonders
-export { addresses, chains, bonders }
+const bonderFeeBps = stagingAddresses.bonderFeeBps
+const gasPriceMultiplier = stagingAddresses.gasPriceMultiplier
+
+export { addresses, chains, bonders, bonderFeeBps, gasPriceMultiplier }

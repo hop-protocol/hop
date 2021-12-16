@@ -120,26 +120,9 @@ export type Fees = {
   WBTC?: Bps
 }
 
-type Multiplier = {
-  ethereum: number
-  polygon: number
-  xdai: number
-  optimism: number
-  arbitrum: number
-}
-
-export type Multipliers = {
-  USDC?: Multiplier
-  USDT?: Multiplier
-  DAI?: Multiplier
-  MATIC?: Multiplier
-  ETH?: Multiplier
-  WBTC?: Multiplier
-}
-
 export type Addresses = {
   bridges: Bridges
   bonders: Bonders
-  fees?: Fees
-  multipliers?: Multipliers
+  bonderFeeBps?: Fees
+  gasPriceMultiplier?: number
 }

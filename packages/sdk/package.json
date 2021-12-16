@@ -38,7 +38,7 @@
   "dependencies": {
     "@eth-optimism/contracts": "^0.5.2",
     "@ethersproject/abi": "^5.4.0",
-    "@hop-protocol/core": "0.0.1-beta.53",
+    "@hop-protocol/core": "0.0.1-beta.54",
     "@maticnetwork/maticjs": "^2.0.38",
     "dotenv": "^8.2.0",
     "ethereum-block-by-date": "^1.4.2",

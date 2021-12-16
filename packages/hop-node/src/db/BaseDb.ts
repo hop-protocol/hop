@@ -271,7 +271,7 @@ class BaseDb extends EventEmitter {
     return values.filter(this.filterExisty)
   }
 
-  protected async deleteById (id: string) {
+  async deleteById (id: string) {
     return this.db.del(id)
   }
 

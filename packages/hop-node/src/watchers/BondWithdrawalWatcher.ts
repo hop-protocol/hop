@@ -1,10 +1,11 @@
 import '../moduleAlias'
 import BNMin from 'src/utils/BNMin'
-import isNativeToken from 'src/utils/isNativeToken'
 import BaseWatcher from './classes/BaseWatcher'
+import Bridge from './classes/Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import isL1ChainId from 'src/utils/isL1ChainId'
+import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, constants } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
@@ -131,11 +132,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
     if (isReceivingNativeToken) {
-      const isRecipientReceivable = await this.getIsRecipientReceivable(recipient!, destBridge) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      const isRecipientReceivable = await this.getIsRecipientReceivable(recipient!, destBridge, logger) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       logger.debug(`processing bondWithdrawal. isRecipientReceivable: ${isRecipientReceivable}`)
       if (!isRecipientReceivable) {
         logger.warn('recipient cannot receive transfer. marking item not bondable')
-        await this.db.transfers.update(transferId, { isBondable:  false })
+        await this.db.transfers.update(transferId, { isBondable: false })
         return
       }
     }
@@ -360,7 +361,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     return availableCredit
   }
 
-  async getIsRecipientReceivable (recipient: string, destinationBridge: L2BridgeContract | L1BridgeContract) {
+  async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge, logger: Logger) {
     // It has been verified that all chains have at least 1 wei at 0x0.
     const tx = {
       from: constants.AddressZero,
@@ -371,7 +372,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     try {
       await destinationBridge.provider.call(tx)
       return true
-    } catch {
+    } catch (err) {
+      logger.error(`getIsRecipientReceivable err: ${err.message}`)
       return false
     }
   }

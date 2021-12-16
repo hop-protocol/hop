@@ -62,7 +62,7 @@ class ChallengeWatcher extends BaseWatcher {
 
     const { transferRootHash, totalAmount } = await this.db.transferRoots.getByTransferRootId(transferRootId)
     logger.debug('Challenging transfer root', transferRootId)
-    logger.debug('transferRootId:', transferRootId)
+    logger.debug('transferRootHash:', transferRootHash)
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount!)) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     logger.debug('transferRootId:', transferRootId)
 
@@ -80,12 +80,12 @@ class ChallengeWatcher extends BaseWatcher {
     if (!tx) {
       throw new Error('expected transaction object')
     }
+
     const { destinationChainId } = await l1Bridge.decodeBondTransferRootCalldata(tx.data)
-    const transferRootCommittedAt = await l1Bridge.getTransferRootCommittedAt(
+    const isTransferRootIdConfirmed = await l1Bridge.isTransferRootIdConfirmed(
       destinationChainId, transferRootId
     )
-    const isRootHashConfirmed = !!transferRootCommittedAt
-    if (isRootHashConfirmed) {
+    if (isTransferRootIdConfirmed) {
       logger.info('rootHash is already confirmed on L1')
       await this.db.transferRoots.update(transferRootId, {
         confirmed: true

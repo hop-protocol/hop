@@ -139,9 +139,11 @@ async function pollConvertTxReceive (bridge: L2Bridge, convertAmount: BigNumber)
 
 async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { // eslint-disable-line @typescript-eslint/no-invalid-void-type
   const isEthSend: boolean = bridge.l1CanonicalTokenAddress === constants.AddressZero
+  const isL1Bridge = bridge.chainSlug === Chain.Ethereum
   if (isEthSend) {
+    if (isL1Bridge) {
     return
-  } else if (bridge.chainSlug !== Chain.Ethereum) {
+    }
     return (bridge as L2Bridge).hToken()
   }
   return (bridge as L1Bridge).l1CanonicalToken()

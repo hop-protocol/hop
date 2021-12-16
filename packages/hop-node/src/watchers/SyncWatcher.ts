@@ -249,9 +249,10 @@ class SyncWatcher extends BaseWatcher {
       return options
     }
 
+    const transferRootInitialEventPromises: Array<Promise<any>> = []
     if (this.isL1) {
       const l1Bridge = this.bridge as L1Bridge
-      promises.push(
+      transferRootInitialEventPromises.push(
         l1Bridge.mapTransferRootBondedEvents(
           async (event: TransferRootBondedEvent) => {
             return await this.handleTransferRootBondedEvent(event)
@@ -279,7 +280,6 @@ class SyncWatcher extends BaseWatcher {
       )
     }
 
-    const transfersCommittedPromises: Array<Promise<any>> = []
     if (!this.isL1) {
       const l2Bridge = this.bridge as L2Bridge
       promises.push(
@@ -291,7 +291,7 @@ class SyncWatcher extends BaseWatcher {
         )
       )
 
-      transfersCommittedPromises.push(
+      transferRootInitialEventPromises.push(
         l2Bridge.mapTransfersCommittedEvents(
           async (event: TransfersCommittedEvent) => {
             return await Promise.all([
@@ -323,7 +323,7 @@ class SyncWatcher extends BaseWatcher {
     )
 
     promises.push(
-      Promise.all(transferSpentPromises.concat(transfersCommittedPromises))
+      Promise.all(transferSpentPromises.concat(transferRootInitialEventPromises))
         .then(async () => {
         // This must be executed after the Withdrew and WithdrawalBonded event handlers
         // on initial sync since it relies on data from those handlers.
@@ -385,14 +385,6 @@ class SyncWatcher extends BaseWatcher {
     try {
       const { transactionHash, transactionIndex } = event
       const blockNumber: number = event.blockNumber
-      if (!transactionHash) {
-        logger.error('event transaction hash not found')
-        return
-      }
-      if (!blockNumber) {
-        logger.error('event block number not found')
-        return
-      }
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
@@ -1021,13 +1013,13 @@ class SyncWatcher extends BaseWatcher {
       totalBondsSettled
     } = event.args
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-
     // Throwing here is not ideal, but it is required because we don't have the context of the transferId
     // with this event data. We can only get it from prior events. We should always see other events
     // first, but in the case where we completely miss an event, we will explicitly throw here.
     if (!dbTransferRoot?.transferRootId) {
       throw new Error(`expected db item for transfer root hash "${transferRootHash}"`)
     }
+
     const { transferRootId } = dbTransferRoot
     const logger = this.logger.create({ root: transferRootId })
 

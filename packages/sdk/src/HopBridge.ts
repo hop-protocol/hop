@@ -2013,7 +2013,7 @@ class HopBridge extends Base {
       sourceChain
     )
 
-    const feeBps = this.getFeeBps(this.tokenSymbol, destinationChain)
+    const feeBps = await this.getFeeBps(this.tokenSymbol, destinationChain)
     const bonderFeeRelative = hTokenAmount.mul(feeBps).div(10000)
     return bonderFeeRelative
   }

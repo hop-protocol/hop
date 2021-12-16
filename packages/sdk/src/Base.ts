@@ -1,3 +1,4 @@
+import fetch from 'isomorphic-fetch'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
@@ -105,6 +106,22 @@ class Base {
     }
     if (chainProviders) {
       this.chainProviders = chainProviders
+    }
+
+    this.init()
+  }
+
+  async init () {
+    try {
+      const data = await this.getS3ConfigData()
+      if (data.bonders) {
+        this.bonders = data.bonders
+      }
+      if (data.fees) {
+        this.fees = data.fees
+      }
+    } catch (err) {
+      console.error(err)
     }
   }
 
@@ -441,10 +458,12 @@ class Base {
     token = this.toTokenModel(token)
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
-    return this.bonders?.[this.network]?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
+
+    const bonder = this.bonders?.[this.network]?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
+    return bonder
   }
 
-  public getFeeBps (token: TToken, destinationChain: TChain) {
+  public async getFeeBps (token: TToken, destinationChain: TChain) {
     token = this.toTokenModel(token)
     destinationChain = this.toChainModel(destinationChain)
     if (!token) {
@@ -453,7 +472,7 @@ class Base {
     if (!destinationChain) {
       throw new Error('destinationChain is required')
     }
-    const fees = config.fees?.[token?.canonicalSymbol]
+    const fees = this.fees?.[token?.canonicalSymbol]
     if (!fees) {
       throw new Error('fee data not found')
     }
@@ -464,6 +483,16 @@ class Base {
 
   setGasPriceMultiplier (gasPriceMultiplier: number) {
     return (this.gasPriceMultiplier = gasPriceMultiplier)
+  }
+
+  async getS3ConfigData () {
+    const url = `https://assets.hop.exchange/${this.network}/v1-core-config.json`
+    const res = await fetch(url)
+    const json = await res.json()
+    if (!json) {
+      throw new Error('expected json object')
+    }
+    return json
   }
 
   public getContract = getContract

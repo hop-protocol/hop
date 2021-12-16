@@ -385,14 +385,6 @@ class SyncWatcher extends BaseWatcher {
     try {
       const { transactionHash, transactionIndex } = event
       const blockNumber: number = event.blockNumber
-      if (!transactionHash) {
-        logger.error('event transaction hash not found')
-        return
-      }
-      if (!blockNumber) {
-        logger.error('event block number not found')
-        return
-      }
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
@@ -1021,11 +1013,7 @@ class SyncWatcher extends BaseWatcher {
       totalBondsSettled
     } = event.args
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
-    if (!dbTransferRoot?.transferRootId) {
-      this.logger.error(`expected db item for transfer root hash "${transferRootHash}"`)
-      return
-    }
-    const { transferRootId } = dbTransferRoot
+    const transferRootId = dbTransferRoot?.transferRootId!
     const logger = this.logger.create({ root: transferRootId })
 
     logger.debug('handling MultipleWithdrawalsSettled event')

@@ -881,42 +881,68 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
+    let transferIds = await this.checkTransferRootFromDb(transferRootId)
+    if (!transferIds) {
+      transferIds = await this.checkTransferRootFromChain(transferRootId)
+    }
+
+    if (transferIds?.length) {
+      await this.db.transferRoots.update(transferRootId, {
+        transferIds,
+        totalAmount,
+        sourceChainId
+      })
+    }
+  }
+
+  async checkTransferRootFromDb (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      throw new Error('expected db transfer root item')
+    }
+    const { transferRootHash } = dbTransferRoot
+    if (!transferRootHash) {
+      throw new Error('expected transfer root hash')
+    }
     logger.debug(
       `looking in db for transfer ids for transferRootHash ${transferRootHash}`
     )
-
     const items = await this.db.transfers.getTransfersWithTransferRootHash(transferRootHash)
     if (items.length) {
-      const transferIds = items.map(item => item.transferId) as string[]
-      const tree = new MerkleTree(transferIds)
-      const computedTransferRootHash = tree.getHexRoot()
-      if (computedTransferRootHash === transferRootHash) {
-        const transferRootId = this.bridge.getTransferRootId(
-          transferRootHash,
-          totalAmount
-        )
-
-        await this.db.transferRoots.update(transferRootHash, {
-          transferIds,
-          totalAmount,
-          sourceChainId
-        })
-        return
+      const transferIds = items.map((item: Transfer) => item.transferId) as string[]
+      if (transferIds.length) {
+        const tree = new MerkleTree(transferIds)
+        const computedTransferRootHash = tree.getHexRoot()
+        if (computedTransferRootHash === transferRootHash) {
+          logger.debug(
+            `found db transfer ids in db for transferRootHash ${transferRootHash}`
+          )
+          return transferIds
+        }
       }
 
       logger.debug(
         `no db transfer ids found for transferRootHash ${transferRootHash}`
       )
     }
+  }
 
-    if (!this.hasSiblingWatcher(sourceChainId)) {
+  async checkTransferRootFromChain (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      throw new Error('expected db transfer root item')
+    }
+    const { transferRootHash, sourceChainId, destinationChainId, totalAmount, commitTxBlockNumber, transferIds: dbTransferIds } = dbTransferRoot
+    if (!this.hasSiblingWatcher(sourceChainId!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
       logger.error(`no sibling watcher found for ${sourceChainId}`)
       return
     }
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       .bridge as L2Bridge
 
-    const eventBlockNumber: number = commitTxBlockNumber
+    const eventBlockNumber: number = commitTxBlockNumber! // eslint-disable-line @typescript-eslint/no-non-null-assertion
     let startEvent: TransfersCommittedEvent | undefined
     let endEvent: TransfersCommittedEvent | undefined
 
@@ -1022,18 +1048,14 @@ class SyncWatcher extends BaseWatcher {
       JSON.stringify(transferIds)
     )
 
-    await this.db.transferRoots.update(transferRootId, {
-      transferIds,
-      totalAmount,
-      sourceChainId
-    })
-
     await Promise.all(transferIds.map(async transferId => {
       await this.db.transfers.update(transferId, {
         transferRootHash,
         transferRootId
       })
     }))
+
+    return transferIds
   }
 
   handleMultipleWithdrawalsSettledEvent = async (event: MultipleWithdrawalsSettledEvent) => {

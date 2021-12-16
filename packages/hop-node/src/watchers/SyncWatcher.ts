@@ -861,6 +861,13 @@ class SyncWatcher extends BaseWatcher {
       transferIds: _transferIds
     })
 
+    await Promise.all(_transferIds.map(async (transferId: string) => {
+      await this.db.transfers.update(transferId, {
+        transferRootHash,
+        transferRootId
+      })
+    }))
+
     await this.checkTransferRootSettledState(transferRootId, multipleWithdrawalsSettledTotalAmount, bonder)
   }
 

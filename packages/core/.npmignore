@@ -10,6 +10,7 @@
 !/metadata
 !/networks
 !/contracts
+!/config
 !index.js
 !index.d.ts
 !index.d.ts.map

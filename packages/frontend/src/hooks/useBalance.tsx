@@ -1,64 +1,28 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { BigNumber } from 'ethers'
+import { useQuery } from 'react-query'
 import { Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
-import logger from 'src/logger'
-import { useInterval } from 'react-use'
 import { Addressish } from 'src/models/Address'
 
-const useBalance = (
-  token: Token | undefined,
-  network: Network | undefined,
-  address: Addressish
-) => {
-  const [balance, setBalance] = useState<BigNumber>()
-  const [loading, setLoading] = useState(false)
-  const currentToken = useRef<Token>()
-  const currentNetwork = useRef<Network>()
+async function fetchBalance(token: Token, address: Addressish) {
+  return token.balanceOf(address?.toString())
+}
 
-  const getBalance = useCallback(() => {
-    let isSubscribed = true
-    const _getBalance = async () => {
-      if (token && network && address) {
-        if (
-          (currentNetwork.current && !network.eq(currentNetwork.current)) ||
-          (currentToken.current && !token.eq(currentToken.current))
-        ) {
-          setLoading(true)
-        }
-
-        const _balance = await token.balanceOf(address.toString())
-
-        if (isSubscribed) {
-          setBalance(_balance as BigNumber)
-          setLoading(false)
-        }
-      } else {
-        if (isSubscribed) {
-          setBalance(undefined)
-          setLoading(false)
-        }
+const useBalance = (token?: Token, network?: Network, address?: Addressish) => {
+  const { isLoading, isError, data, error } = useQuery(
+    ['balance', token?.symbol, network?.slug, address?.toString],
+    () => {
+      if (token && address) {
+        return fetchBalance(token, address)
       }
-      if (isSubscribed) {
-        currentToken.current = token
-        currentNetwork.current = network
-      }
+    },
+    {
+      enabled: !!token?.symbol && !!address?.toString,
+      refetchInterval: 8e3,
     }
+  )
 
-    _getBalance().catch(logger.error)
-
-    return () => {
-      isSubscribed = false
-    }
-  }, [token, network, address])
-
-  useEffect(() => {
-    getBalance()
-  }, [token, network, address])
-
-  useInterval(getBalance, 8e3)
-
-  return { balance, loading }
+  // TODO: use react-query naming conventions (data, isLoading, isError, error)
+  return { loading: isLoading, isError, balance: data, error }
 }
 
 export default useBalance

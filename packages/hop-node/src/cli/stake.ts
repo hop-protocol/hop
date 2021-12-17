@@ -142,7 +142,7 @@ async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { /
   const isL1Bridge = bridge.chainSlug === Chain.Ethereum
   if (isEthSend) {
     if (isL1Bridge) {
-    return
+      return
     }
     return (bridge as L2Bridge).hToken()
   }

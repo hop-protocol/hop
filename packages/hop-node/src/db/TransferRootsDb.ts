@@ -175,7 +175,7 @@ const invalidTransferRoots: Record<string, boolean> = {
   '0xf64d0094f9fcc615afec9007fcd9b978e9cfcb69824a8134eac162d541104c84': true,
   '0xf903e11d697359281521efb558383475c5c759020c0d93ae7edec4eee2a9c7c5': true,
   '0xfb03fe0b69e690bf318e7745985867f7be0522ccde338629c592b73b045e576c': true,
-  '0xfb9240d6494a59093b3fb57f78cc1df1ee1295b1bdf951f119c40d651955e13f': true,
+  '0xfb9240d6494a59093b3fb57f78cc1df1ee1295b1bdf951f119c40d651955e13f': true
 }
 
 class TransferRootsDb extends BaseDb {

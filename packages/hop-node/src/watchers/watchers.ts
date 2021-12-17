@@ -306,8 +306,10 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
 
       // Skip watcher if it's not specified as route
       if (!(filteredSourceChains.has(slug) || filteredDestinationChains.has(slug))) {
-        // The BondTransferRootWatcher should always have the L1 watcher regardless of route
-        if (!(isL1 && watcher instanceof BondTransferRootWatcher)) {
+        // The SyncWatcher and the BondTransferRootWatcher should always run the L1 watcher regardless of route
+        if (
+          !((isL1 && (watcher instanceof SyncWatcher || watcher instanceof BondTransferRootWatcher)))
+        ) {
           continue
         }
       }

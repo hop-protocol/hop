@@ -63,6 +63,15 @@ class BondTransferRootWatcher extends BaseWatcher {
         transferIds
       } = dbTransferRoot
 
+      const availableCredit = this.getAvailableCreditForBond(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      if (availableCredit.lt(totalAmount!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        this.logger.debug(
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, totalAmount: ${totalAmount!.toString()}` // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        )
+
+        continue
+      }
+
       promises.push(this.checkTransfersCommitted(
         transferRootId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
         transferRootHash!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -169,6 +178,11 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.error(err.message)
       throw err
     }
+  }
+
+  getAvailableCreditForBond (destinationChainId: number) {
+    const availableCredit = this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
+    return availableCredit
   }
 }
 

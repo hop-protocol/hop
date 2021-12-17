@@ -10,6 +10,7 @@ type LargeTextFieldProps = {
   leftAlign?: boolean | undefined
   defaultShadow?: boolean | undefined
   loadingValue?: boolean | undefined
+  smallFontSize?: boolean
 } & TextFieldProps
 
 interface StyleProps {
@@ -18,6 +19,7 @@ interface StyleProps {
   defaultShadow: boolean
   hideShadow: boolean
   loadingValue: boolean
+  smallFontSize: boolean
 }
 
 const useStyles = makeStyles(theme => ({
@@ -66,9 +68,9 @@ const useInputStyles = makeStyles(theme => ({
       },
     },
   }),
-  input: ({ centerAlign, leftAlign, loadingValue }: StyleProps) => ({
+  input: ({ centerAlign, leftAlign, loadingValue, smallFontSize }: StyleProps) => ({
     textAlign: leftAlign ? 'left' : centerAlign ? 'center' : 'right',
-    fontSize: theme.typography.h4.fontSize,
+    fontSize: smallFontSize ? '1.6rem' : theme.typography.h4.fontSize,
     fontWeight: theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
     textOverflow: 'clip',
@@ -77,7 +79,7 @@ const useInputStyles = makeStyles(theme => ({
       ? `loadingEffect 1s ${theme.transitions.easing.sharp} infinite`
       : 'none',
     [theme.breakpoints.down('xs')]: {
-      fontSize: theme.typography.h6.fontSize,
+      fontSize: smallFontSize ? '1.6rem' : theme.typography.h6.fontSize,
     },
   }),
   focused: {
@@ -93,6 +95,7 @@ const TextField: FC<LargeTextFieldProps> = props => {
     leftAlign = false,
     defaultShadow = false,
     loadingValue = false,
+    smallFontSize = false,
     ...textFieldProps
   } = props
   const styles = useStyles()
@@ -102,6 +105,7 @@ const TextField: FC<LargeTextFieldProps> = props => {
     defaultShadow,
     hideShadow: textFieldProps.disabled ?? false,
     loadingValue,
+    smallFontSize,
   })
 
   return (

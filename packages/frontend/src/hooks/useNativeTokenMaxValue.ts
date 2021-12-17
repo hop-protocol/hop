@@ -67,6 +67,13 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
 
       try {
         const bridge = sdk.bridge(token.symbol)
+
+        const destinationAmountOutMin = 0
+        let destinationDeadline = deadline()
+        if (toNetwork.slug === Chain.Ethereum) {
+          destinationDeadline = 0
+        }
+
         // Get estimated gas limit
         const estimatedGasLimit = await bridge.send(
           '10',
@@ -77,8 +84,8 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
             bonderFee: '1',
             amountOutMin: '0',
             deadline: deadline(),
-            destinationAmountOutMin: '0',
-            destinationDeadline: deadline(),
+            destinationAmountOutMin,
+            destinationDeadline,
             estimateGasOnly: true,
           }
         )

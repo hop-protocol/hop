@@ -23,7 +23,13 @@ import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import { toTokenDisplay, commafy } from 'src/utils'
 import { reactAppNetwork } from 'src/config'
-import { useTransactionReplacement, useApprove, useQueryParams, useBalance, useNeedsTokenForFee } from 'src/hooks'
+import {
+  useTransactionReplacement,
+  useApprove,
+  useQueryParams,
+  useBalance,
+  useNeedsTokenForFee,
+} from 'src/hooks'
 import { formatError, amountToBN } from 'src/utils/format'
 
 type ConvertContextProps = {
@@ -97,7 +103,7 @@ const ConvertContext = createContext<ConvertContextProps>({
   tx: undefined,
   setTx: (tx: Transaction | undefined) => {},
   unsupportedAsset: null,
-  needsTokenForFee: undefined
+  needsTokenForFee: undefined,
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
@@ -243,6 +249,13 @@ const ConvertContextProvider: FC = ({ children }) => {
 
     fetchToken()
   }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+
+  useEffect(() => {
+    if (tx) {
+      // clear source token input field
+      setSourceTokenAmount('')
+    }
+  }, [tx])
 
   // Fetch destination token
   useEffect(() => {
@@ -483,13 +496,13 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const enoughBalance = sourceBalance?.gte(parsedSourceTokenAmount)
   const withinMax = true
-  const validFormFields = !!(sourceTokenAmount && destTokenAmount && enoughBalance && withinMax) && !!details
+  const validFormFields =
+    !!(sourceTokenAmount && destTokenAmount && enoughBalance && withinMax) && !!details
 
   if (sourceBalance !== undefined && !enoughBalance) {
     warning = 'Insufficient funds'
   } else if (needsTokenForFee && sourceNetwork) {
     warning = `Add ${sourceNetwork.nativeTokenSymbol} to your account on ${sourceNetwork.name} for the transaction fee.`
-
   }
 
   return (
@@ -528,7 +541,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         tx,
         setTx,
         unsupportedAsset,
-        needsTokenForFee
+        needsTokenForFee,
       }}
     >
       {children}

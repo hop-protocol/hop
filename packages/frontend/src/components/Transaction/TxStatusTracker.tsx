@@ -6,13 +6,9 @@ import { TransactionStatus, useTxStatusStyles } from 'src/components/Transaction
 import { useApp } from 'src/contexts/AppContext'
 import { findNetworkBySlug } from 'src/utils/networks'
 
-function TxStatusTracker({ tx }) {
+function TxStatusTracker({ tx, completed, destCompleted, confirmations, networkConfirmations }) {
   const styles = useTxStatusStyles()
   const { networks } = useApp()
-  const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
-    tx,
-    tx.networkName
-  )
 
   const network = useMemo(() => findNetworkBySlug(networks, tx.networkName), [tx, networks])
 
@@ -48,17 +44,19 @@ function TxStatusTracker({ tx }) {
 
         {tx.destNetworkName !== tx.networkName && (
           <>
-          <div><RightArrow fontSize="large" color="primary" /></div>
-          <TransactionStatus
-            srcConfirmed={completed}
-            txConfirmed={destCompleted}
-            link={tx.destExplorerLink}
-            destNetworkName={tx.destNetworkName}
-            networkName={tx.networkName}
-            destTx
-            styles={styles}
-          />
-      </>
+            <div>
+              <RightArrow fontSize="large" color="primary" />
+            </div>
+            <TransactionStatus
+              srcConfirmed={completed}
+              txConfirmed={destCompleted}
+              link={tx.destExplorerLink}
+              destNetworkName={tx.destNetworkName}
+              networkName={tx.networkName}
+              destTx
+              styles={styles}
+            />
+          </>
         )}
       </Flex>
     </Div>

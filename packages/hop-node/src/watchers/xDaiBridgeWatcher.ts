@@ -56,7 +56,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
     }
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
     logger.debug(
       `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
     )
@@ -65,7 +65,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
       logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
       return
     }
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
 

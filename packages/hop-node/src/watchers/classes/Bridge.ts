@@ -258,13 +258,12 @@ export default class Bridge extends ContractBase {
     return await this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
   }
 
-  getTransferIdsFromSettleEventTransaction = async (multipleWithdrawalsSettledTxHash: string) => {
+  getParamsFromSettleEventTransaction = async (multipleWithdrawalsSettledTxHash: string) => {
     const tx = await this.getTransaction(multipleWithdrawalsSettledTxHash)
     if (!tx) {
       throw new Error('expected tx object')
     }
-    const { transferIds } = await this.decodeSettleBondedWithdrawalsData(tx.data)
-    return transferIds
+    return this.decodeSettleBondedWithdrawalsData(tx.data)
   }
 
   getMultipleWithdrawalsSettledEvents = async (

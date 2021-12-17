@@ -17,7 +17,7 @@ const useBalance = (token?: Token, network?: Network, address?: Addressish) => {
     },
     {
       enabled: !!token?.symbol && !!address?.toString,
-      refetchInterval: 8e3,
+      refetchInterval: 5e3,
     }
   )
 

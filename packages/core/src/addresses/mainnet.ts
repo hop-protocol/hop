@@ -559,5 +559,5 @@ export const addresses: Addresses = {
       arbitrum: 23
     }
   },
-  gasPriceMultiplier: 1.2
+  destinationFeeGasPriceMultiplier: 1.2
 }

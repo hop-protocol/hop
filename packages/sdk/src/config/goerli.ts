@@ -18,6 +18,6 @@ for (const chain in networks) {
 const addresses = goerliAddresses.bridges
 const bonders = goerliAddresses.bonders
 const bonderFeeBps = goerliAddresses.bonderFeeBps
-const gasPriceMultiplier = goerliAddresses.gasPriceMultiplier
+const destinationFeeGasPriceMultiplier = goerliAddresses.destinationFeeGasPriceMultiplier
 
-export { addresses, chains, bonders, bonderFeeBps, gasPriceMultiplier }
+export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier }

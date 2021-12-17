@@ -78,7 +78,7 @@ class Base {
   private bonders = config.bonders
   fees : { [token: string]: Record<string, number>}
   gasPriceMultiplier: number = 1
-  destinationFeeGasPriceMultiplier : number
+  destinationFeeGasPriceMultiplier : number = 1
 
   /**
    * @desc Instantiates Base class.
@@ -124,8 +124,8 @@ class Base {
       if (data.bonderFeeBps) {
         this.fees = data.bonderFeeBps
       }
-      if (data.gasPriceMultiplier) {
-        this.destinationFeeGasPriceMultiplier = data.gasPriceMultiplier
+      if (data.destinationFeeGasPriceMultiplier) {
+        this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
       }
     } catch (err) {
       console.error(err)
@@ -474,7 +474,7 @@ class Base {
     return bonder
   }
 
-  public async getFeeBps (token: TToken, destinationChain: TChain) {
+  public getFeeBps (token: TToken, destinationChain: TChain) {
     token = this.toTokenModel(token)
     destinationChain = this.toChainModel(destinationChain)
     if (!token) {

@@ -18,6 +18,6 @@ for (const chain in networks) {
 const addresses = kovanAddresses.bridges
 const bonders = kovanAddresses.bonders
 const bonderFeeBps = kovanAddresses.bonderFeeBps
-const gasPriceMultiplier = kovanAddresses.gasPriceMultiplier
+const destinationFeeGasPriceMultiplier = kovanAddresses.destinationFeeGasPriceMultiplier
 
-export { addresses, chains, bonders, bonderFeeBps, gasPriceMultiplier }
+export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier }

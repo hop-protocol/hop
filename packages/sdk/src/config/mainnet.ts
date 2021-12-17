@@ -18,6 +18,6 @@ for (const chain in networks) {
 const addresses = mainnetAddresses.bridges
 const bonders = mainnetAddresses.bonders
 const bonderFeeBps = mainnetAddresses.bonderFeeBps
-const gasPriceMultiplier = mainnetAddresses.gasPriceMultiplier
+const destinationFeeGasPriceMultiplier = mainnetAddresses.destinationFeeGasPriceMultiplier
 
-export { addresses, chains, bonders, bonderFeeBps, gasPriceMultiplier }
+export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier }

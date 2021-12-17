@@ -124,5 +124,5 @@ export type Addresses = {
   bridges: Bridges
   bonders: Bonders
   bonderFeeBps?: Fees
-  gasPriceMultiplier?: number
+  destinationFeeGasPriceMultiplier?: number
 }

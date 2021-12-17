@@ -41,10 +41,10 @@ const bonderFeeBps: { [network: string]: { [token: string]: Record<string, numbe
 }
 
 const destinationFeeGasPriceMultiplier : { [network: string]: number } = {
-  mainnet: mainnet.gasPriceMultiplier,
-  staging: staging.gasPriceMultiplier,
-  kovan: kovan.gasPriceMultiplier,
-  goerli: goerli.gasPriceMultiplier
+  mainnet: mainnet.destinationFeeGasPriceMultiplier,
+  staging: staging.destinationFeeGasPriceMultiplier,
+  kovan: kovan.destinationFeeGasPriceMultiplier,
+  goerli: goerli.destinationFeeGasPriceMultiplier
 }
 
 const config = {

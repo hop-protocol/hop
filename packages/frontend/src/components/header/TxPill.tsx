@@ -4,6 +4,7 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { StyledButton } from '../buttons/StyledButton'
+import { getProviderByNetworkName } from "src/utils/getProvider"
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -30,6 +31,8 @@ const TxPill = () => {
   const transactions = app?.txHistory?.transactions
   const styles = useStyles()
   const [numPendingTxs, setNumPendingTxs] = useState(0)
+  const provider = getProviderByNetworkName('ethereum')
+  const [ensName, setENSName] = useState<string | null>(null);
 
   const handleClick = () => {
     accountDetails?.show(true)
@@ -44,6 +47,12 @@ const TxPill = () => {
     }
   }, [transactions])
 
+  useEffect(() => {
+    if (address) {
+      provider.lookupAddress(address.toString()).then(setENSName)
+    }
+  }, [address, provider])
+
   return (
     <div className={styles.root}>
       {numPendingTxs > 0 ? (
@@ -52,7 +61,7 @@ const TxPill = () => {
         </StyledButton>
       ) : (
         <StyledButton flat onClick={handleClick} boxShadow={0} fontSize={[0, 0, 1]}>
-          {address?.truncate()}
+          {ensName || address?.truncate()}
         </StyledButton>
       )}
     </div>

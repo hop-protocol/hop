@@ -4,8 +4,8 @@ import MerkleTree from 'src/utils/MerkleTree'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { OneHourMs } from 'src/constants'
 import { Transfer } from 'src/db/TransfersDb'
-import { enabledSettleWatcherDestinationChains, enabledSettleWatcherSourceChains } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -21,6 +21,7 @@ type Config = {
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: SettleBondedWithdrawalWatcher }
+  settleAttemptedAt: { [rootHash: string]: number } = {}
 
   constructor (config: Config) {
     super({
@@ -42,30 +43,33 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   checkUnsettledTransferRootsFromDb = async () => {
-    if (enabledSettleWatcherSourceChains.length) {
-      if (!enabledSettleWatcherSourceChains.includes(this.chainSlug)) {
-        return
-      }
-    }
-
     const dbTransferRoots = await this.db.transferRoots.getUnsettledTransferRoots(await this.getFilterRoute())
 
     const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
-      const { transferRootHash, transferIds, destinationChainId } = dbTransferRoot
+      const { transferRootId, transferIds } = dbTransferRoot
+      if (!transferRootId) {
+        throw new Error('expected transferRootId')
+      }
+
       if (!transferIds) {
         throw new Error('expected transferIds list')
       }
 
-      if (enabledSettleWatcherDestinationChains.length) {
-        if (!enabledSettleWatcherDestinationChains.includes(this.chainIdToSlug(destinationChainId!))) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
-          continue
-        }
+      // Mark a settlement as attempted here so that multiple db reads are not attempted every poll
+      // This comes into play when a transfer is bonded after others in the same root have been settled
+      if (!this.settleAttemptedAt[transferRootId]) {
+        this.settleAttemptedAt[transferRootId] = 0
       }
+      const timestampOk = this.settleAttemptedAt[transferRootId] + OneHourMs < Date.now()
+      if (!timestampOk) {
+        continue
+      }
+      this.settleAttemptedAt[transferRootId] = Date.now()
 
       // get all db transfer items that belong to root
       const dbTransfers: Transfer[] = []
-      for (const transferId of transferIds) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      for (const transferId of transferIds) {
         const dbTransfer = await this.db.transfers.getByTransferId(transferId)
         if (!dbTransfer) {
           continue
@@ -74,7 +78,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       }
 
       if (dbTransfers.length !== transferIds.length) {
-        this.logger.error(`could not find all db transfers for root hash ${transferRootHash}. Has ${transferIds.length}, found ${dbTransfers.length}. Db may not be fully synced`)
+        this.logger.error(`could not find all db transfers for root id ${transferRootId}. Has ${transferIds.length}, found ${dbTransfers.length}. Db may not be fully synced`)
         continue
       }
 
@@ -86,17 +90,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         continue
       }
 
-      // if all transfer ids have been marked as settled,
-      // then mark transfer root as all settled since there is nothing to settle anymore
-      const allBondableTransfersSettled = dbTransfers.every(
-        (dbTransfer: Transfer) => {
-          // A transfer should not be settled if it is unbondable
-          return !dbTransfer.isBondable || dbTransfer.withdrawalBondSettled
-        }
-      )
+      const allBondableTransfersSettled = this.syncWatcher.getIsDbTransfersAllSettled(dbTransfers)
       if (allBondableTransfersSettled) {
-        await this.db.transferRoots.update(transferRootHash!, { // eslint-disable-line @typescript-eslint/no-non-null-assertion
-          allSettled: allBondableTransfersSettled
+        await this.db.transferRoots.update(transferRootId, { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+          allSettled: true
         })
         continue
       }
@@ -104,36 +101,20 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       // find all unique bonders that have bonded transfers in this transfer root
       const bonderSet = new Set<string>()
       for (const dbTransfer of dbTransfers) {
-        if (!dbTransfer.withdrawalBonder) {
+        const doesBonderExist = dbTransfer?.withdrawalBonder
+        const shouldTransferBeSettled = dbTransfer?.withdrawalBondSettled === false
+        if (!doesBonderExist || !shouldTransferBeSettled) {
           continue
         }
-        bonderSet.add(dbTransfer.withdrawalBonder)
+        bonderSet.add(dbTransfer.withdrawalBonder!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
       }
 
       for (const bonder of bonderSet.values()) {
-        const bonderAddress = await this.bridge.getBonderAddress()
-        if (bonder !== bonderAddress) {
-          continue
-        }
-
-        // if all transfers have been settled that belong to a bonder
-        // then don't attempt to settle root with that bonder
-        // because there is nothing to settle anymore
-        const allSettledByBonder = dbTransfers.filter(
-          (dbTransfer: Transfer) => dbTransfer.withdrawalBonder === bonder
-        )
-          .every((dbTransfer: Transfer) =>
-            dbTransfer.withdrawalBondSettled
-          )
-        if (allSettledByBonder) {
-          continue
-        }
-
         // check settle-able transfer root
         promises.push(
-          this.checkTransferRootHash(transferRootHash!, bonder) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+          this.checkTransferRootId(transferRootId, bonder) // eslint-disable-line @typescript-eslint/no-non-null-assertion
             .catch((err: Error) => {
-              this.logger.error('checkTransferRootHash error:', err.message)
+              this.logger.error('checkTransferRootId error:', err.message)
             })
         )
       }
@@ -150,19 +131,19 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     await Promise.all(promises)
   }
 
-  checkTransferRootHash = async (transferRootHash: string, bonder: string) => {
-    if (!transferRootHash) {
-      throw new Error('transfer root hash is required')
+  checkTransferRootId = async (transferRootId: string, bonder: string) => {
+    if (!transferRootId) {
+      throw new Error('transfer root id is required')
     }
     if (!bonder) {
       throw new Error('bonder is required')
     }
-    const logger = this.logger.create({ root: transferRootHash })
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-      transferRootHash
+    const logger = this.logger.create({ root: transferRootId })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
+      transferRootId
     )
     const {
-      transferRootId,
+      transferRootHash,
       sourceChainId,
       destinationChainId,
       totalAmount,
@@ -184,7 +165,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       logger.error(
         `transfers computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${calculatedTransferRootHash}`
       )
-      await this.db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootId, {
         transferIds: []
       })
       return
@@ -200,7 +181,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const transferRootStruct = await this.bridge.getTransferRoot(transferRootHash, totalAmount!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     if (transferRootStruct.amountWithdrawn.eq(totalAmount!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
       logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(transferRootStruct.amountWithdrawn)}) matches totalAmount (${this.bridge.formatUnits(totalAmount!)}). Marking transfer root as all settled`) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-      await this.db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootId, {
         allSettled: true
       })
       return
@@ -212,7 +193,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       withdrawalBondSettleTxSentAt: Date.now()
     })
     logger.debug('sending settle tx')
@@ -236,15 +217,15 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     if (!dbTransfer) {
       throw new Error(`transfer id "${transferId}" not found in db`)
     }
-    const { transferRootHash, withdrawalBonder } = dbTransfer
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-      transferRootHash! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const { transferRootId, withdrawalBonder } = dbTransfer
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
+      transferRootId! // eslint-disable-line @typescript-eslint/no-non-null-assertion
     )
     if (!dbTransferRoot) {
-      throw new Error(`transfer root hash "${transferRootHash}" not found in db`)
+      throw new Error(`transfer root id "${transferRootId}" not found in db`)
     }
 
-    return await this.checkTransferRootHash(transferRootHash!, withdrawalBonder!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    return await this.checkTransferRootId(transferRootId!, withdrawalBonder!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
   }
 }
 

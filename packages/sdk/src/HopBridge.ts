@@ -900,12 +900,12 @@ class HopBridge extends Base {
   }
 
   public async getAvailableLiquidity (
-    sourceChain: TChain,
+    destinationChain: TChain,
     bonder: string
   ): Promise<BigNumber> {
     const [credit, debit] = await Promise.all([
-      this.getCredit(sourceChain, bonder),
-      this.getTotalDebit(sourceChain, bonder)
+      this.getCredit(destinationChain, bonder),
+      this.getTotalDebit(destinationChain, bonder)
     ])
 
     const availableLiquidity = credit.sub(debit)

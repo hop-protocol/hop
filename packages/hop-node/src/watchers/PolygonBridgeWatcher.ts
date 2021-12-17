@@ -174,7 +174,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
     })
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootHash: string, logger: Logger) {
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
     const commitTx: any = await this.bridge.getTransaction(commitTxHash)
     const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
     if (!isCheckpointed) {
@@ -190,7 +190,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
       logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
       return
     }
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
     const tx = await this.relayXDomainMessage(commitTxHash)

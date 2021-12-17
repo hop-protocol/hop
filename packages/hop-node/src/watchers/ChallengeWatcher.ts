@@ -1,8 +1,6 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
-import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
@@ -20,7 +18,6 @@ type Config = {
 
 class ChallengeWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: ChallengeWatcher }
-  transferRootIdConfirmed: { [rootHash: string]: boolean } = {}
 
   constructor (config: Config) {
     super({
@@ -55,53 +52,44 @@ class ChallengeWatcher extends BaseWatcher {
     )
 
     for (const dbTransferRoot of dbTransferRoots) {
-      const { transferRootHash, bondTotalAmount } = dbTransferRoot
-
-      if (!transferRootHash || !bondTotalAmount) {
-        continue
-      }
-
-      // Define new object on first run after server restart
-      if (!this.transferRootIdConfirmed[transferRootHash]) {
-        this.transferRootIdConfirmed[transferRootHash] = false
-      }
-
-      if (this.transferRootIdConfirmed[transferRootHash]) {
-        continue
-      }
-
-      await this.checkChallengeableTransferRoot(
-        transferRootHash,
-        bondTotalAmount
-      )
+      const { transferRootId } = dbTransferRoot
+      await this.checkChallengeableTransferRoot(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     }
   }
 
-  async checkChallengeableTransferRoot (
-    transferRootHash: string,
-    totalAmount: BigNumber
-  ) {
-    const logger = this.logger.create({ root: transferRootHash })
-    const transferRootId = getTransferRootId(transferRootHash, totalAmount)
+  async checkChallengeableTransferRoot (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
 
-    logger.debug('Challenging transfer root', transferRootHash)
+    const { transferRootHash, totalAmount } = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    logger.debug('Challenging transfer root', transferRootId)
     logger.debug('transferRootHash:', transferRootHash)
-    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
+    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount!)) // eslint-disable-line @typescript-eslint/no-non-null-assertion
     logger.debug('transferRootId:', transferRootId)
 
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
-      transferRootHash
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(
+      transferRootId
     )
 
+    const { bondTxHash } = dbTransferRoot
+    if (!bondTxHash) {
+      throw new Error('expected bondTxHash')
+    }
+
     const l1Bridge = this.bridge as L1Bridge
-    const transferRootCommittedAt = await l1Bridge.getTransferRootCommittedAt(
-      dbTransferRoot.destinationChainId!, transferRootId // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const tx = await l1Bridge.getTransaction(bondTxHash)
+    if (!tx) {
+      throw new Error('expected transaction object')
+    }
+
+    const { destinationChainId } = await l1Bridge.decodeBondTransferRootCalldata(tx.data)
+    const isTransferRootIdConfirmed = await l1Bridge.isTransferRootIdConfirmed(
+      destinationChainId, transferRootId
     )
-    const isRootHashConfirmed = !!transferRootCommittedAt
-    if (isRootHashConfirmed) {
+    if (isTransferRootIdConfirmed) {
       logger.info('rootHash is already confirmed on L1')
-      // TODO: Store this in DB when we index transferRoots by transferRootId instead of transferRootHash
-      this.transferRootIdConfirmed[transferRootHash] = true
+      await this.db.transferRoots.update(transferRootId, {
+        confirmed: true
+      })
       return
     }
 
@@ -109,7 +97,7 @@ class ChallengeWatcher extends BaseWatcher {
     const isChallenged = bond.challengeStartTime.toNumber() > 0
     if (isChallenged) {
       logger.info('challenge already started')
-      await this.db.transferRoots.update(transferRootHash, {
+      await this.db.transferRoots.update(transferRootId, {
         challenged: true
       })
       return
@@ -121,10 +109,10 @@ class ChallengeWatcher extends BaseWatcher {
       return
     }
 
-    const challengeMsg = `TransferRoot should be challenged! Root hash: ${transferRootHash}. Total amt: ${totalAmount}.`
+    const challengeMsg = `TransferRoot should be challenged! Root id: ${transferRootId}. Root hash: ${transferRootHash} Total amt: ${totalAmount}.`
     logger.debug(challengeMsg)
     await this.notifier.warn(challengeMsg)
-    await this.db.transferRoots.update(transferRootHash, {
+    await this.db.transferRoots.update(transferRootId, {
       challenged: true
     })
   }

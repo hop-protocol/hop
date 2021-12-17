@@ -1781,10 +1781,10 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@hop-protocol/core@0.0.1-beta.53":
-  version "0.0.1-beta.53"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.53.tgz#3c20c33b387b2c1566df7e9ff670d08354201353"
-  integrity sha512-5lrsfbsNXQSKs3Ghm4OYgG+FHkqH60c+SUhabB1w8NxdCRwEEoxpAwkH4LVQtDqReDBAudCFGhB6s+dvbW540w==
+"@hop-protocol/core@0.0.1-beta.54":
+  version "0.0.1-beta.54"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.54.tgz#48fb277f2ac9d5db28f423d1f51a7f9e260d6f2e"
+  integrity sha512-+5fbBHt0ltlFQcf4Qy2hosKSpfS/4GPCJ4BIYJZp1fndVNEBC0t9qXGKFrR19nQ8bgSTjIhaIgf3Rbym/u4X/Q==
   dependencies:
     deepmerge "^4.2.2"
     eslint-plugin-json "^3.1.0"

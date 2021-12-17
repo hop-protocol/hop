@@ -103,7 +103,10 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
     const nativeTokenMaxGasCost = await estimateMaxValue(methodName, options)
 
     if (nativeTokenMaxGasCost) {
-      const totalAmount = balance.sub(nativeTokenMaxGasCost)
+      let totalAmount = balance.sub(nativeTokenMaxGasCost)
+      if (totalAmount.lt(0)) {
+        totalAmount = BigNumber.from(0)
+      }
       return formatUnits(totalAmount, selectedToken.decimals)
     }
 
@@ -167,7 +170,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
         ) : secondaryBalance ? (
           <div className={styles.balance}>
             {!hideMaxButton && secondaryBalance.gt(0) && !disableInput ? (
-              <button className={styles.maxButton} onClick={handleSecondaryMaxClick}>
+              <button className={styles.maxButton} onClick={handleSecondaryMaxClick} title="Max amount you can send while still having enough to cover fees">
                 MAX
               </button>
             ) : null}
@@ -181,7 +184,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
         ) : balance ? (
           <div className={styles.balance}>
             {!hideMaxButton && balance.gt(0) && !disableInput ? (
-              <button className={styles.maxButton} onClick={handleMaxClick}>
+              <button className={styles.maxButton} onClick={handleMaxClick} title="Max amount you can send while still having enough to cover fees">
                 MAX
               </button>
             ) : null}

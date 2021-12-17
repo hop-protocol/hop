@@ -95,7 +95,10 @@ const SendAmountSelectorCard: FC<Props> = props => {
       }
     }
 
-    const totalAmount = balance.sub(nativeTokenMaxGasCost)
+    let totalAmount = balance.sub(nativeTokenMaxGasCost)
+    if (totalAmount.lt(0)) {
+      totalAmount = BigNumber.from(0)
+    }
 
     const maxValue = formatUnits(totalAmount, token.decimals)
     onChange(maxValue)
@@ -117,7 +120,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
         ) : balance ? (
           <div className={styles.balance}>
             {balance.gt(0) && !disableInput ? (
-              <button className={styles.maxButton} onClick={handleMaxClick}>
+              <button className={styles.maxButton} onClick={handleMaxClick} title="Max amount you can send while still having enough to cover fees">
                 MAX
               </button>
             ) : null}

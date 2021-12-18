@@ -1,3 +1,4 @@
+import fetch from 'isomorphic-fetch'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
@@ -75,8 +76,9 @@ class Base {
   private addresses = config.addresses
   private chains = config.chains
   private bonders = config.bonders
-  private fees = config.fees
-  gasPriceMultiplier: number = 0
+  fees : { [token: string]: Record<string, number>}
+  gasPriceMultiplier: number = 1
+  destinationFeeGasPriceMultiplier : number = 1
 
   /**
    * @desc Instantiates Base class.
@@ -105,6 +107,28 @@ class Base {
     }
     if (chainProviders) {
       this.chainProviders = chainProviders
+    }
+
+    this.fees = config.bonderFeeBps[network]
+    this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
+
+    this.init()
+  }
+
+  async init () {
+    try {
+      const data = await this.getS3ConfigData()
+      if (data.bonders) {
+        this.bonders = data.bonders
+      }
+      if (data.bonderFeeBps) {
+        this.fees = data.bonderFeeBps
+      }
+      if (data.destinationFeeGasPriceMultiplier) {
+        this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
+      }
+    } catch (err) {
+      console.error(err)
     }
   }
 
@@ -441,7 +465,13 @@ class Base {
     token = this.toTokenModel(token)
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
-    return this.bonders?.[this.network]?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
+
+    const bonder = this.bonders?.[this.network]?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
+    if (!bonder) {
+      console.warn(`bonder address not found for route ${token.symbol}.${sourceChain.slug}->${destinationChain.slug}`)
+    }
+
+    return bonder
   }
 
   public getFeeBps (token: TToken, destinationChain: TChain) {
@@ -453,17 +483,27 @@ class Base {
     if (!destinationChain) {
       throw new Error('destinationChain is required')
     }
-    const fees = config.fees?.[token?.canonicalSymbol]
+    const fees = this.fees?.[token?.canonicalSymbol]
     if (!fees) {
       throw new Error('fee data not found')
     }
 
-    const feeBps: number = fees[destinationChain.slug as ChainEnum]
+    const feeBps = fees[destinationChain.slug as ChainEnum] || 0
     return feeBps
   }
 
   setGasPriceMultiplier (gasPriceMultiplier: number) {
     return (this.gasPriceMultiplier = gasPriceMultiplier)
+  }
+
+  async getS3ConfigData () {
+    const url = `https://assets.hop.exchange/${this.network}/v1-core-config.json`
+    const res = await fetch(url)
+    const json = await res.json()
+    if (!json) {
+      throw new Error('expected json object')
+    }
+    return json
   }
 
   public getContract = getContract

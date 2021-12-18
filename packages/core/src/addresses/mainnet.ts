@@ -514,5 +514,5 @@ export const addresses: Addresses = {
         bridgeDeployedBlockNumber: 2481596
       }
     }
-  }
+  },
 }

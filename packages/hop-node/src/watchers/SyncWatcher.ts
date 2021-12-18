@@ -20,6 +20,7 @@ import { config as globalConfig, oruChains } from 'src/config'
 
 type S3JsonData = {
   [token: string]: {
+    baseAvailableCredit: {[chain: string]: string}
     availableCredit: {[chain: string]: string}
     pendingAmounts: {[chain: string]: string}
     unbondedTransferRootAmounts: {[chain: string]: string}
@@ -51,6 +52,7 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate: string
   customStartBlockNumber: number
   ready: boolean = false
+  private baseAvailableCredit: { [destinationChain: string]: BigNumber } = {}
   private availableCredit: { [destinationChain: string]: BigNumber } = {}
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
@@ -1133,7 +1135,8 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`no destination watcher for ${destinationChain}`)
     }
     const destinationBridge = destinationWatcher.bridge
-    let availableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    const baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    let availableCredit = baseAvailableCredit
     if (this.isOruToL1(destinationChainId) || this.isNonOruToL1(destinationChainId)) {
       const pendingAmount = await this.getOruToL1PendingAmount()
       availableCredit = availableCredit.sub(pendingAmount)
@@ -1143,10 +1146,10 @@ class SyncWatcher extends BaseWatcher {
     }
 
     if (availableCredit.lt(0)) {
-      return BigNumber.from(0)
+      availableCredit = BigNumber.from(0)
     }
 
-    return availableCredit
+    return { availableCredit, baseAvailableCredit }
   }
 
   async calculatePendingAmount (destinationChainId: number) {
@@ -1184,8 +1187,9 @@ class SyncWatcher extends BaseWatcher {
   private async updateAvailableCreditMap (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const bonder = this.bridge.getConfigBonderAddress(destinationChain)
-    const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
+    const { availableCredit, baseAvailableCredit } = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
+    this.baseAvailableCredit[destinationChain] = baseAvailableCredit
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {
@@ -1298,6 +1302,16 @@ class SyncWatcher extends BaseWatcher {
       totalAmount = totalAmount.add(amount)
     }
     return totalAmount
+  }
+
+  public getBaseAvailableCredit (destinationChainId: number) {
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const baseAvailableCredit = this.baseAvailableCredit[destinationChain]
+    if (!baseAvailableCredit) {
+      return BigNumber.from(0)
+    }
+
+    return baseAvailableCredit
   }
 
   public getEffectiveAvailableCredit (destinationChainId: number) {

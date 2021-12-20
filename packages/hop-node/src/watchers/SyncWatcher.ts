@@ -628,6 +628,10 @@ class SyncWatcher extends BaseWatcher {
         logger.warn(`transfer id ${transferId} db item not found`)
       }
       dbTransfers.push(dbTransfer)
+      if (dbTransfer?.withdrawalBondSettled) {
+        return
+      }
+
       const isBonded = dbTransfer?.withdrawalBonded ?? false
       const isSameBonder = dbTransfer?.withdrawalBonder === bonder
       const isWithdrawalSettled = isBonded && isSameBonder

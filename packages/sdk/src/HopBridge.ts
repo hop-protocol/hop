@@ -19,7 +19,8 @@ import {
   LpFeeBps,
   PendingAmountBuffer,
   SettlementGasLimitPerTx,
-  TokenIndex
+  TokenIndex,
+  Errors
 } from './constants'
 import { PriceFeed } from './priceFeed'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
@@ -1515,7 +1516,7 @@ class HopBridge extends Base {
         balance = await canonicalToken.balanceOf()
       }
       if (balance.lt(tokenAmount)) {
-        throw new Error('not enough token balance')
+        throw new Error(Errors.NotEnoughAllowance)
       }
     }
 
@@ -1618,7 +1619,7 @@ class HopBridge extends Base {
         } else {
           const allowance = await l1Token.allowance(l1Bridge.address)
           if (allowance.lt(BigNumber.from(amount))) {
-            throw new Error('not enough allowance')
+            throw new Error(Errors.NotEnoughAllowance)
           }
         }
       }
@@ -1708,7 +1709,7 @@ class HopBridge extends Base {
         } else {
           const allowance = await l2CanonicalToken.allowance(spender)
           if (allowance.lt(BigNumber.from(amount))) {
-            throw new Error('not enough allowance')
+            throw new Error(Errors.NotEnoughAllowance)
           }
         }
       }
@@ -1805,7 +1806,7 @@ class HopBridge extends Base {
         } else {
           const allowance = await l2CanonicalToken.allowance(ammWrapper.address)
           if (allowance.lt(BigNumber.from(amount))) {
-            throw new Error('not enough allowance')
+            throw new Error(Errors.NotEnoughAllowance)
           }
         }
       }

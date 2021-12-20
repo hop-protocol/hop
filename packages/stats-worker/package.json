@@ -25,6 +25,7 @@
     "@types/node": "^16.7.10",
     "@types/uuid": "^8.3.3",
     "dotenv": "^10.0.0",
+    "ethereum-block-by-date": "^1.4.2",
     "ethers": "^5.4.6",
     "luxon": "^2.1.1",
     "sqlite3": "^5.0.2",

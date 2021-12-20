@@ -100,6 +100,9 @@ export const useSendStyles = makeStyles(theme => ({
     boxSizing: 'border-box',
     borderRadius: '3rem',
     boxShadow: theme.boxShadow.inner,
+    [theme.breakpoints.down('xs')]: {
+      width: '100%',
+    },
   },
   customRecipientLabel: {
     textAlign: 'right',

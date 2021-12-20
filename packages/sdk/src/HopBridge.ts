@@ -16,7 +16,6 @@ import {
 } from 'ethers'
 import {
   BondTransferGasLimit,
-  GasPriceMultiplier,
   LpFeeBps,
   PendingAmountBuffer,
   SettlementGasLimitPerTx,
@@ -734,7 +733,7 @@ class HopBridge extends Base {
       destinationChain.equals(Chain.Optimism) ||
       destinationChain.equals(Chain.Arbitrum)
     ) {
-      const multiplier = ethers.utils.parseEther(GasPriceMultiplier)
+      const multiplier = ethers.utils.parseEther(this.destinationFeeGasPriceMultiplier.toString())
       if (multiplier.gt(0)) {
         fee = fee.mul(multiplier).div(oneEth)
       }

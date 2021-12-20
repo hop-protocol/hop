@@ -1,6 +1,7 @@
 import { Chains } from './types'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { mainnet as networks } from '@hop-protocol/core/networks'
+import { mainnet as mainnetConfig } from '@hop-protocol/core/config'
 
 const chains: Chains = {}
 
@@ -17,4 +18,7 @@ for (const chain in networks) {
 
 const addresses = mainnetAddresses.bridges
 const bonders = mainnetAddresses.bonders
-export { addresses, chains, bonders }
+const bonderFeeBps = mainnetConfig.bonderFeeBps
+const destinationFeeGasPriceMultiplier = mainnetConfig.destinationFeeGasPriceMultiplier
+
+export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier }

@@ -42,7 +42,7 @@ function sumAmounts (items: any) {
   return sum
 }
 
-class VolumeStats {
+class TvlStats {
   db = new Db()
 
   constructor () {
@@ -79,44 +79,80 @@ class VolumeStats {
       })
     })
     const jsonRes = await res.json()
+    if (!jsonRes.data) {
+      console.error(jsonRes)
+    }
     return jsonRes.data
   }
 
-  async fetchDailyVolume (chain: string, startDate: number) {
+  async fetchLiquidity (chain: string, startDate: number, endDate: number) {
     const query = `
-      query DailyVolume($startDate: Int, $endDate: Int) {
-        dailyVolumes(
+      query PoolLiquidity($startDate: Int, $endDate: Int) {
+        add: addLiquidities(
           where: {
-            date_gte: $startDate,
+            timestamp_gte: $startDate,
+            timestamp_lte: $endDate,
           },
-          orderBy: date,
+          orderBy: timestamp,
           orderDirection: desc,
           first: 1000
         ) {
           id
-          amount
-          date
+          tokenAmounts
+          timestamp
+          token
+        },
+        minus: removeLiquidities(
+          where: {
+            timestamp_gte: $startDate,
+            timestamp_lte: $endDate,
+          },
+          orderBy: timestamp,
+          orderDirection: desc,
+          first: 1000
+        ) {
+          id
+          tokenAmounts
+          timestamp
           token
         }
       }
     `
     const url = this.getUrl(chain)
     const data = await this.queryFetch(url, query, {
-      startDate
+      startDate,
+      endDate
     })
 
-    let items = data.dailyVolumes
-
-    try {
-      if (items.length === 1000) {
-        startDate = items[0].date
-        items.push(...(await this.fetchDailyVolume(chain, startDate)))
-      }
-    } catch (err) {
-      console.error(err)
+    if (data.add.length > 1000 || data.minus.length > 1000) {
+      throw new Error('here')
     }
 
-    return items
+    const totalAmounts: any = {}
+    for (let item of data.add) {
+      if (!totalAmounts[item.token]) {
+        totalAmounts[item.token] = BigNumber.from(0)
+      }
+      totalAmounts[item.token] = totalAmounts[item.token].add(
+        BigNumber.from(item.tokenAmounts[0])
+      )
+      totalAmounts[item.token] = totalAmounts[item.token].add(
+        BigNumber.from(item.tokenAmounts[1])
+      )
+    }
+    for (let item of data.minus) {
+      if (!totalAmounts[item.token]) {
+        totalAmounts[item.token] = BigNumber.from(0)
+      }
+      totalAmounts[item.token] = totalAmounts[item.token].sub(
+        BigNumber.from(item.tokenAmounts[0])
+      )
+      totalAmounts[item.token] = totalAmounts[item.token].sub(
+        BigNumber.from(item.tokenAmounts[1])
+      )
+    }
+
+    return totalAmounts
   }
 
   async getPriceHistory (coinId: string, days: number) {
@@ -131,7 +167,7 @@ class VolumeStats {
       )
   }
 
-  async trackDailyVolume () {
+  async trackTvl () {
     const daysN = 365
     console.log('fetching prices')
     const pricesArr = await Promise.all([
@@ -169,38 +205,47 @@ class VolumeStats {
     }
     console.log('done upserting prices')
 
-    const chains = ['polygon', 'xdai', 'arbitrum', 'optimism', 'mainnet']
-    const now = Math.floor(DateTime.utc().toSeconds())
+    const chains = ['polygon', 'xdai', 'arbitrum', 'optimism']
+    const now = DateTime.utc()
 
     await Promise.all(
       chains.map(async (chain: string) => {
-        const startDate = now - (daysN - 1) * 24 * 60 * 60
+        for (let day = 0; day < daysN; day++) {
+          const endDate = now.minus({ days: day }).endOf('day')
+          const startDate = endDate.startOf('day')
+          const endTimestamp = Math.floor(endDate.toSeconds())
+          const startTimestamp = Math.floor(startDate.toSeconds())
 
-        console.log(`fetching daily volume stats, chain: ${chain}`)
-        const items = await this.fetchDailyVolume(chain, startDate)
-        for (let item of items) {
-          const amount = item.amount
-          const timestamp = item.date
-          const token = item.token
-          const decimals = tokenDecimals[token]
-          const formattedAmount = Number(formatUnits(amount, decimals))
+          console.log(
+            `fetching daily volume stats, chain: ${chain}, day: ${day}`
+          )
+          const totalAmounts = await this.fetchLiquidity(
+            chain,
+            startTimestamp,
+            endTimestamp
+          )
+          for (let token in totalAmounts) {
+            const totalAmount = totalAmounts[token]
+            const decimals = tokenDecimals[token]
+            const formattedAmount = Number(formatUnits(totalAmount, decimals))
 
-          const dates = prices[token].reverse().map((x: any) => x[0])
-          const nearest = nearestDate(dates, timestamp)
-          const price = prices[token][nearest][1]
+            const dates = prices[token].reverse().map((x: any) => x[0])
+            const nearest = nearestDate(dates, startDate)
+            const price = prices[token][nearest][1]
 
-          const usdAmount = price * formattedAmount
-          try {
-            this.db.upsertVolumeStat(
-              chain,
-              token,
-              formattedAmount,
-              usdAmount,
-              timestamp
-            )
-          } catch (err) {
-            if (!err.message.includes('UNIQUE constraint failed')) {
-              throw err
+            const usdAmount = price * formattedAmount
+            try {
+              this.db.upsertTvlPoolStat(
+                chain,
+                token,
+                formattedAmount,
+                usdAmount,
+                startTimestamp
+              )
+            } catch (err) {
+              if (!err.message.includes('UNIQUE constraint failed')) {
+                throw err
+              }
             }
           }
         }
@@ -210,4 +255,4 @@ class VolumeStats {
   }
 }
 
-export default VolumeStats
+export default TvlStats

@@ -1,6 +1,7 @@
 import { Chains } from './types'
 import { goerli as goerliAddresses } from '@hop-protocol/core/addresses'
 import { goerli as networks } from '@hop-protocol/core/networks'
+import { goerli as goerliConfig } from '@hop-protocol/core/config'
 
 const chains: Chains = {}
 
@@ -17,4 +18,7 @@ for (const chain in networks) {
 
 const addresses = goerliAddresses.bridges
 const bonders = goerliAddresses.bonders
-export { addresses, chains, bonders }
+const bonderFeeBps = goerliConfig.bonderFeeBps
+const destinationFeeGasPriceMultiplier = goerliConfig.destinationFeeGasPriceMultiplier
+
+export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier }

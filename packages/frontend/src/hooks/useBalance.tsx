@@ -8,8 +8,9 @@ async function fetchBalance(token: Token, address: Addressish) {
 }
 
 const useBalance = (token?: Token, network?: Network, address?: Addressish) => {
+  const queryKey = `balance:${network?.slug}:${address?.toString()}`
   const { isLoading, isError, data, error } = useQuery(
-    ['balance', token?.symbol, network?.slug, address?.toString],
+    [queryKey, token?.symbol, network?.slug, address?.toString],
     () => {
       if (token && address) {
         return fetchBalance(token, address)

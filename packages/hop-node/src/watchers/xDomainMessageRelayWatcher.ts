@@ -105,7 +105,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     )
     for (const { transferRootId } of dbTransferRoots) {
       // Parallelizing these calls produces RPC errors on Optimism
-      await this.checkTransfersCommitted(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      await this.checkTransfersCommitted(transferRootId!)
     }
   }
 
@@ -120,8 +120,8 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
-      destinationChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-      transferRootId // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      destinationChainId!,
+      transferRootId
     )
     if (isTransferRootIdConfirmed) {
       logger.warn('Transfer root already confirmed')
@@ -138,7 +138,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
 
     logger.debug(`handling commit tx hash ${commitTxHash} from ${destinationChainId}`)
-    await watcher.handleCommitTxHash(commitTxHash!, transferRootId, logger) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    await watcher.handleCommitTxHash(commitTxHash!, transferRootId, logger)
   }
 }
 

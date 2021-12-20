@@ -87,8 +87,8 @@ class CommitTransfersWatcher extends BaseWatcher {
     const destinationChainIds: number[] = []
     for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer
-      if (!destinationChainIds.includes(destinationChainId!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        destinationChainIds.push(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      if (!destinationChainIds.includes(destinationChainId!)) {
+        destinationChainIds.push(destinationChainId!)
       }
     }
     for (const destinationChainId of destinationChainIds) {

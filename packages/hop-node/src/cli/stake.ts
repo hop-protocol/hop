@@ -69,7 +69,7 @@ async function sendTokensToL2 (
 
   logger.debug('Sending tokens to L2')
   tx = await bridge.convertCanonicalTokenToHopToken(
-    chainSlugToId(chain)!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    chainSlugToId(chain)!,
     parsedAmount,
     recipient
   )

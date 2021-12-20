@@ -33,56 +33,26 @@ type Bps = {
   arbitrum: number
 }
 
-const fees: Record<string, Bps> = {
-  USDC: {
-    ethereum: 14,
-    polygon: 14,
-    xdai: 25,
-    optimism: 14,
-    arbitrum: 14
-  },
-  USDT: {
-    ethereum: 23,
-    polygon: 23,
-    xdai: 25,
-    optimism: 23,
-    arbitrum: 23
-  },
-  DAI: {
-    ethereum: 23,
-    polygon: 23,
-    xdai: 25,
-    optimism: 23,
-    arbitrum: 23
-  },
-  MATIC: {
-    ethereum: 20,
-    polygon: 20,
-    xdai: 25,
-    optimism: 0,
-    arbitrum: 0
-  },
-  ETH: {
-    ethereum: 6,
-    polygon: 6,
-    xdai: 18,
-    optimism: 6,
-    arbitrum: 6
-  },
-  WBTC: {
-    ethereum: 23,
-    polygon: 23,
-    xdai: 25,
-    optimism: 23,
-    arbitrum: 23
-  }
+const bonderFeeBps: { [network: string]: { [token: string]: Record<string, number>} } = {
+  mainnet: mainnet.bonderFeeBps,
+  staging: staging.bonderFeeBps,
+  kovan: kovan.bonderFeeBps,
+  goerli: goerli.bonderFeeBps
+}
+
+const destinationFeeGasPriceMultiplier : { [network: string]: number } = {
+  mainnet: mainnet.destinationFeeGasPriceMultiplier,
+  staging: staging.destinationFeeGasPriceMultiplier,
+  kovan: kovan.destinationFeeGasPriceMultiplier,
+  goerli: goerli.destinationFeeGasPriceMultiplier
 }
 
 const config = {
   addresses,
   chains,
   bonders,
-  fees
+  bonderFeeBps,
+  destinationFeeGasPriceMultiplier
 }
 
 export { metadata, config }

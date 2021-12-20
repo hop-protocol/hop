@@ -1,5 +1,5 @@
 export type Bridges = {
-  [key: string]: Partial<{
+  [tokenSymbol: string]: Partial<{
     ethereum: {
       l1CanonicalToken: string
       l1Bridge: string

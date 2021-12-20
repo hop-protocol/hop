@@ -377,13 +377,15 @@ class SyncWatcher extends BaseWatcher {
       transferNonce,
       bonderFee,
       amountOutMin,
-      deadline
+      deadline,
+      index
     } = event.args
     const logger = this.logger.create({ id: transferId })
     logger.debug('handling TransferSent event')
 
     try {
       const { transactionHash, transactionIndex } = event
+      const transferSentIndex: number = index.toNumber()
       const blockNumber: number = event.blockNumber
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
@@ -398,7 +400,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
       logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
       logger.debug('deadline:', deadline.toString())
-      logger.debug('transferSentIndex:', transactionIndex)
+      logger.debug('transferSentIndex:', transferSentIndex)
       logger.debug('transferSentBlockNumber:', blockNumber)
 
       if (!isBondable) {
@@ -418,7 +420,7 @@ class SyncWatcher extends BaseWatcher {
         deadline,
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
-        transferSentIndex: transactionIndex
+        transferSentIndex
       })
 
       logger.debug('handleTransferSentEvent: stored transfer item')

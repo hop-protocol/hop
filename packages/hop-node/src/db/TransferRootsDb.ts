@@ -312,7 +312,9 @@ class TransferRootsDb extends BaseDb {
       return
     }
     const transferRootId = transferRoot.transferRootId
-    const key = this.getTimestampedKey(transferRoot)
+    const dbTransferRoot = this.getById(transferRootId!)
+    const combinedData = Object.assign({}, dbTransferRoot, transferRoot)
+    const key = this.getTimestampedKey(combinedData)
     if (!key) {
       this.logger.warn('expected timestamped key. incomplete transfer root:', JSON.stringify(transferRoot))
       return

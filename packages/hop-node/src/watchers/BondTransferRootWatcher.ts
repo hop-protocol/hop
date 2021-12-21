@@ -64,12 +64,12 @@ class BondTransferRootWatcher extends BaseWatcher {
       } = dbTransferRoot
       const logger = this.logger.create({ root: transferRootId })
 
-      const availableCredit = await this.getAvailableCreditForBond(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-      if (availableCredit.lt(totalAmount!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      const availableCredit = await this.getAvailableCreditForBond(destinationChainId!)
+      if (availableCredit.lt(totalAmount!)) {
         logger.debug(
         `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
           availableCredit
-        )}, need ${this.bridge.formatUnits(totalAmount!)}`) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        )}, need ${this.bridge.formatUnits(totalAmount!)}`)
         continue
       }
 

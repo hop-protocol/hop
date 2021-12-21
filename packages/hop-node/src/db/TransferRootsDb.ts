@@ -207,6 +207,17 @@ class TransferRootsDb extends BaseDb {
   }
 
   async migration () {
+    const items = await this.getKeyValues()
+    const promises: Array<Promise<any>> = []
+    for (const { key, value } of items) {
+      promises.push(new Promise(async (resolve) => {
+        const rootHashKv = await this.getRootHashKeyValueForUpdate(value)
+        if (rootHashKv) {
+          await this.subDbRootHashes._update(rootHashKv.key, rootHashKv.value)
+        }
+        resolve(null)
+      }))
+    }
   }
 
   async updateIncompleteItem (item: Partial<TransferRoot>) {

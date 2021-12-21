@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Logger from 'src/logger'
 import arbitrumGlobalInboxAbi from '@hop-protocol/core/abi/static/ArbitrumGlobalInbox.json'
 import chainSlugToId from 'src/utils/chainSlugToId'
@@ -1398,5 +1397,5 @@ async function getTokenDecimals (token: string | Contract): Promise<number> {
   }
 
   // The decimals will be the same on all networks
-  return hopMetadata.mainnet.tokens[tokenSymbol]?.decimals! // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+  return hopMetadata.mainnet.tokens[tokenSymbol]?.decimals
 }

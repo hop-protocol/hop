@@ -269,13 +269,11 @@ class TransfersDb extends BaseDb {
   }
 
   sortItems = (a: any, b: any) => {
-    /* eslint-disable @typescript-eslint/no-non-null-assertion */
     /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
     if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
     if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
     if (a.transferSentIndex! > b.transferSentIndex!) return 1
     if (a.transferSentIndex! < b.transferSentIndex!) return -1
-    /* eslint-enable @typescript-eslint/no-non-null-assertion */
     /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
     return 0
   }
@@ -443,7 +441,7 @@ class TransfersDb extends BaseDb {
 
   isInvalidOrNotFound (item: Partial<Transfer>) {
     const isNotFound = item?.isNotFound
-    const isInvalid = invalidTransferIds[item.transferId!] // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const isInvalid = invalidTransferIds[item.transferId!]
     return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
   }
 

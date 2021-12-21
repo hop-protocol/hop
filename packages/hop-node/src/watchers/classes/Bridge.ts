@@ -665,7 +665,7 @@ export default class Bridge extends ContractBase {
     to?: string
   ) {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
-    const provider = getRpcProvider(chain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const provider = getRpcProvider(chain)!
     let gasPrice = await provider.getGasPrice()
     // Arbitrum returns a gasLimit & gasPriceBid of 2x what is generally paid
     if (this.chainSlug === Chain.Arbitrum) {
@@ -682,7 +682,7 @@ export default class Bridge extends ContractBase {
     if (this.chainSlug === Chain.Optimism && data && to) {
       try {
         const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug)!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug)!)
         const serializedTx = serializeTransaction({
           value: parseEther('0'),
           gasPrice,
@@ -727,7 +727,7 @@ export default class Bridge extends ContractBase {
 
   async getGasCostTokenValues (symbol: string) {
     const decimals = getTokenDecimals(symbol)
-    const priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)!
     if (typeof priceUsd !== 'number') {
       throw new Error('expected price to be number type')
     }

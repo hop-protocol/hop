@@ -1,7 +1,7 @@
 import { Chains } from './types'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { mainnet as networks } from '@hop-protocol/core/networks'
 import { mainnet as mainnetConfig } from '@hop-protocol/core/config'
+import { mainnet as networks } from '@hop-protocol/core/networks'
 
 const chains: Chains = {}
 

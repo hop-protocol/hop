@@ -48,7 +48,7 @@ interface CustomFlexProps {
   hover?: boolean
 }
 
-type FlexProps = BackgroundProps &
+export type FlexProps = BackgroundProps &
   BorderProps &
   ColorProps &
   FlexboxProps &

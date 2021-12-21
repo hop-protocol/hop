@@ -64,13 +64,13 @@ class BondTransferRootWatcher extends BaseWatcher {
       } = dbTransferRoot
 
       promises.push(this.checkTransfersCommitted(
-        transferRootId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        transferRootHash!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        totalAmount!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        destinationChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        committedAt!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        sourceChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        transferIds! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        transferRootId!,
+        transferRootHash!,
+        totalAmount!,
+        destinationChainId!,
+        committedAt!,
+        sourceChainId!,
+        transferIds!
       ))
     }
 

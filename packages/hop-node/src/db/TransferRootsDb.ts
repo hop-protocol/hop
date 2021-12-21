@@ -703,7 +703,7 @@ class TransferRootsDb extends BaseDb {
 
   isInvalidOrNotFound (item: Partial<TransferRoot>) {
     const isNotFound = item?.isNotFound
-    const isInvalid = invalidTransferRoots[item.transferRootId!] // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const isInvalid = invalidTransferRoots[item.transferRootId!]
     return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
   }
 

@@ -135,7 +135,15 @@ export default class ContractBase extends EventEmitter {
   }
 
   get waitConfirmations () {
-    return globalConfig.networks[this.chainSlug]?.waitConfirmations ?? 0
+    const chainConfig = globalConfig.networks[this.chainSlug]
+    if (!chainConfig) {
+      throw new Error(`config for chain ${this.chainSlug} not found`)
+    }
+    const { waitConfirmations } = chainConfig
+    if (typeof waitConfirmations !== 'number') {
+      throw new Error(`waitConfirmations for chain ${this.chainSlug} not found`)
+    }
+    return waitConfirmations
   }
 
   async txOverrides (): Promise<TxOverrides> {

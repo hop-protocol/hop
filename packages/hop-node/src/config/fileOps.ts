@@ -10,6 +10,8 @@ import {
   setDbPath,
   setFeesConfig,
   setMetricsConfig,
+  setNetworkRpcUrl,
+  setNetworkWaitConfirmations,
   setRoutesConfig,
   setStateUpdateAddress,
   setSyncConfig,
@@ -22,11 +24,11 @@ import { recoverKeystore } from 'src/keystore'
 const logger = new Logger('config')
 
 export const defaultEnabledWatchers: { [key: string]: boolean } = {
-  bondTransferRoot: true,
-  bondWithdrawal: true,
-  challenge: true, // only active if role.challenger is also true
-  commitTransfers: true,
-  settleBondedWithdrawals: true,
+  bondTransferRoot: false,
+  bondWithdrawal: false,
+  challenge: false, // only active if role.challenger is also true
+  commitTransfers: false,
+  settleBondedWithdrawals: false,
   xDomainMessageRelay: false
 }
 
@@ -91,11 +93,11 @@ export type Addresses = {
 }
 
 export type FileConfig = {
-  network?: string
-  chains?: ChainsConfig
-  tokens?: TokensConfig
-  roles?: RolesConfig
-  watchers?: Partial<WatchersConfig>
+  network: string
+  chains: ChainsConfig
+  tokens: TokensConfig
+  roles: RolesConfig
+  watchers: Partial<WatchersConfig>
   sync?: SyncConfig
   db?: DbConfig
   logging?: LoggingConfig
@@ -106,12 +108,12 @@ export type FileConfig = {
   addresses?: Addresses
   stateUpdateAddress?: string
   metrics?: MetricsConfig
-  fees?: Fees
-  routes?: Routes
+  fees: Fees
+  routes: Routes
 }
 
 export async function setGlobalConfigFromConfigFile (
-  config: FileConfig = {},
+  config: Partial<FileConfig> = {},
   passwordFile: string = ''
 ) {
   if (config.db) {
@@ -151,11 +153,34 @@ export async function setGlobalConfigFromConfigFile (
     const privateKey = await recoverKeystore(keystore, passphrase)
     setBonderPrivateKey(privateKey)
   }
-  if (config.network) {
-    const network = config.network
-    logger.info(`network: "${network}"`)
-    setConfigByNetwork(network)
+  const network = config.network
+  if (!network) {
+    throw new Error('config network is required')
   }
+  logger.info(`network: "${network}"`)
+  setConfigByNetwork(network)
+
+  if (!config.chains) {
+    throw new Error('config for chain is required')
+  }
+
+  for (const k in config.chains) {
+    const v = config.chains[k]
+    if (v instanceof Object) {
+      const { rpcUrl, waitConfirmations } = v
+      if (rpcUrl) {
+        setNetworkRpcUrl(k, rpcUrl)
+      }
+      if (typeof waitConfirmations === 'number') {
+        setNetworkWaitConfirmations(k, waitConfirmations)
+      }
+    }
+  }
+
+  if (!config.roles) {
+    throw new Error('config for roles is required')
+  }
+
   if (config.sync) {
     setSyncConfig(config.sync)
   }
@@ -173,12 +198,18 @@ export async function setGlobalConfigFromConfigFile (
   if (config?.metrics) {
     setMetricsConfig(config.metrics)
   }
-  if (config?.fees) {
-    setFeesConfig(config.fees)
+  if (!config?.routes) {
+    throw new Error('config for routes is required')
   }
-  if (config?.routes) {
-    setRoutesConfig(config.routes)
+  const numRoutes = Object.keys(config.routes).length
+  if (!numRoutes) {
+    throw new Error('1 or more routes must be specified')
   }
+  setRoutesConfig(config.routes)
+  if (!config?.fees) {
+    throw new Error('config for fees is required')
+  }
+  setFeesConfig(config.fees)
 }
 
 export async function writeConfigFile (

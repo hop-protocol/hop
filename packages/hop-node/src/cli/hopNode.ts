@@ -4,8 +4,6 @@ import {
   defaultEnabledWatchers,
   gitRev,
   config as globalConfig,
-  setNetworkRpcUrl,
-  setNetworkWaitConfirmations,
   slackAuthToken,
   slackChannel,
   slackUsername
@@ -73,16 +71,6 @@ async function main (source: any) {
   if (config?.chains) {
     for (const k in config.chains) {
       enabledNetworks[k] = !!config.chains[k]
-      const v = config.chains[k]
-      if (v instanceof Object) {
-        const { rpcUrl, waitConfirmations } = v
-        if (rpcUrl) {
-          setNetworkRpcUrl(k, rpcUrl)
-        }
-        if (typeof waitConfirmations === 'number') {
-          setNetworkWaitConfirmations(k, waitConfirmations)
-        }
-      }
     }
   }
 

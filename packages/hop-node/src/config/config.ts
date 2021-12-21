@@ -131,50 +131,7 @@ export const config: Config = {
   metadata,
   bonders,
   stateUpdateAddress: '',
-  fees: {
-    USDC: {
-      ethereum: 18,
-      polygon: 18,
-      xdai: 25,
-      optimism: 18,
-      arbitrum: 18
-    },
-    USDT: {
-      ethereum: 25,
-      polygon: 25,
-      xdai: 30,
-      optimism: 25,
-      arbitrum: 25
-    },
-    DAI: {
-      ethereum: 25,
-      polygon: 25,
-      xdai: 30,
-      optimism: 25,
-      arbitrum: 25
-    },
-    MATIC: {
-      ethereum: 25,
-      polygon: 25,
-      xdai: 30,
-      optimism: 0,
-      arbitrum: 0
-    },
-    ETH: {
-      ethereum: 8,
-      polygon: 9,
-      xdai: 18,
-      optimism: 9,
-      arbitrum: 9
-    },
-    WBTC: {
-      ethereum: 25,
-      polygon: 25,
-      xdai: 30,
-      optimism: 25,
-      arbitrum: 25
-    }
-  },
+  fees: {},
   routes: {},
   db: {
     path: defaultDbPath

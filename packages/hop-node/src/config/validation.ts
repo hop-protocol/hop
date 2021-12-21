@@ -1,9 +1,14 @@
 import { Chain } from 'src/constants'
 import { FileConfig, getEnabledNetworks, getEnabledTokens } from 'src/config'
 
+function validateTokens (tokens: string[]) {
+  const validTokens = getEnabledTokens()
+  validateKeys(validTokens, tokens)
+}
+
 export function isValidToken (token: string) {
-  const tokens = getEnabledTokens()
-  return tokens.includes(token)
+  const validTokens = getEnabledTokens()
+  return validTokens.includes(token)
 }
 
 export function isValidNetwork (network: string) {
@@ -59,7 +64,7 @@ export async function validateConfig (config?: FileConfig) {
   ]
 
   const sectionKeys = Object.keys(config)
-  await validateKeys(validSectionKeys, sectionKeys)
+  validateKeys(validSectionKeys, sectionKeys)
   const validNetworkKeys = [
     Chain.Ethereum,
     Chain.Optimism,
@@ -70,30 +75,30 @@ export async function validateConfig (config?: FileConfig) {
 
   if (config.chains) {
     const networkKeys = Object.keys(config.chains)
-    await validateKeys(validNetworkKeys, networkKeys)
+    validateKeys(validNetworkKeys, networkKeys)
   }
 
   if (config.roles) {
     const validRoleKeys = ['bonder', 'challenger', 'arbBot', 'xdaiBridge']
     const roleKeys = Object.keys(config.roles)
-    await validateKeys(validRoleKeys, roleKeys)
+    validateKeys(validRoleKeys, roleKeys)
   }
 
   if (config.watchers) {
     const watcherKeys = Object.keys(config.watchers)
-    await validateKeys(validWatcherKeys, watcherKeys)
+    validateKeys(validWatcherKeys, watcherKeys)
   }
 
   if (config.db) {
     const validDbKeys = ['location']
     const dbKeys = Object.keys(config.db)
-    await validateKeys(validDbKeys, dbKeys)
+    validateKeys(validDbKeys, dbKeys)
   }
 
   if (config.logging) {
     const validLoggingKeys = ['level']
     const loggingKeys = Object.keys(config.logging)
-    await validateKeys(validLoggingKeys, loggingKeys)
+    validateKeys(validLoggingKeys, loggingKeys)
 
     if (config?.logging?.level) {
       const validLoggingLevels = ['debug', 'info', 'warn', 'error']
@@ -109,19 +114,19 @@ export async function validateConfig (config?: FileConfig) {
       'parameterStore'
     ]
     const keystoreProps = Object.keys(config.keystore)
-    await validateKeys(validKeystoreProps, keystoreProps)
+    validateKeys(validKeystoreProps, keystoreProps)
   }
 
   if (config.commitTransfers) {
     const validCommitTransfersKeys = ['minThresholdAmount']
     const commitTransfersKeys = Object.keys(config.commitTransfers)
-    await validateKeys(validCommitTransfersKeys, commitTransfersKeys)
+    validateKeys(validCommitTransfersKeys, commitTransfersKeys)
   }
 
   if (config.metrics) {
     const validMetricsKeys = ['enabled', 'port']
     const metricsKeys = Object.keys(config.metrics)
-    await validateKeys(validMetricsKeys, metricsKeys)
+    validateKeys(validMetricsKeys, metricsKeys)
   }
 
   if (config.addresses) {
@@ -129,15 +134,24 @@ export async function validateConfig (config?: FileConfig) {
       'location'
     ]
     const addressesProps = Object.keys(config.addresses)
-    await validateKeys(validAddressesProps, addressesProps)
+    validateKeys(validAddressesProps, addressesProps)
   }
 
   if (config.routes) {
     const sourceChains = Object.keys(config.routes)
-    await validateKeys(validNetworkKeys, sourceChains)
+    validateKeys(validNetworkKeys, sourceChains)
     for (const sourceChain in config.routes) {
       const destinationChains = Object.keys(config.routes[sourceChain])
-      await validateKeys(validNetworkKeys, destinationChains)
+      validateKeys(validNetworkKeys, destinationChains)
+    }
+  }
+
+  if (config.fees) {
+    const tokens = Object.keys(config.fees)
+    validateTokens(tokens)
+    for (const token in config.fees) {
+      const chains = Object.keys(config.fees[token])
+      validateKeys(validNetworkKeys, chains)
     }
   }
 }

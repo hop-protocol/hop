@@ -4,7 +4,8 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { StyledButton } from '../buttons/StyledButton'
-import { getProviderByNetworkName } from "src/utils/getProvider"
+import { getProviderByNetworkName } from 'src/utils/getProvider'
+import { Circle, Div, Icon } from '../ui'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -24,6 +25,8 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
+const provider = getProviderByNetworkName('ethereum')
+
 const TxPill = () => {
   const app = useApp()
   const { accountDetails } = app
@@ -31,8 +34,8 @@ const TxPill = () => {
   const transactions = app?.txHistory?.transactions
   const styles = useStyles()
   const [numPendingTxs, setNumPendingTxs] = useState(0)
-  const provider = getProviderByNetworkName('ethereum')
-  const [ensName, setENSName] = useState<string | null>(null);
+  const [ensName, setENSName] = useState<string | null>(null)
+  const [ensAvatar, setENSAvatar] = useState<string | null>(null)
 
   const handleClick = () => {
     accountDetails?.show(true)
@@ -48,10 +51,16 @@ const TxPill = () => {
   }, [transactions])
 
   useEffect(() => {
-    if (address) {
+    if (address && provider) {
       provider.lookupAddress(address.toString()).then(setENSName)
     }
   }, [address, provider])
+
+  useEffect(() => {
+    if (ensName) {
+      provider.getAvatar(ensName).then(setENSAvatar)
+    }
+  }, [ensName])
 
   return (
     <div className={styles.root}>
@@ -60,8 +69,19 @@ const TxPill = () => {
           {numPendingTxs} Pending <CircularProgress size={18} className={styles.spinner} />
         </StyledButton>
       ) : (
-        <StyledButton flat onClick={handleClick} boxShadow={0} fontSize={[0, 0, 1]}>
-          {ensName || address?.truncate()}
+        <StyledButton
+          flat
+          onClick={handleClick}
+          boxShadow={0}
+          fontSize={[0, 0, 1]}
+          px={ensAvatar ? 3 : 4}
+        >
+          {ensAvatar && (
+            <Circle mr={2}>
+              <Icon src={ensAvatar} height="100%" />
+            </Circle>
+          )}
+          <Div>{ensName || address?.truncate()}</Div>
         </StyledButton>
       )}
     </div>

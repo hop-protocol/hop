@@ -141,7 +141,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       }
     }
 
-    const availableCredit = await l1Bridge.getBaseAvailableCredit()
+    const availableCredit = await this.getAvailableCreditForBond(destinationChainId)
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
     if (availableCredit.lt(bondAmount)) {
       const msg = `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(

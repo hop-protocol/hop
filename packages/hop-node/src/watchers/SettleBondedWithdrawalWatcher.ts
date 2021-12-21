@@ -167,9 +167,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount!))
     logger.debug('transferIds', JSON.stringify(transferIds))
 
-    const transferRootStruct = await this.bridge.getTransferRoot(transferRootHash, totalAmount!)
-    if (transferRootStruct.amountWithdrawn.eq(totalAmount!)) {
-      logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(transferRootStruct.amountWithdrawn)}) matches totalAmount (${this.bridge.formatUnits(totalAmount!)}). Marking transfer root as all settled`)
+    const {
+      total: onChainTotalAmount,
+      amountWithdrawn: onChainAmountWithdrawn
+    } = await this.bridge.getTransferRoot(transferRootHash, totalAmount!)
+    if (onChainTotalAmount.eq(onChainAmountWithdrawn)) {
+      logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(onChainAmountWithdrawn)}) matches total. Marking transfer root as all settled`)
       await this.db.transferRoots.update(transferRootId, {
         allSettled: true
       })

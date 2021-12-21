@@ -218,6 +218,7 @@ class TransferRootsDb extends BaseDb {
         resolve(null)
       }))
     }
+    await Promise.all(promises)
   }
 
   async updateIncompleteItem (item: Partial<TransferRoot>) {

@@ -16,11 +16,11 @@ import {
 } from 'ethers'
 import {
   BondTransferGasLimit,
+  Errors,
   LpFeeBps,
   PendingAmountBuffer,
   SettlementGasLimitPerTx,
-  TokenIndex,
-  Errors
+  TokenIndex
 } from './constants'
 import { PriceFeed } from './priceFeed'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'

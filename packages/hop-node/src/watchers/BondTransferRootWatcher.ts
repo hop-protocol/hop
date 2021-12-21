@@ -62,6 +62,16 @@ class BondTransferRootWatcher extends BaseWatcher {
         sourceChainId,
         transferIds
       } = dbTransferRoot
+      const logger = this.logger.create({ root: transferRootId })
+
+      const availableCredit = await this.getAvailableCreditForBond(destinationChainId!)
+      if (availableCredit.lt(totalAmount!)) {
+        logger.debug(
+        `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
+          availableCredit
+        )}, need ${this.bridge.formatUnits(totalAmount!)}`)
+        continue
+      }
 
       promises.push(this.checkTransfersCommitted(
         transferRootId!,
@@ -131,11 +141,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       }
     }
 
-    await this.db.transferRoots.update(transferRootId, {
-      sentBondTxAt: Date.now()
-    })
-
-    const availableCredit = await l1Bridge.getBaseAvailableCredit()
+    const availableCredit = await this.getAvailableCreditForBond(destinationChainId)
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
     if (availableCredit.lt(bondAmount)) {
       const msg = `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
@@ -156,6 +162,10 @@ class BondTransferRootWatcher extends BaseWatcher {
       `bonding transfer root id ${transferRootId} with destination chain ${destinationChainId}`
     )
 
+    await this.db.transferRoots.update(transferRootId, {
+      sentBondTxAt: Date.now()
+    })
+
     try {
       const tx = await l1Bridge.bondTransferRoot(
         transferRootHash,
@@ -169,6 +179,11 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.error(err.message)
       throw err
     }
+  }
+
+  getAvailableCreditForBond (destinationChainId: number) {
+    const baseAvailableCredit = this.syncWatcher.getBaseAvailableCredit(destinationChainId)
+    return baseAvailableCredit
   }
 }
 

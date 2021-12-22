@@ -35,3 +35,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
 export const LpFeeBps = '4'
 export const PendingAmountBuffer = '50000'
 export const MinPolygonGasPrice = 30_000_000_000
+
+export enum Errors {
+  NotEnoughAllowance = 'Not enough allowance. Please call `approve` on token contract to allow contract to move tokens.'
+}

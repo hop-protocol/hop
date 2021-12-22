@@ -53,7 +53,7 @@ class ChallengeWatcher extends BaseWatcher {
 
     for (const dbTransferRoot of dbTransferRoots) {
       const { transferRootId } = dbTransferRoot
-      await this.checkChallengeableTransferRoot(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      await this.checkChallengeableTransferRoot(transferRootId!)
     }
   }
 
@@ -63,7 +63,7 @@ class ChallengeWatcher extends BaseWatcher {
     const { transferRootHash, totalAmount } = await this.db.transferRoots.getByTransferRootId(transferRootId)
     logger.debug('Challenging transfer root', transferRootId)
     logger.debug('transferRootHash:', transferRootHash)
-    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount!)) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount!))
     logger.debug('transferRootId:', transferRootId)
 
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(

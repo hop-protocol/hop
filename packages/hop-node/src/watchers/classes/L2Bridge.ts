@@ -11,6 +11,7 @@ import { Chain } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
 import { L2Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
+import { PayableOverrides } from '@ethersproject/contracts'
 import { config as globalConfig } from 'src/config'
 
 export default class L2Bridge extends Bridge {
@@ -164,6 +165,11 @@ export default class L2Bridge extends Bridge {
       throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(totalFee)}`)
     }
 
+    const overrides: PayableOverrides = {
+      ...(await this.txOverrides()),
+      value: isNativeToken ? amount : undefined
+    }
+
     return await this.l2BridgeContract.send(
       destinationChainId,
       recipient,
@@ -171,10 +177,7 @@ export default class L2Bridge extends Bridge {
       totalFee,
       amountOutMin,
       deadline,
-      {
-        ...(await this.txOverrides()),
-        value: isNativeToken ? amount : undefined
-      }
+      overrides
     )
   }
 

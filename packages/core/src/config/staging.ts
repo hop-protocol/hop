@@ -8,7 +8,7 @@ export const config : Config = {
       xdai: 25,
       optimism: 14,
       arbitrum: 14
-    },
+    }
   },
   destinationFeeGasPriceMultiplier: 1.2
 }

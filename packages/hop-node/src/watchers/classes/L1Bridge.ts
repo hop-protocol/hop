@@ -164,11 +164,13 @@ export default class L1Bridge extends Bridge {
 
   challengeTransferRootBond = async (
     transferRootHash: string,
-    totalAmount: BigNumber
+    totalAmount: BigNumber,
+    destinationChainId: number
   ): Promise<providers.TransactionResponse> => {
     const tx = await this.l1BridgeContract.challengeTransferBond(
       transferRootHash,
       totalAmount,
+      destinationChainId,
       await this.txOverrides()
     )
 
@@ -177,11 +179,13 @@ export default class L1Bridge extends Bridge {
 
   resolveChallenge = async (
     transferRootHash: string,
-    totalAmount: BigNumber
+    totalAmount: BigNumber,
+    destinationChainId: number
   ): Promise<providers.TransactionResponse> => {
     const tx = await this.l1BridgeContract.resolveChallenge(
       transferRootHash,
       totalAmount,
+      destinationChainId,
       await this.txOverrides()
     )
 

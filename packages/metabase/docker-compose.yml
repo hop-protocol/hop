@@ -6,6 +6,6 @@ services:
     hostname: metabase
     volumes:
     - ./metabase-db:/metabase.db
-    - ./sqlite3.db:/sqlite3.db
+    - ./db/sqlite3.db:/sqlite3.db
     ports:
       - 3000:3000

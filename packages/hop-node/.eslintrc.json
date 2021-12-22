@@ -21,7 +21,6 @@
   ],
   "rules": {
     "no-unused-vars": 0,
-    "@typescript-eslint/no-unused-vars": 0,
     "unused-imports/no-unused-imports": 1,
     "new-cap": 0,
     "prefer-const": 1,
@@ -32,6 +31,8 @@
       "ignoreMemberSort": false,
       "memberSyntaxSortOrder": ["none", "single", "multiple", "all"]
     }],
+    "@typescript-eslint/no-unused-vars": 0,
+    "@typescript-eslint/no-non-null-assertion": 0,
     "@typescript-eslint/strict-boolean-expressions": 0,
     "@typescript-eslint/restrict-template-expressions": 0,
     "@typescript-eslint/explicit-function-return-type": 0,

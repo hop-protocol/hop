@@ -20,6 +20,7 @@ import { config as globalConfig, oruChains } from 'src/config'
 
 type S3JsonData = {
   [token: string]: {
+    baseAvailableCredit: {[chain: string]: string}
     availableCredit: {[chain: string]: string}
     pendingAmounts: {[chain: string]: string}
     unbondedTransferRootAmounts: {[chain: string]: string}
@@ -51,6 +52,7 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate: string
   customStartBlockNumber: number
   ready: boolean = false
+  private baseAvailableCredit: { [destinationChain: string]: BigNumber } = {}
   private availableCredit: { [destinationChain: string]: BigNumber } = {}
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
@@ -69,7 +71,7 @@ class SyncWatcher extends BaseWatcher {
       isL1: config.isL1,
       bridgeContract: config.bridgeContract
     })
-    this.syncFromDate = config.syncFromDate! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    this.syncFromDate = config.syncFromDate!
     if (config.s3Upload) {
       this.s3Upload = new S3Upload({
         bucket: 'assets.hop.exchange',
@@ -155,7 +157,7 @@ class SyncWatcher extends BaseWatcher {
           await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
             const { transferRootId } = transferRoot
             this.logger.info(`populating transferRoot id: ${transferRootId}`)
-            return this.populateTransferRootDbItem(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+            return this.populateTransferRootDbItem(transferRootId!)
               .catch((err: Error) => {
                 this.logger.error('populateTransferRootDbItem error:', err)
                 this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
@@ -182,7 +184,7 @@ class SyncWatcher extends BaseWatcher {
           await Promise.all(chunks.map(async (transfer: Transfer) => {
             const { transferId } = transfer
             this.logger.info(`populating transferId: ${transferId}`)
-            return this.populateTransferDbItem(transferId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+            return this.populateTransferDbItem(transferId!)
               .catch((err: Error) => {
                 this.logger.error('populateTransferDbItem error:', err)
                 this.notifier.error(`populateTransferDbItem error: ${err.message}`)
@@ -377,13 +379,15 @@ class SyncWatcher extends BaseWatcher {
       transferNonce,
       bonderFee,
       amountOutMin,
-      deadline
+      deadline,
+      index
     } = event.args
     const logger = this.logger.create({ id: transferId })
     logger.debug('handling TransferSent event')
 
     try {
       const { transactionHash, transactionIndex } = event
+      const transferSentIndex: number = index.toNumber()
       const blockNumber: number = event.blockNumber
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
@@ -398,7 +402,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('bonderFee:', this.bridge.formatUnits(bonderFee))
       logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
       logger.debug('deadline:', deadline.toString())
-      logger.debug('transferSentIndex:', transactionIndex)
+      logger.debug('transferSentIndex:', transferSentIndex)
       logger.debug('transferSentBlockNumber:', blockNumber)
 
       if (!isBondable) {
@@ -418,7 +422,7 @@ class SyncWatcher extends BaseWatcher {
         deadline,
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
-        transferSentIndex: transactionIndex
+        transferSentIndex
       })
 
       logger.debug('handleTransferSentEvent: stored transfer item')
@@ -692,7 +696,7 @@ class SyncWatcher extends BaseWatcher {
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
     const timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
     if (!timestamp) {
       logger.warn(`populateTransferSentTimestamp marking item not found: timestamp for block number ${transferSentBlockNumber} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
@@ -717,7 +721,7 @@ class SyncWatcher extends BaseWatcher {
     ) {
       return
     }
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
     const tx = await destinationBridge.getTransaction(withdrawalBondedTxHash)
     if (!tx) {
       logger.warn(`populateTransferWithdrawalBonder marking item not found: tx object with withdrawalBondedTxHash ${withdrawalBondedTxHash}. dbItem: ${JSON.stringify(dbTransfer)}`)
@@ -750,7 +754,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     logger.debug('populating committedAt')
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
     const timestamp = await sourceBridge.getTransactionTimestamp(commitTxHash)
     if (!timestamp) {
       logger.warn(`populateTransferRootCommittedAt item not found. timestamp for commitTxHash: ${commitTxHash}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
@@ -813,7 +817,7 @@ class SyncWatcher extends BaseWatcher {
     if (!destinationChainId) {
       return
     }
-    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
     const timestamp = await destinationBridge.getBlockTimestamp(rootSetBlockNumber)
     if (!timestamp) {
       logger.warn(`populateTransferRootTimestamp marking item not found. timestamp for rootSetBlockNumber: ${rootSetBlockNumber}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
@@ -1137,7 +1141,8 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`no destination watcher for ${destinationChain}`)
     }
     const destinationBridge = destinationWatcher.bridge
-    let availableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    const baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    let availableCredit = baseAvailableCredit
     if (this.isOruToL1(destinationChainId) || this.isNonOruToL1(destinationChainId)) {
       const pendingAmount = await this.getOruToL1PendingAmount()
       availableCredit = availableCredit.sub(pendingAmount)
@@ -1147,10 +1152,10 @@ class SyncWatcher extends BaseWatcher {
     }
 
     if (availableCredit.lt(0)) {
-      return BigNumber.from(0)
+      availableCredit = BigNumber.from(0)
     }
 
-    return availableCredit
+    return { availableCredit, baseAvailableCredit }
   }
 
   async calculatePendingAmount (destinationChainId: number) {
@@ -1171,15 +1176,15 @@ class SyncWatcher extends BaseWatcher {
     for (const transferRoot of transferRoots) {
       const { transferRootId } = transferRoot
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
-      const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId!)
       if (isBonded) {
         const logger = this.logger.create({ root: transferRootId })
         logger.warn('calculateUnbondedTransferRootAmounts already bonded. isNotFound: true')
-        await this.db.transferRoots.update(transferRootId!, { isNotFound: true }) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        await this.db.transferRoots.update(transferRootId!, { isNotFound: true })
         continue
       }
 
-      totalAmount = totalAmount.add(transferRoot.totalAmount!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      totalAmount = totalAmount.add(transferRoot.totalAmount!)
     }
 
     return totalAmount
@@ -1188,8 +1193,9 @@ class SyncWatcher extends BaseWatcher {
   private async updateAvailableCreditMap (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const bonder = this.bridge.getConfigBonderAddress(destinationChain)
-    const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
+    const { availableCredit, baseAvailableCredit } = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
+    this.baseAvailableCredit[destinationChain] = baseAvailableCredit
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {
@@ -1304,6 +1310,16 @@ class SyncWatcher extends BaseWatcher {
     return totalAmount
   }
 
+  public getBaseAvailableCredit (destinationChainId: number) {
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const baseAvailableCredit = this.baseAvailableCredit[destinationChain]
+    if (!baseAvailableCredit) {
+      return BigNumber.from(0)
+    }
+
+    return baseAvailableCredit
+  }
+
   public getEffectiveAvailableCredit (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
@@ -1383,11 +1399,11 @@ class SyncWatcher extends BaseWatcher {
     if (!this.gasCostPollEnabled) {
       return
     }
-    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(this.chainSlug)!) as L1BridgeContract | L2BridgeContract
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const bonderFee = BigNumber.from(1)
-    const bonder = this.bridge.getBonderAddress()
+    const bonder = await this.bridge.getBonderAddress()
     const recipient = `0x${'1'.repeat(40)}`
     const transferNonce = `0x${'0'.repeat(64)}`
 

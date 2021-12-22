@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/core",
-  "version": "0.0.1-beta.54",
+  "version": "0.0.1-beta.55",
   "description": "Hop Protocol networks config",
   "main": "index.js",
   "types": "index.d.ts",
@@ -29,7 +29,7 @@
     "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
     "prepare": "npm run lint && npm run build",
     "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json",
-    "upload": "node s3upload/main"
+    "upload": "npm run build && node s3upload/main"
   },
   "directories": {},
   "author": "",

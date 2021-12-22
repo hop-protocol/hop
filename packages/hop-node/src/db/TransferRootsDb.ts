@@ -207,9 +207,23 @@ class TransferRootsDb extends BaseDb {
   }
 
   async migration () {
-    // re-index timestamped db keys by transfer root id
-    let items = await this.subDbTimestamps.getKeyValues()
+    let items = await this.getKeyValues()
     let promises: Array<Promise<any>> = []
+    for (const { key, value } of items) {
+      promises.push(new Promise(async (resolve) => {
+        const rootHashKv = await this.getRootHashKeyValueForUpdate(value)
+        if (rootHashKv) {
+          await this.subDbRootHashes._update(rootHashKv.key, rootHashKv.value)
+        }
+        resolve(null)
+      }))
+    }
+
+    await Promise.all(promises)
+
+    // re-index timestamped db keys by transfer root id
+    items = await this.subDbTimestamps.getKeyValues()
+    promises = []
     for (const { key, value } of items) {
       promises.push(new Promise(async (resolve) => {
         if (!value?.transferRootHash) {
@@ -312,7 +326,9 @@ class TransferRootsDb extends BaseDb {
       return
     }
     const transferRootId = transferRoot.transferRootId
-    const key = this.getTimestampedKey(transferRoot)
+    const dbTransferRoot = await this.getById(transferRootId!)
+    const combinedData = Object.assign({}, dbTransferRoot, transferRoot)
+    const key = this.getTimestampedKey(combinedData)
     if (!key) {
       this.logger.warn('expected timestamped key. incomplete transfer root:', JSON.stringify(transferRoot))
       return

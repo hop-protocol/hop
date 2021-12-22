@@ -21,9 +21,9 @@ export function formatError(error: any, network?: Network) {
   }
 
   // TODO: handle custom error messages elsewhere (and better)
-  if (errMsg.includes('not enough funds for gas') || errMsg.includes('insufficient funds')) {
+  if (errMsg.includes('not enough funds for gas') || errMsg.includes('insufficient funds') || errMsg.includes('Insufficient funds')) {
     const feeToken = network?.nativeTokenSymbol || 'funds'
-    errMsg = `Insufficient balance. Please add ${feeToken} to pay for tx fees.`
+    errMsg = `Insufficient balance. Please add ${feeToken} to pay for tx fees. Error: ${errMsg}`
   } else if (errMsg.includes('NetworkError when attempting to fetch resource')) {
     errMsg = `${errMsg} Please check your wallet network settings are correct and try again. More info: https://docs.hop.exchange/rpc-endpoints`
   } else if (

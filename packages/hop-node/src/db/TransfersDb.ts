@@ -177,7 +177,9 @@ class TransfersDb extends BaseDb {
       return
     }
     const transferId = transfer.transferId
-    const key = this.getTimestampedKey(transfer)
+    const dbTransfer = await this.getById(transferId!)
+    const combinedData = Object.assign({}, dbTransfer, transfer)
+    const key = this.getTimestampedKey(combinedData)
     if (!key) {
       this.logger.warn('expected timestamped key. incomplete transfer:', JSON.stringify(transfer))
       return

@@ -297,8 +297,8 @@ const Send: FC = () => {
             toNetwork,
             deadline,
           }
-    
-          const estimatedGasCost = await estimateSend(options) 
+
+          const estimatedGasCost = await estimateSend(options)
 
           if (estimatedGasCost && fromBalance?.lt(estimatedGasCost)) {
             const shortBalance = estimatedGasCost.sub(fromBalance)
@@ -568,6 +568,7 @@ const Send: FC = () => {
 
   const sendButtonActive = useMemo(() => {
     return !!(
+      !needsApproval &&
       !approveButtonActive &&
       !checkingLiquidity &&
       !loadingToBalance &&
@@ -580,6 +581,7 @@ const Send: FC = () => {
       estimatedReceived?.gt(0)
     )
   }, [
+    needsApproval,
     approveButtonActive,
     checkingLiquidity,
     loadingToBalance,

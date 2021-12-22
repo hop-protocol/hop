@@ -312,7 +312,7 @@ class TransferRootsDb extends BaseDb {
       return
     }
     const transferRootId = transferRoot.transferRootId
-    const dbTransferRoot = this.getById(transferRootId!)
+    const dbTransferRoot = await this.getById(transferRootId!)
     const combinedData = Object.assign({}, dbTransferRoot, transferRoot)
     const key = this.getTimestampedKey(combinedData)
     if (!key) {

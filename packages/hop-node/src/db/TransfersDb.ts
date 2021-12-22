@@ -177,7 +177,7 @@ class TransfersDb extends BaseDb {
       return
     }
     const transferId = transfer.transferId
-    const dbTransfer = this.getById(transferId!)
+    const dbTransfer = await this.getById(transferId!)
     const combinedData = Object.assign({}, dbTransfer, transfer)
     const key = this.getTimestampedKey(combinedData)
     if (!key) {

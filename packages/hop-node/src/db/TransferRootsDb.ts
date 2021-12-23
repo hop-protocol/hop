@@ -658,7 +658,7 @@ class TransferRootsDb extends BaseDb {
         item.rootSetTxHash &&
         item.committed &&
         item.committedAt &&
-        // !item.allSettled &&
+        !item.allSettled &&
         rootSetTimestampOk &&
         bondSettleTimestampOk
       )

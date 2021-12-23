@@ -1,6 +1,5 @@
 import fetch from 'isomorphic-fetch'
 import serializeQueryParams from '../utils/serializeQueryParams'
-import toChecksumAddress from 'ethereum-checksum-address'
 import wait from '../utils/wait'
 
 interface IResult {
@@ -216,31 +215,6 @@ class CoinGecko {
     }
 
     return allResults
-  }
-
-  public getTokenInfoById = async (id: string) => {
-    const params = serializeQueryParams({
-      sparkline: false,
-      market_data: false,
-      community_data: false,
-      developer_data: false
-    })
-
-    const url = `${this._baseUrl}/coins/${id}?${params}`
-    const res = await fetch(url)
-    const json = await res.json()
-
-    if (!json.symbol) {
-      throw new Error('invalid coingecko response')
-    }
-
-    const result = {
-      name: json.name,
-      symbol: json.symbol.toUpperCase(),
-      contractAddress: toChecksumAddress(json.contract_address)
-    }
-
-    return result
   }
 
   private _normalizePrice = (price: string | number) => {

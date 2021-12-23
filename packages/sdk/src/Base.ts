@@ -11,6 +11,8 @@ import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
 export type ChainProviders = { [chain: string]: providers.Provider }
 
+const s3FileCache : Record<string, any> = {}
+
 // cache provider
 const getProvider = memoize((network: string, chain: string) => {
   const rpcUrl = config.chains[network][chain].rpcUrl
@@ -120,7 +122,7 @@ class Base {
 
   async init () {
     try {
-      const data = await this.getS3ConfigData()
+      const data = s3FileCache[this.network] || await this.getS3ConfigData()
       if (data.bonders) {
         this.bonders = data.bonders
       }
@@ -130,6 +132,7 @@ class Base {
       if (data.destinationFeeGasPriceMultiplier) {
         this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
       }
+      s3FileCache[this.network] = data
     } catch (err) {
       console.error(err)
     }

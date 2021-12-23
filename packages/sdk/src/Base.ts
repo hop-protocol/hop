@@ -454,13 +454,13 @@ class Base {
         this.signer,
         this.gasPriceMultiplier
       )
+    }
 
-      // Not all Polygon nodes follow recommended 30 Gwei gasPrice
-      // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-      if (chain === Chain.Polygon) {
-        if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
-          txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
-        }
+    // Not all Polygon nodes follow recommended 30 Gwei gasPrice
+    // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
+    if (chain.equals(Chain.Polygon)) {
+      if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
+        txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
       }
     }
 

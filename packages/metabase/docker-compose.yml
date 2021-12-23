@@ -4,6 +4,7 @@ services:
     image: metabase/metabase:latest
     container_name: metabase
     hostname: metabase
+    restart: unless-stopped
     volumes:
     - ./metabase-db:/metabase.db
     - ./db/sqlite3.db:/sqlite3.db

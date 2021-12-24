@@ -5,7 +5,7 @@ import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs, T
 import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
-export interface BaseTransferRoot {
+interface BaseTransferRoot {
   transferRootHash?: string
   totalAmount?: BigNumber
   destinationChainId?: number
@@ -42,7 +42,7 @@ export interface TransferRoot extends BaseTransferRoot {
   transferRootId: string
 }
 
-export interface UpdateTransferRoot extends BaseTransferRoot {
+interface UpdateTransferRoot extends BaseTransferRoot {
   transferRootId?: string
 }
 

@@ -184,7 +184,7 @@ class SyncWatcher extends BaseWatcher {
           await Promise.all(chunks.map(async (transfer: Transfer) => {
             const { transferId } = transfer
             this.logger.info(`populating transferId: ${transferId}`)
-            return this.populateTransferDbItem(transferId!)
+            return this.populateTransferDbItem(transferId)
               .catch((err: Error) => {
                 this.logger.error('populateTransferDbItem error:', err)
                 this.notifier.error(`populateTransferDbItem error: ${err.message}`)
@@ -917,7 +917,7 @@ class SyncWatcher extends BaseWatcher {
     )
     const items = await this.db.transfers.getTransfersWithTransferRootHash(transferRootHash)
     if (items.length) {
-      const transferIds = items.map((item: Transfer) => item.transferId) as string[]
+      const transferIds = items.map((item: Transfer) => item.transferId)
       if (transferIds.length) {
         const tree = new MerkleTree(transferIds)
         const computedTransferRootHash = tree.getHexRoot()

@@ -34,7 +34,7 @@ export default async function getBondedWithdrawals (
     token,
     lastId
   })
-  let withdrawals  = jsonRes.withdrawalBondeds.map((x: any) => normalizeEntity(x))
+  let withdrawals = jsonRes.withdrawalBondeds.map((x: any) => normalizeEntity(x))
 
   lastId = withdrawals[withdrawals.length - 1].id
   const maxItemsLength = 1000

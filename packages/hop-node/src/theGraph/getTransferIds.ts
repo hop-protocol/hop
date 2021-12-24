@@ -20,7 +20,6 @@ export default async function getTransferIds (
         },
         orderBy: id,
         orderDirection: asc,
-        id_gt: $lastId,
         first: 1000,
       ) {
         id

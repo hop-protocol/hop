@@ -15,7 +15,6 @@ export default async function getTransferRoots (
         },
         orderBy: id,
         orderDirection: asc,
-        id_gt: $lastId,
         first: 1000
       ) {
         id

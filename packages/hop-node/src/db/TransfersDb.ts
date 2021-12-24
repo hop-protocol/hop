@@ -199,15 +199,6 @@ class TransfersDb extends BaseDb {
     return x?.value?.transferId
   }
 
-  private async upsertTransferItem (transfer: Transfer) {
-    const { transferId } = transfer
-    const logger = this.logger.create({ id: transferId })
-    await this._update(transferId, transfer)
-    const entry = await this.getById(transferId)
-    logger.debug(`updated db transfer item. ${JSON.stringify(entry)}`)
-    await this.updateIncompleteItem(entry)
-  }
-
   private async upsertTimestampedKeyItem (transfer: Transfer) {
     const { transferId } = transfer
     const logger = this.logger.create({ id: transferId })
@@ -215,7 +206,7 @@ class TransfersDb extends BaseDb {
     if (key) {
       const exists = await this.subDbTimestamps.getById(key)
       if (!exists) {
-        logger.debug(`storing db transfer timestamped key item. key: ${key} transferId: ${transferId}`)
+        logger.debug(`storing db transfer timestamped key item. key: ${key}`)
         await this.subDbTimestamps._update(key, { transferId })
         logger.debug(`updated db transfer timestamped key item. key: ${key}`)
       }
@@ -229,27 +220,47 @@ class TransfersDb extends BaseDb {
     if (key) {
       const exists = await this.subDbRootHashes.getById(key)
       if (!exists) {
-        logger.debug(`storing db transfer rootHash key item. key: ${key} transferId: ${transferId}`)
+        logger.debug(`storing db transfer rootHash key item. key: ${key}`)
         await this.subDbRootHashes._update(key, { transferId })
         logger.debug(`updated db transfer rootHash key item. key: ${key}`)
       }
     }
   }
 
-  private async updateIncompleteItem (transfer: Transfer) {
+  private async upsertTransferItem (transfer: Transfer) {
+    const { transferId } = transfer
+    const logger = this.logger.create({ id: transferId })
+    await this._update(transferId, transfer)
+    const entry = await this.getById(transferId)
+    logger.debug(`updated db transfer item. ${JSON.stringify(entry)}`)
+    await this.upsertIncompleteItem(entry)
+  }
+
+  private async upsertIncompleteItem (transfer: Transfer) {
     const { transferId } = transfer
     const logger = this.logger.create({ id: transferId })
     const isIncomplete = this.isItemIncomplete(transfer)
     const exists = await this.subDbIncompletes.getById(transferId)
     const shouldUpsert = isIncomplete && !exists
     const shouldDelete = !isIncomplete && exists
-    logger.debug(`storing db transfer incomplete key item. transferId: ${transferId}`)
+    logger.debug('storing db transfer incomplete key item')
     if (shouldUpsert) {
       await this.subDbIncompletes._update(transferId, { transferId })
     } else if (shouldDelete) {
       await this.subDbIncompletes.deleteById(transferId)
     }
-    logger.debug(`updated db transfer incomplete key item. transferId: ${transferId}`)
+    logger.debug('updated db transfer incomplete key item')
+  }
+
+  // sort explainer: https://stackoverflow.com/a/9175783/1439168
+  private readonly sortItems = (a: any, b: any) => {
+    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+    if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
+    if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
+    if (a.transferSentIndex! > b.transferSentIndex!) return 1
+    if (a.transferSentIndex! < b.transferSentIndex!) return -1
+    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+    return 0
   }
 
   async update (transferId: string, transfer: UpdateTransfer) {
@@ -286,17 +297,6 @@ class TransfersDb extends BaseDb {
 
     const kv = await this.subDbTimestamps.getKeyValues(filter)
     return kv.map(this.filterValueTransferId).filter(this.filterExisty)
-  }
-
-  // sort explainer: https://stackoverflow.com/a/9175783/1439168
-  sortItems = (a: any, b: any) => {
-    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-    if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
-    if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
-    if (a.transferSentIndex! > b.transferSentIndex!) return 1
-    if (a.transferSentIndex! < b.transferSentIndex!) return -1
-    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
-    return 0
   }
 
   async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {

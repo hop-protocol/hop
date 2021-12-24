@@ -157,7 +157,7 @@ class SyncWatcher extends BaseWatcher {
           await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
             const { transferRootId } = transferRoot
             this.logger.info(`populating transferRoot id: ${transferRootId}`)
-            return this.populateTransferRootDbItem(transferRootId!)
+            return this.populateTransferRootDbItem(transferRootId)
               .catch((err: Error) => {
                 this.logger.error('populateTransferRootDbItem error:', err)
                 this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
@@ -1176,11 +1176,11 @@ class SyncWatcher extends BaseWatcher {
     for (const transferRoot of transferRoots) {
       const { transferRootId } = transferRoot
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
-      const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId!)
+      const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
       if (isBonded) {
         const logger = this.logger.create({ root: transferRootId })
         logger.warn('calculateUnbondedTransferRootAmounts already bonded. isNotFound: true')
-        await this.db.transferRoots.update(transferRootId!, { isNotFound: true })
+        await this.db.transferRoots.update(transferRootId, { isNotFound: true })
         continue
       }
 

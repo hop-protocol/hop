@@ -202,8 +202,6 @@ class TransferRootsDb extends BaseDb {
     this.subDbTimestamps = new BaseDb(`${prefix}:timestampedKeys`, _namespace)
     this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
     this.subDbRootHashes = new BaseDb(`${prefix}:rootHashes`, _namespace)
-    this.ready = true
-    this.logger.debug('db ready')
   }
 
   private isInvalidOrNotFound (item: TransferRoot) {
@@ -234,7 +232,7 @@ class TransferRootsDb extends BaseDb {
     }
   }
 
-  private async upsertTimestampedKeyItem (transferRoot: TransferRoot) {
+  private async insertTimestampedKeyItem (transferRoot: TransferRoot) {
     const { transferRootId } = transferRoot
     const logger = this.logger.create({ id: transferRootId })
     const key = this.getTimestampedKey(transferRoot)
@@ -248,7 +246,7 @@ class TransferRootsDb extends BaseDb {
     }
   }
 
-  private async upsertRootHashKeyItem (transferRoot: TransferRoot) {
+  private async insertRootHashKeyItem (transferRoot: TransferRoot) {
     const { transferRootId, transferRootHash } = transferRoot
     const logger = this.logger.create({ id: transferRootId })
     const key = transferRoot.transferRootHash
@@ -268,23 +266,25 @@ class TransferRootsDb extends BaseDb {
     await this._update(transferRootId, transferRoot)
     const entry = await this.getById(transferRootId)
     logger.debug(`updated db transferRoot item. ${JSON.stringify(entry)}`)
-    await this.updateIncompleteItem(entry)
+    await this.upsertIncompleteItem(entry)
   }
 
-  private async updateIncompleteItem (transferRoot: TransferRoot) {
+  private async upsertIncompleteItem (transferRoot: TransferRoot) {
     const { transferRootId } = transferRoot
     const logger = this.logger.create({ id: transferRootId })
     const isIncomplete = this.isItemIncomplete(transferRoot)
     const exists = await this.subDbIncompletes.getById(transferRootId)
     const shouldUpsert = isIncomplete && !exists
     const shouldDelete = !isIncomplete && exists
-    logger.debug('storing db transferRoot incomplete key item')
     if (shouldUpsert) {
+      logger.debug('updating db transferRoot incomplete key item')
       await this.subDbIncompletes._update(transferRootId, { transferRootId })
+      logger.debug('updated db transferRoot incomplete key item')
     } else if (shouldDelete) {
+      logger.debug('deleting db transferRoot incomplete key item')
       await this.subDbIncompletes.deleteById(transferRootId)
+      logger.debug('deleted db transferRoot incomplete key item')
     }
-    logger.debug('updated db transferRoot incomplete key item')
   }
 
   private normalizeItem (item: TransferRoot) {
@@ -298,8 +298,8 @@ class TransferRootsDb extends BaseDb {
     transferRoot.transferRootId = transferRootId
 
     await Promise.all([
-      this.upsertTimestampedKeyItem(transferRoot as TransferRoot),
-      this.upsertRootHashKeyItem(transferRoot as TransferRoot),
+      this.insertTimestampedKeyItem(transferRoot as TransferRoot),
+      this.insertRootHashKeyItem(transferRoot as TransferRoot),
       this.upsertTransferRootItem(transferRoot as TransferRoot)
     ])
   }

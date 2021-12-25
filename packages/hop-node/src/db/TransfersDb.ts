@@ -138,8 +138,6 @@ class TransfersDb extends BaseDb {
     this.subDbTimestamps = new BaseDb(`${prefix}:timestampedKeys`, _namespace)
     this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
     this.subDbRootHashes = new BaseDb(`${prefix}:transferRootHashes`, _namespace)
-    this.ready = true
-    this.logger.debug('db ready')
   }
 
   private getTimestampedKey (transfer: Transfer) {
@@ -199,7 +197,7 @@ class TransfersDb extends BaseDb {
     return x?.value?.transferId
   }
 
-  private async upsertTimestampedKeyItem (transfer: Transfer) {
+  private async insertTimestampedKeyItem (transfer: Transfer) {
     const { transferId } = transfer
     const logger = this.logger.create({ id: transferId })
     const key = this.getTimestampedKey(transfer)
@@ -213,7 +211,7 @@ class TransfersDb extends BaseDb {
     }
   }
 
-  private async upsertRootHashKeyItem (transfer: Transfer) {
+  private async insertRootHashKeyItem (transfer: Transfer) {
     const { transferId } = transfer
     const logger = this.logger.create({ id: transferId })
     const key = this.getTransferRootHashKey(transfer)
@@ -243,11 +241,14 @@ class TransfersDb extends BaseDb {
     const exists = await this.subDbIncompletes.getById(transferId)
     const shouldUpsert = isIncomplete && !exists
     const shouldDelete = !isIncomplete && exists
-    logger.debug('storing db transfer incomplete key item')
     if (shouldUpsert) {
+      logger.debug('updating db transfer incomplete key item')
       await this.subDbIncompletes._update(transferId, { transferId })
+      logger.debug('updated db transfer incomplete key item')
     } else if (shouldDelete) {
+      logger.debug('deleting db transfer incomplete key item')
       await this.subDbIncompletes.deleteById(transferId)
+      logger.debug('deleted db transfer incomplete key item')
     }
     logger.debug('updated db transfer incomplete key item')
   }
@@ -268,8 +269,8 @@ class TransfersDb extends BaseDb {
     logger.debug('update called')
     transfer.transferId = transferId
     await Promise.all([
-      this.upsertTimestampedKeyItem(transfer as Transfer),
-      this.upsertRootHashKeyItem(transfer as Transfer),
+      this.insertTimestampedKeyItem(transfer as Transfer),
+      this.insertRootHashKeyItem(transfer as Transfer),
       this.upsertTransferItem(transfer as Transfer)
     ])
   }

@@ -156,10 +156,11 @@ class SyncWatcher extends BaseWatcher {
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
             const { transferRootId } = transferRoot
-            this.logger.info(`populating transferRoot id: ${transferRootId}`)
+            const logger = this.logger.create({ id: transferRootId })
+            logger.debug(`populating transferRoot id: ${transferRootId}`)
             return this.populateTransferRootDbItem(transferRootId)
               .catch((err: Error) => {
-                this.logger.error('populateTransferRootDbItem error:', err)
+                logger.error('populateTransferRootDbItem error:', err)
                 this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
               })
           }))
@@ -183,10 +184,11 @@ class SyncWatcher extends BaseWatcher {
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transfer: Transfer) => {
             const { transferId } = transfer
-            this.logger.info(`populating transferId: ${transferId}`)
+            const logger = this.logger.create({ id: transferId })
+            logger.debug(`populating transferId: ${transferId}`)
             return this.populateTransferDbItem(transferId)
               .catch((err: Error) => {
-                this.logger.error('populateTransferDbItem error:', err)
+                logger.error('populateTransferDbItem error:', err)
                 this.notifier.error(`populateTransferDbItem error: ${err.message}`)
               })
           }))

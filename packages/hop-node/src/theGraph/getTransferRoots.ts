@@ -39,9 +39,9 @@ export default async function getTransferRoots (
 
   let roots = jsonRes.transfersCommitteds.map((x: any) => normalizeEntity(x))
 
-  lastId = roots[roots.length - 1].id
   const maxItemsLength = 1000
   if (roots.length === maxItemsLength) {
+    lastId = roots[roots.length - 1].id
     roots = roots.concat(await getTransferRoots(
       chain,
       token,

@@ -57,9 +57,9 @@ export default async function getTransferIds (
   const jsonRes = await makeRequest(chain, query, variables)
   let transfers = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
 
-  lastId = transfers[transfers.length - 1].id
   const maxItemsLength = 1000
   if (transfers.length === maxItemsLength) {
+    lastId = transfers[transfers.length - 1].id
     transfers = transfers.concat(await getTransferIds(
       chain,
       token,

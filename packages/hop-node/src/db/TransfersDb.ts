@@ -4,10 +4,9 @@ import { BigNumber } from 'ethers'
 import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
-export type Transfer = {
+interface BaseTransfer {
   transferRootId?: string
   transferRootHash?: string
-  transferId?: string
   destinationChainId?: number
   destinationChainSlug?: string
   sourceChainId?: number
@@ -36,6 +35,14 @@ export type Transfer = {
   isBondable?: boolean
   committed?: boolean
   isNotFound?: boolean
+}
+
+export interface Transfer extends BaseTransfer {
+  transferId: string
+}
+
+interface UpdateTransfer extends BaseTransfer {
+  transferId?: string
 }
 
 type TransfersDateFilter = {
@@ -131,98 +138,43 @@ class TransfersDb extends BaseDb {
     this.subDbTimestamps = new BaseDb(`${prefix}:timestampedKeys`, _namespace)
     this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
     this.subDbRootHashes = new BaseDb(`${prefix}:transferRootHashes`, _namespace)
-
-    this.ready = true
-    this.logger.debug('db ready')
   }
 
-  async updateIncompleteItem (item: Partial<Transfer>) {
-    if (!item) {
-      this.logger.error('expected item', item)
-      return
-    }
-    const { transferId } = item
-    if (!transferId) {
-      this.logger.error('expected transferId', item)
-      return
-    }
-    const isIncomplete = this.isItemIncomplete(item)
-    const exists = await this.subDbIncompletes.getById(transferId)
-    const shouldUpsert = isIncomplete && !exists
-    const shouldDelete = !isIncomplete && exists
-    if (shouldUpsert) {
-      await this.subDbIncompletes._update(transferId, { transferId })
-    } else if (shouldDelete) {
-      await this.subDbIncompletes.deleteById(transferId)
-    }
-  }
-
-  getTimestampedKey (transfer: Partial<Transfer>) {
+  private getTimestampedKey (transfer: Transfer) {
     if (transfer.transferSentTimestamp && transfer.transferId) {
-      const key = `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`
-      return key
+      return `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`
     }
   }
 
-  getTransferRootHashKey (transfer: Partial<Transfer>) {
+  private getTransferRootHashKey (transfer: Transfer) {
     if (transfer.transferRootHash && transfer.transferId) {
-      const key = `${transfer.transferRootHash}:${transfer.transferId}`
-      return key
+      return `${transfer.transferRootHash}:${transfer.transferId}`
     }
   }
 
-  async getTimestampedKeyValueForUpdate (transfer: Partial<Transfer>) {
-    if (!transfer) {
-      this.logger.warn('expected transfer object for timestamped key')
-      return
-    }
-    const transferId = transfer.transferId
-    const dbTransfer = await this.getById(transferId!)
-    const combinedData = Object.assign({}, dbTransfer, transfer)
-    const key = this.getTimestampedKey(combinedData)
-    if (!key) {
-      this.logger.warn('expected timestamped key. incomplete transfer:', JSON.stringify(transfer))
-      return
-    }
-    if (!transferId) {
-      this.logger.warn(`expected transfer id for timestamped key. key: ${key} incomplete transfer: `, JSON.stringify(transfer))
-      return
-    }
-    const item = await this.subDbTimestamps.getById(key)
-    const exists = !!item
-    if (!exists) {
-      const value = { transferId }
-      return { key, value }
-    }
+  private isInvalidOrNotFound (item: Transfer) {
+    const isNotFound = item?.isNotFound
+    const isInvalid = invalidTransferIds[item.transferId]
+    return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
   }
 
-  async update (transferId: string, transfer: Partial<Transfer>) {
-    const logger = this.logger.create({ id: transferId })
-    logger.debug('update called')
-    transfer.transferId = transferId
-    const timestampedKv = await this.getTimestampedKeyValueForUpdate(transfer)
-    const promises: Array<Promise<any>> = []
-    if (timestampedKv) {
-      logger.debug(`storing timestamped key. key: ${timestampedKv.key} transferId: ${transferId}`)
-      promises.push(this.subDbTimestamps._update(timestampedKv.key, timestampedKv.value).then(() => {
-        logger.debug(`updated db item. key: ${timestampedKv.key}`)
-      }))
-    }
-    if (transfer.transferRootHash) {
-      const key = this.getTransferRootHashKey(transfer)
-      if (key) {
-        promises.push(this.subDbRootHashes._update(key, { transferId }))
+  private isRouteOk (filter: GetItemsFilter = {}, item: Transfer) {
+    if (filter.sourceChainId) {
+      if (!item.sourceChainId || filter.sourceChainId !== item.sourceChainId) {
+        return false
       }
     }
-    promises.push(this._update(transferId, transfer).then(async () => {
-      const entry = await this.getById(transferId)
-      logger.debug(`updated db transfer item. ${JSON.stringify(entry)}`)
-      await this.updateIncompleteItem(entry)
-    }))
-    await Promise.all(promises)
+
+    if (filter.destinationChainIds) {
+      if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
+        return false
+      }
+    }
+
+    return true
   }
 
-  normalizeItem (item: Partial<Transfer>) {
+  private normalizeItem (item: Transfer) {
     if (!item) {
       return null
     }
@@ -241,13 +193,91 @@ class TransfersDb extends BaseDb {
     return normalizeDbItem(item)
   }
 
+  private readonly filterValueTransferId = (x: any) => {
+    return x?.value?.transferId
+  }
+
+  private async insertTimestampedKeyItem (transfer: Transfer) {
+    const { transferId } = transfer
+    const logger = this.logger.create({ id: transferId })
+    const key = this.getTimestampedKey(transfer)
+    if (key) {
+      const exists = await this.subDbTimestamps.getById(key)
+      if (!exists) {
+        logger.debug(`storing db transfer timestamped key item. key: ${key}`)
+        await this.subDbTimestamps._update(key, { transferId })
+        logger.debug(`updated db transfer timestamped key item. key: ${key}`)
+      }
+    }
+  }
+
+  private async insertRootHashKeyItem (transfer: Transfer) {
+    const { transferId } = transfer
+    const logger = this.logger.create({ id: transferId })
+    const key = this.getTransferRootHashKey(transfer)
+    if (key) {
+      const exists = await this.subDbRootHashes.getById(key)
+      if (!exists) {
+        logger.debug(`storing db transfer rootHash key item. key: ${key}`)
+        await this.subDbRootHashes._update(key, { transferId })
+        logger.debug(`updated db transfer rootHash key item. key: ${key}`)
+      }
+    }
+  }
+
+  private async upsertTransferItem (transfer: Transfer) {
+    const { transferId } = transfer
+    const logger = this.logger.create({ id: transferId })
+    await this._update(transferId, transfer)
+    const entry = await this.getById(transferId)
+    logger.debug(`updated db transfer item. ${JSON.stringify(entry)}`)
+    await this.upsertIncompleteItem(entry)
+  }
+
+  private async upsertIncompleteItem (transfer: Transfer) {
+    const { transferId } = transfer
+    const logger = this.logger.create({ id: transferId })
+    const isIncomplete = this.isItemIncomplete(transfer)
+    const exists = await this.subDbIncompletes.getById(transferId)
+    const shouldUpsert = isIncomplete && !exists
+    const shouldDelete = !isIncomplete && exists
+    if (shouldUpsert) {
+      logger.debug('updating db transfer incomplete key item')
+      await this.subDbIncompletes._update(transferId, { transferId })
+      logger.debug('updated db transfer incomplete key item')
+    } else if (shouldDelete) {
+      logger.debug('deleting db transfer incomplete key item')
+      await this.subDbIncompletes.deleteById(transferId)
+      logger.debug('deleted db transfer incomplete key item')
+    }
+    logger.debug('updated db transfer incomplete key item')
+  }
+
+  // sort explainer: https://stackoverflow.com/a/9175783/1439168
+  private readonly sortItems = (a: any, b: any) => {
+    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+    if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
+    if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
+    if (a.transferSentIndex! > b.transferSentIndex!) return 1
+    if (a.transferSentIndex! < b.transferSentIndex!) return -1
+    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+    return 0
+  }
+
+  async update (transferId: string, transfer: UpdateTransfer) {
+    const logger = this.logger.create({ id: transferId })
+    logger.debug('update called')
+    transfer.transferId = transferId
+    await Promise.all([
+      this.insertTimestampedKeyItem(transfer as Transfer),
+      this.insertRootHashKeyItem(transfer as Transfer),
+      this.upsertTransferItem(transfer as Transfer)
+    ])
+  }
+
   async getByTransferId (transferId: string): Promise<Transfer> {
     const item: Transfer = await this.getById(transferId)
     return this.normalizeItem(item)
-  }
-
-  private readonly filterValueTransferId = (x: any) => {
-    return x?.value?.transferId
   }
 
   async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {
@@ -270,27 +300,13 @@ class TransfersDb extends BaseDb {
     return kv.map(this.filterValueTransferId).filter(this.filterExisty)
   }
 
-  sortItems = (a: any, b: any) => {
-    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-    if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
-    if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
-    if (a.transferSentIndex! > b.transferSentIndex!) return 1
-    if (a.transferSentIndex! < b.transferSentIndex!) return -1
-    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
-    return 0
-  }
-
   async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     const transferIds = await this.getTransferIds(dateFilter)
-    this.logger.debug(`transferIds length: ${transferIds.length}`)
     const batchedItems = await this.batchGetByIds(transferIds)
     const transfers = batchedItems.map(this.normalizeItem)
-
-    // sort explainer: https://stackoverflow.com/a/9175783/1439168
-    const items = transfers
-      .sort(this.sortItems)
-
+    const items = transfers.sort(this.sortItems)
     this.logger.info(`items length: ${items.length}`)
+
     return items
   }
 
@@ -393,7 +409,7 @@ class TransfersDb extends BaseDb {
     })
   }
 
-  isItemIncomplete (item: Partial<Transfer>) {
+  isItemIncomplete (item: Transfer) {
     if (!item?.transferId) {
       return false
     }
@@ -439,28 +455,6 @@ class TransfersDb extends BaseDb {
 
       return this.isItemIncomplete(item)
     })
-  }
-
-  isInvalidOrNotFound (item: Partial<Transfer>) {
-    const isNotFound = item?.isNotFound
-    const isInvalid = invalidTransferIds[item.transferId!]
-    return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-  }
-
-  isRouteOk (filter: GetItemsFilter = {}, item: Partial<Transfer>) {
-    if (filter.sourceChainId) {
-      if (!item.sourceChainId || filter.sourceChainId !== item.sourceChainId) {
-        return false
-      }
-    }
-
-    if (filter.destinationChainIds) {
-      if (!item.destinationChainId || !filter.destinationChainIds.includes(item.destinationChainId)) {
-        return false
-      }
-    }
-
-    return true
   }
 }
 

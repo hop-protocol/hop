@@ -74,7 +74,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       }
 
       promises.push(this.checkTransfersCommitted(
-        transferRootId!,
+        transferRootId,
         transferRootHash!,
         totalAmount!,
         destinationChainId!,

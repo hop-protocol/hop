@@ -31,7 +31,7 @@ export function formatError(error: any, network?: Network) {
     errMsg.includes('while formatting outputs from RPC')
   ) {
     errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
-  } else if (errMsg.includes('Failed to fetch') || errMsg.includes('could not detect network')) {
+  } else if (errMsg.includes('Failed to fetch') || errMsg.includes('could not detect network') || errMsg.includes('Not Found') || errMsg.includes('Non-200 status code')) {
     errMsg = `There was a network error. Please disable any ad blockers and check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   } else if (errMsg.includes('Internal JSON-RPC error') || errMsg.includes('Internal error')) {
     const feeToken = network?.nativeTokenSymbol || 'funds'

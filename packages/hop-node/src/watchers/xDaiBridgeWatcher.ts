@@ -137,9 +137,11 @@ class xDaiBridgeWatcher extends BaseWatcher {
       tx.blockNumber + 1
     )
 
-    // Only return the first item. There should never be more than one in a 3 block range
-    // per token, as there are griefing protections enforced in the contracts.
     for (const sigEvent of sigEvents) {
+      const sigTxHash = sigEvent.transactionHash
+      if (sigTxHash.toLowerCase() !== commitTxHash.toLowerCase()) {
+        continue
+      }
       const { encodedData } = sigEvent.args
       // TODO: better way of slicing by method id
       const data = encodedData.includes('ef6ebe5e00000')

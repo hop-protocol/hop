@@ -105,7 +105,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     )
     for (const { transferRootId } of dbTransferRoots) {
       // Parallelizing these calls produces RPC errors on Optimism
-      await this.checkTransfersCommitted(transferRootId!)
+      await this.checkTransfersCommitted(transferRootId)
     }
   }
 

@@ -156,10 +156,11 @@ class SyncWatcher extends BaseWatcher {
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
             const { transferRootId } = transferRoot
-            this.logger.info(`populating transferRoot id: ${transferRootId}`)
-            return this.populateTransferRootDbItem(transferRootId!)
+            const logger = this.logger.create({ id: transferRootId })
+            logger.debug(`populating transferRoot id: ${transferRootId}`)
+            return this.populateTransferRootDbItem(transferRootId)
               .catch((err: Error) => {
-                this.logger.error('populateTransferRootDbItem error:', err)
+                logger.error('populateTransferRootDbItem error:', err)
                 this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
               })
           }))
@@ -183,10 +184,11 @@ class SyncWatcher extends BaseWatcher {
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transfer: Transfer) => {
             const { transferId } = transfer
-            this.logger.info(`populating transferId: ${transferId}`)
-            return this.populateTransferDbItem(transferId!)
+            const logger = this.logger.create({ id: transferId })
+            logger.debug(`populating transferId: ${transferId}`)
+            return this.populateTransferDbItem(transferId)
               .catch((err: Error) => {
-                this.logger.error('populateTransferDbItem error:', err)
+                logger.error('populateTransferDbItem error:', err)
                 this.notifier.error(`populateTransferDbItem error: ${err.message}`)
               })
           }))
@@ -917,7 +919,7 @@ class SyncWatcher extends BaseWatcher {
     )
     const items = await this.db.transfers.getTransfersWithTransferRootHash(transferRootHash)
     if (items.length) {
-      const transferIds = items.map((item: Transfer) => item.transferId) as string[]
+      const transferIds = items.map((item: Transfer) => item.transferId)
       if (transferIds.length) {
         const tree = new MerkleTree(transferIds)
         const computedTransferRootHash = tree.getHexRoot()
@@ -1176,11 +1178,11 @@ class SyncWatcher extends BaseWatcher {
     for (const transferRoot of transferRoots) {
       const { transferRootId } = transferRoot
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
-      const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId!)
+      const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
       if (isBonded) {
         const logger = this.logger.create({ root: transferRootId })
         logger.warn('calculateUnbondedTransferRootAmounts already bonded. isNotFound: true')
-        await this.db.transferRoots.update(transferRootId!, { isNotFound: true })
+        await this.db.transferRoots.update(transferRootId, { isNotFound: true })
         continue
       }
 

@@ -53,7 +53,7 @@ class ChallengeWatcher extends BaseWatcher {
 
     for (const dbTransferRoot of dbTransferRoots) {
       const { transferRootId } = dbTransferRoot
-      await this.checkChallengeableTransferRoot(transferRootId!)
+      await this.checkChallengeableTransferRoot(transferRootId)
     }
   }
 

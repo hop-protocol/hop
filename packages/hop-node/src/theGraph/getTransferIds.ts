@@ -7,19 +7,19 @@ export default async function getTransferIds (
   chain: string,
   token: string,
   filters: Partial<Filters> = {},
-  skip: number = 0
+  lastId: string = '0x0000000000000000000000000000000000000000'
 ): Promise<any[]> {
   const query = `
-    query TransfersSent(${token ? '$token: String, ' : ''}$orderDirection: String, $startDate: Int, $endDate: Int, $skip: Int) {
+    query TransfersSent(${token ? '$token: String, ' : ''}$orderDirection: String, $startDate: Int, $endDate: Int, $lastId: ID) {
       transferSents(
         where: {
           ${token ? 'token: $token,' : ''}
           timestamp_gte: $startDate,
-          timestamp_lte: $endDate
+          timestamp_lte: $endDate,
+          id_gt: $lastId
         },
-        orderBy: blockNumber,
-        orderDirection: $orderDirection,
-        skip: $skip,
+        orderBy: id,
+        orderDirection: asc,
         first: 1000,
       ) {
         id
@@ -46,8 +46,7 @@ export default async function getTransferIds (
     token,
     startDate: 0,
     endDate: MaxInt32,
-    orderDirection: 'desc',
-    skip
+    lastId
   }
   if (filters.startDate) {
     variables.startDate = DateTime.fromISO(filters.startDate).toSeconds() >>> 0
@@ -55,25 +54,18 @@ export default async function getTransferIds (
   if (filters.endDate) {
     variables.endDate = DateTime.fromISO(filters.endDate).toSeconds() >>> 0
   }
-  if (typeof filters.orderDesc === 'boolean') {
-    variables.orderDirection = filters.orderDesc ? 'desc' : 'asc'
-  }
   const jsonRes = await makeRequest(chain, query, variables)
   let transfers = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
 
-  if (transfers.length === 1000) {
-    try {
-      transfers = transfers.concat(await getTransferIds(
-        chain,
-        token,
-        filters,
-        skip + 1000
-      ))
-    } catch (err) {
-      if (!err.message.includes('The `skip` argument must be between')) {
-        throw err
-      }
-    }
+  const maxItemsLength = 1000
+  if (transfers.length === maxItemsLength) {
+    lastId = transfers[transfers.length - 1].id
+    transfers = transfers.concat(await getTransferIds(
+      chain,
+      token,
+      filters,
+      lastId
+    ))
   }
 
   return transfers

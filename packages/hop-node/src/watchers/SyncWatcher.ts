@@ -20,6 +20,7 @@ import { config as globalConfig, oruChains } from 'src/config'
 
 type S3JsonData = {
   [token: string]: {
+    baseAvailableCredit: {[chain: string]: string}
     availableCredit: {[chain: string]: string}
     pendingAmounts: {[chain: string]: string}
     unbondedTransferRootAmounts: {[chain: string]: string}
@@ -51,6 +52,7 @@ class SyncWatcher extends BaseWatcher {
   syncFromDate: string
   customStartBlockNumber: number
   ready: boolean = false
+  private baseAvailableCredit: { [destinationChain: string]: BigNumber } = {}
   private availableCredit: { [destinationChain: string]: BigNumber } = {}
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
@@ -154,10 +156,11 @@ class SyncWatcher extends BaseWatcher {
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
             const { transferRootId } = transferRoot
-            this.logger.info(`populating transferRoot id: ${transferRootId}`)
-            return this.populateTransferRootDbItem(transferRootId!)
+            const logger = this.logger.create({ id: transferRootId })
+            logger.debug(`populating transferRoot id: ${transferRootId}`)
+            return this.populateTransferRootDbItem(transferRootId)
               .catch((err: Error) => {
-                this.logger.error('populateTransferRootDbItem error:', err)
+                logger.error('populateTransferRootDbItem error:', err)
                 this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
               })
           }))
@@ -181,10 +184,11 @@ class SyncWatcher extends BaseWatcher {
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (transfer: Transfer) => {
             const { transferId } = transfer
-            this.logger.info(`populating transferId: ${transferId}`)
-            return this.populateTransferDbItem(transferId!)
+            const logger = this.logger.create({ id: transferId })
+            logger.debug(`populating transferId: ${transferId}`)
+            return this.populateTransferDbItem(transferId)
               .catch((err: Error) => {
-                this.logger.error('populateTransferDbItem error:', err)
+                logger.error('populateTransferDbItem error:', err)
                 this.notifier.error(`populateTransferDbItem error: ${err.message}`)
               })
           }))
@@ -915,7 +919,7 @@ class SyncWatcher extends BaseWatcher {
     )
     const items = await this.db.transfers.getTransfersWithTransferRootHash(transferRootHash)
     if (items.length) {
-      const transferIds = items.map((item: Transfer) => item.transferId) as string[]
+      const transferIds = items.map((item: Transfer) => item.transferId)
       if (transferIds.length) {
         const tree = new MerkleTree(transferIds)
         const computedTransferRootHash = tree.getHexRoot()
@@ -1139,7 +1143,8 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`no destination watcher for ${destinationChain}`)
     }
     const destinationBridge = destinationWatcher.bridge
-    let availableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    const baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    let availableCredit = baseAvailableCredit
     if (this.isOruToL1(destinationChainId) || this.isNonOruToL1(destinationChainId)) {
       const pendingAmount = await this.getOruToL1PendingAmount()
       availableCredit = availableCredit.sub(pendingAmount)
@@ -1149,10 +1154,10 @@ class SyncWatcher extends BaseWatcher {
     }
 
     if (availableCredit.lt(0)) {
-      return BigNumber.from(0)
+      availableCredit = BigNumber.from(0)
     }
 
-    return availableCredit
+    return { availableCredit, baseAvailableCredit }
   }
 
   async calculatePendingAmount (destinationChainId: number) {
@@ -1173,11 +1178,11 @@ class SyncWatcher extends BaseWatcher {
     for (const transferRoot of transferRoots) {
       const { transferRootId } = transferRoot
       const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
-      const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId!)
+      const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
       if (isBonded) {
         const logger = this.logger.create({ root: transferRootId })
         logger.warn('calculateUnbondedTransferRootAmounts already bonded. isNotFound: true')
-        await this.db.transferRoots.update(transferRootId!, { isNotFound: true })
+        await this.db.transferRoots.update(transferRootId, { isNotFound: true })
         continue
       }
 
@@ -1190,8 +1195,9 @@ class SyncWatcher extends BaseWatcher {
   private async updateAvailableCreditMap (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const bonder = this.bridge.getConfigBonderAddress(destinationChain)
-    const availableCredit = await this.calculateAvailableCredit(destinationChainId, bonder)
+    const { availableCredit, baseAvailableCredit } = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
+    this.baseAvailableCredit[destinationChain] = baseAvailableCredit
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {
@@ -1304,6 +1310,16 @@ class SyncWatcher extends BaseWatcher {
       totalAmount = totalAmount.add(amount)
     }
     return totalAmount
+  }
+
+  public getBaseAvailableCredit (destinationChainId: number) {
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const baseAvailableCredit = this.baseAvailableCredit[destinationChain]
+    if (!baseAvailableCredit) {
+      return BigNumber.from(0)
+    }
+
+    return baseAvailableCredit
   }
 
   public getEffectiveAvailableCredit (destinationChainId: number) {

@@ -11,6 +11,8 @@ import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
 export type ChainProviders = { [chain: string]: providers.Provider }
 
+const s3FileCache : Record<string, any> = {}
+
 // cache provider
 const getProvider = memoize((network: string, chain: string) => {
   const rpcUrl = config.chains[network][chain].rpcUrl
@@ -73,9 +75,9 @@ class Base {
 
   public chainProviders: ChainProviders = {}
 
-  private addresses = config.addresses
-  private chains = config.chains
-  private bonders = config.bonders
+  private addresses : Record<string, any>
+  private chains: Record<string, any>
+  private bonders :Record<string, any>
   fees : { [token: string]: Record<string, number>}
   gasPriceMultiplier: number = 1
   destinationFeeGasPriceMultiplier : number = 1
@@ -96,7 +98,7 @@ class Base {
     }
     if (!this.isValidNetwork(network)) {
       throw new Error(
-        `network is unsupported. Supported networks are: ${this.supportedNetworks.join(
+        `network "${network}" is unsupported. Supported networks are: ${this.supportedNetworks.join(
           ','
         )}`
       )
@@ -109,6 +111,9 @@ class Base {
       this.chainProviders = chainProviders
     }
 
+    this.chains = config.chains[network]
+    this.addresses = config.addresses[network]
+    this.bonders = config.bonders[network]
     this.fees = config.bonderFeeBps[network]
     this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
 
@@ -117,7 +122,7 @@ class Base {
 
   async init () {
     try {
-      const data = await this.getS3ConfigData()
+      const data = s3FileCache[this.network] || await this.getS3ConfigData()
       if (data.bonders) {
         this.bonders = data.bonders
       }
@@ -127,6 +132,7 @@ class Base {
       if (data.destinationFeeGasPriceMultiplier) {
         this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
       }
+      s3FileCache[this.network] = data
     } catch (err) {
       console.error(err)
     }
@@ -134,10 +140,10 @@ class Base {
 
   setConfigAddresses (addresses: Addresses) {
     if (addresses.bridges) {
-      this.addresses[this.network] = addresses.bridges
+      this.addresses = addresses.bridges
     }
     if (addresses.bonders) {
-      this.bonders[this.network] = addresses.bonders
+      this.bonders = addresses.bonders
     }
   }
 
@@ -180,7 +186,7 @@ class Base {
   }
 
   get supportedNetworks () {
-    return Object.keys(this.chains)
+    return Object.keys(this.chains || config.chains)
   }
 
   isValidNetwork (network: string) {
@@ -188,7 +194,7 @@ class Base {
   }
 
   get supportedChains () {
-    return Object.keys(this.chains[this.network])
+    return Object.keys(this.chains)
   }
 
   isValidChain (chain: string) {
@@ -259,7 +265,7 @@ class Base {
    * @returns {Number} - Chain ID.
    */
   public getChainId (chain: Chain) {
-    const { chainId } = this.chains[this.network][chain.slug]
+    const { chainId } = this.chains[chain.slug]
     return Number(chainId)
   }
 
@@ -372,7 +378,7 @@ class Base {
   public getConfigAddresses (token: TToken, chain: TChain) {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    return this.addresses[this.network]?.[token.canonicalSymbol]?.[chain.slug]
+    return this.addresses?.[token.canonicalSymbol]?.[chain.slug]
   }
 
   public getL1BridgeAddress (token: TToken, chain: TChain) {
@@ -448,13 +454,13 @@ class Base {
         this.signer,
         this.gasPriceMultiplier
       )
+    }
 
-      // Not all Polygon nodes follow recommended 30 Gwei gasPrice
-      // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-      if (chain === Chain.Polygon) {
-        if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
-          txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
-        }
+    // Not all Polygon nodes follow recommended 30 Gwei gasPrice
+    // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
+    if (chain.equals(Chain.Polygon)) {
+      if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
+        txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
       }
     }
 
@@ -466,7 +472,7 @@ class Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    const bonder = this.bonders?.[this.network]?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
+    const bonder = this.bonders?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
     if (!bonder) {
       console.warn(`bonder address not found for route ${token.symbol}.${sourceChain.slug}->${destinationChain.slug}`)
     }
@@ -510,8 +516,8 @@ class Base {
 
   getSupportedAssets () {
     const supported : any = {}
-    for (const token in this.addresses[this.network]) {
-      for (const chain in this.addresses[this.network][token]) {
+    for (const token in this.addresses) {
+      for (const chain in this.addresses[token]) {
         if (!supported[chain]) {
           supported[chain] = {}
         }

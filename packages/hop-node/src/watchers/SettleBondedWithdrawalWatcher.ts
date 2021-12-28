@@ -50,14 +50,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const { transferRootId, transferIds } = dbTransferRoot
       // Mark a settlement as attempted here so that multiple db reads are not attempted every poll
       // This comes into play when a transfer is bonded after others in the same root have been settled
-      if (!this.settleAttemptedAt[transferRootId!]) {
-        this.settleAttemptedAt[transferRootId!] = 0
+      if (!this.settleAttemptedAt[transferRootId]) {
+        this.settleAttemptedAt[transferRootId] = 0
       }
-      const timestampOk = this.settleAttemptedAt[transferRootId!] + OneHourMs < Date.now()
+      const timestampOk = this.settleAttemptedAt[transferRootId] + OneHourMs < Date.now()
       if (!timestampOk) {
         continue
       }
-      this.settleAttemptedAt[transferRootId!] = Date.now()
+      this.settleAttemptedAt[transferRootId] = Date.now()
 
       // get all db transfer items that belong to root
       const dbTransfers: Transfer[] = []
@@ -84,7 +84,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
       const allBondableTransfersSettled = this.syncWatcher.getIsDbTransfersAllSettled(dbTransfers)
       if (allBondableTransfersSettled) {
-        await this.db.transferRoots.update(transferRootId!, {
+        await this.db.transferRoots.update(transferRootId, {
           allSettled: true
         })
         continue
@@ -104,7 +104,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       for (const bonder of bonderSet.values()) {
         // check settle-able transfer root
         promises.push(
-          this.checkTransferRootId(transferRootId!, bonder)
+          this.checkTransferRootId(transferRootId, bonder)
             .catch((err: Error) => {
               this.logger.error('checkTransferRootId error:', err.message)
             })
@@ -167,9 +167,12 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount!))
     logger.debug('transferIds', JSON.stringify(transferIds))
 
-    const transferRootStruct = await this.bridge.getTransferRoot(transferRootHash, totalAmount!)
-    if (transferRootStruct.amountWithdrawn.eq(totalAmount!)) {
-      logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(transferRootStruct.amountWithdrawn)}) matches totalAmount (${this.bridge.formatUnits(totalAmount!)}). Marking transfer root as all settled`)
+    const {
+      total: onChainTotalAmount,
+      amountWithdrawn: onChainAmountWithdrawn
+    } = await destBridge.getTransferRoot(transferRootHash, totalAmount!)
+    if (onChainTotalAmount.eq(onChainAmountWithdrawn)) {
+      logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(onChainAmountWithdrawn)}) matches total. Marking transfer root as all settled`)
       await this.db.transferRoots.update(transferRootId, {
         allSettled: true
       })

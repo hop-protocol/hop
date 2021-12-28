@@ -4,7 +4,8 @@ import os from 'os'
 import path from 'path'
 import { Chain } from 'src/constants'
 import {
-  Fees, Routes, defaultConfigFilePath, setBonderPrivateKey,
+  Fees, Routes, Watchers, defaultConfigFilePath,
+  setBonderPrivateKey,
   setConfigAddresses,
   setConfigByNetwork,
   setDbPath,
@@ -24,12 +25,12 @@ import { recoverKeystore } from 'src/keystore'
 const logger = new Logger('config')
 
 export const defaultEnabledWatchers: { [key: string]: boolean } = {
-  bondTransferRoot: false,
-  bondWithdrawal: false,
-  challenge: false, // only active if role.challenger is also true
-  commitTransfers: false,
-  settleBondedWithdrawals: false,
-  xDomainMessageRelay: false
+  [Watchers.BondTransferRoot]: false,
+  [Watchers.BondWithdrawal]: false,
+  [Watchers.Challenge]: false, // only active if role.challenger is also true
+  [Watchers.CommitTransfers]: false,
+  [Watchers.SettleBondedWithdrawals]: false,
+  [Watchers.xDomainMessageRelay]: false
 }
 
 export const defaultEnabledNetworks: { [key: string]: boolean } = {
@@ -60,12 +61,12 @@ type RolesConfig = {
 }
 
 type WatchersConfig = {
-  bondTransferRoot: boolean
-  bondWithdrawal: boolean
-  challenge: boolean
-  commitTransfers: boolean
-  settleBondedWithdrawals: boolean
-  xDomainMessageRelay: boolean
+  [Watchers.BondTransferRoot]: boolean
+  [Watchers.BondWithdrawal]: boolean
+  [Watchers.Challenge]: boolean
+  [Watchers.CommitTransfers]: boolean
+  [Watchers.SettleBondedWithdrawals]: boolean
+  [Watchers.xDomainMessageRelay]: boolean
 }
 
 type DbConfig = {
@@ -108,7 +109,7 @@ export type FileConfig = {
   addresses?: Addresses
   stateUpdateAddress?: string
   metrics?: MetricsConfig
-  fees: Fees
+  fees?: Fees
   routes: Routes
 }
 
@@ -129,7 +130,7 @@ export async function setGlobalConfigFromConfigFile (
   }
   if (config.keystore) {
     if (!config.keystore.location) {
-      throw new Error('keystore location is required')
+      throw new Error('config for keystore location is required')
     }
     const filepath = path.resolve(
       config.keystore.location.replace('~', os.homedir())
@@ -155,13 +156,13 @@ export async function setGlobalConfigFromConfigFile (
   }
   const network = config.network
   if (!network) {
-    throw new Error('config network is required')
+    throw new Error('config for network is required')
   }
   logger.info(`network: "${network}"`)
   setConfigByNetwork(network)
 
   if (!config.chains) {
-    throw new Error('config for chain is required')
+    throw new Error('config for chains is required')
   }
 
   for (const k in config.chains) {
@@ -175,6 +176,10 @@ export async function setGlobalConfigFromConfigFile (
         setNetworkWaitConfirmations(k, waitConfirmations)
       }
     }
+  }
+
+  if (!config.tokens) {
+    throw new Error('config for tokens is required')
   }
 
   if (!config.roles) {
@@ -205,11 +210,31 @@ export async function setGlobalConfigFromConfigFile (
   if (!numRoutes) {
     throw new Error('1 or more routes must be specified')
   }
+  if (!config?.watchers) {
+    throw new Error('config for watchers is required')
+  }
+
+  const enabledWatchers = Object.keys(config?.watchers).filter((watcher: string) => (config?.watchers as any)?.[watcher])
+  if (!config?.watchers) {
+    throw new Error('config for watchers is required')
+  }
+
   setRoutesConfig(config.routes)
-  if (!config?.fees) {
+  if (enabledWatchers.includes(Watchers.BondWithdrawal) && !config?.fees) {
     throw new Error('config for fees is required')
   }
-  setFeesConfig(config.fees)
+
+  if (config.fees != null) {
+    setFeesConfig(config.fees)
+  }
+
+  if (enabledWatchers.includes(Watchers.CommitTransfers) && !config?.commitTransfers) {
+    throw new Error('config for commitTransfers is required')
+  }
+
+  if (config.commitTransfers && !config.commitTransfers?.minThresholdAmount) {
+    throw new Error('config for commitTransfers.minThresholdAmount is required')
+  }
 }
 
 export async function writeConfigFile (

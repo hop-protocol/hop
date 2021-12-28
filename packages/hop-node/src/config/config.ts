@@ -224,7 +224,7 @@ export const setDbPath = (dbPath: string) => {
 }
 
 export const getEnabledTokens = (): string[] => {
-  return Object.keys(config.tokens)
+  return Object.keys(config.tokens).filter(token => config.tokens[token])
 }
 
 export const getEnabledNetworks = (): string[] => {
@@ -250,6 +250,15 @@ export const setRoutesConfig = (routes: Routes) => {
 }
 
 export const chainNativeTokens = ['ETH', 'MATIC', 'DAI']
+
+export enum Watchers {
+  BondTransferRoot = 'bondTransferRoot',
+  BondWithdrawal = 'bondWithdrawal',
+  Challenge = 'challenge',
+  CommitTransfers = 'commitTransfers',
+  SettleBondedWithdrawals = 'settleBondedWithdrawals',
+  xDomainMessageRelay = 'xDomainMessageRelay',
+}
 
 export * from './validation'
 export * from './fileOps'

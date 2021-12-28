@@ -12,19 +12,11 @@ import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
 import { MetricsServer } from 'src/metrics'
-import { config as globalConfig } from 'src/config'
+import { Watchers, config as globalConfig } from 'src/config'
 
 const logger = new Logger('config')
 
 type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | SyncWatcher | xDomainMessageRelayWatcher
-
-enum Watchers {
-  BondWithdrawal = 'bondWithdrawal',
-  BondTransferRoot = 'bondTransferRoot',
-  SettleBondedWithdrawals = 'settleBondedWithdrawals',
-  CommitTransfers = 'commitTransfers',
-  xDomainMessageRelay = 'xDomainMessageRelay',
-}
 
 type CommitTransfersMinThresholdAmounts = {
   [token: string]: any

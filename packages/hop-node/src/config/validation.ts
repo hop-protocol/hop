@@ -1,10 +1,6 @@
 import { Chain } from 'src/constants'
-import { FileConfig, getEnabledNetworks, getEnabledTokens } from 'src/config'
-
-function validateTokens (tokens: string[]) {
-  const validTokens = getEnabledTokens()
-  validateKeys(validTokens, tokens)
-}
+import { FileConfig, Watchers, getEnabledNetworks, getEnabledTokens } from 'src/config'
+import { URL } from 'url'
 
 export function isValidToken (token: string) {
   const validTokens = getEnabledTokens()
@@ -19,7 +15,7 @@ export function isValidNetwork (network: string) {
 export function validateKeys (validKeys: string[] = [], keys: string[]) {
   for (const key of keys) {
     if (!validKeys.includes(key)) {
-      throw new Error(`unrecognized key "${key}"`)
+      throw new Error(`unrecognized key "${key}". Valid keys are: ${validKeys.join(',')}`)
     }
   }
 }
@@ -55,12 +51,12 @@ export async function validateConfig (config?: FileConfig) {
   ]
 
   const validWatcherKeys = [
-    'bondTransferRoot',
-    'bondWithdrawal',
-    'challenge',
-    'commitTransfers',
-    'settleBondedWithdrawals',
-    'xDomainMessageRelay'
+    Watchers.BondTransferRoot,
+    Watchers.BondWithdrawal,
+    Watchers.Challenge,
+    Watchers.CommitTransfers,
+    Watchers.SettleBondedWithdrawals,
+    Watchers.xDomainMessageRelay
   ]
 
   const sectionKeys = Object.keys(config)
@@ -73,9 +69,53 @@ export async function validateConfig (config?: FileConfig) {
     Chain.Polygon
   ]
 
+  const validTokenKeys = [
+    'USDC',
+    'USDT',
+    'DAI',
+    'ETH',
+    'MATIC',
+    'WBTC'
+  ]
+
+  let enabledChains: string[] = []
   if (config.chains) {
-    const networkKeys = Object.keys(config.chains)
-    validateKeys(validNetworkKeys, networkKeys)
+    enabledChains = Object.keys(config.chains)
+    validateKeys(validNetworkKeys, enabledChains)
+    const validChainKeys = ['rpcUrl', 'waitConfirmations']
+    for (const chain in config.chains) {
+      validateKeys(validChainKeys, Object.keys(config.chains[chain]))
+      if (!config.chains[chain]) {
+        throw new Error(`RPC config for chain "${chain}" is required`)
+      }
+      const { rpcUrl, waitConfirmations } = config.chains[chain]
+      if (!rpcUrl) {
+        throw new Error(`RPC url for chain "${chain}" is required`)
+      }
+      try {
+        const parsed = new URL(rpcUrl)
+        if (!parsed.protocol || !parsed.host || !['http:', 'https:'].includes(parsed.protocol)) {
+          throw new URIError()
+        }
+      } catch (err) {
+        throw new Error(`rpc url "${rpcUrl}" is invalid`)
+      }
+      if (waitConfirmations == null) {
+        throw new Error(`waitConfirmations for chain "${chain}" is required`)
+      }
+      if (typeof waitConfirmations !== 'number') {
+        throw new Error(`waitConfirmations for chain "${chain}" must be a number`)
+      }
+      if (waitConfirmations < 0) {
+        throw new Error(`waitConfirmations for chain "${chain}" must be greater than 0`)
+      }
+    }
+  }
+
+  let enabledTokens: string[] = []
+  if (config.tokens) {
+    enabledTokens = Object.keys(config.tokens).filter(token => config.tokens[token])
+    validateKeys(validTokenKeys, enabledTokens)
   }
 
   if (config.roles) {
@@ -117,12 +157,6 @@ export async function validateConfig (config?: FileConfig) {
     validateKeys(validKeystoreProps, keystoreProps)
   }
 
-  if (config.commitTransfers) {
-    const validCommitTransfersKeys = ['minThresholdAmount']
-    const commitTransfersKeys = Object.keys(config.commitTransfers)
-    validateKeys(validCommitTransfersKeys, commitTransfersKeys)
-  }
-
   if (config.metrics) {
     const validMetricsKeys = ['enabled', 'port']
     const metricsKeys = Object.keys(config.metrics)
@@ -139,19 +173,69 @@ export async function validateConfig (config?: FileConfig) {
 
   if (config.routes) {
     const sourceChains = Object.keys(config.routes)
-    validateKeys(validNetworkKeys, sourceChains)
+    validateKeys(enabledChains, sourceChains)
     for (const sourceChain in config.routes) {
       const destinationChains = Object.keys(config.routes[sourceChain])
-      validateKeys(validNetworkKeys, destinationChains)
+      validateKeys(enabledChains, destinationChains)
     }
   }
 
   if (config.fees) {
     const tokens = Object.keys(config.fees)
-    validateTokens(tokens)
+    validateKeys(enabledTokens, tokens)
+    const destinationChains = new Set()
+    for (const sourceChain in config.routes) {
+      for (const destinationChain of Object.keys(config.routes[sourceChain])) {
+        destinationChains.add(destinationChain)
+      }
+    }
     for (const token in config.fees) {
       const chains = Object.keys(config.fees[token])
-      validateKeys(validNetworkKeys, chains)
+      validateKeys(enabledChains, chains)
+      for (const chain of destinationChains) {
+        const found = (config.fees[token] as any)?.[chain as string]
+        if (!found) {
+          throw new Error(`missing fee for chain "${chain}" for token "${token}"`)
+        }
+      }
+    }
+    for (const enabledToken of enabledTokens) {
+      const found = config?.fees?.[enabledToken]
+      if (!found) {
+        throw new Error(`missing fee for token "${enabledToken}"`)
+      }
+    }
+  }
+
+  if (config.commitTransfers) {
+    const validCommitTransfersKeys = ['minThresholdAmount']
+    const commitTransfersKeys = Object.keys(config.commitTransfers)
+    validateKeys(validCommitTransfersKeys, commitTransfersKeys)
+    const minThresholdAmount = config.commitTransfers.minThresholdAmount
+    const tokens = Object.keys(minThresholdAmount)
+    validateKeys(enabledTokens, tokens)
+    for (const token of enabledTokens) {
+      if (!minThresholdAmount[token]) {
+        throw new Error(`missing minThresholdAmount config for token "${token}"`)
+      }
+      const chains = Object.keys(minThresholdAmount[token])
+      validateKeys(enabledChains, chains)
+      for (const sourceChain in config.routes) {
+        if (sourceChain === Chain.Ethereum) {
+          continue
+        }
+        if (!minThresholdAmount[token][sourceChain]) {
+          throw new Error(`missing minThresholdAmount config for token "${token}" source chain "${sourceChain}"`)
+        }
+        for (const destinationChain in config.routes[sourceChain]) {
+          if (!minThresholdAmount[token][sourceChain][destinationChain]) {
+            throw new Error(`missing minThresholdAmount config for token "${token}" source chain "${sourceChain}" destination chain "${destinationChain}"`)
+          }
+          if (typeof minThresholdAmount[token][sourceChain][destinationChain] !== 'number') {
+            throw new Error(`minThresholdAmount config for token "${token}" source chain "${sourceChain}" destination chain "${destinationChain}" must be a number`)
+          }
+        }
+      }
     }
   }
 }

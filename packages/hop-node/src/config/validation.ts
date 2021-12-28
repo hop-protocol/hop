@@ -82,6 +82,9 @@ export async function validateConfig (config?: FileConfig) {
     enabledChains = Object.keys(config.chains)
     validateKeys(validNetworkKeys, enabledChains)
     const validChainKeys = ['rpcUrl', 'waitConfirmations']
+    if (!enabledChains.includes(Chain.Ethereum)) {
+      throw new Error(`config for chain "${Chain.Ethereum}" is required`)
+    }
     for (const chain in config.chains) {
       validateKeys(validChainKeys, Object.keys(config.chains[chain]))
       if (!config.chains[chain]) {

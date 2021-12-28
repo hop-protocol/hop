@@ -37,7 +37,6 @@ export async function validateConfig (config?: FileConfig) {
     'commitTransfers',
     'bondWithdrawals',
     'settleBondedWithdrawals',
-    'roles',
     'watchers',
     'db',
     'logging',
@@ -106,7 +105,7 @@ export async function validateConfig (config?: FileConfig) {
       if (typeof waitConfirmations !== 'number') {
         throw new Error(`waitConfirmations for chain "${chain}" must be a number`)
       }
-      if (waitConfirmations < 0) {
+      if (waitConfirmations <= 0) {
         throw new Error(`waitConfirmations for chain "${chain}" must be greater than 0`)
       }
     }
@@ -116,12 +115,6 @@ export async function validateConfig (config?: FileConfig) {
   if (config.tokens) {
     enabledTokens = Object.keys(config.tokens).filter(token => config.tokens[token])
     validateKeys(validTokenKeys, enabledTokens)
-  }
-
-  if (config.roles) {
-    const validRoleKeys = ['bonder', 'challenger', 'arbBot', 'xdaiBridge']
-    const roleKeys = Object.keys(config.roles)
-    validateKeys(validRoleKeys, roleKeys)
   }
 
   if (config.watchers) {

@@ -1,7 +1,6 @@
 import OsWatcher from 'src/watchers/OsWatcher'
 import {
   defaultEnabledNetworks,
-  defaultEnabledWatchers,
   gitRev,
   config as globalConfig,
   slackAuthToken,
@@ -74,8 +73,6 @@ async function main (source: any) {
     }
   }
 
-  const bonder = config?.roles?.bonder
-  const challenger = config?.roles?.challenger
   const order = Number(config?.order ?? 0)
   if (order) {
     logger.info('order:', order)
@@ -107,27 +104,16 @@ async function main (source: any) {
     logger.info(`${k} rpc: ${rpcUrl}`)
   }
   logger.warn(`dry mode: ${dryMode}`)
-  const enabledWatchers: { [key: string]: boolean } = Object.assign(
-    {},
-    defaultEnabledWatchers
-  )
-  if (config?.watchers) {
-    for (const key in config.watchers) {
-      enabledWatchers[key] = (config.watchers)[key]
-    }
-  }
   const stateUpdateAddress = config?.stateUpdateAddress
   const { starts } = await startWatchers({
-    enabledWatchers: Object.keys(enabledWatchers).filter(
-      key => enabledWatchers[key]
+    enabledWatchers: Object.keys(config.watchers).filter(
+      key => config.watchers[key]
     ),
     order,
     tokens,
     networks: Object.keys(enabledNetworks).filter(
       key => enabledNetworks[key]
     ),
-    bonder,
-    challenger,
     commitTransfersMinThresholdAmounts,
     settleBondedWithdrawalsThresholdPercent,
     dryMode,

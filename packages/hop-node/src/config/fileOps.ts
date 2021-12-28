@@ -24,15 +24,6 @@ import { recoverKeystore } from 'src/keystore'
 
 const logger = new Logger('config')
 
-export const defaultEnabledWatchers: { [key: string]: boolean } = {
-  [Watchers.BondTransferRoot]: false,
-  [Watchers.BondWithdrawal]: false,
-  [Watchers.Challenge]: false, // only active if role.challenger is also true
-  [Watchers.CommitTransfers]: false,
-  [Watchers.SettleBondedWithdrawals]: false,
-  [Watchers.xDomainMessageRelay]: false
-}
-
 export const defaultEnabledNetworks: { [key: string]: boolean } = {
   [Chain.Optimism]: true,
   [Chain.Arbitrum]: true,
@@ -51,13 +42,6 @@ type TokensConfig = {
 
 type SyncConfig = {
   [key: string]: any
-}
-
-type RolesConfig = {
-  bonder?: boolean
-  challenger?: boolean
-  arbBot?: boolean
-  xdaiBridge?: boolean
 }
 
 type WatchersConfig = {
@@ -97,7 +81,6 @@ export type FileConfig = {
   network: string
   chains: ChainsConfig
   tokens: TokensConfig
-  roles: RolesConfig
   watchers: Partial<WatchersConfig>
   sync?: SyncConfig
   db?: DbConfig
@@ -172,7 +155,7 @@ export async function setGlobalConfigFromConfigFile (
       if (rpcUrl) {
         setNetworkRpcUrl(k, rpcUrl)
       }
-      if (typeof waitConfirmations === 'number') {
+      if (waitConfirmations) {
         setNetworkWaitConfirmations(k, waitConfirmations)
       }
     }
@@ -180,10 +163,6 @@ export async function setGlobalConfigFromConfigFile (
 
   if (!config.tokens) {
     throw new Error('config for tokens is required')
-  }
-
-  if (!config.roles) {
-    throw new Error('config for roles is required')
   }
 
   if (config.sync) {

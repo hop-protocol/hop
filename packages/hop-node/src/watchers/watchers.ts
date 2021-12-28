@@ -35,8 +35,6 @@ type GetWatchersConfig = {
   order?: number
   tokens?: string[]
   networks?: string[]
-  bonder?: boolean
-  challenger?: boolean
   commitTransfersMinThresholdAmounts?: CommitTransfersMinThresholdAmounts
   settleBondedWithdrawalsThresholdPercent?: SettleBondedWithdrawalsThresholdPercent
   dryMode?: boolean
@@ -58,8 +56,6 @@ export async function getWatchers (config: GetWatchersConfig) {
     order: orderNum = 0,
     tokens = getAllTokens(),
     networks = getAllChains(),
-    bonder = true,
-    challenger = false,
     commitTransfersMinThresholdAmounts = {},
     settleBondedWithdrawalsThresholdPercent = {},
     dryMode = false,
@@ -159,7 +155,7 @@ export async function getWatchers (config: GetWatchersConfig) {
     }))
   }
 
-  if (challenger) {
+  if (enabledWatchers.includes(Watchers.Challenge)) {
     watchers.push(...getChallengeWatchers({
       tokens,
       networks,

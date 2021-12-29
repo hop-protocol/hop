@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import logger from 'src/logger'
 import Address from 'src/models/Address'
 import { getEnsAvatar, getEnsName } from 'src/utils/ens'
 
@@ -13,8 +14,8 @@ export function useEns(address?: Address) {
           setEnsName(ensName.startsWith('0x') ? address.truncate() : ensName)
         )
         getEnsAvatar(address.address).then(avatar => avatar && setEnsAvatar(avatar))
-      } catch (error) {
-        console.log(`error during useEns:`, error)
+      } catch (err) {
+        logger.error(`error during useEns:`, err)
       }
     }
   }, [address?.address])

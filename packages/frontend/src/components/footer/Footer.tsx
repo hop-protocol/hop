@@ -15,6 +15,7 @@ import {
 } from 'src/utils/constants'
 import { Flex, SvgImg } from '../ui'
 import { StyledLink } from '../ui/StyledLink'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 
 const iconLinks = [
   { url: discordUrl, image: discord },
@@ -24,6 +25,7 @@ const iconLinks = [
 ]
 
 const Footer = () => {
+  const { isDarkMode } = useThemeMode()
   return (
     <Flex
       fullWidth
@@ -39,23 +41,23 @@ const Footer = () => {
         {iconLinks.map((il, i) => (
           <StyledLink
             key={il.url}
-            href={il.url}
+            to={il.url}
             mr={i === iconLinks.length - 1 ? 0 : '1rem'}
             opacity={0.2}
           >
-            <SvgImg color="#E3DDF1" component={il.image} />
+            <SvgImg color={isDarkMode ? '#E3DDF1' : 'black'} component={il.image} />
           </StyledLink>
         ))}
       </Flex>
 
       <Flex alignCenter mx={[3, 5]}>
-        <StyledLink href={faqUrl} ml={[0, '1.6rem']}>
+        <StyledLink to={faqUrl} ml={[0, '1.6rem']}>
           <Typography variant="subtitle2">FAQ</Typography>
         </StyledLink>
-        <StyledLink href={docsUrl} ml={['1.6rem']}>
+        <StyledLink to={docsUrl} ml={['1.6rem']}>
           <Typography variant="subtitle2">Docs</Typography>
         </StyledLink>
-        <StyledLink href={careersUrl} ml={['1.6rem']}>
+        <StyledLink to={careersUrl} ml={['1.6rem']}>
           <Typography variant="subtitle2">Careers</Typography>
         </StyledLink>
       </Flex>

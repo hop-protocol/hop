@@ -113,8 +113,5 @@ export const useSendStyles = makeStyles(theme => ({
   button: {
     margin: `0 ${theme.padding.light}`,
     minWidth: '17.5rem',
-    // [theme.breakpoints.down('xs')]: {
-    //   minWidth: '10.5rem',
-    // },
   },
 }))

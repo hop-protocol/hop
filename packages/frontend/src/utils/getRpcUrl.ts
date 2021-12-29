@@ -2,7 +2,12 @@ import { L1_NETWORK, Chain } from 'src/utils'
 import { networks } from 'src/config'
 
 export const getRpcUrl = (network: string) => {
-  return networks[network]?.rpcUrl || networks[Chain.Ethereum].rpcUrl
+  const networkRpcUrl = networks[network]?.rpcUrl
+  if (typeof networkRpcUrl !== 'string') {
+    throw new Error(`rpcUrl could not be found for network: ${network}`)
+  }
+
+  return networkRpcUrl
 }
 
 export function getAllRpcUrls() {

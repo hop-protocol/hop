@@ -55,7 +55,9 @@ const StylishLink = styled(Link)<StyledLinkProps & { target: string; rel: string
 `
 
 export function StyledLink(props: any) {
-  return (
-    <StylishLink target="_blank" rel="noopener noreferrer" to={props.to || props.href} {...props} />
-  )
+  const { to, ...rest } = props
+  const toObj = {
+    pathname: to,
+  }
+  return <StylishLink target="_blank" rel="noopener noreferrer" to={toObj} {...rest} />
 }

@@ -57,8 +57,6 @@ export const useAmountSelectorCardStyles = makeStyles(theme => ({
   container: {
     flexWrap: 'nowrap',
   },
-  networkContainer: {
-    // width: '180px',
-  },
+  networkContainer: {},
   inputContainer: {},
 }))

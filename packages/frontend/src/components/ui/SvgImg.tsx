@@ -6,7 +6,7 @@ const Wrapper = styled.div`
     max-height: 24px;
   }
   & path {
-    fill: ${({ color }) => color || 'black'};
+    fill: ${({ color }) => color ?? 'black'};
     stroke: none;
   }
 `

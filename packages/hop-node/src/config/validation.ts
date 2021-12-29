@@ -101,14 +101,13 @@ export async function validateConfig (config?: FileConfig) {
       } catch (err) {
         throw new Error(`rpc url "${rpcUrl}" is invalid`)
       }
-      if (waitConfirmations == null) {
-        throw new Error(`waitConfirmations for chain "${chain}" is required`)
-      }
-      if (typeof waitConfirmations !== 'number') {
-        throw new Error(`waitConfirmations for chain "${chain}" must be a number`)
-      }
-      if (waitConfirmations <= 0) {
-        throw new Error(`waitConfirmations for chain "${chain}" must be greater than 0`)
+      if (waitConfirmations != null) {
+        if (typeof waitConfirmations !== 'number') {
+          throw new Error(`waitConfirmations for chain "${chain}" must be a number`)
+        }
+        if (waitConfirmations <= 0) {
+          throw new Error(`waitConfirmations for chain "${chain}" must be greater than 0`)
+        }
       }
     }
   }

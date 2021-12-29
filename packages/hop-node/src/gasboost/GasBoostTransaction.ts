@@ -9,7 +9,7 @@ import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
-import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
+import { Chain, MaxGasPriceGweiXdai, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
 import { EventEmitter } from 'events'
 
 import { EstimateGasError, NonceTooLowError } from 'src/types/error'
@@ -336,8 +336,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   getMaxGasPrice () {
     // The xDai RPC endpoint sometimes returns bad data and should be capped lower.
     if (this.chainSlug === Chain.xDai) {
-      const maxGasPriceGweiXdai = 90
-      return this.parseGwei(maxGasPriceGweiXdai)
+      return this.parseGwei(MaxGasPriceGweiXdai)
     }
     return this.parseGwei(this.maxGasPriceGwei)
   }

@@ -10,15 +10,24 @@ export function useEns(address?: Address) {
   useEffect(() => {
     if (address?.address) {
       try {
-        getEnsName(address.address).then(ensName =>
-          setEnsName(ensName.startsWith('0x') ? address.truncate() : ensName)
-        )
-        getEnsAvatar(address.address).then(avatar => avatar && setEnsAvatar(avatar))
+        getEnsName(address.address).then(en => en && setEnsName(en))
       } catch (err) {
-        logger.error(`error during useEns:`, err)
+        logger.error(`error during setEnsName:`, err)
       }
     }
   }, [address?.address])
+
+  useEffect(() => {
+    const addrOrEnsName = ensName || address?.address
+
+    if (addrOrEnsName) {
+      try {
+        getEnsAvatar(addrOrEnsName).then(setEnsAvatar)
+      } catch (err) {
+        logger.error(`error during setEnsAvatar:`, err)
+      }
+    }
+  }, [address, ensName])
 
   return { ensName, ensAvatar }
 }

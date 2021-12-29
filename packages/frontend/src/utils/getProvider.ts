@@ -1,20 +1,19 @@
 import { ethers } from 'ethers'
 import memoize from 'fast-memoize'
-import { getRpcUrl } from '.'
-import { getAllRpcUrls } from './getRpcUrl'
+import { getAllRpcUrls, getRpcUrl } from '.'
 
-const getProvider = memoize((rpcUrl: string) => {
+export const getProvider = memoize((rpcUrl: string) => {
   if (rpcUrl.startsWith('ws')) {
     return new ethers.providers.WebSocketProvider(rpcUrl)
   }
 
   return new ethers.providers.StaticJsonRpcProvider({
     url: rpcUrl,
-    timeout: 60 * 1000
+    timeout: 60 * 1000,
   })
 })
 
-export function getProviderByNetworkName(networkName) {
+export function getProviderByNetworkName(networkName: string) {
   const rpcUrl = getRpcUrl(networkName)
   return getProvider(rpcUrl)
 }
@@ -27,5 +26,3 @@ export function getAllProviders() {
   }
   return allProviders
 }
-
-export default getProvider

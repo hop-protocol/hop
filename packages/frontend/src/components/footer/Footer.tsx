@@ -1,12 +1,9 @@
-import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
+import React from 'react'
 import Typography from '@material-ui/core/Typography'
-import Link from '@material-ui/core/Link'
-import discord from 'src/assets/logos/discord.svg'
-import github from 'src/assets/logos/github.svg'
-import medium from 'src/assets/logos/medium.svg'
-import twitter from 'src/assets/logos/twitter.svg'
+import { ReactComponent as discord } from 'src/assets/logos/discord.svg'
+import { ReactComponent as github } from 'src/assets/logos/github.svg'
+import { ReactComponent as medium } from 'src/assets/logos/medium.svg'
+import { ReactComponent as twitter } from 'src/assets/logos/twitter.svg'
 import {
   careersUrl,
   docsUrl,
@@ -16,86 +13,55 @@ import {
   mediumUrl,
   twitterUrl,
 } from 'src/utils/constants'
+import { Flex, SvgImg } from '../ui'
+import { StyledLink } from '../ui/StyledLink'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    width: '100%',
-    padding: `0 ${theme.padding.thick}`,
-    height: '8.0rem',
-    boxSizing: 'border-box',
-  },
-  link: {
-    marginRight: '1.6rem',
-    width: '2.5rem',
-    opacity: 0.2,
-    '&:hover': {
-      opacity: 1.0,
-    },
-  },
-  footerLink: {
-    marginLeft: '1.6rem',
-    opacity: 0.4,
-    color: theme.palette.text.secondary,
-    '&:hover': {
-      opacity: 1.0,
-      color: theme.palette.primary.main,
-    },
-  },
-  footerLinkFocus: {
-    opacity: 1.0,
-    color: theme.palette.primary.main,
-  },
-}))
+const iconLinks = [
+  { url: discordUrl, image: discord },
+  { url: twitterUrl, image: twitter },
+  { url: githubUrl, image: github },
+  { url: mediumUrl, image: medium },
+]
 
-type Props = {}
-
-const Footer: FC<Props> = () => {
-  const styles = useStyles()
-
+const Footer = () => {
+  const { isDarkMode } = useThemeMode()
   return (
-    <Box
-      className={styles.root}
-      display="flex"
-      flexDirection="row"
-      alignItems="center"
-      justifyContent="space-between"
+    <Flex
+      fullWidth
+      px={3}
+      my={3}
+      mt={5}
+      height={'8rem'}
+      alignCenter
+      justifyContent={['flex-end', 'space-between']}
+      $wrap
     >
-      <Box display="flex" flexDirection="row" alignItems="center">
-        <Link href={discordUrl} target="_blank" rel="noopener noreferrer">
-          <img src={discord} className={styles.link} alt="logo" />
-        </Link>
-        <Link href={twitterUrl} target="_blank" rel="noopener noreferrer">
-          <img src={twitter} className={styles.link} alt="logo" />
-        </Link>
-        <Link href={githubUrl} target="_blank" rel="noopener noreferrer">
-          <img src={github} className={styles.link} alt="logo" />
-        </Link>
-        <Link href={mediumUrl} target="_blank" rel="noopener noreferrer">
-          <img src={medium} className={styles.link} alt="logo" />
-        </Link>
-      </Box>
-      <Box display="flex" flexDirection="row" alignItems="center">
-        <Link href={faqUrl} target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
+      <Flex alignCenter mx={[3, 5]}>
+        {iconLinks.map((il, i) => (
+          <StyledLink
+            key={il.url}
+            href={il.url}
+            mr={i === iconLinks.length - 1 ? 0 : '1rem'}
+            opacity={0.4}
+          >
+            <SvgImg color={isDarkMode ? '#E3DDF1' : 'black'} component={il.image} />
+          </StyledLink>
+        ))}
+      </Flex>
+
+      <Flex alignCenter mx={[3, 5]}>
+        <StyledLink href={faqUrl} ml={[0, '1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">FAQ</Typography>
-        </Link>
-        <Link
-          href={docsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.footerLink}
-        >
+        </StyledLink>
+        <StyledLink href={docsUrl} ml={['1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">Docs</Typography>
-        </Link>
-        <Link
-          href={careersUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.footerLink}
-        >
+        </StyledLink>
+        <StyledLink href={careersUrl} ml={['1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">Careers</Typography>
-        </Link>
-      </Box>
-    </Box>
+        </StyledLink>
+      </Flex>
+    </Flex>
   )
 }
 

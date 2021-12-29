@@ -1,6 +1,6 @@
 import { ETHERSCAN_PREFIXES, NetworkId } from 'src/utils/constants'
 
-function getEtherscanLink(
+export function getEtherscanLink(
   networkId: string | NetworkId,
   data: string,
   type: 'transaction' | 'token' | 'address' | 'block'
@@ -25,5 +25,3 @@ function getEtherscanLink(
     }
   }
 }
-
-export default getEtherscanLink

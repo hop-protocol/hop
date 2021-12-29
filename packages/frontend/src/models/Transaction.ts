@@ -10,6 +10,7 @@ import {
   L1Transfer,
   networkIdToSlug,
   queryFilterTransferFromL1CompletedEvents,
+  Chain,
 } from 'src/utils'
 import { network as defaultNetwork, reactAppNetwork } from 'src/config'
 import logger from 'src/logger'
@@ -17,7 +18,6 @@ import { formatError } from 'src/utils/format'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 import { sigHashes } from 'src/hooks/useTransaction'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
-import { Chain } from 'src/utils/constants'
 
 interface ContructorArgs {
   hash: string
@@ -281,7 +281,7 @@ class Transaction extends EventEmitter {
           const destL1Bridge = await bridge.getL1Bridge(this.provider)
           const isSpent = await destL1Bridge.isTransferIdSpent(this.transferId)
           if (isSpent) {
-              this.setPendingDestinationConfirmed()
+            this.setPendingDestinationConfirmed()
           }
           logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
           return isSpent

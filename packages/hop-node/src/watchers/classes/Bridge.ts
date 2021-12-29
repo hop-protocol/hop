@@ -645,6 +645,9 @@ export default class Bridge extends ContractBase {
     }
 
     const bonderFeeBps = fees[destinationChain]
+    if (!bonderFeeBps) {
+      throw new Error(`fee config not found for chain ${destinationChain}`)
+    }
     const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
     let minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative

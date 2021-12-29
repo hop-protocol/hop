@@ -1,13 +1,8 @@
-import { BigNumber } from 'ethers'
+import { BigNumberish } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
-import { Token } from '@hop-protocol/sdk'
 import { commafy } from 'src/utils'
 
-const toTokenDisplay = (
-  num: BigNumber | undefined,
-  decimals: number | undefined,
-  symbol?: string
-) => {
+export const toTokenDisplay = (num?: BigNumberish, decimals: number = 18, symbol?: string) => {
   if (!num || !decimals) {
     return '-'
   }
@@ -27,5 +22,3 @@ const toTokenDisplay = (
 
   return formatted
 }
-
-export default toTokenDisplay

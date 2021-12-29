@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -14,7 +14,7 @@ export function useAddTokenToMetamask(
 } {
   const { sdk } = useApp()
   const { connectedNetworkId, provider } = useWeb3Context()
-  const [success, setSuccess] = useState<boolean>()
+  const [success, setSuccess] = useState<boolean>(false)
 
   const addToken = useCallback(
     (networkId?: number) => {
@@ -33,7 +33,7 @@ export function useAddTokenToMetamask(
 
         provider
           .send('wallet_watchAsset', params as any)
-          .then(setSuccess)
+          .then(() => setSuccess(true))
           .catch(() => setSuccess(false))
       } else {
         setSuccess(false)

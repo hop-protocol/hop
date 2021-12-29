@@ -183,7 +183,7 @@ describe('GasBoostTransaction', () => {
     let gTx = new GasBoostTransaction(tx, signer, store)
 
     let maxGasPrice = gTx.getMaxGasPrice()
-    let expectedMaxGasPrice = parseUnits('100', 9)
+    let expectedMaxGasPrice = parseUnits('90', 9)
     expect(maxGasPrice).toEqual(expectedMaxGasPrice)
 
     const optimismProvider = getRpcProvider('optimism')

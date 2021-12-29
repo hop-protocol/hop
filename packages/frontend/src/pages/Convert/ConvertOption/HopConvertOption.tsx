@@ -3,8 +3,7 @@ import { Signer, BigNumber, BigNumberish } from 'ethers'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
-import toTokenDisplay from 'src/utils/toTokenDisplay'
-import getBonderFeeWithId from 'src/utils/getBonderFeeWithId'
+import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
 import DetailRow from 'src/components/DetailRow'
 
 class HopConvertOption extends ConvertOption {
@@ -42,7 +41,7 @@ class HopConvertOption extends ConvertOption {
     }
 
     return bridge.sendHToken(amountIn, sourceNetwork.slug, destNetwork.slug, {
-      bonderFee
+      bonderFee,
     })
   }
 

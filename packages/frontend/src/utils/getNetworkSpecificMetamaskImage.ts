@@ -12,9 +12,7 @@ const images: any = {
   rinkeby: MetamaskNetworkRinkeby,
 }
 
-const getNetworkSpecificMetamaskImage = (networkName: string): string => {
+export const getNetworkSpecificMetamaskImage = (networkName: string): string => {
   const name = networkName.toLowerCase()
   return images[name] || ''
 }
-
-export default getNetworkSpecificMetamaskImage

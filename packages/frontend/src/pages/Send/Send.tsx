@@ -22,7 +22,7 @@ import { amountToBN, formatError } from 'src/utils/format'
 import { useSendStyles } from './useSendStyles'
 import SendHeader from './SendHeader'
 import CustomRecipientDropdown from './CustomRecipientDropdown'
-import { Flex } from 'src/components/ui'
+import { Div, Flex } from 'src/components/ui'
 import { useSendTransaction } from './useSendTransaction'
 import {
   useAssets,
@@ -290,7 +290,15 @@ const Send: FC = () => {
     let isSubscribed = true
     const update = async () => {
       try {
-        if (needsTokenForFee && fromNetwork && toNetwork && fromTokenAmountBN && fromBalance && deadline && sourceToken?.isNativeToken) {
+        if (
+          needsTokenForFee &&
+          fromNetwork &&
+          toNetwork &&
+          fromTokenAmountBN &&
+          fromBalance &&
+          deadline &&
+          sourceToken?.isNativeToken
+        ) {
           const options = {
             token: sourceToken,
             fromNetwork,
@@ -302,7 +310,9 @@ const Send: FC = () => {
 
           if (estimatedGasCost && fromBalance?.lt(estimatedGasCost)) {
             const shortBalance = estimatedGasCost.sub(fromBalance)
-            const warning = `Add ${toTokenDisplay(shortBalance, sourceToken?.decimals)} ${fromNetwork.nativeTokenSymbol} to your account on ${fromNetwork.name} for the transaction fee.`
+            const warning = `Add ${toTokenDisplay(shortBalance, sourceToken?.decimals)} ${
+              fromNetwork.nativeTokenSymbol
+            } to your account on ${fromNetwork.name} for the transaction fee.`
             if (isSubscribed) {
               setNeedsNativeTokenWarning(warning)
             }
@@ -320,7 +330,15 @@ const Send: FC = () => {
     return () => {
       isSubscribed = false
     }
-  }, [sourceToken, needsTokenForFee, fromNetwork, toNetwork, fromTokenAmountBN, fromBalance, deadline])
+  }, [
+    sourceToken,
+    needsTokenForFee,
+    fromNetwork,
+    toNetwork,
+    fromTokenAmountBN,
+    fromBalance,
+    deadline,
+  ])
 
   useEffect(() => {
     const warningMessage = `Send at least ${destinationTxFeeDisplay} to cover the transaction fee`
@@ -692,32 +710,36 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
 
-      <Flex m="2rem" alignCenter width="450px" justifyAround>
+      <Flex m="2rem" justifyAround alignCenter $wrap maxWidth={['450px']}>
         {!sendButtonActive && (
+          <Div mb={[3]}>
+            <Button
+              className={styles.button}
+              large
+              highlighted={!!needsApproval}
+              disabled={!approveButtonActive}
+              onClick={handleApprove}
+              loading={approving}
+              fullWidth
+            >
+              Approve
+            </Button>
+          </Div>
+        )}
+        <Div mb={[3]}>
           <Button
             className={styles.button}
+            startIcon={sendButtonActive && <SendIcon />}
+            onClick={send}
+            disabled={!sendButtonActive}
+            loading={sending}
             large
-            highlighted={!!needsApproval}
-            disabled={!approveButtonActive}
-            onClick={handleApprove}
-            loading={approving}
             fullWidth
+            highlighted
           >
-            Approve
+            Send
           </Button>
-        )}
-        <Button
-          className={styles.button}
-          startIcon={sendButtonActive && <SendIcon />}
-          onClick={send}
-          disabled={!sendButtonActive}
-          loading={sending}
-          large
-          fullWidth
-          highlighted
-        >
-          Send
-        </Button>
+        </Div>
       </Flex>
 
       <Flex mt={1}>

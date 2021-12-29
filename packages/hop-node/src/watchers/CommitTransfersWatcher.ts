@@ -12,7 +12,6 @@ type Config = {
   chainSlug: string
   tokenSymbol: string
   label: string
-  order?: () => number
   minThresholdAmounts?: {[chain: string]: number}
 
   isL1?: boolean
@@ -33,7 +32,6 @@ class CommitTransfersWatcher extends BaseWatcher {
       tag: 'CommitTransfersWatcher',
       prefix: config.label,
       logColor: 'yellow',
-      order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode,

@@ -12,19 +12,11 @@ import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
 import { MetricsServer } from 'src/metrics'
-import { config as globalConfig } from 'src/config'
+import { Watchers, config as globalConfig } from 'src/config'
 
 const logger = new Logger('config')
 
 type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | SyncWatcher | xDomainMessageRelayWatcher
-
-enum Watchers {
-  BondWithdrawal = 'bondWithdrawal',
-  BondTransferRoot = 'bondTransferRoot',
-  SettleBondedWithdrawals = 'settleBondedWithdrawals',
-  CommitTransfers = 'commitTransfers',
-  xDomainMessageRelay = 'xDomainMessageRelay',
-}
 
 type CommitTransfersMinThresholdAmounts = {
   [token: string]: any
@@ -40,11 +32,8 @@ type SettleBondedWithdrawalsThresholdPercent = {
 
 type GetWatchersConfig = {
   enabledWatchers?: string[]
-  order?: number
   tokens?: string[]
   networks?: string[]
-  bonder?: boolean
-  challenger?: boolean
   commitTransfersMinThresholdAmounts?: CommitTransfersMinThresholdAmounts
   settleBondedWithdrawalsThresholdPercent?: SettleBondedWithdrawalsThresholdPercent
   dryMode?: boolean
@@ -63,11 +52,8 @@ type GetChallengeWatchersConfig = {
 export async function getWatchers (config: GetWatchersConfig) {
   const {
     enabledWatchers = [],
-    order: orderNum = 0,
     tokens = getAllTokens(),
     networks = getAllChains(),
-    bonder = true,
-    challenger = false,
     commitTransfersMinThresholdAmounts = {},
     settleBondedWithdrawalsThresholdPercent = {},
     dryMode = false,
@@ -77,7 +63,6 @@ export async function getWatchers (config: GetWatchersConfig) {
     s3Namespace
   } = config
 
-  const order = () => orderNum
   const watchers: Watcher[] = []
   logger.debug(`enabled watchers: ${enabledWatchers.join(',')}`)
 
@@ -86,7 +71,6 @@ export async function getWatchers (config: GetWatchersConfig) {
       return new BondWithdrawalWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        order,
         label,
         isL1,
         bridgeContract,
@@ -101,7 +85,6 @@ export async function getWatchers (config: GetWatchersConfig) {
       return new SettleBondedWithdrawalWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        order,
         label,
         isL1,
         bridgeContract,
@@ -119,7 +102,6 @@ export async function getWatchers (config: GetWatchersConfig) {
       return new CommitTransfersWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        order,
         label,
         isL1,
         bridgeContract,
@@ -135,7 +117,6 @@ export async function getWatchers (config: GetWatchersConfig) {
       return new BondTransferRootWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        order,
         label,
         isL1,
         bridgeContract,
@@ -167,7 +148,7 @@ export async function getWatchers (config: GetWatchersConfig) {
     }))
   }
 
-  if (challenger) {
+  if (enabledWatchers.includes(Watchers.Challenge)) {
     watchers.push(...getChallengeWatchers({
       tokens,
       networks,

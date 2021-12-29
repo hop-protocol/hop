@@ -13,7 +13,6 @@ type Config = {
   isL1: boolean
   bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   label: string
-  order?: () => number
   dryMode?: boolean
   minThresholdPercent: number
   stateUpdateAddress?: string
@@ -30,7 +29,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       tag: 'SettleBondedWithdrawalWatcher',
       prefix: config.label,
       logColor: 'magenta',
-      order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode,

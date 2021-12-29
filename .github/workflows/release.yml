@@ -1,14 +1,34 @@
 name: release
-on: [push]
+on:
+  push:
+    branches:
+      - production
+      - mainnet
+      - feature/gh-actions
 
 jobs:
+  set_environment:
+    outputs:
+      env_name: ${{ steps.setenv.outputs.env_name }}
+    runs-on: ubuntu-latest
+    steps:
+    - id: setenv
+      #run: echo "::set-output name=env_name::${GITHUB_REF#refs/heads/}"
+      run: echo "::set-output name=env_name::mainnet"
+
   build:
     name: Create Release
     runs-on: ubuntu-latest
+    needs: set_environment
+    environment:
+      name: ${{ needs.set_environment.outputs.env_name }}
     defaults:
       run:
         working-directory: ./packages/frontend
     steps:
+      - name: test
+        run: echo "here ${{ needs.set_environment.outputs.env_name }}"
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -21,8 +41,27 @@ jobs:
       - name: Setup yarn
         run: npm install -g yarn
 
-      - name: Install dependencies
+      - name: Install node dependencies
         run: yarn install
 
-      - name: Build the app
+      - name: Build the frontend app
         run: REACT_APP_IPFS_BUILD=true yarn build
+
+      - name: Pin to IPFS on Pinata
+        id: upload
+        uses: anantaramdas/ipfs-pinata-deploy-action@9f9c3b42b5d360352c4b768d98aff1309d62faa0
+        with:
+          pin-name: Hop ${{ github.sha }}
+          path: './packages/frontend/build'
+          verbose: false
+          pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
+          pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
+
+      - name: Update dnslink on Route53
+        env:
+          IPFS_DEPLOY_AWS_REGION: ${{ secrets.IPFS_DEPLOY_AWS_REGION }}
+          IPFS_DEPLOY_AWS_ACCESS_KEY_ID: ${{ secrets.IPFS_DEPLOY_AWS_ACCESS_KEY_ID }}
+          IPFS_DEPLOY_AWS_SECRET_ACCESS_KEY: ${{ secrets.IPFS_DEPLOY_AWS_SECRET_ACCESS_KEY }}
+          IPFS_DEPLOY_AWS_ROUTE53_HOST_ZONE_ID: ${{ secrets.IPFS_DEPLOY_AWS_ROUTE53_HOST_ZONE_ID }}
+          IPFS_DEPLOY_DNSLINK_HOST: ${{ secrets.IPFS_DEPLOY_DNSLINK_HOST }}
+        run: IPFS_HASH="${{ steps.upload.outputs.hash }}" node ./scripts/update_dnslink.js

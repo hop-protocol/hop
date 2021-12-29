@@ -88,7 +88,6 @@ export type FileConfig = {
   keystore?: KeystoreConfig
   settleBondedWithdrawals?: any
   commitTransfers?: any
-  order?: number
   addresses?: Addresses
   stateUpdateAddress?: string
   metrics?: MetricsConfig

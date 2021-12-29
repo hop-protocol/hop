@@ -140,8 +140,8 @@ export default class ContractBase extends EventEmitter {
       throw new Error(`config for chain ${this.chainSlug} not found`)
     }
     const { waitConfirmations } = chainConfig
-    if (typeof waitConfirmations !== 'number') {
-      throw new Error(`waitConfirmations for chain ${this.chainSlug} not found`)
+    if (waitConfirmations <= 0) {
+      throw new Error('expected waitConfirmations to be > 0')
     }
     return waitConfirmations
   }

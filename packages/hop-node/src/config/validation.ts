@@ -42,7 +42,6 @@ export async function validateConfig (config?: FileConfig) {
     'logging',
     'keystore',
     'addresses',
-    'order',
     'stateUpdateAddress',
     'metrics',
     'fees',

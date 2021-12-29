@@ -32,7 +32,6 @@ type SettleBondedWithdrawalsThresholdPercent = {
 
 type GetWatchersConfig = {
   enabledWatchers?: string[]
-  order?: number
   tokens?: string[]
   networks?: string[]
   commitTransfersMinThresholdAmounts?: CommitTransfersMinThresholdAmounts
@@ -53,7 +52,6 @@ type GetChallengeWatchersConfig = {
 export async function getWatchers (config: GetWatchersConfig) {
   const {
     enabledWatchers = [],
-    order: orderNum = 0,
     tokens = getAllTokens(),
     networks = getAllChains(),
     commitTransfersMinThresholdAmounts = {},
@@ -65,7 +63,6 @@ export async function getWatchers (config: GetWatchersConfig) {
     s3Namespace
   } = config
 
-  const order = () => orderNum
   const watchers: Watcher[] = []
   logger.debug(`enabled watchers: ${enabledWatchers.join(',')}`)
 
@@ -74,7 +71,6 @@ export async function getWatchers (config: GetWatchersConfig) {
       return new BondWithdrawalWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        order,
         label,
         isL1,
         bridgeContract,
@@ -89,7 +85,6 @@ export async function getWatchers (config: GetWatchersConfig) {
       return new SettleBondedWithdrawalWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        order,
         label,
         isL1,
         bridgeContract,
@@ -107,7 +102,6 @@ export async function getWatchers (config: GetWatchersConfig) {
       return new CommitTransfersWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        order,
         label,
         isL1,
         bridgeContract,
@@ -123,7 +117,6 @@ export async function getWatchers (config: GetWatchersConfig) {
       return new BondTransferRootWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        order,
         label,
         isL1,
         bridgeContract,

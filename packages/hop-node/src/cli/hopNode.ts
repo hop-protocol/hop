@@ -73,10 +73,6 @@ async function main (source: any) {
     }
   }
 
-  const order = Number(config?.order ?? 0)
-  if (order) {
-    logger.info('order:', order)
-  }
   let commitTransfersMinThresholdAmounts: any = {}
   if (config?.commitTransfers) {
     if (config.commitTransfers?.minThresholdAmount) {
@@ -109,7 +105,6 @@ async function main (source: any) {
     enabledWatchers: Object.keys(config.watchers).filter(
       key => config.watchers[key]
     ),
-    order,
     tokens,
     networks: Object.keys(enabledNetworks).filter(
       key => enabledNetworks[key]

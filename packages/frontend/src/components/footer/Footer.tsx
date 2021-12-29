@@ -41,9 +41,9 @@ const Footer = () => {
         {iconLinks.map((il, i) => (
           <StyledLink
             key={il.url}
-            to={il.url}
+            href={il.url}
             mr={i === iconLinks.length - 1 ? 0 : '1rem'}
-            opacity={0.2}
+            opacity={0.4}
           >
             <SvgImg color={isDarkMode ? '#E3DDF1' : 'black'} component={il.image} />
           </StyledLink>
@@ -51,13 +51,13 @@ const Footer = () => {
       </Flex>
 
       <Flex alignCenter mx={[3, 5]}>
-        <StyledLink to={faqUrl} ml={[0, '1.6rem']}>
+        <StyledLink href={faqUrl} ml={[0, '1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">FAQ</Typography>
         </StyledLink>
-        <StyledLink to={docsUrl} ml={['1.6rem']}>
+        <StyledLink href={docsUrl} ml={['1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">Docs</Typography>
         </StyledLink>
-        <StyledLink to={careersUrl} ml={['1.6rem']}>
+        <StyledLink href={careersUrl} ml={['1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">Careers</Typography>
         </StyledLink>
       </Flex>

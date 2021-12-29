@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, LinkProps } from 'react-router-dom'
+import Link, { LinkProps } from '@material-ui/core/Link'
 import styled from 'styled-components/macro'
 import {
   space,
@@ -34,7 +34,6 @@ type StyledLinkProps = LinkProps &
   PositionProps
 
 const StylishLink = styled(Link)<StyledLinkProps & { target: string; rel: string }>`
-  opacity: 0.4;
   &:focus {
     opacity: 1;
     color: #968fa8;
@@ -55,9 +54,5 @@ const StylishLink = styled(Link)<StyledLinkProps & { target: string; rel: string
 `
 
 export function StyledLink(props: any) {
-  const { to, ...rest } = props
-  const toObj = {
-    pathname: to,
-  }
-  return <StylishLink target="_blank" rel="noopener noreferrer" to={toObj} {...rest} />
+  return <StylishLink target="_blank" rel="noopener noreferrer" {...props} />
 }

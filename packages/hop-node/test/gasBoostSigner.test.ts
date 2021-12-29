@@ -6,6 +6,7 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import wait from 'src/utils/wait'
 import { Wallet } from 'ethers'
 import { privateKey } from './config'
+import { parseUnits } from 'ethers/lib/utils'
 
 describe('GasBoostSigner', () => {
   it('initialize', async () => {
@@ -173,5 +174,26 @@ describe('GasBoostTransaction', () => {
     }, signer, store)
 
     expect(gTx.id).toBeTruthy()
+  })
+  it('getMaxGasPrice', () => {
+    const tx = {
+      to: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+      value: '1'
+    }
+    let gTx = new GasBoostTransaction(tx, signer, store)
+
+    let maxGasPrice = gTx.getMaxGasPrice()
+    let expectedMaxGasPrice = parseUnits('100', 9)
+    expect(maxGasPrice).toEqual(expectedMaxGasPrice)
+
+    const optimismProvider = getRpcProvider('optimism')
+    expectDefined(optimismProvider)
+    const optimismSigner = new Wallet(privateKey, optimismProvider)
+
+    gTx = new GasBoostTransaction(tx, optimismSigner, store)
+
+    maxGasPrice = gTx.getMaxGasPrice()
+    expectedMaxGasPrice = parseUnits('500', 9)
+    expect(maxGasPrice).toEqual(expectedMaxGasPrice)
   })
 })

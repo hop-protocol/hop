@@ -334,6 +334,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   getMaxGasPrice () {
+    // The xDai RPC endpoint sometimes returns bad data and should be capped lower.
+    if (this.chainSlug === Chain.xDai) {
+      const maxGasPriceGweiXdai = 90
+      return this.parseGwei(maxGasPriceGweiXdai)
+    }
     return this.parseGwei(this.maxGasPriceGwei)
   }
 
@@ -556,7 +561,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const isMaxReached = gasFeeData.gasPrice?.gt(maxGasPrice) ?? gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
     if (isMaxReached) {
       if (!this.maxGasPriceReached) {
-        const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${this.maxGasPriceGwei}, maxPriorityFeePerGas: ${this.priorityFeePerGasCap}). cannot boost`
+        const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${maxGasPrice}, maxPriorityFeePerGas: ${priorityFeePerGasCap}). cannot boost`
         this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
         this.logger.warn(warnMsg)
         this.emit(State.MaxGasPriceReached, gasFeeData.gasPrice, this.boostIndex)

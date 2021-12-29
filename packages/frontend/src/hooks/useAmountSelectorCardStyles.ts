@@ -2,7 +2,7 @@ import { makeStyles } from '@material-ui/core/styles'
 
 export const useAmountSelectorCardStyles = makeStyles(theme => ({
   root: {
-    width: '51.6rem',
+    maxWidth: '51.6rem',
     boxSizing: 'border-box',
     [theme.breakpoints.down('xs')]: {
       width: 'auto',
@@ -58,7 +58,7 @@ export const useAmountSelectorCardStyles = makeStyles(theme => ({
     flexWrap: 'nowrap',
   },
   networkContainer: {
-    width: '180px',
+    // width: '180px',
   },
   inputContainer: {},
 }))

@@ -1,9 +1,8 @@
-import { L1_NETWORK } from 'src/utils/constants'
+import { L1_NETWORK, Chain } from 'src/utils'
 import { networks } from 'src/config'
-import { Chain } from './constants'
 
 export const getRpcUrl = (network: string) => {
-  return networks[network]?.rpcUrl
+  return networks[network]?.rpcUrl || networks[Chain.Ethereum].rpcUrl
 }
 
 export function getAllRpcUrls() {
@@ -15,5 +14,3 @@ export function getAllRpcUrls() {
     ethereum: getRpcUrl(L1_NETWORK),
   }
 }
-
-export default getRpcUrl

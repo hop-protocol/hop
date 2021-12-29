@@ -1,12 +1,24 @@
 import React from 'react'
 import { Circle } from 'react-feather'
 import styled from 'styled-components/macro'
-import { color, layout, space, SpaceProps, LayoutProps, ColorProps } from 'styled-system'
+import {
+  color,
+  layout,
+  space,
+  SpaceProps,
+  LayoutProps,
+  ColorProps,
+  border,
+  BorderProps,
+  background,
+} from 'styled-system'
 
-const StyledIcon = styled.img`
+const StyledIcon = styled.img<any>`
   ${space}
   ${layout}
   ${color}
+  ${border}
+  ${background}
 `
 
 const Icon = ({
@@ -16,7 +28,8 @@ const Icon = ({
   color,
 }: SpaceProps &
   LayoutProps &
-  ColorProps & { src?: string; width?: any; alt?: string; color?: string }) => {
+  ColorProps &
+  BorderProps & { src?: string; width?: any; alt?: string; color?: string }) => {
   if (!src) return null
 
   return (

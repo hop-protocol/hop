@@ -1,6 +1,6 @@
 import { DependencyList } from 'react'
 
-const shallowEquals = (a?: DependencyList, b?: DependencyList) => {
+export const shallowEquals = (a?: DependencyList, b?: DependencyList) => {
   if (a?.length !== b?.length) return false
   if (a === undefined && b === undefined) return true
   if (a === undefined || b === undefined) return false
@@ -11,5 +11,3 @@ const shallowEquals = (a?: DependencyList, b?: DependencyList) => {
 
   return true
 }
-
-export default shallowEquals

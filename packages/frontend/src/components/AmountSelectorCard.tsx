@@ -170,7 +170,11 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
         ) : secondaryBalance ? (
           <div className={styles.balance}>
             {!hideMaxButton && secondaryBalance.gt(0) && !disableInput ? (
-              <button className={styles.maxButton} onClick={handleSecondaryMaxClick} title="Max amount you can send while still having enough to cover fees">
+              <button
+                className={styles.maxButton}
+                onClick={handleSecondaryMaxClick}
+                title="Max amount you can send while still having enough to cover fees"
+              >
                 MAX
               </button>
             ) : null}
@@ -184,11 +188,15 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
         ) : balance ? (
           <div className={styles.balance}>
             {!hideMaxButton && balance.gt(0) && !disableInput ? (
-              <button className={styles.maxButton} onClick={handleMaxClick} title="Max amount you can send while still having enough to cover fees">
+              <button
+                className={styles.maxButton}
+                onClick={handleMaxClick}
+                title="Max amount you can send while still having enough to cover fees"
+              >
                 MAX
               </button>
             ) : null}
-            <Typography variant="subtitle2" color="textSecondary">
+            <Typography variant="subtitle2" color="textSecondary" align="right">
               {balanceLabel || 'Balance:'} {balanceDisplay}
             </Typography>
           </div>

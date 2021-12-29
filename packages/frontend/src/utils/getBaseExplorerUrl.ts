@@ -10,5 +10,3 @@ export const getBaseExplorerUrl = (slug: string) => {
 
   return ''
 }
-
-export default getBaseExplorerUrl

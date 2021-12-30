@@ -57,11 +57,12 @@ jobs:
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
 
-      - name: Update dnslink on Route53
+      - name: Update DNS with new IPFS hash
         env:
-          IPFS_DEPLOY_AWS_REGION: ${{ secrets.IPFS_DEPLOY_AWS_REGION }}
-          IPFS_DEPLOY_AWS_ACCESS_KEY_ID: ${{ secrets.IPFS_DEPLOY_AWS_ACCESS_KEY_ID }}
-          IPFS_DEPLOY_AWS_SECRET_ACCESS_KEY: ${{ secrets.IPFS_DEPLOY_AWS_SECRET_ACCESS_KEY }}
-          IPFS_DEPLOY_AWS_ROUTE53_HOST_ZONE_ID: ${{ secrets.IPFS_DEPLOY_AWS_ROUTE53_HOST_ZONE_ID }}
-          IPFS_DEPLOY_DNSLINK_HOST: ${{ secrets.IPFS_DEPLOY_DNSLINK_HOST }}
-        run: IPFS_HASH="${{ steps.upload.outputs.hash }}" node ./scripts/update_dnslink.js
+          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+          RECORD_DOMAIN: 'hop.exchange'
+          RECORD_NAME: ${{ secrets.IPFS_DEPLOY_DNSLINK_SUBDOMAIN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        uses: textileio/cloudflare-update-dnslink@30414a408191218c8259e932ebdf4cbb7c652fe8
+        with:
+          cid: ${{ steps.upload.outputs.hash }}

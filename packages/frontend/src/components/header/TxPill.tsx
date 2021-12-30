@@ -4,8 +4,8 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { StyledButton } from '../buttons/StyledButton'
-import { getProviderByNetworkName } from 'src/utils/getProvider'
 import { Circle, Div, Icon } from '../ui'
+import { useEns } from 'src/hooks'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -25,17 +25,13 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const provider = getProviderByNetworkName('ethereum')
-
 const TxPill = () => {
-  const app = useApp()
-  const { accountDetails } = app
+  const { accountDetails, txHistory } = useApp()
   const { address } = useWeb3Context()
-  const transactions = app?.txHistory?.transactions
+  const transactions = txHistory?.transactions
   const styles = useStyles()
   const [numPendingTxs, setNumPendingTxs] = useState(0)
-  const [ensName, setENSName] = useState<string | null>(null)
-  const [ensAvatar, setENSAvatar] = useState<string | null>(null)
+  const { ensName, ensAvatar } = useEns(address)
 
   const handleClick = () => {
     accountDetails?.show(true)
@@ -49,18 +45,6 @@ const TxPill = () => {
       setNumPendingTxs(0)
     }
   }, [transactions])
-
-  useEffect(() => {
-    if (address && provider) {
-      provider.lookupAddress(address.toString()).then(setENSName)
-    }
-  }, [address, provider])
-
-  useEffect(() => {
-    if (ensName) {
-      provider.getAvatar(ensName).then(setENSAvatar)
-    }
-  }, [ensName])
 
   return (
     <div className={styles.root}>

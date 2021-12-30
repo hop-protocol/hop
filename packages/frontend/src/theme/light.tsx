@@ -10,6 +10,7 @@ export const palette = {
   background: {
     default: '#FDF7F9',
     paper: '#FDF7F9',
+    contrast: '#FFFFFF',
   },
   action: {
     active: '#B32EFF',

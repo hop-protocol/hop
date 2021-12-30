@@ -7,5 +7,3 @@ export const getArbitrumAlias = (address: string): string => {
   const boundary: BigNumber = BigNumber.from('0x10000000000000000000000000000000000000000')
   return addressBn.add(aliasMaskBn).mod(boundary).toHexString()
 }
-
-export default getArbitrumAlias

@@ -4,7 +4,6 @@ export const useSendStyles = makeStyles(theme => ({
   header: {
     display: 'flex',
     justifyContent: 'center',
-    width: '46.0rem',
     position: 'relative',
     transition: 'all 0.15s ease-out',
   },

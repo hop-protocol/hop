@@ -15,6 +15,10 @@ import Network from 'src/models/Network'
 import { TokenModel } from '@hop-protocol/sdk'
 import range from 'lodash/range'
 
+export function getTruncatedHash(hash): string {
+  return `${hash.substring(0, 6)}…${hash.substring(62, 66)}`
+}
+
 export const sortByRecentTimestamp = (txs: Transaction[]) => {
   return txs.sort((a, b) => b.timestampMs - a.timestampMs)
 }

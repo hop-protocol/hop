@@ -11,8 +11,12 @@ import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
 import { isMainnet } from 'src/config'
 import Settings from 'src/components/header/Settings'
 import WalletWarning from './WalletWarning'
-import { toTokenDisplay, networkIdNativeTokenSymbol, networkIdToSlug } from 'src/utils'
-import { findNetworkBySlug } from 'src/utils/networks'
+import {
+  toTokenDisplay,
+  networkIdNativeTokenSymbol,
+  networkIdToSlug,
+  findNetworkBySlug,
+} from 'src/utils'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
 import { useInterval } from 'react-use'

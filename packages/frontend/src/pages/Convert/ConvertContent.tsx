@@ -11,7 +11,7 @@ import { useConvert } from 'src/pages/Convert/ConvertContext'
 import TokenWrapper from 'src/components/TokenWrapper'
 import { sanitizeNumericalString } from 'src/utils'
 import { MethodNames } from 'src/hooks'
-import { Flex } from 'src/components/ui'
+import { Div, Flex } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -149,38 +149,38 @@ const ConvertContent: FC = () => {
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error" onClose={() => setError(undefined)} text={error} />
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
-          <Box
-            className={styles.buttons}
-            display="flex"
-            flexDirection="row"
-            alignItems="center"
-            width="450px"
-          >
+
+          <Flex m="2rem" justifyAround alignCenter $wrap maxWidth={['450px']}>
             {!sendButtonActive && (
+              <Div mb={[3]}>
+                <Button
+                  className={styles.button}
+                  large
+                  highlighted={!!needsApproval}
+                  disabled={!approvalButtonActive}
+                  onClick={handleApprove}
+                  loading={approving}
+                  fullWidth
+                >
+                  Approve
+                </Button>
+              </Div>
+            )}
+
+            <Div mb={[3]}>
               <Button
                 className={styles.button}
+                onClick={handleSend}
+                disabled={!sendButtonActive}
+                loading={sending}
                 large
-                highlighted={!!needsApproval}
-                disabled={!approvalButtonActive}
-                onClick={handleApprove}
-                loading={approving}
+                highlighted
                 fullWidth
               >
-                Approve
+                Convert
               </Button>
-            )}
-            <Button
-              className={styles.button}
-              onClick={handleSend}
-              disabled={!sendButtonActive}
-              loading={sending}
-              large
-              highlighted
-              fullWidth
-            >
-              Convert
-            </Button>
-          </Box>
+            </Div>
+          </Flex>
         </>
       )}
     </Box>

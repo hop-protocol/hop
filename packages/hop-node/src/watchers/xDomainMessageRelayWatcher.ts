@@ -19,7 +19,6 @@ type Config = {
   l1BridgeContract: L1BridgeContract | L1ERC20BridgeContract
   label: string
   token: string
-  order?: () => number
   dryMode?: boolean
 }
 
@@ -37,7 +36,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       tag: 'xDomainMessageRelay',
       prefix: config.label,
       logColor: 'yellow',
-      order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
@@ -105,7 +103,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     )
     for (const { transferRootId } of dbTransferRoots) {
       // Parallelizing these calls produces RPC errors on Optimism
-      await this.checkTransfersCommitted(transferRootId!)
+      await this.checkTransfersCommitted(transferRootId)
     }
   }
 

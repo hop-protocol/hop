@@ -1,16 +1,20 @@
 import makeRequest from './makeRequest'
 import { normalizeEntity } from './shared'
 
-export default async function getTransferRoots (chain: string, token: string, skip: number = 0): Promise<any[]> {
+export default async function getTransferRoots (
+  chain: string,
+  token: string,
+  lastId: string = '0x0000000000000000000000000000000000000000'
+): Promise<any[]> {
   const query = `
-    query TransferRoots($token: String, $skip: Int) {
+    query TransferRoots($token: String, $lastId: ID) {
       transfersCommitteds(
         where: {
-          token: $token
+          token: $token,
+          id_gt: $lastId
         },
-        orderBy: timestamp,
-        orderDirection: desc,
-        skip: $skip,
+        orderBy: id,
+        orderDirection: asc,
         first: 1000
       ) {
         id
@@ -30,23 +34,19 @@ export default async function getTransferRoots (chain: string, token: string, sk
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    skip
+    lastId
   })
 
   let roots = jsonRes.transfersCommitteds.map((x: any) => normalizeEntity(x))
 
-  if (roots.length === 1000) {
-    try {
-      roots = roots.concat(await getTransferRoots(
-        chain,
-        token,
-        skip + 1000
-      ))
-    } catch (err) {
-      if (!err.message.includes('The `skip` argument must be between')) {
-        throw err
-      }
-    }
+  const maxItemsLength = 1000
+  if (roots.length === maxItemsLength) {
+    lastId = roots[roots.length - 1].id
+    roots = roots.concat(await getTransferRoots(
+      chain,
+      token,
+      lastId
+    ))
   }
 
   return roots

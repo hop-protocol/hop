@@ -7,7 +7,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { formatError } from 'src/utils/format'
+import { formatError } from 'src/utils'
 import { useTransactionReplacement, useApprove } from 'src/hooks'
 
 type TokenWrapperContextProps = {

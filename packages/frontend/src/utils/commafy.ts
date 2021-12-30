@@ -1,6 +1,6 @@
 import numbro from 'numbro'
 
-const commafy = (value: string | number | undefined, decimals: number = 2) => {
+export const commafy = (value: string | number | undefined, decimals: number = 2) => {
   if (value === undefined) {
     return ''
   }
@@ -20,5 +20,3 @@ const commafy = (value: string | number | undefined, decimals: number = 2) => {
     return value.toString()
   }
 }
-
-export default commafy

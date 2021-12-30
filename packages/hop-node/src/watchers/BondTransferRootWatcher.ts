@@ -14,7 +14,6 @@ type Config = {
   bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   label: string
   isL1: boolean
-  order?: () => number
   dryMode?: boolean
   stateUpdateAddress?: string
 }
@@ -30,7 +29,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       prefix: config.label,
       logColor: 'cyan',
       isL1: config.isL1,
-      order: config.order,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode,
       stateUpdateAddress: config.stateUpdateAddress
@@ -74,7 +72,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       }
 
       promises.push(this.checkTransfersCommitted(
-        transferRootId!,
+        transferRootId,
         transferRootHash!,
         totalAmount!,
         destinationChainId!,

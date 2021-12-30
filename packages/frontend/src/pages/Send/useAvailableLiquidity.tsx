@@ -3,6 +3,7 @@ import { HopBridge } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { useInterval } from 'react-use'
 import logger from 'src/logger'
+import { formatError } from 'src/utils'
 
 const useAvailableLiquidity = (
   bridge?: HopBridge,
@@ -18,7 +19,7 @@ const useAvailableLiquidity = (
         setAvailableLiquidity(liquidity)
       }
     } catch (err: any) {
-      logger.error(err)
+      logger.error(formatError(err))
       setAvailableLiquidity(undefined)
     }
   }

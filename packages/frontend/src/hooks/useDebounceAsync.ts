@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
-import wait from 'src/utils/wait'
+import { wait } from 'src/utils'
 
 const useDebouncePromise = (
   fn: (isCancelled: () => boolean) => void,

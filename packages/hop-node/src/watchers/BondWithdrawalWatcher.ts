@@ -20,7 +20,6 @@ type Config = {
   isL1: boolean
   bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   label: string
-  order?: () => number
   dryMode?: boolean
   stateUpdateAddress?: string
 }
@@ -35,7 +34,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       tokenSymbol: config.tokenSymbol,
       prefix: config.label,
       logColor: 'green',
-      order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode,
@@ -86,7 +84,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       logger.debug('db poll completed')
-      promises.push(this.checkTransferId(transferId!).catch(err => {
+      promises.push(this.checkTransferId(transferId).catch(err => {
         this.logger.error('checkTransferId error:', err)
       }))
     }

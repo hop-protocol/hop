@@ -20,7 +20,6 @@ type Config = {
   tag: string
   prefix?: string
   logColor?: string
-  order?: () => number
   isL1?: boolean
   bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   dryMode?: boolean
@@ -38,7 +37,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   db: DbSet
   logger: Logger
   notifier: Notifier
-  order: () => number = () => 0
   started: boolean = false
   pollIntervalMs: number = 10 * 1000
   chainSlug: string
@@ -57,7 +55,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   constructor (config: Config) {
     super()
-    const { chainSlug, tokenSymbol, tag, prefix, order, logColor } = config
+    const { chainSlug, tokenSymbol, tag, prefix, logColor } = config
     this.logger = new Logger({
       tag,
       prefix,
@@ -71,9 +69,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
     if (prefix) {
       this.prefix = prefix
-    }
-    if (order != null) {
-      this.order = order
     }
     this.notifier = new Notifier(
       `watcher: ${tag}, label: ${prefix}, host: ${hostname}`

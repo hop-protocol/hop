@@ -2,10 +2,12 @@ import { useCallback, useState } from 'react'
 import { Token, ChainSlug, CanonicalToken } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { networkIdToSlug, wait } from 'src/utils'
+import { ensTokenAddress, networkIdToSlug, wait } from 'src/utils'
+import { ChainName } from '@hop-protocol/sdk/dist/src/constants'
 
 interface AddTokenToMetamask {
   addToken: (networkId: number) => void
+  addHopToken: () => void
   addTokenToDestNetwork: () => void
   success?: boolean
 }
@@ -67,5 +69,32 @@ export function useAddTokenToMetamask(
     }
   }, [provider, token, destNetworkName])
 
-  return { addToken, addTokenToDestNetwork, success }
+  const addHopToken = useCallback(() => {
+    // const tokenImageUrl = getTokenImage('HOP')
+    // const tokenModel = sdk.toTokenModel('HOP')
+    const networkName = networkIdToSlug(connectedNetworkId)
+    if (networkName === ChainName.Ethereum) {
+      return
+    }
+    // const addr = sdk.getL2CanonicalTokenAddress('HOP', networkName)
+    if (typeof (window as any)?.ethereum !== 'undefined') {
+      ;(window as any).ethereum
+        .request({
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'ERC20',
+            options: {
+              address: ensTokenAddress,
+              symbol: 'HOP',
+              decimals: 18,
+              image: 'https://hop.exchange/static/media/hop-logo.5138ac11.svg',
+            },
+          },
+        })
+        .then(success => setSuccess(!!success))
+        .catch(() => setSuccess(false))
+    }
+  }, [token, sdk, connectedNetworkId])
+
+  return { addToken, addHopToken, addTokenToDestNetwork, success }
 }

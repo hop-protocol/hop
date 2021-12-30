@@ -34,7 +34,16 @@ const LoadingWrapper: any = styled.div<any>`
   justify-content: center;
   align-items: center;
   border-radius: 50%;
-  background-image: linear-gradient(to right, #e336ff, #ffd7b1);
+  ${({ load }: any) => {
+    if (load) {
+      return `
+        background-image: linear-gradient(to right, #e336ff, #ffd7b1)
+      `
+    }
+    return `
+      background-color: grey;
+    `
+  }};
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   animation: ${({ load }) =>
     load

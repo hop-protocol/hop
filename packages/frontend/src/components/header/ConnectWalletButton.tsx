@@ -10,7 +10,7 @@ function ConnectWalletButton({ mode }) {
     <StyledButton
       highlighted
       onClick={requestWallet}
-      boxShadow={isDarkMode(mode) ? 1 : 2}
+      boxShadow={isDarkMode(mode) ? 'top' : 'bottom'}
       fontSize={[0, 0, 1, 2]}
       minWidth="12rem"
     >

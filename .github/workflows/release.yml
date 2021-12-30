@@ -26,9 +26,6 @@ jobs:
       run:
         working-directory: ./packages/frontend
     steps:
-      - name: test
-        run: echo "here ${{ needs.set_environment.outputs.env_name }}"
-
       - name: Checkout
         uses: actions/checkout@v2
 

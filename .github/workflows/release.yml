@@ -2,9 +2,8 @@ name: release
 on:
   push:
     branches:
-      - production
       - mainnet
-      - feature/gh-actions
+      - production
 
 jobs:
   set_environment:
@@ -13,8 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - id: setenv
-      #run: echo "::set-output name=env_name::${GITHUB_REF#refs/heads/}"
-      run: echo "::set-output name=env_name::mainnet"
+      run: echo "::set-output name=env_name::${GITHUB_REF#refs/heads/}"
 
   build:
     name: Create Release

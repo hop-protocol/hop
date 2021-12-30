@@ -1,0 +1,37 @@
+/* The full page modal container */
+/* .bn-onboard-custom {
+} */
+
+/* The container for the modal content. */
+.bn-onboard-custom .bn-onboard-modal-content {
+  font-family: 'Source Code Pro';
+}
+
+/* The header of the modal */
+/* .bn-onboard-custom .bn-onboard-modal-header {
+} */
+
+/* The heading within the header. */
+/* .bn-onboard-custom .bn-onboard-modal-content-header-heading {
+  font-family: 'Source Code Pro';
+} */
+
+/* The wallet select modal description */
+/* .bn-onboard-custom .bn-onboard-select-description {
+} */
+
+/* The unordered list of wallets */
+/* .bn-onboard-custom .bn-onboard-modal-select-wallets {
+} */
+
+/* The wallet button */
+/* .bn-onboard-custom .bn-onboard-icon-button {
+} */
+
+/* Selected wallet modal content */
+/* .bn-onboard-custom .bn-onboard-modal-selected-wallet {
+} */
+
+/* All modal buttons */
+/* .bn-onboard-custom .bn-onboard-prepare-button {
+} */

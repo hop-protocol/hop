@@ -5891,7 +5891,7 @@ bnb-javascript-sdk-nobroadcast@^2.16.14:
     uuid "^3.3.2"
     websocket-stream "^5.5.0"
 
-bnc-onboard@^1.35.2:
+bnc-onboard@^1.37.0:
   version "1.37.0"
   resolved "https://registry.yarnpkg.com/bnc-onboard/-/bnc-onboard-1.37.0.tgz#837238933b7461d898bc8dfb3e56354004237b44"
   integrity sha512-B1itICd54MUhbwTycRX03p5f2DgRmQmJ3TLbUugVfjEJW1hYdhZ3w2JWaiDiQrCPDdmu4qSook7RUghZrBi7Zg==

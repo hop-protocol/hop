@@ -42,7 +42,16 @@ jobs:
         run: yarn install
 
       - name: Build the frontend app
-        run: REACT_APP_IPFS_BUILD=true yarn build
+        env:
+          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
+          REACT_APP_NETWORK: ${{ secrets.REACT_APP_NETWORK }}
+          REACT_APP_IPFS_BUILD: ${{ secrets.REACT_APP_IPFS_BUILD }}
+          REACT_APP_BNC_DAPP_ID: ${{ secrets.REACT_APP_BNC_DAPP_ID }}
+          REACT_APP_ENABLED_CHAINS: ${{ secrets.REACT_APP_ENABLED_CHAINS }}
+          REACT_APP_ENABLED_TOKENS: ${{ secrets.REACT_APP_ENABLED_TOKENS }}
+          REACT_APP_FORTMATIC_KEY: ${{ secrets.REACT_APP_FORTMATIC_KEY }}
+          REACT_APP_PORTIS_ID: ${{ secrets.REACT_APP_PORTIS_ID }}
+        run: yarn build
 
       - name: Pin to IPFS on Pinata
         id: upload

@@ -24,15 +24,19 @@ interface StyleProps {
 
 const useStyles = makeStyles(theme => ({
   root: {
-    margin: `-0.8rem -${theme.padding.extraLight} -0.8rem 0`,
+    display: 'flex',
+    width: '100%',
+    maxWidth: '516px',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   adornment: {
-    marginLeft: '-0.8rem',
-    marginRight: theme.padding.extraLight,
+    // marginLeft: '-0.8rem',
+    // marginRight: theme.padding.extraLight,
     width: 'auto',
     textAlign: 'right',
     [theme.breakpoints.down('xs')]: {
-      fontSize: theme.typography.h6.fontSize,
+      fontSize: theme.typography.subtitle1.fontSize,
     },
   },
 }))
@@ -53,6 +57,7 @@ const useInputStyles = makeStyles(theme => ({
   },
   root: ({ defaultShadow, hideShadow }: StyleProps) => ({
     padding: '0.8rem 0',
+    marginLeft: '.7rem',
     transition: 'all 0.15s ease-out',
     borderRadius: '1.5rem',
     boxShadow: defaultShadow ? theme.boxShadow.input.normal : 'none',
@@ -67,6 +72,11 @@ const useInputStyles = makeStyles(theme => ({
         }
       },
     },
+    [theme.breakpoints.down('xs')]: {
+      width: '100%',
+      padding: '.5rem .6rem',
+      fontSize: theme.typography.subtitle2.fontSize,
+    },
   }),
   input: ({ centerAlign, leftAlign, loadingValue, smallFontSize }: StyleProps) => ({
     textAlign: leftAlign ? 'left' : centerAlign ? 'center' : 'right',
@@ -79,7 +89,9 @@ const useInputStyles = makeStyles(theme => ({
       ? `loadingEffect 1s ${theme.transitions.easing.sharp} infinite`
       : 'none',
     [theme.breakpoints.down('xs')]: {
-      fontSize: smallFontSize ? '1.6rem' : theme.typography.h6.fontSize,
+      fontSize: smallFontSize ? '1.6rem' : theme.typography.subtitle2.fontSize,
+      padding: '.5rem',
+      // maxWidth: '70px',
     },
   }),
   focused: {

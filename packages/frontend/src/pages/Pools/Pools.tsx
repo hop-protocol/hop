@@ -19,6 +19,7 @@ import DetailRow from 'src/components/DetailRow'
 import useQueryParams from 'src/hooks/useQueryParams'
 import Network from 'src/models/Network'
 import { useNeedsTokenForFee } from 'src/hooks'
+import { Flex } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -56,7 +57,7 @@ const useStyles = makeStyles(theme => ({
     width: '46.0rem',
     marginBottom: '3.4rem',
     [theme.breakpoints.down('xs')]: {
-      width: '90%',
+      width: '95%',
     },
   },
   detailsDropdown: {
@@ -66,7 +67,7 @@ const useStyles = makeStyles(theme => ({
       content: '"▾"',
     },
     [theme.breakpoints.down('xs')]: {
-      width: '90%',
+      width: '95%',
     },
   },
   detailsDropdownSummary: {
@@ -137,7 +138,7 @@ const Pools: FC = () => {
     virtualPrice,
     reserveTotalsUsd,
     unsupportedAsset,
-    removing
+    removing,
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -214,9 +215,15 @@ const Pools: FC = () => {
   const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
 
   const needsTokenForFee = useNeedsTokenForFee(selectedNetwork)
-  const token0DepositedFormatted = token0Deposited ? commafy(Number(formatUnits(token0Deposited, canonicalToken?.decimals)), 5) : ''
-  const token1DepositedFormatted = token1Deposited ? commafy(Number(formatUnits(token1Deposited, hopToken?.decimals)), 5) : ''
-  const tokenSumDepositedFormatted = tokenSumDeposited ? commafy(Number(formatUnits(tokenSumDeposited, hopToken?.decimals)), 5) : ''
+  const token0DepositedFormatted = token0Deposited
+    ? commafy(Number(formatUnits(token0Deposited, canonicalToken?.decimals)), 5)
+    : ''
+  const token1DepositedFormatted = token1Deposited
+    ? commafy(Number(formatUnits(token1Deposited, hopToken?.decimals)), 5)
+    : ''
+  const tokenSumDepositedFormatted = tokenSumDeposited
+    ? commafy(Number(formatUnits(tokenSumDeposited, hopToken?.decimals)), 5)
+    : ''
 
   useEffect(() => {
     if (needsTokenForFee && selectedNetwork) {
@@ -265,7 +272,7 @@ const Pools: FC = () => {
           </Typography>
         </>
       ) : (
-        <>
+        <Flex column alignCenter fullWidth>
           <Box className={styles.formBox}>
             <TokenWrapper network={selectedNetwork} />
             <Box display="flex" alignItems="center">
@@ -310,15 +317,9 @@ const Pools: FC = () => {
                   Your Position
                 </Typography>
               </Box>
-              <DetailRow
-                title={`LP Tokens`}
-                value={`${commafy(userPoolBalanceFormatted, 5)}`}
-              />
+              <DetailRow title={`LP Tokens`} value={`${commafy(userPoolBalanceFormatted, 5)}`} />
               {userPoolTokenPercentage && (
-                <DetailRow
-                  title={'Pool share'}
-                  value={`${commafy(userPoolTokenPercentage)}%`}
-                />
+                <DetailRow title={'Pool share'} value={`${commafy(userPoolTokenPercentage)}%`} />
               )}
               {token0Deposited && (
                 <DetailRow title={canonicalTokenSymbol} value={token0DepositedFormatted} />
@@ -329,7 +330,8 @@ const Pools: FC = () => {
               {tokenSumDeposited && (
                 <DetailRow
                   title={`${canonicalTokenSymbol}+${hopTokenSymbol}`}
-                  value={tokenSumDepositedFormatted} />
+                  value={tokenSumDepositedFormatted}
+                />
               )}
             </Box>
           )}
@@ -344,35 +346,33 @@ const Pools: FC = () => {
                 <span>Pool Stats</span>
               </Typography>
             </summary>
-            <div>
-              <Box className={styles.details}>
-                <DetailRow
-                  title="APR"
-                  tooltip="Annual Percentage Rate (APR) from earning fees"
-                  value={`${aprFormatted}`}
-                />
-                <DetailRow
-                  title="Reserves"
-                  tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
-                  value={`${reserve0Formatted} / ${reserve1Formatted}`}
-                />
-                <DetailRow
-                  title="TVL"
-                  tooltip="Total value locked in USD"
-                  value={`${reserveTotalsUsdFormatted}`}
-                />
-                <DetailRow
-                  title="Virtual Price"
-                  tooltip="The virtual price, to help calculate profit"
-                  value={`${virtualPriceFormatted}`}
-                />
-                <DetailRow
-                  title="Fee"
-                  tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
-                  value={`${feeFormatted}`}
-                />
-              </Box>
-            </div>
+            <Box className={styles.details}>
+              <DetailRow
+                title="APR"
+                tooltip="Annual Percentage Rate (APR) from earning fees"
+                value={`${aprFormatted}`}
+              />
+              <DetailRow
+                title="Reserves"
+                tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
+                value={`${reserve0Formatted} / ${reserve1Formatted}`}
+              />
+              <DetailRow
+                title="TVL"
+                tooltip="Total value locked in USD"
+                value={`${reserveTotalsUsdFormatted}`}
+              />
+              <DetailRow
+                title="Virtual Price"
+                tooltip="The virtual price, to help calculate profit"
+                value={`${virtualPriceFormatted}`}
+              />
+              <DetailRow
+                title="Fee"
+                tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
+                value={`${feeFormatted}`}
+              />
+            </Box>
           </details>
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error" onClose={() => setError(null)} text={error} />
@@ -387,7 +387,7 @@ const Pools: FC = () => {
               Remove Liquidity
             </Button>
           )}
-        </>
+        </Flex>
       )}
     </Box>
   )

@@ -2,8 +2,6 @@ import React, { useMemo, FC, ChangeEvent } from 'react'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import Card from '@material-ui/core/Card'
-import Box from '@material-ui/core/Box'
-import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Skeleton from '@material-ui/lab/Skeleton'
 import { Token } from '@hop-protocol/sdk'
@@ -13,6 +11,7 @@ import { toTokenDisplay } from 'src/utils'
 import logger from 'src/logger'
 import { useAmountSelectorCardStyles, useNativeTokenMaxValue } from 'src/hooks'
 import { NetworkSelector } from 'src/components/NetworkSelector'
+import { Flex } from 'src/components/ui'
 
 type Props = {
   value?: string
@@ -106,12 +105,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
 
   return (
     <Card className={styles.root}>
-      <Box
-        display="flex"
-        flexDirection="row"
-        justifyContent="space-between"
-        className={styles.topRow}
-      >
+      <Flex fullWidth justifyBetween alignCenter mb={'1.8rem'}>
         <Typography variant="subtitle2" color="textSecondary">
           {label}
         </Typography>
@@ -120,31 +114,32 @@ const SendAmountSelectorCard: FC<Props> = props => {
         ) : balance ? (
           <div className={styles.balance}>
             {balance.gt(0) && !disableInput ? (
-              <button className={styles.maxButton} onClick={handleMaxClick} title="Max amount you can send while still having enough to cover fees">
+              <button
+                className={styles.maxButton}
+                onClick={handleMaxClick}
+                title="Max amount you can send while still having enough to cover fees"
+              >
                 MAX
               </button>
             ) : null}
-            <Typography variant="subtitle2" color="textSecondary">
+            <Typography variant="subtitle2" color="textSecondary" align="right">
               Balance: {balanceLabel}
             </Typography>
           </div>
         ) : null}
-      </Box>
-      <Grid container alignItems="center">
-        <Grid item xs={5}>
-          <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} />
-        </Grid>
-        <Grid item xs={7}>
-          <LargeTextField
-            value={value}
-            onChange={handleInputChange}
-            placeholder="0.0"
-            units={token?.symbol}
-            disabled={disableInput}
-            loadingValue={loadingValue}
-          />
-        </Grid>
-      </Grid>
+      </Flex>
+
+      <Flex fullWidth justifyBetween alignCenter>
+        <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} />
+        <LargeTextField
+          value={value}
+          onChange={handleInputChange}
+          placeholder="0.0"
+          units={token?.symbol}
+          disabled={disableInput}
+          loadingValue={loadingValue}
+        />
+      </Flex>
     </Card>
   )
 }

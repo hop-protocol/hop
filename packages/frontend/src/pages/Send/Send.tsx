@@ -672,24 +672,19 @@ const Send: FC = () => {
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
           {totalBonderFee?.gt(0) && (
-            <div
-              style={{
-                marginBottom: '1rem',
-              }}
-            >
-              <DetailRow
-                title={'Fees'}
-                tooltip={
-                  <FeeDetails
-                    bonderFee={bonderFeeDisplay}
-                    destinationTxFee={destinationTxFeeDisplay}
-                  />
-                }
-                value={totalBonderFeeDisplay}
-                large
-              />
-            </div>
+            <DetailRow
+              title={'Fees'}
+              tooltip={
+                <FeeDetails
+                  bonderFee={bonderFeeDisplay}
+                  destinationTxFee={destinationTxFeeDisplay}
+                />
+              }
+              value={totalBonderFeeDisplay}
+              large
+            />
           )}
+
           <DetailRow
             title="Estimated Received"
             tooltip={

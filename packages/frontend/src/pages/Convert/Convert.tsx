@@ -21,19 +21,13 @@ const useStyles = makeStyles(theme => ({
   selects: {
     marginBottom: '4.4rem',
     display: 'flex',
-    [theme.breakpoints.down('xs')]: {
-      flexDirection: 'column',
-      textAlign: 'center',
-    },
+    justifyContent: 'center',
+    flexWrap: 'wrap',
   },
   select: {
     display: 'flex',
     alignItems: 'center',
-    marginLeft: '1rem',
-    [theme.breakpoints.down('xs')]: {
-      marginLeft: '0',
-      marginBottom: '1rem',
-    },
+    margin: '0 1rem 1rem',
   },
   help: {
     display: 'flex',
@@ -100,6 +94,7 @@ const Convert: FC = () => {
             ))}
           </RaisedSelect>
         </div>
+
         <div className={styles.select}>
           <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleBridgeChange}>
             {bridges.map(bridge => (
@@ -113,6 +108,7 @@ const Convert: FC = () => {
             ))}
           </RaisedSelect>
         </div>
+
         <div className={styles.select}>
           <RaisedSelect value={lastPathname} onChange={handleTabChange}>
             {convertOptions.map(_convertOption => (

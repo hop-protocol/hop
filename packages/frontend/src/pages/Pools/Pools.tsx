@@ -19,7 +19,7 @@ import DetailRow from 'src/components/DetailRow'
 import useQueryParams from 'src/hooks/useQueryParams'
 import Network from 'src/models/Network'
 import { useNeedsTokenForFee } from 'src/hooks'
-import { Flex } from 'src/components/ui'
+import { Div, Flex } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -54,20 +54,15 @@ const useStyles = makeStyles(theme => ({
     marginTop: '2rem',
   },
   details: {
-    width: '46.0rem',
+    width: '100%',
     marginBottom: '3.4rem',
-    [theme.breakpoints.down('xs')]: {
-      width: '95%',
-    },
+    [theme.breakpoints.down('xs')]: {},
   },
   detailsDropdown: {
-    width: '46.0rem',
-    marginBottom: '3.4rem',
+    width: '100%',
+    marginTop: '2rem',
     '&[open] summary span::before': {
       content: '"▾"',
-    },
-    [theme.breakpoints.down('xs')]: {
-      width: '95%',
     },
   },
   detailsDropdownSummary: {
@@ -242,6 +237,7 @@ const Pools: FC = () => {
           Add Liquidity
         </Typography>
       </Box>
+
       <Box display="flex" alignItems="center" className={styles.tokenSelector}>
         <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleBridgeChange}>
           {bridges.map(bridge => (
@@ -265,6 +261,7 @@ const Pools: FC = () => {
           ))}
         </RaisedSelect>
       </Box>
+
       {unsupportedAsset ? (
         <>
           <Typography variant="subtitle1" color="textSecondary" component="div">
@@ -272,10 +269,11 @@ const Pools: FC = () => {
           </Typography>
         </>
       ) : (
-        <Flex column alignCenter fullWidth>
-          <Box className={styles.formBox}>
+        <Div>
+          <Flex mb="3.4rem" alignCenter justifyCenter column>
             <TokenWrapper network={selectedNetwork} />
-            <Box display="flex" alignItems="center">
+
+            <Flex alignCenter fullWidth mt={3}>
               <AmountSelectorCard
                 value={token0Amount}
                 token={canonicalToken}
@@ -285,11 +283,13 @@ const Pools: FC = () => {
                 balance={canonicalBalance}
                 loadingBalance={loadingCanonicalBalance}
               />
-            </Box>
-            <Box display="flex" alignItems="center">
+            </Flex>
+
+            <Flex alignCenter fullWidth>
               <div className={styles.plusDivider}>+</div>
-            </Box>
-            <Box display="flex" alignItems="center">
+            </Flex>
+
+            <Flex alignCenter fullWidth>
               <AmountSelectorCard
                 value={token1Amount}
                 token={hopToken}
@@ -299,19 +299,20 @@ const Pools: FC = () => {
                 balance={hopBalance}
                 loadingBalance={loadingHopBalance}
               />
-            </Box>
-          </Box>
-          <Box className={styles.details}>
+            </Flex>
+          </Flex>
+
+          <Flex column fullWidth>
             <DetailRow
               title={priceImpactLabel}
               tooltip="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens."
               value={`${priceImpactFormatted}`}
             />
             <DetailRow title={'Share of pool'} value={poolSharePercentageFormatted} />
-          </Box>
+          </Flex>
 
           {hasBalance && (
-            <Box className={styles.details}>
+            <Flex column fullWidth mt={3}>
               <Box alignItems="center" className={styles.flexBox}>
                 <Typography variant="subtitle1" color="textSecondary" component="div">
                   Your Position
@@ -333,7 +334,7 @@ const Pools: FC = () => {
                   value={tokenSumDepositedFormatted}
                 />
               )}
-            </Box>
+            </Flex>
           )}
           <details open className={styles.detailsDropdown}>
             <summary className={styles.detailsDropdownSummary}>
@@ -346,7 +347,8 @@ const Pools: FC = () => {
                 <span>Pool Stats</span>
               </Typography>
             </summary>
-            <Box className={styles.details}>
+
+            <Flex column fullWidth>
               <DetailRow
                 title="APR"
                 tooltip="Annual Percentage Rate (APR) from earning fees"
@@ -372,22 +374,27 @@ const Pools: FC = () => {
                 tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
                 value={`${feeFormatted}`}
               />
-            </Box>
+            </Flex>
           </details>
+
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error" onClose={() => setError(null)} text={error} />
-          <SendButton />
-          {hasBalance && (
-            <Button
-              className={styles.removeLiquidityButton}
-              onClick={handleRemoveLiquidityClick}
-              loading={removing}
-              large
-            >
-              Remove Liquidity
-            </Button>
-          )}
-        </Flex>
+
+          <Div mt={4}>
+            <SendButton />
+
+            {hasBalance && (
+              <Button
+                className={styles.removeLiquidityButton}
+                onClick={handleRemoveLiquidityClick}
+                loading={removing}
+                large
+              >
+                Remove Liquidity
+              </Button>
+            )}
+          </Div>
+        </Div>
       )}
     </Box>
   )

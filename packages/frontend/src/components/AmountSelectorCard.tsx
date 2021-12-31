@@ -174,7 +174,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
                 MAX
               </button>
             ) : null}
-            <Typography align="right" variant="subtitle2" color="textSecondary">
+            <Typography variant="subtitle2" color="textSecondary" align="left">
               {secondaryBalanceLabel || 'Balance:'} {secondaryBalanceDisplay}
             </Typography>
           </div>

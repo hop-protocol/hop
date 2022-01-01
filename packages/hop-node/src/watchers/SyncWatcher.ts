@@ -691,6 +691,7 @@ class SyncWatcher extends BaseWatcher {
       !transferSentBlockNumber ||
       transferSentTimestamp
     ) {
+      logger.debug('populateTransferSentTimestamp already found')
       return
     }
     if (!sourceChainId) {
@@ -721,6 +722,7 @@ class SyncWatcher extends BaseWatcher {
       !withdrawalBondedTxHash ||
       withdrawalBonder
     ) {
+      logger.debug('populateTransferWithdrawalBonder already found')
       return
     }
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
@@ -747,6 +749,7 @@ class SyncWatcher extends BaseWatcher {
       !commitTxHash ||
       committedAt
     ) {
+      logger.debug('populateTransferRootCommittedAt already found')
       return
     }
 
@@ -778,6 +781,7 @@ class SyncWatcher extends BaseWatcher {
       !bondTxHash ||
       (bonder && bondedAt)
     ) {
+      logger.debug('populateTransferRootBondedAt already found')
       return
     }
 
@@ -814,6 +818,7 @@ class SyncWatcher extends BaseWatcher {
     if (
       !rootSetBlockNumber || rootSetTimestamp
     ) {
+      logger.debug('populateTransferRootTimestamp already found')
       return
     }
     if (!destinationChainId) {
@@ -842,6 +847,7 @@ class SyncWatcher extends BaseWatcher {
       !multipleWithdrawalsSettledTotalAmount ||
       transferIds
     ) {
+      logger.debug('populateTransferRootMultipleWithdrawSettled already found')
       return
     }
 
@@ -887,6 +893,7 @@ class SyncWatcher extends BaseWatcher {
       !(sourceChainId && destinationChainId && commitTxBlockNumber && totalAmount) ||
       isL1ChainId(sourceChainId)
     ) {
+      logger.debug('populateTransferRootTransferIds already found')
       return
     }
 

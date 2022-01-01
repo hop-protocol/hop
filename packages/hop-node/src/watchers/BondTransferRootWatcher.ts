@@ -62,7 +62,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       } = dbTransferRoot
       const logger = this.logger.create({ root: transferRootId })
 
-      const availableCredit = await this.getAvailableCreditForBond(destinationChainId!)
+      const availableCredit = this.getAvailableCreditForBond(destinationChainId!)
       if (availableCredit.lt(totalAmount!)) {
         logger.debug(
         `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(

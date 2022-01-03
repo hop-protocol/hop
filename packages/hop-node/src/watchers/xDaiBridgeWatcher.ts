@@ -25,13 +25,13 @@ type Config = {
 
 const getL1Amb = (token: string) => {
   const l1Wallet = wallets.get(Chain.Ethereum)
-  const l1AmbAddress = globalConfig.tokens[token].xdai.l1Amb
+  const l1AmbAddress = globalConfig.addresses[token].xdai.l1Amb
   return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1XDaiAMB
 }
 
 const getL2Amb = (token: string) => {
   const l2xDaiProvider = wallets.get(Chain.xDai).provider
-  const l2AmbAddress = globalConfig.tokens[token].xdai.l2Amb
+  const l2AmbAddress = globalConfig.addresses[token].xdai.l2Amb
   return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2XDaiAMB
 }
 

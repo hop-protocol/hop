@@ -330,5 +330,5 @@ function getAllChains () {
 }
 
 function getAllTokens () {
-  return Object.keys(globalConfig.tokens)
+  return Object.keys(globalConfig.addresses)
 }

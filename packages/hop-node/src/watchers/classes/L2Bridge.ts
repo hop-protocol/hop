@@ -24,7 +24,7 @@ export default class L2Bridge extends Bridge {
   constructor (private readonly l2BridgeContract: L2BridgeContract) {
     super(l2BridgeContract)
 
-    const addresses = globalConfig.tokens[this.tokenSymbol]?.[this.chainSlug]
+    const addresses = globalConfig.addresses[this.tokenSymbol]?.[this.chainSlug]
     if (addresses?.l2AmmWrapper) {
       const ammWrapperContract = new Contract(
         addresses.l2AmmWrapper,

@@ -4,19 +4,20 @@ import os from 'os'
 import path from 'path'
 import { Chain } from 'src/constants'
 import {
+  CommitTransfersConfig,
   Fees, Routes, Watchers, defaultConfigFilePath,
   setBonderPrivateKey,
+  setCommitTransfersConfig,
   setConfigAddresses,
   setConfigByNetwork,
+  setConfigTokens,
   setDbPath,
   setFeesConfig,
   setMetricsConfig,
   setNetworkRpcUrl,
-  setNetworkWaitConfirmations,
   setRoutesConfig,
   setStateUpdateAddress,
-  setSyncConfig,
-  validateConfig
+  setSyncConfig
 } from './config'
 import { getParameter } from 'src/aws/parameterStore'
 import { promptPassphrase } from 'src/prompt'
@@ -87,7 +88,7 @@ export type FileConfig = {
   logging?: LoggingConfig
   keystore?: KeystoreConfig
   settleBondedWithdrawals?: any
-  commitTransfers?: any
+  commitTransfers?: CommitTransfersConfig
   addresses?: Addresses
   stateUpdateAddress?: string
   metrics?: MetricsConfig
@@ -150,12 +151,9 @@ export async function setGlobalConfigFromConfigFile (
   for (const k in config.chains) {
     const v = config.chains[k]
     if (v instanceof Object) {
-      const { rpcUrl, waitConfirmations } = v
+      const { rpcUrl } = v
       if (rpcUrl) {
         setNetworkRpcUrl(k, rpcUrl)
-      }
-      if (waitConfirmations) {
-        setNetworkWaitConfirmations(k, waitConfirmations)
       }
     }
   }
@@ -163,6 +161,8 @@ export async function setGlobalConfigFromConfigFile (
   if (!config.tokens) {
     throw new Error('config for tokens is required')
   }
+
+  setConfigTokens(config.tokens)
 
   if (config.sync) {
     setSyncConfig(config.sync)
@@ -213,6 +213,10 @@ export async function setGlobalConfigFromConfigFile (
   if (config.commitTransfers && !config.commitTransfers?.minThresholdAmount) {
     throw new Error('config for commitTransfers.minThresholdAmount is required')
   }
+
+  if (config.commitTransfers != null) {
+    setCommitTransfersConfig(config.commitTransfers)
+  }
 }
 
 export async function writeConfigFile (
@@ -247,7 +251,6 @@ export async function parseConfigFile (
     config = require(configPath)
   }
   if (config != null) {
-    await validateConfig(config)
     logger.info('config file:', configPath)
     return config
   }

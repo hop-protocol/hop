@@ -71,10 +71,15 @@ type Bps = {
 
 export type Fees = Record<string, Bps>
 export type Routes = Record<string, Record<string, boolean>>
+export type CommitTransfersConfig = {
+  minThresholdAmount: Record<string, Record<string, Record<string, any>>>
+}
+type Tokens = Record<string, boolean>
 
-type Config = {
+export type Config = {
   isMainnet: boolean
-  tokens: Bridges & {[network: string]: any}
+  tokens: Tokens
+  addresses: Bridges & {[network: string]: any}
   network: string
   networks: Networks & {[network: string]: any}
   bonderPrivateKey: string
@@ -84,6 +89,7 @@ type Config = {
   db: DbConfig
   sync: SyncConfigs
   metrics: MetricsConfig
+  commitTransfers: CommitTransfersConfig
   fees: Fees
   routes: Routes
 }
@@ -103,14 +109,14 @@ const normalizeNetwork = (network: string) => {
   return network
 }
 
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'tokens' | 'networks' | 'bonders' | 'metadata' | 'isMainnet'> => {
-  const { addresses: tokens, networks, bonders, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'networks' | 'bonders' | 'metadata' | 'isMainnet'> => {
+  const { addresses, networks, bonders, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
 
   return {
     network,
-    tokens,
+    addresses,
     networks,
     bonders,
     metadata,
@@ -119,14 +125,15 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'tokens' 
 }
 
 // get default config
-const { tokens, network, networks, metadata, bonders, isMainnet } = getConfigByNetwork(envNetwork)
+const { addresses, network, networks, metadata, bonders, isMainnet } = getConfigByNetwork(envNetwork)
 
 // defaults
 export const config: Config = {
   isMainnet,
-  tokens,
+  addresses,
   network,
   networks,
+  tokens: {},
   bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
   bonders,
@@ -160,13 +167,16 @@ export const config: Config = {
   },
   metrics: {
     enabled: false
+  },
+  commitTransfers: {
+    minThresholdAmount: {}
   }
 }
 
 export const setConfigByNetwork = (network: string) => {
-  const { tokens, networks, bonders, metadata, isMainnet } = getConfigByNetwork(network)
+  const { addresses, networks, bonders, metadata, isMainnet } = getConfigByNetwork(network)
   config.isMainnet = isMainnet
-  config.tokens = tokens
+  config.addresses = addresses
   config.network = normalizeNetwork(network)
   config.networks = networks
   config.bonders = bonders
@@ -175,7 +185,7 @@ export const setConfigByNetwork = (network: string) => {
 
 export const setConfigAddresses = (addresses: Addresses) => {
   const { bridges, bonders } = addresses
-  config.tokens = bridges
+  config.addresses = bridges
   config.bonders = bonders
 }
 
@@ -187,15 +197,6 @@ export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].rpcUrl = rpcUrl
-  }
-}
-
-export const setNetworkWaitConfirmations = (
-  network: string,
-  waitConfirmations: number
-) => {
-  if (config.networks[network]) {
-    config.networks[network].waitConfirmations = waitConfirmations
   }
 }
 
@@ -229,8 +230,8 @@ export const getEnabledTokens = (): string[] => {
 
 export const getEnabledNetworks = (): string[] => {
   const networks: {[network: string]: boolean} = {}
-  for (const token in config.tokens) {
-    for (const network in config.tokens[token]) {
+  for (const token in config.addresses) {
+    for (const network in config.addresses[token]) {
       networks[network] = true
     }
   }
@@ -247,6 +248,14 @@ export const setFeesConfig = (fees: Fees) => {
 
 export const setRoutesConfig = (routes: Routes) => {
   config.routes = { ...config.routes, ...routes }
+}
+
+export const setCommitTransfersConfig = (commitTransfers: CommitTransfersConfig) => {
+  config.commitTransfers = { ...config.commitTransfers, ...commitTransfers }
+}
+
+export const setConfigTokens = (tokens: Tokens) => {
+  config.tokens = { ...config.tokens, ...tokens }
 }
 
 export const chainNativeTokens = ['ETH', 'MATIC', 'DAI']

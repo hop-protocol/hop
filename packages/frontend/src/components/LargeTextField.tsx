@@ -31,8 +31,6 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'flex-end',
   },
   adornment: {
-    // marginLeft: '-0.8rem',
-    // marginRight: theme.padding.extraLight,
     width: 'auto',
     textAlign: 'right',
     [theme.breakpoints.down('xs')]: {
@@ -91,7 +89,6 @@ const useInputStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       fontSize: smallFontSize ? '1.6rem' : theme.typography.subtitle2.fontSize,
       padding: '.5rem',
-      // maxWidth: '70px',
     },
   }),
   focused: {

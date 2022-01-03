@@ -515,11 +515,11 @@ class HopBridge extends Base {
       adjustedBonderFee = BigNumber.from(0)
       adjustedDestinationTxFee = BigNumber.from(0)
     } else if (isHTokenSend) {
-      // sending hTokens do not need to be adjusted for AMM swaps
+      // fees do not need to be adjusted for AMM slippage when sending hTokens
       adjustedBonderFee = bonderFeeRelative
       adjustedDestinationTxFee = destinationTxFee
     } else {
-      // adjusted fee is the fee in the canonical token after adjusting for the hToken price.
+      // adjusted fee is the fee in the canonical token after adjusting for the hToken price
       adjustedBonderFee = await this.calcFromHTokenAmount(
         bonderFeeRelative,
         destinationChain

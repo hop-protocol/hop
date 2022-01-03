@@ -2,6 +2,7 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
@@ -62,7 +63,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       } = dbTransferRoot
       const logger = this.logger.create({ root: transferRootId })
 
-      const availableCredit = this.getAvailableCreditForBond(destinationChainId!)
+      const bondChainId = chainSlugToId(Chain.Ethereum)
+      const availableCredit = this.getAvailableCreditForBond(bondChainId!)
       if (availableCredit.lt(totalAmount!)) {
         logger.debug(
         `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
@@ -139,7 +141,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       }
     }
 
-    const availableCredit = await this.getAvailableCreditForBond(destinationChainId)
+    const bondChainId = chainSlugToId(Chain.Ethereum)
+    const availableCredit = this.getAvailableCreditForBond(bondChainId!)
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
     if (availableCredit.lt(bondAmount)) {
       const msg = `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(

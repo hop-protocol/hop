@@ -2,8 +2,6 @@ name: release
 on:
   push:
     branches:
-      - mainnet
-      - production
 
 jobs:
   set_environment:
@@ -61,7 +59,15 @@ jobs:
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
 
-      - name: Update DNS with new IPFS hash
+      - name: Update Origin Path on CloudFront
+        env:
+          IPFS_DEPLOY_AWS_REGION: ${{ secrets.IPFS_DEPLOY_AWS_REGION }}
+          IPFS_DEPLOY_AWS_ACCESS_KEY_ID: ${{ secrets.IPFS_DEPLOY_AWS_ACCESS_KEY_ID }}
+          IPFS_DEPLOY_AWS_SECRET_ACCESS_KEY: ${{ secrets.IPFS_DEPLOY_AWS_SECRET_ACCESS_KEY }}
+          IPFS_DEPLOY_AWS_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.IPFS_DEPLOY_AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+        run: IPFS_HASH="${{ steps.upload.outputs.hash }}" node ./scripts/update_cloudfront.js
+
+      - name: Update CloudFlare DNS with new IPFS hash
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
           RECORD_DOMAIN: 'hop.exchange'

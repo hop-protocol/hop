@@ -73,7 +73,7 @@ const Web3Context = createContext<Props>(initialState)
 // TODO: modularize
 const walletSelectOptions: WalletSelectModuleOptions = {
   heading: 'Connect Wallet',
-  description: 'Choose a wallet to access Hop',
+  description: '',
   // agreement: {
   //   version: '0.0.1'
   //   termsUrl: '', // optional

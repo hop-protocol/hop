@@ -29,8 +29,6 @@ export function actionHandler (fn: Function) {
         await validateConfigFileStructure(config)
         source.configFilePath = configFilePath
         source.config = config
-      } else {
-        source.config = {}
       }
 
       await validateConfigValues(globalConfig)

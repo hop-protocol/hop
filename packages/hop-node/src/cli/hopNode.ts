@@ -40,6 +40,9 @@ async function main (source: any) {
   logger.debug(`git revision: ${gitRev}`)
 
   const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, dry: dryMode } = source
+  if (!config) {
+    throw new Error('config file is required')
+  }
 
   if (s3Upload) {
     logger.info('s3 upload enabled')

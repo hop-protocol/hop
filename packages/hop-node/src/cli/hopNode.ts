@@ -96,9 +96,6 @@ async function main (source: any) {
   }
   for (const k in globalConfig.networks) {
     const { waitConfirmations, rpcUrl } = globalConfig.networks[k]
-    if (typeof waitConfirmations !== 'number') {
-      throw new Error('waitConfirmations required')
-    }
     logger.info(`${k} wait confirmations: ${waitConfirmations}`)
     logger.info(`${k} rpc: ${rpcUrl}`)
   }

@@ -238,6 +238,14 @@ export const getEnabledNetworks = (): string[] => {
   return Object.keys(networks)
 }
 
+export function getAllChains () {
+  return Object.keys(config.networks)
+}
+
+export function getAllTokens () {
+  return Object.keys(config.addresses)
+}
+
 export const setMetricsConfig = (metricsConfig: MetricsConfig) => {
   config.metrics = { ...config.metrics, ...metricsConfig }
 }

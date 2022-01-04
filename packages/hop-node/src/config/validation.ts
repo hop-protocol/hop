@@ -1,14 +1,14 @@
 import { Chain } from 'src/constants'
-import { Config, FileConfig, Watchers, getEnabledNetworks, getEnabledTokens } from 'src/config'
+import { Config, FileConfig, Watchers, getAllChains, getAllTokens, getEnabledTokens } from 'src/config'
 import { URL } from 'url'
 
 export function isValidToken (token: string) {
-  const validTokens = getEnabledTokens()
+  const validTokens = getAllTokens()
   return validTokens.includes(token)
 }
 
-export function isValidNetwork (network: string) {
-  const networks = getEnabledNetworks()
+export function isValidChain (network: string) {
+  const networks = getAllChains()
   return networks.includes(network)
 }
 
@@ -244,10 +244,9 @@ export async function validateConfigValues (config?: Config) {
     }
   }
 
-  const tokens = getEnabledTokens()
   if (config.commitTransfers) {
     const { minThresholdAmount } = config.commitTransfers
-    for (const token of tokens) {
+    for (const token of getEnabledTokens()) {
       for (const sourceChain in config.routes) {
         if (sourceChain === Chain.Ethereum) {
           continue

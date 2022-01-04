@@ -28,6 +28,7 @@ interface StyleProps {
   onClick?: any
   loading?: boolean
   disabled?: boolean
+  secondary?: boolean
 }
 
 type StylishProps = SpaceProps &

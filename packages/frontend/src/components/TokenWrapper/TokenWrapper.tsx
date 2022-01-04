@@ -8,22 +8,13 @@ import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import { useTokenWrapper } from './TokenWrapperContext'
 import Network from 'src/models/Network'
 import Expandable from './Expandable'
+import { Div, Flex } from '../ui'
 
 const useStyles = makeStyles(theme => ({
-  root: {
-    marginBottom: theme.padding.thick,
-  },
-  tokenWrapper: {
-    marginTop: '1rem',
-    marginBottom: '2rem',
-  },
-  buttons: {
-    marginTop: theme.padding.default,
-    marginBottom: theme.padding.default,
-  },
   button: {
     margin: `0 ${theme.padding.light}`,
-    width: '17.5rem',
+    minWidth: '11rem',
+    transition: 'all 0.15s ease-out, box-shadow 4s ease-out',
   },
   warning: {
     marginBottom: theme.padding.default,
@@ -81,8 +72,8 @@ const TokenWrapper: FC<Props> = (props: Props) => {
 
   return (
     <Expandable title="Wrap/Unwrap">
-      <Box display="flex" alignItems="center" className={styles.tokenWrapper}>
-        <Box display="flex" flexDirection="column" alignItems="center" className={styles.root}>
+      <Flex alignCenter my={1} justifyAround fullWidth>
+        <Flex column alignCenter fullWidth>
           <AmountSelectorCard
             secondaryToken={canonicalToken}
             secondaryBalance={canonicalTokenBalance}
@@ -101,33 +92,37 @@ const TokenWrapper: FC<Props> = (props: Props) => {
             methodName="wrapToken"
             selectedNetwork={selectedNetwork}
           />
-          <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
-            <Button
-              className={styles.button}
-              large
-              highlighted={hasNativeToken}
-              disabled={isWrapping || !hasNativeToken}
-              onClick={handleWrapClick}
-              loading={isWrapping}
-            >
-              Wrap
-            </Button>
-            <Button
-              className={styles.button}
-              large
-              highlighted={hasWrappedToken}
-              disabled={isUnwrapping || !hasWrappedToken}
-              onClick={handleUnwrapClick}
-              loading={isUnwrapping}
-            >
-              Unwrap
-            </Button>
-          </Box>
-          <Box display="flex" flexDirection="row" alignItems="center">
+
+          <Flex my={3} fullWidth justifyAround alignCenter $wrap>
+            <Div mb={[3]}>
+              <Button
+                className={styles.button}
+                highlighted={hasNativeToken}
+                disabled={isWrapping || !hasNativeToken}
+                onClick={handleWrapClick}
+                loading={isWrapping}
+              >
+                Wrap
+              </Button>
+            </Div>
+            <Div mb={[3]}>
+              <Button
+                className={styles.button}
+                highlighted={hasWrappedToken}
+                disabled={isUnwrapping || !hasWrappedToken}
+                onClick={handleUnwrapClick}
+                loading={isUnwrapping}
+              >
+                Unwrap
+              </Button>
+            </Div>
+          </Flex>
+
+          <Flex alignCenter fullWidth>
             <Alert severity="error" onClose={() => setError(null)} text={error} />
-          </Box>
-        </Box>
-      </Box>
+          </Flex>
+        </Flex>
+      </Flex>
     </Expandable>
   )
 }

@@ -21,7 +21,7 @@ const useStyles = makeStyles(theme => ({
       backgroundColor: theme.palette.action.disabled,
     },
     [theme.breakpoints.down('xs')]: {
-      width: '12.4rem',
+      width: '12rem',
     },
   }),
   selectMenu: {

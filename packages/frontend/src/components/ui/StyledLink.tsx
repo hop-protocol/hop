@@ -1,37 +1,9 @@
 import React from 'react'
 import Link, { LinkProps } from '@material-ui/core/Link'
 import styled from 'styled-components/macro'
-import {
-  space,
-  color,
-  layout,
-  typography,
-  flexbox,
-  border,
-  background,
-  shadow,
-  position,
-  FlexboxProps,
-  SpaceProps,
-  ColorProps,
-  LayoutProps,
-  TypographyProps,
-  BorderProps,
-  BackgroundProps,
-  ShadowProps,
-  PositionProps,
-} from 'styled-system'
+import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 
-type StyledLinkProps = LinkProps &
-  SpaceProps &
-  ColorProps &
-  LayoutProps &
-  TypographyProps &
-  FlexboxProps &
-  BorderProps &
-  BackgroundProps &
-  ShadowProps &
-  PositionProps
+type StyledLinkProps = LinkProps & ComposedStyleProps
 
 const StylishLink = styled(Link)<StyledLinkProps & { target: string; rel: string }>`
   &:focus {
@@ -42,17 +14,9 @@ const StylishLink = styled(Link)<StyledLinkProps & { target: string; rel: string
     opacity: 1;
     color: #968fa8;
   }
-  ${space}
-  ${color};
-  ${layout};
-  ${typography};
-  ${border};
-  ${background};
-  ${shadow};
-  ${position};
-  ${flexbox};
+  ${composedStyleFns};
 `
 
-export function StyledLink(props: any) {
+export function StyledLink(props: StyledLinkProps) {
   return <StylishLink target="_blank" rel="noopener noreferrer" {...props} />
 }

@@ -19,6 +19,8 @@ import DetailRow from 'src/components/DetailRow'
 import useQueryParams from 'src/hooks/useQueryParams'
 import Network from 'src/models/Network'
 import { useNeedsTokenForFee } from 'src/hooks'
+import { Div, Flex } from 'src/components/ui'
+import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -53,20 +55,15 @@ const useStyles = makeStyles(theme => ({
     marginTop: '2rem',
   },
   details: {
-    width: '46.0rem',
+    width: '100%',
     marginBottom: '3.4rem',
-    [theme.breakpoints.down('xs')]: {
-      width: '90%',
-    },
+    [theme.breakpoints.down('xs')]: {},
   },
   detailsDropdown: {
-    width: '46.0rem',
-    marginBottom: '3.4rem',
+    width: '100%',
+    marginTop: '2rem',
     '&[open] summary span::before': {
       content: '"▾"',
-    },
-    [theme.breakpoints.down('xs')]: {
-      width: '90%',
     },
   },
   detailsDropdownSummary: {
@@ -137,7 +134,7 @@ const Pools: FC = () => {
     virtualPrice,
     reserveTotalsUsd,
     unsupportedAsset,
-    removing
+    removing,
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -214,9 +211,15 @@ const Pools: FC = () => {
   const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
 
   const needsTokenForFee = useNeedsTokenForFee(selectedNetwork)
-  const token0DepositedFormatted = token0Deposited ? commafy(Number(formatUnits(token0Deposited, canonicalToken?.decimals)), 5) : ''
-  const token1DepositedFormatted = token1Deposited ? commafy(Number(formatUnits(token1Deposited, hopToken?.decimals)), 5) : ''
-  const tokenSumDepositedFormatted = tokenSumDeposited ? commafy(Number(formatUnits(tokenSumDeposited, hopToken?.decimals)), 5) : ''
+  const token0DepositedFormatted = token0Deposited
+    ? commafy(Number(formatUnits(token0Deposited, canonicalToken?.decimals)), 5)
+    : ''
+  const token1DepositedFormatted = token1Deposited
+    ? commafy(Number(formatUnits(token1Deposited, hopToken?.decimals)), 5)
+    : ''
+  const tokenSumDepositedFormatted = tokenSumDeposited
+    ? commafy(Number(formatUnits(tokenSumDeposited, hopToken?.decimals)), 5)
+    : ''
 
   useEffect(() => {
     if (needsTokenForFee && selectedNetwork) {
@@ -235,6 +238,7 @@ const Pools: FC = () => {
           Add Liquidity
         </Typography>
       </Box>
+
       <Box display="flex" alignItems="center" className={styles.tokenSelector}>
         <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleBridgeChange}>
           {bridges.map(bridge => (
@@ -258,6 +262,7 @@ const Pools: FC = () => {
           ))}
         </RaisedSelect>
       </Box>
+
       {unsupportedAsset ? (
         <>
           <Typography variant="subtitle1" color="textSecondary" component="div">
@@ -265,10 +270,11 @@ const Pools: FC = () => {
           </Typography>
         </>
       ) : (
-        <>
-          <Box className={styles.formBox}>
+        <Flex alignCenter column>
+          <Flex mb="3.4rem" alignCenter justifyCenter column>
             <TokenWrapper network={selectedNetwork} />
-            <Box display="flex" alignItems="center">
+
+            <Flex alignCenter fullWidth mt={3}>
               <AmountSelectorCard
                 value={token0Amount}
                 token={canonicalToken}
@@ -278,11 +284,13 @@ const Pools: FC = () => {
                 balance={canonicalBalance}
                 loadingBalance={loadingCanonicalBalance}
               />
-            </Box>
-            <Box display="flex" alignItems="center">
+            </Flex>
+
+            <Flex alignCenter fullWidth>
               <div className={styles.plusDivider}>+</div>
-            </Box>
-            <Box display="flex" alignItems="center">
+            </Flex>
+
+            <Flex alignCenter fullWidth>
               <AmountSelectorCard
                 value={token1Amount}
                 token={hopToken}
@@ -292,33 +300,28 @@ const Pools: FC = () => {
                 balance={hopBalance}
                 loadingBalance={loadingHopBalance}
               />
-            </Box>
-          </Box>
-          <Box className={styles.details}>
+            </Flex>
+          </Flex>
+
+          <Flex column fullWidth>
             <DetailRow
               title={priceImpactLabel}
               tooltip="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens."
               value={`${priceImpactFormatted}`}
             />
             <DetailRow title={'Share of pool'} value={poolSharePercentageFormatted} />
-          </Box>
+          </Flex>
 
           {hasBalance && (
-            <Box className={styles.details}>
+            <Flex column fullWidth mt={3}>
               <Box alignItems="center" className={styles.flexBox}>
                 <Typography variant="subtitle1" color="textSecondary" component="div">
                   Your Position
                 </Typography>
               </Box>
-              <DetailRow
-                title={`LP Tokens`}
-                value={`${commafy(userPoolBalanceFormatted, 5)}`}
-              />
+              <DetailRow title={`LP Tokens`} value={`${commafy(userPoolBalanceFormatted, 5)}`} />
               {userPoolTokenPercentage && (
-                <DetailRow
-                  title={'Pool share'}
-                  value={`${commafy(userPoolTokenPercentage)}%`}
-                />
+                <DetailRow title={'Pool share'} value={`${commafy(userPoolTokenPercentage)}%`} />
               )}
               {token0Deposited && (
                 <DetailRow title={canonicalTokenSymbol} value={token0DepositedFormatted} />
@@ -329,9 +332,10 @@ const Pools: FC = () => {
               {tokenSumDeposited && (
                 <DetailRow
                   title={`${canonicalTokenSymbol}+${hopTokenSymbol}`}
-                  value={tokenSumDepositedFormatted} />
+                  value={tokenSumDepositedFormatted}
+                />
               )}
-            </Box>
+            </Flex>
           )}
           <details open className={styles.detailsDropdown}>
             <summary className={styles.detailsDropdownSummary}>
@@ -344,50 +348,57 @@ const Pools: FC = () => {
                 <span>Pool Stats</span>
               </Typography>
             </summary>
-            <div>
-              <Box className={styles.details}>
-                <DetailRow
-                  title="APR"
-                  tooltip="Annual Percentage Rate (APR) from earning fees"
-                  value={`${aprFormatted}`}
-                />
-                <DetailRow
-                  title="Reserves"
-                  tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
-                  value={`${reserve0Formatted} / ${reserve1Formatted}`}
-                />
-                <DetailRow
-                  title="TVL"
-                  tooltip="Total value locked in USD"
-                  value={`${reserveTotalsUsdFormatted}`}
-                />
-                <DetailRow
-                  title="Virtual Price"
-                  tooltip="The virtual price, to help calculate profit"
-                  value={`${virtualPriceFormatted}`}
-                />
-                <DetailRow
-                  title="Fee"
-                  tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
-                  value={`${feeFormatted}`}
-                />
-              </Box>
-            </div>
+
+            <Flex column fullWidth>
+              <DetailRow
+                title="APR"
+                tooltip="Annual Percentage Rate (APR) from earning fees"
+                value={`${aprFormatted}`}
+              />
+              <DetailRow
+                title="Reserves"
+                tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
+                value={`${reserve0Formatted} / ${reserve1Formatted}`}
+              />
+              <DetailRow
+                title="TVL"
+                tooltip="Total value locked in USD"
+                value={`${reserveTotalsUsdFormatted}`}
+              />
+              <DetailRow
+                title="Virtual Price"
+                tooltip="The virtual price, to help calculate profit"
+                value={`${virtualPriceFormatted}`}
+              />
+              <DetailRow
+                title="Fee"
+                tooltip={`Each trade has a ${feeFormatted} fee that goes to liquidity providers`}
+                value={`${feeFormatted}`}
+              />
+            </Flex>
           </details>
+
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error" onClose={() => setError(null)} text={error} />
-          <SendButton />
-          {hasBalance && (
-            <Button
-              className={styles.removeLiquidityButton}
-              onClick={handleRemoveLiquidityClick}
-              loading={removing}
-              large
-            >
-              Remove Liquidity
-            </Button>
-          )}
-        </>
+
+          <ButtonsWrapper>
+            <Div mt={4}>
+              <SendButton />
+
+              {hasBalance && (
+                <Button
+                  className={styles.removeLiquidityButton}
+                  onClick={handleRemoveLiquidityClick}
+                  loading={removing}
+                  large
+                  fullWidth
+                >
+                  Remove Liquidity
+                </Button>
+              )}
+            </Div>
+          </ButtonsWrapper>
+        </Flex>
       )}
     </Box>
   )

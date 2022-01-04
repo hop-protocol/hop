@@ -24,9 +24,6 @@ function CustomRecipientDropdown(props) {
           Custom recipient
         </Typography>
         <LargeTextField
-          style={{
-            width: '100%'
-          }}
           leftAlign
           value={customRecipient}
           onChange={handleCustomRecipientInput}

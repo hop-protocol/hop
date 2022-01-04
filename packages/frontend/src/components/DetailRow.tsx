@@ -4,6 +4,7 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import InfoTooltip from 'src/components/infoTooltip'
 import classnames from 'classnames'
+import { Flex } from './ui'
 
 export type DetailRowProps = {
   title: string
@@ -37,24 +38,21 @@ const useStyles = makeStyles<Theme, StyleProps>(theme => {
   }
 
   return {
-    box: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
     detailLabel: {
       display: 'flex',
-      justifyContent: 'flex-start',
       alignItems: 'center',
     },
     label,
-    xlabel: Object.assign({
-      fontSize: '2.8rem',
-      textAlign: 'right',
-      [theme.breakpoints.down('xs')]: {
-        fontSize: '2rem',
-      },
-    } as any, label)
+    xlabel: Object.assign(
+      {
+        fontSize: '2.8rem',
+        textAlign: 'right',
+        [theme.breakpoints.down('xs')]: {
+          fontSize: '2rem',
+        },
+      } as any,
+      label
+    ),
   }
 })
 
@@ -70,26 +68,29 @@ const DetailRow: FC<DetailRowProps> = props => {
     contrastText = false,
   } = props
   const styles = useStyles({ highlighted, bold, contrastText })
-  const variant : any = xlarge || large ? 'h6' : 'subtitle2'
+  const variant = xlarge || large ? 'h6' : 'subtitle2'
 
   return (
-    <Box className={styles.box}>
+    <Flex justifyBetween alignCenter fullWidth mt="1rem">
       <Typography
         variant={variant}
         color="textSecondary"
         className={classnames(styles.detailLabel, styles.label)}
       >
-        {title + ' '}
+        <Flex $wrap maxWidth={[100, 1000]}>
+          {title}&nbsp;
+        </Flex>
         {tooltip ? <InfoTooltip title={tooltip} /> : null}
       </Typography>
       <Typography
+        align="right"
         variant={variant}
         color="textSecondary"
         className={xlarge ? styles.xlabel : styles.label}
       >
         {value || '•'}
       </Typography>
-    </Box>
+    </Flex>
   )
 }
 

@@ -1,14 +1,14 @@
 import { Chain } from 'src/constants'
-import { FileConfig, Watchers, getEnabledNetworks, getEnabledTokens } from 'src/config'
+import { Config, FileConfig, Watchers, getAllChains, getAllTokens, getEnabledTokens } from 'src/config'
 import { URL } from 'url'
 
 export function isValidToken (token: string) {
-  const validTokens = getEnabledTokens()
+  const validTokens = getAllTokens()
   return validTokens.includes(token)
 }
 
-export function isValidNetwork (network: string) {
-  const networks = getEnabledNetworks()
+export function isValidChain (network: string) {
+  const networks = getAllChains()
   return networks.includes(network)
 }
 
@@ -20,7 +20,7 @@ export function validateKeys (validKeys: string[] = [], keys: string[]) {
   }
 }
 
-export async function validateConfig (config?: FileConfig) {
+export async function validateConfigFileStructure (config?: FileConfig) {
   if (!config) {
     throw new Error('config is required')
   }
@@ -57,9 +57,7 @@ export async function validateConfig (config?: FileConfig) {
     Watchers.xDomainMessageRelay
   ]
 
-  const sectionKeys = Object.keys(config)
-  validateKeys(validSectionKeys, sectionKeys)
-  const validNetworkKeys = [
+  const validChainKeys = [
     Chain.Ethereum,
     Chain.Optimism,
     Chain.Arbitrum,
@@ -76,52 +74,28 @@ export async function validateConfig (config?: FileConfig) {
     'WBTC'
   ]
 
-  let enabledChains: string[] = []
-  if (config.chains) {
-    enabledChains = Object.keys(config.chains)
-    validateKeys(validNetworkKeys, enabledChains)
-    const validChainKeys = ['rpcUrl', 'waitConfirmations']
-    if (!enabledChains.includes(Chain.Ethereum)) {
-      throw new Error(`config for chain "${Chain.Ethereum}" is required`)
-    }
-    for (const chain in config.chains) {
-      validateKeys(validChainKeys, Object.keys(config.chains[chain]))
-      if (!config.chains[chain]) {
-        throw new Error(`RPC config for chain "${chain}" is required`)
-      }
-      const { rpcUrl, waitConfirmations } = config.chains[chain]
-      if (!rpcUrl) {
-        throw new Error(`RPC url for chain "${chain}" is required`)
-      }
-      try {
-        const parsed = new URL(rpcUrl)
-        if (!parsed.protocol || !parsed.host || !['http:', 'https:'].includes(parsed.protocol)) {
-          throw new URIError()
-        }
-      } catch (err) {
-        throw new Error(`rpc url "${rpcUrl}" is invalid`)
-      }
-      if (waitConfirmations != null) {
-        if (typeof waitConfirmations !== 'number') {
-          throw new Error(`waitConfirmations for chain "${chain}" must be a number`)
-        }
-        if (waitConfirmations <= 0) {
-          throw new Error(`waitConfirmations for chain "${chain}" must be greater than 0`)
-        }
-      }
-    }
+  const sectionKeys = Object.keys(config)
+  validateKeys(validSectionKeys, sectionKeys)
+
+  const enabledChains = Object.keys(config.chains)
+  if (!enabledChains.includes(Chain.Ethereum)) {
+    throw new Error(`config for chain "${Chain.Ethereum}" is required`)
   }
 
-  let enabledTokens: string[] = []
-  if (config.tokens) {
-    enabledTokens = Object.keys(config.tokens).filter(token => config.tokens[token])
-    validateKeys(validTokenKeys, enabledTokens)
+  validateKeys(validChainKeys, enabledChains)
+
+  for (const key in config.chains) {
+    const chain = config.chains[key]
+    const validChainConfigKeys = ['rpcUrl']
+    const chainKeys = Object.keys(chain)
+    validateKeys(validChainConfigKeys, chainKeys)
   }
 
-  if (config.watchers) {
-    const watcherKeys = Object.keys(config.watchers)
-    validateKeys(validWatcherKeys, watcherKeys)
-  }
+  const enabledTokens = Object.keys(config.tokens).filter(token => config.tokens[token])
+  validateKeys(validTokenKeys, enabledTokens)
+
+  const watcherKeys = Object.keys(config.watchers)
+  validateKeys(validWatcherKeys, watcherKeys)
 
   if (config.db) {
     const validDbKeys = ['location']
@@ -225,6 +199,59 @@ export async function validateConfig (config?: FileConfig) {
           if (!minThresholdAmount[token][sourceChain][destinationChain]) {
             throw new Error(`missing minThresholdAmount config for token "${token}" source chain "${sourceChain}" destination chain "${destinationChain}"`)
           }
+        }
+      }
+    }
+  }
+}
+
+export async function validateConfigValues (config?: Config) {
+  if (!config) {
+    throw new Error('config is required')
+  }
+
+  if (!(config instanceof Object)) {
+    throw new Error('config must be a JSON object')
+  }
+
+  for (const chainSlug in config.networks) {
+    const chain = config.networks[chainSlug]
+    if (!chain) {
+      throw new Error(`RPC config for chain "${chain}" is required`)
+    }
+    const { rpcUrl, waitConfirmations } = chain
+    if (!rpcUrl) {
+      throw new Error(`RPC url for chain "${chainSlug}" is required`)
+    }
+    if (typeof rpcUrl !== 'string') {
+      throw new Error(`RPC url for chain "${chainSlug}" must be a string`)
+    }
+    try {
+      const parsed = new URL(rpcUrl)
+      if (!parsed.protocol || !parsed.host || !['http:', 'https:'].includes(parsed.protocol)) {
+        throw new URIError()
+      }
+    } catch (err) {
+      throw new Error(`rpc url "${rpcUrl}" is invalid`)
+    }
+    if (waitConfirmations != null) {
+      if (typeof waitConfirmations !== 'number') {
+        throw new Error(`waitConfirmations for chain "${chainSlug}" must be a number`)
+      }
+      if (waitConfirmations <= 0) {
+        throw new Error(`waitConfirmations for chain "${chainSlug}" must be greater than 0`)
+      }
+    }
+  }
+
+  if (config.commitTransfers) {
+    const { minThresholdAmount } = config.commitTransfers
+    for (const token of getEnabledTokens()) {
+      for (const sourceChain in config.routes) {
+        if (sourceChain === Chain.Ethereum) {
+          continue
+        }
+        for (const destinationChain in config.routes[sourceChain]) {
           if (typeof minThresholdAmount[token][sourceChain][destinationChain] !== 'number') {
             throw new Error(`minThresholdAmount config for token "${token}" source chain "${sourceChain}" destination chain "${destinationChain}" must be a number`)
           }

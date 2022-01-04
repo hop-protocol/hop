@@ -72,7 +72,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
     this.started = true
     try {
       const l2TokenAddress =
-        globalConfig.tokens[this.tokenSymbol][Chain.Polygon]?.l2CanonicalToken
+        globalConfig.addresses[this.tokenSymbol][Chain.Polygon]?.l2CanonicalToken
       if (!l2TokenAddress) {
         throw new Error(
           `no token address found for ${this.tokenSymbol} on ${Chain.Polygon}`
@@ -141,7 +141,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
     const recipient = await this.l1Wallet.getAddress()
 
     const rootTunnel =
-      globalConfig.tokens[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
+      globalConfig.addresses[tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
     const tx = await (this.maticPOSClient).posRootChainManager.processReceivedMessage(
       rootTunnel,
       txHash,

@@ -40,6 +40,9 @@ async function main (source: any) {
   logger.debug(`git revision: ${gitRev}`)
 
   const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, dry: dryMode } = source
+  if (!config) {
+    throw new Error('config file is required')
+  }
 
   if (s3Upload) {
     logger.info('s3 upload enabled')
@@ -93,9 +96,6 @@ async function main (source: any) {
   }
   for (const k in globalConfig.networks) {
     const { waitConfirmations, rpcUrl } = globalConfig.networks[k]
-    if (typeof waitConfirmations !== 'number') {
-      throw new Error('waitConfirmations required')
-    }
     logger.info(`${k} wait confirmations: ${waitConfirmations}`)
     logger.info(`${k} rpc: ${rpcUrl}`)
   }

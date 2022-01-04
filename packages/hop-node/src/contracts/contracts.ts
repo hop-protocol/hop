@@ -12,26 +12,26 @@ const getL1BridgeContract = (token: string) => {
   let abi: any
   if (token === 'USDC') {
     return L1ERC20BridgeLegacy__factory.connect(
-      globalConfig.tokens[token][Chain.Ethereum].l1Bridge,
+      globalConfig.addresses[token][Chain.Ethereum].l1Bridge,
       wallets.get(Chain.Ethereum)
     )
   }
   return L1ERC20Bridge__factory.connect(
-    globalConfig.tokens[token][Chain.Ethereum].l1Bridge,
+    globalConfig.addresses[token][Chain.Ethereum].l1Bridge,
     wallets.get(Chain.Ethereum)
   )
 }
 
 const getL1TokenContract = (token: string) => {
   return ERC20__factory.connect(
-    globalConfig.tokens[token][Chain.Ethereum].l1CanonicalToken,
+    globalConfig.addresses[token][Chain.Ethereum].l1CanonicalToken,
     wallets.get(Chain.Ethereum)
   )
 }
 
 const getL2TokenContract = (token: string, network: string, wallet: Signer | Provider) => {
   return ERC20__factory.connect(
-    globalConfig.tokens[token][network].l2CanonicalToken,
+    globalConfig.addresses[token][network].l2CanonicalToken,
     wallet
   )
 }
@@ -42,14 +42,14 @@ const getL2HopBridgeTokenContract = (
   wallet: Signer | Provider
 ) => {
   return ERC20__factory.connect(
-    globalConfig.tokens[token][network].l2HopBridgeToken,
+    globalConfig.addresses[token][network].l2HopBridgeToken,
     wallet
   )
 }
 
 const getL2BridgeContract = (token: string, network: string, wallet: Signer | Provider) => {
   return L2Bridge__factory.connect(
-    globalConfig.tokens[token][network].l2Bridge,
+    globalConfig.addresses[token][network].l2Bridge,
     wallet
   )
 }
@@ -60,7 +60,7 @@ const getL2AmmWrapperContract = (
   wallet: Signer | Provider
 ) => {
   return L2AmmWrapper__factory.connect(
-    globalConfig.tokens[token][network].l2AmmWrapper,
+    globalConfig.addresses[token][network].l2AmmWrapper,
     wallet
   )
 }
@@ -71,16 +71,16 @@ const getL2SaddleSwapContract = (
   wallet: Signer | Provider
 ) => {
   return SaddleLpToken__factory.connect(
-    globalConfig.tokens[token][network].l2SaddleSwap,
+    globalConfig.addresses[token][network].l2SaddleSwap,
     wallet
   )
 }
 
 const constructContractsObject = memoize((token: string) => {
-  if (!globalConfig.tokens[token]) {
+  if (!globalConfig.addresses[token]) {
     return null
   }
-  return Object.keys(globalConfig.tokens[token]).reduce<any>((obj, network) => {
+  return Object.keys(globalConfig.addresses[token]).reduce<any>((obj, network) => {
     const wallet = wallets.get(network)
     if (!wallet) {
       return obj

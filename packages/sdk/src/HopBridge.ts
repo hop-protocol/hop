@@ -457,8 +457,9 @@ class HopBridge extends Base {
   // ToDo: Docs
   public async getSendData (
     amountIn: BigNumberish,
-    sourceChain?: TChain,
-    destinationChain?: TChain
+    sourceChain: TChain,
+    destinationChain: TChain,
+    isHTokenSend: boolean = false
   ) {
     amountIn = BigNumber.from(amountIn)
     sourceChain = this.toChainModel(sourceChain)
@@ -506,20 +507,31 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    let totalFee = BigNumber.from(0)
-    let adjustedBonderFee = BigNumber.from(0)
-    let adjustedDestinationTxFee = BigNumber.from(0)
-    if (!sourceChain.isL1) {
-      // adjustedFee is the fee in the canonical token after adjusting for the hToken price.
-      adjustedBonderFee = await this.calcFromHTokenAmount(
-        bonderFeeRelative,
-        destinationChain
-      )
+    let adjustedBonderFee
+    let adjustedDestinationTxFee
+    let totalFee
+    if (sourceChain.isL1) {
+      // there are no Hop fees when the source is L1
+      adjustedBonderFee = BigNumber.from(0)
+      adjustedDestinationTxFee = BigNumber.from(0)
+      totalFee = BigNumber.from(0)
+    } else {
+      if (isHTokenSend) {
+        // fees do not need to be adjusted for AMM slippage when sending hTokens
+        adjustedBonderFee = bonderFeeRelative
+        adjustedDestinationTxFee = destinationTxFee
+      } else {
+        // adjusted fee is the fee in the canonical token after adjusting for the hToken price
+        adjustedBonderFee = await this.calcFromHTokenAmount(
+          bonderFeeRelative,
+          destinationChain
+        )
 
-      adjustedDestinationTxFee = await this.calcFromHTokenAmount(
-        destinationTxFee,
-        destinationChain
-      )
+        adjustedDestinationTxFee = await this.calcFromHTokenAmount(
+          destinationTxFee,
+          destinationChain
+        )
+      }
 
       // enforce bonderFeeAbsolute after adjustment
       const bonderFeeAbsolute = await this.getBonderFeeAbsolute()

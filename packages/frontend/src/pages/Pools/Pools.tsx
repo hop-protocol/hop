@@ -20,6 +20,7 @@ import useQueryParams from 'src/hooks/useQueryParams'
 import Network from 'src/models/Network'
 import { useNeedsTokenForFee } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
+import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -269,7 +270,7 @@ const Pools: FC = () => {
           </Typography>
         </>
       ) : (
-        <Div>
+        <Flex alignCenter column>
           <Flex mb="3.4rem" alignCenter justifyCenter column>
             <TokenWrapper network={selectedNetwork} />
 
@@ -380,21 +381,24 @@ const Pools: FC = () => {
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error" onClose={() => setError(null)} text={error} />
 
-          <Div mt={4}>
-            <SendButton />
+          <ButtonsWrapper>
+            <Div mt={4}>
+              <SendButton />
 
-            {hasBalance && (
-              <Button
-                className={styles.removeLiquidityButton}
-                onClick={handleRemoveLiquidityClick}
-                loading={removing}
-                large
-              >
-                Remove Liquidity
-              </Button>
-            )}
-          </Div>
-        </Div>
+              {hasBalance && (
+                <Button
+                  className={styles.removeLiquidityButton}
+                  onClick={handleRemoveLiquidityClick}
+                  loading={removing}
+                  large
+                  fullWidth
+                >
+                  Remove Liquidity
+                </Button>
+              )}
+            </Div>
+          </ButtonsWrapper>
+        </Flex>
       )}
     </Box>
   )

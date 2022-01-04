@@ -36,6 +36,7 @@ const SendButton: FC<Props> = (props: Props) => {
       loading={sending}
       large
       highlighted
+      fullWidth
     >
       {buttonText}
     </Button>

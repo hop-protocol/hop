@@ -34,6 +34,7 @@ import {
   useBalance,
   useNativeTokenMaxValue,
 } from 'src/hooks'
+import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -705,7 +706,7 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
 
-      <Flex m="2rem" justifyAround alignCenter $wrap width={['450px']}>
+      <ButtonsWrapper>
         {!sendButtonActive && (
           <Div mb={[3]} fullWidth={approveButtonActive}>
             <Button
@@ -735,7 +736,7 @@ const Send: FC = () => {
             Send
           </Button>
         </Div>
-      </Flex>
+      </ButtonsWrapper>
 
       <Flex mt={1}>
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />

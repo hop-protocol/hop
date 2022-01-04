@@ -12,6 +12,7 @@ import TokenWrapper from 'src/components/TokenWrapper'
 import { sanitizeNumericalString } from 'src/utils'
 import { MethodNames } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
+import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -150,9 +151,9 @@ const ConvertContent: FC = () => {
           <Alert severity="error" onClose={() => setError(undefined)} text={error} />
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
-          <Flex m="2rem" justifyAround alignCenter $wrap maxWidth={['450px']}>
+          <ButtonsWrapper>
             {!sendButtonActive && (
-              <Div mb={[3]}>
+              <Div mb={[3]} fullWidth={approvalButtonActive}>
                 <Button
                   className={styles.button}
                   large
@@ -167,7 +168,7 @@ const ConvertContent: FC = () => {
               </Div>
             )}
 
-            <Div mb={[3]}>
+            <Div mb={[3]} fullWidth={sendButtonActive}>
               <Button
                 className={styles.button}
                 onClick={handleSend}
@@ -180,7 +181,7 @@ const ConvertContent: FC = () => {
                 Convert
               </Button>
             </Div>
-          </Flex>
+          </ButtonsWrapper>
         </>
       )}
     </Box>

@@ -10,7 +10,7 @@ type Props = {
 
 const useStyles = makeStyles(theme => ({
   tooltip: {
-    maxWidth: '10rem',
+    maxWidth: '100rem',
   },
 }))
 

@@ -4,6 +4,10 @@ aside.bn-onboard-modal {
   font-family: 'Nunito' !important;
 }
 
+.bn-onboard-custom .bn-onboard-modal {
+  font-family: 'Nunito';
+}
+
 .bn-onboard-custom.bn-onboard-modal-content-header-icon {
   display: none;
 }
@@ -35,7 +39,6 @@ aside.bn-onboard-modal {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  font-family: 'Nunito';
 }
 
 .bn-onboard-custom.bn-onboard-icon-button {
@@ -54,6 +57,7 @@ aside.bn-onboard-modal {
   width: 20%;
 }
 
+/* More Wallets */
 .bn-onboard-custom.bn-onboard-prepare-button.cta.bn-onboard-prepare-button-center {
   display: flex;
   align-items: center;
@@ -67,7 +71,12 @@ aside.bn-onboard-modal {
   background-color: transparent;
 }
 
+/* What is a wallet? */
 .bn-onboard-custom.bn-onboard-select-wallet-info.svelte-w9ftfy {
   font-family: 'Nunito' !important;
   color: white;
+}
+
+a.bn-onboard-clickable {
+  font-size: 10pt !important;
 }

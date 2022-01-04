@@ -104,7 +104,7 @@ const walletSelectOptions: WalletSelectModuleOptions = {
         80001: getRpcUrl(Chain.Polygon),
       },
     },
-    { walletName: 'walletLink', rpcUrl: getRpcUrl(L1_NETWORK), appName: 'Hop' },
+    { walletName: 'walletLink', preferred: true, rpcUrl: getRpcUrl(L1_NETWORK), appName: 'Hop' },
   ],
 }
 

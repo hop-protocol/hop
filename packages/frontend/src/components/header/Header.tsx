@@ -208,6 +208,3 @@ const Header: FC = () => {
 }
 
 export default Header
-
-// <div className={styles.balancePill} title={connectedNetwork?.name}>
-// </div>

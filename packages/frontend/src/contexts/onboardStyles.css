@@ -80,3 +80,7 @@ aside.bn-onboard-modal {
 a.bn-onboard-clickable {
   font-size: 10pt !important;
 }
+
+div.bn-branding {
+  display: none;
+}

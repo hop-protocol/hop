@@ -170,7 +170,7 @@ const Web3ContextProvider: FC = ({ children }) => {
       networkId: Number(networks[L1_NETWORK].networkId),
       // darkMode: isDarkMode,
       // blockPollingInterval: 4000,
-      // hideBranding: true,
+      hideBranding: true,
       // Callback functions that get called whenever the corresponding value changes
       subscriptions: {
         address: (address: string) => {

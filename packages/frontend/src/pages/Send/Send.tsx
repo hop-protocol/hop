@@ -705,9 +705,9 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
 
-      <Flex m="2rem" justifyAround alignCenter $wrap maxWidth={['450px']}>
+      <Flex m="2rem" justifyAround alignCenter $wrap width={['450px']}>
         {!sendButtonActive && (
-          <Div mb={[3]}>
+          <Div mb={[3]} fullWidth={approveButtonActive}>
             <Button
               className={styles.button}
               large
@@ -721,7 +721,7 @@ const Send: FC = () => {
             </Button>
           </Div>
         )}
-        <Div mb={[3]}>
+        <Div mb={[3]} fullWidth={sendButtonActive}>
           <Button
             className={styles.button}
             startIcon={sendButtonActive && <SendIcon />}

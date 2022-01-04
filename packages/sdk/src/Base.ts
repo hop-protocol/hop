@@ -79,7 +79,7 @@ class Base {
   private chains: Record<string, any>
   private bonders :Record<string, any>
   fees : { [token: string]: Record<string, number>}
-  gasPriceMultiplier: number = 1
+  gasPriceMultiplier: number = 0
   destinationFeeGasPriceMultiplier : number = 1
 
   /**
@@ -449,7 +449,7 @@ class Base {
   // Transaction overrides options
   public async txOverrides (chain: Chain) {
     const txOptions: any = {}
-    if (this.gasPriceMultiplier) {
+    if (this.gasPriceMultiplier > 0) {
       txOptions.gasPrice = await this.getBumpedGasPrice(
         this.signer,
         this.gasPriceMultiplier

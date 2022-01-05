@@ -12,7 +12,7 @@ import contracts from 'src/contracts'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { Chain } from 'src/constants'
 import { MetricsServer } from 'src/metrics'
-import { Watchers, config as globalConfig, getAllTokens, getAllChains } from 'src/config'
+import { Watchers, getAllChains, getAllTokens, config as globalConfig } from 'src/config'
 
 const logger = new Logger('config')
 
@@ -324,4 +324,3 @@ export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: stri
     return watcher
   })
 }
-

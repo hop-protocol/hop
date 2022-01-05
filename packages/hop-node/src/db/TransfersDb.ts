@@ -5,36 +5,34 @@ import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransfer {
-  transferRootId?: string
-  transferRootHash?: string
-  destinationChainId?: number
-  destinationChainSlug?: string
-  sourceChainId?: number
-  sourceChainSlug?: string
-  withdrawalBondSettled?: boolean
-  withdrawalBonded?: boolean
-  withdrawalBonder?: string
-  withdrawalBondedTxHash?: string
-  withdrawalBondTxError?: TxError
-  withdrawalBondBackoffIndex?: number
-  bondWithdrawalAttemptedAt?: number
-  isTransferSpent?: boolean
-  transferSpentTxHash?: string
-
-  recipient?: string
   amount?: BigNumber
   amountOutMin?: BigNumber
   bonderFee?: BigNumber
-  transferNonce?: string
+  bondWithdrawalAttemptedAt?: number
+  committed?: boolean
   deadline?: BigNumber
-  transferSentTimestamp?: number
-  transferSentTxHash?: string
+  destinationChainId?: number
+  destinationChainSlug?: string
+  isBondable?: boolean
+  isNotFound?: boolean
+  isTransferSpent?: boolean
+  recipient?: string
+  sourceChainId?: number
+  sourceChainSlug?: string
+  transferNonce?: string
+  transferRootHash?: string
+  transferRootId?: string
   transferSentBlockNumber?: number
   transferSentIndex?: number
-
-  isBondable?: boolean
-  committed?: boolean
-  isNotFound?: boolean
+  transferSentTimestamp?: number
+  transferSentTxHash?: string
+  transferSpentTxHash?: string
+  withdrawalBondBackoffIndex?: number
+  withdrawalBonded?: boolean
+  withdrawalBondedTxHash?: string
+  withdrawalBonder?: string
+  withdrawalBondSettled?: boolean
+  withdrawalBondTxError?: TxError
 }
 
 export interface Transfer extends BaseTransfer {

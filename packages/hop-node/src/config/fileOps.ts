@@ -2,13 +2,14 @@ import Logger, { setLogLevel } from 'src/logger'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { Chain } from 'src/constants'
 import {
-  CommitTransfersConfig,
-  Fees, Routes, Watchers, defaultConfigFilePath,
+  Bonders,
+  CommitTransfersConfig, Fees, Routes, Watchers,
+  defaultConfigFilePath,
   setBonderPrivateKey,
   setCommitTransfersConfig,
   setConfigAddresses,
+  setConfigBonders,
   setConfigByNetwork,
   setConfigTokens,
   setDbPath,
@@ -19,6 +20,7 @@ import {
   setStateUpdateAddress,
   setSyncConfig
 } from './config'
+import { Chain } from 'src/constants'
 import { getParameter } from 'src/aws/parameterStore'
 import { promptPassphrase } from 'src/prompt'
 import { recoverKeystore } from 'src/keystore'
@@ -94,6 +96,7 @@ export type FileConfig = {
   metrics?: MetricsConfig
   fees?: Fees
   routes: Routes
+  bonders?: Bonders
 }
 
 export async function setGlobalConfigFromConfigFile (
@@ -216,6 +219,10 @@ export async function setGlobalConfigFromConfigFile (
 
   if (config.commitTransfers != null) {
     setCommitTransfersConfig(config.commitTransfers)
+  }
+
+  if (config.bonders) {
+    setConfigBonders(config.bonders)
   }
 }
 

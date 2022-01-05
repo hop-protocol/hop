@@ -63,6 +63,7 @@ type KeystoreConfig = {
   pass?: string
   passwordFile?: string
   parameterStore?: string
+  awsRegion?: string
 }
 
 type LoggingConfig = {
@@ -123,13 +124,14 @@ export async function setGlobalConfigFromConfigFile (
     if (!passphrase) {
       let passwordFilePath = passwordFile ?? config.keystore.passwordFile
       const parameterStoreName = config.keystore.parameterStore
+      const awsRegion = config.keystore.awsRegion
       if (passwordFilePath) {
         passwordFilePath = path.resolve(
           passwordFilePath.replace('~', os.homedir())
         )
         passphrase = fs.readFileSync(passwordFilePath, 'utf8').trim()
       } else if (parameterStoreName) {
-        passphrase = await getParameter(parameterStoreName)
+        passphrase = await getParameter(parameterStoreName, awsRegion)
       } else {
         passphrase = (await promptPassphrase()) as string
       }

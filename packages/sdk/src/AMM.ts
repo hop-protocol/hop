@@ -245,7 +245,10 @@ class AMM extends Base {
     tokenAmount: TAmount,
     tokenIndex: number
   ) {
-    const account = await this.getSignerAddress()
+    const recipient = await this.getSignerAddress()
+    if (!recipient) {
+      throw new Error('recipient address is required')
+    }
     const saddleSwap = await this.getSaddleSwap()
     const overrides = await this.txOverrides(this.chain)
     if (this.chain.equals(Chain.Polygon)) {
@@ -253,7 +256,7 @@ class AMM extends Base {
     }
 
     return saddleSwap.calculateRemoveLiquidityOneToken(
-      account,
+      recipient,
       tokenAmount,
       tokenIndex,
       overrides
@@ -285,6 +288,9 @@ class AMM extends Base {
     const amounts = [amount0, amount1]
     const saddleSwap = await this.getSaddleSwap()
     const recipient = await this.getSignerAddress()
+    if (!recipient) {
+      throw new Error('recipient address is required')
+    }
     const isDeposit = true
     const total = await this.getReservesTotal()
     if (total.lte(0)) {
@@ -307,6 +313,9 @@ class AMM extends Base {
   public async calculateRemoveLiquidityMinimum (lpTokenAmount: TAmount) {
     const saddleSwap = await this.getSaddleSwap()
     const recipient = await this.getSignerAddress()
+    if (!recipient) {
+      throw new Error('recipient address is required')
+    }
     const overrides = await this.txOverrides(this.chain)
     if (this.chain.equals(Chain.Polygon)) {
       overrides.gasLimit = 200000
@@ -326,6 +335,9 @@ class AMM extends Base {
     const amounts = [amount0, amount1]
     const saddleSwap = await this.getSaddleSwap()
     const recipient = await this.getSignerAddress()
+    if (!recipient) {
+      throw new Error('recipient address is required')
+    }
     const isDeposit = false
 
     return saddleSwap.calculateTokenAmount(

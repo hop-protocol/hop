@@ -6,7 +6,6 @@ import Watcher from './watchers/Watcher'
 import _version from './version'
 import { Chain, Token } from './models'
 import { Event } from './watchers/BaseWatcher'
-import { Signer } from 'ethers'
 import { TChain, TProvider, TToken } from './types'
 
 /**
@@ -128,22 +127,6 @@ class Hop extends Base {
   connect (signer: TProvider) {
     this.signer = signer
     return new Hop(this.network, signer, this.chainProviders)
-  }
-
-  /**
-   * @desc Returns the connected signer address.
-   * @returns {String} Ethers signer address.
-   * @example
-   *```js
-   *import { Hop } from '@hop-protocol/sdk'
-   *
-   *const hop = new Hop()
-   *const address = await hop.getSignerAddress()
-   *console.log(address)
-   *```
-   */
-  public getSignerAddress () {
-    return (this.signer as Signer).getAddress()
   }
 
   /**

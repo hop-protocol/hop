@@ -322,13 +322,8 @@ class Base {
    *```
    */
   public async getSignerAddress () {
-    if (!this.signer) {
-      throw new Error('signer not connected')
-    }
     if (Signer.isSigner(this.signer)) {
       return (this.signer as Signer)?.getAddress()
-    } else {
-      throw new Error('signer is a provider and has no address')
     }
   }
 
@@ -459,7 +454,7 @@ class Base {
     // Not all Polygon nodes follow recommended 30 Gwei gasPrice
     // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
     if (chain.equals(Chain.Polygon)) {
-      if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
+      if (txOptions.gasPrice?.lt(MinPolygonGasPrice)) {
         txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
       }
     }

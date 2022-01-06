@@ -1,6 +1,7 @@
 import { Chain } from 'src/constants'
 import { Config, FileConfig, Watchers, getAllChains, getAllTokens, getEnabledTokens } from 'src/config'
 import { URL } from 'url'
+import { getAddress as checksumAddress } from 'ethers/lib/utils'
 
 export function isValidToken (token: string) {
   const validTokens = getAllTokens()
@@ -204,6 +205,29 @@ export async function validateConfigFileStructure (config?: FileConfig) {
       }
     }
   }
+
+  if (config.bonders) {
+    const bonders = config.bonders as any
+    if (!(bonders instanceof Object)) {
+      throw new Error('bonders config should be an object')
+    }
+    const tokens = Object.keys(bonders)
+    validateKeys(enabledTokens, tokens)
+    for (const token in bonders) {
+      if (!(bonders[token] instanceof Object)) {
+        throw new Error(`bonders config for "${token}" should be an object`)
+      }
+      const sourceChains = Object.keys(bonders[token])
+      validateKeys(enabledChains, sourceChains)
+      for (const sourceChain in bonders[token]) {
+        if (!(bonders[token][sourceChain] instanceof Object)) {
+          throw new Error(`bonders config for "${token}.${sourceChain}" should be an object`)
+        }
+        const destinationChains = Object.keys(bonders[token][sourceChain])
+        validateKeys(enabledChains, destinationChains)
+      }
+    }
+  }
 }
 
 export async function validateConfigValues (config?: Config) {
@@ -255,6 +279,25 @@ export async function validateConfigValues (config?: Config) {
         for (const destinationChain in config.routes[sourceChain]) {
           if (typeof minThresholdAmount[token][sourceChain][destinationChain] !== 'number') {
             throw new Error(`minThresholdAmount config for token "${token}" source chain "${sourceChain}" destination chain "${destinationChain}" must be a number`)
+          }
+        }
+      }
+    }
+  }
+
+  if (config.bonders) {
+    const bonders = config.bonders as any
+    for (const token in bonders) {
+      for (const sourceChain in bonders[token]) {
+        for (const destinationChain in bonders[token][sourceChain]) {
+          const bonderAddress = bonders[token][sourceChain][destinationChain]
+          if (typeof bonderAddress !== 'string') {
+            throw new Error('config bonder address should be a string')
+          }
+          try {
+            checksumAddress(bonderAddress)
+          } catch (err) {
+            throw new Error(`config bonder address "${bonderAddress}" is invalid`)
           }
         }
       }

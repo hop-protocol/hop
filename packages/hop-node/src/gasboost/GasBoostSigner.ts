@@ -151,6 +151,7 @@ class GasBoostSigner extends Wallet {
   }
 
   setOptions (options: Partial<Options> = {}): void {
+    this.logger.debug('options:', JSON.stringify(options))
     this.gTxFactory.setOptions(options)
   }
 }

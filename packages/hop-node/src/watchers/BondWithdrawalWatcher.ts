@@ -90,7 +90,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     await Promise.all(promises)
-    logger.debug('checkTransferSentFromDb completed')
+    this.logger.debug('checkTransferSentFromDb completed')
   }
 
   checkTransferId = async (transferId: string) => {

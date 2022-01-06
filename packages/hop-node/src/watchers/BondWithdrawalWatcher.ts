@@ -373,8 +373,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       await destinationBridge.provider.call(tx)
       return true
     } catch (err) {
-      logger.error(`getIsRecipientReceivable err: ${err.message}`)
-      return false
+      const revertErrMsgRegex = /(execution reverted|VM execution error)/i
+      const isRevertError = revertErrMsgRegex.test(err.message)
+      if (isRevertError) {
+        logger.error(`getIsRecipientReceivable err: ${err.message}`)
+        return false
+      }
+      logger.error(`getIsRecipientReceivable non-revert err: ${err.message}`)
+      return true
     }
   }
 }

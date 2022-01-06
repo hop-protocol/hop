@@ -16,7 +16,7 @@ import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contr
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { config as globalConfig, oruChains } from 'src/config'
+import { getConfigBonderForRoute, config as globalConfig, oruChains } from 'src/config'
 
 type S3JsonData = {
   [token: string]: {
@@ -1201,10 +1201,15 @@ class SyncWatcher extends BaseWatcher {
 
   private async updateAvailableCreditMap (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
-    const bonder = this.bridge.getConfigBonderAddress(destinationChain)
+    const bonder = await this.getBonderAddress(destinationChain)
     const { availableCredit, baseAvailableCredit } = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
     this.baseAvailableCredit[destinationChain] = baseAvailableCredit
+  }
+
+  async getBonderAddress (destinationChain: string): Promise<string> {
+    const routeBonder = getConfigBonderForRoute(this.tokenSymbol, this.chainSlug, destinationChain)
+    return routeBonder || await this.bridge.getBonderAddress()
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {

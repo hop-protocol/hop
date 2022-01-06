@@ -121,7 +121,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId!)
       .bridge
 
-    logger.debug(`processing bondWithdrawal. checking isTransferIdSpent`)
+    logger.debug('processing bondWithdrawal. checking isTransferIdSpent')
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
     logger.debug(`processing bondWithdrawal. isTransferSpent: ${isTransferSpent?.toString()}`)
     if (isTransferSpent) {
@@ -373,8 +373,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       await destinationBridge.provider.call(tx)
       return true
     } catch (err) {
-      logger.error(`getIsRecipientReceivable err: ${err.message}`)
-      return false
+      const revertErrMsgRegex = /(execution reverted|VM execution error)/i
+      const isRevertError = revertErrMsgRegex.test(err.message)
+      if (isRevertError) {
+        logger.error(`getIsRecipientReceivable err: ${err.message}`)
+        return false
+      }
+      logger.error(`getIsRecipientReceivable non-revert err: ${err.message}`)
+      return true
     }
   }
 }

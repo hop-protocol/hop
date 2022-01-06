@@ -512,17 +512,19 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
   return transfers
 }
 
-async function fetchBonds (chain, startTime, endTime, skip, transferId) {
+async function fetchBonds (chain, startTime, endTime, lastId, transferId) {
   const query = `
-    query WithdrawalBondeds($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String) {
+    query WithdrawalBondeds($startTime: Int, $endTime: Int, $lastId: ID, $transferId: String, $transferIds: [String]) {
       withdrawalBondeds1: withdrawalBondeds(
         where: {
-          ${transferId ? 'transferId: $transferId' : 'timestamp_gte: $startTime, timestamp_lte: $endTime'}
+          ${Array.isArray(transferId)
+? 'transferId_in: $transferIds'
+          : transferId ? 'transferId: $transferId' : 'timestamp_gte: $startTime, timestamp_lte: $endTime'},
+          id_gt: $lastId
         },
-        first: $perPage,
-        orderBy: timestamp,
-        orderDirection: desc,
-        skip: $skip,
+        first: 1000,
+        orderBy: id,
+        orderDirection: asc
       ) {
         id
         transferId
@@ -530,15 +532,15 @@ async function fetchBonds (chain, startTime, endTime, skip, transferId) {
         timestamp
         token
         from
-      }${transferId
+      }${typeof transferId === 'string'
 ? `
       , withdrawalBondeds2: withdrawalBondeds(
         where: {
           transactionHash: $transferId
         },
-        first: $perPage,
-        orderBy: timestamp,
-        orderDirection: desc,
+        first: 1000,
+        orderBy: id,
+        orderDirection: asc,
       ) {
         id
         transferId
@@ -550,27 +552,30 @@ async function fetchBonds (chain, startTime, endTime, skip, transferId) {
 : ''}
     }
   `
+
   const url = getUrl(chain)
-  if (!skip) {
-    skip = 0
-  }
   const data = await queryFetch(url, query, {
-    perPage: 1000,
     startTime,
     endTime,
-    skip,
-    transferId
+    transferId: !Array.isArray(transferId) ? transferId : undefined,
+    transferIds: Array.isArray(transferId) ? transferId : [],
+    lastId: lastId || '0x0000000000000000000000000000000000000000'
   })
 
   let bonds = (data.withdrawalBondeds1 || []).concat(data.withdrawalBondeds2 || [])
 
   if (bonds.length === 1000) {
     try {
+      const newLastId = bonds[bonds.length - 1].id
+      if (lastId === newLastId) {
+        return bonds
+      }
+      lastId = newLastId
       bonds = bonds.concat(...(await fetchBonds(
         chain,
         startTime,
         endTime,
-        skip + 1000,
+        lastId,
         transferId
       )))
     } catch (err) {
@@ -902,6 +907,8 @@ async function updateTransfers () {
     }
   }
 
+  const _transferId = app.filterAccount ? data.map(x => x.transferId) : transferId
+
   const [
     xdaiBondedWithdrawals,
     polygonBondedWithdrawals,
@@ -915,11 +922,11 @@ async function updateTransfers () {
     arbitrumWithdrews,
     mainnetWithdrews
   ] = await Promise.all([
-    enabledChains.includes('xdai') ? fetchBonds('xdai', startTime, endTime, undefined, transferId) : Promise.resolve([]),
-    enabledChains.includes('polygon') ? fetchBonds('polygon', startTime, endTime, undefined, transferId) : Promise.resolve([]),
-    enabledChains.includes('optimism') ? fetchBonds('optimism', startTime, endTime, undefined, transferId) : Promise.resolve([]),
-    enabledChains.includes('arbitrum') ? fetchBonds('arbitrum', startTime, endTime, undefined, transferId) : Promise.resolve([]),
-    enabledChains.includes('ethereum') ? fetchBonds('mainnet', startTime, endTime, undefined, transferId) : Promise.resolve([]),
+    enabledChains.includes('xdai') ? fetchBonds('xdai', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
+    enabledChains.includes('polygon') ? fetchBonds('polygon', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchBonds('optimism', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
+    enabledChains.includes('arbitrum') ? fetchBonds('arbitrum', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
+    enabledChains.includes('ethereum') ? fetchBonds('mainnet', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
 
     enabledChains.includes('xdai') ? fetchWithdrews('xdai', startTime, endTime, undefined, transferId) : Promise.resolve([]),
     enabledChains.includes('polygon') ? fetchWithdrews('polygon', startTime, endTime, undefined, transferId) : Promise.resolve([]),

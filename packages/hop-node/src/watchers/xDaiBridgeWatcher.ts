@@ -25,13 +25,13 @@ type Config = {
 
 const getL1Amb = (token: string) => {
   const l1Wallet = wallets.get(Chain.Ethereum)
-  const l1AmbAddress = globalConfig.addresses[token].xdai.l1Amb
+  const l1AmbAddress = globalConfig.addresses[token].gnosis.l1Amb
   return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1XDaiAMB
 }
 
 const getL2Amb = (token: string) => {
-  const l2xDaiProvider = wallets.get(Chain.xDai).provider
-  const l2AmbAddress = globalConfig.addresses[token].xdai.l2Amb
+  const l2xDaiProvider = wallets.get(Chain.Gnosis).provider
+  const l2AmbAddress = globalConfig.addresses[token].gnosis.l2Amb
   return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2XDaiAMB
 }
 
@@ -58,7 +58,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
     logger.debug(
-      `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
+      `attempting to send relay message on gnosis for commit tx hash ${commitTxHash}`
     )
     await this.handleStateSwitch()
     if (this.isDryOrPauseMode) {

@@ -17,8 +17,8 @@ export function getExplorerTxUrl(networkName, txHash) {
         return ''
       }
     }
-    case 'xdai': {
-      return `${getBaseExplorerUrl('xdai')}/tx/${txHash}`
+    case 'gnosis': {
+      return `${getBaseExplorerUrl('gnosis')}/tx/${txHash}`
     }
     case 'polygon': {
       return `${getBaseExplorerUrl('polygon')}/tx/${txHash}`

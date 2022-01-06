@@ -20,8 +20,8 @@ export const metadata = {
       name: 'Optimism',
       isLayer1: false
     },
-    xdai: {
-      name: 'xDai',
+    gnosis: {
+      name: 'Gnosis',
       isLayer1: false
     },
     polygon: {

@@ -14,7 +14,7 @@ export function getAllRpcUrls() {
   return {
     arbitrum: getRpcUrl(Chain.Arbitrum),
     optimism: getRpcUrl(Chain.Optimism),
-    xdai: getRpcUrl(Chain.xDai),
+    gnosis: getRpcUrl(Chain.Gnosis),
     polygon: getRpcUrl(Chain.Polygon),
     ethereum: getRpcUrl(L1_NETWORK),
   }

@@ -32,7 +32,7 @@ class AMM extends Base {
    *```js
    *import { AMM, Token, Chain } from '@hop-protocol/sdk'
    *
-   *const amm = new AMM('mainnet', Token.USDC, Chain.xDai)
+   *const amm = new AMM('mainnet', Token.USDC, Chain.Gnosis)
    *```
    */
   constructor (

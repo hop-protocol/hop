@@ -10,7 +10,7 @@ export enum Chain {
   Optimism = 'optimism',
   Arbitrum = 'arbitrum',
   Polygon = 'polygon',
-  xDai = 'xdai'
+  Gnosis = 'gnosis'
 }
 
 export enum TokenIndex {
@@ -27,7 +27,7 @@ export enum BondTransferGasLimit {
 export const SettlementGasLimitPerTx: Record<string, number> = {
   ethereum: 5141,
   polygon: 5933,
-  xdai: 3218,
+  gnosis: 3218,
   optimism: 8545,
   arbitrum: 59105
 }

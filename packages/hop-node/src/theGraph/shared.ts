@@ -11,7 +11,7 @@ export type Filters = {
 export const chainIdToSlug: any = {
   1: 'ethereum',
   10: 'optimism',
-  100: 'xdai',
+  100: 'gnosis',
   137: 'polygon',
   42161: 'arbitrum'
 }

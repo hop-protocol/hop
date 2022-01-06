@@ -205,7 +205,7 @@ class TvlStats {
     }
     console.log('done upserting prices')
 
-    const chains = ['polygon', 'xdai', 'arbitrum', 'optimism']
+    const chains = ['polygon', 'gnosis', 'arbitrum', 'optimism']
     const now = DateTime.utc()
 
     await Promise.all(

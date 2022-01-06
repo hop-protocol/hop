@@ -27,7 +27,7 @@ class AprStats {
   constructor () {
     this.sdk.setChainProviderUrls({
       ethereum: ethereumRpc,
-      xdai: xdaiRpc,
+      gnosis: xdaiRpc,
       polygon: polygonRpc,
       optimism: optimismRpc,
       arbitrum: arbitrumRpc

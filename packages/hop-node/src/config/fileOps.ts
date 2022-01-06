@@ -31,7 +31,7 @@ const logger = new Logger('config')
 export const defaultEnabledNetworks: { [key: string]: boolean } = {
   [Chain.Optimism]: true,
   [Chain.Arbitrum]: true,
-  [Chain.xDai]: true,
+  [Chain.Gnosis]: true,
   [Chain.Polygon]: true,
   [Chain.Ethereum]: true
 }

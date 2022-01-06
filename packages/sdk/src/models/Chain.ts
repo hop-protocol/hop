@@ -14,7 +14,7 @@ class Chain {
   static Ethereum = newChain(ChainEnum.Ethereum)
   static Optimism = newChain(ChainEnum.Optimism)
   static Arbitrum = newChain(ChainEnum.Arbitrum)
-  static xDai = newChain(ChainEnum.xDai)
+  static Gnosis = newChain(ChainEnum.Gnosis)
   static Polygon = newChain(ChainEnum.Polygon)
 
   static fromSlug (slug: string) {

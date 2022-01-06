@@ -124,7 +124,8 @@ class Base {
     try {
       const data = s3FileCache[this.network] || await this.getS3ConfigData()
       if (data.bonders) {
-        this.bonders = data.bonders
+        // TODO: update s3 config data cache
+        // this.bonders = data.bonders
       }
       if (data.bonderFeeBps) {
         this.fees = data.bonderFeeBps
@@ -426,12 +427,12 @@ class Base {
     return this.getConfigAddresses(token, chain)?.arbChain
   }
 
-  // xDai L1 Home AMB bridge address
+  // Gnosis L1 Home AMB bridge address
   public getL1AmbBridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l1Amb
   }
 
-  // xDai L2 AMB bridge address
+  // Gnosis L2 AMB bridge address
   public getL2AmbBridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l2Amb
   }
@@ -459,7 +460,7 @@ class Base {
     // Not all Polygon nodes follow recommended 30 Gwei gasPrice
     // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
     if (chain.equals(Chain.Polygon)) {
-      if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
+      if (txOptions.gasPrice?.lt(MinPolygonGasPrice)) {
         txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
       }
     }

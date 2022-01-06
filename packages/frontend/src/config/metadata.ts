@@ -93,8 +93,8 @@ export const metadata: Metadata = {
       image: OptimismLogo,
       nativeTokenSymbol: 'ETH',
     },
-    xdai: {
-      name: 'xDai',
+    gnosis: {
+      name: 'Gnosis',
       isLayer1: false,
       image: xDaiLogo,
       nativeTokenSymbol: 'xDAI',

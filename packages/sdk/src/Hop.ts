@@ -173,7 +173,7 @@ class Hop extends Base {
    *
    *const hop = new Hop()
    * hop
-   *   .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.xDai)
+   *   .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.Gnosis)
    *   .on('receipt', ({receipt, chain}) => {
    *     console.log(chain.Name, receipt)
    *   })

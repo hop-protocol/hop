@@ -43,8 +43,8 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     this.logger.debug('starting watcher')
     const enabledNetworks = getEnabledNetworks()
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    if (this.chainSlug === Chain.xDai && enabledNetworks.includes(Chain.xDai)) {
-      this.watchers[Chain.xDai] = new xDaiBridgeWatcher({
+    if (this.chainSlug === Chain.Gnosis && enabledNetworks.includes(Chain.Gnosis)) {
+      this.watchers[Chain.Gnosis] = new xDaiBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         label: config.label,

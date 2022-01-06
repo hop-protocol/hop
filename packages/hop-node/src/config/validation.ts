@@ -121,7 +121,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
       'location',
       'pass',
       'passwordFile',
-      'parameterStore'
+      'parameterStore',
+      'awsRegion'
     ]
     const keystoreProps = Object.keys(config.keystore)
     validateKeys(validKeystoreProps, keystoreProps)

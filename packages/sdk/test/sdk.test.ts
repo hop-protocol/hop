@@ -444,21 +444,21 @@ describe('custom chain providers', () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
     let polygonProvider = bridge.getChainProvider('polygon')
-    let GnosisProvider = bridge.getChainProvider('gnosis')
+    let gnosisProvider = bridge.getChainProvider('gnosis')
     const currentPolygonUrl = 'https://polygon-rpc.com'
     const currentGnosisUrl = 'https://rpc.gnosischain.com/'
     const newPolygonUrl = 'https://polygon-rpc2.com'
     const newGnosisUrl = 'https://rpc.xdaichain2.com'
     expect((polygonProvider as any).connection.url).toBe(currentPolygonUrl)
-    expect((GnosisProvider as any).connection.url).toBe(currentGnosisUrl)
+    expect((gnosisProvider as any).connection.url).toBe(currentGnosisUrl)
     sdk.setChainProviders({
       polygon: new providers.StaticJsonRpcProvider(newPolygonUrl),
       gnosis: new providers.StaticJsonRpcProvider(newGnosisUrl)
     })
     polygonProvider = bridge.getChainProvider('polygon')
-    GnosisProvider = bridge.getChainProvider('gnosis')
+    gnosisProvider = bridge.getChainProvider('gnosis')
     expect((polygonProvider as any).connection.url).toBe(newPolygonUrl)
-    expect((GnosisProvider as any).connection.url).toBe(newGnosisUrl)
+    expect((gnosisProvider as any).connection.url).toBe(newGnosisUrl)
   })
 })
 

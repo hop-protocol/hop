@@ -200,6 +200,17 @@ export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   }
 }
 
+export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
+  network = normalizeNetwork(network)
+  if (config.networks[network]) {
+    config.networks[network].maxGasPrice = maxGasPrice
+  }
+}
+
+export const getNetworkMaxGasPrice = (network: string) => {
+  return config.networks[network].maxGasPrice
+}
+
 export const setStateUpdateAddress = (address: string) => {
   config.stateUpdateAddress = address
 }

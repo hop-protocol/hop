@@ -90,7 +90,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     await Promise.all(promises)
-    logger.debug('checkTransferSentFromDb completed')
+    this.logger.debug('checkTransferSentFromDb completed')
   }
 
   checkTransferId = async (transferId: string) => {
@@ -121,7 +121,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId!)
       .bridge
 
-    logger.debug(`processing bondWithdrawal. checking isTransferIdSpent`)
+    logger.debug('processing bondWithdrawal. checking isTransferIdSpent')
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
     logger.debug(`processing bondWithdrawal. isTransferSpent: ${isTransferSpent?.toString()}`)
     if (isTransferSpent) {

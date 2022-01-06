@@ -86,7 +86,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
   for (const key in config.chains) {
     const chain = config.chains[key]
-    const validChainConfigKeys = ['rpcUrl']
+    const validChainConfigKeys = ['rpcUrl', 'maxGasPrice']
     const chainKeys = Object.keys(chain)
     validateKeys(validChainConfigKeys, chainKeys)
   }
@@ -219,7 +219,7 @@ export async function validateConfigValues (config?: Config) {
     if (!chain) {
       throw new Error(`RPC config for chain "${chain}" is required`)
     }
-    const { rpcUrl, waitConfirmations } = chain
+    const { rpcUrl, maxGasPrice, waitConfirmations } = chain
     if (!rpcUrl) {
       throw new Error(`RPC url for chain "${chainSlug}" is required`)
     }
@@ -240,6 +240,14 @@ export async function validateConfigValues (config?: Config) {
       }
       if (waitConfirmations <= 0) {
         throw new Error(`waitConfirmations for chain "${chainSlug}" must be greater than 0`)
+      }
+    }
+    if (maxGasPrice != null) {
+      if (typeof maxGasPrice !== 'number') {
+        throw new Error(`maxGasPrice for chain "${chainSlug}" must be a number`)
+      }
+      if (maxGasPrice <= 0) {
+        throw new Error(`maxGasPrice for chain "${chainSlug}" must be greater than 0`)
       }
     }
   }

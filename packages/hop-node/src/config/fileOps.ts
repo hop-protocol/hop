@@ -14,6 +14,7 @@ import {
   setDbPath,
   setFeesConfig,
   setMetricsConfig,
+  setNetworkMaxGasPrice,
   setNetworkRpcUrl,
   setRoutesConfig,
   setStateUpdateAddress,
@@ -153,9 +154,12 @@ export async function setGlobalConfigFromConfigFile (
   for (const k in config.chains) {
     const v = config.chains[k]
     if (v instanceof Object) {
-      const { rpcUrl } = v
+      const { rpcUrl, maxGasPrice } = v
       if (rpcUrl) {
         setNetworkRpcUrl(k, rpcUrl)
+      }
+      if (maxGasPrice) {
+        setNetworkMaxGasPrice(k, maxGasPrice)
       }
     }
   }

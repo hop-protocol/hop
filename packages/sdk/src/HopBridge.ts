@@ -371,6 +371,16 @@ class HopBridge extends Base {
     return result
   }
 
+  public async getSendCalldata (
+    tokenAmount: TAmount,
+    sourceChain?: TChain,
+    destinationChain?: TChain,
+    options: Partial<SendOptions> = {}
+  ) {
+    options.populateTxOnly = true
+    return this.send(tokenAmount, sourceChain, destinationChain, options)
+  }
+
   public async getSendEstimatedGasLimit (
     tokenAmount: TAmount,
     sourceChain?: TChain,

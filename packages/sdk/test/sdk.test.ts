@@ -495,7 +495,7 @@ describe('getSupportedAssets', () => {
   })
 })
 
-describe('get call data only', () => {
+describe.only('get call data only (no signer connected)', () => {
   it('should return call data for L1->L2 send', async () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('USDC')
@@ -503,8 +503,7 @@ describe('get call data only', () => {
     const sourceChain = 'ethereum'
     const destinationChain = 'xdai'
     const recipient = constants.AddressZero
-    const txObj = await bridge.send(amount, sourceChain, destinationChain, {
-      populateTxOnly: true,
+    const txObj = await bridge.getSendCalldata(amount, sourceChain, destinationChain, {
       recipient
     })
     expect(txObj.data).toBeTruthy()
@@ -517,8 +516,7 @@ describe('get call data only', () => {
     const sourceChain = 'xdai'
     const destinationChain = 'polygon'
     const recipient = constants.AddressZero
-    const txObj = await bridge.send(amount, sourceChain, destinationChain, {
-      populateTxOnly: true,
+    const txObj = await bridge.getSendCalldata(amount, sourceChain, destinationChain, {
       recipient
     })
     expect(txObj.data).toBeTruthy()
@@ -531,8 +529,7 @@ describe('get call data only', () => {
     const sourceChain = 'xdai'
     const destinationChain = 'ethereum'
     const recipient = constants.AddressZero
-    const txObj = await bridge.send(amount, sourceChain, destinationChain, {
-      populateTxOnly: true,
+    const txObj = await bridge.getSendCalldata(amount, sourceChain, destinationChain, {
       recipient
     })
     expect(txObj.data).toBeTruthy()

@@ -109,8 +109,8 @@ const normalizeNetwork = (network: string) => {
   return network
 }
 
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'networks' | 'bonders' | 'metadata' | 'isMainnet'> => {
-  const { addresses, networks, bonders, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'networks' | 'metadata' | 'isMainnet'> => {
+  const { addresses, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
 
@@ -118,14 +118,13 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
     network,
     addresses,
     networks,
-    bonders,
     metadata,
     isMainnet
   }
 }
 
 // get default config
-const { addresses, network, networks, metadata, bonders, isMainnet } = getConfigByNetwork(envNetwork)
+const { addresses, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
 
 // defaults
 export const config: Config = {
@@ -136,7 +135,7 @@ export const config: Config = {
   tokens: {},
   bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
-  bonders,
+  bonders: {},
   stateUpdateAddress: '',
   fees: {},
   routes: {},
@@ -174,19 +173,31 @@ export const config: Config = {
 }
 
 export const setConfigByNetwork = (network: string) => {
-  const { addresses, networks, bonders, metadata, isMainnet } = getConfigByNetwork(network)
+  const { addresses, networks, metadata, isMainnet } = getConfigByNetwork(network)
   config.isMainnet = isMainnet
   config.addresses = addresses
   config.network = normalizeNetwork(network)
   config.networks = networks
-  config.bonders = bonders
   config.metadata = metadata
 }
 
 export const setConfigAddresses = (addresses: Addresses) => {
-  const { bridges, bonders } = addresses
+  const { bridges } = addresses
   config.addresses = bridges
+}
+
+export const setConfigBonders = (bonders: Bonders) => {
   config.bonders = bonders
+}
+
+export const getConfigBondersForToken = (token: string) => {
+  return (config.bonders as any)?.[token]
+}
+
+export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
+  const bonders = getConfigBondersForToken(token)
+  const bonder = bonders?.[sourceChain]?.[destinationChain]
+  return bonder
 }
 
 export const setBonderPrivateKey = (privateKey: string) => {
@@ -277,6 +288,10 @@ export const setConfigTokens = (tokens: Tokens) => {
   config.tokens = { ...config.tokens, ...tokens }
 }
 
+export const getBonderConfig = (tokens: Tokens) => {
+  config.tokens = { ...config.tokens, ...tokens }
+}
+
 export const chainNativeTokens = ['ETH', 'MATIC', 'DAI']
 
 export enum Watchers {
@@ -288,5 +303,6 @@ export enum Watchers {
   xDomainMessageRelay = 'xDomainMessageRelay',
 }
 
+export { Bonders }
 export * from './validation'
 export * from './fileOps'

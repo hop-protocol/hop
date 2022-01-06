@@ -6,7 +6,7 @@ import swapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract } from 'ethers'
-import { getEnabledNetworks, config as globalConfig } from 'src/config'
+import { getConfigBondersForToken, getEnabledNetworks, config as globalConfig } from 'src/config'
 
 type Config = {
   token: string
@@ -90,7 +90,7 @@ class ContractStateWatcher {
   private async getBonderStates (bridge: any) {
     const bonderStates: any = {}
     const bonders = new Set<string>()
-    const tokenBonderRoutes = (globalConfig.bonders as any)?.[this.token]
+    const tokenBonderRoutes = getConfigBondersForToken(this.token)
     for (const sourceChain in tokenBonderRoutes) {
       for (const destinationChain in tokenBonderRoutes?.[sourceChain]) {
         const bonder = tokenBonderRoutes?.[sourceChain]?.[destinationChain]

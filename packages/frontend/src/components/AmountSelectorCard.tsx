@@ -12,6 +12,7 @@ import LargeTextField from 'src/components/LargeTextField'
 import { commafy } from 'src/utils'
 import { useAmountSelectorCardStyles, useNativeTokenMaxValue } from 'src/hooks'
 import Network from 'src/models/Network'
+import { Flex } from './ui'
 
 type AmountSelectorProps = {
   value?: string
@@ -154,12 +155,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
 
   return (
     <Card className={clsx(styles.root, className)}>
-      <Box
-        display="flex"
-        flexDirection="row"
-        justifyContent="space-between"
-        className={styles.topRow}
-      >
+      <Flex justifyBetween alignCenter mb="1.8rem" fullWidth>
         {!!label && (
           <Typography variant="subtitle2" color="textSecondary">
             {loadingBalance ? <Skeleton variant="text" width="15.0rem"></Skeleton> : label}
@@ -178,7 +174,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
                 MAX
               </button>
             ) : null}
-            <Typography variant="subtitle2" color="textSecondary">
+            <Typography variant="subtitle2" color="textSecondary" align="left">
               {secondaryBalanceLabel || 'Balance:'} {secondaryBalanceDisplay}
             </Typography>
           </div>
@@ -201,9 +197,10 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
             </Typography>
           </div>
         ) : null}
-      </Box>
-      <Grid container alignItems="center" className={styles.container}>
-        <Grid item className={styles.networkContainer}>
+      </Flex>
+
+      <Flex fullWidth justifyBetween alignCenter>
+        <Flex>
           <Box className={styles.networkSelectionBox}>
             {titleIconUrl ? (
               <Box className={styles.networkIconContainer}>
@@ -214,8 +211,9 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
               {title}
             </Typography>
           </Box>
-        </Grid>
-        <Grid item className={styles.inputContainer}>
+        </Flex>
+
+        <Flex>
           <LargeTextField
             value={value}
             onChange={handleInputChange}
@@ -224,8 +222,8 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
             disabled={disableInput}
             loadingValue={loadingValue}
           />
-        </Grid>
-      </Grid>
+        </Flex>
+      </Flex>
     </Card>
   )
 }

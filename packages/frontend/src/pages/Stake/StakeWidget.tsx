@@ -2,7 +2,6 @@ import React, { FC, useState, useMemo } from 'react'
 import { BigNumber, Contract } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
 import { HopBridge, Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -18,6 +17,7 @@ import DetailRow from 'src/components/DetailRow'
 import { amountToBN } from 'src/utils/format'
 import { useTransactionReplacement, useApprove, useAsyncMemo, useBalance } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
+import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -471,14 +471,14 @@ const StakeWidget: FC<Props> = props => {
         )}
       </div>
       <Alert severity="warning" text={warning} className={styles.alert} />
-      <Flex column fullWidth mt={2} mb={4}>
+      <Flex column alignCenter fullWidth mt={2} mb={4}>
         {earned?.gt(0) && (
           <Button className={styles.claimButton} large highlighted onClick={claim}>
             Claim {formattedEarned}
           </Button>
         )}
 
-        <Flex mb="2rem" justifyAround alignCenter $wrap fullWidth>
+        <ButtonsWrapper>
           <Div mb={[3]}>
             <Button
               className={styles.button}
@@ -501,7 +501,7 @@ const StakeWidget: FC<Props> = props => {
               Stake
             </Button>
           </Div>
-        </Flex>
+        </ButtonsWrapper>
         {stakeBalance?.gt(0) && (
           <Button className={styles.withdrawButton} large onClick={withdraw}>
             Withdraw

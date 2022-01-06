@@ -1,4 +1,4 @@
-import BaseDb, { KeyFilter } from './BaseDb'
+import BaseDb, { KV, KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
 import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
@@ -6,36 +6,36 @@ import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
 interface BaseTransferRoot {
-  transferRootHash?: string
-  totalAmount?: BigNumber
-  destinationChainId?: number
-  sourceChainId?: number
-  sentCommitTxAt?: number
+  allSettled?: boolean
+  bondBlockNumber?: number
+  bonded?: boolean
+  bondedAt?: number
+  bonder?: string
+  bondTxHash?: string
+  challenged?: boolean
   committed?: boolean
   committedAt?: number
-  commitTxHash?: string
   commitTxBlockNumber?: number
+  commitTxHash?: string
   confirmed?: boolean
   confirmedAt?: number
   confirmTxHash?: string
-  rootSetTxHash?: string
+  destinationChainId?: number
+  isNotFound?: boolean
+  multipleWithdrawalsSettledTotalAmount?: BigNumber
+  multipleWithdrawalsSettledTxHash?: string
   rootSetBlockNumber?: number
   rootSetTimestamp?: number
+  rootSetTxHash?: string
+  sentBondTxAt?: number
+  sentCommitTxAt?: number
   sentConfirmTxAt?: number
   shouldBondTransferRoot?: boolean
-  bonded?: boolean
-  sentBondTxAt?: number
-  bondTxHash?: string
-  bondBlockNumber?: number
-  bondedAt?: number
+  sourceChainId?: number
+  totalAmount?: BigNumber
   transferIds?: string[]
-  bonder?: string
+  transferRootHash?: string
   withdrawalBondSettleTxSentAt?: number
-  challenged?: boolean
-  allSettled?: boolean
-  multipleWithdrawalsSettledTxHash?: string
-  multipleWithdrawalsSettledTotalAmount?: BigNumber
-  isNotFound?: boolean
 }
 
 export interface TransferRoot extends BaseTransferRoot {
@@ -195,6 +195,7 @@ class TransferRootsDb extends BaseDb {
   subDbIncompletes: BaseDb
   subDbTimestamps: BaseDb
   subDbRootHashes: BaseDb
+  subDbBondedAt: BaseDb
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
@@ -202,6 +203,17 @@ class TransferRootsDb extends BaseDb {
     this.subDbTimestamps = new BaseDb(`${prefix}:timestampedKeys`, _namespace)
     this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
     this.subDbRootHashes = new BaseDb(`${prefix}:rootHashes`, _namespace)
+    this.subDbBondedAt = new BaseDb(`${prefix}:rootBondedAt`, _namespace)
+    this.logger.debug('TransferRootsDb initialized')
+  }
+
+  async migration () {
+    this.logger.debug('TransferRootsDb migration started')
+    const entries = await this.getKeyValues()
+    this.logger.debug(`TransferRootsDb migration: ${entries.length} entries`)
+    for (const entry of entries) {
+      await this.insertBondedAtItem(entry.value)
+    }
   }
 
   private isInvalidOrNotFound (item: TransferRoot) {
@@ -287,6 +299,20 @@ class TransferRootsDb extends BaseDb {
     }
   }
 
+  private async insertBondedAtItem (transferRoot: TransferRoot) {
+    const { transferRootId, bondedAt } = transferRoot
+    const logger = this.logger.create({ id: transferRootId })
+    if (!bondedAt) {
+      return
+    }
+    const key = `${bondedAt}:${transferRootId}`
+    const exists = await this.subDbBondedAt.getById(key)
+    if (!exists) {
+      logger.debug('inserting db transferRoot bondedAt key item')
+      await this.subDbBondedAt._update(key, { transferRootId })
+    }
+  }
+
   private normalizeItem (item: TransferRoot) {
     return normalizeDbItem(item)
   }
@@ -300,6 +326,7 @@ class TransferRootsDb extends BaseDb {
     await Promise.all([
       this.insertTimestampedKeyItem(transferRoot as TransferRoot),
       this.insertRootHashKeyItem(transferRoot as TransferRoot),
+      this.insertBondedAtItem(transferRoot as TransferRoot),
       this.upsertTransferRootItem(transferRoot as TransferRoot)
     ])
   }
@@ -376,6 +403,18 @@ class TransferRootsDb extends BaseDb {
     return this.getTransferRoots({
       fromUnix
     })
+  }
+
+  async getBondedTransferRootsFromTwoWeeks (): Promise<TransferRoot[]> {
+    await this.tilReady()
+    const fromUnix = Math.floor((Date.now() - (OneWeekMs * 2)) / 1000)
+    const filter: KeyFilter = {
+      gte: `${fromUnix}`
+    }
+    const items = await this.subDbBondedAt.getKeyValues(filter)
+    const transferRootIds = items.map((item: KV) => item.value.transferRootId)
+    const entries = await this.batchGetByIds(transferRootIds)
+    return entries.map(this.normalizeItem)
   }
 
   async getUnbondedTransferRoots (
@@ -487,7 +526,7 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<TransferRoot[]> {
     await this.tilReady()
-    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const transferRoots: TransferRoot[] = await this.getBondedTransferRootsFromTwoWeeks()
     return transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false

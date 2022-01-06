@@ -1,8 +1,11 @@
 import Logger from 'src/logger'
 import { Command } from 'commander'
 import {
+  config as globalConfig,
   parseConfigFile,
-  setGlobalConfigFromConfigFile
+  setGlobalConfigFromConfigFile,
+  validateConfigFileStructure,
+  validateConfigValues
 } from 'src/config'
 
 export const logger = new Logger('config')
@@ -23,11 +26,12 @@ export function actionHandler (fn: Function) {
       if (configFilePath) {
         const config = await parseConfigFile(configFilePath)
         await setGlobalConfigFromConfigFile(config, source.passwordFile)
+        await validateConfigFileStructure(config)
         source.configFilePath = configFilePath
         source.config = config
-      } else {
-        source.config = {}
       }
+
+      await validateConfigValues(globalConfig)
 
       await fn(source)
       process.exit(0)

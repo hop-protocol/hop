@@ -13,8 +13,9 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    fontSize: '1rem',
     [theme.breakpoints.down('sm')]: {
-      fontSize: '1rem',
+      fontSize: '.8rem',
     },
   },
   pendingButton: {

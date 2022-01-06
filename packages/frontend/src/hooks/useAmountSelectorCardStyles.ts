@@ -5,7 +5,7 @@ export const useAmountSelectorCardStyles = makeStyles(theme => ({
     maxWidth: '51.6rem',
     boxSizing: 'border-box',
     [theme.breakpoints.down('xs')]: {
-      width: 'auto',
+      width: '100%',
     },
     boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
@@ -15,7 +15,6 @@ export const useAmountSelectorCardStyles = makeStyles(theme => ({
   },
   networkSelectionBox: {
     display: 'flex',
-    flexDirection: 'row',
     alignItems: 'center',
     transition: 'all 0.15s ease-out',
   },

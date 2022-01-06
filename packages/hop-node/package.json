@@ -4,7 +4,7 @@
   "description": "The Hop Node for Hop Protocol",
   "main": "dist/index.js",
   "engines": {
-    "node": "^14",
+    "node": ">=14",
     "yarn": "^1.22.11"
   },
   "scripts": {

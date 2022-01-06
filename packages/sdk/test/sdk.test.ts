@@ -446,7 +446,7 @@ describe('custom chain providers', () => {
     let polygonProvider = bridge.getChainProvider('polygon')
     let GnosisProvider = bridge.getChainProvider('gnosis')
     const currentPolygonUrl = 'https://polygon-rpc.com'
-    const currentGnosisUrl = 'https://rpc.xdaichain.com'
+    const currentGnosisUrl = 'https://rpc.gnosischain.com/'
     const newPolygonUrl = 'https://polygon-rpc2.com'
     const newGnosisUrl = 'https://rpc.xdaichain2.com'
     expect((polygonProvider as any).connection.url).toBe(currentPolygonUrl)

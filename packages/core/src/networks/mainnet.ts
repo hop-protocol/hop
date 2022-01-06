@@ -28,7 +28,7 @@ export const networks: Networks = {
   gnosis: {
     name: chains.gnosis.name,
     networkId: 100,
-    publicRpcUrl: 'https://rpc.xdaichain.com',
+    publicRpcUrl: 'https://rpc.gnosischain.com/',
     explorerUrls: ['https://blockscout.com/xdai/mainnet'],
     nativeBridgeUrl: 'https://omni.xdaichain.com/',
     waitConfirmations: 12

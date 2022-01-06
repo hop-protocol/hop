@@ -2,13 +2,14 @@ import Logger, { setLogLevel } from 'src/logger'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { Chain } from 'src/constants'
 import {
-  CommitTransfersConfig,
-  Fees, Routes, Watchers, defaultConfigFilePath,
+  Bonders,
+  CommitTransfersConfig, Fees, Routes, Watchers,
+  defaultConfigFilePath,
   setBonderPrivateKey,
   setCommitTransfersConfig,
   setConfigAddresses,
+  setConfigBonders,
   setConfigByNetwork,
   setConfigTokens,
   setDbPath,
@@ -19,6 +20,7 @@ import {
   setStateUpdateAddress,
   setSyncConfig
 } from './config'
+import { Chain } from 'src/constants'
 import { getParameter } from 'src/aws/parameterStore'
 import { promptPassphrase } from 'src/prompt'
 import { recoverKeystore } from 'src/keystore'
@@ -63,6 +65,7 @@ type KeystoreConfig = {
   pass?: string
   passwordFile?: string
   parameterStore?: string
+  awsRegion?: string
 }
 
 type LoggingConfig = {
@@ -94,6 +97,7 @@ export type FileConfig = {
   metrics?: MetricsConfig
   fees?: Fees
   routes: Routes
+  bonders?: Bonders
 }
 
 export async function setGlobalConfigFromConfigFile (
@@ -123,13 +127,14 @@ export async function setGlobalConfigFromConfigFile (
     if (!passphrase) {
       let passwordFilePath = passwordFile ?? config.keystore.passwordFile
       const parameterStoreName = config.keystore.parameterStore
+      const awsRegion = config.keystore.awsRegion
       if (passwordFilePath) {
         passwordFilePath = path.resolve(
           passwordFilePath.replace('~', os.homedir())
         )
         passphrase = fs.readFileSync(passwordFilePath, 'utf8').trim()
       } else if (parameterStoreName) {
-        passphrase = await getParameter(parameterStoreName)
+        passphrase = await getParameter(parameterStoreName, awsRegion)
       } else {
         passphrase = (await promptPassphrase()) as string
       }
@@ -216,6 +221,10 @@ export async function setGlobalConfigFromConfigFile (
 
   if (config.commitTransfers != null) {
     setCommitTransfersConfig(config.commitTransfers)
+  }
+
+  if (config.bonders) {
+    setConfigBonders(config.bonders)
   }
 }
 

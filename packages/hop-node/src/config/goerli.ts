@@ -3,8 +3,6 @@ import { goerli as goerliAddresses } from '@hop-protocol/core/addresses'
 import { goerli as metadata } from '@hop-protocol/core/metadata'
 
 const addresses = goerliAddresses.bridges
-const bonders = goerliAddresses.bonders
-
 const networks: any = {}
 
 for (const chain in _networks) {
@@ -18,4 +16,4 @@ for (const chain in _networks) {
   networks[chain].waitConfirmations = network?.waitConfirmations
 }
 
-export { addresses, networks, bonders, metadata }
+export { addresses, networks, metadata }

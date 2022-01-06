@@ -6,7 +6,7 @@ import swapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract } from 'ethers'
-import { getEnabledNetworks, config as globalConfig } from 'src/config'
+import { getConfigBondersForToken, getEnabledNetworks, config as globalConfig } from 'src/config'
 
 type Config = {
   token: string
@@ -36,7 +36,7 @@ class ContractStateWatcher {
 
   async getL1BridgeState () {
     const l1Wallet = wallets.get(Chain.Ethereum)
-    const address = globalConfig.tokens[this.token]?.ethereum?.l1Bridge
+    const address = globalConfig.addresses[this.token]?.ethereum?.l1Bridge
     if (!address) {
       return null
     }
@@ -90,7 +90,7 @@ class ContractStateWatcher {
   private async getBonderStates (bridge: any) {
     const bonderStates: any = {}
     const bonders = new Set<string>()
-    const tokenBonderRoutes = (globalConfig.bonders as any)?.[this.token]
+    const tokenBonderRoutes = getConfigBondersForToken(this.token)
     for (const sourceChain in tokenBonderRoutes) {
       for (const destinationChain in tokenBonderRoutes?.[sourceChain]) {
         const bonder = tokenBonderRoutes?.[sourceChain]?.[destinationChain]
@@ -119,7 +119,7 @@ class ContractStateWatcher {
 
   async getL2BridgeState (chain: string) {
     const l2Wallet = wallets.get(chain)
-    const address = globalConfig.tokens[this.token]?.[chain]?.l2Bridge
+    const address = globalConfig.addresses[this.token]?.[chain]?.l2Bridge
     if (!address) {
       return null
     }
@@ -186,7 +186,7 @@ class ContractStateWatcher {
 
   async getL2AmmState (chain: string) {
     const l2Wallet = wallets.get(chain)
-    const address = globalConfig.tokens[this.token]?.[chain]?.l2SaddleSwap
+    const address = globalConfig.addresses[this.token]?.[chain]?.l2SaddleSwap
     if (!address) {
       return null
     }
@@ -237,7 +237,7 @@ class ContractStateWatcher {
 
   async getL2AmmWrapperState (chain: string) {
     const l2Wallet = wallets.get(chain)
-    const address = globalConfig.tokens[this.token]?.[chain]?.l2AmmWrapper
+    const address = globalConfig.addresses[this.token]?.[chain]?.l2AmmWrapper
     if (!address) {
       return null
     }

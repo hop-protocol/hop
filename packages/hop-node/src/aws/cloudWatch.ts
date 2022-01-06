@@ -1,10 +1,13 @@
 import AWS from 'aws-sdk'
 import Logger from 'src/logger'
 import pify from 'pify'
+import { awsRegion } from 'src/config'
+
+AWS.config.update({
+  region: awsRegion
+})
 
 const logger = new Logger('CloudWatch')
-
-AWS.config.update({ region: 'us-east-1' })
 
 type Config = {
   logGroup: string

@@ -9,11 +9,11 @@
   "dependencies": {
     "@aws-sdk/client-cloudfront": "^3.45.0",
     "@hop-protocol/core": "0.0.1-beta.55",
-    "@hop-protocol/sdk": "0.0.1-beta.282",
+    "@hop-protocol/sdk": "0.0.1-beta.283",
     "@material-ui/core": "^4.12.3",
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "4.0.0-alpha.60",
-    "bnc-onboard": "^1.35.2",
+    "bnc-onboard": "^1.37.0",
     "classnames": "2.2.6",
     "clsx": "1.1.1",
     "copy-to-clipboard": "^3.3.1",
@@ -36,6 +36,9 @@
     "styled-components": "^5.3.1",
     "styled-system": "^5.1.5",
     "web-vitals": "0.2.4"
+  },
+  "resolutions": {
+    "react-error-overlay": "6.0.9"
   },
   "scripts": {
     "start": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-scripts start",

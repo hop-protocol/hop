@@ -139,10 +139,15 @@ interface PaletteType {
   }
 }
 
-type ThemeOrMode = 'dark' | 'light' | PaletteType | string
+enum ThemeMode {
+  dark = 'dark',
+  light = 'light',
+}
 
-export function isDarkMode(themeOrMode?: ThemeOrMode) {
-  if (typeof themeOrMode === 'undefined') {
+type ThemeOrMode = ThemeMode | PaletteType
+
+export function isDarkMode(themeOrMode?: ThemeOrMode): boolean {
+  if (themeOrMode == null) {
     return false
   }
 
@@ -150,5 +155,5 @@ export function isDarkMode(themeOrMode?: ThemeOrMode) {
     return themeOrMode === 'dark'
   }
 
-  return themeOrMode.palette.type === 'dark'
+  return themeOrMode.palette.type === ThemeMode.dark
 }

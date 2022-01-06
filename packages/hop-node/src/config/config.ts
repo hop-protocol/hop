@@ -33,7 +33,7 @@ export const maxGasPriceGwei = normalizeEnvVarNumber(process.env.MAX_GAS_PRICE_G
 export const timeTilBoostMs = normalizeEnvVarNumber(process.env.TIME_TIL_BOOST_MS)
 export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
-export const awsRegion = process.env.AWS_REGION
+export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
 export const awsProfile = process.env.AWS_PROFILE
 export const gitRev = buildInfo.rev
 export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
@@ -71,10 +71,15 @@ type Bps = {
 
 export type Fees = Record<string, Bps>
 export type Routes = Record<string, Record<string, boolean>>
+export type CommitTransfersConfig = {
+  minThresholdAmount: Record<string, Record<string, Record<string, any>>>
+}
+type Tokens = Record<string, boolean>
 
-type Config = {
+export type Config = {
   isMainnet: boolean
-  tokens: Bridges & {[network: string]: any}
+  tokens: Tokens
+  addresses: Bridges & {[network: string]: any}
   network: string
   networks: Networks & {[network: string]: any}
   bonderPrivateKey: string
@@ -84,6 +89,7 @@ type Config = {
   db: DbConfig
   sync: SyncConfigs
   metrics: MetricsConfig
+  commitTransfers: CommitTransfersConfig
   fees: Fees
   routes: Routes
 }
@@ -103,33 +109,33 @@ const normalizeNetwork = (network: string) => {
   return network
 }
 
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'tokens' | 'networks' | 'bonders' | 'metadata' | 'isMainnet'> => {
-  const { addresses: tokens, networks, bonders, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'networks' | 'metadata' | 'isMainnet'> => {
+  const { addresses, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
 
   return {
     network,
-    tokens,
+    addresses,
     networks,
-    bonders,
     metadata,
     isMainnet
   }
 }
 
 // get default config
-const { tokens, network, networks, metadata, bonders, isMainnet } = getConfigByNetwork(envNetwork)
+const { addresses, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
 
 // defaults
 export const config: Config = {
   isMainnet,
-  tokens,
+  addresses,
   network,
   networks,
+  tokens: {},
   bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
-  bonders,
+  bonders: {},
   stateUpdateAddress: '',
   fees: {},
   routes: {},
@@ -160,23 +166,38 @@ export const config: Config = {
   },
   metrics: {
     enabled: false
+  },
+  commitTransfers: {
+    minThresholdAmount: {}
   }
 }
 
 export const setConfigByNetwork = (network: string) => {
-  const { tokens, networks, bonders, metadata, isMainnet } = getConfigByNetwork(network)
+  const { addresses, networks, metadata, isMainnet } = getConfigByNetwork(network)
   config.isMainnet = isMainnet
-  config.tokens = tokens
+  config.addresses = addresses
   config.network = normalizeNetwork(network)
   config.networks = networks
-  config.bonders = bonders
   config.metadata = metadata
 }
 
 export const setConfigAddresses = (addresses: Addresses) => {
-  const { bridges, bonders } = addresses
-  config.tokens = bridges
+  const { bridges } = addresses
+  config.addresses = bridges
+}
+
+export const setConfigBonders = (bonders: Bonders) => {
   config.bonders = bonders
+}
+
+export const getConfigBondersForToken = (token: string) => {
+  return (config.bonders as any)?.[token]
+}
+
+export const getConfigBonderForRoute = (token: string, sourceChain: string, destinationChain: string) => {
+  const bonders = getConfigBondersForToken(token)
+  const bonder = bonders?.[sourceChain]?.[destinationChain]
+  return bonder
 }
 
 export const setBonderPrivateKey = (privateKey: string) => {
@@ -190,13 +211,15 @@ export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   }
 }
 
-export const setNetworkWaitConfirmations = (
-  network: string,
-  waitConfirmations: number
-) => {
+export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
+  network = normalizeNetwork(network)
   if (config.networks[network]) {
-    config.networks[network].waitConfirmations = waitConfirmations
+    config.networks[network].maxGasPrice = maxGasPrice
   }
+}
+
+export const getNetworkMaxGasPrice = (network: string) => {
+  return config.networks[network].maxGasPrice
 }
 
 export const setStateUpdateAddress = (address: string) => {
@@ -229,12 +252,20 @@ export const getEnabledTokens = (): string[] => {
 
 export const getEnabledNetworks = (): string[] => {
   const networks: {[network: string]: boolean} = {}
-  for (const token in config.tokens) {
-    for (const network in config.tokens[token]) {
+  for (const token in config.addresses) {
+    for (const network in config.addresses[token]) {
       networks[network] = true
     }
   }
   return Object.keys(networks)
+}
+
+export function getAllChains () {
+  return Object.keys(config.networks)
+}
+
+export function getAllTokens () {
+  return Object.keys(config.addresses)
 }
 
 export const setMetricsConfig = (metricsConfig: MetricsConfig) => {
@@ -249,6 +280,18 @@ export const setRoutesConfig = (routes: Routes) => {
   config.routes = { ...config.routes, ...routes }
 }
 
+export const setCommitTransfersConfig = (commitTransfers: CommitTransfersConfig) => {
+  config.commitTransfers = { ...config.commitTransfers, ...commitTransfers }
+}
+
+export const setConfigTokens = (tokens: Tokens) => {
+  config.tokens = { ...config.tokens, ...tokens }
+}
+
+export const getBonderConfig = (tokens: Tokens) => {
+  config.tokens = { ...config.tokens, ...tokens }
+}
+
 export const chainNativeTokens = ['ETH', 'MATIC', 'DAI']
 
 export enum Watchers {
@@ -260,5 +303,6 @@ export enum Watchers {
   xDomainMessageRelay = 'xDomainMessageRelay',
 }
 
+export { Bonders }
 export * from './validation'
 export * from './fileOps'

@@ -34,6 +34,7 @@ import {
   useBalance,
   useNativeTokenMaxValue,
 } from 'src/hooks'
+import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -672,24 +673,19 @@ const Send: FC = () => {
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
           {totalBonderFee?.gt(0) && (
-            <div
-              style={{
-                marginBottom: '1rem',
-              }}
-            >
-              <DetailRow
-                title={'Fees'}
-                tooltip={
-                  <FeeDetails
-                    bonderFee={bonderFeeDisplay}
-                    destinationTxFee={destinationTxFeeDisplay}
-                  />
-                }
-                value={totalBonderFeeDisplay}
-                large
-              />
-            </div>
+            <DetailRow
+              title={'Fees'}
+              tooltip={
+                <FeeDetails
+                  bonderFee={bonderFeeDisplay}
+                  destinationTxFee={destinationTxFeeDisplay}
+                />
+              }
+              value={totalBonderFeeDisplay}
+              large
+            />
           )}
+
           <DetailRow
             title="Estimated Received"
             tooltip={
@@ -710,9 +706,9 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
 
-      <Flex m="2rem" justifyAround alignCenter $wrap maxWidth={['450px']}>
+      <ButtonsWrapper>
         {!sendButtonActive && (
-          <Div mb={[3]}>
+          <Div mb={[3]} fullWidth={approveButtonActive}>
             <Button
               className={styles.button}
               large
@@ -726,7 +722,7 @@ const Send: FC = () => {
             </Button>
           </Div>
         )}
-        <Div mb={[3]}>
+        <Div mb={[3]} fullWidth={sendButtonActive}>
           <Button
             className={styles.button}
             startIcon={sendButtonActive && <SendIcon />}
@@ -740,7 +736,7 @@ const Send: FC = () => {
             Send
           </Button>
         </Div>
-      </Flex>
+      </ButtonsWrapper>
 
       <Flex mt={1}>
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />

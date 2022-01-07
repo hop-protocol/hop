@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link, Typography, useTheme } from '@material-ui/core'
 import { BigNumber } from 'ethers'
 import { StyledButton } from 'src/components/buttons/StyledButton'
-import { Circle, Div, Flex, Icon, Input } from 'src/components/ui'
+import { Circle, Div, Flex, Icon, Input, Text } from 'src/components/ui'
 
 const respMaxWidths = [350, 824, 824, 1024]
 
@@ -56,20 +56,23 @@ export function ClaimWrapper(props: any) {
           </Div>
         ) : (
           <Div>
-            <Flex column>
+            <Flex column fullWidth>
               <Flex justifyBetween fullWidth alignCenter>
-                <Typography variant="h4">{title}</Typography>
+                <Div fontSize={[18, 4, 5]} color="text.primary">
+                  {title}
+                </Div>
 
-                <Flex alignCenter>
-                  {step === 1 && inputValue && delegate && (
-                    <Circle mr={3}>
-                      <Icon src={delegate.avatar} width={45} />
+                <Flex justifyBetween alignCenter maxWidth={[120, 300]} fullWidth={step === 1}>
+                  {step === 1 && inputValue && delegate?.avatar && (
+                    <Circle>
+                      <Icon src={delegate.avatar} width={[20, 40]} />
                     </Circle>
                   )}
 
                   {step === 1 && (
                     <Input
-                      width={[150, 300, 440]}
+                      maxWidth={[delegate?.avatar ? 90 : 120, delegate?.avatar ? 240 : 300]}
+                      width="100%"
                       value={inputValue}
                       placeholder="Enter ENS or address"
                       onChange={e => setInputValue(e.target.value)}

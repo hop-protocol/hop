@@ -88,7 +88,7 @@ export function ChooseDelegate(props) {
       <Flex my={4} $wrap justifyAround>
         {delegates.map((del: Delegate, i) => (
           <Flex
-            key={del.ensName + i}
+            key={del.address + i}
             py={1}
             px={3}
             my={2}

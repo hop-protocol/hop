@@ -18,9 +18,8 @@ export const l2BridgeInterface = L2Bridge__factory.createInterface()
 export const swapInterface = Swap__factory.createInterface()
 export const erc20Interface = ERC20__factory.createInterface()
 export const weth9Interface = WETH9__factory.createInterface()
-export const ensTokenInterface = ENSToken__factory.createInterface()
 
-export const ensTokenAddress = '0xc1f5dc7703ab14d4b5a15a62db6b33a9a85c8cc8'
+export const ensTokenAddress = '0xc1F5dC7703aB14D4B5a15a62dB6B33A9A85C8CC8'
 
 export async function getEnsToken(signerOrProvider: providers.Provider | Signer) {
   if ('getCode' in signerOrProvider) {

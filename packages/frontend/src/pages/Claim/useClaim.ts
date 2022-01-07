@@ -4,6 +4,7 @@ import { BigNumber, providers, utils } from 'ethers'
 import { claimTokens, correctClaimChain, fetchClaim } from 'src/utils/claims'
 import { toTokenDisplay } from 'src/utils'
 import { isAddress } from 'ethers/lib/utils'
+import { useEns } from 'src/hooks'
 
 export interface TokenClaim {
   entry: {
@@ -35,25 +36,37 @@ export function useClaim() {
   const [inputValue, setInputValue] = useState('')
   const [claimTokensTx, setClaimTokensTx] = useState<providers.TransactionResponse>()
   const [delegate, setDelegate] = useState<Delegate>(initialDelegate)
+  const { ensName, ensAvatar, ensAddress } = useEns(inputValue)
 
   useEffect(() => {
-    if (inputValue) {
-      if (isAddress(inputValue)) {
-        return setDelegate({
-          // TODO: lookup or resolve
-          ensName: inputValue,
-          address: inputValue,
-          votes: 1,
-          avatar: '',
-        })
-      }
-
-      setDelegate(undefined!)
+    if (!inputValue) {
+      return
     }
-  }, [inputValue])
+
+    if (isAddress(inputValue)) {
+      return setDelegate({
+        ensName: ensName || '',
+        address: inputValue,
+        votes: 1,
+        avatar: ensAvatar || '',
+      })
+    }
+
+    if (ensName && ensAddress) {
+      return setDelegate({
+        ensName,
+        address: ensAddress,
+        votes: 1,
+        avatar: ensAvatar || '',
+      })
+    }
+
+    setDelegate(undefined!)
+  }, [inputValue, ensName, ensAddress, ensAvatar])
 
   // Sets claimable tokens
   useEffect(() => {
+    console.log(`delegate:`, delegate)
     if (claim) {
       console.log(`claim:`, claim)
       if (claim.isClaimed) {
@@ -63,7 +76,7 @@ export function useClaim() {
         setClaimableTokens(claim.entry.balance.toString())
       }
     }
-  }, [claim])
+  }, [claim, delegate])
 
   // Sets warning about correct connected network
   useEffect(() => {
@@ -124,7 +137,6 @@ export function useClaim() {
       setClaim(undefined)
       getClaim(address.address)
     }
-    console.log(`correctNetwork:`, correctNetwork)
   }, [address, provider, correctNetwork])
 
   // Send tx to claim tokens

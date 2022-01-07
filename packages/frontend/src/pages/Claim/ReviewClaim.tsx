@@ -60,7 +60,7 @@ export function ReviewClaim(props) {
                   </Circle>
                 )}
                 <Div color="text.primary" fontSize={[1, 2]}>
-                  {delegate.ensName}
+                  {delegate.ensName || delegate.address}
                 </Div>
               </Flex>
             </Div>

@@ -62,7 +62,7 @@ export function ClaimWrapper(props: any) {
                   {title}
                 </Div>
 
-                <Flex justifyBetween alignCenter maxWidth={[120, 300]} fullWidth={step === 1}>
+                <Flex justifyBetween alignCenter maxWidth={[120, 340]} fullWidth={step === 1}>
                   {step === 1 && inputValue && delegate?.avatar && (
                     <Circle>
                       <Icon src={delegate.avatar} width={[20, 40]} />
@@ -71,7 +71,10 @@ export function ClaimWrapper(props: any) {
 
                   {step === 1 && (
                     <Input
-                      maxWidth={[delegate?.avatar ? 90 : 120, delegate?.avatar ? 240 : 300]}
+                      maxWidth={[
+                        inputValue && delegate?.avatar ? 90 : 120,
+                        inputValue && delegate?.avatar ? 290 : 340,
+                      ]}
                       width="100%"
                       value={inputValue}
                       placeholder="Enter ENS or address"
@@ -95,7 +98,7 @@ export function ClaimWrapper(props: any) {
         <Div maxWidth={respMaxWidths} mt={4} fullWidth>
           <Flex justifyBetween fullWidth px={[1, 5]}>
             <StyledButton onClick={prevStep}>Go Back </StyledButton>
-            <StyledButton onClick={nextStep} highlighted disabled={!delegate?.ensName}>
+            <StyledButton onClick={nextStep} highlighted disabled={!delegate?.address}>
               Next
             </StyledButton>
           </Flex>
@@ -123,7 +126,7 @@ export function ClaimWrapper(props: any) {
         <Div maxWidth={respMaxWidths} mt={4} fullWidth>
           <Flex justifyCenter fullWidth px={[1, 5]}>
             <Link href="/" onClick={() => setStep(0)}>
-              <StyledButton highlighted disabled={!delegate?.ensName}>
+              <StyledButton highlighted disabled={!delegate?.address}>
                 Dashboard
               </StyledButton>
             </Link>

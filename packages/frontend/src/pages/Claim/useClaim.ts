@@ -3,7 +3,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import { BigNumber, providers, utils } from 'ethers'
 import { claimTokens, correctClaimChain, fetchClaim } from 'src/utils/claims'
 import { toTokenDisplay } from 'src/utils'
-import { isAddress } from 'ethers/lib/utils'
+import { getAddress, isAddress } from 'ethers/lib/utils'
 import { useEns } from 'src/hooks'
 
 export interface TokenClaim {
@@ -43,10 +43,10 @@ export function useClaim() {
       return
     }
 
-    if (isAddress(inputValue)) {
+    if (isAddress(inputValue?.toLowerCase())) {
       return setDelegate({
         ensName: ensName || '',
-        address: inputValue,
+        address: getAddress(inputValue.toLowerCase()),
         votes: 1,
         avatar: ensAvatar || '',
       })

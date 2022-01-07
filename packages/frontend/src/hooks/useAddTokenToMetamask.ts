@@ -8,7 +8,7 @@ export function useAddTokenToMetamask(
   token?: Token | null,
   destNetworkName?: string | null
 ): {
-  addToken: () => void
+  addToken: (networkId: number) => void
   addTokenToDestNetwork: () => void
   success?: boolean
 } {
@@ -17,9 +17,14 @@ export function useAddTokenToMetamask(
   const [success, setSuccess] = useState<boolean>(false)
 
   const addToken = useCallback(
-    (networkId?: number) => {
+    (networkId: number) => {
       if (provider && token) {
-        const { symbol, image, decimals } = token
+        let { symbol, image, decimals } = token
+
+        if (symbol === 'XDAI' && networkId !== 100) {
+          symbol = 'DAI'
+        }
+
         const networkName = networkIdToSlug(networkId || connectedNetworkId)
         const params = {
           type: 'ERC20',

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link, Typography, useTheme } from '@material-ui/core'
 import { BigNumber } from 'ethers'
 import { StyledButton } from 'src/components/buttons/StyledButton'
-import { Div, Flex, Input } from 'src/components/ui'
+import { Circle, Div, Flex, Icon, Input } from 'src/components/ui'
 
 const respMaxWidths = [350, 824, 824, 1024]
 
@@ -55,27 +55,36 @@ export function ClaimWrapper(props: any) {
             {warning}
           </Div>
         ) : (
-          <>
+          <Div>
             <Flex column>
               <Flex justifyBetween fullWidth alignCenter>
                 <Typography variant="h4">{title}</Typography>
-                {step === 1 && (
-                  <Input
-                    width={[150, 300, 440]}
-                    value={inputValue}
-                    placeholder="Enter ENS or address"
-                    onChange={e => setInputValue(e.target.value)}
-                    bg="background.default"
-                    boxShadow={theme.boxShadow.inner}
-                    color="text.secondary"
-                    fontSize={[0, 1, 2]}
-                    border={inputValue && `1px solid ${theme.palette.primary.main}`}
-                  />
-                )}
+
+                <Flex alignCenter>
+                  {step === 1 && inputValue && delegate && (
+                    <Circle mr={3}>
+                      <Icon src={delegate.avatar} width={45} />
+                    </Circle>
+                  )}
+
+                  {step === 1 && (
+                    <Input
+                      width={[150, 300, 440]}
+                      value={inputValue}
+                      placeholder="Enter ENS or address"
+                      onChange={e => setInputValue(e.target.value)}
+                      bg="background.default"
+                      boxShadow={theme.boxShadow.inner}
+                      color="text.secondary"
+                      fontSize={[0, 1, 2]}
+                      border={inputValue && `1px solid ${theme.palette.primary.main}`}
+                    />
+                  )}
+                </Flex>
               </Flex>
             </Flex>
             {children}
-          </>
+          </Div>
         )}
       </Div>
 
@@ -110,8 +119,7 @@ export function ClaimWrapper(props: any) {
       {step === 4 && ( // Claimed
         <Div maxWidth={respMaxWidths} mt={4} fullWidth>
           <Flex justifyCenter fullWidth px={[1, 5]}>
-            {/* TODO: change to <Link to='/send' />  */}
-            <Link href="/">
+            <Link href="/" onClick={() => setStep(0)}>
               <StyledButton highlighted disabled={!delegate?.ensName}>
                 Dashboard
               </StyledButton>

@@ -31,12 +31,7 @@ root
 async function main (source: any) {
   let { override, args, pass: passphrase, path: keystoreFilePath, privateKey } = source
   const action = args[0]
-  const actionOptions = [
-    Actions.Generate,
-    Actions.Decrypt,
-    Actions.Reencrypt,
-    Actions.Address
-  ]
+  const actionOptions = Object.values(Actions)
 
   if (!action) {
     throw new Error('please specify subcommand')
@@ -153,30 +148,21 @@ Press [Enter] to exit.
     if (!passphrase) {
       passphrase = await promptPassphrase()
     }
-
     const oldPassphrase = passphrase
-    const newPassphrase = await generatePassphrase()
-
     let keystore = getKeystore(keystoreFilePath)
     const recoveredPrivateKey = await recoverKeystore(keystore, oldPassphrase)
+
+    const newPassphrase = await generatePassphrase()
     keystore = await generateKeystore(recoveredPrivateKey, newPassphrase)
     fs.writeFileSync(keystoreFilePath, JSON.stringify(keystore), 'utf8')
-
-    await prompt.get({
-      properties: {
-        blank: {
-          message: `
+    console.log(`
 ㅤ${hopArt}
 Public address: 0x${keystore.address}
 Your keys can be found at: ${keystoreFilePath}
 
 Keystore reencryption is complete.
-Press [Enter] to exit.
 `
-        }
-      }
-    } as any)
-    clearConsole()
+    )
   } else if (action === Actions.Address) {
     const keystore = getKeystore(keystoreFilePath)
     const address = keystore.address

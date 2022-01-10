@@ -1,0 +1,86 @@
+aside.bn-onboard-modal {
+  --webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  font-family: 'Nunito' !important;
+}
+
+.bn-onboard-custom .bn-onboard-modal {
+  font-family: 'Nunito';
+}
+
+.bn-onboard-custom.bn-onboard-modal-content-header-icon {
+  display: none;
+}
+
+/* The container for the modal content. */
+.bn-onboard-custom.bn-onboard-modal-content {
+  font-family: 'Source Code Pro';
+  max-width: 350px;
+  background-color: #272332;
+  color: #e3ddf1;
+}
+
+/* Modal Header */
+.bn-onboard-custom.bn-onboard-modal-content-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Nunito';
+}
+
+/* Modal Heading */
+.bn-onboard-custom.bn-onboard-modal-content-header-heading {
+  margin: 0;
+  font-weight: 800;
+}
+
+/* The unordered list of wallets */
+.bn-onboard-custom.bn-onboard-modal-select-wallets {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.bn-onboard-custom.bn-onboard-icon-button {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-bottom: 1rem;
+  background-color: #1f1e23;
+  color: #e3ddf1;
+  border-radius: 1rem;
+  height: 60px;
+  font-family: 'Nunito';
+}
+
+/* Wallet button */
+.bn-onboard-custom.bn-onboard-icon-button div {
+  width: 20%;
+}
+
+/* More Wallets */
+.bn-onboard-custom.bn-onboard-prepare-button.cta.bn-onboard-prepare-button-center {
+  display: flex;
+  align-items: center;
+  border-color: #c462fc;
+  color: #c462fc;
+  font-family: 'Nunito';
+  line-height: normal;
+}
+
+.bn-onboard-custom.bn-onboard-prepare-button.cta.bn-onboard-prepare-button-center:hover {
+  background-color: transparent;
+}
+
+/* What is a wallet? */
+.bn-onboard-custom.bn-onboard-select-wallet-info.svelte-w9ftfy {
+  font-family: 'Nunito' !important;
+  color: white;
+}
+
+a.bn-onboard-clickable {
+  font-size: 10pt !important;
+}
+
+div.bn-branding {
+  display: none;
+}

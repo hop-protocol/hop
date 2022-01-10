@@ -25,7 +25,7 @@ export type BaseItem = {
   _createdAt?: number
 }
 
-type KV = {
+export type KV = {
   key: string
   value: any
 }

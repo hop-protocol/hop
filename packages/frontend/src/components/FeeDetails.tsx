@@ -1,9 +1,7 @@
 import React, { FC } from 'react'
 import Typography from '@material-ui/core/Typography'
-import { BigNumber } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import DetailRow from 'src/components/DetailRow'
-import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -11,6 +9,7 @@ const useStyles = makeStyles(theme => ({
     width: '32.0rem',
   },
   text: {
+    color: theme.palette.primary.contrastText,
     paddingBottom: theme.padding.extraLight,
   },
 }))

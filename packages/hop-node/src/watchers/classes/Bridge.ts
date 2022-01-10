@@ -51,8 +51,8 @@ export default class Bridge extends ContractBase {
       this.tokenSymbol = tokenSymbol
     }
     this.db = getDbSet(this.tokenSymbol)
-    const bridgeDeployedBlockNumber = globalConfig.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
-    const l1CanonicalTokenAddress = globalConfig.tokens[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
+    const bridgeDeployedBlockNumber = globalConfig.addresses[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+    const l1CanonicalTokenAddress = globalConfig.addresses[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
     if (!bridgeDeployedBlockNumber) {
       throw new Error('bridge deployed block number is required')
     }
@@ -750,9 +750,5 @@ export default class Bridge extends ContractBase {
     }
 
     return 'ETH'
-  }
-
-  getConfigBonderAddress (destinationChain: string): string {
-    return (globalConfig?.bonders as any)?.[this.tokenSymbol]?.[this.chainSlug]?.[destinationChain]
   }
 }

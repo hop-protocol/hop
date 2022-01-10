@@ -56,7 +56,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     top: '40%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    transition: 'all 0.2s ease-out',
+    transition: 'all 0.15s ease-out',
     padding: '5rem',
     '&.entering': {
       opacity: 0,

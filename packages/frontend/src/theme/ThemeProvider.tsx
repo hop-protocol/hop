@@ -34,7 +34,8 @@ type CustomColors = Omit<StyledSystemTheme, 'colors'> & {
 export const styledSystemTheme: CustomColors = {
   // 640px, 832px, 1024px, 1440px
   // '40em', '52em', '64em', '90em'
-  breakpoints: ['640px', '832px', '1024px', '1440px'],
+  // breakpoints: ['640px', '832px', '1024px', '1440px'],
+  breakpoints: ['600px', '960px', '1280px', '1920px'],
   space: [0, 4, 8, 16, 32, 64, 128, 256, 512],
   fontSizes: [12, 14, 16, 20, 24, 36, 48, 80, 96],
   fontWeights: [100, 200, 300, 400, 500, 600, 700, 800, 900],

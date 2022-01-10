@@ -20,7 +20,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { config, sourceChain: chain, token, dry: dryMode, transferId } = source
+  const { sourceChain: chain, token, dry: dryMode, transferId } = source
   if (!chain) {
     throw new Error('chain is required')
   }

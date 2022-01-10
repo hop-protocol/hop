@@ -75,7 +75,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         availableCredit.lt(amount!) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
-        logger.debug(
+        logger.warn(
           `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
           `withdrawalBondTxError: ${withdrawalBondTxError}`
         )
@@ -90,6 +90,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     await Promise.all(promises)
+    this.logger.debug('checkTransferSentFromDb completed')
   }
 
   checkTransferId = async (transferId: string) => {
@@ -120,6 +121,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId!)
       .bridge
 
+    logger.debug('processing bondWithdrawal. checking isTransferIdSpent')
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
     logger.debug(`processing bondWithdrawal. isTransferSpent: ${isTransferSpent?.toString()}`)
     if (isTransferSpent) {
@@ -159,7 +161,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    logger.debug('sending bondWithdrawal tx')
+    logger.debug('attempting to send bondWithdrawal tx')
 
     const sourceTx = await sourceL2Bridge.getTransaction(
       transferSentTxHash!
@@ -371,8 +373,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       await destinationBridge.provider.call(tx)
       return true
     } catch (err) {
-      logger.error(`getIsRecipientReceivable err: ${err.message}`)
-      return false
+      const revertErrMsgRegex = /(execution reverted|VM execution error)/i
+      const isRevertError = revertErrMsgRegex.test(err.message)
+      if (isRevertError) {
+        logger.error(`getIsRecipientReceivable err: ${err.message}`)
+        return false
+      }
+      logger.error(`getIsRecipientReceivable non-revert err: ${err.message}`)
+      return true
     }
   }
 }

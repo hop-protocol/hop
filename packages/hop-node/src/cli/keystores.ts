@@ -12,31 +12,41 @@ import { hopArt } from './shared/art'
 import { prompt, promptPassphrase } from 'src/prompt'
 import { randomBytes } from 'crypto'
 
+enum Actions {
+  Generate = 'generate',
+  Decrypt = 'decrypt',
+  Reencrypt = 'reencrypt',
+  Address = 'address'
+}
+
 root
   .command('keystore')
   .description('Keystore')
   .option('--pass <secret>', 'Passphrase to encrypt keystore with.', parseString)
-  .option('-o, --output <path>', 'Output file path of encrypted keystore.', parseString)
+  .option('--path <path>', 'File path of encrypted keystore.', parseString)
   .option('--override [boolean]', 'Override existing keystore if it exists.', parseBool)
   .option('--private-key <private-key>', 'The private key to encrypt.', parseString)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let { config, override, args, pass: passphrase, output, privateKey } = source
+  let { override, args, pass: passphrase, path: keystoreFilePath, privateKey } = source
   const action = args[0]
-  output = output || defaultKeystoreFilePath
+  const actionOptions = Object.values(Actions)
+
   if (!action) {
     throw new Error('please specify subcommand')
   }
-  if (action === 'generate') {
+  if (!actionOptions.includes(action)) {
+    throw new Error(`Please choose a valid option. Valid options include ${actionOptions}.`)
+  }
+  keystoreFilePath = keystoreFilePath || defaultKeystoreFilePath
+  if (!keystoreFilePath) {
+    throw new Error('please specify keystore filepath')
+  }
+
+  if (action === Actions.Generate) {
     if (!passphrase) {
-      passphrase = await promptPassphrase(
-        'Enter new keystore encryption password'
-      )
-      const passphraseConfirm = await promptPassphrase('Confirm password')
-      if (passphrase !== passphraseConfirm) {
-        throw new Error('ERROR: passwords did not match')
-      }
+      passphrase = await generatePassphrase()
     }
     let mnemonic: string | undefined
     const hdpath = 'm/44\'/60\'/0\'/0/0'
@@ -99,7 +109,7 @@ Press [Enter] to try again.`
     }
 
     const keystore = await generateKeystore(privateKey, passphrase)
-    const filepath = path.resolve(output)
+    const filepath = path.resolve(keystoreFilePath)
     const exists = fs.existsSync(filepath)
     if (exists) {
       if (!override) {
@@ -127,30 +137,57 @@ Press [Enter] to exit.
       }
     } as any)
     clearConsole()
-  } else if (action === 'decrypt') {
+  } else if (action === Actions.Decrypt) {
     if (!passphrase) {
       passphrase = await promptPassphrase()
     }
-    const filepath = source.args[1] || defaultKeystoreFilePath
-    if (!filepath) {
-      throw new Error('please specify filepath')
+    const keystore = getKeystore(keystoreFilePath)
+    const recoveredPrivateKey = await recoverKeystore(keystore, passphrase)
+    console.log(recoveredPrivateKey) // intentional log
+  } else if (action === Actions.Reencrypt) {
+    if (!passphrase) {
+      passphrase = await promptPassphrase()
     }
-    const keystore = JSON.parse(
-      fs.readFileSync(path.resolve(filepath), 'utf8')
+    const oldPassphrase = passphrase
+    let keystore = getKeystore(keystoreFilePath)
+    const recoveredPrivateKey = await recoverKeystore(keystore, oldPassphrase)
+
+    const newPassphrase = await generatePassphrase()
+    keystore = await generateKeystore(recoveredPrivateKey, newPassphrase)
+    fs.writeFileSync(keystoreFilePath, JSON.stringify(keystore), 'utf8')
+    console.log(`
+ㅤ${hopArt}
+Public address: 0x${keystore.address}
+Your keys can be found at: ${keystoreFilePath}
+
+Keystore reencryption is complete.
+`
     )
-    const privateKey = await recoverKeystore(keystore, passphrase)
-    console.log(privateKey) // intentional log
-  } else if (action === 'address') {
-    const filepath = source.args[1] || defaultKeystoreFilePath
-    if (!filepath) {
-      throw new Error('please specify filepath')
-    }
-    const keystore = JSON.parse(
-      fs.readFileSync(path.resolve(filepath), 'utf8')
-    )
+  } else if (action === Actions.Address) {
+    const keystore = getKeystore(keystoreFilePath)
     const address = keystore.address
     console.log(`0x${address}`) // intentional log
-  } else {
-    console.log(`unsupported command: "${action}"`) // intentional log
+  }
+}
+
+async function generatePassphrase(): Promise<string> {
+  const passphrase = await promptPassphrase(
+    'Enter new keystore encryption passphrase'
+  )
+  const passphraseConfirm = await promptPassphrase('Confirm passphrase')
+  if (passphrase !== passphraseConfirm) {
+    throw new Error('ERROR: passphrases did not match')
+  }
+
+  return (passphrase as string)
+}
+
+function getKeystore(filepath: string): any{
+  try {
+    return JSON.parse(
+      fs.readFileSync(path.resolve(filepath), 'utf8')
+    )
+  } catch (err) {
+    throw new Error(`keystore does not exist at ${filepath}`)
   }
 }

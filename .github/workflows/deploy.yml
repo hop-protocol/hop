@@ -2,6 +2,7 @@ name: deploy
 on:
   push:
     branches:
+      - production
       - mainnet
 
 jobs:

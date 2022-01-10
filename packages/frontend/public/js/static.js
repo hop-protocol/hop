@@ -25,6 +25,6 @@
     dataLayer.push(arguments)
   }
   gtag('js', new Date())
-
+  gtag('set', {cookie_flags: 'SameSite=None;Secure'})
   gtag('config', 'G-ES1R727TH9')
 })()

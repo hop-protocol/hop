@@ -323,7 +323,7 @@ class Base {
    */
   public async getSignerAddress () {
     if (Signer.isSigner(this.signer)) {
-      return (this.signer as Signer)?.getAddress()
+      return this.signer.getAddress()
     }
   }
 

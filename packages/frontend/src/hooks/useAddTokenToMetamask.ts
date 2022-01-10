@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { networkIdToSlug, wait } from 'src/utils'
+import { Chain, networkIdToSlug, wait } from 'src/utils'
 
 export function useAddTokenToMetamask(
   token?: Token | null,
@@ -21,11 +21,11 @@ export function useAddTokenToMetamask(
       if (provider && token) {
         let { symbol, image, decimals } = token
 
-        if (symbol === 'XDAI' && networkId !== 100) {
+        const networkName = networkIdToSlug(networkId || connectedNetworkId)
+        if (symbol === 'XDAI' && networkName !== Chain.xDai) {
           symbol = 'DAI'
         }
 
-        const networkName = networkIdToSlug(networkId || connectedNetworkId)
         const params = {
           type: 'ERC20',
           options: {

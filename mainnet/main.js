@@ -311,7 +311,7 @@ const colorsMap = {
 
 const chainLogosMap = {
   ethereum: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/ethereum.svg',
-  gnosis: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/xdai.svg',
+  gnosis: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/gnosis.svg',
   polygon: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/polygon.svg',
   optimism: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/optimism.svg',
   arbitrum: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange/logos/arbitrum.svg'

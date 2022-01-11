@@ -5,6 +5,12 @@ import Base from '../../src/Base'
 
 const warn = jest.spyOn(global.console, 'warn')
 
+function cleanupMock(mock: any) {
+  mock.mockClear()
+  mock.mockReset()
+  mock.mockRestore()
+}
+
 describe('Base', () => {
   it('should return the Gnosis chain provider and warn the sdk consumer when attempting to connect to xdai chain', () => {
     const signer = new Wallet(privateKey)
@@ -14,6 +20,8 @@ describe('Base', () => {
     expect(warn).toHaveBeenCalledWith(
       'NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.'
     )
+
+    cleanupMock(warn)
 
     expect(p.connection.url).toBe('https://rpc.gnosischain.com/')
   })

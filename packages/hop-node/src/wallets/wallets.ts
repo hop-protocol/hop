@@ -4,8 +4,8 @@ import memoize from 'fast-memoize'
 import { Wallet } from 'ethers'
 import {
   gasPriceMultiplier,
+  getNetworkMaxGasPrice,
   config as globalConfig,
-  maxGasPriceGwei,
   minPriorityFeePerGas,
   priorityFeePerGasCap,
   timeTilBoostMs
@@ -18,6 +18,7 @@ const constructWallet = memoize(
     }
     const provider = getRpcProvider(network)
     const signer = new GasBoostSigner(privateKey, provider!) // eslint-disable-line
+    const maxGasPriceGwei = getNetworkMaxGasPrice(network)
     signer.setOptions({
       gasPriceMultiplier,
       maxGasPriceGwei,

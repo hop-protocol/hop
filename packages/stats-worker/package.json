@@ -9,6 +9,8 @@
   },
   "scripts": {
     "start": "ts-node src/index.ts",
+    "start:apr": "ts-node src/index.ts --apr",
+    "start:volume": "ts-node src/index.ts --volume --tvl",
     "build": "tsc",
     "lint": "prettier-standard --format",
     "clean": "rimraf dist",
@@ -28,6 +30,7 @@
     "ethereum-block-by-date": "^1.4.2",
     "ethers": "^5.4.6",
     "luxon": "^2.1.1",
+    "minimist": "^1.2.5",
     "sqlite3": "^5.0.2",
     "typescript": "^4.4.2",
     "uuid": "^8.3.2",

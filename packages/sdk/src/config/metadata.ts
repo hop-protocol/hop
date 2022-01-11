@@ -1,6 +1,6 @@
 import * as hopMetadata from '@hop-protocol/core/metadata'
 
-export const metadata = {
+export const metadata: any = {
   tokens: {
     kovan: hopMetadata.kovan.tokens,
     goerli: hopMetadata.goerli.tokens,

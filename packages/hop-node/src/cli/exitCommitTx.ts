@@ -1,7 +1,7 @@
 import ArbitrumBridgeWatcher from 'src/watchers/ArbitrumBridgeWatcher'
+import GnosisBridgeWatcher from 'src/watchers/GnosisBridgeWatcher'
 import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
-import GnosisBridgeWatcher from 'src/watchers/GnosisBridgeWatcher'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { actionHandler, parseBool, parseString, root } from './shared'
 import { findWatcher, getWatchers } from 'src/watchers/watchers'

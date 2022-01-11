@@ -28,7 +28,20 @@ class GasCostDb extends BaseDb {
     this.startPrunePoller()
   }
 
+  async migration () {
+    this.logger.debug('GasCostDb migration started')
+    const entries = await this.getKeyValues()
+    this.logger.debug(`GasCostDb migration: ${entries.length} entries`)
+    for (const { key, value } of entries) {
+      if (value?.chain === 'xdai') {
+        value.chain = 'gnosis'
+        await this._update(key, value)
+      }
+    }
+  }
+
   private async startPrunePoller () {
+    await this.tilReady()
     while (true) {
       try {
         await this.prune()
@@ -54,6 +67,7 @@ class GasCostDb extends BaseDb {
   }
 
   async getNearest (chain: string, token: string, attemptSwap: boolean, targetTimestamp: number): Promise<GasCost | null> {
+    await this.tilReady()
     const startTimestamp = targetTimestamp - OneHourSeconds
     const endTimestamp = targetTimestamp + OneHourSeconds
     const filter = {
@@ -83,6 +97,7 @@ class GasCostDb extends BaseDb {
   }
 
   private async getOldEntries (): Promise<GasCost[]> {
+    await this.tilReady()
     const oneWeekAgo = Math.floor((Date.now() - OneWeekMs) / 1000)
     const items = (await this.getKeyValues())
       .map((kv: any) => {
@@ -95,6 +110,7 @@ class GasCostDb extends BaseDb {
   }
 
   private async prune (): Promise<void> {
+    await this.tilReady()
     const items = await this.getOldEntries()
     this.logger.debug(`items to prune: ${items.length}`)
     for (const { chain, token, timestamp, id } of items) {

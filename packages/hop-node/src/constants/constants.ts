@@ -1,4 +1,4 @@
-import {constants as ethersConstants} from 'ethers'
+import { constants as ethersConstants } from 'ethers'
 
 export enum Network {
   Mainnet = 'mainnet',
@@ -23,7 +23,7 @@ export enum Token {
 const AvgBlockTimeSeconds = {
   Ethereum: 13,
   Polygon: 2,
-  Gnosis: 5,
+  Gnosis: 5
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -31,7 +31,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   polygon: 5933,
   gnosis: 3218,
   optimism: 8545,
-  arbitrum: 59105,
+  arbitrum: 59105
 }
 
 const SecondsInDay = 86400
@@ -39,7 +39,7 @@ const SecondsInWeek = SecondsInDay * 7
 export const TotalBlocks = {
   Ethereum: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Ethereum),
   Polygon: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Polygon),
-  Gnosis: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Gnosis),
+  Gnosis: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Gnosis)
 }
 export const DefaultBatchBlocks = 10000
 

@@ -18,6 +18,11 @@ class Chain {
   static Polygon = newChain(ChainEnum.Polygon)
 
   static fromSlug (slug: string) {
+    if (slug === 'xdai') {
+      console.warn('NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.')
+      slug = 'gnosis'
+    }
+
     return newChain(slug)
   }
 

@@ -220,7 +220,10 @@ class Base {
         )}`
       )
     }
-
+    if (chain.slug === 'xdai') {
+      console.warn('NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.')
+      chain = Chain.fromSlug('gnosis')
+    }
     chain.provider = this.getChainProvider(chain)
     chain.chainId = this.getChainId(chain)
     return chain
@@ -284,6 +287,12 @@ class Base {
     } else {
       throw new Error(`unknown chain "${chain}"`)
     }
+
+    if (chainSlug === 'xdai') {
+      console.warn('NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.')
+      chainSlug = ChainEnum.Gnosis
+    }
+
     if (this.chainProviders[chainSlug]) {
       return this.chainProviders[chainSlug]
     }

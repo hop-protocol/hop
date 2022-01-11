@@ -124,8 +124,7 @@ class Base {
     try {
       const data = s3FileCache[this.network] || await this.getS3ConfigData()
       if (data.bonders) {
-        // TODO: update s3 config data cache
-        // this.bonders = data.bonders
+        this.bonders = data.bonders
       }
       if (data.bonderFeeBps) {
         this.fees = data.bonderFeeBps

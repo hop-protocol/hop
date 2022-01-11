@@ -9,7 +9,7 @@
     "yarn": "^1.22.11"
   },
   "scripts": {
-    "test": "jest test",
+    "test": "jest",
     "dev": "npm run version && tsc --watch",
     "build": "npm run version && npm run build:ts",
     "build:ts": "tsc",

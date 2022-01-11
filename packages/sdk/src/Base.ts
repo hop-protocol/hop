@@ -278,7 +278,7 @@ class Base {
    * @param {Object} - Chain model.
    * @returns {Object} - Ethers provider.
    */
-  public getChainProvider = (chain: Chain | string) => {
+  public getChainProvider (chain: Chain | string) {
     let chainSlug: string
     if (chain instanceof Chain && chain?.slug) {
       chainSlug = chain?.slug

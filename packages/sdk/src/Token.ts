@@ -171,14 +171,22 @@ class Token extends Base {
     spender: string,
     amount: TAmount = ethers.constants.MaxUint256
   ) {
+    const populatedTx = await this.populateApproveTx(spender, amount)
+    const allowance = await this.allowance(spender)
+    if (allowance.lt(BigNumber.from(amount))) {
+      return this.signer.sendTransaction(populatedTx)
+    }
+  }
+
+  public async populateApproveTx (
+    spender: string,
+    amount: TAmount = ethers.constants.MaxUint256
+  ):Promise<any> {
     if (this.isNativeToken) {
       return
     }
     const tokenContract = await this.getErc20()
-    const allowance = await this.allowance(spender)
-    if (allowance.lt(BigNumber.from(amount))) {
-      return tokenContract.approve(spender, amount, await this.overrides())
-    }
+    return tokenContract.populateTransaction.approve(spender, amount, await this.overrides())
   }
 
   /**

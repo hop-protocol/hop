@@ -312,7 +312,7 @@ class HopBridge extends Base {
     }
 
     this.checkConnectedChain(this.signer, sourceChain)
-    return this.signer.sendTransaction(populatedTx as any)
+    return this.signer.sendTransaction(populatedTx)
   }
 
   public async populateSendTx (
@@ -320,7 +320,7 @@ class HopBridge extends Base {
     sourceChain?: TChain,
     destinationChain?: TChain,
     options: Partial<SendOptions> = {}
-  ) {
+  ):Promise<any> {
     tokenAmount = BigNumber.from(tokenAmount.toString())
     if (!sourceChain) {
       sourceChain = this.sourceChain
@@ -442,11 +442,9 @@ class HopBridge extends Base {
   // ToDo: Docs
   public getSendApprovalAddress (
     sourceChain: TChain,
-    destinationChain: TChain,
     isHTokenTransfer: boolean = false
   ) {
     sourceChain = this.toChainModel(sourceChain)
-    destinationChain = this.toChainModel(destinationChain)
     if (sourceChain.equals(Chain.Ethereum)) {
       return this.getL1BridgeAddress(this.tokenSymbol, sourceChain)
     }
@@ -462,6 +460,41 @@ class HopBridge extends Base {
     return isHTokenTransfer ? l2BridgeAddress : ammWrapperAddress
   }
 
+  public async populateSendApprovalTx (
+    tokenAmount: TAmount,
+    sourceChain: TChain,
+    isHTokenTransfer: boolean = false
+  ):Promise<any> {
+    sourceChain = this.toChainModel(sourceChain)
+    const spender = await this.getSendApprovalAddress(sourceChain, isHTokenTransfer)
+    const isNativeToken = this.isNativeToken(sourceChain)
+    if (isNativeToken) {
+      return null
+    }
+    let token
+    if (sourceChain.isL1) {
+      token = this.getL1Token()
+    } else {
+      token = this.getCanonicalToken(sourceChain)
+    }
+    const populatedTx = await token.populateApproveTx(spender, tokenAmount)
+    return populatedTx
+  }
+
+  public async sendApproval (
+    tokenAmount: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    isHTokenTransfer: boolean = false
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    const populatedTx = await this.populateSendApprovalTx(tokenAmount, sourceChain, isHTokenTransfer)
+    if (populatedTx) {
+      this.checkConnectedChain(this.signer, sourceChain)
+      return this.signer.sendTransaction(populatedTx)
+    }
+  }
+
   // ToDo: Docs
   public async sendHToken (
     tokenAmount: TAmount,
@@ -472,7 +505,7 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     const populatedTx = await this.populateSendHTokensTx(tokenAmount, sourceChain, destinationChain, options)
     this.checkConnectedChain(this.signer, sourceChain)
-    return this.signer.sendTransaction(populatedTx as any)
+    return this.signer.sendTransaction(populatedTx)
   }
 
   public async estimateSendHTokensGasLimit (
@@ -490,7 +523,7 @@ class HopBridge extends Base {
     sourceChain: TChain,
     destinationChain: TChain,
     options: Partial<SendOptions> = {}
-  ) {
+  ):Promise<any> {
     if (!sourceChain) {
       throw new Error('source chain is required')
     }

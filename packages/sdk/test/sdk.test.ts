@@ -503,7 +503,7 @@ describe.only('get call data only (no signer connected)', () => {
     const sourceChain = 'ethereum'
     const destinationChain = 'xdai'
     const recipient = constants.AddressZero
-    const txObj = await bridge.getSendCalldata(amount, sourceChain, destinationChain, {
+    const txObj = await bridge.populateSendTx(amount, sourceChain, destinationChain, {
       recipient
     })
     expect(txObj.data).toBeTruthy()
@@ -516,7 +516,7 @@ describe.only('get call data only (no signer connected)', () => {
     const sourceChain = 'xdai'
     const destinationChain = 'polygon'
     const recipient = constants.AddressZero
-    const txObj = await bridge.getSendCalldata(amount, sourceChain, destinationChain, {
+    const txObj = await bridge.populateSendTx(amount, sourceChain, destinationChain, {
       recipient
     })
     expect(txObj.data).toBeTruthy()
@@ -529,10 +529,49 @@ describe.only('get call data only (no signer connected)', () => {
     const sourceChain = 'xdai'
     const destinationChain = 'ethereum'
     const recipient = constants.AddressZero
-    const txObj = await bridge.getSendCalldata(amount, sourceChain, destinationChain, {
+    const txObj = await bridge.populateSendTx(amount, sourceChain, destinationChain, {
       recipient
     })
     expect(txObj.data).toBeTruthy()
     expect(txObj.to).toBeTruthy()
+  })
+})
+
+describe.skip('get estimated gas (no signer connected)', () => {
+  it('should return estimated gas for L1->L2 send', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const amount = parseUnits('1', 6)
+    const sourceChain = 'ethereum'
+    const destinationChain = 'xdai'
+    const recipient = constants.AddressZero
+    const estimatedGas = await bridge.getSendEstimatedGasLimit(amount, sourceChain, destinationChain, {
+      recipient
+    })
+    expect(estimatedGas.gt(0)).toBeTruthy()
+  })
+  it('should return estimated gas for L2->L2 send', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const amount = parseUnits('1', 6)
+    const sourceChain = 'xdai'
+    const destinationChain = 'polygon'
+    const recipient = constants.AddressZero
+    const estimatedGas = await bridge.getSendEstimatedGasLimit(amount, sourceChain, destinationChain, {
+      recipient
+    })
+    expect(estimatedGas.gt(0)).toBeTruthy()
+  })
+  it('should return estimated gas for L2->L1 send', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const amount = parseUnits('100', 6)
+    const sourceChain = 'xdai'
+    const destinationChain = 'ethereum'
+    const recipient = constants.AddressZero
+    const estimatedGas = await bridge.getSendEstimatedGasLimit(amount, sourceChain, destinationChain, {
+      recipient
+    })
+    expect(estimatedGas.gt(0)).toBeTruthy()
   })
 })

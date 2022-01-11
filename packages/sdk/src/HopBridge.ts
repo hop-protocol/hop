@@ -36,9 +36,7 @@ type SendL1ToL2Input = {
   amountOutMin?: TAmount
   deadline?: BigNumberish
   recipient?: string
-  approval?: boolean
-  estimateGasOnly?: boolean
-  populateTxOnly?: boolean
+  checkAllowance?: boolean
 }
 
 type SendL2ToL1Input = {
@@ -51,9 +49,7 @@ type SendL2ToL1Input = {
   destinationDeadline?: BigNumberish
   bonderFee?: TAmount
   recipient?: string
-  approval?: boolean
-  estimateGasOnly?: boolean
-  populateTxOnly?: boolean
+  checkAllowance?: boolean
 }
 
 type SendL2ToL2Input = {
@@ -66,9 +62,7 @@ type SendL2ToL2Input = {
   deadline?: BigNumberish
   destinationDeadline?: BigNumberish
   recipient?: string
-  approval?: boolean
-  estimateGasOnly?: boolean
-  populateTxOnly?: boolean
+  checkAllowance?: boolean
 }
 
 type SendOptions = {
@@ -80,9 +74,7 @@ type SendOptions = {
   bonderFee: TAmount
   destinationAmountOutMin: TAmount
   destinationDeadline: BigNumberish
-  estimateGasOnly?: boolean
-  estimateGasCostOnly?: boolean
-  populateTxOnly?: boolean
+  checkAllowance?: boolean
 }
 
 type AddLiquidityOptions = {
@@ -264,40 +256,6 @@ class HopBridge extends Base {
   }
 
   /**
-   * @desc Approve and send tokens to another chain. This will make an approval
-   * transaction if not enough allowance.
-   * @param {String} tokenAmount - Token amount to send denominated in smallest unit.
-   * @param {Object} sourceChain - Source chain model.
-   * @param {Object} destinationChain - Destination chain model.
-   * @returns {Object} Ethers Transaction object.
-   * @example
-   *```js
-   *import { Hop, Token } from '@hop-protocol/sdk'
-   *
-   *const hop = new Hop()
-   *const bridge = hop.connect(signer).bridge(Token.USDC)
-   *\// send 1 USDC token from Optimism -> xDai
-   *const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.xDai)
-   *console.log(tx.hash)
-   *```
-   */
-  public async approveAndSend (
-    tokenAmount: TAmount,
-    sourceChain?: TChain,
-    destinationChain?: TChain,
-    options?: Partial<SendOptions>
-  ) {
-    // ToDo: Add approval
-    return this.sendHandler(
-      tokenAmount,
-      sourceChain,
-      destinationChain,
-      true,
-      options
-    )
-  }
-
-  /**
    * @desc Send tokens to another chain.
    * @param {String} tokenAmount - Token amount to send denominated in smallest unit.
    * @param {Object} sourceChain - Source chain model.
@@ -318,7 +276,50 @@ class HopBridge extends Base {
     tokenAmount: TAmount,
     sourceChain?: TChain,
     destinationChain?: TChain,
-    options?: Partial<SendOptions>
+    options: Partial<SendOptions> = {}
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    const populatedTx = await this.populateSendTx(
+      tokenAmount,
+      sourceChain,
+      destinationChain,
+      {
+        ...options,
+        checkAllowance: true
+      }
+    )
+
+    let balance: BigNumber
+    const canonicalToken = this.getCanonicalToken(sourceChain)
+    if (this.isNativeToken(sourceChain)) {
+      balance = await canonicalToken.getNativeTokenBalance()
+    } else {
+      balance = await canonicalToken.balanceOf()
+    }
+    if (balance.lt(tokenAmount)) {
+      throw new Error(Errors.NotEnoughAllowance)
+    }
+
+    const availableLiquidity = await this.getFrontendAvailableLiquidity(
+      sourceChain,
+      destinationChain
+    )
+
+    const requiredLiquidity = await this.getRequiredLiquidity(tokenAmount, sourceChain)
+    const isAvailable = availableLiquidity.gte(requiredLiquidity)
+    if (!isAvailable) {
+      throw new Error('Insufficient liquidity available by bonder. Try again in a few minutes')
+    }
+
+    this.checkConnectedChain(this.signer, sourceChain)
+    return this.signer.sendTransaction(populatedTx as any)
+  }
+
+  public async populateSendTx (
+    tokenAmount: TAmount,
+    sourceChain?: TChain,
+    destinationChain?: TChain,
+    options: Partial<SendOptions> = {}
   ) {
     tokenAmount = BigNumber.from(tokenAmount.toString())
     if (!sourceChain) {
@@ -336,69 +337,106 @@ class HopBridge extends Base {
 
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
+    tokenAmount = BigNumber.from(tokenAmount.toString())
 
-    if (options?.estimateGasCostOnly) {
-      options.estimateGasOnly = true
+    // L1 -> L1 or L2
+    if (sourceChain.isL1) {
+      // L1 -> L1
+      if (destinationChain.isL1) {
+        throw new Error('Cannot send from layer 1 to layer 1')
+      }
+      // L1 -> L2
+      return this.populateSendL1ToL2Tx({
+        destinationChain: destinationChain,
+        sourceChain,
+        relayer: options?.relayer ?? ethers.constants.AddressZero,
+        relayerFee: options?.relayerFee ?? 0,
+        amount: tokenAmount,
+        amountOutMin: options?.amountOutMin ?? 0,
+        deadline: options?.deadline,
+        recipient: options?.recipient,
+        checkAllowance: options?.checkAllowance
+      })
     }
-
-    if (!(options?.estimateGasOnly || options?.populateTxOnly)) {
-      const availableLiquidity = await this.getFrontendAvailableLiquidity(
+    // else:
+    // L2 -> L1 or L2
+    let bonderFee = options?.bonderFee
+    if (!bonderFee) {
+      bonderFee = await this.getTotalFee(
+        tokenAmount,
         sourceChain,
         destinationChain
       )
-
-      const requiredLiquidity = await this.getRequiredLiquidity(tokenAmount, sourceChain)
-      const isAvailable = availableLiquidity.gte(requiredLiquidity)
-      if (!isAvailable) {
-        throw new Error('Insufficient liquidity available by bonder. Try again in a few minutes')
-      }
     }
 
-    const result = await this.sendHandler(
-      tokenAmount,
+    // L2 -> L1
+    if (destinationChain.isL1) {
+      return this.populateSendL2ToL1Tx({
+        destinationChain: destinationChain,
+        sourceChain,
+        amount: tokenAmount,
+        bonderFee,
+        recipient: options?.recipient,
+        amountOutMin: options?.amountOutMin,
+        deadline: options?.deadline,
+        destinationAmountOutMin: options?.destinationAmountOutMin,
+        destinationDeadline: options?.destinationDeadline,
+        checkAllowance: options?.checkAllowance
+      })
+    }
+
+    // L2 -> L2
+    return this.populateSendL2ToL2Tx({
+      destinationChain: destinationChain,
       sourceChain,
-      destinationChain,
-      false,
-      options
-    )
-
-    if (options?.estimateGasCostOnly) {
-      const estimatedGasLimit = result
-      const gasPrice = await sourceChain.provider.getGasPrice()
-      return gasPrice.mul(estimatedGasLimit)
-    }
-
-    return result
-  }
-
-  public async getSendCalldata (
-    tokenAmount: TAmount,
-    sourceChain?: TChain,
-    destinationChain?: TChain,
-    options: Partial<SendOptions> = {}
-  ) {
-    options.populateTxOnly = true
-    return this.send(tokenAmount, sourceChain, destinationChain, options)
+      amount: tokenAmount,
+      bonderFee,
+      recipient: options?.recipient,
+      amountOutMin: options?.amountOutMin,
+      deadline: options?.deadline,
+      destinationAmountOutMin: options?.destinationAmountOutMin,
+      destinationDeadline: options?.destinationDeadline,
+      checkAllowance: options?.checkAllowance
+    })
   }
 
   public async getSendEstimatedGasLimit (
     tokenAmount: TAmount,
-    sourceChain?: TChain,
-    destinationChain?: TChain,
+    sourceChain: TChain,
+    destinationChain: TChain,
     options: Partial<SendOptions> = {}
   ) {
-    options.estimateGasOnly = true
-    return this.send(tokenAmount, sourceChain, destinationChain, options)
+    const populatedTx = await this.populateSendTx(tokenAmount, sourceChain, destinationChain, options)
+    return this.getEstimatedGasLimit(sourceChain, destinationChain, populatedTx)
+  }
+
+  private async getEstimatedGasLimit (
+    sourceChain: TChain,
+    destinationChain: TChain,
+    populatedTx: any
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    if (!populatedTx.from) {
+      // a `from` address is required if using only provider (not signer)
+      populatedTx.from = await this.getGasEstimateFromAddress(sourceChain, destinationChain)
+    }
+    return sourceChain.provider.estimateGas({
+      ...populatedTx,
+      gasLimit: 500000
+    })
   }
 
   public async getSendEstimatedGasCost (
     tokenAmount: TAmount,
-    sourceChain?: TChain,
-    destinationChain?: TChain,
+    sourceChain: TChain,
+    destinationChain: TChain,
     options: Partial<SendOptions> = {}
   ) {
-    options.estimateGasCostOnly = true
-    return this.send(tokenAmount, sourceChain, destinationChain, options)
+    sourceChain = this.toChainModel(sourceChain)
+    const populatedTx = await this.populateSendTx(tokenAmount, sourceChain, destinationChain, options)
+    const estimatedGasLimit = await this.getEstimatedGasLimit(sourceChain, destinationChain, populatedTx)
+    const gasPrice = await sourceChain.provider.getGasPrice()
+    return gasPrice.mul(estimatedGasLimit)
   }
 
   // ToDo: Docs
@@ -429,9 +467,30 @@ class HopBridge extends Base {
     tokenAmount: TAmount,
     sourceChain: TChain,
     destinationChain: TChain,
-    options?: Partial<SendOptions>
+    options: Partial<SendOptions> = {}
   ) {
-    tokenAmount = tokenAmount.toString()
+    sourceChain = this.toChainModel(sourceChain)
+    const populatedTx = await this.populateSendHTokensTx(tokenAmount, sourceChain, destinationChain, options)
+    this.checkConnectedChain(this.signer, sourceChain)
+    return this.signer.sendTransaction(populatedTx as any)
+  }
+
+  public async getSendHTokensEstimatedGasLimit (
+    tokenAmount: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    options: Partial<SendOptions> = {}
+  ) {
+    const populatedTx = await this.sendHToken(tokenAmount, sourceChain, destinationChain, options)
+    return this.getEstimatedGasLimit(sourceChain, destinationChain, populatedTx)
+  }
+
+  public async populateSendHTokensTx (
+    tokenAmount: TAmount,
+    sourceChain: TChain,
+    destinationChain: TChain,
+    options: Partial<SendOptions> = {}
+  ) {
     if (!sourceChain) {
       throw new Error('source chain is required')
     }
@@ -439,22 +498,85 @@ class HopBridge extends Base {
       throw new Error('destination chain is required')
     }
 
-    return this.sendHTokenHandler(
-      tokenAmount.toString(),
-      sourceChain,
-      destinationChain,
-      options
-    )
-  }
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    if (sourceChain.isL1 && destinationChain.isL1) {
+      throw new Error('sourceChain and destinationChain cannot both be L1')
+    } else if (!sourceChain.isL1 && !destinationChain.isL1) {
+      throw new Error('Sending hToken L2 to L2 is not currently supported')
+    }
 
-  public async getSendHTokensEstimatedGas (
-    sourceChain: TChain,
-    destinationChain: TChain,
-    options: Partial<SendOptions> = {}
-  ) {
-    options.populateTxOnly = true
-    const tokenAmount = BigNumber.from(1)
-    return this.sendHToken(tokenAmount, sourceChain, destinationChain, options)
+    if (
+      options?.deadline ||
+      options?.amountOutMin ||
+      options?.destinationDeadline ||
+      options?.destinationAmountOutMin
+    ) {
+      throw new Error('Invalid sendHToken option')
+    }
+
+    let defaultBonderFee = BigNumber.from(0)
+    if (!sourceChain.isL1) {
+      defaultBonderFee = await this.getTotalFee(
+        tokenAmount,
+        sourceChain,
+        destinationChain
+      )
+    }
+
+    let recipient = options?.recipient ?? await this.getSignerAddress()
+    if (!recipient) {
+      throw new Error('recipient is required')
+    }
+    recipient = checksumAddress(recipient)
+
+    const bonderFee = options?.bonderFee
+      ? BigNumber.from(options?.bonderFee)
+      : defaultBonderFee
+    const amountOutMin = BigNumber.from(0)
+    const deadline = BigNumber.from(0)
+    const relayer = ethers.constants.AddressZero
+
+    if (sourceChain.isL1) {
+      if (bonderFee.gt(0)) {
+        throw new Error('Bonder fee should be 0 when sending hToken to L2')
+      }
+
+      const isNativeToken = this.isNativeToken(sourceChain)
+      const txOptions = [
+        destinationChain.chainId,
+        recipient,
+        tokenAmount,
+        amountOutMin,
+        deadline,
+        relayer,
+        bonderFee,
+        {
+          ...(await this.txOverrides(Chain.Ethereum)),
+          value: isNativeToken ? tokenAmount : undefined
+        }
+      ]
+
+      const l1Bridge = await this.getL1Bridge(sourceChain.provider)
+      return l1Bridge.populateTransaction.sendToL2(...txOptions)
+    } else {
+      if (bonderFee.eq(0)) {
+        throw new Error('Send at least the minimum Bonder fee')
+      }
+
+      const txOptions = [
+        destinationChain.chainId,
+        recipient,
+        tokenAmount,
+        bonderFee,
+        amountOutMin,
+        deadline,
+        await this.txOverrides(sourceChain)
+      ]
+
+      const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
+      return l2Bridge.populateTransaction.send(...txOptions)
+    }
   }
 
   // ToDo: Docs
@@ -1509,100 +1631,7 @@ class HopBridge extends Base {
     return [tokenIndexFrom, tokenIndexTo]
   }
 
-  private async sendHandler (
-    tokenAmount: TAmount,
-    sourceChain: TChain,
-    destinationChain: TChain,
-    approval: boolean = false,
-    options: Partial<SendOptions> = {}
-  ) {
-    tokenAmount = BigNumber.from(tokenAmount.toString())
-    sourceChain = this.toChainModel(sourceChain)
-    destinationChain = this.toChainModel(destinationChain)
-    const estimateGasOnly = options?.estimateGasOnly
-    const populateTxOnly = options?.populateTxOnly
-
-    if (!(estimateGasOnly || populateTxOnly)) {
-      let balance: BigNumber
-      const canonicalToken = this.getCanonicalToken(sourceChain)
-      if (this.isNativeToken(sourceChain)) {
-        balance = await canonicalToken.getNativeTokenBalance()
-      } else {
-        balance = await canonicalToken.balanceOf()
-      }
-      if (balance.lt(tokenAmount)) {
-        throw new Error(Errors.NotEnoughAllowance)
-      }
-    }
-
-    // L1 -> L1 or L2
-    if (sourceChain.isL1) {
-      // L1 -> L1
-      if (destinationChain.isL1) {
-        throw new Error('Cannot send from layer 1 to layer 1')
-      }
-      // L1 -> L2
-      return this.sendL1ToL2({
-        destinationChain: destinationChain,
-        sourceChain,
-        relayer: options?.relayer ?? ethers.constants.AddressZero,
-        relayerFee: options?.relayerFee ?? 0,
-        amount: tokenAmount,
-        amountOutMin: options?.amountOutMin ?? 0,
-        deadline: options?.deadline,
-        recipient: options?.recipient,
-        approval,
-        estimateGasOnly,
-        populateTxOnly
-      })
-    }
-    // else:
-    // L2 -> L1 or L2
-    let bonderFee = options?.bonderFee
-    if (!bonderFee) {
-      bonderFee = await this.getTotalFee(
-        tokenAmount,
-        sourceChain,
-        destinationChain
-      )
-    }
-
-    // L2 -> L1
-    if (destinationChain.isL1) {
-      return this.sendL2ToL1({
-        destinationChain: destinationChain,
-        sourceChain,
-        amount: tokenAmount,
-        bonderFee,
-        recipient: options?.recipient,
-        amountOutMin: options?.amountOutMin,
-        deadline: options?.deadline,
-        destinationAmountOutMin: options?.destinationAmountOutMin,
-        destinationDeadline: options?.destinationDeadline,
-        approval,
-        estimateGasOnly,
-        populateTxOnly
-      })
-    }
-
-    // L2 -> L2
-    return this.sendL2ToL2({
-      destinationChain: destinationChain,
-      sourceChain,
-      amount: tokenAmount,
-      bonderFee,
-      recipient: options?.recipient,
-      amountOutMin: options?.amountOutMin,
-      deadline: options?.deadline,
-      destinationAmountOutMin: options?.destinationAmountOutMin,
-      destinationDeadline: options?.destinationDeadline,
-      approval,
-      estimateGasOnly,
-      populateTxOnly
-    })
-  }
-
-  private async sendL1ToL2 (input: SendL1ToL2Input) {
+  private async populateSendL1ToL2Tx (input: SendL1ToL2Input) {
     let {
       destinationChain,
       sourceChain,
@@ -1612,13 +1641,11 @@ class HopBridge extends Base {
       amountOutMin,
       deadline,
       recipient,
-      approval,
-      estimateGasOnly,
-      populateTxOnly
+      checkAllowance
     } = input
     if (!sourceChain.isL1) {
       // ToDo: Don't pass in sourceChain since it will always be L1
-      throw new Error('sourceChain must be L1 when calling sendL1ToL2')
+      throw new Error('sourceChain must be L1')
     }
     const destinationChainId = destinationChain.chainId
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
@@ -1632,19 +1659,14 @@ class HopBridge extends Base {
     const isNativeToken = this.isNativeToken(sourceChain)
     let l1Bridge = await this.getL1Bridge(sourceChain.provider)
 
-    if (!(estimateGasOnly || populateTxOnly)) {
+    if (checkAllowance) {
       this.checkConnectedChain(this.signer, sourceChain)
       l1Bridge = await this.getL1Bridge(this.signer)
       if (!isNativeToken) {
         const l1Token = this.getL1Token()
-        if (approval) {
-          const tx = await l1Token.approve(l1Bridge.address, amount)
-          await tx?.wait()
-        } else {
-          const allowance = await l1Token.allowance(l1Bridge.address)
-          if (allowance.lt(BigNumber.from(amount))) {
-            throw new Error(Errors.NotEnoughAllowance)
-          }
+        const allowance = await l1Token.allowance(l1Bridge.address)
+        if (allowance.lt(BigNumber.from(amount))) {
+          throw new Error(Errors.NotEnoughAllowance)
         }
       }
     }
@@ -1667,24 +1689,12 @@ class HopBridge extends Base {
       }
     ]
 
-    if (estimateGasOnly) {
-      // a `from` address is required if using only provider (not signer)
-      txOptions[txOptions.length - 1].from = await this.getGasEstimateFromAddress(sourceChain, destinationChain)
-      return l1Bridge.estimateGas.sendToL2(
-        ...txOptions
-      )
-    } else if (populateTxOnly) {
-      return l1Bridge.populateTransaction.sendToL2(
-        ...txOptions
-      )
-    }
-
-    return l1Bridge.sendToL2(
+    return l1Bridge.populateTransaction.sendToL2(
       ...txOptions
     )
   }
 
-  private async sendL2ToL1 (input: SendL2ToL1Input) {
+  private async populateSendL2ToL1Tx (input: SendL2ToL1Input) {
     let {
       destinationChain,
       sourceChain,
@@ -1695,9 +1705,7 @@ class HopBridge extends Base {
       amountOutMin,
       deadline,
       destinationDeadline,
-      approval,
-      estimateGasOnly,
-      populateTxOnly
+      checkAllowance
     } = input
     const destinationChainId = destinationChain.chainId
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
@@ -1731,20 +1739,15 @@ class HopBridge extends Base {
 
     const isNativeToken = this.isNativeToken(sourceChain)
 
-    if (!(estimateGasOnly || populateTxOnly)) {
+    if (checkAllowance) {
       this.checkConnectedChain(this.signer, sourceChain)
       ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
       l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
       if (!isNativeToken) {
         const l2CanonicalToken = this.getCanonicalToken(sourceChain)
-        if (approval) {
-          const tx = await l2CanonicalToken.approve(spender, amount)
-          await tx?.wait()
-        } else {
-          const allowance = await l2CanonicalToken.allowance(spender)
-          if (allowance.lt(BigNumber.from(amount))) {
-            throw new Error(Errors.NotEnoughAllowance)
-          }
+        const allowance = await l2CanonicalToken.allowance(spender)
+        if (allowance.lt(BigNumber.from(amount))) {
+          throw new Error(Errors.NotEnoughAllowance)
         }
       }
     }
@@ -1776,27 +1779,13 @@ class HopBridge extends Base {
         }
       ]
 
-      if (estimateGasOnly) {
-        // a `from` address is required if using only provider (not signer)
-        additionalOptions[additionalOptions.length - 1].from = await this.getGasEstimateFromAddress(sourceChain, destinationChain)
-        return ammWrapper.estimateGas.swapAndSend(
-          ...txOptions,
-          ...additionalOptions
-        )
-      } else if (populateTxOnly) {
-        return ammWrapper.populateTransaction.swapAndSend(
-          ...txOptions,
-          ...additionalOptions
-        )
-      }
-
-      return ammWrapper.swapAndSend(
+      return ammWrapper.populateTransaction.swapAndSend(
         ...txOptions,
         ...additionalOptions
       )
     }
 
-    return l2Bridge.send(
+    return l2Bridge.populateTransaction.send(
       ...txOptions,
       {
         ...(await this.txOverrides(sourceChain)),
@@ -1805,7 +1794,7 @@ class HopBridge extends Base {
     )
   }
 
-  private async sendL2ToL2 (input: SendL2ToL2Input) {
+  private async populateSendL2ToL2Tx (input: SendL2ToL2Input) {
     let {
       destinationChain,
       sourceChain,
@@ -1816,9 +1805,7 @@ class HopBridge extends Base {
       destinationDeadline,
       amountOutMin,
       recipient,
-      approval,
-      estimateGasOnly,
-      populateTxOnly
+      checkAllowance
     } = input
     const destinationChainId = destinationChain.chainId
     deadline = deadline || this.defaultDeadlineSeconds
@@ -1840,19 +1827,14 @@ class HopBridge extends Base {
     let ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
     const isNativeToken = this.isNativeToken(sourceChain)
 
-    if (!(estimateGasOnly || populateTxOnly)) {
+    if (checkAllowance) {
       this.checkConnectedChain(this.signer, sourceChain)
       ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
       if (!isNativeToken) {
         const l2CanonicalToken = this.getCanonicalToken(sourceChain)
-        if (approval) {
-          const tx = await l2CanonicalToken.approve(ammWrapper.address, amount)
-          await tx?.wait()
-        } else {
-          const allowance = await l2CanonicalToken.allowance(ammWrapper.address)
-          if (allowance.lt(BigNumber.from(amount))) {
-            throw new Error(Errors.NotEnoughAllowance)
-          }
+        const allowance = await l2CanonicalToken.allowance(ammWrapper.address)
+        if (allowance.lt(BigNumber.from(amount))) {
+          throw new Error(Errors.NotEnoughAllowance)
         }
       }
     }
@@ -1880,126 +1862,7 @@ class HopBridge extends Base {
       }
     ]
 
-    if (estimateGasOnly) {
-      // a `from` address is required if using only provider (not signer)
-      txOptions[txOptions.length - 1].from = await this.getGasEstimateFromAddress(sourceChain, destinationChain)
-      return ammWrapper.estimateGas.swapAndSend(...txOptions)
-    } else if (populateTxOnly) {
-      return ammWrapper.populateTransaction.swapAndSend(...txOptions)
-    }
-
-    return ammWrapper.swapAndSend(...txOptions)
-  }
-
-  private async sendHTokenHandler (
-    tokenAmount: BigNumberish,
-    sourceChain: TChain,
-    destinationChain: TChain,
-    options?: Partial<SendOptions>
-  ) {
-    sourceChain = this.toChainModel(sourceChain)
-    destinationChain = this.toChainModel(destinationChain)
-    if (sourceChain.isL1 && destinationChain.isL1) {
-      throw new Error('sourceChain and destinationChain cannot both be L1')
-    } else if (!sourceChain.isL1 && !destinationChain.isL1) {
-      throw new Error('Sending hToken L2 to L2 is not currently supported')
-    }
-
-    if (
-      options?.deadline ||
-      options?.amountOutMin ||
-      options?.destinationDeadline ||
-      options?.destinationAmountOutMin
-    ) {
-      throw new Error('Invalid sendHTokenHandler option')
-    }
-
-    let defaultBonderFee = BigNumber.from(0)
-    if (!sourceChain.isL1) {
-      defaultBonderFee = await this.getTotalFee(
-        tokenAmount,
-        sourceChain,
-        destinationChain
-      )
-    }
-
-    let recipient = options?.recipient ?? await this.getSignerAddress()
-    if (!recipient) {
-      throw new Error('recipient is required')
-    }
-    recipient = checksumAddress(recipient)
-
-    const bonderFee = options?.bonderFee
-      ? BigNumber.from(options?.bonderFee)
-      : defaultBonderFee
-    const amountOutMin = BigNumber.from(0)
-    const deadline = BigNumber.from(0)
-    const relayer = ethers.constants.AddressZero
-
-    if (sourceChain.isL1) {
-      if (bonderFee.gt(0)) {
-        throw new Error('Bonder fee should be 0 when sending hToken to L2')
-      }
-
-      const isNativeToken = this.isNativeToken(sourceChain)
-      const txOptions = [
-        destinationChain.chainId,
-        recipient,
-        tokenAmount,
-        amountOutMin,
-        deadline,
-        relayer,
-        bonderFee,
-        {
-          ...(await this.txOverrides(Chain.Ethereum)),
-          value: isNativeToken ? tokenAmount : undefined
-        }
-      ]
-
-      if (options.estimateGasOnly) {
-        const l1Bridge = await this.getL1Bridge(sourceChain.provider)
-        return l1Bridge.estimateGas.sendToL2(...txOptions)
-      } else if (options.populateTxOnly) {
-        const l1Bridge = await this.getL1Bridge(sourceChain.provider)
-        const [gasLimit, tx] = await Promise.all([
-          l1Bridge.estimateGas.sendToL2(...txOptions),
-          l1Bridge.populateTransaction.sendToL2(...txOptions)
-        ])
-        return { gasLimit, ...tx }
-      }
-
-      this.checkConnectedChain(this.signer, sourceChain)
-      const l1Bridge = await this.getL1Bridge(this.signer)
-      return l1Bridge.sendToL2(...txOptions)
-    } else {
-      if (bonderFee.eq(0)) {
-        throw new Error('Send at least the minimum Bonder fee')
-      }
-
-      const txOptions = [
-        destinationChain.chainId,
-        recipient,
-        tokenAmount,
-        bonderFee,
-        amountOutMin,
-        deadline,
-        await this.txOverrides(sourceChain)
-      ]
-
-      if (options.estimateGasOnly) {
-        const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
-        // a `from` address is required if using only provider (not signer)
-        txOptions[txOptions.length - 1].from = await this.getGasEstimateFromAddress(sourceChain, destinationChain)
-        return l2Bridge.estimateGas.send(...txOptions)
-      } else if (options.populateTxOnly) {
-        const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
-        return l2Bridge.populateTransaction.send(...txOptions)
-      }
-
-      const l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
-      this.checkConnectedChain(this.signer, sourceChain)
-      return l2Bridge.send(...txOptions)
-    }
+    return ammWrapper.populateTransaction.swapAndSend(...txOptions)
   }
 
   private async calcToHTokenAmount (

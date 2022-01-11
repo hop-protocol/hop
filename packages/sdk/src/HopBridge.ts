@@ -400,7 +400,7 @@ class HopBridge extends Base {
     })
   }
 
-  public async getSendEstimatedGasLimit (
+  public async estimateSendGasLimit (
     tokenAmount: TAmount,
     sourceChain: TChain,
     destinationChain: TChain,
@@ -475,7 +475,7 @@ class HopBridge extends Base {
     return this.signer.sendTransaction(populatedTx as any)
   }
 
-  public async getSendHTokensEstimatedGasLimit (
+  public async estimateSendHTokensGasLimit (
     tokenAmount: TAmount,
     sourceChain: TChain,
     destinationChain: TChain,

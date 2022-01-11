@@ -40,7 +40,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
 
       const bridge = sdk.bridge(token.symbol)
 
-      const estimatedGasLimit = await bridge.getSendHTokensEstimatedGasLimit('420', network.slug, destNetwork.slug, {
+      const estimatedGasLimit = await bridge.estimateSendHTokensGasLimit('420', network.slug, destNetwork.slug, {
         bonderFee: '0',
       })
 
@@ -75,7 +75,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
         }
 
         // Get estimated gas limit
-        const estimatedGasLimit = await bridge.getSendEstimatedGasLimit(
+        const estimatedGasLimit = await bridge.estimateSendGasLimit(
           '10',
           fromNetwork.slug as string,
           toNetwork.slug as string,

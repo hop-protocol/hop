@@ -545,7 +545,7 @@ describe.skip('get estimated gas (no signer connected)', () => {
     const sourceChain = 'ethereum'
     const destinationChain = 'xdai'
     const recipient = constants.AddressZero
-    const estimatedGas = await bridge.getSendEstimatedGasLimit(amount, sourceChain, destinationChain, {
+    const estimatedGas = await bridge.estimateSendGasLimit(amount, sourceChain, destinationChain, {
       recipient
     })
     expect(estimatedGas.gt(0)).toBeTruthy()
@@ -557,7 +557,7 @@ describe.skip('get estimated gas (no signer connected)', () => {
     const sourceChain = 'xdai'
     const destinationChain = 'polygon'
     const recipient = constants.AddressZero
-    const estimatedGas = await bridge.getSendEstimatedGasLimit(amount, sourceChain, destinationChain, {
+    const estimatedGas = await bridge.estimateSendGasLimit(amount, sourceChain, destinationChain, {
       recipient
     })
     expect(estimatedGas.gt(0)).toBeTruthy()
@@ -569,7 +569,7 @@ describe.skip('get estimated gas (no signer connected)', () => {
     const sourceChain = 'xdai'
     const destinationChain = 'ethereum'
     const recipient = constants.AddressZero
-    const estimatedGas = await bridge.getSendEstimatedGasLimit(amount, sourceChain, destinationChain, {
+    const estimatedGas = await bridge.estimateSendGasLimit(amount, sourceChain, destinationChain, {
       recipient
     })
     expect(estimatedGas.gt(0)).toBeTruthy()

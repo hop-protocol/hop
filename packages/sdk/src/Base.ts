@@ -3,7 +3,7 @@ import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { Chain as ChainEnum, MinPolygonGasPrice } from './constants'
+import { Chain as ChainEnum, Errors, MinPolygonGasPrice } from './constants'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
@@ -211,6 +211,10 @@ class Base {
     if (typeof chain === 'string') {
       chain = Chain.fromSlug(chain)
     }
+    if (chain.slug === 'xdai') {
+      console.warn(Errors.xDaiRebrand)
+      chain = Chain.fromSlug('gnosis')
+    }
     if (!this.isValidChain(chain.slug)) {
       throw new Error(
         `chain "${
@@ -219,10 +223,6 @@ class Base {
           ','
         )}`
       )
-    }
-    if (chain.slug === 'xdai') {
-      console.warn('NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.')
-      chain = Chain.fromSlug('gnosis')
     }
     chain.provider = this.getChainProvider(chain)
     chain.chainId = this.getChainId(chain)
@@ -289,7 +289,7 @@ class Base {
     }
 
     if (chainSlug === 'xdai') {
-      console.warn('NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.')
+      console.warn(Errors.xDaiRebrand)
       chainSlug = ChainEnum.Gnosis
     }
 

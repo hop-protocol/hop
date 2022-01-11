@@ -1,11 +1,12 @@
-import { jest, it, describe, expect } from '@jest/globals'
-import { Wallet } from 'ethers'
-import { privateKey } from '../config'
 import Base from '../../src/Base'
+import { Errors } from '../../src/constants'
+import { Wallet } from 'ethers'
+import { describe, expect, it, jest } from '@jest/globals'
+import { privateKey } from '../config'
 
 const warn = jest.spyOn(global.console, 'warn')
 
-function cleanupMock(mock: any) {
+function cleanupMock (mock: any) {
   mock.mockClear()
   mock.mockReset()
   mock.mockRestore()
@@ -17,9 +18,7 @@ describe('Base', () => {
     const base = new Base('mainnet', signer)
     const p: any = base.getChainProvider('xdai')
 
-    expect(warn).toHaveBeenCalledWith(
-      'NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.'
-    )
+    expect(warn).toHaveBeenCalledWith(Errors.xDaiRebrand)
 
     cleanupMock(warn)
 

@@ -37,5 +37,6 @@ export const PendingAmountBuffer = '50000'
 export const MinPolygonGasPrice = 30_000_000_000
 
 export enum Errors {
-  NotEnoughAllowance = 'Not enough allowance. Please call `approve` on token contract to allow contract to move tokens.'
+  NotEnoughAllowance = 'Not enough allowance. Please call `approve` on token contract to allow contract to move tokens.',
+  xDaiRebrand = 'NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.'
 }

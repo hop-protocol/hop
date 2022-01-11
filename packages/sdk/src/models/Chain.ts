@@ -1,4 +1,4 @@
-import { Chain as ChainEnum, Network } from '../constants'
+import { Chain as ChainEnum, Errors, Network } from '../constants'
 import { metadata } from '../config'
 import { providers } from 'ethers'
 
@@ -19,7 +19,7 @@ class Chain {
 
   static fromSlug (slug: string) {
     if (slug === 'xdai') {
-      console.warn('NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.')
+      console.warn(Errors.xDaiRebrand)
       slug = 'gnosis'
     }
 

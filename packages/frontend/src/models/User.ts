@@ -1,5 +1,5 @@
 import { providers, BigNumber, Signer } from 'ethers'
-import { Hop } from '@hop-protocol/sdk'
+import { Hop, Tokens } from '@hop-protocol/sdk'
 import { reactAppNetwork } from 'src/config'
 
 import Token from './Token'
@@ -20,7 +20,7 @@ class User {
   }
 
   async getBalance(token: Token, network: Network): Promise<BigNumber> {
-    const bridge = sdk.connect(this.signer()).bridge(token.symbol.replace('h', ''))
+    const bridge = sdk.connect(this.signer()).bridge(token.symbol.replace('h', '') as Tokens)
     // TODO: better way and clean up
     const isHop = token.symbol.startsWith('h') || network?.slug?.includes('Hop')
     const _token = isHop

@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
-import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
+import { Hop, HopBridge, Token, AllTokens } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
 import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
@@ -25,7 +25,7 @@ class HopConvertOption extends ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    l1TokenSymbol: string,
+    l1TokenSymbol: AllTokens,
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
     deadline: number,
@@ -50,7 +50,7 @@ class HopConvertOption extends ConvertOption {
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined,
     isForwardDirection: boolean,
-    l1TokenSymbol: string | undefined,
+    l1TokenSymbol: AllTokens | undefined,
     amountIn: BigNumberish | undefined
   ): Promise<SendData> {
     if (!l1TokenSymbol || !sourceNetwork || !destNetwork || !amountIn) {
@@ -111,7 +111,7 @@ class HopConvertOption extends ConvertOption {
 
   async getTargetAddress(
     sdk: Hop,
-    l1TokenSymbol: string | undefined,
+    l1TokenSymbol: AllTokens | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined
   ): Promise<string> {

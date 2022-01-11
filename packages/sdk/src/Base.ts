@@ -9,7 +9,7 @@ import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
-export type ChainProviders = { [chain: string]: providers.Provider }
+export type ChainProviders = { [slug: string]: providers.Provider } | any
 
 const s3FileCache : Record<string, any> = {}
 
@@ -498,7 +498,7 @@ class Base {
       throw new Error('fee data not found')
     }
 
-    const feeBps = fees[destinationChain.slug as ChainEnum] || 0
+    const feeBps = fees[destinationChain.slug] || 0
     return feeBps
   }
 

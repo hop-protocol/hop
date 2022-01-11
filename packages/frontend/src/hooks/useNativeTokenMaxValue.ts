@@ -1,12 +1,10 @@
 import { useState, useCallback } from 'react'
 import { BigNumber, constants } from 'ethers'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
-import { Token, TProvider } from '@hop-protocol/sdk'
+import { Token, ChainSlugs } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
-import { Chain } from 'src/utils/constants'
 
 export enum MethodNames {
   convertTokens = 'convertTokens',
@@ -46,7 +44,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
 
       if (estimatedGasLimit) {
         let gasCost = await estimateGasCost(network, estimatedGasLimit)
-        if (gasCost && network.slug === Chain.Optimism) {
+        if (gasCost && network.slug === ChainSlugs.Optimism) {
           const tokenAmount = BigNumber.from(1)
           const { data, to } = await bridge.populateSendHTokensTx(tokenAmount, network.slug, destNetwork.slug)
           const l1FeeInWei = await bridge.estimateOptimismL1FeeFromData(estimatedGasLimit, data, to)
@@ -70,7 +68,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
 
         const destinationAmountOutMin = 0
         let destinationDeadline = deadline()
-        if (toNetwork.slug === Chain.Ethereum) {
+        if (toNetwork.slug === ChainSlugs.Ethereum) {
           destinationDeadline = 0
         }
 
@@ -91,7 +89,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
 
         if (estimatedGasLimit) {
           let gasCost = await estimateGasCost(fromNetwork, estimatedGasLimit)
-          if (gasCost && fromNetwork.slug === Chain.Optimism) {
+          if (gasCost && fromNetwork.slug === ChainSlugs.Optimism) {
             const l1FeeInWei = await bridge.getOptimismL1Fee(fromNetwork.slug, toNetwork.slug)
             gasCost = gasCost.add(l1FeeInWei)
           }
@@ -117,7 +115,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
 
         if (estimatedGasLimit) {
           let gasCost = await estimateGasCost(network, estimatedGasLimit)
-          if (gasCost && network.slug === Chain.Optimism) {
+          if (gasCost && network.slug === ChainSlugs.Optimism) {
             const { gasLimit, data, to } = await token.getWrapTokenEstimatedGas(network.slug)
             const l1FeeInWei = await token.estimateOptimismL1FeeFromData(gasLimit, data, to)
             gasCost = gasCost.add(l1FeeInWei)

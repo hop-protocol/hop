@@ -5,6 +5,7 @@ import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import wethAbi from '@hop-protocol/core/abi/static/WETH9.json'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
 import { TAmount, TChain } from './types'
+import { AllTokens, WrappedTokens } from './constants'
 
 /**
  * Class reprensenting ERC20 Token
@@ -17,7 +18,7 @@ class Token extends Base {
   public readonly image: string
   public readonly chain: Chain
   public readonly contract: Contract
-  _symbol: string
+  _symbol: AllTokens
 
   // TODO: clean up and remove unused parameters.
   /**
@@ -36,7 +37,7 @@ class Token extends Base {
     chain: TChain,
     address: string,
     decimals: number,
-    symbol: string,
+    symbol: AllTokens,
     name: string,
     image: string,
     signer?: Signer | providers.Provider,
@@ -54,7 +55,7 @@ class Token extends Base {
 
   get symbol () {
     if (this._symbol === TokenModel.ETH && !this.isNativeToken) {
-      return 'WETH'
+      return WrappedTokens.WETH
     }
     return this._symbol
   }
@@ -255,7 +256,7 @@ class Token extends Base {
       this.chain,
       this.address,
       this.decimals,
-      `W${this._symbol}`,
+      `W${this._symbol}` as WrappedTokens,
       this.name,
       this.image,
       this.signer,
@@ -316,7 +317,7 @@ class Token extends Base {
     return address
   }
 
-  static fromJSON (json: any):Token {
+  static fromJSON (json: any): Token {
     return new Token(
       json.network,
       json.chain,

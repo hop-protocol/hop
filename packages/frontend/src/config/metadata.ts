@@ -14,10 +14,11 @@ import wBtcLogo from 'src/assets/logos/wbtc.svg'
 import ethLogo from 'src/assets/logos/eth.svg'
 import maticLogo from 'src/assets/logos/matic.svg'
 import { network } from 'src/config'
+import { AllTokens, Slugs } from '@hop-protocol/sdk'
 
 type Metadata = {
   tokens: {
-    [key: string]: {
+    [key in AllTokens | string]: {
       symbol: string
       name: string
       decimals: number
@@ -26,7 +27,7 @@ type Metadata = {
     }
   }
   networks: {
-    [key: string]: {
+    [key in Slugs | string]: {
       name: string
       isLayer1: boolean
       image: any

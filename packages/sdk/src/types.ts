@@ -1,11 +1,12 @@
 import { BigNumberish, Signer, providers } from 'ethers'
 import { Chain, Token } from './models'
+import { AllTokens, ChainSlugs } from './constants'
 
 /** Chain-ish type */
-export type TChain = Chain | string
+export type TChain = Chain | ChainSlugs | string
 
 /** Token-ish type */
-export type TToken = Token | string
+export type TToken = Token | AllTokens
 
 /** Amount-ish type alias */
 export type TAmount = BigNumberish

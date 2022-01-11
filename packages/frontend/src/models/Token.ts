@@ -1,8 +1,9 @@
 import Network from './Network'
 import Address from './Address'
+import { AllTokens } from '@hop-protocol/sdk'
 
 type TokenProps = {
-  symbol: string
+  symbol: AllTokens
   tokenName: string
   imageUrl: string
   decimals?: number
@@ -10,7 +11,7 @@ type TokenProps = {
 }
 
 class Token {
-  readonly symbol: string
+  readonly symbol: AllTokens
   readonly tokenName: string
   readonly decimals: number
   readonly imageUrl: string

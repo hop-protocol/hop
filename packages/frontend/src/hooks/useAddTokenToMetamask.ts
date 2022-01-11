@@ -22,7 +22,7 @@ export function useAddTokenToMetamask(
         let { symbol, image, decimals } = token
 
         const networkName = networkIdToSlug(networkId || connectedNetworkId)
-        if (symbol === 'XDAI' && networkName !== Chain.xDai) {
+        if (symbol === 'XDAI' && networkName !== Chain.Gnosis) {
           symbol = 'DAI'
         }
 

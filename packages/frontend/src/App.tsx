@@ -7,19 +7,19 @@ import Header from 'src/components/header/Header'
 import Footer from 'src/components/footer/Footer'
 import AccountDetails from 'src/components/accountDetails'
 import TxConfirm from 'src/components/txConfirm/TxConfirm'
-import styled from 'styled-components/macro'
 import bgImage from 'src/assets/circles-bg.svg'
 import bgImageDark from 'src/assets/circles-bg-dark.svg'
-import { isDarkMode } from './theme/theme'
+import { useThemeMode } from './theme/ThemeProvider'
 
 const useStyles = makeStyles(theme => ({
   app: {
+    backgroundImage: ({ isDarkMode }: any) =>
+      isDarkMode ? `url(${bgImageDark})` : `url(${bgImage})`,
     backgroundColor: theme.palette.background.default,
     backgroundPositionY: '50px',
-    background: isDarkMode(theme) ? `url(${bgImageDark})` : `url(${bgImage})`,
     backgroundRepeat: 'no-repeat',
     backgroundSize: 'cover',
-    transition: 'all 0.15s ease-out'
+    transition: 'background 0.15s ease-out',
   },
   content: {
     padding: '2.5rem',
@@ -27,13 +27,12 @@ const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       padding: '2.2rem',
     },
-    transition: 'all 0.15s ease-out'
   },
 }))
 
 function App() {
-  const theme = useTheme()
-  const styles = useStyles()
+  const { isDarkMode } = useThemeMode()
+  const styles = useStyles({ isDarkMode })
 
   return (
     <>

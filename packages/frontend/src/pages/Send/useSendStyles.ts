@@ -4,7 +4,6 @@ export const useSendStyles = makeStyles(theme => ({
   header: {
     display: 'flex',
     justifyContent: 'center',
-    width: '46.0rem',
     position: 'relative',
     transition: 'all 0.15s ease-out',
   },
@@ -100,6 +99,9 @@ export const useSendStyles = makeStyles(theme => ({
     boxSizing: 'border-box',
     borderRadius: '3rem',
     boxShadow: theme.boxShadow.inner,
+    [theme.breakpoints.down('xs')]: {
+      width: '100%',
+    },
   },
   customRecipientLabel: {
     textAlign: 'right',
@@ -111,5 +113,6 @@ export const useSendStyles = makeStyles(theme => ({
   button: {
     margin: `0 ${theme.padding.light}`,
     minWidth: '17.5rem',
+    transition: 'all 0.15s ease-out, box-shadow 4s ease-out',
   },
 }))

@@ -5,7 +5,7 @@ import path from 'path'
 import {
   FileConfig,
   getEnabledNetworks,
-  isValidNetwork,
+  isValidChain,
   isValidToken,
   writeConfigFile
 } from 'src/config'
@@ -38,13 +38,13 @@ async function main (source: any) {
       if (!chain) {
         throw new Error('chain is required')
       }
-      if (!isValidNetwork(chain)) {
+      if (!isValidChain(chain)) {
         throw new Error('chain is invalid')
       }
       if (!destinationChain) {
         logger.warn('destination chain not specified; will configure for all chains')
       }
-      if (destinationChain && !isValidNetwork(destinationChain)) {
+      if (destinationChain && !isValidChain(destinationChain)) {
         throw new Error('destination chain is invalid')
       }
       if (!token) {
@@ -82,7 +82,7 @@ async function main (source: any) {
       if (isV1ConfigType || isV2ConfigType) {
         if (oldConfig.commitTransfers?.minThresholdAmount) {
           for (const _chain in oldConfig.commitTransfers.minThresholdAmount) {
-            if (!isValidNetwork(_chain)) {
+            if (!isValidChain(_chain)) {
               continue
             }
             for (const _token in oldConfig.commitTransfers.minThresholdAmount[_chain]) {

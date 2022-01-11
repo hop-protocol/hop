@@ -25,26 +25,26 @@ type Config = {
 
 const getL1Amb = (token: string) => {
   const l1Wallet = wallets.get(Chain.Ethereum)
-  const l1AmbAddress = globalConfig.tokens[token].xdai.l1Amb
+  const l1AmbAddress = globalConfig.addresses[token].gnosis.l1Amb
   return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1XDaiAMB
 }
 
 const getL2Amb = (token: string) => {
-  const l2xDaiProvider = wallets.get(Chain.xDai).provider
-  const l2AmbAddress = globalConfig.tokens[token].xdai.l2Amb
+  const l2xDaiProvider = wallets.get(Chain.Gnosis).provider
+  const l2AmbAddress = globalConfig.addresses[token].gnosis.l2Amb
   return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2XDaiAMB
 }
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class xDaiBridgeWatcher extends BaseWatcher {
+class GnosisBridgeWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
 
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'xDaiBridgeWatcher',
+      tag: 'GnosisBridgeWatcher',
       prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
@@ -58,7 +58,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
     logger.debug(
-      `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
+      `attempting to send relay message on gnosis for commit tx hash ${commitTxHash}`
     )
     await this.handleStateSwitch()
     if (this.isDryOrPauseMode) {
@@ -133,13 +133,15 @@ class xDaiBridgeWatcher extends BaseWatcher {
     const l2Amb = getL2Amb(this.tokenSymbol)
     const sigEvents = await l2Amb.queryFilter(
       l2Amb.filters.UserRequestForSignature(),
-      tx.blockNumber - 1,
-      tx.blockNumber + 1
+      tx.blockNumber,
+      tx.blockNumber
     )
 
-    // Only return the first item. There should never be more than one in a 3 block range
-    // per token, as there are griefing protections enforced in the contracts.
     for (const sigEvent of sigEvents) {
+      const sigTxHash = sigEvent.transactionHash
+      if (sigTxHash.toLowerCase() !== commitTxHash.toLowerCase()) {
+        continue
+      }
       const { encodedData } = sigEvent.args
       // TODO: better way of slicing by method id
       const data = encodedData.includes('ef6ebe5e00000')
@@ -152,7 +154,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
   }
 }
 
-export default xDaiBridgeWatcher
+export default GnosisBridgeWatcher
 
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
 const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires

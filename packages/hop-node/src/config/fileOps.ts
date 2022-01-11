@@ -2,38 +2,36 @@ import Logger, { setLogLevel } from 'src/logger'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { Chain } from 'src/constants'
 import {
-  Fees, Routes, defaultConfigFilePath, setBonderPrivateKey,
+  Bonders,
+  CommitTransfersConfig, Fees, Routes, Watchers,
+  defaultConfigFilePath,
+  setBonderPrivateKey,
+  setCommitTransfersConfig,
   setConfigAddresses,
+  setConfigBonders,
   setConfigByNetwork,
+  setConfigTokens,
   setDbPath,
   setFeesConfig,
   setMetricsConfig,
+  setNetworkMaxGasPrice,
+  setNetworkRpcUrl,
   setRoutesConfig,
   setStateUpdateAddress,
-  setSyncConfig,
-  validateConfig
+  setSyncConfig
 } from './config'
+import { Chain } from 'src/constants'
 import { getParameter } from 'src/aws/parameterStore'
 import { promptPassphrase } from 'src/prompt'
 import { recoverKeystore } from 'src/keystore'
 
 const logger = new Logger('config')
 
-export const defaultEnabledWatchers: { [key: string]: boolean } = {
-  bondTransferRoot: true,
-  bondWithdrawal: true,
-  challenge: true, // only active if role.challenger is also true
-  commitTransfers: true,
-  settleBondedWithdrawals: true,
-  xDomainMessageRelay: false
-}
-
 export const defaultEnabledNetworks: { [key: string]: boolean } = {
   [Chain.Optimism]: true,
   [Chain.Arbitrum]: true,
-  [Chain.xDai]: true,
+  [Chain.Gnosis]: true,
   [Chain.Polygon]: true,
   [Chain.Ethereum]: true
 }
@@ -50,20 +48,13 @@ type SyncConfig = {
   [key: string]: any
 }
 
-type RolesConfig = {
-  bonder?: boolean
-  challenger?: boolean
-  arbBot?: boolean
-  xdaiBridge?: boolean
-}
-
 type WatchersConfig = {
-  bondTransferRoot: boolean
-  bondWithdrawal: boolean
-  challenge: boolean
-  commitTransfers: boolean
-  settleBondedWithdrawals: boolean
-  xDomainMessageRelay: boolean
+  [Watchers.BondTransferRoot]: boolean
+  [Watchers.BondWithdrawal]: boolean
+  [Watchers.Challenge]: boolean
+  [Watchers.CommitTransfers]: boolean
+  [Watchers.SettleBondedWithdrawals]: boolean
+  [Watchers.xDomainMessageRelay]: boolean
 }
 
 type DbConfig = {
@@ -75,6 +66,7 @@ type KeystoreConfig = {
   pass?: string
   passwordFile?: string
   parameterStore?: string
+  awsRegion?: string
 }
 
 type LoggingConfig = {
@@ -91,27 +83,26 @@ export type Addresses = {
 }
 
 export type FileConfig = {
-  network?: string
-  chains?: ChainsConfig
-  tokens?: TokensConfig
-  roles?: RolesConfig
-  watchers?: Partial<WatchersConfig>
+  network: string
+  chains: ChainsConfig
+  tokens: TokensConfig
+  watchers: Partial<WatchersConfig>
   sync?: SyncConfig
   db?: DbConfig
   logging?: LoggingConfig
   keystore?: KeystoreConfig
   settleBondedWithdrawals?: any
-  commitTransfers?: any
-  order?: number
+  commitTransfers?: CommitTransfersConfig
   addresses?: Addresses
   stateUpdateAddress?: string
   metrics?: MetricsConfig
   fees?: Fees
-  routes?: Routes
+  routes: Routes
+  bonders?: Bonders
 }
 
 export async function setGlobalConfigFromConfigFile (
-  config: FileConfig = {},
+  config: Partial<FileConfig> = {},
   passwordFile: string = ''
 ) {
   if (config.db) {
@@ -127,7 +118,7 @@ export async function setGlobalConfigFromConfigFile (
   }
   if (config.keystore) {
     if (!config.keystore.location) {
-      throw new Error('keystore location is required')
+      throw new Error('config for keystore location is required')
     }
     const filepath = path.resolve(
       config.keystore.location.replace('~', os.homedir())
@@ -137,13 +128,14 @@ export async function setGlobalConfigFromConfigFile (
     if (!passphrase) {
       let passwordFilePath = passwordFile ?? config.keystore.passwordFile
       const parameterStoreName = config.keystore.parameterStore
+      const awsRegion = config.keystore.awsRegion
       if (passwordFilePath) {
         passwordFilePath = path.resolve(
           passwordFilePath.replace('~', os.homedir())
         )
         passphrase = fs.readFileSync(passwordFilePath, 'utf8').trim()
       } else if (parameterStoreName) {
-        passphrase = await getParameter(parameterStoreName)
+        passphrase = await getParameter(parameterStoreName, awsRegion)
       } else {
         passphrase = (await promptPassphrase()) as string
       }
@@ -151,11 +143,36 @@ export async function setGlobalConfigFromConfigFile (
     const privateKey = await recoverKeystore(keystore, passphrase)
     setBonderPrivateKey(privateKey)
   }
-  if (config.network) {
-    const network = config.network
-    logger.info(`network: "${network}"`)
-    setConfigByNetwork(network)
+  const network = config.network
+  if (!network) {
+    throw new Error('config for network is required')
   }
+  logger.info(`network: "${network}"`)
+  setConfigByNetwork(network)
+
+  if (!config.chains) {
+    throw new Error('config for chains is required')
+  }
+
+  for (const k in config.chains) {
+    const v = config.chains[k]
+    if (v instanceof Object) {
+      const { rpcUrl, maxGasPrice } = v
+      if (rpcUrl) {
+        setNetworkRpcUrl(k, rpcUrl)
+      }
+      if (maxGasPrice) {
+        setNetworkMaxGasPrice(k, maxGasPrice)
+      }
+    }
+  }
+
+  if (!config.tokens) {
+    throw new Error('config for tokens is required')
+  }
+
+  setConfigTokens(config.tokens)
+
   if (config.sync) {
     setSyncConfig(config.sync)
   }
@@ -173,11 +190,45 @@ export async function setGlobalConfigFromConfigFile (
   if (config?.metrics) {
     setMetricsConfig(config.metrics)
   }
-  if (config?.fees) {
+  if (!config?.routes) {
+    throw new Error('config for routes is required')
+  }
+  const numRoutes = Object.keys(config.routes).length
+  if (!numRoutes) {
+    throw new Error('1 or more routes must be specified')
+  }
+  if (!config?.watchers) {
+    throw new Error('config for watchers is required')
+  }
+
+  const enabledWatchers = Object.keys(config?.watchers).filter((watcher: string) => (config?.watchers as any)?.[watcher])
+  if (!config?.watchers) {
+    throw new Error('config for watchers is required')
+  }
+
+  setRoutesConfig(config.routes)
+  if (enabledWatchers.includes(Watchers.BondWithdrawal) && !config?.fees) {
+    throw new Error('config for fees is required')
+  }
+
+  if (config.fees != null) {
     setFeesConfig(config.fees)
   }
-  if (config?.routes) {
-    setRoutesConfig(config.routes)
+
+  if (enabledWatchers.includes(Watchers.CommitTransfers) && !config?.commitTransfers) {
+    throw new Error('config for commitTransfers is required')
+  }
+
+  if (config.commitTransfers && !config.commitTransfers?.minThresholdAmount) {
+    throw new Error('config for commitTransfers.minThresholdAmount is required')
+  }
+
+  if (config.commitTransfers != null) {
+    setCommitTransfersConfig(config.commitTransfers)
+  }
+
+  if (config.bonders) {
+    setConfigBonders(config.bonders)
   }
 }
 
@@ -213,7 +264,6 @@ export async function parseConfigFile (
     config = require(configPath)
   }
   if (config != null) {
-    await validateConfig(config)
     logger.info('config file:', configPath)
     return config
   }

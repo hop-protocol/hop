@@ -16,7 +16,7 @@ import {
 } from 'ethers'
 import {
   BondTransferGasLimit,
-  GasPriceMultiplier,
+  Errors,
   LpFeeBps,
   PendingAmountBuffer,
   SettlementGasLimitPerTx,
@@ -136,7 +136,7 @@ class HopBridge extends Base {
    *import { Wallet } from 'ethers'
    *
    *const signer = new Wallet(privateKey)
-   *const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.xDai)
+   *const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
    *```
    */
   constructor (
@@ -207,7 +207,7 @@ class HopBridge extends Base {
       token.canonicalSymbol
     ]
 
-    if (chain.equals(Chain.xDai) && token.symbol === 'DAI') {
+    if (chain.equals(Chain.Gnosis) && token.symbol === 'DAI') {
       symbol = 'XDAI'
     }
 
@@ -273,8 +273,8 @@ class HopBridge extends Base {
    *
    *const hop = new Hop()
    *const bridge = hop.connect(signer).bridge(Token.USDC)
-   *\// send 1 USDC token from Optimism -> xDai
-   *const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *\// send 1 USDC token from Optimism -> Gnosis
+   *const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.Gnosis)
    *console.log(tx.hash)
    *```
    */
@@ -306,8 +306,8 @@ class HopBridge extends Base {
    *
    *const hop = new Hop()
    *const bridge = hop.connect(signer).bridge(Token.USDC)
-   *\// send 1 USDC token from Optimism -> xDai
-   *const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *\// send 1 USDC token from Optimism -> Gnosis
+   *const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.Gnosis)
    *console.log(tx.hash)
    *```
    */
@@ -457,8 +457,9 @@ class HopBridge extends Base {
   // ToDo: Docs
   public async getSendData (
     amountIn: BigNumberish,
-    sourceChain?: TChain,
-    destinationChain?: TChain
+    sourceChain: TChain,
+    destinationChain: TChain,
+    isHTokenSend: boolean = false
   ) {
     amountIn = BigNumber.from(amountIn)
     sourceChain = this.toChainModel(sourceChain)
@@ -506,20 +507,31 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    let totalFee = BigNumber.from(0)
-    let adjustedBonderFee = BigNumber.from(0)
-    let adjustedDestinationTxFee = BigNumber.from(0)
-    if (!sourceChain.isL1) {
-      // adjustedFee is the fee in the canonical token after adjusting for the hToken price.
-      adjustedBonderFee = await this.calcFromHTokenAmount(
-        bonderFeeRelative,
-        destinationChain
-      )
+    let adjustedBonderFee
+    let adjustedDestinationTxFee
+    let totalFee
+    if (sourceChain.isL1) {
+      // there are no Hop fees when the source is L1
+      adjustedBonderFee = BigNumber.from(0)
+      adjustedDestinationTxFee = BigNumber.from(0)
+      totalFee = BigNumber.from(0)
+    } else {
+      if (isHTokenSend) {
+        // fees do not need to be adjusted for AMM slippage when sending hTokens
+        adjustedBonderFee = bonderFeeRelative
+        adjustedDestinationTxFee = destinationTxFee
+      } else {
+        // adjusted fee is the fee in the canonical token after adjusting for the hToken price
+        adjustedBonderFee = await this.calcFromHTokenAmount(
+          bonderFeeRelative,
+          destinationChain
+        )
 
-      adjustedDestinationTxFee = await this.calcFromHTokenAmount(
-        destinationTxFee,
-        destinationChain
-      )
+        adjustedDestinationTxFee = await this.calcFromHTokenAmount(
+          destinationTxFee,
+          destinationChain
+        )
+      }
 
       // enforce bonderFeeAbsolute after adjustment
       const bonderFeeAbsolute = await this.getBonderFeeAbsolute()
@@ -734,7 +746,7 @@ class HopBridge extends Base {
       destinationChain.equals(Chain.Optimism) ||
       destinationChain.equals(Chain.Arbitrum)
     ) {
-      const multiplier = ethers.utils.parseEther(GasPriceMultiplier)
+      const multiplier = ethers.utils.parseEther(this.destinationFeeGasPriceMultiplier.toString())
       if (multiplier.gt(0)) {
         fee = fee.mul(multiplier).div(oneEth)
       }
@@ -839,7 +851,7 @@ class HopBridge extends Base {
    *
    *const hop = new Hop()
    *const bridge = hop.connect(signer).bridge(Token.USDC)
-   *const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.Gnosis)
    *console.log(amountOut)
    *```
    */
@@ -876,7 +888,7 @@ class HopBridge extends Base {
    *
    *const hop = new Hop()
    *const bridge = hop.connect(signer).bridge(Token.USDC)
-   *const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.Gnosis)
    *console.log(requiredLiquidity)
    *```
    */
@@ -1516,7 +1528,7 @@ class HopBridge extends Base {
         balance = await canonicalToken.balanceOf()
       }
       if (balance.lt(tokenAmount)) {
-        throw new Error('not enough token balance')
+        throw new Error(Errors.NotEnoughAllowance)
       }
     }
 
@@ -1619,7 +1631,7 @@ class HopBridge extends Base {
         } else {
           const allowance = await l1Token.allowance(l1Bridge.address)
           if (allowance.lt(BigNumber.from(amount))) {
-            throw new Error('not enough allowance')
+            throw new Error(Errors.NotEnoughAllowance)
           }
         }
       }
@@ -1709,7 +1721,7 @@ class HopBridge extends Base {
         } else {
           const allowance = await l2CanonicalToken.allowance(spender)
           if (allowance.lt(BigNumber.from(amount))) {
-            throw new Error('not enough allowance')
+            throw new Error(Errors.NotEnoughAllowance)
           }
         }
       }
@@ -1806,7 +1818,7 @@ class HopBridge extends Base {
         } else {
           const allowance = await l2CanonicalToken.allowance(ammWrapper.address)
           if (allowance.lt(BigNumber.from(amount))) {
-            throw new Error('not enough allowance')
+            throw new Error(Errors.NotEnoughAllowance)
           }
         }
       }
@@ -2060,16 +2072,16 @@ class HopBridge extends Base {
     }
   }
 
-  // xDai AMB bridge
+  // Gnosis AMB bridge
   async getAmbBridge (chain: TChain) {
     chain = this.toChainModel(chain)
     if (chain.equals(Chain.Ethereum)) {
-      const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.xDai)
+      const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
       const provider = await this.getSignerOrProvider(Chain.Ethereum)
       return this.getContract(address, l1HomeAmbNativeToErc20, provider)
     }
-    const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.xDai)
-    const provider = await this.getSignerOrProvider(Chain.xDai)
+    const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
+    const provider = await this.getSignerOrProvider(Chain.Gnosis)
     return this.getContract(address, l1HomeAmbNativeToErc20, provider)
   }
 
@@ -2077,7 +2089,7 @@ class HopBridge extends Base {
     chain = this.toChainModel(chain)
     if (chain?.equals(Chain.Polygon)) {
       return this.toTokenModel('MATIC')
-    } else if (chain?.equals(Chain.xDai)) {
+    } else if (chain?.equals(Chain.Gnosis)) {
       return this.toTokenModel('DAI')
     }
 

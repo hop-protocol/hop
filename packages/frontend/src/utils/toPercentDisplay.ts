@@ -1,9 +1,8 @@
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
-import { Token } from '@hop-protocol/sdk'
 import { commafy } from 'src/utils'
 
-const toPercentDisplay = (
+export const toPercentDisplay = (
   value: BigNumber | number | undefined,
   decimals: number | undefined = 0
 ) => {
@@ -23,5 +22,3 @@ const toPercentDisplay = (
     return '-%'
   }
 }
-
-export default toPercentDisplay

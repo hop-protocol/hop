@@ -15,7 +15,7 @@ import { Flex } from 'src/components/ui'
 
 const useStyles = makeStyles(theme => ({
   container: {
-    padding: `${theme.padding.thick} 0`,
+    padding: `${theme.padding.default} 0`,
   },
 }))
 

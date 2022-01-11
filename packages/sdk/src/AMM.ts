@@ -32,7 +32,7 @@ class AMM extends Base {
    *```js
    *import { AMM, Token, Chain } from '@hop-protocol/sdk'
    *
-   *const amm = new AMM('mainnet', Token.USDC, Chain.xDai)
+   *const amm = new AMM('mainnet', Token.USDC, Chain.Gnosis)
    *```
    */
   constructor (
@@ -103,12 +103,31 @@ class AMM extends Base {
     deadline = this.normalizeDeadline(deadline)
     const amounts = [amount0Desired, amount1Desired]
     const saddleSwap = await this.getSaddleSwap()
-    return saddleSwap.addLiquidity(
+    const payload = [
       amounts,
       minToMint,
-      deadline,
-      await this.txOverrides(this.chain)
-    )
+      deadline
+    ]
+
+    const overrides = await this.txOverrides(this.chain)
+    if (this.chain.equals(Chain.Polygon)) {
+      try {
+        const estimatedGas = await saddleSwap.estimateGas.addLiquidity(
+          ...payload,
+          {
+            ...overrides,
+            gasLimit: 200000
+          }
+        )
+
+        const buffer = 50000
+        overrides.gasLimit = estimatedGas.add(buffer)
+      } catch (err) {
+        console.log(err)
+      }
+    }
+
+    return saddleSwap.addLiquidity(...payload, overrides)
   }
 
   /**
@@ -139,12 +158,31 @@ class AMM extends Base {
     deadline = this.normalizeDeadline(deadline)
     const saddleSwap = await this.getSaddleSwap()
     const amounts = [amount0Min, amount1Min]
-    return saddleSwap.removeLiquidity(
+    const payload = [
       liqudityTokenAmount,
       amounts,
-      deadline,
-      await this.txOverrides(this.chain)
-    )
+      deadline
+    ]
+
+    const overrides = await this.txOverrides(this.chain)
+    if (this.chain.equals(Chain.Polygon)) {
+      try {
+        const estimatedGas = await saddleSwap.estimateGas.removeLiquidity(
+          ...payload,
+          {
+            ...overrides,
+            gasLimit: 200000
+          }
+        )
+
+        const buffer = 50000
+        overrides.gasLimit = estimatedGas.add(buffer)
+      } catch (err) {
+        console.log(err)
+      }
+    }
+
+    return saddleSwap.removeLiquidity(...payload, overrides)
   }
 
   public async removeLiquidityOneToken (
@@ -155,12 +193,34 @@ class AMM extends Base {
   ) {
     deadline = this.normalizeDeadline(deadline)
     const saddleSwap = await this.getSaddleSwap()
-    return saddleSwap.removeLiquidityOneToken(
+    const payload = [
       lpAmount,
       tokenIndex,
       amountMin,
-      deadline,
-      await this.txOverrides(this.chain)
+      deadline
+    ]
+
+    const overrides = await this.txOverrides(this.chain)
+    if (this.chain.equals(Chain.Polygon)) {
+      try {
+        const estimatedGas = await saddleSwap.estimateGas.removeLiquidityOneToken(
+          ...payload,
+          {
+            ...overrides,
+            gasLimit: 200000
+          }
+        )
+
+        const buffer = 50000
+        overrides.gasLimit = estimatedGas.add(buffer)
+      } catch (err) {
+        console.log(err)
+      }
+    }
+
+    return saddleSwap.removeLiquidityOneToken(
+      ...payload,
+      overrides
     )
   }
 
@@ -187,11 +247,16 @@ class AMM extends Base {
   ) {
     const account = await this.getSignerAddress()
     const saddleSwap = await this.getSaddleSwap()
+    const overrides = await this.txOverrides(this.chain)
+    if (this.chain.equals(Chain.Polygon)) {
+      overrides.gasLimit = 200000
+    }
+
     return saddleSwap.calculateRemoveLiquidityOneToken(
       account,
       tokenAmount,
       tokenIndex,
-      await this.txOverrides(this.chain)
+      overrides
     )
   }
 
@@ -226,21 +291,31 @@ class AMM extends Base {
       return BigNumber.from(0)
     }
 
+    const overrides = await this.txOverrides(this.chain)
+    if (this.chain.equals(Chain.Polygon)) {
+      overrides.gasLimit = 200000
+    }
+
     return saddleSwap.calculateTokenAmount(
       recipient,
       amounts,
       isDeposit,
-      await this.txOverrides(this.chain)
+      overrides
     )
   }
 
   public async calculateRemoveLiquidityMinimum (lpTokenAmount: TAmount) {
     const saddleSwap = await this.getSaddleSwap()
     const recipient = await this.getSignerAddress()
+    const overrides = await this.txOverrides(this.chain)
+    if (this.chain.equals(Chain.Polygon)) {
+      overrides.gasLimit = 200000
+    }
+
     return saddleSwap.calculateRemoveLiquidity(
       recipient,
       lpTokenAmount,
-      await this.txOverrides(this.chain)
+      overrides
     )
   }
 

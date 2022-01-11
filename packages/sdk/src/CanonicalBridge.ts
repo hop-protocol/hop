@@ -177,7 +177,7 @@ class CanonicalBridge extends Base {
       )
     }
 
-    if ((chain as Chain).equals(Chain.xDai)) {
+    if ((chain as Chain).equals(Chain.Gnosis)) {
       const bridge = await this.getContract(
         bridgeAddress,
         l1xDaiForeignOmniBridgeAbi,
@@ -185,7 +185,7 @@ class CanonicalBridge extends Base {
       )
       // await this.checkMaxTokensAllowed(chain, bridge, amount)
       return bridge.relayTokens(tokenAddress, recipient, amount, {
-        // xDai requires a higher gas limit
+        // Gnosis requires a higher gas limit
         gasLimit: 300000
       })
     } else if ((chain as Chain).equals(Chain.Optimism)) {
@@ -293,7 +293,7 @@ class CanonicalBridge extends Base {
 
     const recipient = await this.getSignerAddress()
     const provider = await this.getSignerOrProvider(chain)
-    if ((chain as Chain).equals(Chain.xDai)) {
+    if ((chain as Chain).equals(Chain.Gnosis)) {
       const bridgeAddress = this.getL2CanonicalBridgeAddress(
         this.tokenSymbol,
         chain
@@ -318,7 +318,7 @@ class CanonicalBridge extends Base {
         provider
       )
       return bridge.transferAndCall(bridgeAddress, amount, '0x', {
-        // xDai requires a higher gas limit
+        // Gnosis requires a higher gas limit
         gasLimit: 400000
       })
     } else if ((chain as Chain).equals(Chain.Optimism)) {
@@ -443,7 +443,7 @@ class CanonicalBridge extends Base {
     canonicalBridge: Contract,
     amount: TAmount
   ) {
-    if (chain.equals(Chain.xDai)) {
+    if (chain.equals(Chain.Gnosis)) {
       const l1CanonicalToken = this.getL1Token()
 
       const maxPerTx = await canonicalBridge?.maxPerTx()
@@ -455,22 +455,22 @@ class CanonicalBridge extends Base {
       )
       if (formattedAmount > formattedMaxPerTx) {
         throw new Error(
-          `Max allowed by xDai Bridge is ${formattedMaxPerTx} tokens`
+          `Max allowed by Gnosis Bridge is ${formattedMaxPerTx} tokens`
         )
       }
     }
   }
 
-  // xDai AMB bridge
+  // Gnosis AMB bridge
   async getAmbBridge (chain?: TChain) {
     chain = this.toChainModel(chain || this.chain)
     if (chain.equals(Chain.Ethereum)) {
-      const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.xDai)
+      const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
       const provider = await this.getSignerOrProvider(Chain.Ethereum)
       return this.getContract(address, l1HomeAmbNativeToErc20, provider)
     }
-    const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.xDai)
-    const provider = await this.getSignerOrProvider(Chain.xDai)
+    const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
+    const provider = await this.getSignerOrProvider(Chain.Gnosis)
     return this.getContract(address, l1HomeAmbNativeToErc20, provider)
   }
 
@@ -488,7 +488,7 @@ class CanonicalBridge extends Base {
     let abi: any[]
     if (this.chain.equals(Chain.Polygon)) {
       abi = l2PolygonChildErc20Abi
-    } else if (this.chain.equals(Chain.xDai)) {
+    } else if (this.chain.equals(Chain.Gnosis)) {
       abi = l2xDaiTokenAbi
     } else if (this.chain.equals(Chain.Arbitrum)) {
       abi = arbErc20Abi
@@ -512,7 +512,7 @@ class CanonicalBridge extends Base {
     let abi: any[]
     if (this.chain.equals(Chain.Polygon)) {
       abi = l1PolygonPosRootChainManagerAbi
-    } else if (this.chain.equals(Chain.xDai)) {
+    } else if (this.chain.equals(Chain.Gnosis)) {
       abi = l1xDaiForeignOmniBridgeAbi
     } else if (this.chain.equals(Chain.Arbitrum)) {
       abi = arbitrumGlobalInboxAbi

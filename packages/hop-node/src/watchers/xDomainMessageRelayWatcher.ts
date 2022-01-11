@@ -1,10 +1,10 @@
 import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
+import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
-import xDaiBridgeWatcher from './xDaiBridgeWatcher'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
@@ -19,11 +19,10 @@ type Config = {
   l1BridgeContract: L1BridgeContract | L1ERC20BridgeContract
   label: string
   token: string
-  order?: () => number
   dryMode?: boolean
 }
 
-type Watcher = xDaiBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
+type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
 
 class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
@@ -37,7 +36,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       tag: 'xDomainMessageRelay',
       prefix: config.label,
       logColor: 'yellow',
-      order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
@@ -45,8 +43,8 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     this.logger.debug('starting watcher')
     const enabledNetworks = getEnabledNetworks()
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
-    if (this.chainSlug === Chain.xDai && enabledNetworks.includes(Chain.xDai)) {
-      this.watchers[Chain.xDai] = new xDaiBridgeWatcher({
+    if (this.chainSlug === Chain.Gnosis && enabledNetworks.includes(Chain.Gnosis)) {
+      this.watchers[Chain.Gnosis] = new GnosisBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         label: config.label,
@@ -105,7 +103,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     )
     for (const { transferRootId } of dbTransferRoots) {
       // Parallelizing these calls produces RPC errors on Optimism
-      await this.checkTransfersCommitted(transferRootId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      await this.checkTransfersCommitted(transferRootId)
     }
   }
 
@@ -120,8 +118,8 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
-      destinationChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-      transferRootId // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      destinationChainId!,
+      transferRootId
     )
     if (isTransferRootIdConfirmed) {
       logger.warn('Transfer root already confirmed')
@@ -138,7 +136,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
 
     logger.debug(`handling commit tx hash ${commitTxHash} from ${destinationChainId}`)
-    await watcher.handleCommitTxHash(commitTxHash!, transferRootId, logger) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    await watcher.handleCommitTxHash(commitTxHash!, transferRootId, logger)
   }
 }
 

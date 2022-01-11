@@ -112,8 +112,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.store = store
     }
     this.createdAt = Date.now()
-    this.from = tx.from! // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    this.to = tx.to! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    this.from = tx.from!
+    this.to = tx.to!
     if (tx.data) {
       this.data = hexlify(tx.data)
     }
@@ -145,7 +145,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       throw new Error('chain slug not found for contract provider')
     }
     this.chainSlug = chainSlug
-    this.chainId = chainSlugToId(chainSlug)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    this.chainId = chainSlugToId(chainSlug)!
     const tag = 'GasBoostTransaction'
     let prefix = `${this.chainSlug} id: ${this.id}`
     const transferId = this.decodeTransferId()
@@ -298,13 +298,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
     // store populated and normalized values
     this.from = tx.from
-    this.to = tx.to! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    this.to = tx.to!
     this.data = tx.data
     this.value = tx.value
     this.gasLimit = tx.gasLimit
-    this.gasPrice = tx.gasPrice! // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    this.maxFeePerGas = tx.maxFeePerGas! // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    this.gasPrice = tx.gasPrice!
+    this.maxFeePerGas = tx.maxFeePerGas!
+    this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
     this.nonce = tx.nonce
 
     this.logger.debug(`beginning tracking for ${tx.hash}`)
@@ -448,8 +448,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       return await this.getReceipt(this.txHash)
     }
     for (const { hash } of this.inflightItems) {
-      this.getReceipt(hash!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        .then(async (receipt: providers.TransactionReceipt) => this.handleConfirmation(hash!, receipt)) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      this.getReceipt(hash!)
+        .then(async (receipt: providers.TransactionReceipt) => this.handleConfirmation(hash!, receipt))
     }
     return await new Promise((resolve, reject) => {
       this
@@ -487,9 +487,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.txHash = txHash
     this.clearInflightTxs()
     const tx = await this.signer.provider!.getTransaction(txHash) // eslint-disable-line
-    this.gasPrice = tx.gasPrice! // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    this.maxFeePerGas = tx.maxFeePerGas! // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    this.gasPrice = tx.gasPrice!
+    this.maxFeePerGas = tx.maxFeePerGas!
+    this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
     this.receipt = receipt
     this.emit(State.Confirmed, receipt)
     this.logger.debug(`confirmed tx: ${tx.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
@@ -556,7 +556,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const isMaxReached = gasFeeData.gasPrice?.gt(maxGasPrice) ?? gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
     if (isMaxReached) {
       if (!this.maxGasPriceReached) {
-        const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${this.maxGasPriceGwei}, maxPriorityFeePerGas: ${this.priorityFeePerGasCap}). cannot boost`
+        const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${maxGasPrice}, maxPriorityFeePerGas: ${priorityFeePerGasCap}). cannot boost`
         this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
         this.logger.warn(warnMsg)
         this.emit(State.MaxGasPriceReached, gasFeeData.gasPrice, this.boostIndex)
@@ -566,9 +566,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     const tx = await this._sendTransaction(gasFeeData)
 
-    this.gasPrice = tx.gasPrice! // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    this.maxFeePerGas = tx.maxFeePerGas! // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    this.gasPrice = tx.gasPrice!
+    this.maxFeePerGas = tx.maxFeePerGas!
+    this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
     this.boostIndex++
     this.track(tx)
     this.emit(State.Boosted, tx, this.boostIndex)

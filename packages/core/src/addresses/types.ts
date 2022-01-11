@@ -1,5 +1,5 @@
 export type Bridges = {
-  [key: string]: Partial<{
+  [tokenSymbol: string]: Partial<{
     ethereum: {
       l1CanonicalToken: string
       l1Bridge: string
@@ -44,7 +44,7 @@ export type Bridges = {
       l1PosPredicate: string
       bridgeDeployedBlockNumber: number
     }
-    xdai: {
+    gnosis: {
       l1CanonicalBridge: string
       l1MessengerWrapper: string
       l2CanonicalBridge: string
@@ -65,22 +65,22 @@ export type Routes = {
   ethereum?: {
     optimism?: string
     arbitrum?: string
-    xdai?: string
+    gnosis?: string
     polygon?: string
   },
   optimism?: {
     ethereum?: string
     arbitrum?: string
-    xdai?: string
+    gnosis?: string
     polygon?: string
   },
   arbitrum?: {
     ethereum?: string
     optimism?: string
-    xdai?: string
+    gnosis?: string
     polygon?: string
   },
-  xdai?: {
+  gnosis?: {
     ethereum?: string
     arbitrum?: string
     optimism?: string
@@ -89,7 +89,7 @@ export type Routes = {
   polygon?: {
     ethereum?: string
     arbitrum?: string
-    xdai?: string
+    gnosis?: string
     optimism?: string
   }
 }

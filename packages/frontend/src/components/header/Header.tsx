@@ -11,17 +11,21 @@ import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
 import { isMainnet } from 'src/config'
 import Settings from 'src/components/header/Settings'
 import WalletWarning from './WalletWarning'
-import { toTokenDisplay, networkIdNativeTokenSymbol, networkIdToSlug } from 'src/utils'
-import { findNetworkBySlug } from 'src/utils/networks'
+import {
+  toTokenDisplay,
+  networkIdNativeTokenSymbol,
+  networkIdToSlug,
+  findNetworkBySlug,
+  fixedDecimals,
+} from 'src/utils'
 import Network from 'src/models/Network'
 import logger from 'src/logger'
 import { useInterval } from 'react-use'
 import ConnectWalletButton from './ConnectWalletButton'
-import { isDarkMode } from 'src/theme/theme'
 import IconButton from '@material-ui/core/IconButton'
 import SunIcon from 'src/assets/sun-icon.svg'
 import MoonIcon from 'src/assets/moon-icon.svg'
-import { Flex, Icon } from '../ui'
+import { Div, Flex, Icon } from '../ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -63,14 +67,17 @@ const useStyles = makeStyles((theme: Theme) => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'column',
     borderRadius: '3rem',
-    margin: '0rem 1rem',
-    padding: '1rem 2rem',
-    boxShadow: isDarkMode(theme)
-      ? theme.boxShadow.inner
-      : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`,
+    marginLeft: '1rem',
+    padding: '1.2rem 2rem',
+    boxShadow: ({ isDarkMode }: any) =>
+      isDarkMode
+        ? theme.boxShadow.inner
+        : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`,
     color: theme.palette.text.secondary,
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '.8rem',
+    },
     [theme.breakpoints.down('xs')]: {
       display: 'none',
     },
@@ -97,7 +104,8 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 const Header: FC = () => {
-  const styles = useStyles()
+  const { toggleMode, isDarkMode } = useThemeMode()
+  const styles = useStyles({ isDarkMode })
   const { address, provider, connectedNetworkId } = useWeb3Context()
   const { l1Network, networks, theme } = useApp()
   const [displayBalance, setDisplayBalance] = useState<string>('')
@@ -112,7 +120,7 @@ const Header: FC = () => {
       const balance = await provider.getBalance(address.address)
       const formattedBalance = toTokenDisplay(balance, 18)
       const tokenSymbol = networkIdNativeTokenSymbol(connectedNetworkId)
-      const _displayBalance = `${formattedBalance} ${tokenSymbol}`
+      const _displayBalance = `${fixedDecimals(formattedBalance, 3)} ${tokenSymbol}`
       const network = findNetworkBySlug(networks, networkIdToSlug(connectedNetworkId))
       setDisplayBalance(_displayBalance)
       setConnectedNetwork(network)
@@ -130,9 +138,8 @@ const Header: FC = () => {
 
   useInterval(updateDisplayBalance, 5000)
 
-  const { toggleMode, mode } = useThemeMode()
   const showBalance = !!displayBalance && !!connectedNetwork
-  const ThemeModeIcon: any = isDarkMode(mode) ? SunIcon : MoonIcon
+  const ThemeModeIcon: any = isDarkMode ? SunIcon : MoonIcon
 
   return (
     <>
@@ -168,17 +175,31 @@ const Header: FC = () => {
           <Settings />
 
           {showBalance && (
-            <div className={styles.balancePill} title={connectedNetwork?.name}>
+            <Flex
+              justifyCenter
+              alignCenter
+              borderRadius={'3rem'}
+              mx={1}
+              p={'1.2rem 2rem'}
+              boxShadow={
+                isDarkMode && theme
+                  ? theme.boxShadow.inner
+                  : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`
+              }
+              color="text.secondary"
+              fontSize={['.8rem', '1rem']}
+              display={['none', 'flex']}
+            >
               <div className={styles.balance}>
                 <img className={styles.image} alt="" src={connectedNetwork?.imageUrl} />
                 {displayBalance}
               </div>
-            </div>
+            </Flex>
           )}
 
-          <div className={styles.walletPill}>
+          <Flex alignCenter justifyCenter mx={1} fontSize={['.8rem', '1rem']}>
             {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
-          </div>
+          </Flex>
         </Box>
       </Box>
       <WalletWarning />

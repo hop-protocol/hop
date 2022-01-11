@@ -43,7 +43,7 @@ describe.skip('hop bridge token transfers', () => {
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
-        .send(tokenAmount, Chain.Optimism, Chain.xDai)
+        .send(tokenAmount, Chain.Optimism, Chain.Gnosis)
 
       console.log('tx hash:', tx?.hash)
 
@@ -58,7 +58,7 @@ describe.skip('hop bridge token transfers', () => {
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
-        .send(tokenAmount, Chain.xDai, Chain.Ethereum)
+        .send(tokenAmount, Chain.Gnosis, Chain.Ethereum)
 
       console.log('tx hash:', tx?.hash)
 
@@ -107,14 +107,14 @@ describe.skip('tx watcher', () => {
     120 * 1000
   )
   it(
-    'receive events on token transfer from L1 -> L2 xDai (swap)',
+    'receive events on token transfer from L1 -> L2 Gnosis (swap)',
     async () => {
       /*
       const tokenAmount = parseUnits('0.1', 18)
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
-        .send(tokenAmount, Chain.Ethereum, Chain.xDai)
+        .send(tokenAmount, Chain.Ethereum, Chain.Gnosis)
       */
 
       const txHash =
@@ -128,14 +128,14 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, Token.USDC, Chain.Ethereum, Chain.xDai)
+          .watch(txHash, Token.USDC, Chain.Ethereum, Chain.Gnosis)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
             if (chain.equals(Chain.Ethereum)) {
               sourceReceipt = receipt
               console.log('got source transaction receipt')
             }
-            if (chain.equals(Chain.xDai)) {
+            if (chain.equals(Chain.Gnosis)) {
               destinationReceipt = receipt
               console.log('got destination transaction receipt')
             }
@@ -157,7 +157,7 @@ describe.skip('tx watcher', () => {
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
-        .send(tokenAmount, Chain.xDai, Chain.Optimism)
+        .send(tokenAmount, Chain.Gnosis, Chain.Optimism)
 
       const txHash = tx?.hash
       console.log('tx hash:', txHash)
@@ -168,10 +168,10 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, Token.USDC, Chain.xDai, Chain.Optimism)
+          .watch(txHash, Token.USDC, Chain.Gnosis, Chain.Optimism)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chain.equals(Chain.xDai)) {
+            if (chain.equals(Chain.Gnosis)) {
               sourceReceipt = receipt
               console.log(
                 'got source transaction receipt:',
@@ -196,7 +196,7 @@ describe.skip('tx watcher', () => {
     120 * 1000
   )
   it.skip(
-    '(mainnet) receive events on token transfer from L2 xDai -> L2 Polygon',
+    '(mainnet) receive events on token transfer from L2 Gnosis -> L2 Polygon',
     async () => {
       const tokenAmount = parseUnits('0.1', 18)
       const txHash =
@@ -207,12 +207,12 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, Token.USDC, Chain.xDai, Chain.Polygon, false, {
+          .watch(txHash, Token.USDC, Chain.Gnosis, Chain.Polygon, false, {
             destinationHeadBlockNumber: 14779300 // estimate
           })
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chain.equals(Chain.xDai)) {
+            if (chain.equals(Chain.Gnosis)) {
               sourceReceipt = receipt
               console.log(
                 'got source transaction receipt:',
@@ -249,7 +249,7 @@ describe.skip('tx watcher', () => {
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
-        .send(tokenAmount, Chain.Ethereum, Chain.xDai)
+        .send(tokenAmount, Chain.Ethereum, Chain.Gnosis)
 
       console.log('tx hash:', tx?.hash)
       console.log('waiting for receipts')
@@ -259,14 +259,14 @@ describe.skip('tx watcher', () => {
         let destinationReceipt: any = null
 
         hop
-          .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.xDai)
+          .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.Gnosis)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
             if (chain.equals(Chain.Ethereum)) {
               sourceReceipt = receipt
               console.log('got source transaction receipt')
             }
-            if (chain.equals(Chain.xDai)) {
+            if (chain.equals(Chain.Gnosis)) {
               destinationReceipt = receipt
               console.log('got destination transaction receipt')
             }
@@ -287,7 +287,7 @@ describe.skip('tx watcher', () => {
       const amountOut = await hop
         .connect(signer)
         .bridge(Token.USDC)
-        .getAmountOut(tokenAmount, Chain.xDai, Chain.Optimism)
+        .getAmountOut(tokenAmount, Chain.Gnosis, Chain.Optimism)
 
       expect(Number(formatUnits(amountOut.toString(), 18))).toBeGreaterThan(0)
     },
@@ -299,9 +299,9 @@ describe.skip('canonical bridge transfers', () => {
   const hop = new Hop('kovan')
   const signer = new Wallet(privateKey)
   it(
-    'deposit token from L1 -> xDai L2 canonical bridge',
+    'deposit token from L1 -> Gnosis L2 canonical bridge',
     async () => {
-      const bridge = hop.canonicalBridge(Token.USDC, Chain.xDai)
+      const bridge = hop.canonicalBridge(Token.USDC, Chain.Gnosis)
       const tokenAmount = parseUnits('0.1', 18)
       const tx = await bridge.connect(signer).deposit(tokenAmount)
       console.log('tx:', tx.hash)
@@ -310,9 +310,9 @@ describe.skip('canonical bridge transfers', () => {
     120 * 1000
   )
   it(
-    'withdraw token from xDai L2 canonical bridge -> L1',
+    'withdraw token from Gnosis L2 canonical bridge -> L1',
     async () => {
-      const bridge = hop.canonicalBridge(Token.USDC, Chain.xDai)
+      const bridge = hop.canonicalBridge(Token.USDC, Chain.Gnosis)
       const tokenAmount = parseUnits('0.1', 18)
       const tx = await bridge.connect(signer).withdraw(tokenAmount)
       console.log('tx:', tx.hash)
@@ -369,23 +369,23 @@ describe.skip('canonical bridge transfers', () => {
 describe.skip('liqudity provider', () => {
   const hop = new Hop('kovan')
   const signer = new Wallet(privateKey)
-  it('should add liqudity on xDai', async () => {
+  it('should add liqudity on Gnosis', async () => {
     const bridge = hop.bridge(Token.USDC)
     const tokenAmount = parseUnits('0.1', 18)
     const amount0Desired = tokenAmount
     const amount1Desired = tokenAmount
     const tx = await bridge
       .connect(signer)
-      .addLiquidity(amount0Desired, amount1Desired, Chain.xDai)
+      .addLiquidity(amount0Desired, amount1Desired, Chain.Gnosis)
     console.log('tx:', tx.hash)
     expect(tx.hash).toBeTruthy()
   })
-  it('should remove liqudity on xDai', async () => {
+  it('should remove liqudity on Gnosis', async () => {
     const bridge = hop.bridge(Token.USDC)
     const liqudityTokenAmount = parseUnits('0.1', 18)
     const tx = await bridge
       .connect(signer)
-      .removeLiquidity(liqudityTokenAmount, Chain.xDai)
+      .removeLiquidity(liqudityTokenAmount, Chain.Gnosis)
     console.log('tx:', tx.hash)
     expect(tx.hash).toBeTruthy()
   })
@@ -395,14 +395,14 @@ describe('custom addresses', () => {
   it('should set custom addresses', () => {
     const address = '0x1111111111111111111111111111111111111111'
     const newAddresses = Object.assign({}, addresses)
-    newAddresses.mainnet.bridges.USDC.xdai.l2CanonicalToken = address
+    newAddresses.mainnet.bridges.USDC.gnosis.l2CanonicalToken = address
 
     const sdk = new Hop('mainnet')
     sdk.setConfigAddresses(newAddresses.mainnet)
-    expect(sdk.getL2CanonicalTokenAddress('USDC', 'xdai')).toBe(address)
+    expect(sdk.getL2CanonicalTokenAddress('USDC', 'gnosis')).toBe(address)
 
     const bridge = sdk.bridge('USDC')
-    expect(bridge.getL2CanonicalTokenAddress('USDC', 'xdai')).toBe(address)
+    expect(bridge.getL2CanonicalTokenAddress('USDC', 'gnosis')).toBe(address)
   })
 })
 
@@ -412,7 +412,7 @@ describe('approve addresses', () => {
   it('get send approval address (L1 -> L2)', () => {
     const approvalAddress = bridge.getSendApprovalAddress(
       Chain.Ethereum,
-      Chain.xDai
+      Chain.Gnosis
     )
     const expectedAddress = addresses.mainnet.bridges.USDC.ethereum.l1Bridge
     expect(approvalAddress).toBe(expectedAddress)
@@ -420,7 +420,7 @@ describe('approve addresses', () => {
   it('get send approval address (L2 -> L2)', () => {
     const approvalAddress = bridge.getSendApprovalAddress(
       Chain.Polygon,
-      Chain.xDai
+      Chain.Gnosis
     )
     const expectedAddress = addresses.mainnet.bridges.USDC.polygon.l2AmmWrapper
     expect(approvalAddress).toBe(expectedAddress)
@@ -444,21 +444,21 @@ describe('custom chain providers', () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
     let polygonProvider = bridge.getChainProvider('polygon')
-    let xDaiProvider = bridge.getChainProvider('xdai')
+    let gnosisProvider = bridge.getChainProvider('gnosis')
     const currentPolygonUrl = 'https://polygon-rpc.com'
-    const currentxDaiUrl = 'https://rpc.xdaichain.com'
+    const currentGnosisUrl = 'https://rpc.gnosischain.com/'
     const newPolygonUrl = 'https://polygon-rpc2.com'
-    const newxDaiUrl = 'https://rpc.xdaichain2.com'
+    const newGnosisUrl = 'https://rpc.xdaichain2.com'
     expect((polygonProvider as any).connection.url).toBe(currentPolygonUrl)
-    expect((xDaiProvider as any).connection.url).toBe(currentxDaiUrl)
+    expect((gnosisProvider as any).connection.url).toBe(currentGnosisUrl)
     sdk.setChainProviders({
       polygon: new providers.StaticJsonRpcProvider(newPolygonUrl),
-      xdai: new providers.StaticJsonRpcProvider(newxDaiUrl)
+      gnosis: new providers.StaticJsonRpcProvider(newGnosisUrl)
     })
     polygonProvider = bridge.getChainProvider('polygon')
-    xDaiProvider = bridge.getChainProvider('xdai')
+    gnosisProvider = bridge.getChainProvider('gnosis')
     expect((polygonProvider as any).connection.url).toBe(newPolygonUrl)
-    expect((xDaiProvider as any).connection.url).toBe(newxDaiUrl)
+    expect((gnosisProvider as any).connection.url).toBe(newGnosisUrl)
   })
 })
 

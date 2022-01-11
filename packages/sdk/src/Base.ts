@@ -1,14 +1,17 @@
+import fetch from 'isomorphic-fetch'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { Chain as ChainEnum, MinPolygonGasPrice } from './constants'
+import { Chain as ChainEnum, Errors, MinPolygonGasPrice } from './constants'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
 export type ChainProviders = { [chain: string]: providers.Provider }
+
+const s3FileCache : Record<string, any> = {}
 
 // cache provider
 const getProvider = memoize((network: string, chain: string) => {
@@ -72,11 +75,12 @@ class Base {
 
   public chainProviders: ChainProviders = {}
 
-  private addresses = config.addresses
-  private chains = config.chains
-  private bonders = config.bonders
-  private fees = config.fees
+  private addresses : Record<string, any>
+  private chains: Record<string, any>
+  private bonders :Record<string, any>
+  fees : { [token: string]: Record<string, number>}
   gasPriceMultiplier: number = 0
+  destinationFeeGasPriceMultiplier : number = 1
 
   /**
    * @desc Instantiates Base class.
@@ -94,7 +98,7 @@ class Base {
     }
     if (!this.isValidNetwork(network)) {
       throw new Error(
-        `network is unsupported. Supported networks are: ${this.supportedNetworks.join(
+        `network "${network}" is unsupported. Supported networks are: ${this.supportedNetworks.join(
           ','
         )}`
       )
@@ -106,14 +110,40 @@ class Base {
     if (chainProviders) {
       this.chainProviders = chainProviders
     }
+
+    this.chains = config.chains[network]
+    this.addresses = config.addresses[network]
+    this.bonders = config.bonders[network]
+    this.fees = config.bonderFeeBps[network]
+    this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
+
+    this.init()
+  }
+
+  async init () {
+    try {
+      const data = s3FileCache[this.network] || await this.getS3ConfigData()
+      if (data.bonders) {
+        this.bonders = data.bonders
+      }
+      if (data.bonderFeeBps) {
+        this.fees = data.bonderFeeBps
+      }
+      if (data.destinationFeeGasPriceMultiplier) {
+        this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
+      }
+      s3FileCache[this.network] = data
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   setConfigAddresses (addresses: Addresses) {
     if (addresses.bridges) {
-      this.addresses[this.network] = addresses.bridges
+      this.addresses = addresses.bridges
     }
     if (addresses.bonders) {
-      this.bonders[this.network] = addresses.bonders
+      this.bonders = addresses.bonders
     }
   }
 
@@ -156,7 +186,7 @@ class Base {
   }
 
   get supportedNetworks () {
-    return Object.keys(this.chains)
+    return Object.keys(this.chains || config.chains)
   }
 
   isValidNetwork (network: string) {
@@ -164,7 +194,7 @@ class Base {
   }
 
   get supportedChains () {
-    return Object.keys(this.chains[this.network])
+    return Object.keys(this.chains)
   }
 
   isValidChain (chain: string) {
@@ -180,6 +210,10 @@ class Base {
     if (typeof chain === 'string') {
       chain = Chain.fromSlug(chain)
     }
+    if (chain.slug === 'xdai') {
+      console.warn(Errors.xDaiRebrand)
+      chain = Chain.fromSlug('gnosis')
+    }
     if (!this.isValidChain(chain.slug)) {
       throw new Error(
         `chain "${
@@ -189,7 +223,6 @@ class Base {
         )}`
       )
     }
-
     chain.provider = this.getChainProvider(chain)
     chain.chainId = this.getChainId(chain)
     return chain
@@ -235,7 +268,7 @@ class Base {
    * @returns {Number} - Chain ID.
    */
   public getChainId (chain: Chain) {
-    const { chainId } = this.chains[this.network][chain.slug]
+    const { chainId } = this.chains[chain.slug]
     return Number(chainId)
   }
 
@@ -244,7 +277,7 @@ class Base {
    * @param {Object} - Chain model.
    * @returns {Object} - Ethers provider.
    */
-  public getChainProvider = (chain: Chain | string) => {
+  public getChainProvider (chain: Chain | string) {
     let chainSlug: string
     if (chain instanceof Chain && chain?.slug) {
       chainSlug = chain?.slug
@@ -253,6 +286,12 @@ class Base {
     } else {
       throw new Error(`unknown chain "${chain}"`)
     }
+
+    if (chainSlug === 'xdai') {
+      console.warn(Errors.xDaiRebrand)
+      chainSlug = ChainEnum.Gnosis
+    }
+
     if (this.chainProviders[chainSlug]) {
       return this.chainProviders[chainSlug]
     }
@@ -348,7 +387,7 @@ class Base {
   public getConfigAddresses (token: TToken, chain: TChain) {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    return this.addresses[this.network]?.[token.canonicalSymbol]?.[chain.slug]
+    return this.addresses?.[token.canonicalSymbol]?.[chain.slug]
   }
 
   public getL1BridgeAddress (token: TToken, chain: TChain) {
@@ -396,12 +435,12 @@ class Base {
     return this.getConfigAddresses(token, chain)?.arbChain
   }
 
-  // xDai L1 Home AMB bridge address
+  // Gnosis L1 Home AMB bridge address
   public getL1AmbBridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l1Amb
   }
 
-  // xDai L2 AMB bridge address
+  // Gnosis L2 AMB bridge address
   public getL2AmbBridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l2Amb
   }
@@ -419,18 +458,18 @@ class Base {
   // Transaction overrides options
   public async txOverrides (chain: Chain) {
     const txOptions: any = {}
-    if (this.gasPriceMultiplier) {
+    if (this.gasPriceMultiplier > 0) {
       txOptions.gasPrice = await this.getBumpedGasPrice(
         this.signer,
         this.gasPriceMultiplier
       )
+    }
 
-      // Not all Polygon nodes follow recommended 30 Gwei gasPrice
-      // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
-      if (chain === Chain.Polygon) {
-        if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
-          txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
-        }
+    // Not all Polygon nodes follow recommended 30 Gwei gasPrice
+    // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
+    if (chain.equals(Chain.Polygon)) {
+      if (txOptions.gasPrice?.lt(MinPolygonGasPrice)) {
+        txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
       }
     }
 
@@ -441,7 +480,13 @@ class Base {
     token = this.toTokenModel(token)
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
-    return this.bonders?.[this.network]?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
+
+    const bonder = this.bonders?.[token.canonicalSymbol]?.[sourceChain.slug]?.[destinationChain.slug]
+    if (!bonder) {
+      console.warn(`bonder address not found for route ${token.symbol}.${sourceChain.slug}->${destinationChain.slug}`)
+    }
+
+    return bonder
   }
 
   public getFeeBps (token: TToken, destinationChain: TChain) {
@@ -453,12 +498,12 @@ class Base {
     if (!destinationChain) {
       throw new Error('destinationChain is required')
     }
-    const fees = config.fees?.[token?.canonicalSymbol]
+    const fees = this.fees?.[token?.canonicalSymbol]
     if (!fees) {
       throw new Error('fee data not found')
     }
 
-    const feeBps: number = fees[destinationChain.slug as ChainEnum]
+    const feeBps = fees[destinationChain.slug as ChainEnum] || 0
     return feeBps
   }
 
@@ -466,12 +511,22 @@ class Base {
     return (this.gasPriceMultiplier = gasPriceMultiplier)
   }
 
+  async getS3ConfigData () {
+    const url = `https://assets.hop.exchange/${this.network}/v1-core-config.json`
+    const res = await fetch(url)
+    const json = await res.json()
+    if (!json) {
+      throw new Error('expected json object')
+    }
+    return json
+  }
+
   public getContract = getContract
 
   getSupportedAssets () {
     const supported : any = {}
-    for (const token in this.addresses[this.network]) {
-      for (const chain in this.addresses[this.network][token]) {
+    for (const token in this.addresses) {
+      for (const chain in this.addresses[token]) {
         if (!supported[chain]) {
           supported[chain] = {}
         }

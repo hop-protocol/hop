@@ -1,13 +1,11 @@
-import networkIdToSlug from './networkIdToSlug'
+import { networkIdToSlug } from './networkIdToSlug'
 
-const networkIdNativeTokenSymbol = (networkId: string | number) => {
+export const networkIdNativeTokenSymbol = (networkId: string | number) => {
   const slug = networkIdToSlug(networkId)
-  if (slug === 'xdai') {
+  if (slug === 'gnosis') {
     return 'XDAI'
   } else if (slug === 'polygon') {
     return 'MATIC'
   }
   return 'ETH'
 }
-
-export default networkIdNativeTokenSymbol

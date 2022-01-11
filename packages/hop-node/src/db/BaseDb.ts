@@ -25,7 +25,7 @@ export type BaseItem = {
   _createdAt?: number
 }
 
-type KV = {
+export type KV = {
   key: string
   value: any
 }
@@ -121,6 +121,20 @@ class BaseDb extends EventEmitter {
       })
 
     this.pollBatchQueue()
+    this.migration()
+      .then(() => {
+        this.ready = true
+        this.logger.debug('ready')
+      })
+      .catch(err => {
+        this.logger.error(err)
+        process.exit(1)
+      })
+  }
+
+  async migration () {
+    // Optional migration,
+    // Implement in child class
   }
 
   protected async tilReady (): Promise<boolean> {
@@ -133,6 +147,7 @@ class BaseDb extends EventEmitter {
   }
 
   async pollBatchQueue () {
+    await this.tilReady()
     while (true) {
       try {
         await this.checkBatchQueue()

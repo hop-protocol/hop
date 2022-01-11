@@ -5,9 +5,9 @@ export const chains: Chains = {
     name: 'Ethereum',
     slug: 'ethereum'
   },
-  xdai: {
-    name: 'xDai',
-    slug: 'xdai'
+  gnosis: {
+    name: 'Gnosis',
+    slug: 'gnosis'
   },
   polygon: {
     name: 'Polygon',

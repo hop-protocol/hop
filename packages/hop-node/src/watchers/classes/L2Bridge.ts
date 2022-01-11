@@ -11,6 +11,7 @@ import { Chain } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
 import { L2Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
+import { PayableOverrides } from '@ethersproject/contracts'
 import { config as globalConfig } from 'src/config'
 
 export default class L2Bridge extends Bridge {
@@ -23,7 +24,7 @@ export default class L2Bridge extends Bridge {
   constructor (private readonly l2BridgeContract: L2BridgeContract) {
     super(l2BridgeContract)
 
-    const addresses = globalConfig.tokens[this.tokenSymbol]?.[this.chainSlug]
+    const addresses = globalConfig.addresses[this.tokenSymbol]?.[this.chainSlug]
     if (addresses?.l2AmmWrapper) {
       const ammWrapperContract = new Contract(
         addresses.l2AmmWrapper,
@@ -158,10 +159,16 @@ export default class L2Bridge extends Bridge {
     const amountOutMin = '0' // must be 0
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const isNativeToken = this.tokenSymbol === 'MATIC' && this.chainSlug === Chain.Polygon
-    const { totalFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain)
+    const isHTokenSend = true
+    const { totalFee } = await bridge.getSendData(amount, this.chainSlug, destinationChain, isHTokenSend)
 
     if (totalFee.gt(amount)) {
       throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${this.formatUnits(totalFee)}`)
+    }
+
+    const overrides: PayableOverrides = {
+      ...(await this.txOverrides()),
+      value: isNativeToken ? amount : undefined
     }
 
     return await this.l2BridgeContract.send(
@@ -171,10 +178,7 @@ export default class L2Bridge extends Bridge {
       totalFee,
       amountOutMin,
       deadline,
-      {
-        ...(await this.txOverrides()),
-        value: isNativeToken ? amount : undefined
-      }
+      overrides
     )
   }
 

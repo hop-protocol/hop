@@ -27,6 +27,6 @@
     "typeRoots": ["node", "./node_modules/@types", "./@types"],
     "downlevelIteration": true
   },
-  "include": ["src/*", "src/abi/*", "src/addresses/*", "src/contracts/*", "src/metadata/*", "src/networks/*"],
+  "include": ["src/*", "src/abi/*", "src/addresses/*", "src/contracts/*", "src/metadata/*", "src/networks/*", "src/config", "src/s3upload/*"],
   "exclude": ["node_modules", "dist", "test", "**/*.test.ts"]
 }

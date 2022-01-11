@@ -12,7 +12,6 @@ type Config = {
   chainSlug: string
   tokenSymbol: string
   label: string
-  order?: () => number
   minThresholdAmounts?: {[chain: string]: number}
 
   isL1?: boolean
@@ -33,7 +32,6 @@ class CommitTransfersWatcher extends BaseWatcher {
       tag: 'CommitTransfersWatcher',
       prefix: config.label,
       logColor: 'yellow',
-      order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode,
@@ -87,8 +85,8 @@ class CommitTransfersWatcher extends BaseWatcher {
     const destinationChainIds: number[] = []
     for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer
-      if (!destinationChainIds.includes(destinationChainId!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        destinationChainIds.push(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      if (!destinationChainIds.includes(destinationChainId!)) {
+        destinationChainIds.push(destinationChainId!)
       }
     }
     for (const destinationChainId of destinationChainIds) {

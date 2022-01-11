@@ -1,5 +1,6 @@
 import { Chains } from './types'
 import { kovan as kovanAddresses } from '@hop-protocol/core/addresses'
+import { kovan as kovanConfig } from '@hop-protocol/core/config'
 import { kovan as networks } from '@hop-protocol/core/networks'
 
 const chains: Chains = {}
@@ -17,4 +18,7 @@ for (const chain in networks) {
 
 const addresses = kovanAddresses.bridges
 const bonders = kovanAddresses.bonders
-export { addresses, chains, bonders }
+const bonderFeeBps = kovanConfig.bonderFeeBps
+const destinationFeeGasPriceMultiplier = kovanConfig.destinationFeeGasPriceMultiplier
+
+export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier }

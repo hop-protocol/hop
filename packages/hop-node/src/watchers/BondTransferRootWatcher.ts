@@ -2,6 +2,7 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
@@ -14,7 +15,6 @@ type Config = {
   bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   label: string
   isL1: boolean
-  order?: () => number
   dryMode?: boolean
   stateUpdateAddress?: string
 }
@@ -30,7 +30,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       prefix: config.label,
       logColor: 'cyan',
       isL1: config.isL1,
-      order: config.order,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode,
       stateUpdateAddress: config.stateUpdateAddress
@@ -62,15 +61,26 @@ class BondTransferRootWatcher extends BaseWatcher {
         sourceChainId,
         transferIds
       } = dbTransferRoot
+      const logger = this.logger.create({ root: transferRootId })
+
+      const bondChainId = chainSlugToId(Chain.Ethereum)
+      const availableCredit = this.getAvailableCreditForBond(bondChainId!)
+      if (availableCredit.lt(totalAmount!)) {
+        logger.debug(
+        `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
+          availableCredit
+        )}, need ${this.bridge.formatUnits(totalAmount!)}`)
+        continue
+      }
 
       promises.push(this.checkTransfersCommitted(
-        transferRootId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        transferRootHash!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        totalAmount!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        destinationChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        committedAt!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        sourceChainId!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-        transferIds! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        transferRootId,
+        transferRootHash!,
+        totalAmount!,
+        destinationChainId!,
+        committedAt!,
+        sourceChainId!,
+        transferIds!
       ))
     }
 
@@ -131,11 +141,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       }
     }
 
-    await this.db.transferRoots.update(transferRootId, {
-      sentBondTxAt: Date.now()
-    })
-
-    const availableCredit = await l1Bridge.getBaseAvailableCredit()
+    const bondChainId = chainSlugToId(Chain.Ethereum)
+    const availableCredit = this.getAvailableCreditForBond(bondChainId!)
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
     if (availableCredit.lt(bondAmount)) {
       const msg = `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
@@ -156,6 +163,10 @@ class BondTransferRootWatcher extends BaseWatcher {
       `bonding transfer root id ${transferRootId} with destination chain ${destinationChainId}`
     )
 
+    await this.db.transferRoots.update(transferRootId, {
+      sentBondTxAt: Date.now()
+    })
+
     try {
       const tx = await l1Bridge.bondTransferRoot(
         transferRootHash,
@@ -169,6 +180,11 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.error(err.message)
       throw err
     }
+  }
+
+  getAvailableCreditForBond (destinationChainId: number) {
+    const baseAvailableCredit = this.syncWatcher.getBaseAvailableCredit(destinationChainId)
+    return baseAvailableCredit
   }
 }
 

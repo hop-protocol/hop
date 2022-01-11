@@ -6,8 +6,8 @@ const isNativeToken = (network: Chain, token: string) => {
   const isOptimism = token === 'eth' && network === Chain.Optimism
   const isArbitrum = token === 'eth' && network === Chain.Arbitrum
   const isMatic = token === 'matic' && network === Chain.Polygon
-  const isxDai = token === 'xdai' && network === Chain.xDai
-  return isMainnet || isOptimism || isArbitrum || isMatic || isxDai
+  const isGnosis = token === 'xdai' && network === Chain.Gnosis
+  return isMainnet || isOptimism || isArbitrum || isMatic || isGnosis
 }
 
 export default isNativeToken

@@ -20,7 +20,6 @@ type Config = {
   isL1: boolean
   bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   label: string
-  order?: () => number
   dryMode?: boolean
   stateUpdateAddress?: string
 }
@@ -35,7 +34,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       tokenSymbol: config.tokenSymbol,
       prefix: config.label,
       logColor: 'green',
-      order: config.order,
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode,
@@ -72,13 +70,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
       const logger = this.logger.create({ id: transferId })
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!, amount!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!, amount!)
       if (
-        availableCredit.lt(amount!) && // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        availableCredit.lt(amount!) &&
         withdrawalBondTxError === TxError.NotEnoughLiquidity
       ) {
-        logger.debug(
-          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        logger.warn(
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
           `withdrawalBondTxError: ${withdrawalBondTxError}`
         )
 
@@ -86,12 +84,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       logger.debug('db poll completed')
-      promises.push(this.checkTransferId(transferId!).catch(err => { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      promises.push(this.checkTransferId(transferId).catch(err => {
         this.logger.error('checkTransferId error:', err)
       }))
     }
 
     await Promise.all(promises)
+    this.logger.debug('checkTransferSentFromDb completed')
   }
 
   checkTransferId = async (transferId: string) => {
@@ -119,9 +118,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('bonderFee:', bonderFee && this.bridge.formatUnits(bonderFee))
 
     const sourceL2Bridge = this.bridge as L2Bridge
-    const destBridge = this.getSiblingWatcherByChainId(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const destBridge = this.getSiblingWatcherByChainId(destinationChainId!)
       .bridge
 
+    logger.debug('processing bondWithdrawal. checking isTransferIdSpent')
     const isTransferSpent = await destBridge.isTransferIdSpent(transferId)
     logger.debug(`processing bondWithdrawal. isTransferSpent: ${isTransferSpent?.toString()}`)
     if (isTransferSpent) {
@@ -132,7 +132,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
     if (isReceivingNativeToken) {
-      const isRecipientReceivable = await this.getIsRecipientReceivable(recipient!, destBridge, logger) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      const isRecipientReceivable = await this.getIsRecipientReceivable(recipient!, destBridge, logger)
       logger.debug(`processing bondWithdrawal. isRecipientReceivable: ${isRecipientReceivable}`)
       if (!isRecipientReceivable) {
         logger.warn('recipient cannot receive transfer. marking item not bondable')
@@ -141,13 +141,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
     }
 
-    const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!, amount!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!, amount!)
     logger.debug(`processing bondWithdrawal. availableCredit: ${availableCredit.toString()}`)
-    if (availableCredit.lt(amount!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    if (availableCredit.lt(amount!)) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
           availableCredit
-        )}, need ${this.bridge.formatUnits(amount!)}` // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        )}, need ${this.bridge.formatUnits(amount!)}`
       )
       await this.db.transfers.update(transferId, {
         withdrawalBondTxError: TxError.NotEnoughLiquidity
@@ -161,18 +161,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    logger.debug('sending bondWithdrawal tx')
+    logger.debug('attempting to send bondWithdrawal tx')
 
     const sourceTx = await sourceL2Bridge.getTransaction(
-      transferSentTxHash! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+      transferSentTxHash!
     )
     if (!sourceTx) {
       this.logger.warn(`source tx data for tx hash "${transferSentTxHash}" not found. Cannot proceed`)
       return
     }
     const { from: sender, data } = sourceTx
-    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin!, deadline!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-    if (attemptSwap && isL1ChainId(destinationChainId!)) { // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin!, deadline!)
+    if (attemptSwap && isL1ChainId(destinationChainId!)) {
       await this.db.transfers.update(transferId, {
         isBondable: false
       })
@@ -373,8 +373,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       await destinationBridge.provider.call(tx)
       return true
     } catch (err) {
-      logger.error(`getIsRecipientReceivable err: ${err.message}`)
-      return false
+      const revertErrMsgRegex = /(execution reverted|VM execution error)/i
+      const isRevertError = revertErrMsgRegex.test(err.message)
+      if (isRevertError) {
+        logger.error(`getIsRecipientReceivable err: ${err.message}`)
+        return false
+      }
+      logger.error(`getIsRecipientReceivable non-revert err: ${err.message}`)
+      return true
     }
   }
 }

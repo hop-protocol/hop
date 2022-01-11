@@ -7,21 +7,21 @@ import getTransferRoots from 'src/theGraph/getTransferRoots'
 import { Chain } from 'src/constants'
 
 describe.skip('getTransferIdsForTransferRoot', () => {
-  it('xdai - 1', async () => {
+  it('gnosis - 1', async () => {
     const rootHash =
       '0x332a76463a0aa69332780dc03c4c8123c965667f2ea5bc24a5b515abbe14916d'
     const transferIds = await getTransferIdsForTransferRoot(
-      Chain.xDai,
+      Chain.Gnosis,
       'USDC',
       rootHash
     )
     expect(transferIds.length).toBe(128)
   })
-  it('xdai - 2', async () => {
+  it('gnosis - 2', async () => {
     const rootHash =
       '0x8d4379105927cf5bc4d1aa5006b38ac4637e369f4462a650fc87cc80e91f7e79'
     const transferIds = await getTransferIdsForTransferRoot(
-      Chain.xDai,
+      Chain.Gnosis,
       'USDC',
       rootHash
     )
@@ -50,16 +50,16 @@ describe.skip('getTransferIdsForTransferRoot', () => {
 })
 
 describe.skip('getTransferRoots', () => {
-  it('xdai', async () => {
-    const transferRoots = await getTransferRoots(Chain.xDai, 'USDC')
+  it('gnosis', async () => {
+    const transferRoots = await getTransferRoots(Chain.Gnosis, 'USDC')
     expect(transferRoots.length).toBeGreaterThan(0)
   })
 })
 
 describe.skip('getTransferRoot', () => {
-  it('xdai', async () => {
+  it('gnosis', async () => {
     const transferRootHash = '0x332a76463a0aa69332780dc03c4c8123c965667f2ea5bc24a5b515abbe14916d'
-    const transferRoot = await getTransferRoot(Chain.xDai, 'USDC', transferRootHash)
+    const transferRoot = await getTransferRoot(Chain.Gnosis, 'USDC', transferRootHash)
     expect(transferRoot.rootSet).toBeTruthy()
     expect(transferRoot.rootConfirmed).toBeTruthy()
     expect(transferRoot.transferIds.length).toBeGreaterThan(0)
@@ -67,16 +67,16 @@ describe.skip('getTransferRoot', () => {
 })
 
 describe.skip('getTransfer', () => {
-  it('xdai - 1', async () => {
+  it('gnosis - 1', async () => {
     const transferId = '0xb7329b58f3ab879e40df7d2fabf21e591a35adb42803cc4b676fa726a6252ab7'
-    const transfer = await getTransfer(Chain.xDai, 'USDC', transferId)
+    const transfer = await getTransfer(Chain.Gnosis, 'USDC', transferId)
     expect(transfer.transferId).toBe(transferId)
     expect(transfer.transactionHash).toBe('0xf65c586478e6b3d96379fc5b98f246a5f31e39f84e9bd479e6281601dd79fcbd')
     expect(transfer.bondedWithdrawal.transactionHash).toBe('0x94e7fed9b1a18c2824f49c7dddacccbd487116c3b05db32ccd438b26ad171cf3')
   }, 10 * 1000)
-  it('xdai - 2', async () => {
+  it('gnosis - 2', async () => {
     const transferId = '0xd363e79ac21502354ac30403c6984592dd4718cec2f1896526493d8d1779dd33'
-    const transfer = await getTransfer(Chain.xDai, 'USDC', transferId)
+    const transfer = await getTransfer(Chain.Gnosis, 'USDC', transferId)
     expect(transfer.transferId).toBe(transferId)
     expect(transfer.transferRootHash).toBe('0x94a8cb4f0261c26937703bf4598b93ac815fd39efcecadf092e7657cbe51a0fe')
   }, 10 * 1000)
@@ -103,7 +103,7 @@ describe.skip('check bonded withdrawals without a transfer', () => {
     let i = 0
     for (const item of items.slice(i)) {
       try {
-        let transfer = await getTransfer(Chain.xDai, 'USDC', item.transferId)
+        let transfer = await getTransfer(Chain.Gnosis, 'USDC', item.transferId)
         if (!transfer) {
           transfer = await getTransfer(Chain.Polygon, 'USDC', item.transferId)
         }

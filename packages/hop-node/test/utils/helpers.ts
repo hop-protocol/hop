@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Logger from 'src/logger'
 import arbitrumGlobalInboxAbi from '@hop-protocol/core/abi/static/ArbitrumGlobalInbox.json'
 import chainSlugToId from 'src/utils/chainSlugToId'
@@ -164,7 +163,7 @@ export class User {
       abi = l1ArbitrumMessengerWrapperAbi
     } else if (network === Chain.Optimism) {
       abi = l1OptimismMessengerWrapperAbi
-    } else if (network === Chain.xDai) {
+    } else if (network === Chain.Gnosis) {
       abi = l1xDaiMessengerWrapperAbi
     } else if (network === Chain.Polygon) {
       abi = l1PolygonMessengerWrapperAbi
@@ -186,7 +185,7 @@ export class User {
     } else if (network === Chain.Optimism) {
       messengerAddress = await wrapper.l1MessengerAddress()
       abi = l1OptimismMessengerAbi
-    } else if (network === Chain.xDai) {
+    } else if (network === Chain.Gnosis) {
       messengerAddress = await wrapper.l1MessengerAddress()
       abi = l1xDaiMessengerAbi
     } else if (network === Chain.Polygon) {
@@ -279,7 +278,7 @@ export class User {
   isNativeToken (network: string, token: string) {
     const isEth = token === 'ETH' && network === Chain.Ethereum
     const isMatic = token === 'MATIC' && network === Chain.Polygon
-    const isxDai = token === 'XDAI' && network === Chain.xDai
+    const isxDai = token === 'XDAI' && network === Chain.Gnosis
     return isEth || isMatic || isxDai
   }
 
@@ -604,7 +603,7 @@ export class User {
         l1OptimismTokenBridgeAbi,
         wallet
       )
-    } else if (destNetwork === Chain.xDai) {
+    } else if (destNetwork === Chain.Gnosis) {
       return new Contract(
         globalConfig.tokens[token][destNetwork].l1CanonicalBridge,
         l1xDaiForeignOmniBridgeAbi,
@@ -649,7 +648,7 @@ export class User {
         value,
         await this.txOverrides(destNetwork)
       )
-    } else if (destNetwork === Chain.xDai) {
+    } else if (destNetwork === Chain.Gnosis) {
       return tokenBridge.relayTokens(
         globalConfig.tokens[token][Chain.Ethereum].l1CanonicalToken,
         recipient,
@@ -954,7 +953,7 @@ export class User {
     if (network === Chain.Ethereum) {
       const bridge = this.getHopBridgeContract(network, token)
       return bridge.addBonder(newBonderAddress, await this.txOverrides(network))
-    } else if (network === Chain.xDai) {
+    } else if (network === Chain.Gnosis) {
       const l2Bridge = await this.getHopBridgeContract(network, token)
       const messenger = await this.getMessengerContract(network, token)
       return messenger.requireToPassMessage(
@@ -1173,7 +1172,7 @@ export class User {
       ).toString()
     } else {
       txOptions.gasLimit = 2_000_000
-      if (network === Chain.xDai) {
+      if (network === Chain.Gnosis) {
         txOptions.gasPrice = 1_000_000_000
         txOptions.gasLimit = 4_000_000
       }
@@ -1255,7 +1254,7 @@ export async function prepareAccount (
 ) {
   let balance = await user.getBalance(sourceNetwork, token)
   if (balance < 1000) {
-    if (sourceNetwork === Chain.xDai) {
+    if (sourceNetwork === Chain.Gnosis) {
       let tx = await user.mint(Chain.Ethereum, token, 1000)
       await tx?.wait()
       const l1CanonicalBridge = user.getCanonicalBridgeContract(
@@ -1286,9 +1285,9 @@ export async function prepareAccount (
     spender = user.getAmmWrapperAddress(sourceNetwork, token)
   }
   await checkApproval(user, sourceNetwork, token, spender)
-  // NOTE: xDai SPOA token is required for fees.
+  // NOTE: Gnosis SPOA token is required for fees.
   // faucet: https://blockscout.com/poa/sokol/faucet
-  if (sourceNetwork === Chain.xDai) {
+  if (sourceNetwork === Chain.Gnosis) {
     const ethBalance = await user.getBalance(sourceNetwork)
     expect(ethBalance).toBeGreaterThan(0)
   }
@@ -1306,10 +1305,10 @@ export async function prepareAccounts (
   for (const user of users) {
     logger.debug('preparing account')
     const address = await user.getAddress()
-    const yes = [Chain.Ethereum as string, Chain.xDai].includes(network)
+    const yes = [Chain.Ethereum as string, Chain.Gnosis].includes(network)
     let checkEth = true
     if (!globalConfig.isMainnet) {
-      checkEth = [Chain.Ethereum as string, Chain.xDai].includes(network)
+      checkEth = [Chain.Ethereum as string, Chain.Gnosis].includes(network)
     }
     if (checkEth) {
       let ethBal = await user.getBalance(network)
@@ -1398,5 +1397,5 @@ async function getTokenDecimals (token: string | Contract): Promise<number> {
   }
 
   // The decimals will be the same on all networks
-  return hopMetadata.mainnet.tokens[tokenSymbol]?.decimals! // eslint-disable-line @typescript-eslint/no-non-null-asserted-optional-chain
+  return hopMetadata.mainnet.tokens[tokenSymbol]?.decimals
 }

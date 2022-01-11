@@ -6,22 +6,22 @@ export const addresses: Addresses = {
       ethereum: {
         optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
         arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
-        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        gnosis: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
         polygon: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
       },
       optimism: {
         ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
         arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
-        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        gnosis: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
         polygon: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
       },
       arbitrum: {
         ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
         optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
-        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        gnosis: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
         polygon: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
         arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
         optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
@@ -30,7 +30,7 @@ export const addresses: Addresses = {
       polygon: {
         ethereum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
         arbitrum: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
-        xdai: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
+        gnosis: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62',
         optimism: '0xad103c0928aCfde91Dfd4E9E21225bcf9c7cbE62'
       }
     }
@@ -42,7 +42,7 @@ export const addresses: Addresses = {
         l1Bridge: '0x72209Fe68386b37A40d6bCA04f78356fd342491f',
         bridgeDeployedBlockNumber: 12820652
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
         l1MessengerWrapper: '0x5C32143C8B198F392d01f8446b754c181224ac26',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',

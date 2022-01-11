@@ -88,7 +88,7 @@ class Token extends Base {
    *
    *const bridge = hop.bridge(Token.USDC).connect(signer)
    *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
-   *const allowance = bridge.allowance(Chain.xDai, spender)
+   *const allowance = bridge.allowance(Chain.Gnosis, spender)
    *```
    */
   public async allowance (spender: string) {
@@ -110,7 +110,7 @@ class Token extends Base {
    *
    *const bridge = hop.bridge(Token.USDC).connect(signer)
    *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
-   *const allowance = bridge.allowance(Chain.xDai, spender)
+   *const allowance = bridge.allowance(Chain.Gnosis, spender)
    *```
    */
   public async balanceOf (address?: string): Promise<BigNumber> {
@@ -161,7 +161,7 @@ class Token extends Base {
    *const bridge = hop.bridge(Token.USDC).connect(signer)
    *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
    *const amount = '1000000000000000000'
-   *const tx = await bridge.approve(Chain.xDai, spender, amount)
+   *const tx = await bridge.approve(Chain.Gnosis, spender, amount)
    *```
    */
   public async approve (
@@ -218,7 +218,7 @@ class Token extends Base {
       this._symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
     const isxDai =
       [TokenModel.DAI, TokenModel.XDAI].includes(this._symbol) &&
-      this.chain.equals(Chain.xDai)
+      this.chain.equals(Chain.Gnosis)
     return isEth || isMatic || isxDai
   }
 

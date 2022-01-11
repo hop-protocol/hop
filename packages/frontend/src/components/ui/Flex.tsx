@@ -10,7 +10,6 @@ import {
   background,
   shadow,
   position,
-  margin,
   FlexboxProps,
   SpaceProps,
   ColorProps,
@@ -20,11 +19,9 @@ import {
   BackgroundProps,
   ShadowProps,
   PositionProps,
-  MarginProps,
 } from 'styled-system'
 
 interface FlexBaseProps {
-  wrap?: boolean | string
   column?: boolean
   justifyCenter?: boolean
   justifyEnd?: boolean
@@ -46,9 +43,11 @@ interface CustomFlexProps {
   style?: any
   bold?: boolean
   hover?: boolean
+  fullWidth?: boolean
+  $wrap?: boolean
 }
 
-type FlexProps = BackgroundProps &
+export type FlexProps = BackgroundProps &
   BorderProps &
   ColorProps &
   FlexboxProps &
@@ -58,18 +57,16 @@ type FlexProps = BackgroundProps &
   TypographyProps &
   SpaceProps &
   FlexBaseProps &
-  MarginProps &
   CustomFlexProps
 
-const Flex: React.FC<FlexProps> = styled.div`
+const Flex: React.FC<FlexProps> = styled.div<FlexProps>`
   box-sizing: border-box;
   display: flex;
-  flex-wrap: ${(props: any) => {
-    if (props.wrapReverse) return 'wrap-reverse'
-    else if (props.wrap) return 'wrap'
+  flex-wrap: ${props => {
+    if (props.$wrap) return 'wrap'
     return 'nowrap'
   }};
-  justify-content: ${(props: any) => {
+  justify-content: ${props => {
     if (props.justifyContent) return props.justifyContent
     if (props.justifyCenter) return 'center'
     else if (props.justifyAround) return 'space-around'
@@ -77,26 +74,27 @@ const Flex: React.FC<FlexProps> = styled.div`
     else if (props.justifyEnd) return 'flex-end'
     return 'flex-start'
   }};
-  align-items: ${(props: any) => {
+  align-items: ${props => {
     if (props.alignItems) return props.alignItems
-    else if (props.alignStretch) return 'stretch'
     else if (props.alignEnd) return 'flex-end'
     if (props.alignCenter) return 'center'
-    else if (props.alignBaseline) return 'baseline'
     return 'flex-start'
   }};
-  flex-direction: ${(props: any) => (props.column ? 'column' : 'row')};
+  flex-direction: ${props => (props.column ? 'column' : 'row')};
 
-  ${({ bold }: any) => bold && 'font-weight: bold;'}
-  ${({ pointer }: any) => pointer && 'cursor: pointer;'}
+  ${({ bold }) => bold && 'font-weight: bold;'}
+  ${({ pointer }) => pointer && 'cursor: pointer;'}
+  ${({ fullWidth }) => fullWidth && 'width: 100%;'}
 
   &:hover {
-    ${({ hover }: any) => {
+    ${({ hover }) => {
       if (hover) {
         return `background: #6969691a`
       }
     }};
   }
+
+  transition: all 0.15s ease-out;
 
   ${space};
   ${color};
@@ -107,7 +105,12 @@ const Flex: React.FC<FlexProps> = styled.div`
   ${shadow};
   ${position};
   ${flexbox};
-  ${margin};
+`
+
+export const Circle = styled(Flex)<FlexProps>`
+  align-items: center;
+  overflow: hidden;
+  border-radius: 50%;
 `
 
 export default Flex

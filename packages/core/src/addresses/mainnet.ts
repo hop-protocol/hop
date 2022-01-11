@@ -6,22 +6,22 @@ export const addresses: Addresses = {
       ethereum: {
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       optimism: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       arbitrum: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
@@ -30,7 +30,7 @@ export const addresses: Addresses = {
       polygon: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       }
     },
@@ -38,22 +38,22 @@ export const addresses: Addresses = {
       ethereum: {
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       optimism: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       arbitrum: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
@@ -62,44 +62,44 @@ export const addresses: Addresses = {
       polygon: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       }
     },
     MATIC: {
       ethereum: {
-        xdai: '0xd8781ca9163e9f132a4d8392332e64115688013a',
+        gnosis: '0xd8781ca9163e9f132a4d8392332e64115688013a',
         polygon: '0xd8781ca9163e9f132a4d8392332e64115688013a'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
         polygon: '0xd8781ca9163e9f132a4d8392332e64115688013a'
       },
       polygon: {
         ethereum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        xdai: '0xd8781ca9163e9f132a4d8392332e64115688013a'
+        gnosis: '0xd8781ca9163e9f132a4d8392332e64115688013a'
       }
     },
     DAI: {
       ethereum: {
         optimism: '0x305933e09871D4043b5036e09af794FACB3f6170',
         arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
-        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        gnosis: '0x305933e09871D4043b5036e09af794FACB3f6170',
         polygon: '0x305933e09871D4043b5036e09af794FACB3f6170'
       },
       optimism: {
         ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
         arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
-        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        gnosis: '0x305933e09871D4043b5036e09af794FACB3f6170',
         polygon: '0x305933e09871D4043b5036e09af794FACB3f6170'
       },
       arbitrum: {
         ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
         optimism: '0x305933e09871D4043b5036e09af794FACB3f6170',
-        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        gnosis: '0x305933e09871D4043b5036e09af794FACB3f6170',
         polygon: '0x305933e09871D4043b5036e09af794FACB3f6170'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
         arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
         optimism: '0x305933e09871D4043b5036e09af794FACB3f6170',
@@ -108,7 +108,7 @@ export const addresses: Addresses = {
       polygon: {
         ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
         arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
-        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        gnosis: '0x305933e09871D4043b5036e09af794FACB3f6170',
         optimism: '0x305933e09871D4043b5036e09af794FACB3f6170'
       }
     },
@@ -116,22 +116,22 @@ export const addresses: Addresses = {
       ethereum: {
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         arbitrum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        xdai: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       optimism: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         arbitrum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        xdai: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       arbitrum: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        xdai: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         arbitrum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -140,7 +140,7 @@ export const addresses: Addresses = {
       polygon: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         arbitrum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        xdai: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       }
     },
@@ -148,22 +148,22 @@ export const addresses: Addresses = {
       ethereum: {
         optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
-        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        gnosis: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         polygon: '0x2A6303e6b99d451Df3566068EBb110708335658f'
       },
       optimism: {
         ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
-        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        gnosis: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         polygon: '0x2A6303e6b99d451Df3566068EBb110708335658f'
       },
       arbitrum: {
         ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f',
-        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        gnosis: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         polygon: '0x2A6303e6b99d451Df3566068EBb110708335658f'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f',
@@ -172,7 +172,7 @@ export const addresses: Addresses = {
       polygon: {
         ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
-        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        gnosis: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f'
       }
     }
@@ -184,7 +184,7 @@ export const addresses: Addresses = {
         l1Bridge: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a',
         bridgeDeployedBlockNumber: 12650032
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
         l1MessengerWrapper: '0x12e59C59D282D2C00f3166915BED6DC2F5e2B5C7',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
@@ -244,7 +244,7 @@ export const addresses: Addresses = {
         l1Bridge: '0x3E4a3a4796d16c0Cd582C382691998f7c06420B6',
         bridgeDeployedBlockNumber: 12860139
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
         l1MessengerWrapper: '0xC08055b634D43F2176d721E26A3428D3b7E7DdB5',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
@@ -304,7 +304,7 @@ export const addresses: Addresses = {
         l1Bridge: '0x22B1Cbb8D98a01a3B71D034BB899775A76Eb1cc2',
         bridgeDeployedBlockNumber: 12969385
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
         l1MessengerWrapper: '0x46fc3Af3A47792cA3ED06fdF3D657145A675a8D8',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
@@ -340,7 +340,7 @@ export const addresses: Addresses = {
         l1Bridge: '0x3d4Cc8A61c7528Fd86C55cfe061a78dCBA48EDd1',
         bridgeDeployedBlockNumber: 13226217
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l1MessengerWrapper: '0x723194C6Cfed24883b598931Ee802ab80952C001',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
@@ -400,7 +400,7 @@ export const addresses: Addresses = {
         l1Bridge: '0xb8901acB165ed027E32754E0FFe830802919727f',
         bridgeDeployedBlockNumber: 13331564
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l1MessengerWrapper: '0x25FB92E505F752F730cAD0Bd4fa17ecE4A384266',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
@@ -460,7 +460,7 @@ export const addresses: Addresses = {
         l1Bridge: '0xb98454270065A31D71Bf635F6F7Ee6A518dFb849',
         bridgeDeployedBlockNumber: 13476113
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
         l1MessengerWrapper: '0xc315239cFb05F1E130E7E28E603CEa4C014c57f0',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',

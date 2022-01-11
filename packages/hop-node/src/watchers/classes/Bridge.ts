@@ -51,8 +51,8 @@ export default class Bridge extends ContractBase {
       this.tokenSymbol = tokenSymbol
     }
     this.db = getDbSet(this.tokenSymbol)
-    const bridgeDeployedBlockNumber = globalConfig.tokens[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
-    const l1CanonicalTokenAddress = globalConfig.tokens[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
+    const bridgeDeployedBlockNumber = globalConfig.addresses[this.tokenSymbol]?.[this.chainSlug]?.bridgeDeployedBlockNumber
+    const l1CanonicalTokenAddress = globalConfig.addresses[this.tokenSymbol]?.[Chain.Ethereum]?.l1CanonicalToken
     if (!bridgeDeployedBlockNumber) {
       throw new Error('bridge deployed block number is required')
     }
@@ -645,6 +645,9 @@ export default class Bridge extends ContractBase {
     }
 
     const bonderFeeBps = fees[destinationChain]
+    if (!bonderFeeBps) {
+      throw new Error(`fee config not found for chain ${destinationChain}`)
+    }
     const minBonderFeeRelative = amountIn.mul(bonderFeeBps).div(10000)
     let minBonderFee = minBonderFeeRelative.gt(minBonderFeeAbsolute)
       ? minBonderFeeRelative
@@ -665,7 +668,7 @@ export default class Bridge extends ContractBase {
     to?: string
   ) {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
-    const provider = getRpcProvider(chain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const provider = getRpcProvider(chain)!
     let gasPrice = await provider.getGasPrice()
     // Arbitrum returns a gasLimit & gasPriceBid of 2x what is generally paid
     if (this.chainSlug === Chain.Arbitrum) {
@@ -682,7 +685,7 @@ export default class Bridge extends ContractBase {
     if (this.chainSlug === Chain.Optimism && data && to) {
       try {
         const ovmGasPriceOracle = getContractFactory('OVM_GasPriceOracle')
-          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug)!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+          .attach(predeploys.OVM_GasPriceOracle).connect(getRpcProvider(this.chainSlug)!)
         const serializedTx = serializeTransaction({
           value: parseEther('0'),
           gasPrice,
@@ -727,7 +730,7 @@ export default class Bridge extends ContractBase {
 
   async getGasCostTokenValues (symbol: string) {
     const decimals = getTokenDecimals(symbol)
-    const priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+    const priceUsd = await priceFeed.getPriceByTokenSymbol(symbol)!
     if (typeof priceUsd !== 'number') {
       throw new Error('expected price to be number type')
     }
@@ -742,14 +745,10 @@ export default class Bridge extends ContractBase {
   getChainNativeTokenSymbol (chain: string) {
     if (chain === Chain.Polygon) {
       return 'MATIC'
-    } else if (chain === Chain.xDai) {
+    } else if (chain === Chain.Gnosis) {
       return 'DAI'
     }
 
     return 'ETH'
-  }
-
-  getConfigBonderAddress (destinationChain: string): string {
-    return (globalConfig?.bonders as any)?.[this.tokenSymbol]?.[this.chainSlug]?.[destinationChain]
   }
 }

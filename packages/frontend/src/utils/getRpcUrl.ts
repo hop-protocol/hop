@@ -1,19 +1,21 @@
-import { L1_NETWORK } from 'src/utils/constants'
+import { L1_NETWORK, Chain } from 'src/utils'
 import { networks } from 'src/config'
-import { Chain } from './constants'
 
 export const getRpcUrl = (network: string) => {
-  return networks[network]?.rpcUrl
+  const networkRpcUrl = networks[network]?.rpcUrl
+  if (typeof networkRpcUrl !== 'string') {
+    throw new Error(`rpcUrl could not be found for network: ${network}`)
+  }
+
+  return networkRpcUrl
 }
 
 export function getAllRpcUrls() {
   return {
     arbitrum: getRpcUrl(Chain.Arbitrum),
     optimism: getRpcUrl(Chain.Optimism),
-    xdai: getRpcUrl(Chain.xDai),
+    gnosis: getRpcUrl(Chain.Gnosis),
     polygon: getRpcUrl(Chain.Polygon),
     ethereum: getRpcUrl(L1_NETWORK),
   }
 }
-
-export default getRpcUrl

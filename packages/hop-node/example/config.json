@@ -7,7 +7,7 @@
     "optimism": {
       "rpcUrl": "https://kovan.optimism.io"
     },
-    "xdai": {
+    "gnosis": {
       "rpcUrl": "https://sokol.poa.network"
     }
   },

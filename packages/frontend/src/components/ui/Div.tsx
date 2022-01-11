@@ -27,6 +27,11 @@ interface DivBaseProps {
   onMouseLeave?: (e: any) => void
   ref?: any
   disabled?: boolean
+  pointer?: boolean
+  bold?: boolean
+  id?: string
+  style?: any
+  fullWidth?: boolean
 }
 
 type DivProps = SpaceProps &
@@ -38,13 +43,16 @@ type DivProps = SpaceProps &
   BackgroundProps &
   ShadowProps &
   PositionProps &
-  DivBaseProps & { pointer?: boolean; bold?: boolean; id?: string; style?: any }
+  DivBaseProps
 
-const Div: React.FC<DivProps> = styled.div`
+const Div: React.FC<DivProps> = styled.div<DivProps>`
   box-sizing: border-box;
 
-  ${({ bold }: any) => bold && 'font-weight: bold;'}
-  ${({ pointer }: any) => pointer && 'cursor: pointer;'}
+  ${({ bold }) => bold && 'font-weight: bold;'}
+  ${({ pointer }) => pointer && 'cursor: pointer;'}
+  ${({ fullWidth }) => fullWidth && 'width: 100%;'}
+
+  transition: background 0.15s ease-out;
 
   ${space};
   ${color};

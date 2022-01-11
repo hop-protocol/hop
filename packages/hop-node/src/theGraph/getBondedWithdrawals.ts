@@ -1,15 +1,20 @@
 import makeRequest from './makeRequest'
 import { normalizeEntity } from './shared'
 
-export default async function getBondedWithdrawals (chain: string, token: string) {
+export default async function getBondedWithdrawals (
+  chain: string,
+  token: string,
+  lastId: string = '0x0000000000000000000000000000000000000000'
+) {
   const query = `
-    query WithdrawalBondeds($token: String) {
+    query WithdrawalBonded($token: String, $lastId: ID) {
       withdrawalBondeds(
         where: {
-          token: $token
+          token: $token,
+          id_gt: $lastId
         },
-        orderBy: timestamp,
-        orderDirection: desc,
+        orderBy: id,
+        orderDirection: asc,
         first: 1000
       ) {
         id
@@ -26,7 +31,20 @@ export default async function getBondedWithdrawals (chain: string, token: string
     }
   `
   const jsonRes = await makeRequest(chain, query, {
-    token
+    token,
+    lastId
   })
-  return jsonRes.withdrawalBondeds.map((x: any) => normalizeEntity(x))
+  let withdrawals = jsonRes.withdrawalBondeds.map((x: any) => normalizeEntity(x))
+
+  const maxItemsLength = 1000
+  if (withdrawals.length === maxItemsLength) {
+    lastId = withdrawals[withdrawals.length - 1].id
+    withdrawals = withdrawals.concat(await getBondedWithdrawals(
+      chain,
+      token,
+      lastId
+    ))
+  }
+
+  return withdrawals
 }

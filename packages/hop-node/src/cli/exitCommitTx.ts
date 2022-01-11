@@ -1,12 +1,12 @@
 import ArbitrumBridgeWatcher from 'src/watchers/ArbitrumBridgeWatcher'
+import GnosisBridgeWatcher from 'src/watchers/GnosisBridgeWatcher'
 import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
-import xDaiBridgeWatcher from 'src/watchers/xDaiBridgeWatcher'
 import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { actionHandler, parseBool, parseString, root } from './shared'
 import { findWatcher, getWatchers } from 'src/watchers/watchers'
 
-type ExitWatcher = xDaiBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
+type ExitWatcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
 
 root
   .command('exit-commit-tx')

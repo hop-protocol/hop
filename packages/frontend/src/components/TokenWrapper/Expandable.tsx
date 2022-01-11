@@ -7,17 +7,13 @@ const useStyles = makeStyles(theme => ({
     width: '46.0rem',
     marginBottom: '3.4rem',
     [theme.breakpoints.down('xs')]: {
-      width: '90%',
+      width: '100%',
     },
   },
   detailsDropdown: {
-    width: '46.0rem',
-    marginBottom: '3.4rem',
+    width: '100%',
     '&[open] summary span::before': {
       content: '"▾"',
-    },
-    [theme.breakpoints.down('xs')]: {
-      width: '90%',
     },
   },
   detailsDropdownSummary: {
@@ -31,7 +27,6 @@ const useStyles = makeStyles(theme => ({
   detailsDropdownLabel: {
     position: 'relative',
     cursor: 'pointer',
-    width: 'auto',
     '& > span': {
       position: 'relative',
       display: 'inline-flex',

@@ -4,7 +4,7 @@ export enum Network {
   Mainnet = 'mainnet',
   Staging = 'staging',
   Goerli = 'goerli',
-  Kovan = 'kovan'
+  Kovan = 'kovan',
 }
 
 export enum Chain {
@@ -12,24 +12,24 @@ export enum Chain {
   Optimism = 'optimism',
   Arbitrum = 'arbitrum',
   Polygon = 'polygon',
-  xDai = 'xdai'
+  Gnosis = 'gnosis',
 }
 
 export enum Token {
   USDC = 'USDC',
-  DAI = 'DAI'
+  DAI = 'DAI',
 }
 
 const AvgBlockTimeSeconds = {
   Ethereum: 13,
   Polygon: 2,
-  xDai: 5
+  Gnosis: 5
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
   ethereum: 5141,
   polygon: 5933,
-  xdai: 3218,
+  gnosis: 3218,
   optimism: 8545,
   arbitrum: 59105
 }
@@ -39,7 +39,7 @@ const SecondsInWeek = SecondsInDay * 7
 export const TotalBlocks = {
   Ethereum: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Ethereum),
   Polygon: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Polygon),
-  xDai: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.xDai)
+  Gnosis: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Gnosis)
 }
 export const DefaultBatchBlocks = 10000
 
@@ -58,17 +58,17 @@ export const MaxInt32 = 2147483647
 export enum TxError {
   CallException = 'CALL_EXCEPTION',
   BonderFeeTooLow = 'BONDER_FEE_TOO_LOW',
-  NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY'
+  NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
 }
 
 export const MaxGasPriceMultiplier = 1.25
 export const MinPriorityFeePerGas = 4
 export const PriorityFeePerGasCap = 20
-export const MinPolygonGasPrice = 30_000_000_000
+export const MinPolygonGasPrice = 90_000_000_000
 
 export enum TokenIndex {
   CanonicalToken = 0,
-  HopBridgeToken = 1
+  HopBridgeToken = 1,
 }
 
 export const DefaultRelayerAddress = ethersConstants.AddressZero

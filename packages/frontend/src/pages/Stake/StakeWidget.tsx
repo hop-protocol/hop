@@ -2,7 +2,6 @@ import React, { FC, useState, useMemo } from 'react'
 import { BigNumber, Contract } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
 import { HopBridge, Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -11,12 +10,14 @@ import Button from 'src/components/buttons/Button'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import useStakeBalance from 'src/pages/Stake/useStakeBalance'
-import { toTokenDisplay, toPercentDisplay, commafy, shiftBNDecimals } from 'src/utils'
+import { toTokenDisplay, toPercentDisplay, shiftBNDecimals } from 'src/utils'
 import Alert from 'src/components/alert/Alert'
 import usePollValue from 'src/hooks/usePollValue'
 import DetailRow from 'src/components/DetailRow'
 import { amountToBN } from 'src/utils/format'
 import { useTransactionReplacement, useApprove, useAsyncMemo, useBalance } from 'src/hooks'
+import { Div, Flex } from 'src/components/ui'
+import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -26,8 +27,7 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.padding.default,
   },
   button: {
-    margin: `0 ${theme.padding.light}`,
-    width: '17.5rem',
+    width: '16rem',
   },
   claimButton: {
     marginTop: theme.padding.default,
@@ -45,7 +45,7 @@ const useStyles = makeStyles(theme => ({
     marginTop: '4.2rem',
     width: '46.0rem',
     [theme.breakpoints.down('xs')]: {
-      width: '90%',
+      width: '100%',
     },
   },
 }))
@@ -423,7 +423,7 @@ const StakeWidget: FC<Props> = props => {
   }
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" className={styles.root}>
+    <Flex column alignCenter>
       <AmountSelectorCard
         label={`Staked: ${formattedStakeBalance}`}
         value={amount}
@@ -471,39 +471,44 @@ const StakeWidget: FC<Props> = props => {
         )}
       </div>
       <Alert severity="warning" text={warning} className={styles.alert} />
-      <Box display="flex" flexDirection="column" alignItems="center">
+      <Flex column alignCenter fullWidth mt={2} mb={4}>
         {earned?.gt(0) && (
           <Button className={styles.claimButton} large highlighted onClick={claim}>
             Claim {formattedEarned}
           </Button>
         )}
-        <Box className={styles.buttons} display="flex" flexDirection="row" alignItems="center">
-          <Button
-            className={styles.button}
-            large
-            highlighted={!!needsApproval}
-            disabled={!needsApproval}
-            onClick={approveToken}
-          >
-            Approve
-          </Button>
-          <Button
-            className={styles.button}
-            large
-            highlighted={needsApproval === false}
-            disabled={!isStakeEnabled}
-            onClick={stake}
-          >
-            Stake
-          </Button>
-        </Box>
+
+        <ButtonsWrapper>
+          <Div mb={[3]}>
+            <Button
+              className={styles.button}
+              large
+              highlighted={!!needsApproval}
+              disabled={!needsApproval}
+              onClick={approveToken}
+            >
+              Approve
+            </Button>
+          </Div>
+          <Div mb={[3]}>
+            <Button
+              className={styles.button}
+              large
+              highlighted={needsApproval === false}
+              disabled={!isStakeEnabled}
+              onClick={stake}
+            >
+              Stake
+            </Button>
+          </Div>
+        </ButtonsWrapper>
         {stakeBalance?.gt(0) && (
           <Button className={styles.withdrawButton} large onClick={withdraw}>
             Withdraw
           </Button>
         )}
-      </Box>
-    </Box>
+      </Flex>
+    </Flex>
   )
 }
 

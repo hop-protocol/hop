@@ -10,7 +10,7 @@ export enum Chain {
   Optimism = 'optimism',
   Arbitrum = 'arbitrum',
   Polygon = 'polygon',
-  xDai = 'xdai'
+  Gnosis = 'gnosis'
 }
 
 export enum TokenIndex {
@@ -27,12 +27,16 @@ export enum BondTransferGasLimit {
 export const SettlementGasLimitPerTx: Record<string, number> = {
   ethereum: 5141,
   polygon: 5933,
-  xdai: 3218,
+  gnosis: 3218,
   optimism: 8545,
   arbitrum: 59105
 }
 
 export const LpFeeBps = '4'
-export const GasPriceMultiplier = '1.2'
 export const PendingAmountBuffer = '50000'
 export const MinPolygonGasPrice = 30_000_000_000
+
+export enum Errors {
+  NotEnoughAllowance = 'Not enough allowance. Please call `approve` on token contract to allow contract to move tokens.',
+  xDaiRebrand = 'NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.'
+}

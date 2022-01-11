@@ -12,6 +12,7 @@ import LargeTextField from 'src/components/LargeTextField'
 import { commafy } from 'src/utils'
 import { useAmountSelectorCardStyles, useNativeTokenMaxValue } from 'src/hooks'
 import Network from 'src/models/Network'
+import { Flex } from './ui'
 
 type AmountSelectorProps = {
   value?: string
@@ -103,7 +104,10 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
     const nativeTokenMaxGasCost = await estimateMaxValue(methodName, options)
 
     if (nativeTokenMaxGasCost) {
-      const totalAmount = balance.sub(nativeTokenMaxGasCost)
+      let totalAmount = balance.sub(nativeTokenMaxGasCost)
+      if (totalAmount.lt(0)) {
+        totalAmount = BigNumber.from(0)
+      }
       return formatUnits(totalAmount, selectedToken.decimals)
     }
 
@@ -151,12 +155,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
 
   return (
     <Card className={clsx(styles.root, className)}>
-      <Box
-        display="flex"
-        flexDirection="row"
-        justifyContent="space-between"
-        className={styles.topRow}
-      >
+      <Flex justifyBetween alignCenter mb="1.8rem" fullWidth>
         {!!label && (
           <Typography variant="subtitle2" color="textSecondary">
             {loadingBalance ? <Skeleton variant="text" width="15.0rem"></Skeleton> : label}
@@ -167,11 +166,15 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
         ) : secondaryBalance ? (
           <div className={styles.balance}>
             {!hideMaxButton && secondaryBalance.gt(0) && !disableInput ? (
-              <button className={styles.maxButton} onClick={handleSecondaryMaxClick}>
+              <button
+                className={styles.maxButton}
+                onClick={handleSecondaryMaxClick}
+                title="Max amount you can send while still having enough to cover fees"
+              >
                 MAX
               </button>
             ) : null}
-            <Typography variant="subtitle2" color="textSecondary">
+            <Typography variant="subtitle2" color="textSecondary" align="left">
               {secondaryBalanceLabel || 'Balance:'} {secondaryBalanceDisplay}
             </Typography>
           </div>
@@ -181,18 +184,23 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
         ) : balance ? (
           <div className={styles.balance}>
             {!hideMaxButton && balance.gt(0) && !disableInput ? (
-              <button className={styles.maxButton} onClick={handleMaxClick}>
+              <button
+                className={styles.maxButton}
+                onClick={handleMaxClick}
+                title="Max amount you can send while still having enough to cover fees"
+              >
                 MAX
               </button>
             ) : null}
-            <Typography variant="subtitle2" color="textSecondary">
+            <Typography variant="subtitle2" color="textSecondary" align="right">
               {balanceLabel || 'Balance:'} {balanceDisplay}
             </Typography>
           </div>
         ) : null}
-      </Box>
-      <Grid container alignItems="center" className={styles.container}>
-        <Grid item className={styles.networkContainer}>
+      </Flex>
+
+      <Flex fullWidth justifyBetween alignCenter>
+        <Flex>
           <Box className={styles.networkSelectionBox}>
             {titleIconUrl ? (
               <Box className={styles.networkIconContainer}>
@@ -203,8 +211,9 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
               {title}
             </Typography>
           </Box>
-        </Grid>
-        <Grid item className={styles.inputContainer}>
+        </Flex>
+
+        <Flex>
           <LargeTextField
             value={value}
             onChange={handleInputChange}
@@ -213,8 +222,8 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
             disabled={disableInput}
             loadingValue={loadingValue}
           />
-        </Grid>
-      </Grid>
+        </Flex>
+      </Flex>
     </Card>
   )
 }

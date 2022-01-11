@@ -10,6 +10,7 @@
 !/metadata
 !/networks
 !/contracts
+!/config
 !index.js
 !index.d.ts
 !index.d.ts.map
@@ -17,3 +18,5 @@
 !version.d.ts
 
 *.env
+src/s3upload
+s3upload

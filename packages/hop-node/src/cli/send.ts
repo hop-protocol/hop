@@ -65,7 +65,7 @@ async function sendNativeToken (
   }
 
   const provider = getRpcProvider(chain)
-  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!)
 
   const parsedAmount = parseEther(amount.toString())
   let balance = await wallet.getBalance()
@@ -86,7 +86,7 @@ async function sendNativeToken (
 
 async function sendToSelf (chain: string, gasPrice: string) {
   const provider = getRpcProvider(chain)
-  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!)
   const selfAddress = await wallet.signer.getAddress()
   const nonce = await provider?.getTransactionCount(selfAddress)
   const tx = await wallet.sendTransaction({
@@ -223,7 +223,7 @@ async function sendTokens (
 
   const formattedAmount = (await tokenClass.formatUnits(parsedAmount)).toString()
   logger.debug(`attempting to send ${formattedAmount} ${label} ⟶  ${toChain} to ${recipient}`)
-  const destinationChainId = chainSlugToId(toChain)! // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  const destinationChainId = chainSlugToId(toChain)!
   if (fromChain === Chain.Ethereum) {
     if (isHToken) {
       tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(

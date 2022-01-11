@@ -24,13 +24,11 @@ function CustomRecipientDropdown(props) {
           Custom recipient
         </Typography>
         <LargeTextField
-          style={{
-            width: '100%',
-          }}
           leftAlign
           value={customRecipient}
           onChange={handleCustomRecipientInput}
-          placeholder="0x"
+          placeholder="Enter address (e.g. 0x123...)"
+          smallFontSize
         />
       </Card>
     </details>

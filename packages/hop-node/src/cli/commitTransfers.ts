@@ -41,5 +41,5 @@ async function main (source: any) {
   }
 
   const destinationChainId = chainSlugToId(destinationChain)
-  await watcher.checkIfShouldCommit(destinationChainId!) // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  await watcher.checkIfShouldCommit(destinationChainId!)
 }

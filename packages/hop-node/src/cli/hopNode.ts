@@ -1,11 +1,8 @@
 import OsWatcher from 'src/watchers/OsWatcher'
 import {
   defaultEnabledNetworks,
-  defaultEnabledWatchers,
   gitRev,
   config as globalConfig,
-  setNetworkRpcUrl,
-  setNetworkWaitConfirmations,
   slackAuthToken,
   slackChannel,
   slackUsername
@@ -43,7 +40,11 @@ async function main (source: any) {
   logger.debug(`git revision: ${gitRev}`)
 
   const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, dry: dryMode } = source
+  if (!config) {
+    throw new Error('config file is required')
+  }
 
+  logger.warn(`dry mode: ${!!dryMode}`)
   if (s3Upload) {
     logger.info('s3 upload enabled')
   }
@@ -73,25 +74,9 @@ async function main (source: any) {
   if (config?.chains) {
     for (const k in config.chains) {
       enabledNetworks[k] = !!config.chains[k]
-      const v = config.chains[k]
-      if (v instanceof Object) {
-        const { rpcUrl, waitConfirmations } = v
-        if (rpcUrl) {
-          setNetworkRpcUrl(k, rpcUrl)
-        }
-        if (typeof waitConfirmations === 'number') {
-          setNetworkWaitConfirmations(k, waitConfirmations)
-        }
-      }
     }
   }
 
-  const bonder = config?.roles?.bonder
-  const challenger = config?.roles?.challenger
-  const order = Number(config?.order ?? 0)
-  if (order) {
-    logger.info('order:', order)
-  }
   let commitTransfersMinThresholdAmounts: any = {}
   if (config?.commitTransfers) {
     if (config.commitTransfers?.minThresholdAmount) {
@@ -112,34 +97,21 @@ async function main (source: any) {
   }
   for (const k in globalConfig.networks) {
     const { waitConfirmations, rpcUrl } = globalConfig.networks[k]
-    if (!waitConfirmations) {
-      throw new Error('waitConfirmations required')
-    }
     logger.info(`${k} wait confirmations: ${waitConfirmations}`)
     logger.info(`${k} rpc: ${rpcUrl}`)
   }
-  logger.warn(`dry mode: ${dryMode}`)
-  const enabledWatchers: { [key: string]: boolean } = Object.assign(
-    {},
-    defaultEnabledWatchers
-  )
-  if (config?.watchers) {
-    for (const key in config.watchers) {
-      enabledWatchers[key] = (config.watchers)[key]
-    }
+  if (globalConfig.bonders) {
+    logger.info(`config bonders: ${JSON.stringify(globalConfig.bonders)}`)
   }
   const stateUpdateAddress = config?.stateUpdateAddress
   const { starts } = await startWatchers({
-    enabledWatchers: Object.keys(enabledWatchers).filter(
-      key => enabledWatchers[key]
+    enabledWatchers: Object.keys(config.watchers).filter(
+      key => config.watchers[key]
     ),
-    order,
     tokens,
     networks: Object.keys(enabledNetworks).filter(
       key => enabledNetworks[key]
     ),
-    bonder,
-    challenger,
     commitTransfersMinThresholdAmounts,
     settleBondedWithdrawalsThresholdPercent,
     dryMode,

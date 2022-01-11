@@ -4,7 +4,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
-import xDaiBridgeWatcher from './xDaiBridgeWatcher'
+import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
@@ -22,7 +22,7 @@ type Config = {
   dryMode?: boolean
 }
 
-type Watcher = xDaiBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
+type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
 
 class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
@@ -44,7 +44,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     const enabledNetworks = getEnabledNetworks()
     this.l1Bridge = new L1Bridge(config.l1BridgeContract)
     if (this.chainSlug === Chain.Gnosis && enabledNetworks.includes(Chain.Gnosis)) {
-      this.watchers[Chain.Gnosis] = new xDaiBridgeWatcher({
+      this.watchers[Chain.Gnosis] = new GnosisBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         label: config.label,

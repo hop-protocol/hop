@@ -37,14 +37,14 @@ const getL2Amb = (token: string) => {
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class xDaiBridgeWatcher extends BaseWatcher {
+class GnosisBridgeWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
 
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'xDaiBridgeWatcher',
+      tag: 'GnosisBridgeWatcher',
       prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
@@ -154,7 +154,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
   }
 }
 
-export default xDaiBridgeWatcher
+export default GnosisBridgeWatcher
 
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
 const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires

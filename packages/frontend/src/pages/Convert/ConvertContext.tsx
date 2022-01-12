@@ -38,7 +38,7 @@ type ConvertContextProps = {
   networks: Network[]
   l2Networks: Network[]
   selectedNetwork: Network | undefined
-  setSelectedNetwork: (network: Network | undefined) => void
+  setSelectedNetwork: (network: Network) => void
   sourceNetwork: Network | undefined
   destNetwork: Network | undefined
   sourceToken: Token | undefined
@@ -75,7 +75,7 @@ const ConvertContext = createContext<ConvertContextProps>({
   networks: [],
   l2Networks: [],
   selectedNetwork: undefined,
-  setSelectedNetwork: (network: Network | undefined) => {},
+  setSelectedNetwork: (network: Network) => {},
   sourceNetwork: undefined,
   destNetwork: undefined,
   sourceToken: undefined,
@@ -122,7 +122,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { pathname } = useLocation()
   const { queryParams } = useQueryParams()
 
-  const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(l2Networks[0])
+  const [selectedNetwork, setSelectedNetwork] = useState<Network>(l2Networks[2])
   const [isForwardDirection, setIsForwardDirection] = useState(true)
   const switchDirection = () => {
     setIsForwardDirection(!isForwardDirection)
@@ -149,7 +149,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       if (matchingNetwork && !matchingNetwork?.isLayer1) {
         setSelectedNetwork(matchingNetwork)
       } else {
-        setSelectedNetwork(defaultL2Network)
+        setSelectedNetwork(defaultL2Network as Network)
       }
     }
   }, [queryParams])
@@ -247,8 +247,12 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     }
 
+    if (unsupportedAsset?.chain) {
+      return
+    }
+
     fetchToken()
-  }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+  }, [unsupportedAsset, convertOption, isForwardDirection, selectedNetwork, selectedBridge])
 
   useEffect(() => {
     if (tx) {
@@ -273,8 +277,12 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     }
 
+    if (unsupportedAsset?.chain) {
+      return
+    }
+
     fetchToken()
-  }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+  }, [unsupportedAsset, convertOption, isForwardDirection, selectedNetwork, selectedBridge])
 
   // Fetch send data
   useEffect(() => {
@@ -284,7 +292,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       setDetails(undefined)
       setBonderFee(undefined)
 
-      if (!selectedBridge || !sourceTokenAmount || !sourceNetwork || !destNetwork || !sourceToken) {
+      if (!(selectedBridge && sourceTokenAmount && sourceNetwork && destNetwork && sourceToken && !unsupportedAsset?.chain)) {
         setDestTokenAmount('')
         return
       }
@@ -326,7 +334,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
 
     getSendData().catch(logger.error)
-  }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
+  }, [unsupportedAsset, sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
 
   useEffect(() => {
     // NOTE: `convertOption.getSendData()` returns jsx code via the AmmConvertOption class.
@@ -342,7 +350,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const needsApproval = useAsyncMemo(async () => {
     try {
-      if (!(selectedBridge && sourceToken && destNetwork)) {
+      if (!(selectedBridge && sourceToken && destNetwork && !unsupportedAsset?.chain)) {
         return false
       }
 
@@ -357,7 +365,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     } catch (err: any) {
       logger.error(err)
     }
-  }, [convertOption, sdk, selectedBridge, sourceNetwork, destNetwork, checkApproval])
+  }, [unsupportedAsset, convertOption, sdk, selectedBridge, sourceNetwork, destNetwork, checkApproval])
 
   const parsedSourceTokenAmount = useMemo(() => {
     if (!sourceTokenAmount || !sourceToken) {

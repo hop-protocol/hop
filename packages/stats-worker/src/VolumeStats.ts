@@ -169,7 +169,7 @@ class VolumeStats {
     }
     console.log('done upserting prices')
 
-    const chains = ['polygon', 'xdai', 'arbitrum', 'optimism', 'mainnet']
+    const chains = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'mainnet']
     const now = Math.floor(DateTime.utc().toSeconds())
 
     await Promise.all(

@@ -63,7 +63,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Chain.Ethereum,
     Chain.Optimism,
     Chain.Arbitrum,
-    Chain.xDai,
+    Chain.Gnosis,
     Chain.Polygon
   ]
 

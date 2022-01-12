@@ -5,7 +5,7 @@ export const config : Config = {
     USDC: {
       ethereum: 14,
       polygon: 14,
-      xdai: 25,
+      gnosis: 25,
       optimism: 14,
       arbitrum: 14
     }

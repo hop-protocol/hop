@@ -3,7 +3,7 @@ import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { Chain as ChainEnum, MinPolygonGasPrice } from './constants'
+import { Chain as ChainEnum, Errors, MinPolygonGasPrice } from './constants'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
@@ -210,6 +210,10 @@ class Base {
     if (typeof chain === 'string') {
       chain = Chain.fromSlug(chain)
     }
+    if (chain.slug === 'xdai') {
+      console.warn(Errors.xDaiRebrand)
+      chain = Chain.fromSlug('gnosis')
+    }
     if (!this.isValidChain(chain.slug)) {
       throw new Error(
         `chain "${
@@ -219,7 +223,6 @@ class Base {
         )}`
       )
     }
-
     chain.provider = this.getChainProvider(chain)
     chain.chainId = this.getChainId(chain)
     return chain
@@ -274,7 +277,7 @@ class Base {
    * @param {Object} - Chain model.
    * @returns {Object} - Ethers provider.
    */
-  public getChainProvider = (chain: Chain | string) => {
+  public getChainProvider (chain: Chain | string) {
     let chainSlug: string
     if (chain instanceof Chain && chain?.slug) {
       chainSlug = chain?.slug
@@ -283,6 +286,12 @@ class Base {
     } else {
       throw new Error(`unknown chain "${chain}"`)
     }
+
+    if (chainSlug === 'xdai') {
+      console.warn(Errors.xDaiRebrand)
+      chainSlug = ChainEnum.Gnosis
+    }
+
     if (this.chainProviders[chainSlug]) {
       return this.chainProviders[chainSlug]
     }
@@ -421,12 +430,12 @@ class Base {
     return this.getConfigAddresses(token, chain)?.arbChain
   }
 
-  // xDai L1 Home AMB bridge address
+  // Gnosis L1 Home AMB bridge address
   public getL1AmbBridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l1Amb
   }
 
-  // xDai L2 AMB bridge address
+  // Gnosis L2 AMB bridge address
   public getL2AmbBridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l2Amb
   }

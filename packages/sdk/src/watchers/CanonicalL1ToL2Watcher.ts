@@ -15,8 +15,8 @@ class L1ToL2Watcher extends BaseWatcher {
   }
 
   public async pollFn (): Promise<any> {
-    if (this.destinationChain.equals(Chain.xDai)) {
-      return this.xDaiWatcher()
+    if (this.destinationChain.equals(Chain.Gnosis)) {
+      return this.gnosisWatcher()
     } else if (this.destinationChain.equals(Chain.Optimism)) {
       throw new Error('not implemented')
     } else if (this.destinationChain.equals(Chain.Polygon)) {
@@ -26,18 +26,18 @@ class L1ToL2Watcher extends BaseWatcher {
     }
   }
 
-  private async xDaiWatcher () {
+  private async gnosisWatcher () {
     let startBlock = -1
     let endBlock = -1
     const canonicalBridge = new CanonicalBridge(
       this.network,
       this.signer,
       this.token,
-      Chain.xDai
+      Chain.Gnosis
     )
-    const ambBridge = await canonicalBridge.getAmbBridge(Chain.xDai)
+    const ambBridge = await canonicalBridge.getAmbBridge(Chain.Gnosis)
     const filter = {
-      address: this.getL2CanonicalTokenAddress(this.token, Chain.xDai)
+      address: this.getL2CanonicalTokenAddress(this.token, Chain.Gnosis)
     }
     const handleEvent = async (...args: any[]) => {
       const event = args[args.length - 1]

@@ -61,6 +61,15 @@ jobs:
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
 
+      - name: Pin to Crust
+        uses: crustio/ipfs-crust-action@v2.0.3
+        if: "contains(github.ref, 'production')"
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          cid: ${{ steps.upload.outputs.hash }}
+          seeds: ${{ secrets.CRUST_SEEDS }}
+
       - name: Update CloudFlare DNS with new IPFS hash
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}

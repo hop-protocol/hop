@@ -1,4 +1,3 @@
-import GasBoostDb from './GasBoostDb'
 import GasCostDb from './GasCostDb'
 import SyncStateDb from './SyncStateDb'
 import TransferRootsDb from './TransferRootsDb'
@@ -6,16 +5,14 @@ import TransfersDb from './TransfersDb'
 
 // dbSets are token specific instances
 const dbSets: {[db: string]: {[tokenSymbol: string]: any}} = {
-  gasBoostDb: {},
   syncStateDb: {},
   transfersDb: {},
   transferRootsDb: {},
   gasCostDb: {}
 }
 
-type Db = GasBoostDb | SyncStateDb | TransferRootsDb | TransfersDb | GasCostDb
+type Db = SyncStateDb | TransferRootsDb | TransfersDb | GasCostDb
 export type DbSet = {
-  gasBoost: GasBoostDb
   syncState: SyncStateDb
   transfers: TransfersDb
   transferRoots: TransferRootsDb
@@ -29,12 +26,6 @@ export function getDbSet (tokenSymbol: string): DbSet {
 
   // lazy instantiate with getters
   return {
-    get gasBoost (): GasBoostDb {
-      if (!dbSets.gasBoostDb[tokenSymbol]) {
-        dbSets.gasBoostDb[tokenSymbol] = new GasBoostDb('gasBoost')
-      }
-      return dbSets.gasBoostDb[tokenSymbol]
-    },
     get syncState (): SyncStateDb {
       if (!dbSets.syncStateDb[tokenSymbol]) {
         dbSets.syncStateDb[tokenSymbol] = new SyncStateDb('state', tokenSymbol)

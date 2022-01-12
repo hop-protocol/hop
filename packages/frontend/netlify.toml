@@ -22,5 +22,5 @@
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "no-referrer"
     X-Content-Type-Options = "nosniff"
-    Strict-Transport-Security = "max-age=15780000; includeSubDomains; preload"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
     Feature-Policy = "geolocation 'none'; midi 'none'; sync-xhr 'none'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none'; fullscreen 'none'; payment 'none'"

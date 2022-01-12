@@ -6,7 +6,7 @@ const chains = [
   Chain.Ethereum,
   Chain.Arbitrum,
   Chain.Optimism,
-  Chain.xDai,
+  Chain.Gnosis,
   Chain.Polygon
 ]
 

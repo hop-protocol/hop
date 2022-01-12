@@ -62,8 +62,8 @@ const networkNames: any = {
   10: 'Optimism',
   69: 'Optimism',
   420: 'Optimism',
-  77: 'xDai',
-  100: 'xDai',
+  77: 'Gnosis',
+  100: 'Gnosis',
   80001: 'Polygon',
   137: 'Polygon',
 }
@@ -99,7 +99,7 @@ const walletSelectOptions: WalletSelectModuleOptions = {
         10: getRpcUrl(Chain.Optimism),
         69: getRpcUrl(Chain.Optimism),
         420: getRpcUrl(Chain.Optimism),
-        100: getRpcUrl(Chain.xDai),
+        100: getRpcUrl(Chain.Gnosis),
         137: getRpcUrl(Chain.Polygon),
         80001: getRpcUrl(Chain.Polygon),
       },
@@ -206,7 +206,6 @@ const Web3ContextProvider: FC = ({ children }) => {
             // dashboard - Some SDK wallets allow for opening to wallet dashboard
             // icons - [object] Image strings for the wallet icon { svg, src, srcset }
 
-            console.log(`wallet:`, wallet)
             logger.debug('wallet name:', wallet.name)
             if (provider) {
               saveState(cacheKey, name)
@@ -286,7 +285,7 @@ const Web3ContextProvider: FC = ({ children }) => {
       onboard.config({ networkId })
       if (onboard.getState().address) {
         let nativeCurrency: any
-        if (networkIdToSlug(networkId) === 'xdai') {
+        if (networkIdToSlug(networkId) === 'gnosis') {
           nativeCurrency = {
             name: 'xDAI',
             symbol: 'XDAI',

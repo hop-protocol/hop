@@ -10,7 +10,7 @@ import { privateKey } from './config'
 
 describe('GasBoostSigner', () => {
   it('initialize', async () => {
-    const provider = getRpcProvider('xdai')
+    const provider = getRpcProvider('gnosis')
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
@@ -18,8 +18,8 @@ describe('GasBoostSigner', () => {
     signer.setStore(store)
     expect(await signer.getAddress()).toBeTruthy()
   })
-  it.skip('sendTransaction - xdai', async () => {
-    const provider = getRpcProvider('xdai')
+  it.skip('sendTransaction - gnosis', async () => {
+    const provider = getRpcProvider('gnosis')
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
@@ -93,7 +93,7 @@ describe('GasBoostSigner', () => {
     expect(boosted).toBeTruthy()
   }, 10 * 60 * 1000)
   it.skip('maxGasBoostReached', async () => {
-    const provider = getRpcProvider('xdai')
+    const provider = getRpcProvider('gnosis')
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
@@ -133,7 +133,7 @@ describe('GasBoostSigner', () => {
     expect(boostedIndex).toBe(1)
   }, 10 * 60 * 1000)
   it.skip('nonceTooLow', async () => {
-    const provider = getRpcProvider('xdai')
+    const provider = getRpcProvider('gnosis')
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
@@ -162,7 +162,7 @@ describe('GasBoostSigner', () => {
 
 describe('GasBoostTransaction', () => {
   const store = new MemoryStore()
-  const provider = getRpcProvider('xdai')
+  const provider = getRpcProvider('gnosis')
   expectDefined(provider)
   expectDefined(privateKey)
   const signer = new Wallet(privateKey, provider)

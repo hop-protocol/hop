@@ -21,7 +21,7 @@ See the following files for list of available addresses
 ```js
 import * as networks from '@hop-protocol/core/networks'
 
-console.log(networks.mainnet.xdai.rpcUrls[0]) // "https://rpc.xdaichain.com"
+console.log(networks.mainnet.gnosis.rpcUrls[0]) // "https://rpc.gnosischain.com/"
 ```
 
 See the following files for available configuration info

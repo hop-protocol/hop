@@ -64,7 +64,7 @@ type MetricsConfig = {
 type Bps = {
   ethereum: number
   polygon: number
-  xdai: number
+  gnosis: number
   optimism: number
   arbitrum: number
 }
@@ -159,8 +159,8 @@ export const config: Config = {
       totalBlocks: TotalBlocks.Polygon,
       batchBlocks: 1000
     },
-    [Chain.xDai]: {
-      totalBlocks: TotalBlocks.xDai,
+    [Chain.Gnosis]: {
+      totalBlocks: TotalBlocks.Gnosis,
       batchBlocks: DefaultBatchBlocks
     }
   },

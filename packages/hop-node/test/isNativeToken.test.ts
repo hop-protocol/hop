@@ -20,7 +20,7 @@ describe('isNativeToken', () => {
     token = 'MATIC'
     expect(isNativeToken(network, token)).toBe(true)
 
-    network = Chain.xDai
+    network = Chain.Gnosis
     token = 'xDai'
     expect(isNativeToken(network, token)).toBe(true)
 

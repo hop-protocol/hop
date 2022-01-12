@@ -138,6 +138,26 @@ class TransfersDb extends BaseDb {
     this.subDbRootHashes = new BaseDb(`${prefix}:transferRootHashes`, _namespace)
   }
 
+  async migration () {
+    this.logger.debug('TransfersDb migration started')
+    const entries = await this.getKeyValues()
+    this.logger.debug(`TransfersDb migration: ${entries.length} entries`)
+    for (const { key, value } of entries) {
+      let shouldUpdate = false
+      if (value?.sourceChainSlug === 'xdai') {
+        shouldUpdate = true
+        value.sourceChainSlug = 'gnosis'
+      }
+      if (value?.destinationChainSlug === 'xdai') {
+        shouldUpdate = true
+        value.destinationChainSlug = 'gnosis'
+      }
+      if (shouldUpdate) {
+        await this._update(key, value)
+      }
+    }
+  }
+
   private getTimestampedKey (transfer: Transfer) {
     if (transfer.transferSentTimestamp && transfer.transferId) {
       return `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`

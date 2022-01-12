@@ -131,7 +131,7 @@ class HopBridge extends Base {
    *import { Wallet } from 'ethers'
    *
    *const signer = new Wallet(privateKey)
-   *const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.xDai)
+   *const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.Gnosis)
    *```
    */
   constructor (
@@ -202,7 +202,7 @@ class HopBridge extends Base {
       token.canonicalSymbol
     ]
 
-    if (chain.equals(Chain.xDai) && token.symbol === 'DAI') {
+    if (chain.equals(Chain.Gnosis) && token.symbol === 'DAI') {
       symbol = 'XDAI'
     }
 
@@ -267,8 +267,8 @@ class HopBridge extends Base {
    *
    *const hop = new Hop()
    *const bridge = hop.connect(signer).bridge(Token.USDC)
-   *\// send 1 USDC token from Optimism -> xDai
-   *const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *\// send 1 USDC token from Optimism -> Gnosis
+   *const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.Gnosis)
    *console.log(tx.hash)
    *```
    */
@@ -1019,7 +1019,7 @@ class HopBridge extends Base {
    *
    *const hop = new Hop()
    *const bridge = hop.connect(signer).bridge(Token.USDC)
-   *const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.Gnosis)
    *console.log(amountOut)
    *```
    */
@@ -1056,7 +1056,7 @@ class HopBridge extends Base {
    *
    *const hop = new Hop()
    *const bridge = hop.connect(signer).bridge(Token.USDC)
-   *const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.xDai)
+   *const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.Gnosis)
    *console.log(requiredLiquidity)
    *```
    */
@@ -2009,16 +2009,16 @@ class HopBridge extends Base {
     }
   }
 
-  // xDai AMB bridge
+  // Gnosis AMB bridge
   async getAmbBridge (chain: TChain) {
     chain = this.toChainModel(chain)
     if (chain.equals(Chain.Ethereum)) {
-      const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.xDai)
+      const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
       const provider = await this.getSignerOrProvider(Chain.Ethereum)
       return this.getContract(address, l1HomeAmbNativeToErc20, provider)
     }
-    const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.xDai)
-    const provider = await this.getSignerOrProvider(Chain.xDai)
+    const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
+    const provider = await this.getSignerOrProvider(Chain.Gnosis)
     return this.getContract(address, l1HomeAmbNativeToErc20, provider)
   }
 
@@ -2026,7 +2026,7 @@ class HopBridge extends Base {
     chain = this.toChainModel(chain)
     if (chain?.equals(Chain.Polygon)) {
       return this.toTokenModel('MATIC')
-    } else if (chain?.equals(Chain.xDai)) {
+    } else if (chain?.equals(Chain.Gnosis)) {
       return this.toTokenModel('DAI')
     }
 

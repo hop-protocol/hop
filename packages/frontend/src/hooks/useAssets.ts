@@ -36,22 +36,22 @@ export function useAssets(selectedBridge?: HopBridge, fromNetwork?: Network, toN
   // Set source token
   const sourceToken = useMemo(() => {
     try {
-      if (!fromNetwork || !selectedBridge) return
+      if (!fromNetwork || !selectedBridge || unsupportedAsset?.chain) return
       return selectedBridge.getCanonicalToken(fromNetwork?.slug)
     } catch (err) {
       logger.error(err)
     }
-  }, [selectedBridge, fromNetwork])
+  }, [unsupportedAsset, selectedBridge, fromNetwork])
 
   // Set destination token
   const destToken = useMemo(() => {
     try {
-      if (!toNetwork || !selectedBridge) return
+      if (!toNetwork || !selectedBridge || unsupportedAsset?.chain) return
       return selectedBridge.getCanonicalToken(toNetwork?.slug)
     } catch (err) {
       logger.error(err)
     }
-  }, [selectedBridge, toNetwork])
+  }, [unsupportedAsset, selectedBridge, toNetwork])
 
   // Set placeholder token
   const placeholderToken = useMemo(() => {

@@ -49,7 +49,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
         if (gasCost && network.slug === Chain.Optimism) {
           const tokenAmount = BigNumber.from(1)
           const { data, to } = await bridge.populateSendHTokensTx(tokenAmount, network.slug, destNetwork.slug)
-          const l1FeeInWei = await bridge.getOptimismL1Fee(estimatedGasLimit, data, to)
+          const l1FeeInWei = await bridge.estimateOptimismL1FeeFromData(estimatedGasLimit, data, to)
           gasCost = gasCost.add(l1FeeInWei)
         }
         return gasCost
@@ -92,8 +92,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
         if (estimatedGasLimit) {
           let gasCost = await estimateGasCost(fromNetwork, estimatedGasLimit)
           if (gasCost && fromNetwork.slug === Chain.Optimism) {
-            const { gasLimit, data, to } = await bridge.getBondWithdrawalEstimatedGas(fromNetwork.slug, toNetwork.slug)
-            const l1FeeInWei = await bridge.getOptimismL1Fee(gasLimit, data, to)
+            const l1FeeInWei = await bridge.getOptimismL1Fee(fromNetwork.slug, toNetwork.slug)
             gasCost = gasCost.add(l1FeeInWei)
           }
           return gasCost
@@ -120,7 +119,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
           let gasCost = await estimateGasCost(network, estimatedGasLimit)
           if (gasCost && network.slug === Chain.Optimism) {
             const { gasLimit, data, to } = await token.getWrapTokenEstimatedGas(network.slug)
-            const l1FeeInWei = await token.getOptimismL1Fee(gasLimit, data, to)
+            const l1FeeInWei = await token.estimateOptimismL1FeeFromData(gasLimit, data, to)
             gasCost = gasCost.add(l1FeeInWei)
           }
           return gasCost

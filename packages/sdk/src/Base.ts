@@ -537,7 +537,7 @@ class Base {
     return supported[chain.slug]
   }
 
-  async getOptimismL1Fee (
+  async estimateOptimismL1FeeFromData (
     gasLimit : BigNumberish,
     data: string = '0x',
     to: string = constants.AddressZero

@@ -474,6 +474,8 @@ class HopBridge extends Base {
     let token
     if (sourceChain.isL1) {
       token = this.getL1Token()
+    } else if (isHTokenTransfer) {
+      token = this.getL2HopToken(sourceChain)
     } else {
       token = this.getCanonicalToken(sourceChain)
     }
@@ -875,7 +877,7 @@ class HopBridge extends Base {
     const rate = chainNativeTokenPrice / tokenPrice
 
     let gasPrice = await destinationChain.provider.getGasPrice()
-    let { gasLimit: bondTransferGasLimit, data, to } = await this.getBondWithdrawalEstimatedGas(
+    let bondTransferGasLimit = await this.estimateBondWithdrawalGasLimit(
       sourceChain,
       destinationChain
     )
@@ -898,13 +900,8 @@ class HopBridge extends Base {
     )
 
     if (destinationChain.equals(Chain.Optimism)) {
-      try {
-        const { gasLimit, data, to } = await this.getBondWithdrawalEstimatedGas(sourceChain, destinationChain)
-        const l1FeeInWei = await this.getOptimismL1Fee(gasLimit, data, to)
-        txFeeEth = txFeeEth.add(l1FeeInWei)
-      } catch (err) {
-        console.error(err)
-      }
+      const l1FeeInWei = await this.getOptimismL1Fee(sourceChain, destinationChain)
+      txFeeEth = txFeeEth.add(l1FeeInWei)
     }
 
     let fee = txFeeEth.mul(rateBN).div(oneEth)
@@ -923,74 +920,32 @@ class HopBridge extends Base {
     return fee
   }
 
-  async getBondWithdrawalEstimatedGas (
+  async getOptimismL1Fee (
+    sourceChain: TChain,
+    destinationChain: TChain
+  ) {
+    try {
+      const [gasLimit, { data, to }] = await Promise.all([
+        this.estimateBondWithdrawalGasLimit(sourceChain, destinationChain),
+        this.populateBondWithdrawalTx(sourceChain, destinationChain)
+      ])
+      const l1FeeInWei = await this.estimateOptimismL1FeeFromData(gasLimit, data, to)
+      return l1FeeInWei
+    } catch (err) {
+      console.error(err)
+      return BigNumber.from(0)
+    }
+  }
+
+  async estimateBondWithdrawalGasLimit (
     sourceChain: TChain,
     destinationChain: TChain
   ): Promise<any> {
     destinationChain = this.toChainModel(destinationChain)
     try {
-      let destinationBridge
-      if (destinationChain.isL1) {
-        destinationBridge = await this.getL1Bridge()
-      } else {
-        destinationBridge = await this.getL2Bridge(destinationChain)
-      }
-      destinationBridge = destinationBridge.connect(destinationChain.provider)
-      const bonder = this.getBonderAddress(sourceChain, destinationChain)
-      const amount = BigNumber.from(10)
-      const amountOutMin = BigNumber.from(0)
-      const bonderFee = BigNumber.from(1)
-      const deadline = this.defaultDeadlineSeconds
-      const transferNonce = `0x${'0'.repeat(64)}`
-      const recipient = `0x${'1'.repeat(40)}`
-      const attemptSwap = this.shouldAttemptSwap(amountOutMin, deadline)
-      if (attemptSwap && !destinationChain.isL1) {
-        const payload = [
-          recipient,
-          amount,
-          transferNonce,
-          bonderFee,
-          amountOutMin,
-          deadline,
-          {
-            from: bonder
-          }
-        ]
-        const [gasLimit, tx] = await Promise.all([
-          destinationBridge.estimateGas.bondWithdrawalAndDistribute(
-            ...payload
-          ),
-          destinationBridge.populateTransaction.bondWithdrawalAndDistribute(
-            ...payload
-          )
-        ])
-        return {
-          gasLimit,
-          ...tx
-        }
-      } else {
-        const payload = [
-          recipient,
-          amount,
-          transferNonce,
-          bonderFee,
-          {
-            from: bonder
-          }
-        ]
-        const [gasLimit, tx] = await Promise.all([
-          destinationBridge.estimateGas.bondWithdrawal(
-            ...payload
-          ),
-          destinationBridge.populateTransaction.bondWithdrawal(
-            ...payload
-          )
-        ])
-        return {
-          gasLimit,
-          ...tx
-        }
-      }
+      const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain)
+      const estimatedGas = await destinationChain.provider.estimateGas(populatedTx)
+      return estimatedGas
     } catch (err) {
       console.error(err, {
         destinationChain
@@ -1001,9 +956,58 @@ class HopBridge extends Base {
       } else if (destinationChain.equals(Chain.Arbitrum)) {
         bondTransferGasLimit = BondTransferGasLimit.Arbitrum
       }
-      return {
-        gasLimit: BigNumber.from(bondTransferGasLimit)
-      }
+      return BigNumber.from(bondTransferGasLimit)
+    }
+  }
+
+  async populateBondWithdrawalTx (
+    sourceChain: TChain,
+    destinationChain: TChain
+  ): Promise<any> {
+    destinationChain = this.toChainModel(destinationChain)
+    let destinationBridge
+    if (destinationChain.isL1) {
+      destinationBridge = await this.getL1Bridge()
+    } else {
+      destinationBridge = await this.getL2Bridge(destinationChain)
+    }
+    destinationBridge = destinationBridge.connect(destinationChain.provider)
+    const bonder = this.getBonderAddress(sourceChain, destinationChain)
+    const amount = BigNumber.from(10)
+    const amountOutMin = BigNumber.from(0)
+    const bonderFee = BigNumber.from(1)
+    const deadline = this.defaultDeadlineSeconds
+    const transferNonce = `0x${'0'.repeat(64)}`
+    const recipient = `0x${'1'.repeat(40)}`
+    const attemptSwap = this.shouldAttemptSwap(amountOutMin, deadline)
+    if (attemptSwap && !destinationChain.isL1) {
+      const payload = [
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        amountOutMin,
+        deadline,
+        {
+          from: bonder
+        }
+      ]
+      return destinationBridge.populateTransaction.bondWithdrawalAndDistribute(
+        ...payload
+      )
+    } else {
+      const payload = [
+        recipient,
+        amount,
+        transferNonce,
+        bonderFee,
+        {
+          from: bonder
+        }
+      ]
+      return destinationBridge.populateTransaction.bondWithdrawal(
+        ...payload
+      )
     }
   }
 

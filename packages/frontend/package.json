@@ -57,9 +57,9 @@
     "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "deploy:manual": "git stash && yarn build && npx netlify deploy --prod",
-    "deploy": "netlify deploy --prod",
+    "deploy": "npx netlify deploy --prod",
     "deploy:ipfs": "ipd -p infura build --no-open --no-clipboard",
+    "deploy:local": "git stash && yarn clean && yarn build && yarn deploy",
     "dnslink": "IPFS_HASH=$(npm run deploy:ipfs 2>&1 | tail -1) node ./scripts/update_dnslink.js"
   },
   "eslintConfig": {

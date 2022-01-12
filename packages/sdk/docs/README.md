@@ -176,7 +176,7 @@ Returns a new Hop AMM SDK instance.
 ```js
 import { AMM, Token, Chain } from '@hop-protocol/sdk'
 
-const amm = new AMM('mainnet', Token.USDC, Chain.xDai)
+const amm = new AMM('mainnet', Token.USDC, Chain.Gnosis)
 ```
 
 ##### Parameters
@@ -2452,7 +2452,7 @@ Ethers transaction object.
 - [Ethereum](#ethereum)
 - [Optimism](#optimism)
 - [Polygon](#polygon)
-- [xDai](#xdai)
+- [Gnosis](#gnosis)
 
 #### Accessors
 
@@ -2533,9 +2533,9 @@ Ethers transaction object.
 
 ---
 
-#### xDai
+#### Gnosis
 
-▪ `Static` **xDai**: [`Chain`](#classeschainmd)
+▪ `Static` **Gnosis**: [`Chain`](#classeschainmd)
 
 ### Accessors
 
@@ -3613,7 +3613,7 @@ import { Hop } from '@hop-protocol/sdk'
 
 const hop = new Hop()
 hop
-  .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.xDai)
+  .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.Gnosis)
   .on('receipt', ({ receipt, chain }) => {
     console.log(chain.Name, receipt)
   })
@@ -3801,7 +3801,7 @@ const bridge = new HopBridge(
   signer,
   Token.USDC,
   Chain.Optimism,
-  Chain.xDai
+  Chain.Gnosis
 )
 ```
 
@@ -3982,8 +3982,8 @@ import { Hop, Token } from '@hop-protocol/sdk'
 
 const hop = new Hop()
 const bridge = hop.connect(signer).bridge(Token.USDC)
-\ // send 1 USDC token from Optimism -> xDai
-const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.xDai)
+\ // send 1 USDC token from Optimism -> Gnosis
+const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.Gnosis)
 console.log(tx.hash)
 ```
 
@@ -4145,7 +4145,7 @@ import { Hop, Chain Token } from '@hop-protocol/sdk'
 
 const hop = new Hop()
 const bridge = hop.connect(signer).bridge(Token.USDC)
-const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.xDai)
+const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.Gnosis)
 console.log(amountOut)
 ```
 
@@ -4895,7 +4895,7 @@ import { Hop, Chain Token } from '@hop-protocol/sdk'
 
 const hop = new Hop()
 const bridge = hop.connect(signer).bridge(Token.USDC)
-const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.xDai)
+const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.Gnosis)
 console.log(requiredLiquidity)
 ```
 
@@ -5163,8 +5163,8 @@ import { Hop, Chain, Token } from '@hop-protocol/sdk'
 
 const hop = new Hop()
 const bridge = hop.connect(signer).bridge(Token.USDC)
-\ // send 1 USDC token from Optimism -> xDai
-const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.xDai)
+\ // send 1 USDC token from Optimism -> Gnosis
+const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.Gnosis)
 console.log(tx.hash)
 ```
 
@@ -5655,7 +5655,7 @@ import { Hop, Chain, Token } from '@hop-protocol/sdk'
 
 const bridge = hop.bridge(Token.USDC).connect(signer)
 const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
-const allowance = bridge.allowance(Chain.xDai, spender)
+const allowance = bridge.allowance(Chain.Gnosis, spender)
 ```
 
 ##### Parameters
@@ -5686,7 +5686,7 @@ import { Hop, Chain, Token } from '@hop-protocol/sdk'
 const bridge = hop.bridge(Token.USDC).connect(signer)
 const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 const amount = '1000000000000000000'
-const tx = await bridge.approve(Chain.xDai, spender, amount)
+const tx = await bridge.approve(Chain.Gnosis, spender, amount)
 ```
 
 ##### Parameters
@@ -5717,7 +5717,7 @@ import { Hop, Chain, Token } from '@hop-protocol/sdk'
 
 const bridge = hop.bridge(Token.USDC).connect(signer)
 const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
-const allowance = bridge.allowance(Chain.xDai, spender)
+const allowance = bridge.allowance(Chain.Gnosis, spender)
 ```
 
 ##### Parameters

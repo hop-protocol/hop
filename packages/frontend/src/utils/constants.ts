@@ -66,5 +66,5 @@ export enum Chain {
   Optimism = 'optimism',
   Arbitrum = 'arbitrum',
   Polygon = 'polygon',
-  xDai = 'xdai',
+  Gnosis = 'gnosis',
 }

@@ -3,7 +3,7 @@ import * as hopMetadata from '@hop-protocol/core/metadata'
 import MainnetLogo from 'src/assets/logos/mainnet.svg'
 import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
 import OptimismLogo from 'src/assets/logos/optimism.svg'
-import xDaiLogo from 'src/assets/logos/xdai.svg'
+import GnosisLogo from 'src/assets/logos/gnosis.svg'
 import PolygonLogo from 'src/assets/logos/polygon.svg'
 import DaiLogo from 'src/assets/logos/dai.svg'
 import SynthEthLogo from 'src/assets/logos/seth.svg'
@@ -93,10 +93,10 @@ export const metadata: Metadata = {
       image: OptimismLogo,
       nativeTokenSymbol: 'ETH',
     },
-    xdai: {
-      name: 'xDai',
+    gnosis: {
+      name: 'Gnosis',
       isLayer1: false,
-      image: xDaiLogo,
+      image: GnosisLogo,
       nativeTokenSymbol: 'xDAI',
     },
     polygon: {

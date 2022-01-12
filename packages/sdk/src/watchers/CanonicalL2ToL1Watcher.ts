@@ -17,8 +17,8 @@ class L1ToL2Watcher extends BaseWatcher {
   }
 
   public async pollFn (): Promise<any> {
-    if (this.sourceChain.equals(Chain.xDai)) {
-      return this.xDaiWatcher()
+    if (this.sourceChain.equals(Chain.Gnosis)) {
+      return this.gnosisWatcher()
     } else if (this.sourceChain.equals(Chain.Polygon)) {
       return this.polygonWatcher()
     } else {
@@ -26,20 +26,20 @@ class L1ToL2Watcher extends BaseWatcher {
     }
   }
 
-  private async xDaiWatcher () {
+  private async gnosisWatcher () {
     let startBlock = -1
     let endBlock = -1
     const canonicalBridge = new CanonicalBridge(
       this.network,
       this.signer,
       this.token,
-      Chain.xDai
+      Chain.Gnosis
     )
     const ambBridge = await canonicalBridge.getAmbBridge(Chain.Ethereum)
     const filter = {
       address: canonicalBridge.getL1CanonicalTokenAddress(
         this.token,
-        Chain.xDai
+        Chain.Gnosis
       )
     }
     const handleEvent = async (...args: any[]) => {

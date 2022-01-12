@@ -141,8 +141,8 @@ class Transaction extends EventEmitter {
       return this._arbitrumLink()
     } else if (this.networkName.startsWith(Chain.Optimism)) {
       return this._optimismLink()
-    } else if (this.networkName.startsWith(Chain.xDai)) {
-      return this._xdaiLink()
+    } else if (this.networkName.startsWith(Chain.Gnosis)) {
+      return this._gnosisLink()
     } else if (this.networkName.startsWith(Chain.Polygon)) {
       return this._polygonLink()
     } else {
@@ -159,8 +159,8 @@ class Transaction extends EventEmitter {
       return this._arbitrumLink(this.destTxHash)
     } else if (this.destNetworkName?.startsWith(Chain.Optimism)) {
       return this._optimismLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(Chain.xDai)) {
-      return this._xdaiLink(this.destTxHash)
+    } else if (this.destNetworkName?.startsWith(Chain.Gnosis)) {
+      return this._gnosisLink(this.destTxHash)
     } else if (this.destNetworkName?.startsWith(Chain.Polygon)) {
       return this._polygonLink(this.destTxHash)
     } else {
@@ -324,8 +324,8 @@ class Transaction extends EventEmitter {
     }
   }
 
-  private _xdaiLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('xdai')}/tx/${txHash}`
+  private _gnosisLink(txHash: string = this.hash) {
+    return `${getBaseExplorerUrl('gnosis')}/tx/${txHash}`
   }
 
   private _polygonLink(txHash: string = this.hash) {

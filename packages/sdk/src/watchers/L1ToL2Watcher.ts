@@ -94,10 +94,10 @@ class L1ToL2Watcher extends BaseWatcher {
 
     const amm = this.bridge.getAmm(this.destinationChain)
     const swap = await amm.getSaddleSwap()
-    const ambBridge = await this.bridge.getAmbBridge(Chain.xDai)
+    const ambBridge = await this.bridge.getAmbBridge(Chain.Gnosis)
     const ammFilter = swap.filters.TokenSwap()
     const ambFilter = {
-      address: this.bridge.getL2HopBridgeTokenAddress(this.token, Chain.xDai)
+      address: this.bridge.getL2HopBridgeTokenAddress(this.token, Chain.Gnosis)
     }
     const l2BridgeReceiveFilter = {
       topics: [transferFromL1CompletedTopic]
@@ -304,7 +304,7 @@ class L1ToL2Watcher extends BaseWatcher {
         throw new Error('not implemented')
       } else if (this.destinationChain.equals(Chain.Arbitrum)) {
         throw new Error('not implemented')
-      } else if (this.destinationChain.equals(Chain.xDai)) {
+      } else if (this.destinationChain.equals(Chain.Gnosis)) {
         ambBridge.off(ambFilter, handleAmbEvent)
         ambBridge.on(ambFilter, handleAmbEvent)
         const events = (

@@ -53,7 +53,7 @@ const Faucet: FC = () => {
     window.open('https://gitter.im/kovan-testnet/faucet', '_blank')
   }
 
-  const handlexDaiFaucetClick = (event: SyntheticEvent) => {
+  const handleGnosisFaucetClick = (event: SyntheticEvent) => {
     event.preventDefault()
     window.open('https://blockscout.com/poa/sokol/faucet', '_blank')
   }
@@ -106,8 +106,8 @@ const Faucet: FC = () => {
         <Typography variant="body1" className={styles.text}>
           Get xDAI Sokol ETH (SPOA)
         </Typography>
-        <Button className={styles.button} onClick={handlexDaiFaucetClick} large highlighted>
-          Get xDai ETH ↗
+        <Button className={styles.button} onClick={handleGnosisFaucetClick} large highlighted>
+          Get Gnosis ETH ↗
         </Button>
       </Box>
     </Box>

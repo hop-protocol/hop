@@ -745,7 +745,7 @@ export default class Bridge extends ContractBase {
   getChainNativeTokenSymbol (chain: string) {
     if (chain === Chain.Polygon) {
       return 'MATIC'
-    } else if (chain === Chain.xDai) {
+    } else if (chain === Chain.Gnosis) {
       return 'DAI'
     }
 

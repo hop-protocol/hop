@@ -4,14 +4,16 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { Chain, networkIdToSlug, wait } from 'src/utils'
 
-export function useAddTokenToMetamask(
-  token?: Token | null,
-  destNetworkName?: string | null
-): {
+interface AddTokenToMetamask {
   addToken: (networkId: number) => void
   addTokenToDestNetwork: () => void
   success?: boolean
-} {
+}
+
+export function useAddTokenToMetamask(
+  token?: Token | null,
+  destNetworkName?: string | null
+): AddTokenToMetamask {
   const { sdk } = useApp()
   const { connectedNetworkId, provider } = useWeb3Context()
   const [success, setSuccess] = useState<boolean>(false)

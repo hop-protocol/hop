@@ -1,33 +1,49 @@
+import { isAddress } from 'ethers/lib/utils'
 import { useEffect, useState } from 'react'
 import logger from 'src/logger'
-import Address from 'src/models/Address'
-import { getEnsAvatar, getEnsName } from 'src/utils/ens'
+import { getEnsAddress, getEnsAvatar, getEnsName } from 'src/utils/ens'
 
-export function useEns(address?: Address) {
+export function useEns(addressOrEnsName?: string) {
   const [ensAvatar, setEnsAvatar] = useState<string>()
-  const [ensName, setEnsName] = useState<string>()
+  const [ensName, setEnsName] = useState<string | null>()
+  const [ensAddress, setEnsAddress] = useState<string>()
 
   useEffect(() => {
-    if (address?.address) {
-      try {
-        getEnsName(address.address).then(en => en && setEnsName(en))
-      } catch (err) {
-        logger.error(`error during setEnsName:`, err)
-      }
+    setEnsName('')
+    setEnsAddress('')
+    setEnsAvatar('')
+
+    if (!addressOrEnsName) {
+      return
     }
-  }, [address?.address])
+
+    try {
+      if (isAddress(addressOrEnsName)) {
+        getEnsName(addressOrEnsName).then(setEnsName)
+      } else {
+        getEnsAddress(addressOrEnsName).then(resolvedAddress => {
+          if (resolvedAddress) {
+            setEnsName(addressOrEnsName)
+            setEnsAddress(resolvedAddress)
+          }
+        })
+      }
+    } catch (err) {
+      logger.error(`error during setEnsName/setEnsAddress:`, err)
+    }
+  }, [addressOrEnsName])
 
   useEffect(() => {
-    const addrOrEnsName = ensName || address?.address
+    const ensNameOrAddress = ensName || addressOrEnsName
 
-    if (addrOrEnsName) {
+    if (ensNameOrAddress) {
       try {
-        getEnsAvatar(addrOrEnsName).then(setEnsAvatar)
+        getEnsAvatar(ensNameOrAddress).then(setEnsAvatar)
       } catch (err) {
         logger.error(`error during setEnsAvatar:`, err)
       }
     }
-  }, [address, ensName])
+  }, [ensName])
 
-  return { ensName, ensAvatar }
+  return { ensName, ensAvatar, ensAddress }
 }

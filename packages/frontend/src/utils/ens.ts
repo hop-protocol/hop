@@ -22,3 +22,15 @@ export async function getEnsAvatar(ensNameOrAddress: string) {
     // noop
   }
 }
+
+export async function getEnsAddress(ensName: string) {
+  if (!ensName.endsWith('.eth')) {
+    return
+  }
+
+  try {
+    return provider.resolveName(ensName)
+  } catch (error) {
+    // noop
+  }
+}

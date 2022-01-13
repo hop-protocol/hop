@@ -117,9 +117,12 @@ class Token extends Base {
     if (this.isNativeToken) {
       return this.getNativeTokenBalance(address)
     }
-    const _address = address ?? (await this.getSignerAddress())
+    address = address ?? await this.getSignerAddress()
+    if (!address) {
+      throw new Error('address is required')
+    }
     const tokenContract = await this.getErc20()
-    return tokenContract.balanceOf(_address)
+    return tokenContract.balanceOf(address)
   }
 
   /**
@@ -168,14 +171,22 @@ class Token extends Base {
     spender: string,
     amount: TAmount = ethers.constants.MaxUint256
   ) {
+    const populatedTx = await this.populateApproveTx(spender, amount)
+    const allowance = await this.allowance(spender)
+    if (allowance.lt(BigNumber.from(amount))) {
+      return this.signer.sendTransaction(populatedTx)
+    }
+  }
+
+  public async populateApproveTx (
+    spender: string,
+    amount: TAmount = ethers.constants.MaxUint256
+  ):Promise<any> {
     if (this.isNativeToken) {
       return
     }
     const tokenContract = await this.getErc20()
-    const allowance = await this.allowance(spender)
-    if (allowance.lt(BigNumber.from(amount))) {
-      return tokenContract.approve(spender, amount, await this.overrides())
-    }
+    return tokenContract.populateTransaction.approve(spender, amount, await this.overrides())
   }
 
   /**
@@ -223,8 +234,11 @@ class Token extends Base {
   }
 
   public async getNativeTokenBalance (address?: string): Promise<BigNumber> {
-    const _address = address ?? (await this.getSignerAddress())
-    return this.chain.provider.getBalance(_address)
+    address = address ?? await this.getSignerAddress()
+    if (!address) {
+      throw new Error('address is required')
+    }
+    return this.chain.provider.getBalance(address)
   }
 
   async getWethContract (chain: TChain): Promise<Contract> {
@@ -295,11 +309,11 @@ class Token extends Base {
   }
 
   private async getGasEstimateFromAddress () {
-    try {
-      return await this.getSignerAddress()
-    } catch (err) {
-      return await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
+    let address = await this.getSignerAddress()
+    if (!address) {
+      address = await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
     }
+    return address
   }
 
   static fromJSON (json: any):Token {

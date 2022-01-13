@@ -142,6 +142,7 @@ class TransfersDb extends BaseDb {
     this.logger.debug('TransfersDb migration started')
     const entries = await this.getKeyValues()
     this.logger.debug(`TransfersDb migration: ${entries.length} entries`)
+    const promises: Promise<any>[] = []
     for (const { key, value } of entries) {
       let shouldUpdate = false
       if (value?.sourceChainSlug === 'xdai') {
@@ -153,9 +154,11 @@ class TransfersDb extends BaseDb {
         value.destinationChainSlug = 'gnosis'
       }
       if (shouldUpdate) {
-        await this._update(key, value)
+        promises.push(this._update(key, value))
       }
     }
+    await Promise.all(promises)
+    this.logger.debug('TransfersDb migration complete')
   }
 
   private getTimestampedKey (transfer: Transfer) {

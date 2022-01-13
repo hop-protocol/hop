@@ -32,12 +32,15 @@ class GasCostDb extends BaseDb {
     this.logger.debug('GasCostDb migration started')
     const entries = await this.getKeyValues()
     this.logger.debug(`GasCostDb migration: ${entries.length} entries`)
+    const promises: Promise<any>[] = []
     for (const { key, value } of entries) {
       if (value?.chain === 'xdai') {
         value.chain = 'gnosis'
-        await this._update(key, value)
+        promises.push(this._update(key, value))
       }
     }
+    await Promise.all(promises)
+    this.logger.debug('GasCostDb migration complete')
   }
 
   private async startPrunePoller () {

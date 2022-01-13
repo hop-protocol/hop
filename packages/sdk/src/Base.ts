@@ -331,13 +331,8 @@ class Base {
    *```
    */
   public async getSignerAddress () {
-    if (!this.signer) {
-      throw new Error('signer not connected')
-    }
     if (Signer.isSigner(this.signer)) {
-      return (this.signer as Signer)?.getAddress()
-    } else {
-      throw new Error('signer is a provider and has no address')
+      return this.signer.getAddress()
     }
   }
 
@@ -542,7 +537,7 @@ class Base {
     return supported[chain.slug]
   }
 
-  async getOptimismL1Fee (
+  async estimateOptimismL1FeeFromData (
     gasLimit : BigNumberish,
     data: string = '0x',
     to: string = constants.AddressZero

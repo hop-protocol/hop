@@ -1,11 +1,11 @@
-export enum Networks {
+export enum NetworkSlug {
   Mainnet = 'mainnet',
   Staging = 'staging',
   Goerli = 'goerli',
   Kovan = 'kovan'
 }
 
-export enum ChainIds {
+export enum ChainId {
   Ethereum = 1,
   Optimism = 10,
   Arbitrum = 42161,
@@ -13,7 +13,7 @@ export enum ChainIds {
   Gnosis = 100,
 }
 
-export enum ChainNames {
+export enum ChainName {
   Ethereum = 'Ethereum',
   Optimism = 'Optimism',
   Arbitrum = 'Arbitrum',
@@ -21,7 +21,7 @@ export enum ChainNames {
   Gnosis = 'Gnosis',
 }
 
-export enum ChainSlugs {
+export enum ChainSlug {
   Ethereum = 'ethereum',
   Optimism = 'optimism',
   Arbitrum = 'arbitrum',
@@ -29,7 +29,7 @@ export enum ChainSlugs {
   Gnosis = 'gnosis',
 }
 
-export enum Slugs {
+export enum Slug {
   ethereum = 'ethereum',
   kovan = 'kovan',
   goerli = 'goerli',
@@ -41,7 +41,7 @@ export enum Slugs {
   polygon = 'polygon',
 }
 
-export enum Tokens {
+export enum CanonicalToken {
   ETH = 'ETH',
   MATIC = 'MATIC',
   XDAI = 'XDAI',
@@ -53,13 +53,13 @@ export enum Tokens {
   sETH = 'sETH',
 }
 
-export enum WrappedTokens {
+export enum WrappedToken {
   WETH = 'WETH',
   WMATIC = 'WMATIC',
   WXDAI = 'WXDAI',
 }
 
-export enum HTokens {
+export enum HToken {
   hETH = 'hETH',
   hMATIC = 'hMATIC',
   hUSDC = 'hUSDC',
@@ -67,7 +67,7 @@ export enum HTokens {
   hDAI = 'hDAI',
 }
 
-export type AllTokens = Tokens | WrappedTokens | HTokens
+export type TokenSymbol = CanonicalToken | WrappedToken | HToken
 
 export enum TokenIndex {
   CanonicalToken = 0,

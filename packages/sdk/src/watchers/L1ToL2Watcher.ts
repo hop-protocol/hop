@@ -4,7 +4,7 @@ import { BigNumber, providers } from 'ethers'
 import { Chain } from '../models'
 import { DateTime } from 'luxon'
 import { EventFragment, Interface } from '@ethersproject/abi'
-import { Networks } from '../constants'
+import { NetworkSlug } from '../constants'
 import {
   tokenTransferTopic,
   transferFromL1CompletedTopic,
@@ -271,11 +271,11 @@ class L1ToL2Watcher extends BaseWatcher {
         // archive node provider is needed to read bridge events triggered
         // by matic validators.
         if (
-          this.network === Networks.Mainnet ||
-          this.network === Networks.Staging
+          this.network === NetworkSlug.Mainnet ||
+          this.network === NetworkSlug.Staging
         ) {
           url = 'https://matic-mainnet-archive-rpc.bwarelabs.com'
-        } else if (this.network === Networks.Goerli) {
+        } else if (this.network === NetworkSlug.Goerli) {
           url = 'https://matic-testnet-archive-rpc.bwarelabs.com'
         }
         if (url) {

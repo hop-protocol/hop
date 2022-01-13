@@ -3,7 +3,7 @@ import { Contract } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import { Token, Tokens, WrappedTokens } from '@hop-protocol/sdk'
+import { Token, CanonicalToken, WrappedToken } from '@hop-protocol/sdk'
 import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -104,7 +104,7 @@ const Stake: FC = () => {
       'polygon',
       '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
       18,
-      WrappedTokens.WMATIC,
+      WrappedToken.WMATIC,
       'Wrapped Matic',
       '',
       _provider
@@ -133,7 +133,7 @@ const Stake: FC = () => {
     <Flex column alignCenter>
       <Typography variant="h4">Stake</Typography>
       <div className={styles.container}>
-        {enabledTokens.includes(Tokens.ETH) && (
+        {enabledTokens.includes(CanonicalToken.ETH) && (
           <StakeWidget
             network={polygonNetwork}
             bridge={ethBridge}
@@ -143,7 +143,7 @@ const Stake: FC = () => {
             key={ethStakingToken?.symbol}
           />
         )}
-        {enabledTokens.includes(Tokens.MATIC) && (
+        {enabledTokens.includes(CanonicalToken.MATIC) && (
           <StakeWidget
             network={polygonNetwork}
             bridge={maticBridge}
@@ -153,7 +153,7 @@ const Stake: FC = () => {
             key={maticStakingToken?.symbol}
           />
         )}
-        {enabledTokens.includes(Tokens.USDC) && (
+        {enabledTokens.includes(CanonicalToken.USDC) && (
           <StakeWidget
             network={polygonNetwork}
             bridge={usdcBridge}
@@ -163,7 +163,7 @@ const Stake: FC = () => {
             key={usdcStakingToken?.symbol}
           />
         )}
-        {enabledTokens.includes(Tokens.USDT) && (
+        {enabledTokens.includes(CanonicalToken.USDT) && (
           <StakeWidget
             network={polygonNetwork}
             bridge={usdtBridge}

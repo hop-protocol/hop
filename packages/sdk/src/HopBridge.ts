@@ -15,15 +15,15 @@ import {
   ethers
 } from 'ethers'
 import {
-  AllTokens,
+  TokenSymbol,
   BondTransferGasLimit,
   Errors,
-  HTokens,
+  HToken,
   LpFeeBps,
   PendingAmountBuffer,
   SettlementGasLimitPerTx,
   TokenIndex,
-  Tokens
+  CanonicalToken
 } from './constants'
 import { PriceFeed } from './priceFeed'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
@@ -106,7 +106,7 @@ type RemoveLiquidityImbalanceOptions = {
  * @namespace HopBridge
  */
 class HopBridge extends Base {
-  private tokenSymbol: AllTokens
+  private tokenSymbol: TokenSymbol
 
   /** Source Chain model */
   public sourceChain: Chain
@@ -205,8 +205,8 @@ class HopBridge extends Base {
       token.canonicalSymbol
     ]
 
-    if (chain.equals(Chain.Gnosis) && token.symbol === Tokens.DAI) {
-      symbol = Tokens.XDAI
+    if (chain.equals(Chain.Gnosis) && token.symbol === CanonicalToken.DAI) {
+      symbol = CanonicalToken.XDAI
     }
 
     let address
@@ -250,7 +250,7 @@ class HopBridge extends Base {
       chain,
       address,
       decimals,
-      `h${token.canonicalSymbol}` as HTokens,
+      `h${token.canonicalSymbol}` as HToken,
       `Hop ${name}`,
       image,
       this.signer,
@@ -1450,7 +1450,7 @@ class HopBridge extends Base {
       chain,
       saddleLpTokenAddress,
       18,
-      `${this.tokenSymbol} LP` as AllTokens,
+      `${this.tokenSymbol} LP` as TokenSymbol,
       `${this.tokenSymbol} LP`,
       '',
       signer,
@@ -2032,12 +2032,12 @@ class HopBridge extends Base {
   getChainNativeToken (chain: TChain) {
     chain = this.toChainModel(chain)
     if (chain?.equals(Chain.Polygon)) {
-      return this.toTokenModel(Tokens.MATIC)
+      return this.toTokenModel(CanonicalToken.MATIC)
     } else if (chain?.equals(Chain.Gnosis)) {
-      return this.toTokenModel(Tokens.DAI)
+      return this.toTokenModel(CanonicalToken.DAI)
     }
 
-    return this.toTokenModel(Tokens.ETH)
+    return this.toTokenModel(CanonicalToken.ETH)
   }
 
   isNativeToken (chain?: TChain) {

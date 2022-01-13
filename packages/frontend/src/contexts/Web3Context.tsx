@@ -10,7 +10,7 @@ import logger from 'src/logger'
 import { WalletCheckInit, WalletSelectModuleOptions } from 'bnc-onboard/dist/src/interfaces'
 import mmLogo from 'src/assets/logos/metamask.png'
 import { loadState, saveState } from 'src/utils/localStorage'
-import { ChainSlugs } from '@hop-protocol/sdk'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 // TODO: modularize
 type Props = {
@@ -86,17 +86,17 @@ const walletSelectOptions: WalletSelectModuleOptions = {
       label: 'Wallet Connect',
       preferred: true,
       rpc: {
-        1: getRpcUrl(ChainSlugs.Ethereum),
-        42: getRpcUrl(ChainSlugs.Ethereum),
-        42161: getRpcUrl(ChainSlugs.Arbitrum),
-        421611: getRpcUrl(ChainSlugs.Arbitrum),
-        200: getRpcUrl(ChainSlugs.Arbitrum),
-        10: getRpcUrl(ChainSlugs.Optimism),
-        69: getRpcUrl(ChainSlugs.Optimism),
-        420: getRpcUrl(ChainSlugs.Optimism),
-        100: getRpcUrl(ChainSlugs.Gnosis),
-        137: getRpcUrl(ChainSlugs.Polygon),
-        80001: getRpcUrl(ChainSlugs.Polygon),
+        1: getRpcUrl(ChainSlug.Ethereum),
+        42: getRpcUrl(ChainSlug.Ethereum),
+        42161: getRpcUrl(ChainSlug.Arbitrum),
+        421611: getRpcUrl(ChainSlug.Arbitrum),
+        200: getRpcUrl(ChainSlug.Arbitrum),
+        10: getRpcUrl(ChainSlug.Optimism),
+        69: getRpcUrl(ChainSlug.Optimism),
+        420: getRpcUrl(ChainSlug.Optimism),
+        100: getRpcUrl(ChainSlug.Gnosis),
+        137: getRpcUrl(ChainSlug.Polygon),
+        80001: getRpcUrl(ChainSlug.Polygon),
       },
     },
     { walletName: 'walletLink', preferred: true, rpcUrl: getRpcUrl(L1_NETWORK), appName: 'Hop' },

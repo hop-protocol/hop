@@ -24,7 +24,7 @@ import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
 import { useApp } from 'src/contexts/AppContext'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { getTokenByAddress } from 'src/utils/tokens'
-import { TToken, AllTokens } from '@hop-protocol/sdk'
+import { TToken, TokenSymbol } from '@hop-protocol/sdk'
 
 // TODO: use typechain
 export const methodToSigHashes = {
@@ -184,7 +184,7 @@ const useTransaction = (txHash?: string) => {
       const { token, transactionHash, timestamp } = tfl1
 
       dispatchAction(TxActionType.setTx, {
-        tokenSymbol: token as AllTokens,
+        tokenSymbol: token as TokenSymbol,
         token: sdk.toTokenModel(token as TToken),
         destTx: {
           networkName: destNetworkName,

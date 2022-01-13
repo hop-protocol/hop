@@ -1,6 +1,6 @@
 import { ethers, providers } from 'ethers'
 import { EventEmitter } from 'events'
-import { Hop, Token, ChainSlugs } from '@hop-protocol/sdk'
+import { Hop, Token, ChainSlug } from '@hop-protocol/sdk'
 import {
   getBaseExplorerUrl,
   findTransferFromL1CompletedLog,
@@ -134,15 +134,15 @@ class Transaction extends EventEmitter {
   }
 
   get explorerLink(): string {
-    if (this.networkName.startsWith(ChainSlugs.Ethereum)) {
+    if (this.networkName.startsWith(ChainSlug.Ethereum)) {
       return this._etherscanLink()
-    } else if (this.networkName.startsWith(ChainSlugs.Arbitrum)) {
+    } else if (this.networkName.startsWith(ChainSlug.Arbitrum)) {
       return this._arbitrumLink()
-    } else if (this.networkName.startsWith(ChainSlugs.Optimism)) {
+    } else if (this.networkName.startsWith(ChainSlug.Optimism)) {
       return this._optimismLink()
-    } else if (this.networkName.startsWith(ChainSlugs.Gnosis)) {
+    } else if (this.networkName.startsWith(ChainSlug.Gnosis)) {
       return this._gnosisLink()
-    } else if (this.networkName.startsWith(ChainSlugs.Polygon)) {
+    } else if (this.networkName.startsWith(ChainSlug.Polygon)) {
       return this._polygonLink()
     } else {
       return ''
@@ -152,15 +152,15 @@ class Transaction extends EventEmitter {
   get destExplorerLink(): string {
     if (!this.destTxHash) return ''
 
-    if (this.destNetworkName?.startsWith(ChainSlugs.Ethereum)) {
-      return this._etherscanLink(ChainSlugs.Ethereum, this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlugs.Arbitrum)) {
+    if (this.destNetworkName?.startsWith(ChainSlug.Ethereum)) {
+      return this._etherscanLink(ChainSlug.Ethereum, this.destTxHash)
+    } else if (this.destNetworkName?.startsWith(ChainSlug.Arbitrum)) {
       return this._arbitrumLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlugs.Optimism)) {
+    } else if (this.destNetworkName?.startsWith(ChainSlug.Optimism)) {
       return this._optimismLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlugs.Gnosis)) {
+    } else if (this.destNetworkName?.startsWith(ChainSlug.Gnosis)) {
       return this._gnosisLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlugs.Polygon)) {
+    } else if (this.destNetworkName?.startsWith(ChainSlug.Polygon)) {
       return this._polygonLink(this.destTxHash)
     } else {
       return ''
@@ -276,7 +276,7 @@ class Transaction extends EventEmitter {
         }
 
         // L2 -> L1
-        if (this.destNetworkName === ChainSlugs.Ethereum) {
+        if (this.destNetworkName === ChainSlug.Ethereum) {
           const destL1Bridge = await bridge.getL1Bridge(this.provider)
           const isSpent = await destL1Bridge.isTransferIdSpent(this.transferId)
           if (isSpent) {

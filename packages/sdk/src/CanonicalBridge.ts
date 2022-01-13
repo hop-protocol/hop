@@ -15,7 +15,7 @@ import { Contract, Signer, ethers } from 'ethers'
 import { TAmount, TChain, TProvider, TToken } from './types'
 import { formatUnits } from 'ethers/lib/utils'
 import { metadata } from './config'
-import { AllTokens } from './constants'
+import { TokenSymbol } from './constants'
 
 /**
  * Class reprensenting Canonical Token Bridge.
@@ -28,7 +28,7 @@ class CanonicalBridge extends Base {
   /** Token class instance */
   // public token: TokenClass
 
-  public tokenSymbol: AllTokens
+  public tokenSymbol: TokenSymbol
 
   /**
    * @desc Instantiates Canonical Token Bridge.

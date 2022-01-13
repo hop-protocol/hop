@@ -10,12 +10,12 @@ export { TokenAmount, Token as TokenModel } from './models'
 export * from './types'
 export { eventTopics } from './constants'
 export {
-  ChainSlugs,
-  Slugs,
-  Networks,
-  ChainIds,
-  AllTokens,
-  Tokens,
-  WrappedTokens,
-  HTokens
+  ChainSlug,
+  Slug,
+  NetworkSlug,
+  ChainId,
+  TokenSymbol,
+  CanonicalToken,
+  WrappedToken,
+  HToken,
 } from './constants/constants'

@@ -3,13 +3,13 @@ import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { Chain as ChainEnum, Errors, MinPolygonGasPrice } from './constants'
+import { ChainSlugs, Errors, MinPolygonGasPrice } from './constants'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
-export type ChainProviders = { [slug: string]: providers.Provider } | any
+export type ChainProviders = { [slug in ChainSlugs | string]: providers.Provider }
 
 const s3FileCache : Record<string, any> = {}
 
@@ -289,7 +289,7 @@ class Base {
 
     if (chainSlug === 'xdai') {
       console.warn(Errors.xDaiRebrand)
-      chainSlug = ChainEnum.Gnosis
+      chainSlug = ChainSlugs.Gnosis
     }
 
     if (this.chainProviders[chainSlug]) {

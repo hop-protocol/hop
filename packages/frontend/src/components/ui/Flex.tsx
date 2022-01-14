@@ -1,25 +1,6 @@
 import * as React from 'react'
+import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import styled from 'styled-components/macro'
-import {
-  space,
-  color,
-  layout,
-  typography,
-  flexbox,
-  border,
-  background,
-  shadow,
-  position,
-  FlexboxProps,
-  SpaceProps,
-  ColorProps,
-  LayoutProps,
-  TypographyProps,
-  BorderProps,
-  BackgroundProps,
-  ShadowProps,
-  PositionProps,
-} from 'styled-system'
 
 interface FlexBaseProps {
   column?: boolean
@@ -47,17 +28,7 @@ interface CustomFlexProps {
   $wrap?: boolean
 }
 
-export type FlexProps = BackgroundProps &
-  BorderProps &
-  ColorProps &
-  FlexboxProps &
-  LayoutProps &
-  PositionProps &
-  ShadowProps &
-  TypographyProps &
-  SpaceProps &
-  FlexBaseProps &
-  CustomFlexProps
+export type FlexProps = FlexBaseProps & ComposedStyleProps & CustomFlexProps
 
 const Flex: React.FC<FlexProps> = styled.div<FlexProps>`
   box-sizing: border-box;
@@ -96,21 +67,7 @@ const Flex: React.FC<FlexProps> = styled.div<FlexProps>`
 
   transition: all 0.15s ease-out;
 
-  ${space};
-  ${color};
-  ${layout};
-  ${typography};
-  ${border};
-  ${background};
-  ${shadow};
-  ${position};
-  ${flexbox};
-`
-
-export const Circle = styled(Flex)<FlexProps>`
-  align-items: center;
-  overflow: hidden;
-  border-radius: 50%;
+  ${composedStyleFns}
 `
 
 export default Flex

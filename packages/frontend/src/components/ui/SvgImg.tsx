@@ -1,8 +1,8 @@
 import React from 'react'
-import { composedStyleFns, ComposedStyleProps, squareDimensions } from 'src/utils'
+import { composedStyleFns, ComposedStyleProps, SquareDimensions, squareDimensions } from 'src/utils'
 import styled from 'styled-components/macro'
 
-type SvgImgProps = ComposedStyleProps & { size?: string | number }
+type SvgImgProps = ComposedStyleProps & SquareDimensions
 
 const Wrapper = styled.div<SvgImgProps>`
   ${squareDimensions}

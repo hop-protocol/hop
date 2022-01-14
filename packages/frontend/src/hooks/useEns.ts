@@ -1,33 +1,52 @@
+import { isAddress } from 'ethers/lib/utils'
 import { useEffect, useState } from 'react'
 import logger from 'src/logger'
-import Address from 'src/models/Address'
-import { getEnsAvatar, getEnsName } from 'src/utils/ens'
+import { getEnsAddress, getEnsAvatar, getEnsName } from 'src/utils/ens'
 
-export function useEns(address?: Address) {
+export function useEns(addressOrEnsName?: string) {
   const [ensAvatar, setEnsAvatar] = useState<string>()
-  const [ensName, setEnsName] = useState<string>()
+  const [ensName, setEnsName] = useState<string | null>()
+  const [ensAddress, setEnsAddress] = useState<string>()
 
   useEffect(() => {
-    if (address?.address) {
+    setEnsName('')
+    setEnsAddress('')
+    setEnsAvatar('')
+
+    async function resolveEns() {
+      if (!addressOrEnsName) {
+        return
+      }
+
       try {
-        getEnsName(address.address).then(en => en && setEnsName(en))
+        if (isAddress(addressOrEnsName)) {
+          const _ensName = await getEnsName(addressOrEnsName)
+          setEnsName(_ensName)
+          setEnsAddress(addressOrEnsName)
+        } else {
+          const _ensAddress = await getEnsAddress(addressOrEnsName)
+          if (_ensAddress) {
+            setEnsName(addressOrEnsName)
+            setEnsAddress(_ensAddress)
+          }
+        }
       } catch (err) {
-        logger.error(`error during setEnsName:`, err)
+        logger.error(`error during setEnsName/setEnsAddress:`, err)
       }
     }
-  }, [address?.address])
+
+    resolveEns()
+  }, [addressOrEnsName])
 
   useEffect(() => {
-    const addrOrEnsName = ensName || address?.address
+    const ensNameOrAddress = ensName || addressOrEnsName
 
-    if (addrOrEnsName) {
-      try {
-        getEnsAvatar(addrOrEnsName).then(setEnsAvatar)
-      } catch (err) {
-        logger.error(`error during setEnsAvatar:`, err)
-      }
+    if (ensNameOrAddress) {
+      getEnsAvatar(ensNameOrAddress)
+        .then(setEnsAvatar)
+        .catch(err => logger.error(`error during setEnsAvatar:`, err))
     }
-  }, [address, ensName])
+  }, [ensName])
 
-  return { ensName, ensAvatar }
+  return { ensName, ensAvatar, ensAddress }
 }

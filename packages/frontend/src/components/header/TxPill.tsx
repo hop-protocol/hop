@@ -32,7 +32,7 @@ const TxPill = () => {
   const transactions = txHistory?.transactions
   const styles = useStyles()
   const [numPendingTxs, setNumPendingTxs] = useState(0)
-  const { ensName, ensAvatar } = useEns(address)
+  const { ensName, ensAvatar } = useEns(address?.toString())
 
   const handleClick = () => {
     accountDetails?.show(true)

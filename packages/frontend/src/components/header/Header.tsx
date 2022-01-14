@@ -25,7 +25,7 @@ import ConnectWalletButton from './ConnectWalletButton'
 import IconButton from '@material-ui/core/IconButton'
 import SunIcon from 'src/assets/sun-icon.svg'
 import MoonIcon from 'src/assets/moon-icon.svg'
-import { Div, Flex, Icon } from '../ui'
+import { Flex, Icon } from '../ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 const useStyles = makeStyles((theme: Theme) => ({

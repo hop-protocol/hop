@@ -22,3 +22,11 @@ export async function getEnsAvatar(ensNameOrAddress: string) {
     // noop
   }
 }
+
+export async function getEnsAddress(ensName: string) {
+  try {
+    return await provider.resolveName(ensName)
+  } catch (error) {
+    // noop
+  }
+}

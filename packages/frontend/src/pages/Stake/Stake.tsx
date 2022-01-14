@@ -11,6 +11,7 @@ import StakeWidget from 'src/pages/Stake/StakeWidget'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { isMainnet } from 'src/config'
 import { Flex } from 'src/components/ui'
+import { findMatchingBridge } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -33,9 +34,7 @@ const Stake: FC = () => {
 
   // ETH
 
-  const ethBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge => bridge.getTokenSymbol() === 'ETH')
-  }, [bridges])
+  const ethBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'ETH'), [bridges])
 
   const ethStakingToken = useAsyncMemo(async () => {
     return ethBridge?.getSaddleLpToken('polygon')
@@ -49,9 +48,7 @@ const Stake: FC = () => {
 
   // MATIC
 
-  const maticBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge => bridge.getTokenSymbol() === 'MATIC')
-  }, [bridges])
+  const maticBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'MATIC'), [bridges])
 
   const maticStakingToken = useAsyncMemo(async () => {
     return maticBridge?.getSaddleLpToken('polygon')
@@ -65,9 +62,7 @@ const Stake: FC = () => {
 
   // USDC
 
-  const usdcBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge => bridge.getTokenSymbol() === 'USDC')
-  }, [bridges])
+  const usdcBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'USDC'), [bridges])
 
   const usdcStakingToken = useAsyncMemo(async () => {
     return usdcBridge?.getSaddleLpToken('polygon')
@@ -81,9 +76,7 @@ const Stake: FC = () => {
 
   // USDT
 
-  const usdtBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge => bridge.getTokenSymbol() === 'USDT')
-  }, [bridges])
+  const usdtBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'USDT'), [bridges])
 
   const usdtStakingToken = useAsyncMemo(async () => {
     return usdtBridge?.getSaddleLpToken('polygon')

@@ -13,6 +13,7 @@ import Network from 'src/models/Network'
 import InfoTooltip from 'src/components/infoTooltip'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import useQueryParams from 'src/hooks/useQueryParams'
+import { findMatchingBridge } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -50,7 +51,8 @@ const Convert: FC = () => {
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
+
+    const bridge = findMatchingBridge(bridges, tokenSymbol)
     if (bridge) {
       setSelectedBridge(bridge)
     }

@@ -1,4 +1,5 @@
 export * from './BNMin'
+export * from './bridges'
 export * from './commafy'
 export * from './constants'
 export * from './contracts'

@@ -13,7 +13,13 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import { usePools } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
-import { commafy, sanitizeNumericalString, toPercentDisplay, toTokenDisplay } from 'src/utils'
+import {
+  commafy,
+  findMatchingBridge,
+  sanitizeNumericalString,
+  toPercentDisplay,
+  toTokenDisplay,
+} from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
 import useQueryParams from 'src/hooks/useQueryParams'
@@ -126,7 +132,6 @@ const Pools: FC = () => {
     warning,
     setWarning,
     removeLiquidity,
-    isNativeToken,
     poolReserves,
     fee,
     apr,
@@ -139,7 +144,7 @@ const Pools: FC = () => {
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
+    const bridge = findMatchingBridge(bridges, tokenSymbol)
     if (bridge) {
       setSelectedBridge(bridge)
     }

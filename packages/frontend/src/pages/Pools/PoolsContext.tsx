@@ -19,7 +19,8 @@ import Price from 'src/models/Price'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
 import { shiftBNDecimals, BNMin } from 'src/utils'
-import { reactAppNetwork } from 'src/config'
+import { hopAppNetwork } from 'src/config'
+import { defaultL2Network, l2Networks } from 'src/config/networks'
 import { amountToBN, formatError } from 'src/utils/format'
 import { useTransactionReplacement, useAsyncMemo, useBalance, useApprove } from 'src/hooks'
 import { useInterval } from 'react-use'
@@ -141,7 +142,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [virtualPrice, setVirutalPrice] = useState<number | undefined>()
   const [fee, setFee] = useState<number | undefined>()
 
-  const { networks, txConfirm, sdk, selectedBridge, settings } = useApp()
+  const { txConfirm, sdk, selectedBridge, settings } = useApp()
   const { deadline, slippageTolerance } = settings
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const slippageToleranceBps = slippageTolerance * 100
@@ -149,18 +150,15 @@ const PoolsContextProvider: FC = ({ children }) => {
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const [error, setError] = useState<string | null | undefined>(null)
   const [warning, setWarning] = useState<string>()
-  const l2Networks = useMemo(() => {
-    return networks.filter(network => !network.isLayer1)
-  }, [networks])
-  const [selectedNetwork, setSelectedNetwork] = useState<Network>(l2Networks[2])
+  const [selectedNetwork, setSelectedNetwork] = useState<Network>(defaultL2Network)
 
   const unsupportedAsset = useMemo(() => {
     if (!(selectedBridge && selectedNetwork)) {
       return null
     }
     const unsupportedAssets = {
-      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
-      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Optimism: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Arbitrum: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
     const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
@@ -180,7 +178,6 @@ const PoolsContextProvider: FC = ({ children }) => {
 
     return null
   }, [selectedBridge, selectedNetwork])
-
 
   const isNativeToken =
     useMemo(() => {
@@ -295,7 +292,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     if (selectedNetwork && !l2Networks.includes(selectedNetwork)) {
-      setSelectedNetwork(l2Networks[2])
+      setSelectedNetwork(defaultL2Network)
     }
   }, [l2Networks])
 
@@ -430,7 +427,9 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const updatePrices = useCallback(async () => {
     try {
-      if (!(totalSupply && canonicalToken && poolReserves.length > 0 && !unsupportedAsset?.chain)) return
+      if (!(totalSupply && canonicalToken && poolReserves.length > 0 && !unsupportedAsset?.chain)) {
+        return
+      }
       if (Number(token1Rate)) {
         const price = new Price(token1Rate, '1')
         setToken0Price(price.toFixed(2))
@@ -462,7 +461,15 @@ const PoolsContextProvider: FC = ({ children }) => {
     } catch (err) {
       logger.error(err)
     }
-  }, [unsupportedAsset, token0Amount, totalSupply, token1Amount, token1Rate, poolReserves, canonicalToken])
+  }, [
+    unsupportedAsset,
+    token0Amount,
+    totalSupply,
+    token1Amount,
+    token1Rate,
+    poolReserves,
+    canonicalToken,
+  ])
 
   useEffect(() => {
     updatePrices()
@@ -496,7 +503,15 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const updateUserPoolPositions = useCallback(async () => {
     try {
-      if (!(canonicalToken && provider && selectedNetwork?.provider && poolReserves && !unsupportedAsset?.chain)) {
+      if (
+        !(
+          canonicalToken &&
+          provider &&
+          selectedNetwork?.provider &&
+          poolReserves &&
+          !unsupportedAsset?.chain
+        )
+      ) {
         setToken1Rate('')
         setToken0Deposited(undefined)
         setToken1Deposited(undefined)

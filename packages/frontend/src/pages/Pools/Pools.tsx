@@ -1,7 +1,6 @@
 import React, { FC, ChangeEvent, useEffect } from 'react'
 import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
-import find from 'lodash/find'
 import Typography from '@material-ui/core/Typography'
 import Button from 'src/components/buttons/Button'
 import Box from '@material-ui/core/Box'
@@ -16,6 +15,7 @@ import SendButton from 'src/pages/Pools/SendButton'
 import {
   commafy,
   findMatchingBridge,
+  findNetworkBySlug,
   sanitizeNumericalString,
   toPercentDisplay,
   toTokenDisplay,
@@ -23,10 +23,10 @@ import {
 import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
 import useQueryParams from 'src/hooks/useQueryParams'
-import Network from 'src/models/Network'
 import { useNeedsTokenForFee } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
+import { defaultL2Network, allNetworks as networks } from 'src/config/networks'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -102,9 +102,8 @@ const useStyles = makeStyles(theme => ({
 
 const Pools: FC = () => {
   const styles = useStyles()
-  const { bridges, selectedBridge, setSelectedBridge, defaultL2Network } = useApp()
+  const { bridges, selectedBridge, setSelectedBridge } = useApp()
   const {
-    networks,
     canonicalToken,
     hopToken,
     selectedNetwork,
@@ -114,9 +113,6 @@ const Pools: FC = () => {
     token1Amount,
     setToken1Amount,
     poolSharePercentage,
-    token0Price,
-    token1Price,
-    token1Rate,
     userPoolBalance,
     userPoolBalanceFormatted,
     userPoolTokenPercentage,
@@ -154,18 +150,18 @@ const Pools: FC = () => {
 
   useEffect(() => {
     if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
-      const matchingNetwork = find(networks, ['slug', queryParams.sourceNetwork])
+      const matchingNetwork = findNetworkBySlug(queryParams.sourceNetwork)
       if (matchingNetwork && !matchingNetwork?.isLayer1) {
         setSelectedNetwork(matchingNetwork)
       } else {
-        setSelectedNetwork(defaultL2Network as Network)
+        setSelectedNetwork(defaultL2Network)
       }
     }
   }, [queryParams])
 
-  const handleNetworkSelect = (event: ChangeEvent<{ value: unknown }>) => {
-    const networkName = event.target.value
-    const newSelectedNetwork = networks.find(network => network.slug === networkName)
+  const handleNetworkSelect = (event: ChangeEvent<{ value: any }>) => {
+    const selectedNetworkSlug = event.target.value
+    const newSelectedNetwork = findNetworkBySlug(selectedNetworkSlug)
     if (newSelectedNetwork) {
       setSelectedNetwork(newSelectedNetwork)
       updateQueryParams({

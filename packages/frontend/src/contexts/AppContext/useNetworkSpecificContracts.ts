@@ -61,11 +61,11 @@ const useNetworkSpecificContracts = (
     return l2Network?.provider
   }, [l2Network, connectedNetworkId, provider])
   const l1Provider = useMemo(() => {
-    if (connectedNetworkId === l1Network?.networkId) {
+    if (connectedNetworkId === l1Network.networkId) {
       return provider?.getSigner()
     }
 
-    return l1Network?.provider
+    return l1Network.provider
   }, [l1Network, connectedNetworkId, provider])
   const l1Bridge = useMemo(() => {
     if (!l1BridgeAddress) {

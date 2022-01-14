@@ -18,7 +18,7 @@ const useBridges = (sdk: Hop) => {
     [bridges, queryParams]
   )
 
-  const [selectedBridge, _setSelectedBridge] = useState<HopBridge>(queryParamBridge ?? bridges[4])
+  const [selectedBridge, _setSelectedBridge] = useState<HopBridge>(queryParamBridge ?? bridges[0])
 
   const setSelectedBridge = (bridge: HopBridge) => {
     if (!location.pathname.startsWith('/tx')) {

@@ -13,8 +13,8 @@ import usdtLogo from 'src/assets/logos/usdt.svg'
 import wBtcLogo from 'src/assets/logos/wbtc.svg'
 import ethLogo from 'src/assets/logos/eth.svg'
 import maticLogo from 'src/assets/logos/matic.svg'
-import { network } from 'src/config'
 import { TokenSymbol, Slug } from '@hop-protocol/sdk'
+import { hopAppNetwork } from 'src/config'
 
 type Metadata = {
   tokens: {
@@ -49,7 +49,7 @@ const images = {
 }
 
 const tokens = Object.keys(images).reduce((obj, token) => {
-  obj[token] = deepmerge(hopMetadata[network].tokens[token], {
+  obj[token] = deepmerge(hopMetadata[hopAppNetwork].tokens[token], {
     image: images[token],
   })
   return obj

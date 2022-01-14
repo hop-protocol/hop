@@ -16,7 +16,7 @@ import { commafy, isL1ToL2, findMatchingBridge, sanitizeNumericalString, toToken
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
-import { reactAppNetwork } from 'src/config'
+import { hopAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/infoTooltip'
 import { amountToBN, formatError } from 'src/utils/format'
 import { useSendStyles } from './useSendStyles'
@@ -270,7 +270,7 @@ const Send: FC = () => {
         </>
       )
       if (!isAvailable && !fromNetwork?.isLayer1) {
-        if (reactAppNetwork !== 'staging') {
+        if (hopAppNetwork !== 'staging') {
           setIsLiquidityAvailable(false)
           setNoLiquidityWarning(warningMessage)
         }

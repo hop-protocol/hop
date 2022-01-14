@@ -1,6 +1,6 @@
 import { HopBridge } from '@hop-protocol/sdk'
 import { useMemo } from 'react'
-import { reactAppNetwork } from 'src/config'
+import { hopAppNetwork } from 'src/config'
 import logger from 'src/logger'
 import Network from 'src/models/Network'
 
@@ -11,8 +11,8 @@ export function useAssets(selectedBridge?: HopBridge, fromNetwork?: Network, toN
       return null
     }
     const unsupportedAssets = {
-      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
-      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Optimism: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Arbitrum: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
     for (const chain in unsupportedAssets) {

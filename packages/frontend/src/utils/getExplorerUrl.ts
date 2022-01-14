@@ -4,7 +4,7 @@ export function getExplorerTxUrl(networkName, txHash) {
   switch (networkName) {
     case 'mainnet':
     case 'ethereum': {
-      return `${getBaseExplorerUrl(networkName)}/tx/${txHash}`
+      return `${getBaseExplorerUrl('ethereum')}/tx/${txHash}`
     }
     case 'arbitrum': {
       return `${getBaseExplorerUrl('arbitrum')}/tx/${txHash}`

@@ -46,7 +46,7 @@ export function useEns(addressOrEnsName?: string) {
         .then(setEnsAvatar)
         .catch(err => logger.error(`error during setEnsAvatar:`, err))
     }
-  }, [ensName, addressOrEnsName])
+  }, [ensName])
 
   return { ensName, ensAvatar, ensAddress }
 }

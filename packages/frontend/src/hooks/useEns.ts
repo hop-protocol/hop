@@ -13,37 +13,40 @@ export function useEns(addressOrEnsName?: string) {
     setEnsAddress('')
     setEnsAvatar('')
 
-    if (!addressOrEnsName) {
-      return
+    async function resolveEns() {
+      if (!addressOrEnsName) {
+        return
+      }
+
+      try {
+        if (isAddress(addressOrEnsName)) {
+          const _ensName = await getEnsName(addressOrEnsName)
+          setEnsName(_ensName)
+          setEnsAddress(addressOrEnsName)
+        } else {
+          const _ensAddress = await getEnsAddress(addressOrEnsName)
+          if (_ensAddress) {
+            setEnsName(addressOrEnsName)
+            setEnsAddress(_ensAddress)
+          }
+        }
+      } catch (err) {
+        logger.error(`error during setEnsName/setEnsAddress:`, err)
+      }
     }
 
-    try {
-      if (isAddress(addressOrEnsName)) {
-        getEnsName(addressOrEnsName).then(setEnsName)
-      } else {
-        getEnsAddress(addressOrEnsName).then(resolvedAddress => {
-          if (resolvedAddress) {
-            setEnsName(addressOrEnsName)
-            setEnsAddress(resolvedAddress)
-          }
-        })
-      }
-    } catch (err) {
-      logger.error(`error during setEnsName/setEnsAddress:`, err)
-    }
+    resolveEns()
   }, [addressOrEnsName])
 
   useEffect(() => {
     const ensNameOrAddress = ensName || addressOrEnsName
 
     if (ensNameOrAddress) {
-      try {
-        getEnsAvatar(ensNameOrAddress).then(setEnsAvatar)
-      } catch (err) {
-        logger.error(`error during setEnsAvatar:`, err)
-      }
+      getEnsAvatar(ensNameOrAddress)
+        .then(setEnsAvatar)
+        .catch(err => logger.error(`error during setEnsAvatar:`, err))
     }
-  }, [ensName])
+  }, [ensName, addressOrEnsName])
 
   return { ensName, ensAvatar, ensAddress }
 }

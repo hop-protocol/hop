@@ -38,11 +38,7 @@ export interface SquareDimensions {
   width?: number | string
 }
 
-export function squareDimensions({ size, width }: SquareDimensions) {
-  if (!size) {
-    size = 24
-  }
-
+export function squareDimensions({ size = 24, width }: SquareDimensions) {
   if (width) {
     size = width
   }

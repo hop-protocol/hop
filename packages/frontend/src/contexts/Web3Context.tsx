@@ -3,19 +3,14 @@ import Onboard from 'bnc-onboard'
 import { ethers, Contract, BigNumber } from 'ethers'
 import Address from 'src/models/Address'
 import { networkIdToSlug, getRpcUrl, getBaseExplorerUrl } from 'src/utils'
-import { Chain, L1_NETWORK } from 'src/utils/constants'
+import { L1_NETWORK } from 'src/utils/constants'
 import { networks, blocknativeDappid } from 'src/config'
 import './onboardStyles.css'
-
-import MetamaskAccountsSettingsHighlight from 'src/assets/onboard/metamask-accounts-settings-highlight.png'
-import MetamaskSettingsHighlight from 'src/assets/onboard/metamask-settings-highlight.png'
-import MetamaskAddNetworkHighlight from 'src/assets/onboard/metamask-add-network-highlight.png'
-import MetamaskNewCustomNetworkHighlight from 'src/assets/onboard/metamask-new-custom-network-highlight.png'
-import MetamaskCustomNetworkHighlight from 'src/assets/onboard/metamask-custom-network-highlight.png'
 import logger from 'src/logger'
 import { WalletCheckInit, WalletSelectModuleOptions } from 'bnc-onboard/dist/src/interfaces'
 import mmLogo from 'src/assets/logos/metamask.png'
 import { loadState, saveState } from 'src/utils/localStorage'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 // TODO: modularize
 type Props = {
@@ -91,17 +86,17 @@ const walletSelectOptions: WalletSelectModuleOptions = {
       label: 'Wallet Connect',
       preferred: true,
       rpc: {
-        1: getRpcUrl(Chain.Ethereum),
-        42: getRpcUrl(Chain.Ethereum),
-        42161: getRpcUrl(Chain.Arbitrum),
-        421611: getRpcUrl(Chain.Arbitrum),
-        200: getRpcUrl(Chain.Arbitrum),
-        10: getRpcUrl(Chain.Optimism),
-        69: getRpcUrl(Chain.Optimism),
-        420: getRpcUrl(Chain.Optimism),
-        100: getRpcUrl(Chain.Gnosis),
-        137: getRpcUrl(Chain.Polygon),
-        80001: getRpcUrl(Chain.Polygon),
+        1: getRpcUrl(ChainSlug.Ethereum),
+        42: getRpcUrl(ChainSlug.Ethereum),
+        42161: getRpcUrl(ChainSlug.Arbitrum),
+        421611: getRpcUrl(ChainSlug.Arbitrum),
+        200: getRpcUrl(ChainSlug.Arbitrum),
+        10: getRpcUrl(ChainSlug.Optimism),
+        69: getRpcUrl(ChainSlug.Optimism),
+        420: getRpcUrl(ChainSlug.Optimism),
+        100: getRpcUrl(ChainSlug.Gnosis),
+        137: getRpcUrl(ChainSlug.Polygon),
+        80001: getRpcUrl(ChainSlug.Polygon),
       },
     },
     { walletName: 'walletLink', preferred: true, rpcUrl: getRpcUrl(L1_NETWORK), appName: 'Hop' },

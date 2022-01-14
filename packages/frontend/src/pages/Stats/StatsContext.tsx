@@ -7,7 +7,7 @@ import { getArbitrumAlias } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import * as config from 'src/config'
-import { Chain } from 'src/utils/constants'
+import { HToken, CanonicalToken } from '@hop-protocol/sdk'
 
 type StatsContextProps = {
   stats: any[]
@@ -94,7 +94,7 @@ const StatsContextProvider: FC = ({ children }) => {
     }
 
     const hopToken = new Token({
-      symbol: `h${token?.symbol}`,
+      symbol: `h${token?.symbol}` as HToken,
       tokenName: token?.tokenName,
       imageUrl: token?.imageUrl,
       decimals: token?.decimals,
@@ -313,7 +313,7 @@ const StatsContextProvider: FC = ({ children }) => {
     }
 
     // The token doesn't matter as long as the bridge set exists
-    const arbitraryToken = 'USDC'
+    const arbitraryToken = CanonicalToken.USDC
     const bridge = sdk.bridge(arbitraryToken)
     if (!bridge.isSupportedAsset(slug)) {
       return

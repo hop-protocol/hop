@@ -1000,6 +1000,8 @@ class SyncWatcher extends BaseWatcher {
     { endBlockNumber: eventBlockNumber, startBlockNumber })
 
     if (!endEvent) {
+      logger.warn(`populateTransferRootTransferIds no end event found for transferRootHash ${transferRootHash}. isNotFound: true`)
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
 

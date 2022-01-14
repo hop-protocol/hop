@@ -142,7 +142,7 @@ class TransfersDb extends BaseDb {
     this.logger.debug('TransfersDb migration started')
     const entries = await this.getKeyValues()
     this.logger.debug(`TransfersDb migration: ${entries.length} entries`)
-    const promises: Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     for (const { key, value } of entries) {
       let shouldUpdate = false
       if (value?.sourceChainSlug === 'xdai') {

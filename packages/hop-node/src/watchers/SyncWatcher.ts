@@ -665,10 +665,10 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer it, transferId: ${transferId}`)
     }
 
-    const logger = this.logger.create({id: transferId})
+    const logger = this.logger.create({ id: transferId })
 
     if (!dbTransfer.sourceChainId) {
-      logger.warn(`populateTransferDbItem marking item not found. Missing sourceChainId. isNotFound: true`)
+      logger.warn('populateTransferDbItem marking item not found. Missing sourceChainId (possibly due to missing TransferSent event). isNotFound: true')
       await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
@@ -683,10 +683,10 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer root item, transferRootId: ${transferRootId}`)
     }
 
-    const logger = this.logger.create({id: transferRootId })
+    const logger = this.logger.create({ id: transferRootId })
 
     if (!dbTransferRoot.sourceChainId) {
-      logger.warn(`populateTransferRootDbItem marking item not found. Missing sourceChainId. isNotFound: true`)
+      logger.warn('populateTransferRootDbItem marking item not found. Missing sourceChainId (possibly due to missing TransfersCommitted event). isNotFound: true')
       await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }

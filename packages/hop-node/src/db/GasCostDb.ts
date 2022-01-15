@@ -32,7 +32,7 @@ class GasCostDb extends BaseDb {
     this.logger.debug('GasCostDb migration started')
     const entries = await this.getKeyValues()
     this.logger.debug(`GasCostDb migration: ${entries.length} entries`)
-    const promises: Promise<any>[] = []
+    const promises: Array<Promise<any>> = []
     for (const { key, value } of entries) {
       if (value?.chain === 'xdai') {
         value.chain = 'gnosis'

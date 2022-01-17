@@ -17,5 +17,5 @@ export {
   TokenSymbol,
   CanonicalToken,
   WrappedToken,
-  HToken,
+  HToken
 } from './constants/constants'

@@ -13,9 +13,9 @@ import l2xDaiTokenAbi from '@hop-protocol/core/abi/static/L2_xDaiToken.json'
 import { Chain } from './models'
 import { Contract, Signer, ethers } from 'ethers'
 import { TAmount, TChain, TProvider, TToken } from './types'
+import { TokenSymbol } from './constants'
 import { formatUnits } from 'ethers/lib/utils'
 import { metadata } from './config'
-import { TokenSymbol } from './constants'
 
 /**
  * Class reprensenting Canonical Token Bridge.

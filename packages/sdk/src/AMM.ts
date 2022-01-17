@@ -6,7 +6,7 @@ import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
 import { DateTime } from 'luxon'
 import { TAmount, TChain, TProvider } from './types'
-import { TokenSymbol, TokenIndex } from './constants'
+import { TokenIndex, TokenSymbol } from './constants'
 import { formatUnits } from 'ethers/lib/utils'
 
 /**

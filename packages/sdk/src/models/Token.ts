@@ -1,4 +1,4 @@
-import { TokenSymbol, NetworkSlug, CanonicalToken } from '../constants'
+import { CanonicalToken, NetworkSlug, TokenSymbol } from '../constants'
 import { ethers } from 'ethers'
 import { metadata } from '../config'
 

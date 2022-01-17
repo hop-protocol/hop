@@ -1,4 +1,4 @@
-import { ChainName, ChainSlug, NetworkSlug, Slug, Errors } from '../constants'
+import { ChainName, ChainSlug, Errors, NetworkSlug, Slug } from '../constants'
 import { metadata } from '../config'
 import { providers } from 'ethers'
 

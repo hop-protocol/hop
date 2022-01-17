@@ -15,15 +15,15 @@ import {
   ethers
 } from 'ethers'
 import {
-  TokenSymbol,
   BondTransferGasLimit,
+  CanonicalToken,
   Errors,
   HToken,
   LpFeeBps,
   PendingAmountBuffer,
   SettlementGasLimitPerTx,
   TokenIndex,
-  CanonicalToken
+  TokenSymbol
 } from './constants'
 import { PriceFeed } from './priceFeed'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'

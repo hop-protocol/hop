@@ -67,7 +67,7 @@ export enum HToken {
   hDAI = 'hDAI',
 }
 
-export type TokenSymbol = CanonicalToken | WrappedToken | HToken
+export type TokenSymbol = CanonicalToken | WrappedToken | HToken | string
 
 export enum TokenIndex {
   CanonicalToken = 0,

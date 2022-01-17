@@ -40,7 +40,7 @@ const useBridges = (sdk: Hop) => {
     if (matchingBridge) {
       setSelectedBridge(matchingBridge)
     } else {
-      setSelectedBridge(bridges[4])
+      setSelectedBridge(bridges[0])
     }
   }, [selectedBridge, bridges])
 

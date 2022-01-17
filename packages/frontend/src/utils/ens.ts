@@ -1,6 +1,7 @@
+import { ChainSlug } from '@hop-protocol/sdk'
 import { getProviderByNetworkName } from './getProvider'
 
-const provider = getProviderByNetworkName('ethereum')
+const provider = getProviderByNetworkName(ChainSlug.Ethereum)
 
 export async function getEnsName(address: string) {
   try {

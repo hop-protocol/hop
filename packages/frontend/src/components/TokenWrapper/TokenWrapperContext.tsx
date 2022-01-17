@@ -55,7 +55,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
 
   // TODO: mv to useBridges or new hook (useNetworkBridges)
   const canonicalToken = useMemo(() => {
-    if (selectedNetwork && selectedNetwork?.slug) {
+    if (selectedNetwork?.slug) {
       return selectedBridge?.getCanonicalToken(selectedNetwork.slug)
     }
   }, [selectedBridge, selectedNetwork])

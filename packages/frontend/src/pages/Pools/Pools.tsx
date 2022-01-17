@@ -26,7 +26,7 @@ import useQueryParams from 'src/hooks/useQueryParams'
 import { useNeedsTokenForFee } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
-import { defaultL2Network, allNetworks as networks } from 'src/config/networks'
+import { defaultL2Network } from 'src/config/networks'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -136,6 +136,7 @@ const Pools: FC = () => {
     reserveTotalsUsd,
     unsupportedAsset,
     removing,
+    networks,
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {

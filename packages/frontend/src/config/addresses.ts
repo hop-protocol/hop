@@ -1,20 +1,21 @@
 import { mainnetAddresses, mainnetNetworks } from './mainnet'
 import { addresses as kovanAddresses, networks as kovanNetworks } from './kovan'
 import { addresses as goerliAddresses, networks as goerliNetworks } from './goerli'
+import { Slug } from '@hop-protocol/sdk'
 
-const reactAppNetwork = process.env.REACT_APP_NETWORK || 'mainnet'
+const reactAppNetwork = process.env.REACT_APP_NETWORK || Slug.mainnet
 let hopAppNetwork = reactAppNetwork
-if (reactAppNetwork === 'staging') {
-  hopAppNetwork = 'mainnet'
+if (reactAppNetwork === Slug.staging) {
+  hopAppNetwork = Slug.mainnet
 }
 let addresses = kovanAddresses
 let networks = kovanNetworks
-const isMainnet = hopAppNetwork === 'mainnet'
+const isMainnet = hopAppNetwork === Slug.mainnet
 
 if (isMainnet) {
   addresses = mainnetAddresses
   networks = mainnetNetworks
-} else if (hopAppNetwork === 'goerli') {
+} else if (hopAppNetwork === Slug.goerli) {
   addresses = goerliAddresses
   networks = goerliNetworks
 }
@@ -52,6 +53,7 @@ if (process.env.NODE_ENV !== 'test') {
  / __  / /_/ / /_/ /
 /_/ /_/\\____/ .___/
            /_/
+
 `)
   console.log('Welcome 🐰')
   console.debug('ui version:', process.env.REACT_APP_GIT_SHA)
@@ -63,4 +65,12 @@ if (process.env.NODE_ENV !== 'test') {
 const blocknativeDappid = process.env.REACT_APP_BNC_DAPP_ID
 const fortmaticApiKey = process.env.REACT_APP_FORTMATIC_KEY
 
-export { addresses, hopAppNetwork, networks, isMainnet, blocknativeDappid, fortmaticApiKey }
+export {
+  addresses,
+  reactAppNetwork,
+  hopAppNetwork,
+  networks,
+  isMainnet,
+  blocknativeDappid,
+  fortmaticApiKey,
+}

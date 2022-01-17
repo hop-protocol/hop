@@ -12,7 +12,7 @@ import useEvents, { Events } from 'src/contexts/AppContext/useEvents'
 import useSettings, { Settings } from 'src/contexts/AppContext/useSettings'
 import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAccountDetails'
 import { useTxConfirm, TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
-import { hopAppNetwork } from 'src/config'
+import { reactAppNetwork } from 'src/config'
 import { allNetworks as networks } from 'src/config/networks'
 import { Theme, useTheme } from '@material-ui/core'
 
@@ -62,7 +62,7 @@ const AppContextProvider: FC = ({ children }) => {
   }, [provider])
 
   const sdk = useMemo(() => {
-    return new Hop(hopAppNetwork, provider?.getSigner())
+    return new Hop(reactAppNetwork, provider?.getSigner())
   }, [provider])
 
   const { bridges, selectedBridge, setSelectedBridge } = useBridges(sdk)

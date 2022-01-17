@@ -1,4 +1,4 @@
-import { TChain } from '@hop-protocol/sdk'
+import { CanonicalToken, ChainSlug, Slug, TChain } from '@hop-protocol/sdk'
 import { find } from 'lodash'
 import { networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
@@ -17,7 +17,7 @@ export const networkSlugToName = (slug: string) => {
   return n?.name
 }
 
-export const networkIdToSlug = (networkId: string | number): string => {
+export const networkIdToSlug = (networkId: string | number): Slug | string => {
   if (typeof networkId === 'number') {
     networkId = networkId.toString()
   }
@@ -25,7 +25,7 @@ export const networkIdToSlug = (networkId: string | number): string => {
   for (const key in networks) {
     const v = networks[key]
     if (v.networkId.toString() === networkId) {
-      return key
+      return key as Slug
     }
   }
 
@@ -39,12 +39,12 @@ export const networkIdToName = (networkId: string | number) => {
 
 export const networkIdNativeTokenSymbol = (networkId: string | number) => {
   const slug = networkIdToSlug(networkId)
-  if (slug === 'gnosis') {
-    return 'XDAI'
-  } else if (slug === 'polygon') {
-    return 'MATIC'
+  if (slug === ChainSlug.Gnosis) {
+    return CanonicalToken.XDAI
+  } else if (slug === ChainSlug.Polygon) {
+    return CanonicalToken.MATIC
   }
-  return 'ETH'
+  return CanonicalToken.ETH
 }
 
 export function getNetworkWaitConfirmations(tChain: TChain) {

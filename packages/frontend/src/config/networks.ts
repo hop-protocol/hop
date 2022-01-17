@@ -1,3 +1,4 @@
+import { ChainSlug } from '@hop-protocol/sdk'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import Network from 'src/models/Network'
@@ -8,7 +9,7 @@ export const allNetworks = Object.keys(networks).map(key => {
   const net = networks[key]
   let meta = metadata.networks[key]
 
-  if (key === 'ethereum') {
+  if (key === ChainSlug.Ethereum) {
     meta = metadata.networks[hopAppNetwork]
   }
 

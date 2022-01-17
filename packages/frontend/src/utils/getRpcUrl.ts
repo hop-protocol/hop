@@ -1,5 +1,6 @@
-import { L1_NETWORK, Chain } from 'src/utils'
+import { L1_NETWORK } from 'src/utils'
 import { networks } from 'src/config'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 export const getRpcUrl = (network: string) => {
   const networkRpcUrl = networks[network]?.rpcUrl
@@ -12,10 +13,10 @@ export const getRpcUrl = (network: string) => {
 
 export function getAllRpcUrls() {
   return {
-    arbitrum: getRpcUrl(Chain.Arbitrum),
-    optimism: getRpcUrl(Chain.Optimism),
-    gnosis: getRpcUrl(Chain.Gnosis),
-    polygon: getRpcUrl(Chain.Polygon),
+    arbitrum: getRpcUrl(ChainSlug.Arbitrum),
+    optimism: getRpcUrl(ChainSlug.Optimism),
+    gnosis: getRpcUrl(ChainSlug.Gnosis),
+    polygon: getRpcUrl(ChainSlug.Polygon),
     ethereum: getRpcUrl(L1_NETWORK),
   }
 }

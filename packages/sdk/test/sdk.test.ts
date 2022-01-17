@@ -1,9 +1,9 @@
 import Token from '../src/models/Token'
+import { BigNumber, Wallet, constants, providers } from 'ethers'
 import {
   Chain,
   Hop
 } from '../src/index'
-import { Wallet, providers } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
 import * as addresses from '@hop-protocol/core/addresses'
@@ -411,16 +411,14 @@ describe('approve addresses', () => {
   const bridge = sdk.bridge('USDC')
   it('get send approval address (L1 -> L2)', () => {
     const approvalAddress = bridge.getSendApprovalAddress(
-      Chain.Ethereum,
-      Chain.Gnosis
+      Chain.Ethereum
     )
     const expectedAddress = addresses.mainnet.bridges.USDC.ethereum.l1Bridge
     expect(approvalAddress).toBe(expectedAddress)
   })
   it('get send approval address (L2 -> L2)', () => {
     const approvalAddress = bridge.getSendApprovalAddress(
-      Chain.Polygon,
-      Chain.Gnosis
+      Chain.Polygon
     )
     const expectedAddress = addresses.mainnet.bridges.USDC.polygon.l2AmmWrapper
     expect(approvalAddress).toBe(expectedAddress)
@@ -448,7 +446,7 @@ describe('custom chain providers', () => {
     const currentPolygonUrl = 'https://polygon-rpc.com'
     const currentGnosisUrl = 'https://rpc.gnosischain.com/'
     const newPolygonUrl = 'https://polygon-rpc2.com'
-    const newGnosisUrl = 'https://rpc.xdaichain2.com'
+    const newGnosisUrl = 'https://rpc.gnosischain2.com'
     expect((polygonProvider as any).connection.url).toBe(currentPolygonUrl)
     expect((gnosisProvider as any).connection.url).toBe(currentGnosisUrl)
     sdk.setChainProviders({
@@ -492,5 +490,136 @@ describe('getSupportedAssets', () => {
     const hop = new Hop('mainnet')
     const assets = hop.getSupportedAssets()
     expect(assets).toBeTruthy()
+  })
+})
+
+describe.only('get call data only (no signer connected)', () => {
+  it('should return call data for L1->L2 ETH send', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const amount = parseUnits('0.01', 18)
+    const sourceChain = 'ethereum'
+    const destinationChain = 'gnosis'
+    const recipient = constants.AddressZero
+    const txObj = await bridge.populateSendTx(amount, sourceChain, destinationChain, {
+      recipient
+    })
+    expect(txObj.value).toBeTruthy()
+    expect(txObj.data).toBeTruthy()
+    expect(txObj.to).toBeTruthy()
+  }, 30 * 1000)
+  it('should return call data for L1->L2 USDC send', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const amount = parseUnits('150', 6)
+    const sourceChain = 'ethereum'
+    const destinationChain = 'gnosis'
+    const recipient = constants.AddressZero
+    const txObj = await bridge.populateSendTx(amount, sourceChain, destinationChain, {
+      recipient
+    })
+    expect(txObj.value).toBeFalsy()
+    expect(txObj.data).toBeTruthy()
+    expect(txObj.to).toBeTruthy()
+  }, 30 * 1000)
+  it('should return call data for L2->L2 USDC send', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const amount = parseUnits('1', 6)
+    const sourceChain = 'gnosis'
+    const destinationChain = 'polygon'
+    const recipient = constants.AddressZero
+    const txObj = await bridge.populateSendTx(amount, sourceChain, destinationChain, {
+      recipient
+    })
+    expect(txObj.value).toBeFalsy()
+    expect(txObj.data).toBeTruthy()
+    expect(txObj.to).toBeTruthy()
+  }, 30 * 1000)
+  it('should return call data for L2->L1 USDC send', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const amount = parseUnits('150', 6)
+    const sourceChain = 'gnosis'
+    const destinationChain = 'ethereum'
+    const recipient = constants.AddressZero
+    const txObj = await bridge.populateSendTx(amount, sourceChain, destinationChain, {
+      recipient
+    })
+    expect(txObj.value).toBeFalsy()
+    expect(txObj.data).toBeTruthy()
+    expect(txObj.to).toBeTruthy()
+  }, 30 * 1000)
+  it('should return call data for add liquidity call', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const sourceChain = 'gnosis'
+    const amount = parseUnits('1', 6)
+    const txObj = await bridge.populateSendApprovalTx(amount, sourceChain)
+    expect(txObj.data).toBeTruthy()
+    expect(txObj.to).toBeTruthy()
+  }, 30 * 1000)
+  it('should return call data for add liquidity call', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const chain = 'gnosis'
+    const amm = await bridge.getAmm(chain)
+    const amount0 = parseUnits('1', 6)
+    const amount1 = parseUnits('1', 6)
+    const minToMint = BigNumber.from(0)
+    const txObj = await amm.populateAddLiquidityTx(amount0, amount1, minToMint)
+    expect(txObj.data).toBeTruthy()
+    expect(txObj.to).toBeTruthy()
+  }, 30 * 1000)
+  it('should return call data for remove liquidity call', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const chain = 'gnosis'
+    const amm = await bridge.getAmm(chain)
+    const lpTokenAmount = parseUnits('1', 18)
+    const amount0Min = BigNumber.from(0)
+    const amount1Min = BigNumber.from(0)
+    const txObj = await amm.populateRemoveLiquidityTx(lpTokenAmount, amount0Min, amount1Min)
+    expect(txObj.data).toBeTruthy()
+    expect(txObj.to).toBeTruthy()
+  }, 30 * 1000)
+})
+
+describe.skip('get estimated gas (no signer connected)', () => {
+  it('should return estimated gas for L1->L2 send', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const amount = parseUnits('1', 6)
+    const sourceChain = 'ethereum'
+    const destinationChain = 'gnosis'
+    const recipient = constants.AddressZero
+    const estimatedGas = await bridge.estimateSendGasLimit(amount, sourceChain, destinationChain, {
+      recipient
+    })
+    expect(estimatedGas.gt(0)).toBeTruthy()
+  })
+  it('should return estimated gas for L2->L2 send', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const amount = parseUnits('1', 6)
+    const sourceChain = 'gnosis'
+    const destinationChain = 'polygon'
+    const recipient = constants.AddressZero
+    const estimatedGas = await bridge.estimateSendGasLimit(amount, sourceChain, destinationChain, {
+      recipient
+    })
+    expect(estimatedGas.gt(0)).toBeTruthy()
+  })
+  it('should return estimated gas for L2->L1 send', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const amount = parseUnits('100', 6)
+    const sourceChain = 'gnosis'
+    const destinationChain = 'ethereum'
+    const recipient = constants.AddressZero
+    const estimatedGas = await bridge.estimateSendGasLimit(amount, sourceChain, destinationChain, {
+      recipient
+    })
+    expect(estimatedGas.gt(0)).toBeTruthy()
   })
 })

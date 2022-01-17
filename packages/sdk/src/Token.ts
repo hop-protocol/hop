@@ -5,6 +5,7 @@ import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import wethAbi from '@hop-protocol/core/abi/static/WETH9.json'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
 import { TAmount, TChain } from './types'
+import { TokenSymbol, WrappedToken } from './constants'
 
 /**
  * Class reprensenting ERC20 Token
@@ -17,7 +18,7 @@ class Token extends Base {
   public readonly image: string
   public readonly chain: Chain
   public readonly contract: Contract
-  _symbol: string
+  _symbol: TokenSymbol
 
   // TODO: clean up and remove unused parameters.
   /**
@@ -36,7 +37,7 @@ class Token extends Base {
     chain: TChain,
     address: string,
     decimals: number,
-    symbol: string,
+    symbol: TokenSymbol,
     name: string,
     image: string,
     signer?: Signer | providers.Provider,
@@ -54,7 +55,7 @@ class Token extends Base {
 
   get symbol () {
     if (this._symbol === TokenModel.ETH && !this.isNativeToken) {
-      return 'WETH'
+      return WrappedToken.WETH
     }
     return this._symbol
   }
@@ -117,9 +118,12 @@ class Token extends Base {
     if (this.isNativeToken) {
       return this.getNativeTokenBalance(address)
     }
-    const _address = address ?? (await this.getSignerAddress())
+    address = address ?? await this.getSignerAddress()
+    if (!address) {
+      throw new Error('address is required')
+    }
     const tokenContract = await this.getErc20()
-    return tokenContract.balanceOf(_address)
+    return tokenContract.balanceOf(address)
   }
 
   /**
@@ -168,14 +172,22 @@ class Token extends Base {
     spender: string,
     amount: TAmount = ethers.constants.MaxUint256
   ) {
+    const populatedTx = await this.populateApproveTx(spender, amount)
+    const allowance = await this.allowance(spender)
+    if (allowance.lt(BigNumber.from(amount))) {
+      return this.signer.sendTransaction(populatedTx)
+    }
+  }
+
+  public async populateApproveTx (
+    spender: string,
+    amount: TAmount = ethers.constants.MaxUint256
+  ):Promise<any> {
     if (this.isNativeToken) {
       return
     }
     const tokenContract = await this.getErc20()
-    const allowance = await this.allowance(spender)
-    if (allowance.lt(BigNumber.from(amount))) {
-      return tokenContract.approve(spender, amount, await this.overrides())
-    }
+    return tokenContract.populateTransaction.approve(spender, amount, await this.overrides())
   }
 
   /**
@@ -223,8 +235,11 @@ class Token extends Base {
   }
 
   public async getNativeTokenBalance (address?: string): Promise<BigNumber> {
-    const _address = address ?? (await this.getSignerAddress())
-    return this.chain.provider.getBalance(_address)
+    address = address ?? await this.getSignerAddress()
+    if (!address) {
+      throw new Error('address is required')
+    }
+    return this.chain.provider.getBalance(address)
   }
 
   async getWethContract (chain: TChain): Promise<Contract> {
@@ -241,7 +256,7 @@ class Token extends Base {
       this.chain,
       this.address,
       this.decimals,
-      `W${this._symbol}`,
+      `W${this._symbol}` as WrappedToken,
       this.name,
       this.image,
       this.signer,
@@ -295,14 +310,14 @@ class Token extends Base {
   }
 
   private async getGasEstimateFromAddress () {
-    try {
-      return await this.getSignerAddress()
-    } catch (err) {
-      return await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
+    let address = await this.getSignerAddress()
+    if (!address) {
+      address = await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
     }
+    return address
   }
 
-  static fromJSON (json: any):Token {
+  static fromJSON (json: any): Token {
     return new Token(
       json.network,
       json.chain,

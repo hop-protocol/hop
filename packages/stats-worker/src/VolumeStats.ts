@@ -63,7 +63,11 @@ class VolumeStats {
   }
 
   getUrl (chain: string) {
+    if (chain == 'gnosis') {
+      chain = 'xdai'
+    }
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+    // return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
   }
 
   async queryFetch (url: string, query: string, variables?: any) {
@@ -104,6 +108,10 @@ class VolumeStats {
     const data = await this.queryFetch(url, query, {
       startDate
     })
+
+    if (!data) {
+      return []
+    }
 
     let items = data.dailyVolumes
 

@@ -665,6 +665,14 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer it, transferId: ${transferId}`)
     }
 
+    const logger = this.logger.create({ id: transferId })
+
+    if (!dbTransfer.sourceChainId) {
+      logger.warn('populateTransferDbItem marking item not found. Missing sourceChainId (possibly due to missing TransferSent event). isNotFound: true')
+      await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
   }
@@ -673,6 +681,14 @@ class SyncWatcher extends BaseWatcher {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
       throw new Error(`expected db transfer root item, transferRootId: ${transferRootId}`)
+    }
+
+    const logger = this.logger.create({ id: transferRootId })
+
+    if (!dbTransferRoot.sourceChainId) {
+      logger.warn('populateTransferRootDbItem marking item not found. Missing sourceChainId (possibly due to missing TransfersCommitted event). isNotFound: true')
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
     }
 
     await this.populateTransferRootCommittedAt(transferRootId)
@@ -1000,6 +1016,8 @@ class SyncWatcher extends BaseWatcher {
     { endBlockNumber: eventBlockNumber, startBlockNumber })
 
     if (!endEvent) {
+      logger.warn(`populateTransferRootTransferIds no end event found for transferRootHash ${transferRootHash}. isNotFound: true`)
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
 

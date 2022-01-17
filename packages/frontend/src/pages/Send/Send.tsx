@@ -12,7 +12,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
+import { commafy, isL1ToL2, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
@@ -35,6 +35,8 @@ import {
   useNativeTokenMaxValue,
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
+import { ChainSlug } from '@hop-protocol/sdk'
+import { ExternalLink } from 'src/components/Link'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -583,6 +585,12 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
+  const isL1ToPolygon =
+    fromNetwork &&
+    toNetwork &&
+    isL1ToL2(fromNetwork, toNetwork) &&
+    toNetwork.slug === ChainSlug.Polygon
+
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
   const sendButtonActive = useMemo(() => {
@@ -597,7 +605,8 @@ const Send: FC = () => {
       rate &&
       enoughBalance &&
       isLiquidityAvailable &&
-      estimatedReceived?.gt(0)
+      estimatedReceived?.gt(0) &&
+      !isL1ToPolygon
     )
   }, [
     needsApproval,
@@ -611,6 +620,7 @@ const Send: FC = () => {
     enoughBalance,
     isLiquidityAvailable,
     estimatedReceived,
+    isL1ToPolygon,
   ])
 
   return (
@@ -672,19 +682,14 @@ const Send: FC = () => {
 
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
-          {totalBonderFee?.gt(0) && (
-            <DetailRow
-              title={'Fees'}
-              tooltip={
-                <FeeDetails
-                  bonderFee={bonderFeeDisplay}
-                  destinationTxFee={destinationTxFeeDisplay}
-                />
-              }
-              value={totalBonderFeeDisplay}
-              large
-            />
-          )}
+          <DetailRow
+            title={'Fees'}
+            tooltip={
+              <FeeDetails bonderFee={bonderFeeDisplay} destinationTxFee={destinationTxFeeDisplay} />
+            }
+            value={totalBonderFeeDisplay}
+            large
+          />
 
           <DetailRow
             title="Estimated Received"
@@ -703,7 +708,16 @@ const Send: FC = () => {
         </div>
       </div>
 
-      <Alert severity="error" onClose={() => setError(null)} text={error} />
+      <Alert severity="error" onClose={() => setError(null)} text={error}>
+        {isL1ToPolygon && (
+          <ExternalLink
+            href="https://discord.com/channels/789310208413270078/928672267590848512/932741564378259527"
+            text="The Polygon messenger is currently down and Ethereum to Polygon transfers cannot be completed until it’s back online. Please, try again later and check the"
+            linkText="#status"
+            postText="Discord channel for updates"
+          />
+        )}
+      </Alert>
       {!error && <Alert severity="warning">{warning}</Alert>}
 
       <ButtonsWrapper>

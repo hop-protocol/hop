@@ -349,8 +349,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       const targetAddress = await convertOption.getTargetAddress(
         sdk,
         selectedBridge?.getTokenSymbol(),
-        sourceNetwork,
-        destNetwork
+        sourceNetwork
       )
 
       return checkApproval(parsedSourceTokenAmount, sourceToken, targetAddress)
@@ -384,8 +383,7 @@ const ConvertContextProvider: FC = ({ children }) => {
       const targetAddress = await convertOption.getTargetAddress(
         sdk,
         selectedBridge?.getTokenSymbol(),
-        sourceNetwork,
-        destNetwork
+        sourceNetwork
       )
 
       const tx = await approve(parsedSourceTokenAmount, sourceToken, targetAddress)

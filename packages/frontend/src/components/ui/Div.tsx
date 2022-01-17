@@ -1,25 +1,6 @@
 import * as React from 'react'
+import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import styled from 'styled-components/macro'
-import {
-  space,
-  color,
-  layout,
-  typography,
-  flexbox,
-  border,
-  background,
-  shadow,
-  position,
-  FlexboxProps,
-  SpaceProps,
-  ColorProps,
-  LayoutProps,
-  TypographyProps,
-  BorderProps,
-  BackgroundProps,
-  ShadowProps,
-  PositionProps,
-} from 'styled-system'
 
 interface DivBaseProps {
   children?: any
@@ -34,16 +15,7 @@ interface DivBaseProps {
   fullWidth?: boolean
 }
 
-type DivProps = SpaceProps &
-  ColorProps &
-  LayoutProps &
-  TypographyProps &
-  FlexboxProps &
-  BorderProps &
-  BackgroundProps &
-  ShadowProps &
-  PositionProps &
-  DivBaseProps
+export type DivProps = ComposedStyleProps & DivBaseProps
 
 const Div: React.FC<DivProps> = styled.div<DivProps>`
   box-sizing: border-box;
@@ -54,15 +26,7 @@ const Div: React.FC<DivProps> = styled.div<DivProps>`
 
   transition: background 0.15s ease-out;
 
-  ${space};
-  ${color};
-  ${layout};
-  ${typography};
-  ${border};
-  ${background};
-  ${shadow};
-  ${position};
-  ${flexbox};
+  ${composedStyleFns}
 `
 
 export default Div

@@ -63,7 +63,11 @@ class TvlStats {
   }
 
   getUrl (chain: string) {
+    if (chain == 'gnosis') {
+      chain = 'xdai'
+    }
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+    // return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
   }
 
   async queryFetch (url: string, query: string, variables?: any) {
@@ -124,8 +128,12 @@ class TvlStats {
       endDate
     })
 
+    if (!data) {
+      return {}
+    }
+
     if (data.add.length > 1000 || data.minus.length > 1000) {
-      throw new Error('here')
+      throw new Error('Size error')
     }
 
     const totalAmounts: any = {}
@@ -216,9 +224,7 @@ class TvlStats {
           const endTimestamp = Math.floor(endDate.toSeconds())
           const startTimestamp = Math.floor(startDate.toSeconds())
 
-          console.log(
-            `fetching daily volume stats, chain: ${chain}, day: ${day}`
-          )
+          console.log(`fetching daily tvl stats, chain: ${chain}, day: ${day}`)
           const totalAmounts = await this.fetchLiquidity(
             chain,
             startTimestamp,
@@ -249,7 +255,7 @@ class TvlStats {
             }
           }
         }
-        console.log(`done fetching daily volume stats, chain: ${chain}`)
+        console.log(`done fetching daily tvl stats, chain: ${chain}`)
       })
     )
   }

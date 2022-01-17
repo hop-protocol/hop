@@ -1,6 +1,5 @@
 import React, { ReactNode } from 'react'
-import { formatUnits } from 'ethers/lib/utils'
-import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
+import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { commafy, toTokenDisplay } from 'src/utils'
@@ -23,9 +22,8 @@ class AmmConvertOption extends ConvertOption {
 
   async getTargetAddress(
     sdk: Hop,
-    l1TokenSymbol: string | undefined,
-    sourceNetwork: Network | undefined,
-    destNetwork: Network | undefined
+    l1TokenSymbol?: TokenSymbol,
+    sourceNetwork?: Network
   ): Promise<string> {
     if (!l1TokenSymbol) {
       throw new Error('Token is required to get target address')
@@ -46,8 +44,8 @@ class AmmConvertOption extends ConvertOption {
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined,
     isForwardDirection: boolean,
-    l1TokenSymbol: string | undefined,
-    amountIn: BigNumberish | undefined
+    l1TokenSymbol?: TokenSymbol,
+    amountIn?: BigNumberish
   ): Promise<SendData> {
     if (!l1TokenSymbol || !sourceNetwork) {
       return {
@@ -90,7 +88,7 @@ class AmmConvertOption extends ConvertOption {
     sourceNetwork: Network,
     destNetwork: Network,
     isForwardDirection: boolean,
-    l1TokenSymbol: string,
+    l1TokenSymbol: TokenSymbol,
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
     deadline: number,
@@ -150,7 +148,7 @@ class AmmConvertOption extends ConvertOption {
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined,
     isForwardDirection: boolean,
-    l1TokenSymbol: string
+    l1TokenSymbol: TokenSymbol
   ): Promise<ReactNode> {
     let rateDisplay = '-'
     let slippageToleranceDisplay = '-'

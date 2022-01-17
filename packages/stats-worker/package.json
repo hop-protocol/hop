@@ -10,7 +10,8 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "start:apr": "ts-node src/index.ts --apr",
-    "start:volume": "ts-node src/index.ts --volume --tvl",
+    "start:volume": "ts-node src/index.ts --volume",
+    "start:tvl": "ts-node src/index.ts --tvl",
     "build": "tsc",
     "lint": "prettier-standard --format",
     "clean": "rimraf dist",

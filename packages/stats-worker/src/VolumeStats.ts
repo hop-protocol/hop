@@ -42,10 +42,19 @@ function sumAmounts (items: any) {
   return sum
 }
 
+type Options = {
+  regenesis?: boolean
+}
+
 class VolumeStats {
   db = new Db()
+  regenesis: boolean = false
 
-  constructor () {
+  constructor (options: Options = {}) {
+    if (options.regenesis) {
+      this.regenesis = options.regenesis
+    }
+
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
       this.cleanUp()
@@ -66,8 +75,12 @@ class VolumeStats {
     if (chain == 'gnosis') {
       chain = 'xdai'
     }
+
+    if (this.regenesis) {
+      return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
+    }
+
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-    // return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
   }
 
   async queryFetch (url: string, query: string, variables?: any) {
@@ -177,7 +190,11 @@ class VolumeStats {
     }
     console.log('done upserting prices')
 
-    const chains = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'mainnet']
+    let chains = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'mainnet']
+    if (this.regenesis) {
+      chains = ['optimism']
+    }
+
     const now = Math.floor(DateTime.utc().toSeconds())
 
     await Promise.all(

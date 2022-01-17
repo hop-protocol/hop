@@ -42,10 +42,19 @@ function sumAmounts (items: any) {
   return sum
 }
 
+type Options = {
+  regenesis?: boolean
+}
+
 class TvlStats {
   db = new Db()
+  regenesis: boolean = false
 
-  constructor () {
+  constructor (options: Options = {}) {
+    if (options.regenesis) {
+      this.regenesis = options.regenesis
+    }
+
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
       this.cleanUp()
@@ -66,8 +75,12 @@ class TvlStats {
     if (chain == 'gnosis') {
       chain = 'xdai'
     }
+
+    if (this.regenesis) {
+      return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
+    }
+
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-    // return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
   }
 
   async queryFetch (url: string, query: string, variables?: any) {
@@ -103,6 +116,7 @@ class TvlStats {
         ) {
           id
           tokenAmounts
+          lpTokenSupply
           timestamp
           token
         },
@@ -117,6 +131,40 @@ class TvlStats {
         ) {
           id
           tokenAmounts
+          timestamp
+          token
+        },
+        minus2: removeLiquidityOnes(
+          where: {
+            timestamp_gte: $startDate,
+            timestamp_lte: $endDate,
+          },
+          orderBy: timestamp,
+          orderDirection: desc,
+          first: 1000
+        ) {
+          id
+          lpTokenAmount
+          lpTokenSupply
+          boughtId
+          tokensBought
+          timestamp
+          token
+        },
+        minus3: removeLiquidityImbalances(
+          where: {
+            timestamp_gte: $startDate,
+            timestamp_lte: $endDate,
+          },
+          orderBy: timestamp,
+          orderDirection: desc,
+          first: 1000
+        ) {
+          id
+          tokenAmounts
+          fees
+          invariant
+          lpTokenSupply
           timestamp
           token
         }
@@ -149,6 +197,25 @@ class TvlStats {
       )
     }
     for (let item of data.minus) {
+      if (!totalAmounts[item.token]) {
+        totalAmounts[item.token] = BigNumber.from(0)
+      }
+      totalAmounts[item.token] = totalAmounts[item.token].sub(
+        BigNumber.from(item.tokenAmounts[0])
+      )
+      totalAmounts[item.token] = totalAmounts[item.token].sub(
+        BigNumber.from(item.tokenAmounts[1])
+      )
+    }
+    for (let item of data.minus2) {
+      if (!totalAmounts[item.token]) {
+        totalAmounts[item.token] = BigNumber.from(0)
+      }
+      totalAmounts[item.token] = totalAmounts[item.token].sub(
+        BigNumber.from(item.tokensBought)
+      )
+    }
+    for (let item of data.minus3) {
       if (!totalAmounts[item.token]) {
         totalAmounts[item.token] = BigNumber.from(0)
       }
@@ -213,7 +280,10 @@ class TvlStats {
     }
     console.log('done upserting prices')
 
-    const chains = ['polygon', 'gnosis', 'arbitrum', 'optimism']
+    let chains = ['polygon', 'gnosis', 'arbitrum', 'optimism']
+    if (this.regenesis) {
+      chains = ['optimism']
+    }
     const now = DateTime.utc()
 
     await Promise.all(

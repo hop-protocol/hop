@@ -9,7 +9,8 @@ function main () {
     apr: argv.apr,
     tvl: argv.tvl,
     volume: argv.volume,
-    regenesis: argv.regenesis
+    regenesis: argv.regenesis,
+    days: argv.days
   })
 
   worker.start()

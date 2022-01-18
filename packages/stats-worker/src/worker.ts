@@ -9,6 +9,7 @@ type Options = {
   tvl?: boolean
   volume?: boolean
   regenesis?: boolean
+  days?: number
 }
 
 class Worker {
@@ -22,7 +23,7 @@ class Worker {
   volume: boolean = false
 
   constructor (options: Options = {}) {
-    const { apr, tvl, volume, regenesis } = options
+    const { apr, tvl, volume, regenesis, days } = options
     this.apr = apr
     this.tvl = tvl
     this.volume = volume
@@ -31,7 +32,8 @@ class Worker {
       regenesis
     })
     this.tvlStats = new TvlStats({
-      regenesis
+      regenesis,
+      days
     })
   }
 

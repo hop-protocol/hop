@@ -15,18 +15,15 @@ import SendButton from 'src/pages/Pools/SendButton'
 import {
   commafy,
   findMatchingBridge,
-  findNetworkBySlug,
   sanitizeNumericalString,
   toPercentDisplay,
   toTokenDisplay,
 } from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/DetailRow'
-import useQueryParams from 'src/hooks/useQueryParams'
 import { useNeedsTokenForFee } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
-import { defaultL2Network } from 'src/config/networks'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -121,9 +118,8 @@ const Pools: FC = () => {
     removing,
     reserveTotalsUsd,
     selectedNetwork,
-    selectSourceNetwork,
+    selectBothNetworks,
     setError,
-    setSelectedNetwork,
     setToken0Amount,
     setToken1Amount,
     setWarning,
@@ -145,30 +141,6 @@ const Pools: FC = () => {
     const bridge = findMatchingBridge(bridges, tokenSymbol)
     if (bridge) {
       setSelectedBridge(bridge)
-    }
-  }
-
-  const { queryParams, updateQueryParams } = useQueryParams()
-
-  useEffect(() => {
-    if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
-      const matchingNetwork = findNetworkBySlug(queryParams.sourceNetwork as string)
-      if (matchingNetwork && !matchingNetwork?.isLayer1) {
-        setSelectedNetwork(matchingNetwork)
-      } else {
-        setSelectedNetwork(defaultL2Network)
-      }
-    }
-  }, [queryParams])
-
-  const handleNetworkSelect = (event: ChangeEvent<{ value: any }>) => {
-    const selectedNetworkSlug = event.target.value
-    const newSelectedNetwork = findNetworkBySlug(selectedNetworkSlug)
-    if (newSelectedNetwork) {
-      setSelectedNetwork(newSelectedNetwork)
-      updateQueryParams({
-        sourceNetwork: newSelectedNetwork?.slug ?? '',
-      })
     }
   }
 
@@ -257,7 +229,7 @@ const Pools: FC = () => {
         <Typography variant="body1" component="span" className={styles.textSpacing}>
           on
         </Typography>
-        <RaisedSelect value={selectedNetwork?.slug} onChange={handleNetworkSelect}>
+        <RaisedSelect value={selectedNetwork?.slug} onChange={selectBothNetworks}>
           {networks.map(network => (
             <MenuItem value={network.slug} key={network.slug}>
               <SelectOption value={network.slug} icon={network.imageUrl} label={network.name} />

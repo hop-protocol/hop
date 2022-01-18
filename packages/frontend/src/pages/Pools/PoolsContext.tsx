@@ -7,6 +7,7 @@ import React, {
   useMemo,
   useRef,
   useCallback,
+  ChangeEvent,
 } from 'react'
 import { Signer, BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -22,7 +23,14 @@ import { shiftBNDecimals, BNMin } from 'src/utils'
 import { hopAppNetwork } from 'src/config'
 import { defaultL2Network, l2Networks } from 'src/config/networks'
 import { amountToBN, formatError } from 'src/utils/format'
-import { useTransactionReplacement, useAsyncMemo, useBalance, useApprove } from 'src/hooks'
+import {
+  useTransactionReplacement,
+  useAsyncMemo,
+  useBalance,
+  useApprove,
+  useSelectedNetwork,
+  useAssets,
+} from 'src/hooks'
 import { useInterval } from 'react-use'
 
 type PoolsContextProps = {
@@ -49,7 +57,7 @@ type PoolsContextProps = {
   sendButtonText: string
   sending: boolean
   setError: (error: string | null | undefined) => void
-  setSelectedNetwork: (network: Network) => void
+  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
   setToken0Amount: (value: string) => void
   setToken1Amount: (value: string) => void
   setWarning: (warning?: string) => void
@@ -98,7 +106,7 @@ const PoolsContext = createContext<PoolsContextProps>({
   sendButtonText: '',
   sending: false,
   setError: (error: string | null | undefined) => {},
-  setSelectedNetwork: (network: Network) => {},
+  selectBothNetworks: () => {},
   setToken0Amount: (value: string) => {},
   setToken1Amount: (value: string) => {},
   setWarning: (warning?: string) => {},
@@ -150,34 +158,10 @@ const PoolsContextProvider: FC = ({ children }) => {
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const [error, setError] = useState<string | null | undefined>(null)
   const [warning, setWarning] = useState<string>()
-  const [selectedNetwork, setSelectedNetwork] = useState<Network>(defaultL2Network)
-
-  const unsupportedAsset = useMemo(() => {
-    if (!(selectedBridge && selectedNetwork)) {
-      return null
-    }
-    const unsupportedAssets = {
-      Optimism: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
-      Arbitrum: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
-    }
-
-    const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
-    for (const chain in unsupportedAssets) {
-      const tokenSymbols = unsupportedAssets[chain]
-      for (const tokenSymbol of tokenSymbols) {
-        const isUnsupported =
-          selectedTokenSymbol.includes(tokenSymbol) && selectedNetwork?.slug === chain.toLowerCase()
-        if (isUnsupported) {
-          return {
-            chain,
-            tokenSymbol,
-          }
-        }
-      }
-    }
-
-    return null
-  }, [selectedBridge, selectedNetwork])
+  const { selectedNetwork, selectBothNetworks } = useSelectedNetwork({
+    l2Only: true,
+  })
+  const { unsupportedAsset } = useAssets(selectedBridge, selectedNetwork)
 
   const isNativeToken =
     useMemo(() => {
@@ -289,12 +273,6 @@ const PoolsContextProvider: FC = ({ children }) => {
       isSubscribed = false
     }
   }, [unsupportedAsset, selectedNetwork, canonicalToken, tokenUsdPrice])
-
-  useEffect(() => {
-    if (selectedNetwork && !l2Networks.includes(selectedNetwork)) {
-      setSelectedNetwork(defaultL2Network)
-    }
-  }, [l2Networks])
 
   useEffect(() => {
     let isSubscribed = true
@@ -905,8 +883,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         selectedNetwork,
         sendButtonText,
         sending,
+        selectBothNetworks,
         setError,
-        setSelectedNetwork,
         setToken0Amount,
         setToken1Amount,
         setWarning,

@@ -26,99 +26,99 @@ import { useTransactionReplacement, useAsyncMemo, useBalance, useApprove } from 
 import { useInterval } from 'react-use'
 
 type PoolsContextProps = {
-  networks: Network[]
-  canonicalToken?: Token
-  hopToken?: Token
-  address?: Address
-  totalSupply: string | undefined
-  selectedNetwork?: Network
-  setSelectedNetwork: (network: Network) => void
-  token0Amount: string
-  setToken0Amount: (value: string) => void
-  token1Amount: string
-  setToken1Amount: (value: string) => void
-  poolSharePercentage: string | undefined
-  token0Price: string | undefined
-  token1Price: string | undefined
-  poolReserves: BigNumber[]
-  token1Rate: string | undefined
   addLiquidity: () => void
+  address?: Address
+  apr: number | undefined
+  canonicalBalance: BigNumber | undefined
+  canonicalToken?: Token
+  error: string | null | undefined
+  fee: number | undefined
+  hopBalance: BigNumber | undefined
+  hopToken?: Token
+  isNativeToken: boolean
+  loadingCanonicalBalance: boolean
+  loadingHopBalance: boolean
+  networks: Network[]
+  poolReserves: BigNumber[]
+  poolSharePercentage: string | undefined
+  priceImpact: number | undefined
   removeLiquidity: () => void
+  removing: boolean
+  reserveTotalsUsd: number | undefined
+  selectedNetwork?: Network
+  sendButtonText: string
+  sending: boolean
+  setError: (error: string | null | undefined) => void
+  setSelectedNetwork: (network: Network) => void
+  setToken0Amount: (value: string) => void
+  setToken1Amount: (value: string) => void
+  setWarning: (warning?: string) => void
+  token0Amount: string
+  token0Deposited: BigNumber | undefined
+  token0Price: string | undefined
+  token1Amount: string
+  token1Deposited: BigNumber | undefined
+  token1Price: string | undefined
+  token1Rate: string | undefined
+  tokenSumDeposited: BigNumber | undefined
+  totalSupply: string | undefined
+  txHash: string | undefined
+  unsupportedAsset: any
   userPoolBalance: BigNumber | undefined
   userPoolBalanceFormatted: string | undefined
   userPoolTokenPercentage: string | undefined
-  token0Deposited: BigNumber | undefined
-  token1Deposited: BigNumber | undefined
-  tokenSumDeposited: BigNumber | undefined
-  canonicalBalance: BigNumber | undefined
-  hopBalance: BigNumber | undefined
-  loadingCanonicalBalance: boolean
-  loadingHopBalance: boolean
-  txHash: string | undefined
-  sending: boolean
-  removing: boolean
   validFormFields: boolean
-  sendButtonText: string
-  error: string | null | undefined
-  warning?: string
-  setError: (error: string | null | undefined) => void
-  setWarning: (warning?: string) => void
-  isNativeToken: boolean
-  fee: number | undefined
-  apr: number | undefined
-  priceImpact: number | undefined
   virtualPrice: number | undefined
-  reserveTotalsUsd: number | undefined
-  unsupportedAsset: any
+  warning?: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 
 const PoolsContext = createContext<PoolsContextProps>({
-  networks: [],
-  canonicalToken: undefined,
-  hopToken: undefined,
-  address: undefined,
-  totalSupply: undefined,
-  selectedNetwork: undefined,
-  setSelectedNetwork: (network: Network) => {},
-  token0Amount: '',
-  setToken0Amount: (value: string) => {},
-  token1Amount: '',
-  setToken1Amount: (value: string) => {},
-  poolSharePercentage: undefined,
-  token0Price: undefined,
-  token1Price: undefined,
-  poolReserves: [],
-  token1Rate: undefined,
   addLiquidity: () => {},
+  address: undefined,
+  apr: undefined,
+  canonicalBalance: undefined,
+  canonicalToken: undefined,
+  error: null,
+  fee: undefined,
+  hopBalance: undefined,
+  hopToken: undefined,
+  isNativeToken: false,
+  loadingCanonicalBalance: false,
+  loadingHopBalance: false,
+  networks: [],
+  poolReserves: [],
+  poolSharePercentage: undefined,
+  priceImpact: undefined,
   removeLiquidity: () => {},
+  removing: false,
+  reserveTotalsUsd: undefined,
+  selectedNetwork: undefined,
+  sendButtonText: '',
+  sending: false,
+  setError: (error: string | null | undefined) => {},
+  setSelectedNetwork: (network: Network) => {},
+  setToken0Amount: (value: string) => {},
+  setToken1Amount: (value: string) => {},
+  setWarning: (warning?: string) => {},
+  token0Amount: '',
+  token0Deposited: undefined,
+  token0Price: undefined,
+  token1Amount: '',
+  token1Deposited: undefined,
+  token1Price: undefined,
+  token1Rate: undefined,
+  tokenSumDeposited: undefined,
+  totalSupply: undefined,
+  txHash: undefined,
+  unsupportedAsset: null,
   userPoolBalance: undefined,
   userPoolBalanceFormatted: undefined,
   userPoolTokenPercentage: undefined,
-  token0Deposited: undefined,
-  token1Deposited: undefined,
-  tokenSumDeposited: undefined,
-  canonicalBalance: undefined,
-  hopBalance: undefined,
-  loadingCanonicalBalance: false,
-  loadingHopBalance: false,
-  txHash: undefined,
-  sending: false,
-  removing: false,
   validFormFields: false,
-  sendButtonText: '',
-  error: null,
-  warning: undefined,
-  setError: (error: string | null | undefined) => {},
-  setWarning: (warning?: string) => {},
-  isNativeToken: false,
-  fee: undefined,
-  apr: undefined,
-  priceImpact: undefined,
   virtualPrice: undefined,
-  reserveTotalsUsd: undefined,
-  unsupportedAsset: null,
+  warning: undefined,
 })
 
 const PoolsContextProvider: FC = ({ children }) => {
@@ -883,50 +883,50 @@ const PoolsContextProvider: FC = ({ children }) => {
   return (
     <PoolsContext.Provider
       value={{
-        networks: l2Networks,
-        canonicalToken,
-        hopToken,
-        address,
-        totalSupply,
-        selectedNetwork,
-        setSelectedNetwork,
-        token0Amount,
-        setToken0Amount,
-        token1Amount,
-        setToken1Amount,
-        poolSharePercentage,
-        token0Price,
-        token1Price,
-        poolReserves,
-        token1Rate,
         addLiquidity,
+        address,
+        apr,
+        canonicalBalance,
+        canonicalToken,
+        error,
+        fee,
+        hopBalance,
+        hopToken,
+        isNativeToken,
+        loadingCanonicalBalance,
+        loadingHopBalance,
+        networks: l2Networks,
+        poolReserves,
+        poolSharePercentage,
+        priceImpact,
         removeLiquidity,
+        removing,
+        reserveTotalsUsd,
+        selectedNetwork,
+        sendButtonText,
+        sending,
+        setError,
+        setSelectedNetwork,
+        setToken0Amount,
+        setToken1Amount,
+        setWarning,
+        token0Amount,
+        token0Deposited,
+        token0Price,
+        token1Amount,
+        token1Deposited,
+        token1Price,
+        token1Rate,
+        tokenSumDeposited,
+        totalSupply,
+        txHash,
+        unsupportedAsset,
         userPoolBalance,
         userPoolBalanceFormatted,
         userPoolTokenPercentage,
-        token0Deposited,
-        token1Deposited,
-        tokenSumDeposited,
-        txHash,
-        sending,
-        removing,
         validFormFields,
-        canonicalBalance,
-        hopBalance,
-        loadingCanonicalBalance,
-        loadingHopBalance,
-        sendButtonText,
-        error,
-        setError,
-        warning,
-        setWarning,
-        isNativeToken,
-        fee,
-        apr,
-        priceImpact,
         virtualPrice,
-        reserveTotalsUsd,
-        unsupportedAsset,
+        warning,
       }}
     >
       {children}

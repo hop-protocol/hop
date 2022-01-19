@@ -23,7 +23,7 @@ async function estimateGasCost(network: Network, estimatedGasLimit: BigNumber) {
   }
 }
 
-export function useNativeTokenMaxValue(selectedNetwork?: Network) {
+export function useEstimateTxCost(selectedNetwork?: Network) {
   const { sdk } = useApp()
   const [tx, setTx] = useState<Transaction | null>(null)
 
@@ -32,7 +32,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
     async (options: any) => {
       const { token, network, destNetwork } = options
 
-      if (!(sdk && token?.isNativeToken && network && destNetwork?.slug)) {
+      if (!(sdk && network && destNetwork?.slug)) {
         return
       }
 
@@ -68,7 +68,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
   const estimateSend = useCallback(
     async options => {
       const { fromNetwork, toNetwork, token, deadline } = options
-      if (!(sdk && token?.isNativeToken && fromNetwork && toNetwork && deadline)) {
+      if (!(sdk && fromNetwork && toNetwork && deadline)) {
         return
       }
 
@@ -114,7 +114,7 @@ export function useNativeTokenMaxValue(selectedNetwork?: Network) {
   const estimateWrap = useCallback(
     async (options: { token: Token; network: Network }) => {
       const { token, network } = options
-      if (!(token?.isNativeToken && network)) {
+      if (!network) {
         return
       }
 

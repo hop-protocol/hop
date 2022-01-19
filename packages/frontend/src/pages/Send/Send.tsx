@@ -32,7 +32,7 @@ import {
   useQueryParams,
   useNeedsTokenForFee,
   useBalance,
-  useNativeTokenMaxValue,
+  useEstimateTxCost,
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import { ChainSlug } from '@hop-protocol/sdk'
@@ -169,7 +169,7 @@ const Send: FC = () => {
     return true
   }, [fromBalance, fromTokenAmountBN])
 
-  const { estimateSend } = useNativeTokenMaxValue(fromNetwork)
+  const { estimateSend } = useEstimateTxCost(fromNetwork)
 
   useEffect(() => {
     let isSubscribed = true

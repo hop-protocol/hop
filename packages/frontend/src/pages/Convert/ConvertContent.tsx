@@ -106,12 +106,6 @@ const ConvertContent: FC = () => {
     approveTokens()
   }
 
-  const isL1ToPolygon =
-    sourceNetwork &&
-    destNetwork &&
-    isL1ToL2(sourceNetwork, destNetwork) &&
-    destNetwork.slug === ChainSlug.Polygon
-
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning: High Price Impact!')
 
   const sendButtonActive =
@@ -119,8 +113,7 @@ const ConvertContent: FC = () => {
     !unsupportedAsset &&
     !needsApproval &&
     sendableWarning &&
-    !error &&
-    !isL1ToPolygon
+    !error
 
   const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
 
@@ -164,16 +157,6 @@ const ConvertContent: FC = () => {
           />
           <div className={styles.details}>{details}</div>
           <Alert severity="warning">{warning}</Alert>
-          <Alert severity="error" onClose={() => setError(undefined)} text={error}>
-            {isL1ToPolygon && (
-              <ExternalLink
-                href="https://discord.com/channels/789310208413270078/928672267590848512/932741564378259527"
-                text="The Polygon messenger is currently down and Ethereum to Polygon transfers cannot be completed until it’s back online. Please, try again later and check the"
-                linkText="#status"
-                postText="Discord channel for updates"
-              />
-            )}
-          </Alert>
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
           <ButtonsWrapper>

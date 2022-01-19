@@ -585,12 +585,6 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
-  const isL1ToPolygon =
-    fromNetwork &&
-    toNetwork &&
-    isL1ToL2(fromNetwork, toNetwork) &&
-    toNetwork.slug === ChainSlug.Polygon
-
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
   const sendButtonActive = useMemo(() => {
@@ -605,8 +599,7 @@ const Send: FC = () => {
       rate &&
       enoughBalance &&
       isLiquidityAvailable &&
-      estimatedReceived?.gt(0) &&
-      !isL1ToPolygon
+      estimatedReceived?.gt(0)
     )
   }, [
     needsApproval,
@@ -619,8 +612,7 @@ const Send: FC = () => {
     rate,
     enoughBalance,
     isLiquidityAvailable,
-    estimatedReceived,
-    isL1ToPolygon,
+    estimatedReceived
   ])
 
   return (
@@ -708,16 +700,6 @@ const Send: FC = () => {
         </div>
       </div>
 
-      <Alert severity="error" onClose={() => setError(null)} text={error}>
-        {isL1ToPolygon && (
-          <ExternalLink
-            href="https://discord.com/channels/789310208413270078/928672267590848512/932741564378259527"
-            text="The Polygon messenger is currently down and Ethereum to Polygon transfers cannot be completed until it’s back online. Please, try again later and check the"
-            linkText="#status"
-            postText="Discord channel for updates"
-          />
-        )}
-      </Alert>
       {!error && <Alert severity="warning">{warning}</Alert>}
 
       <ButtonsWrapper>

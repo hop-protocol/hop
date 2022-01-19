@@ -33,9 +33,15 @@ export type ComposedStyleProps = BackgroundProps &
   TypographyProps &
   SpaceProps
 
-export function squareDimensions({ size }: { size?: number | string }) {
-  if (!size) {
-    size = 24
+export interface SquareDimensions {
+  size?: number | string
+  width?: number | string
+}
+
+export function squareDimensions({ size = 24, width }: SquareDimensions) {
+  if (width) {
+    size = width
   }
+
   return `width: ${size}px; height: ${size}px;`
 }

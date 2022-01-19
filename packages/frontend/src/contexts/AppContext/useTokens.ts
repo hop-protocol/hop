@@ -1,17 +1,9 @@
 import { useMemo } from 'react'
-import { Contract, Signer, providers } from 'ethers'
-import { erc20Abi } from '@hop-protocol/core/abi'
 
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import { addresses, metadata } from 'src/config'
-import { L1_NETWORK } from 'src/utils/constants'
-
-type Contracts = {
-  [key: string]: {
-    [key: string]: Contract
-  }
-}
+import { TokenSymbol } from '@hop-protocol/sdk'
 
 const useTokens = (networks: Network[]) => {
   const tokens = useMemo<Token[]>(() => {
@@ -22,7 +14,7 @@ const useTokens = (networks: Network[]) => {
       const tokenMeta = metadata.tokens[canonicalSymbol]
       const supportedNetworks = Object.keys(addresses.tokens[canonicalSymbol])
       return new Token({
-        symbol: tokenMeta.symbol,
+        symbol: tokenMeta.symbol as TokenSymbol,
         tokenName: tokenMeta.name,
         decimals: tokenMeta.decimals,
         imageUrl: tokenMeta.image,

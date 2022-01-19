@@ -6,7 +6,7 @@ import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
 import { DateTime } from 'luxon'
 import { TAmount, TChain, TProvider } from './types'
-import { TokenIndex } from './constants'
+import { TokenIndex, TokenSymbol } from './constants'
 import { formatUnits } from 'ethers/lib/utils'
 
 /**
@@ -18,7 +18,7 @@ class AMM extends Base {
   public chain: Chain
 
   /** Token class instance */
-  public tokenSymbol: string
+  public tokenSymbol: TokenSymbol
 
   /**
    * @desc Instantiates AMM instance.
@@ -37,7 +37,7 @@ class AMM extends Base {
    */
   constructor (
     network: string,
-    tokenSymbol: string,
+    tokenSymbol: TokenSymbol,
     chain?: TChain,
     signer?: TProvider,
     chainProviders?: ChainProviders

@@ -46,7 +46,7 @@
     "@eth-optimism/watcher": "0.0.1-alpha.9",
     "@ethersproject/hdnode": "^5.0.9",
     "@hop-protocol/core": "0.0.1-beta.57",
-    "@hop-protocol/sdk": "0.0.1-beta.285",
+    "@hop-protocol/sdk": "0.0.1-beta.286",
     "@maticnetwork/maticjs": "2.0.45",
     "@slack/web-api": "^6.1.0",
     "@types/level": "^6.0.0",

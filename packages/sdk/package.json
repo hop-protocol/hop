@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.285",
+  "version": "0.0.1-beta.286",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -82,8 +82,8 @@
     "standard": "^12.0.1",
     "ts-jest": "^26.5.4",
     "tsify": "^4.0.1",
-    "typedoc": "^0.21.2",
-    "typedoc-plugin-markdown": "^3.10.2",
+    "typedoc": "^0.22.10",
+    "typedoc-plugin-markdown": "^3.11.11",
     "typescript": "^4.3.4",
     "uglify-es": "^3.3.9"
   },

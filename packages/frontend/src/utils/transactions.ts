@@ -12,7 +12,7 @@ import { EventNames } from 'src/utils/constants'
 import { utils, BigNumber, providers } from 'ethers'
 import { Interface, LogDescription } from '@ethersproject/abi'
 import Network from 'src/models/Network'
-import { TokenModel } from '@hop-protocol/sdk'
+import { TokenSymbol, TokenModel } from '@hop-protocol/sdk'
 import range from 'lodash/range'
 
 export function getTruncatedHash(hash): string {
@@ -94,7 +94,7 @@ export interface Tx {
 
 export type TxState = Tx & {
   txType?: TxType
-  tokenSymbol?: string
+  tokenSymbol?: TokenSymbol
   token?: TokenModel
   gasCost?: string
   destTx?: Tx

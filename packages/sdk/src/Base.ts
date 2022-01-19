@@ -3,13 +3,13 @@ import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { Chain as ChainEnum, Errors, MinPolygonGasPrice } from './constants'
+import { ChainSlug, Errors, MinPolygonGasPrice, NetworkSlug } from './constants'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
-export type ChainProviders = { [chain: string]: providers.Provider }
+export type ChainProviders = { [slug in ChainSlug | string]: providers.Provider }
 
 const s3FileCache : Record<string, any> = {}
 
@@ -68,7 +68,7 @@ const getContract = async (
  */
 class Base {
   /** Network name */
-  public network: string
+  public network: NetworkSlug | string
 
   /** Ethers signer or provider */
   public signer: TProvider
@@ -89,7 +89,7 @@ class Base {
    * @returns {Object} New Base class instance.
    */
   constructor (
-    network: string,
+    network: NetworkSlug | string,
     signer: TProvider,
     chainProviders?: ChainProviders
   ) {
@@ -289,7 +289,7 @@ class Base {
 
     if (chainSlug === 'xdai') {
       console.warn(Errors.xDaiRebrand)
-      chainSlug = ChainEnum.Gnosis
+      chainSlug = ChainSlug.Gnosis
     }
 
     if (this.chainProviders[chainSlug]) {
@@ -498,7 +498,7 @@ class Base {
       throw new Error('fee data not found')
     }
 
-    const feeBps = fees[destinationChain.slug as ChainEnum] || 0
+    const feeBps = fees[destinationChain.slug] || 0
     return feeBps
   }
 

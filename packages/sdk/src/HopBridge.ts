@@ -16,11 +16,14 @@ import {
 } from 'ethers'
 import {
   BondTransferGasLimit,
+  CanonicalToken,
   Errors,
+  HToken,
   LpFeeBps,
   PendingAmountBuffer,
   SettlementGasLimitPerTx,
-  TokenIndex
+  TokenIndex,
+  TokenSymbol
 } from './constants'
 import { PriceFeed } from './priceFeed'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
@@ -103,7 +106,7 @@ type RemoveLiquidityImbalanceOptions = {
  * @namespace HopBridge
  */
 class HopBridge extends Base {
-  private tokenSymbol: string
+  private tokenSymbol: TokenSymbol
 
   /** Source Chain model */
   public sourceChain: Chain
@@ -202,8 +205,8 @@ class HopBridge extends Base {
       token.canonicalSymbol
     ]
 
-    if (chain.equals(Chain.Gnosis) && token.symbol === 'DAI') {
-      symbol = 'XDAI'
+    if (chain.equals(Chain.Gnosis) && token.symbol === CanonicalToken.DAI) {
+      symbol = CanonicalToken.XDAI
     }
 
     let address
@@ -218,7 +221,7 @@ class HopBridge extends Base {
       chain,
       address,
       decimals,
-      symbol,
+      symbol as never,
       name,
       image,
       this.signer,
@@ -247,7 +250,7 @@ class HopBridge extends Base {
       chain,
       address,
       decimals,
-      `h${token.canonicalSymbol}`,
+      `h${token.canonicalSymbol}` as HToken,
       `Hop ${name}`,
       image,
       this.signer,
@@ -1447,7 +1450,7 @@ class HopBridge extends Base {
       chain,
       saddleLpTokenAddress,
       18,
-      `${this.tokenSymbol} LP`,
+      `${this.tokenSymbol} LP` as TokenSymbol,
       `${this.tokenSymbol} LP`,
       '',
       signer,
@@ -2029,12 +2032,12 @@ class HopBridge extends Base {
   getChainNativeToken (chain: TChain) {
     chain = this.toChainModel(chain)
     if (chain?.equals(Chain.Polygon)) {
-      return this.toTokenModel('MATIC')
+      return this.toTokenModel(CanonicalToken.MATIC)
     } else if (chain?.equals(Chain.Gnosis)) {
-      return this.toTokenModel('DAI')
+      return this.toTokenModel(CanonicalToken.DAI)
     }
 
-    return this.toTokenModel('ETH')
+    return this.toTokenModel(CanonicalToken.ETH)
   }
 
   isNativeToken (chain?: TChain) {

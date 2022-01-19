@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
-import { Hop, HopBridge } from '@hop-protocol/sdk'
+import { Hop, HopBridge, TToken } from '@hop-protocol/sdk'
 import { addresses } from 'src/config'
 import useQueryParams from 'src/hooks/useQueryParams'
 
@@ -8,7 +8,7 @@ const useBridges = (sdk: Hop) => {
 
   const bridges = useMemo(() => {
     return Object.keys(addresses.tokens).map(symbol => {
-      return sdk.bridge(symbol)
+      return sdk.bridge(symbol as TToken)
     })
   }, [sdk])
 

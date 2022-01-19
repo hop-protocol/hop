@@ -1,3 +1,4 @@
+import { TokenSymbol } from '@hop-protocol/sdk'
 import { metadata, addresses } from 'src/config'
 
 export function getTokenImage(tokenSymbol: string) {
@@ -8,12 +9,12 @@ export function getTokenImage(tokenSymbol: string) {
   return token.image
 }
 
-export function getTokenByAddress(network: string, address?: string) {
+export function getTokenByAddress(network: string, address?: string): TokenSymbol | undefined {
   for (const token in addresses.tokens) {
     const networkContracts = addresses.tokens[token][network]
 
     if (network === 'ethereum' && networkContracts.l1Bridge === address) {
-      return token
+      return token as TokenSymbol
     }
 
     if (
@@ -24,7 +25,7 @@ export function getTokenByAddress(network: string, address?: string) {
         networkContracts.l2CanonicalToken,
       ].includes(address)
     ) {
-      return token
+      return token as TokenSymbol
     }
   }
 }

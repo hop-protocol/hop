@@ -9,3 +9,13 @@ export { Route } from './models'
 export { TokenAmount, Token as TokenModel } from './models'
 export * from './types'
 export { eventTopics } from './constants'
+export {
+  ChainSlug,
+  Slug,
+  NetworkSlug,
+  ChainId,
+  TokenSymbol,
+  CanonicalToken,
+  WrappedToken,
+  HToken
+} from './constants/constants'

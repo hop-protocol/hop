@@ -8,26 +8,46 @@ type Options = {
   apr?: boolean
   tvl?: boolean
   volume?: boolean
+  regenesis?: boolean
+  days?: number
 }
 
 class Worker {
-  aprStats = new AprStats()
-  volumeStats = new VolumeStats()
-  tvlStats = new TvlStats()
+  aprStats: AprStats
+  volumeStats: VolumeStats
+  tvlStats: TvlStats
   hosting = new S3Upload()
   pollIntervalMs: number = 60 * 60 * 1000
+  apr: boolean = false
+  tvl: boolean = false
+  volume: boolean = false
 
-  async start (options: Options = {}) {
+  constructor (options: Options = {}) {
+    const { apr, tvl, volume, regenesis, days } = options
+    this.apr = apr
+    this.tvl = tvl
+    this.volume = volume
+    this.aprStats = new AprStats()
+    this.volumeStats = new VolumeStats({
+      regenesis
+    })
+    this.tvlStats = new TvlStats({
+      regenesis,
+      days
+    })
+  }
+
+  async start () {
     console.log('worker started')
     console.log(`polling every ${this.pollIntervalMs}ms`)
     const promises: Promise<any>[] = []
-    if (options.apr) {
+    if (this.apr) {
       promises.push(this.aprStatsPoll())
     }
-    if (options.tvl) {
+    if (this.tvl) {
       promises.push(this.tvlStatsPoll())
     }
-    if (options.volume) {
+    if (this.volume) {
       promises.push(this.volumeStatsPoll())
     }
     if (!promises.length) {

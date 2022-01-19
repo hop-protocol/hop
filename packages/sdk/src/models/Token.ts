@@ -1,4 +1,4 @@
-import { Network } from '../constants'
+import { CanonicalToken, NetworkSlug, TokenSymbol } from '../constants'
 import { ethers } from 'ethers'
 import { metadata } from '../config'
 
@@ -6,8 +6,8 @@ class Token {
   public readonly chainId: number
   public readonly address: string
   public readonly decimals: number
-  public readonly symbol: string
-  public readonly name: string
+  public readonly symbol: TokenSymbol
+  public readonly name: TokenSymbol
 
   static ETH = 'ETH'
   static WETH = 'WETH'
@@ -26,8 +26,8 @@ class Token {
     chainId: number | string,
     address: string,
     decimals: number,
-    symbol: string = '',
-    name: string = ''
+    symbol: TokenSymbol,
+    name: TokenSymbol
   ) {
     if (chainId) {
       this.chainId = Number(chainId)
@@ -47,7 +47,7 @@ class Token {
       this.decimals = decimals
     }
     if (!decimals && symbol) {
-      this.decimals = metadata.tokens?.[Network.Mainnet]?.[symbol]?.decimals
+      this.decimals = metadata.tokens?.[NetworkSlug.Mainnet]?.[symbol]?.decimals
     }
   }
 
@@ -55,15 +55,13 @@ class Token {
     return Token.getCanonicalSymbol(this.symbol)
   }
 
-  static getCanonicalSymbol (tokenSymbol: string) {
-    const isWrappedToken = [Token.WETH, Token.WMATIC, Token.WXDAI].includes(
-      tokenSymbol
-    )
+  static getCanonicalSymbol (tokenSymbol: TokenSymbol) {
+    const isWrappedToken = [Token.WETH, Token.WMATIC, Token.WXDAI].includes(tokenSymbol)
     if (isWrappedToken) {
-      tokenSymbol = tokenSymbol.replace(/^W/, '')
+      tokenSymbol = tokenSymbol.replace(/^W/, '') as CanonicalToken
     }
-    if (tokenSymbol === 'XDAI') {
-      tokenSymbol = 'DAI'
+    if (tokenSymbol === CanonicalToken.XDAI) {
+      tokenSymbol = CanonicalToken.DAI
     }
     return tokenSymbol
   }

@@ -173,6 +173,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const { from: sender, data } = sourceTx
     const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin!, deadline!)
     if (attemptSwap && isL1ChainId(destinationChainId!)) {
+      logger.debug('marking as unbondable. Destination is L1 and attemptSwap is true')
       await this.db.transfers.update(transferId, {
         isBondable: false
       })

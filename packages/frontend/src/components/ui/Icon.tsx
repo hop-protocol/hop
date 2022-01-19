@@ -1,35 +1,22 @@
 import React from 'react'
 import { Circle } from 'react-feather'
+import { composedStyleFns, ComposedStyleProps, SquareDimensions, squareDimensions } from 'src/utils'
 import styled from 'styled-components/macro'
-import {
-  color,
-  layout,
-  space,
-  SpaceProps,
-  LayoutProps,
-  ColorProps,
-  border,
-  BorderProps,
-  background,
-} from 'styled-system'
+import { color, layout, space } from 'styled-system'
 
-const StyledIcon = styled.img<any>`
-  ${space}
-  ${layout}
-  ${color}
-  ${border}
-  ${background}
+interface StyledIconProps {
+  src?: string
+  width?: any
+  alt?: string
+  color?: string
+}
+
+const StyledIcon = styled.img<ComposedStyleProps & SquareDimensions>`
+  ${composedStyleFns}
+  ${squareDimensions}
 `
 
-const Icon = ({
-  src,
-  width,
-  alt,
-  color,
-}: SpaceProps &
-  LayoutProps &
-  ColorProps &
-  BorderProps & { src?: string; width?: any; alt?: string; color?: string }) => {
+const Icon = ({ src, width, alt, color }: ComposedStyleProps & StyledIconProps) => {
   if (!src) return null
 
   return (

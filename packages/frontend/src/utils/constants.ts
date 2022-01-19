@@ -60,11 +60,3 @@ export enum EventNames {
   TransferSent = 'TransferSent',
   TransferSentToL2 = 'TransferSentToL2',
 }
-
-export enum Chain {
-  Ethereum = 'ethereum',
-  Optimism = 'optimism',
-  Arbitrum = 'arbitrum',
-  Polygon = 'polygon',
-  Gnosis = 'gnosis',
-}

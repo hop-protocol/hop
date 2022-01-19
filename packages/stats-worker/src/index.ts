@@ -5,12 +5,15 @@ const argv = require('minimist')(process.argv.slice(2))
 console.debug('flags:', argv)
 
 function main () {
-  const worker = new Worker()
-  worker.start({
+  const worker = new Worker({
     apr: argv.apr,
     tvl: argv.tvl,
-    volume: argv.volume
+    volume: argv.volume,
+    regenesis: argv.regenesis,
+    days: argv.days
   })
+
+  worker.start()
 }
 
 main()

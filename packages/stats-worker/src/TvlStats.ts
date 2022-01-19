@@ -1,7 +1,25 @@
-import { BigNumber } from 'ethers'
+import BlockDater from 'ethereum-block-by-date'
+import { BigNumber, providers, Contract, constants } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db from './Db'
+import {
+  ethereumRpc,
+  gnosisRpc,
+  polygonRpc,
+  optimismRpc,
+  arbitrumRpc
+} from './config'
+import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { erc20Abi } from '@hop-protocol/core/abi'
+
+const allProviders: any = {
+  ethereum: new providers.StaticJsonRpcProvider(ethereumRpc),
+  gnosis: new providers.StaticJsonRpcProvider(gnosisRpc),
+  polygon: new providers.StaticJsonRpcProvider(polygonRpc),
+  optimism: new providers.StaticJsonRpcProvider(optimismRpc),
+  arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc)
+}
 
 function nearestDate (dates: any[], target: any) {
   if (!target) {
@@ -42,10 +60,24 @@ function sumAmounts (items: any) {
   return sum
 }
 
+type Options = {
+  regenesis?: boolean
+  days?: number
+}
+
 class TvlStats {
   db = new Db()
+  regenesis: boolean = false
+  days: number = 365
 
-  constructor () {
+  constructor (options: Options = {}) {
+    if (options.regenesis) {
+      this.regenesis = options.regenesis
+    }
+    if (options.days) {
+      this.days = options.days
+    }
+
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
       this.cleanUp()
@@ -62,99 +94,6 @@ class TvlStats {
     this.db.close()
   }
 
-  getUrl (chain: string) {
-    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-  }
-
-  async queryFetch (url: string, query: string, variables?: any) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
-      body: JSON.stringify({
-        query,
-        variables: variables || {}
-      })
-    })
-    const jsonRes = await res.json()
-    if (!jsonRes.data) {
-      console.error(jsonRes)
-    }
-    return jsonRes.data
-  }
-
-  async fetchLiquidity (chain: string, startDate: number, endDate: number) {
-    const query = `
-      query PoolLiquidity($startDate: Int, $endDate: Int) {
-        add: addLiquidities(
-          where: {
-            timestamp_gte: $startDate,
-            timestamp_lte: $endDate,
-          },
-          orderBy: timestamp,
-          orderDirection: desc,
-          first: 1000
-        ) {
-          id
-          tokenAmounts
-          timestamp
-          token
-        },
-        minus: removeLiquidities(
-          where: {
-            timestamp_gte: $startDate,
-            timestamp_lte: $endDate,
-          },
-          orderBy: timestamp,
-          orderDirection: desc,
-          first: 1000
-        ) {
-          id
-          tokenAmounts
-          timestamp
-          token
-        }
-      }
-    `
-    const url = this.getUrl(chain)
-    const data = await this.queryFetch(url, query, {
-      startDate,
-      endDate
-    })
-
-    if (data.add.length > 1000 || data.minus.length > 1000) {
-      throw new Error('here')
-    }
-
-    const totalAmounts: any = {}
-    for (let item of data.add) {
-      if (!totalAmounts[item.token]) {
-        totalAmounts[item.token] = BigNumber.from(0)
-      }
-      totalAmounts[item.token] = totalAmounts[item.token].add(
-        BigNumber.from(item.tokenAmounts[0])
-      )
-      totalAmounts[item.token] = totalAmounts[item.token].add(
-        BigNumber.from(item.tokenAmounts[1])
-      )
-    }
-    for (let item of data.minus) {
-      if (!totalAmounts[item.token]) {
-        totalAmounts[item.token] = BigNumber.from(0)
-      }
-      totalAmounts[item.token] = totalAmounts[item.token].sub(
-        BigNumber.from(item.tokenAmounts[0])
-      )
-      totalAmounts[item.token] = totalAmounts[item.token].sub(
-        BigNumber.from(item.tokenAmounts[1])
-      )
-    }
-
-    return totalAmounts
-  }
-
   async getPriceHistory (coinId: string, days: number) {
     const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
     return fetch(url)
@@ -168,7 +107,7 @@ class TvlStats {
   }
 
   async trackTvl () {
-    const daysN = 365
+    const daysN = this.days
     console.log('fetching prices')
     const pricesArr = await Promise.all([
       this.getPriceHistory('usd-coin', daysN),
@@ -205,53 +144,108 @@ class TvlStats {
     }
     console.log('done upserting prices')
 
-    const chains = ['polygon', 'gnosis', 'arbitrum', 'optimism']
+    let tokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH']
+    let chains = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'ethereum']
+    if (this.regenesis) {
+      chains = ['optimism']
+    }
     const now = DateTime.utc()
 
-    await Promise.all(
-      chains.map(async (chain: string) => {
-        for (let day = 0; day < daysN; day++) {
-          const endDate = now.minus({ days: day }).endOf('day')
-          const startDate = endDate.startOf('day')
-          const endTimestamp = Math.floor(endDate.toSeconds())
-          const startTimestamp = Math.floor(startDate.toSeconds())
+    chains = ['ethereum']
 
-          console.log(
-            `fetching daily volume stats, chain: ${chain}, day: ${day}`
-          )
-          const totalAmounts = await this.fetchLiquidity(
-            chain,
-            startTimestamp,
-            endTimestamp
-          )
-          for (let token in totalAmounts) {
-            const totalAmount = totalAmounts[token]
-            const decimals = tokenDecimals[token]
-            const formattedAmount = Number(formatUnits(totalAmount, decimals))
-
-            const dates = prices[token].reverse().map((x: any) => x[0])
-            const nearest = nearestDate(dates, startDate)
-            const price = prices[token][nearest][1]
-
-            const usdAmount = price * formattedAmount
-            try {
-              this.db.upsertTvlPoolStat(
-                chain,
-                token,
-                formattedAmount,
-                usdAmount,
-                startTimestamp
-              )
-            } catch (err) {
-              if (!err.message.includes('UNIQUE constraint failed')) {
-                throw err
+    const promises: Promise<any>[] = []
+    for (let token of tokens) {
+      promises.push(
+        new Promise(async resolve => {
+          await Promise.all(
+            chains.map(async (chain: string) => {
+              const provider = allProviders[chain]
+              if (
+                token === 'MATIC' &&
+                ['optimism', 'arbitrum'].includes(chain)
+              ) {
+                return
               }
-            }
-          }
-        }
-        console.log(`done fetching daily volume stats, chain: ${chain}`)
-      })
-    )
+
+              const config = (mainnetAddresses as any).bridges[token][chain]
+              const tokenAddress =
+                config.l2CanonicalToken ?? config.l1CanonicalToken
+              const spender = config.l2SaddleSwap ?? config.l1Bridge
+              const tokenContract = new Contract(
+                tokenAddress,
+                erc20Abi,
+                provider
+              )
+
+              for (let day = 0; day < daysN; day++) {
+                const endDate = now.minus({ days: day }).endOf('day')
+                const startDate = endDate.startOf('day')
+                const endTimestamp = Math.floor(endDate.toSeconds())
+                const startTimestamp = Math.floor(startDate.toSeconds())
+
+                console.log(
+                  `fetching daily tvl stats, chain: ${chain}, token: ${token}, day: ${day}`
+                )
+
+                const blockDater = new BlockDater(provider)
+                const date = DateTime.fromSeconds(endTimestamp).toJSDate()
+                const info = await blockDater.getDate(date)
+                if (!info) {
+                  throw new Error('no info')
+                }
+                const blockTag = info.block
+                let balance: any
+                try {
+                  if (
+                    tokenAddress === constants.AddressZero &&
+                    chain === 'ethereum'
+                  ) {
+                    balance = await provider.getBalance(spender, blockTag)
+                  } else {
+                    balance = await tokenContract.balanceOf(spender, {
+                      blockTag
+                    })
+                  }
+                } catch (err) {
+                  console.error(`${chain} ${token} ${err.message}`)
+                  throw err
+                }
+
+                console.log('balance', balance, blockTag)
+                const decimals = tokenDecimals[token]
+                const formattedAmount = Number(
+                  formatUnits(balance.toString(), decimals)
+                )
+
+                const dates = prices[token].reverse().map((x: any) => x[0])
+                const nearest = nearestDate(dates, endDate)
+                const price = prices[token][nearest][1]
+
+                const usdAmount = price * formattedAmount
+                try {
+                  this.db.upsertTvlPoolStat(
+                    chain,
+                    token,
+                    formattedAmount,
+                    usdAmount,
+                    startTimestamp
+                  )
+                  console.log('upserted')
+                } catch (err) {
+                  if (!err.message.includes('UNIQUE constraint failed')) {
+                    throw err
+                  }
+                }
+                console.log(`done fetching daily tvl stats, chain: ${chain}`)
+              }
+            })
+          )
+          resolve(null)
+        })
+      )
+    }
+    await Promise.all(promises)
+    console.log('all done')
   }
 }
 

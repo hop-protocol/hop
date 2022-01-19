@@ -12,7 +12,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
+import { commafy, isL1ToL2, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
@@ -35,6 +35,8 @@ import {
   useNativeTokenMaxValue,
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
+import { ChainSlug } from '@hop-protocol/sdk'
+import { ExternalLink } from 'src/components/Link'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -610,7 +612,7 @@ const Send: FC = () => {
     rate,
     enoughBalance,
     isLiquidityAvailable,
-    estimatedReceived,
+    estimatedReceived
   ])
 
   return (
@@ -672,19 +674,14 @@ const Send: FC = () => {
 
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
-          {totalBonderFee?.gt(0) && (
-            <DetailRow
-              title={'Fees'}
-              tooltip={
-                <FeeDetails
-                  bonderFee={bonderFeeDisplay}
-                  destinationTxFee={destinationTxFeeDisplay}
-                />
-              }
-              value={totalBonderFeeDisplay}
-              large
-            />
-          )}
+          <DetailRow
+            title={'Fees'}
+            tooltip={
+              <FeeDetails bonderFee={bonderFeeDisplay} destinationTxFee={destinationTxFeeDisplay} />
+            }
+            value={totalBonderFeeDisplay}
+            large
+          />
 
           <DetailRow
             title="Estimated Received"
@@ -703,7 +700,6 @@ const Send: FC = () => {
         </div>
       </div>
 
-      <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
 
       <ButtonsWrapper>

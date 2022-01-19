@@ -4,7 +4,7 @@ import * as config from '../config'
 
 async function main () {
   const s3Upload = new S3Upload()
-  const networks = ['mainnet', 'kovan', 'goerli']
+  const networks = ['mainnet', 'staging', 'kovan', 'goerli']
   for (const network of networks) {
     const filename = `${network}/v1-core-config.json`
     const data = {

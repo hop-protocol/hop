@@ -29,6 +29,7 @@
     "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
     "prepare": "npm run lint && npm run build",
     "json:mainnet": "node -e \"console.log(JSON.stringify(require('./addresses').mainnet, null, 2))\" > build/addresses/mainnet.json",
+    "json:staging": "node -e \"console.log(JSON.stringify(require('./addresses').staging, null, 2))\" > build/addresses/staging.json",
     "upload": "npm run build && node s3upload/main"
   },
   "directories": {},

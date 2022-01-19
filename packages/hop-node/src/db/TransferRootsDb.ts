@@ -55,6 +55,9 @@ type GetItemsFilter = Partial<TransferRoot> & {
   destinationChainIds?: number[]
 }
 
+// structure:
+// key: `transferRoot:<committedAt>:<transferRootId>`
+// value: `{ transferRootId: <transferRootId> }`
 class SubDbTimestamps extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:timestampedKeys`, _namespace)
@@ -101,6 +104,9 @@ class SubDbTimestamps extends BaseDb {
   }
 }
 
+// structure:
+// key: `<transferRootId>`
+// value: `{ transferRootId: <transferRootId> }`
 class SubDbIncompletes extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:incompleteItems`, _namespace)
@@ -144,6 +150,9 @@ class SubDbIncompletes extends BaseDb {
   }
 }
 
+// structure:
+// key: `<transferRootHash>`
+// value: `{ transferRootId: <transferRootId> }`
 class SubDbRootHashes extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:rootHashes`, _namespace)
@@ -170,6 +179,9 @@ class SubDbRootHashes extends BaseDb {
   }
 }
 
+// structure:
+// key: `<bondedAt>:<transferRootId>`
+// value: `{ transferRootId: <transferRootId> }`
 class SubDbBondedAt extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:rootBondedAt`, _namespace)
@@ -197,6 +209,9 @@ class SubDbBondedAt extends BaseDb {
   }
 }
 
+// structure:
+// key: `<transferRootId>`
+// value: `{ ...TransferRoot }`
 class TransferRootsDb extends BaseDb {
   subDbTimestamps: SubDbTimestamps
   subDbIncompletes: SubDbIncompletes

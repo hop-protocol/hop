@@ -52,6 +52,9 @@ type GetItemsFilter = Partial<Transfer> & {
   destinationChainIds?: number[]
 }
 
+// structure:
+// key: `transfer:<transferSentTimestamp>:<transferId>`
+// value: `{ transferId: <transferId> }`
 class SubDbTimestamps extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:timestampedKeys`, _namespace)
@@ -98,6 +101,9 @@ class SubDbTimestamps extends BaseDb {
   }
 }
 
+// structure:
+// key: `<transferId>`
+// value: `{ transferId: <transferId> }`
 class SubDbIncompletes extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:incompleteItems`, _namespace)
@@ -142,6 +148,9 @@ class SubDbIncompletes extends BaseDb {
   }
 }
 
+// structure:
+// key: `<transferRootHash>:<transferId>`
+// value: `{ transferId: <transferId> }`
 class SubDbRootHashes extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:transferRootHashes`, _namespace)
@@ -181,6 +190,9 @@ class SubDbRootHashes extends BaseDb {
   }
 }
 
+// structure:
+// key: `<transferId>`
+// value: `{ ...Transfer }`
 class TransfersDb extends BaseDb {
   subDbTimestamps: SubDbTimestamps
   subDbIncompletes: SubDbIncompletes

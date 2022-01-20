@@ -45,9 +45,6 @@ function isL2Factory (arg: any): arg is L2Factory {
     return true
   }
   return false
-  // const found = factories.find(f => arg instanceof f)
-  // return !!found
-  // return arg instanceof L2PolygonChildERC20__factory | L2XDaiToken__factory | ArbERC20__factory | L2OptimismTokenBridge__factory
   // const names = factories.map(f => f.createInterface().contractName)
   // return names.includes((arg as any).createInterface().contractName)
 }

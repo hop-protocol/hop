@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Contract, Signer, providers } from 'ethers'
-import { erc20Abi, erc20MintableAbi } from '@hop-protocol/core/abi'
+import { ERC20Mintable__factory } from '@hop-protocol/core/contracts'
 
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
@@ -33,7 +33,7 @@ type TokenContracts = {
   }
 }
 
-const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
+const useContracts = (networks: Network[], tokens: Token[]) => {
   // logger.debug('useContracts render')
   const { provider, connectedNetworkId } = useWeb3Context()
 
@@ -42,8 +42,8 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
     return new Contract(address, abi, provider as providers.Provider)
   }
 
-  const getErc20Contract = (address: string, provider: Provider): Contract => {
-    return getContract(address, erc20MintableAbi, provider) as Contract
+  const getErc20Contract = (address: string, provider: Provider) => {
+    return ERC20Mintable__factory.connect(address, provider!)
   }
 
   const l1Network = useMemo(() => {
@@ -72,9 +72,8 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
       }
       if (network.isLayer1) {
         networkMap[network.slug] = {
-          l1CanonicalToken: new Contract(
+          l1CanonicalToken: ERC20Mintable__factory.connect(
             tokenConfig.l1CanonicalToken,
-            erc20MintableAbi,
             providers[network.slug] as providers.Provider
           ),
           l1Bridge: useL1BridgeContract(providers[network.slug] as providers.Provider, token),
@@ -83,7 +82,7 @@ const useContracts = (networks: Network[], tokens: Token[]): Contracts => {
         networkMap[network.slug] = useNetworkSpecificContracts(l1Network, network, token)
       }
       return networkMap
-    }, {} as { [key: string]: { [key: string]: any } })
+    }, {})
     return obj
   }, {} as TokenContracts)
   const governanceContracts = useGovernanceContracts(networks)

@@ -1,22 +1,24 @@
 import { useMemo } from 'react'
-import { Contract } from 'ethers'
-import {
-  governorAlphaAbi,
-  stakingRewardsFactoryAbi,
-  stakingRewardsAbi,
-  hopAbi,
-} from '@hop-protocol/core/abi'
-
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { addresses } from 'src/config'
 import Network from 'src/models/Network'
 import { L1_NETWORK } from 'src/utils/constants'
+import {
+  GovernorAlpha,
+  GovernorAlpha__factory,
+  Hop,
+  Hop__factory,
+  StakingRewards,
+  StakingRewardsFactory,
+  StakingRewardsFactory__factory,
+  StakingRewards__factory,
+} from '@hop-protocol/core/contracts'
 
 export type GovernanceContracts = {
-  l1Hop: Contract | undefined
-  stakingRewardsFactory: Contract | undefined
-  stakingRewards: Contract | undefined
-  governorAlpha: Contract | undefined
+  l1Hop?: Hop
+  stakingRewardsFactory?: StakingRewardsFactory
+  stakingRewards?: StakingRewards
+  governorAlpha?: GovernorAlpha
 }
 
 const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
@@ -32,35 +34,34 @@ const useGovernanceContracts = (networks: Network[]): GovernanceContracts => {
   }, [networks, connectedNetworkId, provider])
 
   const l1Hop = useMemo(() => {
-    if (!addresses.governance.l1Hop) {
+    if (!addresses.governance.l1Hop || !l1Provider) {
       return
     }
-    return new Contract(addresses.governance.l1Hop, hopAbi, l1Provider)
+    return Hop__factory.connect(addresses.governance.l1Hop, l1Provider)
   }, [l1Provider])
 
   const stakingRewardsFactory = useMemo(() => {
-    if (!addresses.governance.stakingRewardsFactory) {
+    if (!addresses.governance.stakingRewardsFactory || !l1Provider) {
       return
     }
-    return new Contract(
+    return StakingRewardsFactory__factory.connect(
       addresses.governance.stakingRewardsFactory,
-      stakingRewardsFactoryAbi,
       l1Provider
     )
   }, [l1Provider])
 
   const stakingRewards = useMemo(() => {
-    if (!addresses.governance.stakingRewards) {
+    if (!addresses.governance.stakingRewards || !l1Provider) {
       return
     }
-    return new Contract(addresses.governance.stakingRewards, stakingRewardsAbi, l1Provider)
+    return StakingRewards__factory.connect(addresses.governance.stakingRewards, l1Provider)
   }, [l1Provider])
 
   const governorAlpha = useMemo(() => {
-    if (!addresses.governance.governorAlpha) {
+    if (!addresses.governance.governorAlpha || !l1Provider) {
       return
     }
-    return new Contract(addresses.governance.governorAlpha, governorAlphaAbi, l1Provider)
+    return GovernorAlpha__factory.connect(addresses.governance.governorAlpha, l1Provider)
   }, [l1Provider])
 
   return {

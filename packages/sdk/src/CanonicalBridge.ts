@@ -1,7 +1,17 @@
 import Base, { ChainProviders, L1Factory, L2Factory } from './Base'
 import Token from './models/Token'
 import TokenClass from './Token'
-import { ArbERC20__factory, ArbitrumGlobalInbox__factory, L1HomeAMBNativeToErc20__factory, L1OptimismTokenBridge__factory, L1PolygonPosRootChainManager__factory, L1XDaiForeignOmniBridge__factory, L2OptimismTokenBridge__factory, L2PolygonChildERC20__factory, L2XDaiToken__factory } from '@hop-protocol/core/contracts'
+import {
+  ArbERC20__factory,
+  ArbitrumGlobalInbox__factory,
+  L1HomeAMBNativeToErc20__factory,
+  L1OptimismTokenBridge__factory,
+  L1PolygonPosRootChainManager__factory,
+  L1XDaiForeignOmniBridge__factory,
+  L2OptimismTokenBridge__factory,
+  L2PolygonChildERC20__factory,
+  L2XDaiToken__factory,
+} from '@hop-protocol/core/contracts'
 import { Chain } from './models'
 import { Contract, Signer, ethers } from 'ethers'
 import { TAmount, TChain, TProvider, TToken } from './types'

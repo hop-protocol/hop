@@ -2,6 +2,7 @@ import Base, { ChainProviders } from './Base'
 import BlockDater from 'ethereum-block-by-date'
 import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
+import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { Chain } from './models'
 import { DateTime } from 'luxon'
 import { Swap__factory } from '@hop-protocol/core/contracts'
@@ -99,7 +100,7 @@ class AMM extends Base {
     amount1Desired: TAmount,
     minToMint: TAmount = 0,
     deadline: BigNumberish = this.defaultDeadlineSeconds
-  ) {
+  ): Promise<TransactionResponse> {
     const populatedTx = await this.populateAddLiquidityTx(amount0Desired, amount1Desired, minToMint, deadline)
     return this.signer.sendTransaction(populatedTx)
   }
@@ -164,7 +165,7 @@ class AMM extends Base {
     amount0Min: TAmount = 0,
     amount1Min: TAmount = 0,
     deadline: BigNumberish = this.defaultDeadlineSeconds
-  ) {
+  ): Promise<TransactionResponse> {
     const populatedTx = await this.populateRemoveLiquidityTx(liquidityTokenAmount, amount0Min, amount1Min, deadline)
     return this.signer.sendTransaction(populatedTx)
   }
@@ -174,7 +175,7 @@ class AMM extends Base {
     amount0Min: TAmount = 0,
     amount1Min: TAmount = 0,
     deadline: BigNumberish = this.defaultDeadlineSeconds
-  ):Promise<any> {
+  ): Promise<any> {
     deadline = this.normalizeDeadline(deadline)
     const saddleSwap = await this.getSaddleSwap()
     const amounts = [amount0Min, amount1Min]

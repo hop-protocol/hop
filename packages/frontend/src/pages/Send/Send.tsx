@@ -37,8 +37,6 @@ import {
   useSufficientBalance,
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
-import { ChainSlug } from '@hop-protocol/sdk'
-import { ExternalLink } from 'src/components/Link'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -60,16 +58,11 @@ const Send: FC = () => {
   const [fromTokenAmount, setFromTokenAmount] = useState<string>()
   const [toTokenAmount, setToTokenAmount] = useState<string>()
   const [approving, setApproving] = useState<boolean>(false)
-  const [feeDisplay, setFeeDisplay] = useState<string>()
   const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
   const [warning, setWarning] = useState<any>(null)
   const [error, setError] = useState<string | null | undefined>(null)
   const [noLiquidityWarning, setNoLiquidityWarning] = useState<any>(null)
-  const [needsNativeTokenWarning, setNeedsNativeTokenWarning] = useState<string>()
   const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
-  const [insufficientFundsWarning, setInsufficientFundsWarning] = useState<
-    string | null | undefined
-  >(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
@@ -122,7 +115,6 @@ const Send: FC = () => {
     priceImpact,
     amountOutMin,
     intermediaryAmountOutMin,
-    lpFees,
     adjustedBonderFee,
     adjustedDestinationTxFee,
     totalFee,
@@ -274,7 +266,7 @@ const Send: FC = () => {
   }, [estimatedReceived, adjustedDestinationTxFee])
 
   useEffect(() => {
-    let message = noLiquidityWarning || minimumSendWarning || insufficientFundsWarning
+    let message = noLiquidityWarning || minimumSendWarning
 
     if (sufficientBalanceWarning) {
       message = sufficientBalanceWarning
@@ -286,38 +278,14 @@ const Send: FC = () => {
       message = `Warning: High Price Impact! ${commafy(priceImpact)}%`
     }
 
-    if (needsNativeTokenWarning) {
-      message = needsNativeTokenWarning
-    }
-
     setWarning(message)
   }, [
     noLiquidityWarning,
-    needsNativeTokenWarning,
     minimumSendWarning,
     sufficientBalanceWarning,
     estimatedReceived,
     priceImpact,
-    insufficientFundsWarning,
   ])
-
-  useEffect(() => {
-    if (!lpFees || !sourceToken) {
-      setFeeDisplay(undefined)
-      return
-    }
-
-    const smallestFeeDecimals = sourceToken.decimals - 5
-    const smallestFee = BigNumber.from(10 ** smallestFeeDecimals)
-    let feeAmount: string
-    if (lpFees.gt('0') && lpFees.lt(smallestFee)) {
-      feeAmount = `<${formatUnits(smallestFee, sourceToken.decimals)}`
-    } else {
-      feeAmount = commafy(formatUnits(lpFees, sourceToken.decimals), 5)
-    }
-
-    setFeeDisplay(`${feeAmount} ${sourceToken.symbol}`)
-  }, [lpFees])
 
   useEffect(() => {
     if (!amountOutMin || !destToken) {
@@ -519,7 +487,6 @@ const Send: FC = () => {
       toTokenAmount &&
       rate &&
       sufficientBalance &&
-      !insufficientFundsWarning &&
       isLiquidityAvailable &&
       estimatedReceived?.gt(0)
     )
@@ -533,7 +500,6 @@ const Send: FC = () => {
     toTokenAmount,
     rate,
     sufficientBalance,
-    insufficientFundsWarning,
     isLiquidityAvailable,
     estimatedReceived,
   ])

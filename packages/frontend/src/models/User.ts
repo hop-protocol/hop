@@ -1,12 +1,12 @@
 import { providers, BigNumber, Signer } from 'ethers'
 import { Hop, CanonicalToken } from '@hop-protocol/sdk'
-import { reactAppNetwork } from 'src/config'
+import { hopAppNetwork } from 'src/config'
 
 import Token from './Token'
 import Network from './Network'
 
 // TODO: use sdk instance from app context
-const sdk = new Hop(reactAppNetwork)
+const sdk = new Hop(hopAppNetwork)
 
 class User {
   readonly provider: providers.Web3Provider

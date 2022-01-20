@@ -28,11 +28,12 @@ interface BaseTransfer {
   transferSentTxHash?: string
   transferSpentTxHash?: string
   withdrawalBondBackoffIndex?: number
+  withdrawalBondSettled?: boolean
+  withdrawalBondSettledTxHash?: string
+  withdrawalBondTxError?: TxError
   withdrawalBonded?: boolean
   withdrawalBondedTxHash?: string
   withdrawalBonder?: string
-  withdrawalBondSettled?: boolean
-  withdrawalBondTxError?: TxError
 }
 
 export interface Transfer extends BaseTransfer {
@@ -251,6 +252,10 @@ class TransfersDb extends BaseDb {
 
   async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     const transferIds = await this.getTransferIds(dateFilter)
+    return this.getMultipleTransfersByTransferIds(transferIds)
+  }
+
+  async getMultipleTransfersByTransferIds (transferIds: string[]) {
     const batchedItems = await this.batchGetByIds(transferIds)
     const transfers = batchedItems.map(this.normalizeItem)
     const items = transfers.sort(this.sortItems)
@@ -374,7 +379,8 @@ class TransfersDb extends BaseDb {
       !item.destinationChainId ||
       !item.transferSentBlockNumber ||
       (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
-      (item.withdrawalBondedTxHash && !item.withdrawalBonder)
+      (item.withdrawalBondedTxHash && !item.withdrawalBonder) ||
+      (item.withdrawalBondSettledTxHash && !item.withdrawalBondSettled)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }

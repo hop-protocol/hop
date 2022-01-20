@@ -11,7 +11,7 @@ import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
-import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
@@ -338,6 +338,14 @@ class SyncWatcher extends BaseWatcher {
             getOptions(this.bridge.MultipleWithdrawalsSettled)
           )
         })
+        .then(async () => {
+          return await this.bridge.mapWithdrawalBondSettledEvents(
+            async (event: WithdrawalBondSettledEvent) => {
+              return await this.handleWithdrawalBondSettledEvent(event)
+            },
+            getOptions(this.bridge.WithdrawalBondSettled)
+          )
+        })
     )
 
     promises.push(
@@ -632,6 +640,7 @@ class SyncWatcher extends BaseWatcher {
       const dbTransfer = await this.db.transfers.getByTransferId(transferId)
       if (!dbTransfer) {
         logger.warn(`transfer id ${transferId} db item not found`)
+        return
       }
       dbTransfers.push(dbTransfer)
       if (dbTransfer?.withdrawalBondSettled) {
@@ -675,6 +684,7 @@ class SyncWatcher extends BaseWatcher {
 
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
+    await this.populateTransferWithdrawalBondSettled(transferId)
   }
 
   async populateTransferRootDbItem (transferRootId: string) {
@@ -752,6 +762,70 @@ class SyncWatcher extends BaseWatcher {
     logger.debug(`withdrawalBonder: ${from}`)
     await this.db.transfers.update(transferId, {
       withdrawalBonder: from
+    })
+  }
+
+  async populateTransferWithdrawalBondSettled (transferId: string) {
+    const logger = this.logger.create({ id: transferId })
+    logger.debug('starting populateTransferWithdrawalBondSettled')
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    if (!dbTransfer) {
+      return
+    }
+
+    const { destinationChainId, withdrawalBondSettledTxHash, withdrawalBondSettled } = dbTransfer
+    if (dbTransfer.withdrawalBondSettled) {
+      return
+    }
+    if (!(dbTransfer.withdrawalBondSettledTxHash && destinationChainId)) {
+      return
+    }
+
+    const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+    const { rootHash, transferRootTotalAmount, bonder } = await destinationBridge.getParamsFromMultipleSettleEventTransaction(withdrawalBondSettledTxHash)
+    const transferRootId = this.bridge.getTransferRootId(rootHash, transferRootTotalAmount)
+    const isBonded = dbTransfer?.withdrawalBonded ?? false
+    const isSameBonder = dbTransfer?.withdrawalBonder === bonder
+    const isWithdrawalSettled = isBonded && isSameBonder
+    if (!isWithdrawalSettled) {
+      return
+    }
+
+    const bondedWithdrawalAmount = await this.bridge.getBondedWithdrawalAmountByBonder(bonder, transferId)
+
+    // on-chain bonded withdrawal amount is cleared after WithdrawalBondSettled event
+    if (!bondedWithdrawalAmount.eq(0)) {
+      return
+    }
+
+    await this.db.transfers.update(transferId, {
+      withdrawalBondSettled: true
+    })
+
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      return
+    }
+
+    const { transferIds } = dbTransferRoot
+    if (!transferIds?.length) {
+      return
+    }
+
+    logger.debug(`transferIds count: ${transferIds.length}`)
+    const dbTransfers = await this.db.transfers.getMultipleTransfersByTransferIds(transferIds)
+    if (!dbTransfers?.length) {
+      return
+    }
+
+    const allSettled = this.getIsDbTransfersAllSettled(dbTransfers)
+    logger.debug(`all settled: ${allSettled}`)
+    if (!allSettled) {
+      return
+    }
+
+    await this.db.transferRoots.update(transferRootId, {
+      allSettled
     })
   }
 
@@ -871,7 +945,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
     const destinationBridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
-    const { transferIds: _transferIds, bonder } = await destinationBridge.getParamsFromSettleEventTransaction(multipleWithdrawalsSettledTxHash)
+    const { transferIds: _transferIds, bonder } = await destinationBridge.getParamsFromMultipleSettleEventTransaction(multipleWithdrawalsSettledTxHash)
     const tree = new MerkleTree(_transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
@@ -1132,6 +1206,28 @@ class SyncWatcher extends BaseWatcher {
     }
 
     await this.checkTransferRootSettledState(transferRootId, totalBondsSettled, bonder)
+  }
+
+  handleWithdrawalBondSettledEvent = async (event: WithdrawalBondSettledEvent) => {
+    const { transactionHash } = event
+    const {
+      bonder,
+      transferId,
+      rootHash: transferRootHash
+    } = event.args
+    const logger = this.logger.create({ id: transferId })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
+
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    if (!dbTransfer) {
+      logger.warn(`transfer id ${transferId} db item not found`)
+      return
+    }
+
+    await this.db.transfers.update(transferId, {
+      transferRootHash,
+      withdrawalBondSettledTxHash: transactionHash
+    })
   }
 
   getIsBondable = (

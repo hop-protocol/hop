@@ -122,7 +122,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
         // Get estimated gas cost
         const estimatedGasLimit = await token.wrapToken(BigNumber.from(10), true)
 
-        if (estimatedGasLimit) {
+        if (BigNumber.isBigNumber(estimatedGasLimit)) {
           let gasCost = await estimateGasCost(network, estimatedGasLimit)
           if (gasCost && network.slug === ChainSlug.Optimism) {
             const { gasLimit, data, to } = await token.getWrapTokenEstimatedGas(network.slug)

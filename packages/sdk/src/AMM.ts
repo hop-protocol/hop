@@ -1,10 +1,10 @@
 import Base, { ChainProviders } from './Base'
 import BlockDater from 'ethereum-block-by-date'
-import saddleSwapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
 import { DateTime } from 'luxon'
+import { Swap__factory } from '@hop-protocol/core/contracts'
 import { TAmount, TChain, TProvider } from './types'
 import { TokenIndex, TokenSymbol } from './constants'
 import { formatUnits } from 'ethers/lib/utils'
@@ -117,7 +117,7 @@ class AMM extends Base {
       amounts,
       minToMint,
       deadline
-    ]
+    ] as const
 
     const overrides = await this.txOverrides(this.chain)
     if (this.chain.equals(Chain.Polygon)) {
@@ -182,7 +182,7 @@ class AMM extends Base {
       liqudityTokenAmount,
       amounts,
       deadline
-    ]
+    ] as const
 
     const overrides = await this.txOverrides(this.chain)
     if (this.chain.equals(Chain.Polygon)) {
@@ -218,7 +218,7 @@ class AMM extends Base {
       tokenIndex,
       amountMin,
       deadline
-    ]
+    ] as const
 
     const overrides = await this.txOverrides(this.chain)
     if (this.chain.equals(Chain.Polygon)) {
@@ -400,7 +400,7 @@ class AMM extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(this.chain)
-    return this.getContract(saddleSwapAddress, saddleSwapAbi, provider)
+    return Swap__factory.connect(saddleSwapAddress, provider)
   }
 
   public async getSwapFee () {

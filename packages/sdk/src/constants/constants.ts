@@ -96,3 +96,8 @@ export enum Errors {
   NotEnoughAllowance = 'Not enough allowance. Please call `approve` on token contract to allow contract to move tokens.',
   xDaiRebrand = 'NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.'
 }
+
+export enum EventNames {
+  TransferSent = 'TransferSent',
+  TransferSentToL2 = 'TransferSentToL2',
+}

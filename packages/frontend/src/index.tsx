@@ -5,8 +5,8 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 import ThemeProvider from './theme/ThemeProvider'
-import Web3Context from './contexts/Web3Context'
-import AppContext from './contexts/AppContext'
+import Web3Provider from './contexts/Web3Context'
+import AppProvider from './contexts/AppContext'
 
 const isIPFS = !!process.env.REACT_APP_IPFS_BUILD
 const Router: ComponentType = isIPFS ? HashRouter : BrowserRouter
@@ -23,13 +23,13 @@ const queryClient = new QueryClient({
 ReactDOM.render(
   <ThemeProvider>
     <Router>
-      <Web3Context>
-        <AppContext>
+      <Web3Provider>
+        <AppProvider>
           <QueryClientProvider client={queryClient}>
             <App />
           </QueryClientProvider>
-        </AppContext>
-      </Web3Context>
+        </AppProvider>
+      </Web3Provider>
     </Router>
   </ThemeProvider>,
   document.getElementById('root')

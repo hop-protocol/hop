@@ -39,16 +39,6 @@ export type ChainProviders = { [slug in ChainSlug | string]: providers.Provider 
 
 const s3FileCache : Record<string, any> = {}
 
-function isL2Factory (arg: any): arg is L2Factory {
-  const factories = [L2PolygonChildERC20__factory, L2XDaiToken__factory, ArbERC20__factory, L2OptimismTokenBridge__factory]
-  if (arg instanceof L2PolygonChildERC20__factory || arg instanceof L2XDaiToken__factory || arg instanceof ArbERC20__factory || arg instanceof L2OptimismTokenBridge__factory) {
-    return true
-  }
-  return false
-  // const names = factories.map(f => f.createInterface().contractName)
-  // return names.includes((arg as any).createInterface().contractName)
-}
-
 // cache provider
 const getProvider = memoize((network: string, chain: string) => {
   const rpcUrl = config.chains[network][chain].rpcUrl

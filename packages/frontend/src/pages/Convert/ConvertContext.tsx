@@ -39,70 +39,38 @@ type ConvertContextProps = {
   approving: boolean
   convertOptions: ConvertOption[]
   convertTokens: () => void
-  destBalance: BigNumber | undefined
-  destNetwork: Network | undefined
-  destToken: Token | undefined
-  destTokenAmount: string | undefined
-  details: ReactNode | undefined
-  error: string | undefined
+  destBalance?: BigNumber
+  destNetwork?: Network
+  destToken?: Token
+  destTokenAmount?: string
+  details?: ReactNode
+  error?: string
   loadingDestBalance: boolean
   loadingSourceBalance: boolean
-  needsApproval: boolean | undefined
-  needsTokenForFee: boolean | undefined
-  selectedNetwork: Network | undefined
+  needsApproval?: boolean
+  needsTokenForFee?: boolean
+  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
+  selectedNetwork?: Network
   sending: boolean
   setDestTokenAmount: (value: string) => void
-  setError: (error: string | undefined) => void
-  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
+  setError: (error?: string) => void
   setSourceTokenAmount: (value: string) => void
-  setTx: (tx: Transaction | undefined) => void
-  setWarning: (warning: string | undefined) => void
-  sourceBalance: BigNumber | undefined
-  sourceNetwork: Network | undefined
-  sourceToken: Token | undefined
-  sourceTokenAmount: string | undefined
+  setTx: (tx?: Transaction) => void
+  setWarning: (warning?: string) => void
+  sourceBalance?: BigNumber
+  sourceNetwork?: Network
+  sourceToken?: Token
+  sourceTokenAmount?: string
   switchDirection: () => void
-  tx: Transaction | undefined
+  tx?: Transaction
   unsupportedAsset: any
   validFormFields: boolean
-  warning: ReactNode | undefined
+  warning?: ReactNode
 }
 
-const ConvertContext = createContext<ConvertContextProps>({
-  approveTokens: () => {},
-  approving: false,
-  convertOptions: [],
-  convertTokens: () => {},
-  destBalance: undefined,
-  destNetwork: undefined,
-  destToken: undefined,
-  destTokenAmount: undefined,
-  details: [],
-  error: undefined,
-  loadingDestBalance: false,
-  loadingSourceBalance: false,
-  needsApproval: false,
-  needsTokenForFee: undefined,
-  selectedNetwork: undefined,
-  sending: false,
-  setDestTokenAmount: (value: string) => {},
-  setError: (error: string | undefined) => {},
-  selectBothNetworks: () => {},
-  setSourceTokenAmount: (value: string) => {},
-  setTx: (tx: Transaction | undefined) => {},
-  setWarning: (warning: string | undefined) => {},
-  sourceBalance: undefined,
-  sourceNetwork: undefined,
-  sourceToken: undefined,
-  sourceTokenAmount: undefined,
-  switchDirection: () => {},
-  tx: undefined,
-  unsupportedAsset: null,
-  validFormFields: false,
-  warning: undefined,
-})
+const ConvertContext = createContext<ConvertContextProps | undefined>(undefined)
 
-const ConvertContextProvider: FC = ({ children }) => {
+const ConvertProvider: FC = ({ children }) => {
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const { selectedBridge, txConfirm, sdk, settings } = useApp()
   const { slippageTolerance, deadline } = settings
@@ -527,6 +495,12 @@ const ConvertContextProvider: FC = ({ children }) => {
   )
 }
 
-export const useConvert = () => useContext(ConvertContext)
+export function useConvert() {
+  const ctx = useContext(ConvertContext)
+  if (ctx === undefined) {
+    throw new Error('useConvert must be used within ConvertProvider')
+  }
+  return ctx
+}
 
-export default ConvertContextProvider
+export default ConvertProvider

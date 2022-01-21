@@ -20,8 +20,7 @@ import Price from 'src/models/Price'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
 import { shiftBNDecimals, BNMin } from 'src/utils'
-import { hopAppNetwork } from 'src/config'
-import { defaultL2Network, l2Networks } from 'src/config/networks'
+import { l2Networks } from 'src/config/networks'
 import { amountToBN, formatError } from 'src/utils/format'
 import {
   useTransactionReplacement,
@@ -36,100 +35,55 @@ import { useInterval } from 'react-use'
 type PoolsContextProps = {
   addLiquidity: () => void
   address?: Address
-  apr: number | undefined
-  canonicalBalance: BigNumber | undefined
+  apr?: number
+  canonicalBalance?: BigNumber
   canonicalToken?: Token
-  error: string | null | undefined
-  fee: number | undefined
-  hopBalance: BigNumber | undefined
+  error?: string | null
+  fee?: number
+  hopBalance?: BigNumber
   hopToken?: Token
   isNativeToken: boolean
   loadingCanonicalBalance: boolean
   loadingHopBalance: boolean
   networks: Network[]
   poolReserves: BigNumber[]
-  poolSharePercentage: string | undefined
-  priceImpact: number | undefined
+  poolSharePercentage?: string
+  priceImpact?: number
   removeLiquidity: () => void
   removing: boolean
-  reserveTotalsUsd: number | undefined
+  reserveTotalsUsd?: number
+  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
   selectedNetwork?: Network
   sendButtonText: string
   sending: boolean
-  setError: (error: string | null | undefined) => void
-  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
+  setError: (error?: string | null) => void
   setToken0Amount: (value: string) => void
   setToken1Amount: (value: string) => void
   setWarning: (warning?: string) => void
   token0Amount: string
-  token0Deposited: BigNumber | undefined
-  token0Price: string | undefined
+  token0Deposited?: BigNumber
+  token0Price?: string
   token1Amount: string
-  token1Deposited: BigNumber | undefined
-  token1Price: string | undefined
-  token1Rate: string | undefined
-  tokenSumDeposited: BigNumber | undefined
-  totalSupply: string | undefined
-  txHash: string | undefined
+  token1Deposited?: BigNumber
+  token1Price?: string
+  token1Rate?: string
+  tokenSumDeposited?: BigNumber
+  totalSupply?: string
+  txHash?: string
   unsupportedAsset: any
-  userPoolBalance: BigNumber | undefined
-  userPoolBalanceFormatted: string | undefined
-  userPoolTokenPercentage: string | undefined
+  userPoolBalance?: BigNumber
+  userPoolBalanceFormatted?: string
+  userPoolTokenPercentage?: string
   validFormFields: boolean
-  virtualPrice: number | undefined
+  virtualPrice?: number
   warning?: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 
-const PoolsContext = createContext<PoolsContextProps>({
-  addLiquidity: () => {},
-  address: undefined,
-  apr: undefined,
-  canonicalBalance: undefined,
-  canonicalToken: undefined,
-  error: null,
-  fee: undefined,
-  hopBalance: undefined,
-  hopToken: undefined,
-  isNativeToken: false,
-  loadingCanonicalBalance: false,
-  loadingHopBalance: false,
-  networks: [],
-  poolReserves: [],
-  poolSharePercentage: undefined,
-  priceImpact: undefined,
-  removeLiquidity: () => {},
-  removing: false,
-  reserveTotalsUsd: undefined,
-  selectedNetwork: undefined,
-  sendButtonText: '',
-  sending: false,
-  setError: (error: string | null | undefined) => {},
-  selectBothNetworks: () => {},
-  setToken0Amount: (value: string) => {},
-  setToken1Amount: (value: string) => {},
-  setWarning: (warning?: string) => {},
-  token0Amount: '',
-  token0Deposited: undefined,
-  token0Price: undefined,
-  token1Amount: '',
-  token1Deposited: undefined,
-  token1Price: undefined,
-  token1Rate: undefined,
-  tokenSumDeposited: undefined,
-  totalSupply: undefined,
-  txHash: undefined,
-  unsupportedAsset: null,
-  userPoolBalance: undefined,
-  userPoolBalanceFormatted: undefined,
-  userPoolTokenPercentage: undefined,
-  validFormFields: false,
-  virtualPrice: undefined,
-  warning: undefined,
-})
+const PoolsContext = createContext<PoolsContextProps | undefined>(undefined)
 
-const PoolsContextProvider: FC = ({ children }) => {
+const PoolsProvider: FC = ({ children }) => {
   const [token0Amount, setToken0Amount] = useState<string>('')
   const [token1Amount, setToken1Amount] = useState<string>('')
   const [totalSupply, setTotalSupply] = useState<string>('')
@@ -912,6 +866,12 @@ const PoolsContextProvider: FC = ({ children }) => {
   )
 }
 
-export const usePools = () => useContext(PoolsContext)
+export function usePools() {
+  const ctx = useContext(PoolsContext)
+  if (ctx === undefined) {
+    throw new Error('usePools must be used within PoolsProvider')
+  }
+  return ctx
+}
 
-export default PoolsContextProvider
+export default PoolsProvider

@@ -12,7 +12,7 @@ export function useTxResult(
   opts?: any
 ) {
   const queryKey = `txResult:${srcNetwork?.slug}:${destNetwork?.slug}:${amount?.toString()}`
-  const { interval, ...rest } = opts
+  const { interval = 5e3, ...rest } = opts
 
   const { isLoading, isError, data, error } = useQuery(
     [queryKey, srcNetwork?.slug, token?.symbol, amount?.toString()],
@@ -33,7 +33,7 @@ export function useTxResult(
     },
     {
       enabled: !!token?.address && !!srcNetwork?.slug && !!destNetwork?.slug && !!amount,
-      refetchInterval: interval || 5e3,
+      refetchInterval: interval,
     }
   )
 

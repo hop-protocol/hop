@@ -7,7 +7,6 @@ import Network from 'src/models/Network'
 import useTokens from 'src/contexts/AppContext/useTokens'
 import useBridges from 'src/contexts/AppContext/useBridges'
 import useTxHistory, { TxHistory } from 'src/contexts/AppContext/useTxHistory'
-import useContracts from 'src/contexts/AppContext/useContracts'
 import useEvents, { Events } from 'src/contexts/AppContext/useEvents'
 import useSettings, { Settings } from 'src/contexts/AppContext/useSettings'
 import { useAccountDetails, AccountDetails } from 'src/contexts/AppContext/useAccountDetails'
@@ -23,7 +22,6 @@ type AppContextProps = {
   setSelectedBridge: (bridge: HopBridge) => void
   user?: User
   networks: Network[]
-  contracts: any
   tokens: Token[]
   events: Events
   accountDetails: AccountDetails
@@ -53,7 +51,6 @@ const AppContextProvider: FC = ({ children }) => {
   const { bridges, selectedBridge, setSelectedBridge } = useBridges(sdk)
 
   const tokens = useTokens()
-  const contracts = useContracts(networks, tokens)
   const events = useEvents()
   const txHistory = useTxHistory()
   const accountDetails = useAccountDetails()
@@ -70,7 +67,6 @@ const AppContextProvider: FC = ({ children }) => {
         setSelectedBridge,
         user,
         networks,
-        contracts,
         tokens,
         events,
         txHistory,

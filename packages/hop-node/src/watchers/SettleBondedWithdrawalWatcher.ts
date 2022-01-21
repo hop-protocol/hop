@@ -121,6 +121,24 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     await Promise.all(promises)
   }
 
+  checkTransferRootHash = async (transferRootHash: string) => {
+    const logger = this.logger.create({ root: transferRootHash })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
+      transferRootHash
+    )
+    if (!dbTransferRoot) {
+      throw new Error('db transfer root not found')
+    }
+    const { transferRootId, transferIds } = dbTransferRoot
+    const transferId = transferIds![0]
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    if (!dbTransferRoot) {
+      throw new Error('db transfer not found')
+    }
+    const { withdrawalBonder } = dbTransfer
+    return this.checkTransferRootId(transferRootId, withdrawalBonder!)
+  }
+
   checkTransferRootId = async (transferRootId: string, bonder: string) => {
     if (!bonder) {
       throw new Error('bonder is required')
@@ -169,6 +187,10 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       total: onChainTotalAmount,
       amountWithdrawn: onChainAmountWithdrawn
     } = await destBridge.getTransferRoot(transferRootHash, totalAmount!)
+    if (onChainTotalAmount.eq(0)) {
+      logger.debug('onChainTotalAmount is 0. Skipping')
+      return
+    }
     if (onChainTotalAmount.eq(onChainAmountWithdrawn)) {
       logger.debug(`transfer root amountWithdrawn (${this.bridge.formatUnits(onChainAmountWithdrawn)}) matches total. Marking transfer root as all settled`)
       await this.db.transferRoots.update(transferRootId, {

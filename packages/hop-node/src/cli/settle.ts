@@ -12,6 +12,7 @@ root
   .option('--token <slug>', 'Token', parseString)
   .option('--transfer-root-hash <id>', 'Transfer root hash', parseString)
   .option('--transfer-id <id>', 'Transfer ID', parseString)
+  .option('--bonder <address>', 'Bonder address', parseString)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
@@ -20,7 +21,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { sourceChain: chain, token, transferRootHash, transferId, dry: dryMode } = source
+  const { sourceChain: chain, token, transferRootHash, transferId, bonder, dry: dryMode } = source
   if (!chain) {
     throw new Error('chain is required')
   }
@@ -43,7 +44,7 @@ async function main (source: any) {
   }
 
   if (transferRootHash) {
-    await watcher.checkTransferRootHash(transferRootHash)
+    await watcher.checkTransferRootHash(transferRootHash, bonder)
   } else {
     await watcher.checkTransferId(transferId)
   }

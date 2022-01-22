@@ -121,7 +121,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     await Promise.all(promises)
   }
 
-  checkTransferRootHash = async (transferRootHash: string) => {
+  checkTransferRootHash = async (transferRootHash: string, bonder?: string) => {
     const logger = this.logger.create({ root: transferRootHash })
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
       transferRootHash
@@ -129,14 +129,20 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     if (!dbTransferRoot) {
       throw new Error('db transfer root not found')
     }
+
     const { transferRootId, transferIds } = dbTransferRoot
-    const transferId = transferIds![0]
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    if (!dbTransferRoot) {
-      throw new Error('db transfer not found')
+    if (!bonder) {
+      const { transferRootId, transferIds } = dbTransferRoot
+      const transferId = transferIds![0]
+      const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+      if (!dbTransfer) {
+        throw new Error('db transfer not found')
+      }
+      const { withdrawalBonder } = dbTransfer
+      bonder = withdrawalBonder
     }
-    const { withdrawalBonder } = dbTransfer
-    return this.checkTransferRootId(transferRootId, withdrawalBonder!)
+
+    return this.checkTransferRootId(transferRootId, bonder!)
   }
 
   checkTransferRootId = async (transferRootId: string, bonder: string) => {

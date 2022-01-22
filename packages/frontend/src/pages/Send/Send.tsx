@@ -585,10 +585,6 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
-  const isPolygonToAny =
-    fromNetwork &&
-    fromNetwork.slug === ChainSlug.Polygon
-
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
   const sendButtonActive = useMemo(() => {
@@ -603,8 +599,7 @@ const Send: FC = () => {
       rate &&
       enoughBalance &&
       isLiquidityAvailable &&
-      estimatedReceived?.gt(0),
-      !isPolygonToAny
+      estimatedReceived?.gt(0)
     )
   }, [
     needsApproval,
@@ -617,8 +612,7 @@ const Send: FC = () => {
     rate,
     enoughBalance,
     isLiquidityAvailable,
-    estimatedReceived,
-    isPolygonToAny
+    estimatedReceived
   ])
 
   return (
@@ -706,11 +700,6 @@ const Send: FC = () => {
         </div>
       </div>
 
-     <Alert severity="error" onClose={() => setError(null)} text={error}>
-        {isPolygonToAny && (
-          <div>Transfers originating from Polygon are temporarily disabled. Please check discord for further updates.</div>
-        )}
-      </Alert>
       {!error && <Alert severity="warning">{warning}</Alert>}
 
       <ButtonsWrapper>

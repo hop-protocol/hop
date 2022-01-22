@@ -4,6 +4,7 @@ import packageJson from '../../package.json'
 import { program } from './shared'
 
 import './bondWithdrawal'
+import './bondTransferRoot'
 import './challenger'
 import './commitTransfers'
 import './contractState'

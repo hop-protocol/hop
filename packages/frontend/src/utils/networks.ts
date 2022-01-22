@@ -61,3 +61,11 @@ export function isL1ToL2(srcNetwork: Network, destNetwork: Network) {
 
   return false
 }
+
+export function isL2ToL1(srcNetwork: Network, destNetwork: Network) {
+  if (!srcNetwork.isLayer1 && destNetwork.isLayer1) {
+    return true
+  }
+
+  return false
+}

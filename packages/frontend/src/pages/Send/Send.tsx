@@ -12,7 +12,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, isL1ToL2, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
@@ -585,6 +585,10 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
+  const isPolygonToAny =
+    fromNetwork &&
+    fromNetwork.slug === ChainSlug.Polygon
+
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
   const sendButtonActive = useMemo(() => {
@@ -599,7 +603,8 @@ const Send: FC = () => {
       rate &&
       enoughBalance &&
       isLiquidityAvailable &&
-      estimatedReceived?.gt(0)
+      estimatedReceived?.gt(0),
+      !isPolygonToAny
     )
   }, [
     needsApproval,
@@ -612,7 +617,8 @@ const Send: FC = () => {
     rate,
     enoughBalance,
     isLiquidityAvailable,
-    estimatedReceived
+    estimatedReceived,
+    isPolygonToAny
   ])
 
   return (
@@ -700,6 +706,11 @@ const Send: FC = () => {
         </div>
       </div>
 
+     <Alert severity="error" onClose={() => setError(null)} text={error}>
+        {isPolygonToAny && (
+          <div>Transfers originating from Polygon are temporarily disabled. Please check discord for further updates.</div>
+        )}
+      </Alert>
       {!error && <Alert severity="warning">{warning}</Alert>}
 
       <ButtonsWrapper>

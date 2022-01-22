@@ -55,6 +55,7 @@ type GetItemsFilter = Partial<Transfer> & {
 // structure:
 // key: `transfer:<transferSentTimestamp>:<transferId>`
 // value: `{ transferId: <transferId> }`
+// note: the "transfer" prefix is not required but requires a migration to remove
 class SubDbTimestamps extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:timestampedKeys`, _namespace)
@@ -267,12 +268,6 @@ class TransfersDb extends BaseDb {
     return x?.value?.transferId
   }
 
-  private async insertTimestampedKeyItem (transfer: Transfer) {
-    const { transferId } = transfer
-    const logger = this.logger.create({ id: transferId })
-    await this.subDbTimestamps.upsertItem(transfer)
-  }
-
   private async upsertTransferItem (transfer: Transfer) {
     const { transferId } = transfer
     const logger = this.logger.create({ id: transferId })
@@ -298,7 +293,7 @@ class TransfersDb extends BaseDb {
     logger.debug('update called')
     transfer.transferId = transferId
     await Promise.all([
-      this.insertTimestampedKeyItem(transfer as Transfer),
+      this.subDbTimestamps.upsertItem(transfer as Transfer),
       this.subDbRootHashes.insertItem(transfer as Transfer),
       this.upsertTransferItem(transfer as Transfer)
     ])

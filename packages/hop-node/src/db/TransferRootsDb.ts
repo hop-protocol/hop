@@ -58,6 +58,7 @@ type GetItemsFilter = Partial<TransferRoot> & {
 // structure:
 // key: `transferRoot:<committedAt>:<transferRootId>`
 // value: `{ transferRootId: <transferRootId> }`
+// note: the "transferRoot" prefix is not required but requires a migration to remove
 class SubDbTimestamps extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:timestampedKeys`, _namespace)

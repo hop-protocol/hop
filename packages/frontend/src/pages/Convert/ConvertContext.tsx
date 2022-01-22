@@ -21,8 +21,9 @@ import logger from 'src/logger'
 import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
-import { toTokenDisplay, commafy } from 'src/utils'
-import { reactAppNetwork } from 'src/config'
+import { toTokenDisplay, commafy, findNetworkBySlug } from 'src/utils'
+import { hopAppNetwork } from 'src/config'
+import { defaultL2Network, l1Network } from 'src/config/networks'
 import {
   useTransactionReplacement,
   useApprove,
@@ -33,96 +34,81 @@ import {
 import { formatError, amountToBN } from 'src/utils/format'
 
 type ConvertContextProps = {
-  convertOptions: ConvertOption[]
-  convertOption: ConvertOption | undefined
-  networks: Network[]
-  l2Networks: Network[]
-  selectedNetwork: Network | undefined
-  setSelectedNetwork: (network: Network | undefined) => void
-  sourceNetwork: Network | undefined
-  destNetwork: Network | undefined
-  sourceToken: Token | undefined
-  destToken: Token | undefined
-  sourceTokenAmount: string | undefined
-  setSourceTokenAmount: (value: string) => void
-  destTokenAmount: string | undefined
-  setDestTokenAmount: (value: string) => void
-  convertTokens: () => void
   approveTokens: () => void
-  validFormFields: boolean
-  sending: boolean
   approving: boolean
-  needsApproval: boolean | undefined
-  sourceBalance: BigNumber | undefined
-  loadingSourceBalance: boolean
+  convertOptions: ConvertOption[]
+  convertTokens: () => void
   destBalance: BigNumber | undefined
-  loadingDestBalance: boolean
-  switchDirection: () => void
+  destNetwork: Network | undefined
+  destToken: Token | undefined
+  destTokenAmount: string | undefined
   details: ReactNode | undefined
-  warning: ReactNode | undefined
-  setWarning: (warning: string | undefined) => void
   error: string | undefined
-  setError: (error: string | undefined) => void
-  tx: Transaction | undefined
-  setTx: (tx: Transaction | undefined) => void
-  unsupportedAsset: any
+  loadingDestBalance: boolean
+  loadingSourceBalance: boolean
+  needsApproval: boolean | undefined
   needsTokenForFee: boolean | undefined
+  selectedNetwork: Network | undefined
+  sending: boolean
+  setDestTokenAmount: (value: string) => void
+  setError: (error: string | undefined) => void
+  setSelectedNetwork: (network: Network) => void
+  setSourceTokenAmount: (value: string) => void
+  setTx: (tx: Transaction | undefined) => void
+  setWarning: (warning: string | undefined) => void
+  sourceBalance: BigNumber | undefined
+  sourceNetwork: Network | undefined
+  sourceToken: Token | undefined
+  sourceTokenAmount: string | undefined
+  switchDirection: () => void
+  tx: Transaction | undefined
+  unsupportedAsset: any
+  validFormFields: boolean
+  warning: ReactNode | undefined
 }
 
 const ConvertContext = createContext<ConvertContextProps>({
-  convertOptions: [],
-  convertOption: undefined,
-  networks: [],
-  l2Networks: [],
-  selectedNetwork: undefined,
-  setSelectedNetwork: (network: Network | undefined) => {},
-  sourceNetwork: undefined,
-  destNetwork: undefined,
-  sourceToken: undefined,
-  destToken: undefined,
-  sourceTokenAmount: undefined,
-  setSourceTokenAmount: (value: string) => {},
-  destTokenAmount: undefined,
-  setDestTokenAmount: (value: string) => {},
-  convertTokens: () => {},
   approveTokens: () => {},
-  validFormFields: false,
-  sending: false,
   approving: false,
-  needsApproval: false,
-  sourceBalance: undefined,
-  loadingSourceBalance: false,
+  convertOptions: [],
+  convertTokens: () => {},
   destBalance: undefined,
-  loadingDestBalance: false,
-  switchDirection: () => {},
+  destNetwork: undefined,
+  destToken: undefined,
+  destTokenAmount: undefined,
   details: [],
-  warning: undefined,
-  setWarning: (warning: string | undefined) => {},
   error: undefined,
-  setError: (error: string | undefined) => {},
-  tx: undefined,
-  setTx: (tx: Transaction | undefined) => {},
-  unsupportedAsset: null,
+  loadingDestBalance: false,
+  loadingSourceBalance: false,
+  needsApproval: false,
   needsTokenForFee: undefined,
+  selectedNetwork: undefined,
+  sending: false,
+  setDestTokenAmount: (value: string) => {},
+  setError: (error: string | undefined) => {},
+  setSelectedNetwork: (network: Network) => {},
+  setSourceTokenAmount: (value: string) => {},
+  setTx: (tx: Transaction | undefined) => {},
+  setWarning: (warning: string | undefined) => {},
+  sourceBalance: undefined,
+  sourceNetwork: undefined,
+  sourceToken: undefined,
+  sourceTokenAmount: undefined,
+  switchDirection: () => {},
+  tx: undefined,
+  unsupportedAsset: null,
+  validFormFields: false,
+  warning: undefined,
 })
 
 const ConvertContextProvider: FC = ({ children }) => {
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
-  const {
-    networks,
-    l2Networks,
-    defaultL2Network,
-    selectedBridge,
-    txConfirm,
-    sdk,
-    l1Network,
-    settings,
-  } = useApp()
+  const { selectedBridge, txConfirm, sdk, settings } = useApp()
   const { slippageTolerance, deadline } = settings
   const { pathname } = useLocation()
   const { queryParams } = useQueryParams()
 
-  const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(l2Networks[0])
+  const [selectedNetwork, setSelectedNetwork] = useState<Network>(defaultL2Network)
   const [isForwardDirection, setIsForwardDirection] = useState(true)
   const switchDirection = () => {
     setIsForwardDirection(!isForwardDirection)
@@ -145,7 +131,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
-      const matchingNetwork = find(networks, ['slug', queryParams.sourceNetwork])
+      const matchingNetwork = findNetworkBySlug(queryParams.sourceNetwork as string)
       if (matchingNetwork && !matchingNetwork?.isLayer1) {
         setSelectedNetwork(matchingNetwork)
       } else {
@@ -198,8 +184,8 @@ const ConvertContextProvider: FC = ({ children }) => {
       return null
     }
     const unsupportedAssets = {
-      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
-      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Optimism: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Arbitrum: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
     const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
@@ -247,8 +233,12 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     }
 
+    if (unsupportedAsset?.chain) {
+      return
+    }
+
     fetchToken()
-  }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+  }, [unsupportedAsset, convertOption, isForwardDirection, selectedNetwork, selectedBridge])
 
   useEffect(() => {
     if (tx) {
@@ -273,8 +263,12 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     }
 
+    if (unsupportedAsset?.chain) {
+      return
+    }
+
     fetchToken()
-  }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+  }, [unsupportedAsset, convertOption, isForwardDirection, selectedNetwork, selectedBridge])
 
   // Fetch send data
   useEffect(() => {
@@ -284,7 +278,16 @@ const ConvertContextProvider: FC = ({ children }) => {
       setDetails(undefined)
       setBonderFee(undefined)
 
-      if (!selectedBridge || !sourceTokenAmount || !sourceNetwork || !destNetwork || !sourceToken) {
+      if (
+        !(
+          selectedBridge &&
+          sourceTokenAmount &&
+          sourceNetwork &&
+          destNetwork &&
+          sourceToken &&
+          !unsupportedAsset?.chain
+        )
+      ) {
         setDestTokenAmount('')
         return
       }
@@ -326,7 +329,14 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
 
     getSendData().catch(logger.error)
-  }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
+  }, [
+    unsupportedAsset,
+    sourceTokenAmount,
+    selectedBridge,
+    selectedNetwork,
+    convertOption,
+    isForwardDirection,
+  ])
 
   useEffect(() => {
     // NOTE: `convertOption.getSendData()` returns jsx code via the AmmConvertOption class.
@@ -342,7 +352,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const needsApproval = useAsyncMemo(async () => {
     try {
-      if (!(selectedBridge && sourceToken && destNetwork)) {
+      if (!(selectedBridge && sourceToken && destNetwork && !unsupportedAsset?.chain)) {
         return false
       }
 
@@ -356,7 +366,15 @@ const ConvertContextProvider: FC = ({ children }) => {
     } catch (err: any) {
       logger.error(err)
     }
-  }, [convertOption, sdk, selectedBridge, sourceNetwork, destNetwork, checkApproval])
+  }, [
+    unsupportedAsset,
+    convertOption,
+    sdk,
+    selectedBridge,
+    sourceNetwork,
+    destNetwork,
+    checkApproval,
+  ])
 
   const parsedSourceTokenAmount = useMemo(() => {
     if (!sourceTokenAmount || !sourceToken) {
@@ -507,9 +525,6 @@ const ConvertContextProvider: FC = ({ children }) => {
     <ConvertContext.Provider
       value={{
         convertOptions,
-        convertOption,
-        networks,
-        l2Networks,
         selectedNetwork,
         setSelectedNetwork,
         sourceNetwork,

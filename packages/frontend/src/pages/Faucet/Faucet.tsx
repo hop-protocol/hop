@@ -8,6 +8,7 @@ import RaisedSelect from 'src/components/selects/RaisedSelect'
 import Alert from 'src/components/alert/Alert'
 import { useFaucet } from 'src/pages/Faucet/FaucetContext'
 import Button from 'src/components/buttons/Button'
+import { findMatchingBridge } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -42,7 +43,7 @@ const Faucet: FC = () => {
 
   const handleTokenChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
+    const bridge = findMatchingBridge(bridges, tokenSymbol)
     if (bridge) {
       setSelectedBridge(bridge)
     }

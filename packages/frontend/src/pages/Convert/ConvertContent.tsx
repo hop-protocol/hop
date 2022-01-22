@@ -52,34 +52,34 @@ const useStyles = makeStyles(theme => ({
 const ConvertContent: FC = () => {
   const styles = useStyles()
   const {
-    sourceNetwork,
-    destNetwork,
-    sourceToken,
-    destToken,
-    sourceTokenAmount,
-    setSourceTokenAmount,
-    destTokenAmount,
-    setDestTokenAmount,
-    sourceBalance,
-    loadingSourceBalance,
+    approveTokens,
+    approving,
+    convertTokens,
     destBalance,
-    loadingDestBalance,
-    switchDirection,
+    destNetwork,
+    destToken,
+    destTokenAmount,
     details,
-    warning,
-    setWarning,
     error,
+    loadingDestBalance,
+    loadingSourceBalance,
+    needsApproval,
+    needsTokenForFee,
+    sending,
+    setDestTokenAmount,
     setError,
-    tx,
+    setSourceTokenAmount,
     setTx,
+    setWarning,
+    sourceBalance,
+    sourceNetwork,
+    sourceToken,
+    sourceTokenAmount,
+    switchDirection,
+    tx,
     unsupportedAsset,
     validFormFields,
-    approving,
-    sending,
-    needsApproval,
-    convertTokens,
-    approveTokens,
-    needsTokenForFee,
+    warning,
   } = useConvert()
 
   useEffect(() => {
@@ -106,6 +106,10 @@ const ConvertContent: FC = () => {
     approveTokens()
   }
 
+  const isPolygonToAny =
+    sourceNetwork &&
+    sourceNetwork.slug === ChainSlug.Polygon
+
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning: High Price Impact!')
 
   const sendButtonActive =
@@ -113,7 +117,7 @@ const ConvertContent: FC = () => {
     !unsupportedAsset &&
     !needsApproval &&
     sendableWarning &&
-    !error
+    !error && !isPolygonToAny
 
   const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
 
@@ -157,6 +161,11 @@ const ConvertContent: FC = () => {
           />
           <div className={styles.details}>{details}</div>
           <Alert severity="warning">{warning}</Alert>
+         <Alert severity="error" onClose={() => setError(undefined)} text={error}>
+            {isPolygonToAny && (
+              <div>Transfers originating from Polygon are temporarily disabled. Please check discord for further updates.</div>
+            )}
+          </Alert>
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
           <ButtonsWrapper>

@@ -19,18 +19,19 @@ import Price from 'src/models/Price'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
 import { shiftBNDecimals, BNMin } from 'src/utils'
-import { reactAppNetwork } from 'src/config'
+import { hopAppNetwork } from 'src/config'
+import { defaultL2Network, l2Networks } from 'src/config/networks'
 import { amountToBN, formatError } from 'src/utils/format'
 import { useTransactionReplacement, useAsyncMemo, useBalance, useApprove } from 'src/hooks'
 import { useInterval } from 'react-use'
 
 type PoolsContextProps = {
   networks: Network[]
-  canonicalToken: Token | undefined
-  hopToken: Token | undefined
-  address: Address | undefined
+  canonicalToken?: Token
+  hopToken?: Token
+  address?: Address
   totalSupply: string | undefined
-  selectedNetwork: Network | undefined
+  selectedNetwork?: Network
   setSelectedNetwork: (network: Network) => void
   token0Amount: string
   setToken0Amount: (value: string) => void
@@ -59,9 +60,9 @@ type PoolsContextProps = {
   validFormFields: boolean
   sendButtonText: string
   error: string | null | undefined
-  warning: string | undefined
+  warning?: string
   setError: (error: string | null | undefined) => void
-  setWarning: (warning: string | undefined) => void
+  setWarning: (warning?: string) => void
   isNativeToken: boolean
   fee: number | undefined
   apr: number | undefined
@@ -110,7 +111,7 @@ const PoolsContext = createContext<PoolsContextProps>({
   error: null,
   warning: undefined,
   setError: (error: string | null | undefined) => {},
-  setWarning: (warning: string | undefined) => {},
+  setWarning: (warning?: string) => {},
   isNativeToken: false,
   fee: undefined,
   apr: undefined,
@@ -141,7 +142,7 @@ const PoolsContextProvider: FC = ({ children }) => {
   const [virtualPrice, setVirutalPrice] = useState<number | undefined>()
   const [fee, setFee] = useState<number | undefined>()
 
-  const { networks, txConfirm, sdk, selectedBridge, settings } = useApp()
+  const { txConfirm, sdk, selectedBridge, settings } = useApp()
   const { deadline, slippageTolerance } = settings
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const slippageToleranceBps = slippageTolerance * 100
@@ -149,64 +150,15 @@ const PoolsContextProvider: FC = ({ children }) => {
   const { address, provider, checkConnectedNetworkId } = useWeb3Context()
   const [error, setError] = useState<string | null | undefined>(null)
   const [warning, setWarning] = useState<string>()
-  const l2Networks = useMemo(() => {
-    return networks.filter(network => !network.isLayer1)
-  }, [networks])
-  const [selectedNetwork, setSelectedNetwork] = useState<Network>(l2Networks[0])
-  const isNativeToken =
-    useMemo(() => {
-      try {
-        const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
-        return token?.isNativeToken
-      } catch (err) {
-        logger.error(err)
-      }
-      return false
-    }, [selectedBridge, selectedNetwork]) ?? false
-
-  const canonicalToken = useMemo(() => {
-    try {
-      const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
-      if (token?.isNativeToken) {
-        return token?.getWrappedToken()
-      }
-      return token
-    } catch (err) {
-      logger.error(err)
-    }
-  }, [selectedBridge, selectedNetwork])
-
-  const hopToken = useMemo(() => {
-    try {
-      return selectedBridge?.getL2HopToken(selectedNetwork.slug)
-    } catch (err) {
-      logger.error(err)
-    }
-  }, [selectedBridge, selectedNetwork])
-
-  const [txHash, setTxHash] = useState<string | undefined>()
-  const [sending, setSending] = useState<boolean>(false)
-  const [removing, setRemoving] = useState<boolean>(false)
-
-  const { balance: canonicalBalance, loading: loadingCanonicalBalance } = useBalance(
-    canonicalToken,
-    selectedNetwork,
-    address
-  )
-
-  const { balance: hopBalance, loading: loadingHopBalance } = useBalance(
-    hopToken,
-    selectedNetwork,
-    address
-  )
+  const [selectedNetwork, setSelectedNetwork] = useState<Network>(defaultL2Network)
 
   const unsupportedAsset = useMemo(() => {
     if (!(selectedBridge && selectedNetwork)) {
       return null
     }
     const unsupportedAssets = {
-      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
-      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Optimism: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Arbitrum: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
     const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
@@ -227,6 +179,56 @@ const PoolsContextProvider: FC = ({ children }) => {
     return null
   }, [selectedBridge, selectedNetwork])
 
+  const isNativeToken =
+    useMemo(() => {
+      try {
+        if (!selectedNetwork || unsupportedAsset?.chain) return false
+        const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+        return token?.isNativeToken
+      } catch (err) {
+        logger.error(err)
+      }
+      return false
+    }, [unsupportedAsset, selectedBridge, selectedNetwork]) ?? false
+
+  const canonicalToken = useMemo(() => {
+    try {
+      if (!selectedNetwork || unsupportedAsset?.chain) return
+      const token = selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+      if (token?.isNativeToken) {
+        return token?.getWrappedToken()
+      }
+      return token
+    } catch (err) {
+      logger.error(err)
+    }
+  }, [unsupportedAsset, selectedBridge, selectedNetwork])
+
+  const hopToken = useMemo(() => {
+    try {
+      if (!selectedNetwork || unsupportedAsset?.chain) return
+      return selectedBridge?.getL2HopToken(selectedNetwork.slug)
+    } catch (err) {
+      logger.error(err)
+    }
+  }, [unsupportedAsset, selectedBridge, selectedNetwork])
+
+  const [txHash, setTxHash] = useState<string | undefined>()
+  const [sending, setSending] = useState<boolean>(false)
+  const [removing, setRemoving] = useState<boolean>(false)
+
+  const { balance: canonicalBalance, loading: loadingCanonicalBalance } = useBalance(
+    canonicalToken,
+    selectedNetwork,
+    address
+  )
+
+  const { balance: hopBalance, loading: loadingHopBalance } = useBalance(
+    hopToken,
+    selectedNetwork,
+    address
+  )
+
   useEffect(() => {
     if (unsupportedAsset) {
       const { chain, tokenSymbol } = unsupportedAsset
@@ -238,7 +240,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
   const tokenUsdPrice = useAsyncMemo(async () => {
     try {
-      if (!canonicalToken) {
+      if (!canonicalToken || unsupportedAsset?.chain) {
         return
       }
       const bridge = await sdk.bridge(canonicalToken.symbol)
@@ -247,14 +249,14 @@ const PoolsContextProvider: FC = ({ children }) => {
     } catch (err) {
       console.error(err)
     }
-  }, [canonicalToken])
+  }, [unsupportedAsset, canonicalToken])
 
   useEffect(() => {
     let isSubscribed = true
     const update = async () => {
       try {
         setReserveTotalsUsd(undefined)
-        if (!(selectedNetwork && canonicalToken && tokenUsdPrice)) {
+        if (!(selectedNetwork && canonicalToken && tokenUsdPrice && !unsupportedAsset?.chain)) {
           return
         }
 
@@ -286,11 +288,11 @@ const PoolsContextProvider: FC = ({ children }) => {
     return () => {
       isSubscribed = false
     }
-  }, [selectedNetwork, canonicalToken, tokenUsdPrice])
+  }, [unsupportedAsset, selectedNetwork, canonicalToken, tokenUsdPrice])
 
   useEffect(() => {
-    if (!l2Networks.includes(selectedNetwork)) {
-      setSelectedNetwork(l2Networks[0])
+    if (selectedNetwork && !l2Networks.includes(selectedNetwork)) {
+      setSelectedNetwork(defaultL2Network)
     }
   }, [l2Networks])
 
@@ -298,7 +300,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     let isSubscribed = true
     const update = async () => {
       try {
-        if (!(selectedBridge && selectedNetwork)) {
+        if (!(selectedBridge && selectedNetwork && !unsupportedAsset?.chain)) {
           setApr(undefined)
           return
         }
@@ -355,10 +357,10 @@ const PoolsContextProvider: FC = ({ children }) => {
     return () => {
       isSubscribed = false
     }
-  }, [sdk, selectedBridge, selectedNetwork])
+  }, [unsupportedAsset, sdk, selectedBridge, selectedNetwork])
 
   const priceImpact = useAsyncMemo(async () => {
-    if (!(canonicalToken && hopToken && selectedNetwork)) {
+    if (!(canonicalToken && hopToken && selectedNetwork && !unsupportedAsset?.chain)) {
       return
     }
     try {
@@ -371,13 +373,13 @@ const PoolsContextProvider: FC = ({ children }) => {
     } catch (err) {
       // noop
     }
-  }, [sdk, canonicalToken, hopToken, selectedNetwork, token0Amount, token1Amount])
+  }, [unsupportedAsset, sdk, canonicalToken, hopToken, selectedNetwork, token0Amount, token1Amount])
 
   useEffect(() => {
     let isSubscribed = true
     const update = async () => {
       setVirutalPrice(undefined)
-      if (!canonicalToken) {
+      if (!canonicalToken || !selectedNetwork || unsupportedAsset?.chain) {
         return
       }
       try {
@@ -396,13 +398,13 @@ const PoolsContextProvider: FC = ({ children }) => {
     return () => {
       isSubscribed = false
     }
-  }, [sdk, canonicalToken, selectedNetwork])
+  }, [unsupportedAsset, sdk, canonicalToken, selectedNetwork])
 
   useEffect(() => {
     let isSubscribed = true
     const update = async () => {
       setFee(undefined)
-      if (!canonicalToken) {
+      if (!canonicalToken || !selectedNetwork || unsupportedAsset?.chain) {
         return
       }
       try {
@@ -421,11 +423,13 @@ const PoolsContextProvider: FC = ({ children }) => {
     return () => {
       isSubscribed = false
     }
-  }, [sdk, canonicalToken, selectedNetwork])
+  }, [unsupportedAsset, sdk, canonicalToken, selectedNetwork])
 
   const updatePrices = useCallback(async () => {
     try {
-      if (!(totalSupply && canonicalToken && poolReserves)) return
+      if (!(totalSupply && canonicalToken && poolReserves.length > 0 && !unsupportedAsset?.chain)) {
+        return
+      }
       if (Number(token1Rate)) {
         const price = new Price(token1Rate, '1')
         setToken0Price(price.toFixed(2))
@@ -436,8 +440,8 @@ const PoolsContextProvider: FC = ({ children }) => {
         let amount0 = 0
         let amount1 = 0
 
-        const reserve0 = Number(formatUnits(poolReserves[0].toString(), canonicalToken?.decimals))
-        const reserve1 = Number(formatUnits(poolReserves[1].toString(), canonicalToken.decimals))
+        const reserve0 = Number(formatUnits(poolReserves[0]?.toString(), canonicalToken?.decimals))
+        const reserve1 = Number(formatUnits(poolReserves[1]?.toString(), canonicalToken.decimals))
 
         if (token0Amount) {
           amount0 = (Number(token0Amount) * Number(totalSupply)) / reserve0
@@ -457,7 +461,15 @@ const PoolsContextProvider: FC = ({ children }) => {
     } catch (err) {
       logger.error(err)
     }
-  }, [token0Amount, totalSupply, token1Amount, token1Rate, poolReserves, canonicalToken])
+  }, [
+    unsupportedAsset,
+    token0Amount,
+    totalSupply,
+    token1Amount,
+    token1Rate,
+    poolReserves,
+    canonicalToken,
+  ])
 
   useEffect(() => {
     updatePrices()
@@ -467,7 +479,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     let isSubscribed = true
     const update = async () => {
       setPoolReserves([])
-      if (!(canonicalToken && hopToken)) {
+      if (!(canonicalToken && hopToken && selectedNetwork && !unsupportedAsset?.chain)) {
         return
       }
       const bridge = await sdk.bridge(canonicalToken.symbol)
@@ -487,11 +499,19 @@ const PoolsContextProvider: FC = ({ children }) => {
     return () => {
       isSubscribed = false
     }
-  }, [canonicalToken, hopToken, selectedNetwork])
+  }, [unsupportedAsset, canonicalToken, hopToken, selectedNetwork])
 
   const updateUserPoolPositions = useCallback(async () => {
     try {
-      if (!(canonicalToken && provider && selectedNetwork.provider && poolReserves)) {
+      if (
+        !(
+          canonicalToken &&
+          provider &&
+          selectedNetwork?.provider &&
+          poolReserves &&
+          !unsupportedAsset?.chain
+        )
+      ) {
         setToken1Rate('')
         setToken0Deposited(undefined)
         setToken1Deposited(undefined)
@@ -554,7 +574,7 @@ const PoolsContextProvider: FC = ({ children }) => {
     } catch (err) {
       logger.error(err)
     }
-  }, [provider, selectedNetwork, canonicalToken, hopToken])
+  }, [unsupportedAsset, provider, selectedNetwork, canonicalToken, hopToken])
 
   useEffect(() => {
     updateUserPoolPositions()
@@ -601,7 +621,7 @@ const PoolsContextProvider: FC = ({ children }) => {
       setError(null)
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected || !selectedNetwork) return
 
       if (!(Number(token0Amount) || Number(token1Amount))) {
         return
@@ -695,9 +715,9 @@ const PoolsContextProvider: FC = ({ children }) => {
 
       setRemoving(true)
       const bridge = sdk.bridge(canonicalToken.symbol)
-      const amm = bridge.getAmm(selectedNetwork.slug)
+      const amm = bridge.getAmm(selectedNetwork!.slug)
       const saddleSwap = await amm.getSaddleSwap()
-      const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
+      const lpToken = await bridge.getSaddleLpToken(selectedNetwork!.slug)
       const lpTokenDecimals = await lpToken.decimals
       const token0Amount = token0Deposited
       const token1Amount = token1Deposited
@@ -774,7 +794,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
             return bridge
               .connect(signer as Signer)
-              .removeLiquidity(liquidityTokenAmount, selectedNetwork.slug, {
+              .removeLiquidity(liquidityTokenAmount, selectedNetwork!.slug, {
                 amount0Min,
                 amount1Min,
                 deadline: deadline(),
@@ -807,7 +827,7 @@ const PoolsContextProvider: FC = ({ children }) => {
 
             return bridge
               .connect(signer as Signer)
-              .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork.slug, {
+              .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork!.slug, {
                 amountMin: amountMin,
                 deadline: deadline(),
               })
@@ -825,7 +845,9 @@ const PoolsContextProvider: FC = ({ children }) => {
         )
       }
 
-      const res = await waitForTransaction(removeLiquidityTx, { networkName: selectedNetwork.slug })
+      const res = await waitForTransaction(removeLiquidityTx, {
+        networkName: selectedNetwork!.slug,
+      })
       if (res && 'replacementTx' in res) {
         setTxHash(res.replacementTx.hash)
       }

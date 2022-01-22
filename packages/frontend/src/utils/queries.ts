@@ -1,12 +1,13 @@
+import { Slug } from '@hop-protocol/sdk'
 import { BigNumberish } from 'ethers'
 import logger from 'src/logger'
 
-export function getUrl(chain) {
-  if (chain === 'ethereum') {
-    chain = 'mainnet'
+export function getUrl(chain: Slug | string) {
+  if (chain === Slug.ethereum) {
+    chain = Slug.mainnet
   }
 
-  if (chain === 'gnosis') {
+  if (chain === Slug.gnosis) {
     chain = 'xdai'
   }
 

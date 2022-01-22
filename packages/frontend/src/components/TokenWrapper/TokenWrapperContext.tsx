@@ -8,7 +8,8 @@ import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
 import { formatError } from 'src/utils'
-import { useTransactionReplacement, useApprove } from 'src/hooks'
+import { useTransactionReplacement } from 'src/hooks'
+import { defaultL2Network } from 'src/config/networks'
 
 type TokenWrapperContextProps = {
   amount: string
@@ -17,11 +18,11 @@ type TokenWrapperContextProps = {
   unwrap: () => void
   isWrapping: boolean
   isUnwrapping: boolean
-  selectedNetwork: Network | undefined
+  selectedNetwork: Network
   setSelectedNetwork: (network: Network) => void
-  canonicalToken: Token | undefined
+  canonicalToken?: Token
   canonicalTokenBalance: BigNumber | undefined
-  wrappedToken: Token | undefined
+  wrappedToken?: Token
   wrappedTokenBalance: BigNumber | undefined
   error: string | null | undefined
   setError: (error: string | null | undefined) => void
@@ -35,7 +36,7 @@ const TokenWrapperContext = createContext<TokenWrapperContextProps>({
   unwrap: () => {},
   isWrapping: false,
   isUnwrapping: false,
-  selectedNetwork: undefined,
+  selectedNetwork: defaultL2Network,
   setSelectedNetwork: (network: Network) => {},
   canonicalToken: undefined,
   canonicalTokenBalance: undefined,
@@ -48,18 +49,20 @@ const TokenWrapperContext = createContext<TokenWrapperContextProps>({
 
 const TokenWrapperContextProvider: FC = ({ children }) => {
   const [amount, setAmount] = useState<string>('')
-  const { networks, txConfirm, sdk, selectedBridge } = useApp()
-  const { address, provider, checkConnectedNetworkId } = useWeb3Context()
-  const l2Networks = useMemo(() => {
-    return networks.filter(network => !network.isLayer1)
-  }, [networks])
-  const [selectedNetwork, setSelectedNetwork] = useState<Network>(l2Networks[0])
+  const { txConfirm, selectedBridge } = useApp()
+  const { provider, checkConnectedNetworkId } = useWeb3Context()
+  const [selectedNetwork, setSelectedNetwork] = useState<Network>(defaultL2Network)
+
+  // TODO: mv to useBridges or new hook (useNetworkBridges)
   const canonicalToken = useMemo(() => {
-    return selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+    if (selectedNetwork?.slug) {
+      return selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+    }
   }, [selectedBridge, selectedNetwork])
   const wrappedToken = useMemo(() => {
     return canonicalToken?.getWrappedToken()
   }, [canonicalToken])
+
   const signer = provider?.getSigner()
   const [canonicalTokenBalance, setCanonicalTokenBalance] = useState<BigNumber | undefined>()
   const [wrappedTokenBalance, setWrappedTokenBalance] = useState<BigNumber | undefined>()
@@ -67,6 +70,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
   const [isUnwrapping, setUnwrapping] = useState<boolean>(false)
   const [error, setError] = useState<string | null | undefined>(null)
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
+
   const isNativeToken =
     useMemo(() => {
       try {
@@ -101,6 +105,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
 
   const wrap = async () => {
     try {
+      if (!selectedNetwork?.networkId) return
       const networkId = Number(selectedNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
@@ -146,7 +151,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           })
         )
 
-        await waitForTransaction(tokenWrapTx, { networkName: selectedNetwork.slug })
+        await waitForTransaction(tokenWrapTx, { networkName: selectedNetwork?.slug })
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {
@@ -158,7 +163,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
 
   const unwrap = async () => {
     try {
-      const networkId = Number(selectedNetwork.networkId)
+      const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
@@ -196,11 +201,11 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
         addTransaction(
           new Transaction({
             hash: tokenUnwrapTx.hash,
-            networkName: selectedNetwork.slug,
+            networkName: selectedNetwork?.slug,
           })
         )
 
-        await waitForTransaction(tokenUnwrapTx, { networkName: selectedNetwork.slug })
+        await waitForTransaction(tokenUnwrapTx, { networkName: selectedNetwork?.slug })
       }
     } catch (err: any) {
       if (!/cancelled/gi.test(err.message)) {

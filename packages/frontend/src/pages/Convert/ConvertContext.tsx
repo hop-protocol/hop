@@ -131,7 +131,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
-      const matchingNetwork = findNetworkBySlug(queryParams.sourceNetwork)
+      const matchingNetwork = findNetworkBySlug(queryParams.sourceNetwork as string)
       if (matchingNetwork && !matchingNetwork?.isLayer1) {
         setSelectedNetwork(matchingNetwork)
       } else {

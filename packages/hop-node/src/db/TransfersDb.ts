@@ -343,8 +343,8 @@ class TransfersDb extends BaseDb {
     const kv = await this.subDbRootHashes.getFilteredKeyValues(transferRootHash)
     const unsortedTransferIds = kv.map(this.filterValueTransferId).filter(this.filterExisty)
     const items = await this.batchGetByIds(unsortedTransferIds)
-    const sortedTransferids = items.sort(this.sortItems).map(this.filterValueTransferId)
-    return sortedTransferids
+    const sortedTransfers = items.sort(this.sortItems).filter(this.filterExisty)
+    return sortedTransfers
   }
 
   async getUncommittedTransfers (

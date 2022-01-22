@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react'
 import { Div, Flex } from 'src/components/ui'
-import useTransactionStatus from 'src/hooks/useTransactionStatus'
 import RightArrow from '@material-ui/icons/ArrowRightAlt'
 import { TransactionStatus, useTxStatusStyles } from 'src/components/Transaction'
 import { useApp } from 'src/contexts/AppContext'
@@ -8,9 +7,7 @@ import { findNetworkBySlug } from 'src/utils/networks'
 
 function TxStatusTracker({ tx, completed, destCompleted, confirmations, networkConfirmations }) {
   const styles = useTxStatusStyles()
-  const { networks } = useApp()
-
-  const network = useMemo(() => findNetworkBySlug(networks, tx.networkName), [tx, networks])
+  const network = useMemo(() => findNetworkBySlug(tx.networkName), [tx])
 
   return (
     <Div mb={4}>

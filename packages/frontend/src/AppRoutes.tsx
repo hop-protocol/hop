@@ -2,8 +2,6 @@ import React, { FC } from 'react'
 import { Switch, Route, Redirect } from 'react-router-dom'
 import Components from 'src/pages/Components'
 import Send from 'src/pages/Send'
-import Vote from './pages/Vote'
-import VotePage from './pages/Vote/VotePage'
 import Pools from 'src/pages/Pools'
 import Faucet from 'src/pages/Faucet'
 import Earn from 'src/pages/Earn'
@@ -81,54 +79,20 @@ const mockProposals: IProposal[] = [
 const COMPONENT_NAME: FC<Props> = () => {
   return (
     <Switch>
-      <Route path="/(send|arbitrum|optimism|polygon|gnosis)/">
-        <Send />
-      </Route>
-      <Route path="/convert">
-        <Convert />
-      </Route>
-      <Route path="/pool">
-        <Pools />
-      </Route>
-      {!isMainnet ? (
-        <Route path="/faucet">
-          <Faucet />
-        </Route>
-      ) : null}
-      <Route path="/earn">
-        <Earn />
-      </Route>
-      <Route path="/stake">
-        <Stake />
-      </Route>
-      <Route path="/stats">
-        <Stats />
-      </Route>
-      <Route exact path={['/tx', '/tx/:hash']}>
-        <TransactionPage />
-      </Route>
+      <Route path="/(send|arbitrum|optimism|polygon|gnosis)" component={Send} />
 
-      {/* Vote Pages */}
-      <Route path="/vote/1">
-        <VotePage proposal={mockProposals[3]} />
-      </Route>
-      <Route path="/vote/2">
-        <VotePage proposal={mockProposals[2]} />
-      </Route>
-      <Route path="/vote/3">
-        <VotePage proposal={mockProposals[1]} />
-      </Route>
-      <Route path="/vote/4">
-        <VotePage proposal={mockProposals[0]} />
-      </Route>
-      <Route path="/vote">
-        <Vote proposals={mockProposals} />
-      </Route>
-      <Route path="/stake">Staking coming soon</Route>
+      <Route path="/convert" component={Convert} />
+      <Route path="/pool" component={Pools} />
+      <Route path="/earn" component={Earn} />
+      <Route path="/stake" component={Stake} />
+      <Route path="/stats" component={Stats} />
 
-      <Route path="/components">
-        <Components />
-      </Route>
+      <Route exact path={['/tx', '/tx/:hash']} component={TransactionPage} />
+
+      {!isMainnet && <Route path="/faucet" component={Faucet} />}
+
+      <Route path="/components" component={Components} />
+
       <Redirect to="/send" />
     </Switch>
   )

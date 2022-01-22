@@ -9,10 +9,11 @@ import { useApp } from 'src/contexts/AppContext'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import ConvertContent from 'src/pages/Convert/ConvertContent'
-import Network from 'src/models/Network'
 import InfoTooltip from 'src/components/infoTooltip'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import useQueryParams from 'src/hooks/useQueryParams'
+import { findMatchingBridge, findNetworkBySlug } from 'src/utils'
+import { l2Networks } from 'src/config/networks'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -42,7 +43,7 @@ const useStyles = makeStyles(theme => ({
 const Convert: FC = () => {
   const styles = useStyles()
   const { bridges, selectedBridge, setSelectedBridge } = useApp()
-  const { convertOptions, l2Networks, selectedNetwork, setSelectedNetwork } = useConvert()
+  const { convertOptions, selectedNetwork, setSelectedNetwork } = useConvert()
   const { pathname, search } = useLocation()
   const { path } = useRouteMatch()
   const history = useHistory()
@@ -50,7 +51,8 @@ const Convert: FC = () => {
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
+
+    const bridge = findMatchingBridge(bridges, tokenSymbol)
     if (bridge) {
       setSelectedBridge(bridge)
     }
@@ -58,7 +60,7 @@ const Convert: FC = () => {
 
   const handleNetworkChange = (event: ChangeEvent<{ value: unknown }>) => {
     const slug = event.target.value as string
-    const network = l2Networks.find((network: Network) => network.slug === slug)
+    const network = findNetworkBySlug(slug)
     if (network) {
       updateQueryParams({
         sourceNetwork: network.slug ?? '',

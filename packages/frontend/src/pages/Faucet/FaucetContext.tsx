@@ -8,6 +8,7 @@ import Network from 'src/models/Network'
 import logger from 'src/logger'
 import { L1_NETWORK } from 'src/utils/constants'
 import { formatError } from 'src/utils/format'
+import { l1Network } from 'src/config/networks'
 
 type FaucetContextProps = {
   mintToken: () => void
@@ -16,7 +17,7 @@ type FaucetContextProps = {
   tokens: Token[]
   error: string | null | undefined
   setError: (error: string | null | undefined) => void
-  selectedNetwork: Network | undefined
+  selectedNetwork: Network
 }
 
 const FaucetContext = createContext<FaucetContextProps>({
@@ -26,7 +27,7 @@ const FaucetContext = createContext<FaucetContextProps>({
   tokens: [],
   error: null,
   setError: (error: string | null | undefined) => {},
-  selectedNetwork: undefined,
+  selectedNetwork: l1Network,
 })
 
 const FaucetContextProvider: FC = ({ children }) => {
@@ -34,7 +35,7 @@ const FaucetContextProvider: FC = ({ children }) => {
   const [isMinting, setMinting] = useState<boolean>(false)
   const { contracts, txHistory, networks, tokens } = useApp()
   const { address, getWriteContract } = useWeb3Context()
-  const selectedNetwork = networks[0]
+  const selectedNetwork = l1Network
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(tokens[0])
   const [error, setError] = useState<string | null | undefined>(null)
 

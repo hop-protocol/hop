@@ -11,7 +11,7 @@ import {
   networkIdToSlug,
   queryFilterTransferFromL1CompletedEvents,
 } from 'src/utils'
-import { network as defaultNetwork, reactAppNetwork } from 'src/config'
+import { hopAppNetwork } from 'src/config'
 import logger from 'src/logger'
 import { formatError } from 'src/utils/format'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
@@ -75,7 +75,7 @@ class Transaction extends EventEmitter {
   }: ContructorArgs) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
-    this.networkName = (networkName || defaultNetwork).trim().toLowerCase()
+    this.networkName = (networkName || hopAppNetwork).trim().toLowerCase()
 
     // TODO: not sure if changing pendingDestinationConfirmation will have big effects
     if (destNetworkName) {
@@ -128,7 +128,7 @@ class Transaction extends EventEmitter {
     }
 
     if (this.pendingDestinationConfirmation && this.destNetworkName) {
-      const sdk = new Hop(reactAppNetwork)
+      const sdk = new Hop(hopAppNetwork)
       this.checkIsTransferIdSpent(sdk)
     }
   }

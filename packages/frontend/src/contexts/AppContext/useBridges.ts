@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { Hop, HopBridge, TToken } from '@hop-protocol/sdk'
 import { addresses } from 'src/config'
 import useQueryParams from 'src/hooks/useQueryParams'
+import { findMatchingBridge } from 'src/utils'
 
 const useBridges = (sdk: Hop) => {
   const { queryParams, updateQueryParams, location } = useQueryParams()
@@ -12,9 +13,10 @@ const useBridges = (sdk: Hop) => {
     })
   }, [sdk])
 
-  const queryParamBridge = useMemo(() => {
-    return bridges.find(bridge => bridge.getTokenSymbol() === queryParams.token)
-  }, [bridges, queryParams])
+  const queryParamBridge = useMemo(
+    () => findMatchingBridge(bridges, queryParams.token as string),
+    [bridges, queryParams]
+  )
 
   const [selectedBridge, _setSelectedBridge] = useState<HopBridge>(queryParamBridge ?? bridges[0])
 
@@ -29,12 +31,14 @@ const useBridges = (sdk: Hop) => {
   }
 
   useEffect(() => {
-    const updatedBridge = bridges.find(bridge => {
-      return bridge.getTokenSymbol() === selectedBridge.getTokenSymbol()
-    })
+    if (!(selectedBridge && bridges.length)) {
+      return
+    }
 
-    if (updatedBridge) {
-      setSelectedBridge(updatedBridge)
+    const matchingBridge = findMatchingBridge(bridges, selectedBridge.getTokenSymbol())
+
+    if (matchingBridge) {
+      setSelectedBridge(matchingBridge)
     } else {
       setSelectedBridge(bridges[0])
     }

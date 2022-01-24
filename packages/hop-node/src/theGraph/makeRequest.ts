@@ -15,6 +15,9 @@ async function _makeRequest (
   query: string,
   params: any = {}
 ) {
+  if (chain === 'gnosis') {
+    chain = 'xdai'
+  }
   let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
   if (chain === Chain.Ethereum) {
     url = `${url}-mainnet`

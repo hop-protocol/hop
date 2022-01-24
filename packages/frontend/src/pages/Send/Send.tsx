@@ -12,11 +12,11 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, isL1ToL2, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
-import { reactAppNetwork } from 'src/config'
+import { hopAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/infoTooltip'
 import { amountToBN, formatError } from 'src/utils/format'
 import { useSendStyles } from './useSendStyles'
@@ -270,7 +270,7 @@ const Send: FC = () => {
         </>
       )
       if (!isAvailable && !fromNetwork?.isLayer1) {
-        if (reactAppNetwork !== 'staging') {
+        if (hopAppNetwork !== 'staging') {
           setIsLiquidityAvailable(false)
           setNoLiquidityWarning(warningMessage)
         }
@@ -532,7 +532,7 @@ const Send: FC = () => {
   // Change the bridge if user selects different token to send
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
-    const bridge = bridges.find(bridge => bridge.getTokenSymbol() === tokenSymbol)
+    const bridge = findMatchingBridge(bridges, tokenSymbol)
     if (bridge) {
       setSelectedBridge(bridge)
     }

@@ -35,6 +35,7 @@ type MarshalledItem = {
   id: string
   createdAt: number
   txHash: string
+  type?: number
   from: string
   to: string
   data: string
@@ -92,6 +93,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   private _is1559Supported: boolean // set to true if EIP-1559 type transactions are supported
   readonly minMultiplier: number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
 
+  type?: number
+
   // these properties are required by ethers TransactionResponse interface
   from: string // type 0 and 2 tx required property
   to: string // type 0 and 2 tx required property
@@ -114,6 +117,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.createdAt = Date.now()
     this.from = tx.from!
     this.to = tx.to!
+    if (tx.type != null) {
+      this.type = tx.type
+    }
     if (tx.data) {
       this.data = hexlify(tx.data)
     }
@@ -240,6 +246,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       id: this.id,
       createdAt: this.createdAt,
       txHash: this.txHash,
+      type: this.type,
       from: this.from,
       to: this.to,
       data: this.data,
@@ -259,6 +266,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   static async unmarshal (item: MarshalledItem, signer: Signer, store: Store, options: Partial<Options> = {}) {
     const tx = {
+      type: item.type,
       from: item.from,
       to: item.to,
       data: item.data,
@@ -297,6 +305,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const tx = await this._sendTransaction(gasFeeData)
 
     // store populated and normalized values
+    if (tx.type != null) {
+      this.type = tx.type
+    }
     this.from = tx.from
     this.to = tx.to!
     this.data = tx.data
@@ -374,7 +385,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getBumpedGasFeeData (multiplier: number = this.gasPriceMultiplier): Promise<Partial<GasFeeData>> {
-    const use1559 = await this.is1559Supported() && !this.gasPrice
+    const use1559 = await this.is1559Supported() && !this.gasPrice && this.type !== 0
+
     if (use1559) {
       const gasFeeData = await this.getGasFeeData()
       const maxPriorityFeePerGas = await this.getBumpedMaxPriorityFeePerGas(multiplier)
@@ -587,6 +599,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         }
 
         const payload: providers.TransactionRequest = {
+          type: this.type,
           to: this.to,
           data: this.data,
           value: this.value,

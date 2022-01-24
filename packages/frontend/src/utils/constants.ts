@@ -1,3 +1,5 @@
+import { ChainSlug } from '@hop-protocol/sdk'
+
 export const PROPOSAL_STATUSES: any = {
   PENDING: 'pending',
   ACTIVE: 'active',
@@ -46,7 +48,7 @@ export const ETHERSCAN_PREFIXES: { [networkId in NetworkId]: string } = {
 export const STAKING_GENESIS = 1600387200 // TODO: Update with real data
 export const REWARDS_DURATION_DAYS = 60
 
-export const L1_NETWORK = 'ethereum'
+export const L1_NETWORK = ChainSlug.Ethereum
 
 export const careersUrl = 'https://hop.exchange/careers'
 export const docsUrl = 'https://docs.hop.exchange/'

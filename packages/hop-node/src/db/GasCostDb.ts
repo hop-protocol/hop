@@ -22,6 +22,9 @@ type GasCost = BaseItem & {
   minBonderFeeAbsolute: BigNumber
 }
 
+// structure:
+// key: `<chain>:<token>:<timestamp>:<attemptSwap>`
+// value: `{ ...GasCost }`
 class GasCostDb extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)

@@ -4,6 +4,7 @@ import { useInterval } from 'react-use'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { constants } from 'ethers'
+import { l1Network } from 'src/config/networks'
 
 type VoteContextProps = {
   balance: string
@@ -34,13 +35,13 @@ export const VoteContextProvider: FC<{}> = ({ children }) => {
   const getBalance = useCallback(() => {
     const _getBalance = async () => {
       if (user && l1HopToken) {
-        const _balance = await user.getBalance(l1HopToken, networks[0])
+        const _balance = await user.getBalance(l1HopToken, l1Network)
         setBalance(Number(formatUnits(_balance.toString(), l1HopToken.decimals)).toFixed(2))
       }
     }
 
     _getBalance()
-  }, [user, l1HopToken, networks[0], l1Hop])
+  }, [user, l1HopToken, l1Hop])
 
   const getDelegate = useCallback(() => {
     const _getDelegate = async () => {
@@ -51,15 +52,15 @@ export const VoteContextProvider: FC<{}> = ({ children }) => {
     }
 
     _getDelegate()
-  }, [user, l1HopToken, networks[0]])
+  }, [user, l1HopToken])
 
   useEffect(() => {
     getBalance()
-  }, [getBalance, user, l1HopToken, networks[0]])
+  }, [getBalance, user, l1HopToken])
 
   useEffect(() => {
     getDelegate()
-  }, [getDelegate, user, l1HopToken, networks[0]])
+  }, [getDelegate, user, l1HopToken])
 
   useInterval(() => {
     getBalance()

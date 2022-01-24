@@ -9,6 +9,7 @@ import TxPill from 'src/components/header/TxPill'
 import HopLogoBlack from 'src/assets/logos/hop-logo-black.svg'
 import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
 import { isMainnet } from 'src/config'
+import { l1Network } from 'src/config/networks'
 import Settings from 'src/components/header/Settings'
 import WalletWarning from './WalletWarning'
 import {
@@ -107,7 +108,7 @@ const Header: FC = () => {
   const { toggleMode, isDarkMode } = useThemeMode()
   const styles = useStyles({ isDarkMode })
   const { address, provider, connectedNetworkId } = useWeb3Context()
-  const { l1Network, networks, theme } = useApp()
+  const { theme } = useApp()
   const [displayBalance, setDisplayBalance] = useState<string>('')
   const [connectedNetwork, setConnectedNetwork] = useState<Network | undefined>()
 
@@ -121,7 +122,7 @@ const Header: FC = () => {
       const formattedBalance = toTokenDisplay(balance, 18)
       const tokenSymbol = networkIdNativeTokenSymbol(connectedNetworkId)
       const _displayBalance = `${fixedDecimals(formattedBalance, 3)} ${tokenSymbol}`
-      const network = findNetworkBySlug(networks, networkIdToSlug(connectedNetworkId))
+      const network = findNetworkBySlug(networkIdToSlug(connectedNetworkId))
       setDisplayBalance(_displayBalance)
       setConnectedNetwork(network)
     } catch (err) {
@@ -151,7 +152,7 @@ const Header: FC = () => {
               src={theme?.palette.type === 'dark' ? HopLogoWhite : HopLogoBlack}
               alt="Hop"
             />
-            {!isMainnet ? <span className={styles.label}>{l1Network?.name}</span> : null}
+            {!isMainnet && <span className={styles.label}>{l1Network.name}</span>}
           </Link>
         </Box>
 

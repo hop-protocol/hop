@@ -1,6 +1,6 @@
 import { HopBridge } from '@hop-protocol/sdk'
 import { useMemo } from 'react'
-import { reactAppNetwork } from 'src/config'
+import { hopAppNetwork } from 'src/config'
 import logger from 'src/logger'
 import Network from 'src/models/Network'
 
@@ -11,8 +11,8 @@ export function useAssets(selectedBridge?: HopBridge, fromNetwork?: Network, toN
       return null
     }
     const unsupportedAssets = {
-      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
-      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Optimism: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Arbitrum: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
     }
 
     for (const chain in unsupportedAssets) {
@@ -36,22 +36,22 @@ export function useAssets(selectedBridge?: HopBridge, fromNetwork?: Network, toN
   // Set source token
   const sourceToken = useMemo(() => {
     try {
-      if (!fromNetwork || !selectedBridge) return
+      if (!fromNetwork || !selectedBridge || unsupportedAsset?.chain) return
       return selectedBridge.getCanonicalToken(fromNetwork?.slug)
     } catch (err) {
       logger.error(err)
     }
-  }, [selectedBridge, fromNetwork])
+  }, [unsupportedAsset, selectedBridge, fromNetwork])
 
   // Set destination token
   const destToken = useMemo(() => {
     try {
-      if (!toNetwork || !selectedBridge) return
+      if (!toNetwork || !selectedBridge || unsupportedAsset?.chain) return
       return selectedBridge.getCanonicalToken(toNetwork?.slug)
     } catch (err) {
       logger.error(err)
     }
-  }, [selectedBridge, toNetwork])
+  }, [unsupportedAsset, selectedBridge, toNetwork])
 
   // Set placeholder token
   const placeholderToken = useMemo(() => {

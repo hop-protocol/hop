@@ -49,6 +49,7 @@ class IncompleteSettlementsWatcher {
   rootHashTotals: any = {}
   rootHashSettlements: any = {}
   rootHashWithdrews: any = {}
+  rootHashConfirmeds: any = {}
   rootHashSettledTotalAmounts: any = {}
   transferIdWithdrews: any = {}
   transferIdWithdrawalBondSettled: any = {}
@@ -88,6 +89,7 @@ class IncompleteSettlementsWatcher {
     console.log('done getting all block numbers')
     console.log('reading events')
     console.log(`days: ${this.days}`)
+    console.log('this will take a minute')
 
     for (const chain of this.chains) {
       for (const token of this.tokens) {
@@ -184,7 +186,10 @@ class IncompleteSettlementsWatcher {
   private async setTransferRootConfirmeds (chain: string, token: string) {
     const contract = this.getContract(chain, token)
     const filter = contract.filters.TransferRootConfirmed()
-    await this.setEvents(chain, token, filter, this.transferRootConfirmeds)
+    const logs = await this.setEvents(chain, token, filter, this.transferRootConfirmeds)
+    for (const log of logs) {
+      this.rootHashConfirmeds[log.args.rootHash] = log
+    }
   }
 
   private async setWithdrews (chain: string, token: string) {
@@ -327,10 +332,11 @@ class IncompleteSettlementsWatcher {
 
     for (const rootHash in this.rootHashTotals) {
       const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
-      const tokenDecimals = getTokenDecimals(token)
-      const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
       const totalAmount = this.rootHashTotals[rootHash]
       const timestamp = this.rootHashTimestamps[rootHash]
+      const isConfirmed = !!this.rootHashConfirmeds[rootHash]
+      const tokenDecimals = getTokenDecimals(token)
+      const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
       const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
       const _totalAmount = totalAmount.toString()
       const totalAmountFormatted = formatUnits(_totalAmount, tokenDecimals)
@@ -352,10 +358,11 @@ class IncompleteSettlementsWatcher {
           diffFormatted,
           rootHash,
           settlementEvents,
-          withdrewEvents
+          withdrewEvents,
+          isConfirmed
         })
       }
-      console.log(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}`)
+      console.log(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}`)
     }
 
     incompletes = incompletes.sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))

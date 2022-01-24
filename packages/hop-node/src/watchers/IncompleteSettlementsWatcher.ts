@@ -45,6 +45,7 @@ class IncompleteSettlementsWatcher {
 
   // state to track
   rootHashMeta: any = {}
+  rootHashTimestamps: any = {}
   rootHashTotals: any = {}
   rootHashSettlements: any = {}
   rootHashWithdrews: any = {}
@@ -146,7 +147,7 @@ class IncompleteSettlementsWatcher {
     const contract = this.getContract(chain, token)
     const filter = contract.filters.TransfersCommitted()
     const logs = await this.setEvents(chain, token, filter, this.transferCommitteds)
-    for (const log of logs) {
+    await Promise.all(logs.map(async (log: any) => {
       const { rootHash, totalAmount, destinationChainId } = log.args
       const destinationChain = chainIdToSlug(destinationChainId)
       this.rootHashMeta[rootHash] = {
@@ -155,7 +156,11 @@ class IncompleteSettlementsWatcher {
         destinationChain
       }
       this.rootHashTotals[rootHash] = totalAmount
-    }
+
+      const provider = getRpcProvider(chain)
+      const { timestamp } = await provider!.getBlock(log.blockNumber)
+      this.rootHashTimestamps[rootHash] = timestamp
+    }))
   }
 
   private async setMultipleWithdrawalsSettleds (chain: string, token: string) {
@@ -249,7 +254,10 @@ class IncompleteSettlementsWatcher {
 
   async start () {
     await this.tilReady()
+    await this.checkDiffs()
+  }
 
+  async checkDiffs () {
     console.log('summing multipleWithdrawalsSettled events')
 
     for (const chain of this.chains) {
@@ -311,25 +319,30 @@ class IncompleteSettlementsWatcher {
       this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
     }
 
-    const incompletes = []
+    let incompletes = []
 
     const rootsCount = Object.keys(this.rootHashTotals).length
     console.log('checking settled amount diffs')
     console.log(`roots to check: ${rootsCount}`)
 
     for (const rootHash in this.rootHashTotals) {
-      const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash]
+      const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
+      const tokenDecimals = getTokenDecimals(token)
+      const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
       const totalAmount = this.rootHashTotals[rootHash]
-      if (!settledTotalAmount || settledTotalAmount.eq(0) || !settledTotalAmount.eq(totalAmount)) {
-        const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
-        const tokenDecimals = getTokenDecimals(token)
-        const _totalAmount = totalAmount.toString()
-        const totalAmountFormatted = formatUnits(_totalAmount, tokenDecimals)
-        const diff = totalAmount.sub(settledTotalAmount ?? 0).toString()
-        const diffFormatted = formatUnits(diff, tokenDecimals)
+      const timestamp = this.rootHashTimestamps[rootHash]
+      const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
+      const _totalAmount = totalAmount.toString()
+      const totalAmountFormatted = formatUnits(_totalAmount, tokenDecimals)
+      const diff = totalAmount.sub(settledTotalAmount).toString()
+      const diffFormatted = formatUnits(diff, tokenDecimals)
+      const isIncomplete = settledTotalAmount.eq(0) || !settledTotalAmount.eq(totalAmount)
+      if (isIncomplete) {
         const settlementEvents = this.rootHashSettlements[rootHash]?.length ?? 0
         const withdrewEvents = this.rootHashWithdrews[rootHash]?.length ?? 0
         incompletes.push({
+          timestamp,
+          timestampRelative,
           token,
           sourceChain,
           destinationChain,
@@ -342,7 +355,10 @@ class IncompleteSettlementsWatcher {
           withdrewEvents
         })
       }
+      console.log(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}`)
     }
+
+    incompletes = incompletes.sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))
 
     console.log('done checking root diffs')
     console.log(`incomplete settlements: ${incompletes.length}`)

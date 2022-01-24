@@ -54,11 +54,10 @@ async function main (source: any) {
     dryMode
   })
 
-  const watcher = findWatcher(watchers, BondTransferRootWatcher, chain) as BondTransferRootWatcher 
+  const watcher = findWatcher(watchers, BondTransferRootWatcher, chain) as BondTransferRootWatcher
   if (!watcher) {
     throw new Error('watcher not found')
   }
-
 
   const destinationChainId = chainSlugToId(destinationChain)
   if (!destinationChainId) {

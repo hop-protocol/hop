@@ -7,6 +7,7 @@ import reportWebVitals from './reportWebVitals'
 import ThemeProvider from './theme/ThemeProvider'
 import Web3Provider from './contexts/Web3Context'
 import AppProvider from './contexts/AppContext'
+import { ReactQueryDevtools } from 'react-query/devtools'
 
 const isIPFS = !!process.env.REACT_APP_IPFS_BUILD
 const Router: ComponentType = isIPFS ? HashRouter : BrowserRouter
@@ -14,7 +15,7 @@ const Router: ComponentType = isIPFS ? HashRouter : BrowserRouter
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 15000,
+      staleTime: 20000,
       cacheTime: 1000 * 60 * 60,
     },
   },
@@ -22,15 +23,16 @@ const queryClient = new QueryClient({
 
 ReactDOM.render(
   <ThemeProvider>
-    <Router>
-      <Web3Provider>
-        <AppProvider>
-          <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Web3Provider>
+          <AppProvider>
             <App />
-          </QueryClientProvider>
-        </AppProvider>
-      </Web3Provider>
-    </Router>
+            <ReactQueryDevtools />
+          </AppProvider>
+        </Web3Provider>
+      </Router>
+    </QueryClientProvider>
   </ThemeProvider>,
   document.getElementById('root')
 )

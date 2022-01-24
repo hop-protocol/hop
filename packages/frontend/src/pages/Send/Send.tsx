@@ -89,6 +89,8 @@ const Send: FC = () => {
     toNetwork
   )
 
+  console.log(`unsupportedAsset:`, unsupportedAsset)
+
   // Get token balances for both networks
   const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
     sourceToken,
@@ -191,16 +193,21 @@ const Send: FC = () => {
   useEffect(() => {
     if (unsupportedAsset) {
       const { chain, tokenSymbol } = unsupportedAsset
+      console.log(`tokenSymbol:`, tokenSymbol)
       setError(`${tokenSymbol} is currently not supported on ${chain}`)
-    } else {
+    } else if (error) {
       setError('')
     }
   }, [unsupportedAsset])
 
   // Reset error message when fromNetwork changes
   useEffect(() => {
-    setWarning('')
-    setError('')
+    if (warning) {
+      setWarning('')
+    }
+    if (error) {
+      setError('')
+    }
   }, [fromNetwork, toNetwork])
 
   // Check if there is sufficient available liquidity
@@ -589,6 +596,7 @@ const Send: FC = () => {
         </div>
       </div>
 
+      <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
 
       <ButtonsWrapper>

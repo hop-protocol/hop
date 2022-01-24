@@ -287,9 +287,7 @@ export default class L2Bridge extends Bridge {
 
     const tx = await this.l2BridgeContract.commitTransfers(
       destinationChainId,
-      {
-        ...txOverrides
-      }
+      txOverrides
     )
 
     return tx

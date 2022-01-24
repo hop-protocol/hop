@@ -152,7 +152,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
     )
 
     return await this.l1Wallet.sendTransaction({
-      type: 0,
       to: rootTunnel,
       value: tx.value,
       data: tx.data,
@@ -168,7 +167,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
     })
 
     return await this.l1Wallet.sendTransaction({
-      type: 0,
       to: tx.to,
       value: tx.value,
       data: tx.data,

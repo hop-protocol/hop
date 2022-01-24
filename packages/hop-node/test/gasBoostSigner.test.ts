@@ -188,7 +188,7 @@ describe('GasBoostTransaction', () => {
 
     const optimismProvider = getRpcProvider('optimism')
     expectDefined(optimismProvider)
-    const optimismSigner = new Wallet(privateKey, optimismProvider)
+    const optimismSigner = new Wallet(privateKey!, optimismProvider)
 
     gTx = new GasBoostTransaction(tx, optimismSigner, store)
 
@@ -196,4 +196,37 @@ describe('GasBoostTransaction', () => {
     expectedMaxGasPrice = parseUnits('500', 9)
     expect(maxGasPrice).toEqual(expectedMaxGasPrice)
   })
+})
+
+describe.skip('GasBoostTransaction', () => {
+  const store = new MemoryStore()
+  const provider = getRpcProvider('polygon')
+  expectDefined(provider)
+  expectDefined(privateKey)
+  const signer = new GasBoostSigner(privateKey, provider)
+
+  it('should use type 0', async () => {
+    const recipient = await signer.getAddress()
+    const tx = await signer.sendTransaction({
+      type: 0,
+      to: recipient,
+      value: '0'
+    })
+
+    expect(tx).toBeTruthy()
+    expect(tx.type).toBe(0)
+    expect(tx.gasPrice).toBeTruthy()
+  }, 10 * 60 * 1000)
+
+  it('should use type 1', async () => {
+    const recipient = await signer.getAddress()
+    const tx = await signer.sendTransaction({
+      to: recipient,
+      value: '0'
+    })
+
+    expect(tx).toBeTruthy()
+    expect(tx.type).toBe(2)
+    expect(tx.gasPrice).toBeFalsy()
+  }, 10 * 60 * 1000)
 })

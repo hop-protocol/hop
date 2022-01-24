@@ -52,19 +52,158 @@ type GetItemsFilter = Partial<Transfer> & {
   destinationChainIds?: number[]
 }
 
-const invalidTransferIds: Record<string, boolean> = {
+// structure:
+// key: `transfer:<transferSentTimestamp>:<transferId>`
+// value: `{ transferId: <transferId> }`
+// note: the "transfer" prefix is not required but requires a migration to remove
+class SubDbTimestamps extends BaseDb {
+  constructor (prefix: string, _namespace?: string) {
+    super(`${prefix}:timestampedKeys`, _namespace)
+  }
+
+  getTimestampedKey (transfer: Transfer) {
+    if (transfer.transferSentTimestamp && transfer.transferId) {
+      return `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`
+    }
+  }
+
+  async upsertItem (transfer: Transfer) {
+    const { transferId } = transfer
+    const logger = this.logger.create({ id: transferId })
+    const key = this.getTimestampedKey(transfer)
+    if (!key) {
+      return
+    }
+    const exists = await this.getById(key)
+    if (!exists) {
+      logger.debug(`storing db transfer timestamped key item. key: ${key}`)
+      await this._update(key, { transferId })
+      logger.debug(`updated db transfer timestamped key item. key: ${key}`)
+    }
+  }
+
+  async getFilteredKeyValues (dateFilter?: TransfersDateFilter) {
+    const filter: KeyFilter = {
+      gte: 'transfer:',
+      lte: 'transfer:~'
+    }
+
+    // return only transfer-id keys that are within specified range (filter by timestamped keys)
+    if (dateFilter?.fromUnix || dateFilter?.toUnix) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+      if (dateFilter.fromUnix) {
+        filter.gte = `transfer:${dateFilter.fromUnix}`
+      }
+      if (dateFilter.toUnix) {
+        filter.lte = `transfer:${dateFilter.toUnix}~` // tilde is intentional
+      }
+    }
+
+    return this.getKeyValues(filter)
+  }
 }
 
+// structure:
+// key: `<transferId>`
+// value: `{ transferId: <transferId> }`
+class SubDbIncompletes extends BaseDb {
+  constructor (prefix: string, _namespace?: string) {
+    super(`${prefix}:incompleteItems`, _namespace)
+  }
+
+  async upsertItem (transfer: Transfer) {
+    const { transferId } = transfer
+    const logger = this.logger.create({ id: transferId })
+    const isIncomplete = this.isItemIncomplete(transfer)
+    const exists = await this.getById(transferId)
+    const shouldUpsert = isIncomplete && !exists
+    const shouldDelete = !isIncomplete && exists
+    if (shouldUpsert) {
+      logger.debug('updating db transfer incomplete key item')
+      await this._update(transferId, { transferId })
+      logger.debug('updated db transfer incomplete key item')
+    } else if (shouldDelete) {
+      logger.debug('deleting db transfer incomplete key item')
+      await this.deleteById(transferId)
+      logger.debug('deleted db transfer incomplete key item')
+    }
+  }
+
+  isItemIncomplete (item: Transfer) {
+    if (!item?.transferId) {
+      return false
+    }
+
+    if (item.isNotFound) {
+      return false
+    }
+
+    return (
+      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+      !item.sourceChainId ||
+      !item.destinationChainId ||
+      !item.transferSentBlockNumber ||
+      (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
+      (item.withdrawalBondedTxHash && !item.withdrawalBonder)
+      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    )
+  }
+}
+
+// structure:
+// key: `<transferRootHash>:<transferId>`
+// value: `{ transferId: <transferId> }`
+class SubDbRootHashes extends BaseDb {
+  constructor (prefix: string, _namespace?: string) {
+    super(`${prefix}:transferRootHashes`, _namespace)
+  }
+
+  getTransferRootHashKey (transfer: Transfer) {
+    if (transfer.transferRootHash && transfer.transferId) {
+      return `${transfer.transferRootHash}:${transfer.transferId}`
+    }
+  }
+
+  async insertItem (transfer: Transfer) {
+    const { transferId } = transfer
+    const logger = this.logger.create({ id: transferId })
+    const key = this.getTransferRootHashKey(transfer)
+    if (key) {
+      const exists = await this.getById(key)
+      if (!exists) {
+        logger.debug(`storing db transfer rootHash key item. key: ${key}`)
+        await this._update(key, { transferId })
+        logger.debug(`updated db transfer rootHash key item. key: ${key}`)
+      }
+    }
+  }
+
+  async getFilteredKeyValues (transferRootHash: string) {
+    if (!transferRootHash) {
+      throw new Error('expected transfer root hash')
+    }
+
+    const filter: KeyFilter = {
+      gte: `${transferRootHash}`,
+      lte: `${transferRootHash}~` // tilde is intentional
+    }
+
+    return this.getKeyValues(filter)
+  }
+}
+
+// structure:
+// key: `<transferId>`
+// value: `{ ...Transfer }`
 class TransfersDb extends BaseDb {
-  subDbTimestamps: BaseDb
-  subDbIncompletes: BaseDb
-  subDbRootHashes: BaseDb
+  subDbTimestamps: SubDbTimestamps
+  subDbIncompletes: SubDbIncompletes
+  subDbRootHashes: SubDbRootHashes
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
-    this.subDbTimestamps = new BaseDb(`${prefix}:timestampedKeys`, _namespace)
-    this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
-    this.subDbRootHashes = new BaseDb(`${prefix}:transferRootHashes`, _namespace)
+    this.subDbTimestamps = new SubDbTimestamps(prefix, _namespace)
+    this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
+    this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
   }
 
   async migration () {
@@ -88,24 +227,6 @@ class TransfersDb extends BaseDb {
     }
     await Promise.all(promises)
     this.logger.debug('TransfersDb migration complete')
-  }
-
-  private getTimestampedKey (transfer: Transfer) {
-    if (transfer.transferSentTimestamp && transfer.transferId) {
-      return `transfer:${transfer.transferSentTimestamp}:${transfer.transferId}`
-    }
-  }
-
-  private getTransferRootHashKey (transfer: Transfer) {
-    if (transfer.transferRootHash && transfer.transferId) {
-      return `${transfer.transferRootHash}:${transfer.transferId}`
-    }
-  }
-
-  private isInvalidOrNotFound (item: Transfer) {
-    const isNotFound = item?.isNotFound
-    const isInvalid = invalidTransferIds[item.transferId]
-    return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
   }
 
   private isRouteOk (filter: GetItemsFilter = {}, item: Transfer) {
@@ -147,59 +268,13 @@ class TransfersDb extends BaseDb {
     return x?.value?.transferId
   }
 
-  private async insertTimestampedKeyItem (transfer: Transfer) {
-    const { transferId } = transfer
-    const logger = this.logger.create({ id: transferId })
-    const key = this.getTimestampedKey(transfer)
-    if (key) {
-      const exists = await this.subDbTimestamps.getById(key)
-      if (!exists) {
-        logger.debug(`storing db transfer timestamped key item. key: ${key}`)
-        await this.subDbTimestamps._update(key, { transferId })
-        logger.debug(`updated db transfer timestamped key item. key: ${key}`)
-      }
-    }
-  }
-
-  private async insertRootHashKeyItem (transfer: Transfer) {
-    const { transferId } = transfer
-    const logger = this.logger.create({ id: transferId })
-    const key = this.getTransferRootHashKey(transfer)
-    if (key) {
-      const exists = await this.subDbRootHashes.getById(key)
-      if (!exists) {
-        logger.debug(`storing db transfer rootHash key item. key: ${key}`)
-        await this.subDbRootHashes._update(key, { transferId })
-        logger.debug(`updated db transfer rootHash key item. key: ${key}`)
-      }
-    }
-  }
-
   private async upsertTransferItem (transfer: Transfer) {
     const { transferId } = transfer
     const logger = this.logger.create({ id: transferId })
     await this._update(transferId, transfer)
     const entry = await this.getById(transferId)
     logger.debug(`updated db transfer item. ${JSON.stringify(entry)}`)
-    await this.upsertIncompleteItem(entry)
-  }
-
-  private async upsertIncompleteItem (transfer: Transfer) {
-    const { transferId } = transfer
-    const logger = this.logger.create({ id: transferId })
-    const isIncomplete = this.isItemIncomplete(transfer)
-    const exists = await this.subDbIncompletes.getById(transferId)
-    const shouldUpsert = isIncomplete && !exists
-    const shouldDelete = !isIncomplete && exists
-    if (shouldUpsert) {
-      logger.debug('updating db transfer incomplete key item')
-      await this.subDbIncompletes._update(transferId, { transferId })
-      logger.debug('updated db transfer incomplete key item')
-    } else if (shouldDelete) {
-      logger.debug('deleting db transfer incomplete key item')
-      await this.subDbIncompletes.deleteById(transferId)
-      logger.debug('deleted db transfer incomplete key item')
-    }
+    await this.subDbIncompletes.upsertItem(entry)
   }
 
   // sort explainer: https://stackoverflow.com/a/9175783/1439168
@@ -218,8 +293,8 @@ class TransfersDb extends BaseDb {
     logger.debug('update called')
     transfer.transferId = transferId
     await Promise.all([
-      this.insertTimestampedKeyItem(transfer as Transfer),
-      this.insertRootHashKeyItem(transfer as Transfer),
+      this.subDbTimestamps.upsertItem(transfer as Transfer),
+      this.subDbRootHashes.insertItem(transfer as Transfer),
       this.upsertTransferItem(transfer as Transfer)
     ])
   }
@@ -230,22 +305,7 @@ class TransfersDb extends BaseDb {
   }
 
   async getTransferIds (dateFilter?: TransfersDateFilter): Promise<string[]> {
-    const filter: KeyFilter = {
-      gte: 'transfer:',
-      lte: 'transfer:~'
-    }
-
-    // return only transfer-id keys that are within specified range (filter by timestamped keys)
-    if (dateFilter?.fromUnix || dateFilter?.toUnix) { // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-      if (dateFilter.fromUnix) {
-        filter.gte = `transfer:${dateFilter.fromUnix}`
-      }
-      if (dateFilter.toUnix) {
-        filter.lte = `transfer:${dateFilter.toUnix}~` // tilde is intentional
-      }
-    }
-
-    const kv = await this.subDbTimestamps.getKeyValues(filter)
+    const kv = await this.subDbTimestamps.getFilteredKeyValues(dateFilter)
     return kv.map(this.filterValueTransferId).filter(this.filterExisty)
   }
 
@@ -275,16 +335,7 @@ class TransfersDb extends BaseDb {
 
   async getTransfersWithTransferRootHash (transferRootHash: string) {
     await this.tilReady()
-    if (!transferRootHash) {
-      throw new Error('expected transfer root hash')
-    }
-
-    const filter: KeyFilter = {
-      gte: `${transferRootHash}`,
-      lte: `${transferRootHash}~` // tilde is intentional
-    }
-
-    const kv = await this.subDbRootHashes.getKeyValues(filter)
+    const kv = await this.subDbRootHashes.getFilteredKeyValues(transferRootHash)
     const unsortedTransferIds = kv.map(this.filterValueTransferId).filter(this.filterExisty)
     const items = await this.batchGetByIds(unsortedTransferIds)
     const sortedTransfers = items.sort(this.sortItems).filter(this.filterExisty)
@@ -317,16 +368,12 @@ class TransfersDb extends BaseDb {
       if (!item?.transferId) {
         return false
       }
-      if (invalidTransferIds[item.transferId]) {
-        return false
-      }
 
       if (!this.isRouteOk(filter, item)) {
         return false
       }
 
-      const shouldIgnoreItem = this.isInvalidOrNotFound(item)
-      if (shouldIgnoreItem) {
+      if (item.isNotFound) {
         return false
       }
 
@@ -358,27 +405,6 @@ class TransfersDb extends BaseDb {
     })
   }
 
-  isItemIncomplete (item: Transfer) {
-    if (!item?.transferId) {
-      return false
-    }
-
-    const shouldIgnoreItem = this.isInvalidOrNotFound(item)
-    if (shouldIgnoreItem) {
-      return false
-    }
-
-    return (
-      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-      !item.sourceChainId ||
-      !item.destinationChainId ||
-      !item.transferSentBlockNumber ||
-      (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
-      (item.withdrawalBondedTxHash && !item.withdrawalBonder)
-      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
-    )
-  }
-
   async getIncompleteItems (
     filter: GetItemsFilter = {}
   ) {
@@ -397,12 +423,11 @@ class TransfersDb extends BaseDb {
         }
       }
 
-      const shouldIgnoreItem = this.isInvalidOrNotFound(item)
-      if (shouldIgnoreItem) {
+      if (item.isNotFound) {
         return false
       }
 
-      return this.isItemIncomplete(item)
+      return this.subDbIncompletes.isItemIncomplete(item)
     })
   }
 }

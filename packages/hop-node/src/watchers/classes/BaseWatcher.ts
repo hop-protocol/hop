@@ -78,7 +78,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
     if (config.bridgeContract != null) {
       if (this.isL1) {
-        this.bridge = new L1Bridge(config.bridgeContract as L1BridgeContract | L1ERC20BridgeContract)
+        this.bridge = new L1Bridge(config.bridgeContract as L1BridgeContract)
       } else {
         this.bridge = new L2Bridge(config.bridgeContract as L2BridgeContract)
       }

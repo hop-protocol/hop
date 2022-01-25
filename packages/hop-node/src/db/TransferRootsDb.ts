@@ -458,10 +458,10 @@ class TransferRootsDb extends BaseDb {
         '0x40076e2563e1f8b7ab747ae7738c1b92570b5b127f94c49ce8502b2ee8b8a79e',
         '0x7e58f3a7c79b00933b975c432de9e47e0a6b23dcf007a4fe8dbd382ffecbe160',
         '0xca297c65043360ca5651ad1a89ff9550e8d909325e99dba809c6a67d27fc9f81',
-        '0x24669e11cc950403761449aef4a55e439558bfbaeeea0e4fc27d69df699c798b',
+        '0x24669e11cc950403761449aef4a55e439558bfbaeeea0e4fc27d69df699c798b'
       ]
 
-      if (hashesToIgnore.includes(item.transferRootHash)) {
+      if (hashesToIgnore.includes(item.transferRootHash!)) {
         return false
       }
 

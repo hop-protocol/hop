@@ -12,13 +12,17 @@ import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { commafy } from 'src/utils'
+import range from 'lodash/range'
+import { IconStat } from './components/IconStat'
+import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
+import { getTokenImage } from 'src/utils/tokens'
 
 const useStyles = makeStyles(theme => ({
   paper: {
     padding: '2rem',
   },
   table: {
-    width: '800px',
+    // width: '800px',
   },
   cell: {
     fontSize: '1.4rem',
@@ -41,11 +45,6 @@ const BalanceStats: FC = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      <Box display="flex" alignItems="center">
-        <Typography variant="h4" className={styles.title}>
-          Native Token Balances
-        </Typography>
-      </Box>
       <Box display="flex" alignItems="center" className={styles.box}>
         <Paper className={styles.paper}>
           <TableContainer>
@@ -60,24 +59,31 @@ const BalanceStats: FC = () => {
               </TableHead>
               <TableBody>
                 {fetchingBalances
-                  ? Array(2)
-                      .fill(null)
-                      .map((x, i) => {
-                        return (
-                          <TableRow key={i}>
-                            <TableCell colSpan={4}>
-                              <Skeleton animation="wave" width={'100%'} />
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
+                  ? range(2).map((x, i) => {
+                      return (
+                        <TableRow key={i}>
+                          <TableCell colSpan={4}>
+                            <Skeleton animation="wave" width={'100%'} />
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                   : balances?.map(item => {
                       return (
-                        <TableRow key={item.id}>
-                          <TableCell className={styles.cell}>{item.network}</TableCell>
-                          <TableCell className={styles.cell}>{item.name}</TableCell>
-                          <TableCell className={styles.cell}>{item.address}</TableCell>
-                          <TableCell className={styles.cell}>{commafy(item.balance)}</TableCell>
+                        <TableRow key={item.address}>
+                          <TableCell className={styles.cell}>
+                            <IconStat src={item.network.imageUrl} data={item.network.slug} />
+                          </TableCell>
+                          <TableCell className={styles.cell}>
+                            <IconStat src={item.tokenImageUrl} data={item.name} />
+                          </TableCell>
+                          {/* <TableCell className={styles.cell}>{item.name}</TableCell> */}
+                          <TableCell className={styles.cell}>
+                            <CopyEthAddress value={item.address} />
+                          </TableCell>
+                          <TableCell className={styles.cell}>
+                            <IconStat src={getTokenImage('ETH')} data={commafy(item.balance)} />
+                          </TableCell>
                         </TableRow>
                       )
                     })}

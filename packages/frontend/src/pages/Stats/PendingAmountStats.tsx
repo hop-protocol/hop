@@ -1,8 +1,6 @@
 import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
 import Skeleton from '@material-ui/lab/Skeleton'
-import Link from '@material-ui/core/Link'
 import Paper from '@material-ui/core/Paper'
 import Box from '@material-ui/core/Box'
 import Table from '@material-ui/core/Table'
@@ -12,7 +10,8 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import { useStats } from 'src/pages/Stats/StatsContext'
-import { commafy } from 'src/utils'
+import { commafy, toTokenDisplay } from 'src/utils'
+import { IconStat } from './components/IconStat'
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -36,7 +35,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const PoolStats: FC = () => {
+const PendingAmountStats: FC = () => {
   const styles = useStyles()
   const { pendingAmounts, fetchingPendingAmounts } = useStats()
 
@@ -50,7 +49,11 @@ const PoolStats: FC = () => {
                 <TableRow>
                   <th>Source</th>
                   <th>Destination</th>
-                  <th><div>Pending Amount</div><div>for Commit</div></th>
+                  <th>
+                    <div>Pending Amount</div>
+                    <div>for Commit</div>
+                  </th>
+                  <th>Available Liquidity</th>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -81,20 +84,28 @@ const PoolStats: FC = () => {
                             />
                             {item.sourceNetwork.name}
                           </TableCell>
+
                           <TableCell className={styles.cell}>
-                            <img
-                              style={{
-                                display: 'inline-block',
-                                marginRight: '0.5em',
-                              }}
+                            <IconStat
                               src={item.destinationNetwork.imageUrl}
-                              alt=""
-                              width="16"
+                              data={item.destinationNetwork.name}
                             />
-                            {item.destinationNetwork.name}
                           </TableCell>
+
                           <TableCell className={styles.cell}>
-                            {commafy(item.formattedPendingAmount)} {item.token.symbol}
+                            <IconStat
+                              src={item.token.imageUrl}
+                              data={`${commafy(item.formattedPendingAmount)} ${item.token.symbol}`}
+                            />
+                          </TableCell>
+
+                          <TableCell className={styles.cell}>
+                            <IconStat
+                              src={item.token.imageUrl}
+                              data={`${commafy(
+                                toTokenDisplay(item.availableLiquidity, item.token.decimals)
+                              )} ${item.token.symbol}`}
+                            />
                           </TableCell>
                         </TableRow>
                       )
@@ -108,4 +119,4 @@ const PoolStats: FC = () => {
   )
 }
 
-export default PoolStats
+export default PendingAmountStats

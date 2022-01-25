@@ -1,6 +1,5 @@
 import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
 import Skeleton from '@material-ui/lab/Skeleton'
 import Paper from '@material-ui/core/Paper'
 import Box from '@material-ui/core/Box'
@@ -12,6 +11,7 @@ import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { commafy } from 'src/utils'
+import { IconStat } from './components/IconStat'
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -37,15 +37,10 @@ const useStyles = makeStyles(theme => ({
 
 const DebitWindowStats: FC = () => {
   const styles = useStyles()
-  const { debitWindowStats, fetchingDebitWindowStats } = useStats()
+  const { debitWindowStats, bonderStats, fetchingDebitWindowStats } = useStats()
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      <Box display="flex" alignItems="center">
-        <Typography variant="h4" className={styles.title}>
-          Debit Window Stats
-        </Typography>
-      </Box>
       <Box display="flex" alignItems="center" className={styles.box}>
         <Paper className={styles.paper}>
           <TableContainer>
@@ -60,6 +55,7 @@ const DebitWindowStats: FC = () => {
                   <th>Slot 4</th>
                   <th>Slot 5</th>
                   <th>Mins Remaining</th>
+                  <th>Virtual Debt</th>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -75,13 +71,11 @@ const DebitWindowStats: FC = () => {
                           </TableRow>
                         )
                       })
-                  : debitWindowStats?.map(item => {
+                  : debitWindowStats?.map((item, i) => {
                       return (
                         <TableRow key={item.id}>
                           <TableCell className={styles.cell}>
-                            <div className={styles.flex}>
-                              <span>{item.token.symbol}</span>
-                            </div>
+                            <IconStat src={item.token.imageUrl} data={item.token.symbol} />
                           </TableCell>
                           <TableCell className={styles.cell}>
                             {commafy(item.amountBonded[0])}
@@ -103,6 +97,12 @@ const DebitWindowStats: FC = () => {
                           </TableCell>
                           <TableCell className={styles.cell}>
                             {commafy(item.remainingMin)}
+                          </TableCell>
+                          <TableCell className={styles.cell}>
+                            <IconStat
+                              src={item.token.imageUrl}
+                              data={commafy(bonderStats[i]?.virtualDebt)}
+                            />
                           </TableCell>
                         </TableRow>
                       )

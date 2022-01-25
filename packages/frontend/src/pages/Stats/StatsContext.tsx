@@ -1,47 +1,87 @@
-import React, { FC, createContext, useContext, useState, useEffect } from 'react'
+import React, { FC, createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
-import { getArbitrumAlias } from 'src/utils'
+import { findNetworkBySlug, getArbitrumAlias } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import * as config from 'src/config'
 import { HToken, CanonicalToken } from '@hop-protocol/sdk'
+import { getTokenImage } from 'src/utils/tokens'
+
+interface Column {
+  Header: string
+  accessor: string
+}
+
+export interface TableColumns {
+  Header: string
+  columns: Column[]
+}
+
+const columns: TableColumns[] = [
+  {
+    Header: 'Bonder Stats',
+    columns: [
+      {
+        Header: 'Bridge',
+        accessor: 'network.slug',
+      },
+      {
+        Header: 'Bonder',
+        accessor: 'bonder',
+      },
+      {
+        Header: 'Credit',
+        accessor: 'credit',
+      },
+      {
+        Header: 'Debit',
+        accessor: 'debit',
+      },
+      {
+        Header: 'Available Liquidity',
+        accessor: 'availableLiquidity',
+      },
+      {
+        Header: 'Pending Amount',
+        accessor: 'pendingAmount',
+      },
+      {
+        Header: 'Virtual Debt',
+        accessor: 'virtualDebt',
+      },
+      {
+        Header: 'Total Amount',
+        accessor: 'totalAmount',
+      },
+      {
+        Header: 'Available ETH',
+        accessor: 'availableEth',
+      },
+    ],
+  },
+]
 
 type StatsContextProps = {
   stats: any[]
   fetching: boolean
 
-  bonderStats: any[]
+  bonderStats: BonderStats[]
   fetchingBonderStats: boolean
 
-  pendingAmounts: any[]
+  pendingAmounts: PendingAmountStats[]
   fetchingPendingAmounts: boolean
 
-  balances: any[]
+  balances: BalanceStats[]
   fetchingBalances: boolean
 
-  debitWindowStats: any[]
+  debitWindowStats: DebitWindowStats[]
   fetchingDebitWindowStats: boolean
 }
 
-const StatsContext = createContext<StatsContextProps>({
-  stats: [],
-  fetching: false,
-
-  bonderStats: [],
-  fetchingBonderStats: false,
-
-  pendingAmounts: [],
-  fetchingPendingAmounts: false,
-
-  balances: [],
-  fetchingBalances: false,
-
-  debitWindowStats: [],
-  fetchingDebitWindowStats: false,
-})
+const StatsContext = createContext<StatsContextProps | undefined>(undefined)
 
 type BonderStats = {
   id: string
@@ -58,29 +98,41 @@ type BonderStats = {
 }
 
 type BalanceStats = {
-  network: string
+  network: Network
   name: string
   address: string
   balance: number
+  tokenImageUrl: string
 }
 
 type DebitWindowStats = {
+  id: string
   token: Token
   amountBonded: number[]
   remainingMin: number
 }
 
-const StatsContextProvider: FC = ({ children }) => {
+type PendingAmountStats = {
+  id: string
+  sourceNetwork: Network
+  destinationNetwork: Network
+  token: Token
+  pendingAmount: BigNumber
+  formattedPendingAmount: number
+  availableLiquidity: BigNumber
+}
+
+const StatsProvider: FC = ({ children }) => {
   const { networks, tokens, sdk } = useApp()
   const [stats, setStats] = useState<any[]>([])
   const [fetching, setFetching] = useState<boolean>(true)
-  const [bonderStats, setBonderStats] = useState<any[]>([])
+  const [bonderStats, setBonderStats] = useState<BonderStats[]>([])
   const [fetchingBonderStats, setFetchingBonderStats] = useState<boolean>(true)
-  const [pendingAmounts, setPendingAmounts] = useState<any[]>([])
+  const [pendingAmounts, setPendingAmounts] = useState<PendingAmountStats[]>([])
   const [fetchingPendingAmounts, setFetchingPendingAmounts] = useState<boolean>(true)
-  const [balances, setBalances] = useState<any[]>([])
+  const [balances, setBalances] = useState<BalanceStats[]>([])
   const [fetchingBalances, setFetchingBalances] = useState<boolean>(true)
-  const [debitWindowStats, setDebitWindowStats] = useState<any[]>([])
+  const [debitWindowStats, setDebitWindowStats] = useState<DebitWindowStats[]>([])
   const [fetchingDebitWindowStats, setFetchingDebitWindowStats] = useState<boolean>(true)
   const filteredNetworks = networks?.filter(token => !token.isLayer1)
 
@@ -101,10 +153,13 @@ const StatsContextProvider: FC = ({ children }) => {
     })
     const decimals = hopToken.decimals
     const token0 = {
-      symbol: selectedToken?.networkSymbol(selectedNetwork),
+      symbol: selectedToken?.symbol,
+      networkSymbol: selectedToken?.networkSymbol(selectedNetwork),
+      imageUrl: token.imageUrl,
     }
     const token1 = {
-      symbol: hopToken.networkSymbol(selectedNetwork),
+      symbol: hopToken.symbol,
+      networkSymbol: selectedToken?.networkSymbol(selectedNetwork),
     }
 
     const bridge = sdk.bridge(selectedToken.symbol)
@@ -129,7 +184,7 @@ const StatsContextProvider: FC = ({ children }) => {
   }
 
   useEffect(() => {
-    const update = async () => {
+    const updateStats = async () => {
       if (!filteredNetworks) {
         return
       }
@@ -145,7 +200,7 @@ const StatsContextProvider: FC = ({ children }) => {
       setStats(results.filter(x => x))
     }
 
-    update().catch(logger.error)
+    updateStats().catch(logger.error)
   }, [])
 
   async function fetchBonderStats(
@@ -205,7 +260,7 @@ const StatsContextProvider: FC = ({ children }) => {
   }
 
   useEffect(() => {
-    const update = async () => {
+    const updateBonderStats = async () => {
       setFetchingBonderStats(true)
       if (!networks) {
         return
@@ -234,7 +289,7 @@ const StatsContextProvider: FC = ({ children }) => {
       setBonderStats(results)
     }
 
-    update().catch(logger.error)
+    updateBonderStats().catch(logger.error)
   }, [pendingAmounts])
 
   async function fetchPendingAmounts(
@@ -259,6 +314,10 @@ const StatsContextProvider: FC = ({ children }) => {
     const contract = await bridge.getBridgeContract(sourceNetwork.slug)
     const pendingAmount = await contract.pendingAmountForChainId(destinationNetwork.networkId)
     const formattedPendingAmount = Number(formatUnits(pendingAmount, token.decimals))
+    const al = await bridge.getFrontendAvailableLiquidity(
+      sourceNetwork.slug,
+      destinationNetwork.slug
+    )
 
     return {
       id: `${sourceNetwork.slug}-${destinationNetwork.slug}-${token.symbol}`,
@@ -267,11 +326,12 @@ const StatsContextProvider: FC = ({ children }) => {
       token,
       pendingAmount,
       formattedPendingAmount,
+      availableLiquidity: al,
     }
   }
 
   useEffect(() => {
-    const update = async () => {
+    const updatePendingAmounts = async () => {
       if (!filteredNetworks) {
         return
       }
@@ -294,13 +354,14 @@ const StatsContextProvider: FC = ({ children }) => {
       setPendingAmounts(results.filter(x => x))
     }
 
-    update().catch(logger.error)
+    updatePendingAmounts().catch(logger.error)
   }, [])
 
   async function fetchBalances(
     slug: string,
     name: string,
-    address: string
+    address: string,
+    tokenSymbol: string
   ): Promise<BalanceStats | undefined> {
     if (!slug) {
       return
@@ -324,16 +385,18 @@ const StatsContextProvider: FC = ({ children }) => {
     const balance = await bridge.getEthBalance(slug, address)
     const formattedBalance: number = Number(formatUnits(balance, decimals))
 
+    const n = findNetworkBySlug(slug)
     return {
-      network: slug,
+      network: n!,
       name,
       address,
       balance: formattedBalance,
+      tokenImageUrl: getTokenImage(tokenSymbol),
     }
   }
 
   useEffect(() => {
-    const update = async () => {
+    const updateBalances = async () => {
       if (!filteredNetworks) {
         return
       }
@@ -348,21 +411,21 @@ const StatsContextProvider: FC = ({ children }) => {
         }
         const messengerWrapperAddress: string = tokenConfig.l1MessengerWrapper
         const aliasAddress: string = getArbitrumAlias(messengerWrapperAddress)
-        addressDatas.push([arbitrumSlug, `${token.symbol} Alias`, aliasAddress])
+        addressDatas.push([arbitrumSlug, `${token.symbol} Alias`, aliasAddress, token.symbol])
       }
       const promises: Promise<any>[] = []
       for (const addressData of addressDatas) {
         const slug: string = addressData[0]
         const name: string = addressData[1]
         const address: string = addressData[2]
-        promises.push(fetchBalances(slug, name, address).catch(logger.error))
+        promises.push(fetchBalances(slug, name, address, addressData[3]).catch(logger.error))
       }
       const results: any[] = await Promise.all(promises)
       setFetchingBalances(false)
-      setBalances(results.filter(x => x))
+      setBalances(results.filter(x => !!x))
     }
 
-    update().catch(logger.error)
+    updateBalances().catch(logger.error)
   }, [])
 
   async function fetchDebitWindowStats(
@@ -397,6 +460,7 @@ const StatsContextProvider: FC = ({ children }) => {
     const remainingMin: number = Math.ceil(remainingSec / 60)
 
     return {
+      id: token.symbol,
       token,
       amountBonded,
       remainingMin,
@@ -404,7 +468,7 @@ const StatsContextProvider: FC = ({ children }) => {
   }
 
   useEffect(() => {
-    const update = async () => {
+    const updateDebitWindow = async () => {
       setFetchingDebitWindowStats(true)
       if (!networks) {
         return
@@ -414,7 +478,9 @@ const StatsContextProvider: FC = ({ children }) => {
         const bonders = new Set<string>()
         for (const bonder in config.addresses.bonders?.[token.symbol]) {
           for (const sourceChain in config.addresses.bonders?.[token.symbol]) {
-            for (const destinationChain in config.addresses.bonders?.[token.symbol][sourceChain as string]) {
+            for (const destinationChain in config.addresses.bonders?.[token.symbol][
+              sourceChain as string
+            ]) {
               const bonder = config.addresses.bonders?.[token.symbol][sourceChain][destinationChain]
               if (bonder) {
                 bonders.add(bonder)
@@ -432,8 +498,11 @@ const StatsContextProvider: FC = ({ children }) => {
       setDebitWindowStats(results)
     }
 
-    update().catch(logger.error)
+    updateDebitWindow().catch(logger.error)
   }, [pendingAmounts])
+
+  const cols = useMemo<TableColumns[]>(() => columns, [])
+  console.log(`cols:`, cols)
 
   return (
     <StatsContext.Provider
@@ -459,6 +528,12 @@ const StatsContextProvider: FC = ({ children }) => {
   )
 }
 
-export const useStats = () => useContext(StatsContext)
+export function useStats() {
+  const ctx = useContext(StatsContext)
+  if (ctx === undefined) {
+    throw new Error('useStats must be used within StatsProvider')
+  }
+  return ctx
+}
 
-export default StatsContextProvider
+export default StatsProvider

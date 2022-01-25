@@ -1,8 +1,6 @@
 import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
 import Skeleton from '@material-ui/lab/Skeleton'
-import Link from '@material-ui/core/Link'
 import Paper from '@material-ui/core/Paper'
 import Box from '@material-ui/core/Box'
 import Table from '@material-ui/core/Table'
@@ -13,6 +11,7 @@ import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { commafy } from 'src/utils'
+import { IconStat } from './components/IconStat'
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -36,17 +35,19 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
+function formatRatio(item) {
+  const { reserve0, reserve1 } = item
+  const div = reserve0 / reserve1
+  return `${div.toString().slice(0, 6)}`
+}
+
 const PoolStats: FC = () => {
   const styles = useStyles()
   const { stats, fetching } = useStats()
+  console.log(`stats:`, stats)
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      <Box display="flex" alignItems="center">
-        <Typography variant="h4" className={styles.title}>
-          Pool Stats
-        </Typography>
-      </Box>
       <Box display="flex" alignItems="center" className={styles.box}>
         <Paper className={styles.paper}>
           <TableContainer>
@@ -56,6 +57,7 @@ const PoolStats: FC = () => {
                   <th>AMM Pair</th>
                   <th>Pooled Token 0</th>
                   <th>Pooled Token 1</th>
+                  <th>Ratio 0:1</th>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -91,11 +93,15 @@ const PoolStats: FC = () => {
                             </div>
                           </TableCell>
                           <TableCell className={styles.cell}>
-                            {commafy(item.reserve0)} {item.token0.symbol}
+                            <IconStat
+                              src={item.token0.imageUrl}
+                              data={`${commafy(item.reserve0)} ${item.token0.symbol}`}
+                            />
                           </TableCell>
                           <TableCell className={styles.cell}>
                             {commafy(item.reserve1)} {item.token1.symbol}
                           </TableCell>
+                          <TableCell className={styles.cell}>{formatRatio(item)}</TableCell>
                         </TableRow>
                       )
                     })}

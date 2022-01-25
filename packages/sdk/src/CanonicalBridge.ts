@@ -1,21 +1,33 @@
 import Base, { ChainProviders, L1Factory, L2Factory } from './Base'
 import Token from './models/Token'
 import TokenClass from './Token'
-import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/ArbERC20__factory'
-import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/ArbitrumGlobalInbox__factory'
+import {
+  ArbERC20__factory,
+  ArbitrumGlobalInbox__factory,
+  ArbitrumGlobalInbox,
+  L1HomeAMBNativeToErc20__factory,
+  L1OptimismTokenBridge__factory,
+  L1OptimismTokenBridge,
+  L1PolygonPosRootChainManager__factory,
+  L1PolygonPosRootChainManager,
+  L1XDaiForeignOmniBridge__factory,
+  L1XDaiForeignOmniBridge,
+  L2OptimismTokenBridge__factory,
+  L2PolygonChildERC20__factory,
+  L2XDaiToken__factory,
+} from '@hop-protocol/core/contracts'
 import { Chain } from './models'
 import { Contract, Signer, ethers } from 'ethers'
-import { L1HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/L1HomeAMBNativeToErc20__factory'
-import { L1OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L1OptimismTokenBridge__factory'
-import { L1PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/L1PolygonPosRootChainManager__factory'
-import { L1XDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/L1XDaiForeignOmniBridge__factory'
-import { L2OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L2OptimismTokenBridge__factory'
-import { L2PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/L2PolygonChildERC20__factory'
-import { L2XDaiToken__factory } from '@hop-protocol/core/contracts/factories/L2XDaiToken__factory'
 import { TAmount, TChain, TProvider, TToken } from './types'
 import { TokenSymbol } from './constants'
 import { formatUnits } from 'ethers/lib/utils'
 import { metadata } from './config'
+
+export type L1CanonicalBridge =
+  | L1XDaiForeignOmniBridge
+  | L1PolygonPosRootChainManager
+  | ArbitrumGlobalInbox
+  | L1OptimismTokenBridge
 
 /**
  * Class reprensenting Canonical Token Bridge.
@@ -147,6 +159,17 @@ class CanonicalBridge extends Base {
    * @returns {Object} Ethers transaction object.
    */
   public async deposit (amount: TAmount, chain?: TChain) {
+    const populatedTx = await this.populateDepositTx(amount, chain)
+    return this.signer.sendTransaction(populatedTx) 
+  }
+
+  public async estimateDepositTx (amount: TAmount, chain?: TChain) {
+    const populatedTx = await this.populateDepositTx(amount, chain)
+    const chainModel = this.toChainModel(chain)
+    return chainModel.provider.estimateGas(populatedTx)
+  }
+
+  public async populateDepositTx (amount: TAmount, chain?: TChain) {
     amount = amount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
@@ -185,7 +208,7 @@ class CanonicalBridge extends Base {
         provider
       )
       // await this.checkMaxTokensAllowed(chain, bridge, amount)
-      return bridge.relayTokens(tokenAddress, recipient, amount, {
+      return bridge.populateTransaction.relayTokens(tokenAddress, recipient, amount, {
         // Gnosis requires a higher gas limit
         gasLimit: 300000
       })
@@ -205,7 +228,7 @@ class CanonicalBridge extends Base {
         provider
       )
       await this.checkMaxTokensAllowed(chain, bridge, amount)
-      return bridge.deposit(tokenAddress, l2TokenAddress, recipient, amount)
+      return bridge.populateTransaction.deposit(tokenAddress, l2TokenAddress, recipient, amount)
     } else if ((chain as Chain).equals(Chain.Arbitrum)) {
       const arbChain = this.getArbChainAddress(this.tokenSymbol, chain)
       const bridge = await this.getContract(
@@ -214,7 +237,7 @@ class CanonicalBridge extends Base {
         provider
       )
       await this.checkMaxTokensAllowed(chain, bridge, amount)
-      return bridge.depositERC20Message(
+      return bridge.populateTransaction.depositERC20Message(
         arbChain,
         tokenAddress,
         recipient,
@@ -237,7 +260,7 @@ class CanonicalBridge extends Base {
       )
       const coder = ethers.utils.defaultAbiCoder
       const payload = coder.encode(['uint256'], [amount])
-      return bridge.depositFor(recipient, tokenAddress, payload)
+      return bridge.populateTransaction.depositFor(recipient, tokenAddress, payload)
     } else {
       throw new Error('not implemented')
     }
@@ -491,7 +514,7 @@ class CanonicalBridge extends Base {
     return this.getContract(factory, address, provider)
   }
 
-  async getL1CanonicalBridge () {
+  async getL1CanonicalBridge (): Promise<L1CanonicalBridge> {
     const address = this.getL1CanonicalBridgeAddress(
       this.tokenSymbol,
       this.chain

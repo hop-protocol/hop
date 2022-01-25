@@ -9,7 +9,6 @@ import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Notifier } from 'src/notifier'
 import { config as globalConfig, hostname } from 'src/config'
@@ -21,7 +20,7 @@ type Config = {
   prefix?: string
   logColor?: string
   isL1?: boolean
-  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  bridgeContract?: L1BridgeContract | L2BridgeContract
   dryMode?: boolean
   stateUpdateAddress?: string
 }

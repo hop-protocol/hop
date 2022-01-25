@@ -142,9 +142,16 @@ class PolygonBridgeWatcher extends BaseWatcher {
     await this.db.transferRoots.update(transferRootId, {
       sentConfirmTxAt: Date.now()
     })
-    const tx = await this.relayXDomainMessage(commitTxHash)
-    if (!tx) {
-      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+
+    let tx
+    try {
+      tx = await this.relayXDomainMessage(commitTxHash)
+      if (!tx) {
+        logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
+        return
+      }
+    } catch (err) {
+      logger.error(`relayXDomainMessage error: ${err.message}`)
       return
     }
     const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`

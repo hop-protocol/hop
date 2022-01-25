@@ -12,9 +12,10 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { Wallet, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { config as globalConfig } from 'src/config'
-import { use } from '@maticnetwork/maticjs'
+import { setProofApi, use } from '@maticnetwork/maticjs'
 
 use(Web3ClientPlugin)
+setProofApi('https://apis.matic.network')
 
 type Config = {
   chainSlug: string
@@ -112,15 +113,8 @@ class PolygonBridgeWatcher extends BaseWatcher {
     await this.tilReady()
 
     const tokenAddress = globalConfig.addresses[this.tokenSymbol][Chain.Polygon].l2CanonicalToken
-    const tx = await this.maticClient.erc20(tokenAddress, true).withdrawExit(txHash, {
-      returnTransaction: true
-    })
-
-    return await this.l1Wallet.sendTransaction({
-      value: tx.value,
-      data: tx.data,
-      gasLimit: tx.gas
-    })
+    const tx = await this.maticClient.erc20(tokenAddress, true).withdrawExitFaster(txHash)
+    return tx.promise
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {

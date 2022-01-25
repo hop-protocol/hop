@@ -9,13 +9,10 @@ import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Wallet, providers } from 'ethers'
+import { Wallet, constants, providers } from 'ethers'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { config as globalConfig } from 'src/config'
 import { setProofApi, use } from '@maticnetwork/maticjs'
-
-use(Web3ClientPlugin)
-setProofApi('https://apis.matic.network')
 
 type Config = {
   chainSlug: string
@@ -59,6 +56,9 @@ class PolygonBridgeWatcher extends BaseWatcher {
       this.chainId === this.polygonMainnetChainId ? 'matic' : 'mumbai'
     }/block-included`
 
+    use(Web3ClientPlugin)
+    setProofApi('https://apis.matic.network')
+
     this.maticClient = new FxPortalClient()
 
     this.init()
@@ -68,7 +68,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
   }
 
   async init () {
-    const bonder = await this.l1Wallet.getAddress()
+    const from = await this.l1Wallet.getAddress()
     const rootTunnel = globalConfig.addresses[this.tokenSymbol][Chain.Polygon].l1FxBaseRootTunnel
     await this.maticClient.init({
       network: this.chainId === this.polygonMainnetChainId ? 'mainnet' : 'testnet',
@@ -76,13 +76,13 @@ class PolygonBridgeWatcher extends BaseWatcher {
       parent: {
         provider: this.l1Wallet,
         defaultConfig: {
-          from: bonder
+          from
         }
       },
       child: {
         provider: this.l2Wallet,
         defaultConfig: {
-          from: bonder
+          from
         }
       },
       erc20: {
@@ -112,8 +112,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
   async relayXDomainMessage (txHash: string): Promise<providers.TransactionResponse> {
     await this.tilReady()
 
-    const tokenAddress = globalConfig.addresses[this.tokenSymbol][Chain.Polygon].l2CanonicalToken
-    const tx = await this.maticClient.erc20(tokenAddress, true).withdrawExitFaster(txHash)
+    const tx = await this.maticClient.erc20(constants.AddressZero, true).withdrawExitFaster(txHash)
     return tx.promise
   }
 

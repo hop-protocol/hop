@@ -3,15 +3,23 @@ import Token from './models/Token'
 import TokenClass from './Token'
 import {
   ArbERC20__factory,
-  ArbitrumGlobalInbox__factory,
-  ArbitrumGlobalInbox,
+  ArbitrumInbox__factory,
+  ArbitrumInbox,
+  ArbitrumL1ERC20Bridge__factory,
+  ArbitrumL1ERC20Bridge,
   L1HomeAMBNativeToErc20__factory,
   L1OptimismTokenBridge__factory,
   L1OptimismTokenBridge,
+  L1PolygonPlasmaBridgeDepositManager__factory,
+  L1PolygonPlasmaBridgeDepositManager,
   L1PolygonPosRootChainManager__factory,
   L1PolygonPosRootChainManager,
   L1XDaiForeignOmniBridge__factory,
   L1XDaiForeignOmniBridge,
+  L1XDaiPoaBridge__factory,
+  L1XDaiPoaBridge,
+  L1XDaiWETHOmnibridgeRouter__factory,
+  L1XDaiWETHOmnibridgeRouter,
   L2OptimismTokenBridge__factory,
   L2PolygonChildERC20__factory,
   L2XDaiToken__factory,
@@ -24,9 +32,13 @@ import { formatUnits } from 'ethers/lib/utils'
 import { metadata } from './config'
 
 export type L1CanonicalBridge =
+  | L1XDaiPoaBridge
   | L1XDaiForeignOmniBridge
+  | L1XDaiWETHOmnibridgeRouter
+  | L1PolygonPlasmaBridgeDepositManager
   | L1PolygonPosRootChainManager
-  | ArbitrumGlobalInbox
+  | ArbitrumInbox
+  | ArbitrumL1ERC20Bridge
   | L1OptimismTokenBridge
 
 /**
@@ -202,15 +214,28 @@ class CanonicalBridge extends Base {
     }
 
     if ((chain as Chain).equals(Chain.Gnosis)) {
-      const bridge = await this.getContract(
-        L1XDaiForeignOmniBridge__factory,
-        bridgeAddress,
-        provider
-      )
-      // await this.checkMaxTokensAllowed(chain, bridge, amount)
-      return bridge.populateTransaction.relayTokens(tokenAddress, recipient, amount, {
+      const bridge = await this.getL1CanonicalBridge()
+
+      if (this.tokenSymbol === Token.DAI) {
+        return (bridge as L1XDaiPoaBridge).populateTransaction.relayTokens(recipient, amount, {
+          // Gnosis requires a higher gas limit
+          gasLimit: 500000,
+          from: recipient,
+        })
+      }
+
+      if (this.tokenSymbol === Token.ETH) {
+        return (bridge as L1XDaiWETHOmnibridgeRouter).populateTransaction['wrapAndRelayTokens(address,bytes)'](recipient, amount, {
+          // Gnosis requires a higher gas limit
+          gasLimit: 500000,
+          from: recipient,
+        })
+      }
+
+      return (bridge as L1XDaiForeignOmniBridge).populateTransaction.relayTokens(tokenAddress, recipient, amount, {
         // Gnosis requires a higher gas limit
-        gasLimit: 300000
+        gasLimit: 500000,
+        from: recipient,
       })
     } else if ((chain as Chain).equals(Chain.Optimism)) {
       const l2TokenAddress = this.getL2CanonicalTokenAddress(
@@ -230,37 +255,48 @@ class CanonicalBridge extends Base {
       await this.checkMaxTokensAllowed(chain, bridge, amount)
       return bridge.populateTransaction.deposit(tokenAddress, l2TokenAddress, recipient, amount)
     } else if ((chain as Chain).equals(Chain.Arbitrum)) {
-      const arbChain = this.getArbChainAddress(this.tokenSymbol, chain)
-      const bridge = await this.getContract(
-        ArbitrumGlobalInbox__factory,
+      let bridge = await this.getContract(
+        ArbitrumL1ERC20Bridge__factory,
         bridgeAddress,
         provider
       )
-      await this.checkMaxTokensAllowed(chain, bridge, amount)
-      return bridge.populateTransaction.depositERC20Message(
-        arbChain,
-        tokenAddress,
-        recipient,
-        amount
-      )
-    } else if ((chain as Chain).equals(Chain.Polygon)) {
-      const bridgeAddress = this.getL1PosRootChainManagerAddress(
-        this.tokenSymbol,
-        chain
-      )
-      if (!bridgeAddress) {
-        throw new Error(
-          `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
+
+      if (this.tokenSymbol === Token.ETH) {
+        bridge = await this.getContract(
+          ArbitrumInbox__factory,
+          bridgeAddress,
+          provider
         )
+        return (bridge as ArbitrumInbox).populateTransaction.depositEth(amount, {
+          value: amount,
+          from: recipient,
+        })
       }
-      const bridge = await this.getContract(
-        L1PolygonPosRootChainManager__factory,
-        bridgeAddress,
-        provider
-      )
+
+      const l2TokenAddress = await this.getL2CanonicalTokenAddress(this.tokenSymbol, Chain.Arbitrum)
+      return (bridge as ArbitrumL1ERC20Bridge).populateTransaction.deposit(tokenAddress, l2TokenAddress, recipient, amount, {
+        from: recipient,
+      })
+    } else if ((chain as Chain).equals(Chain.Polygon)) {
+      const bridge = await this.getL1CanonicalBridge()
       const coder = ethers.utils.defaultAbiCoder
       const payload = coder.encode(['uint256'], [amount])
-      return bridge.populateTransaction.depositFor(recipient, tokenAddress, payload)
+
+      if (this.tokenSymbol === Token.MATIC) {
+        return (bridge as L1PolygonPlasmaBridgeDepositManager).populateTransaction.depositERC20ForUser(
+          tokenAddress,
+          recipient,
+          payload,
+          { from: recipient }
+        )
+      }
+
+      return (bridge as L1PolygonPosRootChainManager).populateTransaction.depositFor(
+        recipient,
+        tokenAddress,
+        payload,
+        { from: recipient }
+      )
     } else {
       throw new Error('not implemented')
     }
@@ -527,11 +563,25 @@ class CanonicalBridge extends Base {
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
     let factory: L1Factory
     if (this.chain.equals(Chain.Polygon)) {
-      factory = L1PolygonPosRootChainManager__factory
+      if (this.tokenSymbol === Token.MATIC) {
+        factory = L1PolygonPlasmaBridgeDepositManager__factory
+      } else {
+        factory = L1PolygonPosRootChainManager__factory
+      }
     } else if (this.chain.equals(Chain.Gnosis)) {
-      factory = L1XDaiForeignOmniBridge__factory
+      if (this.tokenSymbol === Token.DAI) {
+        factory = L1XDaiPoaBridge__factory
+      } else if (this.tokenSymbol === Token.ETH) {
+        factory = L1XDaiWETHOmnibridgeRouter__factory
+      } else {
+        factory = L1XDaiForeignOmniBridge__factory
+      }
     } else if (this.chain.equals(Chain.Arbitrum)) {
-      factory = ArbitrumGlobalInbox__factory
+      if (this.tokenSymbol === Token.ETH) {
+        factory = ArbitrumInbox__factory
+      } else {
+        factory = ArbitrumL1ERC20Bridge__factory
+      }
     } else if (this.chain.equals(Chain.Optimism)) {
       factory = L1OptimismTokenBridge__factory
     }
@@ -559,13 +609,13 @@ class CanonicalBridge extends Base {
     ]
     let address
     if (chain.isL1) {
-      const { l1CanonicalToken } = this.getL1CanonicalBridgeAddress(
+      const l1CanonicalToken = this.getL1CanonicalTokenAddress(
         token.symbol,
         chain.slug
       )
       address = l1CanonicalToken
     } else {
-      const { l2CanonicalToken } = this.getL2CanonicalTokenAddress(
+      const l2CanonicalToken = this.getL2CanonicalTokenAddress(
         token.symbol,
         chain.slug
       )

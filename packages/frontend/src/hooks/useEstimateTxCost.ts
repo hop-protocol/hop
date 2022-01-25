@@ -23,13 +23,20 @@ async function estimateGasCost(network: Network, estimatedGasLimit: BigNumber) {
   }
 }
 
-export function useEstimateTxCost(selectedNetwork?: Network) {
+interface EstimateTxOptions {
+  token: Token
+  network?: Network
+  fromNetwork?: Network
+  toNetwork?: Network
+  deadline?: () => number
+}
+
+export function useEstimateTxCost() {
   const { sdk } = useApp()
   const [tx, setTx] = useState<Transaction | null>(null)
 
-  // { destNetwork: Network; network: Network }
   const estimateConvertTokens = useCallback(
-    async (options: any) => {
+    async (options: { token: Token; network: Network; destNetwork: Network }) => {
       const { token, network, destNetwork } = options
 
       if (!(sdk && network && destNetwork?.slug)) {
@@ -62,11 +69,13 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
         return gasCost
       }
     },
-    [sdk, selectedNetwork]
+    [sdk]
   )
 
+  // TODO: rename fromNetwork -> sourceNetwork
+  // toNetwork -> destNetwork
   const estimateSend = useCallback(
-    async options => {
+    async (options: EstimateTxOptions) => {
       const { fromNetwork, toNetwork, token, deadline } = options
       if (!(sdk && fromNetwork && toNetwork && deadline)) {
         return
@@ -104,39 +113,40 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
           }
           return gasCost
         }
-      } catch (error) {
-        logger.error(error)
-      }
-    },
-    [sdk, selectedNetwork]
-  )
-
-  const estimateWrap = useCallback(
-    async (options: { token: Token; network: Network }) => {
-      const { token, network } = options
-      if (!network) {
-        return
-      }
-
-      try {
-        // Get estimated gas cost
-        const estimatedGasLimit = await token.wrapToken(BigNumber.from(10), true)
-
-        if (BigNumber.isBigNumber(estimatedGasLimit)) {
-          let gasCost = await estimateGasCost(network, estimatedGasLimit)
-          if (gasCost && network.slug === ChainSlug.Optimism) {
-            const { gasLimit, data, to } = await token.getWrapTokenEstimatedGas(network.slug)
-            const l1FeeInWei = await token.estimateOptimismL1FeeFromData(gasLimit, data, to)
-            gasCost = gasCost.add(l1FeeInWei)
-          }
-          return gasCost
+      } catch (error: any) {
+        const message = error.message
+        if (message?.includes('revert')) {
+          return
         }
-      } catch (error) {
         logger.error(error)
       }
     },
-    [selectedNetwork]
+    [sdk]
   )
+
+  const estimateWrap = useCallback(async (options: EstimateTxOptions) => {
+    const { token, network } = options
+    if (!network) {
+      return
+    }
+
+    try {
+      // Get estimated gas cost
+      const estimatedGasLimit = await token.wrapToken(BigNumber.from(10), true)
+
+      if (BigNumber.isBigNumber(estimatedGasLimit)) {
+        let gasCost = await estimateGasCost(network, estimatedGasLimit)
+        if (gasCost && network?.slug === ChainSlug.Optimism) {
+          const { gasLimit, data, to } = await token.getWrapTokenEstimatedGas(network.slug)
+          const l1FeeInWei = await token.estimateOptimismL1FeeFromData(gasLimit, data, to)
+          gasCost = gasCost.add(l1FeeInWei)
+        }
+        return gasCost
+      }
+    } catch (error) {
+      logger.error(error)
+    }
+  }, [])
 
   // Master send method
   const estimateMaxValue = useCallback(
@@ -163,7 +173,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
         logger.error(error)
       }
     },
-    [sdk, selectedNetwork]
+    [sdk]
   )
 
   return {

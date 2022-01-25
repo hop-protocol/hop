@@ -1,13 +1,15 @@
 import fetch from 'isomorphic-fetch'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
-import { ArbERC20 } from '@hop-protocol/core/contracts/ArbERC20'
-import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/ArbERC20__factory'
-import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/ArbitrumGlobalInbox'
-import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/ArbitrumGlobalInbox__factory'
+import {
+  ArbERC20,
+  ArbERC20__factory,
+  ArbitrumInbox,
+  ArbitrumInbox__factory,
+} from '@hop-protocol/core/contracts'
 import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { ChainSlug, Errors, MinPolygonGasLimit, MinPolygonGasPrice, NetworkSlug } from './constants'
+import { ChainSlug, Errors, MinPolygonGasPrice, MinPolygonGasLimit, NetworkSlug } from './constants'
 import { L1OptimismTokenBridge } from '@hop-protocol/core/contracts/L1OptimismTokenBridge'
 import { L1OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L1OptimismTokenBridge__factory'
 import { L1PolygonPosRootChainManager } from '@hop-protocol/core/contracts/L1PolygonPosRootChainManager'
@@ -25,8 +27,8 @@ import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
-export type L1Factory = L1PolygonPosRootChainManager__factory | L1XDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1OptimismTokenBridge__factory
-export type L1Contract = L1PolygonPosRootChainManager | L1XDaiForeignOmniBridge | ArbitrumGlobalInbox | L1OptimismTokenBridge
+export type L1Factory = L1PolygonPosRootChainManager__factory | L1XDaiForeignOmniBridge__factory | ArbitrumInbox__factory | L1OptimismTokenBridge__factory
+export type L1Contract = L1PolygonPosRootChainManager | L1XDaiForeignOmniBridge | ArbitrumInbox | L1OptimismTokenBridge
 
 export type L2Factory = L2PolygonChildERC20__factory | L2XDaiToken__factory | ArbERC20__factory | L2OptimismTokenBridge__factory
 export type L2Contract = L2PolygonChildERC20 | L2XDaiToken | ArbERC20 | L2OptimismTokenBridge

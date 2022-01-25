@@ -8,7 +8,7 @@ export function useTxResult(
   srcNetwork?: Network,
   destNetwork?: Network,
   amount?: BigNumber,
-  fn?: (opts: any) => any,
+  cb?: (opts: any) => any,
   opts?: any
 ) {
   const queryKey = `txResult:${srcNetwork?.slug}:${destNetwork?.slug}:${amount?.toString()}`
@@ -17,7 +17,7 @@ export function useTxResult(
   const { isLoading, isError, data, error } = useQuery(
     [queryKey, srcNetwork?.slug, token?.symbol, amount?.toString()],
     async () => {
-      if (!(token && srcNetwork?.slug && destNetwork?.slug && amount && fn)) {
+      if (!(token && srcNetwork?.slug && destNetwork?.slug && amount && cb)) {
         return
       }
 
@@ -28,11 +28,14 @@ export function useTxResult(
         ...rest,
       }
 
-      const res = await fn(options)
-      return res
+      try {
+        return cb(options)
+      } catch (error) {
+        // noop
+      }
     },
     {
-      enabled: !!token?.address && !!srcNetwork?.slug && !!destNetwork?.slug && !!amount,
+      enabled: !!token?.symbol && !!srcNetwork?.slug && !!amount?.toString(),
       refetchInterval: interval,
     }
   )

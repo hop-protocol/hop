@@ -66,7 +66,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
     selectedNetwork,
   } = props
   const styles = useAmountSelectorCardStyles()
-  const { estimateMaxValue } = useEstimateTxCost(selectedNetwork)
+  const { estimateMaxValue } = useEstimateTxCost()
 
   const balanceDisplay = useMemo(() => {
     let label: string = ''

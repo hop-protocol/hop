@@ -164,7 +164,7 @@ const Send: FC = () => {
     estimatedReceivedDisplay,
   } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
 
-  const { estimateSend } = useEstimateTxCost(fromNetwork)
+  const { estimateSend } = useEstimateTxCost()
 
   const { data: estimatedGasCost } = useTxResult(
     sourceToken,

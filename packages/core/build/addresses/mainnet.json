@@ -212,7 +212,7 @@
         "bridgeDeployedBlockNumber": 15810014
       },
       "optimism": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1",
         "l1MessengerWrapper": "0x1ba1f1368ecEB7bFcbdE20e1F803771b7B401F7d",
         "l2CanonicalBridge": "0x4200000000000000000000000000000000000010",
         "l2CanonicalToken": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
@@ -224,7 +224,7 @@
         "bridgeDeployedBlockNumber": 1
       },
       "arbitrum": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f",
         "l1MessengerWrapper": "0xaC9BABf20eF2338D7F4a152Af43bedDC80C6ae2a",
         "l2CanonicalBridge": "0x0000000000000000000000000000000000000000",
         "l2CanonicalToken": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
@@ -272,7 +272,7 @@
         "bridgeDeployedBlockNumber": 17058878
       },
       "optimism": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1",
         "l1MessengerWrapper": "0xC78C53102e161094D848EE167145E5d45EAA6853",
         "l2CanonicalBridge": "0x4200000000000000000000000000000000000010",
         "l2CanonicalToken": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
@@ -284,7 +284,7 @@
         "bridgeDeployedBlockNumber": 1
       },
       "arbitrum": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f",
         "l1MessengerWrapper": "0x70A772DDc3413e3456e5A3b2C30cB749C9577d1F",
         "l2CanonicalBridge": "0x0000000000000000000000000000000000000000",
         "l2CanonicalToken": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
@@ -339,7 +339,7 @@
         "bridgeDeployedBlockNumber": 13226217
       },
       "gnosis": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0x4aa42145Aa6Ebf72e164C9bBC74fbD3788045016",
         "l1MessengerWrapper": "0x723194C6Cfed24883b598931Ee802ab80952C001",
         "l2CanonicalBridge": "0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d",
         "l2CanonicalToken": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
@@ -353,7 +353,7 @@
         "bridgeDeployedBlockNumber": 18093617
       },
       "polygon": {
-        "l1CanonicalBridge": "0xA0c68C638235ee32657e8f720a23ceC1bFc77C77",
+        "l1CanonicalBridge": "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf",
         "l1MessengerWrapper": "0x50d7d8B850e0e880295800790551928F4546BfE2",
         "l2CanonicalBridge": "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
         "l2CanonicalToken": "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
@@ -363,12 +363,12 @@
         "l2SaddleSwap": "0x25FB92E505F752F730cAD0Bd4fa17ecE4A384266",
         "l2SaddleLpToken": "0x8b7aA8f5cc9996216A88D900df8B8a0a3905939A",
         "l1FxBaseRootTunnel": "0x50d7d8B850e0e880295800790551928F4546BfE2",
-        "l1PosRootChainManager": "0xA0c68C638235ee32657e8f720a23ceC1bFc77C77",
+        "l1PosRootChainManager": "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf",
         "l1PosPredicate": "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf",
         "bridgeDeployedBlockNumber": 19112518
       },
       "optimism": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0x10E6593CDda8c58a1d0f14C5164B376352a55f2F",
         "l1MessengerWrapper": "0x4285CaAB762f2e405CD256069D0D47D13bf05B00",
         "l2CanonicalBridge": "0x4200000000000000000000000000000000000010",
         "l2CanonicalToken": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
@@ -380,7 +380,7 @@
         "bridgeDeployedBlockNumber": 1
       },
       "arbitrum": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0xD3B5b60020504bc3489D6949d545893982BA3011",
         "l1MessengerWrapper": "0x25a5A48C35e75BD2EFf53D94f0BB60d5A00E36ea",
         "l2CanonicalBridge": "0x0000000000000000000000000000000000000000",
         "l2CanonicalToken": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
@@ -399,7 +399,7 @@
         "bridgeDeployedBlockNumber": 13331564
       },
       "gnosis": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0xa6439Ca0FCbA1d0F80df0bE6A17220feD9c9038a",
         "l1MessengerWrapper": "0x25FB92E505F752F730cAD0Bd4fa17ecE4A384266",
         "l2CanonicalBridge": "0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d",
         "l2CanonicalToken": "0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1",
@@ -428,7 +428,7 @@
         "bridgeDeployedBlockNumber": 19706859
       },
       "optimism": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1",
         "l1MessengerWrapper": "0x64e5A143a3775a500BF19E609E1a74A5Cbc3bb2A",
         "l2CanonicalBridge": "0x4200000000000000000000000000000000000010",
         "l2CanonicalToken": "0x4200000000000000000000000000000000000006",
@@ -440,7 +440,7 @@
         "bridgeDeployedBlockNumber": 1
       },
       "arbitrum": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f",
         "l1MessengerWrapper": "0xEcf268Be00308980B5b3fcd0975D47C4C8e1382a",
         "l2CanonicalBridge": "0x0000000000000000000000000000000000000000",
         "l2CanonicalToken": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
@@ -488,7 +488,7 @@
         "bridgeDeployedBlockNumber": 20536705
       },
       "optimism": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1",
         "l1MessengerWrapper": "0x08706c95f86305FE76E9eA1be7A2474eb5cEfB3B",
         "l2CanonicalBridge": "0x4200000000000000000000000000000000000010",
         "l2CanonicalToken": "0x68f180fcCe6836688e9084f035309E29Bf0A2095",
@@ -500,7 +500,7 @@
         "bridgeDeployedBlockNumber": 1
       },
       "arbitrum": {
-        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1CanonicalBridge": "0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f",
         "l1MessengerWrapper": "0x117f2f67cD7570E0E8Fd30264f96Ca39eEbc1A5E",
         "l2CanonicalBridge": "0x0000000000000000000000000000000000000000",
         "l2CanonicalToken": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",

@@ -51,7 +51,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
   } = props
   const styles = useAmountSelectorCardStyles()
 
-  const { estimateSend } = useEstimateTxCost(selectedNetwork)
+  const { estimateSend } = useEstimateTxCost()
 
   const balanceLabel = useMemo(() => {
     return toTokenDisplay(balance, token?.decimals)

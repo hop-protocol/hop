@@ -15,11 +15,8 @@ const useAvailableLiquidity = (
   const updateAvailableLiquidity = async () => {
     try {
       if (bridge && sourceChain && destinationChain) {
-        let liquidity = await bridge.getFrontendAvailableLiquidity(sourceChain, destinationChain)
+        const liquidity = await bridge.getFrontendAvailableLiquidity(sourceChain, destinationChain)
 
-        if (sourceChain === 'polygon') {
-          liquidity = BigNumber.from(0)
-        }
         setAvailableLiquidity(liquidity)
       }
     } catch (err: any) {

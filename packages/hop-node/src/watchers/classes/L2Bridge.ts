@@ -280,9 +280,14 @@ export default class L2Bridge extends Bridge {
   commitTransfers = async (
     destinationChainId: number
   ): Promise<providers.TransactionResponse> => {
+    const txOverrides = await this.txOverrides()
+    if (this.chainSlug === Chain.Polygon) {
+      txOverrides.type = 0
+    }
+
     const tx = await this.l2BridgeContract.commitTransfers(
       destinationChainId,
-      await this.txOverrides()
+      txOverrides
     )
 
     return tx

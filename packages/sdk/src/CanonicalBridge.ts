@@ -10,7 +10,7 @@ import {
   L1XDaiForeignOmniBridge__factory,
   L2OptimismTokenBridge__factory,
   L2PolygonChildERC20__factory,
-  L2XDaiToken__factory,
+  L2XDaiToken__factory
 } from '@hop-protocol/core/contracts'
 import { Chain } from './models'
 import { Contract, Signer, ethers } from 'ethers'

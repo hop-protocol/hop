@@ -54,7 +54,7 @@ class L1ToL2Watcher extends BaseWatcher {
     const token = await this.bridge
       .getCanonicalToken(this.destinationChain)
       .getErc20()
-    const hTokenFilter ='Transfer'
+    const hTokenFilter = 'Transfer'
     const tokenFilter = 'Transfer'
     const recipient = this.sourceTx.from
     const batchBlocks = 1000

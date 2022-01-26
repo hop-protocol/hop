@@ -16,10 +16,10 @@ class PriceFeed {
     WETH: 'ETH',
     WMATIC: 'MATIC',
     XDAI: 'DAI',
-    WXDAI: 'DAI',
+    WXDAI: 'DAI'
   }
 
-  async getPriceByTokenSymbol(tokenSymbol: string) {
+  async getPriceByTokenSymbol (tokenSymbol: string) {
     if (this.aliases[tokenSymbol]) {
       tokenSymbol = this.aliases[tokenSymbol]
     }
@@ -41,7 +41,7 @@ class PriceFeed {
         }
         this.cache[tokenSymbol] = {
           timestamp: Date.now(),
-          price,
+          price
         }
         return price
       } catch (err) {

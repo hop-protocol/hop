@@ -2,12 +2,12 @@ import Base, { ChainProviders } from './Base'
 import BlockDater from 'ethereum-block-by-date'
 import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
-import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { Chain } from './models'
 import { DateTime } from 'luxon'
 import { Swap__factory } from '@hop-protocol/core/contracts'
 import { TAmount, TChain, TProvider } from './types'
 import { TokenIndex, TokenSymbol } from './constants'
+import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { formatUnits } from 'ethers/lib/utils'
 
 /**

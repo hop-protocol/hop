@@ -29,7 +29,6 @@ class CommitTransfersWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'CommitTransfersWatcher',
       prefix: config.label,
       logColor: 'yellow',
       isL1: config.isL1,

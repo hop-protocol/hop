@@ -47,7 +47,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   siblingWatchers: { [chainId: string]: any }
   syncWatcher: SyncWatcher
   metrics = new Metrics()
-  dryMode: boolean
+  dryMode: boolean = false
+  startedWithDryMode: boolean = false
   tag: string
   prefix: string
   pauseMode: boolean = false
@@ -85,6 +86,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
     if (config.dryMode) {
       this.dryMode = config.dryMode
+      this.startedWithDryMode = this.dryMode
     }
     if (config.stateUpdateAddress) {
       this.stateUpdateAddress = config.stateUpdateAddress
@@ -218,6 +220,11 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   setDryMode (enabled: boolean) {
+    // don't update dry mode state if it was started with dry mode
+    if (this.startedWithDryMode) {
+      return
+    }
+
     if (this.dryMode !== enabled) {
       this.logger.warn(`Dry mode updated: ${enabled}`)
       this.dryMode = enabled

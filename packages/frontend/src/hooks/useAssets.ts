@@ -1,4 +1,4 @@
-import { HopBridge } from '@hop-protocol/sdk'
+import { CanonicalToken, HopBridge } from '@hop-protocol/sdk'
 import { useMemo } from 'react'
 import { hopAppNetwork } from 'src/config'
 import logger from 'src/logger'
@@ -11,8 +11,8 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
       return null
     }
     const unsupportedAssets = {
-      Optimism: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
-      Arbitrum: hopAppNetwork === 'kovan' ? [] : ['MATIC'],
+      Optimism: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.MATIC],
+      Arbitrum: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.MATIC],
     }
     const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
     for (const chain in unsupportedAssets) {

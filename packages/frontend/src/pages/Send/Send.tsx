@@ -68,6 +68,16 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
 
+  // Reset error message when fromNetwork/toNetwork changes
+  useEffect(() => {
+    if (warning) {
+      setWarning('')
+    }
+    if (error) {
+      setError('')
+    }
+  }, [fromNetwork, toNetwork])
+
   // Set fromNetwork and toNetwork using query params
   useEffect(() => {
     const _fromNetwork = networks.find(network => network.slug === queryParams.sourceNetwork)
@@ -154,14 +164,6 @@ const Send: FC = () => {
     estimatedReceivedDisplay,
   } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
 
-  // Check if user has enough balance (more than the inputed value)
-  const enoughBalance = useMemo(() => {
-    if (fromBalance && fromTokenAmountBN && fromBalance.lt(fromTokenAmountBN)) {
-      return false
-    }
-    return true
-  }, [fromBalance, fromTokenAmountBN])
-
   const { estimateSend } = useEstimateTxCost(fromNetwork)
 
   const { data: estimatedGasCost } = useTxResult(
@@ -191,22 +193,11 @@ const Send: FC = () => {
   useEffect(() => {
     if (unsupportedAsset) {
       const { chain, tokenSymbol } = unsupportedAsset
-      console.log(`tokenSymbol:`, tokenSymbol)
       setError(`${tokenSymbol} is currently not supported on ${chain}`)
     } else if (error) {
       setError('')
     }
   }, [unsupportedAsset])
-
-  // Reset error message when fromNetwork changes
-  useEffect(() => {
-    if (warning) {
-      setWarning('')
-    }
-    if (error) {
-      setError('')
-    }
-  }, [fromNetwork, toNetwork])
 
   // Check if there is sufficient available liquidity
   useEffect(() => {

@@ -1,15 +1,8 @@
-import { useQuery } from 'react-query'
-import { Token } from '@hop-protocol/sdk'
-import Network from 'src/models/Network'
-import { Addressish } from 'src/models/Address'
-import { useQueryParams } from '.'
 import { ChangeEvent, useEffect, useState } from 'react'
+import Network from 'src/models/Network'
 import { defaultL2Network, l2Networks } from 'src/config/networks'
 import { findNetworkBySlug } from 'src/utils'
-
-async function fetchBalance(token: Token, address: Addressish) {
-  return token.balanceOf(address?.toString())
-}
+import useQueryParams from './useQueryParams'
 
 interface Options {
   l2Only: boolean
@@ -21,7 +14,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
 
   useEffect(() => {
     if (queryParams?.sourceNetwork !== selectedNetwork.slug) {
-      const matchingNetwork = findNetworkBySlug(queryParams.sourceNetwork)
+      const matchingNetwork = findNetworkBySlug(queryParams.sourceNetwork as string)
       if (matchingNetwork && !matchingNetwork?.isLayer1) {
         setSelectedNetwork(matchingNetwork)
       } else {

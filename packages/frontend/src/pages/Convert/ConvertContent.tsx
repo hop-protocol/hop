@@ -9,12 +9,10 @@ import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/modal/TxStatusModal'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import TokenWrapper from 'src/components/TokenWrapper'
-import { isL1ToL2, sanitizeNumericalString } from 'src/utils'
+import { sanitizeNumericalString } from 'src/utils'
 import { MethodNames } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
-import { ChainSlug } from '@hop-protocol/sdk'
-import { ExternalLink } from 'src/components/Link'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -109,11 +107,7 @@ const ConvertContent: FC = () => {
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning: High Price Impact!')
 
   const sendButtonActive =
-    validFormFields &&
-    !unsupportedAsset &&
-    !needsApproval &&
-    sendableWarning &&
-    !error
+    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error
 
   const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
 
@@ -156,6 +150,7 @@ const ConvertContent: FC = () => {
             disableInput
           />
           <div className={styles.details}>{details}</div>
+          <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 

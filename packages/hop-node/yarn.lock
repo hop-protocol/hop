@@ -1605,23 +1605,21 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@hop-protocol/core@0.0.1-beta.55":
-  version "0.0.1-beta.55"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.55.tgz#e751c4f81d09febc69110090471e0dc8ee737615"
-  integrity sha512-nf+3PrQbPjK9ccCnuBc8ioyzDZPSiZ5qYSEUQ4/vUP/xV21to9FWwcxVwpQXs03rYCk7FrOhFb5xknBsiKuHHQ==
+"@hop-protocol/core@0.0.1-beta.57":
+  version "0.0.1-beta.57"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.57.tgz#fd9d8e62f6ba9db4c5edaf9c730e0d2e7f323436"
+  integrity sha512-/X/li7wiC1/d564D+Nw6u+jUlyVVPcAbemDOYnFG3nqvvU5E+eho/AN+oVEZXuH4t9n0NqgqAxUJD55Jlczekg==
   dependencies:
-    deepmerge "^4.2.2"
-    eslint-plugin-json "^3.1.0"
     ethers "^5.5.1"
 
-"@hop-protocol/sdk@0.0.1-beta.283":
-  version "0.0.1-beta.283"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.283.tgz#3e1c9a1878ca33c3a6f6ac21d68be58a39c86a87"
-  integrity sha512-9l8Zj+DjByPeMU4qmRi/Ps+uLD45GY4WJw7LTYifHIRuPQkrma1j3GJPXuFDlD1dX8Y3gY11yru94EGgnuGIrQ==
+"@hop-protocol/sdk@0.0.1-beta.286":
+  version "0.0.1-beta.286"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.286.tgz#a1fcfa2d6ed7ff85ae69e76b61b4272155b213d7"
+  integrity sha512-z66mGkrUQ9b4qjkjgfO1ADYGUw0ZQtaBeURU7yBeRosNMEb1QCeNf0N6UTYJ+cVIdQdN6UlH4oAZdtCCAJy05g==
   dependencies:
     "@eth-optimism/contracts" "^0.5.2"
     "@ethersproject/abi" "^5.4.0"
-    "@hop-protocol/core" "0.0.1-beta.55"
+    "@hop-protocol/core" "0.0.1-beta.57"
     "@maticnetwork/maticjs" "^2.0.38"
     dotenv "^8.2.0"
     ethereum-block-by-date "^1.4.2"
@@ -4387,14 +4385,6 @@ eslint-plugin-jest@^24.3.6:
   dependencies:
     "@typescript-eslint/experimental-utils" "^4.0.1"
 
-eslint-plugin-json@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-json/-/eslint-plugin-json-3.1.0.tgz#251108ba1681c332e0a442ef9513bd293619de67"
-  integrity sha512-MrlG2ynFEHe7wDGwbUuFPsaT2b1uhuEFhJ+W1f1u+1C2EkXmTYJp4B1aAdQQ8M+CC3t//N/oRKiIVw14L2HR1g==
-  dependencies:
-    lodash "^4.17.21"
-    vscode-json-languageservice "^4.1.6"
-
 eslint-plugin-node@^11.1.0:
   version "11.1.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-node/-/eslint-plugin-node-11.1.0.tgz#c95544416ee4ada26740a30474eefc5402dc671d"
@@ -6678,11 +6668,6 @@ json5@^1.0.1:
   integrity sha512-aKS4WQjPenRxiQsC93MNfjx+nbF4PAdYzmd/1JIj8HYzqfbu86beTuNgXDzPknWk0n0uARlyewZo4s++ES36Ow==
   dependencies:
     minimist "^1.2.0"
-
-jsonc-parser@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.0.0.tgz#abdd785701c7e7eaca8a9ec8cf070ca51a745a22"
-  integrity sha512-fQzRfAbIBnR0IQvftw9FJveWiHp72Fg20giDrHz6TdfB12UH/uue0D3hm57UB5KgAVuniLMCaS8P1IMj9NR7cA==
 
 jsonfile@^4.0.0:
   version "4.0.0"
@@ -9630,37 +9615,6 @@ verror@1.10.0:
     assert-plus "^1.0.0"
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
-
-vscode-json-languageservice@^4.1.6:
-  version "4.1.10"
-  resolved "https://registry.yarnpkg.com/vscode-json-languageservice/-/vscode-json-languageservice-4.1.10.tgz#5d5729fc4f3e02f41599e0104523a1877c25f0fb"
-  integrity sha512-IHliMEEYSY0tJjJt0ECb8ESx/nRXpoy9kN42WVQXgaqGyizFAf3jibSiezDQTrrY7f3kywXggCU+kkJEM+OLZQ==
-  dependencies:
-    jsonc-parser "^3.0.0"
-    vscode-languageserver-textdocument "^1.0.1"
-    vscode-languageserver-types "^3.16.0"
-    vscode-nls "^5.0.0"
-    vscode-uri "^3.0.2"
-
-vscode-languageserver-textdocument@^1.0.1:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/vscode-languageserver-textdocument/-/vscode-languageserver-textdocument-1.0.3.tgz#879f2649bfa5a6e07bc8b392c23ede2dfbf43eff"
-  integrity sha512-ynEGytvgTb6HVSUwPJIAZgiHQmPCx8bZ8w5um5Lz+q5DjP0Zj8wTFhQpyg8xaMvefDytw2+HH5yzqS+FhsR28A==
-
-vscode-languageserver-types@^3.16.0:
-  version "3.16.0"
-  resolved "https://registry.yarnpkg.com/vscode-languageserver-types/-/vscode-languageserver-types-3.16.0.tgz#ecf393fc121ec6974b2da3efb3155644c514e247"
-  integrity sha512-k8luDIWJWyenLc5ToFQQMaSrqCHiLwyKPHKPQZ5zz21vM+vIVUSvsRpcbiECH4WR88K2XZqc4ScRcZ7nk/jbeA==
-
-vscode-nls@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/vscode-nls/-/vscode-nls-5.0.0.tgz#99f0da0bd9ea7cda44e565a74c54b1f2bc257840"
-  integrity sha512-u0Lw+IYlgbEJFF6/qAqG2d1jQmJl0eyAGJHoAJqr2HT4M2BNuQYSEiSE75f52pXHSJm8AlTjnLLbBFPrdz2hpA==
-
-vscode-uri@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-3.0.2.tgz#ecfd1d066cb8ef4c3a208decdbab9a8c23d055d0"
-  integrity sha512-jkjy6pjU1fxUvI51P+gCsxg1u2n8LSt0W6KrCNQceaziKzff74GoWmjVG46KieVzybO1sttPQmYfrwSHey7GUA==
 
 w3c-hr-time@^1.0.2:
   version "1.0.2"

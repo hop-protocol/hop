@@ -29,23 +29,6 @@ type Props = {
 }
 
 // TODO: modularize
-const initialState = {
-  onboard: undefined,
-  provider: undefined,
-  address: undefined,
-  connectedNetworkId: '',
-  validConnectedNetworkId: false,
-  setRequiredNetworkId: (networkId: string) => {},
-  requestWallet: () => {},
-  disconnectWallet: () => {},
-  walletConnected: false,
-  walletName: '',
-  checkConnectedNetworkId: async (networkId: number): Promise<boolean> => false,
-  getWriteContract: async (contract: Contract | undefined): Promise<Contract | undefined> =>
-    undefined,
-}
-
-// TODO: modularize
 const networkNames: any = {
   1: 'Mainnet',
   3: 'Ropsten',
@@ -63,7 +46,7 @@ const networkNames: any = {
   137: 'Polygon',
 }
 
-const Web3Context = createContext<Props>(initialState)
+const Web3Context = createContext<Props | undefined>(undefined)
 
 // TODO: modularize
 const walletSelectOptions: WalletSelectModuleOptions = {
@@ -385,7 +368,12 @@ const Web3ContextProvider: FC = ({ children }) => {
   )
 }
 
-// TODO: cleanup
-export const useWeb3Context: () => Props = () => useContext(Web3Context)
+export function useWeb3Context() {
+  const ctx = useContext(Web3Context)
+  if (ctx === undefined) {
+    throw new Error('useApp must be used within Web3Provider')
+  }
+  return ctx
+}
 
 export default Web3ContextProvider

@@ -1,12 +1,13 @@
 import Base, { ChainProviders } from './Base'
 import BlockDater from 'ethereum-block-by-date'
-import saddleSwapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
 import { DateTime } from 'luxon'
+import { Swap__factory } from '@hop-protocol/core/contracts'
 import { TAmount, TChain, TProvider } from './types'
 import { TokenIndex, TokenSymbol } from './constants'
+import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { formatUnits } from 'ethers/lib/utils'
 
 /**
@@ -99,7 +100,7 @@ class AMM extends Base {
     amount1Desired: TAmount,
     minToMint: TAmount = 0,
     deadline: BigNumberish = this.defaultDeadlineSeconds
-  ) {
+  ): Promise<TransactionResponse> {
     const populatedTx = await this.populateAddLiquidityTx(amount0Desired, amount1Desired, minToMint, deadline)
     return this.signer.sendTransaction(populatedTx)
   }
@@ -117,7 +118,7 @@ class AMM extends Base {
       amounts,
       minToMint,
       deadline
-    ]
+    ] as const
 
     const overrides = await this.txOverrides(this.chain)
     if (this.chain.equals(Chain.Polygon)) {
@@ -164,7 +165,7 @@ class AMM extends Base {
     amount0Min: TAmount = 0,
     amount1Min: TAmount = 0,
     deadline: BigNumberish = this.defaultDeadlineSeconds
-  ) {
+  ): Promise<TransactionResponse> {
     const populatedTx = await this.populateRemoveLiquidityTx(liquidityTokenAmount, amount0Min, amount1Min, deadline)
     return this.signer.sendTransaction(populatedTx)
   }
@@ -174,7 +175,7 @@ class AMM extends Base {
     amount0Min: TAmount = 0,
     amount1Min: TAmount = 0,
     deadline: BigNumberish = this.defaultDeadlineSeconds
-  ):Promise<any> {
+  ): Promise<any> {
     deadline = this.normalizeDeadline(deadline)
     const saddleSwap = await this.getSaddleSwap()
     const amounts = [amount0Min, amount1Min]
@@ -182,7 +183,7 @@ class AMM extends Base {
       liqudityTokenAmount,
       amounts,
       deadline
-    ]
+    ] as const
 
     const overrides = await this.txOverrides(this.chain)
     if (this.chain.equals(Chain.Polygon)) {
@@ -218,7 +219,7 @@ class AMM extends Base {
       tokenIndex,
       amountMin,
       deadline
-    ]
+    ] as const
 
     const overrides = await this.txOverrides(this.chain)
     if (this.chain.equals(Chain.Polygon)) {
@@ -400,7 +401,7 @@ class AMM extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(this.chain)
-    return this.getContract(saddleSwapAddress, saddleSwapAbi, provider)
+    return Swap__factory.connect(saddleSwapAddress, provider)
   }
 
   public async getSwapFee () {

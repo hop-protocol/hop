@@ -23,7 +23,6 @@ class ChallengeWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'ChallengeWatcher',
       prefix: config.label,
       bridgeContract: config.bridgeContract,
       isL1: config.isL1,

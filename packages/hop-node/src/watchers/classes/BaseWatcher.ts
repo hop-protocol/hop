@@ -17,7 +17,6 @@ import { config as globalConfig, hostname } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  tag: string
   prefix?: string
   logColor?: string
   isL1?: boolean
@@ -55,7 +54,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   constructor (config: Config) {
     super()
-    const { chainSlug, tokenSymbol, tag, prefix, logColor } = config
+    const { chainSlug, tokenSymbol, prefix, logColor } = config
+    const tag = this.constructor.name
     this.logger = new Logger({
       tag,
       prefix,

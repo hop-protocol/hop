@@ -65,7 +65,6 @@ class SyncWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'SyncWatcher',
       prefix: config.label,
       logColor: 'gray',
       isL1: config.isL1,

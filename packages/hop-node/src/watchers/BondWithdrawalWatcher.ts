@@ -29,7 +29,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   constructor (config: Config) {
     super({
-      tag: 'BondWithdrawalWatcher',
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
       prefix: config.label,

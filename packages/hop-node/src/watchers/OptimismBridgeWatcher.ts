@@ -103,9 +103,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
       `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
     )
 
-    await this.handleStateSwitch()
-    if (this.isDryOrPauseMode) {
-      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
+    if (this.dryMode) {
+      logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
       return
     }
 

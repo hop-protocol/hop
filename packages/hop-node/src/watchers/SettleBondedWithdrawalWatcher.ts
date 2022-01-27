@@ -14,7 +14,6 @@ type Config = {
   label: string
   dryMode?: boolean
   minThresholdPercent: number
-  stateUpdateAddress?: string
 }
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
@@ -29,8 +28,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       logColor: 'magenta',
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode,
-      stateUpdateAddress: config.stateUpdateAddress
+      dryMode: config.dryMode
     })
   }
 
@@ -200,9 +198,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    await this.handleStateSwitch()
-    if (this.isDryOrPauseMode) {
-      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping settleBondedWithdrawals`)
+    if (this.dryMode) {
+      logger.warn(`dry: ${this.dryMode}, skipping settleBondedWithdrawals`)
       return
     }
 

@@ -3,7 +3,7 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
+import { BigNumber, Contract, providers } from 'ethers'
 import { Bridge as BridgeContract, MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
 import { Chain, SettlementGasLimitPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
@@ -35,7 +35,6 @@ export default class Bridge extends ContractBase {
   bridgeContract: BridgeContract
   bridgeDeployedBlockNumber: number
   l1CanonicalTokenAddress: string
-  stateUpdateAddress: string
 
   constructor (bridgeContract: BridgeContract) {
     super(bridgeContract)
@@ -61,7 +60,6 @@ export default class Bridge extends ContractBase {
     }
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
-    this.stateUpdateAddress = globalConfig.stateUpdateAddress
   }
 
   async getBonderAddress (): Promise<string> {
@@ -399,20 +397,6 @@ export default class Bridge extends ContractBase {
     )
 
     return tx
-  }
-
-  getStateUpdateStatus = async (stateUpdateAddress: string, chainId: number): Promise<number> => {
-    const abi = ['function currentState(address,uint256)']
-    const ethersInterface = new ethersUtils.Interface(abi)
-    const data = ethersInterface.encodeFunctionData(
-      'currentState', [this.l1CanonicalTokenAddress, chainId]
-    )
-    const tx = {
-      to: stateUpdateAddress,
-      data
-    }
-    const res: string = await this.contract.provider.call(tx)
-    return Number(res)
   }
 
   async getEthBalance (): Promise<BigNumber> {

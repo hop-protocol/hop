@@ -37,7 +37,6 @@ type GetWatchersConfig = {
   commitTransfersMinThresholdAmounts?: CommitTransfersMinThresholdAmounts
   settleBondedWithdrawalsThresholdPercent?: SettleBondedWithdrawalsThresholdPercent
   dryMode?: boolean
-  stateUpdateAddress?: string
   syncFromDate?: string
   s3Upload?: boolean
   s3Namespace?: string
@@ -57,7 +56,6 @@ export async function getWatchers (config: GetWatchersConfig) {
     commitTransfersMinThresholdAmounts = {},
     settleBondedWithdrawalsThresholdPercent = {},
     dryMode = false,
-    stateUpdateAddress,
     syncFromDate,
     s3Upload,
     s3Namespace
@@ -74,8 +72,7 @@ export async function getWatchers (config: GetWatchersConfig) {
         label,
         isL1,
         bridgeContract,
-        dryMode,
-        stateUpdateAddress
+        dryMode
       })
     }))
   }
@@ -89,8 +86,7 @@ export async function getWatchers (config: GetWatchersConfig) {
         isL1,
         bridgeContract,
         dryMode,
-        minThresholdPercent: settleBondedWithdrawalsThresholdPercent?.[token],
-        stateUpdateAddress
+        minThresholdPercent: settleBondedWithdrawalsThresholdPercent?.[token]
       })
     }))
   }
@@ -106,8 +102,7 @@ export async function getWatchers (config: GetWatchersConfig) {
         isL1,
         bridgeContract,
         minThresholdAmounts,
-        dryMode,
-        stateUpdateAddress
+        dryMode
       })
     }))
   }
@@ -120,8 +115,7 @@ export async function getWatchers (config: GetWatchersConfig) {
         label,
         isL1,
         bridgeContract,
-        dryMode,
-        stateUpdateAddress
+        dryMode
       })
     }))
   }

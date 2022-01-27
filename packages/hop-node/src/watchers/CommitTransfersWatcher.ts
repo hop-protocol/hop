@@ -17,7 +17,6 @@ type Config = {
   isL1?: boolean
   bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
   dryMode?: boolean
-  stateUpdateAddress?: string
 }
 
 class CommitTransfersWatcher extends BaseWatcher {
@@ -33,8 +32,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       logColor: 'yellow',
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode,
-      stateUpdateAddress: config.stateUpdateAddress
+      dryMode: config.dryMode
     })
 
     if (config.minThresholdAmounts != null) {
@@ -140,9 +138,8 @@ class CommitTransfersWatcher extends BaseWatcher {
       `total pending amount for chainId ${destinationChainId}: ${formattedPendingAmount}`
     )
 
-    await this.handleStateSwitch()
-    if (this.isDryOrPauseMode) {
-      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping commitTransfers`)
+    if (this.dryMode) {
+      this.logger.warn(`dry: ${this.dryMode}, skipping commitTransfers`)
       return
     }
 

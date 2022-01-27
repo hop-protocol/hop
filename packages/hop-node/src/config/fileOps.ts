@@ -18,7 +18,6 @@ import {
   setNetworkMaxGasPrice,
   setNetworkRpcUrl,
   setRoutesConfig,
-  setStateUpdateAddress,
   setSyncConfig
 } from './config'
 import { Chain } from 'src/constants'
@@ -94,7 +93,6 @@ export type FileConfig = {
   settleBondedWithdrawals?: any
   commitTransfers?: CommitTransfersConfig
   addresses?: Addresses
-  stateUpdateAddress?: string
   metrics?: MetricsConfig
   fees?: Fees
   routes: Routes
@@ -183,9 +181,6 @@ export async function setGlobalConfigFromConfigFile (
     }
     const addresses = require(location) // eslint-disable-line @typescript-eslint/no-var-requires
     setConfigAddresses(addresses)
-  }
-  if (config.stateUpdateAddress) {
-    setStateUpdateAddress(config.stateUpdateAddress)
   }
   if (config?.metrics) {
     setMetricsConfig(config.metrics)

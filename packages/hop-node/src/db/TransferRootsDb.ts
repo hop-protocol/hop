@@ -30,6 +30,7 @@ interface BaseTransferRoot {
   sentBondTxAt?: number
   sentCommitTxAt?: number
   sentConfirmTxAt?: number
+  settleAttemptedAt?: number
   shouldBondTransferRoot?: boolean
   sourceChainId?: number
   totalAmount?: BigNumber
@@ -574,6 +575,11 @@ class TransferRootsDb extends BaseDb {
           Date.now()
       }
 
+      let settleAttemptTimestampOk = true
+      if (item.settleAttemptedAt) {
+        settleAttemptTimestampOk = item.settleAttemptedAt + TxRetryDelayMs < Date.now()
+      }
+
       return (
         item.transferRootId &&
         item.transferRootHash &&
@@ -585,7 +591,8 @@ class TransferRootsDb extends BaseDb {
         item.committedAt &&
         !item.allSettled &&
         rootSetTimestampOk &&
-        bondSettleTimestampOk
+        bondSettleTimestampOk &&
+        settleAttemptTimestampOk
       )
     })
   }

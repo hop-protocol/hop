@@ -9,6 +9,7 @@ import TxPill from 'src/components/header/TxPill'
 import HopLogoBlack from 'src/assets/logos/hop-logo-black.svg'
 import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
 import { isMainnet } from 'src/config'
+import { l1Network } from 'src/config/networks'
 import Settings from 'src/components/header/Settings'
 import WalletWarning from './WalletWarning'
 import {
@@ -25,7 +26,7 @@ import ConnectWalletButton from './ConnectWalletButton'
 import IconButton from '@material-ui/core/IconButton'
 import SunIcon from 'src/assets/sun-icon.svg'
 import MoonIcon from 'src/assets/moon-icon.svg'
-import { Div, Flex, Icon } from '../ui'
+import { Flex, Icon } from '../ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -107,7 +108,7 @@ const Header: FC = () => {
   const { toggleMode, isDarkMode } = useThemeMode()
   const styles = useStyles({ isDarkMode })
   const { address, provider, connectedNetworkId } = useWeb3Context()
-  const { l1Network, networks, theme } = useApp()
+  const { theme } = useApp()
   const [displayBalance, setDisplayBalance] = useState<string>('')
   const [connectedNetwork, setConnectedNetwork] = useState<Network | undefined>()
 
@@ -121,7 +122,7 @@ const Header: FC = () => {
       const formattedBalance = toTokenDisplay(balance, 18)
       const tokenSymbol = networkIdNativeTokenSymbol(connectedNetworkId)
       const _displayBalance = `${fixedDecimals(formattedBalance, 3)} ${tokenSymbol}`
-      const network = findNetworkBySlug(networks, networkIdToSlug(connectedNetworkId))
+      const network = findNetworkBySlug(networkIdToSlug(connectedNetworkId))
       setDisplayBalance(_displayBalance)
       setConnectedNetwork(network)
     } catch (err) {
@@ -148,10 +149,10 @@ const Header: FC = () => {
           <Link to="/">
             <img
               className={styles.hopLogo}
-              src={theme?.palette.type === 'dark' ? HopLogoWhite : HopLogoBlack}
+              src={isDarkMode ? HopLogoWhite : HopLogoBlack}
               alt="Hop"
             />
-            {!isMainnet ? <span className={styles.label}>{l1Network?.name}</span> : null}
+            {!isMainnet && <span className={styles.label}>{l1Network.name}</span>}
           </Link>
         </Box>
 

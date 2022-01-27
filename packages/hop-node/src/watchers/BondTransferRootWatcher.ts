@@ -6,13 +6,12 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  bridgeContract: L1BridgeContract | L2BridgeContract
   label: string
   isL1: boolean
   dryMode?: boolean
@@ -26,7 +25,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'BondTransferRootWatcher',
       prefix: config.label,
       logColor: 'cyan',
       isL1: config.isL1,

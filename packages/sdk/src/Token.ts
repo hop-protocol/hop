@@ -1,10 +1,10 @@
 import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
-import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import wethAbi from '@hop-protocol/core/abi/static/WETH9.json'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
+import { ERC20__factory, WETH9__factory } from '@hop-protocol/core/contracts'
 import { TAmount, TChain } from './types'
+import { TokenSymbol, WrappedToken } from './constants'
 
 /**
  * Class reprensenting ERC20 Token
@@ -17,7 +17,7 @@ class Token extends Base {
   public readonly image: string
   public readonly chain: Chain
   public readonly contract: Contract
-  _symbol: string
+  _symbol: TokenSymbol
 
   // TODO: clean up and remove unused parameters.
   /**
@@ -36,7 +36,7 @@ class Token extends Base {
     chain: TChain,
     address: string,
     decimals: number,
-    symbol: string,
+    symbol: TokenSymbol,
     name: string,
     image: string,
     signer?: Signer | providers.Provider,
@@ -54,7 +54,7 @@ class Token extends Base {
 
   get symbol () {
     if (this._symbol === TokenModel.ETH && !this.isNativeToken) {
-      return 'WETH'
+      return WrappedToken.WETH
     }
     return this._symbol
   }
@@ -88,7 +88,7 @@ class Token extends Base {
    *
    *const bridge = hop.bridge(Token.USDC).connect(signer)
    *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
-   *const allowance = bridge.allowance(Chain.xDai, spender)
+   *const allowance = bridge.allowance(Chain.Gnosis, spender)
    *```
    */
   public async allowance (spender: string) {
@@ -110,16 +110,19 @@ class Token extends Base {
    *
    *const bridge = hop.bridge(Token.USDC).connect(signer)
    *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
-   *const allowance = bridge.allowance(Chain.xDai, spender)
+   *const allowance = bridge.allowance(Chain.Gnosis, spender)
    *```
    */
   public async balanceOf (address?: string): Promise<BigNumber> {
     if (this.isNativeToken) {
       return this.getNativeTokenBalance(address)
     }
-    const _address = address ?? (await this.getSignerAddress())
+    address = address ?? await this.getSignerAddress()
+    if (!address) {
+      throw new Error('address is required')
+    }
     const tokenContract = await this.getErc20()
-    return tokenContract.balanceOf(_address)
+    return tokenContract.balanceOf(address)
   }
 
   /**
@@ -161,21 +164,29 @@ class Token extends Base {
    *const bridge = hop.bridge(Token.USDC).connect(signer)
    *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
    *const amount = '1000000000000000000'
-   *const tx = await bridge.approve(Chain.xDai, spender, amount)
+   *const tx = await bridge.approve(Chain.Gnosis, spender, amount)
    *```
    */
   public async approve (
     spender: string,
     amount: TAmount = ethers.constants.MaxUint256
   ) {
+    const populatedTx = await this.populateApproveTx(spender, amount)
+    const allowance = await this.allowance(spender)
+    if (allowance.lt(BigNumber.from(amount))) {
+      return this.signer.sendTransaction(populatedTx)
+    }
+  }
+
+  public async populateApproveTx (
+    spender: string,
+    amount: TAmount = ethers.constants.MaxUint256
+  ):Promise<any> {
     if (this.isNativeToken) {
       return
     }
     const tokenContract = await this.getErc20()
-    const allowance = await this.allowance(spender)
-    if (allowance.lt(BigNumber.from(amount))) {
-      return tokenContract.approve(spender, amount, await this.overrides())
-    }
+    return tokenContract.populateTransaction.approve(spender, amount, await this.overrides())
   }
 
   /**
@@ -185,10 +196,10 @@ class Token extends Base {
    */
   public async getErc20 () {
     if (this.isNativeToken) {
-      return this.getWethContract(this.chain)
+      return this.getWethContract()
     }
     const provider = await this.getSignerOrProvider(this.chain)
-    return this.getContract(this.address, erc20Abi, provider)
+    return ERC20__factory.connect(this.address, provider)
   }
 
   public async overrides () {
@@ -218,17 +229,20 @@ class Token extends Base {
       this._symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
     const isxDai =
       [TokenModel.DAI, TokenModel.XDAI].includes(this._symbol) &&
-      this.chain.equals(Chain.xDai)
+      this.chain.equals(Chain.Gnosis)
     return isEth || isMatic || isxDai
   }
 
   public async getNativeTokenBalance (address?: string): Promise<BigNumber> {
-    const _address = address ?? (await this.getSignerAddress())
-    return this.chain.provider.getBalance(_address)
+    address = address ?? await this.getSignerAddress()
+    if (!address) {
+      throw new Error('address is required')
+    }
+    return this.chain.provider.getBalance(address)
   }
 
-  async getWethContract (chain: TChain): Promise<Contract> {
-    return this.getContract(this.address, wethAbi, this.signer)
+  async getWethContract () {
+    return WETH9__factory.connect(this.address, this.signer)
   }
 
   getWrappedToken () {
@@ -241,7 +255,7 @@ class Token extends Base {
       this.chain,
       this.address,
       this.decimals,
-      `W${this._symbol}`,
+      `W${this._symbol}` as WrappedToken,
       this.name,
       this.image,
       this.signer,
@@ -250,7 +264,7 @@ class Token extends Base {
   }
 
   async wrapToken (amount: TAmount, estimateGasOnly: boolean = false) {
-    const contract = await this.getWethContract(this.chain)
+    const contract = await this.getWethContract()
     if (estimateGasOnly) {
       // a `from` address is required if using only provider (not signer)
       const from = await this.getGasEstimateFromAddress()
@@ -265,7 +279,7 @@ class Token extends Base {
   }
 
   async unwrapToken (amount: TAmount) {
-    const contract = await this.getWethContract(this.chain)
+    const contract = await this.getWethContract()
     return contract.withdraw(amount)
   }
 
@@ -274,7 +288,7 @@ class Token extends Base {
   ) {
     chain = this.toChainModel(chain)
     const amount = BigNumber.from(1)
-    const contract = await this.getWethContract(chain)
+    const contract = await this.getWethContract()
     // a `from` address is required if using only provider (not signer)
     const from = await this.getGasEstimateFromAddress()
     const [gasLimit, tx] = await Promise.all([
@@ -295,14 +309,14 @@ class Token extends Base {
   }
 
   private async getGasEstimateFromAddress () {
-    try {
-      return await this.getSignerAddress()
-    } catch (err) {
-      return await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
+    let address = await this.getSignerAddress()
+    if (!address) {
+      address = await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
     }
+    return address
   }
 
-  static fromJSON (json: any):Token {
+  static fromJSON (json: any): Token {
     return new Token(
       json.network,
       json.chain,

@@ -24,6 +24,7 @@ import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
 import { useApp } from 'src/contexts/AppContext'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { getTokenByAddress } from 'src/utils/tokens'
+import { TToken, TokenSymbol } from '@hop-protocol/sdk'
 
 // TODO: use typechain
 export const methodToSigHashes = {
@@ -60,7 +61,7 @@ const useTransaction = (txHash?: string) => {
   const [tx, dispatch] = useReducer(txReducer, initialState)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<any>()
-  const { sdk, networks } = useApp()
+  const { sdk } = useApp()
 
   function dispatchAction(type: TxActionType, payload: TxState) {
     dispatch(createDispatchAction(type, payload))
@@ -113,7 +114,7 @@ const useTransaction = (txHash?: string) => {
 
           dispatchAction(TxActionType.setTxState, {
             networkName,
-            network: findNetworkBySlug(networks, networkName),
+            network: findNetworkBySlug(networkName),
             txHash,
             response,
             receipt,
@@ -126,7 +127,7 @@ const useTransaction = (txHash?: string) => {
             eventValues,
             txType,
             tokenSymbol,
-            ...(tokenSymbol && { token: sdk.toTokenModel(tokenSymbol) }),
+            ...(tokenSymbol && { token: sdk.toTokenModel(tokenSymbol as TToken) }),
           })
 
           switch (methodName) {
@@ -183,8 +184,8 @@ const useTransaction = (txHash?: string) => {
       const { token, transactionHash, timestamp } = tfl1
 
       dispatchAction(TxActionType.setTx, {
-        tokenSymbol: token,
-        token: sdk.toTokenModel(token),
+        tokenSymbol: token as TokenSymbol,
+        token: sdk.toTokenModel(token as TToken),
         destTx: {
           networkName: destNetworkName,
           txHash: transactionHash,

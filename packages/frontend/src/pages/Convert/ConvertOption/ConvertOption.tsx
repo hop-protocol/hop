@@ -27,7 +27,7 @@ abstract class ConvertOption {
     sdk: Hop,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined,
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     l1TokenSymbol: string | undefined,
     amountIn: BigNumberish | undefined
   ): Promise<SendData>
@@ -37,7 +37,7 @@ abstract class ConvertOption {
     signer: Signer,
     sourceNetwork: Network,
     destNetwork: Network,
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     l1TokenSymbol: string,
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
@@ -46,13 +46,13 @@ abstract class ConvertOption {
   ): Promise<any>
 
   abstract sourceToken(
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     network: Network | undefined,
     bridge: HopBridge | undefined
   ): Promise<Token | undefined>
 
   abstract destToken(
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     network: Network | undefined,
     bridge: HopBridge | undefined
   ): Promise<Token | undefined>

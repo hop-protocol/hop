@@ -30,6 +30,7 @@ interface BaseTransferRoot {
   sentBondTxAt?: number
   sentCommitTxAt?: number
   sentConfirmTxAt?: number
+  settleAttemptedAt?: number
   shouldBondTransferRoot?: boolean
   sourceChainId?: number
   totalAmount?: BigNumber
@@ -55,155 +56,177 @@ type GetItemsFilter = Partial<TransferRoot> & {
   destinationChainIds?: number[]
 }
 
-const invalidTransferRoots: Record<string, boolean> = {
-  // Optimism pre-regenesis roots
-  '0x063d5d24ca64f0c662b3f3339990ef6550eb4a5dee7925448d85b712dd38b9e5': true,
-  '0x4c131e7af19d7dd1bc8ffe8e937ff8fcdb99bb1f09cc2e041f031e8c48d4d275': true,
-  '0x843314ec24c31a00385ae66fb9f3bfe15b29bcd998681f0ba09b49ac500ffaee': true,
-  '0x693d04548e6f7b6cafbd3761744411a2db98230de2d2ac372b310b59de42530a': true,
-  '0xdcfab2fe9e84837b1cece4b3585ab355f8e51750f7e55a7a282da81bbdc0a5dd': true,
-  '0xe3de2861ff4ca7046da4bd0345beb0a6fcb6fa09b108cc2d66f8bdfa7768fd70': true,
-  '0xdfa48ba341de6478a8236a9efd9dd832569f2e7045d357a27ec89c8aeed25d19': true,
-  '0xf3c01d73de571edcddc5a627726c1b5e1301da394a65d713cb489d3999cba52a': true,
-  '0x8ce859861c32ee6608b45501e3a007165c9053b22e8f482edd2585746aa479b8': true,
-  '0x3a098609751fa52d284ae86293873123238d2b676a6fc2b6620a34d3d83b362b': true,
-  '0xd8b02ee1f0512ced8be25959c7650aeb9f6a5c60e3e63b1e322b5179545e9b73': true,
-  '0x7d6cb1ee007a95756050f63d7f522b095eb2b3818207c2198fcdb90dc7fdc00c': true,
-  '0x590778a6138164cfe808673fb3f707f3b16432c29c2d341cc97873bbc3218eae': true,
-  '0xf2ccd9600ff6bf107fd16b076bf310ea456f14c9cee2a9c6abf1f394b2fe2489': true,
-  '0x12a648e1dd69a7ae52e09eddc274d289280d80d5d5de7d0255a410de17ec3208': true,
-  '0x00cd29b12bc3041a37a2cb64474f0726783c9b7cf6ce243927d5dc9f3473fb80': true,
-  '0xa601b46a44a7a62c80560949eee70b437ba4a26049b0787a3eab76ad60b1c391': true,
-  '0xbe12aa5c65bf2ebc59a8ebf65225d7496c59153e83d134102c5c3abaf3fd92e9': true,
-  // Other
-  '0xf902d5143ceee334fce5d56483024e0f4c476a1b5065d9d39d6c1deb6513b7bb': true,
-  '0x07cb3b4d0246d68af81e5ba78d3714726679116137b4c426be9695730daff61a': true,
-  '0x088b33a098c33e7ee5f34505b75193bd404876d736c0c30914f2d408054ced23': true,
-  '0x0ac9d14049246430921aa9c23f12a20a1b88edf77c3dc89f68795c5cdf32fc8b': true,
-  '0x0b23a433b6812637ccaeb761012a33c9423f5e266ab4c881a307799b9bc1b102': true,
-  '0x0e554f027de80cd241b57c1b3c94a7ae5885c2a396b10c9c6f4c24307adf2e81': true,
-  '0x0fcdc16491c7b490fd177720b8d387284da9f98a9e93d6f0c882b818d2f33e12': true,
-  '0x115aee9493dec58f40a41fc6dda4e0cfed5e71c693bbddfbceefdd2807495453': true,
-  '0x1207e1f1cc12b87b318cc045fccf97fdb613f39487982dd997f239c3b461dfff': true,
-  '0x1678fd9c4ca7e55ac604f55daaa7b22ecf511ef526c3749ac366debb926d67c9': true,
-  '0x1b60d67c50af3f0d6aced7c8007d57d01ec3982b3b880c9fb38ea426435346f9': true,
-  '0x1bfb01220659328f9379ef2dab7356c98889c3f0db57920aa7ee491cd8d3ad60': true,
-  '0x1edf64663c2c65283ef0b1ab02315181d1ffa49e6f2c1dbb387b6c93c05aecbf': true,
-  '0x2330e9c4571636eb0ef16681c993d7b64b97b44be71b8ffb89543fe23b27e307': true,
-  '0x268e8ec5e1e1583c8cbf334ba672bb74f631b397976bfd0c2e7cd717b04f8748': true,
-  '0x281d9fdb6edc35f1196d502f6df9b0c127c2df8eea2dee961fa21af538fe8090': true,
-  '0x2ae7edb530bf5fcdbc806e7ea59fe997e25239363001c50dd08eca3bb910d697': true,
-  '0x32e5ce02df624eb221f389e9303d31b665b2625f42d63c0d4991fe7f970e6eb7': true,
-  '0x376e20cf1c2166efdb9594ba3b3346fd620d4477b3575ee35e44dbdc9719f67d': true,
-  '0x37be937dd238441ac3fdbfdc114016d7554229bbc54a0b1907af4d3a8dd31672': true,
-  '0x37c494372a38c177103e7ea87ea4f537ac79e1eb53390ef2a32d31a62d87c80b': true,
-  '0x37eabab2ed554fef009204460e90567ce239913b5fccc6d18b10d146779779b8': true,
-  '0x3af969e3fe25f4b37a38371091bfc69cf139299bf795714ee636c8ce4fa6f5b4': true,
-  '0x3b3c8a294b5454c6012b33f7cc74685a9f82d5914c69ad81bc568e2e1ddd9d0c': true,
-  '0x3c3d2d5646dcdd6c890f32991bdf75adadee42b6d9c3d8ad241c75e81c9868cc': true,
-  '0x3d48f77852e44cb2233c7efbf1a1a1b2135487c521cff94efdf5a3940a69ef97': true,
-  '0x4252d26e41beb7d8bc4fc075cb80fc128c2380e5b35dccf7273e653597790f6d': true,
-  '0x4845904728a0676c0edd849c961f17c7775b91855d0a8e97fe9365da8bf06e13': true,
-  '0x4a9bfe4f60a922fce15d8883e655eaa618635eeae982eaa452cf4476ec7fae03': true,
-  '0x4c0b47b62f9400dc9e94dce42c215f4dca6f89c54f89574021224fbe1acc62e1': true,
-  '0x4c26d3e35f39b7e73a2d05cf72b13546de5d2afb0ba62844d85b182d1c806544': true,
-  '0x50b6c2eb605e292b3bbc3867a7ad346e9e6cc6f0bfacff43ffe94ca64753f894': true,
-  '0x54c47cb6f9f745b1cc4d46dec587c5e440779e8e5be20218aa72b8837f68a69c': true,
-  '0x5748578bb0d625a728c3865d174f8aa70acc120da079fc7bfad4a7be30ae1da5': true,
-  '0x595743844604a3059ed3dc7305e1c06b9180ee851e3267f942e4272cdbe9d285': true,
-  '0x5dd593b82914698a16255aa82ac3458c87ea240d100deab07282f8099c662318': true,
-  '0x611e54b53c065f8d3fee191a28f9461c1deac57fbb396870086224475e5da1ae': true,
-  '0x6733f45adcd795bfb2728f0e858bced163ed570ccbe4c2603fa8d44ef20a1c02': true,
-  '0x6a08e43507be2831837e366ad0704289c9d456f7796bbbd68cfd50f0a7450e13': true,
-  '0x6b3ac02272dce5f766410193d9d8b7b48e5f0fbacd6ea2a0524384e8d05b3174': true,
-  '0x6e23a10d4266332ef839109fc245847f4b900039a4bf447c3bce01d966b34ca5': true,
-  '0x6edc436e789cce11569dc307978d5ee4bdc7bd09a5cc2e7c7b439d3188e8bf6e': true,
-  '0x6f1393dcd54c5934a54cd8419b9149557e3d4aec9602601922697c2fd5d202d4': true,
-  '0x6fa3e9551531c7302aeac41e96518d6c096f5f64b815e1e3a539803549e09a47': true,
-  '0x70d65979ad41c41b2ccf277895e9d9aa52c3fb93de804547b31a2828fe4b4b09': true,
-  '0x729bc3f5620b63c15b2fad19828b5f87f6c28f221068939043405b2b04c29626': true,
-  '0x74dff6f50b6b34709166d29bd465e97ce05b0721eed0c327d806709418c3de1a': true,
-  '0x77bab4dd9a27c9b0475cce52833c87deb1a213806190a80aad10d099663ab482': true,
-  '0x77e2d7331c148cce2cc1e60e5a999f3a11ac7ec970e334a81c37d338bb209b2f': true,
-  '0x77faff82e31e449beec502ade9efd67bc709ca1edbeb0c7ca54f28aaa7ce66e6': true,
-  '0x7daf813b753ee5d6a26fce7265332b6ae3cba67f40b0896ff4c6f646f1a27a29': true,
-  '0x827f20e17d9a86460f19637daa2f01032e625ba1691c378f711866595c01e06f': true,
-  '0x83f064178cc8ba6c1c9e58de3614c0fa0d0dee3792f1c649b32d781f4af35ab6': true,
-  '0x84af8716f02f12b85893175717a0b5e6acb20ff895e5ce37d245672f46ee77b6': true,
-  '0x84cc5c71c7112454b9d18daf1e2c5b6795e9fef5dc4df77a2dd9e29a0e503776': true,
-  '0x88b342f8cb23eb6fa73e4617fff7f3fdfa2b5569d4bad0e3c3555ac60faeb261': true,
-  '0x8bb3768595d2e7686bbbf051ae73fa013d910c110a8671f92d18d2892bd17a73': true,
-  '0x8bb46b05382afc8e818eaf9d6d902500c5c526908b848a6b435af993416460ee': true,
-  '0x8df3be8957a6b70db6353c4e1ddf58f05d089a02d80b7009e7088718913ffbd9': true,
-  '0x8e14f4e103720aa2df8327e9247f0964ae94f22f2179f4655a0bb28e6d5a34b8': true,
-  '0x8e6676a5d6ccca08fa3f8ea211bbb713fb63a4169bbbf9d6d90a086f4d73f703': true,
-  '0x962a1c8b2847ac00838330cac53d97b4247686c67c6b8db9083149686972056d': true,
-  '0x96914168f96bb7f9d19796c60b4a0bd2914a09ee31ee36be9e83dbfff75a8a92': true,
-  '0x9756b37d598469212fbc5c60b8eabc427c35d9d2a57a4292c5ff24e73ef28c23': true,
-  '0x9acffbe77f99d488b20e48d6ecfe9cfcd287a9cf55dcee377c3986d35bd8d63b': true,
-  '0x9bedc0fb56602281ec49550ae6e7450366319fe96cd7b564c3a7013cc450ffb7': true,
-  '0xa212436194d7d6109c3f22ddbe9cd823f5f76abe65568c33d9d9c7bc0e389170': true,
-  '0xa23cc811c07af2151cdd5fd83ac50d49c27abef7d581d2e4475ebf0738cc8264': true,
-  '0xa67b01a7f1114c17ca6ac7c6079a8a8c934319f936e3ad108e146f9685147041': true,
-  '0xa8d0fd7ac20805524e5db5ace0f47e9b4dbe7c5c832a5b0ec8c0f9205db60874': true,
-  '0xab2915687e6d20c40470c2a3720887fd0150129950c471525a4cf291ce73787e': true,
-  '0xab9f6b65b91b226635dcd1b75211cb6791707dd0bd5b21995d4bd7278ff894de': true,
-  '0xb072bf7f4f839e71c11379960133b99d92cbd13c3da29ba6a81878a588437e93': true,
-  '0xb5219bed7eaa6e81cf2d6fefcd03bd826fcf3b0cbcf5df7f89ad582085d7335f': true,
-  '0xb64364b314e04c453670ef3ef98b0a1039ff5e9ef45a404083aafb7a97076d0f': true,
-  '0xbcbe1ddb16c7dc06c608a831aed1f1afa360705bc8708f6ea0fff3fded276dfc': true,
-  '0xbecb0f669c30161318fc60d3d2fe9e857f305e38bd6d1ae486a1ab78452e2884': true,
-  '0xbed42030ce260dcaef00538263a70885c2ec91691025498793f83a9fc738ee10': true,
-  '0xc0383974f4b28d3751a34332a890a4a99293fb7b4e9d27dd26081cce514fd0bb': true,
-  '0xc0e238c1b55c0e1e6e4fc08ca2a697e8f29a4532a2a85d050ecba3265794d1b8': true,
-  '0xc512792df647c70f0f1ba2c015002b7e09ee9099a562cdfd1e5ecc8c634b310e': true,
-  '0xc63ba26ad650dc010fc79deb0be6933d5860796fd605068e5c3826052330fa56': true,
-  '0xc8248526bf8f4f26f6401c74892005c10e83d721ff24ab361049a8562a869489': true,
-  '0xc9ffb87ca49647793772ddfc5b21b98cc702beb7e5f514919bbc3b3386cc29f5': true,
-  '0xce0d4ca1c09c8013923c6029b030a524808c502b8b3de8b67b8a335e03c1eba2': true,
-  '0xd214d0f3407646cd47a3213e71ad55fc4a340bd74e25bbb902e3704b14e66f95': true,
-  '0xd6d8e36135e6669027f8547a8d3d9023cfab0f31c9720fb6a893bf9799d7df05': true,
-  '0xd8ac655dd48ba5a041f9c4aa505a4a9e386af92ff35a62a3e5e038cc1ff64515': true,
-  '0xda48d791ef2c94c6a7d942fe67e7f21eac5c02e984cceef554bf278c85550b19': true,
-  '0xe321c402a022865093f366bd41c1ddeb5efd4d374327da4e57f58c8f198efa96': true,
-  '0xe3ff98e42b888750b2f2040e27d48a3af6e20c6f8ae4161bb4cdce9cd944efb5': true,
-  '0xe829c81a24c014d17d529ab69309481d3c57784a146d31994552022330ff34b7': true,
-  '0xe853aa0209a16e962f3912d674249dc870baf42e872fd6c534b7c1ec3c4096be': true,
-  '0xe8a031b47cf5843a5841eb5e0049ea12a66e1c00b12436ed1673ad236443e1df': true,
-  '0xebb138059daad8ec0fc690e37b437d3cc792f41b2d64809c862ce487888439d6': true,
-  '0xed29885e9b69ba4b5f7fc1c7710562cda8b55aa769959d613fd4d12dd3e2a8f2': true,
-  '0xeeecb522117bc1df2d3f334ebf843aed8e0663641ede2922a1d87ea4ae92603f': true,
-  '0xf1f87619ce2021939ff8ca2327b1812541bfbf8416e3510514990253dbcb2fb2': true,
-  '0xf29af81a03b312c014cc3e20c90bbb04105d7de99f0215c8f7f212214f3f4bfc': true,
-  '0xf2b60fe8a018ee7bb72b1eca5be0c5c7c34820767c90e0a4ecdcb7da596dbdd4': true,
-  '0xf3e6c67fe0c206ed472c89412de073f6955136e73fdbbc06319d0009ce12d6de': true,
-  '0xf5393cdd34e47ae881a76266297b5ab293baf7df7fe34d39606a5f09afe3c26a': true,
-  '0xf542914015967cff7bfbf3f44c18697e82487667b3e021c1601d72fff30ce542': true,
-  '0xf64d0094f9fcc615afec9007fcd9b978e9cfcb69824a8134eac162d541104c84': true,
-  '0xf903e11d697359281521efb558383475c5c759020c0d93ae7edec4eee2a9c7c5': true,
-  '0xfb03fe0b69e690bf318e7745985867f7be0522ccde338629c592b73b045e576c': true,
-  '0xfb9240d6494a59093b3fb57f78cc1df1ee1295b1bdf951f119c40d651955e13f': true,
-  '0x15b910fa5db38fce2466c5aa43bb3ff9e372418f1632ce3d767155f49d52bbdf': true,
-  '0x62d4596b79785a57d780a7da98bbf70fba2b9409c9a96468c0293bcbd4175b0c': true,
-  '0xf1b553498f95f09233b98ea07bbb41b7dfdf4c32893f0022831934912a000b5c': true,
-  '0x3904ca2e7b9a8a0e86d4b8f75b83e84fb86aeabc607011831c4ec07c68c6fd9e': true,
-  '0x2fb4eb5b464f5363310f0705eeaa55a76588b1b69cea4744717c72bbcb6c6787': true,
-  '0x89b86b2f4c88078078277b3181b7220f2e6e92141b28de337112415634bee303': true
+// structure:
+// key: `transferRoot:<committedAt>:<transferRootId>`
+// value: `{ transferRootId: <transferRootId> }`
+// note: the "transferRoot" prefix is not required but requires a migration to remove
+class SubDbTimestamps extends BaseDb {
+  constructor (prefix: string, _namespace?: string) {
+    super(`${prefix}:timestampedKeys`, _namespace)
+  }
+
+  getTimestampedKey (transferRoot: TransferRoot) {
+    if (transferRoot.committedAt && transferRoot.transferRootId) {
+      return `transferRoot:${transferRoot.committedAt}:${transferRoot.transferRootId}`
+    }
+  }
+
+  async insertItem (transferRoot: TransferRoot) {
+    const { transferRootId } = transferRoot
+    const logger = this.logger.create({ id: transferRootId })
+    const key = this.getTimestampedKey(transferRoot)
+    if (!key) {
+      return
+    }
+    const exists = await this.getById(key)
+    if (!exists) {
+      logger.debug(`storing db transferRoot timestamped key item. key: ${key}`)
+      await this._update(key, { transferRootId })
+      logger.debug(`updated db transferRoot timestamped key item. key: ${key}`)
+    }
+  }
+
+  async getFilteredKeyValues (dateFilter?: TransferRootsDateFilter) {
+    // return only transfer-root keys that are within specified range (filter by timestamped keys)
+    const filter: KeyFilter = {
+      gte: 'transferRoot:',
+      lte: 'transferRoot:~'
+    }
+
+    if (dateFilter != null) {
+      if (dateFilter.fromUnix) {
+        filter.gte = `transferRoot:${dateFilter.fromUnix}`
+      }
+      if (dateFilter.toUnix) {
+        filter.lte = `transferRoot:${dateFilter.toUnix}~` // tilde is intentional
+      }
+    }
+
+    return this.getKeyValues(filter)
+  }
 }
 
+// structure:
+// key: `<transferRootId>`
+// value: `{ transferRootId: <transferRootId> }`
+class SubDbIncompletes extends BaseDb {
+  constructor (prefix: string, _namespace?: string) {
+    super(`${prefix}:incompleteItems`, _namespace)
+  }
+
+  async upsertItem (transferRoot: TransferRoot) {
+    const { transferRootId } = transferRoot
+    const logger = this.logger.create({ id: transferRootId })
+    const isIncomplete = this.isItemIncomplete(transferRoot)
+    const exists = await this.getById(transferRootId)
+    const shouldUpsert = isIncomplete && !exists
+    const shouldDelete = !isIncomplete && exists
+    if (shouldUpsert) {
+      logger.debug('updating db transferRoot incomplete key item')
+      await this._update(transferRootId, { transferRootId })
+      logger.debug('updated db transferRoot incomplete key item')
+    } else if (shouldDelete) {
+      logger.debug('deleting db transferRoot incomplete key item')
+      await this.deleteById(transferRootId)
+      logger.debug('deleted db transferRoot incomplete key item')
+    }
+  }
+
+  isItemIncomplete (item: TransferRoot) {
+    if (item.isNotFound) {
+      return false
+    }
+
+    return (
+      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+      !item.sourceChainId ||
+      !item.destinationChainId ||
+      !item.commitTxBlockNumber ||
+      (item.commitTxHash && !item.committedAt) ||
+      (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
+      (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
+      (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||
+      (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds)
+      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    )
+  }
+}
+
+// structure:
+// key: `<transferRootHash>`
+// value: `{ transferRootId: <transferRootId> }`
+class SubDbRootHashes extends BaseDb {
+  constructor (prefix: string, _namespace?: string) {
+    super(`${prefix}:rootHashes`, _namespace)
+  }
+
+  async insertItem (transferRoot: TransferRoot) {
+    const { transferRootId, transferRootHash } = transferRoot
+    const logger = this.logger.create({ id: transferRootId })
+    const key = transferRoot.transferRootHash
+    if (!key) {
+      return
+    }
+    const exists = await this.getById(key)
+    if (!exists) {
+      logger.debug(`storing db transferRoot rootHash key item. key: ${key}`)
+      await this._update(key, { transferRootId })
+      logger.debug(`updated db transferRoot rootHash key item. key: ${key}`)
+    }
+  }
+
+  async getByTransferRootHash (transferRootHash: string) {
+    const item = await this.getById(transferRootHash)
+    return item?.transferRootId
+  }
+}
+
+// structure:
+// key: `<bondedAt>:<transferRootId>`
+// value: `{ transferRootId: <transferRootId> }`
+class SubDbBondedAt extends BaseDb {
+  constructor (prefix: string, _namespace?: string) {
+    super(`${prefix}:rootBondedAt`, _namespace)
+  }
+
+  async insertItem (transferRoot: TransferRoot) {
+    const { transferRootId, bondedAt } = transferRoot
+    const logger = this.logger.create({ id: transferRootId })
+    if (!bondedAt) {
+      return
+    }
+    const key = `${bondedAt}:${transferRootId}`
+    const exists = await this.getById(key)
+    if (!exists) {
+      logger.debug('inserting db transferRoot bondedAt key item')
+      await this._update(key, { transferRootId })
+    }
+  }
+
+  async getFilteredKeyValues (dateFilter: TransferRootsDateFilter) {
+    const filter: KeyFilter = {
+      gte: `${dateFilter.fromUnix}`
+    }
+    return this.getKeyValues(filter)
+  }
+}
+
+// structure:
+// key: `<transferRootId>`
+// value: `{ ...TransferRoot }`
 class TransferRootsDb extends BaseDb {
-  subDbIncompletes: BaseDb
-  subDbTimestamps: BaseDb
-  subDbRootHashes: BaseDb
-  subDbBondedAt: BaseDb
+  subDbTimestamps: SubDbTimestamps
+  subDbIncompletes: SubDbIncompletes
+  subDbRootHashes: SubDbRootHashes
+  subDbBondedAt: SubDbBondedAt
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
 
-    this.subDbTimestamps = new BaseDb(`${prefix}:timestampedKeys`, _namespace)
-    this.subDbIncompletes = new BaseDb(`${prefix}:incompleteItems`, _namespace)
-    this.subDbRootHashes = new BaseDb(`${prefix}:rootHashes`, _namespace)
-    this.subDbBondedAt = new BaseDb(`${prefix}:rootBondedAt`, _namespace)
+    this.subDbTimestamps = new SubDbTimestamps(prefix, _namespace)
+    this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
+    this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
+    this.subDbBondedAt = new SubDbBondedAt(prefix, _namespace)
     this.logger.debug('TransferRootsDb initialized')
   }
 
@@ -212,14 +235,8 @@ class TransferRootsDb extends BaseDb {
     const entries = await this.getKeyValues()
     this.logger.debug(`TransferRootsDb migration: ${entries.length} entries`)
     for (const entry of entries) {
-      await this.insertBondedAtItem(entry.value)
+      await this.subDbBondedAt.insertItem(entry.value)
     }
-  }
-
-  private isInvalidOrNotFound (item: TransferRoot) {
-    const isNotFound = item?.isNotFound
-    const isInvalid = invalidTransferRoots[item.transferRootId]
-    return isNotFound || isInvalid // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
   }
 
   private isRouteOk (filter: GetItemsFilter = {}, item: TransferRoot) {
@@ -238,79 +255,13 @@ class TransferRootsDb extends BaseDb {
     return true
   }
 
-  private getTimestampedKey (transferRoot: TransferRoot) {
-    if (transferRoot.committedAt && transferRoot.transferRootId) {
-      return `transferRoot:${transferRoot.committedAt}:${transferRoot.transferRootId}`
-    }
-  }
-
-  private async insertTimestampedKeyItem (transferRoot: TransferRoot) {
-    const { transferRootId } = transferRoot
-    const logger = this.logger.create({ id: transferRootId })
-    const key = this.getTimestampedKey(transferRoot)
-    if (key) {
-      const exists = await this.subDbTimestamps.getById(key)
-      if (!exists) {
-        logger.debug(`storing db transferRoot timestamped key item. key: ${key}`)
-        await this.subDbTimestamps._update(key, { transferRootId })
-        logger.debug(`updated db transferRoot timestamped key item. key: ${key}`)
-      }
-    }
-  }
-
-  private async insertRootHashKeyItem (transferRoot: TransferRoot) {
-    const { transferRootId, transferRootHash } = transferRoot
-    const logger = this.logger.create({ id: transferRootId })
-    const key = transferRoot.transferRootHash
-    if (key) {
-      const exists = await this.subDbRootHashes.getById(key)
-      if (!exists) {
-        logger.debug(`storing db transferRoot rootHash key item. key: ${key}`)
-        await this.subDbRootHashes._update(key, { transferRootId })
-        logger.debug(`updated db transferRoot rootHash key item. key: ${key}`)
-      }
-    }
-  }
-
   private async upsertTransferRootItem (transferRoot: TransferRoot) {
     const { transferRootId } = transferRoot
     const logger = this.logger.create({ id: transferRootId })
     await this._update(transferRootId, transferRoot)
     const entry = await this.getById(transferRootId)
     logger.debug(`updated db transferRoot item. ${JSON.stringify(entry)}`)
-    await this.upsertIncompleteItem(entry)
-  }
-
-  private async upsertIncompleteItem (transferRoot: TransferRoot) {
-    const { transferRootId } = transferRoot
-    const logger = this.logger.create({ id: transferRootId })
-    const isIncomplete = this.isItemIncomplete(transferRoot)
-    const exists = await this.subDbIncompletes.getById(transferRootId)
-    const shouldUpsert = isIncomplete && !exists
-    const shouldDelete = !isIncomplete && exists
-    if (shouldUpsert) {
-      logger.debug('updating db transferRoot incomplete key item')
-      await this.subDbIncompletes._update(transferRootId, { transferRootId })
-      logger.debug('updated db transferRoot incomplete key item')
-    } else if (shouldDelete) {
-      logger.debug('deleting db transferRoot incomplete key item')
-      await this.subDbIncompletes.deleteById(transferRootId)
-      logger.debug('deleted db transferRoot incomplete key item')
-    }
-  }
-
-  private async insertBondedAtItem (transferRoot: TransferRoot) {
-    const { transferRootId, bondedAt } = transferRoot
-    const logger = this.logger.create({ id: transferRootId })
-    if (!bondedAt) {
-      return
-    }
-    const key = `${bondedAt}:${transferRootId}`
-    const exists = await this.subDbBondedAt.getById(key)
-    if (!exists) {
-      logger.debug('inserting db transferRoot bondedAt key item')
-      await this.subDbBondedAt._update(key, { transferRootId })
-    }
+    await this.subDbIncompletes.upsertItem(entry)
   }
 
   private normalizeItem (item: TransferRoot) {
@@ -324,9 +275,9 @@ class TransferRootsDb extends BaseDb {
     transferRoot.transferRootId = transferRootId
 
     await Promise.all([
-      this.insertTimestampedKeyItem(transferRoot as TransferRoot),
-      this.insertRootHashKeyItem(transferRoot as TransferRoot),
-      this.insertBondedAtItem(transferRoot as TransferRoot),
+      this.subDbTimestamps.insertItem(transferRoot as TransferRoot),
+      this.subDbRootHashes.insertItem(transferRoot as TransferRoot),
+      this.subDbBondedAt.insertItem(transferRoot as TransferRoot),
       this.upsertTransferRootItem(transferRoot as TransferRoot)
     ])
   }
@@ -351,32 +302,17 @@ class TransferRootsDb extends BaseDb {
     transferRootHash: string
   ): Promise<TransferRoot | null> {
     await this.tilReady()
-    let item = await this.subDbRootHashes.getById(transferRootHash)
-    if (!item?.transferRootId) {
+    const transferRootId = await this.subDbRootHashes.getByTransferRootHash(transferRootHash)
+    if (!transferRootId) {
       return null
     }
-    item = await this.getById(item.transferRootId)
+    const item = await this.getById(transferRootId)
     return this.normalizeItem(item)
   }
 
   async getTransferRootIds (dateFilter?: TransferRootsDateFilter): Promise<string[]> {
     await this.tilReady()
-    // return only transfer-root keys that are within specified range (filter by timestamped keys)
-    const filter: KeyFilter = {
-      gte: 'transferRoot:',
-      lte: 'transferRoot:~'
-    }
-
-    if (dateFilter != null) {
-      if (dateFilter.fromUnix) {
-        filter.gte = `transferRoot:${dateFilter.fromUnix}`
-      }
-      if (dateFilter.toUnix) {
-        filter.lte = `transferRoot:${dateFilter.toUnix}~` // tilde is intentional
-      }
-    }
-
-    const kv = await this.subDbTimestamps.getKeyValues(filter)
+    const kv = await this.subDbTimestamps.getFilteredKeyValues(dateFilter)
     return kv.map(this.filterTimestampedKeyValues).filter(this.filterExisty)
   }
 
@@ -408,10 +344,7 @@ class TransferRootsDb extends BaseDb {
   async getBondedTransferRootsFromTwoWeeks (): Promise<TransferRoot[]> {
     await this.tilReady()
     const fromUnix = Math.floor((Date.now() - (OneWeekMs * 2)) / 1000)
-    const filter: KeyFilter = {
-      gte: `${fromUnix}`
-    }
-    const items = await this.subDbBondedAt.getKeyValues(filter)
+    const items = await this.subDbBondedAt.getFilteredKeyValues({ fromUnix })
     const transferRootIds = items.map((item: KV) => item.value.transferRootId)
     const entries = await this.batchGetByIds(transferRootIds)
     return entries.map(this.normalizeItem)
@@ -433,8 +366,7 @@ class TransferRootsDb extends BaseDb {
         }
       }
 
-      const shouldIgnoreItem = this.isInvalidOrNotFound(item)
-      if (shouldIgnoreItem) {
+      if (item.isNotFound) {
         return false
       }
 
@@ -480,6 +412,60 @@ class TransferRootsDb extends BaseDb {
       if (item.sentConfirmTxAt) {
         timestampOk =
           item.sentConfirmTxAt + TxRetryDelayMs < Date.now()
+      }
+
+      const hashesToIgnore = [
+        '0xd26bfea7a1e36695ebe734a8dd12f0775d95141e3161b744130a04ff39ec25ca',
+        '0xf390e1875f52eeece936c18aff0638cde9a0b27f5096df7bb963a40a5fd18b79',
+        '0x6ee032fede61e83edb5cb1102e2f74a14989bcadf351b43a1ab383e82ec583ff',
+        '0x82ba945f0463ed54f68d47348f5530988f7aee73814f5466da1a835dc40cad25',
+        '0xd2a932111e96ca60ef43fd9bbcdeab890a42e1bbc5674809486aa3a626dc157a',
+        '0xd0e286afae84f507700a1c8cd51bcee2c234f50fd6441f9fe7beffce253824a5',
+        '0x22ae7727d892a21acad85e601ed84d6e6cc5d1eb3911627503a648d9a0ef99a8',
+        '0x2f254353216ef91fc10fde3f96fb773326293a6ddf3d82f0e450b11c6fbb61dd',
+        '0x7e370921ae3bc87ac7d87d68cf2d8f0b2448f7aa7f141f15da073370477370af',
+        '0xac8855ce3f4bd489f839ba0e4a5bfc83540da6a148270d331bcfbf633d62b071',
+        '0x4da82a68e81d3939041421b067491d058eaa27067a98d688330c7a21eec1e999',
+        '0x5493e05d3c88efa0258f120e179d52db44e75e60995dc7a168fc516d7dd203fa',
+        '0xb804a9a6ebc403ef96479ab1daf2b243ff40ddc491e1ecc7096d8da887d02ef5',
+        '0xfa33fc4bad00eecb1f5896435ece46ad73e6f417ecd346c371e56c98fbdf00bb',
+        '0x55a11795cbc696ad099a2951bd5fdc08bc011dfba9a803f6220f6f3f30cd81f7',
+        '0x943cbeb2891d26e8c4851b91d84c2373cf74e26982dc3178fd18d7a4c3ec8a40',
+        '0xb2ceef8982685ebe1247d291104e652094e2162db4bfad25464c77b17d270086',
+        '0xcab120bc29250b49d5629af9dd4ce28c318f7dfe784597221f7b3d82ad47ca5f',
+        '0x4f41711ac66c710f3b2f885ef4f58c89f269498d7f60f667796b39c0088f4580',
+        '0xecb844a7790953d553462ea2e31370fb2558b9cebec5826e980a8a2da18db0bf',
+        '0xdaf86ffc228fe7a04f76db519bdc23dff0306f9468196f41615f101f55fa1bdd',
+        '0x4579bf93f96dc5156f4af5c5b23914b550b9da14599554bc2cde7b00873bf840',
+        '0xb531614789e7c3b4def8fa84ceb1feb5fa2ebebfa34c5ab81ed725beda2c87f9',
+        '0x374df9950341a183e6f25652f49dc9ac814a6c4b2a2dddbf54404d272895a784',
+        '0x0508a62ce6ace490a4d4c53970449d61148638cc3c659990e1ee28bbd690f274',
+        '0xbad55f6acb84660fc72de6b7f969665f111b2d9fb78761b5c1262e3c3a4c0896',
+        '0xed2cc54cbb1964222cc58aa38596874e0a5aa624837dd12839fb8abf11e2512a',
+        '0x05dceac9a28dd0047faf016869c80bada9d9b8ad7109fd10a0e80a3585c205a5',
+        '0xc74518bf7310c3392ddc91fd396293d280e13b0804ad68c6ac46fa7639c395fb',
+        '0x1e5fc7e16bd0fcbb9e2aa92f0306755263b6bb437fb3a3a9d99dc65521b77af9',
+        '0x8a00b6f56ae66a0434465951635f82e2d0c7542e20f2b8f68f7e3f6385932433',
+        '0xc1c638c24a6a84e66f2a267f9182b2cdd51c4a595b84452507366b18ee4d2a5a',
+        '0x0f62d32e45416f59fc3bb199296bcd7c774ed3e3e9dd24f1cc852ed4f15e435a',
+        '0xacb40d83d0a1b5a748a04a1e78f98bb3a1bb21af8abf6502376035ecc724a29a',
+        '0x611a25f3e5c7a61e345fb0edfeab5961c133f3fab1d9f69fcf441a25feebc3db',
+        '0x3b4f690c0357c7628f89f6a6632725578321de2aca1b2fb7578d6d3fa3e77a7c',
+        '0x723bd4dfd552e7157cc91336712c1ee5479a015637a7ab1db1fa17aafc600dbb',
+        '0x3b7f06af457b84918db3e6447e737a30df44dfa0d6d2d03f30952bba88e9bbc0',
+        '0x25914de28cc227919114cc0751a508a0d820846eac90b54dddedeb21267a7cee',
+        '0x2ada318aa7ebe844a5555184e05b45b7bcf22150ce771010181308eabb644b84',
+        '0xe1273ae292f47808e1eacf6fd9bf9639a302f8481fc55bbac3733f7cb1f7e507',
+        '0x40076e2563e1f8b7ab747ae7738c1b92570b5b127f94c49ce8502b2ee8b8a79e',
+        '0x7e58f3a7c79b00933b975c432de9e47e0a6b23dcf007a4fe8dbd382ffecbe160',
+        '0xca297c65043360ca5651ad1a89ff9550e8d909325e99dba809c6a67d27fc9f81',
+        '0x24669e11cc950403761449aef4a55e439558bfbaeeea0e4fc27d69df699c798b',
+        '0xea98791d1bce8158cd6121c600f319d01fb7c8d647e32fddf418d907bd053753',
+        '0x3063e76907e8b65615fdd3e9fd2200e4ae9b511eb96f0a3076b82b95019f0b2d'
+      ]
+
+      if (hashesToIgnore.includes(item.transferRootHash!)) {
+        return false
       }
 
       let oruTimestampOk = true
@@ -577,7 +563,7 @@ class TransferRootsDb extends BaseDb {
 
       // https://github.com/hop-protocol/hop/pull/140#discussion_r697919256
       let rootSetTimestampOk = true
-      const checkRootSetTimestamp = item.rootSetTimestamp && filter.destinationChainId && chainIdToSlug(filter.destinationChainId) === Chain.xDai
+      const checkRootSetTimestamp = item.rootSetTimestamp && filter.destinationChainId && chainIdToSlug(filter.destinationChainId) === Chain.Gnosis
       if (checkRootSetTimestamp) {
         rootSetTimestampOk = (item.rootSetTimestamp! * 1000) + RootSetSettleDelayMs < Date.now() // eslint-disable-line
       }
@@ -587,6 +573,11 @@ class TransferRootsDb extends BaseDb {
         bondSettleTimestampOk =
           (item.withdrawalBondSettleTxSentAt + TxRetryDelayMs) <
           Date.now()
+      }
+
+      let settleAttemptTimestampOk = true
+      if (item.settleAttemptedAt) {
+        settleAttemptTimestampOk = item.settleAttemptedAt + TxRetryDelayMs < Date.now()
       }
 
       return (
@@ -600,29 +591,10 @@ class TransferRootsDb extends BaseDb {
         item.committedAt &&
         !item.allSettled &&
         rootSetTimestampOk &&
-        bondSettleTimestampOk
+        bondSettleTimestampOk &&
+        settleAttemptTimestampOk
       )
     })
-  }
-
-  isItemIncomplete (item: TransferRoot) {
-    const shouldIgnoreItem = this.isInvalidOrNotFound(item)
-    if (shouldIgnoreItem) {
-      return false
-    }
-
-    return (
-      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-      !item.sourceChainId ||
-      !item.destinationChainId ||
-      !item.commitTxBlockNumber ||
-      (item.commitTxHash && !item.committedAt) ||
-      (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
-      (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
-      (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||
-      (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds)
-      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
-    )
   }
 
   async getIncompleteItems (
@@ -644,12 +616,11 @@ class TransferRootsDb extends BaseDb {
         }
       }
 
-      const shouldIgnoreItem = this.isInvalidOrNotFound(item)
-      if (shouldIgnoreItem) {
+      if (item.isNotFound) {
         return false
       }
 
-      return this.isItemIncomplete(item)
+      return this.subDbIncompletes.isItemIncomplete(item)
     })
   }
 }

@@ -18,7 +18,7 @@ describe.skip('challenge valid transfer root', () => {
 })
 
 describe.skip('challenge valid transfer root but committed too early', () => {
-  const networks = [Chain.xDai]
+  const networks = [Chain.Gnosis]
   const destNetwork = Chain.Ethereum
   for (const sourceNetwork of networks) {
     const label = `challenge valid transfer root on ${sourceNetwork}`
@@ -149,7 +149,7 @@ describe.skip('challenge valid transfer root but committed too early', () => {
 })
 
 describe.skip('challenge invalid transfer root', () => {
-  const networks = [Chain.xDai]
+  const networks = [Chain.Gnosis]
   const destNetwork = Chain.Ethereum
   for (const sourceNetwork of networks) {
     const chainId = chainSlugToId(sourceNetwork)

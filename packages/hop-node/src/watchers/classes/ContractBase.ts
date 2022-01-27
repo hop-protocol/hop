@@ -160,14 +160,14 @@ export default class ContractBase extends EventEmitter {
         }
       }
 
-      // increasing more gas multiplier for xdai
+      // increasing more gas multiplier for gnosis
       // to avoid the error "code:-32010, message: FeeTooLowToCompete"
-      if (this.chainSlug === Chain.xDai) {
+      if (this.chainSlug === Chain.Gnosis) {
         const multiplier = 3
         txOptions.gasPrice = await this.getBumpedGasPrice(multiplier)
       }
     } else {
-      if (this.chainSlug === Chain.xDai) {
+      if (this.chainSlug === Chain.Gnosis) {
         txOptions.gasPrice = 50_000_000_000
         txOptions.gasLimit = 5_000_000
       } else if (this.chainSlug === Chain.Polygon) {

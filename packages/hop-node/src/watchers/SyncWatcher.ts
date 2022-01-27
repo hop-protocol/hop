@@ -12,7 +12,6 @@ import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
 import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
@@ -36,7 +35,7 @@ type Config = {
   tokenSymbol: string
   label: string
   isL1: boolean
-  bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  bridgeContract: L1BridgeContract | L2BridgeContract
   syncFromDate?: string
   s3Upload?: boolean
   s3Namespace?: string
@@ -65,7 +64,6 @@ class SyncWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'SyncWatcher',
       prefix: config.label,
       logColor: 'gray',
       isL1: config.isL1,
@@ -665,6 +663,14 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`expected db transfer it, transferId: ${transferId}`)
     }
 
+    const logger = this.logger.create({ id: transferId })
+
+    if (!dbTransfer.sourceChainId) {
+      logger.warn('populateTransferDbItem marking item not found. Missing sourceChainId (possibly due to missing TransferSent event). isNotFound: true')
+      await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
   }
@@ -673,6 +679,14 @@ class SyncWatcher extends BaseWatcher {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
       throw new Error(`expected db transfer root item, transferRootId: ${transferRootId}`)
+    }
+
+    const logger = this.logger.create({ id: transferRootId })
+
+    if (!dbTransferRoot.sourceChainId) {
+      logger.warn('populateTransferRootDbItem marking item not found. Missing sourceChainId (possibly due to missing TransfersCommitted event). isNotFound: true')
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
     }
 
     await this.populateTransferRootCommittedAt(transferRootId)
@@ -1000,6 +1014,8 @@ class SyncWatcher extends BaseWatcher {
     { endBlockNumber: eventBlockNumber, startBlockNumber })
 
     if (!endEvent) {
+      logger.warn(`populateTransferRootTransferIds no end event found for transferRootHash ${transferRootHash}. isNotFound: true`)
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
       return
     }
 

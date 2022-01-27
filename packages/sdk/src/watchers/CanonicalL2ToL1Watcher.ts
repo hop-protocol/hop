@@ -1,8 +1,7 @@
 import CanonicalBridge from '../CanonicalBridge'
-import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import { default as BaseWatcher } from './BaseWatcher'
 import { Chain } from '../models'
-import { Contract } from 'ethers'
+import { ERC20__factory } from '@hop-protocol/core/contracts'
 import { tokenTransferTopic, tokensBridgedTopic } from '../constants/eventTopics'
 
 class L1ToL2Watcher extends BaseWatcher {
@@ -17,8 +16,8 @@ class L1ToL2Watcher extends BaseWatcher {
   }
 
   public async pollFn (): Promise<any> {
-    if (this.sourceChain.equals(Chain.xDai)) {
-      return this.xDaiWatcher()
+    if (this.sourceChain.equals(Chain.Gnosis)) {
+      return this.gnosisWatcher()
     } else if (this.sourceChain.equals(Chain.Polygon)) {
       return this.polygonWatcher()
     } else {
@@ -26,20 +25,20 @@ class L1ToL2Watcher extends BaseWatcher {
     }
   }
 
-  private async xDaiWatcher () {
+  private async gnosisWatcher () {
     let startBlock = -1
     let endBlock = -1
     const canonicalBridge = new CanonicalBridge(
       this.network,
       this.signer,
       this.token,
-      Chain.xDai
+      Chain.Gnosis
     )
     const ambBridge = await canonicalBridge.getAmbBridge(Chain.Ethereum)
     const filter = {
       address: canonicalBridge.getL1CanonicalTokenAddress(
         this.token,
-        Chain.xDai
+        Chain.Gnosis
       )
     }
     const handleEvent = async (...args: any[]) => {
@@ -96,9 +95,8 @@ class L1ToL2Watcher extends BaseWatcher {
       this.token,
       Chain.Ethereum
     )
-    const contract = new Contract(
+    const contract = ERC20__factory.connect(
       tokenAddress,
-      erc20Abi,
       await this.getSignerOrProvider(Chain.Ethereum)
     )
     const filter: any = {

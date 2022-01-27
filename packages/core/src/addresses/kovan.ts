@@ -5,13 +5,13 @@ export const addresses: Addresses = {
     USDC: {
       ethereum: {
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        gnosis: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
       optimism: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        gnosis: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       }
@@ -19,13 +19,13 @@ export const addresses: Addresses = {
     ETH: {
       ethereum: {
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        gnosis: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
       optimism: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        xdai: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        gnosis: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       }
@@ -38,7 +38,7 @@ export const addresses: Addresses = {
         l1Bridge: '0xf89E134Ce2e83B535D3Cfa63a902375f993Fc0D2',
         bridgeDeployedBlockNumber: 25529054
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0xA960d095470f7509955d5402e36d9DB984B5C8E2',
         l1MessengerWrapper: '0x03a7fa6c6603A7079c269dAFe601C1106fD328A8',
         l2CanonicalBridge: '0x40CdfF886715A4012fAD0219D15C98bB149AeF0e',

@@ -1,7 +1,7 @@
 import { constants } from 'ethers'
 import {
   ethereumRpc,
-  xdaiRpc,
+  gnosisRpc,
   polygonRpc,
   optimismRpc,
   arbitrumRpc
@@ -27,7 +27,7 @@ class AprStats {
   constructor () {
     this.sdk.setChainProviderUrls({
       ethereum: ethereumRpc,
-      xdai: xdaiRpc,
+      gnosis: gnosisRpc,
       polygon: polygonRpc,
       optimism: optimismRpc,
       arbitrum: arbitrumRpc

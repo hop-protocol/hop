@@ -9,7 +9,6 @@ root
   .option('--source-chain <slug>', 'Source chain', parseString)
   .option('--destination-chain <slug>', 'Destination chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
-  .option('--transfer-id <id>', 'Transfer ID', parseString)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',

@@ -7,7 +7,6 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L1XDaiAMB, L2XDaiAMB } from '@hop-protocol/core/contracts'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { config as globalConfig } from 'src/config'
@@ -17,34 +16,33 @@ type Config = {
   chainSlug: string
   tokenSymbol: string
   label?: string
-  l1BridgeContract?: L1BridgeContract | L1ERC20BridgeContract
-  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  l1BridgeContract?: L1BridgeContract
+  bridgeContract?: L1BridgeContract | L2BridgeContract
   isL1?: boolean
   dryMode?: boolean
 }
 
 const getL1Amb = (token: string) => {
   const l1Wallet = wallets.get(Chain.Ethereum)
-  const l1AmbAddress = globalConfig.addresses[token].xdai.l1Amb
+  const l1AmbAddress = globalConfig.addresses[token].gnosis.l1Amb
   return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1XDaiAMB
 }
 
 const getL2Amb = (token: string) => {
-  const l2xDaiProvider = wallets.get(Chain.xDai).provider
-  const l2AmbAddress = globalConfig.addresses[token].xdai.l2Amb
+  const l2xDaiProvider = wallets.get(Chain.Gnosis).provider
+  const l2AmbAddress = globalConfig.addresses[token].gnosis.l2Amb
   return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2XDaiAMB
 }
 
 // reference:
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/events/processAMBCollectedSignatures/index.js#L149
-class xDaiBridgeWatcher extends BaseWatcher {
+class GnosisBridgeWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
 
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'xDaiBridgeWatcher',
       prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
@@ -58,7 +56,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
     logger.debug(
-      `attempting to send relay message on xdai for commit tx hash ${commitTxHash}`
+      `attempting to send relay message on gnosis for commit tx hash ${commitTxHash}`
     )
     await this.handleStateSwitch()
     if (this.isDryOrPauseMode) {
@@ -154,7 +152,7 @@ class xDaiBridgeWatcher extends BaseWatcher {
   }
 }
 
-export default xDaiBridgeWatcher
+export default GnosisBridgeWatcher
 
 // https://github.com/poanetwork/tokenbridge/blob/bbc68f9fa2c8d4fff5d2c464eb99cea5216b7a0f/oracle/src/utils/message.js
 const assert = require('assert') // eslint-disable-line @typescript-eslint/no-var-requires

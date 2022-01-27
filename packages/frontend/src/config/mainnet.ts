@@ -1,15 +1,15 @@
 import {
-  mainnet as mainnetAddresses,
+  mainnet as _mainnetAddresses,
   staging as stagingAddresses,
 } from '@hop-protocol/core/addresses'
-import { mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
+import { mainnet as _mainnetNetworks } from '@hop-protocol/core/networks'
 
 import { HopAddresses, Networks } from './interfaces'
 
 const isStaging = process.env.REACT_APP_NETWORK === 'staging'
-const _addresses = isStaging ? stagingAddresses : mainnetAddresses
+const _addresses = isStaging ? stagingAddresses : _mainnetAddresses
 
-export const addresses: HopAddresses = {
+export const mainnetAddresses: HopAddresses = {
   governance: {
     l1Hop: '',
     stakingRewardsFactory: '',
@@ -20,9 +20,9 @@ export const addresses: HopAddresses = {
   bonders: _addresses.bonders,
 }
 
-const _networks = mainnetNetworks as any
+const _networks = _mainnetNetworks as any
 
-export const networks: Networks = {
+export const mainnetNetworks: Networks = {
   ethereum: {
     networkId: _networks.ethereum.networkId.toString(),
     rpcUrl: _networks.ethereum.publicRpcUrl,
@@ -50,11 +50,11 @@ export const networks: Networks = {
     nativeBridgeUrl: _networks.optimism.nativeBridgeUrl,
     waitConfirmations: _networks.optimism.waitConfirmations,
   },
-  xdai: {
-    networkId: _networks.xdai.networkId.toString(),
-    rpcUrl: _networks.xdai.publicRpcUrl,
-    explorerUrl: _networks.xdai.explorerUrls[0],
-    nativeBridgeUrl: _networks.xdai.nativeBridgeUrl,
-    waitConfirmations: _networks.xdai.waitConfirmations,
+  gnosis: {
+    networkId: _networks.gnosis.networkId.toString(),
+    rpcUrl: _networks.gnosis.publicRpcUrl,
+    explorerUrl: _networks.gnosis.explorerUrls[0],
+    nativeBridgeUrl: _networks.gnosis.nativeBridgeUrl,
+    waitConfirmations: _networks.gnosis.waitConfirmations,
   },
 }

@@ -32,11 +32,11 @@ export const networks: Networks = {
     nativeBridgeUrl: _networks.optimism.nativeBridgeUrl,
     waitConfirmations: _networks.optimism.waitConfirmations,
   },
-  xdai: {
-    networkId: _networks.xdai.networkId.toString(),
-    rpcUrl: _networks.xdai.publicRpcUrl,
-    explorerUrl: _networks.xdai.explorerUrls[0],
-    nativeBridgeUrl: _networks.xdai.nativeBridgeUrl,
-    waitConfirmations: _networks.xdai.waitConfirmations,
+  gnosis: {
+    networkId: _networks.gnosis.networkId.toString(),
+    rpcUrl: _networks.gnosis.publicRpcUrl,
+    explorerUrl: _networks.gnosis.explorerUrls[0],
+    nativeBridgeUrl: _networks.gnosis.nativeBridgeUrl,
+    waitConfirmations: _networks.gnosis.waitConfirmations,
   },
 }

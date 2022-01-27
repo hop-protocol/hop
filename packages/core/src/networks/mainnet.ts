@@ -25,10 +25,10 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
     waitConfirmations: 1
   },
-  xdai: {
-    name: chains.xdai.name,
+  gnosis: {
+    name: chains.gnosis.name,
     networkId: 100,
-    publicRpcUrl: 'https://rpc.xdaichain.com',
+    publicRpcUrl: 'https://rpc.gnosischain.com/',
     explorerUrls: ['https://blockscout.com/xdai/mainnet'],
     nativeBridgeUrl: 'https://omni.xdaichain.com/',
     waitConfirmations: 12

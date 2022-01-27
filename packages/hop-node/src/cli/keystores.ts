@@ -170,7 +170,7 @@ Keystore reencryption is complete.
   }
 }
 
-async function generatePassphrase(): Promise<string> {
+async function generatePassphrase (): Promise<string> {
   const passphrase = await promptPassphrase(
     'Enter new keystore encryption passphrase'
   )
@@ -182,7 +182,7 @@ async function generatePassphrase(): Promise<string> {
   return (passphrase as string)
 }
 
-function getKeystore(filepath: string): any{
+function getKeystore (filepath: string): any {
   try {
     return JSON.parse(
       fs.readFileSync(path.resolve(filepath), 'utf8')

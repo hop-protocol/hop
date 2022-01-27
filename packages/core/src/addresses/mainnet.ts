@@ -6,22 +6,22 @@ export const addresses: Addresses = {
       ethereum: {
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       optimism: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       arbitrum: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
@@ -30,7 +30,7 @@ export const addresses: Addresses = {
       polygon: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       }
     },
@@ -38,22 +38,22 @@ export const addresses: Addresses = {
       ethereum: {
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       optimism: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
       arbitrum: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         polygon: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
@@ -62,44 +62,44 @@ export const addresses: Addresses = {
       polygon: {
         ethereum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         arbitrum: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-        xdai: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+        gnosis: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
         optimism: '0xa6a688F107851131F0E1dce493EbBebFAf99203e'
       }
     },
     MATIC: {
       ethereum: {
-        xdai: '0xd8781ca9163e9f132a4d8392332e64115688013a',
+        gnosis: '0xd8781ca9163e9f132a4d8392332e64115688013a',
         polygon: '0xd8781ca9163e9f132a4d8392332e64115688013a'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
         polygon: '0xd8781ca9163e9f132a4d8392332e64115688013a'
       },
       polygon: {
         ethereum: '0xd8781ca9163e9f132a4d8392332e64115688013a',
-        xdai: '0xd8781ca9163e9f132a4d8392332e64115688013a'
+        gnosis: '0xd8781ca9163e9f132a4d8392332e64115688013a'
       }
     },
     DAI: {
       ethereum: {
         optimism: '0x305933e09871D4043b5036e09af794FACB3f6170',
         arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
-        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        gnosis: '0x305933e09871D4043b5036e09af794FACB3f6170',
         polygon: '0x305933e09871D4043b5036e09af794FACB3f6170'
       },
       optimism: {
         ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
         arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
-        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        gnosis: '0x305933e09871D4043b5036e09af794FACB3f6170',
         polygon: '0x305933e09871D4043b5036e09af794FACB3f6170'
       },
       arbitrum: {
         ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
         optimism: '0x305933e09871D4043b5036e09af794FACB3f6170',
-        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        gnosis: '0x305933e09871D4043b5036e09af794FACB3f6170',
         polygon: '0x305933e09871D4043b5036e09af794FACB3f6170'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
         arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
         optimism: '0x305933e09871D4043b5036e09af794FACB3f6170',
@@ -108,7 +108,7 @@ export const addresses: Addresses = {
       polygon: {
         ethereum: '0x305933e09871D4043b5036e09af794FACB3f6170',
         arbitrum: '0x305933e09871D4043b5036e09af794FACB3f6170',
-        xdai: '0x305933e09871D4043b5036e09af794FACB3f6170',
+        gnosis: '0x305933e09871D4043b5036e09af794FACB3f6170',
         optimism: '0x305933e09871D4043b5036e09af794FACB3f6170'
       }
     },
@@ -116,22 +116,22 @@ export const addresses: Addresses = {
       ethereum: {
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         arbitrum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        xdai: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       optimism: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         arbitrum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        xdai: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
       arbitrum: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        xdai: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         arbitrum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
@@ -140,7 +140,7 @@ export const addresses: Addresses = {
       polygon: {
         ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         arbitrum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-        xdai: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       }
     },
@@ -148,22 +148,22 @@ export const addresses: Addresses = {
       ethereum: {
         optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
-        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        gnosis: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         polygon: '0x2A6303e6b99d451Df3566068EBb110708335658f'
       },
       optimism: {
         ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
-        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        gnosis: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         polygon: '0x2A6303e6b99d451Df3566068EBb110708335658f'
       },
       arbitrum: {
         ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f',
-        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        gnosis: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         polygon: '0x2A6303e6b99d451Df3566068EBb110708335658f'
       },
-      xdai: {
+      gnosis: {
         ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f',
@@ -172,7 +172,7 @@ export const addresses: Addresses = {
       polygon: {
         ethereum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         arbitrum: '0x2A6303e6b99d451Df3566068EBb110708335658f',
-        xdai: '0x2A6303e6b99d451Df3566068EBb110708335658f',
+        gnosis: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f'
       }
     }
@@ -184,7 +184,7 @@ export const addresses: Addresses = {
         l1Bridge: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a',
         bridgeDeployedBlockNumber: 12650032
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
         l1MessengerWrapper: '0x12e59C59D282D2C00f3166915BED6DC2F5e2B5C7',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
@@ -200,7 +200,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1MessengerWrapper: '0x10541b07d8Ad2647Dc6cD67abd4c03575dade261',
+        l1MessengerWrapper: '0x4e9840f3C1ff368a10731D15c11516b9Fe7E1898',
         l2CanonicalBridge: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         l2CanonicalToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         l2Bridge: '0x25D8039bB044dC227f741a9e381CA4cEAE2E6aE8',
@@ -208,7 +208,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x76b22b8C1079A44F1211D867D68b1eda76a635A7',
         l2SaddleSwap: '0x5C32143C8B198F392d01f8446b754c181224ac26',
         l2SaddleLpToken: '0x9D373d22FD091d7f9A6649EB067557cc12Fb1A0A',
-        l1FxBaseRootTunnel: '0x10541b07d8Ad2647Dc6cD67abd4c03575dade261',
+        l1FxBaseRootTunnel: '0x4e9840f3C1ff368a10731D15c11516b9Fe7E1898',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         bridgeDeployedBlockNumber: 15810014
@@ -244,7 +244,7 @@ export const addresses: Addresses = {
         l1Bridge: '0x3E4a3a4796d16c0Cd582C382691998f7c06420B6',
         bridgeDeployedBlockNumber: 12860139
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
         l1MessengerWrapper: '0xC08055b634D43F2176d721E26A3428D3b7E7DdB5',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
@@ -260,7 +260,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1MessengerWrapper: '0xe7C1D08aC706444F356af2D37541d8d57e8C57B6',
+        l1MessengerWrapper: '0x2D8b884f7aaEa1Dd13a805071530Ba9Ee9a7E035',
         l2CanonicalBridge: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
         l2CanonicalToken: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
         l2Bridge: '0x6c9a1ACF73bd85463A46B0AFc076FBdf602b690B',
@@ -268,7 +268,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x8741Ba6225A6BF91f9D73531A98A89807857a2B3',
         l2SaddleSwap: '0xB2f7d27B21a69a033f85C42d5EB079043BAadC81',
         l2SaddleLpToken: '0x3cA3218D6c52B640B0857cc19b69Aa9427BC842C',
-        l1FxBaseRootTunnel: '0xe7C1D08aC706444F356af2D37541d8d57e8C57B6',
+        l1FxBaseRootTunnel: '0x2D8b884f7aaEa1Dd13a805071530Ba9Ee9a7E035',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         bridgeDeployedBlockNumber: 17058878
@@ -304,7 +304,7 @@ export const addresses: Addresses = {
         l1Bridge: '0x22B1Cbb8D98a01a3B71D034BB899775A76Eb1cc2',
         bridgeDeployedBlockNumber: 12969385
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
         l1MessengerWrapper: '0x46fc3Af3A47792cA3ED06fdF3D657145A675a8D8',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
@@ -320,7 +320,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1MessengerWrapper: '0xa492d3596e8391E376D4f5a5cBA5C077B890b094',
+        l1MessengerWrapper: '0xAd33Daa2BcDf3E52D30FCca3c7066762DF657657',
         l2CanonicalBridge: '0x0000000000000000000000000000000000001010',
         l2CanonicalToken: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
         l2Bridge: '0x553bC791D746767166fA3888432038193cEED5E2',
@@ -328,7 +328,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x884d1Aa15F9957E1aEAA86a82a72e49Bc2bfCbe3',
         l2SaddleSwap: '0x3d4Cc8A61c7528Fd86C55cfe061a78dCBA48EDd1',
         l2SaddleLpToken: '0xbc4FB4ED825C65fF48163AF7E59d49e32edb5269',
-        l1FxBaseRootTunnel: '0xa492d3596e8391E376D4f5a5cBA5C077B890b094',
+        l1FxBaseRootTunnel: '0xAd33Daa2BcDf3E52D30FCca3c7066762DF657657',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         bridgeDeployedBlockNumber: 17669097
@@ -340,7 +340,7 @@ export const addresses: Addresses = {
         l1Bridge: '0x3d4Cc8A61c7528Fd86C55cfe061a78dCBA48EDd1',
         bridgeDeployedBlockNumber: 13226217
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l1MessengerWrapper: '0x723194C6Cfed24883b598931Ee802ab80952C001',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
@@ -356,7 +356,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1MessengerWrapper: '0x50d7d8B850e0e880295800790551928F4546BfE2',
+        l1MessengerWrapper: '0xB8a49c3137f27b04ee9E68727147b3131764B8A0',
         l2CanonicalBridge: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
         l2CanonicalToken: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
         l2Bridge: '0xEcf268Be00308980B5b3fcd0975D47C4C8e1382a',
@@ -364,7 +364,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x28529fec439cfF6d7D1D5917e956dEE62Cd3BE5c',
         l2SaddleSwap: '0x25FB92E505F752F730cAD0Bd4fa17ecE4A384266',
         l2SaddleLpToken: '0x8b7aA8f5cc9996216A88D900df8B8a0a3905939A',
-        l1FxBaseRootTunnel: '0x50d7d8B850e0e880295800790551928F4546BfE2',
+        l1FxBaseRootTunnel: '0xB8a49c3137f27b04ee9E68727147b3131764B8A0',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         bridgeDeployedBlockNumber: 19112518
@@ -400,7 +400,7 @@ export const addresses: Addresses = {
         l1Bridge: '0xb8901acB165ed027E32754E0FFe830802919727f',
         bridgeDeployedBlockNumber: 13331564
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l1MessengerWrapper: '0x25FB92E505F752F730cAD0Bd4fa17ecE4A384266',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
@@ -416,7 +416,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1MessengerWrapper: '0xCC24674F41A8100E6748DAA184A191A8c8CE6741',
+        l1MessengerWrapper: '0x69d10828233D7a656104455445d289bBFD50eF6d',
         l2CanonicalBridge: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
         l2CanonicalToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
         l2Bridge: '0xb98454270065A31D71Bf635F6F7Ee6A518dFb849',
@@ -424,7 +424,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0xc315239cFb05F1E130E7E28E603CEa4C014c57f0',
         l2SaddleSwap: '0x266e2dc3C4c59E42AA07afeE5B09E964cFFe6778',
         l2SaddleLpToken: '0x971039bF0A49c8d8A675f839739eE7a42511eC91',
-        l1FxBaseRootTunnel: '0xCC24674F41A8100E6748DAA184A191A8c8CE6741',
+        l1FxBaseRootTunnel: '0x69d10828233D7a656104455445d289bBFD50eF6d',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x8484Ef722627bf18ca5Ae6BcF031c23E6e922B30',
         bridgeDeployedBlockNumber: 19706859
@@ -460,7 +460,7 @@ export const addresses: Addresses = {
         l1Bridge: '0xb98454270065A31D71Bf635F6F7Ee6A518dFb849',
         bridgeDeployedBlockNumber: 13476113
       },
-      xdai: {
+      gnosis: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
         l1MessengerWrapper: '0xc315239cFb05F1E130E7E28E603CEa4C014c57f0',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
@@ -476,7 +476,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1MessengerWrapper: '0x1B4Bd337b06c2cc939a02d5eE0fe4A33A33E552F',
+        l1MessengerWrapper: '0x1dDEc1131eCf33cb59c5611Db607B8c3aC285513',
         l2CanonicalBridge: '0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6',
         l2CanonicalToken: '0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6',
         l2Bridge: '0x91Bd9Ccec64fC22475323a0E55d58F7786587905',
@@ -484,7 +484,7 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0xCd1d7AEfA8055e020db0d0e98bbF3FeD1A16aad6',
         l2SaddleSwap: '0x4e9840f3C1ff368a10731D15c11516b9Fe7E1898',
         l2SaddleLpToken: '0xd72c6F464F28F9A89B5206D5e73C491092d34042',
-        l1FxBaseRootTunnel: '0x1B4Bd337b06c2cc939a02d5eE0fe4A33A33E552F',
+        l1FxBaseRootTunnel: '0x1dDEc1131eCf33cb59c5611Db607B8c3aC285513',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
         bridgeDeployedBlockNumber: 20536705

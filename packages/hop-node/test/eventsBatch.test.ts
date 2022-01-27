@@ -8,10 +8,10 @@ describe.skip('eventsBatch', () => {
   it(
     'eventsBatch',
     async () => {
-      const { l2Bridge } = contracts.get(Token.USDC, Chain.xDai)
+      const { l2Bridge } = contracts.get(Token.USDC, Chain.Gnosis)
       const bridge = new Bridge(l2Bridge)
       expectDefined(globalConfig.sync)
-      const { totalBlocks, batchBlocks } = globalConfig.sync[Chain.xDai]
+      const { totalBlocks, batchBlocks } = globalConfig.sync[Chain.Gnosis]
       expectDefined(totalBlocks)
       expectDefined(batchBlocks)
       const maxIterations = Math.ceil(totalBlocks / batchBlocks)
@@ -41,10 +41,10 @@ describe.skip('eventsBatch', () => {
   it(
     'eventsBatch with defined start and end block numbers',
     async () => {
-      const { l2Bridge } = contracts.get(Token.USDC, Chain.xDai)
+      const { l2Bridge } = contracts.get(Token.USDC, Chain.Gnosis)
       const bridge = new Bridge(l2Bridge)
       expectDefined(globalConfig.sync)
-      const { batchBlocks } = globalConfig.sync[Chain.xDai]
+      const { batchBlocks } = globalConfig.sync[Chain.Gnosis]
       expectDefined(batchBlocks)
       const endBlockNumber = 21519734
       const startBlockNumber = endBlockNumber - 123456
@@ -79,10 +79,10 @@ describe.skip('eventsBatch', () => {
   it(
     'eventsBatch with cacheKey',
     async () => {
-      const { l2Bridge } = contracts.get(Token.USDC, Chain.xDai)
+      const { l2Bridge } = contracts.get(Token.USDC, Chain.Gnosis)
       const bridge = new Bridge(l2Bridge)
       expectDefined(globalConfig.sync)
-      const { totalBlocks, batchBlocks } = globalConfig.sync[Chain.xDai]
+      const { totalBlocks, batchBlocks } = globalConfig.sync[Chain.Gnosis]
       expectDefined(totalBlocks)
       expectDefined(batchBlocks)
       const maxIterations = Math.floor(totalBlocks / batchBlocks)

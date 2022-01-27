@@ -3,7 +3,7 @@ import * as hopMetadata from '@hop-protocol/core/metadata'
 import MainnetLogo from 'src/assets/logos/mainnet.svg'
 import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
 import OptimismLogo from 'src/assets/logos/optimism.svg'
-import xDaiLogo from 'src/assets/logos/xdai.svg'
+import GnosisLogo from 'src/assets/logos/gnosis.svg'
 import PolygonLogo from 'src/assets/logos/polygon.svg'
 import DaiLogo from 'src/assets/logos/dai.svg'
 import SynthEthLogo from 'src/assets/logos/seth.svg'
@@ -13,11 +13,12 @@ import usdtLogo from 'src/assets/logos/usdt.svg'
 import wBtcLogo from 'src/assets/logos/wbtc.svg'
 import ethLogo from 'src/assets/logos/eth.svg'
 import maticLogo from 'src/assets/logos/matic.svg'
-import { network } from 'src/config'
+import { TokenSymbol, Slug } from '@hop-protocol/sdk'
+import { hopAppNetwork } from 'src/config'
 
 type Metadata = {
   tokens: {
-    [key: string]: {
+    [key in TokenSymbol | string]: {
       symbol: string
       name: string
       decimals: number
@@ -26,7 +27,7 @@ type Metadata = {
     }
   }
   networks: {
-    [key: string]: {
+    [key in Slug | string]: {
       name: string
       isLayer1: boolean
       image: any
@@ -48,7 +49,7 @@ const images = {
 }
 
 const tokens = Object.keys(images).reduce((obj, token) => {
-  obj[token] = deepmerge(hopMetadata[network].tokens[token], {
+  obj[token] = deepmerge(hopMetadata[hopAppNetwork].tokens[token], {
     image: images[token],
   })
   return obj
@@ -93,10 +94,10 @@ export const metadata: Metadata = {
       image: OptimismLogo,
       nativeTokenSymbol: 'ETH',
     },
-    xdai: {
-      name: 'xDai',
+    gnosis: {
+      name: 'Gnosis',
       isLayer1: false,
-      image: xDaiLogo,
+      image: GnosisLogo,
       nativeTokenSymbol: 'xDAI',
     },
     polygon: {

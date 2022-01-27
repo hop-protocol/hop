@@ -13,6 +13,7 @@ export type NetworkProps = {
   isLayer1?: boolean
   nativeBridgeUrl?: string
   waitConfirmations?: number
+  explorerUrl: string
 }
 
 class Network {
@@ -26,6 +27,7 @@ class Network {
   readonly isLayer1: boolean
   readonly nativeBridgeUrl: string | undefined
   readonly waitConfirmations?: number
+  readonly explorerUrl: string
 
   constructor(props: NetworkProps) {
     this.name = props.name
@@ -38,6 +40,7 @@ class Network {
     this.isLayer1 = props.isLayer1 ? props.isLayer1 : false
     this.nativeBridgeUrl = props.nativeBridgeUrl
     this.waitConfirmations = props.waitConfirmations
+    this.explorerUrl = props.explorerUrl
   }
 
   toString() {

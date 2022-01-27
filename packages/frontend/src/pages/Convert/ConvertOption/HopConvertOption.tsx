@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
-import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
+import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
 import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
@@ -24,8 +24,8 @@ class HopConvertOption extends ConvertOption {
     signer: Signer,
     sourceNetwork: Network,
     destNetwork: Network,
-    isForwardDirection: boolean,
-    l1TokenSymbol: string,
+    isConvertingToHToken: boolean,
+    l1TokenSymbol: TokenSymbol,
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
     deadline: number,
@@ -49,8 +49,8 @@ class HopConvertOption extends ConvertOption {
     sdk: Hop,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined,
-    isForwardDirection: boolean,
-    l1TokenSymbol: string | undefined,
+    isConvertingToHToken: boolean,
+    l1TokenSymbol: TokenSymbol | undefined,
     amountIn: BigNumberish | undefined
   ): Promise<SendData> {
     if (!l1TokenSymbol || !sourceNetwork || !destNetwork || !amountIn) {
@@ -111,9 +111,8 @@ class HopConvertOption extends ConvertOption {
 
   async getTargetAddress(
     sdk: Hop,
-    l1TokenSymbol: string | undefined,
-    sourceNetwork: Network | undefined,
-    destNetwork: Network | undefined
+    l1TokenSymbol?: TokenSymbol,
+    sourceNetwork?: Network
   ): Promise<string> {
     if (!l1TokenSymbol) {
       throw new Error('Token symbol is required to get target address')
@@ -134,13 +133,13 @@ class HopConvertOption extends ConvertOption {
   }
 
   async sourceToken(
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     network?: Network,
     bridge?: HopBridge
   ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
-    if (isForwardDirection) {
+    if (isConvertingToHToken) {
       return bridge.getL1Token()
     } else {
       return bridge.getL2HopToken(network.slug)
@@ -148,24 +147,20 @@ class HopConvertOption extends ConvertOption {
   }
 
   async destToken(
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     network?: Network,
     bridge?: HopBridge
   ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
-    if (isForwardDirection) {
+    if (isConvertingToHToken) {
       return bridge.getL2HopToken(network.slug)
     } else {
       return bridge.getL1Token()
     }
   }
 
-  private getDetails(
-    totalFees: BigNumber,
-    estimatedReceived: BigNumber,
-    token: Token | undefined
-  ): ReactNode {
+  private getDetails(totalFees: BigNumber, estimatedReceived: BigNumber, token?: Token): ReactNode {
     if (!token) return <></>
 
     const feeDisplay = toTokenDisplay(totalFees, token.decimals)

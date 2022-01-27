@@ -3,19 +3,14 @@ import Onboard from 'bnc-onboard'
 import { ethers, Contract, BigNumber } from 'ethers'
 import Address from 'src/models/Address'
 import { networkIdToSlug, getRpcUrl, getBaseExplorerUrl } from 'src/utils'
-import { Chain, L1_NETWORK } from 'src/utils/constants'
-import { networks, blocknativeDappid } from 'src/config'
+import { blocknativeDappid } from 'src/config'
+import { l1Network } from 'src/config/networks'
 import './onboardStyles.css'
-
-import MetamaskAccountsSettingsHighlight from 'src/assets/onboard/metamask-accounts-settings-highlight.png'
-import MetamaskSettingsHighlight from 'src/assets/onboard/metamask-settings-highlight.png'
-import MetamaskAddNetworkHighlight from 'src/assets/onboard/metamask-add-network-highlight.png'
-import MetamaskNewCustomNetworkHighlight from 'src/assets/onboard/metamask-new-custom-network-highlight.png'
-import MetamaskCustomNetworkHighlight from 'src/assets/onboard/metamask-custom-network-highlight.png'
 import logger from 'src/logger'
 import { WalletCheckInit, WalletSelectModuleOptions } from 'bnc-onboard/dist/src/interfaces'
 import mmLogo from 'src/assets/logos/metamask.png'
 import { loadState, saveState } from 'src/utils/localStorage'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 // TODO: modularize
 type Props = {
@@ -34,23 +29,6 @@ type Props = {
 }
 
 // TODO: modularize
-const initialState = {
-  onboard: undefined,
-  provider: undefined,
-  address: undefined,
-  connectedNetworkId: '',
-  validConnectedNetworkId: false,
-  setRequiredNetworkId: (networkId: string) => {},
-  requestWallet: () => {},
-  disconnectWallet: () => {},
-  walletConnected: false,
-  walletName: '',
-  checkConnectedNetworkId: async (networkId: number): Promise<boolean> => false,
-  getWriteContract: async (contract: Contract | undefined): Promise<Contract | undefined> =>
-    undefined,
-}
-
-// TODO: modularize
 const networkNames: any = {
   1: 'Mainnet',
   3: 'Ropsten',
@@ -62,13 +40,13 @@ const networkNames: any = {
   10: 'Optimism',
   69: 'Optimism',
   420: 'Optimism',
-  77: 'xDai',
-  100: 'xDai',
+  77: 'Gnosis',
+  100: 'Gnosis',
   80001: 'Polygon',
   137: 'Polygon',
 }
 
-const Web3Context = createContext<Props>(initialState)
+const Web3Context = createContext<Props | undefined>(undefined)
 
 // TODO: modularize
 const walletSelectOptions: WalletSelectModuleOptions = {
@@ -91,20 +69,25 @@ const walletSelectOptions: WalletSelectModuleOptions = {
       label: 'Wallet Connect',
       preferred: true,
       rpc: {
-        1: getRpcUrl(Chain.Ethereum),
-        42: getRpcUrl(Chain.Ethereum),
-        42161: getRpcUrl(Chain.Arbitrum),
-        421611: getRpcUrl(Chain.Arbitrum),
-        200: getRpcUrl(Chain.Arbitrum),
-        10: getRpcUrl(Chain.Optimism),
-        69: getRpcUrl(Chain.Optimism),
-        420: getRpcUrl(Chain.Optimism),
-        100: getRpcUrl(Chain.xDai),
-        137: getRpcUrl(Chain.Polygon),
-        80001: getRpcUrl(Chain.Polygon),
+        1: getRpcUrl(ChainSlug.Ethereum),
+        42: getRpcUrl(ChainSlug.Ethereum),
+        42161: getRpcUrl(ChainSlug.Arbitrum),
+        421611: getRpcUrl(ChainSlug.Arbitrum),
+        200: getRpcUrl(ChainSlug.Arbitrum),
+        10: getRpcUrl(ChainSlug.Optimism),
+        69: getRpcUrl(ChainSlug.Optimism),
+        420: getRpcUrl(ChainSlug.Optimism),
+        100: getRpcUrl(ChainSlug.Gnosis),
+        137: getRpcUrl(ChainSlug.Polygon),
+        80001: getRpcUrl(ChainSlug.Polygon),
       },
     },
-    { walletName: 'walletLink', preferred: true, rpcUrl: getRpcUrl(L1_NETWORK), appName: 'Hop' },
+    {
+      walletName: 'walletLink',
+      preferred: true,
+      rpcUrl: getRpcUrl(ChainSlug.Ethereum),
+      appName: 'Hop',
+    },
   ],
 }
 
@@ -167,7 +150,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const onboard = useMemo(() => {
     const instance = Onboard({
       dappId: blocknativeDappid,
-      networkId: Number(networks[L1_NETWORK].networkId),
+      networkId: Number(l1Network.networkId),
       // darkMode: isDarkMode,
       // blockPollingInterval: 4000,
       hideBranding: true,
@@ -206,7 +189,6 @@ const Web3ContextProvider: FC = ({ children }) => {
             // dashboard - Some SDK wallets allow for opening to wallet dashboard
             // icons - [object] Image strings for the wallet icon { svg, src, srcset }
 
-            console.log(`wallet:`, wallet)
             logger.debug('wallet name:', wallet.name)
             if (provider) {
               saveState(cacheKey, name)
@@ -279,14 +261,15 @@ const Web3ContextProvider: FC = ({ children }) => {
   const walletConnected = !!address
 
   // TODO: cleanup
-  const checkConnectedNetworkId = async (networkId: number): Promise<boolean> => {
+  const checkConnectedNetworkId = async (networkId?: number): Promise<boolean> => {
+    if (!networkId) return false
     const signerNetworkId = (await provider?.getNetwork())?.chainId
     logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
     if (networkId.toString() !== signerNetworkId?.toString()) {
       onboard.config({ networkId })
       if (onboard.getState().address) {
         let nativeCurrency: any
-        if (networkIdToSlug(networkId) === 'xdai') {
+        if (networkIdToSlug(networkId) === 'gnosis') {
           nativeCurrency = {
             name: 'xDAI',
             symbol: 'XDAI',
@@ -385,7 +368,12 @@ const Web3ContextProvider: FC = ({ children }) => {
   )
 }
 
-// TODO: cleanup
-export const useWeb3Context: () => Props = () => useContext(Web3Context)
+export function useWeb3Context() {
+  const ctx = useContext(Web3Context)
+  if (ctx === undefined) {
+    throw new Error('useApp must be used within Web3Provider')
+  }
+  return ctx
+}
 
 export default Web3ContextProvider

@@ -50,34 +50,34 @@ const useStyles = makeStyles(theme => ({
 const ConvertContent: FC = () => {
   const styles = useStyles()
   const {
-    sourceNetwork,
-    destNetwork,
-    sourceToken,
-    destToken,
-    sourceTokenAmount,
-    setSourceTokenAmount,
-    destTokenAmount,
-    setDestTokenAmount,
-    sourceBalance,
-    loadingSourceBalance,
+    approveTokens,
+    approving,
+    convertTokens,
     destBalance,
-    loadingDestBalance,
-    switchDirection,
+    destNetwork,
+    destToken,
+    destTokenAmount,
     details,
-    warning,
-    setWarning,
     error,
+    loadingDestBalance,
+    loadingSourceBalance,
+    needsApproval,
+    needsTokenForFee,
+    sending,
+    setDestTokenAmount,
     setError,
-    tx,
+    setSourceTokenAmount,
     setTx,
+    setWarning,
+    sourceBalance,
+    sourceNetwork,
+    sourceToken,
+    sourceTokenAmount,
+    switchDirection,
+    tx,
     unsupportedAsset,
     validFormFields,
-    approving,
-    sending,
-    needsApproval,
-    convertTokens,
-    approveTokens,
-    needsTokenForFee,
+    warning,
   } = useConvert()
 
   useEffect(() => {
@@ -105,7 +105,10 @@ const ConvertContent: FC = () => {
   }
 
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning: High Price Impact!')
-  const sendButtonActive = validFormFields && !unsupportedAsset && !needsApproval && sendableWarning
+
+  const sendButtonActive =
+    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error
+
   const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
 
   return (
@@ -147,8 +150,8 @@ const ConvertContent: FC = () => {
             disableInput
           />
           <div className={styles.details}>{details}</div>
+          <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
-          <Alert severity="error" onClose={() => setError(undefined)} text={error} />
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
           <ButtonsWrapper>

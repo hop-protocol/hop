@@ -1,26 +1,33 @@
 import { useCallback, useState } from 'react'
-import { Token } from '@hop-protocol/sdk'
+import { Token, ChainSlug, CanonicalToken } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { networkIdToSlug, wait } from 'src/utils'
 
+interface AddTokenToMetamask {
+  addToken: (networkId: number) => void
+  addTokenToDestNetwork: () => void
+  success?: boolean
+}
+
 export function useAddTokenToMetamask(
   token?: Token | null,
   destNetworkName?: string | null
-): {
-  addToken: () => void
-  addTokenToDestNetwork: () => void
-  success?: boolean
-} {
+): AddTokenToMetamask {
   const { sdk } = useApp()
   const { connectedNetworkId, provider } = useWeb3Context()
   const [success, setSuccess] = useState<boolean>(false)
 
   const addToken = useCallback(
-    (networkId?: number) => {
+    (networkId: number) => {
       if (provider && token) {
-        const { symbol, image, decimals } = token
+        let { symbol, image, decimals } = token
+
         const networkName = networkIdToSlug(networkId || connectedNetworkId)
+        if (symbol === 'XDAI' && networkName !== ChainSlug.Gnosis) {
+          symbol = CanonicalToken.DAI
+        }
+
         const params = {
           type: 'ERC20',
           options: {

@@ -17,8 +17,8 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
     waitConfirmations: 1
   },
-  xdai: {
-    name: chains.xdai.name,
+  gnosis: {
+    name: chains.gnosis.name,
     networkId: 77,
     publicRpcUrl: 'https://sokol.poa.network',
     explorerUrls: ['https://blockscout.com/poa/sokol'],

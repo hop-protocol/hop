@@ -1,6 +1,6 @@
 import { ethers, providers } from 'ethers'
 import { EventEmitter } from 'events'
-import { Hop, Token } from '@hop-protocol/sdk'
+import { Hop, Token, ChainSlug } from '@hop-protocol/sdk'
 import {
   getBaseExplorerUrl,
   findTransferFromL1CompletedLog,
@@ -10,9 +10,8 @@ import {
   L1Transfer,
   networkIdToSlug,
   queryFilterTransferFromL1CompletedEvents,
-  Chain,
 } from 'src/utils'
-import { network as defaultNetwork, reactAppNetwork } from 'src/config'
+import { hopAppNetwork } from 'src/config'
 import logger from 'src/logger'
 import { formatError } from 'src/utils/format'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
@@ -76,7 +75,7 @@ class Transaction extends EventEmitter {
   }: ContructorArgs) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
-    this.networkName = (networkName || defaultNetwork).trim().toLowerCase()
+    this.networkName = (networkName || hopAppNetwork).trim().toLowerCase()
 
     // TODO: not sure if changing pendingDestinationConfirmation will have big effects
     if (destNetworkName) {
@@ -129,21 +128,21 @@ class Transaction extends EventEmitter {
     }
 
     if (this.pendingDestinationConfirmation && this.destNetworkName) {
-      const sdk = new Hop(reactAppNetwork)
+      const sdk = new Hop(hopAppNetwork)
       this.checkIsTransferIdSpent(sdk)
     }
   }
 
   get explorerLink(): string {
-    if (this.networkName.startsWith(Chain.Ethereum)) {
+    if (this.networkName.startsWith(ChainSlug.Ethereum)) {
       return this._etherscanLink()
-    } else if (this.networkName.startsWith(Chain.Arbitrum)) {
+    } else if (this.networkName.startsWith(ChainSlug.Arbitrum)) {
       return this._arbitrumLink()
-    } else if (this.networkName.startsWith(Chain.Optimism)) {
+    } else if (this.networkName.startsWith(ChainSlug.Optimism)) {
       return this._optimismLink()
-    } else if (this.networkName.startsWith(Chain.xDai)) {
-      return this._xdaiLink()
-    } else if (this.networkName.startsWith(Chain.Polygon)) {
+    } else if (this.networkName.startsWith(ChainSlug.Gnosis)) {
+      return this._gnosisLink()
+    } else if (this.networkName.startsWith(ChainSlug.Polygon)) {
       return this._polygonLink()
     } else {
       return ''
@@ -153,15 +152,15 @@ class Transaction extends EventEmitter {
   get destExplorerLink(): string {
     if (!this.destTxHash) return ''
 
-    if (this.destNetworkName?.startsWith(Chain.Ethereum)) {
-      return this._etherscanLink(Chain.Ethereum, this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(Chain.Arbitrum)) {
+    if (this.destNetworkName?.startsWith(ChainSlug.Ethereum)) {
+      return this._etherscanLink(ChainSlug.Ethereum, this.destTxHash)
+    } else if (this.destNetworkName?.startsWith(ChainSlug.Arbitrum)) {
       return this._arbitrumLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(Chain.Optimism)) {
+    } else if (this.destNetworkName?.startsWith(ChainSlug.Optimism)) {
       return this._optimismLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(Chain.xDai)) {
-      return this._xdaiLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(Chain.Polygon)) {
+    } else if (this.destNetworkName?.startsWith(ChainSlug.Gnosis)) {
+      return this._gnosisLink(this.destTxHash)
+    } else if (this.destNetworkName?.startsWith(ChainSlug.Polygon)) {
       return this._polygonLink(this.destTxHash)
     } else {
       return ''
@@ -277,7 +276,7 @@ class Transaction extends EventEmitter {
         }
 
         // L2 -> L1
-        if (this.destNetworkName === Chain.Ethereum) {
+        if (this.destNetworkName === ChainSlug.Ethereum) {
           const destL1Bridge = await bridge.getL1Bridge(this.provider)
           const isSpent = await destL1Bridge.isTransferIdSpent(this.transferId)
           if (isSpent) {
@@ -324,8 +323,8 @@ class Transaction extends EventEmitter {
     }
   }
 
-  private _xdaiLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('xdai')}/tx/${txHash}`
+  private _gnosisLink(txHash: string = this.hash) {
+    return `${getBaseExplorerUrl('gnosis')}/tx/${txHash}`
   }
 
   private _polygonLink(txHash: string = this.hash) {

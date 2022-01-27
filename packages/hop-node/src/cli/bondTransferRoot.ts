@@ -59,7 +59,6 @@ async function main (source: any) {
     throw new Error('watcher not found')
   }
 
-
   const destinationChainId = chainSlugToId(destinationChain)
   if (!destinationChainId) {
     throw new Error('destination chain id is required')

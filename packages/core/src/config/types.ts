@@ -1,7 +1,7 @@
 type Bps = {
   ethereum?: number
   polygon?: number
-  xdai?: number
+  gnosis?: number
   optimism?: number
   arbitrum?: number
 }

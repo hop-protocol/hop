@@ -1,15 +1,41 @@
 import fetch from 'isomorphic-fetch'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
-import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
+import {
+  ArbERC20,
+  ArbERC20__factory,
+  ArbitrumGlobalInbox,
+  ArbitrumGlobalInbox__factory,
+  L1OptimismTokenBridge,
+  L1OptimismTokenBridge__factory,
+  L1PolygonPosRootChainManager,
+  L1PolygonPosRootChainManager__factory,
+  L1XDaiForeignOmniBridge,
+  L1XDaiForeignOmniBridge__factory,
+  L2OptimismTokenBridge,
+  L2OptimismTokenBridge__factory,
+  L2PolygonChildERC20,
+  L2PolygonChildERC20__factory,
+  L2XDaiToken,
+  L2XDaiToken__factory
+} from '@hop-protocol/core/contracts'
+import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { Chain as ChainEnum, MinPolygonGasPrice } from './constants'
+import { ChainSlug, Errors, MinPolygonGasPrice, NetworkSlug } from './constants'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
-export type ChainProviders = { [chain: string]: providers.Provider }
+export type L1Factory = L1PolygonPosRootChainManager__factory | L1XDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1OptimismTokenBridge__factory
+export type L1Contract = L1PolygonPosRootChainManager | L1XDaiForeignOmniBridge | ArbitrumGlobalInbox | L1OptimismTokenBridge
+
+export type L2Factory = L2PolygonChildERC20__factory | L2XDaiToken__factory | ArbERC20__factory | L2OptimismTokenBridge__factory
+export type L2Contract = L2PolygonChildERC20 | L2XDaiToken | ArbERC20 | L2OptimismTokenBridge
+
+type Factory = L1Factory | L2Factory
+
+export type ChainProviders = { [slug in ChainSlug | string]: providers.Provider }
 
 const s3FileCache : Record<string, any> = {}
 
@@ -30,14 +56,14 @@ const getProvider = memoize((network: string, chain: string) => {
 
 const getContractMemo = memoize(
   (
+    factory,
     address: string,
-    abi: any[],
     cacheKey: string
-  ): ((provider: TProvider) => Contract) => {
-    let cached: any
+  ): ((provider: TProvider) => L1Contract | L2Contract) => {
+    let cached: L1Contract | L2Contract
     return (provider: TProvider) => {
       if (!cached) {
-        cached = new Contract(address, abi, provider)
+        cached = factory.connect(address, provider)
       }
       return cached
     }
@@ -46,10 +72,10 @@ const getContractMemo = memoize(
 
 // cache contract
 const getContract = async (
+  factory: Factory,
   address: string,
-  abi: any[],
   provider: TProvider
-): Promise<Contract> => {
+): Promise<any> => {
   const p = provider as any
   // memoize function doesn't handle dynamic provider object well, so
   // here we derived a cache key based on connected account address and rpc url.
@@ -59,7 +85,7 @@ const getContract = async (
   const fallbackProviderChainId = p?._network?.chainId ?? ''
   const rpcUrl = p?.connection?.url ?? ''
   const cacheKey = `${signerAddress}${chainId}${fallbackProviderChainId}${rpcUrl}`
-  return getContractMemo(address, abi, cacheKey)(provider)
+  return getContractMemo(factory, address, cacheKey)(provider)
 }
 
 /**
@@ -68,7 +94,7 @@ const getContract = async (
  */
 class Base {
   /** Network name */
-  public network: string
+  public network: NetworkSlug | string
 
   /** Ethers signer or provider */
   public signer: TProvider
@@ -89,7 +115,7 @@ class Base {
    * @returns {Object} New Base class instance.
    */
   constructor (
-    network: string,
+    network: NetworkSlug | string,
     signer: TProvider,
     chainProviders?: ChainProviders
   ) {
@@ -210,6 +236,10 @@ class Base {
     if (typeof chain === 'string') {
       chain = Chain.fromSlug(chain)
     }
+    if (chain.slug === 'xdai') {
+      console.warn(Errors.xDaiRebrand)
+      chain = Chain.fromSlug('gnosis')
+    }
     if (!this.isValidChain(chain.slug)) {
       throw new Error(
         `chain "${
@@ -219,7 +249,6 @@ class Base {
         )}`
       )
     }
-
     chain.provider = this.getChainProvider(chain)
     chain.chainId = this.getChainId(chain)
     return chain
@@ -274,7 +303,7 @@ class Base {
    * @param {Object} - Chain model.
    * @returns {Object} - Ethers provider.
    */
-  public getChainProvider = (chain: Chain | string) => {
+  public getChainProvider (chain: Chain | string) {
     let chainSlug: string
     if (chain instanceof Chain && chain?.slug) {
       chainSlug = chain?.slug
@@ -283,6 +312,12 @@ class Base {
     } else {
       throw new Error(`unknown chain "${chain}"`)
     }
+
+    if (chainSlug === 'xdai') {
+      console.warn(Errors.xDaiRebrand)
+      chainSlug = ChainSlug.Gnosis
+    }
+
     if (this.chainProviders[chainSlug]) {
       return this.chainProviders[chainSlug]
     }
@@ -322,13 +357,8 @@ class Base {
    *```
    */
   public async getSignerAddress () {
-    if (!this.signer) {
-      throw new Error('signer not connected')
-    }
     if (Signer.isSigner(this.signer)) {
-      return (this.signer as Signer)?.getAddress()
-    } else {
-      throw new Error('signer is a provider and has no address')
+      return this.signer.getAddress()
     }
   }
 
@@ -426,12 +456,12 @@ class Base {
     return this.getConfigAddresses(token, chain)?.arbChain
   }
 
-  // xDai L1 Home AMB bridge address
+  // Gnosis L1 Home AMB bridge address
   public getL1AmbBridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l1Amb
   }
 
-  // xDai L2 AMB bridge address
+  // Gnosis L2 AMB bridge address
   public getL2AmbBridgeAddress (token: TToken, chain: TChain) {
     return this.getConfigAddresses(token, chain)?.l2Amb
   }
@@ -459,7 +489,7 @@ class Base {
     // Not all Polygon nodes follow recommended 30 Gwei gasPrice
     // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
     if (chain.equals(Chain.Polygon)) {
-      if (txOptions.gasPrice.lt(MinPolygonGasPrice)) {
+      if (txOptions.gasPrice?.lt(MinPolygonGasPrice)) {
         txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
       }
     }
@@ -494,7 +524,7 @@ class Base {
       throw new Error('fee data not found')
     }
 
-    const feeBps = fees[destinationChain.slug as ChainEnum] || 0
+    const feeBps = fees[destinationChain.slug] || 0
     return feeBps
   }
 
@@ -533,7 +563,7 @@ class Base {
     return supported[chain.slug]
   }
 
-  async getOptimismL1Fee (
+  async estimateOptimismL1FeeFromData (
     gasLimit : BigNumberish,
     data: string = '0x',
     to: string = constants.AddressZero

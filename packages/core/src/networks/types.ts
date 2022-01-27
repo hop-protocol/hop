@@ -11,6 +11,6 @@ export type Networks = {
   ethereum: Network
   arbitrum?: Network
   optimism?: Network
-  xdai?: Network
+  gnosis?: Network
   polygon?: Network
 }

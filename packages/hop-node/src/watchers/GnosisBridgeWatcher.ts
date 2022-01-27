@@ -7,7 +7,6 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L1XDaiAMB, L2XDaiAMB } from '@hop-protocol/core/contracts'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { config as globalConfig } from 'src/config'
@@ -17,8 +16,8 @@ type Config = {
   chainSlug: string
   tokenSymbol: string
   label?: string
-  l1BridgeContract?: L1BridgeContract | L1ERC20BridgeContract
-  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  l1BridgeContract?: L1BridgeContract
+  bridgeContract?: L1BridgeContract | L2BridgeContract
   isL1?: boolean
   dryMode?: boolean
 }
@@ -44,7 +43,6 @@ class GnosisBridgeWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'GnosisBridgeWatcher',
       prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,

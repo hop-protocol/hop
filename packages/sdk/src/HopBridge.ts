@@ -4,10 +4,15 @@ import Chain from './models/Chain'
 import Token from './Token'
 import TokenModel from './models/Token'
 import fetch from 'isomorphic-fetch'
-import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.json'
-import l1HomeAmbNativeToErc20 from '@hop-protocol/core/abi/static/L1_HomeAMBNativeToErc20.json'
-import l2AmmWrapperAbi from '@hop-protocol/core/abi/generated/L2_AmmWrapper.json'
-import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
+
+import {
+  L1ERC20Bridge__factory,
+  L1HomeAMBNativeToErc20__factory,
+  L2AmmWrapper__factory,
+  L2Bridge,
+  L2Bridge__factory
+} from '@hop-protocol/core/contracts'
+
 import {
   BigNumber,
   BigNumberish,
@@ -198,7 +203,7 @@ class HopBridge extends Base {
     token: TToken,
     network: string,
     chain: TChain
-  ): Token | undefined {
+  ) {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
     let { name, symbol, decimals, image } = metadata.tokens[network][
@@ -233,7 +238,7 @@ class HopBridge extends Base {
     token: TToken,
     network: string,
     chain: TChain
-  ): Token | undefined {
+  ) {
     chain = this.toChainModel(chain)
     token = this.toTokenModel(token)
     if (chain.isL1) {
@@ -593,7 +598,7 @@ class HopBridge extends Base {
           ...(await this.txOverrides(Chain.Ethereum)),
           value: isNativeToken ? tokenAmount : undefined
         }
-      ]
+      ] as const
 
       const l1Bridge = await this.getL1Bridge(sourceChain.provider)
       return l1Bridge.populateTransaction.sendToL2(...txOptions)
@@ -610,7 +615,7 @@ class HopBridge extends Base {
         amountOutMin,
         deadline,
         await this.txOverrides(sourceChain)
-      ]
+      ] as const
 
       const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
       return l2Bridge.populateTransaction.send(...txOptions)
@@ -994,8 +999,8 @@ class HopBridge extends Base {
         {
           from: bonder
         }
-      ]
-      return destinationBridge.populateTransaction.bondWithdrawalAndDistribute(
+      ] as const
+      return (destinationBridge as L2Bridge).populateTransaction.bondWithdrawalAndDistribute(
         ...payload
       )
     } else {
@@ -1007,7 +1012,7 @@ class HopBridge extends Base {
         {
           from: bonder
         }
-      ]
+      ] as const
       return destinationBridge.populateTransaction.bondWithdrawal(
         ...payload
       )
@@ -1350,7 +1355,7 @@ class HopBridge extends Base {
       throw new Error(`token "${this.tokenSymbol}" is unsupported`)
     }
     const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
-    return this.getContract(bridgeAddress, l1Erc20BridgeAbi, provider)
+    return L1ERC20Bridge__factory.connect(bridgeAddress, provider)
   }
 
   /**
@@ -1368,7 +1373,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return this.getContract(bridgeAddress, l2BridgeAbi, provider)
+    return L2Bridge__factory.connect(bridgeAddress, provider)
   }
 
   // ToDo: Docs
@@ -1399,7 +1404,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return this.getContract(ammWrapperAddress, l2AmmWrapperAbi, provider)
+    return L2AmmWrapper__factory.connect(ammWrapperAddress, provider)
   }
 
   /**
@@ -1727,7 +1732,7 @@ class HopBridge extends Base {
         ...(await this.txOverrides(Chain.Ethereum)),
         value: isNativeToken ? amount : undefined
       }
-    ]
+    ] as const
 
     return l1Bridge.populateTransaction.sendToL2(
       ...txOptions
@@ -1807,7 +1812,7 @@ class HopBridge extends Base {
       bonderFee,
       amountOutMin,
       deadline
-    ]
+    ] as const
 
     if (attemptSwapAtSource) {
       const additionalOptions = [
@@ -1817,7 +1822,7 @@ class HopBridge extends Base {
           ...(await this.txOverrides(sourceChain)),
           value: isNativeToken ? amount : undefined
         }
-      ]
+      ] as const
 
       return ammWrapper.populateTransaction.swapAndSend(
         ...txOptions,
@@ -1900,7 +1905,7 @@ class HopBridge extends Base {
         ...(await this.txOverrides(sourceChain)),
         value: isNativeToken ? amount : undefined
       }
-    ]
+    ] as const
 
     return ammWrapper.populateTransaction.swapAndSend(...txOptions)
   }
@@ -2022,11 +2027,11 @@ class HopBridge extends Base {
     if (chain.equals(Chain.Ethereum)) {
       const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
       const provider = await this.getSignerOrProvider(Chain.Ethereum)
-      return this.getContract(address, l1HomeAmbNativeToErc20, provider)
+      return L1HomeAMBNativeToErc20__factory.connect(address, provider)
     }
     const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
     const provider = await this.getSignerOrProvider(Chain.Gnosis)
-    return this.getContract(address, l1HomeAmbNativeToErc20, provider)
+    return L1HomeAMBNativeToErc20__factory.connect(address, provider)
   }
 
   getChainNativeToken (chain: TChain) {

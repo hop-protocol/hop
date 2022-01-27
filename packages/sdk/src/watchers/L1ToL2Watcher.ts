@@ -3,8 +3,7 @@ import { default as BaseWatcher } from './BaseWatcher'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from '../models'
 import { DateTime } from 'luxon'
-import { EventFragment, Interface } from '@ethersproject/abi'
-import { NetworkSlug } from '../constants'
+import { EventNames, NetworkSlug } from '../constants'
 import {
   tokenTransferTopic,
   transferFromL1CompletedTopic,
@@ -31,60 +30,7 @@ class L1ToL2Watcher extends BaseWatcher {
 
     for (const log of this.sourceReceipt.logs) {
       if (log.topics[0] === transferSentToL2Topic) {
-        const iface = new Interface([])
-        const decodedLog = iface.decodeEventLog(
-          EventFragment.from({
-            anonymous: false,
-            inputs: [
-              {
-                indexed: true,
-                internalType: 'uint256',
-                name: 'chainId',
-                type: 'uint256'
-              },
-              {
-                indexed: true,
-                internalType: 'address',
-                name: 'recipient',
-                type: 'address'
-              },
-              {
-                indexed: false,
-                internalType: 'uint256',
-                name: 'amount',
-                type: 'uint256'
-              },
-              {
-                indexed: false,
-                internalType: 'uint256',
-                name: 'amountOutMin',
-                type: 'uint256'
-              },
-              {
-                indexed: false,
-                internalType: 'uint256',
-                name: 'deadline',
-                type: 'uint256'
-              },
-              {
-                indexed: true,
-                internalType: 'address',
-                name: 'relayer',
-                type: 'address'
-              },
-              {
-                indexed: false,
-                internalType: 'uint256',
-                name: 'relayerFee',
-                type: 'uint256'
-              }
-            ],
-            name: 'TransferSentToL2',
-            type: 'event'
-          } as any),
-          log.data
-        )
-
+        const decodedLog = l1Bridge.interface.decodeEventLog(EventNames.TransferSentToL2, log.data)
         const amountOutMin = Number(decodedLog.amountOutMin.toString())
         const deadline = Number(decodedLog.deadline.toString())
         amount = decodedLog.amount
@@ -108,8 +54,8 @@ class L1ToL2Watcher extends BaseWatcher {
     const token = await this.bridge
       .getCanonicalToken(this.destinationChain)
       .getErc20()
-    const hTokenFilter = hToken.filters.Transfer()
-    const tokenFilter = token.filters.Transfer()
+    const hTokenFilter = 'Transfer'
+    const tokenFilter = 'Transfer'
     const recipient = this.sourceTx.from
     const batchBlocks = 1000
     let startBlock = -1

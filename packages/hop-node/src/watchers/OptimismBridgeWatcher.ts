@@ -4,7 +4,6 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, Wallet, providers } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Watcher } from '@eth-optimism/core-utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
@@ -13,7 +12,7 @@ type Config = {
   chainSlug: string
   tokenSymbol: string
   label?: string
-  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  bridgeContract?: L1BridgeContract | L2BridgeContract
   isL1?: boolean
   dryMode?: boolean
 }
@@ -32,7 +31,6 @@ class OptimismBridgeWatcher extends BaseWatcher {
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
       prefix: config.label,
-      tag: 'OptimismBridgeWatcher',
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
       isL1: config.isL1,

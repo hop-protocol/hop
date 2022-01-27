@@ -3,7 +3,6 @@ import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import { BigNumber } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TxRetryDelayMs } from 'src/constants'
 import { getEnabledNetworks } from 'src/config'
@@ -15,7 +14,7 @@ type Config = {
   minThresholdAmounts?: {[chain: string]: number}
 
   isL1?: boolean
-  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  bridgeContract?: L1BridgeContract | L2BridgeContract
   dryMode?: boolean
   stateUpdateAddress?: string
 }
@@ -29,7 +28,6 @@ class CommitTransfersWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'CommitTransfersWatcher',
       prefix: config.label,
       logColor: 'yellow',
       isL1: config.isL1,
@@ -103,6 +101,10 @@ class CommitTransfersWatcher extends BaseWatcher {
     if (!this.commitTxSentAt[destinationChainId]) {
       this.commitTxSentAt[destinationChainId] = 0
     }
+
+    // Since we don't know what the transferRootId is yet (we know what it is only after commitTransfers),
+    // we can't update attempted timestamp in the db,
+    // so we do it in memory here.
     const timestampOk = this.commitTxSentAt[destinationChainId] + TxRetryDelayMs < Date.now()
     if (timestampOk) {
       // This may happen either in the happy path case or if the transaction

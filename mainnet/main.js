@@ -194,54 +194,63 @@ const app = new Vue({
     setFilterBonded (event) {
       const value = event.target.value
       Vue.set(app, 'filterBonded', value)
+      updateQueryParams({ bonded: value })
       this.resetPage()
       this.refreshTransfers()
     },
     setFilterSource (event) {
       const value = event.target.value
       Vue.set(app, 'filterSource', value)
+      updateQueryParams({ source: value })
       this.resetPage()
       this.refreshTransfers()
     },
     setFilterDestination (event) {
       const value = event.target.value
       Vue.set(app, 'filterDestination', value)
+      updateQueryParams({ destination: value })
       this.resetPage()
       this.refreshTransfers()
     },
     setFilterToken (event) {
       const value = event.target.value
       Vue.set(app, 'filterToken', value)
+      updateQueryParams({ token: value })
       this.resetPage()
       this.refreshTransfers()
     },
     setFilterAmount (event) {
       const value = event.target.value
       Vue.set(app, 'filterAmount', value)
+      updateQueryParams({ amount: value })
       this.resetPage()
       this.refreshTransfers()
     },
     setFilterAmountComparator (event) {
       const value = event.target.value
       Vue.set(app, 'filterAmountComparator', value)
+      updateQueryParams({ amountCmp: value })
       this.resetPage()
       this.refreshTransfers()
     },
     setFilterBonder (event) {
       const value = event.target.value
       Vue.set(app, 'filterBonder', value)
+      updateQueryParams({ bonder: value })
       this.resetPage()
       this.refreshTransfers()
     },
     setFilterAccount (event) {
       const value = event.target.value
       Vue.set(app, 'filterAccount', value)
+      updateQueryParams({ account: value })
       this.resetPage()
       updateData()
     },
     setFilterTransferId (event) {
       const value = event.target.value
       Vue.set(app, 'filterTransferId', value)
+      updateQueryParams({ transferId: value })
       this.resetPage()
       updateData()
     },
@@ -1178,6 +1187,30 @@ function truncateHash (hash) {
 function truncateString (str, splitNum) {
   if (!str) return ''
   return str.substring(0, 2 + splitNum) + '…' + str.substring(str.length - splitNum, str.length)
+}
+
+function updateQueryParams (params) {
+  try {
+    const url = new URL(window.location.href)
+    if ('URLSearchParams' in window) {
+      const searchParams = new URLSearchParams(url.search)
+      for (const key in params) {
+        const value = params[key]
+        if (value) {
+          searchParams.set(key, value)
+        } else {
+          searchParams.delete(key)
+        }
+      }
+
+      url.search = searchParams.toString()
+      const newUrl = url.toString()
+
+      window.history.replaceState({}, document.title, newUrl)
+    }
+  } catch (err) {
+    console.log(err)
+  }
 }
 
 main()

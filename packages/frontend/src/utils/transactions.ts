@@ -170,7 +170,7 @@ export function getTxDetails(
     }
   }, {})
 
-  const methodName = sigHashes[funcSig]
+  const methodName = sigHashes[funcSig] ?? theOne?.func?.name
 
   switch (methodName) {
     case MethodNames.approve: {

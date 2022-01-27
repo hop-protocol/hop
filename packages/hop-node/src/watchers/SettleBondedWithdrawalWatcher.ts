@@ -2,16 +2,14 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { OneHourMs } from 'src/constants'
 import { Transfer } from 'src/db/TransfersDb'
 
 type Config = {
   chainSlug: string
   tokenSymbol: string
   isL1: boolean
-  bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  bridgeContract: L1BridgeContract | L2BridgeContract
   label: string
   dryMode?: boolean
   minThresholdPercent: number
@@ -26,7 +24,6 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'SettleBondedWithdrawalWatcher',
       prefix: config.label,
       logColor: 'magenta',
       isL1: config.isL1,
@@ -46,16 +43,13 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
       const { transferRootId, transferIds } = dbTransferRoot
+
       // Mark a settlement as attempted here so that multiple db reads are not attempted every poll
       // This comes into play when a transfer is bonded after others in the same root have been settled
-      if (!this.settleAttemptedAt[transferRootId]) {
-        this.settleAttemptedAt[transferRootId] = 0
-      }
-      const timestampOk = this.settleAttemptedAt[transferRootId] + OneHourMs < Date.now()
-      if (!timestampOk) {
-        continue
-      }
-      this.settleAttemptedAt[transferRootId] = Date.now()
+      const settleAttemptedAt = Date.now()
+      await this.db.transferRoots.update(transferRootId, {
+        settleAttemptedAt
+      })
 
       // get all db transfer items that belong to root
       const dbTransfers: Transfer[] = []

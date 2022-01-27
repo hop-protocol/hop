@@ -46,4 +46,5 @@ async function main (source: any) {
 
   const chainSpecificWatcher: ExitWatcher = watcher.watchers[chain]
   await chainSpecificWatcher.relayXDomainMessage(commitTxHash)
+  console.log('done')
 }

@@ -24,7 +24,7 @@ class HopConvertOption extends ConvertOption {
     signer: Signer,
     sourceNetwork: Network,
     destNetwork: Network,
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     l1TokenSymbol: TokenSymbol,
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
@@ -49,7 +49,7 @@ class HopConvertOption extends ConvertOption {
     sdk: Hop,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined,
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     l1TokenSymbol: TokenSymbol | undefined,
     amountIn: BigNumberish | undefined
   ): Promise<SendData> {
@@ -133,13 +133,13 @@ class HopConvertOption extends ConvertOption {
   }
 
   async sourceToken(
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     network?: Network,
     bridge?: HopBridge
   ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
-    if (isForwardDirection) {
+    if (isConvertingToHToken) {
       return bridge.getL1Token()
     } else {
       return bridge.getL2HopToken(network.slug)
@@ -147,13 +147,13 @@ class HopConvertOption extends ConvertOption {
   }
 
   async destToken(
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     network?: Network,
     bridge?: HopBridge
   ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
-    if (isForwardDirection) {
+    if (isConvertingToHToken) {
       return bridge.getL2HopToken(network.slug)
     } else {
       return bridge.getL1Token()

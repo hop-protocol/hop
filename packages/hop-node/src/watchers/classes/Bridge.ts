@@ -106,6 +106,7 @@ export default class Bridge extends ContractBase {
       this.getCredit(bonder),
       this.getDebit(bonder)
     ])
+
     return credit.sub(debit)
   }
 

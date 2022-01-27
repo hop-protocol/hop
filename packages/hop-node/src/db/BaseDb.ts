@@ -57,7 +57,7 @@ class BaseDb extends EventEmitter {
   pollIntervalMs: number = 5 * 1000
   lastBatchUpdatedAt: number = Date.now()
   batchSize: number = 10
-  batchTimeLimit: number = 3 * 1000
+  batchTimeLimit: number = 2 * 1000
   batchQueue: QueueItem[] = []
 
   constructor (prefix: string, _namespace?: string) {

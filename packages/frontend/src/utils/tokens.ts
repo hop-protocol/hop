@@ -1,4 +1,4 @@
-import { TokenSymbol } from '@hop-protocol/sdk'
+import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 import { metadata, addresses } from 'src/config'
 
 export function getTokenImage(tokenSymbol: string) {
@@ -13,7 +13,7 @@ export function getTokenByAddress(network: string, address?: string): TokenSymbo
   for (const token in addresses.tokens) {
     const networkContracts = addresses.tokens[token][network]
 
-    if (network === 'ethereum' && networkContracts.l1Bridge === address) {
+    if (network === ChainSlug.Ethereum && networkContracts.l1Bridge === address) {
       return token as TokenSymbol
     }
 

@@ -6,6 +6,9 @@ export type State = {
   timestamp: number
 }
 
+// structure:
+// key: `<chainId>:<address>:<eventName>`
+// value: `{ ...State }`
 class SyncStateDb extends BaseDb {
   async update (key: string, data: Partial<State>) {
     if (!data.key) {

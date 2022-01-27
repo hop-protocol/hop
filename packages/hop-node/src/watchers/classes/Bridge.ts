@@ -1,4 +1,4 @@
-import ContractBase from './ContractBase'
+import ContractBase, { TxOverrides } from './ContractBase'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
@@ -107,6 +107,7 @@ export default class Bridge extends ContractBase {
       this.getCredit(bonder),
       this.getDebit(bonder)
     ])
+
     return credit.sub(debit)
   }
 
@@ -441,8 +442,12 @@ export default class Bridge extends ContractBase {
       txOverrides
     ] as const
 
-    const tx = await this.bridgeContract.bondWithdrawal(...payload)
+    if (this.chainSlug === Chain.Ethereum) {
+      const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
+      ;(payload[payload.length - 1] as TxOverrides).gasLimit = gasLimit.add(10_000)
+    }
 
+    const tx = await this.bridgeContract.bondWithdrawal(...payload)
     return tx
   }
 

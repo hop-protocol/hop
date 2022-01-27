@@ -10,7 +10,9 @@ root
   .description('Settle bonded withdrawals')
   .option('--source-chain <slug>', 'Source chain', parseString)
   .option('--token <slug>', 'Token', parseString)
+  .option('--transfer-root-hash <id>', 'Transfer root hash', parseString)
   .option('--transfer-id <id>', 'Transfer ID', parseString)
+  .option('--bonder <address>', 'Bonder address', parseString)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
@@ -19,15 +21,15 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { sourceChain: chain, token, transferId, dry: dryMode } = source
+  const { sourceChain: chain, token, transferRootHash, transferId, bonder, dry: dryMode } = source
   if (!chain) {
     throw new Error('chain is required')
   }
   if (!token) {
     throw new Error('token is required')
   }
-  if (!transferId) {
-    throw new Error('transfer ID is required')
+  if (!(transferRootHash || transferId)) {
+    throw new Error('transferRootHash or transferId is required')
   }
 
   const watchers = await getWatchers({
@@ -41,5 +43,9 @@ async function main (source: any) {
     throw new Error('watcher not found')
   }
 
-  await watcher.checkTransferId(transferId)
+  if (transferRootHash) {
+    await watcher.checkTransferRootHash(transferRootHash, bonder)
+  } else {
+    await watcher.checkTransferId(transferId)
+  }
 }

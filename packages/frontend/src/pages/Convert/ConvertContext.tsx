@@ -7,6 +7,7 @@ import React, {
   useRef,
   useEffect,
   ReactNode,
+  ChangeEvent,
 } from 'react'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { BigNumber } from 'ethers'
@@ -22,111 +23,61 @@ import ConvertOption from 'src/pages/Convert/ConvertOption/ConvertOption'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import { toTokenDisplay, commafy } from 'src/utils'
-import { reactAppNetwork } from 'src/config'
+import { defaultL2Network, l1Network } from 'src/config/networks'
 import {
   useTransactionReplacement,
   useApprove,
-  useQueryParams,
   useBalance,
   useNeedsTokenForFee,
+  useAssets,
+  useSelectedNetwork,
 } from 'src/hooks'
 import { formatError, amountToBN } from 'src/utils/format'
 
 type ConvertContextProps = {
-  convertOptions: ConvertOption[]
-  convertOption: ConvertOption | undefined
-  networks: Network[]
-  l2Networks: Network[]
-  selectedNetwork: Network | undefined
-  setSelectedNetwork: (network: Network | undefined) => void
-  sourceNetwork: Network | undefined
-  destNetwork: Network | undefined
-  sourceToken: Token | undefined
-  destToken: Token | undefined
-  sourceTokenAmount: string | undefined
-  setSourceTokenAmount: (value: string) => void
-  destTokenAmount: string | undefined
-  setDestTokenAmount: (value: string) => void
-  convertTokens: () => void
   approveTokens: () => void
-  validFormFields: boolean
-  sending: boolean
   approving: boolean
-  needsApproval: boolean | undefined
-  sourceBalance: BigNumber | undefined
-  loadingSourceBalance: boolean
-  destBalance: BigNumber | undefined
+  convertOptions: ConvertOption[]
+  convertTokens: () => void
+  destBalance?: BigNumber
+  destNetwork?: Network
+  destToken?: Token
+  destTokenAmount?: string
+  details?: ReactNode
+  error?: string
   loadingDestBalance: boolean
+  loadingSourceBalance: boolean
+  needsApproval?: boolean
+  needsTokenForFee?: boolean
+  selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
+  selectedNetwork?: Network
+  sending: boolean
+  setDestTokenAmount: (value: string) => void
+  setError: (error?: string) => void
+  setSourceTokenAmount: (value: string) => void
+  setTx: (tx?: Transaction) => void
+  setWarning: (warning?: string) => void
+  sourceBalance?: BigNumber
+  sourceNetwork?: Network
+  sourceToken?: Token
+  sourceTokenAmount?: string
   switchDirection: () => void
-  details: ReactNode | undefined
-  warning: ReactNode | undefined
-  setWarning: (warning: string | undefined) => void
-  error: string | undefined
-  setError: (error: string | undefined) => void
-  tx: Transaction | undefined
-  setTx: (tx: Transaction | undefined) => void
+  tx?: Transaction
   unsupportedAsset: any
-  needsTokenForFee: boolean | undefined
+  validFormFields: boolean
+  warning?: ReactNode
 }
 
-const ConvertContext = createContext<ConvertContextProps>({
-  convertOptions: [],
-  convertOption: undefined,
-  networks: [],
-  l2Networks: [],
-  selectedNetwork: undefined,
-  setSelectedNetwork: (network: Network | undefined) => {},
-  sourceNetwork: undefined,
-  destNetwork: undefined,
-  sourceToken: undefined,
-  destToken: undefined,
-  sourceTokenAmount: undefined,
-  setSourceTokenAmount: (value: string) => {},
-  destTokenAmount: undefined,
-  setDestTokenAmount: (value: string) => {},
-  convertTokens: () => {},
-  approveTokens: () => {},
-  validFormFields: false,
-  sending: false,
-  approving: false,
-  needsApproval: false,
-  sourceBalance: undefined,
-  loadingSourceBalance: false,
-  destBalance: undefined,
-  loadingDestBalance: false,
-  switchDirection: () => {},
-  details: [],
-  warning: undefined,
-  setWarning: (warning: string | undefined) => {},
-  error: undefined,
-  setError: (error: string | undefined) => {},
-  tx: undefined,
-  setTx: (tx: Transaction | undefined) => {},
-  unsupportedAsset: null,
-  needsTokenForFee: undefined,
-})
+const ConvertContext = createContext<ConvertContextProps | undefined>(undefined)
 
-const ConvertContextProvider: FC = ({ children }) => {
+const ConvertProvider: FC = ({ children }) => {
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
-  const {
-    networks,
-    l2Networks,
-    defaultL2Network,
-    selectedBridge,
-    txConfirm,
-    sdk,
-    l1Network,
-    settings,
-  } = useApp()
+  const { selectedBridge, txConfirm, sdk, settings } = useApp()
   const { slippageTolerance, deadline } = settings
   const { pathname } = useLocation()
-  const { queryParams } = useQueryParams()
-
-  const [selectedNetwork, setSelectedNetwork] = useState<Network | undefined>(l2Networks[0])
-  const [isForwardDirection, setIsForwardDirection] = useState(true)
-  const switchDirection = () => {
-    setIsForwardDirection(!isForwardDirection)
-  }
+  const { selectedNetwork, selectBothNetworks } = useSelectedNetwork()
+  const [isConvertingToHToken, setIsConvertingToHToken] = useState(true)
+  const switchDirection = () => setIsConvertingToHToken(direction => !direction)
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
   const [amountOutMin, setAmountOutMin] = useState<BigNumber>()
@@ -136,23 +87,14 @@ const ConvertContextProvider: FC = ({ children }) => {
   const { approve, checkApproval } = useApprove(sourceToken)
   const [destToken, setDestToken] = useState<Token>()
   const [details, setDetails] = useState<ReactNode>()
-  let [warning, setWarning] = useState<ReactNode>()
+  const [warning, setWarning] = useState<ReactNode>()
   const [bonderFee, setBonderFee] = useState<BigNumber>()
   const [error, setError] = useState<string | undefined>(undefined)
   const [tx, setTx] = useState<Transaction | undefined>()
   const debouncer = useRef(0)
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
 
-  useEffect(() => {
-    if (selectedNetwork && queryParams?.sourceNetwork !== selectedNetwork?.slug) {
-      const matchingNetwork = find(networks, ['slug', queryParams.sourceNetwork])
-      if (matchingNetwork && !matchingNetwork?.isLayer1) {
-        setSelectedNetwork(matchingNetwork)
-      } else {
-        setSelectedNetwork(defaultL2Network)
-      }
-    }
-  }, [queryParams])
+  const { unsupportedAsset } = useAssets(selectedBridge, selectedNetwork)
 
   const convertOptions = [new AmmConvertOption(), new HopConvertOption()]
   const convertOption = useMemo(
@@ -161,7 +103,7 @@ const ConvertContextProvider: FC = ({ children }) => {
   )
 
   const sourceNetwork = useMemo<Network | undefined>(() => {
-    if (convertOption instanceof AmmConvertOption || !isForwardDirection) {
+    if (convertOption instanceof AmmConvertOption || !isConvertingToHToken) {
       if (selectedNetwork?.isLayer1) {
         return defaultL2Network
       }
@@ -169,10 +111,10 @@ const ConvertContextProvider: FC = ({ children }) => {
     } else {
       return l1Network
     }
-  }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
+  }, [isConvertingToHToken, selectedNetwork, l1Network, convertOption])
 
   const destNetwork = useMemo<Network | undefined>(() => {
-    if (convertOption instanceof AmmConvertOption || isForwardDirection) {
+    if (convertOption instanceof AmmConvertOption || isConvertingToHToken) {
       if (selectedNetwork?.isLayer1) {
         return defaultL2Network
       }
@@ -180,7 +122,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     } else {
       return l1Network
     }
-  }, [isForwardDirection, selectedNetwork, l1Network, convertOption])
+  }, [isConvertingToHToken, selectedNetwork, l1Network, convertOption])
 
   const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(
     sourceToken,
@@ -192,33 +134,6 @@ const ConvertContextProvider: FC = ({ children }) => {
     destNetwork,
     address
   )
-
-  const unsupportedAsset = useMemo<any>(() => {
-    if (!(selectedBridge && selectedNetwork)) {
-      return null
-    }
-    const unsupportedAssets = {
-      Optimism: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
-      Arbitrum: reactAppNetwork === 'kovan' ? [] : ['MATIC'],
-    }
-
-    const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
-    for (const chain in unsupportedAssets) {
-      const tokenSymbols = unsupportedAssets[chain]
-      for (const tokenSymbol of tokenSymbols) {
-        const isUnsupported =
-          selectedTokenSymbol.includes(tokenSymbol) && selectedNetwork?.slug === chain.toLowerCase()
-        if (isUnsupported) {
-          return {
-            chain,
-            tokenSymbol,
-          }
-        }
-      }
-    }
-
-    return null
-  }, [selectedBridge, selectedNetwork])
 
   useEffect(() => {
     if (unsupportedAsset) {
@@ -236,7 +151,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     const fetchToken = async () => {
       try {
         const token = await convertOption.sourceToken(
-          isForwardDirection,
+          isConvertingToHToken,
           selectedNetwork,
           selectedBridge
         )
@@ -247,8 +162,12 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     }
 
+    if (unsupportedAsset?.chain) {
+      return
+    }
+
     fetchToken()
-  }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+  }, [unsupportedAsset, convertOption, isConvertingToHToken, selectedNetwork, selectedBridge])
 
   useEffect(() => {
     if (tx) {
@@ -262,7 +181,7 @@ const ConvertContextProvider: FC = ({ children }) => {
     const fetchToken = async () => {
       try {
         const token = await convertOption.destToken(
-          isForwardDirection,
+          isConvertingToHToken,
           selectedNetwork,
           selectedBridge
         )
@@ -273,8 +192,12 @@ const ConvertContextProvider: FC = ({ children }) => {
       }
     }
 
+    if (unsupportedAsset?.chain) {
+      return
+    }
+
     fetchToken()
-  }, [convertOption, isForwardDirection, selectedNetwork, selectedBridge])
+  }, [unsupportedAsset, convertOption, isConvertingToHToken, selectedNetwork, selectedBridge])
 
   // Fetch send data
   useEffect(() => {
@@ -284,7 +207,16 @@ const ConvertContextProvider: FC = ({ children }) => {
       setDetails(undefined)
       setBonderFee(undefined)
 
-      if (!selectedBridge || !sourceTokenAmount || !sourceNetwork || !destNetwork || !sourceToken) {
+      if (
+        !(
+          selectedBridge &&
+          sourceTokenAmount &&
+          sourceNetwork &&
+          destNetwork &&
+          sourceToken &&
+          !unsupportedAsset?.chain
+        )
+      ) {
         setDestTokenAmount('')
         return
       }
@@ -295,7 +227,7 @@ const ConvertContextProvider: FC = ({ children }) => {
         sdk,
         sourceNetwork,
         destNetwork,
-        isForwardDirection,
+        isConvertingToHToken,
         selectedBridge.getTokenSymbol(),
         parsedSourceTokenAmount
       )
@@ -326,7 +258,14 @@ const ConvertContextProvider: FC = ({ children }) => {
     }
 
     getSendData().catch(logger.error)
-  }, [sourceTokenAmount, selectedBridge, selectedNetwork, convertOption, isForwardDirection])
+  }, [
+    unsupportedAsset,
+    sourceTokenAmount,
+    selectedBridge,
+    selectedNetwork,
+    convertOption,
+    isConvertingToHToken,
+  ])
 
   useEffect(() => {
     // NOTE: `convertOption.getSendData()` returns jsx code via the AmmConvertOption class.
@@ -342,7 +281,7 @@ const ConvertContextProvider: FC = ({ children }) => {
 
   const needsApproval = useAsyncMemo(async () => {
     try {
-      if (!(selectedBridge && sourceToken && destNetwork)) {
+      if (!(selectedBridge && sourceToken && destNetwork && !unsupportedAsset?.chain)) {
         return false
       }
 
@@ -356,7 +295,15 @@ const ConvertContextProvider: FC = ({ children }) => {
     } catch (err: any) {
       logger.error(err)
     }
-  }, [convertOption, sdk, selectedBridge, sourceNetwork, destNetwork, checkApproval])
+  }, [
+    unsupportedAsset,
+    convertOption,
+    sdk,
+    selectedBridge,
+    sourceNetwork,
+    destNetwork,
+    checkApproval,
+  ])
 
   const parsedSourceTokenAmount = useMemo(() => {
     if (!sourceTokenAmount || !sourceToken) {
@@ -448,7 +395,7 @@ const ConvertContextProvider: FC = ({ children }) => {
             signer,
             sourceNetwork,
             destNetwork,
-            isForwardDirection,
+            isConvertingToHToken,
             selectedBridge.getTokenSymbol(),
             value,
             amountOutMin,
@@ -497,49 +444,50 @@ const ConvertContextProvider: FC = ({ children }) => {
   const validFormFields =
     !!(sourceTokenAmount && destTokenAmount && enoughBalance && withinMax) && !!details
 
-  if (sourceBalance !== undefined && !enoughBalance) {
-    warning = 'Insufficient funds'
-  } else if (needsTokenForFee && sourceNetwork) {
-    warning = `Add ${sourceNetwork.nativeTokenSymbol} to your account on ${sourceNetwork.name} for the transaction fee.`
-  }
+  useEffect(() => {
+    if (sourceBalance !== undefined && !enoughBalance) {
+      setWarning('Insufficient funds')
+    } else if (needsTokenForFee && sourceNetwork) {
+      setWarning(
+        `Add ${sourceNetwork.nativeTokenSymbol} to your account on ${sourceNetwork.name} for the transaction fee.`
+      )
+    }
+  }, [sourceBalance, enoughBalance, needsTokenForFee, sourceNetwork])
 
   return (
     <ConvertContext.Provider
       value={{
-        convertOptions,
-        convertOption,
-        networks,
-        l2Networks,
-        selectedNetwork,
-        setSelectedNetwork,
-        sourceNetwork,
-        destNetwork,
-        sourceToken,
-        destToken,
-        sourceTokenAmount,
-        setSourceTokenAmount,
-        destTokenAmount,
-        setDestTokenAmount,
-        convertTokens,
         approveTokens,
-        validFormFields,
-        sending,
         approving,
-        needsApproval,
-        sourceBalance,
-        loadingSourceBalance,
+        convertOptions,
+        convertTokens,
         destBalance,
-        loadingDestBalance,
-        switchDirection,
+        destNetwork,
+        destToken,
+        destTokenAmount,
         details,
-        warning,
-        setWarning,
         error,
-        setError,
-        tx,
-        setTx,
-        unsupportedAsset,
+        loadingDestBalance,
+        loadingSourceBalance,
+        needsApproval,
         needsTokenForFee,
+        selectedNetwork,
+        sending,
+        setDestTokenAmount,
+        setError,
+        selectBothNetworks,
+        setSourceTokenAmount,
+        setTx,
+        setWarning,
+        sourceBalance,
+        sourceNetwork,
+        sourceToken,
+        sourceTokenAmount,
+        switchDirection,
+        tx,
+        unsupportedAsset,
+        validFormFields,
+        warning,
       }}
     >
       {children}
@@ -547,6 +495,12 @@ const ConvertContextProvider: FC = ({ children }) => {
   )
 }
 
-export const useConvert = () => useContext(ConvertContext)
+export function useConvert() {
+  const ctx = useContext(ConvertContext)
+  if (ctx === undefined) {
+    throw new Error('useConvert must be used within ConvertProvider')
+  }
+  return ctx
+}
 
-export default ConvertContextProvider
+export default ConvertProvider

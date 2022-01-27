@@ -3,8 +3,8 @@ import Onboard from 'bnc-onboard'
 import { ethers, Contract, BigNumber } from 'ethers'
 import Address from 'src/models/Address'
 import { networkIdToSlug, getRpcUrl, getBaseExplorerUrl } from 'src/utils'
-import { L1_NETWORK } from 'src/utils/constants'
-import { networks, blocknativeDappid } from 'src/config'
+import { blocknativeDappid } from 'src/config'
+import { l1Network } from 'src/config/networks'
 import './onboardStyles.css'
 import logger from 'src/logger'
 import { WalletCheckInit, WalletSelectModuleOptions } from 'bnc-onboard/dist/src/interfaces'
@@ -29,23 +29,6 @@ type Props = {
 }
 
 // TODO: modularize
-const initialState = {
-  onboard: undefined,
-  provider: undefined,
-  address: undefined,
-  connectedNetworkId: '',
-  validConnectedNetworkId: false,
-  setRequiredNetworkId: (networkId: string) => {},
-  requestWallet: () => {},
-  disconnectWallet: () => {},
-  walletConnected: false,
-  walletName: '',
-  checkConnectedNetworkId: async (networkId: number): Promise<boolean> => false,
-  getWriteContract: async (contract: Contract | undefined): Promise<Contract | undefined> =>
-    undefined,
-}
-
-// TODO: modularize
 const networkNames: any = {
   1: 'Mainnet',
   3: 'Ropsten',
@@ -63,7 +46,7 @@ const networkNames: any = {
   137: 'Polygon',
 }
 
-const Web3Context = createContext<Props>(initialState)
+const Web3Context = createContext<Props | undefined>(undefined)
 
 // TODO: modularize
 const walletSelectOptions: WalletSelectModuleOptions = {
@@ -99,7 +82,12 @@ const walletSelectOptions: WalletSelectModuleOptions = {
         80001: getRpcUrl(ChainSlug.Polygon),
       },
     },
-    { walletName: 'walletLink', preferred: true, rpcUrl: getRpcUrl(L1_NETWORK), appName: 'Hop' },
+    {
+      walletName: 'walletLink',
+      preferred: true,
+      rpcUrl: getRpcUrl(ChainSlug.Ethereum),
+      appName: 'Hop',
+    },
   ],
 }
 
@@ -162,7 +150,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const onboard = useMemo(() => {
     const instance = Onboard({
       dappId: blocknativeDappid,
-      networkId: Number(networks[L1_NETWORK].networkId),
+      networkId: Number(l1Network.networkId),
       // darkMode: isDarkMode,
       // blockPollingInterval: 4000,
       hideBranding: true,
@@ -273,7 +261,8 @@ const Web3ContextProvider: FC = ({ children }) => {
   const walletConnected = !!address
 
   // TODO: cleanup
-  const checkConnectedNetworkId = async (networkId: number): Promise<boolean> => {
+  const checkConnectedNetworkId = async (networkId?: number): Promise<boolean> => {
+    if (!networkId) return false
     const signerNetworkId = (await provider?.getNetwork())?.chainId
     logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
     if (networkId.toString() !== signerNetworkId?.toString()) {
@@ -379,7 +368,12 @@ const Web3ContextProvider: FC = ({ children }) => {
   )
 }
 
-// TODO: cleanup
-export const useWeb3Context: () => Props = () => useContext(Web3Context)
+export function useWeb3Context() {
+  const ctx = useContext(Web3Context)
+  if (ctx === undefined) {
+    throw new Error('useApp must be used within Web3Provider')
+  }
+  return ctx
+}
 
 export default Web3ContextProvider

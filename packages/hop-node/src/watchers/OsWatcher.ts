@@ -20,7 +20,7 @@ class OsWatcher {
 
   constructor (config: Partial<Config> = {}) {
     this.logger = new Logger({
-      tag: 'OsWatcher'
+      tag: this.constructor.name
     })
     if (config.heapdump) {
       this.heapdump = true

@@ -43,7 +43,7 @@ class AmmConvertOption extends ConvertOption {
     sdk: Hop,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined,
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     l1TokenSymbol?: TokenSymbol,
     amountIn?: BigNumberish
   ): Promise<SendData> {
@@ -59,7 +59,7 @@ class AmmConvertOption extends ConvertOption {
     const amm = bridge.getAmm(sourceNetwork.slug)
     let amountOut: BigNumber | undefined
     if (amountIn) {
-      if (isForwardDirection) {
+      if (isConvertingToHToken) {
         amountOut = await amm.calculateToHToken(amountIn)
       } else {
         amountOut = await amm.calculateFromHToken(amountIn)
@@ -72,7 +72,7 @@ class AmmConvertOption extends ConvertOption {
       amountOut,
       sourceNetwork,
       destNetwork,
-      isForwardDirection,
+      isConvertingToHToken,
       bridge.getTokenSymbol()
     )
 
@@ -87,7 +87,7 @@ class AmmConvertOption extends ConvertOption {
     signer: Signer,
     sourceNetwork: Network,
     destNetwork: Network,
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     l1TokenSymbol: TokenSymbol,
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
@@ -98,7 +98,7 @@ class AmmConvertOption extends ConvertOption {
 
     return bridge.execSaddleSwap(
       sourceNetwork.slug,
-      isForwardDirection,
+      isConvertingToHToken,
       amountIn,
       amountOutMin,
       deadline
@@ -106,13 +106,13 @@ class AmmConvertOption extends ConvertOption {
   }
 
   async sourceToken(
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     network?: Network,
     bridge?: HopBridge
   ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
-    if (isForwardDirection) {
+    if (isConvertingToHToken) {
       let token = bridge.getCanonicalToken(network.slug)
       if (token?.isNativeToken) {
         token = token.getWrappedToken()
@@ -124,13 +124,13 @@ class AmmConvertOption extends ConvertOption {
   }
 
   async destToken(
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     network?: Network,
     bridge?: HopBridge
   ): Promise<Token | undefined> {
     if (!bridge || !network) return
 
-    if (isForwardDirection) {
+    if (isConvertingToHToken) {
       return bridge.getL2HopToken(network.slug)
     } else {
       let token = bridge.getCanonicalToken(network.slug)
@@ -147,7 +147,7 @@ class AmmConvertOption extends ConvertOption {
     amountOut: BigNumber | undefined,
     sourceNetwork: Network | undefined,
     destNetwork: Network | undefined,
-    isForwardDirection: boolean,
+    isConvertingToHToken: boolean,
     l1TokenSymbol: TokenSymbol
   ): Promise<ReactNode> {
     let rateDisplay = '-'
@@ -169,7 +169,7 @@ class AmmConvertOption extends ConvertOption {
     const { rate, priceImpact, amountOutMin, lpFeeAmount } = await bridge.getAmmData(
       sourceNetwork.slug,
       amountIn,
-      isForwardDirection,
+      isConvertingToHToken,
       slippageTolerance
     )
 
@@ -177,10 +177,10 @@ class AmmConvertOption extends ConvertOption {
     slippageToleranceDisplay = `${slippageTolerance}%`
     priceImpactDisplay = priceImpact < 0.01 ? '<0.01%' : `${commafy(priceImpact)}%`
 
-    const sourceToken = isForwardDirection
+    const sourceToken = isConvertingToHToken
       ? bridge.getCanonicalToken(destNetwork.slug)
       : bridge.getL2HopToken(destNetwork.slug)
-    const destToken = isForwardDirection
+    const destToken = isConvertingToHToken
       ? bridge.getL2HopToken(destNetwork.slug)
       : bridge.getCanonicalToken(destNetwork.slug)
     amountOutMinDisplay = toTokenDisplay(amountOutMin, destToken.decimals, destToken.symbol)

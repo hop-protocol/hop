@@ -10,7 +10,7 @@ import { Token } from '@hop-protocol/sdk'
 import clsx from 'clsx'
 import LargeTextField from 'src/components/LargeTextField'
 import { commafy } from 'src/utils'
-import { useAmountSelectorCardStyles, useNativeTokenMaxValue } from 'src/hooks'
+import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
 import Network from 'src/models/Network'
 import { Flex } from './ui'
 
@@ -67,7 +67,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
     selectedNetwork,
   } = props
   const styles = useAmountSelectorCardStyles()
-  const { estimateMaxValue } = useNativeTokenMaxValue(selectedNetwork)
+  const { estimateMaxValue } = useEstimateTxCost(selectedNetwork)
 
   const balanceDisplay = useMemo(() => {
     let label: string = ''

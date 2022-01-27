@@ -1,16 +1,16 @@
 import React, { FC, useMemo } from 'react'
-import { Contract } from 'ethers'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { Token, CanonicalToken, WrappedToken } from '@hop-protocol/sdk'
-import { stakingRewardsAbi } from '@hop-protocol/core/abi'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import StakeWidget from 'src/pages/Stake/StakeWidget'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { isMainnet } from 'src/config'
 import { Flex } from 'src/components/ui'
+import { findMatchingBridge } from 'src/utils'
+import { StakingRewards__factory } from '@hop-protocol/core/contracts'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -33,9 +33,7 @@ const Stake: FC = () => {
 
   // ETH
 
-  const ethBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge => bridge.getTokenSymbol() === 'ETH')
-  }, [bridges])
+  const ethBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'ETH'), [bridges])
 
   const ethStakingToken = useAsyncMemo(async () => {
     return ethBridge?.getSaddleLpToken('polygon')
@@ -44,14 +42,12 @@ const Stake: FC = () => {
   const ethStakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'eth' ? provider : polygonProvider
-    return new Contract(stakingContracts.ETH, stakingRewardsAbi, _provider)
+    return StakingRewards__factory.connect(stakingContracts.ETH, _provider)
   }, [sdk, provider, user])
 
   // MATIC
 
-  const maticBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge => bridge.getTokenSymbol() === 'MATIC')
-  }, [bridges])
+  const maticBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'MATIC'), [bridges])
 
   const maticStakingToken = useAsyncMemo(async () => {
     return maticBridge?.getSaddleLpToken('polygon')
@@ -60,14 +56,12 @@ const Stake: FC = () => {
   const maticStakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
-    return new Contract(stakingContracts.MATIC, stakingRewardsAbi, _provider)
+    return StakingRewards__factory.connect(stakingContracts.MATIC, _provider)
   }, [sdk, provider, user])
 
   // USDC
 
-  const usdcBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge => bridge.getTokenSymbol() === 'USDC')
-  }, [bridges])
+  const usdcBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'USDC'), [bridges])
 
   const usdcStakingToken = useAsyncMemo(async () => {
     return usdcBridge?.getSaddleLpToken('polygon')
@@ -76,14 +70,12 @@ const Stake: FC = () => {
   const usdcStakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
-    return new Contract(stakingContracts.USDC, stakingRewardsAbi, _provider)
+    return StakingRewards__factory.connect(stakingContracts.USDC, _provider)
   }, [sdk, provider, user])
 
   // USDT
 
-  const usdtBridge = useAsyncMemo(async () => {
-    return bridges.find(bridge => bridge.getTokenSymbol() === 'USDT')
-  }, [bridges])
+  const usdtBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'USDT'), [bridges])
 
   const usdtStakingToken = useAsyncMemo(async () => {
     return usdtBridge?.getSaddleLpToken('polygon')
@@ -92,7 +84,7 @@ const Stake: FC = () => {
   const usdtStakingRewards = useAsyncMemo(async () => {
     const polygonProvider = await sdk.getSignerOrProvider('polygon')
     const _provider = provider?.network.name === 'matic' ? provider : polygonProvider
-    return new Contract(stakingContracts.USDT, stakingRewardsAbi, _provider)
+    return StakingRewards__factory.connect(stakingContracts.USDT, _provider)
   }, [sdk, provider, user])
 
   const rewardsToken = useAsyncMemo(async () => {

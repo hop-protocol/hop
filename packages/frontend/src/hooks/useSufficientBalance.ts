@@ -8,7 +8,7 @@ import { toTokenDisplay } from 'src/utils'
 export function useSufficientBalance(
   token?: Token,
   amount?: BigNumber,
-  estimatedGasCost?: BigNumber,
+  estimatedGasCost: BigNumber = BigNumber.from(0),
   tokenBalance: BigNumber = BigNumber.from(0)
 ) {
   const [sufficientBalance, setSufficientBalance] = useState(false)

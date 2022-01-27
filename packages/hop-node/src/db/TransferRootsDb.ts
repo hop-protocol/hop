@@ -577,7 +577,7 @@ class TransferRootsDb extends BaseDb {
 
       let settleAttemptTimestampOk = true
       if (item.settleAttemptedAt) {
-        settleAttemptTimestampOk = item.settleAttemptedAt + OneHourMs < Date.now()
+        settleAttemptTimestampOk = item.settleAttemptedAt + TxRetryDelayMs < Date.now()
       }
 
       return (

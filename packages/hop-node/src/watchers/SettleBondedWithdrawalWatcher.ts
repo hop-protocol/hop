@@ -45,6 +45,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     for (const dbTransferRoot of dbTransferRoots) {
       const { transferRootId, transferIds } = dbTransferRoot
 
+      // Mark a settlement as attempted here so that multiple db reads are not attempted every poll
+      // This comes into play when a transfer is bonded after others in the same root have been settled
       const settleAttemptedAt = Date.now()
       await this.db.transferRoots.update(transferRootId, {
         settleAttemptedAt

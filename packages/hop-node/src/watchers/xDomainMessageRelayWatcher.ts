@@ -32,7 +32,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'xDomainMessageRelay',
       prefix: config.label,
       logColor: 'yellow',
       isL1: config.isL1,

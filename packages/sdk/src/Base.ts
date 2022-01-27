@@ -1,13 +1,39 @@
 import fetch from 'isomorphic-fetch'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
-import { BigNumber, BigNumberish, Contract, Signer, constants, providers } from 'ethers'
+import {
+  ArbERC20,
+  ArbERC20__factory,
+  ArbitrumGlobalInbox,
+  ArbitrumGlobalInbox__factory,
+  L1OptimismTokenBridge,
+  L1OptimismTokenBridge__factory,
+  L1PolygonPosRootChainManager,
+  L1PolygonPosRootChainManager__factory,
+  L1XDaiForeignOmniBridge,
+  L1XDaiForeignOmniBridge__factory,
+  L2OptimismTokenBridge,
+  L2OptimismTokenBridge__factory,
+  L2PolygonChildERC20,
+  L2PolygonChildERC20__factory,
+  L2XDaiToken,
+  L2XDaiToken__factory
+} from '@hop-protocol/core/contracts'
+import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { ChainSlug, Errors, MinPolygonGasPrice, NetworkSlug } from './constants'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
+
+export type L1Factory = L1PolygonPosRootChainManager__factory | L1XDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1OptimismTokenBridge__factory
+export type L1Contract = L1PolygonPosRootChainManager | L1XDaiForeignOmniBridge | ArbitrumGlobalInbox | L1OptimismTokenBridge
+
+export type L2Factory = L2PolygonChildERC20__factory | L2XDaiToken__factory | ArbERC20__factory | L2OptimismTokenBridge__factory
+export type L2Contract = L2PolygonChildERC20 | L2XDaiToken | ArbERC20 | L2OptimismTokenBridge
+
+type Factory = L1Factory | L2Factory
 
 export type ChainProviders = { [slug in ChainSlug | string]: providers.Provider }
 
@@ -30,14 +56,14 @@ const getProvider = memoize((network: string, chain: string) => {
 
 const getContractMemo = memoize(
   (
+    factory,
     address: string,
-    abi: any[],
     cacheKey: string
-  ): ((provider: TProvider) => Contract) => {
-    let cached: any
+  ): ((provider: TProvider) => L1Contract | L2Contract) => {
+    let cached: L1Contract | L2Contract
     return (provider: TProvider) => {
       if (!cached) {
-        cached = new Contract(address, abi, provider)
+        cached = factory.connect(address, provider)
       }
       return cached
     }
@@ -46,10 +72,10 @@ const getContractMemo = memoize(
 
 // cache contract
 const getContract = async (
+  factory: Factory,
   address: string,
-  abi: any[],
   provider: TProvider
-): Promise<Contract> => {
+): Promise<any> => {
   const p = provider as any
   // memoize function doesn't handle dynamic provider object well, so
   // here we derived a cache key based on connected account address and rpc url.
@@ -59,7 +85,7 @@ const getContract = async (
   const fallbackProviderChainId = p?._network?.chainId ?? ''
   const rpcUrl = p?.connection?.url ?? ''
   const cacheKey = `${signerAddress}${chainId}${fallbackProviderChainId}${rpcUrl}`
-  return getContractMemo(address, abi, cacheKey)(provider)
+  return getContractMemo(factory, address, cacheKey)(provider)
 }
 
 /**

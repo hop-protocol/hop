@@ -25,7 +25,6 @@ class BondTransferRootWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'BondTransferRootWatcher',
       prefix: config.label,
       logColor: 'cyan',
       isL1: config.isL1,

@@ -48,7 +48,7 @@
     "@babel/preset-env": "^7.5.2",
     "@babel/preset-es2015": "^7.0.0-beta.53",
     "@babel/runtime": "^7.7.2",
-    "@typechain/ethers-v5": "^7.2.0",
+    "@typechain/ethers-v5": "^9.0.0",
     "@types/jest": "^25.2.3",
     "@types/node": "^12.11.7",
     "@typescript-eslint/eslint-plugin": "^5.1.0",
@@ -73,7 +73,7 @@
     "standard": "^12.0.1",
     "ts-jest": "^26.5.4",
     "tsify": "^4.0.1",
-    "typechain": "^5.2.0",
+    "typechain": "^7.0.0",
     "typescript": "^4.4.4",
     "uglify-es": "^3.3.9"
   },

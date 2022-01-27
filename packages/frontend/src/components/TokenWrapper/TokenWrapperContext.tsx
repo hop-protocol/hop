@@ -13,38 +13,38 @@ import { defaultL2Network } from 'src/config/networks'
 
 type TokenWrapperContextProps = {
   amount: string
-  setAmount: (amount: string) => void
-  wrap: () => void
-  unwrap: () => void
-  isWrapping: boolean
-  isUnwrapping: boolean
-  selectedNetwork: Network
-  setSelectedNetwork: (network: Network) => void
   canonicalToken?: Token
   canonicalTokenBalance: BigNumber | undefined
+  error: string | null | undefined
+  isNativeToken: boolean
+  isUnwrapping: boolean
+  isWrapping: boolean
+  selectedNetwork: Network
+  setAmount: (amount: string) => void
+  setError: (error: string | null | undefined) => void
+  setSelectedNetwork: (network: Network) => void
+  unwrap: () => void
+  wrap: () => void
   wrappedToken?: Token
   wrappedTokenBalance: BigNumber | undefined
-  error: string | null | undefined
-  setError: (error: string | null | undefined) => void
-  isNativeToken: boolean
 }
 
 const TokenWrapperContext = createContext<TokenWrapperContextProps>({
   amount: '',
-  setAmount: (amount: string) => {},
-  wrap: () => {},
-  unwrap: () => {},
-  isWrapping: false,
-  isUnwrapping: false,
-  selectedNetwork: defaultL2Network,
-  setSelectedNetwork: (network: Network) => {},
   canonicalToken: undefined,
   canonicalTokenBalance: undefined,
+  error: undefined,
+  isNativeToken: false,
+  isUnwrapping: false,
+  isWrapping: false,
+  selectedNetwork: defaultL2Network,
+  setAmount: (amount: string) => {},
+  setError: (error: string | null | undefined) => {},
+  setSelectedNetwork: (network: Network) => {},
+  unwrap: () => {},
+  wrap: () => {},
   wrappedToken: undefined,
   wrappedTokenBalance: undefined,
-  error: undefined,
-  setError: (error: string | null | undefined) => {},
-  isNativeToken: false,
 })
 
 const TokenWrapperContextProvider: FC = ({ children }) => {
@@ -219,20 +219,20 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
     <TokenWrapperContext.Provider
       value={{
         amount,
-        setAmount,
-        wrap,
-        unwrap,
-        isWrapping,
-        isUnwrapping,
-        selectedNetwork,
-        setSelectedNetwork,
         canonicalToken,
         canonicalTokenBalance,
+        error,
+        isNativeToken,
+        isUnwrapping,
+        isWrapping,
+        selectedNetwork,
+        setAmount,
+        setError,
+        setSelectedNetwork,
+        unwrap,
+        wrap,
         wrappedToken,
         wrappedTokenBalance,
-        error,
-        setError,
-        isNativeToken,
       }}
     >
       {children}

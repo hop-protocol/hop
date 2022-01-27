@@ -31,7 +31,6 @@ class OptimismBridgeWatcher extends BaseWatcher {
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
       prefix: config.label,
-      tag: 'OptimismBridgeWatcher',
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
       isL1: config.isL1,

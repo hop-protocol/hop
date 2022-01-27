@@ -1,9 +1,8 @@
 import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
-import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import wethAbi from '@hop-protocol/core/abi/static/WETH9.json'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
+import { ERC20__factory, WETH9__factory } from '@hop-protocol/core/contracts'
 import { TAmount, TChain } from './types'
 import { TokenSymbol, WrappedToken } from './constants'
 
@@ -197,10 +196,10 @@ class Token extends Base {
    */
   public async getErc20 () {
     if (this.isNativeToken) {
-      return this.getWethContract(this.chain)
+      return this.getWethContract()
     }
     const provider = await this.getSignerOrProvider(this.chain)
-    return this.getContract(this.address, erc20Abi, provider)
+    return ERC20__factory.connect(this.address, provider)
   }
 
   public async overrides () {
@@ -242,8 +241,8 @@ class Token extends Base {
     return this.chain.provider.getBalance(address)
   }
 
-  async getWethContract (chain: TChain): Promise<Contract> {
-    return this.getContract(this.address, wethAbi, this.signer)
+  async getWethContract () {
+    return WETH9__factory.connect(this.address, this.signer)
   }
 
   getWrappedToken () {
@@ -265,7 +264,7 @@ class Token extends Base {
   }
 
   async wrapToken (amount: TAmount, estimateGasOnly: boolean = false) {
-    const contract = await this.getWethContract(this.chain)
+    const contract = await this.getWethContract()
     if (estimateGasOnly) {
       // a `from` address is required if using only provider (not signer)
       const from = await this.getGasEstimateFromAddress()
@@ -280,7 +279,7 @@ class Token extends Base {
   }
 
   async unwrapToken (amount: TAmount) {
-    const contract = await this.getWethContract(this.chain)
+    const contract = await this.getWethContract()
     return contract.withdraw(amount)
   }
 
@@ -289,7 +288,7 @@ class Token extends Base {
   ) {
     chain = this.toChainModel(chain)
     const amount = BigNumber.from(1)
-    const contract = await this.getWethContract(chain)
+    const contract = await this.getWethContract()
     // a `from` address is required if using only provider (not signer)
     const from = await this.getGasEstimateFromAddress()
     const [gasLimit, tx] = await Promise.all([

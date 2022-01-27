@@ -43,7 +43,6 @@ class GnosisBridgeWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'GnosisBridgeWatcher',
       prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,

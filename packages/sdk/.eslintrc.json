@@ -22,6 +22,8 @@
       "no-unused-vars": 0,
       "@typescript-eslint/no-unused-vars": 0,
       "unused-imports/no-unused-imports": 1,
+      "camelcase": 0,
+      "sort-imports": 0,
       "new-cap": 0,
       "prefer-const": 1,
       "no-async-promise-executor": 0,

@@ -28,7 +28,6 @@ class CommitTransfersWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      tag: 'CommitTransfersWatcher',
       prefix: config.label,
       logColor: 'yellow',
       isL1: config.isL1,
@@ -102,6 +101,10 @@ class CommitTransfersWatcher extends BaseWatcher {
     if (!this.commitTxSentAt[destinationChainId]) {
       this.commitTxSentAt[destinationChainId] = 0
     }
+
+    // Since we don't know what the transferRootId is yet (we know what it is only after commitTransfers),
+    // we can't update attempted timestamp in the db,
+    // so we do it in memory here.
     const timestampOk = this.commitTxSentAt[destinationChainId] + TxRetryDelayMs < Date.now()
     if (timestampOk) {
       // This may happen either in the happy path case or if the transaction

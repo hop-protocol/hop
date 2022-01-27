@@ -31,7 +31,7 @@ const useSendData = (
     {
       enabled:
         !!token?.address && !!fromNetwork?.slug && !!toNetwork?.slug && !!fromAmount?.toString(),
-      refetchInterval: 5e3,
+      refetchInterval: 10e3,
     }
   )
 

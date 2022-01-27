@@ -55,7 +55,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
 
   const balanceLabel = useMemo(() => {
     return toTokenDisplay(balance, token?.decimals)
-  }, [balance])
+  }, [balance?.toString(), token?.decimals])
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target

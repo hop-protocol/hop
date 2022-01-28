@@ -11,7 +11,9 @@ export function useTxResult(
   cb?: (opts: any) => any,
   opts?: any
 ) {
-  const queryKey = `txResult:${srcNetwork?.slug}:${destNetwork?.slug}:${amount?.toString()}`
+  const queryKey = `txResult:${token?.symbol}:${srcNetwork?.slug}:${
+    destNetwork?.slug
+  }:${amount?.toString()}`
   const { interval = 10e3, ...rest } = opts
 
   const { isLoading, isError, data, error } = useQuery(

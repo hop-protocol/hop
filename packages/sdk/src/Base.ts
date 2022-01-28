@@ -378,36 +378,27 @@ class Base {
     chain: TChain,
     signer: TProvider = this.signer as Signer
   ) {
-    // console.log('getSignerOrProvider')
     chain = this.toChainModel(chain)
     if (!signer) {
       return chain.provider
     }
+
     if (Signer.isSigner(signer)) {
       if (signer.provider) {
         const connectedChainId = await signer.getChainId()
-        // console.log('connectedChainId: ', connectedChainId)
-        // console.log('chain.chainId: ', chain.chainId)
         if (connectedChainId !== chain.chainId) {
-          if (!signer.provider) {
-            // console.log('connect provider')
-            return (signer as Signer).connect(chain.provider)
-          }
-          // console.log('return chain.provider')
           return chain.provider
         }
         return signer
-      } else {
-        return chain.provider
       }
-    } else {
-      // console.log('isSigner')
-      const { chainId } = await signer.getNetwork()
-      if (chainId !== chain.chainId) {
-        return chain.provider
-      }
-      return signer
+      return chain.provider
     }
+
+    const { chainId } = await signer.getNetwork()
+    if (chainId !== chain.chainId) {
+      return chain.provider
+    }
+    return signer
   }
 
   public getConfigAddresses (token: TToken, chain: TChain) {

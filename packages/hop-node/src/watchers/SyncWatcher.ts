@@ -1279,6 +1279,7 @@ class SyncWatcher extends BaseWatcher {
         !this.hasSiblingWatcher(destinationChainId)
       )
       if (shouldSkip) {
+        this.unbondedTransferRootAmounts[destinationChain] = BigNumber.from(0)
         this.logger.debug(`syncing unbonded transferRoot amounts: skipping ${destinationChainId}`)
         continue
       }
@@ -1408,6 +1409,7 @@ class SyncWatcher extends BaseWatcher {
     if (!s3LastUpload || s3LastUpload < Date.now() - (60 * 1000)) {
       s3LastUpload = Date.now()
       await this.s3Upload.upload(s3JsonData)
+      this.logger.debug(`s3 uploaded data: ${JSON.stringify(s3JsonData)}`)
     }
   }
 

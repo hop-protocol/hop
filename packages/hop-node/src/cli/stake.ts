@@ -139,14 +139,20 @@ async function pollConvertTxReceive (bridge: L2Bridge, convertAmount: BigNumber)
 
 async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { // eslint-disable-line @typescript-eslint/no-invalid-void-type
   const isEthSend: boolean = bridge.l1CanonicalTokenAddress === constants.AddressZero
-  const isL1Bridge = bridge.chainSlug === Chain.Ethereum
   if (isEthSend) {
+    const isL1Bridge = bridge.chainSlug === Chain.Ethereum
     if (isL1Bridge) {
       return
     }
-    return (bridge as L2Bridge).hToken()
   }
-  return (bridge as L1Bridge).l1CanonicalToken()
+
+  if (bridge instanceof L1Bridge) {
+    return (bridge as L1Bridge).l1CanonicalToken()
+  } else if (bridge instanceof L2Bridge) {
+    return (bridge as L2Bridge).hToken()
+  } else {
+    throw new Error('invalid bridge type')
+  }
 }
 
 async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void): Promise<BigNumber> { // eslint-disable-line @typescript-eslint/no-invalid-void-type

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { BigNumber, constants } from 'ethers'
+import { BigNumber, constants, providers } from 'ethers'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
 import { Token, ChainSlug } from '@hop-protocol/sdk'
@@ -11,10 +11,13 @@ export enum MethodNames {
   wrapToken = 'wrapToken',
 }
 
-async function estimateGasCost(network: Network, estimatedGasLimit: BigNumber) {
+export async function getGasCostByGasLimit(
+  provider: providers.Provider,
+  estimatedGasLimit: BigNumber
+) {
   try {
     // Get current gas price
-    const gasPrice = await network.provider.getGasPrice()
+    const gasPrice = await provider.getGasPrice()
     // Add some wiggle room
     const bufferGas = BigNumber.from(70_000)
     return estimatedGasLimit.add(bufferGas).mul(gasPrice)
@@ -55,7 +58,7 @@ export function useEstimateTxCost() {
       )
 
       if (estimatedGasLimit) {
-        let gasCost = await estimateGasCost(network, estimatedGasLimit)
+        let gasCost = await getGasCostByGasLimit(network.provider, estimatedGasLimit)
         if (gasCost && network.slug === ChainSlug.Optimism) {
           const tokenAmount = BigNumber.from(1)
           const { data, to } = await bridge.populateSendHTokensTx(
@@ -90,23 +93,31 @@ export function useEstimateTxCost() {
           destinationDeadline = 0
         }
 
-        // Get estimated gas limit
-        const estimatedGasLimit = await bridge.estimateSendGasLimit(
-          '10',
-          fromNetwork.slug as string,
-          toNetwork.slug as string,
-          {
-            recipient: constants.AddressZero,
-            bonderFee: '1',
-            amountOutMin: '0',
-            deadline: deadline(),
-            destinationAmountOutMin,
-            destinationDeadline,
-          }
+        const needsAppoval = await token.needsApproval(
+          bridge.getSendApprovalAddress(fromNetwork.slug),
+          '10'
         )
 
+        let estimatedGasLimit = BigNumber.from(200e3)
+        // Get estimated gas limit
+        if (!needsAppoval) {
+          estimatedGasLimit = await bridge.estimateSendGasLimit(
+            '10',
+            fromNetwork.slug as string,
+            toNetwork.slug as string,
+            {
+              recipient: constants.AddressZero,
+              bonderFee: '1',
+              amountOutMin: '0',
+              deadline: deadline(),
+              destinationAmountOutMin,
+              destinationDeadline,
+            }
+          )
+        }
+
         if (estimatedGasLimit) {
-          let gasCost = await estimateGasCost(fromNetwork, estimatedGasLimit)
+          let gasCost = await getGasCostByGasLimit(fromNetwork.provider, estimatedGasLimit)
           if (gasCost && fromNetwork.slug === ChainSlug.Optimism) {
             const l1FeeInWei = await bridge.getOptimismL1Fee(fromNetwork.slug, toNetwork.slug)
             gasCost = gasCost.add(l1FeeInWei)
@@ -135,7 +146,7 @@ export function useEstimateTxCost() {
       const estimatedGasLimit = await token.wrapToken(BigNumber.from(10), true)
 
       if (BigNumber.isBigNumber(estimatedGasLimit)) {
-        let gasCost = await estimateGasCost(network, estimatedGasLimit)
+        let gasCost = await getGasCostByGasLimit(network.provider, estimatedGasLimit)
         if (gasCost && network?.slug === ChainSlug.Optimism) {
           const { gasLimit, data, to } = await token.getWrapTokenEstimatedGas(network.slug)
           const l1FeeInWei = await token.estimateOptimismL1FeeFromData(gasLimit, data, to)

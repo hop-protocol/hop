@@ -1,0 +1,163 @@
+[
+  {
+    "inputs": [
+      {"internalType": "address", "name": "_l1Token", "type": "address"},
+      {"internalType": "address", "name": "_l2DAITokenBridge", "type": "address"},
+      {"internalType": "address", "name": "_l2Token", "type": "address"},
+      {"internalType": "address", "name": "_l1messenger", "type": "address"},
+      {"internalType": "address", "name": "_escrow", "type": "address"}
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {"anonymous": false, "inputs": [], "name": "Closed", "type": "event"},
+  {
+    "anonymous": false,
+    "inputs": [{"indexed": true, "internalType": "address", "name": "usr", "type": "address"}],
+    "name": "Deny",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "address", "name": "_l1Token", "type": "address"},
+      {"indexed": true, "internalType": "address", "name": "_l2Token", "type": "address"},
+      {"indexed": true, "internalType": "address", "name": "_from", "type": "address"},
+      {"indexed": false, "internalType": "address", "name": "_to", "type": "address"},
+      {"indexed": false, "internalType": "uint256", "name": "_amount", "type": "uint256"},
+      {"indexed": false, "internalType": "bytes", "name": "_data", "type": "bytes"}
+    ],
+    "name": "ERC20DepositInitiated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "address", "name": "_l1Token", "type": "address"},
+      {"indexed": true, "internalType": "address", "name": "_l2Token", "type": "address"},
+      {"indexed": true, "internalType": "address", "name": "_from", "type": "address"},
+      {"indexed": false, "internalType": "address", "name": "_to", "type": "address"},
+      {"indexed": false, "internalType": "uint256", "name": "_amount", "type": "uint256"},
+      {"indexed": false, "internalType": "bytes", "name": "_data", "type": "bytes"}
+    ],
+    "name": "ERC20WithdrawalFinalized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{"indexed": true, "internalType": "address", "name": "usr", "type": "address"}],
+    "name": "Rely",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "close",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "usr", "type": "address"}],
+    "name": "deny",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "_l1Token", "type": "address"},
+      {"internalType": "address", "name": "_l2Token", "type": "address"},
+      {"internalType": "uint256", "name": "_amount", "type": "uint256"},
+      {"internalType": "uint32", "name": "_l2Gas", "type": "uint32"},
+      {"internalType": "bytes", "name": "_data", "type": "bytes"}
+    ],
+    "name": "depositERC20",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "_l1Token", "type": "address"},
+      {"internalType": "address", "name": "_l2Token", "type": "address"},
+      {"internalType": "address", "name": "_to", "type": "address"},
+      {"internalType": "uint256", "name": "_amount", "type": "uint256"},
+      {"internalType": "uint32", "name": "_l2Gas", "type": "uint32"},
+      {"internalType": "bytes", "name": "_data", "type": "bytes"}
+    ],
+    "name": "depositERC20To",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "escrow",
+    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "_l1Token", "type": "address"},
+      {"internalType": "address", "name": "_l2Token", "type": "address"},
+      {"internalType": "address", "name": "_from", "type": "address"},
+      {"internalType": "address", "name": "_to", "type": "address"},
+      {"internalType": "uint256", "name": "_amount", "type": "uint256"},
+      {"internalType": "bytes", "name": "_data", "type": "bytes"}
+    ],
+    "name": "finalizeERC20Withdrawal",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "isOpen",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "l1Token",
+    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "l2DAITokenBridge",
+    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "l2Token",
+    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "messenger",
+    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "usr", "type": "address"}],
+    "name": "rely",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "name": "wards",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

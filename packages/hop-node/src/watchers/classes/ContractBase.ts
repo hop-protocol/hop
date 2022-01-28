@@ -9,7 +9,7 @@ import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
 import { config as globalConfig } from 'src/config'
 
-type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
+export type TxOverrides = PayableOverrides & {from?: string, value?: BigNumberish}
 
 export default class ContractBase extends EventEmitter {
   contract: Contract

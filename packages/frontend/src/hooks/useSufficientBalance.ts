@@ -6,7 +6,7 @@ import { toTokenDisplay } from 'src/utils'
 export function useSufficientBalance(
   token?: Token,
   amount?: BigNumber,
-  estimatedGasCost?: BigNumber,
+  estimatedGasCost: BigNumber = BigNumber.from(500_000),
   tokenBalance: BigNumber = BigNumber.from(0)
 ) {
   const [sufficientBalance, setSufficientBalance] = useState(false)
@@ -14,7 +14,7 @@ export function useSufficientBalance(
 
   useEffect(() => {
     async function checkEnoughBalance() {
-      if (!(token && estimatedGasCost && amount)) {
+      if (!(token && amount)) {
         setWarning('')
         return setSufficientBalance(false)
       }
@@ -48,6 +48,10 @@ export function useSufficientBalance(
         } to pay for tx fees or reduce the amount by approximately ${toTokenDisplay(diff)} ${
           token.symbol
         }`
+
+        if (!token.isNativeToken) {
+          message = `Insufficient balance to cover the cost of tx. Please add ${token.nativeTokenSymbol} to pay for tx fees.`
+        }
       } else if (!enoughTokenBalance) {
         message = `Insufficient ${token.symbol} balance.`
       }

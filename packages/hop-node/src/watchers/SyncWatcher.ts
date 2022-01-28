@@ -786,6 +786,7 @@ class SyncWatcher extends BaseWatcher {
     const isSameBonder = dbTransfer?.withdrawalBonder === bonder
     const isWithdrawalSettled = isBonded && isSameBonder
     if (!isWithdrawalSettled) {
+      logger.debug('isWithdrawalSettled is true. Returning.')
       return
     }
 
@@ -793,6 +794,7 @@ class SyncWatcher extends BaseWatcher {
 
     // on-chain bonded withdrawal amount is cleared after WithdrawalBondSettled event
     if (!bondedWithdrawalAmount.eq(0)) {
+      logger.debug('bondedWithdrawalAmount is not 0. Returning.')
       return
     }
 
@@ -802,23 +804,27 @@ class SyncWatcher extends BaseWatcher {
 
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
+      logger.debug('dbTransferRoot not found. Returning.')
       return
     }
 
     const { transferIds } = dbTransferRoot
     if (!transferIds?.length) {
+      logger.debug('dbTransferRoot transferIds not found. Returning.')
       return
     }
 
     logger.debug(`transferIds count: ${transferIds.length}`)
     const dbTransfers = await this.db.transfers.getMultipleTransfersByTransferIds(transferIds)
     if (!dbTransfers?.length) {
+      logger.debug('db transfers not found. Returning.')
       return
     }
 
     const allSettled = this.getIsDbTransfersAllSettled(dbTransfers)
     logger.debug(`all settled: ${allSettled}`)
     if (!allSettled) {
+      logger.debug('not all settled yet')
       return
     }
 
@@ -1221,6 +1227,12 @@ class SyncWatcher extends BaseWatcher {
       logger.warn(`transfer id ${transferId} db item not found`)
       return
     }
+
+    logger.debug('handling WithdrawalBondSettled event')
+    logger.debug(`tx hash from event: ${transactionHash}`)
+    logger.debug(`transferRootHash from event: ${transferRootHash}`)
+    logger.debug(`bonder : ${bonder}`)
+    logger.debug(`transferId: ${transferId}`)
 
     await this.db.transfers.update(transferId, {
       transferRootHash,

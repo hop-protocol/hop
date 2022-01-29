@@ -1,15 +1,12 @@
-import MerkleTree from 'src/utils/MerkleTree'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getTransferId from 'src/theGraph/getTransfer'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
-import { actionHandler, parseString, root } from './shared'
+import { actionHandler, getWithdrawalProofData, parseString, root } from './shared'
 import {
   findWatcher,
   getWatchers
 } from 'src/watchers/watchers'
-
-// TODO: This and withdrawalProof are not DRY. DRY them up.
 
 root
   .command('withdraw')
@@ -77,16 +74,12 @@ async function main (source: any) {
     throw new Error('no transfer root item found for transfer Id')
   }
 
-  const rootTotalAmount = transferRoot.totalAmount.toString()
-  const transferIds = transferRoot.transferIds?.map((x: any) => x.transferId)
-  if (!transferIds?.length) {
-    throw new Error('expected transfer ids for transfer root hash')
-  }
-  const tree = new MerkleTree(transferIds)
-  const leaves = tree.getHexLeaves()
-  const numLeaves = leaves.length
-  const transferIndex = leaves.indexOf(transferId)
-  const proof = tree.getHexProof(leaves[transferIndex])
+  const {
+    rootTotalAmount,
+    numLeaves,
+    proof,
+    transferIndex
+  } = getWithdrawalProofData(transferId, transferRoot)
 
   const dryMode = false
   const watchers = await getWatchers({

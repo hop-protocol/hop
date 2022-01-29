@@ -55,7 +55,7 @@ export function parseBool (value: string) {
   return value !== 'false'
 }
 
-export function getWithdrawalProofData(
+export function getWithdrawalProofData (
   transferId: string,
   dbTransferRoot: any
 ) {

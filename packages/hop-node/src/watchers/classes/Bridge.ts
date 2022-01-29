@@ -406,6 +406,37 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
+  withdraw = async (
+    recipient: string,
+    amount: BigNumber,
+    transferNonce: string,
+    bonderFee: BigNumber,
+    amountOutMin: BigNumber,
+    deadline: BigNumber,
+    rootHash: string,
+    transferRootTotalAmount: BigNumber,
+    transferIdTreeIndex: number,
+    siblings: string[],
+    totalLeaves: number
+  ): Promise<providers.TransactionResponse> => {
+    const tx = await this.bridgeContract.withdraw(
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      rootHash,
+      transferRootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves,
+      await this.txOverrides()
+    )
+
+    return tx
+  }
+
   getStateUpdateStatus = async (stateUpdateAddress: string, chainId: number): Promise<number> => {
     const abi = ['function currentState(address,uint256)']
     const ethersInterface = new ethersUtils.Interface(abi)

@@ -384,7 +384,7 @@ export default class Bridge extends ContractBase {
 
     if (this.chainSlug === Chain.Ethereum) {
       const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-      ;(payload[payload.length - 1] as TxOverrides).gasLimit = gasLimit.add(10_000)
+      ;(payload[payload.length - 1] as TxOverrides).gasLimit = gasLimit.add(50_000)
     }
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)

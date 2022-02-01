@@ -10,14 +10,14 @@ import Button from 'src/components/buttons/Button'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import useStakeBalance from 'src/pages/Stake/useStakeBalance'
-import { toTokenDisplay, toPercentDisplay, shiftBNDecimals } from 'src/utils'
+import { shiftBNDecimals, amountToBN, sanitizeNumericalString } from 'src/utils'
 import Alert from 'src/components/alert/Alert'
 import usePollValue from 'src/hooks/usePollValue'
 import DetailRow from 'src/components/DetailRow'
-import { amountToBN } from 'src/utils/format'
 import { useTransactionReplacement, useApprove, useAsyncMemo, useBalance } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
+import { formatStakingValues } from './formatStakingValues'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -64,11 +64,29 @@ const StakeWidget: FC<Props> = props => {
   const styles = useStyles()
   const { network, bridge, stakingToken, rewardsToken, stakingRewards } = props
 
-  const { networks, txConfirm, sdk } = useApp()
+  const { txConfirm, sdk } = useApp()
   const { checkConnectedNetworkId, address } = useWeb3Context()
-  const { stakeBalance } = useStakeBalance(stakingRewards, address)
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
-  const formattedStakeBalance = toTokenDisplay(stakeBalance, stakingToken?.decimals)
+  const { stakeBalance } = useStakeBalance(stakingRewards, address)
+  const { balance: lpBalance, loading: loadingLpBalance } = useBalance(
+    stakingToken,
+    network,
+    address
+  )
+  const { balance: totalStaked } = useBalance(stakingToken, network, stakingRewards?.address)
+  const { approve } = useApprove(stakingToken)
+
+  const [amount, setAmount] = useState('')
+
+  const parsedAmount =
+    amount && stakingToken ? amountToBN(amount, stakingToken.decimals) : undefined
+
+  function handleOnChangeAmount(value) {
+    const amt = sanitizeNumericalString(value)
+    setAmount(amt)
+  }
+
+  // Fetched prices
 
   const tokenUsdPrice = useAsyncMemo(async () => {
     try {
@@ -104,17 +122,6 @@ const StakeWidget: FC<Props> = props => {
     [stakingRewards, address]
   )
 
-  const formattedEarned = toTokenDisplay(earned, rewardsToken?.decimals, rewardsToken?.symbol)
-
-  const { balance: lpBalance, loading: loadingLpBalance } = useBalance(
-    stakingToken,
-    network,
-    address
-  )
-  const [amount, setAmount] = useState('')
-  const parsedAmount =
-    amount && stakingToken ? amountToBN(amount, stakingToken.decimals) : undefined
-
   const allowance = usePollValue(
     async () => {
       if (!(address && stakingRewards && stakingToken?.signer)) {
@@ -126,12 +133,14 @@ const StakeWidget: FC<Props> = props => {
     [stakingToken, stakingRewards]
   )
 
+  // Sync checks
+
   const needsApproval = useMemo(() => {
     if (!(address && allowance && parsedAmount)) {
       return undefined
     }
     return allowance.lt(parsedAmount)
-  }, [allowance, parsedAmount])
+  }, [allowance?.toString(), parsedAmount])
 
   const isStakeEnabled = useMemo(() => {
     if (!parsedAmount || !lpBalance) return false
@@ -147,12 +156,7 @@ const StakeWidget: FC<Props> = props => {
     }
   }, [parsedAmount, lpBalance])
 
-  const { balance: totalStaked } = useBalance(stakingToken, network, stakingRewards?.address)
-  const totalStakedFormatted = toTokenDisplay(
-    totalStaked,
-    stakingToken?.decimals,
-    stakingToken?.symbol
-  )
+  // Async checks
 
   const expireDate = useAsyncMemo(async () => {
     try {
@@ -187,12 +191,6 @@ const StakeWidget: FC<Props> = props => {
     }
   }, [stakingRewards, rewardsExpired])
 
-  const totalRewardsPerDayFormatted = toTokenDisplay(
-    totalRewardsPerDay,
-    rewardsToken?.decimals,
-    rewardsToken?.symbol
-  )
-
   const userRewardsPerDay = useAsyncMemo(async () => {
     try {
       if (
@@ -217,27 +215,6 @@ const StakeWidget: FC<Props> = props => {
       return ''
     }
   }, [stakingRewards, stakeBalance, totalStaked, rewardsExpired])
-
-  const userRewardsPerDayFormatted = toTokenDisplay(
-    userRewardsPerDay,
-    rewardsToken?.decimals,
-    rewardsToken?.symbol
-  )
-
-  const { approve } = useApprove(stakingToken)
-  const approveToken = async () => {
-    if (!stakingRewards || !network || !stakingToken) {
-      throw new Error('Undefined approval parameter')
-    }
-
-    const networkId = Number(network.networkId)
-    const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected || !parsedAmount) return
-
-    const tx = await approve(parsedAmount, stakingToken, stakingRewards?.address)
-
-    await tx?.wait()
-  }
 
   // ((REWARD-TOKEN_PER_DAY * REWARD-TOKEN_PRICE)/((STAKED_USDC + STAKED_HUSDC)*STAKED_TOKEN_PRICE)) * DAYS_PER_YEAR
   const apr = useAsyncMemo(async () => {
@@ -277,10 +254,6 @@ const StakeWidget: FC<Props> = props => {
     }
   }, [bridge, network, totalStaked, totalRewardsPerDay, rewardTokenUsdPrice, tokenUsdPrice])
 
-  const aprFormatted = `${toPercentDisplay(apr, TOTAL_AMOUNTS_DECIMALS)} ${
-    rewardsExpired ? '(rewards ended)' : ''
-  }`
-
   const stakedPosition = useAsyncMemo(async () => {
     if (
       !(
@@ -312,9 +285,21 @@ const StakeWidget: FC<Props> = props => {
       .div(BigNumber.from(10).pow(stakingToken?.decimals))
   }, [bridge, network, stakeBalance, stakingToken, earned, rewardTokenUsdPrice, tokenUsdPrice])
 
-  const stakedPositionFormatted = stakedPosition
-    ? `$${toTokenDisplay(stakedPosition, stakingToken?.decimals)}`
-    : ''
+  // Actions
+
+  const approveToken = async () => {
+    if (!stakingRewards || !network || !stakingToken) {
+      throw new Error('Undefined approval parameter')
+    }
+
+    const networkId = Number(network.networkId)
+    const isNetworkConnected = await checkConnectedNetworkId(networkId)
+    if (!isNetworkConnected || !parsedAmount) return
+
+    const tx = await approve(parsedAmount, stakingToken, stakingRewards?.address)
+
+    await tx?.wait()
+  }
 
   const stake = async () => {
     try {
@@ -428,13 +413,36 @@ const StakeWidget: FC<Props> = props => {
     }
   }
 
+  // Formatting
+
+  const {
+    formattedStakeBalance,
+    formattedEarned,
+    totalStakedFormatted,
+    totalRewardsPerDayFormatted,
+    userRewardsPerDayFormatted,
+    aprFormatted,
+    stakedPositionFormatted,
+  } = formatStakingValues(
+    stakingToken,
+    rewardsToken,
+    stakeBalance,
+    earned,
+    totalStaked,
+    totalRewardsPerDay,
+    userRewardsPerDay,
+    apr,
+    stakedPosition,
+    rewardsExpired
+  )
+
   return (
     <Flex column alignCenter>
       <AmountSelectorCard
         label={`Staked: ${formattedStakeBalance}`}
         value={amount}
         token={stakingToken}
-        onChange={setAmount}
+        onChange={handleOnChangeAmount}
         titleIconUrl={network?.imageUrl}
         title={`${network?.name} ${stakingToken?.name}`}
         balance={lpBalance}
@@ -442,9 +450,9 @@ const StakeWidget: FC<Props> = props => {
         hideSymbol
       />
 
-      <Flex>Staking Rewards: {stakingRewards?.address}</Flex>
-      <Flex>Rewards Token: {rewardsToken?.address}</Flex>
-      <Flex>Staking Token: {stakingToken?.address}</Flex>
+      <Div>Staking Rewards: {stakingRewards?.address}</Div>
+      <Div>Rewards Token: {rewardsToken?.address}</Div>
+      <Div>Staking Token: {stakingToken?.address}</Div>
 
       <div className={styles.details}>
         <DetailRow

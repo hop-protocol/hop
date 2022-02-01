@@ -199,7 +199,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
       </Flex>
 
       <Flex fullWidth justifyBetween alignCenter>
-        <Flex width="45%">
+        <Flex width="50%">
           <Box className={styles.networkSelectionBox}>
             {titleIconUrl ? (
               <Box className={styles.networkIconContainer}>

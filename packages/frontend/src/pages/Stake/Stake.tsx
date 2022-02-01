@@ -1,5 +1,4 @@
 import React, { FC, useEffect, useMemo, useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { Token, CanonicalToken, WrappedToken, ChainId } from '@hop-protocol/sdk'
@@ -9,22 +8,14 @@ import StakeWidget from 'src/pages/Stake/StakeWidget'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { useSelectedNetwork } from 'src/hooks'
 import { isMainnet } from 'src/config'
-import { Flex } from 'src/components/ui'
+import { Div, Flex } from 'src/components/ui'
 import { findMatchingBridge, findNetworkBySlug, getNetworkProviderOrDefault } from 'src/utils'
 import { StakingRewards__factory } from '@hop-protocol/core/contracts'
-import { NetworkSelector } from 'src/components/NetworkSelector'
 import { providers, Signer } from 'ethers'
 import Network from 'src/models/Network'
-
-const useStyles = makeStyles(theme => ({
-  container: {
-    padding: `${theme.padding.default} 0`,
-  },
-}))
+import { RaisedNetworkSelector } from 'src/components/NetworkSelector/RaisedNetworkSelector'
 
 const Stake: FC = () => {
-  const styles = useStyles()
-
   const { bridges, sdk, networks, user, tokens } = useApp()
   const { provider } = useWeb3Context()
 
@@ -159,12 +150,14 @@ const Stake: FC = () => {
   return (
     <Flex column alignCenter>
       <Typography variant="h4">Stake</Typography>
-      <div className={styles.container}>
-        <NetworkSelector
-          network={selectedNetwork}
-          onChange={selectBothNetworks}
-          availableNetworks={availableNetworks}
-        />
+      <Div py={28}>
+        <Flex justifyCenter mb={4} fullWidth>
+          <RaisedNetworkSelector
+            selectedNetwork={selectedNetwork}
+            onSelect={selectBothNetworks}
+            availableNetworks={availableNetworks}
+          />
+        </Flex>
 
         {enabledTokens.includes(CanonicalToken.ETH) && (
           <StakeWidget
@@ -217,7 +210,7 @@ const Stake: FC = () => {
             key={usdtStakingToken?.symbol}
           />
         )}
-      </div>
+      </Div>
     </Flex>
   )
 }

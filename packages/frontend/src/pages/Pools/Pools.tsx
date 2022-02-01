@@ -24,6 +24,7 @@ import DetailRow from 'src/components/DetailRow'
 import { useNeedsTokenForFee } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
+import { RaisedNetworkSelector } from 'src/components/NetworkSelector/RaisedNetworkSelector'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -229,13 +230,11 @@ const Pools: FC = () => {
         <Typography variant="body1" component="span" className={styles.textSpacing}>
           on
         </Typography>
-        <RaisedSelect value={selectedNetwork?.slug} onChange={selectBothNetworks}>
-          {networks.map(network => (
-            <MenuItem value={network.slug} key={network.slug}>
-              <SelectOption value={network.slug} icon={network.imageUrl} label={network.name} />
-            </MenuItem>
-          ))}
-        </RaisedSelect>
+        <RaisedNetworkSelector
+          selectedNetwork={selectedNetwork}
+          onSelect={selectBothNetworks}
+          availableNetworks={networks}
+        />
       </Box>
 
       {unsupportedAsset ? (

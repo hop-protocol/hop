@@ -82,16 +82,17 @@ const StakeWidget: FC<Props> = props => {
     }
   }, [bridge])
 
-  const maticUsdPrice = useAsyncMemo(async () => {
+  const rewardTokenUsdPrice = useAsyncMemo(async () => {
     try {
       if (!bridge?.signer) {
         return
       }
-      return bridge.priceFeed.getPriceByTokenSymbol('MATIC')
+      const tokenSymbol = network?.slug === 'gnosis' ? 'GNO' : 'MATIC'
+      return bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
     } catch (err) {
       console.error(err)
     }
-  }, [bridge])
+  }, [bridge, network?.slug])
 
   const earned = usePollValue<BigNumber>(
     async () => {
@@ -238,16 +239,23 @@ const StakeWidget: FC<Props> = props => {
     await tx?.wait()
   }
 
-  // ((WMATIC_PER_DAY * MATIC_PRICE)/((STAKED_USDC + STAKED_HUSDC)*STAKED_TOKEN_PRICE)) * DAYS_PER_YEAR
+  // ((REWARD-TOKEN_PER_DAY * REWARD-TOKEN_PRICE)/((STAKED_USDC + STAKED_HUSDC)*STAKED_TOKEN_PRICE)) * DAYS_PER_YEAR
   const apr = useAsyncMemo(async () => {
     try {
       if (
-        !(bridge && network && totalStaked && totalRewardsPerDay && maticUsdPrice && tokenUsdPrice)
+        !(
+          bridge &&
+          network &&
+          totalStaked &&
+          totalRewardsPerDay &&
+          rewardTokenUsdPrice &&
+          tokenUsdPrice
+        )
       ) {
         return
       }
 
-      const maticUsdPriceBn = amountToBN(maticUsdPrice.toString(), 18)
+      const rewardTokenUsdPriceBn = amountToBN(rewardTokenUsdPrice.toString(), 18)
       const tokenUsdPriceBn = amountToBN(tokenUsdPrice.toString(), 18)
       const token = await bridge.getCanonicalToken(network.slug)
       const amm = bridge.getAmm(network.slug)
@@ -260,14 +268,14 @@ const StakeWidget: FC<Props> = props => {
       const oneYear = 365
 
       return totalRewardsPerDay
-        .mul(maticUsdPriceBn)
+        .mul(rewardTokenUsdPriceBn)
         .mul(precision)
         .div(stakedTotal18d.mul(tokenUsdPriceBn))
         .mul(oneYear)
     } catch (err) {
       console.error(err)
     }
-  }, [bridge, network, totalStaked, totalRewardsPerDay, maticUsdPrice, tokenUsdPrice])
+  }, [bridge, network, totalStaked, totalRewardsPerDay, rewardTokenUsdPrice, tokenUsdPrice])
 
   const aprFormatted = `${toPercentDisplay(apr, TOTAL_AMOUNTS_DECIMALS)} ${
     rewardsExpired ? '(rewards ended)' : ''
@@ -279,7 +287,7 @@ const StakeWidget: FC<Props> = props => {
         bridge &&
         network &&
         earned &&
-        maticUsdPrice &&
+        rewardTokenUsdPrice &&
         tokenUsdPrice &&
         stakingToken &&
         stakeBalance &&
@@ -289,7 +297,7 @@ const StakeWidget: FC<Props> = props => {
       return
     }
 
-    const maticUsdPriceBn = amountToBN(maticUsdPrice.toString(), stakingToken.decimals)
+    const rewardTokenUsdPriceBn = amountToBN(rewardTokenUsdPrice.toString(), stakingToken.decimals)
     const tokenUsdPriceBn = amountToBN(tokenUsdPrice.toString(), stakingToken.decimals)
     const token = await bridge.getCanonicalToken(network.slug)
     const amm = bridge.getAmm(network.slug)
@@ -300,9 +308,9 @@ const StakeWidget: FC<Props> = props => {
     )
     return userStakedTotal18d
       .mul(tokenUsdPriceBn)
-      .add(earned.mul(maticUsdPriceBn))
+      .add(earned.mul(rewardTokenUsdPriceBn))
       .div(BigNumber.from(10).pow(stakingToken?.decimals))
-  }, [bridge, network, stakeBalance, stakingToken, earned, maticUsdPrice, tokenUsdPrice])
+  }, [bridge, network, stakeBalance, stakingToken, earned, rewardTokenUsdPrice, tokenUsdPrice])
 
   const stakedPositionFormatted = stakedPosition
     ? `$${toTokenDisplay(stakedPosition, stakingToken?.decimals)}`

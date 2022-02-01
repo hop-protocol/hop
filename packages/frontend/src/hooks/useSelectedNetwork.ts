@@ -5,7 +5,8 @@ import { findNetworkBySlug } from 'src/utils'
 import useQueryParams from './useQueryParams'
 
 interface Options {
-  l2Only: boolean
+  l2Only?: boolean
+  availableNetworks?: Network[]
 }
 
 export function useSelectedNetwork(opts: Options = { l2Only: false }) {

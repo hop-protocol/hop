@@ -9,20 +9,24 @@ import Network from 'src/models/Network'
 
 interface Props {
   network?: Network
-  onChange?: (network: Network) => void
+  setNetwork?: (network: Network) => void
+  onChange?: (e: any) => void
   availableNetworks?: Network[] | any[]
 }
 
-function NetworkSelector({ network, onChange, availableNetworks }: Props) {
+function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: Props) {
   const { networks: allNetworks } = useApp()
   const styles = useNetworkSelectorStyles()
   const networks = availableNetworks || allNetworks
 
   function selectNetwork(event) {
+    if (onChange) {
+      return onChange(event)
+    }
     const match = findNetworkBySlug(event.target.value, networks)
 
-    if (onChange && match) {
-      onChange(match)
+    if (setNetwork && match) {
+      setNetwork(match)
     }
   }
 

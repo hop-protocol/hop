@@ -7,6 +7,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import StakeWidget from 'src/pages/Stake/StakeWidget'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
+import { useSelectedNetwork } from 'src/hooks'
 import { isMainnet } from 'src/config'
 import { Flex } from 'src/components/ui'
 import { findMatchingBridge, findNetworkBySlug, getNetworkProviderOrDefault } from 'src/utils'
@@ -44,7 +45,10 @@ const Stake: FC = () => {
   const availableNetworks = networks.filter(n => ['gnosis', 'polygon'].includes(n.slug))
   const polygonNetwork = useMemo(() => findNetworkBySlug('polygon') as Network, [networks])
   const gnosisNetwork = useMemo(() => findNetworkBySlug('gnosis') as Network, [networks])
-  const [selectedNetwork, setSelectedNetwork] = useState(gnosisNetwork)
+  const { selectedNetwork, selectBothNetworks } = useSelectedNetwork({
+    l2Only: true,
+    availableNetworks,
+  })
   const [selectedProvider, setSelectedProvider] = useState<providers.Provider | Signer>()
 
   useEffect(() => {
@@ -158,7 +162,7 @@ const Stake: FC = () => {
       <div className={styles.container}>
         <NetworkSelector
           network={selectedNetwork}
-          onChange={setSelectedNetwork}
+          onChange={selectBothNetworks}
           availableNetworks={availableNetworks}
         />
 

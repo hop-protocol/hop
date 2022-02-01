@@ -11,11 +11,12 @@ import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import useStakeBalance from 'src/pages/Stake/useStakeBalance'
 import {
-  shiftBNDecimals,
   amountToBN,
   sanitizeNumericalString,
   formatStakingValues,
   isRewardsExpired,
+  calculateApr,
+  calculateStakedPosition,
 } from 'src/utils'
 import Alert from 'src/components/alert/Alert'
 import usePollValue from 'src/hooks/usePollValue'
@@ -59,8 +60,6 @@ type Props = {
   rewardsToken: Token | undefined
   stakingRewards: Contract | undefined
 }
-
-const TOTAL_AMOUNTS_DECIMALS = 18
 
 const StakeWidget: FC<Props> = props => {
   const styles = useStyles()
@@ -163,7 +162,8 @@ const StakeWidget: FC<Props> = props => {
   const rewardsExpired = useAsyncMemo(async () => {
     try {
       if (!stakingRewards) return
-      return isRewardsExpired(stakingRewards)
+      const timestamp = await stakingRewards.periodFinish()
+      return isRewardsExpired(timestamp)
     } catch (err: any) {
       console.error(err)
     }
@@ -209,7 +209,6 @@ const StakeWidget: FC<Props> = props => {
     }
   }, [stakingRewards, stakeBalance, totalStaked, rewardsExpired])
 
-  // ((REWARD-TOKEN_PER_DAY * REWARD-TOKEN_PRICE)/((STAKED_USDC + STAKED_HUSDC)*STAKED_TOKEN_PRICE)) * DAYS_PER_YEAR
   const apr = useAsyncMemo(async () => {
     try {
       if (
@@ -225,27 +224,31 @@ const StakeWidget: FC<Props> = props => {
         return
       }
 
-      const rewardTokenUsdPriceBn = amountToBN(rewardTokenUsdPrice.toString(), 18)
-      const tokenUsdPriceBn = amountToBN(tokenUsdPrice.toString(), 18)
-      const token = await bridge.getCanonicalToken(network.slug)
+      const canonToken = await bridge.getCanonicalToken(network.slug)
       const amm = bridge.getAmm(network.slug)
       const stakedTotal = await amm.calculateTotalAmountForLpToken(totalStaked)
       if (stakedTotal.lte(0)) {
         return BigNumber.from(0)
       }
-      const stakedTotal18d = shiftBNDecimals(stakedTotal, TOTAL_AMOUNTS_DECIMALS - token.decimals)
-      const precision = amountToBN('1', 18)
-      const oneYear = 365
 
-      return totalRewardsPerDay
-        .mul(rewardTokenUsdPriceBn)
-        .mul(precision)
-        .div(stakedTotal18d.mul(tokenUsdPriceBn))
-        .mul(oneYear)
+      return calculateApr(
+        canonToken.decimals,
+        tokenUsdPrice,
+        rewardTokenUsdPrice,
+        stakedTotal,
+        totalRewardsPerDay
+      )
     } catch (err) {
       console.error(err)
     }
-  }, [bridge, network, totalStaked, totalRewardsPerDay, rewardTokenUsdPrice, tokenUsdPrice])
+  }, [
+    bridge?.network,
+    network?.slug,
+    totalStaked,
+    totalRewardsPerDay,
+    rewardTokenUsdPrice,
+    tokenUsdPrice,
+  ])
 
   const stakedPosition = useAsyncMemo(async () => {
     if (
@@ -263,20 +266,27 @@ const StakeWidget: FC<Props> = props => {
       return
     }
 
-    const rewardTokenUsdPriceBn = amountToBN(rewardTokenUsdPrice.toString(), stakingToken.decimals)
-    const tokenUsdPriceBn = amountToBN(tokenUsdPrice.toString(), stakingToken.decimals)
-    const token = await bridge.getCanonicalToken(network.slug)
+    const canonToken = await bridge.getCanonicalToken(network.slug)
     const amm = bridge.getAmm(network.slug)
     const userStakedTotal = await amm.calculateTotalAmountForLpToken(stakeBalance)
-    const userStakedTotal18d = shiftBNDecimals(
+
+    return calculateStakedPosition(
+      earned,
       userStakedTotal,
-      TOTAL_AMOUNTS_DECIMALS - token.decimals
+      tokenUsdPrice,
+      rewardTokenUsdPrice,
+      canonToken.decimals,
+      stakingToken.decimals
     )
-    return userStakedTotal18d
-      .mul(tokenUsdPriceBn)
-      .add(earned.mul(rewardTokenUsdPriceBn))
-      .div(BigNumber.from(10).pow(stakingToken?.decimals))
-  }, [bridge, network, stakeBalance, stakingToken, earned, rewardTokenUsdPrice, tokenUsdPrice])
+  }, [
+    bridge?.network,
+    network?.slug,
+    stakeBalance,
+    stakingToken,
+    earned,
+    rewardTokenUsdPrice,
+    tokenUsdPrice,
+  ])
 
   // Actions
 

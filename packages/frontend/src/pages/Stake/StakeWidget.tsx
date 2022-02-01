@@ -10,14 +10,19 @@ import Button from 'src/components/buttons/Button'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import useStakeBalance from 'src/pages/Stake/useStakeBalance'
-import { shiftBNDecimals, amountToBN, sanitizeNumericalString } from 'src/utils'
+import {
+  shiftBNDecimals,
+  amountToBN,
+  sanitizeNumericalString,
+  formatStakingValues,
+  isRewardsExpired,
+} from 'src/utils'
 import Alert from 'src/components/alert/Alert'
 import usePollValue from 'src/hooks/usePollValue'
 import DetailRow from 'src/components/DetailRow'
 import { useTransactionReplacement, useApprove, useAsyncMemo, useBalance } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
-import { formatStakingValues } from './formatStakingValues'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -34,9 +39,6 @@ const useStyles = makeStyles(theme => ({
   },
   alert: {
     marginTop: theme.padding.default,
-  },
-  withdrawButton: {
-    marginTop: theme.padding.light,
   },
   rewardsDetails: {
     width: '30.0rem',
@@ -158,23 +160,14 @@ const StakeWidget: FC<Props> = props => {
 
   // Async checks
 
-  const expireDate = useAsyncMemo(async () => {
+  const rewardsExpired = useAsyncMemo(async () => {
     try {
-      if (!stakingRewards) return undefined
-      const timestamp = await stakingRewards?.periodFinish()
-      return Number(timestamp.toString())
+      if (!stakingRewards) return
+      return isRewardsExpired(stakingRewards)
     } catch (err: any) {
       console.error(err)
     }
   }, [stakingRewards])
-
-  const rewardsExpired = useMemo(() => {
-    if (!expireDate) {
-      return
-    }
-    const now = (Date.now() / 1000) | 0
-    return now > expireDate
-  }, [expireDate])
 
   const totalRewardsPerDay = useAsyncMemo(async () => {
     try {
@@ -450,11 +443,7 @@ const StakeWidget: FC<Props> = props => {
         hideSymbol
       />
 
-      <Div>Staking Rewards: {stakingRewards?.address}</Div>
-      <Div>Rewards Token: {rewardsToken?.address}</Div>
-      <Div>Staking Token: {stakingToken?.address}</Div>
-
-      <div className={styles.details}>
+      <Flex column mt={2} width={['100%', '46rem']}>
         <DetailRow
           title="APR"
           tooltip="Annual Percentage Rate (APR) from staking LP tokens"
@@ -472,8 +461,9 @@ const StakeWidget: FC<Props> = props => {
             value={`${totalRewardsPerDayFormatted} / day`}
           />
         )}
-      </div>
-      <div className={styles.details}>
+      </Flex>
+
+      <Flex column mb={2} width={['100%', '46rem']}>
         {!!userRewardsPerDay && (
           <DetailRow
             title={'Your Rewards'}
@@ -488,17 +478,13 @@ const StakeWidget: FC<Props> = props => {
             value={stakedPositionFormatted}
           />
         )}
-      </div>
-      <Alert severity="warning" text={warning} className={styles.alert} />
-      <Flex column alignCenter fullWidth mt={2} mb={4}>
-        {earned?.gt(0) && (
-          <Button className={styles.claimButton} large highlighted onClick={claim}>
-            Claim {formattedEarned}
-          </Button>
-        )}
+      </Flex>
 
+      <Alert severity="warning" text={warning} className={styles.alert} />
+
+      <Flex column alignCenter fullWidth mt={2} mb={4}>
         <ButtonsWrapper>
-          <Div mb={[3]}>
+          <Div mb={[2]}>
             <Button
               className={styles.button}
               large
@@ -509,7 +495,7 @@ const StakeWidget: FC<Props> = props => {
               Approve
             </Button>
           </Div>
-          <Div mb={[3]}>
+          <Div mb={[2]}>
             <Button
               className={styles.button}
               large
@@ -521,10 +507,21 @@ const StakeWidget: FC<Props> = props => {
             </Button>
           </Div>
         </ButtonsWrapper>
+
+        {earned?.gt(0) && (
+          <Flex my={2}>
+            <Button large highlighted onClick={claim}>
+              Claim {formattedEarned}
+            </Button>
+          </Flex>
+        )}
+
         {stakeBalance?.gt(0) && (
-          <Button className={styles.withdrawButton} large onClick={withdraw}>
-            Withdraw
-          </Button>
+          <Flex mt={2}>
+            <Button large onClick={withdraw}>
+              Withdraw
+            </Button>
+          </Flex>
         )}
       </Flex>
     </Flex>

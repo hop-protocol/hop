@@ -1,3 +1,4 @@
+import { Contract } from 'ethers'
 import { toPercentDisplay, toTokenDisplay } from 'src/utils'
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -47,4 +48,11 @@ export function formatStakingValues(
     aprFormatted,
     stakedPositionFormatted,
   }
+}
+
+export async function isRewardsExpired(stakingRewards: Contract) {
+  const timestamp = await stakingRewards.periodFinish()
+  const expirationDate = Number(timestamp.toString())
+  const now = (Date.now() / 1000) | 0
+  return now > expirationDate
 }

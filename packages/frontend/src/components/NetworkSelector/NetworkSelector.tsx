@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Box, MenuItem, Typography } from '@material-ui/core'
 import { useApp } from 'src/contexts/AppContext'
 import FlatSelect from '../selects/FlatSelect'
@@ -17,7 +17,10 @@ interface Props {
 function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: Props) {
   const { networks: allNetworks } = useApp()
   const styles = useNetworkSelectorStyles()
-  const networks = availableNetworks || allNetworks
+  const networks = useMemo(
+    () => (availableNetworks?.length ? availableNetworks : allNetworks),
+    [availableNetworks, allNetworks]
+  )
 
   function selectNetwork(event) {
     if (onChange) {

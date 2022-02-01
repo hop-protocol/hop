@@ -1,17 +1,29 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, MenuItem, Typography } from '@material-ui/core'
 import { useApp } from 'src/contexts/AppContext'
 import FlatSelect from '../selects/FlatSelect'
 import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'
 import { Flex, Text } from '../ui'
+import { findNetworkBySlug } from 'src/utils'
+import Network from 'src/models/Network'
 
-function NetworkSelector({ network, setNetwork }) {
-  const { networks } = useApp()
+interface Props {
+  network?: Network
+  onChange?: (network: Network) => void
+  availableNetworks?: Network[] | any[]
+}
+
+function NetworkSelector({ network, onChange, availableNetworks }: Props) {
+  const { networks: allNetworks } = useApp()
   const styles = useNetworkSelectorStyles()
+  const networks = availableNetworks || allNetworks
 
   function selectNetwork(event) {
-    const match = networks.find(_network => _network.slug === event.target.value)
-    setNetwork(match)
+    const match = findNetworkBySlug(event.target.value, networks)
+
+    if (onChange && match) {
+      onChange(match)
+    }
   }
 
   return (

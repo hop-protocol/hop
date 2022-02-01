@@ -105,11 +105,9 @@ const StakeWidget: FC<Props> = props => {
 
   const formattedEarned = toTokenDisplay(earned, rewardsToken?.decimals, rewardsToken?.symbol)
 
-  const polygon = networks.find(network => network.slug === 'polygon')
-
   const { balance: lpBalance, loading: loadingLpBalance } = useBalance(
     stakingToken,
-    polygon,
+    network,
     address
   )
   const [amount, setAmount] = useState('')
@@ -148,7 +146,7 @@ const StakeWidget: FC<Props> = props => {
     }
   }, [parsedAmount, lpBalance])
 
-  const { balance: totalStaked } = useBalance(stakingToken, polygon, stakingRewards?.address)
+  const { balance: totalStaked } = useBalance(stakingToken, network, stakingRewards?.address)
   const totalStakedFormatted = toTokenDisplay(
     totalStaked,
     stakingToken?.decimals,
@@ -435,6 +433,11 @@ const StakeWidget: FC<Props> = props => {
         loadingBalance={loadingLpBalance}
         hideSymbol
       />
+
+      <Flex>Staking Rewards: {stakingRewards?.address}</Flex>
+      <Flex>Rewards Token: {rewardsToken?.address}</Flex>
+      <Flex>Staking Token: {stakingToken?.address}</Flex>
+
       <div className={styles.details}>
         <DetailRow
           title="APR"

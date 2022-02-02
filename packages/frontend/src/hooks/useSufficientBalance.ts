@@ -14,7 +14,7 @@ export function useSufficientBalance(
 
   useEffect(() => {
     async function checkEnoughBalance() {
-      if (!(token && estimatedGasCost && amount)) {
+      if (!(token && amount)) {
         setWarning('')
         return setSufficientBalance(false)
       }
@@ -25,6 +25,11 @@ export function useSufficientBalance(
       let message: string = ''
 
       const ntb = await token.getNativeTokenBalance()
+
+      if (!estimatedGasCost) {
+        const gasPrice = await token.signer.getGasPrice()
+        estimatedGasCost = BigNumber.from(200e3).mul(gasPrice || 1e9)
+      }
 
       if (token.isNativeToken) {
         totalCost = estimatedGasCost.add(amount)
@@ -48,6 +53,10 @@ export function useSufficientBalance(
         } to pay for tx fees or reduce the amount by approximately ${toTokenDisplay(diff)} ${
           token.symbol
         }`
+
+        if (!token.isNativeToken) {
+          message = `Insufficient balance to cover the cost of tx. Please add ${token.nativeTokenSymbol} to pay for tx fees.`
+        }
       } else if (!enoughTokenBalance) {
         message = `Insufficient ${token.symbol} balance.`
       }

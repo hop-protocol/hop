@@ -6,8 +6,8 @@ import { networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
 import Network from 'src/models/Network'
 
-export function findNetworkBySlug(slug: string, networks?: Network[]) {
-  return find(networks || allNetworks, ['slug', slug])
+export function findNetworkBySlug(slug: string, networks: Network[] = allNetworks) {
+  return find(networks, ['slug', slug])
 }
 
 export const networkSlugToId = (slug: string) => {
@@ -72,25 +72,20 @@ export function isL2ToL1(srcNetwork: Network, destNetwork: Network) {
   return false
 }
 
-export function isProviderNetworkByChainSlugOrId(
-  slugOrId: ChainSlug | ChainId,
-  provider?: JsonRpcProvider
-) {
+export function isProviderNetworkByChainId(chainId: ChainId, provider?: JsonRpcProvider) {
   if (!provider) return false
 
-  if (slugOrId in ChainId) {
-    return slugOrId === provider.network.chainId
+  if (chainId in ChainId) {
+    return chainId === provider.network.chainId
   }
-
-  return slugOrId === provider.network.name
 }
 
 export function getNetworkProviderOrDefault(
-  slugOrId: ChainSlug | ChainId,
+  chainId: ChainId,
   defaultProvider: providers.Provider | Signer,
   provider?: JsonRpcProvider
 ) {
-  if (isProviderNetworkByChainSlugOrId(slugOrId, provider)) return provider!
+  if (isProviderNetworkByChainId(chainId, provider)) return provider!
 
   return defaultProvider
 }

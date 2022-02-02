@@ -6,7 +6,7 @@ import { toTokenDisplay } from 'src/utils'
 export function useSufficientBalance(
   token?: Token,
   amount?: BigNumber,
-  estimatedGasCost: BigNumber = BigNumber.from(500_000),
+  estimatedGasCost?: BigNumber,
   tokenBalance: BigNumber = BigNumber.from(0)
 ) {
   const [sufficientBalance, setSufficientBalance] = useState(false)
@@ -25,6 +25,11 @@ export function useSufficientBalance(
       let message: string = ''
 
       const ntb = await token.getNativeTokenBalance()
+
+      if (!estimatedGasCost) {
+        const gasPrice = await token.signer.getGasPrice()
+        estimatedGasCost = BigNumber.from(200e3).mul(gasPrice || 1e9)
+      }
 
       if (token.isNativeToken) {
         totalCost = estimatedGasCost.add(amount)

@@ -35,21 +35,8 @@ const useStyles = makeStyles(theme => ({
   button: {
     width: '16rem',
   },
-  claimButton: {
-    marginTop: theme.padding.default,
-  },
   alert: {
     marginTop: theme.padding.default,
-  },
-  rewardsDetails: {
-    width: '30.0rem',
-  },
-  details: {
-    marginTop: '4.2rem',
-    width: '46.0rem',
-    [theme.breakpoints.down('xs')]: {
-      width: '100%',
-    },
   },
 }))
 

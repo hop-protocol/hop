@@ -5,7 +5,8 @@ import { findNetworkBySlug } from 'src/utils'
 import useQueryParams from './useQueryParams'
 
 interface Options {
-  l2Only: boolean
+  l2Only?: boolean
+  availableNetworks?: Network[]
 }
 
 export function useSelectedNetwork(opts: Options = { l2Only: false }) {
@@ -14,7 +15,10 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
 
   useEffect(() => {
     if (queryParams?.sourceNetwork !== selectedNetwork.slug) {
-      const matchingNetwork = findNetworkBySlug(queryParams.sourceNetwork as string)
+      const matchingNetwork = findNetworkBySlug(
+        queryParams.sourceNetwork as string,
+        opts.availableNetworks
+      )
       if (matchingNetwork && !matchingNetwork?.isLayer1) {
         setSelectedNetwork(matchingNetwork)
       } else {
@@ -31,7 +35,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
 
   const selectSourceNetwork = (event: ChangeEvent<{ value: any }>) => {
     const selectedNetworkSlug = event.target.value
-    const network = findNetworkBySlug(selectedNetworkSlug)
+    const network = findNetworkBySlug(selectedNetworkSlug, opts.availableNetworks)
     if (network) {
       setSelectedNetwork(network)
       updateQueryParams({
@@ -42,7 +46,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
 
   const selectDestNetwork = (event: ChangeEvent<{ value: any }>) => {
     const selectedNetworkSlug = event.target.value
-    const network = findNetworkBySlug(selectedNetworkSlug)
+    const network = findNetworkBySlug(selectedNetworkSlug, opts.availableNetworks)
     if (network) {
       setSelectedNetwork(network)
       updateQueryParams({
@@ -53,7 +57,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
 
   const selectBothNetworks = (event: ChangeEvent<{ value: any }>) => {
     const selectedNetworkSlug = event.target.value
-    const network = findNetworkBySlug(selectedNetworkSlug)
+    const network = findNetworkBySlug(selectedNetworkSlug, opts.availableNetworks)
     if (network) {
       setSelectedNetwork(network)
       updateQueryParams({

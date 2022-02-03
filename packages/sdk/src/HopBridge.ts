@@ -892,8 +892,8 @@ class HopBridge extends Base {
 
     // Arbitrum returns a gasLimit & gasPriceBid of appx 1.5x what is generally paid
     if (destinationChain.equals(Chain.Arbitrum)) {
-      gasPrice = gasPrice.div(1.5)
-      bondTransferGasLimit = bondTransferGasLimit.div(1.5)
+      gasPrice = gasPrice.div(2)
+      bondTransferGasLimit = bondTransferGasLimit.div(2)
     }
 
     // Include the cost to settle an individual transfer

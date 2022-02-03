@@ -1,4 +1,4 @@
-import React, { FC, createContext, useContext, useMemo, useState, useEffect } from 'react'
+import React, { FC, createContext, useContext, useMemo, useState, useEffect, useCallback } from 'react'
 import Onboard from 'bnc-onboard'
 import { ethers, Contract, BigNumber } from 'ethers'
 import Address from 'src/models/Address'
@@ -261,7 +261,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const walletConnected = !!address
 
   // TODO: cleanup
-  const checkConnectedNetworkId = async (networkId?: number): Promise<boolean> => {
+  const checkConnectedNetworkId = useCallback(async (networkId?: number): Promise<boolean> => {
     if (!networkId) return false
     const signerNetworkId = (await provider?.getNetwork())?.chainId
     logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
@@ -318,7 +318,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     }
 
     return true
-  }
+  }, [provider, onboard])
 
   // TODO: cleanup
   const getWriteContract = async (contract?: Contract): Promise<Contract | undefined> => {

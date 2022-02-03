@@ -233,6 +233,10 @@ class Token extends Base {
     return isEth || isMatic || isxDai
   }
 
+  get nativeTokenSymbol () {
+    return this.chain.nativeTokenSymbol
+  }
+
   public async getNativeTokenBalance (address?: string): Promise<BigNumber> {
     address = address ?? await this.getSignerAddress()
     if (!address) {

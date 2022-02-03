@@ -1,11 +1,13 @@
-import { CanonicalToken, ChainSlug, Slug, TChain } from '@hop-protocol/sdk'
+import { JsonRpcProvider } from '@ethersproject/providers'
+import { CanonicalToken, ChainId, ChainSlug, Slug, TChain } from '@hop-protocol/sdk'
+import { Signer, providers } from 'ethers'
 import { find } from 'lodash'
 import { networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
 import Network from 'src/models/Network'
 
-export function findNetworkBySlug(slug: string) {
-  return find(allNetworks, ['slug', slug])
+export function findNetworkBySlug(slug: string, networks: Network[] = allNetworks) {
+  return find(networks, ['slug', slug])
 }
 
 export const networkSlugToId = (slug: string) => {
@@ -68,4 +70,22 @@ export function isL2ToL1(srcNetwork: Network, destNetwork: Network) {
   }
 
   return false
+}
+
+export function isProviderNetworkByChainId(chainId: ChainId, provider?: JsonRpcProvider) {
+  if (!provider) return false
+
+  if (chainId in ChainId) {
+    return chainId === provider.network.chainId
+  }
+}
+
+export function getNetworkProviderOrDefault(
+  chainId: ChainId,
+  defaultProvider: providers.Provider | Signer,
+  provider?: JsonRpcProvider
+) {
+  if (isProviderNetworkByChainId(chainId, provider)) return provider!
+
+  return defaultProvider
 }

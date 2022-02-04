@@ -12,12 +12,13 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
+import { isL1ToL2, commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
 import { hopAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/infoTooltip'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
 import { useSendStyles } from './useSendStyles'
 import SendHeader from './SendHeader'
@@ -470,6 +471,12 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
+  const isL1ToPolygon =
+    fromNetwork &&
+    toNetwork &&
+    isL1ToL2(fromNetwork, toNetwork) &&
+    toNetwork.slug === ChainSlug.Polygon
+
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
   const sendButtonActive = useMemo(() => {
@@ -484,7 +491,8 @@ const Send: FC = () => {
       rate &&
       sufficientBalance &&
       isLiquidityAvailable &&
-      estimatedReceived?.gt(0)
+      estimatedReceived?.gt(0) &&
+      !isL1ToPolygon
     )
   }, [
     needsApproval,
@@ -498,6 +506,7 @@ const Send: FC = () => {
     sufficientBalance,
     isLiquidityAvailable,
     estimatedReceived,
+    isL1ToPolygon
   ])
 
   return (
@@ -586,6 +595,11 @@ const Send: FC = () => {
       </div>
 
       <Alert severity="error" onClose={() => setError(null)} text={error} />
+      <Alert severity="warning" onClose={() => setError(null)} text={error}>
+        {isL1ToPolygon && (
+          <div>The Polygon messenger is currently down and Ethereum to Polygon transfers cannot be completed until it’s back online. Please, try again later and check the Discord channel for updates.</div>
+        )}
+      </Alert>
       {!error && <Alert severity="warning">{warning}</Alert>}
 
       <ButtonsWrapper>

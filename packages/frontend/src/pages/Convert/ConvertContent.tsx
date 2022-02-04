@@ -9,7 +9,8 @@ import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/modal/TxStatusModal'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
 import TokenWrapper from 'src/components/TokenWrapper'
-import { sanitizeNumericalString } from 'src/utils'
+import { isL1ToL2, sanitizeNumericalString } from 'src/utils'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { MethodNames } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
@@ -104,10 +105,16 @@ const ConvertContent: FC = () => {
     approveTokens()
   }
 
+  const isL1ToPolygon =
+    sourceNetwork &&
+    destNetwork &&
+    isL1ToL2(sourceNetwork, destNetwork) &&
+    destNetwork.slug === ChainSlug.Polygon
+
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning: High Price Impact!')
 
   const sendButtonActive =
-    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error
+    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !isL1ToPolygon
 
   const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
 
@@ -152,6 +159,11 @@ const ConvertContent: FC = () => {
           <div className={styles.details}>{details}</div>
           <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
+          <Alert severity="warning" onClose={() => setError(undefined)} text={error}>
+            {isL1ToPolygon && (
+              <div>The Polygon messenger is currently down and Ethereum to Polygon transfers cannot be completed until it’s back online. Please, try again later and check the Discord channel for updates.</div>
+            )}
+          </Alert>
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
           <ButtonsWrapper>

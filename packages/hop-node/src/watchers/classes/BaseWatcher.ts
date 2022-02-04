@@ -9,7 +9,6 @@ import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Notifier } from 'src/notifier'
 import { config as globalConfig, hostname } from 'src/config'
@@ -17,11 +16,10 @@ import { config as globalConfig, hostname } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  tag: string
   prefix?: string
   logColor?: string
   isL1?: boolean
-  bridgeContract?: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  bridgeContract?: L1BridgeContract | L2BridgeContract
   dryMode?: boolean
   stateUpdateAddress?: string
 }
@@ -47,7 +45,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   siblingWatchers: { [chainId: string]: any }
   syncWatcher: SyncWatcher
   metrics = new Metrics()
-  dryMode: boolean
+  dryMode: boolean = false
+  startedWithDryMode: boolean = false
   tag: string
   prefix: string
   pauseMode: boolean = false
@@ -55,7 +54,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   constructor (config: Config) {
     super()
-    const { chainSlug, tokenSymbol, tag, prefix, logColor } = config
+    const { chainSlug, tokenSymbol, prefix, logColor } = config
+    const tag = this.constructor.name
     this.logger = new Logger({
       tag,
       prefix,
@@ -78,13 +78,14 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
     if (config.bridgeContract != null) {
       if (this.isL1) {
-        this.bridge = new L1Bridge(config.bridgeContract as L1BridgeContract | L1ERC20BridgeContract)
+        this.bridge = new L1Bridge(config.bridgeContract as L1BridgeContract)
       } else {
         this.bridge = new L2Bridge(config.bridgeContract as L2BridgeContract)
       }
     }
     if (config.dryMode) {
       this.dryMode = config.dryMode
+      this.startedWithDryMode = this.dryMode
     }
     if (config.stateUpdateAddress) {
       this.stateUpdateAddress = config.stateUpdateAddress
@@ -218,6 +219,11 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   setDryMode (enabled: boolean) {
+    // don't update dry mode state if it was started with dry mode
+    if (this.startedWithDryMode) {
+      return
+    }
+
     if (this.dryMode !== enabled) {
       this.logger.warn(`Dry mode updated: ${enabled}`)
       this.dryMode = enabled

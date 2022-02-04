@@ -9,7 +9,7 @@ import LargeTextField from 'src/components/LargeTextField'
 import Network from 'src/models/Network'
 import { toTokenDisplay } from 'src/utils'
 import logger from 'src/logger'
-import { useAmountSelectorCardStyles, useNativeTokenMaxValue } from 'src/hooks'
+import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
 import { NetworkSelector } from 'src/components/NetworkSelector'
 import { Flex } from 'src/components/ui'
 
@@ -51,7 +51,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
   } = props
   const styles = useAmountSelectorCardStyles()
 
-  const { estimateSend } = useNativeTokenMaxValue(selectedNetwork)
+  const { estimateSend } = useEstimateTxCost(selectedNetwork)
 
   const balanceLabel = useMemo(() => {
     return toTokenDisplay(balance, token?.decimals)

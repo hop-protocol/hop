@@ -149,7 +149,7 @@ const Header: FC = () => {
           <Link to="/">
             <img
               className={styles.hopLogo}
-              src={theme?.palette.type === 'dark' ? HopLogoWhite : HopLogoBlack}
+              src={isDarkMode ? HopLogoWhite : HopLogoBlack}
               alt="Hop"
             />
             {!isMainnet && <span className={styles.label}>{l1Network.name}</span>}

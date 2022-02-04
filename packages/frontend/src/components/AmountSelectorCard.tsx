@@ -3,14 +3,13 @@ import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
-import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Skeleton from '@material-ui/lab/Skeleton'
 import { Token } from '@hop-protocol/sdk'
 import clsx from 'clsx'
 import LargeTextField from 'src/components/LargeTextField'
 import { commafy } from 'src/utils'
-import { useAmountSelectorCardStyles, useNativeTokenMaxValue } from 'src/hooks'
+import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
 import Network from 'src/models/Network'
 import { Flex } from './ui'
 
@@ -67,7 +66,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
     selectedNetwork,
   } = props
   const styles = useAmountSelectorCardStyles()
-  const { estimateMaxValue } = useNativeTokenMaxValue(selectedNetwork)
+  const { estimateMaxValue } = useEstimateTxCost(selectedNetwork)
 
   const balanceDisplay = useMemo(() => {
     let label: string = ''
@@ -200,7 +199,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
       </Flex>
 
       <Flex fullWidth justifyBetween alignCenter>
-        <Flex>
+        <Flex width="50%">
           <Box className={styles.networkSelectionBox}>
             {titleIconUrl ? (
               <Box className={styles.networkIconContainer}>

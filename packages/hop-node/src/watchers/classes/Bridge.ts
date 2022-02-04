@@ -384,7 +384,7 @@ export default class Bridge extends ContractBase {
 
     if (this.chainSlug === Chain.Ethereum) {
       const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-      ;(payload[payload.length - 1] as TxOverrides).gasLimit = gasLimit.add(10_000)
+      ;(payload[payload.length - 1] as TxOverrides).gasLimit = gasLimit.add(50_000)
     }
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
@@ -400,6 +400,37 @@ export default class Bridge extends ContractBase {
       bonder,
       transferIds,
       amount,
+      await this.txOverrides()
+    )
+
+    return tx
+  }
+
+  withdraw = async (
+    recipient: string,
+    amount: BigNumber,
+    transferNonce: string,
+    bonderFee: BigNumber,
+    amountOutMin: BigNumber,
+    deadline: BigNumber,
+    rootHash: string,
+    transferRootTotalAmount: BigNumber,
+    transferIdTreeIndex: number,
+    siblings: string[],
+    totalLeaves: number
+  ): Promise<providers.TransactionResponse> => {
+    const tx = await this.bridgeContract.withdraw(
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      rootHash,
+      transferRootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves,
       await this.txOverrides()
     )
 
@@ -675,7 +706,8 @@ export default class Bridge extends ContractBase {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const provider = getRpcProvider(chain)!
     let gasPrice = await provider.getGasPrice()
-    // Arbitrum returns a gasLimit & gasPriceBid of 2x what is generally paid
+    // Arbitrum returns a gasLimit & gasPriceBid that exceeds the actual used.
+    // The values change as they collect more data. 2x here is generous but they should never go under this.
     if (this.chainSlug === Chain.Arbitrum) {
       gasPrice = gasPrice.div(2)
       gasLimit = gasLimit.div(2)

@@ -10,6 +10,7 @@ class Chain {
   slug: Slug | string = ''
   provider: Provider | null = null
   isL1: boolean = false
+  nativeTokenSymbol: string
 
   static Ethereum = newChain(ChainSlug.Ethereum)
   static Optimism = newChain(ChainSlug.Optimism)
@@ -45,6 +46,8 @@ class Chain {
     if (provider) {
       this.provider = provider
     }
+
+    this.nativeTokenSymbol = metadata.networks[this.slug].nativeTokenSymbol
   }
 
   equals (other: Chain) {

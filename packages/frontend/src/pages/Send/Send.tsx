@@ -18,6 +18,7 @@ import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
 import { hopAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/infoTooltip'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
 import { useSendStyles } from './useSendStyles'
 import SendHeader from './SendHeader'
@@ -470,6 +471,14 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
+  const isPolygonRoute =
+    fromNetwork &&
+    toNetwork &&
+    (
+      toNetwork.slug === ChainSlug.Polygon ||
+      fromNetwork.slug === ChainSlug.Polygon
+    )
+
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
   const sendButtonActive = useMemo(() => {
@@ -484,7 +493,8 @@ const Send: FC = () => {
       rate &&
       sufficientBalance &&
       isLiquidityAvailable &&
-      estimatedReceived?.gt(0)
+      estimatedReceived?.gt(0) &&
+      !isPolygonRoute
     )
   }, [
     needsApproval,
@@ -498,6 +508,7 @@ const Send: FC = () => {
     sufficientBalance,
     isLiquidityAvailable,
     estimatedReceived,
+    isPolygonRoute
   ])
 
   return (
@@ -586,6 +597,11 @@ const Send: FC = () => {
       </div>
 
       <Alert severity="error" onClose={() => setError(null)} text={error} />
+      <Alert severity="warning" onClose={() => setError(null)} text={error}>
+        {isPolygonRoute && (
+          <div>The Polygon messenger is currently down and transfers from or to Polygon cannot be completed until it’s back online. Please, try again later and check the Discord channel for updates.</div>
+        )}
+      </Alert>
       {!error && <Alert severity="warning">{warning}</Alert>}
 
       <ButtonsWrapper>

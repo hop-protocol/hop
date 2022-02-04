@@ -1,10 +1,16 @@
+import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getTransferId from 'src/theGraph/getTransfer'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
 import { actionHandler, getWithdrawalProofData, parseString, root } from './shared'
+import {
+  findWatcher,
+  getWatchers
+} from 'src/watchers/watchers'
 
 root
-  .command('withdrawal-proof')
-  .description('General withdrawal proof')
+  .command('withdraw')
+  .description('Withdraw a transfer')
   .option('--chain <slug>', 'Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
   .option('--transfer-id <id>', 'Transfer ID', parseString)
@@ -31,9 +37,31 @@ async function main (source: any) {
     throw new Error('transfer not found')
   }
 
-  const { transferRootHash } = transfer
+  const {
+    transferRootHash,
+    recipient,
+    amount,
+    transferNonce,
+    bonderFee,
+    amountOutMin,
+    deadline,
+    destinationChainId
+  } = transfer
+
   if (!transferRootHash) {
     throw new Error('no transfer root hash found for transfer Id. Has the transferId been committed (pendingTransferIdsForChainId)?')
+  }
+
+  if (
+    !recipient ||
+    !amount ||
+    !transferNonce ||
+    !bonderFee ||
+    !amountOutMin ||
+    !deadline ||
+    !destinationChainId
+  ) {
+    throw new Error('transfer Id is incomplete')
   }
 
   const transferRoot = await getTransferRoot(
@@ -50,19 +78,33 @@ async function main (source: any) {
     rootTotalAmount,
     numLeaves,
     proof,
-    transferIndex,
-    leaves
+    transferIndex
   } = getWithdrawalProofData(transferId, transferRoot)
 
-  const output = {
-    transferId,
-    transferRootHash,
-    leaves,
-    proof,
-    transferIndex,
-    rootTotalAmount,
-    numLeaves
+  const dryMode = false
+  const watchers = await getWatchers({
+    enabledWatchers: ['bondWithdrawal'],
+    tokens: [token],
+    dryMode
+  })
+
+  const destinationChain = chainIdToSlug(destinationChainId)
+  const watcher = findWatcher(watchers, BondWithdrawalWatcher, destinationChain) as BondWithdrawalWatcher
+  if (!watcher) {
+    throw new Error('watcher not found')
   }
 
-  console.log(JSON.stringify(output, null, 2))
+  await watcher.bridge.withdraw(
+    recipient,
+    amount,
+    transferNonce,
+    bonderFee,
+    amountOutMin,
+    deadline,
+    transferRootHash,
+    rootTotalAmount,
+    transferIndex,
+    proof,
+    numLeaves
+  )
 }

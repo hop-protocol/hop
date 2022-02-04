@@ -147,9 +147,9 @@ async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { /
   }
 
   if (bridge instanceof L1Bridge) {
-    return (bridge as L1Bridge).l1CanonicalToken()
+    return bridge.l1CanonicalToken()
   } else if (bridge instanceof L2Bridge) {
-    return (bridge as L2Bridge).hToken()
+    return bridge.hToken()
   } else {
     throw new Error('invalid bridge type')
   }

@@ -10,23 +10,28 @@ export const metadata: any = {
   networks: {
     ethereum: {
       name: 'Ethereum',
-      isLayer1: true
+      isLayer1: true,
+      nativeTokenSymbol: 'ETH'
     },
     arbitrum: {
       name: 'Arbitrum',
-      isLayer1: false
+      isLayer1: false,
+      nativeTokenSymbol: 'ETH'
     },
     optimism: {
       name: 'Optimism',
-      isLayer1: false
+      isLayer1: false,
+      nativeTokenSymbol: 'ETH'
     },
     gnosis: {
       name: 'Gnosis',
-      isLayer1: false
+      isLayer1: false,
+      nativeTokenSymbol: 'XDAI'
     },
     polygon: {
       name: 'Polygon',
-      isLayer1: false
+      isLayer1: false,
+      nativeTokenSymbol: 'MATIC'
     }
   }
 }

@@ -1,4 +1,12 @@
-import React, { FC, createContext, useContext, useMemo, useState, useEffect } from 'react'
+import React, {
+  FC,
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react'
 import Onboard from 'bnc-onboard'
 import { ethers, Contract, BigNumber } from 'ethers'
 import Address from 'src/models/Address'
@@ -10,7 +18,7 @@ import logger from 'src/logger'
 import { WalletCheckInit, WalletSelectModuleOptions } from 'bnc-onboard/dist/src/interfaces'
 import mmLogo from 'src/assets/logos/metamask.png'
 import { loadState, saveState } from 'src/utils/localStorage'
-import { ChainSlug } from '@hop-protocol/sdk'
+import { ChainId, ChainSlug } from '@hop-protocol/sdk'
 
 // TODO: modularize
 type Props = {
@@ -261,64 +269,73 @@ const Web3ContextProvider: FC = ({ children }) => {
   const walletConnected = !!address
 
   // TODO: cleanup
-  const checkConnectedNetworkId = async (networkId?: number): Promise<boolean> => {
-    if (!networkId) return false
-    const signerNetworkId = (await provider?.getNetwork())?.chainId
-    logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
-    if (networkId.toString() !== signerNetworkId?.toString()) {
+  const checkConnectedNetworkId = useCallback(
+    async (networkId?: number): Promise<boolean> => {
+      if (!(networkId && provider)) return false
+
+      const signerNetworkId = (await provider.getNetwork())?.chainId
+      logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
+
+      if (networkId.toString() === signerNetworkId?.toString()) {
+        return true
+      }
+
       onboard.config({ networkId })
       if (onboard.getState().address) {
-        let nativeCurrency: any
-        if (networkIdToSlug(networkId) === 'gnosis') {
-          nativeCurrency = {
-            name: 'xDAI',
-            symbol: 'XDAI',
-            decimals: 18,
-          }
-        } else if (networkIdToSlug(networkId) === 'polygon') {
-          nativeCurrency = {
-            name: 'Matic',
-            symbol: 'MATIC',
-            decimals: 18,
-          }
-        }
-
         try {
-          if (provider && networkId) {
-            const wantNetworkName = networkNames[networkId] || 'local'
-            const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
-              wantNetworkName
-            )
+          const wantNetworkName = networkNames[networkId] || 'local'
+          const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
+            wantNetworkName
+          )
+
+          if (isL1) {
+            await provider?.send('wallet_switchEthereumChain', [
+              {
+                chainId: `0x${Number(networkId).toString(16)}`,
+              },
+            ])
+          } else {
+            let nativeCurrency: any
+
+            if (networkId === ChainId.Gnosis) {
+              nativeCurrency = {
+                name: 'xDAI',
+                symbol: 'XDAI',
+                decimals: 18,
+              }
+            } else if (networkId === ChainId.Polygon) {
+              nativeCurrency = {
+                name: 'Matic',
+                symbol: 'MATIC',
+                decimals: 18,
+              }
+            }
+
             const rpcObj = {
               chainId: `0x${Number(networkId).toString(16)}`,
-              chainName: networkNames[networkId.toString()],
+              chainName: networkNames[networkId],
               rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
               blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
               nativeCurrency,
             }
-            if (isL1) {
-              await provider?.send('wallet_switchEthereumChain', [
-                {
-                  chainId: `0x${Number(networkId).toString(16)}`,
-                },
-              ])
-            } else {
-              await provider?.send('wallet_addEthereumChain', [rpcObj])
-            }
-          }
 
-          return true
+            await provider?.send('wallet_addEthereumChain', [rpcObj])
+          }
         } catch (err) {
           logger.error(err)
         }
-
-        await onboard.walletCheck()
       }
-      return false
-    }
+      const p = await provider.getNetwork()
+      if (p.chainId === networkId) {
+        return true
+      }
 
-    return true
-  }
+      await onboard.walletCheck()
+
+      return false
+    },
+    [provider, onboard]
+  )
 
   // TODO: cleanup
   const getWriteContract = async (contract?: Contract): Promise<Contract | undefined> => {

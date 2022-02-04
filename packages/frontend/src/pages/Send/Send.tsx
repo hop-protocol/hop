@@ -12,7 +12,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { isL1ToL2, commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
@@ -471,11 +471,13 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
-  const isL1ToPolygon =
+  const isPolygonRoute =
     fromNetwork &&
     toNetwork &&
-    isL1ToL2(fromNetwork, toNetwork) &&
-    toNetwork.slug === ChainSlug.Polygon
+    (
+      toNetwork.slug === ChainSlug.Polygon ||
+      fromNetwork.slug === ChainSlug.Polygon
+    )
 
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
@@ -492,7 +494,7 @@ const Send: FC = () => {
       sufficientBalance &&
       isLiquidityAvailable &&
       estimatedReceived?.gt(0) &&
-      !isL1ToPolygon
+      !isPolygonRoute
     )
   }, [
     needsApproval,
@@ -506,7 +508,7 @@ const Send: FC = () => {
     sufficientBalance,
     isLiquidityAvailable,
     estimatedReceived,
-    isL1ToPolygon
+    isPolygonRoute
   ])
 
   return (
@@ -596,8 +598,8 @@ const Send: FC = () => {
 
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       <Alert severity="warning" onClose={() => setError(null)} text={error}>
-        {isL1ToPolygon && (
-          <div>The Polygon messenger is currently down and Ethereum to Polygon transfers cannot be completed until it’s back online. Please, try again later and check the Discord channel for updates.</div>
+        {isPolygonRoute && (
+          <div>The Polygon messenger is currently down and transfers from or to Polygon cannot be completed until it’s back online. Please, try again later and check the Discord channel for updates.</div>
         )}
       </Alert>
       {!error && <Alert severity="warning">{warning}</Alert>}

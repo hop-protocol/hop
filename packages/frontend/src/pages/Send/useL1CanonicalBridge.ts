@@ -4,96 +4,71 @@ import { BigNumber, constants } from 'ethers'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { getProviderByNetworkName, toTokenDisplay } from 'src/utils'
-import { getGasCostByGasLimit } from 'src/hooks'
+import { useLocalStorage } from 'react-use'
+import logger from 'src/logger'
+import { formatError } from 'src/utils'
 
-async function needsApproval(l1CanonicalBridge: CanonicalBridge, token, amount, destNetwork) {
-  if (token.isNativeToken) {
+async function needsApproval(
+  l1CanonicalBridge: CanonicalBridge,
+  sourceToken,
+  sourceTokenAmount,
+  destNetwork
+) {
+  if (sourceToken.isNativeToken) {
     return
   }
   if (Number(destNetwork.networkId) === ChainId.Arbitrum) {
     return
   }
   const allowance = await l1CanonicalBridge.getL1CanonicalAllowance(l1CanonicalBridge.chain)
-  if (allowance.lt(amount)) {
+  if (allowance.lt(sourceTokenAmount)) {
     return true
   }
 }
 
 export function useL1CanonicalBridge(
-  token?: Token,
+  sourceToken?: Token,
+  sourceTokenAmount?: BigNumber,
   destNetwork?: Network,
-  amount?: BigNumber,
-  estimatedReceived?: BigNumber,
-  estimatedGasCost?: BigNumber
+  estimatedReceived?: BigNumber
 ) {
   const { sdk } = useApp()
   const { checkConnectedNetworkId } = useWeb3Context()
 
   const [l1CanonicalBridge, setL1CanonicalBridge] = useState<CanonicalBridge | undefined>()
+  const [usingL1CanonicalBridge, setUl1cb] = useLocalStorage('using-l1-canonical-bridge', false)
 
   useEffect(() => {
-    async function checkIfL1CanonicalBridgeIsCheaper() {
-      if (!(token && destNetwork && estimatedReceived && amount)) {
-        console.log(token, destNetwork, estimatedReceived, amount)
+    if (sourceTokenAmount && estimatedReceived && l1CanonicalBridge) {
+      if (usingL1CanonicalBridge == null && sourceTokenAmount.gt(estimatedReceived)) {
+        return setUl1cb(true)
+      }
+
+      if (sourceTokenAmount.lte(estimatedReceived)) {
+        setUl1cb(false)
+      }
+    }
+  }, [sourceTokenAmount?.toString(), estimatedReceived?.toString(), l1CanonicalBridge])
+
+  useEffect(() => {
+    async function setupCanonicalBridge() {
+      if (!(sourceToken && destNetwork && sourceTokenAmount)) {
         return setL1CanonicalBridge(undefined)
       }
 
-      const canonicalBridge = sdk.canonicalBridge(token.symbol, destNetwork.slug)
-      const l1Provider = getProviderByNetworkName(ChainSlug.Ethereum)
+      if (sourceToken.chain.chainId !== ChainId.Ethereum) {
+        return setL1CanonicalBridge(undefined)
+      }
 
-      const canonDepositEstGasLimit = BigNumber.from(200e3)
-
-      const canonicalTotalTxCostEstimate = await getGasCostByGasLimit(
-        l1Provider,
-        canonDepositEstGasLimit
-      )
-
-      // if (await needsApproval(canonicalBridge, token, amount, destNetwork)) {
-      //   const canonicalApproveGasEstimate = await canonicalBridge.estimateApproveTx(
-      //     amount,
-      //     destNetwork.slug
-      //   )
-
-      //   const approveGasCostWei = await getGasCostByGasLimit(
-      //     l1Provider,
-      //     canonicalApproveGasEstimate
-      //   )
-      //   canonicalTotalTxCostEstimate = canonicalTotalTxCostEstimate.add(approveGasCostWei)
-      // }
-
-      console.log('')
-      console.log(`      hop gas:`, toTokenDisplay(estimatedGasCost))
-      console.log(`canonical gas:`, toTokenDisplay(canonicalTotalTxCostEstimate))
-      // const canonicalReceived = amount.sub(canonicalTotalTxCostEstimate)
-      // const hopReceived = estimatedReceived.sub(estimatedGasCost)
-
-      // L1 canonical bridge value > hop bridge
-      const moreTokensReceived = amount.gt(estimatedReceived)
-      // const cheaperGasCost = canonicalTotalTxCostEstimate.lt(estimatedGasCost)
-      console.log(`moreTokensReceived via canon:`, moreTokensReceived)
-      // console.log(`cheaperGasCost via canonical:`, cheaperGasCost)
-
+      const canonicalBridge = sdk.canonicalBridge(sourceToken.symbol, destNetwork.slug)
       setL1CanonicalBridge(canonicalBridge)
-      // if (moreTokensReceived && cheaperGasCost) {
-      //   return setL1CanonicalBridge(canonicalBridge)
-      // }
-
-      // setL1CanonicalBridge(undefined)
     }
 
-    checkIfL1CanonicalBridgeIsCheaper()
-  }, [
-    sdk,
-    amount?.toString(),
-    token?.symbol,
-    destNetwork?.slug,
-    estimatedReceived,
-    estimatedGasCost,
-  ])
+    setupCanonicalBridge()
+  }, [sdk, sourceTokenAmount?.toString(), sourceToken, destNetwork?.slug])
 
   async function sendL1CanonicalBridge() {
-    if (!(l1CanonicalBridge && amount && destNetwork?.slug)) {
+    if (!(l1CanonicalBridge && sourceTokenAmount && destNetwork?.slug)) {
       return
     }
 
@@ -101,7 +76,7 @@ export function useL1CanonicalBridge(
       const isNetworkConnected = await checkConnectedNetworkId(1)
       if (!isNetworkConnected) return
 
-      if (await needsApproval(l1CanonicalBridge, token, amount, destNetwork)) {
+      if (await needsApproval(l1CanonicalBridge, sourceToken, sourceTokenAmount, destNetwork)) {
         const approveTx = await l1CanonicalBridge.approveDeposit(
           constants.MaxUint256,
           destNetwork.slug
@@ -109,18 +84,20 @@ export function useL1CanonicalBridge(
         await approveTx.wait(1)
       }
 
-      const tx = await l1CanonicalBridge.deposit(amount, destNetwork.slug)
+      const tx = await l1CanonicalBridge.deposit(sourceTokenAmount, destNetwork.slug)
       console.log(`tx:`, tx)
     } catch (error: any) {
-      console.log(`error:`, error)
-      if (error.message?.includes('revert')) {
-        // noop
-      }
+      //   if (error.message?.includes('revert')) {
+      //     // noop
+      //   }
+      logger.error(formatError(error))
     }
   }
 
   return {
     sendL1CanonicalBridge,
     l1CanonicalBridge,
+    usingL1CanonicalBridge,
+    setUl1cb,
   }
 }

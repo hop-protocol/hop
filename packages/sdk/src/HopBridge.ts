@@ -422,10 +422,8 @@ class HopBridge extends Base {
       // a `from` address is required if using only provider (not signer)
       populatedTx.from = await this.getGasEstimateFromAddress(sourceChain, destinationChain)
     }
-    return sourceChain.provider.estimateGas({
-      ...populatedTx,
-      gasLimit: 500000
-    })
+
+    return sourceChain.provider.estimateGas(populatedTx) 
   }
 
   public async getSendEstimatedGasCost (

@@ -1,27 +1,56 @@
 import React from 'react'
 import { CanonicalBridge, Token } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
-import { Flex } from 'src/components/ui'
+import { Div, Flex } from 'src/components/ui'
 import { toTokenDisplay } from 'src/utils'
+import Network from 'src/models/Network'
+import { RadioButtonChecked, RadioButtonUnchecked } from '@material-ui/icons'
 
 interface Props {
-  sendL1CanonicalBridge?: () => void
-  l1CanonicalBridge?: CanonicalBridge
-  destToken?: Token
   amount?: BigNumber
+  destNetwork?: Network
+  destToken?: Token
+  estimatedReceivedDisplay?: string
+  l1CanonicalBridge?: CanonicalBridge
+  sendL1CanonicalBridge?: () => void
+  setUl1cb: (u: boolean) => void
+  usingL1CanonicalBridge?: boolean
 }
 
 function L1CanonicalBridgeOption(props: Props) {
-  const { l1CanonicalBridge, sendL1CanonicalBridge, destToken, amount } = props
+  const {
+    amount,
+    destNetwork,
+    destToken,
+    estimatedReceivedDisplay,
+    l1CanonicalBridge,
+    setUl1cb,
+    usingL1CanonicalBridge,
+  } = props
 
   return (
-    <Flex>
+    <Flex width={'50rem'} mt={3} pointer>
       {l1CanonicalBridge && (
-        <Flex column>
-          <Flex>L1 Canonical Bridge:</Flex>
-          <Flex onClick={sendL1CanonicalBridge}>{l1CanonicalBridge.address}</Flex>
-          <Flex>{toTokenDisplay(amount, destToken?.decimals, destToken?.symbol)}</Flex>
-        </Flex>
+        <Div fullWidth>
+          <Flex fullWidth justifyBetween px={4} onClick={() => setUl1cb(false)}>
+            <Flex alignCenter>
+              <Flex mr={2}>
+                {usingL1CanonicalBridge ? <RadioButtonUnchecked /> : <RadioButtonChecked />}
+              </Flex>
+              <Flex>Hop Bridge</Flex>
+            </Flex>
+            <Flex>{estimatedReceivedDisplay}</Flex>
+          </Flex>
+          <Flex fullWidth justifyBetween px={4} onClick={() => setUl1cb(true)}>
+            <Flex alignCenter>
+              <Flex mr={2}>
+                {usingL1CanonicalBridge ? <RadioButtonChecked /> : <RadioButtonUnchecked />}
+              </Flex>
+              <Flex>Native {destNetwork?.name} Bridge</Flex>
+            </Flex>
+            <Flex>{toTokenDisplay(amount, destToken?.decimals, destToken?.symbol)}</Flex>
+          </Flex>
+        </Div>
       )}
     </Flex>
   )

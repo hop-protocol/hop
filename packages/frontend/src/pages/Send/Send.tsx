@@ -102,16 +102,8 @@ const Send: FC = () => {
   )
 
   // Get token balances for both networks
-  const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
-    sourceToken,
-    fromNetwork,
-    address
-  )
-  const { balance: toBalance, loading: loadingToBalance } = useBalance(
-    destToken,
-    toNetwork,
-    address
-  )
+  const { balance: fromBalance, loading: loadingFromBalance } = useBalance(sourceToken, address)
+  const { balance: toBalance, loading: loadingToBalance } = useBalance(destToken, address)
 
   // Set fromToken -> BN
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {

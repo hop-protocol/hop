@@ -1,103 +1,59 @@
-import React, { FC, useEffect, useMemo, useState } from 'react'
-import Box from '@material-ui/core/Box'
+import React, { useMemo } from 'react'
 import Typography from '@material-ui/core/Typography'
-import { Token, CanonicalToken, WrappedToken, ChainId, ChainSlug } from '@hop-protocol/sdk'
+import { Token, CanonicalToken, WrappedToken, ChainSlug } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import StakeWidget from 'src/pages/Stake/StakeWidget'
-import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import { useSelectedNetwork } from 'src/hooks'
-import { isMainnet, rewardTokenAddresses, stakingRewardsContracts } from 'src/config'
+import { rewardTokenAddresses, stakingRewardsContracts } from 'src/config'
 import { Div, Flex } from 'src/components/ui'
-import { findMatchingBridge, findNetworkBySlug, getNetworkProviderOrDefault } from 'src/utils'
-import { StakingRewards__factory } from '@hop-protocol/core/contracts'
-import { providers, Signer } from 'ethers'
-import Network from 'src/models/Network'
+import { findMatchingBridge } from 'src/utils'
+import { StakingRewards, StakingRewards__factory } from '@hop-protocol/core/contracts'
 import { RaisedNetworkSelector } from 'src/components/NetworkSelector/RaisedNetworkSelector'
+import { useQuery } from 'react-query'
 
-const Stake: FC = () => {
-  const { bridges, sdk, networks, tokens } = useApp()
-  const { provider } = useWeb3Context()
-
+const Stake = () => {
+  const { bridges, sdk, networks } = useApp()
   const availableNetworks = networks.filter(n =>
     Object.keys(stakingRewardsContracts).includes(n.slug as ChainSlug)
   )
-  const polygonNetwork = useMemo(() => findNetworkBySlug(ChainSlug.Polygon) as Network, [networks])
-  const gnosisNetwork = useMemo(() => findNetworkBySlug(ChainSlug.Gnosis) as Network, [networks])
   const { selectedNetwork, selectBothNetworks } = useSelectedNetwork({
     l2Only: true,
     availableNetworks,
   })
-  const [selectedProvider, setSelectedProvider] = useState<providers.Provider | Signer>()
 
-  useEffect(() => {
-    sdk.getSignerOrProvider(selectedNetwork.slug).then(setSelectedProvider)
-  }, [sdk, selectedNetwork])
-
-  // ETH
-  const ethBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'ETH'), [bridges])
-  const ethStakingToken = useAsyncMemo(async () => {
-    return ethBridge?.getSaddleLpToken(selectedNetwork.slug)
-  }, [ethBridge, selectedNetwork])
-  const ethStakingRewards = useAsyncMemo(async () => {
-    const _provider = await sdk.getSignerOrProvider(selectedNetwork.slug)
-    return StakingRewards__factory.connect(
-      stakingRewardsContracts[selectedNetwork.slug].ETH,
-      _provider
-    )
-  }, [sdk, selectedNetwork.slug])
-
-  // MATIC
-  const maticBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'MATIC'), [bridges])
-  const maticStakingToken = useAsyncMemo(async () => {
-    return maticBridge?.getSaddleLpToken(ChainSlug.Polygon)
-  }, [maticBridge])
-  const maticStakingRewards = useAsyncMemo(async () => {
-    const polygonProvider = await sdk.getSignerOrProvider(ChainSlug.Polygon)
-    const _provider = getNetworkProviderOrDefault(ChainId.Polygon, polygonProvider, provider)
-    return StakingRewards__factory.connect(stakingRewardsContracts.polygon.MATIC, _provider)
-  }, [sdk, provider])
-
-  // USDT
-  const usdtBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'USDT'), [bridges])
-  const usdtStakingToken = useAsyncMemo(async () => {
-    return usdtBridge?.getSaddleLpToken(ChainSlug.Polygon)
-  }, [usdtBridge])
-  const usdtStakingRewards = useAsyncMemo(async () => {
-    const polygonProvider = await sdk.getSignerOrProvider(ChainSlug.Polygon)
-    const _provider = getNetworkProviderOrDefault(ChainId.Polygon, polygonProvider, provider)
-    return StakingRewards__factory.connect(stakingRewardsContracts.polygon.USDT, _provider)
-  }, [sdk, provider])
-
-  // GNO
-  const daiBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'DAI'), [bridges])
-  const daiStakingToken = useAsyncMemo(async () => {
-    return daiBridge?.getSaddleLpToken(ChainSlug.Gnosis)
-  }, [daiBridge])
-  const gnosisStakingRewards = useAsyncMemo(async () => {
-    const gnosisProvider = await sdk.getSignerOrProvider(ChainSlug.Gnosis)
-    const _provider = getNetworkProviderOrDefault(ChainId.Gnosis, gnosisProvider, provider)
-    return StakingRewards__factory.connect(stakingRewardsContracts.gnosis.DAI, _provider)
-  }, [sdk, provider])
-
-  // USDC
-  const usdcBridge = useAsyncMemo(async () => findMatchingBridge(bridges, 'USDC'), [bridges])
-  const usdcStakingToken = useAsyncMemo(async () => {
-    return usdcBridge?.getSaddleLpToken(selectedNetwork.slug)
-  }, [usdcBridge, selectedNetwork])
-  const usdcStakingRewards = useAsyncMemo(async () => {
-    const _provider = await sdk.getSignerOrProvider(selectedNetwork.slug)
-    return StakingRewards__factory.connect(
-      stakingRewardsContracts[selectedNetwork.slug].USDC,
-      _provider
-    )
-  }, [sdk, selectedNetwork.slug])
-
-  const rewardsToken = useAsyncMemo(async () => {
-    if (!(selectedNetwork && selectedProvider)) {
-      return
+  const allBridges = useMemo(() => {
+    return {
+      eth: findMatchingBridge(bridges, CanonicalToken.ETH)!,
+      matic: findMatchingBridge(bridges, CanonicalToken.MATIC)!,
+      dai: findMatchingBridge(bridges, CanonicalToken.DAI)!,
+      usdc: findMatchingBridge(bridges, CanonicalToken.USDC)!,
+      usdt: findMatchingBridge(bridges, CanonicalToken.USDT)!,
     }
+  }, [bridges])
 
+  const stakingTokens = useMemo(() => {
+    return {
+      eth: allBridges.eth.getSaddleLpToken(selectedNetwork.slug),
+      matic: allBridges.matic.getSaddleLpToken(ChainSlug.Polygon),
+      dai: allBridges.dai.getSaddleLpToken(ChainSlug.Gnosis),
+      usdc: allBridges.usdc.getSaddleLpToken(selectedNetwork.slug),
+      usdt: allBridges.usdt.getSaddleLpToken(ChainSlug.Polygon),
+    }
+  }, [allBridges, selectedNetwork.slug])
+
+  const stakingRewards = useMemo(() => {
+    const _provider = sdk.getChainProvider(selectedNetwork.slug)
+    const srAddrs = stakingRewardsContracts[selectedNetwork.slug]
+    return Object.keys(srAddrs).reduce((acc, tokenSymbol) => {
+      const addr = srAddrs[tokenSymbol]
+      return {
+        ...acc,
+        [tokenSymbol.toLowerCase()]: StakingRewards__factory.connect(addr, _provider),
+      }
+    }, {} as { [key: string]: StakingRewards })
+  }, [sdk, selectedNetwork.slug])
+
+  const rewardsToken = useMemo(() => {
     if (selectedNetwork.slug === ChainSlug.Polygon) {
       return new Token(
         'mainnet',
@@ -106,34 +62,29 @@ const Stake: FC = () => {
         18,
         WrappedToken.WMATIC,
         'Wrapped Matic',
-        '',
-        selectedProvider
+        ''
       )
     }
+    return new Token('mainnet', ChainSlug.Gnosis, rewardTokenAddresses.GNO, 18, 'GNO', 'Gnosis', '')
+  }, [selectedNetwork.slug])
 
-    if (selectedNetwork.slug === ChainSlug.Gnosis) {
-      return new Token(
-        'mainnet',
-        ChainSlug.Gnosis,
-        rewardTokenAddresses.GNO,
-        18,
-        'GNO',
-        'Gnosis',
-        '',
-        selectedProvider
-      )
+  const { data: rewardTokenUsdPrice } = useQuery(
+    [`rewardTokenUsdPrice:${selectedNetwork.slug}`, selectedNetwork.slug],
+    async () => {
+      try {
+        const rewardTokenSymbol = selectedNetwork.slug === 'gnosis' ? 'GNO' : 'MATIC'
+        const rewardTokenUsdPrice = await allBridges.eth?.priceFeed.getPriceByTokenSymbol(
+          rewardTokenSymbol
+        )
+        return rewardTokenUsdPrice
+      } catch (err) {
+        console.error(err)
+      }
+    },
+    {
+      refetchInterval: 20e3,
     }
-  }, [sdk, selectedNetwork, selectedProvider])
-
-  if (!isMainnet) {
-    return (
-      <Box display="flex" flexDirection="column" alignItems="center">
-        <Typography variant="h4">Staking not available on testnet</Typography>
-      </Box>
-    )
-  }
-
-  const enabledTokens = tokens.map(token => token.symbol)
+  )
 
   return (
     <Flex column alignCenter>
@@ -147,60 +98,79 @@ const Stake: FC = () => {
           />
         </Flex>
 
-        {enabledTokens.includes(CanonicalToken.ETH) && (
-          <StakeWidget
-            network={selectedNetwork}
-            bridge={ethBridge}
-            stakingToken={ethStakingToken}
-            rewardsToken={rewardsToken}
-            stakingRewards={ethStakingRewards}
-            key={ethStakingToken?.symbol}
-          />
-        )}
-        {selectedNetwork.slug === ChainSlug.Polygon &&
-          enabledTokens.includes(CanonicalToken.MATIC) && (
+        {selectedNetwork.slug === ChainSlug.Polygon ? (
+          <>
             <StakeWidget
-              network={polygonNetwork}
-              bridge={maticBridge}
-              stakingToken={maticStakingToken}
+              network={selectedNetwork}
+              bridge={allBridges.eth}
+              stakingToken={stakingTokens.eth}
               rewardsToken={rewardsToken}
-              stakingRewards={maticStakingRewards}
-              key={maticStakingToken?.symbol}
+              stakingRewards={stakingRewards?.eth}
+              key={stakingTokens.eth?.symbol}
+              rewardTokenUsdPrice={rewardTokenUsdPrice}
             />
-          )}
-        {selectedNetwork.slug === ChainSlug.Gnosis &&
-          enabledTokens.includes(CanonicalToken.DAI) && (
             <StakeWidget
-              network={gnosisNetwork}
-              bridge={daiBridge}
-              stakingToken={daiStakingToken}
+              network={selectedNetwork}
+              bridge={allBridges.matic}
+              stakingToken={stakingTokens.matic}
               rewardsToken={rewardsToken}
-              stakingRewards={gnosisStakingRewards}
-              key={daiStakingToken?.symbol}
+              stakingRewards={stakingRewards?.matic}
+              key={stakingTokens.matic?.symbol}
+              rewardTokenUsdPrice={rewardTokenUsdPrice}
             />
-          )}
-        {enabledTokens.includes(CanonicalToken.USDC) && (
-          <StakeWidget
-            network={selectedNetwork}
-            bridge={usdcBridge}
-            stakingToken={usdcStakingToken}
-            rewardsToken={rewardsToken}
-            stakingRewards={usdcStakingRewards}
-            key={usdcStakingToken?.symbol}
-          />
-        )}
+            <StakeWidget
+              network={selectedNetwork}
+              bridge={allBridges.usdc}
+              stakingToken={stakingTokens.usdc}
+              rewardsToken={rewardsToken}
+              stakingRewards={stakingRewards?.usdc}
+              key={stakingTokens.usdc?.symbol}
+              rewardTokenUsdPrice={rewardTokenUsdPrice}
+            />
+            <StakeWidget
+              network={selectedNetwork}
+              bridge={allBridges.usdt}
+              stakingToken={stakingTokens.usdt}
+              rewardsToken={rewardsToken}
+              stakingRewards={stakingRewards?.usdt}
+              key={stakingTokens.usdt?.symbol}
+              rewardTokenUsdPrice={rewardTokenUsdPrice}
+            />
+          </>
+        ) : (
+          selectedNetwork.slug === ChainSlug.Gnosis && (
+            <>
+              <StakeWidget
+                network={selectedNetwork}
+                bridge={allBridges.eth}
+                stakingToken={stakingTokens.eth}
+                rewardsToken={rewardsToken}
+                stakingRewards={stakingRewards?.eth}
+                key={stakingTokens.eth?.symbol}
+                rewardTokenUsdPrice={rewardTokenUsdPrice}
+              />
 
-        {selectedNetwork.slug === ChainSlug.Polygon &&
-          enabledTokens.includes(CanonicalToken.USDT) && (
-            <StakeWidget
-              network={polygonNetwork}
-              bridge={usdtBridge}
-              stakingToken={usdtStakingToken}
-              rewardsToken={rewardsToken}
-              stakingRewards={usdtStakingRewards}
-              key={usdtStakingToken?.symbol}
-            />
-          )}
+              <StakeWidget
+                network={selectedNetwork}
+                bridge={allBridges.dai}
+                stakingToken={stakingTokens.dai}
+                rewardsToken={rewardsToken}
+                stakingRewards={stakingRewards?.dai}
+                key={stakingTokens.dai?.symbol}
+                rewardTokenUsdPrice={rewardTokenUsdPrice}
+              />
+              <StakeWidget
+                network={selectedNetwork}
+                bridge={allBridges.usdc}
+                stakingToken={stakingTokens.usdc}
+                rewardsToken={rewardsToken}
+                stakingRewards={stakingRewards?.usdc}
+                key={stakingTokens.usdc?.symbol}
+                rewardTokenUsdPrice={rewardTokenUsdPrice}
+              />
+            </>
+          )
+        )}
       </Div>
     </Flex>
   )

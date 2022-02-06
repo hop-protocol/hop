@@ -124,16 +124,8 @@ const ConvertProvider: FC = ({ children }) => {
     }
   }, [isConvertingToHToken, selectedNetwork, l1Network, convertOption])
 
-  const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(
-    sourceToken,
-    sourceNetwork,
-    address
-  )
-  const { balance: destBalance, loading: loadingDestBalance } = useBalance(
-    destToken,
-    destNetwork,
-    address
-  )
+  const { balance: sourceBalance, loading: loadingSourceBalance } = useBalance(sourceToken, address)
+  const { balance: destBalance, loading: loadingDestBalance } = useBalance(destToken, address)
 
   useEffect(() => {
     if (unsupportedAsset) {

@@ -4,8 +4,7 @@ import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
 import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
-import DetailRow from 'src/components/InfoTooltip/DetailRow'
-import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
+import { DetailRow, FeeDetails } from 'src/components/InfoTooltip'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
 
 class HopConvertOption extends ConvertOption {
@@ -68,11 +67,12 @@ class HopConvertOption extends ConvertOption {
       ? bridge.getCanonicalToken(sourceNetwork?.slug)
       : bridge.getL2HopToken(sourceNetwork?.slug)
 
-    const {
-      totalFee,
-      adjustedBonderFee,
-      adjustedDestinationTxFee,
-    } = await bridge.getSendData(amountIn, sourceNetwork.slug, destNetwork.slug, true)
+    const { totalFee, adjustedBonderFee, adjustedDestinationTxFee } = await bridge.getSendData(
+      amountIn,
+      sourceNetwork.slug,
+      destNetwork.slug,
+      true
+    )
     const availableLiquidity = await bridge.getFrontendAvailableLiquidity(
       sourceNetwork.slug,
       destNetwork.slug
@@ -105,7 +105,13 @@ class HopConvertOption extends ConvertOption {
     }
 
     const l1Token = bridge.getL1Token()
-    const details = this.getDetails(totalFee, adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, l1Token)
+    const details = this.getDetails(
+      totalFee,
+      adjustedDestinationTxFee,
+      adjustedBonderFee,
+      estimatedReceived,
+      l1Token
+    )
 
     return {
       amountOut: amountIn,
@@ -166,7 +172,13 @@ class HopConvertOption extends ConvertOption {
     }
   }
 
-  private getDetails(totalFee: BigNumber, adjustedDestinationTxFee: BigNumber, adjustedBonderFee: BigNumber, estimatedReceived: BigNumber, token?: Token): ReactNode {
+  private getDetails(
+    totalFee: BigNumber,
+    adjustedDestinationTxFee: BigNumber,
+    adjustedBonderFee: BigNumber,
+    estimatedReceived: BigNumber,
+    token?: Token
+  ): ReactNode {
     if (!token) return <></>
 
     const {

@@ -228,6 +228,7 @@ export const addresses: Addresses = {
       arbitrum: {
         l1CanonicalBridge: '0x72Ce9c846789fdB6fC1f34aC4AD25Dd9ef7031ef', // L1GatewayRouter
         l1MessengerWrapper: '0xaC9BABf20eF2338D7F4a152Af43bedDC80C6ae2a',
+        l1Gateway: '0xcEe284F754E854890e311e3280b767F80797180d', // L1CustomGateway
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
         l2Bridge: '0x0e0E3d2C5c292161999474247956EF542caBF8dd',
@@ -288,6 +289,7 @@ export const addresses: Addresses = {
       arbitrum: {
         l1CanonicalBridge: '0x72Ce9c846789fdB6fC1f34aC4AD25Dd9ef7031ef', // L1GatewayRouter
         l1MessengerWrapper: '0x70A772DDc3413e3456e5A3b2C30cB749C9577d1F',
+        l1Gateway: '0xcEe284F754E854890e311e3280b767F80797180d', // L1CustomGateway
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
         l2Bridge: '0x72209Fe68386b37A40d6bCA04f78356fd342491f',
@@ -384,6 +386,7 @@ export const addresses: Addresses = {
       arbitrum: {
         l1CanonicalBridge: '0x72Ce9c846789fdB6fC1f34aC4AD25Dd9ef7031ef', // L1GatewayRouter
         l1MessengerWrapper: '0x25a5A48C35e75BD2EFf53D94f0BB60d5A00E36ea',
+        l1Gateway: '0xD3B5b60020504bc3489D6949d545893982BA3011', // L1DaiGateway
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
         l2Bridge: '0x7aC115536FE3A185100B2c4DE4cb328bf3A58Ba6',
@@ -444,6 +447,7 @@ export const addresses: Addresses = {
       arbitrum: {
         l1CanonicalBridge: '0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f', // ArbitrumIndex
         l1MessengerWrapper: '0xEcf268Be00308980B5b3fcd0975D47C4C8e1382a',
+        l1Gateway: '0x0000000000000000000000000000000000000000',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
         l2Bridge: '0x3749C4f034022c39ecafFaBA182555d4508caCCC',
@@ -504,6 +508,7 @@ export const addresses: Addresses = {
       arbitrum: {
         l1CanonicalBridge: '0x72Ce9c846789fdB6fC1f34aC4AD25Dd9ef7031ef', // L1GatewayRouter
         l1MessengerWrapper: '0x117f2f67cD7570E0E8Fd30264f96Ca39eEbc1A5E',
+        l1Gateway: '0xcEe284F754E854890e311e3280b767F80797180d', // L1CustomGateway
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f',
         l2Bridge: '0x3E4a3a4796d16c0Cd582C382691998f7c06420B6',

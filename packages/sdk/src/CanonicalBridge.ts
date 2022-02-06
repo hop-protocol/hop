@@ -3,43 +3,21 @@ import Token from './models/Token'
 import TokenClass from './Token'
 import {
   ArbERC20__factory,
-  ArbitrumInbox__factory,
-  ArbitrumInbox,
-  L1ArbitrumDaiGateway__factory,
-  L1ArbitrumDaiGateway,
+  ArbitrumGlobalInbox__factory,
   L1HomeAMBNativeToErc20__factory,
-  L1OptimismDaiTokenBridge__factory,
   L1OptimismTokenBridge__factory,
-  L1OptimismTokenBridge,
-  L1PolygonPlasmaBridgeDepositManager__factory,
-  L1PolygonPlasmaBridgeDepositManager,
   L1PolygonPosRootChainManager__factory,
-  L1PolygonPosRootChainManager,
   L1XDaiForeignOmniBridge__factory,
-  L1XDaiForeignOmniBridge,
-  L1XDaiPoaBridge__factory,
-  L1XDaiPoaBridge,
-  L1XDaiWETHOmnibridgeRouter__factory,
-  L1XDaiWETHOmnibridgeRouter,
   L2OptimismTokenBridge__factory,
   L2PolygonChildERC20__factory,
-  L2XDaiToken__factory,
+  L2XDaiToken__factory
 } from '@hop-protocol/core/contracts'
 import { Chain } from './models'
-import { Contract, Signer, ethers, BigNumber } from 'ethers'
+import { Contract, Signer, ethers } from 'ethers'
 import { TAmount, TChain, TProvider, TToken } from './types'
 import { TokenSymbol } from './constants'
 import { formatUnits } from 'ethers/lib/utils'
 import { metadata } from './config'
-
-export type L1CanonicalBridge =
-  | ArbitrumInbox
-  | L1OptimismTokenBridge
-  | L1PolygonPlasmaBridgeDepositManager
-  | L1PolygonPosRootChainManager
-  | L1XDaiForeignOmniBridge
-  | L1XDaiPoaBridge
-  | L1XDaiWETHOmnibridgeRouter
 
 /**
  * Class reprensenting Canonical Token Bridge.
@@ -128,27 +106,10 @@ class CanonicalBridge extends Base {
     )
   }
 
-  public async getL1CanonicalAllowance (chain?: TChain) {
-    if (chain) {
-      chain = this.toChainModel(chain)
-    } else {
-      chain = this.chain
-    }
-    const provider = await this.getSignerOrProvider(Chain.Ethereum)
-    const l1CanonicalToken = this.getL1Token().connect(provider)
-    const spender = this.getDepositApprovalAddress(chain)
-    if (!spender) {
-      throw new Error(
-        `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
-      )
-    }
-    return l1CanonicalToken.allowance(spender)
-  }
-
-  public getDepositApprovalAddress (chain: TChain = this.chain): string {
-    chain = this.toChainModel(chain)
+  public getDepositApprovalAddress (chain?: TChain): string {
+    chain = this.chain || this.toChainModel(chain)
     let spender = this.getL1CanonicalBridgeAddress(this.tokenSymbol, chain)
-    if (chain.equals(Chain.Polygon) && this.tokenSymbol !== Token.MATIC) {
+    if (chain.equals(Chain.Polygon)) {
       spender = this.getL1PosErc20PredicateAddress(this.tokenSymbol, chain)
     }
     return spender
@@ -161,10 +122,15 @@ class CanonicalBridge extends Base {
    * @param {Object} chain - Chain model.
    * @returns {Object} Ethers transaction object.
    */
-  public async approveDeposit (amount: TAmount, chain: TChain = this.chain) {
+  public async approveDeposit (amount: TAmount, chain?: TChain) {
     amount = amount.toString()
-    chain = this.toChainModel(chain)
+    if (chain) {
+      chain = this.toChainModel(chain)
+    } else {
+      chain = this.chain
+    }
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
+
     const l1CanonicalToken = this.getL1Token().connect(provider)
 
     const spender = this.getDepositApprovalAddress(chain)
@@ -173,19 +139,7 @@ class CanonicalBridge extends Base {
         `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
       )
     }
-    return l1CanonicalToken.approve(spender, ethers.constants.MaxUint256)
-  }
-
-  public async estimateApproveTx (amount: TAmount, chain?: TChain) {
-    amount = amount.toString()
-    chain = this.toChainModel(chain)
-    const provider = await this.getSignerOrProvider(Chain.Ethereum)
-    const l1CanonicalToken = this.getL1Token().connect(provider)
-
-    const spender = this.getDepositApprovalAddress(chain)
-    const populatedTx = await l1CanonicalToken.populateApproveTx(spender, ethers.constants.MaxUint256)
-    const signer = await this.getSignerOrProvider(Chain.Ethereum)
-    return signer.estimateGas(populatedTx)
+    return l1CanonicalToken.approve(spender, amount)
   }
 
   /**
@@ -195,18 +149,6 @@ class CanonicalBridge extends Base {
    * @returns {Object} Ethers transaction object.
    */
   public async deposit (amount: TAmount, chain?: TChain) {
-    const populatedTx = await this.populateDepositTx(amount, chain)
-    const signer = await this.getSignerOrProvider(Chain.Ethereum)
-    return signer.sendTransaction(populatedTx)
-  }
-
-  public async estimateDepositTx (amount: TAmount, chain?: TChain) {
-    const populatedTx = await this.populateDepositTx(amount, chain)
-    const signer = await this.getSignerOrProvider(Chain.Ethereum)
-    return signer.estimateGas(populatedTx)
-  }
-
-  public async populateDepositTx (amount: TAmount, chain?: TChain, fromAddress?: string): Promise<any> {
     amount = amount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
@@ -217,135 +159,87 @@ class CanonicalBridge extends Base {
       throw new Error('chain is required')
     }
 
-    const signerAddress = await this.getSignerAddress()
-    const from = fromAddress || signerAddress
-    let l1CanonicalBridge = await this.getL1CanonicalBridge()
-    if (!l1CanonicalBridge.address) {
-      throw new Error(`token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`)
+    const recipient = await this.getSignerAddress()
+    const bridgeAddress = this.getL1CanonicalBridgeAddress(
+      this.tokenSymbol,
+      chain
+    )
+    if (!bridgeAddress) {
+      throw new Error(
+        `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
+      )
     }
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
-    const l1CanonicalToken = this.getL1Token()
-
-    if (!l1CanonicalToken.address) {
-      throw new Error(`token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`)
+    const tokenAddress = this.getL1CanonicalTokenAddress(
+      this.tokenSymbol,
+      Chain.Ethereum
+    )
+    if (!tokenAddress) {
+      throw new Error(
+        `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
+      )
     }
-    const coder = ethers.utils.defaultAbiCoder
-    const payload = coder.encode(['uint256'], [amount])
 
-    if (chain.equals(Chain.Gnosis)) {
-      if (this.tokenSymbol === Token.DAI) {
-        return (l1CanonicalBridge as L1XDaiPoaBridge).populateTransaction.relayTokens(
-          signerAddress,
-          amount,
-          {
-            // Gnosis requires a higher gas limit
-            gasLimit: 500e3,
-            from,
-          }
-        )
-      }
-
-      if (this.tokenSymbol === Token.ETH) {
-        return (l1CanonicalBridge as L1XDaiWETHOmnibridgeRouter).populateTransaction[
-          'wrapAndRelayTokens(address,bytes)'
-        ](signerAddress, payload, {
-          // Gnosis requires a higher gas limit
-          gasLimit: 500e3,
-          from,
-        })
-      }
-
-      return (l1CanonicalBridge as L1XDaiForeignOmniBridge).populateTransaction.relayTokens(
-        l1CanonicalToken.address,
-        signerAddress,
-        amount,
-        {
-          // Gnosis requires a higher gas limit
-          gasLimit: 500e3,
-          from,
-        }
+    if ((chain as Chain).equals(Chain.Gnosis)) {
+      const bridge = await this.getContract(
+        L1XDaiForeignOmniBridge__factory,
+        bridgeAddress,
+        provider
       )
-    } else if (chain.equals(Chain.Optimism)) {
-      const l2TokenAddress = this.getL2CanonicalTokenAddress(this.tokenSymbol, chain)
+      // await this.checkMaxTokensAllowed(chain, bridge, amount)
+      return bridge.relayTokens(tokenAddress, recipient, amount, {
+        // Gnosis requires a higher gas limit
+        gasLimit: 300000
+      })
+    } else if ((chain as Chain).equals(Chain.Optimism)) {
+      const l2TokenAddress = this.getL2CanonicalTokenAddress(
+        this.tokenSymbol,
+        chain
+      )
       if (!l2TokenAddress) {
-        throw new Error(`token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`)
-      }
-
-      if (this.tokenSymbol === Token.DAI) {
-        const bridge = L1OptimismDaiTokenBridge__factory.connect(
-          l1CanonicalBridge.address,
-          provider
-        )
-        return bridge.populateTransaction.depositERC20(
-          l1CanonicalToken.address,
-          l2TokenAddress,
-          amount,
-          BigNumber.from('2000000'),
-          '0x',
-          {
-            from,
-            gasLimit: 500e3,
-          }
+        throw new Error(
+          `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
         )
       }
-
-      const bridge = L1OptimismTokenBridge__factory.connect(l1CanonicalBridge.address, provider)
-      return bridge.populateTransaction.deposit(
-        l1CanonicalToken.address,
-        l2TokenAddress,
-        signerAddress,
-        payload,
-        { from, gasLimit: 500e3 }
+      const bridge = await this.getContract(
+        L1OptimismTokenBridge__factory,
+        bridgeAddress,
+        provider
       )
-    } else if (chain.equals(Chain.Arbitrum)) {
-      let bridge: ArbitrumInbox | L1ArbitrumDaiGateway = L1ArbitrumDaiGateway__factory.connect(l1CanonicalBridge.address, provider)
-      if (this.tokenSymbol === Token.ETH) {
-        bridge = await this.getContract(ArbitrumInbox__factory, l1CanonicalBridge.address, provider)
-        return (bridge as ArbitrumInbox).populateTransaction.depositEth(payload, {
-          value: amount,
-          from,
-        })
-      }
-
-      const maxGas = 200e3
-      const gasPriceBid = '100'
-      const data = '0x'
-      return bridge.populateTransaction.outboundTransfer(
-        l1CanonicalToken.address,
-        signerAddress,
-        amount,
-        maxGas,
-        gasPriceBid,
-        data,
-        { from, gasLimit: 200e3 }
+      await this.checkMaxTokensAllowed(chain, bridge, amount)
+      return bridge.deposit(tokenAddress, l2TokenAddress, recipient, amount)
+    } else if ((chain as Chain).equals(Chain.Arbitrum)) {
+      const arbChain = this.getL1ArbitrumGateway(this.tokenSymbol)
+      const bridge = await this.getContract(
+        ArbitrumGlobalInbox__factory,
+        bridgeAddress,
+        provider
       )
-    } else if (chain.equals(Chain.Polygon)) {
-      if (this.tokenSymbol === Token.MATIC) {
-        return (
-          l1CanonicalBridge as L1PolygonPlasmaBridgeDepositManager
-        ).populateTransaction.depositERC20ForUser(
-          l1CanonicalToken.address,
-          signerAddress,
-          payload,
-          {
-            from,
-            gasLimit: 200e3,
-          }
+      await this.checkMaxTokensAllowed(chain, bridge, amount)
+      return bridge.depositERC20Message(
+        arbChain,
+        tokenAddress,
+        recipient,
+        amount
+      )
+    } else if ((chain as Chain).equals(Chain.Polygon)) {
+      const bridgeAddress = this.getL1PosRootChainManagerAddress(
+        this.tokenSymbol,
+        chain
+      )
+      if (!bridgeAddress) {
+        throw new Error(
+          `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
         )
       }
-
-      if (this.tokenSymbol === Token.ETH) {
-        return (
-          l1CanonicalBridge as L1PolygonPosRootChainManager
-        ).populateTransaction.depositEtherFor(signerAddress, { from, value: amount })
-      }
-
-      return (l1CanonicalBridge as L1PolygonPosRootChainManager).populateTransaction.depositFor(
-        signerAddress,
-        l1CanonicalToken.address,
-        payload,
-        { from }
+      const bridge = await this.getContract(
+        L1PolygonPosRootChainManager__factory,
+        bridgeAddress,
+        provider
       )
+      const coder = ethers.utils.defaultAbiCoder
+      const payload = coder.encode(['uint256'], [amount])
+      return bridge.depositFor(recipient, tokenAddress, payload)
     } else {
       throw new Error('not implemented')
     }
@@ -599,41 +493,27 @@ class CanonicalBridge extends Base {
     return this.getContract(factory, address, provider)
   }
 
-  async getL1CanonicalBridge (): Promise<L1CanonicalBridge> {
-    const address = this.getL1CanonicalBridgeAddress(this.tokenSymbol, this.chain)
+  async getL1CanonicalBridge () {
+    const address = this.getL1CanonicalBridgeAddress(
+      this.tokenSymbol,
+      this.chain
+    )
     if (!address) {
-      throw new Error(`token "${this.tokenSymbol}" on chain "${this.chain.slug}" is unsupported`)
+      throw new Error(
+        `token "${this.tokenSymbol}" on chain "${this.chain.slug}" is unsupported`
+      )
     }
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
-
     let factory: L1Factory
-    if (this.chain.equals(Chain.Gnosis)) {
-      if (this.tokenSymbol === Token.DAI) {
-        factory = L1XDaiPoaBridge__factory
-      } else if (this.tokenSymbol === Token.ETH) {
-        factory = L1XDaiWETHOmnibridgeRouter__factory
-      } else {
-        factory = L1XDaiForeignOmniBridge__factory
-      }
-    } else if (this.chain.equals(Chain.Optimism)) {
-      if (this.tokenSymbol === Token.DAI) {
-        factory = L1OptimismDaiTokenBridge__factory
-      }
-      factory = L1OptimismTokenBridge__factory
+    if (this.chain.equals(Chain.Polygon)) {
+      factory = L1PolygonPosRootChainManager__factory
+    } else if (this.chain.equals(Chain.Gnosis)) {
+      factory = L1XDaiForeignOmniBridge__factory
     } else if (this.chain.equals(Chain.Arbitrum)) {
-      if (this.tokenSymbol === Token.ETH) {
-        factory = ArbitrumInbox__factory
-      } else {
-        factory = L1ArbitrumDaiGateway__factory
-      }
-    } else if (this.chain.equals(Chain.Polygon)) {
-      if (this.tokenSymbol === Token.MATIC) {
-        factory = L1PolygonPlasmaBridgeDepositManager__factory
-      } else {
-        factory = L1PolygonPosRootChainManager__factory
-      }
+      factory = ArbitrumGlobalInbox__factory
+    } else if (this.chain.equals(Chain.Optimism)) {
+      factory = L1OptimismTokenBridge__factory
     }
-
     return this.getContract(factory, address, provider)
   }
 
@@ -658,13 +538,13 @@ class CanonicalBridge extends Base {
     ]
     let address
     if (chain.isL1) {
-      const l1CanonicalToken = this.getL1CanonicalTokenAddress(
+      const { l1CanonicalToken } = this.getL1CanonicalBridgeAddress(
         token.symbol,
         chain.slug
       )
       address = l1CanonicalToken
     } else {
-      const l2CanonicalToken = this.getL2CanonicalTokenAddress(
+      const { l2CanonicalToken } = this.getL2CanonicalTokenAddress(
         token.symbol,
         chain.slug
       )

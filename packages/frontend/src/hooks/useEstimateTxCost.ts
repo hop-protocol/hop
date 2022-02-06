@@ -5,6 +5,7 @@ import Transaction from 'src/models/Transaction'
 import { Token, ChainSlug } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
+import { formatError } from 'src/utils'
 
 export enum MethodNames {
   convertTokens = 'convertTokens',
@@ -125,11 +126,7 @@ export function useEstimateTxCost() {
           return gasCost
         }
       } catch (error: any) {
-        const message = error.message
-        if (message?.includes('revert')) {
-          return
-        }
-        logger.error(error)
+        logger.error(formatError(error))
       }
     },
     [sdk]
@@ -155,7 +152,7 @@ export function useEstimateTxCost() {
         return gasCost
       }
     } catch (error) {
-      logger.error(error)
+      logger.error(formatError(error))
     }
   }, [])
 
@@ -181,7 +178,7 @@ export function useEstimateTxCost() {
             break
         }
       } catch (error) {
-        logger.error(error)
+        logger.error(formatError(error))
       }
     },
     [sdk]

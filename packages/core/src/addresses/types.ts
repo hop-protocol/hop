@@ -8,6 +8,7 @@ export type Bridges = {
     arbitrum: {
       l1CanonicalBridge: string
       l1MessengerWrapper: string
+      l1Gateway?: string
       l2CanonicalBridge: string
       l2CanonicalToken: string
       l2Bridge: string

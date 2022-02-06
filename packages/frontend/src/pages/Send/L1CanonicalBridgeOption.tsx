@@ -1,9 +1,10 @@
 import React from 'react'
-import { CanonicalBridge, Token } from '@hop-protocol/sdk'
+import { Token } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { Div, Flex } from 'src/components/ui'
 import { toTokenDisplay } from 'src/utils'
 import Network from 'src/models/Network'
+import CanonicalBridge from 'src/models/CanonicalBridge'
 import { RadioButtonChecked, RadioButtonUnchecked } from '@material-ui/icons'
 
 interface Props {
@@ -29,7 +30,7 @@ function L1CanonicalBridgeOption(props: Props) {
   } = props
 
   return (
-    <Flex width={'50rem'} mt={3} pointer>
+    <Flex width={'50rem'} mt={3} pointer color='text.secondary'>
       {l1CanonicalBridge && (
         <Div fullWidth>
           <Flex fullWidth justifyBetween px={4} onClick={() => setUl1cb(false)}>

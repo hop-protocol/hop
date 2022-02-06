@@ -6,6 +6,11 @@ import {
   ArbERC20__factory,
   ArbitrumInbox,
   ArbitrumInbox__factory,
+  L1ArbitrumDaiGateway__factory,
+  L1OptimismDaiTokenBridge__factory,
+  L1PolygonPlasmaBridgeDepositManager__factory,
+  L1XDaiPoaBridge__factory,
+  L1XDaiWETHOmnibridgeRouter__factory,
 } from '@hop-protocol/core/contracts'
 import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
@@ -27,7 +32,17 @@ import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
-export type L1Factory = L1PolygonPosRootChainManager__factory | L1XDaiForeignOmniBridge__factory | ArbitrumInbox__factory | L1OptimismTokenBridge__factory
+export type L1Factory =
+  | L1XDaiPoaBridge__factory
+  | L1XDaiWETHOmnibridgeRouter__factory
+  | L1PolygonPlasmaBridgeDepositManager__factory
+  | L1PolygonPosRootChainManager__factory
+  | L1XDaiForeignOmniBridge__factory
+  | ArbitrumInbox__factory
+  | L1ArbitrumDaiGateway__factory
+  | L1OptimismTokenBridge__factory
+  | L1OptimismDaiTokenBridge__factory
+
 export type L1Contract = L1PolygonPosRootChainManager | L1XDaiForeignOmniBridge | ArbitrumInbox | L1OptimismTokenBridge
 
 export type L2Factory = L2PolygonChildERC20__factory | L2XDaiToken__factory | ArbERC20__factory | L2OptimismTokenBridge__factory
@@ -447,9 +462,8 @@ class Base {
     return this.getConfigAddresses(token, chain)?.l2SaddleLpToken
   }
 
-  // Arbitrum ARB Chain address
-  public getArbChainAddress (token: TToken, chain: TChain) {
-    return this.getConfigAddresses(token, chain)?.arbChain
+  public getL1ArbitrumGateway (token: TToken) {
+    return this.getConfigAddresses(token, Chain.Arbitrum)?.l1Gateway
   }
 
   // Gnosis L1 Home AMB bridge address

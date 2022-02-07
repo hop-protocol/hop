@@ -105,18 +105,10 @@ const ConvertContent: FC = () => {
     approveTokens()
   }
 
-  const isPolygonRoute =
-    sourceNetwork &&
-    destNetwork &&
-    (
-      destNetwork.slug === ChainSlug.Polygon ||
-      sourceNetwork.slug === ChainSlug.Polygon
-    )
-
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning: High Price Impact!')
 
   const sendButtonActive =
-    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !isPolygonRoute
+    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error
 
   const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
 
@@ -161,11 +153,6 @@ const ConvertContent: FC = () => {
           <div className={styles.details}>{details}</div>
           <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
-          <Alert severity="warning" onClose={() => setError(undefined)} text={error}>
-            {isPolygonRoute && (
-              <div>The Polygon messenger is currently down and transfers from or to Polygon cannot be completed until it’s back online. Please, try again later and check the Discord channel for updates.</div>
-            )}
-          </Alert>
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
           <ButtonsWrapper>

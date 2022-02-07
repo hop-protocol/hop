@@ -471,14 +471,6 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
-  const isPolygonRoute =
-    fromNetwork &&
-    toNetwork &&
-    (
-      toNetwork.slug === ChainSlug.Polygon ||
-      fromNetwork.slug === ChainSlug.Polygon
-    )
-
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
   const sendButtonActive = useMemo(() => {
@@ -493,8 +485,7 @@ const Send: FC = () => {
       rate &&
       sufficientBalance &&
       isLiquidityAvailable &&
-      estimatedReceived?.gt(0) &&
-      !isPolygonRoute
+      estimatedReceived?.gt(0)
     )
   }, [
     needsApproval,
@@ -507,8 +498,7 @@ const Send: FC = () => {
     rate,
     sufficientBalance,
     isLiquidityAvailable,
-    estimatedReceived,
-    isPolygonRoute
+    estimatedReceived
   ])
 
   return (
@@ -597,11 +587,6 @@ const Send: FC = () => {
       </div>
 
       <Alert severity="error" onClose={() => setError(null)} text={error} />
-      <Alert severity="warning" onClose={() => setError(null)} text={error}>
-        {isPolygonRoute && (
-          <div>The Polygon messenger is currently down and transfers from or to Polygon cannot be completed until it’s back online. Please, try again later and check the Discord channel for updates.</div>
-        )}
-      </Alert>
       {!error && <Alert severity="warning">{warning}</Alert>}
 
       <ButtonsWrapper>

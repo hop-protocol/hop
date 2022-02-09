@@ -326,7 +326,7 @@ const Pools: FC = () => {
             <Flex column fullWidth>
               <DetailRow
                 title="APR"
-                tooltip="Annual Percentage Rate (APR) from earning fees"
+                tooltip="Annual Percentage Rate (APR) from earning fees, based on 24hr trading volume"
                 value={`${aprFormatted}`}
               />
               <DetailRow
@@ -341,7 +341,7 @@ const Pools: FC = () => {
               />
               <DetailRow
                 title="Virtual Price"
-                tooltip="The virtual price, to help calculate profit"
+                tooltip="The virtual price, to help calculate profit. Virtual price is calculated as `pool_reserves / lp_supply`"
                 value={`${virtualPriceFormatted}`}
               />
               <DetailRow

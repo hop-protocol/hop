@@ -466,7 +466,6 @@ const Send: FC = () => {
 
   useEffect(() => {
     if (
-      !fromNetwork?.isLayer1 &&
       toNetwork?.slug === ChainSlug.Arbitrum &&
       customRecipient &&
       !address?.eq(customRecipient)

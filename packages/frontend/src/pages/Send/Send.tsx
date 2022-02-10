@@ -68,6 +68,7 @@ const Send: FC = () => {
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
+  const [manualWarning, setManualWarning] = useState<string>('')
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -441,7 +442,7 @@ const Send: FC = () => {
 
   // Change the fromNetwork
   const handleFromNetworkChange = (network: Network | undefined) => {
-    if (network === toNetwork) {
+    if (network?.slug === toNetwork?.slug) {
       handleSwitchDirection()
     } else {
       setFromNetwork(network)
@@ -450,7 +451,7 @@ const Send: FC = () => {
 
   // Change the toNetwork
   const handleToNetworkChange = (network: Network | undefined) => {
-    if (network === fromNetwork) {
+    if (network?.slug === fromNetwork?.slug) {
       handleSwitchDirection()
     } else {
       setToNetwork(network)
@@ -462,6 +463,20 @@ const Send: FC = () => {
     const value = event.target.value.trim()
     setCustomRecipient(value)
   }
+
+  useEffect(() => {
+    if (
+      !fromNetwork?.isLayer1 &&
+      toNetwork?.slug === ChainSlug.Arbitrum &&
+      customRecipient &&
+      !address?.eq(customRecipient)
+    ) {
+      return setManualWarning(
+        'Warning: transfers to exchanges that do not support internal transactions may result in lost funds.\nRecommended: Bridge funds to self, then send funds to exchange.'
+      )
+    }
+    setManualWarning('')
+  }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
@@ -490,7 +505,7 @@ const Send: FC = () => {
     rate,
     sufficientBalance,
     isLiquidityAvailable,
-    estimatedReceived
+    estimatedReceived,
   ])
 
   return (
@@ -580,6 +595,7 @@ const Send: FC = () => {
 
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
+      <Alert severity="warning">{manualWarning}</Alert>
 
       <ButtonsWrapper>
         {!sendButtonActive && (

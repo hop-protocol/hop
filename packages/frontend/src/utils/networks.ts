@@ -72,6 +72,14 @@ export function isL2ToL1(srcNetwork: Network, destNetwork: Network) {
   return false
 }
 
+export function isL2ToL2(srcNetwork?: Network, destNetwork?: Network) {
+  if (!srcNetwork?.isLayer1 && !destNetwork?.isLayer1) {
+    return true
+  }
+
+  return false
+}
+
 export function isProviderNetworkByChainId(chainId: ChainId, provider?: JsonRpcProvider) {
   if (!provider) return false
 

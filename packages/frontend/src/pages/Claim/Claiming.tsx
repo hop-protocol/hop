@@ -6,7 +6,7 @@ import { getEtherscanLink, getTruncatedHash } from 'src/utils'
 import { correctClaimChain } from 'src/utils/claims'
 
 export function Claiming(props) {
-  const { isDarkMode, claiming, tx } = props
+  const { isDarkMode, claiming, tx, delegate } = props
 
   return (
     <>
@@ -22,7 +22,7 @@ export function Claiming(props) {
         borderRadius={'25px'}
         boxShadow={'0px 4px 25px 10px rgba(255, 255, 255, 0.01)'}
       >
-        <Loading size={50} load={claiming} />
+        <Loading size={50} load={claiming} imgSrc={delegate.avatar} />
         <Div color="text.secondary" ml={2} p={2}>
           <Text primary textAlign="left" mb={2}>
             Delegate & claim tokens
@@ -34,7 +34,13 @@ export function Claiming(props) {
       {tx && (
         <Flex mt={3} justifyCenter color="secondary.main">
           Transaction:&nbsp;
-          <StyledLink href={getEtherscanLink(correctClaimChain.id, tx.transactionHash || tx.hash, 'transaction')}>
+          <StyledLink
+            href={getEtherscanLink(
+              correctClaimChain.id,
+              tx.transactionHash || tx.hash,
+              'transaction'
+            )}
+          >
             {getTruncatedHash(tx.transactionHash || tx.hash)} ↗
           </StyledLink>
         </Flex>

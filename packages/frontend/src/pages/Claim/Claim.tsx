@@ -72,6 +72,7 @@ export function Claim() {
       claiming={claiming}
       isDarkMode={isDarkMode}
       tx={claimTokensTx}
+      delegate={delegate}
     />,
     <Claimed key="Claim successful!" />,
   ]

@@ -472,7 +472,7 @@ const Send: FC = () => {
       !address?.eq(customRecipient)
     ) {
       return setManualWarning(
-        'Warning: transfers to exchanges that do not support internal transactions may result in lost funds.\nRecommended: Bridge funds to self, then send funds to exchange.'
+        'Warning: transfers to exchanges that do not support internal transactions may result in lost funds.'
       )
     }
     setManualWarning('')

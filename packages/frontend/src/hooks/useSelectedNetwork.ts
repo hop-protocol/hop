@@ -19,7 +19,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
         queryParams.sourceNetwork as string,
         opts.availableNetworks
       )
-      if (matchingNetwork && !matchingNetwork?.isLayer1) {
+      if (matchingNetwork && !matchingNetwork.isLayer1) {
         setSelectedNetwork(matchingNetwork)
       } else {
         setSelectedNetwork(defaultL2Network)

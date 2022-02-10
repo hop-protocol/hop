@@ -68,6 +68,7 @@ const Send: FC = () => {
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
+  const [manualWarning, setManualWarning] = useState<string>('')
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -102,16 +103,8 @@ const Send: FC = () => {
   )
 
   // Get token balances for both networks
-  const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
-    sourceToken,
-    fromNetwork,
-    address
-  )
-  const { balance: toBalance, loading: loadingToBalance } = useBalance(
-    destToken,
-    toNetwork,
-    address
-  )
+  const { balance: fromBalance, loading: loadingFromBalance } = useBalance(sourceToken, address)
+  const { balance: toBalance, loading: loadingToBalance } = useBalance(destToken, address)
 
   // Set fromToken -> BN
   const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
@@ -449,7 +442,7 @@ const Send: FC = () => {
 
   // Change the fromNetwork
   const handleFromNetworkChange = (network: Network | undefined) => {
-    if (network === toNetwork) {
+    if (network?.slug === toNetwork?.slug) {
       handleSwitchDirection()
     } else {
       setFromNetwork(network)
@@ -458,7 +451,7 @@ const Send: FC = () => {
 
   // Change the toNetwork
   const handleToNetworkChange = (network: Network | undefined) => {
-    if (network === fromNetwork) {
+    if (network?.slug === fromNetwork?.slug) {
       handleSwitchDirection()
     } else {
       setToNetwork(network)
@@ -470,6 +463,19 @@ const Send: FC = () => {
     const value = event.target.value.trim()
     setCustomRecipient(value)
   }
+
+  useEffect(() => {
+    if (
+      toNetwork?.slug === ChainSlug.Arbitrum &&
+      customRecipient &&
+      !address?.eq(customRecipient)
+    ) {
+      return setManualWarning(
+        'Warning: transfers to exchanges that do not support internal transactions may result in lost funds.'
+      )
+    }
+    setManualWarning('')
+  }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
@@ -498,7 +504,7 @@ const Send: FC = () => {
     rate,
     sufficientBalance,
     isLiquidityAvailable,
-    estimatedReceived
+    estimatedReceived,
   ])
 
   return (
@@ -588,6 +594,7 @@ const Send: FC = () => {
 
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
+      <Alert severity="warning">{manualWarning}</Alert>
 
       <ButtonsWrapper>
         {!sendButtonActive && (

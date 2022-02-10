@@ -1433,7 +1433,7 @@ class HopBridge extends Base {
    * @param {Object} signer - Ethers signer
    * @returns {Object} Ethers contract instance.
    */
-  public async getSaddleLpToken (
+  public getSaddleLpToken (
     chain: TChain,
     signer: TProvider = this.signer
   ) {

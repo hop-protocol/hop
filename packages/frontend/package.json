@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudfront": "^3.45.0",
-    "@hop-protocol/core": "0.0.1-beta.60",
-    "@hop-protocol/sdk": "0.0.1-beta.294",
+    "@hop-protocol/core": "0.0.1-beta.61",
+    "@hop-protocol/sdk": "0.0.1-beta.296",
     "@material-ui/core": "^4.12.3",
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "4.0.0-alpha.60",

@@ -91,9 +91,9 @@ class Token extends Base {
    *const allowance = bridge.allowance(Chain.Gnosis, spender)
    *```
    */
-  public async allowance (spender: string) {
+  public async allowance (spender: string, address?: string) {
     const tokenContract = await this.getErc20()
-    const address = await this.getSignerAddress()
+    address = address ?? await this.getSignerAddress()
     if (!address) {
       throw new Error('signer required')
     }

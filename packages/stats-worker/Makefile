@@ -11,7 +11,7 @@ docker-image-tag:
 	$(eval REV=$(shell git rev-parse HEAD | cut -c1-7))
 	$(eval BRANCH=$(shell git branch --show-current))
 	docker tag hopprotocol/stats-worker:latest hopprotocol/stats-worker:$(REV)
-	docker tag hopprotocol/stats-worker:latest hopprotocol/stats-worker:$(BRANCH)
+	#docker tag hopprotocol/stats-worker:latest hopprotocol/stats-worker:$(BRANCH)
 
 # Push to registry
 docker-registry-push:
@@ -19,7 +19,7 @@ docker-registry-push:
 	$(eval BRANCH=$(shell git branch --show-current))
 	docker push hopprotocol/stats-worker:latest
 	docker push hopprotocol/stats-worker:$(REV)
-	docker push hopprotocol/stats-worker:$(BRANCH)
+	#docker push hopprotocol/stats-worker:$(BRANCH)
 
 # Build docker image and push to registry
 docker-build-and-push: docker-build docker-image-tag docker-registry-push

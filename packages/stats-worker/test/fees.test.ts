@@ -5,7 +5,7 @@ import {
   parseEther,
   formatUnits
 } from 'ethers/lib/utils'
-import BonderFeeStats from 'src/BonderFeeStats'
+import BonderBalanceStats from 'src/BonderBalanceStats'
 
 const data: any = {
   '0xa6a688F107851131F0E1dce493EbBebFAf99203e': {
@@ -482,7 +482,7 @@ const expectedResultsUsd: any = {
 
 describe('bonder balance stats', () => {
   it('should return calculated bonder profits', async () => {
-    const stats = new BonderFeeStats()
+    const stats = new BonderBalanceStats()
     const tokens = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC']
     for (const token of tokens) {
       const initialAggregateBalance = initialAggregateBalances[token]

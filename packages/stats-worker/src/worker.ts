@@ -1,7 +1,7 @@
 import AprStats from './AprStats'
 import VolumeStats from './VolumeStats'
 import TvlStats from './TvlStats'
-import BonderFeeStats from './BonderFeeStats'
+import BonderBalanceStats from './BonderBalanceStats'
 import S3Upload from './S3Upload'
 import wait from 'wait'
 
@@ -12,13 +12,16 @@ type Options = {
   fees?: boolean
   regenesis?: boolean
   days?: number
+  feeDays?: number
+  feeSkipDays?: number
+  feeTokens?: string[]
 }
 
 class Worker {
   aprStats: AprStats
   volumeStats: VolumeStats
   tvlStats: TvlStats
-  feeStats: BonderFeeStats
+  feeStats: BonderBalanceStats
   hosting = new S3Upload()
   pollIntervalMs: number = 60 * 60 * 1000
   apr: boolean = false
@@ -27,7 +30,17 @@ class Worker {
   fees: boolean = false
 
   constructor (options: Options = {}) {
-    const { apr, tvl, volume, fees, regenesis, days } = options
+    const {
+      apr,
+      tvl,
+      volume,
+      fees,
+      regenesis,
+      days,
+      feeDays,
+      feeSkipDays,
+      feeTokens
+    } = options
     this.apr = apr
     this.tvl = tvl
     this.volume = volume
@@ -40,8 +53,10 @@ class Worker {
       regenesis,
       days
     })
-    this.feeStats = new BonderFeeStats({
-      days
+    this.feeStats = new BonderBalanceStats({
+      days: feeDays,
+      skipDays: feeSkipDays,
+      tokens: feeTokens
     })
   }
 
@@ -115,7 +130,7 @@ class Worker {
     while (true) {
       try {
         console.log('fetching bonder fee stats')
-        await this.feeStats.track()
+        await this.feeStats.run()
         console.log('done tracking bonder fee stats')
       } catch (err) {
         console.error(err)

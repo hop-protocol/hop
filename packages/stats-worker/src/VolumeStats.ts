@@ -68,7 +68,7 @@ class VolumeStats {
 
   cleanUp () {
     console.log('closing db')
-    this.db.close()
+    //this.db.close()
   }
 
   getUrl (chain: string) {

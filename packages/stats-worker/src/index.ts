@@ -11,7 +11,10 @@ function main () {
     volume: argv.volume,
     fees: argv.fees,
     regenesis: argv.regenesis,
-    days: argv.days
+    days: argv.days,
+    feeTokens: argv.feeTokens ? argv.feeTokens.split(',') : null,
+    feeDays: argv.feeDays,
+    feeSkipDays: argv.feeSkipDays
   })
 
   worker.start()

@@ -31,6 +31,7 @@ class Db {
           price NUMERIC NOT NULL,
           timestamp INTEGER NOT NULL
       )`)
+      this.db.run(`DROP TABLE IF EXISTS bonder_balance_stats`)
       this.db.run(`CREATE TABLE IF NOT EXISTS bonder_balance_stats (
           id TEXT PRIMARY KEY,
           token TEXT NOT NULL,

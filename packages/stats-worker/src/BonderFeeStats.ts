@@ -65,12 +65,19 @@ function sumAmounts (items: any) {
   return sum
 }
 
-type Options = {}
+type Options = {
+  days?: number
+}
 
 class BonderFeeStats {
   db = new Db()
+  days: number = 1
 
   constructor (options: Options = {}) {
+    if (options.days) {
+      this.days = options.days
+    }
+
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
       this.cleanUp()
@@ -135,7 +142,8 @@ class BonderFeeStats {
       MATIC: {}
     }
 
-    const daysN = 10
+    const daysN = this.days
+    console.log('daysN', daysN)
     const now = DateTime.utc()
 
     for (let day = 0; day < daysN; day++) {

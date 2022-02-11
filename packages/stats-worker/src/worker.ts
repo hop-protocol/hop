@@ -40,7 +40,9 @@ class Worker {
       regenesis,
       days
     })
-    this.feeStats = new BonderFeeStats()
+    this.feeStats = new BonderFeeStats({
+      days
+    })
   }
 
   async start () {

@@ -1,6 +1,7 @@
 import AprStats from './AprStats'
 import VolumeStats from './VolumeStats'
 import TvlStats from './TvlStats'
+import BonderFeeStats from './BonderFeeStats'
 import S3Upload from './S3Upload'
 import wait from 'wait'
 
@@ -8,6 +9,7 @@ type Options = {
   apr?: boolean
   tvl?: boolean
   volume?: boolean
+  fees?: boolean
   regenesis?: boolean
   days?: number
 }
@@ -16,17 +18,20 @@ class Worker {
   aprStats: AprStats
   volumeStats: VolumeStats
   tvlStats: TvlStats
+  feeStats: BonderFeeStats
   hosting = new S3Upload()
   pollIntervalMs: number = 60 * 60 * 1000
   apr: boolean = false
   tvl: boolean = false
   volume: boolean = false
+  fees: boolean = false
 
   constructor (options: Options = {}) {
-    const { apr, tvl, volume, regenesis, days } = options
+    const { apr, tvl, volume, fees, regenesis, days } = options
     this.apr = apr
     this.tvl = tvl
     this.volume = volume
+    this.fees = fees
     this.aprStats = new AprStats()
     this.volumeStats = new VolumeStats({
       regenesis
@@ -35,6 +40,7 @@ class Worker {
       regenesis,
       days
     })
+    this.feeStats = new BonderFeeStats()
   }
 
   async start () {
@@ -49,6 +55,9 @@ class Worker {
     }
     if (this.volume) {
       promises.push(this.volumeStatsPoll())
+    }
+    if (this.fees) {
+      promises.push(this.feeStatsPoll())
     }
     if (!promises.length) {
       throw new Error('at least one option is required')
@@ -92,6 +101,20 @@ class Worker {
         const data = await this.aprStats.getAllAprs()
         await this.hosting.upload(data)
         console.log('done uploading apr stats')
+      } catch (err) {
+        console.error(err)
+      }
+      await wait(this.pollIntervalMs)
+    }
+  }
+
+  async feeStatsPoll () {
+    console.log('feeStatsPoll started')
+    while (true) {
+      try {
+        console.log('fetching bonder fee stats')
+        await this.feeStats.track()
+        console.log('done tracking bonder fee stats')
       } catch (err) {
         console.error(err)
       }

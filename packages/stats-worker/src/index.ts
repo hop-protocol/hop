@@ -9,6 +9,7 @@ function main () {
     apr: argv.apr,
     tvl: argv.tvl,
     volume: argv.volume,
+    fees: argv.fees,
     regenesis: argv.regenesis,
     days: argv.days
   })

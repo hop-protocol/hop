@@ -151,8 +151,6 @@ class TvlStats {
     }
     const now = DateTime.utc()
 
-    chains = ['ethereum']
-
     const promises: Promise<any>[] = []
     for (let token of tokens) {
       promises.push(

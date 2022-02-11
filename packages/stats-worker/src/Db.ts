@@ -31,6 +31,13 @@ class Db {
           price NUMERIC NOT NULL,
           timestamp INTEGER NOT NULL
       )`)
+      this.db.run(`CREATE TABLE IF NOT EXISTS bonder_balance_stats (
+          id TEXT PRIMARY KEY,
+          token TEXT NOT NULL,
+          amount NUMERIC NOT NULL,
+          amount_usd NUMERIC NOT NULL,
+          timestamp INTEGER NOT NULL
+      )`)
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_volume_stats_chain_token_timestamp ON volume_stats (chain, token, timestamp);'
       )
@@ -39,6 +46,9 @@ class Db {
       )
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_token_prices_token_timestamp ON token_prices (token, timestamp);'
+      )
+      this.db.run(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_balance_stats_chain_token_timestamp ON bonder_balance_stats (token, timestamp);'
       )
     })
   }
@@ -116,6 +126,19 @@ class Db {
         }
       )
     })
+  }
+
+  async upsertBonderBalanceStat (
+    token: string,
+    amount: number,
+    amountUsd: number,
+    timestamp: number
+  ) {
+    const stmt = this.db.prepare(
+      'INSERT OR REPLACE INTO bonder_balance_stats VALUES (?, ?, ?, ?, ?)'
+    )
+    stmt.run(uuid(), token, amount, amountUsd, timestamp)
+    stmt.finalize()
   }
 
   close () {

@@ -47,7 +47,7 @@ async function main (source: any) {
     throw new Error('TransferId does not exist in the DB')
   }
   dbTransfer.attemptSwap = watcher.bridge.shouldAttemptSwap(dbTransfer.amountOutMin, dbTransfer.deadline)
-  if (dbTransfer.attemptSwap && dbTransfer.destinationChainId === 1){
+  if (dbTransfer.attemptSwap && dbTransfer.destinationChainId === 1) {
     throw new Error('Cannot bond transfer because a swap is being attempted on mainnet. Please withdraw instead.')
   }
   await watcher.sendBondWithdrawalTx(dbTransfer)

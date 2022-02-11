@@ -1,4 +1,3 @@
-require('dotenv').config()
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { awsAccessKeyId, awsRegion, awsSecretAccessKey } from './config'
 

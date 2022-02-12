@@ -1,3 +1,4 @@
+import path from 'path'
 import BlockDater from 'ethereum-block-by-date'
 import { BigNumber, providers, Contract, constants } from 'ethers'
 import {
@@ -17,6 +18,8 @@ import {
 } from './config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
+import { createObjectCsvWriter } from 'csv-writer'
+import { chunk } from 'lodash'
 
 // DATA /////////////////////////////////////////////
 const arbitrumAliases: Record<string, string> = {
@@ -37,7 +40,8 @@ const totalBalances: Record<string, BigNumber> = {
 
 const initialAggregateBalances: Record<string, BigNumber> = {
   USDC: parseUnits('0', 6),
-  USDT: parseUnits('58043.34', 6),
+  //USDT: parseUnits('58043.34', 6),
+  USDT: parseUnits('0', 6),
   DAI: parseUnits('0', 18),
   ETH: parseUnits('0', 18),
   MATIC: parseUnits('0', 18),
@@ -58,7 +62,7 @@ const unstakedAmounts: Record<string, any> = {
   DAI: {
     1637481600: parseEther('8752.88'), // 11/11/2021
     1637481601: parseEther('23422.52'), // 11/11/2021
-    1643961600: parseUnits('300000', 18) // 02/4/2022
+    1644048000: parseUnits('300000', 18) // 02/4/2022
   },
   ETH: {
     1639555200: parseEther('6.07'), // 12/15/2021
@@ -76,17 +80,19 @@ const restakedProfits: Record<string, any> = {
   },
   USDT: {},
   DAI: {
-    1644220800: parseUnits('300000', 18), // 02/7/2022 // idle
-    1644566400: parseUnits('8752.88', 18), // 02/11/2022
+    1644307200: parseUnits('300000', 18), // 02/7/2022 // idle
+    1644652800: parseUnits('8752.88', 18), // 02/11/2022
     1644566401: parseUnits('23422.52', 18) // 02/11/2022
   },
   ETH: {
-    1640678400: parseEther('6.07'), // 12/28/2021
+    1640764800: parseEther('6.07'), // 12/28/2021
     1643184000: parseEther('10') // 01/26/2022
   },
   MATIC: {},
   WBTC: {}
 }
+
+const csv: any = {}
 
 /////////////////////////////////////////////////////
 
@@ -149,10 +155,13 @@ class BonderBalanceStats {
   }
 
   async run () {
-    try {
-      await this.track()
-    } catch (err) {
-      console.error(err)
+    while (true) {
+      try {
+        await this.track()
+        break
+      } catch (err) {
+        console.error(err)
+      }
     }
   }
 
@@ -182,90 +191,142 @@ class BonderBalanceStats {
 
     const now = DateTime.utc()
     const promises: Promise<any>[] = []
+
+    const days = []
     for (let day = 0; day < this.days; day++) {
-      const dayN = day + this.skipDays
-      console.log('day', dayN)
-      promises.push(
-        new Promise(async resolve => {
-          try {
-            const timestamp = now.minus({ days: dayN }).toSeconds() | 0
-            const { bonderBalances, priceMap } = await this.fetchBonderBalances(
-              timestamp,
-              prices
-            )
+      days.push(day)
+    }
 
-            for (const token of this.tokens) {
-              const initialAggregateBalance = initialAggregateBalances?.[token]
-              const initialAggregateNativeBalance =
-                initialAggregateNativeBalances?.[token]
-
-              let restakedAmount = BigNumber.from(0)
-              for (const ts in restakedProfits[token]) {
-                if (Number(ts) <= timestamp) {
-                  restakedAmount = restakedAmount.add(
-                    restakedProfits[token][ts]
-                  )
-                  console.log(
-                    'add profit',
-                    restakedProfits[token][ts].toString()
-                  )
-                }
-              }
-
-              let unstakedAmount = BigNumber.from(0)
-              for (const ts in unstakedAmounts[token]) {
-                if (Number(ts) <= timestamp) {
-                  unstakedAmount = unstakedAmount.add(
-                    unstakedAmounts[token][ts]
-                  )
-                  console.log(
-                    'subtract unstaked amount',
-                    unstakedAmounts[token][ts].toString()
-                  )
-                }
-              }
-
-              const { resultFormatted, resultUsd } = await this.computeResult({
-                bonderBalances,
-                token,
-                initialAggregateBalance,
-                initialAggregateNativeBalance,
-                restakedAmount,
-                unstakedAmount,
-                priceMap
-              })
-
-              console.log(
-                'results',
-                timestamp,
-                token,
-                resultFormatted,
-                resultUsd
-              )
-
+    const chunkSize = 20
+    const allChunks = chunk(days, chunkSize)
+    for (const chunks of allChunks) {
+      await Promise.all(
+        chunks.map(async (day: number) => {
+          const dayN = day + this.skipDays
+          console.log('day', dayN)
+          promises.push(
+            new Promise(async (resolve, reject) => {
               try {
-                this.db.upsertBonderBalanceStat(
-                  token,
-                  resultFormatted,
-                  resultUsd,
-                  timestamp
-                )
-                console.log('upserted')
-              } catch (err) {
-                if (!err.message.includes('UNIQUE constraint failed')) {
-                  throw err
+                const dt = now.minus({ days: dayN })
+                const start = dt.startOf('day')
+                const end = dt.endOf('day')
+                const timestamp = Math.floor(start.toSeconds())
+                const endTimestamp = Math.floor(end.toSeconds())
+                const date = start.toISO()
+                console.log('date', date)
+                if (!csv[timestamp]) {
+                  csv[timestamp] = {
+                    date,
+                    timestamp
+                  }
                 }
-              }
-            }
-          } catch (err) {
-            console.error(err)
-          }
+                const {
+                  bonderBalances,
+                  priceMap
+                } = await this.fetchBonderBalances(timestamp, prices)
 
-          resolve(null)
+                for (const token of this.tokens) {
+                  const initialAggregateBalance =
+                    initialAggregateBalances?.[token]
+                  const initialAggregateNativeBalance =
+                    initialAggregateNativeBalances?.[token]
+
+                  let unstakedAmount = BigNumber.from(0)
+                  for (const ts in unstakedAmounts[token]) {
+                    if (Number(ts) <= endTimestamp) {
+                      unstakedAmount = unstakedAmount.add(
+                        unstakedAmounts[token][ts]
+                      )
+                      console.log(
+                        'subtract unstaked amount',
+                        unstakedAmounts[token][ts].toString()
+                      )
+                    }
+                  }
+
+                  csv[timestamp].unstakedAmount = formatUnits(
+                    unstakedAmount,
+                    this.tokenDecimals[token]
+                  )
+
+                  let restakedAmount = BigNumber.from(0)
+                  for (const ts in restakedProfits[token]) {
+                    if (Number(ts) <= endTimestamp) {
+                      restakedAmount = restakedAmount.add(
+                        restakedProfits[token][ts]
+                      )
+                      console.log(
+                        'add profit',
+                        restakedProfits[token][ts].toString()
+                      )
+                    }
+                  }
+
+                  csv[timestamp].restakedAmount = formatUnits(
+                    restakedAmount,
+                    this.tokenDecimals[token]
+                  )
+
+                  const {
+                    resultFormatted,
+                    resultUsd
+                  } = await this.computeResult({
+                    bonderBalances,
+                    token,
+                    initialAggregateBalance,
+                    initialAggregateNativeBalance,
+                    restakedAmount,
+                    unstakedAmount,
+                    priceMap
+                  })
+
+                  console.log(
+                    'results',
+                    timestamp,
+                    token,
+                    resultFormatted,
+                    resultUsd
+                  )
+
+                  try {
+                    this.db.upsertBonderBalanceStat(
+                      token,
+                      resultFormatted,
+                      resultUsd,
+                      timestamp
+                    )
+                    console.log('upserted')
+                  } catch (err) {
+                    if (!err.message.includes('UNIQUE constraint failed')) {
+                      throw err
+                    }
+                  }
+                }
+              } catch (err) {
+                console.error(err)
+                reject(err)
+                return
+              }
+
+              resolve(null)
+            })
+          )
         })
       )
     }
+
     await Promise.all(promises)
+    const data = Object.values(csv)
+    const headers = Object.keys(data[0])
+    const rows = Object.values(data)
+    const csvWriter = createObjectCsvWriter({
+      path: path.resolve(__dirname, '../', 'bonder.csv'),
+      header: headers.map(id => {
+        return { id, title: id }
+      })
+    })
+
+    await csvWriter.writeRecords(rows)
   }
 
   async fetchBonderBalances (timestamp: number, prices: any) {
@@ -283,7 +344,7 @@ class BonderBalanceStats {
       const startTimestamp = Math.floor(startDate.toSeconds())
 
       const dates = prices[token].reverse().map((x: any) => x[0])
-      const nearest = this.nearestDate(dates, endDate)
+      const nearest = this.nearestDate(dates, startDate)
       const price = prices[token][nearest][1]
       priceMap[token] = price
 
@@ -354,17 +415,14 @@ class BonderBalanceStats {
                 const balancePromises: any[] = []
 
                 try {
-                  if (
-                    tokenAddress === constants.AddressZero &&
-                    chain === 'ethereum'
-                  ) {
-                    balancePromises.push(provider.getBalance(bonder, blockTag))
-                  } else {
+                  if (tokenAddress !== constants.AddressZero) {
                     balancePromises.push(
                       tokenContract.balanceOf(bonder, {
                         blockTag
                       })
                     )
+                  } else {
+                    balancePromises.push(Promise.resolve(null))
                   }
                   if (hTokenContract) {
                     balancePromises.push(
@@ -412,6 +470,26 @@ class BonderBalanceStats {
                   ][token][chain].native.add(aliasBalance)
                 }
 
+                csv[timestamp][`${chain}_canonical`] = balance
+                  ? formatUnits(balance.toString(), this.tokenDecimals[token])
+                  : ''
+                if (chain !== 'ethereum') {
+                  csv[timestamp][`${chain}_hToken`] = hBalance
+                    ? formatUnits(
+                        hBalance.toString(),
+                        this.tokenDecimals[token]
+                      )
+                    : ''
+                }
+                csv[timestamp][`${chain}_native`] = native
+                  ? formatEther(native.toString())
+                  : ''
+                if (chain === 'arbitrum') {
+                  csv[timestamp][`${chain}_alias`] = aliasBalance
+                    ? formatEther(aliasBalance.toString())
+                    : ''
+                }
+
                 console.log(
                   `done fetching daily bonder fee stat, chain: ${chain}`
                 )
@@ -427,7 +505,7 @@ class BonderBalanceStats {
     }
     await Promise.all(promises)
 
-    console.log('all done fetching bonder balances')
+    console.log('done fetching timestamp balances')
     return { bonderBalances, priceMap }
   }
 

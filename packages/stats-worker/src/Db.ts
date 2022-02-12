@@ -4,6 +4,8 @@ import { dbPath } from './config'
 
 console.log('db path:', dbPath)
 
+const argv = require('minimist')(process.argv.slice(2))
+
 class Db {
   db = new sqlite3.Database(dbPath)
 
@@ -31,7 +33,9 @@ class Db {
           price NUMERIC NOT NULL,
           timestamp INTEGER NOT NULL
       )`)
-      this.db.run(`DROP TABLE IF EXISTS bonder_balance_stats`)
+      if (argv.resetBonderDb) {
+        this.db.run(`DROP TABLE IF EXISTS bonder_balance_stats`)
+      }
       this.db.run(`CREATE TABLE IF NOT EXISTS bonder_balance_stats (
           id TEXT PRIMARY KEY,
           token TEXT NOT NULL,

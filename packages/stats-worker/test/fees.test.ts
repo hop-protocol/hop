@@ -1,3 +1,4 @@
+/*
 import { BigNumber } from 'ethers'
 import {
   parseUnits,
@@ -504,3 +505,4 @@ describe('bonder balance stats', () => {
     }
   })
 })
+*/

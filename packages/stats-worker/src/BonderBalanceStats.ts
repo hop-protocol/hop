@@ -51,22 +51,27 @@ const initialAggregateBalances: Record<string, BigNumber> = {
 const initialAggregateNativeBalances: any = {
   USDC: {
     // ethereum: parseUnits('14', 18)
-  }
+  },
+  USDT: {},
+  DAI: {},
+  ETH: {},
+  MATIC: {},
+  WBTC: {}
 }
 
 const unstakedAmounts: Record<string, any> = {
   USDC: {
-    1625036400: parseUnits('9955.84', 6) // 06/30/2021
+    [1625036400]: parseUnits('9955.84', 6) // 06/30/2021
   },
   USDT: {},
   DAI: {
-    1637481600: parseEther('8752.88'), // 11/11/2021
-    1637481601: parseEther('23422.52'), // 11/11/2021
-    1644048000: parseUnits('300000', 18) // 02/4/2022
+    [1636617600]: parseUnits('8752.88', 18), // 11/11/2021
+    [1636617601]: parseUnits('23422.52', 18), // 11/11/2021
+    [1643961600]: parseUnits('300000', 18) // 02/4/2022
   },
   ETH: {
-    1639555200: parseEther('6.07'), // 12/15/2021
-    1639641600: parseEther('26') // 12/16/2021
+    [1639555200]: parseEther('6.07'), // 12/15/2021
+    [1639641600]: parseEther('26') // 12/16/2021
   },
   MATIC: {},
   WBTC: {}
@@ -74,25 +79,23 @@ const unstakedAmounts: Record<string, any> = {
 
 const restakedProfits: Record<string, any> = {
   USDC: {
-    1627628400: parseUnits('9000', 6), // 7/30/2021
-    1637395200: parseUnits('1340.36', 6), // 11/20/2021
-    1643443200: parseUnits('2998.70', 6) // 01/29/2022
+    [1627628400]: parseUnits('9000', 6), // 7/30/2021
+    [1637395200]: parseUnits('1340.36', 6), // 11/20/2021
+    [1643443200]: parseUnits('2998.70', 6) // 01/29/2022
   },
   USDT: {},
   DAI: {
-    1644307200: parseUnits('300000', 18), // 02/7/2022 // idle
-    1644652800: parseUnits('8752.88', 18), // 02/11/2022
-    1644566401: parseUnits('23422.52', 18) // 02/11/2022
+    [1644220800]: parseUnits('300000', 18), // 02/7/2022 // idle
+    [1644480000]: parseUnits('8752.88', 18), // 02/11/2022
+    [1644480001]: parseUnits('23422.52', 18) // 02/11/2022
   },
   ETH: {
-    1640764800: parseEther('6.07'), // 12/28/2021
-    1643184000: parseEther('10') // 01/26/2022
+    [1640678400]: parseEther('6.07'), // 12/28/2021
+    [1643184000]: parseEther('10') // 01/26/2022
   },
   MATIC: {},
   WBTC: {}
 }
-
-const csv: any = {}
 
 /////////////////////////////////////////////////////
 
@@ -107,7 +110,6 @@ class BonderBalanceStats {
   days: number = 1
   skipDays: number = 0
   tokens?: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'WBTC']
-
   chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
 
   allProviders: Record<string, any> = {
@@ -150,8 +152,8 @@ class BonderBalanceStats {
   }
 
   cleanUp () {
-    console.log('closing db')
-    //this.db.close()
+    // console.log('closing db')
+    // this.db.close()
   }
 
   async run () {
@@ -165,12 +167,7 @@ class BonderBalanceStats {
     }
   }
 
-  async track () {
-    console.log('days', this.days)
-    console.log('skipDays', this.skipDays)
-    console.log('chains', this.chains)
-    console.log('tokens', this.tokens)
-
+  async getTokenPrices () {
     const priceDays = 365
     const pricesArr = await Promise.all([
       this.getPriceHistory('usd-coin', priceDays),
@@ -189,133 +186,142 @@ class BonderBalanceStats {
       WBTC: pricesArr[5]
     }
 
+    return prices
+  }
+
+  async trackDay (day: number, token: string, prices: any) {
+    console.log('day:', day)
     const now = DateTime.utc()
-    const promises: Promise<any>[] = []
+    const date = now.minus({ days: day }).startOf('day')
+    const timestamp = Math.floor(date.toSeconds())
+    const isoDate = date.toISO()
+    console.log('date:', isoDate)
 
-    const days = []
-    for (let day = 0; day < this.days; day++) {
-      days.push(day)
+    const priceMap: any = {}
+    for (const _token in prices) {
+      const dates = prices[_token].reverse().map((x: any) => x[0])
+      const nearest = this.nearestDate(dates, timestamp)
+      const price = prices[_token][nearest][1]
+      priceMap[_token] = price
     }
 
-    const chunkSize = 20
-    const allChunks = chunk(days, chunkSize)
-    for (const chunks of allChunks) {
-      await Promise.all(
-        chunks.map(async (day: number) => {
-          const dayN = day + this.skipDays
-          console.log('day', dayN)
-          promises.push(
-            new Promise(async (resolve, reject) => {
-              try {
-                const dt = now.minus({ days: dayN })
-                const start = dt.startOf('day')
-                const end = dt.endOf('day')
-                const timestamp = Math.floor(start.toSeconds())
-                const endTimestamp = Math.floor(end.toSeconds())
-                const date = start.toISO()
-                console.log('date', date)
-                if (!csv[timestamp]) {
-                  csv[timestamp] = {
-                    date,
-                    timestamp
-                  }
-                }
-                const {
-                  bonderBalances,
-                  priceMap
-                } = await this.fetchBonderBalances(timestamp, prices)
+    const { bonderBalances, dbData } = await this.fetchBonderBalances(
+      token,
+      timestamp,
+      priceMap
+    )
 
-                for (const token of this.tokens) {
-                  const initialAggregateBalance =
-                    initialAggregateBalances?.[token]
-                  const initialAggregateNativeBalance =
-                    initialAggregateNativeBalances?.[token]
+    const initialAggregateBalance = initialAggregateBalances?.[token]
+    const initialAggregateNativeBalance =
+      initialAggregateNativeBalances?.[token]
 
-                  let unstakedAmount = BigNumber.from(0)
-                  for (const ts in unstakedAmounts[token]) {
-                    if (Number(ts) <= endTimestamp) {
-                      unstakedAmount = unstakedAmount.add(
-                        unstakedAmounts[token][ts]
-                      )
-                      console.log(
-                        'subtract unstaked amount',
-                        unstakedAmounts[token][ts].toString()
-                      )
-                    }
-                  }
+    let unstakedAmount = BigNumber.from(0)
+    for (const ts in unstakedAmounts[token]) {
+      if (Number(ts) <= timestamp) {
+        unstakedAmount = unstakedAmount.add(unstakedAmounts[token][ts])
+        console.log(
+          ts,
+          'subtract unstaked amount',
+          unstakedAmounts[token][ts].toString()
+        )
+      }
+    }
 
-                  csv[timestamp].unstakedAmount = formatUnits(
-                    unstakedAmount,
-                    this.tokenDecimals[token]
-                  )
+    let restakedAmount = BigNumber.from(0)
+    for (const ts in restakedProfits[token]) {
+      if (Number(ts) <= timestamp) {
+        restakedAmount = restakedAmount.add(restakedProfits[token][ts])
+        console.log(
+          ts,
+          'add restaked amount',
+          restakedProfits[token][ts].toString()
+        )
+      }
+    }
 
-                  let restakedAmount = BigNumber.from(0)
-                  for (const ts in restakedProfits[token]) {
-                    if (Number(ts) <= endTimestamp) {
-                      restakedAmount = restakedAmount.add(
-                        restakedProfits[token][ts]
-                      )
-                      console.log(
-                        'add profit',
-                        restakedProfits[token][ts].toString()
-                      )
-                    }
-                  }
+    const { resultFormatted } = await this.computeResult({
+      token,
+      initialAggregateBalance,
+      initialAggregateNativeBalance,
+      restakedAmount,
+      unstakedAmount,
+      bonderBalances,
+      priceMap
+    })
 
-                  csv[timestamp].restakedAmount = formatUnits(
-                    restakedAmount,
-                    this.tokenDecimals[token]
-                  )
+    dbData.unstakedAmount = formatUnits(
+      unstakedAmount,
+      this.tokenDecimals[token]
+    )
 
-                  const {
-                    resultFormatted,
-                    resultUsd
-                  } = await this.computeResult({
-                    bonderBalances,
-                    token,
-                    initialAggregateBalance,
-                    initialAggregateNativeBalance,
-                    restakedAmount,
-                    unstakedAmount,
-                    priceMap
-                  })
+    dbData.restakedAmount = formatUnits(
+      restakedAmount,
+      this.tokenDecimals[token]
+    )
 
-                  console.log(
-                    'results',
-                    timestamp,
-                    token,
-                    resultFormatted,
-                    resultUsd
-                  )
+    console.log('results', token, timestamp, resultFormatted)
 
-                  try {
-                    this.db.upsertBonderBalanceStat(
-                      token,
-                      resultFormatted,
-                      resultUsd,
-                      timestamp
-                    )
-                    console.log('upserted')
-                  } catch (err) {
-                    if (!err.message.includes('UNIQUE constraint failed')) {
-                      throw err
-                    }
-                  }
-                }
-              } catch (err) {
-                console.error(err)
-                reject(err)
-                return
-              }
-
-              resolve(null)
-            })
-          )
-        })
+    try {
+      await this.db.upsertBonderBalances(
+        token,
+        dbData.polygonBlockNumber,
+        dbData.polygonCanonicalAmount,
+        dbData.polygonHTokenAmount,
+        dbData.polygonNativeAmount,
+        dbData.gnosisBlockNumber,
+        dbData.gnosisCanonicalAmount,
+        dbData.gnosisHTokenAmount,
+        dbData.gnosisNativeAmount,
+        dbData.arbitrumBlockNumber,
+        dbData.arbitrumCanonicalAmount,
+        dbData.arbitrumHTokenAmount,
+        dbData.arbitrumNativeAmount,
+        dbData.arbitrumAliasAmount,
+        dbData.optimismBlockNumber,
+        dbData.optimismCanonicalAmount,
+        dbData.optimismHTokenAmount,
+        dbData.optimismNativeAmount,
+        dbData.ethereumBlockNumber,
+        dbData.ethereumCanonicalAmount,
+        dbData.ethereumNativeAmount,
+        dbData.unstakedAmount,
+        dbData.restakedAmount,
+        dbData.ethPriceUsd,
+        dbData.maticPriceUsd,
+        resultFormatted,
+        timestamp
       )
+      console.log('upserted')
+    } catch (err) {
+      if (!err.message.includes('UNIQUE constraint failed')) {
+        throw err
+      }
+    }
+  }
+
+  async track () {
+    console.log('days:', this.days)
+    console.log('chains:', this.chains)
+    console.log('tokens:', this.tokens)
+
+    const prices = await this.getTokenPrices()
+
+    for (const token of this.tokens) {
+      const days = Array(this.days)
+        .fill(0)
+        .map((n, i) => n + i)
+      const chunkSize = 10
+      const allChunks = chunk(days, chunkSize)
+      for (const chunks of allChunks) {
+        await Promise.all(
+          chunks.map(async (day: number) => {
+            return this.trackDay(day, token, prices)
+          })
+        )
+      }
     }
 
-    await Promise.all(promises)
+    /*
     const data = Object.values(csv)
     const headers = Object.keys(data[0])
     const rows = Object.values(data)
@@ -327,213 +333,152 @@ class BonderBalanceStats {
     })
 
     await csvWriter.writeRecords(rows)
+    */
   }
 
-  async fetchBonderBalances (timestamp: number, prices: any) {
-    const now = DateTime.utc()
-
+  async fetchBonderBalances (token: string, timestamp: number, priceMap: any) {
     const bonders = (mainnetAddresses as any).bonders
+    const bonderMap = bonders[token]
     const bonderBalances: any = {}
-    const priceMap: any = {}
-    const promises: Promise<any>[] = []
+    const dbData: any = {}
+    const chainPromises: any[] = []
 
-    for (const token in bonders) {
-      const endDate = DateTime.fromSeconds(timestamp).endOf('day')
-      const startDate = endDate.startOf('day')
-      const endTimestamp = Math.floor(endDate.toSeconds())
-      const startTimestamp = Math.floor(startDate.toSeconds())
+    for (const sourceChain in bonderMap) {
+      for (const destinationChain in bonderMap[sourceChain]) {
+        chainPromises.push(
+          new Promise(async resolve => {
+            const chain = destinationChain
+            const provider = this.allProviders[chain]
+            const bonder = bonderMap[sourceChain][destinationChain]
+            if (bonderBalances[chain]) {
+              resolve(null)
+              return
+            }
+            if (!bonderBalances[chain]) {
+              bonderBalances[chain] = {
+                canonical: BigNumber.from(0),
+                hToken: BigNumber.from(0),
+                native: BigNumber.from(0),
+                alias: BigNumber.from(0)
+              }
+            }
+            const bridgeMap = (mainnetAddresses as any).bridges[token][chain]
+            const tokenAddress =
+              bridgeMap.l2CanonicalToken ?? bridgeMap.l1CanonicalToken
+            const hTokenAddress = bridgeMap.l2HopBridgeToken
+            const tokenContract = new Contract(tokenAddress, erc20Abi, provider)
+            const hTokenContract = hTokenAddress
+              ? new Contract(hTokenAddress, erc20Abi, provider)
+              : null
 
-      const dates = prices[token].reverse().map((x: any) => x[0])
-      const nearest = this.nearestDate(dates, startDate)
-      const price = prices[token][nearest][1]
-      priceMap[token] = price
-
-      const promise = new Promise(async resolve => {
-        const chainPromises: any[] = []
-        for (const sourceChain in bonders[token]) {
-          if (!this.tokens.includes(token)) {
-            continue
-          }
-          for (const destinationChain in bonders[token][sourceChain]) {
-            chainPromises.push(
-              new Promise(async resolve => {
-                const chain = destinationChain
-                const provider = this.allProviders[chain]
-                const bonder = bonders[token][sourceChain][destinationChain]
-                if (bonderBalances?.[bonder]?.[token]?.[chain]) {
-                  resolve(null)
-                  return
-                }
-                if (!bonderBalances[bonder]) {
-                  bonderBalances[bonder] = {}
-                }
-                if (!bonderBalances[bonder][token]) {
-                  bonderBalances[bonder][token] = {}
-                }
-                if (!bonderBalances[bonder][token][chain]) {
-                  bonderBalances[bonder][token][chain] = {}
-                }
-                if (!bonderBalances[bonder][token][chain].canonical) {
-                  bonderBalances[bonder][token][
-                    chain
-                  ].canonical = BigNumber.from(0)
-                }
-                if (!bonderBalances[bonder][token][chain].hToken) {
-                  bonderBalances[bonder][token][chain].hToken = BigNumber.from(
-                    0
-                  )
-                }
-                if (!bonderBalances[bonder][token][chain].native) {
-                  bonderBalances[bonder][token][chain].native = BigNumber.from(
-                    0
-                  )
-                }
-                const bridge = (mainnetAddresses as any).bridges[token][chain]
-                const tokenAddress =
-                  bridge.l2CanonicalToken ?? bridge.l1CanonicalToken
-                const hTokenAddress = bridge.l2HopBridgeToken
-                const tokenContract = new Contract(
-                  tokenAddress,
-                  erc20Abi,
-                  provider
-                )
-                const hTokenContract = hTokenAddress
-                  ? new Contract(hTokenAddress, erc20Abi, provider)
-                  : null
-
-                console.log(
-                  `fetching daily bonder balance stat, chain: ${chain}, token: ${token}, timestamp: ${timestamp}`
-                )
-
-                const blockDater = new BlockDater(provider)
-                const date = DateTime.fromSeconds(endTimestamp).toJSDate()
-                const info = await blockDater.getDate(date)
-                if (!info) {
-                  throw new Error('no info')
-                }
-                const blockTag = info.block
-                const balancePromises: any[] = []
-
-                try {
-                  if (tokenAddress !== constants.AddressZero) {
-                    balancePromises.push(
-                      tokenContract.balanceOf(bonder, {
-                        blockTag
-                      })
-                    )
-                  } else {
-                    balancePromises.push(Promise.resolve(null))
-                  }
-                  if (hTokenContract) {
-                    balancePromises.push(
-                      hTokenContract.balanceOf(bonder, {
-                        blockTag
-                      })
-                    )
-                  } else {
-                    balancePromises.push(Promise.resolve(null))
-                  }
-
-                  balancePromises.push(provider.getBalance(bonder, blockTag))
-
-                  if (chain === 'arbitrum') {
-                    balancePromises.push(
-                      provider.getBalance(arbitrumAliases[token], blockTag)
-                    )
-                  } else {
-                    balancePromises.push(Promise.resolve(null))
-                  }
-                } catch (err) {
-                  console.error(`${chain} ${token} ${err.message}`)
-                  throw err
-                }
-
-                const [
-                  balance,
-                  hBalance,
-                  native,
-                  aliasBalance
-                ] = await Promise.all(balancePromises)
-
-                if (balance) {
-                  bonderBalances[bonder][token][chain].canonical = balance
-                }
-                if (hBalance) {
-                  bonderBalances[bonder][token][chain].hToken = hBalance
-                }
-                if (native) {
-                  bonderBalances[bonder][token][chain].native = native
-                }
-                if (aliasBalance) {
-                  bonderBalances[bonder][token][chain].native = bonderBalances[
-                    bonder
-                  ][token][chain].native.add(aliasBalance)
-                }
-
-                csv[timestamp][`${chain}_canonical`] = balance
-                  ? formatUnits(balance.toString(), this.tokenDecimals[token])
-                  : ''
-                if (chain !== 'ethereum') {
-                  csv[timestamp][`${chain}_hToken`] = hBalance
-                    ? formatUnits(
-                        hBalance.toString(),
-                        this.tokenDecimals[token]
-                      )
-                    : ''
-                }
-                csv[timestamp][`${chain}_native`] = native
-                  ? formatEther(native.toString())
-                  : ''
-                if (chain === 'arbitrum') {
-                  csv[timestamp][`${chain}_alias`] = aliasBalance
-                    ? formatEther(aliasBalance.toString())
-                    : ''
-                }
-
-                console.log(
-                  `done fetching daily bonder fee stat, chain: ${chain}`
-                )
-                resolve(null)
-              })
+            console.log(
+              `fetching daily bonder balance stat, chain: ${chain}, token: ${token}, timestamp: ${timestamp}`
             )
-          }
-        }
-        await Promise.all(chainPromises)
-        resolve(null)
-      })
-      promises.push(promise)
+
+            const blockDater = new BlockDater(provider)
+            const date = DateTime.fromSeconds(timestamp).toJSDate()
+            const info = await blockDater.getDate(date)
+            if (!info) {
+              throw new Error('no info')
+            }
+            const blockTag = info.block
+            const balancePromises: Promise<any>[] = []
+
+            if (tokenAddress !== constants.AddressZero) {
+              balancePromises.push(
+                tokenContract.balanceOf(bonder, {
+                  blockTag
+                })
+              )
+            } else {
+              balancePromises.push(Promise.resolve(0))
+            }
+
+            if (hTokenContract) {
+              balancePromises.push(
+                hTokenContract.balanceOf(bonder, {
+                  blockTag
+                })
+              )
+            } else {
+              balancePromises.push(Promise.resolve(0))
+            }
+
+            balancePromises.push(provider.getBalance(bonder, blockTag))
+
+            if (chain === 'arbitrum') {
+              balancePromises.push(
+                provider.getBalance(arbitrumAliases[token], blockTag)
+              )
+            } else {
+              balancePromises.push(Promise.resolve(0))
+            }
+
+            const [balance, hBalance, native, aliasBalance] = await Promise.all(
+              balancePromises
+            )
+
+            bonderBalances[chain].canonical = balance
+            bonderBalances[chain].hToken = hBalance
+            bonderBalances[chain].native = native
+            bonderBalances[chain].alias = aliasBalance
+
+            dbData[`${chain}BlockNumber`] = blockTag
+            dbData[`${chain}CanonicalAmount`] = balance
+              ? formatUnits(balance.toString(), this.tokenDecimals[token])
+              : 0
+            dbData[`${chain}NativeAmount`] = native
+              ? formatEther(native.toString())
+              : 0
+            dbData.ethPriceUsd = priceMap['ETH']
+            dbData.maticPriceUsd = priceMap['MATIC']
+            if (chain !== 'ethereum') {
+              dbData[`${chain}HTokenAmount`] = hBalance
+                ? formatUnits(hBalance.toString(), this.tokenDecimals[token])
+                : 0
+            }
+            if (chain === 'arbitrum') {
+              dbData[`${chain}AliasAmount`] = aliasBalance
+                ? formatEther(aliasBalance.toString())
+                : 0
+            }
+
+            console.log(`done fetching daily bonder fee stat, chain: ${chain}`)
+
+            resolve(null)
+          })
+        )
+      }
     }
-    await Promise.all(promises)
+
+    await Promise.all(chainPromises)
 
     console.log('done fetching timestamp balances')
-    return { bonderBalances, priceMap }
+    return { bonderBalances, dbData }
   }
 
-  async computeResult (config: any) {
+  async computeResult (data: any = {}) {
     const {
-      bonderBalances,
       token,
       initialAggregateBalance,
       initialAggregateNativeBalance,
       restakedAmount,
       unstakedAmount,
+      bonderBalances,
       priceMap
-    } = config
+    } = data
     let aggregateBalance = initialAggregateBalance
+      .sub(unstakedAmount)
+      .add(restakedAmount)
     const nativeBalances: Record<string, any> = {}
     for (const chain of this.chains) {
       nativeBalances[chain] = BigNumber.from(0)
     }
-    aggregateBalance = aggregateBalance.add(restakedAmount).sub(unstakedAmount)
-    for (const bonder in bonderBalances) {
-      for (const chain in bonderBalances[bonder][token]) {
-        const info = bonderBalances[bonder][token][chain]
-        const canonical = BigNumber.from(info.canonical)
-        const hToken = BigNumber.from(info.hToken)
-        const native = BigNumber.from(info.native)
-        aggregateBalance = aggregateBalance.add(canonical).add(hToken)
-        nativeBalances[chain] = native
-      }
+
+    for (const chain in bonderBalances) {
+      const { canonical, hToken, native, alias } = bonderBalances[chain]
+      aggregateBalance = aggregateBalance.add(canonical).add(hToken)
+      nativeBalances[chain] = native.add(alias)
     }
     const nativeTokenDiffs: Record<string, any> = {}
     for (const chain of this.chains) {
@@ -575,12 +520,10 @@ class BonderBalanceStats {
     const resultFormatted = Number(
       formatUnits(result.toString(), this.tokenDecimals[token])
     )
-    const resultUsd = resultFormatted * priceMap[token]
 
     return {
-      token,
-      resultFormatted,
-      resultUsd
+      result,
+      resultFormatted
     }
   }
 

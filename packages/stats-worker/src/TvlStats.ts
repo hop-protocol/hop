@@ -90,8 +90,8 @@ class TvlStats {
   }
 
   cleanUp () {
-    console.log('closing db')
-    //this.db.close()
+    // console.log('closing db')
+    // this.db.close()
   }
 
   async getPriceHistory (coinId: string, days: number) {

@@ -58,7 +58,7 @@ export function Claim() {
     />,
     <ReviewClaim
       key="Review your claim"
-      claimableTokens={claimableTokens || '123.456789'}
+      claimableTokens={claimableTokens}
       prevStep={prevStep}
       delegate={delegate}
       isDarkMode={isDarkMode}

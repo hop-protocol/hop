@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Link, Typography, useTheme } from '@material-ui/core'
+import { Link, useTheme } from '@material-ui/core'
 import { BigNumber } from 'ethers'
 import { StyledButton } from 'src/components/buttons/StyledButton'
-import { Circle, Div, Flex, Icon, Input, Text } from 'src/components/ui'
+import { Circle, Div, Flex, Icon, Input } from 'src/components/ui'
 
 const respMaxWidths = [350, 824, 824, 1024]
 

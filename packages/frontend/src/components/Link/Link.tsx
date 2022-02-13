@@ -1,6 +1,6 @@
 import React from 'react'
 import { Div } from '../ui'
-import { Link as MuiLink } from '@material-ui/core'
+import { Link as MuiLink, LinkProps } from '@material-ui/core'
 
 interface Props {
   href?: string
@@ -33,6 +33,6 @@ export function ExternalLink(props: Props) {
   )
 }
 
-export function Link(props) {
-  return <MuiLink {...props} />
+export function Link(props: LinkProps) {
+  return <MuiLink rel="noopener noreferrer" {...props} />
 }

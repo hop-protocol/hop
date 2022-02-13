@@ -90,8 +90,8 @@ class TvlStats {
   }
 
   cleanUp () {
-    console.log('closing db')
-    this.db.close()
+    // console.log('closing db')
+    // this.db.close()
   }
 
   async getPriceHistory (coinId: string, days: number) {
@@ -150,8 +150,6 @@ class TvlStats {
       chains = ['optimism']
     }
     const now = DateTime.utc()
-
-    chains = ['ethereum']
 
     const promises: Promise<any>[] = []
     for (let token of tokens) {

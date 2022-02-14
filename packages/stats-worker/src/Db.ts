@@ -37,6 +37,7 @@ class Db {
       if (argv.resetBonderBalancesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_balances`)
       }
+      // TODO: track by bonder address
       this.db.run(`CREATE TABLE IF NOT EXISTS bonder_balances (
           id TEXT PRIMARY KEY,
           token TEXT NOT NULL,

@@ -40,7 +40,6 @@ const totalBalances: Record<string, BigNumber> = {
 
 const initialAggregateBalances: Record<string, BigNumber> = {
   USDC: parseUnits('0', 6),
-  //USDT: parseUnits('58043.34', 6),
   USDT: parseUnits('0', 6),
   DAI: parseUnits('0', 18),
   ETH: parseUnits('0', 18),
@@ -60,40 +59,59 @@ const initialAggregateNativeBalances: any = {
 }
 
 const unstakedAmounts: Record<string, any> = {
+  // 0xa6a688F107851131F0E1dce493EbBebFAf99203e
   USDC: {
     [1625036400]: parseUnits('9955.84', 6) // 06/30/2021
   },
-  USDT: {},
+  // 0x15ec4512516d980090050fe101de21832c8edfee
+  USDT: {
+    [1642492800]: parseUnits('58043.34', 6), // 01/18/2022 (22.7886 ETH)
+    [1643011200]: parseUnits('7228.11', 6), // 01/24/2022
+    [1643011201]: parseUnits('610.57', 6), // 01/24/2022 (0.25 ETH)
+    [1643356800]: parseUnits('0.87', 6) // 01/28/2022
+  },
+  // 0x305933e09871D4043b5036e09af794FACB3f6170
   DAI: {
     [1636617600]: parseUnits('8752.88', 18), // 11/11/2021
     [1636617601]: parseUnits('23422.52', 18), // 11/11/2021
     [1643961600]: parseUnits('300000', 18) // 02/4/2022
   },
+  // 0x710bDa329b2a6224E4B44833DE30F38E7f81d564
   ETH: {
     [1639555200]: parseEther('6.07'), // 12/15/2021
     [1639641600]: parseEther('26') // 12/16/2021
   },
+  // 0xd8781ca9163e9f132a4d8392332e64115688013a
   MATIC: {},
+  // 0x2A6303e6b99d451Df3566068EBb110708335658f
   WBTC: {}
 }
 
 const restakedProfits: Record<string, any> = {
+  // 0xa6a688F107851131F0E1dce493EbBebFAf99203e
   USDC: {
     [1627628400]: parseUnits('9000', 6), // 7/30/2021
     [1637395200]: parseUnits('1340.36', 6), // 11/20/2021
     [1643443200]: parseUnits('2998.70', 6) // 01/29/2022
   },
-  USDT: {},
+  // 0x15ec4512516d980090050fe101de21832c8edfee
+  USDT: {
+    [1643011200]: parseUnits('244.23', 6) // 01/24/2021 // idle (0.1 ETH)
+  },
+  // 0x305933e09871D4043b5036e09af794FACB3f6170
   DAI: {
     [1644220800]: parseUnits('300000', 18), // 02/7/2022 // idle
     [1644480000]: parseUnits('8752.88', 18), // 02/11/2022
     [1644480001]: parseUnits('23422.52', 18) // 02/11/2022
   },
+  // 0x710bDa329b2a6224E4B44833DE30F38E7f81d564
   ETH: {
     [1640678400]: parseEther('6.07'), // 12/28/2021
     [1643184000]: parseEther('10') // 01/26/2022
   },
+  // 0xd8781ca9163e9f132a4d8392332e64115688013a
   MATIC: {},
+  // 0x2A6303e6b99d451Df3566068EBb110708335658f
   WBTC: {}
 }
 
@@ -297,6 +315,8 @@ class BonderBalanceStats {
         throw err
       }
     }
+
+    return dbData
   }
 
   async track () {
@@ -312,28 +332,31 @@ class BonderBalanceStats {
         .map((n, i) => n + i)
       const chunkSize = 10
       const allChunks = chunk(days, chunkSize)
+      const csv: any[] = []
       for (const chunks of allChunks) {
-        await Promise.all(
-          chunks.map(async (day: number) => {
-            return this.trackDay(day, token, prices)
-          })
+        csv.push(
+          ...(await Promise.all(
+            chunks.map(async (day: number) => {
+              return this.trackDay(day, token, prices)
+            })
+          ))
         )
       }
-    }
 
-    /*
-    const data = Object.values(csv)
-    const headers = Object.keys(data[0])
-    const rows = Object.values(data)
-    const csvWriter = createObjectCsvWriter({
-      path: path.resolve(__dirname, '../', 'bonder.csv'),
-      header: headers.map(id => {
-        return { id, title: id }
+      const data = Object.values(csv)
+      const headers = Object.keys(data[0])
+      const rows = Object.values(data)
+      const csvPath = path.resolve(__dirname, '../', `${token}.csv`)
+      const csvWriter = createObjectCsvWriter({
+        path: csvPath,
+        header: headers.map(id => {
+          return { id, title: id }
+        })
       })
-    })
 
-    await csvWriter.writeRecords(rows)
-    */
+      await csvWriter.writeRecords(rows)
+      console.log(`wrote ${csvPath}`)
+    }
   }
 
   async fetchBonderBalances (token: string, timestamp: number, priceMap: any) {

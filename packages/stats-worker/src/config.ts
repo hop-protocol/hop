@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 export const pinataApiKey = process.env.PINATA_API_KEY
 export const pinataSecretApiKey = process.env.PINATA_SECRET_API_KEY
 export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
@@ -14,5 +16,6 @@ export const etherscanApiKeys: Record<string, string> = {
   ethereum: process.env.ETHERSCAN_ETHEREUM_API_KEY,
   optimism: process.env.ETHERSCAN_OPTIMISM_API_KEY,
   arbitrum: process.env.ETHERSCAN_ARBITRUM_API_KEY,
-  polygon: process.env.ETHERSCAN_API_KEY
+  polygon: process.env.ETHERSCAN_POLYGON_API_KEY,
+  gnosis: process.env.ETHERSCAN_GNOSIS_API_KEY
 }

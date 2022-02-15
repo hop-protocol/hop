@@ -255,12 +255,16 @@ class BonderStats {
   async run () {
     while (true) {
       try {
-        // await this.trackBonderTxFees()
-        await Promise.all([
-          this.track(),
-          this.trackBonderFee(),
-          this.trackBonderTxFees()
-        ])
+        const argv = require('minimist')(process.argv.slice(2))
+        if (argv.onlyTxFees) {
+          await this.trackBonderTxFees()
+        } else {
+          await Promise.all([
+            this.track(),
+            this.trackBonderFee(),
+            this.trackBonderTxFees()
+          ])
+        }
         break
       } catch (err) {
         console.error(err)
@@ -280,10 +284,6 @@ class BonderStats {
     await Promise.all(
       this.chains.map(async (chain: string) => {
         let chainFees = BigNumber.from(0)
-        if (chain === 'gnosis') {
-          return
-        }
-
         const gasFees = await this.fetchBonderTxFees(
           address,
           chain,
@@ -821,7 +821,10 @@ class BonderStats {
     const startBlock = info.block
     const endBlock = 99999999
     const baseUrl = this.getEtherscanUrl(chain)
-    const url = `${baseUrl}/api?module=account&action=txlist&address=${address}&startblock=${startBlock}&endblock=${endBlock}&sort=asc&apikey=${etherscanApiKeys[chain]}`
+    const url = `${baseUrl}/api?module=account&action=txlist&address=${address}&startblock=${startBlock}&endblock=${endBlock}&sort=asc&apikey=${etherscanApiKeys[
+      chain
+    ] || ''}`
+    console.log(url)
 
     return fetch(url)
       .then(res => res.json())
@@ -830,6 +833,7 @@ class BonderStats {
           throw new Error(json.result)
         }
         let totalGasCost = BigNumber.from(0)
+        console.log(json)
         for (const tx of json.result) {
           const timestamp = Number(tx.timeStamp)
           if (!(timestamp >= startDate && timestamp < endDate)) {
@@ -848,15 +852,15 @@ class BonderStats {
 
   getEtherscanUrl (chain: string) {
     if (chain === 'ethereum') {
-      return `https://api.etherscan.io`
+      return 'https://api.etherscan.io'
     } else if (chain === 'polygon') {
-      return `https://api.polygonscan.com`
+      return 'https://api.polygonscan.com'
     } else if (chain === 'optimism') {
-      return `https://api-optimistic.etherscan.io`
+      return 'https://api-optimistic.etherscan.io'
     } else if (chain === 'arbitrum') {
-      return `https://api.arbiscan.io`
-    } else if (chain === 'xdai') {
-      // NA
+      return 'https://api.arbiscan.io'
+    } else if (chain === 'gnosis') {
+      return 'https://blockscout.com/poa/xdai'
     }
   }
 }

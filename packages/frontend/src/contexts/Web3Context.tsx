@@ -91,6 +91,10 @@ const walletSelectOptions: WalletSelectModuleOptions = {
       },
     },
     {
+      walletName: "gnosis",
+      preferred: true,
+    },
+    {
       walletName: 'walletLink',
       preferred: true,
       rpcUrl: getRpcUrl(ChainSlug.Ethereum),

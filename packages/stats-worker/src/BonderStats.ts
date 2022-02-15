@@ -14,7 +14,8 @@ import {
   gnosisRpc,
   polygonRpc,
   optimismRpc,
-  arbitrumRpc
+  arbitrumRpc,
+  etherscanApiKey
 } from './config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
@@ -113,6 +114,14 @@ const restakedProfits: Record<string, any> = {
   MATIC: {},
   // 0x2A6303e6b99d451Df3566068EBb110708335658f
   WBTC: {}
+}
+
+const bonderAddresses: Record<string, string> = {
+  USDC: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
+  USDT: '0x15ec4512516d980090050fe101de21832c8edfee',
+  DAI: '0x305933e09871D4043b5036e09af794FACB3f6170',
+  ETH: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+  MATIC: '0xd8781ca9163e9f132a4d8392332e64115688013a'
 }
 
 /////////////////////////////////////////////////////
@@ -246,10 +255,69 @@ class BonderStats {
   async run () {
     while (true) {
       try {
+        // await this.trackBonderTxFees()
         await Promise.all([this.track(), this.trackBonderFee()])
         break
       } catch (err) {
         console.error(err)
+      }
+    }
+  }
+
+  async trackBonderTxFeeDay (day: number, token: string) {
+    const now = DateTime.utc()
+    const date = now.minus({ days: day }).startOf('day')
+    const startDate = Math.floor(date.toSeconds())
+    const endDate = Math.floor(date.endOf('day').toSeconds())
+    const isoDate = date.toISO()
+    const address = bonderAddresses[token]
+
+    const dbData: Record<string, any> = {}
+    for (const chain of this.chains) {
+      let chainFees = BigNumber.from(0)
+      if (chain !== 'ethereum') {
+        continue
+      }
+
+      const gasFees = await this.fetchBonderTxFees(
+        address,
+        chain,
+        startDate,
+        endDate
+      )
+      const chainFeesFormatted = formatEther(gasFees)
+      dbData[`${chain}TxFees`] = chainFeesFormatted
+      console.log(chain, chainFeesFormatted)
+    }
+
+    try {
+      await this.db.upsertBonderTxFees(
+        token,
+        dbData.polygonTxFees,
+        dbData.gnosisTxFees,
+        dbData.arbitrumTxFees,
+        dbData.optimismTxFees,
+        dbData.ethereumTxFees,
+        dbData.totalFees,
+        dbData.ethPrice,
+        dbData.maticPrice,
+        startDate
+      )
+      console.log('upserted')
+    } catch (err) {
+      if (!err.message.includes('UNIQUE constraint failed')) {
+        throw err
+      }
+    }
+  }
+
+  async trackBonderTxFees () {
+    for (const token of this.tokens) {
+      const days = Array(this.days)
+        .fill(0)
+        .map((n, i) => n + i)
+      for (const day of days) {
+        await this.trackBonderTxFeeDay(day, token)
       }
     }
   }
@@ -729,6 +797,46 @@ class BonderStats {
     }
 
     return data.transferSents
+  }
+
+  async fetchBonderTxFees (
+    address: string,
+    chain: string,
+    startDate: number,
+    endDate: number
+  ) {
+    const provider = this.allProviders[chain]
+    const blockDater = new BlockDater(provider)
+    const date = DateTime.fromSeconds(startDate - 86400).toJSDate()
+    const info = await blockDater.getDate(date)
+    if (!info) {
+      throw new Error('no info')
+    }
+    const startBlock = info.block
+    const endBlock = 99999999
+    const url = `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=${startBlock}&endblock=${endBlock}&sort=asc&apikey=${etherscanApiKey}`
+
+    return fetch(url)
+      .then(res => res.json())
+      .then(json => {
+        if (json.message === 'NOTOK') {
+          throw new Error(json.result)
+        }
+        let totalGasCost = BigNumber.from(0)
+        for (const tx of json.result) {
+          const timestamp = Number(tx.timeStamp)
+          if (!(timestamp >= startDate && timestamp < endDate)) {
+            continue
+          }
+          if (tx.from.toLowerCase() !== address.toLowerCase()) {
+            continue
+          }
+          const gasCost = BigNumber.from(tx.gasUsed).mul(tx.gasPrice)
+          totalGasCost = totalGasCost.add(gasCost)
+        }
+
+        return totalGasCost
+      })
   }
 }
 

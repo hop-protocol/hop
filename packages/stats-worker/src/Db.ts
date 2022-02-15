@@ -82,6 +82,23 @@ class Db {
           total_fees_amount NUMERIC NOT NULL,
           timestamp INTEGER NOT NULL
       )`)
+      if (argv.resetBonderTxFeesDb) {
+        this.db.run(`DROP TABLE IF EXISTS bonder_tx_fees`)
+      }
+      // TODO: track by bonder address
+      this.db.run(`CREATE TABLE IF NOT EXISTS bonder_tx_fees(
+          id TEXT PRIMARY KEY,
+          token TEXT NOT NULL,
+          polygon_tx_fees NUMERIC NOT NULL,
+          gnosis_tx_fees NUMERIC NOT NULL,
+          arbitrum_tx_fees NUMERIC NOT NULL,
+          optimism_tx_fees NUMERIC NOT NULL,
+          ethereum_tx_fees NUMERIC NOT NULL,
+          eth_price_usd NUMERIC NOT NULL,
+          matic_price_usd NUMERIC NOT NULL,
+          total_tx_fees NUMERIC NOT NULL,
+          timestamp INTEGER NOT NULL
+      )`)
 
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_volume_stats_chain_token_timestamp ON volume_stats (chain, token, timestamp);'
@@ -96,7 +113,7 @@ class Db {
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_balances_token_timestamp ON bonder_balances (token, timestamp);'
       )
       this.db.run(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_fees_token_timestamp ON bonder_fees (token, timestamp);'
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_tx_fees_token_timestamp ON bonder_tx_fees (token, timestamp);'
       )
     })
   }
@@ -263,6 +280,37 @@ class Db {
       arbitrumFees,
       optimismFees,
       totalFees,
+      timestamp
+    )
+    stmt.finalize()
+  }
+
+  async upsertBonderTxFees (
+    token: string,
+    polygonTxFees: number = 0,
+    gnosisTxFees: number = 0,
+    arbitrumTxFees: number = 0,
+    optimismTxFees: number = 0,
+    ethereumTxFees: number = 0,
+    totalFees: number = 0,
+    ethPrice: number = 0,
+    maticPrice: number = 0,
+    timestamp: number = 0
+  ) {
+    const stmt = this.db.prepare(
+      'INSERT OR REPLACE INTO bonder_tx_fees VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    )
+    stmt.run(
+      uuid(),
+      token,
+      polygonTxFees,
+      gnosisTxFees,
+      arbitrumTxFees,
+      optimismTxFees,
+      ethereumTxFees,
+      totalFees,
+      ethPrice,
+      maticPrice,
       timestamp
     )
     stmt.finalize()

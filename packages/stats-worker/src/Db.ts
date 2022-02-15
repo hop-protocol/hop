@@ -33,7 +33,6 @@ class Db {
           price NUMERIC NOT NULL,
           timestamp INTEGER NOT NULL
       )`)
-      this.db.run(`DROP TABLE IF EXISTS bonder_balance_stats`)
       if (argv.resetBonderBalancesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_balances`)
       }
@@ -68,6 +67,21 @@ class Db {
           result NUMERIC NOT NULL,
           timestamp INTEGER NOT NULL
       )`)
+      if (argv.resetBonderFeesDb) {
+        this.db.run(`DROP TABLE IF EXISTS bonder_fees`)
+      }
+      // TODO: track by bonder address
+      this.db.run(`CREATE TABLE IF NOT EXISTS bonder_fees(
+          id TEXT PRIMARY KEY,
+          token TEXT NOT NULL,
+          polygon_fees_amount NUMERIC NOT NULL,
+          gnosis_fees_amount NUMERIC NOT NULL,
+          arbitrum_fees_amount NUMERIC NOT NULL,
+          optimism_fees_amount NUMERIC NOT NULL,
+          ethereum_fees_amount NUMERIC NOT NULL,
+          total_fees_amount NUMERIC NOT NULL,
+          timestamp INTEGER NOT NULL
+      )`)
 
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_volume_stats_chain_token_timestamp ON volume_stats (chain, token, timestamp);'
@@ -80,6 +94,9 @@ class Db {
       )
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_balances_token_timestamp ON bonder_balances (token, timestamp);'
+      )
+      this.db.run(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_fees_token_timestamp ON bonder_fees (token, timestamp);'
       )
     })
   }
@@ -162,27 +179,27 @@ class Db {
   async upsertBonderBalances (
     token: string,
     polygonBlockNumber: number,
-    polygonCanonicalAmount: number,
-    polygonHTokenAmount: number,
-    polygonNativeAmount: number,
+    polygonCanonicalAmount: number = 0,
+    polygonHTokenAmount: number = 0,
+    polygonNativeAmount: number = 0,
     gnosisBlockNumber: number,
-    gnosisCanonicalAmount: number,
-    gnosisHTokenAmount: number,
-    gnosisNativeAmount: number,
+    gnosisCanonicalAmount: number = 0,
+    gnosisHTokenAmount: number = 0,
+    gnosisNativeAmount: number = 0,
     arbitrumBlockNumber: number,
-    arbitrumCanonicalAmount: number,
-    arbitrumHTokenAmount: number,
-    arbitrumNativeAmount: number,
-    arbitrumAliasAmount: number,
+    arbitrumCanonicalAmount: number = 0,
+    arbitrumHTokenAmount: number = 0,
+    arbitrumNativeAmount: number = 0,
+    arbitrumAliasAmount: number = 0,
     optimismBlockNumber: number,
-    optimismCanonicalAmount: number,
-    optimismHTokenAmount: number,
-    optimismNativeAmount: number,
+    optimismCanonicalAmount: number = 0,
+    optimismHTokenAmount: number = 0,
+    optimismNativeAmount: number = 0,
     ethereumBlockNumber: number,
-    ethereumCanonicalAmount: number,
-    ethereumNativeAmount: number,
-    unstakedAmount: number,
-    restakedAmount: number,
+    ethereumCanonicalAmount: number = 0,
+    ethereumNativeAmount: number = 0,
+    unstakedAmount: number = 0,
+    restakedAmount: number = 0,
     ethPriceUsd: number,
     maticPriceUsd: number,
     result: number,
@@ -219,6 +236,33 @@ class Db {
       ethPriceUsd,
       maticPriceUsd,
       result,
+      timestamp
+    )
+    stmt.finalize()
+  }
+
+  async upsertBonderFees (
+    token: string,
+    polygonFees: number = 0,
+    gnosisFees: number = 0,
+    arbitrumFees: number = 0,
+    optimismFees: number = 0,
+    ethereumFees: number = 0,
+    totalFees: number = 0,
+    timestamp: number = 0
+  ) {
+    const stmt = this.db.prepare(
+      'INSERT OR REPLACE INTO bonder_fees VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    )
+    stmt.run(
+      uuid(),
+      token,
+      token,
+      polygonFees,
+      gnosisFees,
+      arbitrumFees,
+      optimismFees,
+      totalFees,
       timestamp
     )
     stmt.finalize()

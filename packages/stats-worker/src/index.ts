@@ -9,12 +9,11 @@ function main () {
     apr: argv.apr,
     tvl: argv.tvl,
     volume: argv.volume,
-    fees: argv.fees,
+    bonder: argv.bonder,
     regenesis: argv.regenesis,
     days: argv.days,
-    feeTokens: argv.feeTokens ? argv.feeTokens.split(',') : null,
-    feeDays: argv.feeDays,
-    feeSkipDays: argv.feeSkipDays
+    bonderTokens: argv.bonderTokens ? argv.bonderTokens.split(',') : null,
+    bonderDays: argv.bonderDays
   })
 
   worker.start()

@@ -119,14 +119,12 @@ const restakedProfits: Record<string, any> = {
 
 type Options = {
   days?: number
-  skipDays?: number
   tokens?: string[]
 }
 
-class BonderBalanceStats {
+class BonderStats {
   db = new Db()
   days: number = 1
-  skipDays: number = 0
   tokens?: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'WBTC']
   chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
 
@@ -151,9 +149,6 @@ class BonderBalanceStats {
     if (options.days) {
       this.days = options.days
     }
-    if (options.skipDays) {
-      this.skipDays = options.skipDays
-    }
     if (options.tokens) {
       this.tokens = options.tokens
     }
@@ -174,10 +169,84 @@ class BonderBalanceStats {
     // this.db.close()
   }
 
+  async trackBonderFee () {
+    for (const token of this.tokens) {
+      const days = Array(this.days)
+        .fill(0)
+        .map((n, i) => n + i)
+      const chunkSize = 10
+      const allChunks = chunk(days, chunkSize)
+      const csv: any[] = []
+      for (const chunks of allChunks) {
+        csv.push(
+          ...(await Promise.all(
+            chunks.map(async (day: number) => {
+              return this.trackBonderFeeDay(day, token)
+            })
+          ))
+        )
+      }
+    }
+  }
+
+  async trackBonderFeeDay (day: number, token: string) {
+    const now = DateTime.utc()
+    const date = now.minus({ days: day }).startOf('day')
+    const startDate = Math.floor(date.toSeconds())
+    const endDate = Math.floor(date.endOf('day').toSeconds())
+    const isoDate = date.toISO()
+
+    const dbData: Record<string, any> = {}
+    let totalFees = BigNumber.from(0)
+    for (const chain of this.chains) {
+      let chainFees = BigNumber.from(0)
+      if (chain === 'ethereum') {
+        continue
+      }
+      const items = await this.fetchTransferSents(
+        chain,
+        token,
+        startDate,
+        endDate
+      )
+      for (const { bonderFee } of items) {
+        chainFees = chainFees.add(BigNumber.from(bonderFee))
+      }
+      totalFees = totalFees.add(chainFees)
+      const chainFeesFormatted = formatUnits(
+        chainFees,
+        this.tokenDecimals[token]
+      )
+      dbData[`${chain}FeesAmount`] = chainFeesFormatted
+      console.log(day, 'chain bonder fees', isoDate, chain, chainFeesFormatted)
+    }
+    const totalFeesFormatted = formatUnits(totalFees, this.tokenDecimals[token])
+    dbData.totalFeesAmount = totalFeesFormatted
+    console.log(day, 'total bonder fees', isoDate, totalFeesFormatted)
+
+    try {
+      await this.db.upsertBonderFees(
+        token,
+        dbData.polygonFeesAmount,
+        dbData.gnosisFeesAmount,
+        dbData.arbitrumFeesAmount,
+        dbData.optimismFeesAmount,
+        dbData.ethereumFeesAmount,
+        dbData.totalFeesAmount,
+        startDate
+      )
+      console.log('upserted')
+    } catch (err) {
+      if (!err.message.includes('UNIQUE constraint failed')) {
+        throw err
+      }
+    }
+  }
+
   async run () {
     while (true) {
       try {
-        await this.track()
+        await Promise.all([this.track(), this.trackBonderFee()])
         break
       } catch (err) {
         console.error(err)
@@ -596,6 +665,71 @@ class BonderBalanceStats {
 
     return winner
   }
+
+  getGraphUrl (chain: string) {
+    if (chain == 'gnosis') {
+      chain = 'xdai'
+    }
+
+    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+  }
+
+  async queryFetch (url: string, query: string, variables?: any) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify({
+        query,
+        variables: variables || {}
+      })
+    })
+    const jsonRes = await res.json()
+    if (!jsonRes.data) {
+      throw new Error(jsonRes.errors[0].message)
+    }
+    return jsonRes.data
+  }
+
+  async fetchTransferSents (
+    chain: string,
+    token: string,
+    startDate: number,
+    endDate: number
+  ) {
+    const query = `
+      query TransferSents($token: String, $startDate: Int, $endDate: Int) {
+        transferSents(
+          where: {
+            token: $token,
+            timestamp_gte: $startDate,
+            timestamp_lt: $endDate
+          },
+          orderBy: timestamp,
+          orderDirection: desc,
+          first: 1000
+        ) {
+          id
+          token
+          bonderFee
+        }
+      }
+    `
+    const url = this.getGraphUrl(chain)
+    const data = await this.queryFetch(url, query, {
+      token,
+      startDate,
+      endDate
+    })
+
+    if (!data) {
+      return []
+    }
+
+    return data.transferSents
+  }
 }
 
-export default BonderBalanceStats
+export default BonderStats

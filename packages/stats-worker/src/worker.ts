@@ -1,7 +1,7 @@
 import AprStats from './AprStats'
 import VolumeStats from './VolumeStats'
 import TvlStats from './TvlStats'
-import BonderBalanceStats from './BonderBalanceStats'
+import BonderStats from './BonderStats'
 import S3Upload from './S3Upload'
 import wait from 'wait'
 
@@ -9,42 +9,40 @@ type Options = {
   apr?: boolean
   tvl?: boolean
   volume?: boolean
-  fees?: boolean
+  bonder?: boolean
   regenesis?: boolean
   days?: number
-  feeDays?: number
-  feeSkipDays?: number
-  feeTokens?: string[]
+  bonderDays?: number
+  bonderTokens?: string[]
 }
 
 class Worker {
   aprStats: AprStats
   volumeStats: VolumeStats
   tvlStats: TvlStats
-  feeStats: BonderBalanceStats
+  bonderStats: BonderStats
   hosting = new S3Upload()
   pollIntervalMs: number = 60 * 60 * 1000
   apr: boolean = false
   tvl: boolean = false
   volume: boolean = false
-  fees: boolean = false
+  bonder: boolean = false
 
   constructor (options: Options = {}) {
     const {
       apr,
       tvl,
       volume,
-      fees,
       regenesis,
       days,
-      feeDays,
-      feeSkipDays,
-      feeTokens
+      bonder,
+      bonderDays,
+      bonderTokens
     } = options
     this.apr = apr
     this.tvl = tvl
     this.volume = volume
-    this.fees = fees
+    this.bonder = bonder
     this.aprStats = new AprStats()
     this.volumeStats = new VolumeStats({
       regenesis
@@ -53,10 +51,9 @@ class Worker {
       regenesis,
       days
     })
-    this.feeStats = new BonderBalanceStats({
-      days: feeDays,
-      skipDays: feeSkipDays,
-      tokens: feeTokens
+    this.bonderStats = new BonderStats({
+      days: bonderDays,
+      tokens: bonderTokens
     })
   }
 
@@ -73,8 +70,8 @@ class Worker {
     if (this.volume) {
       promises.push(this.volumeStatsPoll())
     }
-    if (this.fees) {
-      promises.push(this.feeStatsPoll())
+    if (this.bonder) {
+      promises.push(this.bonderStatsPoll())
     }
     if (!promises.length) {
       throw new Error('at least one option is required')
@@ -125,13 +122,13 @@ class Worker {
     }
   }
 
-  async feeStatsPoll () {
-    console.log('feeStatsPoll started')
+  async bonderStatsPoll () {
+    console.log('bonderStatsPoll started')
     while (true) {
       try {
-        console.log('fetching bonder fee stats')
-        await this.feeStats.run()
-        console.log('done tracking bonder fee stats')
+        console.log('fetching bonder stats')
+        await this.bonderStats.run()
+        console.log('done tracking bonder stats')
       } catch (err) {
         console.error(err)
       }

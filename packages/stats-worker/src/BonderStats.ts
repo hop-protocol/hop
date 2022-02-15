@@ -15,7 +15,7 @@ import {
   polygonRpc,
   optimismRpc,
   arbitrumRpc,
-  etherscanApiKey
+  etherscanApiKeys
 } from './config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
@@ -256,7 +256,11 @@ class BonderStats {
     while (true) {
       try {
         // await this.trackBonderTxFees()
-        await Promise.all([this.track(), this.trackBonderFee()])
+        await Promise.all([
+          this.track(),
+          this.trackBonderFee(),
+          this.trackBonderTxFees()
+        ])
         break
       } catch (err) {
         console.error(err)
@@ -273,22 +277,24 @@ class BonderStats {
     const address = bonderAddresses[token]
 
     const dbData: Record<string, any> = {}
-    for (const chain of this.chains) {
-      let chainFees = BigNumber.from(0)
-      if (chain !== 'ethereum') {
-        continue
-      }
+    await Promise.all(
+      this.chains.map(async (chain: string) => {
+        let chainFees = BigNumber.from(0)
+        if (chain === 'gnosis') {
+          return
+        }
 
-      const gasFees = await this.fetchBonderTxFees(
-        address,
-        chain,
-        startDate,
-        endDate
-      )
-      const chainFeesFormatted = formatEther(gasFees)
-      dbData[`${chain}TxFees`] = chainFeesFormatted
-      console.log(chain, chainFeesFormatted)
-    }
+        const gasFees = await this.fetchBonderTxFees(
+          address,
+          chain,
+          startDate,
+          endDate
+        )
+        const chainFeesFormatted = formatEther(gasFees)
+        dbData[`${chain}TxFees`] = chainFeesFormatted
+        console.log(chain, chainFeesFormatted)
+      })
+    )
 
     try {
       await this.db.upsertBonderTxFees(
@@ -814,7 +820,8 @@ class BonderStats {
     }
     const startBlock = info.block
     const endBlock = 99999999
-    const url = `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=${startBlock}&endblock=${endBlock}&sort=asc&apikey=${etherscanApiKey}`
+    const baseUrl = this.getEtherscanUrl(chain)
+    const url = `${baseUrl}/api?module=account&action=txlist&address=${address}&startblock=${startBlock}&endblock=${endBlock}&sort=asc&apikey=${etherscanApiKeys[chain]}`
 
     return fetch(url)
       .then(res => res.json())
@@ -837,6 +844,20 @@ class BonderStats {
 
         return totalGasCost
       })
+  }
+
+  getEtherscanUrl (chain: string) {
+    if (chain === 'ethereum') {
+      return `https://api.etherscan.io`
+    } else if (chain === 'polygon') {
+      return `https://api.polygonscan.com`
+    } else if (chain === 'optimism') {
+      return `https://api-optimistic.etherscan.io`
+    } else if (chain === 'arbitrum') {
+      return `https://api.arbiscan.io`
+    } else if (chain === 'xdai') {
+      // NA
+    }
   }
 }
 

@@ -10,4 +10,9 @@ export const polygonRpc = process.env.POLYGON_RPC
 export const optimismRpc = process.env.OPTIMISM_RPC
 export const arbitrumRpc = process.env.ARBITRUM_RPC
 export const dbPath = process.env.SQLITE3_DB || './sqlite3.db'
-export const etherscanApiKey = process.env.ETHERSCAN_API_KEY
+export const etherscanApiKeys: Record<string, string> = {
+  ethereum: process.env.ETHERSCAN_ETHEREUM_API_KEY,
+  optimism: process.env.ETHERSCAN_OPTIMISM_API_KEY,
+  arbitrum: process.env.ETHERSCAN_ARBITRUM_API_KEY,
+  polygon: process.env.ETHERSCAN_API_KEY
+}

@@ -94,9 +94,9 @@ class Db {
           arbitrum_tx_fees NUMERIC NOT NULL,
           optimism_tx_fees NUMERIC NOT NULL,
           ethereum_tx_fees NUMERIC NOT NULL,
+          total_tx_fees NUMERIC NOT NULL,
           eth_price_usd NUMERIC NOT NULL,
           matic_price_usd NUMERIC NOT NULL,
-          total_tx_fees NUMERIC NOT NULL,
           timestamp INTEGER NOT NULL
       )`)
 
@@ -293,8 +293,8 @@ class Db {
     optimismTxFees: number = 0,
     ethereumTxFees: number = 0,
     totalFees: number = 0,
-    ethPrice: number = 0,
-    maticPrice: number = 0,
+    ethPriceUsd: number = 0,
+    maticPriceUsd: number = 0,
     timestamp: number = 0
   ) {
     const stmt = this.db.prepare(
@@ -309,8 +309,8 @@ class Db {
       optimismTxFees,
       ethereumTxFees,
       totalFees,
-      ethPrice,
-      maticPrice,
+      ethPriceUsd,
+      maticPriceUsd,
       timestamp
     )
     stmt.finalize()

@@ -262,7 +262,7 @@ class BonderStats {
         dbData.totalFeesAmount,
         startDate
       )
-      console.log('upserted')
+      console.log(day, 'upserted', token, startDate)
     } catch (err) {
       if (!err.message.includes('UNIQUE constraint failed')) {
         throw err
@@ -305,6 +305,15 @@ class BonderStats {
       throw new Error(`no address found for token "${token}"`)
     }
 
+    const prices = await this.getTokenPrices()
+    const priceMap: any = {}
+    for (const _token in prices) {
+      const dates = prices[_token].reverse().map((x: any) => x[0])
+      const nearest = this.nearestDate(dates, startDate)
+      const price = prices[_token][nearest][1]
+      priceMap[_token] = price
+    }
+
     const dbData: Record<string, any> = {}
     await Promise.all(
       this.chains.map(async (chain: string) => {
@@ -321,6 +330,13 @@ class BonderStats {
       })
     )
 
+    const ethPrice = priceMap.ETH
+    const maticPrice = priceMap.MATIC
+    dbData.ethPrice = ethPrice
+    dbData.maticPrice = maticPrice
+    dbData.totalFees = (Number(dbData.polygonTxFees || 0) * maticPrice) + Number(dbData.gnosisTxFees || 0) + ((Number(dbData.arbitrumTxFees || 0) + Number(dbData.optimismTxFees || 0) + Number(dbData.ethereumTxFees || 0)) * ethPrice)
+    console.log(dbData.totalFees)
+
     try {
       await this.db.upsertBonderTxFees(
         token,
@@ -334,7 +350,7 @@ class BonderStats {
         dbData.maticPrice,
         startDate
       )
-      console.log('upserted')
+      console.log(day, 'upserted', token, startDate)
     } catch (err) {
       if (!err.message.includes('UNIQUE constraint failed')) {
         throw err
@@ -344,6 +360,7 @@ class BonderStats {
 
   async trackBonderTxFees () {
     for (const token of this.tokens) {
+      console.log('tracking bonder tx fees', token)
       const days = Array(this.days)
         .fill(0)
         .map((n, i) => n + i)
@@ -477,7 +494,7 @@ class BonderStats {
         resultFormatted,
         timestamp
       )
-      console.log('upserted')
+      console.log(day, 'upserted', token, timestamp)
     } catch (err) {
       if (!err.message.includes('UNIQUE constraint failed')) {
         throw err
@@ -679,7 +696,7 @@ class BonderStats {
         if (!shouldRetry) {
           throw err
         }
-        if (retries > 5) {
+        if (retries > 10) {
           throw new Error('max retries reached')
         }
         console.log('retrying')
@@ -917,7 +934,7 @@ class BonderStats {
         if (!shouldRetry) {
           throw err
         }
-        if (retries > 5) {
+        if (retries > 10) {
           throw new Error('max retries reached')
         }
         console.log('retrying')

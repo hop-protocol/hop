@@ -209,18 +209,27 @@ might not reflect the latest state.
                   <img :src="x.tokenImageUrl" :alt="x.token">
                   {{ x.token }}
                 </td>
-                <td class="bonderFee" :title="x.bonderFee">{{ x.displayBonderFee }}</td>
-                <td class="bonded">
-                  <a v-if="x.bondTxExplorerUrl" :class="`${x.bonded ? 'yes' : 'no'}`" :href="x.bondTxExplorerUrl" target="_blank" title="View on block explorer">
-                    <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
-                    Bonded
-                  </a>
-                  <span v-if="!x.bondTxExplorerUrl && x.sourceChain !== 1" :class="`${x.bonded ? 'yes' : 'no'}`">
-                    <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
-                    Pending
+                <td class="bonderFee" :title="x.bonderFee">
+                  <span v-if="x.sourceChain !== 1">
+                    {{ x.displayBonderFee }}
                   </span>
                   <span class="na" v-if="x.sourceChain === 1">
                     <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
+                  </span>
+                </td>
+                <td class="bonded">
+                  <a v-if="x.bondTxExplorerUrl" :class="`${x.bonded ? 'yes' : 'no'}`" :href="x.bondTxExplorerUrl" target="_blank" title="View on block explorer">
+                    <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
+                    <span v-if="x.sourceChain !== 1">
+                      Bonded
+                    </span>
+                    <span v-if="x.sourceChain === 1">
+                      Received
+                    </span>
+                  </a>
+                  <span v-if="!x.bondTxExplorerUrl" class="no">
+                    <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
+                    Pending
                   </span>
                 </td>
                 <td class="bondTx">
@@ -230,29 +239,17 @@ might not reflect the latest state.
                       {{ x.bondTransactionHashTruncated }}
                     </a>
                   </span>
-                  <span class="na" v-if="x.sourceChain === 1">
-                    <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
-                  </span>
                 </td>
                 <td class="bondedDate" :title="x.isoBondedTimestamp">
                   {{ x.relativeBondedTimestamp }}
-                  <span class="na" v-if="x.sourceChain === 1">
-                    <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
-                  </span>
                 </td>
                 <td class="bondedWithin" :title="x.isoBondedTimestamp">
                   {{ x.relativeBondedWithinTimestamp }}
-                  <span class="na" v-if="x.sourceChain === 1">
-                    <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
-                  </span>
                 </td>
                 <td class="bondedWithin" :title="x.bonder">
                   <a v-if="x.bonderUrl" class="bonder" :href="x.bonderUrl" target="_blank" :title="`View on block explorer - ${x.bonder}`">
                     {{ x.bonderTruncated }}
                   </a>
-                  <span class="na" v-if="x.sourceChain === 1">
-                    <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
-                  </span>
                 </td>
               </tr>
             </tbody>

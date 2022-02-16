@@ -434,7 +434,10 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
         id
         destinationChainId
         amount
+        amountOutMin
         relayerFee
+        recipient
+        deadline
         transactionHash
         timestamp
         token
@@ -456,7 +459,10 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
         transferId
         destinationChainId
         amount
+        amountOutMin
         bonderFee
+        recipient
+        deadline
         transactionHash
         timestamp
         token
@@ -474,7 +480,10 @@ async function fetchTransfers (chain, startTime, endTime, skip) {
         transferId
         destinationChainId
         amount
+        amountOutMin
         bonderFee
+        recipient
+        deadline
         transactionHash
         timestamp
         token
@@ -649,6 +658,60 @@ async function fetchWithdrews (chain, startTime, endTime, skip, transferId) {
   }
 
   return withdrawals
+}
+
+async function fetchTransferFromL1Completeds (chain, startTime, endTime, skip) {
+  const query = `
+    query TransferFromL1Completed($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
+      events: transferFromL1Completeds(
+        where: {
+          timestamp_gte: $startTime,
+          timestamp_lte: $endTime
+        },
+        first: $perPage,
+        orderBy: timestamp,
+        orderDirection: desc,
+        skip: $skip
+      ) {
+        recipient
+        amount
+        amountOutMin
+        deadline
+        transactionHash
+        from
+        timestamp
+      }
+    }
+  `
+
+  const url = getUrl(chain)
+  if (!skip) {
+    skip = 0
+  }
+  const data = await queryFetch(url, query, {
+    perPage: 1000,
+    startTime,
+    endTime,
+    skip
+  })
+  let events = data.events || []
+
+  if (events.length === 1000) {
+    try {
+      events = events.concat(...(await fetchTransferFromL1Completeds(
+        chain,
+        startTime,
+        endTime,
+        skip + 1000
+      )))
+    } catch (err) {
+      if (!err.message.includes('The `skip` argument must be between')) {
+        throw err
+      }
+    }
+  }
+
+  return events
 }
 
 async function fetchTvl (chain) {
@@ -840,7 +903,10 @@ async function updateTransfers () {
       sourceChain: 100,
       destinationChain: x.destinationChainId,
       amount: x.amount,
+      amountOutMin: x.amountOutMin,
       bonderFee: x.bonderFee,
+      recipient: x.recipient,
+      deadline: x.deadline,
       transferId: x.transferId,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
@@ -852,7 +918,10 @@ async function updateTransfers () {
       sourceChain: 137,
       destinationChain: x.destinationChainId,
       amount: x.amount,
+      amountOutMin: x.amountOutMin,
       bonderFee: x.bonderFee,
+      recipient: x.recipient,
+      deadline: x.deadline,
       transferId: x.transferId,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
@@ -865,6 +934,8 @@ async function updateTransfers () {
       destinationChain: x.destinationChainId,
       amount: x.amount,
       bonderFee: x.bonderFee,
+      recipient: x.recipient,
+      deadline: x.deadline,
       transferId: x.transferId,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
@@ -876,7 +947,10 @@ async function updateTransfers () {
       sourceChain: 42161,
       destinationChain: x.destinationChainId,
       amount: x.amount,
+      amountOutMin: x.amountOutMin,
       bonderFee: x.bonderFee,
+      recipient: x.recipient,
+      deadline: x.deadline,
       transferId: x.transferId,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
@@ -888,7 +962,10 @@ async function updateTransfers () {
       sourceChain: 1,
       destinationChain: x.destinationChainId,
       amount: x.amount,
+      amountOutMin: x.amountOutMin,
+      recipient: x.recipient,
       bonderFee: x.relayerFee,
+      deadline: x.deadline,
       transferId: x.id,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
@@ -932,7 +1009,12 @@ async function updateTransfers () {
     polygonWithdrews,
     optimismWithdrews,
     arbitrumWithdrews,
-    mainnetWithdrews
+    mainnetWithdrews,
+
+    gnosisFromL1Completeds,
+    polygonFromL1Completeds,
+    optimismFromL1Completeds,
+    arbitrumFromL1Completeds
   ] = await Promise.all([
     enabledChains.includes('gnosis') ? fetchBonds('gnosis', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
     enabledChains.includes('polygon') ? fetchBonds('polygon', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
@@ -944,7 +1026,12 @@ async function updateTransfers () {
     enabledChains.includes('polygon') ? fetchWithdrews('polygon', startTime, endTime, undefined, transferId) : Promise.resolve([]),
     enabledChains.includes('optimism') ? fetchWithdrews('optimism', startTime, endTime, undefined, transferId) : Promise.resolve([]),
     enabledChains.includes('arbitrum') ? fetchWithdrews('arbitrum', startTime, endTime, undefined, transferId) : Promise.resolve([]),
-    enabledChains.includes('ethereum') ? fetchWithdrews('mainnet', startTime, endTime, undefined, transferId) : Promise.resolve([])
+    enabledChains.includes('ethereum') ? fetchWithdrews('mainnet', startTime, endTime, undefined, transferId) : Promise.resolve([]),
+
+    enabledChains.includes('gnosis') ? fetchTransferFromL1Completeds('gnosis', startTime, endTime, undefined) : Promise.resolve([]),
+    enabledChains.includes('polygon') ? fetchTransferFromL1Completeds('polygon', startTime, endTime, undefined) : Promise.resolve([]),
+    enabledChains.includes('optimism') ? fetchTransferFromL1Completeds('optimism', startTime, endTime, undefined) : Promise.resolve([]),
+    enabledChains.includes('arbitrum') ? fetchTransferFromL1Completeds('arbitrum', startTime, endTime, undefined) : Promise.resolve([])
   ])
 
   const gnosisBonds = [...gnosisBondedWithdrawals, ...gnosisWithdrews]
@@ -961,6 +1048,13 @@ async function updateTransfers () {
     ethereum: mainnetBonds
   }
 
+  const l1CompletedsMap = {
+    gnosis: gnosisFromL1Completeds,
+    polygon: polygonFromL1Completeds,
+    optimism: optimismFromL1Completeds,
+    arbitrum: arbitrumFromL1Completeds
+  }
+
   for (const x of data) {
     const bonds = bondsMap[chainIdToSlugMap[x.destinationChain]]
     if (bonds) {
@@ -970,6 +1064,30 @@ async function updateTransfers () {
           x.bonder = bond.from
           x.bondTransactionHash = bond.transactionHash
           x.bondedTimestamp = Number(bond.timestamp)
+          continue
+        }
+      }
+    }
+  }
+
+  for (const x of data) {
+    const sourceChain = chainIdToSlugMap[x.sourceChain]
+    if (sourceChain !== 'ethereum') {
+      continue
+    }
+    const events = l1CompletedsMap[chainIdToSlugMap[x.destinationChain]]
+    if (events) {
+      for (const event of events) {
+        if (
+          event.recipient === x.recipient &&
+          event.amount === x.amount &&
+          event.amountOutMin === x.amountOutMin &&
+          event.deadline === x.deadline
+        ) {
+          x.bonded = true
+          x.bonder = event.from
+          x.bondTransactionHash = event.transactionHash
+          x.bondedTimestamp = Number(event.timestamp)
           continue
         }
       }

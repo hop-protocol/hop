@@ -124,7 +124,18 @@ const bonderAddresses: Record<string, string> = {
   MATIC: '0xd8781ca9163e9f132a4d8392332e64115688013a'
 }
 
+const etherscanUrls: Record<string, string> = {
+  ethereum: 'https://api.etherscan.io',
+  polygon: 'https://api.polygonscan.com',
+  optimism: 'https://api-optimistic.etherscan.io',
+  arbitrum: 'https://api.arbiscan.io',
+  gnosis: 'https://blockscout.com/poa/xdai'
+}
+
 /////////////////////////////////////////////////////
+
+const wait = (t: number) =>
+  new Promise(resolve => setTimeout(() => resolve(null), t))
 
 type Options = {
   days?: number
@@ -503,124 +514,155 @@ class BonderStats {
   }
 
   async fetchBonderBalances (token: string, timestamp: number, priceMap: any) {
-    const bonders = (mainnetAddresses as any).bonders
-    const bonderMap = bonders[token]
-    const bonderBalances: any = {}
-    const dbData: any = {}
-    const chainPromises: any[] = []
+    let retries = 0
+    while (true) {
+      try {
+        const bonders = (mainnetAddresses as any).bonders
+        const bonderMap = bonders[token]
+        const bonderBalances: any = {}
+        const dbData: any = {}
+        const chainPromises: any[] = []
 
-    for (const sourceChain in bonderMap) {
-      for (const destinationChain in bonderMap[sourceChain]) {
-        chainPromises.push(
-          new Promise(async resolve => {
-            const chain = destinationChain
-            const provider = this.allProviders[chain]
-            const bonder = bonderMap[sourceChain][destinationChain]
-            if (bonderBalances[chain]) {
-              resolve(null)
-              return
-            }
-            if (!bonderBalances[chain]) {
-              bonderBalances[chain] = {
-                canonical: BigNumber.from(0),
-                hToken: BigNumber.from(0),
-                native: BigNumber.from(0),
-                alias: BigNumber.from(0)
-              }
-            }
-            const bridgeMap = (mainnetAddresses as any).bridges[token][chain]
-            const tokenAddress =
-              bridgeMap.l2CanonicalToken ?? bridgeMap.l1CanonicalToken
-            const hTokenAddress = bridgeMap.l2HopBridgeToken
-            const tokenContract = new Contract(tokenAddress, erc20Abi, provider)
-            const hTokenContract = hTokenAddress
-              ? new Contract(hTokenAddress, erc20Abi, provider)
-              : null
+        for (const sourceChain in bonderMap) {
+          for (const destinationChain in bonderMap[sourceChain]) {
+            chainPromises.push(
+              new Promise(async resolve => {
+                const chain = destinationChain
+                const provider = this.allProviders[chain]
+                const bonder = bonderMap[sourceChain][destinationChain]
+                if (bonderBalances[chain]) {
+                  resolve(null)
+                  return
+                }
+                if (!bonderBalances[chain]) {
+                  bonderBalances[chain] = {
+                    canonical: BigNumber.from(0),
+                    hToken: BigNumber.from(0),
+                    native: BigNumber.from(0),
+                    alias: BigNumber.from(0)
+                  }
+                }
+                const bridgeMap = (mainnetAddresses as any).bridges[token][
+                  chain
+                ]
+                const tokenAddress =
+                  bridgeMap.l2CanonicalToken ?? bridgeMap.l1CanonicalToken
+                const hTokenAddress = bridgeMap.l2HopBridgeToken
+                const tokenContract = new Contract(
+                  tokenAddress,
+                  erc20Abi,
+                  provider
+                )
+                const hTokenContract = hTokenAddress
+                  ? new Contract(hTokenAddress, erc20Abi, provider)
+                  : null
 
-            console.log(
-              `fetching daily bonder balance stat, chain: ${chain}, token: ${token}, timestamp: ${timestamp}`
+                console.log(
+                  `fetching daily bonder balance stat, chain: ${chain}, token: ${token}, timestamp: ${timestamp}`
+                )
+
+                const blockDater = new BlockDater(provider)
+                const date = DateTime.fromSeconds(timestamp).toJSDate()
+                const info = await blockDater.getDate(date)
+                if (!info) {
+                  throw new Error('no info')
+                }
+                const blockTag = info.block
+                const balancePromises: Promise<any>[] = []
+
+                if (tokenAddress !== constants.AddressZero) {
+                  balancePromises.push(
+                    tokenContract.balanceOf(bonder, {
+                      blockTag
+                    })
+                  )
+                } else {
+                  balancePromises.push(Promise.resolve(0))
+                }
+
+                if (hTokenContract) {
+                  balancePromises.push(
+                    hTokenContract.balanceOf(bonder, {
+                      blockTag
+                    })
+                  )
+                } else {
+                  balancePromises.push(Promise.resolve(0))
+                }
+
+                balancePromises.push(provider.getBalance(bonder, blockTag))
+
+                if (chain === 'arbitrum') {
+                  balancePromises.push(
+                    provider.getBalance(arbitrumAliases[token], blockTag)
+                  )
+                } else {
+                  balancePromises.push(Promise.resolve(0))
+                }
+
+                const [
+                  balance,
+                  hBalance,
+                  native,
+                  aliasBalance
+                ] = await Promise.all(balancePromises)
+
+                bonderBalances[chain].canonical = balance
+                bonderBalances[chain].hToken = hBalance
+                bonderBalances[chain].native = native
+                bonderBalances[chain].alias = aliasBalance
+
+                dbData[`${chain}BlockNumber`] = blockTag
+                dbData[`${chain}CanonicalAmount`] = balance
+                  ? formatUnits(balance.toString(), this.tokenDecimals[token])
+                  : 0
+                dbData[`${chain}NativeAmount`] = native
+                  ? formatEther(native.toString())
+                  : 0
+                dbData.ethPriceUsd = priceMap['ETH']
+                dbData.maticPriceUsd = priceMap['MATIC']
+                if (chain !== 'ethereum') {
+                  dbData[`${chain}HTokenAmount`] = hBalance
+                    ? formatUnits(
+                        hBalance.toString(),
+                        this.tokenDecimals[token]
+                      )
+                    : 0
+                }
+                if (chain === 'arbitrum') {
+                  dbData[`${chain}AliasAmount`] = aliasBalance
+                    ? formatEther(aliasBalance.toString())
+                    : 0
+                }
+
+                console.log(
+                  `done fetching daily bonder fee stat, chain: ${chain}`
+                )
+
+                resolve(null)
+              })
             )
+          }
+        }
 
-            const blockDater = new BlockDater(provider)
-            const date = DateTime.fromSeconds(timestamp).toJSDate()
-            const info = await blockDater.getDate(date)
-            if (!info) {
-              throw new Error('no info')
-            }
-            const blockTag = info.block
-            const balancePromises: Promise<any>[] = []
+        await Promise.all(chainPromises)
 
-            if (tokenAddress !== constants.AddressZero) {
-              balancePromises.push(
-                tokenContract.balanceOf(bonder, {
-                  blockTag
-                })
-              )
-            } else {
-              balancePromises.push(Promise.resolve(0))
-            }
-
-            if (hTokenContract) {
-              balancePromises.push(
-                hTokenContract.balanceOf(bonder, {
-                  blockTag
-                })
-              )
-            } else {
-              balancePromises.push(Promise.resolve(0))
-            }
-
-            balancePromises.push(provider.getBalance(bonder, blockTag))
-
-            if (chain === 'arbitrum') {
-              balancePromises.push(
-                provider.getBalance(arbitrumAliases[token], blockTag)
-              )
-            } else {
-              balancePromises.push(Promise.resolve(0))
-            }
-
-            const [balance, hBalance, native, aliasBalance] = await Promise.all(
-              balancePromises
-            )
-
-            bonderBalances[chain].canonical = balance
-            bonderBalances[chain].hToken = hBalance
-            bonderBalances[chain].native = native
-            bonderBalances[chain].alias = aliasBalance
-
-            dbData[`${chain}BlockNumber`] = blockTag
-            dbData[`${chain}CanonicalAmount`] = balance
-              ? formatUnits(balance.toString(), this.tokenDecimals[token])
-              : 0
-            dbData[`${chain}NativeAmount`] = native
-              ? formatEther(native.toString())
-              : 0
-            dbData.ethPriceUsd = priceMap['ETH']
-            dbData.maticPriceUsd = priceMap['MATIC']
-            if (chain !== 'ethereum') {
-              dbData[`${chain}HTokenAmount`] = hBalance
-                ? formatUnits(hBalance.toString(), this.tokenDecimals[token])
-                : 0
-            }
-            if (chain === 'arbitrum') {
-              dbData[`${chain}AliasAmount`] = aliasBalance
-                ? formatEther(aliasBalance.toString())
-                : 0
-            }
-
-            console.log(`done fetching daily bonder fee stat, chain: ${chain}`)
-
-            resolve(null)
-          })
-        )
+        console.log('done fetching timestamp balances')
+        return { bonderBalances, dbData }
+      } catch (err) {
+        console.error(err)
+        const shouldRetry = this.shouldRetry(err.message)
+        if (!shouldRetry) {
+          throw err
+        }
+        if (retries > 5) {
+          throw new Error('max retries reached')
+        }
+        await wait(2 * 1000)
+        console.log('retrying')
       }
+      retries++
     }
-
-    await Promise.all(chainPromises)
-
-    console.log('done fetching timestamp balances')
-    return { bonderBalances, dbData }
   }
 
   async computeResult (data: any = {}) {
@@ -814,27 +856,26 @@ class BonderStats {
     const provider = this.allProviders[chain]
     const blockDater = new BlockDater(provider)
     const date = DateTime.fromSeconds(startDate - 86400).toJSDate()
-    const info = await blockDater.getDate(date)
-    if (!info) {
-      throw new Error('no info')
-    }
-    const startBlock = info.block
-    const endBlock = 99999999
-    const baseUrl = this.getEtherscanUrl(chain)
-    const url = `${baseUrl}/api?module=account&action=txlist&address=${address}&startblock=${startBlock}&endblock=${endBlock}&sort=asc&apikey=${etherscanApiKeys[
-      chain
-    ] || ''}`
-    console.log(url)
+    let retries = 0
+    while (true) {
+      try {
+        const info = await blockDater.getDate(date)
+        if (!info) {
+          throw new Error('no info')
+        }
+        const startBlock = info.block
+        const endBlock = 99999999
+        const url = this.getEtherscanUrl(chain, address, startBlock, endBlock)
 
-    return fetch(url)
-      .then(res => res.json())
-      .then(json => {
+        const res = await fetch(url)
+        const json = await res.json()
         if (json.message === 'NOTOK') {
           throw new Error(json.result)
         }
+
         let totalGasCost = BigNumber.from(0)
-        console.log(json)
-        for (const tx of json.result) {
+        for (const key in json.result) {
+          const tx = json.result[key]
           const timestamp = Number(tx.timeStamp)
           if (!(timestamp >= startDate && timestamp < endDate)) {
             continue
@@ -845,23 +886,61 @@ class BonderStats {
           const gasCost = BigNumber.from(tx.gasUsed).mul(tx.gasPrice)
           totalGasCost = totalGasCost.add(gasCost)
         }
-
         return totalGasCost
-      })
+      } catch (err) {
+        console.error('fetch error', err.message)
+        const shouldRetry = this.shouldRetry(err.message)
+        if (!shouldRetry) {
+          throw err
+        }
+        if (retries > 5) {
+          throw new Error('max retries reached')
+        }
+        console.log('retrying')
+        await wait(2 * 1000)
+      }
+      retries++
+    }
   }
 
-  getEtherscanUrl (chain: string) {
-    if (chain === 'ethereum') {
-      return 'https://api.etherscan.io'
-    } else if (chain === 'polygon') {
-      return 'https://api.polygonscan.com'
-    } else if (chain === 'optimism') {
-      return 'https://api-optimistic.etherscan.io'
-    } else if (chain === 'arbitrum') {
-      return 'https://api.arbiscan.io'
-    } else if (chain === 'gnosis') {
-      return 'https://blockscout.com/poa/xdai'
-    }
+  shouldRetry (errMsg: string) {
+    const rateLimitErrorRegex = /(rate limit|too many concurrent requests|exceeded|socket hang up)/i
+    const timeoutErrorRegex = /(timeout|time-out|time out|timedout|timed out)/i
+    const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED|SERVER_ERROR)/i
+    const badResponseErrorRegex = /(bad response|response error|missing response|processing response error)/i
+    const revertErrorRegex = /revert/i
+
+    const isRateLimitError = rateLimitErrorRegex.test(errMsg)
+    const isTimeoutError = timeoutErrorRegex.test(errMsg)
+    const isConnectionError = connectionErrorRegex.test(errMsg)
+    const isBadResponseError = badResponseErrorRegex.test(errMsg)
+
+    // a connection error, such as 'ECONNREFUSED', will cause ethers to return a "missing revert data in call exception" error,
+    // so we want to exclude server connection errors from actual contract call revert errors.
+    const isRevertError =
+      revertErrorRegex.test(errMsg) && !isConnectionError && !isTimeoutError
+
+    const shouldRetry =
+      (isRateLimitError ||
+        isTimeoutError ||
+        isConnectionError ||
+        isBadResponseError) &&
+      !isRevertError
+
+    return shouldRetry
+  }
+
+  getEtherscanUrl (
+    chain: string,
+    address: string,
+    startBlock: number,
+    endBlock: number
+  ) {
+    const baseUrl = etherscanUrls[chain]
+    const url = `${baseUrl}/api?module=account&action=txlist&address=${address}&startblock=${startBlock}&endblock=${endBlock}&sort=asc&apikey=${etherscanApiKeys[
+      chain
+    ] || ''}`
+    return url
   }
 }
 

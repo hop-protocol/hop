@@ -210,7 +210,11 @@ const Web3ContextProvider: FC = ({ children }) => {
                 await provider.enable()
               } else {
                 // note: this method may not be supported by all wallets
-                await ethersProvider.send('eth_requestAccounts', [])
+                try {
+                  await ethersProvider.send('eth_requestAccounts', [])
+                } catch (error) {
+                  console.error(error)
+                }
               }
               setProvider(ethersProvider)
               setWalletName(name)

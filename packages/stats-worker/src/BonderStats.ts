@@ -12,6 +12,7 @@ import Db from './Db'
 import {
   ethereumRpc,
   gnosisRpc,
+  gnosisArchiveRpc,
   polygonRpc,
   optimismRpc,
   arbitrumRpc,
@@ -137,6 +138,20 @@ const etherscanUrls: Record<string, string> = {
 const wait = (t: number) =>
   new Promise(resolve => setTimeout(() => resolve(null), t))
 
+const allProviders: Record<string, any> = {
+  ethereum: new providers.StaticJsonRpcProvider(ethereumRpc),
+  gnosis: new providers.StaticJsonRpcProvider(gnosisRpc),
+  polygon: new providers.StaticJsonRpcProvider(polygonRpc),
+  optimism: new providers.StaticJsonRpcProvider(optimismRpc),
+  arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc)
+}
+
+const allArchiveProviders: Record<string, any> = {
+  gnosis: gnosisArchiveRpc
+    ? new providers.StaticJsonRpcProvider(gnosisArchiveRpc)
+    : undefined
+}
+
 type Options = {
   days?: number
   tokens?: string[]
@@ -147,14 +162,6 @@ class BonderStats {
   days: number = 1
   tokens?: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'WBTC']
   chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
-
-  allProviders: Record<string, any> = {
-    ethereum: new providers.StaticJsonRpcProvider(ethereumRpc),
-    gnosis: new providers.StaticJsonRpcProvider(gnosisRpc),
-    polygon: new providers.StaticJsonRpcProvider(polygonRpc),
-    optimism: new providers.StaticJsonRpcProvider(optimismRpc),
-    arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc)
-  }
 
   tokenDecimals: Record<string, number> = {
     USDC: 6,
@@ -267,11 +274,15 @@ class BonderStats {
     while (true) {
       try {
         const argv = require('minimist')(process.argv.slice(2))
-        if (argv.onlyTxFees) {
+        if (argv.onlyProfit) {
+          await this.trackProfit()
+        } else if (argv.onlyTxFees) {
           await this.trackBonderTxFees()
+        } else if (argv.onlyBonderFees) {
+          await this.trackBonderFee()
         } else {
           await Promise.all([
-            this.track(),
+            this.trackProfit(),
             this.trackBonderFee(),
             this.trackBonderTxFees()
           ])
@@ -290,6 +301,9 @@ class BonderStats {
     const endDate = Math.floor(date.endOf('day').toSeconds())
     const isoDate = date.toISO()
     const address = bonderAddresses[token]
+    if (!address) {
+      throw new Error(`no address found for token "${token}"`)
+    }
 
     const dbData: Record<string, any> = {}
     await Promise.all(
@@ -361,7 +375,7 @@ class BonderStats {
     return prices
   }
 
-  async trackDay (day: number, token: string, prices: any) {
+  async trackProfitDay (day: number, token: string, prices: any) {
     console.log('day:', day)
     const now = DateTime.utc()
     const date = now.minus({ days: day }).startOf('day')
@@ -473,7 +487,7 @@ class BonderStats {
     return dbData
   }
 
-  async track () {
+  async trackProfit () {
     console.log('days:', this.days)
     console.log('chains:', this.chains)
     console.log('tokens:', this.tokens)
@@ -491,7 +505,7 @@ class BonderStats {
         csv.push(
           ...(await Promise.all(
             chunks.map(async (day: number) => {
-              return this.trackDay(day, token, prices)
+              return this.trackProfitDay(day, token, prices)
             })
           ))
         )
@@ -526,120 +540,130 @@ class BonderStats {
         for (const sourceChain in bonderMap) {
           for (const destinationChain in bonderMap[sourceChain]) {
             chainPromises.push(
-              new Promise(async resolve => {
-                const chain = destinationChain
-                const provider = this.allProviders[chain]
-                const bonder = bonderMap[sourceChain][destinationChain]
-                if (bonderBalances[chain]) {
-                  resolve(null)
-                  return
-                }
-                if (!bonderBalances[chain]) {
-                  bonderBalances[chain] = {
-                    canonical: BigNumber.from(0),
-                    hToken: BigNumber.from(0),
-                    native: BigNumber.from(0),
-                    alias: BigNumber.from(0)
+              new Promise(async (resolve, reject) => {
+                try {
+                  const chain = destinationChain
+                  let provider = allProviders[chain]
+                  const archiveProvider = allArchiveProviders[chain] || provider
+                  const bonder = bonderMap[sourceChain][destinationChain]
+                  if (bonderBalances[chain]) {
+                    resolve(null)
+                    return
                   }
-                }
-                const bridgeMap = (mainnetAddresses as any).bridges[token][
-                  chain
-                ]
-                const tokenAddress =
-                  bridgeMap.l2CanonicalToken ?? bridgeMap.l1CanonicalToken
-                const hTokenAddress = bridgeMap.l2HopBridgeToken
-                const tokenContract = new Contract(
-                  tokenAddress,
-                  erc20Abi,
-                  provider
-                )
-                const hTokenContract = hTokenAddress
-                  ? new Contract(hTokenAddress, erc20Abi, provider)
-                  : null
-
-                console.log(
-                  `fetching daily bonder balance stat, chain: ${chain}, token: ${token}, timestamp: ${timestamp}`
-                )
-
-                const blockDater = new BlockDater(provider)
-                const date = DateTime.fromSeconds(timestamp).toJSDate()
-                const info = await blockDater.getDate(date)
-                if (!info) {
-                  throw new Error('no info')
-                }
-                const blockTag = info.block
-                const balancePromises: Promise<any>[] = []
-
-                if (tokenAddress !== constants.AddressZero) {
-                  balancePromises.push(
-                    tokenContract.balanceOf(bonder, {
-                      blockTag
-                    })
+                  if (!bonderBalances[chain]) {
+                    bonderBalances[chain] = {
+                      canonical: BigNumber.from(0),
+                      hToken: BigNumber.from(0),
+                      native: BigNumber.from(0),
+                      alias: BigNumber.from(0)
+                    }
+                  }
+                  const bridgeMap = (mainnetAddresses as any).bridges[token][
+                    chain
+                  ]
+                  const tokenAddress =
+                    bridgeMap.l2CanonicalToken ?? bridgeMap.l1CanonicalToken
+                  const hTokenAddress = bridgeMap.l2HopBridgeToken
+                  const tokenContract = new Contract(
+                    tokenAddress,
+                    erc20Abi,
+                    archiveProvider
                   )
-                } else {
-                  balancePromises.push(Promise.resolve(0))
-                }
+                  const hTokenContract = hTokenAddress
+                    ? new Contract(hTokenAddress, erc20Abi, archiveProvider)
+                    : null
 
-                if (hTokenContract) {
-                  balancePromises.push(
-                    hTokenContract.balanceOf(bonder, {
-                      blockTag
-                    })
+                  console.log(
+                    `fetching daily bonder balance stat, chain: ${chain}, token: ${token}, timestamp: ${timestamp}`
                   )
-                } else {
-                  balancePromises.push(Promise.resolve(0))
-                }
 
-                balancePromises.push(provider.getBalance(bonder, blockTag))
+                  const blockDater = new BlockDater(provider)
+                  const date = DateTime.fromSeconds(timestamp).toJSDate()
+                  const info = await blockDater.getDate(date)
+                  if (!info) {
+                    throw new Error('no info')
+                  }
+                  const blockTag = info.block
+                  const balancePromises: Promise<any>[] = []
 
-                if (chain === 'arbitrum') {
+                  if (tokenAddress !== constants.AddressZero) {
+                    balancePromises.push(
+                      tokenContract.balanceOf(bonder, {
+                        blockTag
+                      })
+                    )
+                  } else {
+                    balancePromises.push(Promise.resolve(0))
+                  }
+
+                  if (hTokenContract) {
+                    balancePromises.push(
+                      hTokenContract.balanceOf(bonder, {
+                        blockTag
+                      })
+                    )
+                  } else {
+                    balancePromises.push(Promise.resolve(0))
+                  }
+
                   balancePromises.push(
-                    provider.getBalance(arbitrumAliases[token], blockTag)
+                    archiveProvider.getBalance(bonder, blockTag)
                   )
-                } else {
-                  balancePromises.push(Promise.resolve(0))
-                }
 
-                const [
-                  balance,
-                  hBalance,
-                  native,
-                  aliasBalance
-                ] = await Promise.all(balancePromises)
-
-                bonderBalances[chain].canonical = balance
-                bonderBalances[chain].hToken = hBalance
-                bonderBalances[chain].native = native
-                bonderBalances[chain].alias = aliasBalance
-
-                dbData[`${chain}BlockNumber`] = blockTag
-                dbData[`${chain}CanonicalAmount`] = balance
-                  ? formatUnits(balance.toString(), this.tokenDecimals[token])
-                  : 0
-                dbData[`${chain}NativeAmount`] = native
-                  ? formatEther(native.toString())
-                  : 0
-                dbData.ethPriceUsd = priceMap['ETH']
-                dbData.maticPriceUsd = priceMap['MATIC']
-                if (chain !== 'ethereum') {
-                  dbData[`${chain}HTokenAmount`] = hBalance
-                    ? formatUnits(
-                        hBalance.toString(),
-                        this.tokenDecimals[token]
+                  if (chain === 'arbitrum') {
+                    balancePromises.push(
+                      archiveProvider.getBalance(
+                        arbitrumAliases[token],
+                        blockTag
                       )
-                    : 0
-                }
-                if (chain === 'arbitrum') {
-                  dbData[`${chain}AliasAmount`] = aliasBalance
-                    ? formatEther(aliasBalance.toString())
-                    : 0
-                }
+                    )
+                  } else {
+                    balancePromises.push(Promise.resolve(0))
+                  }
 
-                console.log(
-                  `done fetching daily bonder fee stat, chain: ${chain}`
-                )
+                  const [
+                    balance,
+                    hBalance,
+                    native,
+                    aliasBalance
+                  ] = await Promise.all(balancePromises)
 
-                resolve(null)
+                  bonderBalances[chain].canonical = balance
+                  bonderBalances[chain].hToken = hBalance
+                  bonderBalances[chain].native = native
+                  bonderBalances[chain].alias = aliasBalance
+
+                  dbData[`${chain}BlockNumber`] = blockTag
+                  dbData[`${chain}CanonicalAmount`] = balance
+                    ? formatUnits(balance.toString(), this.tokenDecimals[token])
+                    : 0
+                  dbData[`${chain}NativeAmount`] = native
+                    ? formatEther(native.toString())
+                    : 0
+                  dbData.ethPriceUsd = priceMap['ETH']
+                  dbData.maticPriceUsd = priceMap['MATIC']
+                  if (chain !== 'ethereum') {
+                    dbData[`${chain}HTokenAmount`] = hBalance
+                      ? formatUnits(
+                          hBalance.toString(),
+                          this.tokenDecimals[token]
+                        )
+                      : 0
+                  }
+                  if (chain === 'arbitrum') {
+                    dbData[`${chain}AliasAmount`] = aliasBalance
+                      ? formatEther(aliasBalance.toString())
+                      : 0
+                  }
+
+                  console.log(
+                    `done fetching daily bonder fee stat, chain: ${chain}`
+                  )
+
+                  resolve(null)
+                } catch (err) {
+                  reject(err)
+                }
               })
             )
           }
@@ -650,7 +674,7 @@ class BonderStats {
         console.log('done fetching timestamp balances')
         return { bonderBalances, dbData }
       } catch (err) {
-        console.error(err)
+        console.error('fetch balances error', err.message)
         const shouldRetry = this.shouldRetry(err.message)
         if (!shouldRetry) {
           throw err
@@ -658,8 +682,8 @@ class BonderStats {
         if (retries > 5) {
           throw new Error('max retries reached')
         }
-        await wait(2 * 1000)
         console.log('retrying')
+        await wait(2 * 1000)
       }
       retries++
     }
@@ -853,7 +877,7 @@ class BonderStats {
     startDate: number,
     endDate: number
   ) {
-    const provider = this.allProviders[chain]
+    const provider = allProviders[chain]
     const blockDater = new BlockDater(provider)
     const date = DateTime.fromSeconds(startDate - 86400).toJSDate()
     let retries = 0
@@ -907,7 +931,7 @@ class BonderStats {
     const rateLimitErrorRegex = /(rate limit|too many concurrent requests|exceeded|socket hang up)/i
     const timeoutErrorRegex = /(timeout|time-out|time out|timedout|timed out)/i
     const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED|SERVER_ERROR)/i
-    const badResponseErrorRegex = /(bad response|response error|missing response|processing response error)/i
+    const badResponseErrorRegex = /(bad response|response error|missing response|processing response error|invalid json response body)/i
     const revertErrorRegex = /revert/i
 
     const isRateLimitError = rateLimitErrorRegex.test(errMsg)

@@ -1165,6 +1165,9 @@ function populateTransfer (x, i) {
 
   x.sourceTxExplorerUrl = explorerLinkTx(x.sourceChainSlug, x.transactionHash)
   x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLinkTx(x.destinationChainSlug, x.bondTransactionHash) : ''
+  if (x.preregenesis) {
+    x.bondTxExplorerUrl = `https://expedition.dev/tx/${x.bondTransactionHash}?rpcUrl=https%3A%2F%2Fmainnet-replica-4.optimism.io`
+  }
   x.bonderTruncated = truncateAddress(x.bonder)
   x.bonderUrl = x.bonder ? explorerLinkAddress(x.destinationChainSlug, x.bonder) : ''
   x.bondTransactionHashTruncated = x.bondTransactionHash ? truncateHash(x.bondTransactionHash) : ''

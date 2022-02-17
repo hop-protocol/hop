@@ -233,6 +233,9 @@ might not reflect the latest state.
                   </span>
                 </td>
                 <td class="bondTx">
+                  <span v-if="x.preregenesis">
+                    (pre-regenesis)
+                  </span>
                   <span v-if="x.bondTransactionHash">
                     <a class="clipboard" :data-clipboard-text="x.bondTransactionHash" title="Copy transaction hash to clipboard" onclick="this.innerText='✅';setTimeout(()=>this.innerText='📋',1000)">📋</a>
                     <a :class="x.destinationChainSlug" :href="x.bondTxExplorerUrl" target="_blank" :title="`View on block explorer - ${x.bondTransactionHash}`">

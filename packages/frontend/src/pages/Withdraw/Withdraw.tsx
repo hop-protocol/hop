@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Alert from 'src/components/alert/Alert'
 import { toTokenDisplay } from 'src/utils'
 import { formatError } from 'src/utils/format'
+import { useApp } from 'src/contexts/AppContext'
 
 const useStyles = makeStyles(theme => ({
   proof: {
@@ -23,6 +24,7 @@ const useStyles = makeStyles(theme => ({
 
 export const Withdraw: FC = () => {
   const styles = useStyles()
+  const { sdk } = useApp()
   const [transferId, setTransferId] = useState<string>(() => {
     return localStorage.getItem('withdrawTransferId') || ''
   })
@@ -105,7 +107,9 @@ export const Withdraw: FC = () => {
         siblings,
         totalLeaves,
       } = instance.getTxPayload()
-      console.log(
+      const bridge = sdk.bridge(instance.transfer.token)
+      const tx = await bridge.withdraw(
+        instance.transfer.destinationChain,
         recipient,
         amount,
         transferNonce,
@@ -118,6 +122,7 @@ export const Withdraw: FC = () => {
         siblings,
         totalLeaves,
       )
+      console.log('tx:', tx)
     } catch (err: any) {
       console.error(err)
       setError(formatError(err))

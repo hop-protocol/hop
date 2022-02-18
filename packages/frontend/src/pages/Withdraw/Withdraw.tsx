@@ -1,6 +1,14 @@
 import React, { FC, ChangeEvent, useEffect, useState } from 'react'
 import { WithdrawalProof } from './WithdrawalProof'
 import { makeStyles } from '@material-ui/core/styles'
+import Accordion from '@material-ui/core/Accordion';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import Typography from '@material-ui/core/Typography';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import Alert from 'src/components/alert/Alert'
+import { toTokenDisplay } from 'src/utils'
+import { formatError } from 'src/utils/format'
 
 const useStyles = makeStyles(theme => ({
   proof: {
@@ -19,37 +27,71 @@ export const Withdraw: FC = () => {
     return localStorage.getItem('withdrawTransferId') || ''
   })
   const [proof, setProof] = useState<any>()
+  const [info, setInfo] = useState<any>()
   const [instance, setInstance] = useState<any>()
+  const [loading, setLoading] = useState<boolean>(false)
+  const [sending, setSending] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+  const [warning, setWarning] = useState<string>('')
 
   useEffect(() => {
       localStorage.setItem('withdrawTransferId', transferId)
   }, [transferId])
 
+  useEffect(() => {
+    const update = async () => {
+      try {
+        setWarning('')
+        if (instance && proof) {
+          await instance.checkWithdrawable()
+        }
+      } catch (err: any) {
+        setWarning(formatError(err))
+      }
+    }
+    update()
+  }, [instance, proof])
+
   async function handleSubmit(event: any) {
     event.preventDefault()
     try {
+      setLoading(true)
       setInstance(null)
       setProof('')
+      setError('')
+      setInfo(null)
       const _instance = new WithdrawalProof(transferId)
       await _instance.generateProof()
       const _proof = _instance.getProofPayload()
       setInstance(_instance)
       setProof(JSON.stringify(_proof, null, 2))
-    } catch (err) {
+
+      const { sourceChain, destinationChain, token, tokenDecimals, amount } = _instance.transfer
+      const formattedAmount = toTokenDisplay(amount, tokenDecimals)
+
+      setInfo([
+        { k: 'Transfer ID', v: transferId },
+        { k: 'Source', v: sourceChain },
+        { k: 'Destination', v: destinationChain },
+        { k: 'Token', v: token },
+        { k: 'Amount', v: formattedAmount },
+      ])
+    } catch (err: any) {
       console.error(err)
+      setError(formatError(err))
     }
+    setLoading(false)
   }
 
   function handleChange(event: any) {
     setTransferId(event.target.value)
   }
 
-  function handleClick(event: any) {
+  async function handleClick(event: any) {
     event.preventDefault()
     try {
-      if (!instance.rootSet) {
-        throw new Error('root not set yet')
-      }
+      setSending(true)
+      await instance.checkWithdrawable()
       const {
         recipient,
         amount,
@@ -76,11 +118,14 @@ export const Withdraw: FC = () => {
         siblings,
         totalLeaves,
       )
-    } catch (err) {
+    } catch (err: any) {
+      console.error(err)
+      setError(formatError(err))
     }
+    setSending(false)
   }
 
-  const activeButton = !!proof
+  const activeButton = !!proof && !warning
 
   return (
     <div>
@@ -92,16 +137,50 @@ export const Withdraw: FC = () => {
           <button>Generate Proof</button>
         </div>
       </form>
+      {proof &&
       <div>
-        <pre className={styles.proof}>
-          {proof}
-        </pre>
-      </div>
-      {activeButton &&
-      <div>
-        <button onClick={handleClick}>Withdraw Transfer</button>
+      <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1a-content"
+            id="panel1a-header"
+          >
+            <Typography>Show withdrawal proof data</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <pre className={styles.proof}>
+              {proof}
+            </pre>
+          </AccordionDetails>
+        </Accordion>
       </div>
       }
+      {loading && (
+        <div>
+          Generating proof data...
+        </div>
+      )}
+      <div>
+        {info &&
+          info.map(({ k, v }: any) => {
+            return (
+              <div key={k}>
+                <label>{k}:</label>
+                    <span>{v}</span>
+              </div>
+            )
+          })
+        }
+      </div>
+      {activeButton &&
+        <div>
+          <button disabled={sending} onClick={handleClick}>Withdraw Transfer</button>
+        </div>
+      }
+      <div>
+        <Alert severity="error">{error}</Alert>
+        <Alert severity="warning">{warning}</Alert>
+      </div>
     </div>
   )
 }

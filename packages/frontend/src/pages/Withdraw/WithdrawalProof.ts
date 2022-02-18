@@ -10,6 +10,16 @@ function chainIdToSlug(id) {
   }[id]
 }
 
+function getTokenDecimals(token) {
+  return {
+    USDC: 6,
+    USDT: 6,
+    DAI: 18,
+    MATIC: 18,
+    ETH: 18,
+  }[token]
+}
+
 class MerkleTree extends MerkleTreeLib {
   constructor (leaves) {
     super(leaves, keccak256, {
@@ -91,7 +101,7 @@ export class WithdrawalProof {
   }
 
   async generateProofForTransferId(transferId) {
-    const transfer = await this.getTransfer(transferId)
+    const transfer = await this.findTransfer(transferId)
     if (!transfer) {
       throw new Error('transfer not found')
     }
@@ -99,7 +109,7 @@ export class WithdrawalProof {
 
     const transferRoot = await this.getTransferRootForTransferId(transfer)
     if (!transferRoot) {
-      throw new Error('transfer root not found for transfer id')
+      throw new Error('Transfer root not found for transfer ID. Transfer root has not been committed yet.')
     }
     const { rootHash: transferRootHash, totalAmount: rootTotalAmount } = transferRoot
     const transferIds = transferRoot.transferIds.map((x) => x.transferId)
@@ -195,20 +205,28 @@ export class WithdrawalProof {
     return url
   }
 
-  async getTransfer (transferId) {
+  async findTransfer (transferId) {
     const chains = ['polygon', 'xdai', 'arbitrum', 'optimism']
     for (const chain of chains) {
-      const transfer = await this.getTransferFromChain(transferId, chain)
+      const transfer = await this.getTransfer(transferId, chain)
       if (transfer) {
+        const { destinationChainId, token } = transfer
         const sourceChain = chain
-        const destinationChain = chainIdToSlug(transfer.destinationChainId)
-        return { ...transfer, sourceChain, destinationChain }
+        const destinationChain = chainIdToSlug(destinationChainId)
+        const [withdrewEvent, bondedEvent] = await Promise.all([
+          this.getTransferWithdrew(transferId, destinationChain),
+          this.getTransferBondWithdrawal(transferId, destinationChain)
+        ])
+        const tokenDecimals = getTokenDecimals(token)
+        const withdrawn = !!withdrewEvent
+        const bonded = !!bondedEvent
+        return { ...transfer, sourceChain, destinationChain, tokenDecimals, withdrawn, bonded }
       }
     }
     return null
   }
 
-  async getTransferFromChain (transferId, chain) {
+  async getTransfer(transferId, chain) {
     const query = `
       query TransferId($transferId: String) {
         transferSents(
@@ -253,6 +271,79 @@ export class WithdrawalProof {
     }
 
     return transfer
+  }
+
+  async getTransferWithdrew (transferId, chain) {
+    const query = `
+      query Withdrew($transferId: String) {
+        withdrews(
+          where: {
+            transferId: $transferId
+          },
+          orderBy: timestamp,
+          orderDirection: desc,
+          first: 1
+        ) {
+          id
+          transferId
+          amount
+
+          transactionHash
+          transactionIndex
+          timestamp
+          blockNumber
+          contractAddress
+          token
+        }
+      }
+    `
+    const jsonRes = await this.makeRequest(chain, query, {
+      transferId
+    })
+
+    if (!jsonRes.withdrews) {
+      return null
+    }
+
+    const event = jsonRes.withdrews[0]
+    if (!event) {
+      return null
+    }
+
+    return event
+  }
+
+  async getTransferBondWithdrawal(transferId, chain) {
+    const query = `
+      query WithdrawalBonded($transferId: String) {
+        withdrawalBondeds(
+          where: {
+            transferId: $transferId
+          },
+          orderBy: timestamp,
+          orderDirection: desc,
+          first: 1
+        ) {
+          id
+          transferId
+          amount
+
+          transactionHash
+          transactionIndex
+          timestamp
+          blockNumber
+          contractAddress
+          token
+        }
+      }
+    `
+
+    const jsonRes = await this.makeRequest(chain, query, {
+      transferId
+    })
+
+    const entity = jsonRes.withdrawalBondeds[0]
+    return this.normalizeEntity(entity)
   }
 
   async getTransferRootForTransferId (transfer) {
@@ -577,8 +668,25 @@ export class WithdrawalProof {
     return x
   }
 
-  get rootSet () {
-    return this.transferRoot.rootSet
+  checkWithdrawable() {
+    if (!this.transfer) {
+      throw new Error('transfer not found')
+    }
+    if (!this.transferRoot) {
+      throw new Error('transfer root not found')
+    }
+    const { rootSet } = this.transferRoot
+    const { withdrawn, bonded } = this.transfer
+    console.log(this.transfer)
+    if (withdrawn) {
+      throw new Error('Transfer has already been withdrawn')
+    }
+    if (bonded) {
+      throw new Error('Transfer has already been bonded. Cannot withdraw a bonded transfer.')
+    }
+    if (!rootSet) {
+      throw new Error('Transfer root has not been set yet. Try again in a few hours')
+    }
   }
 }
 

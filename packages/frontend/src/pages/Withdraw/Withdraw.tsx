@@ -1,4 +1,5 @@
 import React, { FC, ChangeEvent, useEffect, useState } from 'react'
+import { DateTime } from 'luxon'
 import Card from '@material-ui/core/Card'
 import { WithdrawalProof } from './WithdrawalProof'
 import { makeStyles } from '@material-ui/core/styles'
@@ -108,7 +109,7 @@ export const Withdraw: FC = () => {
     update()
   }, [instance, proof])
 
-  async function handleSubmit(event: any) {
+  async function handleGenerateSubmit(event: ChangeEvent<any>) {
     event.preventDefault()
     try {
       setLoading(true)
@@ -117,19 +118,20 @@ export const Withdraw: FC = () => {
       setError('')
       setWarning('')
       setInfo(null)
-      const _instance = new WithdrawalProof(transferId)
-      await _instance.generateProof()
-      const _proof = _instance.getProofPayload()
-      setInstance(_instance)
-      setProof(JSON.stringify(_proof, null, 2))
+      const wp = new WithdrawalProof(transferId)
+      await wp.generateProof()
+      setInstance(wp)
+      setProof(JSON.stringify(wp.getProofPayload(), null, 2))
 
-      const { sourceChain, destinationChain, token, tokenDecimals, amount } = _instance.transfer
+      const { sourceChain, destinationChain, token, tokenDecimals, amount, timestamp } = wp.transfer
       const formattedAmount = toTokenDisplay(amount, tokenDecimals)
       const source = networks.find(network => network.slug === sourceChain)
       const destination = networks.find(network => network.slug === destinationChain)
+      const date = DateTime.fromSeconds(timestamp).toRelative()
 
       setInfo([
         { k: 'Transfer ID', v: transferId },
+        { k: 'Date', v: date },
         { k: 'Source', v: source?.name },
         { k: 'Destination', v: destination?.name },
         { k: 'Token', v: token },
@@ -142,21 +144,23 @@ export const Withdraw: FC = () => {
     setLoading(false)
   }
 
-  function handleChange(event: any) {
+  function handleInputChange(event: ChangeEvent<any>) {
     setTransferId(event.target.value)
   }
 
-  async function handleClick(event: any) {
+  async function handleWithdrawClick(event: ChangeEvent<any>) {
     event.preventDefault()
     try {
       const networkId = Number(instance.transfer.destinationChainId)
-      console.log(networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        return
+      }
       setError('')
       setWarning('')
       setSending(true)
       await instance.checkWithdrawable()
+      const bridge = sdk.bridge(instance.transfer.token)
       const {
         recipient,
         amount,
@@ -170,7 +174,6 @@ export const Withdraw: FC = () => {
         siblings,
         totalLeaves,
       } = instance.getTxPayload()
-      const bridge = sdk.bridge(instance.transfer.token)
       const tx = await bridge.withdraw(
         instance.transfer.destinationChain,
         recipient,
@@ -201,22 +204,22 @@ export const Withdraw: FC = () => {
       <div className={styles.header}>
         <Typography variant="h4">Withdraw</Typography>
       </div>
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <form className={styles.form} onSubmit={handleGenerateSubmit}>
         <div>
-    <Card className={styles.card}>
-        <Typography variant="h6">Transfer ID</Typography>
-          <LargeTextField
-            value={transferId}
-            onChange={handleChange}
-            placeholder="0x123"
-            smallFontSize
-            leftAlign
-          />
-        </Card>
+          <Card className={styles.card}>
+          <Typography variant="h6">Transfer ID</Typography>
+            <LargeTextField
+              value={transferId}
+              onChange={handleInputChange}
+              placeholder="0x123"
+              smallFontSize
+              leftAlign
+            />
+          </Card>
         </div>
         <div>
           <Button
-            onClick={handleSubmit}
+            onClick={handleGenerateSubmit}
             loading={loading}
             large
             highlighted
@@ -225,24 +228,24 @@ export const Withdraw: FC = () => {
           </Button>
         </div>
       </form>
-      {proof &&
-      <div className={styles.proofAccordion}>
-        <Accordion>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1a-content"
-            id="panel1a-header"
-          >
-            <Typography>Show proof data</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <pre className={styles.proof}>
-              {proof}
-            </pre>
-          </AccordionDetails>
-        </Accordion>
-      </div>
-      }
+      {proof && (
+        <div className={styles.proofAccordion}>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography>Show proof data</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <pre className={styles.proof}>
+                {proof}
+              </pre>
+            </AccordionDetails>
+          </Accordion>
+        </div>
+    )}
       {loading && (
         <div className={styles.loader}>
           <Typography variant="body1">
@@ -251,8 +254,8 @@ export const Withdraw: FC = () => {
         </div>
       )}
       <div className={styles.info}>
-        {info &&
-          info.map(({ k, v }: any) => {
+        {info && (
+          info.map(({ k, v }: {k: string, v: string}) => {
             return (
               <div key={k}>
                 <label>
@@ -264,12 +267,12 @@ export const Withdraw: FC = () => {
               </div>
             )
           })
-        }
+        )}
       </div>
-      {activeButton &&
+      {activeButton && (
         <div className={styles.form}>
           <Button
-            onClick={handleClick}
+            onClick={handleWithdrawClick}
             loading={sending}
             large
             highlighted
@@ -277,7 +280,7 @@ export const Withdraw: FC = () => {
             Withdraw Transfer
           </Button>
         </div>
-      }
+      )}
       <div className={styles.notice}>
         <Alert severity="error">{error}</Alert>
         <Alert severity="warning">{warning}</Alert>

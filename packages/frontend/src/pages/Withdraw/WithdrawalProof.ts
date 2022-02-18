@@ -1,49 +1,35 @@
 import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
 import { keccak256 } from 'ethereumjs-util'
-
-function chainIdToSlug(id) {
-  return {
-    1: 'ethereum',
-    10: 'optimism',
-    100: 'xdai',
-    137: 'polygon',
-  }[id]
-}
-
-function getTokenDecimals(token) {
-  return {
-    USDC: 6,
-    USDT: 6,
-    DAI: 18,
-    MATIC: 18,
-    ETH: 18,
-  }[token]
-}
+import { networkIdToSlug } from 'src/utils/networks'
+import { getTokenDecimals } from 'src/utils/tokens'
 
 class MerkleTree extends MerkleTreeLib {
-  constructor (leaves) {
+  constructor (leaves: string[]) {
     super(leaves, keccak256, {
       fillDefaultHash: () => keccak256(Buffer.alloc(32))
     })
   }
 }
 
+type Transfer = any
+type TransferRoot = any
+
 export class WithdrawalProof {
-  transferId:any
-  transferRootHash :any
-  leaves :any
-  proof :any
-  transferIndex :any
-  rootTotalAmount :any
-  numLeaves :any
-  transfer : any
-  transferRoot :any
+  transferId: string
+  transferRootHash?:string
+  leaves?:string[]
+  proof?:string[]
+  transferIndex?:number
+  rootTotalAmount?:string
+  numLeaves?:number
+  transfer?: Transfer
+  transferRoot ?: TransferRoot
 
   constructor(transferId) {
     this.transferId = transferId
   }
 
-  async generateProof() {
+  public async generateProof() {
     const {
       transferId,
       transferRootHash,
@@ -67,7 +53,7 @@ export class WithdrawalProof {
     return proof
   }
 
-  getProofPayload() {
+  public getProofPayload() {
     const { proof, transferIndex, rootTotalAmount, numLeaves, transferId, transferRootHash, leaves } = this
 
     return {
@@ -81,7 +67,7 @@ export class WithdrawalProof {
     }
   }
 
-  getTxPayload() {
+  public getTxPayload() {
     const { recipient, amount, transferNonce, bonderFee, amountOutMin, deadline } = this.transfer
     const { transferRootHash, rootTotalAmount, transferIndex, proof, numLeaves } = this
 
@@ -100,7 +86,27 @@ export class WithdrawalProof {
     }
   }
 
-  async generateProofForTransferId(transferId) {
+  public checkWithdrawable() {
+    if (!this.transfer) {
+      throw new Error('Transfer ID not found')
+    }
+    if (!this.transferRoot) {
+      throw new Error('transfer root not found')
+    }
+    const { rootSet } = this.transferRoot
+    const { withdrawn, bonded } = this.transfer
+    if (withdrawn) {
+      throw new Error('Transfer has already been withdrawn')
+    }
+    if (bonded) {
+      throw new Error('Transfer has already been bonded. Cannot withdraw a bonded transfer.')
+    }
+    if (!rootSet) {
+      throw new Error('Transfer root has not been set yet. Try again in a few hours')
+    }
+  }
+
+  private async generateProofForTransferId(transferId: string) {
     const transfer = await this.findTransfer(transferId)
     if (!transfer) {
       throw new Error('Transfer ID not found')
@@ -112,7 +118,7 @@ export class WithdrawalProof {
       throw new Error('Transfer root not found for transfer ID. Transfer root has not been committed yet.')
     }
     const { rootHash: transferRootHash, totalAmount: rootTotalAmount } = transferRoot
-    const transferIds = transferRoot.transferIds.map((x) => x.transferId)
+    const transferIds = transferRoot.transferIds.map((x:Transfer) => x.transferId)
     if (!transferIds.length) {
       throw new Error('transfer ids not found for transfer root')
     }
@@ -142,10 +148,10 @@ export class WithdrawalProof {
     return result
   }
 
-  getWithdrawalProofData (
-    transferId,
-    rootTotalAmount,
-    transferIds
+  private getWithdrawalProofData (
+    transferId: string,
+    rootTotalAmount: string,
+    transferIds: string[]
   ) {
     if (!transferIds.length) {
       throw new Error('expected transfer ids for transfer root hash')
@@ -168,10 +174,10 @@ export class WithdrawalProof {
     }
   }
 
-  async makeRequest (
-    chain,
-    query,
-    params = {}
+  private async makeRequest (
+    chain: string,
+    query: string,
+    params: any = {}
   ) {
     const url = this.getUrl(chain)
     const res = await fetch(url, {
@@ -192,7 +198,7 @@ export class WithdrawalProof {
     return jsonRes.data
   }
 
-  getUrl(chain: string) {
+  private getUrl(chain: string) {
     let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
     if (chain === 'gnosis') {
       chain = 'xdai'
@@ -205,17 +211,17 @@ export class WithdrawalProof {
     return url
   }
 
-  async findTransfer (transferId) {
+  private async findTransfer (transferId: string) {
     const chains = ['polygon', 'xdai', 'arbitrum', 'optimism']
     for (const chain of chains) {
-      const transfer = await this.getTransfer(transferId, chain)
+      const transfer = await this.queryTransfer(transferId, chain)
       if (transfer) {
         const { destinationChainId, token } = transfer
         const sourceChain = chain
-        const destinationChain = chainIdToSlug(destinationChainId)
+        const destinationChain = networkIdToSlug(destinationChainId)
         const [withdrewEvent, bondedEvent] = await Promise.all([
-          this.getTransferWithdrew(transferId, destinationChain),
-          this.getTransferBondWithdrawal(transferId, destinationChain)
+          this.queryWithdrew(transferId, destinationChain),
+          this.queryBondWithdrawal(transferId, destinationChain)
         ])
         const tokenDecimals = getTokenDecimals(token)
         const withdrawn = !!withdrewEvent
@@ -226,7 +232,7 @@ export class WithdrawalProof {
     return null
   }
 
-  async getTransfer(transferId, chain) {
+  private async queryTransfer(transferId: string, chain: string) {
     const query = `
       query TransferId($transferId: String) {
         transferSents(
@@ -270,10 +276,10 @@ export class WithdrawalProof {
       return null
     }
 
-    return transfer
+    return this.normalizeEntity(transfer)
   }
 
-  async getTransferWithdrew (transferId, chain) {
+  private async queryWithdrew (transferId: string, chain: string) {
     const query = `
       query Withdrew($transferId: String) {
         withdrews(
@@ -313,7 +319,7 @@ export class WithdrawalProof {
     return event
   }
 
-  async getTransferBondWithdrawal(transferId, chain) {
+  private async queryBondWithdrawal(transferId: string, chain: string) {
     const query = `
       query WithdrawalBonded($transferId: String) {
         withdrawalBondeds(
@@ -346,7 +352,7 @@ export class WithdrawalProof {
     return this.normalizeEntity(entity)
   }
 
-  async getTransferRootForTransferId (transfer) {
+  private async getTransferRootForTransferId (transfer: Transfer) {
     const { transferId, timestamp, destinationChainId, sourceChain, token } = transfer
     const query = `
       query TransferCommitted($token: String, $timestamp: String, $destinationChainId: String) {
@@ -377,13 +383,13 @@ export class WithdrawalProof {
     `
     const jsonRes = await this.makeRequest(sourceChain, query, {
       token,
-      timestamp,
-      destinationChainId
+      timestamp: timestamp.toString(),
+      destinationChainId: destinationChainId.toString()
     })
 
     const transferRoots = jsonRes.transfersCommitteds
     for (const transferRoot of transferRoots) {
-      const transferIds = await this.getTransferIdsForTransferRoot(sourceChain, token, transferRoot.rootHash)
+      const transferIds = await this.queryTransferIdsForTransferRoot(sourceChain, token, transferRoot.rootHash)
       const exists = transferIds.find((x) => x.transferId === transferId)
       if (exists) {
         // get complete object
@@ -393,7 +399,7 @@ export class WithdrawalProof {
     return null
   }
 
-  async getTransferIdsForTransferRoot (chain, token, rootHash) {
+  private async queryTransferIdsForTransferRoot (chain: string, token: string, rootHash: string) {
     // get commit transfer event of root hash
     let query = `
       query TransferCommitteds($token: String, $rootHash: String) {
@@ -516,7 +522,7 @@ export class WithdrawalProof {
     })
 
     // normalize fields
-    let transferIds = jsonRes.transferSents.map((x) => this.normalizeEntity(x))
+    let transferIds = jsonRes.transferSents.map((x: Transfer) => this.normalizeEntity(x))
 
     // sort by transfer id block number and index
     transferIds = transferIds.sort((a, b) => {
@@ -544,7 +550,7 @@ export class WithdrawalProof {
       })
 
     // filter only transfer ids for leaves
-    const leaves = transferIds.map((x) => {
+    const leaves = transferIds.map((x: Transfer) => {
       return x.transferId
     })
 
@@ -557,7 +563,7 @@ export class WithdrawalProof {
     return transferIds
   }
 
-  async queryTransferRoot (chain, token, transferRootHash) {
+  private async queryTransferRoot (chain: string, token: string, transferRootHash: string) {
     const query = `
       query TransferRoot($token: String, $transferRootHash: String) {
         transfersCommitteds(
@@ -591,7 +597,7 @@ export class WithdrawalProof {
     return this.normalizeEntity(jsonRes.transfersCommitteds[0])
   }
 
-  async queryRootSet (chain, token, transferRootHash) {
+  private async queryRootSet (chain: string, token: string, transferRootHash: string) {
     const query = `
       query TransferRootSet($token: String, $transferRootHash: String) {
         transferRootSets(
@@ -623,16 +629,16 @@ export class WithdrawalProof {
     return this.normalizeEntity(jsonRes.transferRootSets[0])
   }
 
-  async getTransferRoot (chain, token, transferRootHash) {
+  private async getTransferRoot (chain: string, token: string, transferRootHash: string) {
     const transferRoot = await this.queryTransferRoot(chain, token, transferRootHash)
     if (!transferRoot) {
       return transferRoot
     }
-    const destinationChain = chainIdToSlug(transferRoot.destinationChainId)
+    const destinationChain = networkIdToSlug(transferRoot.destinationChainId)
 
     const [rootSet, transferIds] = await Promise.all([
       this.queryRootSet(destinationChain, token, transferRootHash),
-      this.getTransferIdsForTransferRoot(chain, token, transferRootHash)
+      this.queryTransferIdsForTransferRoot(chain, token, transferRootHash)
     ])
 
     transferRoot.committed = true
@@ -643,7 +649,7 @@ export class WithdrawalProof {
     return transferRoot
   }
 
-  normalizeEntity (x) {
+  private normalizeEntity (x: any) {
     if (!x) {
       return x
     }
@@ -654,38 +660,18 @@ export class WithdrawalProof {
 
     if (x.sourceChainId) {
       x.sourceChainId = Number(x.sourceChainId)
-      x.sourceChain = chainIdToSlug(x.sourceChainId)
+      x.sourceChain = networkIdToSlug(x.sourceChainId)
     }
 
     if (x.destinationChainId) {
       x.destinationChainId = Number(x.destinationChainId)
-      x.destinationChain = chainIdToSlug(x.destinationChainId)
+      x.destinationChain = networkIdToSlug(x.destinationChainId)
     }
 
     x.blockNumber = Number(x.blockNumber)
     x.timestamp = Number(x.timestamp)
 
     return x
-  }
-
-  checkWithdrawable() {
-    if (!this.transfer) {
-      throw new Error('Transfer ID not found')
-    }
-    if (!this.transferRoot) {
-      throw new Error('transfer root not found')
-    }
-    const { rootSet } = this.transferRoot
-    const { withdrawn, bonded } = this.transfer
-    if (withdrawn) {
-      throw new Error('Transfer has already been withdrawn')
-    }
-    if (bonded) {
-      throw new Error('Transfer has already been bonded. Cannot withdraw a bonded transfer.')
-    }
-    if (!rootSet) {
-      throw new Error('Transfer root has not been set yet. Try again in a few hours')
-    }
   }
 }
 

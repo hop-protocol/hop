@@ -1,6 +1,8 @@
 import React, { FC, ChangeEvent, useEffect, useState } from 'react'
+import Card from '@material-ui/core/Card'
 import { WithdrawalProof } from './WithdrawalProof'
 import { makeStyles } from '@material-ui/core/styles'
+import LargeTextField from 'src/components/LargeTextField'
 import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
@@ -10,21 +12,73 @@ import Alert from 'src/components/alert/Alert'
 import { toTokenDisplay } from 'src/utils'
 import { formatError } from 'src/utils/format'
 import { useApp } from 'src/contexts/AppContext'
+import { useWeb3Context } from 'src/contexts/Web3Context'
+import Button from 'src/components/buttons/Button'
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    maxWidth: '700px',
+    margin: '0 auto',
+  },
+  header: {
+    marginBottom: '4rem',
+    textAlign: 'center'
+  },
+  form: {
+    display: 'block',
+    marginBottom: '4rem'
+  },
+  card: {
+    marginBottom: '4rem'
+  },
+  loader: {
+    marginTop: '2rem',
+    textAlign: 'center'
+  },
+  info: {
+    margin: '2rem 0 4rem 0',
+    display: 'flex',
+    flexDirection: 'column',
+    '& div': {
+      display: 'flex',
+      alignContent: 'center',
+      marginBottom: '0.5rem',
+    },
+    '& label': {
+      whiteSpace: 'nowrap',
+      marginRight: '0.5rem'
+    },
+    '& span': {
+      lineHeight: 'normal',
+      maxWidth: '100%',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      display: 'inline-block'
+    }
+  },
+  proofAccordion: {
+    marginBottom: '1rem'
+  },
   proof: {
-    maxHeight: '500px',
+    maxHeight: '300px',
     overflow: 'auto',
     background: '#fff',
     border: '5px solid #fff',
     color: '#000',
-    borderRadius: '6px'
+    borderRadius: '6px',
+    fontSize: '1.2rem',
   },
+  notice: {
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'column'
+  }
 }))
 
 export const Withdraw: FC = () => {
   const styles = useStyles()
-  const { sdk } = useApp()
+  const { sdk, networks } = useApp()
+  const { checkConnectedNetworkId } = useWeb3Context()
   const [transferId, setTransferId] = useState<string>(() => {
     return localStorage.getItem('withdrawTransferId') || ''
   })
@@ -61,6 +115,7 @@ export const Withdraw: FC = () => {
       setInstance(null)
       setProof('')
       setError('')
+      setWarning('')
       setInfo(null)
       const _instance = new WithdrawalProof(transferId)
       await _instance.generateProof()
@@ -70,11 +125,13 @@ export const Withdraw: FC = () => {
 
       const { sourceChain, destinationChain, token, tokenDecimals, amount } = _instance.transfer
       const formattedAmount = toTokenDisplay(amount, tokenDecimals)
+      const source = networks.find(network => network.slug === sourceChain)
+      const destination = networks.find(network => network.slug === destinationChain)
 
       setInfo([
         { k: 'Transfer ID', v: transferId },
-        { k: 'Source', v: sourceChain },
-        { k: 'Destination', v: destinationChain },
+        { k: 'Source', v: source?.name },
+        { k: 'Destination', v: destination?.name },
         { k: 'Token', v: token },
         { k: 'Amount', v: formattedAmount },
       ])
@@ -92,6 +149,12 @@ export const Withdraw: FC = () => {
   async function handleClick(event: any) {
     event.preventDefault()
     try {
+      const networkId = Number(instance.transfer.destinationChainId)
+      console.log(networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+      setError('')
+      setWarning('')
       setSending(true)
       await instance.checkWithdrawable()
       const {
@@ -122,6 +185,7 @@ export const Withdraw: FC = () => {
         siblings,
         totalLeaves,
       )
+      await tx?.wait()
       console.log('tx:', tx)
     } catch (err: any) {
       console.error(err)
@@ -133,24 +197,43 @@ export const Withdraw: FC = () => {
   const activeButton = !!proof && !warning
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
+    <div className={styles.root}>
+      <div className={styles.header}>
+        <Typography variant="h4">Withdraw</Typography>
+      </div>
+      <form className={styles.form} onSubmit={handleSubmit}>
         <div>
-          <input type="text" value={transferId} onChange={handleChange} />
+    <Card className={styles.card}>
+        <Typography variant="h6">Transfer ID</Typography>
+          <LargeTextField
+            value={transferId}
+            onChange={handleChange}
+            placeholder="0x123"
+            smallFontSize
+            leftAlign
+          />
+        </Card>
         </div>
         <div>
-          <button>Generate Proof</button>
+          <Button
+            onClick={handleSubmit}
+            loading={loading}
+            large
+            highlighted
+          >
+            Generate Proof
+          </Button>
         </div>
       </form>
       {proof &&
-      <div>
-      <Accordion>
+      <div className={styles.proofAccordion}>
+        <Accordion>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="panel1a-content"
             id="panel1a-header"
           >
-            <Typography>Show withdrawal proof data</Typography>
+            <Typography>Show proof data</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <pre className={styles.proof}>
@@ -161,28 +244,41 @@ export const Withdraw: FC = () => {
       </div>
       }
       {loading && (
-        <div>
-          Generating proof data...
+        <div className={styles.loader}>
+          <Typography variant="body1">
+            Generating proof data...
+          </Typography>
         </div>
       )}
-      <div>
+      <div className={styles.info}>
         {info &&
           info.map(({ k, v }: any) => {
             return (
               <div key={k}>
-                <label>{k}:</label>
-                    <span>{v}</span>
+                <label>
+                  <Typography variant="body1"><strong>{k}:</strong></Typography>
+                </label>
+                <span>
+                  <Typography variant="body1">{v}</Typography>
+                </span>
               </div>
             )
           })
         }
       </div>
       {activeButton &&
-        <div>
-          <button disabled={sending} onClick={handleClick}>Withdraw Transfer</button>
+        <div className={styles.form}>
+          <Button
+            onClick={handleClick}
+            loading={sending}
+            large
+            highlighted
+          >
+            Withdraw Transfer
+          </Button>
         </div>
       }
-      <div>
+      <div className={styles.notice}>
         <Alert severity="error">{error}</Alert>
         <Alert severity="warning">{warning}</Alert>
       </div>

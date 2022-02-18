@@ -103,7 +103,7 @@ export class WithdrawalProof {
   async generateProofForTransferId(transferId) {
     const transfer = await this.findTransfer(transferId)
     if (!transfer) {
-      throw new Error('transfer not found')
+      throw new Error('Transfer ID not found')
     }
     const { destinationChain, recipient, amount, transferNonce, bonderFee, amountOutMin, deadline } = transfer
 
@@ -262,7 +262,7 @@ export class WithdrawalProof {
     })
 
     if (!jsonRes.transferSents) {
-      throw new Error('transfer not found')
+      throw new Error('Transfer ID not found')
     }
 
     const transfer = jsonRes.transferSents[0]
@@ -670,14 +670,13 @@ export class WithdrawalProof {
 
   checkWithdrawable() {
     if (!this.transfer) {
-      throw new Error('transfer not found')
+      throw new Error('Transfer ID not found')
     }
     if (!this.transferRoot) {
       throw new Error('transfer root not found')
     }
     const { rootSet } = this.transferRoot
     const { withdrawn, bonded } = this.transfer
-    console.log(this.transfer)
     if (withdrawn) {
       throw new Error('Transfer has already been withdrawn')
     }

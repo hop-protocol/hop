@@ -190,6 +190,8 @@ export const Withdraw: FC = () => {
       )
       await tx?.wait()
       console.log('tx:', tx)
+      setInstance(null)
+      setProof('')
     } catch (err: any) {
       console.error(err)
       setError(formatError(err))

@@ -37,7 +37,7 @@ interface ContructorArgs {
 }
 
 class Transaction extends EventEmitter {
-  readonly hash: string
+  hash: string
   readonly networkName: string
   destNetworkName: string | null = null
   readonly isCanonicalTransfer: boolean = false

@@ -9,6 +9,7 @@ import { createTransaction } from 'src/utils/createTransaction'
 import { amountToBN, formatError } from 'src/utils/format'
 import { HopBridge } from '@hop-protocol/sdk'
 import { useTransactionReplacement } from 'src/hooks'
+import { getSDKInstance } from 'src/utils/gnosisSafeApp'
 
 type TransactionHandled = {
   transaction: any
@@ -49,7 +50,7 @@ export function useSendTransaction(props) {
   } = props
   const [tx, setTx] = useState<Transaction | null>(null)
   const [sending, setSending] = useState<boolean>(false)
-  const { provider, address, checkConnectedNetworkId } = useWeb3Context()
+  const { provider, address, checkConnectedNetworkId, walletName } = useWeb3Context()
   const [recipient, setRecipient] = useState<string>()
   const [signer, setSigner] = useState<Signer>()
   const [bridge, setBridge] = useState<HopBridge>()
@@ -130,6 +131,26 @@ export function useSendTransaction(props) {
       }
 
       const { transaction, txModel } = txHandled
+      
+      // handle the case when HOP is being used as a Gnosis safe-app.
+      // for this case, txHash is the safeTxHash instead of the ethereum txHash
+      // in order to obtain ethereum txHash we will use safe-apps-sdk when connected wallet name is 'Gnosis Safe'
+      if (provider && walletName === 'Gnosis Safe') {
+        let txHash: string | null = null
+        const sdk = getSDKInstance()
+        
+        while (txHash === null) {
+          await new Promise(resolve => setTimeout(resolve, 5000));  
+          const res = await sdk.txs.getBySafeTxHash(transaction.hash);
+          txHash = res.txHash;
+        
+          // WARNING: Mutating object
+          if (res.txHash) {
+            transaction.hash = res.txHash;
+            txModel.hash = res.txHash;
+          } 
+        }
+      }
 
       const sourceChain = sdk.Chain.fromSlug(fromNetwork.slug)
       const destChain = sdk.Chain.fromSlug(toNetwork.slug)
@@ -145,7 +166,7 @@ export function useSendTransaction(props) {
           updateTransaction(txModel, opts)
         }
       })
-
+      
       setTx(txModel)
 
       const txModelArgs = {
@@ -255,7 +276,7 @@ export function useSendTransaction(props) {
   }
 
   const sendl2ToL2 = async () => {
-    const tx: any = await txConfirm?.show({
+    const tx = await txConfirm?.show({
       kind: 'send',
       inputProps: {
         customRecipient,

@@ -26,6 +26,18 @@ export class WithdrawalProof {
   transferRoot ?: TransferRoot
 
   constructor(transferId) {
+    if (!transferId) {
+      throw new Error('Transfer ID is required')
+    }
+
+    if (typeof transferId !== 'string') {
+      throw new Error('Transfer ID must be a hex string')
+    }
+
+    if (!transferId.startsWith('0x')) {
+      throw new Error('Transfer ID must be a hex string starting with 0x')
+    }
+
     this.transferId = transferId
   }
 

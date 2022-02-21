@@ -251,7 +251,7 @@ export const Withdraw: FC = () => {
       {loading && (
         <div className={styles.loader}>
           <Typography variant="body1">
-            Generating proof data...
+            Generating proof data (this will take a few seconds)...
           </Typography>
         </div>
       )}

@@ -80,8 +80,8 @@ export const Withdraw: FC = () => {
   const styles = useStyles()
   const { sdk, networks } = useApp()
   const { checkConnectedNetworkId } = useWeb3Context()
-  const [transferId, setTransferId] = useState<string>(() => {
-    return localStorage.getItem('withdrawTransferId') || ''
+  const [transferIdOrTxHash, setTransferIdOrTxHash] = useState<string>(() => {
+    return localStorage.getItem('withdrawTransferIdOrTxHash') || ''
   })
   const [proof, setProof] = useState<any>()
   const [info, setInfo] = useState<any>()
@@ -92,8 +92,8 @@ export const Withdraw: FC = () => {
   const [warning, setWarning] = useState<string>('')
 
   useEffect(() => {
-      localStorage.setItem('withdrawTransferId', transferId)
-  }, [transferId])
+      localStorage.setItem('withdrawTransferIdOrTxHash', transferIdOrTxHash)
+  }, [transferIdOrTxHash])
 
   useEffect(() => {
     const update = async () => {
@@ -118,12 +118,12 @@ export const Withdraw: FC = () => {
       setError('')
       setWarning('')
       setInfo(null)
-      const wp = new WithdrawalProof(transferId)
+      const wp = new WithdrawalProof(transferIdOrTxHash)
       await wp.generateProof()
       setInstance(wp)
       setProof(JSON.stringify(wp.getProofPayload(), null, 2))
 
-      const { sourceChain, destinationChain, token, tokenDecimals, amount, timestamp } = wp.transfer
+      const { transferId, sourceChain, destinationChain, token, tokenDecimals, amount, timestamp } = wp.transfer
       const formattedAmount = toTokenDisplay(amount, tokenDecimals)
       const source = networks.find(network => network.slug === sourceChain)
       const destination = networks.find(network => network.slug === destinationChain)
@@ -145,7 +145,7 @@ export const Withdraw: FC = () => {
   }
 
   function handleInputChange(event: ChangeEvent<any>) {
-    setTransferId(event.target.value)
+    setTransferIdOrTxHash(event.target.value)
   }
 
   async function handleWithdrawClick(event: ChangeEvent<any>) {
@@ -211,7 +211,7 @@ export const Withdraw: FC = () => {
           <Card className={styles.card}>
           <Typography variant="h6">Transfer ID</Typography>
             <LargeTextField
-              value={transferId}
+              value={transferIdOrTxHash}
               onChange={handleInputChange}
               placeholder="0x123"
               smallFontSize

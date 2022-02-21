@@ -106,11 +106,13 @@ export class WithdrawalProof {
     }
   }
 
-  private async generateProofForTransferId(transferId: string) {
-    const transfer = await this.findTransfer(transferId)
+  private async generateProofForTransferId(transferIdOrTxHash: string) {
+    const transfer = await this.findTransfer(transferIdOrTxHash)
     if (!transfer) {
       throw new Error('Transfer ID not found')
     }
+    this.transferId = transfer.transferId
+    const transferId = this.transferId
     const { destinationChain, recipient, amount, transferNonce, bonderFee, amountOutMin, deadline } = transfer
 
     const transferRoot = await this.getTransferRootForTransferId(transfer)
@@ -213,21 +215,34 @@ export class WithdrawalProof {
 
   private async findTransfer (transferId: string) {
     const chains = ['polygon', 'xdai', 'arbitrum', 'optimism']
+    let transfer : Transfer
     for (const chain of chains) {
-      const transfer = await this.queryTransfer(transferId, chain)
+      transfer = await this.queryTransfer(transferId, chain)
       if (transfer) {
-        const { destinationChainId, token } = transfer
-        const sourceChain = chain
-        const destinationChain = networkIdToSlug(destinationChainId)
-        const [withdrewEvent, bondedEvent] = await Promise.all([
-          this.queryWithdrew(transferId, destinationChain),
-          this.queryBondWithdrawal(transferId, destinationChain)
-        ])
-        const tokenDecimals = getTokenDecimals(token)
-        const withdrawn = !!withdrewEvent
-        const bonded = !!bondedEvent
-        return { ...transfer, sourceChain, destinationChain, tokenDecimals, withdrawn, bonded }
+        break
       }
+    }
+
+    if (!transfer) {
+      for (const chain of chains) {
+        transfer = await this.queryTransferByTransactionHash(transferId, chain)
+        if (transfer) {
+          break
+        }
+      }
+    }
+
+    if (transfer) {
+      const { transferId, destinationChainId, token } = transfer
+      const destinationChain = networkIdToSlug(destinationChainId)
+      const [withdrewEvent, bondedEvent] = await Promise.all([
+        this.queryWithdrew(transferId, destinationChain),
+        this.queryBondWithdrawal(transferId, destinationChain)
+      ])
+      const tokenDecimals = getTokenDecimals(token)
+      const withdrawn = !!withdrewEvent
+      const bonded = !!bondedEvent
+      return { ...transfer, destinationChain, tokenDecimals, withdrawn, bonded }
     }
     return null
   }
@@ -276,6 +291,55 @@ export class WithdrawalProof {
       return null
     }
 
+    transfer.sourceChain = chain
+    return this.normalizeEntity(transfer)
+  }
+
+  private async queryTransferByTransactionHash(transactionHash: string, chain: string) {
+    const query = `
+      query TransferId($transactionHash: String) {
+        transferSents(
+          where: {
+            transactionHash: $transactionHash
+          },
+          orderBy: timestamp,
+          orderDirection: desc,
+          first: 1
+        ) {
+          id
+          transferId
+          destinationChainId
+          recipient
+          amount
+          transferNonce
+          bonderFee
+          index
+          amountOutMin
+          deadline
+
+          transactionHash
+          transactionIndex
+          timestamp
+          blockNumber
+          contractAddress
+          token
+        }
+      }
+    `
+    const jsonRes = await this.makeRequest(chain, query, {
+      transactionHash
+    })
+
+    if (!jsonRes.transferSents) {
+      throw new Error('Transfer ID not found')
+    }
+
+    const transfer = jsonRes.transferSents[0]
+    if (!transfer) {
+      return null
+    }
+
+    transfer.sourceChain = chain
     return this.normalizeEntity(transfer)
   }
 

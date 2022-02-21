@@ -16,9 +16,7 @@ const useStyles = makeStyles(theme => ({
     backgroundImage: ({ isDarkMode }: any) =>
       isDarkMode ? `url(${bgImageDark})` : `url(${bgImage})`,
     backgroundColor: theme.palette.background.default,
-    backgroundPositionY: '50px',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: 'cover',
+    backgroundSize: '120%',
     transition: 'background 0.15s ease-out',
   },
   content: {

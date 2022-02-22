@@ -890,10 +890,10 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    // Arbitrum returns a gasLimit & gasPriceBid of 2x what is generally paid
+    // Arbitrum returns a gasLimit & gasPriceBid of appx 1.5x what is generally paid
     if (destinationChain.equals(Chain.Arbitrum)) {
-      gasPrice = gasPrice.div(2)
-      bondTransferGasLimit = bondTransferGasLimit.div(2)
+      gasPrice = gasPrice.mul(10).div(15)
+      bondTransferGasLimit = bondTransferGasLimit.mul(10).div(15)
     }
 
     // Include the cost to settle an individual transfer
@@ -1433,7 +1433,7 @@ class HopBridge extends Base {
    * @param {Object} signer - Ethers signer
    * @returns {Object} Ethers contract instance.
    */
-  public async getSaddleLpToken (
+  public getSaddleLpToken (
     chain: TChain,
     signer: TProvider = this.signer
   ) {
@@ -2080,6 +2080,41 @@ class HopBridge extends Base {
       address = await this.getBonderAddress(sourceChain, destinationChain)
     }
     return address
+  }
+
+  async withdraw (
+    chain: Chain,
+    recipient: string,
+    amount: BigNumberish,
+    transferNonce: string,
+    bonderFee: BigNumberish,
+    amountOutMin: BigNumberish,
+    deadline: number,
+    transferRootHash: string,
+    rootTotalAmount: BigNumberish,
+    transferIdTreeIndex: number,
+    siblings: string[],
+    totalLeaves: number
+  ) {
+    chain = this.toChainModel(chain)
+    const txOptions = [
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      transferRootHash,
+      rootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves,
+      await this.txOverrides(chain)
+    ] as const
+
+    this.checkConnectedChain(this.signer, chain)
+    const bridge = await this.getBridgeContract(chain)
+    return bridge.withdraw(...txOptions)
   }
 }
 

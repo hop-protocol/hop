@@ -24,6 +24,7 @@ import DetailRow from 'src/components/DetailRow'
 import { useNeedsTokenForFee } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
+import { RaisedNetworkSelector } from 'src/components/NetworkSelector/RaisedNetworkSelector'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -229,13 +230,11 @@ const Pools: FC = () => {
         <Typography variant="body1" component="span" className={styles.textSpacing}>
           on
         </Typography>
-        <RaisedSelect value={selectedNetwork?.slug} onChange={selectBothNetworks}>
-          {networks.map(network => (
-            <MenuItem value={network.slug} key={network.slug}>
-              <SelectOption value={network.slug} icon={network.imageUrl} label={network.name} />
-            </MenuItem>
-          ))}
-        </RaisedSelect>
+        <RaisedNetworkSelector
+          selectedNetwork={selectedNetwork}
+          onSelect={selectBothNetworks}
+          availableNetworks={networks}
+        />
       </Box>
 
       {unsupportedAsset ? (
@@ -327,7 +326,7 @@ const Pools: FC = () => {
             <Flex column fullWidth>
               <DetailRow
                 title="APR"
-                tooltip="Annual Percentage Rate (APR) from earning fees"
+                tooltip="Annual Percentage Rate (APR) from earning fees, based on 24hr trading volume"
                 value={`${aprFormatted}`}
               />
               <DetailRow
@@ -342,7 +341,7 @@ const Pools: FC = () => {
               />
               <DetailRow
                 title="Virtual Price"
-                tooltip="The virtual price, to help calculate profit"
+                tooltip="The virtual price, to help calculate profit. Virtual price is calculated as `pool_reserves / lp_supply`"
                 value={`${virtualPriceFormatted}`}
               />
               <DetailRow

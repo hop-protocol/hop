@@ -26,7 +26,6 @@ const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
     width: '100%',
-    maxWidth: '516px',
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
@@ -58,6 +57,7 @@ const useInputStyles = makeStyles(theme => ({
     marginLeft: '.7rem',
     transition: 'all 0.15s ease-out',
     borderRadius: '1.5rem',
+    width: '100%',
     boxShadow: defaultShadow ? theme.boxShadow.input.normal : 'none',
     '&:hover': {
       boxShadow: () => {
@@ -79,7 +79,7 @@ const useInputStyles = makeStyles(theme => ({
   input: ({ centerAlign, leftAlign, loadingValue, smallFontSize }: StyleProps) => ({
     textAlign: leftAlign ? 'left' : centerAlign ? 'center' : 'right',
     fontSize: smallFontSize ? '1.6rem' : theme.typography.h4.fontSize,
-    fontWeight: theme.typography.h4.fontWeight,
+    fontWeight: smallFontSize ? 'normal' : theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
     textOverflow: 'clip',
     padding: `6px ${theme.padding.extraLight} 7px ${theme.padding.extraLight}`,

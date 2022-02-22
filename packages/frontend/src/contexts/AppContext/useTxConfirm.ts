@@ -5,7 +5,7 @@ type ConfirmParams = any
 export type TxConfirmParams = {
   kind: string
   inputProps: InputProps
-  onConfirm: (params?: ConfirmParams) => void
+  onConfirm?: (params?: ConfirmParams) => void
 }
 
 export interface TxConfirm {
@@ -29,8 +29,12 @@ export const useTxConfirm = (): TxConfirm => {
               throw new Error('Cancelled')
             }
 
-            const res = await onConfirm(params)
-            resolve(res)
+            if (onConfirm) {
+              const res = await onConfirm(params)
+              resolve(res)
+            } else {
+              resolve(null)
+            }
           } catch (err: any) {
             // MetaMask cancel error
             if (/denied transaction/gi.test(err.message)) {

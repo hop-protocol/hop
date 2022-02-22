@@ -91,9 +91,9 @@ class Token extends Base {
    *const allowance = bridge.allowance(Chain.Gnosis, spender)
    *```
    */
-  public async allowance (spender: string) {
+  public async allowance (spender: string, address?: string) {
     const tokenContract = await this.getErc20()
-    const address = await this.getSignerAddress()
+    address = address ?? await this.getSignerAddress()
     if (!address) {
       throw new Error('signer required')
     }
@@ -231,6 +231,10 @@ class Token extends Base {
       [TokenModel.DAI, TokenModel.XDAI].includes(this._symbol) &&
       this.chain.equals(Chain.Gnosis)
     return isEth || isMatic || isxDai
+  }
+
+  get nativeTokenSymbol () {
+    return this.chain.nativeTokenSymbol
   }
 
   public async getNativeTokenBalance (address?: string): Promise<BigNumber> {

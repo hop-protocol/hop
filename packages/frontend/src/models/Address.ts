@@ -37,7 +37,10 @@ class Address {
   }
 
   eq(address: Addressish): boolean {
-    return new Address(address).toLowercase() === this.toLowercase()
+    if (address && utils.isAddress(address?.toString())) {
+      return new Address(address).toLowercase() === this.toLowercase()
+    }
+    return false
   }
 }
 

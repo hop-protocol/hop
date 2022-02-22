@@ -9,8 +9,11 @@ function main () {
     apr: argv.apr,
     tvl: argv.tvl,
     volume: argv.volume,
+    bonder: argv.bonder,
     regenesis: argv.regenesis,
-    days: argv.days
+    days: argv.days,
+    bonderTokens: argv.bonderTokens ? argv.bonderTokens.split(',') : null,
+    bonderDays: argv.bonderDays
   })
 
   worker.start()

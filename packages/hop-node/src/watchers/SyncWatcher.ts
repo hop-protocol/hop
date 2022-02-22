@@ -12,7 +12,6 @@ import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
 import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
@@ -36,7 +35,7 @@ type Config = {
   tokenSymbol: string
   label: string
   isL1: boolean
-  bridgeContract: L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
+  bridgeContract: L1BridgeContract | L2BridgeContract
   syncFromDate?: string
   s3Upload?: boolean
   s3Namespace?: string
@@ -1280,6 +1279,7 @@ class SyncWatcher extends BaseWatcher {
         !this.hasSiblingWatcher(destinationChainId)
       )
       if (shouldSkip) {
+        this.unbondedTransferRootAmounts[destinationChain] = BigNumber.from(0)
         this.logger.debug(`syncing unbonded transferRoot amounts: skipping ${destinationChainId}`)
         continue
       }
@@ -1409,6 +1409,7 @@ class SyncWatcher extends BaseWatcher {
     if (!s3LastUpload || s3LastUpload < Date.now() - (60 * 1000)) {
       s3LastUpload = Date.now()
       await this.s3Upload.upload(s3JsonData)
+      this.logger.debug(`s3 uploaded data: ${JSON.stringify(s3JsonData)}`)
     }
   }
 

@@ -1,4 +1,5 @@
 import Logger from 'src/logger'
+import MerkleTree from 'src/utils/MerkleTree'
 import { Command } from 'commander'
 import {
   config as globalConfig,
@@ -52,4 +53,28 @@ export function parseString (value: string) {
 
 export function parseBool (value: string) {
   return value !== 'false'
+}
+
+export function getWithdrawalProofData (
+  transferId: string,
+  dbTransferRoot: any
+) {
+  const rootTotalAmount = dbTransferRoot.totalAmount.toString()
+  const transferIds = dbTransferRoot.transferIds?.map((x: any) => x.transferId)
+  if (!transferIds?.length) {
+    throw new Error('expected transfer ids for transfer root hash')
+  }
+  const tree = new MerkleTree(transferIds)
+  const leaves = tree.getHexLeaves()
+  const numLeaves = leaves.length
+  const transferIndex = leaves.indexOf(transferId)
+  const proof = tree.getHexProof(leaves[transferIndex])
+
+  return {
+    rootTotalAmount,
+    numLeaves,
+    proof,
+    transferIndex,
+    leaves
+  }
 }

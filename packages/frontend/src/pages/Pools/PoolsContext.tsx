@@ -157,15 +157,10 @@ const PoolsProvider: FC = ({ children }) => {
 
   const { balance: canonicalBalance, loading: loadingCanonicalBalance } = useBalance(
     canonicalToken,
-    selectedNetwork,
     address
   )
 
-  const { balance: hopBalance, loading: loadingHopBalance } = useBalance(
-    hopToken,
-    selectedNetwork,
-    address
-  )
+  const { balance: hopBalance, loading: loadingHopBalance } = useBalance(hopToken, address)
 
   useEffect(() => {
     if (unsupportedAsset) {

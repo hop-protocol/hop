@@ -6,6 +6,7 @@ import Db from './Db'
 import {
   ethereumRpc,
   gnosisRpc,
+  gnosisArchiveRpc,
   polygonRpc,
   optimismRpc,
   arbitrumRpc
@@ -19,6 +20,12 @@ const allProviders: any = {
   polygon: new providers.StaticJsonRpcProvider(polygonRpc),
   optimism: new providers.StaticJsonRpcProvider(optimismRpc),
   arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc)
+}
+
+const allArchiveProviders: any = {
+  gnosis: gnosisArchiveRpc
+    ? new providers.StaticJsonRpcProvider(gnosisArchiveRpc)
+    : undefined
 }
 
 function nearestDate (dates: any[], target: any) {
@@ -90,8 +97,8 @@ class TvlStats {
   }
 
   cleanUp () {
-    console.log('closing db')
-    this.db.close()
+    // console.log('closing db')
+    // this.db.close()
   }
 
   async getPriceHistory (coinId: string, days: number) {
@@ -151,92 +158,98 @@ class TvlStats {
     }
     const now = DateTime.utc()
 
-    chains = ['ethereum']
-
     const promises: Promise<any>[] = []
     for (let token of tokens) {
       promises.push(
-        new Promise(async resolve => {
+        new Promise(async (resolve, reject) => {
           await Promise.all(
             chains.map(async (chain: string) => {
-              const provider = allProviders[chain]
-              if (
-                token === 'MATIC' &&
-                ['optimism', 'arbitrum'].includes(chain)
-              ) {
-                return
-              }
-
-              const config = (mainnetAddresses as any).bridges[token][chain]
-              const tokenAddress =
-                config.l2CanonicalToken ?? config.l1CanonicalToken
-              const spender = config.l2SaddleSwap ?? config.l1Bridge
-              const tokenContract = new Contract(
-                tokenAddress,
-                erc20Abi,
-                provider
-              )
-
-              for (let day = 0; day < daysN; day++) {
-                const endDate = now.minus({ days: day }).endOf('day')
-                const startDate = endDate.startOf('day')
-                const endTimestamp = Math.floor(endDate.toSeconds())
-                const startTimestamp = Math.floor(startDate.toSeconds())
-
-                console.log(
-                  `fetching daily tvl stats, chain: ${chain}, token: ${token}, day: ${day}`
-                )
-
-                const blockDater = new BlockDater(provider)
-                const date = DateTime.fromSeconds(endTimestamp).toJSDate()
-                const info = await blockDater.getDate(date)
-                if (!info) {
-                  throw new Error('no info')
-                }
-                const blockTag = info.block
-                let balance: any
-                try {
-                  if (
-                    tokenAddress === constants.AddressZero &&
-                    chain === 'ethereum'
-                  ) {
-                    balance = await provider.getBalance(spender, blockTag)
-                  } else {
-                    balance = await tokenContract.balanceOf(spender, {
-                      blockTag
-                    })
-                  }
-                } catch (err) {
-                  console.error(`${chain} ${token} ${err.message}`)
-                  throw err
+              try {
+                const provider = allProviders[chain]
+                const archiveProvider = allArchiveProviders[chain] || provider
+                if (
+                  token === 'MATIC' &&
+                  ['optimism', 'arbitrum'].includes(chain)
+                ) {
+                  return
                 }
 
-                console.log('balance', balance, blockTag)
-                const decimals = tokenDecimals[token]
-                const formattedAmount = Number(
-                  formatUnits(balance.toString(), decimals)
+                const config = (mainnetAddresses as any).bridges[token][chain]
+                const tokenAddress =
+                  config.l2CanonicalToken ?? config.l1CanonicalToken
+                const spender = config.l2SaddleSwap ?? config.l1Bridge
+                const tokenContract = new Contract(
+                  tokenAddress,
+                  erc20Abi,
+                  archiveProvider
                 )
 
-                const dates = prices[token].reverse().map((x: any) => x[0])
-                const nearest = nearestDate(dates, endDate)
-                const price = prices[token][nearest][1]
+                for (let day = 0; day < daysN; day++) {
+                  const endDate = now.minus({ days: day }).endOf('day')
+                  const startDate = endDate.startOf('day')
+                  const endTimestamp = Math.floor(endDate.toSeconds())
+                  const startTimestamp = Math.floor(startDate.toSeconds())
 
-                const usdAmount = price * formattedAmount
-                try {
-                  this.db.upsertTvlPoolStat(
-                    chain,
-                    token,
-                    formattedAmount,
-                    usdAmount,
-                    startTimestamp
+                  console.log(
+                    `fetching daily tvl stats, chain: ${chain}, token: ${token}, day: ${day}`
                   )
-                  console.log('upserted')
-                } catch (err) {
-                  if (!err.message.includes('UNIQUE constraint failed')) {
+
+                  const blockDater = new BlockDater(provider)
+                  const date = DateTime.fromSeconds(endTimestamp).toJSDate()
+                  const info = await blockDater.getDate(date)
+                  if (!info) {
+                    throw new Error('no info')
+                  }
+                  const blockTag = info.block
+                  let balance: any
+                  try {
+                    if (
+                      tokenAddress === constants.AddressZero &&
+                      chain === 'ethereum'
+                    ) {
+                      balance = await archiveProvider.getBalance(
+                        spender,
+                        blockTag
+                      )
+                    } else {
+                      balance = await tokenContract.balanceOf(spender, {
+                        blockTag
+                      })
+                    }
+                  } catch (err) {
+                    console.error(`${chain} ${token} ${err.message}`)
                     throw err
                   }
+
+                  console.log('balance', balance, blockTag)
+                  const decimals = tokenDecimals[token]
+                  const formattedAmount = Number(
+                    formatUnits(balance.toString(), decimals)
+                  )
+
+                  const dates = prices[token].reverse().map((x: any) => x[0])
+                  const nearest = nearestDate(dates, endDate)
+                  const price = prices[token][nearest][1]
+
+                  const usdAmount = price * formattedAmount
+                  try {
+                    this.db.upsertTvlPoolStat(
+                      chain,
+                      token,
+                      formattedAmount,
+                      usdAmount,
+                      startTimestamp
+                    )
+                    console.log('upserted')
+                  } catch (err) {
+                    if (!err.message.includes('UNIQUE constraint failed')) {
+                      throw err
+                    }
+                  }
+                  console.log(`done fetching daily tvl stats, chain: ${chain}`)
                 }
-                console.log(`done fetching daily tvl stats, chain: ${chain}`)
+              } catch (err) {
+                reject(err)
               }
             })
           )

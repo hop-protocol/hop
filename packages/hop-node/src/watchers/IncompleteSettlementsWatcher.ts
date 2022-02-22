@@ -311,6 +311,9 @@ class IncompleteSettlementsWatcher {
         this.rootHashWithdrews[rootHash] = []
       }
       this.rootHashWithdrews[rootHash].push(log)
+      if (!this.rootHashSettledTotalAmounts[rootHash]) {
+        this.rootHashSettledTotalAmounts[rootHash] = BigNumber.from(0)
+      }
       this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
     }
 

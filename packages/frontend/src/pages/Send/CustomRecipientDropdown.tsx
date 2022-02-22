@@ -25,6 +25,7 @@ function CustomRecipientDropdown(props) {
         </Typography>
         <LargeTextField
           leftAlign
+          fullWidth
           value={customRecipient}
           onChange={handleCustomRecipientInput}
           placeholder="Enter address (e.g. 0x123...)"

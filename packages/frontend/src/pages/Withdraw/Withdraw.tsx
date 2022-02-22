@@ -15,10 +15,11 @@ import { formatError } from 'src/utils/format'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Button from 'src/components/buttons/Button'
+import InfoTooltip from 'src/components/infoTooltip'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    maxWidth: '700px',
+    maxWidth: '680px',
     margin: '0 auto',
   },
   header: {
@@ -148,7 +149,12 @@ export const Withdraw: FC = () => {
       <form className={styles.form} onSubmit={handleSubmit}>
         <div>
           <Card className={styles.card}>
-          <Typography variant="h6">Transfer ID</Typography>
+            <Typography variant="h6">
+              Transfer ID
+          <InfoTooltip
+            title={"Enter the transfer ID or transaction hash of transfer to withdraw at the destination. You can use this to withdraw unbonded transfers after the transfer root has been propagated to the destination."}
+          />
+            </Typography>
             <LargeTextField
               value={transferIdOrTxHash}
               onChange={handleInputChange}

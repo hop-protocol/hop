@@ -89,9 +89,8 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     logger.debug(
       `attempting to send relay message on arbitrum for commit tx hash ${commitTxHash}`
     )
-    await this.handleStateSwitch()
-    if (this.isDryOrPauseMode) {
-      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
+    if (this.dryMode) {
+      this.logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
       return
     }
 

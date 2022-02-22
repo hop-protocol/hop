@@ -1,15 +1,15 @@
 import { WithdrawalProof } from './WithdrawalProof'
 
 describe('WithdrawalProof', () => {
-  it('proof', async () => {
+  it('proof payload', async () => {
     const transferId = '0xf122da3206810cfd0d648ed0c2790653841e13529cbdaa396557f6deb290dac5'
     const wp = new WithdrawalProof(transferId)
     await wp.generateProof()
     const proof = wp.getProofPayload()
     const expected = {
-      "transferId": "0xf122da3206810cfd0d648ed0c2790653841e13529cbdaa396557f6deb290dac5",
-      "transferRootHash": "0xb1d65ec4a286253f647960a4ca40441b8765965a58c4942dba7b91f0cfebfc44",
-      "leaves": [
+      transferId: "0xf122da3206810cfd0d648ed0c2790653841e13529cbdaa396557f6deb290dac5",
+      transferRootHash: "0xb1d65ec4a286253f647960a4ca40441b8765965a58c4942dba7b91f0cfebfc44",
+      leaves: [
         "0x0d357d585eb0d4211e8925be36aff9cc194551c01d6144535fe7f4ee4c42f2f2",
         "0x5a690afad0c795e87f5fbf426869ffc8b4b40928702c24a7b767869a15618a48",
         "0x5c08c7f723336ef52886c70d77c320ba417c63725fcb47398c80ee275a86b194",
@@ -139,7 +139,7 @@ describe('WithdrawalProof', () => {
         "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563",
         "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563"
       ],
-      "proof": [
+      proof: [
         "0x169e4f5c9e54f360a8f5123dbd5d5aea9df1cc3d25c16ceb6cc7661e3a57ed53",
         "0x1de3271c582c5bf0ff5d81a8a92b4b2709f6984a2085f76ae1fab4751d2c205d",
         "0xdcd458943fdbefc3746c31d85909cef94fbe450c6b427ba91375106cb8c31d77",
@@ -148,10 +148,38 @@ describe('WithdrawalProof', () => {
         "0xdefff6d330bb5403f63b14f33b578274160de3a50df4efecf0e0db73bcdd3da5",
         "0xd9c5c55c78c949d4163781995f236eeb8a2127d190fc3507c3e7a554b292e37b"
       ],
-      "transferIndex": 67,
-      "rootTotalAmount": "4290846390066382204",
-      "numLeaves": 128
+      transferIndex: 67,
+      rootTotalAmount: "4290846390066382204",
+      numLeaves: 128
     }
     expect(JSON.stringify(proof)).toBe(JSON.stringify(expected))
+  })
+  it('tx payload', async () => {
+    const transferId = '0xf122da3206810cfd0d648ed0c2790653841e13529cbdaa396557f6deb290dac5'
+    const wp = new WithdrawalProof(transferId)
+    await wp.generateProof()
+    const payload = wp.getTxPayload()
+    const expected = {
+    recipient: "0x5d31004d9584829211c2350218ff417d81118a2e",
+    amount: "2607904711275909247",
+    transferNonce: "0xf295dbc7b51ba8be9e5a5094d12a9286b6778cb563eb572facdd54a366160354",
+    bonderFee: "3179535954395123",
+    amountOutMin: "2598814139956389829",
+    deadline: "1637237183",
+    transferRootHash: "0xb1d65ec4a286253f647960a4ca40441b8765965a58c4942dba7b91f0cfebfc44",
+    rootTotalAmount: "4290846390066382204",
+    transferIdTreeIndex: 67,
+    siblings: [
+      "0x169e4f5c9e54f360a8f5123dbd5d5aea9df1cc3d25c16ceb6cc7661e3a57ed53",
+      "0x1de3271c582c5bf0ff5d81a8a92b4b2709f6984a2085f76ae1fab4751d2c205d",
+      "0xdcd458943fdbefc3746c31d85909cef94fbe450c6b427ba91375106cb8c31d77",
+      "0x9c7350c098ed0cf181a810b4c85ed6bfaf8333c30f9bb535d8bac209a2a7a2cd",
+      "0xeaa47cb36514500948e21da10e2f002c10d6c5603cb00d54aea147cbc93de507",
+      "0xdefff6d330bb5403f63b14f33b578274160de3a50df4efecf0e0db73bcdd3da5",
+      "0xd9c5c55c78c949d4163781995f236eeb8a2127d190fc3507c3e7a554b292e37b"
+    ],
+    totalLeaves: 128
+    }
+    expect(JSON.stringify(payload)).toBe(JSON.stringify(expected))
   })
 })

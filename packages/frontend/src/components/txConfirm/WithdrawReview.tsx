@@ -82,7 +82,7 @@ const WithdrawReview = (props: Props) => {
         <div>
           {!proofLoaded &&
             <Typography variant="subtitle2" color="textSecondary">
-              Generating proof...
+              Checking transfer data...
             </Typography>
           }
           {info &&
@@ -97,7 +97,7 @@ const WithdrawReview = (props: Props) => {
           }
           {txHash &&
             <Typography variant="subtitle2" color="textSecondary">
-              <ExternalLink href={getExplorerTxUrl(info?.destination?.slug, txHash)} linkText={'View transaction'} />
+              <ExternalLink href={getExplorerTxUrl(info?.destination?.slug, txHash)} linkText={'View transaction ↗'} />
             </Typography>
           }
         </div>

@@ -85,7 +85,6 @@ export type Config = {
   bonderPrivateKey: string
   metadata: Metadata & {[network: string]: any}
   bonders: Bonders
-  stateUpdateAddress: string
   db: DbConfig
   sync: SyncConfigs
   metrics: MetricsConfig
@@ -136,7 +135,6 @@ export const config: Config = {
   bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
   bonders: {},
-  stateUpdateAddress: '',
   fees: {},
   routes: {},
   db: {
@@ -220,10 +218,6 @@ export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
 
 export const getNetworkMaxGasPrice = (network: string) => {
   return config.networks[network].maxGasPrice
-}
-
-export const setStateUpdateAddress = (address: string) => {
-  config.stateUpdateAddress = address
 }
 
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {

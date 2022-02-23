@@ -172,7 +172,9 @@ const addresses: any = {
       MATIC: { // MATIC is "toToken"
         USDC: '0xa374094527e1673a86de625aa59517c5de346d32',
         USDT: '0x9b08288c3be4f62bbf8d1c20ac9c5e6f9467d8b7',
-        ETH: '0x86f1d8390222a3691c28938ec7404a1661e618e0'
+        DAI: '0xfe530931da161232ec76a7c3bea7d36cf3811a0d',
+        ETH: '0x86f1d8390222a3691c28938ec7404a1661e618e0',
+        WBTC: '0x6b75f2189f0e11c52e814e09e280eb1a9a8a094a'
       }
     }
   }

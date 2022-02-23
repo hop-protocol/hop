@@ -16,7 +16,7 @@ root
   .option('--chain <slug>', 'Chain', parseString)
   .option('--from <symbol>', 'From token', parseString)
   .option('--to <symbol>', 'To token', parseString)
-  .option('--amount <number>', 'From token amount', parseNumber)
+  .option('--amount <number>', 'From token amount (in human readable format)', parseNumber)
   .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
   .option('--deadline <seconds>', 'Deadline in seconds', parseNumber)
   .option('--slippage <number>', 'Slippage tolerance. E.g. 0.5', parseNumber)
@@ -40,18 +40,41 @@ async function main (source: any) {
   if (fromToken === toToken) {
     throw new Error('from-token and to-token cannot be the same')
   }
-  const isWrapperWithdrawal = getIsWrappedToken(fromToken)
+  const isWrapperDeposit = isWrappedToken(toToken)
+  const isWrapperWithdrawal = isWrappedToken(fromToken)
   const fromTokenIsHToken = isHToken(fromToken)
   const toTokenIsHToken = isHToken(toToken)
   const isAmmSwap = fromTokenIsHToken || toTokenIsHToken
   const deadlineBn = deadline ? BigNumber.from(deadline) : undefined
   let tx: any
-  if (isWrapperWithdrawal) {
+  if (isWrapperDeposit) {
+    const validTokens = isValidChainWrapTokens(chain, fromToken, toToken)
+    if (!validTokens) {
+      throw new Error('token options are invalid. Make sure the token symbols correspond to the chain')
+    }
+    const wallet = wallets.get(chain)
+    const wrappedTokenAddress = wrappedTokenAddresses[chain]
+    const abi = ['function deposit()']
+    const ethersInterface = new ethersUtils.Interface(abi)
+    const parsedAmount = ethersUtils.parseEther(amount.toString())
+    const data = ethersInterface.encodeFunctionData(
+      'deposit', []
+    )
+    tx = await wallet.sendTransaction({
+      to: wrappedTokenAddress,
+      value: parsedAmount,
+      data
+    })
+  } else if (isWrapperWithdrawal) {
+    const validTokens = isValidChainWrapTokens(chain, toToken, fromToken)
+    if (!validTokens) {
+      throw new Error('token options are invalid. Make sure the token symbols correspond to the chain')
+    }
     const wallet = wallets.get(chain)
     const wrappedTokenAddress = wrappedTokenAddresses[chain]
     const abi = ['function withdraw(uint256)']
     const ethersInterface = new ethersUtils.Interface(abi)
-    const parsedAmount = ethersUtils.parseUnits(amount.toString())
+    const parsedAmount = ethersUtils.parseEther(amount.toString())
     const data = ethersInterface.encodeFunctionData(
       'withdraw', [parsedAmount]
     )
@@ -147,15 +170,38 @@ async function main (source: any) {
   logger.log('success')
 }
 
-function getIsWrappedToken (token: string): boolean {
-  token = token.toLowerCase()
-  return ['weth', 'wmatic', 'wxdai'].includes(token)
+function isWrappedToken (token: string) {
+  return !!wrappedNativeToNative[token]
 }
 
-const wrappedTokenAddresses: any = {
+function isValidChainWrapTokens (chain: string, nativeToken: string, wrappedToken: string) {
+  return chainNativeTokens[chain] === nativeToken && nativeToWrappedNative[nativeToken] === wrappedToken
+}
+
+const wrappedTokenAddresses: Record<string, string> = {
   ethereum: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
   optimism: '0x4200000000000000000000000000000000000006',
   arbitrum: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
   polygon: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
   gnosis: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'
+}
+
+const wrappedNativeToNative: Record<string, string> = {
+  WETH: 'ETH',
+  WMATIC: 'MATIC',
+  WXDAI: 'XDAI'
+}
+
+const nativeToWrappedNative: Record<string, string> = {
+  ETH: 'WETH',
+  MATIC: 'WMATIC',
+  XDAI: 'WXDAI'
+}
+
+const chainNativeTokens: Record<string, string> = {
+  ethereum: 'ETH',
+  optimism: 'ETH',
+  arbitrum: 'ETH',
+  polygon: 'MATIC',
+  gnosis: 'XDAI'
 }

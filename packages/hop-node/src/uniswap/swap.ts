@@ -137,8 +137,8 @@ const addresses: any = {
     swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
     pools: {
       ETH: { // ETH is "toToken"
-        USDC: '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8',
-        USDT: '0x4e68ccd3e89f51c3074ca5072bbac773960dfa36',
+        USDC: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640',
+        USDT: '0x11b815efB8f581194ae79006d24E0d814B7697F6',
         DAI: '0x60594a405d53811d3bc4766596efd80fd545a270',
         MATIC: '0x290A6a7460B308ee3F19023D2D00dE604bcf5B42',
         WBTC: '0x4585fe77225b41b697c938b018e2ac67ac5a20c0'
@@ -160,7 +160,7 @@ const addresses: any = {
     swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
     pools: {
       ETH: { // ETH is "toToken"
-        USDC: '0x17c14d2c404d167802b16c450d3c99f88f2c4f4d',
+        USDC: '0xc31e54c7a869b9fcbecc14363cf510d1c41fa443',
         USDT: '0x641c00a822e8b671738d32a431a4fb6074e5c79d',
         DAI: '0xa961f0473da4864c5ed28e00fcc53a3aab056c1b',
         WBTC: '0x2f5e87c9312fa29aed5c179e456625d79015299c'
@@ -275,6 +275,8 @@ export async function swap (config: Config) {
   const slippageTolerance = new Percent((slippage ?? 1) * 100, 10000)
   recipient = recipient ?? sender
   deadline = (Date.now() / 1000 + (deadline || 300)) | 0 // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
+
+  logger.debug(`slippage tolerance: ${slippageTolerance.toFixed(2)}`)
 
   if (!recipient) {
     throw new Error('recipient is required')

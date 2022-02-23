@@ -236,9 +236,9 @@ export async function swap (config: Config) {
   }
 
   if (chain === 'polygon' && toToken === 'MATIC') {
-    if (pool.token0.symbol == 'WMATIC') {
+    if (pool.token0.symbol === 'WMATIC') {
       routeToken1 = pool.token0
-    } else if (pool.token1.symbol == 'WMATIC') {
+    } else if (pool.token1.symbol === 'WMATIC') {
       routeToken1 = pool.token1
     } else {
       routeToken1 = Ether.onChain(chainSlugToId(chain)!) // eslint-disable-line

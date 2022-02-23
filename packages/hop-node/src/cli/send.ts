@@ -22,7 +22,7 @@ root
   .option('--amount <number>', 'Amount (in human readable format)', parseNumber)
   .option('--recipient <address>', 'Recipient to send tokens to', parseString)
   .option('--htoken [boolean]', 'Send hTokens', parseBool)
-  .option('--native [boolean]', 'Send the native token', parseBool)
+  .option('--native [boolean]', 'Send the native token to a recipient', parseBool)
   .option('--self [boolean]', 'Send to self and reset nonce', parseBool)
   .option('--gas-price <price>', 'Gas price to use', parseString)
   .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
@@ -167,6 +167,8 @@ async function sendTokens (
   isHToken: boolean,
   shouldSendMax: boolean
 ) {
+  const isFromNative = chainNativeTokens[fromChain] === token
+
   if (!amount && !shouldSendMax) {
     throw new Error('max flag or amount is required. E.g. 100')
   }
@@ -199,29 +201,35 @@ async function sendTokens (
     throw new Error('recipient address is required')
   }
 
-  let balance = await tokenClass.getBalance()
+  const provider = getRpcProvider(fromChain)
+  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!)
+  let balance = await (isFromNative ? wallet.getBalance() : tokenClass.getBalance())
   const label = `${fromChain}.${isHToken ? 'h' : ''}${token}`
-  logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
+  logger.debug(`${label} balance: ${await bridge.formatUnits(balance)}`)
   let parsedAmount
   if (shouldSendMax) {
     parsedAmount = balance
   } else {
-    parsedAmount = await tokenClass.parseUnits(amount)
+    parsedAmount = await bridge.parseUnits(amount)
   }
   if (balance.lt(parsedAmount)) {
     throw new Error('not enough token balance to send')
   }
 
-  let spender = bridge.address
-  if (fromChain !== Chain.Ethereum && !isHToken) {
-    spender = (bridge as L2Bridge).ammWrapper.contract.address
-  }
-  let tx = await tokenClass.approve(spender, parsedAmount)
-  if (tx) {
-    logger.debug('approve tx:', tx.hash)
+  let tx: any
+  if (!isFromNative) {
+    let spender = bridge.address
+    if (fromChain !== Chain.Ethereum && !isHToken) {
+      spender = (bridge as L2Bridge).ammWrapper.contract.address
+    }
+    const tx = await tokenClass.approve(spender, parsedAmount)
+    if (tx) {
+      logger.debug('approve tx:', tx.hash)
+      await tx?.wait()
+    }
   }
 
-  const formattedAmount = (await tokenClass.formatUnits(parsedAmount)).toString()
+  const formattedAmount = (await bridge.formatUnits(parsedAmount)).toString()
   logger.debug(`attempting to send ${formattedAmount} ${label} ⟶  ${toChain} to ${recipient}`)
   const destinationChainId = chainSlugToId(toChain)!
   if (fromChain === Chain.Ethereum) {
@@ -255,7 +263,15 @@ async function sendTokens (
   }
   logger.info(`send tx: ${tx.hash}`)
   await tx.wait()
-  balance = await tokenClass.getBalance()
+  balance = await (isFromNative ? wallet.getBalance() : tokenClass.getBalance())
   logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
   logger.debug('tokens should arrive at destination in 5-15 minutes')
+}
+
+const chainNativeTokens: Record<string, string> = {
+  ethereum: 'ETH',
+  optimism: 'ETH',
+  arbitrum: 'ETH',
+  polygon: 'MATIC',
+  gnosis: 'XDAI'
 }

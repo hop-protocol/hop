@@ -70,14 +70,16 @@ async function main (source: any) {
         throw new Error('token options are invalid. Make sure the token symbols correspond to the chain')
       }
       logger.debug('wrapping token')
-      tx = await wrapToken(chain, amount)
+      const parsedAmount = ethersUtils.parseEther(amount.toString())
+      tx = await wrapToken(chain, parsedAmount)
     } else if (isWrapperWithdrawal) {
       const validTokens = isValidChainWrapTokens(chain, toToken, fromToken)
       if (!validTokens) {
         throw new Error('token options are invalid. Make sure the token symbols correspond to the chain')
       }
       logger.debug('unwrapping token')
-      tx = await unwrapToken(chain, amount)
+      const parsedAmount = ethersUtils.parseEther(amount.toString())
+      tx = await unwrapToken(chain, parsedAmount)
     }
   } else if (isAmmSwap) {
     logger.debug('L2 AMM swap')
@@ -95,9 +97,11 @@ async function main (source: any) {
 
     if (fromNative) {
       logger.debug(`wrapping ${fromToken}`)
-      const _tx = await wrapToken(chain, amount)
+      const parsedAmount = ethersUtils.parseEther(amount.toString())
+      const wrapTx = await wrapToken(chain, parsedAmount)
+      logger.debug(`swap tx: ${wrapTx.hash}`)
       logger.debug('waiting for wrap tx confirmation')
-      await _tx.wait()
+      await wrapTx.wait()
       fromToken = fromTokenCanonicalSymbol
     }
 
@@ -150,6 +154,23 @@ async function main (source: any) {
 
     logger.debug(`attempting to swap ${l2Bridge.formatUnits(amountIn)} ${fromToken} for at least ${l2Bridge.formatUnits(minAmountOut)} ${toToken}`)
     tx = await amm.swap(fromTokenIndex, toTokenIndex, amountIn, minAmountOut, deadlineBn)
+
+    logger.info(`swap tx: ${tx.hash}`)
+
+    if (toNative) {
+      const receipt = await tx.wait()
+      for (const event of receipt.events) {
+        if (event.event === 'TokenSwap') {
+          logger.debug(`unwrapping ${toToken}`)
+          const parsedAmount = event.args.tokensBought
+          const unwrapTx = await unwrapToken(chain, parsedAmount)
+          logger.debug('waiting for unwrap tx confirmation')
+          await unwrapTx.wait()
+          tx = unwrapTx
+          break
+        }
+      }
+    }
   } else {
     logger.debug('uniswap swap')
     tx = await uniswapSwap({
@@ -176,12 +197,11 @@ async function main (source: any) {
   logger.log('success')
 }
 
-async function wrapToken (chain: string, amount: string) {
+async function wrapToken (chain: string, parsedAmount: BigNumber) {
   const wallet = wallets.get(chain)
   const wrappedTokenAddress = wrappedTokenAddresses[chain]
   const abi = ['function deposit()']
   const ethersInterface = new ethersUtils.Interface(abi)
-  const parsedAmount = ethersUtils.parseEther(amount.toString())
   const data = ethersInterface.encodeFunctionData(
     'deposit', []
   )
@@ -192,12 +212,11 @@ async function wrapToken (chain: string, amount: string) {
   })
 }
 
-async function unwrapToken (chain: string, amount: string) {
+async function unwrapToken (chain: string, parsedAmount: BigNumber) {
   const wallet = wallets.get(chain)
   const wrappedTokenAddress = wrappedTokenAddresses[chain]
   const abi = ['function withdraw(uint256)']
   const ethersInterface = new ethersUtils.Interface(abi)
-  const parsedAmount = ethersUtils.parseEther(amount.toString())
   const data = ethersInterface.encodeFunctionData(
     'withdraw', [parsedAmount]
   )

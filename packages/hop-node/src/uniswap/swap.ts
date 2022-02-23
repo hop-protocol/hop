@@ -166,7 +166,6 @@ const addresses: any = {
       }
     }
   },
-  // UNTESTED!
   polygon: {
     swapRouter: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
     pools: {
@@ -230,8 +229,18 @@ export async function swap (config: Config) {
     routeToken1 = tmp
   }
 
-  if ((chain !== 'polygon' && toToken === 'ETH') || (chain === 'polygon' && toToken === 'MATIC')) { // eslint-disable-line
+  if (chain !== 'polygon' && toToken === 'ETH') {
     routeToken1 = Ether.onChain(chainSlugToId(chain)!) // eslint-disable-line
+  }
+
+  if (chain === 'polygon' && toToken === 'MATIC') {
+    if (pool.token0.symbol == 'WMATIC') {
+      routeToken1 = pool.token0
+    } else if (pool.token1.symbol == 'WMATIC') {
+      routeToken1 = pool.token1
+    } else {
+      routeToken1 = Ether.onChain(chainSlugToId(chain)!) // eslint-disable-line
+    }
   }
 
   const sender = await wallet.getAddress()

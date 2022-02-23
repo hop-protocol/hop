@@ -15,7 +15,9 @@ root
   .description('Swap tokens on Uniswap or via Hop AMM')
   .option('--chain <slug>', 'Chain', parseString)
   .option('--from <symbol>', 'From token', parseString)
+  .option('--from-native [boolean]', 'From native token', parseBool)
   .option('--to <symbol>', 'To token', parseString)
+  .option('--to-native [boolean]', 'To native token', parseBool)
   .option('--amount <number>', 'From token amount (in human readable format)', parseNumber)
   .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
   .option('--deadline <seconds>', 'Deadline in seconds', parseNumber)
@@ -24,22 +26,35 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { chain, from: fromToken, to: toToken, amount, max, recipient, deadline, slippage } = source
+  let { chain, from: fromToken, to: toToken, amount, max, recipient, deadline, slippage, fromNative, toNative } = source
   if (!chain) {
     throw new Error('chain is required')
   }
-  if (!fromToken) {
+  if (!(fromToken || fromNative)) {
     throw new Error('"from" token is required')
   }
-  if (!toToken) {
+  if (!(toToken || toNative)) {
     throw new Error('"to" token is required')
   }
   if (!max && !amount) {
     throw new Error('"max" or "amount" is required')
   }
+  if (fromNative && !fromToken) {
+    fromToken = chainNativeTokens[chain]
+  }
+  if (toNative && !toToken) {
+    toToken = chainNativeTokens[chain]
+  }
+  if (!fromNative && fromToken === chainNativeTokens[chain]) {
+    fromNative = true
+  }
+  if (!toNative && toToken === chainNativeTokens[chain]) {
+    toNative = true
+  }
   if (fromToken === toToken) {
     throw new Error('from-token and to-token cannot be the same')
   }
+
   const isWrapperDeposit = isWrappedToken(toToken)
   const isWrapperWithdrawal = isWrappedToken(fromToken)
   const fromTokenIsHToken = isHToken(fromToken)
@@ -47,41 +62,23 @@ async function main (source: any) {
   const isAmmSwap = fromTokenIsHToken || toTokenIsHToken
   const deadlineBn = deadline ? BigNumber.from(deadline) : undefined
   let tx: any
-  if (isWrapperDeposit) {
-    const validTokens = isValidChainWrapTokens(chain, fromToken, toToken)
-    if (!validTokens) {
-      throw new Error('token options are invalid. Make sure the token symbols correspond to the chain')
+  const isWrapperSwap = (isWrapperDeposit || isWrapperWithdrawal) && !isAmmSwap
+  if (isWrapperSwap) {
+    if (isWrapperDeposit) {
+      const validTokens = isValidChainWrapTokens(chain, fromToken, toToken)
+      if (!validTokens) {
+        throw new Error('token options are invalid. Make sure the token symbols correspond to the chain')
+      }
+      logger.debug('wrapping token')
+      tx = await wrapToken(chain, amount)
+    } else if (isWrapperWithdrawal) {
+      const validTokens = isValidChainWrapTokens(chain, toToken, fromToken)
+      if (!validTokens) {
+        throw new Error('token options are invalid. Make sure the token symbols correspond to the chain')
+      }
+      logger.debug('unwrapping token')
+      tx = await unwrapToken(chain, amount)
     }
-    const wallet = wallets.get(chain)
-    const wrappedTokenAddress = wrappedTokenAddresses[chain]
-    const abi = ['function deposit()']
-    const ethersInterface = new ethersUtils.Interface(abi)
-    const parsedAmount = ethersUtils.parseEther(amount.toString())
-    const data = ethersInterface.encodeFunctionData(
-      'deposit', []
-    )
-    tx = await wallet.sendTransaction({
-      to: wrappedTokenAddress,
-      value: parsedAmount,
-      data
-    })
-  } else if (isWrapperWithdrawal) {
-    const validTokens = isValidChainWrapTokens(chain, toToken, fromToken)
-    if (!validTokens) {
-      throw new Error('token options are invalid. Make sure the token symbols correspond to the chain')
-    }
-    const wallet = wallets.get(chain)
-    const wrappedTokenAddress = wrappedTokenAddresses[chain]
-    const abi = ['function withdraw(uint256)']
-    const ethersInterface = new ethersUtils.Interface(abi)
-    const parsedAmount = ethersUtils.parseEther(amount.toString())
-    const data = ethersInterface.encodeFunctionData(
-      'withdraw', [parsedAmount]
-    )
-    tx = await wallet.sendTransaction({
-      to: wrappedTokenAddress,
-      data
-    })
   } else if (isAmmSwap) {
     logger.debug('L2 AMM swap')
     if (fromTokenIsHToken && toTokenIsHToken) {
@@ -95,7 +92,16 @@ async function main (source: any) {
     if (chain === Chain.Ethereum) {
       throw new Error('no AMM on Ethereum chain')
     }
-    const tokenSymbol = fromTokenIsHToken ? toToken : fromToken
+
+    if (fromNative) {
+      logger.debug(`wrapping ${fromToken}`)
+      const _tx = await wrapToken(chain, amount)
+      logger.debug('waiting for wrap tx confirmation')
+      await _tx.wait()
+      fromToken = fromTokenCanonicalSymbol
+    }
+
+    const tokenSymbol = fromTokenIsHToken ? toTokenCanonicalSymbol : fromTokenCanonicalSymbol
     const l2BridgeContract = contracts.get(tokenSymbol, chain)?.l2Bridge
     if (!l2BridgeContract) {
       throw new Error(`L2 bridge contract not found for ${chain}.${tokenSymbol}`)
@@ -168,6 +174,37 @@ async function main (source: any) {
     throw new Error('status not successful')
   }
   logger.log('success')
+}
+
+async function wrapToken (chain: string, amount: string) {
+  const wallet = wallets.get(chain)
+  const wrappedTokenAddress = wrappedTokenAddresses[chain]
+  const abi = ['function deposit()']
+  const ethersInterface = new ethersUtils.Interface(abi)
+  const parsedAmount = ethersUtils.parseEther(amount.toString())
+  const data = ethersInterface.encodeFunctionData(
+    'deposit', []
+  )
+  return wallet.sendTransaction({
+    to: wrappedTokenAddress,
+    value: parsedAmount,
+    data
+  })
+}
+
+async function unwrapToken (chain: string, amount: string) {
+  const wallet = wallets.get(chain)
+  const wrappedTokenAddress = wrappedTokenAddresses[chain]
+  const abi = ['function withdraw(uint256)']
+  const ethersInterface = new ethersUtils.Interface(abi)
+  const parsedAmount = ethersUtils.parseEther(amount.toString())
+  const data = ethersInterface.encodeFunctionData(
+    'withdraw', [parsedAmount]
+  )
+  return wallet.sendTransaction({
+    to: wrappedTokenAddress,
+    data
+  })
 }
 
 function isWrappedToken (token: string) {

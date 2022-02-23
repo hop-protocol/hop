@@ -3,6 +3,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import erc20Abi from '@hop-protocol/core/abi/generated/MockERC20.json'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants } from 'ethers'
+import { Chain } from 'src/constants'
 import { CurrencyAmount, Ether, Percent, Token, TradeType } from '@uniswap/sdk-core'
 import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 import { Pool, Route, SwapRouter, TICK_SPACINGS, TickMath, Trade, nearestUsableTick } from '@uniswap/v3-sdk'
@@ -121,7 +122,7 @@ function getToken (address: string, provider: any) {
 }
 
 type Config = {
-  chain: string
+  chain: Chain
   fromToken: string
   toToken: string
   amount: number
@@ -224,18 +225,22 @@ export async function swap (config: Config) {
   let routeToken1: any = pool.token1
 
   const token0Symbol = await token0.symbol()
-  if ((chain !== 'polygon' && token0Symbol === 'WETH' || token0Symbol === 'ETH') || (chain === 'polygon' && token0Symbol === 'WMATIC' || token0Symbol === 'MATIC')) { // eslint-disable-line
+  const ethNativeChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum]
+  const isToken0ETH = ethNativeChains.includes(chain) && ['ETH', 'WETH'].includes(token0Symbol)
+  const isToken0MATIC = chain === Chain.Polygon && ['MATIC', 'WMATIC'].includes(token0Symbol)
+  const isToken0Native = isToken0ETH || isToken0MATIC
+  if (isToken0Native) {
     sourceToken = token1
     const tmp = routeToken0
     routeToken0 = routeToken1
     routeToken1 = tmp
   }
 
-  if (chain !== 'polygon' && toToken === 'ETH') {
+  if (ethNativeChains.includes(chain) && toToken === 'ETH') {
     routeToken1 = Ether.onChain(chainSlugToId(chain)!) // eslint-disable-line
   }
 
-  if (chain === 'polygon' && toToken === 'MATIC') {
+  if (chain === Chain.Polygon && toToken === 'MATIC') {
     if (pool.token0.symbol === 'WMATIC') {
       routeToken1 = pool.token0
     } else if (pool.token1.symbol === 'WMATIC') {

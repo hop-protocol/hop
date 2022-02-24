@@ -129,7 +129,6 @@ async function main (source: any) {
       toToken,
       amount,
       max,
-      deadline,
       slippage,
       recipient
     })

@@ -107,7 +107,7 @@ async function main (source: any) {
       amountOut = await amm.calculateFromHTokensAmount(amountIn)
     }
 
-    const slippageToleranceBps = (slippage || 0.5) * 100
+    const slippageToleranceBps = (slippage || 0.1) * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     const minAmountOut = amountOut.mul(minBps).div(10000)
 

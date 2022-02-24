@@ -228,6 +228,14 @@ export async function swap (input: SwapInput) {
     throw new Error('todo: max')
   }
 
+  if (slippage > 1) {
+    throw new Error('slippage parameter is too high')
+  }
+
+  if (slippage < 0) {
+    throw new Error('slippage must be higher than 0')
+  }
+
   const wallet = wallets.get(chain)
   const oneInch = new OneInch(chain)
 

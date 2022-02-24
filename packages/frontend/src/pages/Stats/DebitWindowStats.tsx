@@ -1,118 +1,56 @@
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Skeleton from '@material-ui/lab/Skeleton'
-import Paper from '@material-ui/core/Paper'
-import Box from '@material-ui/core/Box'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
+import styled from 'styled-components/macro'
 import { useStats } from 'src/pages/Stats/StatsContext'
-import { commafy } from 'src/utils'
+import { commafy, composedStyleFns, ComposedStyleProps } from 'src/utils'
 import { IconStat } from './components/IconStat'
+import { Div } from 'src/components/ui'
 
-const useStyles = makeStyles(theme => ({
-  paper: {
-    padding: '2rem',
-  },
-  table: {
-    width: '800px',
-  },
-  cell: {
-    fontSize: '1.4rem',
-  },
-  flex: {
-    display: 'flex',
-  },
-  title: {
-    marginBottom: '4.2rem',
-  },
-  box: {
-    marginBottom: '2rem',
-    flexDirection: 'column',
-  },
-}))
-
+export const GridContainer = styled.div<ComposedStyleProps>`
+  display: grid;
+  grid-template-columns: 1fr repeat(6, 2fr) 1fr 2fr;
+  justify-items: end;
+  ${composedStyleFns}
+`
 const DebitWindowStats: FC = () => {
-  const styles = useStyles()
   const { debitWindowStats, bonderStats, fetchingDebitWindowStats } = useStats()
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
-      <Box display="flex" alignItems="center" className={styles.box}>
-        <Paper className={styles.paper}>
-          <TableContainer>
-            <Table className={styles.table}>
-              <TableHead>
-                <TableRow>
-                  <th>Token</th>
-                  <th>Slot 0</th>
-                  <th>Slot 1</th>
-                  <th>Slot 2</th>
-                  <th>Slot 3</th>
-                  <th>Slot 4</th>
-                  <th>Slot 5</th>
-                  <th>Mins Remaining</th>
-                  <th>Virtual Debt</th>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {fetchingDebitWindowStats
-                  ? Array(2)
-                      .fill(null)
-                      .map((x, i) => {
-                        return (
-                          <TableRow key={i}>
-                            <TableCell colSpan={8}>
-                              <Skeleton animation="wave" width={'100%'} />
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
-                  : debitWindowStats?.map((item, i) => {
-                      return (
-                        <TableRow key={item.id}>
-                          <TableCell className={styles.cell}>
-                            <IconStat src={item.token.imageUrl} data={item.token.symbol} />
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[0])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[1])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[2])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[3])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[4])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[5])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.remainingMin)}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            <IconStat
-                              src={item.token.imageUrl}
-                              data={commafy(bonderStats[i]?.virtualDebt)}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      </Box>
-    </Box>
+    <Div fontSize={['8px', 0, 1]} minWidth="300px" backgroundColor="white" p={3}>
+      <GridContainer gridGap={['3px', '10px']}>
+        <Div justifySelf="center" bold>
+          Token
+        </Div>
+        <Div bold>Slot-0</Div>
+        <Div bold>Slot-1</Div>
+        <Div bold>Slot-2</Div>
+        <Div bold>Slot-3</Div>
+        <Div bold>Slot-4</Div>
+        <Div bold>Slot-5</Div>
+        <Div bold>Minutes</Div>
+        <Div bold mb={1}>
+          Virtual Debt
+        </Div>
+        {fetchingDebitWindowStats ? (
+          <Div>Loading...</Div>
+        ) : (
+          debitWindowStats?.map((item, i) => (
+            <>
+              <Div>{item.token.symbol}</Div>
+              <Div>{commafy(item.amountBonded[0])}</Div>
+              <Div>{commafy(item.amountBonded[1])}</Div>
+              <Div>{commafy(item.amountBonded[2])}</Div>
+              <Div>{commafy(item.amountBonded[3])}</Div>
+              <Div>{commafy(item.amountBonded[4])}</Div>
+              <Div>{commafy(item.amountBonded[5])}</Div>
+              <Div>{commafy(item.remainingMin)}</Div>
+              <Div>
+                <IconStat src={item.token.imageUrl} data={commafy(bonderStats[i]?.virtualDebt)} />
+              </Div>
+            </>
+          ))
+        )}
+      </GridContainer>
+    </Div>
   )
 }
 

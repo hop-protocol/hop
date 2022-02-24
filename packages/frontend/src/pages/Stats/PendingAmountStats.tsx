@@ -1,121 +1,73 @@
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Skeleton from '@material-ui/lab/Skeleton'
-import Paper from '@material-ui/core/Paper'
-import Box from '@material-ui/core/Box'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
+import styled from 'styled-components/macro'
 import { useStats } from 'src/pages/Stats/StatsContext'
-import { commafy, toTokenDisplay } from 'src/utils'
+import { commafy, composedStyleFns, ComposedStyleProps, toTokenDisplay } from 'src/utils'
 import { IconStat } from './components/IconStat'
+import { Div, Flex, Icon } from 'src/components/ui'
+import SpacedTokenAmount from './components/SpacedTokenAmount'
+import { useWindowSize } from 'react-use'
 
-const useStyles = makeStyles(theme => ({
-  paper: {
-    padding: '2rem',
-  },
-  table: {
-    width: '800px',
-  },
-  cell: {
-    fontSize: '1.4rem',
-  },
-  flex: {
-    display: 'flex',
-  },
-  title: {
-    marginBottom: '4.2rem',
-  },
-  box: {
-    marginBottom: '2rem',
-    flexDirection: 'column',
-  },
-}))
-
+export const GridContainer = styled.div<ComposedStyleProps>`
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr 3fr;
+  gap: 5px;
+  justify-items: center;
+  ${composedStyleFns}
+`
 const PendingAmountStats: FC = () => {
-  const styles = useStyles()
   const { pendingAmounts, fetchingPendingAmounts } = useStats()
+  const { width } = useWindowSize()
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
-      <Box display="flex" alignItems="center" className={styles.box}>
-        <Paper className={styles.paper}>
-          <TableContainer>
-            <Table className={styles.table}>
-              <TableHead>
-                <TableRow>
-                  <th>Source</th>
-                  <th>Destination</th>
-                  <th>
-                    <div>Pending Amount</div>
-                    <div>for Commit</div>
-                  </th>
-                  <th>Available Liquidity</th>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {fetchingPendingAmounts
-                  ? Array(2)
-                      .fill(null)
-                      .map((x, i) => {
-                        return (
-                          <TableRow key={i}>
-                            <TableCell colSpan={6}>
-                              <Skeleton animation="wave" width={'100%'} />
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
-                  : pendingAmounts?.map(item => {
-                      return (
-                        <TableRow key={item.id}>
-                          <TableCell className={styles.cell}>
-                            <img
-                              style={{
-                                display: 'inline-block',
-                                marginRight: '0.5em',
-                              }}
-                              src={item.sourceNetwork.imageUrl}
-                              alt=""
-                              width="16"
-                            />
-                            {item.sourceNetwork.name}
-                          </TableCell>
+    <Div fontSize={[0, 0, 1]} minWidth="400px" backgroundColor="white" p={3}>
+      <GridContainer gridGap={['1px', '10px']}>
+        <Div bold>Src</Div>
+        <Div bold>Dest</Div>
+        <Div bold justifySelf={'end'}>
+          Pending Amount
+        </Div>
+        <Div bold justifySelf={'end'} mb={1}>
+          Available Liquidity
+        </Div>
 
-                          <TableCell className={styles.cell}>
-                            <IconStat
-                              src={item.destinationNetwork.imageUrl}
-                              data={item.destinationNetwork.name}
-                            />
-                          </TableCell>
+        {fetchingPendingAmounts ? (
+          <Div>Loading</Div>
+        ) : (
+          pendingAmounts?.map(item => {
+            return (
+              <>
+                <Div justifySelf={'center'}>
+                  <IconStat
+                    src={item.sourceNetwork.imageUrl}
+                    data={width > 600 ? item.sourceNetwork.name : ''}
+                  />
+                </Div>
 
-                          <TableCell className={styles.cell}>
-                            <IconStat
-                              src={item.token.imageUrl}
-                              data={`${commafy(item.formattedPendingAmount)} ${item.token.symbol}`}
-                            />
-                          </TableCell>
+                <Div justifySelf={'center'}>
+                  <IconStat
+                    src={item.destinationNetwork.imageUrl}
+                    data={width > 600 ? item.destinationNetwork.name : ''}
+                  />
+                </Div>
 
-                          <TableCell className={styles.cell}>
-                            <IconStat
-                              src={item.token.imageUrl}
-                              data={`${commafy(
-                                toTokenDisplay(item.availableLiquidity, item.token.decimals)
-                              )} ${item.token.symbol}`}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      </Box>
-    </Box>
+                <Flex alignCenter justifySelf={'end'}>
+                  <Icon mr={[1, 2]} src={item.token.imageUrl} width={[12, 24]} />
+                  {commafy(item.formattedPendingAmount)}
+                </Flex>
+
+                <Flex alignCenter justifySelf={'end'}>
+                  <Icon mr={[1, 2]} src={item.token.imageUrl} width={[12, 24]} />
+                  <SpacedTokenAmount
+                    symbol={item.token.symbol}
+                    amount={toTokenDisplay(item.availableLiquidity, item.token.decimals)}
+                  />
+                </Flex>
+              </>
+            )
+          })
+        )}
+      </GridContainer>
+    </Div>
   )
 }
 

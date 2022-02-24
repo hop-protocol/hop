@@ -18,6 +18,11 @@ const useNeedsTokenForFee = (network: Network | undefined) => {
         return
       }
 
+      if ((await provider.getCode(await signer.getAddress())) !== '0x') {
+        setNeedsToken(false)
+        return
+      }
+
       const balance = await provider.getBalance(await signer?.getAddress())
 
       const gasPrice = await provider.getGasPrice()

@@ -8,7 +8,7 @@ import { BigNumber, utils as ethersUtils } from 'ethers'
 import { Chain, TokenIndex } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 
-import { swap as uniswapSwap } from 'src/uniswap'
+import { swap as oneInchSwap } from 'src/1inch'
 
 root
   .command('swap')
@@ -123,7 +123,7 @@ async function main (source: any) {
     tx = await amm.swap(fromTokenIndex, toTokenIndex, amountIn, minAmountOut, deadlineBn)
   } else {
     logger.debug('uniswap swap')
-    tx = await uniswapSwap({
+    tx = await oneInchSwap({
       chain,
       fromToken,
       toToken,

@@ -39,6 +39,7 @@ import {
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
+import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -69,6 +70,7 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
   const [manualWarning, setManualWarning] = useState<string>('')
+  const isSmartContractWallet = useIsSmartContractWallet()
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -595,6 +597,8 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
       <Alert severity="warning">{manualWarning}</Alert>
+      <Alert severity="warning">{isSmartContractWallet ? `You are connecting with a smart contract wallet, 
+      may be the case you don't own the same address on the destination network. Proceed with caution!` : ''}</Alert>
 
       <ButtonsWrapper>
         {!sendButtonActive && (

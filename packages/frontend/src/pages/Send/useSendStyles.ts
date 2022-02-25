@@ -115,4 +115,7 @@ export const useSendStyles = makeStyles(theme => ({
     minWidth: '17.5rem',
     transition: 'all 0.15s ease-out, box-shadow 4s ease-out',
   },
+  smartContractWalletWarning: {
+    marginTop: theme.padding.light,
+  }
 }))

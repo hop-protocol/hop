@@ -564,7 +564,16 @@ const Send: FC = () => {
         styles={styles}
         customRecipient={customRecipient}
         handleCustomRecipientInput={handleCustomRecipientInput}
+        isOpen={isSmartContractWallet}
       />
+
+      <div className={styles.smartContractWalletWarning}>
+        <Alert severity="warning">{
+          isSmartContractWallet 
+            ? `You are connecting with a smart contract wallet, may be the case you don't own the same address on the destination network. Proceed with caution!` 
+            : ''}
+        </Alert>
+      </div>
 
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
@@ -597,8 +606,7 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
       <Alert severity="warning">{manualWarning}</Alert>
-      <Alert severity="warning">{isSmartContractWallet ? `You are connecting with a smart contract wallet, 
-      may be the case you don't own the same address on the destination network. Proceed with caution!` : ''}</Alert>
+      
 
       <ButtonsWrapper>
         {!sendButtonActive && (

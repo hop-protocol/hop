@@ -16,7 +16,7 @@ const serializeQueryParams = (
       const value = params[k]
       const keyName = k
 
-      if (options.omitFalsy && !value) {
+      if (options.omitFalsy && !value?.toString()) {
         continue
       }
 

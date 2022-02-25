@@ -10,6 +10,7 @@ import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 
 const logger = new Logger({
   tag: '1inch'
@@ -54,7 +55,7 @@ class OneInch {
   }
 
   constructUrl (path: string, params: any) {
-    const serializedParams = serializeQueryParams(params)
+    const serializedParams = serializeQueryParams(params, {omitFalsy: true})
     const url = `${this.baseUrl}/${this.chainId}${path}?${serializedParams}`
     return url
   }
@@ -243,8 +244,9 @@ export async function swap (input: SwapInput) {
 
   const walletAddress = await wallet.getAddress()
   let amount: string
+  const isFromNative = nativeChainTokens[chain] === fromToken
+  const isToNative = nativeChainTokens[chain] === toToken
   if (max) {
-    const isFromNative = nativeChainTokens[chain] === fromToken
     if (isFromNative) {
       amount = (await wallet.getBalance()).toString()
       formattedAmount = Number(formatUnits(amount.toString(), getTokenDecimals(fromToken)))
@@ -274,10 +276,20 @@ export async function swap (input: SwapInput) {
   logger.debug('slippage:', slippage)
   logger.debug('dryMode:', !!dryMode)
 
-  const fromTokenConfig = (mainnetAddresses as any).bridges?.[fromToken]?.[chain]
-  const toTokenConfig = (mainnetAddresses as any).bridges?.[toToken]?.[chain]
-  const fromTokenAddress = fromTokenConfig?.l1CanonicalToken || fromTokenConfig?.l2CanonicalToken
-  const toTokenAddress = toTokenConfig?.l1CanonicalToken || toTokenConfig?.l2CanonicalToken
+  const canonicalFromTokenSymbol = getCanonicalTokenSymbol(fromToken)
+  const canonicalToTokenSymbol = getCanonicalTokenSymbol(toToken)
+  const fromTokenConfig = (mainnetAddresses as any).bridges?.[canonicalFromTokenSymbol]?.[chain]
+  const toTokenConfig = (mainnetAddresses as any).bridges?.[canonicalToTokenSymbol]?.[chain]
+  let fromTokenAddress = fromTokenConfig?.l1CanonicalToken || fromTokenConfig?.l2CanonicalToken
+  let toTokenAddress = toTokenConfig?.l1CanonicalToken || toTokenConfig?.l2CanonicalToken
+
+  // 1inch uses 0xeee…eee address for native tokens
+  if (isFromNative) {
+    fromTokenAddress = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+  }
+  if (isToNative) {
+    toTokenAddress = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+  }
 
   if (!fromTokenAddress) {
     throw new Error(`from token "${fromToken}" is not supported`)

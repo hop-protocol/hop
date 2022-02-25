@@ -570,7 +570,7 @@ const Send: FC = () => {
       <div className={styles.smartContractWalletWarning}>
         <Alert severity="warning">{
           isSmartContractWallet 
-            ? `The connected account is detected to be a smart contract wallet. Please provide a custom recipient to proceed with this transaction.` 
+            ? 'The connected account is detected to be a smart contract wallet. Please provide a custom recipient to proceed with this transaction.' 
             : ''}
         </Alert>
       </div>

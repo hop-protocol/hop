@@ -60,6 +60,7 @@ class OneInch {
   }
 
   async getJson (url: string) {
+    logger.debug('url:', url)
     const res = await fetch(url)
     const json = await res.json()
     if (!json) {

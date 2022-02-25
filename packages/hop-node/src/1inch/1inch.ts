@@ -1,10 +1,13 @@
 import Logger from 'src/logger'
+import Token from 'src/watchers/classes/Token'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import contracts from 'src/contracts'
 import fetch from 'node-fetch'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import serializeQueryParams from 'src/utils/serializeQueryParams'
 import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
+import { Chain } from 'src/constants'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
@@ -216,7 +219,7 @@ type SwapInput = {
 }
 
 export async function swap (input: SwapInput) {
-  const {
+  let {
     chain,
     fromToken,
     toToken,
@@ -226,10 +229,6 @@ export async function swap (input: SwapInput) {
     recipient,
     dryMode
   } = input
-  if (max) {
-    throw new Error('todo: max')
-  }
-
   if (slippage > 1) {
     throw new Error('slippage parameter is too high')
   }
@@ -242,7 +241,30 @@ export async function swap (input: SwapInput) {
   const oneInch = new OneInch(chain)
 
   const walletAddress = await wallet.getAddress()
-  const amount = parseUnits(formattedAmount.toString(), getTokenDecimals(fromToken)).toString()
+  let amount: string
+  if (max) {
+    const isFromNative = nativeChainTokens[chain] === fromToken
+    if (isFromNative) {
+      amount = (await wallet.getBalance()).toString()
+      formattedAmount = Number(formatUnits(amount.toString(), getTokenDecimals(fromToken)))
+    } else {
+      const tokenContracts = contracts.get(fromToken, chain)
+      if (!tokenContracts) {
+        throw new Error('token contracts not found')
+      }
+      let token: Token
+      if (chain === Chain.Ethereum) {
+        token = new Token(tokenContracts.l1CanonicalToken)
+      } else {
+        token = new Token(tokenContracts.l2CanonicalToken)
+      }
+
+      amount = (await token.getBalance()).toString()
+      formattedAmount = Number(formatUnits(amount.toString(), getTokenDecimals(fromToken)))
+    }
+  } else {
+    amount = parseUnits(formattedAmount.toString(), getTokenDecimals(fromToken)).toString()
+  }
 
   logger.debug('chain:', chain)
   logger.debug('fromToken:', fromToken)
@@ -299,8 +321,14 @@ export async function swap (input: SwapInput) {
     logger.debug('sending swap tx')
     const tx = await wallet.sendTransaction(txData)
     logger.debug('swap tx:', tx.hash)
-    await tx.wait()
+    return tx
   }
+}
 
-  logger.debug('swap complete')
+const nativeChainTokens: Record<string, string> = {
+  ethereum: 'ETH',
+  arbitrum: 'ETH',
+  optimism: 'ETH',
+  polygon: 'MATIC',
+  gnosis: 'XDAI'
 }

@@ -139,6 +139,10 @@ async function main (source: any) {
       dryMode
     })
   }
+  if (dryMode) {
+    logger.log('done')
+    return
+  }
   if (!tx) {
     throw new Error('tx object not received')
   }

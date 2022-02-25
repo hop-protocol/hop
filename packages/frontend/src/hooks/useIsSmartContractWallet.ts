@@ -10,7 +10,7 @@ export default function useIsSmartContractWallet() {
       if (!provider || !address) return
 
       const code = await provider.getCode(address.address)
-      setIsSmartContractWallet(!code || code !== '0x')
+      setIsSmartContractWallet(code !== '0x')
     }
 
     checkAddress()

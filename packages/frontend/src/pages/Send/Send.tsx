@@ -258,14 +258,18 @@ const Send: FC = () => {
   useEffect(() => {
     let message = noLiquidityWarning || minimumSendWarning
 
+    const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
+    const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
+    const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
+
     if (sufficientBalanceWarning) {
       message = sufficientBalanceWarning
     } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
       message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Estimated received too low. Send a higher amount to cover the fees.'
-    } else if (priceImpact && priceImpact !== 100 && (priceImpact >= 1 || priceImpact <= -1)) {
-      message = `Warning: High Price Impact! ${commafy(priceImpact)}%`
+    } else if (showPriceImpactWarning) {
+      message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
     }
 
     setWarning(message)
@@ -275,6 +279,8 @@ const Send: FC = () => {
     sufficientBalanceWarning,
     estimatedReceived,
     priceImpact,
+    fromTokenAmount,
+    toTokenAmount
   ])
 
   useEffect(() => {

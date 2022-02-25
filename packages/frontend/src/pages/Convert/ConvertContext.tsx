@@ -264,8 +264,11 @@ const ConvertProvider: FC = ({ children }) => {
     // This works for now, but we should convert AmmConvertOption Class -> React.FC w/ hooks
     if (details && (details as any).props?.children?.props?.tooltip?.props?.priceImpact) {
       const priceImpact = (details as any).props?.children?.props?.tooltip?.props?.priceImpact
-      if (priceImpact && priceImpact !== 100 && (priceImpact >= 1 || priceImpact <= -1)) {
-        const warning = `Warning: High Price Impact! ${commafy(priceImpact)}%`
+      const isFavorableSlippage = Number(destTokenAmount) >= Number(sourceTokenAmount)
+      const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
+      const showWarning = isHighPriceImpact && !isFavorableSlippage
+      if (showWarning) {
+        const warning = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
         setWarning(warning)
       }
     }

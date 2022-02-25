@@ -8,7 +8,7 @@ import { BigNumber, utils as ethersUtils } from 'ethers'
 import { Chain, TokenIndex } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 
-import { swap as uniswapSwap } from 'src/uniswap'
+import { swap as oneInchSwap } from 'src/1inch'
 
 root
   .command('swap')
@@ -23,40 +23,35 @@ root
   .option('--deadline <seconds>', 'Deadline in seconds', parseNumber)
   .option('--slippage <number>', 'Slippage tolerance. E.g. 0.5', parseNumber)
   .option('--recipient <address>', 'Recipient', parseString)
+  .option(
+    '--dry [boolean]',
+    'Start in dry mode. If enabled, no transactions will be sent.',
+    parseBool
+  )
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let { chain, from: fromToken, to: toToken, amount, max, recipient, deadline, slippage, fromNative, toNative } = source
+  let { chain, from: fromToken, to: toToken, amount, max, recipient, deadline, slippage, dry: dryMode } = source
   if (!chain) {
     throw new Error('chain is required')
   }
-  if (!(fromToken || fromNative)) {
+  if (!fromToken) {
     throw new Error('"from" token is required')
   }
-  if (!(toToken || toNative)) {
+  if (!toToken) {
     throw new Error('"to" token is required')
   }
   if (!max && !amount) {
     throw new Error('"max" or "amount" is required')
   }
-  if (fromNative && !fromToken) {
-    fromToken = chainNativeTokens[chain]
-  }
-  if (toNative && !toToken) {
-    toToken = chainNativeTokens[chain]
-  }
-  if (!fromNative && fromToken === chainNativeTokens[chain]) {
-    fromNative = true
-  }
-  if (!toNative && toToken === chainNativeTokens[chain]) {
-    toNative = true
-  }
+  const fromNative = fromToken === chainNativeTokens[chain]
+  const toNative = toToken === chainNativeTokens[chain]
   if (fromToken === toToken) {
     throw new Error('from-token and to-token cannot be the same')
   }
 
-  const isWrapperDeposit = isWrappedToken(toToken)
-  const isWrapperWithdrawal = isWrappedToken(fromToken)
+  const isWrapperDeposit = fromNative && isWrappedToken(toToken)
+  const isWrapperWithdrawal = isWrappedToken(fromToken) && toNative
   const fromTokenIsHToken = isHToken(fromToken)
   const toTokenIsHToken = isHToken(toToken)
   const isAmmSwap = fromTokenIsHToken || toTokenIsHToken
@@ -173,16 +168,20 @@ async function main (source: any) {
     }
   } else {
     logger.debug('uniswap swap')
-    tx = await uniswapSwap({
+    tx = await oneInchSwap({
       chain,
       fromToken,
       toToken,
       amount,
       max,
-      deadline,
       slippage,
-      recipient
+      recipient,
+      dryMode
     })
+  }
+  if (dryMode) {
+    logger.log('done')
+    return
   }
   if (!tx) {
     throw new Error('tx object not received')

@@ -32,6 +32,10 @@ export function actionHandler (fn: Function) {
         source.config = config
       }
 
+      if (source?.dry === undefined && source?.parent?.dry) {
+        source.dry = source?.parent?.dry
+      }
+
       await validateConfigValues(globalConfig)
 
       await fn(source)

@@ -524,7 +524,7 @@ class HopBridge extends Base {
     destinationChain: TChain,
     options: Partial<SendOptions> = {}
   ) {
-    const populatedTx = await this.sendHToken(tokenAmount, sourceChain, destinationChain, options)
+    const populatedTx = await this.populateSendHTokensTx(tokenAmount, sourceChain, destinationChain, options)
     return this.getEstimatedGasLimit(sourceChain, destinationChain, populatedTx)
   }
 

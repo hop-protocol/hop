@@ -81,7 +81,8 @@ const unstakedAmounts: Record<string, any> = {
   // 0x710bDa329b2a6224E4B44833DE30F38E7f81d564
   ETH: {
     [1639555200]: parseEther('6.07'), // 12/15/2021
-    [1639641600]: parseEther('26') // 12/16/2021
+    [1639641600]: parseEther('26'), // 12/16/2021
+    [1645689600]: parseEther('675') // 02/24/2022
   },
   // 0xd8781ca9163e9f132a4d8392332e64115688013a
   MATIC: {},
@@ -160,7 +161,7 @@ type Options = {
 class BonderStats {
   db = new Db()
   days: number = 1
-  tokens?: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'WBTC']
+  tokens?: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC']
   chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
 
   tokenDecimals: Record<string, number> = {

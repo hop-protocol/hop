@@ -208,10 +208,11 @@ type SwapInput = {
   chain: string
   fromToken: string
   toToken: string
-  amount: string
+  amount: number
   max: boolean
   slippage: number
   recipient: string
+  dryMode: boolean
 }
 
 export async function swap (input: SwapInput) {
@@ -221,8 +222,9 @@ export async function swap (input: SwapInput) {
     toToken,
     amount: formattedAmount,
     max,
-    slippage,
-    recipient
+    slippage = 0.1,
+    recipient,
+    dryMode
   } = input
   if (max) {
     throw new Error('todo: max')
@@ -232,7 +234,7 @@ export async function swap (input: SwapInput) {
     throw new Error('slippage parameter is too high')
   }
 
-  if (slippage < 0) {
+  if (slippage <= 0) {
     throw new Error('slippage must be higher than 0')
   }
 
@@ -240,12 +242,14 @@ export async function swap (input: SwapInput) {
   const oneInch = new OneInch(chain)
 
   const walletAddress = await wallet.getAddress()
-  const amount = parseUnits(formattedAmount, getTokenDecimals(fromToken)).toString()
+  const amount = parseUnits(formattedAmount.toString(), getTokenDecimals(fromToken)).toString()
 
   logger.debug('chain:', chain)
   logger.debug('fromToken:', fromToken)
   logger.debug('toToken:', toToken)
   logger.debug('amount:', formattedAmount)
+  logger.debug('slippage:', slippage)
+  logger.debug('dryMode:', !!dryMode)
 
   const fromTokenConfig = (mainnetAddresses as any).bridges?.[fromToken]?.[chain]
   const toTokenConfig = (mainnetAddresses as any).bridges?.[toToken]?.[chain]
@@ -260,6 +264,7 @@ export async function swap (input: SwapInput) {
     throw new Error(`to token "${toToken}" is not supported`)
   }
 
+  logger.debug('checking allowance')
   const tokenAddress = fromTokenAddress
   const allowance = await oneInch.getAllowance({ tokenAddress, walletAddress })
   logger.debug('allowance:', formatUnits(allowance, getTokenDecimals(fromToken)))
@@ -268,22 +273,34 @@ export async function swap (input: SwapInput) {
     const txData = await oneInch.getApproveTx({ tokenAddress, amount })
     logger.debug('approval data:', txData)
 
-    const tx = await wallet.sendTransaction(txData)
-    logger.debug('approval tx:', tx.hash)
-    await tx.wait()
+    if (dryMode) {
+      logger.debug('dryMode enabled, skipping approve tx')
+    } else {
+      logger.debug('sending approve tx')
+      const tx = await wallet.sendTransaction(txData)
+      logger.debug('approval tx:', tx.hash)
+      await tx.wait()
+    }
   }
 
+  logger.debug('checking quote')
   const toTokenAmount = await oneInch.getQuote({ fromTokenAddress, toTokenAddress, amount })
   const toTokenAmountFormatted = formatUnits(toTokenAmount, getTokenDecimals(toToken))
   logger.debug(`toTokenAmount: ${toTokenAmountFormatted}`)
 
+  logger.debug('getting swap data')
   const fromAddress = walletAddress
   const txData = await oneInch.getSwapTx({ fromTokenAddress, toTokenAddress, fromAddress, amount, slippage, destReceiver: recipient })
   logger.debug('swap data:', txData)
 
-  const tx = await wallet.sendTransaction(txData)
-  logger.debug('swap tx:', tx.hash)
-  await tx.wait()
+  if (dryMode) {
+    logger.debug('dryMode enabled, skipping swap tx')
+  } else {
+    logger.debug('sending swap tx')
+    const tx = await wallet.sendTransaction(txData)
+    logger.debug('swap tx:', tx.hash)
+    await tx.wait()
+  }
 
   logger.debug('swap complete')
 }

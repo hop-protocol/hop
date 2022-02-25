@@ -21,10 +21,15 @@ root
   .option('--deadline <seconds>', 'Deadline in seconds', parseNumber)
   .option('--slippage <number>', 'Slippage tolerance. E.g. 0.5', parseNumber)
   .option('--recipient <address>', 'Recipient', parseString)
+  .option(
+    '--dry [boolean]',
+    'Start in dry mode. If enabled, no transactions will be sent.',
+    parseBool
+  )
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { chain, from: fromToken, to: toToken, amount, max, recipient, deadline, slippage } = source
+  const { chain, from: fromToken, to: toToken, amount, max, recipient, deadline, slippage, dry: dryMode } = source
   if (!chain) {
     throw new Error('chain is required')
   }
@@ -107,7 +112,7 @@ async function main (source: any) {
       amountOut = await amm.calculateFromHTokensAmount(amountIn)
     }
 
-    const slippageToleranceBps = (slippage || 0.1) * 100
+    const slippageToleranceBps = (slippage || 0.5) * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     const minAmountOut = amountOut.mul(minBps).div(10000)
 
@@ -130,7 +135,8 @@ async function main (source: any) {
       amount,
       max,
       slippage,
-      recipient
+      recipient,
+      dryMode
     })
   }
   if (!tx) {

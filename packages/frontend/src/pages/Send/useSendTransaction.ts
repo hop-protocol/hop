@@ -4,7 +4,7 @@ import { getAddress } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
-import { getBonderFeeWithId } from 'src/utils'
+import { getBonderFeeWithId, WalletName } from 'src/utils'
 import { createTransaction } from 'src/utils/createTransaction'
 import { amountToBN, formatError } from 'src/utils/format'
 import { HopBridge } from '@hop-protocol/sdk'
@@ -73,13 +73,15 @@ export function useSendTransaction(props) {
   useEffect(() => {
     async function setRecipientAndBridge() {
       if (signer) {
-        const r = customRecipient || (await signer.getAddress())
-        setRecipient(r)
+        try {
+          const r = customRecipient || (await signer.getAddress())
+          setRecipient(r)
 
-        if (sourceToken) {
-          const b = sdk.bridge(sourceToken.symbol).connect(signer)
-          setBridge(b)
-        }
+          if (sourceToken) {
+            const b = sdk.bridge(sourceToken.symbol).connect(signer)
+            setBridge(b)
+          }
+        } catch (error) {}
       }
     }
 
@@ -131,24 +133,25 @@ export function useSendTransaction(props) {
       }
 
       const { transaction, txModel } = txHandled
-      
+
       // handle the case when HOP is being used as a Gnosis safe-app.
       // for this case, txHash is the safeTxHash instead of the ethereum txHash
       // in order to obtain ethereum txHash we will use safe-apps-sdk when connected wallet name is 'Gnosis Safe'
-      if (provider && walletName === 'Gnosis Safe') {
-        let txHash: string | null = null
+      if (provider && walletName === WalletName.GnosisSafe) {
+        let gnosisSafeTx: any | null = null
         const sdk = getSDKInstance()
-        
-        while (txHash === null) {
-          await new Promise(resolve => setTimeout(resolve, 5000));  
-          const res = await sdk.txs.getBySafeTxHash(transaction.hash);
-          txHash = res.txHash;
-        
-          // WARNING: Mutating object
-          if (res.txHash) {
-            transaction.hash = res.txHash;
-            txModel.hash = res.txHash;
-          } 
+
+        while (gnosisSafeTx === null) {
+          await new Promise(resolve => setTimeout(resolve, 5000))
+          gnosisSafeTx = await sdk.txs.getBySafeTxHash(transaction.hash)
+
+          if (gnosisSafeTx.txHash) {
+            const opts = {
+              hash: gnosisSafeTx.txHash,
+              replaced: txModel.hash,
+            }
+            updateTransaction(txModel, opts)
+          }
         }
       }
 
@@ -166,7 +169,7 @@ export function useSendTransaction(props) {
           updateTransaction(txModel, opts)
         }
       })
-      
+
       setTx(txModel)
 
       const txModelArgs = {

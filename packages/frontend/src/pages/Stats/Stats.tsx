@@ -4,7 +4,7 @@ import BonderStats from './BonderStats'
 import PendingAmountStats from './PendingAmountStats'
 import BalanceStats from './BalanceStats'
 import DebitWindowStats from './DebitWindowStats'
-import { Flex } from 'src/components/ui'
+import { Div, Flex } from 'src/components/ui'
 import { ChevronDown, ChevronUp } from 'react-feather'
 
 function Title({ text, children }: any) {
@@ -15,14 +15,16 @@ function Title({ text, children }: any) {
   )
 }
 
-function Group({ title, children, clickTitle }) {
+function Group({ title, children, clickTitle, ...rest }) {
   return (
-    <Flex column alignCenter m={[0, 2, 4]} mb={[2, 4]}>
-      <Flex alignCenter onClick={clickTitle} pointer mb={[1, 2]}>
-        <Title text={title} />
-        {children ? <ChevronUp /> : <ChevronDown />}
+    <Flex column justifyCenter my={[1, 2, 4]} {...rest}>
+      <Flex alignCenter justifyCenter fullWidth mb={[1, 2]}>
+        <Flex pointer alignCenter onClick={clickTitle}>
+          <Title text={title} />
+          {children ? <ChevronUp /> : <ChevronDown />}
+        </Flex>
       </Flex>
-      {children}
+      <Div backgroundColor="white">{children}</Div>
     </Flex>
   )
 }
@@ -42,9 +44,14 @@ const Stats: FC = () => {
     setGroups(val => ({ ...val, [group]: !val[group] }))
   }
   return (
-    <Flex column alignCenter>
-      <Flex flexDirection={['column', 'column', 'row']}>
-        <Group title="Pool Stats" clickTitle={() => toggleGroup('pool')}>
+    <Flex column alignCenter fullWidth>
+      <Flex
+        alignItems={['center', 'flex-start']}
+        flexDirection={['column', 'row']}
+        justifyCenter
+        fullWidth
+      >
+        <Group title="Pool Stats" clickTitle={() => toggleGroup('pool')} mr={[0, 2, 4]}>
           {groups.pool && <PoolStats />}
         </Group>
 

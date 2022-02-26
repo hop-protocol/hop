@@ -19,13 +19,6 @@ const useStyles = makeStyles(theme => ({
     backgroundSize: '120%',
     transition: 'background 0.15s ease-out',
   },
-  content: {
-    padding: '2.5rem',
-    flexGrow: 1,
-    [theme.breakpoints.down('xs')]: {
-      padding: '2.2rem',
-    },
-  },
 }))
 
 function App() {
@@ -37,9 +30,7 @@ function App() {
       <Box display="flex" flexDirection="column" minHeight="100vh" className={styles.app}>
         <Header />
         <AccountDetails />
-        <div className={styles.content}>
-          <AppRoutes />
-        </div>
+        <AppRoutes />
         <TxConfirm />
         <Footer />
       </Box>

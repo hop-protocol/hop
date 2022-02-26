@@ -7,7 +7,7 @@ function SpacedTokenAmount(props) {
   return (
     <Flex textAlign={'right'}>
       <Div>{commafy(amount)}</Div>
-      <Div width={[48, 50, 60]}>{symbol}</Div>
+      <Div width={[48, 48, 58]}>{symbol}</Div>
     </Flex>
   )
 }

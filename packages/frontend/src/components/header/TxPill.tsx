@@ -32,7 +32,7 @@ const TxPill = () => {
   const transactions = txHistory?.transactions
   const styles = useStyles()
   const [numPendingTxs, setNumPendingTxs] = useState(0)
-  const { ensName, ensAvatar } = useEns(address?.toString())
+  const { ensName, ensAvatar, nom } = useEns(address?.toString())
 
   const handleClick = () => {
     accountDetails?.show(true)
@@ -66,7 +66,7 @@ const TxPill = () => {
               <Icon src={ensAvatar} height="100%" />
             </Circle>
           )}
-          <Div>{ensName || address?.truncate()}</Div>
+          <Div>{ensName || nom || address?.truncate()}</Div>
         </StyledButton>
       )}
     </div>

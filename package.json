@@ -12,5 +12,8 @@
     "bootstrap": "npx lerna bootstrap",
     "nuke": "npx lerna clean"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@ensdomains/ensjs": "^2.1.0",
+    "ethers": "^5.5.4"
+  }
 }

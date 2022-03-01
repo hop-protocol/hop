@@ -39,6 +39,7 @@ import {
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
+import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -69,6 +70,7 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
   const [manualWarning, setManualWarning] = useState<string>('')
+  const isSmartContractWallet = useIsSmartContractWallet()
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -568,7 +570,16 @@ const Send: FC = () => {
         styles={styles}
         customRecipient={customRecipient}
         handleCustomRecipientInput={handleCustomRecipientInput}
+        isOpen={isSmartContractWallet}
       />
+
+      <div className={styles.smartContractWalletWarning}>
+        <Alert severity="warning">{
+          isSmartContractWallet 
+            ? 'The connected account is detected to be a smart contract wallet. Please provide a custom recipient to proceed with this transaction.' 
+            : ''}
+        </Alert>
+      </div>
 
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
@@ -601,6 +612,7 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
       <Alert severity="warning">{manualWarning}</Alert>
+      
 
       <ButtonsWrapper>
         {!sendButtonActive && (

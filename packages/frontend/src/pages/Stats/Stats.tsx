@@ -17,14 +17,19 @@ function Title({ text, children }: any) {
 
 function Group({ title, children, clickTitle, ...rest }) {
   return (
-    <Flex column justifyCenter my={[1, 2, 4]} {...rest}>
+    <Flex column justifyCenter alignCenter m={[1, 2, 4]} {...rest}>
       <Flex alignCenter justifyCenter fullWidth mb={[1, 2]}>
         <Flex pointer alignCenter onClick={clickTitle}>
-          <Title text={title} />
+          <Flex fullWidth justifyCenter>
+            <Title text={title} />
+          </Flex>
           {children ? <ChevronUp /> : <ChevronDown />}
         </Flex>
       </Flex>
-      <Div backgroundColor="white">{children}</Div>
+
+      <Div borderRadius={'8px'} backgroundColor="white">
+        {children}
+      </Div>
     </Flex>
   )
 }
@@ -45,26 +50,30 @@ const Stats: FC = () => {
   }
   return (
     <Flex column alignCenter fullWidth>
-      <Flex
-        alignItems={['center', 'flex-start']}
-        flexDirection={['column', 'row']}
-        justifyCenter
-        fullWidth
-      >
+      <Flex $wrap justifyCenter fullWidth>
         <Group title="Pool Stats" clickTitle={() => toggleGroup('pool')} mr={[0, 2, 4]}>
           {groups.pool && <PoolStats />}
         </Group>
 
-        <Group title="Native Token Balances" clickTitle={() => toggleGroup('balance')}>
-          {groups.balance && <BalanceStats />}
-        </Group>
+        <Flex column alignCenter width={['100%', 'auto', 'auto']}>
+          <Group title="Native Token Balances" clickTitle={() => toggleGroup('balance')}>
+            {groups.balance && <BalanceStats />}
+          </Group>
+          <Group
+            title="Debit Window Stats"
+            clickTitle={() => toggleGroup('debitWindow')}
+            alignSelf={['flex-start', 'flex-start', 'center']}
+          >
+            {groups.debitWindow && <DebitWindowStats />}
+          </Group>
+        </Flex>
       </Flex>
 
-      <Group title="Debit Window Stats" clickTitle={() => toggleGroup('debitWindow')}>
-        {groups.debitWindow && <DebitWindowStats />}
-      </Group>
-
-      <Group title="Bonder Stats" clickTitle={() => toggleGroup('bonder')}>
+      <Group
+        title="Bonder Stats"
+        clickTitle={() => toggleGroup('bonder')}
+        alignSelf={['flex-start', 'flex-start', 'center']}
+      >
         {groups.bonder && <BonderStats />}
       </Group>
 

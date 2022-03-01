@@ -2796,10 +2796,10 @@
   dependencies:
     ethers "^5.5.1"
 
-"@hop-protocol/sdk@0.0.1-beta.298":
-  version "0.0.1-beta.298"
-  resolved "https://registry.npmjs.org/@hop-protocol/sdk/-/sdk-0.0.1-beta.298.tgz#bb6d620d801b5132d17cea8f76349f7aa4e41ca4"
-  integrity sha512-UJNmTaCNXXaetJUqUErwgK6uSlp96ifVp+8+7OOHz546qFnB99SkqYHZe5a0bjgh9T/swIzAbYu1Ql37lvV0VQ==
+"@hop-protocol/sdk@0.0.1-beta.299":
+  version "0.0.1-beta.299"
+  resolved "https://registry.npmjs.org/@hop-protocol/sdk/-/sdk-0.0.1-beta.299.tgz#d8debe5d08896f9b91c2f65bb5d16c7f3c3b09b6"
+  integrity sha512-jRfZIEpV4FF+a4Louqo0O6mw5vFC3/KwTJvt4dg3hGiHHIp/tGAsHnTR1n2XIc3sA0CWFtb9ySAo31GvuzGGKg==
   dependencies:
     "@eth-optimism/contracts" "^0.5.2"
     "@ethersproject/abi" "^5.4.0"
@@ -16266,6 +16266,11 @@ react-scripts@^4.0.3:
     workbox-webpack-plugin "5.1.4"
   optionalDependencies:
     fsevents "^2.1.3"
+
+react-table@^7.7.0:
+  version "7.7.0"
+  resolved "https://registry.npmjs.org/react-table/-/react-table-7.7.0.tgz#e2ce14d7fe3a559f7444e9ecfe8231ea8373f912"
+  integrity sha512-jBlj70iBwOTvvImsU9t01LjFjy4sXEtclBovl3mTiqjz23Reu0DKnRza4zlLtOPACx6j2/7MrQIthIK1Wi+LIA==
 
 react-transition-group@^4.4.0:
   version "4.4.2"

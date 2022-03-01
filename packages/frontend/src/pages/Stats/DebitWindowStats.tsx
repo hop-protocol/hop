@@ -1,68 +1,116 @@
 import React, { FC } from 'react'
-import styled from 'styled-components/macro'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { commafy } from 'src/utils'
-import { IconStat } from './components/IconStat'
-import { Div, Flex } from 'src/components/ui'
-import { GridContainer } from 'src/components/Grid'
-import { grid } from 'styled-system'
+import { Div, Icon } from 'src/components/ui'
+import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Table'
 
-export const TopRow = styled(GridContainer)`
-  grid-template-columns: 0.5fr repeat(6, 1.65fr) 1fr 2fr;
-  justify-content: center;
-  justify-items: center;
-  text-align: center;
-  & > div {
-    min-width: 5px;
+export const populateDebitWindowStats = (item: any, bonderStats, i) => {
+  return {
+    token: item.token.imageUrl,
+    slot0: commafy(item.amountBonded[0]),
+    slot1: commafy(item.amountBonded[1]),
+    slot2: commafy(item.amountBonded[2]),
+    slot3: commafy(item.amountBonded[3]),
+    slot4: commafy(item.amountBonded[4]),
+    slot5: commafy(item.amountBonded[5]),
+    minutes: item.remainingMin,
+    virtualDebt: commafy(bonderStats[i]?.virtualDebt),
   }
-  ${grid}
-`
-
-const GridCells = styled(TopRow)`
-  border-top: 1px solid #ababab;
-  text-align: center;
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.action.hover};
-  }
-  ${grid}
-`
+}
 
 const DebitWindowStats: FC = () => {
   const { debitWindowStats, bonderStats, fetchingDebitWindowStats } = useStats()
 
-  return (
-    <Div fontSize={['7px', 0, 1]}>
-      <TopRow gridGap={['3px', '10px']} p={[1, 3]}>
-        <Div bold>Token</Div>
-        <Div bold>Slot-0</Div>
-        <Div bold>Slot-1</Div>
-        <Div bold>Slot-2</Div>
-        <Div bold>Slot-3</Div>
-        <Div bold>Slot-4</Div>
-        <Div bold>Slot-5</Div>
-        <Div bold>Minutes</Div>
-        <Div bold justifySelf={'right'}>
-          Virtual Debt
-        </Div>
-      </TopRow>
+  const columns = React.useMemo(
+    () => [
+      {
+        Header: 'Debit Window Stats',
+        columns: [
+          {
+            Header: 'Token',
+            accessor: 'token',
+            Cell: ({ cell }) => {
+              return (
+                <CellWrapper cell={cell}>
+                  <Icon src={cell.value} width={[12, 18]} />
+                </CellWrapper>
+              )
+            },
+          },
+          {
+            Header: 'Slot 0',
+            accessor: 'slot0',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Slot 1',
+            accessor: 'slot1',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Slot 2',
+            accessor: 'slot2',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Slot 3',
+            accessor: 'slot3',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Slot 4',
+            accessor: 'slot4',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Slot 5',
+            accessor: 'slot5',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Minutes',
+            accessor: 'minutes',
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell} end>
+                {cell.value}
+              </CellWrapper>
+            ),
+          },
+          {
+            Header: 'Virtual Debt',
+            accessor: 'virtualDebt',
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell} end>
+                {cell.value}
+              </CellWrapper>
+            ),
+          },
+        ],
+      },
+    ],
+    []
+  )
 
-      {fetchingDebitWindowStats ? (
-        <Div>Loading...</Div>
-      ) : (
-        debitWindowStats?.map((item, i) => (
-          <GridCells gridGap={['3px', '10px']} p={[1, 3]}>
-            <IconStat src={item.token.imageUrl} data={''} />
-            <Flex alignCenter>{commafy(item.amountBonded[0])}</Flex>
-            <Flex alignCenter>{commafy(item.amountBonded[1])}</Flex>
-            <Flex alignCenter>{commafy(item.amountBonded[2])}</Flex>
-            <Flex alignCenter>{commafy(item.amountBonded[3])}</Flex>
-            <Flex alignCenter>{commafy(item.amountBonded[4])}</Flex>
-            <Flex alignCenter>{commafy(item.amountBonded[5])}</Flex>
-            <Flex alignCenter>{commafy(item.remainingMin)}</Flex>
-            <Div justifySelf={'right'}>{commafy(bonderStats[i]?.virtualDebt)}</Div>
-          </GridCells>
-        ))
-      )}
+  return (
+    <Div fontSize={[0, 1, 2]}>
+      <SortableTable
+        stats={debitWindowStats}
+        columns={columns}
+        populateDataFn={populateDebitWindowStats}
+        extraData={bonderStats}
+      />
     </Div>
   )
 }

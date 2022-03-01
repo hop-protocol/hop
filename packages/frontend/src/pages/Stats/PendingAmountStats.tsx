@@ -1,69 +1,81 @@
 import React, { FC } from 'react'
-import styled from 'styled-components/macro'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { commafy, toTokenDisplay } from 'src/utils'
-import { IconStat } from './components/IconStat'
-import { Div, Flex, Icon } from 'src/components/ui'
-import SpacedTokenAmount from './components/SpacedTokenAmount'
-import { GridContainer } from 'src/components/Grid'
+import { Div, Icon } from 'src/components/ui'
+import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Table'
 
-export const TopRow = styled(GridContainer)`
-  display: grid;
-  grid-template-columns: 0.8fr 0.5fr 2fr 2fr;
-  gap: 5px;
-  justify-content: stretch;
-`
-const GridCells = styled(TopRow)`
-  border-top: 1px solid #ababab;
-  justify-items: end;
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.action.hover};
+export const populatePendingAmountStats = (item: any) => {
+  return {
+    source: item.sourceNetwork.imageUrl,
+    destination: item.destinationNetwork.imageUrl,
+    pendingAmount: commafy(item.formattedPendingAmount),
+    availableLiquidity: toTokenDisplay(item.availableLiquidity, item.token.decimals),
+    token: item.token.imageUrl,
   }
-`
+}
+
 const PendingAmountStats: FC = () => {
   const { pendingAmounts, fetchingPendingAmounts } = useStats()
 
+  const columns = React.useMemo(
+    () => [
+      {
+        Header: 'Pending Amount Stats',
+        columns: [
+          {
+            Header: 'Source',
+            accessor: 'source',
+            Cell: ({ cell }) => {
+              return (
+                <CellWrapper cell={cell}>
+                  <Icon src={cell.value} width={[12, 18]} />
+                </CellWrapper>
+              )
+            },
+          },
+          {
+            Header: 'Destination',
+            accessor: 'destination',
+            Cell: ({ cell }) => {
+              return (
+                <CellWrapper cell={cell}>
+                  <Icon src={cell.value} width={[12, 18]} />
+                </CellWrapper>
+              )
+            },
+          },
+          {
+            Header: 'Pending Amount',
+            accessor: 'pendingAmount',
+            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
+          },
+          {
+            Header: 'Available Liquidity',
+            accessor: 'availableLiquidity',
+            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
+          },
+          {
+            Header: 'Token',
+            accessor: 'token',
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell}>
+                <Icon src={cell.value} width={[12, 18]} />
+              </CellWrapper>
+            ),
+          },
+        ],
+      },
+    ],
+    []
+  )
+
   return (
-    <Div fontSize={[0, 0, 1]}>
-      <TopRow gridGap={['1px', '10px']} p={2}>
-        <Div bold>Source</Div>
-        <Div bold>Destination</Div>
-        <Div bold justifySelf={'end'}>
-          Pending Amount
-        </Div>
-        <Div bold justifySelf={'end'} mb={1}>
-          Available Liquidity
-        </Div>
-      </TopRow>
-
-      {fetchingPendingAmounts ? (
-        <Div>Loading</Div>
-      ) : (
-        pendingAmounts?.map(item => {
-          return (
-            <GridCells px={[3, 2]} py={[1, 2]}>
-              <Div justifySelf="center">
-                <IconStat src={item.sourceNetwork.imageUrl} data={''} />
-              </Div>
-              <Div justifySelf="center">
-                <IconStat src={item.destinationNetwork.imageUrl} data={''} />
-              </Div>
-
-              <Flex alignCenter>
-                <Icon mr={[1, 2]} src={item.token.imageUrl} width={[12, 24]} />
-                {commafy(item.formattedPendingAmount)}
-              </Flex>
-
-              <Flex alignCenter>
-                <SpacedTokenAmount
-                  symbol={item.token.symbol}
-                  amount={toTokenDisplay(item.availableLiquidity, item.token.decimals)}
-                />
-              </Flex>
-            </GridCells>
-          )
-        })
-      )}
+    <Div fontSize={[0, 1, 2]}>
+      <SortableTable
+        stats={pendingAmounts}
+        columns={columns}
+        populateDataFn={populatePendingAmountStats}
+      />
     </Div>
   )
 }

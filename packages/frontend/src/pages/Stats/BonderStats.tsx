@@ -1,79 +1,103 @@
-import React, { FC } from 'react'
-import styled from 'styled-components/macro'
+import React from 'react'
 import { useStats } from 'src/pages/Stats/StatsContext'
-import { commafy } from 'src/utils'
+import { Div, Flex, Icon } from 'src/components/ui'
+import { RightAlignedValue, SortableTable } from 'src/components/Table'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
-import { Loading } from 'src/components/Loading'
-import { Div, Icon } from 'src/components/ui'
-import { GridContainer } from 'src/components/Grid'
 
-export const TopRow = styled(GridContainer)`
-  grid-template-columns: 1fr 1fr repeat(6, 2.75fr) 2fr;
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr 1fr repeat(5, 3fr) 2fr;
+export const populateBonderStats = (item: any) => {
+  return {
+    chain: item.network.imageUrl,
+    token: item.token.imageUrl,
+    bonder: item.bonder,
+    credit: item.credit,
+    debit: item.debit,
+    availableLiquidity: item.availableLiquidity,
+    pendingAmount: item.pendingAmount,
+    totalAmount: item.totalAmount,
+    availableEth: item.availableEth,
   }
-  justify-items: center;
-  text-align: center;
-  gap: 3px;
-`
+}
 
-const GridCells = styled(TopRow)`
-  border-top: 1px solid #ababab;
-  justify-items: end;
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.action.hover};
-  }
-`
-const BonderStats: FC = () => {
+function BonderStats() {
   const { bonderStats, fetchingBonderStats } = useStats()
 
-  return (
-    <Div fontSize={['8px', 0, 1]}>
-      <TopRow gridGap={['1px', '10px']} p={[1, 2]}>
-        <Div bold justifySelf={'center'}>
-          Chain
-        </Div>
-        <Div bold justifySelf={'center'}>
-          Token
-        </Div>
-        <Div bold justifySelf={'center'} display={['none', 'block']}>
-          Bonder
-        </Div>
-        <Div bold>Credit</Div>
-        <Div bold>Debit</Div>
-        <Div bold>Available Liquidity</Div>
-        <Div bold>Pending Amount</Div>
-        <Div bold>Total Amount</Div>
-        <Div bold mb={1} textAlign="right" justifySelf={'end'}>
-          Available ETH
-        </Div>
-      </TopRow>
+  const columns = React.useMemo(
+    () => [
+      {
+        Header: 'Bonder Stats',
+        columns: [
+          {
+            Header: 'Chain',
+            accessor: 'chain',
+            Cell: ({ cell }) => {
+              return (
+                <Flex justifyCenter {...cell.getCellProps()}>
+                  <Icon src={cell.value} width={[12, 18]} />
+                </Flex>
+              )
+            },
+          },
+          {
+            Header: 'Token',
+            accessor: 'token',
+            Cell: ({ cell }) => {
+              return (
+                <Flex justifyCenter {...cell.getCellProps()}>
+                  <Icon src={cell.value} width={[12, 18]} />
+                </Flex>
+              )
+            },
+          },
+          {
+            Header: 'Bonder',
+            accessor: 'bonder',
+            Cell: ({ cell }) => {
+              return (
+                <Flex justifyCenter {...cell.getCellProps()}>
+                  <CopyEthAddress value={cell.value} />
+                </Flex>
+              )
+            },
+          },
+          {
+            Header: 'Credit',
+            accessor: 'credit',
+            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
+          },
+          {
+            Header: 'Debit',
+            accessor: 'debit',
+            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
+          },
+          {
+            Header: 'Available Liquidity',
+            accessor: 'availableLiquidity',
+            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
+          },
+          {
+            Header: 'Pending Amount',
+            accessor: 'pendingAmount',
+            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
+          },
+          {
+            Header: 'Total Amount',
+            accessor: 'totalAmount',
+            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
+          },
+          {
+            Header: 'Available ETH',
+            accessor: 'availableEth',
+            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
+          },
+        ],
+      },
+    ],
+    []
+  )
 
-      {fetchingBonderStats ? (
-        <Loading />
-      ) : (
-        bonderStats?.map(item => {
-          return (
-            <GridCells gridGap={['1px', '10px']} p={[1, 2]}>
-              <Div justifySelf={'center'}>
-                <Icon src={item.network.imageUrl} width={[9, 18]} />
-              </Div>
-              <Div justifySelf={'center'}>
-                <Icon src={item.token.imageUrl} width={[9, 18]} />
-              </Div>
-              <Div display={['none', 'block']}>
-                <CopyEthAddress value={item.bonder} />
-              </Div>
-              <Div>{commafy(item.credit)}</Div>
-              <Div>{commafy(item.debit)}</Div>
-              <Div>{commafy(item.availableLiquidity)}</Div>
-              <Div>{commafy(item.pendingAmount)}</Div>
-              <Div>{commafy(item.totalAmount)}</Div>
-              <Div>{commafy(item.availableEth)}</Div>
-            </GridCells>
-          )
-        })
-      )}
+  return (
+    <Div fontSize={[0, 1, 2]}>
+      <SortableTable stats={bonderStats} columns={columns} populateDataFn={populateBonderStats} />
     </Div>
   )
 }

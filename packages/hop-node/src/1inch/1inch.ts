@@ -246,10 +246,15 @@ export async function swap (input: SwapInput) {
   let amount: string
   const isFromNative = nativeChainTokens[chain] === fromToken
   const isToNative = nativeChainTokens[chain] === toToken
+  const canonicalFromTokenSymbol = getCanonicalTokenSymbol(fromToken)
+  const canonicalToTokenSymbol = getCanonicalTokenSymbol(toToken)
+  const fromDecimals = getTokenDecimals(canonicalFromTokenSymbol)
+  const toDecimals = getTokenDecimals(canonicalToTokenSymbol)
+
   if (max) {
     if (isFromNative) {
       amount = (await wallet.getBalance()).toString()
-      formattedAmount = Number(formatUnits(amount.toString(), getTokenDecimals(fromToken)))
+      formattedAmount = Number(formatUnits(amount.toString(), fromDecimals))
     } else {
       const tokenContracts = contracts.get(fromToken, chain)
       if (!tokenContracts) {
@@ -263,21 +268,21 @@ export async function swap (input: SwapInput) {
       }
 
       amount = (await token.getBalance()).toString()
-      formattedAmount = Number(formatUnits(amount.toString(), getTokenDecimals(fromToken)))
+      formattedAmount = Number(formatUnits(amount.toString(), fromDecimals))
     }
   } else {
-    amount = parseUnits(formattedAmount.toString(), getTokenDecimals(fromToken)).toString()
+    amount = parseUnits(formattedAmount.toString(), fromDecimals).toString()
   }
 
   logger.debug('chain:', chain)
   logger.debug('fromToken:', fromToken)
   logger.debug('toToken:', toToken)
+  logger.debug('canonicalFromTokenSymbol:', canonicalFromTokenSymbol)
+  logger.debug('canonicalToTokenSymbol:', canonicalToTokenSymbol)
   logger.debug('amount:', formattedAmount)
   logger.debug('slippage:', slippage)
   logger.debug('dryMode:', !!dryMode)
 
-  const canonicalFromTokenSymbol = getCanonicalTokenSymbol(fromToken)
-  const canonicalToTokenSymbol = getCanonicalTokenSymbol(toToken)
   const fromTokenConfig = (mainnetAddresses as any).bridges?.[canonicalFromTokenSymbol]?.[chain]
   const toTokenConfig = (mainnetAddresses as any).bridges?.[canonicalToTokenSymbol]?.[chain]
   let fromTokenAddress = fromTokenConfig?.l1CanonicalToken || fromTokenConfig?.l2CanonicalToken
@@ -302,7 +307,7 @@ export async function swap (input: SwapInput) {
   logger.debug('checking allowance')
   const tokenAddress = fromTokenAddress
   const allowance = await oneInch.getAllowance({ tokenAddress, walletAddress })
-  logger.debug('allowance:', formatUnits(allowance, getTokenDecimals(fromToken)))
+  logger.debug('allowance:', formatUnits(allowance, fromDecimals))
 
   if (BigNumber.from(allowance).lt(amount)) {
     const txData = await oneInch.getApproveTx({ tokenAddress, amount })
@@ -320,7 +325,7 @@ export async function swap (input: SwapInput) {
 
   logger.debug('checking quote')
   const toTokenAmount = await oneInch.getQuote({ fromTokenAddress, toTokenAddress, amount })
-  const toTokenAmountFormatted = formatUnits(toTokenAmount, getTokenDecimals(toToken))
+  const toTokenAmountFormatted = formatUnits(toTokenAmount, toDecimals)
   logger.debug(`toTokenAmount: ${toTokenAmountFormatted}`)
 
   logger.debug('getting swap data')

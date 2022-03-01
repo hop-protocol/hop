@@ -158,6 +158,47 @@ describe('GasBoostSigner', () => {
     expect(errMsg).toBe('NonceTooLow')
     expect(signer.nonce).toBe(nonce + 1)
   }, 10 * 60 * 1000)
+  it.skip('reorg test', async () => {
+    const chain = 'gnosis'
+    const provider = getRpcProvider(chain)
+    expectDefined(provider)
+    expectDefined(privateKey)
+    const store = new MemoryStore()
+    const signer = new GasBoostSigner(privateKey, provider, store, {
+      timeTilBoostMs: 5 * 1000,
+      reorgWaitConfirmations: 2
+    })
+    const recipient = await signer.getAddress()
+    const tx = await signer.sendTransaction({
+      to: recipient,
+      value: '0'
+    })
+    let confirmed = false
+    ;(tx as GasBoostTransaction).on('confirmed', (tx: any) => {
+      confirmed = true
+    })
+    await tx.wait()
+    expect(confirmed).toBeTruthy()
+
+    // set invalid tx hash after confirmation to simulate reorg
+    const reorgedTxHash = '0x9999999999999999999999999999999999999999999999999999999999999999'
+    ;(tx as GasBoostTransaction).txHash = reorgedTxHash
+
+    // a new nonce is needed to send a rebroadcast tx but in practice
+    // the same nonce would be reused
+    ;(tx as GasBoostTransaction).originalTxParams.nonce = tx.nonce + 1
+
+    let reorged = false
+    ;(tx as GasBoostTransaction).on('reorg', (txHash: string) => {
+      reorged = true
+      expect(txHash).toBe(reorgedTxHash)
+    })
+    await wait(20 * 1000)
+    expect(reorged).toBeTruthy()
+    const receipt = await await tx.wait()
+    expect((tx as GasBoostTransaction).txHash).toBeTruthy()
+    expect((tx as GasBoostTransaction).txHash).not.toBe(reorgedTxHash)
+  }, 10 * 60 * 1000)
 })
 
 describe('GasBoostTransaction', () => {

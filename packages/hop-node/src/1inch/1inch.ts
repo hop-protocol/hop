@@ -101,9 +101,7 @@ class OneInch {
       throw new Error('expected tx data')
     }
 
-    const { toTokenAmount } = result
-
-    return toTokenAmount
+    return result
   }
 
   async getAllowance (params: AllowanceParams) {
@@ -220,6 +218,9 @@ type SwapInput = {
   dryMode: boolean
 }
 
+// 1inch uses 0xeee…eee address for native tokens (eth, matic, xdai, etc)
+const nativeTokenAddress = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+
 export async function swap (input: SwapInput) {
   let {
     chain,
@@ -288,12 +289,11 @@ export async function swap (input: SwapInput) {
   let fromTokenAddress = fromTokenConfig?.l1CanonicalToken || fromTokenConfig?.l2CanonicalToken
   let toTokenAddress = toTokenConfig?.l1CanonicalToken || toTokenConfig?.l2CanonicalToken
 
-  // 1inch uses 0xeee…eee address for native tokens
   if (isFromNative) {
-    fromTokenAddress = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+    fromTokenAddress = nativeTokenAddress
   }
   if (isToNative) {
-    toTokenAddress = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+    toTokenAddress = nativeTokenAddress
   }
 
   if (!fromTokenAddress) {
@@ -324,11 +324,21 @@ export async function swap (input: SwapInput) {
   }
 
   logger.debug('checking quote')
-  const toTokenAmount = await oneInch.getQuote({ fromTokenAddress, toTokenAddress, amount })
-  const toTokenAmountFormatted = formatUnits(toTokenAmount, toDecimals)
-  logger.debug(`toTokenAmount: ${toTokenAmountFormatted}`)
 
+  const oneFromToken = parseUnits('1', fromDecimals).toString()
+  const quote = await oneInch.getQuote({ fromTokenAddress, toTokenAddress, amount: oneFromToken })
+  const { toTokenAmount, fromTokenAmount } = await oneInch.getQuote({ fromTokenAddress, toTokenAddress, amount })
+  const toTokenAmountFormatted = formatUnits(toTokenAmount, toDecimals)
+  const ratio1 = Number(formatUnits(quote.fromTokenAmount, fromDecimals)) / Number(formatUnits(quote.toTokenAmount, toDecimals))
+  const ratio2 = Number(formattedAmount) / Number(toTokenAmountFormatted)
+  const calculatedSlippage = Number(((ratio2 / ratio1) / 100).toFixed(4))
+  if (calculatedSlippage > slippage) {
+    throw new Error(`calculated slippage is too high (${calculatedSlippage})`)
+  }
+
+  logger.debug(`toTokenAmount: ${toTokenAmountFormatted}`)
   logger.debug('getting swap data')
+
   const fromAddress = walletAddress
   const txData = await oneInch.getSwapTx({ fromTokenAddress, toTokenAddress, fromAddress, amount, slippage, destReceiver: recipient })
   logger.debug('swap data:', txData)

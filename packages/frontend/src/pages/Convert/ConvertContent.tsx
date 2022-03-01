@@ -105,8 +105,7 @@ const ConvertContent: FC = () => {
     approveTokens()
   }
 
-  const sendableWarning = !warning || (warning as any)?.startsWith('Warning: High Price Impact!')
-
+  const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
   const sendButtonActive =
     validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error
 

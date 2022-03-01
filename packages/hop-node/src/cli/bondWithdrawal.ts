@@ -1,4 +1,5 @@
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
+import { Chain } from 'src/constants'
 import {
   findWatcher,
   getWatchers
@@ -9,7 +10,6 @@ import { actionHandler, parseBool, parseString, root } from './shared'
 root
   .command('bond-withdrawal')
   .description('Bond withdrawal')
-  .option('--source-chain <slug>', 'Source chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
   .option('--transfer-id <id>', 'Transfer ID', parseString)
   .option(
@@ -20,10 +20,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { sourceChain: chain, token, dry: dryMode, transferId } = source
-  if (!chain) {
-    throw new Error('chain is required')
-  }
+  const { token, dry: dryMode, transferId } = source
   if (!token) {
     throw new Error('token is required')
   }
@@ -37,7 +34,7 @@ async function main (source: any) {
     dryMode
   })
 
-  const watcher = findWatcher(watchers, BondWithdrawalWatcher, chain) as BondWithdrawalWatcher
+  const watcher = findWatcher(watchers, BondWithdrawalWatcher) as BondWithdrawalWatcher
   if (!watcher) {
     throw new Error('watcher not found')
   }

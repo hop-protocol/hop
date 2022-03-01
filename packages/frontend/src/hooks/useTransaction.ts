@@ -50,6 +50,8 @@ export const sigHashes = {
   '0x0f7aadb7': 'withdraw', // L2 -> L2 / L2 -> L1 (bonder offline)
   '0x3d12a85a': 'bondWithdrawalAndDistribute',
   '0xcc29a306': 'distribute',
+  // Gnosis Safe
+  "0x6a761202": "execTransaction",
 }
 
 const initialState: TxState = {

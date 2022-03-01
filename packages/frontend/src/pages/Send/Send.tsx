@@ -39,6 +39,7 @@ import {
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
+import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -69,6 +70,7 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
   const [manualWarning, setManualWarning] = useState<string>('')
+  const isSmartContractWallet = useIsSmartContractWallet()
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -258,14 +260,18 @@ const Send: FC = () => {
   useEffect(() => {
     let message = noLiquidityWarning || minimumSendWarning
 
+    const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
+    const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
+    const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
+
     if (sufficientBalanceWarning) {
       message = sufficientBalanceWarning
     } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
       message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Estimated received too low. Send a higher amount to cover the fees.'
-    } else if (priceImpact && priceImpact !== 100 && (priceImpact >= 1 || priceImpact <= -1)) {
-      message = `Warning: High Price Impact! ${commafy(priceImpact)}%`
+    } else if (showPriceImpactWarning) {
+      message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
     }
 
     setWarning(message)
@@ -275,6 +281,8 @@ const Send: FC = () => {
     sufficientBalanceWarning,
     estimatedReceived,
     priceImpact,
+    fromTokenAmount,
+    toTokenAmount
   ])
 
   useEffect(() => {
@@ -562,7 +570,16 @@ const Send: FC = () => {
         styles={styles}
         customRecipient={customRecipient}
         handleCustomRecipientInput={handleCustomRecipientInput}
+        isOpen={isSmartContractWallet}
       />
+
+      <div className={styles.smartContractWalletWarning}>
+        <Alert severity="warning">{
+          isSmartContractWallet 
+            ? 'The connected account is detected to be a smart contract wallet. Please provide a custom recipient to proceed with this transaction.' 
+            : ''}
+        </Alert>
+      </div>
 
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
@@ -595,6 +612,7 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
       <Alert severity="warning">{manualWarning}</Alert>
+      
 
       <ButtonsWrapper>
         {!sendButtonActive && (

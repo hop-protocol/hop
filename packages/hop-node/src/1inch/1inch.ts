@@ -8,7 +8,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import serializeQueryParams from 'src/utils/serializeQueryParams'
 import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, nativeChainTokens } from 'src/constants'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
@@ -309,7 +309,7 @@ export async function swap (input: SwapInput) {
     logger.debug('approval data:', txData)
 
     if (dryMode) {
-      logger.debug('dryMode enabled, skipping approve tx')
+      logger.warn(`dry: ${dryMode}, skipping approve tx`)
     } else {
       logger.debug('sending approve tx')
       const tx = await wallet.sendTransaction(txData)
@@ -329,19 +329,11 @@ export async function swap (input: SwapInput) {
   logger.debug('swap data:', txData)
 
   if (dryMode) {
-    logger.debug('dryMode enabled, skipping swap tx')
+    logger.warn(`dry: ${dryMode}, skipping dex swap tx`)
   } else {
     logger.debug('sending swap tx')
     const tx = await wallet.sendTransaction(txData)
     logger.debug('swap tx:', tx.hash)
     return tx
   }
-}
-
-const nativeChainTokens: Record<string, string> = {
-  ethereum: 'ETH',
-  arbitrum: 'ETH',
-  optimism: 'ETH',
-  polygon: 'MATIC',
-  gnosis: 'XDAI'
 }

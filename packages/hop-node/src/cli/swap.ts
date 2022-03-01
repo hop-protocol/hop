@@ -5,7 +5,7 @@ import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import isHToken from 'src/utils/isHToken'
 import wallets from 'src/wallets'
 import { BigNumber, utils as ethersUtils } from 'ethers'
-import { Chain, TokenIndex } from 'src/constants'
+import { Chain, TokenIndex, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 
 import { swap as oneInchSwap } from 'src/1inch'
@@ -15,9 +15,7 @@ root
   .description('Swap tokens on Uniswap or via Hop AMM')
   .option('--chain <slug>', 'Chain', parseString)
   .option('--from <symbol>', 'From token', parseString)
-  .option('--from-native [boolean]', 'From native token', parseBool)
   .option('--to <symbol>', 'To token', parseString)
-  .option('--to-native [boolean]', 'To native token', parseBool)
   .option('--amount <number>', 'From token amount (in human readable format)', parseNumber)
   .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
   .option('--deadline <seconds>', 'Deadline in seconds', parseNumber)
@@ -44,8 +42,8 @@ async function main (source: any) {
   if (!max && !amount) {
     throw new Error('"max" or "amount" is required')
   }
-  const fromNative = fromToken === chainNativeTokens[chain]
-  const toNative = toToken === chainNativeTokens[chain]
+  const fromNative = fromToken === nativeChainTokens[chain]
+  const toNative = toToken === nativeChainTokens[chain]
   if (fromToken === toToken) {
     throw new Error('from-token and to-token cannot be the same')
   }
@@ -66,7 +64,11 @@ async function main (source: any) {
       }
       logger.debug('wrapping token')
       const parsedAmount = ethersUtils.parseEther(amount.toString())
-      tx = await wrapToken(chain, parsedAmount)
+      if (dryMode) {
+        logger.warn(`dry: ${dryMode}, skipping wrap tx`)
+      } else {
+        tx = await wrapToken(chain, parsedAmount)
+      }
     } else if (isWrapperWithdrawal) {
       const validTokens = isValidChainWrapTokens(chain, toToken, fromToken)
       if (!validTokens) {
@@ -74,7 +76,11 @@ async function main (source: any) {
       }
       logger.debug('unwrapping token')
       const parsedAmount = ethersUtils.parseEther(amount.toString())
-      tx = await unwrapToken(chain, parsedAmount)
+      if (dryMode) {
+        logger.warn(`dry: ${dryMode}, skipping unwrap tx`)
+      } else {
+        tx = await unwrapToken(chain, parsedAmount)
+      }
     }
   } else if (isAmmSwap) {
     logger.debug('L2 AMM swap')
@@ -93,10 +99,14 @@ async function main (source: any) {
     if (fromNative) {
       logger.debug(`wrapping ${fromToken}`)
       const parsedAmount = ethersUtils.parseEther(amount.toString())
-      const wrapTx = await wrapToken(chain, parsedAmount)
-      logger.debug(`swap tx: ${wrapTx.hash}`)
-      logger.debug('waiting for wrap tx confirmation')
-      await wrapTx.wait()
+      if (dryMode) {
+        logger.warn(`dry: ${dryMode}, skipping swap wrap tx`)
+      } else {
+        const wrapTx = await wrapToken(chain, parsedAmount)
+        logger.debug(`swap tx: ${wrapTx.hash}`)
+        logger.debug('waiting for wrap tx confirmation')
+        await wrapTx.wait()
+      }
       fromToken = fromTokenCanonicalSymbol
     }
 
@@ -141,14 +151,22 @@ async function main (source: any) {
 
     logger.debug('checking approval')
     const spender = amm.address
-    tx = await token.approve(spender, amountIn)
-    if (tx) {
-      logger.info(`approval tx: ${tx.hash}`)
-      await tx?.wait()
+    if (dryMode) {
+      logger.warn(`dry: ${dryMode}, skipping swap approval tx`)
+    } else {
+      tx = await token.approve(spender, amountIn)
+      if (tx) {
+        logger.info(`approval tx: ${tx.hash}`)
+        await tx?.wait()
+      }
     }
 
     logger.debug(`attempting to swap ${l2Bridge.formatUnits(amountIn)} ${fromToken} for at least ${l2Bridge.formatUnits(minAmountOut)} ${toToken}`)
-    tx = await amm.swap(fromTokenIndex, toTokenIndex, amountIn, minAmountOut, deadlineBn)
+    if (dryMode) {
+      logger.warn(`dry: ${dryMode}, skipping swap tx`)
+    } else {
+      tx = await amm.swap(fromTokenIndex, toTokenIndex, amountIn, minAmountOut, deadlineBn)
+    }
 
     logger.info(`swap tx: ${tx.hash}`)
 
@@ -158,16 +176,20 @@ async function main (source: any) {
         if (event.event === 'TokenSwap') {
           logger.debug(`unwrapping ${toToken}`)
           const parsedAmount = event.args.tokensBought
-          const unwrapTx = await unwrapToken(chain, parsedAmount)
-          logger.debug('waiting for unwrap tx confirmation')
-          await unwrapTx.wait()
-          tx = unwrapTx
+          if (dryMode) {
+            logger.warn(`dry: ${dryMode}, skipping swap unwrap tx`)
+          } else {
+            const unwrapTx = await unwrapToken(chain, parsedAmount)
+            logger.debug('waiting for unwrap tx confirmation')
+            await unwrapTx.wait()
+            tx = unwrapTx
+          }
           break
         }
       }
     }
   } else {
-    logger.debug('uniswap swap')
+    logger.debug('dex swap')
     tx = await oneInchSwap({
       chain,
       fromToken,
@@ -179,21 +201,24 @@ async function main (source: any) {
       dryMode
     })
   }
+
   if (dryMode) {
     logger.log('done')
-    return
+  } else {
+    if (!tx) {
+      throw new Error('tx object not received')
+    }
+    if (tx) {
+      logger.info(`swap tx: ${tx.hash}`)
+      logger.log('waiting for receipt')
+      const receipt = await tx.wait()
+      const success = receipt.status === 1
+      if (!success) {
+        throw new Error('status not successful')
+      }
+      logger.log('success')
+    }
   }
-  if (!tx) {
-    throw new Error('tx object not received')
-  }
-  logger.info(`swap tx: ${tx.hash}`)
-  logger.log('waiting for receipt')
-  const receipt = await tx.wait()
-  const success = receipt.status === 1
-  if (!success) {
-    throw new Error('status not successful')
-  }
-  logger.log('success')
 }
 
 async function wrapToken (chain: string, parsedAmount: BigNumber) {
@@ -230,7 +255,7 @@ function isWrappedToken (token: string) {
 }
 
 function isValidChainWrapTokens (chain: string, nativeToken: string, wrappedToken: string) {
-  return chainNativeTokens[chain] === nativeToken && nativeToWrappedNative[nativeToken] === wrappedToken
+  return nativeChainTokens[chain] === nativeToken && nativeToWrappedNative[nativeToken] === wrappedToken
 }
 
 const wrappedTokenAddresses: Record<string, string> = {
@@ -251,12 +276,4 @@ const nativeToWrappedNative: Record<string, string> = {
   ETH: 'WETH',
   MATIC: 'WMATIC',
   XDAI: 'WXDAI'
-}
-
-const chainNativeTokens: Record<string, string> = {
-  ethereum: 'ETH',
-  optimism: 'ETH',
-  arbitrum: 'ETH',
-  polygon: 'MATIC',
-  gnosis: 'XDAI'
 }

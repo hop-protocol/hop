@@ -6,7 +6,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import { formatEther, parseEther } from 'ethers/lib/utils'
 import {
@@ -167,7 +167,7 @@ async function sendTokens (
   isHToken: boolean,
   shouldSendMax: boolean
 ) {
-  const isFromNative = chainNativeTokens[fromChain] === token
+  const isFromNative = nativeChainTokens[fromChain] === token
 
   if (!amount && !shouldSendMax) {
     throw new Error('max flag or amount is required. E.g. 100')
@@ -266,12 +266,4 @@ async function sendTokens (
   balance = await (isFromNative ? wallet.getBalance() : tokenClass.getBalance())
   logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
   logger.debug('tokens should arrive at destination in 5-15 minutes')
-}
-
-const chainNativeTokens: Record<string, string> = {
-  ethereum: 'ETH',
-  optimism: 'ETH',
-  arbitrum: 'ETH',
-  polygon: 'MATIC',
-  gnosis: 'XDAI'
 }

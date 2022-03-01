@@ -20,7 +20,6 @@ type Config = {
   bridgeContract: L1BridgeContract | L2BridgeContract
   label: string
   dryMode?: boolean
-  stateUpdateAddress?: string
 }
 
 class BondWithdrawalWatcher extends BaseWatcher {
@@ -34,8 +33,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logColor: 'green',
       isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode,
-      stateUpdateAddress: config.stateUpdateAddress
+      dryMode: config.dryMode
     })
 
     const fees = globalConfig?.fees?.[this.tokenSymbol]
@@ -153,9 +151,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    await this.handleStateSwitch()
-    if (this.isDryOrPauseMode) {
-      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping bondWithdrawalWatcher`)
+    if (this.dryMode) {
+      logger.warn(`dry: ${this.dryMode}, skipping bondWithdrawalWatcher`)
       return
     }
 

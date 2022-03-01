@@ -9,6 +9,14 @@ export function getTokenImage(tokenSymbol: string) {
   return token.image
 }
 
+export function getTokenDecimals(tokenSymbol: string) {
+  const token = metadata.tokens[tokenSymbol]
+  if (!token) {
+    throw new Error(`could not find token: ${tokenSymbol}`)
+  }
+  return token.decimals
+}
+
 export function getTokenByAddress(network: string, address?: string): TokenSymbol | undefined {
   for (const token in addresses.tokens) {
     const networkContracts = addresses.tokens[token][network]

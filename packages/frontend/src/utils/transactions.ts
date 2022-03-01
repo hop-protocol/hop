@@ -52,6 +52,7 @@ export enum MethodNames {
   swapAndSend = 'swapAndSend',
   bondWithdrawalAndDistribute = 'bondWithdrawalAndDistribute',
   distribute = 'distribute',
+  execTransaction = 'execTransaction',
 }
 
 export enum TxType {
@@ -148,17 +149,29 @@ export interface TxDetails {
   txType?: TxType
 }
 
-export function getTxDetails(
-  response: TransactionResponse,
-  receipt: TransactionReceipt
-): TxDetails {
-  const funcSig = response.data.slice(0, 10)
+const getHopTxInfo = (response: TransactionResponse): {methodSig: string, data: string} => {
+  const txMethodSig = response.data.slice(0, 10);
+  const methodName = sigHashes[txMethodSig];
+
+  // execTransaction is the method executed when the TX was sent from a GnosisSafe.
+  if (methodName === "execTransaction") {
+    const iface = contractInterfaces.gnosisSafeExecTransactionInterface
+    const res = iface.decodeFunctionData(MethodNames.execTransaction, response.data);
+    // return original tx data
+    return { methodSig: res[2].slice(0, 10), data: res[2] };
+  } else {
+    return { methodSig: txMethodSig, data: response.data };
+  }
+};
+
+export function getTxDetails(txResponse: TransactionResponse, receipt: TransactionReceipt): TxDetails {
+  const hopTxInfo = getHopTxInfo(txResponse);
 
   // WIP: generalizing the interfaces to find a matching function signature
   const theOne: any = Object.keys(contractInterfaces).reduce((acc, key) => {
     const iface: Interface = contractInterfaces[key]
     try {
-      const func = iface.getFunction(funcSig)
+      const func = iface.getFunction(hopTxInfo.methodSig)
       const sigHash = iface.getSighash(func.name)
       return {
         func,
@@ -170,13 +183,13 @@ export function getTxDetails(
     }
   }, {})
 
-  const methodName = sigHashes[funcSig] ?? theOne?.func?.name
+  const methodName = sigHashes[hopTxInfo.methodSig] ?? theOne?.func?.name
 
   switch (methodName) {
     case MethodNames.approve: {
       const decodedData = hopBridgeTokenInterface.decodeFunctionData(
         MethodNames.approve,
-        response.data
+        hopTxInfo.data
       )
       const params = formatLogArgs(decodedData)
       return {
@@ -189,7 +202,7 @@ export function getTxDetails(
     case MethodNames.swapAndSend: {
       const decodedData = l2AmmWrapperInterface.decodeFunctionData(
         MethodNames.swapAndSend,
-        response.data
+        hopTxInfo.data
       )
 
       const params = formatLogArgs(decodedData)
@@ -212,7 +225,7 @@ export function getTxDetails(
     }
 
     case MethodNames.sendToL2: {
-      const decodedData = l1BridgeInterface.decodeFunctionData(MethodNames.sendToL2, response.data)
+      const decodedData = l1BridgeInterface.decodeFunctionData(MethodNames.sendToL2, hopTxInfo.data)
 
       const params = formatLogArgs(decodedData)
       const sentToL2Log: any = findTransferSentToL2Log(receipt?.logs)
@@ -242,7 +255,7 @@ export function getTxDetails(
         }
       }
 
-      const decodedData = theOne.iface.decodeFunctionData(funcSig, response.data)
+      const decodedData = theOne.iface.decodeFunctionData(hopTxInfo, hopTxInfo.data)
       const params = formatLogArgs(decodedData)
       let evs = {}
       const eventWithValues: any = receipt.logs.reduce((acc, log) => {
@@ -256,7 +269,7 @@ export function getTxDetails(
       }, {})
 
       return {
-        txType: TxType[sigHashes[funcSig] || 'unknown'],
+        txType: TxType[sigHashes[hopTxInfo.methodSig] || 'unknown'],
         methodName,
         params,
         eventValues: {

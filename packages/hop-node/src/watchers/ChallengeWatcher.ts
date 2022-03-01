@@ -101,9 +101,8 @@ class ChallengeWatcher extends BaseWatcher {
       return
     }
 
-    await this.handleStateSwitch()
-    if (this.isDryOrPauseMode) {
-      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping challengeTransferRootBond`)
+    if (this.dryMode) {
+      logger.warn(`dry: ${this.dryMode}, skipping challengeTransferRootBond`)
       return
     }
 

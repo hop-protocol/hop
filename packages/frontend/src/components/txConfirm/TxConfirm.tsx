@@ -9,6 +9,7 @@ import ConfirmStake from 'src/components/txConfirm/ConfirmStake'
 import WithdrawStake from 'src/components/txConfirm/WithdrawStake'
 import WrapToken from 'src/components/txConfirm/WrapToken'
 import UnwrapToken from 'src/components/txConfirm/UnwrapToken'
+import WithdrawReview from 'src/components/txConfirm/WithdrawReview'
 import { useApp } from 'src/contexts/AppContext'
 
 const TxConfirm: FC = props => {
@@ -28,6 +29,7 @@ const TxConfirm: FC = props => {
     withdrawStake: WithdrawStake,
     wrapToken: WrapToken,
     unwrapToken: UnwrapToken,
+    withdrawReview: WithdrawReview,
   }
 
   const Component: FC = components[kind]
@@ -36,7 +38,9 @@ const TxConfirm: FC = props => {
   }
 
   const handleClose = () => {
-    onConfirm(false)
+    if (onConfirm) {
+      onConfirm(false)
+    }
   }
 
   return (

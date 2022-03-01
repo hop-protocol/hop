@@ -4,11 +4,12 @@ import { getAddress } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
-import { getBonderFeeWithId } from 'src/utils'
+import { getBonderFeeWithId, WalletName } from 'src/utils'
 import { createTransaction } from 'src/utils/createTransaction'
 import { amountToBN, formatError } from 'src/utils/format'
 import { HopBridge } from '@hop-protocol/sdk'
 import { useTransactionReplacement } from 'src/hooks'
+import { getSDKInstance } from 'src/utils/gnosisSafeApp'
 
 type TransactionHandled = {
   transaction: any
@@ -49,7 +50,7 @@ export function useSendTransaction(props) {
   } = props
   const [tx, setTx] = useState<Transaction | null>(null)
   const [sending, setSending] = useState<boolean>(false)
-  const { provider, address, checkConnectedNetworkId } = useWeb3Context()
+  const { provider, address, checkConnectedNetworkId, walletName } = useWeb3Context()
   const [recipient, setRecipient] = useState<string>()
   const [signer, setSigner] = useState<Signer>()
   const [bridge, setBridge] = useState<HopBridge>()
@@ -72,13 +73,15 @@ export function useSendTransaction(props) {
   useEffect(() => {
     async function setRecipientAndBridge() {
       if (signer) {
-        const r = customRecipient || (await signer.getAddress())
-        setRecipient(r)
+        try {
+          const r = customRecipient || (await signer.getAddress())
+          setRecipient(r)
 
-        if (sourceToken) {
-          const b = sdk.bridge(sourceToken.symbol).connect(signer)
-          setBridge(b)
-        }
+          if (sourceToken) {
+            const b = sdk.bridge(sourceToken.symbol).connect(signer)
+            setBridge(b)
+          }
+        } catch (error) {}
       }
     }
 
@@ -130,6 +133,27 @@ export function useSendTransaction(props) {
       }
 
       const { transaction, txModel } = txHandled
+
+      // handle the case when HOP is being used as a Gnosis safe-app.
+      // for this case, txHash is the safeTxHash instead of the ethereum txHash
+      // in order to obtain ethereum txHash we will use safe-apps-sdk when connected wallet name is 'Gnosis Safe'
+      if (provider && walletName === WalletName.GnosisSafe) {
+        let gnosisSafeTx: any | null = null
+        const sdk = getSDKInstance()
+
+        while (gnosisSafeTx === null) {
+          await new Promise(resolve => setTimeout(resolve, 5000))
+          gnosisSafeTx = await sdk.txs.getBySafeTxHash(transaction.hash)
+
+          if (gnosisSafeTx.txHash) {
+            const opts = {
+              hash: gnosisSafeTx.txHash,
+              replaced: txModel.hash,
+            }
+            updateTransaction(txModel, opts)
+          }
+        }
+      }
 
       const sourceChain = sdk.Chain.fromSlug(fromNetwork.slug)
       const destChain = sdk.Chain.fromSlug(toNetwork.slug)
@@ -255,7 +279,7 @@ export function useSendTransaction(props) {
   }
 
   const sendl2ToL2 = async () => {
-    const tx: any = await txConfirm?.show({
+    const tx = await txConfirm?.show({
       kind: 'send',
       inputProps: {
         customRecipient,

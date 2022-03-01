@@ -103,7 +103,6 @@ async function main (source: any) {
   if (globalConfig.bonders) {
     logger.info(`config bonders: ${JSON.stringify(globalConfig.bonders)}`)
   }
-  const stateUpdateAddress = config?.stateUpdateAddress
   const { starts } = await startWatchers({
     enabledWatchers: Object.keys(config.watchers).filter(
       key => config.watchers[key]
@@ -115,7 +114,6 @@ async function main (source: any) {
     commitTransfersMinThresholdAmounts,
     settleBondedWithdrawalsThresholdPercent,
     dryMode,
-    stateUpdateAddress,
     syncFromDate,
     s3Upload,
     s3Namespace

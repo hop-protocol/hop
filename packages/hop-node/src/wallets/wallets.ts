@@ -17,14 +17,16 @@ const constructWallet = memoize(
       throw new Error('private key is required to instantiate wallet')
     }
     const provider = getRpcProvider(network)
-    const signer = new GasBoostSigner(privateKey, provider!) // eslint-disable-line
+    const signer = new GasBoostSigner(privateKey, provider!)
     const maxGasPriceGwei = getNetworkMaxGasPrice(network)
+    const { waitConfirmations: reorgWaitConfirmations } = globalConfig.networks[network]!
     signer.setOptions({
       gasPriceMultiplier,
       maxGasPriceGwei,
       minPriorityFeePerGas,
       priorityFeePerGasCap,
-      timeTilBoostMs
+      timeTilBoostMs,
+      reorgWaitConfirmations
     })
     return signer
   }

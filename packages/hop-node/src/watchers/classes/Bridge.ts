@@ -1,13 +1,16 @@
-import ContractBase from './ContractBase'
+import ContractBase, { TxOverrides } from './ContractBase'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
-import { Bridge as BridgeContract, MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
+import { BigNumber, Contract, providers } from 'ethers'
 import { Chain, SettlementGasLimitPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
 import { PriceFeed } from 'src/priceFeed'
 import { State } from 'src/db/SyncStateDb'
 import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
@@ -21,6 +24,7 @@ export type EventsBatchOptions = {
 }
 
 export type EventCb<E extends Event, R> = (event: E, i?: number) => R
+type BridgeContract = L1BridgeContract | L1ERC20BridgeContract | L2BridgeContract
 
 const priceFeed = new PriceFeed()
 
@@ -35,7 +39,6 @@ export default class Bridge extends ContractBase {
   bridgeContract: BridgeContract
   bridgeDeployedBlockNumber: number
   l1CanonicalTokenAddress: string
-  stateUpdateAddress: string
 
   constructor (bridgeContract: BridgeContract) {
     super(bridgeContract)
@@ -61,7 +64,6 @@ export default class Bridge extends ContractBase {
     }
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
-    this.stateUpdateAddress = globalConfig.stateUpdateAddress
   }
 
   async getBonderAddress (): Promise<string> {
@@ -382,8 +384,12 @@ export default class Bridge extends ContractBase {
       txOverrides
     ] as const
 
-    const tx = await this.bridgeContract.bondWithdrawal(...payload)
+    if (this.chainSlug === Chain.Ethereum) {
+      const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
+      ;(payload[payload.length - 1] as TxOverrides).gasLimit = gasLimit.add(50_000)
+    }
 
+    const tx = await this.bridgeContract.bondWithdrawal(...payload)
     return tx
   }
 
@@ -402,18 +408,35 @@ export default class Bridge extends ContractBase {
     return tx
   }
 
-  getStateUpdateStatus = async (stateUpdateAddress: string, chainId: number): Promise<number> => {
-    const abi = ['function currentState(address,uint256)']
-    const ethersInterface = new ethersUtils.Interface(abi)
-    const data = ethersInterface.encodeFunctionData(
-      'currentState', [this.l1CanonicalTokenAddress, chainId]
+  withdraw = async (
+    recipient: string,
+    amount: BigNumber,
+    transferNonce: string,
+    bonderFee: BigNumber,
+    amountOutMin: BigNumber,
+    deadline: BigNumber,
+    rootHash: string,
+    transferRootTotalAmount: BigNumber,
+    transferIdTreeIndex: number,
+    siblings: string[],
+    totalLeaves: number
+  ): Promise<providers.TransactionResponse> => {
+    const tx = await this.bridgeContract.withdraw(
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      rootHash,
+      transferRootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves,
+      await this.txOverrides()
     )
-    const tx = {
-      to: stateUpdateAddress,
-      data
-    }
-    const res: string = await this.contract.provider.call(tx)
-    return Number(res)
+
+    return tx
   }
 
   async getEthBalance (): Promise<BigNumber> {
@@ -671,7 +694,8 @@ export default class Bridge extends ContractBase {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const provider = getRpcProvider(chain)!
     let gasPrice = await provider.getGasPrice()
-    // Arbitrum returns a gasLimit & gasPriceBid of 2x what is generally paid
+    // Arbitrum returns a gasLimit & gasPriceBid that exceeds the actual used.
+    // The values change as they collect more data. 2x here is generous but they should never go under this.
     if (this.chainSlug === Chain.Arbitrum) {
       gasPrice = gasPrice.div(2)
       gasLimit = gasLimit.div(2)

@@ -1,7 +1,6 @@
 import React, { FC, useMemo, createContext, useContext } from 'react'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import User from 'src/models/User'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import useTokens from 'src/contexts/AppContext/useTokens'
@@ -20,7 +19,6 @@ type AppContextProps = {
   bridges: HopBridge[]
   selectedBridge: HopBridge
   setSelectedBridge: (bridge: HopBridge) => void
-  user?: User
   networks: Network[]
   tokens: Token[]
   events: Events
@@ -35,14 +33,6 @@ const AppContext = createContext<AppContextProps | undefined>(undefined)
 
 const AppContextProvider: FC = ({ children }) => {
   const { provider } = useWeb3Context()
-
-  const user = useMemo(() => {
-    if (!provider) {
-      return undefined
-    }
-
-    return new User(provider)
-  }, [provider])
 
   const sdk = useMemo(() => {
     return new Hop(reactAppNetwork, provider?.getSigner())
@@ -65,7 +55,6 @@ const AppContextProvider: FC = ({ children }) => {
         bridges,
         selectedBridge,
         setSelectedBridge,
-        user,
         networks,
         tokens,
         events,

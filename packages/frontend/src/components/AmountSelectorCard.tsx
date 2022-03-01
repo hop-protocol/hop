@@ -3,7 +3,6 @@ import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
-import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Skeleton from '@material-ui/lab/Skeleton'
 import { Token } from '@hop-protocol/sdk'
@@ -200,7 +199,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
       </Flex>
 
       <Flex fullWidth justifyBetween alignCenter>
-        <Flex>
+        <Flex width="50%">
           <Box className={styles.networkSelectionBox}>
             {titleIconUrl ? (
               <Box className={styles.networkIconContainer}>

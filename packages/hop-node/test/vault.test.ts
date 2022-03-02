@@ -51,6 +51,17 @@ describe.skip('Vault', () => {
     const tx = await vault.deposit(amount)
     expect(tx.hash).toBeTruthy()
   }, 60 * 1000)
+  it.skip('deposit - ETH', async () => {
+    const token = 'ETH'
+    const decimals = 18
+    const chain = Chain.Ethereum
+    const provider = getRpcProvider(chain)
+    const signer = new GasBoostSigner(privateKey!, provider!)
+    const vault = new Vault(token, signer)
+    const amount = parseUnits('0.0003', decimals)
+    const tx = await vault.deposit(amount)
+    expect(tx.hash).toBeTruthy()
+  }, 60 * 1000)
   it('withdraw', async () => {
     const token = 'USDC'
     const decimals = 6
@@ -60,6 +71,18 @@ describe.skip('Vault', () => {
     const vault = new Vault(token, signer)
     const list = await vault.yearn.services.zapper
     const amount = parseUnits('0.5', decimals)
+    const tx = await vault.withdraw(amount)
+    expect(tx.hash).toBeTruthy()
+  }, 60 * 1000)
+  it.skip('withdraw - ETH', async () => {
+    const token = 'ETH'
+    const decimals = 18
+    const chain = Chain.Ethereum
+    const provider = getRpcProvider(chain)
+    const signer = new GasBoostSigner(privateKey!, provider!)
+    const vault = new Vault(token, signer)
+    const list = await vault.yearn.services.zapper
+    const amount = parseUnits('0.00029', decimals)
     const tx = await vault.withdraw(amount)
     expect(tx.hash).toBeTruthy()
   }, 60 * 1000)

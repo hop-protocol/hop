@@ -1,4 +1,5 @@
 import React from 'react'
+import styled from 'styled-components/macro'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { Div, Flex, Icon } from 'src/components/ui'
 import { RightAlignedValue, SortableTable } from 'src/components/Table'
@@ -17,6 +18,11 @@ export const populateBonderStats = (item: any) => {
     availableEth: item.availableEth,
   }
 }
+
+const Container: any = styled(Div)<any>`
+  align-self: center;
+  overflow-x: scroll;
+`
 
 function BonderStats() {
   const { bonderStats, fetchingBonderStats } = useStats()
@@ -96,9 +102,9 @@ function BonderStats() {
   )
 
   return (
-    <Div fontSize={[0, 1, 2]} overflowX="scroll" alignSelf={'flex-start'}>
+    <Container fontSize={[0, 1, 2]}>
       <SortableTable stats={bonderStats} columns={columns} populateDataFn={populateBonderStats} />
-    </Div>
+    </Container>
   )
 }
 

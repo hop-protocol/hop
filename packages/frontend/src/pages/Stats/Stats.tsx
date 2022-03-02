@@ -4,11 +4,12 @@ import BonderStats from './BonderStats'
 import PendingAmountStats from './PendingAmountStats'
 import BalanceStats from './BalanceStats'
 import DebitWindowStats from './DebitWindowStats'
-import { Div, Flex } from 'src/components/ui'
+import { Flex } from 'src/components/ui'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 
 function Title({ text, children }: any) {
   return (
-    <Flex alignCenter fontSize={[2, 2, 3]} bold>
+    <Flex alignCenter fontSize={[2, 2, 3]} bold width="auto">
       {text || children}
     </Flex>
   )
@@ -32,24 +33,26 @@ const initialState = {
 
 const Stats: FC = () => {
   const [groups, setGroups] = useState(initialState)
+  const { isDarkMode } = useThemeMode()
 
   function toggleGroup(group) {
     setGroups(val => ({ ...val, [group]: !val[group] }))
   }
   return (
     <Flex
+      color={isDarkMode ? 'secondary.main' : 'primary.default'}
       flexDirection={['column', 'column', 'column', 'column', 'row']}
       alignItems={['center', 'center', 'center', 'center', 'flex-start']}
       fullWidth
     >
-      <Flex $wrap justifyCenter flexDirection={['column', 'column', 'row']} fullWidth>
+      <Flex $wrap justifyCenter flexDirection={['column', 'column', 'column', 'row']} fullWidth>
         <Flex $wrap justifyCenter fullWidth>
           <Group title="Pool Stats" clickTitle={() => toggleGroup('pool')} mr={[0, 2, 4]}>
             {groups.pool && <PoolStats />}
           </Group>
 
           <Flex
-            flexDirection={['row', 'row', 'column']}
+            flexDirection={['row', 'row', 'row', 'column']}
             $wrap
             alignCenter
             justifyCenter

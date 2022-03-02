@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import styled from 'styled-components'
 import { useTable, useSortBy, sortTypes } from 'react-table'
 import makeData from './makeData'
+import { Div } from '../ui'
 
 const Styles = styled.div`
   padding: 0.25rem;
@@ -25,8 +26,15 @@ const Styles = styled.div`
 
     tbody {
       > tr {
+        :first-child {
+          background-color: transparent;
+        }
+        :nth-child(odd) {
+          background-color: ${({ theme }) => theme.colors.background.contrast};
+        }
         &:hover {
           background-color: ${({ theme }) => theme.colors.action.hover};
+          color: black;
         }
       }
     }
@@ -40,6 +48,8 @@ const Styles = styled.div`
         border-right: 0;
       }
     }
+
+    transition: all 0s ease-out;
   }
 `
 
@@ -67,7 +77,7 @@ function Table({ columns, data }) {
   // const firstPageRows = rows
 
   return (
-    <>
+    <Div>
       <table {...getTableProps()}>
         <thead>
           {headerGroups.map(headerGroup => (
@@ -75,14 +85,11 @@ function Table({ columns, data }) {
               {headerGroup.headers.map(column => (
                 // Add the sorting props to control sorting. For this example
                 // we can add them into the header props
-                <th
-                  {...column.getToggleHiddenProps()}
-                  {...column.getHeaderProps(column.getSortByToggleProps())}
-                >
+                <th {...column.getHeaderProps(column.getSortByToggleProps())}>
                   {column.render('Header')}
                   {/* Add a sort direction indicator */}
                   <span style={{ color: '#B32EFF' }}>
-                    {column.isSorted ? (column.isSortedDesc ? ' ↓' : ' ↑') : ''}
+                    {column.isSorted ? (column.isSortedDesc ? ' ↑' : ' ↓') : ''}
                   </span>
                 </th>
               ))}
@@ -102,7 +109,7 @@ function Table({ columns, data }) {
           })}
         </tbody>
       </table>
-    </>
+    </Div>
   )
 }
 

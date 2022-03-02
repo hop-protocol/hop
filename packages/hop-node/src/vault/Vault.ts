@@ -49,6 +49,9 @@ export class Vault {
   decimals: number
 
   constructor (token: string, signer: any) {
+    if (!addresses[token]) {
+      throw new Error('token is not supported')
+    }
     this.token = token
     const chain = Chain.Ethereum
     const chainId: any = chainSlugToId(chain)

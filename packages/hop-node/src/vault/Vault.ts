@@ -8,6 +8,8 @@ import { Provider as EthersProvider } from '@ethersproject/abstract-provider'
 import { Yearn } from '@yfi/sdk'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
+const EthAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+const WethAddress = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
 const addresses: Record<string, any> = {
   USDC: {
     token: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -22,7 +24,7 @@ const addresses: Record<string, any> = {
     vault: '0xdA816459F1AB5631232FE5e97a05BBBb94970c95'
   },
   ETH: {
-    token: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH
+    token: EthAddress,
     vault: '0xa258C4606Ca8206D8aA700cE2143D7db854D168c'
   },
   zapIn: '0x92Be6ADB6a12Da0CA607F9d87DB2F9978cD6ec3E',
@@ -148,6 +150,13 @@ export class Vault {
   async withdraw (amount: BigNumber) {
     const account = await this.signer.getAddress()
     const { token, vault } = addresses[this.token]
+    const needsApproval = await this.needsWithdrawalApproval(amount)
+    if (needsApproval) {
+      console.log('needs approval; sending approval tx')
+      const tx = await this.approveWithdrawal()
+      console.log('approval tx:', tx.hash)
+      await tx.wait()
+    }
     console.log('attempting to withdraw')
     const tx = await this.yearn.vaults.withdraw(vault, token, amount.toString(), account, {
       slippage: this.slippage
@@ -171,6 +180,9 @@ export class Vault {
   async needsDepositApproval (amount: BigNumber = constants.MaxUint256) {
     const account = await this.signer.getAddress()
     const { token, vault } = addresses[this.token]
+    if (token === EthAddress) {
+      return false
+    }
     const contract = this.getErc20(token)
     const allowance = await contract.allowance(account, vault)
     const needsApproval = allowance.lt(amount)
@@ -180,6 +192,9 @@ export class Vault {
   async needsWithdrawalApproval (amount: BigNumber = constants.MaxUint256) {
     const account = await this.signer.getAddress()
     const { token, vault } = addresses[this.token]
+    if (token !== EthAddress) {
+      return false
+    }
     const contract = this.getErc20(vault)
     const zapAddress = addresses.zapOut
     const allowance = await contract.allowance(account, zapAddress)

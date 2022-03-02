@@ -973,10 +973,6 @@ async function updateTransfers () {
     })
   }
 
-  for (const x of data) {
-    x.bonded = x.sourceChain === 1
-  }
-
   data = data.sort((a, b) => b.timestamp - a.timestamp)
   startTime = data.length ? data[data.length - 1].timestamp : 0
   endTime = data.length ? data[0].timestamp : 0
@@ -1171,6 +1167,11 @@ function populateTransfer (x, i) {
   x.bonderTruncated = truncateAddress(x.bonder)
   x.bonderUrl = x.bonder ? explorerLinkAddress(x.destinationChainSlug, x.bonder) : ''
   x.bondTransactionHashTruncated = x.bondTransactionHash ? truncateHash(x.bondTransactionHash) : ''
+
+  x.receiveStatusUnknown = x.sourceChain === 1 && !x.bondTxExplorerUrl && luxon.DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
+  if (x.receiveStatusUnknown) {
+    x.bonded = true
+  }
 
   if (x.bondedTimestamp) {
     const bondedTime = luxon.DateTime.fromSeconds(x.bondedTimestamp)

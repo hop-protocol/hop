@@ -227,7 +227,7 @@ might not reflect the latest state.
                       Received
                     </span>
                   </a>
-                  <span v-if="!x.bondTxExplorerUrl" class="no">
+                  <span v-if="!x.receiveStatusUnknown && !x.bondTxExplorerUrl" class="no">
                     <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
                     Pending
                   </span>

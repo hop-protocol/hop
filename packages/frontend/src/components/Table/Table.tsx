@@ -4,7 +4,7 @@ import { useTable, useSortBy, sortTypes } from 'react-table'
 import makeData from './makeData'
 
 const Styles = styled.div`
-  padding: 1rem;
+  padding: 0.25rem;
 
   table {
     border-spacing: 0;
@@ -44,7 +44,16 @@ const Styles = styled.div`
 `
 
 function Table({ columns, data }) {
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow, state, setHiddenColumns, ...rest } = useTable(
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow,
+    state,
+    setHiddenColumns,
+    ...rest
+  } = useTable(
     {
       columns,
       data,
@@ -52,7 +61,6 @@ function Table({ columns, data }) {
     },
     useSortBy
   )
-
 
   // We don't want to render all 2000 rows for this example, so cap
   // it at 20 for this use case
@@ -67,7 +75,10 @@ function Table({ columns, data }) {
               {headerGroup.headers.map(column => (
                 // Add the sorting props to control sorting. For this example
                 // we can add them into the header props
-                <th {...column.getToggleHiddenProps()} {...column.getHeaderProps(column.getSortByToggleProps())}>
+                <th
+                  {...column.getToggleHiddenProps()}
+                  {...column.getHeaderProps(column.getSortByToggleProps())}
+                >
                   {column.render('Header')}
                   {/* Add a sort direction indicator */}
                   <span style={{ color: '#B32EFF' }}>

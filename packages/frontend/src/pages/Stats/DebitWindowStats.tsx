@@ -104,7 +104,7 @@ const DebitWindowStats: FC = () => {
   )
 
   return (
-    <Div fontSize={[0, 1, 2]}>
+    <Div fontSize={[0, 1, 2]} overflowX="scroll">
       <SortableTable
         stats={debitWindowStats}
         columns={columns}

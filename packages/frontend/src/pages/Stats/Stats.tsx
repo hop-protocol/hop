@@ -16,8 +16,8 @@ function Title({ text, children }: any) {
 
 function Group({ title, children, clickTitle, ...rest }) {
   return (
-    <Flex column justifyCenter alignCenter m={[1, 2, 4]} {...rest}>
-      <Div borderRadius={'8px'}>{children}</Div>
+    <Flex justifyCenter alignCenter m={[1, 2, 4]} overflowX="scroll" {...rest}>
+      {children}
     </Flex>
   )
 }
@@ -37,50 +37,44 @@ const Stats: FC = () => {
     setGroups(val => ({ ...val, [group]: !val[group] }))
   }
   return (
-    <Flex column alignCenter fullWidth>
-      <Flex $wrap justifyCenter column fullWidth mr={[0, 0, 0, 100, 400]}>
+    <Flex
+      flexDirection={['column', 'column', 'column', 'column', 'row']}
+      alignItems={['center', 'center', 'center', 'center', 'flex-start']}
+      fullWidth
+    >
+      <Flex $wrap justifyCenter flexDirection={['column', 'column', 'row']} fullWidth>
         <Flex $wrap justifyCenter fullWidth>
           <Group title="Pool Stats" clickTitle={() => toggleGroup('pool')} mr={[0, 2, 4]}>
             {groups.pool && <PoolStats />}
           </Group>
 
           <Flex
-            flexDirection={['row', 'column']}
+            flexDirection={['row', 'row', 'column']}
             $wrap
             alignCenter
-            width={['100%', 'auto', 'auto']}
+            justifyCenter
+            width={['100%', '100%', 'auto']}
           >
             <Group title="Native Token Balances" clickTitle={() => toggleGroup('balance')}>
               {groups.balance && <BalanceStats />}
             </Group>
-            <Group
-              title="Debit Window Stats"
-              clickTitle={() => toggleGroup('debitWindow')}
-              alignSelf={['flex-start', 'flex-start', 'center']}
-            >
+            <Group title="Debit Window Stats" clickTitle={() => toggleGroup('debitWindow')}>
               {groups.debitWindow && <DebitWindowStats />}
             </Group>
           </Flex>
         </Flex>
 
-        <Group
-          title="Bonder Stats"
-          clickTitle={() => toggleGroup('bonder')}
-          alignSelf={['flex-start', 'flex-start', 'center']}
-        >
-          {groups.bonder && <BonderStats />}
-        </Group>
-
-        <Div
-          width={['100%', '100%', '100%', '100%', 'auto']}
-          position={['relative', 'relative', 'relative', 'relative', 'absolute']}
-          right={[null, null, null, null, 0, 50]}
-          top={70}
-        >
-          <Group title="Pending Amount Stats" clickTitle={() => toggleGroup('pendingAmount')}>
-            {groups.pendingAmount && <PendingAmountStats />}
+        <Flex fullWidth justifyCenter>
+          <Group title="Bonder Stats" clickTitle={() => toggleGroup('bonder')}>
+            {groups.bonder && <BonderStats />}
           </Group>
-        </Div>
+        </Flex>
+      </Flex>
+
+      <Flex width={['100%', '100%', '50%']} mr={[0, 0, 4]}>
+        <Group title="Pending Amount Stats" clickTitle={() => toggleGroup('pendingAmount')}>
+          {groups.pendingAmount && <PendingAmountStats />}
+        </Group>
       </Flex>
     </Flex>
   )

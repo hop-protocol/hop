@@ -96,7 +96,7 @@ function BonderStats() {
   )
 
   return (
-    <Div fontSize={[0, 1, 2]}>
+    <Div fontSize={[0, 1, 2]} overflowX="scroll" alignSelf={'flex-start'}>
       <SortableTable stats={bonderStats} columns={columns} populateDataFn={populateBonderStats} />
     </Div>
   )

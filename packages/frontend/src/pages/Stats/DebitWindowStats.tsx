@@ -7,14 +7,14 @@ import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Ta
 export const populateDebitWindowStats = (item: any, bonderStats, i) => {
   return {
     token: item.token.imageUrl,
-    slot0: commafy(item.amountBonded[0]),
-    slot1: commafy(item.amountBonded[1]),
-    slot2: commafy(item.amountBonded[2]),
-    slot3: commafy(item.amountBonded[3]),
-    slot4: commafy(item.amountBonded[4]),
-    slot5: commafy(item.amountBonded[5]),
+    slot0: item.amountBonded[0],
+    slot1: item.amountBonded[1],
+    slot2: item.amountBonded[2],
+    slot3: item.amountBonded[3],
+    slot4: item.amountBonded[4],
+    slot5: item.amountBonded[5],
     minutes: item.remainingMin,
-    virtualDebt: commafy(bonderStats[i]?.virtualDebt),
+    virtualDebt: bonderStats[i]?.virtualDebt,
   }
 }
 
@@ -93,7 +93,7 @@ const DebitWindowStats: FC = () => {
             accessor: 'virtualDebt',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
-                {cell.value}
+                {commafy(cell.value)}
               </CellWrapper>
             ),
           },

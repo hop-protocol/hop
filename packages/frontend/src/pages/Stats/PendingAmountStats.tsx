@@ -1,6 +1,6 @@
 import React, { FC } from 'react'
 import { useStats } from 'src/pages/Stats/StatsContext'
-import { commafy, toTokenDisplay } from 'src/utils'
+import { formatTokenDecimalString } from 'src/utils'
 import { Div, Icon } from 'src/components/ui'
 import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Table'
 
@@ -8,8 +8,9 @@ export const populatePendingAmountStats = (item: any) => {
   return {
     source: item.sourceNetwork.imageUrl,
     destination: item.destinationNetwork.imageUrl,
-    pendingAmount: commafy(item.formattedPendingAmount),
-    availableLiquidity: toTokenDisplay(item.availableLiquidity, item.token.decimals),
+    pendingAmount: item.formattedPendingAmount,
+    tokenDecimals: item.token.decimals,
+    availableLiquidity: item.availableLiquidity.toString(),
     token: item.token.imageUrl,
   }
 }
@@ -50,9 +51,21 @@ const PendingAmountStats: FC = () => {
             Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
           },
           {
+            Header: 'Token Decimals',
+            accessor: 'tokenDecimals',
+            Cell: props => {
+              props.setHiddenColumns('tokenDecimals')
+              return <Div>_</Div>
+            },
+          },
+          {
             Header: 'Available Liquidity',
             accessor: 'availableLiquidity',
-            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell} end>
+                {formatTokenDecimalString(cell.value, cell.row.values.tokenDecimals)}
+              </CellWrapper>
+            ),
           },
           {
             Header: 'Token',

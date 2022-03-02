@@ -1,8 +1,8 @@
 import React, { FC } from 'react'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { Div, Icon } from 'src/components/ui'
-import SpacedTokenAmount from './components/SpacedTokenAmount'
 import { CellWrapper, SortableTable } from 'src/components/Table'
+import { commafy } from 'src/utils'
 
 function formatRatio(item) {
   const { reserve0, reserve1 } = item
@@ -10,15 +10,15 @@ function formatRatio(item) {
   return `${div.toString().slice(0, 6)}`
 }
 
-export const populatePoolStats = (item: any) => {
+export const populatePoolStats = (item: any, extraData, i) => {
   return {
     chain: item.network.imageUrl,
-    token: item,
-    hToken: item,
-    ratio: item,
+    canonicalToken: item.reserve0,
+    hToken: item.reserve1,
+    tokenSymbol: item.token0.imageUrl,
+    ratio: formatRatio(item),
   }
 }
-
 const PoolStats: FC = () => {
   const { stats: poolStats, fetching } = useStats()
 
@@ -30,44 +30,45 @@ const PoolStats: FC = () => {
           {
             Header: 'Chain',
             accessor: 'chain',
-            Cell: ({ cell }) => {
-              return (
-                <CellWrapper cell={cell}>
-                  <Icon src={cell.value} width={[12, 18]} />
-                </CellWrapper>
-              )
-            },
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell}>
+                <Icon src={cell.value} width={[12, 18]} />
+              </CellWrapper>
+            ),
           },
           {
             Header: 'Token',
-            accessor: 'token',
-            Cell: ({ cell }) => {
-              return (
-                <CellWrapper cell={cell} end>
-                  <SpacedTokenAmount
-                    symbol={cell.value.token0.symbol}
-                    amount={cell.value.reserve0}
-                  />
-                </CellWrapper>
-              )
-            },
+            accessor: 'canonicalToken',
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell} end>
+                {commafy(cell.value)}
+              </CellWrapper>
+            ),
           },
           {
             Header: 'H Token',
             accessor: 'hToken',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
-                <SpacedTokenAmount symbol={cell.value.token1.symbol} amount={cell.value.reserve1} />
+                {commafy(cell.value)}
               </CellWrapper>
             ),
+          },
+          {
+            Header: 'Token Symbol',
+            accessor: 'tokenSymbol',
+            Cell: props => {
+              props.setHiddenColumns('tokenSymbol')
+              return <Div>_</Div>
+            },
           },
           {
             Header: 'Ratio',
             accessor: 'ratio',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell}>
-                <Icon mr={1} src={cell.value.token0.imageUrl} width={[12, 18]} />
-                <Div justifySelf="right">{formatRatio(cell.value)}</Div>
+                <Icon mr={1} src={cell.row.values.tokenSymbol} width={[12, 18]} />
+                <Div justifySelf="right">{cell.value}</Div>
               </CellWrapper>
             ),
           },
@@ -79,7 +80,12 @@ const PoolStats: FC = () => {
 
   return (
     <Div fontSize={[0, 1, 2]}>
-      <SortableTable stats={poolStats} columns={columns} populateDataFn={populatePoolStats} />
+      <SortableTable
+        stats={poolStats}
+        columns={columns}
+        populateDataFn={populatePoolStats}
+        extraData={poolStats}
+      />
     </Div>
   )
 }

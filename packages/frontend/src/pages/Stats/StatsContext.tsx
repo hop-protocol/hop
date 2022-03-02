@@ -502,7 +502,6 @@ const StatsProvider: FC = ({ children }) => {
   }, [pendingAmounts])
 
   const cols = useMemo<TableColumns[]>(() => columns, [])
-  console.log(`cols:`, cols)
 
   return (
     <StatsContext.Provider

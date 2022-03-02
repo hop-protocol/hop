@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import styled from 'styled-components'
-import { useTable, useSortBy } from 'react-table'
+import { useTable, useSortBy, sortTypes } from 'react-table'
 import makeData from './makeData'
 
 const Styles = styled.div`
@@ -8,13 +8,14 @@ const Styles = styled.div`
 
   table {
     border-spacing: 0;
-    border: 1px solid black;
     border-radius: 8px;
+    min-width: 90vw;
+
+    @media screen and (min-width: 600px) {
+      min-width: auto;
+    }
 
     tr {
-      &:hover {
-        background-color: ${({ theme }) => theme.colors.action.hover};
-      }
       :last-child {
         td {
           border-bottom: 0;
@@ -22,12 +23,18 @@ const Styles = styled.div`
       }
     }
 
+    tbody {
+      > tr {
+        &:hover {
+          background-color: ${({ theme }) => theme.colors.action.hover};
+        }
+      }
+    }
     th,
     td {
       margin: 0;
       padding: 0.5rem;
-      border-bottom: 1px solid black;
-      border-right: 1px solid black;
+      border-bottom: 1px solid #dbdbdb;
 
       :last-child {
         border-right: 0;
@@ -37,13 +44,15 @@ const Styles = styled.div`
 `
 
 function Table({ columns, data }) {
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable(
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow, state, setHiddenColumns, ...rest } = useTable(
     {
       columns,
       data,
+      sortTypes,
     },
     useSortBy
   )
+
 
   // We don't want to render all 2000 rows for this example, so cap
   // it at 20 for this use case
@@ -58,7 +67,7 @@ function Table({ columns, data }) {
               {headerGroup.headers.map(column => (
                 // Add the sorting props to control sorting. For this example
                 // we can add them into the header props
-                <th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                <th {...column.getToggleHiddenProps()} {...column.getHeaderProps(column.getSortByToggleProps())}>
                   {column.render('Header')}
                   {/* Add a sort direction indicator */}
                   <span style={{ color: '#B32EFF' }}>

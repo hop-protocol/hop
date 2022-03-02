@@ -47,9 +47,9 @@ async function main (source: any) {
   const chain = Chain.Ethereum
   const signer = wallets.get(chain)
   const isNative = nativeChainTokens[chain] === token
+  const vault = new Vault(chain, token, signer)
   logger.debug(`isNative: ${isNative}`)
   if (action === Actions.Deposit) {
-    const vault = new Vault(token, signer)
     let parsedAmount: BigNumber
     if (max) {
       if (isNative) {
@@ -74,7 +74,6 @@ async function main (source: any) {
       logger.log('deposit tx:', tx.hash)
     }
   } else if (action === Actions.Withdraw) {
-    const vault = new Vault(token, signer)
     let parsedAmount: BigNumber
     if (max) {
       parsedAmount = await vault.getBalance()

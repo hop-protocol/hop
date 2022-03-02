@@ -9,7 +9,6 @@ import { Yearn } from '@yfi/sdk'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 const EthAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-const WethAddress = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
 const addresses: Record<string, any> = {
   USDC: {
     token: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -25,10 +24,10 @@ const addresses: Record<string, any> = {
   },
   ETH: {
     token: EthAddress,
-    vault: '0xa258C4606Ca8206D8aA700cE2143D7db854D168c'
-  },
-  zapIn: '0x92Be6ADB6a12Da0CA607F9d87DB2F9978cD6ec3E',
-  zapOut: '0xd6b88257e91e4E4D4E990B3A858c849EF2DFdE8c'
+    vault: '0xa258C4606Ca8206D8aA700cE2143D7db854D168c',
+    zapIn: '0x92Be6ADB6a12Da0CA607F9d87DB2F9978cD6ec3E',
+    zapOut: '0xd6b88257e91e4E4D4E990B3A858c849EF2DFdE8c'
+  }
 }
 
 class Provider extends providers.StaticJsonRpcProvider implements EthersProvider {
@@ -43,24 +42,25 @@ class Provider extends providers.StaticJsonRpcProvider implements EthersProvider
   }
 }
 
+type ChainId = 1 | 250 | 1337 | 42161
+
 export class Vault {
   token: string
   signer: any
   slippage = 0.5
-  yearn: any
+  yearn: Yearn<any>
   decimals: number
 
-  constructor (token: string, signer: any) {
+  constructor (chain: Chain, token: string, signer: any) {
     if (!addresses[token]) {
       throw new Error('token is not supported')
     }
     this.token = token
-    const chain = Chain.Ethereum
-    const chainId: any = chainSlugToId(chain)
-    const url: any = getRpcUrl(chain)
-    const provider: any = new Provider(url, signer)
+    const chainId = chainSlugToId(chain) as ChainId
+    const url = getRpcUrl(chain)
+    const provider = new Provider(url!, signer)
     this.signer = signer
-    this.decimals = getTokenDecimals(token) as any
+    this.decimals = getTokenDecimals(token)
     this.yearn = new Yearn(chainId, {
       provider: {
         write: provider,
@@ -69,7 +69,7 @@ export class Vault {
     })
   }
 
-  getErc20 (address: string) {
+  private getErc20 (address: string) {
     return new Contract(address, erc20Abi, this.signer)
   }
 
@@ -78,6 +78,76 @@ export class Vault {
     const { vault } = addresses[this.token]
     const contract = this.getErc20(vault)
     return contract.balanceOf(account)
+  }
+
+  async deposit (amount: BigNumber) {
+    const account = await this.signer.getAddress()
+    const { token, vault } = addresses[this.token]
+    const needsApproval = await this.needsDepositApproval(amount)
+    if (needsApproval) {
+      console.log('needs approval; sending approval tx')
+      const tx = await this.approveDeposit()
+      console.log('approval tx:', tx.hash)
+      await tx.wait()
+    }
+    console.log('attempting to deposit')
+    const tx = await this.yearn.vaults.deposit(vault, token, amount.toString(), account, {
+      slippage: this.slippage
+    })
+    return tx
+  }
+
+  async withdraw (amount: BigNumber) {
+    const account = await this.signer.getAddress()
+    const { token, vault } = addresses[this.token]
+    const needsApproval = await this.needsWithdrawalApproval(amount)
+    if (needsApproval) {
+      console.log('needs approval; sending approval tx')
+      const tx = await this.approveWithdrawal()
+      console.log('approval tx:', tx.hash)
+      await tx.wait()
+    }
+    console.log('attempting to withdraw')
+    const tx = await this.yearn.vaults.withdraw(vault, token, amount.toString(), account, {
+      slippage: this.slippage
+    })
+    return tx
+  }
+
+  async approveDeposit (amount: BigNumber = constants.MaxUint256) {
+    const { token, vault } = addresses[this.token]
+    const contract = this.getErc20(token)
+    return contract.approve(vault, amount)
+  }
+
+  async approveWithdrawal (amount: BigNumber = constants.MaxUint256) {
+    const { vault, zapOut } = addresses[this.token]
+    const contract = this.getErc20(vault)
+    return contract.approve(zapOut, amount)
+  }
+
+  async needsDepositApproval (amount: BigNumber = constants.MaxUint256) {
+    const account = await this.signer.getAddress()
+    const { token, vault } = addresses[this.token]
+    if (token === EthAddress) {
+      return false
+    }
+    const contract = this.getErc20(token)
+    const allowance = await contract.allowance(account, vault)
+    const needsApproval = allowance.lt(amount)
+    return needsApproval
+  }
+
+  async needsWithdrawalApproval (amount: BigNumber = constants.MaxUint256) {
+    const account = await this.signer.getAddress()
+    const { token, vault, zapOut } = addresses[this.token]
+    if (token !== EthAddress) {
+      return false
+    }
+    const contract = this.getErc20(vault)
+    const allowance = await contract.allowance(account, zapOut)
+    const needsApproval = allowance.lt(amount)
+    return needsApproval
   }
 
   async getDepositOutcome (amount: BigNumber) {
@@ -128,82 +198,6 @@ export class Vault {
       conversionRate: outcome.conversionRate,
       slippage: outcome.slippage
     }
-  }
-
-  async deposit (amount: BigNumber) {
-    const account = await this.signer.getAddress()
-    const { token, vault } = addresses[this.token]
-    const needsApproval = await this.needsDepositApproval(amount)
-    if (needsApproval) {
-      console.log('needs approval; sending approval tx')
-      const tx = await this.approveDeposit()
-      console.log('approval tx:', tx.hash)
-      await tx.wait()
-    }
-    console.log('attempting to deposit')
-    const tx = await this.yearn.vaults.deposit(vault, token, amount.toString(), account, {
-      slippage: this.slippage
-    })
-    return tx
-  }
-
-  async withdraw (amount: BigNumber) {
-    const account = await this.signer.getAddress()
-    const { token, vault } = addresses[this.token]
-    const needsApproval = await this.needsWithdrawalApproval(amount)
-    if (needsApproval) {
-      console.log('needs approval; sending approval tx')
-      const tx = await this.approveWithdrawal()
-      console.log('approval tx:', tx.hash)
-      await tx.wait()
-    }
-    console.log('attempting to withdraw')
-    const tx = await this.yearn.vaults.withdraw(vault, token, amount.toString(), account, {
-      slippage: this.slippage
-    })
-    return tx
-  }
-
-  async approveDeposit (amount: BigNumber = constants.MaxUint256) {
-    const { token, vault } = addresses[this.token]
-    const contract = this.getErc20(token)
-    return contract.approve(vault, amount)
-  }
-
-  async approveWithdrawal (amount: BigNumber = constants.MaxUint256) {
-    const { vault } = addresses[this.token]
-    const contract = this.getErc20(vault)
-    const zapAddress = addresses.zapOut
-    return contract.approve(zapAddress, amount)
-  }
-
-  async needsDepositApproval (amount: BigNumber = constants.MaxUint256) {
-    const account = await this.signer.getAddress()
-    const { token, vault } = addresses[this.token]
-    if (token === EthAddress) {
-      return false
-    }
-    const contract = this.getErc20(token)
-    const allowance = await contract.allowance(account, vault)
-    const needsApproval = allowance.lt(amount)
-    return needsApproval
-  }
-
-  async needsWithdrawalApproval (amount: BigNumber = constants.MaxUint256) {
-    const account = await this.signer.getAddress()
-    const { token, vault } = addresses[this.token]
-    if (token !== EthAddress) {
-      return false
-    }
-    const contract = this.getErc20(vault)
-    const zapAddress = addresses.zapOut
-    const allowance = await contract.allowance(account, zapAddress)
-    const needsApproval = allowance.lt(amount)
-    return needsApproval
-  }
-
-  async availableLiquidity () {
-    return this.getBalance()
   }
 
   async getList () {

@@ -1,6 +1,8 @@
+import Token from 'src/watchers/classes/Token'
+import contracts from 'src/contracts'
 import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, nativeChainTokens } from 'src/constants'
 import { Vault } from 'src/vault'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 
@@ -35,17 +37,33 @@ async function main (source: any) {
   if (!token) {
     throw new Error('token is required')
   }
-  if (!amount) {
+  if (!(amount || max)) {
     throw new Error('amount is required')
+  }
+  if (amount && max) {
+    throw new Error('cannot use both amount and max flags')
   }
 
   const chain = Chain.Ethereum
   const signer = wallets.get(chain)
+  const isNative = nativeChainTokens[chain] === token
+  logger.debug(`isNative: ${isNative}`)
   if (action === Actions.Deposit) {
     const vault = new Vault(token, signer)
     let parsedAmount: BigNumber
     if (max) {
-      throw new Error('todo: max')
+      if (isNative) {
+        parsedAmount = await signer.getBalance()
+      } else {
+        const config = contracts.get(token, chain)
+        const tokenContract = config.l1CanonicalToken ?? config.l2CanonicalToken
+        if (!tokenContract) {
+          throw new Error(`token contract not found for ${chain}.${token}`)
+        }
+        const tokenClass = new Token(tokenContract)
+        parsedAmount = await tokenClass.getBalance()
+      }
+      logger.log(`max amount: ${parsedAmount.toString()}`)
     } else {
       parsedAmount = vault.parseUnits(amount)
     }
@@ -60,6 +78,7 @@ async function main (source: any) {
     let parsedAmount: BigNumber
     if (max) {
       parsedAmount = await vault.getBalance()
+      logger.log(`max amount: ${parsedAmount.toString()}`)
     } else {
       parsedAmount = vault.parseUnits(amount)
     }

@@ -1,65 +1,53 @@
-import GasBoostSigner from 'src/gasboost/GasBoostSigner'
-import getRpcProvider from 'src/utils/getRpcProvider'
+import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Vault } from 'src/vault'
-import { Wallet } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
-import { privateKey } from './config'
 
 describe('Vault', () => {
   it('get balance', async () => {
     const token = 'USDC'
     const chain = Chain.Ethereum
-    const provider = getRpcProvider(chain)
-    const signer = new GasBoostSigner(privateKey!, provider!)
+    const signer = wallets.get(chain)
     const vault = new Vault(token, signer)
     const balance = await vault.getBalance()
     console.log('balance:', vault.formatUnits(balance))
     expect(balance).toBeTruthy()
     expect(balance.gt(0)).toBeTruthy()
   }, 60 * 1000)
-  it.skip('deposit', async () => {
+  it.skip('deposit - USDC', async () => {
     const token = 'USDC'
-    const decimals = 6
     const chain = Chain.Ethereum
-    const provider = getRpcProvider(chain)
-    const signer = new GasBoostSigner(privateKey!, provider!)
+    const signer = wallets.get(chain)
     const vault = new Vault(token, signer)
-    const amount = parseUnits('1', decimals)
+    const amount = vault.parseUnits('1')
     const tx = await vault.deposit(amount)
     expect(tx.hash).toBeTruthy()
   }, 60 * 1000)
   it.skip('deposit - ETH', async () => {
     const token = 'ETH'
-    const decimals = 18
     const chain = Chain.Ethereum
-    const provider = getRpcProvider(chain)
-    const signer = new GasBoostSigner(privateKey!, provider!)
+    const signer = wallets.get(chain)
     const vault = new Vault(token, signer)
-    const amount = parseUnits('0.0017', decimals)
+    const amount = vault.parseUnits('0.0017')
     const tx = await vault.deposit(amount)
     expect(tx.hash).toBeTruthy()
   }, 60 * 1000)
-  it.skip('withdraw', async () => {
+  it.skip('withdraw - USDC', async () => {
     const token = 'USDC'
-    const decimals = 6
     const chain = Chain.Ethereum
-    const provider = getRpcProvider(chain)
-    const signer = new GasBoostSigner(privateKey!, provider!)
+    const signer = wallets.get(chain)
     const vault = new Vault(token, signer)
     const list = await vault.yearn.services.zapper
-    const amount = parseUnits('0.5', decimals)
+    const amount = vault.parseUnits('0.5')
     const tx = await vault.withdraw(amount)
     expect(tx.hash).toBeTruthy()
   }, 60 * 1000)
   it.skip('withdraw - ETH', async () => {
     const token = 'ETH'
-    const decimals = 18
     const chain = Chain.Ethereum
-    const provider = getRpcProvider(chain)
-    const signer = new GasBoostSigner(privateKey!, provider!)
+    const signer = wallets.get(chain)
     const vault = new Vault(token, signer)
-    const amount = parseUnits('0.001682978694778424', decimals)
+    const amount = vault.parseUnits('0.001682978694778424')
     const tx = await vault.withdraw(amount)
     expect(tx.hash).toBeTruthy()
   }, 60 * 1000)
@@ -67,10 +55,9 @@ describe('Vault', () => {
     const token = 'USDC'
     const decimals = 6
     const chain = Chain.Ethereum
-    const provider = getRpcProvider(chain)
-    const signer = new Wallet(privateKey!, provider!)
+    const signer = wallets.get(chain)
     const vault = new Vault(token, signer)
-    const amount = parseUnits('1', decimals)
+    const amount = vault.parseUnits('1')
     const outcome = await vault.getDepositOutcome(amount)
 
     console.log('outcome:', outcome)
@@ -82,10 +69,9 @@ describe('Vault', () => {
     const token = 'USDC'
     const decimals = 6
     const chain = Chain.Ethereum
-    const provider = getRpcProvider(chain)
-    const signer = new Wallet(privateKey!, provider!)
+    const signer = wallets.get(chain)
     const vault = new Vault(token, signer)
-    const amount = parseUnits('0.5', decimals)
+    const amount = vault.parseUnits('0.5')
     const outcome = await vault.getWithdrawOutcome(amount)
 
     console.log('outcome:', outcome)
@@ -95,31 +81,26 @@ describe('Vault', () => {
   }, 60 * 1000)
   it('formatUnits', async () => {
     const token = 'USDC'
-    const decimals = 6
     const chain = Chain.Ethereum
-    const provider = getRpcProvider(chain)
-    const signer = new GasBoostSigner(privateKey!, provider!)
+    const signer = wallets.get(chain)
     const vault = new Vault(token, signer)
-    const amount = parseUnits('1', decimals)
+    const amount = vault.parseUnits('1')
     const result = await vault.formatUnits(amount)
     expect(result).toBe(1)
   }, 60 * 1000)
   it('parseUnits', async () => {
     const token = 'USDC'
-    const decimals = 6
     const chain = Chain.Ethereum
-    const provider = getRpcProvider(chain)
-    const signer = new GasBoostSigner(privateKey!, provider!)
+    const signer = wallets.get(chain)
     const vault = new Vault(token, signer)
-    const amount = parseUnits('1', decimals)
+    const amount = vault.parseUnits('1')
     const result = await vault.parseUnits(1)
     expect(result.toString()).toBe(amount.toString())
   }, 60 * 1000)
   it('getList', async () => {
     const token = 'USDC'
     const chain = Chain.Ethereum
-    const provider = getRpcProvider(chain)
-    const signer = new Wallet(privateKey!, provider!)
+    const signer = wallets.get(chain)
     const vault = new Vault(token, signer)
     const list = await vault.getList()
     console.log(list)

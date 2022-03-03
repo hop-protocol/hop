@@ -1127,10 +1127,8 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    if (
-      this.isOruToL1(sourceChain, destinationChain) ||
-      this.isNonOruToL1(sourceChain, destinationChain)
-    ) {
+    const isToL1 = destinationChain.equals(Chain.Ethereum)
+    if (isToL1) {
       const bridgeContract = await this.getBridgeContract(sourceChain)
       let pendingAmounts = BigNumber.from(0)
       for (const chain of bondableChains) {
@@ -1172,17 +1170,10 @@ class HopBridge extends Base {
     return availableLiquidity
   }
 
-  isOruToL1 (sourceChain: Chain, destinationChain: Chain) {
+  private isOruToL1 (sourceChain: Chain, destinationChain: Chain) {
     return (
       destinationChain.equals(Chain.Ethereum) &&
       bondableChains.includes(sourceChain.slug)
-    )
-  }
-
-  isNonOruToL1 (sourceChain: Chain, destinationChain: Chain) {
-    return (
-      destinationChain.equals(Chain.Ethereum) &&
-      !bondableChains.includes(sourceChain.slug)
     )
   }
 

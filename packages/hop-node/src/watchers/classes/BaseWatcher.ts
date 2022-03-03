@@ -1,3 +1,4 @@
+import BNMin from 'src/utils/BNMin'
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
@@ -213,6 +214,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async unstakeAndDepositToVault (amount: BigNumber) {
+    if (this.chainSlug !== Chain.Ethereum) {
+      throw new Error('only ethereum is supported')
+    }
+
     this.logger.debug('unstaking')
     let tx = await this.bridge.unstake(amount)
     await tx.wait()
@@ -224,9 +229,25 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async withdrawFromVaultAndStake (amount: BigNumber) {
+    if (this.chainSlug !== Chain.Ethereum) {
+      throw new Error('only ethereum is supported')
+    }
+
     this.logger.debug('withdrawing from vault')
     let tx = await this.vault.withdraw(amount)
     await tx.wait()
+
+    let balance: BigNumber
+    if (this.tokenSymbol === 'ETH') {
+      const address = await this.bridge.getBonderAddress()
+      balance = await this.bridge.getBalance(address)
+    } else {
+      const token = await (this.bridge as L1Bridge).l1CanonicalToken()
+      balance = await token.getBalance()
+    }
+
+    // this is needed because the amount withdrawn from vault may not be exact
+    amount = BNMin(amount, balance)
 
     this.logger.debug('staking')
     tx = await this.bridge.stake(amount)

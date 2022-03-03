@@ -80,10 +80,10 @@ class CoinGecko {
     MANA: 'Decentraland'
   }
 
-  public getPriceByTokenSymbol = async (
+  public async getPriceByTokenSymbol (
     symbol: string,
     base: string = 'usd'
-  ) => {
+  ) {
     if (symbol === 'ETH') {
       symbol = 'WETH'
     }
@@ -94,10 +94,10 @@ class CoinGecko {
     return prices[0]
   }
 
-  public getPricesByTokenSymbol = async (
+  public async getPricesByTokenSymbol (
     symbols: string[],
     base: string = 'usd'
-  ) => {
+  ) {
     const addresses: string[] = []
 
     for (let i = 0; i < symbols.length; i++) {
@@ -112,10 +112,10 @@ class CoinGecko {
     return await this.getPricesByTokenAddresses(addresses, base)
   }
 
-  public getPricesByTokenAddresses = async (
+  public async getPricesByTokenAddresses (
     allAddresses: string[],
     base: string = 'usd'
-  ) => {
+  ) {
     let page = 0
     const limit = 100 // max addresses allowed per request
     const allResults: Array<number | null> = []
@@ -188,7 +188,7 @@ class CoinGecko {
     return allResults
   }
 
-  public getAllTokenPrices = async (base: string = 'usd') => {
+  public async getAllTokenPrices (base: string = 'usd') {
     let currentPage = 1
     const allResults: IResult[] = []
 
@@ -242,7 +242,7 @@ class CoinGecko {
     return allResults
   }
 
-  public getTokenInfoById = async (id: string) => {
+  public async getTokenInfoById (id: string) {
     const params = serializeQueryParams({
       sparkline: false,
       market_data: false,

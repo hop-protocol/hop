@@ -4,6 +4,8 @@ import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
 import wait from 'src/utils/wait'
+import wallets from 'src/wallets'
+import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
@@ -11,6 +13,7 @@ import { IBaseWatcher } from './IBaseWatcher'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Notifier } from 'src/notifier'
+import { Vault } from 'src/vault'
 import { config as globalConfig, hostname } from 'src/config'
 
 type Config = {
@@ -40,6 +43,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   dryMode: boolean = false
   tag: string
   prefix: string
+  vault: Vault
 
   constructor (config: Config) {
     super()
@@ -74,6 +78,14 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
     if (config.dryMode) {
       this.dryMode = config.dryMode
+    }
+    const vaultTokens = new Set(['ETH', 'USDC', 'USDT', 'DAI'])
+    const includeVault = this.chainSlug === Chain.Ethereum && vaultTokens.has(this.tokenSymbol)
+    if (includeVault) {
+      const signer = wallets.get(this.chainSlug)
+      // note: ignore any request init error if you see error
+      // https://github.com/yearn/yearn-sdk/issues/236
+      this.vault = new Vault(this.chainSlug as Chain, this.tokenSymbol, signer)
     }
   }
 
@@ -198,6 +210,28 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       sourceChainId,
       destinationChainIds
     }
+  }
+
+  async unstakeAndDepositToVault (amount: BigNumber) {
+    this.logger.debug('unstaking')
+    let tx = await this.bridge.unstake(amount)
+    await tx.wait()
+
+    this.logger.debug('deposting to vault')
+    tx = await this.vault.deposit(amount)
+    await tx.wait()
+    this.logger.debug('unstake and vault deposit complete')
+  }
+
+  async withdrawFromVaultAndStake (amount: BigNumber) {
+    this.logger.debug('withdrawing from vault')
+    let tx = await this.vault.withdraw(amount)
+    await tx.wait()
+
+    this.logger.debug('staking')
+    tx = await this.bridge.stake(amount)
+    await tx.wait()
+    this.logger.debug('vault withdraw and stake complete')
   }
 
   // force quit so docker can restart

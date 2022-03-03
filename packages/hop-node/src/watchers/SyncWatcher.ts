@@ -8,7 +8,6 @@ import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
-import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
@@ -16,7 +15,6 @@ import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, Transfer
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { Vault } from 'src/vault'
 import { getConfigBonderForRoute, config as globalConfig, oruChains } from 'src/config'
 
 type S3JsonData = {
@@ -63,7 +61,6 @@ class SyncWatcher extends BaseWatcher {
   s3Upload: S3Upload
   s3Namespace: S3Upload
   bonderCreditPollerIncrementer: number = 0
-  vault: Vault
 
   constructor (config: Config) {
     super({
@@ -99,15 +96,6 @@ class SyncWatcher extends BaseWatcher {
       this.logger.debug(`syncing from syncFromDate with timestamp ${timestamp}`)
       this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
       this.logger.debug(`syncing from syncFromDate with blockNumber ${this.customStartBlockNumber}`)
-    }
-
-    const vaultTokens = new Set(['ETH', 'USDC', 'USDT', 'DAI'])
-    const includeVault = this.chainSlug === Chain.Ethereum && vaultTokens.has(this.tokenSymbol)
-    if (includeVault) {
-      const signer = wallets.get(this.chainSlug)
-      // note: ignore any request init error if you see error
-      // https://github.com/yearn/yearn-sdk/issues/236
-      this.vault = new Vault(this.chainSlug as Chain, this.tokenSymbol, signer)
     }
 
     this.ready = true
@@ -1112,7 +1100,7 @@ class SyncWatcher extends BaseWatcher {
     return transferIds
   }
 
-  handleMultipleWithdrawalsSettledEvent = async (event: MultipleWithdrawalsSettledEvent) => {
+  async handleMultipleWithdrawalsSettledEvent (event: MultipleWithdrawalsSettledEvent) {
     const { transactionHash } = event
     const {
       bonder,
@@ -1171,7 +1159,7 @@ class SyncWatcher extends BaseWatcher {
     }
     const destinationBridge = destinationWatcher.bridge
     const baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
-    const vaultBalance = await destinationBridge.getVaultBalance(bonder)
+    const vaultBalance = await destinationWatcher.getVaultBalance(bonder)
     this.logger.debug(`vault balance ${destinationChain} ${vaultBalance.toString()}`)
     const baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
     let availableCredit = baseAvailableCreditIncludingVault

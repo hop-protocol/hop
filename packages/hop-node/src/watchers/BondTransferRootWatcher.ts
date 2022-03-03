@@ -83,7 +83,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     await Promise.all(promises)
   }
 
-  checkTransfersCommitted = async (
+  async checkTransfersCommitted (
     transferRootId: string,
     transferRootHash: string,
     totalAmount: BigNumber,
@@ -91,7 +91,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     committedAt: number,
     sourceChainId: number,
     transferIds: string[]
-  ) => {
+  ) {
     const logger = this.logger.create({ root: transferRootId })
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
 
@@ -177,11 +177,11 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  sendBondTransferRoot = async (
+  async sendBondTransferRoot (
     transferRootHash: string,
     destinationChainId: number,
     totalAmount: BigNumber
-  ) => {
+  ) {
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(
       transferRootHash,

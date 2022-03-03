@@ -89,7 +89,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     this.logger.debug('checkTransferSentFromDb completed')
   }
 
-  checkTransferId = async (transferId: string) => {
+  async checkTransferId (transferId: string) {
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     if (!dbTransfer) {
       this.logger.warn(`transfer id "${transferId}" not found in db`)
@@ -234,7 +234,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  sendBondWithdrawalTx = async (params: any) => {
+  async sendBondWithdrawalTx (params: any) {
     const {
       transferId,
       destinationChainId,

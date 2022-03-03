@@ -21,6 +21,7 @@ type S3JsonData = {
   [token: string]: {
     baseAvailableCredit: {[chain: string]: string}
     baseAvailableCreditIncludingVault: {[chain: string]: string}
+    vaultBalance: {[chain: string]: string}
     availableCredit: {[chain: string]: string}
     pendingAmounts: {[chain: string]: string}
     unbondedTransferRootAmounts: {[chain: string]: string}
@@ -54,6 +55,7 @@ class SyncWatcher extends BaseWatcher {
   ready: boolean = false
   private baseAvailableCredit: { [destinationChain: string]: BigNumber } = {}
   private baseAvailableCreditIncludingVault: { [destinationChain: string]: BigNumber } = {}
+  private vaultBalance: { [destinationChain: string]: BigNumber } = {}
   private availableCredit: { [destinationChain: string]: BigNumber } = {}
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
@@ -1159,7 +1161,7 @@ class SyncWatcher extends BaseWatcher {
     }
     const destinationBridge = destinationWatcher.bridge
     const baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
-    const vaultBalance = await destinationWatcher.getVaultBalance(bonder)
+    const vaultBalance = await destinationWatcher.getOnchainVaultBalance(bonder)
     this.logger.debug(`vault balance ${destinationChain} ${vaultBalance.toString()}`)
     const baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
     let availableCredit = baseAvailableCreditIncludingVault
@@ -1176,7 +1178,7 @@ class SyncWatcher extends BaseWatcher {
       availableCredit = BigNumber.from(0)
     }
 
-    return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault }
+    return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance }
   }
 
   async calculatePendingAmount (destinationChainId: number) {
@@ -1214,10 +1216,11 @@ class SyncWatcher extends BaseWatcher {
   private async updateAvailableCreditMap (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const bonder = await this.getBonderAddress(destinationChain)
-    const { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault } = await this.calculateAvailableCredit(destinationChainId, bonder)
+    const { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance } = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
     this.baseAvailableCredit[destinationChain] = baseAvailableCredit
     this.baseAvailableCreditIncludingVault[destinationChain] = baseAvailableCreditIncludingVault
+    this.vaultBalance[destinationChain] = vaultBalance
   }
 
   async getBonderAddress (destinationChain: string): Promise<string> {
@@ -1388,7 +1391,17 @@ class SyncWatcher extends BaseWatcher {
     return unbondedAmounts
   }
 
-  async getVaultBalance (bonder?: string) {
+  public getVaultBalance (destinationChainId: number) {
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const vaultBalance = this.vaultBalance[destinationChain]
+    if (!vaultBalance) {
+      return BigNumber.from(0)
+    }
+
+    return vaultBalance
+  }
+
+  async getOnchainVaultBalance (bonder?: string) {
     if (!this.vault) {
       return BigNumber.from(0)
     }
@@ -1405,6 +1418,7 @@ class SyncWatcher extends BaseWatcher {
     const data: any = {
       baseAvailableCredit: {},
       baseAvailableCreditIncludingVault: {},
+      vaultBalance: {},
       availableCredit: {},
       pendingAmounts: {},
       unbondedTransferRootAmounts: {}
@@ -1420,6 +1434,7 @@ class SyncWatcher extends BaseWatcher {
       }
       data.baseAvailableCredit[sourceChain] = watcher.baseAvailableCredit
       data.baseAvailableCreditIncludingVault[sourceChain] = watcher.baseAvailableCreditIncludingVault
+      data.vaultBalance[sourceChain] = watcher.vaultBalance
       data.availableCredit[sourceChain] = watcher.availableCredit
       data.pendingAmounts[sourceChain] = watcher.pendingAmounts
       data.unbondedTransferRootAmounts[sourceChain] = watcher.unbondedTransferRootAmounts

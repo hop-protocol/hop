@@ -215,7 +215,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   async unstakeAndDepositToVault (amount: BigNumber) {
     if (this.chainSlug !== Chain.Ethereum) {
-      throw new Error('only ethereum is supported')
+      return
     }
 
     this.logger.debug('unstaking')
@@ -230,7 +230,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   async withdrawFromVaultAndStake (amount: BigNumber) {
     if (this.chainSlug !== Chain.Ethereum) {
-      throw new Error('only ethereum is supported')
+      return
     }
 
     this.logger.debug('withdrawing from vault')

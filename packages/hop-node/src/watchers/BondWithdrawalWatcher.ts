@@ -10,6 +10,7 @@ import { BigNumber, constants } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { Mutex } from 'async-mutex'
 import { TxError } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
@@ -24,6 +25,7 @@ type Config = {
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
+  mutex = new Mutex()
 
   constructor (config: Config) {
     super({
@@ -66,11 +68,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
       const logger = this.logger.create({ id: transferId })
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!, amount!)
-      if (
-        availableCredit.lt(amount!) &&
-        withdrawalBondTxError === TxError.NotEnoughLiquidity
-      ) {
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
+      const notEnoughCredit = availableCredit.lt(amount!)
+      const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
+      if (isUnbondable) {
         logger.warn(
           `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
           `withdrawalBondTxError: ${withdrawalBondTxError}`
@@ -137,9 +138,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
     }
 
-    const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!, amount!)
+    const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
+    const notEnoughCredit = availableCredit.lt(amount!)
     logger.debug(`processing bondWithdrawal. availableCredit: ${availableCredit.toString()}`)
-    if (availableCredit.lt(amount!)) {
+    if (notEnoughCredit) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
           availableCredit
@@ -155,6 +157,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logger.warn(`dry: ${this.dryMode}, skipping bondWithdrawalWatcher`)
       return
     }
+
+    await this.withdrawFromVaultIfNeeded(destinationChainId!, amount!)
 
     logger.debug('attempting to send bondWithdrawal tx')
 
@@ -352,9 +356,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
-  getAvailableCreditForTransfer (destinationChainId: number, amount: BigNumber) {
-    const availableCredit = this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
-    return availableCredit
+  getAvailableCreditForTransfer (destinationChainId: number) {
+    return this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
   }
 
   async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge, logger: Logger) {
@@ -378,6 +381,18 @@ class BondWithdrawalWatcher extends BaseWatcher {
       logger.error(`getIsRecipientReceivable non-revert err: ${err.message}`)
       return true
     }
+  }
+
+  async withdrawFromVaultIfNeeded (destinationChainId: number, amount: BigNumber) {
+    return await this.mutex.runExclusive(async () => {
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
+      const vaultBalance = this.syncWatcher.getVaultBalance(destinationChainId)
+      const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(amount)
+      if (shouldWithdraw) {
+        const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
+        await destinationWatcher.withdrawFromVaultAndStake(vaultBalance)
+      }
+    })
   }
 }
 

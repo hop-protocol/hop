@@ -22,6 +22,7 @@ import { getConfigBonderForRoute, config as globalConfig, oruChains } from 'src/
 type S3JsonData = {
   [token: string]: {
     baseAvailableCredit: {[chain: string]: string}
+    baseAvailableCreditIncludingVault: {[chain: string]: string}
     availableCredit: {[chain: string]: string}
     pendingAmounts: {[chain: string]: string}
     unbondedTransferRootAmounts: {[chain: string]: string}
@@ -54,6 +55,7 @@ class SyncWatcher extends BaseWatcher {
   customStartBlockNumber: number
   ready: boolean = false
   private baseAvailableCredit: { [destinationChain: string]: BigNumber } = {}
+  private baseAvailableCreditIncludingVault: { [destinationChain: string]: BigNumber } = {}
   private availableCredit: { [destinationChain: string]: BigNumber } = {}
   private pendingAmounts: { [destinationChain: string]: BigNumber } = {}
   private unbondedTransferRootAmounts: { [destinationChain: string]: BigNumber } = {}
@@ -103,6 +105,8 @@ class SyncWatcher extends BaseWatcher {
     const includeVault = this.chainSlug === Chain.Ethereum && vaultTokens.has(this.tokenSymbol)
     if (includeVault) {
       const signer = wallets.get(this.chainSlug)
+      // note: ignore any request init error if you see error
+      // https://github.com/yearn/yearn-sdk/issues/236
       this.vault = new Vault(this.chainSlug as Chain, this.tokenSymbol, signer)
     }
 
@@ -1166,13 +1170,11 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`no destination watcher for ${destinationChain}`)
     }
     const destinationBridge = destinationWatcher.bridge
-    let baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
-    let availableCredit = baseAvailableCredit
-    if (destinationWatcher.vault) {
-      const vaultBalance = await destinationWatcher.vault.getBalance(bonder)
-      this.logger.debug(`vault balance ${destinationChain} ${vaultBalance.toString()}`)
-      baseAvailableCredit = baseAvailableCredit.add(vaultBalance)
-    }
+    const baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    const vaultBalance = await destinationBridge.getVaultBalance(bonder)
+    this.logger.debug(`vault balance ${destinationChain} ${vaultBalance.toString()}`)
+    const baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
+    let availableCredit = baseAvailableCreditIncludingVault
     const isToL1 = destinationChain === Chain.Ethereum
     if (isToL1) {
       const pendingAmount = await this.getOruToL1PendingAmount()
@@ -1186,7 +1188,7 @@ class SyncWatcher extends BaseWatcher {
       availableCredit = BigNumber.from(0)
     }
 
-    return { availableCredit, baseAvailableCredit }
+    return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault }
   }
 
   async calculatePendingAmount (destinationChainId: number) {
@@ -1224,9 +1226,10 @@ class SyncWatcher extends BaseWatcher {
   private async updateAvailableCreditMap (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const bonder = await this.getBonderAddress(destinationChain)
-    const { availableCredit, baseAvailableCredit } = await this.calculateAvailableCredit(destinationChainId, bonder)
+    const { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault } = await this.calculateAvailableCredit(destinationChainId, bonder)
     this.availableCredit[destinationChain] = availableCredit
     this.baseAvailableCredit[destinationChain] = baseAvailableCredit
+    this.baseAvailableCreditIncludingVault[destinationChain] = baseAvailableCreditIncludingVault
   }
 
   async getBonderAddress (destinationChain: string): Promise<string> {
@@ -1357,6 +1360,16 @@ class SyncWatcher extends BaseWatcher {
     return baseAvailableCredit
   }
 
+  public getBaseAvailableCreditIncludingVault (destinationChainId: number) {
+    const destinationChain = this.chainIdToSlug(destinationChainId)
+    const baseAvailableCreditIncludingVault = this.baseAvailableCreditIncludingVault[destinationChain]
+    if (!baseAvailableCreditIncludingVault) {
+      return BigNumber.from(0)
+    }
+
+    return baseAvailableCreditIncludingVault
+  }
+
   public getEffectiveAvailableCredit (destinationChainId: number) {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const availableCredit = this.availableCredit[destinationChain]
@@ -1387,12 +1400,23 @@ class SyncWatcher extends BaseWatcher {
     return unbondedAmounts
   }
 
+  async getVaultBalance (bonder?: string) {
+    if (!this.vault) {
+      return BigNumber.from(0)
+    }
+
+    const vaultBalance = await this.vault.getBalance(bonder)
+    return vaultBalance
+  }
+
   async uploadToS3 () {
     if (!this.s3Upload) {
       return
     }
 
     const data: any = {
+      baseAvailableCredit: {},
+      baseAvailableCreditIncludingVault: {},
       availableCredit: {},
       pendingAmounts: {},
       unbondedTransferRootAmounts: {}
@@ -1406,6 +1430,8 @@ class SyncWatcher extends BaseWatcher {
       if (shouldSkip) {
         continue
       }
+      data.baseAvailableCredit[sourceChain] = watcher.baseAvailableCredit
+      data.baseAvailableCreditIncludingVault[sourceChain] = watcher.baseAvailableCreditIncludingVault
       data.availableCredit[sourceChain] = watcher.availableCredit
       data.pendingAmounts[sourceChain] = watcher.pendingAmounts
       data.unbondedTransferRootAmounts[sourceChain] = watcher.unbondedTransferRootAmounts

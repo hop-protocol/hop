@@ -1118,10 +1118,19 @@ class HopBridge extends Base {
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
     const bonder = this.getBonderAddress(sourceChain, destinationChain)
-    let availableLiquidity = await this.getAvailableLiquidity(
-      destinationChain,
-      bonder
+    let availableLiquidity = await this.getBaseAvailableCreditIncludingVault(
+      sourceChain,
+      destinationChain
     )
+
+    // fetch on-chain if the data is not available from worker json file
+    if (availableLiquidity == null) {
+      availableLiquidity = await this.getAvailableLiquidity(
+        destinationChain,
+        bonder
+      )
+    }
+
     const unbondedTransferRootAmount = await this.getUnbondedTransferRootAmount(
       sourceChain,
       destinationChain
@@ -1201,10 +1210,8 @@ class HopBridge extends Base {
     try {
       const data = await this.getBonderAvailableLiquidityData()
       if (data) {
-        const _unbondedTransferRootAmount =
-          data?.[this.tokenSymbol]?.unbondedTransferRootAmounts?.[
-            sourceChain.slug
-          ]?.[destinationChain.slug]
+        const tokenData = data?.[this.tokenSymbol]
+        const _unbondedTransferRootAmount = tokenData?.unbondedTransferRootAmounts?.[sourceChain.slug]?.[destinationChain.slug]
         if (_unbondedTransferRootAmount) {
           return BigNumber.from(_unbondedTransferRootAmount)
         }
@@ -1214,6 +1221,24 @@ class HopBridge extends Base {
     }
 
     return BigNumber.from(0)
+  }
+
+  private async getBaseAvailableCreditIncludingVault (
+    sourceChain: Chain,
+    destinationChain: Chain
+  ) {
+    try {
+      const data = await this.getBonderAvailableLiquidityData()
+      if (data) {
+        const tokenData = data?.[this.tokenSymbol]
+        const _baseAvailableCreditIncludingVault = tokenData?.baseAvailableCreditIncludingVault?.[sourceChain.slug]?.[destinationChain.slug]
+        if (_baseAvailableCreditIncludingVault) {
+          return BigNumber.from(_baseAvailableCreditIncludingVault)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   /**

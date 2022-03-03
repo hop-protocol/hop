@@ -191,7 +191,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   getAvailableCreditForBond (destinationChainId: number) {
-    const baseAvailableCredit = this.syncWatcher.getBaseAvailableCredit(destinationChainId)
+    const baseAvailableCredit = this.syncWatcher.getBaseAvailableCreditIncludingVault(destinationChainId)
     return baseAvailableCredit
   }
 }

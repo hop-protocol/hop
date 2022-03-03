@@ -47,7 +47,7 @@ type ChainId = 1 | 250 | 1337 | 42161
 export class Vault {
   token: string
   signer: any
-  slippage = 0.5
+  slippage = 0.1
   yearn: Yearn<any>
   decimals: number
 

@@ -556,7 +556,7 @@ class SyncWatcher extends BaseWatcher {
       const destinationChainId = Number(destinationChainIdBn.toString())
 
       const sourceChainSlug = this.chainIdToSlug(sourceChainId)
-      const shouldBondTransferRoot = oruChains.includes(sourceChainSlug)
+      const shouldBondTransferRoot = oruChains.has(sourceChainSlug)
 
       logger.debug('transferRootId:', transferRootId)
       logger.debug('committedAt:', committedAt)
@@ -1157,18 +1157,6 @@ class SyncWatcher extends BaseWatcher {
     return true
   }
 
-  isOruToL1 (destinationChainId: number) {
-    const sourceChain = this.chainSlug
-    const destinationChain = this.chainIdToSlug(destinationChainId)
-    return destinationChain === Chain.Ethereum && oruChains.includes(sourceChain)
-  }
-
-  isNonOruToL1 (destinationChainId: number) {
-    const sourceChain = this.chainSlug
-    const destinationChain = this.chainIdToSlug(destinationChainId)
-    return destinationChain === Chain.Ethereum && !oruChains.includes(sourceChain)
-  }
-
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   private async calculateAvailableCredit (destinationChainId: number, bonder?: string) {
@@ -1185,7 +1173,8 @@ class SyncWatcher extends BaseWatcher {
       this.logger.debug(`vault balance ${destinationChain} ${vaultBalance.toString()}`)
       baseAvailableCredit = baseAvailableCredit.add(vaultBalance)
     }
-    if (this.isOruToL1(destinationChainId) || this.isNonOruToL1(destinationChainId)) {
+    const isToL1 = destinationChain === Chain.Ethereum
+    if (isToL1) {
       const pendingAmount = await this.getOruToL1PendingAmount()
       availableCredit = availableCredit.sub(pendingAmount)
 
@@ -1288,7 +1277,7 @@ class SyncWatcher extends BaseWatcher {
     for (const destinationChainId of chains) {
       const sourceChain = this.chainSlug
       const destinationChain = this.chainIdToSlug(destinationChainId)
-      const isSourceChainOru = oruChains.includes(sourceChain)
+      const isSourceChainOru = oruChains.has(sourceChain)
       const shouldSkip = (
         !isSourceChainOru ||
         sourceChain === Chain.Ethereum ||

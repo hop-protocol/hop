@@ -8,6 +8,7 @@ import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
+import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, TenMinutesMs } from 'src/constants'
 import { DateTime } from 'luxon'
@@ -15,6 +16,7 @@ import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, Transfer
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
+import { Vault } from 'src/vault'
 import { getConfigBonderForRoute, config as globalConfig, oruChains } from 'src/config'
 
 type S3JsonData = {
@@ -59,6 +61,7 @@ class SyncWatcher extends BaseWatcher {
   s3Upload: S3Upload
   s3Namespace: S3Upload
   bonderCreditPollerIncrementer: number = 0
+  vault: Vault
 
   constructor (config: Config) {
     super({
@@ -79,6 +82,7 @@ class SyncWatcher extends BaseWatcher {
     if (typeof config.gasCostPollEnabled === 'boolean') {
       this.gasCostPollEnabled = config.gasCostPollEnabled
     }
+
     this.init()
       .catch(err => {
         this.logger.error('init error:', err)
@@ -94,6 +98,14 @@ class SyncWatcher extends BaseWatcher {
       this.customStartBlockNumber = await getBlockNumberFromDate(this.chainSlug, timestamp)
       this.logger.debug(`syncing from syncFromDate with blockNumber ${this.customStartBlockNumber}`)
     }
+
+    const vaultTokens = new Set(['ETH', 'USDC', 'USDT', 'DAI'])
+    const includeVault = this.chainSlug === Chain.Ethereum && vaultTokens.has(this.tokenSymbol)
+    if (includeVault) {
+      const signer = wallets.get(this.chainSlug)
+      this.vault = new Vault(this.chainSlug as Chain, this.tokenSymbol, signer)
+    }
+
     this.ready = true
   }
 
@@ -1166,8 +1178,13 @@ class SyncWatcher extends BaseWatcher {
       throw new Error(`no destination watcher for ${destinationChain}`)
     }
     const destinationBridge = destinationWatcher.bridge
-    const baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    let baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
     let availableCredit = baseAvailableCredit
+    if (destinationWatcher.vault) {
+      const vaultBalance = await destinationWatcher.vault.getBalance(bonder)
+      this.logger.debug(`vault balance ${destinationChain} ${vaultBalance.toString()}`)
+      baseAvailableCredit = baseAvailableCredit.add(vaultBalance)
+    }
     if (this.isOruToL1(destinationChainId) || this.isNonOruToL1(destinationChainId)) {
       const pendingAmount = await this.getOruToL1PendingAmount()
       availableCredit = availableCredit.sub(pendingAmount)

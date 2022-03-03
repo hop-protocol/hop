@@ -73,8 +73,10 @@ export class Vault {
     return new Contract(address, erc20Abi, this.signer)
   }
 
-  async getBalance () {
-    const account = await this.signer.getAddress()
+  async getBalance (account?: string) {
+    if (!account) {
+      account = await this.signer.getAddress()
+    }
     const { vault } = addresses[this.token]
     const contract = this.getErc20(vault)
     return contract.balanceOf(account)

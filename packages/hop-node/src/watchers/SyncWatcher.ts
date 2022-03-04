@@ -22,6 +22,7 @@ type S3JsonData = {
     baseAvailableCredit: {[chain: string]: string}
     baseAvailableCreditIncludingVault: {[chain: string]: string}
     vaultBalance: {[chain: string]: string}
+    bonderVaultBalance: Record<string, Record<string, string>>
     availableCredit: {[chain: string]: string}
     pendingAmounts: {[chain: string]: string}
     unbondedTransferRootAmounts: {[chain: string]: string}
@@ -31,6 +32,7 @@ type S3JsonData = {
 // TODO: better way of managing aggregate state
 const s3JsonData: S3JsonData = {}
 let s3LastUpload: number
+const bonderVaultBalance: Record<string, Record<string, string>> = {}
 
 type Config = {
   chainSlug: string
@@ -1221,6 +1223,10 @@ class SyncWatcher extends BaseWatcher {
     this.baseAvailableCredit[destinationChain] = baseAvailableCredit
     this.baseAvailableCreditIncludingVault[destinationChain] = baseAvailableCreditIncludingVault
     this.vaultBalance[destinationChain] = vaultBalance
+    if (!bonderVaultBalance[bonder]) {
+      bonderVaultBalance[bonder] = {}
+    }
+    bonderVaultBalance[bonder][destinationChain] = vaultBalance.toString()
   }
 
   async getBonderAddress (destinationChain: string): Promise<string> {
@@ -1419,6 +1425,7 @@ class SyncWatcher extends BaseWatcher {
       baseAvailableCredit: {},
       baseAvailableCreditIncludingVault: {},
       vaultBalance: {},
+      bonderVaultBalance: {},
       availableCredit: {},
       pendingAmounts: {},
       unbondedTransferRootAmounts: {}
@@ -1438,6 +1445,7 @@ class SyncWatcher extends BaseWatcher {
       data.availableCredit[sourceChain] = watcher.availableCredit
       data.pendingAmounts[sourceChain] = watcher.pendingAmounts
       data.unbondedTransferRootAmounts[sourceChain] = watcher.unbondedTransferRootAmounts
+      data.bonderVaultBalance = bonderVaultBalance
     }
 
     s3JsonData[this.tokenSymbol] = data

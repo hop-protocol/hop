@@ -1204,9 +1204,11 @@ class HopBridge extends Base {
   }
 
   async getUnbondedTransferRootAmount (
-    sourceChain: Chain,
-    destinationChain: Chain
+    sourceChain: TChain,
+    destinationChain: TChain
   ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
     try {
       const data = await this.getBonderAvailableLiquidityData()
       if (data) {
@@ -1224,9 +1226,11 @@ class HopBridge extends Base {
   }
 
   private async getBaseAvailableCreditIncludingVault (
-    sourceChain: Chain,
-    destinationChain: Chain
+    sourceChain: TChain,
+    destinationChain: TChain
   ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
     try {
       const data = await this.getBonderAvailableLiquidityData()
       if (data) {
@@ -1239,6 +1243,26 @@ class HopBridge extends Base {
     } catch (err) {
       console.error(err)
     }
+  }
+
+  public async getVaultBalance (
+    destinationChain: TChain,
+    bonder: string
+  ): Promise<BigNumber> {
+    destinationChain = this.toChainModel(destinationChain)
+    try {
+      const data = await this.getBonderAvailableLiquidityData()
+      if (data) {
+        const tokenData = data?.[this.tokenSymbol]
+        const _vaultBalance = tokenData?.bonderVaultBalance?.[bonder]?.[destinationChain.slug]
+        if (_vaultBalance) {
+          return BigNumber.from(_vaultBalance)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+    return BigNumber.from(0)
   }
 
   /**

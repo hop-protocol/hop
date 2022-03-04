@@ -34,10 +34,9 @@ const Footer = () => {
       mt={5}
       height={'8rem'}
       alignCenter
-      justifyContent={['flex-end', 'space-between']}
-      $wrap
+      justifyContent={['space-around', 'space-between']}
     >
-      <Flex alignCenter mx={[3, 5]}>
+      <Flex alignCenter mx={[3, 5]} justifyAround width={['40%', '40%', '20%']}>
         {iconLinks.map((il, i) => (
           <StyledLink
             key={il.url}
@@ -50,7 +49,7 @@ const Footer = () => {
         ))}
       </Flex>
 
-      <Flex alignCenter mx={[3, 5]}>
+      <Flex alignCenter mx={[3, 5]} justifyAround width={['40%', '40%', '20%']}>
         <StyledLink href={faqUrl} ml={[0, '1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">FAQ</Typography>
         </StyledLink>

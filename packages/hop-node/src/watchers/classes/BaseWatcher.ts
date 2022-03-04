@@ -84,8 +84,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     const includeVault = this.chainSlug === Chain.Ethereum && vaultTokens.has(this.tokenSymbol)
     if (includeVault) {
       const signer = wallets.get(this.chainSlug)
-      // note: ignore any request init error if you see error
-      // https://github.com/yearn/yearn-sdk/issues/236
       this.vault = new Vault(this.chainSlug as Chain, this.tokenSymbol, signer)
     }
   }

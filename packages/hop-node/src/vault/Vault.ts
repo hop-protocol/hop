@@ -30,6 +30,8 @@ const addresses: Record<string, any> = {
   }
 }
 
+const instanceCache: Record<string, any> = {}
+
 class Provider extends providers.StaticJsonRpcProvider implements EthersProvider {
   signer: any
   constructor (url: string, signer: any) {
@@ -61,12 +63,15 @@ export class Vault {
     const provider = new Provider(url!, signer)
     this.signer = signer
     this.decimals = getTokenDecimals(token)
-    this.yearn = new Yearn(chainId, {
-      provider: {
-        write: provider,
-        read: provider
-      }
-    })
+    if (!instanceCache[chain]) {
+      instanceCache[chain] = new Yearn(chainId, {
+        provider: {
+          write: provider,
+          read: provider
+        }
+      })
+    }
+    this.yearn = instanceCache[chain]
   }
 
   private getErc20 (address: string) {

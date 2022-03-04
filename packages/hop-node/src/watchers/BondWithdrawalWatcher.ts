@@ -384,13 +384,27 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async withdrawFromVaultIfNeeded (destinationChainId: number, amount: BigNumber) {
+    if (!isL1ChainId(destinationChainId)) {
+      return
+    }
+
     return await this.mutex.runExclusive(async () => {
       const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
       const vaultBalance = this.syncWatcher.getVaultBalance(destinationChainId)
       const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(amount)
       if (shouldWithdraw) {
-        const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
-        await destinationWatcher.withdrawFromVaultAndStake(vaultBalance)
+        try {
+          const msg = `attempting withdrawFromVaultAndStake. amount: ${this.bridge.formatUnits(vaultBalance)}`
+          this.notifier.info(msg)
+          this.logger.info(msg)
+          const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
+          await destinationWatcher.withdrawFromVaultAndStake(vaultBalance)
+        } catch (err) {
+          const errMsg = `withdrawFromVaultAndStake error: ${err.message}`
+          this.notifier.error(errMsg)
+          this.logger.error(errMsg)
+          throw err
+        }
       }
     })
   }

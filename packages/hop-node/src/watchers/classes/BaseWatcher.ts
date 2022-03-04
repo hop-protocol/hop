@@ -216,11 +216,11 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       return
     }
 
-    this.logger.debug('unstaking')
+    this.logger.debug(`unstaking from bridge. amount: ${this.bridge.formatUnits(amount)}`)
     let tx = await this.bridge.unstake(amount)
     await tx.wait()
 
-    this.logger.debug('deposting to vault')
+    this.logger.debug(`deposting to vault. amount: ${this.bridge.formatUnits(amount)}`)
     tx = await this.vault.deposit(amount)
     await tx.wait()
     this.logger.debug('unstake and vault deposit complete')
@@ -231,7 +231,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       return
     }
 
-    this.logger.debug('withdrawing from vault')
+    this.logger.debug(`withdrawing from vault. amount: ${this.bridge.formatUnits(amount)}`)
     let tx = await this.vault.withdraw(amount)
     await tx.wait()
 
@@ -247,7 +247,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     // this is needed because the amount withdrawn from vault may not be exact
     amount = BNMin(amount, balance)
 
-    this.logger.debug('staking')
+    this.logger.debug(`staking on bridge. amount: ${this.bridge.formatUnits(amount)}`)
     tx = await this.bridge.stake(amount)
     await tx.wait()
     this.logger.debug('vault withdraw and stake complete')

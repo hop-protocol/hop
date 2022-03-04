@@ -110,7 +110,8 @@ const restakedProfits: Record<string, any> = {
   // 0x710bDa329b2a6224E4B44833DE30F38E7f81d564
   ETH: {
     [1640678400]: parseEther('6.07'), // 12/28/2021
-    [1643184000]: parseEther('10') // 01/26/2022
+    [1643184000]: parseEther('10'), // 01/26/2022
+    [1645776000]: parseEther('675') // 02/25/2022
   },
   // 0xd8781ca9163e9f132a4d8392332e64115688013a
   MATIC: {},

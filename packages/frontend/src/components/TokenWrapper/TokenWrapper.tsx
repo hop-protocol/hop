@@ -14,7 +14,7 @@ const useStyles = makeStyles(theme => ({
   button: {
     margin: `0 ${theme.padding.light}`,
     minWidth: '11rem',
-    transition: 'all 0.15s ease-out, box-shadow 4s ease-out',
+    transition: 'all 0.15s ease-out, box-shadow 0.15s ease-out',
   },
   warning: {
     marginBottom: theme.padding.default,

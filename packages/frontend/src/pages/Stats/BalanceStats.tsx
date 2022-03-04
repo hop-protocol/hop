@@ -4,6 +4,7 @@ import { commafy } from 'src/utils'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
 import { Div, Icon } from 'src/components/ui'
 import { CellWrapper, SortableTable } from 'src/components/Table'
+import ethLogo from 'src/assets/logos/eth.svg'
 
 export const populatePoolStats = (item: any) => {
   return {
@@ -43,7 +44,7 @@ const BalanceStats: FC = () => {
             Header: 'Address',
             accessor: 'address',
             Cell: ({ cell }) => (
-              <CellWrapper cell={cell} end>
+              <CellWrapper cell={cell}>
                 <CopyEthAddress value={cell.value} />
               </CellWrapper>
             ),
@@ -52,8 +53,9 @@ const BalanceStats: FC = () => {
             Header: 'Balance',
             accessor: 'balance',
             Cell: ({ cell }) => (
-              <CellWrapper cell={cell} end>
-                {cell.value}
+              <CellWrapper cell={cell}>
+                <Icon mr={1} src={ethLogo} width={[12, 18]} />
+                {commafy(cell.value)}
               </CellWrapper>
             ),
           },

@@ -10,10 +10,11 @@ export function CellWrapper({ cell, end, children }: any) {
   )
 }
 
-export function RightAlignedValue({ cell }) {
+export function RightAlignedValue({ cell, children }: any) {
   return (
     <CellWrapper cell={cell} end>
       {commafy(cell.value)}
+      {children}
     </CellWrapper>
   )
 }

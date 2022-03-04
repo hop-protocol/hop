@@ -7,6 +7,7 @@ export const OverflowText = styled(Div)`
   white-space: nowrap;
   text-overflow: ellipsis;
   font-family: 'Source Code Pro';
+  transition: all 0.15s ease-out;
 `
 
 export interface EthAddressProps {

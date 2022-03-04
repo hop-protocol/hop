@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import { useTable, useSortBy, sortTypes } from 'react-table'
 import makeData from './makeData'
@@ -17,6 +17,7 @@ const Styles = styled.div`
     }
 
     tr {
+      transition: background 0.15s ease-out;
       :last-child {
         td {
           border-bottom: 0;
@@ -38,8 +39,10 @@ const Styles = styled.div`
         }
       }
     }
+
     th,
     td {
+      transition: background 0.15s ease-out;
       margin: 0;
       padding: 0.5rem;
       border-bottom: 1px solid #dbdbdb;
@@ -48,8 +51,6 @@ const Styles = styled.div`
         border-right: 0;
       }
     }
-
-    transition: all 0s ease-out;
   }
 `
 
@@ -72,22 +73,27 @@ function Table({ columns, data }) {
     useSortBy
   )
 
-  // We don't want to render all 2000 rows for this example, so cap
-  // it at 20 for this use case
-  // const firstPageRows = rows
-
   return (
     <Div>
       <table {...getTableProps()}>
         <thead>
           {headerGroups.map(headerGroup => (
             <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map(column => (
+              {headerGroup.headers.map((column, i) => (
                 // Add the sorting props to control sorting. For this example
                 // we can add them into the header props
-                <th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                <th
+                  {...column.getHeaderProps([
+                    {
+                      style: {
+                        ...column.style,
+                        backgroundColor: column.isSorted ? '#eed0ff' : 'transparent',
+                      },
+                    },
+                    column.getSortByToggleProps(),
+                  ])}
+                >
                   {column.render('Header')}
-                  {/* Add a sort direction indicator */}
                   <span style={{ color: '#B32EFF' }}>
                     {column.isSorted ? (column.isSortedDesc ? ' ↑' : ' ↓') : ''}
                   </span>
@@ -119,6 +125,7 @@ interface Props {
   populateDataFn: (item: any, ...rest: any) => void
   extraData?: any
 }
+
 function SortableTable(props: Props) {
   const { stats, columns, populateDataFn, extraData } = props
 

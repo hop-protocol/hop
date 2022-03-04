@@ -93,6 +93,7 @@ const DebitWindowStats: FC = () => {
             accessor: 'virtualDebt',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
+                {cell.value !== 0 && <Icon mr={1} src={cell.row.values.token} width={[12, 18]} />}
                 {commafy(cell.value)}
               </CellWrapper>
             ),

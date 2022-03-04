@@ -1,8 +1,8 @@
 import React, { FC } from 'react'
 import { useStats } from 'src/pages/Stats/StatsContext'
-import { formatTokenDecimalString } from 'src/utils'
+import { commafy, formatTokenString } from 'src/utils'
 import { Div, Icon } from 'src/components/ui'
-import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Table'
+import { CellWrapper, SortableTable } from 'src/components/Table'
 
 export const populatePendingAmountStats = (item: any) => {
   return {
@@ -10,7 +10,7 @@ export const populatePendingAmountStats = (item: any) => {
     destination: item.destinationNetwork.imageUrl,
     pendingAmount: item.formattedPendingAmount,
     tokenDecimals: item.token.decimals,
-    availableLiquidity: item.availableLiquidity.toString(),
+    availableLiquidity: formatTokenString(item.availableLiquidity.toString(), item.token.decimals),
     token: item.token.imageUrl,
   }
 }
@@ -48,7 +48,12 @@ const PendingAmountStats: FC = () => {
           {
             Header: 'Pending Amount',
             accessor: 'pendingAmount',
-            Cell: ({ cell }) => <RightAlignedValue cell={cell} />,
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell} end>
+                <Icon mr={1} src={cell.row.values.token} width={[12, 18]} />
+                {commafy(cell.value)}
+              </CellWrapper>
+            ),
           },
           {
             Header: 'Token Decimals',
@@ -63,7 +68,8 @@ const PendingAmountStats: FC = () => {
             accessor: 'availableLiquidity',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
-                {formatTokenDecimalString(cell.value, cell.row.values.tokenDecimals)}
+                <Icon mr={1} src={cell.row.values.token} width={[12, 18]} />
+                {commafy(cell.value)}
               </CellWrapper>
             ),
           },
@@ -83,7 +89,7 @@ const PendingAmountStats: FC = () => {
   )
 
   return (
-    <Div fontSize={[0, 1, 2]}>
+    <Div fontSize={[0, 1, 2]} alignSelf={['center', 'center', 'flex-start']}>
       <SortableTable
         stats={pendingAmounts}
         columns={columns}

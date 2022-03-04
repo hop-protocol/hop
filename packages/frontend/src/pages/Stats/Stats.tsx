@@ -43,16 +43,17 @@ const Stats: FC = () => {
       color={isDarkMode ? 'secondary.main' : 'primary.default'}
       flexDirection={['column', 'column', 'column', 'column', 'row']}
       alignItems={['center', 'center', 'center', 'center', 'flex-start']}
+      justifyContent={['flex-start', 'justify-between']}
       fullWidth
     >
       <Flex $wrap justifyCenter flexDirection={['column', 'column', 'column', 'row']} fullWidth>
         <Flex $wrap justifyCenter fullWidth>
-          <Group title="Pool Stats" clickTitle={() => toggleGroup('pool')} mr={[0, 2, 4]}>
+          <Group title="Pool Stats" clickTitle={() => toggleGroup('pool')}>
             {groups.pool && <PoolStats />}
           </Group>
 
           <Flex
-            flexDirection={['row', 'row', 'row', 'column']}
+            flexDirection={['row', 'row', 'column']}
             $wrap
             alignCenter
             justifyCenter
@@ -74,7 +75,7 @@ const Stats: FC = () => {
         </Flex>
       </Flex>
 
-      <Flex width={['100%', '100%', '50%']} mr={[0, 0, 4]}>
+      <Flex width={['auto', '100%', '50%']}>
         <Group title="Pending Amount Stats" clickTitle={() => toggleGroup('pendingAmount')}>
           {groups.pendingAmount && <PendingAmountStats />}
         </Group>

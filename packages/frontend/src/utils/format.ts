@@ -89,6 +89,10 @@ export function truncateHash(hash) {
   return `${hash.substring(0, 6)}…${hash.substring(62, 66)}`
 }
 
+export function formatTokenString(value, tokenDecimals = 18, trailingDecimals = 2) {
+  return fixedDecimals(toTokenDisplay(value, tokenDecimals), trailingDecimals)
+}
+
 export function formatTokenDecimalString(value, tokenDecimals = 18, trailingDecimals = 2) {
-  return commafy(fixedDecimals(toTokenDisplay(value, tokenDecimals), trailingDecimals))
+  return commafy(formatTokenString(value, tokenDecimals, trailingDecimals))
 }

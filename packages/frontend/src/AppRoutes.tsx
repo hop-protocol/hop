@@ -15,8 +15,11 @@ const AppRoutes: FC = () => {
     <Switch>
       <Div flexGrow={1}>
         <Div p={['2.2rem', '2.5rem']} flexGrow={1}>
+          <Route exact path="/" component={() =>
+            <Redirect to="/send" />
+          } />
           <Route path="/stats" component={Stats} />
-          <Route path="/(send|arbitrum|optimism|polygon|gnosis)" component={Send} />
+          <Route path="/send" component={Send} />
 
           <Route path="/convert" component={Convert} />
           <Route path="/pool" component={Pools} />
@@ -26,9 +29,9 @@ const AppRoutes: FC = () => {
           <Route exact path={['/tx', '/tx/:hash']} component={TransactionPage} />
 
           <Route path="/components" component={Components} />
+          <Redirect to="/send" />
         </Div>
       </Div>
-      <Redirect to="/send" />
     </Switch>
   )
 }

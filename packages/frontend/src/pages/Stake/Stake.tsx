@@ -37,7 +37,7 @@ const Stake = () => {
       matic: allBridges.matic.getSaddleLpToken(ChainSlug.Polygon),
       dai: allBridges.dai.getSaddleLpToken(ChainSlug.Gnosis),
       usdc: allBridges.usdc.getSaddleLpToken(selectedNetwork.slug),
-      usdt: allBridges.usdt.getSaddleLpToken(ChainSlug.Polygon),
+      usdt: allBridges.usdt.getSaddleLpToken(selectedNetwork.slug),
     }
   }, [allBridges, selectedNetwork.slug])
 
@@ -166,6 +166,15 @@ const Stake = () => {
                 rewardsToken={rewardsToken}
                 stakingRewards={stakingRewards?.usdc}
                 key={stakingTokens.usdc?.symbol}
+                rewardTokenUsdPrice={rewardTokenUsdPrice}
+              />
+              <StakeWidget
+                network={selectedNetwork}
+                bridge={allBridges.usdt}
+                stakingToken={stakingTokens.usdt}
+                rewardsToken={rewardsToken}
+                stakingRewards={stakingRewards?.usdt}
+                key={stakingTokens.usdt?.symbol}
                 rewardTokenUsdPrice={rewardTokenUsdPrice}
               />
             </>

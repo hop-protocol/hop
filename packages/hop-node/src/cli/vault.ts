@@ -47,7 +47,7 @@ async function main (source: any) {
   const chain = Chain.Ethereum
   const signer = wallets.get(chain)
   const isNative = nativeChainTokens[chain] === token
-  const vault = new Vault(chain, token, signer)
+  const vault = Vault.from(chain, token, signer)
   logger.debug(`isNative: ${isNative}`)
   if (action === Actions.Deposit) {
     let parsedAmount: BigNumber

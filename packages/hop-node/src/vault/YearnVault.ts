@@ -49,6 +49,7 @@ class Provider extends providers.StaticJsonRpcProvider implements EthersProvider
 type ChainId = 1 | 250 | 1337 | 42161
 
 export class YearnVault implements VaultInterface {
+  chain: Chain
   token: string
   signer: any
   slippage = 0.1
@@ -59,6 +60,7 @@ export class YearnVault implements VaultInterface {
     if (!addresses[token]) {
       throw new Error('token is not supported')
     }
+    this.chain = chain
     this.token = token
     const chainId = chainSlugToId(chain) as ChainId
     const url = getRpcUrl(chain)

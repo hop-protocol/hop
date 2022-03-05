@@ -80,12 +80,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (config.dryMode) {
       this.dryMode = config.dryMode
     }
-    const vaultTokens = new Set(['ETH', 'USDC', 'USDT', 'DAI'])
-    const includeVault = this.chainSlug === Chain.Ethereum && vaultTokens.has(this.tokenSymbol)
-    if (includeVault) {
-      const signer = wallets.get(this.chainSlug)
-      this.vault = new Vault(this.chainSlug as Chain, this.tokenSymbol, signer)
-    }
+    const signer = wallets.get(this.chainSlug)
+    this.vault = Vault.from(this.chainSlug as Chain, this.tokenSymbol, signer)
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {

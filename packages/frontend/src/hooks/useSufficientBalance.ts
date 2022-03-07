@@ -13,11 +13,12 @@ export function useSufficientBalance(
 ) {
   const [sufficientBalance, setSufficientBalance] = useState(false)
   const [warning, setWarning] = useState('')
-  const { isSmartContractWallet } = useIsSmartContractWallet()
+  const { address } = useWeb3Context()
+  const isSmartContractWallet = useIsSmartContractWallet()
 
   useEffect(() => {
     async function checkEnoughBalance() {
-      if (!(token && amount)) {
+      if (!(token && amount && address)) {
         setWarning('')
         return setSufficientBalance(false)
       }

@@ -1,4 +1,4 @@
-import { Signer, ethers, BigNumber, BigNumberish } from 'ethers'
+import { Signer, ethers, BigNumber, BigNumberish, utils } from 'ethers'
 import {
   ArbitrumInbox__factory,
   ArbitrumInbox,
@@ -18,7 +18,7 @@ import {
   L1XDaiWETHOmnibridgeRouter__factory,
   L1XDaiWETHOmnibridgeRouter,
 } from '@hop-protocol/core/contracts'
-import { ChainSlug } from '@hop-protocol/sdk'
+import { ChainSlug, CanonicalToken } from '@hop-protocol/sdk'
 import Base, { L1Factory } from '@hop-protocol/sdk/dist/src/Base'
 import { metadata } from '@hop-protocol/sdk/dist/src/config'
 import { TokenSymbol } from '@hop-protocol/sdk/dist/src/constants'
@@ -26,6 +26,8 @@ import { Chain } from '@hop-protocol/sdk/dist/src/models'
 import Token from '@hop-protocol/sdk/dist/src/models/Token'
 import TokenClass from '@hop-protocol/sdk/dist/src/Token'
 import { TChain, TToken } from '@hop-protocol/sdk/dist/src/types'
+import { Bridge } from 'arb-ts'
+import { JsonRpcSigner } from '@ethersproject/providers'
 
 export type L1CanonicalBridge =
   | ArbitrumInbox
@@ -40,6 +42,7 @@ class CanonicalBridge extends Base {
   public chain: Chain
   public tokenSymbol: TokenSymbol
   address: string
+  l2TokenAddress: string
 
   constructor(network: string, signer: Signer, token: TToken, chain: TChain) {
     super(network, signer)
@@ -52,6 +55,7 @@ class CanonicalBridge extends Base {
     this.chain = this.toChainModel(chain)
     this.tokenSymbol = this.toTokenModel(token).symbol
     this.address = this.getL1CanonicalBridgeAddress(this.tokenSymbol, this.chain)
+    this.l2TokenAddress = this.getL2CanonicalTokenAddress(this.tokenSymbol, this.chain)
   }
 
   public connect(signer: Signer) {
@@ -102,15 +106,19 @@ class CanonicalBridge extends Base {
     return this.signer.estimateGas(populatedTx)
   }
 
-  public async deposit(amount: BigNumberish) {
+  public async deposit(amount: BigNumberish, customRecipient?: string) {
+    if (this.chain.equals(Chain.Arbitrum) && this.tokenSymbol !== CanonicalToken.ETH) {
+      return this.populateDepositTx(amount, customRecipient)
+    }
     const populatedTx = await this.populateDepositTx(amount)
     return this.signer.sendTransaction(populatedTx)
   }
 
-  public async populateDepositTx(amount: BigNumberish, fromAddress?: string): Promise<any> {
+  public async populateDepositTx(amount: BigNumberish, customRecipient?: string): Promise<any> {
     amount = amount.toString()
     const signerAddress = await this.getSignerAddress()
-    const from = fromAddress || signerAddress
+    const from = signerAddress
+    const recipient = customRecipient || signerAddress
     const l1CanonicalBridge = await this.getL1CanonicalBridge()
     const l1CanonicalToken = this.getL1Token()
     const coder = ethers.utils.defaultAbiCoder
@@ -120,7 +128,7 @@ class CanonicalBridge extends Base {
       case ChainSlug.Gnosis: {
         if (this.tokenSymbol === Token.DAI) {
           return (l1CanonicalBridge as L1XDaiPoaBridge).populateTransaction.relayTokens(
-            signerAddress,
+            recipient,
             amount,
             {
               // Gnosis requires a higher gas limit
@@ -133,7 +141,7 @@ class CanonicalBridge extends Base {
         if (this.tokenSymbol === Token.ETH) {
           return (l1CanonicalBridge as L1XDaiWETHOmnibridgeRouter).populateTransaction[
             'wrapAndRelayTokens(address,bytes)'
-          ](signerAddress, payload, {
+          ](recipient, payload, {
             // Gnosis requires a higher gas limit
             gasLimit: 500e3,
             from,
@@ -142,7 +150,7 @@ class CanonicalBridge extends Base {
 
         return (l1CanonicalBridge as L1XDaiForeignOmniBridge).populateTransaction.relayTokens(
           l1CanonicalToken.address,
-          signerAddress,
+          recipient,
           amount,
           {
             // Gnosis requires a higher gas limit
@@ -192,36 +200,60 @@ class CanonicalBridge extends Base {
       }
 
       case ChainSlug.Arbitrum: {
+        const ethSigner = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
+        const arbProvider = await this.getSignerOrProvider(Chain.Arbitrum)
+        const arbSigner = (arbProvider as any).getUncheckedSigner(from)
+        const arbBridge = await Bridge.init(ethSigner as JsonRpcSigner, arbSigner)
+
         let bridge: ArbitrumInbox | L1ArbitrumDaiGateway = L1ArbitrumDaiGateway__factory.connect(
           l1CanonicalBridge.address,
           this.signer
         )
+
         if (this.tokenSymbol === Token.ETH) {
           bridge = await this.getContract(
             ArbitrumInbox__factory,
             l1CanonicalBridge.address,
             this.signer
           )
-          return (bridge as ArbitrumInbox).populateTransaction.depositEth(payload, {
-            value: amount,
-            from,
-          })
+          const maxSubmissionCost = BigNumber.from(amount).add(1000e4)
+          return ((bridge as ArbitrumInbox).populateTransaction.depositEth as any)(
+            BigNumber.from(maxSubmissionCost),
+            {
+              value: amount,
+              from,
+            }
+          )
         }
 
-        const maxGas = BigNumber.from('10000000000000')
-        const gasPriceBid = BigNumber.from(0)
-        const data = '0x'
-        return bridge.populateTransaction.outboundTransfer(
-          l1CanonicalToken.address,
-          signerAddress,
-          amount,
-          maxGas,
-          gasPriceBid,
-          data,
-          { from, gasLimit: 200e3 }
-        )
-      }
+        const depositInputParams = {
+          erc20L1Address: l1CanonicalToken.address,
+          amount: BigNumber.from(amount),
+          destinationAddress: recipient,
+        }
+        const depositTxParams = await arbBridge.getDepositTxParams(depositInputParams)
+        const gasNeeded = await arbBridge.estimateGasDeposit(depositTxParams)
+        const { maxFeePerGas, gasPrice } = await arbBridge.l1Provider.getFeeData()
+        const price = maxFeePerGas || gasPrice
+        const walletBal = await arbBridge.l1Provider.getBalance(from)
 
+        if (!price) {
+          console.log('Warning: could not get gas price estimate; will try depositing anyway')
+        } else {
+          const fee = price.mul(gasNeeded)
+          if (fee.gt(walletBal)) {
+            console.log(
+              `An estimated ${utils.formatEther(
+                fee
+              )} ether is needed for deposit; you only have ${utils.formatEther(
+                walletBal
+              )} ether. Will try depositing anyway:`
+            )
+          }
+        }
+
+        return arbBridge.l1Bridge.deposit(depositTxParams)
+      }
       case ChainSlug.Polygon: {
         if (this.tokenSymbol === Token.MATIC) {
           return (

@@ -10,6 +10,7 @@ import WithdrawStake from 'src/components/txConfirm/WithdrawStake'
 import WrapToken from 'src/components/txConfirm/WrapToken'
 import UnwrapToken from 'src/components/txConfirm/UnwrapToken'
 import WithdrawReview from 'src/components/txConfirm/WithdrawReview'
+import ConfirmDepositNativeBridge from './ConfirmDepositNativeBridge'
 import { useApp } from 'src/contexts/AppContext'
 
 const TxConfirm: FC = props => {
@@ -22,6 +23,7 @@ const TxConfirm: FC = props => {
   const components: { [key: string]: FC<any> } = {
     approval: Approval,
     send: ConfirmSend,
+    depositNativeBridge: ConfirmDepositNativeBridge,
     convert: ConfirmConvert,
     addLiquidity: AddLiquidity,
     removeLiquidity: RemoveLiquidity,

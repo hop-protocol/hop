@@ -14,8 +14,8 @@ interface Props {
   estimatedReceivedDisplay?: string
   l1CanonicalBridge?: CanonicalBridge
   sendL1CanonicalBridge?: () => void
-  setUl1cb: (u: boolean) => void
-  usingL1CanonicalBridge?: boolean
+  selectNativeBridge: (u: boolean) => void
+  usingNativeBridge?: boolean
 }
 
 function L1CanonicalBridgeOption(props: Props) {
@@ -25,27 +25,27 @@ function L1CanonicalBridgeOption(props: Props) {
     destToken,
     estimatedReceivedDisplay,
     l1CanonicalBridge,
-    setUl1cb,
-    usingL1CanonicalBridge,
+    selectNativeBridge,
+    usingNativeBridge,
   } = props
 
   return (
-    <Flex width={'50rem'} mt={3} pointer color='text.secondary'>
+    <Flex width={'50rem'} mt={3} pointer color="text.secondary">
       {l1CanonicalBridge && (
         <Div fullWidth>
-          <Flex fullWidth justifyBetween px={4} onClick={() => setUl1cb(false)}>
+          <Flex fullWidth justifyBetween px={4} onClick={() => selectNativeBridge(false)}>
             <Flex alignCenter>
               <Flex mr={2}>
-                {usingL1CanonicalBridge ? <RadioButtonUnchecked /> : <RadioButtonChecked />}
+                {usingNativeBridge ? <RadioButtonUnchecked /> : <RadioButtonChecked />}
               </Flex>
               <Flex>Hop Bridge</Flex>
             </Flex>
             <Flex>{estimatedReceivedDisplay}</Flex>
           </Flex>
-          <Flex fullWidth justifyBetween px={4} onClick={() => setUl1cb(true)}>
+          <Flex fullWidth justifyBetween px={4} onClick={() => selectNativeBridge(true)}>
             <Flex alignCenter>
               <Flex mr={2}>
-                {usingL1CanonicalBridge ? <RadioButtonChecked /> : <RadioButtonUnchecked />}
+                {usingNativeBridge ? <RadioButtonChecked /> : <RadioButtonUnchecked />}
               </Flex>
               <Flex>Native {destNetwork?.name} Bridge</Flex>
             </Flex>

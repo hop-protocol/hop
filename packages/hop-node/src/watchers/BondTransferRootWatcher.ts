@@ -8,7 +8,6 @@ import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Mutex } from 'async-mutex'
 
 type Config = {
   chainSlug: string
@@ -21,7 +20,6 @@ type Config = {
 
 class BondTransferRootWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondTransferRootWatcher }
-  mutex = new Mutex()
 
   constructor (config: Config) {
     super({

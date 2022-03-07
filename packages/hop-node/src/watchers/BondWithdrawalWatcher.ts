@@ -10,7 +10,6 @@ import { BigNumber, constants } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Mutex } from 'async-mutex'
 import { TxError } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 
@@ -25,7 +24,6 @@ type Config = {
 
 class BondWithdrawalWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: BondWithdrawalWatcher }
-  mutex = new Mutex()
 
   constructor (config: Config) {
     super({

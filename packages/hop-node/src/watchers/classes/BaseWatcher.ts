@@ -13,9 +13,12 @@ import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
 import { Vault } from 'src/vault'
 import { config as globalConfig, hostname } from 'src/config'
+
+const mutexes: Record<string, Mutex> = {}
 
 type Config = {
   chainSlug: string
@@ -45,6 +48,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   tag: string
   prefix: string
   vault: Vault
+  mutex: Mutex
 
   constructor (config: Config) {
     super()
@@ -82,6 +86,11 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
     const signer = wallets.get(this.chainSlug)
     this.vault = Vault.from(this.chainSlug as Chain, this.tokenSymbol, signer)
+    if (!mutexes[this.chainSlug]) {
+      mutexes[this.chainSlug] = new Mutex()
+    }
+
+    this.mutex = mutexes[this.chainSlug]
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {
@@ -212,6 +221,11 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       return
     }
 
+    const creditBalance = await this.bridge.getBaseAvailableCredit()
+    if (amount.lt(creditBalance)) {
+      return
+    }
+
     this.logger.debug(`unstaking from bridge. amount: ${this.bridge.formatUnits(amount)}`)
     let tx = await this.bridge.unstake(amount)
     await tx.wait()
@@ -224,6 +238,11 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   async withdrawFromVaultAndStake (amount: BigNumber) {
     if (this.chainSlug !== Chain.Ethereum) {
+      return
+    }
+
+    const vaultBalance = await this.vault.getBalance()
+    if (amount.lt(vaultBalance)) {
       return
     }
 

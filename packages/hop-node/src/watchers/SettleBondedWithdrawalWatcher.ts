@@ -1,9 +1,11 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
+import isL1ChainId from 'src/utils/isL1ChainId'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
+import { config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -215,6 +217,11 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const msg = `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${tx.hash}`
       logger.info(msg)
       this.notifier.info(msg)
+
+      tx.wait()
+        .then(() => {
+          this.depositToVaultIfNeeded(destinationChainId!)
+        })
     } catch (err) {
       logger.error(err.message)
       throw err
@@ -235,6 +242,44 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
 
     return await this.checkTransferRootId(transferRootId!, withdrawalBonder!)
+  }
+
+  async depositToVaultIfNeeded (destinationChainId: number) {
+    if (!isL1ChainId(destinationChainId)) {
+      return
+    }
+
+    const tokenConfig = globalConfig.vault?.[this.tokenSymbol]
+    if (!tokenConfig) {
+      return
+    }
+
+    const thresholdAmount = this.bridge.parseUnits(tokenConfig.thresholdAmount)
+    const depositAmount = this.bridge.parseUnits(tokenConfig.depositAmount)
+    if (depositAmount.eq(0) || thresholdAmount.eq(0)) {
+      return
+    }
+
+    return await this.mutex.runExclusive(async () => {
+      const availableCredit = await this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
+      const vaultBalance = await this.syncWatcher.getVaultBalance(destinationChainId)
+      const availableCreditMinusVault = availableCredit.sub(vaultBalance)
+      const shouldDeposit = (availableCreditMinusVault.sub(depositAmount)).gt(thresholdAmount)
+      if (shouldDeposit) {
+        try {
+          const msg = `attempting unstakeAndDepositToVault. amount: ${this.bridge.formatUnits(depositAmount)}`
+          this.notifier.info(msg)
+          this.logger.info(msg)
+          const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
+          await destinationWatcher.unstakeAndDepositToVault(depositAmount)
+        } catch (err) {
+          const errMsg = `unstakeAndDepositToVault error: ${err.message}`
+          this.notifier.error(errMsg)
+          this.logger.error(errMsg)
+          throw err
+        }
+      }
+    })
   }
 }
 

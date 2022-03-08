@@ -46,7 +46,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'metrics',
     'fees',
     'routes',
-    'bonders'
+    'bonders',
+    'vault'
   ]
 
   const validWatcherKeys = [
@@ -228,6 +229,17 @@ export async function validateConfigFileStructure (config?: FileConfig) {
       }
     }
   }
+
+  if (config.vault) {
+    const vaultTokens = Object.keys(config.vault)
+    validateKeys(validTokenKeys, vaultTokens)
+    for (const tokenSymbol in config.vault) {
+      const tokenConfig = config.vault[tokenSymbol]
+      const validTokenConfigKeys = ['thresholdAmount', 'depositAmount']
+      const tokenConfigKeys = Object.keys(tokenConfig)
+      validateKeys(validTokenConfigKeys, tokenConfigKeys)
+    }
+  }
 }
 
 export async function validateConfigValues (config?: Config) {
@@ -308,6 +320,18 @@ export async function validateConfigValues (config?: Config) {
             throw new Error(`config bonder address "${bonderAddress}" is invalid`)
           }
         }
+      }
+    }
+  }
+
+  if (config.vault) {
+    for (const tokenSymbol in config.vault) {
+      const tokenConfig = config.vault[tokenSymbol]
+      if (typeof tokenConfig.thresholdAmount !== 'number') {
+        throw new Error('thresholdAmount should be a number')
+      }
+      if (typeof tokenConfig.depositAmount !== 'number') {
+        throw new Error('depositAmount should be a number')
       }
     }
   }

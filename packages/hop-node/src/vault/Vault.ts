@@ -11,23 +11,9 @@ export abstract class Vault {
     }
   }
 
-  async getBalance (account?: string): Promise<BigNumber> {
-    throw new Error('not implemented')
-  }
-
-  async deposit (amount: BigNumber): Promise<any> {
-    throw new Error('not implemented')
-  }
-
-  async withdraw (amount: BigNumber): Promise<any> {
-    throw new Error('not implemented')
-  }
-
-  formatUnits (amount: BigNumber): number {
-    throw new Error('not implemented')
-  }
-
-  parseUnits (amount: string | number): BigNumber {
-    throw new Error('not implemented')
-  }
+  abstract getBalance (account?: string): Promise<BigNumber>
+  abstract deposit (amount: BigNumber): Promise<any>
+  abstract withdraw (amount: BigNumber): Promise<any>
+  abstract formatUnits (amount: BigNumber): number
+  abstract parseUnits (amount: string | number): BigNumber
 }

@@ -33,7 +33,6 @@ type Props = {
   walletConnected: boolean
   walletName: string
   checkConnectedNetworkId: (networkId: number) => Promise<boolean>
-  getWriteContract: (contract: Contract | undefined) => Promise<Contract | undefined>
 }
 
 // TODO: modularize
@@ -345,32 +344,6 @@ const Web3ContextProvider: FC = ({ children }) => {
     [provider, onboard]
   )
 
-  // TODO: cleanup
-  const getWriteContract = async (contract?: Contract): Promise<Contract | undefined> => {
-    if (!contract) return
-    const signerNetworkId = (await provider?.getNetwork())?.chainId
-    const contractNetworkId = (await contract.provider.getNetwork()).chainId
-    if (signerNetworkId?.toString() !== contractNetworkId.toString()) {
-      onboard.config({ networkId: Number(contractNetworkId) })
-      if (onboard.getState().address) {
-        await onboard.walletCheck()
-      }
-
-      return
-    }
-
-    if (!provider) {
-      throw new Error('Provider is undefined')
-    }
-
-    const signer = provider?.getSigner()
-    if (!signer) {
-      throw new Error('Provider has no signer')
-    }
-
-    return contract.connect(signer)
-  }
-
   return (
     <Web3Context.Provider
       value={{
@@ -384,8 +357,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         requestWallet,
         disconnectWallet,
         walletName,
-        checkConnectedNetworkId,
-        getWriteContract,
+        checkConnectedNetworkId
       }}
     >
       {children}

@@ -116,10 +116,7 @@ class GasBoostSigner extends Wallet {
 
   private async getDbNonce () {
     const item = await this.store.getItem('nonce')
-    if (item?.nonce) {
-      return item.nonce
-    }
-    return 0
+    return item?.nonce ?? 0
   }
 
   private async incNonce () {

@@ -46,13 +46,13 @@ class Provider extends providers.StaticJsonRpcProvider implements EthersProvider
   }
 }
 
-type ChainId = 1 | 250 | 1337 | 42161
+type ChainId = 1 | 42161
 
 export class YearnVault implements VaultInterface {
   chain: Chain
   token: string
   signer: any
-  slippage = 0.1
+  slippage = 0.01 // needed for zapIn/zapOut
   yearn: Yearn<any>
   decimals: number
 

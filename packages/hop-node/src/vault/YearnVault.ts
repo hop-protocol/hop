@@ -149,7 +149,7 @@ export class YearnVault implements Vault {
   async needsWithdrawalApproval (amount: BigNumber = constants.MaxUint256) {
     const account = await this.signer.getAddress()
     const { token, vault, zapOut } = addresses[this.token]
-    // the WETH contract needs to approve the vault as spender
+    // the ETH vault token contract needs to approve zapOut contract as spender
     if (token !== EthAddress) {
       return false
     }

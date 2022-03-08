@@ -48,6 +48,9 @@ async function main (source: any) {
   const signer = wallets.get(chain)
   const isNative = nativeChainTokens[chain] === token
   const vault = Vault.from(chain, token, signer)
+  if (!vault) {
+    throw new Error(`no vault strategy found for token "${token}" on chain "${chain}"`)
+  }
   logger.debug(`isNative: ${isNative}`)
   if (action === Actions.Deposit) {
     let parsedAmount: BigNumber

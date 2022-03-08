@@ -47,7 +47,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   dryMode: boolean = false
   tag: string
   prefix: string
-  vault: Vault
+  vault?: Vault
   mutex: Mutex
 
   constructor (config: Config) {
@@ -217,6 +217,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async unstakeAndDepositToVault (amount: BigNumber) {
+    if (!this.vault) {
+      return
+    }
+
     if (this.chainSlug !== Chain.Ethereum) {
       return
     }
@@ -237,6 +241,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async withdrawFromVaultAndStake (amount: BigNumber) {
+    if (!this.vault) {
+      return
+    }
+
     if (this.chainSlug !== Chain.Ethereum) {
       return
     }

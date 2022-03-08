@@ -5,7 +5,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Provider as EthersProvider } from '@ethersproject/abstract-provider'
-import { VaultInterface } from './VaultInterface'
+import { Vault } from './Vault'
 import { Yearn } from '@yfi/sdk'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
@@ -34,6 +34,7 @@ const addresses: Record<string, any> = {
 
 const instanceCache: Record<string, any> = {}
 
+// the yearn sdk requires a provider with a 'getSigner' method
 class Provider extends providers.StaticJsonRpcProvider implements EthersProvider {
   signer: any
   constructor (url: string, signer: any) {
@@ -48,7 +49,7 @@ class Provider extends providers.StaticJsonRpcProvider implements EthersProvider
 
 type ChainId = 1 | 42161
 
-export class YearnVault implements VaultInterface {
+export class YearnVault implements Vault {
   chain: Chain
   token: string
   signer: any
@@ -148,6 +149,7 @@ export class YearnVault implements VaultInterface {
   async needsWithdrawalApproval (amount: BigNumber = constants.MaxUint256) {
     const account = await this.signer.getAddress()
     const { token, vault, zapOut } = addresses[this.token]
+    // the WETH contract needs to approve the vault as spender
     if (token !== EthAddress) {
       return false
     }

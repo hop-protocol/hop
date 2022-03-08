@@ -320,6 +320,14 @@ class Token extends Base {
     return address
   }
 
+  public async totalSupply (): Promise<BigNumber> {
+    if (this.isNativeToken) {
+      return BigNumber.from(0)
+    }
+    const tokenContract = await this.getErc20()
+    return tokenContract.totalSupply()
+  }
+
   static fromJSON (json: any): Token {
     return new Token(
       json.network,

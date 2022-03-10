@@ -282,7 +282,7 @@ const Send: FC = () => {
     estimatedReceived,
     priceImpact,
     fromTokenAmount,
-    toTokenAmount
+    toTokenAmount,
   ])
 
   useEffect(() => {
@@ -482,6 +482,9 @@ const Send: FC = () => {
         'Warning: transfers to exchanges that do not support internal transactions may result in lost funds.'
       )
     }
+    if (fromNetwork?.slug === ChainSlug.Polygon || toNetwork?.slug === ChainSlug.Polygon) {
+      return setManualWarning('Warning: transfers to/from Polygon are temporarily down.')
+    }
     setManualWarning('')
   }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
@@ -499,7 +502,8 @@ const Send: FC = () => {
       rate &&
       sufficientBalance &&
       isLiquidityAvailable &&
-      estimatedReceived?.gt(0)
+      estimatedReceived?.gt(0) &&
+      !manualWarning
     )
   }, [
     needsApproval,
@@ -513,6 +517,7 @@ const Send: FC = () => {
     sufficientBalance,
     isLiquidityAvailable,
     estimatedReceived,
+    manualWarning,
   ])
 
   return (
@@ -611,8 +616,8 @@ const Send: FC = () => {
 
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
-      <Alert severity="warning">{manualWarning}</Alert>
-      
+      <Alert severity="error">{manualWarning}</Alert>
+
 
       <ButtonsWrapper>
         {!sendButtonActive && (

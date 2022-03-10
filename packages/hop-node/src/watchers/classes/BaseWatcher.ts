@@ -1,17 +1,24 @@
+import BNMin from 'src/utils/BNMin'
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
 import wait from 'src/utils/wait'
+import wallets from 'src/wallets'
+import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
+import { Vault } from 'src/vault'
 import { config as globalConfig, hostname } from 'src/config'
+
+const mutexes: Record<string, Mutex> = {}
 
 type Config = {
   chainSlug: string
@@ -40,6 +47,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   dryMode: boolean = false
   tag: string
   prefix: string
+  vault?: Vault
+  mutex: Mutex
 
   constructor (config: Config) {
     super()
@@ -75,6 +84,13 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (config.dryMode) {
       this.dryMode = config.dryMode
     }
+    const signer = wallets.get(this.chainSlug)
+    this.vault = Vault.from(this.chainSlug as Chain, this.tokenSymbol, signer)
+    if (!mutexes[this.chainSlug]) {
+      mutexes[this.chainSlug] = new Mutex()
+    }
+
+    this.mutex = mutexes[this.chainSlug]
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {
@@ -198,6 +214,66 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       sourceChainId,
       destinationChainIds
     }
+  }
+
+  async unstakeAndDepositToVault (amount: BigNumber) {
+    if (!this.vault) {
+      return
+    }
+
+    if (this.chainSlug !== Chain.Ethereum) {
+      return
+    }
+
+    const creditBalance = await this.bridge.getBaseAvailableCredit()
+    if (amount.lt(creditBalance)) {
+      return
+    }
+
+    this.logger.debug(`unstaking from bridge. amount: ${this.bridge.formatUnits(amount)}`)
+    let tx = await this.bridge.unstake(amount)
+    await tx.wait()
+
+    this.logger.debug(`deposting to vault. amount: ${this.bridge.formatUnits(amount)}`)
+    tx = await this.vault.deposit(amount)
+    await tx.wait()
+    this.logger.debug('unstake and vault deposit complete')
+  }
+
+  async withdrawFromVaultAndStake (amount: BigNumber) {
+    if (!this.vault) {
+      return
+    }
+
+    if (this.chainSlug !== Chain.Ethereum) {
+      return
+    }
+
+    const vaultBalance = await this.vault.getBalance()
+    if (amount.lt(vaultBalance)) {
+      return
+    }
+
+    this.logger.debug(`withdrawing from vault. amount: ${this.bridge.formatUnits(amount)}`)
+    let tx = await this.vault.withdraw(amount)
+    await tx.wait()
+
+    let balance: BigNumber
+    if (this.tokenSymbol === 'ETH') {
+      const address = await this.bridge.getBonderAddress()
+      balance = await this.bridge.getBalance(address)
+    } else {
+      const token = await (this.bridge as L1Bridge).l1CanonicalToken()
+      balance = await token.getBalance()
+    }
+
+    // this is needed because the amount withdrawn from vault may not be exact
+    amount = BNMin(amount, balance)
+
+    this.logger.debug(`staking on bridge. amount: ${this.bridge.formatUnits(amount)}`)
+    tx = await this.bridge.stake(amount)
+    await tx.wait()
+    this.logger.debug('vault withdraw and stake complete')
   }
 
   // force quit so docker can restart

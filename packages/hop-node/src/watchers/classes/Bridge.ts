@@ -112,11 +112,6 @@ export default class Bridge extends ContractBase {
     return credit.sub(debit)
   }
 
-  async hasPositiveBalance (): Promise<boolean> {
-    const credit = await this.getBaseAvailableCredit()
-    return credit.gt(0)
-  }
-
   getAddress (): string {
     return this.bridgeContract.address
   }

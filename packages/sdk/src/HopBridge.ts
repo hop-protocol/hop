@@ -1118,19 +1118,26 @@ class HopBridge extends Base {
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
     const bonder = this.getBonderAddress(sourceChain, destinationChain)
-    let availableLiquidity = await this.getAvailableLiquidity(
-      destinationChain,
-      bonder
+    let availableLiquidity = await this.getBaseAvailableCreditIncludingVault(
+      sourceChain,
+      destinationChain
     )
+
+    // fetch on-chain if the data is not available from worker json file
+    if (availableLiquidity == null) {
+      availableLiquidity = await this.getAvailableLiquidity(
+        destinationChain,
+        bonder
+      )
+    }
+
     const unbondedTransferRootAmount = await this.getUnbondedTransferRootAmount(
       sourceChain,
       destinationChain
     )
 
-    if (
-      this.isOruToL1(sourceChain, destinationChain) ||
-      this.isNonOruToL1(sourceChain, destinationChain)
-    ) {
+    const isToL1 = destinationChain.equals(Chain.Ethereum)
+    if (isToL1) {
       const bridgeContract = await this.getBridgeContract(sourceChain)
       let pendingAmounts = BigNumber.from(0)
       for (const chain of bondableChains) {
@@ -1172,17 +1179,10 @@ class HopBridge extends Base {
     return availableLiquidity
   }
 
-  isOruToL1 (sourceChain: Chain, destinationChain: Chain) {
+  private isOruToL1 (sourceChain: Chain, destinationChain: Chain) {
     return (
       destinationChain.equals(Chain.Ethereum) &&
       bondableChains.includes(sourceChain.slug)
-    )
-  }
-
-  isNonOruToL1 (sourceChain: Chain, destinationChain: Chain) {
-    return (
-      destinationChain.equals(Chain.Ethereum) &&
-      !bondableChains.includes(sourceChain.slug)
     )
   }
 
@@ -1204,16 +1204,16 @@ class HopBridge extends Base {
   }
 
   async getUnbondedTransferRootAmount (
-    sourceChain: Chain,
-    destinationChain: Chain
+    sourceChain: TChain,
+    destinationChain: TChain
   ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
     try {
       const data = await this.getBonderAvailableLiquidityData()
       if (data) {
-        const _unbondedTransferRootAmount =
-          data?.[this.tokenSymbol]?.unbondedTransferRootAmounts?.[
-            sourceChain.slug
-          ]?.[destinationChain.slug]
+        const tokenData = data?.[this.tokenSymbol]
+        const _unbondedTransferRootAmount = tokenData?.unbondedTransferRootAmounts?.[sourceChain.slug]?.[destinationChain.slug]
         if (_unbondedTransferRootAmount) {
           return BigNumber.from(_unbondedTransferRootAmount)
         }
@@ -1222,6 +1222,46 @@ class HopBridge extends Base {
       console.error(err)
     }
 
+    return BigNumber.from(0)
+  }
+
+  private async getBaseAvailableCreditIncludingVault (
+    sourceChain: TChain,
+    destinationChain: TChain
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    try {
+      const data = await this.getBonderAvailableLiquidityData()
+      if (data) {
+        const tokenData = data?.[this.tokenSymbol]
+        const _baseAvailableCreditIncludingVault = tokenData?.baseAvailableCreditIncludingVault?.[sourceChain.slug]?.[destinationChain.slug]
+        if (_baseAvailableCreditIncludingVault) {
+          return BigNumber.from(_baseAvailableCreditIncludingVault)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  public async getVaultBalance (
+    destinationChain: TChain,
+    bonder: string
+  ): Promise<BigNumber> {
+    destinationChain = this.toChainModel(destinationChain)
+    try {
+      const data = await this.getBonderAvailableLiquidityData()
+      if (data) {
+        const tokenData = data?.[this.tokenSymbol]
+        const _vaultBalance = tokenData?.bonderVaultBalance?.[bonder]?.[destinationChain.slug]
+        if (_vaultBalance) {
+          return BigNumber.from(_vaultBalance)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
     return BigNumber.from(0)
   }
 

@@ -1,6 +1,6 @@
 import React, { FC, createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
+import { formatEther, formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
 import { findNetworkBySlug, getArbitrumAlias } from 'src/utils'
@@ -57,8 +57,12 @@ const columns: TableColumns[] = [
         accessor: 'totalAmount',
       },
       {
-        Header: 'Available ETH',
-        accessor: 'availableEth',
+        Header: 'Available Native',
+        accessor: 'availableNative',
+      },
+      {
+        Header: 'Vault Balance',
+        accessor: 'vaultBalance',
       },
     ],
   },
@@ -94,7 +98,8 @@ type BonderStats = {
   pendingAmount: number
   virtualDebt: number
   totalAmount: number
-  availableEth: number
+  availableNative: number
+  vaultBalance: number
 }
 
 type BalanceStats = {
@@ -223,12 +228,13 @@ const StatsProvider: FC = ({ children }) => {
     if (!bridge.isSupportedAsset(selectedNetwork.slug)) {
       return
     }
-    const [credit, debit, totalDebit, availableLiquidity, eth] = await Promise.all([
+    const [credit, debit, totalDebit, availableLiquidity, nativeBalance, vaultBalance] = await Promise.all([
       bridge.getCredit(selectedNetwork.slug, bonder),
       bridge.getDebit(selectedNetwork.slug, bonder),
       bridge.getTotalDebit(selectedNetwork.slug, bonder),
       bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
       bridge.getEthBalance(selectedNetwork.slug, bonder),
+      bridge.getVaultBalance(selectedNetwork.slug, bonder),
     ])
 
     const virtualDebt = totalDebit.sub(debit)
@@ -255,7 +261,8 @@ const StatsProvider: FC = ({ children }) => {
       totalAmount: Number(
         formatUnits(availableLiquidity.add(pendingAmount).add(virtualDebt), token.decimals)
       ),
-      availableEth: Number(formatUnits(eth.toString(), 18)),
+      availableNative: Number(formatEther(nativeBalance.toString())),
+      vaultBalance: Number(formatUnits(vaultBalance.toString(), token.decimals))
     }
   }
 
@@ -380,10 +387,8 @@ const StatsProvider: FC = ({ children }) => {
       return
     }
 
-    // The canonical token decimals is always 18
-    const decimals = 18
     const balance = await bridge.getEthBalance(slug, address)
-    const formattedBalance: number = Number(formatUnits(balance, decimals))
+    const formattedBalance: number = Number(formatEther(balance))
 
     const n = findNetworkBySlug(slug)
     return {

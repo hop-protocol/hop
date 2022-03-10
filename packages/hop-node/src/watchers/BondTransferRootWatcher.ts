@@ -196,7 +196,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   getAvailableCreditForBond (destinationChainId: number) {
-    const baseAvailableCredit = this.syncWatcher.getBaseAvailableCreditIncludingVault(destinationChainId)
+    const baseAvailableCredit = this.availableLiquidityWatcher.getBaseAvailableCreditIncludingVault(destinationChainId)
     return baseAvailableCredit
   }
 
@@ -207,7 +207,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     return await this.mutex.runExclusive(async () => {
       const availableCredit = this.getAvailableCreditForBond(destinationChainId)
-      const vaultBalance = this.syncWatcher.getVaultBalance(destinationChainId)
+      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
       const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
       if (shouldWithdraw) {
         try {

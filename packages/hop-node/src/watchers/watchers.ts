@@ -1,4 +1,5 @@
 import '../moduleAlias'
+import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher'
 import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
@@ -16,7 +17,7 @@ import { Watchers, getAllChains, getAllTokens, config as globalConfig } from 'sr
 
 const logger = new Logger('config')
 
-type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | SyncWatcher | xDomainMessageRelayWatcher
+type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | xDomainMessageRelayWatcher | SyncWatcher | AvailableLiquidityWatcher
 
 type CommitTransfersMinThresholdAmounts = {
   [token: string]: any
@@ -160,8 +161,6 @@ export async function getWatchers (config: GetWatchersConfig) {
       label,
       bridgeContract,
       syncFromDate,
-      s3Upload,
-      s3Namespace,
       gasCostPollEnabled
     })
   })
@@ -176,6 +175,31 @@ export async function getWatchers (config: GetWatchersConfig) {
         watcher.bridge.chainSlug,
         watcher.bridge.tokenSymbol
       ) as SyncWatcher
+    )
+  }
+
+  const availableLiquidityWatchers = getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    return new AvailableLiquidityWatcher({
+      chainSlug: network,
+      tokenSymbol: token,
+      isL1,
+      label,
+      bridgeContract,
+      s3Upload,
+      s3Namespace
+    })
+  })
+
+  watchers.push(...availableLiquidityWatchers)
+
+  for (const watcher of watchers) {
+    watcher.setAvailableLiquidityWatcher(
+      findWatcher(
+        availableLiquidityWatchers,
+        AvailableLiquidityWatcher,
+        watcher.bridge.chainSlug,
+        watcher.bridge.tokenSymbol
+      ) as AvailableLiquidityWatcher
     )
   }
 

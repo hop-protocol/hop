@@ -1,3 +1,4 @@
+import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher'
 import BNMin from 'src/utils/BNMin'
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
@@ -43,6 +44,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   bridge: L2Bridge | L1Bridge
   siblingWatchers: { [chainId: string]: any }
   syncWatcher: SyncWatcher
+  availableLiquidityWatcher: AvailableLiquidityWatcher
   metrics = new Metrics()
   dryMode: boolean = false
   tag: string
@@ -172,6 +174,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   setSyncWatcher (syncWatcher: SyncWatcher): void {
     this.syncWatcher = syncWatcher
+  }
+
+  setAvailableLiquidityWatcher (availableLiquidityWatcher: AvailableLiquidityWatcher): void {
+    this.availableLiquidityWatcher = availableLiquidityWatcher
   }
 
   chainIdToSlug (chainId: number): Chain {

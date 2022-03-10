@@ -355,7 +355,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   getAvailableCreditForTransfer (destinationChainId: number) {
-    return this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
+    return this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
   }
 
   async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge, logger: Logger) {
@@ -388,7 +388,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     return await this.mutex.runExclusive(async () => {
       const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
-      const vaultBalance = this.syncWatcher.getVaultBalance(destinationChainId)
+      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
       const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(amount)
       if (shouldWithdraw) {
         try {

@@ -8,9 +8,7 @@ import { Transfer } from 'src/db/TransfersDb'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  isL1: boolean
   bridgeContract: L1BridgeContract | L2BridgeContract
-  label: string
   dryMode?: boolean
   minThresholdPercent: number
 }
@@ -23,9 +21,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'magenta',
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })

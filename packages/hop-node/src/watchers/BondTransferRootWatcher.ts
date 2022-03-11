@@ -13,8 +13,6 @@ type Config = {
   chainSlug: string
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L2BridgeContract
-  label: string
-  isL1: boolean
   dryMode?: boolean
 }
 
@@ -25,9 +23,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'cyan',
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })

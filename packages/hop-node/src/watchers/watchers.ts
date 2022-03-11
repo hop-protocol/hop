@@ -82,12 +82,10 @@ export async function getWatchers (config: GetWatchersConfig) {
   logger.debug(`enabled watchers: ${enabledWatchers.join(',')}`)
 
   if (enabledWatchers.includes(Watchers.BondWithdrawal)) {
-    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ network, token, bridgeContract, tokenContract }: any) => {
       return new BondWithdrawalWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        label,
-        isL1,
         bridgeContract,
         dryMode
       })
@@ -95,12 +93,10 @@ export async function getWatchers (config: GetWatchersConfig) {
   }
 
   if (enabledWatchers.includes(Watchers.SettleBondedWithdrawals)) {
-    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ network, token, bridgeContract, tokenContract }: any) => {
       return new SettleBondedWithdrawalWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        label,
-        isL1,
         bridgeContract,
         dryMode,
         minThresholdPercent: settleBondedWithdrawalsThresholdPercent?.[token]
@@ -109,14 +105,12 @@ export async function getWatchers (config: GetWatchersConfig) {
   }
 
   if (enabledWatchers.includes(Watchers.CommitTransfers)) {
-    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ network, token, bridgeContract, tokenContract }: any) => {
       const minThresholdAmounts = commitTransfersMinThresholdAmounts?.[token]?.[network]
 
       return new CommitTransfersWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        label,
-        isL1,
         bridgeContract,
         minThresholdAmounts,
         dryMode
@@ -125,12 +119,10 @@ export async function getWatchers (config: GetWatchersConfig) {
   }
 
   if (enabledWatchers.includes(Watchers.BondTransferRoot)) {
-    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ network, token, bridgeContract, tokenContract }: any) => {
       return new BondTransferRootWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        label,
-        isL1,
         bridgeContract,
         dryMode
       })
@@ -138,7 +130,7 @@ export async function getWatchers (config: GetWatchersConfig) {
   }
 
   if (enabledWatchers.includes(Watchers.xDomainMessageRelay)) {
-    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, network, token, bridgeContract, tokenContract }: any) => {
       if (isL1) {
         return
       }
@@ -149,8 +141,6 @@ export async function getWatchers (config: GetWatchersConfig) {
       return new xDomainMessageRelayWatcher({
         chainSlug: network,
         tokenSymbol: token,
-        isL1,
-        label,
         token,
         bridgeContract,
         l1BridgeContract,
@@ -167,14 +157,12 @@ export async function getWatchers (config: GetWatchersConfig) {
     }))
   }
 
-  const syncWatchers = getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+  const syncWatchers = getSiblingWatchers({ networks, tokens }, ({ network, token, bridgeContract, tokenContract }: any) => {
     const gasCostPollEnabled = enabledWatchers.includes(Watchers.BondWithdrawal)
 
     return new SyncWatcher({
       chainSlug: network,
       tokenSymbol: token,
-      isL1,
-      label,
       bridgeContract,
       syncFromDate,
       gasCostPollEnabled
@@ -194,12 +182,10 @@ export async function getWatchers (config: GetWatchersConfig) {
     )
   }
 
-  const availableLiquidityWatchers = getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+  const availableLiquidityWatchers = getSiblingWatchers({ networks, tokens }, ({ network, token, bridgeContract, tokenContract }: any) => {
     return new AvailableLiquidityWatcher({
       chainSlug: network,
       tokenSymbol: token,
-      isL1,
-      label,
       bridgeContract,
       s3Upload,
       s3Namespace
@@ -257,13 +243,11 @@ function getChallengeWatchers (config: GetChallengeWatchersConfig) {
     dryMode = false
   } = config
 
-  const watchers = getSiblingWatchers({ networks, tokens }, ({ isL1, label, network, token, bridgeContract, tokenContract }: any) => {
+  const watchers = getSiblingWatchers({ networks, tokens }, ({ network, token, bridgeContract, tokenContract }: any) => {
     return new ChallengeWatcher({
       chainSlug: network,
       bridgeContract,
       tokenSymbol: token,
-      isL1,
-      label,
       dryMode
     })
   })
@@ -290,7 +274,6 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
 
   for (const token of tokens) {
     for (const network of networks) {
-      const label = `${network}.${token}`
       const isL1 = network === Chain.Ethereum
       const chainId = chainSlugToId(network)! // eslint-disable-line
       if (!contracts.has(token, network)) {
@@ -310,8 +293,7 @@ function getSiblingWatchers (config: any, init: (conf: any) => Watcher | undefin
         token,
         bridgeContract,
         tokenContract,
-        isL1,
-        label
+        isL1
       })
       if (!watcher) {
         continue

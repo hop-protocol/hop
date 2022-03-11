@@ -26,7 +26,6 @@ type Config = {
   tokenSymbol: string
   prefix?: string
   logColor?: string
-  isL1?: boolean
   bridgeContract?: L1BridgeContract | L2BridgeContract
   dryMode?: boolean
 }
@@ -40,7 +39,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   chainSlug: string
   tokenSymbol: string
 
-  isL1: boolean
   bridge: L2Bridge | L1Bridge
   siblingWatchers: { [chainId: string]: any }
   syncWatcher: SyncWatcher
@@ -54,7 +52,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   constructor (config: Config) {
     super()
-    const { chainSlug, tokenSymbol, prefix, logColor } = config
+    const { chainSlug, tokenSymbol, logColor } = config
+    const prefix = `${chainSlug}.${tokenSymbol}`
     const tag = this.constructor.name
     this.logger = new Logger({
       tag,
@@ -73,9 +72,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     this.notifier = new Notifier(
       `watcher: ${tag}, label: ${prefix}, host: ${hostname}`
     )
-    if (config.isL1) {
-      this.isL1 = config.isL1
-    }
     if (config.bridgeContract != null) {
       if (this.isL1) {
         this.bridge = new L1Bridge(config.bridgeContract as L1BridgeContract)
@@ -93,6 +89,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
 
     this.mutex = mutexes[this.chainSlug]
+  }
+
+  get isL1 (): boolean {
+    return this.chainSlug === Chain.Ethereum
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {

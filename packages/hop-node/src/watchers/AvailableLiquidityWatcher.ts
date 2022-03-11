@@ -12,8 +12,6 @@ import { getConfigBonderForRoute, config as globalConfig, oruChains } from 'src/
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  label: string
-  isL1: boolean
   bridgeContract: L1BridgeContract | L2BridgeContract
   s3Upload?: boolean
   s3Namespace?: string
@@ -51,9 +49,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'gray',
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract
     })
     if (config.s3Upload) {

@@ -13,10 +13,8 @@ import { getEnabledNetworks } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  isL1: boolean
   bridgeContract: L1BridgeContract | L2BridgeContract
   l1BridgeContract: L1BridgeContract
-  label: string
   token: string
   dryMode?: boolean
 }
@@ -32,9 +30,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'yellow',
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
@@ -45,10 +41,8 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.Gnosis] = new GnosisBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
-        label: config.label,
         l1BridgeContract: config.l1BridgeContract,
         bridgeContract: config.bridgeContract,
-        isL1: config.isL1,
         dryMode: config.dryMode
       })
     }
@@ -56,9 +50,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.Polygon] = new PolygonBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
-        label: config.label,
         bridgeContract: config.bridgeContract,
-        isL1: config.isL1,
         dryMode: config.dryMode
       })
     }
@@ -66,9 +58,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
-        label: config.label,
         bridgeContract: config.bridgeContract,
-        isL1: config.isL1,
         dryMode: config.dryMode
       })
     }
@@ -76,9 +66,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
-        label: config.label,
         bridgeContract: config.bridgeContract,
-        isL1: config.isL1,
         dryMode: config.dryMode
       })
     }

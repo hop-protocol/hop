@@ -10,8 +10,6 @@ type Config = {
   chainSlug: string
   bridgeContract: L1BridgeContract | L2BridgeContract
   tokenSymbol: string
-  label: string
-  isL1: boolean
   dryMode?: boolean
 }
 
@@ -22,9 +20,7 @@ class ChallengeWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       bridgeContract: config.bridgeContract,
-      isL1: config.isL1,
       logColor: 'red',
       dryMode: config.dryMode
     })

@@ -1,7 +1,5 @@
-import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import {
-  findWatcher,
-  getWatchers
+  getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
 
 import { actionHandler, parseBool, parseString, root } from './shared'
@@ -27,13 +25,7 @@ async function main (source: any) {
     throw new Error('transfer ID is required')
   }
 
-  const watchers = await getWatchers({
-    enabledWatchers: ['bondWithdrawal'],
-    tokens: [token],
-    dryMode
-  })
-
-  const watcher = findWatcher(watchers, BondWithdrawalWatcher) as BondWithdrawalWatcher
+  const watcher = await getBondWithdrawalWatcher({ token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
   }

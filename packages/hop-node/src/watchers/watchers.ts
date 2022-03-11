@@ -17,6 +17,15 @@ import { Watchers, getAllChains, getAllTokens, config as globalConfig } from 'sr
 
 const logger = new Logger('config')
 
+const WatcherClasses: Record<string, any> = {
+  [Watchers.BondTransferRoot]: BondTransferRootWatcher,
+  [Watchers.BondWithdrawal]: BondWithdrawalWatcher,
+  [Watchers.Challenge]: ChallengeWatcher,
+  [Watchers.CommitTransfers]: CommitTransfersWatcher,
+  [Watchers.SettleBondedWithdrawals]: SettleBondedWithdrawalWatcher,
+  [Watchers.xDomainMessageRelay]: xDomainMessageRelayWatcher
+}
+
 type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | xDomainMessageRelayWatcher | SyncWatcher | AvailableLiquidityWatcher
 
 type CommitTransfersMinThresholdAmounts = {
@@ -47,6 +56,13 @@ type GetChallengeWatchersConfig = {
   tokens?: string[]
   networks?: string[]
   dryMode?: boolean
+}
+
+type GetWatcherConfig = {
+  chain?: string
+  token: string
+  dryMode: boolean
+  watcherName?: string
 }
 
 export async function getWatchers (config: GetWatchersConfig) {
@@ -341,4 +357,37 @@ export function findWatcher (watchers: Watcher[], WatcherType: any, chain?: stri
     }
     return watcher
   })
+}
+
+export async function getWatcher (config: GetWatcherConfig) {
+  const { chain, token, dryMode, watcherName } = config
+  const watchers = await getWatchers({
+    enabledWatchers: [watcherName!],
+    tokens: [token],
+    dryMode
+  })
+
+  const WatcherClass = WatcherClasses[watcherName!]
+  const watcher = findWatcher(watchers, WatcherClass, chain) as typeof WatcherClass
+  return watcher
+}
+
+export async function getBondTransferRootWatcher (config: GetWatcherConfig) {
+  return getWatcher({ ...config, watcherName: Watchers.BondTransferRoot })
+}
+
+export async function getBondWithdrawalWatcher (config: GetWatcherConfig) {
+  return getWatcher({ ...config, watcherName: Watchers.BondWithdrawal })
+}
+
+export async function getCommitTransfersWatcher (config: GetWatcherConfig) {
+  return getWatcher({ ...config, watcherName: Watchers.CommitTransfers })
+}
+
+export async function getXDomainMessageRelayWatcher (config: GetWatcherConfig) {
+  return getWatcher({ ...config, watcherName: Watchers.xDomainMessageRelay })
+}
+
+export async function getSettleBondedWithdrawalsWatcher (config: GetWatcherConfig) {
+  return getWatcher({ ...config, watcherName: Watchers.SettleBondedWithdrawals })
 }

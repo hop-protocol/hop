@@ -15,7 +15,6 @@ type Config = {
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L2BridgeContract
   l1BridgeContract: L1BridgeContract
-  token: string
   dryMode?: boolean
 }
 

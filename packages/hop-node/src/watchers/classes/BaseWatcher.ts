@@ -20,13 +20,14 @@ import { Vault } from 'src/vault'
 import { config as globalConfig, hostname } from 'src/config'
 
 const mutexes: Record<string, Mutex> = {}
+export type BridgeContract = L1BridgeContract | L2BridgeContract
 
 type Config = {
   chainSlug: string
   tokenSymbol: string
   prefix?: string
   logColor?: string
-  bridgeContract?: L1BridgeContract | L2BridgeContract
+  bridgeContract?: BridgeContract
   dryMode?: boolean
 }
 

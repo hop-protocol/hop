@@ -1,9 +1,20 @@
 import wallets from 'src/wallets'
+import { BalancerVault } from 'src/vault/BalancerVault'
 import { Chain } from 'src/constants'
 import { Vault } from 'src/vault/Vault'
 import { parseUnits } from 'ethers/lib/utils'
 
-describe('Vault', () => {
+describe.only('Vault', () => {
+  it.only('balancer', async () => {
+    const token = 'DAI'
+    const chain = Chain.Ethereum
+    const signer = wallets.get(chain)
+    const vault = new BalancerVault(chain, token, signer)
+    const amount = vault.parseUnits('1')
+    const result = await vault.deposit(amount)
+    console.log('result', result)
+    expect(true).toBe(true)
+  })
   it('get balance', async () => {
     const token = 'USDC'
     const chain = Chain.Ethereum

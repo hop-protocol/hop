@@ -40,6 +40,7 @@
   "license": "MIT",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.33.0",
+    "@balancer-labs/sdk": "^0.1.4",
     "@eth-optimism/contracts": "^0.5.3",
     "@eth-optimism/core-utils": "^0.5.2",
     "@eth-optimism/message-relayer": "^0.2.4",

@@ -97,6 +97,7 @@ export { default as l2PolygonChildErc20Abi } from './static/L2_PolygonChildERC20
 export { default as l2OptimismTokenBridgeAbi } from './static/L2_OptimismTokenBridge.json'
 export { default as l1OptimismTokenBridgeAbi } from './static/L1_OptimismTokenBridge.json'
 export { default as arbitrumGlobalInboxAbi } from './static/ArbitrumGlobalInbox.json'
+export { default as balancerVaultAbi } from './static/BalancerVault.json'
 export { default as l1xDaiForeignOmniBridgeAbi } from './static/L1_xDaiForeignOmniBridge.json'
 export { default as l1HomeAmbNativeToErc20 } from './static/L1_HomeAMBNativeToErc20.json'
 export { default as saddleLpTokenAbi } from './static/SaddleLpToken.json'

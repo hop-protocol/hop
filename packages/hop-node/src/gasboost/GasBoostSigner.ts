@@ -85,7 +85,7 @@ class GasBoostSigner extends Wallet {
   }
 
   async _sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
-    const nonce = await this.getNonce()
+    const nonce = await this.getDbNonce()
     if (!tx.nonce) {
       tx.nonce = nonce
     }

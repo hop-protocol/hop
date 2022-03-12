@@ -71,10 +71,8 @@ class GasBoostSigner extends Wallet {
   }
 
   private async setLatestNonce () {
-    const dbNonce = await this.getDbNonce()
     const onChainNonce = await this.getOnChainNonce()
-    const nonce = Math.max(dbNonce, onChainNonce)
-    await this.setDbNonce(nonce)
+    await this.setDbNonce(onChainNonce)
   }
 
   // this is a required ethers Signer method

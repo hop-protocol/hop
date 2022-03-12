@@ -84,8 +84,8 @@ class GasBoostSigner extends Wallet {
     })
   }
 
-  private readonly _sendTransaction = async (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> => {
-    const nonce = await this.getDbNonce()
+  async _sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
+    const nonce = await this.getNonce()
     if (!tx.nonce) {
       tx.nonce = nonce
     }

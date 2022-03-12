@@ -3,6 +3,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
@@ -61,7 +62,8 @@ class BondTransferRootWatcher extends BaseWatcher {
 
       const bondChainId = chainSlugToId(Chain.Ethereum)
       const availableCredit = this.getAvailableCreditForBond(bondChainId!)
-      if (availableCredit.lt(totalAmount!)) {
+      const notEnoughCredit = availableCredit.lt(totalAmount!)
+      if (notEnoughCredit) {
         logger.debug(
         `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
           availableCredit
@@ -83,7 +85,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     await Promise.all(promises)
   }
 
-  checkTransfersCommitted = async (
+  async checkTransfersCommitted (
     transferRootId: string,
     transferRootHash: string,
     totalAmount: BigNumber,
@@ -91,7 +93,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     committedAt: number,
     sourceChainId: number,
     transferIds: string[]
-  ) => {
+  ) {
     const logger = this.logger.create({ root: transferRootId })
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
 
@@ -138,9 +140,10 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
 
     const bondChainId = chainSlugToId(Chain.Ethereum)
-    const availableCredit = this.getAvailableCreditForBond(bondChainId!)
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
-    if (availableCredit.lt(bondAmount)) {
+    const availableCredit = this.getAvailableCreditForBond(bondChainId!)
+    const notEnoughCredit = availableCredit.lt(bondAmount)
+    if (notEnoughCredit) {
       const msg = `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
           availableCredit
         )}, need ${this.bridge.formatUnits(bondAmount)}`
@@ -154,8 +157,10 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
+    await this.withdrawFromVaultIfNeeded(destinationChainId, bondAmount)
+
     logger.debug(
-      `bonding transfer root id ${transferRootId} with destination chain ${destinationChainId}`
+      `attempting to bond transfer root id ${transferRootId} with destination chain ${destinationChainId}`
     )
 
     await this.db.transferRoots.update(transferRootId, {
@@ -177,11 +182,11 @@ class BondTransferRootWatcher extends BaseWatcher {
     }
   }
 
-  sendBondTransferRoot = async (
+  async sendBondTransferRoot (
     transferRootHash: string,
     destinationChainId: number,
     totalAmount: BigNumber
-  ) => {
+  ) {
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(
       transferRootHash,
@@ -191,8 +196,34 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   getAvailableCreditForBond (destinationChainId: number) {
-    const baseAvailableCredit = this.syncWatcher.getBaseAvailableCredit(destinationChainId)
+    const baseAvailableCredit = this.syncWatcher.getBaseAvailableCreditIncludingVault(destinationChainId)
     return baseAvailableCredit
+  }
+
+  async withdrawFromVaultIfNeeded (destinationChainId: number, bondAmount: BigNumber) {
+    if (!isL1ChainId(destinationChainId)) {
+      return
+    }
+
+    return await this.mutex.runExclusive(async () => {
+      const availableCredit = this.getAvailableCreditForBond(destinationChainId)
+      const vaultBalance = this.syncWatcher.getVaultBalance(destinationChainId)
+      const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
+      if (shouldWithdraw) {
+        try {
+          const msg = `attempting withdrawFromVaultAndStake. amount: ${this.bridge.formatUnits(vaultBalance)}`
+          this.notifier.info(msg)
+          this.logger.info(msg)
+          const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
+          await destinationWatcher.withdrawFromVaultAndStake(vaultBalance)
+        } catch (err) {
+          const errMsg = `withdrawFromVaultAndStake error: ${err.message}`
+          this.notifier.error(errMsg)
+          this.logger.error(errMsg)
+          throw err
+        }
+      }
+    })
   }
 }
 

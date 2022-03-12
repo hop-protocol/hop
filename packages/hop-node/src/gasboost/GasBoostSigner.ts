@@ -1,8 +1,9 @@
-import GasBoostTransaction from './GasBoostTransaction'
 import GasBoostTransactionFactory, { Options } from './GasBoostTransactionFactory'
 import Logger from 'src/logger'
+import MemoryStore from './MemoryStore'
 import Store from './Store'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
+import wait from 'src/utils/wait'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
@@ -14,7 +15,6 @@ class GasBoostSigner extends Wallet {
   items: string[] = []
   lastTxSentTimestamp: number = 0
   delayBetweenTxsMs: number = 7 * 1000
-  nonce: number = 0
   chainSlug: string
   gTxFactory: GasBoostTransactionFactory
   signer: Signer
@@ -22,8 +22,9 @@ class GasBoostSigner extends Wallet {
   logger: Logger
   notifier: Notifier
   mutex: Mutex
+  ready: boolean = false
 
-  constructor (privateKey: string, provider?: providers.Provider, store?: Store, options: Partial<Options> = {}) {
+  constructor (privateKey: string, provider?: providers.Provider, store: Store = new MemoryStore(), options: Partial<Options> = {}) {
     super(privateKey, provider)
     this.signer = new Wallet(privateKey, provider)
     if (store != null) {
@@ -35,7 +36,7 @@ class GasBoostSigner extends Wallet {
     }
     this.chainSlug = chainSlug
     this.mutex = new Mutex()
-    this.gTxFactory = new GasBoostTransactionFactory(this.signer, this.store)
+    this.gTxFactory = new GasBoostTransactionFactory(this.signer)
     const tag = 'GasBoostSigner'
     const prefix = `${this.chainSlug}`
     this.logger = new Logger({
@@ -46,28 +47,49 @@ class GasBoostSigner extends Wallet {
       `GasBoostSigner, label: ${prefix}, host: ${hostname}`
     )
     this.setOptions(options)
-    this.restore()
+    this.init()
+      .catch((err: Error) => this.logger.error('init error:', err))
+      .finally(async () => {
+        const nonce = await this.getDbNonce()
+        this.logger.debug('ready')
+        this.logger.debug(`current nonce: ${nonce}`)
+        this.ready = true
+      })
   }
 
-  setStore (store: Store) {
-    this.store = store
+  private async init () {
+    await this.setLatestNonce()
+  }
+
+  protected async tilReady (): Promise<boolean> {
+    if (this.ready) {
+      return true
+    }
+
+    await wait(100)
+    return await this.tilReady()
+  }
+
+  private async setLatestNonce () {
+    const onChainNonce = await this.getOnChainNonce()
+    await this.setDbNonce(onChainNonce)
   }
 
   // this is a required ethers Signer method
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
+    await this.tilReady()
     return await this.mutex.runExclusive(async () => {
       this.logger.debug(`unlocked tx: ${JSON.stringify(tx)}`)
       return await this._sendTransaction(tx)
     })
   }
 
-  _sendTransaction = async (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> => {
-    const nonce = await this.getNonce()
+  private readonly _sendTransaction = async (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> => {
+    const nonce = await this.getDbNonce()
     if (!tx.nonce) {
       tx.nonce = nonce
     }
     const gTx = this.gTxFactory.createTransaction(tx)
-    this.track(gTx)
     await gTx.save()
     try {
       await gTx.send()
@@ -75,43 +97,34 @@ class GasBoostSigner extends Wallet {
       // if nonce too low then we still want to increment the tracked nonce
       // before throwing error
       if (err instanceof NonceTooLowError) {
-        this.nonce++
-        this.logger.debug(`increment for NonceTooLowError. new nonce ${this.nonce}`)
+        await this.incNonce()
+        const newNonce = await this.getDbNonce()
+        this.logger.debug(`increment for NonceTooLowError. new nonce ${newNonce}`)
       }
       throw err
     }
-    this.nonce++
+    await this.incNonce()
     this.lastTxSentTimestamp = Date.now()
     return gTx
   }
 
-  private async getNonce () {
-    if (!this.nonce) {
-      this.nonce = await this.signer.getTransactionCount('pending')
-    }
-
-    return this.nonce
+  private async getOnChainNonce () {
+    return this.signer.getTransactionCount('pending')
   }
 
-  private async restore () {
-    if (!this.store) {
-      return
-    }
-    const items = await this.store.getItems()
-    if (items) {
-      for (const item of items) {
-        const gTx = await this.gTxFactory.getTransactionFromId(item.id)
-        this.items.push(gTx.id)
-      }
-    }
+  private async getDbNonce () {
+    const item = await this.store.getItem('nonce')
+    return item?.nonce ?? 0
   }
 
-  private track (gTx: GasBoostTransaction) {
-    if (!this.store) {
-      return
-    }
-    this.items.push(gTx.id)
-    this.store.updateItem(gTx.id, gTx.marshal())
+  private async incNonce () {
+    let nonce = await this.getDbNonce()
+    nonce++
+    await this.setDbNonce(nonce)
+  }
+
+  private async setDbNonce (nonce: number) {
+    await this.store.updateItem('nonce', { nonce })
   }
 
   setPollMs (pollMs: number) {

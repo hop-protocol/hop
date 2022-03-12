@@ -1,17 +1,13 @@
-import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
-import getRpcProvider from 'src/utils/getRpcProvider'
+import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
 import { Chain, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import { formatEther, parseEther } from 'ethers/lib/utils'
-import {
-  config as globalConfig
-} from 'src/config'
 
 root
   .command('send')
@@ -64,9 +60,7 @@ async function sendNativeToken (
     throw new Error('please specify an amount when sending native tokens')
   }
 
-  const provider = getRpcProvider(chain)
-  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!)
-
+  const wallet = wallets.get(chain)
   const parsedAmount = parseEther(amount.toString())
   let balance = await wallet.getBalance()
   if (balance.lt(parsedAmount)) {
@@ -85,9 +79,9 @@ async function sendNativeToken (
 }
 
 async function sendToSelf (chain: string, gasPrice: string) {
-  const provider = getRpcProvider(chain)
-  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!)
-  const selfAddress = await wallet.signer.getAddress()
+  const wallet = wallets.get(chain)
+  const provider = wallet.provider
+  const selfAddress = await wallet.getAddress()
   const nonce = await provider?.getTransactionCount(selfAddress)
   const tx = await wallet.sendTransaction({
     value: 0,
@@ -201,8 +195,7 @@ async function sendTokens (
     throw new Error('recipient address is required')
   }
 
-  const provider = getRpcProvider(fromChain)
-  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!)
+  const wallet = wallets.get(fromChain)
   let balance = await (isFromNative ? wallet.getBalance() : tokenClass.getBalance())
   const label = `${fromChain}.${isHToken ? 'h' : ''}${token}`
   logger.debug(`${label} balance: ${await bridge.formatUnits(balance)}`)

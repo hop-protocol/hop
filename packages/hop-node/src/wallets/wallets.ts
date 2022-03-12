@@ -10,14 +10,16 @@ import {
   priorityFeePerGasCap,
   timeTilBoostMs
 } from 'src/config'
+import { getGasBoostDb } from 'src/db'
 
 const constructWallet = memoize(
   (network: string, privateKey: string): Wallet => {
     if (!privateKey) {
       throw new Error('private key is required to instantiate wallet')
     }
+    const db = getGasBoostDb(network)
     const provider = getRpcProvider(network)
-    const signer = new GasBoostSigner(privateKey, provider!)
+    const signer = new GasBoostSigner(privateKey, provider!, db)
     const maxGasPriceGwei = getNetworkMaxGasPrice(network)
     const { waitConfirmations: reorgWaitConfirmations } = globalConfig.networks[network]!
     signer.setOptions({

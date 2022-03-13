@@ -69,6 +69,7 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
   const [manualWarning, setManualWarning] = useState<string>('')
+  const [manualError, setManualError] = useState<string>('')
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -480,11 +481,15 @@ const Send: FC = () => {
         'Warning: transfers to exchanges that do not support internal transactions may result in lost funds.'
       )
     }
-    if (fromNetwork?.slug === ChainSlug.Polygon || toNetwork?.slug === ChainSlug.Polygon) {
-      return setManualWarning('Warning: transfers to/from Polygon are temporarily down.')
-    }
     setManualWarning('')
   }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
+
+  useEffect(() => {
+    // if (fromNetwork?.slug === ChainSlug.Polygon || toNetwork?.slug === ChainSlug.Polygon) {
+    //   return setManualError('Warning: transfers to/from Polygon are temporarily down.')
+    // }
+    // setManualError('')
+  }, [fromNetwork?.slug, toNetwork?.slug])
 
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
@@ -501,7 +506,7 @@ const Send: FC = () => {
       sufficientBalance &&
       isLiquidityAvailable &&
       estimatedReceived?.gt(0) &&
-      !manualWarning
+      !manualError
     )
   }, [
     needsApproval,
@@ -515,7 +520,7 @@ const Send: FC = () => {
     sufficientBalance,
     isLiquidityAvailable,
     estimatedReceived,
-    manualWarning,
+    manualError,
   ])
 
   return (
@@ -605,8 +610,8 @@ const Send: FC = () => {
 
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
-      <Alert severity="error">{manualWarning}</Alert>
-
+      <Alert severity="warning">{manualWarning}</Alert>
+      <Alert severity="error">{manualError}</Alert>
 
       <ButtonsWrapper>
         {!sendButtonActive && (

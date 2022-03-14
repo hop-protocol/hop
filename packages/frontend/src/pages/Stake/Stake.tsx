@@ -6,7 +6,7 @@ import StakeWidget from 'src/pages/Stake/StakeWidget'
 import { useSelectedNetwork } from 'src/hooks'
 import { rewardTokenAddresses, stakingRewardsContracts } from 'src/config'
 import { Div, Flex } from 'src/components/ui'
-import { findMatchingBridge } from 'src/utils'
+import { defaultRefetchInterval, findMatchingBridge } from 'src/utils'
 import { StakingRewards, StakingRewards__factory } from '@hop-protocol/core/contracts'
 import { RaisedNetworkSelector } from 'src/components/NetworkSelector/RaisedNetworkSelector'
 import { useQuery } from 'react-query'
@@ -82,7 +82,7 @@ const Stake = () => {
       }
     },
     {
-      refetchInterval: 20e3,
+      refetchInterval: defaultRefetchInterval,
     }
   )
 

@@ -2,6 +2,7 @@ import { useQuery } from 'react-query'
 import { Token } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import { BigNumber } from 'ethers'
+import { defaultRefetchInterval } from 'src/utils'
 
 export function useTxResult(
   token?: Token,
@@ -14,7 +15,7 @@ export function useTxResult(
   const queryKey = `txResult:${token?.symbol}:${srcNetwork?.slug}:${
     destNetwork?.slug
   }:${amount?.toString()}`
-  const { interval = 10e3, ...rest } = opts
+  const { interval = defaultRefetchInterval, ...rest } = opts
 
   const { isLoading, isError, data, error } = useQuery(
     [queryKey, srcNetwork?.slug, token?.symbol, amount?.toString()],

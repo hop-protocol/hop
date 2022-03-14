@@ -81,7 +81,7 @@ export function useEstimateTxCost() {
   const estimateSend = useCallback(
     async (options: EstimateTxOptions) => {
       const { fromNetwork, toNetwork, token, deadline } = options
-      if (!(sdk && fromNetwork && toNetwork && deadline)) {
+      if (!(sdk && fromNetwork && toNetwork && deadline && token)) {
         return
       }
 
@@ -134,13 +134,13 @@ export function useEstimateTxCost() {
 
   const estimateWrap = useCallback(async (options: EstimateTxOptions) => {
     const { token, network } = options
-    if (!network) {
+    if (!(network && token)) {
       return
     }
 
     try {
       // Get estimated gas cost
-      const estimatedGasLimit = await token.wrapToken(BigNumber.from(10), true)
+      const estimatedGasLimit = await token.getWrapTokenEstimatedGas(network.slug)
 
       if (BigNumber.isBigNumber(estimatedGasLimit)) {
         let gasCost = await getGasCostByGasLimit(network.provider, estimatedGasLimit)

@@ -8,7 +8,7 @@ import logger from 'src/logger'
 import useTxHistory from 'src/contexts/AppContext/useTxHistory'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 import { getRecentTransactionsByFromAddress } from 'src/utils/blocks'
-import { find } from 'lodash'
+import find from 'lodash/find'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
   const { transactions, updateTransaction, addTransaction } = useTxHistory()

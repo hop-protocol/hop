@@ -1,7 +1,7 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { CanonicalToken, ChainId, ChainSlug, Slug, TChain } from '@hop-protocol/sdk'
 import { Signer, providers } from 'ethers'
-import { find } from 'lodash'
+import find from 'lodash/find'
 import { networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
 import Network from 'src/models/Network'

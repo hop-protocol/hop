@@ -108,7 +108,8 @@ const ConvertContent: FC = () => {
 
   useEffect(() => {
     if (sourceNetwork?.slug === ChainSlug.Polygon || destNetwork?.slug === ChainSlug.Polygon) {
-      return setManualWarning('Warning: transfers to/from Polygon are temporarily down.')
+      return setManualWarning('')
+      // return setManualWarning('Warning: transfers to/from Polygon are temporarily down.')
     }
     setManualWarning('')
   }, [destNetwork?.slug, sourceNetwork?.slug])

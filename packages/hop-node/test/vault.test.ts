@@ -4,17 +4,33 @@ import { Chain } from 'src/constants'
 import { Vault } from 'src/vault/Vault'
 import { parseUnits } from 'ethers/lib/utils'
 
-describe.only('Vault', () => {
-  it.only('balancer', async () => {
+describe.only('BalancerVault', () => {
+  it('getDepositOutcome', async () => {
     const token = 'DAI'
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
     const vault = new BalancerVault(chain, token, signer)
     const amount = vault.parseUnits('1')
-    const result = await vault.deposit(amount)
-    console.log('result', result)
-    expect(true).toBe(true)
-  })
+    const deltas = await vault.getDepositOutcome(amount)
+    console.log('deltas:', deltas)
+    expect(deltas[0].gt(0)).toBe(true)
+    expect(deltas[1].eq(0)).toBe(true)
+    expect(deltas[2].lt(0)).toBe(true)
+  }, 60 * 1000)
+  it.skip('deposit', async () => {
+    const token = 'DAI'
+    const chain = Chain.Ethereum
+    const signer = wallets.get(chain)
+    const vault = new BalancerVault(chain, token, signer)
+    const amount = vault.parseUnits('1')
+    const tx = await vault.deposit(amount)
+    console.log('tx:', tx)
+    expect(tx).toBeTruthy()
+    expect(tx.hash).toBeTruthy()
+  }, 60 * 1000)
+})
+
+describe.skip('YearnVault', () => {
   it('get balance', async () => {
     const token = 'USDC'
     const chain = Chain.Ethereum

@@ -1,6 +1,6 @@
 import Logger from 'src/logger'
 import groupBy from 'lodash/groupBy'
-import level from 'level-party'
+import level from 'level'
 import merge from 'lodash/merge'
 import mkdirp from 'mkdirp'
 import os from 'os'

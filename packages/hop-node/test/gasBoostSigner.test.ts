@@ -14,8 +14,7 @@ describe('GasBoostSigner', () => {
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
-    const signer = new GasBoostSigner(privateKey, provider)
-    signer.setStore(store)
+    const signer = new GasBoostSigner(privateKey, provider, store)
     expect(await signer.getAddress()).toBeTruthy()
   })
   it.skip('sendTransaction - gnosis', async () => {
@@ -142,7 +141,7 @@ describe('GasBoostSigner', () => {
     })
     const recipient = await signer.getAddress()
     console.log('recipient:', recipient)
-    expect(signer.nonce).toBe(0)
+    expect(await signer.getNonce()).toBe(0)
     let errMsg = ''
     const nonce = await signer.getTransactionCount('pending')
     try {
@@ -156,7 +155,7 @@ describe('GasBoostSigner', () => {
       errMsg = err.message
     }
     expect(errMsg).toBe('NonceTooLow')
-    expect(signer.nonce).toBe(nonce + 1)
+    expect(await signer.getNonce()).toBe(nonce + 1)
   }, 10 * 60 * 1000)
   it.skip('reorg test', async () => {
     const chain = 'gnosis'

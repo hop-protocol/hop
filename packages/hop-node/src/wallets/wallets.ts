@@ -1,4 +1,5 @@
 import GasBoostSigner from 'src/gasboost/GasBoostSigner'
+import Logger from 'src/logger'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import memoize from 'fast-memoize'
 import { Wallet } from 'ethers'
@@ -11,6 +12,8 @@ import {
   timeTilBoostMs
 } from 'src/config'
 import { getGasBoostDb } from 'src/db'
+
+const logger = new Logger('wallets')
 
 const constructWallet = memoize(
   (network: string, privateKey: string): Wallet => {
@@ -30,6 +33,10 @@ const constructWallet = memoize(
       timeTilBoostMs,
       reorgWaitConfirmations
     })
+    signer.getAddress()
+      .then((address: string) => {
+        logger.debug(`signer account: ${address}`)
+      })
     return signer
   }
 )

@@ -106,13 +106,6 @@ const ConvertContent: FC = () => {
     approveTokens()
   }
 
-  useEffect(() => {
-    if (sourceNetwork?.slug === ChainSlug.Polygon || destNetwork?.slug === ChainSlug.Polygon) {
-      return setManualWarning('Warning: transfers to/from Polygon are temporarily down.')
-    }
-    setManualWarning('')
-  }, [destNetwork?.slug, sourceNetwork?.slug])
-
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
   const sendButtonActive =
     validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning

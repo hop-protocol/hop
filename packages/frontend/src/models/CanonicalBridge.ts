@@ -18,14 +18,19 @@ import {
   L1XDaiWETHOmnibridgeRouter__factory,
   L1XDaiWETHOmnibridgeRouter,
 } from '@hop-protocol/core/contracts'
-import { ChainSlug, CanonicalToken } from '@hop-protocol/sdk'
-import Base, { L1Factory } from '@hop-protocol/sdk/dist/src/Base'
-import { metadata } from '@hop-protocol/sdk/dist/src/config'
-import { TokenSymbol } from '@hop-protocol/sdk/dist/src/constants'
-import { Chain } from '@hop-protocol/sdk/dist/src/models'
-import Token from '@hop-protocol/sdk/dist/src/models/Token'
-import TokenClass from '@hop-protocol/sdk/dist/src/Token'
-import { TChain, TToken } from '@hop-protocol/sdk/dist/src/types'
+import {
+  ChainSlug,
+  CanonicalToken,
+  TokenModel as Token,
+  Token as TokenClass,
+  Chain,
+  TChain,
+  TToken,
+  TokenSymbol,
+  metadata,
+  Base,
+  L1Factory,
+} from '@hop-protocol/sdk'
 import { Bridge } from 'arb-ts'
 import { JsonRpcSigner } from '@ethersproject/providers'
 
@@ -45,10 +50,10 @@ class CanonicalBridge extends Base {
   l2TokenAddress: string
 
   constructor(network: string, signer: Signer, token: TToken, chain: TChain) {
-    super(network, signer)
-    if (!token) {
-      throw new Error('token symbol is required')
+    if (!(network && signer && token && chain)) {
+      throw new Error('CanonicalBridge missing constructor args')
     }
+    super(network, signer)
     this.getSignerOrProvider(Chain.Ethereum, signer).then(s => {
       this.signer = s
     })
@@ -63,7 +68,7 @@ class CanonicalBridge extends Base {
   }
 
   public getL1CanonicalAllowance(): Promise<BigNumber> {
-    const l1CanonicalToken = this.getL1Token().connect(this.signer)
+    const l1CanonicalToken = this.getL1Token()
     const spender = this.getDepositApprovalAddress()
     if (!spender) {
       throw new Error(`token "${this.tokenSymbol}" on chain "${this.chain.slug}" is unsupported`)
@@ -84,7 +89,7 @@ class CanonicalBridge extends Base {
   }
 
   public async estimateApproveTx(amount: BigNumberish) {
-    const l1CanonicalToken = this.getL1Token().connect(this.signer)
+    const l1CanonicalToken = this.getL1Token()
     const spender = this.getDepositApprovalAddress()
     const populatedTx = await l1CanonicalToken.populateApproveTx(spender, amount)
     return this.signer.estimateGas(populatedTx)
@@ -92,7 +97,7 @@ class CanonicalBridge extends Base {
 
   public async approve(amount: BigNumberish) {
     amount = amount.toString()
-    const l1CanonicalToken = this.getL1Token().connect(this.signer)
+    const l1CanonicalToken = this.getL1Token()
 
     const spender = this.getDepositApprovalAddress()
     if (!spender) {
@@ -173,12 +178,14 @@ class CanonicalBridge extends Base {
             l1CanonicalBridge.address,
             this.signer
           )
+          const l2Gas = BigNumber.from('1920000')
+          const data = '0x'
           return bridge.populateTransaction.depositERC20(
             l1CanonicalToken.address,
             l2TokenAddress,
             amount,
-            BigNumber.from('1920000'),
-            '0x',
+            l2Gas,
+            data,
             {
               from,
               gasLimit: 500e3,
@@ -318,7 +325,9 @@ class CanonicalBridge extends Base {
   }
 
   public getL1Token() {
-    return this.toCanonicalToken(this.tokenSymbol, this.network, Chain.Ethereum)
+    return this.toCanonicalToken(this.tokenSymbol, this.network, Chain.Ethereum).connect(
+      this.signer
+    )
   }
 
   public toCanonicalToken(token: TToken, network: string, chain: TChain) {

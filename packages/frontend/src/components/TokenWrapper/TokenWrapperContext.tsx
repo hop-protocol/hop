@@ -7,7 +7,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import Network from 'src/models/Network'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { formatError } from 'src/utils'
+import { defaultRefetchInterval, formatError } from 'src/utils'
 import { useTransactionReplacement } from 'src/hooks'
 import { defaultL2Network } from 'src/config/networks'
 import { useQuery } from 'react-query'
@@ -97,7 +97,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
     },
     {
       enabled: !!address?.address && !!canonicalToken && !!wrappedToken,
-      refetchInterval: 5e3,
+      refetchInterval: defaultRefetchInterval,
     }
   )
 

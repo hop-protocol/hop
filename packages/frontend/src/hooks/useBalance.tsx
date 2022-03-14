@@ -2,6 +2,7 @@ import { useQuery } from 'react-query'
 import { ChainId, Token } from '@hop-protocol/sdk'
 import { Addressish } from 'src/models/Address'
 import { StakingRewards } from '@hop-protocol/core/contracts'
+import { defaultRefetchInterval } from 'src/utils'
 
 async function fetchBalance(token: Token | StakingRewards, address: string) {
   return await token.balanceOf(address)
@@ -21,7 +22,7 @@ const useBalance = (token?: Token | StakingRewards, address?: Addressish, chainI
     },
     {
       enabled: !!chainId && !!token?.address && !!address?.toString(),
-      refetchInterval: 10e3,
+      refetchInterval: defaultRefetchInterval,
     }
   )
 

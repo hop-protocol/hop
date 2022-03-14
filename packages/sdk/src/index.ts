@@ -4,6 +4,7 @@ export { default as HopBridge } from './HopBridge'
 export { default as CanonicalBridge } from './CanonicalBridge'
 export { default as AMM } from './AMM'
 export { default as Token } from './Token'
+export { default as Base, L1Factory } from './Base'
 
 export { Chain } from './models'
 export { Route } from './models'
@@ -18,9 +19,11 @@ export {
   TokenSymbol,
   CanonicalToken,
   WrappedToken,
-  HToken
+  HToken,
 } from './constants/constants'
 
 if (typeof window !== 'undefined') {
   ;(window as any).Hop = Hop
 }
+
+export { metadata } from './config'

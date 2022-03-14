@@ -8,8 +8,13 @@ import { findNetworkById, formatError, toTokenDisplay } from 'src/utils'
 import CanonicalBridge from 'src/models/CanonicalBridge'
 import { handleTransaction } from './useSendTransaction'
 import { useTransactionReplacement } from 'src/hooks'
+import { l1Network } from 'src/config/networks'
 
-async function needsApproval(l1CanonicalBridge: CanonicalBridge, sourceToken, sourceTokenAmount) {
+async function needsApproval(
+  l1CanonicalBridge: CanonicalBridge,
+  sourceToken: Token,
+  sourceTokenAmount: BigNumber
+) {
   if (sourceToken.isNativeToken) {
     return
   }
@@ -80,13 +85,14 @@ export function useL1CanonicalBridge(
   }, [provider, sourceTokenAmount?.toString(), sourceToken?.chain.chainId, destNetwork?.slug])
 
   async function sendL1CanonicalBridge() {
-    if (!(l1CanonicalBridge && sourceTokenAmount)) {
+    if (!(l1CanonicalBridge && sourceToken && sourceTokenAmount)) {
       return
     }
 
-    const sourceNetwork = findNetworkById(sourceToken?.chain.chainId.toString()!)
+    const sourceNetwork = findNetworkById(sourceToken.chain.chainId.toString()!)
 
-    if (await needsApproval(l1CanonicalBridge, sourceToken, sourceTokenAmount)) {
+    const shouldApprove = await needsApproval(l1CanonicalBridge, sourceToken, sourceTokenAmount)
+    if (shouldApprove) {
       const approveTx = await l1CanonicalBridge.approve(constants.MaxUint256)
       await approveTx.wait(1)
     }
@@ -111,7 +117,7 @@ export function useL1CanonicalBridge(
       },
       onConfirm: async () => {
         try {
-          const isNetworkConnected = await checkConnectedNetworkId(1)
+          const isNetworkConnected = await checkConnectedNetworkId(l1Network.networkId)
           if (!isNetworkConnected) return
 
           return l1CanonicalBridge.deposit(sourceTokenAmount)

@@ -17,6 +17,7 @@ import {
   calculateApr,
   calculateStakedPosition,
   formatError,
+  defaultRefetchInterval,
 } from 'src/utils'
 import Alert from 'src/components/alert/Alert'
 import { DetailRow } from 'src/components/InfoTooltip'
@@ -110,7 +111,7 @@ const StakeWidget: FC<Props> = props => {
     },
     {
       enabled: !!bridge && !!network && !!address && !!stakingToken && !!stakingRewards,
-      refetchInterval: 10e3,
+      refetchInterval: defaultRefetchInterval,
     }
   )
 

@@ -4,6 +4,7 @@ import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
 import { useQuery } from 'react-query'
+import { defaultRefetchInterval } from 'src/utils'
 
 const useSendData = (
   token?: Token,
@@ -31,7 +32,7 @@ const useSendData = (
     {
       enabled:
         !!token?.address && !!fromNetwork?.slug && !!toNetwork?.slug && !!fromAmount?.toString(),
-      refetchInterval: 10e3,
+      refetchInterval: defaultRefetchInterval,
     }
   )
 

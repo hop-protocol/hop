@@ -4,7 +4,7 @@ import { BigNumber } from 'ethers'
 import { useQuery } from 'react-query'
 import { hopAppNetwork } from 'src/config'
 import Network from 'src/models/Network'
-import { toTokenDisplay } from 'src/utils'
+import { defaultRefetchInterval, toTokenDisplay } from 'src/utils'
 import InfoTooltip from 'src/components/InfoTooltip'
 
 function disableNativeAssetTransfers(sourceChain: string, tokenSymbol: string) {
@@ -49,7 +49,7 @@ const useAvailableLiquidity = (
     },
     {
       enabled: !!bridge && !!sourceToken?.symbol && !!sourceChain?.slug && !!destinationChain?.slug,
-      refetchInterval: 7e3,
+      refetchInterval: defaultRefetchInterval,
     }
   )
 

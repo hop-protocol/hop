@@ -67,11 +67,12 @@ class HopConvertOption extends ConvertOption {
       ? bridge.getCanonicalToken(sourceNetwork?.slug)
       : bridge.getL2HopToken(sourceNetwork?.slug)
 
+    const isHTokenSend = true
     const { totalFee, adjustedBonderFee, adjustedDestinationTxFee } = await bridge.getSendData(
       amountIn,
       sourceNetwork.slug,
       destNetwork.slug,
-      true
+      isHTokenSend
     )
     const availableLiquidity = await bridge.getFrontendAvailableLiquidity(
       sourceNetwork.slug,

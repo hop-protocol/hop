@@ -9,9 +9,10 @@ import {
   transferFromL1CompletedTopic,
   transferSentToL2Topic
 } from '../constants/eventTopics'
+import EventEmitter from 'eventemitter3'
 
 class L1ToL2Watcher extends BaseWatcher {
-  public watch () {
+  public watch (): EventEmitter {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee
   }

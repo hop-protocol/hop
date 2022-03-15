@@ -7,6 +7,7 @@ import _version from './version'
 import { Chain, Token } from './models'
 import { Event } from './watchers/BaseWatcher'
 import { TChain, TProvider, TToken } from './types'
+import EventEmitter from 'eventemitter3'
 
 /**
  * @desc Event watcher options
@@ -169,7 +170,7 @@ class Hop extends Base {
     destinationChain: TChain,
     isCanonicalTransfer: boolean = false,
     options: WatchOptions = {}
-  ) {
+  ): EventEmitter | Error {
     // TODO: detect type of transfer
     return isCanonicalTransfer
       ? this.watchCanonical(txHash, token, sourceChain, destinationChain)

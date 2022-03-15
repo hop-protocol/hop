@@ -21,7 +21,7 @@ const AppRoutes: FC = () => {
           <Route exact path="/stats" component={Stats} />
           <Route exact path="/send" component={Send} />
 
-          <Route exact path="/convert" component={Convert} />
+          <Route path="/convert" component={Convert} />
           <Route exact path="/pool" component={Pools} />
           <Route exact path="/stake" component={Stake} />
           <Route exact path="/withdraw" component={Withdraw} />

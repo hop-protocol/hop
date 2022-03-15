@@ -15,7 +15,6 @@ module.exports = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET',
         'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
-        'X-Frame-Options': 'sameorigin'
       }
 
       // Return your customised Webpack Development Server config.

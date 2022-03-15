@@ -9,7 +9,7 @@ import { createTransaction } from 'src/utils/createTransaction'
 import { amountToBN, formatError } from 'src/utils/format'
 import { HopBridge } from '@hop-protocol/sdk'
 import { useTransactionReplacement } from 'src/hooks'
-import { getSDKInstance } from 'src/utils/gnosisSafeApp'
+import { useSafeAppsSDK } from '@gnosis.pm/safe-apps-react-sdk'
 
 type TransactionHandled = {
   transaction: any
@@ -55,6 +55,7 @@ export function useSendTransaction(props) {
   const [signer, setSigner] = useState<Signer>()
   const [bridge, setBridge] = useState<HopBridge>()
   const { waitForTransaction, addTransaction, updateTransaction } = useTransactionReplacement()
+  const { sdk: gnosisSdk } = useSafeAppsSDK()
 
   const parsedAmount = useMemo(() => {
     if (!fromTokenAmount || !sourceToken) return BigNumber.from(0)
@@ -139,11 +140,10 @@ export function useSendTransaction(props) {
       // in order to obtain ethereum txHash we will use safe-apps-sdk when connected wallet name is 'Gnosis Safe'
       if (provider && walletName === WalletName.GnosisSafe) {
         let gnosisSafeTx: any | null = null
-        const sdk = getSDKInstance()
 
         while (gnosisSafeTx === null) {
           await new Promise(resolve => setTimeout(resolve, 5000))
-          gnosisSafeTx = await sdk.txs.getBySafeTxHash(transaction.hash)
+          gnosisSafeTx = await gnosisSdk.txs.getBySafeTxHash(transaction.hash)
 
           if (gnosisSafeTx.txHash) {
             const opts = {

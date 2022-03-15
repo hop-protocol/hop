@@ -71,11 +71,13 @@ export function useSufficientBalance(
     // NOTE: For now, no accommodations are made for the tx sender
     // if they do not have enough funds to pay for the relay tx.
     // It's kind of complicated to handle, because for the case when the SC wallet has more than owner
-    // is not possible to know who of them will be the one who executes the TX. 
-    // We will trust on the wallet UI to handle this issue for now. 
-    if (!isSmartContractWallet) {
+    // is not possible to know who of them will be the one who executes the TX.
+    // We will trust on the wallet UI to handle this issue for now.
+    if (isSmartContractWallet) {
+      setSufficientBalance(true)
+    } else {
       checkEnoughBalance()
-    } 
+    }
   }, [
     isSmartContractWallet,
     token,

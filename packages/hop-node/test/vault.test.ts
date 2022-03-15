@@ -17,6 +17,26 @@ describe.only('BalancerVault', () => {
     expect(deltas[1].eq(0)).toBe(true)
     expect(deltas[2].lt(0)).toBe(true)
   }, 60 * 1000)
+  it('getWithdrawOutcome', async () => {
+    const token = 'DAI'
+    const chain = Chain.Ethereum
+    const signer = wallets.get(chain)
+    const vault = new BalancerVault(chain, token, signer)
+    const amount = vault.parseUnits('1')
+    const deltas = await vault.getWithdrawOutcome(amount)
+    console.log('deltas:', deltas)
+    expect(deltas[0].gt(0)).toBe(true)
+    expect(deltas[1].eq(0)).toBe(true)
+    expect(deltas[2].lt(0)).toBe(true)
+  }, 60 * 1000)
+  it.skip('getBalance', async () => {
+    const token = 'DAI'
+    const chain = Chain.Ethereum
+    const signer = wallets.get(chain)
+    const vault = new BalancerVault(chain, token, signer)
+    const amount = await vault.getBalance()
+    expect(amount.gt(0)).toBe(true)
+  }, 60 * 1000)
   it.skip('deposit', async () => {
     const token = 'DAI'
     const chain = Chain.Ethereum
@@ -24,6 +44,18 @@ describe.only('BalancerVault', () => {
     const vault = new BalancerVault(chain, token, signer)
     const amount = vault.parseUnits('1')
     const tx = await vault.deposit(amount)
+    console.log('tx:', tx)
+    expect(tx).toBeTruthy()
+    expect(tx.hash).toBeTruthy()
+  }, 60 * 1000)
+  it.skip('withdraw', async () => {
+    const token = 'DAI'
+    const chain = Chain.Ethereum
+    const signer = wallets.get(chain)
+    const vault = new BalancerVault(chain, token, signer)
+    const amount = await vault.getBalance()
+    expect(amount.gt(0)).toBe(true)
+    const tx = await vault.withdraw(amount)
     console.log('tx:', tx)
     expect(tx).toBeTruthy()
     expect(tx.hash).toBeTruthy()

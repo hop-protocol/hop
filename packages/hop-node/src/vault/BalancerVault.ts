@@ -37,7 +37,7 @@ export class BalancerVault {
     if (!account) {
       account = await this.signer.getAddress()
     }
-    const contract = this.getErc20(vaultAddress)
+    const contract = this.getErc20(balancerStablePool)
     return contract.balanceOf(account)
   }
 
@@ -172,7 +172,123 @@ export class BalancerVault {
 
   async withdraw (amount: BigNumber): Promise<any> {
     // example tx: https://etherscan.io/tx/0x3b1c960139e8527f9b2155ee47ae4059c084cfa47377593c2130ae21c1903a17
-    throw new Error('not implemented')
+
+    const account = await this.signer.getAddress()
+    console.log('account:', account)
+    const contract = this.getErc20(daiTokenAddress)
+    const balance = await contract.balanceOf(account)
+
+    if (balance.lt(amount)) {
+      throw new Error(`not enough balance. have ${this.formatUnits(balance)}, need ${this.formatUnits(amount)}`)
+    }
+
+    const kind = 0 // SwapExactIn
+    const poolId1 = '0x804cdb9116a10bb78768d3252355a1b18067bf8f0000000000000000000000fb' // dai
+    const poolId2 = '0x7b50775383d3d6f0215a8f290f2c9e2eebbeceb20000000000000000000000fe' // stable pool
+    const userData = '0x'
+
+    const swaps = [
+      [
+        poolId2,
+        0, // assetInIndex
+        1, // assetOutIndex
+        amount,
+        userData
+      ],
+      [
+        poolId1,
+        1, // assetInIndex
+        2, // assetOutIndex
+        0, // amount
+        userData
+      ]
+    ]
+
+    const assets = [
+      balancerStablePool,
+      balancerDaiTokenAddress,
+      daiTokenAddress
+    ]
+
+    const funds = [
+      account, // sender
+      false, // fromInternalBalance
+      account, // recipient
+      false // toInternalBalance
+    ]
+
+    const deadline = constants.MaxUint256
+    const deltas = await this.getWithdrawOutcome(amount)
+
+    // ie 5%=50000000000000000.
+    // const slippage = '10000000000000000' // 0.1% (0.01)
+    const slippage = '1000000000000000' // 0.01% (0.001)
+    const limits = getLimitsForSlippage(
+      [balancerStablePool], // tokensIn
+      [daiTokenAddress], // tokensOut
+      0, // SwapExactIn
+      deltas,
+      assets,
+      slippage
+    )
+
+    const tx = await this.contract.batchSwap(
+      kind,
+      swaps,
+      assets,
+      funds,
+      limits,
+      deadline
+    )
+
+    return tx
+  }
+
+  async getWithdrawOutcome (amount: BigNumber): Promise<any> {
+    const account = await this.signer.getAddress()
+    const kind = 0
+    const poolId1 = '0x804cdb9116a10bb78768d3252355a1b18067bf8f0000000000000000000000fb'
+    const poolId2 = '0x7b50775383d3d6f0215a8f290f2c9e2eebbeceb20000000000000000000000fe'
+    const userData = '0x'
+
+    const swaps = [
+      [
+        poolId2,
+        0, // assetInIndex
+        1, // assetOutIndex
+        amount,
+        userData
+      ],
+      [
+        poolId1,
+        1, // assetInIndex
+        2, // assetOutIndex
+        0, // amount
+        userData
+      ]
+    ]
+
+    const assets = [
+      balancerStablePool,
+      balancerDaiTokenAddress,
+      daiTokenAddress
+    ]
+
+    const funds = [
+      account, // sender
+      false, // fromInternalBalance
+      account, // recipient
+      false // toInternalBalance
+    ]
+
+    const deltas = await this.contract.callStatic.queryBatchSwap(
+      kind,
+      swaps,
+      assets,
+      funds
+    )
+
+    return deltas
   }
 
   async approveDeposit (amount: BigNumber = constants.MaxUint256) {

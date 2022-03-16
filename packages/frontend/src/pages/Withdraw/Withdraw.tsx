@@ -3,7 +3,7 @@ import Card from '@material-ui/core/Card'
 import { WithdrawalProof } from './WithdrawalProof'
 import { makeStyles } from '@material-ui/core/styles'
 import LargeTextField from 'src/components/LargeTextField'
-import Typography from '@material-ui/core/Typography';
+import Typography from '@material-ui/core/Typography'
 import Alert from 'src/components/alert/Alert'
 import { toTokenDisplay } from 'src/utils'
 import { formatError } from 'src/utils/format'
@@ -19,24 +19,24 @@ const useStyles = makeStyles(theme => ({
   },
   header: {
     marginBottom: '4rem',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   form: {
     display: 'block',
-    marginBottom: '4rem'
+    marginBottom: '4rem',
   },
   card: {
-    marginBottom: '4rem'
+    marginBottom: '4rem',
   },
   loader: {
     marginTop: '2rem',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   notice: {
     display: 'flex',
     alignItems: 'center',
-    flexDirection: 'column'
-  }
+    flexDirection: 'column',
+  },
 }))
 
 export const Withdraw: FC = () => {
@@ -50,7 +50,7 @@ export const Withdraw: FC = () => {
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
-      localStorage.setItem('withdrawTransferIdOrTxHash', transferIdOrTxHash)
+    localStorage.setItem('withdrawTransferIdOrTxHash', transferIdOrTxHash)
   }, [transferIdOrTxHash])
 
   async function handleSubmit(event: ChangeEvent<any>) {
@@ -58,18 +58,22 @@ export const Withdraw: FC = () => {
     try {
       setLoading(true)
       setError('')
-      let wp : WithdrawalProof
+      let wp: WithdrawalProof
       await new Promise(async (resolve, reject) => {
+        wp = new WithdrawalProof(transferIdOrTxHash)
+        const { sourceChain } = wp.transfer
         await txConfirm?.show({
           kind: 'withdrawReview',
           inputProps: {
+            source: {
+              network: sourceChain,
+            },
             getProof: async () => {
-              wp = new WithdrawalProof(transferIdOrTxHash)
               await wp.generateProof()
               return wp
             },
-            getInfo: async(wp: WithdrawalProof) => {
-              const { transferId, sourceChain, destinationChain, token, tokenDecimals, amount } = wp.transfer
+            getInfo: async (wp: WithdrawalProof) => {
+              const { sourceChain, destinationChain, token, tokenDecimals, amount } = wp.transfer
               const formattedAmount = toTokenDisplay(amount, tokenDecimals)
               const source = networks.find(network => network.slug === sourceChain)
               const destination = networks.find(network => network.slug === destinationChain)
@@ -113,15 +117,15 @@ export const Withdraw: FC = () => {
                 rootTotalAmount!,
                 transferIdTreeIndex!,
                 siblings!,
-                totalLeaves!,
+                totalLeaves!
               )
               return tx
             },
-            onError: (err) => {
+            onError: err => {
               reject(err)
-            }
+            },
           },
-          onConfirm: async () => { } // needed to close modal
+          onConfirm: async () => {}, // needed to close modal
         })
         resolve(null)
       })
@@ -146,9 +150,11 @@ export const Withdraw: FC = () => {
           <Card className={styles.card}>
             <Typography variant="h6">
               Transfer ID
-          <InfoTooltip
-            title={"Enter the transfer ID or transaction hash of transfer to withdraw at the destination. You can use this to withdraw unbonded transfers after the transfer root has been propagated to the destination."}
-          />
+              <InfoTooltip
+                title={
+                  'Enter the transfer ID or transaction hash of transfer to withdraw at the destination. You can use this to withdraw unbonded transfers after the transfer root has been propagated to the destination.'
+                }
+              />
             </Typography>
             <LargeTextField
               value={transferIdOrTxHash}
@@ -160,12 +166,7 @@ export const Withdraw: FC = () => {
           </Card>
         </div>
         <div>
-          <Button
-            onClick={handleSubmit}
-            loading={loading}
-            large
-            highlighted
-          >
+          <Button onClick={handleSubmit} loading={loading} large highlighted>
             Withdraw
           </Button>
         </div>

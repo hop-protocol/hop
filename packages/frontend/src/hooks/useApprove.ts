@@ -55,7 +55,9 @@ const useApprove = token => {
       inputProps: {
         tagline: `Allow Hop to spend your ${token.symbol} on ${chain.name}`,
         amount: token.symbol === 'USDT' ? undefined : formattedAmount,
-        token: token.symbol,
+        token,
+        tokenSymbol: token.symbol,
+        source: token.network,
       },
       onConfirm: async (approveAll: boolean) => {
         const approveAmount = approveAll ? constants.MaxUint256 : amount

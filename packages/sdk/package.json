@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.302",
+  "version": "0.0.1-beta.304",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -61,7 +61,7 @@
     "@types/isomorphic-fetch": "0.0.35",
     "@types/jest": "^27.0.3",
     "@types/luxon": "^1.27.1",
-    "@types/node": "^12.11.7",
+    "@types/node": "^17.0.21",
     "@types/node-fetch": "2.5.10",
     "@typescript-eslint/eslint-plugin": "^4.28.2",
     "@typescript-eslint/parser": "^4.28.2",

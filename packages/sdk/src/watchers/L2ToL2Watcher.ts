@@ -1,6 +1,6 @@
+import EventEmitter from 'eventemitter3'
 import { default as BaseWatcher, Event } from './BaseWatcher'
 import { transferSentTopic } from '../constants/eventTopics'
-import EventEmitter from 'eventemitter3'
 
 class L2ToL2Watcher extends BaseWatcher {
   public watch (): EventEmitter {

@@ -229,10 +229,10 @@ const Send: FC = () => {
           />
         </>
       )
-      if (!isAvailable && !fromNetwork?.isLayer1) {
+      if (!isAvailable) {
         if (hopAppNetwork !== 'staging') {
           setIsLiquidityAvailable(false)
-          setNoLiquidityWarning(warningMessage)
+          return setNoLiquidityWarning(warningMessage)
         }
       } else {
         setIsLiquidityAvailable(true)
@@ -260,6 +260,7 @@ const Send: FC = () => {
 
   useEffect(() => {
     let message = noLiquidityWarning || minimumSendWarning
+    console.log(`message:`, message)
 
     const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
     const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
@@ -584,9 +585,9 @@ const Send: FC = () => {
       />
 
       <div className={styles.smartContractWalletWarning}>
-        <Alert severity="warning">{
-          isSmartContractWallet 
-            ? 'The connected account is detected to be a smart contract wallet. Please provide a custom recipient to proceed with this transaction.' 
+        <Alert severity="warning">
+          {isSmartContractWallet
+            ? 'The connected account is detected to be a smart contract wallet. Please provide a custom recipient to proceed with this transaction.'
             : ''}
         </Alert>
       </div>

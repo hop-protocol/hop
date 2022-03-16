@@ -1,6 +1,18 @@
-import { HopBridge } from '@hop-protocol/sdk'
+import { ChainSlug, HopBridge } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { useQuery } from 'react-query'
+
+function disableNativeAssetTransfers(sourceChain: string, tokenSymbol: string) {
+  if (
+    (sourceChain === ChainSlug.Polygon && tokenSymbol === 'MATIC') ||
+    (sourceChain === ChainSlug.Gnosis && tokenSymbol === 'DAI') ||
+    (sourceChain === ChainSlug.Arbitrum && tokenSymbol === 'ETH') ||
+    (sourceChain === ChainSlug.Optimism && tokenSymbol === 'ETH') ||
+    (sourceChain === ChainSlug.Ethereum && tokenSymbol === 'ETH')
+  ) {
+    return BigNumber.from(0)
+  }
+}
 
 const useAvailableLiquidity = (
   bridge?: HopBridge,
@@ -14,17 +26,9 @@ const useAvailableLiquidity = (
   const { isLoading, data, error } = useQuery(
     [queryKey, tokenSymbol, sourceChain, destinationChain],
     async () => {
-      if (sourceChain && destinationChain) {
+      if (sourceChain && destinationChain && tokenSymbol) {
         let liquidity = await bridge?.getFrontendAvailableLiquidity(sourceChain, destinationChain)
-        if (
-          (sourceChain === 'polygon' && tokenSymbol === 'MATIC') ||
-          (sourceChain === 'gnosis' && tokenSymbol === 'DAI') ||
-          (sourceChain === 'arbitrum' && tokenSymbol === 'ETH') ||
-          (sourceChain === 'optimism' && tokenSymbol === 'ETH') ||
-          (sourceChain === 'mainnet' && tokenSymbol === 'ETH')
-        ) {
-          liquidity = BigNumber.from(0)
-        }
+        liquidity = disableNativeAssetTransfers(sourceChain, tokenSymbol)
         return liquidity
       }
     },

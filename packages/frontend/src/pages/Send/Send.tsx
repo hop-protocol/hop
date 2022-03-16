@@ -260,7 +260,6 @@ const Send: FC = () => {
 
   useEffect(() => {
     let message = noLiquidityWarning || minimumSendWarning
-    console.log(`message:`, message)
 
     const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
     const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1

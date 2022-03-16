@@ -1,4 +1,5 @@
 import { HopBridge } from '@hop-protocol/sdk'
+import { BigNumber } from 'ethers'
 import { useQuery } from 'react-query'
 
 const useAvailableLiquidity = (
@@ -14,7 +15,17 @@ const useAvailableLiquidity = (
     [queryKey, tokenSymbol, sourceChain, destinationChain],
     async () => {
       if (sourceChain && destinationChain) {
-        return bridge?.getFrontendAvailableLiquidity(sourceChain, destinationChain)
+        let liquidity = await bridge?.getFrontendAvailableLiquidity(sourceChain, destinationChain)
+        if (
+          (sourceChain === 'polygon' && tokenSymbol === 'MATIC') ||
+          (sourceChain === 'gnosis' && tokenSymbol === 'DAI') ||
+          (sourceChain === 'arbitrum' && tokenSymbol === 'ETH') ||
+          (sourceChain === 'optimism' && tokenSymbol === 'ETH') ||
+          (sourceChain === 'mainnet' && tokenSymbol === 'ETH')
+        ) {
+          liquidity = BigNumber.from(0)
+        }
+        return liquidity
       }
     },
     {

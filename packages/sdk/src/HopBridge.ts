@@ -1027,10 +1027,10 @@ class HopBridge extends Base {
    * @returns {Object} Amount as BigNumber.
    * @example
    *```js
-   *import { Hop, Chain Token } from '@hop-protocol/sdk'
+   *import { Hop, Chain } from '@hop-protocol/sdk'
    *
    *const hop = new Hop()
-   *const bridge = hop.connect(signer).bridge(Token.USDC)
+   *const bridge = hop.connect(signer).bridge('USDC')
    *const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.Gnosis)
    *console.log(amountOut)
    *```
@@ -1064,10 +1064,10 @@ class HopBridge extends Base {
    * @returns {Object} Amount as BigNumber.
    * @example
    *```js
-   *import { Hop, Chain Token } from '@hop-protocol/sdk'
+   *import { Hop, Chain } from '@hop-protocol/sdk'
    *
    *const hop = new Hop()
-   *const bridge = hop.connect(signer).bridge(Token.USDC)
+   *const bridge = hop.connect(signer).bridge('USDC')
    *const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.Gnosis)
    *console.log(requiredLiquidity)
    *```

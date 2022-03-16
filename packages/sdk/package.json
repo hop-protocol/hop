@@ -13,7 +13,7 @@
     "dev": "npm run version && tsc --watch",
     "build": "npm run version && npm run build:ts",
     "build:ts": "tsc",
-    "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] ] dist/index.js | uglifyjs > hop.js",
+    "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] ] dist/src/index.js | uglifyjs > hop.js",
     "clean": "rimraf dist",
     "clean:docs": "rimraf docs",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",

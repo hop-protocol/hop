@@ -10,8 +10,9 @@ function disableNativeAssetTransfers(sourceChain: string, tokenSymbol: string) {
     (sourceChain === ChainSlug.Optimism && tokenSymbol === 'ETH') ||
     (sourceChain === ChainSlug.Ethereum && tokenSymbol === 'ETH')
   ) {
-    return BigNumber.from(0)
+    return true
   }
+  return false
 }
 
 const useAvailableLiquidity = (
@@ -27,9 +28,12 @@ const useAvailableLiquidity = (
     [queryKey, tokenSymbol, sourceChain, destinationChain],
     async () => {
       if (sourceChain && destinationChain && tokenSymbol) {
-        let liquidity = await bridge?.getFrontendAvailableLiquidity(sourceChain, destinationChain)
-        liquidity = disableNativeAssetTransfers(sourceChain, tokenSymbol)
-        return liquidity
+        const liquidity = await bridge?.getFrontendAvailableLiquidity(sourceChain, destinationChain)
+        const shouldDisableNativeAssetTransfers = disableNativeAssetTransfers(
+          sourceChain,
+          tokenSymbol
+        )
+        return shouldDisableNativeAssetTransfers ? BigNumber.from(0) : liquidity
       }
     },
     {

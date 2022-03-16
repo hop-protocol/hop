@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.304",
+  "version": "0.0.1-beta.306",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -28,7 +28,7 @@
     "lerna:sync": "lerna-sync-version",
     "release": "npm run clean && npm test && npm run publish:latest",
     "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
-    "prepare": "npm run lint && npm run build",
+    "prepare": "npm run lint && npm run build && npm run build:browser",
     "docs": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
     "docs:update-gitbook": "./scripts/update_gitbook.sh"
   },

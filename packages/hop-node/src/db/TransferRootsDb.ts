@@ -470,7 +470,7 @@ class TransferRootsDb extends BaseDb {
 
       let oruTimestampOk = true
       const sourceChain = chainIdToSlug(item.sourceChainId)
-      const isSourceOru = oruChains.includes(sourceChain)
+      const isSourceOru = oruChains.has(sourceChain)
       if (isSourceOru && item.committedAt) {
         const committedAtMs = item.committedAt * 1000
         // Add a buffer to allow validators to actually make the assertion transactions
@@ -524,7 +524,7 @@ class TransferRootsDb extends BaseDb {
 
       let isWithinChallengePeriod = true
       const sourceChain = chainIdToSlug(item?.sourceChainId)
-      const isSourceOru = oruChains.includes(sourceChain)
+      const isSourceOru = oruChains.has(sourceChain)
       if (isSourceOru && item?.bondedAt) {
         const bondedAtMs: number = item.bondedAt * 1000
         const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()

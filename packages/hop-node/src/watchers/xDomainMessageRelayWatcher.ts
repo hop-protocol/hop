@@ -105,7 +105,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
   }
 
-  checkTransfersCommitted = async (transferRootId: string) => {
+  async checkTransfersCommitted (transferRootId: string) {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
       throw new Error(`transfer root db item not found, root id "${transferRootId}"`)

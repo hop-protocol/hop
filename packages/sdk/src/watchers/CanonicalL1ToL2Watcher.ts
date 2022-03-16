@@ -1,10 +1,11 @@
 import CanonicalBridge from '../CanonicalBridge'
+import EventEmitter from 'eventemitter3'
 import { default as BaseWatcher } from './BaseWatcher'
 import { Chain } from '../models'
 import { tokenTransferTopic, tokensBridgedTopic } from '../constants/eventTopics'
 
 class L1ToL2Watcher extends BaseWatcher {
-  public watch () {
+  public watch (): EventEmitter {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee
   }

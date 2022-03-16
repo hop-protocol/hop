@@ -42,11 +42,11 @@ class CanonicalBridge extends Base {
    * @returns {Object} CanonicalBridge SDK instance.
    * @example
    *```js
-   *import { CanonicalHop, Chain, Token } from '@hop-protocol/sdk'
+   *import { CanonicalHop, Chain } from '@hop-protocol/sdk'
    *import { Wallet } from 'ethers'
    *
    *const signer = new Wallet(privateKey)
-   *const bridge = new CanonicalBridge('kovan', signer, Token.USDC, Chain.Optimism)
+   *const bridge = new CanonicalBridge('kovan', signer, 'USDC', Chain.Optimism)
    *```
    */
   constructor (

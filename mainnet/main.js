@@ -1249,9 +1249,9 @@ function populateTransfer (x, i) {
     if (app.prices[x.token][nearest]) {
       const price = app.prices[x.token][nearest][1]
       x.amountUsd = price * x.formattedAmount
-      x.displayAmountUsd = formatCurrency(x.amountUsd, 'USDC')
+      x.displayAmountUsd = formatCurrency(x.amountUsd, 'USD')
       x.tokenPriceUsd = price
-      x.displayTokenPriceUsd = formatCurrency(x.tokenPrice, 'USDC')
+      x.displayTokenPriceUsd = formatCurrency(x.tokenPriceUsd, 'USD')
     }
   }
 

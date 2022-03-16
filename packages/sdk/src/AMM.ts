@@ -31,9 +31,9 @@ class AMM extends Base {
    * @Returns {Object} Hop AMM instance
    * @example
    *```js
-   *import { AMM, Token, Chain } from '@hop-protocol/sdk'
+   *import { AMM, Chain } from '@hop-protocol/sdk'
    *
-   *const amm = new AMM('mainnet', Token.USDC, Chain.Gnosis)
+   *const amm = new AMM('mainnet', 'USDC', Chain.Gnosis)
    *```
    */
   constructor (

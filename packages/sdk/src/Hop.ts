@@ -77,10 +77,10 @@ class Hop extends Base {
    * @returns {Object} A HopBridge instance.
    * @example
    *```js
-   *import { Hop, Token } from '@hop-protocol/sdk'
+   *import { Hop } from '@hop-protocol/sdk'
    *
    *const hop = new Hop()
-   *const bridge = hop.bridge(Token.USDC)
+   *const bridge = hop.bridge('USDC')
    *```
    */
   public bridge (token: TToken) {
@@ -94,10 +94,10 @@ class Hop extends Base {
    * @returns {Object} A CanonicalBridge instance.
    * @example
    *```js
-   *import { Hop, Token } from '@hop-protocol/sdk'
+   *import { Hop } from '@hop-protocol/sdk'
    *
    *const hop = new Hop()
-   *const bridge = hop.canonicalBridge(Token.USDC)
+   *const bridge = hop.canonicalBridge('USDC')
    *```
    */
   public canonicalBridge (token: TToken, chain?: TChain) {
@@ -157,7 +157,7 @@ class Hop extends Base {
    *
    *const hop = new Hop()
    * hop
-   *   .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.Gnosis)
+   *   .watch(tx.hash, 'USDC', Chain.Ethereum, Chain.Gnosis)
    *   .on('receipt', ({receipt, chain}) => {
    *     console.log(chain.Name, receipt)
    *   })

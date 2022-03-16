@@ -214,6 +214,10 @@ export function useSendTransaction(props) {
       onConfirm: async () => {
         if (!amountOutMin || !bridge) return
 
+        const networkId = Number(fromNetwork.networkId)
+        const isNetworkConnected = await checkConnectedNetworkId(networkId)
+        if (!isNetworkConnected) return
+
         return bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
           deadline: deadline(),
           relayer: constants.AddressZero,
@@ -247,6 +251,10 @@ export function useSendTransaction(props) {
         if (totalFee.gt(parsedAmount)) {
           throw new Error('Amount must be greater than bonder fee')
         }
+
+        const networkId = Number(fromNetwork.networkId)
+        const isNetworkConnected = await checkConnectedNetworkId(networkId)
+        if (!isNetworkConnected) return
 
         const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
@@ -284,6 +292,10 @@ export function useSendTransaction(props) {
         if (totalFee.gt(parsedAmount)) {
           throw new Error('Amount must be greater than bonder fee')
         }
+
+        const networkId = Number(fromNetwork.networkId)
+        const isNetworkConnected = await checkConnectedNetworkId(networkId)
+        if (!isNetworkConnected) return
 
         const bonderFeeWithId = getBonderFeeWithId(totalFee)
 

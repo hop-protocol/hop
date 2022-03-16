@@ -73,7 +73,7 @@ export class YearnVault implements Vault {
         provider: {
           write: provider,
           read: provider
-        }
+        } as any
       })
     }
     this.yearn = instanceCache[chain]

@@ -1235,13 +1235,16 @@ function populateTransfer (x, i) {
   const decimals = tokenDecimals[x.token]
   x.formattedAmount = Number(ethers.utils.formatUnits(x.amount, decimals))
   x.displayAmount = x.formattedAmount.toFixed(4)
-  x.displayBonderFee = formatCurrency(ethers.utils.formatUnits(x.bonderFee, decimals), x.token)
+  x.formattedBonderFee = x.bonderFee ? Number(ethers.utils.formatUnits(x.bonderFee, decimals)) : 0
+  x.displayBonderFee = formatCurrency(x.formattedBonderFee, x.token)
   x.tokenImageUrl = tokenLogosMap[x.token]
 
   x.amountUsd = ''
   x.displayAmountUsd = ''
   x.tokenPriceUsd = ''
   x.displayTokenPriceUsd = ''
+  x.bonderFeeUsd = ''
+  x.displayBonderFeeUsd = ''
 
   if (app.prices[x.token]) {
     const dates = app.prices[x.token].reverse().map((x) => x[0])
@@ -1252,6 +1255,8 @@ function populateTransfer (x, i) {
       x.displayAmountUsd = formatCurrency(x.amountUsd, 'USD')
       x.tokenPriceUsd = price
       x.displayTokenPriceUsd = formatCurrency(x.tokenPriceUsd, 'USD')
+      x.bonderFeeUsd = x.tokenPriceUsd * x.formattedBonderFee
+      x.displayBonderFeeUsd = formatCurrency(x.bonderFeeUsd, 'USD')
     }
   }
 

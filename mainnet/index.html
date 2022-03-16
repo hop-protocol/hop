@@ -185,7 +185,7 @@ might not reflect the latest state.
           <table>
             <thead>
               <tr>
-                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Transfer Tx</th><th>Token</th><th>Amount</th><th>Amount USD</th><th>Bonder Fee</th><th>Bonded</th><th>Bonded Tx</th><th>Bonded Date</th><th>Bonded Within</th><th>Bonder</th>
+                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Transfer Tx</th><th>Token</th><th>Amount</th><th>Amount USD</th><th>Bonder Fee</th><th>Bonder Fee USD</th><th>Bonded</th><th>Bonded Tx</th><th>Bonded Date</th><th>Bonded Within</th><th>Bonder</th>
               </tr>
             </thead>
             <tbody>
@@ -222,6 +222,14 @@ might not reflect the latest state.
                 <td class="bonderFee number" :title="x.bonderFee">
                   <span v-if="x.sourceChain !== 1">
                     {{ x.displayBonderFee }}
+                  </span>
+                  <span class="na" v-if="x.sourceChain === 1">
+                    <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
+                  </span>
+                </td>
+                <td class="bonderFee number" :title="`${x.displayBonderFeeUsd} @ ${x.displayTokenPriceUsd}`">
+                  <span v-if="x.sourceChain !== 1">
+                    {{ x.displayBonderFeeUsd }}
                   </span>
                   <span class="na" v-if="x.sourceChain === 1">
                     <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>

@@ -146,6 +146,15 @@ might not reflect the latest state.
               <input class="filterAmount" v-model="filterAmount" @input="setFilterAmount" placeholder="amount" />
             </div>
             <div>
+              <label>Amount USD:</label>
+              <select class="select selectSmall" v-model="filterAmountUsdComparator" @change="setFilterAmountUsdComparator">
+                <option value="eq">=</option>
+                <option value="gt">&gt;</option>
+                <option value="lt">&lt;</option>
+              </select>
+              <input class="filterAmountUsd" v-model="filterAmountUsd" @input="setFilterAmountUsd" placeholder="amount USD" />
+            </div>
+            <div>
               <label>Bonder:</label>
               <input class="filterBonder" v-model="filterBonder" @input="setFilterBonder" placeholder="bonder" />
             </div>

@@ -43,6 +43,8 @@ const app = new Vue({
     filterDestination: queryParams.destination || '',
     filterAmount: queryParams.amount || '',
     filterAmountComparator: queryParams.amountCmp || 'gt',
+    filterAmountUsd: queryParams.amountUsd || '',
+    filterAmountUsdComparator: queryParams.amountUsdCmp || 'gt',
     filterBonder: queryParams.bonder || '',
     filterAccount: queryParams.account || '',
     filterTransferId: queryParams.transferId || '',
@@ -162,6 +164,22 @@ const app = new Vue({
             }
           }
 
+          if (this.filterAmountUsd && this.filterAmountUsdComparator) {
+            if (this.filterAmountUsdComparator === 'eq') {
+              if (Number(x.amountUsd) !== Number(this.filterAmountUsd)) {
+                return false
+              }
+            } else if (this.filterAmountUsdComparator === 'gt') {
+              if (Number(x.amountUsd) <= Number(this.filterAmountUsd)) {
+                return false
+              }
+            } else if (this.filterAmountUsdComparator === 'lt') {
+              if (Number(x.amountUsd) >= Number(this.filterAmountUsd)) {
+                return false
+              }
+            }
+          }
+
           return true
         })
         .slice(start, end)
@@ -234,6 +252,20 @@ const app = new Vue({
       const value = event.target.value
       Vue.set(app, 'filterAmountComparator', value)
       updateQueryParams({ amountCmp: value })
+      this.resetPage()
+      this.refreshTransfers()
+    },
+    setFilterAmountUsd (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterAmountUsd', value)
+      updateQueryParams({ amountUsd: value })
+      this.resetPage()
+      this.refreshTransfers()
+    },
+    setFilterAmountUsdComparator (event) {
+      const value = event.target.value
+      Vue.set(app, 'filterAmountUsdComparator', value)
+      updateQueryParams({ amountUsdCmp: value })
       this.resetPage()
       this.refreshTransfers()
     },
@@ -1333,7 +1365,7 @@ async function main () {
       WBTC: pricesArr[5]
     }
     app.updatePrices(prices)
-  } catch(err) {
+  } catch (err) {
     console.error(err)
   }
 
@@ -1456,7 +1488,7 @@ function nearestDate (dates, target) {
     if (date instanceof Date) {
       date = date.getTime()
     }
-    let distance = Math.abs(date - target)
+    const distance = Math.abs(date - target)
     if (distance < nearest) {
       nearest = distance
       winner = index

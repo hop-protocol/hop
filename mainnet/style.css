@@ -143,6 +143,9 @@ table img {
   font-weight: normal;
   color: #ffffffcc;
 }
+.number {
+  text-align: right;
+}
 .bonded {
 }
 .bonded .yes {

@@ -2,9 +2,20 @@ import wallets from 'src/wallets'
 import { BalancerVault } from 'src/vault/BalancerVault'
 import { Chain } from 'src/constants'
 import { Vault } from 'src/vault/Vault'
+import { YearnVault } from 'src/vault/YearnVault'
 import { parseUnits } from 'ethers/lib/utils'
 
-describe.only('BalancerVault', () => {
+describe.only('Vault', () => {
+  it('getDepositOutcome', async () => {
+    const token = 'USDC'
+    const chain = Chain.Ethereum
+    const signer = wallets.get(chain)
+    const vault = Vault.from(chain, token, signer)!
+    expect(vault).toBeTruthy()
+  }, 60 * 1000)
+})
+
+describe.skip('BalancerVault', () => {
   it('getDepositOutcome', async () => {
     const token = 'DAI'
     const chain = Chain.Ethereum
@@ -67,7 +78,7 @@ describe.skip('YearnVault', () => {
     const token = 'USDC'
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
-    const vault = Vault.from(chain, token, signer)!
+    const vault = new YearnVault(chain, token, signer)
     const balance = await vault.getBalance()
     console.log('balance:', vault.formatUnits(balance))
     expect(balance).toBeTruthy()
@@ -77,7 +88,7 @@ describe.skip('YearnVault', () => {
     const token = 'USDC'
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
-    const vault = Vault.from(chain, token, signer)!
+    const vault = new YearnVault(chain, token, signer)
     const amount = vault.parseUnits('1')
     const tx = await vault.deposit(amount)
     expect(tx.hash).toBeTruthy()
@@ -86,7 +97,7 @@ describe.skip('YearnVault', () => {
     const token = 'ETH'
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
-    const vault = Vault.from(chain, token, signer)!
+    const vault = new YearnVault(chain, token, signer)
     const amount = vault.parseUnits('0.0017')
     const tx = await vault.deposit(amount)
     expect(tx.hash).toBeTruthy()
@@ -95,7 +106,7 @@ describe.skip('YearnVault', () => {
     const token = 'USDC'
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
-    const vault = Vault.from(chain, token, signer)!
+    const vault = new YearnVault(chain, token, signer)
     const amount = vault.parseUnits('0.5')
     const tx = await vault.withdraw(amount)
     expect(tx.hash).toBeTruthy()
@@ -104,7 +115,7 @@ describe.skip('YearnVault', () => {
     const token = 'ETH'
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
-    const vault = Vault.from(chain, token, signer)!
+    const vault = new YearnVault(chain, token, signer)
     const amount = vault.parseUnits('0.001682978694778424')
     const tx = await vault.withdraw(amount)
     expect(tx.hash).toBeTruthy()
@@ -113,7 +124,7 @@ describe.skip('YearnVault', () => {
     const token = 'USDC'
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
-    const vault = Vault.from(chain, token, signer)!
+    const vault = new YearnVault(chain, token, signer)
     const amount = vault.parseUnits('1')
     const result = await vault.formatUnits(amount)
     expect(result).toBe(1)
@@ -122,7 +133,7 @@ describe.skip('YearnVault', () => {
     const token = 'USDC'
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
-    const vault = Vault.from(chain, token, signer)!
+    const vault = new YearnVault(chain, token, signer)
     const amount = vault.parseUnits('1')
     const result = await vault.parseUnits(1)
     expect(result.toString()).toBe(amount.toString())
@@ -132,7 +143,7 @@ describe.skip('YearnVault', () => {
     const decimals = 6
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
-    const vault = Vault.from(chain, token, signer)!
+    const vault = new YearnVault(chain, token, signer)
     const amount = vault.parseUnits('1')
     const outcome = await vault.getDepositOutcome(amount)
 
@@ -146,7 +157,7 @@ describe.skip('YearnVault', () => {
     const decimals = 6
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
-    const vault = Vault.from(chain, token, signer)!
+    const vault = new YearnVault(chain, token, signer)
     const amount = vault.parseUnits('0.5')
     const outcome = await vault.getWithdrawOutcome(amount)
 
@@ -159,7 +170,7 @@ describe.skip('YearnVault', () => {
     const token = 'USDC'
     const chain = Chain.Ethereum
     const signer = wallets.get(chain)
-    const vault = Vault.from(chain, token, signer)!
+    const vault = new YearnVault(chain, token, signer)
     const list = await vault.getList()
     console.log(list)
 

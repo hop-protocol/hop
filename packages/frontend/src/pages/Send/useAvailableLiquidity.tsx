@@ -29,10 +29,9 @@ const useAvailableLiquidity = (
     async () => {
       if (sourceChain && destinationChain && tokenSymbol) {
         const liquidity = await bridge?.getFrontendAvailableLiquidity(sourceChain, destinationChain)
-        const shouldDisableNativeAssetTransfers = disableNativeAssetTransfers(
-          sourceChain,
-          tokenSymbol
-        )
+        const shouldDisableNativeAssetTransfers =
+          process.env.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS &&
+          disableNativeAssetTransfers(sourceChain, tokenSymbol)
         return shouldDisableNativeAssetTransfers ? BigNumber.from(0) : liquidity
       }
     },

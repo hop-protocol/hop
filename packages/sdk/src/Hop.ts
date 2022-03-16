@@ -1,13 +1,13 @@
 import Base, { ChainProviders } from './Base'
 import CanonicalBridge from './CanonicalBridge'
 import CanonicalWatcher from './watchers/CanonicalWatcher'
+import EventEmitter from 'eventemitter3'
 import HopBridge from './HopBridge'
 import Watcher from './watchers/Watcher'
 import _version from './version'
 import { Chain, Token } from './models'
 import { Event } from './watchers/BaseWatcher'
 import { TChain, TProvider, TToken } from './types'
-import EventEmitter from 'eventemitter3'
 
 /**
  * @desc Event watcher options

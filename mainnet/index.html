@@ -17,7 +17,7 @@
   <body>
   <div id="banner">
     <div>
-      ⚠️ The <a href="https://thegraph.com/legacy-explorer/subgraph/hop-protocol/hop-arbitrum?ve
+      ⚠️ The <a href="https://thegraph.com/legacy-explorer/subgraph/hop-protocol/hop-polygon?ve
 rsion=pending" target="_blank">subgraphs</a> are currently experiencing some issues so the table
 might not reflect the latest state.
       </div>
@@ -176,7 +176,7 @@ might not reflect the latest state.
           <table>
             <thead>
               <tr>
-                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Transfer Tx</th><th>Amount</th><th>Token</th><th>Bonder Fee</th><th>Bonded</th><th>Bonded Tx</th><th>Bonded Date</th><th>Bonded Within</th><th>Bonder</th>
+                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Transfer Tx</th><th>Amount</th><th>Amount USD</th><th>Token</th><th>Bonder Fee</th><th>Bonded</th><th>Bonded Tx</th><th>Bonded Date</th><th>Bonded Within</th><th>Bonder</th>
               </tr>
             </thead>
             <tbody>
@@ -205,6 +205,7 @@ might not reflect the latest state.
                   </a>
                 </td>
                 <td class="amount" :title="x.amount">{{ x.displayAmount }}</td>
+                <td class="amount" :title="`${x.displayAmountUsd} @ ${x.displayTokenPriceUsd}`">{{ x.displayAmountUsd }}</td>
                 <td class="token">
                   <img :src="x.tokenImageUrl" :alt="x.token">
                   {{ x.token }}

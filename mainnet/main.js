@@ -51,6 +51,7 @@ const app = new Vue({
     allTransfers: [],
     transfers: [],
     chartSelection: '',
+    prices: {},
     tvl: {
       gnosis: {
         formattedAmount: '-'
@@ -171,6 +172,9 @@ const app = new Vue({
     updateTransfers (transfers) {
       Vue.set(app, 'allTransfers', transfers)
       this.refreshTransfers()
+    },
+    updatePrices (prices) {
+      Vue.set(app, 'prices', prices)
     },
     previousPage () {
       Vue.set(app, 'page', Math.max(this.page - 1, 0))
@@ -1198,9 +1202,26 @@ function populateTransfer (x, i) {
 
   const decimals = tokenDecimals[x.token]
   x.formattedAmount = Number(ethers.utils.formatUnits(x.amount, decimals))
-  x.displayAmount = formatCurrency(ethers.utils.formatUnits(x.amount, decimals), x.token)
+  x.displayAmount = x.formattedAmount.toFixed(2)
   x.displayBonderFee = formatCurrency(ethers.utils.formatUnits(x.bonderFee, decimals), x.token)
   x.tokenImageUrl = tokenLogosMap[x.token]
+
+  x.amountUsd = ''
+  x.displayAmountUsd = ''
+  x.tokenPriceUsd = ''
+  x.displayTokenPriceUsd = ''
+
+  if (app.prices[x.token]) {
+    const dates = app.prices[x.token].reverse().map((x) => x[0])
+    const nearest = nearestDate(dates, x.timestamp)
+    if (app.prices[x.token][nearest]) {
+      const price = app.prices[x.token][nearest][1]
+      x.amountUsd = price * x.formattedAmount
+      x.displayAmountUsd = formatCurrency(x.amountUsd, 'USDC')
+      x.tokenPriceUsd = price
+      x.displayTokenPriceUsd = formatCurrency(x.tokenPrice, 'USDC')
+    }
+  }
 
   return x
 }
@@ -1294,6 +1315,29 @@ function formatCurrency (value, token) {
 
 async function main () {
   try {
+    const priceDays = 2
+    const pricesArr = await Promise.all([
+      this.getPriceHistory('usd-coin', priceDays),
+      this.getPriceHistory('tether', priceDays),
+      this.getPriceHistory('dai', priceDays),
+      this.getPriceHistory('ethereum', priceDays),
+      this.getPriceHistory('matic-network', priceDays),
+      this.getPriceHistory('wrapped-bitcoin', priceDays)
+    ])
+    const prices = {
+      USDC: pricesArr[0],
+      USDT: pricesArr[1],
+      DAI: pricesArr[2],
+      ETH: pricesArr[3],
+      MATIC: pricesArr[4],
+      WBTC: pricesArr[5]
+    }
+    app.updatePrices(prices)
+  } catch(err) {
+    console.error(err)
+  }
+
+  try {
     const data = JSON.parse(localStorage.getItem('data'))
     if (data) {
       app.updateTransfers(data)
@@ -1381,6 +1425,45 @@ function updateQueryParams (params) {
   } catch (err) {
     console.log(err)
   }
+}
+
+async function getPriceHistory (coinId, days) {
+  const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
+  return fetch(url)
+    .then(res => res.json())
+    .then(json => {
+      if (!json.prices) {
+        console.log(json)
+      }
+      return json.prices.map((data) => {
+        data[0] = Math.floor(data[0] / 1000)
+        return data
+      })
+    })
+}
+
+function nearestDate (dates, target) {
+  if (!target) {
+    target = Date.now()
+  } else if (target instanceof Date) {
+    target = target.getTime()
+  }
+
+  let nearest = Infinity
+  let winner = -1
+
+  dates.forEach(function (date, index) {
+    if (date instanceof Date) {
+      date = date.getTime()
+    }
+    let distance = Math.abs(date - target)
+    if (distance < nearest) {
+      nearest = distance
+      winner = index
+    }
+  })
+
+  return winner
 }
 
 main()

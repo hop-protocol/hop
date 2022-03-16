@@ -1236,7 +1236,7 @@ function populateTransfer (x, i) {
   x.formattedAmount = Number(ethers.utils.formatUnits(x.amount, decimals))
   x.displayAmount = x.formattedAmount.toFixed(4)
   x.formattedBonderFee = x.bonderFee ? Number(ethers.utils.formatUnits(x.bonderFee, decimals)) : 0
-  x.displayBonderFee = formatCurrency(x.formattedBonderFee, x.token)
+  x.displayBonderFee = x.formattedBonderFee.toFixed(4)
   x.tokenImageUrl = tokenLogosMap[x.token]
 
   x.amountUsd = ''

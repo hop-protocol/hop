@@ -39,6 +39,10 @@ export function useSendingTransaction(props: SendingTransaction) {
         src = props.token
       } else if ('token0' in props) {
         src = props.token0
+      } else {
+        throw new Error(
+          `NetworkTokenEntity (source, token, token0) required. props: ${JSON.stringify(props)}`
+        )
       }
       const txChainId = Number(src?.network?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(txChainId)

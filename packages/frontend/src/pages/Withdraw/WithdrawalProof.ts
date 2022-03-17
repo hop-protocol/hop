@@ -218,7 +218,7 @@ export class WithdrawalProof {
       chain = 'xdai'
     }
     if (chain === 'ethereum') {
-      url = `${url}-mainnet`
+      url = 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
     } else {
       url = `${url}-${chain}`
     }

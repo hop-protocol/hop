@@ -8,7 +8,7 @@ import React, {
   useCallback,
 } from 'react'
 import Onboard from 'bnc-onboard'
-import { ethers, Contract, BigNumber } from 'ethers'
+import { ethers, BigNumber } from 'ethers'
 import Address from 'src/models/Address'
 import { networkIdToSlug, getRpcUrl, getBaseExplorerUrl } from 'src/utils'
 import { blocknativeDappid } from 'src/config'
@@ -90,7 +90,7 @@ const walletSelectOptions: WalletSelectModuleOptions = {
       },
     },
     {
-      walletName: "gnosis",
+      walletName: 'gnosis',
       preferred: true,
     },
     {
@@ -283,6 +283,7 @@ const Web3ContextProvider: FC = ({ children }) => {
       const signerNetworkId = (await provider.getNetwork())?.chainId
       logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
 
+      // TODO: this block of code is too confident. use separate hook to check last-minute tx details
       if (networkId.toString() === signerNetworkId?.toString()) {
         return true
       }
@@ -357,7 +358,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         requestWallet,
         disconnectWallet,
         walletName,
-        checkConnectedNetworkId
+        checkConnectedNetworkId,
       }}
     >
       {children}

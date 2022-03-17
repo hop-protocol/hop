@@ -1,8 +1,9 @@
+import EventEmitter from 'eventemitter3'
 import { default as BaseWatcher, Event } from './BaseWatcher'
 import { transferSentTopic } from '../constants/eventTopics'
 
 class L2ToL2Watcher extends BaseWatcher {
-  public watch () {
+  public watch (): EventEmitter {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee
   }

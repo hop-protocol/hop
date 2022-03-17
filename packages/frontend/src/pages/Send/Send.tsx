@@ -17,7 +17,7 @@ import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
 import { hopAppNetwork } from 'src/config'
-import InfoTooltip from 'src/components/infoTooltip'
+import InfoTooltip from 'src/components/InfoTooltip'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
 import { useSendStyles } from './useSendStyles'
@@ -71,6 +71,7 @@ const Send: FC = () => {
   const [customRecipient, setCustomRecipient] = useState<string>()
   const [manualWarning, setManualWarning] = useState<string>('')
   const isSmartContractWallet = useIsSmartContractWallet()
+  const [manualError, setManualError] = useState<string>('')
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -228,10 +229,10 @@ const Send: FC = () => {
           />
         </>
       )
-      if (!isAvailable && !fromNetwork?.isLayer1) {
+      if (!isAvailable) {
         if (hopAppNetwork !== 'staging') {
           setIsLiquidityAvailable(false)
-          setNoLiquidityWarning(warningMessage)
+          return setNoLiquidityWarning(warningMessage)
         }
       } else {
         setIsLiquidityAvailable(true)
@@ -282,7 +283,7 @@ const Send: FC = () => {
     estimatedReceived,
     priceImpact,
     fromTokenAmount,
-    toTokenAmount
+    toTokenAmount,
   ])
 
   useEffect(() => {
@@ -485,6 +486,13 @@ const Send: FC = () => {
     setManualWarning('')
   }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
+  useEffect(() => {
+    // if (fromNetwork?.slug === ChainSlug.Polygon || toNetwork?.slug === ChainSlug.Polygon) {
+    //   return setManualError('Warning: transfers to/from Polygon are temporarily down.')
+    // }
+    // setManualError('')
+  }, [fromNetwork?.slug, toNetwork?.slug])
+
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
   const sendButtonActive = useMemo(() => {
@@ -499,7 +507,8 @@ const Send: FC = () => {
       rate &&
       sufficientBalance &&
       isLiquidityAvailable &&
-      estimatedReceived?.gt(0)
+      estimatedReceived?.gt(0) &&
+      !manualError
     )
   }, [
     needsApproval,
@@ -513,6 +522,7 @@ const Send: FC = () => {
     sufficientBalance,
     isLiquidityAvailable,
     estimatedReceived,
+    manualError,
   ])
 
   return (
@@ -574,9 +584,9 @@ const Send: FC = () => {
       />
 
       <div className={styles.smartContractWalletWarning}>
-        <Alert severity="warning">{
-          isSmartContractWallet 
-            ? 'The connected account is detected to be a smart contract wallet. Please provide a custom recipient to proceed with this transaction.' 
+        <Alert severity="warning">
+          {isSmartContractWallet
+            ? 'The connected account is detected to be a smart contract wallet. Please provide a custom recipient to proceed with this transaction.'
             : ''}
         </Alert>
       </div>
@@ -612,7 +622,7 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
       <Alert severity="warning">{manualWarning}</Alert>
-      
+      <Alert severity="error">{manualError}</Alert>
 
       <ButtonsWrapper>
         {!sendButtonActive && (
@@ -648,7 +658,7 @@ const Send: FC = () => {
 
       <Flex mt={1}>
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />
-        {tx && <TxStatusModal onClose={() => setTx(null)} tx={tx} />}
+        {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}
       </Flex>
     </Flex>
   )

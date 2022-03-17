@@ -226,9 +226,9 @@ Returns a new Hop AMM SDK instance.
 
 **`example`**
 ```js
-import { AMM, Token, Chain } from '@hop-protocol/sdk'
+import { AMM, Chain } from '@hop-protocol/sdk'
 
-const amm = new AMM('mainnet', Token.USDC, Chain.Gnosis)
+const amm = new AMM('mainnet', 'USDC', Chain.Gnosis)
 ```
 
 ##### Parameters
@@ -301,23 +301,23 @@ ___
 
 #### <a id="getcontract" name="getcontract"></a> getContract
 
-• **getContract**: (`address`: `string`, `abi`: `any`[], `provider`: [`TProvider`](#tprovider)) => `Promise`<`Contract`\> = `getContract`
+• **getContract**: (`factory`: `Factory`, `address`: `string`, `provider`: [`TProvider`](#tprovider)) => `Promise`<`any`\> = `getContract`
 
 ##### Type declaration
 
-▸ (`address`, `abi`, `provider`): `Promise`<`Contract`\>
+▸ (`factory`, `address`, `provider`): `Promise`<`any`\>
 
 ###### Parameters
 
 | Name | Type |
 | :------ | :------ |
+| `factory` | `Factory` |
 | `address` | `string` |
-| `abi` | `any`[] |
 | `provider` | [`TProvider`](#tprovider) |
 
 ###### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`any`\>
 
 ##### Inherited from
 
@@ -457,7 +457,7 @@ ___
 
 #### <a id="calculateaddliquidityminimum" name="calculateaddliquidityminimum"></a> calculateAddLiquidityMinimum
 
-▸ **calculateAddLiquidityMinimum**(`amount0`, `amount1`): `Promise`<`any`\>
+▸ **calculateAddLiquidityMinimum**(`amount0`, `amount1`): `Promise`<`BigNumber`\>
 
 ##### Parameters
 
@@ -468,13 +468,13 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`\>
 
 ___
 
 #### <a id="calculateamountsforlptoken" name="calculateamountsforlptoken"></a> calculateAmountsForLpToken
 
-▸ **calculateAmountsForLpToken**(`lpTokenAmount`): `Promise`<`any`\>
+▸ **calculateAmountsForLpToken**(`lpTokenAmount`): `Promise`<`BigNumber`[]\>
 
 ##### Parameters
 
@@ -484,13 +484,13 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`[]\>
 
 ___
 
 #### <a id="calculatefromhtoken" name="calculatefromhtoken"></a> calculateFromHToken
 
-▸ **calculateFromHToken**(`amount`): `Promise`<`any`\>
+▸ **calculateFromHToken**(`amount`): `Promise`<`BigNumber`\>
 
 ##### Parameters
 
@@ -500,13 +500,13 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`\>
 
 ___
 
 #### <a id="calculateremoveliquidityminimum" name="calculateremoveliquidityminimum"></a> calculateRemoveLiquidityMinimum
 
-▸ **calculateRemoveLiquidityMinimum**(`lpTokenAmount`): `Promise`<`any`\>
+▸ **calculateRemoveLiquidityMinimum**(`lpTokenAmount`): `Promise`<`BigNumber`[]\>
 
 ##### Parameters
 
@@ -516,13 +516,13 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`[]\>
 
 ___
 
 #### <a id="calculateremoveliquidityminimumlptokens" name="calculateremoveliquidityminimumlptokens"></a> calculateRemoveLiquidityMinimumLpTokens
 
-▸ **calculateRemoveLiquidityMinimumLpTokens**(`amount0`, `amount1`): `Promise`<`any`\>
+▸ **calculateRemoveLiquidityMinimumLpTokens**(`amount0`, `amount1`): `Promise`<`BigNumber`\>
 
 ##### Parameters
 
@@ -533,13 +533,13 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`\>
 
 ___
 
 #### <a id="calculateremoveliquidityonetoken" name="calculateremoveliquidityonetoken"></a> calculateRemoveLiquidityOneToken
 
-▸ **calculateRemoveLiquidityOneToken**(`tokenAmount`, `tokenIndex`): `Promise`<`any`\>
+▸ **calculateRemoveLiquidityOneToken**(`tokenAmount`, `tokenIndex`): `Promise`<`BigNumber`\>
 
 ##### Parameters
 
@@ -550,13 +550,13 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`\>
 
 ___
 
 #### <a id="calculatetohtoken" name="calculatetohtoken"></a> calculateToHToken
 
-▸ **calculateToHToken**(`amount`): `Promise`<`any`\>
+▸ **calculateToHToken**(`amount`): `Promise`<`BigNumber`\>
 
 ##### Parameters
 
@@ -566,13 +566,13 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`\>
 
 ___
 
 #### <a id="calculatetotalamountforlptoken" name="calculatetotalamountforlptoken"></a> calculateTotalAmountForLpToken
 
-▸ **calculateTotalAmountForLpToken**(`lpTokenAmount`): `Promise`<`any`\>
+▸ **calculateTotalAmountForLpToken**(`lpTokenAmount`): `Promise`<`BigNumber`\>
 
 ##### Parameters
 
@@ -582,7 +582,7 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`\>
 
 ___
 
@@ -1179,21 +1179,21 @@ ___
 
 #### <a id="getreserves" name="getreserves"></a> getReserves
 
-▸ **getReserves**(): `Promise`<[`any`, `any`]\>
+▸ **getReserves**(): `Promise`<[`BigNumber`, `BigNumber`]\>
 
 ##### Returns
 
-`Promise`<[`any`, `any`]\>
+`Promise`<[`BigNumber`, `BigNumber`]\>
 
 ___
 
 #### <a id="getreservestotal" name="getreservestotal"></a> getReservesTotal
 
-▸ **getReservesTotal**(): `Promise`<`any`\>
+▸ **getReservesTotal**(): `Promise`<`BigNumber`\>
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`\>
 
 ___
 
@@ -1213,13 +1213,13 @@ ___
 
 #### <a id="getsaddleswap" name="getsaddleswap"></a> getSaddleSwap
 
-▸ **getSaddleSwap**(): `Promise`<`Contract`\>
+▸ **getSaddleSwap**(): `Promise`<`Swap`\>
 
 **`desc`** Returns the Saddle swap contract instance for the specified chain.
 
 ##### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`Swap`\>
 
 Ethers contract instance.
 
@@ -1324,11 +1324,11 @@ ___
 
 #### <a id="getvirtualprice" name="getvirtualprice"></a> getVirtualPrice
 
-▸ **getVirtualPrice**(): `Promise`<`any`\>
+▸ **getVirtualPrice**(): `Promise`<`BigNumber`\>
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`\>
 
 ___
 
@@ -1474,7 +1474,7 @@ ___
 
 #### <a id="removeliquidityimbalance" name="removeliquidityimbalance"></a> removeLiquidityImbalance
 
-▸ **removeLiquidityImbalance**(`amount0`, `amount1`, `maxBurnAmount?`, `deadline?`): `Promise`<`any`\>
+▸ **removeLiquidityImbalance**(`amount0`, `amount1`, `maxBurnAmount?`, `deadline?`): `Promise`<`ContractTransaction`\>
 
 ##### Parameters
 
@@ -1487,13 +1487,13 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`ContractTransaction`\>
 
 ___
 
 #### <a id="removeliquidityonetoken" name="removeliquidityonetoken"></a> removeLiquidityOneToken
 
-▸ **removeLiquidityOneToken**(`lpAmount`, `tokenIndex`, `amountMin?`, `deadline?`): `Promise`<`any`\>
+▸ **removeLiquidityOneToken**(`lpAmount`, `tokenIndex`, `amountMin?`, `deadline?`): `Promise`<`ContractTransaction`\>
 
 ##### Parameters
 
@@ -1506,7 +1506,7 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`ContractTransaction`\>
 
 ___
 
@@ -1786,11 +1786,11 @@ Returns a new Canonical Token Bridge instance.
 
 **`example`**
 ```js
-import { CanonicalHop, Chain, Token } from '@hop-protocol/sdk'
+import { CanonicalHop, Chain } from '@hop-protocol/sdk'
 import { Wallet } from 'ethers'
 
 const signer = new Wallet(privateKey)
-const bridge = new CanonicalBridge('kovan', signer, Token.USDC, Chain.Optimism)
+const bridge = new CanonicalBridge('kovan', signer, 'USDC', Chain.Optimism)
 ```
 
 ##### Parameters
@@ -1863,23 +1863,23 @@ ___
 
 #### <a id="getcontract" name="getcontract"></a> getContract
 
-• **getContract**: (`address`: `string`, `abi`: `any`[], `provider`: [`TProvider`](#tprovider)) => `Promise`<`Contract`\> = `getContract`
+• **getContract**: (`factory`: `Factory`, `address`: `string`, `provider`: [`TProvider`](#tprovider)) => `Promise`<`any`\> = `getContract`
 
 ##### Type declaration
 
-▸ (`address`, `abi`, `provider`): `Promise`<`Contract`\>
+▸ (`factory`, `address`, `provider`): `Promise`<`any`\>
 
 ###### Parameters
 
 | Name | Type |
 | :------ | :------ |
+| `factory` | `Factory` |
 | `address` | `string` |
-| `abi` | `any`[] |
 | `provider` | [`TProvider`](#tprovider) |
 
 ###### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`any`\>
 
 ##### Inherited from
 
@@ -2114,7 +2114,7 @@ ___
 
 #### <a id="getambbridge" name="getambbridge"></a> getAmbBridge
 
-▸ **getAmbBridge**(`chain?`): `Promise`<`Contract`\>
+▸ **getAmbBridge**(`chain?`): `Promise`<`any`\>
 
 ##### Parameters
 
@@ -2124,7 +2124,7 @@ ___
 
 ##### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`any`\>
 
 ___
 
@@ -2377,11 +2377,11 @@ ___
 
 #### <a id="getl1canonicalbridge" name="getl1canonicalbridge"></a> getL1CanonicalBridge
 
-▸ **getL1CanonicalBridge**(): `Promise`<`Contract`\>
+▸ **getL1CanonicalBridge**(): `Promise`<`any`\>
 
 ##### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`any`\>
 
 ___
 
@@ -2544,11 +2544,11 @@ ___
 
 #### <a id="getl2canonicalbridge" name="getl2canonicalbridge"></a> getL2CanonicalBridge
 
-▸ **getL2CanonicalBridge**(): `Promise`<`Contract`\>
+▸ **getL2CanonicalBridge**(): `Promise`<`any`\>
 
 ##### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`any`\>
 
 ___
 
@@ -3084,6 +3084,7 @@ Ethers transaction object.
 - [chainId](#chainid)
 - [isL1](#isl1)
 - [name](#name)
+- [nativeTokenSymbol](#nativetokensymbol)
 - [provider](#provider)
 - [slug](#slug)
 - [Arbitrum](#arbitrum)
@@ -3132,6 +3133,12 @@ ___
 #### <a id="name" name="name"></a> name
 
 • **name**: `string` = `''`
+
+___
+
+#### <a id="nativetokensymbol" name="nativetokensymbol"></a> nativeTokenSymbol
+
+• **nativeTokenSymbol**: `string`
 
 ___
 
@@ -3418,23 +3425,23 @@ ___
 
 #### <a id="getcontract" name="getcontract"></a> getContract
 
-• **getContract**: (`address`: `string`, `abi`: `any`[], `provider`: [`TProvider`](#tprovider)) => `Promise`<`Contract`\> = `getContract`
+• **getContract**: (`factory`: `Factory`, `address`: `string`, `provider`: [`TProvider`](#tprovider)) => `Promise`<`any`\> = `getContract`
 
 ##### Type declaration
 
-▸ (`address`, `abi`, `provider`): `Promise`<`Contract`\>
+▸ (`factory`, `address`, `provider`): `Promise`<`any`\>
 
 ###### Parameters
 
 | Name | Type |
 | :------ | :------ |
+| `factory` | `Factory` |
 | `address` | `string` |
-| `abi` | `any`[] |
 | `provider` | [`TProvider`](#tprovider) |
 
 ###### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`any`\>
 
 ##### Inherited from
 
@@ -3570,10 +3577,10 @@ ___
 
 **`example`**
 ```js
-import { Hop, Token } from '@hop-protocol/sdk'
+import { Hop } from '@hop-protocol/sdk'
 
 const hop = new Hop()
-const bridge = hop.bridge(Token.USDC)
+const bridge = hop.bridge('USDC')
 ```
 
 ##### Parameters
@@ -3598,10 +3605,10 @@ ___
 
 **`example`**
 ```js
-import { Hop, Token } from '@hop-protocol/sdk'
+import { Hop } from '@hop-protocol/sdk'
 
 const hop = new Hop()
-const bridge = hop.canonicalBridge(Token.USDC)
+const bridge = hop.canonicalBridge('USDC')
 ```
 
 ##### Parameters
@@ -4465,7 +4472,7 @@ ___
 
 #### <a id="watch" name="watch"></a> watch
 
-▸ **watch**(`txHash`, `token`, `sourceChain`, `destinationChain`, `isCanonicalTransfer?`, `options?`): `any`
+▸ **watch**(`txHash`, `token`, `sourceChain`, `destinationChain`, `isCanonicalTransfer?`, `options?`): `EventEmitter`<`string` \| `symbol`, `any`\> \| `Error`
 
 **`desc`** Watches for Hop transaction events.
 
@@ -4475,7 +4482,7 @@ import { Hop } from '@hop-protocol/sdk'
 
 const hop = new Hop()
 hop
-  .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.Gnosis)
+  .watch(tx.hash, 'USDC', Chain.Ethereum, Chain.Gnosis)
   .on('receipt', ({receipt, chain}) => {
     console.log(chain.Name, receipt)
   })
@@ -4494,13 +4501,13 @@ hop
 
 ##### Returns
 
-`any`
+`EventEmitter`<`string` \| `symbol`, `any`\> \| `Error`
 
 ___
 
 #### <a id="watchbridge" name="watchbridge"></a> watchBridge
 
-▸ **watchBridge**(`txHash`, `token`, `sourceChain`, `destinationChain`, `options?`): `any`
+▸ **watchBridge**(`txHash`, `token`, `sourceChain`, `destinationChain`, `options?`): `EventEmitter`<`string` \| `symbol`, `any`\>
 
 ##### Parameters
 
@@ -4514,13 +4521,13 @@ ___
 
 ##### Returns
 
-`any`
+`EventEmitter`<`string` \| `symbol`, `any`\>
 
 ___
 
 #### <a id="watchcanonical" name="watchcanonical"></a> watchCanonical
 
-▸ **watchCanonical**(`txHash`, `token`, `sourceChain`, `destinationChain`): `any`
+▸ **watchCanonical**(`txHash`, `token`, `sourceChain`, `destinationChain`): `EventEmitter`<`string` \| `symbol`, `any`\> \| `Error`
 
 ##### Parameters
 
@@ -4533,7 +4540,7 @@ ___
 
 ##### Returns
 
-`any`
+`EventEmitter`<`string` \| `symbol`, `any`\> \| `Error`
 
 
 <a name="classeshopbridgemd"></a>
@@ -4650,10 +4657,9 @@ Class representing Hop bridge.
 - [getTotalDebit](#gettotaldebit)
 - [getTotalFee](#gettotalfee)
 - [getUnbondedTransferRootAmount](#getunbondedtransferrootamount)
+- [getVaultBalance](#getvaultbalance)
 - [init](#init)
 - [isNativeToken](#isnativetoken)
-- [isNonOruToL1](#isnonorutol1)
-- [isOruToL1](#isorutol1)
 - [isSupportedAsset](#issupportedasset)
 - [isValidChain](#isvalidchain)
 - [isValidNetwork](#isvalidnetwork)
@@ -4680,6 +4686,7 @@ Class representing Hop bridge.
 - [toHopToken](#tohoptoken)
 - [toTokenModel](#totokenmodel)
 - [txOverrides](#txoverrides)
+- [withdraw](#withdraw)
 
 ### Constructors
 
@@ -4776,23 +4783,23 @@ ___
 
 #### <a id="getcontract" name="getcontract"></a> getContract
 
-• **getContract**: (`address`: `string`, `abi`: `any`[], `provider`: [`TProvider`](#tprovider)) => `Promise`<`Contract`\> = `getContract`
+• **getContract**: (`factory`: `Factory`, `address`: `string`, `provider`: [`TProvider`](#tprovider)) => `Promise`<`any`\> = `getContract`
 
 ##### Type declaration
 
-▸ (`address`, `abi`, `provider`): `Promise`<`Contract`\>
+▸ (`factory`, `address`, `provider`): `Promise`<`any`\>
 
 ###### Parameters
 
 | Name | Type |
 | :------ | :------ |
+| `factory` | `Factory` |
 | `address` | `string` |
-| `abi` | `any`[] |
 | `provider` | [`TProvider`](#tprovider) |
 
 ###### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`any`\>
 
 ##### Inherited from
 
@@ -4929,7 +4936,7 @@ ___
 
 #### <a id="calculatewithdrawonetoken" name="calculatewithdrawonetoken"></a> calculateWithdrawOneToken
 
-▸ **calculateWithdrawOneToken**(`tokenAmount`, `tokenIndex`, `chain?`): `Promise`<`any`\>
+▸ **calculateWithdrawOneToken**(`tokenAmount`, `tokenIndex`, `chain?`): `Promise`<`BigNumber`\>
 
 ##### Parameters
 
@@ -4941,7 +4948,7 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`\>
 
 ___
 
@@ -5071,7 +5078,7 @@ ___
 
 #### <a id="execsaddleswap" name="execsaddleswap"></a> execSaddleSwap
 
-▸ **execSaddleSwap**(`sourceChain`, `toHop`, `amount`, `minAmountOut`, `deadline`): `Promise`<`any`\>
+▸ **execSaddleSwap**(`sourceChain`, `toHop`, `amount`, `minAmountOut`, `deadline`): `Promise`<`ContractTransaction`\>
 
 **`desc`** Sends transaction to execute swap on Saddle contract.
 
@@ -5087,7 +5094,7 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`ContractTransaction`\>
 
 Ethers transaction object.
 
@@ -5095,7 +5102,7 @@ ___
 
 #### <a id="getambbridge" name="getambbridge"></a> getAmbBridge
 
-▸ **getAmbBridge**(`chain`): `Promise`<`Contract`\>
+▸ **getAmbBridge**(`chain`): `Promise`<`L1HomeAMBNativeToErc20`\>
 
 ##### Parameters
 
@@ -5105,7 +5112,7 @@ ___
 
 ##### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`L1HomeAMBNativeToErc20`\>
 
 ___
 
@@ -5146,7 +5153,7 @@ ___
 
 #### <a id="getammwrapper" name="getammwrapper"></a> getAmmWrapper
 
-▸ **getAmmWrapper**(`chain`, `signer?`): `Promise`<`Contract`\>
+▸ **getAmmWrapper**(`chain`, `signer?`): `Promise`<`L2AmmWrapper`\>
 
 **`desc`** Returns Hop Bridge AMM wrapper Ethers contract instance.
 
@@ -5159,7 +5166,7 @@ ___
 
 ##### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`L2AmmWrapper`\>
 
 Ethers contract instance.
 
@@ -5173,10 +5180,10 @@ ___
 
 **`example`**
 ```js
-import { Hop, Chain Token } from '@hop-protocol/sdk'
+import { Hop, Chain } from '@hop-protocol/sdk'
 
 const hop = new Hop()
-const bridge = hop.connect(signer).bridge(Token.USDC)
+const bridge = hop.connect(signer).bridge('USDC')
 const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.Gnosis)
 console.log(amountOut)
 ```
@@ -5586,7 +5593,7 @@ ___
 
 #### <a id="getl1bridge" name="getl1bridge"></a> getL1Bridge
 
-▸ **getL1Bridge**(`signer?`): `Promise`<`Contract`\>
+▸ **getL1Bridge**(`signer?`): `Promise`<`L1ERC20Bridge`\>
 
 **`desc`** Returns Hop L1 Bridge Ethers contract instance.
 
@@ -5598,7 +5605,7 @@ ___
 
 ##### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`L1ERC20Bridge`\>
 
 Ethers contract instance.
 
@@ -5763,7 +5770,7 @@ ___
 
 #### <a id="getl2bridge" name="getl2bridge"></a> getL2Bridge
 
-▸ **getL2Bridge**(`chain`, `signer?`): `Promise`<`Contract`\>
+▸ **getL2Bridge**(`chain`, `signer?`): `Promise`<`L2Bridge`\>
 
 **`desc`** Returns Hop L2 Bridge Ethers contract instance.
 
@@ -5776,7 +5783,7 @@ ___
 
 ##### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`L2Bridge`\>
 
 Ethers contract instance.
 
@@ -5967,10 +5974,10 @@ ___
 
 **`example`**
 ```js
-import { Hop, Chain Token } from '@hop-protocol/sdk'
+import { Hop, Chain } from '@hop-protocol/sdk'
 
 const hop = new Hop()
-const bridge = hop.connect(signer).bridge(Token.USDC)
+const bridge = hop.connect(signer).bridge('USDC')
 const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.Gnosis)
 console.log(requiredLiquidity)
 ```
@@ -5992,7 +5999,7 @@ ___
 
 #### <a id="getreservestotal" name="getreservestotal"></a> getReservesTotal
 
-▸ **getReservesTotal**(`chain?`): `Promise`<`any`\>
+▸ **getReservesTotal**(`chain?`): `Promise`<`BigNumber`\>
 
 ##### Parameters
 
@@ -6002,7 +6009,7 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`\>
 
 ___
 
@@ -6022,7 +6029,7 @@ ___
 
 #### <a id="getsaddlelptoken" name="getsaddlelptoken"></a> getSaddleLpToken
 
-▸ **getSaddleLpToken**(`chain`, `signer?`): `Promise`<[`Token`](#classestokenmd)\>
+▸ **getSaddleLpToken**(`chain`, `signer?`): [`Token`](#classestokenmd)
 
 **`desc`** Returns Hop Bridge Saddle Swap LP Token Ethers contract instance.
 
@@ -6035,7 +6042,7 @@ ___
 
 ##### Returns
 
-`Promise`<[`Token`](#classestokenmd)\>
+[`Token`](#classestokenmd)
 
 Ethers contract instance.
 
@@ -6043,7 +6050,7 @@ ___
 
 #### <a id="getsaddleswapreserves" name="getsaddleswapreserves"></a> getSaddleSwapReserves
 
-▸ **getSaddleSwapReserves**(`chain?`): `Promise`<[`any`, `any`]\>
+▸ **getSaddleSwapReserves**(`chain?`): `Promise`<[`BigNumber`, `BigNumber`]\>
 
 **`desc`** Returns Hop Bridge Saddle reserve amounts.
 
@@ -6055,7 +6062,7 @@ ___
 
 ##### Returns
 
-`Promise`<[`any`, `any`]\>
+`Promise`<[`BigNumber`, `BigNumber`]\>
 
 Array containing reserve amounts for canonical token
 and hTokens.
@@ -6293,8 +6300,25 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `sourceChain` | [`Chain`](#classeschainmd) |
-| `destinationChain` | [`Chain`](#classeschainmd) |
+| `sourceChain` | [`TChain`](#tchain) |
+| `destinationChain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`Promise`<`BigNumber`\>
+
+___
+
+#### <a id="getvaultbalance" name="getvaultbalance"></a> getVaultBalance
+
+▸ **getVaultBalance**(`destinationChain`, `bonder`): `Promise`<`BigNumber`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `destinationChain` | [`TChain`](#tchain) |
+| `bonder` | `string` |
 
 ##### Returns
 
@@ -6325,40 +6349,6 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `chain?` | [`TChain`](#tchain) |
-
-##### Returns
-
-`boolean`
-
-___
-
-#### <a id="isnonorutol1" name="isnonorutol1"></a> isNonOruToL1
-
-▸ **isNonOruToL1**(`sourceChain`, `destinationChain`): `boolean`
-
-##### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `sourceChain` | [`Chain`](#classeschainmd) |
-| `destinationChain` | [`Chain`](#classeschainmd) |
-
-##### Returns
-
-`boolean`
-
-___
-
-#### <a id="isorutol1" name="isorutol1"></a> isOruToL1
-
-▸ **isOruToL1**(`sourceChain`, `destinationChain`): `boolean`
-
-##### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `sourceChain` | [`Chain`](#classeschainmd) |
-| `destinationChain` | [`Chain`](#classeschainmd) |
 
 ##### Returns
 
@@ -6519,7 +6509,7 @@ ___
 
 #### <a id="removeliquidityimbalance" name="removeliquidityimbalance"></a> removeLiquidityImbalance
 
-▸ **removeLiquidityImbalance**(`token0Amount`, `token1Amount`, `chain?`, `options?`): `Promise`<`any`\>
+▸ **removeLiquidityImbalance**(`token0Amount`, `token1Amount`, `chain?`, `options?`): `Promise`<`ContractTransaction`\>
 
 ##### Parameters
 
@@ -6532,13 +6522,13 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`ContractTransaction`\>
 
 ___
 
 #### <a id="removeliquidityonetoken" name="removeliquidityonetoken"></a> removeLiquidityOneToken
 
-▸ **removeLiquidityOneToken**(`lpTokenAmount`, `tokenIndex`, `chain?`, `options?`): `Promise`<`any`\>
+▸ **removeLiquidityOneToken**(`lpTokenAmount`, `tokenIndex`, `chain?`, `options?`): `Promise`<`ContractTransaction`\>
 
 ##### Parameters
 
@@ -6551,7 +6541,7 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`ContractTransaction`\>
 
 ___
 
@@ -6886,6 +6876,33 @@ ___
 
 Base.txOverrides
 
+___
+
+#### <a id="withdraw" name="withdraw"></a> withdraw
+
+▸ **withdraw**(`chain`, `recipient`, `amount`, `transferNonce`, `bonderFee`, `amountOutMin`, `deadline`, `transferRootHash`, `rootTotalAmount`, `transferIdTreeIndex`, `siblings`, `totalLeaves`): `Promise`<`any`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chain` | [`Chain`](#classeschainmd) |
+| `recipient` | `string` |
+| `amount` | `BigNumberish` |
+| `transferNonce` | `string` |
+| `bonderFee` | `BigNumberish` |
+| `amountOutMin` | `BigNumberish` |
+| `deadline` | `number` |
+| `transferRootHash` | `string` |
+| `rootTotalAmount` | `BigNumberish` |
+| `transferIdTreeIndex` | `number` |
+| `siblings` | `string`[] |
+| `totalLeaves` | `number` |
+
+##### Returns
+
+`Promise`<`any`\>
+
 
 <a name="classesroutemd"></a>
 
@@ -6969,6 +6986,7 @@ Class reprensenting ERC20 Token
 
 - [chainId](#chainid)
 - [isNativeToken](#isnativetoken)
+- [nativeTokenSymbol](#nativetokensymbol)
 - [supportedChains](#supportedchains)
 - [supportedNetworks](#supportednetworks)
 - [symbol](#symbol)
@@ -7027,6 +7045,7 @@ Class reprensenting ERC20 Token
 - [toChainModel](#tochainmodel)
 - [toJSON](#tojson)
 - [toTokenModel](#totokenmodel)
+- [totalSupply](#totalsupply)
 - [transfer](#transfer)
 - [txOverrides](#txoverrides)
 - [unwrapToken](#unwraptoken)
@@ -7137,23 +7156,23 @@ ___
 
 #### <a id="getcontract" name="getcontract"></a> getContract
 
-• **getContract**: (`address`: `string`, `abi`: `any`[], `provider`: [`TProvider`](#tprovider)) => `Promise`<`Contract`\> = `getContract`
+• **getContract**: (`factory`: `Factory`, `address`: `string`, `provider`: [`TProvider`](#tprovider)) => `Promise`<`any`\> = `getContract`
 
 ##### Type declaration
 
-▸ (`address`, `abi`, `provider`): `Promise`<`Contract`\>
+▸ (`factory`, `address`, `provider`): `Promise`<`any`\>
 
 ###### Parameters
 
 | Name | Type |
 | :------ | :------ |
+| `factory` | `Factory` |
 | `address` | `string` |
-| `abi` | `any`[] |
 | `provider` | [`TProvider`](#tprovider) |
 
 ###### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`any`\>
 
 ##### Inherited from
 
@@ -7214,6 +7233,16 @@ ___
 ##### Returns
 
 `boolean`
+
+___
+
+#### <a id="nativetokensymbol" name="nativetokensymbol"></a> nativeTokenSymbol
+
+• `get` **nativeTokenSymbol**(): `string`
+
+##### Returns
+
+`string`
 
 ___
 
@@ -7279,17 +7308,21 @@ ___
 
 #### <a id="allowance" name="allowance"></a> allowance
 
-▸ **allowance**(`spender`): `Promise`<`any`\>
+▸ **allowance**(`spender`, `address?`): `Promise`<`BigNumber`\>
 
 **`desc`** Returns token allowance.
 
 **`example`**
 ```js
-import { Hop, Chain, Token } from '@hop-protocol/sdk'
+import { Hop, Chain } from '@hop-protocol/sdk'
 
-const bridge = hop.bridge(Token.USDC).connect(signer)
-const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
-const allowance = bridge.allowance(Chain.Gnosis, spender)
+const hop = new Hop('mainnet')
+const bridge = hop.bridge('USDC')
+const token = bridge.getCanonicalToken(Chain.Polygon)
+const spender = await bridge.getSendApprovalAddress(Chain.Polygon)
+const account = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+const allowance = await token.allowance(spender, account)
+console.log(allowance)
 ```
 
 ##### Parameters
@@ -7297,10 +7330,11 @@ const allowance = bridge.allowance(Chain.Gnosis, spender)
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `spender` | `string` | spender address. |
+| `address?` | `string` | - |
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber`\>
 
 Ethers Transaction object.
 
@@ -7314,9 +7348,9 @@ ___
 
 **`example`**
 ```js
-import { Hop, Chain, Token } from '@hop-protocol/sdk'
+import { Hop, Chain } from '@hop-protocol/sdk'
 
-const bridge = hop.bridge(Token.USDC).connect(signer)
+const bridge = hop.bridge('USDC').connect(signer)
 const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 const amount = '1000000000000000000'
 const tx = await bridge.approve(Chain.Gnosis, spender, amount)
@@ -7345,9 +7379,9 @@ ___
 
 **`example`**
 ```js
-import { Hop, Chain, Token } from '@hop-protocol/sdk'
+import { Hop, Chain } from '@hop-protocol/sdk'
 
-const bridge = hop.bridge(Token.USDC).connect(signer)
+const bridge = hop.bridge('USDC').connect(signer)
 const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 const allowance = bridge.allowance(Chain.Gnosis, spender)
 ```
@@ -7578,13 +7612,13 @@ ___
 
 #### <a id="geterc20" name="geterc20"></a> getErc20
 
-▸ **getErc20**(): `Promise`<`Contract`\>
+▸ **getErc20**(): `Promise`<`WETH9` \| `ERC20`\>
 
 **`desc`** Returns a token Ethers contract instance.
 
 ##### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`WETH9` \| `ERC20`\>
 
 Ethers contract instance.
 
@@ -8024,17 +8058,11 @@ ___
 
 #### <a id="getwethcontract" name="getwethcontract"></a> getWethContract
 
-▸ **getWethContract**(`chain`): `Promise`<`Contract`\>
-
-##### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `chain` | [`TChain`](#tchain) |
+▸ **getWethContract**(): `Promise`<`WETH9`\>
 
 ##### Returns
 
-`Promise`<`Contract`\>
+`Promise`<`WETH9`\>
 
 ___
 
@@ -8313,17 +8341,27 @@ Base.toTokenModel
 
 ___
 
+#### <a id="totalsupply" name="totalsupply"></a> totalSupply
+
+▸ **totalSupply**(): `Promise`<`BigNumber`\>
+
+##### Returns
+
+`Promise`<`BigNumber`\>
+
+___
+
 #### <a id="transfer" name="transfer"></a> transfer
 
-▸ **transfer**(`recipient`, `amount`): `Promise`<`any`\>
+▸ **transfer**(`recipient`, `amount`): `Promise`<`TransactionResponse`\>
 
 **`desc`** ERC20 token transfer
 
 **`example`**
 ```js
-import { Hop, Token } from '@hop-protocol/sdk'
+import { Hop } from '@hop-protocol/sdk'
 
-const bridge = hop.bridge(Token.USDC).connect(signer)
+const bridge = hop.bridge('USDC').connect(signer)
 const recipient = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 const amount = '1000000000000000000'
 const tx = await bridge.erc20Transfer(spender, amount)
@@ -8338,7 +8376,7 @@ const tx = await bridge.erc20Transfer(spender, amount)
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`TransactionResponse`\>
 
 Ethers Transaction object.
 
@@ -8366,7 +8404,7 @@ ___
 
 #### <a id="unwraptoken" name="unwraptoken"></a> unwrapToken
 
-▸ **unwrapToken**(`amount`): `Promise`<`any`\>
+▸ **unwrapToken**(`amount`): `Promise`<`ContractTransaction`\>
 
 ##### Parameters
 
@@ -8376,13 +8414,13 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`ContractTransaction`\>
 
 ___
 
 #### <a id="wraptoken" name="wraptoken"></a> wrapToken
 
-▸ **wrapToken**(`amount`, `estimateGasOnly?`): `Promise`<`any`\>
+▸ **wrapToken**(`amount`, `estimateGasOnly?`): `Promise`<`BigNumber` \| `ContractTransaction`\>
 
 ##### Parameters
 
@@ -8393,7 +8431,7 @@ ___
 
 ##### Returns
 
-`Promise`<`any`\>
+`Promise`<`BigNumber` \| `ContractTransaction`\>
 
 ___
 

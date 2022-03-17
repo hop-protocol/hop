@@ -4,7 +4,7 @@ import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
 import { DateTime } from 'luxon'
-import { Swap__factory } from '@hop-protocol/core/contracts'
+import { Swap__factory } from '@hop-protocol/core/contracts/factories/Swap__factory'
 import { TAmount, TChain, TProvider } from './types'
 import { TokenIndex, TokenSymbol } from './constants'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
@@ -31,9 +31,9 @@ class AMM extends Base {
    * @Returns {Object} Hop AMM instance
    * @example
    *```js
-   *import { AMM, Token, Chain } from '@hop-protocol/sdk'
+   *import { AMM, Chain } from '@hop-protocol/sdk'
    *
-   *const amm = new AMM('mainnet', Token.USDC, Chain.Gnosis)
+   *const amm = new AMM('mainnet', 'USDC', Chain.Gnosis)
    *```
    */
   constructor (

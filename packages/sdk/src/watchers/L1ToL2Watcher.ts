@@ -1,4 +1,5 @@
 import BlockDater from 'ethereum-block-by-date'
+import EventEmitter from 'eventemitter3'
 import { default as BaseWatcher } from './BaseWatcher'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from '../models'
@@ -11,7 +12,7 @@ import {
 } from '../constants/eventTopics'
 
 class L1ToL2Watcher extends BaseWatcher {
-  public watch () {
+  public watch (): EventEmitter {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee
   }

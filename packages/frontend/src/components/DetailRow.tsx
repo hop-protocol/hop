@@ -2,7 +2,7 @@ import React, { FC, ReactFragment } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import InfoTooltip from 'src/components/infoTooltip'
+import InfoTooltip from 'src/components/InfoTooltip'
 import classnames from 'classnames'
 import { Flex } from './ui'
 

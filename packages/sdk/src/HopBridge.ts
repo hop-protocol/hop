@@ -320,7 +320,7 @@ class HopBridge extends Base {
     }
 
     this.checkConnectedChain(this.signer, sourceChain)
-    return this.signer.sendTransaction(populatedTx)
+    return this.sendTransaction(populatedTx, sourceChain)
   }
 
   public async populateSendTx (
@@ -501,7 +501,7 @@ class HopBridge extends Base {
     const populatedTx = await this.populateSendApprovalTx(tokenAmount, sourceChain, isHTokenTransfer)
     if (populatedTx) {
       this.checkConnectedChain(this.signer, sourceChain)
-      return this.signer.sendTransaction(populatedTx)
+      return this.sendTransaction(populatedTx, sourceChain)
     }
   }
 
@@ -515,7 +515,7 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     const populatedTx = await this.populateSendHTokensTx(tokenAmount, sourceChain, destinationChain, options)
     this.checkConnectedChain(this.signer, sourceChain)
-    return this.signer.sendTransaction(populatedTx)
+    return this.sendTransaction(populatedTx, sourceChain)
   }
 
   public async estimateSendHTokensGasLimit (

@@ -164,6 +164,11 @@ class Base {
     }
   }
 
+  sendTransaction (transactionRequest: any, chain: TChain) {
+    const chainId = this.toChainModel(chain).chainId
+    return this.signer.sendTransaction({ ...transactionRequest, chainId })
+  }
+
   setConfigAddresses (addresses: Addresses) {
     if (addresses.bridges) {
       this.addresses = addresses.bridges

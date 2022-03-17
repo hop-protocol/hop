@@ -102,7 +102,7 @@ class AMM extends Base {
     deadline: BigNumberish = this.defaultDeadlineSeconds
   ): Promise<TransactionResponse> {
     const populatedTx = await this.populateAddLiquidityTx(amount0Desired, amount1Desired, minToMint, deadline)
-    return this.signer.sendTransaction(populatedTx)
+    return this.sendTransaction(populatedTx, this.chain)
   }
 
   public async populateAddLiquidityTx (
@@ -167,7 +167,7 @@ class AMM extends Base {
     deadline: BigNumberish = this.defaultDeadlineSeconds
   ): Promise<TransactionResponse> {
     const populatedTx = await this.populateRemoveLiquidityTx(liquidityTokenAmount, amount0Min, amount1Min, deadline)
-    return this.signer.sendTransaction(populatedTx)
+    return this.sendTransaction(populatedTx, this.chain)
   }
 
   public async populateRemoveLiquidityTx (

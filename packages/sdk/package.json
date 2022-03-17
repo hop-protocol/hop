@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.306",
+  "version": "0.0.1-beta.307",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -13,8 +13,8 @@
     "dev": "npm run version && tsc --watch",
     "build": "npm run version && npm run build:ts",
     "build:ts": "tsc",
-    "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] ] dist/src/index.js | uglifyjs > hop.js",
-    "clean": "rimraf dist",
+    "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] --plugins [ @babel/plugin-transform-runtime ] ] dist/src/index.js | uglifyjs --compress --mangle > hop.js",
+    "clean": "rimraf dist && rimraf hop.js",
     "clean:docs": "rimraf docs",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "lint": "eslint --fix \"src/**/*\" \"test/**/*\"",

@@ -36,10 +36,17 @@ const constructWallet = memoize(
 
 // lazy instantiate
 export default {
-  has (network: string) {
-    return !!constructWallet(network, globalConfig.bonderPrivateKey)
-  },
   get (network: string) {
     return constructWallet(network, globalConfig.bonderPrivateKey)
+  },
+  lowPriority: {
+    get (network: string) {
+      if (globalConfig.bonderLowPriorityPrivateKey) {
+        return constructWallet(network, globalConfig.bonderLowPriorityPrivateKey)
+      }
+
+      // return regular signer if low priority private key is not set since it's optional
+      return constructWallet(network, globalConfig.bonderPrivateKey)
+    }
   }
 }

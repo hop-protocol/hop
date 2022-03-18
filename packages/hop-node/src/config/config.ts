@@ -40,6 +40,7 @@ export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 const envNetwork = process.env.NETWORK ?? Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
+const bonderLowPriorityPrivateKey = process.env.BONDER_LOW_PRIORITY_PRIVATE_KEY
 
 export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum])
 export const rateLimitMaxRetries = 5
@@ -83,6 +84,7 @@ export type Config = {
   network: string
   networks: Networks & {[network: string]: any}
   bonderPrivateKey: string
+  bonderLowPriorityPrivateKey: string
   metadata: Metadata & {[network: string]: any}
   bonders: Bonders
   db: DbConfig
@@ -133,6 +135,7 @@ export const config: Config = {
   networks,
   tokens: {},
   bonderPrivateKey: bonderPrivateKey ?? '',
+  bonderLowPriorityPrivateKey: bonderLowPriorityPrivateKey ?? '',
   metadata,
   bonders: {},
   fees: {},

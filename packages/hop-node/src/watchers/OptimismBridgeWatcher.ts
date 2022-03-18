@@ -33,7 +33,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
       dryMode: config.dryMode
     })
 
-    this.l1Wallet = wallets.get(Chain.Ethereum)
+    this.l1Wallet = wallets.lowPriority.get(Chain.Ethereum)
     this.l2Wallet = wallets.get(Chain.Optimism)
     this.l1Provider = this.l1Wallet.provider
     this.l2Provider = this.l2Wallet.provider

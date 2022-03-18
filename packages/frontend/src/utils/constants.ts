@@ -1,4 +1,5 @@
-import { ChainSlug } from '@hop-protocol/sdk'
+import { ChainSlug, Token } from '@hop-protocol/sdk'
+import Network from 'src/models/Network'
 
 export declare enum NetworkId {
   MAINNET = 1,
@@ -33,4 +34,10 @@ export enum EventNames {
 
 export enum WalletName {
   GnosisSafe = 'Gnosis Safe',
+}
+
+export interface NetworkTokenEntity {
+  network: Network
+  token: Token
+  amount: string
 }

@@ -185,6 +185,17 @@ class BondWithdrawalWatcher extends BaseWatcher {
         throw new BonderFeeTooLowError(msg)
       }
 
+      const hToken = await sourceL2Bridge.hToken()
+      const sourceChainTotalHTokens = await hToken.getTotalSupply()
+      const pendingAmount = await sourceL2Bridge.getPendingAmountForChainId(destinationChainId!)
+      const hTokensAvailable = sourceChainTotalHTokens.add(pendingAmount)
+      if (amount!.gt(hTokensAvailable)) {
+        const msg = `cannot bond more tokens on ${this.chainIdToSlug(destinationChainId!)} available ${sourceL2Bridge.formatUnits(hTokensAvailable)} than available on source chain ${this.chainSlug}`
+        this.notifier.warn(msg)
+        this.logger.warn(msg)
+        return
+      }
+
       const tx = await this.sendBondWithdrawalTx({
         transferId,
         sender,

@@ -1800,10 +1800,10 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@hop-protocol/core@0.0.1-beta.57":
-  version "0.0.1-beta.57"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.57.tgz#fd9d8e62f6ba9db4c5edaf9c730e0d2e7f323436"
-  integrity sha512-/X/li7wiC1/d564D+Nw6u+jUlyVVPcAbemDOYnFG3nqvvU5E+eho/AN+oVEZXuH4t9n0NqgqAxUJD55Jlczekg==
+"@hop-protocol/core@0.0.1-beta.62":
+  version "0.0.1-beta.62"
+  resolved "https://registry.npmjs.org/@hop-protocol/core/-/core-0.0.1-beta.62.tgz#6450a57b1cf89ae01a4a138a02548dc54a7dc7e7"
+  integrity sha512-HHFktZr7XoX7nEbbAAzlkCfsCTBoxEPzO0I/UyAEVm5TlDJsOqiCy+NF5tY4UPvXg+mXdu6z/WJmCqHwyxBhXA==
   dependencies:
     ethers "^5.5.1"
 

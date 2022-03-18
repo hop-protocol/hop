@@ -12,7 +12,13 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
+import {
+  commafy,
+  findMatchingBridge,
+  isL1ToL2,
+  sanitizeNumericalString,
+  toTokenDisplay,
+} from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/FeeDetails'
@@ -36,10 +42,12 @@ import {
   useEstimateTxCost,
   useTxResult,
   useSufficientBalance,
+  useDisableTxs,
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import { ExternalLink } from 'src/components/Link'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -493,6 +501,8 @@ const Send: FC = () => {
     // setManualError('')
   }, [fromNetwork?.slug, toNetwork?.slug])
 
+  const { disabledTx } = useDisableTxs(fromNetwork, toNetwork)
+
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
   const sendButtonActive = useMemo(() => {
@@ -508,7 +518,8 @@ const Send: FC = () => {
       sufficientBalance &&
       isLiquidityAvailable &&
       estimatedReceived?.gt(0) &&
-      !manualError
+      !manualError &&
+      (!disabledTx || disabledTx.warningOnly)
     )
   }, [
     needsApproval,
@@ -523,6 +534,7 @@ const Send: FC = () => {
     isLiquidityAvailable,
     estimatedReceived,
     manualError,
+    disabledTx,
   ])
 
   return (
@@ -590,6 +602,17 @@ const Send: FC = () => {
             : ''}
         </Alert>
       </div>
+
+      {disabledTx && (
+        <Alert severity={disabledTx.warningOnly ? 'warning' : 'error'}>
+          <ExternalLink
+            href={disabledTx.message?.href}
+            text={disabledTx.message?.text}
+            linkText={disabledTx.message?.linkText}
+            postText={disabledTx.message?.postText}
+          />
+        </Alert>
+      )}
 
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>

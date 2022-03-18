@@ -36,6 +36,8 @@ function formatDirection(source, destination) {
   return direction
 }
 
+const validChainSlugs = new Set([...Object.values(Slug), ALL])
+
 export function parseDisabledRoutes(
   serializedDisabledRoutes: string,
   serializedWarningRoutes: string
@@ -43,13 +45,18 @@ export function parseDisabledRoutes(
   const disabledRoutes = serializedDisabledRoutes?.split(',')
   const warningRoutes = serializedWarningRoutes?.split(',')
 
+  if (!disabledRoutes[0]) return []
+
   if (disabledRoutes[0] !== '') {
     return (disabledRoutes as any[]).map((disabledRoute, i) => {
-      const indexOfColon = disabledRoute.indexOf(':')
-      const source = disabledRoute.slice(0, indexOfColon)
-      const destination = disabledRoute.slice(indexOfColon + 1)
+      const [source, destination] = disabledRoute.split(':')
 
-      if (!(source in Slug || source === ALL) || !(destination in Slug || destination === ALL)) {
+      if (
+        !(
+          validChainSlugs.has(source.toLowerCase()) &&
+          validChainSlugs.has(destination.toLowerCase())
+        )
+      ) {
         logger.error(`TYPO: Invalid source (${source}) or destination (${destination}).`)
         return emptyRoute
       }

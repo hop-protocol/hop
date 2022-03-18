@@ -2,9 +2,8 @@ import ArbitrumBridgeWatcher from 'src/watchers/ArbitrumBridgeWatcher'
 import GnosisBridgeWatcher from 'src/watchers/GnosisBridgeWatcher'
 import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
-import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { actionHandler, parseBool, parseString, root } from './shared'
-import { findWatcher, getWatchers } from 'src/watchers/watchers'
+import { getXDomainMessageRelayWatcher } from 'src/watchers/watchers'
 
 type ExitWatcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
 
@@ -33,13 +32,7 @@ async function main (source: any) {
     throw new Error('commit tx hash is required')
   }
 
-  const watchers = await getWatchers({
-    enabledWatchers: ['xDomainMessageRelay'],
-    tokens: [token],
-    dryMode
-  })
-
-  const watcher = findWatcher(watchers, xDomainMessageRelayWatcher, chain) as xDomainMessageRelayWatcher
+  const watcher = await getXDomainMessageRelayWatcher({ chain, token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
   }

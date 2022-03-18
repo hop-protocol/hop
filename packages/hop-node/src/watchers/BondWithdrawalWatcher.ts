@@ -16,9 +16,7 @@ import { config as globalConfig } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  isL1: boolean
   bridgeContract: L1BridgeContract | L2BridgeContract
-  label: string
   dryMode?: boolean
 }
 
@@ -29,9 +27,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'green',
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
@@ -355,7 +351,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   // L2 -> L1: (credit - debit - OruToL1PendingAmount - OruToAllUnbondedTransferRoots)
   // L2 -> L2: (credit - debit)
   getAvailableCreditForTransfer (destinationChainId: number) {
-    return this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
+    return this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
   }
 
   async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge, logger: Logger) {
@@ -388,7 +384,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     return await this.mutex.runExclusive(async () => {
       const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
-      const vaultBalance = this.syncWatcher.getVaultBalance(destinationChainId)
+      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
       const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(amount)
       if (shouldWithdraw) {
         try {

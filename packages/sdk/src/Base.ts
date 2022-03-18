@@ -1,27 +1,25 @@
 import fetch from 'isomorphic-fetch'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
-import {
-  ArbERC20,
-  ArbERC20__factory,
-  ArbitrumGlobalInbox,
-  ArbitrumGlobalInbox__factory,
-  L1OptimismTokenBridge,
-  L1OptimismTokenBridge__factory,
-  L1PolygonPosRootChainManager,
-  L1PolygonPosRootChainManager__factory,
-  L1XDaiForeignOmniBridge,
-  L1XDaiForeignOmniBridge__factory,
-  L2OptimismTokenBridge,
-  L2OptimismTokenBridge__factory,
-  L2PolygonChildERC20,
-  L2PolygonChildERC20__factory,
-  L2XDaiToken,
-  L2XDaiToken__factory
-} from '@hop-protocol/core/contracts'
+import { ArbERC20 } from '@hop-protocol/core/contracts/ArbERC20'
+import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/ArbERC20__factory'
+import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/ArbitrumGlobalInbox'
+import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/ArbitrumGlobalInbox__factory'
 import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { ChainSlug, Errors, MinPolygonGasPrice, NetworkSlug } from './constants'
+import { L1OptimismTokenBridge } from '@hop-protocol/core/contracts/L1OptimismTokenBridge'
+import { L1OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L1OptimismTokenBridge__factory'
+import { L1PolygonPosRootChainManager } from '@hop-protocol/core/contracts/L1PolygonPosRootChainManager'
+import { L1PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/L1PolygonPosRootChainManager__factory'
+import { L1XDaiForeignOmniBridge } from '@hop-protocol/core/contracts/L1XDaiForeignOmniBridge'
+import { L1XDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/L1XDaiForeignOmniBridge__factory'
+import { L2OptimismTokenBridge } from '@hop-protocol/core/contracts/L2OptimismTokenBridge'
+import { L2OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L2OptimismTokenBridge__factory'
+import { L2PolygonChildERC20 } from '@hop-protocol/core/contracts/L2PolygonChildERC20'
+import { L2PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/L2PolygonChildERC20__factory'
+import { L2XDaiToken } from '@hop-protocol/core/contracts/L2XDaiToken'
+import { L2XDaiToken__factory } from '@hop-protocol/core/contracts/factories/L2XDaiToken__factory'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'

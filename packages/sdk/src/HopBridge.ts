@@ -5,13 +5,11 @@ import Token from './Token'
 import TokenModel from './models/Token'
 import fetch from 'isomorphic-fetch'
 
-import {
-  L1ERC20Bridge__factory,
-  L1HomeAMBNativeToErc20__factory,
-  L2AmmWrapper__factory,
-  L2Bridge,
-  L2Bridge__factory
-} from '@hop-protocol/core/contracts'
+import { L1ERC20Bridge__factory } from '@hop-protocol/core/contracts/factories/L1ERC20Bridge__factory'
+import { L1HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/L1HomeAMBNativeToErc20__factory'
+import { L2AmmWrapper__factory } from '@hop-protocol/core/contracts/factories/L2AmmWrapper__factory'
+import { L2Bridge } from '@hop-protocol/core/contracts/L2Bridge'
+import { L2Bridge__factory } from '@hop-protocol/core/contracts/factories/L2Bridge__factory'
 
 import {
   BigNumber,

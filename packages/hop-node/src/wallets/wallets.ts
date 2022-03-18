@@ -6,6 +6,8 @@ import {
   gasPriceMultiplier,
   getNetworkMaxGasPrice,
   config as globalConfig,
+  lowPriorityGasPriceMultiplier,
+  lowPriorityTimeTilBoostMs,
   minPriorityFeePerGas,
   priorityFeePerGasCap,
   timeTilBoostMs
@@ -13,7 +15,7 @@ import {
 import { getGasBoostDb } from 'src/db'
 
 const constructWallet = memoize(
-  (network: string, privateKey: string): Wallet => {
+  (network: string, privateKey: string, isLowPriority: boolean = false): Wallet => {
     if (!privateKey) {
       throw new Error('private key is required to instantiate wallet')
     }
@@ -21,13 +23,15 @@ const constructWallet = memoize(
     const provider = getRpcProvider(network)
     const signer = new GasBoostSigner(privateKey, provider!, db)
     const maxGasPriceGwei = getNetworkMaxGasPrice(network)
+    const initialTxGasPriceMultiplier = isLowPriority ? lowPriorityGasPriceMultiplier : gasPriceMultiplier
     const { waitConfirmations: reorgWaitConfirmations } = globalConfig.networks[network]!
     signer.setOptions({
       gasPriceMultiplier,
+      initialTxGasPriceMultiplier,
       maxGasPriceGwei,
       minPriorityFeePerGas,
       priorityFeePerGasCap,
-      timeTilBoostMs,
+      timeTilBoostMs: isLowPriority && lowPriorityTimeTilBoostMs ? lowPriorityTimeTilBoostMs : timeTilBoostMs,
       reorgWaitConfirmations
     })
     return signer
@@ -42,7 +46,8 @@ export default {
   lowPriority: {
     get (network: string) {
       if (globalConfig.bonderLowPriorityPrivateKey) {
-        return constructWallet(network, globalConfig.bonderLowPriorityPrivateKey)
+        const isLowPriority = true
+        return constructWallet(network, globalConfig.bonderLowPriorityPrivateKey, isLowPriority)
       }
 
       // return regular signer if low priority private key is not set since it's optional

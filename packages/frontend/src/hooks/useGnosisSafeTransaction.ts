@@ -4,10 +4,13 @@ import { useCallback, useEffect, useState } from 'react'
 import Transaction from 'src/models/Transaction'
 import { wait } from 'src/utils'
 import { GatewayTransactionDetails as GnosisSafeTx } from '@gnosis.pm/safe-apps-sdk'
+import { useSelectedNetwork } from '.'
+import useIsSmartContractWallet from './useIsSmartContractWallet'
 
 export function useGnosisSafeTransaction(tx?: Transaction) {
   const { sdk, connected, safe } = useSafeAppsSDK()
   const [safeTx, setSafeTx] = useState<any>()
+  const { isMatchingSignerAndSourceChainNetwork } = useSelectedNetwork({ gnosisSafe: safe })
 
   useEffect(() => {
     async function doit() {

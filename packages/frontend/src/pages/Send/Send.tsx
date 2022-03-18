@@ -12,13 +12,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import {
-  commafy,
-  findMatchingBridge,
-  networkIdToName,
-  sanitizeNumericalString,
-  toTokenDisplay,
-} from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
@@ -81,10 +75,9 @@ const Send: FC = () => {
   const {
     isSmartContractWallet,
     isRecipientSelfContract,
-    isGnosisSafeWallet,
     gnosisEnabled,
-    safe,
-    isCorrectSignerNetwork,
+    gnosisSafeWarning,
+    isCorrectFromNetwork,
   } = useIsSmartContractWallet(customRecipient, fromNetwork, toNetwork)
   const [manualError, setManualError] = useState<string>('')
 
@@ -528,7 +521,7 @@ const Send: FC = () => {
       !manualError &&
       (!disabledTx || disabledTx.warningOnly) &&
       gnosisEnabled &&
-      isCorrectSignerNetwork
+      isCorrectFromNetwork
     )
   }, [
     needsApproval,
@@ -545,7 +538,7 @@ const Send: FC = () => {
     manualError,
     disabledTx,
     gnosisEnabled,
-    isCorrectSignerNetwork,
+    isCorrectFromNetwork,
   ])
 
   return (
@@ -607,25 +600,7 @@ const Send: FC = () => {
       />
 
       <div className={styles.smartContractWalletWarning}>
-        <Alert
-          severity={
-            (isSmartContractWallet && !customRecipient) || isRecipientSelfContract
-              ? 'error'
-              : 'warning'
-          }
-        >
-          {isGnosisSafeWallet && !isCorrectSignerNetwork
-            ? `The connected account is detected to be a Gnosis Safe. Please match the "From" network to the connected Gnosis safe-app network (${networkIdToName(
-                safe.chainId
-              )})`
-            : isGnosisSafeWallet && isRecipientSelfContract
-            ? `The connected account is detected to be a Gnosis Safe. Please provide a custom recipient that you control on the ${toNetwork?.name} network.`
-            : isSmartContractWallet && !customRecipient
-            ? `The connected account is detected to be a ${
-                isGnosisSafeWallet ? 'Gnosis Safe' : 'smart contract wallet'
-              }. Please provide a custom recipient to proceed with this transaction.`
-            : ''}
-        </Alert>
+        <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
       </div>
 
       {disabledTx && (

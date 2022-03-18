@@ -29,7 +29,7 @@ function formatDirection(source, destination) {
   if (source === ALL) {
     direction = `to ${capitalize(destination)}`
   } else if (destination === ALL) {
-    direction = `from ${capitalize(destination)}`
+    direction = `from ${capitalize(source)}`
   } else {
     direction = `from ${capitalize(source)} to ${capitalize(destination)}`
   }

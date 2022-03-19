@@ -57,7 +57,12 @@ const useApprove = token => {
         amount: token.symbol === 'USDT' ? undefined : formattedAmount,
         token,
         tokenSymbol: token.symbol,
-        source: token.network,
+        source: {
+          network: {
+            slug: token.chain?.slug,
+            networkId: token.chain?.chainId,
+          }
+        }
       },
       onConfirm: async (approveAll: boolean) => {
         const approveAmount = approveAll ? constants.MaxUint256 : amount

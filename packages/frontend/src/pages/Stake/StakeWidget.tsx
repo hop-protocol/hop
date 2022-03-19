@@ -282,6 +282,9 @@ const StakeWidget: FC<Props> = props => {
       const tx = await txConfirm?.show({
         kind: 'stake',
         inputProps: {
+          source: {
+            network
+          },
           amount: amount,
           token: stakingToken,
         },

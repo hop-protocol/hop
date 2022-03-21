@@ -56,6 +56,33 @@ type GetItemsFilter = Partial<TransferRoot> & {
   destinationChainIds?: number[]
 }
 
+type UnsettledTransferRoot = {
+  transferRootId: string
+  transferRootHash: string
+  totalAmount: BigNumber
+  transferIds: string[]
+  destinationChainId: number
+  rootSetTxHash: string
+  committed: boolean
+  committedAt: number
+  allSettled: boolean
+}
+
+type UnbondedTransferRoot = {
+  bonded: boolean
+  bondedAt: number
+  confirmed: boolean
+  transferRootHash: string
+  transferRootId: string
+  committedAt: number
+  commitTxHash: string
+  commitTxBlockNumber: number
+  destinationChainId: number
+  sourceChainId: number
+  totalAmount: BigNumber
+  transferIds: string[]
+}
+
 // structure:
 // key: `transferRoot:<committedAt>:<transferRootId>`
 // value: `{ transferRootId: <transferRootId> }`
@@ -352,10 +379,10 @@ class TransferRootsDb extends BaseDb {
 
   async getUnbondedTransferRoots (
     filter: GetItemsFilter = {}
-  ): Promise<TransferRoot[]> {
+  ): Promise<UnbondedTransferRoot[]> {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
       }
@@ -392,6 +419,8 @@ class TransferRootsDb extends BaseDb {
         timestampOk
       )
     })
+
+    return filtered as UnbondedTransferRoot[]
   }
 
   async getExitableTransferRoots (
@@ -547,10 +576,10 @@ class TransferRootsDb extends BaseDb {
 
   async getUnsettledTransferRoots (
     filter: GetItemsFilter = {}
-  ): Promise<TransferRoot[]> {
+  ): Promise<UnsettledTransferRoot[]> {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
       }
@@ -595,6 +624,8 @@ class TransferRootsDb extends BaseDb {
         settleAttemptTimestampOk
       )
     })
+
+    return filtered as UnsettledTransferRoot[]
   }
 
   async getIncompleteItems (

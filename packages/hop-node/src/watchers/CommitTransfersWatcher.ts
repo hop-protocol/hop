@@ -77,8 +77,8 @@ class CommitTransfersWatcher extends BaseWatcher {
     const destinationChainIds: number[] = []
     for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer
-      if (!destinationChainIds.includes(destinationChainId!)) {
-        destinationChainIds.push(destinationChainId!)
+      if (!destinationChainIds.includes(destinationChainId)) {
+        destinationChainIds.push(destinationChainId)
       }
     }
     for (const destinationChainId of destinationChainIds) {

@@ -452,6 +452,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       this.pollMs = options.pollMs
     }
     if (options.timeTilBoostMs) {
+      if (options.timeTilBoostMs <= 0) {
+        throw new Error('timeTilBoostMs must be greater than 0')
+      }
       this.timeTilBoostMs = options.timeTilBoostMs
     }
     if (options.gasPriceMultiplier) {

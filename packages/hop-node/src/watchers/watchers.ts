@@ -289,7 +289,7 @@ function getSiblingWatchers (config: GetSiblingWatchersConfig, init: (conf: GetS
   for (const tokenSymbol of tokens) {
     for (const chainSlug of networks) {
       const isL1 = chainSlug === Chain.Ethereum
-      const chainId = chainSlugToId(chainSlug)! // eslint-disable-line
+      const chainId = chainSlugToId(chainSlug)
       if (!contracts.has(tokenSymbol, chainSlug)) {
         continue
       }

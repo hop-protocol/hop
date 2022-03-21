@@ -224,7 +224,7 @@ async function sendTokens (
 
   const formattedAmount = (await bridge.formatUnits(parsedAmount)).toString()
   logger.debug(`attempting to send ${formattedAmount} ${label} ⟶  ${toChain} to ${recipient}`)
-  const destinationChainId = chainSlugToId(toChain)!
+  const destinationChainId = chainSlugToId(toChain)
   if (fromChain === Chain.Ethereum) {
     if (isHToken) {
       tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(

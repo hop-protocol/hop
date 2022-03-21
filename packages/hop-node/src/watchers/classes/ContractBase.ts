@@ -27,7 +27,7 @@ export default class ContractBase extends EventEmitter {
       throw new Error('chain slug not found for contract provider')
     }
     this.chainSlug = chainSlug
-    this.chainId = chainSlugToId(chainSlug)! // eslint-disable-line
+    this.chainId = chainSlugToId(chainSlug)
   }
 
   getChainId = async (): Promise<number> => {

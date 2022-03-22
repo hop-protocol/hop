@@ -2,8 +2,6 @@ import React from 'react'
 import Button from 'src/components/buttons/Button'
 import Alert from 'src/components/alert/Alert'
 import { makeStyles } from '@material-ui/core/styles'
-import Token from 'src/models/Token'
-import Network from 'src/models/Network'
 import Typography from '@material-ui/core/Typography'
 import { commafy, NetworkTokenEntity } from 'src/utils'
 import Address from 'src/models/Address'
@@ -34,11 +32,10 @@ interface Props {
   source: NetworkTokenEntity
   dest: Partial<NetworkTokenEntity>
   onConfirm: (confirmed: boolean) => void
-  estimatedReceived: string
 }
 
 const ConfirmDepositNativeBridge = (props: Props) => {
-  const { customRecipient, source, dest, onConfirm, estimatedReceived } = props
+  const { customRecipient, source, dest, onConfirm } = props
   const styles = useStyles()
 
   const { sending, handleSubmit } = useSendingTransaction({ onConfirm, source })

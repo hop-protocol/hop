@@ -45,7 +45,7 @@ export function parseDisabledRoutes(
   const disabledRoutes = serializedDisabledRoutes?.split(',')
   const warningRoutes = serializedWarningRoutes?.split(',')
 
-  if (!disabledRoutes[0]) return []
+  if (!disabledRoutes[0] || disabledRoutes[0] === 'false') return []
 
   if (disabledRoutes[0] !== '') {
     return (disabledRoutes as any[]).map((disabledRoute, i) => {

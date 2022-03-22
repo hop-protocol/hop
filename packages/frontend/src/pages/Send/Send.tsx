@@ -522,8 +522,7 @@ const Send: FC = () => {
       estimatedReceived?.gt(0) &&
       !manualError &&
       (!disabledTx || disabledTx.warningOnly) &&
-      gnosisEnabled &&
-      isCorrectSignerNetwork
+      (gnosisEnabled ? isCorrectSignerNetwork : true)
     )
   }, [
     needsApproval,

@@ -414,8 +414,12 @@ const Send: FC = () => {
     }
   }, [tx])
 
-  const { isRecipientSelfContract, gnosisEnabled, gnosisSafeWarning, isCorrectFromNetwork } =
-    useGnosisSafeTransaction(tx, customRecipient, fromNetwork, toNetwork)
+  const { gnosisEnabled, gnosisSafeWarning, isCorrectSignerNetwork } = useGnosisSafeTransaction(
+    tx,
+    customRecipient,
+    fromNetwork,
+    toNetwork
+  )
 
   // ==============================================================================================
   // User actions
@@ -519,7 +523,7 @@ const Send: FC = () => {
       !manualError &&
       (!disabledTx || disabledTx.warningOnly) &&
       gnosisEnabled &&
-      isCorrectFromNetwork
+      isCorrectSignerNetwork
     )
   }, [
     needsApproval,
@@ -536,7 +540,7 @@ const Send: FC = () => {
     manualError,
     disabledTx,
     gnosisEnabled,
-    isCorrectFromNetwork,
+    isCorrectSignerNetwork,
   ])
 
   return (

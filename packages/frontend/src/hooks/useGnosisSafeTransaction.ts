@@ -25,7 +25,7 @@ export function useGnosisSafeTransaction(
   toNetwork?: Network
 ) {
   const { sdk, connected, safe } = useSafeAppsSDK()
-  const [safeTx, setSafeTx] = useState<any>()
+  const [safeTx, setSafeTx] = useState<GnosisSafeTx>()
   const { isMatchingSignerAndSourceChainNetwork } = useSelectedNetwork({ gnosisSafe: safe })
   const [isGnosisSafeWallet, setIsGnosisSafeWallet] = useState(false)
   const [isRecipientContract, setIsRecipientContract] = useState(false)
@@ -47,27 +47,26 @@ export function useGnosisSafeTransaction(
     })
   }, [isGnosisSafeWallet, safe, customRecipient, toNetwork])
 
+  // Enables Sending gnosis-safe txs
   const gnosisEnabled = useMemo(() => {
     return isSmartContractWallet
       ? isGnosisSafeWallet && customRecipient && !isRecipientSelfContract
       : !customRecipient && false
   }, [isSmartContractWallet, isGnosisSafeWallet, customRecipient, isRecipientSelfContract])
 
+  // Checks if source chain == gnosis-safe chain
   const isCorrectSignerNetwork = useMemo(() => {
     return isSmartContractWallet && fromNetwork?.networkId === safe?.chainId.toString()
   }, [isSmartContractWallet, fromNetwork, safe])
 
-  const isCorrectFromNetwork = useMemo(() => {
-    return isSmartContractWallet && fromNetwork?.networkId === safe?.chainId.toString()
-  }, [isSmartContractWallet, fromNetwork, safe])
-
+  // Display warnings to enforce valid source chain and custom recipient
   const gnosisSafeWarning: GnosisSafeWarning = useMemo(() => {
     if (!isGnosisSafeWallet) {
       // is not gnosis-safe
       return noWarning
     }
 
-    if (fromNetwork?.slug && !isCorrectFromNetwork) {
+    if (fromNetwork?.slug && !isCorrectSignerNetwork) {
       // incorrect source chain set
       return {
         severity: 'warning',
@@ -103,7 +102,7 @@ export function useGnosisSafeTransaction(
     return noWarning
   }, [
     isGnosisSafeWallet,
-    isCorrectFromNetwork,
+    isCorrectSignerNetwork,
     isRecipientSelfContract,
     isSmartContractWallet,
     customRecipient,
@@ -111,41 +110,27 @@ export function useGnosisSafeTransaction(
     fromNetwork,
     toNetwork,
   ])
-  useEffect(() => {
-    async function doit() {
-      if (tx) {
-        try {
-          const stx = await sdk.txs.getBySafeTxHash(tx.hash)
-          console.log(`stx:`, stx)
-          setSafeTx(stx)
-        } catch (error) {
-          console.log(`error:`, error)
-        }
-      }
-    }
-
-    if (connected && tx) {
-      doit()
-    }
-  }, [connected, tx])
 
   const getSafeTx = useCallback(
     async (tx: Transaction | ContractTransaction): Promise<GnosisSafeTx | undefined> => {
       try {
         console.log(`getting safe tx:`, tx)
         const safeTransaction = await sdk.txs.getBySafeTxHash(tx.hash)
+
         if (!safeTransaction) {
           await wait(3000)
           return getSafeTx(tx)
         }
-        // console.log(`safeTransaction:`, safeTransaction)
+
         if (safeTransaction.txHash) {
           console.log(`safeTx w/ hash!:`, safeTransaction)
+          setSafeTx(safeTransaction)
           return safeTransaction
         }
       } catch (error) {
         console.log(`error:`, error)
       }
+
       await wait(2000)
       return getSafeTx(tx)
     },
@@ -162,7 +147,6 @@ export function useGnosisSafeTransaction(
     isRecipientSelfContract,
     gnosisEnabled,
     isCorrectSignerNetwork,
-    isCorrectFromNetwork,
     gnosisSafeWarning,
   }
 }

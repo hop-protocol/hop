@@ -4,7 +4,7 @@ import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { commafy, toTokenDisplay } from 'src/utils'
 import ConvertOption, { SendData } from './ConvertOption'
-import DetailRow from 'src/components/DetailRow'
+import DetailRow from 'src/components/InfoTooltip/DetailRow'
 import AmmDetails from 'src/components/AmmDetails'
 
 class AmmConvertOption extends ConvertOption {

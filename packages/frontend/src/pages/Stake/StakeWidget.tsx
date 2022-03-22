@@ -19,7 +19,7 @@ import {
   formatError,
 } from 'src/utils'
 import Alert from 'src/components/alert/Alert'
-import DetailRow from 'src/components/DetailRow'
+import { DetailRow } from 'src/components/InfoTooltip'
 import { useTransactionReplacement, useApprove, useAsyncMemo, useBalance } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
@@ -283,7 +283,7 @@ const StakeWidget: FC<Props> = props => {
         kind: 'stake',
         inputProps: {
           source: {
-            network
+            network,
           },
           amount: amount,
           token: stakingToken,

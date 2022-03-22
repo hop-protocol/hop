@@ -5,23 +5,17 @@ import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/modal/TxStatusModal'
-import DetailRow from 'src/components/DetailRow'
+import DetailRow from 'src/components/InfoTooltip/DetailRow'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import {
-  commafy,
-  findMatchingBridge,
-  isL1ToL2,
-  sanitizeNumericalString,
-  toTokenDisplay,
-} from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
-import FeeDetails from 'src/components/FeeDetails'
+import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
 import { hopAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ChainSlug } from '@hop-protocol/sdk'

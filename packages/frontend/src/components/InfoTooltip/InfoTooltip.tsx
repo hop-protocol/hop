@@ -14,7 +14,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const HelpTooltip: FC<Props> = props => {
+const InfoTooltip: FC<Props> = props => {
   const styles = useStyles()
   const children = props.children
 
@@ -39,4 +39,4 @@ const HelpTooltip: FC<Props> = props => {
   )
 }
 
-export default HelpTooltip
+export default InfoTooltip

@@ -37,6 +37,7 @@ import {
   useTxResult,
   useSufficientBalance,
   useDisableTxs,
+  useGnosisSafeTransaction,
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
@@ -72,13 +73,7 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
   const [manualWarning, setManualWarning] = useState<string>('')
-  const {
-    isSmartContractWallet,
-    isRecipientSelfContract,
-    gnosisEnabled,
-    gnosisSafeWarning,
-    isCorrectFromNetwork,
-  } = useIsSmartContractWallet(customRecipient, fromNetwork, toNetwork)
+  const { isSmartContractWallet } = useIsSmartContractWallet()
   const [manualError, setManualError] = useState<string>('')
 
   // Reset error message when fromNetwork/toNetwork changes
@@ -418,6 +413,9 @@ const Send: FC = () => {
       setFromTokenAmount('')
     }
   }, [tx])
+
+  const { isRecipientSelfContract, gnosisEnabled, gnosisSafeWarning, isCorrectFromNetwork } =
+    useGnosisSafeTransaction(tx, customRecipient, fromNetwork, toNetwork)
 
   // ==============================================================================================
   // User actions

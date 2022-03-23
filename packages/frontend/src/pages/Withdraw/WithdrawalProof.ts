@@ -2,6 +2,7 @@ import { MerkleTree as MerkleTreeLib } from 'merkletreejs'
 import { keccak256 } from 'ethereumjs-util'
 import { networkIdToSlug } from 'src/utils/networks'
 import { getTokenDecimals } from 'src/utils/tokens'
+import { getUrl } from 'src/utils/queries'
 
 class MerkleTree extends MerkleTreeLib {
   constructor (leaves: string[]) {
@@ -193,7 +194,7 @@ export class WithdrawalProof {
     query: string,
     params: any = {}
   ) {
-    const url = this.getUrl(chain)
+    const url = getUrl(chain)
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -210,19 +211,6 @@ export class WithdrawalProof {
       throw new Error(jsonRes.errors[0].message)
     }
     return jsonRes.data
-  }
-
-  private getUrl(chain: string) {
-    let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
-    if (chain === 'gnosis') {
-      chain = 'xdai'
-    }
-    if (chain === 'ethereum') {
-      url = 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
-    } else {
-      url = `${url}-${chain}`
-    }
-    return url
   }
 
   private async findTransfer (transferId: string) {

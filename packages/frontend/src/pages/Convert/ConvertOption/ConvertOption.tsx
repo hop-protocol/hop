@@ -2,7 +2,6 @@ import React, { ReactNode } from 'react'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
 import Network from 'src/models/Network'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
-import { DetailRowProps as DetailRow } from 'src/components/DetailRow'
 
 export type SendData = {
   amountOut: BigNumber | undefined

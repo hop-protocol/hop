@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import { Token } from '@hop-protocol/sdk'
 import Button from 'src/components/buttons/Button'
-import { commafy } from 'src/utils'
+import { commafy, NetworkTokenEntity } from 'src/utils'
 import { useSendingTransaction } from './useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
@@ -24,13 +24,14 @@ interface Props {
   amount: string
   token: Token
   onConfirm: (confirmed: boolean) => void
+  source: NetworkTokenEntity
 }
 
 const ConfirmStake = (props: Props) => {
-  const { amount, token, onConfirm } = props
+  const { amount, token, onConfirm, source } = props
   const styles = useStyles()
 
-  const { sending, handleSubmit } = useSendingTransaction({ onConfirm })
+  const { sending, handleSubmit } = useSendingTransaction({ onConfirm, source })
 
   return (
     <div className={styles.root}>

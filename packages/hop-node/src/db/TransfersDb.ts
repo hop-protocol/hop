@@ -52,6 +52,32 @@ type GetItemsFilter = Partial<Transfer> & {
   destinationChainIds?: number[]
 }
 
+export type UnbondedSentTransfer = {
+  transferId: string
+  transferSentTimestamp: number
+  withdrawalBonded: boolean
+  transferSentTxHash: string
+  isBondable: boolean
+  isTransferSpent: boolean
+  destinationChainId: number
+  amount: BigNumber
+  withdrawalBondTxError: TxError
+  sourceChainId: number
+  recipient: string
+  amountOutMin: BigNumber
+  bonderFee: BigNumber
+  transferNonce: string
+  deadline: BigNumber
+}
+
+export type UncommittedTransfer = {
+  transferId: string
+  transferRootId: string
+  transferSentTxHash: string
+  committed: boolean
+  destinationChainId: number
+}
+
 // structure:
 // key: `transfer:<transferSentTimestamp>:<transferId>`
 // value: `{ transferId: <transferId> }`
@@ -344,9 +370,9 @@ class TransfersDb extends BaseDb {
 
   async getUncommittedTransfers (
     filter: GetItemsFilter = {}
-  ): Promise<Transfer[]> {
+  ): Promise<UncommittedTransfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
-    return transfers.filter(item => {
+    const filtered = transfers.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
       }
@@ -358,13 +384,15 @@ class TransfersDb extends BaseDb {
         !item.committed
       )
     })
+
+    return filtered as UncommittedTransfer[]
   }
 
   async getUnbondedSentTransfers (
     filter: GetItemsFilter = {}
-  ): Promise<Transfer[]> {
+  ): Promise<UnbondedSentTransfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
-    return transfers.filter(item => {
+    const filtered = transfers.filter(item => {
       if (!item?.transferId) {
         return false
       }
@@ -403,6 +431,8 @@ class TransfersDb extends BaseDb {
         timestampOk
       )
     })
+
+    return filtered as UnbondedSentTransfer[]
   }
 
   async getIncompleteItems (

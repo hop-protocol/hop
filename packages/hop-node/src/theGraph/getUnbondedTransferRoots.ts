@@ -3,7 +3,7 @@ import makeRequest from './makeRequest'
 import { DateTime } from 'luxon'
 
 export default async function getUnbondedTransferRoots (chain: string, token: string, destinationChain: string): Promise<any> {
-  const destinationChainId: number = chainSlugToId(destinationChain)! // eslint-disable-line
+  const destinationChainId: number = chainSlugToId(destinationChain)
 
   let query = getTransfersCommittedsQuery(token)
   const transfersCommittedRes = await makeRequest(chain, query, {

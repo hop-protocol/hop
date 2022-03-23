@@ -73,7 +73,7 @@ class GasBoostSigner extends Signer {
     return this.signer.signMessage(msg)
   }
 
-  async signTransaction (transaction: any) {
+  async signTransaction (transaction: providers.TransactionRequest) {
     return this.signer.signTransaction(transaction)
   }
 

@@ -19,7 +19,7 @@ const constructSigner = memoize(
     let wallet
     if (globalConfig.signerConfig.type === 'kms') {
       const { keyId, awsRegion } = globalConfig.signerConfig
-      wallet = new KmsSigner({ keyId: keyId!, region: awsRegion }, provider)
+      wallet = new KmsSigner({ keyId: keyId!, region: awsRegion }, provider!)
     } else {
       if (!privateKey) {
         throw new Error('private key is required to instantiate wallet')

@@ -28,13 +28,14 @@ type Config = {
 
 // details:
 // https://ethereum.stackexchange.com/a/73371/5093
+// https://luhenning.medium.com/the-dark-side-of-the-elliptic-curve-signing-ethereum-transactions-with-aws-kms-in-javascript-83610d9a6f81
 // https://github.com/lucashenning/aws-kms-ethereum-signing/blob/master/aws-kms-sign.ts
 export class KmsSigner extends Signer {
   config: Config
   address: string
   client: KMSClient
 
-  constructor (config: Config, provider?: any) {
+  constructor (config: Config, provider?: providers.Provider) {
     super()
     if (!config.keyId) {
       throw new Error('keyId is required')
@@ -77,7 +78,7 @@ export class KmsSigner extends Signer {
     return this._signDigest(hash)
   }
 
-  async signTransaction (transaction: any) {
+  async signTransaction (transaction: providers.TransactionRequest) {
     const unsignedTx: any = await resolveProperties(transaction)
     const serializedTx = serializeTransaction(unsignedTx)
     const hash = Buffer.from(keccak256(serializedTx).slice(2), 'hex')
@@ -122,7 +123,7 @@ export class KmsSigner extends Signer {
     return joinedSignature
   }
 
-  private async _getSigV (msgHash: Buffer, { r, s }: any) {
+  private async _getSigV (msgHash: Buffer, { r, s }: {r: string, s: string}) {
     const address = await this.getAddress()
     let v = 17
     let recovered = recoverAddress(msgHash, { r, s, v })

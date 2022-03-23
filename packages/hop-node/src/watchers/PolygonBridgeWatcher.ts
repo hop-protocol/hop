@@ -1,5 +1,4 @@
 import BaseWatcher from './classes/BaseWatcher'
-import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import fetch from 'node-fetch'
 import wait from 'src/utils/wait'
@@ -56,8 +55,12 @@ class PolygonBridgeWatcher extends BaseWatcher {
     this.maticClient = new FxPortalClient()
 
     this.init()
+      .then(() => {
+        this.ready = true
+      })
       .catch((err: any) => {
         this.logger.error('matic client initialize error:', err)
+        this.quit()
       })
   }
 
@@ -83,8 +86,6 @@ class PolygonBridgeWatcher extends BaseWatcher {
         rootTunnel
       }
     })
-
-    this.ready = true
   }
 
   protected async tilReady (): Promise<boolean> {
@@ -96,54 +97,24 @@ class PolygonBridgeWatcher extends BaseWatcher {
     return await this.tilReady()
   }
 
-  async isCheckpointed (l2BlockNumber: number) {
-    const url = `${this.apiUrl}/${l2BlockNumber}`
-    const res = await fetch(url)
-    const json = await res.json()
-    return json.message === 'success'
-  }
-
   async relayXDomainMessage (txHash: string): Promise<providers.TransactionResponse> {
     await this.tilReady()
+
+    const commitTx: any = await this.bridge.getTransaction(txHash)
+    const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
+    if (!isCheckpointed) {
+      throw new Error('too early to exit')
+    }
 
     const tx = await this.maticClient.erc20(constants.AddressZero, true).withdrawExitFaster(txHash)
     return tx.promise
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
-    const commitTx: any = await this.bridge.getTransaction(commitTxHash)
-    const isCheckpointed = await this.isCheckpointed(commitTx.blockNumber)
-    if (!isCheckpointed) {
-      logger.warn(`transaction ${commitTxHash} not checkpointed`)
-      return
-    }
-
-    logger.debug(
-      `attempting to send relay message on polygon for commit tx hash ${commitTxHash}`
-    )
-
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
-      return
-    }
-    await this.db.transferRoots.update(transferRootId, {
-      sentConfirmTxAt: Date.now()
-    })
-
-    let tx
-    try {
-      tx = await this.relayXDomainMessage(commitTxHash)
-      if (!tx) {
-        logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
-        return
-      }
-    } catch (err) {
-      logger.error(`relayXDomainMessage error: ${err.message}`)
-      return
-    }
-    const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
-    logger.info(msg)
-    this.notifier.info(msg)
+  private async isCheckpointed (l2BlockNumber: number) {
+    const url = `${this.apiUrl}/${l2BlockNumber}`
+    const res = await fetch(url)
+    const json = await res.json()
+    return json.message === 'success'
   }
 }
 export default PolygonBridgeWatcher

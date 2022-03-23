@@ -1,6 +1,5 @@
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
-import Logger from 'src/logger'
 import l1xDaiAmbAbi from '@hop-protocol/core/abi/static/L1_xDaiAMB.json'
 import l2xDaiAmbAbi from '@hop-protocol/core/abi/static/L2_xDaiAMB.json'
 import wallets from 'src/wallets'
@@ -48,29 +47,6 @@ class GnosisBridgeWatcher extends BaseWatcher {
     if (config.l1BridgeContract != null) {
       this.l1Bridge = new L1Bridge(config.l1BridgeContract)
     }
-  }
-
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
-    logger.debug(
-      `attempting to send relay message on gnosis for commit tx hash ${commitTxHash}`
-    )
-
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
-      return
-    }
-    await this.db.transferRoots.update(transferRootId, {
-      sentConfirmTxAt: Date.now()
-    })
-
-    const tx = await this.relayXDomainMessage(commitTxHash)
-    if (!tx) {
-      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
-      return
-    }
-    const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
-    logger.info(msg)
-    this.notifier.info(msg)
   }
 
   async relayXDomainMessage (commitTxHash: string): Promise<providers.TransactionResponse> {
@@ -122,7 +98,7 @@ class GnosisBridgeWatcher extends BaseWatcher {
     return l1Amb.executeSignatures(message, packedSigs)
   }
 
-  async getValidSigEvent (commitTxHash: string) {
+  private async getValidSigEvent (commitTxHash: string) {
     const tx = await this.bridge.getTransactionReceipt(commitTxHash)
     const l2Amb = getL2Amb(this.tokenSymbol)
     const sigEvents = await l2Amb.queryFilter(

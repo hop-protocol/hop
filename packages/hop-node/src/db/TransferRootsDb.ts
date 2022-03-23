@@ -1,7 +1,7 @@
 import BaseDb, { KV, KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
+import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs, TxStatus } from 'src/constants'
 import { normalizeDbItem } from './utils'
 import { oruChains } from 'src/config'
 
@@ -30,6 +30,7 @@ interface BaseTransferRoot {
   sentBondTxAt?: number
   sentCommitTxAt?: number
   sentConfirmTxAt?: number
+  confirmTxStatus?: string
   settleAttemptedAt?: number
   shouldBondTransferRoot?: boolean
   sourceChainId?: number
@@ -459,9 +460,10 @@ class TransferRootsDb extends BaseDb {
 
       let timestampOk = true
       if (item.sentConfirmTxAt) {
-        timestampOk =
-          item.sentConfirmTxAt + TxRetryDelayMs < Date.now()
+        timestampOk = item.sentConfirmTxAt + TxRetryDelayMs < Date.now()
       }
+
+      const txStatusOk = item.confirmTxStatus !== TxStatus.Broadcasted
 
       const hashesToIgnore = [
         '0xd26bfea7a1e36695ebe734a8dd12f0775d95141e3161b744130a04ff39ec25ca',
@@ -551,6 +553,7 @@ class TransferRootsDb extends BaseDb {
         item.committed &&
         item.committedAt &&
         timestampOk &&
+        txStatusOk &&
         oruTimestampOk &&
         oruShouldExit
       )

@@ -5,7 +5,7 @@ import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
-import { Chain } from 'src/constants'
+import { Chain, TxStatus } from 'src/constants'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
@@ -23,7 +23,6 @@ type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatche
 
 class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
-  lastSeen: {[key: string]: number} = {}
   watchers: {[chain: string]: Watcher} = {}
 
   constructor (config: Config) {
@@ -102,7 +101,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     const { destinationChainId, commitTxHash } = dbTransferRoot
 
     const logger = this.logger.create({ root: transferRootId })
-    const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
       destinationChainId,
       transferRootId
@@ -115,14 +113,49 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       return
     }
 
+    logger.debug(`handling commit tx hash ${commitTxHash} from ${destinationChainId}`)
+    await this.handleCommitTxHash(commitTxHash, transferRootId)
+  }
+
+  async handleCommitTxHash (commitTxHash: string, transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
+    const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const watcher = this.watchers[chainSlug]
     if (!watcher) {
       logger.warn(`exit watcher for ${chainSlug} is not implemented yet`)
       return
     }
 
-    logger.debug(`handling commit tx hash ${commitTxHash} from ${destinationChainId}`)
-    await watcher.handleCommitTxHash(commitTxHash, transferRootId, logger)
+    logger.debug(
+      `attempting to send relay message on ${chainSlug} for commit tx hash ${commitTxHash}`
+    )
+
+    if (this.dryMode) {
+      logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
+      return
+    }
+
+    await this.db.transferRoots.update(transferRootId, {
+      sentConfirmTxAt: Date.now(),
+      confirmTxStatus: TxStatus.Broadcasted
+    })
+
+    try {
+      const tx = await watcher.relayXDomainMessage(commitTxHash)
+      if (!tx) {
+        throw new Error(`no tx exists for exit on ${chainSlug}, commitTxHash ${commitTxHash}`)
+      }
+
+      const msg = `sent chainId ${watcher.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
+      logger.info(msg)
+      this.notifier.info(msg)
+    } catch (err) {
+      logger.error(`relayXDomainMessage ${chainSlug} error: ${err.message}`)
+
+      await this.db.transferRoots.update(transferRootId, {
+        confirmTxStatus: TxStatus.Incomplete
+      })
+    }
   }
 }
 

@@ -1,5 +1,4 @@
 import BaseWatcher from './classes/BaseWatcher'
-import Logger from 'src/logger'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, Wallet, providers } from 'ethers'
@@ -8,6 +7,7 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { Watcher } from '@eth-optimism/core-utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getMessagesAndProofsForL2Transaction } from '@eth-optimism/message-relayer'
+
 type Config = {
   chainSlug: string
   tokenSymbol: string
@@ -64,80 +64,59 @@ class OptimismBridgeWatcher extends BaseWatcher {
   async relayXDomainMessage (
     txHash: string
   ): Promise<providers.TransactionResponse> {
-    const messagePairs = await getMessagesAndProofsForL2Transaction(
-      this.l1Provider,
-      this.l2Provider,
-      this.scc.address,
-      predeploys.L2CrossDomainMessenger,
-      txHash
-    )
-
-    if (!messagePairs) {
-      throw new Error('messagePairs not found')
-    }
-
-    const { message, proof } = messagePairs[0]
-    const inChallengeWindow = await this.scc.insideFraudProofWindow(proof.stateRootBatchHeader)
-    if (inChallengeWindow) {
-      throw new Error('exit within challenge window')
-    }
-
-    return this.l1Messenger
-      .connect(this.l1Wallet)
-      .relayMessage(
-        message.target,
-        message.sender,
-        message.message,
-        message.messageNonce,
-        proof
+    try {
+      const messagePairs = await getMessagesAndProofsForL2Transaction(
+        this.l1Provider,
+        this.l2Provider,
+        this.scc.address,
+        predeploys.L2CrossDomainMessenger,
+        txHash
       )
+
+      if (!messagePairs) {
+        throw new Error('messagePairs not found')
+      }
+
+      const { message, proof } = messagePairs[0]
+      const inChallengeWindow = await this.scc.insideFraudProofWindow(proof.stateRootBatchHeader)
+      if (inChallengeWindow) {
+        throw new Error('exit within challenge window')
+      }
+
+      return this.l1Messenger
+        .connect(this.l1Wallet)
+        .relayMessage(
+          message.target,
+          message.sender,
+          message.message,
+          message.messageNonce,
+          proof
+        )
+    } catch (err: any) {
+      this.logger.error(err)
+      throw this.formatError(err)
+    }
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
-    logger.debug(
-      `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
-    )
-
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
-      return
+  private formatError (err: Error) {
+    const isNotCheckpointedYet = err.message.includes('unable to find state root batch for tx')
+    const isProofNotFound = err.message.includes('messagePairs not found')
+    const isInsideFraudProofWindow = err.message.includes('exit within challenge window')
+    const notReadyForExit = isNotCheckpointedYet || isProofNotFound || isInsideFraudProofWindow
+    if (notReadyForExit) {
+      return new Error('too early to exit')
     }
-
-    await this.db.transferRoots.update(transferRootId, {
-      sentConfirmTxAt: Date.now()
-    })
-
-    try {
-      const tx = await this.relayXDomainMessage(commitTxHash)
-      if (!tx) {
-        logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
-        return
-      }
-
-      const msg = `sent chainId ${this.bridge.chainId} confirmTransferRoot L1 exit tx ${tx.hash}`
-      logger.info(msg)
-      this.notifier.info(msg)
-    } catch (err) {
-      this.logger.error(err.message)
-      const isNotCheckpointedYet = err.message.includes('unable to find state root batch for tx')
-      const isProofNotFound = err.message.includes('messagePairs not found')
-      const isInsideFraudProofWindow = err.message.includes('exit within challenge window')
-      const notReadyForExit = isNotCheckpointedYet || isProofNotFound || isInsideFraudProofWindow
-      if (notReadyForExit) {
-        throw new Error('too early to exit')
-      }
-      const isAlreadyRelayed = err.message.includes('message has already been received')
-      if (isAlreadyRelayed) {
-        throw new Error('message has already been relayed')
-      }
-      // isEventLow() does not handle the case where `batchEvents` is null
-      // https://github.com/ethereum-optimism/optimism/blob/26b39199bef0bea62a2ff070cd66fd92918a556f/packages/message-relayer/src/relay-tx.ts#L179
-      const cannotReadProperty = err.message.includes('Cannot read property')
-      if (cannotReadProperty) {
-        throw new Error('event not found in optimism sdk')
-      }
-      throw err
+    const isAlreadyRelayed = err.message.includes('message has already been received')
+    if (isAlreadyRelayed) {
+      return new Error('message has already been relayed')
     }
+    // isEventLow() does not handle the case where `batchEvents` is null
+    // https://github.com/ethereum-optimism/optimism/blob/26b39199bef0bea62a2ff070cd66fd92918a556f/packages/message-relayer/src/relay-tx.ts#L179
+    const cannotReadProperty = err.message.includes('Cannot read property')
+    if (cannotReadProperty) {
+      return new Error('event not found in optimism sdk')
+    }
+    return err
   }
 }
 

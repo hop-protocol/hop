@@ -1,5 +1,4 @@
 import BaseWatcher from './classes/BaseWatcher'
-import Logger from 'src/logger'
 import wallets from 'src/wallets'
 import { Bridge, OutgoingMessageState } from 'arb-ts'
 import { Chain } from 'src/constants'
@@ -33,6 +32,9 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.l2Wallet = wallets.get(Chain.Arbitrum)
 
     this.init()
+      .then(() => {
+        this.ready = true
+      })
       .catch((err) => {
         this.logger.error('arbitrum bridge watcher init error:', err.message)
         this.quit()
@@ -41,7 +43,6 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
 
   async init () {
     this.arbBridge = await Bridge.init(this.l1Wallet, this.l2Wallet)
-    this.ready = true
   }
 
   async relayXDomainMessage (
@@ -81,27 +82,8 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     return await this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
   }
 
-  async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
-    logger.debug(
-      `attempting to send relay message on arbitrum for commit tx hash ${commitTxHash}`
-    )
-    if (this.dryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
-      return
-    }
-
-    await this.db.transferRoots.update(transferRootId, {
-      sentConfirmTxAt: Date.now()
-    })
-    const tx = await this.relayXDomainMessage(commitTxHash)
-    if (!tx) {
-      logger.warn(`No tx exists for exit, commitTxHash ${commitTxHash}`)
-      return
-    }
-
-    const msg = `sent chain ${this.bridge.chainId} confirmTransferRoot exit tx ${tx.hash}`
-    logger.info(msg)
-    this.notifier.info(msg)
+  async isCheckpointed (l2BlockNumber: number) {
+    return true
   }
 }
 

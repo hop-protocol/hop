@@ -8,7 +8,7 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
-import { Chain, OneWeekMs } from 'src/constants'
+import { Chain, OneWeekMs, TxStatus } from 'src/constants'
 import { DateTime } from 'luxon'
 import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
@@ -62,7 +62,22 @@ class SyncWatcher extends BaseWatcher {
       this.logger.debug(`syncing from syncFromDate with blockNumber ${this.customStartBlockNumber}`)
     }
 
+    await this.updateBroadcastedStatus()
+
     this.ready = true
+  }
+
+  async updateBroadcastedStatus () {
+    const entries = await this.db.transferRoots.getTransferRootsFromTwoWeeks()
+    for (const entry of entries) {
+      if (entry.confirmTxStatus === TxStatus.Broadcasted) {
+        entry.confirmTxStatus = TxStatus.Incomplete
+        if (entry.confirmed) {
+          entry.confirmTxStatus = TxStatus.Complete
+        }
+        await this.db.transferRoots.update(entry.transferRootId, entry)
+      }
+    }
   }
 
   async start () {
@@ -439,7 +454,8 @@ class SyncWatcher extends BaseWatcher {
       const { transactionHash } = event
       await this.db.transferRoots.update(transferRootId, {
         confirmed: true,
-        confirmTxHash: transactionHash
+        confirmTxHash: transactionHash,
+        confirmTxStatus: TxStatus.Complete
       })
     } catch (err) {
       logger.error(`handleTransferRootConfirmedEvent error: ${err.message}`)

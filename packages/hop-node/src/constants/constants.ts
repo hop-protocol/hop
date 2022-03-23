@@ -80,3 +80,9 @@ export enum TokenIndex {
 }
 
 export const DefaultRelayerAddress = ethersConstants.AddressZero
+
+export enum TxStatus {
+  Incomplete = 'incomplete',
+  Broadcasted = 'broadcasted',
+  Complete = 'complete'
+}

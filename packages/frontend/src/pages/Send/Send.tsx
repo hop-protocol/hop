@@ -522,7 +522,7 @@ const Send: FC = () => {
       estimatedReceived?.gt(0) &&
       !manualError &&
       (!disabledTx || disabledTx.warningOnly) &&
-      (gnosisEnabled ? isCorrectSignerNetwork : true)
+      (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet)
     )
   }, [
     needsApproval,
@@ -540,6 +540,7 @@ const Send: FC = () => {
     disabledTx,
     gnosisEnabled,
     isCorrectSignerNetwork,
+    isSmartContractWallet,
   ])
 
   return (

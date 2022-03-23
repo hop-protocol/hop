@@ -1,6 +1,7 @@
 import { BigNumber, Signer, providers } from 'ethers'
 import { GetPublicKeyCommand, KMSClient, SignCommand } from '@aws-sdk/client-kms'
 import { arrayify, defineReadOnly, hashMessage, joinSignature, keccak256, recoverAddress, resolveProperties, serializeTransaction } from 'ethers/lib/utils'
+import { awsAccessKeyId, awsSecretAccessKey } from '../config'
 import * as asn1 from 'asn1.js'
 
 const EcdsaPubKey = asn1.define('EcdsaPubKey', function () {
@@ -39,8 +40,16 @@ export class KmsSigner extends Signer {
       throw new Error('keyId is required')
     }
     this.config = config
+    let credentials
+    if (awsAccessKeyId && awsSecretAccessKey) {
+      credentials = {
+        accessKeyId: awsAccessKeyId,
+        secretAccessKey: awsSecretAccessKey
+      }
+    }
     this.client = new KMSClient({
-      region: config.region
+      region: config.region,
+      credentials
     })
     defineReadOnly(this, 'provider', provider || null)
   }
@@ -50,7 +59,7 @@ export class KmsSigner extends Signer {
   }
 
   connect (provider: providers.Provider) {
-    return new KmsSigner(this.config, this.provider)
+    return new KmsSigner(this.config, provider)
   }
 
   async getAddress () {
@@ -144,25 +153,4 @@ export class KmsSigner extends Signer {
   private _addressEquals (address1: string, address2: string) {
     return address1.toLowerCase() === address2.toLowerCase()
   }
-}
-
-async function example () {
-  const keyId = '32a977a2-b532-40b3-af2e-f064d3980f75'
-  const signer = new KmsSigner({ keyId })
-  const address = await signer.getAddress()
-  const msg = 'Hello World'
-  const signature = await signer.signMessage(msg)
-  const transaction = {
-    to: '0x0000000000000000000000000000000000000000',
-    value: '0x00',
-    data: '0x',
-    gasLimit: '0x5208',
-    gasPrice: '0x4a817c800',
-    nonce: '0x00',
-    chainId: 1
-  }
-  const txSignature = await signer.signTransaction(transaction)
-  console.log('address:', address)
-  console.log('signature:', signature)
-  console.log('txSignature:', txSignature)
 }

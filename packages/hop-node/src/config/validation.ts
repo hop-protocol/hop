@@ -46,7 +46,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'metrics',
     'fees',
     'routes',
-    'bonders'
+    'bonders',
+    'signer'
   ]
 
   const validWatcherKeys = [

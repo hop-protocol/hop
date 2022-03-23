@@ -76,6 +76,14 @@ export type CommitTransfersConfig = {
 }
 type Tokens = Record<string, boolean>
 
+export type SignerType = 'keystore' | 'kms'
+
+export type SignerConfig = {
+  type: SignerType
+  keyId?: string
+  awsRegion?: string
+}
+
 export type Config = {
   isMainnet: boolean
   tokens: Tokens
@@ -91,6 +99,7 @@ export type Config = {
   commitTransfers: CommitTransfersConfig
   fees: Fees
   routes: Routes
+  signerConfig: SignerConfig
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -167,6 +176,9 @@ export const config: Config = {
   },
   commitTransfers: {
     minThresholdAmount: {}
+  },
+  signerConfig: {
+    type: 'keystore'
   }
 }
 
@@ -280,6 +292,10 @@ export const setCommitTransfersConfig = (commitTransfers: CommitTransfersConfig)
 
 export const setConfigTokens = (tokens: Tokens) => {
   config.tokens = { ...config.tokens, ...tokens }
+}
+
+export const setSignerConfig = (signerConfig: SignerConfig) => {
+  config.signerConfig = { ...config.signerConfig, ...signerConfig }
 }
 
 export const getBonderConfig = (tokens: Tokens) => {

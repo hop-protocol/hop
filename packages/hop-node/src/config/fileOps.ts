@@ -4,7 +4,8 @@ import os from 'os'
 import path from 'path'
 import {
   Bonders,
-  CommitTransfersConfig, Fees, Routes, Watchers,
+  CommitTransfersConfig, Fees, Routes, SignerConfig,
+  Watchers,
   defaultConfigFilePath,
   setBonderPrivateKey,
   setCommitTransfersConfig,
@@ -18,6 +19,7 @@ import {
   setNetworkMaxGasPrice,
   setNetworkRpcUrl,
   setRoutesConfig,
+  setSignerConfig,
   setSyncConfig
 } from './config'
 import { Chain } from 'src/constants'
@@ -90,6 +92,7 @@ export type FileConfig = {
   db?: DbConfig
   logging?: LoggingConfig
   keystore?: KeystoreConfig
+  signer?: SignerConfig
   settleBondedWithdrawals?: any
   commitTransfers?: CommitTransfersConfig
   addresses?: Addresses
@@ -140,6 +143,9 @@ export async function setGlobalConfigFromConfigFile (
     }
     const privateKey = await recoverKeystore(keystore, passphrase)
     setBonderPrivateKey(privateKey)
+  }
+  if (config.signer) {
+    setSignerConfig(config.signer)
   }
   const network = config.network
   if (!network) {

@@ -5,7 +5,7 @@ import { Bridge, OutgoingMessageState } from 'arb-ts'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Wallet, providers } from 'ethers'
+import { Signer, providers } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -15,8 +15,8 @@ type Config = {
 }
 
 class ArbitrumBridgeWatcher extends BaseWatcher {
-  l1Wallet: Wallet
-  l2Wallet: Wallet
+  l1Wallet: Signer
+  l2Wallet: Signer
   arbBridge: Bridge
   ready: boolean
 

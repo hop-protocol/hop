@@ -2,7 +2,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract, Wallet, providers } from 'ethers'
+import { Contract, Signer, providers } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Watcher } from '@eth-optimism/core-utils'
@@ -18,8 +18,8 @@ type Config = {
 class OptimismBridgeWatcher extends BaseWatcher {
   l1Provider: any
   l2Provider: any
-  l1Wallet: Wallet
-  l2Wallet: Wallet
+  l1Wallet: Signer
+  l2Wallet: Signer
   l1Messenger: Contract
   scc: Contract
   watcher: Watcher

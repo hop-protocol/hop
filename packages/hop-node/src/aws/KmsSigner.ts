@@ -51,7 +51,7 @@ export class KmsSigner extends Signer {
       region: config.region,
       credentials
     })
-    defineReadOnly(this, 'provider', provider || null)
+    defineReadOnly(this, 'provider', provider)
   }
 
   get keyId () {

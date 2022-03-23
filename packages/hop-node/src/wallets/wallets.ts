@@ -1,7 +1,7 @@
 import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import memoize from 'fast-memoize'
-import { Wallet } from 'ethers'
+import { Signer, Wallet } from 'ethers'
 import {
   gasPriceMultiplier,
   getNetworkMaxGasPrice,
@@ -12,14 +12,15 @@ import {
 } from 'src/config'
 import { getGasBoostDb } from 'src/db'
 
-const constructWallet = memoize(
-  (network: string, privateKey: string): Wallet => {
+const constructSigner = memoize(
+  (network: string, privateKey: string): Signer => {
     if (!privateKey) {
       throw new Error('private key is required to instantiate wallet')
     }
     const db = getGasBoostDb(network)
     const provider = getRpcProvider(network)
-    const signer = new GasBoostSigner(privateKey, provider!, db)
+    const wallet = new Wallet(privateKey, provider!)
+    const signer = new GasBoostSigner(wallet, db)
     const maxGasPriceGwei = getNetworkMaxGasPrice(network)
     const { waitConfirmations: reorgWaitConfirmations } = globalConfig.networks[network]!
     signer.setOptions({
@@ -37,9 +38,9 @@ const constructWallet = memoize(
 // lazy instantiate
 export default {
   has (network: string) {
-    return !!constructWallet(network, globalConfig.bonderPrivateKey)
+    return !!constructSigner(network, globalConfig.bonderPrivateKey)
   },
   get (network: string) {
-    return constructWallet(network, globalConfig.bonderPrivateKey)
+    return constructSigner(network, globalConfig.bonderPrivateKey)
   }
 }

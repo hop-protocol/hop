@@ -39,6 +39,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-kms": "^3.55.0",
     "@aws-sdk/client-s3": "^3.33.0",
     "@eth-optimism/contracts": "^0.5.3",
     "@eth-optimism/core-utils": "^0.5.2",
@@ -67,6 +68,7 @@
     "@uniswap/v3-sdk": "^3.2.1",
     "@yfi/sdk": "1.0.30",
     "arb-ts": "^0.0.39",
+    "asn1.js": "^5.4.1",
     "async-mutex": "^0.3.1",
     "aws-sdk": "^2.937.0",
     "bip39": "3.0.4",

@@ -47,7 +47,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
       // get all db transfer items that belong to root
       const dbTransfers: Transfer[] = []
-      for (const transferId of transferIds!) {
+      for (const transferId of transferIds) {
         const dbTransfer = await this.db.transfers.getByTransferId(transferId)
         if (!dbTransfer) {
           continue
@@ -55,8 +55,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         dbTransfers.push(dbTransfer)
       }
 
-      if (dbTransfers.length !== transferIds!.length) {
-        this.logger.error(`could not find all db transfers for root id ${transferRootId}. Has ${transferIds!.length}, found ${dbTransfers.length}. Db may not be fully synced`)
+      if (dbTransfers.length !== transferIds.length) {
+        this.logger.error(`could not find all db transfers for root id ${transferRootId}. Has ${transferIds.length}, found ${dbTransfers.length}. Db may not be fully synced`)
         continue
       }
 

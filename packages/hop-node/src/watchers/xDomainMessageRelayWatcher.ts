@@ -6,6 +6,7 @@ import L1Bridge from './classes/L1Bridge'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import { Chain } from 'src/constants'
+import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { getEnabledNetworks } from 'src/config'
@@ -93,7 +94,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
   }
 
   async checkTransfersCommitted (transferRootId: string) {
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId) as ExitableTransferRoot
     if (!dbTransferRoot) {
       throw new Error(`transfer root db item not found, root id "${transferRootId}"`)
     }
@@ -103,7 +104,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
-      destinationChainId!,
+      destinationChainId,
       transferRootId
     )
     if (isTransferRootIdConfirmed) {
@@ -121,7 +122,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
 
     logger.debug(`handling commit tx hash ${commitTxHash} from ${destinationChainId}`)
-    await watcher.handleCommitTxHash(commitTxHash!, transferRootId, logger)
+    await watcher.handleCommitTxHash(commitTxHash, transferRootId, logger)
   }
 }
 

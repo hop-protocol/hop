@@ -13,7 +13,7 @@ export function useSufficientBalance(
 ) {
   const [sufficientBalance, setSufficientBalance] = useState(false)
   const [warning, setWarning] = useState('')
-  const isSmartContractWallet = useIsSmartContractWallet()
+  const { isSmartContractWallet } = useIsSmartContractWallet()
 
   useEffect(() => {
     async function checkEnoughBalance() {

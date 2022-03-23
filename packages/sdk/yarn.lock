@@ -1628,6 +1628,11 @@
   resolved "https://registry.yarnpkg.com/@ethersproject/logger/-/logger-5.5.0.tgz#0c2caebeff98e10aefa5aef27d7441c7fd18cf5d"
   integrity sha512-rIY/6WPm7T8n3qS2vuHTUBPdXHl+rGxWxW5okDfo9J4Z0+gRRZT0msvUdIJkE4/HS29GUMziwGaaKO2bWONBrg==
 
+"@ethersproject/logger@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmjs.org/@ethersproject/logger/-/logger-5.6.0.tgz#d7db1bfcc22fd2e4ab574cba0bb6ad779a9a3e7a"
+  integrity sha512-BiBWllUROH9w+P21RzoxJKzqoqpkyM1pRnEKG69bulE9TSQD8SAIvTQqIMZmmCO8pUNkgLP1wndX1gKghSpBmg==
+
 "@ethersproject/networks@5.5.1", "@ethersproject/networks@^5.5.0":
   version "5.5.1"
   resolved "https://registry.yarnpkg.com/@ethersproject/networks/-/networks-5.5.1.tgz#b7f7b9fb88dec1ea48f739b7fb9621311aa8ce6c"
@@ -1649,6 +1654,13 @@
   integrity sha512-l3zRQg3JkD8EL3CPjNK5g7kMx4qSwiR60/uk5IVjd3oq1MZR5qUg40CNOoEJoX5wc3DyY5bt9EbMk86C7x0DNA==
   dependencies:
     "@ethersproject/logger" "^5.5.0"
+
+"@ethersproject/properties@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.npmjs.org/@ethersproject/properties/-/properties-5.6.0.tgz#38904651713bc6bdd5bdd1b0a4287ecda920fa04"
+  integrity sha512-szoOkHskajKePTJSZ46uHUWWkbv7TzP2ypdEK6jGMqJaEt2sb0jCgfBo0gH0m2HBpRixMuJ6TBRaQCF7a9DoCg==
+  dependencies:
+    "@ethersproject/logger" "^5.6.0"
 
 "@ethersproject/providers@5.5.1", "@ethersproject/providers@^5.4.5":
   version "5.5.1"
@@ -1800,10 +1812,10 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@hop-protocol/core@0.0.1-beta.57":
-  version "0.0.1-beta.57"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.57.tgz#fd9d8e62f6ba9db4c5edaf9c730e0d2e7f323436"
-  integrity sha512-/X/li7wiC1/d564D+Nw6u+jUlyVVPcAbemDOYnFG3nqvvU5E+eho/AN+oVEZXuH4t9n0NqgqAxUJD55Jlczekg==
+"@hop-protocol/core@0.0.1-beta.62":
+  version "0.0.1-beta.62"
+  resolved "https://registry.npmjs.org/@hop-protocol/core/-/core-0.0.1-beta.62.tgz#6450a57b1cf89ae01a4a138a02548dc54a7dc7e7"
+  integrity sha512-HHFktZr7XoX7nEbbAAzlkCfsCTBoxEPzO0I/UyAEVm5TlDJsOqiCy+NF5tY4UPvXg+mXdu6z/WJmCqHwyxBhXA==
   dependencies:
     ethers "^5.5.1"
 
@@ -2335,10 +2347,15 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.2.tgz#a4c07d47ff737e8ee7e586fe636ff0e1ddff070a"
   integrity sha512-JepeIUPFDARgIs0zD/SKPgFsJEAF0X5/qO80llx59gOxFTboS9Amv3S+QfB7lqBId5sFXJ99BN0J6zFRvL9dDA==
 
-"@types/node@^12.11.7", "@types/node@^12.12.6":
+"@types/node@^12.12.6":
   version "12.20.38"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.20.38.tgz#74801983c0558a7a31a4ead18bce2edded2b0e2f"
   integrity sha512-NxmtBRGipjx1B225OeMdI+CQmLbYqvvmYbukDTJGDgzIDgPQ1EcjGmYxGhOk5hTBqeB558S6RgHSpq2iiqifAQ==
+
+"@types/node@^17.0.21":
+  version "17.0.21"
+  resolved "https://registry.npmjs.org/@types/node/-/node-17.0.21.tgz#864b987c0c68d07b4345845c3e63b75edd143644"
+  integrity sha512-DBZCJbhII3r90XbQxI8Y9IjjiiOGlZ0Hr32omXIZvwwZ7p4DMMXGrKXVyPfuoBOri9XNtL0UK69jYIBIsRX3QQ==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.1"

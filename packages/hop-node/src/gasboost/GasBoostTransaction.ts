@@ -130,7 +130,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       throw new Error('chain slug not found for contract provider')
     }
     this.chainSlug = chainSlug
-    this.chainId = chainSlugToId(chainSlug)!
+    this.chainId = chainSlugToId(chainSlug)
     const tag = 'GasBoostTransaction'
     let prefix = `${this.chainSlug} id: ${this.id}`
     const transferId = this.decodeTransferId()

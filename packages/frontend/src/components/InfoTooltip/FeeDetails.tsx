@@ -1,7 +1,7 @@
 import React, { FC } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
-import DetailRow from 'src/components/DetailRow'
+import DetailRow from 'src/components/InfoTooltip/DetailRow'
 
 const useStyles = makeStyles(theme => ({
   root: {

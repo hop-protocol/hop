@@ -1,6 +1,7 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
+import { ChallengeableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Notifier } from 'src/notifier'
@@ -54,10 +55,10 @@ class ChallengeWatcher extends BaseWatcher {
   async checkChallengeableTransferRoot (transferRootId: string) {
     const logger = this.logger.create({ root: transferRootId })
 
-    const { transferRootHash, totalAmount } = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    const { transferRootHash, totalAmount } = await this.db.transferRoots.getByTransferRootId(transferRootId) as ChallengeableTransferRoot
     logger.debug('Challenging transfer root', transferRootId)
     logger.debug('transferRootHash:', transferRootHash)
-    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount!))
+    logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferRootId:', transferRootId)
 
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(

@@ -2,10 +2,8 @@ import React from 'react'
 import Button from 'src/components/buttons/Button'
 import Alert from 'src/components/alert/Alert'
 import { makeStyles } from '@material-ui/core/styles'
-import Token from 'src/models/Token'
-import Network from 'src/models/Network'
 import Typography from '@material-ui/core/Typography'
-import { commafy } from 'src/utils'
+import { commafy, NetworkTokenEntity } from 'src/utils'
 import Address from 'src/models/Address'
 import { useSendingTransaction } from './useSendingTransaction'
 
@@ -29,16 +27,11 @@ const useStyles = makeStyles(() => ({
   sendButton: {},
 }))
 
-interface TokenEntity {
-  token: Token
-  network: Network
-  amount: string
-}
 
 interface Props {
   customRecipient?: string
-  source: TokenEntity
-  dest: Partial<TokenEntity>
+  source: NetworkTokenEntity
+  dest: Partial<NetworkTokenEntity>
   onConfirm: (confirmed: boolean) => void
   estimatedReceived: string
 }
@@ -47,7 +40,10 @@ const ConfirmSend = (props: Props) => {
   const { customRecipient, source, dest, onConfirm, estimatedReceived } = props
   const styles = useStyles()
 
-  const { sending, handleSubmit } = useSendingTransaction({ onConfirm })
+  const { sending, handleSubmit } = useSendingTransaction({
+    onConfirm,
+    source,
+  })
 
   let warning = ''
   if (customRecipient && !dest?.network?.isLayer1) {
@@ -58,12 +54,17 @@ const ConfirmSend = (props: Props) => {
   return (
     <div className={styles.root}>
       <div className={styles.title}>
-        <div style={{
-          marginBottom: '1rem'
-        }}>
+        <div
+          style={{
+            marginBottom: '1rem',
+          }}
+        >
           <Typography variant="h6" color="textSecondary">
-            Send <strong>{commafy(source.amount, 5)} {source.token.symbol}</strong> from {source.network.name} to{' '}
-            {dest?.network?.name}
+            Send{' '}
+            <strong>
+              {commafy(source.amount, 5)} {source.token.symbol}
+            </strong>{' '}
+            from {source.network.name} to {dest?.network?.name}
           </Typography>
         </div>
         <div>

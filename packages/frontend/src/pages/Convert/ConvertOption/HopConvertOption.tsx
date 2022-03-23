@@ -4,8 +4,8 @@ import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
 import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
-import DetailRow from 'src/components/DetailRow'
-import FeeDetails from 'src/components/FeeDetails'
+import DetailRow from 'src/components/InfoTooltip/DetailRow'
+import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
 
 class HopConvertOption extends ConvertOption {

@@ -261,6 +261,7 @@ class CanonicalBridge extends Base {
 
         return arbBridge.l1Bridge.deposit(depositTxParams)
       }
+
       case ChainSlug.Polygon: {
         if (this.tokenSymbol === Token.MATIC) {
           return (

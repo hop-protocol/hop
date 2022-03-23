@@ -1,6 +1,6 @@
-import { BigNumber, Signer } from 'ethers'
+import { BigNumber, Signer, providers } from 'ethers'
 import { GetPublicKeyCommand, KMSClient, SignCommand } from '@aws-sdk/client-kms'
-import { arrayify, hashMessage, joinSignature, keccak256, recoverAddress, resolveProperties, serializeTransaction } from 'ethers/lib/utils'
+import { arrayify, defineReadOnly, hashMessage, joinSignature, keccak256, recoverAddress, resolveProperties, serializeTransaction } from 'ethers/lib/utils'
 import * as asn1 from 'asn1.js'
 
 const EcdsaPubKey = asn1.define('EcdsaPubKey', function () {
@@ -20,22 +20,37 @@ const EcdsaSigAsnParse = asn1.define('EcdsaSig', function () {
   )
 })
 
+type Config = {
+  keyId: string
+  region?: string
+}
+
 // details:
 // https://ethereum.stackexchange.com/a/73371/5093
+// https://github.com/lucashenning/aws-kms-ethereum-signing/blob/master/aws-kms-sign.ts
 export class KmsSigner extends Signer {
-  keyId: string
+  config: Config
   address: string
   client: KMSClient
 
-  constructor (keyId: string) {
+  constructor (config: Config, provider?: any) {
     super()
-    this.keyId = keyId
-    this.client = new KMSClient({ region: 'us-west-1' })
+    if (!config.keyId) {
+      throw new Error('keyId is required')
+    }
+    this.config = config
+    this.client = new KMSClient({
+      region: config.region
+    })
+    defineReadOnly(this, 'provider', provider || null)
   }
 
-  connect (provider: any) {
-    // TODO
-    return provider
+  get keyId () {
+    return this.config.keyId
+  }
+
+  connect (provider: providers.Provider) {
+    return new KmsSigner(this.config, this.provider)
   }
 
   async getAddress () {
@@ -133,7 +148,7 @@ export class KmsSigner extends Signer {
 
 async function example () {
   const keyId = '32a977a2-b532-40b3-af2e-f064d3980f75'
-  const signer = new KmsSigner(keyId)
+  const signer = new KmsSigner({ keyId })
   const address = await signer.getAddress()
   const msg = 'Hello World'
   const signature = await signer.signMessage(msg)

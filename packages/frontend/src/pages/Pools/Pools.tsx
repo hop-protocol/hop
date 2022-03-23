@@ -20,7 +20,7 @@ import {
   toTokenDisplay,
 } from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
-import DetailRow from 'src/components/DetailRow'
+import DetailRow from 'src/components/InfoTooltip/DetailRow'
 import { useNeedsTokenForFee } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
@@ -135,7 +135,7 @@ const Pools: FC = () => {
     userPoolTokenPercentage,
     virtualPrice,
     warning,
-    lpTokenTotalSupplyFormatted
+    lpTokenTotalSupplyFormatted,
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {

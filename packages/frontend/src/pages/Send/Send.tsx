@@ -315,7 +315,16 @@ const Send: FC = () => {
   // Send tokens
   // ==============================================================================================
 
-  const { tx, setTx, send, sending } = useSendTransaction({
+  const {
+    tx,
+    setTx,
+    send,
+    sending,
+    handleTransaction,
+    setSending,
+    waitForTransaction,
+    updateTransaction,
+  } = useSendTransaction({
     amountOutMin,
     customRecipient,
     deadline,
@@ -333,9 +342,22 @@ const Send: FC = () => {
   })
 
   const { l1CanonicalBridge, sendL1CanonicalBridge, usingNativeBridge, selectNativeBridge } =
-    useL1CanonicalBridge(sourceToken, fromTokenAmountBN, toNetwork, estimatedReceived, txConfirm, {
-      customRecipient,
-    })
+    useL1CanonicalBridge(
+      sdk,
+      sourceToken,
+      fromTokenAmountBN,
+      toNetwork,
+      estimatedReceived,
+      txConfirm,
+      {
+        customRecipient,
+        handleTransaction,
+        setSending,
+        setTx,
+        waitForTransaction,
+        updateTransaction,
+      }
+    )
 
   useEffect(() => {
     if (tx) {

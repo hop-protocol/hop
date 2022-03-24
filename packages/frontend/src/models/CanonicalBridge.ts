@@ -5,6 +5,8 @@ import {
   L1ArbitrumDaiGateway__factory,
   L1ArbitrumDaiGateway,
   L1OptimismDaiTokenBridge__factory,
+  L1OptimismGateway__factory,
+  L1OptimismGateway,
   L1OptimismTokenBridge__factory,
   L1OptimismTokenBridge,
   L1PolygonPlasmaBridgeDepositManager__factory,
@@ -33,9 +35,13 @@ import {
 } from '@hop-protocol/sdk'
 import { Bridge } from 'arb-ts'
 import { JsonRpcSigner } from '@ethersproject/providers'
+import logger from 'src/logger'
+import { formatError } from 'src/utils'
 
 export type L1CanonicalBridge =
   | ArbitrumInbox
+  | L1ArbitrumDaiGateway
+  | L1OptimismGateway
   | L1OptimismTokenBridge
   | L1PolygonPlasmaBridgeDepositManager
   | L1PolygonPosRootChainManager
@@ -150,6 +156,7 @@ class CanonicalBridge extends Base {
             // Gnosis requires a higher gas limit
             gasLimit: 500e3,
             from,
+            value: amount,
           })
         }
 
@@ -173,59 +180,40 @@ class CanonicalBridge extends Base {
           )
         }
 
-        if (this.tokenSymbol === Token.DAI) {
-          const bridge = L1OptimismDaiTokenBridge__factory.connect(
-            l1CanonicalBridge.address,
-            this.signer
-          )
-          const l2Gas = BigNumber.from('1920000')
+        const bridge = L1OptimismGateway__factory.connect(l1CanonicalBridge.address, this.signer)
+        const l2Gas = BigNumber.from('1920000')
+
+        if (this.tokenSymbol === Token.ETH) {
           const data = '0x'
-          return bridge.populateTransaction.depositERC20(
-            l1CanonicalToken.address,
-            l2TokenAddress,
-            amount,
-            l2Gas,
-            data,
-            {
-              from,
-              gasLimit: 500e3,
-            }
-          )
+          return bridge.populateTransaction.depositETHTo(recipient, l2Gas, data, {
+            from,
+            gasLimit: 500e3,
+            value: amount,
+          })
         }
 
-        const bridge = L1OptimismTokenBridge__factory.connect(
-          l1CanonicalBridge.address,
-          this.signer
-        )
-        return bridge.populateTransaction.deposit(
+        return bridge.populateTransaction.depositERC20To(
           l1CanonicalToken.address,
           l2TokenAddress,
-          signerAddress,
+          recipient,
+          amount,
+          l2Gas,
           payload,
           { from, gasLimit: 500e3 }
         )
       }
 
       case ChainSlug.Arbitrum: {
-        const ethSigner = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
-        const arbProvider = await this.getSignerOrProvider(Chain.Arbitrum)
-        const arbSigner = (arbProvider as any).getUncheckedSigner(from)
-        const arbBridge = await Bridge.init(ethSigner as JsonRpcSigner, arbSigner)
-
-        let bridge: ArbitrumInbox | L1ArbitrumDaiGateway = L1ArbitrumDaiGateway__factory.connect(
-          l1CanonicalBridge.address,
-          this.signer
-        )
+        const maxSubmissionPrice = BigNumber.from(amount).add(1000e4)
 
         if (this.tokenSymbol === Token.ETH) {
-          bridge = await this.getContract(
+          const bridge = await this.getContract(
             ArbitrumInbox__factory,
             l1CanonicalBridge.address,
             this.signer
           )
-          const maxSubmissionCost = BigNumber.from(amount).add(1000e4)
           return ((bridge as ArbitrumInbox).populateTransaction.depositEth as any)(
-            BigNumber.from(maxSubmissionCost),
+            BigNumber.from(maxSubmissionPrice),
             {
               value: amount,
               from,
@@ -233,33 +221,49 @@ class CanonicalBridge extends Base {
           )
         }
 
+        const retryableGasArgs = {
+          maxSubmissionPrice,
+          maxGas: maxSubmissionPrice,
+        }
         const depositInputParams = {
           erc20L1Address: l1CanonicalToken.address,
           amount: BigNumber.from(amount),
           destinationAddress: recipient,
+          retryableGasArgs,
         }
-        const depositTxParams = await arbBridge.getDepositTxParams(depositInputParams)
-        const gasNeeded = await arbBridge.estimateGasDeposit(depositTxParams)
-        const { maxFeePerGas, gasPrice } = await arbBridge.l1Provider.getFeeData()
-        const price = maxFeePerGas || gasPrice
-        const walletBal = await arbBridge.l1Provider.getBalance(from)
 
-        if (!price) {
-          console.log('Warning: could not get gas price estimate; will try depositing anyway')
-        } else {
-          const fee = price.mul(gasNeeded)
-          if (fee.gt(walletBal)) {
-            console.log(
-              `An estimated ${utils.formatEther(
-                fee
-              )} ether is needed for deposit; you only have ${utils.formatEther(
-                walletBal
-              )} ether. Will try depositing anyway:`
-            )
+        try {
+          const ethSigner = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
+          const arbProvider = await this.getSignerOrProvider(Chain.Arbitrum)
+          const arbSigner = (arbProvider as any).getUncheckedSigner(from)
+          const arbBridge = await Bridge.init(ethSigner as JsonRpcSigner, arbSigner)
+
+          const gasNeeded = await arbBridge.estimateGasDeposit(depositInputParams)
+          const depositTxParams = await arbBridge.getDepositTxParams(depositInputParams)
+          const { maxFeePerGas, gasPrice } = await arbBridge.l1Provider.getFeeData()
+          const price = maxFeePerGas || gasPrice
+          const walletBal = await arbBridge.l1Provider.getBalance(from)
+
+          if (!price) {
+            console.log('Warning: could not get gas price estimate; will try depositing anyway')
+          } else {
+            const fee = price.mul(gasNeeded)
+            if (fee.gt(walletBal)) {
+              console.log(
+                `An estimated ${utils.formatEther(
+                  fee
+                )} ether is needed for deposit; you only have ${utils.formatEther(
+                  walletBal
+                )} ether. Will try depositing anyway:`
+              )
+            }
           }
-        }
 
-        return arbBridge.l1Bridge.deposit(depositTxParams)
+          return arbBridge.l1Bridge.deposit(depositTxParams)
+        } catch (error) {
+          logger.error(formatError(error))
+        }
+        break
       }
 
       case ChainSlug.Polygon: {

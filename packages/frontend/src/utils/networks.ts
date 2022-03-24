@@ -6,7 +6,7 @@ import { networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
 import Network from 'src/models/Network'
 
-export function findNetworkById(networkId: string, networks: Network[] = allNetworks) {
+export function findNetworkById(networkId: number, networks: Network[] = allNetworks) {
   return find(networks, ['networkId', networkId])
 }
 

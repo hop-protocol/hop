@@ -45,9 +45,9 @@ const useStyles = makeStyles(theme => ({
 
 type Props = {
   network: Network
-  bridge: HopBridge | undefined
-  stakingToken: Token | undefined
-  rewardsToken: Token | undefined
+  bridge?: HopBridge
+  stakingToken?: any
+  rewardsToken?: Token
   stakingRewards?: StakingRewards
   rewardTokenUsdPrice?: number
 }

@@ -21,9 +21,11 @@ function setLightModeStyles() {
     '.bn-onboard-custom.bn-onboard-select-info-container span'
   )
 
-  ;(modalContent as any).style.color = '#4a4a4a'
-  ;(modalContent as any).style.backgroundColor = '#FDF7F9'
-  ;(whatsAWallet as any).style.color = '#4a4a4a'
+  if (modalContent) {
+    ;(modalContent as any).style.color = '#4a4a4a'
+    ;(modalContent as any).style.backgroundColor = '#FDF7F9'
+    ;(whatsAWallet as any).style.color = '#4a4a4a'
+  }
 
   setWalletButtonStyles()
 

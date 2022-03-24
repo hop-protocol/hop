@@ -406,7 +406,7 @@ class Base {
         }
         return signer
       }
-      return chain.provider
+      return signer.connect(chain.provider)
     }
 
     const { chainId } = await signer.getNetwork()

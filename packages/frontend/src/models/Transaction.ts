@@ -231,7 +231,7 @@ class Transaction extends EventEmitter {
             deadline
           )
 
-          if (transferFromL1Completeds?.length) {
+          if (transferFromL1Completeds?.length > 0) {
             const lastTransfer: L1Transfer =
               transferFromL1Completeds[transferFromL1Completeds.length - 1]
 
@@ -243,7 +243,7 @@ class Transaction extends EventEmitter {
           // If TheGraph is not working...
           const evs = await queryFilterTransferFromL1CompletedEvents(bridge, this.destNetworkName)
 
-          if (evs?.length) {
+          if (evs?.length > 0) {
             // Find the matching amount
             const tfl1Completed = findTransferFromL1CompletedLog(
               evs,
@@ -275,7 +275,7 @@ class Transaction extends EventEmitter {
           this.destNetworkName,
           this.transferId
         )
-        if (withdrawalBondeds?.length) {
+        if (withdrawalBondeds?.length > 0) {
           const lastEvent = withdrawalBondeds[withdrawalBondeds.length - 1]
           this.destTxHash = lastEvent.transactionHash
         }

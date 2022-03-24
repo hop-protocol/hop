@@ -4,7 +4,7 @@ import MemoryStore from 'src/gasboost/MemoryStore'
 import expectDefined from './utils/expectDefined'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import wait from 'src/utils/wait'
-import { Gas } from 'src/gasboost/Gas'
+import { GasService } from 'src/gasboost/GasService'
 import { Wallet } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
@@ -272,10 +272,28 @@ describe.skip('GasBoostTransaction', () => {
   }, 10 * 60 * 1000)
 })
 
-describe.only('Gas', () => {
-  it('gas', async () => {
-    const gas = new Gas()
-    const result = await gas.getGas()
+describe.only('GasService', () => {
+  it('getGas', async () => {
+    const gasService = new GasService()
+    const result = await gasService.getGas()
+    console.log(result)
+    expect(result).toBeTruthy()
+  }, 10 * 60 * 1000)
+  it('etherchain getGas', async () => {
+    const gas = new GasService()
+    const result = await gas.etherchain.getGas()
+    console.log(result)
+    expect(result).toBeTruthy()
+  }, 10 * 60 * 1000)
+  it('etherscan getGas', async () => {
+    const gas = new GasService()
+    const result = await gas.etherscan.getGas()
+    console.log(result)
+    expect(result).toBeTruthy()
+  }, 10 * 60 * 1000)
+  it.only('blocknative getGas', async () => {
+    const gas = new GasService()
+    const result = await gas.blocknative.getGas()
     console.log(result)
     expect(result).toBeTruthy()
   }, 10 * 60 * 1000)

@@ -10,9 +10,9 @@ import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
 import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
-import { EventEmitter } from 'events'
-
 import { EstimateGasError, NonceTooLowError } from 'src/types/error'
+import { EventEmitter } from 'events'
+import { GasService } from './GasService'
 import { Notifier } from 'src/notifier'
 import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
 import { gasBoostErrorSlackChannel, gasBoostWarnSlackChannel, hostname } from 'src/config'
@@ -53,7 +53,7 @@ export type Options = {
   timeTilBoostMs: number
   initialTimeTilBoostMs: number
   gasPriceMultiplier: number
-  initialTxGasPriceMultiplier: number
+  initialTxIsLowPriority: boolean
   maxGasPriceGwei: number
   minPriorityFeePerGas: number
   priorityFeePerGasCap: number
@@ -72,13 +72,15 @@ type Type2GasData = {
 
 type GasFeeData = Type0GasData & Type2GasData
 
+type TxType = 0 | 2
+
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 3 * 60 * 1000
   initialTimeTilBoostMs: number
   gasPriceMultiplier: number = MaxGasPriceMultiplier // multiplier for gasPrice
-  initialTxGasPriceMultiplier: number // multiplier for gasPrice on first transaction
+  initialTxIsLowPriority: boolean // set to true to send initial tx with low priority gas fee
   maxGasPriceGwei: number = 500 // the max we'll keep bumping gasPrice in type 0 txs
   maxGasPriceReached: boolean = false // this is set to true when gasPrice is greater than maxGasPrice
   minPriorityFeePerGas: number = MinPriorityFeePerGas // we use this priorityFeePerGas or the ethers suggestions; which ever one is greater
@@ -98,11 +100,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   receipt?: providers.TransactionReceipt
   private _is1559Supported: boolean // set to true if EIP-1559 type transactions are supported
   readonly minMultiplier: number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
+  gasService: GasService = new GasService()
 
   reorgWaitConfirmations: number = 1
   originalTxParams: providers.TransactionRequest
 
-  type?: number // type 0 or type 2
+  type?: TxType // type 0 or type 2
 
   // these properties are required by ethers TransactionResponse interface
   from: string // type 0 and 2 tx required property
@@ -159,7 +162,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.from = tx.from!
     this.to = tx.to!
     if (tx.type != null) {
-      this.type = tx.type
+      this.type = tx.type as TxType
     }
     if (tx.data) {
       this.data = hexlify(tx.data)
@@ -225,10 +228,6 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   setGasPriceMultiplier (gasPriceMultiplier: number) {
     this.gasPriceMultiplier = gasPriceMultiplier
-  }
-
-  setStartGasPriceMultiplier (initialTxGasPriceMultiplier: number) {
-    this.initialTxGasPriceMultiplier = initialTxGasPriceMultiplier
   }
 
   setMaxGasPriceGwei (maxGasPriceGwei: number) {
@@ -306,15 +305,33 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return gTx
   }
 
-  async send () {
-    let gasPriceMultiplier = this.gasPriceMultiplier
-    let compareMarketGasPrice = this.compareMarketGasPrice
-    if (this.initialTxGasPriceMultiplier && this.boostIndex === 0) {
-      gasPriceMultiplier = this.gasPriceMultiplier
-      compareMarketGasPrice = false
+  async getLowProrityGasFeeData () {
+    const use1559 = await this.shouldUse1559()
+    const estimated = await this.gasService.getGas()
+    const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = estimated.slow
+
+    if (use1559) {
+      return {
+        gasPrice: undefined,
+        maxFeePerGas,
+        maxPriorityFeePerGas
+      }
     }
 
-    let gasFeeData = await this.getBumpedGasFeeData(gasPriceMultiplier, compareMarketGasPrice)
+    return {
+      gasPrice,
+      maxFeePerGas: undefined,
+      maxPriorityFeePerGas: undefined
+    }
+  }
+
+  async send () {
+    let gasFeeData: any
+    if (this.initialTxIsLowPriority && this.boostIndex === 0) {
+      gasFeeData = await this.getLowProrityGasFeeData()
+    } else {
+      gasFeeData = await this.getBumpedGasFeeData(this.gasPriceMultiplier, this.compareMarketGasPrice)
+    }
 
     // use passed in tx gas values if they were specified
     if (this.gasPrice) {
@@ -334,7 +351,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
     // store populated and normalized values
     if (tx.type != null) {
-      this.type = tx.type
+      this.type = tx.type as TxType
     }
     this.from = tx.from
     this.to = tx.to!
@@ -412,8 +429,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return BNMax(marketMaxPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
   }
 
+  async shouldUse1559 (): Promise<boolean> {
+    const isSupported = await this.is1559Supported()
+    return isSupported && !this.gasPrice && this.type !== 0
+  }
+
   async getBumpedGasFeeData (multiplier: number, compareMarketGasPrice: boolean): Promise<Partial<GasFeeData>> {
-    const use1559 = await this.is1559Supported() && !this.gasPrice && this.type !== 0
+    const use1559 = await this.shouldUse1559()
 
     if (use1559) {
       const gasFeeData = await this.getGasFeeData()
@@ -475,8 +497,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       }
       this.gasPriceMultiplier = options.gasPriceMultiplier
     }
-    if (options.initialTxGasPriceMultiplier) {
-      this.initialTxGasPriceMultiplier = options.initialTxGasPriceMultiplier
+    if (options.initialTxIsLowPriority) {
+      this.initialTxIsLowPriority = options.initialTxIsLowPriority
     }
     if (options.maxGasPriceGwei) {
       this.maxGasPriceGwei = options.maxGasPriceGwei

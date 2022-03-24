@@ -261,32 +261,7 @@ const Send: FC = () => {
   // Approve fromNetwork / fromToken
   // ==============================================================================================
 
-  const { approve, checkApproval } = useApprove(sourceToken)
-
-  const needsApproval = useAsyncMemo(async () => {
-    try {
-      if (!(fromNetwork && sourceToken && fromTokenAmount)) {
-        return false
-      }
-
-      const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
-      const bridge = sdk.bridge(sourceToken.symbol)
-
-      let spender: string
-      if (fromNetwork.isLayer1) {
-        const l1Bridge = await bridge.getL1Bridge()
-        spender = l1Bridge.address
-      } else {
-        const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
-        spender = ammWrapper.address
-      }
-
-      return checkApproval(parsedAmount, sourceToken, spender)
-    } catch (err: any) {
-      logger.error(err)
-      return false
-    }
-  }, [sdk, fromNetwork, sourceToken, fromTokenAmount, checkApproval])
+  const { approve, needsApproval } = useApprove(sourceToken, fromNetwork, amountOut)
 
   const approveFromToken = async () => {
     if (!fromNetwork) {

@@ -16,22 +16,6 @@ export type TransactionHandled = {
   txModel: Transaction
 }
 
-export function handleTransaction(
-  tx,
-  fromNetwork,
-  toNetwork,
-  sourceToken,
-  addTransaction
-): TransactionHandled {
-  const txModel = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
-  addTransaction(txModel)
-
-  return {
-    transaction: tx,
-    txModel,
-  }
-}
-
 export function useSendTransaction(props) {
   const {
     amountOutMin,
@@ -87,6 +71,16 @@ export function useSendTransaction(props) {
 
     setRecipientAndBridge()
   }, [signer, sourceToken, customRecipient])
+
+  function handleTransaction(tx, fromNetwork, toNetwork, sourceToken): TransactionHandled {
+    const txModel = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
+    addTransaction(txModel)
+
+    return {
+      transaction: tx,
+      txModel,
+    }
+  }
 
   // Master send method
   const send = async () => {
@@ -228,7 +222,7 @@ export function useSendTransaction(props) {
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken)
   }
 
   const sendl2ToL1 = async () => {
@@ -269,7 +263,7 @@ export function useSendTransaction(props) {
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken)
   }
 
   const sendl2ToL2 = async () => {
@@ -310,7 +304,7 @@ export function useSendTransaction(props) {
       },
     })
 
-    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken, addTransaction)
+    return handleTransaction(tx, fromNetwork, toNetwork, sourceToken)
   }
 
   return {
@@ -318,5 +312,9 @@ export function useSendTransaction(props) {
     sending,
     tx,
     setTx,
+    setSending,
+    handleTransaction,
+    waitForTransaction,
+    updateTransaction,
   }
 }

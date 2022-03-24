@@ -24,6 +24,7 @@ const constructWallet = memoize(
     const signer = new GasBoostSigner(privateKey, provider!, db)
     const maxGasPriceGwei = getNetworkMaxGasPrice(network)
     const initialTxGasPriceMultiplier = isLowPriority && lowPriorityGasPriceMultiplier ? lowPriorityGasPriceMultiplier : gasPriceMultiplier
+    const initialTimeTilBoostMs = isLowPriority && lowPriorityTimeTilBoostMs ? lowPriorityTimeTilBoostMs : timeTilBoostMs
     const { waitConfirmations: reorgWaitConfirmations } = globalConfig.networks[network]!
     signer.setOptions({
       gasPriceMultiplier,
@@ -31,7 +32,8 @@ const constructWallet = memoize(
       maxGasPriceGwei,
       minPriorityFeePerGas,
       priorityFeePerGasCap,
-      timeTilBoostMs: isLowPriority && lowPriorityTimeTilBoostMs ? lowPriorityTimeTilBoostMs : timeTilBoostMs,
+      timeTilBoostMs,
+      initialTimeTilBoostMs,
       reorgWaitConfirmations
     })
     return signer

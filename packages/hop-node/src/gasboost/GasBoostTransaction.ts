@@ -51,6 +51,7 @@ type MarshalledItem = {
 export type Options = {
   pollMs: number
   timeTilBoostMs: number
+  initialTimeTilBoostMs: number
   gasPriceMultiplier: number
   initialTxGasPriceMultiplier: number
   maxGasPriceGwei: number
@@ -75,6 +76,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   started: boolean = false
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 3 * 60 * 1000
+  initialTimeTilBoostMs: number
   gasPriceMultiplier: number = MaxGasPriceMultiplier // multiplier for gasPrice
   initialTxGasPriceMultiplier: number // multiplier for gasPrice on first transaction
   maxGasPriceGwei: number = 500 // the max we'll keep bumping gasPrice in type 0 txs
@@ -215,6 +217,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   setTimeTilBoostMs (timeTilBoostMs: number) {
     this.timeTilBoostMs = timeTilBoostMs
+  }
+
+  setInitialTimeTilBoostMs (initialTimeTilBoostMs: number) {
+    this.initialTimeTilBoostMs = initialTimeTilBoostMs
   }
 
   setGasPriceMultiplier (gasPriceMultiplier: number) {
@@ -457,6 +463,12 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       }
       this.timeTilBoostMs = options.timeTilBoostMs
     }
+    if (options.initialTimeTilBoostMs) {
+      if (options.initialTimeTilBoostMs <= 0) {
+        throw new Error('initialTimeTilBoostMs must be greater than 0')
+      }
+      this.initialTimeTilBoostMs = options.initialTimeTilBoostMs
+    }
     if (options.gasPriceMultiplier) {
       if (options.gasPriceMultiplier !== 1 && options.gasPriceMultiplier < this.minMultiplier) {
         throw new Error(`multiplier must be greater than ${this.minMultiplier}`)
@@ -584,7 +596,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private shouldBoost (item: InflightItem) {
-    const timeOk = item.sentAt < (Date.now() - this.timeTilBoostMs)
+    let timeTilBoostMs = this.timeTilBoostMs
+    if (this.initialTimeTilBoostMs && this.boostIndex === 0) {
+      timeTilBoostMs = this.initialTimeTilBoostMs
+    }
+    const timeOk = item.sentAt < (Date.now() - timeTilBoostMs)
     const isConfirmed = this.confirmations
     const isMaxGasPriceReached = this.maxGasPriceReached
     return timeOk && !isConfirmed && !isMaxGasPriceReached

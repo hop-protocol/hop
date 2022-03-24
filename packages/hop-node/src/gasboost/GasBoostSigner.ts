@@ -139,6 +139,12 @@ class GasBoostSigner extends Wallet {
     })
   }
 
+  setInitialTimeTilBoostMs (initialTimeTilBoostMs: number) {
+    this.setOptions({
+      initialTimeTilBoostMs
+    })
+  }
+
   setGasPriceMultiplier (gasPriceMultiplier: number) {
     this.setOptions({
       gasPriceMultiplier

@@ -4,6 +4,7 @@ import MemoryStore from 'src/gasboost/MemoryStore'
 import expectDefined from './utils/expectDefined'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import wait from 'src/utils/wait'
+import { Gas } from 'src/gasboost/Gas'
 import { Wallet } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
@@ -15,7 +16,6 @@ describe('GasBoostSigner', () => {
     expectDefined(privateKey)
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider)
-    signer.setStore(store)
     expect(await signer.getAddress()).toBeTruthy()
   })
   it.skip('sendTransaction - gnosis', async () => {
@@ -142,7 +142,7 @@ describe('GasBoostSigner', () => {
     })
     const recipient = await signer.getAddress()
     console.log('recipient:', recipient)
-    expect(signer.nonce).toBe(0)
+    expect(await signer.getNonce()).toBe(0)
     let errMsg = ''
     const nonce = await signer.getTransactionCount('pending')
     try {
@@ -156,7 +156,7 @@ describe('GasBoostSigner', () => {
       errMsg = err.message
     }
     expect(errMsg).toBe('NonceTooLow')
-    expect(signer.nonce).toBe(nonce + 1)
+    expect(await signer.getNonce()).toBe(nonce + 1)
   }, 10 * 60 * 1000)
   it.skip('reorg test', async () => {
     const chain = 'gnosis'
@@ -269,5 +269,14 @@ describe.skip('GasBoostTransaction', () => {
     expect(tx).toBeTruthy()
     expect(tx.type).toBe(2)
     expect(tx.gasPrice).toBeFalsy()
+  }, 10 * 60 * 1000)
+})
+
+describe.only('Gas', () => {
+  it('gas', async () => {
+    const gas = new Gas()
+    const result = await gas.getGas()
+    console.log(result)
+    expect(result).toBeTruthy()
   }, 10 * 60 * 1000)
 })

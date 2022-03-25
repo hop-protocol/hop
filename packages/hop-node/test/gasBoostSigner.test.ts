@@ -273,18 +273,18 @@ describe.skip('GasBoostTransaction', () => {
 })
 
 describe.only('GasService', () => {
-  it('getGas', async () => {
+  it('getGasFeeData', async () => {
     const gasService = new GasService()
-    const result = await gasService.getGas()
+    const result = await gasService.getGasFeeData()
     console.log(result)
     expect(result).toBeTruthy()
     expect(result.slow.gasPrice).toBeTruthy()
     expect(result.standard.gasPrice).toBeTruthy()
     expect(result.fast.gasPrice).toBeTruthy()
   }, 10 * 60 * 1000)
-  it.only('get1559Gas', async () => {
+  it('get1559GasFeeData', async () => {
     const gasService = new GasService()
-    const result = await gasService.get1559Gas()
+    const result = await gasService.get1559GasFeeData()
     console.log(result)
     expect(result).toBeTruthy()
     expect(result.slow.maxFeePerGas).toBeTruthy()
@@ -294,27 +294,27 @@ describe.only('GasService', () => {
     expect(result.fast.maxFeePerGas).toBeTruthy()
     expect(result.fast.maxPriorityFeePerGas).toBeTruthy()
   }, 10 * 60 * 1000)
-  it('etherchain getGas', async () => {
+  it('etherchain getGasFeeData', async () => {
     const gas = new GasService()
-    const result = await gas.etherchain.getGas()
+    const result = await gas.etherchain.getGasFeeData()
     console.log(result)
     expect(result).toBeTruthy()
     expect(result.slow.gasPrice).toBeTruthy()
     expect(result.standard.gasPrice).toBeTruthy()
     expect(result.fast.gasPrice).toBeTruthy()
   }, 10 * 60 * 1000)
-  it('etherscan getGas', async () => {
+  it('etherscan getGasFeeData', async () => {
     const gas = new GasService()
-    const result = await gas.etherscan.getGas()
+    const result = await gas.etherscan.getGasFeeData()
     console.log(result)
     expect(result).toBeTruthy()
     expect(result.slow.gasPrice).toBeTruthy()
     expect(result.standard.gasPrice).toBeTruthy()
     expect(result.fast.gasPrice).toBeTruthy()
   }, 10 * 60 * 1000)
-  it('blocknative getGas', async () => {
+  it('blocknative getGasFeeData', async () => {
     const gas = new GasService()
-    const result = await gas.blocknative.getGas()
+    const result = await gas.blocknative.getGasFeeData()
     console.log(result)
     expect(result).toBeTruthy()
     expect(result.slow.maxFeePerGas).toBeTruthy()
@@ -324,9 +324,9 @@ describe.only('GasService', () => {
     expect(result.fast.maxFeePerGas).toBeTruthy()
     expect(result.fast.maxPriorityFeePerGas).toBeTruthy()
   }, 10 * 60 * 1000)
-  it('alchemy getGas', async () => {
+  it('alchemy getGasFeeData', async () => {
     const gas = new GasService()
-    const result = await gas.alchemy.getGas()
+    const result = await gas.alchemy.getGasFeeData()
     console.log(result)
     expect(result).toBeTruthy()
     expect(result.slow.maxFeePerGas).toBeTruthy()

@@ -2,9 +2,10 @@ import Logger from 'src/logger'
 import fetch from 'node-fetch'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber } from 'ethers'
+import { Chain } from 'src/constants'
 import { alchemyApiKey, blocknativeApiKey, etherscanEthereumApiKey } from 'src/config'
 import { createAlchemyWeb3 } from '@alch/alchemy-web3'
-import { parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 type GasFeeData = {
   maxFeePerGas: BigNumber | null
@@ -21,11 +22,15 @@ type GasEstimation = {
 class Etherchain {
   baseUrl: string = 'https://etherchain.org/api'
 
-  async getGas (): Promise<GasEstimation> {
+  async getGasFeeData (): Promise<GasEstimation> {
     const url = `${this.baseUrl}/gasnow`
     const res = await fetch(url)
     const json = await res.json()
-    const result = json.data
+    const result = json?.data
+    if (!result?.standard) {
+      console.error(json)
+      throw new Error('invalid response')
+    }
     return {
       fast: this.normalizeItem(result.rapid),
       standard: this.normalizeItem(result.fast),
@@ -45,11 +50,15 @@ class Etherchain {
 class Etherscan {
   baseUrl: string = 'https://api.etherscan.io/api'
 
-  async getGas (): Promise<GasEstimation> {
+  async getGasFeeData (): Promise<GasEstimation> {
     const url = `${this.baseUrl}?module=gastracker&action=gasoracle&apikey=${etherscanEthereumApiKey}`
     const res = await fetch(url)
     const json = await res.json()
-    const result = json.result
+    const result = json?.result
+    if (!result?.ProposeGasPrice) {
+      console.error(json)
+      throw new Error('invalid response')
+    }
     return {
       fast: this.normalizeItem(result.FastGasPrice),
       standard: this.normalizeItem(result.ProposeGasPrice),
@@ -76,7 +85,7 @@ class Etherscan {
 class Blocknative {
   baseUrl: string = 'https://api.blocknative.com'
 
-  async getGas (): Promise<GasEstimation> {
+  async getGasFeeData (): Promise<GasEstimation> {
     const url = `${this.baseUrl}/gasprices/blockprices`
     const res = await fetch(url, {
       headers: {
@@ -84,8 +93,11 @@ class Blocknative {
       }
     })
     const json = await res.json()
-    const result = json
-    const { estimatedPrices } = result.blockPrices[0]
+    const estimatedPrices = json.blockPrices?.[0]?.estimatedPrices
+    if (!estimatedPrices?.length) {
+      console.error(json)
+      throw new Error('invalid response')
+    }
     return {
       fast: this.normalizeItem(estimatedPrices[0]),
       standard: this.normalizeItem(estimatedPrices[1]),
@@ -105,12 +117,20 @@ class Blocknative {
 class Alchemy {
   web3: any = createAlchemyWeb3(`https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`)
 
-  async getGas () {
-    const result = await this.web3.eth.getFeeHistory(10, 'latest', [50, 75, 90])
+  async getGasFeeData () {
+    const slowPercentile = 50
+    const standardPercentile = 75
+    const fastPercentile = 90
+    const result = await this.web3.eth.getFeeHistory(10, 'latest', [slowPercentile, standardPercentile, fastPercentile])
     let slow = BigNumber.from(0)
     let standard = BigNumber.from(0)
     let fast = BigNumber.from(0)
     let count = 0
+
+    if (!result?.reward) {
+      console.error(result)
+      throw new Error('invalid response')
+    }
 
     for (const item of result.reward) {
       const _slow = BigNumber.from(item[0])
@@ -141,8 +161,8 @@ class Alchemy {
 
   private normalizeItem (item: any) {
     return {
-      maxFeePerGas: parseUnits(item.maxFeePerGas.toString(), 9),
-      maxPriorityFeePerGas: parseUnits(item.maxPriorityFeePerGas.toString(), 9),
+      maxFeePerGas: item.maxFeePerGas,
+      maxPriorityFeePerGas: item.maxPriorityFeePerGas,
       gasPrice: null
     }
   }
@@ -155,16 +175,22 @@ export class GasService {
   alchemy = new Alchemy()
   logger = new Logger('GasService')
 
-  getGas = rateLimitRetry(async (): Promise<GasEstimation> => {
+  constructor (chain: string = Chain.Ethereum) {
+    if (chain !== Chain.Ethereum) {
+      throw new Error('GasService current only supports ethereum')
+    }
+  }
+
+  getGasFeeData = rateLimitRetry(async (): Promise<GasEstimation> => {
     let result
     try {
       this.logger.debug('fetching etherchain api gas estimates')
-      result = await this.etherchain.getGas()
+      result = await this.etherchain.getGasFeeData()
     } catch (err) {
       this.logger.error('error fetching etherchain api gas estimates:', err)
       try {
         this.logger.debug('fetching etherscan api gas estimates')
-        result = await this.etherscan.getGas()
+        result = await this.etherscan.getGasFeeData()
       } catch (err) {
         this.logger.error('error fetching etherscan api gas estimates', err)
         throw err
@@ -175,17 +201,16 @@ export class GasService {
     return result
   })
 
-  get1559Gas = rateLimitRetry(async (): Promise<GasEstimation> => {
+  get1559GasFeeData = rateLimitRetry(async (): Promise<GasEstimation> => {
     let result
     try {
       this.logger.debug('fetching blocknative api gas estimates')
-      // result = await this.blocknative.getGas()
-      result = await this.alchemy.getGas()
+      result = await this.blocknative.getGasFeeData()
     } catch (err) {
       this.logger.error('error fetching blocknative api gas estimates:', err)
       try {
         this.logger.debug('fetching alchemy api gas estimates')
-        result = await this.alchemy.getGas()
+        result = await this.alchemy.getGasFeeData()
       } catch (err) {
         this.logger.error('error fetching alchemy api gas estimates', err)
         throw err
@@ -212,26 +237,26 @@ export class GasService {
 
     if (item.maxFeePerGas) {
       if (item.maxFeePerGas.lt(minFeePerGas)) {
-        throw new Error('invalid maxFeePerGas')
+        throw new Error(`invalid maxFeePerGas; must be greater than ${formatUnits(minFeePerGas.toString(), 9)}, received: ${formatUnits(item.maxFeePerGas.toString(), 9)}`)
       }
       if (item.maxFeePerGas.gt(maxFeePerGas)) {
-        throw new Error('invalid maxFeePerGas')
+        throw new Error(`invalid maxFeePerGas; must be less than ${formatUnits(maxFeePerGas.toString(), 9)}, received: ${formatUnits(item.maxFeePerGas.toString(), 9)}`)
       }
     }
     if (item.maxPriorityFeePerGas) {
       if (item.maxPriorityFeePerGas.lt(minPriorityFeePerGas)) {
-        throw new Error('invalid minPriorityFeePerGas')
+        throw new Error(`invalid maxPriorityFeePerGas; must be greater than ${formatUnits(minPriorityFeePerGas.toString(), 9)}, received: ${formatUnits(item.maxPriorityFeePerGas.toString(), 9)}`)
       }
       if (item.maxPriorityFeePerGas.gt(maxPriorityFeePerGas)) {
-        throw new Error('invalid maxPriorityFeePerGas')
+        throw new Error(`invalid maxPriorityFeePerGas; must be less than ${formatUnits(maxPriorityFeePerGas.toString(), 9)}, received: ${formatUnits(item.maxPriorityFeePerGas.toString(), 9)}`)
       }
     }
     if (item.gasPrice) {
       if (item.gasPrice.lt(minGasPrice)) {
-        throw new Error('invalid gasPrice')
+        throw new Error(`invalid gasPrice; must be greater than ${formatUnits(minGasPrice.toString(), 9)}, received: ${formatUnits(item.gasPrice.toString(), 9)}`)
       }
       if (item.gasPrice.gt(maxGasPrice)) {
-        throw new Error('invalid gasPrice')
+        throw new Error(`invalid gasPrice; must be less than ${formatUnits(maxGasPrice.toString(), 9)}, received: ${formatUnits(item.gasPrice.toString(), 9)}`)
       }
     }
   }

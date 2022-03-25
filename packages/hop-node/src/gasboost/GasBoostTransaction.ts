@@ -100,7 +100,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   receipt?: providers.TransactionReceipt
   private _is1559Supported: boolean // set to true if EIP-1559 type transactions are supported
   readonly minMultiplier: number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
-  gasService: GasService = new GasService()
+  gasService: GasService
 
   reorgWaitConfirmations: number = 1
   originalTxParams: providers.TransactionRequest
@@ -138,6 +138,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     this.chainSlug = chainSlug
     this.chainId = chainSlugToId(chainSlug)
+    if (chainSlug === Chain.Ethereum) {
+      this.gasService = new GasService(chainSlug)
+    }
     const tag = 'GasBoostTransaction'
     let prefix = `${this.chainSlug} id: ${this.id}`
     const transferId = this.decodeTransferId()
@@ -306,29 +309,30 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getLowProrityGasFeeData () {
+    if (!this.gasService) {
+      throw new Error('gasService is not set')
+    }
+
     const use1559 = await this.shouldUse1559()
-    const estimated = await this.gasService.getGas()
-    const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = estimated.slow
-
     if (use1559) {
-      return {
-        gasPrice: undefined,
-        maxFeePerGas,
-        maxPriorityFeePerGas
-      }
+      const { slow } = await this.gasService.get1559GasFeeData()
+      return slow
     }
 
-    return {
-      gasPrice,
-      maxFeePerGas: undefined,
-      maxPriorityFeePerGas: undefined
-    }
+    const { slow } = await this.gasService.getGasFeeData()
+    return slow
   }
 
   async send () {
     let gasFeeData: any
-    if (this.initialTxIsLowPriority && this.boostIndex === 0) {
-      gasFeeData = await this.getLowProrityGasFeeData()
+    const useLowPriorityGas = this.initialTxIsLowPriority && this.boostIndex === 0 && this.gasService
+    if (useLowPriorityGas) {
+      try {
+        gasFeeData = await this.getLowProrityGasFeeData()
+      } catch (err) {
+        this.logger.error('getLowProrityGasFeeData error:', err)
+        gasFeeData = await this.getBumpedGasFeeData(1, false)
+      }
     } else {
       gasFeeData = await this.getBumpedGasFeeData(this.gasPriceMultiplier, this.compareMarketGasPrice)
     }

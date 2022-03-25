@@ -372,10 +372,12 @@ const ConvertProvider: FC = ({ children }) => {
           source: {
             amount: sourceTokenAmount,
             token: sourceToken,
+            network: sourceNetwork
           },
           dest: {
             amount: destTokenAmount,
             token: destToken,
+            network: destNetwork
           },
         },
         onConfirm: async () => {

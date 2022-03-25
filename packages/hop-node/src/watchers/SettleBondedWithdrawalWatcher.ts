@@ -8,9 +8,7 @@ import { Transfer } from 'src/db/TransfersDb'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  isL1: boolean
   bridgeContract: L1BridgeContract | L2BridgeContract
-  label: string
   dryMode?: boolean
   minThresholdPercent: number
 }
@@ -23,9 +21,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'magenta',
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
@@ -51,7 +47,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
       // get all db transfer items that belong to root
       const dbTransfers: Transfer[] = []
-      for (const transferId of transferIds!) {
+      for (const transferId of transferIds) {
         const dbTransfer = await this.db.transfers.getByTransferId(transferId)
         if (!dbTransfer) {
           continue
@@ -59,8 +55,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         dbTransfers.push(dbTransfer)
       }
 
-      if (dbTransfers.length !== transferIds!.length) {
-        this.logger.error(`could not find all db transfers for root id ${transferRootId}. Has ${transferIds!.length}, found ${dbTransfers.length}. Db may not be fully synced`)
+      if (dbTransfers.length !== transferIds.length) {
+        this.logger.error(`could not find all db transfers for root id ${transferRootId}. Has ${transferIds.length}, found ${dbTransfers.length}. Db may not be fully synced`)
         continue
       }
 

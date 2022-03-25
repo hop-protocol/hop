@@ -283,6 +283,7 @@ const Web3ContextProvider: FC = ({ children }) => {
       const signerNetworkId = (await provider.getNetwork())?.chainId
       logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
 
+      // TODO: this block of code is too confident. use separate hook to check last-minute tx details
       if (networkId.toString() === signerNetworkId?.toString()) {
         return true
       }

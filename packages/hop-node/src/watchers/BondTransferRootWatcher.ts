@@ -13,8 +13,6 @@ type Config = {
   chainSlug: string
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L2BridgeContract
-  label: string
-  isL1: boolean
   dryMode?: boolean
 }
 
@@ -25,9 +23,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'cyan',
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
@@ -61,24 +57,24 @@ class BondTransferRootWatcher extends BaseWatcher {
       const logger = this.logger.create({ root: transferRootId })
 
       const bondChainId = chainSlugToId(Chain.Ethereum)
-      const availableCredit = this.getAvailableCreditForBond(bondChainId!)
-      const notEnoughCredit = availableCredit.lt(totalAmount!)
+      const availableCredit = this.getAvailableCreditForBond(bondChainId)
+      const notEnoughCredit = availableCredit.lt(totalAmount)
       if (notEnoughCredit) {
         logger.debug(
         `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
           availableCredit
-        )}, need ${this.bridge.formatUnits(totalAmount!)}`)
+        )}, need ${this.bridge.formatUnits(totalAmount)}`)
         continue
       }
 
       promises.push(this.checkTransfersCommitted(
         transferRootId,
-        transferRootHash!,
-        totalAmount!,
-        destinationChainId!,
-        committedAt!,
-        sourceChainId!,
-        transferIds!
+        transferRootHash,
+        totalAmount,
+        destinationChainId,
+        committedAt,
+        sourceChainId,
+        transferIds
       ))
     }
 
@@ -141,7 +137,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     const bondChainId = chainSlugToId(Chain.Ethereum)
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
-    const availableCredit = this.getAvailableCreditForBond(bondChainId!)
+    const availableCredit = this.getAvailableCreditForBond(bondChainId)
     const notEnoughCredit = availableCredit.lt(bondAmount)
     if (notEnoughCredit) {
       const msg = `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
@@ -196,7 +192,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   getAvailableCreditForBond (destinationChainId: number) {
-    const baseAvailableCredit = this.syncWatcher.getBaseAvailableCreditIncludingVault(destinationChainId)
+    const baseAvailableCredit = this.availableLiquidityWatcher.getBaseAvailableCreditIncludingVault(destinationChainId)
     return baseAvailableCredit
   }
 
@@ -207,7 +203,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     return await this.mutex.runExclusive(async () => {
       const availableCredit = this.getAvailableCreditForBond(destinationChainId)
-      const vaultBalance = this.syncWatcher.getVaultBalance(destinationChainId)
+      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
       const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
       if (shouldWithdraw) {
         try {

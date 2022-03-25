@@ -2,9 +2,10 @@ import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
-import { ERC20__factory, WETH9__factory } from '@hop-protocol/core/contracts'
+import { ERC20__factory } from '@hop-protocol/core/contracts/factories/ERC20__factory'
 import { TAmount, TChain } from './types'
 import { TokenSymbol, WrappedToken } from './constants'
+import { WETH9__factory } from '@hop-protocol/core/contracts/factories/WETH9__factory'
 
 /**
  * Class reprensenting ERC20 Token
@@ -146,10 +147,10 @@ class Token extends Base {
    */
   public async transfer (recipient: string, amount: TAmount) {
     if (this.isNativeToken) {
-      return (this.signer as Signer).sendTransaction({
+      return this.sendTransaction({
         to: recipient,
         value: amount
-      })
+      }, this.chain)
     }
     const tokenContract = await this.getErc20()
     return tokenContract.transfer(recipient, amount, await this.overrides())
@@ -178,7 +179,7 @@ class Token extends Base {
     const populatedTx = await this.populateApproveTx(spender, amount)
     const allowance = await this.allowance(spender)
     if (allowance.lt(BigNumber.from(amount))) {
-      return this.signer.sendTransaction(populatedTx)
+      return this.sendTransaction(populatedTx, this.chain)
     }
   }
 
@@ -271,6 +272,13 @@ class Token extends Base {
     )
   }
 
+  async populateWrapTokenTx (amount: TAmount) {
+    const contract = await this.getWethContract()
+    return contract.populateTransaction.deposit({
+      value: amount
+    })
+  }
+
   async wrapToken (amount: TAmount, estimateGasOnly: boolean = false) {
     const contract = await this.getWethContract()
     if (estimateGasOnly) {
@@ -281,14 +289,19 @@ class Token extends Base {
         from
       })
     }
-    return contract.deposit({
-      value: amount
-    })
+
+    const populatedTx = await this.populateWrapTokenTx(amount)
+    return this.sendTransaction(populatedTx, this.chain)
+  }
+
+  async populateUnwrapTokenTx (amount: TAmount) {
+    const contract = await this.getWethContract()
+    return contract.populateTransaction.withdraw(amount)
   }
 
   async unwrapToken (amount: TAmount) {
-    const contract = await this.getWethContract()
-    return contract.withdraw(amount)
+    const populatedTx = await this.populateUnwrapTokenTx(amount)
+    return this.sendTransaction(populatedTx, this.chain)
   }
 
   async getWrapTokenEstimatedGas (

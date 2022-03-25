@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Token from 'src/models/Token'
 import Network from 'src/models/Network'
 import Typography from '@material-ui/core/Typography'
-import { commafy } from 'src/utils'
+import { commafy, NetworkTokenEntity } from 'src/utils'
 import { getExplorerTxUrl } from 'src/utils/getExplorerUrl'
 import Address from 'src/models/Address'
 import { ExternalLink } from 'src/components/Link'
@@ -31,6 +31,7 @@ interface Props {
   sendTx: any
   onError: any
   onConfirm: (confirmed: boolean) => void
+  source: NetworkTokenEntity
 }
 
 const WithdrawReview = (props: Props) => {
@@ -39,8 +40,8 @@ const WithdrawReview = (props: Props) => {
   const [waitingConfirmation, setWaitingConfirmation] = useState<boolean>(false)
   const [sending, setSending] = useState<boolean>(false)
   const [txHash, setTxHash] = useState<string>('')
-  const { getProof, getInfo, sendTx, onConfirm, onError } = props
-  const { handleSubmit: closeModal } = useSendingTransaction({ onConfirm })
+  const { getProof, getInfo, sendTx, onConfirm, onError, source } = props
+  const { handleSubmit: closeModal } = useSendingTransaction({ onConfirm, source })
   const styles = useStyles()
 
   useEffect(() => {
@@ -72,43 +73,46 @@ const WithdrawReview = (props: Props) => {
   return (
     <div className={styles.root}>
       <div className={styles.title}>
-        <div style={{
-          marginBottom: '1rem'
-        }}>
+        <div
+          style={{
+            marginBottom: '1rem',
+          }}
+        >
           <Typography variant="h6" color="textSecondary">
             Withdraw Transfer
           </Typography>
         </div>
         <div>
-          {!proofLoaded &&
+          {!proofLoaded && (
             <Typography variant="subtitle2" color="textSecondary">
               Checking transfer data...
             </Typography>
-          }
-          {info &&
+          )}
+          {info && (
             <Typography variant="h6" color="textSecondary">
-              <strong>{info.amount} {info.token}</strong> on {info.destination?.name}
+              <strong>
+                {info.amount} {info.token}
+              </strong>{' '}
+              on {info.destination?.name}
             </Typography>
-          }
-          {waitingConfirmation &&
+          )}
+          {waitingConfirmation && (
             <Typography variant="subtitle2" color="textSecondary">
               Waiting for transaction confirmation...
             </Typography>
-          }
-          {txHash &&
+          )}
+          {txHash && (
             <Typography variant="subtitle2" color="textSecondary">
-              <ExternalLink href={getExplorerTxUrl(info?.destination?.slug, txHash)} linkText={'View transaction ↗'} />
+              <ExternalLink
+                href={getExplorerTxUrl(info?.destination?.slug, txHash)}
+                linkText={'View transaction ↗'}
+              />
             </Typography>
-          }
+          )}
         </div>
       </div>
       <div className={styles.action}>
-        <Button
-          className={styles.doneButton}
-          onClick={handleClose}
-          disabled={!txHash}
-          large
-        >
+        <Button className={styles.doneButton} onClick={handleClose} disabled={!txHash} large>
           Done
         </Button>
       </div>

@@ -31,7 +31,7 @@ type BondedTransfer = {
 }
 
 export default async function getIncompleteSettlements (token: string, chain: string, destinationChain: string): Promise<any> {
-  const destinationChainId: number = chainSlugToId(destinationChain)! // eslint-disable-line
+  const destinationChainId: number = chainSlugToId(destinationChain)
 
   const isDestinationOptimism = destinationChain === Chain.Optimism
   if (isDestinationOptimism) {

@@ -1,11 +1,9 @@
-import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getTransferId from 'src/theGraph/getTransfer'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
 import { actionHandler, getWithdrawalProofData, parseString, root } from './shared'
 import {
-  findWatcher,
-  getWatchers
+  getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
 
 root
@@ -81,15 +79,8 @@ async function main (source: any) {
     transferIndex
   } = getWithdrawalProofData(transferId, transferRoot)
 
-  const dryMode = false
-  const watchers = await getWatchers({
-    enabledWatchers: ['bondWithdrawal'],
-    tokens: [token],
-    dryMode
-  })
-
   const destinationChain = chainIdToSlug(destinationChainId)
-  const watcher = findWatcher(watchers, BondWithdrawalWatcher, destinationChain) as BondWithdrawalWatcher
+  const watcher = await getBondWithdrawalWatcher({ chain: destinationChain, token, dryMode: false })
   if (!watcher) {
     throw new Error('watcher not found')
   }

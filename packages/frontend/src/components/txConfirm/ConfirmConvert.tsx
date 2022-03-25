@@ -1,9 +1,8 @@
 import React from 'react'
 import Button from 'src/components/buttons/Button'
 import { makeStyles } from '@material-ui/core/styles'
-import Token from 'src/models/Token'
 import Typography from '@material-ui/core/Typography'
-import { commafy } from 'src/utils'
+import { commafy, NetworkTokenEntity } from 'src/utils'
 import { useSendingTransaction } from './useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
@@ -20,14 +19,9 @@ const useStyles = makeStyles(() => ({
   sendButton: {},
 }))
 
-interface TokenEntity {
-  token: Token
-  amount: string
-}
-
 interface Props {
-  source: TokenEntity
-  dest: TokenEntity
+  source: NetworkTokenEntity
+  dest: NetworkTokenEntity
   onConfirm: (confirmed: boolean) => void
 }
 
@@ -35,7 +29,7 @@ const ConfirmConvert = (props: Props) => {
   const { source, dest, onConfirm } = props
   const styles = useStyles()
 
-  const { sending, handleSubmit } = useSendingTransaction({ onConfirm })
+  const { sending, handleSubmit } = useSendingTransaction({ onConfirm, source })
 
   return (
     <div className={styles.root}>

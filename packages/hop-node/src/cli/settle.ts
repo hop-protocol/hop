@@ -1,8 +1,6 @@
-import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import { actionHandler, parseBool, parseString, root } from './shared'
 import {
-  findWatcher,
-  getWatchers
+  getSettleBondedWithdrawalsWatcher
 } from 'src/watchers/watchers'
 
 root
@@ -32,13 +30,7 @@ async function main (source: any) {
     throw new Error('transferRootHash or transferId is required')
   }
 
-  const watchers = await getWatchers({
-    enabledWatchers: ['settleBondedWithdrawals'],
-    tokens: [token],
-    dryMode
-  })
-
-  const watcher = findWatcher(watchers, SettleBondedWithdrawalWatcher, chain) as SettleBondedWithdrawalWatcher
+  const watcher = await getSettleBondedWithdrawalsWatcher({ chain, token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
   }

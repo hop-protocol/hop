@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.306",
+  "version": "0.0.1-beta.310",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -13,8 +13,8 @@
     "dev": "npm run version && tsc --watch",
     "build": "npm run version && npm run build:ts",
     "build:ts": "tsc",
-    "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] ] dist/src/index.js | uglifyjs > hop.js",
-    "clean": "rimraf dist",
+    "build:browser": "browserify -t [ babelify --presets [ @babel/preset-env ] --plugins [ @babel/plugin-transform-runtime ] ] dist/src/index.js | uglifyjs --compress --mangle > hop.js",
+    "clean": "rimraf dist && rimraf hop.js",
     "clean:docs": "rimraf docs",
     "version": "echo \"export default '$(cat package.json | jq -r '.version')'\" > src/version.ts",
     "lint": "eslint --fix \"src/**/*\" \"test/**/*\"",
@@ -38,6 +38,7 @@
   "dependencies": {
     "@eth-optimism/contracts": "^0.5.2",
     "@ethersproject/abi": "^5.4.0",
+    "@ethersproject/properties": "^5.6.0",
     "@hop-protocol/core": "0.0.1-beta.62",
     "@maticnetwork/maticjs": "^2.0.38",
     "dotenv": "^8.2.0",

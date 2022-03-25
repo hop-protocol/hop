@@ -1,7 +1,6 @@
-import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import { actionHandler, parseBool, parseString, root } from './shared'
-import { findWatcher, getWatchers } from 'src/watchers/watchers'
+import { getCommitTransfersWatcher } from 'src/watchers/watchers'
 
 root
   .command('commit-transfers')
@@ -28,17 +27,11 @@ async function main (source: any) {
     throw new Error('token is required')
   }
 
-  const watchers = await getWatchers({
-    enabledWatchers: ['commitTransfers'],
-    tokens: [token],
-    dryMode
-  })
-
-  const watcher = findWatcher(watchers, CommitTransfersWatcher, sourceChain) as CommitTransfersWatcher
+  const watcher = await getCommitTransfersWatcher({ chain: sourceChain, token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
   }
 
   const destinationChainId = chainSlugToId(destinationChain)
-  await watcher.checkIfShouldCommit(destinationChainId!)
+  await watcher.checkIfShouldCommit(destinationChainId)
 }

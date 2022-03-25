@@ -56,6 +56,53 @@ type GetItemsFilter = Partial<TransferRoot> & {
   destinationChainIds?: number[]
 }
 
+type UnsettledTransferRoot = {
+  transferRootId: string
+  transferRootHash: string
+  totalAmount: BigNumber
+  transferIds: string[]
+  destinationChainId: number
+  rootSetTxHash: string
+  committed: boolean
+  committedAt: number
+  allSettled: boolean
+}
+
+type UnbondedTransferRoot = {
+  bonded: boolean
+  bondedAt: number
+  confirmed: boolean
+  transferRootHash: string
+  transferRootId: string
+  committedAt: number
+  commitTxHash: string
+  commitTxBlockNumber: number
+  destinationChainId: number
+  sourceChainId: number
+  totalAmount: BigNumber
+  transferIds: string[]
+}
+
+export type ExitableTransferRoot = {
+  commitTxHash: string
+  confirmed: boolean
+  transferRootHash: string
+  transferRootId: string
+  totalAmount: BigNumber
+  destinationChainId: number
+  committed: boolean
+  committedAt: number
+}
+
+export type ChallengeableTransferRoot = {
+  transferRootId: string
+  transferRootHash: string
+  committed: boolean
+  totalAmount: BigNumber
+  bonded: boolean
+  challenged: boolean
+}
+
 // structure:
 // key: `transferRoot:<committedAt>:<transferRootId>`
 // value: `{ transferRootId: <transferRootId> }`
@@ -352,10 +399,10 @@ class TransferRootsDb extends BaseDb {
 
   async getUnbondedTransferRoots (
     filter: GetItemsFilter = {}
-  ): Promise<TransferRoot[]> {
+  ): Promise<UnbondedTransferRoot[]> {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
       }
@@ -392,14 +439,16 @@ class TransferRootsDb extends BaseDb {
         timestampOk
       )
     })
+
+    return filtered as UnbondedTransferRoot[]
   }
 
   async getExitableTransferRoots (
     filter: GetItemsFilter = {}
-  ): Promise<TransferRoot[]> {
+  ): Promise<ExitableTransferRoot[]> {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
       }
@@ -506,14 +555,16 @@ class TransferRootsDb extends BaseDb {
         oruShouldExit
       )
     })
+
+    return filtered as ExitableTransferRoot[]
   }
 
   async getChallengeableTransferRoots (
     filter: GetItemsFilter = {}
-  ): Promise<TransferRoot[]> {
+  ): Promise<ChallengeableTransferRoot[]> {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getBondedTransferRootsFromTwoWeeks()
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
       }
@@ -543,14 +594,16 @@ class TransferRootsDb extends BaseDb {
         isWithinChallengePeriod
       )
     })
+
+    return filtered as ChallengeableTransferRoot[]
   }
 
   async getUnsettledTransferRoots (
     filter: GetItemsFilter = {}
-  ): Promise<TransferRoot[]> {
+  ): Promise<UnsettledTransferRoot[]> {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
       }
@@ -595,6 +648,8 @@ class TransferRootsDb extends BaseDb {
         settleAttemptTimestampOk
       )
     })
+
+    return filtered as UnsettledTransferRoot[]
   }
 
   async getIncompleteItems (
@@ -609,7 +664,7 @@ class TransferRootsDb extends BaseDb {
 
     const batchedItems = await this.batchGetByIds(transferRootIds)
     const transferRoots = batchedItems.map(this.normalizeItem)
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter((item: TransferRoot) => {
       if (filter.sourceChainId && item.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
@@ -622,6 +677,8 @@ class TransferRootsDb extends BaseDb {
 
       return this.subDbIncompletes.isItemIncomplete(item)
     })
+
+    return filtered
   }
 }
 

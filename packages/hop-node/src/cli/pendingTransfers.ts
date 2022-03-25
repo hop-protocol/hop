@@ -1,10 +1,8 @@
-import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import { actionHandler, logger, parseString, root } from './shared'
 import {
-  findWatcher,
-  getWatchers
+  getCommitTransfersWatcher
 } from 'src/watchers/watchers'
 
 root
@@ -27,18 +25,12 @@ async function main (source: any) {
     throw new Error('token is required')
   }
 
-  const watchers = await getWatchers({
-    enabledWatchers: ['commitTransfers'],
-    tokens: [token],
-    dryMode: true
-  })
-
-  const watcher = findWatcher(watchers, CommitTransfersWatcher, sourceChain) as CommitTransfersWatcher
+  const watcher = await getCommitTransfersWatcher({ chain: sourceChain, token, dryMode: true })
   if (!watcher) {
     throw new Error('watcher not found')
   }
 
-  const destinationChainId = chainSlugToId(destinationChain)!
+  const destinationChainId = chainSlugToId(destinationChain)
   const bridge = (watcher.bridge as L2Bridge)
   const exists = await bridge.doPendingTransfersExist(destinationChainId)
   if (!exists) {

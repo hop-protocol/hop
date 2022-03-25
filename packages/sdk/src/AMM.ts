@@ -4,7 +4,7 @@ import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
 import { DateTime } from 'luxon'
-import { Swap__factory } from '@hop-protocol/core/contracts'
+import { Swap__factory } from '@hop-protocol/core/contracts/factories/Swap__factory'
 import { TAmount, TChain, TProvider } from './types'
 import { TokenIndex, TokenSymbol } from './constants'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
@@ -102,7 +102,7 @@ class AMM extends Base {
     deadline: BigNumberish = this.defaultDeadlineSeconds
   ): Promise<TransactionResponse> {
     const populatedTx = await this.populateAddLiquidityTx(amount0Desired, amount1Desired, minToMint, deadline)
-    return this.signer.sendTransaction(populatedTx)
+    return this.sendTransaction(populatedTx, this.chain)
   }
 
   public async populateAddLiquidityTx (
@@ -167,7 +167,7 @@ class AMM extends Base {
     deadline: BigNumberish = this.defaultDeadlineSeconds
   ): Promise<TransactionResponse> {
     const populatedTx = await this.populateRemoveLiquidityTx(liquidityTokenAmount, amount0Min, amount1Min, deadline)
-    return this.signer.sendTransaction(populatedTx)
+    return this.sendTransaction(populatedTx, this.chain)
   }
 
   public async populateRemoveLiquidityTx (

@@ -1,8 +1,6 @@
-import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import { BigNumber } from 'ethers'
 import {
-  findWatcher,
-  getWatchers
+  getBondTransferRootWatcher
 } from 'src/watchers/watchers'
 
 import chainSlugToId from 'src/utils/chainSlugToId'
@@ -48,13 +46,7 @@ async function main (source: any) {
     throw new Error('total amount is required')
   }
 
-  const watchers = await getWatchers({
-    enabledWatchers: ['bondTransferRoot'],
-    tokens: [token],
-    dryMode
-  })
-
-  const watcher = findWatcher(watchers, BondTransferRootWatcher, chain) as BondTransferRootWatcher
+  const watcher = await getBondTransferRootWatcher({ chain, token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
   }

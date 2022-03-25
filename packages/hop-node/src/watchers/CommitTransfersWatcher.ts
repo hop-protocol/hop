@@ -10,10 +10,8 @@ import { getEnabledNetworks } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  label: string
   minThresholdAmounts?: {[chain: string]: number}
 
-  isL1?: boolean
   bridgeContract?: L1BridgeContract | L2BridgeContract
   dryMode?: boolean
 }
@@ -27,9 +25,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'yellow',
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
@@ -81,8 +77,8 @@ class CommitTransfersWatcher extends BaseWatcher {
     const destinationChainIds: number[] = []
     for (const dbTransfer of dbTransfers) {
       const { destinationChainId } = dbTransfer
-      if (!destinationChainIds.includes(destinationChainId!)) {
-        destinationChainIds.push(destinationChainId!)
+      if (!destinationChainIds.includes(destinationChainId)) {
+        destinationChainIds.push(destinationChainId)
       }
     }
     for (const destinationChainId of destinationChainIds) {

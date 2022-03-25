@@ -28,7 +28,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       dryMode: config.dryMode
     })
 
-    this.l1Wallet = wallets.get(Chain.Ethereum)
+    this.l1Wallet = wallets.lowPriority.get(Chain.Ethereum)
     this.l2Wallet = wallets.get(Chain.Arbitrum)
 
     this.init()

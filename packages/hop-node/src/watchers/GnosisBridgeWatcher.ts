@@ -20,7 +20,7 @@ type Config = {
 }
 
 const getL1Amb = (token: string) => {
-  const l1Wallet = wallets.get(Chain.Ethereum)
+  const l1Wallet = wallets.lowPriority.get(Chain.Ethereum)
   const l1AmbAddress = globalConfig.addresses[token].gnosis.l1Amb
   return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1XDaiAMB
 }

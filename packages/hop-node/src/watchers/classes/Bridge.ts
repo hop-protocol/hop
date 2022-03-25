@@ -1,4 +1,5 @@
 import ContractBase, { TxOverrides } from './ContractBase'
+import Logger from 'src/logger'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
@@ -39,6 +40,7 @@ export default class Bridge extends ContractBase {
   bridgeContract: BridgeContract
   bridgeDeployedBlockNumber: number
   l1CanonicalTokenAddress: string
+  logger: Logger
 
   constructor (bridgeContract: BridgeContract) {
     super(bridgeContract)
@@ -64,6 +66,10 @@ export default class Bridge extends ContractBase {
     }
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
+    this.logger = new Logger({
+      tag: 'Bridge',
+      prefix: `${this.chainSlug}${this.tokenSymbol}`
+    })
   }
 
   async getBonderAddress (): Promise<string> {
@@ -493,13 +499,16 @@ export default class Bridge extends ContractBase {
       state = await this.db.syncState.getByKey(cacheKey)
     }
 
+    const blockValues = await this.getBlockValues(options, state)
     let {
       start,
       end,
       batchBlocks,
       earliestBlockInBatch,
       latestBlockInBatch
-    } = await this.getBlockValues(options, state) // eslint-disable-line
+    } = blockValues
+
+    this.logger.debug(`eventsBatch cacheKey: ${cacheKey} getBlockValues: ${JSON.stringify(blockValues)}`)
 
     let i = 0
     while (start >= earliestBlockInBatch) {
@@ -513,7 +522,7 @@ export default class Bridge extends ContractBase {
 
       // Subtract 1 so that the boundary blocks are not double counted
       end = start - 1
-      start = end - batchBlocks! // eslint-disable-line
+      start = end - batchBlocks!
 
       if (start < earliestBlockInBatch) {
         start = earliestBlockInBatch
@@ -525,6 +534,7 @@ export default class Bridge extends ContractBase {
     // Sync is complete when the start block is reached since
     // it traverses backwards from head.
     if (cacheKey && start === earliestBlockInBatch) {
+      this.logger.debug(`eventsBatch cacheKey: ${cacheKey} syncState latestBlockInBatch: ${latestBlockInBatch}`)
       await this.db.syncState.update(cacheKey, {
         latestBlockSynced: latestBlockInBatch,
         timestamp: Date.now()
@@ -549,7 +559,7 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end - startBlockNumber
     } else if (endBlockNumber) {
       end = endBlockNumber
-      totalBlocksInBatch = totalBlocks! // eslint-disable-line
+      totalBlocksInBatch = totalBlocks!
     } else if (isInitialSync) {
       end = currentBlockNumberWithFinality
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
@@ -558,7 +568,7 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
       end = currentBlockNumberWithFinality
-      totalBlocksInBatch = totalBlocks! // eslint-disable-line
+      totalBlocksInBatch = totalBlocks!
     }
 
     // Handle the case where the chain has less blocks than the total block config
@@ -567,10 +577,10 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end
     }
 
-    if (totalBlocksInBatch <= batchBlocks!) { // eslint-disable-line
+    if (totalBlocksInBatch <= batchBlocks!) {
       start = end - totalBlocksInBatch
     } else {
-      start = end - batchBlocks! // eslint-disable-line
+      start = end - batchBlocks!
     }
 
     const earliestBlockInBatch = end - totalBlocksInBatch

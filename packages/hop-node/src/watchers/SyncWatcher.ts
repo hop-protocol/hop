@@ -215,7 +215,9 @@ class SyncWatcher extends BaseWatcher {
         cacheKey: useCacheKey ? this.cacheKey(keyName) : undefined,
         startBlockNumber
       }
-      this.logger.debug(`syncing with options: ${JSON.stringify(options)}`)
+      if (this.syncIndex === 0) {
+        this.logger.debug(`syncing with options: ${JSON.stringify(options)}. Note: startBlockNumber is only used if latestBlockSynced for cacheKey is not set.`)
+      }
       return options
     }
 

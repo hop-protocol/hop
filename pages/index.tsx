@@ -1,20 +1,9 @@
-<html lang="es">
-  <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="content-language" content="en-us">
-    <meta name="description" content="Hop Explorer">
-    <meta name="keywords" content="hop, hop exchange, hop explorer, hop transfers, hop visualizations">
-    <meta name="robots" content="index,follow">
-    <meta name="googlebot" content="index,follow">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="application-name" content="Hop">
-    <title>Hop Explorer</title>
-    <link rel="canonical" href="https://explorer.hop.exchange">
-    <link rel="icon" href="https://app.hop.exchange/favicon.ico">
-    <link rel="stylesheet" href="style.css">
-    <script src="static.js"></script>
-  </head>
-  <body>
+import type { NextPage } from 'next'
+import Head from 'next/head'
+import Image from 'next/image'
+import styles from '../styles/Home.module.css'
+
+const rawHTML = `
   <div id="banner">
     <div>
       ⚠️ The <a href="https://thegraph.com/legacy-explorer/subgraph/hop-protocol/hop-polygon?ve
@@ -203,13 +192,13 @@ might not reflect the latest state.
                 </td>
                 <td class="transferId">
                   <a class="clipboard" :data-clipboard-text="x.transferId" title="Copy transfer ID to clipboard" onclick="this.innerText='✅';setTimeout(()=>this.innerText='📋',1000)">📋</a>
-                  <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank" :title="`View on block explorer - ${x.transferId}`">
+                  <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank" :title="\`View on block explorer - \${x.transferId}\`">
                     {{ x.transferIdTruncated }}
                   </a>
                 </td>
                 <td class="transferTx">
                   <a class="clipboard" :data-clipboard-text="x.transactionHash" title="Copy transaction hash to clipboard" onclick="this.innerText='✅';setTimeout(()=>this.innerText='📋',1000)">📋</a>
-                  <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank" :title="`View on block explorer - ${x.transactionHash}`">
+                  <a :class="x.sourceChainSlug" :href="x.sourceTxExplorerUrl" target="_blank" :title="\`View on block explorer - \${x.transactionHash}\`">
                     {{ x.transactionHashTruncated }}
                   </a>
                 </td>
@@ -218,7 +207,7 @@ might not reflect the latest state.
                   {{ x.token }}
                 </td>
                 <td class="amount number" :title="x.amount">{{ x.displayAmount }}</td>
-                <td class="amount number" :title="`${x.displayAmountUsd} @ ${x.displayTokenPriceUsd}`">{{ x.displayAmountUsd }}</td>
+                <td class="amount number" :title="\`\${x.displayAmountUsd} @ \${x.displayTokenPriceUsd}\`">{{ x.displayAmountUsd }}</td>
                 <td class="bonderFee number" :title="x.bonderFee">
                   <span v-if="x.sourceChain !== 1">
                     {{ x.displayBonderFee }}
@@ -227,7 +216,7 @@ might not reflect the latest state.
                     <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
                   </span>
                 </td>
-                <td class="bonderFee number" :title="`${x.displayBonderFeeUsd} @ ${x.displayTokenPriceUsd}`">
+                <td class="bonderFee number" :title="\`\${x.displayBonderFeeUsd} @ \${x.displayTokenPriceUsd}\`">
                   <span v-if="x.sourceChain !== 1">
                     {{ x.displayBonderFeeUsd }}
                   </span>
@@ -236,7 +225,7 @@ might not reflect the latest state.
                   </span>
                 </td>
                 <td class="bonded">
-                  <a v-if="x.bondTxExplorerUrl" :class="`${x.bonded ? 'yes' : 'no'}`" :href="x.bondTxExplorerUrl" target="_blank" title="View on block explorer">
+                  <a v-if="x.bondTxExplorerUrl" :class="\`\${x.bonded ? 'yes' : 'no'}\`" :href="x.bondTxExplorerUrl" target="_blank" title="View on block explorer">
                     <img :src="x.destinationChainImageUrl" :alt="x.destinationChainName">
                     <span v-if="x.sourceChain !== 1">
                       Bonded
@@ -256,7 +245,7 @@ might not reflect the latest state.
                   </span>
                   <span v-if="x.bondTransactionHash">
                     <a class="clipboard" :data-clipboard-text="x.bondTransactionHash" title="Copy transaction hash to clipboard" onclick="this.innerText='✅';setTimeout(()=>this.innerText='📋',1000)">📋</a>
-                    <a :class="x.destinationChainSlug" :href="x.bondTxExplorerUrl" target="_blank" :title="`View on block explorer - ${x.bondTransactionHash}`">
+                    <a :class="x.destinationChainSlug" :href="x.bondTxExplorerUrl" target="_blank" :title="\`View on block explorer - \${x.bondTransactionHash}\`">
                       {{ x.bondTransactionHashTruncated }}
                     </a>
                   </span>
@@ -268,7 +257,7 @@ might not reflect the latest state.
                   {{ x.relativeBondedWithinTimestamp }}
                 </td>
                 <td class="bondedWithin" :title="x.bonder">
-                  <a v-if="x.bonderUrl" class="bonder" :href="x.bonderUrl" target="_blank" :title="`View on block explorer - ${x.bonder}`">
+                  <a v-if="x.bonderUrl" class="bonder" :href="x.bonderUrl" target="_blank" :title="\`View on block explorer - \${x.bonder}\`">
                     {{ x.bonderTruncated }}
                   </a>
                 </td>
@@ -294,15 +283,38 @@ might not reflect the latest state.
             <button v-if="hasNextPage" @click="nextPage" class="paginationButton">next page</button>
           </div>
         </div>
+      <script src="main.js"></script>
       </details>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
-    <script src="https://d3js.org/d3.v3.min.js"></script>
-    <script src="https://cdn.rawgit.com/misoproject/d3.chart/master/d3.chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/1.27.0/luxon.min.js"></script>
-    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
-    <script src="../lib/sankey.patched.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.4.0/clipboard.min.js"></script>
-    <script src="main.js"></script>
-  </body>
-</html>
+`
+
+const Home: NextPage = () => {
+  return (
+    <div className={styles.container}>
+      <Head>
+        <title>Hop Explorer</title>
+        <meta charSet="UTF-8" />
+        <meta httpEquiv="content-language" content="en-us" />
+        <meta name="description" content="Hop Explorer" />
+        <meta name="keywords" content="hop, hop exchange, hop explorer, hop transfers, hop transactions, hop visualizations" />
+        <meta name="robots" content="index,follow" />
+        <meta name="googlebot" content="index,follow" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="application-name" content="Hop" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="stylesheet" href="/style.css" />
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+        <script src="https://d3js.org/d3.v3.min.js"></script>
+        <script src="https://cdn.rawgit.com/misoproject/d3.chart/master/d3.chart.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/1.27.0/luxon.min.js"></script>
+        <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.4.0/clipboard.min.js"></script>
+        <script src="/lib/sankey.patched.js"></script>
+        <script src="/static.js"></script>
+      </Head>
+      { <div dangerouslySetInnerHTML={{ __html: rawHTML }} /> }
+  </div>
+  )
+}
+
+export default Home

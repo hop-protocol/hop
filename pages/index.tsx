@@ -1,5 +1,6 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
+import Script from 'next/script'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 
@@ -283,7 +284,15 @@ might not reflect the latest state.
             <button v-if="hasNextPage" @click="nextPage" class="paginationButton">next page</button>
           </div>
         </div>
-      <script src="main.js"></script>
+        <script src="/lib/vue-2.6.14.min.js"></script>
+        <script src="/lib/d3.v3.min.js"></script>
+        <script src="/lib/d3.chart.min.js"></script>
+        <script src="/lib/luxon-1.27.0.min.js"></script>
+        <script src="/lib/ethers-5.0.umd.min.js"></script>
+        <script src="/lib/clipboard-1.4.0.min.js"></script>
+        <script src="/lib/sankey.patched.js"></script>
+        <script src="/static.js"></script>
+        <script src="/main.js"></script>
       </details>
     </div>
 `
@@ -302,15 +311,6 @@ const Home: NextPage = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="application-name" content="Hop" />
         <link rel="icon" href="/favicon.ico" />
-        <link rel="stylesheet" href="/style.css" />
-        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
-        <script src="https://d3js.org/d3.v3.min.js"></script>
-        <script src="https://cdn.rawgit.com/misoproject/d3.chart/master/d3.chart.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/1.27.0/luxon.min.js"></script>
-        <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.4.0/clipboard.min.js"></script>
-        <script src="/lib/sankey.patched.js"></script>
-        <script src="/static.js"></script>
       </Head>
       { <div dangerouslySetInnerHTML={{ __html: rawHTML }} /> }
   </div>

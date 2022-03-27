@@ -15,7 +15,7 @@ import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
 
 const allProviders: any = {
-  ethereum: new providers.StaticJsonRpcProvider(ethereumRpc),
+  ethereum: new providers.StaticJsonRpcProvider(ethereumRpc, 1),
   gnosis: new providers.StaticJsonRpcProvider(gnosisRpc),
   polygon: new providers.StaticJsonRpcProvider(polygonRpc),
   optimism: new providers.StaticJsonRpcProvider(optimismRpc),

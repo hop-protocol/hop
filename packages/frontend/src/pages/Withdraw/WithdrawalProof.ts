@@ -3,6 +3,7 @@ import { keccak256 } from 'ethereumjs-util'
 import { networkIdToSlug } from 'src/utils/networks'
 import { getTokenDecimals } from 'src/utils/tokens'
 import { getUrl } from 'src/utils/queries'
+import { jsonCorsHeaders } from 'src/utils/fetch'
 
 class MerkleTree extends MerkleTreeLib {
   constructor (leaves: string[]) {
@@ -197,10 +198,7 @@ export class WithdrawalProof {
     const url = getUrl(chain)
     const res = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
+      headers: jsonCorsHeaders,
       body: JSON.stringify({
         query,
         variables: params

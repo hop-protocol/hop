@@ -1,6 +1,7 @@
 import { Slug } from '@hop-protocol/sdk'
 import { BigNumberish } from 'ethers'
 import logger from 'src/logger'
+import { jsonCorsHeaders } from './fetch'
 
 export function getUrl(chain: Slug | string) {
   if (chain === Slug.gnosis) {
@@ -22,10 +23,7 @@ async function queryFetch(url, query, variables?: any) {
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
+      headers: jsonCorsHeaders,
       body: JSON.stringify({
         query,
         variables: variables || {},

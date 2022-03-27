@@ -31,6 +31,7 @@ import {
   useAssets,
 } from 'src/hooks'
 import { useInterval } from 'react-use'
+import { jsonCorsHeaders } from 'src/utils/fetch'
 
 type PoolsContextProps = {
   addLiquidity: () => void
@@ -256,7 +257,7 @@ const PoolsProvider: FC = ({ children }) => {
         let apr: number
         try {
           const url = 'https://assets.hop.exchange/v1-pool-stats.json'
-          const res = await fetch(url)
+          const res = await fetch(url, { headers: jsonCorsHeaders })
           const json = await res.json()
 
           apr = json.data[token.symbol][selectedNetwork.slug].apr
@@ -427,7 +428,10 @@ const PoolsProvider: FC = ({ children }) => {
       if (isSubscribed) {
         setPoolReserves(reserves)
         setLpTokenTotalSupply(lpTokenTotalSupply)
-        const lpTokenTotalSupplyFormatted = commafy(Number(formatUnits(lpTokenTotalSupply.toString(), lpDecimals)), 5)
+        const lpTokenTotalSupplyFormatted = commafy(
+          Number(formatUnits(lpTokenTotalSupply.toString(), lpDecimals)),
+          5
+        )
         setLpTokenTotalSupplyFormatted(lpTokenTotalSupplyFormatted)
       }
     }
@@ -582,7 +586,7 @@ const PoolsProvider: FC = ({ children }) => {
         kind: 'addLiquidity',
         inputProps: {
           source: {
-            network: selectedNetwork
+            network: selectedNetwork,
           },
           token0: {
             amount: token0Amount || '0',
@@ -697,7 +701,7 @@ const PoolsProvider: FC = ({ children }) => {
         kind: 'removeLiquidity',
         inputProps: {
           source: {
-            network: selectedNetwork
+            network: selectedNetwork,
           },
           token0: {
             amount: token0Amount,

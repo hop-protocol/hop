@@ -141,7 +141,7 @@ const wait = (t: number) =>
   new Promise(resolve => setTimeout(() => resolve(null), t))
 
 const allProviders: Record<string, any> = {
-  ethereum: new providers.StaticJsonRpcProvider(ethereumRpc),
+  ethereum: new providers.StaticJsonRpcProvider(ethereumRpc, 1),
   gnosis: new providers.StaticJsonRpcProvider(gnosisRpc),
   polygon: new providers.StaticJsonRpcProvider(polygonRpc),
   optimism: new providers.StaticJsonRpcProvider(optimismRpc),

@@ -61,9 +61,9 @@ const getProvider = memoize((network: string, chain: string) => {
     if (network === 'staging') {
       network = 'mainnet'
     }
-    return providers.getDefaultProvider(network)
+    return providers.getDefaultProvider(1)
   }
-  return new providers.StaticJsonRpcProvider({
+  return new providers.JsonRpcProvider({
     url: rpcUrl,
     timeout: 60 * 1000
   })
@@ -226,7 +226,7 @@ class Base {
         )
       }
       if (chainProviders[chainSlug]) {
-        this.chainProviders[chain.slug] = new providers.StaticJsonRpcProvider(chainProviders[chainSlug])
+        this.chainProviders[chain.slug] = new providers.JsonRpcProvider(chainProviders[chainSlug])
       }
     }
   }

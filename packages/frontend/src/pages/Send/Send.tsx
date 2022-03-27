@@ -258,10 +258,69 @@ const Send: FC = () => {
   }, [amountOutMin])
 
   // ==============================================================================================
+  // Send tokens
+  // ==============================================================================================
+
+  const {
+    tx,
+    setTx,
+    send,
+    sending,
+    handleTransaction,
+    setSending,
+    waitForTransaction,
+    updateTransaction,
+  } = useSendTransaction({
+    amountOutMin,
+    customRecipient,
+    deadline,
+    totalFee,
+    fromNetwork,
+    fromTokenAmount,
+    intermediaryAmountOutMin,
+    sdk,
+    setError,
+    sourceToken,
+    toNetwork,
+    txConfirm,
+    txHistory,
+    estimatedReceived: estimatedReceivedDisplay,
+  })
+
+  const {
+    l1CanonicalBridge,
+    sendL1CanonicalBridge,
+    usingNativeBridge,
+    selectNativeBridge,
+    approveNativeBridge,
+    txConfirmParams,
+  } = useL1CanonicalBridge(
+    sdk,
+    sourceToken,
+    fromTokenAmountBN,
+    toNetwork,
+    estimatedReceived,
+    txConfirm,
+    {
+      customRecipient,
+      handleTransaction,
+      setSending,
+      setTx,
+      waitForTransaction,
+      updateTransaction,
+      setError,
+    }
+  )
+
+  // ==============================================================================================
   // Approve fromNetwork / fromToken
   // ==============================================================================================
 
-  const { approve, needsApproval } = useApprove(sourceToken, fromNetwork, amountOut)
+  const { approve, needsApproval, needsNativeBridgeApproval } = useApprove(
+    sourceToken,
+    fromNetwork,
+    amountOut
+  )
 
   const approveFromToken = async () => {
     if (!fromNetwork) {
@@ -301,63 +360,25 @@ const Send: FC = () => {
     try {
       setError(null)
       setApproving(true)
-      await approveFromToken()
+
+      if (l1CanonicalBridge && needsNativeBridgeApproval) {
+        const done = await approveNativeBridge()
+        if (done) {
+          sendL1CanonicalBridge()
+        }
+      } else {
+        await approveFromToken()
+      }
     } catch (err: any) {
+      console.log(`err:`, err)
       if (!/cancelled/gi.test(err.message)) {
         setError(formatError(err, fromNetwork))
       }
       logger.error(err)
+      setApproving(false)
     }
     setApproving(false)
   }
-
-  // ==============================================================================================
-  // Send tokens
-  // ==============================================================================================
-
-  const {
-    tx,
-    setTx,
-    send,
-    sending,
-    handleTransaction,
-    setSending,
-    waitForTransaction,
-    updateTransaction,
-  } = useSendTransaction({
-    amountOutMin,
-    customRecipient,
-    deadline,
-    totalFee,
-    fromNetwork,
-    fromTokenAmount,
-    intermediaryAmountOutMin,
-    sdk,
-    setError,
-    sourceToken,
-    toNetwork,
-    txConfirm,
-    txHistory,
-    estimatedReceived: estimatedReceivedDisplay,
-  })
-
-  const { l1CanonicalBridge, sendL1CanonicalBridge, usingNativeBridge, selectNativeBridge } =
-    useL1CanonicalBridge(
-      sdk,
-      sourceToken,
-      fromTokenAmountBN,
-      toNetwork,
-      estimatedReceived,
-      txConfirm,
-      {
-        customRecipient,
-        handleTransaction,
-        setSending,
-        setTx,
-        waitForTransaction,
-        updateTransaction,
-      }
-    )
 
   useEffect(() => {
     if (tx) {
@@ -457,7 +478,9 @@ const Send: FC = () => {
 
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork)
 
-  const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
+  const approveButtonActive =
+    (!needsTokenForFee && !unsupportedAsset && needsApproval) ||
+    (usingNativeBridge && needsNativeBridgeApproval)
 
   const sendButtonActive = useMemo(() => {
     return !!(
@@ -624,12 +647,12 @@ const Send: FC = () => {
 
       <ButtonsWrapper>
         {address && !sendButtonActive && (
-          <Div mb={[3]} fullWidth={approveButtonActive}>
+          <Div mb={[3]} fullWidth={!!approveButtonActive}>
             <Button
               className={styles.button}
               large
-              highlighted={!!needsApproval}
-              disabled={!approveButtonActive || usingNativeBridge}
+              highlighted={!!needsApproval || !!needsNativeBridgeApproval}
+              disabled={!approveButtonActive}
               onClick={handleApprove}
               loading={approving}
               fullWidth

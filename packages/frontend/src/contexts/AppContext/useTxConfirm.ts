@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
+import { formatError } from 'src/utils'
 
 type InputProps = any
 type ConfirmParams = any
@@ -13,11 +14,11 @@ export interface TxConfirm {
   show: (params: TxConfirmParams) => Promise<any>
 }
 
-export const useTxConfirm = (): TxConfirm => {
+export const useTxConfirm = (options?: any): TxConfirm => {
   // logger.debug('useTxConfirm debug')
   const [txConfirmParams, setTxConfirm] = useState<ConfirmParams>(null)
 
-  const show = (params: TxConfirmParams) => {
+  const show = useCallback((params: TxConfirmParams) => {
     const { kind, inputProps, onConfirm } = params
     return new Promise((resolve, reject) => {
       setTxConfirm({
@@ -37,17 +38,15 @@ export const useTxConfirm = (): TxConfirm => {
             }
           } catch (err: any) {
             // MetaMask cancel error
-            if (/denied transaction/gi.test(err.message)) {
-              reject(new Error('Cancelled'))
-            } else {
-              reject(err)
+            if (options?.setError) {
+              options.setError(formatError(err))
             }
           }
           setTxConfirm(null)
         },
       })
     })
-  }
+  }, [options])
 
   return {
     txConfirmParams,

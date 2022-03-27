@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import logger from 'src/logger'
+import { formatError } from 'src/utils'
 
 export default function useIsSmartContractWallet() {
   const { provider, address } = useWeb3Context()
@@ -9,8 +11,12 @@ export default function useIsSmartContractWallet() {
     const checkAddress = async () => {
       if (!provider || !address) return
 
-      const code = await provider.getCode(address.address)
-      setIsSmartContractWallet(code !== '0x')
+      try {
+        const code = await provider.getCode(address.address)
+        setIsSmartContractWallet(code !== '0x')
+      } catch (error) {
+        logger.error(formatError(error))
+      }
     }
 
     checkAddress()

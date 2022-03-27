@@ -1,4 +1,4 @@
-import { BigNumber, constants } from 'ethers'
+import { BigNumber, BigNumberish, constants } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import { Token, Chain } from '@hop-protocol/sdk'
@@ -23,14 +23,20 @@ async function getTokenAllowance(token: Token, spender: string) {
   return token.allowance(spender)
 }
 
-const useApprove = (token?: Token, sourceNetwork?: Network, amountOut?: BigNumber) => {
+const useApprove = (
+  token?: Token,
+  sourceNetwork?: Network,
+  amountOut?: BigNumber,
+  l1CanonicalBridge?: CanonicalBridge,
+  sourceTokenAmount?: BigNumber
+) => {
   const { provider } = useWeb3Context()
   const { txConfirm, sdk } = useApp()
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
 
   const { data: needsApproval } = useQuery(
     [
-      `needsApproval:${token?.symbol}:${sourceNetwork?.slug}:${amountOut?.toString()}`,
+      `needsApproval:${token?.symbol}:${sourceNetwork?.slug}:${amountOut?.toString()}}`,
       token?.symbol,
       sourceNetwork?.slug,
       amountOut?.toString(),
@@ -39,7 +45,7 @@ const useApprove = (token?: Token, sourceNetwork?: Network, amountOut?: BigNumbe
       if (!(token && sdk && sourceNetwork && amountOut)) {
         return
       }
-      const signer = provider?.getSigner()
+
       const bridge = sdk.bridge(token.symbol)
 
       if (token.isNativeToken) {
@@ -56,18 +62,21 @@ const useApprove = (token?: Token, sourceNetwork?: Network, amountOut?: BigNumbe
     }
   )
 
-  async function needsNativeBridgeApproval(
-    l1CanonicalBridge: CanonicalBridge,
-    sourceToken: Token,
-    sourceTokenAmount: BigNumber
-  ) {
-    if (sourceToken.isNativeToken) {
-      return
-    }
+  const { data: needsNativeBridgeApproval } = useQuery(
+    [`needsNativeBridgeApproval:${l1CanonicalBridge?.address}:${sourceTokenAmount?.toString()}`],
+    async () => {
+      if (!(l1CanonicalBridge && token?.isNativeToken && sourceTokenAmount)) {
+        return
+      }
 
-    const allowance = await l1CanonicalBridge.getL1CanonicalAllowance()
-    return allowance.lt(sourceTokenAmount)
-  }
+      const allowance = await l1CanonicalBridge.getL1CanonicalAllowance()
+      return allowance?.lt(sourceTokenAmount)
+    },
+    {
+      enabled: !!l1CanonicalBridge?.address && !!sourceTokenAmount?.toString(),
+      refetchInterval: 10e3,
+    }
+  )
 
   const checkApproval = async (amount: BigNumber, token: Token, spender: string) => {
     try {

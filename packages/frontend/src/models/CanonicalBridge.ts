@@ -276,6 +276,7 @@ class CanonicalBridge extends Base {
             payload,
             {
               from,
+              gasLimit: 250e3
             }
           )
         }
@@ -290,7 +291,7 @@ class CanonicalBridge extends Base {
           signerAddress,
           l1CanonicalToken.address,
           payload,
-          { from }
+          { from, gasLimit: 250e3 }
         )
       }
     }

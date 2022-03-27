@@ -15,7 +15,7 @@ import { blocknativeDappid } from 'src/config'
 import { l1Network } from 'src/config/networks'
 import './onboardStyles.css'
 import logger from 'src/logger'
-import { WalletCheckInit, WalletSelectModuleOptions } from 'bnc-onboard/dist/src/interfaces'
+import { Wallet, WalletCheckInit, WalletSelectModuleOptions } from 'bnc-onboard/dist/src/interfaces'
 import mmLogo from 'src/assets/logos/metamask.png'
 import { loadState, saveState } from 'src/utils/localStorage'
 import { ChainId, ChainSlug } from '@hop-protocol/sdk'
@@ -114,18 +114,16 @@ const walletChecks: WalletCheckInit[] = [
 const Web3ContextProvider: FC = ({ children }) => {
   // logger.debug('Web3ContextProvider render')
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>()
-  const [connectedNetworkId, setConnectedNetworkId] = useState<number|undefined>()
+  const [connectedNetworkId, setConnectedNetworkId] = useState<number | undefined>()
   const [validConnectedNetworkId] = useState<boolean>(false)
   const [walletName, setWalletName] = useState<string>('')
   const [address, setAddress] = useState<Address | undefined>()
   const [balance, setBalance] = useState<BigNumber>()
   const [onboardNetworkId] = useState<number>(() => {
     try {
-      const parsedHash = new URLSearchParams(
-        window.location.hash.substring(1)
-      )
+      const parsedHash = new URLSearchParams(window.location.hash.substring(1))
 
-      const slug = parsedHash.get("sourceNetwork")
+      const slug = parsedHash.get('sourceNetwork')
       if (slug) {
         const networkId = networkSlugToId(slug)
         if (networkId) {
@@ -174,7 +172,6 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   // You can update some configuration parameters by passing a config object in to the config function:
   // onboard.config({ darkMode: true, networkId: 4 })
-
   const cacheKey = 'selectedWallet'
   const onboard = useMemo(() => {
     const instance = Onboard({
@@ -207,7 +204,7 @@ const Web3ContextProvider: FC = ({ children }) => {
             setBalance(BigNumber.from(bal))
           }
         },
-        wallet: async (wallet: any) => {
+        wallet: async (wallet: Wallet) => {
           try {
             const { provider, name, instance, type, connect, dashboard, icons } = wallet
             // provider - The JavaScript provider for interacting with the wallet
@@ -219,20 +216,21 @@ const Web3ContextProvider: FC = ({ children }) => {
             // icons - [object] Image strings for the wallet icon { svg, src, srcset }
 
             logger.debug('wallet name:', wallet.name)
-            if (provider) {
+            if (provider && name) {
               saveState(cacheKey, name)
               const ethersProvider = new ethers.providers.Web3Provider(provider, 'any')
-              if (provider.enable && !provider.isMetaMask) {
+
+              if (name !== 'MetaMask' && 'enable' in provider) {
                 // needed for WalletConnect and some wallets
                 await provider.enable()
+              } else if (connect) {
+                // returns [address]
+                await connect()
               } else {
                 // note: this method may not be supported by all wallets
-                try {
-                  await ethersProvider.send('eth_requestAccounts', [])
-                } catch (error) {
-                  console.error(error)
-                }
+                await ethersProvider.send('eth_requestAccounts', [])
               }
+
               setProvider(ethersProvider)
               setWalletName(name)
             } else {
@@ -254,7 +252,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     })
 
     return instance
-  }, [setProvider, setConnectedNetworkId, onboardNetworkId])
+  }, [setProvider, setConnectedNetworkId, onboardNetworkId, blocknativeDappid])
 
   useEffect(() => {
     if (onboard) {

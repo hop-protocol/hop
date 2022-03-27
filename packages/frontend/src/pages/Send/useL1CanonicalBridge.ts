@@ -97,7 +97,7 @@ export function useL1CanonicalBridge(
 
     if (shouldApproveNativeBridge) {
       const approveTx = await l1CanonicalBridge.approve(constants.MaxUint256)
-      await approveTx.wait(3)
+      await approveTx.wait()
     }
 
     const tx: any = await txConfirm.show({

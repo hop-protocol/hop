@@ -461,6 +461,7 @@ const Send: FC = () => {
 
   const sendButtonActive = useMemo(() => {
     return !!(
+      address &&
       !needsApproval &&
       !approveButtonActive &&
       !checkingLiquidity &&
@@ -477,6 +478,7 @@ const Send: FC = () => {
       (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet)
     )
   }, [
+    address,
     needsApproval,
     approveButtonActive,
     checkingLiquidity,
@@ -621,7 +623,7 @@ const Send: FC = () => {
       <Alert severity="error">{manualError}</Alert>
 
       <ButtonsWrapper>
-        {!sendButtonActive && (
+        {address && !sendButtonActive && (
           <Div mb={[3]} fullWidth={approveButtonActive}>
             <Button
               className={styles.button}
@@ -647,7 +649,7 @@ const Send: FC = () => {
             fullWidth
             highlighted
           >
-            Send
+            {address ? 'Send' : 'Connect Wallet'}
           </Button>
         </Div>
       </ButtonsWrapper>

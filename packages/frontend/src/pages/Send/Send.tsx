@@ -661,7 +661,7 @@ const Send: FC = () => {
             </Button>
           </Div>
         )}
-        <Div mb={[3]} fullWidth={sendButtonActive}>
+        <Div mb={[3]} fullWidth={approveButtonActive || sendButtonActive}>
           <Button
             className={styles.button}
             startIcon={sendButtonActive && <SendIcon />}

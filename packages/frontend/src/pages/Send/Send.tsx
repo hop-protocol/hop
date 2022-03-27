@@ -293,7 +293,6 @@ const Send: FC = () => {
     usingNativeBridge,
     selectNativeBridge,
     approveNativeBridge,
-    txConfirmParams,
   } = useL1CanonicalBridge(
     sdk,
     sourceToken,
@@ -309,6 +308,7 @@ const Send: FC = () => {
       waitForTransaction,
       updateTransaction,
       setError,
+      setApproving,
     }
   )
 
@@ -362,20 +362,17 @@ const Send: FC = () => {
       setApproving(true)
 
       if (l1CanonicalBridge && needsNativeBridgeApproval) {
-        const done = await approveNativeBridge()
-        if (done) {
-          sendL1CanonicalBridge()
-        }
+        await approveNativeBridge()
       } else {
         await approveFromToken()
       }
+      setApproving(false)
     } catch (err: any) {
       console.log(`err:`, err)
       if (!/cancelled/gi.test(err.message)) {
         setError(formatError(err, fromNetwork))
       }
       logger.error(err)
-      setApproving(false)
     }
     setApproving(false)
   }
@@ -654,7 +651,6 @@ const Send: FC = () => {
               highlighted={!!needsApproval || !!needsNativeBridgeApproval}
               disabled={!approveButtonActive}
               onClick={handleApprove}
-              loading={approving}
               fullWidth
             >
               Approve

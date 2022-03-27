@@ -8,7 +8,7 @@ import { findNetworkById, formatError, toTokenDisplay } from 'src/utils'
 import CanonicalBridge from 'src/models/CanonicalBridge'
 import { useApprove } from 'src/hooks'
 import { l1Network } from 'src/config/networks'
-import useTxConfirm from 'src/contexts/AppContext/useTxConfirm'
+import { TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
 
 interface Options {
   customRecipient?: string
@@ -20,15 +20,23 @@ export function useL1CanonicalBridge(
   sourceTokenAmount?: BigNumber,
   destNetwork?: Network,
   estimatedReceived?: BigNumber,
-  txConfirm?: any,
+  txConfirm?: TxConfirm,
   options?: any
 ) {
   const { checkConnectedNetworkId, provider } = useWeb3Context()
-  const { txConfirmParams, show } = useTxConfirm(options)
   const [l1CanonicalBridge, setL1CanonicalBridge] = useState<CanonicalBridge | undefined>()
   const [usingNativeBridge, setUsingNativeBridge] = useState(false)
   const [userSpecifiedBridge, setUserSpecifiedBridge] = useState(false)
-  const { handleTransaction, setTx, setSending, waitForTransaction, updateTransaction } = options
+  const {
+    customRecipient,
+    handleTransaction,
+    setSending,
+    setTx,
+    waitForTransaction,
+    updateTransaction,
+    setError,
+    setApproving,
+  } = options
 
   function selectNativeBridge(val: boolean) {
     setUsingNativeBridge(val)
@@ -74,42 +82,38 @@ export function useL1CanonicalBridge(
     }
   }, [provider, sourceTokenAmount?.toString(), sourceToken, destNetwork?.slug])
 
-  const approveNativeBridge = useCallback(async () => {
-    if (needsNativeBridgeApproval && l1CanonicalBridge) {
-      setSending(true)
-      try {
-        const args = {
-          kind: 'approval',
-          inputProps: {
-            tagline: `Allow Hop to spend your ${sourceToken?.symbol} on ${sourceToken?.chain.name}`,
-            source: {
-              network: {
-                slug: sourceToken?.chain.slug,
-                networkId: sourceToken?.chain.chainId,
-              },
-            },
-          },
-          onConfirm: async () => {
-            console.log(`l1CanonicalBridge:`, l1CanonicalBridge)
-            const approveAmount = constants.MaxUint256
-            return l1CanonicalBridge.approve(approveAmount as BigNumberish)
-          },
-        }
-        console.log(`args:`, args)
-
-        const tx = await txConfirm.show(args)
-        console.log(`tx:`, tx)
-
-        const approveTx = await l1CanonicalBridge.approve(constants.MaxUint256)
-        if (approveTx) {
-          return approveTx.wait()
-        }
-      } catch (error) {
-        console.log(`error:`, error)
-      }
-      setSending(false)
+  const approveNativeBridge = async () => {
+    if (!(needsNativeBridgeApproval && l1CanonicalBridge && txConfirm)) {
+      return
     }
-  }, [l1CanonicalBridge, needsNativeBridgeApproval, sourceToken, sourceTokenAmount, show])
+
+    setApproving(true)
+    const tx: any = await txConfirm.show({
+      kind: 'approval',
+      inputProps: {
+        tagline: `Allow Hop to spend your ${sourceToken?.symbol} on ${sourceToken?.chain.name}`,
+        source: {
+          network: {
+            slug: sourceToken?.chain.slug,
+            networkId: sourceToken?.chain.chainId,
+          },
+        },
+      },
+      onConfirm: async () => {
+        const approveAmount = constants.MaxUint256
+
+        const networkId = sourceToken!.chain.chainId
+        const isNetworkConnected = await checkConnectedNetworkId(networkId)
+        if (!isNetworkConnected) return
+
+        return l1CanonicalBridge.approve(approveAmount as BigNumberish)
+      },
+    })
+    console.log(`tx:`, tx)
+
+    setApproving(false)
+    return handleTransaction(tx, sourceNetwork, destNetwork, sourceToken)
+  }
 
   async function sendL1CanonicalBridge() {
     if (
@@ -120,7 +124,8 @@ export function useL1CanonicalBridge(
         sourceTokenAmount &&
         sourceNetwork &&
         destNetwork &&
-        !needsNativeBridgeApproval
+        !needsNativeBridgeApproval &&
+        txConfirm
       )
     ) {
       return
@@ -229,6 +234,5 @@ export function useL1CanonicalBridge(
     setUsingNativeBridge,
     selectNativeBridge,
     approveNativeBridge,
-    txConfirmParams,
   }
 }

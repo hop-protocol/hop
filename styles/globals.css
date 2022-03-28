@@ -289,3 +289,6 @@ table img {
   display: inline-block;
   margin-left: 2rem;
 }
+#spinner {
+  display: inline-block;
+}

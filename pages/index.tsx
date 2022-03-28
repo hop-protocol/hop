@@ -1,12 +1,34 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Script from 'next/script'
-import Image from 'next/image'
-import * as luxon from 'luxon'
-import { ethers } from 'ethers'
-import styles from '../styles/Index.module.css'
 import Clipboard from 'clipboard'
+import {ethers} from 'ethers'
+import * as luxon from 'luxon'
+import type {NextPage} from 'next'
+import Head from 'next/head'
+import Image from 'next/image'
+import Script from 'next/script'
+import React, {useEffect, useState} from 'react'
+
+function Spinner() {
+  useEffect(() => {
+    const duration = 600
+    let element: any
+    const frames = '▙▛▜▟'.split('')
+
+    const step = function (timestamp: number) {
+      const frame = Math.floor(timestamp*frames.length/duration) % frames.length
+      if (!element) {
+        element = window.document.getElementById('spinner')
+      }
+      element.innerHTML = frames[frame]
+      return window.requestAnimationFrame(step)
+    }
+
+    window.requestAnimationFrame(step)
+  }, [])
+
+  return (
+    <div id="spinner"></div>
+  )
+}
 
 const poll = false
 const fetchInterval = 20 * 1000
@@ -610,10 +632,12 @@ async function updateChart (data: any[]) {
       .draw(graph)
 
     chart.on('link:mouseout', function (item: any) {
+      chartSelection = ''
       setChartSelection('')
     })
     chart.on('link:mouseover', function (item: any) {
       const value = `${item.source.name}⟶${item.target.name} ${item.displayAmount} ${item.token}`
+      chartSelection = value
       setChartSelection(value)
     })
 
@@ -1223,12 +1247,16 @@ async function updateTransfersData () {
     }
 
     function previousPage () {
-      setPage(Math.max(page - 1, 0))
+      const _page = Math.max(page - 1, 0)
+      page = _page
+      setPage(_page)
       refreshTransfers()
     }
 
     function nextPage () {
-      setPage(Math.min(page + 1, Math.floor(allTransfers.length / perPage)))
+      const _page = (Math.min(page + 1, Math.floor(allTransfers.length / perPage)))
+      page = _page
+      setPage(_page)
       refreshTransfers()
     }
 
@@ -1420,7 +1448,7 @@ async function updateTransfersData () {
           <span>Transfers ▾</span>
           {loadingData && (
             <span className="loadingData">
-              Loading...
+              <Spinner /> Loading...
             </span>
           )}
         </summary>

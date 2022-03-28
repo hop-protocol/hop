@@ -297,22 +297,22 @@ class SyncWatcher extends BaseWatcher {
     promises.push(
       Promise.all(transferSpentPromises.concat(transferRootInitialEventPromises))
         .then(async () => {
-        // This must be executed after the Withdrew and WithdrawalBonded event handlers
-        // on initial sync since it relies on data from those handlers.
-          return await this.bridge.mapMultipleWithdrawalsSettledEvents(
-            async (event: MultipleWithdrawalsSettledEvent) => {
-              return await this.handleMultipleWithdrawalsSettledEvent(event)
-            },
-            getOptions(this.bridge.MultipleWithdrawalsSettled)
-          )
-        })
-        .then(async () => {
-          return await this.bridge.mapWithdrawalBondSettledEvents(
-            async (event: WithdrawalBondSettledEvent) => {
-              return await this.handleWithdrawalBondSettledEvent(event)
-            },
-            getOptions(this.bridge.WithdrawalBondSettled)
-          )
+          await Promise.all([
+            // This must be executed after the Withdrew and WithdrawalBonded event handlers
+            // on initial sync since it relies on data from those handlers.
+            this.bridge.mapMultipleWithdrawalsSettledEvents(
+              async (event: MultipleWithdrawalsSettledEvent) => {
+                return await this.handleMultipleWithdrawalsSettledEvent(event)
+              },
+              getOptions(this.bridge.MultipleWithdrawalsSettled)
+            ),
+            this.bridge.mapWithdrawalBondSettledEvents(
+              async (event: WithdrawalBondSettledEvent) => {
+                return await this.handleWithdrawalBondSettledEvent(event)
+              },
+              getOptions(this.bridge.WithdrawalBondSettled)
+            )
+          ])
         })
     )
 
@@ -584,6 +584,11 @@ class SyncWatcher extends BaseWatcher {
     if (transferIds === undefined || !transferIds.length) {
       return
     }
+
+    logger.debug('checkTransferRootSettledState')
+    logger.debug(`transferRootId: ${transferRootId}`)
+    logger.debug(`totalBondsSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
+    logger.debug(`bonder : ${bonder}`)
 
     logger.debug(`transferIds count: ${transferIds.length}`)
     const dbTransfers: Transfer[] = []

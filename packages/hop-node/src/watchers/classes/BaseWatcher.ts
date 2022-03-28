@@ -1,34 +1,34 @@
+import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher'
+import BNMin from 'src/utils/BNMin'
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
 import wait from 'src/utils/wait'
+import wallets from 'src/wallets'
+import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { EventEmitter } from 'events'
 import { IBaseWatcher } from './IBaseWatcher'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
+import { Vault } from 'src/vault'
 import { config as globalConfig, hostname } from 'src/config'
+
+const mutexes: Record<string, Mutex> = {}
+export type BridgeContract = L1BridgeContract | L2BridgeContract
 
 type Config = {
   chainSlug: string
   tokenSymbol: string
   prefix?: string
   logColor?: string
-  isL1?: boolean
-  bridgeContract?: L1BridgeContract | L2BridgeContract
+  bridgeContract?: BridgeContract
   dryMode?: boolean
-  stateUpdateAddress?: string
-}
-
-enum State {
-  Normal = 0,
-  DryMode = 1,
-  PauseMode = 2,
-  Exit = 3
 }
 
 class BaseWatcher extends EventEmitter implements IBaseWatcher {
@@ -40,21 +40,21 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   chainSlug: string
   tokenSymbol: string
 
-  isL1: boolean
   bridge: L2Bridge | L1Bridge
   siblingWatchers: { [chainId: string]: any }
   syncWatcher: SyncWatcher
+  availableLiquidityWatcher: AvailableLiquidityWatcher
   metrics = new Metrics()
   dryMode: boolean = false
-  startedWithDryMode: boolean = false
   tag: string
   prefix: string
-  pauseMode: boolean = false
-  stateUpdateAddress: string
+  vault?: Vault
+  mutex: Mutex
 
   constructor (config: Config) {
     super()
-    const { chainSlug, tokenSymbol, prefix, logColor } = config
+    const { chainSlug, tokenSymbol, logColor } = config
+    const prefix = `${chainSlug}.${tokenSymbol}`
     const tag = this.constructor.name
     this.logger = new Logger({
       tag,
@@ -73,9 +73,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     this.notifier = new Notifier(
       `watcher: ${tag}, label: ${prefix}, host: ${hostname}`
     )
-    if (config.isL1) {
-      this.isL1 = config.isL1
-    }
     if (config.bridgeContract != null) {
       if (this.isL1) {
         this.bridge = new L1Bridge(config.bridgeContract as L1BridgeContract)
@@ -85,11 +82,18 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
     if (config.dryMode) {
       this.dryMode = config.dryMode
-      this.startedWithDryMode = this.dryMode
     }
-    if (config.stateUpdateAddress) {
-      this.stateUpdateAddress = config.stateUpdateAddress
+    const signer = wallets.get(this.chainSlug)
+    this.vault = Vault.from(this.chainSlug as Chain, this.tokenSymbol, signer)
+    if (!mutexes[this.chainSlug]) {
+      mutexes[this.chainSlug] = new Mutex()
     }
+
+    this.mutex = mutexes[this.chainSlug]
+  }
+
+  get isL1 (): boolean {
+    return this.chainSlug === Chain.Ethereum
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {
@@ -101,19 +105,14 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       if (!this.started) {
         return
       }
-      if (!this.pauseMode) {
-        try {
-          const shouldPoll = this.prePollHandler()
-          if (shouldPoll) {
-            await this.pollHandler()
-          }
-        } catch (err) {
-          this.logger.error(`poll check error: ${err.message}\ntrace: ${err.stack}`)
-          this.notifier.error(`poll check error: ${err.message}`)
+      try {
+        const shouldPoll = this.prePollHandler()
+        if (shouldPoll) {
+          await this.pollHandler()
         }
-      } else {
-        // Allow a paused bonder to go into dry mode or exit
-        await this.handleStateSwitch()
+      } catch (err) {
+        this.logger.error(`poll check error: ${err.message}\ntrace: ${err.stack}`)
+        this.notifier.error(`poll check error: ${err.message}`)
       }
       await this.postPollHandler()
     }
@@ -178,6 +177,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     this.syncWatcher = syncWatcher
   }
 
+  setAvailableLiquidityWatcher (availableLiquidityWatcher: AvailableLiquidityWatcher): void {
+    this.availableLiquidityWatcher = availableLiquidityWatcher
+  }
+
   chainIdToSlug (chainId: number): Chain {
     return this.bridge.chainIdToSlug(chainId)
   }
@@ -188,53 +191,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   cacheKey (key: string) {
     return `${this.tag}:${key}`
-  }
-
-  handleStateSwitch = async () => {
-    if (!this.stateUpdateAddress) {
-      return
-    }
-
-    let state: number
-    try {
-      const l1ChainId = this.chainSlugToId(Chain.Ethereum)
-      const l1Bridge = this.getSiblingWatcherByChainId(l1ChainId).bridge
-      state = await l1Bridge.getStateUpdateStatus(this.stateUpdateAddress, this.bridge.chainId)
-    } catch (err) {
-      this.logger.log(`getStateUpdateStatus failed with ${err}`)
-      return
-    }
-
-    this.setDryMode(state === State.DryMode)
-    this.setPauseMode(state === State.PauseMode)
-
-    if (state === State.Exit) {
-      this.logger.error('exit mode enabled')
-      this.quit()
-    }
-  }
-
-  get isDryOrPauseMode () {
-    return this.dryMode || this.pauseMode
-  }
-
-  setDryMode (enabled: boolean) {
-    // don't update dry mode state if it was started with dry mode
-    if (this.startedWithDryMode) {
-      return
-    }
-
-    if (this.dryMode !== enabled) {
-      this.logger.warn(`Dry mode updated: ${enabled}`)
-      this.dryMode = enabled
-    }
-  }
-
-  setPauseMode (enabled: boolean) {
-    if (this.pauseMode !== enabled) {
-      this.logger.warn(`Pause mode updated: ${enabled}`)
-      this.pauseMode = enabled
-    }
   }
 
   async getFilterSourceChainId () {
@@ -265,6 +221,66 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       sourceChainId,
       destinationChainIds
     }
+  }
+
+  async unstakeAndDepositToVault (amount: BigNumber) {
+    if (!this.vault) {
+      return
+    }
+
+    if (this.chainSlug !== Chain.Ethereum) {
+      return
+    }
+
+    const creditBalance = await this.bridge.getBaseAvailableCredit()
+    if (amount.lt(creditBalance)) {
+      return
+    }
+
+    this.logger.debug(`unstaking from bridge. amount: ${this.bridge.formatUnits(amount)}`)
+    let tx = await this.bridge.unstake(amount)
+    await tx.wait()
+
+    this.logger.debug(`deposting to vault. amount: ${this.bridge.formatUnits(amount)}`)
+    tx = await this.vault.deposit(amount)
+    await tx.wait()
+    this.logger.debug('unstake and vault deposit complete')
+  }
+
+  async withdrawFromVaultAndStake (amount: BigNumber) {
+    if (!this.vault) {
+      return
+    }
+
+    if (this.chainSlug !== Chain.Ethereum) {
+      return
+    }
+
+    const vaultBalance = await this.vault.getBalance()
+    if (amount.lt(vaultBalance)) {
+      return
+    }
+
+    this.logger.debug(`withdrawing from vault. amount: ${this.bridge.formatUnits(amount)}`)
+    let tx = await this.vault.withdraw(amount)
+    await tx.wait()
+
+    let balance: BigNumber
+    if (this.tokenSymbol === 'ETH') {
+      const address = await this.bridge.getBonderAddress()
+      balance = await this.bridge.getBalance(address)
+    } else {
+      const token = await (this.bridge as L1Bridge).l1CanonicalToken()
+      balance = await token.getBalance()
+    }
+
+    // this is needed because the amount withdrawn from vault may not be exact
+    amount = BNMin(amount, balance)
+
+    this.logger.debug(`staking on bridge. amount: ${this.bridge.formatUnits(amount)}`)
+    tx = await this.bridge.stake(amount)
+    await tx.wait()
+    this.logger.debug('vault withdraw and stake complete')
   }
 
   // force quit so docker can restart

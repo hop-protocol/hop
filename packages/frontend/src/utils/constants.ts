@@ -1,33 +1,5 @@
-import { ChainSlug } from '@hop-protocol/sdk'
-
-export const PROPOSAL_STATUSES: any = {
-  PENDING: 'pending',
-  ACTIVE: 'active',
-  CANCELLED: 'cancelled',
-  DEFEATED: 'defeated',
-  SUCCEEDED: 'succeeded',
-  QUEUED: 'queued',
-  EXPIRED: 'expired',
-  EXECUTED: 'executed',
-}
-
-export enum VOTE_STATUS {
-  FOR = 'For',
-  AGAINST = 'Against',
-}
-
-const AVERAGE_BLOCK_TIME_IN_SECS = 14
-const PROPOSAL_LENGTH_IN_BLOCKS = 40_320
-export const PROPOSAL_LENGTH_IN_SECS = AVERAGE_BLOCK_TIME_IN_SECS * PROPOSAL_LENGTH_IN_BLOCKS
-
-const HOP_ADDRESS = '0x752Ebd504E4faC89397448b434aa3aA4AEcD0B5E'
-const GOVERNANCE_ADDRESS = '0xb00527B76110D2eBC5fd050C5EfEF3a32D4699Dc'
-const TIMELOCK_ADDRESS = '0x92E5A4B202F57B3634d6352fBAbBA9Cf2908a14A'
-export const COMMON_CONTRACT_NAMES: { [address: string]: string } = {
-  [HOP_ADDRESS]: 'HOP',
-  [GOVERNANCE_ADDRESS]: 'Governance',
-  [TIMELOCK_ADDRESS]: 'Timelock',
-}
+import { ChainSlug, Token } from '@hop-protocol/sdk'
+import Network from 'src/models/Network'
 
 export declare enum NetworkId {
   MAINNET = 1,
@@ -45,9 +17,6 @@ export const ETHERSCAN_PREFIXES: { [networkId in NetworkId]: string } = {
   42: 'kovan.',
 }
 
-export const STAKING_GENESIS = 1600387200 // TODO: Update with real data
-export const REWARDS_DURATION_DAYS = 60
-
 export const L1_NETWORK = ChainSlug.Ethereum
 
 export const careersUrl = 'https://hop.exchange/careers'
@@ -61,4 +30,14 @@ export const twitterUrl = 'https://twitter.com/HopProtocol'
 export enum EventNames {
   TransferSent = 'TransferSent',
   TransferSentToL2 = 'TransferSentToL2',
+}
+
+export enum WalletName {
+  GnosisSafe = 'Gnosis Safe',
+}
+
+export interface NetworkTokenEntity {
+  network: Network
+  token: Token
+  amount: string
 }

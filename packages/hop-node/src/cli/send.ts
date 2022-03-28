@@ -1,17 +1,13 @@
-import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
-import getRpcProvider from 'src/utils/getRpcProvider'
+import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import { formatEther, parseEther } from 'ethers/lib/utils'
-import {
-  config as globalConfig
-} from 'src/config'
 
 root
   .command('send')
@@ -22,7 +18,7 @@ root
   .option('--amount <number>', 'Amount (in human readable format)', parseNumber)
   .option('--recipient <address>', 'Recipient to send tokens to', parseString)
   .option('--htoken [boolean]', 'Send hTokens', parseBool)
-  .option('--native [boolean]', 'Send the native token', parseBool)
+  .option('--native [boolean]', 'Send the native token to a recipient', parseBool)
   .option('--self [boolean]', 'Send to self and reset nonce', parseBool)
   .option('--gas-price <price>', 'Gas price to use', parseString)
   .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
@@ -64,9 +60,7 @@ async function sendNativeToken (
     throw new Error('please specify an amount when sending native tokens')
   }
 
-  const provider = getRpcProvider(chain)
-  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!)
-
+  const wallet = wallets.get(chain)
   const parsedAmount = parseEther(amount.toString())
   let balance = await wallet.getBalance()
   if (balance.lt(parsedAmount)) {
@@ -85,9 +79,9 @@ async function sendNativeToken (
 }
 
 async function sendToSelf (chain: string, gasPrice: string) {
-  const provider = getRpcProvider(chain)
-  const wallet = new GasBoostSigner(globalConfig.bonderPrivateKey, provider!)
-  const selfAddress = await wallet.signer.getAddress()
+  const wallet = wallets.get(chain)
+  const provider = wallet.provider
+  const selfAddress = await wallet.getAddress()
   const nonce = await provider?.getTransactionCount(selfAddress)
   const tx = await wallet.sendTransaction({
     value: 0,
@@ -167,6 +161,8 @@ async function sendTokens (
   isHToken: boolean,
   shouldSendMax: boolean
 ) {
+  const isFromNative = nativeChainTokens[fromChain] === token
+
   if (!amount && !shouldSendMax) {
     throw new Error('max flag or amount is required. E.g. 100')
   }
@@ -199,31 +195,36 @@ async function sendTokens (
     throw new Error('recipient address is required')
   }
 
-  let balance = await tokenClass.getBalance()
+  const wallet = wallets.get(fromChain)
+  let balance = await (isFromNative ? wallet.getBalance() : tokenClass.getBalance())
   const label = `${fromChain}.${isHToken ? 'h' : ''}${token}`
-  logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
+  logger.debug(`${label} balance: ${await bridge.formatUnits(balance)}`)
   let parsedAmount
   if (shouldSendMax) {
     parsedAmount = balance
   } else {
-    parsedAmount = await tokenClass.parseUnits(amount)
+    parsedAmount = await bridge.parseUnits(amount)
   }
   if (balance.lt(parsedAmount)) {
     throw new Error('not enough token balance to send')
   }
 
-  let spender = bridge.address
-  if (fromChain !== Chain.Ethereum && !isHToken) {
-    spender = (bridge as L2Bridge).ammWrapper.contract.address
-  }
-  let tx = await tokenClass.approve(spender, parsedAmount)
-  if (tx) {
-    logger.debug('approve tx:', tx.hash)
+  let tx: any
+  if (!isFromNative) {
+    let spender = bridge.address
+    if (fromChain !== Chain.Ethereum && !isHToken) {
+      spender = (bridge as L2Bridge).ammWrapper.contract.address
+    }
+    const tx = await tokenClass.approve(spender, parsedAmount)
+    if (tx) {
+      logger.debug('approve tx:', tx.hash)
+      await tx?.wait()
+    }
   }
 
-  const formattedAmount = (await tokenClass.formatUnits(parsedAmount)).toString()
+  const formattedAmount = (await bridge.formatUnits(parsedAmount)).toString()
   logger.debug(`attempting to send ${formattedAmount} ${label} ⟶  ${toChain} to ${recipient}`)
-  const destinationChainId = chainSlugToId(toChain)!
+  const destinationChainId = chainSlugToId(toChain)
   if (fromChain === Chain.Ethereum) {
     if (isHToken) {
       tx = await (bridge as L1Bridge).convertCanonicalTokenToHopToken(
@@ -255,7 +256,7 @@ async function sendTokens (
   }
   logger.info(`send tx: ${tx.hash}`)
   await tx.wait()
-  balance = await tokenClass.getBalance()
+  balance = await (isFromNative ? wallet.getBalance() : tokenClass.getBalance())
   logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
   logger.debug('tokens should arrive at destination in 5-15 minutes')
 }

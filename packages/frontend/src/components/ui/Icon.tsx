@@ -1,7 +1,7 @@
 import React from 'react'
+import styled from 'styled-components/macro'
 import { Circle } from 'react-feather'
 import { composedStyleFns, ComposedStyleProps, SquareDimensions, squareDimensions } from 'src/utils'
-import styled from 'styled-components/macro'
 import { color, layout, space } from 'styled-system'
 
 interface StyledIconProps {
@@ -16,11 +16,17 @@ const StyledIcon = styled.img<ComposedStyleProps & SquareDimensions>`
   ${squareDimensions}
 `
 
-const Icon = ({ src, width, alt, color }: ComposedStyleProps & StyledIconProps) => {
+const Icon = ({ src, width = [12, 18], alt, color, ...props }: ComposedStyleProps & StyledIconProps & any) => {
   if (!src) return null
 
   return (
-    <StyledIcon src={src} width={width || 24} alt={alt || `${src.slice(4)} icon`} color={color} />
+    <StyledIcon
+      src={src}
+      width={width || 24}
+      alt={alt || `${src.slice(4)} icon`}
+      color={color}
+      {...props}
+    />
   )
 }
 

@@ -31,11 +31,18 @@ type CustomColors = Omit<StyledSystemTheme, 'colors'> & {
   colors?: any
 }
 
+const breakpoints: any = ['600px', '960px', '1280px', '1920px']
+
+breakpoints.sm = breakpoints[0]
+breakpoints.md = breakpoints[1]
+breakpoints.lg = breakpoints[2]
+breakpoints.xl = breakpoints[3]
+
 export const styledSystemTheme: CustomColors = {
   // 640px, 832px, 1024px, 1440px
   // '40em', '52em', '64em', '90em'
   // breakpoints: ['640px', '832px', '1024px', '1440px'],
-  breakpoints: ['600px', '960px', '1280px', '1920px'],
+  breakpoints,
   space: [0, 4, 8, 16, 32, 64, 128, 256, 512],
   fontSizes: [12, 14, 16, 20, 24, 36, 48, 80, 96],
   fontWeights: [100, 200, 300, 400, 500, 600, 700, 800, 900],
@@ -60,6 +67,12 @@ export const styledSystemTheme: CustomColors = {
     black: {
       muted: '#201E26',
     },
+  },
+  mediaQueries: {
+    sm: `@media screen and (min-width: ${breakpoints.sm})`,
+    md: `@media screen and (min-width: ${breakpoints.md})`,
+    lg: `@media screen and (min-width: ${breakpoints.lg})`,
+    xl: `@media screen and (min-width: ${breakpoints.xl})`,
   },
 }
 

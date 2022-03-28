@@ -43,7 +43,6 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'logging',
     'keystore',
     'addresses',
-    'stateUpdateAddress',
     'metrics',
     'fees',
     'routes',

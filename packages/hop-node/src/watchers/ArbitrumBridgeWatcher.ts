@@ -10,9 +10,7 @@ import { Wallet, providers } from 'ethers'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  label?: string
   bridgeContract?: L1BridgeContract | L2BridgeContract
-  isL1?: boolean
   dryMode?: boolean
 }
 
@@ -26,10 +24,8 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
-      isL1: config.isL1,
       dryMode: config.dryMode
     })
 
@@ -89,9 +85,8 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     logger.debug(
       `attempting to send relay message on arbitrum for commit tx hash ${commitTxHash}`
     )
-    await this.handleStateSwitch()
-    if (this.isDryOrPauseMode) {
-      this.logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
+    if (this.dryMode) {
+      this.logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
       return
     }
 

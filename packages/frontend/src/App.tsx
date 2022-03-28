@@ -1,7 +1,5 @@
 import React from 'react'
 import 'src/App.css'
-import { makeStyles, useTheme } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
 import AppRoutes from 'src/AppRoutes'
 import Header from 'src/components/header/Header'
 import Footer from 'src/components/footer/Footer'
@@ -10,42 +8,29 @@ import TxConfirm from 'src/components/txConfirm/TxConfirm'
 import bgImage from 'src/assets/circles-bg.svg'
 import bgImageDark from 'src/assets/circles-bg-dark.svg'
 import { useThemeMode } from './theme/ThemeProvider'
+import styled from 'styled-components'
+import { Flex } from './components/ui'
 
-const useStyles = makeStyles(theme => ({
-  app: {
-    backgroundImage: ({ isDarkMode }: any) =>
-      isDarkMode ? `url(${bgImageDark})` : `url(${bgImage})`,
-    backgroundColor: theme.palette.background.default,
-    backgroundPositionY: '50px',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: 'cover',
-    transition: 'background 0.15s ease-out',
-  },
-  content: {
-    padding: '2.5rem',
-    flexGrow: 1,
-    [theme.breakpoints.down('xs')]: {
-      padding: '2.2rem',
-    },
-  },
-}))
+const AppWrapper = styled(Flex)<any>`
+  align-items: stretch;
+  background-image: ${({ isDarkMode }) => (isDarkMode ? `url(${bgImageDark})` : `url(${bgImage})`)};
+  background-color: ${({ theme }) => theme.colors.background.default};
+  background-size: 120%;
+  transition: background 0.15s ease-out;
+  min-height: 100vh;
+`
 
 function App() {
   const { isDarkMode } = useThemeMode()
-  const styles = useStyles({ isDarkMode })
 
   return (
-    <>
-      <Box display="flex" flexDirection="column" minHeight="100vh" className={styles.app}>
-        <Header />
-        <AccountDetails />
-        <div className={styles.content}>
-          <AppRoutes />
-        </div>
-        <TxConfirm />
-        <Footer />
-      </Box>
-    </>
+    <AppWrapper column isDarkMode={isDarkMode}>
+      <Header />
+      <AccountDetails />
+      <AppRoutes />
+      <TxConfirm />
+      <Footer />
+    </AppWrapper>
   )
 }
 

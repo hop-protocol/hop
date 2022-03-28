@@ -20,10 +20,11 @@ import {
   toTokenDisplay,
 } from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
-import DetailRow from 'src/components/DetailRow'
+import DetailRow from 'src/components/InfoTooltip/DetailRow'
 import { useNeedsTokenForFee } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
+import { RaisedNetworkSelector } from 'src/components/NetworkSelector/RaisedNetworkSelector'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -134,6 +135,7 @@ const Pools: FC = () => {
     userPoolTokenPercentage,
     virtualPrice,
     warning,
+    lpTokenTotalSupplyFormatted,
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -229,13 +231,11 @@ const Pools: FC = () => {
         <Typography variant="body1" component="span" className={styles.textSpacing}>
           on
         </Typography>
-        <RaisedSelect value={selectedNetwork?.slug} onChange={selectBothNetworks}>
-          {networks.map(network => (
-            <MenuItem value={network.slug} key={network.slug}>
-              <SelectOption value={network.slug} icon={network.imageUrl} label={network.name} />
-            </MenuItem>
-          ))}
-        </RaisedSelect>
+        <RaisedNetworkSelector
+          selectedNetwork={selectedNetwork}
+          onSelect={selectBothNetworks}
+          availableNetworks={networks}
+        />
       </Box>
 
       {unsupportedAsset ? (
@@ -327,7 +327,7 @@ const Pools: FC = () => {
             <Flex column fullWidth>
               <DetailRow
                 title="APR"
-                tooltip="Annual Percentage Rate (APR) from earning fees"
+                tooltip="Annual Percentage Rate (APR) from earning fees, based on 24hr trading volume"
                 value={`${aprFormatted}`}
               />
               <DetailRow
@@ -336,13 +336,18 @@ const Pools: FC = () => {
                 value={`${reserve0Formatted} / ${reserve1Formatted}`}
               />
               <DetailRow
+                title="LP Tokens"
+                tooltip={'Total supply of LP tokens'}
+                value={`${lpTokenTotalSupplyFormatted || '-'}`}
+              />
+              <DetailRow
                 title="TVL"
                 tooltip="Total value locked in USD"
                 value={`${reserveTotalsUsdFormatted}`}
               />
               <DetailRow
                 title="Virtual Price"
-                tooltip="The virtual price, to help calculate profit"
+                tooltip="The virtual price, to help calculate profit. Virtual price is calculated as `pool_reserves / lp_supply`"
                 value={`${virtualPriceFormatted}`}
               />
               <DetailRow

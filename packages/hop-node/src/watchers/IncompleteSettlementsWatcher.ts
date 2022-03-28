@@ -2,12 +2,13 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
+import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
+import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { formatUnits } from 'ethers/lib/utils'
-import { l1BridgeAbi, l2BridgeAbi } from '@hop-protocol/core/abi'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
 type Options = {
@@ -311,6 +312,9 @@ class IncompleteSettlementsWatcher {
         this.rootHashWithdrews[rootHash] = []
       }
       this.rootHashWithdrews[rootHash].push(log)
+      if (!this.rootHashSettledTotalAmounts[rootHash]) {
+        this.rootHashSettledTotalAmounts[rootHash] = BigNumber.from(0)
+      }
       this.rootHashSettledTotalAmounts[rootHash] = this.rootHashSettledTotalAmounts[rootHash].add(amount)
     }
 

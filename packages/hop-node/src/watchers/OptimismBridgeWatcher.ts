@@ -11,9 +11,7 @@ import { getMessagesAndProofsForL2Transaction } from '@eth-optimism/message-rela
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  label?: string
   bridgeContract?: L1BridgeContract | L2BridgeContract
-  isL1?: boolean
   dryMode?: boolean
 }
 
@@ -30,10 +28,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
-      isL1: config.isL1,
       dryMode: config.dryMode
     })
 
@@ -102,9 +98,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
       `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
     )
 
-    await this.handleStateSwitch()
-    if (this.isDryOrPauseMode) {
-      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping relayXDomainMessage`)
+    if (this.dryMode) {
+      logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
       return
     }
 

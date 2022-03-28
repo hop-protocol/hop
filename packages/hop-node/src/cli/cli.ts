@@ -31,6 +31,8 @@ import './transfersTable'
 import './unbondedTransferRoots'
 import './unstake'
 import './updateConfig'
+import './vault'
+import './withdraw'
 import './withdrawalProof'
 
 program.version(packageJson.version)

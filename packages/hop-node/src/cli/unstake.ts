@@ -1,11 +1,9 @@
-import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import { BigNumber } from 'ethers'
 import { actionHandler, logger, parseNumber, parseString, root } from './shared'
 import {
-  findWatcher,
-  getWatchers
+  getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
 
 root
@@ -27,13 +25,7 @@ async function main (source: any) {
   }
 
   // Arbitrary watcher since only the bridge is needed
-  const watchers = await getWatchers({
-    enabledWatchers: ['bondWithdrawal'],
-    tokens: [token],
-    dryMode: false
-  })
-
-  const watcher = findWatcher(watchers, BondWithdrawalWatcher, chain) as BondWithdrawalWatcher
+  const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode: false })
   if (!watcher) {
     throw new Error('Watcher not found')
   }

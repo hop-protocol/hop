@@ -1,11 +1,11 @@
 import keythereum from 'keythereum'
 import { randomBytes } from 'crypto'
 
-const generateKeystore = (
+function generateKeystore (
   privateKey?: Buffer | string | null,
   passphrase?: string,
   options?: any
-): any => {
+): any {
   let privateKeyBuffer: Buffer
   if (!privateKey) {
     privateKey = randomBytes(32)
@@ -52,10 +52,10 @@ const generateKeystore = (
   })
 }
 
-const recoverKeystore = async (
+async function recoverKeystore (
   keystore: any,
   passphrase: string
-): Promise<any> => {
+): Promise<any> {
   if (typeof keystore === 'string') {
     keystore = JSON.parse(keystore.trim())
   }

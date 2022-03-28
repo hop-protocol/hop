@@ -41,7 +41,7 @@ const envNetwork = process.env.NETWORK ?? Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
-export const oruChains: string[] = [Chain.Optimism, Chain.Arbitrum]
+export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum])
 export const rateLimitMaxRetries = 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
@@ -85,7 +85,6 @@ export type Config = {
   bonderPrivateKey: string
   metadata: Metadata & {[network: string]: any}
   bonders: Bonders
-  stateUpdateAddress: string
   db: DbConfig
   sync: SyncConfigs
   metrics: MetricsConfig
@@ -136,7 +135,6 @@ export const config: Config = {
   bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
   bonders: {},
-  stateUpdateAddress: '',
   fees: {},
   routes: {},
   db: {
@@ -220,10 +218,6 @@ export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
 
 export const getNetworkMaxGasPrice = (network: string) => {
   return config.networks[network].maxGasPrice
-}
-
-export const setStateUpdateAddress = (address: string) => {
-  config.stateUpdateAddress = address
 }
 
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {

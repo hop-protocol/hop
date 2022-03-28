@@ -1,7 +1,6 @@
-import MerkleTree from 'src/utils/MerkleTree'
 import getTransferId from 'src/theGraph/getTransfer'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
-import { actionHandler, parseString, root } from './shared'
+import { actionHandler, getWithdrawalProofData, parseString, root } from './shared'
 
 root
   .command('withdrawal-proof')
@@ -47,16 +46,14 @@ async function main (source: any) {
     throw new Error('no transfer root item found for transfer Id')
   }
 
-  const rootTotalAmount = transferRoot.totalAmount.toString()
-  const transferIds = transferRoot.transferIds?.map((x: any) => x.transferId)
-  if (!transferIds?.length) {
-    throw new Error('expected transfer ids for transfer root hash')
-  }
-  const tree = new MerkleTree(transferIds)
-  const leaves = tree.getHexLeaves()
-  const numLeaves = leaves.length
-  const transferIndex = leaves.indexOf(transferId)
-  const proof = tree.getHexProof(leaves[transferIndex])
+  const {
+    rootTotalAmount,
+    numLeaves,
+    proof,
+    transferIndex,
+    leaves
+  } = getWithdrawalProofData(transferId, transferRoot)
+
   const output = {
     transferId,
     transferRootHash,

@@ -5,13 +5,11 @@ import Token from './Token'
 import TokenModel from './models/Token'
 import fetch from 'isomorphic-fetch'
 
-import {
-  L1ERC20Bridge__factory,
-  L1HomeAMBNativeToErc20__factory,
-  L2AmmWrapper__factory,
-  L2Bridge,
-  L2Bridge__factory
-} from '@hop-protocol/core/contracts'
+import { L1ERC20Bridge__factory } from '@hop-protocol/core/contracts/factories/L1ERC20Bridge__factory'
+import { L1HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/L1HomeAMBNativeToErc20__factory'
+import { L2AmmWrapper__factory } from '@hop-protocol/core/contracts/factories/L2AmmWrapper__factory'
+import { L2Bridge } from '@hop-protocol/core/contracts/L2Bridge'
+import { L2Bridge__factory } from '@hop-protocol/core/contracts/factories/L2Bridge__factory'
 
 import {
   BigNumber,
@@ -320,7 +318,7 @@ class HopBridge extends Base {
     }
 
     this.checkConnectedChain(this.signer, sourceChain)
-    return this.signer.sendTransaction(populatedTx)
+    return this.sendTransaction(populatedTx, sourceChain)
   }
 
   public async populateSendTx (
@@ -501,7 +499,7 @@ class HopBridge extends Base {
     const populatedTx = await this.populateSendApprovalTx(tokenAmount, sourceChain, isHTokenTransfer)
     if (populatedTx) {
       this.checkConnectedChain(this.signer, sourceChain)
-      return this.signer.sendTransaction(populatedTx)
+      return this.sendTransaction(populatedTx, sourceChain)
     }
   }
 
@@ -515,7 +513,7 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     const populatedTx = await this.populateSendHTokensTx(tokenAmount, sourceChain, destinationChain, options)
     this.checkConnectedChain(this.signer, sourceChain)
-    return this.signer.sendTransaction(populatedTx)
+    return this.sendTransaction(populatedTx, sourceChain)
   }
 
   public async estimateSendHTokensGasLimit (
@@ -524,7 +522,7 @@ class HopBridge extends Base {
     destinationChain: TChain,
     options: Partial<SendOptions> = {}
   ) {
-    const populatedTx = await this.sendHToken(tokenAmount, sourceChain, destinationChain, options)
+    const populatedTx = await this.populateSendHTokensTx(tokenAmount, sourceChain, destinationChain, options)
     return this.getEstimatedGasLimit(sourceChain, destinationChain, populatedTx)
   }
 
@@ -890,10 +888,10 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    // Arbitrum returns a gasLimit & gasPriceBid of 2x what is generally paid
+    // Arbitrum returns a gasLimit & gasPriceBid of appx 1.5x what is generally paid
     if (destinationChain.equals(Chain.Arbitrum)) {
-      gasPrice = gasPrice.div(2)
-      bondTransferGasLimit = bondTransferGasLimit.div(2)
+      gasPrice = gasPrice.mul(10).div(15)
+      bondTransferGasLimit = bondTransferGasLimit.mul(10).div(15)
     }
 
     // Include the cost to settle an individual transfer
@@ -1027,10 +1025,10 @@ class HopBridge extends Base {
    * @returns {Object} Amount as BigNumber.
    * @example
    *```js
-   *import { Hop, Chain Token } from '@hop-protocol/sdk'
+   *import { Hop, Chain } from '@hop-protocol/sdk'
    *
    *const hop = new Hop()
-   *const bridge = hop.connect(signer).bridge(Token.USDC)
+   *const bridge = hop.connect(signer).bridge('USDC')
    *const amountOut = await bridge.getAmountOut('1000000000000000000', Chain.Optimism, Chain.Gnosis)
    *console.log(amountOut)
    *```
@@ -1064,10 +1062,10 @@ class HopBridge extends Base {
    * @returns {Object} Amount as BigNumber.
    * @example
    *```js
-   *import { Hop, Chain Token } from '@hop-protocol/sdk'
+   *import { Hop, Chain } from '@hop-protocol/sdk'
    *
    *const hop = new Hop()
-   *const bridge = hop.connect(signer).bridge(Token.USDC)
+   *const bridge = hop.connect(signer).bridge('USDC')
    *const requiredLiquidity = await bridge.getRequiredLiquidity('1000000000000000000', Chain.Optimism, Chain.Gnosis)
    *console.log(requiredLiquidity)
    *```
@@ -1118,19 +1116,26 @@ class HopBridge extends Base {
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
     const bonder = this.getBonderAddress(sourceChain, destinationChain)
-    let availableLiquidity = await this.getAvailableLiquidity(
-      destinationChain,
-      bonder
+    let availableLiquidity = await this.getBaseAvailableCreditIncludingVault(
+      sourceChain,
+      destinationChain
     )
+
+    // fetch on-chain if the data is not available from worker json file
+    if (availableLiquidity == null) {
+      availableLiquidity = await this.getAvailableLiquidity(
+        destinationChain,
+        bonder
+      )
+    }
+
     const unbondedTransferRootAmount = await this.getUnbondedTransferRootAmount(
       sourceChain,
       destinationChain
     )
 
-    if (
-      this.isOruToL1(sourceChain, destinationChain) ||
-      this.isNonOruToL1(sourceChain, destinationChain)
-    ) {
+    const isToL1 = destinationChain.equals(Chain.Ethereum)
+    if (isToL1) {
       const bridgeContract = await this.getBridgeContract(sourceChain)
       let pendingAmounts = BigNumber.from(0)
       for (const chain of bondableChains) {
@@ -1172,17 +1177,10 @@ class HopBridge extends Base {
     return availableLiquidity
   }
 
-  isOruToL1 (sourceChain: Chain, destinationChain: Chain) {
+  private isOruToL1 (sourceChain: Chain, destinationChain: Chain) {
     return (
       destinationChain.equals(Chain.Ethereum) &&
       bondableChains.includes(sourceChain.slug)
-    )
-  }
-
-  isNonOruToL1 (sourceChain: Chain, destinationChain: Chain) {
-    return (
-      destinationChain.equals(Chain.Ethereum) &&
-      !bondableChains.includes(sourceChain.slug)
     )
   }
 
@@ -1204,16 +1202,16 @@ class HopBridge extends Base {
   }
 
   async getUnbondedTransferRootAmount (
-    sourceChain: Chain,
-    destinationChain: Chain
+    sourceChain: TChain,
+    destinationChain: TChain
   ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
     try {
       const data = await this.getBonderAvailableLiquidityData()
       if (data) {
-        const _unbondedTransferRootAmount =
-          data?.[this.tokenSymbol]?.unbondedTransferRootAmounts?.[
-            sourceChain.slug
-          ]?.[destinationChain.slug]
+        const tokenData = data?.[this.tokenSymbol]
+        const _unbondedTransferRootAmount = tokenData?.unbondedTransferRootAmounts?.[sourceChain.slug]?.[destinationChain.slug]
         if (_unbondedTransferRootAmount) {
           return BigNumber.from(_unbondedTransferRootAmount)
         }
@@ -1222,6 +1220,46 @@ class HopBridge extends Base {
       console.error(err)
     }
 
+    return BigNumber.from(0)
+  }
+
+  private async getBaseAvailableCreditIncludingVault (
+    sourceChain: TChain,
+    destinationChain: TChain
+  ) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    try {
+      const data = await this.getBonderAvailableLiquidityData()
+      if (data) {
+        const tokenData = data?.[this.tokenSymbol]
+        const _baseAvailableCreditIncludingVault = tokenData?.baseAvailableCreditIncludingVault?.[sourceChain.slug]?.[destinationChain.slug]
+        if (_baseAvailableCreditIncludingVault) {
+          return BigNumber.from(_baseAvailableCreditIncludingVault)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  public async getVaultBalance (
+    destinationChain: TChain,
+    bonder: string
+  ): Promise<BigNumber> {
+    destinationChain = this.toChainModel(destinationChain)
+    try {
+      const data = await this.getBonderAvailableLiquidityData()
+      if (data) {
+        const tokenData = data?.[this.tokenSymbol]
+        const _vaultBalance = tokenData?.bonderVaultBalance?.[bonder]?.[destinationChain.slug]
+        if (_vaultBalance) {
+          return BigNumber.from(_vaultBalance)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
     return BigNumber.from(0)
   }
 
@@ -1433,7 +1471,7 @@ class HopBridge extends Base {
    * @param {Object} signer - Ethers signer
    * @returns {Object} Ethers contract instance.
    */
-  public async getSaddleLpToken (
+  public getSaddleLpToken (
     chain: TChain,
     signer: TProvider = this.signer
   ) {
@@ -2080,6 +2118,41 @@ class HopBridge extends Base {
       address = await this.getBonderAddress(sourceChain, destinationChain)
     }
     return address
+  }
+
+  async withdraw (
+    chain: Chain,
+    recipient: string,
+    amount: BigNumberish,
+    transferNonce: string,
+    bonderFee: BigNumberish,
+    amountOutMin: BigNumberish,
+    deadline: number,
+    transferRootHash: string,
+    rootTotalAmount: BigNumberish,
+    transferIdTreeIndex: number,
+    siblings: string[],
+    totalLeaves: number
+  ) {
+    chain = this.toChainModel(chain)
+    const txOptions = [
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      transferRootHash,
+      rootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves,
+      await this.txOverrides(chain)
+    ] as const
+
+    this.checkConnectedChain(this.signer, chain)
+    const bridge = await this.getBridgeContract(chain)
+    return bridge.withdraw(...txOptions)
   }
 }
 

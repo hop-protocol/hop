@@ -4,10 +4,10 @@ import Typography from '@material-ui/core/Typography'
 import LargeTextField from 'src/components/LargeTextField'
 
 function CustomRecipientDropdown(props) {
-  const { styles, customRecipient, handleCustomRecipientInput } = props
+  const { styles, customRecipient, handleCustomRecipientInput, isOpen = false } = props
 
   return (
-    <details className={styles.detailsDropdown}>
+    <details className={styles.detailsDropdown} open={isOpen}>
       <summary className={styles.detailsDropdownSummary}>
         <Typography
           variant="subtitle1"
@@ -25,6 +25,7 @@ function CustomRecipientDropdown(props) {
         </Typography>
         <LargeTextField
           leftAlign
+          fullWidth
           value={customRecipient}
           onChange={handleCustomRecipientInput}
           placeholder="Enter address (e.g. 0x123...)"

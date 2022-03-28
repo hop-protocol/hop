@@ -7,8 +7,8 @@ export function getExplorerTxUrl(networkName?: Slug | ChainSlug | string, txHash
     networkName = ChainSlug.Ethereum
   }
 
-  if (networkName && networkName in ChainSlug) {
-    const explorerUrl = getBaseExplorerUrl(ChainSlug[networkName])
+  if (networkName && (networkName in ChainSlug || Object.values(ChainSlug).includes(networkName as any))) {
+    const explorerUrl = getBaseExplorerUrl(ChainSlug[networkName] || networkName)
 
     switch (networkName) {
       case ChainSlug.Ethereum:

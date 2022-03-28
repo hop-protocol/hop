@@ -1,4 +1,3 @@
-import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import Token from 'src/watchers/classes/Token'
@@ -8,8 +7,7 @@ import { BigNumber, constants } from 'ethers'
 import { Chain } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import {
-  findWatcher,
-  getWatchers
+  getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
 
 root
@@ -69,7 +67,7 @@ async function sendTokensToL2 (
 
   logger.debug('Sending tokens to L2')
   tx = await bridge.convertCanonicalTokenToHopToken(
-    chainSlugToId(chain)!,
+    chainSlugToId(chain),
     parsedAmount,
     recipient
   )
@@ -139,14 +137,20 @@ async function pollConvertTxReceive (bridge: L2Bridge, convertAmount: BigNumber)
 
 async function getToken (bridge: L2Bridge | L1Bridge): Promise<Token | void> { // eslint-disable-line @typescript-eslint/no-invalid-void-type
   const isEthSend: boolean = bridge.l1CanonicalTokenAddress === constants.AddressZero
-  const isL1Bridge = bridge.chainSlug === Chain.Ethereum
   if (isEthSend) {
+    const isL1Bridge = bridge.chainSlug === Chain.Ethereum
     if (isL1Bridge) {
       return
     }
-    return (bridge as L2Bridge).hToken()
   }
-  return (bridge as L1Bridge).l1CanonicalToken()
+
+  if (bridge instanceof L1Bridge) {
+    return bridge.l1CanonicalToken()
+  } else if (bridge instanceof L2Bridge) {
+    return bridge.hToken()
+  } else {
+    throw new Error('invalid bridge type')
+  }
 }
 
 async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void): Promise<BigNumber> { // eslint-disable-line @typescript-eslint/no-invalid-void-type
@@ -158,13 +162,7 @@ async function getTokenBalance (bridge: L2Bridge | L1Bridge, token: Token | void
 
 async function getBridge (token: string, chain: string): Promise<L2Bridge | L1Bridge> {
   // Arbitrary watcher since only the bridge is needed
-  const watchers = await getWatchers({
-    enabledWatchers: ['bondWithdrawal'],
-    tokens: [token],
-    dryMode: false
-  })
-
-  const watcher = findWatcher(watchers, BondWithdrawalWatcher, chain) as BondWithdrawalWatcher
+  const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode: false })
   if (!watcher) {
     throw new Error('Watcher not found')
   }

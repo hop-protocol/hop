@@ -10,7 +10,6 @@ import {
   writeConfigFile
 } from 'src/config'
 import { actionHandler, logger, parseBool, parseString, root } from './shared'
-import { getAddress } from 'ethers/lib/utils'
 
 root
   .command('update-config')
@@ -21,12 +20,11 @@ root
   .option('--tokens <symbols>', 'Specifiy multiple token symbol', parseString)
   .option('--set-enabled [boolean]', 'Token to set enabled/disabled', parseBool)
   .option('--commit-transfers-min-threshold [amount]', 'Min threshold amount for committing transfers', parseString)
-  .option('--state-update-address <address>', 'Address of StateUpdater contract', parseString)
   .option('--from-file <path>', 'Update config with input from file', parseString)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let { config, configFilePath, chain, destinationChain, fromFile, setEnabled, stateUpdateAddress } = source
+  const { config, configFilePath, chain, destinationChain, fromFile, setEnabled } = source
   const tokens = normalizeEnvVarArray(source.tokens || source.token)
   const commitTransfersMinThresholdAmount = Number(source.commitTransfersMinThreshold || 0)
 
@@ -172,10 +170,6 @@ async function main (source: any) {
     for (const token of tokens) {
       await updateEnabled(token)
     }
-  } else if (stateUpdateAddress) {
-    stateUpdateAddress = getAddress(stateUpdateAddress)
-    newConfig.stateUpdateAddress = stateUpdateAddress
-    logger.debug(`updating StateUpdate address to ${stateUpdateAddress}`)
   } else {
     throw new Error('action is required')
   }

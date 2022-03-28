@@ -1,11 +1,15 @@
-import { ChangeEvent, useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import Network from 'src/models/Network'
 import { defaultL2Network, l2Networks } from 'src/config/networks'
-import { findNetworkBySlug } from 'src/utils'
+import { findNetworkBySlug, networkIdToSlug, networkSlugToId } from 'src/utils'
 import useQueryParams from './useQueryParams'
+import { SafeInfo } from '@gnosis.pm/safe-apps-sdk'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 interface Options {
-  l2Only: boolean
+  l2Only?: boolean
+  availableNetworks?: Network[]
+  gnosisSafe?: SafeInfo
 }
 
 export function useSelectedNetwork(opts: Options = { l2Only: false }) {
@@ -14,8 +18,11 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
 
   useEffect(() => {
     if (queryParams?.sourceNetwork !== selectedNetwork.slug) {
-      const matchingNetwork = findNetworkBySlug(queryParams.sourceNetwork as string)
-      if (matchingNetwork && !matchingNetwork?.isLayer1) {
+      const matchingNetwork = findNetworkBySlug(
+        queryParams.sourceNetwork as string,
+        opts.availableNetworks
+      )
+      if (matchingNetwork && !matchingNetwork.isLayer1) {
         setSelectedNetwork(matchingNetwork)
       } else {
         setSelectedNetwork(defaultL2Network)
@@ -29,9 +36,19 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
     }
   }, [opts.l2Only])
 
+  const isMatchingSignerAndSourceChainNetwork = useMemo(() => {
+    if (queryParams?.sourceNetwork) {
+      const chainId = networkSlugToId(queryParams.sourceNetwork as ChainSlug)
+      if (opts.gnosisSafe?.chainId.toString() === chainId) {
+        return true
+      }
+    }
+    return false
+  }, [opts, queryParams])
+
   const selectSourceNetwork = (event: ChangeEvent<{ value: any }>) => {
     const selectedNetworkSlug = event.target.value
-    const network = findNetworkBySlug(selectedNetworkSlug)
+    const network = findNetworkBySlug(selectedNetworkSlug, opts.availableNetworks)
     if (network) {
       setSelectedNetwork(network)
       updateQueryParams({
@@ -42,7 +59,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
 
   const selectDestNetwork = (event: ChangeEvent<{ value: any }>) => {
     const selectedNetworkSlug = event.target.value
-    const network = findNetworkBySlug(selectedNetworkSlug)
+    const network = findNetworkBySlug(selectedNetworkSlug, opts.availableNetworks)
     if (network) {
       setSelectedNetwork(network)
       updateQueryParams({
@@ -53,7 +70,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
 
   const selectBothNetworks = (event: ChangeEvent<{ value: any }>) => {
     const selectedNetworkSlug = event.target.value
-    const network = findNetworkBySlug(selectedNetworkSlug)
+    const network = findNetworkBySlug(selectedNetworkSlug, opts.availableNetworks)
     if (network) {
       setSelectedNetwork(network)
       updateQueryParams({
@@ -68,5 +85,6 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
     selectSourceNetwork,
     selectDestNetwork,
     selectBothNetworks,
+    isMatchingSignerAndSourceChainNetwork,
   }
 }

@@ -1,92 +1,79 @@
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import Skeleton from '@material-ui/lab/Skeleton'
-import Paper from '@material-ui/core/Paper'
-import Box from '@material-ui/core/Box'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { commafy } from 'src/utils'
+import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
+import { Div, Icon } from 'src/components/ui'
+import { CellWrapper, SortableTable } from 'src/components/Table'
+import ethLogo from 'src/assets/logos/eth.svg'
 
-const useStyles = makeStyles(theme => ({
-  paper: {
-    padding: '2rem',
-  },
-  table: {
-    width: '800px',
-  },
-  cell: {
-    fontSize: '1.4rem',
-  },
-  flex: {
-    display: 'flex',
-  },
-  title: {
-    marginBottom: '4.2rem',
-  },
-  box: {
-    marginBottom: '2rem',
-    flexDirection: 'column',
-  },
-}))
-
+export const populatePoolStats = (item: any) => {
+  return {
+    chain: item.network.imageUrl,
+    name: item.name,
+    address: item.address,
+    balance: commafy(item.balance),
+  }
+}
 const BalanceStats: FC = () => {
-  const styles = useStyles()
   const { balances, fetchingBalances } = useStats()
 
+  const columns = React.useMemo(
+    () => [
+      {
+        Header: 'Native Token Balances',
+        columns: [
+          {
+            Header: 'Chain',
+            accessor: 'chain',
+            Cell: ({ cell }) => {
+              return (
+                <CellWrapper cell={cell}>
+                  <Icon src={cell.value} />
+                </CellWrapper>
+              )
+            },
+          },
+          {
+            Header: 'Name',
+            accessor: 'name',
+            Cell: ({ cell }) => {
+              return <CellWrapper cell={cell}>{cell.value}</CellWrapper>
+            },
+          },
+          {
+            Header: 'Address',
+            accessor: 'address',
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell}>
+                <CopyEthAddress value={cell.value} />
+              </CellWrapper>
+            ),
+          },
+          {
+            Header: 'Balance',
+            accessor: 'balance',
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell}>
+                <Icon mr={1} src={ethLogo} />
+                {commafy(cell.value)}
+              </CellWrapper>
+            ),
+          },
+        ],
+      },
+    ],
+    []
+  )
+
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
-      <Box display="flex" alignItems="center">
-        <Typography variant="h4" className={styles.title}>
-          Native Token Balances
-        </Typography>
-      </Box>
-      <Box display="flex" alignItems="center" className={styles.box}>
-        <Paper className={styles.paper}>
-          <TableContainer>
-            <Table className={styles.table}>
-              <TableHead>
-                <TableRow>
-                  <th>Network</th>
-                  <th>Name</th>
-                  <th>Address</th>
-                  <th>ETH Balance</th>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {fetchingBalances
-                  ? Array(2)
-                      .fill(null)
-                      .map((x, i) => {
-                        return (
-                          <TableRow key={i}>
-                            <TableCell colSpan={4}>
-                              <Skeleton animation="wave" width={'100%'} />
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
-                  : balances?.map(item => {
-                      return (
-                        <TableRow key={item.id}>
-                          <TableCell className={styles.cell}>{item.network}</TableCell>
-                          <TableCell className={styles.cell}>{item.name}</TableCell>
-                          <TableCell className={styles.cell}>{item.address}</TableCell>
-                          <TableCell className={styles.cell}>{commafy(item.balance)}</TableCell>
-                        </TableRow>
-                      )
-                    })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      </Box>
-    </Box>
+    <Div fontSize={[0, 1, 2]}>
+      <SortableTable
+        stats={balances}
+        columns={columns}
+        populateDataFn={populatePoolStats}
+        loading={fetchingBalances}
+      />
+    </Div>
   )
 }
 

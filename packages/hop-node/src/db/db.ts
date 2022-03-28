@@ -1,3 +1,4 @@
+import GasBoostDb from './GasBoostDb'
 import GasCostDb from './GasCostDb'
 import SyncStateDb from './SyncStateDb'
 import TransferRootsDb from './TransferRootsDb'
@@ -10,6 +11,9 @@ const dbSets: {[db: string]: {[tokenSymbol: string]: any}} = {
   transferRootsDb: {},
   gasCostDb: {}
 }
+
+// gasBoostDbs are chain specific instances
+const gasBoostDbs: {[chain: string]: any} = {}
 
 type Db = SyncStateDb | TransferRootsDb | TransfersDb | GasCostDb
 export type DbSet = {
@@ -51,4 +55,11 @@ export function getDbSet (tokenSymbol: string): DbSet {
       return dbSets.gasCostDb[tokenSymbol]
     }
   }
+}
+
+export function getGasBoostDb (chain: string): GasBoostDb {
+  if (!gasBoostDbs[chain]) {
+    gasBoostDbs[chain] = new GasBoostDb('gasBoost', chain)
+  }
+  return gasBoostDbs[chain]
 }

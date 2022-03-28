@@ -49,6 +49,9 @@ jobs:
           REACT_APP_ENABLED_TOKENS: ${{ secrets.REACT_APP_ENABLED_TOKENS }}
           REACT_APP_FORTMATIC_KEY: ${{ secrets.REACT_APP_FORTMATIC_KEY }}
           REACT_APP_PORTIS_ID: ${{ secrets.REACT_APP_PORTIS_ID }}
+          REACT_APP_DISABLED_ROUTES: ${{ secrets.REACT_APP_DISABLED_ROUTES }}
+          REACT_APP_WARNING_ROUTES: ${{ secrets.REACT_APP_WARNING_ROUTES }}
+          REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS: ${{ secrets.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS }}
         run: yarn build
 
       - name: Pin to IPFS on Pinata

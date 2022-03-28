@@ -8,12 +8,9 @@ import { Transfer } from 'src/db/TransfersDb'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  isL1: boolean
   bridgeContract: L1BridgeContract | L2BridgeContract
-  label: string
   dryMode?: boolean
   minThresholdPercent: number
-  stateUpdateAddress?: string
 }
 
 class SettleBondedWithdrawalWatcher extends BaseWatcher {
@@ -24,12 +21,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'magenta',
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode,
-      stateUpdateAddress: config.stateUpdateAddress
+      dryMode: config.dryMode
     })
   }
 
@@ -37,7 +31,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     await this.checkUnsettledTransferRootsFromDb()
   }
 
-  checkUnsettledTransferRootsFromDb = async () => {
+  async checkUnsettledTransferRootsFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getUnsettledTransferRoots(await this.getFilterRoute())
 
     const promises: Array<Promise<any>> = []
@@ -53,7 +47,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
       // get all db transfer items that belong to root
       const dbTransfers: Transfer[] = []
-      for (const transferId of transferIds!) {
+      for (const transferId of transferIds) {
         const dbTransfer = await this.db.transfers.getByTransferId(transferId)
         if (!dbTransfer) {
           continue
@@ -61,8 +55,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         dbTransfers.push(dbTransfer)
       }
 
-      if (dbTransfers.length !== transferIds!.length) {
-        this.logger.error(`could not find all db transfers for root id ${transferRootId}. Has ${transferIds!.length}, found ${dbTransfers.length}. Db may not be fully synced`)
+      if (dbTransfers.length !== transferIds.length) {
+        this.logger.error(`could not find all db transfers for root id ${transferRootId}. Has ${transferIds.length}, found ${dbTransfers.length}. Db may not be fully synced`)
         continue
       }
 
@@ -115,7 +109,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     await Promise.all(promises)
   }
 
-  checkTransferRootHash = async (transferRootHash: string, bonder?: string) => {
+  async checkTransferRootHash (transferRootHash: string, bonder?: string) {
     const logger = this.logger.create({ root: transferRootHash })
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(
       transferRootHash
@@ -139,7 +133,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     return this.checkTransferRootId(transferRootId, bonder!)
   }
 
-  checkTransferRootId = async (transferRootId: string, bonder: string) => {
+  async checkTransferRootId (transferRootId: string, bonder: string) {
     if (!bonder) {
       throw new Error('bonder is required')
     }
@@ -199,9 +193,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    await this.handleStateSwitch()
-    if (this.isDryOrPauseMode) {
-      logger.warn(`dry: ${this.dryMode}, pause: ${this.pauseMode}. skipping settleBondedWithdrawals`)
+    if (this.dryMode) {
+      logger.warn(`dry: ${this.dryMode}, skipping settleBondedWithdrawals`)
       return
     }
 
@@ -224,7 +217,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  checkTransferId = async (transferId: string) => {
+  async checkTransferId (transferId: string) {
     const dbTransfer = await this.db.transfers.getByTransferId(transferId)
     if (!dbTransfer) {
       throw new Error(`transfer id "${transferId}" not found in db`)

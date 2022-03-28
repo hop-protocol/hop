@@ -1,6 +1,8 @@
 import { Token } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { useEffect, useState } from 'react'
+import { useWeb3Context } from 'src/contexts/Web3Context'
+import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { toTokenDisplay } from 'src/utils'
 
 export function useSufficientBalance(
@@ -11,10 +13,11 @@ export function useSufficientBalance(
 ) {
   const [sufficientBalance, setSufficientBalance] = useState(false)
   const [warning, setWarning] = useState('')
+  const { isSmartContractWallet } = useIsSmartContractWallet()
 
   useEffect(() => {
     async function checkEnoughBalance() {
-      if (!(token && estimatedGasCost && amount)) {
+      if (!(token && amount)) {
         setWarning('')
         return setSufficientBalance(false)
       }
@@ -25,6 +28,11 @@ export function useSufficientBalance(
       let message: string = ''
 
       const ntb = await token.getNativeTokenBalance()
+
+      if (!estimatedGasCost) {
+        const gasPrice = await token.signer.getGasPrice()
+        estimatedGasCost = BigNumber.from(200e3).mul(gasPrice || 1e9)
+      }
 
       if (token.isNativeToken) {
         totalCost = estimatedGasCost.add(amount)
@@ -48,6 +56,10 @@ export function useSufficientBalance(
         } to pay for tx fees or reduce the amount by approximately ${toTokenDisplay(diff)} ${
           token.symbol
         }`
+
+        if (!token.isNativeToken) {
+          message = `Insufficient balance to cover the cost of tx. Please add ${token.nativeTokenSymbol} to pay for tx fees.`
+        }
       } else if (!enoughTokenBalance) {
         message = `Insufficient ${token.symbol} balance.`
       }
@@ -56,8 +68,23 @@ export function useSufficientBalance(
       setSufficientBalance(false)
     }
 
-    checkEnoughBalance()
-  }, [token, amount?.toString(), estimatedGasCost?.toString(), tokenBalance.toString()])
+    // NOTE: For now, no accommodations are made for the tx sender
+    // if they do not have enough funds to pay for the relay tx.
+    // It's kind of complicated to handle, because for the case when the SC wallet has more than owner
+    // is not possible to know who of them will be the one who executes the TX.
+    // We will trust on the wallet UI to handle this issue for now.
+    if (isSmartContractWallet) {
+      setSufficientBalance(true)
+    } else {
+      checkEnoughBalance()
+    }
+  }, [
+    isSmartContractWallet,
+    token,
+    amount?.toString(),
+    estimatedGasCost?.toString(),
+    tokenBalance.toString(),
+  ])
 
   return {
     sufficientBalance,

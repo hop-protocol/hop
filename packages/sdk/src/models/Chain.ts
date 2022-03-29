@@ -1,5 +1,4 @@
 import { ChainName, ChainSlug, Errors, NetworkSlug, Slug } from '../constants'
-import { mainnet } from '@hop-protocol/core/networks'
 import { metadata } from '../config'
 import { providers } from 'ethers'
 
@@ -13,11 +12,11 @@ class Chain {
   isL1: boolean = false
   nativeTokenSymbol: string
 
-  static Ethereum = newChain(ChainSlug.Ethereum, mainnet.ethereum.networkId)
-  static Optimism = newChain(ChainSlug.Optimism, mainnet.optimism.networkId)
-  static Arbitrum = newChain(ChainSlug.Arbitrum, mainnet.arbitrum.networkId)
-  static Gnosis = newChain(ChainSlug.Gnosis, mainnet.gnosis.networkId)
-  static Polygon = newChain(ChainSlug.Polygon, mainnet.polygon.networkId)
+  static Ethereum = newChain(ChainSlug.Ethereum, metadata.networks.ethereum.chainId)
+  static Optimism = newChain(ChainSlug.Optimism, metadata.networks.optimism.chainId)
+  static Arbitrum = newChain(ChainSlug.Arbitrum, metadata.networks.arbitrum.chainId)
+  static Gnosis = newChain(ChainSlug.Gnosis, metadata.networks.gnosis.chainId)
+  static Polygon = newChain(ChainSlug.Polygon, metadata.networks.polygon.chainId)
 
   static fromSlug (slug: Slug | string) {
     if (slug === 'xdai') {

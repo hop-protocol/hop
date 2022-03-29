@@ -731,9 +731,11 @@ class SyncWatcher extends BaseWatcher {
 
     const { destinationChainId, withdrawalBondSettledTxHash, withdrawalBondSettled } = dbTransfer
     if (dbTransfer.withdrawalBondSettled) {
+      logger.debug('populateTransferWithdrawalBondSettled dbTransfer withdrawalBondSettled is true. Returning.')
       return
     }
     if (!(dbTransfer.withdrawalBondSettledTxHash && destinationChainId)) {
+      logger.debug('populateTransferWithdrawalBondSettled dbTransfer withdrawalBondSettledTxHash or destinationChainId not found. Returning.')
       return
     }
 
@@ -744,7 +746,7 @@ class SyncWatcher extends BaseWatcher {
     const isSameBonder = dbTransfer?.withdrawalBonder === bonder
     const isWithdrawalSettled = isBonded && isSameBonder
     if (!isWithdrawalSettled) {
-      logger.debug('isWithdrawalSettled is true. Returning.')
+      logger.debug('populateTransferWithdrawalBondSettled isWithdrawalSettled is true. Returning.')
       return
     }
 
@@ -752,7 +754,7 @@ class SyncWatcher extends BaseWatcher {
 
     // on-chain bonded withdrawal amount is cleared after WithdrawalBondSettled event
     if (!bondedWithdrawalAmount.eq(0)) {
-      logger.debug('bondedWithdrawalAmount is not 0. Returning.')
+      logger.debug('populateTransferWithdrawalBondSettled bondedWithdrawalAmount is not 0. Returning.')
       return
     }
 
@@ -762,17 +764,17 @@ class SyncWatcher extends BaseWatcher {
 
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
     if (!dbTransferRoot) {
-      logger.debug('dbTransferRoot not found. Returning.')
+      logger.debug('populateTransferWithdrawalBondSettled dbTransferRoot not found. Returning.')
       return
     }
 
     const { transferIds } = dbTransferRoot
     if (!transferIds?.length) {
-      logger.debug('dbTransferRoot transferIds not found. Returning.')
+      logger.debug('populateTransferWithdrawalBondSettled dbTransferRoot transferIds not found. Returning.')
       return
     }
 
-    logger.debug(`transferIds count: ${transferIds.length}`)
+    logger.debug(`populateTransferWithdrawalBondSettled transferIds count: ${transferIds.length}`)
     const dbTransfers = await this.db.transfers.getMultipleTransfersByTransferIds(transferIds)
     if (!dbTransfers?.length) {
       logger.debug('db transfers not found. Returning.')
@@ -780,7 +782,7 @@ class SyncWatcher extends BaseWatcher {
     }
 
     const allSettled = this.getIsDbTransfersAllSettled(dbTransfers)
-    logger.debug(`all settled: ${allSettled}`)
+    logger.debug(`populateTransferWithdrawalBondSettled all settled: ${allSettled}`)
     if (!allSettled) {
       logger.debug('not all settled yet')
       return

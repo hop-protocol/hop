@@ -12,11 +12,11 @@ class Chain {
   isL1: boolean = false
   nativeTokenSymbol: string
 
-  static Ethereum = newChain(ChainSlug.Ethereum)
-  static Optimism = newChain(ChainSlug.Optimism)
-  static Arbitrum = newChain(ChainSlug.Arbitrum)
-  static Gnosis = newChain(ChainSlug.Gnosis)
-  static Polygon = newChain(ChainSlug.Polygon)
+  static Ethereum = newChain(ChainSlug.Ethereum, metadata.networks.ethereum.chainId)
+  static Optimism = newChain(ChainSlug.Optimism, metadata.networks.optimism.chainId)
+  static Arbitrum = newChain(ChainSlug.Arbitrum, metadata.networks.arbitrum.chainId)
+  static Gnosis = newChain(ChainSlug.Gnosis, metadata.networks.gnosis.chainId)
+  static Polygon = newChain(ChainSlug.Polygon, metadata.networks.polygon.chainId)
 
   static fromSlug (slug: Slug | string) {
     if (slug === 'xdai') {
@@ -27,7 +27,7 @@ class Chain {
     return newChain(slug)
   }
 
-  constructor (name: ChainName | string, chainId?: number | string, provider?: Provider) {
+  constructor (name: ChainName | string, chainId?: number, provider?: Provider) {
     this.name = name
     this.slug = (name || '').trim().toLowerCase()
     if (
@@ -41,7 +41,7 @@ class Chain {
       this.slug = ChainSlug.Ethereum
     }
     if (chainId) {
-      this.chainId = Number(chainId)
+      this.chainId = chainId
     }
     if (provider) {
       this.provider = provider
@@ -59,7 +59,7 @@ class Chain {
   }
 }
 
-function newChain (chain: NetworkSlug | ChainSlug | string) {
+function newChain (chain: NetworkSlug | ChainSlug | string, chainId?: number) {
   if (
     chain === NetworkSlug.Mainnet ||
     chain === NetworkSlug.Staging ||
@@ -71,7 +71,7 @@ function newChain (chain: NetworkSlug | ChainSlug | string) {
   if (!metadata.networks[chain]) {
     throw new Error(`unsupported chain "${chain}"`)
   }
-  return new Chain(metadata.networks[chain].name)
+  return new Chain(metadata.networks[chain].name, chainId)
 }
 
 export default Chain

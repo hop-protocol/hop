@@ -7,7 +7,7 @@ import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/ArbitrumGlobal
 import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/ArbitrumGlobalInbox__factory'
 import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { ChainSlug, Errors, MinPolygonGasPrice, NetworkSlug } from './constants'
+import { CanonicalToken, ChainSlug, Errors, MinPolygonGasPrice, NetworkSlug } from './constants'
 import { L1OptimismTokenBridge } from '@hop-protocol/core/contracts/L1OptimismTokenBridge'
 import { L1OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L1OptimismTokenBridge__factory'
 import { L1PolygonPosRootChainManager } from '@hop-protocol/core/contracts/L1PolygonPosRootChainManager'
@@ -549,12 +549,22 @@ class Base {
 
   getSupportedAssets () {
     const supported : any = {}
+
+    const unsupportedAssets: any = {
+      optimism: CanonicalToken.MATIC,
+      arbitrum: CanonicalToken.MATIC,
+    }
+
     for (const token in this.addresses) {
       for (const chain in this.addresses[token]) {
         if (!supported[chain]) {
           supported[chain] = {}
         }
-        supported[chain][token] = true
+        if (chain in unsupportedAssets && unsupportedAssets[chain] === token) {
+          supported[chain][token] = false
+        } else {
+          supported[chain][token] = true
+        }
       }
     }
     return supported

@@ -550,21 +550,12 @@ class Base {
   getSupportedAssets () {
     const supported : any = {}
 
-    const unsupportedAssets: any = {
-      optimism: CanonicalToken.MATIC,
-      arbitrum: CanonicalToken.MATIC,
-    }
-
     for (const token in this.addresses) {
       for (const chain in this.addresses[token]) {
         if (!supported[chain]) {
           supported[chain] = {}
         }
-        if (chain in unsupportedAssets && unsupportedAssets[chain] === token) {
-          supported[chain][token] = false
-        } else {
-          supported[chain][token] = true
-        }
+        supported[chain][token] = true
       }
     }
     return supported

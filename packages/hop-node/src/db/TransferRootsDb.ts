@@ -271,7 +271,6 @@ class SubDbBondedAt extends BaseDb {
 // structure:
 // key: `<transferRootId>:<txHash>`
 // value: `{ ...MultipleWithdrawalsSettled }`
-// note: the "transferRoot" prefix is not required but requires a migration to remove
 class SubDbMultipleWithdrawalsSettleds extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
     super(`${prefix}:multipleWithdrawalsSettleds`, _namespace)
@@ -304,8 +303,7 @@ class SubDbMultipleWithdrawalsSettleds extends BaseDb {
       lte: `${transferRootId}:~`
     }
 
-    const kv = await this.getValues(filter)
-    return kv.filter(this.filterExisty)
+    return this.getValues(filter)
   }
 }
 
@@ -746,6 +744,7 @@ class TransferRootsDb extends BaseDb {
       return item.multipleWithdrawalsSettledTotalAmount
     }
 
+    // sum up all the totalBondsSettled amounts to get total settled amount
     const events = await this.subDbMultipleWithdrawalsSettleds.getEvents(transferRootId)
     let settledTotalAmount = BigNumber.from(0)
     for (const event of events) {
@@ -754,16 +753,17 @@ class TransferRootsDb extends BaseDb {
     return settledTotalAmount
   }
 
-  // get transaction hash for any event for root id in order to decode list of transfer ids upstream
   async getMultipleWithdrawalsSettledTxHash (transferRootId: string) {
     // items before subDbMultipleWithdrawalsSettleds was introduced have
-    // the as event tx hash property so we return it if it exists here
+    // the event tx hash property so we return it if it exists here
     const item = await this.getByTransferRootId(transferRootId)
     if (item.multipleWithdrawalsSettledTxHash) {
       return item.multipleWithdrawalsSettledTxHash
     }
 
     const events = await this.subDbMultipleWithdrawalsSettleds.getEvents(transferRootId)
+
+    // we can use any tx hash since we'll be using it to decode list of transfer ids upstream
     return events?.[0]?.txHash
   }
 }

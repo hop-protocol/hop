@@ -1,9 +1,8 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useTable, useSortBy, sortTypes } from 'react-table'
+import { useTable, useSortBy } from 'react-table'
 import makeData from './makeData'
 import { Div } from '../ui'
-import { Loading } from '../Loading'
 
 const Styles = styled.div`
   padding: 0.25rem;
@@ -65,20 +64,10 @@ const Styles = styled.div`
 `
 
 function Table({ columns, data, loading }) {
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    state,
-    setHiddenColumns,
-    ...rest
-  } = useTable(
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable(
     {
       columns,
       data,
-      sortTypes,
     },
     useSortBy
   )
@@ -87,36 +76,35 @@ function Table({ columns, data, loading }) {
     <Div>
       <table {...getTableProps()}>
         <thead>
-          {headerGroups.map((headerGroup, i) => (
+          {headerGroups.map((headerGroup: any, i) => (
             <tr
               {...headerGroup.getHeaderGroupProps([
                 {
                   style: {
                     ...headerGroup.style,
-                    textAlign: i === 0 && 'left',
-                    fontSize: i === 0 && '2rem',
-                    color: i === 0 && '#B32EFF',
+                    textAlign: i === 0 ? 'left' : 'center',
+                    fontSize: i === 0 ? '2rem' : '1.5rem',
+                    color: i === 0 ? '#B32EFF' : 'inherit',
                   },
                 },
               ])}
             >
-              {headerGroup.headers.map((column, i) => (
+              {headerGroup.headers.map((column: any, i) => (
                 // Add the sorting props to control sorting. For this example
                 // we can add them into the header props
                 <th
-                  {...column.getHeaderProps([
+                  {...column.getHeaderProps(column.getSortByToggleProps(), [
                     {
                       style: {
                         ...column.style,
-                        backgroundColor: column.isSorted ? '#eed0ff' : 'transparent',
+                        backgroundColor: (column as any).isSorted ? '#eed0ff' : 'transparent',
                       },
                     },
-                    column.getSortByToggleProps(),
                   ])}
                 >
                   {column.render('Header')}
                   <span style={{ color: '#B32EFF' }}>
-                    {column.isSorted ? (column.isSortedDesc ? ' ↑' : ' ↓') : ''}
+                    {column.isSorted ? ' ↑' : column.isSortedDesc && ' ↓'}
                   </span>
                 </th>
               ))}
@@ -125,16 +113,6 @@ function Table({ columns, data, loading }) {
         </thead>
 
         <tbody {...getTableBodyProps()}>
-          {/* {loading ? (<Loading />) : rows.map((row, i) => {
-            prepareRow(row)
-            return (
-              <tr {...row.getRowProps()}>
-                {row.cells.map(cell => {
-                  return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
-                })}
-              </tr>
-            )
-          })} */}
           {rows.map((row, i) => {
             prepareRow(row)
             return (
@@ -164,7 +142,7 @@ function SortableTable(props: Props) {
 
   const data = React.useMemo(
     () => makeData(stats, populateDataFn, extraData),
-    [stats, extraData, populateDataFn, loading]
+    [stats, extraData, populateDataFn]
   )
 
   return (

@@ -895,7 +895,9 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting transferRootMultipleWithdrawSettled')
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
-    const { transferRootHash, multipleWithdrawalsSettledTxHash, multipleWithdrawalsSettledTotalAmount, transferIds, destinationChainId } = dbTransferRoot
+    const { transferRootHash, transferIds, destinationChainId } = dbTransferRoot
+    const multipleWithdrawalsSettledTotalAmount = await this.db.transferRoots.getMultipleWithdrawalsSettledTotalAmount(transferRootId)
+    const multipleWithdrawalsSettledTxHash = await this.db.transferRoots.getMultipleWithdrawalsSettledTxHash(transferRootId)
     if (
       !multipleWithdrawalsSettledTxHash ||
       !multipleWithdrawalsSettledTotalAmount ||
@@ -1137,12 +1139,12 @@ class SyncWatcher extends BaseWatcher {
   }
 
   async handleMultipleWithdrawalsSettledEvent (event: MultipleWithdrawalsSettledEvent) {
-    const { transactionHash } = event
     const {
       bonder,
       rootHash: transferRootHash,
       totalBondsSettled
     } = event.args
+    const { transactionHash, logIndex, blockNumber, transactionIndex } = event
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootHash(transferRootHash)
     // Throwing here is not ideal, but it is required because we don't have the context of the transferId
     // with this event data. We can only get it from prior events. We should always see other events
@@ -1159,9 +1161,16 @@ class SyncWatcher extends BaseWatcher {
     logger.debug(`transferRootHash from event: ${transferRootHash}`)
     logger.debug(`bonder : ${bonder}`)
     logger.debug(`totalBondSettled: ${this.bridge.formatUnits(totalBondsSettled)}`)
-    await this.db.transferRoots.update(transferRootId, {
-      multipleWithdrawalsSettledTxHash: transactionHash,
-      multipleWithdrawalsSettledTotalAmount: totalBondsSettled
+
+    await this.db.transferRoots.updateMultipleWithdrawalsSettledEvent({
+      transferRootHash,
+      transferRootId,
+      bonder,
+      totalBondsSettled,
+      txHash: transactionHash,
+      blockNumber,
+      txIndex: transactionIndex,
+      logIndex
     })
 
     const transferIds = dbTransferRoot?.transferIds

@@ -667,7 +667,7 @@ class TransferRootsDb extends BaseDb {
 
     const batchedItems = await this.batchGetByIds(transferRootIds)
     const transferRoots = batchedItems.map(this.normalizeItem)
-    const filtered = transferRoots.filter(item => {
+    const filtered = transferRoots.filter((item: TransferRoot) => {
       if (filter.sourceChainId && item.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false

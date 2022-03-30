@@ -251,6 +251,7 @@ class TransfersDb extends BaseDb {
         promises.push(this._update(key, value))
       }
     }
+
     await Promise.all(promises)
     this.logger.debug('TransfersDb migration complete')
   }

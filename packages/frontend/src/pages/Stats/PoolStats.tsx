@@ -32,7 +32,7 @@ const PoolStats: FC = () => {
             accessor: 'chain',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell}>
-                <Icon src={cell.value} width={[12, 18]} />
+                <Icon src={cell.value} />
               </CellWrapper>
             ),
           },
@@ -67,7 +67,7 @@ const PoolStats: FC = () => {
             accessor: 'ratio',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell}>
-                <Icon mr={1} src={cell.row.values.tokenSymbol} width={[12, 18]} />
+                <Icon mr={1} src={cell.row.values.tokenSymbol} />
                 <Div justifySelf="right">{cell.value}</Div>
               </CellWrapper>
             ),
@@ -85,6 +85,7 @@ const PoolStats: FC = () => {
         columns={columns}
         populateDataFn={populatePoolStats}
         extraData={poolStats}
+        loading={fetching}
       />
     </Div>
   )

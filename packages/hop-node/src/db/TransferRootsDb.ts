@@ -463,7 +463,7 @@ class TransferRootsDb extends BaseDb {
         timestampOk = item.sentConfirmTxAt + TxRetryDelayMs < Date.now()
       }
 
-      const txStatusOk = item.confirmTxStatus !== TxStatus.Broadcasted
+      const txStatusOk = !item.confirmTxStatus || (item.confirmTxStatus === TxStatus.Incomplete)
 
       const hashesToIgnore = [
         '0xd26bfea7a1e36695ebe734a8dd12f0775d95141e3161b744130a04ff39ec25ca',

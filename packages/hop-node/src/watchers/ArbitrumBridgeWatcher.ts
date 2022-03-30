@@ -81,10 +81,6 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
 
     return await this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
   }
-
-  async isCheckpointed (l2BlockNumber: number) {
-    return true
-  }
 }
 
 export default ArbitrumBridgeWatcher

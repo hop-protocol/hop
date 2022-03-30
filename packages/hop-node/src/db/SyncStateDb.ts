@@ -14,12 +14,21 @@ class SyncStateDb extends BaseDb {
   async migration () {
     this.logger.debug('SyncStateDb migration started')
     const entries = await this.getItems()
+    const timestamp = Date.now()
     for (const entry of entries) {
       // delete existing MultipleWithdrawalsSettled keys to force
       // a re-sync of all MultipleWithdrawalsSettled events
-      const migrationTimestamp = 1648623600000
-      const shouldDelete = entry._createdAt < migrationTimestamp && entry.key.includes('MultipleWithdrawalsSettled')
+      const shouldDelete = entry._createdAt < timestamp && entry.key.endsWith('MultipleWithdrawalsSettled') && !entry.key.startsWith('migration')
       if (shouldDelete) {
+        // keep track of when this migration has been ran so it
+        // doesn't re-sync from beginning on every restart
+        const migrationKey = `migration:001:${entry.key}`
+        const alreadyMigrated = await this.getByKey(migrationKey)
+        if (alreadyMigrated) {
+          continue
+        }
+
+        await this.update(migrationKey, { timestamp })
         this.logger.debug(`SyncStateDb migration deleted key ${entry.key}`)
         await this.deleteById(entry.key)
       }

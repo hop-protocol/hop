@@ -4,12 +4,29 @@ export type State = {
   key: string
   latestBlockSynced: number
   timestamp: number
+  _createdAt: number
 }
 
 // structure:
 // key: `<chainId>:<address>:<eventName>`
 // value: `{ ...State }`
 class SyncStateDb extends BaseDb {
+  async migration () {
+    this.logger.debug('SyncStateDb migration started')
+    const entries = await this.getItems()
+    for (const entry of entries) {
+      // delete existing MultipleWithdrawalsSettled keys to force
+      // a re-sync of all MultipleWithdrawalsSettled events
+      const migrationTimestamp = 1648623600000
+      const shouldDelete = entry._createdAt < migrationTimestamp && entry.key.includes('MultipleWithdrawalsSettled')
+      if (shouldDelete) {
+        this.logger.debug(`SyncStateDb migration deleted key ${entry.key}`)
+        await this.deleteById(entry.key)
+      }
+    }
+    this.logger.debug('SyncStateDb migration done')
+  }
+
   async update (key: string, data: Partial<State>) {
     if (!data.key) {
       data.key = key

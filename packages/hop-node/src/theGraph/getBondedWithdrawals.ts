@@ -1,10 +1,12 @@
 import makeRequest from './makeRequest'
+import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
+import { padHex } from 'src/utils/padHex'
 
 export default async function getBondedWithdrawals (
   chain: string,
   token: string,
-  lastId: string = '0x0000000000000000000000000000000000000000'
+  lastId: string = constants.AddressZero
 ) {
   const query = `
     query WithdrawalBonded($token: String, $lastId: ID) {
@@ -32,7 +34,7 @@ export default async function getBondedWithdrawals (
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    lastId
+    lastId: padHex(lastId)
   })
   let withdrawals = jsonRes.withdrawalBondeds.map((x: any) => normalizeEntity(x))
 

@@ -56,7 +56,7 @@ export function useGnosisSafeTransaction(
 
   // Checks if source chain == gnosis-safe chain
   const isCorrectSignerNetwork = useMemo(() => {
-    return isSmartContractWallet && fromNetwork?.networkId === safe?.chainId.toString()
+    return isSmartContractWallet && fromNetwork?.networkId === safe?.chainId
   }, [isSmartContractWallet, fromNetwork, safe])
 
   // Display warnings to enforce valid source chain and custom recipient

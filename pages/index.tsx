@@ -1,3 +1,4 @@
+import toHex from 'to-hex'
 import Clipboard from 'clipboard'
 import {ethers} from 'ethers'
 import * as luxon from 'luxon'
@@ -112,6 +113,10 @@ const tokenDecimals :any = {
   ETH: 18
 }
 
+function padHex(hex: string) {
+  return toHex(hex, {evenLength: true, addPrefix: true})
+}
+
 function explorerLink (chain: string) {
   let base = ''
   if (chain === 'gnosis') {
@@ -216,8 +221,8 @@ async function fetchBonds (chain: string, startTime: number, endTime: number, la
     startTime,
     endTime,
     transferId: !Array.isArray(transferId) ? transferId : undefined,
-    transferIds: Array.isArray(transferId) ? transferId : [],
-    lastId: lastId || '0x0000000000000000000000000000000000000000'
+    transferIds: Array.isArray(transferId) ? transferId.filter(x => x).map(x => padHex(x)) : [],
+    lastId: padHex(lastId || ethers.constants.AddressZero)
   })
 
   let bonds = (data.withdrawalBondeds1 || []).concat(data.withdrawalBondeds2 || [])

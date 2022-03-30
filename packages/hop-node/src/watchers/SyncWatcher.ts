@@ -1178,7 +1178,9 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    await this.checkTransferRootSettledState(transferRootId, totalBondsSettled, bonder)
+    const multipleWithdrawalsSettledTotalAmount = await this.db.transferRoots.getMultipleWithdrawalsSettledTotalAmount(transferRootId)
+
+    await this.checkTransferRootSettledState(transferRootId, multipleWithdrawalsSettledTotalAmount, bonder)
   }
 
   handleWithdrawalBondSettledEvent = async (event: WithdrawalBondSettledEvent) => {

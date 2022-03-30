@@ -22,8 +22,6 @@ interface BaseTransferRoot {
   confirmTxHash?: string
   destinationChainId?: number
   isNotFound?: boolean
-  multipleWithdrawalsSettledTotalAmount?: BigNumber // legacy
-  multipleWithdrawalsSettledTxHash?: string // legacy
   rootSetBlockNumber?: number
   rootSetTimestamp?: number
   rootSetTxHash?: string
@@ -737,13 +735,6 @@ class TransferRootsDb extends BaseDb {
   }
 
   async getMultipleWithdrawalsSettledTotalAmount (transferRootId: string) {
-    // items before subDbMultipleWithdrawalsSettleds was introduced have
-    // the event total amount as property so we return it if it exists here
-    const item = await this.getByTransferRootId(transferRootId)
-    if (item.multipleWithdrawalsSettledTotalAmount) {
-      return item.multipleWithdrawalsSettledTotalAmount
-    }
-
     // sum up all the totalBondsSettled amounts to get total settled amount
     const events = await this.subDbMultipleWithdrawalsSettleds.getEvents(transferRootId)
     let settledTotalAmount = BigNumber.from(0)
@@ -754,13 +745,6 @@ class TransferRootsDb extends BaseDb {
   }
 
   async getMultipleWithdrawalsSettledTxHash (transferRootId: string) {
-    // items before subDbMultipleWithdrawalsSettleds was introduced have
-    // the event tx hash property so we return it if it exists here
-    const item = await this.getByTransferRootId(transferRootId)
-    if (item.multipleWithdrawalsSettledTxHash) {
-      return item.multipleWithdrawalsSettledTxHash
-    }
-
     const events = await this.subDbMultipleWithdrawalsSettleds.getEvents(transferRootId)
 
     // we can use any tx hash since we'll be using it to decode list of transfer ids upstream

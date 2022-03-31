@@ -26,7 +26,7 @@ type Props = {
   provider: ethers.providers.Web3Provider | undefined
   address: Address | undefined
   balance?: BigNumber
-  connectedNetworkId: string
+  connectedNetworkId: number | undefined
   validConnectedNetworkId: boolean
   requestWallet: () => void
   disconnectWallet: () => void
@@ -114,7 +114,7 @@ const walletChecks: WalletCheckInit[] = [
 const Web3ContextProvider: FC = ({ children }) => {
   // logger.debug('Web3ContextProvider render')
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>()
-  const [connectedNetworkId, setConnectedNetworkId] = useState<string>('')
+  const [connectedNetworkId, setConnectedNetworkId] = useState<number|undefined>()
   const [validConnectedNetworkId] = useState<boolean>(false)
   const [walletName, setWalletName] = useState<string>('')
   const [address, setAddress] = useState<Address | undefined>()
@@ -179,9 +179,9 @@ const Web3ContextProvider: FC = ({ children }) => {
         // },
         network: (connectedNetworkId: number) => {
           if (connectedNetworkId) {
-            setConnectedNetworkId(connectedNetworkId.toString())
+            setConnectedNetworkId(connectedNetworkId)
           } else {
-            setConnectedNetworkId('')
+            setConnectedNetworkId(undefined)
           }
         },
         balance: bal => {
@@ -284,7 +284,7 @@ const Web3ContextProvider: FC = ({ children }) => {
       logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
 
       // TODO: this block of code is too confident. use separate hook to check last-minute tx details
-      if (networkId.toString() === signerNetworkId?.toString()) {
+      if (networkId === signerNetworkId) {
         return true
       }
 

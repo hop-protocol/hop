@@ -15,6 +15,7 @@
     "next": "12.1.1",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-use": "^17.3.2",
     "to-hex": "0.0.18"
   },
   "devDependencies": {

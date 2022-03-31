@@ -5,6 +5,7 @@ import { DateTime } from 'luxon'
 import { Div, Icon } from 'src/components/ui'
 import { findNetworkBySlug } from 'src/utils'
 import { getTokenImage } from 'src/utils/tokens'
+import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
 
 export const populateIncompleteSettlementStats = (item: any) => {
   const sourceChain = findNetworkBySlug(item.sourceChain)
@@ -24,8 +25,21 @@ export const populateIncompleteSettlementStats = (item: any) => {
   }
 }
 
+export const populateLowBonderBalances = (item: any) => {
+  const token = getTokenImage(item.native.replace('X', ''))
+  const bridge = getTokenImage(item.bridge)
+
+  return {
+    bridge: bridge,
+    token: token,
+    bonder: item.bonder,
+    amount: item.amountFormatted
+  }
+}
+
 function useData() {
-  const [incompleteSettlements, setIncompleteSettlements] = useState<any>({})
+  const [incompleteSettlements, setIncompleteSettlements] = useState<any>([])
+  const [lowBonderBalances, setLowBonderBalances] = useState<any>([])
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [fetching, setFetching] = useState<boolean>(false)
 
@@ -43,6 +57,9 @@ function useData() {
         if (result?.data?.incompleteSettlements) {
           setIncompleteSettlements(result.data.incompleteSettlements)
         }
+        if (result?.data?.lowBonderBalances) {
+          setLowBonderBalances(result.data.lowBonderBalances)
+        }
       } catch (err) {
         console.error(err)
       }
@@ -53,13 +70,14 @@ function useData() {
 
   return {
     incompleteSettlements,
+    lowBonderBalances,
     lastUpdated,
     fetching
   }
 }
 
 const Health = () => {
-  const { incompleteSettlements, lastUpdated, fetching } = useData()
+  const { incompleteSettlements, lowBonderBalances, lastUpdated, fetching } = useData()
   const cell = ({ cell }) => (
                 <CellWrapper cell={cell}>
                   {cell.value}
@@ -73,6 +91,11 @@ const Health = () => {
   const cellNumber = ({ cell }) => (
                 <CellWrapper cell={cell} end>
                   {cell.value}
+                </CellWrapper>
+              )
+  const cellAddress = ({ cell }) => (
+                <CellWrapper cell={cell} end>
+                  <CopyEthAddress value={cell.value} />
                 </CellWrapper>
               )
   const incompleteSettlementsColumns = [{
@@ -126,6 +149,32 @@ const Health = () => {
     ]
   }]
 
+  const lowBonderBalancesColumns = [{
+    Header: 'Low Bonder Balances',
+    columns: [
+      {
+        Header: 'Bridge',
+        accessor: 'bridge',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Bonder',
+        accessor: 'bonder',
+        Cell: cellAddress,
+      },
+      {
+        Header: 'Token',
+        accessor: 'token',
+        Cell: cellIcon
+      },
+      {
+        Header: 'Amount',
+        accessor: 'amount',
+        Cell: cellNumber,
+      },
+    ]
+  }]
+
   return (
     <div>
       <Typography variant="body1">
@@ -135,6 +184,12 @@ const Health = () => {
         stats={ incompleteSettlements }
         columns={ incompleteSettlementsColumns }
         populateDataFn={ populateIncompleteSettlementStats }
+        loading={ fetching }
+      />
+      <SortableTable
+        stats={ lowBonderBalances }
+        columns={ lowBonderBalancesColumns }
+        populateDataFn={ populateLowBonderBalances }
         loading={ fetching }
       />
     </div>

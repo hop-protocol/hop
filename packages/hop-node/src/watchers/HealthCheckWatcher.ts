@@ -52,7 +52,7 @@ export class HealthCheckWatcher {
     }
 
     const bonders = new Set<string>()
-    const bonderTokens: Record<string, string> = {}
+    const bonderBridges: Record<string, string> = {}
     const configBonders = globalConfig.bonders as any
     const result: any = []
 
@@ -60,14 +60,14 @@ export class HealthCheckWatcher {
       for (const sourceChain in configBonders[token]) {
         for (const destinationChain in configBonders[token][sourceChain]) {
           const bonder = configBonders[token][sourceChain][destinationChain]
-          bonderTokens[bonder] = token
+          bonderBridges[bonder] = token
           bonders.add(bonder)
         }
       }
     }
 
     for (const bonder of bonders) {
-      const token = bonderTokens[bonder]
+      const bridge = bonderBridges[bonder]
       const [ethBalance, xdaiBalance, maticBalance] = await Promise.all([
         providers[Chain.Ethereum].getBalance(bonder),
         providers[Chain.Gnosis].getBalance(bonder),
@@ -77,7 +77,7 @@ export class HealthCheckWatcher {
       if (ethBalance.lt(lowBalances.ETH)) {
         result.push({
           bonder,
-          token,
+          bridge,
           native: 'ETH',
           amount: ethBalance.toString(),
           amountFormatted: Number(formatEther(ethBalance.toString()))
@@ -87,7 +87,7 @@ export class HealthCheckWatcher {
       if (xdaiBalance.lt(lowBalances.XDAI)) {
         result.push({
           bonder,
-          token,
+          bridge,
           native: 'XDAI',
           amount: xdaiBalance.toString(),
           amountFormatted: Number(formatEther(xdaiBalance.toString()))
@@ -97,7 +97,7 @@ export class HealthCheckWatcher {
       if (maticBalance.lt(lowBalances.MATIC)) {
         result.push({
           bonder,
-          token,
+          bridge,
           native: 'MATIC',
           amount: maticBalance.toString(),
           amountFormatted: Number(formatEther(maticBalance.toString()))

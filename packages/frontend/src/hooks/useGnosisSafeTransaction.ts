@@ -49,9 +49,12 @@ export function useGnosisSafeTransaction(
 
   // Enables Sending gnosis-safe txs
   const gnosisEnabled = useMemo(() => {
-    return isSmartContractWallet
-      ? isGnosisSafeWallet && customRecipient && !isRecipientSelfContract
-      : !customRecipient && false
+    if (isSmartContractWallet) {
+      // require customRecipient if it's gnosis-safe
+      return isGnosisSafeWallet && customRecipient
+    }
+
+    return !customRecipient && false
   }, [isSmartContractWallet, isGnosisSafeWallet, customRecipient, isRecipientSelfContract])
 
   // Checks if source chain == gnosis-safe chain
@@ -94,8 +97,16 @@ export function useGnosisSafeTransaction(
     if (isRecipientSelfContract) {
       // custom recipient is set to self (gnosis-safe)
       return {
-        severity: 'error',
-        text: `The connected account is detected to be a Gnosis Safe. Please provide a custom recipient that you control on the ${toNetwork?.name} network.`,
+        severity: 'warning',
+        text: `The recipient account is detected to be a Gnosis Safe on the ${toNetwork?.name} network.`,
+      }
+    }
+
+    if (isRecipientContract) {
+      // custom recipient is a smart contract (non gnosis-safe)
+      return {
+        severity: 'warning',
+        text: `The recipient account is detected to be a smart contract on the ${toNetwork?.name} network.`,
       }
     }
 

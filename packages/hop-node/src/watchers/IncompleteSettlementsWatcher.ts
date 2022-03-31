@@ -345,9 +345,9 @@ class IncompleteSettlementsWatcher {
       const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
       const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
       const _totalAmount = totalAmount.toString()
-      const totalAmountFormatted = formatUnits(_totalAmount, tokenDecimals)
+      const totalAmountFormatted = Number(formatUnits(_totalAmount, tokenDecimals))
       const diff = totalAmount.sub(settledTotalAmount).toString()
-      const diffFormatted = formatUnits(diff, tokenDecimals)
+      const diffFormatted = Number(formatUnits(diff, tokenDecimals))
       const isIncomplete = settledTotalAmount.eq(0) || !settledTotalAmount.eq(totalAmount)
       if (isIncomplete) {
         const settlementEvents = this.rootHashSettlements[rootHash]?.length ?? 0

@@ -33,7 +33,7 @@ function Spinner() {
 }
 
 const poll = true
-const pollInterval = 20 * 1000
+const pollInterval = 60 * 1000
 const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
 const enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
 
@@ -230,7 +230,7 @@ async function fetchBonds (chain: string, startTime: number, endTime: number, la
 
   if (bonds.length === 1000) {
     try {
-      const newLastId = bonds[bonds.length - 1].id
+      const newLastId = padHex(bonds[bonds.length - 1].id)
       if (lastId === newLastId) {
         return bonds
       }
@@ -1370,10 +1370,44 @@ function useData () {
     } else {
       resetPage()
     }
-  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonder, filterAccount, filterTransferId, filterDate])
+  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonder])
+
+  useEffect(() => {
+    updateData()
+  }, [filterAccount, filterTransferId, filterDate])
 
   function resetPage () {
     setPage(0)
+  }
+
+  function resetFilters(event: any) {
+    event.preventDefault()
+    setFilterDate(currentDate)
+    setFilterBonded('')
+    setFilterToken('')
+    setFilterSource('')
+    setFilterDestination('')
+    setFilterAmount('')
+    setFilterAmountComparator('gt')
+    setFilterAmountUsd('')
+    setFilterAmountUsdComparator('gt')
+    setFilterBonder('')
+    setFilterAccount('')
+    setFilterTransferId('')
+    setChartAmountSize(false)
+    updateQueryParams({
+      bonded: null,
+      source: null,
+      destination: null,
+      token: null,
+      amount: null,
+      amountCmp: null,
+      amountUsd: null,
+      amountUsdCmp: null,
+      bonder: null,
+      account: null,
+      transferId: null
+    })
   }
 
   return {
@@ -1415,6 +1449,7 @@ function useData () {
     hasNextPage,
     nextPage,
     loadingData,
+    resetFilters
   }
 }
 
@@ -1458,6 +1493,7 @@ const Index: NextPage = () => {
     hasNextPage,
     nextPage,
     loadingData,
+    resetFilters
   } = useData()
 
   return (
@@ -1608,6 +1644,9 @@ const Index: NextPage = () => {
                 max={maxDate}
                 onChange={updateFilterDate}
                  />
+              </div>
+              <div>
+                <button onClick={resetFilters}>Reset</button>
               </div>
             </div>
             <div className="pagination">

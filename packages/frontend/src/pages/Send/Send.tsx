@@ -24,7 +24,6 @@ import { Div, Flex } from 'src/components/ui'
 import { useSendTransaction } from './useSendTransaction'
 import {
   useAssets,
-  useAsyncMemo,
   useFeeConversions,
   useApprove,
   useQueryParams,
@@ -161,14 +160,135 @@ const Send: FC = () => {
     estimatedReceivedDisplay,
   } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
 
+  // ==============================================================================================
+  // Approve fromNetwork / fromToken
+  // ==============================================================================================
+
+  const { approve, needsApproval } = useApprove(sourceToken, fromNetwork, amountOut)
+
+  const approveFromToken = async () => {
+    if (!fromNetwork) {
+      throw new Error('No fromNetwork selected')
+    }
+
+    if (!sourceToken) {
+      throw new Error('No from token selected')
+    }
+
+    if (!fromTokenAmount) {
+      throw new Error('No amount to approve')
+    }
+
+    const networkId = Number(fromNetwork.networkId)
+    const isNetworkConnected = await checkConnectedNetworkId(networkId)
+    if (!isNetworkConnected) return
+
+    const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
+    const bridge = sdk.bridge(sourceToken.symbol)
+
+    let spender: string
+    if (fromNetwork.isLayer1) {
+      const l1Bridge = await bridge.getL1Bridge()
+      spender = l1Bridge.address
+    } else {
+      const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
+      spender = ammWrapper.address
+    }
+
+    const tx = await approve(parsedAmount, sourceToken, spender)
+
+    await tx?.wait()
+  }
+
+  const handleApprove = async () => {
+    try {
+      setError(null)
+      setApproving(true)
+
+      if (l1CanonicalBridge && needsNativeBridgeApproval) {
+        await approveNativeBridge()
+      } else {
+        await approveFromToken()
+      }
+      setApproving(false)
+    } catch (err: any) {
+      console.log(`err:`, err)
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err, fromNetwork))
+      }
+      logger.error(err)
+    }
+    setApproving(false)
+  }
+
+  // ==============================================================================================
+  // Send tokens
+  // ==============================================================================================
+
+  const {
+    tx,
+    setTx,
+    send,
+    sending,
+    handleTransaction,
+    setSending,
+    waitForTransaction,
+    updateTransaction,
+  } = useSendTransaction({
+    amountOutMin,
+    customRecipient,
+    deadline,
+    totalFee,
+    fromNetwork,
+    fromTokenAmount,
+    intermediaryAmountOutMin,
+    sdk,
+    setError,
+    sourceToken,
+    toNetwork,
+    txConfirm,
+    txHistory,
+    estimatedReceived: estimatedReceivedDisplay,
+  })
+
+  const {
+    l1CanonicalBridge,
+    sendL1CanonicalBridge,
+    usingNativeBridge,
+    selectNativeBridge,
+    approveNativeBridge,
+    needsNativeBridgeApproval,
+  } = useL1CanonicalBridge(
+    sdk,
+    sourceToken,
+    fromTokenAmountBN,
+    toNetwork,
+    estimatedReceived,
+    txConfirm,
+    {
+      customRecipient,
+      handleTransaction,
+      setSending,
+      setTx,
+      waitForTransaction,
+      updateTransaction,
+      setError,
+      setApproving,
+    }
+  )
+
   const { estimateSend } = useEstimateTxCost()
 
-  const { data: estimatedGasCost } = useTxResult(
+  const { estimatedGasCost } = useTxResult(
     sourceToken,
     fromNetwork,
     toNetwork,
     fromTokenAmountBN,
-    estimateSend,
+    needsNativeBridgeApproval
+      ? approveNativeBridge
+      : needsApproval === true
+      ? handleApprove
+      : estimateSend,
     { deadline }
   )
 
@@ -176,9 +296,16 @@ const Send: FC = () => {
     sourceToken,
     fromTokenAmountBN,
     estimatedGasCost,
-    fromBalance
+    fromBalance,
+    isSmartContractWallet,
+    usingNativeBridge,
+    needsNativeBridgeApproval,
+    l1CanonicalBridge
   )
-
+  // have     264559015237401047
+  // want     1000000000000000000
+  // supplied 15025147
+  // "err: insufficient funds for gas * price + value: address 0x9997da3de3ec197C853BCC96CaECf08a81dE9D69 have 264559015237401047 want 1000000000000000000 (supplied gas 15025147)"
   // ==============================================================================================
   // Error and warning messages
   // ==============================================================================================
@@ -256,126 +383,6 @@ const Send: FC = () => {
     const amountOutMinFormatted = commafy(formatUnits(_amountOutMin, destToken.decimals), 4)
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${destToken.symbol}`)
   }, [amountOutMin])
-
-  // ==============================================================================================
-  // Send tokens
-  // ==============================================================================================
-
-  const {
-    tx,
-    setTx,
-    send,
-    sending,
-    handleTransaction,
-    setSending,
-    waitForTransaction,
-    updateTransaction,
-  } = useSendTransaction({
-    amountOutMin,
-    customRecipient,
-    deadline,
-    totalFee,
-    fromNetwork,
-    fromTokenAmount,
-    intermediaryAmountOutMin,
-    sdk,
-    setError,
-    sourceToken,
-    toNetwork,
-    txConfirm,
-    txHistory,
-    estimatedReceived: estimatedReceivedDisplay,
-  })
-
-  const {
-    l1CanonicalBridge,
-    sendL1CanonicalBridge,
-    usingNativeBridge,
-    selectNativeBridge,
-    approveNativeBridge,
-  } = useL1CanonicalBridge(
-    sdk,
-    sourceToken,
-    fromTokenAmountBN,
-    toNetwork,
-    estimatedReceived,
-    txConfirm,
-    {
-      customRecipient,
-      handleTransaction,
-      setSending,
-      setTx,
-      waitForTransaction,
-      updateTransaction,
-      setError,
-      setApproving,
-    }
-  )
-
-  // ==============================================================================================
-  // Approve fromNetwork / fromToken
-  // ==============================================================================================
-
-  const { approve, needsApproval, needsNativeBridgeApproval } = useApprove(
-    sourceToken,
-    fromNetwork,
-    amountOut
-  )
-
-  const approveFromToken = async () => {
-    if (!fromNetwork) {
-      throw new Error('No fromNetwork selected')
-    }
-
-    if (!sourceToken) {
-      throw new Error('No from token selected')
-    }
-
-    if (!fromTokenAmount) {
-      throw new Error('No amount to approve')
-    }
-
-    const networkId = Number(fromNetwork.networkId)
-    const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected) return
-
-    const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
-    const bridge = sdk.bridge(sourceToken.symbol)
-
-    let spender: string
-    if (fromNetwork.isLayer1) {
-      const l1Bridge = await bridge.getL1Bridge()
-      spender = l1Bridge.address
-    } else {
-      const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
-      spender = ammWrapper.address
-    }
-
-    const tx = await approve(parsedAmount, sourceToken, spender)
-
-    await tx?.wait()
-  }
-
-  const handleApprove = async () => {
-    try {
-      setError(null)
-      setApproving(true)
-
-      if (l1CanonicalBridge && needsNativeBridgeApproval) {
-        await approveNativeBridge()
-      } else {
-        await approveFromToken()
-      }
-      setApproving(false)
-    } catch (err: any) {
-      console.log(`err:`, err)
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err, fromNetwork))
-      }
-      logger.error(err)
-    }
-    setApproving(false)
-  }
 
   useEffect(() => {
     if (tx) {

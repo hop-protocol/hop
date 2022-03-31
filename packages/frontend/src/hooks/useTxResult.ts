@@ -17,7 +17,12 @@ export function useTxResult(
   }:${amount?.toString()}`
   const { interval = defaultRefetchInterval, ...rest } = opts
 
-  const { isLoading, isError, data, error } = useQuery(
+  const {
+    isLoading,
+    isError,
+    data: estimatedGasCost,
+    error,
+  } = useQuery(
     [queryKey, srcNetwork?.slug, token?.symbol, amount?.toString()],
     async () => {
       if (!(token && srcNetwork?.slug && destNetwork?.slug && amount && cb)) {
@@ -44,7 +49,7 @@ export function useTxResult(
   )
 
   return {
-    data,
+    estimatedGasCost,
     isLoading,
     isError,
     error,

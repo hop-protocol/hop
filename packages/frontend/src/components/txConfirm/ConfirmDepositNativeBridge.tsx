@@ -38,7 +38,7 @@ const ConfirmDepositNativeBridge = (props: Props) => {
   const { customRecipient, source, dest, onConfirm } = props
   const styles = useStyles()
 
-  const { sending, handleSubmit } = useSendingTransaction({ onConfirm, source })
+  const { sending, handleSubmit } = useSendingTransaction({ onConfirm, source, customRecipient })
 
   let warning = ''
   if (customRecipient && !dest?.network?.isLayer1) {

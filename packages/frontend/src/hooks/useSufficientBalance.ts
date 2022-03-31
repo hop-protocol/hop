@@ -1,26 +1,36 @@
 import { Token } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
-import { useEffect, useState } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import { useState } from 'react'
+import { useQuery } from 'react-query'
+import CanonicalBridge from 'src/models/CanonicalBridge'
 import { toTokenDisplay } from 'src/utils'
 
 export function useSufficientBalance(
   token?: Token,
   amount?: BigNumber,
-  estimatedGasCost: BigNumber = BigNumber.from(0),
-  tokenBalance: BigNumber = BigNumber.from(0)
+  estimatedGasCost?: BigNumber,
+  tokenBalance?: BigNumber,
+  isSmartContractWallet?: boolean,
+  usingNativeBridge?: boolean,
+  needsNativeBridgeApproval?: boolean,
+  l1CanonicalBridge?: CanonicalBridge
 ) {
-  const [sufficientBalance, setSufficientBalance] = useState(false)
   const [warning, setWarning] = useState('')
-  const { address } = useWeb3Context()
-  const isSmartContractWallet = useIsSmartContractWallet()
 
-  useEffect(() => {
-    async function checkEnoughBalance() {
-      if (!(token && amount && address)) {
+  const { data: sufficientBalance } = useQuery(
+    [
+      `sufficientBalance:${
+        token?.symbol
+      }:${amount?.toString()}:${estimatedGasCost?.toString()}:${tokenBalance?.toString()}:${needsNativeBridgeApproval}`,
+      token,
+      estimatedGasCost,
+      amount,
+      needsNativeBridgeApproval,
+    ],
+    async () => {
+      if (!(token && amount && tokenBalance?.gt(0))) {
         setWarning('')
-        return setSufficientBalance(false)
+        return false
       }
 
       let totalCost: BigNumber
@@ -30,24 +40,55 @@ export function useSufficientBalance(
 
       const ntb = await token.getNativeTokenBalance()
 
-      if (!estimatedGasCost) {
+      let estGasCost = estimatedGasCost
+
+      if (!estGasCost) {
         const gasPrice = await token.signer.getGasPrice()
-        estimatedGasCost = BigNumber.from(200e3).mul(gasPrice || 1e9)
+        estGasCost = BigNumber.from(200e3).mul(gasPrice || 1e9)
+      }
+
+      if (usingNativeBridge && tokenBalance?.lt(estGasCost.add(amount))) {
+        return false
+      }
+
+      try {
+        let totalEst = BigNumber.from(0)
+        if (needsNativeBridgeApproval) {
+          const estApproval = await l1CanonicalBridge?.estimateApproveTx(amount)
+          console.log(`estApproval:`, estApproval?.toString())
+          if (estApproval) {
+            totalEst = totalEst.add(estApproval)
+          }
+          return totalEst
+        } else {
+          const estDeposit = await l1CanonicalBridge?.estimateDepositTx(amount)
+          console.log(`estDeposit:`, estDeposit?.toString())
+          if (estDeposit) {
+            totalEst = totalEst.add(estDeposit)
+          }
+        }
+      } catch (error) {
+        console.log(`error:`, error)
+        return false
       }
 
       if (token.isNativeToken) {
-        totalCost = estimatedGasCost.add(amount)
+        totalCost = estGasCost.add(amount)
         enoughFeeBalance = ntb.gte(totalCost)
         enoughTokenBalance = enoughFeeBalance
       } else {
-        totalCost = estimatedGasCost
+        totalCost = estGasCost
         enoughFeeBalance = ntb.gte(totalCost)
         enoughTokenBalance = tokenBalance.gte(amount)
       }
 
+      if (isSmartContractWallet || (usingNativeBridge && tokenBalance.gte(totalCost))) {
+        return true
+      }
+
       if (enoughFeeBalance && enoughTokenBalance) {
         setWarning('')
-        return setSufficientBalance(true)
+        return true
       }
 
       if (!enoughFeeBalance) {
@@ -66,26 +107,12 @@ export function useSufficientBalance(
       }
 
       setWarning(message)
-      setSufficientBalance(false)
+      return false
+    },
+    {
+      refetchInterval: 10e3,
     }
-
-    // NOTE: For now, no accommodations are made for the tx sender
-    // if they do not have enough funds to pay for the relay tx.
-    // It's kind of complicated to handle, because for the case when the SC wallet has more than owner
-    // is not possible to know who of them will be the one who executes the TX.
-    // We will trust on the wallet UI to handle this issue for now.
-    if (isSmartContractWallet) {
-      setSufficientBalance(true)
-    } else {
-      checkEnoughBalance()
-    }
-  }, [
-    isSmartContractWallet,
-    token,
-    amount?.toString(),
-    estimatedGasCost?.toString(),
-    tokenBalance.toString(),
-  ])
+  )
 
   return {
     sufficientBalance,

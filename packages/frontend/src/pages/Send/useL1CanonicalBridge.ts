@@ -131,6 +131,19 @@ export function useL1CanonicalBridge(
       return
     }
 
+    // const shouldApproveNativeBridge = await needsNativeBridgeApproval(
+    //   l1CanonicalBridge,
+    //   sourceToken,
+    //   sourceTokenAmount
+    // )
+
+    // setSending(true)
+
+    // if (shouldApproveNativeBridge) {
+    //   const approveTx = await l1CanonicalBridge.approve(constants.MaxUint256)
+    //   await approveTx.wait()
+    // }
+
     const tx: any = await txConfirm.show({
       kind: 'depositNativeBridge',
       inputProps: {
@@ -225,6 +238,8 @@ export function useL1CanonicalBridge(
     }
 
     setSending(false)
+
+    return handleTransaction(tx, sourceNetwork, destNetwork, sourceToken)
   }
 
   return {
@@ -234,5 +249,6 @@ export function useL1CanonicalBridge(
     setUsingNativeBridge,
     selectNativeBridge,
     approveNativeBridge,
+    needsNativeBridgeApproval,
   }
 }

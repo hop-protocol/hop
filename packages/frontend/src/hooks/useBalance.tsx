@@ -21,7 +21,7 @@ const useBalance = (token?: Token | StakingRewards, address?: Addressish, chainI
       }
     },
     {
-      enabled: !!chainId && !!token?.address && !!address?.toString(),
+      enabled: !!chainId && !!token && !!address,
       refetchInterval: defaultRefetchInterval,
     }
   )

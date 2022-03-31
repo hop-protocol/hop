@@ -5,6 +5,7 @@ import { NetworkTokenEntity } from 'src/utils'
 
 interface BaseSendingTransaction {
   onConfirm: (confirmed: boolean, params?: any) => void
+  customRecipient?: string
 }
 
 type SendingTransactionWithSource = BaseSendingTransaction & {
@@ -26,7 +27,7 @@ type SendingTransaction =
 
 export function useSendingTransaction(props: SendingTransaction) {
   const { onConfirm } = props
-  const { checkConnectedNetworkId, connectedNetworkId } = useWeb3Context()
+  const { checkConnectedNetworkId } = useWeb3Context()
 
   const [sending, setSending] = useState<boolean>(false)
 

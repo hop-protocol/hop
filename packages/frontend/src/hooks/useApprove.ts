@@ -65,7 +65,7 @@ const useApprove = (
   const { data: needsNativeBridgeApproval } = useQuery(
     [`needsNativeBridgeApproval:${l1CanonicalBridge?.address}:${sourceTokenAmount?.toString()}`],
     async () => {
-      if (!(l1CanonicalBridge && token?.isNativeToken && sourceTokenAmount)) {
+      if (!(l1CanonicalBridge && sourceTokenAmount)) {
         return
       }
 

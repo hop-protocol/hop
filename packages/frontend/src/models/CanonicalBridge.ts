@@ -204,7 +204,7 @@ class CanonicalBridge extends Base {
       }
 
       case ChainSlug.Arbitrum: {
-        const maxSubmissionPrice = BigNumber.from(amount).add(1000e4)
+        const maxSubmissionPrice = BigNumber.from(500e3)
 
         if (this.tokenSymbol === Token.ETH) {
           const bridge = await this.getContract(
@@ -222,8 +222,8 @@ class CanonicalBridge extends Base {
         }
 
         const retryableGasArgs = {
-          maxSubmissionPrice,
-          maxGas: maxSubmissionPrice,
+          maxSubmissionPrice: BigNumber.from(amount),
+          maxGas: BigNumber.from(400e3),
         }
         const depositInputParams = {
           erc20L1Address: l1CanonicalToken.address,
@@ -259,7 +259,9 @@ class CanonicalBridge extends Base {
             }
           }
 
-          return arbBridge.l1Bridge.deposit(depositTxParams)
+          return arbBridge.l1Bridge.deposit(depositTxParams, {
+            gasPrice: utils.parseUnits('50', 'gwei'),
+          })
         } catch (error) {
           logger.error(formatError(error))
         }
@@ -276,7 +278,7 @@ class CanonicalBridge extends Base {
             payload,
             {
               from,
-              gasLimit: 250e3
+              gasLimit: 250e3,
             }
           )
         }

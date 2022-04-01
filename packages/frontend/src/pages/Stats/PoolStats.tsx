@@ -32,7 +32,7 @@ const PoolStats: FC = () => {
             accessor: 'chain',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell}>
-                <Icon src={cell.value} width={[12, 18]} />
+                <Icon src={cell.value} />
               </CellWrapper>
             ),
           },
@@ -55,22 +55,16 @@ const PoolStats: FC = () => {
             ),
           },
           {
-            Header: 'Token Symbol',
-            accessor: 'tokenSymbol',
-            Cell: props => {
-              props.setHiddenColumns('tokenSymbol')
-              return <Div>_</Div>
-            },
-          },
-          {
             Header: 'Ratio',
             accessor: 'ratio',
-            Cell: ({ cell }) => (
-              <CellWrapper cell={cell}>
-                <Icon mr={1} src={cell.row.values.tokenSymbol} width={[12, 18]} />
-                <Div justifySelf="right">{cell.value}</Div>
-              </CellWrapper>
-            ),
+            Cell: ({ cell, ...rest }) => {
+              return (
+                <CellWrapper cell={cell}>
+                  <Icon mr={1} src={cell.row.original.tokenSymbol} />
+                  <Div justifySelf="right">{cell.value}</Div>
+                </CellWrapper>
+              )
+            },
           },
         ],
       },
@@ -85,6 +79,7 @@ const PoolStats: FC = () => {
         columns={columns}
         populateDataFn={populatePoolStats}
         extraData={poolStats}
+        loading={fetching}
       />
     </Div>
   )

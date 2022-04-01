@@ -32,7 +32,7 @@ const DebitWindowStats: FC = () => {
             Cell: ({ cell }) => {
               return (
                 <CellWrapper cell={cell}>
-                  <Icon src={cell.value} width={[12, 18]} />
+                  <Icon src={cell.value} />
                 </CellWrapper>
               )
             },
@@ -93,15 +93,15 @@ const DebitWindowStats: FC = () => {
             accessor: 'virtualDebt',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
-                {cell.value !== 0 && <Icon mr={1} src={cell.row.values.token} width={[12, 18]} />}
-                {commafy(cell.value)}
+                <Icon mr={1} src={cell.row.values.token} />
+                {cell.value && <>{commafy(cell.value)}</>}
               </CellWrapper>
             ),
           },
         ],
       },
     ],
-    []
+    [bonderStats]
   )
 
   return (
@@ -111,6 +111,7 @@ const DebitWindowStats: FC = () => {
         columns={columns}
         populateDataFn={populateDebitWindowStats}
         extraData={bonderStats}
+        loading={fetchingDebitWindowStats}
       />
     </Div>
   )

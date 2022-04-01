@@ -39,7 +39,7 @@ function BonderStats() {
             Cell: ({ cell }) => {
               return (
                 <Flex justifyCenter {...cell.getCellProps()}>
-                  <Icon src={cell.value} width={[12, 18]} />
+                  <Icon src={cell.value} />
                 </Flex>
               )
             },
@@ -50,7 +50,7 @@ function BonderStats() {
             Cell: ({ cell }) => {
               return (
                 <Flex justifyCenter {...cell.getCellProps()}>
-                  <Icon src={cell.value} width={[12, 18]} />
+                  <Icon src={cell.value} />
                 </Flex>
               )
             },
@@ -109,7 +109,12 @@ function BonderStats() {
 
   return (
     <Container fontSize={[0, 1, 2]}>
-      <SortableTable stats={bonderStats} columns={columns} populateDataFn={populateBonderStats} />
+      <SortableTable
+        stats={bonderStats}
+        columns={columns}
+        populateDataFn={populateBonderStats}
+        loading={fetchingBonderStats}
+      />
     </Container>
   )
 }

@@ -28,7 +28,7 @@ const BalanceStats: FC = () => {
             Cell: ({ cell }) => {
               return (
                 <CellWrapper cell={cell}>
-                  <Icon src={cell.value} width={[12, 18]} />
+                  <Icon src={cell.value} />
                 </CellWrapper>
               )
             },
@@ -54,7 +54,7 @@ const BalanceStats: FC = () => {
             accessor: 'balance',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell}>
-                <Icon mr={1} src={ethLogo} width={[12, 18]} />
+                <Icon mr={1} src={ethLogo} />
                 {commafy(cell.value)}
               </CellWrapper>
             ),
@@ -67,7 +67,12 @@ const BalanceStats: FC = () => {
 
   return (
     <Div fontSize={[0, 1, 2]}>
-      <SortableTable stats={balances} columns={columns} populateDataFn={populatePoolStats} />
+      <SortableTable
+        stats={balances}
+        columns={columns}
+        populateDataFn={populatePoolStats}
+        loading={fetchingBalances}
+      />
     </Div>
   )
 }

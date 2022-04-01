@@ -16,7 +16,7 @@ const StyledIcon = styled.img<ComposedStyleProps & SquareDimensions>`
   ${squareDimensions}
 `
 
-const Icon = ({ src, width, alt, color, ...props }: ComposedStyleProps & StyledIconProps & any) => {
+const Icon = ({ src, width = [12, 18], alt, color, ...props }: ComposedStyleProps & StyledIconProps & any) => {
   if (!src) return null
 
   return (

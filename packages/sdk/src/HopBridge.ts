@@ -204,9 +204,7 @@ class HopBridge extends Base {
   ) {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
-    let { name, symbol, decimals, image } = metadata.tokens[network][
-      token.canonicalSymbol
-    ]
+    let { name, symbol, decimals, image } = metadata.tokens[network][token.canonicalSymbol]
 
     if (chain.equals(Chain.Gnosis) && token.symbol === CanonicalToken.DAI) {
       symbol = CanonicalToken.XDAI
@@ -243,9 +241,7 @@ class HopBridge extends Base {
       throw new Error('Hop tokens do not exist on layer 1')
     }
 
-    const { name, symbol, decimals, image } = metadata.tokens[network][
-      token.canonicalSymbol
-    ]
+    const { name, decimals, image } = metadata.tokens[network][token.canonicalSymbol]
     const address = this.getL2HopBridgeTokenAddress(token.symbol, chain)
 
     return new Token(
@@ -1123,10 +1119,7 @@ class HopBridge extends Base {
 
     // fetch on-chain if the data is not available from worker json file
     if (availableLiquidity == null) {
-      availableLiquidity = await this.getAvailableLiquidity(
-        destinationChain,
-        bonder
-      )
+      availableLiquidity = await this.getAvailableLiquidity(destinationChain, bonder)
     }
 
     const unbondedTransferRootAmount = await this.getUnbondedTransferRootAmount(
@@ -1134,31 +1127,22 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    const isToL1 = destinationChain.equals(Chain.Ethereum)
-    if (isToL1) {
-      const bridgeContract = await this.getBridgeContract(sourceChain)
+    if (destinationChain.isL1) {
       let pendingAmounts = BigNumber.from(0)
-      for (const chain of bondableChains) {
-        const exists = this.getL2BridgeAddress(this.tokenSymbol, chain)
-        if (!exists) {
-          continue
+      for (const bondableChain of bondableChains) {
+        const l2BridgeAddress = this.getL2BridgeAddress(this.tokenSymbol, bondableChain)
+        if (l2BridgeAddress) {
+          const bondableBridge = await this.getBridgeContract(bondableChain)
+          const pendingAmount = await bondableBridge.pendingAmountForChainId(Chain.Ethereum.chainId)
+          pendingAmounts = pendingAmounts.add(pendingAmount)
         }
-        const bridge = await this.getBridgeContract(chain)
-        const pendingAmount = await bridge.pendingAmountForChainId(
-          Chain.Ethereum.chainId
-        )
-        pendingAmounts = pendingAmounts.add(pendingAmount)
       }
 
-      const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
-        token.canonicalSymbol
-      )
+      const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
       const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
       const bufferAmountBn = parseUnits(PendingAmountBuffer, token.decimals)
       const precision = parseUnits('1', token.decimals)
-      const bufferAmountTokensBn = bufferAmountBn
-        .div(tokenPriceBn)
-        .mul(precision)
+      const bufferAmountTokensBn = bufferAmountBn.div(tokenPriceBn).mul(precision)
 
       availableLiquidity = availableLiquidity
         .sub(pendingAmounts)
@@ -1178,10 +1162,7 @@ class HopBridge extends Base {
   }
 
   private isOruToL1 (sourceChain: Chain, destinationChain: Chain) {
-    return (
-      destinationChain.equals(Chain.Ethereum) &&
-      bondableChains.includes(sourceChain.slug)
-    )
+    return destinationChain.isL1 && bondableChains.includes(sourceChain.slug)
   }
 
   async getBonderAvailableLiquidityData () {

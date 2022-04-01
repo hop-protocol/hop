@@ -34,13 +34,26 @@ export const populateLowBonderBalances = (item: any) => {
     bridge: bridge,
     token: token,
     bonder: item.bonder,
-    amount: item.amountFormatted
+    amount: Number(item.amountFormatted).toFixed(2)
+  }
+}
+
+export const populateChallengedRoots = (item: any) => {
+  const token = getTokenImage(item.token)
+
+  return {
+    token: token,
+    transactionHash: item.transactionHash,
+    transferRootHash: item.transferRootHash,
+    transferRootId: item.transferRootId,
+    originalAmount: Number(item.originalAmountFormatted).toFixed(2)
   }
 }
 
 function useData() {
   const [incompleteSettlements, setIncompleteSettlements] = useState<any>([])
   const [lowBonderBalances, setLowBonderBalances] = useState<any>([])
+  const [challengedRoots, setChallengedRoots] = useState<any>([])
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [fetching, setFetching] = useState<boolean>(false)
 
@@ -61,6 +74,9 @@ function useData() {
         if (result?.data?.lowBonderBalances) {
           setLowBonderBalances(result.data.lowBonderBalances)
         }
+        if (result?.data?.challengedRoots) {
+          setChallengedRoots(result.data.challengedRoots)
+        }
       } catch (err) {
         console.error(err)
       }
@@ -72,13 +88,14 @@ function useData() {
   return {
     incompleteSettlements,
     lowBonderBalances,
+    challengedRoots,
     lastUpdated,
     fetching
   }
 }
 
 const Health = () => {
-  const { incompleteSettlements, lowBonderBalances, lastUpdated, fetching } = useData()
+  const { incompleteSettlements, lowBonderBalances, challengedRoots, lastUpdated, fetching } = useData()
   const cell = ({ cell }) => (
                 <CellWrapper cell={cell}>
                   {cell.value}
@@ -181,6 +198,37 @@ const Health = () => {
     ]
   }]
 
+  const challengedRootsColumns = [{
+    Header: 'Challenged Roots',
+    columns: [
+      {
+        Header: 'Token',
+        accessor: 'token',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Transaction Hash',
+        accessor: 'transactionHash',
+        Cell: cellAddress,
+      },
+      {
+        Header: 'Transfer Root Hash',
+        accessor: 'transferRootHash',
+        Cell: cellAddress
+      },
+      {
+        Header: 'Transfer Root ID',
+        accessor: 'transferRootId',
+        Cell: cellAddress,
+      },
+      {
+        Header: 'Original Amount',
+        accessor: 'originalAmount',
+        Cell: cellNumber,
+      },
+    ]
+  }]
+
   return (
     <div>
       <Typography variant="body1">
@@ -196,6 +244,12 @@ const Health = () => {
         stats={ lowBonderBalances }
         columns={ lowBonderBalancesColumns }
         populateDataFn={ populateLowBonderBalances }
+        loading={ fetching }
+      />
+      <SortableTable
+        stats={ challengedRoots }
+        columns={ challengedRootsColumns }
+        populateDataFn={ populateChallengedRoots }
         loading={ fetching }
       />
     </div>

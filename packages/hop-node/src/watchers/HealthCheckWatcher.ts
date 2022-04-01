@@ -131,7 +131,7 @@ export class HealthCheckWatcher {
           const transferRootId = event.args.transferRootId.toString()
           const originalAmount = event.args.originalAmount.toString()
           const tokenDecimals = getTokenDecimals(token)!
-          const originalAmountFormatted = formatUnits(originalAmount, tokenDecimals)
+          const originalAmountFormatted = Number(formatUnits(originalAmount, tokenDecimals))
           const data = {
             token,
             transactionHash,

@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { useTable, useSortBy } from 'react-table'
 import makeData from './makeData'
 import { Div } from '../ui'
+import Skeleton from '@material-ui/lab/Skeleton'
 
 const Styles = styled.div`
   padding: 0.25rem;
@@ -113,6 +114,13 @@ function Table({ columns, data, loading }) {
         </thead>
 
         <tbody {...getTableBodyProps()}>
+          {loading && (
+            <tr>
+              <td colSpan={headerGroups?.[1].headers?.length}>
+                <Skeleton animation="wave" width={'100%'} />
+              </td>
+            </tr>
+          )}
           {rows.map((row, i) => {
             prepareRow(row)
             return (

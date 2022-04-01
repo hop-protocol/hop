@@ -14,6 +14,7 @@ export const populateIncompleteSettlementStats = (item: any) => {
 
   return {
     timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
+    rootHash: item.rootHash,
     sourceChain: sourceChain?.imageUrl,
     destinationChain: destinationChain?.imageUrl,
     token: token,
@@ -115,6 +116,11 @@ const Health = () => {
         Header: 'Destination',
         accessor: 'destinationChain',
         Cell: cellIcon
+      },
+      {
+        Header: 'Root Hash',
+        accessor: 'rootHash',
+        Cell: cellAddress,
       },
       {
         Header: 'Token',

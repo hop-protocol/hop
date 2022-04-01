@@ -1,11 +1,15 @@
 import IncompleteSettlementsWatcher from 'src/watchers/IncompleteSettlementsWatcher'
+import L1Bridge from 'src/watchers/classes/L1Bridge'
 import Logger from 'src/logger'
 import S3Upload from 'src/aws/s3Upload'
+import contracts from 'src/contracts'
 import getRpcProvider from 'src/utils/getRpcProvider'
+import getTokenDecimals from 'src/utils/getTokenDecimals'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
-import { formatEther, parseEther } from 'ethers/lib/utils'
+import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
+import { formatEther, formatUnits, parseEther } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
 
 export type Config = {
@@ -15,6 +19,7 @@ export type Config = {
 }
 
 export class HealthCheckWatcher {
+  tokens: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC']
   logger: Logger = new Logger('HealthCheckWatcher')
   s3Upload: S3Upload
   incompleteSettlementsWatcher: IncompleteSettlementsWatcher
@@ -110,6 +115,44 @@ export class HealthCheckWatcher {
     return result
   }
 
+  async getChallengedRoots () {
+    const result: any[] = []
+    for (const token of this.tokens) {
+      this.logger.debug(`done ${token} bridge for challenged roots`)
+      const l1BridgeContract = contracts.get(token, Chain.Ethereum).l1Bridge
+      const provider = getRpcProvider(Chain.Ethereum)!
+      const startBlockNumber = 0
+      const endBlockNumber = Number((await provider.getBlockNumber()).toString())
+      const l1Bridge = new L1Bridge(l1BridgeContract)
+      await l1Bridge.mapTransferBondChallengedEvents(
+        async (event: TransferBondChallengedEvent) => {
+          const transactionHash = event.transactionHash
+          const transferRootHash = event.args.rootHash.toString()
+          const transferRootId = event.args.transferRootId.toString()
+          const originalAmount = event.args.originalAmount.toString()
+          const tokenDecimals = getTokenDecimals(token)!
+          const originalAmountFormatted = formatUnits(originalAmount, tokenDecimals)
+          const data = {
+            token,
+            transactionHash,
+            transferRootHash,
+            transferRootId,
+            originalAmount,
+            tokenDecimals
+          }
+          result.push(data)
+        },
+        {
+          startBlockNumber,
+          endBlockNumber
+        }
+      )
+      this.logger.debug(`done checking ${token} for challenged roots`)
+    }
+
+    return result
+  }
+
   async start () {
     while (true) {
       try {
@@ -123,11 +166,13 @@ export class HealthCheckWatcher {
 
   async poll () {
     this.logger.debug('poll')
+    const challengedRoots = await this.getChallengedRoots()
     const lowBonderBalances = await this.getLowBonderBalances()
     const incompleteSettlements = await this.incompleteSettlementsWatcher.getDiffResults()
     const data = {
       lowBonderBalances,
-      incompleteSettlements
+      incompleteSettlements,
+      challengedRoots
     }
     this.logger.debug('data')
     this.logger.debug(JSON.stringify(data, null, 2))

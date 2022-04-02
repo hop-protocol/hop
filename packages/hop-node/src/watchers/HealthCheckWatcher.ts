@@ -62,7 +62,7 @@ export class HealthCheckWatcher {
     const unbondedTransfers = await this.getUnbondedTransfers()
     const challengedRoots = await this.getChallengedRoots()
     const lowBonderBalances = await this.getLowBonderBalances()
-    const incompleteSettlements = await this.incompleteSettlementsWatcher.getDiffResults()
+    const incompleteSettlements = await this.getIncompleteSettlements()
     const data = {
       unbondedTransfers,
       lowBonderBalances,
@@ -76,6 +76,14 @@ export class HealthCheckWatcher {
       this.logger.debug(`uploaded to s3 at ${this.s3Filename}`)
     }
     this.logger.debug('poll complete')
+  }
+
+  async getIncompleteSettlements () {
+    const timestamp = DateTime.now().toUTC().toSeconds()
+    const minHours = 12
+    let result = await this.incompleteSettlementsWatcher.getDiffResults()
+    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (minHours * 60 * 60)))
+    return result
   }
 
   async getLowBonderBalances () {
@@ -153,12 +161,12 @@ export class HealthCheckWatcher {
     this.logger.debug('checking for unbonded transfers')
 
     const timestamp = DateTime.now().toUTC().toSeconds()
-    const minutes = 20
+    const minMinutes = 20
     let result = await getUnbondedTransfers()
-    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (minutes * 60)))
+    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (minMinutes * 60)))
     result = result.filter((x: any) => x.sourceChainSlug !== Chain.Ethereum)
 
-    this.logger.debug('unbonded transfers')
+    this.logger.debug(`unbonded transfers: ${result.length}`)
     this.logger.debug(JSON.stringify(result, null, 2))
     this.logger.debug('done checking for unbonded transfers')
     return result

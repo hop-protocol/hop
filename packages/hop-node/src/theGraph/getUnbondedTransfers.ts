@@ -8,9 +8,9 @@ import { formatUnits } from 'ethers/lib/utils'
 import { padHex } from 'src/utils/padHex'
 
 export async function getUnbondedTransfers () {
-  const endDate = DateTime.now()
+  const endDate = DateTime.now().toUTC()
   const startTime = Math.floor(endDate.minus({ days: 1 }).startOf('day').toSeconds())
-  const endTime = Math.floor(endDate.toSeconds())
+  const endTime = Math.floor(endDate.plus({ days: 2 }).toSeconds())
 
   const transfers = await getTransfersData(startTime, endTime)
   return transfers.filter((x: any) => !x.bonded)

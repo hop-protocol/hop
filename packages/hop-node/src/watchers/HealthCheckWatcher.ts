@@ -8,8 +8,10 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
+import { DateTime } from 'luxon'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
 import { formatEther, formatUnits, parseEther } from 'ethers/lib/utils'
+import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
 import { config as globalConfig } from 'src/config'
 
 export type Config = {
@@ -42,6 +44,38 @@ export class HealthCheckWatcher {
         key: filePath
       })
     }
+  }
+
+  async start () {
+    while (true) {
+      try {
+        await this.poll()
+      } catch (err) {
+        this.logger.error('poll error:', err)
+      }
+      await wait(60 * 1000)
+    }
+  }
+
+  async poll () {
+    this.logger.debug('poll')
+    const unbondedTransfers = await this.getUnbondedTransfers()
+    const challengedRoots = await this.getChallengedRoots()
+    const lowBonderBalances = await this.getLowBonderBalances()
+    const incompleteSettlements = await this.incompleteSettlementsWatcher.getDiffResults()
+    const data = {
+      unbondedTransfers,
+      lowBonderBalances,
+      incompleteSettlements,
+      challengedRoots
+    }
+    this.logger.debug('data')
+    this.logger.debug(JSON.stringify(data, null, 2))
+    if (this.s3Upload) {
+      await this.s3Upload.upload(data)
+      this.logger.debug(`uploaded to s3 at ${this.s3Filename}`)
+    }
+    this.logger.debug('poll complete')
   }
 
   async getLowBonderBalances () {
@@ -115,6 +149,21 @@ export class HealthCheckWatcher {
     return result
   }
 
+  async getUnbondedTransfers () {
+    this.logger.debug('checking for unbonded transfers')
+
+    const timestamp = DateTime.now().toUTC().toSeconds()
+    const minutes = 20
+    let result = await getUnbondedTransfers()
+    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (minutes * 60)))
+    result = result.filter((x: any) => x.sourceChainSlug !== Chain.Ethereum)
+
+    this.logger.debug('unbonded transfers')
+    this.logger.debug(JSON.stringify(result, null, 2))
+    this.logger.debug('done checking for unbonded transfers')
+    return result
+  }
+
   async getChallengedRoots () {
     const result: any[] = []
     for (const token of this.tokens) {
@@ -151,35 +200,5 @@ export class HealthCheckWatcher {
     }
 
     return result
-  }
-
-  async start () {
-    while (true) {
-      try {
-        await this.poll()
-      } catch (err) {
-        this.logger.error('poll error:', err)
-      }
-      await wait(60 * 1000)
-    }
-  }
-
-  async poll () {
-    this.logger.debug('poll')
-    const challengedRoots = await this.getChallengedRoots()
-    const lowBonderBalances = await this.getLowBonderBalances()
-    const incompleteSettlements = await this.incompleteSettlementsWatcher.getDiffResults()
-    const data = {
-      lowBonderBalances,
-      incompleteSettlements,
-      challengedRoots
-    }
-    this.logger.debug('data')
-    this.logger.debug(JSON.stringify(data, null, 2))
-    if (this.s3Upload) {
-      await this.s3Upload.upload(data)
-      this.logger.debug(`uploaded to s3 at ${this.s3Filename}`)
-    }
-    this.logger.debug('poll complete')
   }
 }

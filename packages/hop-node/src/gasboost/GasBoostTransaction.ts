@@ -397,9 +397,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const use1559 = await this.is1559Supported() && !this.gasPrice && this.type !== 0
 
     if (use1559) {
-      const gasFeeData = await this.getGasFeeData()
+      let maxFeePerGas = await this.getMarketMaxFeePerGas()
       const maxPriorityFeePerGas = await this.getBumpedMaxPriorityFeePerGas(multiplier)
-      const maxFeePerGas = gasFeeData.maxFeePerGas!.add(maxPriorityFeePerGas) // eslint-disable-line
+      maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas)
 
       return {
         gasPrice: undefined,
@@ -578,7 +578,23 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
 
     // don't boost if suggested gas is over max
-    const isMaxReached = gasFeeData.gasPrice?.gt(maxGasPrice) ?? gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
+    const isGasPriceMaxReached = gasFeeData.gasPrice?.gt(maxGasPrice)
+    const isMaxFeePerGasReached = gasFeeData.maxFeePerGas?.gt(maxGasPrice)
+    const isMaxPriorityFeePerGasReached = gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
+    let isMaxReached = isGasPriceMaxReached ?? isMaxFeePerGasReached
+
+    // clamp maxPriorityFeePerGas to max allowed if it exceeds max and
+    // gasPrice or maxFeePerGas are still under max
+    if (!isMaxReached && isMaxPriorityFeePerGasReached && this.maxPriorityFeePerGas) {
+      const clampedGasFeeData = this.clampMaxGasFeeData(gasFeeData)
+      gasFeeData.maxPriorityFeePerGas = clampedGasFeeData.maxPriorityFeePerGas
+
+      // if last used maxPriorityFeePerGas already equals max allowed then
+      // it cannot be boosted
+      if (gasFeeData.maxPriorityFeePerGas?.eq(this.maxPriorityFeePerGas)) {
+        isMaxReached = true
+      }
+    }
     if (isMaxReached) {
       if (!this.maxGasPriceReached) {
         const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${maxGasPrice}, maxPriorityFeePerGas: ${priorityFeePerGasCap}). cannot boost`

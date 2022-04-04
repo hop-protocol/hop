@@ -29,11 +29,11 @@ export class HealthCheckWatcher {
   s3Filename: string
 
   checks: Record<string, boolean> = {
-    lowBonderBalances: false,
-    unbondedTransfers: false,
+    lowBonderBalances: true,
+    unbondedTransfers: true,
     unbondedTransferRoots: true,
-    incompleteSettlements: false,
-    challengedRoots: false
+    incompleteSettlements: true,
+    challengedRoots: true
   }
 
   constructor (config: Config) {

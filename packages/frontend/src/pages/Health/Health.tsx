@@ -7,25 +7,6 @@ import { findNetworkBySlug } from 'src/utils'
 import { getTokenImage } from 'src/utils/tokens'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
 
-export const populateIncompleteSettlementStats = (item: any) => {
-  const sourceChain = findNetworkBySlug(item.sourceChain)
-  const destinationChain = findNetworkBySlug(item.destinationChain)
-  const token = getTokenImage(item.token)
-
-  return {
-    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
-    rootHash: item.rootHash,
-    sourceChain: sourceChain?.imageUrl,
-    destinationChain: destinationChain?.imageUrl,
-    token: token,
-    totalAmount: Number(item.totalAmountFormatted).toFixed(4),
-    diffAmount: Number(item.diffFormatted).toFixed(4),
-    settlementEvents: item.settlementEvents,
-    withdrewEvents: item.withdrewEvents,
-    isConfirmed: `${item.isConfirmed}`,
-  }
-}
-
 export const populateLowBonderBalances = (item: any) => {
   const nativeTokenChains: any = {
     XDAI: 'gnosis',
@@ -40,18 +21,6 @@ export const populateLowBonderBalances = (item: any) => {
     nativeToken: chain?.imageUrl,
     bonder: item.bonder,
     amount: Number(item.amountFormatted).toFixed(4)
-  }
-}
-
-export const populateChallengedRoots = (item: any) => {
-  const token = getTokenImage(item.token)
-
-  return {
-    token: token,
-    transactionHash: item.transactionHash,
-    transferRootHash: item.transferRootHash,
-    transferRootId: item.transferRootId,
-    originalAmount: Number(item.originalAmountFormatted).toFixed(4)
   }
 }
 
@@ -71,11 +40,58 @@ export const populateUnbondedTransfers = (item: any) => {
   }
 }
 
+export const populateUnbondedTransferRoots = (item: any) => {
+  const sourceChain = findNetworkBySlug(item.sourceChain)
+  const destinationChain = findNetworkBySlug(item.destinationChain)
+  const token = getTokenImage(item.token)
+
+  return {
+    sourceChain: sourceChain?.imageUrl,
+    destinationChain: destinationChain?.imageUrl,
+    transferRootHash: item.transferRootHash,
+    token: token,
+    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
+    totalAmount: Number(item.totalAmountFormatted).toFixed(4)
+  }
+}
+
+export const populateIncompleteSettlementStats = (item: any) => {
+  const sourceChain = findNetworkBySlug(item.sourceChain)
+  const destinationChain = findNetworkBySlug(item.destinationChain)
+  const token = getTokenImage(item.token)
+
+  return {
+    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
+    rootHash: item.rootHash,
+    sourceChain: sourceChain?.imageUrl,
+    destinationChain: destinationChain?.imageUrl,
+    token: token,
+    totalAmount: Number(item.totalAmountFormatted).toFixed(4),
+    diffAmount: Number(item.diffFormatted).toFixed(4),
+    settlementEvents: item.settlementEvents,
+    withdrewEvents: item.withdrewEvents,
+    isConfirmed: `${item.isConfirmed}`,
+  }
+}
+
+export const populateChallengedRoots = (item: any) => {
+  const token = getTokenImage(item.token)
+
+  return {
+    token: token,
+    transactionHash: item.transactionHash,
+    transferRootHash: item.transferRootHash,
+    transferRootId: item.transferRootId,
+    originalAmount: Number(item.originalAmountFormatted).toFixed(4)
+  }
+}
+
 function useData() {
-  const [incompleteSettlements, setIncompleteSettlements] = useState<any>([])
   const [lowBonderBalances, setLowBonderBalances] = useState<any>([])
-  const [challengedRoots, setChallengedRoots] = useState<any>([])
   const [unbondedTransfers, setUnbondedTransfers] = useState<any>([])
+  const [unbondedTransferRoots, setUnbondedTransferRoots] = useState<any>([])
+  const [incompleteSettlements, setIncompleteSettlements] = useState<any>([])
+  const [challengedRoots, setChallengedRoots] = useState<any>([])
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [fetching, setFetching] = useState<boolean>(false)
 
@@ -90,17 +106,20 @@ function useData() {
         if (result?.timestamp) {
           setLastUpdated(DateTime.fromMillis(result.timestamp).toRelative() as string)
         }
-        if (result?.data?.incompleteSettlements) {
-          setIncompleteSettlements(result.data.incompleteSettlements)
-        }
         if (result?.data?.lowBonderBalances) {
           setLowBonderBalances(result.data.lowBonderBalances)
         }
-        if (result?.data?.challengedRoots) {
-          setChallengedRoots(result.data.challengedRoots)
-        }
         if (result?.data?.unbondedTransfers) {
           setUnbondedTransfers(result.data.unbondedTransfers)
+        }
+        if (result?.data?.unbondedTransferRoots) {
+          setUnbondedTransferRoots(result.data.unbondedTransferRoots)
+        }
+        if (result?.data?.incompleteSettlements) {
+          setIncompleteSettlements(result.data.incompleteSettlements)
+        }
+        if (result?.data?.challengedRoots) {
+          setChallengedRoots(result.data.challengedRoots)
         }
       } catch (err) {
         console.error(err)
@@ -111,17 +130,18 @@ function useData() {
   }, [])
 
   return {
-    incompleteSettlements,
     lowBonderBalances,
-    challengedRoots,
     unbondedTransfers,
+    unbondedTransferRoots,
+    incompleteSettlements,
+    challengedRoots,
     lastUpdated,
     fetching
   }
 }
 
 const Health = () => {
-  const { incompleteSettlements, lowBonderBalances, challengedRoots, unbondedTransfers, lastUpdated, fetching } = useData()
+  const { lowBonderBalances, unbondedTransfers, unbondedTransferRoots, incompleteSettlements, challengedRoots, lastUpdated, fetching } = useData()
   const cell = ({ cell }) => (
                 <CellWrapper cell={cell}>
                   {cell.value}
@@ -142,6 +162,106 @@ const Health = () => {
                   <CopyEthAddress value={cell.value} />
                 </CellWrapper>
               )
+  const lowBonderBalancesColumns = [{
+    Header: 'Low Bonder Balances',
+    columns: [
+      {
+        Header: 'Bridge',
+        accessor: 'bridge',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Bonder',
+        accessor: 'bonder',
+        Cell: cellAddress,
+      },
+      {
+        Header: 'Native Token',
+        accessor: 'nativeToken',
+        Cell: cellIcon
+      },
+      {
+        Header: 'Amount',
+        accessor: 'amount',
+        Cell: cellNumber,
+      },
+    ]
+  }]
+  const unbondedTransfersColumns = [{
+    Header: 'Unbonded Transfers',
+    columns: [
+      {
+        Header: 'Date',
+        accessor: 'timestamp',
+        Cell: cell,
+      },
+      {
+        Header: 'Source',
+        accessor: 'sourceChain',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Destination',
+        accessor: 'destinationChain',
+        Cell: cellIcon
+      },
+      {
+        Header: 'Transfer ID',
+        accessor: 'transferId',
+        Cell: cellAddress
+      },
+      {
+        Header: 'Transaction Hash',
+        accessor: 'transactionHash',
+        Cell: cellAddress,
+      },
+      {
+        Header: 'Token',
+        accessor: 'token',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Amount',
+        accessor: 'amount',
+        Cell: cellNumber,
+      },
+    ]
+  }]
+  const unbondedTransferRootsColumns = [{
+    Header: 'Unbonded Transfer Roots',
+    columns: [
+      {
+        Header: 'Date',
+        accessor: 'timestamp',
+        Cell: cell,
+      },
+      {
+        Header: 'Source',
+        accessor: 'sourceChain',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Destination',
+        accessor: 'destinationChain',
+        Cell: cellIcon
+      },
+      {
+        Header: 'Transfer Root Hash',
+        accessor: 'transferRootHash',
+        Cell: cellAddress
+      },
+      {
+        Header: 'Token',
+        accessor: 'token',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Total Amount',
+        accessor: 'totalAmount',
+        Cell: cellNumber,
+      },
+    ]
+  }]
   const incompleteSettlementsColumns = [{
     Header: 'Incomplete Settlements',
     columns: [
@@ -197,33 +317,6 @@ const Health = () => {
       },
     ]
   }]
-
-  const lowBonderBalancesColumns = [{
-    Header: 'Low Bonder Balances',
-    columns: [
-      {
-        Header: 'Bridge',
-        accessor: 'bridge',
-        Cell: cellIcon,
-      },
-      {
-        Header: 'Bonder',
-        accessor: 'bonder',
-        Cell: cellAddress,
-      },
-      {
-        Header: 'Native Token',
-        accessor: 'nativeToken',
-        Cell: cellIcon
-      },
-      {
-        Header: 'Amount',
-        accessor: 'amount',
-        Cell: cellNumber,
-      },
-    ]
-  }]
-
   const challengedRootsColumns = [{
     Header: 'Challenged Roots',
     columns: [
@@ -255,58 +348,11 @@ const Health = () => {
     ]
   }]
 
-  const unbondedTransfersColumns = [{
-    Header: 'Unbonded Transfers',
-    columns: [
-      {
-        Header: 'Date',
-        accessor: 'timestamp',
-        Cell: cell,
-      },
-      {
-        Header: 'Source',
-        accessor: 'sourceChain',
-        Cell: cellIcon,
-      },
-      {
-        Header: 'Destination',
-        accessor: 'destinationChain',
-        Cell: cellIcon
-      },
-      {
-        Header: 'Transfer ID',
-        accessor: 'transferId',
-        Cell: cellAddress
-      },
-      {
-        Header: 'Transaction Hash',
-        accessor: 'transactionHash',
-        Cell: cellAddress,
-      },
-      {
-        Header: 'Token',
-        accessor: 'token',
-        Cell: cellIcon,
-      },
-      {
-        Header: 'Amount',
-        accessor: 'amount',
-        Cell: cellNumber,
-      },
-    ]
-  }]
-
   return (
     <div>
       <Typography variant="body1">
         Last updated {lastUpdated || '-'}
       </Typography>
-      <SortableTable
-        stats={ incompleteSettlements }
-        columns={ incompleteSettlementsColumns }
-        populateDataFn={ populateIncompleteSettlementStats }
-        loading={ fetching }
-      />
       <SortableTable
         stats={ lowBonderBalances }
         columns={ lowBonderBalancesColumns }
@@ -314,15 +360,27 @@ const Health = () => {
         loading={ fetching }
       />
       <SortableTable
-        stats={ challengedRoots }
-        columns={ challengedRootsColumns }
-        populateDataFn={ populateChallengedRoots }
-        loading={ fetching }
-      />
-      <SortableTable
         stats={ unbondedTransfers }
         columns={ unbondedTransfersColumns }
         populateDataFn={ populateUnbondedTransfers }
+        loading={ fetching }
+      />
+      <SortableTable
+        stats={ unbondedTransferRoots }
+        columns={ unbondedTransferRootsColumns }
+        populateDataFn={ populateUnbondedTransferRoots }
+        loading={ fetching }
+      />
+      <SortableTable
+        stats={ incompleteSettlements }
+        columns={ incompleteSettlementsColumns }
+        populateDataFn={ populateIncompleteSettlementStats }
+        loading={ fetching }
+      />
+      <SortableTable
+        stats={ challengedRoots }
+        columns={ challengedRootsColumns }
+        populateDataFn={ populateChallengedRoots }
         loading={ fetching }
       />
     </div>

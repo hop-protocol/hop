@@ -5,6 +5,7 @@ import S3Upload from 'src/aws/s3Upload'
 import contracts from 'src/contracts'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
@@ -26,6 +27,14 @@ export class HealthCheckWatcher {
   s3Upload: S3Upload
   incompleteSettlementsWatcher: IncompleteSettlementsWatcher
   s3Filename: string
+
+  checks: Record<string, boolean> = {
+    lowBonderBalances: false,
+    unbondedTransfers: false,
+    unbondedTransferRoots: true,
+    incompleteSettlements: false,
+    challengedRoots: false
+  }
 
   constructor (config: Config) {
     const { days, s3Upload, s3Namespace } = config
@@ -59,13 +68,24 @@ export class HealthCheckWatcher {
 
   async poll () {
     this.logger.debug('poll')
-    const unbondedTransfers = await this.getUnbondedTransfers()
-    const challengedRoots = await this.getChallengedRoots()
-    const lowBonderBalances = await this.getLowBonderBalances()
-    const incompleteSettlements = await this.getIncompleteSettlements()
-    const data = {
-      unbondedTransfers,
+    const [
       lowBonderBalances,
+      unbondedTransfers,
+      unbondedTransferRoots,
+      incompleteSettlements,
+      challengedRoots
+    ] = await Promise.all([
+      this.checks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
+      this.checks.unbondedTransfers ? this.getUnbondedTransfers() : Promise.resolve([]),
+      this.checks.unbondedTransferRoots ? this.getUnbondedTransferRoots() : Promise.resolve([]),
+      this.checks.incompleteSettlements ? this.getIncompleteSettlements() : Promise.resolve([]),
+      this.checks.challengedRoots ? this.getChallengedRoots() : Promise.resolve([])
+    ])
+
+    const data = {
+      lowBonderBalances,
+      unbondedTransfers,
+      unbondedTransferRoots,
       incompleteSettlements,
       challengedRoots
     }
@@ -76,14 +96,6 @@ export class HealthCheckWatcher {
       this.logger.debug(`uploaded to s3 at ${this.s3Filename}`)
     }
     this.logger.debug('poll complete')
-  }
-
-  async getIncompleteSettlements () {
-    const timestamp = DateTime.now().toUTC().toSeconds()
-    const minHours = 12
-    let result = await this.incompleteSettlementsWatcher.getDiffResults()
-    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (minHours * 60 * 60)))
-    return result
   }
 
   async getLowBonderBalances () {
@@ -169,6 +181,39 @@ export class HealthCheckWatcher {
     this.logger.debug(`unbonded transfers: ${result.length}`)
     this.logger.debug(JSON.stringify(result, null, 2))
     this.logger.debug('done checking for unbonded transfers')
+    return result
+  }
+
+  async getUnbondedTransferRoots () {
+    const now = DateTime.now().toUTC()
+    const sourceChains = [Chain.Optimism, Chain.Arbitrum]
+    const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum]
+    const tokens = ['USDC', 'USDT', 'DAI', 'ETH']
+    const startTime = Math.floor(now.minus({ days: 14 }).toSeconds())
+    const endTime = Math.floor(now.toSeconds())
+    let result: any[] = []
+    for (const sourceChain of sourceChains) {
+      for (const destinationChain of destinationChains) {
+        for (const token of tokens) {
+          this.logger.debug(`checking unbonded transfer roots for ${token} ${sourceChain}→${destinationChain}`)
+          const unbondedTransferRoots = await getUnbondedTransferRoots(sourceChain, token, destinationChain, startTime, endTime)
+          this.logger.debug(`done checking unbonded transfer roots for ${token} ${sourceChain}→${destinationChain}`)
+          result.push(...unbondedTransferRoots)
+        }
+      }
+    }
+
+    const minHours = 6
+    result = result.filter((x: any) => endTime > (Number(x.timestamp) + (minHours * 60 * 60)))
+
+    return result
+  }
+
+  async getIncompleteSettlements () {
+    const timestamp = DateTime.now().toUTC().toSeconds()
+    const minHours = 12
+    let result = await this.incompleteSettlementsWatcher.getDiffResults()
+    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (minHours * 60 * 60)))
     return result
   }
 

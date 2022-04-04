@@ -68,7 +68,6 @@ class IncompleteSettlementsWatcher {
     if (format) {
       this.format = format
     }
-    this.init()
   }
 
   private async init () {
@@ -260,6 +259,7 @@ class IncompleteSettlementsWatcher {
   }
 
   async start () {
+    await this.init()
     const result = await this.getDiffResults()
     this.logResult(result)
   }

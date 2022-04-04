@@ -3,13 +3,13 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import makeRequest from './makeRequest'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
-import { constants } from 'ethers'
+import { chunk } from 'lodash'
 import { formatUnits } from 'ethers/lib/utils'
 import { padHex } from 'src/utils/padHex'
 
-export async function getUnbondedTransfers () {
+export async function getUnbondedTransfers (days: number) {
   const endDate = DateTime.now().toUTC()
-  const startTime = Math.floor(endDate.minus({ days: 1 }).startOf('day').toSeconds())
+  const startTime = Math.floor(endDate.minus({ days }).startOf('day').toSeconds())
   const endTime = Math.floor(endDate.plus({ days: 2 }).toSeconds())
 
   const transfers = await getTransfersData(startTime, endTime)
@@ -128,11 +128,11 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrumBondedWithdrawals,
     mainnetBondedWithdrawals
   ] = await Promise.all([
-    fetchBonds(Chain.Gnosis, startTime, endTime),
-    fetchBonds(Chain.Polygon, startTime, endTime),
-    fetchBonds(Chain.Optimism, startTime, endTime),
-    fetchBonds(Chain.Arbitrum, startTime, endTime),
-    fetchBonds(Chain.Ethereum, startTime, endTime)
+    fetchBonds(Chain.Gnosis, transferIds),
+    fetchBonds(Chain.Polygon, transferIds),
+    fetchBonds(Chain.Optimism, transferIds),
+    fetchBonds(Chain.Arbitrum, transferIds),
+    fetchBonds(Chain.Ethereum, transferIds)
   ])
 
   const [
@@ -333,13 +333,12 @@ async function fetchTransfers (chain: Chain, startTime: number, endTime: number,
   return transfers
 }
 
-async function fetchBonds (chain: Chain, startTime: number, endTime: number, transferIds?: string[], lastId?: string) {
+async function fetchBonds (chain: Chain, transferIds: string[]) {
   const query = `
-    query WithdrawalBondeds($startTime: Int, $endTime: Int, $lastId: ID, $transferIds: [String]) {
+    query WithdrawalBondeds($transferIds: [String]) {
       withdrawalBondeds: withdrawalBondeds(
         where: {
-          ${transferIds ? 'transferId_in: $transferIds' : 'timestamp_gte: $startTime, timestamp_lte: $endTime'},
-          id_gt: $lastId
+          transferId_in: $transferIds
         },
         first: 1000,
         orderBy: id,
@@ -355,33 +354,16 @@ async function fetchBonds (chain: Chain, startTime: number, endTime: number, tra
     }
   `
 
-  const data = await makeRequest(chain, query, {
-    startTime,
-    endTime,
-    transferIds: transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? [],
-    lastId: padHex(lastId ?? constants.AddressZero)
-  })
+  transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
+  const chunkSize = 1000
+  const allChunks = chunk(transferIds, chunkSize)
+  let bonds: any = []
+  for (const _transferIds of allChunks) {
+    const data = await makeRequest(chain, query, {
+      transferIds: _transferIds
+    })
 
-  let bonds = data.withdrawalBondeds
-  if (bonds.length === 1000) {
-    try {
-      const newLastId = padHex(bonds[bonds.length - 1].id)
-      if (lastId === newLastId) {
-        return bonds
-      }
-      lastId = newLastId
-      bonds = bonds.concat(...(await fetchBonds(
-        chain,
-        startTime,
-        endTime,
-        transferIds,
-        lastId
-      )))
-    } catch (err: any) {
-      if (!err.message.includes('The `skip` argument must be between')) {
-        throw err
-      }
-    }
+    bonds = bonds.concat(data.withdrawalBondeds)
   }
 
   return bonds

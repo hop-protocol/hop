@@ -71,6 +71,9 @@ class IncompleteSettlementsWatcher {
   }
 
   private async init () {
+    if (this.ready) {
+      return
+    }
     await this.sync()
     this.ready = true
   }
@@ -259,12 +262,12 @@ class IncompleteSettlementsWatcher {
   }
 
   async start () {
-    await this.init()
     const result = await this.getDiffResults()
     this.logResult(result)
   }
 
   async getDiffResults (): Promise<any> {
+    await this.init()
     await this.tilReady()
     this.logger.debug('summing multipleWithdrawalsSettled events')
 

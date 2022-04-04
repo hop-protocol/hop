@@ -25,6 +25,7 @@ async function _makeRequest (
   } else {
     url = `${url}-${chain}`
   }
+
   const res = await fetch(url, {
     method: 'POST',
     headers: {

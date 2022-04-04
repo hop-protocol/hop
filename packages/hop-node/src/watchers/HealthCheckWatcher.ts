@@ -27,6 +27,7 @@ export class HealthCheckWatcher {
   s3Upload: S3Upload
   incompleteSettlementsWatcher: IncompleteSettlementsWatcher
   s3Filename: string
+  days: number = 1
 
   checks: Record<string, boolean> = {
     lowBonderBalances: true,
@@ -38,8 +39,11 @@ export class HealthCheckWatcher {
 
   constructor (config: Config) {
     const { days, s3Upload, s3Namespace } = config
+    if (days) {
+      this.days = days
+    }
     this.incompleteSettlementsWatcher = new IncompleteSettlementsWatcher({
-      days,
+      days: this.days,
       format: 'json'
     })
     this.logger.debug(`s3Upload: ${!!s3Upload}`)
@@ -174,12 +178,11 @@ export class HealthCheckWatcher {
 
     const timestamp = DateTime.now().toUTC().toSeconds()
     const minMinutes = 20
-    let result = await getUnbondedTransfers()
+    let result = await getUnbondedTransfers(this.days)
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (minMinutes * 60)))
     result = result.filter((x: any) => x.sourceChainSlug !== Chain.Ethereum)
 
     this.logger.debug(`unbonded transfers: ${result.length}`)
-    this.logger.debug(JSON.stringify(result, null, 2))
     this.logger.debug('done checking for unbonded transfers')
     return result
   }
@@ -189,7 +192,7 @@ export class HealthCheckWatcher {
     const sourceChains = [Chain.Optimism, Chain.Arbitrum]
     const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum]
     const tokens = ['USDC', 'USDT', 'DAI', 'ETH']
-    const startTime = Math.floor(now.minus({ days: 14 }).toSeconds())
+    const startTime = Math.floor(now.minus({ days: this.days }).toSeconds())
     const endTime = Math.floor(now.toSeconds())
     let result: any[] = []
     for (const sourceChain of sourceChains) {
@@ -203,6 +206,8 @@ export class HealthCheckWatcher {
       }
     }
 
+    this.logger.debug('done checking for unbonded transfer roots')
+
     const minHours = 6
     result = result.filter((x: any) => endTime > (Number(x.timestamp) + (minHours * 60 * 60)))
 
@@ -210,10 +215,12 @@ export class HealthCheckWatcher {
   }
 
   async getIncompleteSettlements () {
+    this.logger.debug('fetching incomplete settlements')
     const timestamp = DateTime.now().toUTC().toSeconds()
     const minHours = 12
     let result = await this.incompleteSettlementsWatcher.getDiffResults()
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (minHours * 60 * 60)))
+    this.logger.debug('done fetching incomplete settlements')
     return result
   }
 

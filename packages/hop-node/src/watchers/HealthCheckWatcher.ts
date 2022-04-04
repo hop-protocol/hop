@@ -10,10 +10,11 @@ import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
+import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
 import { formatEther, formatUnits, parseEther } from 'ethers/lib/utils'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
-import { config as globalConfig } from 'src/config'
+import { config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 
 export type Config = {
   days?: number
@@ -28,6 +29,8 @@ export class HealthCheckWatcher {
   incompleteSettlementsWatcher: IncompleteSettlementsWatcher
   s3Filename: string
   days: number = 1
+  notifier: Notifier
+  sentMessages: Record<string, boolean> = {}
 
   checks: Record<string, boolean> = {
     lowBonderBalances: true,
@@ -46,6 +49,9 @@ export class HealthCheckWatcher {
       days: this.days,
       format: 'json'
     })
+    this.notifier = new Notifier(
+      `HealthCheck: ${hostname}`
+    )
     this.logger.debug(`s3Upload: ${!!s3Upload}`)
     if (s3Upload) {
       const bucket = 'assets.hop.exchange'
@@ -86,6 +92,41 @@ export class HealthCheckWatcher {
       this.checks.challengedRoots ? this.getChallengedRoots() : Promise.resolve([])
     ])
 
+    const messages: string[] = []
+    for (const item of lowBonderBalances) {
+      const msg = `LowBonderBalance: bonder: ${item.bonder}, amount: ${item.amountFormatted} native: ${item.native}`
+      messages.push(msg)
+    }
+
+    for (const item of unbondedTransfers) {
+      const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChainSlug}, destination: ${item.destinationChainSlug}, amount: ${item.formattedAmount}, token: ${item.token}, transferSentAt: ${item.timestamp}`
+      messages.push(msg)
+    }
+
+    for (const item of unbondedTransferRoots) {
+      const msg = `UnbondedTransferRoot: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted}, token: ${item.token}, committedAt: ${item.timestamp}`
+      messages.push(msg)
+    }
+
+    for (const item of incompleteSettlements) {
+      const msg = `IncompleteSettlements: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted}, diffAmount: ${item.diffFormatted}, token: ${item.token}, committedAt: ${item.timestamp}`
+      messages.push(msg)
+    }
+
+    for (const item of challengedRoots) {
+      const msg = `ChallengedRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted}, token: ${item.token}`
+      messages.push(msg)
+    }
+
+    for (const msg of messages) {
+      if (this.sentMessages[msg]) {
+        continue
+      }
+      this.sentMessages[msg] = true
+      this.logger.warn(msg)
+      this.notifier.warn(msg, { channel: healthCheckerWarnSlackChannel })
+    }
+
     const data = {
       lowBonderBalances,
       unbondedTransfers,
@@ -93,8 +134,8 @@ export class HealthCheckWatcher {
       incompleteSettlements,
       challengedRoots
     }
-    this.logger.debug('data')
-    this.logger.debug(JSON.stringify(data, null, 2))
+
+    this.logger.debug('poll data:', JSON.stringify(data, null, 2))
     if (this.s3Upload) {
       await this.s3Upload.upload(data)
       this.logger.debug(`uploaded to s3 at ${this.s3Filename}`)

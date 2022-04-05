@@ -8,13 +8,75 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, NativeChainToken } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
 import { formatEther, formatUnits, parseEther } from 'ethers/lib/utils'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
 import { config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
+
+type LowBonderBalance = {
+  bridge: string
+  chain: string
+  nativeToken: string
+  amount: string
+  amountFormatted: number
+  bonder: string
+}
+
+type UnbondedTransfer = {
+  sourceChain: string
+  destinationChain: string
+  token: string
+  timestamp: number
+  transferId: string
+  transactionHash: string
+  amount: string
+  amountFormatted: number
+}
+
+type UnbondedTransferRoot = {
+  sourceChain: string
+  destinationChain: string
+  transferRootHash: string
+  token: string
+  timestamp: number
+  totalAmount: string
+  totalAmountFormatted: number
+}
+
+type IncompleteSettlement = {
+  timestamp: number
+  transferRootHash: string
+  sourceChain: string
+  destinationChain: string
+  token: string
+  totalAmount: string
+  totalAmountFormatted: number
+  diffAmount: number
+  diffAmountFormatted: number
+  settlementEvents: number
+  withdrewEvents: number
+  isConfirmed: boolean
+}
+
+type ChallengedTransferRoot = {
+  token: string
+  transactionHash: string
+  transferRootHash: string
+  transferRootId: string
+  originalAmount: string
+  originalAmountFormatted: number
+}
+
+type Result = {
+  lowBonderBalances: LowBonderBalance[]
+  unbondedTransfers: UnbondedTransfer[]
+  unbondedTransferRoots: UnbondedTransferRoot[]
+  incompleteSettlements: IncompleteSettlement[]
+  challengedTransferRoots: ChallengedTransferRoot[]
+}
 
 export type Config = {
   days?: number
@@ -28,16 +90,25 @@ export class HealthCheckWatcher {
   s3Upload: S3Upload
   incompleteSettlementsWatcher: IncompleteSettlementsWatcher
   s3Filename: string
-  days: number = 1
+  days: number = 1 // days back to check for
+  pollIntervalSeconds: number = 300
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
+  lowBalanceThresholds: Record<string, number> = {
+    [NativeChainToken.ETH]: 0.5,
+    [NativeChainToken.XDAI]: 100,
+    [NativeChainToken.MATIC]: 100
+  }
 
-  checks: Record<string, boolean> = {
+  unbondedTransfersMinTimeToWaitMinutes: number = 20
+  unbondedTransferRootsMinTimeToWaitHours: number = 6
+  incompleteSettlemetsMinTimeToWaitHours: number = 12
+  enabledChecks: Record<string, boolean> = {
     lowBonderBalances: true,
     unbondedTransfers: true,
     unbondedTransferRoots: true,
     incompleteSettlements: true,
-    challengedRoots: true
+    challengedTransferRoots: true
   }
 
   constructor (config: Config) {
@@ -72,34 +143,51 @@ export class HealthCheckWatcher {
       } catch (err) {
         this.logger.error('poll error:', err)
       }
-      await wait(60 * 1000)
+      await wait(this.pollIntervalSeconds * 1000)
     }
   }
 
-  async poll () {
-    this.logger.debug('poll')
+  private async getResult (): Promise<Result> {
     const [
       lowBonderBalances,
       unbondedTransfers,
       unbondedTransferRoots,
       incompleteSettlements,
-      challengedRoots
+      challengedTransferRoots
     ] = await Promise.all([
-      this.checks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
-      this.checks.unbondedTransfers ? this.getUnbondedTransfers() : Promise.resolve([]),
-      this.checks.unbondedTransferRoots ? this.getUnbondedTransferRoots() : Promise.resolve([]),
-      this.checks.incompleteSettlements ? this.getIncompleteSettlements() : Promise.resolve([]),
-      this.checks.challengedRoots ? this.getChallengedRoots() : Promise.resolve([])
+      this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
+      this.enabledChecks.unbondedTransfers ? this.getUnbondedTransfers() : Promise.resolve([]),
+      this.enabledChecks.unbondedTransferRoots ? this.getUnbondedTransferRoots() : Promise.resolve([]),
+      this.enabledChecks.incompleteSettlements ? this.getIncompleteSettlements() : Promise.resolve([]),
+      this.enabledChecks.challengedTransferRoots ? this.getChallengedTransferRoots() : Promise.resolve([])
     ])
+
+    return {
+      lowBonderBalances,
+      unbondedTransfers,
+      unbondedTransferRoots,
+      incompleteSettlements,
+      challengedTransferRoots
+    }
+  }
+
+  private async sendNotifications (result: Result) {
+    const {
+      lowBonderBalances,
+      unbondedTransfers,
+      unbondedTransferRoots,
+      incompleteSettlements,
+      challengedTransferRoots
+    } = result
 
     const messages: string[] = []
     for (const item of lowBonderBalances) {
-      const msg = `LowBonderBalance: bonder: ${item.bonder}, amount: ${item.amountFormatted} native: ${item.native}`
+      const msg = `LowBonderBalance: bonder: ${item.bonder}, chain: ${item.chain}, amount: ${item.amountFormatted} ${item.nativeToken}`
       messages.push(msg)
     }
 
     for (const item of unbondedTransfers) {
-      const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChainSlug}, destination: ${item.destinationChainSlug}, amount: ${item.formattedAmount}, token: ${item.token}, transferSentAt: ${item.timestamp}`
+      const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, amount: ${item.amountFormatted}, token: ${item.token}, transferSentAt: ${item.timestamp}`
       messages.push(msg)
     }
 
@@ -109,12 +197,12 @@ export class HealthCheckWatcher {
     }
 
     for (const item of incompleteSettlements) {
-      const msg = `IncompleteSettlements: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted}, diffAmount: ${item.diffFormatted}, token: ${item.token}, committedAt: ${item.timestamp}`
+      const msg = `IncompleteSettlements: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted}, diffAmount: ${item.diffAmountFormatted}, token: ${item.token}, committedAt: ${item.timestamp}`
       messages.push(msg)
     }
 
-    for (const item of challengedRoots) {
-      const msg = `ChallengedRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted}, token: ${item.token}`
+    for (const item of challengedTransferRoots) {
+      const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted}, token: ${item.token}`
       messages.push(msg)
     }
 
@@ -124,30 +212,34 @@ export class HealthCheckWatcher {
       }
       this.sentMessages[msg] = true
       this.logger.warn(msg)
-      this.notifier.warn(msg, { channel: healthCheckerWarnSlackChannel })
+      if (healthCheckerWarnSlackChannel) {
+        this.notifier.warn(msg, { channel: healthCheckerWarnSlackChannel })
+      }
     }
+  }
 
-    const data = {
-      lowBonderBalances,
-      unbondedTransfers,
-      unbondedTransferRoots,
-      incompleteSettlements,
-      challengedRoots
-    }
-
-    this.logger.debug('poll data:', JSON.stringify(data, null, 2))
+  private async uploadToS3 (result: Result) {
+    this.logger.debug('poll data:', JSON.stringify(result, null, 2))
     if (this.s3Upload) {
-      await this.s3Upload.upload(data)
+      await this.s3Upload.upload(result)
       this.logger.debug(`uploaded to s3 at ${this.s3Filename}`)
     }
     this.logger.debug('poll complete')
   }
 
-  async getLowBonderBalances () {
+  async poll () {
+    this.logger.debug('poll')
+
+    const result = await this.getResult()
+    await this.sendNotifications(result)
+    await this.uploadToS3(result)
+  }
+
+  private async getLowBonderBalances (): Promise<LowBonderBalance[]> {
     const lowBalances: Record<string, BigNumber> = {
-      ETH: parseEther('0.5'),
-      XDAI: parseEther('100'),
-      MATIC: parseEther('100')
+      [NativeChainToken.ETH]: parseEther(this.lowBalanceThresholds[NativeChainToken.ETH].toString()),
+      [NativeChainToken.XDAI]: parseEther(this.lowBalanceThresholds[NativeChainToken.XDAI].toString()),
+      [NativeChainToken.MATIC]: parseEther(this.lowBalanceThresholds[NativeChainToken.MATIC].toString())
     }
     const providers: Record<string, providers.Provider> = {
       [Chain.Ethereum]: getRpcProvider(Chain.Ethereum)!,
@@ -182,7 +274,8 @@ export class HealthCheckWatcher {
         result.push({
           bonder,
           bridge,
-          native: 'ETH',
+          chain: Chain.Ethereum,
+          nativeToken: NativeChainToken.ETH,
           amount: ethBalance.toString(),
           amountFormatted: Number(formatEther(ethBalance.toString()))
         })
@@ -192,7 +285,8 @@ export class HealthCheckWatcher {
         result.push({
           bonder,
           bridge,
-          native: 'XDAI',
+          chain: Chain.Gnosis,
+          nativeToken: NativeChainToken.XDAI,
           amount: xdaiBalance.toString(),
           amountFormatted: Number(formatEther(xdaiBalance.toString()))
         })
@@ -202,7 +296,8 @@ export class HealthCheckWatcher {
         result.push({
           bonder,
           bridge,
-          native: 'MATIC',
+          chain: Chain.Polygon,
+          nativeToken: NativeChainToken.MATIC,
           amount: maticBalance.toString(),
           amountFormatted: Number(formatEther(maticBalance.toString()))
         })
@@ -214,21 +309,31 @@ export class HealthCheckWatcher {
     return result
   }
 
-  async getUnbondedTransfers () {
+  private async getUnbondedTransfers (): Promise<UnbondedTransfer[]> {
     this.logger.debug('checking for unbonded transfers')
 
     const timestamp = DateTime.now().toUTC().toSeconds()
-    const minMinutes = 20
     let result = await getUnbondedTransfers(this.days)
-    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (minMinutes * 60)))
+    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
     result = result.filter((x: any) => x.sourceChainSlug !== Chain.Ethereum)
 
     this.logger.debug(`unbonded transfers: ${result.length}`)
     this.logger.debug('done checking for unbonded transfers')
-    return result
+    return result.map(item => {
+      return {
+        sourceChain: item.sourceChainSlug,
+        destinationChain: item.destinationChainSlug,
+        token: item.token,
+        timestamp: item.timestamp,
+        transferId: item.transferId,
+        transactionHash: item.transactionHash,
+        amount: item.amount,
+        amountFormatted: Number(item.formattedAmount)
+      }
+    })
   }
 
-  async getUnbondedTransferRoots () {
+  private async getUnbondedTransferRoots (): Promise<UnbondedTransferRoot[]> {
     const now = DateTime.now().toUTC()
     const sourceChains = [Chain.Optimism, Chain.Arbitrum]
     const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum]
@@ -249,23 +354,46 @@ export class HealthCheckWatcher {
 
     this.logger.debug('done checking for unbonded transfer roots')
 
-    const minHours = 6
-    result = result.filter((x: any) => endTime > (Number(x.timestamp) + (minHours * 60 * 60)))
+    result = result.filter((x: any) => endTime > (Number(x.timestamp) + (this.unbondedTransferRootsMinTimeToWaitHours * 60 * 60)))
 
-    return result
+    return result.map((item: any) => {
+      return {
+        sourceChain: item.sourceChain,
+        destinationChain: item.destinationChain,
+        transferRootHash: item.transferRootHash,
+        token: item.token,
+        timestamp: item.timestamp,
+        totalAmount: item.totalAmount,
+        totalAmountFormatted: item.totalAmountFormatted
+      }
+    })
   }
 
-  async getIncompleteSettlements () {
+  private async getIncompleteSettlements (): Promise<IncompleteSettlement[]> {
     this.logger.debug('fetching incomplete settlements')
     const timestamp = DateTime.now().toUTC().toSeconds()
-    const minHours = 12
     let result = await this.incompleteSettlementsWatcher.getDiffResults()
-    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (minHours * 60 * 60)))
+    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.incompleteSettlemetsMinTimeToWaitHours * 60 * 60)))
     this.logger.debug('done fetching incomplete settlements')
-    return result
+    return result.map((item: any) => {
+      return {
+        timestamp: item.timestamp,
+        transferRootHash: item.rootHash,
+        sourceChain: item.sourceChain,
+        destinationChain: item.destinationChain,
+        token: item.token,
+        totalAmount: item.totalAmount,
+        totalAmountFormatted: item.totalAmountFormatted,
+        diffAmount: item.diff,
+        diffAmountFormatted: Number(item.diffFormatted),
+        settlementEvents: item.settlementEvents,
+        withdrewEvents: item.withdrewEvents,
+        isConfirmed: item.isConfirmed
+      }
+    })
   }
 
-  async getChallengedRoots () {
+  private async getChallengedTransferRoots (): Promise<ChallengedTransferRoot[]> {
     const result: any[] = []
     for (const token of this.tokens) {
       this.logger.debug(`done ${token} bridge for challenged roots`)
@@ -288,6 +416,7 @@ export class HealthCheckWatcher {
             transferRootHash,
             transferRootId,
             originalAmount,
+            originalAmountFormatted,
             tokenDecimals
           }
           result.push(data)

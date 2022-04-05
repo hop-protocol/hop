@@ -114,11 +114,11 @@ export class HealthCheckWatcher {
   incompleteSettlemetsMinTimeToWaitHours: number = 12
   minSubgraphSyncDiffBlockNumber: number = 500
   enabledChecks: Record<string, boolean> = {
-    lowBonderBalances: false,
-    unbondedTransfers: false,
-    unbondedTransferRoots: false,
-    incompleteSettlements: false,
-    challengedTransferRoots: false,
+    lowBonderBalances: true,
+    unbondedTransfers: true,
+    unbondedTransferRoots: true,
+    incompleteSettlements: true,
+    challengedTransferRoots: true,
     unsyncedSubgraphs: true
   }
 
@@ -134,6 +134,7 @@ export class HealthCheckWatcher {
     this.notifier = new Notifier(
       `HealthCheck: ${hostname}`
     )
+    this.logger.debug(`days: ${this.days}`)
     this.logger.debug(`s3Upload: ${!!s3Upload}`)
     if (s3Upload) {
       const bucket = 'assets.hop.exchange'

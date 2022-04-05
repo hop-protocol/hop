@@ -3,6 +3,7 @@ import L1Bridge from 'src/watchers/classes/L1Bridge'
 import Logger from 'src/logger'
 import S3Upload from 'src/aws/s3Upload'
 import contracts from 'src/contracts'
+import fetch from 'node-fetch'
 import fs from 'fs'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
@@ -13,7 +14,7 @@ import { Chain, NativeChainToken } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
-import { formatEther, formatUnits, parseEther } from 'ethers/lib/utils'
+import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
 import { config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
@@ -79,6 +80,16 @@ type UnsyncedSubgraph = {
   diffBlockNumber: number
 }
 
+type LowAvailableLiquidityBonder = {
+  bridge: string
+  availableLiquidity: string
+  availableLiquidityFormatted: number
+  totalLiquidity: string
+  totalLiquidityFormatted: number
+  thresholdAmount: string
+  thresholdAmountFormatted: number
+}
+
 type Result = {
   lowBonderBalances: LowBonderBalance[]
   unbondedTransfers: UnbondedTransfer[]
@@ -86,6 +97,7 @@ type Result = {
   incompleteSettlements: IncompleteSettlement[]
   challengedTransferRoots: ChallengedTransferRoot[]
   unsyncedSubgraphs: UnsyncedSubgraph[]
+  lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
 }
 
 export type Config = {
@@ -106,23 +118,33 @@ export class HealthCheckWatcher {
   pollIntervalSeconds: number = 300
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
-  lowBalanceThresholds: Record<string, number> = {
-    [NativeChainToken.ETH]: 0.5,
-    [NativeChainToken.XDAI]: 100,
-    [NativeChainToken.MATIC]: 100
+  lowBalanceThresholds: Record<string, BigNumber> = {
+    [NativeChainToken.ETH]: parseEther('0.5'),
+    [NativeChainToken.XDAI]: parseEther('100'),
+    [NativeChainToken.MATIC]: parseEther('100')
   }
 
+  bonderTotalLiquidity: Record<string, BigNumber> = {
+    USDC: parseUnits('6026000', 6),
+    USDT: parseUnits('2121836', 6),
+    DAI: parseUnits('5000000', 18),
+    ETH: parseUnits('4659', 18),
+    MATIC: parseUnits('731948.94', 18)
+  }
+
+  bonderLowLiquidityThreshold: number = 0.10
   unbondedTransfersMinTimeToWaitMinutes: number = 20
   unbondedTransferRootsMinTimeToWaitHours: number = 6
   incompleteSettlemetsMinTimeToWaitHours: number = 12
   minSubgraphSyncDiffBlockNumber: number = 500
   enabledChecks: Record<string, boolean> = {
-    lowBonderBalances: true,
+    lowBonderBalances: false,
     unbondedTransfers: false,
     unbondedTransferRoots: false,
     incompleteSettlements: false,
     challengedTransferRoots: false,
-    unsyncedSubgraphs: false
+    unsyncedSubgraphs: false,
+    lowAvailableLiquidityBonders: true
   }
 
   constructor (config: Config) {
@@ -181,14 +203,16 @@ export class HealthCheckWatcher {
       unbondedTransferRoots,
       incompleteSettlements,
       challengedTransferRoots,
-      unsyncedSubgraphs
+      unsyncedSubgraphs,
+      lowAvailableLiquidityBonders
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
       this.enabledChecks.unbondedTransfers ? this.getUnbondedTransfers() : Promise.resolve([]),
       this.enabledChecks.unbondedTransferRoots ? this.getUnbondedTransferRoots() : Promise.resolve([]),
       this.enabledChecks.incompleteSettlements ? this.getIncompleteSettlements() : Promise.resolve([]),
       this.enabledChecks.challengedTransferRoots ? this.getChallengedTransferRoots() : Promise.resolve([]),
-      this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([])
+      this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([]),
+      this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([])
     ])
 
     return {
@@ -197,7 +221,8 @@ export class HealthCheckWatcher {
       unbondedTransferRoots,
       incompleteSettlements,
       challengedTransferRoots,
-      unsyncedSubgraphs
+      unsyncedSubgraphs,
+      lowAvailableLiquidityBonders
     }
   }
 
@@ -280,11 +305,6 @@ export class HealthCheckWatcher {
   }
 
   private async getLowBonderBalances (): Promise<LowBonderBalance[]> {
-    const lowBalances: Record<string, BigNumber> = {
-      [NativeChainToken.ETH]: parseEther(this.lowBalanceThresholds[NativeChainToken.ETH].toString()),
-      [NativeChainToken.XDAI]: parseEther(this.lowBalanceThresholds[NativeChainToken.XDAI].toString()),
-      [NativeChainToken.MATIC]: parseEther(this.lowBalanceThresholds[NativeChainToken.MATIC].toString())
-    }
     const chainProviders: Record<string, providers.Provider> = {
       [Chain.Ethereum]: getRpcProvider(Chain.Ethereum)!,
       [Chain.Gnosis]: getRpcProvider(Chain.Gnosis)!,
@@ -314,7 +334,7 @@ export class HealthCheckWatcher {
         chainProviders[Chain.Polygon].getBalance(bonder)
       ])
 
-      if (ethBalance.lt(lowBalances.ETH)) {
+      if (ethBalance.lt(this.lowBalanceThresholds.ETH)) {
         result.push({
           bonder,
           bridge,
@@ -325,7 +345,7 @@ export class HealthCheckWatcher {
         })
       }
 
-      if (xdaiBalance.lt(lowBalances.XDAI)) {
+      if (xdaiBalance.lt(this.lowBalanceThresholds.XDAI)) {
         result.push({
           bonder,
           bridge,
@@ -336,7 +356,7 @@ export class HealthCheckWatcher {
         })
       }
 
-      if (maticBalance.lt(lowBalances.MATIC)) {
+      if (maticBalance.lt(this.lowBalanceThresholds.MATIC)) {
         result.push({
           bonder,
           bridge,
@@ -491,6 +511,48 @@ export class HealthCheckWatcher {
           headBlockNumber,
           syncedBlockNumber,
           diffBlockNumber
+        })
+      }
+    }
+    return result
+  }
+
+  async getLowAvailableLiquidityBonders (): Promise<LowAvailableLiquidityBonder[]> {
+    const url = 'https://assets.hop.exchange/mainnet/v1-available-liquidity.json'
+    const res = await fetch(url)
+    const json = await res.json()
+    const result: any[] = []
+
+    for (const token of this.tokens) {
+      const tokenData = json.data[token]
+      const chainAmounts: any = {}
+      const totalLiquidity = this.bonderTotalLiquidity[token]
+      const availableAmounts = tokenData.baseAvailableCreditIncludingVault
+      for (const source in availableAmounts) {
+        for (const dest in availableAmounts[source]) {
+          chainAmounts[dest] = BigNumber.from(availableAmounts[source][dest])
+        }
+      }
+      let availableLiquidity: BigNumber = BigNumber.from(0)
+      for (const amount in chainAmounts) {
+        availableLiquidity = availableLiquidity.add(chainAmounts[amount])
+      }
+      const tokenDecimals = getTokenDecimals(token)!
+      const availableLiquidityFormatted = Number(formatUnits(availableLiquidity, tokenDecimals))
+      const totalLiquidityFormatted = Number(formatUnits(totalLiquidity, tokenDecimals))
+      const oneToken = parseUnits('1', tokenDecimals)
+      const thresholdPercent = parseUnits(this.bonderLowLiquidityThreshold.toString(), tokenDecimals)
+      const thresholdAmount = totalLiquidity.mul(thresholdPercent).div(oneToken)
+      const thresholdAmountFormatted = Number(formatUnits(thresholdAmount, tokenDecimals))
+      if (availableLiquidity.lt(thresholdAmount)) {
+        result.push({
+          bridge: token,
+          availableLiquidity: availableLiquidity.toString(),
+          availableLiquidityFormatted,
+          totalLiquidity: totalLiquidity.toString(),
+          totalLiquidityFormatted,
+          thresholdAmount: thresholdAmount.toString(),
+          thresholdAmountFormatted
         })
       }
     }

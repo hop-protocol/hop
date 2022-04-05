@@ -3,6 +3,7 @@ import L1Bridge from 'src/watchers/classes/L1Bridge'
 import Logger from 'src/logger'
 import S3Upload from 'src/aws/s3Upload'
 import contracts from 'src/contracts'
+import fs from 'fs'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
@@ -91,6 +92,7 @@ export type Config = {
   days?: number
   s3Upload?: boolean
   s3Namespace?: string
+  cacheFile?: string
 }
 
 export class HealthCheckWatcher {
@@ -99,6 +101,7 @@ export class HealthCheckWatcher {
   s3Upload: S3Upload
   incompleteSettlementsWatcher: IncompleteSettlementsWatcher
   s3Filename: string
+  cacheFile: string
   days: number = 1 // days back to check for
   pollIntervalSeconds: number = 300
   notifier: Notifier
@@ -115,15 +118,15 @@ export class HealthCheckWatcher {
   minSubgraphSyncDiffBlockNumber: number = 500
   enabledChecks: Record<string, boolean> = {
     lowBonderBalances: true,
-    unbondedTransfers: true,
-    unbondedTransferRoots: true,
-    incompleteSettlements: true,
-    challengedTransferRoots: true,
-    unsyncedSubgraphs: true
+    unbondedTransfers: false,
+    unbondedTransferRoots: false,
+    incompleteSettlements: false,
+    challengedTransferRoots: false,
+    unsyncedSubgraphs: false
   }
 
   constructor (config: Config) {
-    const { days, s3Upload, s3Namespace } = config
+    const { days, s3Upload, s3Namespace, cacheFile } = config
     if (days) {
       this.days = days
     }
@@ -145,6 +148,18 @@ export class HealthCheckWatcher {
         bucket,
         key: filePath
       })
+    }
+    if (cacheFile) {
+      try {
+        this.cacheFile = cacheFile
+        this.logger.debug(`cacheFile: ${this.cacheFile}`)
+        if (fs.existsSync(cacheFile)) {
+          const cached = JSON.parse(fs.readFileSync(cacheFile).toString())
+          this.sentMessages = cached
+        }
+      } catch (err) {
+        this.logger.error(err)
+      }
     }
   }
 
@@ -236,6 +251,14 @@ export class HealthCheckWatcher {
       if (healthCheckerWarnSlackChannel) {
         this.notifier.warn(msg, { channel: healthCheckerWarnSlackChannel })
       }
+    }
+
+    try {
+      if (this.cacheFile) {
+        fs.writeFileSync(this.cacheFile, JSON.stringify(this.sentMessages, null, 2))
+      }
+    } catch (err) {
+      this.logger.error(err)
     }
   }
 

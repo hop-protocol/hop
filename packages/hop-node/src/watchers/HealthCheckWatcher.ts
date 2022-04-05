@@ -13,6 +13,7 @@ import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
 import { formatEther, formatUnits, parseEther } from 'ethers/lib/utils'
+import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
 import { config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 
@@ -70,12 +71,20 @@ type ChallengedTransferRoot = {
   originalAmountFormatted: number
 }
 
+type UnsyncedSubgraph = {
+  chain: string
+  headBlockNumber: number
+  syncedBlockNumber: number
+  diffBlockNumber: number
+}
+
 type Result = {
   lowBonderBalances: LowBonderBalance[]
   unbondedTransfers: UnbondedTransfer[]
   unbondedTransferRoots: UnbondedTransferRoot[]
   incompleteSettlements: IncompleteSettlement[]
   challengedTransferRoots: ChallengedTransferRoot[]
+  unsyncedSubgraphs: UnsyncedSubgraph[]
 }
 
 export type Config = {
@@ -103,12 +112,14 @@ export class HealthCheckWatcher {
   unbondedTransfersMinTimeToWaitMinutes: number = 20
   unbondedTransferRootsMinTimeToWaitHours: number = 6
   incompleteSettlemetsMinTimeToWaitHours: number = 12
+  minSubgraphSyncDiffBlockNumber: number = 500
   enabledChecks: Record<string, boolean> = {
-    lowBonderBalances: true,
-    unbondedTransfers: true,
-    unbondedTransferRoots: true,
-    incompleteSettlements: true,
-    challengedTransferRoots: true
+    lowBonderBalances: false,
+    unbondedTransfers: false,
+    unbondedTransferRoots: false,
+    incompleteSettlements: false,
+    challengedTransferRoots: false,
+    unsyncedSubgraphs: true
   }
 
   constructor (config: Config) {
@@ -153,13 +164,15 @@ export class HealthCheckWatcher {
       unbondedTransfers,
       unbondedTransferRoots,
       incompleteSettlements,
-      challengedTransferRoots
+      challengedTransferRoots,
+      unsyncedSubgraphs
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
       this.enabledChecks.unbondedTransfers ? this.getUnbondedTransfers() : Promise.resolve([]),
       this.enabledChecks.unbondedTransferRoots ? this.getUnbondedTransferRoots() : Promise.resolve([]),
       this.enabledChecks.incompleteSettlements ? this.getIncompleteSettlements() : Promise.resolve([]),
-      this.enabledChecks.challengedTransferRoots ? this.getChallengedTransferRoots() : Promise.resolve([])
+      this.enabledChecks.challengedTransferRoots ? this.getChallengedTransferRoots() : Promise.resolve([]),
+      this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([])
     ])
 
     return {
@@ -167,7 +180,8 @@ export class HealthCheckWatcher {
       unbondedTransfers,
       unbondedTransferRoots,
       incompleteSettlements,
-      challengedTransferRoots
+      challengedTransferRoots,
+      unsyncedSubgraphs
     }
   }
 
@@ -177,7 +191,8 @@ export class HealthCheckWatcher {
       unbondedTransfers,
       unbondedTransferRoots,
       incompleteSettlements,
-      challengedTransferRoots
+      challengedTransferRoots,
+      unsyncedSubgraphs
     } = result
 
     const messages: string[] = []
@@ -203,6 +218,11 @@ export class HealthCheckWatcher {
 
     for (const item of challengedTransferRoots) {
       const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted}, token: ${item.token}`
+      messages.push(msg)
+    }
+
+    for (const item of unsyncedSubgraphs) {
+      const msg = `UnsyncedSubgraph: chain: ${item.chain}, syncedBlockNumber: ${item.syncedBlockNumber}, headBlockNumber: ${item.headBlockNumber}, diffBlockNumber: ${item.diffBlockNumber}`
       messages.push(msg)
     }
 
@@ -241,7 +261,7 @@ export class HealthCheckWatcher {
       [NativeChainToken.XDAI]: parseEther(this.lowBalanceThresholds[NativeChainToken.XDAI].toString()),
       [NativeChainToken.MATIC]: parseEther(this.lowBalanceThresholds[NativeChainToken.MATIC].toString())
     }
-    const providers: Record<string, providers.Provider> = {
+    const chainProviders: Record<string, providers.Provider> = {
       [Chain.Ethereum]: getRpcProvider(Chain.Ethereum)!,
       [Chain.Gnosis]: getRpcProvider(Chain.Gnosis)!,
       [Chain.Polygon]: getRpcProvider(Chain.Polygon)!
@@ -265,9 +285,9 @@ export class HealthCheckWatcher {
     for (const bonder of bonders) {
       const bridge = bonderBridges[bonder]
       const [ethBalance, xdaiBalance, maticBalance] = await Promise.all([
-        providers[Chain.Ethereum].getBalance(bonder),
-        providers[Chain.Gnosis].getBalance(bonder),
-        providers[Chain.Polygon].getBalance(bonder)
+        chainProviders[Chain.Ethereum].getBalance(bonder),
+        chainProviders[Chain.Gnosis].getBalance(bonder),
+        chainProviders[Chain.Polygon].getBalance(bonder)
       ])
 
       if (ethBalance.lt(lowBalances.ETH)) {
@@ -429,6 +449,27 @@ export class HealthCheckWatcher {
       this.logger.debug(`done checking ${token} for challenged roots`)
     }
 
+    return result
+  }
+
+  async getUnsyncedSubgraphs (): Promise<UnsyncedSubgraph[]> {
+    const chains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
+    const result: any = []
+    for (const chain of chains) {
+      const provider = getRpcProvider(chain)!
+      const syncedBlockNumber = await getSubgraphLastBlockSynced(chain)
+      const headBlockNumber = Number((await provider.getBlockNumber()).toString())
+      const diffBlockNumber = headBlockNumber - syncedBlockNumber
+      this.logger.debug(`subgraph sync status: syncedBlockNumber: chain: ${chain}, ${syncedBlockNumber}, headBlockNumber: ${headBlockNumber}, diffBlockNumber: ${diffBlockNumber}`)
+      if (diffBlockNumber > this.minSubgraphSyncDiffBlockNumber) {
+        result.push({
+          chain,
+          headBlockNumber,
+          syncedBlockNumber,
+          diffBlockNumber
+        })
+      }
+    }
     return result
   }
 }

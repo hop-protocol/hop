@@ -1,11 +1,17 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import Typography from '@material-ui/core/Typography'
+import styled from 'styled-components/macro'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import { DateTime } from 'luxon'
 import { Div, Icon } from 'src/components/ui'
 import { findNetworkBySlug } from 'src/utils'
 import { getTokenImage } from 'src/utils/tokens'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
+import Box from '@material-ui/core/Box'
+
+const Container: any = styled(Div)<any>`
+  overflow: auto;
+`
 
 export const populateLowBonderBalances = (item: any) => {
   const chain = findNetworkBySlug(item.chain)
@@ -15,7 +21,7 @@ export const populateLowBonderBalances = (item: any) => {
     bridge: bridge,
     nativeToken: chain?.imageUrl,
     bonder: item.bonder,
-    amount: item.amountFormatted.toFixed(4)
+    amount: item.amountFormatted?.toFixed(4)
   }
 }
 
@@ -31,7 +37,7 @@ export const populateUnbondedTransfers = (item: any) => {
     timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
     transferId: item.transferId,
     transactionHash: item.transactionHash,
-    amount: item.amountFormatted.toFixed(4)
+    amount: item.amountFormatted?.toFixed(4)
   }
 }
 
@@ -46,7 +52,7 @@ export const populateUnbondedTransferRoots = (item: any) => {
     transferRootHash: item.transferRootHash,
     token: token,
     timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
-    totalAmount: item.totalAmountFormatted.toFixed(4)
+    totalAmount: item.totalAmountFormatted?.toFixed(4)
   }
 }
 
@@ -61,8 +67,8 @@ export const populateIncompleteSettlements = (item: any) => {
     sourceChain: sourceChain?.imageUrl,
     destinationChain: destinationChain?.imageUrl,
     token: token,
-    totalAmount: item.totalAmountFormatted.toFixed(4),
-    diffAmount: item.diffAmountFormatted.toFixed(4),
+    totalAmount: item.totalAmountFormatted?.toFixed(4),
+    diffAmount: item.diffAmountFormatted?.toFixed(4),
     settlementEvents: item.settlementEvents,
     withdrewEvents: item.withdrewEvents,
     isConfirmed: `${item.isConfirmed}`,
@@ -77,7 +83,7 @@ export const populateChallengedRoots = (item: any) => {
     transactionHash: item.transactionHash,
     transferRootHash: item.transferRootHash,
     transferRootId: item.transferRootId,
-    originalAmount: Number(item.originalAmountFormatted).toFixed(4)
+    originalAmount: item.originalAmountFormatted?.toFixed(4)
   }
 }
 
@@ -344,41 +350,53 @@ const Health = () => {
   }]
 
   return (
-    <div>
-      <Typography variant="body1">
-        Last updated {lastUpdated || '-'}
-      </Typography>
-      <SortableTable
-        stats={ lowBonderBalances }
-        columns={ lowBonderBalancesColumns }
-        populateDataFn={ populateLowBonderBalances }
-        loading={ fetching }
-      />
-      <SortableTable
-        stats={ unbondedTransfers }
-        columns={ unbondedTransfersColumns }
-        populateDataFn={ populateUnbondedTransfers }
-        loading={ fetching }
-      />
-      <SortableTable
-        stats={ unbondedTransferRoots }
-        columns={ unbondedTransferRootsColumns }
-        populateDataFn={ populateUnbondedTransferRoots }
-        loading={ fetching }
-      />
-      <SortableTable
-        stats={ incompleteSettlements }
-        columns={ incompleteSettlementsColumns }
-        populateDataFn={ populateIncompleteSettlements }
-        loading={ fetching }
-      />
-      <SortableTable
-        stats={ challengedTransferRoots }
-        columns={ challengedTransferRootsColumns }
-        populateDataFn={ populateChallengedRoots }
-        loading={ fetching }
-      />
-    </div>
+    <Container fontSize={[0, 1, 2]}>
+      <Box m={2} display="flex" justifyContent="center">
+        <Typography variant="body1">
+          Last updated {lastUpdated || '-'}
+        </Typography>
+      </Box>
+      <Box m={2} display="flex" justifyContent="center">
+        <SortableTable
+          stats={ lowBonderBalances }
+          columns={ lowBonderBalancesColumns }
+          populateDataFn={ populateLowBonderBalances }
+          loading={ fetching }
+        />
+      </Box>
+      <Box m={2} display="flex" justifyContent="center">
+        <SortableTable
+          stats={ unbondedTransfers }
+          columns={ unbondedTransfersColumns }
+          populateDataFn={ populateUnbondedTransfers }
+          loading={ fetching }
+        />
+      </Box>
+      <Box m={2} display="flex" justifyContent="center">
+        <SortableTable
+          stats={ unbondedTransferRoots }
+          columns={ unbondedTransferRootsColumns }
+          populateDataFn={ populateUnbondedTransferRoots }
+          loading={ fetching }
+        />
+      </Box>
+      <Box m={2} display="flex" justifyContent="center">
+        <SortableTable
+          stats={ incompleteSettlements }
+          columns={ incompleteSettlementsColumns }
+          populateDataFn={ populateIncompleteSettlements }
+          loading={ fetching }
+        />
+      </Box>
+      <Box m={2} display="flex" justifyContent="center">
+        <SortableTable
+          stats={ challengedTransferRoots }
+          columns={ challengedTransferRootsColumns }
+          populateDataFn={ populateChallengedRoots }
+          loading={ fetching }
+        />
+      </Box>
+    </Container>
   )
 }
 

@@ -87,12 +87,24 @@ export const populateChallengedRoots = (item: any) => {
   }
 }
 
+export const populateUnsyncedSubgraphs = (item: any) => {
+  const chain = findNetworkBySlug(item.chain)
+
+  return {
+    chain: chain?.imageUrl,
+    syncedBlockNumber: item.syncedBlockNumber,
+    headBlockNumber: item.headBlockNumber,
+    diffBlockNumber: item.diffBlockNumber,
+  }
+}
+
 function useData() {
   const [lowBonderBalances, setLowBonderBalances] = useState<any>([])
   const [unbondedTransfers, setUnbondedTransfers] = useState<any>([])
   const [unbondedTransferRoots, setUnbondedTransferRoots] = useState<any>([])
   const [incompleteSettlements, setIncompleteSettlements] = useState<any>([])
   const [challengedTransferRoots, setChallengedTransferRoots] = useState<any>([])
+  const [unsyncedSubgraphs, setUnsyncedSubgraphs] = useState<any>([])
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [fetching, setFetching] = useState<boolean>(false)
 
@@ -122,6 +134,9 @@ function useData() {
         if (result?.data?.challengedTransferRoots) {
           setChallengedTransferRoots(result.data.challengedTransferRoots)
         }
+        if (result?.data?.unsyncedSubgraphs) {
+          setUnsyncedSubgraphs(result.data.unsyncedSubgraphs)
+        }
       } catch (err) {
         console.error(err)
       }
@@ -136,13 +151,23 @@ function useData() {
     unbondedTransferRoots,
     incompleteSettlements,
     challengedTransferRoots,
+    unsyncedSubgraphs,
     lastUpdated,
     fetching
   }
 }
 
 const Health = () => {
-  const { lowBonderBalances, unbondedTransfers, unbondedTransferRoots, incompleteSettlements, challengedTransferRoots, lastUpdated, fetching } = useData()
+  const {
+    lowBonderBalances,
+    unbondedTransfers,
+    unbondedTransferRoots,
+    incompleteSettlements,
+    challengedTransferRoots,
+    unsyncedSubgraphs,
+    lastUpdated,
+    fetching
+  } = useData()
   const cell = ({ cell }) => (
                 <CellWrapper cell={cell}>
                   {cell.value}
@@ -348,6 +373,31 @@ const Health = () => {
       },
     ]
   }]
+  const unsyncedSubgraphsColumns = [{
+    Header: 'Unsynced Subgraphs',
+    columns: [
+      {
+        Header: 'Chain',
+        accessor: 'chain',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Synced Block Number',
+        accessor: 'syncedBlockNumber',
+        Cell: cellNumber,
+      },
+      {
+        Header: 'Head Block Number',
+        accessor: 'headBlockNumber',
+        Cell: cellNumber,
+      },
+      {
+        Header: 'Diff Block Number',
+        accessor: 'diffBlockNumber',
+        Cell: cellNumber,
+      },
+    ]
+  }]
 
   return (
     <Container fontSize={[0, 1, 2]}>
@@ -393,6 +443,14 @@ const Health = () => {
           stats={ challengedTransferRoots }
           columns={ challengedTransferRootsColumns }
           populateDataFn={ populateChallengedRoots }
+          loading={ fetching }
+        />
+      </Box>
+      <Box m={2} display="flex" justifyContent="center">
+        <SortableTable
+          stats={ unsyncedSubgraphs }
+          columns={ unsyncedSubgraphsColumns }
+          populateDataFn={ populateUnsyncedSubgraphs }
           loading={ fetching }
         />
       </Box>

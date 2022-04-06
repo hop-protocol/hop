@@ -140,12 +140,15 @@ async function main (source: any) {
   }))
 
   if (healthCheck) {
-    const watcher = new HealthCheckWatcher({
-      days: healthCheckDays,
-      s3Upload,
-      s3Namespace,
-      cacheFile: healthCheckCacheFile
-    })
+    promises.push(new Promise((resolve) => {
+      new HealthCheckWatcher({
+        days: healthCheckDays,
+        s3Upload,
+        s3Namespace,
+        cacheFile: healthCheckCacheFile
+      }).start()
+      resolve()
+    }))
   }
 
   await Promise.all([...starts, ...promises])

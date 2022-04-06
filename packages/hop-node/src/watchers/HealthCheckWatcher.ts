@@ -132,18 +132,18 @@ export class HealthCheckWatcher {
   }
 
   bonderLowLiquidityThreshold: number = 0.10
-  unbondedTransfersMinTimeToWaitMinutes: number = 20
+  unbondedTransfersMinTimeToWaitMinutes: number = 80
   unbondedTransferRootsMinTimeToWaitHours: number = 6
   incompleteSettlemetsMinTimeToWaitHours: number = 12
   minSubgraphSyncDiffBlockNumber: number = 500
   enabledChecks: Record<string, boolean> = {
-    lowBonderBalances: true,
-    unbondedTransfers: true,
-    unbondedTransferRoots: true,
+    lowBonderBalances: false,
+    unbondedTransfers: false,
+    unbondedTransferRoots: false,
     incompleteSettlements: true,
-    challengedTransferRoots: true,
-    unsyncedSubgraphs: true,
-    lowAvailableLiquidityBonders: true
+    challengedTransferRoots: false,
+    unsyncedSubgraphs: false,
+    lowAvailableLiquidityBonders: false
   }
 
   constructor (config: Config) {

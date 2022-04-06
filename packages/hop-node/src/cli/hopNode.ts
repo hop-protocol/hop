@@ -41,7 +41,6 @@ async function main (source: any) {
   printHopArt()
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
-  console.log(source)
 
   const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, dry: dryMode } = source
   if (!config) {

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import Typography from '@material-ui/core/Typography'
+import { useInterval } from 'react-use'
 import styled from 'styled-components/macro'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import { DateTime } from 'luxon'
@@ -119,45 +120,50 @@ function useData() {
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [fetching, setFetching] = useState<boolean>(false)
 
-  useEffect(() => {
-    setFetching(true)
-    const update = async () => {
-      try {
-        const url = 'https://assets.hop.exchange/mainnet/v1-health-check.json'
-        const res = await fetch(url)
-        const result = await res.json()
-        console.log('result:', result)
-        if (result?.timestamp) {
-          setLastUpdated(DateTime.fromMillis(result.timestamp).toRelative() as string)
-        }
-        if (result?.data?.lowBonderBalances) {
-          setLowBonderBalances(result.data.lowBonderBalances)
-        }
-        if (result?.data?.lowAvailableLiquidityBonders) {
-          setLowAvailableLiquidityBonders(result.data.lowAvailableLiquidityBonders)
-        }
-        if (result?.data?.unbondedTransfers) {
-          setUnbondedTransfers(result.data.unbondedTransfers)
-        }
-        if (result?.data?.unbondedTransferRoots) {
-          setUnbondedTransferRoots(result.data.unbondedTransferRoots)
-        }
-        if (result?.data?.incompleteSettlements) {
-          setIncompleteSettlements(result.data.incompleteSettlements)
-        }
-        if (result?.data?.challengedTransferRoots) {
-          setChallengedTransferRoots(result.data.challengedTransferRoots)
-        }
-        if (result?.data?.unsyncedSubgraphs) {
-          setUnsyncedSubgraphs(result.data.unsyncedSubgraphs)
-        }
-      } catch (err) {
-        console.error(err)
+  const getData = async () => {
+    try {
+      setFetching(true)
+      const url = 'https://assets.hop.exchange/mainnet/v1-health-check.json'
+      const res = await fetch(url)
+      const result = await res.json()
+      console.log('result:', result)
+      if (result?.timestamp) {
+        setLastUpdated(DateTime.fromMillis(result.timestamp).toRelative() as string)
       }
-      setFetching(false)
+      if (result?.data?.lowBonderBalances) {
+        setLowBonderBalances(result.data.lowBonderBalances)
+      }
+      if (result?.data?.lowAvailableLiquidityBonders) {
+        setLowAvailableLiquidityBonders(result.data.lowAvailableLiquidityBonders)
+      }
+      if (result?.data?.unbondedTransfers) {
+        setUnbondedTransfers(result.data.unbondedTransfers)
+      }
+      if (result?.data?.unbondedTransferRoots) {
+        setUnbondedTransferRoots(result.data.unbondedTransferRoots)
+      }
+      if (result?.data?.incompleteSettlements) {
+        setIncompleteSettlements(result.data.incompleteSettlements)
+      }
+      if (result?.data?.challengedTransferRoots) {
+        setChallengedTransferRoots(result.data.challengedTransferRoots)
+      }
+      if (result?.data?.unsyncedSubgraphs) {
+        setUnsyncedSubgraphs(result.data.unsyncedSubgraphs)
+      }
+    } catch (err) {
+      console.error(err)
     }
-    update().catch(console.error)
+    setFetching(false)
+  }
+
+  useEffect(() => {
+    getData().catch(console.error)
   }, [])
+
+  useInterval(() => {
+    getData().catch(console.error)
+  }, 60 * 1000)
 
   return {
     lowBonderBalances,

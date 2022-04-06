@@ -32,7 +32,6 @@ root
   .option('--sync-from-date <string>', 'Date to start syncing db from, in ISO format YYYY-MM-DD', parseString)
   .option('--s3-upload [boolean]', 'Upload available liquidity info as JSON to S3', parseBool)
   .option('--s3-namespace <name>', 'S3 bucket namespace', parseString)
-  .option('--health-check <boolean>', 'Run health checker', parseBool)
   .option('--health-check-days <number>', 'Health checker number of days to check for', parseNumber)
   .option('--health-check-cache-file <filepath>', 'Health checker cache file', parseString)
   .option('--heapdump [boolean]', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
@@ -42,8 +41,9 @@ async function main (source: any) {
   printHopArt()
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
+  console.log(source)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheck, healthCheckDays, healthCheckCacheFile, dry: dryMode } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, dry: dryMode } = source
   if (!config) {
     throw new Error('config file is required')
   }
@@ -139,7 +139,7 @@ async function main (source: any) {
     resolve()
   }))
 
-  if (healthCheck) {
+  if (healthCheckDays) {
     promises.push(new Promise((resolve) => {
       new HealthCheckWatcher({
         days: healthCheckDays,

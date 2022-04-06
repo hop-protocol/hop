@@ -111,7 +111,6 @@ export class HealthCheckWatcher {
   tokens: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC']
   logger: Logger = new Logger('HealthCheckWatcher')
   s3Upload: S3Upload
-  incompleteSettlementsWatcher: IncompleteSettlementsWatcher
   s3Filename: string
   cacheFile: string
   days: number = 1 // days back to check for
@@ -152,10 +151,6 @@ export class HealthCheckWatcher {
     if (days) {
       this.days = days
     }
-    this.incompleteSettlementsWatcher = new IncompleteSettlementsWatcher({
-      days: this.days,
-      format: 'json'
-    })
     this.notifier = new Notifier(
       `HealthCheck: ${hostname}`
     )
@@ -478,7 +473,11 @@ export class HealthCheckWatcher {
   private async getIncompleteSettlements (): Promise<IncompleteSettlement[]> {
     this.logger.debug('fetching incomplete settlements')
     const timestamp = DateTime.now().toUTC().toSeconds()
-    let result = await this.incompleteSettlementsWatcher.getDiffResults()
+    const incompleteSettlementsWatcher = new IncompleteSettlementsWatcher({
+      days: this.days,
+      format: 'json'
+    })
+    let result = await incompleteSettlementsWatcher.getDiffResults()
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.incompleteSettlemetsMinTimeToWaitHours * 60 * 60)))
     this.logger.debug('done fetching incomplete settlements')
     return result.map((item: any) => {

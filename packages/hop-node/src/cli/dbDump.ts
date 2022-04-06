@@ -9,6 +9,7 @@ import { actionHandler, logger, parseNumber, parseString, root } from './shared'
 
 root
   .command('db-dump')
+  .description('Dump leveldb database')
   .option(
     '--db <name>',
     'Name of db. Options are "transfers", "transfer-roots", "sync-state", "token-prices", "gas-cost"',
@@ -20,7 +21,6 @@ root
   .option('--nearest <timestamp>', 'Nearest timestamp in seconds', parseNumber)
   .option('--from-date <timestamp>', 'From date timestamp in seconds', parseNumber)
   .option('--to-date <timestamp>', 'To date timestamp in seconds', parseNumber)
-  .description('Dump leveldb database')
   .action(actionHandler(main))
 
 async function main (source: any) {

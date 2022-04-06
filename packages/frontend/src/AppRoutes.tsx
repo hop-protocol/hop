@@ -7,6 +7,7 @@ import Stake from 'src/pages/Stake'
 import Convert from 'src/pages/Convert'
 import Stats from 'src/pages/Stats'
 import Withdraw from 'src/pages/Withdraw'
+import Health from 'src/pages/Health'
 import TransactionPage from 'src/pages/Transaction'
 import { Div } from './components/ui'
 
@@ -25,6 +26,7 @@ const AppRoutes: FC = () => {
           <Route exact path="/pool" component={Pools} />
           <Route exact path="/stake" component={Stake} />
           <Route exact path="/withdraw" component={Withdraw} />
+          <Route exact path="/health" component={Health} />
 
           <Route exact path={['/tx', '/tx/:hash']} component={TransactionPage} />
 

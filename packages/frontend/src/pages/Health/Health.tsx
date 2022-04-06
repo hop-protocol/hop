@@ -25,6 +25,16 @@ export const populateLowBonderBalances = (item: any) => {
   }
 }
 
+export const populateLowAvailableLiquidityBonders = (item: any) => {
+  const bridge = getTokenImage(item.bridge)
+
+  return {
+    bridge: bridge,
+    totalLiquidity: item.totalLiquidityFormatted?.toFixed(4),
+    availableLiquidity: item.availableLiquidityFormatted?.toFixed(4),
+  }
+}
+
 export const populateUnbondedTransfers = (item: any) => {
   const sourceChain = findNetworkBySlug(item.sourceChain)
   const destinationChain = findNetworkBySlug(item.destinationChain)
@@ -100,6 +110,7 @@ export const populateUnsyncedSubgraphs = (item: any) => {
 
 function useData() {
   const [lowBonderBalances, setLowBonderBalances] = useState<any>([])
+  const [lowAvailableLiquidityBonders, setLowAvailableLiquidityBonders] = useState<any>([])
   const [unbondedTransfers, setUnbondedTransfers] = useState<any>([])
   const [unbondedTransferRoots, setUnbondedTransferRoots] = useState<any>([])
   const [incompleteSettlements, setIncompleteSettlements] = useState<any>([])
@@ -121,6 +132,9 @@ function useData() {
         }
         if (result?.data?.lowBonderBalances) {
           setLowBonderBalances(result.data.lowBonderBalances)
+        }
+        if (result?.data?.lowAvailableLiquidityBonders) {
+          setLowAvailableLiquidityBonders(result.data.lowAvailableLiquidityBonders)
         }
         if (result?.data?.unbondedTransfers) {
           setUnbondedTransfers(result.data.unbondedTransfers)
@@ -147,6 +161,7 @@ function useData() {
 
   return {
     lowBonderBalances,
+    lowAvailableLiquidityBonders,
     unbondedTransfers,
     unbondedTransferRoots,
     incompleteSettlements,
@@ -160,6 +175,7 @@ function useData() {
 const Health = () => {
   const {
     lowBonderBalances,
+    lowAvailableLiquidityBonders,
     unbondedTransfers,
     unbondedTransferRoots,
     incompleteSettlements,
@@ -209,6 +225,26 @@ const Health = () => {
       {
         Header: 'Amount',
         accessor: 'amount',
+        Cell: cellNumber,
+      },
+    ]
+  }]
+  const lowAvailableLiquidityBondersColumns = [{
+    Header: 'Low Available Liquidity Bonders',
+    columns: [
+      {
+        Header: 'Bridge',
+        accessor: 'bridge',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Available Liquidity',
+        accessor: 'availableLiquidity',
+        Cell: cellNumber,
+      },
+      {
+        Header: 'Total Liquidity',
+        accessor: 'totalLiquidity',
         Cell: cellNumber,
       },
     ]
@@ -411,6 +447,14 @@ const Health = () => {
           stats={ lowBonderBalances }
           columns={ lowBonderBalancesColumns }
           populateDataFn={ populateLowBonderBalances }
+          loading={ fetching }
+        />
+      </Box>
+      <Box m={2} display="flex" justifyContent="center">
+        <SortableTable
+          stats={ lowAvailableLiquidityBonders }
+          columns={ lowAvailableLiquidityBondersColumns }
+          populateDataFn={ populateLowAvailableLiquidityBonders }
           loading={ fetching }
         />
       </Box>

@@ -28,6 +28,16 @@ type LowBonderBalance = {
   bonder: string
 }
 
+type LowAvailableLiquidityBonder = {
+  bridge: string
+  availableLiquidity: string
+  availableLiquidityFormatted: number
+  totalLiquidity: string
+  totalLiquidityFormatted: number
+  thresholdAmount: string
+  thresholdAmountFormatted: number
+}
+
 type UnbondedTransfer = {
   sourceChain: string
   destinationChain: string
@@ -80,24 +90,14 @@ type UnsyncedSubgraph = {
   diffBlockNumber: number
 }
 
-type LowAvailableLiquidityBonder = {
-  bridge: string
-  availableLiquidity: string
-  availableLiquidityFormatted: number
-  totalLiquidity: string
-  totalLiquidityFormatted: number
-  thresholdAmount: string
-  thresholdAmountFormatted: number
-}
-
 type Result = {
   lowBonderBalances: LowBonderBalance[]
+  lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
   unbondedTransfers: UnbondedTransfer[]
   unbondedTransferRoots: UnbondedTransferRoot[]
   incompleteSettlements: IncompleteSettlement[]
   challengedTransferRoots: ChallengedTransferRoot[]
   unsyncedSubgraphs: UnsyncedSubgraph[]
-  lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
 }
 
 export type Config = {
@@ -138,12 +138,12 @@ export class HealthCheckWatcher {
   incompleteSettlemetsMinTimeToWaitHours: number = 12
   minSubgraphSyncDiffBlockNumber: number = 500
   enabledChecks: Record<string, boolean> = {
-    lowBonderBalances: false,
-    unbondedTransfers: false,
-    unbondedTransferRoots: false,
-    incompleteSettlements: false,
-    challengedTransferRoots: false,
-    unsyncedSubgraphs: false,
+    lowBonderBalances: true,
+    unbondedTransfers: true,
+    unbondedTransferRoots: true,
+    incompleteSettlements: true,
+    challengedTransferRoots: true,
+    unsyncedSubgraphs: true,
     lowAvailableLiquidityBonders: true
   }
 
@@ -199,30 +199,30 @@ export class HealthCheckWatcher {
   private async getResult (): Promise<Result> {
     const [
       lowBonderBalances,
+      lowAvailableLiquidityBonders,
       unbondedTransfers,
       unbondedTransferRoots,
       incompleteSettlements,
       challengedTransferRoots,
-      unsyncedSubgraphs,
-      lowAvailableLiquidityBonders
+      unsyncedSubgraphs
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
+      this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([]),
       this.enabledChecks.unbondedTransfers ? this.getUnbondedTransfers() : Promise.resolve([]),
       this.enabledChecks.unbondedTransferRoots ? this.getUnbondedTransferRoots() : Promise.resolve([]),
       this.enabledChecks.incompleteSettlements ? this.getIncompleteSettlements() : Promise.resolve([]),
       this.enabledChecks.challengedTransferRoots ? this.getChallengedTransferRoots() : Promise.resolve([]),
-      this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([]),
-      this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([])
+      this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([])
     ])
 
     return {
       lowBonderBalances,
+      lowAvailableLiquidityBonders,
       unbondedTransfers,
       unbondedTransferRoots,
       incompleteSettlements,
       challengedTransferRoots,
-      unsyncedSubgraphs,
-      lowAvailableLiquidityBonders
+      unsyncedSubgraphs
     }
   }
 
@@ -373,6 +373,48 @@ export class HealthCheckWatcher {
     return result
   }
 
+  private async getLowAvailableLiquidityBonders (): Promise<LowAvailableLiquidityBonder[]> {
+    const url = 'https://assets.hop.exchange/mainnet/v1-available-liquidity.json'
+    const res = await fetch(url)
+    const json = await res.json()
+    const result: any[] = []
+
+    for (const token of this.tokens) {
+      const tokenData = json.data[token]
+      const chainAmounts: any = {}
+      const totalLiquidity = this.bonderTotalLiquidity[token]
+      const availableAmounts = tokenData.baseAvailableCreditIncludingVault
+      for (const source in availableAmounts) {
+        for (const dest in availableAmounts[source]) {
+          chainAmounts[dest] = BigNumber.from(availableAmounts[source][dest])
+        }
+      }
+      let availableLiquidity: BigNumber = BigNumber.from(0)
+      for (const amount in chainAmounts) {
+        availableLiquidity = availableLiquidity.add(chainAmounts[amount])
+      }
+      const tokenDecimals = getTokenDecimals(token)!
+      const availableLiquidityFormatted = Number(formatUnits(availableLiquidity, tokenDecimals))
+      const totalLiquidityFormatted = Number(formatUnits(totalLiquidity, tokenDecimals))
+      const oneToken = parseUnits('1', tokenDecimals)
+      const thresholdPercent = parseUnits(this.bonderLowLiquidityThreshold.toString(), tokenDecimals)
+      const thresholdAmount = totalLiquidity.mul(thresholdPercent).div(oneToken)
+      const thresholdAmountFormatted = Number(formatUnits(thresholdAmount, tokenDecimals))
+      if (availableLiquidity.lt(thresholdAmount)) {
+        result.push({
+          bridge: token,
+          availableLiquidity: availableLiquidity.toString(),
+          availableLiquidityFormatted,
+          totalLiquidity: totalLiquidity.toString(),
+          totalLiquidityFormatted,
+          thresholdAmount: thresholdAmount.toString(),
+          thresholdAmountFormatted
+        })
+      }
+    }
+    return result
+  }
+
   private async getUnbondedTransfers (): Promise<UnbondedTransfer[]> {
     this.logger.debug('checking for unbonded transfers')
 
@@ -511,48 +553,6 @@ export class HealthCheckWatcher {
           headBlockNumber,
           syncedBlockNumber,
           diffBlockNumber
-        })
-      }
-    }
-    return result
-  }
-
-  async getLowAvailableLiquidityBonders (): Promise<LowAvailableLiquidityBonder[]> {
-    const url = 'https://assets.hop.exchange/mainnet/v1-available-liquidity.json'
-    const res = await fetch(url)
-    const json = await res.json()
-    const result: any[] = []
-
-    for (const token of this.tokens) {
-      const tokenData = json.data[token]
-      const chainAmounts: any = {}
-      const totalLiquidity = this.bonderTotalLiquidity[token]
-      const availableAmounts = tokenData.baseAvailableCreditIncludingVault
-      for (const source in availableAmounts) {
-        for (const dest in availableAmounts[source]) {
-          chainAmounts[dest] = BigNumber.from(availableAmounts[source][dest])
-        }
-      }
-      let availableLiquidity: BigNumber = BigNumber.from(0)
-      for (const amount in chainAmounts) {
-        availableLiquidity = availableLiquidity.add(chainAmounts[amount])
-      }
-      const tokenDecimals = getTokenDecimals(token)!
-      const availableLiquidityFormatted = Number(formatUnits(availableLiquidity, tokenDecimals))
-      const totalLiquidityFormatted = Number(formatUnits(totalLiquidity, tokenDecimals))
-      const oneToken = parseUnits('1', tokenDecimals)
-      const thresholdPercent = parseUnits(this.bonderLowLiquidityThreshold.toString(), tokenDecimals)
-      const thresholdAmount = totalLiquidity.mul(thresholdPercent).div(oneToken)
-      const thresholdAmountFormatted = Number(formatUnits(thresholdAmount, tokenDecimals))
-      if (availableLiquidity.lt(thresholdAmount)) {
-        result.push({
-          bridge: token,
-          availableLiquidity: availableLiquidity.toString(),
-          availableLiquidityFormatted,
-          totalLiquidity: totalLiquidity.toString(),
-          totalLiquidityFormatted,
-          thresholdAmount: thresholdAmount.toString(),
-          thresholdAmountFormatted
         })
       }
     }

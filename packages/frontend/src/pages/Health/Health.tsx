@@ -71,6 +71,14 @@ export const populateIncompleteSettlements = (item: any) => {
   const sourceChain = findNetworkBySlug(item.sourceChain)
   const destinationChain = findNetworkBySlug(item.destinationChain)
   const token = getTokenImage(item.token)
+  const unsettledTransfers = (item.unsettledTransfers ?? []).map((x: any) => {
+    return {
+      transferId: x.transferId,
+      amount: x.amountFormatted?.toFixed(4),
+      bonder: x.bonder
+    }
+  })
+  const unsettledTransferBonders = item.unsettledTransferBonders ?? []
 
   return {
     timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
@@ -82,6 +90,8 @@ export const populateIncompleteSettlements = (item: any) => {
     diffAmount: item.diffAmountFormatted?.toFixed(4),
     settlementEvents: item.settlementEvents,
     withdrewEvents: item.withdrewEvents,
+    unsettledTransfers,
+    unsettledTransferBonders,
     isConfirmed: `${item.isConfirmed}`,
   }
 }
@@ -208,6 +218,15 @@ const Health = () => {
   const cellAddress = ({ cell }) => (
                 <CellWrapper cell={cell} end>
                   <CopyEthAddress value={cell.value} />
+                </CellWrapper>
+              )
+  const cellJson = ({ cell }) => (
+                <CellWrapper cell={cell}>
+                  {cell.value?.map((bonder: string) => {
+                    return (
+                      <CopyEthAddress value={bonder} />
+                    )
+                  })}
                 </CellWrapper>
               )
   const lowBonderBalancesColumns = [{
@@ -377,6 +396,11 @@ const Health = () => {
         Header: 'Withdrew Events',
         accessor: 'withdrewEvents',
         Cell: cell,
+      },
+      {
+        Header: 'Unsettled Transfer Bonder(s)',
+        accessor: 'unsettledTransferBonders',
+        Cell: cellJson,
       },
       {
         Header: 'Confirmed',

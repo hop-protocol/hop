@@ -356,10 +356,13 @@ class IncompleteSettlementsWatcher {
       const diffFormatted = Number(formatUnits(diff, tokenDecimals))
       const isIncomplete = diffFormatted > 0 && (settledTotalAmount.eq(0) || !settledTotalAmount.eq(totalAmount))
       let unsettledTransfers: any[] = []
+      let unsettledTransferBonders: string[] = []
       if (isIncomplete) {
         const settlementEvents = this.rootHashSettlements[rootHash]?.length ?? 0
         const withdrewEvents = this.rootHashWithdrews[rootHash]?.length ?? 0
-        unsettledTransfers = await this.getUnsettledTransfers(rootHash)
+        const [_unsettledTransfers, _unsettledTransferBonders] = await this.getUnsettledTransfers(rootHash)
+        unsettledTransfers = _unsettledTransfers
+        unsettledTransferBonders = _unsettledTransferBonders
         incompletes.push({
           timestamp,
           timestampRelative,
@@ -374,10 +377,11 @@ class IncompleteSettlementsWatcher {
           settlementEvents,
           withdrewEvents,
           isConfirmed,
-          unsettledTransfers
+          unsettledTransfers,
+          unsettledTransferBonders
         })
       }
-      this.logger.debug(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}, unsettledTransfers: ${JSON.stringify(unsettledTransfers)}`)
+      this.logger.debug(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}, unsettledTransfers: ${JSON.stringify(unsettledTransfers)}, unsettledTransferBonders: ${JSON.stringify(unsettledTransferBonders)}`)
     }))
 
     incompletes = incompletes.sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))
@@ -409,11 +413,8 @@ class IncompleteSettlementsWatcher {
     const tokenDecimals = getTokenDecimals(token)
     const contract = this.getContract(destinationChain, token)
     const transferIds = await this.rootTransferIds[rootHash]
-    if (!transferIds) {
-      return []
-    }
-
     const unsettledTransfers: any[] = []
+    const unsettledTransferBonders = new Set()
     const chunkSize = 30
     const allChunks = chunk(transferIds, chunkSize)
     for (const chunks of allChunks) {
@@ -428,15 +429,18 @@ class IncompleteSettlementsWatcher {
           const amount = bondedWithdrawalAmount.toString()
           const amountFormatted = Number(formatUnits(amount, tokenDecimals))
           unsettledTransfers.push({
+            transferId,
             bonder,
             amount,
             amountFormatted
           })
         }
+        unsettledTransferBonders.add(bonder)
       }))
     }
 
-    return unsettledTransfers
+    const _bonders = Array.from(unsettledTransfers.length ? new Set(unsettledTransfers.map((x: any) => x.bonder)) : unsettledTransferBonders)
+    return [unsettledTransfers, _bonders]
   }
 
   private async logResult (result: any) {

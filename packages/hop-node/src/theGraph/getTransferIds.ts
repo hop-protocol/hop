@@ -2,12 +2,14 @@ import makeRequest from './makeRequest'
 import { DateTime } from 'luxon'
 import { Filters, normalizeEntity } from './shared'
 import { MaxInt32 } from 'src/constants'
+import { constants } from 'ethers'
+import { padHex } from 'src/utils/padHex'
 
 export default async function getTransferIds (
   chain: string,
   token: string,
   filters: Partial<Filters> = {},
-  lastId: string = '0x0000000000000000000000000000000000000000'
+  lastId: string = constants.AddressZero
 ): Promise<any[]> {
   const query = `
     query TransfersSent(${token ? '$token: String, ' : ''}$orderDirection: String, $startDate: Int, $endDate: Int, $lastId: ID) {
@@ -46,7 +48,7 @@ export default async function getTransferIds (
     token,
     startDate: 0,
     endDate: MaxInt32,
-    lastId
+    lastId: padHex(lastId)
   }
   if (filters.startDate) {
     variables.startDate = DateTime.fromISO(filters.startDate).toSeconds() >>> 0

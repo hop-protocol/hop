@@ -5,6 +5,7 @@ import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransfe
 import getTransferRoot from 'src/theGraph/getTransferRoot'
 import getTransferRoots from 'src/theGraph/getTransferRoots'
 import { Chain } from 'src/constants'
+import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 
 describe.skip('getTransferIdsForTransferRoot', () => {
   it('gnosis - 1', async () => {
@@ -118,4 +119,12 @@ describe.skip('check bonded withdrawals without a transfer', () => {
       }
     }
   }, 60 * 60 * 1000)
+})
+
+describe.skip('getSubgraphLastBlockSynced', () => {
+  it('polygon', async () => {
+    const block = await getSubgraphLastBlockSynced(Chain.Gnosis)
+    console.log(block)
+    expect(block).toBeGreaterThan(0)
+  }, 60 * 1000)
 })

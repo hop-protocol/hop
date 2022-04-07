@@ -1,4 +1,5 @@
 import OsWatcher from 'src/watchers/OsWatcher'
+import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
   defaultEnabledNetworks,
   gitRev,
@@ -8,7 +9,7 @@ import {
   slackUsername
 } from 'src/config'
 
-import { actionHandler, logger, parseBool, parseString, root } from './shared'
+import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import { printHopArt } from './shared/art'
 import {
   startWatchers
@@ -31,6 +32,8 @@ root
   .option('--sync-from-date <string>', 'Date to start syncing db from, in ISO format YYYY-MM-DD', parseString)
   .option('--s3-upload [boolean]', 'Upload available liquidity info as JSON to S3', parseBool)
   .option('--s3-namespace <name>', 'S3 bucket namespace', parseString)
+  .option('--health-check-days <number>', 'Health checker number of days to check for', parseNumber)
+  .option('--health-check-cache-file <filepath>', 'Health checker cache file', parseString)
   .option('--heapdump [boolean]', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
   .action(actionHandler(main))
 
@@ -39,7 +42,7 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, dry: dryMode } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, dry: dryMode } = source
   if (!config) {
     throw new Error('config file is required')
   }
@@ -134,5 +137,18 @@ async function main (source: any) {
     }).start()
     resolve()
   }))
+
+  if (healthCheckDays) {
+    promises.push(new Promise((resolve) => {
+      new HealthCheckWatcher({
+        days: healthCheckDays,
+        s3Upload,
+        s3Namespace,
+        cacheFile: healthCheckCacheFile
+      }).start()
+      resolve()
+    }))
+  }
+
   await Promise.all([...starts, ...promises])
 }

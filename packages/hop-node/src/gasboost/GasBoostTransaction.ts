@@ -783,7 +783,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/i.test(errMessage)
     const estimateGasFailed = /eth_estimateGas/i.test(errMessage)
     const isAlreadyKnown = /AlreadyKnown/i.test(errMessage)
-    const isFeeTooLow = /FeeTooLowToCompete/i.test(errMessage)
+    const isFeeTooLow = /FeeTooLowToCompete|transaction underpriced/i.test(errMessage)
     return {
       nonceTooLow,
       estimateGasFailed,

@@ -48,7 +48,8 @@ export const populateUnbondedTransfers = (item: any) => {
     timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
     transferId: item.transferId,
     transactionHash: item.transactionHash,
-    amount: item.amountFormatted?.toFixed(4)
+    amount: item.amountFormatted?.toFixed(4),
+    bonderFee: item.bonderFeeFormatted?.toFixed(4)
   }
 }
 
@@ -310,6 +311,11 @@ const Health = () => {
       {
         Header: 'Amount',
         accessor: 'amount',
+        Cell: cellNumber,
+      },
+      {
+        Header: 'Bonder Fee',
+        accessor: 'bonderFee',
         Cell: cellNumber,
       },
     ]

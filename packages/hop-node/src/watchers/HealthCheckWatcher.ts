@@ -242,27 +242,30 @@ export class HealthCheckWatcher {
 
     const messages: string[] = []
     for (const item of lowBonderBalances) {
-      const msg = `LowBonderBalance: bonder: ${item.bonder}, chain: ${item.chain}, amount: ${item.amountFormatted} ${item.nativeToken}`
+      const msg = `LowBonderBalance: bonder: ${item.bonder}, chain: ${item.chain}, amount: ${item.amountFormatted?.toFixed(2)} ${item.nativeToken}`
       messages.push(msg)
     }
 
     for (const item of unbondedTransfers) {
-      const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, amount: ${item.amountFormatted}, token: ${item.token}, transferSentAt: ${item.timestamp}`
+      const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
+      const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, amount: ${item.amountFormatted?.toFixed(4)}, token: ${item.token}, transferSentAt: ${item.timestamp} (${timestampRelative})`
       messages.push(msg)
     }
 
     for (const item of unbondedTransferRoots) {
-      const msg = `UnbondedTransferRoot: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted}, token: ${item.token}, committedAt: ${item.timestamp}`
+      const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
+      const msg = `UnbondedTransferRoot: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted?.toFixed(4)}, token: ${item.token}, committedAt: ${item.timestamp} (${timestampRelative})`
       messages.push(msg)
     }
 
     for (const item of incompleteSettlements) {
-      const msg = `IncompleteSettlements: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted}, diffAmount: ${item.diffAmountFormatted}, token: ${item.token}, committedAt: ${item.timestamp}`
+      const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
+      const msg = `IncompleteSettlements: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted?.toFixed(4)}, diffAmount: ${item.diffAmountFormatted?.toFixed(4)}, token: ${item.token}, committedAt: ${item.timestamp} (${timestampRelative})`
       messages.push(msg)
     }
 
     for (const item of challengedTransferRoots) {
-      const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted}, token: ${item.token}`
+      const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted?.toFixed(4)}, token: ${item.token}`
       messages.push(msg)
     }
 
@@ -304,8 +307,8 @@ export class HealthCheckWatcher {
     this.logger.debug('poll')
 
     const result = await this.getResult()
-    await this.sendNotifications(result)
     await this.uploadToS3(result)
+    await this.sendNotifications(result)
   }
 
   private async getLowBonderBalances (): Promise<LowBonderBalance[]> {

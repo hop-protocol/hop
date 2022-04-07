@@ -81,6 +81,7 @@ type IncompleteSettlement = {
   diffAmountFormatted: number
   settlementEvents: number
   withdrewEvents: number
+  transfersCount: number
   unsettledTransfers: UnsettledTransfer[]
   unsettledTransferBonders: string[]
   isConfirmed: boolean
@@ -378,7 +379,7 @@ export class HealthCheckWatcher {
       }
     }
 
-    this.logger.debug(JSON.stringify(result, null, 2))
+    this.logger.debug('lowBonderBalances:', JSON.stringify(result, null, 2))
 
     return result
   }
@@ -391,6 +392,9 @@ export class HealthCheckWatcher {
 
     for (const token of this.tokens) {
       const tokenData = json.data[token]
+      if (!tokenData) {
+        continue
+      }
       const chainAmounts: any = {}
       const totalLiquidity = this.bonderTotalLiquidity[token]
       const availableAmounts = tokenData.baseAvailableCreditIncludingVault
@@ -511,6 +515,7 @@ export class HealthCheckWatcher {
         diffAmountFormatted: item.diffFormatted,
         settlementEvents: item.settlementEvents,
         withdrewEvents: item.withdrewEvents,
+        transfersCount: item.transfersCount,
         isConfirmed: item.isConfirmed,
         unsettledTransfers: item.unsettledTransfers,
         unsettledTransferBonders: item.unsettledTransferBonders

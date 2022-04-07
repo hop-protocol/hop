@@ -362,9 +362,10 @@ class IncompleteSettlementsWatcher {
       if (isIncomplete) {
         const settlementEvents = this.rootHashSettlements[rootHash]?.length ?? 0
         const withdrewEvents = this.rootHashWithdrews[rootHash]?.length ?? 0
-        const [_unsettledTransfers, _unsettledTransferBonders] = await this.getUnsettledTransfers(rootHash)
+        const [_unsettledTransfers, _unsettledTransferBonders, transferIds] = await this.getUnsettledTransfers(rootHash)
         unsettledTransfers = _unsettledTransfers
         unsettledTransferBonders = _unsettledTransferBonders
+        const transfersCount = transferIds.length
         incompletes.push({
           timestamp,
           timestampRelative,
@@ -378,6 +379,7 @@ class IncompleteSettlementsWatcher {
           rootHash,
           settlementEvents,
           withdrewEvents,
+          transfersCount,
           isConfirmed,
           unsettledTransfers,
           unsettledTransferBonders
@@ -446,12 +448,12 @@ class IncompleteSettlementsWatcher {
             amount,
             amountFormatted
           })
+          unsettledTransferBonders.add(bonder)
         }
-        unsettledTransferBonders.add(bonder)
       }))
     }
 
-    return [unsettledTransfers, Array.from(unsettledTransferBonders)]
+    return [unsettledTransfers, Array.from(unsettledTransferBonders), transferIds]
   }
 
   private async getOnchainTotalAmountWithdrawn (destinationChain: string, token: string, transferRootHash: string, totalAmount: BigNumber) {

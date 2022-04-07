@@ -94,6 +94,7 @@ export const populateIncompleteSettlements = (item: any) => {
     diffAmount: item.diffAmountFormatted?.toFixed(4),
     settlementEvents: item.settlementEvents,
     withdrewEvents: item.withdrewEvents,
+    transfersCount: item.transfersCount,
     unsettledTransfers,
     unsettledTransferBonders,
     unbondedTransfers: unbondedTransfers.length,
@@ -400,12 +401,17 @@ const Health = () => {
       {
         Header: 'Settlement Events',
         accessor: 'settlementEvents',
-        Cell: cell,
+        Cell: cellNumber,
       },
       {
         Header: 'Withdrew Events',
         accessor: 'withdrewEvents',
-        Cell: cell,
+        Cell: cellNumber,
+      },
+      {
+        Header: 'Transfers Count',
+        accessor: 'transfersCount',
+        Cell: cellNumber,
       },
       {
         Header: 'Unbonded Transfers',

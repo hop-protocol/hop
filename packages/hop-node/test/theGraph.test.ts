@@ -133,10 +133,10 @@ describe.skip('getSubgraphLastBlockSynced', () => {
 describe.skip('getUnbondedTransfers', () => {
   it('fetchTransfers', async () => {
     const endTime = Math.floor(Date.now() / 1000)
-    const startTime = endTime - (4 * 30 * 24 * 60 * 60)
+    const startTime = endTime - (2 * 30 * 24 * 60 * 60) // 2 months
     const transfers = await fetchTransfers(Chain.Polygon, startTime, endTime)
     console.log(transfers)
     console.log(transfers.length)
     expect(transfers.length).toBeGreaterThan(0)
-  }, 60 * 1000)
+  }, 30 * 1000)
 })

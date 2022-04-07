@@ -181,6 +181,25 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
+  private setGasProperties (tx: providers.TransactionResponse) {
+    // things get complicated with boosting 1559 when initial tx is using gasPrice
+    // so we explicitly set gasPrice here again
+    const shouldUseGasPrice = this.gasPrice && !tx.gasPrice && tx.maxFeePerGas && tx.maxPriorityFeePerGas && tx.maxFeePerGas.eq(tx.maxPriorityFeePerGas)
+    if (shouldUseGasPrice) {
+      this.type = undefined
+      this.gasPrice = tx.maxFeePerGas
+      this.maxFeePerGas = undefined
+      this.maxPriorityFeePerGas = undefined
+    } else {
+      this.gasPrice = tx.gasPrice!
+      this.maxFeePerGas = tx.maxFeePerGas!
+      this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
+      if (tx.type != null) {
+        this.type = tx.type
+      }
+    }
+  }
+
   decodeTransferId (): string | undefined {
     if (this.data) {
       try {
@@ -314,18 +333,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const tx = await this._sendTransaction(gasFeeData)
 
     // store populated and normalized values
-    if (tx.type != null) {
-      this.type = tx.type
-    }
     this.from = tx.from
     this.to = tx.to!
     this.data = tx.data
     this.value = tx.value
     this.gasLimit = tx.gasLimit
-    this.gasPrice = tx.gasPrice!
-    this.maxFeePerGas = tx.maxFeePerGas!
-    this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
     this.nonce = tx.nonce
+    this.setGasProperties(tx)
 
     this.logger.debug(`beginning tracking for ${tx.hash}`)
     this.track(tx)
@@ -607,9 +621,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     const tx = await this._sendTransaction(gasFeeData)
 
-    this.gasPrice = tx.gasPrice!
-    this.maxFeePerGas = tx.maxFeePerGas!
-    this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
+    this.setGasProperties(tx)
     this.boostIndex++
     this.track(tx)
     this.emit(State.Boosted, tx, this.boostIndex)

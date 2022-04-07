@@ -63,7 +63,8 @@ type UnbondedTransferRoot = {
 
 type UnsettledTransfer = {
   transferId: string
-  bonder: string
+  bonded: boolean
+  bonder: string | null
   amount: string
   amountFormatted: number
 }

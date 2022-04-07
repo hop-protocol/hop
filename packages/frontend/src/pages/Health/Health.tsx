@@ -80,6 +80,9 @@ export const populateIncompleteSettlements = (item: any) => {
     }
   })
   const unsettledTransferBonders = item.unsettledTransferBonders ?? []
+  const unbondedTransfers = (item.unsettledTransfers ?? []).filter((x: any) => {
+    return !x.bonded
+  })
 
   return {
     timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
@@ -93,6 +96,7 @@ export const populateIncompleteSettlements = (item: any) => {
     withdrewEvents: item.withdrewEvents,
     unsettledTransfers,
     unsettledTransferBonders,
+    unbondedTransfers: unbondedTransfers.length,
     isConfirmed: `${item.isConfirmed}`,
   }
 }
@@ -402,6 +406,11 @@ const Health = () => {
         Header: 'Withdrew Events',
         accessor: 'withdrewEvents',
         Cell: cell,
+      },
+      {
+        Header: 'Unbonded Transfers',
+        accessor: 'unbondedTransfers',
+        Cell: cellNumber,
       },
       {
         Header: 'Unsettled Transfer Bonder(s)',

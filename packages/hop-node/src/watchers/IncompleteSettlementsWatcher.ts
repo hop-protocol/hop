@@ -4,6 +4,7 @@ import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getTransfer from 'src/theGraph/getTransfer'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import wait from 'src/utils/wait'
@@ -348,7 +349,8 @@ class IncompleteSettlementsWatcher {
       const timestamp = this.rootHashTimestamps[rootHash]
       const isConfirmed = !!this.rootHashConfirmeds[rootHash]
       const tokenDecimals = getTokenDecimals(token)
-      const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
+      // const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
+      const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
       const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
       const _totalAmount = totalAmount.toString()
       const totalAmountFormatted = Number(formatUnits(_totalAmount, tokenDecimals))
@@ -421,6 +423,15 @@ class IncompleteSettlementsWatcher {
       await Promise.all(chunks.map(async (transferId: string) => {
         const bondWithdrawalEvent = await getBondedWithdrawal(destinationChain, token, transferId)
         if (!bondWithdrawalEvent) {
+          const { amount } = await getTransfer(sourceChain, token, transferId)
+          const amountFormatted = Number(formatUnits(amount, tokenDecimals))
+          unsettledTransfers.push({
+            bonded: false,
+            transferId,
+            bonder: null,
+            amount,
+            amountFormatted
+          })
           return
         }
         const bonder = bondWithdrawalEvent.from
@@ -429,6 +440,7 @@ class IncompleteSettlementsWatcher {
           const amount = bondedWithdrawalAmount.toString()
           const amountFormatted = Number(formatUnits(amount, tokenDecimals))
           unsettledTransfers.push({
+            bonded: true,
             transferId,
             bonder,
             amount,
@@ -439,8 +451,13 @@ class IncompleteSettlementsWatcher {
       }))
     }
 
-    const _bonders = Array.from(unsettledTransfers.length ? new Set(unsettledTransfers.map((x: any) => x.bonder)) : unsettledTransferBonders)
-    return [unsettledTransfers, _bonders]
+    return [unsettledTransfers, Array.from(unsettledTransferBonders)]
+  }
+
+  private async getOnchainTotalAmountWithdrawn (destinationChain: string, token: string, transferRootHash: string, totalAmount: BigNumber) {
+    const contract = this.getContract(destinationChain, token)
+    const { total, amountWithdrawn } = await contract.getTransferRoot(transferRootHash, totalAmount)
+    return amountWithdrawn
   }
 
   private async logResult (result: any) {

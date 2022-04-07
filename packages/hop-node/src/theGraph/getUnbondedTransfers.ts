@@ -4,6 +4,7 @@ import makeRequest from './makeRequest'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { chunk } from 'lodash'
+import { constants } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { padHex } from 'src/utils/padHex'
 
@@ -243,18 +244,18 @@ async function getTransfersData (startTime: number, endTime: number) {
   return populatedData
 }
 
-async function fetchTransfers (chain: Chain, startTime: number, endTime: number, skip?: number) {
+export async function fetchTransfers (chain: Chain, startTime: number, endTime: number, lastId?: string) {
   const queryL1 = `
-    query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
+    query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $lastId: ID) {
       transferSents: transferSentToL2S(
         where: {
           timestamp_gte: $startTime,
-          timestamp_lte: $endTime
+          timestamp_lte: $endTime,
+          id_gt: $lastId
         },
         first: $perPage,
-        orderBy: timestamp,
-        orderDirection: desc,
-        skip: $skip
+        orderBy: id,
+        orderDirection: asc
       ) {
         id
         destinationChainId
@@ -270,15 +271,16 @@ async function fetchTransfers (chain: Chain, startTime: number, endTime: number,
     }
   `
   const queryL2 = `
-    query TransferSents($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
+    query TransferSents($perPage: Int, $startTime: Int, $endTime: Int, $lastId: ID) {
       transferSents(
         where: {
-          timestamp_gte: $startTime, timestamp_lte: $endTime
+          timestamp_gte: $startTime,
+          timestamp_lte: $endTime,
+          id_gt: $lastId
         },
         first: $perPage,
-        orderBy: timestamp,
-        orderDirection: desc,
-        skip: $skip
+        orderBy: id,
+        orderDirection: asc
       ) {
         id
         transferId
@@ -298,14 +300,11 @@ async function fetchTransfers (chain: Chain, startTime: number, endTime: number,
   if (chain !== Chain.Ethereum) {
     query = queryL2
   }
-  if (!skip) {
-    skip = 0
-  }
   const data = await makeRequest(chain, query, {
     perPage: 1000,
     startTime,
     endTime,
-    skip
+    lastId: padHex(lastId ?? constants.AddressZero)
   })
 
   let transfers = data.transferSents
@@ -317,11 +316,16 @@ async function fetchTransfers (chain: Chain, startTime: number, endTime: number,
 
   if (transfers.length === 1000) {
     try {
+      const newLastId = padHex(transfers[transfers.length - 1].id)
+      if (lastId === newLastId) {
+        return transfers
+      }
+      lastId = newLastId
       transfers = transfers.concat(...(await fetchTransfers(
         chain,
         startTime,
         endTime,
-        skip + 1000
+        lastId
       )))
     } catch (err: any) {
       if (!err.message.includes('The `skip` argument must be between')) {

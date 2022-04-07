@@ -5,6 +5,7 @@ import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransfe
 import getTransferRoot from 'src/theGraph/getTransferRoot'
 import getTransferRoots from 'src/theGraph/getTransferRoots'
 import { Chain } from 'src/constants'
+import { fetchTransfers } from 'src/theGraph/getUnbondedTransfers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 
 describe.skip('getTransferIdsForTransferRoot', () => {
@@ -122,9 +123,20 @@ describe.skip('check bonded withdrawals without a transfer', () => {
 })
 
 describe.skip('getSubgraphLastBlockSynced', () => {
-  it('polygon', async () => {
+  it('gnosis', async () => {
     const block = await getSubgraphLastBlockSynced(Chain.Gnosis)
     console.log(block)
     expect(block).toBeGreaterThan(0)
+  }, 60 * 1000)
+})
+
+describe.skip('getUnbondedTransfers', () => {
+  it('fetchTransfers', async () => {
+    const endTime = Math.floor(Date.now() / 1000)
+    const startTime = endTime - (4 * 30 * 24 * 60 * 60)
+    const transfers = await fetchTransfers(Chain.Polygon, startTime, endTime)
+    console.log(transfers)
+    console.log(transfers.length)
+    expect(transfers.length).toBeGreaterThan(0)
   }, 60 * 1000)
 })

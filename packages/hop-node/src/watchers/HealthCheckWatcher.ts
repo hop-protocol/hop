@@ -47,6 +47,8 @@ type UnbondedTransfer = {
   transactionHash: string
   amount: string
   amountFormatted: number
+  bonderFee: string
+  bonderFeeFormatted: number
 }
 
 type UnbondedTransferRoot = {
@@ -248,7 +250,7 @@ export class HealthCheckWatcher {
 
     for (const item of unbondedTransfers) {
       const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
-      const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, amount: ${item.amountFormatted?.toFixed(4)}, token: ${item.token}, transferSentAt: ${item.timestamp} (${timestampRelative})`
+      const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, amount: ${item.amountFormatted?.toFixed(4)}, bonderFee: ${item.bonderFeeFormatted?.toFixed(4)}, token: ${item.token}, transferSentAt: ${item.timestamp} (${timestampRelative})`
       messages.push(msg)
     }
 
@@ -441,7 +443,9 @@ export class HealthCheckWatcher {
         transferId: item.transferId,
         transactionHash: item.transactionHash,
         amount: item.amount,
-        amountFormatted: Number(item.formattedAmount)
+        amountFormatted: Number(item.formattedAmount),
+        bonderFee: item.bonderFee,
+        bonderFeeFormatted: Number(item.formattedBonderFee)
       }
     })
   }

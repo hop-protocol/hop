@@ -727,7 +727,7 @@ function useData () {
   }
 
   async function fetchTransfers (chain: string, startTime: number, endTime: number, skip?: number) {
-    const transferId = filterTransferId
+    const transferId = filterTransferId ? padHex(filterTransferId) : undefined
     const account = filterAccount?.toLowerCase()
     const queryL1 = `
       query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String, $account: String) {

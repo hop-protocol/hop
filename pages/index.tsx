@@ -4,6 +4,7 @@ import Clipboard from 'clipboard'
 import {ethers} from 'ethers'
 import * as luxon from 'luxon'
 import type {NextPage} from 'next'
+import {chunk} from 'lodash'
 import Head from 'next/head'
 import Image from 'next/image'
 import Script from 'next/script'
@@ -20,7 +21,9 @@ function Spinner() {
       if (!element) {
         element = window.document.getElementById('spinner')
       }
-      element.innerHTML = frames[frame]
+      if (element) {
+        element.innerHTML = frames[frame]
+      }
       return window.requestAnimationFrame(step)
     }
 
@@ -49,7 +52,6 @@ let queryParams: any = {}
   }
 
 const currentDate = luxon.DateTime.now().toFormat('yyyy-MM-dd')
-
 
 const chainToIndexMapSource: any = {}
 for (let i = 0; i < enabledChains.length; i++) {
@@ -176,15 +178,12 @@ async function queryFetch (url: string, query: string, variables?: any) {
   return jsonRes.data
 }
 
-async function fetchBonds (chain: string, startTime: number, endTime: number, lastId?: string, transferId?: string) {
+async function fetchBonds (chain: string, transferIds: string[]) {
   const query = `
-    query WithdrawalBondeds($startTime: Int, $endTime: Int, $lastId: ID, $transferId: String, $transferIds: [String]) {
+    query WithdrawalBondeds($transferIds: [String]) {
       withdrawalBondeds1: withdrawalBondeds(
         where: {
-          ${Array.isArray(transferId)
-? 'transferId_in: $transferIds'
-          : transferId ? 'transferId: $transferId' : 'timestamp_gte: $startTime, timestamp_lte: $endTime'},
-          id_gt: $lastId
+          transferId_in: $transferIds
         },
         first: 1000,
         orderBy: id,
@@ -196,11 +195,10 @@ async function fetchBonds (chain: string, startTime: number, endTime: number, la
         timestamp
         token
         from
-      }${typeof transferId === 'string'
-? `
-      , withdrawalBondeds2: withdrawalBondeds(
+      },
+      withdrawalBondeds2: withdrawalBondeds(
         where: {
-          transactionHash: $transferId
+          transactionHash_in: $transferIds
         },
         first: 1000,
         orderBy: id,
@@ -212,57 +210,36 @@ async function fetchBonds (chain: string, startTime: number, endTime: number, la
         timestamp
         token
         from
-      }`
-: ''}
+      }
     }
   `
 
+  transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
   const url = getUrl(chain)
-  const data = await queryFetch(url, query, {
-    startTime,
-    endTime,
-    transferId: !Array.isArray(transferId) ? transferId : undefined,
-    transferIds: Array.isArray(transferId) ? transferId.filter(x => x).map(x => padHex(x)) : [],
-    lastId: padHex(lastId || ethers.constants.AddressZero)
-  })
+  let bonds: any = []
+  const chunkSize = 1000
+  const allChunks = chunk(transferIds, chunkSize)
+  for (const _transferIds of allChunks) {
+    const data = await queryFetch(url, query, {
+      transferIds: _transferIds
+    })
 
-  let bonds = (data.withdrawalBondeds1 || []).concat(data.withdrawalBondeds2 || [])
-
-  if (bonds.length === 1000) {
-    try {
-      const newLastId = padHex(bonds[bonds.length - 1].id)
-      if (lastId === newLastId) {
-        return bonds
-      }
-      lastId = newLastId
-      bonds = bonds.concat(...(await fetchBonds(
-        chain,
-        startTime,
-        endTime,
-        lastId,
-        transferId
-      )))
-    } catch (err: any) {
-      if (!err.message.includes('The `skip` argument must be between')) {
-        throw err
-      }
-    }
+    bonds = bonds.concat((data.withdrawalBondeds1 || []).concat(data.withdrawalBondeds2 || []))
   }
 
   return bonds
 }
 
-async function fetchWithdrews (chain: string, startTime: number, endTime: number, skip?: number, transferId?: string) {
+async function fetchWithdrews (chain: string, transferIds: string[]) {
   const query = `
-    query Withdrews($perPage: Int, $startTime: Int, $endTime: Int, $transferId: String) {
+    query Withdrews($transferIds: [String]) {
       withdrews(
         where: {
-          ${transferId ? 'transferId: $transferId' : 'timestamp_gte: $startTime, timestamp_lte: $endTime'}
+          transferId_in: $transferIds
         },
-        first: $perPage,
-        orderBy: timestamp,
-        orderDirection: desc,
-        skip: $skip
+        first: 1000,
+        orderBy: id,
+        orderDirection: asc
       ) {
         id
         transferId
@@ -272,32 +249,17 @@ async function fetchWithdrews (chain: string, startTime: number, endTime: number
       }
     }
   `
+  transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
   const url = getUrl(chain)
-  if (!skip) {
-    skip = 0
-  }
-  const data = await queryFetch(url, query, {
-    perPage: 1000,
-    startTime,
-    endTime,
-    skip,
-    transferId
-  })
-  let withdrawals = data.withdrews || []
+  let withdrawals: any = []
+  const chunkSize = 1000
+  const allChunks = chunk(transferIds, chunkSize)
+  for (const _transferIds of allChunks) {
+    const data = await queryFetch(url, query, {
+      transferIds: _transferIds
+    })
 
-  if (withdrawals.length === 1000) {
-    try {
-      withdrawals = withdrawals.concat(...(await fetchWithdrews(
-        chain,
-        startTime,
-        endTime,
-        skip + 1000
-      )))
-    } catch (err: any) {
-      if (!err.message.includes('The `skip` argument must be between')) {
-        throw err
-      }
-    }
+    withdrawals = withdrawals.concat(data.withdrews)
   }
 
   return withdrawals
@@ -1097,7 +1059,9 @@ function useData () {
       }
     }
 
-    const _transferId = filterAccount ? data.map(x => x.transferId) : transferId
+    const transferIds = data.map(x => x.transferId)
+    const _transferId = filterAccount ? transferIds : transferId
+    const filterTransferIds = transferId ? [transferId] : transferIds
 
     const [
       gnosisBondedWithdrawals,
@@ -1106,11 +1070,11 @@ function useData () {
       arbitrumBondedWithdrawals,
       mainnetBondedWithdrawals,
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? fetchBonds('gnosis', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? fetchBonds('polygon', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? fetchBonds('optimism', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? fetchBonds('arbitrum', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? fetchBonds('mainnet', startTime, endTime, undefined, _transferId) : Promise.resolve([]),
+      enabledChains.includes('gnosis') ? fetchBonds('gnosis', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? fetchBonds('polygon', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? fetchBonds('optimism', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? fetchBonds('arbitrum', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('ethereum') ? fetchBonds('mainnet', filterTransferIds) : Promise.resolve([]),
     ])
 
     const [
@@ -1120,11 +1084,11 @@ function useData () {
       arbitrumWithdrews,
       mainnetWithdrews,
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? fetchWithdrews('gnosis', startTime, endTime, undefined, transferId) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? fetchWithdrews('polygon', startTime, endTime, undefined, transferId) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? fetchWithdrews('optimism', startTime, endTime, undefined, transferId) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? fetchWithdrews('arbitrum', startTime, endTime, undefined, transferId) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? fetchWithdrews('mainnet', startTime, endTime, undefined, transferId) : Promise.resolve([]),
+      enabledChains.includes('gnosis') ? fetchWithdrews('gnosis', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? fetchWithdrews('polygon', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? fetchWithdrews('optimism', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? fetchWithdrews('arbitrum', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('ethereum') ? fetchWithdrews('mainnet', filterTransferIds) : Promise.resolve([]),
     ])
 
     const [

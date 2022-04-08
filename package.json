@@ -11,6 +11,7 @@
   "dependencies": {
     "clipboard": "^2.0.10",
     "ethers": "^5.6.2",
+    "lodash": "^4.17.21",
     "luxon": "^2.3.1",
     "next": "12.1.1",
     "react": "17.0.2",
@@ -19,6 +20,7 @@
     "to-hex": "0.0.18"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.181",
     "@types/luxon": "^2.3.1",
     "@types/node": "17.0.23",
     "@types/react": "17.0.43",

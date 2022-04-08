@@ -81,6 +81,7 @@ type IncompleteSettlement = {
   diffAmountFormatted: number
   settlementEvents: number
   withdrewEvents: number
+  transfersCount: number
   unsettledTransfers: UnsettledTransfer[]
   unsettledTransferBonders: string[]
   isConfirmed: boolean
@@ -378,7 +379,7 @@ export class HealthCheckWatcher {
       }
     }
 
-    this.logger.debug(JSON.stringify(result, null, 2))
+    this.logger.debug('lowBonderBalances:', JSON.stringify(result, null, 2))
 
     return result
   }
@@ -391,6 +392,9 @@ export class HealthCheckWatcher {
 
     for (const token of this.tokens) {
       const tokenData = json.data[token]
+      if (!tokenData) {
+        continue
+      }
       const chainAmounts: any = {}
       const totalLiquidity = this.bonderTotalLiquidity[token]
       const availableAmounts = tokenData.baseAvailableCreditIncludingVault
@@ -432,6 +436,13 @@ export class HealthCheckWatcher {
     let result = await getUnbondedTransfers(this.days)
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
     result = result.filter((x: any) => x.sourceChainSlug !== Chain.Ethereum)
+    result = result.filter((x: any) => {
+      const ignoreBonderFeeToLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.0035 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChainSlug))
+      if (ignoreBonderFeeToLow) {
+        return false
+      }
+      return true
+    })
 
     this.logger.debug(`unbonded transfers: ${result.length}`)
     this.logger.debug('done checking for unbonded transfers')
@@ -511,6 +522,7 @@ export class HealthCheckWatcher {
         diffAmountFormatted: item.diffFormatted,
         settlementEvents: item.settlementEvents,
         withdrewEvents: item.withdrewEvents,
+        transfersCount: item.transfersCount,
         isConfirmed: item.isConfirmed,
         unsettledTransfers: item.unsettledTransfers,
         unsettledTransferBonders: item.unsettledTransferBonders

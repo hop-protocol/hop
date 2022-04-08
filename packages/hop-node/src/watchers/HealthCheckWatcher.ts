@@ -149,11 +149,11 @@ export class HealthCheckWatcher {
   unbondedTransferRootsMinTimeToWaitHours: number = 6
   incompleteSettlemetsMinTimeToWaitHours: number = 12
   minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
-    [Chain.Ethereum]: 45,
-    [Chain.Polygon]: 300,
-    [Chain.Gnosis]: 120,
-    [Chain.Optimism]: 100,
-    [Chain.Arbitrum]: 100
+    [Chain.Ethereum]: 100,
+    [Chain.Polygon]: 600,
+    [Chain.Gnosis]: 250,
+    [Chain.Optimism]: 250,
+    [Chain.Arbitrum]: 250
   }
 
   enabledChecks: Record<string, boolean> = {

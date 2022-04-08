@@ -436,6 +436,13 @@ export class HealthCheckWatcher {
     let result = await getUnbondedTransfers(this.days)
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
     result = result.filter((x: any) => x.sourceChainSlug !== Chain.Ethereum)
+    result = result.filter((x: any) => {
+      const ignoreBonderFeeToLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.0035 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChainSlug))
+      if (ignoreBonderFeeToLow) {
+        return false
+      }
+      return true
+    })
 
     this.logger.debug(`unbonded transfers: ${result.length}`)
     this.logger.debug('done checking for unbonded transfers')

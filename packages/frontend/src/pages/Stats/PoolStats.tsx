@@ -55,22 +55,16 @@ const PoolStats: FC = () => {
             ),
           },
           {
-            Header: 'Token Symbol',
-            accessor: 'tokenSymbol',
-            Cell: props => {
-              props.setHiddenColumns('tokenSymbol')
-              return <Div>_</Div>
-            },
-          },
-          {
             Header: 'Ratio',
             accessor: 'ratio',
-            Cell: ({ cell }) => (
-              <CellWrapper cell={cell}>
-                <Icon mr={1} src={cell.row.values.tokenSymbol} />
-                <Div justifySelf="right">{cell.value}</Div>
-              </CellWrapper>
-            ),
+            Cell: ({ cell, ...rest }) => {
+              return (
+                <CellWrapper cell={cell}>
+                  <Icon mr={1} src={cell.row.original.tokenSymbol} />
+                  <Div justifySelf="right">{cell.value}</Div>
+                </CellWrapper>
+              )
+            },
           },
         ],
       },

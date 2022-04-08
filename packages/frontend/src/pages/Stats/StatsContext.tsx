@@ -228,22 +228,20 @@ const StatsProvider: FC = ({ children }) => {
     if (!bridge.isSupportedAsset(selectedNetwork.slug)) {
       return
     }
-    const [credit, debit, totalDebit, availableLiquidity, nativeBalance, vaultBalance] = await Promise.all([
-      bridge.getCredit(selectedNetwork.slug, bonder),
-      bridge.getDebit(selectedNetwork.slug, bonder),
-      bridge.getTotalDebit(selectedNetwork.slug, bonder),
-      bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
-      bridge.getEthBalance(selectedNetwork.slug, bonder),
-      bridge.getVaultBalance(selectedNetwork.slug, bonder),
-    ])
+    const [credit, debit, totalDebit, availableLiquidity, nativeBalance, vaultBalance] =
+      await Promise.all([
+        bridge.getCredit(selectedNetwork.slug, bonder),
+        bridge.getDebit(selectedNetwork.slug, bonder),
+        bridge.getTotalDebit(selectedNetwork.slug, bonder),
+        bridge.getAvailableLiquidity(selectedNetwork.slug, bonder),
+        bridge.getEthBalance(selectedNetwork.slug, bonder),
+        bridge.getVaultBalance(selectedNetwork.slug, bonder),
+      ])
 
     const virtualDebt = totalDebit.sub(debit)
     let pendingAmount = BigNumber.from(0)
     for (const obj of pendingAmounts) {
-      if (
-        obj.destinationNetwork.slug === selectedNetwork.slug &&
-        obj.token.symbol === token.symbol
-      ) {
+      if (obj.destinationNetwork.eq(selectedNetwork) && obj.token.eq(token)) {
         pendingAmount = pendingAmount.add(obj.pendingAmount)
       }
     }
@@ -262,7 +260,7 @@ const StatsProvider: FC = ({ children }) => {
         formatUnits(availableLiquidity.add(pendingAmount).add(virtualDebt), token.decimals)
       ),
       availableNative: Number(formatEther(nativeBalance.toString())),
-      vaultBalance: Number(formatUnits(vaultBalance.toString(), token.decimals))
+      vaultBalance: Number(formatUnits(vaultBalance.toString(), token.decimals)),
     }
   }
 
@@ -315,7 +313,9 @@ const StatsProvider: FC = ({ children }) => {
     }
 
     const bridge = sdk.bridge(token.symbol)
-    if (!bridge.isSupportedAsset(sourceNetwork.slug)) {
+    const isSupported = bridge.isSupportedAsset(sourceNetwork.slug)
+    const isDestSupported = bridge.isSupportedAsset(destinationNetwork.slug)
+    if (!isSupported || !isDestSupported) {
       return
     }
     const contract = await bridge.getBridgeContract(sourceNetwork.slug)
@@ -347,7 +347,7 @@ const StatsProvider: FC = ({ children }) => {
       for (const sourceNetwork of filteredNetworks) {
         for (const token of tokens) {
           for (const destinationNetwork of networks) {
-            if (destinationNetwork === sourceNetwork) {
+            if (destinationNetwork.eq(sourceNetwork)) {
               continue
             }
             promises.push(

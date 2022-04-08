@@ -148,7 +148,14 @@ export class HealthCheckWatcher {
   unbondedTransfersMinTimeToWaitMinutes: number = 80
   unbondedTransferRootsMinTimeToWaitHours: number = 6
   incompleteSettlemetsMinTimeToWaitHours: number = 12
-  minSubgraphSyncDiffBlockNumber: number = 500
+  minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
+    [Chain.Ethereum]: 45,
+    [Chain.Polygon]: 300,
+    [Chain.Gnosis]: 120,
+    [Chain.Optimism]: 100,
+    [Chain.Arbitrum]: 100
+  }
+
   enabledChecks: Record<string, boolean> = {
     lowBonderBalances: true,
     unbondedTransfers: true,
@@ -245,32 +252,35 @@ export class HealthCheckWatcher {
     } = result
 
     const messages: string[] = []
-    for (const item of lowBonderBalances) {
-      const msg = `LowBonderBalance: bonder: ${item.bonder}, chain: ${item.chain}, amount: ${item.amountFormatted?.toFixed(2)} ${item.nativeToken}`
-      messages.push(msg)
-    }
 
-    for (const item of unbondedTransfers) {
-      const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
-      const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, amount: ${item.amountFormatted?.toFixed(4)}, bonderFee: ${item.bonderFeeFormatted?.toFixed(4)}, token: ${item.token}, transferSentAt: ${item.timestamp} (${timestampRelative})`
-      messages.push(msg)
-    }
+    if (!unsyncedSubgraphs.length) {
+      for (const item of lowBonderBalances) {
+        const msg = `LowBonderBalance: bonder: ${item.bonder}, chain: ${item.chain}, amount: ${item.amountFormatted?.toFixed(2)} ${item.nativeToken}`
+        messages.push(msg)
+      }
 
-    for (const item of unbondedTransferRoots) {
-      const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
-      const msg = `UnbondedTransferRoot: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted?.toFixed(4)}, token: ${item.token}, committedAt: ${item.timestamp} (${timestampRelative})`
-      messages.push(msg)
-    }
+      for (const item of unbondedTransfers) {
+        const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
+        const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, amount: ${item.amountFormatted?.toFixed(4)}, bonderFee: ${item.bonderFeeFormatted?.toFixed(4)}, token: ${item.token}, transferSentAt: ${item.timestamp} (${timestampRelative})`
+        messages.push(msg)
+      }
 
-    for (const item of incompleteSettlements) {
-      const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
-      const msg = `IncompleteSettlements: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted?.toFixed(4)}, diffAmount: ${item.diffAmountFormatted?.toFixed(4)}, token: ${item.token}, committedAt: ${item.timestamp} (${timestampRelative})`
-      messages.push(msg)
-    }
+      for (const item of unbondedTransferRoots) {
+        const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
+        const msg = `UnbondedTransferRoot: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted?.toFixed(4)}, token: ${item.token}, committedAt: ${item.timestamp} (${timestampRelative})`
+        messages.push(msg)
+      }
 
-    for (const item of challengedTransferRoots) {
-      const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted?.toFixed(4)}, token: ${item.token}`
-      messages.push(msg)
+      for (const item of incompleteSettlements) {
+        const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
+        const msg = `IncompleteSettlements: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted?.toFixed(4)}, diffAmount: ${item.diffAmountFormatted?.toFixed(4)}, token: ${item.token}, committedAt: ${item.timestamp} (${timestampRelative})`
+        messages.push(msg)
+      }
+
+      for (const item of challengedTransferRoots) {
+        const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted?.toFixed(4)}, token: ${item.token}`
+        messages.push(msg)
+      }
     }
 
     for (const item of unsyncedSubgraphs) {
@@ -578,7 +588,7 @@ export class HealthCheckWatcher {
       const headBlockNumber = Number((await provider.getBlockNumber()).toString())
       const diffBlockNumber = headBlockNumber - syncedBlockNumber
       this.logger.debug(`subgraph sync status: syncedBlockNumber: chain: ${chain}, ${syncedBlockNumber}, headBlockNumber: ${headBlockNumber}, diffBlockNumber: ${diffBlockNumber}`)
-      if (diffBlockNumber > this.minSubgraphSyncDiffBlockNumber) {
+      if (diffBlockNumber > this.minSubgraphSyncDiffBlockNumbers[chain]) {
         result.push({
           chain,
           headBlockNumber,

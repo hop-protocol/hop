@@ -112,7 +112,7 @@ class SyncWatcher extends BaseWatcher {
 
   async incompleteTransferRootsPollSync () {
     try {
-      const chunkSize = 20
+      const chunkSize = 30
       const incompleteTransferRoots = await this.db.transferRoots.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
@@ -140,7 +140,7 @@ class SyncWatcher extends BaseWatcher {
 
   async incompleteTransfersPollSync () {
     try {
-      const chunkSize = 20
+      const chunkSize = 30
       const incompleteTransfers = await this.db.transfers.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })

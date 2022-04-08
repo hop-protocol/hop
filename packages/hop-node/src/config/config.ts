@@ -156,7 +156,7 @@ export const config: Config = {
     },
     [Chain.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
-      batchBlocks: 1000
+      batchBlocks: DefaultBatchBlocks
     },
     [Chain.Gnosis]: {
       totalBlocks: TotalBlocks.Gnosis,

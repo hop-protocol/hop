@@ -208,7 +208,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         transferIds,
         totalAmount
       )
-      const msg = `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${tx.hash}`
+      const msg = `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${tx.hash} transferRootHash: ${transferRootHash} transferIds: ${transferIds.length}`
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {

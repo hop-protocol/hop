@@ -68,7 +68,7 @@ export default class Bridge extends ContractBase {
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
     this.logger = new Logger({
       tag: 'Bridge',
-      prefix: `${this.chainSlug}${this.tokenSymbol}`
+      prefix: `${this.chainSlug}.${this.tokenSymbol}`
     })
   }
 

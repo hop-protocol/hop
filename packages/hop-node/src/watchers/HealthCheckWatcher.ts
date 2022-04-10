@@ -289,10 +289,12 @@ export class HealthCheckWatcher {
     }
 
     for (const msg of messages) {
-      if (this.sentMessages[msg]) {
+      const cacheKey = msg.replace(/ \([\s\S]*?\)/g, '')
+      if (this.sentMessages[cacheKey]) {
         continue
       }
-      this.sentMessages[msg] = true
+
+      this.sentMessages[cacheKey] = true
       this.logger.warn(msg)
       if (healthCheckerWarnSlackChannel) {
         this.notifier.warn(msg, { channel: healthCheckerWarnSlackChannel })
@@ -444,24 +446,12 @@ export class HealthCheckWatcher {
 
     const timestamp = DateTime.now().toUTC().toSeconds()
     let result = await getUnbondedTransfers(this.days)
-    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
-    result = result.filter((x: any) => x.sourceChainSlug !== Chain.Ethereum)
-    result = result.filter((x: any) => {
-      const ignoreBonderFeeToLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.0035 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChainSlug))
-      if (ignoreBonderFeeToLow) {
-        return false
-      }
-      return true
-    })
-
-    this.logger.debug(`unbonded transfers: ${result.length}`)
-    this.logger.debug('done checking for unbonded transfers')
-    return result.map(item => {
+    result = result.map(item => {
       return {
         sourceChain: item.sourceChainSlug,
         destinationChain: item.destinationChainSlug,
         token: item.token,
-        timestamp: item.timestamp,
+        timestamp: Number(item.timestamp),
         transferId: item.transferId,
         transactionHash: item.transactionHash,
         amount: item.amount,
@@ -470,6 +460,20 @@ export class HealthCheckWatcher {
         bonderFeeFormatted: Number(item.formattedBonderFee)
       }
     })
+    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
+    result = result.filter((x: any) => x.sourceChain !== Chain.Ethereum)
+    result = result.filter((x: any) => {
+      const ignoreBonderFeeToLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.0035 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain))
+      if (ignoreBonderFeeToLow) {
+        return false
+      }
+      return true
+    })
+
+    this.logger.debug(`unbonded transfers: ${result.length}`)
+    this.logger.debug('done checking for unbonded transfers')
+
+    return result
   }
 
   private async getUnbondedTransferRoots (): Promise<UnbondedTransferRoot[]> {

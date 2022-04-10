@@ -10,10 +10,6 @@ import { getTokenImage } from 'src/utils/tokens'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
 import Box from '@material-ui/core/Box'
 
-const Container: any = styled(Div)<any>`
-  overflow: auto;
-`
-
 export const populateLowBonderBalances = (item: any) => {
   const chain = findNetworkBySlug(item.chain)
   const bridge = getTokenImage(item.bridge)
@@ -487,7 +483,9 @@ const Health = () => {
   }]
 
   return (
-    <Container fontSize={[0, 1, 2]}>
+    <div style={{
+      minWidth: '1200px',
+    }}>
       <Box m={2} display="flex" justifyContent="center">
         <Typography variant="body1">
           Last updated {lastUpdated || '-'}
@@ -549,7 +547,7 @@ const Health = () => {
           loading={ fetching }
         />
       </Box>
-    </Container>
+    </div>
   )
 }
 

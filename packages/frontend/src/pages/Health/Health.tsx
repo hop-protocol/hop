@@ -483,71 +483,71 @@ const Health = () => {
   }]
 
   return (
-    <div style={{
-      minWidth: '1200px',
-    }}>
-      <Box m={2} display="flex" justifyContent="center">
-        <Typography variant="body1">
-          Last updated {lastUpdated || '-'}
-        </Typography>
+    <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+      <Box display="flex" flexDirection="column" alignItems="flex-start" width="100%" sx={{ overflow: 'auto' }}>
+        <Box m={4} display="flex" justifyContent="center">
+          <Typography variant="body1">
+            Last updated {lastUpdated || '-'}
+          </Typography>
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ lowBonderBalances }
+            columns={ lowBonderBalancesColumns }
+            populateDataFn={ populateLowBonderBalances }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ lowAvailableLiquidityBonders }
+            columns={ lowAvailableLiquidityBondersColumns }
+            populateDataFn={ populateLowAvailableLiquidityBonders }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ unbondedTransfers }
+            columns={ unbondedTransfersColumns }
+            populateDataFn={ populateUnbondedTransfers }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ unbondedTransferRoots }
+            columns={ unbondedTransferRootsColumns }
+            populateDataFn={ populateUnbondedTransferRoots }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ incompleteSettlements }
+            columns={ incompleteSettlementsColumns }
+            populateDataFn={ populateIncompleteSettlements }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ challengedTransferRoots }
+            columns={ challengedTransferRootsColumns }
+            populateDataFn={ populateChallengedRoots }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ unsyncedSubgraphs }
+            columns={ unsyncedSubgraphsColumns }
+            populateDataFn={ populateUnsyncedSubgraphs }
+            loading={ fetching }
+          />
+        </Box>
       </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ lowBonderBalances }
-          columns={ lowBonderBalancesColumns }
-          populateDataFn={ populateLowBonderBalances }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ lowAvailableLiquidityBonders }
-          columns={ lowAvailableLiquidityBondersColumns }
-          populateDataFn={ populateLowAvailableLiquidityBonders }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ unbondedTransfers }
-          columns={ unbondedTransfersColumns }
-          populateDataFn={ populateUnbondedTransfers }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ unbondedTransferRoots }
-          columns={ unbondedTransferRootsColumns }
-          populateDataFn={ populateUnbondedTransferRoots }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ incompleteSettlements }
-          columns={ incompleteSettlementsColumns }
-          populateDataFn={ populateIncompleteSettlements }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ challengedTransferRoots }
-          columns={ challengedTransferRootsColumns }
-          populateDataFn={ populateChallengedRoots }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ unsyncedSubgraphs }
-          columns={ unsyncedSubgraphsColumns }
-          populateDataFn={ populateUnsyncedSubgraphs }
-          loading={ fetching }
-        />
-      </Box>
-    </div>
+    </Box>
   )
 }
 

@@ -116,6 +116,7 @@ type Result = {
 
 export type Config = {
   days?: number
+  offsetDays?: number
   s3Upload?: boolean
   s3Namespace?: string
   cacheFile?: string
@@ -128,6 +129,7 @@ export class HealthCheckWatcher {
   s3Filename: string
   cacheFile: string
   days: number = 1 // days back to check for
+  offsetDays: number = 0
   pollIntervalSeconds: number = 300
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
@@ -168,14 +170,18 @@ export class HealthCheckWatcher {
   }
 
   constructor (config: Config) {
-    const { days, s3Upload, s3Namespace, cacheFile } = config
+    const { days, offsetDays, s3Upload, s3Namespace, cacheFile } = config
     if (days) {
       this.days = days
+    }
+    if (offsetDays) {
+      this.offsetDays = offsetDays
     }
     this.notifier = new Notifier(
       `HealthCheck: ${hostname}`
     )
     this.logger.debug(`days: ${this.days}`)
+    this.logger.debug(`offsetDays: ${this.offsetDays}`)
     this.logger.debug(`s3Upload: ${!!s3Upload}`)
     if (s3Upload) {
       const bucket = 'assets.hop.exchange'
@@ -449,7 +455,7 @@ export class HealthCheckWatcher {
     this.logger.debug('checking for unbonded transfers')
 
     const timestamp = DateTime.now().toUTC().toSeconds()
-    let result = await getUnbondedTransfers(this.days)
+    let result = await getUnbondedTransfers(this.days, this.offsetDays)
     result = result.map(item => {
       return {
         sourceChain: item.sourceChainSlug,
@@ -467,7 +473,7 @@ export class HealthCheckWatcher {
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
     result = result.filter((x: any) => x.sourceChain !== Chain.Ethereum)
     result = result.map((x: any) => {
-      const isBonderFeeTooLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.0035 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain))
+      const isBonderFeeTooLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.005 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && [Chain.Gnosis, Chain.Polygon].includes(x.destinationChain))
       x.isBonderFeeTooLow = isBonderFeeTooLow
       return x
     })
@@ -519,6 +525,7 @@ export class HealthCheckWatcher {
     const timestamp = DateTime.now().toUTC().toSeconds()
     const incompleteSettlementsWatcher = new IncompleteSettlementsWatcher({
       days: this.days,
+      offsetDays: this.offsetDays,
       format: 'json'
     })
     let result = await incompleteSettlementsWatcher.getDiffResults()

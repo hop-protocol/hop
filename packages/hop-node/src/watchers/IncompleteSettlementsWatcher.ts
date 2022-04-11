@@ -18,6 +18,7 @@ import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 type Options = {
   token?: string
   days?: number
+  offsetDays?: number
   format?: string
 }
 
@@ -37,6 +38,7 @@ class IncompleteSettlementsWatcher {
   tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC']
 
   days: number = 7
+  offsetDays: number = 0
   startBlockNumbers: any = {}
   endBlockNumbers: any = {}
 
@@ -61,12 +63,15 @@ class IncompleteSettlementsWatcher {
   transferIdRootHashes: any = {}
 
   constructor (options: Options = {}) {
-    const { token, days, format } = options
+    const { token, days, offsetDays, format } = options
     if (token) {
       this.tokens = [token]
     }
     if (days) {
       this.days = days
+    }
+    if (offsetDays) {
+      this.offsetDays = offsetDays
     }
     if (format) {
       this.format = format
@@ -96,6 +101,7 @@ class IncompleteSettlementsWatcher {
     this.logger.debug('done getting all block numbers')
     this.logger.debug('reading events')
     this.logger.debug(`days: ${this.days}`)
+    this.logger.debug(`offsetDays: ${this.offsetDays}`)
     this.logger.debug('this will take a minute')
 
     for (const chain of this.chains) {
@@ -125,13 +131,20 @@ class IncompleteSettlementsWatcher {
   private async setStartBlockNumbers () {
     await Promise.all(this.chains.map(async (chain: string) => {
       this.logger.debug(`${chain} - getting start and end block numbers`)
-      const date = DateTime.fromMillis(Date.now()).minus({ days: this.days })
+      const date = DateTime.fromMillis(Date.now()).minus({ days: this.days + this.offsetDays })
       const timestamp = date.toSeconds()
       const startBlockNumber = await getBlockNumberFromDate(chain, timestamp)
       this.startBlockNumbers[chain] = startBlockNumber
 
       const provider = getRpcProvider(chain)
-      const endBlockNumber = await provider!.getBlockNumber()
+      let endBlockNumber: number
+      if (this.offsetDays) {
+        const date = DateTime.fromMillis(Date.now()).minus({ days: this.offsetDays })
+        const timestamp = date.toSeconds()
+        endBlockNumber = await getBlockNumberFromDate(chain, timestamp)
+      } else {
+        endBlockNumber = await provider!.getBlockNumber()
+      }
       this.endBlockNumbers[chain] = endBlockNumber
       this.logger.debug(`${chain} - done getting block numbers`)
     }))

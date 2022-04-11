@@ -71,7 +71,7 @@ describe.skip('hop bridge token transfers', () => {
 describe.skip('tx watcher', () => {
   const hop = new Hop('mainnet')
   const signer = new Wallet(privateKey)
-  it(
+  it.skip(
     'receive events on token transfer from L1 -> L2 Polygon (no swap)',
     async () => {
       const txHash =
@@ -493,7 +493,7 @@ describe('getSupportedAssets', () => {
   })
 })
 
-describe.only('get call data only (no signer connected)', () => {
+describe.skip('get call data only (no signer connected)', () => {
   it('should return call data for L1->L2 ETH send', async () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('ETH')

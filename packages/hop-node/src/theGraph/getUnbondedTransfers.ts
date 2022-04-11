@@ -7,10 +7,10 @@ import { chunk, uniqBy } from 'lodash'
 import { formatUnits } from 'ethers/lib/utils'
 import { padHex } from 'src/utils/padHex'
 
-export async function getUnbondedTransfers (days: number) {
+export async function getUnbondedTransfers (days: number, offsetDays: number = 0) {
   const endDate = DateTime.now().toUTC()
-  const startTime = Math.floor(endDate.minus({ days }).startOf('day').toSeconds())
-  const endTime = Math.floor(endDate.plus({ days: 2 }).toSeconds())
+  const startTime = Math.floor(endDate.minus({ days: days + offsetDays }).startOf('day').toSeconds())
+  const endTime = Math.floor(endDate.minus({ days: offsetDays }).plus({ days: 2 }).toSeconds())
 
   const transfers = await getTransfersData(startTime, endTime)
   return transfers.filter((x: any) => !x.bonded)

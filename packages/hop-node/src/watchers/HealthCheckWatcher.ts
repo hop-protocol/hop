@@ -49,6 +49,7 @@ type UnbondedTransfer = {
   amountFormatted: number
   bonderFee: string
   bonderFeeFormatted: number
+  isBonderFeeTooLow: boolean
 }
 
 type UnbondedTransferRoot = {
@@ -260,6 +261,9 @@ export class HealthCheckWatcher {
       }
 
       for (const item of unbondedTransfers) {
+        if (item.isBonderFeeTooLow) {
+          continue
+        }
         const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
         const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, amount: ${item.amountFormatted?.toFixed(4)}, bonderFee: ${item.bonderFeeFormatted?.toFixed(4)}, token: ${item.token}, transferSentAt: ${item.timestamp} (${timestampRelative})`
         messages.push(msg)
@@ -462,12 +466,10 @@ export class HealthCheckWatcher {
     })
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
     result = result.filter((x: any) => x.sourceChain !== Chain.Ethereum)
-    result = result.filter((x: any) => {
-      const ignoreBonderFeeToLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.0035 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain))
-      if (ignoreBonderFeeToLow) {
-        return false
-      }
-      return true
+    result = result.map((x: any) => {
+      const isBonderFeeTooLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.0035 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain))
+      x.isBonderFeeTooLow = isBonderFeeTooLow
+      return x
     })
 
     this.logger.debug(`unbonded transfers: ${result.length}`)

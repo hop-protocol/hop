@@ -106,7 +106,7 @@ describe.skip('tx watcher', () => {
     },
     120 * 1000
   )
-  it(
+  it.skip(
     'receive events on token transfer from L1 -> L2 Gnosis (swap)',
     async () => {
       /*
@@ -154,21 +154,27 @@ describe.skip('tx watcher', () => {
     'receive events on token transfer from L2 -> L2',
     async () => {
       const tokenAmount = parseUnits('0.1', 18)
+      /*
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
         .send(tokenAmount, Chain.Gnosis, Chain.Optimism)
-
       const txHash = tx?.hash
       console.log('tx hash:', txHash)
       console.log('waiting for receipts')
+        */
+
+      const txHash = '0xf5d14a332d072de887bbe3dd058c8eb64f3aa754b7652f76179c230ab1391948'
+      console.log('tx hash:', txHash)
 
       await new Promise(resolve => {
         let sourceReceipt: any = null
         let destinationReceipt: any = null
 
         hop
-          .watch(txHash, Token.USDC, Chain.Gnosis, Chain.Optimism)
+          .watch(txHash, Token.USDC, Chain.Gnosis, Chain.Optimism, false, {
+            // destinationHeadBlockNumber: 5661102
+          })
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
             if (chain.equals(Chain.Gnosis)) {
@@ -194,6 +200,58 @@ describe.skip('tx watcher', () => {
       expect(txHash).toBeTruthy()
     },
     120 * 1000
+  )
+  it.skip(
+    'receive events on token transfer from L2 -> L2 (Optimism -> Arbitrum)',
+    async () => {
+      const tokenAmount = parseUnits('0.1', 18)
+      /*
+      const tx = await hop
+        .connect(signer)
+        .bridge(Token.USDC)
+        .send(tokenAmount, Chain.Gnosis, Chain.Optimism)
+      const txHash = tx?.hash
+      console.log('tx hash:', txHash)
+      console.log('waiting for receipts')
+        */
+
+      const txHash = '0x0be35c18107c85f13b8c50bcb045c77a184115d24424daa48f5b76ea230a926e'
+      console.log('tx hash:', txHash)
+
+      await new Promise(resolve => {
+        let sourceReceipt: any = null
+        let destinationReceipt: any = null
+
+        hop
+          .watch(txHash, Token.ETH, Chain.Optimism, Chain.Arbitrum, false, {
+            // destinationHeadBlockNumber: 5661102
+          })
+          .on('receipt', (data: any) => {
+            console.log(data)
+            const { receipt, chain } = data
+            if (chain.equals(Chain.Optimism)) {
+              sourceReceipt = receipt
+              console.log(
+                'got source transaction receipt:',
+                receipt.transactionHash
+              )
+            }
+            if (chain.equals(Chain.Arbitrum)) {
+              destinationReceipt = receipt
+              console.log(
+                'got destination transaction receipt:',
+                receipt.transactionHash
+              )
+            }
+            if (sourceReceipt && destinationReceipt) {
+              resolve(null)
+            }
+          })
+      })
+
+      expect(txHash).toBeTruthy()
+    },
+    20 * 60 * 1000
   )
   it.skip(
     '(mainnet) receive events on token transfer from L2 Gnosis -> L2 Polygon',

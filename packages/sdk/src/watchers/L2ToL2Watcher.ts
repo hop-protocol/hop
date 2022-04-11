@@ -1,5 +1,7 @@
+import BlockDater from 'ethereum-block-by-date'
 import EventEmitter from 'eventemitter3'
 import { default as BaseWatcher, Event } from './BaseWatcher'
+import { DateTime } from 'luxon'
 import { transferSentTopic } from '../constants/eventTopics'
 
 class L2ToL2Watcher extends BaseWatcher {
@@ -18,7 +20,7 @@ class L2ToL2Watcher extends BaseWatcher {
       // here the await is intential so it's handled by the catch if it fails
       return await this.wrapperWatcher()
     } catch (err) {
-      console.log(err)
+      // console.error(err)
       return this.ammWatcher()
     }
   }
@@ -70,29 +72,42 @@ class L2ToL2Watcher extends BaseWatcher {
       return false
     }
     l2Dest.on(filter, handleEvent)
+    let tailBlock : number
     return async () => {
-      const headBlock =
-        this.options?.destinationHeadBlockNumber ||
-        (await this.destinationChain.provider.getBlockNumber())
+      let headBlock = this.options?.destinationHeadBlockNumber
+      if (!headBlock) {
+        headBlock = await this.destinationChain.provider.getBlockNumber()
+      }
+      if (!tailBlock) {
+        const blockDater = new BlockDater(this.destinationChain.provider)
+        const date = DateTime.fromSeconds(this.sourceBlock.timestamp - (60 * 60)).toJSDate()
+        const info = await blockDater.getDate(date)
+        if (info) {
+          tailBlock = info.block
+        }
+      }
+
       if (!headBlock) {
         return false
       }
-      const tailBlock = headBlock - 10000
-      const getRecentLogs = async (head: number): Promise<any[]> => {
-        if (head < tailBlock) {
+      const getRecentLogs = async (start: number, end: number): Promise<any[]> => {
+        if (end > headBlock) {
+          end = headBlock
+          start = end - 1000
+        }
+        if (end <= start) {
           return []
         }
-        const start = head - 1000
-        const end = head
         const events = (
           (await l2Dest.queryFilter(filter, start, end)) ?? []
         ).reverse()
+        tailBlock = start + 1000
         if (events.length) {
           return events
         }
-        return getRecentLogs(start)
+        return getRecentLogs(tailBlock, end + 1000)
       }
-      const events = await getRecentLogs(headBlock)
+      const events = await getRecentLogs(tailBlock, tailBlock + 1000)
       for (const event of events) {
         if (await handleEvent(event)) {
           return true

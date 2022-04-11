@@ -416,7 +416,7 @@ class IncompleteSettlementsWatcher {
     const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
     const tokenDecimals = getTokenDecimals(token)
     const contract = this.getContract(destinationChain, token)
-    const transferIds = await this.rootTransferIds[rootHash]
+    const transferIds = await this.rootTransferIds[rootHash] || []
     const unsettledTransfers: any[] = []
     const unsettledTransferBonders = new Set()
     const chunkSize = 30

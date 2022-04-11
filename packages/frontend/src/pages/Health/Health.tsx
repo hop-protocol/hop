@@ -45,7 +45,8 @@ export const populateUnbondedTransfers = (item: any) => {
     transferId: item.transferId,
     transactionHash: item.transactionHash,
     amount: item.amountFormatted?.toFixed(4),
-    bonderFee: item.bonderFeeFormatted?.toFixed(4)
+    bonderFee: item.bonderFeeFormatted?.toFixed(4),
+    isBonderFeeTooLow: item.isBonderFeeTooLow
   }
 }
 
@@ -217,6 +218,11 @@ const Health = () => {
                   {cell.value}
                 </CellWrapper>
               )
+  const cellBoolean = ({ cell }) => (
+                <CellWrapper cell={cell} end>
+                  {`${!!cell.value}`}
+                </CellWrapper>
+              )
   const cellAddress = ({ cell }) => (
                 <CellWrapper cell={cell} end>
                   <CopyEthAddress value={cell.value} />
@@ -318,6 +324,11 @@ const Health = () => {
         Header: 'Bonder Fee',
         accessor: 'bonderFee',
         Cell: cellNumber,
+      },
+      {
+        Header: 'Bonder Fee Too Low',
+        accessor: 'isBonderFeeTooLow',
+        Cell: cellBoolean,
       },
     ]
   }]
@@ -422,7 +433,7 @@ const Health = () => {
       {
         Header: 'Confirmed',
         accessor: 'isConfirmed',
-        Cell: cell,
+        Cell: cellBoolean,
       },
     ]
   }]

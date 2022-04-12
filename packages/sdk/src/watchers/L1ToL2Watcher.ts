@@ -118,7 +118,7 @@ class L1ToL2Watcher extends BaseWatcher {
       if (decodedLog.to !== recipient) {
         return
       }
-      console.log('token decoded log', decodedLog)
+      // console.log('token decoded log', decodedLog)
       const destTx = await event.getTransaction()
       return handleDestTx(destTx)
     }
@@ -134,7 +134,7 @@ class L1ToL2Watcher extends BaseWatcher {
       if (decodedLog.to !== recipient) {
         return
       }
-      console.log('hToken decoded log', decodedLog)
+      // console.log('hToken decoded log', decodedLog)
       const destTx = await event.getTransaction()
       return handleDestTx(destTx, {
         isHTokenTransfer: true

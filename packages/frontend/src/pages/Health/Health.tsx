@@ -10,10 +10,6 @@ import { getTokenImage } from 'src/utils/tokens'
 import { CopyEthAddress } from 'src/components/ui/CopyEthAddress'
 import Box from '@material-ui/core/Box'
 
-const Container: any = styled(Div)<any>`
-  overflow: auto;
-`
-
 export const populateLowBonderBalances = (item: any) => {
   const chain = findNetworkBySlug(item.chain)
   const bridge = getTokenImage(item.bridge)
@@ -49,7 +45,8 @@ export const populateUnbondedTransfers = (item: any) => {
     transferId: item.transferId,
     transactionHash: item.transactionHash,
     amount: item.amountFormatted?.toFixed(4),
-    bonderFee: item.bonderFeeFormatted?.toFixed(4)
+    bonderFee: item.bonderFeeFormatted?.toFixed(4),
+    isBonderFeeTooLow: item.isBonderFeeTooLow
   }
 }
 
@@ -221,6 +218,11 @@ const Health = () => {
                   {cell.value}
                 </CellWrapper>
               )
+  const cellBoolean = ({ cell }) => (
+                <CellWrapper cell={cell} end>
+                  {`${!!cell.value}`}
+                </CellWrapper>
+              )
   const cellAddress = ({ cell }) => (
                 <CellWrapper cell={cell} end>
                   <CopyEthAddress value={cell.value} />
@@ -322,6 +324,11 @@ const Health = () => {
         Header: 'Bonder Fee',
         accessor: 'bonderFee',
         Cell: cellNumber,
+      },
+      {
+        Header: 'Bonder Fee Too Low',
+        accessor: 'isBonderFeeTooLow',
+        Cell: cellBoolean,
       },
     ]
   }]
@@ -426,7 +433,7 @@ const Health = () => {
       {
         Header: 'Confirmed',
         accessor: 'isConfirmed',
-        Cell: cell,
+        Cell: cellBoolean,
       },
     ]
   }]
@@ -487,69 +494,71 @@ const Health = () => {
   }]
 
   return (
-    <Container fontSize={[0, 1, 2]}>
-      <Box m={2} display="flex" justifyContent="center">
-        <Typography variant="body1">
-          Last updated {lastUpdated || '-'}
-        </Typography>
+    <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+      <Box display="flex" flexDirection="column" alignItems="flex-start" width="100%" sx={{ overflow: 'auto' }}>
+        <Box m={4} display="flex" justifyContent="center">
+          <Typography variant="body1">
+            Last updated {lastUpdated || '-'}
+          </Typography>
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ lowBonderBalances }
+            columns={ lowBonderBalancesColumns }
+            populateDataFn={ populateLowBonderBalances }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ lowAvailableLiquidityBonders }
+            columns={ lowAvailableLiquidityBondersColumns }
+            populateDataFn={ populateLowAvailableLiquidityBonders }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ unbondedTransfers }
+            columns={ unbondedTransfersColumns }
+            populateDataFn={ populateUnbondedTransfers }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ unbondedTransferRoots }
+            columns={ unbondedTransferRootsColumns }
+            populateDataFn={ populateUnbondedTransferRoots }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ incompleteSettlements }
+            columns={ incompleteSettlementsColumns }
+            populateDataFn={ populateIncompleteSettlements }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ challengedTransferRoots }
+            columns={ challengedTransferRootsColumns }
+            populateDataFn={ populateChallengedRoots }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ unsyncedSubgraphs }
+            columns={ unsyncedSubgraphsColumns }
+            populateDataFn={ populateUnsyncedSubgraphs }
+            loading={ fetching }
+          />
+        </Box>
       </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ lowBonderBalances }
-          columns={ lowBonderBalancesColumns }
-          populateDataFn={ populateLowBonderBalances }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ lowAvailableLiquidityBonders }
-          columns={ lowAvailableLiquidityBondersColumns }
-          populateDataFn={ populateLowAvailableLiquidityBonders }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ unbondedTransfers }
-          columns={ unbondedTransfersColumns }
-          populateDataFn={ populateUnbondedTransfers }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ unbondedTransferRoots }
-          columns={ unbondedTransferRootsColumns }
-          populateDataFn={ populateUnbondedTransferRoots }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ incompleteSettlements }
-          columns={ incompleteSettlementsColumns }
-          populateDataFn={ populateIncompleteSettlements }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ challengedTransferRoots }
-          columns={ challengedTransferRootsColumns }
-          populateDataFn={ populateChallengedRoots }
-          loading={ fetching }
-        />
-      </Box>
-      <Box m={2} display="flex" justifyContent="center">
-        <SortableTable
-          stats={ unsyncedSubgraphs }
-          columns={ unsyncedSubgraphsColumns }
-          populateDataFn={ populateUnsyncedSubgraphs }
-          loading={ fetching }
-        />
-      </Box>
-    </Container>
+    </Box>
   )
 }
 

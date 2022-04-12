@@ -54,7 +54,7 @@ const Styles = styled.div`
     td {
       transition: background 0.15s ease-out;
       margin: 0;
-      padding: 0.5rem;
+      padding: 0.5rem 1rem;
       border-bottom: 1px solid #dbdbdb;
 
       :last-child {
@@ -74,7 +74,7 @@ function Table({ columns, data, loading }) {
   )
 
   return (
-    <Div>
+    <Div style={{ width: '100%' }}>
       <table {...getTableProps()}>
         <thead>
           {headerGroups.map((headerGroup: any, i) => (

@@ -49,6 +49,7 @@ type UnbondedTransfer = {
   amountFormatted: number
   bonderFee: string
   bonderFeeFormatted: number
+  isBonderFeeTooLow: boolean
 }
 
 type UnbondedTransferRoot = {
@@ -115,6 +116,7 @@ type Result = {
 
 export type Config = {
   days?: number
+  offsetDays?: number
   s3Upload?: boolean
   s3Namespace?: string
   cacheFile?: string
@@ -127,6 +129,7 @@ export class HealthCheckWatcher {
   s3Filename: string
   cacheFile: string
   days: number = 1 // days back to check for
+  offsetDays: number = 0
   pollIntervalSeconds: number = 300
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
@@ -149,11 +152,11 @@ export class HealthCheckWatcher {
   unbondedTransferRootsMinTimeToWaitHours: number = 6
   incompleteSettlemetsMinTimeToWaitHours: number = 12
   minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
-    [Chain.Ethereum]: 45,
-    [Chain.Polygon]: 300,
-    [Chain.Gnosis]: 120,
-    [Chain.Optimism]: 100,
-    [Chain.Arbitrum]: 100
+    [Chain.Ethereum]: 100,
+    [Chain.Polygon]: 600,
+    [Chain.Gnosis]: 250,
+    [Chain.Optimism]: 250,
+    [Chain.Arbitrum]: 250
   }
 
   enabledChecks: Record<string, boolean> = {
@@ -167,14 +170,18 @@ export class HealthCheckWatcher {
   }
 
   constructor (config: Config) {
-    const { days, s3Upload, s3Namespace, cacheFile } = config
+    const { days, offsetDays, s3Upload, s3Namespace, cacheFile } = config
     if (days) {
       this.days = days
+    }
+    if (offsetDays) {
+      this.offsetDays = offsetDays
     }
     this.notifier = new Notifier(
       `HealthCheck: ${hostname}`
     )
     this.logger.debug(`days: ${this.days}`)
+    this.logger.debug(`offsetDays: ${this.offsetDays}`)
     this.logger.debug(`s3Upload: ${!!s3Upload}`)
     if (s3Upload) {
       const bucket = 'assets.hop.exchange'
@@ -260,6 +267,9 @@ export class HealthCheckWatcher {
       }
 
       for (const item of unbondedTransfers) {
+        if (item.isBonderFeeTooLow) {
+          continue
+        }
         const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
         const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, amount: ${item.amountFormatted?.toFixed(4)}, bonderFee: ${item.bonderFeeFormatted?.toFixed(4)}, token: ${item.token}, transferSentAt: ${item.timestamp} (${timestampRelative})`
         messages.push(msg)
@@ -289,10 +299,12 @@ export class HealthCheckWatcher {
     }
 
     for (const msg of messages) {
-      if (this.sentMessages[msg]) {
+      const cacheKey = msg.replace(/ \([\s\S]*?\)/g, '')
+      if (this.sentMessages[cacheKey]) {
         continue
       }
-      this.sentMessages[msg] = true
+
+      this.sentMessages[cacheKey] = true
       this.logger.warn(msg)
       if (healthCheckerWarnSlackChannel) {
         this.notifier.warn(msg, { channel: healthCheckerWarnSlackChannel })
@@ -443,25 +455,13 @@ export class HealthCheckWatcher {
     this.logger.debug('checking for unbonded transfers')
 
     const timestamp = DateTime.now().toUTC().toSeconds()
-    let result = await getUnbondedTransfers(this.days)
-    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
-    result = result.filter((x: any) => x.sourceChainSlug !== Chain.Ethereum)
-    result = result.filter((x: any) => {
-      const ignoreBonderFeeToLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.0035 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChainSlug))
-      if (ignoreBonderFeeToLow) {
-        return false
-      }
-      return true
-    })
-
-    this.logger.debug(`unbonded transfers: ${result.length}`)
-    this.logger.debug('done checking for unbonded transfers')
-    return result.map(item => {
+    let result = await getUnbondedTransfers(this.days, this.offsetDays)
+    result = result.map(item => {
       return {
         sourceChain: item.sourceChainSlug,
         destinationChain: item.destinationChainSlug,
         token: item.token,
-        timestamp: item.timestamp,
+        timestamp: Number(item.timestamp),
         transferId: item.transferId,
         transactionHash: item.transactionHash,
         amount: item.amount,
@@ -470,6 +470,18 @@ export class HealthCheckWatcher {
         bonderFeeFormatted: Number(item.formattedBonderFee)
       }
     })
+    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
+    result = result.filter((x: any) => x.sourceChain !== Chain.Ethereum)
+    result = result.map((x: any) => {
+      const isBonderFeeTooLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.005 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && [Chain.Gnosis, Chain.Polygon].includes(x.destinationChain))
+      x.isBonderFeeTooLow = isBonderFeeTooLow
+      return x
+    })
+
+    this.logger.debug(`unbonded transfers: ${result.length}`)
+    this.logger.debug('done checking for unbonded transfers')
+
+    return result
   }
 
   private async getUnbondedTransferRoots (): Promise<UnbondedTransferRoot[]> {
@@ -513,6 +525,7 @@ export class HealthCheckWatcher {
     const timestamp = DateTime.now().toUTC().toSeconds()
     const incompleteSettlementsWatcher = new IncompleteSettlementsWatcher({
       days: this.days,
+      offsetDays: this.offsetDays,
       format: 'json'
     })
     let result = await incompleteSettlementsWatcher.getDiffResults()

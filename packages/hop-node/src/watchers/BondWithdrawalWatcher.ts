@@ -200,7 +200,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       })
 
       const sentChain = attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
-      const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash}`
+      const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {

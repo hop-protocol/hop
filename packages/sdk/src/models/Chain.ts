@@ -1,5 +1,5 @@
-import { mainnet } from '@hop-protocol/core/networks'
 import { ChainName, ChainSlug, Errors, NetworkSlug, Slug } from '../constants'
+import { mainnet } from '@hop-protocol/core/networks'
 import { metadata } from '../config'
 import { providers } from 'ethers'
 
@@ -18,7 +18,6 @@ class Chain {
   static Arbitrum = newChain(ChainSlug.Arbitrum, mainnet.arbitrum.networkId)
   static Gnosis = newChain(ChainSlug.Gnosis, mainnet.gnosis.networkId)
   static Polygon = newChain(ChainSlug.Polygon, mainnet.polygon.networkId)
-
 
   static fromSlug (slug: Slug | string) {
     if (slug === 'xdai') {

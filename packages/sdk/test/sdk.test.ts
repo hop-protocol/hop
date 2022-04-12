@@ -68,10 +68,10 @@ describe.skip('hop bridge token transfers', () => {
   )
 })
 
-describe.only('tx watcher', () => {
+describe.skip('tx watcher', () => {
   const hop = new Hop('mainnet')
   const signer = new Wallet(privateKey)
-  it.only(
+  it(
     'receive events on token transfer from L1 -> L2 (no swap)',
     async () => {
       const txHash =
@@ -300,31 +300,35 @@ describe.only('tx watcher', () => {
     },
     300 * 1000
   )
-  it(
+  it.skip(
     'receive events on token transfer from L2 -> L1',
     async () => {
+      /*
       const tokenAmount = parseUnits('0.1', 18)
       const tx = await hop
         .connect(signer)
         .bridge(Token.USDC)
         .send(tokenAmount, Chain.Ethereum, Chain.Gnosis)
-
       console.log('tx hash:', tx?.hash)
       console.log('waiting for receipts')
+        */
+
+      const txHash = '0x6c9f8082a76ed7362cbd52ba93add0ba9e5b8af5c1a35d83378163dc30906f64'
+      console.log('tx hash:', txHash)
 
       await new Promise(resolve => {
         let sourceReceipt: any = null
         let destinationReceipt: any = null
 
         hop
-          .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.Gnosis)
+          .watch(txHash, Token.USDC, Chain.Gnosis, Chain.Ethereum)
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
-            if (chain.equals(Chain.Ethereum)) {
+            if (chain.equals(Chain.Gnosis)) {
               sourceReceipt = receipt
               console.log('got source transaction receipt')
             }
-            if (chain.equals(Chain.Gnosis)) {
+            if (chain.equals(Chain.Ethereum)) {
               destinationReceipt = receipt
               console.log('got destination transaction receipt')
             }
@@ -334,7 +338,7 @@ describe.only('tx watcher', () => {
           })
       })
 
-      expect(tx.hash).toBeTruthy()
+      expect(txHash).toBeTruthy()
     },
     120 * 1000
   )

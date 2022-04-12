@@ -68,11 +68,11 @@ describe.skip('hop bridge token transfers', () => {
   )
 })
 
-describe.skip('tx watcher', () => {
+describe.only('tx watcher', () => {
   const hop = new Hop('mainnet')
   const signer = new Wallet(privateKey)
-  it.skip(
-    'receive events on token transfer from L1 -> L2 Polygon (no swap)',
+  it.only(
+    'receive events on token transfer from L1 -> L2 (no swap)',
     async () => {
       const txHash =
         '0xb92c61e0a1e674eb4c9a52cc692c92709c8a4e4cb66fb22eb7cd9a958cf33a70'

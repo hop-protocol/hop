@@ -1,6 +1,7 @@
 import BlockDater from 'ethereum-block-by-date'
 import EventEmitter from 'eventemitter3'
 import { default as BaseWatcher, Event } from './BaseWatcher'
+import { Chain } from '../models'
 import { DateTime } from 'luxon'
 import { transferSentTopic } from '../constants/eventTopics'
 
@@ -73,6 +74,7 @@ class L2ToL2Watcher extends BaseWatcher {
     }
     l2Dest.on(filter, handleEvent)
     let tailBlock : number
+    const batchBlocks = this.destinationChain === Chain.Polygon ? 500 : 1000
     return async () => {
       let headBlock = this.options?.destinationHeadBlockNumber
       if (!headBlock) {
@@ -93,7 +95,7 @@ class L2ToL2Watcher extends BaseWatcher {
       const getRecentLogs = async (start: number, end: number): Promise<any[]> => {
         if (end > headBlock) {
           end = headBlock
-          start = end - 1000
+          start = end - batchBlocks
         }
         if (end <= start) {
           return []
@@ -101,13 +103,13 @@ class L2ToL2Watcher extends BaseWatcher {
         const events = (
           (await l2Dest.queryFilter(filter, start, end)) ?? []
         ).reverse()
-        tailBlock = start + 1000
+        tailBlock = start + batchBlocks
         if (events.length) {
           return events
         }
-        return getRecentLogs(tailBlock, end + 1000)
+        return getRecentLogs(tailBlock, end + batchBlocks)
       }
-      const events = await getRecentLogs(tailBlock, tailBlock + 1000)
+      const events = await getRecentLogs(tailBlock, tailBlock + batchBlocks)
       for (const event of events) {
         if (await handleEvent(event)) {
           return true

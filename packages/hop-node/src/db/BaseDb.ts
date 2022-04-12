@@ -186,7 +186,7 @@ class BaseDb extends EventEmitter {
   }
 
   async _update (key: string, data: any) {
-    return this._updateWithBatch(key, data)
+    return this._updateSingle(key, data)
   }
 
   async _updateSingle (key: string, data: any) {

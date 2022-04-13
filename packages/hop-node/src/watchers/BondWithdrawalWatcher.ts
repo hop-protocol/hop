@@ -2,15 +2,16 @@ import '../moduleAlias'
 import BNMin from 'src/utils/BNMin'
 import BaseWatcher from './classes/BaseWatcher'
 import Bridge from './classes/Bridge'
+import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, constants } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
+import { Chain, TxError } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { TxError } from 'src/constants'
 import { UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { config as globalConfig } from 'src/config'
 
@@ -186,15 +187,15 @@ class BondWithdrawalWatcher extends BaseWatcher {
         throw new BonderFeeTooLowError(msg)
       }
 
-      const hToken = await sourceL2Bridge.hToken()
-      const sourceChainTotalHTokens = await hToken.getTotalSupply()
-      const pendingAmount = await sourceL2Bridge.getPendingAmountForChainId(destinationChainId!)
+      const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
+      const sourceChainTotalHTokens = await l1Bridge.getChainBalance(sourceChainId)
+      const pendingAmount = await sourceL2Bridge.getPendingAmountForChainId(destinationChainId)
       const hTokensAvailable = sourceChainTotalHTokens.add(pendingAmount)
-      if (amount!.gt(hTokensAvailable)) {
-        const msg = `cannot bond more tokens on ${this.chainIdToSlug(destinationChainId!)} available ${sourceL2Bridge.formatUnits(hTokensAvailable)} than available on source chain ${this.chainSlug}`
+      if (amount.gt(hTokensAvailable)) {
+        // only notify
+        const msg = `cannot bond more tokens on ${this.chainIdToSlug(destinationChainId)} available ${sourceL2Bridge.formatUnits(hTokensAvailable)} than available on source chain ${this.chainSlug}`
         this.notifier.warn(msg)
         this.logger.warn(msg)
-        return
       }
 
       const tx = await this.sendBondWithdrawalTx({

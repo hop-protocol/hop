@@ -83,13 +83,6 @@ export default class Token extends ContractBase {
     }
   }
 
-  getTotalSupply = async (): Promise<BigNumber> => {
-    if (this.isEth) {
-      return constants.MaxUint256
-    }
-    return this.tokenContract.totalSupply()
-  }
-
   async formatUnits (value: BigNumber) {
     return Number(formatUnits(value.toString(), await this.decimals()))
   }

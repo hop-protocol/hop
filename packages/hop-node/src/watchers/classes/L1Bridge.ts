@@ -279,6 +279,10 @@ export default class L1Bridge extends Bridge {
     return await this.l1BridgeContract.getBondForTransferAmount(amount)
   }
 
+  getChainBalance = async (chainId: number) => {
+    return this.l1BridgeContract.chainBalance(chainId)
+  }
+
   async decodeBondTransferRootCalldata (data: string): Promise<any> {
     if (!data) {
       throw new Error('data to decode is required')

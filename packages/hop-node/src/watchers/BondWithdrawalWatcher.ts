@@ -191,7 +191,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const sourceChainTotalHTokens = await l1Bridge.getChainBalance(sourceChainId)
       const pendingAmount = await sourceL2Bridge.getPendingAmountForChainId(destinationChainId)
       const hTokensAvailable = sourceChainTotalHTokens.add(pendingAmount)
-      if (amount.gt(hTokensAvailable)) {
+      const sourceChain = this.chainIdToSlug(sourceChainId)
+      const isFromNonRollup = [Chain.Polygon, Chain.Gnosis].includes(sourceChain)
+      if (isFromNonRollup && amount.gt(hTokensAvailable)) {
         // only notify
         const msg = `cannot bond more tokens on ${this.chainIdToSlug(destinationChainId)} available ${sourceL2Bridge.formatUnits(hTokensAvailable)} than available on source chain ${this.chainSlug}`
         this.notifier.warn(msg)

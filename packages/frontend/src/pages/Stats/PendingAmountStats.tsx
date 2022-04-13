@@ -29,7 +29,7 @@ const PendingAmountStats: FC = () => {
             Cell: ({ cell }) => {
               return (
                 <CellWrapper cell={cell}>
-                  <Icon src={cell.value} width={[12, 18]} />
+                  <Icon src={cell.value} />
                 </CellWrapper>
               )
             },
@@ -40,7 +40,7 @@ const PendingAmountStats: FC = () => {
             Cell: ({ cell }) => {
               return (
                 <CellWrapper cell={cell}>
-                  <Icon src={cell.value} width={[12, 18]} />
+                  <Icon src={cell.value} />
                 </CellWrapper>
               )
             },
@@ -50,35 +50,18 @@ const PendingAmountStats: FC = () => {
             accessor: 'pendingAmount',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
-                <Icon mr={1} src={cell.row.values.token} width={[12, 18]} />
+                <Icon mr={1} src={cell.row.original.token} />
                 {commafy(cell.value)}
               </CellWrapper>
             ),
-          },
-          {
-            Header: 'Token Decimals',
-            accessor: 'tokenDecimals',
-            Cell: props => {
-              props.setHiddenColumns('tokenDecimals')
-              return <Div>_</Div>
-            },
           },
           {
             Header: 'Available Liquidity',
             accessor: 'availableLiquidity',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
-                <Icon mr={1} src={cell.row.values.token} width={[12, 18]} />
+                <Icon mr={1} src={cell.row.original.token} />
                 {commafy(cell.value)}
-              </CellWrapper>
-            ),
-          },
-          {
-            Header: 'Token',
-            accessor: 'token',
-            Cell: ({ cell }) => (
-              <CellWrapper cell={cell}>
-                <Icon src={cell.value} width={[12, 18]} />
               </CellWrapper>
             ),
           },
@@ -89,11 +72,12 @@ const PendingAmountStats: FC = () => {
   )
 
   return (
-    <Div fontSize={[0, 1, 2]} alignSelf={['center', 'center', 'flex-start']}>
+    <Div fontSize={[0, 1, 2]}>
       <SortableTable
         stats={pendingAmounts}
         columns={columns}
         populateDataFn={populatePendingAmountStats}
+        loading={fetchingPendingAmounts}
       />
     </Div>
   )

@@ -47,7 +47,11 @@ export const networkSlugToName = (slug: string) => {
   return n?.name
 }
 
-export const networkIdToSlug = (networkId: string | number): Slug | string => {
+export const networkIdToSlug = (networkId: string | number | undefined): Slug | string => {
+  if (networkId === undefined) {
+    return ''
+  }
+
   if (typeof networkId === 'number') {
     networkId = networkId.toString()
   }

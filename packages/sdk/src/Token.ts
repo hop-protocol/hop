@@ -251,7 +251,8 @@ class Token extends Base {
   }
 
   async getWethContract () {
-    return WETH9__factory.connect(this.address, this.signer)
+    const provider = await this.getSignerOrProvider(this.chain)
+    return WETH9__factory.connect(this.address, provider)
   }
 
   getWrappedToken () {

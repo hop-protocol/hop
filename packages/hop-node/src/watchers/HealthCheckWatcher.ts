@@ -155,8 +155,8 @@ export class HealthCheckWatcher {
     [Chain.Ethereum]: 100,
     [Chain.Polygon]: 600,
     [Chain.Gnosis]: 250,
-    [Chain.Optimism]: 250,
-    [Chain.Arbitrum]: 250
+    [Chain.Optimism]: 500,
+    [Chain.Arbitrum]: 500
   }
 
   enabledChecks: Record<string, boolean> = {

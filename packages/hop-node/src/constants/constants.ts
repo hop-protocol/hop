@@ -50,6 +50,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
 
 const SecondsInDay = 86400
 const SecondsInWeek = SecondsInDay * 7
+export const OneDayMs = SecondsInDay * 1000
 export const TotalBlocks = {
   Ethereum: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Ethereum),
   Polygon: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Polygon),

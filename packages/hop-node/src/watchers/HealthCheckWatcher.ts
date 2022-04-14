@@ -10,7 +10,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
-import { Chain, NativeChainToken } from 'src/constants'
+import { Chain, NativeChainToken, OneDayMs } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
@@ -152,11 +152,11 @@ export class HealthCheckWatcher {
   unbondedTransferRootsMinTimeToWaitHours: number = 6
   incompleteSettlemetsMinTimeToWaitHours: number = 12
   minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
-    [Chain.Ethereum]: 100,
-    [Chain.Polygon]: 600,
-    [Chain.Gnosis]: 250,
-    [Chain.Optimism]: 500,
-    [Chain.Arbitrum]: 500
+    [Chain.Ethereum]: 1000,
+    [Chain.Polygon]: 2000,
+    [Chain.Gnosis]: 2000,
+    [Chain.Optimism]: 10000,
+    [Chain.Arbitrum]: 10000
   }
 
   enabledChecks: Record<string, boolean> = {
@@ -295,10 +295,9 @@ export class HealthCheckWatcher {
       }
     }
 
-    const delayMs = 1 * 60 * 60 * 1000
     let shouldSendUnsyncedSubgraphNotification = true
     if (this.lastNotificationSentAt) {
-      shouldSendUnsyncedSubgraphNotification = this.lastNotificationSentAt + delayMs < Date.now()
+      shouldSendUnsyncedSubgraphNotification = this.lastNotificationSentAt + OneDayMs < Date.now()
     }
     if (shouldSendUnsyncedSubgraphNotification) {
       for (const item of unsyncedSubgraphs) {

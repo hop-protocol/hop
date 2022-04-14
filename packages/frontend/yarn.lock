@@ -3992,10 +3992,10 @@
   dependencies:
     ethers "^5.5.1"
 
-"@hop-protocol/sdk@0.0.1-beta.310":
-  version "0.0.1-beta.310"
-  resolved "https://registry.npmjs.org/@hop-protocol/sdk/-/sdk-0.0.1-beta.310.tgz#980ab48d7655b178b393de629211d6c8edd9d1e8"
-  integrity sha512-zbtNaoWSAt7PoAn4hUFFDHuUV/1hJjAXVAt5rvu3EKvFTpjwGukqNGSvudpBjLOzY0RGIchZmR4VqwV72Lpi6A==
+"@hop-protocol/sdk@0.0.1-beta.313":
+  version "0.0.1-beta.313"
+  resolved "https://registry.npmjs.org/@hop-protocol/sdk/-/sdk-0.0.1-beta.313.tgz#8379c03ca14aaf2d523263f214e25ee35f4691a7"
+  integrity sha512-5xrodUiSek1PKt47bVLUBopqEWQcwX5VZ1hz03dt/faTwC4gGdgfCyUlRRh7hytoKLJEBe+YXxBrxWPNYAt2tg==
   dependencies:
     "@eth-optimism/contracts" "^0.5.2"
     "@ethersproject/abi" "^5.4.0"

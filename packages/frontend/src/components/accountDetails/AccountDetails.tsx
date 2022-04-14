@@ -1,6 +1,5 @@
 import React from 'react'
 import { Theme, makeStyles } from '@material-ui/core/styles'
-import Box from '@material-ui/core/Box'
 import Button from '@material-ui/core/Button'
 import { useApp } from 'src/contexts/AppContext'
 import Modal from 'src/components/modal/Modal'
@@ -96,11 +95,11 @@ const AccountDetails = () => {
 
   return (
     <Modal onClose={handleClose}>
-      <Box className={styles.box}>
+      <Div position='relative'>
         {!!address && (
           <ManageWallet onChange={handleChangeClick} onDisconnect={handleDisconnectClick} />
         )}
-      </Box>
+      </Div>
       <Div position="relative">
         <TransactionsList />
       </Div>

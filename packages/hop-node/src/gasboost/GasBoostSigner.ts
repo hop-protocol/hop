@@ -128,6 +128,10 @@ class GasBoostSigner extends Signer {
     return gTx
   }
 
+  async getNonce () {
+    return this.getDbNonce()
+  }
+
   private async getOnChainNonce () {
     return this.signer.getTransactionCount('pending')
   }

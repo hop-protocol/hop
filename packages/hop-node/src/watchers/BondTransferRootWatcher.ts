@@ -57,24 +57,24 @@ class BondTransferRootWatcher extends BaseWatcher {
       const logger = this.logger.create({ root: transferRootId })
 
       const bondChainId = chainSlugToId(Chain.Ethereum)
-      const availableCredit = this.getAvailableCreditForBond(bondChainId!)
-      const notEnoughCredit = availableCredit.lt(totalAmount!)
+      const availableCredit = this.getAvailableCreditForBond(bondChainId)
+      const notEnoughCredit = availableCredit.lt(totalAmount)
       if (notEnoughCredit) {
         logger.debug(
         `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
           availableCredit
-        )}, need ${this.bridge.formatUnits(totalAmount!)}`)
+        )}, need ${this.bridge.formatUnits(totalAmount)}`)
         continue
       }
 
       promises.push(this.checkTransfersCommitted(
         transferRootId,
-        transferRootHash!,
-        totalAmount!,
-        destinationChainId!,
-        committedAt!,
-        sourceChainId!,
-        transferIds!
+        transferRootHash,
+        totalAmount,
+        destinationChainId,
+        committedAt,
+        sourceChainId,
+        transferIds
       ))
     }
 
@@ -137,7 +137,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     const bondChainId = chainSlugToId(Chain.Ethereum)
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
-    const availableCredit = this.getAvailableCreditForBond(bondChainId!)
+    const availableCredit = this.getAvailableCreditForBond(bondChainId)
     const notEnoughCredit = availableCredit.lt(bondAmount)
     if (notEnoughCredit) {
       const msg = `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
@@ -169,7 +169,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId,
         totalAmount
       )
-      const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash}`
+      const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {

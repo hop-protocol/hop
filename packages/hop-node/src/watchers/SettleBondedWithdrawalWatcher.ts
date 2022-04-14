@@ -37,6 +37,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
       const { transferRootId, transferIds } = dbTransferRoot
+      const logger = this.logger.create({ id: transferRootId })
 
       // Mark a settlement as attempted here so that multiple db reads are not attempted every poll
       // This comes into play when a transfer is bonded after others in the same root have been settled
@@ -47,7 +48,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
 
       // get all db transfer items that belong to root
       const dbTransfers: Transfer[] = []
-      for (const transferId of transferIds!) {
+      for (const transferId of transferIds) {
         const dbTransfer = await this.db.transfers.getByTransferId(transferId)
         if (!dbTransfer) {
           continue
@@ -55,8 +56,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         dbTransfers.push(dbTransfer)
       }
 
-      if (dbTransfers.length !== transferIds!.length) {
-        this.logger.error(`could not find all db transfers for root id ${transferRootId}. Has ${transferIds!.length}, found ${dbTransfers.length}. Db may not be fully synced`)
+      if (dbTransfers.length !== transferIds.length) {
+        this.logger.error(`could not find all db transfers for root id ${transferRootId}. Has ${transferIds.length}, found ${dbTransfers.length}. Db may not be fully synced`)
         continue
       }
 
@@ -79,11 +80,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       // find all unique bonders that have bonded transfers in this transfer root
       const bonderSet = new Set<string>()
       for (const dbTransfer of dbTransfers) {
-        const doesBonderExist = dbTransfer?.withdrawalBonder
-        const shouldTransferBeSettled = dbTransfer?.withdrawalBondSettled === false
-        if (!doesBonderExist || !shouldTransferBeSettled) {
+        const hasWithdrawalBonder = dbTransfer?.withdrawalBonder
+        const isAlreadySettled = dbTransfer?.withdrawalBondSettled
+        const shouldSkip = !hasWithdrawalBonder || isAlreadySettled
+        if (shouldSkip) {
           continue
         }
+
+        logger.debug(`unsettled transferId: ${dbTransfer?.transferId}, transferRootHash: ${dbTransferRoot?.transferRootHash}`)
         bonderSet.add(dbTransfer.withdrawalBonder!)
       }
 
@@ -99,6 +103,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
 
     if (promises.length === 0) {
+      this.logger.debug('no unsettled db transfer roots to check')
       return
     }
 
@@ -208,7 +213,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         transferIds,
         totalAmount
       )
-      const msg = `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${tx.hash}`
+      const msg = `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${tx.hash} transferRootHash: ${transferRootHash} transferIds: ${transferIds.length}`
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {

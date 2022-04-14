@@ -11,6 +11,7 @@ import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TxError } from 'src/constants'
+import { UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { config as globalConfig } from 'src/config'
 
 type Config = {
@@ -62,12 +63,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
       const logger = this.logger.create({ id: transferId })
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
-      const notEnoughCredit = availableCredit.lt(amount!)
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
+      const notEnoughCredit = availableCredit.lt(amount)
       const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
       if (isUnbondable) {
         logger.warn(
-          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
           `withdrawalBondTxError: ${withdrawalBondTxError}`
         )
 
@@ -85,7 +86,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async checkTransferId (transferId: string) {
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId) as UnbondedSentTransfer
     if (!dbTransfer) {
       this.logger.warn(`transfer id "${transferId}" not found in db`)
       return
@@ -109,7 +110,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     logger.debug('bonderFee:', bonderFee && this.bridge.formatUnits(bonderFee))
 
     const sourceL2Bridge = this.bridge as L2Bridge
-    const destBridge = this.getSiblingWatcherByChainId(destinationChainId!)
+    const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
 
     logger.debug('processing bondWithdrawal. checking isTransferIdSpent')
@@ -123,7 +124,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
     if (isReceivingNativeToken) {
-      const isRecipientReceivable = await this.getIsRecipientReceivable(recipient!, destBridge, logger)
+      const isRecipientReceivable = await this.getIsRecipientReceivable(recipient, destBridge, logger)
       logger.debug(`processing bondWithdrawal. isRecipientReceivable: ${isRecipientReceivable}`)
       if (!isRecipientReceivable) {
         logger.warn('recipient cannot receive transfer. marking item not bondable')
@@ -132,14 +133,14 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
     }
 
-    const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
-    const notEnoughCredit = availableCredit.lt(amount!)
+    const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
+    const notEnoughCredit = availableCredit.lt(amount)
     logger.debug(`processing bondWithdrawal. availableCredit: ${availableCredit.toString()}`)
     if (notEnoughCredit) {
       logger.warn(
         `not enough credit to bond withdrawal. Have ${this.bridge.formatUnits(
           availableCredit
-        )}, need ${this.bridge.formatUnits(amount!)}`
+        )}, need ${this.bridge.formatUnits(amount)}`
       )
       await this.db.transfers.update(transferId, {
         withdrawalBondTxError: TxError.NotEnoughLiquidity
@@ -152,20 +153,20 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    await this.withdrawFromVaultIfNeeded(destinationChainId!, amount!)
+    await this.withdrawFromVaultIfNeeded(destinationChainId, amount)
 
     logger.debug('attempting to send bondWithdrawal tx')
 
     const sourceTx = await sourceL2Bridge.getTransaction(
-      transferSentTxHash!
+      transferSentTxHash
     )
     if (!sourceTx) {
       this.logger.warn(`source tx data for tx hash "${transferSentTxHash}" not found. Cannot proceed`)
       return
     }
     const { from: sender, data } = sourceTx
-    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin!, deadline!)
-    if (attemptSwap && isL1ChainId(destinationChainId!)) {
+    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin, deadline)
+    if (attemptSwap && isL1ChainId(destinationChainId)) {
       logger.debug('marking as unbondable. Destination is L1 and attemptSwap is true')
       await this.db.transfers.update(transferId, {
         isBondable: false
@@ -199,7 +200,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       })
 
       const sentChain = attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
-      const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash}`
+      const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {

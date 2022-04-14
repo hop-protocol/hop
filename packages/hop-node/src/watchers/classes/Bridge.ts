@@ -1,4 +1,5 @@
 import ContractBase, { TxOverrides } from './ContractBase'
+import Logger from 'src/logger'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
@@ -10,7 +11,7 @@ import { Event } from 'src/types'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
+import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
 import { PriceFeed } from 'src/priceFeed'
 import { State } from 'src/db/SyncStateDb'
 import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
@@ -34,11 +35,13 @@ export default class Bridge extends ContractBase {
   Withdrew: string = 'Withdrew'
   TransferRootSet: string = 'TransferRootSet'
   MultipleWithdrawalsSettled: string = 'MultipleWithdrawalsSettled'
+  WithdrawalBondSettled: string = 'WithdrawalBondSettled'
   tokenDecimals: number = 18
   tokenSymbol: string = ''
   bridgeContract: BridgeContract
   bridgeDeployedBlockNumber: number
   l1CanonicalTokenAddress: string
+  logger: Logger
 
   constructor (bridgeContract: BridgeContract) {
     super(bridgeContract)
@@ -64,6 +67,10 @@ export default class Bridge extends ContractBase {
     }
     this.bridgeDeployedBlockNumber = bridgeDeployedBlockNumber
     this.l1CanonicalTokenAddress = l1CanonicalTokenAddress
+    this.logger = new Logger({
+      tag: 'Bridge',
+      prefix: `${this.chainSlug}.${this.tokenSymbol}`
+    })
   }
 
   async getBonderAddress (): Promise<string> {
@@ -256,12 +263,20 @@ export default class Bridge extends ContractBase {
     return await this.mapEventsBatch(this.getTransferRootSetEvents, cb, options)
   }
 
-  getParamsFromSettleEventTransaction = async (multipleWithdrawalsSettledTxHash: string) => {
+  getParamsFromMultipleSettleEventTransaction = async (multipleWithdrawalsSettledTxHash: string) => {
     const tx = await this.getTransaction(multipleWithdrawalsSettledTxHash)
     if (!tx) {
       throw new Error('expected tx object')
     }
     return this.decodeSettleBondedWithdrawalsData(tx.data)
+  }
+
+  getParamsFromSettleEventTransaction = async (withdrawalSettledTxHash: string) => {
+    const tx = await this.getTransaction(withdrawalSettledTxHash)
+    if (!tx) {
+      throw new Error('expected tx object')
+    }
+    return this.decodeSettleBondedWithdrawalData(tx.data)
   }
 
   getMultipleWithdrawalsSettledEvents = async (
@@ -286,6 +301,28 @@ export default class Bridge extends ContractBase {
     )
   }
 
+  async mapWithdrawalBondSettledEvents<R> (
+    cb: EventCb<WithdrawalBondSettledEvent, R>,
+    options?: Partial<EventsBatchOptions>
+  ) {
+    return await this.mapEventsBatch(
+      this.getWithdrawalBondSettledEvents,
+      cb,
+      options
+    )
+  }
+
+  getWithdrawalBondSettledEvents = async (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ) => {
+    return await this.bridgeContract.queryFilter(
+      this.bridgeContract.filters.WithdrawalBondSettled(),
+      startBlockNumber,
+      endBlockNumber
+    )
+  }
+
   decodeSettleBondedWithdrawalsData (data: string): any {
     if (!data) {
       throw new Error('data to decode is required')
@@ -304,6 +341,35 @@ export default class Bridge extends ContractBase {
       bonder,
       transferIds,
       totalAmount
+    }
+  }
+
+  decodeSettleBondedWithdrawalData (data: string): any {
+    if (!data) {
+      throw new Error('data to decode is required')
+    }
+    const decoded = this.bridgeContract.interface.decodeFunctionData(
+      'settleBondedWithdrawal',
+      data
+    )
+    const {
+      bonder,
+      transferId,
+      rootHash,
+      transferRootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves
+    } = decoded
+
+    return {
+      bonder,
+      transferId,
+      rootHash,
+      transferRootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves
     }
   }
 
@@ -493,13 +559,16 @@ export default class Bridge extends ContractBase {
       state = await this.db.syncState.getByKey(cacheKey)
     }
 
+    const blockValues = await this.getBlockValues(options, state)
     let {
       start,
       end,
       batchBlocks,
       earliestBlockInBatch,
       latestBlockInBatch
-    } = await this.getBlockValues(options, state) // eslint-disable-line
+    } = blockValues
+
+    this.logger.debug(`eventsBatch cacheKey: ${cacheKey} getBlockValues: ${JSON.stringify(blockValues)}`)
 
     let i = 0
     while (start >= earliestBlockInBatch) {
@@ -513,7 +582,7 @@ export default class Bridge extends ContractBase {
 
       // Subtract 1 so that the boundary blocks are not double counted
       end = start - 1
-      start = end - batchBlocks! // eslint-disable-line
+      start = end - batchBlocks!
 
       if (start < earliestBlockInBatch) {
         start = earliestBlockInBatch
@@ -525,6 +594,7 @@ export default class Bridge extends ContractBase {
     // Sync is complete when the start block is reached since
     // it traverses backwards from head.
     if (cacheKey && start === earliestBlockInBatch) {
+      this.logger.debug(`eventsBatch cacheKey: ${cacheKey} syncState latestBlockInBatch: ${latestBlockInBatch}`)
       await this.db.syncState.update(cacheKey, {
         latestBlockSynced: latestBlockInBatch,
         timestamp: Date.now()
@@ -549,7 +619,7 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end - startBlockNumber
     } else if (endBlockNumber) {
       end = endBlockNumber
-      totalBlocksInBatch = totalBlocks! // eslint-disable-line
+      totalBlocksInBatch = totalBlocks!
     } else if (isInitialSync) {
       end = currentBlockNumberWithFinality
       totalBlocksInBatch = end - (startBlockNumber ?? 0)
@@ -558,7 +628,7 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end - (state?.latestBlockSynced ?? 0)
     } else {
       end = currentBlockNumberWithFinality
-      totalBlocksInBatch = totalBlocks! // eslint-disable-line
+      totalBlocksInBatch = totalBlocks!
     }
 
     // Handle the case where the chain has less blocks than the total block config
@@ -567,10 +637,10 @@ export default class Bridge extends ContractBase {
       totalBlocksInBatch = end
     }
 
-    if (totalBlocksInBatch <= batchBlocks!) { // eslint-disable-line
+    if (totalBlocksInBatch <= batchBlocks!) {
       start = end - totalBlocksInBatch
     } else {
-      start = end - batchBlocks! // eslint-disable-line
+      start = end - batchBlocks!
     }
 
     const earliestBlockInBatch = end - totalBlocksInBatch

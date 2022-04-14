@@ -184,23 +184,25 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     validateKeys(validCommitTransfersKeys, commitTransfersKeys)
     const minThresholdAmount = config.commitTransfers.minThresholdAmount
     const tokens = Object.keys(minThresholdAmount)
-    validateKeys(enabledTokens, tokens)
-    for (const token of enabledTokens) {
-      if (!minThresholdAmount[token]) {
-        throw new Error(`missing minThresholdAmount config for token "${token}"`)
-      }
-      const chains = Object.keys(minThresholdAmount[token])
-      validateKeys(enabledChains, chains)
-      for (const sourceChain in config.routes) {
-        if (sourceChain === Chain.Ethereum) {
-          continue
+    if (tokens.length) {
+      validateKeys(enabledTokens, tokens)
+      for (const token of enabledTokens) {
+        if (!minThresholdAmount[token]) {
+          throw new Error(`missing minThresholdAmount config for token "${token}"`)
         }
-        if (!minThresholdAmount[token][sourceChain]) {
-          throw new Error(`missing minThresholdAmount config for token "${token}" source chain "${sourceChain}"`)
-        }
-        for (const destinationChain in config.routes[sourceChain]) {
-          if (!minThresholdAmount[token][sourceChain][destinationChain]) {
-            throw new Error(`missing minThresholdAmount config for token "${token}" source chain "${sourceChain}" destination chain "${destinationChain}"`)
+        const chains = Object.keys(minThresholdAmount[token])
+        validateKeys(enabledChains, chains)
+        for (const sourceChain in config.routes) {
+          if (sourceChain === Chain.Ethereum) {
+            continue
+          }
+          if (!minThresholdAmount[token][sourceChain]) {
+            throw new Error(`missing minThresholdAmount config for token "${token}" source chain "${sourceChain}"`)
+          }
+          for (const destinationChain in config.routes[sourceChain]) {
+            if (!minThresholdAmount[token][sourceChain][destinationChain]) {
+              throw new Error(`missing minThresholdAmount config for token "${token}" source chain "${sourceChain}" destination chain "${destinationChain}"`)
+            }
           }
         }
       }
@@ -280,14 +282,16 @@ export async function validateConfigValues (config?: Config) {
 
   if (config.commitTransfers) {
     const { minThresholdAmount } = config.commitTransfers
-    for (const token of getEnabledTokens()) {
-      for (const sourceChain in config.routes) {
-        if (sourceChain === Chain.Ethereum) {
-          continue
-        }
-        for (const destinationChain in config.routes[sourceChain]) {
-          if (typeof minThresholdAmount[token][sourceChain][destinationChain] !== 'number') {
-            throw new Error(`minThresholdAmount config for token "${token}" source chain "${sourceChain}" destination chain "${destinationChain}" must be a number`)
+    if (Object.keys(minThresholdAmount).length) {
+      for (const token of getEnabledTokens()) {
+        for (const sourceChain in config.routes) {
+          if (sourceChain === Chain.Ethereum) {
+            continue
+          }
+          for (const destinationChain in config.routes[sourceChain]) {
+            if (typeof minThresholdAmount[token][sourceChain][destinationChain] !== 'number') {
+              throw new Error(`minThresholdAmount config for token "${token}" source chain "${sourceChain}" destination chain "${destinationChain}" must be a number`)
+            }
           }
         }
       }

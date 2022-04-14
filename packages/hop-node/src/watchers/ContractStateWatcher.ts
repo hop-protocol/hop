@@ -55,7 +55,7 @@ class ContractStateWatcher {
       if (chain === Chain.Ethereum) {
         continue
       }
-      const chainId = chainSlugToId(chain)! // eslint-disable-line
+      const chainId = chainSlugToId(chain)
       if (!chainStates[chainId]) {
         chainStates[chainId] = {}
       }
@@ -138,7 +138,7 @@ class ContractStateWatcher {
     const chains = getEnabledNetworks()
     const chainStates: any = {}
     for (const chain of chains) {
-      const chainId = chainSlugToId(chain)! // eslint-disable-line
+      const chainId = chainSlugToId(chain)
       if (!chainStates[chainId]) {
         chainStates[chainId] = {}
       }

@@ -133,7 +133,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
         continue
       }
 
-      totalAmount = totalAmount.add(transferRoot.totalAmount!)
+      totalAmount = totalAmount.add(transferRoot.totalAmount)
     }
 
     return totalAmount

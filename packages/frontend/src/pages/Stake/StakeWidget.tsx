@@ -165,7 +165,7 @@ const StakeWidget: FC<Props> = props => {
   }, [stakingRewards, rewardsExpired])
 
   const userRewardsPerDay = useMemo(() => {
-    if (!(totalRewardsPerDay && stakeBalance?.gt(0) && totalStaked)) {
+    if (!(totalRewardsPerDay && stakeBalance?.gt(0) && totalStaked?.gt(0))) {
       return
     }
     return totalRewardsPerDay.mul(stakeBalance).div(totalStaked)

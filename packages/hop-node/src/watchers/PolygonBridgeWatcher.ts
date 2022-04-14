@@ -45,7 +45,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
     this.l1Provider = this.l1Wallet.provider
     this.l2Provider = this.l2Wallet.provider
 
-    this.chainId = chainSlugToId(config.chainSlug)! // eslint-disable-line
+    this.chainId = chainSlugToId(config.chainSlug)
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === this.polygonMainnetChainId ? 'matic' : 'mumbai'
     }/block-included`

@@ -33,5 +33,5 @@ async function main (source: any) {
   }
 
   const destinationChainId = chainSlugToId(destinationChain)
-  await watcher.checkIfShouldCommit(destinationChainId!)
+  await watcher.checkIfShouldCommit(destinationChainId)
 }

@@ -337,7 +337,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (use1559 && feeData.gasPrice) {
       const maxPriorityFeePerGas = this.getMinPriorityFeePerGas()
 
-      // set maxPriorityFeePerGas to be the same as the slow gasPrice
+      // set maxPriorityFeePerGas to be the same as the slow gasPrice (plus maxPriorityFeePerGas)
       return {
         gasPrice: null,
         maxFeePerGas: feeData.gasPrice.add(maxPriorityFeePerGas),

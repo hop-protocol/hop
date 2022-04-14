@@ -82,13 +82,17 @@ class Etherscan {
 }
 
 export class GasService {
-  etherchain = new Etherchain()
-  etherscan = new Etherscan()
+  etherchain: Etherchain
+  etherscan: Etherscan
   logger = new Logger('GasService')
 
   constructor (chain: string = Chain.Ethereum) {
     if (chain !== Chain.Ethereum) {
       throw new Error('GasService current only supports ethereum')
+    }
+    this.etherchain = new Etherchain()
+    if (etherscanEthereumApiKey) {
+      this.etherscan = new Etherscan()
     }
   }
 
@@ -99,6 +103,10 @@ export class GasService {
       result = await this.etherchain.getGasFeeData()
     } catch (err) {
       this.logger.error('error fetching etherchain api gas estimates:', err)
+      if (!this.etherscan) {
+        throw err
+      }
+
       try {
         this.logger.debug('fetching etherscan api gas estimates')
         result = await this.etherscan.getGasFeeData()

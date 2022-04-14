@@ -70,11 +70,11 @@ class SyncWatcher extends BaseWatcher {
   async updateBroadcastedStatus () {
     const entries = await this.db.transferRoots.getTransferRootsFromTwoWeeks()
     for (const entry of entries) {
-      if (entry.confirmTxStatus === TxStatus.Broadcasted) {
-        entry.confirmTxStatus = TxStatus.Incomplete
-        if (entry.confirmed) {
-          entry.confirmTxStatus = TxStatus.Complete
-        }
+      if (entry.confirmed && entry.confirmTxStatus !== TxStatus.Complete) {
+        entry.confirmTxStatus = TxStatus.Complete
+        await this.db.transferRoots.update(entry.transferRootId, entry)
+      } else if (entry.confirmTxStatus === TxStatus.Broadcasted) {
+        entry.confirmTxHash = TxStatus.Incomplete
         await this.db.transferRoots.update(entry.transferRootId, entry)
       }
     }

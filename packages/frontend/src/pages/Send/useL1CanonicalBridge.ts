@@ -28,13 +28,11 @@ export function useL1CanonicalBridge(
   const [usingNativeBridge, setUsingNativeBridge] = useState(false)
   const [userSpecifiedBridge, setUserSpecifiedBridge] = useState(false)
   const {
-    customRecipient,
     handleTransaction,
     setSending,
     setTx,
     waitForTransaction,
     updateTransaction,
-    setError,
     setApproving,
   } = options
 
@@ -161,14 +159,6 @@ export function useL1CanonicalBridge(
       return
     }
 
-    // const shouldApproveNativeBridge = await needsNativeBridgeApproval(
-    //   l1CanonicalBridge,
-    //   sourceToken,
-    //   sourceTokenAmount
-    // )
-
-    // setSending(true)
-
     // if (shouldApproveNativeBridge) {
     //   const approveTx = await l1CanonicalBridge.approve(constants.MaxUint256)
     //   await approveTx.wait()
@@ -199,6 +189,7 @@ export function useL1CanonicalBridge(
 
           return l1CanonicalBridge.deposit(sourceTokenAmount)
         } catch (error: any) {
+          setSending(false)
           if (!/cancelled/gi.test(error.message)) {
             // noop
             return
@@ -242,6 +233,7 @@ export function useL1CanonicalBridge(
       token: sourceToken,
     }
 
+    console.log(`transaction:`, transaction)
     // TODO: DRY. this is copied from useSendTransaction and shouldn't be re-written
     const res = await waitForTransaction(transaction, txModelArgs)
 
@@ -273,6 +265,7 @@ export function useL1CanonicalBridge(
 
     setSending(false)
 
+    console.log(`tx:`, tx)
     return handleTransaction(tx, sourceNetwork, destNetwork, sourceToken)
   }
 

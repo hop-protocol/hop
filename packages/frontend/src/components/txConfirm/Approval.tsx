@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from 'react'
+import React, { useState, ChangeEvent, useCallback } from 'react'
 import Button from 'src/components/buttons/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
@@ -46,11 +46,6 @@ const Approval = (props: Props) => {
 
   const { sending, handleSubmit } = useSendingTransaction({ onConfirm, source })
 
-  const handleApproveAll = (event: ChangeEvent<HTMLInputElement>) => {
-    const checked = event.target.checked
-    setApproveAll(checked)
-  }
-
   return (
     <div className={styles.root}>
       <div className={styles.title}>
@@ -69,9 +64,10 @@ const Approval = (props: Props) => {
             control={
               <Checkbox
                 checked={approveAll}
-                onChange={handleApproveAll}
+                onChange={e => setApproveAll(e.target.checked)}
                 disabled={amount === 'ALL'}
                 color="primary"
+                defaultValue="true"
               />
             }
             label="Approve all"

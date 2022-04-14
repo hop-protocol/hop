@@ -19,21 +19,21 @@ const _networks = kovanNetworks as any
 
 export const networks: Networks = {
   ethereum: {
-    networkId: _networks.ethereum.networkId.toString(),
+    networkId: _networks.ethereum.networkId,
     rpcUrl: _networks.ethereum.publicRpcUrl,
     explorerUrl: _networks.ethereum.explorerUrls[0],
     nativeBridgeUrl: _networks.ethereum.nativeBridgeUrl,
     waitConfirmations: _networks.ethereum.waitConfirmations,
   },
   optimism: {
-    networkId: _networks.optimism.networkId.toString(),
+    networkId: _networks.optimism.networkId,
     rpcUrl: _networks.optimism.publicRpcUrl,
     explorerUrl: _networks.optimism.explorerUrls[0],
     nativeBridgeUrl: _networks.optimism.nativeBridgeUrl,
     waitConfirmations: _networks.optimism.waitConfirmations,
   },
   gnosis: {
-    networkId: _networks.gnosis.networkId.toString(),
+    networkId: _networks.gnosis.networkId,
     rpcUrl: _networks.gnosis.publicRpcUrl,
     explorerUrl: _networks.gnosis.explorerUrls[0],
     nativeBridgeUrl: _networks.gnosis.nativeBridgeUrl,

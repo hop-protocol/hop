@@ -191,6 +191,25 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
+  private setGasProperties (tx: providers.TransactionResponse) {
+    // things get complicated with boosting 1559 when initial tx is using gasPrice
+    // so we explicitly set gasPrice here again
+    const shouldUseGasPrice = this.gasPrice && !tx.gasPrice && tx.maxFeePerGas && tx.maxPriorityFeePerGas && tx.maxFeePerGas.eq(tx.maxPriorityFeePerGas)
+    if (shouldUseGasPrice) {
+      this.type = undefined
+      this.gasPrice = tx.maxFeePerGas
+      this.maxFeePerGas = undefined
+      this.maxPriorityFeePerGas = undefined
+    } else {
+      this.gasPrice = tx.gasPrice!
+      this.maxFeePerGas = tx.maxFeePerGas!
+      this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
+      if (tx.type != null) {
+        this.type = tx.type as TxType
+      }
+    }
+  }
+
   decodeTransferId (): string | undefined {
     if (this.data) {
       try {
@@ -354,18 +373,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const tx = await this._sendTransaction(gasFeeData)
 
     // store populated and normalized values
-    if (tx.type != null) {
-      this.type = tx.type as TxType
-    }
     this.from = tx.from
     this.to = tx.to!
     this.data = tx.data
     this.value = tx.value
     this.gasLimit = tx.gasLimit
-    this.gasPrice = tx.gasPrice!
-    this.maxFeePerGas = tx.maxFeePerGas!
-    this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
     this.nonce = tx.nonce
+    this.setGasProperties(tx)
 
     this.logger.debug(`beginning tracking for ${tx.hash}`)
     this.track(tx)
@@ -442,9 +456,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const use1559 = await this.shouldUse1559()
 
     if (use1559) {
-      const gasFeeData = await this.getGasFeeData()
+      let maxFeePerGas = await this.getMarketMaxFeePerGas()
       const maxPriorityFeePerGas = await this.getBumpedMaxPriorityFeePerGas(multiplier, compareMarketGasPrice)
-      const maxFeePerGas = gasFeeData.maxFeePerGas!.add(maxPriorityFeePerGas) // eslint-disable-line
+      maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas)
 
       return {
         gasPrice: undefined,
@@ -639,7 +653,23 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const priorityFeePerGasCap = this.getPriorityFeePerGasCap()
 
     // don't boost if suggested gas is over max
-    const isMaxReached = gasFeeData.gasPrice?.gt(maxGasPrice) ?? gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
+    const isGasPriceMaxReached = gasFeeData.gasPrice?.gt(maxGasPrice)
+    const isMaxFeePerGasReached = gasFeeData.maxFeePerGas?.gt(maxGasPrice)
+    const isMaxPriorityFeePerGasReached = gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
+    let isMaxReached = isGasPriceMaxReached ?? isMaxFeePerGasReached
+
+    // clamp maxPriorityFeePerGas to max allowed if it exceeds max and
+    // gasPrice or maxFeePerGas are still under max
+    if (!isMaxReached && isMaxPriorityFeePerGasReached && this.maxPriorityFeePerGas) {
+      const clampedGasFeeData = this.clampMaxGasFeeData(gasFeeData)
+      gasFeeData.maxPriorityFeePerGas = clampedGasFeeData.maxPriorityFeePerGas
+
+      // if last used maxPriorityFeePerGas already equals max allowed then
+      // it cannot be boosted
+      if (gasFeeData.maxPriorityFeePerGas?.eq(this.maxPriorityFeePerGas)) {
+        isMaxReached = true
+      }
+    }
     if (isMaxReached) {
       if (!this.maxGasPriceReached) {
         const warnMsg = `max gas price reached. boostedGasFee: (${this.getGasFeeDataAsString(gasFeeData)}, maxGasFee: (gasPrice: ${maxGasPrice}, maxPriorityFeePerGas: ${priorityFeePerGasCap}). cannot boost`
@@ -652,9 +682,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     const tx = await this._sendTransaction(gasFeeData)
 
-    this.gasPrice = tx.gasPrice!
-    this.maxFeePerGas = tx.maxFeePerGas!
-    this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
+    this.setGasProperties(tx)
     this.boostIndex++
     this.track(tx)
     this.emit(State.Boosted, tx, this.boostIndex)
@@ -828,7 +856,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/i.test(errMessage)
     const estimateGasFailed = /eth_estimateGas/i.test(errMessage)
     const isAlreadyKnown = /AlreadyKnown/i.test(errMessage)
-    const isFeeTooLow = /FeeTooLowToCompete/i.test(errMessage)
+    const isFeeTooLow = /FeeTooLowToCompete|transaction underpriced/i.test(errMessage)
     return {
       nonceTooLow,
       estimateGasFailed,

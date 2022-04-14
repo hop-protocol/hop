@@ -50,35 +50,18 @@ const PendingAmountStats: FC = () => {
             accessor: 'pendingAmount',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
-                <Icon mr={1} src={cell.row.values.token} />
+                <Icon mr={1} src={cell.row.original.token} />
                 {commafy(cell.value)}
               </CellWrapper>
             ),
-          },
-          {
-            Header: 'Token Decimals',
-            accessor: 'tokenDecimals',
-            Cell: props => {
-              props.setHiddenColumns('tokenDecimals')
-              return <Div>_</Div>
-            },
           },
           {
             Header: 'Available Liquidity',
             accessor: 'availableLiquidity',
             Cell: ({ cell }) => (
               <CellWrapper cell={cell} end>
-                <Icon mr={1} src={cell.row.values.token} />
+                <Icon mr={1} src={cell.row.original.token} />
                 {commafy(cell.value)}
-              </CellWrapper>
-            ),
-          },
-          {
-            Header: 'Token',
-            accessor: 'token',
-            Cell: ({ cell }) => (
-              <CellWrapper cell={cell}>
-                <Icon src={cell.value} />
               </CellWrapper>
             ),
           },

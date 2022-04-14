@@ -2,9 +2,9 @@ import React from 'react'
 import { commafy } from 'src/utils'
 import { Flex } from 'src/components/ui'
 
-export function CellWrapper({ cell, end, children }: any) {
+export function CellWrapper({ cell, end, style, children }: any) {
   return (
-    <Flex alignCenter justifyContent={end ? 'flex-end' : 'center'} {...cell.getCellProps()}>
+    <Flex alignCenter justifyContent={end ? 'flex-end' : 'center'} {...cell.getCellProps()} style={style}>
       {children}
     </Flex>
   )

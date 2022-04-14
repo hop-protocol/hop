@@ -5,7 +5,6 @@ import { Div, Icon } from 'src/components/ui'
 import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Table'
 
 export const populateDebitWindowStats = (item: any, bonderStats, i) => {
-  console.log(`item:`, item)
   return {
     token: item.token.imageUrl,
     slot0: item.amountBonded[0],

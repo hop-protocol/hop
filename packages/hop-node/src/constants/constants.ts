@@ -15,12 +15,18 @@ export enum Chain {
   Gnosis = 'gnosis',
 }
 
+export enum NativeChainToken {
+  ETH = 'ETH',
+  XDAI = 'XDAI',
+  MATIC = 'MATIC'
+}
+
 export const nativeChainTokens: Record<string, string> = {
-  ethereum: 'ETH',
-  arbitrum: 'ETH',
-  optimism: 'ETH',
-  polygon: 'MATIC',
-  gnosis: 'XDAI'
+  ethereum: NativeChainToken.ETH,
+  arbitrum: NativeChainToken.ETH,
+  optimism: NativeChainToken.ETH,
+  polygon: NativeChainToken.MATIC,
+  gnosis: NativeChainToken.XDAI
 }
 
 export enum Token {

@@ -169,7 +169,7 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId,
         totalAmount
       )
-      const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash}`
+      const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {

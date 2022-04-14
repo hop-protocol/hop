@@ -169,6 +169,8 @@ export class HealthCheckWatcher {
     lowAvailableLiquidityBonders: true
   }
 
+  lastNotificationSentAt: number
+
   constructor (config: Config) {
     const { days, offsetDays, s3Upload, s3Namespace, cacheFile } = config
     if (days) {
@@ -293,9 +295,17 @@ export class HealthCheckWatcher {
       }
     }
 
-    for (const item of unsyncedSubgraphs) {
-      const msg = `UnsyncedSubgraph: chain: ${item.chain}, syncedBlockNumber: ${item.syncedBlockNumber}, headBlockNumber: ${item.headBlockNumber}, diffBlockNumber: ${item.diffBlockNumber}`
-      messages.push(msg)
+    const delayMs = 1 * 60 * 60 * 1000
+    let shouldSendUnsyncedSubgraphNotification = true
+    if (this.lastNotificationSentAt) {
+      shouldSendUnsyncedSubgraphNotification = this.lastNotificationSentAt + delayMs < Date.now()
+    }
+    if (shouldSendUnsyncedSubgraphNotification) {
+      for (const item of unsyncedSubgraphs) {
+        const msg = `UnsyncedSubgraph: chain: ${item.chain}, syncedBlockNumber: ${item.syncedBlockNumber}, headBlockNumber: ${item.headBlockNumber}, diffBlockNumber: ${item.diffBlockNumber}`
+        messages.push(msg)
+        this.lastNotificationSentAt = Date.now()
+      }
     }
 
     for (const msg of messages) {

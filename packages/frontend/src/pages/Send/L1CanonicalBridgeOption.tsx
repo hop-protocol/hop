@@ -13,7 +13,6 @@ interface Props {
   destToken?: Token
   estimatedReceivedDisplay?: string
   l1CanonicalBridge?: CanonicalBridge
-  sendL1CanonicalBridge?: () => void
   selectNativeBridge: (u: boolean) => void
   usingNativeBridge?: boolean
 }

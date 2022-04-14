@@ -6,9 +6,9 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import { findNetworkById, formatError, toTokenDisplay } from 'src/utils'
 import CanonicalBridge from 'src/models/CanonicalBridge'
-import { useApprove } from 'src/hooks'
 import { l1Network } from 'src/config/networks'
 import { TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
+import { useQuery } from 'react-query'
 
 interface Options {
   customRecipient?: string
@@ -45,7 +45,26 @@ export function useL1CanonicalBridge(
 
   const sourceNetwork = findNetworkById(sourceToken?.chain.chainId!)
 
-  const { needsNativeBridgeApproval } = useApprove(sourceToken, sourceNetwork, sourceTokenAmount)
+  const { data: needsNativeBridgeApproval } = useQuery(
+    [
+      `needsNativeBridgeApproval:${l1CanonicalBridge?.address}:${sourceTokenAmount?.toString()}`,
+      l1CanonicalBridge?.address,
+      sourceTokenAmount?.toString(),
+    ],
+    async () => {
+      if (!(usingNativeBridge && l1CanonicalBridge && sourceTokenAmount)) {
+        return
+      }
+
+      const allowance = await l1CanonicalBridge.getL1CanonicalAllowance()
+      return allowance?.lt(sourceTokenAmount)
+    },
+    {
+      enabled:
+        !!usingNativeBridge && !!l1CanonicalBridge?.address && !!sourceTokenAmount?.toString(),
+      refetchInterval: 10e3,
+    }
+  )
 
   useEffect(() => {
     if (userSpecifiedBridge) return
@@ -87,32 +106,39 @@ export function useL1CanonicalBridge(
       return
     }
 
-    setApproving(true)
-    const tx: any = await txConfirm.show({
-      kind: 'approval',
-      inputProps: {
-        tagline: `Allow Hop to spend your ${sourceToken?.symbol} on ${sourceToken?.chain.name}`,
-        source: {
-          network: {
-            slug: sourceToken?.chain.slug,
-            networkId: sourceToken?.chain.chainId,
+    try {
+      setApproving(true)
+      const tx: any = await txConfirm.show({
+        kind: 'approval',
+        inputProps: {
+          tagline: `Allow Hop to spend your ${sourceToken?.symbol} on ${sourceToken?.chain.name}`,
+          source: {
+            network: {
+              slug: sourceToken?.chain.slug,
+              networkId: sourceToken?.chain.chainId,
+            },
           },
         },
-      },
-      onConfirm: async () => {
-        const approveAmount = constants.MaxUint256
+        onConfirm: async () => {
+          const approveAmount = constants.MaxUint256
 
-        const networkId = sourceToken!.chain.chainId
-        const isNetworkConnected = await checkConnectedNetworkId(networkId)
-        if (!isNetworkConnected) return
+          const networkId = sourceToken!.chain.chainId
+          const isNetworkConnected = await checkConnectedNetworkId(networkId)
+          if (!isNetworkConnected) return
 
-        return l1CanonicalBridge.approve(approveAmount as BigNumberish)
-      },
-    })
-    console.log(`tx:`, tx)
+          return l1CanonicalBridge.approve(approveAmount as BigNumberish)
+        },
+      })
 
-    setApproving(false)
-    return handleTransaction(tx, sourceNetwork, destNetwork, sourceToken)
+      setApproving(false)
+      if (tx?.hash) {
+        return handleTransaction(tx, sourceNetwork, destNetwork, sourceToken)
+      }
+    } catch (error: any) {
+      setApproving(false)
+      logger.error(formatError(error))
+      throw new Error(error)
+    }
   }
 
   async function sendL1CanonicalBridge() {

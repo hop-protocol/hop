@@ -23,13 +23,7 @@ async function getTokenAllowance(token: Token, spender: string) {
   return token.allowance(spender)
 }
 
-const useApprove = (
-  token?: Token,
-  sourceNetwork?: Network,
-  amountOut?: BigNumber,
-  l1CanonicalBridge?: CanonicalBridge,
-  sourceTokenAmount?: BigNumber
-) => {
+const useApprove = (token?: Token, sourceNetwork?: Network, amountOut?: BigNumber) => {
   const { provider } = useWeb3Context()
   const { txConfirm, sdk } = useApp()
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
@@ -58,22 +52,6 @@ const useApprove = (
     },
     {
       enabled: !!token?.symbol && !!sourceNetwork?.slug && !!amountOut?.toString(),
-      refetchInterval: 10e3,
-    }
-  )
-
-  const { data: needsNativeBridgeApproval } = useQuery(
-    [`needsNativeBridgeApproval:${l1CanonicalBridge?.address}:${sourceTokenAmount?.toString()}`],
-    async () => {
-      if (!(l1CanonicalBridge && sourceTokenAmount)) {
-        return
-      }
-
-      const allowance = await l1CanonicalBridge.getL1CanonicalAllowance()
-      return allowance?.lt(sourceTokenAmount)
-    },
-    {
-      enabled: !!l1CanonicalBridge?.address && !!sourceTokenAmount?.toString(),
       refetchInterval: 10e3,
     }
   )
@@ -155,7 +133,7 @@ const useApprove = (
     return tx
   }
 
-  return { approve, checkApproval, needsApproval, needsNativeBridgeApproval }
+  return { approve, checkApproval, needsApproval }
 }
 
 export default useApprove

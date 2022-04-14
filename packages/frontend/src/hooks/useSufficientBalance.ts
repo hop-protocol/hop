@@ -21,14 +21,14 @@ export function useSufficientBalance(
     [
       `sufficientBalance:${
         token?.symbol
-      }:${amount?.toString()}:${estimatedGasCost?.toString()}:${tokenBalance?.toString()}:${needsNativeBridgeApproval}`,
-      token,
-      estimatedGasCost,
-      amount,
-      needsNativeBridgeApproval,
+      }:${amount?.toString()}:${estimatedGasCost?.toString()}:${tokenBalance?.toString()}`,
+      token?.symbol,
+      estimatedGasCost?.toString(),
+      amount?.toString(),
+      tokenBalance?.toString(),
     ],
     async () => {
-      if (!(token && amount && tokenBalance?.gt(0))) {
+      if (!(token && amount && estimatedGasCost?.toString() && tokenBalance?.gt(0))) {
         setWarning('')
         return false
       }
@@ -55,14 +55,12 @@ export function useSufficientBalance(
         let totalEst = BigNumber.from(0)
         if (needsNativeBridgeApproval) {
           const estApproval = await l1CanonicalBridge?.estimateApproveTx(amount)
-          console.log(`estApproval:`, estApproval?.toString())
           if (estApproval) {
             totalEst = totalEst.add(estApproval)
           }
           return totalEst
-        } else {
+        } else if (usingNativeBridge) {
           const estDeposit = await l1CanonicalBridge?.estimateDepositTx(amount)
-          console.log(`estDeposit:`, estDeposit?.toString())
           if (estDeposit) {
             totalEst = totalEst.add(estDeposit)
           }

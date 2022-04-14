@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChainId, Hop, NetworkSlug, Token } from '@hop-protocol/sdk'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import Network from 'src/models/Network'
@@ -50,6 +50,7 @@ export function useL1CanonicalBridge(
       `needsNativeBridgeApproval:${l1CanonicalBridge?.address}:${sourceTokenAmount?.toString()}`,
       l1CanonicalBridge?.address,
       sourceTokenAmount?.toString(),
+      usingNativeBridge,
     ],
     async () => {
       if (!(usingNativeBridge && l1CanonicalBridge && sourceTokenAmount)) {
@@ -136,8 +137,11 @@ export function useL1CanonicalBridge(
       }
     } catch (error: any) {
       setApproving(false)
-      logger.error(formatError(error))
-      throw new Error(error)
+      if (!/cancelled/gi.test(error.message)) {
+        // noop
+        return
+      }
+      throw new Error(error.message)
     }
   }
 
@@ -195,6 +199,10 @@ export function useL1CanonicalBridge(
 
           return l1CanonicalBridge.deposit(sourceTokenAmount)
         } catch (error: any) {
+          if (!/cancelled/gi.test(error.message)) {
+            // noop
+            return
+          }
           logger.error(formatError(error))
         }
       },

@@ -109,7 +109,7 @@ class CanonicalBridge extends Base {
     if (!spender) {
       throw new Error(`token "${this.tokenSymbol}" on chain "${this.chain.slug}" is unsupported`)
     }
-    return l1CanonicalToken.approve(spender, amount)
+    return await l1CanonicalToken.approve(spender, amount)
   }
 
   public async estimateDepositTx(amount: BigNumberish) {

@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
-import { NetworkTokenEntity } from 'src/utils'
+import { formatError, NetworkTokenEntity } from 'src/utils'
 
 interface BaseSendingTransaction {
   onConfirm: (confirmed: boolean, params?: any) => void
@@ -31,34 +31,36 @@ export function useSendingTransaction(props: SendingTransaction) {
 
   const [sending, setSending] = useState<boolean>(false)
 
-  async function handleSubmit(opts?: any) {
-    try {
-      let src: Partial<NetworkTokenEntity> | undefined
-      if ('source' in props) {
-        src = props.source
-      } else if ('token' in props) {
-        src = props.token
-      } else if ('token0' in props) {
-        src = props.token0
-      } else {
-        throw new Error(
-          `NetworkTokenEntity (source, token, token0) required. props: ${JSON.stringify(props)}`
-        )
-      }
-      const txChainId = Number(src?.network?.networkId)
-      const isNetworkConnected = await checkConnectedNetworkId(txChainId)
-      if (!isNetworkConnected) return
+  const handleSubmit = useCallback(
+    async (opts?: any) => {
+      try {
+        let src: Partial<NetworkTokenEntity> | undefined
+        if ('source' in props) {
+          src = props.source
+        } else if ('token' in props) {
+          src = props.token
+        } else if ('token0' in props) {
+          src = props.token0
+        } else {
+          throw new Error(
+            `NetworkTokenEntity (source, token, token0) required. props: ${JSON.stringify(props)}`
+          )
+        }
+        const txChainId = Number(src?.network?.networkId)
+        const isNetworkConnected = await checkConnectedNetworkId(txChainId)
+        if (!isNetworkConnected) return
 
-      setSending(true)
-      const res = await onConfirm(true, opts)
-      setSending(false)
-      return res
-    } catch (err) {
-      logger.error(err)
-      setSending(false)
-      throw err
-    }
-  }
+        setSending(true)
+        const res = await onConfirm(true, opts)
+        setSending(false)
+        return res
+      } catch (err: any) {
+        logger.error(formatError(err))
+        setSending(false)
+      }
+    },
+    [checkConnectedNetworkId, sending, onConfirm]
+  )
 
   return {
     sending,

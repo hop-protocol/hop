@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import logger from 'src/logger'
 import { formatError } from 'src/utils'
 
 type InputProps = any
@@ -18,35 +19,41 @@ export const useTxConfirm = (options?: any): TxConfirm => {
   // logger.debug('useTxConfirm debug')
   const [txConfirmParams, setTxConfirm] = useState<ConfirmParams>(null)
 
-  const show = useCallback((params: TxConfirmParams) => {
-    const { kind, inputProps, onConfirm } = params
-    return new Promise((resolve, reject) => {
-      setTxConfirm({
-        kind,
-        inputProps,
-        onConfirm: async (confirmed: true, params?: ConfirmParams) => {
-          try {
-            if (!confirmed) {
-              throw new Error('Cancelled')
-            }
+  const show = useCallback(
+    (params: TxConfirmParams) => {
+      const { kind, inputProps, onConfirm } = params
+      return new Promise((resolve, reject) => {
+        setTxConfirm({
+          kind,
+          inputProps,
+          onConfirm: async (confirmed: boolean = true, params?: ConfirmParams) => {
+            try {
+              if (!confirmed) {
+                throw new Error('Cancelled')
+              }
 
-            if (onConfirm) {
-              const res = await onConfirm(params)
-              resolve(res)
-            } else {
-              resolve(null)
+              if (onConfirm) {
+                const res = await onConfirm(params)
+                resolve(res)
+              } else {
+                resolve(null)
+              }
+            } catch (err: any) {
+              // MetaMask cancel error
+              if (options?.setError) {
+                options.setError(formatError(err))
+              } else {
+                logger.error(formatError(err))
+                reject(new Error(err))
+              }
             }
-          } catch (err: any) {
-            // MetaMask cancel error
-            if (options?.setError) {
-              options.setError(formatError(err))
-            }
-          }
-          setTxConfirm(null)
-        },
+            setTxConfirm(null)
+          },
+        })
       })
-    })
-  }, [options])
+    },
+    [options]
+  )
 
   return {
     txConfirmParams,

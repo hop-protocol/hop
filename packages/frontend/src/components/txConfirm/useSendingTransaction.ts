@@ -50,10 +50,13 @@ export function useSendingTransaction(props: SendingTransaction) {
       if (!isNetworkConnected) return
 
       setSending(true)
-      onConfirm(true, opts)
+      const res = await onConfirm(true, opts)
+      setSending(false)
+      return res
     } catch (err) {
       logger.error(err)
       setSending(false)
+      throw err
     }
   }
 

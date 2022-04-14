@@ -332,24 +332,32 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       throw new Error('gasService is not set')
     }
 
+    const { slow: feeData } = await this.gasService.getGasFeeData()
     const use1559 = await this.shouldUse1559()
-    if (use1559) {
-      const { slow } = await this.gasService.get1559GasFeeData()
-      return slow
+    if (use1559 && feeData.gasPrice) {
+      const maxPriorityFeePerGas = this.getMinPriorityFeePerGas()
+
+      // set maxPriorityFeePerGas to be the same as the slow gasPrice
+      return {
+        gasPrice: null,
+        maxFeePerGas: feeData.gasPrice.add(maxPriorityFeePerGas),
+        maxPriorityFeePerGas
+      }
     }
 
-    const { slow } = await this.gasService.getGasFeeData()
-    return slow
+    return feeData
   }
 
   async send () {
     let gasFeeData: any
-    const useLowPriorityGas = this.initialTxIsLowPriority && this.boostIndex === 0 && this.gasService
+    const useLowPriorityGas = this.initialTxIsLowPriority && this.boostIndex === 0 && this.gasService && this.chainSlug === Chain.Ethereum
     if (useLowPriorityGas) {
       try {
         gasFeeData = await this.getLowProrityGasFeeData()
       } catch (err) {
         this.logger.error('getLowProrityGasFeeData error:', err)
+
+        // if there's an error then use non-bumped gas fee data from ethers
         gasFeeData = await this.getBumpedGasFeeData(1, false)
       }
     } else {

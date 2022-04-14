@@ -2,8 +2,9 @@ import { Token } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { useState } from 'react'
 import { useQuery } from 'react-query'
+import logger from 'src/logger'
 import CanonicalBridge from 'src/models/CanonicalBridge'
-import { toTokenDisplay } from 'src/utils'
+import { formatError, toTokenDisplay } from 'src/utils'
 
 export function useSufficientBalance(
   token?: Token,
@@ -26,6 +27,7 @@ export function useSufficientBalance(
       estimatedGasCost?.toString(),
       amount?.toString(),
       tokenBalance?.toString(),
+      usingNativeBridge,
     ],
     async () => {
       if (!(token && amount && estimatedGasCost?.toString() && tokenBalance?.gt(0))) {
@@ -47,27 +49,31 @@ export function useSufficientBalance(
         estGasCost = BigNumber.from(200e3).mul(gasPrice || 1e9)
       }
 
-      if (usingNativeBridge && tokenBalance?.lt(estGasCost.add(amount))) {
+      if (usingNativeBridge && ntb?.lt(estGasCost.add(amount))) {
+        message = `Insufficient balance to cover the cost of tx. Please add ${token.nativeTokenSymbol} to pay for tx fees.`
+        setWarning(message)
         return false
       }
 
-      try {
-        let totalEst = BigNumber.from(0)
-        if (needsNativeBridgeApproval) {
-          const estApproval = await l1CanonicalBridge?.estimateApproveTx(amount)
-          if (estApproval) {
-            totalEst = totalEst.add(estApproval)
+      if (usingNativeBridge) {
+        try {
+          let totalEst = BigNumber.from(0)
+          if (needsNativeBridgeApproval) {
+            const estApproval = await l1CanonicalBridge?.estimateApproveTx(amount)
+            if (estApproval) {
+              totalEst = totalEst.add(estApproval)
+            }
+          } else {
+            const estDeposit = await l1CanonicalBridge?.estimateDepositTx(amount)
+            if (estDeposit) {
+              totalEst = totalEst.add(estDeposit)
+            }
           }
-          return totalEst
-        } else if (usingNativeBridge) {
-          const estDeposit = await l1CanonicalBridge?.estimateDepositTx(amount)
-          if (estDeposit) {
-            totalEst = totalEst.add(estDeposit)
-          }
+          estGasCost = estGasCost.add(totalEst)
+        } catch (error) {
+          logger.error(formatError(error))
+          return false
         }
-      } catch (error) {
-        console.log(`error:`, error)
-        return false
       }
 
       if (token.isNativeToken) {
@@ -108,7 +114,12 @@ export function useSufficientBalance(
       return false
     },
     {
-      refetchInterval: 10e3,
+      enabled:
+        !!token?.symbol &&
+        !!amount?.toString() &&
+        !!estimatedGasCost?.toString() &&
+        !!tokenBalance?.toString(),
+      refetchInterval: 2e3,
     }
   )
 

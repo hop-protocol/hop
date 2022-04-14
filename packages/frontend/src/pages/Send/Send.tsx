@@ -284,13 +284,11 @@ const Send: FC = () => {
     estimatedReceived,
     txConfirm,
     {
-      customRecipient,
       handleTransaction,
       setSending,
       setTx,
       waitForTransaction,
       updateTransaction,
-      setError,
       setApproving,
     }
   )
@@ -514,9 +512,18 @@ const Send: FC = () => {
 
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork)
 
-  const approveButtonActive = usingNativeBridge
-    ? !!needsNativeBridgeApproval
-    : !needsTokenForFee && !unsupportedAsset && needsApproval
+  const approveButtonActive = useMemo(() => {
+    if (usingNativeBridge && needsNativeBridgeApproval) {
+      return !!needsNativeBridgeApproval
+    }
+    return !needsTokenForFee && !unsupportedAsset && !!needsApproval
+  }, [
+    usingNativeBridge,
+    needsNativeBridgeApproval,
+    needsTokenForFee,
+    unsupportedAsset,
+    needsApproval,
+  ])
 
   const sendButtonActive = useMemo(() => {
     return !!(

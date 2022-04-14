@@ -29,7 +29,7 @@ export const useTxConfirm = (options?: any): TxConfirm => {
           onConfirm: async (confirmed: boolean = true, params?: ConfirmParams) => {
             try {
               if (!confirmed) {
-                throw new Error('Cancelled')
+                reject(new Error('Cancelled'))
               }
 
               if (onConfirm) {
@@ -44,7 +44,7 @@ export const useTxConfirm = (options?: any): TxConfirm => {
                 options.setError(formatError(err))
               } else {
                 logger.error(formatError(err))
-                reject(new Error(err))
+                reject(err)
               }
             }
             setTxConfirm(null)

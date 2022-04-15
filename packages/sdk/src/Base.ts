@@ -549,6 +549,7 @@ class Base {
 
   getSupportedAssets () {
     const supported : any = {}
+
     for (const token in this.addresses) {
       for (const chain in this.addresses[token]) {
         if (!supported[chain]) {

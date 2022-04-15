@@ -109,7 +109,7 @@ class Transaction extends EventEmitter {
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
       this.blockNumber = receipt.blockNumber
       const block = await this.provider.getBlock(receipt.blockNumber)
-      this.timestampMs = block.timestamp * 1000
+      this.timestampMs = block ? block.timestamp * 1000 : 1000
 
       if (tsDetails?.chainId) {
         this.destNetworkName = networkIdToSlug(tsDetails.chainId)

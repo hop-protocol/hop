@@ -22,8 +22,6 @@ interface BaseTransferRoot {
   confirmTxHash?: string
   destinationChainId?: number
   isNotFound?: boolean
-  multipleWithdrawalsSettledTotalAmount?: BigNumber
-  multipleWithdrawalsSettledTxHash?: string
   rootSetBlockNumber?: number
   rootSetTimestamp?: number
   rootSetTxHash?: string
@@ -54,6 +52,17 @@ type TransferRootsDateFilter = {
 
 type GetItemsFilter = Partial<TransferRoot> & {
   destinationChainIds?: number[]
+}
+
+interface MultipleWithdrawalsSettled {
+  transferRootHash: string
+  transferRootId: string
+  bonder: string
+  totalBondsSettled: BigNumber
+  txHash: string
+  blockNumber: number
+  txIndex: number
+  logIndex: number
 }
 
 type UnsettledTransferRoot = {
@@ -192,8 +201,7 @@ class SubDbIncompletes extends BaseDb {
       (item.commitTxHash && !item.committedAt) ||
       (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
       (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
-      (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||
-      (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds)
+      (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }
@@ -259,6 +267,45 @@ class SubDbBondedAt extends BaseDb {
 }
 
 // structure:
+// key: `<transferRootId>:<txHash>`
+// value: `{ ...MultipleWithdrawalsSettled }`
+class SubDbMultipleWithdrawalsSettleds extends BaseDb {
+  constructor (prefix: string, _namespace?: string) {
+    super(`${prefix}:multipleWithdrawalsSettleds`, _namespace)
+  }
+
+  getInsertKey (event: MultipleWithdrawalsSettled) {
+    if (event.transferRootId && event.txHash) {
+      return `${event.transferRootId}:${event.txHash}`
+    }
+  }
+
+  async insertItem (event: MultipleWithdrawalsSettled) {
+    const { transferRootId } = event
+    const logger = this.logger.create({ id: transferRootId })
+    const key = this.getInsertKey(event)
+    if (!key) {
+      return
+    }
+    const exists = await this.getById(key)
+    if (!exists) {
+      logger.debug(`storing db MultipleWithdrawalsSettled item. key: ${key}`)
+      await this._update(key, event)
+      logger.debug(`updated db MultipleWithdrawalsSettled item. key: ${key}`)
+    }
+  }
+
+  async getEvents (transferRootId: string): Promise<MultipleWithdrawalsSettled[]> {
+    const filter: KeyFilter = {
+      gte: `${transferRootId}:`,
+      lte: `${transferRootId}:~`
+    }
+
+    return this.getValues(filter)
+  }
+}
+
+// structure:
 // key: `<transferRootId>`
 // value: `{ ...TransferRoot }`
 class TransferRootsDb extends BaseDb {
@@ -266,6 +313,7 @@ class TransferRootsDb extends BaseDb {
   subDbIncompletes: SubDbIncompletes
   subDbRootHashes: SubDbRootHashes
   subDbBondedAt: SubDbBondedAt
+  subDbMultipleWithdrawalsSettleds: SubDbMultipleWithdrawalsSettleds
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
@@ -274,6 +322,7 @@ class TransferRootsDb extends BaseDb {
     this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
     this.subDbBondedAt = new SubDbBondedAt(prefix, _namespace)
+    this.subDbMultipleWithdrawalsSettleds = new SubDbMultipleWithdrawalsSettleds(prefix, _namespace)
     this.logger.debug('TransferRootsDb initialized')
   }
 
@@ -664,7 +713,7 @@ class TransferRootsDb extends BaseDb {
 
     const batchedItems = await this.batchGetByIds(transferRootIds)
     const transferRoots = batchedItems.map(this.normalizeItem)
-    const filtered = transferRoots.filter(item => {
+    const filtered = transferRoots.filter((item: TransferRoot) => {
       if (filter.sourceChainId && item.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
@@ -679,6 +728,27 @@ class TransferRootsDb extends BaseDb {
     })
 
     return filtered
+  }
+
+  async updateMultipleWithdrawalsSettledEvent (event: MultipleWithdrawalsSettled) {
+    await this.subDbMultipleWithdrawalsSettleds.insertItem(event)
+  }
+
+  async getMultipleWithdrawalsSettledTotalAmount (transferRootId: string) {
+    // sum up all the totalBondsSettled amounts to get total settled amount
+    const events = await this.subDbMultipleWithdrawalsSettleds.getEvents(transferRootId)
+    let settledTotalAmount = BigNumber.from(0)
+    for (const event of events) {
+      settledTotalAmount = settledTotalAmount.add(event.totalBondsSettled)
+    }
+    return settledTotalAmount
+  }
+
+  async getMultipleWithdrawalsSettledTxHash (transferRootId: string) {
+    const events = await this.subDbMultipleWithdrawalsSettleds.getEvents(transferRootId)
+
+    // we can use any tx hash since we'll be using it to decode list of transfer ids upstream
+    return events?.[0]?.txHash
   }
 }
 

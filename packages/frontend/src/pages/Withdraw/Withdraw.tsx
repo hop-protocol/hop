@@ -60,74 +60,78 @@ export const Withdraw: FC = () => {
       setError('')
       let wp: WithdrawalProof
       await new Promise(async (resolve, reject) => {
-        wp = new WithdrawalProof(transferIdOrTxHash)
-        const { sourceChain } = wp.transfer
-        await txConfirm?.show({
-          kind: 'withdrawReview',
-          inputProps: {
-            source: {
-              network: sourceChain,
+        try {
+          wp = new WithdrawalProof(transferIdOrTxHash)
+          await wp.generateProof()
+          const { sourceChain } = wp.transfer
+          await txConfirm?.show({
+            kind: 'withdrawReview',
+            inputProps: {
+              source: {
+                network: sourceChain,
+              },
+              getProof: async () => {
+                return wp
+              },
+              getInfo: async (wp: WithdrawalProof) => {
+                const { sourceChain, destinationChain, token, tokenDecimals, amount } = wp.transfer
+                const formattedAmount = toTokenDisplay(amount, tokenDecimals)
+                const source = networks.find(network => network.slug === sourceChain)
+                const destination = networks.find(network => network.slug === destinationChain)
+                return {
+                  source,
+                  destination,
+                  token,
+                  amount: formattedAmount,
+                }
+              },
+              sendTx: async () => {
+                await wp.checkWithdrawable()
+                const networkId = Number(wp.transfer.destinationChainId)
+                const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                if (!isNetworkConnected) {
+                  return
+                }
+                const {
+                  recipient,
+                  amount,
+                  transferNonce,
+                  bonderFee,
+                  amountOutMin,
+                  deadline,
+                  transferRootHash,
+                  rootTotalAmount,
+                  transferIdTreeIndex,
+                  siblings,
+                  totalLeaves,
+                } = wp.getTxPayload()
+                const bridge = sdk.bridge(wp.transfer.token)
+                const tx = await bridge.withdraw(
+                  wp.transfer.destinationChain,
+                  recipient,
+                  amount,
+                  transferNonce,
+                  bonderFee,
+                  amountOutMin,
+                  deadline,
+                  transferRootHash!,
+                  rootTotalAmount!,
+                  transferIdTreeIndex!,
+                  siblings!,
+                  totalLeaves!
+                )
+                return tx
+              },
+              onError: err => {
+                reject(err)
+              },
             },
-            getProof: async () => {
-              await wp.generateProof()
-              return wp
-            },
-            getInfo: async (wp: WithdrawalProof) => {
-              const { sourceChain, destinationChain, token, tokenDecimals, amount } = wp.transfer
-              const formattedAmount = toTokenDisplay(amount, tokenDecimals)
-              const source = networks.find(network => network.slug === sourceChain)
-              const destination = networks.find(network => network.slug === destinationChain)
-              return {
-                source,
-                destination,
-                token,
-                amount: formattedAmount,
-              }
-            },
-            sendTx: async () => {
-              await wp.checkWithdrawable()
-              const networkId = Number(wp.transfer.destinationChainId)
-              const isNetworkConnected = await checkConnectedNetworkId(networkId)
-              if (!isNetworkConnected) {
-                return
-              }
-              const {
-                recipient,
-                amount,
-                transferNonce,
-                bonderFee,
-                amountOutMin,
-                deadline,
-                transferRootHash,
-                rootTotalAmount,
-                transferIdTreeIndex,
-                siblings,
-                totalLeaves,
-              } = wp.getTxPayload()
-              const bridge = sdk.bridge(wp.transfer.token)
-              const tx = await bridge.withdraw(
-                wp.transfer.destinationChain,
-                recipient,
-                amount,
-                transferNonce,
-                bonderFee,
-                amountOutMin,
-                deadline,
-                transferRootHash!,
-                rootTotalAmount!,
-                transferIdTreeIndex!,
-                siblings!,
-                totalLeaves!
-              )
-              return tx
-            },
-            onError: err => {
-              reject(err)
-            },
-          },
-          onConfirm: async () => {}, // needed to close modal
-        })
-        resolve(null)
+            onConfirm: async () => {}, // needed to close modal
+          })
+          resolve(null)
+        } catch (err) {
+          reject(err)
+        }
       })
     } catch (err: any) {
       console.error(err)

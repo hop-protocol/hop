@@ -39,7 +39,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
   const isMatchingSignerAndSourceChainNetwork = useMemo(() => {
     if (queryParams?.sourceNetwork) {
       const chainId = networkSlugToId(queryParams.sourceNetwork as ChainSlug)
-      if (opts.gnosisSafe?.chainId.toString() === chainId) {
+      if (opts.gnosisSafe?.chainId === chainId) {
         return true
       }
     }

@@ -7,17 +7,9 @@ import DebitWindowStats from './DebitWindowStats'
 import { Flex } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 
-function Title({ text, children }: any) {
-  return (
-    <Flex alignCenter fontSize={[2, 2, 3]} bold width="auto">
-      {text || children}
-    </Flex>
-  )
-}
-
 function Group({ title, children, clickTitle, ...rest }) {
   return (
-    <Flex justifyCenter alignCenter m={[1, 2, 4]} overflowX="scroll" {...rest}>
+    <Flex alignCenter m={[1, 2, 4]} overflowX="scroll" {...rest}>
       {children}
     </Flex>
   )
@@ -75,7 +67,10 @@ const Stats: FC = () => {
         </Flex>
       </Flex>
 
-      <Flex width={['auto', '100%', '50%']}>
+      <Flex
+        width={['auto', '100%', '100%', '50%']}
+        justifyContent={['center', 'center', 'center', 'center', 'flex-start']}
+      >
         <Group title="Pending Amount Stats" clickTitle={() => toggleGroup('pendingAmount')}>
           {groups.pendingAmount && <PendingAmountStats />}
         </Group>

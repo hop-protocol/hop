@@ -53,12 +53,17 @@ const LoadingWrapper: any = styled.div<any>`
       : 'none'};
 `
 
-function Loading({ size, load }: any) {
+interface LoadingProps {
+  size?: number
+  load?: boolean
+}
+
+function Loading({ size = 24, load = true }: LoadingProps) {
   const theme = useTheme()
 
   return (
     <Flex justifyCenter alignCenter>
-      <LoadingWrapper size={size} load={load}>
+      <LoadingWrapper load={load}>
         <Center size={size - 6} theme={theme} />
       </LoadingWrapper>
     </Flex>

@@ -1,15 +1,17 @@
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
-import { Token, Chain } from '@hop-protocol/sdk'
+import { Token, Chain, HopBridge } from '@hop-protocol/sdk'
 import Transaction from 'src/models/Transaction'
-import { toTokenDisplay } from 'src/utils'
+import { amountToBN, toTokenDisplay } from 'src/utils'
 import { useTransactionReplacement } from './useTransactionReplacement'
 import { useQuery } from 'react-query'
 import Network from 'src/models/Network'
 import CanonicalBridge from 'src/models/CanonicalBridge'
+import { useState } from 'react'
+import logger from 'src/logger'
 
-async function getSpender(network, bridge) {
+async function getSpender(network: Network, bridge: HopBridge) {
   if (network.isLayer1) {
     const l1Bridge = await bridge.getL1Bridge()
     return l1Bridge.address
@@ -19,36 +21,49 @@ async function getSpender(network, bridge) {
   return ammWrapper.address
 }
 
-async function getTokenAllowance(token: Token, spender: string) {
-  return token.allowance(spender)
+async function getTokenAllowance(token: Token, spender: string, address?: string) {
+  const allowed = await token.allowance(spender, address)
+  return allowed
 }
 
 const useApprove = (token?: Token, sourceNetwork?: Network, amountOut?: BigNumber) => {
-  const { provider } = useWeb3Context()
+  const { provider, address } = useWeb3Context()
   const { txConfirm, sdk } = useApp()
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
+  const [tokenAllowance, setTokenAllowance] = useState<BigNumber>()
 
   const { data: needsApproval } = useQuery(
     [
-      `needsApproval:${token?.symbol}:${sourceNetwork?.slug}:${amountOut?.toString()}}`,
+      `needsApproval:${token?.symbol}:${sourceNetwork?.slug}:${amountOut?.toString()}`,
       token?.symbol,
       sourceNetwork?.slug,
       amountOut?.toString(),
     ],
     async () => {
       if (!(token && sdk && sourceNetwork && amountOut)) {
-        return
-      }
-
-      const bridge = sdk.bridge(token.symbol)
-
-      if (token.isNativeToken) {
         return false
       }
 
-      const spender = await getSpender(sourceNetwork, bridge)
-      const tokenAllowance = await getTokenAllowance(token, spender)
-      return tokenAllowance.lte(amountOut.toString())
+      try {
+        const bridge = sdk.bridge(token.symbol)
+
+        const parsedAmount = amountToBN(amountOut.toString(), token.decimals)
+        if (token.isNativeToken) {
+          return false
+        }
+
+        const spender = await getSpender(sourceNetwork, bridge)
+        return checkApproval(parsedAmount, token, spender)
+
+        // const spender = bridge.getSendApprovalAddress(sourceNetwork.slug, false)
+
+        // const ta = await getTokenAllowance(token, spender, address?.address)
+        // setTokenAllowance(ta)
+        // return ta.lte(parsedAmount)
+      } catch (error) {
+        logger.error(error)
+        return false
+      }
     },
     {
       enabled: !!token?.symbol && !!sourceNetwork?.slug && !!amountOut?.toString(),
@@ -133,7 +148,7 @@ const useApprove = (token?: Token, sourceNetwork?: Network, amountOut?: BigNumbe
     return tx
   }
 
-  return { approve, checkApproval, needsApproval }
+  return { approve, checkApproval, needsApproval, tokenAllowance }
 }
 
 export default useApprove

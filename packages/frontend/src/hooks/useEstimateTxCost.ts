@@ -33,6 +33,7 @@ interface EstimateTxOptions {
   fromNetwork?: Network
   toNetwork?: Network
   deadline?: () => number
+  checkAllowance?: boolean
 }
 
 export function useEstimateTxCost() {
@@ -81,13 +82,14 @@ export function useEstimateTxCost() {
   // toNetwork -> destNetwork
   const estimateSend = useCallback(
     async (options: EstimateTxOptions) => {
-      const { fromNetwork, toNetwork, token, deadline } = options
+      const { fromNetwork, toNetwork, token, deadline, checkAllowance } = options
       if (!(sdk && fromNetwork && toNetwork && deadline && token)) {
         return
       }
 
       try {
         const bridge = sdk.bridge(token.symbol)
+        console.log(`bridge:`, bridge)
 
         const destinationAmountOutMin = 0
         let destinationDeadline = deadline()
@@ -99,6 +101,8 @@ export function useEstimateTxCost() {
           bridge.getSendApprovalAddress(fromNetwork.slug),
           '10'
         )
+
+        console.log(`needsApproval:`, needsAppoval)
 
         let estimatedGasLimit = BigNumber.from(200e3)
         // Get estimated gas limit
@@ -160,7 +164,6 @@ export function useEstimateTxCost() {
   // Master send method
   const estimateMaxValue = useCallback(
     async (methodName: string, options?: any) => {
-      console.log(`estimateMaxValue options:`, options)
       if (!methodName) {
         return
       }

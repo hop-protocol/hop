@@ -6,7 +6,7 @@ import Box from '@material-ui/core/Box'
 import Alert from 'src/components/alert/Alert'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import { useTokenWrapper } from './TokenWrapperContext'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import Expandable from './Expandable'
 import { Div, Flex } from '../ui'
 
@@ -22,7 +22,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export type Props = {
-  network: Network | undefined
+  network: Chain | undefined
 }
 
 const TokenWrapper: FC<Props> = (props: Props) => {

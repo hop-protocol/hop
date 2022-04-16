@@ -1,12 +1,12 @@
 import { ChainSlug } from '@hop-protocol/sdk'
 import { useEffect, useState } from 'react'
 import { DisabledRoute, disabledRoutes, ALL } from 'src/config/disabled'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { isSameNetwork } from 'src/utils'
 
 export function useDisableTxs(
-  sourceChain?: Network | ChainSlug,
-  destinationChain?: Network | ChainSlug
+  sourceChain?: Chain | ChainSlug,
+  destinationChain?: Chain | ChainSlug
 ) {
   const [disabledTx, setDisabledTx] = useState<DisabledRoute | undefined>()
 

@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { Hop, HopBridge, Token } from '@hop-protocol/sdk'
 
 export type SendData = {
@@ -18,14 +18,14 @@ abstract class ConvertOption {
   abstract getTargetAddress(
     sdk: Hop,
     l1TokenSymbol: string | undefined,
-    sourceNetwork: Network | undefined,
-    destNetwork: Network | undefined
+    sourceChain: Chain | undefined,
+    destinationChain: Chain | undefined
   ): Promise<string>
 
   abstract getSendData(
     sdk: Hop,
-    sourceNetwork: Network | undefined,
-    destNetwork: Network | undefined,
+    sourceChain: Chain | undefined,
+    destinationChain: Chain | undefined,
     isConvertingToHToken: boolean,
     l1TokenSymbol: string | undefined,
     amountIn: BigNumberish | undefined
@@ -34,8 +34,8 @@ abstract class ConvertOption {
   abstract convert(
     sdk: Hop,
     signer: Signer,
-    sourceNetwork: Network,
-    destNetwork: Network,
+    sourceChain: Chain,
+    destinationChain: Chain,
     isConvertingToHToken: boolean,
     l1TokenSymbol: string,
     amountIn: BigNumberish,
@@ -46,13 +46,13 @@ abstract class ConvertOption {
 
   abstract sourceToken(
     isConvertingToHToken: boolean,
-    network: Network | undefined,
+    network: Chain | undefined,
     bridge: HopBridge | undefined
   ): Promise<Token | undefined>
 
   abstract destToken(
     isConvertingToHToken: boolean,
-    network: Network | undefined,
+    network: Chain | undefined,
     bridge: HopBridge | undefined
   ): Promise<Token | undefined>
 }

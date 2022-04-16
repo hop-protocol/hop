@@ -2,7 +2,7 @@ import React, { FC, useMemo, createContext, useContext } from 'react'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Token from 'src/models/Token'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import useTokens from 'src/contexts/AppContext/useTokens'
 import useBridges from 'src/contexts/AppContext/useBridges'
 import useTxHistory, { TxHistory } from 'src/contexts/AppContext/useTxHistory'
@@ -19,7 +19,7 @@ type AppContextProps = {
   bridges: HopBridge[]
   selectedBridge: HopBridge
   setSelectedBridge: (bridge: HopBridge) => void
-  networks: Network[]
+  networks: Chain[]
   tokens: Token[]
   events: Events
   accountDetails: AccountDetails

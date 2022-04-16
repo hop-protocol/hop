@@ -7,13 +7,19 @@ import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/modal/TxStatusModal'
 import DetailRow from 'src/components/InfoTooltip/DetailRow'
-import { BigNumber } from 'ethers'
+import { BigNumber, Signer } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import Chain from 'src/models/Chain'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
+import {
+  commafy,
+  findMatchingBridge,
+  findNetworkBySlug,
+  sanitizeNumericalString,
+  toTokenDisplay,
+} from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import { FeeDetails, AmmDetails } from 'src/components/InfoTooltip'
 import { amountToBN, formatError } from 'src/utils/format'
@@ -41,8 +47,9 @@ import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { ExternalLink } from 'src/components/Link'
 import L1CanonicalBridgeOption from './L1CanonicalBridgeOption'
 import { useL1CanonicalBridge } from './useL1CanonicalBridge'
+import { Provider } from '@ethersproject/abstract-provider'
 
-const Send: FC = () => {
+const Sendd: FC = () => {
   const styles = useSendStyles()
   const {
     networks,
@@ -58,6 +65,8 @@ const Send: FC = () => {
   const { checkConnectedNetworkId, address } = useWeb3Context()
   const { queryParams, updateQueryParams } = useQueryParams()
   const [sourceChain, _setSourceChain] = useState<Chain>()
+  const [l1Signer, _setL1Signer] = useState<Signer>()
+  const [l2Provider, _setL2Provider] = useState<Provider>()
   const [destinationChain, _setToNetwork] = useState<Chain>()
   const [fromTokenAmount, setFromTokenAmount] = useState<string>()
   const [toTokenAmount, setToTokenAmount] = useState<string>()
@@ -72,30 +81,36 @@ const Send: FC = () => {
   const { isSmartContractWallet } = useIsSmartContractWallet()
   const [manualError, setManualError] = useState<string>('')
 
-  // Reset error message when sourceChain/destinationChain changes
-  useEffect(() => {
-    if (warning) {
-      setWarning('')
-    }
-    if (error) {
-      setError('')
-    }
-  }, [sourceChain, destinationChain])
-
   // Set sourceChain and destinationChain using query params
   useEffect(() => {
-    const _sourceChain = networks.find(network => network.slug === queryParams.sourceChain)
+    const _sourceChain = findNetworkBySlug(queryParams.sourceChain as string, networks)
     _setSourceChain(_sourceChain)
 
-    const _destinationChain = networks.find(network => network.slug === queryParams.destinationChain)
+    const _destinationChain = findNetworkBySlug(queryParams.destinationChain as string, networks)
 
-    if (_sourceChain?.name === _destinationChain?.name) {
+    if (!_sourceChain?.eq(destinationChain)) {
       // Leave destination network empty
       return
     }
 
     _setToNetwork(_destinationChain)
   }, [queryParams, networks])
+
+  // Reset error message when sourceChain/destinationChain changes.\
+  // Also, set the l1Signer and l2Provider
+  useEffect(() => {
+    if (warning) setWarning('')
+    if (error) setError('')
+
+    if (sourceChain?.provider) {
+      const l1Signer = (sourceChain.provider as any).getSigner()
+      _setL1Signer(l1Signer)
+    }
+    if (destinationChain?.provider) {
+      const l2Provider = destinationChain.provider
+      _setL2Provider(l2Provider)
+    }
+  }, [sourceChain, destinationChain])
 
   // Get assets
   const { unsupportedAsset, sourceToken, destToken, placeholderToken } = useAssets(
@@ -136,7 +151,13 @@ const Send: FC = () => {
     availableLiquidity,
     sufficientLiquidity,
     warning: liquidityWarning,
-  } = useAvailableLiquidity(selectedBridge, sourceToken, sourceChain, destinationChain, requiredLiquidity)
+  } = useAvailableLiquidity(
+    selectedBridge,
+    sourceToken,
+    sourceChain,
+    destinationChain,
+    requiredLiquidity
+  )
 
   // Set toAmount
   useEffect(() => {
@@ -726,4 +747,4 @@ const Send: FC = () => {
   )
 }
 
-export default Send
+export default Sendd

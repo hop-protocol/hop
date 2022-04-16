@@ -6,7 +6,7 @@ import { networkIdToName, wait } from 'src/utils'
 import { GatewayTransactionDetails as GnosisSafeTx } from '@gnosis.pm/safe-apps-sdk'
 import { useSelectedNetwork } from '.'
 import useIsSmartContractWallet from './useIsSmartContractWallet'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 
 interface GnosisSafeWarning {
   severity: 'warning' | 'error' | 'info'
@@ -21,8 +21,8 @@ const noWarning: GnosisSafeWarning = {
 export function useGnosisSafeTransaction(
   tx?: Transaction,
   customRecipient?: string,
-  fromNetwork?: Network,
-  toNetwork?: Network
+  sourceChain?: Chain,
+  destinationChain?: Chain
 ) {
   const { sdk, connected, safe } = useSafeAppsSDK()
   const [safeTx, setSafeTx] = useState<GnosisSafeTx>()
@@ -37,15 +37,15 @@ export function useGnosisSafeTransaction(
   }, [connected])
 
   useEffect(() => {
-    if (!(isGnosisSafeWallet && safe && toNetwork && customRecipient)) return
+    if (!(isGnosisSafeWallet && safe && destinationChain && customRecipient)) return
 
     if (!utils.isAddress(customRecipient)) return
 
-    toNetwork.provider.getCode(customRecipient).then(val => {
+    destinationChain.provider.getCode(customRecipient).then(val => {
       setIsRecipientContract(val !== '0x')
       setIsRecipientSelfContract(safe.safeAddress === customRecipient)
     })
-  }, [isGnosisSafeWallet, safe, customRecipient, toNetwork])
+  }, [isGnosisSafeWallet, safe, customRecipient, destinationChain])
 
   // Enables Sending gnosis-safe txs
   const gnosisEnabled = useMemo(() => {
@@ -59,8 +59,8 @@ export function useGnosisSafeTransaction(
 
   // Checks if source chain == gnosis-safe chain
   const isCorrectSignerNetwork = useMemo(() => {
-    return isSmartContractWallet && fromNetwork?.networkId === safe?.chainId
-  }, [isSmartContractWallet, fromNetwork, safe])
+    return isSmartContractWallet && sourceChain?.networkId === safe?.chainId
+  }, [isSmartContractWallet, sourceChain, safe])
 
   // Display warnings to enforce valid source chain and custom recipient
   const gnosisSafeWarning: GnosisSafeWarning = useMemo(() => {
@@ -69,7 +69,7 @@ export function useGnosisSafeTransaction(
       return noWarning
     }
 
-    if (fromNetwork?.slug && !isCorrectSignerNetwork) {
+    if (sourceChain?.slug && !isCorrectSignerNetwork) {
       // incorrect source chain set
       return {
         severity: 'warning',
@@ -79,7 +79,7 @@ export function useGnosisSafeTransaction(
       }
     }
 
-    if (!toNetwork?.slug) {
+    if (!destinationChain?.slug) {
       // no destination chain set
       return noWarning
     }
@@ -98,7 +98,7 @@ export function useGnosisSafeTransaction(
       // custom recipient is set to self (gnosis-safe)
       return {
         severity: 'warning',
-        text: `The recipient account is detected to be a Gnosis Safe on the ${toNetwork?.name} network.`,
+        text: `The recipient account is detected to be a Gnosis Safe on the ${destinationChain?.name} network.`,
       }
     }
 
@@ -106,7 +106,7 @@ export function useGnosisSafeTransaction(
       // custom recipient is a smart contract (non gnosis-safe)
       return {
         severity: 'warning',
-        text: `The recipient account is detected to be a smart contract on the ${toNetwork?.name} network.`,
+        text: `The recipient account is detected to be a smart contract on the ${destinationChain?.name} network.`,
       }
     }
 
@@ -118,8 +118,8 @@ export function useGnosisSafeTransaction(
     isSmartContractWallet,
     customRecipient,
     safe,
-    fromNetwork,
-    toNetwork,
+    sourceChain,
+    destinationChain,
   ])
 
   const getSafeTx = useCallback(

@@ -1,8 +1,8 @@
 import { BigNumber, FixedNumber, utils } from 'ethers'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { commafy, prettifyErrorMessage, toTokenDisplay } from '.'
 
-export function formatError(error: any, network?: Network) {
+export function formatError(error: any, chain?: Chain) {
   if (!error) {
     return
   }
@@ -17,7 +17,7 @@ export function formatError(error: any, network?: Network) {
   }
 
   if (Array.isArray(error) && error.length === 1) {
-    return formatError(error[0], network)
+    return formatError(error[0], chain)
   }
 
   // TODO: handle custom error messages elsewhere (and better)
@@ -26,7 +26,7 @@ export function formatError(error: any, network?: Network) {
     errMsg.includes('insufficient funds') ||
     errMsg.includes('Insufficient funds')
   ) {
-    const feeToken = network?.nativeTokenSymbol || 'funds'
+    const feeToken = chain?.nativeTokenSymbol || 'funds'
     errMsg = `Insufficient balance. Please add ${feeToken} to pay for tx fees. Error: ${errMsg}`
   } else if (errMsg.includes('NetworkError when attempting to fetch resource')) {
     errMsg = `${errMsg} Please check your wallet network settings are correct and try again. More info: https://docs.hop.exchange/rpc-endpoints`
@@ -43,7 +43,7 @@ export function formatError(error: any, network?: Network) {
   ) {
     errMsg = `There was a network error. Please disable any ad blockers and check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   } else if (errMsg.includes('Internal JSON-RPC error') || errMsg.includes('Internal error')) {
-    const feeToken = network?.nativeTokenSymbol || 'funds'
+    const feeToken = chain?.nativeTokenSymbol || 'funds'
     errMsg = `An RPC error occured. Please check you have enough ${feeToken} to pay for fees and check your wallet network settings are correct. Refresh to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   } else if (errMsg.includes('call revert exception') || errMsg.includes('missing revert data')) {
     errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`

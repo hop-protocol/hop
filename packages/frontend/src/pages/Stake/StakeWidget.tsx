@@ -7,7 +7,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import Button from 'src/components/buttons/Button'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import Transaction from 'src/models/Transaction'
 import {
   amountToBN,
@@ -44,7 +44,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 type Props = {
-  network: Network
+  network: Chain
   bridge?: HopBridge
   stakingToken?: any
   rewardsToken?: Token
@@ -268,7 +268,7 @@ const StakeWidget: FC<Props> = props => {
       }
 
       if (!network) {
-        throw new Error('Network must be defined')
+        throw new Error('Chain must be defined')
       }
 
       if (!parsedAmount) {

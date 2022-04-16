@@ -32,7 +32,7 @@ type Props = {
   disconnectWallet: () => void
   walletConnected: boolean
   walletName: string
-  checkConnectedNetworkId: (networkId: number | string) => Promise<boolean>
+  checkConnectedNetworkId: (networkId: number) => Promise<boolean>
 }
 
 // TODO: modularize
@@ -206,7 +206,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         },
         wallet: async (wallet: Wallet) => {
           try {
-            const { provider, name, instance, type, connect, dashboard, icons } = wallet
+            const { provider, name, connect } = wallet
             // provider - The JavaScript provider for interacting with the wallet
             // name - The wallet display name
             // instance - If the wallet type is 'sdk' then this is the initialized wallet instance
@@ -293,12 +293,8 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   // TODO: cleanup
   const checkConnectedNetworkId = useCallback(
-    async (networkId?: number | string): Promise<boolean> => {
+    async (networkId?: number): Promise<boolean> => {
       if (!(networkId && provider)) return false
-
-      if (typeof networkId === 'string') {
-        networkId = Number(networkId)
-      }
 
       const signerNetworkId = (await provider.getNetwork())?.chainId
       logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)

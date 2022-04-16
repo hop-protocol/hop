@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ChainId, Hop, NetworkSlug, Token } from '@hop-protocol/sdk'
 import { BigNumber, BigNumberish, constants } from 'ethers'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import { findNetworkById, formatError, toTokenDisplay } from 'src/utils'
@@ -18,7 +18,7 @@ export function useL1CanonicalBridge(
   sdk?: Hop,
   sourceToken?: Token,
   sourceTokenAmount?: BigNumber,
-  destNetwork?: Network,
+  destinationChain?: Chain,
   estimatedReceived?: BigNumber,
   txConfirm?: TxConfirm,
   options?: any
@@ -41,7 +41,7 @@ export function useL1CanonicalBridge(
     setUserSpecifiedBridge(true)
   }
 
-  const sourceNetwork = findNetworkById(sourceToken?.chain.chainId!)
+  const sourceChain = findNetworkById(sourceToken?.chain.chainId!)
 
   const { data: needsNativeBridgeApproval } = useQuery(
     [
@@ -77,10 +77,10 @@ export function useL1CanonicalBridge(
     }
 
     return () => setUserSpecifiedBridge(false)
-  }, [sourceTokenAmount?.toString(), estimatedReceived?.toString(), l1CanonicalBridge, destNetwork])
+  }, [sourceTokenAmount?.toString(), estimatedReceived?.toString(), l1CanonicalBridge, destinationChain])
 
   useEffect(() => {
-    if (!(sourceToken && destNetwork && sourceTokenAmount)) {
+    if (!(sourceToken && destinationChain && sourceTokenAmount)) {
       return setL1CanonicalBridge(undefined)
     }
 
@@ -94,11 +94,11 @@ export function useL1CanonicalBridge(
         NetworkSlug.Mainnet,
         signer,
         sourceToken.symbol,
-        destNetwork.slug
+        destinationChain.slug
       )
       setL1CanonicalBridge(canonicalBridge)
     }
-  }, [provider, sourceTokenAmount?.toString(), sourceToken, destNetwork?.slug])
+  }, [provider, sourceTokenAmount?.toString(), sourceToken, destinationChain?.slug])
 
   const approveNativeBridge = async () => {
     if (!(needsNativeBridgeApproval && l1CanonicalBridge && txConfirm)) {
@@ -131,7 +131,7 @@ export function useL1CanonicalBridge(
 
       setApproving(false)
       if (tx?.hash) {
-        return handleTransaction(tx, sourceNetwork, destNetwork, sourceToken)
+        return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
       }
     } catch (error: any) {
       setApproving(false)
@@ -150,8 +150,8 @@ export function useL1CanonicalBridge(
         l1CanonicalBridge &&
         sourceToken &&
         sourceTokenAmount &&
-        sourceNetwork &&
-        destNetwork &&
+        sourceChain &&
+        destinationChain &&
         !needsNativeBridgeApproval &&
         txConfirm
       )
@@ -171,10 +171,10 @@ export function useL1CanonicalBridge(
         source: {
           amount: toTokenDisplay(sourceTokenAmount, sourceToken?.decimals),
           token: sourceToken,
-          network: sourceNetwork,
+          network: sourceChain,
         },
         dest: {
-          network: destNetwork,
+          network: destinationChain,
         },
         estimatedReceived: toTokenDisplay(
           estimatedReceived,
@@ -200,7 +200,7 @@ export function useL1CanonicalBridge(
     })
     logger.debug(`tx:`, tx)
 
-    const txHandled = handleTransaction(tx, sourceNetwork, destNetwork, sourceToken)
+    const txHandled = handleTransaction(tx, sourceChain, destinationChain, sourceToken)
     logger.debug(`txHandled:`, txHandled)
 
     const { transaction, txModel } = txHandled
@@ -208,8 +208,8 @@ export function useL1CanonicalBridge(
     const watcher = (sdk as Hop).watch(
       txModel.hash,
       sourceToken.symbol,
-      sourceNetwork.slug,
-      destNetwork.slug
+      sourceChain.slug,
+      destinationChain.slug
     )
 
     if (watcher) {
@@ -228,8 +228,8 @@ export function useL1CanonicalBridge(
     setTx(txModel)
 
     const txModelArgs = {
-      networkName: sourceNetwork,
-      destNetworkName: destNetwork,
+      networkName: sourceChain,
+      destNetworkName: destinationChain,
       token: sourceToken,
     }
 
@@ -241,13 +241,13 @@ export function useL1CanonicalBridge(
       setTx(res.replacementTxModel)
       const { replacementTxModel: txModelReplacement } = res
 
-      if (sourceNetwork && destNetwork) {
+      if (sourceChain && destinationChain) {
         // Replace watcher
         const replacementWatcher = sdk?.watch(
           txModelReplacement.hash,
           sourceToken!.symbol,
-          sourceNetwork?.slug,
-          destNetwork?.slug
+          sourceChain?.slug,
+          destinationChain?.slug
         )
         replacementWatcher.once(sdk?.Event.DestinationTxReceipt, async data => {
           logger.debug(`replacement dest tx receipt event data:`, data)
@@ -266,7 +266,7 @@ export function useL1CanonicalBridge(
     setSending(false)
 
     console.log(`tx:`, tx)
-    return handleTransaction(tx, sourceNetwork, destNetwork, sourceToken)
+    return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
   }
 
   return {

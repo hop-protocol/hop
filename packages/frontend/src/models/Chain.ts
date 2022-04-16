@@ -1,9 +1,10 @@
+import { ChainId, ChainSlug } from '@hop-protocol/sdk'
 import * as ethers from 'ethers'
 import { getProvider } from 'src/utils'
 
-export type Networkish = Network | string | undefined
+export type Chainish = Chain | ChainSlug | ChainId
 
-export type NetworkProps = {
+export type ChainProps = {
   name: string
   slug: string
   imageUrl: string
@@ -18,22 +19,23 @@ export type NetworkProps = {
   explorerUrl: string
 }
 
-class Network {
+class Chain {
   readonly name: string
   readonly slug: string
   readonly imageUrl: string
   readonly provider: ethers.providers.Provider
   readonly rpcUrl: string
-  readonly networkId: number
   readonly chainId: number
   readonly nativeTokenSymbol: string
-  readonly isLayer1: boolean
   readonly isL1: boolean
-  readonly nativeBridgeUrl: string | undefined
   readonly waitConfirmations?: number
   readonly explorerUrl: string
 
-  constructor(props: NetworkProps) {
+  readonly networkId: number // extraneous
+  readonly isLayer1: boolean // extraneous
+  readonly nativeBridgeUrl: string | undefined // extranous
+
+  constructor(props: ChainProps) {
     this.name = props.name
     this.slug = props.slug
     this.imageUrl = props.imageUrl
@@ -53,9 +55,9 @@ class Network {
     return this.name
   }
 
-  eq(otherNetwork: Network) {
-    return otherNetwork.networkId === this.networkId
+  eq(otherChain?: Chain) {
+    return otherChain?.chainId === this.chainId
   }
 }
 
-export default Network
+export default Chain

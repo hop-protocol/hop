@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { BigNumber } from 'ethers'
 import logger from 'src/logger'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 
-const useNeedsTokenForFee = (network: Network | undefined) => {
+const useNeedsTokenForFee = (network: Chain | undefined) => {
   const [needsToken, setNeedsToken] = useState(false)
   const { provider: walletProvider, address } = useWeb3Context()
   const { isSmartContractWallet } = useIsSmartContractWallet()

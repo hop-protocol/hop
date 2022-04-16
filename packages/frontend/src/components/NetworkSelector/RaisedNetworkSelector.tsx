@@ -3,19 +3,19 @@ import { MenuItem } from '@material-ui/core'
 import { useApp } from 'src/contexts/AppContext'
 import { Flex, Text } from '../ui'
 import { findNetworkBySlug } from 'src/utils'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import RaisedSelect from '../selects/RaisedSelect'
 import SelectOption from '../selects/SelectOption'
 
 interface Props {
-  selectedNetwork?: Network
+  selectedNetwork?: Chain
   onSelect?: (e: any) => void
-  availableNetworks?: Network[]
-  setNetwork?: (n: Network) => void
+  availableNetworks?: Chain[]
+  Chain?: (n: Chain) => void
 }
 
 export function RaisedNetworkSelector(props: Props) {
-  const { selectedNetwork, onSelect, setNetwork, availableNetworks } = props
+  const { selectedNetwork, onSelect, Chain, availableNetworks } = props
   const { networks: allNetworks } = useApp()
   const networks = useMemo(
     () => (availableNetworks?.length ? availableNetworks : allNetworks),
@@ -27,8 +27,8 @@ export function RaisedNetworkSelector(props: Props) {
       return onSelect(event)
     }
     const match = findNetworkBySlug(event.target.value, networks)
-    if (setNetwork && match) {
-      setNetwork(match)
+    if (Chain && match) {
+      Chain(match)
     }
   }
 

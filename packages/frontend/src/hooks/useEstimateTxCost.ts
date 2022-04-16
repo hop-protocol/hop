@@ -4,7 +4,7 @@ import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
 import { Token, ChainSlug } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { formatError } from 'src/utils'
 
 export enum MethodNames {
@@ -29,9 +29,9 @@ export async function getGasCostByGasLimit(
 
 interface EstimateTxOptions {
   token: Token
-  network?: Network
-  fromNetwork?: Network
-  toNetwork?: Network
+  network?: Chain
+  sourceChain?: Chain
+  destinationChain?: Chain
   deadline?: () => number
   checkAllowance?: boolean
 }
@@ -42,10 +42,10 @@ export function useEstimateTxCost() {
 
   // TODO: convert all to react-query
   const estimateConvertTokens = useCallback(
-    async (options: { token: Token; network: Network; destNetwork: Network }) => {
-      const { token, network, destNetwork } = options
+    async (options: { token: Token; network: Chain; destinationChain: Chain }) => {
+      const { token, network, destinationChain } = options
 
-      if (!(sdk && network && destNetwork?.slug)) {
+      if (!(sdk && network && destinationChain?.slug)) {
         return
       }
 
@@ -54,7 +54,7 @@ export function useEstimateTxCost() {
       const estimatedGasLimit = await bridge.estimateSendHTokensGasLimit(
         '420',
         network.slug,
-        destNetwork.slug,
+        destinationChain.slug,
         {
           bonderFee: '0',
         }
@@ -67,7 +67,7 @@ export function useEstimateTxCost() {
           const { data, to } = await bridge.populateSendHTokensTx(
             tokenAmount,
             network.slug,
-            destNetwork.slug
+            destinationChain.slug
           )
           const l1FeeInWei = await bridge.estimateOptimismL1FeeFromData(estimatedGasLimit, data, to)
           gasCost = gasCost.add(l1FeeInWei)
@@ -78,12 +78,10 @@ export function useEstimateTxCost() {
     [sdk]
   )
 
-  // TODO: rename fromNetwork -> sourceNetwork
-  // toNetwork -> destNetwork
   const estimateSend = useCallback(
     async (options: EstimateTxOptions) => {
-      const { fromNetwork, toNetwork, token, deadline, checkAllowance } = options
-      if (!(sdk && fromNetwork && toNetwork && deadline && token)) {
+      const { sourceChain, destinationChain, token, deadline, checkAllowance } = options
+      if (!(sdk && sourceChain && destinationChain && deadline && token)) {
         return
       }
 
@@ -93,12 +91,12 @@ export function useEstimateTxCost() {
 
         const destinationAmountOutMin = 0
         let destinationDeadline = deadline()
-        if (toNetwork.slug === ChainSlug.Ethereum) {
+        if (destinationChain.slug === ChainSlug.Ethereum) {
           destinationDeadline = 0
         }
 
         const needsAppoval = await token.needsApproval(
-          bridge.getSendApprovalAddress(fromNetwork.slug),
+          bridge.getSendApprovalAddress(sourceChain.slug),
           '10'
         )
 
@@ -109,8 +107,8 @@ export function useEstimateTxCost() {
         if (!needsAppoval) {
           estimatedGasLimit = await bridge.estimateSendGasLimit(
             '10',
-            fromNetwork.slug as string,
-            toNetwork.slug as string,
+            sourceChain.slug as string,
+            destinationChain.slug as string,
             {
               recipient: constants.AddressZero,
               bonderFee: '1',
@@ -123,9 +121,9 @@ export function useEstimateTxCost() {
         }
 
         if (estimatedGasLimit) {
-          let gasCost = await getGasCostByGasLimit(fromNetwork.provider, estimatedGasLimit)
-          if (gasCost && fromNetwork.slug === ChainSlug.Optimism) {
-            const l1FeeInWei = await bridge.getOptimismL1Fee(fromNetwork.slug, toNetwork.slug)
+          let gasCost = await getGasCostByGasLimit(sourceChain.provider, estimatedGasLimit)
+          if (gasCost && sourceChain.slug === ChainSlug.Optimism) {
+            const l1FeeInWei = await bridge.getOptimismL1Fee(sourceChain.slug, destinationChain.slug)
             gasCost = gasCost.add(l1FeeInWei)
           }
           return gasCost

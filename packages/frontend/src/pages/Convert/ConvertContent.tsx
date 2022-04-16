@@ -55,7 +55,7 @@ const ConvertContent: FC = () => {
     approving,
     convertTokens,
     destBalance,
-    destNetwork,
+    destinationChain,
     destToken,
     destTokenAmount,
     details,
@@ -71,7 +71,7 @@ const ConvertContent: FC = () => {
     setTx,
     setWarning,
     sourceBalance,
-    sourceNetwork,
+    sourceChain,
     sourceToken,
     sourceTokenAmount,
     switchDirection,
@@ -107,12 +107,12 @@ const ConvertContent: FC = () => {
   }
 
   useEffect(() => {
-    if (sourceNetwork?.slug === ChainSlug.Polygon || destNetwork?.slug === ChainSlug.Polygon) {
+    if (sourceChain?.slug === ChainSlug.Polygon || destinationChain?.slug === ChainSlug.Polygon) {
       return setManualWarning('')
       // return setManualWarning('Warning: transfers to/from Polygon are temporarily down.')
     }
     setManualWarning('')
-  }, [destNetwork?.slug, sourceNetwork?.slug])
+  }, [destinationChain?.slug, sourceChain?.slug])
 
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
   const sendButtonActive =
@@ -130,19 +130,19 @@ const ConvertContent: FC = () => {
         </>
       ) : (
         <>
-          <TokenWrapper network={sourceNetwork} />
+          <TokenWrapper network={sourceChain} />
           <AmountSelectorCard
             value={sourceTokenAmount as string}
             token={sourceToken}
             label={'From'}
             onChange={handleSourceTokenAmountChange}
-            title={sourceNetwork?.name}
-            titleIconUrl={sourceNetwork?.imageUrl}
+            title={sourceChain?.name}
+            titleIconUrl={sourceChain?.imageUrl}
             balance={sourceBalance}
             loadingBalance={loadingSourceBalance}
             methodName={MethodNames.convertTokens}
-            selectedNetwork={sourceNetwork}
-            destNetwork={destNetwork}
+            selectedNetwork={sourceChain}
+            destinationChain={destinationChain}
           />
           <Flex justifyCenter alignCenter my={1} onClick={switchDirection} pointer hover>
             <ArrowDownIcon color="primary" className={styles.downArrow} />
@@ -152,8 +152,8 @@ const ConvertContent: FC = () => {
             value={destTokenAmount as string}
             token={destToken}
             label={'To'}
-            title={destNetwork?.name}
-            titleIconUrl={destNetwork?.imageUrl}
+            title={destinationChain?.name}
+            titleIconUrl={destinationChain?.imageUrl}
             balance={destBalance}
             loadingBalance={loadingDestBalance}
             disableInput

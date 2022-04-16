@@ -6,8 +6,8 @@ import { CellWrapper, SortableTable } from 'src/components/Table'
 
 export const populatePendingAmountStats = (item: any) => {
   return {
-    source: item.sourceNetwork.imageUrl,
-    destination: item.destinationNetwork.imageUrl,
+    source: item.sourceChain.imageUrl,
+    destination: item.destinationChain.imageUrl,
     pendingAmount: item.formattedPendingAmount,
     tokenDecimals: item.token.decimals,
     availableLiquidity: formatTokenString(item.availableLiquidity.toString(), item.token.decimals),

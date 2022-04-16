@@ -1,4 +1,4 @@
-import Network from './Network'
+import Chain from './Chain'
 import Address from './Address'
 import { TokenSymbol } from '@hop-protocol/sdk'
 
@@ -26,7 +26,7 @@ class Token {
     this.supportedNetworks = props.supportedNetworks || []
   }
 
-  networkSymbol(network: Network | undefined) {
+  networkSymbol(network: Chain | undefined) {
     const prefix = network?.slug || ''
     return prefix + '.' + this.symbol
   }

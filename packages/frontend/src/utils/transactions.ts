@@ -11,7 +11,7 @@ import { findTransferSentLog, findTransferSentToL2Log, formatLogArgs } from '.'
 import { EventNames } from 'src/utils/constants'
 import { utils, BigNumber, providers } from 'ethers'
 import { Interface, LogDescription } from '@ethersproject/abi'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { TokenSymbol, TokenModel } from '@hop-protocol/sdk'
 import range from 'lodash/range'
 
@@ -74,7 +74,7 @@ export enum TxType {
 
 export interface Tx {
   networkName?: string
-  network?: Network
+  network?: Chain
   txHash?: string
 
   methodName?: string

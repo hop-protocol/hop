@@ -14,7 +14,7 @@ import { BigNumber } from 'ethers'
 import { useLocation } from 'react-router-dom'
 import { Token } from '@hop-protocol/sdk'
 import find from 'lodash/find'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import Transaction from 'src/models/Transaction'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -40,7 +40,7 @@ type ConvertContextProps = {
   convertOptions: ConvertOption[]
   convertTokens: () => void
   destBalance?: BigNumber
-  destNetwork?: Network
+  destinationChain?: Chain
   destToken?: Token
   destTokenAmount?: string
   details?: ReactNode
@@ -50,7 +50,7 @@ type ConvertContextProps = {
   needsApproval?: boolean
   needsTokenForFee?: boolean
   selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
-  selectedNetwork?: Network
+  selectedNetwork?: Chain
   sending: boolean
   setDestTokenAmount: (value: string) => void
   setError: (error?: string) => void
@@ -58,7 +58,7 @@ type ConvertContextProps = {
   setTx: (tx?: Transaction) => void
   setWarning: (warning?: string) => void
   sourceBalance?: BigNumber
-  sourceNetwork?: Network
+  sourceChain?: Chain
   sourceToken?: Token
   sourceTokenAmount?: string
   switchDirection: () => void
@@ -102,7 +102,7 @@ const ConvertProvider: FC = ({ children }) => {
     [pathname]
   )
 
-  const sourceNetwork = useMemo<Network | undefined>(() => {
+  const sourceChain = useMemo<Chain | undefined>(() => {
     if (convertOption instanceof AmmConvertOption || !isConvertingToHToken) {
       if (selectedNetwork?.isLayer1) {
         return defaultL2Network
@@ -113,7 +113,7 @@ const ConvertProvider: FC = ({ children }) => {
     }
   }, [isConvertingToHToken, selectedNetwork, l1Network, convertOption])
 
-  const destNetwork = useMemo<Network | undefined>(() => {
+  const destinationChain = useMemo<Chain | undefined>(() => {
     if (convertOption instanceof AmmConvertOption || isConvertingToHToken) {
       if (selectedNetwork?.isLayer1) {
         return defaultL2Network
@@ -136,7 +136,7 @@ const ConvertProvider: FC = ({ children }) => {
     }
   }, [unsupportedAsset])
 
-  const needsTokenForFee = useNeedsTokenForFee(sourceNetwork)
+  const needsTokenForFee = useNeedsTokenForFee(sourceChain)
 
   // Fetch source token
   useEffect(() => {
@@ -203,8 +203,8 @@ const ConvertProvider: FC = ({ children }) => {
         !(
           selectedBridge &&
           sourceTokenAmount &&
-          sourceNetwork &&
-          destNetwork &&
+          sourceChain &&
+          destinationChain &&
           sourceToken &&
           !unsupportedAsset?.chain
         )
@@ -217,8 +217,8 @@ const ConvertProvider: FC = ({ children }) => {
 
       const { amountOut, details, bonderFee, warning } = await convertOption.getSendData(
         sdk,
-        sourceNetwork,
-        destNetwork,
+        sourceChain,
+        destinationChain,
         isConvertingToHToken,
         selectedBridge.getTokenSymbol(),
         parsedSourceTokenAmount
@@ -276,14 +276,14 @@ const ConvertProvider: FC = ({ children }) => {
 
   const needsApproval = useAsyncMemo(async () => {
     try {
-      if (!(selectedBridge && sourceToken && destNetwork && !unsupportedAsset?.chain)) {
+      if (!(selectedBridge && sourceToken && destinationChain && !unsupportedAsset?.chain)) {
         return false
       }
 
       const targetAddress = await convertOption.getTargetAddress(
         sdk,
         selectedBridge?.getTokenSymbol(),
-        sourceNetwork
+        sourceChain
       )
 
       return checkApproval(parsedSourceTokenAmount, sourceToken, targetAddress)
@@ -295,8 +295,8 @@ const ConvertProvider: FC = ({ children }) => {
     convertOption,
     sdk,
     selectedBridge,
-    sourceNetwork,
-    destNetwork,
+    sourceChain,
+    destinationChain,
     checkApproval,
   ])
 
@@ -313,7 +313,7 @@ const ConvertProvider: FC = ({ children }) => {
   // ===============================================================================================
   const approveTokens = async (): Promise<any> => {
     try {
-      const networkId = Number(sourceNetwork?.networkId)
+      const networkId = Number(sourceChain?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
       setError(undefined)
@@ -325,7 +325,7 @@ const ConvertProvider: FC = ({ children }) => {
       const targetAddress = await convertOption.getTargetAddress(
         sdk,
         selectedBridge?.getTokenSymbol(),
-        sourceNetwork
+        sourceChain
       )
 
       const tx = await approve(parsedSourceTokenAmount, sourceToken, targetAddress)
@@ -344,15 +344,15 @@ const ConvertProvider: FC = ({ children }) => {
   const convertTokens = async () => {
     try {
       setTx(undefined)
-      const networkId = Number(sourceNetwork?.networkId)
+      const networkId = Number(sourceChain?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
       setError(undefined)
       if (
         !Number(sourceTokenAmount) ||
-        !sourceNetwork ||
-        !destNetwork ||
+        !sourceChain ||
+        !destinationChain ||
         !sourceToken ||
         !selectedBridge
       ) {
@@ -372,12 +372,12 @@ const ConvertProvider: FC = ({ children }) => {
           source: {
             amount: sourceTokenAmount,
             token: sourceToken,
-            network: sourceNetwork
+            network: sourceChain
           },
           dest: {
             amount: destTokenAmount,
             token: destToken,
-            network: destNetwork
+            network: destinationChain
           },
         },
         onConfirm: async () => {
@@ -390,8 +390,8 @@ const ConvertProvider: FC = ({ children }) => {
           return convertOption.convert(
             sdk,
             signer,
-            sourceNetwork,
-            destNetwork,
+            sourceChain,
+            destinationChain,
             isConvertingToHToken,
             selectedBridge.getTokenSymbol(),
             value,
@@ -402,10 +402,10 @@ const ConvertProvider: FC = ({ children }) => {
         },
       })
 
-      if (tx?.hash && sourceNetwork?.name) {
+      if (tx?.hash && sourceChain?.name) {
         const txModelArgs = {
-          networkName: sourceNetwork.slug,
-          destNetworkName: destNetwork.slug,
+          networkName: sourceChain.slug,
+          destNetworkName: destinationChain.slug,
           token: sourceToken,
           isCanonicalTransfer,
         }
@@ -414,14 +414,14 @@ const ConvertProvider: FC = ({ children }) => {
           ...txModelArgs,
         })
         // don't set tx status modal if it's tx to the same chain
-        if (sourceNetwork.isLayer1 !== destNetwork?.isLayer1) {
+        if (sourceChain.isLayer1 !== destinationChain?.isLayer1) {
           setTx(txObj)
         }
         addTransaction(txObj)
 
         const res = await waitForTransaction(tx, txModelArgs)
         if (res && 'replacementTxModel' in res) {
-          if (sourceNetwork.isLayer1 !== destNetwork?.isLayer1) {
+          if (sourceChain.isLayer1 !== destinationChain?.isLayer1) {
             setTx(res.replacementTxModel)
           }
         }
@@ -444,12 +444,12 @@ const ConvertProvider: FC = ({ children }) => {
   useEffect(() => {
     if (sourceBalance !== undefined && !enoughBalance) {
       setWarning('Insufficient funds')
-    } else if (needsTokenForFee && sourceNetwork) {
+    } else if (needsTokenForFee && sourceChain) {
       setWarning(
-        `Add ${sourceNetwork.nativeTokenSymbol} to your account on ${sourceNetwork.name} for the transaction fee.`
+        `Add ${sourceChain.nativeTokenSymbol} to your account on ${sourceChain.name} for the transaction fee.`
       )
     }
-  }, [sourceBalance, enoughBalance, needsTokenForFee, sourceNetwork])
+  }, [sourceBalance, enoughBalance, needsTokenForFee, sourceChain])
 
   return (
     <ConvertContext.Provider
@@ -459,7 +459,7 @@ const ConvertProvider: FC = ({ children }) => {
         convertOptions,
         convertTokens,
         destBalance,
-        destNetwork,
+        destinationChain,
         destToken,
         destTokenAmount,
         details,
@@ -477,7 +477,7 @@ const ConvertProvider: FC = ({ children }) => {
         setTx,
         setWarning,
         sourceBalance,
-        sourceNetwork,
+        sourceChain,
         sourceToken,
         sourceTokenAmount,
         switchDirection,

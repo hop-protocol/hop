@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { commafy, toTokenDisplay } from 'src/utils'
 import ConvertOption, { SendData } from './ConvertOption'
 import { AmmDetails, DetailRow } from 'src/components/InfoTooltip'
@@ -22,31 +22,31 @@ class AmmConvertOption extends ConvertOption {
   async getTargetAddress(
     sdk: Hop,
     l1TokenSymbol?: TokenSymbol,
-    sourceNetwork?: Network
+    sourceChain?: Chain
   ): Promise<string> {
     if (!l1TokenSymbol) {
       throw new Error('Token is required to get target address')
     }
 
-    if (!sourceNetwork) {
-      throw new Error('sourceNetwork is required to get target address')
+    if (!sourceChain) {
+      throw new Error('sourceChain is required to get target address')
     }
 
     const bridge = sdk.bridge(l1TokenSymbol)
-    const amm = bridge.getAmm(sourceNetwork.slug)
+    const amm = bridge.getAmm(sourceChain.slug)
     const swap = await amm.getSaddleSwap()
     return swap.address
   }
 
   async getSendData(
     sdk: Hop,
-    sourceNetwork: Network | undefined,
-    destNetwork: Network | undefined,
+    sourceChain: Chain | undefined,
+    destinationChain: Chain | undefined,
     isConvertingToHToken: boolean,
     l1TokenSymbol?: TokenSymbol,
     amountIn?: BigNumberish
   ): Promise<SendData> {
-    if (!l1TokenSymbol || !sourceNetwork) {
+    if (!l1TokenSymbol || !sourceChain) {
       return {
         amountOut: undefined,
         details: [],
@@ -55,7 +55,7 @@ class AmmConvertOption extends ConvertOption {
 
     const bridge = await sdk.bridge(l1TokenSymbol)
 
-    const amm = bridge.getAmm(sourceNetwork.slug)
+    const amm = bridge.getAmm(sourceChain.slug)
     let amountOut: BigNumber | undefined
     if (amountIn) {
       if (isConvertingToHToken) {
@@ -69,8 +69,8 @@ class AmmConvertOption extends ConvertOption {
       sdk,
       amountIn,
       amountOut,
-      sourceNetwork,
-      destNetwork,
+      sourceChain,
+      destinationChain,
       isConvertingToHToken,
       bridge.getTokenSymbol()
     )
@@ -84,8 +84,8 @@ class AmmConvertOption extends ConvertOption {
   async convert(
     sdk: Hop,
     signer: Signer,
-    sourceNetwork: Network,
-    destNetwork: Network,
+    sourceChain: Chain,
+    destinationChain: Chain,
     isConvertingToHToken: boolean,
     l1TokenSymbol: TokenSymbol,
     amountIn: BigNumberish,
@@ -96,7 +96,7 @@ class AmmConvertOption extends ConvertOption {
     const bridge = await sdk.bridge(l1TokenSymbol).connect(signer as Signer)
 
     return bridge.execSaddleSwap(
-      sourceNetwork.slug,
+      sourceChain.slug,
       isConvertingToHToken,
       amountIn,
       amountOutMin,
@@ -106,7 +106,7 @@ class AmmConvertOption extends ConvertOption {
 
   async sourceToken(
     isConvertingToHToken: boolean,
-    network?: Network,
+    network?: Chain,
     bridge?: HopBridge
   ): Promise<Token | undefined> {
     if (!bridge || !network) return
@@ -124,7 +124,7 @@ class AmmConvertOption extends ConvertOption {
 
   async destToken(
     isConvertingToHToken: boolean,
-    network?: Network,
+    network?: Chain,
     bridge?: HopBridge
   ): Promise<Token | undefined> {
     if (!bridge || !network) return
@@ -144,8 +144,8 @@ class AmmConvertOption extends ConvertOption {
     sdk: Hop,
     amountIn: BigNumberish | undefined,
     amountOut: BigNumber | undefined,
-    sourceNetwork: Network | undefined,
-    destNetwork: Network | undefined,
+    sourceChain: Chain | undefined,
+    destinationChain: Chain | undefined,
     isConvertingToHToken: boolean,
     l1TokenSymbol: TokenSymbol
   ): Promise<ReactNode> {
@@ -158,7 +158,7 @@ class AmmConvertOption extends ConvertOption {
     // ToDo: Enable configurable slippage tolerance
     const slippageTolerance = 1
 
-    if (!amountIn || !sourceNetwork || !destNetwork || !slippageTolerance) {
+    if (!amountIn || !sourceChain || !destinationChain || !slippageTolerance) {
       return []
     }
 
@@ -166,7 +166,7 @@ class AmmConvertOption extends ConvertOption {
     const bridge = await sdk.bridge(l1TokenSymbol)
 
     const { rate, priceImpact, amountOutMin, lpFeeAmount } = await bridge.getAmmData(
-      sourceNetwork.slug,
+      sourceChain.slug,
       amountIn,
       isConvertingToHToken,
       slippageTolerance
@@ -177,11 +177,11 @@ class AmmConvertOption extends ConvertOption {
     priceImpactDisplay = priceImpact < 0.01 ? '<0.01%' : `${commafy(priceImpact)}%`
 
     const sourceToken = isConvertingToHToken
-      ? bridge.getCanonicalToken(destNetwork.slug)
-      : bridge.getL2HopToken(destNetwork.slug)
+      ? bridge.getCanonicalToken(destinationChain.slug)
+      : bridge.getL2HopToken(destinationChain.slug)
     const destToken = isConvertingToHToken
-      ? bridge.getL2HopToken(destNetwork.slug)
-      : bridge.getCanonicalToken(destNetwork.slug)
+      ? bridge.getL2HopToken(destinationChain.slug)
+      : bridge.getCanonicalToken(destinationChain.slug)
     amountOutMinDisplay = toTokenDisplay(amountOutMin, destToken.decimals, destToken.symbol)
     feeDisplay = toTokenDisplay(lpFeeAmount, sourceToken.decimals, sourceToken.symbol)
 

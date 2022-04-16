@@ -32,7 +32,7 @@ type Props = {
   disconnectWallet: () => void
   walletConnected: boolean
   walletName: string
-  checkConnectedNetworkId: (networkId: number | string) => Promise<boolean>
+  checkConnectedNetworkId: (networkId: number) => Promise<boolean>
 }
 
 // TODO: modularize
@@ -114,7 +114,7 @@ const walletChecks: WalletCheckInit[] = [
 const Web3ContextProvider: FC = ({ children }) => {
   // logger.debug('Web3ContextProvider render')
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>()
-  const [connectedNetworkId, setConnectedNetworkId] = useState<number|undefined>()
+  const [connectedNetworkId, setConnectedNetworkId] = useState<number | undefined>()
   const [validConnectedNetworkId] = useState<boolean>(false)
   const [walletName, setWalletName] = useState<string>('')
   const [address, setAddress] = useState<Address | undefined>()
@@ -160,7 +160,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const onboard = useMemo(() => {
     const instance = Onboard({
       dappId: blocknativeDappid,
-      networkId: Number(l1Network.networkId),
+      networkId: l1Network.networkId,
       // darkMode: isDarkMode,
       // blockPollingInterval: 4000,
       hideBranding: true,
@@ -190,7 +190,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         },
         wallet: async (wallet: Wallet) => {
           try {
-            const { provider, name, instance, type, connect, dashboard, icons } = wallet
+            const { provider, name, connect } = wallet
             // provider - The JavaScript provider for interacting with the wallet
             // name - The wallet display name
             // instance - If the wallet type is 'sdk' then this is the initialized wallet instance
@@ -277,12 +277,8 @@ const Web3ContextProvider: FC = ({ children }) => {
 
   // TODO: cleanup
   const checkConnectedNetworkId = useCallback(
-    async (networkId?: number | string): Promise<boolean> => {
+    async (networkId?: number): Promise<boolean> => {
       if (!(networkId && provider)) return false
-
-      if (typeof networkId === 'string') {
-        networkId = Number(networkId)
-      }
 
       const signerNetworkId = (await provider.getNetwork())?.chainId
       logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)

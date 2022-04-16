@@ -21,8 +21,8 @@ function TxStatusTracker({ tx, completed, destCompleted, confirmations, networkC
         )}
         {tx.destNetworkName !== tx.networkName && (
           <Flex column alignCenter textAlign="center" width="5em">
-            {/* <Icon src={destNetwork?.imageUrl} /> */}
-            {/* <Div>{destNetwork?.name}</Div> */}
+            {/* <Icon src={destinationChain?.imageUrl} /> */}
+            {/* <Div>{destinationChain?.name}</Div> */}
             <Div mt={2}>Destination</Div>
           </Flex>
         )}

@@ -5,16 +5,16 @@ import FlatSelect from '../selects/FlatSelect'
 import { useNetworkSelectorStyles } from './useNetworkSelectorStyles'
 import { Flex, Text } from '../ui'
 import { findNetworkBySlug } from 'src/utils'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 
 interface Props {
-  network?: Network
-  setNetwork?: (network: Network) => void
+  network?: Chain
+  Chain?: (network: Chain) => void
   onChange?: (e: any) => void
-  availableNetworks?: Network[] | any[]
+  availableNetworks?: Chain[] | any[]
 }
 
-function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: Props) {
+function NetworkSelector({ network, Chain, availableNetworks, onChange }: Props) {
   const { networks: allNetworks } = useApp()
   const styles = useNetworkSelectorStyles()
   const networks = useMemo(
@@ -28,8 +28,8 @@ function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: P
     }
     const match = findNetworkBySlug(event.target.value, networks)
 
-    if (setNetwork && match) {
-      setNetwork(match)
+    if (Chain && match) {
+      Chain(match)
     }
   }
 

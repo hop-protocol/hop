@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { defaultL2Network, l2Networks } from 'src/config/networks'
 import { findNetworkBySlug, networkIdToSlug, networkSlugToId } from 'src/utils'
 import useQueryParams from './useQueryParams'
@@ -8,18 +8,18 @@ import { ChainSlug } from '@hop-protocol/sdk'
 
 interface Options {
   l2Only?: boolean
-  availableNetworks?: Network[]
+  availableNetworks?: Chain[]
   gnosisSafe?: SafeInfo
 }
 
 export function useSelectedNetwork(opts: Options = { l2Only: false }) {
-  const [selectedNetwork, setSelectedNetwork] = useState<Network>(defaultL2Network)
+  const [selectedNetwork, setSelectedNetwork] = useState<Chain>(defaultL2Network)
   const { queryParams, updateQueryParams } = useQueryParams()
 
   useEffect(() => {
-    if (queryParams?.sourceNetwork !== selectedNetwork.slug) {
+    if (queryParams?.sourceChain !== selectedNetwork.slug) {
       const matchingNetwork = findNetworkBySlug(
-        queryParams.sourceNetwork as string,
+        queryParams.sourceChain as string,
         opts.availableNetworks
       )
       if (matchingNetwork && !matchingNetwork.isLayer1) {
@@ -37,8 +37,8 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
   }, [opts.l2Only])
 
   const isMatchingSignerAndSourceChainNetwork = useMemo(() => {
-    if (queryParams?.sourceNetwork) {
-      const chainId = networkSlugToId(queryParams.sourceNetwork as ChainSlug)
+    if (queryParams?.sourceChain) {
+      const chainId = networkSlugToId(queryParams.sourceChain as ChainSlug)
       if (opts.gnosisSafe?.chainId === chainId) {
         return true
       }
@@ -52,7 +52,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
     if (network) {
       setSelectedNetwork(network)
       updateQueryParams({
-        sourceNetwork: network.slug,
+        sourceChain: network.slug,
       })
     }
   }
@@ -63,7 +63,7 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
     if (network) {
       setSelectedNetwork(network)
       updateQueryParams({
-        destNetwork: network.slug,
+        destinationChain: network.slug,
       })
     }
   }
@@ -74,8 +74,8 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
     if (network) {
       setSelectedNetwork(network)
       updateQueryParams({
-        sourceNetwork: network.slug,
-        destNetwork: network.slug,
+        sourceChain: network.slug,
+        destinationChain: network.slug,
       })
     }
   }

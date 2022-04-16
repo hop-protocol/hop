@@ -1,7 +1,7 @@
 import React, { FC, createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { BigNumber } from 'ethers'
 import { formatEther, formatUnits } from 'ethers/lib/utils'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import Token from 'src/models/Token'
 import { findNetworkBySlug, getArbitrumAlias } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
@@ -91,7 +91,7 @@ type BonderStats = {
   id: string
   bonder: string
   token: Token
-  network: Network
+  network: Chain
   credit: number
   debit: number
   availableLiquidity: number
@@ -103,7 +103,7 @@ type BonderStats = {
 }
 
 type BalanceStats = {
-  network: Network
+  network: Chain
   name: string
   address: string
   balance: number
@@ -119,8 +119,8 @@ type DebitWindowStats = {
 
 type PendingAmountStats = {
   id: string
-  sourceNetwork: Network
-  destinationNetwork: Network
+  sourceChain: Chain
+  destinationChain: Chain
   token: Token
   pendingAmount: BigNumber
   formattedPendingAmount: number
@@ -141,7 +141,7 @@ const StatsProvider: FC = ({ children }) => {
   const [fetchingDebitWindowStats, setFetchingDebitWindowStats] = useState<boolean>(true)
   const filteredNetworks = networks?.filter(token => !token.isLayer1)
 
-  async function fetchStats(selectedNetwork: Network, selectedToken: Token) {
+  async function fetchStats(selectedNetwork: Chain, selectedToken: Token) {
     if (!selectedNetwork) {
       return
     }
@@ -209,7 +209,7 @@ const StatsProvider: FC = ({ children }) => {
   }, [])
 
   async function fetchBonderStats(
-    selectedNetwork: Network,
+    selectedNetwork: Chain,
     selectedToken: Token,
     bonder: string
   ): Promise<BonderStats | undefined> {
@@ -241,7 +241,7 @@ const StatsProvider: FC = ({ children }) => {
     const virtualDebt = totalDebit.sub(debit)
     let pendingAmount = BigNumber.from(0)
     for (const obj of pendingAmounts) {
-      if (obj.destinationNetwork.eq(selectedNetwork) && obj.token.eq(token)) {
+      if (obj.destinationChain.eq(selectedNetwork) && obj.token.eq(token)) {
         pendingAmount = pendingAmount.add(obj.pendingAmount)
       }
     }
@@ -298,14 +298,14 @@ const StatsProvider: FC = ({ children }) => {
   }, [pendingAmounts])
 
   async function fetchPendingAmounts(
-    sourceNetwork: Network,
-    destinationNetwork: Network,
+    sourceChain: Chain,
+    destinationChain: Chain,
     token: Token
   ) {
-    if (!sourceNetwork) {
+    if (!sourceChain) {
       return
     }
-    if (!destinationNetwork) {
+    if (!destinationChain) {
       return
     }
     if (!token) {
@@ -313,23 +313,23 @@ const StatsProvider: FC = ({ children }) => {
     }
 
     const bridge = sdk.bridge(token.symbol)
-    const isSupported = bridge.isSupportedAsset(sourceNetwork.slug)
-    const isDestSupported = bridge.isSupportedAsset(destinationNetwork.slug)
+    const isSupported = bridge.isSupportedAsset(sourceChain.slug)
+    const isDestSupported = bridge.isSupportedAsset(destinationChain.slug)
     if (!isSupported || !isDestSupported) {
       return
     }
-    const contract = await bridge.getBridgeContract(sourceNetwork.slug)
-    const pendingAmount = await contract.pendingAmountForChainId(destinationNetwork.networkId)
+    const contract = await bridge.getBridgeContract(sourceChain.slug)
+    const pendingAmount = await contract.pendingAmountForChainId(destinationChain.networkId)
     const formattedPendingAmount = Number(formatUnits(pendingAmount, token.decimals))
     const al = await bridge.getFrontendAvailableLiquidity(
-      sourceNetwork.slug,
-      destinationNetwork.slug
+      sourceChain.slug,
+      destinationChain.slug
     )
 
     return {
-      id: `${sourceNetwork.slug}-${destinationNetwork.slug}-${token.symbol}`,
-      sourceNetwork,
-      destinationNetwork,
+      id: `${sourceChain.slug}-${destinationChain.slug}-${token.symbol}`,
+      sourceChain,
+      destinationChain,
       token,
       pendingAmount,
       formattedPendingAmount,
@@ -344,14 +344,14 @@ const StatsProvider: FC = ({ children }) => {
       }
       setFetchingPendingAmounts(true)
       const promises: Promise<any>[] = []
-      for (const sourceNetwork of filteredNetworks) {
+      for (const sourceChain of filteredNetworks) {
         for (const token of tokens) {
-          for (const destinationNetwork of networks) {
-            if (destinationNetwork.eq(sourceNetwork)) {
+          for (const destinationChain of networks) {
+            if (destinationChain.eq(sourceChain)) {
               continue
             }
             promises.push(
-              fetchPendingAmounts(sourceNetwork, destinationNetwork, token).catch(logger.error)
+              fetchPendingAmounts(sourceChain, destinationChain, token).catch(logger.error)
             )
           }
         }

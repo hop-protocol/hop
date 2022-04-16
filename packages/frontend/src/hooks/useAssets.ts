@@ -2,9 +2,9 @@ import { CanonicalToken, HopBridge } from '@hop-protocol/sdk'
 import { useMemo } from 'react'
 import { hopAppNetwork } from 'src/config'
 import logger from 'src/logger'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 
-export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwork?: Network) {
+export function useAssets(selectedBridge?: HopBridge, network?: Chain, destinationChain?: Chain) {
   // Check if asset is supported by networks
   const unsupportedAsset = useMemo<any>(() => {
     if (!(selectedBridge && network)) {
@@ -20,7 +20,7 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
       for (const tokenSymbol of tokenSymbols) {
         const isUnsupported =
           selectedTokenSymbol === tokenSymbol &&
-          [network?.slug, toNetwork?.slug].includes(chain.toLowerCase())
+          [network?.slug, destinationChain?.slug].includes(chain.toLowerCase())
         if (isUnsupported) {
           return {
             chain,
@@ -31,7 +31,7 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
     }
 
     return null
-  }, [selectedBridge, network, toNetwork])
+  }, [selectedBridge, network, destinationChain])
 
   // Set source token
   const sourceToken = useMemo(() => {
@@ -46,12 +46,12 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
   // Set destination token
   const destToken = useMemo(() => {
     try {
-      if (!toNetwork || !selectedBridge || unsupportedAsset?.chain) return
-      return selectedBridge.getCanonicalToken(toNetwork?.slug)
+      if (!destinationChain || !selectedBridge || unsupportedAsset?.chain) return
+      return selectedBridge.getCanonicalToken(destinationChain?.slug)
     } catch (err) {
       logger.error(err)
     }
-  }, [unsupportedAsset, selectedBridge, toNetwork])
+  }, [unsupportedAsset, selectedBridge, destinationChain])
 
   // Set placeholder token
   const placeholderToken = useMemo(() => {

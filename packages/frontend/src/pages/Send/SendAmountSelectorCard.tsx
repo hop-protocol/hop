@@ -6,7 +6,7 @@ import Typography from '@material-ui/core/Typography'
 import Skeleton from '@material-ui/lab/Skeleton'
 import { Token } from '@hop-protocol/sdk'
 import LargeTextField from 'src/components/LargeTextField'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { toTokenDisplay } from 'src/utils'
 import logger from 'src/logger'
 import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
@@ -18,11 +18,11 @@ type Props = {
   label: string
   token?: Token
   onChange?: (value: string) => void
-  fromNetwork?: Network
-  toNetwork?: Network
-  selectedNetwork?: Network
-  networkOptions: Network[]
-  onNetworkChange: (network?: Network) => void
+  sourceChain?: Chain
+  destinationChain?: Chain
+  selectedNetwork?: Chain
+  networkOptions: Chain[]
+  onNetworkChange: (network?: Chain) => void
   balance?: BigNumber
   loadingBalance?: boolean
   loadingValue?: boolean
@@ -37,9 +37,9 @@ const SendAmountSelectorCard: FC<Props> = props => {
     label,
     token,
     onChange,
-    fromNetwork,
+    sourceChain,
     selectedNetwork,
-    toNetwork,
+    destinationChain,
     networkOptions,
     onNetworkChange,
     balance,
@@ -65,22 +65,22 @@ const SendAmountSelectorCard: FC<Props> = props => {
   }
 
   const handleMaxClick = async () => {
-    if (!(onChange && balance && token && fromNetwork && deadline)) {
+    if (!(onChange && balance && token && sourceChain && deadline)) {
       return
     }
 
     let nativeTokenMaxGasCost = BigNumber.from(0)
 
     if (token.isNativeToken) {
-      if (!toNetwork && setWarning) {
+      if (!destinationChain && setWarning) {
         return setWarning('Please set a destination network to determine max value')
       }
 
       const options = {
         balance,
         token,
-        fromNetwork,
-        toNetwork,
+        sourceChain,
+        destinationChain,
         deadline,
       }
 
@@ -130,7 +130,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
       </Flex>
 
       <Flex fullWidth justifyBetween alignCenter>
-        <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} />
+        <NetworkSelector network={selectedNetwork} Chain={onNetworkChange} />
         <LargeTextField
           value={value}
           onChange={handleInputChange}

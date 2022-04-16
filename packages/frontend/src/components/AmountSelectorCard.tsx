@@ -10,7 +10,7 @@ import clsx from 'clsx'
 import LargeTextField from 'src/components/LargeTextField'
 import { commafy } from 'src/utils'
 import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { Flex } from './ui'
 
 type AmountSelectorProps = {
@@ -35,8 +35,8 @@ type AmountSelectorProps = {
   className?: string
   decimalPlaces?: number
   methodName?: string
-  destNetwork?: Network
-  selectedNetwork?: Network
+  destinationChain?: Chain
+  selectedNetwork?: Chain
 }
 
 const AmountSelectorCard: FC<AmountSelectorProps> = props => {
@@ -62,7 +62,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
     decimalPlaces = 4,
     className,
     methodName,
-    destNetwork,
+    destinationChain,
     selectedNetwork,
   } = props
   const styles = useAmountSelectorCardStyles()
@@ -125,7 +125,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
         token,
         balance,
         network: selectedNetwork,
-        destNetwork,
+        destinationChain,
       }
       maxValue = await getEstimatedMaxValue(methodName, opts)
     }

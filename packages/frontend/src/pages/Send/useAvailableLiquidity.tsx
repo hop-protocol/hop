@@ -3,7 +3,7 @@ import { ChainSlug, HopBridge, NetworkSlug, TChain, Token } from '@hop-protocol/
 import { BigNumber } from 'ethers'
 import { useQuery } from 'react-query'
 import { hopAppNetwork } from 'src/config'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { defaultRefetchInterval, toTokenDisplay } from 'src/utils'
 import InfoTooltip from 'src/components/InfoTooltip'
 
@@ -23,8 +23,8 @@ function disableNativeAssetTransfers(sourceChain: string, tokenSymbol: string) {
 const useAvailableLiquidity = (
   bridge?: HopBridge,
   sourceToken?: Token,
-  sourceChain?: Network,
-  destinationChain?: Network,
+  sourceChain?: Chain,
+  destinationChain?: Chain,
   requiredLiquidity?: BigNumber
 ) => {
   const [sufficientLiquidity, setSufficientLiquidity] = useState(false)

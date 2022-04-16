@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
 import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import ConvertOption, { SendData } from './ConvertOption'
 import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
 import { DetailRow, FeeDetails } from 'src/components/InfoTooltip'
@@ -23,8 +23,8 @@ class HopConvertOption extends ConvertOption {
   async convert(
     sdk: Hop,
     signer: Signer,
-    sourceNetwork: Network,
-    destNetwork: Network,
+    sourceChain: Chain,
+    destinationChain: Chain,
     isConvertingToHToken: boolean,
     l1TokenSymbol: TokenSymbol,
     amountIn: BigNumberish,
@@ -37,24 +37,24 @@ class HopConvertOption extends ConvertOption {
       bonderFee = getBonderFeeWithId(BigNumber.from(bonderFee))
     }
 
-    if (sourceNetwork.isLayer1) {
+    if (sourceChain.isLayer1) {
       bonderFee = BigNumber.from(0)
     }
 
-    return bridge.sendHToken(amountIn, sourceNetwork.slug, destNetwork.slug, {
+    return bridge.sendHToken(amountIn, sourceChain.slug, destinationChain.slug, {
       bonderFee,
     })
   }
 
   async getSendData(
     sdk: Hop,
-    sourceNetwork: Network | undefined,
-    destNetwork: Network | undefined,
+    sourceChain: Chain | undefined,
+    destinationChain: Chain | undefined,
     isConvertingToHToken: boolean,
     l1TokenSymbol: TokenSymbol | undefined,
     amountIn: BigNumberish | undefined
   ): Promise<SendData> {
-    if (!l1TokenSymbol || !sourceNetwork || !destNetwork || !amountIn) {
+    if (!l1TokenSymbol || !sourceChain || !destinationChain || !amountIn) {
       return {
         amountOut: undefined,
         details: [],
@@ -63,20 +63,20 @@ class HopConvertOption extends ConvertOption {
 
     amountIn = BigNumber.from(amountIn)
     const bridge = sdk.bridge(l1TokenSymbol)
-    const token = sourceNetwork?.isLayer1
-      ? bridge.getCanonicalToken(sourceNetwork?.slug)
-      : bridge.getL2HopToken(sourceNetwork?.slug)
+    const token = sourceChain?.isLayer1
+      ? bridge.getCanonicalToken(sourceChain?.slug)
+      : bridge.getL2HopToken(sourceChain?.slug)
 
     const isHTokenSend = true
     const { totalFee, adjustedBonderFee, adjustedDestinationTxFee } = await bridge.getSendData(
       amountIn,
-      sourceNetwork.slug,
-      destNetwork.slug,
+      sourceChain.slug,
+      destinationChain.slug,
       isHTokenSend
     )
     const availableLiquidity = await bridge.getFrontendAvailableLiquidity(
-      sourceNetwork.slug,
-      destNetwork.slug
+      sourceChain.slug,
+      destinationChain.slug
     )
 
     let estimatedReceived = amountIn
@@ -86,9 +86,9 @@ class HopConvertOption extends ConvertOption {
       warning = 'Bonder fee greater than estimated received'
     }
 
-    if (!sourceNetwork?.isLayer1 && amountIn.gt(availableLiquidity)) {
+    if (!sourceChain?.isLayer1 && amountIn.gt(availableLiquidity)) {
       const formattedAmount = toTokenDisplay(availableLiquidity, token.decimals)
-      warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destNetwork.name}.`
+      warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destinationChain.name}.`
     }
 
     if (amountIn.gte(totalFee)) {
@@ -125,29 +125,29 @@ class HopConvertOption extends ConvertOption {
   async getTargetAddress(
     sdk: Hop,
     l1TokenSymbol?: TokenSymbol,
-    sourceNetwork?: Network
+    sourceChain?: Chain
   ): Promise<string> {
     if (!l1TokenSymbol) {
       throw new Error('Token symbol is required to get target address')
     }
 
-    if (!sourceNetwork) {
-      throw new Error('sourceNetwork is required to get target address')
+    if (!sourceChain) {
+      throw new Error('sourceChain is required to get target address')
     }
 
     const bridge = sdk.bridge(l1TokenSymbol)
-    if (sourceNetwork.isLayer1) {
+    if (sourceChain.isLayer1) {
       const l1Bridge = await bridge.getL1Bridge()
       return l1Bridge.address
     } else {
-      const l2Bridge = await bridge.getL2Bridge(sourceNetwork.slug)
+      const l2Bridge = await bridge.getL2Bridge(sourceChain.slug)
       return l2Bridge.address
     }
   }
 
   async sourceToken(
     isConvertingToHToken: boolean,
-    network?: Network,
+    network?: Chain,
     bridge?: HopBridge
   ): Promise<Token | undefined> {
     if (!bridge || !network) return
@@ -161,7 +161,7 @@ class HopConvertOption extends ConvertOption {
 
   async destToken(
     isConvertingToHToken: boolean,
-    network?: Network,
+    network?: Chain,
     bridge?: HopBridge
   ): Promise<Token | undefined> {
     if (!bridge || !network) return

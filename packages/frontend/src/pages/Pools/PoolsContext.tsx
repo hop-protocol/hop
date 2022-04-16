@@ -14,7 +14,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import Transaction from 'src/models/Transaction'
@@ -46,7 +46,7 @@ type PoolsContextProps = {
   isNativeToken: boolean
   loadingCanonicalBalance: boolean
   loadingHopBalance: boolean
-  networks: Network[]
+  networks: Chain[]
   poolReserves: BigNumber[]
   poolSharePercentage?: string
   priceImpact?: number
@@ -54,7 +54,7 @@ type PoolsContextProps = {
   removing: boolean
   reserveTotalsUsd?: number
   selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
-  selectedNetwork?: Network
+  selectedNetwork?: Chain
   sendButtonText: string
   sending: boolean
   setError: (error?: string | null) => void
@@ -526,7 +526,7 @@ const PoolsProvider: FC = ({ children }) => {
   useInterval(updateUserPoolPositions, 5 * 1000)
 
   const { approve } = useApprove(canonicalToken)
-  const approveTokens = async (isHop: boolean, amount: string, network: Network) => {
+  const approveTokens = async (isHop: boolean, amount: string, network: Chain) => {
     if (!canonicalToken) {
       throw new Error('Canonical token is required')
     }

@@ -4,7 +4,7 @@ import { parseUnits } from 'ethers/lib/utils'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
 import { defaultRefetchInterval, formatError } from 'src/utils'
@@ -20,10 +20,10 @@ type TokenWrapperContextProps = {
   isNativeToken: boolean
   isUnwrapping: boolean
   isWrapping: boolean
-  selectedNetwork: Network
+  selectedNetwork: Chain
   setAmount: (amount: string) => void
   setError: (error: string | null | undefined) => void
-  setSelectedNetwork: (network: Network) => void
+  setSelectedNetwork: (network: Chain) => void
   unwrap: () => void
   wrap: () => void
   wrappedToken?: Token
@@ -41,7 +41,7 @@ const TokenWrapperContext = createContext<TokenWrapperContextProps>({
   selectedNetwork: defaultL2Network,
   setAmount: (amount: string) => {},
   setError: (error: string | null | undefined) => {},
-  setSelectedNetwork: (network: Network) => {},
+  setSelectedNetwork: (network: Chain) => {},
   unwrap: () => {},
   wrap: () => {},
   wrappedToken: undefined,
@@ -52,7 +52,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
   const [amount, setAmount] = useState<string>('')
   const { txConfirm, selectedBridge } = useApp()
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
-  const [selectedNetwork, setSelectedNetwork] = useState<Network>(defaultL2Network)
+  const [selectedNetwork, setSelectedNetwork] = useState<Chain>(defaultL2Network)
 
   // TODO: mv to useBridges or new hook (useNetworkBridges)
   const canonicalToken = useMemo(() => {
@@ -104,8 +104,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
   const wrap = async () => {
     try {
       if (!selectedNetwork?.networkId) return
-      const networkId = Number(selectedNetwork.networkId)
-      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(selectedNetwork.networkId)
       if (!isNetworkConnected) return
 
       setError(null)
@@ -164,8 +163,7 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
 
   const unwrap = async () => {
     try {
-      const networkId = Number(selectedNetwork?.networkId)
-      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(selectedNetwork?.networkId)
       if (!isNetworkConnected) return
 
       setError(null)

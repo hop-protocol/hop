@@ -4,25 +4,25 @@ import { Signer, providers } from 'ethers'
 import find from 'lodash/find'
 import { networks } from 'src/config'
 import { allNetworks } from 'src/config/networks'
-import Network from 'src/models/Network'
+import Chain, { Chainish } from 'src/models/Chain'
 
-export function findNetworkById(networkId: number, networks: Network[] = allNetworks) {
+export function findNetworkById(networkId: number, networks: Chain[] = allNetworks) {
   return find(networks, ['networkId', networkId])
 }
 
-export function findNetworkBySlug(slug: string, networks: Network[] = allNetworks) {
+export function findNetworkBySlug(slug: string, networks: Chain[] = allNetworks) {
   return find(networks, ['slug', slug])
 }
 
-export function findNetwork(slugOrNetwork?: string | Network, networks: Network[] = allNetworks) {
+export function findNetwork(slugOrNetwork?: string | Chain, networks: Chain[] = allNetworks) {
   return find(networks, [
     'slug',
-    slugOrNetwork instanceof Network ? slugOrNetwork.slug : slugOrNetwork,
+    slugOrNetwork instanceof Chain ? slugOrNetwork.slug : slugOrNetwork,
   ])
 }
 
-function normalizeNetworkToSlug(network?: Network | ChainSlug | ChainId) {
-  if (network instanceof Network) {
+function normalizeNetworkToSlug(network?: Chainish) {
+  if (network instanceof Chain) {
     return network.slug
   }
   if (typeof network === 'string' && network in Slug) {
@@ -33,10 +33,7 @@ function normalizeNetworkToSlug(network?: Network | ChainSlug | ChainId) {
   }
 }
 
-export function isSameNetwork(
-  network1?: Network | ChainSlug | ChainId,
-  network2?: Network | ChainSlug | ChainId
-) {
+export function isSameNetwork(network1?: Chainish, network2?: Chainish) {
   const slug1 = normalizeNetworkToSlug(network1)
   const slug2 = normalizeNetworkToSlug(network2)
   return slug1 === slug2
@@ -92,33 +89,36 @@ export function getNetworkWaitConfirmations(tChain: TChain) {
   return networks[tChain.slug].waitConfirmations
 }
 
-export function isLayer1(chain: Network | ChainSlug | undefined) {
-  if (chain instanceof Network) {
+export function isLayer1(chain?: Chainish) {
+  if (chain instanceof Chain) {
     return chain.isLayer1
   }
   if (typeof chain === 'string' && chain in Slug) {
     return chain === ChainSlug.Ethereum
   }
+  if (typeof chain === 'number') {
+    return chain === ChainId.Ethereum
+  }
   return false
 }
 
-export function isL1ToL2(srcNetwork?: Network | ChainSlug, destNetwork?: Network | ChainSlug) {
-  const srcCheck = isLayer1(srcNetwork)
-  const destCheck = !isLayer1(destNetwork)
+export function isL1ToL2(sourceChain?: Chainish, destinationChain?: Chainish) {
+  const srcCheck = isLayer1(sourceChain)
+  const destCheck = !isLayer1(destinationChain)
 
   return srcCheck && destCheck
 }
 
-export function isL2ToL1(srcNetwork?: Network | ChainSlug, destNetwork?: Network | ChainSlug) {
-  const srcCheck = !isLayer1(srcNetwork)
-  const destCheck = isLayer1(destNetwork)
+export function isL2ToL1(sourceChain?: Chainish, destinationChain?: Chainish) {
+  const srcCheck = !isLayer1(sourceChain)
+  const destCheck = isLayer1(destinationChain)
 
   return srcCheck && destCheck
 }
 
-export function isL2ToL2(srcNetwork?: Network | ChainSlug, destNetwork?: Network | ChainSlug) {
-  const srcCheck = !isLayer1(srcNetwork)
-  const destCheck = !isLayer1(destNetwork)
+export function isL2ToL2(sourceChain?: Chainish, destinationChain?: Chainish) {
+  const srcCheck = !isLayer1(sourceChain)
+  const destCheck = !isLayer1(destinationChain)
 
   return srcCheck && destCheck
 }

@@ -2,36 +2,36 @@ import { useMemo } from 'react'
 import { BigNumber } from 'ethers'
 import { Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { useQuery } from 'react-query'
 import { defaultRefetchInterval } from 'src/utils'
 
 const useSendData = (
   token?: Token,
   slippageTolerance?: number,
-  fromNetwork?: Network,
-  toNetwork?: Network,
+  sourceChain?: Chain,
+  destinationChain?: Chain,
   fromAmount?: BigNumber
 ) => {
   const { sdk } = useApp()
 
-  const queryKey = `sendData:${token?.symbol}:${fromNetwork?.slug}:${
-    toNetwork?.slug
+  const queryKey = `sendData:${token?.symbol}:${sourceChain?.slug}:${
+    destinationChain?.slug
   }:${fromAmount?.toString()}`
 
   const { isLoading, data, error } = useQuery(
-    [queryKey, token?.address, fromNetwork?.slug, toNetwork?.slug, fromAmount?.toString()],
+    [queryKey, token?.address, sourceChain?.slug, destinationChain?.slug, fromAmount?.toString()],
     async () => {
-      if (!(token && fromNetwork && toNetwork && fromAmount)) {
+      if (!(token && sourceChain && destinationChain && fromAmount)) {
         return
       }
 
       const bridge = sdk.bridge(token?.symbol)
-      return bridge.getSendData(fromAmount, fromNetwork.slug, toNetwork.slug)
+      return bridge.getSendData(fromAmount, sourceChain.slug, destinationChain.slug)
     },
     {
       enabled:
-        !!token?.address && !!fromNetwork?.slug && !!toNetwork?.slug && !!fromAmount?.toString(),
+        !!token?.address && !!sourceChain?.slug && !!destinationChain?.slug && !!fromAmount?.toString(),
       refetchInterval: defaultRefetchInterval,
     }
   )

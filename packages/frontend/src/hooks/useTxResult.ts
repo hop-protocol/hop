@@ -1,19 +1,19 @@
 import { useQuery } from 'react-query'
 import { Token } from '@hop-protocol/sdk'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import { BigNumber } from 'ethers'
 import { defaultRefetchInterval } from 'src/utils'
 
 export function useTxResult(
   token?: Token,
-  srcNetwork?: Network,
-  destNetwork?: Network,
+  sourceChain?: Chain,
+  destinationChain?: Chain,
   amount?: BigNumber,
   cb?: (opts: any) => any,
   opts?: any
 ) {
-  const queryKey = `txResult:${token?.symbol}:${srcNetwork?.slug}:${
-    destNetwork?.slug
+  const queryKey = `txResult:${token?.symbol}:${sourceChain?.slug}:${
+    destinationChain?.slug
   }:${amount?.toString()}`
   const { interval = defaultRefetchInterval, ...rest } = opts
 
@@ -23,27 +23,30 @@ export function useTxResult(
     data: estimatedGasCost,
     error,
   } = useQuery(
-    [queryKey, srcNetwork?.slug, token?.symbol, amount?.toString()],
+    [queryKey, sourceChain?.slug, token?.symbol, amount?.toString()],
     async () => {
-      if (!(token && srcNetwork?.slug && destNetwork?.slug && amount && cb)) {
+      if (!(token && sourceChain?.slug && destinationChain?.slug && amount && cb)) {
         return
       }
 
+      console.log(`rest:`, rest)
       const options = {
         token: token,
-        fromNetwork: srcNetwork,
-        toNetwork: destNetwork,
+        sourceChain: sourceChain,
+        destinationChain: destinationChain,
         ...rest,
       }
+      console.log(`cb:`, cb)
 
       try {
         return cb(options)
       } catch (error) {
         // noop
+        console.log(`error:`, error)
       }
     },
     {
-      enabled: !!token?.symbol && !!srcNetwork?.slug && !!amount?.toString(),
+      enabled: !!token?.symbol && !!sourceChain?.slug && !!amount?.toString(),
       refetchInterval: interval,
     }
   )

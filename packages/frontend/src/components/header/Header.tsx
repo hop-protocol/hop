@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from 'react'
+import React, { FC, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Theme, makeStyles } from '@material-ui/core'
 import Box from '@material-ui/core/Box'
@@ -19,7 +19,7 @@ import {
   findNetworkBySlug,
   fixedDecimals,
 } from 'src/utils'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import logger from 'src/logger'
 import { useInterval } from 'react-use'
 import ConnectWalletButton from './ConnectWalletButton'
@@ -110,7 +110,7 @@ const Header: FC = () => {
   const { address, provider, connectedNetworkId } = useWeb3Context()
   const { theme } = useApp()
   const [displayBalance, setDisplayBalance] = useState<string>('')
-  const [connectedNetwork, setConnectedNetwork] = useState<Network | undefined>()
+  const [connectedNetwork, setConnectedNetwork] = useState<Chain | undefined>()
 
   const updateDisplayBalance = async () => {
     try {

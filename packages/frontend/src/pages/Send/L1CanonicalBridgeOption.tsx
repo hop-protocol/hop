@@ -3,13 +3,13 @@ import { Token } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { Div, Flex } from 'src/components/ui'
 import { toTokenDisplay } from 'src/utils'
-import Network from 'src/models/Network'
+import Chain from 'src/models/Chain'
 import CanonicalBridge from 'src/models/CanonicalBridge'
 import { RadioButtonChecked, RadioButtonUnchecked } from '@material-ui/icons'
 
 interface Props {
   amount?: BigNumber
-  destNetwork?: Network
+  destinationChain?: Chain
   destToken?: Token
   estimatedReceivedDisplay?: string
   l1CanonicalBridge?: CanonicalBridge
@@ -20,7 +20,7 @@ interface Props {
 function L1CanonicalBridgeOption(props: Props) {
   const {
     amount,
-    destNetwork,
+    destinationChain,
     destToken,
     estimatedReceivedDisplay,
     l1CanonicalBridge,
@@ -46,7 +46,7 @@ function L1CanonicalBridgeOption(props: Props) {
               <Flex mr={2}>
                 {usingNativeBridge ? <RadioButtonChecked /> : <RadioButtonUnchecked />}
               </Flex>
-              <Flex>Native {destNetwork?.name} Bridge</Flex>
+              <Flex>Native {destinationChain?.name} Bridge</Flex>
             </Flex>
             <Flex>{toTokenDisplay(amount, destToken?.decimals, destToken?.symbol)}</Flex>
           </Flex>

@@ -14,7 +14,7 @@ class Logger {
   }
 
   error = (...input: any[]) => {
-    console.error(this.prefix, ...input)
+    console.error(this.prefix, new Error(...input))
   }
 
   info = (...input: any[]) => {

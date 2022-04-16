@@ -1,4 +1,4 @@
-import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
+import React, { FC, useState, useMemo, useEffect, ChangeEvent, useCallback } from 'react'
 import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
 import { ChainSlug } from '@hop-protocol/sdk'
@@ -164,7 +164,11 @@ const Send: FC = () => {
   // Approve fromNetwork / fromToken
   // ==============================================================================================
 
-  const { approve, needsApproval } = useApprove(sourceToken, fromNetwork, fromTokenAmountBN)
+  const { approve, needsApproval, checkApproval } = useApprove(
+    sourceToken,
+    fromNetwork,
+    fromTokenAmountBN
+  )
 
   const approveFromToken = async () => {
     if (!fromNetwork) {
@@ -198,45 +202,6 @@ const Send: FC = () => {
     const tx = await approve(parsedAmount, sourceToken, spender)
 
     await tx?.wait()
-  }
-
-  const handleApprove = async () => {
-    try {
-      setError(null)
-      setApproving(true)
-
-      if (l1CanonicalBridge && usingNativeBridge && needsNativeBridgeApproval) {
-        const done = await approveNativeBridge()
-        if (done) {
-          sendL1CanonicalBridge()
-        }
-      } else {
-        await approveFromToken()
-      }
-      setApproving(false)
-    } catch (err: any) {
-      console.log(`err:`, err)
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err, fromNetwork))
-      }
-      logger.error(err)
-    }
-    setApproving(false)
-  }
-
-  const estimateHandleApprove = async () => {
-    try {
-      if (l1CanonicalBridge && usingNativeBridge && needsNativeBridgeApproval) {
-        await estimateApproveNativeBridge()
-      } else {
-        await approveFromToken()
-      }
-    } catch (err: any) {
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err, fromNetwork))
-      }
-      logger.error(err)
-    }
   }
 
   // ==============================================================================================
@@ -293,6 +258,43 @@ const Send: FC = () => {
     }
   )
 
+  const handleApprove = useCallback(async () => {
+    try {
+      setError(null)
+      setApproving(true)
+
+      if (l1CanonicalBridge && usingNativeBridge && needsNativeBridgeApproval) {
+        await approveNativeBridge()
+      } else {
+        await approveFromToken()
+      }
+      setApproving(false)
+    } catch (err: any) {
+      console.log(`err:`, err)
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err, fromNetwork))
+      }
+      logger.error(err)
+    }
+    setApproving(false)
+  }, [l1CanonicalBridge, usingNativeBridge, needsNativeBridgeApproval])
+
+  const estimateHandleApprove = async () => {
+    try {
+      if (l1CanonicalBridge && usingNativeBridge && needsNativeBridgeApproval) {
+        return await estimateApproveNativeBridge()
+      } else {
+        if (fromTokenAmountBN && sourceToken && fromNetwork) {
+          // return await checkApproval(fromTokenAmountBN, sourceToken, fromNetwork.slug)
+        }
+      }
+    } catch (err: any) {
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err, fromNetwork))
+      }
+      logger.error(err)
+    }
+  }
   const { estimateSend } = useEstimateTxCost()
 
   async function estimateApproveNativeBridge(opts?: any) {
@@ -314,9 +316,9 @@ const Send: FC = () => {
     fromNetwork,
     toNetwork,
     fromTokenAmountBN,
-    needsNativeBridgeApproval && usingNativeBridge
+    usingNativeBridge && needsNativeBridgeApproval
       ? estimateApproveNativeBridge
-      : needsApproval === true
+      : needsApproval
       ? estimateHandleApprove
       : estimateSend,
     { deadline, checkAllowance: true }
@@ -332,10 +334,7 @@ const Send: FC = () => {
     needsNativeBridgeApproval,
     l1CanonicalBridge
   )
-  // have     264559015237401047
-  // want     1000000000000000000
-  // supplied 15025147
-  // "err: insufficient funds for gas * price + value: address 0x9997da3de3ec197C853BCC96CaECf08a81dE9D69 have 264559015237401047 want 1000000000000000000 (supplied gas 15025147)"
+
   // ==============================================================================================
   // Error and warning messages
   // ==============================================================================================

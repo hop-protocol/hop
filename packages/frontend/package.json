@@ -7,6 +7,7 @@
     "yarn": "^1.22.11"
   },
   "dependencies": {
+    "@arbitrum/sdk": "^1.1.2",
     "@aws-sdk/client-cloudfront": "^3.45.0",
     "@gnosis.pm/safe-apps-react-sdk": "^4.3.1",
     "@gnosis.pm/safe-apps-sdk": "^7.3.0",
@@ -15,7 +16,6 @@
     "@material-ui/core": "^4.12.3",
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "4.0.0-alpha.60",
-    "arb-ts": "^1.0.2",
     "bnc-onboard": "^1.37.0",
     "classnames": "2.2.6",
     "clsx": "1.1.1",

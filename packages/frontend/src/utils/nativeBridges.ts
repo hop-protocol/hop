@@ -1,3 +1,6 @@
+import { EthBridger, Erc20Bridger, getL2Network } from '@arbitrum/sdk'
+import { CanonicalToken, ChainId, ChainSlug } from '@hop-protocol/sdk'
+
 export const nativeBridges = {
   USDC: {
     ethereum: {
@@ -320,4 +323,19 @@ export const nativeBridges = {
       bridgeDeployedBlockNumber: 2481596,
     },
   },
+}
+
+export async function initNativeBridge(l2Chain: ChainSlug, token: CanonicalToken) {
+  if (l2Chain === ChainSlug.Arbitrum) {
+    const l2Network = await getL2Network(ChainId.Arbitrum)
+    let bridge: EthBridger | Erc20Bridger
+    if (token === CanonicalToken.ETH) {
+      bridge = new EthBridger(l2Network)
+    } else {
+      bridge = new Erc20Bridger(l2Network)
+    }
+    console.log(`arb bridge:`, bridge)
+
+    return bridge
+  }
 }

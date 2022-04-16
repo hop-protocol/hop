@@ -1726,7 +1726,8 @@ class HopBridge extends Base {
       l1Bridge = await this.getL1Bridge(this.signer)
       if (!isNativeToken) {
         const l1Token = this.getL1Token()
-        const allowance = await l1Token.allowance(l1Bridge.address)
+        const spender = this.getSendApprovalAddress(sourceChain, false)
+        const allowance = await l1Token.allowance(spender)
         if (allowance.lt(BigNumber.from(amount))) {
           throw new Error(Errors.NotEnoughAllowance)
         }

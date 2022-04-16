@@ -104,8 +104,8 @@ class Token extends Base {
     return tokenContract.allowance(address, spender)
   }
 
-  public async needsApproval (spender: string, amount: BigNumberish) {
-    const allowance = await this.allowance(spender)
+  public async needsApproval (spender: string, amount: BigNumberish, address?: string) {
+    const allowance = await this.allowance(spender, address)
     return allowance.lt(amount)
   }
 

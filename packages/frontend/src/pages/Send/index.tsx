@@ -1,3 +1,3 @@
-import Send from './Sendd'
+import Send from './Send'
 
 export default Send

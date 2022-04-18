@@ -1,25 +1,16 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent, useCallback } from 'react'
 import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
-import { ChainSlug } from '@hop-protocol/sdk'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/modal/TxStatusModal'
 import DetailRow from 'src/components/InfoTooltip/DetailRow'
-import { BigNumber, Signer } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import Chain from 'src/models/Chain'
+import { BigNumber } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import {
-  commafy,
-  findMatchingBridge,
-  findNetworkBySlug,
-  sanitizeNumericalString,
-  toTokenDisplay,
-} from 'src/utils'
+import { commafy, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import { FeeDetails, AmmDetails } from 'src/components/InfoTooltip'
 import { amountToBN, formatError } from 'src/utils/format'
@@ -30,9 +21,7 @@ import { Div, Flex } from 'src/components/ui'
 import { useSendTransaction } from './useSendTransaction'
 import {
   useAssets,
-  useFeeConversions,
   useApprove,
-  useQueryParams,
   useNeedsTokenForFee,
   useBalance,
   useEstimateTxCost,
@@ -40,6 +29,10 @@ import {
   useSufficientBalance,
   useDisableTxs,
   useGnosisSafeTransaction,
+  useChainSelector,
+  useChainProviders,
+  useWarningErrorInfo,
+  useDisplayedAmounts,
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
@@ -47,7 +40,6 @@ import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { ExternalLink } from 'src/components/Link'
 import L1CanonicalBridgeOption from './L1CanonicalBridgeOption'
 import { useL1CanonicalBridge } from './useL1CanonicalBridge'
-import { Provider } from '@ethersproject/abstract-provider'
 
 const Sendd: FC = () => {
   const styles = useSendStyles()
@@ -63,57 +55,29 @@ const Sendd: FC = () => {
   } = useApp()
   const { slippageTolerance, deadline } = settings
   const { checkConnectedNetworkId, address } = useWeb3Context()
-  const { queryParams, updateQueryParams } = useQueryParams()
-  const [sourceChain, _setSourceChain] = useState<Chain>()
-  const [l1Signer, _setL1Signer] = useState<Signer>()
-  const [l2Provider, _setL2Provider] = useState<Provider>()
-  const [destinationChain, _setToNetwork] = useState<Chain>()
-  const [fromTokenAmount, setFromTokenAmount] = useState<string>()
-  const [toTokenAmount, setToTokenAmount] = useState<string>()
-  const [approving, setApproving] = useState<boolean>(false)
-  const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
-  const [warning, setWarning] = useState<any>(null)
-  const [error, setError] = useState<string | null | undefined>(null)
-  const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
-  const [info, setInfo] = useState<string | null | undefined>(null)
+  const [sourceTokenAmount, setSourceTokenAmount] = useState<string>()
   const [customRecipient, setCustomRecipient] = useState<string>()
-  const [manualWarning, setManualWarning] = useState<string>('')
+  const [approving, setApproving] = useState<boolean>(false)
+
   const { isSmartContractWallet } = useIsSmartContractWallet()
-  const [manualError, setManualError] = useState<string>('')
+  const {
+    sourceChain,
+    destinationChain,
+    handleBridgeChange,
+    handleSwitchDirection,
+    handleSourceChainChange,
+    handleDestinationChainChange,
+  } = useChainSelector({ networks, bridges, setSelectedBridge })
+  const { disabledTx } = useDisableTxs(sourceChain, destinationChain)
+  const needsTokenForFee = useNeedsTokenForFee(sourceChain)
 
-  // Set sourceChain and destinationChain using query params
-  useEffect(() => {
-    const _sourceChain = findNetworkBySlug(queryParams.sourceChain as string, networks)
-    _setSourceChain(_sourceChain)
-
-    const _destinationChain = findNetworkBySlug(queryParams.destinationChain as string, networks)
-
-    if (!_sourceChain?.eq(destinationChain)) {
-      // Leave destination network empty
-      return
-    }
-
-    _setToNetwork(_destinationChain)
-  }, [queryParams, networks])
-
-  // Reset error message when sourceChain/destinationChain changes.\
-  // Also, set the l1Signer and l2Provider
-  useEffect(() => {
-    if (warning) setWarning('')
-    if (error) setError('')
-
-    if (sourceChain?.provider) {
-      const l1Signer = (sourceChain.provider as any).getSigner()
-      _setL1Signer(l1Signer)
-    }
-    if (destinationChain?.provider) {
-      const l2Provider = destinationChain.provider
-      _setL2Provider(l2Provider)
-    }
-  }, [sourceChain, destinationChain])
+  const { sourceProvider, sourceSigner, destinationProvider } = useChainProviders(
+    sourceChain,
+    destinationChain
+  )
 
   // Get assets
-  const { unsupportedAsset, sourceToken, destToken, placeholderToken } = useAssets(
+  const { unsupportedAsset, sourceToken, destinationToken, placeholderToken } = useAssets(
     selectedBridge,
     sourceChain,
     destinationChain
@@ -121,14 +85,18 @@ const Sendd: FC = () => {
 
   // Get token balances for both networks
   const { balance: fromBalance, loading: loadingFromBalance } = useBalance(sourceToken, address)
-  const { balance: toBalance, loading: loadingToBalance } = useBalance(destToken, address)
+  const { balance: toBalance, loading: loadingToBalance } = useBalance(destinationToken, address)
 
-  // Set fromToken -> BN
-  const fromTokenAmountBN = useMemo<BigNumber | undefined>(() => {
-    if (fromTokenAmount && sourceToken) {
-      return amountToBN(fromTokenAmount, sourceToken.decimals)
+  // Set sourceTokenAmount -> BN
+  const sourceTokenAmountBN = useMemo<BigNumber | undefined>(() => {
+    if (sourceTokenAmount && sourceToken) {
+      return amountToBN(sourceTokenAmount, sourceToken.decimals)
     }
-  }, [sourceToken, fromTokenAmount])
+  }, [sourceToken, sourceTokenAmount])
+
+  // ==============================================================================================
+  // Displayed data
+  // ==============================================================================================
 
   // Use send data for tx
   const {
@@ -144,7 +112,13 @@ const Sendd: FC = () => {
     loading: loadingSendData,
     estimatedReceived,
     error: sendDataError,
-  } = useSendData(sourceToken, slippageTolerance, sourceChain, destinationChain, fromTokenAmountBN)
+  } = useSendData(
+    sourceToken,
+    slippageTolerance,
+    sourceChain,
+    destinationChain,
+    sourceTokenAmountBN
+  )
 
   // Get available liquidity
   const {
@@ -159,71 +133,71 @@ const Sendd: FC = () => {
     requiredLiquidity
   )
 
-  // Set toAmount
-  useEffect(() => {
-    if (!destToken) {
-      setToTokenAmount('')
-      return
-    }
+  const checkingLiquidity = useMemo(() => {
+    return !sourceChain?.isLayer1 && availableLiquidity === undefined
+  }, [sourceChain, availableLiquidity])
 
-    let amount
-    if (amountOut) {
-      amount = toTokenDisplay(amountOut, destToken.decimals)
-    }
-    setToTokenAmount(amount)
-  }, [destToken, amountOut])
-
-  // Convert fees to displayed values
   const {
+    destinationAmount,
+    setDestinationAmount,
+    amountOutMinDisplay,
     destinationTxFeeDisplay,
     bonderFeeDisplay,
     totalBonderFeeDisplay,
     estimatedReceivedDisplay,
-  } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
+  } = useDisplayedAmounts({
+    destinationToken,
+    amountOut,
+    amountOutMin,
+    estimatedReceived,
+    adjustedDestinationTxFee,
+    adjustedBonderFee,
+    sourceTokenAmount: sourceTokenAmountBN,
+  })
 
   // ==============================================================================================
-  // Approve sourceChain / fromToken
+  // Approve sourceChain / sourceToken
   // ==============================================================================================
 
-  const { approve, needsApproval, checkApproval } = useApprove(
+  const { needsApproval, checkApproval, approveSourceToken } = useApprove(
     sourceToken,
     sourceChain,
-    fromTokenAmountBN
+    sourceTokenAmountBN,
+    destinationChain,
+    setApproving
   )
 
-  const approveFromToken = async () => {
-    if (!sourceChain) {
-      throw new Error('No sourceChain selected')
-    }
+  // ==============================================================================================
+  // Error and warning messages
+  // ==============================================================================================
 
-    if (!sourceToken) {
-      throw new Error('No from token selected')
-    }
-
-    if (!fromTokenAmount) {
-      throw new Error('No amount to approve')
-    }
-
-    const networkId = Number(sourceChain.networkId)
-    const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected) return
-
-    const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
-    const bridge = sdk.bridge(sourceToken.symbol)
-
-    let spender: string
-    if (sourceChain.isLayer1) {
-      const l1Bridge = await bridge.getL1Bridge()
-      spender = l1Bridge.address
-    } else {
-      const ammWrapper = await bridge.getAmmWrapper(sourceChain.slug)
-      spender = ammWrapper.address
-    }
-
-    const tx = await approve(parsedAmount, sourceToken, spender)
-
-    await tx?.wait()
-  }
+  const {
+    warning,
+    setWarning,
+    error,
+    setError,
+    manualError,
+    manualWarning,
+    minimumSendWarning,
+    info,
+    setInfo,
+  } = useWarningErrorInfo({
+    sourceChain,
+    destinationChain,
+    unsupportedAsset,
+    customRecipient,
+    destinationTxFeeDisplay,
+    estimatedReceived,
+    adjustedDestinationTxFee,
+    sendDataError,
+    // adjustedBonderFee,
+    // liquidityWarning,
+    // sufficientBalanceWarning,
+    // estimatedReceived,
+    // priceImpact,
+    // sourceTokenAmount,
+    // destinationAmount,
+  })
 
   // ==============================================================================================
   // Send tokens
@@ -244,7 +218,7 @@ const Sendd: FC = () => {
     deadline,
     totalFee,
     sourceChain,
-    fromTokenAmount,
+    sourceTokenAmount,
     intermediaryAmountOutMin,
     sdk,
     setError,
@@ -255,6 +229,19 @@ const Sendd: FC = () => {
     estimatedReceived: estimatedReceivedDisplay,
   })
 
+  useEffect(() => {
+    if (tx) {
+      // clear from token input field
+      setSourceTokenAmount('')
+    }
+  }, [tx])
+
+  const { gnosisEnabled, gnosisSafeWarning, isCorrectSignerNetwork } = useGnosisSafeTransaction(
+    sourceChain,
+    destinationChain,
+    customRecipient
+  )
+
   const {
     l1CanonicalBridge,
     sendL1CanonicalBridge,
@@ -262,81 +249,41 @@ const Sendd: FC = () => {
     selectNativeBridge,
     approveNativeBridge,
     needsNativeBridgeApproval,
-  } = useL1CanonicalBridge(
+    estimateApproveNativeBridge,
+  } = useL1CanonicalBridge({
     sdk,
     sourceToken,
-    fromTokenAmountBN,
+    sourceTokenAmount: sourceTokenAmountBN,
     destinationChain,
     estimatedReceived,
     txConfirm,
-    {
-      handleTransaction,
-      setSending,
-      setTx,
-      waitForTransaction,
-      updateTransaction,
-      setApproving,
-    }
-  )
+    handleTransaction,
+    setSending,
+    setTx,
+    waitForTransaction,
+    updateTransaction,
+    setApproving,
+  })
 
-  const handleApprove = useCallback(async () => {
-    try {
-      setError(null)
-      setApproving(true)
+  // ==============================================================================================
+  // Tx Estimations
+  // ==============================================================================================
 
-      if (l1CanonicalBridge && usingNativeBridge && needsNativeBridgeApproval) {
-        await approveNativeBridge()
-      } else {
-        await approveFromToken()
-      }
-      setApproving(false)
-    } catch (err: any) {
-      console.log(`err:`, err)
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err, sourceChain))
-      }
-      logger.error(err)
-    }
-    setApproving(false)
-  }, [l1CanonicalBridge, usingNativeBridge, needsNativeBridgeApproval])
-
-  const estimateHandleApprove = async () => {
-    try {
-      if (l1CanonicalBridge && usingNativeBridge && needsNativeBridgeApproval) {
-        return await estimateApproveNativeBridge()
-      } else {
-        if (fromTokenAmountBN && sourceToken && sourceChain) {
-          // return await checkApproval(fromTokenAmountBN, sourceToken, sourceChain.slug)
-        }
-      }
-    } catch (err: any) {
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err, sourceChain))
-      }
-      logger.error(err)
-    }
-  }
-  const { estimateSend } = useEstimateTxCost()
-
-  async function estimateApproveNativeBridge(opts?: any) {
-    if (!l1CanonicalBridge || !fromTokenAmountBN) {
-      return
-    }
-
-    const spender = l1CanonicalBridge.getDepositApprovalAddress()
-    if (!spender) {
-      throw new Error(
-        `token "${l1CanonicalBridge.tokenSymbol}" on chain "${l1CanonicalBridge.chain.slug}" is unsupported`
-      )
-    }
-    return l1CanonicalBridge.estimateApproveTx(fromTokenAmountBN)
-  }
+  const { estimateSend, estimateHandleApprove, estimateTxError } = useEstimateTxCost({
+    usingNativeBridge,
+    needsNativeBridgeApproval,
+    l1CanonicalBridge,
+    sourceChain,
+    destinationChain,
+    sourceToken,
+    sourceTokenAmount: sourceTokenAmountBN,
+  })
 
   const { estimatedGasCost } = useTxResult(
     sourceToken,
     sourceChain,
     destinationChain,
-    fromTokenAmountBN,
+    sourceTokenAmountBN,
     usingNativeBridge && needsNativeBridgeApproval
       ? estimateApproveNativeBridge
       : needsApproval
@@ -347,7 +294,7 @@ const Sendd: FC = () => {
 
   const { sufficientBalance, warning: sufficientBalanceWarning } = useSufficientBalance(
     sourceToken,
-    fromTokenAmountBN,
+    sourceTokenAmountBN,
     estimatedGasCost,
     fromBalance,
     isSmartContractWallet,
@@ -357,47 +304,17 @@ const Sendd: FC = () => {
   )
 
   // ==============================================================================================
-  // Error and warning messages
+  // More warning messages
   // ==============================================================================================
-  useEffect(() => {
-    setError(formatError(sendDataError))
-  }, [sendDataError])
-
-  // Set error message if asset is unsupported
-  useEffect(() => {
-    if (unsupportedAsset) {
-      const { chain, tokenSymbol } = unsupportedAsset
-      setError(`${tokenSymbol} is currently not supported on ${chain}`)
-    } else if (error) {
-      setError('')
-    }
-  }, [unsupportedAsset])
-
-  const checkingLiquidity = useMemo(() => {
-    return !sourceChain?.isLayer1 && availableLiquidity === undefined
-  }, [sourceChain, availableLiquidity])
-
-  const needsTokenForFee = useNeedsTokenForFee(sourceChain)
 
   useEffect(() => {
-    const warningMessage = `Send at least ${destinationTxFeeDisplay} to cover the transaction fee`
-    if (estimatedReceived?.lte(0) && adjustedDestinationTxFee?.gt(0)) {
-      setMinimumSendWarning(warningMessage)
-    } else if (minimumSendWarning) {
-      setMinimumSendWarning('')
-    }
-  }, [estimatedReceived, adjustedDestinationTxFee])
+    let message = liquidityWarning || minimumSendWarning || sufficientBalanceWarning
 
-  useEffect(() => {
-    let message = liquidityWarning || minimumSendWarning
-
-    const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
+    const isFavorableSlippage = Number(destinationAmount) >= Number(sourceTokenAmount)
     const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
     const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
 
-    if (sufficientBalanceWarning) {
-      message = sufficientBalanceWarning
-    } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
+    if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
       message = 'Bonder fee greater than estimated received'
     } else if (estimatedReceived?.lte(0)) {
       message = 'Estimated received too low. Send a higher amount to cover the fees.'
@@ -406,131 +323,46 @@ const Sendd: FC = () => {
     }
 
     setWarning(message)
+
+    if (estimateTxError) {
+      setError(estimateTxError)
+    }
   }, [
     liquidityWarning,
     minimumSendWarning,
     sufficientBalanceWarning,
     estimatedReceived,
     priceImpact,
-    fromTokenAmount,
-    toTokenAmount,
+    sourceTokenAmount,
+    destinationAmount,
+    estimateTxError,
   ])
 
-  useEffect(() => {
-    if (!amountOutMin || !destToken) {
-      setAmountOutMinDisplay(undefined)
-      return
-    }
-    let _amountOutMin = amountOutMin
-    if (adjustedDestinationTxFee?.gt(0)) {
-      _amountOutMin = _amountOutMin.sub(adjustedDestinationTxFee)
-    }
-
-    if (_amountOutMin.lt(0)) {
-      _amountOutMin = BigNumber.from(0)
-    }
-
-    const amountOutMinFormatted = commafy(formatUnits(_amountOutMin, destToken.decimals), 4)
-    setAmountOutMinDisplay(`${amountOutMinFormatted} ${destToken.symbol}`)
-  }, [amountOutMin])
-
-  useEffect(() => {
-    if (tx) {
-      // clear from token input field
-      setFromTokenAmount('')
-    }
-  }, [tx])
-
-  const { gnosisEnabled, gnosisSafeWarning, isCorrectSignerNetwork } = useGnosisSafeTransaction(
-    tx,
-    customRecipient,
-    sourceChain,
-    destinationChain
-  )
-
   // ==============================================================================================
-  // User actions
-  // - Bridge / Network selection
-  // - Custom recipient input
+  // Transaction handlers
   // ==============================================================================================
 
-  // Change the bridge if user selects different token to send
-  const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
-    const tokenSymbol = event.target.value as string
-    const bridge = findMatchingBridge(bridges, tokenSymbol)
-    if (bridge) {
-      setSelectedBridge(bridge)
+  const handleApprove = useCallback(async () => {
+    try {
+      setError(null)
+
+      if (l1CanonicalBridge && usingNativeBridge && needsNativeBridgeApproval) {
+        await approveNativeBridge()
+      } else {
+        await approveSourceToken()
+      }
+    } catch (err: any) {
+      console.log(`err:`, err)
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err, sourceChain))
+      }
+      logger.error(err)
     }
-  }
+  }, [l1CanonicalBridge, usingNativeBridge, needsNativeBridgeApproval])
 
-  // Set sourceChain
-  const setSourceChain = (network: Chain | undefined) => {
-    updateQueryParams({
-      sourceChain: network?.slug ?? '',
-    })
-    _setSourceChain(network)
-  }
-
-  // Set destinationChain
-  const setToNetwork = (network: Chain | undefined) => {
-    updateQueryParams({
-      destinationChain: network?.slug ?? '',
-    })
-    _setToNetwork(network)
-  }
-
-  // Switch the sourceChain <--> destinationChain
-  const handleSwitchDirection = () => {
-    setToTokenAmount('')
-    setSourceChain(destinationChain)
-    setToNetwork(sourceChain)
-  }
-
-  // Change the sourceChain
-  const handleSourceChainChange = (network: Chain | undefined) => {
-    if (network?.slug === destinationChain?.slug) {
-      handleSwitchDirection()
-    } else {
-      setSourceChain(network)
-    }
-  }
-
-  // Change the destinationChain
-  const handleToNetworkChange = (network: Chain | undefined) => {
-    if (network?.slug === sourceChain?.slug) {
-      handleSwitchDirection()
-    } else {
-      setToNetwork(network)
-    }
-  }
-
-  // Specify custom recipient
-  const handleCustomRecipientInput = (event: any) => {
-    const value = event.target.value.trim()
-    setCustomRecipient(value)
-  }
-
-  useEffect(() => {
-    if (
-      destinationChain?.slug === ChainSlug.Arbitrum &&
-      customRecipient &&
-      !address?.eq(customRecipient)
-    ) {
-      return setManualWarning(
-        'Warning: transfers to exchanges that do not support internal transactions may result in lost funds.'
-      )
-    }
-    setManualWarning('')
-  }, [sourceChain?.slug, destinationChain?.slug, customRecipient, address])
-
-  useEffect(() => {
-    // if (sourceChain?.slug === ChainSlug.Polygon || destinationChain?.slug === ChainSlug.Polygon) {
-    //   return setManualError('Warning: transfers to/from Polygon are temporarily down.')
-    // }
-    // setManualError('')
-  }, [sourceChain?.slug, destinationChain?.slug])
-
-  const { disabledTx } = useDisableTxs(sourceChain, destinationChain)
+  // ==============================================================================================
+  // Buttons enabled
+  // ==============================================================================================
 
   const approveButtonActive = useMemo(() => {
     if (usingNativeBridge && needsNativeBridgeApproval) {
@@ -547,14 +379,15 @@ const Sendd: FC = () => {
 
   const sendButtonActive = useMemo(() => {
     return !!(
+      !approveButtonActive &&
       address &&
       !needsApproval &&
-      !approveButtonActive &&
+      !unsupportedAsset &&
       !checkingLiquidity &&
       !loadingToBalance &&
       !loadingSendData &&
-      fromTokenAmount &&
-      toTokenAmount &&
+      sourceTokenAmount &&
+      destinationAmount &&
       rate &&
       sufficientBalance &&
       sufficientLiquidity &&
@@ -564,14 +397,15 @@ const Sendd: FC = () => {
       (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet)
     )
   }, [
+    approveButtonActive,
     address,
     needsApproval,
-    approveButtonActive,
+    unsupportedAsset,
     checkingLiquidity,
     loadingToBalance,
     loadingSendData,
-    fromTokenAmount,
-    toTokenAmount,
+    sourceTokenAmount,
+    destinationAmount,
     rate,
     sufficientBalance,
     sufficientLiquidity,
@@ -593,18 +427,16 @@ const Sendd: FC = () => {
       />
 
       <SendAmountSelectorCard
-        value={fromTokenAmount}
+        value={sourceTokenAmount}
         token={sourceToken ?? placeholderToken}
         label={'From'}
         onChange={value => {
           if (!value) {
-            setFromTokenAmount('')
-            setToTokenAmount('')
+            setSourceTokenAmount('')
+            setDestinationAmount('')
             return
           }
-
-          const amountIn = sanitizeNumericalString(value)
-          setFromTokenAmount(amountIn)
+          setSourceTokenAmount(sanitizeNumericalString(value))
         }}
         selectedNetwork={sourceChain}
         networkOptions={networks}
@@ -622,12 +454,12 @@ const Sendd: FC = () => {
       </Flex>
 
       <SendAmountSelectorCard
-        value={usingNativeBridge ? fromTokenAmount : toTokenAmount}
-        token={destToken ?? placeholderToken}
+        value={usingNativeBridge ? sourceTokenAmount : destinationAmount}
+        token={destinationToken ?? placeholderToken}
         label={'To (estimated)'}
         selectedNetwork={destinationChain}
         networkOptions={networks}
-        onNetworkChange={handleToNetworkChange}
+        onNetworkChange={handleDestinationChainChange}
         balance={toBalance}
         loadingBalance={loadingToBalance}
         loadingValue={loadingSendData}
@@ -636,9 +468,9 @@ const Sendd: FC = () => {
 
       {sourceChain?.isLayer1 && (
         <L1CanonicalBridgeOption
-          amount={fromTokenAmountBN}
+          amount={sourceTokenAmountBN}
           l1CanonicalBridge={l1CanonicalBridge}
-          destToken={destToken}
+          destToken={destinationToken}
           destinationChain={destinationChain}
           selectNativeBridge={selectNativeBridge}
           estimatedReceivedDisplay={estimatedReceivedDisplay}
@@ -649,24 +481,9 @@ const Sendd: FC = () => {
       <CustomRecipientDropdown
         styles={styles}
         customRecipient={customRecipient}
-        handleCustomRecipientInput={handleCustomRecipientInput}
+        setCustomRecipient={setCustomRecipient}
         isOpen={isSmartContractWallet}
       />
-
-      <div className={styles.smartContractWalletWarning}>
-        <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
-      </div>
-
-      {disabledTx && (
-        <Alert severity={disabledTx.warningOnly ? 'warning' : 'error'}>
-          <ExternalLink
-            href={disabledTx.message?.href}
-            text={disabledTx.message?.text}
-            linkText={disabledTx.message?.linkText}
-            postText={disabledTx.message?.postText}
-          />
-        </Alert>
-      )}
 
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
@@ -693,7 +510,7 @@ const Sendd: FC = () => {
             }
             value={
               usingNativeBridge
-                ? toTokenDisplay(fromTokenAmountBN, destToken?.decimals, destToken?.symbol)
+                ? toTokenDisplay(sourceTokenAmount, destinationToken?.decimals, destinationToken?.symbol)
                 : estimatedReceivedDisplay
             }
             xlarge
@@ -701,6 +518,21 @@ const Sendd: FC = () => {
           />
         </div>
       </div>
+
+      <div className={styles.smartContractWalletWarning}>
+        <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
+      </div>
+
+      {disabledTx && (
+        <Alert severity={disabledTx.warningOnly ? 'warning' : 'error'}>
+          <ExternalLink
+            href={disabledTx.message?.href}
+            text={disabledTx.message?.text}
+            linkText={disabledTx.message?.linkText}
+            postText={disabledTx.message?.postText}
+          />
+        </Alert>
+      )}
 
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
@@ -723,6 +555,7 @@ const Sendd: FC = () => {
             </Button>
           </Div>
         )}
+
         <Div mb={[3]} fullWidth={!!approveButtonActive || !!sendButtonActive}>
           <Button
             className={styles.button}

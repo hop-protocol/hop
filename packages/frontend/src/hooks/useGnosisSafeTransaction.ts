@@ -19,10 +19,9 @@ const noWarning: GnosisSafeWarning = {
 }
 
 export function useGnosisSafeTransaction(
-  tx?: Transaction,
-  customRecipient?: string,
   sourceChain?: Chain,
-  destinationChain?: Chain
+  destinationChain?: Chain,
+  customRecipient?: string
 ) {
   const { sdk, connected, safe } = useSafeAppsSDK()
   const [safeTx, setSafeTx] = useState<GnosisSafeTx>()

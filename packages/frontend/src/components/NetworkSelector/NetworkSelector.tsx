@@ -9,12 +9,12 @@ import Chain from 'src/models/Chain'
 
 interface Props {
   network?: Chain
-  Chain?: (network: Chain) => void
+  setNetwork?: (network: Chain) => void
   onChange?: (e: any) => void
   availableNetworks?: Chain[] | any[]
 }
 
-function NetworkSelector({ network, Chain, availableNetworks, onChange }: Props) {
+function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: Props) {
   const { networks: allNetworks } = useApp()
   const styles = useNetworkSelectorStyles()
   const networks = useMemo(
@@ -28,8 +28,8 @@ function NetworkSelector({ network, Chain, availableNetworks, onChange }: Props)
     }
     const match = findNetworkBySlug(event.target.value, networks)
 
-    if (Chain && match) {
-      Chain(match)
+    if (setNetwork && match) {
+      setNetwork(match)
     }
   }
 

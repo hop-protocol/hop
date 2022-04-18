@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ChainId, Hop, NetworkSlug, Token } from '@hop-protocol/sdk'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import Chain from 'src/models/Chain'
@@ -10,31 +10,43 @@ import { l1Network } from 'src/config/networks'
 import { TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
 import { useQuery } from 'react-query'
 
-interface Options {
+interface L1CanonicalBridgeProps {
+  sdk?: Hop
+  sourceToken?: Token
+  sourceTokenAmount?: BigNumber
+  destinationChain?: Chain
+  estimatedReceived?: BigNumber
+  txConfirm?: TxConfirm
   customRecipient?: string
+  handleTransaction?: any
+  setSending?: any
+  setTx?: any
+  waitForTransaction?: any
+  updateTransaction?: any
+  setApproving?: any
 }
 
-export function useL1CanonicalBridge(
-  sdk?: Hop,
-  sourceToken?: Token,
-  sourceTokenAmount?: BigNumber,
-  destinationChain?: Chain,
-  estimatedReceived?: BigNumber,
-  txConfirm?: TxConfirm,
-  options?: any
-) {
-  const { checkConnectedNetworkId, provider } = useWeb3Context()
-  const [l1CanonicalBridge, setL1CanonicalBridge] = useState<CanonicalBridge | undefined>()
-  const [usingNativeBridge, setUsingNativeBridge] = useState(false)
-  const [userSpecifiedBridge, setUserSpecifiedBridge] = useState(false)
+export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
   const {
+    sdk,
+    sourceToken,
+    sourceTokenAmount,
+    destinationChain,
+    estimatedReceived,
+    txConfirm,
+    customRecipient,
     handleTransaction,
     setSending,
     setTx,
     waitForTransaction,
     updateTransaction,
     setApproving,
-  } = options
+  } = props
+
+  const { checkConnectedNetworkId, provider } = useWeb3Context()
+  const [l1CanonicalBridge, setL1CanonicalBridge] = useState<CanonicalBridge | undefined>()
+  const [usingNativeBridge, setUsingNativeBridge] = useState(false)
+  const [userSpecifiedBridge, setUserSpecifiedBridge] = useState(false)
 
   function selectNativeBridge(val: boolean) {
     setUsingNativeBridge(val)
@@ -77,7 +89,12 @@ export function useL1CanonicalBridge(
     }
 
     return () => setUserSpecifiedBridge(false)
-  }, [sourceTokenAmount?.toString(), estimatedReceived?.toString(), l1CanonicalBridge, destinationChain])
+  }, [
+    sourceTokenAmount?.toString(),
+    estimatedReceived?.toString(),
+    l1CanonicalBridge,
+    destinationChain,
+  ])
 
   useEffect(() => {
     if (!(sourceToken && destinationChain && sourceTokenAmount)) {
@@ -102,11 +119,11 @@ export function useL1CanonicalBridge(
 
   const approveNativeBridge = async () => {
     if (!(needsNativeBridgeApproval && l1CanonicalBridge && txConfirm)) {
+      setApproving(false)
       return
     }
 
     try {
-      setApproving(true)
       const tx: any = await txConfirm.show({
         kind: 'approval',
         inputProps: {
@@ -125,6 +142,7 @@ export function useL1CanonicalBridge(
           const isNetworkConnected = await checkConnectedNetworkId(networkId)
           if (!isNetworkConnected) return
 
+          setApproving(true)
           return l1CanonicalBridge.approve(approveAmount as BigNumberish)
         },
       })
@@ -156,6 +174,7 @@ export function useL1CanonicalBridge(
         txConfirm
       )
     ) {
+      setApproving(false)
       return
     }
 
@@ -167,7 +186,7 @@ export function useL1CanonicalBridge(
     const tx: any = await txConfirm.show({
       kind: 'depositNativeBridge',
       inputProps: {
-        customRecipient: options?.customRecipient,
+        customRecipient,
         source: {
           amount: toTokenDisplay(sourceTokenAmount, sourceToken?.decimals),
           token: sourceToken,
@@ -187,6 +206,7 @@ export function useL1CanonicalBridge(
           const isNetworkConnected = await checkConnectedNetworkId(l1Network.networkId)
           if (!isNetworkConnected) return
 
+          setSending(true)
           return l1CanonicalBridge.deposit(sourceTokenAmount)
         } catch (error: any) {
           setSending(false)
@@ -199,6 +219,7 @@ export function useL1CanonicalBridge(
       },
     })
     logger.debug(`tx:`, tx)
+    setSending(false)
 
     const txHandled = handleTransaction(tx, sourceChain, destinationChain, sourceToken)
     logger.debug(`txHandled:`, txHandled)
@@ -269,13 +290,31 @@ export function useL1CanonicalBridge(
     return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
   }
 
+  const estimateApproveNativeBridge = useCallback(
+    async (opts?: any) => {
+      if (!l1CanonicalBridge || !sourceTokenAmount) {
+        return
+      }
+
+      const spender = l1CanonicalBridge.getDepositApprovalAddress()
+      if (!spender) {
+        throw new Error(
+          `token "${l1CanonicalBridge.tokenSymbol}" on chain "${l1CanonicalBridge.chain.slug}" is unsupported`
+        )
+      }
+      return l1CanonicalBridge.estimateApproveTx(sourceTokenAmount)
+    },
+    [l1CanonicalBridge, sourceTokenAmount]
+  )
+
   return {
     sendL1CanonicalBridge,
     l1CanonicalBridge,
     usingNativeBridge,
     setUsingNativeBridge,
     selectNativeBridge,
-    approveNativeBridge,
     needsNativeBridgeApproval,
+    approveNativeBridge,
+    estimateApproveNativeBridge,
   }
 }

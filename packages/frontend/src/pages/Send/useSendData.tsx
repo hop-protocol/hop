@@ -31,7 +31,10 @@ const useSendData = (
     },
     {
       enabled:
-        !!token?.address && !!sourceChain?.slug && !!destinationChain?.slug && !!fromAmount?.toString(),
+        !!token?.address &&
+        !!sourceChain?.slug &&
+        !!destinationChain?.slug &&
+        !!fromAmount?.toString(),
       refetchInterval: defaultRefetchInterval,
     }
   )

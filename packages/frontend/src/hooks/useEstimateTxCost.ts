@@ -6,6 +6,7 @@ import { Token, ChainSlug } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Chain from 'src/models/Chain'
 import { formatError } from 'src/utils'
+import CanonicalBridge from 'src/models/CanonicalBridge'
 
 export enum MethodNames {
   convertTokens = 'convertTokens',
@@ -36,9 +37,44 @@ interface EstimateTxOptions {
   checkAllowance?: boolean
 }
 
-export function useEstimateTxCost() {
+interface EstimateTxProps {
+  sourceChain?: Chain
+  sourceToken?: Token
+  sourceTokenAmount?: BigNumber
+  destinationChain?: Chain
+  usingNativeBridge?: boolean
+  needsNativeBridgeApproval?: boolean
+  l1CanonicalBridge?: CanonicalBridge
+}
+
+async function estimateApproveNativeBridge(l1CanonicalBridge, sourceTokenAmount) {
+  if (!l1CanonicalBridge || !sourceTokenAmount) {
+    return
+  }
+
+  const spender = l1CanonicalBridge.getDepositApprovalAddress()
+  if (!spender) {
+    throw new Error(
+      `token "${l1CanonicalBridge.tokenSymbol}" on chain "${l1CanonicalBridge.chain.slug}" is unsupported`
+    )
+  }
+  return l1CanonicalBridge.estimateApproveTx(sourceTokenAmount)
+}
+
+export function useEstimateTxCost(props?: EstimateTxProps) {
+  const {
+    sourceChain,
+    sourceToken,
+    sourceTokenAmount,
+    destinationChain,
+    usingNativeBridge,
+    needsNativeBridgeApproval,
+    l1CanonicalBridge,
+  } = props as EstimateTxProps
+
   const { sdk } = useApp()
   const [tx, setTx] = useState<Transaction | null>(null)
+  const [error, setError] = useState()
 
   // TODO: convert all to react-query
   const estimateConvertTokens = useCallback(
@@ -73,63 +109,6 @@ export function useEstimateTxCost() {
           gasCost = gasCost.add(l1FeeInWei)
         }
         return gasCost
-      }
-    },
-    [sdk]
-  )
-
-  const estimateSend = useCallback(
-    async (options: EstimateTxOptions) => {
-      const { sourceChain, destinationChain, token, deadline, checkAllowance } = options
-      if (!(sdk && sourceChain && destinationChain && deadline && token)) {
-        return
-      }
-
-      try {
-        const bridge = sdk.bridge(token.symbol)
-        console.log(`bridge:`, bridge)
-
-        const destinationAmountOutMin = 0
-        let destinationDeadline = deadline()
-        if (destinationChain.slug === ChainSlug.Ethereum) {
-          destinationDeadline = 0
-        }
-
-        const needsAppoval = await token.needsApproval(
-          bridge.getSendApprovalAddress(sourceChain.slug),
-          '10'
-        )
-
-        console.log(`needsApproval:`, needsAppoval)
-
-        let estimatedGasLimit = BigNumber.from(200e3)
-        // Get estimated gas limit
-        if (!needsAppoval) {
-          estimatedGasLimit = await bridge.estimateSendGasLimit(
-            '10',
-            sourceChain.slug as string,
-            destinationChain.slug as string,
-            {
-              recipient: constants.AddressZero,
-              bonderFee: '1',
-              amountOutMin: '0',
-              deadline: deadline(),
-              destinationAmountOutMin,
-              destinationDeadline,
-            }
-          )
-        }
-
-        if (estimatedGasLimit) {
-          let gasCost = await getGasCostByGasLimit(sourceChain.provider, estimatedGasLimit)
-          if (gasCost && sourceChain.slug === ChainSlug.Optimism) {
-            const l1FeeInWei = await bridge.getOptimismL1Fee(sourceChain.slug, destinationChain.slug)
-            gasCost = gasCost.add(l1FeeInWei)
-          }
-          return gasCost
-        }
-      } catch (error: any) {
-        logger.error(formatError(error))
       }
     },
     [sdk]
@@ -186,10 +165,98 @@ export function useEstimateTxCost() {
     [sdk]
   )
 
+  const estimateHandleApprove = useCallback(async () => {
+    try {
+      if (l1CanonicalBridge && usingNativeBridge && needsNativeBridgeApproval) {
+        return await estimateApproveNativeBridge(l1CanonicalBridge, sourceTokenAmount)
+      } else {
+        if (sourceTokenAmount && sourceToken && sourceChain) {
+          // return await checkApproval(sourceTokenAmount, sourceToken, sourceChain.slug)
+        }
+      }
+    } catch (err: any) {
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err, sourceChain))
+      }
+      logger.error(err)
+    }
+  }, [
+    l1CanonicalBridge,
+    usingNativeBridge,
+    needsNativeBridgeApproval,
+    sourceToken,
+    sourceChain,
+    sourceTokenAmount,
+  ])
+
+  const estimateSend = useCallback(
+    async (options: EstimateTxOptions) => {
+      const { sourceChain, destinationChain, token, deadline } = options
+      if (!(sdk && sourceChain && destinationChain && deadline && token)) {
+        return
+      }
+
+      try {
+        const bridge = sdk.bridge(token.symbol)
+        console.log(`bridge:`, bridge)
+
+        const destinationAmountOutMin = 0
+        let destinationDeadline = deadline()
+        if (destinationChain.slug === ChainSlug.Ethereum) {
+          destinationDeadline = 0
+        }
+
+        const needsAppoval = await token.needsApproval(
+          bridge.getSendApprovalAddress(sourceChain.slug),
+          '10'
+        )
+
+        console.log(`needsApproval:`, needsAppoval)
+
+        let estimatedGasLimit = BigNumber.from(200e3)
+        // Get estimated gas limit
+        if (!needsAppoval) {
+          estimatedGasLimit = await bridge.estimateSendGasLimit(
+            '10',
+            sourceChain.slug as string,
+            destinationChain.slug as string,
+            {
+              recipient: constants.AddressZero,
+              bonderFee: '1',
+              amountOutMin: '0',
+              deadline: deadline(),
+              destinationAmountOutMin,
+              destinationDeadline,
+            }
+          )
+        }
+
+        if (estimatedGasLimit) {
+          let gasCost = await getGasCostByGasLimit(sourceChain.provider, estimatedGasLimit)
+          if (gasCost && sourceChain.slug === ChainSlug.Optimism) {
+            const l1FeeInWei = await bridge.getOptimismL1Fee(
+              sourceChain.slug,
+              destinationChain.slug
+            )
+            gasCost = gasCost.add(l1FeeInWei)
+          }
+          return gasCost
+        }
+      } catch (error: any) {
+        logger.error(formatError(error))
+        setError(formatError(error, sourceChain))
+      }
+    },
+    [sdk]
+  )
+
+
   return {
     estimateMaxValue,
     estimateSend,
+    estimateHandleApprove,
     tx,
     setTx,
+    estimateTxError: error,
   }
 }

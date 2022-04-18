@@ -87,7 +87,9 @@ const Send: FC = () => {
     const _sourceChain = networks.find(network => network.slug === queryParams.sourceChain)
     _setSourceChain(_sourceChain)
 
-    const _destinationChain = networks.find(network => network.slug === queryParams.destinationChain)
+    const _destinationChain = networks.find(
+      network => network.slug === queryParams.destinationChain
+    )
 
     if (_sourceChain?.name === _destinationChain?.name) {
       // Leave destination network empty
@@ -98,11 +100,12 @@ const Send: FC = () => {
   }, [queryParams, networks])
 
   // Get assets
-  const { unsupportedAsset, sourceToken, destToken, placeholderToken } = useAssets(
-    selectedBridge,
-    sourceChain,
-    destinationChain
-  )
+  const {
+    unsupportedAsset,
+    sourceToken,
+    destinationToken: destToken,
+    placeholderToken,
+  } = useAssets(selectedBridge, sourceChain, destinationChain)
 
   // Get token balances for both networks
   const { balance: fromBalance, loading: loadingFromBalance } = useBalance(sourceToken, address)
@@ -136,7 +139,13 @@ const Send: FC = () => {
     availableLiquidity,
     sufficientLiquidity,
     warning: liquidityWarning,
-  } = useAvailableLiquidity(selectedBridge, sourceToken, sourceChain, destinationChain, requiredLiquidity)
+  } = useAvailableLiquidity(
+    selectedBridge,
+    sourceToken,
+    sourceChain,
+    destinationChain,
+    requiredLiquidity
+  )
 
   // Set toAmount
   useEffect(() => {
@@ -223,7 +232,7 @@ const Send: FC = () => {
     deadline,
     totalFee,
     sourceChain,
-    fromTokenAmount,
+    sourceTokenAmount: fromTokenAmount,
     intermediaryAmountOutMin,
     sdk,
     setError,
@@ -241,22 +250,20 @@ const Send: FC = () => {
     selectNativeBridge,
     approveNativeBridge,
     needsNativeBridgeApproval,
-  } = useL1CanonicalBridge(
+  } = useL1CanonicalBridge({
     sdk,
     sourceToken,
-    fromTokenAmountBN,
+    sourceTokenAmount: fromTokenAmountBN,
     destinationChain,
     estimatedReceived,
     txConfirm,
-    {
-      handleTransaction,
-      setSending,
-      setTx,
-      waitForTransaction,
-      updateTransaction,
-      setApproving,
-    }
-  )
+    handleTransaction,
+    setSending,
+    setTx,
+    waitForTransaction,
+    updateTransaction,
+    setApproving,
+  })
 
   const handleApprove = useCallback(async () => {
     try {
@@ -421,10 +428,9 @@ const Send: FC = () => {
   }, [tx])
 
   const { gnosisEnabled, gnosisSafeWarning, isCorrectSignerNetwork } = useGnosisSafeTransaction(
-    tx,
-    customRecipient,
     sourceChain,
-    destinationChain
+    destinationChain,
+    customRecipient
   )
 
   // ==============================================================================================
@@ -481,12 +487,6 @@ const Send: FC = () => {
     } else {
       setToNetwork(network)
     }
-  }
-
-  // Specify custom recipient
-  const handleCustomRecipientInput = (event: any) => {
-    const value = event.target.value.trim()
-    setCustomRecipient(value)
   }
 
   useEffect(() => {
@@ -628,7 +628,7 @@ const Send: FC = () => {
       <CustomRecipientDropdown
         styles={styles}
         customRecipient={customRecipient}
-        handleCustomRecipientInput={handleCustomRecipientInput}
+        setCustomRecipient={setCustomRecipient}
         isOpen={isSmartContractWallet}
       />
 

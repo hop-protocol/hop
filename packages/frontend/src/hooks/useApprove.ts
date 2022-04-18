@@ -1,13 +1,13 @@
+import { useCallback, useState } from 'react'
+import { useQuery } from 'react-query'
 import { BigNumber, constants } from 'ethers'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import { Token, Chain as ChainModel, HopBridge } from '@hop-protocol/sdk'
+import Chain from 'src/models/Chain'
 import Transaction from 'src/models/Transaction'
 import { amountToBN, toTokenDisplay } from 'src/utils'
 import { useTransactionReplacement } from './useTransactionReplacement'
-import { useQuery } from 'react-query'
-import Chain from 'src/models/Chain'
-import { useState } from 'react'
 import logger from 'src/logger'
 
 async function getSpender(network: Chain, bridge: HopBridge) {
@@ -20,16 +20,42 @@ async function getSpender(network: Chain, bridge: HopBridge) {
   return ammWrapper.address
 }
 
-async function getTokenAllowance(token: Token, spender: string, address?: string) {
-  const allowed = await token.allowance(spender, address)
-  return allowed
-}
-
-const useApprove = (token?: Token, sourceChain?: Chain, amountOut?: BigNumber) => {
-  const { provider } = useWeb3Context()
+const useApprove = (
+  token?: Token,
+  sourceChain?: Chain,
+  amountOut?: BigNumber,
+  destinationChain?: Chain,
+  setApproving?: any
+) => {
+  const { provider, checkConnectedNetworkId } = useWeb3Context()
   const { txConfirm, sdk } = useApp()
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const [tokenAllowance, setTokenAllowance] = useState<BigNumber>()
+
+  const checkApproval = useCallback(
+    async (amount: BigNumber, token: Token, spender: string) => {
+      try {
+        const signer = provider?.getSigner()
+        if (!signer) {
+          throw new Error('Wallet not connected')
+        }
+
+        if (token.isNativeToken) {
+          return false
+        }
+
+        const approved = await token.allowance(spender)
+        if (approved.gte(amount)) {
+          return false
+        }
+
+        return true
+      } catch (err: any) {
+        return false
+      }
+    },
+    [provider]
+  )
 
   const { data: needsApproval } = useQuery(
     [
@@ -70,84 +96,101 @@ const useApprove = (token?: Token, sourceChain?: Chain, amountOut?: BigNumber) =
     }
   )
 
-  const checkApproval = async (amount: BigNumber, token: Token, spender: string) => {
-    try {
+  const approve = useCallback(
+    async (amount: BigNumber, token: Token, spender: string) => {
       const signer = provider?.getSigner()
       if (!signer) {
         throw new Error('Wallet not connected')
       }
 
       if (token.isNativeToken) {
-        return false
+        return
       }
 
       const approved = await token.allowance(spender)
       if (approved.gte(amount)) {
-        return false
+        return
       }
 
-      return true
-    } catch (err: any) {
-      return false
-    }
-  }
-
-  const approve = async (amount: BigNumber, token: Token, spender: string) => {
-    const signer = provider?.getSigner()
-    if (!signer) {
-      throw new Error('Wallet not connected')
-    }
-
-    if (token.isNativeToken) {
-      return
-    }
-
-    const approved = await token.allowance(spender)
-    if (approved.gte(amount)) {
-      return
-    }
-
-    const formattedAmount = toTokenDisplay(amount, token.decimals)
-    const chain = ChainModel.fromSlug(token.chain.slug)
-    const tx = await txConfirm?.show({
-      kind: 'approval',
-      inputProps: {
-        tagline: `Allow Hop to spend your ${token.symbol} on ${chain.name}`,
-        amount: token.symbol === 'USDT' ? undefined : formattedAmount,
-        token,
-        tokenSymbol: token.symbol,
-        source: {
-          network: {
-            slug: token.chain?.slug,
-            networkId: token.chain?.chainId,
+      const formattedAmount = toTokenDisplay(amount, token.decimals)
+      const chain = ChainModel.fromSlug(token.chain.slug)
+      const tx = await txConfirm?.show({
+        kind: 'approval',
+        inputProps: {
+          tagline: `Allow Hop to spend your ${token.symbol} on ${chain.name}`,
+          amount: token.symbol === 'USDT' ? undefined : formattedAmount,
+          token,
+          tokenSymbol: token.symbol,
+          source: {
+            network: {
+              slug: token.chain?.slug,
+              networkId: token.chain?.chainId,
+            },
           },
         },
-      },
-      onConfirm: async (approveAll: boolean) => {
-        const approveAmount = approveAll ? constants.MaxUint256 : amount
-        return token.approve(spender, approveAmount)
-      },
-    })
+        onConfirm: async (approveAll: boolean) => {
+          setApproving(true)
+          const approveAmount = approveAll ? constants.MaxUint256 : amount
+          return token.approve(spender, approveAmount)
+        },
+      })
 
-    if (tx?.hash) {
-      addTransaction(
-        new Transaction({
-          hash: tx?.hash,
-          networkName: token.chain.slug,
-          token,
-        })
-      )
+      if (tx?.hash) {
+        setApproving(false)
+        addTransaction(
+          new Transaction({
+            hash: tx?.hash,
+            networkName: token.chain.slug,
+            token,
+          })
+        )
 
-      const res = await waitForTransaction(tx, { networkName: token.chain.slug, token })
-      if (res && 'replacementTx' in res) {
-        return res.replacementTx
+        const res = await waitForTransaction(tx, { networkName: token.chain.slug, token })
+        if (res && 'replacementTx' in res) {
+          return res.replacementTx
+        }
       }
+
+      return tx
+    },
+    [provider, token, sourceChain, amountOut]
+  )
+
+  const approveSourceToken = useCallback(async () => {
+    if (!sourceChain) {
+      throw new Error('No sourceChain selected')
     }
 
-    return tx
-  }
+    if (!token) {
+      throw new Error('No from token selected')
+    }
 
-  return { approve, checkApproval, needsApproval, tokenAllowance }
+    if (!amountOut) {
+      throw new Error('No amount to approve')
+    }
+
+    const isNetworkConnected = await checkConnectedNetworkId(sourceChain.chainId)
+    if (!isNetworkConnected) return
+
+    const parsedAmount = amountToBN(amountOut.toString(), token.decimals)
+    const bridge = sdk.bridge(token.symbol)
+
+    let spender: string
+    if (sourceChain.isLayer1) {
+      const l1Bridge = await bridge.getL1Bridge()
+      spender = l1Bridge.address
+    } else {
+      const ammWrapper = await bridge.getAmmWrapper(sourceChain.slug)
+      spender = ammWrapper.address
+    }
+
+    const tx = await approve(parsedAmount, token, spender)
+
+    await tx?.wait()
+    setApproving(false)
+  }, [sdk, token, sourceChain, amountOut])
+
+  return { approve, checkApproval, needsApproval, tokenAllowance, approveSourceToken }
 }
 
 export default useApprove

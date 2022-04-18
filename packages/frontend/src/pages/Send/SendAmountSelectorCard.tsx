@@ -51,7 +51,10 @@ const SendAmountSelectorCard: FC<Props> = props => {
   } = props
   const styles = useAmountSelectorCardStyles()
 
-  const { estimateSend } = useEstimateTxCost()
+  const { estimateSend } = useEstimateTxCost({
+    sourceChain,
+    destinationChain,
+  })
 
   const balanceLabel = useMemo(() => {
     return toTokenDisplay(balance, token?.decimals)
@@ -130,7 +133,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
       </Flex>
 
       <Flex fullWidth justifyBetween alignCenter>
-        <NetworkSelector network={selectedNetwork} Chain={onNetworkChange} />
+        <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} />
         <LargeTextField
           value={value}
           onChange={handleInputChange}

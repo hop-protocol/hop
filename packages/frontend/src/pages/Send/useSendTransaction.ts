@@ -23,7 +23,7 @@ export function useSendTransaction(props) {
     deadline,
     totalFee,
     sourceChain,
-    fromTokenAmount,
+    sourceTokenAmount,
     intermediaryAmountOutMin = BigNumber.from(0),
     sdk,
     setError,
@@ -41,9 +41,9 @@ export function useSendTransaction(props) {
   const { waitForTransaction, addTransaction, updateTransaction } =
     useTransactionReplacement(walletName)
   const parsedAmount = useMemo(() => {
-    if (!fromTokenAmount || !sourceToken) return BigNumber.from(0)
-    return amountToBN(fromTokenAmount, sourceToken.decimals)
-  }, [fromTokenAmount, sourceToken?.decimals])
+    if (!sourceTokenAmount || !sourceToken) return BigNumber.from(0)
+    return amountToBN(sourceTokenAmount, sourceToken.decimals)
+  }, [sourceTokenAmount, sourceToken?.decimals])
 
   // Set signer
   useEffect(() => {
@@ -196,7 +196,7 @@ export function useSendTransaction(props) {
       inputProps: {
         customRecipient,
         source: {
-          amount: fromTokenAmount,
+          amount: sourceTokenAmount,
           token: sourceToken,
           network: sourceChain,
         },
@@ -231,7 +231,7 @@ export function useSendTransaction(props) {
       inputProps: {
         customRecipient,
         source: {
-          amount: fromTokenAmount,
+          amount: sourceTokenAmount,
           token: sourceToken,
           network: sourceChain,
         },
@@ -272,7 +272,7 @@ export function useSendTransaction(props) {
       inputProps: {
         customRecipient,
         source: {
-          amount: fromTokenAmount,
+          amount: sourceTokenAmount,
           token: sourceToken,
           network: sourceChain,
         },

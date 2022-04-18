@@ -1,12 +1,17 @@
-import { CanonicalToken, HopBridge } from '@hop-protocol/sdk'
+import { CanonicalToken, ChainSlug, HopBridge } from '@hop-protocol/sdk'
 import { useMemo } from 'react'
 import { hopAppNetwork } from 'src/config'
 import logger from 'src/logger'
 import Chain from 'src/models/Chain'
 
+export interface UnsupportedAsset {
+  chain: string
+  tokenSymbol: string
+}
+
 export function useAssets(selectedBridge?: HopBridge, network?: Chain, destinationChain?: Chain) {
   // Check if asset is supported by networks
-  const unsupportedAsset = useMemo<any>(() => {
+  const unsupportedAsset = useMemo<UnsupportedAsset | null>(() => {
     if (!(selectedBridge && network)) {
       return null
     }
@@ -15,15 +20,15 @@ export function useAssets(selectedBridge?: HopBridge, network?: Chain, destinati
       Arbitrum: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.MATIC],
     }
     const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
-    for (const chain in unsupportedAssets) {
-      const tokenSymbols = unsupportedAssets[chain]
+    for (const chainName in unsupportedAssets) {
+      const tokenSymbols = unsupportedAssets[chainName]
       for (const tokenSymbol of tokenSymbols) {
         const isUnsupported =
           selectedTokenSymbol === tokenSymbol &&
-          [network?.slug, destinationChain?.slug].includes(chain.toLowerCase())
+          [network?.slug, destinationChain?.slug].includes(chainName.toLowerCase() as ChainSlug)
         if (isUnsupported) {
           return {
-            chain,
+            chain: chainName,
             tokenSymbol,
           }
         }
@@ -44,7 +49,7 @@ export function useAssets(selectedBridge?: HopBridge, network?: Chain, destinati
   }, [unsupportedAsset, selectedBridge, network])
 
   // Set destination token
-  const destToken = useMemo(() => {
+  const destinationToken = useMemo(() => {
     try {
       if (!destinationChain || !selectedBridge || unsupportedAsset?.chain) return
       return selectedBridge.getCanonicalToken(destinationChain?.slug)
@@ -62,7 +67,7 @@ export function useAssets(selectedBridge?: HopBridge, network?: Chain, destinati
   return {
     unsupportedAsset,
     sourceToken,
-    destToken,
+    destinationToken,
     placeholderToken,
   }
 }

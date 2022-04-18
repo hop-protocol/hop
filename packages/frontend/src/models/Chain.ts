@@ -1,5 +1,5 @@
 import { ChainId, ChainSlug } from '@hop-protocol/sdk'
-import * as ethers from 'ethers'
+import { providers } from 'ethers'
 import { getProvider } from 'src/utils'
 
 export type Chainish = Chain | ChainSlug | ChainId
@@ -10,7 +10,7 @@ export type ChainProps = {
   imageUrl: string
   rpcUrl: string
   networkId: number
-  chainId?: number
+  chainId: number
   nativeTokenSymbol: string
   isLayer1?: boolean
   isL1?: boolean
@@ -23,7 +23,7 @@ class Chain {
   readonly name: string
   readonly slug: string
   readonly imageUrl: string
-  readonly provider: ethers.providers.Provider
+  readonly provider: providers.JsonRpcProvider
   readonly rpcUrl: string
   readonly chainId: number
   readonly nativeTokenSymbol: string

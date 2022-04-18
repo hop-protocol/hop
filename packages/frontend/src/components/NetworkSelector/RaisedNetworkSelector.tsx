@@ -11,11 +11,11 @@ interface Props {
   selectedNetwork?: Chain
   onSelect?: (e: any) => void
   availableNetworks?: Chain[]
-  Chain?: (n: Chain) => void
+  setNetwork?: (n: Chain) => void
 }
 
 export function RaisedNetworkSelector(props: Props) {
-  const { selectedNetwork, onSelect, Chain, availableNetworks } = props
+  const { selectedNetwork, onSelect, setNetwork, availableNetworks } = props
   const { networks: allNetworks } = useApp()
   const networks = useMemo(
     () => (availableNetworks?.length ? availableNetworks : allNetworks),
@@ -27,8 +27,8 @@ export function RaisedNetworkSelector(props: Props) {
       return onSelect(event)
     }
     const match = findNetworkBySlug(event.target.value, networks)
-    if (Chain && match) {
-      Chain(match)
+    if (setNetwork && match) {
+      setNetwork(match)
     }
   }
 

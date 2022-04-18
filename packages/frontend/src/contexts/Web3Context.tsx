@@ -23,10 +23,10 @@ import { ChainId, ChainSlug } from '@hop-protocol/sdk'
 // TODO: modularize
 type Props = {
   onboard: any
-  provider: ethers.providers.Web3Provider | undefined
-  address: Address | undefined
+  provider?: ethers.providers.Web3Provider
+  address?: Address
   balance?: BigNumber
-  connectedNetworkId: number | undefined
+  connectedNetworkId?: number
   validConnectedNetworkId: boolean
   requestWallet: () => void
   disconnectWallet: () => void

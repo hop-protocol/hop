@@ -54,7 +54,7 @@ const Sendd: FC = () => {
     settings,
   } = useApp()
   const { slippageTolerance, deadline } = settings
-  const { checkConnectedNetworkId, address } = useWeb3Context()
+  const { address } = useWeb3Context()
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>()
   const [customRecipient, setCustomRecipient] = useState<string>()
   const [approving, setApproving] = useState<boolean>(false)
@@ -156,18 +156,6 @@ const Sendd: FC = () => {
   })
 
   // ==============================================================================================
-  // Approve sourceChain / sourceToken
-  // ==============================================================================================
-
-  const { needsApproval, checkApproval, approveSourceToken } = useApprove(
-    sourceToken,
-    sourceChain,
-    sourceTokenAmountBN,
-    destinationChain,
-    setApproving
-  )
-
-  // ==============================================================================================
   // Error and warning messages
   // ==============================================================================================
 
@@ -257,26 +245,40 @@ const Sendd: FC = () => {
     destinationChain,
     estimatedReceived,
     txConfirm,
-    handleTransaction,
+    customRecipient,
+    setApproving,
     setSending,
     setTx,
+    handleTransaction,
     waitForTransaction,
     updateTransaction,
-    setApproving,
   })
+
+  // ==============================================================================================
+  // Approve sourceChain / sourceToken
+  // ==============================================================================================
+
+  const { needsApproval, checkApproval, approveSourceToken } = useApprove(
+    sourceToken,
+    sourceChain,
+    sourceTokenAmountBN,
+    destinationChain,
+    setApproving,
+    usingNativeBridge,
+  )
 
   // ==============================================================================================
   // Tx Estimations
   // ==============================================================================================
 
   const { estimateSend, estimateHandleApprove, estimateTxError } = useEstimateTxCost({
+    sourceChain,
+    sourceToken,
+    sourceTokenAmount: sourceTokenAmountBN,
+    destinationChain,
     usingNativeBridge,
     needsNativeBridgeApproval,
     l1CanonicalBridge,
-    sourceChain,
-    destinationChain,
-    sourceToken,
-    sourceTokenAmount: sourceTokenAmountBN,
   })
 
   const { estimatedGasCost } = useTxResult(
@@ -339,7 +341,7 @@ const Sendd: FC = () => {
   ])
 
   // ==============================================================================================
-  // Transaction handlers
+  // Approval
   // ==============================================================================================
 
   const handleApprove = useCallback(async () => {
@@ -510,7 +512,11 @@ const Sendd: FC = () => {
             }
             value={
               usingNativeBridge
-                ? toTokenDisplay(sourceTokenAmount, destinationToken?.decimals, destinationToken?.symbol)
+                ? toTokenDisplay(
+                    sourceTokenAmountBN,
+                    sourceToken?.decimals,
+                    destinationToken?.symbol
+                  )
                 : estimatedReceivedDisplay
             }
             xlarge

@@ -29,6 +29,8 @@ export enum ChainSlug {
   Gnosis = 'gnosis',
 }
 
+export type L2ChainSlug = Exclude<ChainSlug, 'ethereum'>
+
 export enum Slug {
   ethereum = 'ethereum',
   kovan = 'kovan',

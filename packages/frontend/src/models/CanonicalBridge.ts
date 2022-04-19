@@ -1,4 +1,4 @@
-import { Signer, ethers, BigNumber, BigNumberish, utils } from 'ethers'
+import { Signer, ethers, BigNumber, BigNumberish } from 'ethers'
 import {
   ArbitrumInbox__factory,
   ArbitrumInbox,
@@ -30,7 +30,6 @@ import {
   Chain,
   TChain,
   TToken,
-  TokenSymbol,
   metadata,
   Base,
   L1Factory,
@@ -39,8 +38,7 @@ import {
 import { getL2Network } from '@arbitrum/sdk'
 import logger from 'src/logger'
 import { formatError } from 'src/utils'
-import { initNativeBridge } from 'src/utils/nativeBridges'
-import { TokenDepositParams } from '@arbitrum/sdk/dist/lib/assetBridger/erc20Bridger'
+import { getNativeBridgeAddress, initNativeBridge } from 'src/utils/canonicalBridges'
 
 export type L1CanonicalBridge =
   | ArbitrumInbox
@@ -83,7 +81,6 @@ class CanonicalBridge extends Base {
   public async getL1CanonicalAllowance(): Promise<BigNumber> {
     const l1CanonicalToken = this.getL1Token()
     const spender = this.getDepositApprovalAddress()
-    console.log(`spender:`, spender)
     if (!spender) {
       throw new Error(`token "${this.tokenSymbol}" on chain "${this.chain.slug}" is unsupported`)
     }
@@ -91,24 +88,12 @@ class CanonicalBridge extends Base {
   }
 
   public getDepositApprovalAddress(): string {
-    console.log('getDepositApprovalAddress')
-
-    if (this.chain.equals(Chain.Polygon) && this.tokenSymbol !== Token.MATIC) {
-      return this.getL1PosErc20PredicateAddress(this.tokenSymbol, this.chain)
-    }
-
-    if (this.chain.equals(Chain.Arbitrum) && this.tokenSymbol !== Token.ETH) {
-      return this.getL1ArbitrumGateway(this.tokenSymbol)
-    }
-
-    return this.address
+    return getNativeBridgeAddress(this.chain.slug, this.tokenSymbol)
   }
 
   public async estimateApproveTx(amount: BigNumberish) {
-    console.log(`estimate approve tx amount:`, amount)
     const l1CanonicalToken = this.getL1Token()
     const spender = this.getDepositApprovalAddress()
-    console.log(`spender:`, spender)
     const populatedTx = await l1CanonicalToken.populateApproveTx(spender, amount)
     return this.signer.estimateGas(populatedTx)
   }
@@ -125,13 +110,11 @@ class CanonicalBridge extends Base {
   }
 
   public async estimateDepositTx(amount: BigNumberish) {
-    console.log(`estimate deposit tx amount:`, amount)
     const populatedTx = await this.populateDepositTx(amount)
     return this.signer.estimateGas(populatedTx)
   }
 
   public async deposit(amount: BigNumberish, customRecipient?: string) {
-    console.log(`deposit amount:`, amount)
     if (this.chain.equals(Chain.Arbitrum) && this.tokenSymbol !== CanonicalToken.ETH) {
       return this.populateDepositTx(amount, customRecipient)
     }
@@ -151,7 +134,6 @@ class CanonicalBridge extends Base {
     const payload = coder.encode(['uint256'], [amount])
 
     const nativeBridge = await initNativeBridge(this.chain.slug as ChainSlug, this.tokenSymbol)
-    console.log(`nativeBridge:`, nativeBridge)
 
     switch (this.chain.slug) {
       case ChainSlug.Gnosis: {

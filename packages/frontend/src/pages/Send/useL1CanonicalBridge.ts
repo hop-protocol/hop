@@ -35,12 +35,12 @@ export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
     estimatedReceived,
     txConfirm,
     customRecipient,
-    handleTransaction,
+    setApproving,
     setSending,
     setTx,
+    handleTransaction,
     waitForTransaction,
     updateTransaction,
-    setApproving,
   } = props
 
   const { checkConnectedNetworkId, provider } = useWeb3Context()
@@ -115,9 +115,9 @@ export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
       )
       setL1CanonicalBridge(canonicalBridge)
     }
-  }, [provider, sourceTokenAmount?.toString(), sourceToken, destinationChain?.slug])
+  }, [provider, sourceTokenAmount, sourceToken, destinationChain])
 
-  const approveNativeBridge = async () => {
+  const approveNativeBridge = useCallback(async () => {
     if (!(needsNativeBridgeApproval && l1CanonicalBridge && txConfirm)) {
       setApproving(false)
       return
@@ -159,9 +159,16 @@ export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
       }
       throw new Error(error.message)
     }
-  }
+  }, [
+    needsNativeBridgeApproval,
+    l1CanonicalBridge,
+    txConfirm,
+    sourceChain,
+    sourceToken,
+    destinationChain,
+  ])
 
-  async function sendL1CanonicalBridge() {
+  const sendL1CanonicalBridge = useCallback(async () => {
     if (
       !(
         sdk &&
@@ -288,7 +295,17 @@ export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
 
     console.log(`tx:`, tx)
     return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
-  }
+  }, [
+    sdk,
+    l1CanonicalBridge,
+    sourceChain,
+    sourceToken,
+    sourceTokenAmount,
+    destinationChain,
+    needsNativeBridgeApproval,
+    txConfirm,
+    estimatedReceived,
+  ])
 
   const estimateApproveNativeBridge = useCallback(
     async (opts?: any) => {

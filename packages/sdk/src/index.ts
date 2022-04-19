@@ -13,6 +13,7 @@ export * from './types'
 export { eventTopics } from './constants'
 export {
   ChainSlug,
+  L2ChainSlug,
   Slug,
   NetworkSlug,
   ChainId,

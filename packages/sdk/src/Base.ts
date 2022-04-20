@@ -163,8 +163,16 @@ class Base {
   }
 
   sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain) {
-    const chainId = this.toChainModel(chain).chainId
-    return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
+    chain = this.toChainModel(chain)
+    if (chain.equals(Chain.Polygon)) {
+      if (
+        !transactionRequest.gasLimit ||
+        BigNumber.from(transactionRequest.gasLimit)?.lt(MinPolygonGasLimit)
+      ) {
+        transactionRequest.gasLimit = MinPolygonGasLimit
+      }
+    }
+    return this.signer.sendTransaction({ ...transactionRequest, chainId: chain.chainId } as any)
   }
 
   setConfigAddresses (addresses: Addresses) {
@@ -495,7 +503,6 @@ class Base {
       if (txOptions.gasPrice?.lt(MinPolygonGasPrice)) {
         txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
       }
-      txOptions.gasLimit = MinPolygonGasLimit
     }
 
     return txOptions

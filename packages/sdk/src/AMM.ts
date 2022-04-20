@@ -121,23 +121,6 @@ class AMM extends Base {
     ] as const
 
     const overrides = await this.txOverrides(this.chain)
-    if (this.chain.equals(Chain.Polygon)) {
-      try {
-        const estimatedGas = await saddleSwap.estimateGas.addLiquidity(
-          ...payload,
-          {
-            ...overrides,
-            gasLimit: 200000
-          }
-        )
-
-        const buffer = 50000
-        overrides.gasLimit = estimatedGas.add(buffer)
-      } catch (err) {
-        console.log(err)
-      }
-    }
-
     return saddleSwap.populateTransaction.addLiquidity(...payload, overrides)
   }
 
@@ -186,23 +169,6 @@ class AMM extends Base {
     ] as const
 
     const overrides = await this.txOverrides(this.chain)
-    if (this.chain.equals(Chain.Polygon)) {
-      try {
-        const estimatedGas = await saddleSwap.estimateGas.removeLiquidity(
-          ...payload,
-          {
-            ...overrides,
-            gasLimit: 200000
-          }
-        )
-
-        const buffer = 50000
-        overrides.gasLimit = estimatedGas.add(buffer)
-      } catch (err) {
-        console.log(err)
-      }
-    }
-
     return saddleSwap.populateTransaction.removeLiquidity(...payload, overrides)
   }
 
@@ -222,23 +188,6 @@ class AMM extends Base {
     ] as const
 
     const overrides = await this.txOverrides(this.chain)
-    if (this.chain.equals(Chain.Polygon)) {
-      try {
-        const estimatedGas = await saddleSwap.estimateGas.removeLiquidityOneToken(
-          ...payload,
-          {
-            ...overrides,
-            gasLimit: 200000
-          }
-        )
-
-        const buffer = 50000
-        overrides.gasLimit = estimatedGas.add(buffer)
-      } catch (err) {
-        console.log(err)
-      }
-    }
-
     return saddleSwap.removeLiquidityOneToken(
       ...payload,
       overrides
@@ -272,10 +221,6 @@ class AMM extends Base {
     }
     const saddleSwap = await this.getSaddleSwap()
     const overrides = await this.txOverrides(this.chain)
-    if (this.chain.equals(Chain.Polygon)) {
-      overrides.gasLimit = 200000
-    }
-
     return saddleSwap.calculateRemoveLiquidityOneToken(
       recipient,
       tokenAmount,
@@ -319,10 +264,6 @@ class AMM extends Base {
     }
 
     const overrides = await this.txOverrides(this.chain)
-    if (this.chain.equals(Chain.Polygon)) {
-      overrides.gasLimit = 200000
-    }
-
     return saddleSwap.calculateTokenAmount(
       recipient,
       amounts,
@@ -338,10 +279,6 @@ class AMM extends Base {
       throw new Error('recipient address is required')
     }
     const overrides = await this.txOverrides(this.chain)
-    if (this.chain.equals(Chain.Polygon)) {
-      overrides.gasLimit = 200000
-    }
-
     return saddleSwap.calculateRemoveLiquidity(
       recipient,
       lpTokenAmount,

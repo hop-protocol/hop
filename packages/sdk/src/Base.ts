@@ -495,6 +495,7 @@ class Base {
       if (txOptions.gasPrice?.lt(MinPolygonGasPrice)) {
         txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
       }
+      txOptions.gasLimit = BigNumber.from(300e3)
     }
 
     return txOptions

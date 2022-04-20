@@ -1,7 +1,8 @@
 import { providers, Signer } from 'ethers'
 import { useEffect, useState } from 'react'
+import Chain from 'src/models/Chain'
 
-export function useChainProviders(sourceChain, destinationChain) {
+export function useChainProviders(sourceChain?: Chain, destinationChain?: Chain) {
   const [sourceProvider, _setSourceProvider] = useState<providers.JsonRpcProvider>()
   const [sourceSigner, _setSourceSigner] = useState<Signer>()
   const [destinationProvider, _setDestinationProvider] = useState<providers.JsonRpcProvider>()
@@ -16,11 +17,13 @@ export function useChainProviders(sourceChain, destinationChain) {
         _setSourceSigner(sourceSigner)
       }
     }
+  }, [sourceChain])
+
+  useEffect(() => {
     if (destinationChain?.provider) {
-      const destinationProvider = destinationChain.provider
-      _setDestinationProvider(destinationProvider)
+      _setDestinationProvider(destinationChain.provider)
     }
-  }, [sourceChain, destinationChain])
+  }, [destinationChain])
 
   return {
     sourceProvider,

@@ -541,7 +541,7 @@ export class HealthCheckWatcher {
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.incompleteSettlemetsMinTimeToWaitHours * 60 * 60)))
     result = result.filter((x: any) => x.diffFormatted > 0.01)
     this.logger.debug('done fetching incomplete settlements')
-    return result.map((item: any) => {
+    result = result.map((item: any) => {
       return {
         timestamp: item.timestamp,
         transferRootHash: item.rootHash,
@@ -560,6 +560,24 @@ export class HealthCheckWatcher {
         unsettledTransferBonders: item.unsettledTransferBonders
       }
     })
+
+    result = result.filter((item: any) => {
+      if (item.unsettledTransfers?.length) {
+        let totalAmountUnbonded = BigNumber.from(0)
+        for (const transfer of item.unsettledTransfers) {
+          if (!transfer.bonded) {
+            totalAmountUnbonded = totalAmountUnbonded.add(BigNumber.from(transfer.amount))
+          }
+        }
+        const isAllSettled = BigNumber.from(item.diffAmount).eq(totalAmountUnbonded)
+        if (isAllSettled) {
+          return false
+        }
+      }
+      return true
+    })
+
+    return result
   }
 
   private async getChallengedTransferRoots (): Promise<ChallengedTransferRoot[]> {

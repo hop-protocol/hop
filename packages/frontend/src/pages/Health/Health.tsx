@@ -326,7 +326,7 @@ const Health = () => {
         Cell: cellNumber,
       },
       {
-        Header: 'Bonder Fee Too Low',
+        Header: 'Bonder fee looks low',
         accessor: 'isBonderFeeTooLow',
         Cell: cellBoolean,
       },

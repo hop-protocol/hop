@@ -174,12 +174,13 @@ class Token extends Base {
    */
   public async approve (
     spender: string,
-    amount: TAmount = ethers.constants.MaxUint256
+    amount: TAmount = ethers.constants.MaxUint256,
+    overrides?: any
   ) {
     const populatedTx = await this.populateApproveTx(spender, amount)
     const allowance = await this.allowance(spender)
     if (allowance.lt(BigNumber.from(amount))) {
-      return this.sendTransaction(populatedTx, this.chain)
+      return this.sendTransaction(populatedTx, this.chain, overrides)
     }
   }
 

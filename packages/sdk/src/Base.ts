@@ -162,9 +162,9 @@ class Base {
     }
   }
 
-  sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain) {
+  sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain, overrides?: any) {
     const chainId = this.toChainModel(chain).chainId
-    return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
+    return this.signer.sendTransaction({ ...transactionRequest, chainId, ...overrides } as any,)
   }
 
   setConfigAddresses (addresses: Addresses) {

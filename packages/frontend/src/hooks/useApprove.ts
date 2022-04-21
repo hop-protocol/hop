@@ -61,12 +61,13 @@ const useApprove = token => {
           network: {
             slug: token.chain?.slug,
             networkId: token.chain?.chainId,
-          }
-        }
+          },
+        },
       },
       onConfirm: async (approveAll: boolean) => {
+        const overrides = await token.txOverrides(chain)
         const approveAmount = approveAll ? constants.MaxUint256 : amount
-        return token.approve(spender, approveAmount)
+        return token.approve(spender, approveAmount, overrides)
       },
     })
 

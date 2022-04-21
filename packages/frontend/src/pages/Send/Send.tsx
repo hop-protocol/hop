@@ -30,7 +30,6 @@ import {
   useDisableTxs,
   useGnosisSafeTransaction,
   useChainSelector,
-  useChainProviders,
   useWarningErrorInfo,
   useDisplayedAmounts,
 } from 'src/hooks'
@@ -71,10 +70,10 @@ const Sendd: FC = () => {
   const { disabledTx } = useDisableTxs(sourceChain, destinationChain)
   const needsTokenForFee = useNeedsTokenForFee(sourceChain)
 
-  const { sourceProvider, sourceSigner, destinationProvider } = useChainProviders(
-    sourceChain,
-    destinationChain
-  )
+  // const { sourceProvider, sourceSigner, destinationProvider } = useChainProviders(
+  //   sourceChain,
+  //   destinationChain
+  // )
 
   // Get assets
   const { unsupportedAsset, sourceToken, destinationToken, placeholderToken } = useAssets(
@@ -264,7 +263,7 @@ const Sendd: FC = () => {
     sourceTokenAmountBN,
     destinationChain,
     setApproving,
-    usingNativeBridge,
+    // usingNativeBridge,
   )
 
   // ==============================================================================================

@@ -96,7 +96,7 @@ export function SocialVerified() {
 
         <StyledTypography style={{ marginTop: '3rem' }} variant="subtitle2" color="textSecondary">
           Please enter an Ethereum Mainnet address that you control to claim your <b>Active User</b>
-          &nbsp;airdrop tokens.
+          &nbsp;airdrop tokens on [DATE]
         </StyledTypography>
       </Div>
 

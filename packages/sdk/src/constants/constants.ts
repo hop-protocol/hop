@@ -1,10 +1,11 @@
 import { BigNumber } from 'ethers'
+import { TChain } from '..'
 
 export enum NetworkSlug {
   Mainnet = 'mainnet',
   Staging = 'staging',
   Goerli = 'goerli',
-  Kovan = 'kovan'
+  Kovan = 'kovan',
 }
 
 export enum ChainId {
@@ -31,7 +32,7 @@ export enum ChainSlug {
   Gnosis = 'gnosis',
 }
 
-export type L2ChainSlug = Exclude<ChainSlug, 'ethereum'>
+export type L2ChainSlug = Exclude<TChain, 'ethereum'>
 
 export enum Slug {
   ethereum = 'ethereum',
@@ -75,13 +76,13 @@ export type TokenSymbol = CanonicalToken | WrappedToken | HToken | string
 
 export enum TokenIndex {
   CanonicalToken = 0,
-  HopBridgeToken = 1
+  HopBridgeToken = 1,
 }
 
 export enum BondTransferGasLimit {
   Ethereum = '165000',
   Optimism = '100000000',
-  Arbitrum = '2500000'
+  Arbitrum = '2500000',
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -89,7 +90,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   polygon: 5933,
   gnosis: 3218,
   optimism: 8545,
-  arbitrum: 59105
+  arbitrum: 59105,
 }
 
 export const LpFeeBps = '4'
@@ -99,7 +100,7 @@ export const MinPolygonGasLimit = BigNumber.from(500_000)
 
 export enum Errors {
   NotEnoughAllowance = 'Not enough allowance. Please call `approve` on token contract to allow contract to move tokens.',
-  xDaiRebrand = 'NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.'
+  xDaiRebrand = 'NOTICE: xDai has been rebranded to Gnosis. Chain "xdai" is deprecated. Use "gnosis" instead.',
 }
 
 export enum EventNames {

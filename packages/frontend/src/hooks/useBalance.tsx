@@ -8,7 +8,11 @@ async function fetchBalance(token: Token | StakingRewards, address: string) {
   return await token.balanceOf(address)
 }
 
-const useBalance = (token?: Token | StakingRewards, address?: Addressish, chainId?: ChainId) => {
+export const useBalance = (
+  token?: Token | StakingRewards,
+  address?: Addressish,
+  chainId?: ChainId
+) => {
   chainId = token instanceof Token ? token.chain.chainId : chainId
 
   const queryKey = `balance:${chainId}:${token?.address}:${address?.toString()}`
@@ -28,5 +32,3 @@ const useBalance = (token?: Token | StakingRewards, address?: Addressish, chainI
 
   return { loading: isLoading, isError, balance: data, error }
 }
-
-export default useBalance

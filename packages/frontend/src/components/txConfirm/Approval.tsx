@@ -46,6 +46,10 @@ const Approval = (props: Props) => {
 
   const { sending, handleSubmit } = useSendingTransaction({ onConfirm, source })
 
+  const handleClick = useCallback(() => {
+    handleSubmit(approveAll)
+  }, [approveAll])
+
   return (
     <div className={styles.root}>
       <div className={styles.title}>
@@ -77,7 +81,7 @@ const Approval = (props: Props) => {
       <div className={styles.action}>
         <Button
           className={styles.sendButton}
-          onClick={() => handleSubmit(approveAll)}
+          onClick={handleClick}
           loading={sending}
           large
           highlighted

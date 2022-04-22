@@ -1,5 +1,19 @@
 import { EthBridger, Erc20Bridger, getL2Network } from '@arbitrum/sdk'
-import { CanonicalToken, ChainId, ChainSlug, L2ChainSlug, Slug } from '@hop-protocol/sdk'
+import {
+  L1OptimismDaiTokenBridge__factory,
+  L1OptimismGateway__factory,
+  L1PolygonPlasmaBridgeDepositManager,
+  L1PolygonPlasmaBridgeDepositManager__factory,
+  L1PolygonPosRootChainManager,
+  L1PolygonPosRootChainManager__factory,
+  L1XDaiForeignOmniBridge,
+  L1XDaiForeignOmniBridge__factory,
+  L1XDaiPoaBridge,
+  L1XDaiPoaBridge__factory,
+  L1XDaiWETHOmnibridgeRouter,
+  L1XDaiWETHOmnibridgeRouter__factory,
+} from '@hop-protocol/core/contracts'
+import { CanonicalToken, ChainId, ChainSlug, L2ChainSlug, Slug, TProvider } from '@hop-protocol/sdk'
 
 export const canonicalBridges = {
   l1CanonicalToken: {
@@ -11,11 +25,12 @@ export const canonicalBridges = {
   },
   polygon: {
     ETH: {
-      nativeBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77', // Polygon (Matic): Bridge (PoS Bridge)
+      nativeBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77', // Polygon (Matic): PoS Bridge (PoS RootChainManager)
       l2CanonicalToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619', // WETH
     },
     DAI: {
-      nativeBridge: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf', // Polygon (Matic): ERC20 Bridge
+      nativeBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
+      approveAddress: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf', // Polygon (Matic): ERC20 Bridge
       l2CanonicalToken: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', // WDAI
     },
     MATIC: {
@@ -23,11 +38,13 @@ export const canonicalBridges = {
       l2CanonicalToken: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', // WMATIC
     },
     USDC: {
-      nativeBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77', // Polygon (Matic): Bridge (PoS Bridge)
+      nativeBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
+      approveAddress: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf', // Polygon (Matic): ERC20 Bridge
       l2CanonicalToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', // USDC
     },
     USDT: {
-      nativeBridge: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf', // Polygon (Matic): ERC20 Bridge
+      nativeBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
+      approveAddress: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf', // Polygon (Matic): ERC20 Bridge
       l2CanonicalToken: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', // USDT
     },
   },
@@ -91,35 +108,84 @@ export const canonicalBridges = {
   },
 }
 
-export function getL1CanonicalTokenAddress(tokenSymbol: CanonicalToken) {
+export function getL1CanonicalTokenAddressBySymbol(tokenSymbol: CanonicalToken | string) {
   return canonicalBridges.l1CanonicalToken[tokenSymbol]
 }
 
+export function getNativeBridgeApproveAddress(
+  l2ChainSlug: L2ChainSlug,
+  tokenSymbol: CanonicalToken | string
+): string {
+  const token = canonicalBridges[l2ChainSlug as string]?.[tokenSymbol]
+  return token?.approveAddress ?? token?.nativeBridge
+}
+
 export function getNativeBridgeAddress(
-  l2ChainSlug: L2ChainSlug | string,
-  tokenSymbol: CanonicalToken
+  l2ChainSlug: L2ChainSlug,
+  tokenSymbol: CanonicalToken | string
 ): string {
-  return canonicalBridges[l2ChainSlug]?.[tokenSymbol]?.nativeBridge
+  return canonicalBridges[l2ChainSlug as string]?.[tokenSymbol]?.nativeBridge
 }
 
-export function getL2CanonicalTokenAddress(
-  l2ChainSlug: L2ChainSlug | string,
-  tokenSymbol: CanonicalToken
+export function getL2CanonicalTokenAddressBySlug(
+  l2ChainSlug: L2ChainSlug,
+  tokenSymbol: CanonicalToken | string
 ): string {
-  return canonicalBridges[l2ChainSlug]?.[tokenSymbol]?.l2CanonicalToken
+  return canonicalBridges[l2ChainSlug as string]?.[tokenSymbol]?.l2CanonicalToken
 }
 
-export async function initNativeBridge(l2Chain: ChainSlug, token: CanonicalToken) {
-  if (l2Chain === ChainSlug.Arbitrum) {
-    const l2Network = await getL2Network(ChainId.Arbitrum)
-    let bridge: EthBridger | Erc20Bridger
-    if (token === CanonicalToken.ETH) {
-      bridge = new EthBridger(l2Network)
-    } else {
-      bridge = new Erc20Bridger(l2Network)
+export async function initNativeBridge(
+  address: string,
+  signer: TProvider,
+  l2Chain: L2ChainSlug,
+  token: CanonicalToken
+) {
+  switch (l2Chain) {
+    case ChainSlug.Gnosis: {
+      let bridge: L1XDaiPoaBridge | L1XDaiWETHOmnibridgeRouter | L1XDaiForeignOmniBridge
+      if (token === CanonicalToken.DAI) {
+        bridge = L1XDaiPoaBridge__factory.connect(address, signer)
+      } else if (token === CanonicalToken.ETH) {
+        bridge = L1XDaiWETHOmnibridgeRouter__factory.connect(address, signer)
+      } else {
+        bridge = L1XDaiForeignOmniBridge__factory.connect(address, signer)
+      }
+      console.log(`gnosis bridge:`, bridge)
+      return bridge
     }
-    console.log(`arb bridge:`, bridge)
 
-    return bridge
+    case ChainSlug.Optimism: {
+      const bridge = L1OptimismGateway__factory.connect(address, signer)
+      console.log(`optimism bridge:`, bridge)
+      return bridge
+    }
+
+    case ChainSlug.Arbitrum: {
+      const l2Network = await getL2Network(ChainId.Arbitrum)
+      let bridge: EthBridger | Erc20Bridger
+      if (token === CanonicalToken.ETH) {
+        bridge = new EthBridger(l2Network)
+      } else {
+        bridge = new Erc20Bridger(l2Network)
+      }
+      console.log(`arb bridge:`, bridge)
+      return bridge
+    }
+
+    case ChainSlug.Polygon: {
+      let bridge: L1PolygonPlasmaBridgeDepositManager | L1PolygonPosRootChainManager
+      if (token === CanonicalToken.MATIC) {
+        bridge = L1PolygonPlasmaBridgeDepositManager__factory.connect(address, signer)
+      } else {
+        bridge = L1PolygonPosRootChainManager__factory.connect(address, signer)
+      }
+
+      console.log(`polygon bridge:`, bridge)
+      return bridge
+    }
+
+    default: {
+      throw new Error('Invalid L2 Chain')
+    }
   }
 }

@@ -2,57 +2,95 @@ import { useQuery } from 'react-query'
 import { Token } from '@hop-protocol/sdk'
 import Chain from 'src/models/Chain'
 import { BigNumber } from 'ethers'
-import { defaultRefetchInterval } from 'src/utils'
+import { useApp } from 'src/contexts/AppContext'
+import { defaultRefetchInterval, formatError } from 'src/utils'
+import logger from 'src/logger'
 
-export function useTxResult(
-  token?: Token,
-  sourceChain?: Chain,
-  destinationChain?: Chain,
-  amount?: BigNumber,
-  cb?: (opts: any) => any,
-  opts?: any
-) {
-  const queryKey = `txResult:${token?.symbol}:${sourceChain?.slug}:${
-    destinationChain?.slug
-  }:${amount?.toString()}`
-  const { interval = defaultRefetchInterval, ...rest } = opts
+interface EstimateFns {
+  usingNativeBridge: boolean
+  needsNativeBridgeApproval?: boolean
+  needsApproval?: boolean
+  estimateApproveNativeBridge?: any
+  estimateSendNativeBridge?: any
+  estimateApprove?: any
+  estimateSend?: any
+}
+
+interface Props {
+  sourceToken?: Token
+  sourceChain?: Chain
+  destinationChain?: Chain
+  sourceTokenAmount?: BigNumber
+  estimateFns?: EstimateFns
+}
+
+export function useTxResult(props: Props) {
+  console.log(`useTxResults props:`, props)
+  const { sourceToken, sourceChain, destinationChain, sourceTokenAmount, estimateFns } = props
+  const {
+    usingNativeBridge,
+    needsNativeBridgeApproval,
+    needsApproval,
+    estimateApprove,
+    estimateApproveNativeBridge,
+    estimateSend,
+    estimateSendNativeBridge,
+  } = estimateFns as EstimateFns
+  const { settings } = useApp()
+  const { deadline, ...rest } = settings
+
+  const queryKey = `estimatedGasLimit:${sourceToken?.symbol}:${sourceChain?.slug}:${destinationChain?.slug}`
 
   const {
     isLoading,
     isError,
-    data: estimatedGasCost,
+    data: estimatedGasLimit,
     error,
   } = useQuery(
-    [queryKey, sourceChain?.slug, token?.symbol, amount?.toString()],
+    [
+      queryKey,
+      destinationChain?.chainId,
+      sourceChain?.chainId,
+      sourceToken?.chain.chainId,
+      sourceTokenAmount?.toString(),
+      estimateFns,
+    ],
     async () => {
-      if (!(token && sourceChain?.slug && destinationChain?.slug && amount && cb)) {
+      if (!(sourceToken && sourceChain && destinationChain)) {
         return
       }
 
-      console.log(`rest:`, rest)
-      const options = {
-        token: token,
-        sourceChain: sourceChain,
-        destinationChain: destinationChain,
-        ...rest,
-      }
-      console.log(`cb:`, cb)
-
       try {
-        return cb(options)
+        const options = { sourceToken, sourceChain, destinationChain, deadline, ...rest }
+        console.log(`options:`, options)
+        let egl = BigNumber.from(0)
+        if (usingNativeBridge && needsNativeBridgeApproval) {
+          egl = await estimateApproveNativeBridge()
+        } else if (usingNativeBridge) {
+          egl = await estimateSendNativeBridge(options)
+        } else if (needsApproval) {
+          egl = await estimateApprove()
+        } else {
+          egl = await estimateSend(options)
+        }
+        console.log(`egl:`, egl.toString())
+        return egl
       } catch (error) {
-        // noop
-        console.log(`error:`, error)
+        logger.error(formatError(error))
       }
     },
     {
-      enabled: !!token?.symbol && !!sourceChain?.slug && !!amount?.toString(),
-      refetchInterval: interval,
+      enabled:
+        !!props.sourceToken?.symbol &&
+        !!props.sourceChain?.slug &&
+        !!props.destinationChain?.slug &&
+        !!props.estimateFns,
+      refetchInterval: defaultRefetchInterval,
     }
   )
 
   return {
-    estimatedGasCost,
+    estimatedGasLimit,
     isLoading,
     isError,
     error,

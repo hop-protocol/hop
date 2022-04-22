@@ -66,9 +66,11 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
     selectedNetwork,
   } = props
   const styles = useAmountSelectorCardStyles()
+
   const { estimateMaxValue } = useEstimateTxCost({
     sourceChain: selectedNetwork,
     sourceToken: token,
+    sourceTokenAmount: balance,
   })
 
   const balanceDisplay = useMemo(() => {

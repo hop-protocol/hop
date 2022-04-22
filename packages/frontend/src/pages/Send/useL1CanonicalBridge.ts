@@ -1,29 +1,41 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ChainId, Hop, NetworkSlug, Token } from '@hop-protocol/sdk'
+import { CanonicalToken, ChainId, Hop, NetworkSlug, Token } from '@hop-protocol/sdk'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import Chain from 'src/models/Chain'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
-import { findNetworkById, formatError, toTokenDisplay } from 'src/utils'
+import { formatError, toTokenDisplay } from 'src/utils'
 import CanonicalBridge from 'src/models/CanonicalBridge'
 import { l1Network } from 'src/config/networks'
 import { TxConfirm } from 'src/contexts/AppContext/useTxConfirm'
 import { useQuery } from 'react-query'
+import { useTransactionReplacement } from 'src/hooks'
+import Transaction from 'src/models/Transaction'
+import { createTransaction } from 'src/utils/createTransaction'
+import { TransactionHandled } from './useSendTransaction'
 
+interface EstimateTxOptions {
+  token: Token
+  network?: Chain
+  sourceChain?: Chain
+  destinationChain?: Chain
+  deadline?: () => number
+  checkAllowance?: boolean
+}
 interface L1CanonicalBridgeProps {
   sdk?: Hop
   sourceToken?: Token
   sourceTokenAmount?: BigNumber
+  sourceChain?: Chain
   destinationChain?: Chain
   estimatedReceived?: BigNumber
   txConfirm?: TxConfirm
   customRecipient?: string
-  handleTransaction?: any
   setSending?: any
   setTx?: any
-  waitForTransaction?: any
-  updateTransaction?: any
+  approving?: boolean
   setApproving?: any
+  setError?: any
 }
 
 export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
@@ -31,16 +43,16 @@ export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
     sdk,
     sourceToken,
     sourceTokenAmount,
+    sourceChain,
     destinationChain,
     estimatedReceived,
     txConfirm,
     customRecipient,
+    approving,
     setApproving,
     setSending,
     setTx,
-    handleTransaction,
-    waitForTransaction,
-    updateTransaction,
+    setError,
   } = props
 
   const { checkConnectedNetworkId, provider } = useWeb3Context()
@@ -48,22 +60,34 @@ export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
   const [usingNativeBridge, setUsingNativeBridge] = useState(false)
   const [userSpecifiedBridge, setUserSpecifiedBridge] = useState(false)
 
+  const { waitForTransaction, addTransaction, updateTransaction } = useTransactionReplacement()
+
   function selectNativeBridge(val: boolean) {
     setUsingNativeBridge(val)
     setUserSpecifiedBridge(true)
   }
 
-  const sourceChain = findNetworkById(sourceToken?.chain.chainId!)
+  function handleTransaction(tx, fromNetwork, toNetwork, sourceToken): TransactionHandled {
+    const txModel = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
+    addTransaction(txModel)
+
+    return {
+      transaction: tx,
+      txModel,
+    }
+  }
 
   const { data: needsNativeBridgeApproval } = useQuery(
     [
-      `needsNativeBridgeApproval:${l1CanonicalBridge?.address}:${sourceTokenAmount?.toString()}`,
+      `needsNativeBridgeApproval:${
+        l1CanonicalBridge?.address
+      }:${sourceTokenAmount?.toString()}:${usingNativeBridge}`,
       l1CanonicalBridge?.address,
       sourceTokenAmount?.toString(),
       usingNativeBridge,
     ],
     async () => {
-      if (!(usingNativeBridge && l1CanonicalBridge && sourceTokenAmount)) {
+      if (!(l1CanonicalBridge && sourceTokenAmount)) {
         return
       }
 
@@ -72,32 +96,43 @@ export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
     },
     {
       enabled:
-        !!usingNativeBridge && !!l1CanonicalBridge?.address && !!sourceTokenAmount?.toString(),
+        usingNativeBridge !== false &&
+        !!l1CanonicalBridge?.address &&
+        !!sourceTokenAmount?.toString(),
       refetchInterval: 10e3,
     }
   )
 
+  // ====================================================================
+  // Set using native bridge
+  // ====================================================================
+
   useEffect(() => {
     if (userSpecifiedBridge) return
 
+    console.log(`userSpecifiedBridge:`, userSpecifiedBridge)
+    console.log(`estimatedReceived:`, estimatedReceived?.toString())
     if (sourceTokenAmount && estimatedReceived && l1CanonicalBridge) {
       if (!usingNativeBridge && sourceTokenAmount.gt(estimatedReceived)) {
-        setUsingNativeBridge(true)
+        return setUsingNativeBridge(true)
       } else if (sourceTokenAmount.lte(estimatedReceived)) {
-        setUsingNativeBridge(false)
+        return setUsingNativeBridge(false)
       }
     }
-
-    return () => setUserSpecifiedBridge(false)
   }, [
+    userSpecifiedBridge,
     sourceTokenAmount?.toString(),
     estimatedReceived?.toString(),
     l1CanonicalBridge,
     destinationChain,
   ])
 
+  // ====================================================================
+  // Set native bridge
+  // ====================================================================
+
   useEffect(() => {
-    if (!(sourceToken && destinationChain && sourceTokenAmount)) {
+    if (!(sourceToken && destinationChain)) {
       return setL1CanonicalBridge(undefined)
     }
 
@@ -106,6 +141,7 @@ export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
     }
 
     const signer = provider?.getSigner()
+    console.log(`signer:`, signer)
     if (signer) {
       const canonicalBridge = new CanonicalBridge(
         NetworkSlug.Mainnet,
@@ -113,60 +149,92 @@ export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
         sourceToken.symbol,
         destinationChain.slug
       )
-      setL1CanonicalBridge(canonicalBridge)
+      return setL1CanonicalBridge(canonicalBridge)
     }
-  }, [provider, sourceTokenAmount, sourceToken, destinationChain])
+
+    setL1CanonicalBridge(undefined)
+  }, [provider, sourceToken, destinationChain, CanonicalBridge])
+
+  // ====================================================================
+  // Approve native bridge
+  // ====================================================================
 
   const approveNativeBridge = useCallback(async () => {
-    if (!(needsNativeBridgeApproval && l1CanonicalBridge && txConfirm)) {
-      setApproving(false)
+    if (!(usingNativeBridge && sourceChain && sourceToken && l1CanonicalBridge && txConfirm)) {
       return
     }
 
+    // if (approving) return
+
+    const isNetworkConnected = await checkConnectedNetworkId(sourceChain.chainId)
+    if (!isNetworkConnected) return
+
+    const displayedAmount = toTokenDisplay(sourceTokenAmount, sourceToken.decimals)
     try {
       const tx: any = await txConfirm.show({
         kind: 'approval',
         inputProps: {
           tagline: `Allow Hop to spend your ${sourceToken?.symbol} on ${sourceToken?.chain.name}`,
+          amount: displayedAmount,
+          tokenSymbol: sourceToken.symbol,
           source: {
             network: {
-              slug: sourceToken?.chain.slug,
-              networkId: sourceToken?.chain.chainId,
+              slug: sourceChain.slug,
+              networkId: sourceChain.chainId,
             },
           },
         },
-        onConfirm: async () => {
-          const approveAmount = constants.MaxUint256
-
-          const networkId = sourceToken!.chain.chainId
-          const isNetworkConnected = await checkConnectedNetworkId(networkId)
-          if (!isNetworkConnected) return
-
+        onConfirm: async (approveAll: boolean = false) => {
+          const approveAmount = approveAll ? constants.MaxUint256 : sourceTokenAmount
           setApproving(true)
           return l1CanonicalBridge.approve(approveAmount as BigNumberish)
         },
       })
 
-      setApproving(false)
       if (tx?.hash) {
-        return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
+        addTransaction(
+          new Transaction({
+            hash: tx.hash,
+            networkName: sourceChain.slug,
+            token: sourceToken,
+          })
+        )
+
+        const res = await waitForTransaction(tx, {
+          networkName: sourceChain.slug,
+          token: sourceToken,
+        })
+        if (res && 'replacementTx' in res) {
+          return res.replacementTx
+        }
       }
+
+      return tx?.wait()
     } catch (error: any) {
-      setApproving(false)
       if (!/cancelled/gi.test(error.message)) {
-        // noop
-        return
+        setError(formatError(error, sourceChain))
       }
-      throw new Error(error.message)
+      logger.error(error)
     }
+    setApproving(false)
   }, [
-    needsNativeBridgeApproval,
     l1CanonicalBridge,
+    usingNativeBridge,
     txConfirm,
     sourceChain,
     sourceToken,
     destinationChain,
+    approving,
+    checkConnectedNetworkId,
+    waitForTransaction,
+    addTransaction,
+    Transaction,
+    toTokenDisplay,
   ])
+
+  // ====================================================================
+  // Send native bridge
+  // ====================================================================
 
   const sendL1CanonicalBridge = useCallback(async () => {
     if (
@@ -177,124 +245,132 @@ export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
         sourceTokenAmount &&
         sourceChain &&
         destinationChain &&
+        usingNativeBridge &&
         !needsNativeBridgeApproval &&
         txConfirm
       )
     ) {
-      setApproving(false)
       return
     }
 
-    // if (shouldApproveNativeBridge) {
-    //   const approveTx = await l1CanonicalBridge.approve(constants.MaxUint256)
-    //   await approveTx.wait()
-    // }
-
-    const tx: any = await txConfirm.show({
-      kind: 'depositNativeBridge',
-      inputProps: {
-        customRecipient,
-        source: {
-          amount: toTokenDisplay(sourceTokenAmount, sourceToken?.decimals),
-          token: sourceToken,
-          network: sourceChain,
+    try {
+      const tx: any = await txConfirm.show({
+        kind: 'depositNativeBridge',
+        inputProps: {
+          customRecipient,
+          source: {
+            amount: toTokenDisplay(sourceTokenAmount, sourceToken?.decimals),
+            token: sourceToken,
+            network: {
+              slug: sourceChain.slug,
+              networkId: sourceChain.chainId,
+            },
+          },
+          dest: {
+            network: destinationChain,
+          },
+          estimatedReceived: toTokenDisplay(
+            estimatedReceived,
+            sourceToken?.decimals,
+            sourceToken?.symbol
+          ),
         },
-        dest: {
-          network: destinationChain,
-        },
-        estimatedReceived: toTokenDisplay(
-          estimatedReceived,
-          sourceToken?.decimals,
-          sourceToken?.symbol
-        ),
-      },
-      onConfirm: async () => {
-        try {
-          const isNetworkConnected = await checkConnectedNetworkId(l1Network.networkId)
-          if (!isNetworkConnected) return
+        onConfirm: async () => {
+          try {
+            const isNetworkConnected = await checkConnectedNetworkId(l1Network.networkId)
+            if (!isNetworkConnected) return
 
-          setSending(true)
-          return l1CanonicalBridge.deposit(sourceTokenAmount)
-        } catch (error: any) {
+            setSending(true)
+            return l1CanonicalBridge.deposit(sourceTokenAmount)
+          } catch (error: any) {
+            if (setError) {
+              setError(formatError(error))
+            }
+            logger.error(formatError(error))
+            setSending(false)
+          }
           setSending(false)
-          if (!/cancelled/gi.test(error.message)) {
-            // noop
-            return
-          }
-          logger.error(formatError(error))
-        }
-      },
-    })
-    logger.debug(`tx:`, tx)
-    setSending(false)
-
-    const txHandled = handleTransaction(tx, sourceChain, destinationChain, sourceToken)
-    logger.debug(`txHandled:`, txHandled)
-
-    const { transaction, txModel } = txHandled
-
-    const watcher = (sdk as Hop).watch(
-      txModel.hash,
-      sourceToken.symbol,
-      sourceChain.slug,
-      destinationChain.slug
-    )
-
-    if (watcher) {
-      watcher.once(sdk.Event.DestinationTxReceipt, async data => {
-        logger.debug(`dest tx receipt event data:`, data)
-        if (txModel && !txModel.destTxHash) {
-          const opts = {
-            destTxHash: data.receipt.transactionHash,
-            pendingDestinationConfirmation: false,
-          }
-          updateTransaction(txModel, opts)
-        }
+        },
       })
-    }
+      logger.debug(`tx:`, tx)
 
-    setTx(txModel)
+      setSending(false)
+      if (!tx) {
+        return
+      }
 
-    const txModelArgs = {
-      networkName: sourceChain,
-      destNetworkName: destinationChain,
-      token: sourceToken,
-    }
+      const txHandled = handleTransaction(tx, sourceChain, destinationChain, sourceToken)
+      logger.debug(`txHandled:`, txHandled)
 
-    console.log(`transaction:`, transaction)
-    // TODO: DRY. this is copied from useSendTransaction and shouldn't be re-written
-    const res = await waitForTransaction(transaction, txModelArgs)
+      const { transaction, txModel } = txHandled
 
-    if (res && 'replacementTxModel' in res) {
-      setTx(res.replacementTxModel)
-      const { replacementTxModel: txModelReplacement } = res
+      const watcher = (sdk as Hop).watch(
+        txModel.hash,
+        sourceToken.symbol,
+        sourceChain.slug,
+        destinationChain.slug
+      )
 
-      if (sourceChain && destinationChain) {
-        // Replace watcher
-        const replacementWatcher = sdk?.watch(
-          txModelReplacement.hash,
-          sourceToken!.symbol,
-          sourceChain?.slug,
-          destinationChain?.slug
-        )
-        replacementWatcher.once(sdk?.Event.DestinationTxReceipt, async data => {
-          logger.debug(`replacement dest tx receipt event data:`, data)
-          if (txModelReplacement && !txModelReplacement.destTxHash) {
+      if (watcher) {
+        watcher.once(sdk.Event.DestinationTxReceipt, async data => {
+          logger.debug(`dest tx receipt event data:`, data)
+          if (txModel && !txModel.destTxHash) {
             const opts = {
               destTxHash: data.receipt.transactionHash,
               pendingDestinationConfirmation: false,
-              replaced: transaction.hash,
             }
-            updateTransaction(txModelReplacement, opts)
+            updateTransaction(txModel, opts)
           }
         })
       }
+
+      setTx(txModel)
+
+      const txModelArgs = {
+        networkName: sourceChain.slug,
+        destNetworkName: destinationChain.slug,
+        token: sourceToken,
+      }
+
+      console.log(`transaction:`, transaction)
+      // TODO: DRY. this is copied from useSendTransaction and shouldn't be re-written
+      const res = await waitForTransaction(transaction, txModelArgs)
+
+      if (res && 'replacementTxModel' in res) {
+        setTx(res.replacementTxModel)
+        const { replacementTxModel: txModelReplacement } = res
+
+        if (sourceChain && destinationChain) {
+          // Replace watcher
+          const replacementWatcher = sdk?.watch(
+            txModelReplacement.hash,
+            sourceToken!.symbol,
+            sourceChain?.slug,
+            destinationChain?.slug
+          )
+          replacementWatcher.once(sdk?.Event.DestinationTxReceipt, async data => {
+            logger.debug(`replacement dest tx receipt event data:`, data)
+            if (txModelReplacement && !txModelReplacement.destTxHash) {
+              const opts = {
+                destTxHash: data.receipt.transactionHash,
+                pendingDestinationConfirmation: false,
+                replaced: transaction.hash,
+              }
+              updateTransaction(txModelReplacement, opts)
+            }
+          })
+        }
+      }
+
+      console.log(`tx:`, tx)
+      return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
+    } catch (err: any) {
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err, sourceChain))
+      }
+      logger.error(err)
     }
-
     setSending(false)
-
-    console.log(`tx:`, tx)
-    return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
   }, [
     sdk,
     l1CanonicalBridge,
@@ -305,33 +381,44 @@ export function useL1CanonicalBridge(props: L1CanonicalBridgeProps) {
     needsNativeBridgeApproval,
     txConfirm,
     estimatedReceived,
+    usingNativeBridge,
+    checkConnectedNetworkId,
+    waitForTransaction,
+    toTokenDisplay,
   ])
 
-  const estimateApproveNativeBridge = useCallback(
-    async (opts?: any) => {
-      if (!l1CanonicalBridge || !sourceTokenAmount) {
+  const estimateApproveNativeBridge = useCallback(async () => {
+    if (!(usingNativeBridge && l1CanonicalBridge && sourceTokenAmount)) {
+      return
+    }
+
+    return l1CanonicalBridge.estimateApproveTx(sourceTokenAmount)
+  }, [usingNativeBridge, l1CanonicalBridge, sourceTokenAmount])
+
+  const estimateSendNativeBridge = useCallback(
+    async (options: EstimateTxOptions) => {
+      console.log(`options:`, options)
+      if (!(usingNativeBridge && l1CanonicalBridge && sourceTokenAmount)) {
         return
       }
 
-      const spender = l1CanonicalBridge.getDepositApprovalAddress()
-      if (!spender) {
-        throw new Error(
-          `token "${l1CanonicalBridge.tokenSymbol}" on chain "${l1CanonicalBridge.chain.slug}" is unsupported`
-        )
-      }
-      return l1CanonicalBridge.estimateApproveTx(sourceTokenAmount)
+      return l1CanonicalBridge.estimateDepositTx(sourceTokenAmount, options)
     },
-    [l1CanonicalBridge, sourceTokenAmount]
+    [usingNativeBridge, l1CanonicalBridge, sourceTokenAmount]
   )
 
   return {
-    sendL1CanonicalBridge,
-    l1CanonicalBridge,
+    selectNativeBridge,
     usingNativeBridge,
     setUsingNativeBridge,
-    selectNativeBridge,
+
+    l1CanonicalBridge,
+
     needsNativeBridgeApproval,
     approveNativeBridge,
+
     estimateApproveNativeBridge,
+    estimateSendNativeBridge,
+    sendL1CanonicalBridge,
   }
 }

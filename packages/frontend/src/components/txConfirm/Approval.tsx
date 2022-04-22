@@ -44,10 +44,10 @@ const Approval = (props: Props) => {
   const [approveAll, setApproveAll] = useState<boolean>(true)
   const showApproveAll = !!amount
 
-  const { sending, handleSubmit } = useSendingTransaction({ onConfirm, source })
+  const { sending, setSending, handleSubmit } = useSendingTransaction({ onConfirm, source })
 
   const handleClick = useCallback(() => {
-    handleSubmit(approveAll)
+    handleSubmit(approveAll).then(() => setSending(false))
   }, [approveAll])
 
   return (

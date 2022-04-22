@@ -80,7 +80,7 @@ const StakeWidget: FC<Props> = props => {
 
   // Fetched prices
 
-  const { data } = useQuery(
+  const { data, isLoading: loadingStakeWidgetData } = useQuery(
     [
       `stakeWidgetData:${bridge?.network}:${network.slug}:${stakingToken?.address}:${
         stakingRewards?.address
@@ -408,6 +408,8 @@ const StakeWidget: FC<Props> = props => {
     rewardsExpired
   )
 
+  const isLoading = loadingStakeBalance || loadingLpBalance || loadingStakeWidgetData
+
   return (
     <Flex column alignCenter>
       <AmountSelectorCard
@@ -469,7 +471,7 @@ const StakeWidget: FC<Props> = props => {
               className={styles.button}
               large
               highlighted={!!needsApproval}
-              disabled={!needsApproval}
+              disabled={!needsApproval || isLoading}
               onClick={approveToken}
             >
               Approve
@@ -480,7 +482,7 @@ const StakeWidget: FC<Props> = props => {
               className={styles.button}
               large
               highlighted={needsApproval === false}
-              disabled={!isStakeEnabled}
+              disabled={!isStakeEnabled || isLoading}
               onClick={stake}
             >
               Stake

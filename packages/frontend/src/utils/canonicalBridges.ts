@@ -1,6 +1,8 @@
 import { EthBridger, Erc20Bridger, getL2Network } from '@arbitrum/sdk'
 import {
+  L1OptimismDaiTokenBridge,
   L1OptimismDaiTokenBridge__factory,
+  L1OptimismGateway,
   L1OptimismGateway__factory,
   L1PolygonPlasmaBridgeDepositManager,
   L1PolygonPlasmaBridgeDepositManager__factory,
@@ -150,13 +152,16 @@ export async function initNativeBridge(
       } else {
         bridge = L1XDaiForeignOmniBridge__factory.connect(address, signer)
       }
-      console.log(`gnosis bridge:`, bridge)
       return bridge
     }
 
     case ChainSlug.Optimism: {
-      const bridge = L1OptimismGateway__factory.connect(address, signer)
-      console.log(`optimism bridge:`, bridge)
+      let bridge: L1OptimismDaiTokenBridge | L1OptimismGateway
+      if (token === CanonicalToken.DAI) {
+        bridge = L1OptimismDaiTokenBridge__factory.connect(address, signer)
+      } else {
+        bridge = L1OptimismGateway__factory.connect(address, signer)
+      }
       return bridge
     }
 
@@ -168,7 +173,6 @@ export async function initNativeBridge(
       } else {
         bridge = new Erc20Bridger(l2Network)
       }
-      console.log(`arb bridge:`, bridge)
       return bridge
     }
 
@@ -179,8 +183,6 @@ export async function initNativeBridge(
       } else {
         bridge = L1PolygonPosRootChainManager__factory.connect(address, signer)
       }
-
-      console.log(`polygon bridge:`, bridge)
       return bridge
     }
 

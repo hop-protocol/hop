@@ -25,7 +25,6 @@ interface Props {
 }
 
 export function useTxResult(props: Props) {
-  console.log(`useTxResults props:`, props)
   const { sourceToken, sourceChain, destinationChain, sourceTokenAmount, estimateFns } = props
   const {
     usingNativeBridge,
@@ -54,6 +53,12 @@ export function useTxResult(props: Props) {
       sourceToken?.chain.chainId,
       sourceTokenAmount?.toString(),
       estimateFns,
+      estimateSend,
+      estimateApprove,
+      estimateApproveNativeBridge,
+      needsNativeBridgeApproval,
+      needsApproval,
+      usingNativeBridge,
     ],
     async () => {
       if (!(sourceToken && sourceChain && destinationChain)) {
@@ -62,7 +67,6 @@ export function useTxResult(props: Props) {
 
       try {
         const options = { sourceToken, sourceChain, destinationChain, deadline, ...rest }
-        console.log(`options:`, options)
         let egl = BigNumber.from(0)
         if (usingNativeBridge && needsNativeBridgeApproval) {
           egl = await estimateApproveNativeBridge()
@@ -73,7 +77,6 @@ export function useTxResult(props: Props) {
         } else {
           egl = await estimateSend(options)
         }
-        console.log(`egl:`, egl.toString())
         return egl
       } catch (error) {
         logger.error(formatError(error))

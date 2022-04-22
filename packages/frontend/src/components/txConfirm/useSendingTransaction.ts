@@ -57,6 +57,7 @@ export function useSendingTransaction(props: SendingTransaction) {
       } catch (err: any) {
         logger.error(formatError(err))
         setSending(false)
+        throw err
       }
     },
     [checkConnectedNetworkId, sending, onConfirm]

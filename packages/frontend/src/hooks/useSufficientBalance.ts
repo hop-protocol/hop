@@ -15,6 +15,7 @@ interface Props {
   isSmartContractWallet?: boolean
   usingNativeBridge?: boolean
   needsNativeBridgeApproval?: boolean
+  needsApproval?: boolean
   l1CanonicalBridge?: CanonicalBridge
 }
 
@@ -27,9 +28,9 @@ export function useSufficientBalance(props: Props) {
     isSmartContractWallet,
     usingNativeBridge,
     needsNativeBridgeApproval,
+    needsApproval,
     l1CanonicalBridge,
   } = props
-  console.log(`sufficient balance props:`, props)
   const [warning, setWarning] = useState('')
   const { address } = useWeb3Context()
 
@@ -39,8 +40,8 @@ export function useSufficientBalance(props: Props) {
         sourceToken?.symbol
       }:${sourceTokenAmount?.toString()}:${estimatedGasLimit?.toString()}:${tokenBalance?.toString()}:${usingNativeBridge}`,
       sourceToken?.symbol,
-      estimatedGasLimit,
       sourceTokenAmount,
+      estimatedGasLimit,
       tokenBalance,
       usingNativeBridge,
     ],
@@ -69,7 +70,6 @@ export function useSufficientBalance(props: Props) {
         const gasPrice = await sourceToken.signer.getGasPrice()
         estGasCost = BigNumber.from(200e3).mul(gasPrice || 1e9)
       }
-      console.log(`estGasCost.toString():`, estGasCost.toString())
 
       if (usingNativeBridge && ntb?.lt(estGasCost)) {
         message = `Insufficient balance to cover the cost of tx. Please add ${sourceToken.nativeTokenSymbol} to pay for tx fees.`
@@ -94,7 +94,10 @@ export function useSufficientBalance(props: Props) {
           estGasCost = estGasCost.add(totalEst)
         } catch (error) {
           logger.error(formatError(error))
-          setWarning(formatError(error))
+          // NOTE: This warning shouldn't be displayed if sending native bridge deposit (where needsApproval is undefined)
+          if (needsApproval === true || needsNativeBridgeApproval === true) {
+            setWarning(formatError(error))
+          }
           return false
         }
       }

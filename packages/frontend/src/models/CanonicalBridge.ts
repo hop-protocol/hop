@@ -4,7 +4,7 @@ import {
   ArbitrumInbox,
   ArbitrumL1ERC20Bridge__factory,
   ArbitrumL1ERC20Bridge,
-  L1OptimismGateway__factory,
+  L1OptimismDaiTokenBridge,
   L1OptimismGateway,
   L1OptimismTokenBridge,
   L1PolygonPlasmaBridgeDepositManager,
@@ -42,6 +42,7 @@ export type L1CanonicalBridge =
   | Erc20Bridger
   | L1OptimismGateway
   | L1OptimismTokenBridge
+  | L1OptimismDaiTokenBridge
   | L1PolygonPlasmaBridgeDepositManager
   | L1PolygonPosRootChainManager
   | L1XDaiForeignOmniBridge
@@ -53,6 +54,7 @@ class CanonicalBridge extends Base {
   public tokenSymbol: CanonicalToken
   address: string
   l2TokenAddress: string
+  l1TokenAddress: string
 
   constructor(network: string, signer: Signer, token: TToken, chain: L2ChainSlug) {
     if (!(network && signer && token && chain)) {
@@ -65,6 +67,7 @@ class CanonicalBridge extends Base {
     this.chain = this.toChainModel(chain)
     this.tokenSymbol = this.toTokenModel(token).symbol as CanonicalToken
     this.address = this.getL1CanonicalBridgeAddress()
+    this.l1TokenAddress = this.getL1CanonicalTokenAddress(this.tokenSymbol)
     this.l2TokenAddress = this.getL2CanonicalTokenAddress(this.tokenSymbol, this.chain)
   }
 
@@ -126,7 +129,6 @@ class CanonicalBridge extends Base {
 
   public async estimateDepositTx(amount: BigNumberish, options?: any) {
     const populatedTx = await this.populateDepositTx(amount)
-    console.log(`populatedTx:`, populatedTx)
     return this.signer.estimateGas(populatedTx)
   }
 
@@ -157,7 +159,6 @@ class CanonicalBridge extends Base {
       this.chain.slug as ChainSlug,
       this.tokenSymbol
     )
-    console.log(`nativeBridge:`, nativeBridge)
 
     switch (this.chain.slug) {
       case ChainSlug.Gnosis: {
@@ -321,14 +322,6 @@ class CanonicalBridge extends Base {
             { from, value: BigNumber.from(amount) }
           )
         }
-
-        console.log(
-          `nativeBridge, signerAddress, l1CanonicalToken, payload:`,
-          nativeBridge,
-          recipient,
-          l1CanonicalToken,
-          payload
-        )
 
         return (nativeBridge as L1PolygonPosRootChainManager).populateTransaction.depositFor(
           recipient,

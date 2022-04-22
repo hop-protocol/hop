@@ -673,6 +673,7 @@ class BonderStats {
                     dbData[`${chain}AliasAmount`] = aliasBalance
                       ? formatEther(aliasBalance.toString())
                       : 0
+                    console.log(`${chain} ${token} alias balance`, formatEther(aliasBalance.toString()))
                   }
 
                   console.log(

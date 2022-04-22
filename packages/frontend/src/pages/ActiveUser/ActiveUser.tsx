@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import Alert from 'src/components/alert/Alert'
 import { StyledButton } from 'src/components/buttons/StyledButton'
-import { ExternalLink, Link } from 'src/components/Link'
-import { Div, Flex, Input, StyledTypography } from 'src/components/ui'
+import { ExternalLink } from 'src/components/Link'
+import { Div, Flex, StyledTypography } from 'src/components/ui'
 
 export function ActiveUser() {
   const [error, setError] = useState<string | null>(null)

@@ -1,18 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
 import { utils } from 'ethers'
 import Alert from 'src/components/alert/Alert'
-import LargeTextField from 'src/components/LargeTextField'
 import { Div, Flex, Input, StyledTypography } from 'src/components/ui'
 import { useQueryParams } from 'src/hooks'
 import { StyledButton } from 'src/components/buttons/StyledButton'
-import { Typography } from '@material-ui/core'
 
-type SocialMedia = {
-  social: 'twitter' | 'discord'
-  username: string
+type SocialMediaPlatform = 'twitter' | 'discord'
+
+type ActiveUserEligibility = {
   eligible: boolean
+  social: SocialMediaPlatform
   userId: string
+  username: string
 }
 
 export function SocialVerified() {
@@ -20,16 +19,17 @@ export function SocialVerified() {
   const [inputValue, setInputValue] = useState('')
   const [inputDisabled, setInputDisabled] = useState()
   const [error, setError] = useState<string | null>(null)
-  const [socialMedia, setSocialMedia] = useState<SocialMedia>()
+  const [socialMedia, setSocialMedia] = useState<ActiveUserEligibility>()
 
   useEffect(() => {
     console.log(`queryParams:`, queryParams)
     const { username, eligible, social, userId } = queryParams
+
     const sm = {
-      social: social as 'twitter' | 'discord',
-      username: username as string,
       eligible: Boolean(eligible),
+      social: social as SocialMediaPlatform,
       userId: userId as string,
+      username: username as string,
     }
     setSocialMedia(sm)
   }, [queryParams])
@@ -66,19 +66,24 @@ export function SocialVerified() {
     console.log(`inputValue:`, inputValue)
     console.log(`socialMedia:`, socialMedia)
 
-    if (!(socialMedia?.eligible && socialMedia.userId && inputValue)) {
+    const validAddress = validateAddress(inputValue)
+
+    const { eligible, social, userId, username } = socialMedia as ActiveUserEligibility
+    if (!(socialMedia && eligible && social && userId && username && validAddress)) {
       return
     }
 
-    const url = `https://social-auth.hop.exchange/${socialMedia?.social}/update-address`
-    const validAddress = validateAddress(inputValue)
-    const data = { userId: socialMedia.userId, address: validAddress }
+    const url = `https://social-auth.hop.exchange/${social}/update-address`
+    const data = { address: validAddress, ...socialMedia }
 
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        'Access-Control-Allow-Headers': 'X-Requested-With, content-type',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST',
+        'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
         'Content-Type': 'application/json',
+        Accept: 'application/json',
       },
       body: JSON.stringify(data),
     })

@@ -1,3 +1,5 @@
+import { TChain } from '..'
+
 export enum NetworkSlug {
   Mainnet = 'mainnet',
   Staging = 'staging',
@@ -29,7 +31,7 @@ export enum ChainSlug {
   Gnosis = 'gnosis',
 }
 
-export type L2ChainSlug = Exclude<ChainSlug, 'ethereum'>
+export type L2ChainSlug = Exclude<TChain, 'ethereum'>
 
 export enum Slug {
   ethereum = 'ethereum',

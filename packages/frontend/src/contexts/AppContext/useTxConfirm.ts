@@ -32,14 +32,14 @@ export const useTxConfirm = (options?: any): TxConfirm => {
                 reject(new Error('Cancelled'))
               }
 
-              if (onConfirm) {
+              if (onConfirm && confirmed && params) {
                 const res = await onConfirm(params)
                 resolve(res)
               } else {
                 resolve(null)
               }
             } catch (err: any) {
-              // MetaMask cancel error
+              console.log(`err, confirmed, params:`, err, confirmed, params)
               if (options?.setError) {
                 options.setError(formatError(err))
               } else {
@@ -50,6 +50,11 @@ export const useTxConfirm = (options?: any): TxConfirm => {
             setTxConfirm(null)
           },
         })
+      }).catch(err => {
+        if (!/cancelled/gi.test(err.message) && options?.setError) {
+          options.setError(formatError(err, options))
+        }
+        logger.error(formatError(err))
       })
     },
     [options]

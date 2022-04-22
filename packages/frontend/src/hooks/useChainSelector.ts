@@ -1,10 +1,16 @@
+import { HopBridge } from '@hop-protocol/sdk'
 import { ChangeEvent, useEffect, useState } from 'react'
-import { useApp } from 'src/contexts/AppContext'
 import Chain from 'src/models/Chain'
 import { findMatchingBridge, findNetworkBySlug } from 'src/utils'
 import useQueryParams from './useQueryParams'
 
-export function useChainSelector(props) {
+interface ChainSelectorProps {
+  networks: Chain[]
+  bridges: HopBridge[]
+  setSelectedBridge: (b: HopBridge) => void
+}
+
+export function useChainSelector(props: ChainSelectorProps) {
   const { networks, bridges, setSelectedBridge } = props
   const [sourceChain, _setSourceChain] = useState<Chain>()
   const [destinationChain, _setDestinationChain] = useState<Chain>()
@@ -13,7 +19,6 @@ export function useChainSelector(props) {
 
   // Set sourceChain and destinationChain using query params
   useEffect(() => {
-    console.log(`networks:`, networks)
     const _sourceChain = findNetworkBySlug(queryParams.sourceChain as string, networks)
     _setSourceChain(_sourceChain)
 

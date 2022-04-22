@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { BigNumber, constants, Signer } from 'ethers'
 import { getAddress } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -83,7 +83,7 @@ export function useSendTransaction(props) {
   }
 
   // Master send method
-  const send = async () => {
+  const send = useCallback(async () => {
     try {
       if (!sourceChain || !destinationChain) {
         throw new Error('A network is undefined')
@@ -91,8 +91,7 @@ export function useSendTransaction(props) {
       setError(null)
       setTx(undefined)
 
-      const networkId = Number(sourceChain.networkId)
-      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(sourceChain.chainId)
       if (!isNetworkConnected) return
 
       try {
@@ -188,7 +187,18 @@ export function useSendTransaction(props) {
       logger.error(err)
     }
     setSending(false)
-  }
+  }, [
+    sourceChain,
+    destinationChain,
+    sdk,
+    sourceToken,
+    sourceTokenAmount,
+    destinationChain,
+    waitForTransaction,
+    updateTransaction,
+    getAddress,
+    formatError,
+  ])
 
   const sendl1ToL2 = async () => {
     const tx: any = await txConfirm?.show({
@@ -252,21 +262,26 @@ export function useSendTransaction(props) {
 
         const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
-        return bridge.send(parsedAmount, sourceChain?.slug as string, destinationChain?.slug as string, {
-          recipient,
-          bonderFee: bonderFeeWithId,
-          amountOutMin: amountOutMin.sub(bonderFeeWithId),
-          deadline: deadline(),
-          destinationAmountOutMin: 0,
-          destinationDeadline: 0,
-        })
+        return bridge.send(
+          parsedAmount,
+          sourceChain?.slug as string,
+          destinationChain?.slug as string,
+          {
+            recipient,
+            bonderFee: bonderFeeWithId,
+            amountOutMin: amountOutMin.sub(bonderFeeWithId),
+            deadline: deadline(),
+            destinationAmountOutMin: 0,
+            destinationDeadline: 0,
+          }
+        )
       },
     })
 
     return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
   }
 
-  const sendl2ToL2 = async () => {
+  const sendl2ToL2 = useCallback(async () => {
     const tx = await txConfirm?.show({
       kind: 'send',
       inputProps: {
@@ -293,19 +308,35 @@ export function useSendTransaction(props) {
 
         const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
-        return bridge.send(parsedAmount, sourceChain?.slug as string, destinationChain?.slug as string, {
-          recipient,
-          bonderFee: bonderFeeWithId,
-          amountOutMin: intermediaryAmountOutMin.sub(bonderFeeWithId),
-          deadline: deadline(),
-          destinationAmountOutMin: amountOutMin.sub(bonderFeeWithId),
-          destinationDeadline: deadline(),
-        })
+        return bridge.send(
+          parsedAmount,
+          sourceChain?.slug as string,
+          destinationChain?.slug as string,
+          {
+            recipient,
+            bonderFee: bonderFeeWithId,
+            amountOutMin: intermediaryAmountOutMin.sub(bonderFeeWithId),
+            deadline: deadline(),
+            destinationAmountOutMin: amountOutMin.sub(bonderFeeWithId),
+            destinationDeadline: deadline(),
+          }
+        )
       },
     })
 
     return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
-  }
+  }, [
+    sourceChain,
+    destinationChain,
+    sdk,
+    sourceToken,
+    sourceTokenAmount,
+    destinationChain,
+    waitForTransaction,
+    updateTransaction,
+    getAddress,
+    formatError,
+  ])
 
   return {
     send,
@@ -313,8 +344,5 @@ export function useSendTransaction(props) {
     tx,
     setTx,
     setSending,
-    handleTransaction,
-    waitForTransaction,
-    updateTransaction,
   }
 }

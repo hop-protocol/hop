@@ -40,7 +40,7 @@ import { ExternalLink } from 'src/components/Link'
 import L1CanonicalBridgeOption from './L1CanonicalBridgeOption'
 import { useL1CanonicalBridge } from './useL1CanonicalBridge'
 
-const Sendd: FC = () => {
+const Send: FC = () => {
   const styles = useSendStyles()
   const {
     networks,
@@ -70,11 +70,6 @@ const Sendd: FC = () => {
   const { disabledTx } = useDisableTxs(sourceChain, destinationChain)
   const needsTokenForFee = useNeedsTokenForFee(sourceChain)
 
-  // const { sourceProvider, sourceSigner, destinationProvider } = useChainProviders(
-  //   sourceChain,
-  //   destinationChain
-  // )
-
   // Get assets
   const { unsupportedAsset, sourceToken, destinationToken, placeholderToken } = useAssets(
     selectedBridge,
@@ -82,16 +77,16 @@ const Sendd: FC = () => {
     destinationChain
   )
 
-  // Get token balances for both networks
-  const { balance: fromBalance, loading: loadingFromBalance } = useBalance(sourceToken, address)
-  const { balance: toBalance, loading: loadingToBalance } = useBalance(destinationToken, address)
-
   // Set sourceTokenAmount -> BN
   const sourceTokenAmountBN = useMemo<BigNumber | undefined>(() => {
     if (sourceTokenAmount && sourceToken) {
       return amountToBN(sourceTokenAmount, sourceToken.decimals)
     }
   }, [sourceToken, sourceTokenAmount])
+
+  // Get token balances for both networks
+  const { balance: fromBalance, loading: loadingFromBalance } = useBalance(sourceToken, address)
+  const { balance: toBalance, loading: loadingToBalance } = useBalance(destinationToken, address)
 
   // ==============================================================================================
   // Displayed data
@@ -190,16 +185,7 @@ const Sendd: FC = () => {
   // Send tokens
   // ==============================================================================================
 
-  const {
-    tx,
-    setTx,
-    send,
-    sending,
-    handleTransaction,
-    setSending,
-    waitForTransaction,
-    updateTransaction,
-  } = useSendTransaction({
+  const { tx, setTx, send, sending, setSending } = useSendTransaction({
     amountOutMin,
     customRecipient,
     deadline,
@@ -237,72 +223,75 @@ const Sendd: FC = () => {
     approveNativeBridge,
     needsNativeBridgeApproval,
     estimateApproveNativeBridge,
+    estimateSendNativeBridge,
   } = useL1CanonicalBridge({
     sdk,
     sourceToken,
     sourceTokenAmount: sourceTokenAmountBN,
+    sourceChain,
     destinationChain,
     estimatedReceived,
     txConfirm,
     customRecipient,
+    approving,
     setApproving,
     setSending,
     setTx,
-    handleTransaction,
-    waitForTransaction,
-    updateTransaction,
+    setError,
   })
 
   // ==============================================================================================
   // Approve sourceChain / sourceToken
   // ==============================================================================================
 
-  const { needsApproval, checkApproval, approveSourceToken } = useApprove(
+  const { needsApproval, approveSourceToken } = useApprove(
     sourceToken,
     sourceChain,
     sourceTokenAmountBN,
-    destinationChain,
     setApproving,
-    // usingNativeBridge,
+    approving,
+    usingNativeBridge
   )
 
   // ==============================================================================================
   // Tx Estimations
   // ==============================================================================================
 
-  const { estimateSend, estimateHandleApprove, estimateTxError } = useEstimateTxCost({
+  const { estimateSend, estimateApprove, estimateTxError } = useEstimateTxCost({
     sourceChain,
     sourceToken,
     sourceTokenAmount: sourceTokenAmountBN,
-    destinationChain,
     usingNativeBridge,
     needsNativeBridgeApproval,
     l1CanonicalBridge,
   })
 
-  const { estimatedGasCost } = useTxResult(
+  const { estimatedGasLimit } = useTxResult({
     sourceToken,
     sourceChain,
     destinationChain,
-    sourceTokenAmountBN,
-    usingNativeBridge && needsNativeBridgeApproval
-      ? estimateApproveNativeBridge
-      : needsApproval
-      ? estimateHandleApprove
-      : estimateSend,
-    { deadline, checkAllowance: true }
-  )
+    sourceTokenAmount: sourceTokenAmountBN,
+    estimateFns: {
+      usingNativeBridge,
+      needsNativeBridgeApproval,
+      needsApproval,
+      estimateApprove,
+      estimateApproveNativeBridge,
+      estimateSend,
+      estimateSendNativeBridge,
+    },
+  })
 
-  const { sufficientBalance, warning: sufficientBalanceWarning } = useSufficientBalance(
+  const { sufficientBalance, warning: sufficientBalanceWarning } = useSufficientBalance({
     sourceToken,
-    sourceTokenAmountBN,
-    estimatedGasCost,
-    fromBalance,
+    sourceTokenAmount: sourceTokenAmountBN,
+    estimatedGasLimit,
+    tokenBalance: fromBalance,
     isSmartContractWallet,
     usingNativeBridge,
     needsNativeBridgeApproval,
-    l1CanonicalBridge
-  )
+    l1CanonicalBridge,
+  })
 
   // ==============================================================================================
   // More warning messages
@@ -343,14 +332,14 @@ const Sendd: FC = () => {
   // Approval
   // ==============================================================================================
 
-  const handleApprove = useCallback(async () => {
-    try {
-      setError(null)
+  const handleApprove = () => {
+    setError(null)
 
+    try {
       if (l1CanonicalBridge && usingNativeBridge && needsNativeBridgeApproval) {
-        await approveNativeBridge()
+        return approveNativeBridge()
       } else {
-        await approveSourceToken()
+        return approveSourceToken()
       }
     } catch (err: any) {
       console.log(`err:`, err)
@@ -359,17 +348,35 @@ const Sendd: FC = () => {
       }
       logger.error(err)
     }
-  }, [l1CanonicalBridge, usingNativeBridge, needsNativeBridgeApproval])
+  }
 
+  const handleSend = () => {
+    setError(null)
+
+    try {
+      if (l1CanonicalBridge && usingNativeBridge) {
+        return sendL1CanonicalBridge()
+      } else {
+        return send()
+      }
+    } catch (err: any) {
+      console.log(`err:`, err)
+      if (!/cancelled/gi.test(err.message)) {
+        setError(formatError(err, sourceChain))
+      }
+      logger.error(err)
+    }
+  }
   // ==============================================================================================
   // Buttons enabled
   // ==============================================================================================
 
   const approveButtonActive = useMemo(() => {
-    if (usingNativeBridge && needsNativeBridgeApproval) {
-      return !!needsNativeBridgeApproval
+    if (usingNativeBridge) {
+      return needsNativeBridgeApproval
+    } else {
+      return !needsTokenForFee && !unsupportedAsset && needsApproval
     }
-    return !needsTokenForFee && !unsupportedAsset && !!needsApproval
   }, [
     usingNativeBridge,
     needsNativeBridgeApproval,
@@ -382,7 +389,7 @@ const Sendd: FC = () => {
     return !!(
       !approveButtonActive &&
       address &&
-      !needsApproval &&
+      (!needsApproval || (usingNativeBridge && !needsNativeBridgeApproval)) &&
       !unsupportedAsset &&
       !checkingLiquidity &&
       !loadingToBalance &&
@@ -400,6 +407,8 @@ const Sendd: FC = () => {
   }, [
     approveButtonActive,
     address,
+    usingNativeBridge,
+    needsNativeBridgeApproval,
     needsApproval,
     unsupportedAsset,
     checkingLiquidity,
@@ -417,6 +426,36 @@ const Sendd: FC = () => {
     isCorrectSignerNetwork,
     isSmartContractWallet,
   ])
+
+  // const approveChecks = {
+  //   usingNativeBridge,
+  //   needsNativeBridgeApproval,
+  //   needsTokenForFee,
+  //   unsupportedAsset,
+  //   needsApproval,
+  // }
+  // const sendChecks = {
+  //   approveButtonActive,
+  //   address,
+  //   needsApproval,
+  //   unsupportedAsset,
+  //   checkingLiquidity,
+  //   loadingToBalance,
+  //   loadingSendData,
+  //   sourceTokenAmount,
+  //   destinationAmount,
+  //   rate,
+  //   sufficientBalance,
+  //   sufficientLiquidity,
+  //   estimatedReceived,
+  //   manualError,
+  //   disabledTx,
+  //   gnosisEnabled,
+  //   isCorrectSignerNetwork,
+  //   isSmartContractWallet,
+  // }
+  // console.log(`approveChecks:`, approveChecks)
+  // console.log(`sendChecks:`, sendChecks)
 
   return (
     <Flex column alignCenter>
@@ -550,7 +589,7 @@ const Sendd: FC = () => {
             <Button
               className={styles.button}
               large
-              highlighted={usingNativeBridge ? needsNativeBridgeApproval : needsApproval}
+              highlighted={usingNativeBridge && needsNativeBridgeApproval ? true : !!needsApproval}
               disabled={!approveButtonActive}
               onClick={handleApprove}
               loading={approving}
@@ -565,7 +604,7 @@ const Sendd: FC = () => {
           <Button
             className={styles.button}
             startIcon={sendButtonActive && <SendIcon />}
-            onClick={usingNativeBridge ? sendL1CanonicalBridge : send}
+            onClick={handleSend}
             disabled={!sendButtonActive}
             loading={sending}
             large
@@ -585,4 +624,4 @@ const Sendd: FC = () => {
   )
 }
 
-export default Sendd
+export default Send

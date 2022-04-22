@@ -290,6 +290,7 @@ const Send: FC = () => {
     isSmartContractWallet,
     usingNativeBridge,
     needsNativeBridgeApproval,
+    needsApproval,
     l1CanonicalBridge,
   })
 
@@ -342,7 +343,6 @@ const Send: FC = () => {
         return approveSourceToken()
       }
     } catch (err: any) {
-      console.log(`err:`, err)
       if (!/cancelled/gi.test(err.message)) {
         setError(formatError(err, sourceChain))
       }
@@ -360,7 +360,6 @@ const Send: FC = () => {
         return send()
       }
     } catch (err: any) {
-      console.log(`err:`, err)
       if (!/cancelled/gi.test(err.message)) {
         setError(formatError(err, sourceChain))
       }
@@ -373,9 +372,9 @@ const Send: FC = () => {
 
   const approveButtonActive = useMemo(() => {
     if (usingNativeBridge) {
-      return needsNativeBridgeApproval
+      return !!needsNativeBridgeApproval
     } else {
-      return !needsTokenForFee && !unsupportedAsset && needsApproval
+      return !needsTokenForFee && !unsupportedAsset && !!needsApproval
     }
   }, [
     usingNativeBridge,
@@ -503,6 +502,7 @@ const Send: FC = () => {
         balance={toBalance}
         loadingBalance={loadingToBalance}
         loadingValue={loadingSendData}
+        estimateSend={estimateSend}
         disableInput
       />
 

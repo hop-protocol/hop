@@ -116,7 +116,12 @@ const ConvertContent: FC = () => {
 
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
   const sendButtonActive =
-    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning
+    validFormFields &&
+    !unsupportedAsset &&
+    needsApproval === false &&
+    sendableWarning &&
+    !error &&
+    !manualWarning
 
   const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
 

@@ -55,7 +55,6 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
     needsNativeBridgeApproval,
     l1CanonicalBridge,
   } = props as EstimateTxProps
-  console.log(`estimate tx props:`, props)
 
   const { sdk } = useApp()
   const [tx, setTx] = useState<Transaction | null>(null)
@@ -159,7 +158,6 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
       const spender = await bridge.getSendApprovalAddress(sourceChain.slug)
 
       const populatedTx = await sourceToken.populateApproveTx(spender, sourceTokenAmount)
-      console.log(`populatedTx:`, populatedTx)
       const provider = await bridge.getSignerOrProvider(sourceChain.slug)
       return await provider.estimateGas(populatedTx)
     } catch (err: any) {
@@ -170,37 +168,15 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
     }
   }, [sourceToken, sourceTokenAmount, sourceChain])
 
-  // const estimateApproveNativeBridge = useCallback(async () => {
-  //   if (!l1CanonicalBridge || !sourceTokenAmount) {
-  //     return
-  //   }
-  //   return l1CanonicalBridge.estimateApproveTx(sourceTokenAmount)
-  // }, [l1CanonicalBridge, sourceTokenAmount])
-
-  // const estimateSendNativeBridge = useCallback(
-  //   async (options: EstimateTxOptions) => {
-  //     console.log(`options:`, options)
-  //     if (!l1CanonicalBridge || !sourceTokenAmount) {
-  //       return
-  //     }
-
-  //     return l1CanonicalBridge.estimateDepositTx(sourceTokenAmount)
-  //   },
-  //   [l1CanonicalBridge, sourceTokenAmount]
-  // )
-
   const estimateSend = useCallback(
     async (options: EstimateTxOptions) => {
       const { sourceChain, destinationChain, sourceToken, deadline } = options
-      console.log(`options:`, options)
       if (!(sdk && sourceChain && destinationChain && deadline && sourceToken)) {
         return
       }
 
       try {
         const bridge = sdk.bridge(sourceToken.symbol)
-        console.log(`bridge:`, bridge)
-
         const destinationAmountOutMin = 0
         let destinationDeadline = deadline()
         if (destinationChain.slug === ChainSlug.Ethereum) {
@@ -211,8 +187,6 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
           bridge.getSendApprovalAddress(sourceChain.slug),
           '10'
         )
-
-        console.log(`needsApproval:`, needsAppoval)
 
         let estimatedGasLimit = BigNumber.from(200e3)
         // Get estimated gas limit
@@ -232,7 +206,6 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
           )
         }
 
-        console.log(`estimatedGasLimit:`, estimatedGasLimit)
         if (estimatedGasLimit) {
           let gasCost = await calculateTotalGasCostByGasLimit(
             sourceChain.provider,
@@ -262,8 +235,6 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
     estimateMaxValue,
     estimateApprove,
     estimateSend,
-    // estimateApproveNativeBridge,
-    // estimateSendNativeBridge,
     tx,
     setTx,
     estimateTxError: error,

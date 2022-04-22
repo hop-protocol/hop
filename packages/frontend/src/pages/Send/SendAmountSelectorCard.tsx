@@ -29,6 +29,7 @@ type Props = {
   disableInput?: boolean
   deadline?: any
   setWarning?: (message: string) => void
+  estimateSend?: any
 }
 
 const SendAmountSelectorCard: FC<Props> = props => {
@@ -48,13 +49,9 @@ const SendAmountSelectorCard: FC<Props> = props => {
     disableInput = false,
     deadline,
     setWarning,
+    estimateSend,
   } = props
   const styles = useAmountSelectorCardStyles()
-
-  const { estimateSend } = useEstimateTxCost({
-    sourceChain,
-    destinationChain,
-  })
 
   const balanceLabel = useMemo(() => {
     return toTokenDisplay(balance, token?.decimals)

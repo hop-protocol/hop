@@ -87,7 +87,10 @@ export function useApprove(
     },
     {
       enabled:
-        !usingNativeBridge && !!token?.symbol && !!sourceChain?.slug && !!amountOut?.toString(),
+        usingNativeBridge === false &&
+        !!token?.symbol &&
+        !!sourceChain?.slug &&
+        !!amountOut?.toString(),
     }
   )
 
@@ -106,7 +109,7 @@ export function useApprove(
 
       const allowance = await token.allowance(spender)
       if (allowance.gte(amount)) {
-        console.log(`allowane gte amount:`, allowance.toString(), amount.toString())
+        // console.log(`allowance > amount:`, allowance.toString(), amount.toString())
         return
       }
 
@@ -132,7 +135,7 @@ export function useApprove(
         onConfirm: async (approveAll: boolean) => {
           const approveAmount = approveAll ? constants.MaxUint256 : amount
           setApproving(true)
-          return token.approve(spender, approveAmount)
+          return await token.approve(spender, approveAmount)
         },
       })
 
@@ -151,10 +154,10 @@ export function useApprove(
           return res.replacementTx
         }
       }
-
+      setApproving(false)
       return tx
     },
-    [provider, sourceChain]
+    [provider, sourceChain, txConfirm, checkConnectedNetworkId, toTokenDisplay, approving]
   )
 
   const approveSourceToken = useCallback(async () => {

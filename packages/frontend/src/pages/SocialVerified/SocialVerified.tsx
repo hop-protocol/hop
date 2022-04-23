@@ -4,6 +4,22 @@ import Alert from 'src/components/alert/Alert'
 import { Div, Flex, Input, StyledTypography } from 'src/components/ui'
 import { useQueryParams } from 'src/hooks'
 import { StyledButton } from 'src/components/buttons/StyledButton'
+import { logError } from 'src/logger/logger'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST',
+  'Access-Control-Allow-Headers': 'X-Requested-With, Content-Type',
+}
+
+const jsonHeaders = {
+  'Content-Type': 'application/json',
+}
+
+export const jsonCorsHeaders = {
+  ...corsHeaders,
+  ...jsonHeaders,
+}
 
 type SocialMediaPlatform = 'twitter' | 'discord'
 
@@ -52,7 +68,7 @@ export function SocialVerified() {
       try {
         const validAddress = validateAddress(e.target.value)
         if (validAddress) {
-          setInputValue(validAddress)
+          setInputValue(validAddress || '')
         }
       } catch (error: any) {
         setError(error.message)
@@ -78,20 +94,14 @@ export function SocialVerified() {
 
     const res = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST',
-        'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
+      headers: jsonCorsHeaders,
       body: JSON.stringify(data),
     })
+      .then(res => res.blob())
+      .catch(logError)
 
-    const json = await res.json()
-    console.log(`json:`, json)
+    console.log(`res:`, res)
   }, [inputValue, socialMedia])
-
   return (
     <Flex column alignCenter textAlign="center">
       <Div my={3} maxWidth={[350, 400, 525]}>
@@ -109,7 +119,7 @@ export function SocialVerified() {
         <Input
           width={[320, 420]}
           maxWidth={['auto']}
-          value={inputValue}
+          value={inputValue || ''}
           onChange={handleInputChange}
           disabled={inputDisabled}
           placeholder="Enter address"

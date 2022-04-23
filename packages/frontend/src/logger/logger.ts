@@ -1,3 +1,5 @@
+import { formatError } from 'src/utils'
+
 class Logger {
   private prefix: string
 
@@ -30,4 +32,10 @@ class Logger {
   }
 }
 
-export default new Logger('hop:')
+const logger = new Logger('hop:')
+
+export function logError(error: any) {
+  logger.error(formatError(new Error(error.message)))
+}
+
+export default logger

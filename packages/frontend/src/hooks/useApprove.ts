@@ -61,8 +61,8 @@ const useApprove = token => {
           network: {
             slug: token.chain?.slug,
             networkId: token.chain?.chainId,
-          }
-        }
+          },
+        },
       },
       onConfirm: async (approveAll: boolean) => {
         const approveAmount = approveAll ? constants.MaxUint256 : amount

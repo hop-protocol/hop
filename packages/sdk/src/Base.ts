@@ -7,7 +7,7 @@ import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/ArbitrumGlobal
 import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/ArbitrumGlobalInbox__factory'
 import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { ChainSlug, Errors, MinPolygonGasPrice, NetworkSlug } from './constants'
+import { ChainSlug, Errors, MinPolygonGasLimit, MinPolygonGasPrice, NetworkSlug } from './constants'
 import { L1OptimismTokenBridge } from '@hop-protocol/core/contracts/L1OptimismTokenBridge'
 import { L1OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L1OptimismTokenBridge__factory'
 import { L1PolygonPosRootChainManager } from '@hop-protocol/core/contracts/L1PolygonPosRootChainManager'
@@ -164,7 +164,7 @@ class Base {
 
   sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain) {
     const chainId = this.toChainModel(chain).chainId
-    return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
+    return this.signer.sendTransaction({ ...transactionRequest, chainId } as any,)
   }
 
   setConfigAddresses (addresses: Addresses) {
@@ -495,6 +495,7 @@ class Base {
       if (txOptions.gasPrice?.lt(MinPolygonGasPrice)) {
         txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
       }
+      txOptions.gasLimit = MinPolygonGasLimit
     }
 
     return txOptions

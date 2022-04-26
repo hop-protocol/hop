@@ -17,7 +17,7 @@ export function useSufficientBalance(
 
   useEffect(() => {
     async function checkEnoughBalance() {
-      if (!(token && amount)) {
+      if (!(amount && token && token.signer)) {
         setWarning('')
         return setSufficientBalance(false)
       }

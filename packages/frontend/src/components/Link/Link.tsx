@@ -3,6 +3,7 @@ import { Div } from '../ui'
 import { Link as MuiLink, LinkProps } from '@material-ui/core'
 
 interface Props {
+  style?: any
   href?: string
   text?: string
   linkText?: string
@@ -12,11 +13,11 @@ interface Props {
 }
 
 export function ExternalLink(props: Props) {
-  const { href, text, linkText, postText, children } = props
+  const { href, text, linkText, postText, style, children } = props
 
   if (!text) {
     return (
-      <MuiLink target="_blank" rel="noopener noreferrer" href={href}>
+      <MuiLink style={style} target="_blank" rel="noopener noreferrer" href={href}>
         {children}
       </MuiLink>
     )
@@ -28,7 +29,7 @@ export function ExternalLink(props: Props) {
       {linkText && (
         <>
           &nbsp;
-          <MuiLink target="_blank" rel="noopener noreferrer" href={href}>
+          <MuiLink style={style} target="_blank" rel="noopener noreferrer" href={href}>
             {linkText}
           </MuiLink>
           &nbsp;

@@ -27,7 +27,7 @@ const AppRoutes: FC = () => {
           <Route exact path="/stake" component={Stake} />
           <Route exact path="/withdraw" component={Withdraw} />
           <Route exact path="/health" component={Health} />
-          <Route exact path="/active-user" component={ActiveUser} />
+          <Route exact path="/airdrop/social-verify" component={ActiveUser} />
           <Route exact path="/social-verified" component={SocialVerified} />
           <Route exact path={['/tx', '/tx/:hash']} component={TransactionPage} />
 

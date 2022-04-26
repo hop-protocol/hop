@@ -1,24 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { utils } from 'ethers'
 import Alert from 'src/components/alert/Alert'
-import { Div, Flex, Input, StyledTypography } from 'src/components/ui'
+import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 import { useQueryParams } from 'src/hooks'
+import { Input } from 'src/components/ui'
 import { StyledButton } from 'src/components/buttons/StyledButton'
 import { logError } from 'src/logger/logger'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST',
-  'Access-Control-Allow-Headers': 'X-Requested-With, Content-Type',
-}
-
-const jsonHeaders = {
-  'Content-Type': 'application/json',
-}
-
-export const jsonCorsHeaders = {
-  ...corsHeaders,
-  ...jsonHeaders,
+const socialNames = {
+  twitter: 'Twitter',
+  discord: 'Discord',
 }
 
 type SocialMediaPlatform = 'twitter' | 'discord'
@@ -33,8 +24,8 @@ type ActiveUserEligibility = {
 export function SocialVerified() {
   const { queryParams } = useQueryParams()
   const [inputValue, setInputValue] = useState('')
-  const [inputDisabled, setInputDisabled] = useState()
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string>('')
+  const [successMsg, setSuccessMsg] = useState<string>('')
   const [socialMedia, setSocialMedia] = useState<ActiveUserEligibility>()
 
   useEffect(() => {
@@ -42,99 +33,98 @@ export function SocialVerified() {
     const { username, eligible, social, userId } = queryParams
 
     const sm = {
-      eligible: Boolean(eligible),
+      eligible: eligible === 'true',
       social: social as SocialMediaPlatform,
       userId: userId as string,
       username: username as string,
     }
+
     setSocialMedia(sm)
   }, [queryParams])
 
-  function validateAddress(input: string) {
-    try {
-      const addr = utils.getAddress(input.toLowerCase())
-      if (addr) {
-        return addr
-      }
-      return false
-    } catch (error: any) {
-      setError(error.message)
-    }
-  }
-
-  function handleInputChange(e) {
-    if (e.target.value) {
-      setError(null)
-      try {
-        const validAddress = validateAddress(e.target.value)
-        if (validAddress) {
-          setInputValue(validAddress || '')
-        }
-      } catch (error: any) {
-        setError(error.message)
-      }
-    } else {
-      setInputValue('')
-    }
+  function handleInputChange(event: any) {
+    setInputValue(event.target.value)
   }
 
   const handleSubmit = useCallback(async () => {
-    console.log(`inputValue:`, inputValue)
-    console.log(`socialMedia:`, socialMedia)
+    try {
+      setError('')
+      setSuccessMsg('')
+      const { eligible, social, userId, username } = socialMedia as ActiveUserEligibility
+      if (!(socialMedia && eligible && social && userId && username)) {
+        return
+      }
 
-    const validAddress = validateAddress(inputValue)
+      const url = `https://social-auth.hop.exchange/${social}/update-address`
+      const data = { address: inputValue, ...socialMedia }
 
-    const { eligible, social, userId, username } = socialMedia as ActiveUserEligibility
-    if (!(socialMedia && eligible && social && userId && username && validAddress)) {
-      return
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      const json = await res.json()
+      if (json.error) {
+        throw new Error(json.error)
+      }
+      setSuccessMsg('Successfully set address to use for airdrop')
+    } catch (err: any) {
+      setError(err.message)
     }
-
-    const url = `https://social-auth.hop.exchange/${social}/update-address`
-    const data = { address: validAddress, ...socialMedia }
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: jsonCorsHeaders,
-      body: JSON.stringify(data),
-    })
-      .then(res => res.blob())
-      .catch(logError)
-
-    console.log(`res:`, res)
   }, [inputValue, socialMedia])
-  return (
-    <Flex column alignCenter textAlign="center">
-      <Div my={3} maxWidth={[350, 400, 525]}>
-        <StyledTypography variant="h6" color="textSecondary">
-          Thank you for verifying your {socialMedia?.social} account for us!
-        </StyledTypography>
 
-        <StyledTypography style={{ marginTop: '3rem' }} variant="subtitle2" color="textSecondary">
+  const isEligible = socialMedia?.eligible
+
+  if (!isEligible) {
+    return (
+      <Box display="flex" flexDirection="column" alignItems="center" justifyItems="center" textAlign="center">
+        <Box my={3} maxWidth={[350, 400, 525]}>
+          <Typography variant="h6" color="textSecondary">
+            Sorry, the {socialNames[socialMedia?.social!]} account @{socialMedia?.username!} is not eligible for the Hop airdrop
+          </Typography>
+        </Box>
+      </Box>
+    )
+  }
+
+  return (
+    <Box display="flex" flexDirection="column" alignItems="center" justifyItems="center" textAlign="center">
+      <Box my={3} maxWidth={[350, 400, 525]}>
+        <Typography variant="h6" color="textSecondary">
+          Thank you for verifying your {socialNames[socialMedia?.social!]} account @{socialMedia?.username!}
+        </Typography>
+
+        <Typography style={{ marginTop: '3rem' }} variant="subtitle2" color="textSecondary">
           Please enter an Ethereum Mainnet address that you control to claim your <b>Active User</b>
           &nbsp;airdrop tokens on [DATE]
-        </StyledTypography>
-      </Div>
+        </Typography>
+      </Box>
 
-      <Flex my={3} column alignCenter fullWidth>
+      <Box my={3} display="flex" flexDirection="column" justifyContent="center">
         <Input
           width={[320, 420]}
           maxWidth={['auto']}
-          value={inputValue || ''}
+          value={inputValue}
           onChange={handleInputChange}
-          disabled={inputDisabled}
-          placeholder="Enter address"
+          placeholder="0x123..."
           mb={4}
           fontSize={[0, 2]}
         />
 
-        <StyledButton disabled={!(inputValue && socialMedia?.eligible)} onClick={handleSubmit}>
+        <StyledButton disabled={!inputValue} onClick={handleSubmit}>
           Submit
         </StyledButton>
-      </Flex>
+      </Box>
 
-      <Alert severity="error" onClose={() => setError(null)}>
+      <Alert severity="error" onClose={() => setError('')}>
         {error}
       </Alert>
-    </Flex>
+      <Alert severity="success" onClose={() => setSuccessMsg('')}>
+        {successMsg}
+      </Alert>
+    </Box>
   )
 }

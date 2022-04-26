@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import Alert from 'src/components/alert/Alert'
 import Box from '@material-ui/core/Box'
+import Link from '@material-ui/core/Link'
 import Typography from '@material-ui/core/Typography'
 import { useQueryParams } from 'src/hooks'
 import { Input } from 'src/components/ui'
+import Button from 'src/components/buttons/Button'
 import { StyledButton } from 'src/components/buttons/StyledButton'
-import { logError } from 'src/logger/logger'
 
 const socialNames = {
   twitter: 'Twitter',
@@ -86,6 +87,11 @@ export function SocialVerified() {
             Sorry, the {socialNames[socialMedia?.social!]} account @{socialMedia?.username!} is not eligible for the Hop airdrop
           </Typography>
         </Box>
+        <Box my={3} display="flex" flexDirection="column" justifyContent="center">
+          <StyledButton href={"/airdrop/social-verify"}>
+            Go back
+          </StyledButton>
+        </Box>
       </Box>
     )
   }
@@ -114,9 +120,9 @@ export function SocialVerified() {
           fontSize={[0, 2]}
         />
 
-        <StyledButton disabled={!inputValue} onClick={handleSubmit}>
+        <Button disabled={!inputValue} onClick={handleSubmit} variant="contained" color="primary" highlighted>
           Submit
-        </StyledButton>
+        </Button>
       </Box>
 
       <Alert severity="error" onClose={() => setError('')}>
@@ -125,6 +131,12 @@ export function SocialVerified() {
       <Alert severity="success" onClose={() => setSuccessMsg('')}>
         {successMsg}
       </Alert>
+
+      <Box my={3} display="flex" flexDirection="column" justifyContent="center">
+        <StyledButton href={"/airdrop/social-verify"}>
+          Go back
+        </StyledButton>
+      </Box>
     </Box>
   )
 }

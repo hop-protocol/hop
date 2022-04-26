@@ -3,7 +3,7 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { DiscordLoginButton, TwitterLoginButton } from "react-social-login-buttons";
 
-export function ActiveUser() {
+export function SocialVerify() {
   return (
     <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
       <Box m={2} textAlign="center">

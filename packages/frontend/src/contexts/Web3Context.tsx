@@ -10,7 +10,7 @@ import React, {
 import Onboard from 'bnc-onboard'
 import { ethers, BigNumber } from 'ethers'
 import Address from 'src/models/Address'
-import { networkIdToSlug, getRpcUrl, getBaseExplorerUrl } from 'src/utils'
+import { networkIdToSlug, networkSlugToId, getRpcUrl, getBaseExplorerUrl } from 'src/utils'
 import { blocknativeDappid } from 'src/config'
 import { l1Network } from 'src/config/networks'
 import './onboardStyles.css'
@@ -119,6 +119,24 @@ const Web3ContextProvider: FC = ({ children }) => {
   const [walletName, setWalletName] = useState<string>('')
   const [address, setAddress] = useState<Address | undefined>()
   const [balance, setBalance] = useState<BigNumber>()
+  const [onboardNetworkId] = useState<number>(() => {
+    try {
+      const parsedHash = new URLSearchParams(
+        window.location.hash.substring(1)
+      )
+
+      const slug = parsedHash.get("sourceNetwork")
+      if (slug) {
+        const networkId = networkSlugToId(slug)
+        if (networkId) {
+          return networkId
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+    return l1Network.networkId
+  })
   // const { isDarkMode } = useThemeMode()
 
   // walletSelect()
@@ -161,7 +179,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const onboard = useMemo(() => {
     const instance = Onboard({
       dappId: blocknativeDappid,
-      networkId: Number(l1Network.networkId),
+      networkId: onboardNetworkId,
       // darkMode: isDarkMode,
       // blockPollingInterval: 4000,
       hideBranding: true,
@@ -236,7 +254,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     })
 
     return instance
-  }, [setProvider, setConnectedNetworkId])
+  }, [setProvider, setConnectedNetworkId, onboardNetworkId])
 
   useEffect(() => {
     if (onboard) {

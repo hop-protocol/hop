@@ -8,6 +8,7 @@ import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import { Signer, Wallet, providers } from 'ethers'
+import { TenMinutesMs } from 'src/constants'
 import { hostname } from 'src/config'
 
 class GasBoostSigner extends Wallet {
@@ -58,7 +59,19 @@ class GasBoostSigner extends Wallet {
   }
 
   private async init () {
-    await this.setLatestNonce()
+    // prevent additional bonder instances from overriding db nonce (ie when running separate cli commands)
+    const shouldUpdate = await this.shouldSetLatestNonce()
+    if (shouldUpdate) {
+      await this.setLatestNonce()
+    }
+  }
+
+  private async shouldSetLatestNonce () {
+    const item = await this.store.getItem('nonce')
+    if (item.updatedAt && Number(item.updatedAt) + TenMinutesMs < Date.now()) {
+      return false
+    }
+    return true
   }
 
   protected async tilReady (): Promise<boolean> {
@@ -128,7 +141,10 @@ class GasBoostSigner extends Wallet {
   }
 
   private async setDbNonce (nonce: number) {
-    await this.store.updateItem('nonce', { nonce })
+    await this.store.updateItem('nonce', {
+      nonce,
+      updatedAt: Date.now()
+    })
   }
 
   setPollMs (pollMs: number) {

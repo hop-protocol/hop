@@ -25,11 +25,11 @@ import { chunk } from 'lodash'
 
 // DATA /////////////////////////////////////////////
 const arbitrumAliases: Record<string, string> = {
-  USDC: '0xbdacabf20ef2338d7f4a152af43beddc80c6bf3b',
-  USDT: '0x81B872dDc3413E3456E5A3b2c30cB749c9578e30',
-  DAI: '0x36b6a48c35e75bd2eff53d94f0bb60d5a00e47fb',
-  ETH: '0xfe0368be00308980b5b3fcd0975d47c4c8e1493b',
-  WBTC: '0x22902f67cd7570e0e8fd30264f96ca39eebc2b6f'
+  USDC: '0xc4D28710fE030A75A3a981A1AbaC0dB984E52964',
+  USDT: '0xCA0A0E115499082747bA5DA94732863b12cB3036',
+  DAI: '0x482BfCa8246806b8dc09091d40005b9317dC751D',
+  ETH: '0xF8c59bA692773251E78AD50293Cf4d64B67cbb8B',
+  WBTC: '0xa2cE9cceC64FC22475323a0E55d58F7786588a16'
 }
 
 const totalBalances: Record<string, BigNumber> = {
@@ -673,6 +673,7 @@ class BonderStats {
                     dbData[`${chain}AliasAmount`] = aliasBalance
                       ? formatEther(aliasBalance.toString())
                       : 0
+                    console.log(`${chain} ${token} alias balance`, formatEther(aliasBalance.toString()))
                   }
 
                   console.log(

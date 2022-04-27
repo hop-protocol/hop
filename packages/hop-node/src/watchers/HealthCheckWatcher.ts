@@ -148,7 +148,7 @@ export class HealthCheckWatcher {
   }
 
   bonderLowLiquidityThreshold: number = 0.10
-  unbondedTransfersMinTimeToWaitMinutes: number = 80
+  unbondedTransfersMinTimeToWaitMinutes: number = 30
   unbondedTransferRootsMinTimeToWaitHours: number = 6
   incompleteSettlemetsMinTimeToWaitHours: number = 12
   minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
@@ -272,9 +272,14 @@ export class HealthCheckWatcher {
         if (item.isBonderFeeTooLow) {
           continue
         }
-        const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
-        const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, amount: ${item.amountFormatted?.toFixed(4)}, bonderFee: ${item.bonderFeeFormatted?.toFixed(4)}, token: ${item.token}, transferSentAt: ${item.timestamp} (${timestampRelative})`
-        messages.push(msg)
+
+        const timestamp = DateTime.now().toUTC().toSeconds()
+        const shouldNotify = timestamp > Number(item.timestamp) + (3 * 60 * 60)
+        if (shouldNotify) {
+          const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
+          const msg = `UnbondedTransfer: transferId: ${item.transferId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, amount: ${item.amountFormatted?.toFixed(4)}, bonderFee: ${item.bonderFeeFormatted?.toFixed(4)}, token: ${item.token}, transferSentAt: ${item.timestamp} (${timestampRelative})`
+          messages.push(msg)
+        }
       }
 
       for (const item of unbondedTransferRoots) {

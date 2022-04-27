@@ -66,15 +66,12 @@ class GasBoostSigner extends Wallet {
   }
 
   private async shouldSetLatestNonce () {
-    return true
-    /*
     const item = await this.store.getItem('nonce')
     const timeWindowMs = 5 * 60 * 1000
     if (item?.updatedAt && Number(item.updatedAt) + timeWindowMs < Date.now()) {
       return false
     }
     return true
-    */
   }
 
   protected async tilReady (): Promise<boolean> {

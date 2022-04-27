@@ -11,6 +11,14 @@ export function AirdropPreview() {
   const { address } = useWeb3Context()
   const { eligibility } = useAirdropPreview(address)
 
+  if (!address) {
+    return (
+      <Flex column alignCenter>
+        Please connect wallet
+      </Flex>
+    )
+  }
+
   return (
     <AirdropPreviewWrapper>
       <Flex column alignCenter>

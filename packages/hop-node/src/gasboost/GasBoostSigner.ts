@@ -8,7 +8,6 @@ import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import { Signer, Wallet, providers } from 'ethers'
-import { TenMinutesMs } from 'src/constants'
 import { hostname } from 'src/config'
 
 class GasBoostSigner extends Wallet {
@@ -70,7 +69,8 @@ class GasBoostSigner extends Wallet {
     return true
     /*
     const item = await this.store.getItem('nonce')
-    if (item && item.updatedAt && Number(item.updatedAt) + TenMinutesMs < Date.now()) {
+    const timeWindowMs = 5 * 60 * 1000
+    if (item?.updatedAt && Number(item.updatedAt) + timeWindowMs < Date.now()) {
       return false
     }
     return true

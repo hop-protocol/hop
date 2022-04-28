@@ -41,6 +41,7 @@ interface EstimateTxProps {
   sourceToken?: Token
   sourceTokenAmount?: BigNumber
   sourceChain?: Chain
+  destinationChain?: Chain
   usingNativeBridge?: boolean
   needsNativeBridgeApproval?: boolean
   l1CanonicalBridge?: CanonicalBridge
@@ -51,6 +52,7 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
     sourceToken,
     sourceTokenAmount,
     sourceChain,
+    destinationChain,
     usingNativeBridge,
     needsNativeBridgeApproval,
     l1CanonicalBridge,
@@ -95,32 +97,35 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
         return gasCost
       }
     },
-    [sdk]
+    [sdk, calculateTotalGasCostByGasLimit]
   )
 
-  const estimateWrap = useCallback(async (options: EstimateTxOptions) => {
-    const { sourceToken, network } = options
-    if (!(network && sourceToken)) {
-      return
-    }
-
-    try {
-      // Get estimated gas cost
-      const estimatedGasLimit = await sourceToken.getWrapTokenEstimatedGas(network.slug)
-
-      if (BigNumber.isBigNumber(estimatedGasLimit)) {
-        let gasCost = await calculateTotalGasCostByGasLimit(network.provider, estimatedGasLimit)
-        if (gasCost && network?.slug === ChainSlug.Optimism) {
-          const { gasLimit, data, to } = await sourceToken.getWrapTokenEstimatedGas(network.slug)
-          const l1FeeInWei = await sourceToken.estimateOptimismL1FeeFromData(gasLimit, data, to)
-          gasCost = gasCost.add(l1FeeInWei)
-        }
-        return gasCost
+  const estimateWrap = useCallback(
+    async (options: EstimateTxOptions) => {
+      const { sourceToken, network } = options
+      if (!(network && sourceToken)) {
+        return
       }
-    } catch (error) {
-      logger.error(formatError(error))
-    }
-  }, [])
+
+      try {
+        // Get estimated gas cost
+        const estimatedGasLimit = await sourceToken.getWrapTokenEstimatedGas(network.slug)
+
+        if (BigNumber.isBigNumber(estimatedGasLimit)) {
+          let gasCost = await calculateTotalGasCostByGasLimit(network.provider, estimatedGasLimit)
+          if (gasCost && network?.slug === ChainSlug.Optimism) {
+            const { gasLimit, data, to } = await sourceToken.getWrapTokenEstimatedGas(network.slug)
+            const l1FeeInWei = await sourceToken.estimateOptimismL1FeeFromData(gasLimit, data, to)
+            gasCost = gasCost.add(l1FeeInWei)
+          }
+          return gasCost
+        }
+      } catch (error) {
+        logger.error(formatError(error))
+      }
+    },
+    [calculateTotalGasCostByGasLimit]
+  )
 
   // Master send method
   const estimateMaxValue = useCallback(
@@ -146,11 +151,11 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
         logger.error(formatError(error))
       }
     },
-    [sdk]
+    [sdk, estimateConvertTokens, estimateWrap]
   )
 
   const estimateApprove = useCallback(async () => {
-    if (!(sourceTokenAmount && sourceToken && sourceChain)) {
+    if (!(sourceTokenAmount && sourceToken && destinationChain && sourceChain)) {
       return
     }
     try {
@@ -166,12 +171,14 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
       }
       logger.error(err)
     }
-  }, [sourceToken, sourceTokenAmount, sourceChain])
+  }, [sourceToken, sourceTokenAmount, sourceChain, destinationChain, sdk])
 
   const estimateSend = useCallback(
     async (options: EstimateTxOptions) => {
       const { sourceChain, destinationChain, sourceToken, deadline } = options
-      if (!(sdk && sourceChain && destinationChain && deadline && sourceToken)) {
+      if (
+        !(sdk && sourceChain && sourceTokenAmount && destinationChain && deadline && sourceToken)
+      ) {
         return
       }
 
@@ -187,24 +194,27 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
           bridge.getSendApprovalAddress(sourceChain.slug),
           '10'
         )
+        if (needsAppoval) {
+          throw new Error('Needs approval')
+        }
 
         let estimatedGasLimit = BigNumber.from(200e3)
         // Get estimated gas limit
-        if (!needsAppoval) {
-          estimatedGasLimit = await bridge.estimateSendGasLimit(
-            '10',
-            sourceChain.slug as string,
-            destinationChain.slug as string,
-            {
-              recipient: constants.AddressZero,
-              bonderFee: '1',
-              amountOutMin: '0',
-              deadline: deadline(),
-              destinationAmountOutMin,
-              destinationDeadline,
-            }
-          )
+        const options = {
+          recipient: constants.AddressZero,
+          bonderFee: '1',
+          amountOutMin: '0',
+          deadline: deadline(),
+          destinationAmountOutMin,
+          destinationDeadline,
         }
+        estimatedGasLimit = await bridge.estimateSendGasLimit(
+          sourceTokenAmount,
+          sourceChain.slug as string,
+          destinationChain.slug as string,
+          options
+        )
+
 
         if (estimatedGasLimit) {
           let gasCost = await calculateTotalGasCostByGasLimit(
@@ -222,13 +232,9 @@ export function useEstimateTxCost(props?: EstimateTxProps) {
         }
       } catch (error: any) {
         logger.error(formatError(error))
-        if (error.message.includes('signer required')) {
-          return
-        }
-        setError(formatError(error, sourceChain))
       }
     },
-    [sdk]
+    [sdk, sourceToken, sourceTokenAmount, sourceChain]
   )
 
   return {

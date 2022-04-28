@@ -1,4 +1,4 @@
-import { Signer, ethers, BigNumber, BigNumberish } from 'ethers'
+import { Signer, ethers, BigNumber, BigNumberish, providers } from 'ethers'
 import {
   ArbitrumInbox__factory,
   ArbitrumInbox,
@@ -132,19 +132,16 @@ class CanonicalBridge extends Base {
     return this.signer.estimateGas(populatedTx)
   }
 
-  public async deposit(amount: BigNumberish, customRecipient?: string) {
-    if (this.chain.equals(Chain.Arbitrum) && this.tokenSymbol !== CanonicalToken.ETH) {
-      return this.populateDepositTx(amount, customRecipient)
-    }
+  public async deposit(amount: BigNumberish, options?: any) {
     const populatedTx = await this.populateDepositTx(amount)
     return this.signer.sendTransaction(populatedTx)
   }
 
-  public async populateDepositTx(amount: BigNumberish, customRecipient?: string): Promise<any> {
+  public async populateDepositTx(amount: BigNumberish, options?: any): Promise<any> {
     amount = amount.toString()
     const signerAddress = await this.getSignerAddress()
     const from = signerAddress
-    const recipient = customRecipient || signerAddress
+    const recipient = options?.customRecipient || signerAddress
     const l1CanonicalBridgeAddress = this.getL1CanonicalBridgeAddress()
     const l1CanonicalToken = this.getL1Token()
     const coder = ethers.utils.defaultAbiCoder
@@ -176,8 +173,8 @@ class CanonicalBridge extends Base {
 
         if (this.tokenSymbol === Token.ETH) {
           return (nativeBridge as L1XDaiWETHOmnibridgeRouter).populateTransaction[
-            'wrapAndRelayTokens(address,bytes)'
-          ](recipient, payload, {
+            'wrapAndRelayTokens(address)'
+          ](recipient, {
             // Gnosis requires a higher gas limit
             gasLimit: 500e3,
             from,
@@ -302,37 +299,47 @@ class CanonicalBridge extends Base {
       }
 
       case ChainSlug.Polygon: {
-        if (this.tokenSymbol === Token.MATIC) {
-          return await (
-            nativeBridge as L1PolygonPlasmaBridgeDepositManager
-          ).populateTransaction.depositERC20ForUser(
-            l1CanonicalTokenAddress,
+        try {
+          if (this.tokenSymbol === Token.MATIC) {
+            return await (
+              nativeBridge as L1PolygonPlasmaBridgeDepositManager
+            ).populateTransaction.depositERC20ForUser(
+              l1CanonicalTokenAddress,
+              recipient,
+              BigNumber.from(amount),
+              {
+                from,
+                gasLimit: BigNumber.from(500e3),
+              }
+            )
+          }
+
+          if (this.tokenSymbol === Token.ETH) {
+            return (
+              nativeBridge as L1PolygonPosRootChainManager
+            ).populateTransaction.depositEtherFor(recipient, {
+              from,
+              value: BigNumber.from(amount),
+            })
+          }
+
+          return (nativeBridge as L1PolygonPosRootChainManager).populateTransaction.depositFor(
             recipient,
-            BigNumber.from(amount),
+            l1CanonicalTokenAddress,
+            payload,
             {
               from,
               gasLimit: BigNumber.from(500e3),
             }
           )
+        } catch (error) {
+          logger.error(formatError(error))
         }
-
-        if (this.tokenSymbol === Token.ETH) {
-          return (nativeBridge as L1PolygonPosRootChainManager).populateTransaction.depositEtherFor(
-            recipient,
-            { from, value: BigNumber.from(amount) }
-          )
-        }
-
-        return (nativeBridge as L1PolygonPosRootChainManager).populateTransaction.depositFor(
-          recipient,
-          l1CanonicalTokenAddress,
-          payload,
-          {
-            from,
-            gasLimit: BigNumber.from(500e3),
-          }
-        )
+        break
       }
+
+      default:
+        break
     }
   }
 

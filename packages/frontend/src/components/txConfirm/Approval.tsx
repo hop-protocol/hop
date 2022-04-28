@@ -4,8 +4,9 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Checkbox from '@material-ui/core/Checkbox'
-import { commafy, NetworkTokenEntity } from 'src/utils'
+import { commafy, formatError, NetworkTokenEntity } from 'src/utils'
 import { useSendingTransaction } from './useSendingTransaction'
+import logger from 'src/logger'
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -46,9 +47,14 @@ const Approval = (props: Props) => {
 
   const { sending, setSending, handleSubmit } = useSendingTransaction({ onConfirm, source })
 
-  const handleClick = useCallback(() => {
-    handleSubmit(approveAll).then(() => setSending(false))
-  }, [approveAll])
+  const handleClick = useCallback(async () => {
+    try {
+      await handleSubmit(approveAll)
+    } catch (error) {
+      logger.debug(formatError(error))
+      setSending(false)
+    }
+  }, [approveAll, handleSubmit])
 
   return (
     <div className={styles.root}>
@@ -81,7 +87,7 @@ const Approval = (props: Props) => {
       <div className={styles.action}>
         <Button
           className={styles.sendButton}
-          onClick={handleClick}
+          onClick={() => handleClick()}
           loading={sending}
           large
           highlighted

@@ -1,4 +1,4 @@
-import { ChainSlug } from '@hop-protocol/sdk'
+import { ChainSlug, Token } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { useEffect, useState } from 'react'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -19,8 +19,10 @@ interface InfoMessagesProps {
   liquidityWarning?: string
   sufficientBalanceWarning?: string
   priceImpact?: number
-  sourceTokenAmount?: string
-  destinationAmount?: string
+  sourceToken?: Token
+  sourceTokenAmount?: BigNumber
+  destinationAmount?: BigNumber
+  sourceTokenBalance?: BigNumber
 }
 
 export function useWarningErrorInfo(props: InfoMessagesProps) {
@@ -33,18 +35,16 @@ export function useWarningErrorInfo(props: InfoMessagesProps) {
     estimatedReceived,
     adjustedDestinationTxFee,
     sendDataError,
-    // adjustedBonderFee,
-    // liquidityWarning,
-    // sufficientBalanceWarning,
-    // priceImpact,
-    // sourceTokenAmount,
-    // destinationAmount,
+    sourceToken,
+    sourceTokenAmount,
+    sourceTokenBalance,
+    destinationAmount,
   } = props
 
   const [warning, setWarning] = useState<any>(null)
   const [error, setError] = useState<string | null | undefined>(null)
-  const [manualWarning, setManualWarning] = useState<string>('')
-  const [manualError, setManualError] = useState<string>('')
+  const [manualWarning, setManualWarning] = useState<string | null>(null)
+  const [manualError, setManualError] = useState<string | null>(null)
   const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const { address } = useWeb3Context()
@@ -65,6 +65,7 @@ export function useWarningErrorInfo(props: InfoMessagesProps) {
     }
   }, [unsupportedAsset])
 
+  // Minimum Send Warning (to cover tx fee)
   useEffect(() => {
     const warningMessage = `Send at least ${destinationTxFeeDisplay} to cover the transaction fee`
     if (estimatedReceived?.lte(0) && adjustedDestinationTxFee?.gt(0)) {
@@ -74,6 +75,7 @@ export function useWarningErrorInfo(props: InfoMessagesProps) {
     }
   }, [estimatedReceived, adjustedDestinationTxFee])
 
+  // Txs to exchanges w/o internal txs may lose funds
   useEffect(() => {
     if (
       destinationChain?.slug === ChainSlug.Arbitrum &&
@@ -87,6 +89,7 @@ export function useWarningErrorInfo(props: InfoMessagesProps) {
     setManualWarning('')
   }, [sourceChain?.slug, destinationChain?.slug, customRecipient, address])
 
+  // Manual errors
   useEffect(() => {
     // if (sourceChain?.slug === ChainSlug.Polygon || destinationChain?.slug === ChainSlug.Polygon) {
     //   return setManualError('Warning: transfers to/from Polygon are temporarily down.')
@@ -103,8 +106,10 @@ export function useWarningErrorInfo(props: InfoMessagesProps) {
     setWarning,
     error,
     setError,
-    manualWarning,
     manualError,
+    setManualError,
+    manualWarning,
+    setManualWarning,
     minimumSendWarning,
     info,
     setInfo,

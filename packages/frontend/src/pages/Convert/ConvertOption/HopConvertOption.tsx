@@ -54,7 +54,7 @@ class HopConvertOption extends ConvertOption {
     l1TokenSymbol: TokenSymbol | undefined,
     amountIn: BigNumberish | undefined
   ): Promise<SendData> {
-    if (!l1TokenSymbol || !sourceChain || !destinationChain || !amountIn) {
+    if (!(l1TokenSymbol && sourceChain && destinationChain && amountIn)) {
       return {
         amountOut: undefined,
         details: [],
@@ -66,6 +66,10 @@ class HopConvertOption extends ConvertOption {
     const token = sourceChain?.isLayer1
       ? bridge.getCanonicalToken(sourceChain?.slug)
       : bridge.getL2HopToken(sourceChain?.slug)
+
+    if (!token) {
+      throw new Error('token is required')
+    }
 
     const isHTokenSend = true
     const { totalFee, adjustedBonderFee, adjustedDestinationTxFee } = await bridge.getSendData(
@@ -87,7 +91,7 @@ class HopConvertOption extends ConvertOption {
     }
 
     if (!sourceChain?.isLayer1 && amountIn.gt(availableLiquidity)) {
-      const formattedAmount = toTokenDisplay(availableLiquidity, token.decimals)
+      const formattedAmount = toTokenDisplay(availableLiquidity, token?.decimals)
       warning = `Insufficient liquidity. There is ${formattedAmount} ${l1TokenSymbol} available on ${destinationChain.name}.`
     }
 
@@ -98,7 +102,7 @@ class HopConvertOption extends ConvertOption {
     }
 
     if (bridge.signer) {
-      const balance = await token.balanceOf()
+      const balance = await token?.balanceOf()
       const enoughBalance = amountIn.lte(balance)
       if (!enoughBalance) {
         warning = 'Insufficient funds'

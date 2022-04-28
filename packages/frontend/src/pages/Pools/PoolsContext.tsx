@@ -237,7 +237,7 @@ const PoolsProvider: FC = ({ children }) => {
           return
         }
         const token = await selectedBridge.getCanonicalToken(selectedNetwork.slug)
-        const cacheKey = `apr:${selectedNetwork.slug}:${token.symbol}`
+        const cacheKey = `apr:${selectedNetwork.slug}:${token?.symbol}`
         try {
           const cached = JSON.parse(localStorage.getItem(cacheKey) || '')
           const tenMinutes = 10 * 60 * 1000
@@ -260,9 +260,9 @@ const PoolsProvider: FC = ({ children }) => {
           const res = await fetch(url, { headers: jsonCorsHeaders })
           const json = await res.json()
 
-          apr = json.data[token.symbol][selectedNetwork.slug].apr
+          apr = json.data[token!.symbol][selectedNetwork.slug].apr
         } catch (err) {
-          const bridge = await sdk.bridge(token.symbol)
+          const bridge = await sdk.bridge(token!.symbol)
           const amm = bridge.getAmm(selectedNetwork.slug)
           apr = await amm.getApr()
         }
@@ -545,11 +545,13 @@ const PoolsProvider: FC = ({ children }) => {
     const spender = saddleSwap.address
     const parsedAmount = amountToBN(amount, canonicalToken.decimals)
     let token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
-    if (token.isNativeToken) {
+    if (token?.isNativeToken) {
       token = token.getWrappedToken()
     }
 
-    return approve(parsedAmount, token, spender)
+    if (token) {
+      return approve(parsedAmount, token, spender)
+    }
   }
 
   const addLiquidity = async () => {

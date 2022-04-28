@@ -182,8 +182,8 @@ class AmmConvertOption extends ConvertOption {
     const destToken = isConvertingToHToken
       ? bridge.getL2HopToken(destinationChain.slug)
       : bridge.getCanonicalToken(destinationChain.slug)
-    amountOutMinDisplay = toTokenDisplay(amountOutMin, destToken.decimals, destToken.symbol)
-    feeDisplay = toTokenDisplay(lpFeeAmount, sourceToken.decimals, sourceToken.symbol)
+    amountOutMinDisplay = toTokenDisplay(amountOutMin, destToken?.decimals, destToken?.symbol)
+    feeDisplay = toTokenDisplay(lpFeeAmount, sourceToken?.decimals, sourceToken?.symbol)
 
     const estimatedReceivedDisplay = toTokenDisplay(
       amountOut,

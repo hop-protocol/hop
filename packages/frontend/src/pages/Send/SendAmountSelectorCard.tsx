@@ -9,7 +9,7 @@ import LargeTextField from 'src/components/LargeTextField'
 import Chain from 'src/models/Chain'
 import { toTokenDisplay } from 'src/utils'
 import logger from 'src/logger'
-import { useAmountSelectorCardStyles, useEstimateTxCost } from 'src/hooks'
+import { useAmountSelectorCardStyles } from 'src/hooks'
 import { NetworkSelector } from 'src/components/NetworkSelector'
 import { Flex } from 'src/components/ui'
 

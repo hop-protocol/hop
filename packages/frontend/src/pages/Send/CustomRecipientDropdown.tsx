@@ -4,9 +4,10 @@ import Typography from '@material-ui/core/Typography'
 import LargeTextField from 'src/components/LargeTextField'
 
 function CustomRecipientDropdown(props) {
-  const { styles, customRecipient, setCustomRecipient, isOpen = false } = props
+  const { styles, customRecipient, setCustomRecipient, isOpen = false, setError } = props
 
   const handleChange = (event: any) => {
+    setError(null)
     const value = event.target.value.trim()
     setCustomRecipient(value)
   }

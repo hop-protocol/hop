@@ -85,8 +85,16 @@ const Send: FC = () => {
   }, [sourceToken, sourceTokenAmount])
 
   // Get token balances for both networks
-  const { balance: fromBalance, loading: loadingFromBalance } = useBalance(sourceToken, address)
-  const { balance: toBalance, loading: loadingToBalance } = useBalance(destinationToken, address)
+  const { balance: fromBalance, loading: loadingFromBalance } = useBalance(
+    sourceToken,
+    address,
+    sourceChain?.chainId
+  )
+  const { balance: toBalance, loading: loadingToBalance } = useBalance(
+    destinationToken,
+    address,
+    destinationChain?.chainId
+  )
 
   // ==============================================================================================
   // Displayed data
@@ -159,7 +167,9 @@ const Send: FC = () => {
     error,
     setError,
     manualError,
+    setManualError,
     manualWarning,
+    setManualWarning,
     minimumSendWarning,
     info,
     setInfo,
@@ -172,13 +182,9 @@ const Send: FC = () => {
     estimatedReceived,
     adjustedDestinationTxFee,
     sendDataError,
-    // adjustedBonderFee,
-    // liquidityWarning,
-    // sufficientBalanceWarning,
-    // estimatedReceived,
-    // priceImpact,
-    // sourceTokenAmount,
-    // destinationAmount,
+    sourceToken,
+    sourceTokenAmount: sourceTokenAmountBN,
+    sourceTokenBalance: fromBalance,
   })
 
   // ==============================================================================================
@@ -250,7 +256,8 @@ const Send: FC = () => {
     sourceTokenAmountBN,
     setApproving,
     approving,
-    usingNativeBridge
+    usingNativeBridge,
+    destinationChain
   )
 
   // ==============================================================================================
@@ -264,6 +271,7 @@ const Send: FC = () => {
     usingNativeBridge,
     needsNativeBridgeApproval,
     l1CanonicalBridge,
+    destinationChain,
   })
 
   const { estimatedGasLimit } = useTxResult({
@@ -282,9 +290,11 @@ const Send: FC = () => {
     },
   })
 
-  const { sufficientBalance, warning: sufficientBalanceWarning } = useSufficientBalance({
+  const { sufficientBalance, sufficientBalanceWarning } = useSufficientBalance({
+    sourceChain,
     sourceToken,
     sourceTokenAmount: sourceTokenAmountBN,
+    destinationChain,
     estimatedGasLimit,
     tokenBalance: fromBalance,
     isSmartContractWallet,
@@ -294,12 +304,31 @@ const Send: FC = () => {
     l1CanonicalBridge,
   })
 
+  const { sufficientBalanceForNativeDeposit, sufficientBalanceForNativeDepositWarning } =
+    useSufficientBalance({
+      sourceChain,
+      sourceToken,
+      sourceTokenAmount: sourceTokenAmountBN,
+      destinationChain,
+      estimatedGasLimit,
+      tokenBalance: fromBalance,
+      isSmartContractWallet,
+      usingNativeBridge,
+      needsNativeBridgeApproval,
+      needsApproval,
+      l1CanonicalBridge,
+    })
+
   // ==============================================================================================
   // More warning messages
   // ==============================================================================================
 
   useEffect(() => {
-    let message = liquidityWarning || minimumSendWarning || sufficientBalanceWarning
+    let message =
+      liquidityWarning ||
+      minimumSendWarning ||
+      sufficientBalanceWarning ||
+      sufficientBalanceForNativeDepositWarning
 
     const isFavorableSlippage = Number(destinationAmount) >= Number(sourceTokenAmount)
     const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
@@ -322,7 +351,9 @@ const Send: FC = () => {
     liquidityWarning,
     minimumSendWarning,
     sufficientBalanceWarning,
+    sufficientBalanceForNativeDepositWarning,
     estimatedReceived,
+    adjustedBonderFee,
     priceImpact,
     sourceTokenAmount,
     destinationAmount,
@@ -370,25 +401,38 @@ const Send: FC = () => {
   // Buttons enabled
   // ==============================================================================================
 
+  const usingNativeBridgeAndNeedsApprovalOrUsingHopAndNeedsApproval = useMemo(() => {
+    return (
+      (usingNativeBridge && needsNativeBridgeApproval === true) ||
+      (usingNativeBridge === false && needsApproval === true)
+    )
+  }, [usingNativeBridge, needsNativeBridgeApproval, needsApproval])
+
   const approveButtonActive = useMemo(() => {
-    if (usingNativeBridge) {
-      return !!needsNativeBridgeApproval
-    } else {
-      return !needsTokenForFee && !unsupportedAsset && !!needsApproval
-    }
+    return (
+      !manualWarning &&
+      !manualError &&
+      usingNativeBridge &&
+      (usingNativeBridgeAndNeedsApprovalOrUsingHopAndNeedsApproval ||
+        (needsApproval === true && !unsupportedAsset && !needsTokenForFee))
+    )
   }, [
     usingNativeBridge,
-    needsNativeBridgeApproval,
+    usingNativeBridgeAndNeedsApprovalOrUsingHopAndNeedsApproval,
     needsTokenForFee,
     unsupportedAsset,
-    needsApproval,
   ])
+
+  const sufficientBalanceForNBDeposit = useMemo(() => {
+    return usingNativeBridge && sufficientBalanceForNativeDeposit
+  }, [usingNativeBridge, sufficientBalanceForNativeDeposit])
 
   const sendButtonActive = useMemo(() => {
     return !!(
       !approveButtonActive &&
       address &&
-      (!needsApproval || (usingNativeBridge && !needsNativeBridgeApproval)) &&
+      ((!usingNativeBridge && !needsApproval) ||
+        (usingNativeBridge && !needsNativeBridgeApproval)) &&
       !unsupportedAsset &&
       !checkingLiquidity &&
       !loadingToBalance &&
@@ -396,7 +440,7 @@ const Send: FC = () => {
       sourceTokenAmount &&
       destinationAmount &&
       rate &&
-      sufficientBalance &&
+      (sufficientBalanceForNBDeposit === true || sufficientBalance) &&
       sufficientLiquidity &&
       estimatedReceived?.gt(0) &&
       !manualError &&
@@ -417,6 +461,7 @@ const Send: FC = () => {
     destinationAmount,
     rate,
     sufficientBalance,
+    sufficientBalanceForNBDeposit,
     sufficientLiquidity,
     estimatedReceived,
     manualError,
@@ -425,36 +470,6 @@ const Send: FC = () => {
     isCorrectSignerNetwork,
     isSmartContractWallet,
   ])
-
-  // const approveChecks = {
-  //   usingNativeBridge,
-  //   needsNativeBridgeApproval,
-  //   needsTokenForFee,
-  //   unsupportedAsset,
-  //   needsApproval,
-  // }
-  // const sendChecks = {
-  //   approveButtonActive,
-  //   address,
-  //   needsApproval,
-  //   unsupportedAsset,
-  //   checkingLiquidity,
-  //   loadingToBalance,
-  //   loadingSendData,
-  //   sourceTokenAmount,
-  //   destinationAmount,
-  //   rate,
-  //   sufficientBalance,
-  //   sufficientLiquidity,
-  //   estimatedReceived,
-  //   manualError,
-  //   disabledTx,
-  //   gnosisEnabled,
-  //   isCorrectSignerNetwork,
-  //   isSmartContractWallet,
-  // }
-  // console.log(`approveChecks:`, approveChecks)
-  // console.log(`sendChecks:`, sendChecks)
 
   return (
     <Flex column alignCenter>
@@ -523,6 +538,7 @@ const Send: FC = () => {
         customRecipient={customRecipient}
         setCustomRecipient={setCustomRecipient}
         isOpen={isSmartContractWallet}
+        setError={setError}
       />
 
       <div className={styles.details}>
@@ -579,9 +595,17 @@ const Send: FC = () => {
       )}
 
       <Alert severity="error" onClose={() => setError(null)} text={error} />
-      {!error && <Alert severity="warning">{warning}</Alert>}
-      <Alert severity="warning">{manualWarning}</Alert>
-      <Alert severity="error">{manualError}</Alert>
+      {!error && (
+        <Alert severity="warning" onClose={() => setWarning(null)}>
+          {warning}
+        </Alert>
+      )}
+      <Alert severity="warning" onClose={() => setManualWarning(null)}>
+        {manualWarning}
+      </Alert>
+      <Alert severity="error" onClose={() => setManualError(null)}>
+        {manualError}
+      </Alert>
 
       <ButtonsWrapper>
         {!sendButtonActive && (
@@ -589,7 +613,7 @@ const Send: FC = () => {
             <Button
               className={styles.button}
               large
-              highlighted={usingNativeBridge && needsNativeBridgeApproval ? true : !!needsApproval}
+              highlighted={approveButtonActive}
               disabled={!approveButtonActive}
               onClick={handleApprove}
               loading={approving}

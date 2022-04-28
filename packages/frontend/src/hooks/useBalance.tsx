@@ -15,17 +15,17 @@ export const useBalance = (
 ) => {
   chainId = token instanceof Token ? token.chain.chainId : chainId
 
-  const queryKey = `balance:${chainId}:${token?.address}:${address?.toString()}`
+  const queryKey = `useBalance:${chainId}:${token?.address}:${address?.toString()}`
 
   const { isLoading, isError, data, error } = useQuery(
     [queryKey, chainId, token?.address, address?.toString()],
     async () => {
       if (token && address) {
-        return await fetchBalance(token, address.toString())
+        return await fetchBalance(token, address?.toString() ?? address)
       }
     },
     {
-      enabled: !!chainId && !!token && !!address,
+      enabled: !!chainId && !!token && !!address?.toString(),
       refetchInterval: defaultRefetchInterval,
     }
   )

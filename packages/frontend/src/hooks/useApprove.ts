@@ -26,7 +26,8 @@ export function useApprove(
   amountOut?: BigNumber,
   setApproving?: any,
   approving?: boolean,
-  usingNativeBridge?: boolean
+  usingNativeBridge?: boolean,
+  destinationChain?: Chain
 ) {
   const { provider, checkConnectedNetworkId } = useWeb3Context()
   const { txConfirm, sdk } = useApp()
@@ -60,8 +61,10 @@ export function useApprove(
 
   const { data: needsApproval } = useQuery(
     [
-      `needsApproval:${token?.symbol}:${sourceChain?.slug}:${amountOut?.toString()}`,
-      token?.symbol,
+      `needsApproval:${token?.address}:${
+        sourceChain?.slug
+      }:${amountOut?.toString()}:${usingNativeBridge}`,
+      token?.address,
       sourceChain?.slug,
       amountOut?.toString(),
       usingNativeBridge,

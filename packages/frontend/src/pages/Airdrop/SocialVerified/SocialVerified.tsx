@@ -35,7 +35,6 @@ export function SocialVerified() {
   const [captchaResponseToken, setCaptchaResponseToken] = useState<string>('')
 
   useEffect(() => {
-    console.log(`queryParams:`, queryParams)
     const { username, eligible, social, userId } = queryParams
     const data = {
       eligible: eligible === 'true',
@@ -50,7 +49,7 @@ export function SocialVerified() {
     setInputValue(event.target.value)
   }
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = async () => {
     try {
       setError('')
       setSuccessMsg('')
@@ -60,7 +59,7 @@ export function SocialVerified() {
       }
 
       const url = `https://social-auth.hop.exchange/${social}/update-address`
-      const data = { address: inputValue, ...userData, captchaResponseToken }
+      const data = { address: inputValue, ...userData, responseToken: captchaResponseToken }
 
       const res = await fetch(url, {
         method: 'POST',
@@ -74,11 +73,11 @@ export function SocialVerified() {
       if (json.error) {
         throw new Error(json.error)
       }
-      setSuccessMsg('Successfully set address to use for airdrop')
+      setSuccessMsg('Successfully set address to use for airdrop. Keep an eye out for an official announcement from the Hop team on how to claim your tokens.')
     } catch (err: any) {
       setError(err.message)
     }
-  }, [inputValue, userData])
+  }
 
   const onCaptchaChange = (value: string) => {
     setCaptchaResponseToken(value)
@@ -102,6 +101,8 @@ export function SocialVerified() {
       </Box>
     )
   }
+
+  const submitDisabled = !(inputValue && captchaResponseToken)
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyItems="center" textAlign="center">
@@ -140,7 +141,7 @@ export function SocialVerified() {
           />
         </Box>
 
-        <Button disabled={!inputValue} onClick={handleSubmit} variant="contained" color="primary" highlighted>
+        <Button disabled={submitDisabled} onClick={handleSubmit} variant="contained" color="primary" highlighted>
           Submit
         </Button>
       </Box>

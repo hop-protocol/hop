@@ -7,6 +7,10 @@ import { useQueryParams } from 'src/hooks'
 import { Input } from 'src/components/ui'
 import Button from 'src/components/buttons/Button'
 import { StyledButton } from 'src/components/buttons/StyledButton'
+import ReCAPTCHA from 'react-google-recaptcha'
+import CheckIcon from '@material-ui/icons/Check'
+
+const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
 
 const socialNames = {
   twitter: 'Twitter',
@@ -27,20 +31,19 @@ export function SocialVerified() {
   const [inputValue, setInputValue] = useState('')
   const [error, setError] = useState<string>('')
   const [successMsg, setSuccessMsg] = useState<string>('')
-  const [socialMedia, setSocialMedia] = useState<ActiveUserEligibility>()
+  const [userData, setUserData] = useState<ActiveUserEligibility>()
+  const [captchaResponseToken, setCaptchaResponseToken] = useState<string>('')
 
   useEffect(() => {
     console.log(`queryParams:`, queryParams)
     const { username, eligible, social, userId } = queryParams
-
-    const sm = {
+    const data = {
       eligible: eligible === 'true',
       social: social as SocialMediaPlatform,
       userId: userId as string,
       username: username as string,
     }
-
-    setSocialMedia(sm)
+    setUserData(data)
   }, [queryParams])
 
   function handleInputChange(event: any) {
@@ -51,13 +54,13 @@ export function SocialVerified() {
     try {
       setError('')
       setSuccessMsg('')
-      const { eligible, social, userId, username } = socialMedia as ActiveUserEligibility
-      if (!(socialMedia && eligible && social && userId && username)) {
+      const { eligible, social, userId, username } = userData as ActiveUserEligibility
+      if (!(userData && eligible && social && userId && username)) {
         return
       }
 
       const url = `https://social-auth.hop.exchange/${social}/update-address`
-      const data = { address: inputValue, ...socialMedia }
+      const data = { address: inputValue, ...userData, captchaResponseToken }
 
       const res = await fetch(url, {
         method: 'POST',
@@ -75,16 +78,20 @@ export function SocialVerified() {
     } catch (err: any) {
       setError(err.message)
     }
-  }, [inputValue, socialMedia])
+  }, [inputValue, userData])
 
-  const isEligible = socialMedia?.eligible
+  const onCaptchaChange = (value: string) => {
+    setCaptchaResponseToken(value)
+  }
+
+  const isEligible = userData?.eligible
 
   if (!isEligible) {
     return (
       <Box display="flex" flexDirection="column" alignItems="center" justifyItems="center" textAlign="center">
         <Box my={3} maxWidth={[350, 400, 525]}>
           <Typography variant="h6" color="textSecondary">
-            Sorry, the {socialNames[socialMedia?.social!]} account @{socialMedia?.username!} is not eligible for the Hop airdrop
+            Sorry, the {socialNames[userData?.social!]} account @{userData?.username!} is not eligible for the Hop airdrop
           </Typography>
         </Box>
         <Box my={3} display="flex" flexDirection="column" justifyContent="center">
@@ -99,8 +106,14 @@ export function SocialVerified() {
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyItems="center" textAlign="center">
       <Box my={3} maxWidth={[350, 400, 525]}>
-        <Typography variant="h6" color="textSecondary">
-          Thank you for verifying your {socialNames[socialMedia?.social!]} account @{socialMedia?.username!}
+        <Typography variant="h3" color="textSecondary">
+          🥳
+        </Typography>
+        <Typography variant="h5" color="textSecondary">
+          Congrats! you're eligible for the airdrop
+        </Typography>
+        <Typography variant="subtitle2" color="textSecondary">
+          Verified {socialNames[userData?.social!]} account @{userData?.username!} <CheckIcon style={{ color: 'green' }} />
         </Typography>
 
         <Typography style={{ marginTop: '3rem' }} variant="subtitle2" color="textSecondary">
@@ -116,9 +129,16 @@ export function SocialVerified() {
           value={inputValue}
           onChange={handleInputChange}
           placeholder="0x123..."
-          mb={4}
+          mb={2}
           fontSize={[0, 2]}
         />
+
+        <Box my={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+          <ReCAPTCHA
+            sitekey={captchaSiteKey}
+            onChange={onCaptchaChange}
+          />
+        </Box>
 
         <Button disabled={!inputValue} onClick={handleSubmit} variant="contained" color="primary" highlighted>
           Submit

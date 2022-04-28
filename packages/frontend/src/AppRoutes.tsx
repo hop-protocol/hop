@@ -4,15 +4,15 @@ import Components from 'src/pages/Components'
 import Send from 'src/pages/Send'
 import Pools from 'src/pages/Pools'
 import Stake from 'src/pages/Stake'
-import SocialVerify from 'src/pages/airdrop/SocialVerify'
+import SocialVerify from 'src/pages/Airdrop/SocialVerify'
 import Convert from 'src/pages/Convert'
 import Stats from 'src/pages/Stats'
 import Withdraw from 'src/pages/Withdraw'
 import Health from 'src/pages/Health'
 import TransactionPage from 'src/pages/Transaction'
 import { Div } from './components/ui'
-import SocialVerified from './pages/airdrop/SocialVerified'
-import { AirdropPreview } from './pages/airdrop/AirdropPreview'
+import SocialVerified from './pages/Airdrop/SocialVerified'
+import { AirdropPreview } from './pages/Airdrop/AirdropPreview'
 
 const AppRoutes: FC = () => {
   return (

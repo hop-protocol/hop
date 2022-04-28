@@ -58,7 +58,20 @@ class GasBoostSigner extends Wallet {
   }
 
   private async init () {
-    await this.setLatestNonce()
+    // prevent additional bonder instances from overriding db nonce (ie when running separate cli commands)
+    const shouldUpdate = await this.shouldSetLatestNonce()
+    if (shouldUpdate) {
+      await this.setLatestNonce()
+    }
+  }
+
+  private async shouldSetLatestNonce () {
+    const item = await this.store.getItem('nonce')
+    const timeWindowMs = 5 * 60 * 1000
+    if (item?.updatedAt && Number(item.updatedAt) + timeWindowMs < Date.now()) {
+      return false
+    }
+    return true
   }
 
   protected async tilReady (): Promise<boolean> {
@@ -128,7 +141,10 @@ class GasBoostSigner extends Wallet {
   }
 
   private async setDbNonce (nonce: number) {
-    await this.store.updateItem('nonce', { nonce })
+    await this.store.updateItem('nonce', {
+      nonce,
+      updatedAt: Date.now()
+    })
   }
 
   setPollMs (pollMs: number) {

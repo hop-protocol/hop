@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/core",
-  "version": "0.0.1-beta.62",
+  "version": "0.0.1-beta.63",
   "description": "Hop Protocol networks config",
   "main": "index.js",
   "types": "index.d.ts",

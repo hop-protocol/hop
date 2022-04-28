@@ -128,11 +128,14 @@ class CanonicalBridge extends Base {
   }
 
   public async estimateDepositTx(amount: BigNumberish, options?: any) {
-    const populatedTx = await this.populateDepositTx(amount)
-    return this.signer.estimateGas(populatedTx)
+    const populatedTx = await this.populateDepositTx(amount, options)
+    return await this.signer.estimateGas(populatedTx)
   }
 
   public async deposit(amount: BigNumberish, options?: any) {
+    // if (this.chain.equals(Chain.Arbitrum) && this.tokenSymbol !== CanonicalToken.ETH) {
+    //   return this.populateDepositTx(amount, options?.customRecipient)
+    // }
     const populatedTx = await this.populateDepositTx(amount)
     return this.signer.sendTransaction(populatedTx)
   }
@@ -202,19 +205,23 @@ class CanonicalBridge extends Base {
           )
         }
 
-        const bridge = (nativeBridge as L1OptimismGateway).connect(this.signer)
-        const l2Gas = BigNumber.from('1920000')
+        const l2Gas = BigNumber.from('500000')
 
         if (this.tokenSymbol === Token.ETH) {
           const data = '0x'
-          return bridge.populateTransaction.depositETHTo(recipient, l2Gas, data, {
-            from,
-            gasLimit: 500e3,
-            value: amount,
-          })
+          return await (nativeBridge as L1OptimismGateway).populateTransaction.depositETHTo(
+            recipient,
+            l2Gas,
+            data,
+            {
+              from,
+              gasLimit: 500e3,
+              value: amount,
+            }
+          )
         }
 
-        return bridge.populateTransaction.depositERC20To(
+        return (nativeBridge as L1OptimismGateway).populateTransaction.depositERC20To(
           l1CanonicalToken.address,
           l2TokenAddress,
           recipient,
@@ -226,72 +233,31 @@ class CanonicalBridge extends Base {
       }
 
       case ChainSlug.Arbitrum: {
-        const maxSubmissionPrice = BigNumber.from(500e3)
-        // const l2Network = await getL2Network(ChainId.Arbitrum)
-
-        if (this.tokenSymbol === Token.ETH) {
-          const bridge = await this.getContract(
-            ArbitrumInbox__factory,
-            l1CanonicalBridgeAddress,
-            this.signer
-          )
-
-          return ((bridge as ArbitrumInbox).populateTransaction.depositEth as any)(
-            BigNumber.from(maxSubmissionPrice),
-            {
-              value: amount,
-              from,
-            }
-          )
-        }
-
-        // const retryableGasArgs = {
-        //   maxSubmissionPrice: BigNumber.from(amount),
-        //   maxGas: BigNumber.from(400e3),
-        // }
-        // const depositInputParams = {
-        //   erc20L1Address: l1CanonicalToken.address,
-        //   amount: BigNumber.from(amount),
-        //   destinationAddress: recipient,
-        //   retryableGasArgs,
-        // }
-
         try {
-          // const ethSigner = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
-          // const arbProvider = await this.getSignerOrProvider(Chain.Arbitrum)
-
-          // const depositParams: any = {
-          //   amount: BigNumber.from(amount),
-          //   erc20L1Address: l1CanonicalToken.address,
-          //   l2Provider: arbProvider,
-          //   l1Signer: ethSigner,
-          //   destinationAddress: recipient,
-          //   retryableGasOverrides: retryableGasArgs,
-          // }
-
-          const bridge = await this.getContract(
-            ArbitrumL1ERC20Bridge__factory,
-            l1CanonicalBridgeAddress,
-            this.signer
-          )
-
-          return ((bridge as ArbitrumL1ERC20Bridge).populateTransaction.deposit as any)(
-            l1CanonicalToken.address,
-            l2CanonicalTokenAddress,
+          const overrides: any = {
+            ...this.txOverrides(Chain.Ethereum),
             from,
-            BigNumber.from(amount),
-            { from }
-          )
-
-          // const arbSigner = (arbProvider as any).getUncheckedSigner(from)
-          // const arbBridge = await Bridge.init(ethSigner as JsonRpcSigner, arbSigner)
-
-          // const gasNeeded = await arbBridge.estimateGasDeposit(depositInputParams)
-          // const depositTxParams = await arbBridge.getDepositTxParams(depositInputParams)
-          // const { maxFeePerGas, gasPrice } = await arbBridge.l1Provider.getFeeData()
-          // const price = maxFeePerGas || gasPrice
-          // const walletBal = await arbBridge.l1Provider.getBalance(from)
-          // return arbBridge.l1Bridge.deposit(depositTxParams)
+            gasLimit: 500e3,
+          }
+          if (this.tokenSymbol === Token.ETH) {
+            return await (nativeBridge as EthBridger).depositEstimateGas({
+              amount: BigNumber.from(amount),
+              l1Signer: (await this.getSignerOrProvider(Chain.Ethereum, this.signer)) as Signer,
+              l2Provider: (await this.getSignerOrProvider(
+                Chain.Arbitrum
+              )) as providers.JsonRpcProvider,
+              ...overrides,
+            })
+          }
+          const l1Signer = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
+          const l2Provider = await this.getSignerOrProvider(Chain.Arbitrum)
+          return await (nativeBridge as Erc20Bridger).depositEstimateGas({
+            erc20L1Address: l1CanonicalTokenAddress,
+            amount: BigNumber.from(amount),
+            l1Signer: l1Signer as Signer,
+            l2Provider: l2Provider as providers.JsonRpcProvider,
+            ...overrides,
+          })
         } catch (error) {
           logger.error(formatError(error))
         }

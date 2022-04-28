@@ -189,7 +189,7 @@ class HopBridge extends Base {
     return this.toCanonicalToken(this.tokenSymbol, this.network, Chain.Ethereum)
   }
 
-  public getCanonicalToken (chain: TChain) {
+  public getCanonicalToken (chain: TChain): Token | undefined {
     return this.toCanonicalToken(this.tokenSymbol, this.network, chain)
   }
 

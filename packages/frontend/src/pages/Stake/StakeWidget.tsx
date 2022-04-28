@@ -2,7 +2,7 @@ import React, { FC, useState, useMemo } from 'react'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
-import { Chain, HopBridge, Token } from '@hop-protocol/sdk'
+import { Chain as ChainModel, HopBridge, Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
@@ -188,7 +188,7 @@ const StakeWidget: FC<Props> = props => {
       }
 
       return calculateApr(
-        canonToken.decimals,
+        canonToken!.decimals,
         data.tokenUsdPrice,
         rewardTokenUsdPrice,
         stakedTotal,
@@ -230,7 +230,7 @@ const StakeWidget: FC<Props> = props => {
         userStakedTotal,
         data.tokenUsdPrice,
         rewardTokenUsdPrice,
-        canonToken.decimals,
+        canonToken!.decimals,
         stakingToken.decimals
       )
     } catch (error) {
@@ -289,7 +289,7 @@ const StakeWidget: FC<Props> = props => {
           token: stakingToken,
         },
         onConfirm: async () => {
-          const chain = Chain.fromSlug(network.slug)
+          const chain = ChainModel.fromSlug(network.slug)
           const overrides = await stakingToken?.txOverrides(chain)
           const signer = await sdk.getSignerOrProvider(network.slug)
           return stakingRewards.connect(signer).stake(parsedAmount, overrides)
@@ -327,7 +327,7 @@ const StakeWidget: FC<Props> = props => {
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
-      const chain = Chain.fromSlug(network.slug)
+      const chain = ChainModel.fromSlug(network.slug)
       const overrides = await stakingToken?.txOverrides(chain)
       const signer = await sdk.getSignerOrProvider(network.slug)
       await stakingRewards.connect(signer).getReward(overrides)
@@ -363,7 +363,7 @@ const StakeWidget: FC<Props> = props => {
           }
 
           const withdrawAmount = stakeBalance.mul(amountPercent).div(100)
-          const chain = Chain.fromSlug(network.slug)
+          const chain = ChainModel.fromSlug(network.slug)
           const overrides = await stakingToken?.txOverrides(chain)
           return _stakingRewards.withdraw(withdrawAmount, overrides)
         },

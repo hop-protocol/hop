@@ -412,11 +412,13 @@ const Send: FC = () => {
     return (
       !manualWarning &&
       !manualError &&
-      usingNativeBridge &&
-      (usingNativeBridgeAndNeedsApprovalOrUsingHopAndNeedsApproval ||
+      ((usingNativeBridge && usingNativeBridgeAndNeedsApprovalOrUsingHopAndNeedsApproval) ||
         (needsApproval === true && !unsupportedAsset && !needsTokenForFee))
     )
   }, [
+    manualError,
+    manualWarning,
+    needsApproval,
     usingNativeBridge,
     usingNativeBridgeAndNeedsApprovalOrUsingHopAndNeedsApproval,
     needsTokenForFee,

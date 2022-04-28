@@ -38,7 +38,11 @@ export function useTxResult(props: Props) {
   const { settings } = useApp()
   const { deadline, ...rest } = settings
 
-  const queryKey = `estimatedGasLimit:${sourceToken?.symbol}:${sourceChain?.slug}:${destinationChain?.slug}`
+  const queryKey = `estimatedGasLimit:${sourceToken?.address}:${
+    sourceChain?.slug
+  }:${sourceTokenAmount?.toString()}:${
+    destinationChain?.slug
+  }:${needsApproval}:${usingNativeBridge}:${needsNativeBridgeApproval}`
 
   const {
     isLoading,
@@ -48,17 +52,14 @@ export function useTxResult(props: Props) {
   } = useQuery(
     [
       queryKey,
-      destinationChain?.chainId,
-      sourceChain?.chainId,
-      sourceToken?.chain.chainId,
+      destinationChain?.slug,
+      sourceChain?.slug,
+      sourceToken?.symbol,
       sourceTokenAmount?.toString(),
       estimateFns,
-      estimateSend,
-      estimateApprove,
-      estimateApproveNativeBridge,
-      needsNativeBridgeApproval,
       needsApproval,
       usingNativeBridge,
+      needsNativeBridgeApproval,
     ],
     async () => {
       if (!(sourceToken && sourceChain && destinationChain)) {
@@ -66,17 +67,24 @@ export function useTxResult(props: Props) {
       }
 
       try {
-        const options = { sourceToken, sourceChain, destinationChain, deadline, ...rest }
+        const options = {
+          sourceToken,
+          sourceChain,
+          destinationChain,
+          deadline,
+        }
         let egl = BigNumber.from(0)
-        if (usingNativeBridge && needsNativeBridgeApproval) {
+        if (usingNativeBridge === true && needsNativeBridgeApproval === true) {
           egl = await estimateApproveNativeBridge()
-        } else if (usingNativeBridge) {
+        } else if (usingNativeBridge === true && !needsNativeBridgeApproval) {
+          console.log(`options:`, options)
           egl = await estimateSendNativeBridge(options)
-        } else if (needsApproval) {
+        } else if (!usingNativeBridge && needsApproval === true) {
           egl = await estimateApprove()
         } else {
           egl = await estimateSend(options)
         }
+        console.log(`estimated gas limit, options:`, egl, options)
         return egl
       } catch (error) {
         logger.error(formatError(error))
@@ -84,10 +92,11 @@ export function useTxResult(props: Props) {
     },
     {
       enabled:
-        !!props.sourceToken?.symbol &&
-        !!props.sourceChain?.slug &&
-        !!props.destinationChain?.slug &&
-        !!props.estimateFns,
+        !!sourceToken &&
+        !!sourceTokenAmount &&
+        !!sourceChain &&
+        !!destinationChain &&
+        !!estimateFns,
       refetchInterval: defaultRefetchInterval,
     }
   )

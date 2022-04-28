@@ -59,18 +59,23 @@ export function useSendTransaction(props) {
       if (signer) {
         try {
           const r = customRecipient || (await signer.getAddress())
-          setRecipient(r)
+          setRecipient(getAddress(r))
 
           if (sourceToken) {
             const b = sdk.bridge(sourceToken.symbol).connect(signer)
             setBridge(b)
           }
-        } catch (error) {}
+        } catch (error: any) {
+          console.log(`error:`, error)
+          if (error.message.includes('invalid address')) {
+            setError('Invalid custom recipient address')
+          }
+        }
       }
     }
 
     setRecipientAndBridge()
-  }, [signer, sourceToken, customRecipient])
+  }, [sdk, signer, sourceToken, customRecipient])
 
   function handleTransaction(tx, sourceChain, destinationChain, sourceToken): TransactionHandled {
     const txModel = createTransaction(tx, sourceChain, destinationChain, sourceToken)
@@ -196,15 +201,15 @@ export function useSendTransaction(props) {
     destinationChain,
     waitForTransaction,
     updateTransaction,
-    getAddress,
+    customRecipient,
     formatError,
   ])
 
-  const sendl1ToL2 = async () => {
+  const sendl1ToL2 = useCallback(async () => {
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
-        customRecipient,
+        customRecipient: recipient,
         source: {
           amount: sourceTokenAmount,
           token: sourceToken,
@@ -233,13 +238,26 @@ export function useSendTransaction(props) {
     })
 
     return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
-  }
+  }, [
+    recipient,
+    bridge,
+    sourceToken,
+    sourceTokenAmount?.toString(),
+    sourceChain,
+    destinationChain,
+    estimatedReceived?.toString(),
+    amountOutMin?.toString(),
+    txConfirm,
+    totalFee?.toString(),
+    parsedAmount?.toString(),
+    deadline,
+  ])
 
-  const sendl2ToL1 = async () => {
+  const sendl2ToL1 = useCallback(async () => {
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
-        customRecipient,
+        customRecipient: recipient,
         source: {
           amount: sourceTokenAmount,
           token: sourceToken,
@@ -279,13 +297,26 @@ export function useSendTransaction(props) {
     })
 
     return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
-  }
+  }, [
+    recipient,
+    txConfirm,
+    sourceToken,
+    sourceTokenAmount?.toString(),
+    sourceChain,
+    destinationChain,
+    amountOutMin?.toString(),
+    totalFee?.toString(),
+    bridge,
+    estimatedReceived.toString(),
+    parsedAmount,
+    deadline,
+  ])
 
   const sendl2ToL2 = useCallback(async () => {
     const tx = await txConfirm?.show({
       kind: 'send',
       inputProps: {
-        customRecipient,
+        customRecipient: recipient,
         source: {
           amount: sourceTokenAmount,
           token: sourceToken,
@@ -326,16 +357,21 @@ export function useSendTransaction(props) {
 
     return handleTransaction(tx, sourceChain, destinationChain, sourceToken)
   }, [
+    recipient,
+    bridge,
+    sourceToken,
+    sourceTokenAmount?.toString(),
     sourceChain,
     destinationChain,
-    sdk,
-    sourceToken,
-    sourceTokenAmount,
-    destinationChain,
+    estimatedReceived?.toString(),
     waitForTransaction,
+    intermediaryAmountOutMin?.toString(),
     updateTransaction,
-    getAddress,
-    formatError,
+    amountOutMin?.toString(),
+    txConfirm,
+    totalFee?.toString(),
+    parsedAmount,
+    deadline,
   ])
 
   return {

@@ -1,9 +1,11 @@
 import React from 'react'
-import { Div, EthAddress, Flex } from 'src/components/ui'
+import Box from '@material-ui/core/Box'
+import { EthAddress, Flex } from 'src/components/ui'
 import { useAirdropPreview } from './useAirdropPreview'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { CriteriaCircle } from './CriteriaCircle'
 import { AirdropPreviewWrapper } from './AirdropPreviewWrapper'
+import Typography from '@material-ui/core/Typography'
 
 export const respMaxWidths = [350, 624, 824]
 
@@ -13,51 +15,59 @@ export function AirdropPreview() {
 
   if (!address) {
     return (
-      <Flex column alignCenter>
+      <Box display="flex" flexDirection="column" justifyContent="center" justifyItems="center" alignItems="center">
         Please connect wallet
-      </Flex>
+      </Box>
     )
   }
 
   return (
     <AirdropPreviewWrapper>
-      <Flex column alignCenter>
-        <Div fontSize={[18, 4, 5]} color="text.primary">
-          Hop Token Airdrop Preview
-        </Div>
+      <Box display="flex" flexDirection="column" justifyContent="center" width="100%">
+        <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+          <Typography variant="h4" component="div">
+            Hop Token Airdrop
+          </Typography>
+        </Box >
 
-        <Div px={4}>
+        <Box px={4} maxWidth="500px">
           {!eligibility?.isEligible ? (
-            <Div textAlign={'center'} m={3} fontSize={16} bold color="text.secondary">
-              Sorry! the connected account is not eligible for the Hop airdrop :( Please view
-              details below.
-            </Div>
+            <Box m={3} display="flex" flexDirection="column" justifyContent="center" justifyItems="center" alignItems="center" textAlign="center">
+              <Typography variant="subtitle2" component="div">
+                Sorry! the connected account is not eligible for the Hop airdrop :( Please view
+                details below.
+              </Typography>
+            </Box >
           ) : (
-            <Div textAlign={'center'} m={3} fontSize={16} bold color="text.secondary">
-              You are eligible for the Hop airdrop! Please view your Airdrop preview details below.
-            </Div>
+            <Box m={3} display="flex" flexDirection="column" justifyContent="center" justifyItems="center" alignItems="center" textAlign="center">
+              <Typography variant="subtitle2" component="div">
+                You are eligible for the Hop airdrop! Please view your Airdrop preview details below.
+              </Typography>
+            </Box >
           )}
-        </Div>
+        </Box>
 
-        <Flex column p={1}>
-          <Flex column fontWeight={600} justifyCenter p={2} my={3}>
-            <Div fontSize={1} mr={3}>
-              Connected Account:
-            </Div>
-            <EthAddress value={address?.address} full textAlign="center" />
-          </Flex>
+        <Box display="flex" flexDirection="column" justifyContent="center" justifyItems="center" margin="0 auto" p={1} maxWidth="400px" width="100%">
+          <Box display="flex" flexDirection="column" justifyContent="center" my={3}>
+            <Box mr={3}>
+              <Typography variant="subtitle2" component="div">
+                Connected Account:
+              </Typography>
+            </Box>
+            <EthAddress value={address?.address} full />
+          </Box>
 
-          <Flex fullWidth justifyBetween py={2} px={4}>
-            <Div>Hop Bridge User:</Div>
+          <Box display="flex" justifyContent="space-between">
+            <Box>Hop Bridge User:</Box>
             <CriteriaCircle criteria={eligibility?.bridgeUserAirdrop} />
-          </Flex>
+          </Box>
 
-          <Flex fullWidth justifyBetween py={2} px={4}>
-            <Div>Liquidity Provider:</Div>
+          <Box display="flex" justifyContent="space-between">
+            <Box>Liquidity Provider:</Box>
             <CriteriaCircle criteria={eligibility?.lpAirdrop} />
-          </Flex>
-        </Flex>
-      </Flex>
+          </Box>
+        </Box>
+      </Box>
     </AirdropPreviewWrapper>
   )
 }

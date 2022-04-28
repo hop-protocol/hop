@@ -1,5 +1,6 @@
 import React from 'react'
-import { Div, EthAddress, Flex } from 'src/components/ui'
+import Box from '@material-ui/core/Box'
+import { EthAddress, Flex } from 'src/components/ui'
 import { useAirdropPreview } from './useAirdropPreview'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useThemeMode } from 'src/theme/ThemeProvider'
@@ -11,10 +12,9 @@ export function AirdropPreviewWrapper({ children }) {
   const { isDarkMode } = useThemeMode()
 
   return (
-    <Flex justifyCenter>
+    <Box display="flex" justifyContent="center" width="100%">
       <Flex
-        column
-        fontWeight={600}
+        display="flex" justifyContent="center" flexDirection="column"
         p={['18px 24px', '36px 46px']}
         mx={[0, 4]}
         maxWidth={respMaxWidths}
@@ -24,6 +24,6 @@ export function AirdropPreviewWrapper({ children }) {
       >
         {children}
       </Flex>
-    </Flex>
+    </Box>
   )
 }

@@ -80,7 +80,7 @@ export function useClaim() {
 
   // Sets warning about correct connected network
   useEffect(() => {
-    if (connectedNetworkId === correctClaimChain.id) {
+    if (Number(connectedNetworkId) === Number(correctClaimChain.id)) {
       setCorrectNetwork(true)
     } else {
       setClaimableTokens('0')
@@ -100,7 +100,7 @@ export function useClaim() {
           )
         }
 
-        return setWarning('The connected account is not eligible for the airdrop :(')
+        return setWarning('Sorry, the connected account is not eligible for the airdrop')
       }
 
       setWarning('')
@@ -121,7 +121,7 @@ export function useClaim() {
           error.message.includes('Invalid Entry')
         ) {
           setClaimableTokens('0')
-          setWarning('The connected account is not eligible for the airdrop :(')
+          setWarning('Sorry, the connected account is not eligible for the airdrop')
         }
       }
 

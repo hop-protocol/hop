@@ -34,14 +34,16 @@ export function AirdropPreview() {
           {!eligibility?.isEligible ? (
             <Box m={3} display="flex" flexDirection="column" justifyContent="center" justifyItems="center" alignItems="center" textAlign="center">
               <Typography variant="subtitle2" component="div">
-                Sorry! the connected account is not eligible for the Hop airdrop :( Please view
-                details below.
+                Sorry, the connected account is not eligible for the Hop airdrop.
               </Typography>
             </Box >
           ) : (
             <Box m={3} display="flex" flexDirection="column" justifyContent="center" justifyItems="center" alignItems="center" textAlign="center">
-              <Typography variant="subtitle2" component="div">
-                You are eligible for the Hop airdrop! Please view your Airdrop preview details below.
+              <Typography variant="subtitle1" component="div">
+                You are eligible for the Hop airdrop! 🎉
+              </Typography>
+              <Typography variant="body1" component="div">
+                Please view your Airdrop preview details below.
               </Typography>
             </Box >
           )}

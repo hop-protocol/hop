@@ -104,7 +104,7 @@ export function AirdropPreview() {
             </Typography>
           </Box>
           <Box m={2}>
-            <StyledButton href={"https://authereum.hop.exchange/check"}>
+            <StyledButton href={"/airdrop/authereum"}>
               Check Authereum Account
             </StyledButton>
           </Box>

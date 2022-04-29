@@ -3,16 +3,18 @@ import Box from '@material-ui/core/Box'
 import { EthAddress, Flex } from 'src/components/ui'
 import { useAirdropPreview } from './useAirdropPreview'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { CriteriaCircle } from './CriteriaCircle'
 import { AirdropPreviewWrapper } from './AirdropPreviewWrapper'
 import { StyledButton } from 'src/components/buttons/StyledButton'
 import Typography from '@material-ui/core/Typography'
+import { useDistribution } from './useDistribution'
 
 export const respMaxWidths = [350, 624, 824]
 
 export function AirdropPreview() {
   const { address } = useWeb3Context()
-  const { eligibility } = useAirdropPreview(address)
+  // const { eligibility } = useAirdropPreview(address)
+  const userDistribution = useDistribution(address?.address)
+  const isEligible = userDistribution?.lpTokens || userDistribution?.hopUserTokens
 
   return (
     <>
@@ -37,7 +39,7 @@ export function AirdropPreview() {
           {!!address && (
           <>
             <Box px={4} maxWidth="500px">
-              {!eligibility?.isEligible ? (
+              {!isEligible ? (
                 <Box m={3} display="flex" flexDirection="column" justifyContent="center" justifyItems="center" alignItems="center" textAlign="center">
                   <Typography variant="subtitle2" component="div" color="textSecondary">
                   Sorry, the connected account is not eligible for the Hop airdrop 😞
@@ -66,13 +68,56 @@ export function AirdropPreview() {
 
               <Box display="flex" justifyContent="space-between">
                 <Box>Hop Bridge User:</Box>
-                <CriteriaCircle criteria={eligibility?.bridgeUserAirdrop} />
+                {(isEligible && userDistribution.hopUserTokens > 0) ? (
+                  <div>
+                    {userDistribution.hopUserTokens}
+                  </div>
+                ) : (
+                  <div>
+                    <em>not eligible</em>
+                  </div>
+                )}
               </Box>
 
               <Box display="flex" justifyContent="space-between">
                 <Box>Liquidity Provider:</Box>
-                <CriteriaCircle criteria={eligibility?.lpAirdrop} />
+                {(isEligible && userDistribution.lpTokens > 0) ? (
+                  <div>
+                    {userDistribution.lpTokens}
+                  </div>
+                ) : (
+                  <div>
+                    <em>not eligible</em>
+                  </div>
+                )}
               </Box>
+
+              <Box display="flex" justifyContent="space-between">
+                <Box>Early Bird Multiplier:</Box>
+                {(isEligible && userDistribution.earlyMultiplier > 0) ? (
+                  <div>
+                    {userDistribution.earlyMultiplier}
+                  </div>
+                ) : (
+                  <div>
+                    <em>not eligible</em>
+                  </div>
+                )}
+              </Box>
+
+              <Box display="flex" justifyContent="space-between">
+                <Box>Volume Multiplier:</Box>
+                {(isEligible && userDistribution.volumeMultiplier > 0) ? (
+                  <div>
+                    {userDistribution.volumeMultiplier}
+                  </div>
+                ) : (
+                  <div>
+                    <em>not eligible</em>
+                  </div>
+                )}
+              </Box>
+
               <Box display="flex" mt={5}>
                 <Typography variant="body1" component="div">
                   <em>An announcement will be made by the Hop team on the official announcement channels when tokens are ready to be claimed.</em>

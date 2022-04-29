@@ -47,7 +47,7 @@ export function formatError(error: any, network?: Network) {
     errMsg = `An RPC error occured. Please check you have enough ${feeToken} to pay for fees and check your wallet network settings are correct. Refresh to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   } else if (errMsg.includes('call revert exception') || errMsg.includes('missing revert data')) {
     errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
-  } else if (errMsg.includes('unsupported block number')) {
+  } else if (errMsg.includes('unsupported block number') || errMsg.includes('rlp: expected List')) {
     errMsg = `An RPC error occured. Please refresh page to try again. Error: ${errMsg}`
   }
 

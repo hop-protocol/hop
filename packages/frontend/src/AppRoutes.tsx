@@ -13,6 +13,7 @@ import Health from 'src/pages/Health'
 import TransactionPage from 'src/pages/Transaction'
 import { Div } from './components/ui'
 import SocialVerified from './pages/Airdrop/SocialVerified'
+import AuthereumVerified from './pages/Airdrop/AuthereumVerified'
 import { AirdropPreview } from './pages/Airdrop/AirdropPreview'
 
 const AppRoutes: FC = () => {
@@ -33,6 +34,7 @@ const AppRoutes: FC = () => {
           <Route exact path="/airdrop/social-verify" component={SocialVerify} />
           <Route path="/airdrop/preview" component={AirdropPreview} />
           <Route exact path="/social-verified" component={SocialVerified} />
+          <Route exact path="/authereum-verified" component={AuthereumVerified} />
           <Route exact path="/airdrop/authereum" component={AuthereumVerify} />
           <Route exact path={['/tx', '/tx/:hash']} component={TransactionPage} />
 

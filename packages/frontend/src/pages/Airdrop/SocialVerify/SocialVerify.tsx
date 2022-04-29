@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
+import { StyledButton } from 'src/components/buttons/StyledButton'
 import { DiscordLoginButton, TwitterLoginButton } from "react-social-login-buttons";
 
 export function SocialVerify() {
@@ -32,6 +33,11 @@ export function SocialVerify() {
             <em>We only require your username and user ID from the social media platforms for verification. Unfortunately the minimum permissions scope for Twitter ask for additional data, which we don't need or use. We don't store any user information.</em>
           </Typography>
         </Box>
+      </Box>
+      <Box my={3} display="flex" flexDirection="column" justifyContent="center">
+        <StyledButton href={"/airdrop/preview"}>
+          Go back
+        </StyledButton>
       </Box>
     </Box>
   )

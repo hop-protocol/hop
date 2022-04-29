@@ -34,6 +34,7 @@ const AppRoutes: FC = () => {
           <Route exact path={['/tx', '/tx/:hash']} component={TransactionPage} />
 
           <Route exact path="/components" component={Components} />
+          <Redirect exact from="/airdrop" to="/airdrop/preview" />
         </Div>
       </Div>
       <Route component={() => <Redirect to="/send" />} />

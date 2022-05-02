@@ -65,13 +65,14 @@ const TokenWrapper: FC<Props> = (props: Props) => {
   const hasWrappedToken = wrappedTokenBalance?.gt(0)
   const hasNativeToken = canonicalTokenBalance?.gt(0)
   const loadingBalance = !(canonicalTokenBalance && wrappedTokenBalance)
+  const tokenSymbol = canonicalToken?.symbol
 
   if (!isNativeToken || !isWrappedTokenValid) {
     return null
   }
 
   return (
-    <Expandable title="Wrap/Unwrap">
+    <Expandable title={`Click here to Wrap or Unwrap ${tokenSymbol}`}>
       <Flex alignCenter my={1} justifyAround fullWidth>
         <Flex column alignCenter fullWidth>
           <AmountSelectorCard

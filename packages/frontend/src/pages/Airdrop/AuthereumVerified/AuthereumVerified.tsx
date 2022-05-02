@@ -109,8 +109,13 @@ export function AuthereumVerified() {
         </Typography>
 
         <Typography style={{ marginTop: '3rem' }} variant="subtitle2" color="textSecondary">
-          Please enter an Ethereum Mainnet address that you control to claim your <b>Authereum User</b>
-          &nbsp;airdrop tokens on [DATE]
+          Enter an Ethereum address you want to claim the $HOP tokens with.
+        </Typography>
+        <Typography variant="body1" color="textSecondary">
+          Follow official Discord/Twitter announcements for information about the token launch date. You will be able to claim your $HOP token share on app.hop.exchange once the token is launched.
+        </Typography>
+        <Typography style={{ marginTop: '3rem' }} variant="body1" color="textSecondary">
+          Use an address that is <strong>not</strong> an Authereum address.
         </Typography>
       </Box>
 

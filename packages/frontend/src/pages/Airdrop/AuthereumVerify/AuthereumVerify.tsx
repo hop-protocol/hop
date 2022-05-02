@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import Alert from 'src/components/alert/Alert'
+import { ExternalLink } from 'src/components/Link'
 import { StyledButton } from 'src/components/buttons/StyledButton'
 import { DiscordLoginButton, TwitterLoginButton } from "react-social-login-buttons";
 import { Input } from 'src/components/ui'
@@ -56,12 +57,12 @@ export function AuthereumVerify() {
     <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
       <Box m={2} textAlign="center">
         <Typography variant="h5" component="div">
-          Hop Airdrop for Authereum Users
+          Are you an Authereum user?
         </Typography>
       </Box>
       <Box m={3} maxWidth={500} textAlign="center">
         <Typography variant="subtitle2" color="textSecondary">
-          Check if your Authereum account is eligible for the <strong>Authereum User</strong> airdrop
+          If you are an <ExternalLink href="https://authereum.com">Authereum</ExternalLink> user and meet the minimum eligibility requirements, you qualify for a $HOP airdrop.
         </Typography>
       </Box>
       <Box my={3} display="flex" flexDirection="column" justifyContent="center">
@@ -83,8 +84,13 @@ export function AuthereumVerify() {
         </Box>
 
         <Button disabled={submitDisabled} onClick={handleSubmit} variant="contained" color="primary" highlighted>
-          Submit
+          Send verification email
         </Button>
+      </Box>
+      <Box marginBottom={4} m={3} maxWidth={300} textAlign="center">
+        <Typography variant="body2" color="textSecondary">
+          <em>It’s not possible to sign-up for Authereum anymore as the wallet has <ExternalLink href="https://medium.com/authereum/an-end-and-a-new-beginning-ae0e2e596e1b">closed down</ExternalLink> since March 2021.</em>
+        </Typography>
       </Box>
       <Alert severity="error" onClose={() => setError('')}>
         {error}

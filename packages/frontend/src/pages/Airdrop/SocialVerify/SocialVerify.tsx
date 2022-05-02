@@ -12,6 +12,11 @@ export function SocialVerify() {
           Hop Airdrop Social Verification
         </Typography>
       </Box>
+      <Box m={3} maxWidth={500} textAlign="center">
+        <Typography variant="subtitle2" color="textSecondary">
+          The top 500 Hop Discord participants and 15 Twitter users who were early evangelists for Hop are eligible for these claims.
+        </Typography>
+      </Box>
       <Box marginBottom={4} m={3} maxWidth={500} textAlign="center">
         <Typography variant="subtitle2" color="textSecondary">
           Please login with Discord or Twitter to verify your eligibility for the <strong>Active User</strong> airdrop

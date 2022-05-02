@@ -7,10 +7,12 @@ import { AirdropPreviewWrapper } from './AirdropPreviewWrapper'
 import { StyledButton } from 'src/components/buttons/StyledButton'
 import Typography from '@material-ui/core/Typography'
 import { useDistribution } from './useDistribution'
+import { useTheme } from '@material-ui/core'
 
 export const respMaxWidths = [350, 624, 824]
 
 export function AirdropPreview() {
+  const theme = useTheme()
   const { address } = useWeb3Context()
   // const { eligibility } = useAirdropPreview(address)
   const userDistribution = useDistribution(address?.address)
@@ -67,55 +69,48 @@ export function AirdropPreview() {
               </Box>
 
               <Box display="flex" justifyContent="space-between">
-                <Box>Hop Bridge User:</Box>
-                {(isEligible && userDistribution.hopUserTokens > 0) ? (
-                  <div>
-                    {userDistribution.hopUserTokens}
-                  </div>
-                ) : (
-                  <div>
-                    <em>not eligible</em>
-                  </div>
-                )}
+                <Typography variant="body1" component="div">
+                  Hop Bridge User:
+                </Typography>
+                <Typography variant="body1" component="div">
+                  {userDistribution.hopUserTokens} HOP
+                </Typography>
               </Box>
 
               <Box display="flex" justifyContent="space-between">
-                <Box>Liquidity Provider:</Box>
-                {(isEligible && userDistribution.lpTokens > 0) ? (
-                  <div>
-                    {userDistribution.lpTokens}
-                  </div>
-                ) : (
-                  <div>
-                    <em>not eligible</em>
-                  </div>
-                )}
+                <Typography variant="body1" component="div">
+                  Liquidity Provider:
+                </Typography>
+                <Typography variant="body1" component="div">
+                  {userDistribution.lpTokens} HOP
+                </Typography>
               </Box>
 
               <Box display="flex" justifyContent="space-between">
-                <Box>Early Bird Multiplier:</Box>
-                {(isEligible && userDistribution.earlyMultiplier > 0) ? (
-                  <div>
-                    {userDistribution.earlyMultiplier}
-                  </div>
-                ) : (
-                  <div>
-                    <em>not eligible</em>
-                  </div>
-                )}
+                <Typography variant="body1" component="div">
+                  Early Bird Multiplier:
+                </Typography>
+                <Typography variant="body1" component="div">
+                  {userDistribution.earlyMultiplier} HOP
+                </Typography>
               </Box>
 
               <Box display="flex" justifyContent="space-between">
-                <Box>Volume Multiplier:</Box>
-                {(isEligible && userDistribution.volumeMultiplier > 0) ? (
-                  <div>
-                    {userDistribution.volumeMultiplier}
-                  </div>
-                ) : (
-                  <div>
-                    <em>not eligible</em>
-                  </div>
-                )}
+                <Typography variant="body1" component="div">
+                  Volume Multiplier:
+                </Typography>
+                <Typography variant="body1" component="div">
+                  {userDistribution.volumeMultiplier} HOP
+                </Typography>
+              </Box>
+              <Box my={2} style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
+              <Box display="flex" justifyContent="space-between">
+                <Typography variant="body1" component="div">
+                  Total:
+                </Typography>
+                <Typography variant="body1" component="div">
+                  {userDistribution.total} HOP
+                </Typography>
               </Box>
 
               <Box display="flex" mt={5}>

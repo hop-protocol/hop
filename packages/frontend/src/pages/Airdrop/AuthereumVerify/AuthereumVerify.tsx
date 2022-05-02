@@ -16,6 +16,7 @@ export function AuthereumVerify() {
   const [captchaResponseToken, setCaptchaResponseToken] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [successMsg, setSuccessMsg] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
 
   function handleInputChange(event: any) {
     setInputValue(event.target.value)
@@ -23,6 +24,7 @@ export function AuthereumVerify() {
 
   const handleSubmit = async () => {
     try {
+      setLoading(true)
       setError('')
       setSuccessMsg('')
       const url = `https://authereum.hop.exchange/check-email`
@@ -40,11 +42,13 @@ export function AuthereumVerify() {
       if (json.error) {
         throw new Error(json.error)
       }
-
-      setSuccessMsg('A confirmation email has been sent.')
+      if (json.success) {
+        setSuccessMsg(json.success)
+      }
     } catch (err: any) {
       setError(err.message)
     }
+    setLoading(false)
   }
 
   const onCaptchaChange = (value: string) => {
@@ -83,7 +87,7 @@ export function AuthereumVerify() {
           />
         </Box>
 
-        <Button disabled={submitDisabled} onClick={handleSubmit} variant="contained" color="primary" highlighted>
+        <Button loading={loading} disabled={submitDisabled} onClick={handleSubmit} variant="contained" color="primary" highlighted>
           Send verification email
         </Button>
       </Box>

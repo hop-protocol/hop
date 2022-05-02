@@ -25,6 +25,7 @@ export function AuthereumVerified() {
   const [successMsg, setSuccessMsg] = useState<string>('')
   const [userData, setUserData] = useState<ActiveUserEligibility>()
   const [captchaResponseToken, setCaptchaResponseToken] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
     const { email, userId, address } = queryParams
@@ -42,6 +43,7 @@ export function AuthereumVerified() {
 
   const handleSubmit = async () => {
     try {
+      setLoading(true)
       setError('')
       setSuccessMsg('')
       const { userId } = userData as ActiveUserEligibility
@@ -64,10 +66,13 @@ export function AuthereumVerified() {
       if (json.error) {
         throw new Error(json.error)
       }
-      setSuccessMsg('Successfully set address. You may now close this window and wait for an announcement from the Hop team on how to claim your tokens.')
+      if (json.success) {
+        setSuccessMsg(json.success)
+      }
     } catch (err: any) {
       setError(err.message)
     }
+    setLoading(false)
   }
 
   const onCaptchaChange = (value: string) => {
@@ -137,7 +142,7 @@ export function AuthereumVerified() {
           />
         </Box>
 
-        <Button disabled={submitDisabled} onClick={handleSubmit} variant="contained" color="primary" highlighted>
+        <Button loading={loading} disabled={submitDisabled} onClick={handleSubmit} variant="contained" color="primary" highlighted>
           Submit
         </Button>
       </Box>
@@ -150,7 +155,7 @@ export function AuthereumVerified() {
       </Alert>
 
       <Box my={3} display="flex" flexDirection="column" justifyContent="center">
-        <StyledButton href={"/airdrop/authereum-verify"}>
+        <StyledButton href={"/airdrop/authereum"}>
           Go back
         </StyledButton>
       </Box>

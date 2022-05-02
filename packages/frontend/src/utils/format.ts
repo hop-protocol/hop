@@ -49,6 +49,8 @@ export function formatError(error: any, network?: Network) {
     errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   } else if (errMsg.includes('unsupported block number') || errMsg.includes('rlp: expected List')) {
     errMsg = `An RPC error occured. Please refresh page to try again. Error: ${errMsg}`
+  } else if (errMsg.includes('transaction underpriced')) {
+    errMsg = `An RPC error occured. The transaction is underpriced. Please try again and increase gas price. If you are seeing is error a lot, try resetting the nonce for your wallet account. Error: ${errMsg}`
   }
 
   return prettifyErrorMessage(errMsg)

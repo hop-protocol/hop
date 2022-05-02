@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Box from '@material-ui/core/Box'
 import { EthAddress, Flex } from 'src/components/ui'
 import { useAirdropPreview } from './useAirdropPreview'
@@ -7,16 +7,46 @@ import { AirdropPreviewWrapper } from './AirdropPreviewWrapper'
 import { StyledButton } from 'src/components/buttons/StyledButton'
 import Typography from '@material-ui/core/Typography'
 import { useDistribution } from './useDistribution'
+import Button from 'src/components/buttons/Button'
 import { useTheme } from '@material-ui/core'
+import { useApp } from 'src/contexts/AppContext'
+import { AddressModal } from './AddressModal'
+import { getAddress } from 'ethers/lib/utils'
 
 export const respMaxWidths = [350, 624, 824]
 
 export function AirdropPreview() {
   const theme = useTheme()
   const { address } = useWeb3Context()
+  const [airdropAddress, setAirdropAddress] = useState<string>(address?.address || '')
+  const [showAddressModal, setShowAddressModal] = useState<boolean>(false)
   // const { eligibility } = useAirdropPreview(address)
-  const userDistribution = useDistribution(address?.address)
+  const userDistribution = useDistribution(airdropAddress)
   const isEligible = userDistribution?.lpTokens || userDistribution?.hopUserTokens
+  const isConnected = !!airdropAddress
+
+  useEffect(() => {
+    if (address?.address) {
+      setAirdropAddress(address?.address)
+    }
+  }, [address?.address])
+
+  async function checkAnotherAddress() {
+    setShowAddressModal(true)
+  }
+
+  async function handleAddressChange(_address: string) {
+    try {
+      setAirdropAddress(getAddress(_address))
+    } catch (err) {
+      console.error(err)
+    }
+    setShowAddressModal(false)
+  }
+
+  function handleModalClose() {
+    setShowAddressModal(false)
+  }
 
   return (
     <>
@@ -28,7 +58,7 @@ export function AirdropPreview() {
             </Typography>
           </Box >
 
-          {!address && (
+          {!isConnected && (
             <Box px={4} maxWidth="500px">
               <Box m={3} display="flex" flexDirection="column" justifyContent="center" justifyItems="center" alignItems="center" textAlign="center">
                 <Typography variant="subtitle2" component="div" color="textSecondary">
@@ -38,7 +68,7 @@ export function AirdropPreview() {
             </Box>
           )}
 
-          {!!address && (
+          {isConnected && (
           <>
             <Box px={4} maxWidth="500px">
               {!isEligible ? (
@@ -63,7 +93,7 @@ export function AirdropPreview() {
               <Box display="flex" flexDirection="column" justifyContent="center" my={3}>
                 <Box mr={3}>
                   <Typography variant="body1" component="div">
-                    Account: <EthAddress value={address?.address} full />
+                    Account: <EthAddress value={airdropAddress} full />
                   </Typography>
                 </Box>
               </Box>
@@ -106,10 +136,10 @@ export function AirdropPreview() {
               <Box my={2} style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
               <Box display="flex" justifyContent="space-between">
                 <Typography variant="body1" component="div">
-                  Total:
+                  <strong>Total:</strong>
                 </Typography>
                 <Typography variant="body1" component="div">
-                  {userDistribution.total} HOP
+                  <strong>{userDistribution.total} HOP</strong>
                 </Typography>
               </Box>
 
@@ -122,6 +152,10 @@ export function AirdropPreview() {
           </>
         )}
         </Box>
+
+      <Box mt={2} display="flex" flexDirection="column" justifyContent="center" alignItems="center" width="100%">
+        <Button onClick={checkAnotherAddress}>Check another address</Button>
+      </Box>
 
       </AirdropPreviewWrapper>
       <Box my={5} display="flex" flexDirection="column" justifyContent="center" alignItems="center" width="100%">
@@ -150,6 +184,9 @@ export function AirdropPreview() {
           </Box>
         </Box>
       </Box>
+      {showAddressModal && (
+        <AddressModal onSubmit={handleAddressChange} onClose={handleModalClose} />
+      )}
     </>
   )
 }

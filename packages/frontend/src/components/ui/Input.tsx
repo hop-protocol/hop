@@ -50,6 +50,7 @@ const StyledInput: React.FC<InputProps> = styled.input`
   padding: 0.75em;
   width: 100%;
   border: none;
+  border-radius: 1em;
 
   ${composedStyleFns}
 `
@@ -68,7 +69,7 @@ function Input(props: InputProps) {
       </Div>
     )
   }
-  return <StyledInput borderRadius="1em" {...props} />
+  return <StyledInput {...props} />
 }
 
 export default Input

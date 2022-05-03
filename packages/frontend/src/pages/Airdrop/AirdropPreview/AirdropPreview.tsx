@@ -11,6 +11,7 @@ import { useTheme } from '@material-ui/core'
 import { useApp } from 'src/contexts/AppContext'
 import { AddressModal } from './AddressModal'
 import { getAddress } from 'ethers/lib/utils'
+import InfoTooltip from 'src/components/InfoTooltip'
 
 export const respMaxWidths = [350, 624, 824]
 
@@ -107,7 +108,8 @@ export function AirdropPreview() {
 
                 <Box display="flex" justifyContent="space-between">
                   <Typography variant="body1" component="div">
-                    Hop Bridge User:
+                    Hop Bridge User: <InfoTooltip
+            title={'Users who made a minimum of 2 bridge transactions and $1,000 of volume across the Hop bridge.'} />
                   </Typography>
                   <Typography variant="body1" component="div">
                     {userDistribution.hopUserTokens} HOP
@@ -116,7 +118,8 @@ export function AirdropPreview() {
                 <Box ml={4} mb={2}>
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="body1" component="div">
-                      • Base Amount:
+                      • Base Amount: <InfoTooltip
+            title={'Users who made sent an amount through hop receive a base amount of HOP.'} />
                     </Typography>
                     <Typography variant="body1" component="div">
                       {userDistribution.baseAmount} HOP
@@ -124,7 +127,8 @@ export function AirdropPreview() {
                   </Box>
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="body1" component="div">
-                      • Early Bird Multiplier:
+                      • Early Bird Multiplier: <InfoTooltip
+            title={'The earliest Hop users will receive a 2x multiplier and the last users before the snapshot will received a 1x multiplier. The value of the multiplier decreases linearly.'} />
                     </Typography>
                     <Typography variant="body1" component="div">
                       {userDistribution.earlyMultiplier}
@@ -133,7 +137,8 @@ export function AirdropPreview() {
 
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="body1" component="div">
-                      • Volume Multiplier:
+                      • Volume Multiplier: <InfoTooltip
+            title={'Users who sent more than a certain amount through Hop will receive a multiplier.'} />
                     </Typography>
                     <Typography variant="body1" component="div">
                       {userDistribution.volumeMultiplier}
@@ -143,7 +148,8 @@ export function AirdropPreview() {
 
                 <Box display="flex" justifyContent="space-between">
                   <Typography variant="body1" component="div">
-                    Liquidity Provider:
+                    Liquidity Provider: <InfoTooltip
+            title={'Anyone who provided liquidity in the Hop AMMs. The amount of HOP received is relative to how long you were an LP in any pool and how large your position was relative to the size of the entire pool.'} />
                   </Typography>
                   <Typography variant="body1" component="div">
                     {userDistribution.lpTokens} HOP
@@ -153,7 +159,8 @@ export function AirdropPreview() {
                 <Box my={2} style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
                 <Box display="flex" justifyContent="space-between">
                   <Typography variant="body1" component="div">
-                    <strong>Total:</strong>
+                    <strong>Total:</strong> <InfoTooltip
+            title={'The total amount of HOP this address will be able to claim.'} />
                   </Typography>
                   <Typography variant="body1" component="div">
                     <strong>{userDistribution.total} HOP</strong>

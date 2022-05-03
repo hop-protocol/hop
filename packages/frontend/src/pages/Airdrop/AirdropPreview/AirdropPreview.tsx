@@ -119,7 +119,7 @@ export function AirdropPreview() {
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="body2" component="div">
                       Base Amount: <InfoTooltip
-            title={'Users who made sent an amount through hop receive a base amount of HOP.'} />
+            title={'Users who met the minimum Hop Bridge User requirements receive a base amount of HOP.'} />
                     </Typography>
                     <Typography variant="body2" component="div">
                       {userDistribution.baseAmount} HOP
@@ -128,7 +128,7 @@ export function AirdropPreview() {
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="body2" component="div">
                       Early Bird Multiplier: <InfoTooltip
-            title={'The earliest Hop users will receive a 2x multiplier and the last users before the snapshot will received a 1x multiplier. The value of the multiplier decreases linearly.'} />
+            title={'The earliest Hop users will receive a 2x multiplier and the last users before the snapshot will receive a 1x multiplier. The value of the multiplier decreases linearly over time.'} />
                     </Typography>
                     <Typography variant="body2" component="div">
                       {userDistribution.earlyMultiplier}

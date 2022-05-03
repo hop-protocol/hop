@@ -9,6 +9,7 @@ import Button from 'src/components/buttons/Button'
 import { StyledButton } from 'src/components/buttons/StyledButton'
 import ReCAPTCHA from 'react-google-recaptcha'
 import CheckIcon from '@material-ui/icons/Check'
+import { updateQueryParams } from 'src/utils/updateQueryParams'
 
 const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
 
@@ -24,6 +25,7 @@ type ActiveUserEligibility = {
   social: SocialMediaPlatform
   userId: string
   username: string
+  prevAddress: string
 }
 
 export function SocialVerified() {
@@ -36,14 +38,18 @@ export function SocialVerified() {
   const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
-    const { username, eligible, social, userId } = queryParams
+    const { username, eligible, social, userId, address: prevAddress } = queryParams
     const data = {
       eligible: eligible === 'true',
       social: social as SocialMediaPlatform,
       userId: userId as string,
       username: username as string,
+      prevAddress: prevAddress as string
     }
     setUserData(data)
+    if (prevAddress) {
+      setInputValue(prevAddress as string)
+    }
   }, [queryParams])
 
   function handleInputChange(event: any) {
@@ -60,8 +66,9 @@ export function SocialVerified() {
         return
       }
 
+      const _address = inputValue.trim()
       const url = `https://social-auth.hop.exchange/${social}/update-address`
-      const data = { address: inputValue, ...userData, responseToken: captchaResponseToken }
+      const data = { address: _address, ...userData, responseToken: captchaResponseToken }
 
       const res = await fetch(url, {
         method: 'POST',
@@ -77,6 +84,7 @@ export function SocialVerified() {
       }
       if (json.success) {
         setSuccessMsg(json.success)
+        updateQueryParams({ address: _address })
       }
     } catch (err: any) {
       setError(err.message)

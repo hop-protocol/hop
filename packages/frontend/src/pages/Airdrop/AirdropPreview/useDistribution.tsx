@@ -29,10 +29,10 @@ export function useDistribution(address?: string) {
           }
         }
         setAllData(data)
+        setLoading(false)
       } catch (err) {
         console.error(err)
       }
-      setLoading(false)
     }
 
     update().catch(console.error)

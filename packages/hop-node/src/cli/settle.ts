@@ -21,7 +21,7 @@ root
 async function main (source: any) {
   const { sourceChain: chain, token, transferRootHash, transferId, bonder, dry: dryMode } = source
   if (!chain) {
-    throw new Error('chain is required')
+    throw new Error('source chain is required')
   }
   if (!token) {
     throw new Error('token is required')

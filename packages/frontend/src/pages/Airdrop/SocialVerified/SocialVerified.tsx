@@ -116,15 +116,17 @@ export function SocialVerified() {
           🥳
         </Typography>
         <Typography variant="h5" color="textSecondary">
-          Congrats! you're eligible for the airdrop
+          Congrats! You're eligible for the airdrop
         </Typography>
         <Typography variant="subtitle2" color="textSecondary">
           Verified {socialNames[userData?.social!]} account @{userData?.username!} <CheckIcon style={{ color: 'green' }} />
         </Typography>
 
         <Typography style={{ marginTop: '3rem' }} variant="subtitle2" color="textSecondary">
-          Please enter an Ethereum Mainnet address that you control to claim your <b>Active User</b>
-          &nbsp;airdrop tokens on [DATE]
+          Enter an Ethereum address you want to claim the HOP tokens with.
+        </Typography>
+        <Typography variant="body1" color="textSecondary">
+          Follow official Discord/Twitter announcements for information about the token launch date. You will be able to claim your HOP token share on app.hop.exchange once the token is launched.
         </Typography>
       </Box>
 

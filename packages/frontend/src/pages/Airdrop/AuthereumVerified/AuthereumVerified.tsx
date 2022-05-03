@@ -107,20 +107,20 @@ export function AuthereumVerified() {
           🥳
         </Typography>
         <Typography variant="h5" color="textSecondary">
-          Congrats! you're eligible for the airdrop
+          Congrats! You're eligible for the airdrop
         </Typography>
         <Typography variant="subtitle2" color="textSecondary">
           Verified {userData?.email!} account <CheckIcon style={{ color: 'green' }} />
         </Typography>
 
         <Typography style={{ marginTop: '3rem' }} variant="subtitle2" color="textSecondary">
-          Enter an Ethereum address you want to claim the $HOP tokens with.
+          Enter an Ethereum address you want to claim the HOP tokens with.
         </Typography>
         <Typography variant="body1" color="textSecondary">
-          Follow official Discord/Twitter announcements for information about the token launch date. You will be able to claim your $HOP token share on app.hop.exchange once the token is launched.
+          Follow official Discord/Twitter announcements for information about the token launch date. You will be able to claim your HOP token share on app.hop.exchange once the token is launched.
         </Typography>
         <Typography style={{ marginTop: '3rem' }} variant="body1" color="textSecondary">
-          Use an address that is <strong>not</strong> an Authereum address.
+          Use an address that is <strong>not</strong> an Authereum address and that you control.
         </Typography>
       </Box>
 

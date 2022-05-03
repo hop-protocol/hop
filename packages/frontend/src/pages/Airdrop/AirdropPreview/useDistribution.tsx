@@ -48,8 +48,8 @@ export function useDistribution(address?: string) {
     if (data) {
       lpTokens = Number(Number(formatUnits(data.lpTokens.toString(), 18)).toFixed(2))
       hopUserTokens = Number(Number(formatUnits(data.hopUserTokens.toString(), 18)).toFixed(2))
-      earlyMultiplier = Number(Number(data.earlyMultiplier).toFixed(2))
-      volumeMultiplier = Number(Number(data.volumeMultiplier).toFixed(2))
+      earlyMultiplier = Number(Number(data.earlyMultiplier).toFixed(2)) || 1
+      volumeMultiplier = Number(Number(data.volumeMultiplier).toFixed(2)) || 1
       total = Number((lpTokens + hopUserTokens).toFixed(2))
     }
   }

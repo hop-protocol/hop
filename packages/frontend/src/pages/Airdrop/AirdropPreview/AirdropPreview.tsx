@@ -52,7 +52,7 @@ export function AirdropPreview() {
         <Box display="flex" flexDirection="column" justifyContent="center" width="100%">
           <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
             <Typography variant="h4" component="div">
-              Hop Token Airdrop
+              HOP Token Airdrop
             </Typography>
           </Box>
 
@@ -123,7 +123,7 @@ export function AirdropPreview() {
                     Early Bird Multiplier:
                   </Typography>
                   <Typography variant="body1" component="div">
-                    {userDistribution.earlyMultiplier} HOP
+                    {userDistribution.earlyMultiplier}
                   </Typography>
                 </Box>
 
@@ -132,7 +132,7 @@ export function AirdropPreview() {
                     Volume Multiplier:
                   </Typography>
                   <Typography variant="body1" component="div">
-                    {userDistribution.volumeMultiplier} HOP
+                    {userDistribution.volumeMultiplier}
                   </Typography>
                 </Box>
                 <Box my={2} style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
@@ -147,7 +147,7 @@ export function AirdropPreview() {
 
                 <Box display="flex" mt={5}>
                   <Typography variant="body1" component="div">
-                    <em>An announcement will be made by the Hop team on the official announcement channels when tokens are ready to be claimed.</em>
+                    <em>The values above may change between now and the date of the token Airdrop. An announcement will be made by the Hop team on the official announcement channels when tokens are ready to be claimed.</em>
                   </Typography>
                 </Box>
               </Box>
@@ -155,7 +155,7 @@ export function AirdropPreview() {
           )}
 
           <Box mt={2} display="flex" flexDirection="column" justifyContent="center" alignItems="center" width="100%">
-            <Button onClick={checkAnotherAddress}>Check another address</Button>
+            <Button onClick={checkAnotherAddress}>Check Another Address</Button>
           </Box>
         </>
       )}

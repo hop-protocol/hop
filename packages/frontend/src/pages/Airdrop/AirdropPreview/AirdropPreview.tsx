@@ -61,9 +61,9 @@ export function AirdropPreview() {
           ) : (
           <>
             {!isConnected && (
-              <Box px={4} maxWidth="500px">
+              <Box maxWidth="500px">
                 <Box m={3} display="flex" flexDirection="column" justifyContent="center" justifyItems="center" alignItems="center" textAlign="center">
-                  <Typography variant="subtitle2" component="div" color="textSecondary">
+                  <Typography variant="subtitle2" component="div">
                   Please connect your wallet to check if eligible
                   </Typography>
                 </Box >
@@ -72,21 +72,26 @@ export function AirdropPreview() {
 
             {isConnected && (
             <>
-              <Box px={4} maxWidth="500px">
+              <Box maxWidth="500px">
                 {!isEligible ? (
                   <Box m={3} display="flex" flexDirection="column" justifyContent="center" justifyItems="center" alignItems="center" textAlign="center">
-                    <Typography variant="subtitle2" component="div" color="textSecondary">
+                    <Typography variant="subtitle2" component="div">
                     Sorry, the connected account is not eligible for the Hop airdrop 😞
                     </Typography>
                   </Box >
                 ) : (
                   <Box m={3} display="flex" flexDirection="column" justifyContent="center" justifyItems="center" alignItems="center" textAlign="center">
-                    <Typography variant="subtitle1" component="div">
-                      You are eligible for the Hop airdrop! 🎉
+                    <Typography variant="h3">
+                      🥳
                     </Typography>
-                    <Typography variant="body1" component="div">
-                      Please view your Airdrop preview details below.
+                    <Typography variant="h5">
+                      Congrats! You're eligible for the airdrop
                     </Typography>
+                    <Box mt={1} display="flex" flexDirection="column">
+                      <Typography variant="body1" component="div">
+                        Please view your Airdrop preview details below.
+                      </Typography>
+                    </Box >
                   </Box >
                 )}
               </Box>
@@ -108,6 +113,33 @@ export function AirdropPreview() {
                     {userDistribution.hopUserTokens} HOP
                   </Typography>
                 </Box>
+                <Box ml={4} mb={2}>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body1" component="div">
+                      • Base Amount:
+                    </Typography>
+                    <Typography variant="body1" component="div">
+                      {userDistribution.baseAmount} HOP
+                    </Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body1" component="div">
+                      • Early Bird Multiplier:
+                    </Typography>
+                    <Typography variant="body1" component="div">
+                      {userDistribution.earlyMultiplier}
+                    </Typography>
+                  </Box>
+
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body1" component="div">
+                      • Volume Multiplier:
+                    </Typography>
+                    <Typography variant="body1" component="div">
+                      {userDistribution.volumeMultiplier}
+                    </Typography>
+                  </Box>
+                </Box>
 
                 <Box display="flex" justifyContent="space-between">
                   <Typography variant="body1" component="div">
@@ -118,23 +150,6 @@ export function AirdropPreview() {
                   </Typography>
                 </Box>
 
-                <Box display="flex" justifyContent="space-between">
-                  <Typography variant="body1" component="div">
-                    Early Bird Multiplier:
-                  </Typography>
-                  <Typography variant="body1" component="div">
-                    {userDistribution.earlyMultiplier}
-                  </Typography>
-                </Box>
-
-                <Box display="flex" justifyContent="space-between">
-                  <Typography variant="body1" component="div">
-                    Volume Multiplier:
-                  </Typography>
-                  <Typography variant="body1" component="div">
-                    {userDistribution.volumeMultiplier}
-                  </Typography>
-                </Box>
                 <Box my={2} style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
                 <Box display="flex" justifyContent="space-between">
                   <Typography variant="body1" component="div">
@@ -146,7 +161,7 @@ export function AirdropPreview() {
                 </Box>
 
                 <Box display="flex" mt={5}>
-                  <Typography variant="body1" component="div">
+                  <Typography variant="body2" component="div" color="textSecondary">
                     <em>The values above may change between now and the date of the token Airdrop. An announcement will be made by the Hop team on the official announcement channels when tokens are ready to be claimed.</em>
                   </Typography>
                 </Box>
@@ -162,7 +177,7 @@ export function AirdropPreview() {
       </Box>
       </AirdropPreviewWrapper>
       <Box my={5} display="flex" flexDirection="column" justifyContent="center" alignItems="center" width="100%">
-        <Box display="flex" flexDirection="column" justifyContent="center" justifyItems="center" my={2}>
+        <Box display="flex" flexDirection="column" justifyContent="center" justifyItems="center" textAlign="center" my={2} maxWidth="350px">
           <Box>
             <Typography variant="body1" component="div">
               Check if your Discord or Twitter account is eligible for the <strong>Active User</strong> airdrop
@@ -174,7 +189,7 @@ export function AirdropPreview() {
             </StyledButton>
           </Box>
         </Box>
-        <Box display="flex" flexDirection="column" justifyContent="center" justifyItems="center">
+        <Box mt={4} display="flex" flexDirection="column" justifyContent="center" justifyItems="center" textAlign="center" maxWidth="350px">
           <Box>
             <Typography variant="body1" component="div">
               Check if your Authereum account is eligible for the <strong>Authereum User</strong> airdrop

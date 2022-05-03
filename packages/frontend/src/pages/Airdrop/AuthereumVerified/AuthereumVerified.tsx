@@ -85,7 +85,7 @@ export function AuthereumVerified() {
     return (
       <Box display="flex" flexDirection="column" alignItems="center" justifyItems="center" textAlign="center">
         <Box my={3} maxWidth={[350, 400, 525]}>
-          <Typography variant="h6" color="textSecondary">
+          <Typography variant="h6">
             Sorry, the {userData?.email!} account is not eligible for the Hop airdrop
           </Typography>
         </Box>
@@ -103,25 +103,31 @@ export function AuthereumVerified() {
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyItems="center" textAlign="center">
       <Box my={3} maxWidth={[350, 400, 525]}>
-        <Typography variant="h3" color="textSecondary">
+        <Typography variant="h3">
           🥳
         </Typography>
-        <Typography variant="h5" color="textSecondary">
+        <Typography variant="h5">
           Congrats! You're eligible for the airdrop
         </Typography>
-        <Typography variant="subtitle2" color="textSecondary">
+        <Typography variant="subtitle2">
           Verified {userData?.email!} account <CheckIcon style={{ color: 'green' }} />
         </Typography>
 
-        <Typography style={{ marginTop: '3rem' }} variant="subtitle2" color="textSecondary">
-          Enter an Ethereum address you want to claim the HOP tokens with.
-        </Typography>
-        <Typography variant="body1" color="textSecondary">
-          Follow official Discord/Twitter announcements for information about the token launch date. You will be able to claim your HOP token share on app.hop.exchange once the token is launched.
-        </Typography>
-        <Typography style={{ marginTop: '3rem' }} variant="body1" color="textSecondary">
-          Use an address that is <strong>not</strong> an Authereum address and that you control.
-        </Typography>
+        <Box mt={3}>
+          <Typography variant="subtitle2">
+            Enter an Ethereum address you want to claim the HOP tokens with.
+          </Typography>
+        </Box>
+        <Box mt={2}>
+          <Typography variant="body1">
+            Follow official Discord/Twitter announcements for information about the token launch date. You will be able to claim your HOP token share on app.hop.exchange once the token is launched.
+          </Typography>
+        </Box>
+        <Box mt={3}>
+          <Typography variant="body1">
+            Use an address that is <strong>not</strong> an Authereum address.
+          </Typography>
+        </Box>
       </Box>
 
       <Box my={3} display="flex" flexDirection="column" justifyContent="center">
@@ -132,7 +138,6 @@ export function AuthereumVerified() {
           onChange={handleInputChange}
           placeholder="0x123..."
           mb={2}
-          fontSize={[0, 2]}
         />
 
         <Box my={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center">

@@ -65,7 +65,7 @@ export function AuthereumVerify() {
         </Typography>
       </Box>
       <Box m={3} maxWidth={500} textAlign="center">
-        <Typography variant="subtitle2" color="textSecondary">
+        <Typography variant="subtitle2">
           If you are an <ExternalLink href="https://authereum.com">Authereum</ExternalLink> user and meet the minimum eligibility requirements, you qualify for a HOP airdrop.
         </Typography>
       </Box>

@@ -40,6 +40,7 @@ export function useDistribution(address?: string) {
 
   let lpTokens = 0
   let hopUserTokens = 0
+  let baseAmount = 0
   let earlyMultiplier = 0
   let volumeMultiplier = 0
   let total = 0
@@ -50,6 +51,9 @@ export function useDistribution(address?: string) {
       hopUserTokens = Number(Number(formatUnits(data.hopUserTokens.toString(), 18)).toFixed(2))
       earlyMultiplier = Number(Number(data.earlyMultiplier).toFixed(2)) || 1
       volumeMultiplier = Number(Number(data.volumeMultiplier).toFixed(2)) || 1
+      if (hopUserTokens) {
+        baseAmount = 332.66
+      }
       total = Number((lpTokens + hopUserTokens).toFixed(2))
     }
   }
@@ -58,6 +62,7 @@ export function useDistribution(address?: string) {
     loading,
     lpTokens,
     hopUserTokens,
+    baseAmount,
     earlyMultiplier,
     volumeMultiplier,
     total

@@ -115,32 +115,32 @@ export function AirdropPreview() {
                     {userDistribution.hopUserTokens} HOP
                   </Typography>
                 </Box>
-                <Box ml={4} mb={2}>
+                <Box ml={1} mb={2}>
                   <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body1" component="div">
-                      • Base Amount: <InfoTooltip
+                    <Typography variant="body2" component="div">
+                      Base Amount: <InfoTooltip
             title={'Users who made sent an amount through hop receive a base amount of HOP.'} />
                     </Typography>
-                    <Typography variant="body1" component="div">
+                    <Typography variant="body2" component="div">
                       {userDistribution.baseAmount} HOP
                     </Typography>
                   </Box>
                   <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body1" component="div">
-                      • Early Bird Multiplier: <InfoTooltip
+                    <Typography variant="body2" component="div">
+                      Early Bird Multiplier: <InfoTooltip
             title={'The earliest Hop users will receive a 2x multiplier and the last users before the snapshot will received a 1x multiplier. The value of the multiplier decreases linearly.'} />
                     </Typography>
-                    <Typography variant="body1" component="div">
+                    <Typography variant="body2" component="div">
                       {userDistribution.earlyMultiplier}
                     </Typography>
                   </Box>
 
                   <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body1" component="div">
-                      • Volume Multiplier: <InfoTooltip
+                    <Typography variant="body2" component="div">
+                      Volume Multiplier: <InfoTooltip
             title={'Users who sent more than a certain amount through Hop will receive a multiplier.'} />
                     </Typography>
-                    <Typography variant="body1" component="div">
+                    <Typography variant="body2" component="div">
                       {userDistribution.volumeMultiplier}
                     </Typography>
                   </Box>

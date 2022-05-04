@@ -22,7 +22,7 @@ export function useDistribution(address?: string) {
         const data :any = {}
         for (const line of rows) {
           const row = line.split(',')
-          const address = row[0]
+          const address = row[0]?.toLowerCase()
           data[address] = {}
           for (const h of header) {
             data[address][h] = row[header.indexOf(h)]

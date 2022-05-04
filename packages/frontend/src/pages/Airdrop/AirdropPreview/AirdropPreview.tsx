@@ -65,7 +65,7 @@ export function AirdropPreview() {
             {!isConnected && (
               <Box maxWidth="500px">
                 <Box m={3} display="flex" flexDirection="column" justifyContent="center" justifyItems="center" alignItems="center" textAlign="center">
-                  <Typography variant="subtitle2" component="div">
+                  <Typography variant="body1" component="div">
                   Please connect your wallet to check if eligible
                   </Typography>
                 </Box >

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { formatUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 // NOTE: this will come from the official airdrop repo once it's live
 const url = 'https://gist.githubusercontent.com/miguelmota/3342af8dc536cf218e24c36f0b975cc2/raw/06d772e41d1da2c61c44de628f67cad9e6f9ce16/distribution.csv'
@@ -44,17 +44,18 @@ export function useDistribution(address?: string) {
   let earlyMultiplier = 0
   let volumeMultiplier = 0
   let total = 0
+  const baseAmountBn = parseUnits('332.667997338656021290', 18)
   if (address) {
     const data = allData?.[address.toLowerCase()]
     if (data) {
-      lpTokens = Number(Number(formatUnits(data.lpTokens.toString(), 18)).toFixed(2))
-      hopUserTokens = Number(Number(formatUnits(data.hopUserTokens.toString(), 18)).toFixed(2))
-      earlyMultiplier = Number(Number(data.earlyMultiplier).toFixed(2)) || 1
-      volumeMultiplier = Number(Number(data.volumeMultiplier).toFixed(2)) || 1
+      lpTokens = Number(Number(formatUnits(data.lpTokens.toString(), 18)).toFixed(4))
+      hopUserTokens = Number(Number(formatUnits(data.hopUserTokens.toString(), 18)).toFixed(4))
+      earlyMultiplier = Number(Number(data.earlyMultiplier).toFixed(4)) || 1
+      volumeMultiplier = Number(Number(data.volumeMultiplier).toFixed(4)) || 1
       if (hopUserTokens) {
-        baseAmount = 332.66
+        baseAmount = Number(Number(formatUnits(baseAmountBn.toString(), 18)).toFixed(4))
       }
-      total = Number((lpTokens + hopUserTokens).toFixed(2))
+      total = Number((lpTokens + hopUserTokens).toFixed(4))
     }
   }
 

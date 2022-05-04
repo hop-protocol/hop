@@ -39,6 +39,7 @@ export function AirdropPreview() {
       setAirdropAddress(getAddress(_address))
     } catch (err) {
       console.error(err)
+      setAirdropAddress('')
     }
     setShowAddressModal(false)
   }
@@ -131,7 +132,7 @@ export function AirdropPreview() {
             title={'The earliest Hop users will receive a 2x multiplier and the last users before the snapshot will receive a 1x multiplier. The value of the multiplier decreases linearly over time.'} />
                     </Typography>
                     <Typography variant="body2" component="div">
-                      {userDistribution.earlyMultiplier}
+                      {userDistribution.earlyMultiplier > 0 ? `x${userDistribution.earlyMultiplier}` : userDistribution.earlyMultiplier}
                     </Typography>
                   </Box>
 
@@ -141,7 +142,7 @@ export function AirdropPreview() {
             title={'Users who sent more than a certain amount through Hop will receive a multiplier.'} />
                     </Typography>
                     <Typography variant="body2" component="div">
-                      {userDistribution.volumeMultiplier}
+                      {userDistribution.volumeMultiplier ? `x${userDistribution.volumeMultiplier}` : userDistribution.volumeMultiplier}
                     </Typography>
                   </Box>
                 </Box>

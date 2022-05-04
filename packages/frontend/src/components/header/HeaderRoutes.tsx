@@ -23,8 +23,8 @@ const HeaderRoutes: FC = () => {
       <Tab label="Send" value="/send" />
       <Tab label="Pool" value="/pool" />
       <Tab label="Convert" value="/convert" />
-      <Tab label="Airdrop" value="/airdrop" />
       <Tab label="Stake" value="/stake" />
+      <Tab label="Airdrop" value="/airdrop" />
       {!isMainnet && <Tab label="Faucet" value="/faucet" />}
     </Tabs>
   )

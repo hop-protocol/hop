@@ -29,7 +29,7 @@ const TxConfirm: FC = props => {
     withdrawStake: WithdrawStake,
     wrapToken: WrapToken,
     unwrapToken: UnwrapToken,
-    withdrawReview: WithdrawReview,
+    withdrawReview: WithdrawReview
   }
 
   const Component: FC = components[kind]

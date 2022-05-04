@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { composedStyleFns, ComposedStyleProps } from 'src/utils'
+import Typography from '@material-ui/core/Typography'
 import styled from 'styled-components/macro'
 import {
   space,
@@ -49,6 +50,7 @@ const StyledInput: React.FC<InputProps> = styled.input`
   padding: 0.75em;
   width: 100%;
   border: none;
+  border-radius: 1em;
 
   ${composedStyleFns}
 `
@@ -58,14 +60,16 @@ function Input(props: InputProps) {
   if (label) {
     return (
       <Div fullWidth borderRadius="1em" p=" 0.75em" {...rest}>
-        <Div fontSize={1} px="0.75em" my={2} {...rest}>
-          {label}
+        <Div px="0.75em" my={2} {...rest}>
+          <Typography variant="body1" component="div">
+            {label}
+          </Typography>
         </Div>
         <StyledInput {...rest} />
       </Div>
     )
   }
-  return <StyledInput borderRadius="1em" {...props} />
+  return <StyledInput {...props} />
 }
 
 export default Input

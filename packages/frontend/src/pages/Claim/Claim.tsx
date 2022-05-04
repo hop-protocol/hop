@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { Claiming, Claimed } from 'src/pages/Claim'
+import Box from '@material-ui/core/Box'
 import { Div, Flex, Text } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
-import { Loading } from 'src/components/Loading'
 import { ChooseDelegate } from './ChooseDelegate'
 import { ReviewClaim } from './ReviewClaim'
 import { ClaimTokens } from './ClaimTokens'
@@ -44,7 +44,7 @@ export function Claim() {
 
   const steps = [
     <ClaimTokens
-      key="Claim your tokens"
+      key="Claim HOP"
       claimableTokens={claimableTokens}
       nextStep={nextStep}
       isDarkMode={isDarkMode}
@@ -78,37 +78,27 @@ export function Claim() {
   ]
 
   return (
-    <Flex column justifyCenter alignCenter>
-      <Div>
-        {loading ? (
-          <Flex column alignCenter p={6}>
-            <Loading size={78} load />
-            <Text mt={5} fontSize={4} secondary>
-              Loading...
-            </Text>
-          </Flex>
-        ) : (
-          <ClaimWrapper
-            isDarkMode={isDarkMode}
-            connectedNetworkId={connectedNetworkId}
-            correctClaimChain={correctClaimChain}
-            claimableTokens={claimableTokens}
-            title={steps[step].key}
-            warning={warning}
-            step={step}
-            prevStep={prevStep}
-            nextStep={nextStep}
-            handleClaimTokens={claimTokens}
-            delegate={delegate}
-            claiming={claiming}
-            inputValue={inputValue}
-            setInputValue={setInputValue}
-            setStep={setStep}
-          >
-            {steps[step]}
-          </ClaimWrapper>
-        )}
-      </Div>
-    </Flex>
+    <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" textAlign="center">
+      <ClaimWrapper
+        loading={loading}
+        isDarkMode={isDarkMode}
+        connectedNetworkId={connectedNetworkId}
+        correctClaimChain={correctClaimChain}
+        claimableTokens={claimableTokens}
+        title={steps[step].key}
+        warning={warning}
+        step={step}
+        prevStep={prevStep}
+        nextStep={nextStep}
+        handleClaimTokens={claimTokens}
+        delegate={delegate}
+        claiming={claiming}
+        inputValue={inputValue}
+        setInputValue={setInputValue}
+        setStep={setStep}
+      >
+        {steps[step]}
+      </ClaimWrapper>
+    </Box>
   )
 }

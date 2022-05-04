@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useTheme } from '@material-ui/core'
 import { BigNumber } from 'ethers'
-import { StyledButton } from 'src/components/buttons/StyledButton'
+import Button from 'src/components/buttons/Button'
 import { Circle, Div, Flex, Icon, Input } from 'src/components/ui'
+import { Loading } from 'src/components/Loading'
+import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 
 const respMaxWidths = [350, 824, 824, 1024]
 
 export function ClaimWrapper(props: any) {
   const {
     children,
+    loading,
     isDarkMode,
     mt,
     title,
@@ -20,8 +24,6 @@ export function ClaimWrapper(props: any) {
     handleClaimTokens,
     delegate,
     claimableTokens,
-    inputValue,
-    setInputValue,
     setStep,
   } = props
   const [canTryAgain, setCanTryAgain] = useState(false)
@@ -50,6 +52,17 @@ export function ClaimWrapper(props: any) {
         boxShadow={isDarkMode ? 'innerDark' : 'innerLight'}
         mt={mt}
       >
+        {loading ? (
+          <Flex column alignCenter p={6}>
+            <Loading size={40} load />
+            <Box my={4}>
+              <Typography variant="subtitle2">
+                Loading...
+              </Typography>
+            </Box>
+          </Flex>
+        ) : (
+        <>
         {warning ? (
           <Div m={4} fontSize={16} bold color="text.primary">
             {warning}
@@ -57,50 +70,26 @@ export function ClaimWrapper(props: any) {
         ) : (
           <Div>
             <Flex column fullWidth>
-              <Flex justifyBetween fullWidth alignCenter>
+              <Box display="flex" flexDirection="column" justifyContent="space-between" width="100%" textAlign="center">
                 <Div fontSize={[18, 4, 5]} color="text.primary">
                   {title}
                 </Div>
-
-                <Flex justifyBetween alignCenter maxWidth={[120, 340]} fullWidth={step === 1}>
-                  {step === 1 && inputValue && delegate?.avatar && (
-                    <Circle>
-                      <Icon src={delegate.avatar} width={[20, 40]} />
-                    </Circle>
-                  )}
-
-                  {step === 1 && (
-                    <Input
-                      maxWidth={[
-                        inputValue && delegate?.avatar ? 90 : 120,
-                        inputValue && delegate?.avatar ? 290 : 340,
-                      ]}
-                      width="100%"
-                      value={inputValue}
-                      placeholder="Enter ENS or address"
-                      onChange={e => setInputValue(e.target.value)}
-                      bg="background.default"
-                      boxShadow={theme.boxShadow.inner}
-                      color="text.secondary"
-                      fontSize={[0, 1, 2]}
-                      border={inputValue && `1px solid ${theme.palette.primary.main}`}
-                    />
-                  )}
-                </Flex>
-              </Flex>
+              </Box>
             </Flex>
             {children}
           </Div>
+        )}
+        </>
         )}
       </Div>
 
       {step === 1 && ( // Choose Delegate
         <Div maxWidth={respMaxWidths} mt={4} fullWidth>
           <Flex justifyBetween fullWidth px={[1, 5]}>
-            <StyledButton onClick={prevStep}>Go Back </StyledButton>
-            <StyledButton onClick={nextStep} highlighted disabled={!delegate?.address}>
-              Next
-            </StyledButton>
+            <Button size="large" onClick={prevStep}>Go Back </Button>
+            <Button size="large" onClick={nextStep} highlighted disabled={!delegate?.address}>
+              Continue
+            </Button>
           </Flex>
         </Div>
       )}
@@ -108,16 +97,16 @@ export function ClaimWrapper(props: any) {
       {step === 3 && ( // Claiming
         <Div mt={4}>
           <Flex justifyBetween fullWidth px={[1, 5]}>
-            <StyledButton onClick={prevStep} disabled={claiming || !canTryAgain}>
+            <Button onClick={prevStep} disabled={claiming || !canTryAgain}>
               Back
-            </StyledButton>
-            <StyledButton
+            </Button>
+            <Button
               onClick={handleClaimTokens}
               highlighted
               disabled={claiming || !canTryAgain}
             >
               Try again
-            </StyledButton>
+            </Button>
           </Flex>
         </Div>
       )}
@@ -126,9 +115,9 @@ export function ClaimWrapper(props: any) {
         <Div maxWidth={respMaxWidths} mt={4} fullWidth>
           <Flex justifyCenter fullWidth px={[1, 5]}>
             <Link href="/" onClick={() => setStep(0)}>
-              <StyledButton highlighted disabled={!delegate?.address}>
+              <Button highlighted disabled={!delegate?.address}>
                 Dashboard
-              </StyledButton>
+              </Button>
             </Link>
           </Flex>
         </Div>

@@ -1,9 +1,11 @@
 import React from 'react'
 import { Link } from 'src/components/Link'
-import { Circle, Div, Flex, Icon, Text } from 'src/components/ui'
+import { Circle, Div, Flex, Icon, Input } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { delegates } from './data'
 import { Delegate } from './useClaim'
+import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 
 export function ChooseDelegate(props) {
   const { delegate, selectDelegate, inputValue, setInputValue } = props
@@ -21,16 +23,22 @@ export function ChooseDelegate(props) {
 
   return (
     <Div>
-      <Text my={3} fontSize={2} textAlign="left" secondary>
-        Select a community member to represent you. You can change this at any time. Click on the
-        💬&nbsp; icon to read their application.
-      </Text>
-      <Text fontSize={2} textAlign="left" secondary>
-        You can delegate to someone not listed, or to yourself, by entering an ENS name or Ethereum
-        address with the button on the right.
-      </Text>
+      <Box my={3} textAlign="left">
+        <Typography variant="body1">
+          Select a community member to represent you.
+          You can change this at any time.
+        </Typography>
+        <Box mt={1} textAlign="left">
+          <Typography variant="body1">
+            Click on the <span>💬</span> icon to read their application.
+          </Typography>
+        </Box>
+      </Box>
 
-      <Flex my={4} $wrap justifyAround>
+      <Box my={4} py={2} display="flex" flexWrap="wrap" justifyContent="space-around" overflow="auto" maxHeight="400px" style={{
+          border: '1px solid #7777772e',
+          borderRadius: '6px'
+        }}>
         {delegates.map((del: Delegate, i) => (
           <Flex
             key={del.address + i}
@@ -72,7 +80,34 @@ export function ChooseDelegate(props) {
             </Div>
           </Flex>
         ))}
-      </Flex>
+      </Box>
+      <Box display="flex" flexDirection="column">
+        <Box mb={4} fontSize={2} textAlign="left">
+          <Typography variant="body1">
+            You can delegate to someone not listed, or to yourself, by entering an ENS name or Ethereum
+            address.
+          </Typography>
+        </Box>
+        <Flex justifyBetween alignCenter maxWidth={[120, 340]} width="100%">
+          {inputValue && delegate?.avatar && (
+            <Circle>
+              <Icon src={delegate.avatar} width={[20, 40]} />
+            </Circle>
+          )}
+        </Flex>
+        <Input
+          maxWidth="500px"
+          width="100%"
+          value={inputValue}
+          placeholder="Enter ENS or address"
+          onChange={e => setInputValue(e.target.value)}
+          bg="background.default"
+          boxShadow={theme.boxShadow.inner}
+          color="text.secondary"
+          fontSize={[0, 1, 2]}
+          border={inputValue && `1px solid ${theme.palette.primary.main}`}
+        />
+      </Box>
     </Div>
   )
 }

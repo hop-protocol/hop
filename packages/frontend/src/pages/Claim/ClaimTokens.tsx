@@ -1,5 +1,7 @@
 import React from 'react'
 import { Div, Flex, Icon } from 'src/components/ui'
+import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 import { Text } from 'src/components/ui/Text'
 import Button from 'src/components/buttons/Button'
 import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
@@ -23,9 +25,11 @@ export function ClaimTokens(props: ClaimTokensProps) {
   return (
     <>
       <Flex column>
-        <Div mt={3} fontSize={16} bold color="text.secondary">
-          You are eligible for the airdrop! View your tokens below and start the claim process.
-        </Div>
+        <Box mt={3}>
+          <Typography variant="body1">
+            You are eligible for the airdrop! View your tokens below and start the claim process.
+          </Typography>
+        </Box>
         {!tokenClaims.eq(0) && (
           <Div
             my={4}
@@ -52,10 +56,12 @@ export function ClaimTokens(props: ClaimTokensProps) {
 
       <Flex column my={2}>
         {!tokenClaims.eq(0) && (
-          <Div mb={3} color="secondary.main" bold>
-            You have received these tokens for being an early participant of the Hop community. Use
-            this responsibility wisely!
-          </Div>
+          <Box mb={3}>
+            <Typography variant="body1">
+              You have received these tokens for being an early participant of the Hop community. Use
+              this responsibility wisely!
+            </Typography>
+          </Box>
         )}
 
         <Flex mt={2} justifyCenter fullWidth>

@@ -11,6 +11,8 @@ const useStyles = makeStyles(theme => ({
     },
   },
   detailsDropdown: {
+    margin: '1rem 0',
+    padding: '1rem',
     width: '100%',
     '&[open] summary span::before': {
       content: '"▾"',
@@ -27,6 +29,9 @@ const useStyles = makeStyles(theme => ({
   detailsDropdownLabel: {
     position: 'relative',
     cursor: 'pointer',
+    '&:hover': {
+      fontWeight: 'bold'
+    },
     '& > span': {
       position: 'relative',
       display: 'inline-flex',

@@ -65,11 +65,11 @@ export function AuthereumVerify() {
         </Typography>
       </Box>
       <Box m={3} maxWidth={500} textAlign="center">
-        <Typography variant="subtitle2">
+        <Typography variant="body1">
           If you are an <ExternalLink href="https://authereum.com">Authereum</ExternalLink> user and meet the minimum eligibility requirements, you qualify for a HOP airdrop.
         </Typography>
       </Box>
-      <Box my={3} display="flex" flexDirection="column" justifyContent="center">
+      <Box mb={3} display="flex" flexDirection="column" justifyContent="center">
         <Input
           width={[320, 420]}
           maxWidth={['auto']}
@@ -77,7 +77,6 @@ export function AuthereumVerify() {
           onChange={handleInputChange}
           label="Authereum Email"
           placeholder="alice@example.com"
-          mb={2}
           fontSize={[0, 2]}
         />
         <Box my={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center">

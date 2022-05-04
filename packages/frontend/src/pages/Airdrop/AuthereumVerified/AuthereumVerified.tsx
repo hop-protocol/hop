@@ -115,7 +115,7 @@ export function AuthereumVerified() {
         <Typography variant="h5">
           Congrats! You're eligible for the airdrop
         </Typography>
-        <Typography variant="subtitle2">
+        <Typography variant="body1">
           Verified {userData?.email!} account <CheckIcon style={{ color: 'green' }} />
         </Typography>
 

@@ -193,7 +193,7 @@ export function AirdropPreview() {
                 {(userDistribution?.addressVolume !== null && userDistribution?.addressVolume < 1000) && (
                   <Box display="flex" mb={2}>
                     <Typography variant="body1" color="textSecondary">
-                      This address had {userDistribution?.addressVolumeFormatted} by the date of the snapshot on April 1, 2022 at 00:00:00 UTC. The minimum required by that time was $1,000.
+                      This address made {userDistribution?.addressVolumeFormatted} in total volume by the date of the snapshot on April 1, 2022 at 00:00:00 UTC. The minimum required by that time was $1,000.
                     </Typography>
                   </Box>
                 )}

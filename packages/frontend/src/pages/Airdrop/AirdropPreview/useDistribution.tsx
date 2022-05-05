@@ -111,7 +111,7 @@ export function useDistribution(address?: string) {
     numTxs = Number(accountInfo?.totalTxs)
     addressVolume = Number(accountInfo?.totalVolume)
   }
-  const addressVolumeFormatted = addressVolume > 0 ? `${commafy(addressVolume, 4)}` : '0'
+  const addressVolumeFormatted = addressVolume > 0 ? `$${commafy(addressVolume, 4)}` : '0'
 
   return {
     error,

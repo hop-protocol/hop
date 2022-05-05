@@ -59,7 +59,11 @@ export function AirdropPreview() {
           </Box>
 
           {userDistribution?.loading ? (
-            <Box m={6} justifyContent="center" textAlign="center">Loading...</Box>
+            <Box m={6} justifyContent="center" textAlign="center">
+              <Typography variant="body1" component="div">
+                Loading...
+              </Typography>
+            </Box>
           ) : (
           <>
             {!isConnected && (

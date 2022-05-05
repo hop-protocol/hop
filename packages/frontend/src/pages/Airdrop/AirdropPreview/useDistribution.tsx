@@ -3,7 +3,7 @@ import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 
 const url = 'https://raw.githubusercontent.com/hop-protocol/hop-airdrop/master/src/data/finalDistribution.csv'
-const BASE_AMOUNT = BigNumber.from('264736330517381718178')
+const BASE_AMOUNT = BigNumber.from('306120584096350311603')
 
 export function useDistribution(address?: string) {
   const [loading, setLoading] = useState<boolean>(false)

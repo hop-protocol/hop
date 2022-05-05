@@ -164,7 +164,7 @@ export function AirdropPreview() {
                 </Box>
 
                 <Box my={2} style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
-                <Box display="flex" justifyContent="space-between">
+                <Box display="flex" justifyContent="space-between" mb={4}>
                   <Typography variant="body1" component="div">
                     <strong>Total:</strong> <InfoTooltip
             title={'The total amount of HOP this address will be able to claim.'} />
@@ -174,7 +174,31 @@ export function AirdropPreview() {
                   </Typography>
                 </Box>
 
-                <Box display="flex" mt={5} mb={2}>
+                {userDistribution?.isBot && (
+                  <Box display="flex" mb={2}>
+                    <Typography variant="body1" color="textSecondary">
+                      This address has been identified as a Sybil attacker and is eliminated from the Hop Bridge User airdrop.
+                    </Typography>
+                  </Box>
+                )}
+
+                {(userDistribution?.numTxs !== null && userDistribution?.numTxs < 2) && (
+                  <Box display="flex" mb={2}>
+                    <Typography variant="body1" color="textSecondary">
+                      This address made {userDistribution?.numTxs} transaction(s) by the date of the snapshot on April 1, 2022 at 00:00:00 UTC. The minimum required by that time was 2.
+                    </Typography>
+                  </Box>
+                )}
+
+                {(userDistribution?.addressVolume !== null && userDistribution?.addressVolume < 1000) && (
+                  <Box display="flex" mb={2}>
+                    <Typography variant="body1" color="textSecondary">
+                      This address had {userDistribution?.addressVolumeFormatted} by the date of the snapshot on April 1, 2022 at 00:00:00 UTC. The minimum required by that time was $1,000.
+                    </Typography>
+                  </Box>
+                )}
+
+                <Box display="flex" mt={2} mb={2}>
                   <Typography variant="body2" component="div" color="textSecondary">
                     <em>The values above may change between now and the date of the token Airdrop. An announcement will be made by the Hop team on the official announcement channels when tokens are ready to be claimed. The account distribution data can be found on <ExternalLink href="https://github.com/hop-protocol/hop-airdrop/blob/master/src/data/finalDistribution.csv">github</ExternalLink>.</em>
                   </Typography>

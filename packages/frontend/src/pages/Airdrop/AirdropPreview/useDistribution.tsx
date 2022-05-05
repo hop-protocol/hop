@@ -3,13 +3,39 @@ import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { commafy } from 'src/utils'
 
-const url = 'https://raw.githubusercontent.com/hop-protocol/hop-airdrop/master/src/data/finalDistribution.csv'
+const distributionCsvUrl = 'https://raw.githubusercontent.com/hop-protocol/hop-airdrop/master/src/data/finalDistribution.csv'
 const BASE_AMOUNT = BigNumber.from('306120584096350311603')
 
 export function useDistribution(address?: string) {
   const [loading, setLoading] = useState<boolean>(false)
   const [allData, setAllData] = useState<any>(null)
+  const [accountInfo, setAccountInfo] = useState<any>(null)
   const [error, setError] = useState<string>('')
+
+  useEffect(() => {
+    const update = async () => {
+      try {
+        setAccountInfo(null)
+        if (!address) {
+          return
+        }
+        const url = `https://airdrop-api.hop.exchange/v1/airdrop/${address}`
+        const res = await fetch(url)
+        const json = await res.json()
+        if (json.status === 'ok') {
+          setAccountInfo(json?.data)
+        }
+        if (json.error) {
+          throw new Error(json.error)
+        }
+      } catch (err: any) {
+        console.error(err)
+      }
+    }
+
+    update().catch(console.error)
+  }, [address])
+
   useEffect(() => {
     const update = async () => {
       try {
@@ -18,7 +44,7 @@ export function useDistribution(address?: string) {
           return
         }
         setLoading(true)
-        const res = await fetch(url)
+        const res = await fetch(distributionCsvUrl)
         const text = await res.text()
         if (!text?.length || text?.includes('Not Found')) {
           throw new Error('Could not retrieve data. Refresh page and try again.')
@@ -77,6 +103,15 @@ export function useDistribution(address?: string) {
   const earlyMultiplierFormatted = earlyMultiplier > 0 ? `x${earlyMultiplier.toFixed(4)}` : earlyMultiplier
   const volumeMultiplierFormatted = volumeMultiplier > 0 ? `x${volumeMultiplier.toFixed(4)}` : volumeMultiplier
   const totalFormatted = total > 0 ? commafy(total, 4) : total
+  let isBot: any = null
+  let numTxs : any = null
+  let addressVolume :any = null
+  if (accountInfo) {
+    isBot = accountInfo?.isBot ?? false
+    numTxs = Number(accountInfo?.totalTxs)
+    addressVolume = Number(accountInfo?.totalVolume)
+  }
+  const addressVolumeFormatted = addressVolume > 0 ? `${commafy(addressVolume, 4)}` : '0'
 
   return {
     error,
@@ -92,6 +127,10 @@ export function useDistribution(address?: string) {
     volumeMultiplier,
     volumeMultiplierFormatted,
     total,
-    totalFormatted
+    totalFormatted,
+    isBot,
+    numTxs,
+    addressVolume,
+    addressVolumeFormatted
   }
 }

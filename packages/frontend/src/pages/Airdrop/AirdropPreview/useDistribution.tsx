@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { BigNumber } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
 
 // NOTE: this will come from the official airdrop repo once it's live
 const url = 'https://gist.githubusercontent.com/miguelmota/3342af8dc536cf218e24c36f0b975cc2/raw/06d772e41d1da2c61c44de628f67cad9e6f9ce16/distribution.csv'
+const BASE_AMOUNT = BigNumber.from('264736330517381718178')
 
 export function useDistribution(address?: string) {
   const [loading, setLoading] = useState<boolean>(false)
@@ -44,7 +46,7 @@ export function useDistribution(address?: string) {
   let earlyMultiplier = 0
   let volumeMultiplier = 0
   let total = 0
-  const baseAmountBn = parseUnits('332.667997338656021290', 18)
+  const baseAmountBn = BASE_AMOUNT
   if (address) {
     const data = allData?.[address.toLowerCase()]
     if (data) {
@@ -55,7 +57,11 @@ export function useDistribution(address?: string) {
       if (hopUserTokens) {
         baseAmount = Number(Number(formatUnits(baseAmountBn.toString(), 18)).toFixed(4))
       }
-      total = Number((lpTokens + hopUserTokens).toFixed(4))
+      if (data.total) {
+        total = Number(Number(formatUnits(data.total.toString(), 18)).toFixed(4))
+      } else {
+        total = Number((lpTokens + hopUserTokens).toFixed(4))
+      }
     }
   }
 

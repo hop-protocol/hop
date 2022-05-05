@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
+import { commafy } from 'src/utils'
 
 const url = 'https://raw.githubusercontent.com/hop-protocol/hop-airdrop/master/src/data/finalDistribution.csv'
 const BASE_AMOUNT = BigNumber.from('306120584096350311603')
@@ -8,15 +9,20 @@ const BASE_AMOUNT = BigNumber.from('306120584096350311603')
 export function useDistribution(address?: string) {
   const [loading, setLoading] = useState<boolean>(false)
   const [allData, setAllData] = useState<any>(null)
+  const [error, setError] = useState<string>('')
   useEffect(() => {
     const update = async () => {
       try {
+        setError('')
         if (allData) {
           return
         }
         setLoading(true)
         const res = await fetch(url)
         const text = await res.text()
+        if (!text?.length || text?.includes('Not Found')) {
+          throw new Error('Could not retrieve data. Refresh page and try again.')
+        }
         const csv = text.trim().split('\n')
         const header = csv[0].split(',')
         const rows = csv.slice(1)
@@ -31,8 +37,9 @@ export function useDistribution(address?: string) {
         }
         setAllData(data)
         setLoading(false)
-      } catch (err) {
+      } catch (err: any) {
         console.error(err)
+        setError(err.message)
       }
     }
 
@@ -49,28 +56,42 @@ export function useDistribution(address?: string) {
   if (address) {
     const data = allData?.[address.toLowerCase()]
     if (data) {
-      lpTokens = Number(Number(formatUnits(data.lpTokens.toString(), 18)).toFixed(4))
-      hopUserTokens = Number(Number(formatUnits(data.hopUserTokens.toString(), 18)).toFixed(4))
+      lpTokens = Number(formatUnits(data.lpTokens.toString(), 18))
+      hopUserTokens = Number(formatUnits(data.hopUserTokens.toString(), 18))
       earlyMultiplier = Number(Number(data.earlyMultiplier).toFixed(4)) || 1
       volumeMultiplier = Number(Number(data.volumeMultiplier).toFixed(4)) || 1
       if (hopUserTokens) {
-        baseAmount = Number(Number(formatUnits(baseAmountBn.toString(), 18)).toFixed(4))
+        baseAmount = Number(formatUnits(baseAmountBn.toString(), 18))
       }
       if (data.totalTokens) {
-        total = Number(Number(formatUnits(data.totalTokens.toString(), 18)).toFixed(4))
+        total = Number(formatUnits(data.totalTokens.toString(), 18))
       } else {
-        total = Number((lpTokens + hopUserTokens).toFixed(4))
+        total = (lpTokens + hopUserTokens)
       }
     }
   }
 
+  const lpTokensFormatted = lpTokens > 0 ? commafy(lpTokens, 4) : lpTokens
+  const hopUserTokensFormatted = hopUserTokens > 0 ? commafy(hopUserTokens, 4) : hopUserTokens
+  const baseAmountFormatted = baseAmount > 0 ? commafy(baseAmount, 4) : baseAmount
+  const earlyMultiplierFormatted = earlyMultiplier > 0 ? `x${earlyMultiplier.toFixed(4)}` : earlyMultiplier
+  const volumeMultiplierFormatted = volumeMultiplier > 0 ? `x${volumeMultiplier.toFixed(4)}` : volumeMultiplier
+  const totalFormatted = total > 0 ? commafy(total, 4) : total
+
   return {
+    error,
     loading,
     lpTokens,
+    lpTokensFormatted,
     hopUserTokens,
+    hopUserTokensFormatted,
     baseAmount,
+    baseAmountFormatted,
     earlyMultiplier,
+    earlyMultiplierFormatted,
     volumeMultiplier,
-    total
+    volumeMultiplierFormatted,
+    total,
+    totalFormatted
   }
 }

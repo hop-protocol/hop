@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import Alert from 'src/components/alert/Alert'
 import Box from '@material-ui/core/Box'
 import { EthAddress, Flex } from 'src/components/ui'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -12,6 +13,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { AddressModal } from './AddressModal'
 import { getAddress } from 'ethers/lib/utils'
 import InfoTooltip from 'src/components/InfoTooltip'
+import { ExternalLink } from 'src/components/Link'
 
 export const respMaxWidths = [350, 624, 824]
 
@@ -117,7 +119,7 @@ export function AirdropPreview() {
             title={'Users who made a minimum of 2 bridge transactions and $1,000 of volume across the Hop bridge.'} />
                   </Typography>
                   <Typography variant="body1" component="div">
-                    {userDistribution.hopUserTokens} HOP
+                    <strong>{userDistribution.hopUserTokensFormatted} HOP</strong>
                   </Typography>
                 </Box>
                 <Box ml={1} mb={2}>
@@ -127,7 +129,7 @@ export function AirdropPreview() {
             title={'Users who met the minimum Hop Bridge User requirements receive a base amount of HOP.'} />
                     </Typography>
                     <Typography variant="body2" component="div">
-                      {userDistribution.baseAmount} HOP
+                      {userDistribution.baseAmountFormatted} HOP
                     </Typography>
                   </Box>
                   <Box display="flex" justifyContent="space-between">
@@ -136,7 +138,7 @@ export function AirdropPreview() {
             title={'The earliest Hop users will receive a 2x multiplier and the last users before the snapshot will receive a 1x multiplier. The value of the multiplier decreases linearly over time.'} />
                     </Typography>
                     <Typography variant="body2" component="div">
-                      {userDistribution.earlyMultiplier > 0 ? `x${userDistribution.earlyMultiplier}` : userDistribution.earlyMultiplier}
+                      {userDistribution.earlyMultiplierFormatted}
                     </Typography>
                   </Box>
 
@@ -146,7 +148,7 @@ export function AirdropPreview() {
             title={'Users who sent more than a certain amount through Hop will receive a multiplier.'} />
                     </Typography>
                     <Typography variant="body2" component="div">
-                      {userDistribution.volumeMultiplier ? `x${userDistribution.volumeMultiplier}` : userDistribution.volumeMultiplier}
+                      {userDistribution.volumeMultiplierFormatted}
                     </Typography>
                   </Box>
                 </Box>
@@ -157,7 +159,7 @@ export function AirdropPreview() {
             title={'Anyone who provided liquidity in the Hop AMMs. The amount of HOP received is relative to how long you were an LP in any pool and how large your position was relative to the size of the entire pool.'} />
                   </Typography>
                   <Typography variant="body1" component="div">
-                    {userDistribution.lpTokens} HOP
+                    <strong>{userDistribution.lpTokensFormatted} HOP</strong>
                   </Typography>
                 </Box>
 
@@ -168,13 +170,13 @@ export function AirdropPreview() {
             title={'The total amount of HOP this address will be able to claim.'} />
                   </Typography>
                   <Typography variant="body1" component="div">
-                    <strong>{userDistribution.total} HOP</strong>
+                    <strong>{userDistribution.totalFormatted} HOP</strong>
                   </Typography>
                 </Box>
 
-                <Box display="flex" mt={5}>
+                <Box display="flex" mt={5} mb={2}>
                   <Typography variant="body2" component="div" color="textSecondary">
-                    <em>The values above may change between now and the date of the token Airdrop. An announcement will be made by the Hop team on the official announcement channels when tokens are ready to be claimed.</em>
+                    <em>The values above may change between now and the date of the token Airdrop. An announcement will be made by the Hop team on the official announcement channels when tokens are ready to be claimed. The account distribution data can be found on <ExternalLink href="https://github.com/hop-protocol/hop-airdrop/blob/master/src/data/finalDistribution.csv">github</ExternalLink>.</em>
                   </Typography>
                 </Box>
               </Box>
@@ -186,6 +188,9 @@ export function AirdropPreview() {
           </Box>
         </>
       )}
+      </Box>
+      <Box m={2} display="flex" justifyContent="center">
+        <Alert severity="error" text={userDistribution?.error} />
       </Box>
       </AirdropPreviewWrapper>
       <Box my={5} display="flex" flexDirection="column" justifyContent="center" alignItems="center" width="100%">

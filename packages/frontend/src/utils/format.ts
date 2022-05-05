@@ -60,7 +60,7 @@ export function sanitizeNumericalString(numStr: string) {
   return numStr.replace(/[^0-9.]|\.(?=.*\.)/g, '')
 }
 
-export function maxDecimals(amount: string, decimals) {
+export function maxDecimals(amount: string, decimals: number) {
   const sanitizedAmount = sanitizeNumericalString(amount)
   const indexOfDecimal = sanitizedAmount.indexOf('.')
   if (indexOfDecimal === -1) {

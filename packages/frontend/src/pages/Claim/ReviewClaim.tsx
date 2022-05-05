@@ -6,8 +6,10 @@ import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import { toTokenDisplay } from 'src/utils'
 import { BigNumber } from 'ethers'
 import { StyledButton } from 'src/components/buttons/StyledButton'
+import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 
-export function ReviewClaim(props) {
+export function ReviewClaim(props: any) {
   const { claimableTokens, delegate, isDarkMode, handleClaimTokens, prevStep } = props
   const tokenClaims = BigNumber.from(claimableTokens)
 
@@ -55,13 +57,22 @@ export function ReviewClaim(props) {
               </Text>
               <Flex alignCenter>
                 {delegate.avatar && (
-                  <Circle mr={2}>
+                  <Circle mr={2} width={45}>
                     <Icon src={delegate.avatar} width={45} />
                   </Circle>
                 )}
-                <Div color="text.primary" fontSize={[1, 2]}>
-                  {delegate.ensName || delegate.address}
-                </Div>
+                <Box display="flex" flexDirection="column" textAlign="left">
+                  <Box>
+                    <Div color="text.primary" fontSize={[1, 2]}>
+                      {delegate.address}
+                    </Div>
+                  </Box>
+                  <Box>
+                    <Div color="text.secondary" fontSize={[1, 2]}>
+                      {delegate.ensName}
+                    </Div>
+                  </Box>
+                </Box>
               </Flex>
             </Div>
 

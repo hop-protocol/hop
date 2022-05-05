@@ -96,7 +96,7 @@ export function useClaim() {
       if (tokenClaims.eq(0)) {
         if (claim?.entry.balance) {
           return setWarning(
-            `You have already claimed ${toTokenDisplay(claim.entry.balance, 18)} tokens`
+            `You have already claimed ${toTokenDisplay(claim?.entry.balance, 18)} tokens`
           )
         }
 
@@ -108,7 +108,7 @@ export function useClaim() {
   }, [claimableTokens, claim, correctNetwork])
 
   // Retrieves claim from files
-  async function getClaim(address) {
+  async function getClaim(address: string) {
     if (provider) {
       setLoading(true)
 
@@ -131,11 +131,15 @@ export function useClaim() {
 
   // Triggers getClaim() if valid address is connected to correct chain
   useEffect(() => {
-    if (provider && address?.address && utils.isAddress(address.address) && correctNetwork) {
-      setClaimableTokens('0')
-      setWarning('')
-      setClaim(undefined)
-      getClaim(address.address)
+    try {
+      if (provider && address?.address && utils.isAddress(address.address) && correctNetwork) {
+        setClaimableTokens('0')
+        setWarning('')
+        setClaim(undefined)
+        getClaim(address.address)
+      }
+    } catch (err) {
+      getClaim('')
     }
   }, [address, provider, correctNetwork])
 

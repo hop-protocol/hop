@@ -15,6 +15,7 @@ export function Claim() {
   const { isDarkMode } = useThemeMode()
   const { connectedNetworkId } = useWeb3Context()
   const [step, setStep] = useState(0)
+  const [showTryAgain, setShowTryAgain] = useState(false)
   const nextStep = () => setStep(val => val + 1)
   const prevStep = () => setStep(val => val - 1)
   const {
@@ -32,13 +33,19 @@ export function Claim() {
 
   async function claimTokens() {
     try {
+      setShowTryAgain(false)
       const res = await sendClaimTokens()
       console.log(`res:`, res)
       if (res?.status === 1) {
+        setShowTryAgain(false)
         nextStep()
+      } else {
+        setShowTryAgain(true)
       }
-    } catch (error) {
-      // no-op
+    } catch (err: any) {
+      console.error(err)
+      setShowTryAgain(false)
+      nextStep()
     }
   }
 
@@ -73,6 +80,11 @@ export function Claim() {
       isDarkMode={isDarkMode}
       tx={claimTokensTx}
       delegate={delegate}
+      claimableTokens={claimableTokens}
+      showTryAgain={showTryAgain}
+      handleClaimTokens={() => {
+        claimTokens()
+      }}
     />,
     <Claimed key="Claim successful!" />,
   ]

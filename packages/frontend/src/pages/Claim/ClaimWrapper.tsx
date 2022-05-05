@@ -21,7 +21,6 @@ export function ClaimWrapper(props: any) {
     claiming,
     prevStep,
     nextStep,
-    handleClaimTokens,
     delegate,
     claimableTokens,
     setStep,
@@ -45,8 +44,8 @@ export function ClaimWrapper(props: any) {
       <Div
         p={['18px 24px', '36px 46px']}
         fontWeight="600"
-        maxWidth={step === 1 ? respMaxWidths : step === 2 ? [350, 420, 650] : [350, 420, 500]}
-        width={step === 2 ? [350, 650] : 'auto'}
+        maxWidth={step === 1 ? respMaxWidths : step === 2 ? [350, 420, 750] : [350, 420, 500]}
+        width={step === 2 ? [350, 690] : 'auto'}
         mx={[0, 4]}
         borderRadius={30}
         boxShadow={isDarkMode ? 'innerDark' : 'innerLight'}
@@ -84,31 +83,26 @@ export function ClaimWrapper(props: any) {
       </Div>
 
       {step === 1 && ( // Choose Delegate
-        <Div maxWidth={respMaxWidths} mt={4} fullWidth>
-          <Flex justifyBetween fullWidth px={[1, 5]}>
-            <Button size="large" onClick={prevStep}>Go Back </Button>
-            <Button size="large" onClick={nextStep} highlighted disabled={!delegate?.address}>
-              Continue
-            </Button>
-          </Flex>
-        </Div>
+        <Box display="flex" maxWidth={"400px"} mt={4} width="100%" justifyContent="space-between" px={[1, 5]}>
+          <Button onClick={prevStep}>Go Back </Button>
+          <Button onClick={nextStep} highlighted disabled={!delegate?.address}>
+            Continue
+          </Button>
+        </Box>
+      )}
+
+      {step === 2 && ( // Review
+        <Box display="flex" maxWidth={"400px"} mt={4} justifyContent="center" width="100%" px={[1, 5]}>
+          <Button onClick={prevStep}>Go Back </Button>
+        </Box>
       )}
 
       {step === 3 && ( // Claiming
-        <Div mt={4}>
-          <Flex justifyBetween fullWidth px={[1, 5]}>
-            <Button onClick={prevStep} disabled={claiming || !canTryAgain}>
-              Back
-            </Button>
-            <Button
-              onClick={handleClaimTokens}
-              highlighted
-              disabled={claiming || !canTryAgain}
-            >
-              Try again
-            </Button>
-          </Flex>
-        </Div>
+        <Box display="flex" maxWidth={"400px"} mt={4} justifyContent="center" width="100%" px={[1, 5]}>
+          <Button onClick={prevStep} disabled={claiming || !canTryAgain}>
+            Back
+          </Button>
+        </Box>
       )}
 
       {step === 4 && ( // Claimed
@@ -116,7 +110,7 @@ export function ClaimWrapper(props: any) {
           <Flex justifyCenter fullWidth px={[1, 5]}>
             <Link href="/" onClick={() => setStep(0)}>
               <Button highlighted disabled={!delegate?.address}>
-                Dashboard
+                Go Home
               </Button>
             </Link>
           </Flex>

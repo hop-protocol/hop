@@ -7,7 +7,7 @@ import { Delegate } from './useClaim'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 
-export function ChooseDelegate(props) {
+export function ChooseDelegate(props: any) {
   const { delegate, selectDelegate, inputValue, setInputValue } = props
   const { theme } = useThemeMode()
 
@@ -35,7 +35,7 @@ export function ChooseDelegate(props) {
         </Box>
       </Box>
 
-      <Box my={4} py={2} display="flex" flexWrap="wrap" justifyContent="space-around" overflow="auto" maxHeight="400px" style={{
+      <Box my={4} py={2} display="flex" flexWrap="wrap" justifyContent="space-around" overflow="auto" maxWidth="700px" maxHeight="400px" style={{
           border: '1px solid #7777772e',
           borderRadius: '6px'
         }}>

@@ -132,6 +132,12 @@ export function SocialVerified() {
 
         <Box mt={3}>
           <Typography variant="subtitle2">
+            Eligible for 1,800 HOP
+          </Typography>
+        </Box>
+
+        <Box mt={3}>
+          <Typography variant="subtitle2">
             Enter an Ethereum address you want to claim the HOP tokens with.
           </Typography>
         </Box>

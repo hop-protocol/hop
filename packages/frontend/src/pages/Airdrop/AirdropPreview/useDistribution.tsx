@@ -65,7 +65,11 @@ export function useDistribution(address?: string) {
         setLoading(false)
       } catch (err: any) {
         console.error(err)
-        setError(err.message)
+        if (err.message === 'Failed to fetch') {
+          setError('Failed to fetch data. Please refresh page to try again.')
+        } else {
+          setError(err.message)
+        }
       }
     }
 

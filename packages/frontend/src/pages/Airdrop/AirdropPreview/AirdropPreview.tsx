@@ -23,7 +23,7 @@ export function AirdropPreview() {
   const [airdropAddress, setAirdropAddress] = useState<string>(address?.address || '')
   const [showAddressModal, setShowAddressModal] = useState<boolean>(false)
   const userDistribution = useDistribution(airdropAddress)
-  const isEligible = userDistribution?.total > 1
+  const isEligible = userDistribution?.total >= 0.0001
   const isConnected = !!airdropAddress
 
   useEffect(() => {

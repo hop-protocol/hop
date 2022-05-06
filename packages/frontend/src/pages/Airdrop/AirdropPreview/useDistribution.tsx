@@ -104,8 +104,8 @@ export function useDistribution(address?: string) {
   const lpTokensFormatted = lpTokens > 0 ? commafy(lpTokens, 4) : lpTokens
   const hopUserTokensFormatted = hopUserTokens > 0 ? commafy(hopUserTokens, 4) : hopUserTokens
   const baseAmountFormatted = baseAmount > 0 ? commafy(baseAmount, 4) : baseAmount
-  const earlyMultiplierFormatted = earlyMultiplier > 0 ? `x${earlyMultiplier.toFixed(4)}` : earlyMultiplier
-  const volumeMultiplierFormatted = volumeMultiplier > 0 ? `x${volumeMultiplier.toFixed(4)}` : volumeMultiplier
+  const earlyMultiplierFormatted = hopUserTokens > 0 && earlyMultiplier > 0 ? `x${earlyMultiplier.toFixed(4)}` : earlyMultiplier
+  const volumeMultiplierFormatted = hopUserTokens > 0 && volumeMultiplier > 0 ? `x${volumeMultiplier.toFixed(4)}` : volumeMultiplier
   const totalFormatted = total > 0 ? commafy(total, 4) : total
   let isBot: any = null
   let numTxs : any = null

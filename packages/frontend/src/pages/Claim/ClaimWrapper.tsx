@@ -28,7 +28,7 @@ export function ClaimWrapper(props: any) {
   const [canTryAgain, setCanTryAgain] = useState(false)
 
   useEffect(() => {
-    const cta = BigNumber.from(claimableTokens).gt(0) && !!delegate?.ensName
+    const cta = claimableTokens.gt(0) && !!delegate?.ensName
 
     if (!claiming && cta) {
       return setCanTryAgain(true)

@@ -4,7 +4,7 @@ import Box from '@material-ui/core/Box'
 import { Div, Flex, Text } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { ChooseDelegate } from './ChooseDelegate'
-import { ReviewClaim } from './ReviewClaim'
+import { ClaimReview } from './ClaimReview'
 import { ClaimTokens } from './ClaimTokens'
 import { useClaim } from './useClaim'
 import { ClaimWrapper } from './ClaimWrapper'
@@ -63,7 +63,7 @@ export function Claim() {
       delegate={delegate}
       selectDelegate={setDelegate}
     />,
-    <ReviewClaim
+    <ClaimReview
       key="Review your claim"
       claimableTokens={claimableTokens}
       prevStep={prevStep}

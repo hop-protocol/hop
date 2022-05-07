@@ -11,7 +11,7 @@ import { TokenClaim } from './useClaim'
 
 interface ClaimTokensProps {
   claim?: TokenClaim
-  claimableTokens?: string
+  claimableTokens: BigNumber
   warning?: string
   nextStep?: () => void
   setStep?: (step: number) => void
@@ -20,7 +20,6 @@ interface ClaimTokensProps {
 
 export function ClaimTokens(props: ClaimTokensProps) {
   const { claimableTokens, nextStep, isDarkMode } = props
-  const tokenClaims = BigNumber.from(claimableTokens)
 
   return (
     <>
@@ -30,7 +29,7 @@ export function ClaimTokens(props: ClaimTokensProps) {
             You are eligible for the airdrop! View your tokens below and start the claim process.
           </Typography>
         </Box>
-        {!tokenClaims.eq(0) && (
+        {!claimableTokens.eq(0) && (
           <Div
             my={4}
             p={3}
@@ -55,7 +54,7 @@ export function ClaimTokens(props: ClaimTokensProps) {
       </Flex>
 
       <Flex column my={2}>
-        {!tokenClaims.eq(0) && (
+        {!claimableTokens.eq(0) && (
           <Box mb={3}>
             <Typography variant="body1">
               You have received these tokens for being an early participant of the Hop community. Use
@@ -65,8 +64,8 @@ export function ClaimTokens(props: ClaimTokensProps) {
         )}
 
         <Flex mt={2} justifyCenter fullWidth>
-          {/* <Button large highlighted onClick={() => setStep(2)} disabled={tokenClaims.eq(0)}> */}
-          <Button large highlighted onClick={nextStep} disabled={tokenClaims.eq(0)}>
+          {/* <Button large highlighted onClick={() => setStep(2)} disabled={claimableTokens.eq(0)}> */}
+          <Button large highlighted onClick={nextStep} disabled={claimableTokens.eq(0)}>
             <Div width="220px">Start Claim</Div>
           </Button>
         </Flex>

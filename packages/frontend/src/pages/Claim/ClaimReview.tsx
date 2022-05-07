@@ -9,7 +9,7 @@ import { StyledButton } from 'src/components/buttons/StyledButton'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 
-export function ReviewClaim(props: any) {
+export function ClaimReview (props: any) {
   const { claimableTokens, delegate, isDarkMode, handleClaimTokens, prevStep } = props
   const tokenClaims = BigNumber.from(claimableTokens)
 

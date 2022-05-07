@@ -28,7 +28,7 @@ export function useClaim() {
   const { provider, address, connectedNetworkId } = useWeb3Context()
   const [warning, setWarning] = useState<string>()
   const [loading, setLoading] = useState<boolean>(false)
-  const [claimableTokens, setClaimableTokens] = useState<string>('0')
+  const [claimableTokens, setClaimableTokens] = useState<BigNumber>(BigNumber.from(0))
   const [claiming, setClaiming] = useState(false)
   const [claimed, setClaimed] = useState(false)
   const [correctNetwork, setCorrectNetwork] = useState(false)
@@ -70,10 +70,10 @@ export function useClaim() {
     if (claim) {
       console.log(`claim:`, claim)
       if (claim.isClaimed) {
-        setClaimableTokens('0')
+        setClaimableTokens(BigNumber.from(0))
         // setWarning('Already claimed')
       } else {
-        setClaimableTokens(claim.entry.balance.toString())
+        setClaimableTokens(BigNumber.from(claim.entry.balance ?? 0))
       }
     }
   }, [claim, delegate])
@@ -83,7 +83,7 @@ export function useClaim() {
     if (Number(connectedNetworkId) === Number(correctClaimChain.id)) {
       setCorrectNetwork(true)
     } else {
-      setClaimableTokens('0')
+      setClaimableTokens(BigNumber.from(0))
       setWarning(`Please connect your wallet to the ${correctClaimChain.name} network`)
       setCorrectNetwork(false)
     }
@@ -120,7 +120,7 @@ export function useClaim() {
           error.message.includes('Cannot find module') ||
           error.message.includes('Invalid Entry')
         ) {
-          setClaimableTokens('0')
+          setClaimableTokens(BigNumber.from(0))
           setWarning('Sorry, the connected account is not eligible for the airdrop')
         }
       }
@@ -133,7 +133,7 @@ export function useClaim() {
   useEffect(() => {
     try {
       if (provider && address?.address && utils.isAddress(address.address) && correctNetwork) {
-        setClaimableTokens('0')
+        setClaimableTokens(BigNumber.from(0))
         setWarning('')
         setClaim(undefined)
         getClaim(address.address)

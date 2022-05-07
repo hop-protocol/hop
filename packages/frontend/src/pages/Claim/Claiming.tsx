@@ -10,7 +10,6 @@ import Box from '@material-ui/core/Box'
 
 export function Claiming(props: any) {
   const { isDarkMode, claiming, tx, delegate, handleClaimTokens, claimableTokens, showTryAgain } = props
-  const tokenClaims = BigNumber.from(claimableTokens)
 
   return (
     <>
@@ -54,7 +53,7 @@ export function Claiming(props: any) {
       {showTryAgain && (
         <Box mt={5}>
           <Flex mt={2} justifyCenter fullWidth>
-            <Button large highlighted onClick={handleClaimTokens} disabled={tokenClaims.eq(0)}>
+            <Button large highlighted onClick={handleClaimTokens} disabled={claimableTokens.eq(0)}>
               <Div width="220px">Try Again</Div>
             </Button>
           </Flex>

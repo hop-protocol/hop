@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Div, Flex, Icon, Text } from 'src/components/ui'
 import { useAddTokenToMetamask } from 'src/hooks'
 import mmIcon from 'src/assets/logos/metamask.svg'
@@ -7,9 +7,20 @@ import { ReactComponent as discordIcon } from 'src/assets/logos/discord.svg'
 import Button from 'src/components/buttons/Button'
 import { ButtonLink } from 'src/components/Button'
 import Box from '@material-ui/core/Box'
+import Confetti from 'react-confetti'
+import useWindowSize from 'react-use/lib/useWindowSize'
 
 export function Claimed() {
+  const { width, height } = useWindowSize()
   const { addHopToken } = useAddTokenToMetamask()
+  const [showConfetti, setShowConfetti] = useState<boolean>(false)
+
+  useEffect(() => {
+    setShowConfetti(true)
+    setTimeout(() => {
+      setShowConfetti(false)
+    }, 7 * 1000)
+  }, [])
 
   return (
     <Flex column justifyCenter alignCenter>
@@ -46,6 +57,12 @@ export function Claimed() {
           <Icon src={mmIcon} width={40} />
         </Button>
       </Box>
+      {showConfetti && (
+        <Confetti
+          width={width}
+          height={height}
+        />
+      )}
     </Flex>
   )
 }

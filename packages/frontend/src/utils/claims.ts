@@ -49,3 +49,13 @@ export async function claimTokens(signer: Signer, claim: TokenClaim, delegate: D
     throw new Error(error.message)
   }
 }
+
+export async function getVotes(provider: any, delegateAddress: string) {
+  try {
+    const ensToken = await getEnsToken(provider)
+    return ensToken.getVotes(delegateAddress)
+  } catch (error: any) {
+    console.log(`error:`, error)
+    throw new Error(error.message)
+  }
+}

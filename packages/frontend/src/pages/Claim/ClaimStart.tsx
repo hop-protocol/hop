@@ -18,7 +18,7 @@ interface ClaimTokensProps {
   isDarkMode: boolean
 }
 
-export function ClaimTokens(props: ClaimTokensProps) {
+export function ClaimStart(props: ClaimTokensProps) {
   const { claimableTokens, nextStep, isDarkMode } = props
 
   return (

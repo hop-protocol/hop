@@ -2,13 +2,14 @@ import React from 'react'
 import { Link } from 'src/components/Link'
 import { Circle, Div, Flex, Icon, Input } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
-import { delegates } from './data'
+import { useDelegates } from './useDelegates'
 import { Delegate } from './useClaim'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 
 export function ChooseDelegate(props: any) {
   const { delegate, selectDelegate, inputValue, setInputValue } = props
+  const { delegates } = useDelegates()
   const { theme } = useThemeMode()
 
   function handleSelectDelegate(del: Delegate) {
@@ -66,7 +67,7 @@ export function ChooseDelegate(props: any) {
               </Circle>
               <Div ml={2} p={2}>
                 <Div color="text.primary">{del.ensName}</Div>
-                <Div color="text.secondary">{del.votes}</Div>
+                <Div color="text.secondary">{del.votes == null ? '...' : del.votes}</Div>
               </Div>
             </Flex>
             <Div fontSize={20}>

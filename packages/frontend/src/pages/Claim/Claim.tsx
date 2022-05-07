@@ -5,7 +5,7 @@ import { Div, Flex, Text } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { ChooseDelegate } from './ChooseDelegate'
 import { ClaimReview } from './ClaimReview'
-import { ClaimTokens } from './ClaimTokens'
+import { ClaimStart } from './ClaimStart'
 import { useClaim } from './useClaim'
 import { ClaimWrapper } from './ClaimWrapper'
 import { useWeb3Context } from 'src/contexts/Web3Context'
@@ -50,7 +50,7 @@ export function Claim() {
   }
 
   const steps = [
-    <ClaimTokens
+    <ClaimStart
       key="Claim HOP"
       claimableTokens={claimableTokens}
       nextStep={nextStep}

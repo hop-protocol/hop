@@ -84,7 +84,7 @@ export function ChooseDelegate(props: any) {
                     <Jazzicon diameter={45} seed={jsNumberForAddress(del.address?.address!)} />
                   )}
                 </Circle>
-                <Box ml={2} p={2} display="flex" flexDirection="column" alignContent="flex-start" textAlign="left">
+                <Box p={2} display="flex" flexDirection="column" alignContent="flex-start" textAlign="left">
                   <Typography variant="body1">{del.ensName || del.address?.truncate()}</Typography>
                   <Typography variant="body2">{del.votes == null ? '...' : del.votesFormatted}</Typography>
                 </Box>
@@ -110,26 +110,29 @@ export function ChooseDelegate(props: any) {
             address.
           </Typography>
         </Box>
-        <Box display="flex" justifyContent="space-between" alignContent="center" maxWidth={[120, 340]} width="100%">
-          {inputValue && delegate?.avatar && (
-            <Circle>
-              <Icon src={delegate.avatar} width={[20, 40]} />
-            </Circle>
-          )}
-        </Box>
-        <Box display="flex" flexDirection="column" alignItems="center">
-          <Input
-            maxWidth="500px"
-            width="100%"
-            value={inputValue}
-            placeholder="Enter ENS or address"
-            onChange={e => setInputValue(e.target.value)}
-            bg="background.default"
-            boxShadow={theme.boxShadow.inner}
-            color="text.secondary"
-            fontSize={[0, 1, 2]}
-            border={inputValue && `1px solid ${theme.palette.primary.main}`}
-          />
+        <Box display="flex" flexDirection="column" justifyContent="center" alignContent="center" width="100%">
+          <Box display="flex" justifyContent="center" alignContent="center" width="100%">
+            <Box ml={'-45px'} mr={2} width="45px">
+              {inputValue && delegate?.avatar && (
+                <Circle>
+                  <Icon src={delegate.avatar} width={45} />
+                </Circle>
+              )}
+            </Box>
+            <Box display="flex" justifyContent="content" width="100%" maxWidth="480px">
+              <Input
+                width="100%"
+                value={inputValue}
+                placeholder="Enter ENS or address"
+                onChange={e => setInputValue(e.target.value)}
+                bg="background.default"
+                boxShadow={theme.boxShadow.inner}
+                color="text.secondary"
+                fontSize={[0, 1, 2]}
+                border={inputValue && `1px solid ${theme.palette.primary.main}`}
+              />
+            </Box>
+          </Box>
         </Box>
       </Box>
       <Box mt={4} display="flex" justifyContent="center" maxWidth>

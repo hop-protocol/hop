@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Claiming, Claimed } from 'src/pages/Claim'
 import Box from '@material-ui/core/Box'
-import { Div, Flex, Text } from 'src/components/ui'
+import { Div, Text } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { ChooseDelegate } from './ChooseDelegate'
 import { ClaimReview } from './ClaimReview'
@@ -57,14 +57,15 @@ export function Claim() {
       isDarkMode={isDarkMode}
     />,
     <ChooseDelegate
-      key="Choose a delegate"
+      key="Choose a Delegate"
       setInputValue={setInputValue}
       inputValue={inputValue}
       delegate={delegate}
+      onContinue={nextStep}
       selectDelegate={setDelegate}
     />,
     <ClaimReview
-      key="Review your claim"
+      key="Review your Claim"
       claimableTokens={claimableTokens}
       prevStep={prevStep}
       delegate={delegate}
@@ -75,7 +76,7 @@ export function Claim() {
       }}
     />,
     <Claiming
-      key="Confirm with wallet"
+      key="Confirm with Wallet"
       claiming={claiming}
       isDarkMode={isDarkMode}
       tx={claimTokensTx}
@@ -86,7 +87,7 @@ export function Claim() {
         claimTokens()
       }}
     />,
-    <Claimed key="Claim successful!" />,
+    <Claimed key="Claimed HOP" />,
   ]
 
   return (

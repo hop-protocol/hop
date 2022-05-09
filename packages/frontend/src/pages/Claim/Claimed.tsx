@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { Div, Flex, Icon, Text } from 'src/components/ui'
+import { Icon } from 'src/components/ui'
 import { useAddTokenToMetamask } from 'src/hooks'
 import mmIcon from 'src/assets/logos/metamask.svg'
 import { ReactComponent as twitterIcon } from 'src/assets/logos/twitter.svg'
 import { ReactComponent as discordIcon } from 'src/assets/logos/discord.svg'
 import Button from 'src/components/buttons/Button'
 import { ButtonLink } from 'src/components/Button'
-import Box from '@material-ui/core/Box'
 import Confetti from 'react-confetti'
 import useWindowSize from 'react-use/lib/useWindowSize'
+import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 
 export function Claimed() {
   const { width, height } = useWindowSize()
@@ -23,15 +24,28 @@ export function Claimed() {
   }, [])
 
   return (
-    <Flex column justifyCenter alignCenter>
-      <Text my={3} fontSize={2} textAlign="center" secondary>
-        Congratulations on claiming you HOP!
-      </Text>
-      <Text my={3} fontSize={2} textAlign="center" secondary>
-        We encourage you to share on Twitter and join the Hop Discord to get involved in governance
-      </Text>
+    <Box display="flex" flexDirection="column" justifyContent="center" alignContent="center">
+      <Box my={3} textAlign="center">
+        <Typography variant="h3">
+          🥳
+        </Typography>
+        <Typography variant="h5">
+          Successfully claimed HOP
+        </Typography>
+      </Box>
+      <Box mt={1} mb={5}>
+        <Button onClick={addHopToken}>
+          <Box mr={2}>Add Hop Token to MetaMask</Box>
+          <Icon src={mmIcon} width={40} />
+        </Button>
+      </Box>
+      <Box mb={2} textAlign="center">
+        <Typography variant="body1">
+          We encourage you to share on Twitter and join the Hop Discord to get involved in governance
+        </Typography>
+      </Box>
 
-      <Box mt={3} mb={3}>
+      <Box mb={3}>
         <ButtonLink
           href={"https://twitter.com/intent/tweet?text=TODO"}
           iconColor="#00A2F5"
@@ -50,19 +64,12 @@ export function Claimed() {
           Join the Discord
         </ButtonLink>
       </Box>
-
-      <Box mt={3}>
-        <Button onClick={addHopToken}>
-          <Div mr={2}>Add Hop Token to MetaMask</Div>
-          <Icon src={mmIcon} width={40} />
-        </Button>
-      </Box>
       {showConfetti && (
         <Confetti
           width={width}
           height={height}
         />
       )}
-    </Flex>
+    </Box>
   )
 }

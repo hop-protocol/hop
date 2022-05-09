@@ -1,14 +1,15 @@
 import React from 'react'
 import { Link } from 'src/components/Link'
-import { Circle, Div, Flex, Icon, Input } from 'src/components/ui'
+import { Circle, Flex, Icon, Input } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
+import Button from 'src/components/buttons/Button'
 import { useDelegates } from './useDelegates'
 import { Delegate } from './useClaim'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 
 export function ChooseDelegate(props: any) {
-  const { delegate, selectDelegate, inputValue, setInputValue } = props
+  const { delegate, selectDelegate, onContinue, inputValue, setInputValue } = props
   const { delegates } = useDelegates()
   const { theme } = useThemeMode()
 
@@ -23,13 +24,13 @@ export function ChooseDelegate(props: any) {
   }
 
   return (
-    <Div>
-      <Box my={3} textAlign="left">
+    <Box>
+      <Box my={3} textAlign="center">
         <Typography variant="body1">
           Select a community member to represent you.
           You can change this at any time.
         </Typography>
-        <Box mt={1} textAlign="left">
+        <Box mt={1} textAlign="center">
           <Typography variant="body1">
             Click on the <span>💬</span> icon to read their application.
           </Typography>
@@ -42,7 +43,7 @@ export function ChooseDelegate(props: any) {
         }}>
         {delegates.map((del: Delegate, i) => (
           <Flex
-            key={del.address + i}
+            key={del!.address!.address + i}
             py={1}
             px={3}
             my={2}
@@ -61,16 +62,16 @@ export function ChooseDelegate(props: any) {
                 : '1.5px solid transparent'
             }
           >
-            <Flex fullWidth alignCenter onClick={() => handleSelectDelegate(del)}>
+            <Box display="flex" alignContent="center" width="100%" onClick={() => handleSelectDelegate(del)}>
               <Circle mr={1}>
                 <Icon src={del.avatar} width={45} />
               </Circle>
-              <Div ml={2} p={2}>
-                <Div color="text.primary">{del.ensName}</Div>
-                <Div color="text.secondary">{del.votes == null ? '...' : del.votes}</Div>
-              </Div>
-            </Flex>
-            <Div fontSize={20}>
+              <Box ml={2} p={2} display="flex" flexDirection="column" alignContent="flex-start" textAlign="left">
+                <Typography variant="body1">{del.ensName}</Typography>
+                <Typography variant="body2">{del.votes == null ? '...' : del.votesFormatted}</Typography>
+              </Box>
+            </Box>
+            <Box fontSize={20}>
               <Link
                 underline="none"
                 target="_blank"
@@ -78,37 +79,44 @@ export function ChooseDelegate(props: any) {
               >
                 💬
               </Link>
-            </Div>
+            </Box>
           </Flex>
         ))}
       </Box>
       <Box display="flex" flexDirection="column">
-        <Box mb={4} fontSize={2} textAlign="left">
+        <Box mb={4} fontSize={2} textAlign="center">
           <Typography variant="body1">
             You can delegate to someone not listed, or to yourself, by entering an ENS name or Ethereum
             address.
           </Typography>
         </Box>
-        <Flex justifyBetween alignCenter maxWidth={[120, 340]} width="100%">
+        <Box display="flex" justifyContent="space-between" alignContent="center" maxWidth={[120, 340]} width="100%">
           {inputValue && delegate?.avatar && (
             <Circle>
               <Icon src={delegate.avatar} width={[20, 40]} />
             </Circle>
           )}
-        </Flex>
-        <Input
-          maxWidth="500px"
-          width="100%"
-          value={inputValue}
-          placeholder="Enter ENS or address"
-          onChange={e => setInputValue(e.target.value)}
-          bg="background.default"
-          boxShadow={theme.boxShadow.inner}
-          color="text.secondary"
-          fontSize={[0, 1, 2]}
-          border={inputValue && `1px solid ${theme.palette.primary.main}`}
-        />
+        </Box>
+        <Box display="flex" flexDirection="column" alignItems="center">
+          <Input
+            maxWidth="500px"
+            width="100%"
+            value={inputValue}
+            placeholder="Enter ENS or address"
+            onChange={e => setInputValue(e.target.value)}
+            bg="background.default"
+            boxShadow={theme.boxShadow.inner}
+            color="text.secondary"
+            fontSize={[0, 1, 2]}
+            border={inputValue && `1px solid ${theme.palette.primary.main}`}
+          />
+        </Box>
       </Box>
-    </Div>
+      <Box mt={4} display="flex" justifyContent="center" maxWidth>
+        <Button large highlighted onClick={onContinue} disabled={!delegate?.address}>
+          Continue
+        </Button>
+      </Box>
+    </Box>
   )
 }

@@ -3,26 +3,28 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import { BigNumber, providers, utils } from 'ethers'
 import { claimTokens, correctClaimChain, fetchClaim } from 'src/utils/claims'
 import { toTokenDisplay } from 'src/utils'
-import { getAddress, isAddress } from 'ethers/lib/utils'
+import { parseUnits, getAddress, isAddress } from 'ethers/lib/utils'
 import { useEns } from 'src/hooks'
+import Address from 'src/models/Address'
 
 export interface TokenClaim {
   entry: {
     balance: BigNumber
   }
   proof: string[]
-  address: string
+  address: Address
   isClaimed?: boolean
 }
 
 export interface Delegate {
   ensName: string
-  address: string
-  votes: number
+  address: Address | null
+  votes: BigNumber
+  votesFormatted: string
   avatar: string
 }
 
-const initialDelegate: Delegate = { ensName: '', address: '', votes: 0, avatar: '' }
+const initialDelegate: Delegate = { ensName: '', address: null, votes: BigNumber.from(0), votesFormatted: '', avatar: '' }
 
 export function useClaim() {
   const { provider, address, connectedNetworkId } = useWeb3Context()
@@ -39,29 +41,35 @@ export function useClaim() {
   const { ensName, ensAvatar, ensAddress } = useEns(inputValue)
 
   useEffect(() => {
-    if (!inputValue) {
-      return
-    }
+    try {
+      if (!inputValue) {
+        return
+      }
 
-    if (isAddress(inputValue?.toLowerCase())) {
-      return setDelegate({
-        ensName: ensName || '',
-        address: getAddress(inputValue.toLowerCase()),
-        votes: 1,
-        avatar: ensAvatar || '',
-      })
-    }
+      if (isAddress(inputValue?.toLowerCase())) {
+        return setDelegate({
+          ensName: ensName || '',
+          address: new Address(getAddress(inputValue.toLowerCase())),
+          votes: parseUnits('1', 18),
+          votesFormatted: '1',
+          avatar: ensAvatar || '',
+        })
+      }
 
-    if (ensName && ensAddress) {
-      return setDelegate({
-        ensName,
-        address: ensAddress,
-        votes: 1,
-        avatar: ensAvatar || '',
-      })
-    }
+      if (ensName && ensAddress) {
+        return setDelegate({
+          ensName,
+          address: new Address(ensAddress),
+          votes: parseUnits('1', 18),
+          votesFormatted: '1',
+          avatar: ensAvatar || '',
+        })
+      }
 
-    setDelegate(undefined!)
+      setDelegate(undefined!)
+    } catch (err) {
+      console.error(err)
+    }
   }, [inputValue, ensName, ensAddress, ensAvatar])
 
   // Sets claimable tokens
@@ -108,7 +116,7 @@ export function useClaim() {
   }, [claimableTokens, claim, correctNetwork])
 
   // Retrieves claim from files
-  async function getClaim(address: string) {
+  async function getClaim(address: Address) {
     if (provider) {
       setLoading(true)
 
@@ -136,10 +144,9 @@ export function useClaim() {
         setClaimableTokens(BigNumber.from(0))
         setWarning('')
         setClaim(undefined)
-        getClaim(address.address)
+        getClaim(address)
       }
     } catch (err) {
-      getClaim('')
     }
   }, [address, provider, correctNetwork])
 

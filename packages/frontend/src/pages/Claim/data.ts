@@ -1,6 +1,6 @@
-import { Delegate } from './useClaim'
+// import { Delegate } from './useClaim'
 
-export const delegates: Partial<Delegate>[] = [
+export const delegates: any[] = [
   {
     ensName: 'vitalik.eth',
     address: '0xb7E22bdDEC43A7bC82C052c3C849D5d5fDC5afAa',

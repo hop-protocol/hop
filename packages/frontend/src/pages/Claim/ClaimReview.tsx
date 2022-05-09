@@ -1,12 +1,11 @@
 import React from 'react'
-import { Circle, Div, Flex, Icon } from 'src/components/ui'
-import { Text } from 'src/components/ui/Text'
+import { Circle, Div, Icon } from 'src/components/ui'
 import Button from 'src/components/buttons/Button'
 import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import { toTokenDisplay } from 'src/utils'
 import { BigNumber } from 'ethers'
-import { StyledButton } from 'src/components/buttons/StyledButton'
 import Box from '@material-ui/core/Box'
+import { StyledButton } from 'src/components/buttons/StyledButton'
 import Typography from '@material-ui/core/Typography'
 
 export function ClaimReview (props: any) {
@@ -15,7 +14,7 @@ export function ClaimReview (props: any) {
 
   return (
     <>
-      <Flex column>
+      <Box display="flex" flexDirection="column">
         <Div
           my={3}
           mt={4}
@@ -26,20 +25,24 @@ export function ClaimReview (props: any) {
           bg={isDarkMode ? `black.muted` : 'white'}
           borderRadius="30px"
         >
-          <Text mb={2} textAlign="left" color="text.primary">
-            You will receive
-          </Text>
-          <Flex alignCenter fullWidth>
-            <Text fontSize={28} mr={2} mono textAlign="left" color="text.primary">
-              {toTokenDisplay(claimableTokens, 18)}
-            </Text>
+          <Box mb={2} textAlign="left">
+            <Typography variant="body1">
+              You will receive
+            </Typography>
+          </Box>
+          <Box display="flex" justifyContent="content" width="100%">
+            <Box mr={2}>
+              <Typography variant="h4">
+                {toTokenDisplay(claimableTokens, 18)}
+              </Typography>
+            </Box>
 
             <Icon src={hopTokenLogo} alt="HOP Token Logo" />
-          </Flex>
+          </Box>
         </Div>
-      </Flex>
+      </Box>
 
-      <Flex column mb={4}>
+      <Box display="flex" flexDirection="column">
         <Div
           my={3}
           mb={3}
@@ -50,44 +53,46 @@ export function ClaimReview (props: any) {
           bg={isDarkMode ? `black.muted` : 'white'}
           borderRadius="30px"
         >
-          <Flex alignCenter justifyBetween>
-            <Div overflow={'hidden'}>
-              <Text mb={2} textAlign="left" color="text.primary">
-                You're delegating to
-              </Text>
-              <Flex alignCenter>
+          <Box display="flex" justifyContent="space-between">
+            <Box overflow={'hidden'}>
+              <Box mb={2} textAlign="left">
+                <Typography variant="body1">
+                  You're delegating to
+                </Typography>
+              </Box>
+              <Box display="flex" textAlign="center">
                 {delegate.avatar && (
                   <Circle mr={2} width={45}>
                     <Icon src={delegate.avatar} width={45} />
                   </Circle>
                 )}
-                <Box display="flex" flexDirection="column" textAlign="left">
+                <Box display="flex" flexDirection="column" textAlign="left" minWidth="200px">
                   <Box>
-                    <Div color="text.primary" fontSize={[1, 2]}>
-                      {delegate.address}
-                    </Div>
+                    <Typography variant="body1">
+                      {delegate.address?.truncate()}
+                    </Typography>
                   </Box>
                   <Box>
-                    <Div color="text.secondary" fontSize={[1, 2]}>
+                    <Typography variant="body2">
                       {delegate.ensName}
-                    </Div>
+                    </Typography>
                   </Box>
                 </Box>
-              </Flex>
-            </Div>
+              </Box>
+            </Box>
 
             <StyledButton borderRadius={2} onClick={prevStep}>
               Edit
             </StyledButton>
-          </Flex>
+          </Box>
         </Div>
 
-        <Flex mt={2} justifyCenter fullWidth>
+        <Box mt={2} display="flex" justifyContent="center" width="100%">
           <Button large highlighted onClick={handleClaimTokens} disabled={tokenClaims.eq(0)}>
-            <Div width="220px">Claim</Div>
+            Claim
           </Button>
-        </Flex>
-      </Flex>
+        </Box>
+      </Box>
     </>
   )
 }

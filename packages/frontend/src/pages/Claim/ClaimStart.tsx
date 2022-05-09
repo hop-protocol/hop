@@ -2,7 +2,6 @@ import React from 'react'
 import { Div, Flex, Icon } from 'src/components/ui'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import { Text } from 'src/components/ui/Text'
 import Button from 'src/components/buttons/Button'
 import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import { toTokenDisplay } from 'src/utils'
@@ -39,13 +38,17 @@ export function ClaimStart(props: ClaimTokensProps) {
             bg={isDarkMode ? `black.muted` : 'white'}
             borderRadius="30px"
           >
-            <Text mb={2} textAlign="left" color="text.primary">
-              You will receive
-            </Text>
+            <Box mb={2} textAlign="left">
+              <Typography variant="body1">
+                You will receive
+              </Typography>
+            </Box>
             <Flex alignCenter width="100%">
-              <Text fontSize={28} mr={2} mono textAlign="left" color="text.primary">
-                {toTokenDisplay(claimableTokens || '0', 18)}
-              </Text>
+              <Box mr={2}>
+                <Typography variant="h4">
+                  {toTokenDisplay(claimableTokens || '0', 18)}
+                </Typography>
+              </Box>
 
               <Icon src={hopTokenLogo} alt="HOP Token Logo" />
             </Flex>
@@ -63,12 +66,11 @@ export function ClaimStart(props: ClaimTokensProps) {
           </Box>
         )}
 
-        <Flex mt={2} justifyCenter fullWidth>
-          {/* <Button large highlighted onClick={() => setStep(2)} disabled={claimableTokens.eq(0)}> */}
+        <Box mt={2} display="flex" justifyContent="center" width="100%">
           <Button large highlighted onClick={nextStep} disabled={claimableTokens.eq(0)}>
-            <Div width="220px">Start Claim</Div>
+            Start Claim
           </Button>
-        </Flex>
+        </Box>
       </Flex>
     </>
   )

@@ -1,21 +1,24 @@
 import React from 'react'
-import { Div, Flex, Text } from 'src/components/ui'
+import { Flex } from 'src/components/ui'
 import { Loading } from 'src/components/Loading'
 import { StyledLink } from 'src/components/ui/StyledLink'
 import { BigNumber } from 'ethers'
 import Button from 'src/components/buttons/Button'
-import { getEtherscanLink, getTruncatedHash } from 'src/utils'
+import { toTokenDisplay, getEtherscanLink, getTruncatedHash } from 'src/utils'
 import { correctClaimChain } from 'src/utils/claims'
 import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 
 export function Claiming(props: any) {
   const { isDarkMode, claiming, tx, delegate, handleClaimTokens, claimableTokens, showTryAgain } = props
 
   return (
-    <>
-      <Text my={3} fontSize={2} bold secondary textAlign="left">
-        Please approve the transaction to delegate and claim your tokens.
-      </Text>
+    <Box display="flex" flexDirection="column">
+      <Box my={3} textAlign="center">
+        <Typography variant="body1">
+          Please approve the transaction to delegate and claim your tokens.
+        </Typography>
+      </Box>
 
       <Flex
         p={3}
@@ -28,12 +31,23 @@ export function Claiming(props: any) {
         {delegate.avatar && (
           <Loading size={50} load={claiming} imgSrc={delegate.avatar} />
         )}
-        <Div color="text.secondary" ml={2} p={2} textAlign="left">
-          <Text primary textAlign="left" mb={2}>
-            Delegate and claim tokens
-          </Text>
-          <Div>This transaction happens on-chain and will require paying gas</Div>
-        </Div>
+        <Box ml={2} p={2} textAlign="left">
+          <Box mb={1}>
+            <Typography variant="body1">
+              Delegate and claim tokens
+            </Typography>
+          </Box>
+          <Box mb={1}>
+            <Typography variant="body1">
+              {toTokenDisplay(claimableTokens, 18)} HOP
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="body2">
+              This transaction happens on-chain and will require paying gas
+            </Typography>
+          </Box>
+        </Box>
       </Flex>
 
       {tx && (
@@ -50,15 +64,20 @@ export function Claiming(props: any) {
           </StyledLink>
         </Flex>
       )}
-      {showTryAgain && (
-        <Box mt={5}>
-          <Flex mt={2} justifyCenter fullWidth>
-            <Button large highlighted onClick={handleClaimTokens} disabled={claimableTokens.eq(0)}>
-              <Div width="220px">Try Again</Div>
-            </Button>
-          </Flex>
+      {(showTryAgain && !claiming) && (
+        <Box mt={4}>
+          <Button large highlighted onClick={handleClaimTokens} disabled={claimableTokens.eq(0)}>
+            Try Again
+          </Button>
         </Box>
       )}
-    </>
+      {claiming && (
+        <Box mt={4}>
+          <Button large highlighted disabled={claiming}>
+            Claiming
+          </Button>
+        </Box>
+      )}
+    </Box>
   )
 }

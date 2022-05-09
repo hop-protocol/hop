@@ -2,6 +2,7 @@ import { providers, Signer } from 'ethers'
 import { Delegate, TokenClaim } from 'src/pages/Claim/useClaim'
 import { getEnsToken } from './contracts'
 import { getEntryProofIndex, ShardedMerkleTree } from './merkle'
+import Address from 'src/models/Address'
 
 export const correctClaimChain = {
   // id: '1',
@@ -12,17 +13,17 @@ export const correctClaimChain = {
   name: 'Goerli',
 }
 
-export async function fetchClaim(provider: providers.Web3Provider, address: string) {
+export async function fetchClaim(provider: providers.Web3Provider, address: Address) {
   try {
     const ensToken = await getEnsToken(provider)
     // const merkleRoot = await ensToken.merkleRoot()
     // console.log(`merkleRoot:`, merkleRoot)
 
     const shardedMerkleTree = ShardedMerkleTree.fromFiles()
-    const [entry, proof] = await shardedMerkleTree.getProof(address)
+    const [entry, proof] = await shardedMerkleTree.getProof(address?.address)
     console.log(`entry, proof:`, entry, proof)
 
-    const idx = getEntryProofIndex(address, entry, proof)
+    const idx = getEntryProofIndex(address?.address, entry, proof)
     console.log(`idx:`, idx)
 
     if (typeof idx !== 'undefined') {
@@ -42,7 +43,7 @@ export async function claimTokens(signer: Signer, claim: TokenClaim, delegate: D
     const ensToken = await getEnsToken(signer)
 
     // Claim tokens tx
-    return ensToken.claimTokens(claim.entry.balance, delegate.address, claim.proof)
+    return ensToken.claimTokens(claim.entry.balance, delegate.address!.address, claim.proof)
   } catch (error: any) {
     console.log(`error:`, error)
     // TODO: catch replaced txs

@@ -7,8 +7,21 @@ import { useDelegates } from './useDelegates'
 import { Delegate } from './useClaim'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core/styles'
+import Jazzicon, { jsNumberForAddress } from 'react-jazzicon'
+
+const useStyles = makeStyles(() => ({
+  box: {
+    borderRadius: '10px',
+    transition: 'background-color 0.25s ease',
+    '&:hover': {
+      backgroundColor: '#b7b7b721',
+    }
+  }
+}))
 
 export function ChooseDelegate(props: any) {
+  const styles = useStyles()
   const { delegate, selectDelegate, onContinue, inputValue, setInputValue } = props
   const { delegates } = useDelegates()
   const { theme } = useThemeMode()
@@ -17,7 +30,7 @@ export function ChooseDelegate(props: any) {
     if (inputValue) {
       setInputValue('')
     }
-    if (del?.ensName === delegate?.ensName) {
+    if (del?.address?.toString() === delegate?.address?.toString()) {
       return selectDelegate()
     }
     selectDelegate(del)
@@ -43,42 +56,49 @@ export function ChooseDelegate(props: any) {
         }}>
         {delegates.map((del: Delegate, i) => (
           <Flex
-            key={del!.address!.address + i}
-            py={1}
-            px={3}
+            key={i}
             my={2}
             mx={1}
-            justifyBetween
-            alignCenter
             bg="background.contrast"
-            borderRadius={'25px'}
+            borderRadius={'10px'}
             boxShadow={'0px 4px 25px 10px rgba(255, 255, 255, 0.01)'}
             width={[300, 300]}
             maxWidth={[275, 325]}
             pointer
             border={
-              delegate?.ensName! === del?.ensName
+              delegate?.address?.toString() ! === del?.address?.toString()
                 ? `1.5px solid ${(theme as any).palette.primary.main}`
                 : '1.5px solid transparent'
             }
           >
-            <Box display="flex" alignContent="center" width="100%" onClick={() => handleSelectDelegate(del)}>
-              <Circle mr={1}>
-                <Icon src={del.avatar} width={45} />
-              </Circle>
-              <Box ml={2} p={2} display="flex" flexDirection="column" alignContent="flex-start" textAlign="left">
-                <Typography variant="body1">{del.ensName}</Typography>
-                <Typography variant="body2">{del.votes == null ? '...' : del.votesFormatted}</Typography>
+            <Box display="flex" justifyContent="space-between" alignContent="center" className={styles.box} width="100%"
+              py={1}
+              px={3}
+            >
+              <Box display="flex" alignContent="center" width="100%" onClick={() => handleSelectDelegate(del)}>
+                <Circle mr={1}>
+                  {del.avatar && (
+                    <Icon src={del.avatar} width={45} />
+                  )}
+                  {!del.avatar && (
+                    <Jazzicon diameter={45} seed={jsNumberForAddress(del.address?.address!)} />
+                  )}
+                </Circle>
+                <Box ml={2} p={2} display="flex" flexDirection="column" alignContent="flex-start" textAlign="left">
+                  <Typography variant="body1">{del.ensName || del.address?.truncate()}</Typography>
+                  <Typography variant="body2">{del.votes == null ? '...' : del.votesFormatted}</Typography>
+                </Box>
               </Box>
-            </Box>
-            <Box fontSize={20}>
-              <Link
-                underline="none"
-                target="_blank"
-                href={`https://forum.hop.exchange/t/community-governance-process/30`}
-              >
-                💬
-              </Link>
+              <Box fontSize={20}>
+                <Link
+                  underline="none"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  href={'https://forum.hop.exchange/t/apply-as-a-hop-dao-delegate/32'}
+                >
+                  💬
+                </Link>
+              </Box>
             </Box>
           </Flex>
         ))}

@@ -2,12 +2,10 @@
 
 export const delegates: any[] = [
   {
-    ensName: 'vitalik.eth',
     address: '0xb7E22bdDEC43A7bC82C052c3C849D5d5fDC5afAa',
     avatar: 'https://ethereum.foundation/static/51eeee937f5fca4d8e2fbb032614f05a/6dea1/vitalik.png',
   },
   {
-    ensName: 'satoshi.eth',
     address: '0xC35F4C7370C3efDFa628EF351f3ec822CaD47b65',
     avatar: 'https://ethereum.foundation/static/51eeee937f5fca4d8e2fbb032614f05a/6dea1/vitalik.png',
   },
@@ -19,12 +17,10 @@ export const delegates: any[] = [
   {
     ensName: 'shane.eth',
     address: '0xD8D60a885F0635E65363Cf4e7DeCD2fA39984A05',
-    avatar: 'https://ethereum.foundation/static/51eeee937f5fca4d8e2fbb032614f05a/6dea1/vitalik.png',
   },
   {
     ensName: 'miguel.eth',
     address: '0x3EAa33f296C10aca61206B28fb7DFeEcf7C4489C',
-    avatar: 'https://ethereum.foundation/static/51eeee937f5fca4d8e2fbb032614f05a/6dea1/vitalik.png',
   },
   {
     ensName: 'lito.eth',

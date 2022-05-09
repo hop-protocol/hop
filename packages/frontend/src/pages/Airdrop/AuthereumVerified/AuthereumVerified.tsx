@@ -137,7 +137,7 @@ export function AuthereumVerified() {
         </Box>
         <Box mt={3}>
           <Typography variant="body1">
-            Use an address that is <strong>not</strong> an Authereum address.
+            Use an address that is <strong>not</strong> an Authereum address and do not input an address from an exchange. Exchanges will not support the claim process. Input an address that you control, such as your MetaMask address.
           </Typography>
         </Box>
       </Box>

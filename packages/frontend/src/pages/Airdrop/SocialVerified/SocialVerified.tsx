@@ -146,6 +146,11 @@ export function SocialVerified() {
             Follow official Discord/Twitter announcements for information about the token launch date. You will be able to claim your HOP token share on app.hop.exchange once the token is launched.
           </Typography>
         </Box>
+        <Box mt={3}>
+          <Typography variant="body1">
+            Please do not input an address from an exchange. Exchanges will not support the claim process. Input an address that you control, such as your MetaMask address.
+          </Typography>
+        </Box>
       </Box>
 
       <Box my={3} display="flex" flexDirection="column" justifyContent="center">

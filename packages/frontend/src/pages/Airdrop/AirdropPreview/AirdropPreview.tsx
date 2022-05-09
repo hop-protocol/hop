@@ -14,11 +14,13 @@ import { AddressModal } from './AddressModal'
 import { getAddress } from 'ethers/lib/utils'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ExternalLink } from 'src/components/Link'
+import { useHistory } from 'react-router-dom';
 
 export const respMaxWidths = [350, 624, 824]
 
 export function AirdropPreview() {
   const theme = useTheme()
+  const history = useHistory()
   const { address } = useWeb3Context()
   const [airdropAddress, setAirdropAddress] = useState<string>(address?.address || '')
   const [showAddressModal, setShowAddressModal] = useState<boolean>(false)
@@ -205,6 +207,16 @@ export function AirdropPreview() {
                 </Box>
               </Box>
             </>
+          )}
+
+          {(isEligible && isConnected && address?.address?.toLowerCase() === airdropAddress?.toLowerCase()) && (
+            <Box mt={2} mb={3} display="flex" justifyContent="center" width="100%">
+              <Button large highlighted onClick={() => {
+                  history.push('/claim')
+                }}>
+                Claim
+              </Button>
+            </Box>
           )}
 
           <Box mt={2} display="flex" flexDirection="column" justifyContent="center" alignItems="center" width="100%">

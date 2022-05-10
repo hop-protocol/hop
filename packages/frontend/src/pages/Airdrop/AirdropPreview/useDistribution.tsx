@@ -125,16 +125,37 @@ export function useDistribution(address?: string) {
   const baseAmountFormatted = baseAmount > 0 ? commafy(baseAmount, 4) : baseAmount
   const earlyMultiplierFormatted = hopUserTokens > 0 && earlyMultiplier > 0 ? `x${earlyMultiplier.toFixed(4)}` : earlyMultiplier
   const volumeMultiplierFormatted = hopUserTokens > 0 && volumeMultiplier > 0 ? `x${volumeMultiplier.toFixed(4)}` : volumeMultiplier
-  const totalFormatted = total > 0 ? commafy(total, 4) : total
+
   let isBot: any = null
   let numTxs : any = null
   let addressVolume :any = null
+  let authereumAmount :any = null
+  let twitterAmount :any = null
+  let discordAmount :any = null
+
   if (accountInfo) {
     isBot = accountInfo?.isBot ?? false
     numTxs = Number(accountInfo?.totalTxs)
     addressVolume = Number(accountInfo?.totalVolume)
+    if (accountInfo.authereumAmount) {
+      authereumAmount = Number(formatUnits(accountInfo.authereumAmount.toString(), 18))
+      total += authereumAmount
+    }
+    if (accountInfo.twitterAmount) {
+      twitterAmount = Number(formatUnits(accountInfo.twitterAmount.toString(), 18))
+      total += twitterAmount
+    }
+    if (accountInfo.discordAmount) {
+      discordAmount = Number(formatUnits(accountInfo.discordAmount.toString(), 18))
+      total += discordAmount
+    }
   }
-  const addressVolumeFormatted = addressVolume > 0 ? `$${commafy(addressVolume, 4)}` : '0'
+  const addressVolumeFormatted = addressVolume > 0 ? `${commafy(addressVolume, 4)}` : '0'
+  const authereumAmountFormatted = authereumAmount > 0 ? `${commafy(authereumAmount, 4)}` : '0'
+  const twitterAmountFormatted = twitterAmount > 0 ? `${commafy(twitterAmount, 4)}` : '0'
+  const discordAmountFormatted = discordAmount > 0 ? `${commafy(discordAmount, 4)}` : '0'
+
+  const totalFormatted = total > 0 ? commafy(total, 4) : total
 
   return {
     error,
@@ -154,6 +175,12 @@ export function useDistribution(address?: string) {
     isBot,
     numTxs,
     addressVolume,
-    addressVolumeFormatted
+    addressVolumeFormatted,
+    authereumAmount,
+    authereumAmountFormatted,
+    twitterAmount,
+    twitterAmountFormatted,
+    discordAmount,
+    discordAmountFormatted,
   }
 }

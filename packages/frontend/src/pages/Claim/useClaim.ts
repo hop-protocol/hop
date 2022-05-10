@@ -22,9 +22,10 @@ export interface Delegate {
   votes: BigNumber
   votesFormatted: string
   avatar: string
+  infoUrl: string
 }
 
-const initialDelegate: Delegate = { ensName: '', address: null, votes: BigNumber.from(0), votesFormatted: '', avatar: '' }
+const initialDelegate: Delegate = { ensName: '', address: null, votes: BigNumber.from(0), votesFormatted: '', avatar: '', infoUrl: '' }
 
 export function useClaim() {
   const { provider, address, connectedNetworkId } = useWeb3Context()
@@ -53,6 +54,7 @@ export function useClaim() {
           votes: parseUnits('1', 18),
           votesFormatted: '1',
           avatar: ensAvatar || '',
+          infoUrl: ''
         })
       }
 
@@ -63,6 +65,7 @@ export function useClaim() {
           votes: parseUnits('1', 18),
           votesFormatted: '1',
           avatar: ensAvatar || '',
+          infoUrl: ''
         })
       }
 
@@ -74,9 +77,7 @@ export function useClaim() {
 
   // Sets claimable tokens
   useEffect(() => {
-    console.log(`delegate:`, delegate)
     if (claim) {
-      console.log(`claim:`, claim)
       if (claim.isClaimed) {
         setClaimableTokens(BigNumber.from(0))
         // setWarning('Already claimed')
@@ -167,7 +168,7 @@ export function useClaim() {
 
         return receipt
       } catch (error) {
-        console.log(`error:`, error)
+        console.error(error)
         // TODO: catch replaced txs
         setClaiming(false)
         setClaimed(false)

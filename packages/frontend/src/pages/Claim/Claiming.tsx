@@ -7,7 +7,7 @@ import { toTokenDisplay, getEtherscanLink, getTruncatedHash } from 'src/utils'
 import { correctClaimChain } from 'src/utils/claims'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import Jazzicon, { jsNumberForAddress } from 'react-jazzicon'
+import { DelegateIcon } from './DelegateIcon'
 
 export function Claiming(props: any) {
   const { isDarkMode, claiming, tx, delegate, handleClaimTokens, claimableTokens, showTryAgain } = props
@@ -28,15 +28,8 @@ export function Claiming(props: any) {
         borderRadius={'25px'}
         boxShadow={'0px 4px 25px 10px rgba(255, 255, 255, 0.01)'}
       >
-        <Box width="60px">
-          <Circle mr={1}>
-            {delegate.avatar && (
-              <Icon src={delegate.avatar} width={45} />
-            )}
-            {!delegate.avatar && (
-              <Jazzicon diameter={45} seed={jsNumberForAddress(delegate.address?.address!)} />
-            )}
-          </Circle>
+        <Box>
+          <DelegateIcon delegate={delegate} />
         </Box>
         <Box p={2} textAlign="left">
           <Box mb={1}>

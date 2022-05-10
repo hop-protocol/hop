@@ -7,7 +7,7 @@ import { BigNumber } from 'ethers'
 import Box from '@material-ui/core/Box'
 import { StyledButton } from 'src/components/buttons/StyledButton'
 import Typography from '@material-ui/core/Typography'
-import Jazzicon, { jsNumberForAddress } from 'react-jazzicon'
+import { DelegateIcon } from './DelegateIcon'
 
 export function ClaimReview (props: any) {
   const { claimableTokens, delegate, isDarkMode, handleClaimTokens, prevStep } = props
@@ -63,14 +63,7 @@ export function ClaimReview (props: any) {
               </Box>
               <Box display="flex" textAlign="center">
                 <Box mr={2}>
-                  <Circle width={45}>
-                    {delegate.avatar && (
-                      <Icon src={delegate.avatar} width={45} />
-                    )}
-                    {!delegate.avatar && (
-                      <Jazzicon diameter={45} seed={jsNumberForAddress(delegate.address?.address!)} />
-                    )}
-                  </Circle>
+                  <DelegateIcon delegate={delegate} />
                 </Box>
                 <Box display="flex" flexDirection="column" textAlign="left">
                   <Box>

@@ -9,7 +9,7 @@ import { Delegate } from './useClaim'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
-import Jazzicon, { jsNumberForAddress } from 'react-jazzicon'
+import { DelegateIcon } from './DelegateIcon'
 
 const useStyles = makeStyles(() => ({
   box: {
@@ -66,7 +66,7 @@ export function ChooseDelegate(props: any) {
           </Box>
         )}
         {delegates.map((del: Delegate, i) => {
-          const isSelected = delegate?.address?.toString() ! === del?.address?.toString()
+          const isSelected = del?.address && delegate?.address?.toString() ! === del?.address?.toString()
           return (
             <Flex
               key={i}
@@ -87,19 +87,19 @@ export function ChooseDelegate(props: any) {
                 px={3}
               >
                 <Box display="flex" alignItems="center" alignContent="center" width="100%" onClick={() => handleSelectDelegate(del)}>
-                  <Circle mr={1} style={{ border: '1px solid #fff' }} width={45} height={45}>
-                    {del.avatar && (
-                      <Icon src={del.avatar} width={45} />
-                    )}
-                    {!del.avatar && (
-                      <Jazzicon diameter={45} seed={jsNumberForAddress(del.address?.address!)} />
-                    )}
-                  </Circle>
+                  <Box mr={1}>
+                    <DelegateIcon delegate={del} />
+                  </Box>
                   <Box p={2} display="flex" flexDirection="column" alignContent="flex-start" textAlign="left">
                     <Typography variant="subtitle2"
-                    style={isSelected ? {
+                    style={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '155px',
+                      ...(isSelected ? {
                       color: '#fff'
-                    } : {}}
+                    } : {})
+                    }}
                     >{del.ensName || del.address?.truncate()}</Typography>
                     <Typography variant="body2"
                     style={isSelected ? {
@@ -113,7 +113,7 @@ export function ChooseDelegate(props: any) {
                     underline="none"
                     target="_blank"
                     rel="noreferrer noopener"
-                    href={'https://forum.hop.exchange/t/apply-as-a-hop-dao-delegate/32'}
+                    href={del.infoUrl}
                   >
                     💬
                   </Link>

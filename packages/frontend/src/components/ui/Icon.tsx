@@ -9,6 +9,7 @@ interface StyledIconProps {
   width?: any
   alt?: string
   color?: string
+  onError?: any
 }
 
 const StyledIcon = styled.img<ComposedStyleProps & SquareDimensions>`
@@ -16,7 +17,7 @@ const StyledIcon = styled.img<ComposedStyleProps & SquareDimensions>`
   ${squareDimensions}
 `
 
-const Icon = ({ src, width = [12, 18], alt, color, ...props }: ComposedStyleProps & StyledIconProps & any) => {
+const Icon = ({ src, width = [12, 18], alt, color, onError, ...props }: ComposedStyleProps & StyledIconProps & any) => {
   if (!src) return null
 
   return (
@@ -25,6 +26,11 @@ const Icon = ({ src, width = [12, 18], alt, color, ...props }: ComposedStyleProp
       width={width || 24}
       alt={alt || `${src.slice(4)} icon`}
       color={color}
+      onError={(event:any) => {
+        if (onError) {
+          onError(event)
+        }
+      }}
       {...props}
     />
   )

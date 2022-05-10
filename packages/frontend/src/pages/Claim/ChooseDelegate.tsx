@@ -2,8 +2,8 @@ import React from 'react'
 import { Link } from 'src/components/Link'
 import { Circle, Flex, Icon, Input } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
-import { Loading } from 'src/components/Loading'
 import Button from 'src/components/buttons/Button'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import { useDelegates } from './useDelegates'
 import { Delegate } from './useClaim'
 import Box from '@material-ui/core/Box'
@@ -56,11 +56,11 @@ export function ChooseDelegate(props: any) {
           borderRadius: '6px'
         }}>
         {!delegates?.length && (
-          <Box display="flex" flexDirection="column" textAlign="center" p={6}>
-            <Loading size={40} load />
-            <Box my={4}>
-              <Typography variant="subtitle2">
-                Loading...
+          <Box display="flex" justifyContent="center" alignItems="center" textAlign="center" p={6}>
+            <CircularProgress size={24} />
+            <Box ml={2}>
+              <Typography variant="body1">
+                Fetching delegates...
               </Typography>
             </Box>
           </Box>
@@ -96,6 +96,7 @@ export function ChooseDelegate(props: any) {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       maxWidth: '155px',
+                      width: '100%',
                       ...(isSelected ? {
                       color: '#fff'
                     } : {})
@@ -109,14 +110,16 @@ export function ChooseDelegate(props: any) {
                   </Box>
                 </Box>
                 <Box fontSize={20}>
-                  <Link
-                    underline="none"
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    href={del.infoUrl}
-                  >
-                    💬
-                  </Link>
+                  {!!del.infoUrl && (
+                    <Link
+                      underline="none"
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      href={del.infoUrl}
+                    >
+                      <span>💬</span>
+                    </Link>
+                  )}
                 </Box>
               </Box>
             </Flex>

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useTheme } from '@material-ui/core'
-import { BigNumber } from 'ethers'
 import Button from 'src/components/buttons/Button'
 import { Div, Flex } from 'src/components/ui'
-import { Loading } from 'src/components/Loading'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 
@@ -39,10 +38,10 @@ export function ClaimWrapper(props: any) {
         mt={mt}
       >
         {loading ? (
-          <Box display="flex" flexDirection="column" textAlign="center" p={6}>
-            <Loading size={40} load />
-            <Box my={4}>
-              <Typography variant="subtitle2">
+          <Box display="flex" justifyContent="center" alignItems="center" textAlign="center" p={6}>
+            <CircularProgress size={24} />
+            <Box ml={2}>
+              <Typography variant="body1">
                 Loading...
               </Typography>
             </Box>

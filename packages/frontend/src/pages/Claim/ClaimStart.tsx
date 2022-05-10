@@ -23,9 +23,10 @@ export function ClaimStart(props: ClaimTokensProps) {
   return (
     <>
       <Flex column>
-        <Box mt={3}>
+        <Box mt={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center" textAlign="center" width="100%">
           <Typography variant="body1">
-            You are eligible for the airdrop! View your tokens below and start the claim process.
+            You're eligible for the airdrop!
+            You have received these tokens for being an active participant of the Hop protocol.
           </Typography>
         </Box>
         {!claimableTokens.eq(0) && (
@@ -50,7 +51,7 @@ export function ClaimStart(props: ClaimTokensProps) {
                 </Typography>
               </Box>
 
-              <Icon src={hopTokenLogo} alt="HOP Token Logo" />
+              <Icon src={hopTokenLogo} alt="HOP" width={32} />
             </Flex>
           </Div>
         )}
@@ -58,10 +59,9 @@ export function ClaimStart(props: ClaimTokensProps) {
 
       <Flex column my={2}>
         {!claimableTokens.eq(0) && (
-          <Box mb={3}>
+          <Box mb={3} textAlign="center" width="100%">
             <Typography variant="body1">
-              You have received these tokens for being an early participant of the Hop community. Use
-              this responsibility wisely!
+            Continue with delegation and claim process.
             </Typography>
           </Box>
         )}

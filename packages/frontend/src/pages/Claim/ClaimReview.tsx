@@ -38,7 +38,7 @@ export function ClaimReview (props: any) {
               </Typography>
             </Box>
 
-            <Icon src={hopTokenLogo} alt="HOP Token Logo" />
+            <Icon src={hopTokenLogo} alt="HOP" width={32} />
           </Box>
         </Div>
       </Box>

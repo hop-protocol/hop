@@ -65,54 +65,63 @@ export function ChooseDelegate(props: any) {
             </Box>
           </Box>
         )}
-        {delegates.map((del: Delegate, i) => (
-          <Flex
-            key={i}
-            my={2}
-            mx={1}
-            bg="background.contrast"
-            borderRadius={'10px'}
-            boxShadow={'0px 4px 25px 10px rgba(255, 255, 255, 0.01)'}
-            width={[300, 300]}
-            maxWidth={[275, 325]}
-            pointer
-            border={
-              delegate?.address?.toString() ! === del?.address?.toString()
-                ? `1.5px solid ${(theme as any).palette.primary.main}`
-                : '1.5px solid transparent'
-            }
-          >
-            <Box display="flex" justifyContent="space-between" alignContent="center" className={styles.box} width="100%"
-              py={1}
-              px={3}
+        {delegates.map((del: Delegate, i) => {
+          const isSelected = delegate?.address?.toString() ! === del?.address?.toString()
+          return (
+            <Flex
+              key={i}
+              my={2}
+              mx={1}
+              bg={'background.contrast'}
+              borderRadius={'10px'}
+              boxShadow={'0px 4px 25px 10px rgba(255, 255, 255, 0.01)'}
+              width={[300, 300]}
+              maxWidth={[275, 325]}
+              pointer
+              style={isSelected ? {
+                background: 'rgba(0, 0, 0, 0) linear-gradient(99.85deg, rgb(179, 46, 255) -18.29%, rgb(242, 164, 152) 109.86%) repeat scroll 0% 0%',
+              } : {}}
             >
-              <Box display="flex" alignContent="center" width="100%" onClick={() => handleSelectDelegate(del)}>
-                <Circle mr={1}>
-                  {del.avatar && (
-                    <Icon src={del.avatar} width={45} />
-                  )}
-                  {!del.avatar && (
-                    <Jazzicon diameter={45} seed={jsNumberForAddress(del.address?.address!)} />
-                  )}
-                </Circle>
-                <Box p={2} display="flex" flexDirection="column" alignContent="flex-start" textAlign="left">
-                  <Typography variant="body1">{del.ensName || del.address?.truncate()}</Typography>
-                  <Typography variant="body2">{del.votes == null ? '...' : del.votesFormatted}</Typography>
+              <Box display="flex" justifyContent="space-between" alignContent="center" className={styles.box} width="100%"
+                py={1}
+                px={3}
+              >
+                <Box display="flex" alignItems="center" alignContent="center" width="100%" onClick={() => handleSelectDelegate(del)}>
+                  <Circle mr={1} style={{ border: '1px solid #fff' }} width={45} height={45}>
+                    {del.avatar && (
+                      <Icon src={del.avatar} width={45} />
+                    )}
+                    {!del.avatar && (
+                      <Jazzicon diameter={45} seed={jsNumberForAddress(del.address?.address!)} />
+                    )}
+                  </Circle>
+                  <Box p={2} display="flex" flexDirection="column" alignContent="flex-start" textAlign="left">
+                    <Typography variant="body1"
+                    style={isSelected ? {
+                      color: '#fff'
+                    } : {}}
+                    >{del.ensName || del.address?.truncate()}</Typography>
+                    <Typography variant="body2"
+                    style={isSelected ? {
+                      color: '#fff'
+                    } : {}}
+                    >{del.votes == null ? '...' : del.votesFormatted}</Typography>
+                  </Box>
+                </Box>
+                <Box fontSize={20}>
+                  <Link
+                    underline="none"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    href={'https://forum.hop.exchange/t/apply-as-a-hop-dao-delegate/32'}
+                  >
+                    💬
+                  </Link>
                 </Box>
               </Box>
-              <Box fontSize={20}>
-                <Link
-                  underline="none"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  href={'https://forum.hop.exchange/t/apply-as-a-hop-dao-delegate/32'}
-                >
-                  💬
-                </Link>
-              </Box>
-            </Box>
-          </Flex>
-        ))}
+            </Flex>
+          )
+        })}
       </Box>
       <Box display="flex" flexDirection="column">
         <Box mb={4} fontSize={2} textAlign="center">

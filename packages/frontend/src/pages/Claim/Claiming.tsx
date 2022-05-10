@@ -1,6 +1,7 @@
 import React from 'react'
 import { Flex, Circle, Icon } from 'src/components/ui'
 import { StyledLink } from 'src/components/ui/StyledLink'
+import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import Button from 'src/components/buttons/Button'
 import { toTokenDisplay, getEtherscanLink, getTruncatedHash } from 'src/utils'
 import { correctClaimChain } from 'src/utils/claims'
@@ -15,7 +16,7 @@ export function Claiming(props: any) {
     <Box display="flex" flexDirection="column">
       <Box my={3} textAlign="center">
         <Typography variant="body1">
-          Please approve the transaction to delegate and claim your tokens.
+          Please approve the transaction to delegate and claim tokens
         </Typography>
       </Box>
 
@@ -43,10 +44,13 @@ export function Claiming(props: any) {
               Delegate and claim tokens
             </Typography>
           </Box>
-          <Box mb={1}>
+          <Box mb={1} display="flex" alignItems="center">
             <Typography variant="body1">
-              {toTokenDisplay(claimableTokens, 18)} HOP
+              {toTokenDisplay(claimableTokens, 18)}
             </Typography>
+            <Box ml={1} display="flex" alignItems="center">
+              <Icon src={hopTokenLogo} alt="HOP" width={24} />
+            </Box>
           </Box>
           <Box>
             <Typography variant="body2">

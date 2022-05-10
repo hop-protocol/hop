@@ -43,7 +43,7 @@ export function Claimed() {
       </Box>
       <Box mb={2} textAlign="center">
         <Typography variant="body1">
-          We encourage you to share on Twitter and join the Hop Discord to get involved in governance
+          We encourage you to share on Twitter and join the Hop Discord to get involved in governance.
         </Typography>
       </Box>
 

@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'src/components/Link'
 import { Circle, Flex, Icon, Input } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
+import { Loading } from 'src/components/Loading'
 import Button from 'src/components/buttons/Button'
 import { useDelegates } from './useDelegates'
 import { Delegate } from './useClaim'
@@ -54,6 +55,16 @@ export function ChooseDelegate(props: any) {
           border: '1px solid #7777772e',
           borderRadius: '6px'
         }}>
+        {!delegates?.length && (
+          <Box display="flex" flexDirection="column" textAlign="center" p={6}>
+            <Loading size={40} load />
+            <Box my={4}>
+              <Typography variant="subtitle2">
+                Loading...
+              </Typography>
+            </Box>
+          </Box>
+        )}
         {delegates.map((del: Delegate, i) => (
           <Flex
             key={i}

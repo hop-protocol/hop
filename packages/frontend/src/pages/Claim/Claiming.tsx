@@ -80,7 +80,7 @@ export function Claiming(props: any) {
       {claiming && (
         <Box mt={4}>
           <Button large highlighted disabled={claiming}>
-            Claiming
+            Claiming...
           </Button>
         </Box>
       )}

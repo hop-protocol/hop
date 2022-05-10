@@ -33,8 +33,8 @@ export function Claim() {
 
   async function claimTokens() {
     try {
-        nextStep()
-      return
+      //nextStep()
+      //return
       setShowTryAgain(false)
       const res = await sendClaimTokens()
       console.log(`res:`, res)

@@ -4,12 +4,13 @@ import { formatUnits } from 'ethers/lib/utils'
 import { commafy } from 'src/utils'
 
 const distributionCsvUrl = 'https://raw.githubusercontent.com/hop-protocol/hop-airdrop/master/src/data/finalDistribution.csv'
-const BASE_AMOUNT = BigNumber.from('306120584096350311603')
+const baseAmountJsonUrl = 'https://raw.githubusercontent.com/hop-protocol/hop-airdrop/master/src/data/baseAirdropTokens.json'
 
 export function useDistribution(address?: string) {
   const [loading, setLoading] = useState<boolean>(false)
   const [allData, setAllData] = useState<any>(null)
   const [accountInfo, setAccountInfo] = useState<any>(null)
+  const [baseAmountBn, setBaseAmountBn] = useState<any>(BigNumber.from(0))
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
@@ -35,6 +36,25 @@ export function useDistribution(address?: string) {
 
     update().catch(console.error)
   }, [address])
+
+  useEffect(() => {
+    const update = async () => {
+      try {
+        if (baseAmountBn.gt(0)) {
+          return
+        }
+        const res = await fetch(baseAmountJsonUrl)
+        const json = await res.json()
+        if (json.amount) {
+          setBaseAmountBn(BigNumber.from(json.amount))
+        }
+      } catch (err: any) {
+        console.error(err)
+      }
+    }
+
+    update().catch(console.error)
+  }, [])
 
   useEffect(() => {
     const update = async () => {
@@ -82,10 +102,9 @@ export function useDistribution(address?: string) {
   let earlyMultiplier = 0
   let volumeMultiplier = 0
   let total = 0
-  const baseAmountBn = BASE_AMOUNT
   if (address) {
     const data = allData?.[address.toLowerCase()]
-    if (data) {
+    if (data && baseAmountBn.gt(0)) {
       lpTokens = Number(formatUnits(data.lpTokens.toString(), 18))
       hopUserTokens = Number(formatUnits(data.hopUserTokens.toString(), 18))
       earlyMultiplier = Number(Number(data.earlyMultiplier).toFixed(4)) || 1

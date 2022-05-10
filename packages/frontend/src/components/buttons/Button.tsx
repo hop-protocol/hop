@@ -25,7 +25,7 @@ const useStyles = makeStyles(theme => ({
     borderRadius: '3.0rem',
     textTransform: 'none',
     padding: large ? '0.8rem 4.2rem' : '0.8rem 2.8rem',
-    height: large ? '5.5rem' : '4.0rem',
+    minHeight: large ? '5.5rem' : '4.0rem',
     fontSize: large ? '2.2rem' : '1.5rem',
     color: highlighted ? 'white' : theme.palette.text.primary,
     background: highlighted

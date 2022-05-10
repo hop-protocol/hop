@@ -35,7 +35,9 @@ export function Claimed() {
       </Box>
       <Box mt={1} mb={5}>
         <Button onClick={addHopToken}>
-          <Box mr={2}>Add Hop Token to MetaMask</Box>
+          <Box mr={2}>
+            Add Hop Token to MetaMask
+          </Box>
           <Icon src={mmIcon} width={40} />
         </Button>
       </Box>

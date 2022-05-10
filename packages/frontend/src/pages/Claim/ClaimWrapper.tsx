@@ -28,7 +28,7 @@ export function ClaimWrapper(props: any) {
   return (
     <>
       <Div
-        px={5}
+        px={[3, 5]}
         py={4}
         fontWeight="600"
         maxWidth={step === 1 ? '900px' : '520px'}

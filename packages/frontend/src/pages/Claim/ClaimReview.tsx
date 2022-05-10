@@ -55,7 +55,7 @@ export function ClaimReview (props: any) {
           borderRadius="30px"
         >
           <Box display="flex" justifyContent="space-between">
-            <Box overflow={'hidden'}>
+            <Box overflow="hidden" pr={6}>
               <Box mb={2} textAlign="left">
                 <Typography variant="body1">
                   You're delegating to
@@ -72,7 +72,7 @@ export function ClaimReview (props: any) {
                     )}
                   </Circle>
                 </Box>
-                <Box display="flex" flexDirection="column" textAlign="left" minWidth="200px">
+                <Box display="flex" flexDirection="column" textAlign="left">
                   <Box>
                     <Typography variant="body1">
                       {delegate.address?.truncate()}

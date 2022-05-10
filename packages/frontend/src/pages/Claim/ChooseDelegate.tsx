@@ -96,7 +96,7 @@ export function ChooseDelegate(props: any) {
                     )}
                   </Circle>
                   <Box p={2} display="flex" flexDirection="column" alignContent="flex-start" textAlign="left">
-                    <Typography variant="body1"
+                    <Typography variant="subtitle2"
                     style={isSelected ? {
                       color: '#fff'
                     } : {}}

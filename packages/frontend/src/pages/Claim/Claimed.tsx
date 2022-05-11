@@ -49,7 +49,7 @@ export function Claimed() {
 
       <Box mb={3}>
         <ButtonLink
-          href={"https://twitter.com/intent/tweet?text=TODO"}
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('I just claimed my $HOP tokens from @HopProtocol! 🥳')}`}
           iconColor="#00A2F5"
           iconComponent={twitterIcon}
         >

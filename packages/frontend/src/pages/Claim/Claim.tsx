@@ -90,7 +90,7 @@ export function Claim() {
         claimTokens()
       }}
     />,
-    <Claimed key="Claimed HOP" />,
+    <Claimed key="" />,
   ]
 
   return (

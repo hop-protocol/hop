@@ -10,6 +10,7 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import { DelegateIcon } from './DelegateIcon'
+import ChatIcon from '@material-ui/icons/Chat'
 
 const useStyles = makeStyles(() => ({
   box: {
@@ -39,20 +40,19 @@ export function ChooseDelegate(props: any) {
 
   return (
     <Box>
-      <Box my={3} textAlign="center">
+      <Box my={3} textAlign="left">
         <Typography variant="body1">
           Select a community member to represent you.
           You can change this at any time.
         </Typography>
-        <Box mt={1} textAlign="center">
+        <Box mt={1} textAlign="left">
           <Typography variant="body1">
-            Click on the <span>💬</span> icon to read their application.
+            Click on the <Box mx={1} display="inline-flex"><ChatIcon style={{ color: theme.palette.secondary.main }} /></Box> icon to read their application.
           </Typography>
         </Box>
       </Box>
 
-      <Box my={4} py={2} display="flex" flexWrap="wrap" justifyContent="space-around" overflow="auto" maxWidth="700px" maxHeight="400px" style={{
-          border: '1px solid #7777772e',
+      <Box my={4} py={2} display="flex" flexWrap="wrap" justifyContent="space-around" style={{
           borderRadius: '6px'
         }}>
         {!delegates?.length && (
@@ -109,15 +109,18 @@ export function ChooseDelegate(props: any) {
                     >{del.votes == null ? '...' : del.votesFormatted}</Typography>
                   </Box>
                 </Box>
-                <Box fontSize={20}>
+                <Box fontSize={20} display="flex" justifyContent="center" alignItems="center">
                   {!!del.infoUrl && (
                     <Link
                       underline="none"
                       target="_blank"
                       rel="noreferrer noopener"
                       href={del.infoUrl}
+                      style={{
+                        color: isSelected ? '#fff' : theme.palette.secondary.main
+                      }}
                     >
-                      <span>💬</span>
+                      <ChatIcon />
                     </Link>
                   )}
                 </Box>

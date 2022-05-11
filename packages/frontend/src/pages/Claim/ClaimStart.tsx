@@ -23,7 +23,7 @@ export function ClaimStart(props: ClaimTokensProps) {
   return (
     <>
       <Flex column>
-        <Box mt={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center" textAlign="center" width="100%">
+        <Box mt={3} display="flex" flexDirection="column" justifyContent="center" alignItems="center" textAlign="left" width="100%">
           <Typography variant="body1">
             You're eligible for the airdrop!
             You have received these tokens for being an active participant of the Hop protocol.

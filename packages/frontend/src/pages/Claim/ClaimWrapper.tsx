@@ -7,8 +7,6 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import Alert from 'src/components/alert/Alert'
 
-const respMaxWidths = [350, 824, 824, 1024]
-
 export function ClaimWrapper(props: any) {
   const {
     children,
@@ -32,7 +30,7 @@ export function ClaimWrapper(props: any) {
       <Div
         px={[3, 5]}
         py={4}
-        maxWidth={step === 1 ? '900px' : '520px'}
+        maxWidth={step === 1 ? '1100px' : '520px'}
         minWidth={[0, '520px']}
         mx={[0, 4]}
         borderRadius={30}
@@ -58,7 +56,7 @@ export function ClaimWrapper(props: any) {
           </Box>
         ) : (
           <Box>
-            <Box display="flex" flexDirection="column" justifyContent="space-between" width="100%" textAlign="center">
+            <Box display="flex" flexDirection="column" justifyContent="space-between" width="100%" textAlign="left">
               <Typography variant="h4">
                   {title}
               </Typography>

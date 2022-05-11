@@ -9,7 +9,7 @@ import shuffle from 'lodash/shuffle'
 import { getEnsAddress, getEnsAvatar, getEnsName } from 'src/utils/ens'
 
 // TODO: replace this with url from airdrop delegates repo
-const url = 'https://gist.githubusercontent.com/miguelmota/ca85b07ea6bf0cec934b41656e585e43/raw/7dec8f79e617eecf897edbd2379bb0fab31d90a7/delegates.json'
+const url = 'https://gist.githubusercontent.com/miguelmota/ca85b07ea6bf0cec934b41656e585e43/raw/fce5452b87977dbe98501804433950d61575f284/delegates.json'
 
 const votesCache :any = {}
 const addressCache:any = {}
@@ -95,6 +95,6 @@ export function useDelegates() {
   }, [delegates])
 
   return {
-    delegates: delegates.filter(x => x.address)
+    delegates
   }
 }

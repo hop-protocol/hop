@@ -15,7 +15,7 @@ export function Claiming(props: any) {
 
   return (
     <Box display="flex" flexDirection="column">
-      <Box my={3} textAlign="center">
+      <Box my={3} textAlign="left">
         <Typography variant="body1">
           Please approve the transaction to delegate and claim tokens
         </Typography>

@@ -1402,7 +1402,7 @@ class HopBridge extends Base {
       throw new Error('No AMM exists on L1')
     }
 
-    return new AMM(this.network, this.tokenSymbol, chain, this.signer)
+    return new AMM(this.network, this.tokenSymbol, chain, this.signer, this.chainProviders)
   }
 
   /**

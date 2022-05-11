@@ -60,7 +60,7 @@ export function ClaimStart(props: ClaimTokensProps) {
       <Flex column my={2}>
         {!claimableTokens.eq(0) && (
           <Box mb={3} textAlign="center" width="100%">
-            <Typography variant="body1">
+            <Typography variant="body1" color="secondary">
             Continue with delegation and claim process.
             </Typography>
           </Box>

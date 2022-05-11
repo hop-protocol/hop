@@ -47,7 +47,7 @@ export function Claiming(props: any) {
             </Box>
           </Box>
           <Box>
-            <Typography variant="body2">
+            <Typography variant="body1" color="secondary">
               This transaction happens on-chain and will require paying gas
             </Typography>
           </Box>

@@ -54,8 +54,8 @@ export function ClaimReview (props: any) {
           bg={isDarkMode ? `black.muted` : 'white'}
           borderRadius="30px"
         >
-          <Box display="flex" justifyContent="space-between">
-            <Box overflow="hidden" pr={6}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Box>
               <Box mb={2} textAlign="left">
                 <Typography variant="body1">
                   You're delegating to
@@ -72,7 +72,7 @@ export function ClaimReview (props: any) {
                     </Typography>
                   </Box>
                   <Box>
-                    <Typography variant="body2">
+                    <Typography variant="body1" color="secondary">
                       {delegate.ensName}
                     </Typography>
                   </Box>
@@ -80,9 +80,11 @@ export function ClaimReview (props: any) {
               </Box>
             </Box>
 
-            <StyledButton borderRadius={2} onClick={prevStep}>
-              Edit
-            </StyledButton>
+            <Box>
+              <StyledButton borderRadius={2} onClick={prevStep}>
+                Edit
+              </StyledButton>
+            </Box>
           </Box>
         </Div>
 

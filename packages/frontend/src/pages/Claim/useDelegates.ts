@@ -80,7 +80,7 @@ export function useDelegates() {
           }
 
           delegate.votes = votesCache[delegateAddress]
-          const votesFormatted = delegate!.votes!.gt(0) ? commafy(Number(formatUnits(delegate!.votes!.toString(), 18)), 4) as any : '0'
+          const votesFormatted = delegate!.votes!.gt(0) ? `${commafy(Number(formatUnits(delegate!.votes!.toString(), 18)), 4)} votes` : '0 votes'
           delegate.votesFormatted = votesFormatted
         } catch (err) {
           console.error(err)

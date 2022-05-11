@@ -32,9 +32,8 @@ export function ClaimWrapper(props: any) {
       <Div
         px={[3, 5]}
         py={4}
-        fontWeight="600"
         maxWidth={step === 1 ? '900px' : '520px'}
-        width={'auto'}
+        minWidth={[0, '520px']}
         mx={[0, 4]}
         borderRadius={30}
         boxShadow={isDarkMode ? 'innerDark' : 'innerLight'}

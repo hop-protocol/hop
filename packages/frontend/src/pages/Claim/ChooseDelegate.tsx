@@ -102,7 +102,7 @@ export function ChooseDelegate(props: any) {
                     } : {})
                     }}
                     >{del.ensName || del.address?.truncate()}</Typography>
-                    <Typography title="Votes" variant="body2"
+                    <Typography title="Votes" variant="body1" color="secondary"
                     style={isSelected ? {
                       color: '#fff'
                     } : {}}
@@ -160,7 +160,7 @@ export function ChooseDelegate(props: any) {
       </Box>
       <Box mt={4} display="flex" justifyContent="center" maxWidth>
         <Button large highlighted onClick={onContinue} disabled={!delegate?.address}>
-          Continue
+          Continue to Review
         </Button>
       </Box>
     </Box>

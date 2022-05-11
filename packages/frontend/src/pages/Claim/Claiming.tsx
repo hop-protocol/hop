@@ -8,6 +8,7 @@ import { correctClaimChain } from 'src/utils/claims'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { DelegateIcon } from './DelegateIcon'
+import CircularProgress from '@material-ui/core/CircularProgress'
 
 export function Claiming(props: any) {
   const { isDarkMode, claiming, tx, delegate, handleClaimTokens, claimableTokens, showTryAgain } = props
@@ -77,7 +78,14 @@ export function Claiming(props: any) {
       {claiming && (
         <Box mt={4}>
           <Button large highlighted disabled={claiming}>
-            Claiming...
+            <Box display="flex" justifyContent="center" alignContent="center">
+              <Box mr={1}>
+                <CircularProgress size={24} />
+              </Box>
+              <Box>
+                Claiming...
+              </Box>
+            </Box>
           </Button>
         </Box>
       )}

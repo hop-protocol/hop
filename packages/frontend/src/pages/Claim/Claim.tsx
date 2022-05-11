@@ -10,6 +10,7 @@ import { useClaim } from './useClaim'
 import { ClaimWrapper } from './ClaimWrapper'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { correctClaimChain } from 'src/utils/claims'
+import { formatError } from 'src/utils/format'
 
 export function Claim() {
   const { isDarkMode } = useThemeMode()
@@ -29,15 +30,15 @@ export function Claim() {
     claimTokensTx,
     delegate,
     setDelegate,
+    error,
+    setError
   } = useClaim()
 
   async function claimTokens() {
     try {
-      //nextStep()
-      //return
+      setError('')
       setShowTryAgain(false)
       const res = await sendClaimTokens()
-      console.log(`res:`, res)
       if (res?.status === 1) {
         setShowTryAgain(false)
         nextStep()
@@ -46,8 +47,8 @@ export function Claim() {
       }
     } catch (err: any) {
       console.error(err)
-      setShowTryAgain(false)
-      nextStep()
+      setError(formatError(err.message))
+      setShowTryAgain(true)
     }
   }
 
@@ -111,6 +112,8 @@ export function Claim() {
         inputValue={inputValue}
         setInputValue={setInputValue}
         setStep={setStep}
+        error={error}
+        setError={setError}
       >
         {steps[step]}
       </ClaimWrapper>

@@ -6,6 +6,7 @@ import { toTokenDisplay } from 'src/utils'
 import { parseUnits, getAddress, isAddress } from 'ethers/lib/utils'
 import { useEns } from 'src/hooks'
 import Address from 'src/models/Address'
+import { formatError } from 'src/utils/format'
 
 export interface TokenClaim {
   entry: {
@@ -40,6 +41,7 @@ export function useClaim() {
   const [claimTokensTx, setClaimTokensTx] = useState<providers.TransactionResponse>()
   const [delegate, setDelegate] = useState<Delegate>(initialDelegate)
   const { ensName, ensAvatar, ensAddress } = useEns(inputValue)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     try {
@@ -167,11 +169,11 @@ export function useClaim() {
         }
 
         return receipt
-      } catch (error) {
-        console.error(error)
-        // TODO: catch replaced txs
+      } catch (err: any) {
+        console.error(err)
         setClaiming(false)
         setClaimed(false)
+        setError(formatError(err.message))
       }
     } else {
       setWarning('Provider or claim entry not found')
@@ -191,5 +193,7 @@ export function useClaim() {
     claimTokensTx,
     delegate,
     setDelegate,
+    error,
+    setError
   }
 }

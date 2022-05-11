@@ -102,7 +102,7 @@ export function ChooseDelegate(props: any) {
                     } : {})
                     }}
                     >{del.ensName || del.address?.truncate()}</Typography>
-                    <Typography variant="body2"
+                    <Typography title="Votes" variant="body2"
                     style={isSelected ? {
                       color: '#fff'
                     } : {}}

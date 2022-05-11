@@ -5,6 +5,7 @@ import { Div, Flex } from 'src/components/ui'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
+import Alert from 'src/components/alert/Alert'
 
 const respMaxWidths = [350, 824, 824, 1024]
 
@@ -21,6 +22,8 @@ export function ClaimWrapper(props: any) {
     prevStep,
     delegate,
     setStep,
+    error,
+    setError
   } = props
   const theme = useTheme()
 
@@ -79,6 +82,12 @@ export function ClaimWrapper(props: any) {
           <Link href="/" onClick={() => setStep(0)}>
             <Button highlighted disabled={!delegate?.address}>Go Home</Button>
           </Link>
+        </Box>
+      )}
+
+      {!!error && (
+        <Box mt={4} display="flex" justifyContent="center" alignItems="center">
+          <Alert severity="error" text={error} onClose={() => setError('')} />
         </Box>
       )}
     </>

@@ -1,6 +1,7 @@
 import { utils, BigNumber } from 'ethers'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
+import { merkleBaseUrl } from './config'
 
 function hashLeaf([address, entry]) {
   return utils.solidityKeccak256(['address', 'uint256'], [address, entry.balance])
@@ -26,9 +27,6 @@ export function getEntryProofIndex(address: string, entry: any, proof: any) {
   return index
 }
 
-// TODO: use github repo url once live
-const baseUrl = `https://gist.githubusercontent.com/miguelmota/86814b3bcd0bb8ffbd5b4fa9d1cb52ba/raw/a633c647f657b9a2c436ac8e8b8e11b805bba87a`
-
 class ShardedMerkleTree {
   fetcher: any
   shardNybbles: any
@@ -44,26 +42,6 @@ class ShardedMerkleTree {
     this.total = total
     this.shards = {}
     this.trees = {}
-
-    this.init()
-    .catch((err: any) => {
-      console.error(err)
-    })
-  }
-
-  async init() {
-  }
-
-  static async fetchRootFile() {
-    const url = `${baseUrl}/root.json`
-    const res = await fetch(url)
-    const rootFile = await res.json()
-    const { root, shardNybbles, total } = rootFile
-    return {
-      root,
-      shardNybbles,
-      total
-    }
   }
 
   async getProof(address: string) {
@@ -148,11 +126,26 @@ class ShardedMerkleTree {
     console.log(`tree:`, tree)
   }
 
+  static async fetchRootFile() {
+    const url = `${merkleBaseUrl}/root.json`
+    const res = await fetch(url)
+    const rootFile = await res.json()
+    if (!rootFile.root) {
+      throw new Error('invalid root file')
+    }
+    const { root, shardNybbles, total } = rootFile
+    return {
+      root,
+      shardNybbles,
+      total
+    }
+  }
+
   static async fetchTree() {
     const { root, shardNybbles, total } = await ShardedMerkleTree.fetchRootFile()
     return new ShardedMerkleTree(
       async (shard: any) => {
-        const url = `${baseUrl}/${shard}.json`
+        const url = `${merkleBaseUrl}/${shard}.json`
         const res = await fetch(url)
         if (res.status === 404) {
           throw new Error('Invalid Entry')

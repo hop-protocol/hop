@@ -6,9 +6,7 @@ import { commafy } from 'src/utils/commafy'
 import Address from 'src/models/Address'
 import shuffle from 'lodash/shuffle'
 import { getEnsAddress, getEnsAvatar } from 'src/utils/ens'
-
-// TODO: replace this with url from airdrop delegates repo
-const url = 'https://gist.githubusercontent.com/miguelmota/ca85b07ea6bf0cec934b41656e585e43/raw/fce5452b87977dbe98501804433950d61575f284/delegates.json'
+import { delegatesJsonUrl } from './config'
 
 const votesCache :any = {}
 const addressCache:any = {}
@@ -24,7 +22,7 @@ export function useDelegates() {
       if (delegates.length > 0) {
         return
       }
-      const res = await fetch(url)
+      const res = await fetch(delegatesJsonUrl)
       const json = await res.json()
       const _delegates :any[] = []
       for (const _delegate of json) {

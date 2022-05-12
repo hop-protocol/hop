@@ -2,7 +2,8 @@ import { useCallback, useState } from 'react'
 import { Token, ChainSlug, CanonicalToken } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { ensTokenAddress, networkIdToSlug, wait } from 'src/utils'
+import { networkIdToSlug, wait } from 'src/utils'
+import { claimTokenAddress } from 'src/pages/Claim/config'
 import { ChainName } from '@hop-protocol/sdk/dist/src/constants'
 
 interface AddTokenToMetamask {
@@ -84,7 +85,7 @@ export function useAddTokenToMetamask(
           params: {
             type: 'ERC20',
             options: {
-              address: ensTokenAddress,
+              address: claimTokenAddress,
               symbol: 'HOP',
               decimals: 18,
               image: 'https://hop.exchange/static/media/hop-logo.5138ac11.svg',

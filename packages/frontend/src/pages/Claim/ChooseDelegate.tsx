@@ -140,9 +140,7 @@ export function ChooseDelegate(props: any) {
           <Box display="flex" justifyContent="center" alignContent="center" width="100%">
             <Box ml={'-45px'} mr={2} width="45px">
               {inputValue && delegate?.avatar && (
-                <Circle>
-                  <Icon src={delegate.avatar} width={45} />
-                </Circle>
+                <DelegateIcon delegate={delegate} />
               )}
             </Box>
             <Box display="flex" justifyContent="content" width="100%" maxWidth="480px">

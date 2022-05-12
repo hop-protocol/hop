@@ -65,17 +65,19 @@ export function ClaimReview (props: any) {
                 <Box mr={2}>
                   <DelegateIcon delegate={delegate} />
                 </Box>
-                <Box display="flex" flexDirection="column" textAlign="left">
+                <Box display="flex" flexDirection="column" justifyContent="center" textAlign="left">
                   <Box>
                     <Typography variant="body1">
                       {delegate.address?.truncate()}
                     </Typography>
                   </Box>
-                  <Box>
-                    <Typography variant="body1" color="secondary">
-                      {delegate.ensName}
-                    </Typography>
-                  </Box>
+                  {!!delegate.ensName && (
+                    <Box>
+                      <Typography variant="body1" color="secondary">
+                        {delegate.ensName}
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               </Box>
             </Box>

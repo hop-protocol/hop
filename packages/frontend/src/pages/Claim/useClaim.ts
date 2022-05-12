@@ -46,7 +46,7 @@ export function useClaim() {
   useEffect(() => {
     try {
       if (!inputValue) {
-        return
+        return setDelegate(initialDelegate)
       }
 
       if (isAddress(inputValue?.toLowerCase())) {

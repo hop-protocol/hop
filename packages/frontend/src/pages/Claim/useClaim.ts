@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { BigNumber, providers, utils } from 'ethers'
-import { claimTokens, correctClaimChain, fetchClaim } from 'src/utils/claims'
+import { claimTokens, correctClaimChain, fetchClaim } from './claims'
 import { toTokenDisplay } from 'src/utils'
 import { parseUnits, getAddress, isAddress } from 'ethers/lib/utils'
 import { useEns } from 'src/hooks'
@@ -125,7 +125,9 @@ export function useClaim() {
 
       try {
         const claim = await fetchClaim(provider, address)
-        setClaim(claim)
+        if (claim) {
+          setClaim(claim)
+        }
       } catch (error: any) {
         if (
           error.message.includes('Cannot find module') ||

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Claiming, Claimed } from 'src/pages/Claim'
 import Box from '@material-ui/core/Box'
-import { Div, Text } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { ChooseDelegate } from './ChooseDelegate'
 import { ClaimReview } from './ClaimReview'
@@ -9,7 +8,7 @@ import { ClaimStart } from './ClaimStart'
 import { useClaim } from './useClaim'
 import { ClaimWrapper } from './ClaimWrapper'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { correctClaimChain } from 'src/utils/claims'
+import { correctClaimChain } from './claims'
 import { formatError } from 'src/utils/format'
 
 export function Claim() {

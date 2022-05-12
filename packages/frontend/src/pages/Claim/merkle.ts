@@ -1,14 +1,12 @@
 import { utils, BigNumber } from 'ethers'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
-import rootFile from 'src/assets/airdrops/localhost/root.json'
-const { root, shardNybbles, total } = rootFile
 
 function hashLeaf([address, entry]) {
   return utils.solidityKeccak256(['address', 'uint256'], [address, entry.balance])
 }
 
-export function getEntryProofIndex(address, entry, proof) {
+export function getEntryProofIndex(address: string, entry: any, proof: any) {
   let index = 0
   let computedHash = hashLeaf([address, entry])
 
@@ -28,6 +26,9 @@ export function getEntryProofIndex(address, entry, proof) {
   return index
 }
 
+// TODO: use github repo url once live
+const baseUrl = `https://gist.githubusercontent.com/miguelmota/86814b3bcd0bb8ffbd5b4fa9d1cb52ba/raw/a633c647f657b9a2c436ac8e8b8e11b805bba87a`
+
 class ShardedMerkleTree {
   fetcher: any
   shardNybbles: any
@@ -36,16 +37,36 @@ class ShardedMerkleTree {
   shards: any
   trees: any
 
-  constructor(fetcher, shardNybbles, root, total) {
+  constructor(fetcher: any, shardNybbles: any, root: any, total: any) {
     this.fetcher = fetcher
     this.shardNybbles = shardNybbles
     this.root = root
     this.total = total
     this.shards = {}
     this.trees = {}
+
+    this.init()
+    .catch((err: any) => {
+      console.error(err)
+    })
   }
 
-  async getProof(address) {
+  async init() {
+  }
+
+  static async fetchRootFile() {
+    const url = `${baseUrl}/root.json`
+    const res = await fetch(url)
+    const rootFile = await res.json()
+    const { root, shardNybbles, total } = rootFile
+    return {
+      root,
+      shardNybbles,
+      total
+    }
+  }
+
+  async getProof(address: string) {
     console.log(`address:`, address)
     const shardid = address.slice(2, 2 + this.shardNybbles).toLowerCase()
     console.log(`shardid:`, shardid)
@@ -70,13 +91,13 @@ class ShardedMerkleTree {
     const leaf = hashLeaf([address, entry])
     console.log(`leaf:`, leaf)
 
-    const proof = this.trees[shardid].getProof(leaf).map(entry => '0x' + entry.data.toString('hex'))
+    const proof = this.trees[shardid].getProof(leaf).map((entry: any) => '0x' + entry.data.toString('hex'))
     console.log(`proof:`, proof)
 
     return [entry, proof.concat(shard.proof)]
   }
 
-  async fetchProof(address) {
+  async fetchProof(address :string) {
     console.log(`address:`, address)
     const shardid = address.slice(2, 2 + this.shardNybbles).toLowerCase()
     console.log(`shardid:`, shardid)
@@ -100,13 +121,13 @@ class ShardedMerkleTree {
     const leaf = hashLeaf([address, entry])
     console.log(`leaf:`, leaf)
 
-    const proof = this.trees[shardid].getProof(leaf).map(entry => '0x' + entry.data.toString('hex'))
+    const proof = this.trees[shardid].getProof(leaf).map((entry: any) => '0x' + entry.data.toString('hex'))
     console.log(`proof:`, proof)
 
     return [entry, proof.concat(shard.proof)]
   }
 
-  static build(entries, shardNybbles, directory) {
+  static build (entries: any, shardNybbles: any) {
     const shards = {}
     let total = BigNumber.from(0)
     for (const [address, entry] of entries) {
@@ -127,31 +148,17 @@ class ShardedMerkleTree {
     console.log(`tree:`, tree)
   }
 
-  // Production
-  static fetchTree() {
+  static async fetchTree() {
+    const { root, shardNybbles, total } = await ShardedMerkleTree.fetchRootFile()
     return new ShardedMerkleTree(
-      async shard => {
-        const res = await fetch(
-          `https://raw.githubusercontent.com/hop-protocol/merkle-drop-data-chunks/main/chunks/${shard}.json`,
-          {
-            headers: {
-              'Content-Type': `application/json`,
-            },
-          }
-        )
+      async (shard: any) => {
+        const url = `${baseUrl}/${shard}.json`
+        const res = await fetch(url)
+        if (res.status === 404) {
+          throw new Error('Invalid Entry')
+        }
         return res.json()
       },
-      shardNybbles,
-      root,
-      BigNumber.from(total)
-    )
-  }
-
-  // Localhost / testnet
-  static fromFiles() {
-    const { root, shardNybbles, total } = rootFile
-    return new ShardedMerkleTree(
-      shard => require(`src/assets/airdrops/localhost/${shard}.json`),
       shardNybbles,
       root,
       BigNumber.from(total)

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { formatUnits } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { getVotes } from 'src/utils/claims'
+import { getVotes } from './claims'
 import { commafy } from 'src/utils/commafy'
 import Address from 'src/models/Address'
-import { BigNumber } from 'ethers'
 import shuffle from 'lodash/shuffle'
-import { getEnsAddress, getEnsAvatar, getEnsName } from 'src/utils/ens'
+import { getEnsAddress, getEnsAvatar } from 'src/utils/ens'
 
 // TODO: replace this with url from airdrop delegates repo
 const url = 'https://gist.githubusercontent.com/miguelmota/ca85b07ea6bf0cec934b41656e585e43/raw/fce5452b87977dbe98501804433950d61575f284/delegates.json'

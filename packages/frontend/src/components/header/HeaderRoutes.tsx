@@ -30,8 +30,8 @@ const HeaderRoutes: FC = () => {
       <Tab label="Stake" value="/stake" />
       <Tab label="Airdrop" value="/airdrop" />
       {canClaim && (
-        <Tab label="Claim HOP" value="/claim" style={{
-          background: 'rgba(0, 0, 0, 0) linear-gradient(99.85deg, rgb(179, 46, 255) -18.29%, rgb(242, 164, 152) 109.86%) repeat scroll 0% 0%',
+        <Tab label="Claim HOP" value="/claim" className="rainbow-animated" style={{
+          // background: 'rgba(0, 0, 0, 0) linear-gradient(99.85deg, rgb(179, 46, 255) -18.29%, rgb(242, 164, 152) 109.86%) repeat scroll 0% 0%',
           color: '#fff',
           padding: '1rem 3rem',
           margin: '1rem 0 1rem 1rem',

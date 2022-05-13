@@ -22,7 +22,7 @@ const claimChains = {
 
 export const correctClaimChain = claimChains[claimChainId]
 
-export async function fetchClaim(provider: providers.Web3Provider, address: Address) {
+export async function fetchClaim(provider: providers.Provider, address: Address) {
   const ensToken = await getClaimTokenContract(provider, claimTokenAddress)
   // const merkleRoot = await ensToken.merkleRoot()
   // console.log(`merkleRoot:`, merkleRoot)

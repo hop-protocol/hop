@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { providers } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { getVotes } from './claims'
@@ -6,7 +7,8 @@ import { commafy } from 'src/utils/commafy'
 import Address from 'src/models/Address'
 import shuffle from 'lodash/shuffle'
 import { getEnsAddress, getEnsAvatar } from 'src/utils/ens'
-import { delegatesJsonUrl } from './config'
+import { delegatesJsonUrl, claimChainId } from './config'
+import { networkIdToSlug } from 'src/utils/networks'
 
 const votesCache :any = {}
 const addressCache:any = {}
@@ -16,6 +18,9 @@ let cached : any[] = []
 export function useDelegates() {
   const [delegates, setDelegates] = useState<any[]>(cached || [])
   const { provider, address, connectedNetworkId } = useWeb3Context()
+  const [claimProvider] = useState(() => {
+    return providers.getDefaultProvider(networkIdToSlug(claimChainId))
+  })
 
   useEffect(() => {
     async function update() {
@@ -72,7 +77,7 @@ export function useDelegates() {
             return delegate
           }
           if (!votesCache[delegateAddress]) {
-            const votes = await getVotes(provider, delegateAddress)
+            const votes = await getVotes(claimProvider, delegateAddress)
             votesCache[delegateAddress] = votes
           }
 

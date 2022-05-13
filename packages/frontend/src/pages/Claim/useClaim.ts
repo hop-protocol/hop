@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useWeb3Context } from 'src/contexts/Web3Context'
-import { BigNumber, providers, utils } from 'ethers'
+import { BigNumber, utils, providers } from 'ethers'
 import { claimTokens, correctClaimChain, fetchClaim } from './claims'
 import { toTokenDisplay } from 'src/utils'
 import { parseUnits, getAddress, isAddress } from 'ethers/lib/utils'
 import { useEns } from 'src/hooks'
 import Address from 'src/models/Address'
 import { formatError } from 'src/utils/format'
+import { claimChainId } from './config'
+import { networkIdToSlug } from 'src/utils/networks'
 
 export interface TokenClaim {
   entry: {
@@ -29,7 +31,7 @@ export interface Delegate {
 const initialDelegate: Delegate = { ensName: '', address: null, votes: BigNumber.from(0), votesFormatted: '', avatar: '', infoUrl: '' }
 
 export function useClaim() {
-  const { provider, address, connectedNetworkId } = useWeb3Context()
+  const { provider, address, connectedNetworkId, checkConnectedNetworkId } = useWeb3Context()
   const [warning, setWarning] = useState<string>()
   const [loading, setLoading] = useState<boolean>(false)
   const [claimableTokens, setClaimableTokens] = useState<BigNumber>(BigNumber.from(0))
@@ -42,6 +44,9 @@ export function useClaim() {
   const [delegate, setDelegate] = useState<Delegate>(initialDelegate)
   const { ensName, ensAvatar, ensAddress } = useEns(inputValue)
   const [error, setError] = useState('')
+  const [claimProvider] = useState(() => {
+    return providers.getDefaultProvider(networkIdToSlug(claimChainId))
+  })
 
   useEffect(() => {
     try {
@@ -120,11 +125,11 @@ export function useClaim() {
 
   // Retrieves claim from files
   async function getClaim(address: Address) {
-    if (provider) {
+    if (claimProvider) {
       setLoading(true)
 
       try {
-        const claim = await fetchClaim(provider, address)
+        const claim = await fetchClaim(claimProvider, address)
         if (claim) {
           setClaim(claim)
         }
@@ -145,7 +150,7 @@ export function useClaim() {
   // Triggers getClaim() if valid address is connected to correct chain
   useEffect(() => {
     try {
-      if (provider && address?.address && utils.isAddress(address.address) && correctNetwork) {
+      if (address?.address && utils.isAddress(address.address)) {
         setClaimableTokens(BigNumber.from(0))
         setWarning('')
         setClaim(undefined)
@@ -153,23 +158,29 @@ export function useClaim() {
       }
     } catch (err) {
     }
-  }, [address, provider, correctNetwork])
+  }, [address, provider])
 
   // Send tx to claim tokens
   const sendClaimTokens = useCallback(async () => {
     if (provider && claim?.entry) {
-      setClaiming(true)
-
       try {
+        setClaiming(true)
+
+        const isNetworkConnected = await checkConnectedNetworkId(claimChainId)
+        if (!isNetworkConnected) {
+          setClaiming(false)
+          return
+        }
+
         const tx = await claimTokens(provider.getSigner(), claim, delegate)
         setClaimTokensTx(tx)
 
         const receipt = await tx.wait()
         if (receipt.status === 1) {
-          setClaiming(false)
           setClaimed(true)
         }
 
+        setClaiming(false)
         return receipt
       } catch (err: any) {
         console.error(err)
@@ -180,6 +191,7 @@ export function useClaim() {
     } else {
       setWarning('Provider or claim entry not found')
     }
+    setClaiming(false)
   }, [provider, claim, delegate])
 
   return {

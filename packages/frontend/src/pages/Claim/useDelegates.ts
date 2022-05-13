@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { providers } from 'ethers'
+import { BigNumber, providers } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { getVotes } from './claims'
@@ -52,7 +52,7 @@ export function useDelegates() {
 
   useEffect(() => {
     async function update() {
-      if (Object.keys(votesCache).length > 0) {
+      if (Object.keys(addressCache).length > 0) {
         return
       }
       const _delegates = await Promise.all((delegates).map(async (delegate: any) => {
@@ -66,6 +66,7 @@ export function useDelegates() {
               delegate.address = new Address(addressCache[delegate.ensName])
             }
           }
+            addressCache[delegate.ensName] = delegate.address?.address
           if (!delegate.avatar) {
             if (!avatarCache[delegate.ensName]) {
               const avatar = await getEnsAvatar(delegate.ensName)
@@ -80,12 +81,22 @@ export function useDelegates() {
             return delegate
           }
           if (!votesCache[delegateAddress]) {
-            const votes = await getVotes(claimProvider, delegateAddress)
-            votesCache[delegateAddress] = votes
+            delegate.votes = BigNumber.from(0)
+            getVotes(claimProvider, delegateAddress)
+            .then((votes: BigNumber) => {
+              votesCache[delegateAddress] = votes
+              delegate.votes = votesCache[delegateAddress]
+              const votesFormatted = delegate!.votes!.gt(0) ? `${commafy(Number(formatUnits(delegate!.votes!.toString(), 18)), 4)} votes` : '0 votes'
+              delegate.votesFormatted = votesFormatted
+              setDelegates([...cached])
+            })
+          } else if (!delegate.votes) {
+            delegate.votes = BigNumber.from(0)
           }
-
-          delegate.votes = votesCache[delegateAddress]
-          const votesFormatted = delegate!.votes!.gt(0) ? `${commafy(Number(formatUnits(delegate!.votes!.toString(), 18)), 4)} votes` : '0 votes'
+          if (votesCache[delegateAddress]) {
+            delegate.votes = votesCache[delegateAddress]
+          }
+          const votesFormatted = '...'
           delegate.votesFormatted = votesFormatted
         } catch (err) {
           console.error(err)

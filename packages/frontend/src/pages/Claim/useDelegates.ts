@@ -39,6 +39,9 @@ export function useDelegates() {
         if (_delegate.address) {
           delegate.address = new Address(_delegate.address)
         }
+        if (_delegate.avatar) {
+          delegate.avatar = _delegate.avatar
+        }
         _delegates.push(delegate)
       }
       setDelegates(shuffle([..._delegates]))

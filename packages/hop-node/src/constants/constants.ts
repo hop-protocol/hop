@@ -64,7 +64,6 @@ export const OneHourSeconds = 60 * 60
 export const OneHourMs = 60 * 60 * 1000
 export const OneWeekMs = 7 * 24 * 60 * 60 * 1000
 
-export const TxRetryDelayMs = OneHourMs
 export const RootSetSettleDelayMs = 5 * 60 * 1000
 export const ChallengePeriodMs = 24 * OneHourMs
 

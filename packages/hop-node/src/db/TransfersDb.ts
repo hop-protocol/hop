@@ -1,7 +1,8 @@
 import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
+import { OneWeekMs, TxError } from 'src/constants'
+import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransfer {

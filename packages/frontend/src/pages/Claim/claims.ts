@@ -7,15 +7,15 @@ import { claimTokenAddress, claimChainId } from './config'
 
 const claimChains = {
   1: {
-    id: '1',
+    id: 1,
     name: 'Ethereum Main'
   },
   31337: {
-    id: '31337',
+    id: 31337,
     name: 'Hardhat (31337)'
   },
   5: {
-    id: '5',
+    id: 5,
     name: 'Goerli'
   }
 }

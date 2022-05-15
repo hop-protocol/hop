@@ -131,7 +131,7 @@ class ShardedMerkleTree {
     const res = await fetch(url)
     const rootFile = await res.json()
     if (!rootFile.root) {
-      throw new Error('invalid root file')
+      throw new Error('Invalid root file')
     }
     const { root, shardNybbles, total } = rootFile
     return {

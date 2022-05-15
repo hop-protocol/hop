@@ -87,7 +87,6 @@ export function useClaim() {
     if (claim) {
       if (claim.isClaimed) {
         setClaimableTokens(BigNumber.from(0))
-        // setWarning('Already claimed')
       } else {
         setClaimableTokens(BigNumber.from(claim.entry.balance ?? 0))
       }
@@ -96,7 +95,7 @@ export function useClaim() {
 
   // Sets warning about correct connected network
   useEffect(() => {
-    if (Number(connectedNetworkId) === Number(correctClaimChain.id)) {
+    if (Number(connectedNetworkId) === correctClaimChain.id) {
       setCorrectNetwork(true)
     } else {
       setClaimableTokens(BigNumber.from(0))
@@ -125,26 +124,24 @@ export function useClaim() {
 
   // Retrieves claim from files
   async function getClaim(address: Address) {
-    if (claimProvider) {
-      setLoading(true)
+    setLoading(true)
 
-      try {
-        const claim = await fetchClaim(claimProvider, address)
-        if (claim) {
-          setClaim(claim)
-        }
-      } catch (error: any) {
-        if (
-          error.message.includes('Cannot find module') ||
-          error.message.includes('Invalid Entry')
-        ) {
-          setClaimableTokens(BigNumber.from(0))
-          setWarning('Sorry, the connected account is not eligible for the airdrop')
-        }
+    try {
+      const claim = await fetchClaim(claimProvider, address)
+      if (claim) {
+        setClaim(claim)
       }
-
-      setLoading(false)
+    } catch (error: any) {
+      if (
+        error.message.includes('Cannot find module') ||
+        error.message.includes('Invalid Entry')
+      ) {
+        setClaimableTokens(BigNumber.from(0))
+        setWarning('Sorry, the connected account is not eligible for the airdrop')
+      }
     }
+
+    setLoading(false)
   }
 
   // Triggers getClaim() if valid address is connected to correct chain

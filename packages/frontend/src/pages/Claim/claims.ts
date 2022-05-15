@@ -24,19 +24,14 @@ export const correctClaimChain = claimChains[claimChainId]
 
 export async function fetchClaim(provider: providers.Provider, address: Address) {
   const ensToken = await getClaimTokenContract(provider, claimTokenAddress)
-  // const merkleRoot = await ensToken.merkleRoot()
-  // console.log(`merkleRoot:`, merkleRoot)
 
   const shardedMerkleTree = await ShardedMerkleTree.fetchTree()
   const [entry, proof] = await shardedMerkleTree.getProof(address?.address)
-  console.log(`entry, proof:`, entry, proof)
 
   const idx = getEntryProofIndex(address?.address, entry, proof)
-  console.log(`idx:`, idx)
 
   if (typeof idx !== 'undefined') {
     const isClaimed = await ensToken.isClaimed(idx)
-    console.log(`isClaimed(${idx}):`, isClaimed)
 
     return { entry, proof, address, isClaimed }
   }

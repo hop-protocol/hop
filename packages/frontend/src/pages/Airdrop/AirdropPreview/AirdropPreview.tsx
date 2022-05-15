@@ -15,6 +15,7 @@ import { getAddress } from 'ethers/lib/utils'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ExternalLink } from 'src/components/Link'
 import { useHistory } from 'react-router-dom';
+import { useClaim } from 'src/pages/Claim/useClaim'
 
 export const respMaxWidths = [350, 624, 824]
 
@@ -27,6 +28,7 @@ export function AirdropPreview() {
   const userDistribution = useDistribution(airdropAddress)
   const isEligible = userDistribution?.total >= 0.0001
   const isConnected = !!airdropAddress
+  const { canClaim } = useClaim()
 
   useEffect(() => {
     if (address?.address) {
@@ -209,12 +211,12 @@ export function AirdropPreview() {
             </>
           )}
 
-          {(isEligible && isConnected && address?.address?.toLowerCase() === airdropAddress?.toLowerCase()) && (
+          {canClaim && (
             <Box mt={2} mb={3} display="flex" justifyContent="center" width="100%">
               <Button large highlighted onClick={() => {
                   history.push('/claim')
                 }}>
-                Claim
+                Claim HOP
               </Button>
             </Box>
           )}

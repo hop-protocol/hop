@@ -18,6 +18,7 @@ export function ClaimWrapper(props: any) {
     warning,
     step,
     claiming,
+    canClaim,
     prevStep,
     delegate,
     setStep,
@@ -70,13 +71,13 @@ export function ClaimWrapper(props: any) {
         )}
       </Div>
 
-      {(step > 0 && step < 4) && (
+      {canClaim && step > 0 && step < 4 && (
         <Box display="flex" maxWidth={"400px"} mt={4} justifyContent="center" width="100%" px={[1, 5]}>
           <Button onClick={prevStep} disabled={claiming}>Go Back</Button>
         </Box>
       )}
 
-      {step === 4 && (
+      {canClaim && step === 4 && (
         <Box display="flex" maxWidth={"400px"} mt={4} justifyContent="center" width="100%" px={[1, 5]}>
           <Button highlighted disabled={!delegate?.address} onClick={() => {
               setStep(0)

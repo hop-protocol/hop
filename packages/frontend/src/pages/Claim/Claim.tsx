@@ -20,6 +20,7 @@ export function Claim() {
   const prevStep = () => setStep(val => val - 1)
   const {
     claimableTokens,
+    canClaim,
     loading,
     warning,
     sendClaimTokens,
@@ -100,6 +101,7 @@ export function Claim() {
         connectedNetworkId={connectedNetworkId}
         correctClaimChain={correctClaimChain}
         claimableTokens={claimableTokens}
+        canClaim={canClaim}
         title={steps[step].key}
         warning={warning}
         step={step}

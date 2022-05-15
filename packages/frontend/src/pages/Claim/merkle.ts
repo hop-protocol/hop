@@ -45,9 +45,7 @@ class ShardedMerkleTree {
   }
 
   async getProof(address: string) {
-    console.log(`address:`, address)
     const shardid = address.slice(2, 2 + this.shardNybbles).toLowerCase()
-    console.log(`shardid:`, shardid)
 
     let shard = this.shards[shardid]
 
@@ -56,29 +54,22 @@ class ShardedMerkleTree {
       this.trees[shardid] = new MerkleTree(Object.entries(shard.entries).map(hashLeaf), keccak256, {
         sort: true,
       })
-      console.log(`this.trees[${shardid} (shardid)]:`, this.trees[shardid])
     }
-    console.log(`shard:`, shard)
 
     const entry = shard.entries[address]
-    console.log(`entry:`, entry)
     if (!entry) {
       throw new Error('Invalid Entry')
     }
 
     const leaf = hashLeaf([address, entry])
-    console.log(`leaf:`, leaf)
 
     const proof = this.trees[shardid].getProof(leaf).map((entry: any) => '0x' + entry.data.toString('hex'))
-    console.log(`proof:`, proof)
 
     return [entry, proof.concat(shard.proof)]
   }
 
   async fetchProof(address :string) {
-    console.log(`address:`, address)
     const shardid = address.slice(2, 2 + this.shardNybbles).toLowerCase()
-    console.log(`shardid:`, shardid)
     let shard = this.shards[shardid]
 
     if (shard === undefined) {
@@ -86,21 +77,16 @@ class ShardedMerkleTree {
       this.trees[shardid] = new MerkleTree(Object.entries(shard.entries).map(hashLeaf), keccak256, {
         sort: true,
       })
-      console.log(`this.trees[${shardid} (shardid)]:`, this.trees[shardid])
     }
-    console.log(`shard:`, shard)
 
     const entry = shard.entries[address]
-    console.log(`entry:`, entry)
 
     if (!entry) {
       throw new Error('Invalid Entry')
     }
     const leaf = hashLeaf([address, entry])
-    console.log(`leaf:`, leaf)
 
     const proof = this.trees[shardid].getProof(leaf).map((entry: any) => '0x' + entry.data.toString('hex'))
-    console.log(`proof:`, proof)
 
     return [entry, proof.concat(shard.proof)]
   }
@@ -123,7 +109,6 @@ class ShardedMerkleTree {
       ])
     )
     const tree = new MerkleTree(Object.values(roots), keccak256, { sort: true })
-    console.log(`tree:`, tree)
   }
 
   static async fetchRootFile() {

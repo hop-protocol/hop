@@ -9,6 +9,7 @@ import Address from 'src/models/Address'
 import { formatError } from 'src/utils/format'
 import { claimChainId } from './config'
 import { networkIdToSlug } from 'src/utils/networks'
+import { useInterval } from 'react-use'
 
 export interface TokenClaim {
   entry: {
@@ -104,9 +105,58 @@ export function useClaim() {
     }
   }, [connectedNetworkId])
 
+  // Retrieves claim from files
+  async function getClaim(address: Address) {
+    try {
+      const _claim = await fetchClaim(claimProvider, address)
+      if (_claim) {
+        if (!claim || (claim && !(_claim.address === claim.address && _claim.isClaimed === claim.isClaimed))) {
+          setClaim(_claim)
+        }
+      }
+    } catch (error: any) {
+      if (
+        error.message.includes('Cannot find module') ||
+        error.message.includes('Invalid Entry')
+      ) {
+        setClaimableTokens(BigNumber.from(0))
+        setWarning('Sorry, the connected account is not eligible for the airdrop')
+      }
+    }
+  }
+
+  // Triggers getClaim() if valid address is connected to correct chain
+  useEffect(() => {
+    const update = async () => {
+      try {
+        if (address?.address && utils.isAddress(address.address)) {
+          setClaimableTokens(BigNumber.from(0))
+          setWarning('')
+          setClaim(undefined)
+          setLoading(true)
+          await getClaim(address)
+        }
+      } catch (err) {
+      }
+      setLoading(false)
+    }
+    update().catch(console.error)
+  }, [address, provider])
+
+  const checkClaim = () => {
+    try {
+      if (address?.address && utils.isAddress(address.address)) {
+        getClaim(address)
+      }
+    } catch (err) {
+    }
+  }
+
+  useInterval(checkClaim, 5 * 1000)
+
   // Sets warning about claimable tokens
   useEffect(() => {
-    if (correctNetwork && claim && claimableTokens) {
+    if (claim && claimableTokens) {
       const tokenClaims = BigNumber.from(claimableTokens)
       if (tokenClaims.eq(0)) {
         if (claim?.entry.balance) {
@@ -120,42 +170,7 @@ export function useClaim() {
 
       setWarning('')
     }
-  }, [claimableTokens, claim, correctNetwork])
-
-  // Retrieves claim from files
-  async function getClaim(address: Address) {
-    setLoading(true)
-
-    try {
-      const claim = await fetchClaim(claimProvider, address)
-      if (claim) {
-        setClaim(claim)
-      }
-    } catch (error: any) {
-      if (
-        error.message.includes('Cannot find module') ||
-        error.message.includes('Invalid Entry')
-      ) {
-        setClaimableTokens(BigNumber.from(0))
-        setWarning('Sorry, the connected account is not eligible for the airdrop')
-      }
-    }
-
-    setLoading(false)
-  }
-
-  // Triggers getClaim() if valid address is connected to correct chain
-  useEffect(() => {
-    try {
-      if (address?.address && utils.isAddress(address.address)) {
-        setClaimableTokens(BigNumber.from(0))
-        setWarning('')
-        setClaim(undefined)
-        getClaim(address)
-      }
-    } catch (err) {
-    }
-  }, [address, provider])
+  }, [claimableTokens, claim])
 
   // Send tx to claim tokens
   const sendClaimTokens = useCallback(async () => {
@@ -191,9 +206,12 @@ export function useClaim() {
     setClaiming(false)
   }, [provider, claim, delegate])
 
+  const canClaim = claimableTokens.gt(0)
+
   return {
     claim,
     claimableTokens,
+    canClaim,
     sendClaimTokens,
     loading,
     warning,

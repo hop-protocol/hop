@@ -18,8 +18,7 @@ const HeaderRoutes: FC = () => {
   }
 
   const value = pathname.split('/').slice(0, 2).join('/')
-  const { claimableTokens } = useClaim()
-  const canClaim = claimableTokens.gt(0)
+  const { canClaim } = useClaim()
 
   return (
     <Tabs value={value || '/send'} onChange={handleChange} style={{ width: 'max-content' }} variant="scrollable"

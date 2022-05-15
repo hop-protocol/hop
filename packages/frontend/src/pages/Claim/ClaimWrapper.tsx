@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useHistory } from 'react-router-dom';
 import { Link, useTheme } from '@material-ui/core'
 import Button from 'src/components/buttons/Button'
 import { Div, Flex } from 'src/components/ui'
@@ -24,6 +25,7 @@ export function ClaimWrapper(props: any) {
     setError
   } = props
   const theme = useTheme()
+  const history = useHistory()
 
   return (
     <>
@@ -76,9 +78,10 @@ export function ClaimWrapper(props: any) {
 
       {step === 4 && (
         <Box display="flex" maxWidth={"400px"} mt={4} justifyContent="center" width="100%" px={[1, 5]}>
-          <Link href="/" onClick={() => setStep(0)}>
-            <Button highlighted disabled={!delegate?.address}>Go Home</Button>
-          </Link>
+          <Button highlighted disabled={!delegate?.address} onClick={() => {
+              setStep(0)
+              history.push('/')
+            }}>Go Home</Button>
         </Box>
       )}
 

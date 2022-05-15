@@ -1812,10 +1812,10 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@hop-protocol/core@0.0.1-beta.62":
-  version "0.0.1-beta.62"
-  resolved "https://registry.npmjs.org/@hop-protocol/core/-/core-0.0.1-beta.62.tgz#6450a57b1cf89ae01a4a138a02548dc54a7dc7e7"
-  integrity sha512-HHFktZr7XoX7nEbbAAzlkCfsCTBoxEPzO0I/UyAEVm5TlDJsOqiCy+NF5tY4UPvXg+mXdu6z/WJmCqHwyxBhXA==
+"@hop-protocol/core@0.0.1-beta.63":
+  version "0.0.1-beta.63"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.63.tgz#c6d0ec886da1021338e5ea30e01644631d93c7ac"
+  integrity sha512-LpkOdzIIvU4GZweee64YTA3efpYIBz9nXhenNyauq1P76jcfEVLHtHRkoQhVwkCJkFZU1Yv3CuPL8zJVG3DAFw==
   dependencies:
     ethers "^5.5.1"
 
@@ -5236,12 +5236,12 @@ eth-sig-util@^2.5.3:
     tweetnacl "^1.0.3"
     tweetnacl-util "^0.15.0"
 
-ethereum-block-by-date@^1.4.2:
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/ethereum-block-by-date/-/ethereum-block-by-date-1.4.2.tgz#ff7ee7c97db89a983a15c2f651a137ba5a0a1af9"
-  integrity sha512-nSib8vMu5diAn+pI7KZ3qadw5vkyM19slBDGG97F6WWOuOOaXg9AyJfe7GhcqJRW6VIoEhu0gwUdsURS+r492w==
+ethereum-block-by-date@^1.4.5:
+  version "1.4.5"
+  resolved "https://registry.yarnpkg.com/ethereum-block-by-date/-/ethereum-block-by-date-1.4.5.tgz#ae954a4499942d03837e702033d75acf6a0f96dd"
+  integrity sha512-mxDUx+yxIGPgKz82HjijFDCoZLT+in+p3tHJ82JDQTLDUl92uNDCNF85PPvchgzrhRlwDM4F0q7/qed5MeJKNw==
   dependencies:
-    moment "^2.29.1"
+    moment "^2.29.2"
 
 ethereum-bloom-filters@^1.0.6:
   version "1.0.10"
@@ -8594,10 +8594,10 @@ module-deps@^6.2.3:
     through2 "^2.0.0"
     xtend "^4.0.0"
 
-moment@^2.29.1:
-  version "2.29.1"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
-  integrity sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ==
+moment@^2.29.2:
+  version "2.29.3"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.3.tgz#edd47411c322413999f7a5940d526de183c031f3"
+  integrity sha512-c6YRvhEo//6T2Jz/vVtYzqBzwvPT95JBQ+smCytzf7c50oMZRsR/a4w88aD34I+/QVSfnoAnSBFPJHItlOMJVw==
 
 move-concurrently@^1.0.1:
   version "1.0.1"

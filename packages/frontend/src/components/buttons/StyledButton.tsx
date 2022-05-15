@@ -1,21 +1,6 @@
 import React from 'react'
+import { composedStyleFns, ComposedStyleProps } from 'src/utils'
 import styled from 'styled-components/macro'
-import {
-  background,
-  BackgroundProps,
-  border,
-  BorderProps,
-  color,
-  ColorProps,
-  layout,
-  LayoutProps,
-  shadow,
-  ShadowProps,
-  space,
-  SpaceProps,
-  typography,
-  TypographyProps,
-} from 'styled-system'
 import Button from './Button'
 
 interface StyleProps {
@@ -31,18 +16,12 @@ interface StyleProps {
   secondary?: boolean
 }
 
-type StylishProps = SpaceProps &
-  ShadowProps &
-  BorderProps &
-  StyleProps &
-  TypographyProps &
-  ColorProps &
-  BackgroundProps &
-  LayoutProps
+type StylishButtonProps = ComposedStyleProps & StyleProps
 
-export const StyledButton = styled(Button)<StylishProps>`
+export const StyledButton = styled(Button)<StylishButtonProps>`
   text-transform: 'none';
   transition: 'all 0.15s ease-out';
+
   ${({ large }: any) => {
     if (large) {
       return `
@@ -68,11 +47,6 @@ export const StyledButton = styled(Button)<StylishProps>`
   }};
   ${({ highlighted, theme }: any) => (highlighted ? `color: white};` : theme.colors.primary.main)};
   ${({ secondary, theme }: any) => secondary && `color: ${theme.colors.secondary.main}`}
-  ${typography}
-  ${space};
-  ${layout};
-  ${shadow};
-  ${border}
-  ${color};
-  ${background};
+
+  ${composedStyleFns};
 `

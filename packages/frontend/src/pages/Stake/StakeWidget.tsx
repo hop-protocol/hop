@@ -352,16 +352,13 @@ const StakeWidget: FC<Props> = props => {
         kind: 'withdrawStake',
         inputProps: {
           token: stakingToken,
-          amount: Number(formatUnits(stakeBalance, stakingToken?.decimals)),
+          maxBalance: stakeBalance,
         },
-        onConfirm: async (amountPercent: number) => {
-          if (!amountPercent) return
-
-          if (amountPercent === 100) {
+        onConfirm: async (withdrawAmount: BigNumber) => {
+          if (withdrawAmount.eq(stakeBalance)) {
             return _stakingRewards.exit()
           }
 
-          const withdrawAmount = stakeBalance.mul(amountPercent).div(100)
           const chain = Chain.fromSlug(network.slug)
           const overrides = await stakingToken?.txOverrides(chain)
           return _stakingRewards.withdraw(withdrawAmount, overrides)

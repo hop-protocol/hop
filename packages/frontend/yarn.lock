@@ -3657,22 +3657,22 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@hop-protocol/core@0.0.1-beta.62":
-  version "0.0.1-beta.62"
-  resolved "https://registry.npmjs.org/@hop-protocol/core/-/core-0.0.1-beta.62.tgz#6450a57b1cf89ae01a4a138a02548dc54a7dc7e7"
-  integrity sha512-HHFktZr7XoX7nEbbAAzlkCfsCTBoxEPzO0I/UyAEVm5TlDJsOqiCy+NF5tY4UPvXg+mXdu6z/WJmCqHwyxBhXA==
+"@hop-protocol/core@0.0.1-beta.63":
+  version "0.0.1-beta.63"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.63.tgz#c6d0ec886da1021338e5ea30e01644631d93c7ac"
+  integrity sha512-LpkOdzIIvU4GZweee64YTA3efpYIBz9nXhenNyauq1P76jcfEVLHtHRkoQhVwkCJkFZU1Yv3CuPL8zJVG3DAFw==
   dependencies:
     ethers "^5.5.1"
 
-"@hop-protocol/sdk@0.0.1-beta.310":
-  version "0.0.1-beta.310"
-  resolved "https://registry.npmjs.org/@hop-protocol/sdk/-/sdk-0.0.1-beta.310.tgz#980ab48d7655b178b393de629211d6c8edd9d1e8"
-  integrity sha512-zbtNaoWSAt7PoAn4hUFFDHuUV/1hJjAXVAt5rvu3EKvFTpjwGukqNGSvudpBjLOzY0RGIchZmR4VqwV72Lpi6A==
+"@hop-protocol/sdk@0.0.1-beta.314":
+  version "0.0.1-beta.314"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.314.tgz#011c50ffbe848b9cf0783907c8d1b30e1a40c397"
+  integrity sha512-FKlCiWFWsjvXPz9fKw9TiarrnGSFiR+IaZRov30VPCsIdqkIDMIisT/DAx1A/s4xpsscbo13esg54nI1v//3dA==
   dependencies:
     "@eth-optimism/contracts" "^0.5.2"
     "@ethersproject/abi" "^5.4.0"
     "@ethersproject/properties" "^5.6.0"
-    "@hop-protocol/core" "0.0.1-beta.62"
+    "@hop-protocol/core" "0.0.1-beta.63"
     "@maticnetwork/maticjs" "^2.0.38"
     dotenv "^8.2.0"
     ethereum-block-by-date "^1.4.2"
@@ -19834,7 +19834,7 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-prop-types@^15.5.8:
+prop-types@^15.5.0, prop-types@^15.5.8:
   version "15.8.1"
   resolved "https://registry.npmjs.org/prop-types/-/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==
@@ -20217,6 +20217,14 @@ react-app-rewired@^2.2.1:
   dependencies:
     semver "^5.6.0"
 
+react-async-script@^1.1.1:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/react-async-script/-/react-async-script-1.2.0.tgz#ab9412a26f0b83f5e2e00de1d2befc9400834b21"
+  integrity sha512-bCpkbm9JiAuMGhkqoAiC0lLkb40DJ0HOEJIku+9JDjxX3Rcs+ztEOG13wbrOskt3n2DTrjshhaQ/iay+SnGg5Q==
+  dependencies:
+    hoist-non-react-statics "^3.3.0"
+    prop-types "^15.5.0"
+
 react-copy-to-clipboard@^5.0.4:
   version "5.0.4"
   resolved "https://registry.npmjs.org/react-copy-to-clipboard/-/react-copy-to-clipboard-5.0.4.tgz#42ec519b03eb9413b118af92d1780c403a5f19bf"
@@ -20285,6 +20293,14 @@ react-feather@2.0.9:
   integrity sha512-yMfCGRkZdXwIs23Zw/zIWCJO3m3tlaUvtHiXlW+3FH7cIT6fiK1iJ7RJWugXq7Fso8ZaQyUm92/GOOHXvkiVUw==
   dependencies:
     prop-types "^15.7.2"
+
+react-google-recaptcha@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/react-google-recaptcha/-/react-google-recaptcha-2.1.0.tgz#9f6f4954ce49c1dedabc2c532347321d892d0a16"
+  integrity sha512-K9jr7e0CWFigi8KxC3WPvNqZZ47df2RrMAta6KmRoE4RUi7Ys6NmNjytpXpg4HI/svmQJLKR+PncEPaNJ98DqQ==
+  dependencies:
+    prop-types "^15.5.0"
+    react-async-script "^1.1.1"
 
 react-is@^16.12.0, react-is@^16.13.1, react-is@^16.6.0, react-is@^16.7.0:
   version "16.13.1"
@@ -20442,6 +20458,11 @@ react-scripts@^4.0.3:
     workbox-webpack-plugin "5.1.4"
   optionalDependencies:
     fsevents "^2.1.3"
+
+react-social-login-buttons@^3.6.0:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/react-social-login-buttons/-/react-social-login-buttons-3.6.0.tgz#2be1cb114d8c0200581ba1c8ec5ea74e89cf7701"
+  integrity sha512-m5E72jHWgC4VBxRziZYQC5kQIzooGRF+dDE97K5JgSlcDPXkNxCjCzP+Qp9fNhNujG7APvPx2Qhzi1BO2xi17Q==
 
 react-table@^7.7.0:
   version "7.7.0"

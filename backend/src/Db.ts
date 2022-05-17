@@ -9,9 +9,14 @@ class Db {
 
   constructor () {
     this.db.serialize(() => {
+      const resetDb = false
+      if (resetDb) {
+        this.db.run('DROP TABLE IF EXISTS transfers')
+      }
       this.db.run(`CREATE TABLE IF NOT EXISTS transfers (
           id TEXT PRIMARY KEY,
-          chain TEXT NOT NULL,
+          source_chain TEXT NOT NULL,
+          destination_chain TEXT NOT NULL,
           token TEXT NOT NULL,
           amount NUMERIC NOT NULL,
           amount_usd NUMERIC NOT NULL,
@@ -25,7 +30,7 @@ class Db {
       )`)
 
       this.db.run(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfers_chain_token_timestamp ON transfers (chain, token, timestamp);'
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfers_chain_token_timestamp ON transfers (source_chain, destination_chain, token, timestamp);'
       )
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_token_prices_token_timestamp ON token_prices (token, timestamp);'
@@ -69,16 +74,17 @@ class Db {
   }
 
   async upsertTransfer (
-    chain: string,
+    sourceChain: string,
+    destinationChain: string,
     token: string,
     amount: number,
     amountUsd: number,
     timestamp: number
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO transfers VALUES (?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO transfers VALUES (?, ?, ?, ?, ?, ?, ?)'
     )
-    stmt.run(uuid(), chain, token, amount, amountUsd, timestamp)
+    stmt.run(uuid(), sourceChain, destinationChain, token, amount, amountUsd, timestamp)
     stmt.finalize()
   }
 

@@ -217,7 +217,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
-      logger.error(err.message)
+      logger.error('settleBondedWithdrawals error:', err.message)
       throw err
     }
   }

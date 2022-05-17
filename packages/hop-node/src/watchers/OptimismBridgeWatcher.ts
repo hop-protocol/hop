@@ -118,7 +118,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
-      this.logger.error(err.message)
+      this.logger.error('relayXDomainMessage error:', err.message)
       const isNotCheckpointedYet = err.message.includes('unable to find state root batch for tx')
       const isProofNotFound = err.message.includes('messagePairs not found')
       const isInsideFraudProofWindow = err.message.includes('exit within challenge window')

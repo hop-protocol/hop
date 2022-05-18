@@ -7,6 +7,22 @@ export class Controller {
   async getTransfers (params: any) {
     let page = Number(params.page || 0)
     let perPage = Number(params.perPage || 100)
+    const sourceChainSlug = params.sourceChainSlug
+    const destinationChainSlug = params.destinationChainSlug
+    const token = params.token
+    let bonded = params.bonded
+    const bonderAddress = params.bonderAddress
+    const amountFormatted = Number(params.amountFormatted)
+    const amountFormattedCmp = params.amountFormattedCmp
+    const amountUsd = Number(params.amountUsd)
+    const amountUsdCmp = params.amountUsdCmp
+
+    if (bonded === 'pending') {
+      bonded = false
+    }
+    if (bonded === 'bonded') {
+      bonded = true
+    }
 
     if (page <= 0) {
       page = 0
@@ -22,7 +38,16 @@ export class Controller {
 
     const transfers = await this.db.getTransfers({
       page,
-      perPage
+      perPage,
+      sourceChainSlug,
+      destinationChainSlug,
+      token,
+      bonded,
+      bonderAddress,
+      amountFormatted,
+      amountFormattedCmp,
+      amountUsd,
+      amountUsdCmp
     })
     const data = (transfers as any[]).map((x: any, i: number) => {
       x.i = i

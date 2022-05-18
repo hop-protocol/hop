@@ -26,10 +26,31 @@ app.get('/health', (req: any, res: any) => {
 
 app.get('/transfers', async (req: any, res: any) => {
   try {
-    const { page, perPage } = req.query
+    const {
+      page,
+      perPage,
+      source: sourceChainSlug,
+      destination: destinationChainSlug,
+      token,
+      bonded,
+      bonder: bonderAddress,
+      amount: amountFormatted,
+      amountCmp: amountFormattedCmp,
+      amountUsd,
+      amountUsdCmp
+    } = req.query
     const data = await controller.getTransfers({
       page,
-      perPage
+      perPage,
+      sourceChainSlug,
+      destinationChainSlug,
+      token,
+      bonded,
+      bonderAddress,
+      amountFormatted,
+      amountFormattedCmp,
+      amountUsd,
+      amountUsdCmp
     })
     res.status(200).json({ status: 'ok', data })
   } catch (err) {

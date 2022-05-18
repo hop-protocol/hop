@@ -8,7 +8,7 @@ import {chunk} from 'lodash'
 import Head from 'next/head'
 import Image from 'next/image'
 import Script from 'next/script'
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useState, useCallback} from 'react'
 
 function Spinner() {
   useEffect(() => {
@@ -378,11 +378,23 @@ function useData () {
       setTransfers(paginated)
   }
 
-  async function getTransfersData () {
+  const getTransfersData = useCallback(async () => {
     const apiBaseUrl = 'http://localhost:8000'
     const params: any = {
       page,
-      perPage
+      perPage,
+      date: filterDate,
+      bonded: filterBonded,
+      token: filterToken,
+      source: filterSource,
+      destination: filterDestination,
+      amount: filterAmount,
+      amountCmp: filterAmountComparator,
+      amountUsd: filterAmountUsd,
+      amountUsdCmp: filterAmountUsdComparator,
+      bonder: filterBonder,
+      account: filterAccount,
+      transferId: filterTransferId,
     }
     const serializedParams = new URLSearchParams(params).toString()
     const url = `${apiBaseUrl}/transfers?${serializedParams}`
@@ -391,7 +403,7 @@ function useData () {
     const json = await res.json()
     const data = json.data
     return data
-  }
+  }, [page, perPage])
 
   function previousPage () {
     const _page = Math.max(page - 1, 0)

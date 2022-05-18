@@ -205,12 +205,88 @@ class Db {
   }
 
   async getTransfers (params: any) {
-    const { page, perPage } = params
+    const {
+      page,
+      perPage,
+      sourceChainSlug,
+      destinationChainSlug,
+      token,
+      bonded,
+      bonderAddress,
+      amountFormatted,
+      amountFormattedCmp,
+      amountUsd,
+      amountUsdCmp
+    } = params
     const count = perPage
     const skip = (page * perPage)
-    return new Promise((resolve, reject) => {
-      this.db.all(
-        `
+
+    const queryParams = []
+    const whereClauses = []
+
+    const cmps: any = {
+      gt: '>',
+      gte: '>=',
+      lt: '<',
+      lte: '<=',
+      eq: '='
+    }
+
+    // const [filterDate, setFilterDate] = useState(queryParams.date || currentDate)
+    // const [filterTransferId, setFilterTransferId] = useState(queryParams.transferId || '')
+    // const [filterAccount, setFilterAccount] = useState(queryParams.account || '')
+
+    if (sourceChainSlug) {
+      whereClauses.push('source_chain_slug = ?')
+      queryParams.push(sourceChainSlug)
+    }
+
+    if (destinationChainSlug) {
+      whereClauses.push('destination_chain_slug = ?')
+      queryParams.push(destinationChainSlug)
+    }
+
+    if (token) {
+      whereClauses.push('token = ?')
+      queryParams.push(token)
+    }
+
+    if (typeof bonded === 'boolean') {
+      if (bonded) {
+        whereClauses.push('bonded = ?')
+        queryParams.push(bonded)
+      } else {
+        whereClauses.push('(bonded = ? OR bonded IS NULL)')
+        queryParams.push(bonded)
+      }
+    }
+
+    // TODO: normalize
+    if (bonderAddress) {
+      whereClauses.push('bonder_address = ?')
+      queryParams.push(bonderAddress)
+    }
+
+    if (amountFormatted) {
+      const cmp = cmps[amountFormattedCmp]
+      if (cmp) {
+        whereClauses.push(`amount_formatted ${cmp} ?`)
+        queryParams.push(amountFormatted)
+      }
+    }
+
+    if (amountUsd) {
+      const cmp = cmps[amountUsdCmp]
+      if (cmp) {
+        whereClauses.push(`amount_usd ${cmp} ?`)
+        queryParams.push(amountUsd)
+      }
+    }
+
+    const whereClause = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : ''
+    queryParams.push(count, skip)
+
+    const sql = `
         SELECT
           id,
           transfer_id AS "transferId",
@@ -260,6 +336,7 @@ class Db {
           timestamp_iso AS "timestampIso"
         FROM
           transfers
+        ${whereClause}
         ORDER BY
           timestamp
         DESC
@@ -267,8 +344,12 @@ class Db {
           ?
         OFFSET
           ?
-        `,
-        [count, skip],
+        `
+
+    return new Promise((resolve, reject) => {
+      this.db.all(
+        sql,
+        queryParams,
         function (err: any, rows: any[]) {
           if (err) {
             reject(err)

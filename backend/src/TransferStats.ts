@@ -2,7 +2,7 @@ import fetch from 'isomorphic-fetch'
 import { Contract, providers } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
-import Db from './Db'
+import Db, { getInstance } from './Db'
 import { chunk } from 'lodash'
 import toHex from 'to-hex'
 
@@ -148,7 +148,7 @@ type Options = {
 }
 
 class TransferStats {
-  db = new Db()
+  db : Db = getInstance()
   regenesis = false
   prices: any = {}
   days = 1
@@ -557,11 +557,11 @@ class TransferStats {
           item.transferIdTruncated,
           item.transactionHash,
           item.transactionHashTruncated,
+          item.transactionHashExplorerUrl,
           item.sourceChainId,
           item.sourceChainSlug,
           item.sourceChainName,
           item.sourceChainImageUrl,
-          item.transactionHashExplorerUrl,
           item.destinationChainId,
           item.destinationChainSlug,
           item.destinationChainName,

@@ -9,7 +9,7 @@ class Db {
 
   constructor () {
     this.db.serialize(() => {
-      const resetDb = true
+      const resetDb = false
       if (resetDb) {
         this.db.run('DROP TABLE IF EXISTS transfers')
       }
@@ -33,7 +33,7 @@ class Db {
           amount_display TEXT NOT NULL,
           amount_usd NUMERIC NOT NULL,
           amount_usd_display TEXT NOT NULL,
-          amount_out_min TEXT NOT NULL,
+          amount_out_min TEXT,
           deadline INTEGER NOT NULL,
           recipient_address TEXT NOT NULL,
           recipient_address_truncated TEXT NOT NULL,
@@ -68,6 +68,9 @@ class Db {
           timestamp INTEGER NOT NULL
       )`)
 
+      this.db.run(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfers_transfer_id ON transfers (transfer_id);'
+      )
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfers_chain_token_timestamp ON transfers (source_chain_id, destination_chain_id, token, amount, timestamp);'
       )
@@ -204,7 +207,60 @@ class Db {
   async getTransfers () {
     return new Promise((resolve, reject) => {
       this.db.all(
-        'SELECT id, chain, token, amount, amount_usd, timestamp FROM transfers;',
+        `
+        SELECT
+          id,
+          transfer_id AS "transferId",
+          transfer_id_truncated AS "transferIdTruncated",
+          transaction_hash AS "transactionHash",
+          transaction_hash_truncated AS "transactionHashTruncated",
+          transaction_hash_explorer_url AS "transactionHashExplorerUrl",
+          source_chain_id AS "sourceChainId",
+          source_chain_slug AS "sourceChainSlug",
+          source_chain_name AS "sourceChainName",
+          source_chain_image_url AS "sourceChainImageUrl",
+          destination_chain_id AS "destinationChainId",
+          destination_chain_slug AS "destinationChainSlug",
+          destination_chain_name AS "destinationChainName",
+          destination_chain_image_url AS "destinationChainImageUrl",
+          amount,
+          amount_formatted AS "amountFormatted",
+          amount_display AS "amountDisplay",
+          amount_usd AS "amountUsd",
+          amount_usd_display AS "amountUsdDisplay",
+          amount_out_min AS "amountOutMin",
+          deadline,
+          recipient_address AS "recipientAddress",
+          recipient_address_truncated AS "recipientAddressTruncated",
+          recipient_address_explorer_url AS "recipientAddressExplorerUrl",
+          bonder_fee AS "bonderFee",
+          bonder_fee_formatted AS "bonderFeeFormatted",
+          bonder_fee_display AS "bonderFeeDisplay",
+          bonder_fee_usd AS "bonderFeeUsd",
+          bonder_fee_usd_display AS "bonderFeeUsdDisplay",
+          bonded,
+          bond_timestamp AS "bondTimestamp",
+          bond_timestamp_iso AS "bondTimestampIso",
+          bond_within_timestamp AS "bondWithinTimestamp",
+          bond_within_timestamp_relative AS "bondWithinTimestampRelative",
+          bond_transaction_hash AS "bondTransactionHash",
+          bond_transaction_hash_truncated AS "bondTransactionHashTruncated",
+          bond_transaction_hash_explorer_url AS "bondTransactionHashExplorerUrl",
+          bonder_address AS "bonderAddress",
+          bonder_address_truncated AS "bonderAddressTruncated",
+          bonder_address_explorer_url AS "bonderAddressExplorerUrl",
+          token,
+          token_image_url AS "tokenImageUrl",
+          token_price_usd AS "tokenPriceUsd",
+          token_price_usd_display AS "tokenPriceUsdDisplay",
+          timestamp,
+          timestamp_iso AS "timestampIso"
+        FROM
+          transfers
+        ORDER BY
+          timestamp
+        DESC
+        `,
         function (err: any, rows: any[]) {
           if (err) {
             reject(err)
@@ -219,6 +275,15 @@ class Db {
   close () {
     this.db.close()
   }
+}
+
+let instance :any
+
+export function getInstance () {
+  if (!instance) {
+    instance = new Db()
+  }
+  return instance
 }
 
 export default Db

@@ -26,9 +26,11 @@ app.get('/health', (req: any, res: any) => {
 
 app.get('/transfers', async (req: any, res: any) => {
   try {
-    const query = req.query
-    console.log(query)
-    const data = await controller.getTransfers()
+    const { page, perPage } = req.query
+    const data = await controller.getTransfers({
+      page,
+      perPage
+    })
     res.status(200).json({ status: 'ok', data })
   } catch (err) {
     res.status(400).json({ error: err.message })

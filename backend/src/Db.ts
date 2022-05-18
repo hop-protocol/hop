@@ -204,7 +204,10 @@ class Db {
     stmt.finalize()
   }
 
-  async getTransfers () {
+  async getTransfers (params: any) {
+    const { page, perPage } = params
+    const count = perPage
+    const skip = (page * perPage)
     return new Promise((resolve, reject) => {
       this.db.all(
         `
@@ -260,7 +263,12 @@ class Db {
         ORDER BY
           timestamp
         DESC
+        LIMIT
+          ?
+        OFFSET
+          ?
         `,
+        [count, skip],
         function (err: any, rows: any[]) {
           if (err) {
             reject(err)

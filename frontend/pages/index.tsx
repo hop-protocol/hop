@@ -36,8 +36,7 @@ function Spinner() {
 }
 
 const poll = true
-const pollInterval = 10 * 1000
-const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
+const pollInterval = 60 * 1000
 const enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
 
 let queryParams: any = {}
@@ -63,18 +62,6 @@ for (let i = 0; i < enabledChains.length; i++) {
   chainToIndexMapDestination[enabledChains[i]] = i + enabledChains.length
 }
 
-const chainIdToSlugMap: any = {
-  1: 'ethereum',
-  42: 'ethereum',
-  10: 'optimism',
-  69: 'optimism',
-  77: 'gnosis',
-  100: 'gnosis',
-  137: 'polygon',
-  42161: 'arbitrum',
-  421611: 'arbitrum'
-}
-
 const chainSlugToNameMap: any = {
   ethereum: 'Ethereum',
   gnosis: 'Gnosis',
@@ -90,34 +77,6 @@ const colorsMap: any = {
   optimism: '#e64b5d',
   arbitrum: '#289fef',
   fallback: '#9f9fa3'
-}
-
-const chainLogosMap: any = {
-  ethereum: 'https://assets.hop.exchange/logos/ethereum.svg',
-  gnosis: 'https://assets.hop.exchange/logos/gnosis.svg',
-  polygon: 'https://assets.hop.exchange/logos/polygon.svg',
-  optimism: 'https://assets.hop.exchange/logos/optimism.svg',
-  arbitrum: 'https://assets.hop.exchange/logos/arbitrum.svg'
-}
-
-const tokenLogosMap: any = {
-  USDC: 'https://assets.hop.exchange/logos/usdc.svg',
-  USDT: 'https://assets.hop.exchange/logos/usdt.svg',
-  DAI: 'https://assets.hop.exchange/logos/dai.svg',
-  MATIC: 'https://assets.hop.exchange/logos/matic.svg',
-  ETH: 'https://assets.hop.exchange/logos/eth.svg'
-}
-
-const tokenDecimals :any = {
-  USDC: 6,
-  USDT: 6,
-  DAI: 18,
-  MATIC: 18,
-  ETH: 18
-}
-
-function padHex(hex: string) {
-  return toHex(hex, {evenLength: true, addPrefix: true})
 }
 
 function updateQueryParams (params: any) {
@@ -144,10 +103,21 @@ function updateQueryParams (params: any) {
     }
 }
 
+const queryTransfers = async (params: any) => {
+  const apiBaseUrl = 'http://localhost:8000'
+  // const apiBaseUrl = 'http://explorer-api.hop.exchange'
+  const serializedParams = new URLSearchParams(params).toString()
+  const url = `${apiBaseUrl}/transfers?${serializedParams}`
+  const res = await fetch(url)
+  const json = await res.json()
+  const data = json.data
+  return data
+}
+
 function useData () {
   const [loadingData, setLoadingData] = useState(false)
-  const [minDate, setMinDate] = useState('2020-07-01')
-  const [maxDate, setMaxDate] = useState(currentDate)
+  const [minDate] = useState('2020-07-01')
+  const [maxDate] = useState(currentDate)
   const [filterDate, setFilterDate] = useState(queryParams.date || currentDate)
   const [filterBonded, setFilterBonded] = useState(queryParams.bonded || '')
   const [filterToken, setFilterToken] = useState(queryParams.token || '')
@@ -162,20 +132,8 @@ function useData () {
   const [filterTransferId, setFilterTransferId] = useState(queryParams.transferId || '')
   const [chartAmountSize, setChartAmountSize] = useState(false)
   const [chartSelection, setChartSelection] = useState('')
-  const [allTransfers, setAllTransfers] = useState<any>([])
   const [transfers, setTransfers] = useState<any>([])
-  const [prices, setPrices] = useState<any>(() => {
-      try {
-        const cached = JSON.parse(localStorage.getItem('prices') || '')
-        if (cached) {
-          return cached
-        }
-      } catch (err) {
-        //console.error(err)
-      }
-      return null
-    })
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useState(Number(queryParams.page || 0))
   const [perPage, setPerPage] = useState(() => {
       try {
         const cached = Number(localStorage.getItem('perPage'))
@@ -187,6 +145,8 @@ function useData () {
       }
     return 25
   })
+
+  const hasFirstPage = page > 0
   const hasPreviousPage = page > 0
   const hasNextPage = true // page < (allTransfers.length / perPage) - 1
 
@@ -195,7 +155,7 @@ function useData () {
       try {
         //const data = JSON.parse(localStorage.getItem('data') || '')
         //if (data) {
-          //setAllTransfers(data)
+          //setTransfers(data)
         //}
       } catch (err) {
         //console.error(err)
@@ -282,11 +242,25 @@ function useData () {
     window.addEventListener('resize', render)
   }
 
-  async function updateData () {
+  async function refreshTransfers () {
     setLoadingData(true)
     try {
-      const populatedData = await getTransfersData()
-      setAllTransfers(populatedData)
+      const populatedData = await queryTransfers({
+        page,
+        perPage,
+        date: filterDate,
+        bonded: filterBonded,
+        token: filterToken,
+        source: filterSource,
+        destination: filterDestination,
+        amount: filterAmount,
+        amountCmp: filterAmountComparator,
+        amountUsd: filterAmountUsd,
+        amountUsdCmp: filterAmountUsdComparator,
+        bonder: filterBonder,
+        account: filterAccount,
+        transferId: filterTransferId,
+      })
       setTransfers(populatedData)
       try {
         //localStorage.setItem('data', JSON.stringify(populatedData.slice(0, 50)))
@@ -299,121 +273,23 @@ function useData () {
     setLoadingData(false)
   }
 
-  function refreshTransfers () {
-    const paginated = allTransfers
-      .filter((x: any) => {
-        if (filterToken) {
-          if (x.token !== filterToken) {
-            return false
-          }
-        }
-
-        if (filterSource) {
-          if (x.sourceChainSlug !== filterSource) {
-            return false
-          }
-        }
-
-        if (filterDestination) {
-          if (x.destinationChainSlug !== filterDestination) {
-            return false
-          }
-        }
-
-        if (filterBonded) {
-          if (filterBonded === 'pending') {
-            if (x.bonded) {
-              return false
-            }
-          } else if (filterBonded === 'bonded') {
-            if (!x.bonded) {
-              return false
-            }
-          }
-        }
-
-        if (filterBonder) {
-          if (!x.bonderAddress) {
-            return false
-          }
-          if (x.bonderAddress && filterBonder.toLowerCase() !== x.bonderAddress.toString()) {
-            return false
-          }
-        }
-
-        if (filterAmount && filterAmountComparator) {
-          if (filterAmountComparator === 'eq') {
-            if (x.amountFormatted !== Number(filterAmount)) {
-              return false
-            }
-          } else if (filterAmountComparator === 'gt') {
-            if (x.amountFormatted <= Number(filterAmount)) {
-              return false
-            }
-          } else if (filterAmountComparator === 'lt') {
-            if (x.amountFormatted >= Number(filterAmount)) {
-              return false
-            }
-          }
-        }
-
-        if (filterAmountUsd && filterAmountUsdComparator) {
-          if (filterAmountUsdComparator === 'eq') {
-            if (x.amountUsd !== Number(filterAmountUsd)) {
-              return false
-            }
-          } else if (filterAmountUsdComparator === 'gt') {
-            if (x.amountUsd <= Number(filterAmountUsd)) {
-              return false
-            }
-          } else if (filterAmountUsdComparator === 'lt') {
-            if (x.amountUsd >= Number(filterAmountUsd)) {
-              return false
-            }
-          }
-        }
-
-        return true
-      })
-      setTransfers(paginated)
-  }
-
-  const getTransfersData = useCallback(async () => {
-    const apiBaseUrl = 'http://localhost:8000'
-    const params: any = {
-      page,
-      perPage,
-      date: filterDate,
-      bonded: filterBonded,
-      token: filterToken,
-      source: filterSource,
-      destination: filterDestination,
-      amount: filterAmount,
-      amountCmp: filterAmountComparator,
-      amountUsd: filterAmountUsd,
-      amountUsdCmp: filterAmountUsdComparator,
-      bonder: filterBonder,
-      account: filterAccount,
-      transferId: filterTransferId,
-    }
-    const serializedParams = new URLSearchParams(params).toString()
-    const url = `${apiBaseUrl}/transfers?${serializedParams}`
-    console.log(url)
-    const res = await fetch(url)
-    const json = await res.json()
-    const data = json.data
-    return data
-  }, [page, perPage])
-
   function previousPage () {
     const _page = Math.max(page - 1, 0)
     setPage(_page)
+    updateQueryParams({ page: _page })
+  }
+
+  function firstPage () {
+    setPage(0)
+    updateQueryParams({ page: 0 })
   }
 
   function nextPage () {
     //const _page = (Math.min(page + 1, Math.floor(allTransfers.length / perPage)))
     //setPage(_page)
-    setPage(page + 1)
+    const _page = page + 1
+    setPage(_page)
+    updateQueryParams({ page: _page })
   }
 
   function updatePerPage (event: any) {
@@ -505,11 +381,12 @@ function useData () {
   function updateFilterDate (event: any) {
     const value = event.target.value
     setFilterDate(value)
+    updateQueryParams({ date: value })
   }
 
   useInterval(() => {
     if (poll) {
-      updateData()
+      refreshTransfers()
     }
   }, pollInterval)
 
@@ -518,22 +395,8 @@ function useData () {
   }, [transfers, chartAmountSize])
 
   useEffect(() => {
-    //refreshTransfers()
-    updateData()
-  }, [page, perPage])
-
-  useEffect(() => {
-    if (page === 0) {
-      //refreshTransfers()
-      updateData()
-    } else {
-      resetPage()
-    }
-  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonder])
-
-  useEffect(() => {
-    updateData()
-  }, [filterAccount, filterTransferId, filterDate])
+    refreshTransfers()
+  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonder, filterAccount, filterTransferId, filterDate, page, perPage])
 
   function resetPage () {
     setPage(0)
@@ -554,6 +417,7 @@ function useData () {
     setFilterAccount('')
     setFilterTransferId('')
     setChartAmountSize(false)
+    setPage(0)
     updateQueryParams({
       bonded: null,
       source: null,
@@ -565,7 +429,9 @@ function useData () {
       amountUsdCmp: null,
       bonder: null,
       account: null,
-      transferId: null
+      transferId: null,
+      date: null,
+      page: null
     })
   }
 
@@ -603,7 +469,9 @@ function useData () {
     page,
     perPage,
     updatePerPage,
+    firstPage,
     previousPage,
+    hasFirstPage,
     hasPreviousPage,
     hasNextPage,
     nextPage,
@@ -647,13 +515,17 @@ const Index: NextPage = () => {
     page,
     perPage,
     updatePerPage,
+    firstPage,
     previousPage,
+    hasFirstPage,
     hasPreviousPage,
     hasNextPage,
     nextPage,
     loadingData,
     resetFilters
   } = useData()
+
+  const showBanner = false
 
   return (
     <>
@@ -673,13 +545,15 @@ const Index: NextPage = () => {
         <meta name="application-name" content="Hop" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div id="banner">
-        <div>
-          ⚠️ The <a href="https://thegraph.com/legacy-explorer/subgraph/hop-protocol/hop-polygon?ve
-    rsion=pending" target="_blank" rel="noreferrer noopener">subgraphs</a> are currently experiencing some issues so the table
-    might not reflect the latest state.
+      {showBanner && (
+        <div id="banner">
+          <div>
+            ⚠️ The <a href="https://thegraph.com/legacy-explorer/subgraph/hop-protocol/hop-polygon?ve
+      rsion=pending" target="_blank" rel="noreferrer noopener">subgraphs</a> are currently experiencing some issues so the table
+      might not reflect the latest state.
+          </div>
         </div>
-      </div>
+      )}
       <div id="app">
         <div className="chartView">
           <details open>
@@ -812,14 +686,17 @@ const Index: NextPage = () => {
                 <button onClick={resetFilters}>Reset</button>
               </div>
             </div>
-            <div className="pagination">
+          </div>
+          <div className="pagination">
+            {hasFirstPage && (
+              <button onClick={firstPage} className="paginationButton">first page</button>
+            )}
             {hasPreviousPage && (
               <button onClick={previousPage} className="paginationButton">previous page</button>
             )}
             {hasNextPage && (
               <button onClick={nextPage} className="paginationButton">next page</button>
             )}
-            </div>
           </div>
         </details>
         <div id="transfers">
@@ -958,6 +835,9 @@ const Index: NextPage = () => {
             </select>
           </div>
           <div className="pagination">
+            {hasFirstPage && (
+              <button onClick={firstPage} className="paginationButton">first page</button>
+            )}
             {hasPreviousPage && (
               <button onClick={previousPage} className="paginationButton">previous page</button>
             )}

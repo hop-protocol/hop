@@ -4,12 +4,14 @@ const sqlite3 = require('sqlite3').verbose()
 
 console.log('db path:', dbPath)
 
+const argv = require('minimist')(process.argv.slice(2))
+
 class Db {
   db = new sqlite3.Database(dbPath)
 
   constructor () {
     this.db.serialize(() => {
-      const resetDb = false
+      const resetDb = argv.reset
       if (resetDb) {
         this.db.run('DROP TABLE IF EXISTS transfers')
       }
@@ -28,6 +30,7 @@ class Db {
           destination_chain_slug TEXT NOT NULL,
           destination_chain_name TEXT NOT NULL,
           destination_chain_image_url TEXT NOT NULL,
+          account_address TEXT NOT NULL,
           amount TEXT NOT NULL,
           amount_formatted NUMERIC NOT NULL,
           amount_display TEXT NOT NULL,
@@ -117,6 +120,7 @@ class Db {
     destinationChainSlug: string,
     destinationChainName: string,
     destinationChainImageUrl: string,
+    accountAddress: string,
     amount: string,
     amountFormatted: number,
     amountDisplay: string,
@@ -151,7 +155,7 @@ class Db {
     timestampIso: string
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO transfers VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO transfers VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       transferId,
@@ -168,6 +172,7 @@ class Db {
       destinationChainSlug,
       destinationChainName,
       destinationChainImageUrl,
+      accountAddress,
       amount,
       amountFormatted,
       amountDisplay,
@@ -213,10 +218,13 @@ class Db {
       token,
       bonded,
       bonderAddress,
+      accountAddress,
       amountFormatted,
       amountFormattedCmp,
       amountUsd,
-      amountUsdCmp
+      amountUsdCmp,
+      transferId,
+      endTimestamp
     } = params
     const count = perPage
     const skip = (page * perPage)
@@ -232,54 +240,64 @@ class Db {
       eq: '='
     }
 
-    // const [filterDate, setFilterDate] = useState(queryParams.date || currentDate)
-    // const [filterTransferId, setFilterTransferId] = useState(queryParams.transferId || '')
-    // const [filterAccount, setFilterAccount] = useState(queryParams.account || '')
-
-    if (sourceChainSlug) {
-      whereClauses.push('source_chain_slug = ?')
-      queryParams.push(sourceChainSlug)
-    }
-
-    if (destinationChainSlug) {
-      whereClauses.push('destination_chain_slug = ?')
-      queryParams.push(destinationChainSlug)
-    }
-
-    if (token) {
-      whereClauses.push('token = ?')
-      queryParams.push(token)
-    }
-
-    if (typeof bonded === 'boolean') {
-      if (bonded) {
-        whereClauses.push('bonded = ?')
-        queryParams.push(bonded)
-      } else {
-        whereClauses.push('(bonded = ? OR bonded IS NULL)')
-        queryParams.push(bonded)
+    if (transferId) {
+      whereClauses.push('transfer_id = ?')
+      queryParams.push(transferId)
+    } else {
+      if (sourceChainSlug) {
+        whereClauses.push('source_chain_slug = ?')
+        queryParams.push(sourceChainSlug)
       }
-    }
 
-    // TODO: normalize
-    if (bonderAddress) {
-      whereClauses.push('bonder_address = ?')
-      queryParams.push(bonderAddress)
-    }
-
-    if (amountFormatted) {
-      const cmp = cmps[amountFormattedCmp]
-      if (cmp) {
-        whereClauses.push(`amount_formatted ${cmp} ?`)
-        queryParams.push(amountFormatted)
+      if (destinationChainSlug) {
+        whereClauses.push('destination_chain_slug = ?')
+        queryParams.push(destinationChainSlug)
       }
-    }
 
-    if (amountUsd) {
-      const cmp = cmps[amountUsdCmp]
-      if (cmp) {
-        whereClauses.push(`amount_usd ${cmp} ?`)
-        queryParams.push(amountUsd)
+      if (token) {
+        whereClauses.push('token = ?')
+        queryParams.push(token)
+      }
+
+      if (typeof bonded === 'boolean') {
+        if (bonded) {
+          whereClauses.push('bonded = ?')
+          queryParams.push(bonded)
+        } else {
+          whereClauses.push('(bonded = ? OR bonded IS NULL)')
+          queryParams.push(bonded)
+        }
+      }
+
+      if (bonderAddress) {
+        whereClauses.push('bonder_address = ?')
+        queryParams.push(bonderAddress.toLowerCase())
+      }
+
+      if (accountAddress) {
+        whereClauses.push('account_address = ?')
+        queryParams.push(accountAddress.toLowerCase())
+      }
+
+      if (amountFormatted) {
+        const cmp = cmps[amountFormattedCmp]
+        if (cmp) {
+          whereClauses.push(`amount_formatted ${cmp} ?`)
+          queryParams.push(amountFormatted)
+        }
+      }
+
+      if (amountUsd) {
+        const cmp = cmps[amountUsdCmp]
+        if (cmp) {
+          whereClauses.push(`amount_usd ${cmp} ?`)
+          queryParams.push(amountUsd)
+        }
+      }
+
+      if (endTimestamp) {
+        whereClauses.push('timestamp <= ?')
+        queryParams.push(endTimestamp)
       }
     }
 
@@ -302,6 +320,7 @@ class Db {
           destination_chain_slug AS "destinationChainSlug",
           destination_chain_name AS "destinationChainName",
           destination_chain_image_url AS "destinationChainImageUrl",
+          account_address AS "accountAddress",
           amount,
           amount_formatted AS "amountFormatted",
           amount_display AS "amountDisplay",

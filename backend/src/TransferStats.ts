@@ -205,47 +205,6 @@ class TransferStats {
     return jsonRes.data
   }
 
-  async fetchTransfers1 (chain: string, startDate: number) {
-    const query = `
-      query Transfers($startDate: String, $endDate: String) {
-        events: transferSents(
-          where: {
-            timestamp_gte: $startDate,
-          },
-          orderBy: timestamp,
-          orderDirection: desc,
-          first: 1000
-        ) {
-          id
-          amount
-          token
-          timestamp
-        }
-      }
-    `
-    const url = this.getUrl(chain)
-    const data = await this.queryFetch(url, query, {
-      startDate: startDate?.toString()
-    })
-
-    if (!data) {
-      return []
-    }
-
-    const items = data.events
-
-    try {
-      if (items.length === 1000) {
-        startDate = items[0].timestamp
-        items.push(...(await this.fetchTransfers1(chain, startDate)))
-      }
-    } catch (err) {
-      console.error(err)
-    }
-
-    return items
-  }
-
   async fetchTransfers (chain: string, startTime: number, endTime: number, skip?: number) {
     const queryL1 = `
       query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String, $account: String) {
@@ -269,6 +228,7 @@ class TransferStats {
           transactionHash
           timestamp
           token
+          from
         }
       }
     `
@@ -295,6 +255,7 @@ class TransferStats {
           transactionHash
           timestamp
           token
+          from
         }
       }
     `
@@ -406,6 +367,7 @@ class TransferStats {
           transactionHash
           timestamp
           token
+          from
         }
       }
     `
@@ -568,6 +530,7 @@ class TransferStats {
             item.destinationChainSlug,
             item.destinationChainName,
             item.destinationChainImageUrl,
+            item.accountAddress,
             item.amount,
             item.amountFormatted,
             item.amountDisplay,
@@ -612,6 +575,10 @@ class TransferStats {
   }
 
   populateTransfer (x: any, prices: any) {
+    if (!x.accountAddress) {
+      x.accountAddress = x.from?.toLowerCase()
+    }
+
     if (!x.transactionHashTruncated) {
       x.transactionHashTruncated = truncateHash(x.transactionHash)
     }
@@ -679,7 +646,7 @@ class TransferStats {
     }
 
     if (!x.bonderAddress) {
-      x.bonderAddress = x.bonder
+      x.bonderAddress = x.bonder?.toLowerCase()
     }
 
     if (!x.bonderAddressTruncated) {
@@ -796,7 +763,8 @@ class TransferStats {
         transferId: x.transferId,
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
-        token: x.token
+        token: x.token,
+        from: x.from
       })
     }
     for (const x of polygonTransfers) {
@@ -811,7 +779,8 @@ class TransferStats {
         transferId: x.transferId,
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
-        token: x.token
+        token: x.token,
+        from: x.from
       })
     }
     for (const x of optimismTransfers) {
@@ -825,7 +794,8 @@ class TransferStats {
         transferId: x.transferId,
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
-        token: x.token
+        token: x.token,
+        from: x.from
       })
     }
     for (const x of arbitrumTransfers) {
@@ -840,7 +810,8 @@ class TransferStats {
         transferId: x.transferId,
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
-        token: x.token
+        token: x.token,
+        from: x.from
       })
     }
     for (const x of mainnetTransfers) {
@@ -855,7 +826,8 @@ class TransferStats {
         transferId: x.id,
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
-        token: x.token
+        token: x.token,
+        from: x.from
       })
     }
 

@@ -34,10 +34,13 @@ app.get('/transfers', async (req: any, res: any) => {
       token,
       bonded,
       bonder: bonderAddress,
+      account: accountAddress,
       amount: amountFormatted,
       amountCmp: amountFormattedCmp,
       amountUsd,
-      amountUsdCmp
+      amountUsdCmp,
+      transferId,
+      date
     } = req.query
     const data = await controller.getTransfers({
       page,
@@ -47,10 +50,13 @@ app.get('/transfers', async (req: any, res: any) => {
       token,
       bonded,
       bonderAddress,
+      accountAddress,
       amountFormatted,
       amountFormattedCmp,
       amountUsd,
-      amountUsdCmp
+      amountUsdCmp,
+      transferId,
+      date
     })
     res.status(200).json({ status: 'ok', data })
   } catch (err) {

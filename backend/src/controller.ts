@@ -12,10 +12,13 @@ export class Controller {
     const token = params.token
     let bonded = params.bonded
     const bonderAddress = params.bonderAddress
+    const accountAddress = params.accountAddress
     const amountFormatted = Number(params.amountFormatted)
     const amountFormattedCmp = params.amountFormattedCmp
     const amountUsd = Number(params.amountUsd)
     const amountUsdCmp = params.amountUsdCmp
+    const transferId = params.transferId
+    const date = params.date
 
     if (bonded === 'pending') {
       bonded = false
@@ -36,6 +39,11 @@ export class Controller {
       perPage = 10000
     }
 
+    let endTimestamp :any
+    if (date) {
+      endTimestamp = DateTime.fromFormat(date, 'yyyy-MM-dd').endOf('day').toUTC().toSeconds()
+    }
+
     const transfers = await this.db.getTransfers({
       page,
       perPage,
@@ -44,10 +52,13 @@ export class Controller {
       token,
       bonded,
       bonderAddress,
+      accountAddress,
       amountFormatted,
       amountFormattedCmp,
       amountUsd,
-      amountUsdCmp
+      amountUsdCmp,
+      transferId,
+      endTimestamp
     })
     const data = (transfers as any[]).map((x: any, i: number) => {
       x.i = i

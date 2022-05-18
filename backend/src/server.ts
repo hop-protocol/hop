@@ -23,6 +23,15 @@ app.get('/health', (req: any, res: any) => {
   res.status(200).json({ status: 'ok' })
 })
 
+app.get('/transfers', async (req: any, res: any) => {
+  try {
+    const transfers = await controller.getTransfers()
+    res.status(200).json({ status: 'ok', data: transfers })
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
+})
+
 app.get('/index', (req: any, res: any) => {
   res.sendFile(path.resolve(__dirname, '..', 'public/index.html'))
 })

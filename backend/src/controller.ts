@@ -1,4 +1,5 @@
-import fetch from 'isomorphic-fetch'
-
 export class Controller {
+  async getTransfers () {
+    return []
+  }
 }

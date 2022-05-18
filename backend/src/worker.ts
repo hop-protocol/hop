@@ -16,7 +16,7 @@ class Worker {
       transfers
     } = options
     if (transfers) {
-      this.transferStats = new TransferStats({})
+      this.transferStats = new TransferStats({ days })
     }
   }
 

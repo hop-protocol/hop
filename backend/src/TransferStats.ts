@@ -108,6 +108,7 @@ function nearestDate (dates: any[], target: any) {
   return winner
 }
 
+/*
 const colorsMap: any = {
   ethereum: '#868dac',
   gnosis: '#46a4a1',
@@ -116,6 +117,7 @@ const colorsMap: any = {
   arbitrum: '#289fef',
   fallback: '#9f9fa3'
 }
+*/
 
 const chainLogosMap: any = {
   ethereum: 'https://assets.hop.exchange/logos/ethereum.svg',
@@ -141,14 +143,20 @@ const tokenDecimals: any = {
   ETH: 18
 }
 
-type Options = {}
+type Options = {
+  days?: number
+}
 
 class TransferStats {
   db = new Db()
   regenesis = false
   prices: any = {}
+  days = 1
 
   constructor (options: Options = {}) {
+    if (options.days) {
+      this.days = options.days
+    }
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
       this.cleanUp()
@@ -530,7 +538,7 @@ class TransferStats {
     */
 
     const now = DateTime.now()
-    const startDate = now.minus({ days: 1 }).toFormat('yyyy-MM-dd')
+    const startDate = now.toFormat('yyyy-MM-dd')
 
     console.log('fetching all transfers data')
     const items = await this.getAllData(startDate)
@@ -538,24 +546,58 @@ class TransferStats {
       const amount = item.amount
       const timestamp = item.timestamp
       const token = item.token
-      const formattedAmount = item.formattedAmount
       const sourceChain = item.sourceChainSlug
       const destinationChain = item.destinationChainSlug
 
-      const dates = prices[token].reverse().map((x: any) => x[0])
-      const nearest = nearestDate(dates, timestamp)
-      const price = prices[token][nearest][1]
-
-      const usdAmount = price * formattedAmount
       console.log(timestamp, token, sourceChain, destinationChain, amount)
+
       try {
         this.db.upsertTransfer(
-          sourceChain,
-          destinationChain,
-          token,
-          formattedAmount,
-          usdAmount,
-          timestamp
+          item.transferId,
+          item.transferIdTruncated,
+          item.transactionHash,
+          item.transactionHashTruncated,
+          item.sourceChainId,
+          item.sourceChainSlug,
+          item.sourceChainName,
+          item.sourceChainImageUrl,
+          item.transactionHashExplorerUrl,
+          item.destinationChainId,
+          item.destinationChainSlug,
+          item.destinationChainName,
+          item.destinationChainImageUrl,
+          item.amount,
+          item.amountFormatted,
+          item.amountDisplay,
+          item.amountUsd,
+          item.amountUsdDisplay,
+          item.amountOutMin,
+          item.deadline,
+          item.recipientAddress,
+          item.recipientAddressTruncated,
+          item.recipientAddressExplorerUrl,
+          item.bonderFee,
+          item.bonderFeeFormatted,
+          item.bonderFeeDisplay,
+          item.bonderFeeUsd,
+          item.bonderFeeUsdDisplay,
+          item.bonded,
+          item.bondTimestamp,
+          item.bondTimestampIso,
+          item.bondWithinTimestamp,
+          item.bondWithinTimestampRelative,
+          item.bondTransactionHash,
+          item.bondTransactionHashTruncated,
+          item.bondTransactionHashExplorerUrl,
+          item.bonderAddress,
+          item.bonderAddressTruncated,
+          item.bonderAddressExplorerUrl,
+          item.token,
+          item.tokenImageUrl,
+          item.tokenPriceUsd,
+          item.tokenPriceUsdDisplay,
+          item.timestamp,
+          item.timestampIso
         )
       } catch (err) {
         if (!err.message.includes('UNIQUE constraint failed')) {
@@ -575,11 +617,19 @@ class TransferStats {
     if (!x.transferIdTruncated) {
       x.transferIdTruncated = truncateHash(x.transferId)
     }
-    if (!x.isoTimestamp) {
-      x.isoTimestamp = transferTime.toISO()
+    if (!x.timestampIso) {
+      x.timestampIso = transferTime.toISO()
     }
     if (!x.relativeTimestamp) {
       x.relativeTimestamp = transferTime.toRelative()
+    }
+
+    if (!x.sourceChainId) {
+      x.sourceChainId = x.sourceChain
+    }
+
+    if (!x.destinationChainId) {
+      x.destinationChainId = x.destinationChain
     }
 
     if (!x.sourceChainSlug) {
@@ -603,22 +653,38 @@ class TransferStats {
       x.destinationChainImageUrl = chainLogosMap[x.destinationChainSlug]
     }
 
-    if (!x.sourceTxExplorerUrl) {
-      x.sourceTxExplorerUrl = explorerLinkTx(x.sourceChainSlug, x.transactionHash)
+    if (!x.transactionHashExplorerUrl) {
+      x.transactionHashExplorerUrl = explorerLinkTx(x.sourceChainSlug, x.transactionHash)
     }
-    if (!x.bondTxExplorerUrl) {
-      x.bondTxExplorerUrl = x.bondTransactionHash ? explorerLinkTx(x.destinationChainSlug, x.bondTransactionHash) : ''
+    if (!x.bondTransactionHashExplorerUrl) {
+      x.bondTransactionHashExplorerUrl = x.bondTransactionHash ? explorerLinkTx(x.destinationChainSlug, x.bondTransactionHash) : ''
     }
     if (x.preregenesis) {
-      x.bondTxExplorerUrl = `https://expedition.dev/tx/${x.bondTransactionHash}?rpcUrl=https%3A%2F%2Fmainnet-replica-4.optimism.io`
+      x.bondTransactionHashExplorerUrl = `https://expedition.dev/tx/${x.bondTransactionHash}?rpcUrl=https%3A%2F%2Fmainnet-replica-4.optimism.io`
     }
 
-    if (!x.bonderTruncated) {
-      x.bonderTruncated = truncateAddress(x.bonder)
+    if (!x.recipientAddress) {
+      x.recipientAddress = x.recipient
     }
 
-    if (!x.bonderUrl) {
-      x.bonderUrl = x.bonder ? explorerLinkAddress(x.destinationChainSlug, x.bonder) : ''
+    if (!x.recipientAddressTruncated) {
+      x.recipientAddressTruncated = truncateAddress(x.recipientAddress)
+    }
+
+    if (!x.recipientAddressExplorerUrl) {
+      x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recpientAddress)
+    }
+
+    if (!x.bonderAddress) {
+      x.bonderAddress = x.bonder
+    }
+
+    if (!x.bonderAddressTruncated) {
+      x.bonderAddressTruncated = truncateAddress(x.bonderAddress)
+    }
+
+    if (!x.bonderAddressExplorerUrl) {
+      x.bonderAddressExplorerUrl = x.bonderAddress ? explorerLinkAddress(x.destinationChainSlug, x.bonderAddress) : ''
     }
     if (!x.bondTransactionHashTruncated) {
       x.bondTransactionHashTruncated = x.bondTransactionHash ? truncateHash(x.bondTransactionHash) : ''
@@ -631,13 +697,19 @@ class TransferStats {
       x.bonded = true
     }
 
-    if (x.bondedTimestamp) {
-      const bondedTime = DateTime.fromSeconds(x.bondedTimestamp)
-      x.isoBondedTimestamp = bondedTime.toISO()
+    if (!x.bondTimestamp) {
+      x.bondTimestamp = x.bondedTimestamp
+    }
+
+    if (x.bondTimestamp) {
+      const bondedTime = DateTime.fromSeconds(x.bondTimestamp)
+      x.bondTimestampIso = bondedTime.toISO()
       x.relativeBondedTimestamp = bondedTime.toRelative()
-      const diff = bondedTime.diff(transferTime, ['days', 'hours', 'minutes']).toObject()
-      let hours = Number(diff.hours.toFixed(0))
-      let minutes = Number(diff.minutes.toFixed(0))
+      const diff = bondedTime.diff(transferTime, ['days', 'hours', 'minutes'])
+      const diffObj = diff.toObject()
+      x.bondWithinTimestamp = diff.values.minutes * 60
+      let hours = Number(diffObj.hours.toFixed(0))
+      let minutes = Number(diffObj.minutes.toFixed(0))
       if (hours < 0) {
         hours = 0
       }
@@ -645,45 +717,45 @@ class TransferStats {
         minutes = 1
       }
       if (hours || minutes) {
-        x.relativeBondedWithinTimestamp = `${hours ? `${hours} hour${hours > 1 ? 's' : ''} ` : ''}${minutes ? `${minutes} minute${minutes > 1 ? 's' : ''}` : ''}`
+        x.bondWithinTimestampRelative = `${hours ? `${hours} hour${hours > 1 ? 's' : ''} ` : ''}${minutes ? `${minutes} minute${minutes > 1 ? 's' : ''}` : ''}`
       }
     }
 
     const decimals = tokenDecimals[x.token]
-    if (!x.formattedAmount) {
-      x.formattedAmount = Number(formatUnits(x.amount, decimals))
+    if (!x.amountFormatted) {
+      x.amountFormatted = Number(formatUnits(x.amount, decimals))
     }
-    if (!x.displayAmount) {
-      x.displayAmount = x.formattedAmount.toFixed(4)
+    if (!x.amountDisplay) {
+      x.amountDisplay = x.amountFormatted.toFixed(4)
     }
-    if (!x.formattedBonderFee) {
-      x.formattedBonderFee = x.bonderFee ? Number(formatUnits(x.bonderFee, decimals)) : 0
+    if (!x.bonderFeeFormatted) {
+      x.bonderFeeFormatted = x.bonderFee ? Number(formatUnits(x.bonderFee, decimals)) : 0
     }
-    if (!x.displayBonderFee) {
-      x.displayBonderFee = x.formattedBonderFee.toFixed(4)
+    if (!x.bonderFeeDisplay) {
+      x.bonderFeeDisplay = x.bonderFeeFormatted.toFixed(4)
     }
     if (!x.tokenImageUrl) {
       x.tokenImageUrl = tokenLogosMap[x.token]
     }
 
     x.amountUsd = ''
-    x.displayAmountUsd = ''
+    x.amountUsdDisplay = ''
     x.tokenPriceUsd = ''
-    x.displayTokenPriceUsd = ''
+    x.tokenPriceUsdDisplay = ''
     x.bonderFeeUsd = ''
-    x.displayBonderFeeUsd = ''
+    x.bonderFeeUsdDisplay = ''
 
     if (prices && prices[x.token]) {
       const dates = prices[x.token].reverse().map((x: any) => x[0])
       const nearest = nearestDate(dates, x.timestamp)
       if (prices[x.token][nearest]) {
         const price = prices[x.token][nearest][1]
-        x.amountUsd = price * x.formattedAmount
-        x.displayAmountUsd = formatCurrency(x.amountUsd, 'USD')
+        x.amountUsd = price * x.amountFormatted
+        x.amountUsdDisplay = formatCurrency(x.amountUsd, 'USD')
         x.tokenPriceUsd = price
-        x.displayTokenPriceUsd = formatCurrency(x.tokenPriceUsd, 'USD')
-        x.bonderFeeUsd = x.tokenPriceUsd * x.formattedBonderFee
-        x.displayBonderFeeUsd = formatCurrency(x.bonderFeeUsd, 'USD')
+        x.tokenPriceUsdDisplay = formatCurrency(x.tokenPriceUsd, 'USD')
+        x.bonderFeeUsd = x.tokenPriceUsd * x.bonderFeeFormatted
+        x.bonderFeeUsdDisplay = formatCurrency(x.bonderFeeUsd, 'USD')
       }
     }
 

@@ -188,7 +188,7 @@ function useData () {
     return 25
   })
   const hasPreviousPage = page > 0
-  const hasNextPage = page < (allTransfers.length / perPage) - 1
+  const hasNextPage = true // page < (allTransfers.length / perPage) - 1
 
   useEffect(() => {
     async function update() {
@@ -287,6 +287,7 @@ function useData () {
     try {
       const populatedData = await getTransfersData()
       setAllTransfers(populatedData)
+      setTransfers(populatedData)
       try {
         //localStorage.setItem('data', JSON.stringify(populatedData.slice(0, 50)))
       } catch (err) {
@@ -299,8 +300,6 @@ function useData () {
   }
 
   function refreshTransfers () {
-    const start = page * perPage
-    const end = start + perPage
     const paginated = allTransfers
       .filter((x: any) => {
         if (filterToken) {
@@ -376,12 +375,18 @@ function useData () {
 
         return true
       })
-      .slice(start, end)
       setTransfers(paginated)
   }
 
   async function getTransfersData () {
-    const url = 'http://localhost:8000/transfers'
+    const apiBaseUrl = 'http://localhost:8000'
+    const params: any = {
+      page,
+      perPage
+    }
+    const serializedParams = new URLSearchParams(params).toString()
+    const url = `${apiBaseUrl}/transfers?${serializedParams}`
+    console.log(url)
     const res = await fetch(url)
     const json = await res.json()
     const data = json.data
@@ -394,8 +399,9 @@ function useData () {
   }
 
   function nextPage () {
-    const _page = (Math.min(page + 1, Math.floor(allTransfers.length / perPage)))
-    setPage(_page)
+    //const _page = (Math.min(page + 1, Math.floor(allTransfers.length / perPage)))
+    //setPage(_page)
+    setPage(page + 1)
   }
 
   function updatePerPage (event: any) {
@@ -500,12 +506,14 @@ function useData () {
   }, [transfers, chartAmountSize])
 
   useEffect(() => {
-    refreshTransfers()
-  }, [page, perPage, allTransfers])
+    //refreshTransfers()
+    updateData()
+  }, [page, perPage])
 
   useEffect(() => {
     if (page === 0) {
-      refreshTransfers()
+      //refreshTransfers()
+      updateData()
     } else {
       resetPage()
     }

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsc -w",
-    "start": "ts-node src/index.ts",
+    "start": "PORT=8000 ts-node src/index.ts",
     "start:worker": "ts-node src/cli.ts --transfers",
     "lint": "npx eslint --ext .ts --fix src/*.ts",
     "build": "tsc",

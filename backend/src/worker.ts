@@ -8,7 +8,7 @@ type Options = {
 
 class Worker {
   transferStats: TransferStats
-  pollIntervalMs: number = 30 * 60 * 1000
+  pollIntervalMs: number = 1 * 60 * 1000
 
   constructor (options: Options = {}) {
     const {
@@ -37,12 +37,14 @@ class Worker {
     console.log('transferStatsPoll started')
     while (true) {
       try {
-        console.log('fetching volume stats')
+        console.log('poll')
+        console.log('fetching transfer stats')
         await this.transferStats.trackTransfers()
         console.log('done tracking transfers stats')
       } catch (err) {
         console.error(err)
       }
+      console.log('poll complete')
       await wait(this.pollIntervalMs)
     }
   }

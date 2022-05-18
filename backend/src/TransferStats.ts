@@ -157,6 +157,7 @@ class TransferStats {
     if (options.days) {
       this.days = options.days
     }
+    console.log('days', this.days)
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
       this.cleanUp()
@@ -537,75 +538,77 @@ class TransferStats {
     }
     */
 
-    const now = DateTime.now()
-    const startDate = now.toFormat('yyyy-MM-dd')
+    for (let day = 0; day < this.days; day++) {
+      const now = DateTime.now()
+      const startDate = now.minus({ days: day }).toFormat('yyyy-MM-dd')
 
-    console.log('fetching all transfers data')
-    const items = await this.getAllData(startDate)
-    for (const item of items) {
-      const amount = item.amount
-      const timestamp = item.timestamp
-      const token = item.token
-      const sourceChain = item.sourceChainSlug
-      const destinationChain = item.destinationChainSlug
+      console.log('fetching all transfers data for day', startDate)
+      const items = await this.getTransfersForDay(startDate)
+      for (const item of items) {
+        const amount = item.amount
+        const timestamp = item.timestamp
+        const token = item.token
+        const sourceChain = item.sourceChainSlug
+        const destinationChain = item.destinationChainSlug
 
-      console.log(timestamp, token, sourceChain, destinationChain, amount)
+        console.log(timestamp, token, sourceChain, destinationChain, amount)
 
-      try {
-        this.db.upsertTransfer(
-          item.transferId,
-          item.transferIdTruncated,
-          item.transactionHash,
-          item.transactionHashTruncated,
-          item.transactionHashExplorerUrl,
-          item.sourceChainId,
-          item.sourceChainSlug,
-          item.sourceChainName,
-          item.sourceChainImageUrl,
-          item.destinationChainId,
-          item.destinationChainSlug,
-          item.destinationChainName,
-          item.destinationChainImageUrl,
-          item.amount,
-          item.amountFormatted,
-          item.amountDisplay,
-          item.amountUsd,
-          item.amountUsdDisplay,
-          item.amountOutMin,
-          item.deadline,
-          item.recipientAddress,
-          item.recipientAddressTruncated,
-          item.recipientAddressExplorerUrl,
-          item.bonderFee,
-          item.bonderFeeFormatted,
-          item.bonderFeeDisplay,
-          item.bonderFeeUsd,
-          item.bonderFeeUsdDisplay,
-          item.bonded,
-          item.bondTimestamp,
-          item.bondTimestampIso,
-          item.bondWithinTimestamp,
-          item.bondWithinTimestampRelative,
-          item.bondTransactionHash,
-          item.bondTransactionHashTruncated,
-          item.bondTransactionHashExplorerUrl,
-          item.bonderAddress,
-          item.bonderAddressTruncated,
-          item.bonderAddressExplorerUrl,
-          item.token,
-          item.tokenImageUrl,
-          item.tokenPriceUsd,
-          item.tokenPriceUsdDisplay,
-          item.timestamp,
-          item.timestampIso
-        )
-      } catch (err) {
-        if (!err.message.includes('UNIQUE constraint failed')) {
-          throw err
+        try {
+          this.db.upsertTransfer(
+            item.transferId,
+            item.transferIdTruncated,
+            item.transactionHash,
+            item.transactionHashTruncated,
+            item.transactionHashExplorerUrl,
+            item.sourceChainId,
+            item.sourceChainSlug,
+            item.sourceChainName,
+            item.sourceChainImageUrl,
+            item.destinationChainId,
+            item.destinationChainSlug,
+            item.destinationChainName,
+            item.destinationChainImageUrl,
+            item.amount,
+            item.amountFormatted,
+            item.amountDisplay,
+            item.amountUsd,
+            item.amountUsdDisplay,
+            item.amountOutMin,
+            item.deadline,
+            item.recipientAddress,
+            item.recipientAddressTruncated,
+            item.recipientAddressExplorerUrl,
+            item.bonderFee,
+            item.bonderFeeFormatted,
+            item.bonderFeeDisplay,
+            item.bonderFeeUsd,
+            item.bonderFeeUsdDisplay,
+            item.bonded,
+            item.bondTimestamp,
+            item.bondTimestampIso,
+            item.bondWithinTimestamp,
+            item.bondWithinTimestampRelative,
+            item.bondTransactionHash,
+            item.bondTransactionHashTruncated,
+            item.bondTransactionHashExplorerUrl,
+            item.bonderAddress,
+            item.bonderAddressTruncated,
+            item.bonderAddressExplorerUrl,
+            item.token,
+            item.tokenImageUrl,
+            item.tokenPriceUsd,
+            item.tokenPriceUsdDisplay,
+            item.timestamp,
+            item.timestampIso
+          )
+        } catch (err) {
+          if (!err.message.includes('UNIQUE constraint failed')) {
+            throw err
+          }
         }
       }
+      console.log('done fetching transfers data')
     }
-    console.log('done fetching transfers data')
   }
 
   populateTransfer (x: any, prices: any) {
@@ -762,7 +765,7 @@ class TransferStats {
     return x
   }
 
-  async getAllData (filterDate: string) {
+  async getTransfersForDay (filterDate: string) {
     let data :any[] = []
     const endDate = DateTime.fromFormat(filterDate, 'yyyy-MM-dd').endOf('day').toUTC()
     let startTime = Math.floor(endDate.minus({ days: 1 }).startOf('day').toSeconds())

@@ -15,6 +15,7 @@ const corsOptions: any = {
     if (whitelist.includes(origin)) {
       callback(null, true)
     } else {
+      console.log('origin:', origin, 'not allowed')
       callback(new Error('Not allowed by CORS'))
     }
   }
@@ -51,7 +52,9 @@ app.get('/v1/transfers', cors(corsOptions), async (req: any, res: any) => {
       amountUsd,
       amountUsdCmp,
       transferId,
-      date
+      startDate,
+      endDate,
+      sortDirection
     } = req.query
     const data = await controller.getTransfers({
       page,
@@ -67,7 +70,9 @@ app.get('/v1/transfers', cors(corsOptions), async (req: any, res: any) => {
       amountUsd,
       amountUsdCmp,
       transferId,
-      date
+      startDate,
+      endDate,
+      sortDirection
     })
     res.status(200).json({ status: 'ok', data })
   } catch (err) {

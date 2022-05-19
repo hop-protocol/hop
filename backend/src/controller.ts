@@ -20,7 +20,9 @@ export class Controller {
     const amountUsd = Number(params.amountUsd)
     const amountUsdCmp = params.amountUsdCmp
     const transferId = params.transferId
-    const date = params.date
+    const startDate = params.startDate
+    const endDate = params.endDate
+    const sortDirection = params.sortDirection
 
     if (bonded === 'pending') {
       bonded = false
@@ -41,9 +43,20 @@ export class Controller {
       perPage = 10000
     }
 
+    let startTimestamp :any
+    if (startDate) {
+      startTimestamp = Math.floor(DateTime.fromFormat(startDate, 'yyyy-MM-dd').startOf('day').toUTC().toSeconds())
+    }
+
     let endTimestamp :any
-    if (date) {
-      endTimestamp = Math.floor(DateTime.fromFormat(date, 'yyyy-MM-dd').endOf('day').toUTC().toSeconds())
+    if (endDate) {
+      endTimestamp = Math.floor(DateTime.fromFormat(endDate, 'yyyy-MM-dd').endOf('day').toUTC().toSeconds())
+    }
+
+    if (sortDirection) {
+      if (!['desc', 'asc'].includes(sortDirection)) {
+        throw new Error('invalid sort direction')
+      }
     }
 
     const transfers = await this.db.getTransfers({
@@ -60,7 +73,9 @@ export class Controller {
       amountUsd,
       amountUsdCmp,
       transferId,
-      endTimestamp
+      endTimestamp,
+      startTimestamp,
+      sortDirection
     })
     const data = (transfers as any[]).map((x: any, i: number) => {
       x.sourceChainId = Number(x.sourceChainId)

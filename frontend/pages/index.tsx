@@ -51,6 +51,8 @@ let queryParams: any = {}
   }
 
 const currentDate = luxon.DateTime.now().toFormat('yyyy-MM-dd')
+const yesterdayDate = luxon.DateTime.now().minus({ days: 1 }).toFormat('yyyy-MM-dd')
+const defaultSortDirection = 'desc'
 
 const chainToIndexMapSource: any = {}
 for (let i = 0; i < enabledChains.length; i++) {
@@ -104,7 +106,7 @@ function updateQueryParams (params: any) {
 }
 
 const queryTransfers = async (params: any) => {
-  //const apiBaseUrl = 'http://localhost:8000'
+  // const apiBaseUrl = 'http://localhost:8000'
   const apiBaseUrl = 'https://explorer-api.hop.exchange'
   let filtered: any = {}
   for (const key in params) {
@@ -118,8 +120,14 @@ const queryTransfers = async (params: any) => {
   if (!filtered['amountUsd']) {
     delete filtered['amountUsdCmp']
   }
-  if (filtered['date'] === currentDate) {
-    delete filtered['date']
+  if (filtered['startDate'] === yesterdayDate) {
+    delete filtered['startDate']
+  }
+  if (filtered['endDate'] === currentDate) {
+    delete filtered['endDate']
+  }
+  if (filtered['sortDirection'] === defaultSortDirection) {
+    delete filtered['sortDirection']
   }
   const serializedParams = new URLSearchParams(filtered).toString()
   const url = `${apiBaseUrl}/v1/transfers?${serializedParams}`
@@ -133,7 +141,9 @@ function useData () {
   const [loadingData, setLoadingData] = useState(false)
   const [minDate] = useState('2020-07-01')
   const [maxDate] = useState(currentDate)
-  const [filterDate, setFilterDate] = useState(queryParams.date || currentDate)
+  const [filterStartDate, setFilterStartDate] = useState(queryParams.startDate || yesterdayDate)
+  const [filterEndDate, setFilterEndDate] = useState(queryParams.endDate || queryParams.date || currentDate)
+  const [filterSortDirection, setFilterSortDirection] = useState(queryParams.sortDirection || defaultSortDirection)
   const [filterBonded, setFilterBonded] = useState(queryParams.bonded || '')
   const [filterToken, setFilterToken] = useState(queryParams.token || '')
   const [filterSource, setFilterSource] = useState(queryParams.source || '')
@@ -263,7 +273,9 @@ function useData () {
       const populatedData = await queryTransfers({
         page,
         perPage,
-        date: filterDate,
+        startDate: filterStartDate,
+        endDate: filterEndDate,
+        sortDirection: filterSortDirection,
         bonded: filterBonded,
         token: filterToken,
         source: filterSource,
@@ -276,7 +288,9 @@ function useData () {
         account: filterAccount,
         transferId: filterTransferId,
       })
-      setTransfers(populatedData)
+      if (Array.isArray(populatedData)) {
+        setTransfers(populatedData)
+      }
       try {
         //localStorage.setItem('data', JSON.stringify(populatedData.slice(0, 50)))
       } catch (err) {
@@ -393,10 +407,22 @@ function useData () {
     setChartSelection(value)
   }
 
-  function updateFilterDate (event: any) {
+  function updateFilterStartDate (event: any) {
     const value = event.target.value
-    setFilterDate(value)
-    updateQueryParams({ date: value })
+    setFilterStartDate(value)
+    updateQueryParams({ startDate: value })
+  }
+
+  function updateFilterEndDate (event: any) {
+    const value = event.target.value
+    setFilterEndDate(value)
+    updateQueryParams({ endDate: value })
+  }
+
+  function updateFilterSortDirection (event: any) {
+    const value = event.target.value
+    setFilterSortDirection(value)
+    updateQueryParams({ sortDirection: value })
   }
 
   useInterval(() => {
@@ -411,7 +437,7 @@ function useData () {
 
   useEffect(() => {
     refreshTransfers()
-  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonder, filterAccount, filterTransferId, filterDate, page, perPage])
+  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonder, filterAccount, filterTransferId, filterStartDate, filterEndDate, filterSortDirection, page, perPage])
 
   function resetPage () {
     setPage(0)
@@ -419,7 +445,9 @@ function useData () {
 
   function resetFilters(event: any) {
     event.preventDefault()
-    setFilterDate(currentDate)
+    setFilterStartDate(yesterdayDate)
+    setFilterEndDate(currentDate)
+    setFilterSortDirection('')
     setFilterBonded('')
     setFilterToken('')
     setFilterSource('')
@@ -445,13 +473,16 @@ function useData () {
       bonder: null,
       account: null,
       transferId: null,
-      date: null,
+      startDate: null,
+      endDate: null,
       page: null
     })
   }
 
   return {
-    filterDate,
+    filterStartDate,
+    filterEndDate,
+    filterSortDirection,
     minDate,
     maxDate,
     enableChartAmountSize,
@@ -461,7 +492,9 @@ function useData () {
     updateFilterSource,
     filterDestination,
     updateFilterDestination,
-    updateFilterDate,
+    updateFilterStartDate,
+    updateFilterEndDate,
+    updateFilterSortDirection,
     filterToken,
     updateFilterToken,
     filterBonded,
@@ -497,7 +530,9 @@ function useData () {
 
 const Index: NextPage = () => {
   const {
-    filterDate,
+    filterStartDate,
+    filterEndDate,
+    filterSortDirection,
     minDate,
     maxDate,
     enableChartAmountSize,
@@ -507,7 +542,9 @@ const Index: NextPage = () => {
     updateFilterSource,
     filterDestination,
     updateFilterDestination,
-    updateFilterDate,
+    updateFilterStartDate,
+    updateFilterEndDate,
+    updateFilterSortDirection,
     filterToken,
     updateFilterToken,
     filterBonded,
@@ -689,13 +726,29 @@ const Index: NextPage = () => {
                 <input className="filterAccount" value={filterAccount} onChange={updateFilterAccount} placeholder="Account address" />
               </div>
               <div>
-                <label>Date:</label>
+                <label>Start Date:</label>
                 <input type="date" id="date" name="date"
-                value={filterDate}
+                value={filterStartDate}
                 min={minDate}
                 max={maxDate}
-                onChange={updateFilterDate}
+                onChange={updateFilterStartDate}
                  />
+              </div>
+              <div>
+                <label>End Date:</label>
+                <input type="date" id="date" name="date"
+                value={filterEndDate}
+                min={minDate}
+                max={maxDate}
+                onChange={updateFilterEndDate}
+                 />
+              </div>
+              <div>
+                <label>Sort:</label>
+                <select className="select" value={filterSortDirection} onChange={updateFilterSortDirection}>
+                  <option value="desc">desc</option>
+                  <option value="asc">asc</option>
+                </select>
               </div>
               <div>
                 <button onClick={resetFilters}>Reset</button>

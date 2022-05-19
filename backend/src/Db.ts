@@ -325,6 +325,7 @@ class Db {
       amountUsd,
       amountUsdCmp,
       transferId,
+      startTimestamp,
       endTimestamp
     } = params
     const count = perPage
@@ -332,6 +333,8 @@ class Db {
 
     const queryParams = []
     const whereClauses = []
+
+    const sortDirection = params.sortDirection ? params.sortDirection?.toUpperCase() : 'DESC'
 
     queryParams.push(count, skip)
     let i = 3
@@ -399,6 +402,11 @@ class Db {
         }
       }
 
+      if (startTimestamp) {
+        whereClauses.push(`timestamp >= $${i++}`)
+        queryParams.push(startTimestamp)
+      }
+
       if (endTimestamp) {
         whereClauses.push(`timestamp <= $${i++}`)
         queryParams.push(endTimestamp)
@@ -461,7 +469,7 @@ class Db {
         ${whereClause}
         ORDER BY
           timestamp
-        DESC
+        ${sortDirection}
         LIMIT
           $1
         OFFSET

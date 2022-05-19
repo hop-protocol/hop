@@ -199,7 +199,7 @@ function useData () {
       return {
         source: chainToIndexMapSource[x.sourceChainSlug],
         target: chainToIndexMapDestination[x.destinationChainSlug],
-        value: chartAmountSize ? x.formattedAmount : 1,
+        value: chartAmountSize ? x.amountFormatted : 1,
         amountDisplay: x.amountDisplay,
         token: x.token,
         transferId: x.transferId
@@ -812,128 +812,128 @@ const Index: NextPage = () => {
               <button onClick={nextPage} className="paginationButton">next page</button>
             )}
           </div>
-        </details>
-        <div id="transfers">
-          <table>
-            <thead>
-              <tr>
-                <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Transfer Tx</th><th>Token</th><th>Amount</th><th>Amount USD</th><th>Bonder Fee</th><th>Bonder Fee USD</th><th>Bonded</th><th>Bonded Tx</th><th>Bonded Date</th><th>Bonded Within</th><th>Bonder</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transfers.map((x: any, index: number) => {
-                return (
-                  <tr key={index}>
-                    <td className="index">{ ((page * perPage) + index + 1) }</td>
-                    <td className="timestamp" title={x.timestampIso}>{ x.timestampRelative }</td>
-                    <td className={x.sourceChainSlug}>
-                      <Image width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
-                      { x.sourceChainName }
-                      <span className="small-arrow">⟶</span>
-                    </td>
-                    <td className={x.destinationChainSlug}>
-                      <Image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                      { x.destinationChainName }
-                    </td>
-                    <td className="transferId">
-                      <a className="clipboard" data-clipboard-text={x.transferId} rel="noreferrer noopener" title="Copy transfer ID to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
-                      <a className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transferId}`}>
-                        { x.transferIdTruncated }
-                      </a>
-                    </td>
-                    <td className="transferTx">
-                      <a className="clipboard" data-clipboard-text={x.transactionHash} rel="noreferrer noopener" title="Copy transaction hash to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
-                      <a className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transactionHash}`}>
-                        { x.transactionHashTruncated }
-                      </a>
-                    </td>
-                    <td className="token">
-                      <Image width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
-                      { x.token }
-                    </td>
-                    <td className="amount number" title={x.amount}>{ x.amountDisplay }</td>
-                    <td className="amount number" title={`${x.amountUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>{ x.amountUsdDisplay }</td>
-                    <td className="bonderFee number" title={x.bonderFee}>
-                      {x.sourceChainId !== 1 && (
-                        <span>
-                          { x.bonderFeeDisplay }
-                        </span>
-                      )}
-                      {x.sourceChainId === 1 && (
-                        <span className="na">
-                          <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
-                        </span>
-                      )}
-                    </td>
-                    <td className="bonderFee number" title={`${x.bonderFeeUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>
-                      {x.sourceChainId !== 1 && (
-                        <span>
-                          { x.bonderFeeUsdDisplay }
-                        </span>
-                      )}
-                      {x.sourceChainId === 1 && (
-                        <span className="na">
-                          <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
-                        </span>
-                      )}
-                    </td>
-                    <td className="bonded">
-                      {x.bonded && (
-                      <a className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title="View on block explorer">
+          <div id="transfers">
+            <table>
+              <thead>
+                <tr>
+                  <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Transfer Tx</th><th>Token</th><th>Amount</th><th>Amount USD</th><th>Bonder Fee</th><th>Bonder Fee USD</th><th>Bonded</th><th>Bonded Tx</th><th>Bonded Date</th><th>Bonded Within</th><th>Bonder</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transfers.map((x: any, index: number) => {
+                  return (
+                    <tr key={index}>
+                      <td className="index">{ ((page * perPage) + index + 1) }</td>
+                      <td className="timestamp" title={x.timestampIso}>{ x.timestampRelative }</td>
+                      <td className={x.sourceChainSlug}>
+                        <Image width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
+                        { x.sourceChainName }
+                        <span className="small-arrow">⟶</span>
+                      </td>
+                      <td className={x.destinationChainSlug}>
                         <Image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                        { x.destinationChainName }
+                      </td>
+                      <td className="transferId">
+                        <a className="clipboard" data-clipboard-text={x.transferId} rel="noreferrer noopener" title="Copy transfer ID to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
+                        <a className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transferId}`}>
+                          { x.transferIdTruncated }
+                        </a>
+                      </td>
+                      <td className="transferTx">
+                        <a className="clipboard" data-clipboard-text={x.transactionHash} rel="noreferrer noopener" title="Copy transaction hash to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
+                        <a className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transactionHash}`}>
+                          { x.transactionHashTruncated }
+                        </a>
+                      </td>
+                      <td className="token">
+                        <Image width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
+                        { x.token }
+                      </td>
+                      <td className="amount number" title={x.amount}>{ x.amountDisplay }</td>
+                      <td className="amount number" title={`${x.amountUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>{ x.amountUsdDisplay }</td>
+                      <td className="bonderFee number" title={x.bonderFee}>
                         {x.sourceChainId !== 1 && (
                           <span>
-                            Bonded
+                            { x.bonderFeeDisplay }
                           </span>
                         )}
                         {x.sourceChainId === 1 && (
-                          <span>
-                            Received
+                          <span className="na">
+                            <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
                           </span>
                         )}
-                      </a>
-                      )}
-                      {(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
-                        <span className="no">
+                      </td>
+                      <td className="bonderFee number" title={`${x.bonderFeeUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>
+                        {x.sourceChainId !== 1 && (
+                          <span>
+                            { x.bonderFeeUsdDisplay }
+                          </span>
+                        )}
+                        {x.sourceChainId === 1 && (
+                          <span className="na">
+                            <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
+                          </span>
+                        )}
+                      </td>
+                      <td className="bonded">
+                        {x.bonded && (
+                        <a className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title="View on block explorer">
                           <Image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                          Pending
-                        </span>
-                      )}
-                    </td>
-                    <td className="bondTx">
-                      {x.preregenesis && (
-                        <span title="This transaction occurred before the Optimism Regenesis">
-                          (pre-regenesis)
-                        </span>
-                      )}
-                      {x.bondTransactionHash && (
-                        <span>
-                          <a className="clipboard" data-clipboard-text={x.bondTransactionHash} title="Copy transaction hash to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
-                          <a className={x.destinationChainSlug} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bondTransactionHash}`}>
-                            { x.bondTransactionHashTruncated }
-                          </a>
-                        </span>
-                      )}
-                    </td>
-                    <td className="bondedDate" title={x.bondTimestampIso}>
-                      { x.bondTimestampRelative }
-                    </td>
-                    <td className="bondedWithin" title={x.bondTimestampIso}>
-                      { x.bondWithinTimestampRelative }
-                    </td>
-                    <td className="bondedWithin" title={x.bonderAddress}>
-                      {x.bonderAddressExplorerUrl && (
-                        <a className="bonder" href={x.bonderAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bonderAddress}`}>
-                          { x.bonderAddressTruncated }
+                          {x.sourceChainId !== 1 && (
+                            <span>
+                              Bonded
+                            </span>
+                          )}
+                          {x.sourceChainId === 1 && (
+                            <span>
+                              Received
+                            </span>
+                          )}
                         </a>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                        )}
+                        {(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
+                          <span className="no">
+                            <Image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                            Pending
+                          </span>
+                        )}
+                      </td>
+                      <td className="bondTx">
+                        {x.preregenesis && (
+                          <span title="This transaction occurred before the Optimism Regenesis">
+                            (pre-regenesis)
+                          </span>
+                        )}
+                        {x.bondTransactionHash && (
+                          <span>
+                            <a className="clipboard" data-clipboard-text={x.bondTransactionHash} title="Copy transaction hash to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
+                            <a className={x.destinationChainSlug} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bondTransactionHash}`}>
+                              { x.bondTransactionHashTruncated }
+                            </a>
+                          </span>
+                        )}
+                      </td>
+                      <td className="bondedDate" title={x.bondTimestampIso}>
+                        { x.bondTimestampRelative }
+                      </td>
+                      <td className="bondedWithin" title={x.bondTimestampIso}>
+                        { x.bondWithinTimestampRelative }
+                      </td>
+                      <td className="bondedWithin" title={x.bonderAddress}>
+                        {x.bonderAddressExplorerUrl && (
+                          <a className="bonder" href={x.bonderAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bonderAddress}`}>
+                            { x.bonderAddressTruncated }
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </details>
         <div className="tableFooter">
           <div>
             <select className="perPageSelection" value={perPage} onChange={updatePerPage}>

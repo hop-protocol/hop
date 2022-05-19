@@ -42,7 +42,7 @@ class Worker {
         await this.transferStats.trackTransfers()
         console.log('done tracking transfers stats')
       } catch (err) {
-        console.error(err)
+        console.error('poll error:', err)
       }
       console.log('poll complete')
       await wait(this.pollIntervalMs)

@@ -61,6 +61,18 @@ export class Controller {
       endTimestamp
     })
     const data = (transfers as any[]).map((x: any, i: number) => {
+      x.sourceChainId = Number(x.sourceChainId)
+      x.destinationChainId = Number(x.destinationChainId)
+      x.amountFormatted = Number(x.amountFormatted)
+      x.amountUsd = Number(x.amountUsd)
+      x.deadline = x.deadline ? Number(x.deadline) : null
+      x.bonderFeeFormatted = x.bonderFeeFormatted ? Number(x.bonderFeeFormatted) : null
+      x.bonderFeeUsd = x.bonderFeeUsd ? Number(x.bonderFeeUsd) : null
+      x.bondTimestamp = x.bondTimestamp ? Number(x.bondTimestamp) : null
+      x.bondWithinTimestamp = x.bondWithinTimestamp ? Number(x.bondWithinTimestamp) : null
+      x.tokenPriceUsd = x.tokenPriceUsd ? Number(x.tokenPriceUsd) : null
+      x.timestamp = x.timestamp ? Number(x.timestamp) : null
+
       x.i = i
       x.bonded = !!x.bonded
       x.timestampRelative = DateTime.fromSeconds(x.timestamp).toRelative()

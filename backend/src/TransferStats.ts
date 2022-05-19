@@ -483,9 +483,9 @@ class TransferStats {
         const price = data[1]
         const timestamp = data[0]
         try {
-          this.db.upsertPrice(token, price, timestamp)
+          await this.db.upsertPrice(token, price, timestamp)
         } catch (err) {
-          if (!err.message.includes('UNIQUE constraint failed')) {
+          if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {
             throw err
           }
         }
@@ -516,7 +516,7 @@ class TransferStats {
         console.log(timestamp, token, sourceChain, destinationChain, amount)
 
         try {
-          this.db.upsertTransfer(
+          await this.db.upsertTransfer(
             item.transferId,
             item.transferIdTruncated,
             item.transactionHash,
@@ -565,7 +565,7 @@ class TransferStats {
             item.timestampIso
           )
         } catch (err) {
-          if (!err.message.includes('UNIQUE constraint failed')) {
+          if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {
             throw err
           }
         }
@@ -759,7 +759,7 @@ class TransferStats {
         amountOutMin: x.amountOutMin,
         bonderFee: x.bonderFee,
         recipient: x.recipient,
-        deadline: x.deadline,
+        deadline: Number(x.deadline),
         transferId: x.transferId,
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
@@ -775,7 +775,7 @@ class TransferStats {
         amountOutMin: x.amountOutMin,
         bonderFee: x.bonderFee,
         recipient: x.recipient,
-        deadline: x.deadline,
+        deadline: Number(x.deadline),
         transferId: x.transferId,
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
@@ -790,7 +790,7 @@ class TransferStats {
         amount: x.amount,
         bonderFee: x.bonderFee,
         recipient: x.recipient,
-        deadline: x.deadline,
+        deadline: Number(x.deadline),
         transferId: x.transferId,
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
@@ -806,7 +806,7 @@ class TransferStats {
         amountOutMin: x.amountOutMin,
         bonderFee: x.bonderFee,
         recipient: x.recipient,
-        deadline: x.deadline,
+        deadline: Number(x.deadline),
         transferId: x.transferId,
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
@@ -822,7 +822,7 @@ class TransferStats {
         amountOutMin: x.amountOutMin,
         recipient: x.recipient,
         bonderFee: x.relayerFee,
-        deadline: x.deadline,
+        deadline: Number(x.deadline),
         transferId: x.id,
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),

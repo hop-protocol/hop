@@ -24,7 +24,7 @@ app.get('/health', (req: any, res: any) => {
   res.status(200).json({ status: 'ok' })
 })
 
-app.get('/transfers', async (req: any, res: any) => {
+app.get('/v1/transfers', async (req: any, res: any) => {
   try {
     const {
       page,

@@ -7,6 +7,7 @@
     "dev": "tsc -w",
     "start": "PORT=8000 ts-node src/index.ts",
     "start:worker": "ts-node src/cli.ts --transfers",
+    "start:dist": "node dist/index.js",
     "lint": "npx eslint --ext .ts --fix src/*.ts",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -39,7 +40,7 @@
     "lodash": "^4.17.21",
     "luxon": "^2.4.0",
     "minimist": "^1.2.6",
-    "sqlite3": "^5.0.8",
+    "pg-promise": "^10.11.1",
     "to-hex": "0.0.18",
     "uuid": "^8.3.2",
     "wait": "^0.4.2"

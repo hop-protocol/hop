@@ -106,7 +106,7 @@ function updateQueryParams (params: any) {
 const queryTransfers = async (params: any) => {
   //const apiBaseUrl = 'http://localhost:8000'
   const apiBaseUrl = 'https://explorer-api.hop.exchange'
-  let filtered = {}
+  let filtered: any = {}
   for (const key in params) {
     if (params[key]) {
       filtered[key] = params[key]

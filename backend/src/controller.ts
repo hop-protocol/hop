@@ -41,7 +41,7 @@ export class Controller {
 
     let endTimestamp :any
     if (date) {
-      endTimestamp = DateTime.fromFormat(date, 'yyyy-MM-dd').endOf('day').toUTC().toSeconds()
+      endTimestamp = Math.floor(DateTime.fromFormat(date, 'yyyy-MM-dd').endOf('day').toUTC().toSeconds())
     }
 
     const transfers = await this.db.getTransfers({

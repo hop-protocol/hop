@@ -334,7 +334,7 @@ class Db {
     const whereClauses = []
 
     queryParams.push(count, skip)
-    let i = 2
+    let i = 3
 
     const cmps: any = {
       gt: '>',

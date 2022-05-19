@@ -104,10 +104,10 @@ function updateQueryParams (params: any) {
 }
 
 const queryTransfers = async (params: any) => {
-  const apiBaseUrl = 'http://localhost:8000'
-  // const apiBaseUrl = 'http://explorer-api.hop.exchange'
+  //const apiBaseUrl = 'http://localhost:8000'
+  const apiBaseUrl = 'https://explorer-api.hop.exchange'
   const serializedParams = new URLSearchParams(params).toString()
-  const url = `${apiBaseUrl}/transfers?${serializedParams}`
+  const url = `${apiBaseUrl}/v1/transfers?${serializedParams}`
   const res = await fetch(url)
   const json = await res.json()
   const data = json.data

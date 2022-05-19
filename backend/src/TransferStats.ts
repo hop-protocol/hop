@@ -506,15 +506,8 @@ class TransferStats {
 
       console.log('fetching all transfers data for day', startDate)
       const items = await this.getTransfersForDay(startDate)
+      console.log('items:', items.length)
       for (const item of items) {
-        const amount = item.amount
-        const timestamp = item.timestamp
-        const token = item.token
-        const sourceChain = item.sourceChainSlug
-        const destinationChain = item.destinationChainSlug
-
-        console.log(timestamp, token, sourceChain, destinationChain, amount)
-
         try {
           await this.db.upsertTransfer(
             item.transferId,

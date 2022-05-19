@@ -54,6 +54,7 @@ app.get('/v1/transfers', cors(corsOptions), async (req: any, res: any) => {
       transferId,
       startDate,
       endDate,
+      sortBy,
       sortDirection
     } = req.query
     const data = await controller.getTransfers({
@@ -72,6 +73,7 @@ app.get('/v1/transfers', cors(corsOptions), async (req: any, res: any) => {
       transferId,
       startDate,
       endDate,
+      sortBy,
       sortDirection
     })
     res.status(200).json({ status: 'ok', data })
@@ -90,7 +92,8 @@ console.debug('flags:', argv)
 if (argv.worker) {
   const worker = new Worker({
     transfers: argv.worker,
-    days: argv.days
+    days: argv.days,
+    offsetDays: argv.offsetDays
   })
 
   worker.start()

@@ -22,6 +22,7 @@ export class Controller {
     const transferId = params.transferId
     const startDate = params.startDate
     const endDate = params.endDate
+    let sortBy = params.sortBy
     const sortDirection = params.sortDirection
 
     if (bonded === 'pending') {
@@ -53,6 +54,25 @@ export class Controller {
       endTimestamp = Math.floor(DateTime.fromFormat(endDate, 'yyyy-MM-dd').endOf('day').toUTC().toSeconds())
     }
 
+    if (sortBy) {
+      const sortBys :any = {
+        amount: 'amount',
+        amountUsd: 'amount_usd',
+        source: 'source_chain_slug',
+        destination: 'destination_chain_slug',
+        account: 'account_address',
+        bonder: 'bonder_address',
+        bonded: 'bonded',
+        bonderFee: 'bonder_fee',
+        bonderFeeUsd: 'bonder_fee_usd',
+        recipient: 'recipient_address',
+        transferId: 'transfer_id',
+        bondTimestamp: 'bond_timestamp',
+        bondWithinTimestamp: 'bond_within_timestamp'
+      }
+      sortBy = sortBys[sortBy]
+    }
+
     if (sortDirection) {
       if (!['desc', 'asc'].includes(sortDirection)) {
         throw new Error('invalid sort direction')
@@ -75,6 +95,7 @@ export class Controller {
       transferId,
       endTimestamp,
       startTimestamp,
+      sortBy,
       sortDirection
     })
     const data = (transfers as any[]).map((x: any, i: number) => {

@@ -3,6 +3,7 @@ import wait from 'wait'
 
 type Options = {
   days?: number
+  offsetDays?: number
   transfers?: boolean
 }
 
@@ -13,10 +14,11 @@ class Worker {
   constructor (options: Options = {}) {
     const {
       days,
+      offsetDays,
       transfers
     } = options
     if (transfers) {
-      this.transferStats = new TransferStats({ days })
+      this.transferStats = new TransferStats({ days, offsetDays })
     }
   }
 

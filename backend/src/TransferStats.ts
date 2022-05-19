@@ -5,6 +5,7 @@ import { DateTime } from 'luxon'
 import Db, { getInstance } from './Db'
 import { chunk } from 'lodash'
 import toHex from 'to-hex'
+import wait from 'wait'
 
 const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
 const enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
@@ -145,6 +146,7 @@ const tokenDecimals: any = {
 
 type Options = {
   days?: number
+  offsetDays?: number
 }
 
 class TransferStats {
@@ -152,12 +154,17 @@ class TransferStats {
   regenesis = false
   prices: any = {}
   days = 1
+  offsetDays = 0
 
   constructor (options: Options = {}) {
     if (options.days) {
       this.days = options.days
     }
+    if (options.offsetDays) {
+      this.offsetDays = options.offsetDays
+    }
     console.log('days', this.days)
+    console.log('offsetDays', this.offsetDays)
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
       this.cleanUp()
@@ -501,69 +508,83 @@ class TransferStats {
     */
 
     for (let day = 0; day < this.days; day++) {
-      const now = DateTime.now()
+      const now = DateTime.now().minus({ days: this.offsetDays })
       const startDate = now.minus({ days: day }).toFormat('yyyy-MM-dd')
 
       console.log('fetching all transfers data for day', startDate)
       const items = await this.getTransfersForDay(startDate)
       console.log('items:', items.length)
       for (const item of items) {
-        try {
-          await this.db.upsertTransfer(
-            item.transferId,
-            item.transferIdTruncated,
-            item.transactionHash,
-            item.transactionHashTruncated,
-            item.transactionHashExplorerUrl,
-            item.sourceChainId,
-            item.sourceChainSlug,
-            item.sourceChainName,
-            item.sourceChainImageUrl,
-            item.destinationChainId,
-            item.destinationChainSlug,
-            item.destinationChainName,
-            item.destinationChainImageUrl,
-            item.accountAddress,
-            item.amount,
-            item.amountFormatted,
-            item.amountDisplay,
-            item.amountUsd,
-            item.amountUsdDisplay,
-            item.amountOutMin,
-            item.deadline,
-            item.recipientAddress,
-            item.recipientAddressTruncated,
-            item.recipientAddressExplorerUrl,
-            item.bonderFee,
-            item.bonderFeeFormatted,
-            item.bonderFeeDisplay,
-            item.bonderFeeUsd,
-            item.bonderFeeUsdDisplay,
-            item.bonded,
-            item.bondTimestamp,
-            item.bondTimestampIso,
-            item.bondWithinTimestamp,
-            item.bondWithinTimestampRelative,
-            item.bondTransactionHash,
-            item.bondTransactionHashTruncated,
-            item.bondTransactionHashExplorerUrl,
-            item.bonderAddress,
-            item.bonderAddressTruncated,
-            item.bonderAddressExplorerUrl,
-            item.token,
-            item.tokenImageUrl,
-            item.tokenPriceUsd,
-            item.tokenPriceUsdDisplay,
-            item.timestamp,
-            item.timestampIso
-          )
-        } catch (err) {
-          if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {
-            throw err
+        let retries = 0
+        while (retries < 5) {
+          try {
+            await this.upsertItem(item)
+            break
+          } catch (err: any) {
+            console.error(err)
+            await wait(10 * 1000)
+            retries++
           }
         }
       }
       console.log('done fetching transfers data')
+    }
+  }
+
+  async upsertItem(item: any) {
+    try {
+      await this.db.upsertTransfer(
+        item.transferId,
+        item.transferIdTruncated,
+        item.transactionHash,
+        item.transactionHashTruncated,
+        item.transactionHashExplorerUrl,
+        item.sourceChainId,
+        item.sourceChainSlug,
+        item.sourceChainName,
+        item.sourceChainImageUrl,
+        item.destinationChainId,
+        item.destinationChainSlug,
+        item.destinationChainName,
+        item.destinationChainImageUrl,
+        item.accountAddress,
+        item.amount,
+        item.amountFormatted,
+        item.amountDisplay,
+        item.amountUsd,
+        item.amountUsdDisplay,
+        item.amountOutMin,
+        item.deadline,
+        item.recipientAddress,
+        item.recipientAddressTruncated,
+        item.recipientAddressExplorerUrl,
+        item.bonderFee,
+        item.bonderFeeFormatted,
+        item.bonderFeeDisplay,
+        item.bonderFeeUsd,
+        item.bonderFeeUsdDisplay,
+        item.bonded,
+        item.bondTimestamp,
+        item.bondTimestampIso,
+        item.bondWithinTimestamp,
+        item.bondWithinTimestampRelative,
+        item.bondTransactionHash,
+        item.bondTransactionHashTruncated,
+        item.bondTransactionHashExplorerUrl,
+        item.bonderAddress,
+        item.bonderAddressTruncated,
+        item.bonderAddressExplorerUrl,
+        item.token,
+        item.tokenImageUrl,
+        item.tokenPriceUsd,
+        item.tokenPriceUsdDisplay,
+        item.timestamp,
+        item.timestampIso
+      )
+    } catch (err) {
+      if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {
+        throw err
+      }
     }
   }
 

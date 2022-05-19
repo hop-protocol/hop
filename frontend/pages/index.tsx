@@ -52,6 +52,7 @@ let queryParams: any = {}
 
 const currentDate = luxon.DateTime.now().toFormat('yyyy-MM-dd')
 const yesterdayDate = luxon.DateTime.now().minus({ days: 1 }).toFormat('yyyy-MM-dd')
+const defaultSortBy = 'timestamp'
 const defaultSortDirection = 'desc'
 
 const chainToIndexMapSource: any = {}
@@ -126,6 +127,9 @@ const queryTransfers = async (params: any) => {
   if (filtered['endDate'] === currentDate) {
     delete filtered['endDate']
   }
+  if (filtered['sortBy'] === defaultSortBy) {
+    delete filtered['sortBy']
+  }
   if (filtered['sortDirection'] === defaultSortDirection) {
     delete filtered['sortDirection']
   }
@@ -143,6 +147,7 @@ function useData () {
   const [maxDate] = useState(currentDate)
   const [filterStartDate, setFilterStartDate] = useState(queryParams.startDate || yesterdayDate)
   const [filterEndDate, setFilterEndDate] = useState(queryParams.endDate || queryParams.date || currentDate)
+  const [filterSortBy, setFilterSortBy] = useState(queryParams.sortBy || defaultSortBy)
   const [filterSortDirection, setFilterSortDirection] = useState(queryParams.sortDirection || defaultSortDirection)
   const [filterBonded, setFilterBonded] = useState(queryParams.bonded || '')
   const [filterToken, setFilterToken] = useState(queryParams.token || '')
@@ -275,6 +280,7 @@ function useData () {
         perPage,
         startDate: filterStartDate,
         endDate: filterEndDate,
+        sortBy: filterSortBy,
         sortDirection: filterSortDirection,
         bonded: filterBonded,
         token: filterToken,
@@ -419,6 +425,12 @@ function useData () {
     updateQueryParams({ endDate: value })
   }
 
+  function updateFilterSortBy (event: any) {
+    const value = event.target.value
+    setFilterSortBy(value)
+    updateQueryParams({ sortBy: value })
+  }
+
   function updateFilterSortDirection (event: any) {
     const value = event.target.value
     setFilterSortDirection(value)
@@ -437,7 +449,7 @@ function useData () {
 
   useEffect(() => {
     refreshTransfers()
-  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonder, filterAccount, filterTransferId, filterStartDate, filterEndDate, filterSortDirection, page, perPage])
+  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonder, filterAccount, filterTransferId, filterStartDate, filterEndDate, filterSortBy, filterSortDirection, page, perPage])
 
   function resetPage () {
     setPage(0)
@@ -482,6 +494,7 @@ function useData () {
   return {
     filterStartDate,
     filterEndDate,
+    filterSortBy,
     filterSortDirection,
     minDate,
     maxDate,
@@ -494,6 +507,7 @@ function useData () {
     updateFilterDestination,
     updateFilterStartDate,
     updateFilterEndDate,
+    updateFilterSortBy,
     updateFilterSortDirection,
     filterToken,
     updateFilterToken,
@@ -532,6 +546,7 @@ const Index: NextPage = () => {
   const {
     filterStartDate,
     filterEndDate,
+    filterSortBy,
     filterSortDirection,
     minDate,
     maxDate,
@@ -544,6 +559,7 @@ const Index: NextPage = () => {
     updateFilterDestination,
     updateFilterStartDate,
     updateFilterEndDate,
+    updateFilterSortBy,
     updateFilterSortDirection,
     filterToken,
     updateFilterToken,
@@ -744,7 +760,27 @@ const Index: NextPage = () => {
                  />
               </div>
               <div>
-                <label>Sort:</label>
+                <label>Sort By:</label>
+                <select className="select" value={filterSortBy} onChange={updateFilterSortBy}>
+                  <option value="timestamp">Timestamp</option>
+                  <option value="source">Source</option>
+                  <option value="destination">Destination</option>
+                  <option value="token">Token</option>
+                  <option value="bonded">Bonded</option>
+                  <option value="amount">Amount</option>
+                  <option value="amountUsd">Amount USD</option>
+                  <option value="bonderFee">Bonder Fee</option>
+                  <option value="bonderFeeUsd">BonderFee USD</option>
+                  <option value="bonder">Bonder</option>
+                  <option value="transferId">Transfer ID</option>
+                  <option value="account">Account</option>
+                  <option value="recipient">Recipient</option>
+                  <option value="bondTimestamp">Bonded Timestamp</option>
+                  <option value="bondWithinTimestamp">Bonded Within Timestamp</option>
+                </select>
+              </div>
+              <div>
+                <label>Sort Order:</label>
                 <select className="select" value={filterSortDirection} onChange={updateFilterSortDirection}>
                   <option value="desc">desc</option>
                   <option value="asc">asc</option>
@@ -832,7 +868,7 @@ const Index: NextPage = () => {
                       )}
                     </td>
                     <td className="bonded">
-                      {!!x.bondTransactionHashExplorerUrl && (
+                      {x.bonded && (
                       <a className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title="View on block explorer">
                         <Image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                         {x.sourceChainId !== 1 && (
@@ -847,7 +883,7 @@ const Index: NextPage = () => {
                         )}
                       </a>
                       )}
-                      {(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl) && (
+                      {(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
                         <span className="no">
                           <Image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                           Pending

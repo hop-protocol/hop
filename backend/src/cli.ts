@@ -6,7 +6,8 @@ console.debug('flags:', argv)
 function main () {
   const worker = new Worker({
     transfers: argv.transfers,
-    days: argv.days
+    days: argv.days,
+    offsetDays: argv.offsetDays
   })
 
   worker.start()

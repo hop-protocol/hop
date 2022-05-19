@@ -335,6 +335,7 @@ class Db {
     const whereClauses = []
 
     const sortDirection = params.sortDirection ? params.sortDirection?.toUpperCase() : 'DESC'
+    const sortBy = params.sortBy || 'timestamp'
 
     queryParams.push(count, skip)
     let i = 3
@@ -468,7 +469,7 @@ class Db {
           transfers
         ${whereClause}
         ORDER BY
-          timestamp
+          ${sortBy}
         ${sortDirection}
         LIMIT
           $1

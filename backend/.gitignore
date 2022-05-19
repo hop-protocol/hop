@@ -4,3 +4,4 @@ dist
 *.env
 *.db
 *.db-journal
+pgdata

@@ -5,6 +5,8 @@ export class Controller {
   db : Db = getInstance()
 
   async getTransfers (params: any) {
+    const ts = Date.now()
+    console.time('transfers ' + ts)
     let page = Number(params.page || 0)
     let perPage = Number(params.perPage || 100)
     const sourceChainSlug = params.sourceChainSlug
@@ -81,6 +83,7 @@ export class Controller {
       x.bondTimestampRelative = x.bondTimestamp ? DateTime.fromSeconds(x.bondTimestamp).toRelative() : ''
       return x
     })
+    console.timeEnd('transfers ' + ts)
     return data
   }
 }

@@ -106,7 +106,22 @@ function updateQueryParams (params: any) {
 const queryTransfers = async (params: any) => {
   //const apiBaseUrl = 'http://localhost:8000'
   const apiBaseUrl = 'https://explorer-api.hop.exchange'
-  const serializedParams = new URLSearchParams(params).toString()
+  let filtered = {}
+  for (const key in params) {
+    if (params[key]) {
+      filtered[key] = params[key]
+    }
+  }
+  if (!filtered['amount']) {
+    delete filtered['amountCmp']
+  }
+  if (!filtered['amountUsd']) {
+    delete filtered['amountUsdCmp']
+  }
+  if (filtered['date'] === currentDate) {
+    delete filtered['date']
+  }
+  const serializedParams = new URLSearchParams(filtered).toString()
   const url = `${apiBaseUrl}/v1/transfers?${serializedParams}`
   const res = await fetch(url)
   const json = await res.json()

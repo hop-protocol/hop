@@ -9,7 +9,7 @@ class Db {
 
   constructor () {
     const initOptions: any = {}
-    const maxConnections = 5
+    const maxConnections = postgresConfig.maxConnections
     const opts = {
       max: maxConnections
     }

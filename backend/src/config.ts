@@ -8,5 +8,6 @@ export const postgresConfig = {
   host: process.env.POSTGRES_HOST,
   database: process.env.POSTGRES_DBNAME,
   password: process.env.POSTGRES_PASS,
-  port: process.env.POSTGRES_PORT ? parseInt(process.env.POSTGRES_PORT, 10) : 5432
+  port: process.env.POSTGRES_PORT ? parseInt(process.env.POSTGRES_PORT, 10) : 5432,
+  maxConnections: process.env.POSTGRES_MAX_CONNECTIONS ? parseInt(process.env.POSTGRES_MAX_CONNECTIONS, 10) : 10
 }

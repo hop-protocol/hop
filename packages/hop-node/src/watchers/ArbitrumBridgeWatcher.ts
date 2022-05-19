@@ -1,10 +1,10 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import wallets from 'src/wallets'
-import { Bridge, OutgoingMessageState } from 'arb-ts'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { L2TransactionReceipt, getL2Network } from '@arbitrum/sdk'
 import { Wallet, providers } from 'ethers'
 
 type Config = {
@@ -17,7 +17,6 @@ type Config = {
 class ArbitrumBridgeWatcher extends BaseWatcher {
   l1Wallet: Wallet
   l2Wallet: Wallet
-  arbBridge: Bridge
   ready: boolean
 
   constructor (config: Config) {
@@ -31,24 +30,14 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
 
     this.l1Wallet = wallets.get(Chain.Ethereum)
     this.l2Wallet = wallets.get(Chain.Arbitrum)
-
-    this.init()
-      .catch((err) => {
-        this.logger.error('arbitrum bridge watcher init error:', err.message)
-        this.quit()
-      })
-  }
-
-  async init () {
-    this.arbBridge = await Bridge.init(this.l1Wallet, this.l2Wallet)
-    this.ready = true
   }
 
   async relayXDomainMessage (
     txHash: string
   ): Promise<providers.TransactionResponse> {
-    const initiatingTxnReceipt = await this.arbBridge.l2Provider.getTransactionReceipt(
-      txHash
+    const txReceipt = await this.l2Wallet.provider.getTransactionReceipt(txHash)
+    const initiatingTxnReceipt = new L2TransactionReceipt(
+      txReceipt
     )
 
     if (!initiatingTxnReceipt) {
@@ -57,28 +46,19 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       )
     }
 
-    const outGoingMessagesFromTxn = await this.arbBridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
+    const l2Network = await getL2Network(this.l2Wallet.provider)
+    const outGoingMessagesFromTxn = await initiatingTxnReceipt.getL2ToL1Messages(this.l1Wallet, l2Network)
     if (outGoingMessagesFromTxn.length === 0) {
       throw new Error(`tx hash ${txHash} did not initiate an outgoing messages`)
     }
 
-    const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
-    const outgoingMessageState = await this.arbBridge.getOutGoingMessageState(
-      batchNumber,
-      indexInBatch
-    )
-
-    if (outgoingMessageState === OutgoingMessageState.NOT_FOUND) {
-      throw new Error('outgoing message not found')
-    } else if (outgoingMessageState === OutgoingMessageState.EXECUTED) {
-      throw new Error('outgoing message executed')
-    } else if (outgoingMessageState === OutgoingMessageState.UNCONFIRMED) {
-      throw new Error('outgoing message unconfirmed')
-    } else if (outgoingMessageState !== OutgoingMessageState.CONFIRMED) {
-      throw new Error('outgoing message already confirmed')
+    const msg = outGoingMessagesFromTxn[0]
+    const proofInfo = await msg.tryGetProof(this.l2Wallet.provider)
+    if (!proofInfo) {
+      throw new Error(`proof not found for tx hash ${txHash}`)
     }
 
-    return await this.arbBridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+    return msg.execute(proofInfo)
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {

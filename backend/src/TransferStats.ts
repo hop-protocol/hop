@@ -156,6 +156,7 @@ class TransferStats {
   prices: any = {}
   days = 1
   offsetDays = 0
+  ready = false
 
   constructor (options: Options = {}) {
     if (options.days) {
@@ -175,6 +176,19 @@ class TransferStats {
     process.once('SIGINT', () => {
       this.cleanUp()
     })
+
+    this.init()
+      .catch((err: any) => console.error('init error', err))
+      .then(() => console.log('init done'))
+  }
+
+  protected async tilReady (): Promise<boolean> {
+    if (this.ready) {
+      return true
+    }
+
+    await wait(100)
+    return await this.tilReady()
   }
 
   cleanUp () {
@@ -451,18 +465,44 @@ class TransferStats {
 
   async getPriceHistory (coinId: string, days: number) {
     const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
-    return fetch(url)
-      .then((res: any) => res.json())
-      .then((json: any) =>
-        json.prices.map((data: any[]) => {
+    return Promise.race([fetch(url)
+      .then(async (res: any) => {
+        if (res.status > 400) {
+          throw await res.text()
+        }
+        return res.json()
+      })
+      .then((json: any) => {
+        return json.prices.map((data: any[]) => {
           data[0] = Math.floor(data[0] / 1000)
           return data
         })
-      )
+      }),
+    new Promise((resolve, reject) => {
+      setTimeout(() => reject(new Error('request timeout: ' + url)), 60 * 1000)
+    })
+    ])
   }
 
-  async trackTransfers () {
-    const daysN = 365
+  async init () {
+    await this.initPrices()
+    this.ready = true
+
+    this.pollPrices()
+  }
+
+  async pollPrices () {
+    while (true) {
+      try {
+        await this.initPrices(1)
+      } catch (err) {
+        console.error('prices error:', err)
+      }
+      await wait(60 * 60 * 1000)
+    }
+  }
+
+  async initPrices (daysN = Math.min(this.days + this.offsetDays, 365)) {
     console.log('fetching prices')
     const pricesArr = await Promise.all([
       this.getPriceHistory('usd-coin', daysN),
@@ -484,10 +524,13 @@ class TransferStats {
     }
 
     this.prices = prices
+  }
 
+  async trackTransfers () {
+    await this.tilReady()
     console.log('upserting prices')
-    for (const token in prices) {
-      for (const data of prices[token]) {
+    for (const token in this.prices) {
+      for (const data of this.prices[token]) {
         const price = data[1]
         const timestamp = data[0]
         try {
@@ -516,6 +559,7 @@ class TransferStats {
   }
 
   async updateTransferDataForDay (startDate: string) {
+    await this.tilReady()
     console.log('fetching all transfers data for day', startDate)
     const items = await this.getTransfersForDay(startDate)
     console.log('items:', items.length)

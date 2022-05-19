@@ -16,8 +16,8 @@ class Db {
 
     const db = pgp(initOptions)({ ...postgresConfig, ...opts })
     this.db = db
-    this.init().catch(console.error).finally(() => {
-      console.log('init done')
+    this.init().catch(console.error).then(() => {
+      console.log('db init done')
     })
   }
 
@@ -361,8 +361,9 @@ class Db {
     }
 
     if (transferId) {
-      whereClauses.push(`transfer_id = $${i++}`)
+      whereClauses.push(`(transfer_id = $${i} OR transaction_hash = $${i})`)
       queryParams.push(transferId)
+      i++
     } else {
       if (sourceChainSlug) {
         whereClauses.push(`source_chain_slug = $${i++}`)

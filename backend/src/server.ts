@@ -9,6 +9,17 @@ import Worker from './worker'
 const app = express()
 const controller = new Controller()
 
+const whitelist = ['http://localhost:3000', 'https://staging.explorer.hop.exchange', 'https://explorer.hop.exchange']
+const corsOptions: any = {
+  origin: function (origin: string, callback: any) {
+    if (whitelist.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -24,7 +35,7 @@ app.get('/health', (req: any, res: any) => {
   res.status(200).json({ status: 'ok' })
 })
 
-app.get('/v1/transfers', async (req: any, res: any) => {
+app.get('/v1/transfers', cors(corsOptions), async (req: any, res: any) => {
   try {
     const {
       page,

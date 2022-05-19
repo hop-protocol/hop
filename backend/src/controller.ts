@@ -1,8 +1,22 @@
 import Db, { getInstance } from './Db'
 import { DateTime } from 'luxon'
+import Worker from './worker'
 
 export class Controller {
   db : Db = getInstance()
+  worker: Worker
+
+  startWorker (argv: any) {
+    const worker = new Worker({
+      transfers: argv.worker,
+      days: argv.days,
+      offsetDays: argv.offsetDays
+    })
+
+    this.worker = worker
+
+    worker.start()
+  }
 
   async getTransfers (params: any) {
     const ts = Date.now()
@@ -114,12 +128,30 @@ export class Controller {
       x.i = i
       x.bonded = !!x.bonded
       x.timestampRelative = DateTime.fromSeconds(x.timestamp).toRelative()
-      x.receiveStatusUnknown = undefined
-      x.preregenesis = false
+
+      const transferTime = DateTime.fromSeconds(x.timestamp)
+
+      x.receiveStatusUnknown = x.sourceChainId === 1 && !x.bondTxExplorerUrl && DateTime.now().toUTC().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
+      if (x.receiveStatusUnknown) {
+        x.bonded = true
+      }
+      x.preregenesis = !!x.preregenesis
       x.bondTimestampRelative = x.bondTimestamp ? DateTime.fromSeconds(x.bondTimestamp).toRelative() : ''
       return x
     })
     console.timeEnd('transfers ' + ts)
+
+    if (transferId) {
+      if (data.length) {
+        const timestamp = data?.[0]?.timestamp
+        const bonded = data?.[0]?.bonded
+        if (timestamp && !bonded) {
+          const startDate = DateTime.fromSeconds(timestamp).toFormat('yyyy-MM-dd')
+          this.worker?.transferStats?.updateTransferDataForDay(startDate)
+        }
+      }
+    }
+
     return data
   }
 }

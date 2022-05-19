@@ -292,3 +292,6 @@ table img {
 #spinner {
   display: inline-block;
 }
+.refreshButton {
+  margin-left: 0.5rem;
+}

@@ -4,7 +4,6 @@ import { port } from './config'
 import { Controller } from './controller'
 import cors from 'cors'
 import { ipRateLimitMiddleware } from './rateLimit'
-import Worker from './worker'
 
 const app = express()
 const controller = new Controller()
@@ -90,13 +89,7 @@ const argv = require('minimist')(process.argv.slice(2))
 console.debug('flags:', argv)
 
 if (argv.worker) {
-  const worker = new Worker({
-    transfers: argv.worker,
-    days: argv.days,
-    offsetDays: argv.offsetDays
-  })
-
-  worker.start()
+  controller.startWorker(argv)
 }
 
 const host = '0.0.0.0'

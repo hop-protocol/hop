@@ -133,7 +133,8 @@ const tokenLogosMap: any = {
   USDT: 'https://assets.hop.exchange/logos/usdt.svg',
   DAI: 'https://assets.hop.exchange/logos/dai.svg',
   MATIC: 'https://assets.hop.exchange/logos/matic.svg',
-  ETH: 'https://assets.hop.exchange/logos/eth.svg'
+  ETH: 'https://assets.hop.exchange/logos/eth.svg',
+  WBTC: 'https://assets.hop.exchange/logos/wbtc.svg'
 }
 
 const tokenDecimals: any = {
@@ -510,28 +511,33 @@ class TransferStats {
     for (let day = 0; day < this.days; day++) {
       const now = DateTime.now().minus({ days: this.offsetDays })
       const startDate = now.minus({ days: day }).toFormat('yyyy-MM-dd')
-
-      console.log('fetching all transfers data for day', startDate)
-      const items = await this.getTransfersForDay(startDate)
-      console.log('items:', items.length)
-      for (const item of items) {
-        let retries = 0
-        while (retries < 5) {
-          try {
-            await this.upsertItem(item)
-            break
-          } catch (err: any) {
-            console.error(err)
-            await wait(10 * 1000)
-            retries++
-          }
-        }
-      }
-      console.log('done fetching transfers data')
+      await this.updateTransferDataForDay(startDate)
     }
   }
 
-  async upsertItem(item: any) {
+  async updateTransferDataForDay (startDate: string) {
+    console.log('fetching all transfers data for day', startDate)
+    const items = await this.getTransfersForDay(startDate)
+    console.log('items:', items.length)
+    for (const item of items) {
+      let retries = 0
+      while (retries < 5) {
+        try {
+          await this.upsertItem(item)
+          break
+        } catch (err: any) {
+          console.error('upsert error:', err)
+          console.log(item)
+          await wait(10 * 1000)
+          retries++
+        }
+      }
+    }
+
+    console.log('done fetching transfers data')
+  }
+
+  async upsertItem (item: any) {
     try {
       await this.db.upsertTransfer(
         item.transferId,
@@ -579,7 +585,8 @@ class TransferStats {
         item.tokenPriceUsd,
         item.tokenPriceUsdDisplay,
         item.timestamp,
-        item.timestampIso
+        item.timestampIso,
+        item.preregenesis
       )
     } catch (err) {
       if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {
@@ -675,7 +682,7 @@ class TransferStats {
     }
 
     if (!x.receiveStatusUnknown) {
-      x.receiveStatusUnknown = x.sourceChain === 1 && !x.bondTxExplorerUrl && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
+      x.receiveStatusUnknown = x.sourceChainId === 1 && !x.bondTxExplorerUrl && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
     }
     if (x.receiveStatusUnknown) {
       x.bonded = true
@@ -948,7 +955,7 @@ class TransferStats {
             event.recipient === x.recipient &&
             event.amount === x.amount &&
             event.amountOutMin === x.amountOutMin &&
-            event.deadline === x.deadline
+            event.deadline.toString() === x.deadline.toString()
           ) {
             x.bonded = true
             x.bonder = event.from
@@ -967,22 +974,23 @@ class TransferStats {
       '0x0131496b64dbd1f7821ae9f7d78f28f9a78ff23cd85e8851b8a2e4e49688f648'
     ]
 
-    if (data.length === 1) {
-      const item = data[0]
+    if (data.length > 0) {
       const regenesisTimestamp = 1636531200
-      if (!item.bonded && item.timestamp < regenesisTimestamp && chainIdToSlugMap[item.destinationChain] === 'optimism') {
-        try {
-          const event = await this.getPreRegenesisBondEvent(item.transferId, item.token)
-          if (event) {
-            const [receipt, block] = await Promise.all([event.getTransactionReceipt(), event.getBlock()])
-            item.bonded = true
-            item.bonder = receipt.from
-            item.bondTransactionHash = event.transactionHash
-            item.bondedTimestamp = Number(block.timestamp)
-            item.preregenesis = true
+      for (const item of data) {
+        if (!item.bonded && item.timestamp < regenesisTimestamp && chainIdToSlugMap[item.destinationChain] === 'optimism' && chainIdToSlugMap[item.sourceChain] !== 'ethereum') {
+          try {
+            const event = await this.getPreRegenesisBondEvent(item.transferId, item.token)
+            if (event) {
+              const [receipt, block] = await Promise.all([event.getTransactionReceipt(), event.getBlock()])
+              item.bonded = true
+              item.bonder = receipt.from
+              item.bondTransactionHash = event.transactionHash
+              item.bondedTimestamp = Number(block.timestamp)
+              item.preregenesis = true
+            }
+          } catch (err) {
+            console.error(err)
           }
-        } catch (err) {
-          console.error(err)
         }
       }
     }

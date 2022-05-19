@@ -27,6 +27,13 @@ class Db {
       await this.db.query('DROP TABLE IF EXISTS transfers')
     }
 
+    const migration = argv.migration
+    if (migration) {
+      await this.db.query(`
+        ALTER TABLE transfers ADD COLUMN IF NOT EXISTS preregenesis BOOLEAN
+      `)
+    }
+
     await this.db.query(`CREATE TABLE IF NOT EXISTS transfers (
         id TEXT PRIMARY KEY,
         transfer_id TEXT NOT NULL,
@@ -74,7 +81,8 @@ class Db {
         token_price_usd NUMERIC NOT NULL,
         token_price_usd_display TEXT NOT NULL,
         timestamp NUMERIC NOT NULL,
-        timestamp_iso TEXT NOT NULL
+        timestamp_iso TEXT NOT NULL,
+        preregenesis BOOLEAN
     )`)
 
     await this.db.query(`CREATE TABLE IF NOT EXISTS token_prices (
@@ -156,7 +164,8 @@ class Db {
     tokenPriceUsd: number,
     tokenPriceUsdDisplay: string,
     timestamp: number,
-    timestampIso: string
+    timestampIso: string,
+    preregenesis: boolean
   ) {
     const args = [
       transferId,
@@ -205,7 +214,8 @@ class Db {
       tokenPriceUsd,
       tokenPriceUsdDisplay,
       timestamp,
-      timestampIso
+      timestampIso,
+      preregenesis
     ]
     await this.db.query(
       `INSERT INTO transfers (
@@ -255,8 +265,9 @@ class Db {
         token_price_usd,
         token_price_usd_display,
         timestamp,
-        timestamp_iso
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47) ON CONFLICT (
+        timestamp_iso,
+        preregenesis
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48) ON CONFLICT (
       transfer_id
       ) DO UPDATE SET
         id = $1,
@@ -305,7 +316,8 @@ class Db {
         token_price_usd = $44,
         token_price_usd_display = $45,
         timestamp = $46,
-        timestamp_iso = $47
+        timestamp_iso = $47,
+        preregenesis = $48
       `, args
     )
   }
@@ -464,7 +476,8 @@ class Db {
           token_price_usd AS "tokenPriceUsd",
           token_price_usd_display AS "tokenPriceUsdDisplay",
           timestamp,
-          timestamp_iso AS "timestampIso"
+          timestamp_iso AS "timestampIso",
+          preregenesis
         FROM
           transfers
         ${whereClause}

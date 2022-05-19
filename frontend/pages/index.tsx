@@ -121,9 +121,6 @@ const queryTransfers = async (params: any) => {
   if (!filtered['amountUsd']) {
     delete filtered['amountUsdCmp']
   }
-  if (filtered['startDate'] === yesterdayDate) {
-    delete filtered['startDate']
-  }
   if (filtered['endDate'] === currentDate) {
     delete filtered['endDate']
   }
@@ -459,6 +456,7 @@ function useData () {
     event.preventDefault()
     setFilterStartDate(yesterdayDate)
     setFilterEndDate(currentDate)
+    setFilterSortBy('')
     setFilterSortDirection('')
     setFilterBonded('')
     setFilterToken('')
@@ -487,9 +485,18 @@ function useData () {
       transferId: null,
       startDate: null,
       endDate: null,
-      page: null
+      page: null,
+      sortBy: null,
+      sortDirection: null
     })
   }
+
+  function handleRefreshClick(event: any) {
+    event.preventDefault()
+    refreshTransfers()
+  }
+
+  const showBanner = false
 
   return {
     filterStartDate,
@@ -538,7 +545,9 @@ function useData () {
     hasNextPage,
     nextPage,
     loadingData,
-    resetFilters
+    resetFilters,
+    handleRefreshClick,
+    showBanner
   }
 }
 
@@ -590,10 +599,10 @@ const Index: NextPage = () => {
     hasNextPage,
     nextPage,
     loadingData,
-    resetFilters
+    resetFilters,
+    handleRefreshClick,
+    showBanner
   } = useData()
-
-  const showBanner = false
 
   return (
     <>
@@ -647,6 +656,7 @@ const Index: NextPage = () => {
         <details open>
         <summary>
           <span>Transfers ▾</span>
+          <button onClick={handleRefreshClick} className="refreshButton">Refresh</button>
           {loadingData && (
             <span className="loadingData">
               <Spinner /> Loading...

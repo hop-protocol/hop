@@ -879,15 +879,14 @@ class HopBridge extends Base {
     const rate = chainNativeTokenPrice / tokenPrice
 
     let gasPrice = await destinationChain.provider.getGasPrice()
-    let bondTransferGasLimit = await this.estimateBondWithdrawalGasLimit(
+    const bondTransferGasLimit = await this.estimateBondWithdrawalGasLimit(
       sourceChain,
       destinationChain
     )
 
-    // Arbitrum returns a gasLimit & gasPriceBid of appx 1.5x what is generally paid
+    // Arbitrum returns a gasPriceBid of appx 1.5x what is generally paid
     if (destinationChain.equals(Chain.Arbitrum)) {
       gasPrice = gasPrice.mul(10).div(15)
-      bondTransferGasLimit = bondTransferGasLimit.mul(10).div(15)
     }
 
     // Include the cost to settle an individual transfer

@@ -759,11 +759,10 @@ export default class Bridge extends ContractBase {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const provider = getRpcProvider(chain)!
     let gasPrice = await provider.getGasPrice()
-    // Arbitrum returns a gasLimit & gasPriceBid that exceeds the actual used.
+    // Arbitrum returns a gasPriceBid that exceeds the actual used.
     // The values change as they collect more data. 2x here is generous but they should never go under this.
     if (this.chainSlug === Chain.Arbitrum) {
       gasPrice = gasPrice.div(2)
-      gasLimit = gasLimit.div(2)
     }
 
     // Include the cost to settle an individual transfer

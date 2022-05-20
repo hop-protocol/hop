@@ -36,7 +36,7 @@ function Spinner() {
 }
 
 const poll = true
-const pollInterval = 60 * 1000
+const pollInterval = 15 * 1000
 const enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
 
 let queryParams: any = {}
@@ -792,8 +792,8 @@ const Index: NextPage = () => {
               <div>
                 <label>Sort Order:</label>
                 <select className="select" value={filterSortDirection} onChange={updateFilterSortDirection}>
-                  <option value="desc">desc</option>
-                  <option value="asc">asc</option>
+                  <option value="desc">↓ Descending</option>
+                  <option value="asc">↑ Ascending</option>
                 </select>
               </div>
               <div>
@@ -816,7 +816,7 @@ const Index: NextPage = () => {
             <table>
               <thead>
                 <tr>
-                  <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Transfer Tx</th><th>Token</th><th>Amount</th><th>Amount USD</th><th>Bonder Fee</th><th>Bonder Fee USD</th><th>Bonded</th><th>Bonded Tx</th><th>Bonded Date</th><th>Bonded Within</th><th>Bonder</th>
+                  <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Transfer Tx</th><th>Token</th><th>Amount</th><th>Amount USD</th><th>Bonder Fee</th><th>Bonder Fee USD</th><th>Bonded</th><th>Bonded Tx</th><th>Bonded Date</th><th>Bonded Within</th><th>Bonder</th><th>Account</th><th>Recipient</th>
                 </tr>
               </thead>
               <tbody>
@@ -924,6 +924,20 @@ const Index: NextPage = () => {
                         {x.bonderAddressExplorerUrl && (
                           <a className="bonder" href={x.bonderAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bonderAddress}`}>
                             { x.bonderAddressTruncated }
+                          </a>
+                        )}
+                      </td>
+                      <td className="bondedWithin" title={x.accountAddress}>
+                        {x.accountAddressExplorerUrl && (
+                          <a className="bonder" href={x.accountAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.accountAddress}`}>
+                            { x.accountAddressTruncated }
+                          </a>
+                        )}
+                      </td>
+                      <td className="bondedWithin" title={x.recipientAddress}>
+                        {x.recipientAddressExplorerUrl && (
+                          <a className="bonder" href={x.recipientAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.recipientAddress}`}>
+                            { x.recipientAddressTruncated }
                           </a>
                         )}
                       </td>

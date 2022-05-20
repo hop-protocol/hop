@@ -473,13 +473,14 @@ class TransferStats {
         return res.json()
       })
       .then((json: any) => {
+        console.log('fetched', coinId)
         return json.prices.map((data: any[]) => {
           data[0] = Math.floor(data[0] / 1000)
           return data
         })
       }),
     new Promise((resolve, reject) => {
-      setTimeout(() => reject(new Error('request timeout: ' + url)), 60 * 1000)
+      setTimeout(() => reject(new Error('request timeout: ' + url)), 2 * 60 * 1000)
     })
     ])
   }
@@ -598,6 +599,8 @@ class TransferStats {
         item.destinationChainName,
         item.destinationChainImageUrl,
         item.accountAddress,
+        item.accountAddressTruncated,
+        item.accountAddressExplorerUrl,
         item.amount,
         item.amountFormatted,
         item.amountDisplay,
@@ -642,6 +645,14 @@ class TransferStats {
   populateTransfer (x: any, prices: any) {
     if (!x.accountAddress) {
       x.accountAddress = x.from?.toLowerCase()
+    }
+
+    if (!x.accountAddressTruncated && x.accountAddress) {
+      x.accountAddressTruncated = truncateAddress(x.accountAddress)
+    }
+
+    if (!x.recipientAddressExplorerUrl && x.recipientAddress) {
+      x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recipientAddress)
     }
 
     if (!x.transactionHashTruncated) {
@@ -699,15 +710,15 @@ class TransferStats {
     }
 
     if (!x.recipientAddress) {
-      x.recipientAddress = x.recipient
+      x.recipientAddress = x.recipient?.toLowerCase()
     }
 
-    if (!x.recipientAddressTruncated) {
+    if (!x.recipientAddressTruncated && x.recipientAddress) {
       x.recipientAddressTruncated = truncateAddress(x.recipientAddress)
     }
 
-    if (!x.recipientAddressExplorerUrl) {
-      x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recpientAddress)
+    if (!x.recipientAddressExplorerUrl && x.recipientAddress) {
+      x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recipientAddress)
     }
 
     if (!x.bonderAddress) {

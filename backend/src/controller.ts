@@ -2,6 +2,37 @@ import Db, { getInstance } from './Db'
 import { DateTime } from 'luxon'
 import Worker from './worker'
 
+function truncateAddress (address :string) {
+  return truncateString(address, 4)
+}
+
+function truncateString (str: string, splitNum: number) {
+  if (!str) return ''
+  return str.substring(0, 2 + splitNum) + '…' + str.substring(str.length - splitNum, str.length)
+}
+
+function explorerLink (chain: string) {
+  let base = ''
+  if (chain === 'gnosis') {
+    base = 'https://blockscout.com/xdai/mainnet'
+  } else if (chain === 'polygon') {
+    base = 'https://polygonscan.com'
+  } else if (chain === 'optimism') {
+    base = 'https://optimistic.etherscan.io'
+  } else if (chain === 'arbitrum') {
+    base = 'https://arbiscan.io'
+  } else {
+    base = 'https://etherscan.io'
+  }
+
+  return base
+}
+
+function explorerLinkAddress (chain: string, address: string) {
+  const base = explorerLink(chain)
+  return `${base}/address/${address}`
+}
+
 export class Controller {
   db : Db = getInstance()
   worker: Worker
@@ -137,6 +168,24 @@ export class Controller {
       }
       x.preregenesis = !!x.preregenesis
       x.bondTimestampRelative = x.bondTimestamp ? DateTime.fromSeconds(x.bondTimestamp).toRelative() : ''
+
+      if (!x.accountAddressTruncated) {
+        x.accountAddressTruncated = truncateAddress(x.accountAddress)
+      }
+
+      if (!x.accountAddressExplorerUrl) {
+        x.accountAddressExplorerUrl = explorerLinkAddress(x.sourceChainSlug, x.accountAddress)
+      }
+
+      if (!x.recipientAddressTruncated) {
+        x.recipientAddressTruncated = truncateAddress(x.recipientAddress)
+      }
+
+      // TODO: rerun worker
+      if (!x.recipientAddressExplorerUrl || x.recipientAddressExplorerUrl?.includes('undefined')) {
+        x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recipientAddress)
+      }
+
       return x
     })
     console.timeEnd('transfers ' + ts)

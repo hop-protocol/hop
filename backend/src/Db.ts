@@ -32,6 +32,12 @@ class Db {
       await this.db.query(`
         ALTER TABLE transfers ADD COLUMN IF NOT EXISTS preregenesis BOOLEAN
       `)
+      await this.db.query(`
+        ALTER TABLE transfers ADD COLUMN IF NOT EXISTS account_address_truncated TEXT
+      `)
+      await this.db.query(`
+        ALTER TABLE transfers ADD COLUMN IF NOT EXISTS account_address_explorer_url TEXT
+      `)
     }
 
     await this.db.query(`CREATE TABLE IF NOT EXISTS transfers (
@@ -50,6 +56,8 @@ class Db {
         destination_chain_name TEXT NOT NULL,
         destination_chain_image_url TEXT NOT NULL,
         account_address TEXT NOT NULL,
+        account_address_truncated TEXT NOT NULL,
+        account_address_explorer_url TEXT NOT NULL,
         amount TEXT NOT NULL,
         amount_formatted NUMERIC NOT NULL,
         amount_display TEXT NOT NULL,
@@ -101,6 +109,38 @@ class Db {
     )
 
     await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_transaction_hash ON transfers (transaction_hash);'
+    )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_account_address ON transfers (account_address);'
+    )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_bonder_address ON transfers (bonder_address);'
+    )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_recipient_address ON transfers (recipient_address);'
+    )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_token ON transfers (token);'
+    )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_source_chain_slug ON transfers (source_chain_slug);'
+    )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_destination_chain_slug ON transfers (destination_chain_slug);'
+    )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_bonded ON transfers (bonded);'
+    )
+
+    await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_token_prices_token_timestamp ON token_prices (token, timestamp);'
     )
   }
@@ -133,6 +173,8 @@ class Db {
     destinationChainName: string,
     destinationChainImageUrl: string,
     accountAddress: string,
+    accountAddressTruncated: string,
+    accountAddressExplorerUrl: string,
     amount: string,
     amountFormatted: number,
     amountDisplay: string,
@@ -183,6 +225,8 @@ class Db {
       destinationChainName,
       destinationChainImageUrl,
       accountAddress,
+      accountAddressTruncated,
+      accountAddressExplorerUrl,
       amount,
       amountFormatted,
       amountDisplay,
@@ -234,6 +278,8 @@ class Db {
         destination_chain_name,
         destination_chain_image_url,
         account_address,
+        account_address_truncated,
+        account_address_explorer_url,
         amount,
         amount_formatted,
         amount_display,
@@ -267,7 +313,7 @@ class Db {
         timestamp,
         timestamp_iso,
         preregenesis
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48) ON CONFLICT (
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50) ON CONFLICT (
       transfer_id
       ) DO UPDATE SET
         id = $1,
@@ -285,39 +331,41 @@ class Db {
         destination_chain_name = $13,
         destination_chain_image_url = $14,
         account_address = $15,
-        amount = $16,
-        amount_formatted = $17,
-        amount_display = $18,
-        amount_usd = $19,
-        amount_usd_display = $20,
-        amount_out_min = $21,
-        deadline = $22,
-        recipient_address = $23,
-        recipient_address_truncated = $24,
-        recipient_address_explorer_url = $25,
-        bonder_fee = $26,
-        bonder_fee_formatted = $27,
-        bonder_fee_display = $28,
-        bonder_fee_usd = $29,
-        bonder_fee_usd_display = $30,
-        bonded = $31,
-        bond_timestamp = $32,
-        bond_timestamp_iso = $33,
-        bond_within_timestamp = $34,
-        bond_within_timestamp_relative = $35,
-        bond_transaction_hash = $36,
-        bond_transaction_hash_truncated = $37,
-        bond_transaction_hash_explorer_url = $38,
-        bonder_address = $39,
-        bonder_address_truncated = $40,
-        bonder_address_explorer_url = $41,
-        token = $42,
-        token_image_url = $43,
-        token_price_usd = $44,
-        token_price_usd_display = $45,
-        timestamp = $46,
-        timestamp_iso = $47,
-        preregenesis = $48
+        account_address_truncated = $16,
+        account_address_explorer_url = $17,
+        amount = $18,
+        amount_formatted = $19,
+        amount_display = $20,
+        amount_usd = $21,
+        amount_usd_display = $22,
+        amount_out_min = $23,
+        deadline = $24,
+        recipient_address = $25,
+        recipient_address_truncated = $26,
+        recipient_address_explorer_url = $27,
+        bonder_fee = $28,
+        bonder_fee_formatted = $29,
+        bonder_fee_display = $30,
+        bonder_fee_usd = $31,
+        bonder_fee_usd_display = $32,
+        bonded = $33,
+        bond_timestamp = $34,
+        bond_timestamp_iso = $35,
+        bond_within_timestamp = $36,
+        bond_within_timestamp_relative = $37,
+        bond_transaction_hash = $38,
+        bond_transaction_hash_truncated = $39,
+        bond_transaction_hash_explorer_url = $40,
+        bonder_address = $41,
+        bonder_address_truncated = $42,
+        bonder_address_explorer_url = $43,
+        token = $44,
+        token_image_url = $45,
+        token_price_usd = $46,
+        token_price_usd_display = $47,
+        timestamp = $48,
+        timestamp_iso = $49,
+        preregenesis = $50
       `, args
     )
   }
@@ -332,6 +380,7 @@ class Db {
       bonded,
       bonderAddress,
       accountAddress,
+      recipientAddress,
       amountFormatted,
       amountFormattedCmp,
       amountUsd,
@@ -360,62 +409,69 @@ class Db {
       eq: '='
     }
 
+    if (bonderAddress) {
+      whereClauses.push(`bonder_address = $${i++}`)
+      queryParams.push(bonderAddress.toLowerCase())
+    }
+
+    if (accountAddress) {
+      whereClauses.push(`account_address = $${i++}`)
+      queryParams.push(accountAddress.toLowerCase())
+    }
+
+    if (recipientAddress) {
+      whereClauses.push(`recipient_address = $${i++}`)
+      queryParams.push(recipientAddress.toLowerCase())
+    }
+
     if (transferId) {
       whereClauses.push(`(transfer_id = $${i} OR transaction_hash = $${i})`)
       queryParams.push(transferId)
       i++
-    } else {
-      if (sourceChainSlug) {
-        whereClauses.push(`source_chain_slug = $${i++}`)
-        queryParams.push(sourceChainSlug)
-      }
+    }
 
-      if (destinationChainSlug) {
-        whereClauses.push(`destination_chain_slug = $${i++}`)
-        queryParams.push(destinationChainSlug)
-      }
+    if (sourceChainSlug) {
+      whereClauses.push(`source_chain_slug = $${i++}`)
+      queryParams.push(sourceChainSlug)
+    }
 
-      if (token) {
-        whereClauses.push(`token = $${i++}`)
-        queryParams.push(token)
-      }
+    if (destinationChainSlug) {
+      whereClauses.push(`destination_chain_slug = $${i++}`)
+      queryParams.push(destinationChainSlug)
+    }
 
-      if (typeof bonded === 'boolean') {
-        if (bonded) {
-          whereClauses.push(`bonded = $${i++}`)
-          queryParams.push(bonded)
-        } else {
-          whereClauses.push(`(bonded = $${i++} OR bonded IS NULL)`)
-          queryParams.push(bonded)
-        }
-      }
+    if (token) {
+      whereClauses.push(`token = $${i++}`)
+      queryParams.push(token)
+    }
 
-      if (bonderAddress) {
-        whereClauses.push(`bonder_address = $${i++}`)
-        queryParams.push(bonderAddress.toLowerCase())
+    if (typeof bonded === 'boolean') {
+      if (bonded) {
+        whereClauses.push(`bonded = $${i++}`)
+        queryParams.push(bonded)
+      } else {
+        whereClauses.push(`(bonded = $${i++} OR bonded IS NULL)`)
+        queryParams.push(bonded)
       }
+    }
 
-      if (accountAddress) {
-        whereClauses.push(`account_address = $${i++}`)
-        queryParams.push(accountAddress.toLowerCase())
+    if (amountFormatted) {
+      const cmp = cmps[amountFormattedCmp]
+      if (cmp) {
+        whereClauses.push(`amount_formatted ${cmp} $${i++}`)
+        queryParams.push(amountFormatted)
       }
+    }
 
-      if (amountFormatted) {
-        const cmp = cmps[amountFormattedCmp]
-        if (cmp) {
-          whereClauses.push(`amount_formatted ${cmp} $${i++}`)
-          queryParams.push(amountFormatted)
-        }
+    if (amountUsd) {
+      const cmp = cmps[amountUsdCmp]
+      if (cmp) {
+        whereClauses.push(`amount_usd ${cmp} $${i++}`)
+        queryParams.push(amountUsd)
       }
+    }
 
-      if (amountUsd) {
-        const cmp = cmps[amountUsdCmp]
-        if (cmp) {
-          whereClauses.push(`amount_usd ${cmp} $${i++}`)
-          queryParams.push(amountUsd)
-        }
-      }
-
+    if (!(transferId || accountAddress || recipientAddress || bonderAddress)) {
       if (startTimestamp) {
         whereClauses.push(`timestamp >= $${i++}`)
         queryParams.push(startTimestamp)

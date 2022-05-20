@@ -553,10 +553,19 @@ class TransferStats {
     }
     */
 
+    const days = []
     for (let day = 0; day < this.days; day++) {
-      const now = DateTime.now().toUTC().minus({ days: this.offsetDays })
-      const startDate = now.minus({ days: day }).toFormat('yyyy-MM-dd')
-      await this.updateTransferDataForDay(startDate)
+      days.push(day)
+    }
+
+    const chunkSize = 5
+    const allChunks = chunk(days, chunkSize)
+    for (const chunks of allChunks) {
+      await Promise.all(chunks.map(async (day: number) => {
+        const now = DateTime.now().toUTC().minus({ days: this.offsetDays })
+        const startDate = now.minus({ days: day }).toFormat('yyyy-MM-dd')
+        await this.updateTransferDataForDay(startDate)
+      }))
     }
   }
 

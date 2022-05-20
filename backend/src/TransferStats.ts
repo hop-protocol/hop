@@ -465,6 +465,7 @@ class TransferStats {
 
   async getPriceHistory (coinId: string, days: number) {
     const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
+    console.log(url)
     return Promise.race([fetch(url)
       .then(async (res: any) => {
         if (res.status > 400) {
@@ -495,7 +496,7 @@ class TransferStats {
   async pollPrices () {
     while (true) {
       try {
-        await this.initPrices(1)
+        await this.initPrices()
       } catch (err) {
         console.error('prices error:', err)
       }
@@ -503,7 +504,7 @@ class TransferStats {
     }
   }
 
-  async initPrices (daysN = Math.min(this.days + this.offsetDays, 365)) {
+  async initPrices (daysN = 365) {
     console.log('fetching prices')
     const pricesArr = await Promise.all([
       this.getPriceHistory('usd-coin', daysN),
@@ -553,7 +554,7 @@ class TransferStats {
     */
 
     for (let day = 0; day < this.days; day++) {
-      const now = DateTime.now().minus({ days: this.offsetDays })
+      const now = DateTime.now().toUTC().minus({ days: this.offsetDays })
       const startDate = now.minus({ days: day }).toFormat('yyyy-MM-dd')
       await this.updateTransferDataForDay(startDate)
     }
@@ -810,7 +811,7 @@ class TransferStats {
 
   async getTransfersForDay (filterDate: string) {
     let data :any[] = []
-    const endDate = DateTime.fromFormat(filterDate, 'yyyy-MM-dd').endOf('day').toUTC()
+    const endDate = DateTime.fromFormat(filterDate, 'yyyy-MM-dd').toUTC().plus({ days: 1 }).endOf('day')
     let startTime = Math.floor(endDate.minus({ days: 1 }).startOf('day').toSeconds())
     let endTime = Math.floor(endDate.toSeconds())
     const [

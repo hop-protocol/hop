@@ -10,12 +10,14 @@ import { ClaimWrapper } from './ClaimWrapper'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { correctClaimChain } from './claims'
 import { formatError } from 'src/utils/format'
+import { useDelegates } from './useDelegates'
 
 export function Claim() {
   const { isDarkMode } = useThemeMode()
   const { connectedNetworkId } = useWeb3Context()
   const [step, setStep] = useState(0)
   const [showTryAgain, setShowTryAgain] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false)
   const nextStep = () => setStep(val => val + 1)
   const prevStep = () => setStep(val => val - 1)
   const {
@@ -31,8 +33,10 @@ export function Claim() {
     delegate,
     setDelegate,
     error,
-    setError
+    setError,
+    hasManyVotes
   } = useClaim()
+  const { delegates } = useDelegates()
 
   async function claimTokens() {
     try {
@@ -52,6 +56,13 @@ export function Claim() {
     }
   }
 
+  function handleDelegateConfirm(confirmed: boolean) {
+    setShowConfirmModal(false)
+    if (confirmed) {
+      nextStep()
+    }
+  }
+
   const steps = [
     <ClaimStart
       key="Claim HOP"
@@ -64,7 +75,17 @@ export function Claim() {
       setInputValue={setInputValue}
       inputValue={inputValue}
       delegate={delegate}
-      onContinue={nextStep}
+      showConfirmModal={showConfirmModal}
+      setShowConfirmModal={setShowConfirmModal}
+      handleDelegateConfirm={handleDelegateConfirm}
+      onContinue={async () => {
+        const tooMany = await hasManyVotes(delegates, delegate)
+        if (tooMany) {
+          setShowConfirmModal(true)
+        } else {
+          nextStep()
+        }
+      }}
       selectDelegate={setDelegate}
     />,
     <ClaimReview

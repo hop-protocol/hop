@@ -208,6 +208,24 @@ export function useClaim() {
 
   const canClaim = claimableTokens.gt(0)
 
+  async function hasManyVotes (_delegates: any[], _delegate: any) {
+    try {
+      const sorted = _delegates.sort((a, b) => {
+        if (a.votes.gt(b.votes)) {
+          return 1
+        }
+        return -1
+      }).reverse()
+      const total = sorted.length
+      const index = sorted.indexOf(_delegate)
+      const tooMany = ((index + 1) / total) < 0.2 // true if in top 10% in terms of votes
+      return tooMany
+    } catch (err) {
+      console.error(err)
+    }
+    return false
+  }
+
   return {
     claim,
     claimableTokens,
@@ -223,6 +241,7 @@ export function useClaim() {
     delegate,
     setDelegate,
     error,
-    setError
+    setError,
+    hasManyVotes
   }
 }

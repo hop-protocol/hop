@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'src/components/Link'
 import { Circle, Flex, Icon, Input } from 'src/components/ui'
 import { useThemeMode } from 'src/theme/ThemeProvider'
@@ -11,6 +11,7 @@ import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import { DelegateIcon } from './DelegateIcon'
 import ChatIcon from '@material-ui/icons/Chat'
+import { DelegateConfirmModal } from './DelegateConfirmModal'
 
 const useStyles = makeStyles(() => ({
   box: {
@@ -24,7 +25,7 @@ const useStyles = makeStyles(() => ({
 
 export function ChooseDelegate(props: any) {
   const styles = useStyles()
-  const { delegate, selectDelegate, onContinue, inputValue, setInputValue } = props
+  const { delegate, selectDelegate, onContinue, inputValue, setInputValue, showConfirmModal, setShowConfirmModal, handleDelegateConfirm } = props
   const { delegates } = useDelegates()
   const { theme } = useThemeMode()
 
@@ -36,6 +37,10 @@ export function ChooseDelegate(props: any) {
       return selectDelegate()
     }
     selectDelegate(del)
+  }
+
+  function handleModalClose() {
+    setShowConfirmModal(false)
   }
 
   return (
@@ -164,6 +169,9 @@ export function ChooseDelegate(props: any) {
           Continue to Review
         </Button>
       </Box>
+      {showConfirmModal && (
+        <DelegateConfirmModal onSubmit={handleDelegateConfirm} onClose={handleModalClose} />
+      )}
     </Box>
   )
 }

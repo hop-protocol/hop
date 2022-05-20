@@ -154,7 +154,7 @@ class TransferStats {
   db : Db = getInstance()
   regenesis = false
   prices: any = {}
-  days = 1
+  days = 0
   offsetDays = 0
   ready = false
 
@@ -545,13 +545,29 @@ class TransferStats {
       }
     }
     console.log('done upserting prices')
+    await Promise.all([
+      this.trackAllDailyTransfers(),
+      this.trackDailyTransfers()
+    ])
+  }
 
-    /*
-    let chains = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'mainnet']
-    if (this.regenesis) {
-      chains = ['optimism']
+  async trackDailyTransfers () {
+    await this.tilReady()
+    while (true) {
+      try {
+        console.log('tracking daily transfers')
+        const now = DateTime.now().toUTC()
+        const startDate = now.toFormat('yyyy-MM-dd')
+        await this.updateTransferDataForDay(startDate)
+      } catch (err) {
+        console.error(err)
+      }
+      await wait(60 * 1000)
     }
-    */
+  }
+
+  async trackAllDailyTransfers () {
+    await this.tilReady()
 
     const days = []
     for (let day = 0; day < this.days; day++) {

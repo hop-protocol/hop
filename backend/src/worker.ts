@@ -9,7 +9,7 @@ type Options = {
 
 class Worker {
   transferStats: TransferStats
-  pollIntervalMs: number = 1 * 60 * 1000
+  pollIntervalMs: number = 60 * 60 * 1000
 
   constructor (options: Options = {}) {
     const {

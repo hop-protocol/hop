@@ -1,4 +1,6 @@
-# hop social auth backend
+# Hop Explorer Backend
+
+> Backend indexer worker for explorer transfer data pull from the [TheGraph](https://thegraph.com/)
 
 Dev
 
@@ -23,3 +25,7 @@ Docker build
 ```
 make build-docker
 ```
+
+## License
+
+[MIT](LICENSE)

@@ -25,6 +25,7 @@ import SendHeader from './SendHeader'
 import CustomRecipientDropdown from './CustomRecipientDropdown'
 import { Div, Flex } from 'src/components/ui'
 import { useSendTransaction } from './useSendTransaction'
+import L1CanonicalBridgeOption from './L1CanonicalBridgeOption'
 import {
   useAssets,
   useAsyncMemo,
@@ -43,6 +44,7 @@ import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { ExternalLink } from 'src/components/Link'
+import { useL1CanonicalBridge } from './useL1CanonicalBridge'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -149,7 +151,7 @@ const Send: FC = () => {
       return
     }
 
-    let amount
+    let amount : any
     if (amountOut) {
       amount = toTokenDisplay(amountOut, destToken.decimals)
     }
@@ -338,6 +340,52 @@ const Send: FC = () => {
     }
   }, [sdk, fromNetwork, sourceToken, fromTokenAmount, checkApproval])
 
+  // ==============================================================================================
+  // Send tokens
+  // ==============================================================================================
+
+  const { tx, setTx, send, sending, setSending } = useSendTransaction({
+    amountOutMin,
+    customRecipient,
+    deadline,
+    totalFee,
+    fromNetwork,
+    fromTokenAmount,
+    intermediaryAmountOutMin,
+    sdk,
+    setError,
+    sourceToken,
+    toNetwork,
+    txConfirm,
+    txHistory,
+    estimatedReceived: estimatedReceivedDisplay,
+  })
+
+  const {
+    l1CanonicalBridge,
+    sendL1CanonicalBridge,
+    usingNativeBridge,
+    selectNativeBridge,
+    approveNativeBridge,
+    needsNativeBridgeApproval,
+    estimateApproveNativeBridge,
+    estimateSendNativeBridge,
+  } = useL1CanonicalBridge({
+    sdk,
+    sourceToken,
+    sourceTokenAmount: fromTokenAmountBN,
+    sourceChain: fromNetwork,
+    destinationChain: toNetwork,
+    estimatedReceived,
+    txConfirm,
+    customRecipient,
+    approving,
+    setApproving,
+    setSending,
+    setTx,
+    setError,
+  })
+
   const approveFromToken = async () => {
     if (!fromNetwork) {
       throw new Error('No fromNetwork selected')
@@ -356,6 +404,12 @@ const Send: FC = () => {
     if (!isNetworkConnected) return
 
     const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
+
+    if (usingNativeBridge) {
+      await approveNativeBridge()
+      return
+    }
+
     const bridge = sdk.bridge(sourceToken.symbol)
 
     let spender: string
@@ -385,27 +439,6 @@ const Send: FC = () => {
     }
     setApproving(false)
   }
-
-  // ==============================================================================================
-  // Send tokens
-  // ==============================================================================================
-
-  const { tx, setTx, send, sending } = useSendTransaction({
-    amountOutMin,
-    customRecipient,
-    deadline,
-    totalFee,
-    fromNetwork,
-    fromTokenAmount,
-    intermediaryAmountOutMin,
-    sdk,
-    setError,
-    sourceToken,
-    toNetwork,
-    txConfirm,
-    txHistory,
-    estimatedReceived: estimatedReceivedDisplay,
-  })
 
   useEffect(() => {
     if (tx) {
@@ -483,6 +516,20 @@ const Send: FC = () => {
     setCustomRecipient(value)
   }
 
+  const shouldSendUsingNativeBridge = !!(l1CanonicalBridge && usingNativeBridge && fromNetwork?.isLayer1)
+
+  const handleSend = async (event: any) => {
+    try {
+    if (shouldSendUsingNativeBridge) {
+        await sendL1CanonicalBridge()
+        return
+      }
+      await send()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   useEffect(() => {
     if (
       toNetwork?.slug === ChainSlug.Arbitrum &&
@@ -503,13 +550,16 @@ const Send: FC = () => {
     // setManualError('')
   }, [fromNetwork?.slug, toNetwork?.slug])
 
+  const estimatedReceivedDisplayDetailRow = shouldSendUsingNativeBridge ? toTokenDisplay(fromTokenAmountBN, sourceToken?.decimals, sourceToken?.symbol) : estimatedReceivedDisplay
+
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork)
 
-  const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
+  const needsTokenApproval = !!(shouldSendUsingNativeBridge ? needsNativeBridgeApproval : needsApproval)
+  const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsTokenApproval
 
   const sendButtonActive = useMemo(() => {
     return !!(
-      !needsApproval &&
+      !needsTokenApproval &&
       !approveButtonActive &&
       !checkingLiquidity &&
       !loadingToBalance &&
@@ -525,7 +575,7 @@ const Send: FC = () => {
       (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet)
     )
   }, [
-    needsApproval,
+    needsTokenApproval,
     approveButtonActive,
     checkingLiquidity,
     loadingToBalance,
@@ -594,6 +644,18 @@ const Send: FC = () => {
         disableInput
       />
 
+      {fromNetwork?.isLayer1 && (
+        <L1CanonicalBridgeOption
+          amount={fromTokenAmountBN}
+          l1CanonicalBridge={l1CanonicalBridge}
+          destToken={destToken}
+          destinationChain={toNetwork}
+          selectNativeBridge={selectNativeBridge}
+          estimatedReceivedDisplay={estimatedReceivedDisplay}
+          usingNativeBridge={usingNativeBridge}
+        />
+      )}
+
       <CustomRecipientDropdown
         styles={styles}
         customRecipient={customRecipient}
@@ -637,7 +699,7 @@ const Send: FC = () => {
                 amountOutMinDisplay={amountOutMinDisplay}
               />
             }
-            value={estimatedReceivedDisplay}
+            value={estimatedReceivedDisplayDetailRow}
             xlarge
             bold
           />
@@ -655,7 +717,7 @@ const Send: FC = () => {
             <Button
               className={styles.button}
               large
-              highlighted={!!needsApproval}
+              highlighted={needsTokenApproval}
               disabled={!approveButtonActive}
               onClick={handleApprove}
               loading={approving}
@@ -669,7 +731,7 @@ const Send: FC = () => {
           <Button
             className={styles.button}
             startIcon={sendButtonActive && <SendIcon />}
-            onClick={send}
+            onClick={handleSend}
             disabled={!sendButtonActive}
             loading={sending}
             large

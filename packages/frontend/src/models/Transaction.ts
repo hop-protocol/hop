@@ -18,6 +18,7 @@ import { getNetworkWaitConfirmations } from 'src/utils/networks'
 import { sigHashes } from 'src/hooks/useTransaction'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
 import { GatewayTransactionDetails } from '@gnosis.pm/safe-apps-sdk'
+import { CanonicalBridge } from 'src/pages/Send/canonicalBridge/CanonicalBridge'
 
 interface ContructorArgs {
   hash: string
@@ -207,6 +208,16 @@ class Transaction extends EventEmitter {
       if (!this.pendingDestinationConfirmation) {
         return true
       }
+
+      if (this.isCanonicalTransfer) {
+        const canonicalBridge = await CanonicalBridge.from('mainnet', this.token.symbol, this.destNetworkName, this.provider)
+        const hash = await canonicalBridge.getDestTxHash(this.hash)
+        if (hash) {
+          return true
+        }
+        return false
+      }
+
       const receipt = await this.receipt()
       // Get the event data (topics)
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)

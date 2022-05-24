@@ -316,6 +316,7 @@ export function useSendTransaction(props) {
   return {
     send,
     sending,
+    setSending,
     tx,
     setTx,
   }

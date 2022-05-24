@@ -53,8 +53,8 @@ class Network {
     return this.name
   }
 
-  eq(otherNetwork: Network) {
-    return otherNetwork.networkId === this.networkId
+  equals(otherNetwork: Network) {
+    return otherNetwork.slug === this.slug
   }
 }
 

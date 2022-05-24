@@ -31,7 +31,7 @@ class Token {
     return prefix + '.' + this.symbol
   }
 
-  eq(otherToken: Token) {
+  equals(otherToken: Token) {
     return otherToken.symbol === this.symbol
   }
 }

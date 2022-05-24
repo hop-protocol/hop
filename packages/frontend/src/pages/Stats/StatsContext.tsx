@@ -241,7 +241,7 @@ const StatsProvider: FC = ({ children }) => {
     const virtualDebt = totalDebit.sub(debit)
     let pendingAmount = BigNumber.from(0)
     for (const obj of pendingAmounts) {
-      if (obj.destinationNetwork.eq(selectedNetwork) && obj.token.eq(token)) {
+      if (obj.destinationNetwork.equals(selectedNetwork) && obj.token.equals(token)) {
         pendingAmount = pendingAmount.add(obj.pendingAmount)
       }
     }
@@ -347,7 +347,7 @@ const StatsProvider: FC = ({ children }) => {
       for (const sourceNetwork of filteredNetworks) {
         for (const token of tokens) {
           for (const destinationNetwork of networks) {
-            if (destinationNetwork.eq(sourceNetwork)) {
+            if (destinationNetwork.equals(sourceNetwork)) {
               continue
             }
             promises.push(

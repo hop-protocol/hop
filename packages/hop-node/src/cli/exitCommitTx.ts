@@ -21,7 +21,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { chain, token, txHash: commitTxHash, txHashes: commitTxHashes, dry: dryMode } = source
+  const { chain, token, txHashes: commitTxHashes, dry: dryMode } = source
   if (!chain) {
     throw new Error('chain is required')
   }

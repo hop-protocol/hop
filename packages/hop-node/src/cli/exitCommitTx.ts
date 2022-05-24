@@ -12,7 +12,7 @@ root
   .description('Exit the commit transaction')
   .option('--chain <slug>', 'Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
-  .option('--tx-hash <hash>', 'Tx hash with CommitTransfers event log', parseString)
+  .option('--tx-hashes <hash>', 'Comma-separated tx hashes with CommitTransfers event log', parseString)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
@@ -21,14 +21,14 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { chain, token, txHash: commitTxHash, dry: dryMode } = source
+  const { chain, token, txHashes: commitTxHashes, dry: dryMode } = source
   if (!chain) {
     throw new Error('chain is required')
   }
   if (!token) {
     throw new Error('token is required')
   }
-  if (!commitTxHash) {
+  if (!commitTxHashes) {
     throw new Error('commit tx hash is required')
   }
 
@@ -38,6 +38,9 @@ async function main (source: any) {
   }
 
   const chainSpecificWatcher: ExitWatcher = watcher.watchers[chain]
-  await chainSpecificWatcher.relayXDomainMessage(commitTxHash)
+  const txHashes = commitTxHashes.split(',')
+  for (const txHash of txHashes) {
+    await chainSpecificWatcher.relayXDomainMessage(txHash)
+  }
   console.log('done')
 }

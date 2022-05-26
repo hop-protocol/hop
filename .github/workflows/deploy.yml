@@ -49,13 +49,13 @@ jobs:
       run:
         working-directory: ./packages/frontend
     steps:
-      - name: Log set env vars
-        run: |
-          echo "ENV_NAME=$ENV_NAME"
-          echo "RECORD_NAME=$RECORD_NAME"
-
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Log set env vars
+        run: |
+          echo "ENV_NAME=${ENV_NAME}"
+          echo "RECORD_NAME=${RECORD_NAME}"
 
       - name: Set up node
         uses: actions/setup-node@v2

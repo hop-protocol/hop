@@ -55,7 +55,7 @@
     "dev": "BROWSER=none npm start",
     "clean": "rimraf build",
     "lint": "npx eslint --fix \"**/*.{ts,tsx}\"",
-    "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=4096 build",
+    "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` INLINE_RUNTIME_CHUNK=false react-app-rewired --max_old_space_size=8192 build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "deploy": "netlify deploy --prod",

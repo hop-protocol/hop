@@ -4,6 +4,7 @@ on:
     branches:
       - production
       - mainnet
+      - mainnet2
 
 jobs:
   set_environment:

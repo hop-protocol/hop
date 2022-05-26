@@ -28,7 +28,7 @@ jobs:
       - run:
           name: Build application Docker image
           command: |
-            cd packages/backend
+            cd backend
             docker build \
               -f Dockerfile \
               --no-cache \

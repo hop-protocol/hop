@@ -77,7 +77,7 @@
     "dotenv": "^8.2.0",
     "ethereum-block-by-date": "^1.4.2",
     "ethereumjs-util": "^7.0.9",
-    "ethers": "5.5.1",
+    "ethers": "5.6.8",
     "expect": "^26.6.2",
     "express": "^4.17.1",
     "fast-memoize": "^2.5.2",

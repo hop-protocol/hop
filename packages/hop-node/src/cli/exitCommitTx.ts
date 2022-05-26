@@ -2,7 +2,7 @@ import ArbitrumBridgeWatcher from 'src/watchers/ArbitrumBridgeWatcher'
 import GnosisBridgeWatcher from 'src/watchers/GnosisBridgeWatcher'
 import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
-import { actionHandler, parseBool, parseString, root } from './shared'
+import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 import { getXDomainMessageRelayWatcher } from 'src/watchers/watchers'
 
 type ExitWatcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
@@ -12,7 +12,7 @@ root
   .description('Exit the commit transaction')
   .option('--chain <slug>', 'Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
-  .option('--tx-hash <hash>', 'Tx hash with CommitTransfers event log', parseString)
+  .option('--tx-hashes <hash, ...>', 'Comma-separated tx hashes with CommitTransfers event log', parseStringArray)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
@@ -21,14 +21,14 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { chain, token, txHash: commitTxHash, dry: dryMode } = source
+  const { chain, token, txHashes: commitTxHashes, dry: dryMode } = source
   if (!chain) {
     throw new Error('chain is required')
   }
   if (!token) {
     throw new Error('token is required')
   }
-  if (!commitTxHash) {
+  if (!commitTxHashes) {
     throw new Error('commit tx hash is required')
   }
 
@@ -38,6 +38,8 @@ async function main (source: any) {
   }
 
   const chainSpecificWatcher: ExitWatcher = watcher.watchers[chain]
-  await chainSpecificWatcher.relayXDomainMessage(commitTxHash)
+  for (const commitTxHash of commitTxHashes) {
+    await chainSpecificWatcher.relayXDomainMessage(commitTxHash)
+  }
   console.log('done')
 }

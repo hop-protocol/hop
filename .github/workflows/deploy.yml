@@ -31,7 +31,7 @@ jobs:
       run: |
         if [[ "${GITHUB_REF#refs/heads/}" == "production" ]]
         then
-          echo "::set-output name=dnslink_subdomain::_dnslink"
+          echo "::set-output name=dnslink_subdomain::_dnslink.app"
         else
           echo "::set-output name=dnslink_subdomain::_dnslink.${GITHUB_REF#refs/heads/}"
         fi

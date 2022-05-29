@@ -199,7 +199,7 @@ function useData () {
 
   useEffect(() => {
     const update = async () => {
-      const url = 'http://assets.hop.exchange/mainnet/v1-health-check.json'
+      const url = 'https://assets.hop.exchange/mainnet/v1-health-check.json'
       const res = await fetch(url)
       const json = await res.json()
       if (json.data.unsyncedSubgraphs?.length > 0) {

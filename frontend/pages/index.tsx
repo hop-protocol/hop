@@ -160,6 +160,8 @@ function useData () {
   const [chartAmountSize, setChartAmountSize] = useState(false)
   const [chartSelection, setChartSelection] = useState('')
   const [transfers, setTransfers] = useState<any>([])
+  const [showBanner, setShowBanner] = useState<boolean>(false)
+  const [unsyncedSubgraphUrl, setUnsyncedSubgraphUrl] = useState<string>('')
   const [page, setPage] = useState(Number(queryParams.page || 0))
   const [perPage, setPerPage] = useState(() => {
       try {
@@ -191,6 +193,28 @@ function useData () {
       new Clipboard('.clipboard')
     }
 
+    update().catch(console.error)
+  }, [])
+
+
+  useEffect(() => {
+    const update = async () => {
+      const url = 'http://assets.hop.exchange/mainnet/v1-health-check.json'
+      const res = await fetch(url)
+      const json = await res.json()
+      if (json.data.unsyncedSubgraphs?.length > 0) {
+        let chain = json.data.unsyncedSubgraphs[0].chain
+        if (chain === 'gnosis') {
+          chain = 'xdai'
+        }
+        if (chain === 'ethereum') {
+          chain = 'mainnet'
+        }
+        const subgraphUrl = `https://thegraph.com/legacy-explorer/subgraph/hop-protocol/hop-${chain}?version=pending`
+        setUnsyncedSubgraphUrl(subgraphUrl)
+        setShowBanner(true)
+      }
+    }
     update().catch(console.error)
   }, [])
 
@@ -496,8 +520,6 @@ function useData () {
     refreshTransfers()
   }
 
-  const showBanner = false
-
   return {
     filterStartDate,
     filterEndDate,
@@ -547,7 +569,8 @@ function useData () {
     loadingData,
     resetFilters,
     handleRefreshClick,
-    showBanner
+    showBanner,
+    unsyncedSubgraphUrl
   }
 }
 
@@ -601,7 +624,8 @@ const Index: NextPage = () => {
     loadingData,
     resetFilters,
     handleRefreshClick,
-    showBanner
+    showBanner,
+    unsyncedSubgraphUrl
   } = useData()
 
   return (
@@ -625,9 +649,7 @@ const Index: NextPage = () => {
       {showBanner && (
         <div id="banner">
           <div>
-            ⚠️ The <a href="https://thegraph.com/legacy-explorer/subgraph/hop-protocol/hop-polygon?ve
-      rsion=pending" target="_blank" rel="noreferrer noopener">subgraphs</a> are currently experiencing some issues so the table
-      might not reflect the latest state.
+            ⚠️ The <a href={unsyncedSubgraphUrl} target="_blank" rel="noreferrer noopener">subgraph</a> is currently experiencing some issues so the table might not reflect the latest state.
           </div>
         </div>
       )}

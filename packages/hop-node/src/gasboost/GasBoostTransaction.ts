@@ -572,16 +572,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (this.shouldBoost(item)) {
       return this.boost(item)
     }
-    const isLatestItem = item === this.getLatestInflightItem()
-    const shouldRebroadcast = isLatestItem && this.maxGasPriceReached
-    if (shouldRebroadcast) {
+    if (this.shouldRebroadcastLatestTx()) {
       try {
         await this.rebroadcastLatestTx()
       } catch (err) {
-        const { isAlreadyKnown } = this.parseErrorString(err.message)
-        if (!isAlreadyKnown) {
-          this.logger.error('rebroadcastLatestTx error:', err)
-        }
+        this.logger.error('rebroadcastLatestTx error:', err)
       }
     }
   }
@@ -591,6 +586,16 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const isConfirmed = this.confirmations
     const isMaxGasPriceReached = this.maxGasPriceReached
     return timeOk && !isConfirmed && !isMaxGasPriceReached && !item.boosted
+  }
+
+  private shouldRebroadcastLatestTx () {
+    const item = this.getLatestInflightItem()
+    if (!item) {
+      return false
+    }
+    const timeOk = item.sentAt < (Date.now() - this.timeTilBoostMs)
+    const isLatestItem = item === this.getLatestInflightItem()
+    return timeOk && isLatestItem && this.maxGasPriceReached
   }
 
   private async boost (item: InflightItem) {
@@ -859,7 +864,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
 
     const tx = await this.signer.sendTransaction(payload)
-    this.logger.debug(`rebroadcasting transaction, tx hash: ${tx.hash}`)
+    this.logger.debug(`rebroadcasted transaction, tx hash: ${tx.hash}`)
+    const item = this.getLatestInflightItem()
+    item!.sentAt = Date.now()
 
     return tx
   }

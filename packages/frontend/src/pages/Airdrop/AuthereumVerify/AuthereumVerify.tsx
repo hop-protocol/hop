@@ -27,7 +27,7 @@ export function AuthereumVerify() {
       setLoading(true)
       setError('')
       setSuccessMsg('')
-      const url = `https://authereum.hop.exchange/check-email`
+      const url = 'https://authereum.hop.exchange/check-email'
       const data = { email: inputValue, responseToken: captchaResponseToken }
 
       const res = await fetch(url, {

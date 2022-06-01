@@ -705,7 +705,10 @@ export default class Bridge extends ContractBase {
       return BigNumber.from(0)
     }
 
-    const minBonderFeeUsd = 0.25
+    let minBonderFeeUsd = 0.25
+    if (destinationChain === Chain.Optimism) {
+      minBonderFeeUsd = 0.10
+    }
     const tokenDecimals = getTokenDecimals(tokenSymbol)
     let minBonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),

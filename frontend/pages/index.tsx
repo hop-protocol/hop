@@ -165,6 +165,9 @@ function useData () {
   const [page, setPage] = useState(Number(queryParams.page || 0))
   const [perPage, setPerPage] = useState(() => {
       try {
+        if (queryParams.perPage) {
+          return queryParams.perPage
+        }
         const cached = Number(localStorage.getItem('perPage'))
         if (cached) {
           return cached

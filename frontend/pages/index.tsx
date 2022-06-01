@@ -356,7 +356,7 @@ function useData () {
     const _perPage = Number(value)
     setPerPage(_perPage)
       try {
-        localStorage.setItem('perPage', perPage.toString())
+        localStorage.setItem('perPage', _perPage.toString())
       } catch (err) {
         //console.error(err)
       }

@@ -36,6 +36,7 @@ export function useDelegates() {
         delegate.votesFormatted = delegate.votesFormatted || '...'
         delegate.address = null
         delegate.infoUrl = _delegate.infoUrl
+        delegate.info = _delegate.info
         if (_delegate.address) {
           delegate.address = new Address(_delegate.address)
         }

@@ -12,6 +12,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { DelegateIcon } from './DelegateIcon'
 import ChatIcon from '@material-ui/icons/Chat'
 import { DelegateConfirmModal } from './DelegateConfirmModal'
+import { DelegateInfoModal } from './DelegateInfoModal'
 
 const useStyles = makeStyles(() => ({
   box: {
@@ -25,7 +26,7 @@ const useStyles = makeStyles(() => ({
 
 export function ChooseDelegate(props: any) {
   const styles = useStyles()
-  const { delegate, selectDelegate, onContinue, inputValue, setInputValue, showConfirmModal, setShowConfirmModal, handleDelegateConfirm } = props
+  const { delegate, selectDelegate, onContinue, inputValue, setInputValue, showConfirmModal, setShowConfirmModal, showInfoModal, setShowInfoModal, handleDelegateConfirm } = props
   const { delegates } = useDelegates()
   const { theme } = useThemeMode()
 
@@ -41,6 +42,7 @@ export function ChooseDelegate(props: any) {
 
   function handleModalClose() {
     setShowConfirmModal(false)
+    setShowInfoModal(null)
   }
 
   return (
@@ -117,12 +119,12 @@ export function ChooseDelegate(props: any) {
                 <Box fontSize={20} display="flex" justifyContent="center" alignItems="center">
                   {!!del.infoUrl && (
                     <Link
-                      underline="none"
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      href={del.infoUrl}
+                      title="Read more"
                       style={{
                         color: isSelected ? '#fff' : theme.palette.secondary.main
+                      }}
+                      onClick={() => {
+                        setShowInfoModal(del)
                       }}
                     >
                       <ChatIcon />
@@ -171,6 +173,9 @@ export function ChooseDelegate(props: any) {
       </Box>
       {showConfirmModal && (
         <DelegateConfirmModal onSubmit={handleDelegateConfirm} onClose={handleModalClose} />
+      )}
+      {showInfoModal && (
+        <DelegateInfoModal delegate={showInfoModal} onClose={handleModalClose} />
       )}
     </Box>
   )

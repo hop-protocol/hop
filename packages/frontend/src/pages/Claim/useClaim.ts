@@ -27,9 +27,10 @@ export interface Delegate {
   votesFormatted: string
   avatar: string
   infoUrl: string
+  info: string
 }
 
-const initialDelegate: Delegate = { ensName: '', address: null, votes: BigNumber.from(0), votesFormatted: '', avatar: '', infoUrl: '' }
+const initialDelegate: Delegate = { ensName: '', address: null, votes: BigNumber.from(0), votesFormatted: '', avatar: '', infoUrl: '', info: '' }
 
 export function useClaim() {
   const { provider, address, connectedNetworkId, checkConnectedNetworkId } = useWeb3Context()
@@ -62,7 +63,8 @@ export function useClaim() {
           votes: parseUnits('1', 18),
           votesFormatted: '1',
           avatar: ensAvatar || '',
-          infoUrl: ''
+          infoUrl: '',
+          info: '',
         })
       }
 
@@ -73,7 +75,8 @@ export function useClaim() {
           votes: parseUnits('1', 18),
           votesFormatted: '1',
           avatar: ensAvatar || '',
-          infoUrl: ''
+          infoUrl: '',
+          info: ''
         })
       }
 

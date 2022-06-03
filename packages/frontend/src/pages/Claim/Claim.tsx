@@ -18,6 +18,7 @@ export function Claim() {
   const [step, setStep] = useState(0)
   const [showTryAgain, setShowTryAgain] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false)
+  const [showInfoModal, setShowInfoModal] = useState<any>(false)
   const nextStep = () => setStep(val => val + 1)
   const prevStep = () => setStep(val => val - 1)
   const {
@@ -77,6 +78,8 @@ export function Claim() {
       delegate={delegate}
       showConfirmModal={showConfirmModal}
       setShowConfirmModal={setShowConfirmModal}
+      showInfoModal={showInfoModal}
+      setShowInfoModal={setShowInfoModal}
       handleDelegateConfirm={handleDelegateConfirm}
       onContinue={async () => {
         const tooMany = await hasManyVotes(delegates, delegate)

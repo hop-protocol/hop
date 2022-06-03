@@ -32,13 +32,13 @@ export function useDelegates() {
       const _delegates :any[] = []
       for (const _delegate of json) {
         const delegate : any = {}
-        delegate.ensName = _delegate.ensName
+        delegate.ensName = _delegate.ensName?.trim()
         delegate.votesFormatted = delegate.votesFormatted || '...'
         delegate.address = null
-        delegate.infoUrl = _delegate.infoUrl
+        delegate.infoUrl = _delegate.infoUrl?.trim()
         delegate.info = _delegate.info
         if (_delegate.address) {
-          delegate.address = new Address(_delegate.address)
+          delegate.address = new Address(_delegate.address?.trim())
         }
         if (_delegate.avatar) {
           delegate.avatar = _delegate.avatar

@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { BigNumber, utils, providers } from 'ethers'
-import { claimTokens, correctClaimChain, fetchClaim } from './claims'
+import { claimTokens, correctClaimChain, fetchClaim, getContractBalance, getAirdropSupply } from './claims'
 import { toTokenDisplay } from 'src/utils'
-import { parseUnits, getAddress, isAddress } from 'ethers/lib/utils'
+import { parseUnits, getAddress, isAddress, formatUnits } from 'ethers/lib/utils'
 import { useEns } from 'src/hooks'
 import Address from 'src/models/Address'
 import { formatError } from 'src/utils/format'
@@ -46,9 +46,22 @@ export function useClaim() {
   const [delegate, setDelegate] = useState<Delegate>(initialDelegate)
   const { ensName, ensAvatar, ensAddress } = useEns(inputValue)
   const [error, setError] = useState('')
+  const [contractBalance, setContractBalance] = useState<BigNumber>(BigNumber.from(0))
+  const [airdropSupply, setAirdropSupply] = useState<BigNumber>(BigNumber.from(0))
   const [claimProvider] = useState(() => {
     return providers.getDefaultProvider(networkIdToSlug(claimChainId))
   })
+
+  useEffect(() => {
+    const update = async () => {
+      const _contractBalance = await getContractBalance(claimProvider)
+      setContractBalance(_contractBalance)
+      const _airdropSupply = await getAirdropSupply(claimProvider)
+      setAirdropSupply(_airdropSupply)
+    }
+
+    update().catch(console.error)
+  }, [])
 
   useEffect(() => {
     try {
@@ -211,17 +224,24 @@ export function useClaim() {
 
   const canClaim = claimableTokens.gt(0)
 
-  async function hasManyVotes (_delegates: any[], _delegate: any) {
+  async function hasManyVotes (_delegate: any) {
     try {
-      const sorted = _delegates.sort((a, b) => {
-        if (a.votes.gt(b.votes)) {
-          return 1
-        }
-        return -1
-      }).reverse()
-      const total = sorted.length
-      const index = sorted.indexOf(_delegate)
-      const tooMany = ((index + 1) / total) < 0.2 // true if in top 10% in terms of votes
+      if (contractBalance.eq(0) || airdropSupply.eq(0) || !_delegate?.votes || delegate.votes?.eq(0)) {
+        return false
+      }
+      const totalSupply = Number(formatUnits(airdropSupply.toString(), 18))
+      const allDelegatedVotes = Number(formatUnits(airdropSupply.sub(contractBalance).toString(), 18))
+
+      const minTotalThreshold = 0.2 // 20%
+      const isMinMet = (totalSupply / allDelegatedVotes) > minTotalThreshold
+      if (!isMinMet) {
+        return false
+      }
+
+      const newAmount = Number(formatUnits(_delegate.votes.add(claimableTokens).toString(), 18))
+      const diff = newAmount / allDelegatedVotes
+      const threshold = 0.05 // 5%
+      const tooMany = diff > threshold
       return tooMany
     } catch (err) {
       console.error(err)
@@ -245,6 +265,8 @@ export function useClaim() {
     setDelegate,
     error,
     setError,
-    hasManyVotes
+    hasManyVotes,
+    contractBalance,
+    airdropSupply
   }
 }

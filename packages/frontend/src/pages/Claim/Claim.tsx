@@ -82,7 +82,7 @@ export function Claim() {
       setShowInfoModal={setShowInfoModal}
       handleDelegateConfirm={handleDelegateConfirm}
       onContinue={async () => {
-        const tooMany = await hasManyVotes(delegates, delegate)
+        const tooMany = await hasManyVotes(delegate)
         if (tooMany) {
           setShowConfirmModal(true)
         } else {

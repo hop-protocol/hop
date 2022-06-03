@@ -56,6 +56,7 @@ export function useDelegates() {
       if (Object.keys(addressCache).length > 0) {
         return
       }
+
       const _delegates = await Promise.all((delegates).map(async (delegate: any) => {
         try {
           if (!delegate.address) {

@@ -3,7 +3,7 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
-import { Chain, DefaultBatchBlocks, Network, TotalBlocks } from 'src/constants'
+import { Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
 import * as goerliConfig from './goerli'
@@ -38,6 +38,8 @@ export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
 export const awsProfile = process.env.AWS_PROFILE
 export const gitRev = buildInfo.rev
 export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
+export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
+export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
 const envNetwork = process.env.NETWORK ?? Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY

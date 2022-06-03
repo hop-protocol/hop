@@ -23,7 +23,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.29.0",
     "@hop-protocol/core": "0.0.1-beta.63",
-    "@hop-protocol/sdk": "0.0.1-beta.314",
+    "@hop-protocol/sdk": "0.0.1-beta.316",
     "@pinata/sdk": "^1.1.23",
     "@types/lodash": "^4.14.178",
     "@types/luxon": "^2.0.7",

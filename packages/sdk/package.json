@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.314",
+  "version": "0.0.1-beta.316",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -42,7 +42,7 @@
     "@hop-protocol/core": "0.0.1-beta.63",
     "@maticnetwork/maticjs": "^2.0.38",
     "dotenv": "^8.2.0",
-    "ethereum-block-by-date": "^1.4.2",
+    "ethereum-block-by-date": "^1.4.5",
     "ethers": "^5.5.1",
     "eventemitter3": "^4.0.7",
     "fast-memoize": "^2.5.2",

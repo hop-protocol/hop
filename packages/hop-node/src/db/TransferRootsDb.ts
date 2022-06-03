@@ -1,9 +1,9 @@
 import BaseDb, { KV, KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
+import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs } from 'src/constants'
+import { TxRetryDelayMs, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
-import { oruChains } from 'src/config'
 
 interface BaseTransferRoot {
   allSettled?: boolean

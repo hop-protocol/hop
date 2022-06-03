@@ -8,7 +8,7 @@ import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import { Signer, Wallet, providers } from 'ethers'
-import { hostname } from 'src/config'
+import { hostname, setLatestNonceOnStart } from 'src/config'
 
 class GasBoostSigner extends Wallet {
   store: Store
@@ -66,6 +66,9 @@ class GasBoostSigner extends Wallet {
   }
 
   private async shouldSetLatestNonce () {
+    if (setLatestNonceOnStart) {
+      return true
+    }
     const item = await this.store.getItem('nonce')
     const timeWindowMs = 5 * 60 * 1000
     if (item?.updatedAt && Number(item.updatedAt) + timeWindowMs < Date.now()) {

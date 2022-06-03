@@ -17,6 +17,7 @@ type ActiveUserEligibility = {
   userId: string
   email: string
   prevAddress: string
+  token: string
 }
 
 export function AuthereumVerified() {
@@ -29,11 +30,12 @@ export function AuthereumVerified() {
   const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
-    const { email, userId, address: prevAddress } = queryParams
+    const { email, userId, address: prevAddress, _token: token } = queryParams
     const data = {
       userId: userId as string,
       email: email as string,
       prevAddress: prevAddress as string,
+      token: token as string,
     }
     setUserData(data)
     if (prevAddress) {
@@ -50,14 +52,14 @@ export function AuthereumVerified() {
       setLoading(true)
       setError('')
       setSuccessMsg('')
-      const { userId } = userData as ActiveUserEligibility
+      const { userId, token } = userData as ActiveUserEligibility
       if (!(userData && userId)) {
         return
       }
 
-      const url = `https://authereum.hop.exchange/update-address`
+      const url = 'https://authereum.hop.exchange/update-address'
       const _address = inputValue.trim()
-      const data = { address: _address, ...userData, responseToken: captchaResponseToken }
+      const data = { address: _address, userId, token, responseToken: captchaResponseToken }
 
       const res = await fetch(url, {
         method: 'POST',

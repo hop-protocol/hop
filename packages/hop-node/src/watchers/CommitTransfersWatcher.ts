@@ -4,8 +4,7 @@ import L2Bridge from './classes/L2Bridge'
 import { BigNumber } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { TxRetryDelayMs } from 'src/constants'
-import { getEnabledNetworks } from 'src/config'
+import { TxRetryDelayMs, getEnabledNetworks } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -150,7 +149,7 @@ class CommitTransfersWatcher extends BaseWatcher {
       this.logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
-      this.logger.error(err.message)
+      this.logger.error('commitTransfers error:', err.message)
       throw err
     }
   }

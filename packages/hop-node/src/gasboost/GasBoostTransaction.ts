@@ -569,20 +569,33 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async handleInflightTx (item: InflightItem) {
-    if (item.boosted) {
-      return
+    if (this.shouldBoost(item)) {
+      return this.boost(item)
     }
-    if (!this.shouldBoost(item)) {
-      return
+    if (this.shouldRebroadcastLatestTx()) {
+      try {
+        await this.rebroadcastLatestTx()
+      } catch (err) {
+        this.logger.error('rebroadcastLatestTx error:', err)
+      }
     }
-    await this.boost(item)
   }
 
   private shouldBoost (item: InflightItem) {
     const timeOk = item.sentAt < (Date.now() - this.timeTilBoostMs)
     const isConfirmed = this.confirmations
     const isMaxGasPriceReached = this.maxGasPriceReached
-    return timeOk && !isConfirmed && !isMaxGasPriceReached
+    return timeOk && !isConfirmed && !isMaxGasPriceReached && !item.boosted
+  }
+
+  private shouldRebroadcastLatestTx () {
+    const item = this.getLatestInflightItem()
+    if (!item) {
+      return false
+    }
+    const timeOk = item.sentAt < (Date.now() - this.timeTilBoostMs)
+    const isLatestItem = item === this.getLatestInflightItem()
+    return timeOk && isLatestItem && this.maxGasPriceReached
   }
 
   private async boost (item: InflightItem) {
@@ -794,7 +807,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   private parseErrorString (errMessage: string) {
     const nonceTooLow = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/i.test(errMessage)
     const estimateGasFailed = /eth_estimateGas/i.test(errMessage)
-    const isAlreadyKnown = /AlreadyKnown/i.test(errMessage)
+    const isAlreadyKnown = /(AlreadyKnown|already known)/i.test(errMessage) // tx is already in mempool
     const isFeeTooLow = /FeeTooLowToCompete|transaction underpriced/i.test(errMessage)
     return {
       nonceTooLow,
@@ -819,7 +832,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           } else {
             this.logger.debug(`no transaction receipt found after waiting reorgWaitConfirmations (${this.reorgWaitConfirmations})`)
             this.emit(State.Reorg, this.hash)
-            this.rebroadcast()
+            this.rebroadcastInitialTx()
           }
           break
         }
@@ -830,10 +843,32 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
   }
 
-  private rebroadcast () {
+  private async rebroadcastInitialTx () {
     this.reset()
-    this.logger.debug('attempting to rebroadcast transaction')
-    this.send()
+    this.logger.debug('attempting to rebroadcast initial transaction')
+    return this.send()
+  }
+
+  private async rebroadcastLatestTx () {
+    this.logger.debug('attempting to rebroadcast latest transaction')
+    const payload: providers.TransactionRequest = {
+      type: this.type,
+      to: this.to,
+      data: this.data,
+      value: this.value,
+      nonce: this.nonce,
+      gasLimit: this.gasLimit,
+      gasPrice: this.gasPrice,
+      maxFeePerGas: this.maxFeePerGas,
+      maxPriorityFeePerGas: this.maxPriorityFeePerGas
+    }
+
+    const tx = await this.signer.sendTransaction(payload)
+    this.logger.debug(`rebroadcasted transaction, tx hash: ${tx.hash}`)
+    const item = this.getLatestInflightItem()
+    item!.sentAt = Date.now()
+
+    return tx
   }
 
   private reset () {

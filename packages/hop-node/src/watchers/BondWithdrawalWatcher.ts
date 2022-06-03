@@ -13,6 +13,7 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { TxError } from 'src/constants'
 import { UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { config as globalConfig } from 'src/config'
+import { isExecutionError } from 'src/utils/isExecutionError'
 
 type Config = {
   chainSlug: string
@@ -203,9 +204,17 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
       this.notifier.info(msg)
-    } catch (err) {
-      logger.log(err.message)
-      const isCallExceptionError = /The execution failed due to an exception/i.test(err.message)
+    } catch (err: any) {
+      logger.error('sendBondWithdrawalTx error:', err.message)
+      const isUnbondableError = /Blacklistable: account is blacklisted/i.test(err.message)
+      if (isUnbondableError) {
+        logger.debug(`marking as unbondable due to error: ${err.message}`)
+        await this.db.transfers.update(transferId, {
+          isBondable: false
+        })
+      }
+
+      const isCallExceptionError = isExecutionError(err.message)
       if (isCallExceptionError) {
         await this.db.transfers.update(transferId, {
           withdrawalBondTxError: TxError.CallException
@@ -367,8 +376,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       await destinationBridge.provider.call(tx)
       return true
     } catch (err) {
-      const revertErrMsgRegex = /(execution reverted|VM execution error)/i
-      const isRevertError = revertErrMsgRegex.test(err.message)
+      const isRevertError = isExecutionError(err.message)
       if (isRevertError) {
         logger.error(`getIsRecipientReceivable err: ${err.message}`)
         return false

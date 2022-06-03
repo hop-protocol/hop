@@ -294,74 +294,71 @@ const Web3ContextProvider: FC = ({ children }) => {
   const walletConnected = !!address
 
   // TODO: cleanup
-  const checkConnectedNetworkId = useCallback(
-    async (networkId?: number): Promise<boolean> => {
-      if (!(networkId && provider)) return false
+  const checkConnectedNetworkId = async (networkId?: number): Promise<boolean> => {
+    if (!(networkId && provider)) return false
 
-      const signerNetworkId = (await provider.getNetwork())?.chainId
-      logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
+    const signerNetworkId = (await provider.getNetwork())?.chainId
+    logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
 
-      // TODO: this block of code is too confident. use separate hook to check last-minute tx details
-      if (networkId === signerNetworkId) {
-        return true
-      }
+    // TODO: this block of code is too confident. use separate hook to check last-minute tx details
+    if (networkId === signerNetworkId) {
+      return true
+    }
 
-      onboard.config({ networkId })
-      if (onboard.getState().address) {
-        try {
-          const wantNetworkName = networkNames[networkId] || 'local'
-          const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
-            wantNetworkName
-          )
+    onboard.config({ networkId })
+    if (onboard.getState().address) {
+      try {
+        const wantNetworkName = networkNames[networkId] || 'local'
+        const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
+          wantNetworkName
+        )
 
-          if (isL1) {
-            await provider?.send('wallet_switchEthereumChain', [
-              {
-                chainId: `0x${Number(networkId).toString(16)}`,
-              },
-            ])
-          } else {
-            let nativeCurrency: any
-
-            if (networkId === ChainId.Gnosis) {
-              nativeCurrency = {
-                name: 'xDAI',
-                symbol: 'XDAI',
-                decimals: 18,
-              }
-            } else if (networkId === ChainId.Polygon) {
-              nativeCurrency = {
-                name: 'Matic',
-                symbol: 'MATIC',
-                decimals: 18,
-              }
-            }
-
-            const rpcObj = {
+        if (isL1) {
+          await provider?.send('wallet_switchEthereumChain', [
+            {
               chainId: `0x${Number(networkId).toString(16)}`,
-              chainName: networkNames[networkId],
-              rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
-              blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
-              nativeCurrency,
+            },
+          ])
+        } else {
+          let nativeCurrency: any
+
+          if (networkId === ChainId.Gnosis) {
+            nativeCurrency = {
+              name: 'xDAI',
+              symbol: 'XDAI',
+              decimals: 18,
             }
-
-            await provider?.send('wallet_addEthereumChain', [rpcObj])
+          } else if (networkId === ChainId.Polygon) {
+            nativeCurrency = {
+              name: 'Matic',
+              symbol: 'MATIC',
+              decimals: 18,
+            }
           }
-        } catch (err) {
-          logger.error(err)
+
+          const rpcObj = {
+            chainId: `0x${Number(networkId).toString(16)}`,
+            chainName: networkNames[networkId],
+            rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
+            blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
+            nativeCurrency,
+          }
+
+          await provider?.send('wallet_addEthereumChain', [rpcObj])
         }
+      } catch (err) {
+        logger.error(err)
       }
-      const p = await provider.getNetwork()
-      if (p.chainId === networkId) {
-        return true
-      }
+    }
+    const p = await provider.getNetwork()
+    if (p.chainId === networkId) {
+      return true
+    }
 
-      await onboard.walletCheck()
+    await onboard.walletCheck()
 
-      return false
-    },
-    [provider, onboard]
-  )
+    return false
+  }
 
   return (
     <Web3Context.Provider

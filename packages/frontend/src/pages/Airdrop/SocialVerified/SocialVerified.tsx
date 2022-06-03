@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { useHistory } from 'react-router-dom'
 import Alert from 'src/components/alert/Alert'
 import Box from '@material-ui/core/Box'
 import Link from '@material-ui/core/Link'
@@ -36,9 +37,17 @@ export function SocialVerified() {
   const [userData, setUserData] = useState<ActiveUserEligibility>()
   const [captchaResponseToken, setCaptchaResponseToken] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
+  const history = useHistory()
 
   useEffect(() => {
+    if (userData) {
+      return
+    }
     const { username, eligible, social, userId, address: prevAddress } = queryParams
+    if (!username) {
+      history.push('/airdrop/social-verify')
+      return
+    }
     const data = {
       eligible: eligible === 'true',
       social: social as SocialMediaPlatform,
@@ -50,6 +59,7 @@ export function SocialVerified() {
     if (prevAddress) {
       setInputValue(prevAddress as string)
     }
+    updateQueryParams({ username: '', eligible: '' })
   }, [queryParams])
 
   function handleInputChange(event: any) {

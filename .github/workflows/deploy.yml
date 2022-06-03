@@ -3,16 +3,38 @@ on:
   push:
     branches:
       - production
+      - preprod
       - mainnet
+      - mainnet2
+      - staging
+      - gh-actions
 
 jobs:
   set_environment:
     outputs:
       env_name: ${{ steps.setenv.outputs.env_name }}
+      dnslink_subdomain: ${{ steps.setdnslink.outputs.dnslink_subdomain }}
     runs-on: ubuntu-latest
     steps:
-    - id: setenv
-      run: echo "::set-output name=env_name::${GITHUB_REF#refs/heads/}"
+    - name: Set "environment" var
+      id: setenv
+      run: |
+        if [[ "${GITHUB_REF#refs/heads/}" == "production" || "${GITHUB_REF#refs/heads/}" == "preprod" ]]
+        then
+          echo "::set-output name=env_name::production"
+        else
+          echo "::set-output name=env_name::mainnet"
+        fi
+
+    - name: Set dnslink var
+      id: setdnslink
+      run: |
+        if [[ "${GITHUB_REF#refs/heads/}" == "production" ]]
+        then
+          echo "::set-output name=dnslink_subdomain::_dnslink.app"
+        else
+          echo "::set-output name=dnslink_subdomain::_dnslink.${GITHUB_REF#refs/heads/}"
+        fi
 
   build:
     name: Deploy
@@ -20,12 +42,20 @@ jobs:
     needs: set_environment
     environment:
       name: ${{ needs.set_environment.outputs.env_name }}
+    env:
+      ENV_NAME: ${{ needs.set_environment.outputs.env_name }}
+      RECORD_NAME: ${{ needs.set_environment.outputs.dnslink_subdomain }}
     defaults:
       run:
         working-directory: ./packages/frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Log set env vars
+        run: |
+          echo "ENV_NAME=${ENV_NAME}"
+          echo "RECORD_NAME=${RECORD_NAME}"
 
       - name: Set up node
         uses: actions/setup-node@v2
@@ -77,7 +107,7 @@ jobs:
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
           RECORD_DOMAIN: 'hop.exchange'
-          RECORD_NAME: ${{ secrets.IPFS_DEPLOY_DNSLINK_SUBDOMAIN }}
+          RECORD_NAME: ${{ needs.set_environment.outputs.dnslink_subdomain }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         uses: textileio/cloudflare-update-dnslink@30414a408191218c8259e932ebdf4cbb7c652fe8
         with:

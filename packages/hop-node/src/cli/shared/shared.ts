@@ -55,6 +55,10 @@ export function parseString (value: string) {
   return value ?? ''
 }
 
+export function parseStringArray (value: string) {
+  return (value ?? '').split(',').map((v: string) => v.trim())
+}
+
 export function parseBool (value: string) {
   return value !== 'false'
 }

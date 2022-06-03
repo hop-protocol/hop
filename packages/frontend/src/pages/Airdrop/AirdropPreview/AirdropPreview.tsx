@@ -166,6 +166,42 @@ export function AirdropPreview() {
                   </Typography>
                 </Box>
 
+                {userDistribution?.authereumAmount > 0 && (
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body1" component="div">
+                      Authereum User: <InfoTooltip
+              title={'Eligible tokens for being an Authereum user'} />
+                    </Typography>
+                    <Typography variant="body1" component="div">
+                      <strong>{userDistribution.authereumAmountFormatted} HOP</strong>
+                    </Typography>
+                  </Box>
+                )}
+
+                {userDistribution?.twitterAmount > 0 && (
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body1" component="div">
+                      Twitter User: <InfoTooltip
+              title={'Eligible tokens for being a top active Twitter user'} />
+                    </Typography>
+                    <Typography variant="body1" component="div">
+                      <strong>{userDistribution.twitterAmountFormatted} HOP</strong>
+                    </Typography>
+                  </Box>
+                )}
+
+                {userDistribution?.discordAmount > 0 && (
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body1" component="div">
+                      Discord User: <InfoTooltip
+              title={'Eligible tokens for being a top active Discord user'} />
+                    </Typography>
+                    <Typography variant="body1" component="div">
+                      <strong>{userDistribution.discordAmountFormatted} HOP</strong>
+                    </Typography>
+                  </Box>
+                )}
+
                 <Box my={2} style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
                 <Box display="flex" justifyContent="space-between" mb={4}>
                   <Typography variant="body1" component="div">

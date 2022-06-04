@@ -232,7 +232,7 @@ export function useClaim() {
       const totalSupply = Number(formatUnits(airdropSupply.toString(), 18))
       const allDelegatedVotes = Number(formatUnits(airdropSupply.sub(contractBalance).toString(), 18))
 
-      const minTotalThreshold = 0.2 // 20%
+      const minTotalThreshold = 0.01 // 1%
       const isMinMet = (totalSupply / allDelegatedVotes) > minTotalThreshold
       if (!isMinMet) {
         return false

@@ -156,7 +156,7 @@ const Header: FC = () => {
           </Link>
         </Box>
 
-        <Box display="flex" flexDirection="row" justifyContent="center" alignSelf="center" flex={1} width="100%">
+        <Box display="flex" flexDirection="row" justifyContent="center" alignSelf="center" flex={1} width="100%" flexWrap="wrap">
           <HeaderRoutes />
         </Box>
 

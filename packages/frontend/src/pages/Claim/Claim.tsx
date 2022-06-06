@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Claiming, Claimed } from 'src/pages/Claim'
 import Box from '@material-ui/core/Box'
 import { useThemeMode } from 'src/theme/ThemeProvider'
@@ -10,7 +10,6 @@ import { ClaimWrapper } from './ClaimWrapper'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { correctClaimChain } from './claims'
 import { formatError } from 'src/utils/format'
-import { useDelegates } from './useDelegates'
 
 export function Claim() {
   const { isDarkMode } = useThemeMode()
@@ -35,9 +34,17 @@ export function Claim() {
     setDelegate,
     error,
     setError,
-    hasManyVotes
+    hasManyVotes,
+    hasAlreadyClaimed
   } = useClaim()
-  const { delegates } = useDelegates()
+
+  useEffect(() => {
+    if (hasAlreadyClaimed) {
+      setStep(4)
+    } else if (step === 4) {
+      setStep(0)
+    }
+  }, [hasAlreadyClaimed])
 
   async function claimTokens() {
     try {

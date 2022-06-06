@@ -4,10 +4,21 @@ import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import { isMainnet } from 'src/config'
 import { useClaim } from 'src/pages/Claim/useClaim'
+import { makeStyles } from '@material-ui/core/styles'
+
+const useStyles = makeStyles((theme) => ({
+  tabs: {
+    "& .MuiTabs-flexContainer": {
+      flexWrap: 'wrap',
+      justifyContent: 'center'
+    }
+  }
+}));
 
 const HeaderRoutes: FC = () => {
   const { pathname, search } = useLocation()
   const history = useHistory()
+  const styles = useStyles()
 
   const handleChange = (event: ChangeEvent<{}>, newValue: string) => {
     event.preventDefault()
@@ -22,7 +33,7 @@ const HeaderRoutes: FC = () => {
 
   return (
     <Tabs value={value || '/send'} onChange={handleChange} style={{ width: 'max-content' }} variant="scrollable"
-  scrollButtons="auto">
+    scrollButtons="auto" className={styles.tabs}>
       <Tab label="Send" value="/send" />
       <Tab label="Pool" value="/pool" />
       <Tab label="Convert" value="/convert" />

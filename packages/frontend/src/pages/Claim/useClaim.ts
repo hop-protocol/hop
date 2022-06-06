@@ -36,6 +36,7 @@ export function useClaim() {
   const { provider, address, connectedNetworkId, checkConnectedNetworkId } = useWeb3Context()
   const [warning, setWarning] = useState<string>()
   const [loading, setLoading] = useState<boolean>(false)
+  const [hasAlreadyClaimed, setHasAlreadyClaimed] = useState<boolean>(false)
   const [claimableTokens, setClaimableTokens] = useState<BigNumber>(BigNumber.from(0))
   const [claiming, setClaiming] = useState(false)
   const [claimed, setClaimed] = useState(false)
@@ -188,21 +189,23 @@ export function useClaim() {
 
   // Sets warning about claimable tokens
   useEffect(() => {
-    if (claim && claimableTokens) {
+    setHasAlreadyClaimed(false)
+    if (claim && claimableTokens && !loading) {
       const tokenClaims = BigNumber.from(claimableTokens)
       if (tokenClaims.eq(0)) {
         if (claim?.entry.balance) {
-          return setWarning(
+          setHasAlreadyClaimed(true)
+          console.debug(
             `You have already claimed ${toTokenDisplay(claim?.entry.balance, 18)} tokens`
           )
+          return
         }
 
         return setWarning('Sorry, the connected account is not eligible for the airdrop')
       }
-
       setWarning('')
     }
-  }, [claimableTokens, claim])
+  }, [claimableTokens, claim, loading])
 
   // Send tx to claim tokens
   const sendClaimTokens = useCallback(async () => {
@@ -283,6 +286,7 @@ export function useClaim() {
     setError,
     hasManyVotes,
     contractBalance,
-    airdropSupply
+    airdropSupply,
+    hasAlreadyClaimed
   }
 }

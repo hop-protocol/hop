@@ -117,6 +117,7 @@ export function ChooseDelegate(props: any) {
                   <Box ml={2} mr={2} fontSize={20} display="flex" justifyContent="center" alignItems="center">
                     {!!del.infoUrl && (
                       <Link
+                        target="_blank" rel="noopener noreferrer"
                         title="Read more"
                         style={{
                           color: isSelected ? '#fff' : theme.palette.secondary.main

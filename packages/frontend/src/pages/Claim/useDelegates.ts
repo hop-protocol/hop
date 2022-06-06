@@ -9,6 +9,7 @@ import shuffle from 'lodash/shuffle'
 import { getEnsAddress, getEnsAvatar } from 'src/utils/ens'
 import { delegatesJsonUrl, claimChainId } from './config'
 import { networkIdToSlug } from 'src/utils/networks'
+import { getProviderByNetworkName } from 'src/utils/getProvider'
 
 const votesCache :any = {}
 const addressCache:any = {}
@@ -19,7 +20,7 @@ export function useDelegates() {
   const [delegates, setDelegates] = useState<any[]>(cached || [])
   const { provider, address, connectedNetworkId } = useWeb3Context()
   const [claimProvider] = useState(() => {
-    return providers.getDefaultProvider(networkIdToSlug(claimChainId))
+    return getProviderByNetworkName(networkIdToSlug(claimChainId))
   })
 
   useEffect(() => {

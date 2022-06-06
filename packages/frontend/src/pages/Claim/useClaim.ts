@@ -10,6 +10,7 @@ import { formatError } from 'src/utils/format'
 import { claimChainId } from './config'
 import { networkIdToSlug } from 'src/utils/networks'
 import { useInterval } from 'react-use'
+import { getProviderByNetworkName } from 'src/utils/getProvider'
 
 export interface TokenClaim {
   entry: {
@@ -50,7 +51,7 @@ export function useClaim() {
   const [contractBalance, setContractBalance] = useState<BigNumber>(BigNumber.from(0))
   const [airdropSupply, setAirdropSupply] = useState<BigNumber>(BigNumber.from(0))
   const [claimProvider] = useState(() => {
-    return providers.getDefaultProvider(networkIdToSlug(claimChainId))
+    return getProviderByNetworkName(networkIdToSlug(claimChainId))
   })
 
   useEffect(() => {

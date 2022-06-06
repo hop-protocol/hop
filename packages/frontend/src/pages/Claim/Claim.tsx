@@ -10,6 +10,7 @@ import { ClaimWrapper } from './ClaimWrapper'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { correctClaimChain } from './claims'
 import { formatError } from 'src/utils/format'
+import { useQueryParams } from 'src/hooks'
 
 export function Claim() {
   const { isDarkMode } = useThemeMode()
@@ -20,6 +21,7 @@ export function Claim() {
   const [showInfoModal, setShowInfoModal] = useState<any>(false)
   const nextStep = () => setStep(val => val + 1)
   const prevStep = () => setStep(val => val - 1)
+  const { queryParams } = useQueryParams()
   const {
     claimableTokens,
     canClaim,
@@ -35,7 +37,8 @@ export function Claim() {
     error,
     setError,
     hasManyVotes,
-    hasAlreadyClaimed
+    hasAlreadyClaimed,
+    setClaiming
   } = useClaim()
 
   useEffect(() => {
@@ -48,6 +51,16 @@ export function Claim() {
 
   async function claimTokens() {
     try {
+      if (queryParams.demo === 'true') {
+        setClaiming(true)
+        setError('')
+        setShowTryAgain(false)
+        setTimeout(() => {
+          nextStep()
+        }, 2 * 1000)
+        return
+      }
+
       setError('')
       setShowTryAgain(false)
       const res = await sendClaimTokens()

@@ -277,6 +277,7 @@ export function useClaim() {
     warning,
     claimed,
     claiming,
+    setClaiming,
     inputValue,
     setInputValue,
     claimTokensTx,

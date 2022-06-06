@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { BigNumber, utils, providers } from 'ethers'
-import { claimTokens, correctClaimChain, fetchClaim, getContractBalance, getAirdropSupply } from './claims'
+import { claimTokens, correctClaimChain, fetchClaim, getContractBalance, getAirdropSupply, getVotes } from './claims'
 import { toTokenDisplay } from 'src/utils'
 import { parseUnits, getAddress, isAddress, formatUnits } from 'ethers/lib/utils'
 import { useEns } from 'src/hooks'
@@ -64,39 +64,55 @@ export function useClaim() {
   }, [])
 
   useEffect(() => {
-    try {
-      if (!inputValue) {
-        return setDelegate(initialDelegate)
-      }
+    const update = async () => {
+      try {
+        if (!inputValue) {
+          return setDelegate(initialDelegate)
+        }
 
-      if (isAddress(inputValue?.toLowerCase())) {
-        return setDelegate({
-          ensName: ensName || '',
-          address: new Address(getAddress(inputValue.toLowerCase())),
-          votes: parseUnits('1', 18),
-          votesFormatted: '1',
-          avatar: ensAvatar || '',
-          infoUrl: '',
-          info: '',
-        })
-      }
+        if (isAddress(inputValue?.toLowerCase())) {
+          let votes = BigNumber.from(0)
+          try {
+            votes = await getVotes(claimProvider, inputValue)
+          } catch (err) {
+            console.error(err)
+          }
+          return setDelegate({
+            ensName: ensName || '',
+            address: new Address(getAddress(inputValue.toLowerCase())),
+            votes: votes,
+            votesFormatted: formatUnits(votes.toString(), 18),
+            avatar: ensAvatar || '',
+            infoUrl: '',
+            info: '',
+          })
+        }
 
-      if (ensName && ensAddress) {
-        return setDelegate({
-          ensName,
-          address: new Address(ensAddress),
-          votes: parseUnits('1', 18),
-          votesFormatted: '1',
-          avatar: ensAvatar || '',
-          infoUrl: '',
-          info: ''
-        })
-      }
+        if (ensName && ensAddress) {
+          let votes = BigNumber.from(0)
+          try {
+            votes = await getVotes(claimProvider, ensAddress)
+          } catch (err) {
+            console.error(err)
+          }
+          return setDelegate({
+            ensName,
+            address: new Address(ensAddress),
+            votes: votes,
+            votesFormatted: formatUnits(votes.toString(), 18),
+            avatar: ensAvatar || '',
+            infoUrl: '',
+            info: ''
+          })
+        }
 
-      setDelegate(undefined!)
-    } catch (err) {
-      console.error(err)
+        setDelegate(undefined!)
+      } catch (err) {
+        console.error(err)
+      }
     }
+
+    update().catch(console.error)
   }, [inputValue, ensName, ensAddress, ensAvatar])
 
   // Sets claimable tokens

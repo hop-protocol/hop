@@ -32,7 +32,7 @@ export const DelegateInfoModal = (props: Props) => {
                 for <strong>{delegate.ensName}</strong>
             </Typography>
           </Box>
-          <Box style={{ maxHeight: '700px', overflow: 'auto' }}>
+          <Box style={{ maxHeight: '100%', overflow: 'auto' }}>
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{delegate.info}</ReactMarkdown>
           </Box>
         </Box>

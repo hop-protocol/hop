@@ -91,18 +91,17 @@ export function ChooseDelegate(props: any) {
             >
               <Box display="flex" justifyContent="space-between" alignContent="center" className={styles.box} width="100%"
                 py={1}
-                px={3}
               >
-                <Box display="flex" alignItems="center" alignContent="center" width="100%" onClick={() => handleSelectDelegate(del)}>
-                  <Box mr={1}>
+                <Box display="flex" alignItems="center" alignContent="center" justifyContent="space-between" width="100%" onClick={() => handleSelectDelegate(del)}>
+                  <Box ml={2} mr={2}>
                     <DelegateIcon delegate={del} />
                   </Box>
-                  <Box p={2} display="flex" flexDirection="column" alignContent="flex-start" textAlign="left">
+                  <Box mt={2} mb={2} display="flex" flexDirection="column" alignContent="flex-start" textAlign="left" width="100%" flex="content" overflow="auto">
                     <Typography variant="subtitle2"
+                    title={del.ensName}
                     style={{
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      maxWidth: '155px',
                       width: '100%',
                       ...(isSelected ? {
                       color: '#fff'
@@ -115,21 +114,21 @@ export function ChooseDelegate(props: any) {
                     } : {}}
                     >{del.votes == null ? '...' : del.votesFormatted}</Typography>
                   </Box>
-                </Box>
-                <Box fontSize={20} display="flex" justifyContent="center" alignItems="center">
-                  {!!del.infoUrl && (
-                    <Link
-                      title="Read more"
-                      style={{
-                        color: isSelected ? '#fff' : theme.palette.secondary.main
-                      }}
-                      onClick={() => {
-                        setShowInfoModal(del)
-                      }}
-                    >
-                      <ChatIcon />
-                    </Link>
-                  )}
+                  <Box ml={2} mr={2} fontSize={20} display="flex" justifyContent="center" alignItems="center">
+                    {!!del.infoUrl && (
+                      <Link
+                        title="Read more"
+                        style={{
+                          color: isSelected ? '#fff' : theme.palette.secondary.main
+                        }}
+                        onClick={() => {
+                          setShowInfoModal(del)
+                        }}
+                      >
+                        <ChatIcon />
+                      </Link>
+                    )}
+                  </Box>
                 </Box>
               </Box>
             </Flex>

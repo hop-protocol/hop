@@ -4,6 +4,7 @@ import { port } from './config'
 import { Controller } from './controller'
 import cors from 'cors'
 import { ipRateLimitMiddleware } from './rateLimit'
+import { responseCache } from './responseCache'
 
 const app = express()
 const controller = new Controller()
@@ -35,7 +36,7 @@ app.get('/health', (req: any, res: any) => {
   res.status(200).json({ status: 'ok' })
 })
 
-app.get('/v1/transfers', async (req: any, res: any) => {
+app.get('/v1/transfers', responseCache, async (req: any, res: any) => {
   try {
     const {
       page,

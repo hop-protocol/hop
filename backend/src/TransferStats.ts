@@ -735,6 +735,10 @@ class TransferStats {
       x.bondTransactionHashExplorerUrl = `https://expedition.dev/tx/${x.bondTransactionHash}?rpcUrl=https%3A%2F%2Fmainnet-replica-4.optimism.io`
     }
 
+    if (!x.accountAddressExplorerUrl) {
+      x.accountAddressExplorerUrl = explorerLinkAddress(x.sourceChainSlug, x.accountAddress)
+    }
+
     if (!x.recipientAddress) {
       x.recipientAddress = x.recipient?.toLowerCase()
     }

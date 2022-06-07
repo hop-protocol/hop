@@ -44,7 +44,7 @@ export const DelegateInfoModal = (props: Props) => {
             </Typography>
           </Box>
           <Box style={{ maxHeight: '100%', overflow: 'auto', wordBreak: 'break-word' }} className={styles.root}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{delegate.info}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{delegate.info?.trim()}</ReactMarkdown>
           </Box>
         </Box>
         <Box mt={3} display="flex">

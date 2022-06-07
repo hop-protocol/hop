@@ -3,7 +3,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
-import { Chain, MinPolygonGasPrice } from 'src/constants'
+import { Chain, MinGnosisGasPrice, MinPolygonGasPrice } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
 import { Transaction } from 'src/types'
@@ -158,13 +158,16 @@ export default class ContractBase extends EventEmitter {
         if (gasPriceBn.lt(MinPolygonGasPrice)) {
           txOptions.gasPrice = MinPolygonGasPrice
         }
-      }
-
-      // increasing more gas multiplier for gnosis
-      // to avoid the error "code:-32010, message: FeeTooLowToCompete"
-      if (this.chainSlug === Chain.Gnosis) {
+      } else if (this.chainSlug === Chain.Gnosis) {
+        // increasing more gas multiplier for gnosis
+        // to avoid the error "code:-32010, message: FeeTooLowToCompete"
         const multiplier = 3
         txOptions.gasPrice = await this.getBumpedGasPrice(multiplier)
+
+        const gasPriceBn = BigNumber.from(txOptions.gasPrice)
+        if (gasPriceBn.lt(MinGnosisGasPrice)) {
+          txOptions.gasPrice = MinGnosisGasPrice
+        }
       }
     } else {
       if (this.chainSlug === Chain.Gnosis) {

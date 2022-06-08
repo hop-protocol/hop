@@ -3,7 +3,7 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { StyledButton } from 'src/components/buttons/StyledButton'
 import { DiscordLoginButton, TwitterLoginButton } from "react-social-login-buttons";
-import Alert from 'src/components/alert/Alert'
+import { ClaimDateMessage } from '../ClaimDateMessage'
 
 export function SocialVerify() {
   return (
@@ -18,9 +18,7 @@ export function SocialVerify() {
           The top 500 Hop Discord participants and 79 Twitter users who were early evangelists for Hop are eligible for these claims.
         </Typography>
       </Box>
-      <Box m={3} maxWidth={500} textAlign="center">
-        <Alert severity="warning" text={`You must verify by June 7 8PM UTC otherwise you will not be included in the snapshot for claiming.`} />
-      </Box>
+      <ClaimDateMessage />
       <Box marginBottom={4} m={3} maxWidth={600} textAlign="center">
         <Typography variant="body1">
           Please login with Discord or Twitter to verify your eligibility for the <strong>Active User</strong> airdrop

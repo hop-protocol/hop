@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import Alert from 'src/components/alert/Alert'
 import { ExternalLink } from 'src/components/Link'
 import { StyledButton } from 'src/components/buttons/StyledButton'
-import { DiscordLoginButton, TwitterLoginButton } from "react-social-login-buttons";
 import { Input } from 'src/components/ui'
 import ReCAPTCHA from 'react-google-recaptcha'
 import Button from 'src/components/buttons/Button'
+import { ClaimDateMessage } from '../ClaimDateMessage'
 
 const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
 
@@ -69,9 +69,7 @@ export function AuthereumVerify() {
           If you are an <ExternalLink href="https://authereum.com">Authereum</ExternalLink> user and meet the minimum eligibility requirements, you qualify for a HOP airdrop.
         </Typography>
       </Box>
-      <Box m={3} maxWidth={500} textAlign="center">
-        <Alert severity="warning" text={`You must verify by June 7 8PM UTC otherwise you will not be included in the snapshot for claiming.`} />
-      </Box>
+      <ClaimDateMessage />
       <Box mb={3} display="flex" flexDirection="column" justifyContent="center">
         <Input
           width={[320, 420]}

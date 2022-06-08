@@ -31,6 +31,7 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
+    "@types/memory-cache": "^0.2.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "ethers": "^5.6.4",
@@ -39,6 +40,7 @@
     "isomorphic-fetch": "^3.0.0",
     "lodash": "^4.17.21",
     "luxon": "^2.4.0",
+    "memory-cache": "^0.2.0",
     "minimist": "^1.2.6",
     "pg-promise": "^10.11.1",
     "to-hex": "0.0.18",

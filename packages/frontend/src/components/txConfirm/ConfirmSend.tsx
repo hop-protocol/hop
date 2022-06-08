@@ -5,6 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import { commafy, NetworkTokenEntity } from 'src/utils'
 import Address from 'src/models/Address'
+import Box from '@material-ui/core/Box'
 import { useSendingTransaction } from './useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
@@ -84,6 +85,13 @@ const ConfirmSend = (props: Props) => {
         )}
         {!!warning && <Alert severity="warning" text={warning} className={styles.warning} />}
       </div>
+      <Box mb={2} display="flex" flexDirection="column" alignItems="center" textAlign="center">
+        <Box style={{ maxWidth: '200px' }}>
+        <Typography variant="body2" color="textSecondary">
+          Please make sure your wallet is connected to the <strong>{source.network.name}</strong> network.
+        </Typography>
+        </Box>
+      </Box>
       <div className={styles.action}>
         <Button
           className={styles.sendButton}

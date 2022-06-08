@@ -144,6 +144,10 @@ export function AuthereumVerified() {
         </Box>
       </Box>
 
+      <Box m={3} maxWidth={600} textAlign="center">
+        <Alert severity="warning" text={`The last date to add your address is June 7 8PM UTC, otherwise you will not be included in the snapshot for claiming.`} />
+      </Box>
+
       <Box my={3} display="flex" flexDirection="column" justifyContent="center">
         <Input
           width={[320, 420]}

@@ -40,7 +40,12 @@ export async function fetchClaim(provider: providers.Provider, address: Address)
 export async function claimTokens(signer: Signer, claim: TokenClaim, delegate: Delegate) {
   const ensToken = await getClaimTokenContract(signer, claimTokenAddress)
 
-  // Claim tokens tx
+  console.log('claim balance:', claim.entry.balance)
+  console.log('claim delegate:', delegate.address!.address)
+  console.log('claim proof:', claim.proof)
+  const populatedTx = await ensToken.populateTransaction.claimTokens(claim.entry.balance, delegate.address!.address, claim.proof)
+  console.log('claim populatedTx:', populatedTx)
+
   return ensToken.claimTokens(claim.entry.balance, delegate.address!.address, claim.proof)
 }
 

@@ -23,7 +23,8 @@ export function ClaimWrapper(props: any) {
     delegate,
     setStep,
     error,
-    setError
+    setError,
+    merkleRootSet
   } = props
   const theme = useTheme()
   const history = useHistory()
@@ -51,10 +52,10 @@ export function ClaimWrapper(props: any) {
           </Box>
         ) : (
         <>
-        {warning ? (
+        {(warning || !merkleRootSet) ? (
           <Box m={4}>
             <Typography variant="body1">
-              {warning}
+              {warning || 'Claiming is not open yet. Please wait until further announcement.'}
             </Typography>
           </Box>
         ) : (

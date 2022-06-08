@@ -54,7 +54,12 @@ export async function getContractBalance(provider: any) {
   return ensToken.balanceOf(ensToken.address)
 }
 
+export async function getMerkleRoot(provider: any) {
+  const ensToken = await getClaimTokenContract(provider, claimTokenAddress)
+  return ensToken.merkleRoot()
+}
+
 export async function getAirdropSupply(provider: any) {
   // TODO: pull from root.json
-  return BigNumber.from('15063834400662081078913')
+  return BigNumber.from('54818880996683704802030999')
 }

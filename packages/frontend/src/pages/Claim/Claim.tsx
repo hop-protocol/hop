@@ -38,7 +38,8 @@ export function Claim() {
     setError,
     hasManyVotes,
     hasAlreadyClaimed,
-    setClaiming
+    setClaiming,
+    merkleRootSet
   } = useClaim()
 
   useEffect(() => {
@@ -146,6 +147,7 @@ export function Claim() {
         correctClaimChain={correctClaimChain}
         claimableTokens={claimableTokens}
         canClaim={canClaim}
+        merkleRootSet={merkleRootSet}
         title={steps[step].key}
         warning={warning}
         step={step}

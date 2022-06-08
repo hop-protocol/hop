@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { BigNumber, utils, providers } from 'ethers'
-import { claimTokens, correctClaimChain, fetchClaim, getContractBalance, getAirdropSupply, getVotes } from './claims'
+import { claimTokens, correctClaimChain, fetchClaim, getContractBalance, getAirdropSupply, getVotes, getMerkleRoot } from './claims'
 import { toTokenDisplay } from 'src/utils'
 import { parseUnits, getAddress, isAddress, formatUnits } from 'ethers/lib/utils'
 import { useEns } from 'src/hooks'
@@ -50,9 +50,22 @@ export function useClaim() {
   const [error, setError] = useState('')
   const [contractBalance, setContractBalance] = useState<BigNumber>(BigNumber.from(0))
   const [airdropSupply, setAirdropSupply] = useState<BigNumber>(BigNumber.from(0))
+  const [merkleRootSet, setMerkleRootSet] = useState<boolean>(false)
   const [claimProvider] = useState(() => {
     return getProviderByNetworkName(networkIdToSlug(claimChainId))
   })
+
+  useEffect(() => {
+    const update = async () => {
+      const merkleRoot = await getMerkleRoot(claimProvider)
+      const isSet = !BigNumber.from(merkleRoot).eq(BigNumber.from(0))
+      if (isSet) {
+        setMerkleRootSet(true)
+      }
+    }
+
+    update().catch(console.error)
+  }, [])
 
   useEffect(() => {
     const update = async () => {
@@ -154,7 +167,7 @@ export function useClaim() {
         error.message.includes('Invalid Entry')
       ) {
         setClaimableTokens(BigNumber.from(0))
-        setWarning('Sorry, the connected account is not eligible for the airdrop')
+        setWarning('Sorry, the connected account is not eligible for the airdrop.')
       }
     }
   }
@@ -242,7 +255,7 @@ export function useClaim() {
     setClaiming(false)
   }, [provider, claim, delegate])
 
-  const canClaim = claimableTokens.gt(0)
+  const canClaim = claimableTokens.gt(0) && merkleRootSet
 
   async function hasManyVotes (_delegate: any) {
     try {
@@ -289,6 +302,7 @@ export function useClaim() {
     hasManyVotes,
     contractBalance,
     airdropSupply,
-    hasAlreadyClaimed
+    hasAlreadyClaimed,
+    merkleRootSet
   }
 }

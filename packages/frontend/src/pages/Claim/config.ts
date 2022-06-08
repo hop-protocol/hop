@@ -8,7 +8,7 @@ export const claimTokenAddress = '0x5793728958f629894d9b0EB59e3a1B784677d764' //
 
 // TODO: replace this with url from airdrop delegates repo
 // export const delegatesJsonUrl = '' // prod
-export const delegatesJsonUrl = 'https://gist.githubusercontent.com/miguelmota/ca85b07ea6bf0cec934b41656e585e43/raw/d48e8fb9aa68d3dddf268ffb05b6ef28117a916e/delegates.json'
+export const delegatesJsonUrl = 'https://gist.githubusercontent.com/miguelmota/ca85b07ea6bf0cec934b41656e585e43/raw/a2cbcde5ac356fe39aac45edfef40e62693ac7fc/delegates.json'
 
 // TODO: use github repo url once live
 // export const merkleBaseUrl = 'https://raw.githubusercontent.com/hop-protocol/governance/master/airdrops/mainnet'

@@ -26,7 +26,7 @@ export async function fetchClaim(provider: providers.Provider, address: Address)
   const ensToken = await getClaimTokenContract(provider, claimTokenAddress)
 
   const shardedMerkleTree = await ShardedMerkleTree.fetchTree()
-  const [entry, proof] = await shardedMerkleTree.getProof(address?.address)
+  const [entry, proof] = await shardedMerkleTree.getProof(address?.address?.toLowerCase())
 
   const idx = getEntryProofIndex(address?.address, entry, proof)
 

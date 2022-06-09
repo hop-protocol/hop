@@ -19,9 +19,24 @@ let cached : any[] = []
 export function useDelegates() {
   const [delegates, setDelegates] = useState<any[]>(cached || [])
   const { provider, address, connectedNetworkId } = useWeb3Context()
-  const [claimProvider] = useState(() => {
+  const [claimProvider, setClaimProvider] = useState(() => {
     return getProviderByNetworkName(networkIdToSlug(claimChainId))
   })
+
+  useEffect(() => {
+    const update = async () => {
+      if (!provider) {
+        return
+      }
+      if (claimChainId === connectedNetworkId) {
+        setClaimProvider(provider)
+      } else {
+        setClaimProvider(getProviderByNetworkName(networkIdToSlug(claimChainId)))
+      }
+    }
+
+    update().catch(console.error)
+  }, [provider, connectedNetworkId])
 
   useEffect(() => {
     async function update() {

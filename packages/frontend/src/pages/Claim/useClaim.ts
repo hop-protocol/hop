@@ -51,9 +51,24 @@ export function useClaim() {
   const [contractBalance, setContractBalance] = useState<BigNumber>(BigNumber.from(0))
   const [airdropSupply, setAirdropSupply] = useState<BigNumber>(BigNumber.from(0))
   const [merkleRootSet, setMerkleRootSet] = useState<boolean>(false)
-  const [claimProvider] = useState(() => {
+  const [claimProvider, setClaimProvider] = useState(() => {
     return getProviderByNetworkName(networkIdToSlug(claimChainId))
   })
+
+  useEffect(() => {
+    const update = async () => {
+      if (!provider) {
+        return
+      }
+      if (claimChainId === connectedNetworkId) {
+        setClaimProvider(provider)
+      } else {
+        setClaimProvider(getProviderByNetworkName(networkIdToSlug(claimChainId)))
+      }
+    }
+
+    update().catch(console.error)
+  }, [provider, connectedNetworkId])
 
   useEffect(() => {
     const update = async () => {
@@ -65,7 +80,7 @@ export function useClaim() {
     }
 
     update().catch(console.error)
-  }, [])
+  }, [claimProvider])
 
   useEffect(() => {
     const update = async () => {
@@ -76,7 +91,7 @@ export function useClaim() {
     }
 
     update().catch(console.error)
-  }, [])
+  }, [claimProvider])
 
   useEffect(() => {
     const update = async () => {
@@ -209,9 +224,6 @@ export function useClaim() {
       if (tokenClaims.eq(0)) {
         if (claim?.entry.balance) {
           setHasAlreadyClaimed(true)
-          console.debug(
-            `You have already claimed ${toTokenDisplay(claim?.entry.balance, 18)} tokens`
-          )
           return
         }
 

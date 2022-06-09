@@ -294,6 +294,14 @@ export function useClaim() {
     return false
   }
 
+  async function checkNetwork() {
+    try {
+      const isNetworkConnected = await checkConnectedNetworkId(claimChainId)
+      return isNetworkConnected
+    } catch (err: any) { }
+    return true
+  }
+
   return {
     claim,
     claimableTokens,
@@ -315,6 +323,7 @@ export function useClaim() {
     contractBalance,
     airdropSupply,
     hasAlreadyClaimed,
-    merkleRootSet
+    merkleRootSet,
+    checkNetwork
   }
 }

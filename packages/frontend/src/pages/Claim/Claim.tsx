@@ -39,7 +39,8 @@ export function Claim() {
     hasManyVotes,
     hasAlreadyClaimed,
     setClaiming,
-    merkleRootSet
+    merkleRootSet,
+    checkNetwork
   } = useClaim()
 
   useEffect(() => {
@@ -85,11 +86,18 @@ export function Claim() {
     }
   }
 
+  async function handleStartClaim() {
+    try {
+      await checkNetwork()
+    } catch (err) { }
+    nextStep()
+  }
+
   const steps = [
     <ClaimStart
       key="Claim HOP"
       claimableTokens={claimableTokens}
-      nextStep={nextStep}
+      nextStep={handleStartClaim}
       isDarkMode={isDarkMode}
     />,
     <ChooseDelegate

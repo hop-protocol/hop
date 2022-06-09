@@ -220,8 +220,7 @@ export function useClaim() {
   useEffect(() => {
     setHasAlreadyClaimed(false)
     if (claim && claimableTokens && !loading) {
-      const tokenClaims = BigNumber.from(claimableTokens)
-      if (tokenClaims.eq(0)) {
+      if (claimableTokens.eq(0)) {
         if (claim?.entry.balance) {
           setHasAlreadyClaimed(true)
           return

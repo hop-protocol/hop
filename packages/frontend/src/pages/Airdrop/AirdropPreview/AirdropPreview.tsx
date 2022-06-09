@@ -27,7 +27,7 @@ export function AirdropPreview() {
   const userDistribution = useDistribution(airdropAddress)
   const isEligible = userDistribution?.total >= 0.0001
   const isConnected = !!airdropAddress
-  const { canClaim } = useClaim()
+  const { canClaim, hasAlreadyClaimed } = useClaim()
 
   useEffect(() => {
     if (address?.address) {
@@ -239,11 +239,17 @@ export function AirdropPreview() {
 
                 <Box display="flex" mt={2} mb={2}>
                   <Typography variant="body2" component="div" color="textSecondary">
-                    <em>The values above may change between now and the date of the token Airdrop. An announcement will be made by the Hop team on the official announcement channels when tokens are ready to be claimed. The account distribution data can be found on <ExternalLink href="https://github.com/hop-protocol/hop-airdrop/blob/master/src/data/finalDistribution.csv">github</ExternalLink>.</em>
+                    <em>The account distribution data can be found on <ExternalLink href="https://github.com/hop-protocol/governance">github</ExternalLink>.</em>
                   </Typography>
                 </Box>
               </Box>
             </>
+          )}
+
+          {hasAlreadyClaimed && (
+            <Box m={2} display="flex" justifyContent="center">
+              <Alert severity="warning" text={'This account has already claimed HOP.'} />
+            </Box>
           )}
 
           {canClaim && (

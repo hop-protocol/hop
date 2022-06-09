@@ -43,10 +43,12 @@ export async function claimTokens(signer: Signer, claim: TokenClaim, delegate: D
   console.log('claim balance:', claim.entry.balance)
   console.log('claim delegate:', delegate.address!.address)
   console.log('claim proof:', claim.proof)
-  const populatedTx = await ensToken.populateTransaction.claimTokens(claim.entry.balance, delegate.address!.address, claim.proof)
-  console.log('claim populatedTx:', populatedTx)
+  // const populatedTx = await ensToken.populateTransaction.claimTokens(claim.entry.balance, delegate.address!.address, claim.proof)
+  // console.log('claim populatedTx:', populatedTx)
 
-  return ensToken.claimTokens(claim.entry.balance, delegate.address!.address, claim.proof)
+  return ensToken.claimTokens(claim.entry.balance, delegate.address!.address, claim.proof, {
+    gasLimit: BigNumber.from(250_000)
+  })
 }
 
 export async function getVotes(provider: any, delegateAddress: string) {

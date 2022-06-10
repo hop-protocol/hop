@@ -637,7 +637,10 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    const hTokenAmount = await this.calcToHTokenAmount(amountIn, sourceChain)
+    const [hTokenAmount, lpFees] = await Promise.all([
+      this.calcToHTokenAmount(amountIn, sourceChain),
+      this.getLpFees(amountIn, sourceChain, destinationChain)
+    ])
 
     const amountOutWithoutFeePromise = this.calcFromHTokenAmount(
       hTokenAmount,
@@ -662,22 +665,24 @@ class HopBridge extends Base {
       destinationChain
     )
 
+    const calcFromHTokenPromise = this.calcFromHTokenAmount(
+      hTokenAmount,
+      destinationChain
+    )
+
     const [
       amountOutWithoutFee,
       amountOutNoSlippage,
       bonderFeeRelative,
-      destinationTxFee
+      destinationTxFee,
+      amountOut
     ] = await Promise.all([
       amountOutWithoutFeePromise,
       amountOutNoSlippagePromise,
       bonderFeeRelativePromise,
-      destinationTxFeePromise
+      destinationTxFeePromise,
+      calcFromHTokenPromise
     ])
-
-    const amountOut = await this.calcFromHTokenAmount(
-      hTokenAmount,
-      destinationChain
-    )
 
     let adjustedBonderFee
     let adjustedDestinationTxFee
@@ -694,15 +699,16 @@ class HopBridge extends Base {
         adjustedDestinationTxFee = destinationTxFee
       } else {
         // adjusted fee is the fee in the canonical token after adjusting for the hToken price
-        adjustedBonderFee = await this.calcFromHTokenAmount(
-          bonderFeeRelative,
-          destinationChain
-        )
-
-        adjustedDestinationTxFee = await this.calcFromHTokenAmount(
-          destinationTxFee,
-          destinationChain
-        )
+        ;([adjustedBonderFee, adjustedDestinationTxFee] = await Promise.all([
+          this.calcFromHTokenAmount(
+            bonderFeeRelative,
+            destinationChain
+          ),
+          this.calcFromHTokenAmount(
+            destinationTxFee,
+            destinationChain
+          )
+        ]))
       }
 
       // enforce bonderFeeAbsolute after adjustment
@@ -732,7 +738,6 @@ class HopBridge extends Base {
 
     const priceImpact = this.getPriceImpact(rate, marketRate)
 
-    const lpFees = await this.getLpFees(amountIn, sourceChain, destinationChain)
     let estimatedReceived = amountOut
     if (totalFee.gt(0)) {
       estimatedReceived = estimatedReceived.sub(totalFee)

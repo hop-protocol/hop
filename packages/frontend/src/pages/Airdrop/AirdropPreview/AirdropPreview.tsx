@@ -170,7 +170,7 @@ export function AirdropPreview() {
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="body1" component="div">
                       Authereum User: <InfoTooltip
-              title={'Eligible tokens for being an Authereum user'} />
+              title={'Eligible tokens for being an Authereum user. If you submitted an address after Jun 8, then these tokens will be distributed via a governance proposal 6 months from claim date.'} />
                     </Typography>
                     <Typography variant="body1" component="div">
                       <strong>{userDistribution.authereumAmountFormatted} HOP</strong>
@@ -182,7 +182,7 @@ export function AirdropPreview() {
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="body1" component="div">
                       Twitter User: <InfoTooltip
-              title={'Eligible tokens for being a top active Twitter user'} />
+              title={'Eligible tokens for being a top active Twitter user. If you submitted an address after Jun 8, then these tokens will be distributed via a governance proposal 6 months from claim date.'} />
                     </Typography>
                     <Typography variant="body1" component="div">
                       <strong>{userDistribution.twitterAmountFormatted} HOP</strong>
@@ -194,7 +194,7 @@ export function AirdropPreview() {
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="body1" component="div">
                       Discord User: <InfoTooltip
-              title={'Eligible tokens for being a top active Discord user'} />
+              title={'Eligible tokens for being a top active Discord user. If you submitted an address after Jun 8, then these tokens will be distributed via a governance proposal 6 months from claim date.'} />
                     </Typography>
                     <Typography variant="body1" component="div">
                       <strong>{userDistribution.discordAmountFormatted} HOP</strong>
@@ -239,7 +239,7 @@ export function AirdropPreview() {
 
                 <Box display="flex" mt={2} mb={2}>
                   <Typography variant="body2" component="div" color="textSecondary">
-                    <em>The account distribution data can be found on <ExternalLink href="https://github.com/hop-protocol/governance">github</ExternalLink>.</em>
+                    <em>The account distribution data can be found on <ExternalLink href="https://github.com/hop-protocol/governance">github</ExternalLink>. If you submitted a Twitter, Discord, or Authereum address after June 8, then the tokens will be distributed via a governance proposal 6 months from the claim date.</em>
                   </Typography>
                 </Box>
               </Box>

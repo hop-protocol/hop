@@ -41,6 +41,8 @@ export function useClaim() {
   const [claimableTokens, setClaimableTokens] = useState<BigNumber>(BigNumber.from(0))
   const [claiming, setClaiming] = useState(false)
   const [claimed, setClaimed] = useState(false)
+  const [isFetchingMeta, setIsFetchingMeta] = useState(false)
+  const [isFetchingClaim, setIsFetchingClaim] = useState('')
   const [correctNetwork, setCorrectNetwork] = useState(false)
   const [claim, setClaim] = useState<TokenClaim>()
   const [inputValue, setInputValue] = useState('')
@@ -72,22 +74,26 @@ export function useClaim() {
 
   useEffect(() => {
     const update = async () => {
+      if (isFetchingMeta) {
+        return
+      }
+      if (merkleRootSet) {
+        return
+      }
+      setIsFetchingMeta(true)
       const merkleRoot = await getMerkleRoot(claimProvider)
       const isSet = !BigNumber.from(merkleRoot).eq(BigNumber.from(0))
       if (isSet) {
         setMerkleRootSet(true)
       }
-    }
-
-    update().catch(console.error)
-  }, [claimProvider])
-
-  useEffect(() => {
-    const update = async () => {
-      const _contractBalance = await getContractBalance(claimProvider)
-      setContractBalance(_contractBalance)
-      const _airdropSupply = await getAirdropSupply(claimProvider)
-      setAirdropSupply(_airdropSupply)
+      if (contractBalance.eq(0) || airdropSupply.eq(0)) {
+        const [_contractBalance, _airdropSupply] = await Promise.all([
+          getContractBalance(claimProvider),
+          getAirdropSupply(claimProvider)
+        ])
+        setContractBalance(_contractBalance)
+        setAirdropSupply(_airdropSupply)
+      }
     }
 
     update().catch(console.error)
@@ -191,16 +197,21 @@ export function useClaim() {
   useEffect(() => {
     const update = async () => {
       try {
+        if (isFetchingClaim === address?.address) {
+          return
+        }
         if (address?.address && utils.isAddress(address.address)) {
           setClaimableTokens(BigNumber.from(0))
           setWarning('')
           setClaim(undefined)
           setLoading(true)
+          setIsFetchingClaim(address?.address)
           await getClaim(address)
         }
       } catch (err) {
       }
       setLoading(false)
+      setIsFetchingClaim('')
     }
     update().catch(console.error)
   }, [address, provider])

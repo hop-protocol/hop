@@ -302,12 +302,14 @@ class HopBridge extends Base {
       throw new Error(Errors.NotEnoughAllowance)
     }
 
-    const availableLiquidity = await this.getFrontendAvailableLiquidity(
-      sourceChain,
-      destinationChain
-    )
+    const [availableLiquidity, requiredLiquidity] = await Promise.all([
+      this.getFrontendAvailableLiquidity(
+        sourceChain,
+        destinationChain
+      ),
+      this.getRequiredLiquidity(tokenAmount, sourceChain)
+    ])
 
-    const requiredLiquidity = await this.getRequiredLiquidity(tokenAmount, sourceChain)
     const isAvailable = availableLiquidity.gte(requiredLiquidity)
     if (!isAvailable) {
       throw new Error('Insufficient liquidity available by bonder. Try again in a few minutes')
@@ -436,8 +438,10 @@ class HopBridge extends Base {
   ) {
     sourceChain = this.toChainModel(sourceChain)
     const populatedTx = await this.populateSendTx(tokenAmount, sourceChain, destinationChain, options)
-    const estimatedGasLimit = await this.getEstimatedGasLimit(sourceChain, destinationChain, populatedTx)
-    const gasPrice = await sourceChain.provider.getGasPrice()
+    const [estimatedGasLimit, gasPrice] = await Promise.all([
+      this.getEstimatedGasLimit(sourceChain, destinationChain, populatedTx),
+      sourceChain.provider.getGasPrice()
+    ])
     return gasPrice.mul(estimatedGasLimit)
   }
 
@@ -776,20 +780,24 @@ class HopBridge extends Base {
     const destToken = isToHToken ? hToken : canonicalToken
 
     const amountInNoSlippage = BigNumber.from(1000)
-    let amountOut
-    let amountOutNoSlippage
+    let amountOut : BigNumber
+    let amountOutNoSlippage : BigNumber
     if (isToHToken) {
-      amountOut = await this.calcToHTokenAmount(amountIn, chain)
-      amountOutNoSlippage = await this.calcToHTokenAmount(
-        amountInNoSlippage,
-        chain
-      )
+      ;([amountOut, amountOutNoSlippage] = await Promise.all([
+        this.calcToHTokenAmount(amountIn, chain),
+        this.calcToHTokenAmount(
+          amountInNoSlippage,
+          chain
+        )
+      ]))
     } else {
-      amountOut = await this.calcFromHTokenAmount(amountIn, chain)
-      amountOutNoSlippage = await this.calcFromHTokenAmount(
-        amountInNoSlippage,
-        chain
-      )
+      ;([amountOut, amountOutNoSlippage] = await Promise.all([
+        this.calcFromHTokenAmount(amountIn, chain),
+        this.calcFromHTokenAmount(
+          amountInNoSlippage,
+          chain
+        )
+      ]))
     }
 
     const rate = this.getRate(amountIn, amountOut, sourceToken, destToken)
@@ -874,20 +882,22 @@ class HopBridge extends Base {
 
     const canonicalToken = this.getCanonicalToken(sourceChain)
     const chainNativeToken = this.getChainNativeToken(destinationChain)
-    const chainNativeTokenPrice = await this.priceFeed.getPriceByTokenSymbol(
-      chainNativeToken.symbol
-    )
-    const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(
-      canonicalToken.symbol
-    )
+    let [chainNativeTokenPrice, tokenPrice, gasPrice, bondTransferGasLimit, l1FeeInWei] = await Promise.all([
+      this.priceFeed.getPriceByTokenSymbol(
+        chainNativeToken.symbol
+      ),
+      this.priceFeed.getPriceByTokenSymbol(
+        canonicalToken.symbol
+      ),
+      destinationChain.provider.getGasPrice(),
+      this.estimateBondWithdrawalGasLimit(
+        sourceChain,
+        destinationChain
+      ),
+      destinationChain.equals(Chain.Optimism) ? this.getOptimismL1Fee(sourceChain, destinationChain) : Promise.resolve(BigNumber.from(0))
+    ])
 
     const rate = chainNativeTokenPrice / tokenPrice
-
-    let gasPrice = await destinationChain.provider.getGasPrice()
-    let bondTransferGasLimit = await this.estimateBondWithdrawalGasLimit(
-      sourceChain,
-      destinationChain
-    )
 
     // Arbitrum returns a gasLimit & gasPriceBid of appx 1.5x what is generally paid
     if (destinationChain.equals(Chain.Arbitrum)) {
@@ -906,11 +916,7 @@ class HopBridge extends Base {
       canonicalToken.decimals
     )
 
-    if (destinationChain.equals(Chain.Optimism)) {
-      const l1FeeInWei = await this.getOptimismL1Fee(sourceChain, destinationChain)
-      txFeeEth = txFeeEth.add(l1FeeInWei)
-    }
-
+    txFeeEth = txFeeEth.add(l1FeeInWei)
     let fee = txFeeEth.mul(rateBN).div(oneEth)
 
     if (
@@ -1117,20 +1123,21 @@ class HopBridge extends Base {
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
     const bonder = this.getBonderAddress(sourceChain, destinationChain)
-    let availableLiquidity = await this.getBaseAvailableCreditIncludingVault(
-      sourceChain,
-      destinationChain
-    )
+    let [availableLiquidity, unbondedTransferRootAmount] = await Promise.all([
+      this.getBaseAvailableCreditIncludingVault(
+        sourceChain,
+        destinationChain
+      ),
+      this.getUnbondedTransferRootAmount(
+        sourceChain,
+        destinationChain
+      )
+    ])
 
     // fetch on-chain if the data is not available from worker json file
     if (availableLiquidity == null) {
       availableLiquidity = await this.getAvailableLiquidity(destinationChain, bonder)
     }
-
-    const unbondedTransferRootAmount = await this.getUnbondedTransferRootAmount(
-      sourceChain,
-      destinationChain
-    )
 
     if (destinationChain.isL1) {
       let pendingAmounts = BigNumber.from(0)
@@ -1340,7 +1347,7 @@ class HopBridge extends Base {
       throw new Error(`source chain "${sourceChain.slug}" is unsupported`)
     }
 
-    const amm = await this.getAmm(sourceChain)
+    const amm = this.getAmm(sourceChain)
     const saddleSwap = await amm.getSaddleSwap()
     const canonicalTokenIndex = Number(
       (await saddleSwap.getTokenIndex(l2CanonicalTokenAddress)).toString()
@@ -2101,7 +2108,7 @@ class HopBridge extends Base {
   private async getGasEstimateFromAddress (sourceChain: TChain, destinationChain: TChain) {
     let address = await this.getSignerAddress()
     if (!address) {
-      address = await this.getBonderAddress(sourceChain, destinationChain)
+      address = this.getBonderAddress(sourceChain, destinationChain)
     }
     return address
   }

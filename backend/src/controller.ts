@@ -143,7 +143,7 @@ export class Controller {
       sortBy,
       sortDirection
     })
-    const data = (transfers as any[]).map((x: any, i: number) => {
+    let data = (transfers as any[]).map((x: any, i: number) => {
       x.sourceChainId = Number(x.sourceChainId)
       x.destinationChainId = Number(x.destinationChainId)
       x.amountFormatted = Number(x.amountFormatted)
@@ -189,6 +189,12 @@ export class Controller {
       return x
     })
     console.timeEnd('transfers ' + ts)
+
+    if (bonded === 'pending') {
+      data = data.filter((x: any) => {
+        return !x.bonded
+      })
+    }
 
     if (transferId) {
       if (data.length) {

@@ -22,8 +22,9 @@ const corsOptions: any = {
 }
 
 app.use(cors())
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+
+app.use(express.json({ limit: '500kb' }))
+app.use(express.urlencoded({ extended: false, limit: '500kb', parameterLimit: 50 }))
 app.use(ipRateLimitMiddleware)
 
 app.use('/static', express.static('static'))

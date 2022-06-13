@@ -1,16 +1,16 @@
 import CoinGecko from './CoinGecko'
 import Coinbase from './Coinbase'
 
+const cache: {
+  [tokenSymbol: string]: {
+    timestamp: number
+    price: number
+  }
+} = {}
+
 class PriceFeed {
   private readonly services = [new CoinGecko(), new Coinbase()]
   cacheTimeMs = 5 * 60 * 1000
-
-  cache: {
-    [tokenSymbol: string]: {
-      timestamp: number
-      price: number
-    }
-  } = {}
 
   aliases: { [tokenSymbol: string]: string } = {
     WETH: 'ETH',
@@ -24,7 +24,7 @@ class PriceFeed {
       tokenSymbol = this.aliases[tokenSymbol]
     }
 
-    const cached = this.cache[tokenSymbol]
+    const cached = cache[tokenSymbol]
     if (cached) {
       const isRecent = cached.timestamp > Date.now() - this.cacheTimeMs
       if (isRecent) {
@@ -39,7 +39,7 @@ class PriceFeed {
         if (price === null) {
           throw new Error(`null price for ${tokenSymbol}`)
         }
-        this.cache[tokenSymbol] = {
+        cache[tokenSymbol] = {
           timestamp: Date.now(),
           price
         }

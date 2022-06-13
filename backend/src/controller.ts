@@ -113,7 +113,8 @@ export class Controller {
         recipient: 'recipient_address',
         transferId: 'transfer_id',
         bondTimestamp: 'bond_timestamp',
-        bondWithinTimestamp: 'bond_within_timestamp'
+        bondWithinTimestamp: 'bond_within_timestamp',
+        token: 'token'
       }
       sortBy = sortBys[sortBy]
     }

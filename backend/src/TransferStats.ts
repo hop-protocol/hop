@@ -783,7 +783,7 @@ class TransferStats {
       x.relativeBondedTimestamp = bondedTime.toRelative()
       const diff = bondedTime.diff(transferTime, ['days', 'hours', 'minutes'])
       const diffObj = diff.toObject()
-      x.bondWithinTimestamp = diff.values.minutes * 60
+      x.bondWithinTimestamp = (((diff.days * 24 * 60) + (diff.hours * 60) + diff.values.minutes) * 60)
       let hours = Number(diffObj.hours.toFixed(0))
       let minutes = Number(diffObj.minutes.toFixed(0))
       if (hours < 0) {

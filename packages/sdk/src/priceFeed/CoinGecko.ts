@@ -11,6 +11,7 @@ interface IResult {
 }
 
 class CoinGecko {
+  apiKey: string
   private _baseUrl: string = 'https://api.coingecko.com/api/v3'
   private _maxPerPage: number = 100
   private _maxPages: number = 40
@@ -24,6 +25,13 @@ class CoinGecko {
     USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     WBTC: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
     WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+  }
+
+  constructor (apiKey?: string) {
+    if (apiKey) {
+      this.apiKey = apiKey
+      this._baseUrl = 'https://pro-api.coingecko.com/api/v3'
+    }
   }
 
   private _nonEthTokens: { [key: string]: string } = {
@@ -78,7 +86,8 @@ class CoinGecko {
         include_market_cap: false,
         include_24hr_vol: false,
         include_24hr_change: false,
-        include_last_updated_at: false
+        include_last_updated_at: false,
+        x_cg_pro_api_key: this.apiKey
       })
 
       const url = `${this._baseUrl}/simple/token_price/ethereum?${params}`
@@ -126,7 +135,8 @@ class CoinGecko {
         order: 'market_cap_desc',
         per_page: this._maxPerPage,
         page: page,
-        sparkline: false
+        sparkline: false,
+        x_cg_pro_api_key: this.apiKey
       })
 
       const url = `${this._baseUrl}/coins/markets?${params}`

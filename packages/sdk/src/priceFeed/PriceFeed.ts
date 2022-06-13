@@ -8,15 +8,24 @@ const cache: {
   }
 } = {}
 
+type ApiKeys = {
+  coingecko?: string
+}
+
 class PriceFeed {
-  private readonly services = [new CoinGecko(), new Coinbase()]
   cacheTimeMs = 5 * 60 * 1000
+  apiKeys: ApiKeys = {}
+  private readonly services = [new CoinGecko(this.apiKeys.coingecko), new Coinbase()]
 
   aliases: { [tokenSymbol: string]: string } = {
     WETH: 'ETH',
     WMATIC: 'MATIC',
     XDAI: 'DAI',
     WXDAI: 'DAI'
+  }
+
+  setApiKeys (apiKeysMap: ApiKeys) {
+    this.apiKeys = apiKeysMap
   }
 
   async getPriceByTokenSymbol (tokenSymbol: string) {

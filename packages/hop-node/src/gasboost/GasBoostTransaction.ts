@@ -418,12 +418,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       const currentBaseFeePerGas = await this.getCurrentBaseFeePerGas()
       const maxGasPrice = this.getMaxGasPrice()
       if (maxFeePerGas.lte(currentBaseFeePerGas)) {
-        let newMaxFeePerGas = currentBaseFeePerGas.mul(2)
-        if (newMaxFeePerGas.gt(maxGasPrice)) {
-          newMaxFeePerGas = maxGasPrice
-        }
+        const newMaxFeePerGas = currentBaseFeePerGas.mul(2)
         maxFeePerGas = newMaxFeePerGas
       }
+      maxFeePerGas = BNMin(maxFeePerGas, maxGasPrice)
 
       return {
         gasPrice: undefined,

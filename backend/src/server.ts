@@ -21,8 +21,8 @@ const corsOptions: any = {
   }
 }
 
+app.enable('trust proxy')
 app.use(cors())
-
 app.use(express.json({ limit: '500kb' }))
 app.use(express.urlencoded({ extended: false, limit: '500kb', parameterLimit: 50 }))
 app.use(ipRateLimitMiddleware)

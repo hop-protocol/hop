@@ -415,6 +415,16 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       const maxPriorityFeePerGas = await this.getBumpedMaxPriorityFeePerGas(multiplier)
       maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas)
 
+      const currentBaseFeePerGas = await this.getCurrentBaseFeePerGas()
+      const maxGasPrice = this.getMaxGasPrice()
+      if (maxFeePerGas.lte(currentBaseFeePerGas)) {
+        let newMaxFeePerGas = currentBaseFeePerGas.mul(2)
+        if (newMaxFeePerGas.gt(maxGasPrice)) {
+          newMaxFeePerGas = maxGasPrice
+        }
+        maxFeePerGas = newMaxFeePerGas
+      }
+
       return {
         gasPrice: undefined,
         maxFeePerGas,
@@ -442,6 +452,11 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       maxFeePerGas: gasFeeData.maxFeePerGas,
       maxPriorityFeePerGas: BNMin(gasFeeData.maxPriorityFeePerGas!, priorityFeePerGasCap) // eslint-disable-line
     }
+  }
+
+  async getCurrentBaseFeePerGas (): Promise<BigNumber> {
+    const { baseFeePerGas } = await this.signer.provider!.getBlock('latest')
+    return baseFeePerGas ?? await this.getMarketGasPrice()
   }
 
   getBoostCount (): number {

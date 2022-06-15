@@ -134,49 +134,49 @@ jobs:
           cid: ${{ steps.upload.outputs.hash }}
 
   release:
-    - name: Deploy
-      runs-on: ubuntu-latest
-      needs: [build, bump_version]
-      environment:
-        name: ${{ needs.set_environment.outputs.env_name }}
-      env:
-        ENV_NAME: ${{ needs.set_environment.outputs.env_name }}
-        RECORD_NAME: ${{ needs.set_environment.outputs.dnslink_subdomain }}
-      defaults:
-        run:
-          working-directory: ./packages/frontend
-      steps:
-        - name: Convert CIDv0 to CIDv1
-          id: convert_cidv0
-          uses: uniswap/convert-cidv0-cidv1@v1.0.0
-          with:
-            cidv0: ${{ needs.build.outputs.hash }}
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [build, bump_version]
+    environment:
+      name: ${{ needs.set_environment.outputs.env_name }}
+    env:
+      ENV_NAME: ${{ needs.set_environment.outputs.env_name }}
+      RECORD_NAME: ${{ needs.set_environment.outputs.dnslink_subdomain }}
+    defaults:
+      run:
+        working-directory: ./packages/frontend
+    steps:
+      - name: Convert CIDv0 to CIDv1
+        id: convert_cidv0
+        uses: uniswap/convert-cidv0-cidv1@v1.0.0
+        with:
+          cidv0: ${{ needs.build.outputs.hash }}
 
-        - name: Create GitHub Release
-          id: create_release
-          if: contains(github.ref, 'production') && ${{ needs.bump_version.outputs.new_tag != null }}
-          uses: actions/create-release@v1.1.0
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            tag_name: ${{ needs.bump_version.outputs.new_tag }}
-            release_name: Release ${{ needs.bump_version.outputs.new_tag }}
-            body: |
-              IPFS hash of the deployment:
-              - CIDv0: `${{ needs.build.outputs.hash }}`
-              - CIDv1: `${{ steps.convert_cidv0.outputs.cidv1 }}`
-              The latest release is always accessible via our alias to the Cloudflare IPFS gateway at [app.hop.exchange](https://app.hop.exchange).
-              You can also access the Hop Interface directly from an IPFS gateway.
-              **Note**: The Hop interface uses [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) to remember your settings, such as slippage tolerance.
-              **You should always use an IPFS gateway that enforces origin separation**, or our alias to the latest release at [app.hop.exchange](https://app.hop.exchange).
-              Your Hop settings are never remembered across different URLs.
-              IPFS gateways:
-              - https://${{ steps.convert_cidv0.outputs.cidv1 }}.ipfs.cf-ipfs.com/
-              - https://${{ steps.convert_cidv0.outputs.cidv1 }}.ipfs.dweb.link/
-              - https://hop.mypinata.cloud/ipfs/${{ needs.build.outputs.hash }}/
-              - https://gateway.pinata.cloud/ipfs/${{ needs.build.outputs.hash }}/
-              - https://cloudflare-ipfs.com/ipfs/${{ needs.build.outputs.hash }}/
-              - https://gateway.ipfs.io/ipfs/${{ needs.build.outputs.hash }}/
-              - https://crustwebsites.net/ipfs/${{ needs.build.outputs.hash }}/
-              - [ipfs://${{ needs.build.outputs.hash }}/](ipfs://${{ needs.build.outputs.hash }}/)
-              ${{ needs.bump_version.outputs.changelog }}
+      - name: Create GitHub Release
+        id: create_release
+        if: contains(github.ref, 'production') && ${{ needs.bump_version.outputs.new_tag != null }}
+        uses: actions/create-release@v1.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.bump_version.outputs.new_tag }}
+          release_name: Release ${{ needs.bump_version.outputs.new_tag }}
+          body: |
+            IPFS hash of the deployment:
+            - CIDv0: `${{ needs.build.outputs.hash }}`
+            - CIDv1: `${{ steps.convert_cidv0.outputs.cidv1 }}`
+            The latest release is always accessible via our alias to the Cloudflare IPFS gateway at [app.hop.exchange](https://app.hop.exchange).
+            You can also access the Hop Interface directly from an IPFS gateway.
+            **Note**: The Hop interface uses [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) to remember your settings, such as slippage tolerance.
+            **You should always use an IPFS gateway that enforces origin separation**, or our alias to the latest release at [app.hop.exchange](https://app.hop.exchange).
+            Your Hop settings are never remembered across different URLs.
+            IPFS gateways:
+            - https://${{ steps.convert_cidv0.outputs.cidv1 }}.ipfs.cf-ipfs.com/
+            - https://${{ steps.convert_cidv0.outputs.cidv1 }}.ipfs.dweb.link/
+            - https://hop.mypinata.cloud/ipfs/${{ needs.build.outputs.hash }}/
+            - https://gateway.pinata.cloud/ipfs/${{ needs.build.outputs.hash }}/
+            - https://cloudflare-ipfs.com/ipfs/${{ needs.build.outputs.hash }}/
+            - https://gateway.ipfs.io/ipfs/${{ needs.build.outputs.hash }}/
+            - https://crustwebsites.net/ipfs/${{ needs.build.outputs.hash }}/
+            - [ipfs://${{ needs.build.outputs.hash }}/](ipfs://${{ needs.build.outputs.hash }}/)
+            ${{ needs.bump_version.outputs.changelog }}

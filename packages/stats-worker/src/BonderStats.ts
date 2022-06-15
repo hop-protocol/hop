@@ -29,7 +29,8 @@ const arbitrumAliases: Record<string, string> = {
   USDT: '0xCA0A0E115499082747bA5DA94732863b12cB3036',
   DAI: '0x482BfCa8246806b8dc09091d40005b9317dC751D',
   ETH: '0xF8c59bA692773251E78AD50293Cf4d64B67cbb8B',
-  WBTC: '0xa2cE9cceC64FC22475323a0E55d58F7786588a16'
+  WBTC: '0xa2cE9cceC64FC22475323a0E55d58F7786588a16',
+  FRAX: '' // TODO
 }
 
 const totalBalances: Record<string, BigNumber> = {
@@ -37,7 +38,8 @@ const totalBalances: Record<string, BigNumber> = {
   USDT: parseUnits('2121836', 6),
   DAI: parseUnits('5000000', 18),
   ETH: parseUnits('3984', 18),
-  MATIC: parseUnits('731948.94', 18)
+  MATIC: parseUnits('731948.94', 18),
+  FRAX: parseUnits('0', 6)
 }
 
 const initialAggregateBalances: Record<string, BigNumber> = {
@@ -46,7 +48,8 @@ const initialAggregateBalances: Record<string, BigNumber> = {
   DAI: parseUnits('0', 18),
   ETH: parseUnits('0', 18),
   MATIC: parseUnits('0', 18),
-  WBTC: parseUnits('0', 8)
+  WBTC: parseUnits('0', 8),
+  FRAX: parseUnits('0', 8)
 }
 
 const initialAggregateNativeBalances: any = {
@@ -57,7 +60,8 @@ const initialAggregateNativeBalances: any = {
   DAI: {},
   ETH: {},
   MATIC: {},
-  WBTC: {}
+  WBTC: {},
+  FRAX: {}
 }
 
 const unstakedAmounts: Record<string, any> = {
@@ -87,7 +91,9 @@ const unstakedAmounts: Record<string, any> = {
   // 0xd8781ca9163e9f132a4d8392332e64115688013a
   MATIC: {},
   // 0x2A6303e6b99d451Df3566068EBb110708335658f
-  WBTC: {}
+  WBTC: {},
+  //
+  FRAX: {} // TODO
 }
 
 const restakedProfits: Record<string, any> = {
@@ -116,7 +122,9 @@ const restakedProfits: Record<string, any> = {
   // 0xd8781ca9163e9f132a4d8392332e64115688013a
   MATIC: {},
   // 0x2A6303e6b99d451Df3566068EBb110708335658f
-  WBTC: {}
+  WBTC: {},
+  //
+  FRAX: {} // TODO
 }
 
 const bonderAddresses: Record<string, string> = {
@@ -124,7 +132,8 @@ const bonderAddresses: Record<string, string> = {
   USDT: '0x15ec4512516d980090050fe101de21832c8edfee',
   DAI: '0x305933e09871D4043b5036e09af794FACB3f6170',
   ETH: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-  MATIC: '0xd8781ca9163e9f132a4d8392332e64115688013a'
+  MATIC: '0xd8781ca9163e9f132a4d8392332e64115688013a',
+  FRAX: '' // TODO
 }
 
 const etherscanUrls: Record<string, string> = {
@@ -162,7 +171,7 @@ type Options = {
 class BonderStats {
   db = new Db()
   days: number = 1
-  tokens?: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC']
+  tokens?: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC', 'FRAX']
   chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
 
   tokenDecimals: Record<string, number> = {
@@ -171,7 +180,8 @@ class BonderStats {
     DAI: 18,
     MATIC: 18,
     ETH: 18,
-    WBTC: 8
+    WBTC: 8,
+    FRAX: 18
   }
 
   constructor (options: Options = {}) {
@@ -336,7 +346,13 @@ class BonderStats {
     const maticPrice = priceMap.MATIC
     dbData.ethPrice = ethPrice
     dbData.maticPrice = maticPrice
-    dbData.totalFees = (Number(dbData.polygonTxFees || 0) * maticPrice) + Number(dbData.gnosisTxFees || 0) + ((Number(dbData.arbitrumTxFees || 0) + Number(dbData.optimismTxFees || 0) + Number(dbData.ethereumTxFees || 0)) * ethPrice)
+    dbData.totalFees =
+      Number(dbData.polygonTxFees || 0) * maticPrice +
+      Number(dbData.gnosisTxFees || 0) +
+      (Number(dbData.arbitrumTxFees || 0) +
+        Number(dbData.optimismTxFees || 0) +
+        Number(dbData.ethereumTxFees || 0)) *
+        ethPrice
     console.log(dbData.totalFees)
 
     try {
@@ -380,7 +396,8 @@ class BonderStats {
       this.getPriceHistory('dai', priceDays),
       this.getPriceHistory('ethereum', priceDays),
       this.getPriceHistory('matic-network', priceDays),
-      this.getPriceHistory('wrapped-bitcoin', priceDays)
+      this.getPriceHistory('wrapped-bitcoin', priceDays),
+      this.getPriceHistory('frax', priceDays)
     ])
     const prices: Record<string, any> = {
       USDC: pricesArr[0],
@@ -388,7 +405,8 @@ class BonderStats {
       DAI: pricesArr[2],
       ETH: pricesArr[3],
       MATIC: pricesArr[4],
-      WBTC: pricesArr[5]
+      WBTC: pricesArr[5],
+      FRAX: pricesArr[6]
     }
 
     return prices
@@ -673,7 +691,10 @@ class BonderStats {
                     dbData[`${chain}AliasAmount`] = aliasBalance
                       ? formatEther(aliasBalance.toString())
                       : 0
-                    console.log(`${chain} ${token} alias balance`, formatEther(aliasBalance.toString()))
+                    console.log(
+                      `${chain} ${token} alias balance`,
+                      formatEther(aliasBalance.toString())
+                    )
                   }
 
                   console.log(

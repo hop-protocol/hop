@@ -37,7 +37,6 @@ jobs:
 
   bump_version:
     name: Bump Version
-    if: "contains(github.ref, 'production')"
     runs-on: ubuntu-latest
     outputs:
       new_tag: ${{ steps.github_tag_action.outputs.new_tag }}
@@ -114,7 +113,7 @@ jobs:
 
       - name: Pin to Crust
         uses: crustio/ipfs-crust-action@v2.0.3
-        if: "contains(github.ref, 'production')"
+        if: contains(github.ref, 'production')
         continue-on-error: true
         timeout-minutes: 2
         with:
@@ -139,7 +138,7 @@ jobs:
 
       - name: Create GitHub Release
         id: create_release
-        if: ${{ needs.bump_version.outputs.new_tag != null }}
+        if: contains(github.ref, 'production') && ${{ needs.bump_version.outputs.new_tag != null }}
         uses: actions/create-release@v1.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

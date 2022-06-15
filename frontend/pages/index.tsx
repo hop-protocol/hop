@@ -733,7 +733,6 @@ const Index: NextPage = () => {
                   <option value="MATIC">MATIC</option>
                   <option value="ETH">ETH</option>
                   <option value="DAI">DAI</option>
-                  <option value="WBTC">WBTC</option>
                 </select>
               </div>
               <div>

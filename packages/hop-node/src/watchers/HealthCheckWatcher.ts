@@ -123,7 +123,7 @@ export type Config = {
 }
 
 export class HealthCheckWatcher {
-  tokens: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC']
+  tokens: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'FRAX']
   logger: Logger = new Logger('HealthCheckWatcher')
   s3Upload: S3Upload
   s3Filename: string
@@ -144,7 +144,8 @@ export class HealthCheckWatcher {
     USDT: parseUnits('2121836', 6),
     DAI: parseUnits('5000000', 18),
     ETH: parseUnits('4659', 18),
-    MATIC: parseUnits('731948.94', 18)
+    MATIC: parseUnits('731948.94', 18),
+    FRAX: parseUnits('0', 6)
   }
 
   bonderLowLiquidityThreshold: number = 0.10
@@ -502,7 +503,7 @@ export class HealthCheckWatcher {
     const now = DateTime.now().toUTC()
     const sourceChains = [Chain.Optimism, Chain.Arbitrum]
     const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum]
-    const tokens = ['USDC', 'USDT', 'DAI', 'ETH']
+    const tokens = ['USDC', 'USDT', 'DAI', 'ETH', 'FRAX']
     const startTime = Math.floor(now.minus({ days: this.days }).toSeconds())
     const endTime = Math.floor(now.toSeconds())
     let result: any[] = []

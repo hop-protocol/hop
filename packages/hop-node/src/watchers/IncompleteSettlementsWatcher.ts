@@ -35,7 +35,7 @@ class IncompleteSettlementsWatcher {
     Chain.Polygon
   ]
 
-  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC']
+  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'FRAX']
 
   days: number = 7
   offsetDays: number = 0

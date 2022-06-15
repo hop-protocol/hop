@@ -175,6 +175,39 @@ export const addresses: Addresses = {
         gnosis: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f'
       }
+    },
+    // TODO
+    FRAX: {
+      ethereum: {
+        optimism: '',
+        arbitrum: '',
+        gnosis: '',
+        polygon: ''
+      },
+      optimism: {
+        ethereum: '',
+        arbitrum: '',
+        gnosis: '',
+        polygon: ''
+      },
+      arbitrum: {
+        ethereum: '',
+        optimism: '',
+        gnosis: '',
+        polygon: ''
+      },
+      gnosis: {
+        ethereum: '',
+        arbitrum: '',
+        optimism: '',
+        polygon: ''
+      },
+      polygon: {
+        ethereum: '',
+        arbitrum: '',
+        gnosis: '',
+        optimism: ''
+      }
     }
   },
   bridges: {
@@ -512,6 +545,67 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x7191061D5d4C60f598214cC6913502184BAddf18',
         l2SaddleLpToken: '0xa16768F69667e2ec8ebacdD4c9A9092ae2fFe2ca',
         bridgeDeployedBlockNumber: 2481596
+      }
+    },
+    // TODO
+    FRAX: {
+      ethereum: {
+        l1CanonicalToken: '',
+        l1Bridge: '',
+        bridgeDeployedBlockNumber: 0 // TODO
+      },
+      gnosis: {
+        l1CanonicalBridge: '',
+        l1MessengerWrapper: '',
+        l2CanonicalBridge: '',
+        l2CanonicalToken: '',
+        l2Bridge: '',
+        l2HopBridgeToken: '',
+        l2AmmWrapper: '',
+        l2SaddleSwap: '',
+        l2SaddleLpToken: '',
+        l1Amb: '',
+        l2Amb: '',
+        bridgeDeployedBlockNumber: 0 // TODO
+      },
+      polygon: {
+        l1CanonicalBridge: '',
+        l1MessengerWrapper: '',
+        l2CanonicalBridge: '',
+        l2CanonicalToken: '',
+        l2Bridge: '',
+        l2HopBridgeToken: '',
+        l2AmmWrapper: '',
+        l2SaddleSwap: '',
+        l2SaddleLpToken: '',
+        l1FxBaseRootTunnel: '',
+        l1PosRootChainManager: '',
+        l1PosPredicate: '',
+        bridgeDeployedBlockNumber: 0 // TODO
+      },
+      optimism: {
+        l1CanonicalBridge: '',
+        l1MessengerWrapper: '',
+        l2CanonicalBridge: '',
+        l2CanonicalToken: '',
+        l2Bridge: '',
+        l2HopBridgeToken: '',
+        l2AmmWrapper: '',
+        l2SaddleSwap: '',
+        l2SaddleLpToken: '',
+        bridgeDeployedBlockNumber: 0 // TODO
+      },
+      arbitrum: {
+        l1CanonicalBridge: '',
+        l1MessengerWrapper: '',
+        l2CanonicalBridge: '',
+        l2CanonicalToken: '',
+        l2Bridge: '',
+        l2HopBridgeToken: '',
+        l2AmmWrapper: '',
+        l2SaddleSwap: '',
+        l2SaddleLpToken: '',
+        bridgeDeployedBlockNumber: 0 // TODO
       }
     }
   }

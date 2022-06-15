@@ -13,6 +13,7 @@ export type Fees = {
   MATIC?: Bps
   ETH?: Bps
   WBTC?: Bps
+  FRAX?: Bps
 }
 
 export type Config = {

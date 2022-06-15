@@ -43,6 +43,13 @@ export const config : Config = {
       gnosis: 25,
       optimism: 23,
       arbitrum: 23
+    },
+    FRAX: {
+      ethereum: 23,
+      polygon: 23,
+      gnosis: 25,
+      optimism: 23,
+      arbitrum: 23
     }
   },
   destinationFeeGasPriceMultiplier: 1.2

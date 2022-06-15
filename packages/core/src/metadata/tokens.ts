@@ -2,6 +2,7 @@ import {
   ARBImage,
   DAIImage,
   ETHImage,
+  FRAXImage,
   MATICImage,
   USDCImage,
   USDTImage,
@@ -72,5 +73,11 @@ export const tokens: Tokens = {
     name: 'Wrapped BTC',
     decimals: 8,
     image: WBTCImage
+  },
+  FRAX: {
+    symbol: 'FRAX',
+    name: 'Frax',
+    decimals: 18,
+    image: FRAXImage
   }
 }

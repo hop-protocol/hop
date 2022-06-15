@@ -50,7 +50,7 @@ jobs:
         uses: mathieudutour/github-tag-action@331898d5052eedac9b15fec867b5ba66ebf9b692
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          release_branches: mainnet
+          release_branches: production
           default_bump: patch
 
   build:

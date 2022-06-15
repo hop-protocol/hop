@@ -56,7 +56,7 @@ jobs:
   build:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: set_environment
+    needs: [set_environment, bump_version]
     environment:
       name: ${{ needs.set_environment.outputs.env_name }}
     env:
@@ -138,6 +138,7 @@ jobs:
 
       - name: Create GitHub Release
         id: create_release
+        if: ${{ needs.bump_version.outputs.new_tag != null }}
         uses: actions/create-release@v1.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

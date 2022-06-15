@@ -53,6 +53,7 @@ export enum CanonicalToken {
   WBTC = 'WBTC',
   sBTC = 'sBTC',
   sETH = 'sETH',
+  FRAX = 'FRAX'
 }
 
 export enum WrappedToken {
@@ -67,6 +68,7 @@ export enum HToken {
   hUSDC = 'hUSDC',
   hUSDT = 'hUSDT',
   hDAI = 'hDAI',
+  hFRAX= 'hFRAX'
 }
 
 export type TokenSymbol = CanonicalToken | WrappedToken | HToken | string

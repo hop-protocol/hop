@@ -181,31 +181,21 @@ export const addresses: Addresses = {
       ethereum: {
         optimism: '',
         arbitrum: '',
-        gnosis: '',
         polygon: ''
       },
       optimism: {
         ethereum: '',
         arbitrum: '',
-        gnosis: '',
         polygon: ''
       },
       arbitrum: {
         ethereum: '',
-        optimism: '',
-        gnosis: '',
-        polygon: ''
-      },
-      gnosis: {
-        ethereum: '',
-        arbitrum: '',
         optimism: '',
         polygon: ''
       },
       polygon: {
         ethereum: '',
         arbitrum: '',
-        gnosis: '',
         optimism: ''
       }
     }

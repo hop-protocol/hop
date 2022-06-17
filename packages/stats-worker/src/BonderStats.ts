@@ -39,7 +39,7 @@ const totalBalances: Record<string, BigNumber> = {
   DAI: parseUnits('5000000', 18),
   ETH: parseUnits('3984', 18),
   MATIC: parseUnits('731948.94', 18),
-  FRAX: parseUnits('0', 6)
+  FRAX: parseUnits('0', 18)
 }
 
 const initialAggregateBalances: Record<string, BigNumber> = {
@@ -49,7 +49,7 @@ const initialAggregateBalances: Record<string, BigNumber> = {
   ETH: parseUnits('0', 18),
   MATIC: parseUnits('0', 18),
   WBTC: parseUnits('0', 8),
-  FRAX: parseUnits('0', 8)
+  FRAX: parseUnits('0', 18)
 }
 
 const initialAggregateNativeBalances: any = {

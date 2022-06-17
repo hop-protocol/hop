@@ -30,7 +30,7 @@ const arbitrumAliases: Record<string, string> = {
   DAI: '0x482BfCa8246806b8dc09091d40005b9317dC751D',
   ETH: '0xF8c59bA692773251E78AD50293Cf4d64B67cbb8B',
   WBTC: '0xa2cE9cceC64FC22475323a0E55d58F7786588a16',
-  FRAX: '' // TODO
+  FRAX: '0xc9710fb63618a51d9959466d0b20c3a484241879'
 }
 
 const totalBalances: Record<string, BigNumber> = {

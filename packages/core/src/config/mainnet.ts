@@ -47,7 +47,6 @@ export const config : Config = {
     FRAX: {
       ethereum: 23,
       polygon: 23,
-      gnosis: 25,
       optimism: 23,
       arbitrum: 23
     }

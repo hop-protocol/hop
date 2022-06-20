@@ -57,7 +57,7 @@ export class Controller {
     const sourceChainSlug = params.sourceChainSlug
     const destinationChainSlug = params.destinationChainSlug
     const token = params.token
-    let bonded = params.bonded
+    const bondedStatus = params.bonded
     const bonderAddress = params.bonderAddress
     const accountAddress = params.accountAddress
     const amountFormatted = Number(params.amountFormatted)
@@ -69,11 +69,12 @@ export class Controller {
     const endDate = params.endDate
     let sortBy = params.sortBy
     const sortDirection = params.sortDirection
+    let bonded : any
 
-    if (bonded === 'pending') {
+    if (bondedStatus === 'pending') {
       bonded = false
     }
-    if (bonded === 'bonded') {
+    if (bondedStatus === 'bonded') {
       bonded = true
     }
 
@@ -191,7 +192,7 @@ export class Controller {
     })
     console.timeEnd('transfers ' + ts)
 
-    if (bonded === 'pending') {
+    if (bondedStatus === 'pending') {
       data = data.filter((x: any) => {
         return !x.bonded
       })

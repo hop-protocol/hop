@@ -226,7 +226,7 @@ function useData () {
       return {
         source: chainToIndexMapSource[x.sourceChainSlug],
         target: chainToIndexMapDestination[x.destinationChainSlug],
-        value: chartAmountSize ? x.amountFormatted : 1,
+        value: chartAmountSize ? x.amountUsd : 1,
         amountDisplay: x.amountDisplay,
         token: x.token,
         transferId: x.transferId

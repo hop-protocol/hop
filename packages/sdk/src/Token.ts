@@ -105,6 +105,12 @@ class Token extends Base {
     return tokenContract.allowance(address, spender)
   }
 
+  // TODO: docs
+  public async needsApproval (spender: string, amount: TAmount, address?: string) {
+    const allowance = await this.allowance(spender, address)
+    return allowance.lt(amount)
+  }
+
   /**
    * @desc Returns token balance of signer.
    * @param {String} spender - spender address.

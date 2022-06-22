@@ -33,6 +33,10 @@ import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata } from './config'
 import { getAddress as checksumAddress, parseUnits } from 'ethers/lib/utils'
 
+const s3FileCache : Record<string, any> = {}
+let s3FileCacheTimestamp: number = 0
+const cacheExpireMs = 1 * 60 * 1000
+
 type SendL1ToL2Input = {
   destinationChain: Chain
   sourceChain: Chain
@@ -1178,6 +1182,18 @@ class HopBridge extends Base {
   }
 
   async getBonderAvailableLiquidityData () {
+    const cached = s3FileCache[this.network]
+    const isExpired = s3FileCacheTimestamp + cacheExpireMs < Date.now()
+    if (cached && !isExpired) {
+      return cached
+    }
+    const data = await this.fetchBonderAvailableLiquidityData()
+    s3FileCache[this.network] = data
+    s3FileCacheTimestamp = Date.now()
+    return data
+  }
+
+  async fetchBonderAvailableLiquidityData () {
     const url = `https://assets.hop.exchange/${this.network}/v1-available-liquidity.json`
     const res = await fetch(url)
     const json = await res.json()

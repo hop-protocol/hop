@@ -1,9 +1,10 @@
-import { utils, BigNumber } from 'ethers'
+import { BigNumber } from 'ethers'
+import { solidityKeccak256 } from 'ethers/lib/utils'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
 
 function hashLeaf ([address, entry]: any) {
-  return utils.solidityKeccak256(['address', 'uint256'], [address, entry.balance])
+  return solidityKeccak256(['address', 'uint256'], [address, entry.balance])
 }
 
 export function getEntryProofIndex (address: string, entry: any, proof: any) {
@@ -16,10 +17,10 @@ export function getEntryProofIndex (address: string, entry: any, proof: any) {
 
     if (computedHash <= proofElement) {
       // Hash(current computed hash + current element of the proof)
-      computedHash = utils.solidityKeccak256(['bytes32', 'bytes32'], [computedHash, proofElement])
+      computedHash = solidityKeccak256(['bytes32', 'bytes32'], [computedHash, proofElement])
     } else {
       // Hash(current element of the proof + current computed hash)
-      computedHash = utils.solidityKeccak256(['bytes32', 'bytes32'], [proofElement, computedHash])
+      computedHash = solidityKeccak256(['bytes32', 'bytes32'], [proofElement, computedHash])
       index += 1
     }
   }

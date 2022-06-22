@@ -1,18 +1,26 @@
 import React from 'react'
+import Box from '@material-ui/core/Box'
 import { RewardsWidget } from './RewardsWidget'
-import { config } from './config'
+import { configs } from './config'
 
 export function Rewards() {
   return (
-    <RewardsWidget
-      requiredChainId={config.chainId}
-      rewardsContractAddress={config.rewardsContractAddress}
-      merkleBaseUrl={config.merkleBaseUrl}
-      token={{
-        symbol: 'OP',
-        decimals: 18
-      }}
-      title="Optimism Fee Refund"
-    />
+    <Box>
+      {configs.map((config: any, i) => {
+        return (
+          <RewardsWidget
+            key={i}
+            requiredChainId={config.chainId}
+            rewardsContractAddress={config.rewardsContractAddress}
+            merkleBaseUrl={config.merkleBaseUrl}
+            token={{
+              symbol: 'OP',
+              decimals: 18
+            }}
+            title="Optimism Fee Refund"
+          />
+        )
+      })}
+    </Box>
   )
 }

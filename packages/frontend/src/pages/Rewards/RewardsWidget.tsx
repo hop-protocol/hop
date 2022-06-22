@@ -91,7 +91,7 @@ export function RewardsWidget(props: Props) {
     getLatestRoot().catch(console.error)
   }, [contract, merkleBaseUrl])
 
-  useInterval(getLatestRoot, 5 * 1000)
+  useInterval(getLatestRoot, 10 * 1000)
 
   const getClaimableAmount = async () => {
     try {

@@ -317,7 +317,13 @@ export async function swap (input: SwapInput) {
       logger.warn(`dry: ${dryMode}, skipping approve tx`)
     } else {
       logger.debug('sending approve tx')
-      const tx = await wallet.sendTransaction(txData)
+
+      // RPC providers do not return a high enough Polygon gasPrice
+      let modifiedTxData: any = txData
+      if (chain === Chain.Polygon) {
+        modifiedTxData.gasPrice = '150000000000'
+      }
+      const tx = await wallet.sendTransaction(modifiedTxData)
       logger.debug('approval tx:', tx.hash)
       await tx.wait()
     }
@@ -347,7 +353,13 @@ export async function swap (input: SwapInput) {
     logger.warn(`dry: ${dryMode}, skipping dex swap tx`)
   } else {
     logger.debug('sending swap tx')
-    const tx = await wallet.sendTransaction(txData)
+
+    // RPC providers do not return a high enough Polygon gasPrice
+    let modifiedTxData: any = txData
+    if (chain === Chain.Polygon) {
+      modifiedTxData.gasPrice = '150000000000'
+    }
+    const tx = await wallet.sendTransaction(modifiedTxData)
     logger.debug('swap tx:', tx.hash)
     return tx
   }

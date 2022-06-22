@@ -33,7 +33,11 @@ export function RewardsWidget(props: Props) {
   const [loading, setLoading] = useState(true)
   const [claiming, setClaiming] = useState(false)
   const [claimableAmount, setClaimableAmount] = useState(BigNumber.from(0))
+  const [unclaimableAmount, setUnclaimableAmount] = useState(BigNumber.from(0))
+  const [entryTotal, setEntryTotal] = useState(BigNumber.from(0))
   const [onchainRoot, setOnchainRoot] = useState('')
+  const [latestRoot, setLatestRoot] = useState('')
+  const [latestRootTotal, setLatestRootTotal] = useState(BigNumber.from(0))
   const claimRecipient = address?.address
   const contract = useMemo(() => {
     try {
@@ -66,6 +70,29 @@ export function RewardsWidget(props: Props) {
 
   useInterval(getOnchainRoot, 10 * 1000)
 
+  const getLatestRoot = async () => {
+    try {
+      if (!merkleBaseUrl) {
+        return
+      }
+      const res = await fetch(`${merkleBaseUrl}/latest.json`)
+      const json = await res.json()
+      setLatestRoot(json.root)
+      const { root, total } = await ShardedMerkleTree.fetchRootFile(merkleBaseUrl, json.root)
+      if (root === json.root) {
+        setLatestRootTotal(total)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  useEffect(() => {
+    getLatestRoot().catch(console.error)
+  }, [contract, merkleBaseUrl])
+
+  useInterval(getLatestRoot, 5 * 1000)
+
   const getClaimableAmount = async () => {
     try {
       if (!(
@@ -87,6 +114,7 @@ export function RewardsWidget(props: Props) {
       const withdrawn = await contract.withdrawn(claimRecipient)
       const amount = total.sub(withdrawn)
       setClaimableAmount(amount)
+      setEntryTotal(total)
     } catch (err) {
       console.error(err)
       setClaimableAmount(BigNumber.from(0))
@@ -100,8 +128,51 @@ export function RewardsWidget(props: Props) {
 
   useInterval(getClaimableAmount, 10 * 1000)
 
+  const getUnclaimableAmount = async () => {
+    try {
+      if (!(
+        onchainRoot &&
+        latestRoot &&
+        contract &&
+        merkleBaseUrl &&
+        claimRecipient &&
+        claimableAmount &&
+        entryTotal
+      )) {
+        setUnclaimableAmount(BigNumber.from(0))
+        return
+      }
+      if (latestRoot === onchainRoot) {
+        setUnclaimableAmount(BigNumber.from(0))
+        return
+      }
+      const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, latestRoot)
+      const [entry] = await shardedMerkleTree.getProof(claimRecipient)
+      if (!entry) {
+        setUnclaimableAmount(BigNumber.from(0))
+        return
+      }
+      const total = BigNumber.from(entry.balance)
+      let amount = total.sub(entryTotal)
+      if (amount.lt(0)) {
+        amount = BigNumber.from(0)
+      }
+      setUnclaimableAmount(amount)
+    } catch (err) {
+      console.error(err)
+      setUnclaimableAmount(BigNumber.from(0))
+    }
+  }
+
+  useEffect(() => {
+    getUnclaimableAmount().catch(console.error)
+  }, [onchainRoot, claimRecipient, latestRoot, merkleBaseUrl, claimableAmount, entryTotal])
+
+  useInterval(getUnclaimableAmount, 10 * 1000)
+
   async function claim() {
     try {
+      setError('')
       if (!(
         contract &&
         provider &&
@@ -126,6 +197,7 @@ export function RewardsWidget(props: Props) {
       const totalAmount = BigNumber.from(entry.balance)
       const tx = await contract.connect(provider.getSigner()).claim(claimRecipient, totalAmount, proof)
       console.log(tx)
+      await tx.wait()
     } catch (err: any) {
       console.error(err)
       setError(formatError(err))
@@ -134,6 +206,7 @@ export function RewardsWidget(props: Props) {
   }
 
   const claimableAmountDisplay = toTokenDisplay(claimableAmount, token.decimals)
+  const unclaimableAmountDisplay = toTokenDisplay(unclaimableAmount, token.decimals)
 
   return (
     <Box maxWidth="500px" margin="0 auto" flexDirection="column" display="flex" justifyContent="center" textAlign="center">
@@ -162,6 +235,9 @@ export function RewardsWidget(props: Props) {
           <Box mb={4} display="flex" flexDirection="column" justifyContent="center" textAlign="center">
             <Typography variant="body1">
               Claimable: <strong>{claimableAmountDisplay} {token.symbol}</strong>
+            </Typography>
+            <Typography variant="body1">
+              Locked: {unclaimableAmountDisplay} {token.symbol}
             </Typography>
           </Box>
           <Box mb={2}>

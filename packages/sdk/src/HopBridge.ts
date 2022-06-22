@@ -1123,7 +1123,7 @@ class HopBridge extends Base {
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
     const bonder = this.getBonderAddress(sourceChain, destinationChain)
-    let [availableLiquidity, unbondedTransferRootAmount] = await Promise.all([
+    let [availableLiquidity, unbondedTransferRootAmount, tokenPrice] = await Promise.all([
       this.getBaseAvailableCreditIncludingVault(
         sourceChain,
         destinationChain
@@ -1131,7 +1131,8 @@ class HopBridge extends Base {
       this.getUnbondedTransferRootAmount(
         sourceChain,
         destinationChain
-      )
+      ),
+      this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
     ])
 
     // fetch on-chain if the data is not available from worker json file
@@ -1141,16 +1142,15 @@ class HopBridge extends Base {
 
     if (destinationChain.isL1) {
       let pendingAmounts = BigNumber.from(0)
-      for (const bondableChain of bondableChains) {
+      await Promise.all(bondableChains.map(async (bondableChain: string) => {
         const l2BridgeAddress = this.getL2BridgeAddress(this.tokenSymbol, bondableChain)
         if (l2BridgeAddress) {
           const bondableBridge = await this.getBridgeContract(bondableChain)
           const pendingAmount = await bondableBridge.pendingAmountForChainId(Chain.Ethereum.chainId)
           pendingAmounts = pendingAmounts.add(pendingAmount)
         }
-      }
+      }))
 
-      const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
       const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
       const bufferAmountBn = parseUnits(PendingAmountBuffer, token.decimals)
       const precision = parseUnits('1', token.decimals)

@@ -41,5 +41,5 @@ export function ExternalLink(props: Props) {
 }
 
 export function Link(props: Props & LinkProps) {
-  return <MuiLink {...props} />
+  return <MuiLink rel="noopener noreferrer" {...props} />
 }

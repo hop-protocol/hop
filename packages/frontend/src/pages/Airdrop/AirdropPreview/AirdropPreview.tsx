@@ -9,22 +9,25 @@ import Typography from '@material-ui/core/Typography'
 import { useDistribution } from './useDistribution'
 import Button from 'src/components/buttons/Button'
 import { useTheme } from '@material-ui/core'
-import { useApp } from 'src/contexts/AppContext'
 import { AddressModal } from './AddressModal'
 import { getAddress } from 'ethers/lib/utils'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ExternalLink } from 'src/components/Link'
+import { useHistory } from 'react-router-dom';
+import { useClaim } from 'src/pages/Claim/useClaim'
 
 export const respMaxWidths = [350, 624, 824]
 
 export function AirdropPreview() {
   const theme = useTheme()
+  const history = useHistory()
   const { address } = useWeb3Context()
   const [airdropAddress, setAirdropAddress] = useState<string>(address?.address || '')
   const [showAddressModal, setShowAddressModal] = useState<boolean>(false)
   const userDistribution = useDistribution(airdropAddress)
   const isEligible = userDistribution?.total >= 0.0001
   const isConnected = !!airdropAddress
+  const { canClaim, hasAlreadyClaimed } = useClaim()
 
   useEffect(() => {
     if (address?.address) {
@@ -167,7 +170,7 @@ export function AirdropPreview() {
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="body1" component="div">
                       Authereum User: <InfoTooltip
-              title={'Eligible tokens for being an Authereum user'} />
+              title={'Eligible tokens for being an Authereum user. If you submitted an address after Jun 8, then these tokens will be distributed via a governance proposal 6 months from claim date.'} />
                     </Typography>
                     <Typography variant="body1" component="div">
                       <strong>{userDistribution.authereumAmountFormatted} HOP</strong>
@@ -179,7 +182,7 @@ export function AirdropPreview() {
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="body1" component="div">
                       Twitter User: <InfoTooltip
-              title={'Eligible tokens for being a top active Twitter user'} />
+              title={'Eligible tokens for being a top active Twitter user. If you submitted an address after Jun 8, then these tokens will be distributed via a governance proposal 6 months from claim date.'} />
                     </Typography>
                     <Typography variant="body1" component="div">
                       <strong>{userDistribution.twitterAmountFormatted} HOP</strong>
@@ -191,7 +194,7 @@ export function AirdropPreview() {
                   <Box display="flex" justifyContent="space-between">
                     <Typography variant="body1" component="div">
                       Discord User: <InfoTooltip
-              title={'Eligible tokens for being a top active Discord user'} />
+              title={'Eligible tokens for being a top active Discord user. If you submitted an address after Jun 8, then these tokens will be distributed via a governance proposal 6 months from claim date.'} />
                     </Typography>
                     <Typography variant="body1" component="div">
                       <strong>{userDistribution.discordAmountFormatted} HOP</strong>
@@ -236,11 +239,27 @@ export function AirdropPreview() {
 
                 <Box display="flex" mt={2} mb={2}>
                   <Typography variant="body2" component="div" color="textSecondary">
-                    <em>The values above may change between now and the date of the token Airdrop. An announcement will be made by the Hop team on the official announcement channels when tokens are ready to be claimed. The account distribution data can be found on <ExternalLink href="https://github.com/hop-protocol/hop-airdrop/blob/master/src/data/finalDistribution.csv">github</ExternalLink>.</em>
+                    <em>The account distribution data can be found on <ExternalLink href="https://github.com/hop-protocol/governance">github</ExternalLink>. If you submitted a Twitter, Discord, or Authereum address after June 8, then the tokens will be distributed via a governance proposal 6 months from the claim date.</em>
                   </Typography>
                 </Box>
               </Box>
             </>
+          )}
+
+          {hasAlreadyClaimed && (
+            <Box m={2} display="flex" justifyContent="center">
+              <Alert severity="warning" text={'This account has already claimed HOP.'} />
+            </Box>
+          )}
+
+          {canClaim && (
+            <Box mt={2} mb={3} display="flex" justifyContent="center" width="100%">
+              <Button large highlighted onClick={() => {
+                  history.push('/claim')
+                }}>
+                Claim HOP
+              </Button>
+            </Box>
           )}
 
           <Box mt={2} display="flex" flexDirection="column" justifyContent="center" alignItems="center" width="100%">

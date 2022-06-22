@@ -176,8 +176,10 @@ class Token extends Base {
     spender: string,
     amount: TAmount = ethers.constants.MaxUint256
   ) {
-    const populatedTx = await this.populateApproveTx(spender, amount)
-    const allowance = await this.allowance(spender)
+    const [populatedTx, allowance] = await Promise.all([
+      this.populateApproveTx(spender, amount),
+      this.allowance(spender)
+    ])
     if (allowance.lt(BigNumber.from(amount))) {
       return this.sendTransaction(populatedTx, this.chain)
     }
@@ -333,7 +335,7 @@ class Token extends Base {
   private async getGasEstimateFromAddress () {
     let address = await this.getSignerAddress()
     if (!address) {
-      address = await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
+      address = this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
     }
     return address
   }

@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import Alert from 'src/components/alert/Alert'
 import Box from '@material-ui/core/Box'
-import Link from '@material-ui/core/Link'
 import Typography from '@material-ui/core/Typography'
 import { useQueryParams } from 'src/hooks'
 import { Input } from 'src/components/ui'
@@ -11,6 +10,7 @@ import { StyledButton } from 'src/components/buttons/StyledButton'
 import ReCAPTCHA from 'react-google-recaptcha'
 import CheckIcon from '@material-ui/icons/Check'
 import { updateQueryParams } from 'src/utils/updateQueryParams'
+import { ClaimDateMessage } from '../ClaimDateMessage'
 
 const captchaSiteKey = '6LfOm4cfAAAAAJWnWkKuh2hS91sgMUZw0T3rvOsT'
 
@@ -162,7 +162,7 @@ export function SocialVerified() {
           </Typography>
         </Box>
       </Box>
-
+      <ClaimDateMessage />
       <Box my={3} display="flex" flexDirection="column" justifyContent="center">
         <Input
           width={[320, 420]}

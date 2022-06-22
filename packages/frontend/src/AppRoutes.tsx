@@ -12,6 +12,7 @@ import Withdraw from 'src/pages/Withdraw'
 import Health from 'src/pages/Health'
 import TransactionPage from 'src/pages/Transaction'
 import { Div } from './components/ui'
+import { Claim } from 'src/pages/Claim'
 import SocialVerified from './pages/Airdrop/SocialVerified'
 import AuthereumVerified from './pages/Airdrop/AuthereumVerified'
 import { AirdropPreview } from './pages/Airdrop/AirdropPreview'
@@ -31,6 +32,7 @@ const AppRoutes: FC = () => {
           <Route exact path="/stake" component={Stake} />
           <Route exact path="/withdraw" component={Withdraw} />
           <Route exact path="/health" component={Health} />
+          <Route path="/claim" component={Claim} />
           <Route exact path="/airdrop/social-verify" component={SocialVerify} />
           <Route path="/airdrop/preview" component={AirdropPreview} />
           <Route exact path="/social-verified" component={SocialVerified} />

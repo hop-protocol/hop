@@ -23,7 +23,7 @@ const Icon = ({ src, width = [12, 18], alt, color, ...props }: ComposedStyleProp
     <StyledIcon
       src={src}
       width={width || 24}
-      alt={alt || `${src.slice(4)} icon`}
+      alt={alt === undefined ? `${src.slice(4)} icon` : alt}
       color={color}
       {...props}
     />

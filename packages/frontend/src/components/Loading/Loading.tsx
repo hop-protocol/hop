@@ -19,12 +19,29 @@ const rotation = keyframes`
   }
 `
 
+const reverseRotation = keyframes`
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+`
+
 const Center = styled.div<any>`
   ${squareDimensions};
   ${background};
   ${color};
   border-radius: 50%;
   background-color: ${({ theme }) => theme.palette.background.default};
+  ${({ imgSrc }) => imgSrc && `background: no-repeat center/100% url(${imgSrc})`};
+
+  animation: ${({ load }) =>
+    load
+      ? css`
+          ${reverseRotation} 0.5s infinite
+        `
+      : 'none'};
 `
 
 const LoadingWrapper: any = styled.div<any>`
@@ -53,18 +70,13 @@ const LoadingWrapper: any = styled.div<any>`
       : 'none'};
 `
 
-interface LoadingProps {
-  size?: number
-  load?: boolean
-}
-
-function Loading({ size = 24, load = true }: LoadingProps) {
+function Loading({ size = 24, load = true, imgSrc }: any) {
   const theme = useTheme()
 
   return (
     <Flex justifyCenter alignCenter>
       <LoadingWrapper load={load}>
-        <Center size={size - 6} theme={theme} />
+        <Center size={size - 6} theme={theme} imgSrc={imgSrc} load={load} />
       </LoadingWrapper>
     </Flex>
   )

@@ -14,6 +14,7 @@ interface StyleProps {
   loading?: boolean
   disabled?: boolean
   secondary?: boolean
+  fullWidth?: boolean
 }
 
 type StylishButtonProps = ComposedStyleProps & StyleProps
@@ -47,6 +48,7 @@ export const StyledButton = styled(Button)<StylishButtonProps>`
   }};
   ${({ highlighted, theme }: any) => (highlighted ? `color: white};` : theme.colors.primary.main)};
   ${({ secondary, theme }: any) => secondary && `color: ${theme.colors.secondary.main}`}
+  ${({ fullWidth, theme }: any) => fullWidth && `width: 100%`}
 
   ${composedStyleFns};
 `

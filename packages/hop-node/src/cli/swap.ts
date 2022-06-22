@@ -48,8 +48,8 @@ async function main (source: any) {
     throw new Error('from-token and to-token cannot be the same')
   }
 
-  const isWrapperDeposit = fromNative && isWrappedToken(toToken)
-  const isWrapperWithdrawal = isWrappedToken(fromToken) && toNative
+  const isWrapperDeposit = fromNative && isWrappedNativeToken(toToken, chain)
+  const isWrapperWithdrawal = isWrappedNativeToken(fromToken, chain) && toNative
   const fromTokenIsHToken = isHToken(fromToken)
   const toTokenIsHToken = isHToken(toToken)
   const isAmmSwap = fromTokenIsHToken || toTokenIsHToken
@@ -250,8 +250,16 @@ async function unwrapToken (chain: string, parsedAmount: BigNumber) {
   })
 }
 
-function isWrappedToken (token: string) {
-  return !!wrappedNativeToNative[token]
+function isWrappedNativeToken (token: string, chain: string) {
+  const isWrapped = !!wrappedNativeToNative[token]
+  if (isWrapped) {
+    const unwrappedToken = wrappedNativeToNative[token]
+    if (chainPerNativeToken[unwrappedToken].includes(chain)) {
+      return true
+    }
+  }
+
+  return false
 }
 
 function isValidChainWrapTokens (chain: string, nativeToken: string, wrappedToken: string) {
@@ -276,4 +284,10 @@ const nativeToWrappedNative: Record<string, string> = {
   ETH: 'WETH',
   MATIC: 'WMATIC',
   XDAI: 'WXDAI'
+}
+
+const chainPerNativeToken: Record<string, string[]> = {
+  ETH: ['mainnet', 'optimism', 'arbitrum'],
+  MATIC: ['polygon'],
+  XDAI: ['xdai']
 }

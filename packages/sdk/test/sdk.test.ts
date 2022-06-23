@@ -686,13 +686,13 @@ describe.skip('get estimated gas (no signer connected)', () => {
   })
 })
 
-describe.skip('price feed', () => {
+describe.skip('PriceFeed', () => {
   it('should return price', async () => {
     const hop = new Hop('mainnet')
-    const bridge = hop.bridge('USDC')
-    bridge.priceFeed.setApiKeys({
+    hop.setPriceFeedApiKeys({
       // coingecko: '123'
     })
+    const bridge = hop.bridge('USDC')
     const price = await bridge.priceFeed.getPriceByTokenSymbol('USDC')
     console.log(price)
     expect(price).toBeGreaterThan(0)

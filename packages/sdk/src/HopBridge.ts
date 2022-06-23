@@ -11,6 +11,7 @@ import { L2AmmWrapper__factory } from '@hop-protocol/core/contracts/factories/L2
 import { L2Bridge } from '@hop-protocol/core/contracts/L2Bridge'
 import { L2Bridge__factory } from '@hop-protocol/core/contracts/factories/L2Bridge__factory'
 
+import { ApiKeys, PriceFeed } from './priceFeed'
 import {
   BigNumber,
   BigNumberish,
@@ -28,7 +29,6 @@ import {
   TokenIndex,
   TokenSymbol
 } from './constants'
-import { PriceFeed } from './priceFeed'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata } from './config'
 import { getAddress as checksumAddress, parseUnits } from 'ethers/lib/utils'
@@ -124,7 +124,8 @@ class HopBridge extends Base {
   /** Default deadline for transfers */
   public defaultDeadlineMinutes = 7 * 24 * 60 // 1 week
 
-  public readonly priceFeed: PriceFeed
+  priceFeed: PriceFeed
+  priceFeedApiKeys: ApiKeys | null = null
 
   /**
    * @desc Instantiates Hop Bridge.
@@ -162,7 +163,7 @@ class HopBridge extends Base {
       throw new Error('token is required')
     }
 
-    this.priceFeed = new PriceFeed()
+    this.priceFeed = new PriceFeed(this.priceFeedApiKeys)
   }
 
   /**
@@ -181,12 +182,18 @@ class HopBridge extends Base {
    *```
    */
   public connect (signer: Signer) {
-    return new HopBridge(
+    const hopBridge = new HopBridge(
       this.network,
       signer,
       this.tokenSymbol,
       this.chainProviders
     )
+
+    if (this.priceFeedApiKeys) {
+      hopBridge.setPriceFeedApiKeys(this.priceFeedApiKeys)
+    }
+
+    return hopBridge
   }
 
   public getL1Token () {
@@ -2162,6 +2169,11 @@ class HopBridge extends Base {
     this.checkConnectedChain(this.signer, chain)
     const bridge = await this.getBridgeContract(chain)
     return bridge.withdraw(...txOptions)
+  }
+
+  setPriceFeedApiKeys (apiKeys: ApiKeys = {}) {
+    this.priceFeedApiKeys = apiKeys
+    this.priceFeed.setApiKeys(this.priceFeedApiKeys)
   }
 }
 

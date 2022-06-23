@@ -8,7 +8,7 @@ const cache: {
   }
 } = {}
 
-type ApiKeys = {
+export type ApiKeys = {
   coingecko?: string
 }
 
@@ -28,17 +28,20 @@ class PriceFeed {
     WXDAI: 'DAI'
   }
 
-  constructor () {
+  constructor (apiKeysMap: ApiKeys = {}) {
+    if (apiKeysMap) {
+      this.apiKeys = apiKeysMap
+    }
     this.setServices()
   }
 
-  setApiKeys (apiKeysMap: ApiKeys) {
+  setApiKeys (apiKeysMap: ApiKeys = {}) {
     this.apiKeys = apiKeysMap
     this.setServices()
   }
 
   private setServices () {
-    this.services = [new CoinGecko(this.apiKeys.coingecko), new Coinbase()]
+    this.services = [new CoinGecko(this.apiKeys?.coingecko), new Coinbase()]
   }
 
   async getPriceByTokenSymbol (tokenSymbol: string) {

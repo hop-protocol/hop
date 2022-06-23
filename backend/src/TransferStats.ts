@@ -557,9 +557,50 @@ class TransferStats {
     }
     console.log('done upserting prices')
     await Promise.all([
-      this.trackAllDailyTransfers(),
-      this.trackDailyTransfers()
+      // this.trackAllDailyTransfers(),
+      this.trackHourlyTransfers(1, 60 * 1000),
+      wait(60 * 1000).then(() => {
+        return this.trackHourlyTransfers(6, 20 * 60 * 1000)
+      }),
+      wait(60 * 60 * 1000).then(() => {
+        this.trackDailyTransfers()
+      })
     ])
+  }
+
+  async trackHourlyTransfers (hours: number, delay: number) {
+    await this.tilReady()
+    while (true) {
+      try {
+        console.log('tracking hourly transfers, hours: ', hours)
+        const now = DateTime.now().toUTC()
+        const startTime = Math.floor(now.minus({ hour: hours }).toSeconds())
+        const endTime = Math.floor(now.toSeconds())
+
+        console.log('fetching all transfers data for hour', startTime)
+        const items = await this.getTransfersBetweenDates(startTime, endTime)
+        console.log('items:', items.length)
+        for (const item of items) {
+          let retries = 0
+          while (retries < 5) {
+            try {
+              await this.upsertItem(item)
+              break
+            } catch (err: any) {
+              console.error('upsert error:', err)
+              console.log(item)
+              await wait(10 * 1000)
+              retries++
+            }
+          }
+        }
+
+        console.log('done fetching transfers data for hours:', hours)
+      } catch (err) {
+        console.error(err)
+      }
+      await wait(delay)
+    }
   }
 
   async trackDailyTransfers () {
@@ -573,7 +614,7 @@ class TransferStats {
       } catch (err) {
         console.error(err)
       }
-      await wait(60 * 1000)
+      await wait(24 * 60 * 1000)
     }
   }
 
@@ -601,19 +642,16 @@ class TransferStats {
     console.log('fetching all transfers data for day', startDate)
     const items = await this.getTransfersForDay(startDate)
     console.log('items:', items.length)
-    for (const item of items) {
-      let retries = 0
-      while (retries < 5) {
-        try {
-          await this.upsertItem(item)
-          break
-        } catch (err: any) {
-          console.error('upsert error:', err)
-          console.log(item)
-          await wait(10 * 1000)
-          retries++
-        }
+    const chunkSize = 1000
+    const allChunks = chunk(items, chunkSize)
+    for (const chunkedItems of allChunks) {
+      for (const item of chunkedItems) {
+        this.upsertItem(item)
+          .catch((err: any) => {
+            console.error('upsert error:', err)
+          })
       }
+      await wait(1 * 1000)
     }
 
     console.log('done fetching transfers data')
@@ -850,10 +888,14 @@ class TransferStats {
   }
 
   async getTransfersForDay (filterDate: string) {
-    let data :any[] = []
     const endDate = DateTime.fromFormat(filterDate, 'yyyy-MM-dd').toUTC().plus({ days: 1 }).endOf('day')
-    let startTime = Math.floor(endDate.minus({ days: 1 }).startOf('day').toSeconds())
-    let endTime = Math.floor(endDate.toSeconds())
+    const startTime = Math.floor(endDate.minus({ days: 1 }).startOf('day').toSeconds())
+    const endTime = Math.floor(endDate.toSeconds())
+    return this.getTransfersBetweenDates(startTime, endTime)
+  }
+
+  async getTransfersBetweenDates (startTime: number, endTime: number) {
+    let data :any[] = []
     const [
       gnosisTransfers,
       polygonTransfers,

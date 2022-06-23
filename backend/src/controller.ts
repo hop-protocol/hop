@@ -203,8 +203,8 @@ export class Controller {
         const timestamp = data?.[0]?.timestamp
         const bonded = data?.[0]?.bonded
         if (timestamp && !bonded) {
-          const startDate = DateTime.fromSeconds(timestamp).toFormat('yyyy-MM-dd')
-          this.worker?.transferStats?.updateTransferDataForDay(startDate)
+          // const startDate = DateTime.fromSeconds(timestamp).toFormat('yyyy-MM-dd')
+          // this.worker?.transferStats?.updateTransferDataForDay(startDate)
         }
       }
     }

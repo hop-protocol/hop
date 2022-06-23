@@ -297,14 +297,13 @@ export default class L2Bridge extends Bridge {
     deadline: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
-    // Polygon's and Optimism's gas estimates do not always work for this call. They result in an OOG
-    // with either a failed tx or a successful tx with a failed AMM swap
-    if (
-      this.chainSlug === Chain.Polygon ||
-      this.chainSlug === Chain.Optimism
-    ) {
-      txOverrides.gasLimit = 500_000
+
+    // Define a max gasLimit in order to avoid gas siphoning
+    let gasLimit = 500_000
+    if (this.chainSlug === Chain.Arbitrum) {
+      gasLimit = 1_000_000
     }
+    txOverrides.gasLimit = gasLimit
 
     const payload = [
       recipient,

@@ -50,8 +50,8 @@ export class Controller {
   }
 
   async getTransfers (params: any) {
-    const ts = Date.now()
-    console.time('transfers ' + ts)
+    const _key = `transfers-${Date.now()}-${Math.random()}`
+    console.time(_key)
     let page = Number(params.page || 0)
     let perPage = Number(params.perPage || 100)
     const sourceChainSlug = params.sourceChainSlug
@@ -190,7 +190,7 @@ export class Controller {
 
       return x
     })
-    console.timeEnd('transfers ' + ts)
+    console.timeEnd(_key)
 
     if (bondedStatus === 'pending') {
       data = data.filter((x: any) => {

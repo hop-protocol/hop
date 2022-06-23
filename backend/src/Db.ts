@@ -105,7 +105,7 @@ class Db {
     )
 
     await this.db.query(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_transfers_chain_token_timestamp ON transfers (source_chain_id, destination_chain_id, token, amount, timestamp);'
+      'DROP INDEX IF EXISTS idx_transfers_chain_token_timestamp;'
     )
 
     await this.db.query(

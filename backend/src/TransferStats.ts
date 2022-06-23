@@ -204,6 +204,10 @@ class TransferStats {
       chain = 'xdai'
     }
 
+    if (chain === 'ethereum') {
+      chain = 'mainnet'
+    }
+
     if (this.regenesis) {
       return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
     }
@@ -230,18 +234,18 @@ class TransferStats {
     return jsonRes.data
   }
 
-  async fetchTransfers (chain: string, startTime: number, endTime: number, skip?: number) {
+  async fetchTransfers (chain: string, startTime: number, endTime: number, lastId?: string) {
     const queryL1 = `
-      query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String, $account: String) {
+      query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
         transferSents: transferSentToL2S(
           where: {
             timestamp_gte: $startTime,
-            timestamp_lte: $endTime
+            timestamp_lte: $endTime,
+            id_gt: $lastId
           },
           first: $perPage,
-          orderBy: timestamp,
-          orderDirection: desc,
-          skip: $skip
+          orderBy: id,
+          orderDirection: asc
         ) {
           id
           destinationChainId
@@ -258,16 +262,16 @@ class TransferStats {
       }
     `
     const queryL2 = `
-      query TransferSents($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int, $transferId: String, $account: String) {
+      query TransferSents($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
         transferSents(
           where: {
             timestamp_gte: $startTime,
-            timestamp_lte: $endTime
+            timestamp_lte: $endTime,
+            id_gt: $lastId
           },
           first: $perPage,
-          orderBy: timestamp,
-          orderDirection: desc,
-          skip: $skip
+          orderBy: id,
+          orderDirection: asc
         ) {
           id
           transferId
@@ -286,20 +290,20 @@ class TransferStats {
     `
     const url = this.getUrl(chain)
     let query = queryL1
-    if (chain !== 'mainnet') {
+    if (chain !== 'ethereum') {
       query = queryL2
     }
-    if (!skip) {
-      skip = 0
+    if (!lastId) {
+      lastId = '0'
     }
     const data = await this.queryFetch(url, query, {
       perPage: 1000,
       startTime,
       endTime,
-      skip
+      lastId
     })
 
-    let transfers = (data ? data.transferSents.concat(data.transferSents2) : [])
+    let transfers = data.transferSents
       .filter((x: any) => x)
       .map((x: any) => {
         x.destinationChainId = Number(x.destinationChainId)
@@ -308,11 +312,12 @@ class TransferStats {
 
     if (transfers.length === 1000) {
       try {
+        lastId = transfers[transfers.length - 1].id
         transfers = transfers.concat(...(await this.fetchTransfers(
           chain,
           startTime,
           endTime,
-          skip + 1000
+          lastId
         )))
       } catch (err: any) {
         if (!err.message.includes('The `skip` argument must be between')) {
@@ -321,7 +326,8 @@ class TransferStats {
       }
     }
 
-    return transfers
+    const sorted = transfers.sort((a: any, b: any) => b.timestamp - a.timestamp)
+    return sorted
   }
 
   async fetchBonds (chain: string, transferIds: string[]) {
@@ -859,7 +865,7 @@ class TransferStats {
       enabledChains.includes('polygon') ? this.fetchTransfers('polygon', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('optimism') ? this.fetchTransfers('optimism', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('arbitrum') ? this.fetchTransfers('arbitrum', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? this.fetchTransfers('mainnet', startTime, endTime) : Promise.resolve([])
+      enabledChains.includes('ethereum') ? this.fetchTransfers('ethereum', startTime, endTime) : Promise.resolve([])
     ])
 
     for (const x of gnosisTransfers) {
@@ -968,7 +974,7 @@ class TransferStats {
       enabledChains.includes('polygon') ? this.fetchBonds('polygon', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('optimism') ? this.fetchBonds('optimism', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('arbitrum') ? this.fetchBonds('arbitrum', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? this.fetchBonds('mainnet', filterTransferIds) : Promise.resolve([])
+      enabledChains.includes('ethereum') ? this.fetchBonds('ethereum', filterTransferIds) : Promise.resolve([])
     ])
 
     const [
@@ -982,7 +988,7 @@ class TransferStats {
       enabledChains.includes('polygon') ? this.fetchWithdrews('polygon', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('optimism') ? this.fetchWithdrews('optimism', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('arbitrum') ? this.fetchWithdrews('arbitrum', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? this.fetchWithdrews('mainnet', filterTransferIds) : Promise.resolve([])
+      enabledChains.includes('ethereum') ? this.fetchWithdrews('ethereum', filterTransferIds) : Promise.resolve([])
     ])
 
     const [
@@ -1109,8 +1115,7 @@ class TransferStats {
       USDC: '0xa81D244A1814468C734E5b4101F7b9c0c577a8fC',
       USDT: '0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61',
       DAI: '0x7191061D5d4C60f598214cC6913502184BAddf18',
-      ETH: '0x83f6244Bd87662118d96D9a6D44f09dffF14b30E',
-      FRAX: '' // TODO
+      ETH: '0x83f6244Bd87662118d96D9a6D44f09dffF14b30E'
     }
 
     const bridgeAddress = bridgeAddresses[token]

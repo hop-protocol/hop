@@ -1,17 +1,14 @@
 import { useInterval } from 'react-use'
-import toHex from 'to-hex'
 import Clipboard from 'clipboard'
-import {ethers} from 'ethers'
 import * as luxon from 'luxon'
 import type {NextPage} from 'next'
-import {chunk} from 'lodash'
 import Head from 'next/head'
 import Image from 'next/image'
 import Script from 'next/script'
-import React, {useEffect, useState, useCallback} from 'react'
+import React, {useEffect, useState } from 'react'
 
 let apiBaseUrl = 'https://explorer-api.hop.exchange'
-if (process.env.NEXT_REACT_APP_LOCAL) {
+if (process.env.NEXT_PUBLIC_LOCAL) {
   apiBaseUrl = 'http://localhost:8000'
 }
 

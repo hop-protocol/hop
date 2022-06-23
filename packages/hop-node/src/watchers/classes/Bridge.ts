@@ -437,6 +437,14 @@ export default class Bridge extends ContractBase {
     bonderFee: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
+
+    // Define a max gasLimit in order to avoid gas siphoning
+    let gasLimit = 500_000
+    if (this.chainSlug === Chain.Arbitrum) {
+      gasLimit = 1_000_000
+    }
+    txOverrides.gasLimit = gasLimit
+
     const payload = [
       recipient,
       amount,
@@ -444,11 +452,6 @@ export default class Bridge extends ContractBase {
       bonderFee,
       txOverrides
     ] as const
-
-    if (this.chainSlug === Chain.Ethereum) {
-      const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-      ;(payload[payload.length - 1] as TxOverrides).gasLimit = gasLimit.add(50_000)
-    }
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
     return tx

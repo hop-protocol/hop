@@ -4,6 +4,7 @@ export { default as HopBridge } from './HopBridge'
 export { default as CanonicalBridge } from './CanonicalBridge'
 export { default as AMM } from './AMM'
 export { default as Token } from './Token'
+export { default as Base } from './Base'
 
 export { Chain } from './models'
 export { Route } from './models'

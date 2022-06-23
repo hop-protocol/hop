@@ -33,6 +33,10 @@ import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata } from './config'
 import { getAddress as checksumAddress, parseUnits } from 'ethers/lib/utils'
 
+const s3FileCache : Record<string, any> = {}
+let s3FileCacheTimestamp: number = 0
+const cacheExpireMs = 1 * 60 * 1000
+
 type SendL1ToL2Input = {
   destinationChain: Chain
   sourceChain: Chain
@@ -1123,7 +1127,7 @@ class HopBridge extends Base {
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
     const bonder = this.getBonderAddress(sourceChain, destinationChain)
-    let [availableLiquidity, unbondedTransferRootAmount] = await Promise.all([
+    let [availableLiquidity, unbondedTransferRootAmount, tokenPrice] = await Promise.all([
       this.getBaseAvailableCreditIncludingVault(
         sourceChain,
         destinationChain
@@ -1131,7 +1135,8 @@ class HopBridge extends Base {
       this.getUnbondedTransferRootAmount(
         sourceChain,
         destinationChain
-      )
+      ),
+      this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
     ])
 
     // fetch on-chain if the data is not available from worker json file
@@ -1141,16 +1146,15 @@ class HopBridge extends Base {
 
     if (destinationChain.isL1) {
       let pendingAmounts = BigNumber.from(0)
-      for (const bondableChain of bondableChains) {
+      await Promise.all(bondableChains.map(async (bondableChain: string) => {
         const l2BridgeAddress = this.getL2BridgeAddress(this.tokenSymbol, bondableChain)
         if (l2BridgeAddress) {
           const bondableBridge = await this.getBridgeContract(bondableChain)
           const pendingAmount = await bondableBridge.pendingAmountForChainId(Chain.Ethereum.chainId)
           pendingAmounts = pendingAmounts.add(pendingAmount)
         }
-      }
+      }))
 
-      const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
       const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
       const bufferAmountBn = parseUnits(PendingAmountBuffer, token.decimals)
       const precision = parseUnits('1', token.decimals)
@@ -1178,6 +1182,18 @@ class HopBridge extends Base {
   }
 
   async getBonderAvailableLiquidityData () {
+    const cached = s3FileCache[this.network]
+    const isExpired = s3FileCacheTimestamp + cacheExpireMs < Date.now()
+    if (cached && !isExpired) {
+      return cached
+    }
+    const data = await this.fetchBonderAvailableLiquidityData()
+    s3FileCache[this.network] = data
+    s3FileCacheTimestamp = Date.now()
+    return data
+  }
+
+  async fetchBonderAvailableLiquidityData () {
     const url = `https://assets.hop.exchange/${this.network}/v1-available-liquidity.json`
     const res = await fetch(url)
     const json = await res.json()

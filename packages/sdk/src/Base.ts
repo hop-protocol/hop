@@ -235,7 +235,7 @@ class Base {
    * @param {Object} - Chain name or model.
    * @returns {Object} - Chain model with connected provider.
    */
-  public toChainModel (chain: TChain) {
+  public toChainModel (chain: TChain): Chain {
     if (typeof chain === 'string') {
       chain = Chain.fromSlug(chain)
     }

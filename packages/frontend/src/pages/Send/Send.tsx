@@ -149,7 +149,7 @@ const Send: FC = () => {
       return
     }
 
-    let amount
+    let amount : any
     if (amountOut) {
       amount = toTokenDisplay(amountOut, destToken.decimals)
     }
@@ -521,7 +521,7 @@ const Send: FC = () => {
       isLiquidityAvailable &&
       estimatedReceived?.gt(0) &&
       !manualError &&
-      (!disabledTx || disabledTx.warningOnly) &&
+      (!disabledTx || disabledTx?.warningOnly) &&
       (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet)
     )
   }, [

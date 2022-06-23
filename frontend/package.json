@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "NEXT_REACT_APP_LOCAL=true next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

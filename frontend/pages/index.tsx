@@ -10,6 +10,11 @@ import Image from 'next/image'
 import Script from 'next/script'
 import React, {useEffect, useState, useCallback} from 'react'
 
+let apiBaseUrl = 'https://explorer-api.hop.exchange'
+if (process.env.NEXT_REACT_APP_LOCAL) {
+  apiBaseUrl = 'http://localhost:8000'
+}
+
 function Spinner() {
   useEffect(() => {
     const duration = 600
@@ -107,8 +112,6 @@ function updateQueryParams (params: any) {
 }
 
 const queryTransfers = async (params: any) => {
-  // const apiBaseUrl = 'http://localhost:8000'
-  const apiBaseUrl = 'https://explorer-api.hop.exchange'
   let filtered: any = {}
   for (const key in params) {
     if (params[key]) {

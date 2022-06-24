@@ -387,13 +387,14 @@ class Db {
       amountUsdCmp,
       transferId,
       startTimestamp,
-      endTimestamp
+      endTimestamp,
+      countOnly
     } = params
     const count = perPage
     const skip = (page * perPage)
 
-    const queryParams = []
-    const whereClauses = []
+    let queryParams = []
+    let whereClauses = []
 
     const sortDirection = params.sortDirection ? params.sortDirection?.toUpperCase() : 'DESC'
     const sortBy = params.sortBy || 'timestamp'
@@ -485,7 +486,7 @@ class Db {
 
     const whereClause = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : ''
 
-    const sql = `
+    let sql = `
         SELECT
           id,
           transfer_id AS "transferId",
@@ -546,6 +547,47 @@ class Db {
         OFFSET
           $2
         `
+
+    if (countOnly) {
+      i = 1
+      queryParams = []
+      whereClauses = []
+
+      if (sourceChainSlug) {
+        whereClauses.push(`source_chain_slug = $${i++}`)
+        queryParams.push(sourceChainSlug)
+      }
+
+      if (destinationChainSlug) {
+        whereClauses.push(`destination_chain_slug = $${i++}`)
+        queryParams.push(destinationChainSlug)
+      }
+
+      if (token) {
+        whereClauses.push(`token = $${i++}`)
+        queryParams.push(token)
+      }
+
+      if (startTimestamp) {
+        whereClauses.push(`timestamp >= $${i++}`)
+        queryParams.push(startTimestamp)
+      }
+
+      if (endTimestamp) {
+        whereClauses.push(`timestamp <= $${i++}`)
+        queryParams.push(endTimestamp)
+      }
+
+      const whereClause = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : ''
+
+      sql = `
+        SELECT
+          COUNT(*) AS "count"
+        FROM
+          transfers
+        ${whereClause}
+        `
+    }
 
     return this.db.any(sql, queryParams)
   }

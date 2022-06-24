@@ -57,7 +57,8 @@ app.get('/v1/transfers', responseCache, async (req: any, res: any) => {
       startDate,
       endDate,
       sortBy,
-      sortDirection
+      sortDirection,
+      countOnly
     } = req.query
     const data = await controller.getTransfers({
       page,
@@ -77,7 +78,8 @@ app.get('/v1/transfers', responseCache, async (req: any, res: any) => {
       startDate,
       endDate,
       sortBy,
-      sortDirection
+      sortDirection,
+      countOnly
     })
     res.status(200).json({ status: 'ok', data })
   } catch (err) {

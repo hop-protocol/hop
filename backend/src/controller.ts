@@ -70,6 +70,7 @@ export class Controller {
     const endDate = params.endDate
     let sortBy = params.sortBy
     const sortDirection = params.sortDirection
+    const countOnly = params.countOnly
     let bonded : any
 
     if (bondedStatus === 'pending') {
@@ -149,8 +150,12 @@ export class Controller {
       endTimestamp,
       startTimestamp,
       sortBy,
-      sortDirection
+      sortDirection,
+      countOnly
     })
+    if (countOnly) {
+      return { count: transfers }
+    }
     let data = (transfers as any[]).map((x: any, i: number) => {
       x.sourceChainId = Number(x.sourceChainId)
       x.destinationChainId = Number(x.destinationChainId)

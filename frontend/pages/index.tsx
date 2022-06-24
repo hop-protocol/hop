@@ -156,6 +156,7 @@ function useData () {
   const [filterAmountUsdComparator, setFilterAmountUsdComparator] = useState(queryParams.amountUsdCmp || 'gt')
   const [filterBonder, setFilterBonder] = useState(queryParams.bonder || '')
   const [filterAccount, setFilterAccount] = useState(queryParams.account || '')
+  const [filterRecipient, setFilterRecipient] = useState(queryParams.recipient || '')
   const [filterTransferId, setFilterTransferId] = useState(queryParams.transferId || '')
   const [chartAmountSize, setChartAmountSize] = useState(false)
   const [chartSelection, setChartSelection] = useState('')
@@ -316,6 +317,7 @@ function useData () {
         amountUsdCmp: filterAmountUsdComparator,
         bonder: filterBonder,
         account: filterAccount,
+        recipient: filterRecipient,
         transferId: filterTransferId,
       })
       if (Array.isArray(populatedData)) {
@@ -422,6 +424,12 @@ function useData () {
     updateQueryParams({ account: value })
   }
 
+  function updateFilterRecipient (event: any) {
+    const value = event.target.value
+    setFilterRecipient(value)
+    updateQueryParams({ recipient: value })
+  }
+
   function updateFilterTransferId (event: any) {
     const value = event.target.value
     setFilterTransferId(value)
@@ -473,7 +481,7 @@ function useData () {
 
   useEffect(() => {
     refreshTransfers()
-  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonder, filterAccount, filterTransferId, filterStartDate, filterEndDate, filterSortBy, filterSortDirection, page, perPage])
+  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonder, filterAccount, filterRecipient, filterTransferId, filterStartDate, filterEndDate, filterSortBy, filterSortDirection, page, perPage])
 
   function resetPage () {
     setPage(0)
@@ -495,6 +503,7 @@ function useData () {
     setFilterAmountUsdComparator('gt')
     setFilterBonder('')
     setFilterAccount('')
+    setFilterRecipient('')
     setFilterTransferId('')
     setChartAmountSize(false)
     setPage(0)
@@ -557,6 +566,8 @@ function useData () {
     updateFilterAmountUsd,
     filterAccount,
     updateFilterAccount,
+    filterRecipient,
+    updateFilterRecipient,
     filterTransferId,
     updateFilterTransferId,
     transfers,
@@ -612,6 +623,8 @@ const Index: NextPage = () => {
     updateFilterAmountUsd,
     filterAccount,
     updateFilterAccount,
+    filterRecipient,
+    updateFilterRecipient,
     filterTransferId,
     updateFilterTransferId,
     transfers,
@@ -773,6 +786,10 @@ const Index: NextPage = () => {
               <div>
                 <label>Account:</label>
                 <input className="filterAccount" value={filterAccount} onChange={updateFilterAccount} placeholder="Account address" />
+              </div>
+              <div>
+                <label>Recipient:</label>
+                <input className="filterRecipient" value={filterRecipient} onChange={updateFilterRecipient} placeholder="Recipient address" />
               </div>
               <div>
                 <label>Start Date:</label>

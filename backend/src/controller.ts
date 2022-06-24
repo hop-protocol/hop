@@ -60,6 +60,7 @@ export class Controller {
     const bondedStatus = params.bonded
     const bonderAddress = params.bonderAddress
     const accountAddress = params.accountAddress
+    const recipientAddress = params.recipientAddress
     const amountFormatted = Number(params.amountFormatted)
     const amountFormattedCmp = params.amountFormattedCmp
     const amountUsd = Number(params.amountUsd)
@@ -79,6 +80,10 @@ export class Controller {
     }
 
     if (page <= 0) {
+      page = 0
+    }
+
+    if (transferId) {
       page = 0
     }
 
@@ -107,11 +112,11 @@ export class Controller {
         source: 'source_chain_slug',
         destination: 'destination_chain_slug',
         account: 'account_address',
+        recipient: 'recipient_address',
         bonder: 'bonder_address',
         bonded: 'bonded',
         bonderFee: 'bonder_fee',
         bonderFeeUsd: 'bonder_fee_usd',
-        recipient: 'recipient_address',
         transferId: 'transfer_id',
         bondTimestamp: 'bond_timestamp',
         bondWithinTimestamp: 'bond_within_timestamp',
@@ -135,6 +140,7 @@ export class Controller {
       bonded,
       bonderAddress,
       accountAddress,
+      recipientAddress,
       amountFormatted,
       amountFormattedCmp,
       amountUsd,

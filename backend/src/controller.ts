@@ -202,9 +202,9 @@ export class Controller {
       if (data.length) {
         const timestamp = data?.[0]?.timestamp
         const bonded = data?.[0]?.bonded
-        if (timestamp && !bonded) {
-          // const startDate = DateTime.fromSeconds(timestamp).toFormat('yyyy-MM-dd')
-          // this.worker?.transferStats?.updateTransferDataForDay(startDate)
+        const shouldCheck = timestamp && !bonded
+        if (shouldCheck) {
+          this.worker?.transferStats?.updateTransferDataForTransferId(transferId)
         }
       }
     }

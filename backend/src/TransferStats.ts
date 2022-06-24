@@ -330,6 +330,109 @@ class TransferStats {
     return sorted
   }
 
+  async fetchTransfersForTransferId (chain: string, transferId: string) {
+    const queryL1TransferId = `
+      query TransferSentToL2($transferId: String) {
+        transferSents: transferSentToL2S(
+          where: {
+            id: $transferId
+          }
+        ) {
+          id
+          destinationChainId
+          amount
+          amountOutMin
+          relayerFee
+          recipient
+          deadline
+          transactionHash
+          timestamp
+          token
+          from
+        }
+      }
+    `
+    const queryL1TxHash = `
+      query TransferSentToL2($transferId: String) {
+        transferSents: transferSentToL2S(
+          where: {
+            transactionHash: $transferId
+          }
+        ) {
+          id
+          destinationChainId
+          amount
+          amountOutMin
+          relayerFee
+          recipient
+          deadline
+          transactionHash
+          timestamp
+          token
+          from
+        }
+      }
+    `
+    const queryL2 = `
+      query TransferSents($transferId: String) {
+        transferSents: transferSents(
+          where: {
+            transferId: $transferId
+          }
+        ) {
+          id
+          transferId
+          destinationChainId
+          amount
+          amountOutMin
+          bonderFee
+          recipient
+          deadline
+          transactionHash
+          timestamp
+          token
+          from
+        },
+        transferSents2: transferSents(
+          where: {
+            transactionHash: $transferId
+          }
+        ) {
+          id
+          transferId
+          destinationChainId
+          amount
+          amountOutMin
+          bonderFee
+          recipient
+          deadline
+          transactionHash
+          timestamp
+          token
+          from
+        }
+      }
+    `
+    const url = this.getUrl(chain)
+    let query = transferId.length === 66 ? queryL1TxHash : queryL1TransferId
+    if (chain !== 'ethereum') {
+      transferId = padHex(transferId)
+      query = queryL2
+    }
+    const data = await this.queryFetch(url, query, {
+      transferId
+    })
+
+    const transfers = data.transferSents.concat(data.transferSents2 || [])
+      .filter((x: any) => x)
+      .map((x: any) => {
+        x.destinationChainId = Number(x.destinationChainId)
+        return x
+      })
+
+    return transfers
+  }
+
   async fetchBonds (chain: string, transferIds: string[]) {
     const query = `
       query WithdrawalBondeds($transferIds: [String]) {
@@ -509,7 +612,7 @@ class TransferStats {
       } catch (err) {
         console.error('prices error:', err)
       }
-      await wait(60 * 60 * 1000)
+      await wait(30 * 60 * 1000)
     }
   }
 
@@ -655,6 +758,47 @@ class TransferStats {
     }
 
     console.log('done fetching transfers data')
+  }
+
+  async getTransferIdEvents (transferId: string) {
+    const [
+      gnosisTransfers,
+      polygonTransfers,
+      optimismTransfers,
+      arbitrumTransfers,
+      mainnetTransfers
+    ] = await Promise.all([
+      enabledChains.includes('gnosis') ? this.fetchTransfersForTransferId('gnosis', transferId) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? this.fetchTransfersForTransferId('polygon', transferId) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? this.fetchTransfersForTransferId('optimism', transferId) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? this.fetchTransfersForTransferId('arbitrum', transferId) : Promise.resolve([]),
+      enabledChains.includes('ethereum') ? this.fetchTransfersForTransferId('ethereum', transferId) : Promise.resolve([])
+    ])
+
+    return {
+      gnosisTransfers,
+      polygonTransfers,
+      optimismTransfers,
+      arbitrumTransfers,
+      mainnetTransfers
+    }
+  }
+
+  async updateTransferDataForTransferId (transferId: string) {
+    const events = await this.getTransferIdEvents(transferId)
+    const data = await this.normalizeTransferEvents(events)
+    const items = await this.getRemainingData(data)
+
+    for (const item of items) {
+      try {
+        console.log('upserting', item.transferId)
+        await this.upsertItem(item)
+        break
+      } catch (err: any) {
+        console.error('upsert error:', err)
+        console.log(item)
+      }
+    }
   }
 
   async upsertItem (item: any) {
@@ -894,8 +1038,7 @@ class TransferStats {
     return this.getTransfersBetweenDates(startTime, endTime)
   }
 
-  async getTransfersBetweenDates (startTime: number, endTime: number) {
-    let data :any[] = []
+  async getTransferEventsBetweenDates (startTime: number, endTime: number) {
     const [
       gnosisTransfers,
       polygonTransfers,
@@ -909,6 +1052,25 @@ class TransferStats {
       enabledChains.includes('arbitrum') ? this.fetchTransfers('arbitrum', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('ethereum') ? this.fetchTransfers('ethereum', startTime, endTime) : Promise.resolve([])
     ])
+
+    return {
+      gnosisTransfers,
+      polygonTransfers,
+      optimismTransfers,
+      arbitrumTransfers,
+      mainnetTransfers
+    }
+  }
+
+  async normalizeTransferEvents (events: any) {
+    const {
+      gnosisTransfers,
+      polygonTransfers,
+      optimismTransfers,
+      arbitrumTransfers,
+      mainnetTransfers
+    } = events
+    const data :any[] = []
 
     for (const x of gnosisTransfers) {
       data.push({
@@ -990,9 +1152,13 @@ class TransferStats {
       })
     }
 
+    return data
+  }
+
+  async getRemainingData (data: any[]) {
     data = data.sort((a, b) => b.timestamp - a.timestamp)
-    startTime = data.length ? data[data.length - 1].timestamp : 0
-    endTime = data.length ? data[0].timestamp : 0
+    let startTime = data.length ? data[data.length - 1].timestamp : 0
+    let endTime = data.length ? data[0].timestamp : 0
 
     if (startTime) {
       startTime = Math.floor(DateTime.fromSeconds(startTime).minus({ days: 1 }).toSeconds())
@@ -1148,6 +1314,12 @@ class TransferStats {
       })
 
     return populatedData
+  }
+
+  async getTransfersBetweenDates (startTime: number, endTime: number) {
+    const events = await this.getTransferEventsBetweenDates(startTime, endTime)
+    const data = await this.normalizeTransferEvents(events)
+    return this.getRemainingData(data)
   }
 
   async getPreRegenesisBondEvent (transferId: string, token: string) {

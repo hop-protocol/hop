@@ -5,8 +5,8 @@ services:
     container_name: metabase
     hostname: metabase
     restart: unless-stopped
+    network_mode: mynetwork
     volumes:
     - ./metabase-db:/metabase.db
-    - ./db/sqlite3.db:/sqlite3.db
     ports:
       - 3000:3000

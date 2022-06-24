@@ -441,7 +441,7 @@ export default class Bridge extends ContractBase {
     // Define a max gasLimit in order to avoid gas siphoning
     let gasLimit = 500_000
     if (this.chainSlug === Chain.Arbitrum) {
-      gasLimit = 1_500_000
+      gasLimit = 2_000_000
     }
     txOverrides.gasLimit = gasLimit
 

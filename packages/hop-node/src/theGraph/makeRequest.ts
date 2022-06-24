@@ -39,6 +39,7 @@ async function _makeRequest (
   })
   const jsonRes = await res.json()
   if (Array.isArray(jsonRes.errors) && jsonRes.errors.length) {
+    console.error('query:', query)
     throw new Error(jsonRes.errors[0].message)
   }
   return jsonRes.data

@@ -4,6 +4,7 @@ import makeRequest from './makeRequest'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { chunk, uniqBy } from 'lodash'
+import { constants } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { padHex } from 'src/utils/padHex'
 
@@ -418,18 +419,18 @@ async function fetchWithdrews (chain: Chain, startTime: number, endTime: number,
   return withdrawals
 }
 
-async function fetchTransferFromL1Completeds (chain: Chain, startTime: number, endTime: number, skip?: number) {
+async function fetchTransferFromL1Completeds (chain: Chain, startTime: number, endTime: number, lastId: string = constants.AddressZero) {
   const query = `
-    query TransferFromL1Completed($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
+    query TransferFromL1Completed($perPage: Int, $startTime: Int, $endTime: Int, $lastId: ID) {
       events: transferFromL1Completeds(
         where: {
           timestamp_gte: $startTime,
-          timestamp_lte: $endTime
+          timestamp_lte: $endTime,
+          id_gt: $lastId
         },
-        first: $perPage,
-        orderBy: timestamp,
-        orderDirection: desc,
-        skip: $skip
+        first: 1000,
+        orderBy: id,
+        orderDirection: asc
       ) {
         recipient
         amount
@@ -442,30 +443,22 @@ async function fetchTransferFromL1Completeds (chain: Chain, startTime: number, e
     }
   `
 
-  if (!skip) {
-    skip = 0
-  }
   const data = await makeRequest(chain, query, {
-    perPage: 1000,
     startTime,
     endTime,
-    skip
+    lastId
   })
 
   let events = data.events || []
-  if (events.length === 1000) {
-    try {
-      events = events.concat(...(await fetchTransferFromL1Completeds(
-        chain,
-        startTime,
-        endTime,
-        skip + 1000
-      )))
-    } catch (err: any) {
-      if (!err.message.includes('The `skip` argument must be between')) {
-        throw err
-      }
-    }
+  const maxItemsLength = 1000
+  if (events.length === maxItemsLength) {
+    lastId = events[events.length - 1].id
+    events = events.concat(...(await fetchTransferFromL1Completeds(
+      chain,
+      startTime,
+      endTime,
+      lastId
+    )))
   }
 
   return events

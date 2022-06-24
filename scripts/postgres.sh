@@ -16,3 +16,5 @@ docker run \
         -v $PWD/pgdata:/var/lib/postgresql/data \
         -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
         postgres
+
+# docker run -it --name=psql --rm --net=mynetwork postgres psql -h pg -U postgres

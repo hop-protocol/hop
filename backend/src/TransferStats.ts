@@ -662,8 +662,14 @@ class TransferStats {
     await Promise.all([
       // this.trackAllDailyTransfers(),
       this.trackHourlyTransfers(1, 60 * 1000),
-      wait(60 * 1000).then(() => {
-        return this.trackHourlyTransfers(6, 20 * 60 * 1000)
+      wait(1 * 60 * 1000).then(() => {
+        return this.trackHourlyTransfers(6, 30 * 60 * 1000)
+      }),
+      wait(15 * 60 * 1000).then(() => {
+        return this.trackHourlyTransfers(12, 2 * 60 * 60 * 1000)
+      }),
+      wait(30 * 60 * 1000).then(() => {
+        return this.trackHourlyTransfers(24, 12 * 60 * 60 * 1000)
       }),
       wait(60 * 60 * 1000).then(() => {
         this.trackDailyTransfers()
@@ -717,7 +723,7 @@ class TransferStats {
       } catch (err) {
         console.error(err)
       }
-      await wait(24 * 60 * 1000)
+      await wait(24 * 60 * 60 * 1000)
     }
   }
 

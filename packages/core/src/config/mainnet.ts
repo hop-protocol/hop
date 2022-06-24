@@ -31,11 +31,11 @@ export const config : Config = {
       arbitrum: 0
     },
     ETH: {
-      ethereum: 5,
-      polygon: 5,
-      gnosis: 12,
-      optimism: 5,
-      arbitrum: 5
+      ethereum: 7,
+      polygon: 7,
+      gnosis: 15,
+      optimism: 7,
+      arbitrum: 7
     },
     WBTC: {
       ethereum: 23,

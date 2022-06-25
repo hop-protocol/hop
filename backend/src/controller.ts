@@ -1,3 +1,4 @@
+import mcache from 'memory-cache'
 import Db, { getInstance } from './Db'
 import { DateTime } from 'luxon'
 import Worker from './worker'
@@ -210,11 +211,18 @@ export class Controller {
     }
 
     if (transferId) {
-      if (data.length) {
-        const timestamp = data?.[0]?.timestamp
-        const bonded = data?.[0]?.bonded
-        const shouldCheck = timestamp && !bonded
-        if (shouldCheck) {
+      const key = `__worker__checking__${transferId}`
+      const alreadyChecking = mcache.get(key)
+      if (!alreadyChecking) {
+        mcache.put(key, true, 60 * 1000)
+        if (data.length) {
+          const item = data?.[0]
+          const { timestamp, bonded, bondTransactionHash } = item
+          const shouldCheck = (timestamp && !bonded) || (bonded && !bondTransactionHash)
+          if (shouldCheck) {
+            this.worker?.transferStats?.updateTransferDataForTransferId(transferId)
+          }
+        } else {
           this.worker?.transferStats?.updateTransferDataForTransferId(transferId)
         }
       }

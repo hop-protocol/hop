@@ -311,23 +311,16 @@ class TransferStats {
       })
 
     if (transfers.length === 1000) {
-      try {
-        lastId = transfers[transfers.length - 1].id
-        transfers = transfers.concat(...(await this.fetchTransfers(
-          chain,
-          startTime,
-          endTime,
-          lastId
-        )))
-      } catch (err: any) {
-        if (!err.message.includes('The `skip` argument must be between')) {
-          throw err
-        }
-      }
+      lastId = transfers[transfers.length - 1].id
+      transfers = transfers.concat(...(await this.fetchTransfers(
+        chain,
+        startTime,
+        endTime,
+        lastId
+      )))
     }
 
-    const sorted = transfers.sort((a: any, b: any) => b.timestamp - a.timestamp)
-    return sorted
+    return transfers
   }
 
   async fetchTransfersForTransferId (chain: string, transferId: string) {
@@ -521,19 +514,20 @@ class TransferStats {
     return withdrawals
   }
 
-  async fetchTransferFromL1Completeds (chain: string, startTime: number, endTime: number, skip?: number) {
+  async fetchTransferFromL1Completeds (chain: string, startTime: number, endTime: number, lastId = '0') {
     const query = `
-      query TransferFromL1Completed($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
+      query TransferFromL1Completed($startTime: Int, $endTime: Int, $lastId: ID) {
         events: transferFromL1Completeds(
           where: {
             timestamp_gte: $startTime,
-            timestamp_lte: $endTime
+            timestamp_lte: $endTime,
+            id_gt: $lastId
           },
-          first: $perPage,
-          orderBy: timestamp,
-          orderDirection: desc,
-          skip: $skip
+          first: 1000,
+          orderBy: id,
+          orderDirection: asc
         ) {
+          id
           recipient
           amount
           amountOutMin
@@ -546,30 +540,21 @@ class TransferStats {
     `
 
     const url = this.getUrl(chain)
-    if (!skip) {
-      skip = 0
-    }
     const data = await this.queryFetch(url, query, {
-      perPage: 1000,
       startTime,
       endTime,
-      skip
+      lastId
     })
     let events = data.events || []
 
     if (events.length === 1000) {
-      try {
-        events = events.concat(...(await this.fetchTransferFromL1Completeds(
-          chain,
-          startTime,
-          endTime,
-          skip + 1000
-        )))
-      } catch (err: any) {
-        if (!err.message.includes('The `skip` argument must be between')) {
-          throw err
-        }
-      }
+      lastId = events[events.length - 1].id
+      events = events.concat(...(await this.fetchTransferFromL1Completeds(
+        chain,
+        startTime,
+        endTime,
+        lastId
+      )))
     }
 
     return events
@@ -793,8 +778,13 @@ class TransferStats {
   }
 
   async updateTransferDataForTransferId (transferId: string) {
+    console.log('fetching data for transferId', transferId)
     const events = await this.getTransferIdEvents(transferId)
     const data = await this.normalizeTransferEvents(events)
+    if (!data?.length) {
+      console.log('no data for transferId', transferId)
+      return
+    }
     const items = await this.getRemainingData(data)
 
     for (const item of items) {
@@ -1164,6 +1154,9 @@ class TransferStats {
   }
 
   async getRemainingData (data: any[]) {
+    if (!data.length) {
+      return []
+    }
     data = data.sort((a, b) => b.timestamp - a.timestamp)
     let startTime = data.length ? data[data.length - 1].timestamp : 0
     let endTime = data.length ? data[0].timestamp : 0
@@ -1173,7 +1166,7 @@ class TransferStats {
     }
 
     if (endTime) {
-      endTime = Math.floor(DateTime.fromSeconds(endTime).plus({ days: 1 }).toSeconds())
+      endTime = Math.floor(DateTime.fromSeconds(endTime).plus({ days: 2 }).toSeconds())
     }
 
     const transferIds = data.map(x => x.transferId)

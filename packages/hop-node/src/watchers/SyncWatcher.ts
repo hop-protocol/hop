@@ -1252,9 +1252,6 @@ class SyncWatcher extends BaseWatcher {
 
     while (true) {
       try {
-        const txOverrides = await this.bridge.txOverrides()
-        txOverrides.from = bonder
-
         const timestamp = Math.floor(Date.now() / 1000)
         const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
         const payload = [
@@ -1262,7 +1259,9 @@ class SyncWatcher extends BaseWatcher {
           amount,
           transferNonce,
           bonderFee,
-          txOverrides
+          {
+            from: bonder
+          }
         ] as const
         const gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
         const tx = await bridgeContract.populateTransaction.bondWithdrawal(...payload)
@@ -1276,7 +1275,9 @@ class SyncWatcher extends BaseWatcher {
             bonderFee,
             amountOutMin,
             deadline,
-            txOverrides
+            {
+              from: bonder
+            }
           ] as const
           const gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
           const tx = await bridgeContract.populateTransaction.bondWithdrawalAndDistribute(...payload)

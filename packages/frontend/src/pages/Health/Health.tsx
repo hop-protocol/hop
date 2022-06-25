@@ -95,7 +95,7 @@ export const populateIncompleteSettlements = (item: any) => {
     unsettledTransfers,
     unsettledTransferBonders,
     unbondedTransfers: unbondedTransfers.length,
-    isConfirmed: `${item.isConfirmed}`,
+    isConfirmed: item.isConfirmed
   }
 }
 

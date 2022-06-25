@@ -4,14 +4,13 @@ import makeRequest from './makeRequest'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { chunk, uniqBy } from 'lodash'
-import { constants } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { padHex } from 'src/utils/padHex'
 
 export async function getUnbondedTransfers (days: number, offsetDays: number = 0) {
   const endDate = DateTime.now().toUTC()
   const startTime = Math.floor(endDate.minus({ days: days + offsetDays }).startOf('day').toSeconds())
-  const endTime = Math.floor(endDate.minus({ days: offsetDays }).plus({ days: 2 }).toSeconds())
+  const endTime = Math.floor(endDate.minus({ days: offsetDays }).plus({ days: 1 }).toSeconds())
 
   const transfers = await getTransfersData(startTime, endTime)
   return transfers.filter((x: any) => !x.bonded)
@@ -419,9 +418,9 @@ async function fetchWithdrews (chain: Chain, startTime: number, endTime: number,
   return withdrawals
 }
 
-async function fetchTransferFromL1Completeds (chain: Chain, startTime: number, endTime: number, lastId: string = constants.AddressZero) {
+async function fetchTransferFromL1Completeds (chain: Chain, startTime: number, endTime: number, lastId: string = '0') {
   const query = `
-    query TransferFromL1Completed($perPage: Int, $startTime: Int, $endTime: Int, $lastId: ID) {
+    query TransferFromL1Completed($startTime: Int, $endTime: Int, $lastId: ID) {
       events: transferFromL1Completeds(
         where: {
           timestamp_gte: $startTime,
@@ -432,6 +431,7 @@ async function fetchTransferFromL1Completeds (chain: Chain, startTime: number, e
         orderBy: id,
         orderDirection: asc
       ) {
+        id
         recipient
         amount
         amountOutMin

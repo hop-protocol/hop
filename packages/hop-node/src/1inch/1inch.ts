@@ -319,7 +319,7 @@ export async function swap (input: SwapInput) {
       logger.debug('sending approve tx')
 
       // RPC providers do not return a high enough Polygon gasPrice
-      let modifiedTxData: any = txData
+      const modifiedTxData: any = txData
       if (chain === Chain.Polygon) {
         modifiedTxData.gasPrice = '150000000000'
       }
@@ -355,7 +355,7 @@ export async function swap (input: SwapInput) {
     logger.debug('sending swap tx')
 
     // RPC providers do not return a high enough Polygon gasPrice
-    let modifiedTxData: any = txData
+    const modifiedTxData: any = txData
     if (chain === Chain.Polygon) {
       modifiedTxData.gasPrice = '150000000000'
     }

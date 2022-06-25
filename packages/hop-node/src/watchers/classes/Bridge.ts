@@ -1,4 +1,4 @@
-import ContractBase, { TxOverrides } from './ContractBase'
+import ContractBase from './ContractBase'
 import Logger from 'src/logger'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'

@@ -140,9 +140,9 @@ async function main (source: any) {
 
     let amountOut: BigNumber
     if (fromTokenIsHToken) {
-      amountOut = await amm.calculateToHTokensAmount(amountIn)
-    } else {
       amountOut = await amm.calculateFromHTokensAmount(amountIn)
+    } else {
+      amountOut = await amm.calculateToHTokensAmount(amountIn)
     }
 
     const slippageToleranceBps = (slippage || 0.5) * 100

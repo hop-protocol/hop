@@ -10,7 +10,7 @@ import { padHex } from 'src/utils/padHex'
 export async function getUnbondedTransfers (days: number, offsetDays: number = 0) {
   const endDate = DateTime.now().toUTC()
   const startTime = Math.floor(endDate.minus({ days: days + offsetDays }).startOf('day').toSeconds())
-  const endTime = Math.floor(endDate.minus({ days: offsetDays }).plus({ days: 2 }).toSeconds())
+  const endTime = Math.floor(endDate.minus({ days: offsetDays }).plus({ days: 1 }).toSeconds())
 
   const transfers = await getTransfersData(startTime, endTime)
   return transfers.filter((x: any) => !x.bonded)
@@ -418,19 +418,20 @@ async function fetchWithdrews (chain: Chain, startTime: number, endTime: number,
   return withdrawals
 }
 
-async function fetchTransferFromL1Completeds (chain: Chain, startTime: number, endTime: number, skip?: number) {
+async function fetchTransferFromL1Completeds (chain: Chain, startTime: number, endTime: number, lastId: string = '0') {
   const query = `
-    query TransferFromL1Completed($perPage: Int, $startTime: Int, $endTime: Int, $skip: Int) {
+    query TransferFromL1Completed($startTime: Int, $endTime: Int, $lastId: ID) {
       events: transferFromL1Completeds(
         where: {
           timestamp_gte: $startTime,
-          timestamp_lte: $endTime
+          timestamp_lte: $endTime,
+          id_gt: $lastId
         },
-        first: $perPage,
-        orderBy: timestamp,
-        orderDirection: desc,
-        skip: $skip
+        first: 1000,
+        orderBy: id,
+        orderDirection: asc
       ) {
+        id
         recipient
         amount
         amountOutMin
@@ -442,30 +443,22 @@ async function fetchTransferFromL1Completeds (chain: Chain, startTime: number, e
     }
   `
 
-  if (!skip) {
-    skip = 0
-  }
   const data = await makeRequest(chain, query, {
-    perPage: 1000,
     startTime,
     endTime,
-    skip
+    lastId
   })
 
   let events = data.events || []
-  if (events.length === 1000) {
-    try {
-      events = events.concat(...(await fetchTransferFromL1Completeds(
-        chain,
-        startTime,
-        endTime,
-        skip + 1000
-      )))
-    } catch (err: any) {
-      if (!err.message.includes('The `skip` argument must be between')) {
-        throw err
-      }
-    }
+  const maxItemsLength = 1000
+  if (events.length === maxItemsLength) {
+    lastId = events[events.length - 1].id
+    events = events.concat(...(await fetchTransferFromL1Completeds(
+      chain,
+      startTime,
+      endTime,
+      lastId
+    )))
   }
 
   return events

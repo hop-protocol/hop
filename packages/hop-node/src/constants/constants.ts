@@ -56,7 +56,7 @@ export const TotalBlocks = {
   Polygon: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Polygon),
   Gnosis: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Gnosis)
 }
-export const DefaultBatchBlocks = 2000
+export const DefaultBatchBlocks = 10000
 
 export const TenSecondsMs = 10 * 1000
 export const TenMinutesMs = 10 * 60 * 1000

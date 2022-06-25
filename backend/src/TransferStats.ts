@@ -670,10 +670,12 @@ class TransferStats {
       }),
       wait(30 * 60 * 1000).then(() => {
         return this.trackHourlyTransfers(24, 12 * 60 * 60 * 1000)
-      }),
+      })
+      /*
       wait(60 * 60 * 1000).then(() => {
         this.trackDailyTransfers()
       })
+      */
     ])
   }
 

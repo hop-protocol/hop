@@ -92,8 +92,8 @@ export class Controller {
       perPage = 0
     }
 
-    if (perPage > 500) {
-      perPage = 500
+    if (perPage > 100) {
+      perPage = 100
     }
 
     let startTimestamp :any

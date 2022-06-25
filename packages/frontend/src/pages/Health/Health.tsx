@@ -150,7 +150,7 @@ function useData() {
         setLowAvailableLiquidityBonders(result.data.lowAvailableLiquidityBonders)
       }
       if (Array.isArray(result?.data?.unbondedTransfers)) {
-        setUnbondedTransfers(result.data.unbondedTransfers)
+        setUnbondedTransfers(result.data.unbondedTransfers.filter((x: any) => Number(x.bonderFeeFormatted) > 0.001))
       }
       if (Array.isArray(result?.data?.unbondedTransferRoots)) {
         setUnbondedTransferRoots(result.data.unbondedTransferRoots)

@@ -150,7 +150,16 @@ function useData() {
         setLowAvailableLiquidityBonders(result.data.lowAvailableLiquidityBonders)
       }
       if (Array.isArray(result?.data?.unbondedTransfers)) {
-        setUnbondedTransfers(result.data.unbondedTransfers.filter((x: any) => Number(x.bonderFeeFormatted) > 0.001))
+        const filtered = result.data.unbondedTransfers.filter((x: any) => {
+          if (x.destinationChain === 'ethereum') {
+            return Number(x.bonderFeeFormatted) > 0.001
+          }
+          if (['USDC', 'USDT', 'DAI'].includes(x.token)) {
+            return Number(x.bonderFeeFormatted) > 0.25
+          }
+          return Number(x.bonderFeeFormatted) > 0.0001
+        })
+        setUnbondedTransfers(filtered)
       }
       if (Array.isArray(result?.data?.unbondedTransferRoots)) {
         setUnbondedTransferRoots(result.data.unbondedTransferRoots)

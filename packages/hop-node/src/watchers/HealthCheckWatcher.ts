@@ -216,6 +216,7 @@ export class HealthCheckWatcher {
       } catch (err) {
         this.logger.error('poll error:', err)
       }
+      this.logger.debug('poll complete, waiting interval for next poll')
       await wait(this.pollIntervalSeconds * 1000)
     }
   }

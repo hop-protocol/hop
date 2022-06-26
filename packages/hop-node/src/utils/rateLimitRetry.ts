@@ -25,8 +25,8 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         const errMsg = err.message
         const rateLimitErrorRegex = /(rate limit|too many concurrent requests|exceeded|socket hang up)/i
         const timeoutErrorRegex = /(timeout|time-out|time out|timedout|timed out)/i
-        const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED|SERVER_ERROR)/i
-        const badResponseErrorRegex = /(bad response|response error|missing response|processing response error)/i
+        const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED|SERVER_ERROR|EPROTO)/i
+        const badResponseErrorRegex = /(bad response|response error|missing response|processing response error|invalid json response body|FetchError)/i
         const revertErrorRegex = /revert/i
 
         const isRateLimitError = rateLimitErrorRegex.test(errMsg)

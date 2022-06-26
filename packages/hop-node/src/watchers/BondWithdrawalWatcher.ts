@@ -76,10 +76,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
         continue
       }
 
-      logger.debug('db poll completed')
-      promises.push(this.checkTransferId(transferId).catch(err => {
-        this.logger.error('checkTransferId error:', err)
-      }))
+      this.checkTransferId(transferId)
+      // logger.debug('db poll completed')
+      // promises.push(this.checkTransferId(transferId).catch(err => {
+      //   this.logger.error('checkTransferId error:', err)
+      // }))
     }
 
     await Promise.all(promises)

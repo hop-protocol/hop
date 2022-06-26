@@ -17,6 +17,7 @@ export async function getUnbondedTransfers (days: number, offsetDays: number = 0
 }
 
 async function getTransfersData (startTime: number, endTime: number) {
+  console.log('getTransfersData: fetching transfers')
   let data: any[] = []
   const [
     gnosisTransfers,
@@ -31,6 +32,8 @@ async function getTransfersData (startTime: number, endTime: number) {
     fetchTransfers(Chain.Arbitrum, startTime, endTime),
     fetchTransfers(Chain.Ethereum, startTime, endTime)
   ])
+
+  console.log('getTransfersData: got transfers')
 
   for (const x of gnosisTransfers) {
     data.push({
@@ -121,6 +124,8 @@ async function getTransfersData (startTime: number, endTime: number) {
 
   const transferIds = data.map(x => x.transferId)
 
+  console.log('getTransfersData: fetching bonds')
+
   const [
     gnosisBondedWithdrawals,
     polygonBondedWithdrawals,
@@ -134,6 +139,9 @@ async function getTransfersData (startTime: number, endTime: number) {
     fetchBonds(Chain.Arbitrum, transferIds),
     fetchBonds(Chain.Ethereum, transferIds)
   ])
+
+  console.log('getTransfersData: got bonds')
+  console.log('getTransfersData: fetching withdrews')
 
   const [
     gnosisWithdrews,
@@ -149,6 +157,9 @@ async function getTransfersData (startTime: number, endTime: number) {
     fetchWithdrews(Chain.Ethereum, startTime, endTime)
   ])
 
+  console.log('getTransfersData: got withdrews')
+  console.log('getTransfersData: fetching L1 completeds')
+
   const [
     gnosisFromL1Completeds,
     polygonFromL1Completeds,
@@ -161,6 +172,8 @@ async function getTransfersData (startTime: number, endTime: number) {
     fetchTransferFromL1Completeds(Chain.Arbitrum, startTime, endTime)
   ])
 
+  console.log('getTransfersData: got L1 completeds')
+
   const gnosisBonds = [...gnosisBondedWithdrawals, ...gnosisWithdrews]
   const polygonBonds = [...polygonBondedWithdrawals, ...polygonWithdrews]
   const optimismBonds = [...optimismBondedWithdrawals, ...optimismWithdrews]
@@ -168,11 +181,27 @@ async function getTransfersData (startTime: number, endTime: number) {
   const mainnetBonds = [...mainnetBondedWithdrawals, ...mainnetWithdrews]
 
   const bondsMap: any = {
-    gnosis: gnosisBonds,
-    polygon: polygonBonds,
-    optimism: optimismBonds,
-    arbitrum: arbitrumBonds,
-    ethereum: mainnetBonds
+    gnosis: {},
+    polygon: {},
+    optimism: {},
+    arbitrum: {},
+    ethereum: {}
+  }
+
+  for (const x of gnosisBonds) {
+    bondsMap.gnosis[x.transferId] = x
+  }
+  for (const x of polygonBonds) {
+    bondsMap.polygon[x.transferId] = x
+  }
+  for (const x of optimismBonds) {
+    bondsMap.optimism[x.transferId] = x
+  }
+  for (const x of arbitrumBonds) {
+    bondsMap.arbitrum[x.transferId] = x
+  }
+  for (const x of mainnetBonds) {
+    bondsMap.ethereum[x.transferId] = x
   }
 
   const l1CompletedsMap: any = {
@@ -182,25 +211,28 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrum: arbitrumFromL1Completeds
   }
 
-  for (const x of data) {
+  console.log(`getTransfersData: data count: ${data.length}`)
+  console.log('getTransfersData: mapping transfers to bonds')
+
+  await Promise.all(data.map((x: any) => {
     const bonds = bondsMap[chainIdToSlug(x.destinationChain)]
     if (bonds) {
-      for (const bond of bonds) {
-        if (bond.transferId === x.transferId) {
-          x.bonded = true
-          x.bonder = bond.from
-          x.bondTransactionHash = bond.transactionHash
-          x.bondedTimestamp = Number(bond.timestamp)
-          continue
-        }
+      const bond = bonds[x.transferId]
+      if (bond) {
+        x.bonded = true
+        x.bonder = bond.from
+        x.bondTransactionHash = bond.transactionHash
+        x.bondedTimestamp = Number(bond.timestamp)
       }
     }
-  }
+  }))
 
-  for (const x of data) {
+  console.log('getTransfersData: mapping events to l1CompletedsMap')
+
+  await Promise.all(data.map((x: any) => {
     const sourceChain = chainIdToSlug(x.sourceChain)
     if (sourceChain !== Chain.Ethereum) {
-      continue
+      return
     }
     const events = l1CompletedsMap[chainIdToSlug(x.destinationChain)]
     if (events) {
@@ -215,11 +247,11 @@ async function getTransfersData (startTime: number, endTime: number) {
           x.bonder = event.from
           x.bondTransactionHash = event.transactionHash
           x.bondedTimestamp = Number(event.timestamp)
-          continue
+          return
         }
       }
     }
-  }
+  }))
 
   const unbondableTransfers = [
     '0xf78b17ccced6891638989a308cc6c1f089330cd407d8c165ed1fbedb6bda0930',
@@ -227,6 +259,8 @@ async function getTransfersData (startTime: number, endTime: number) {
     '0x185b2ba8f589119ede69cf03b74ee2b323b23c75b6b9f083bdf6123977576790',
     '0x0131496b64dbd1f7821ae9f7d78f28f9a78ff23cd85e8851b8a2e4e49688f648'
   ]
+
+  console.log('getTransfersData: populating data')
 
   const populatedData = data
     .filter(x => x.destinationChain && x.transferId)
@@ -239,6 +273,8 @@ async function getTransfersData (startTime: number, endTime: number) {
       x.index = i
       return x
     })
+
+  console.log(`getTransfersData: got populated data. count ${populatedData}`)
 
   return populatedData
 }

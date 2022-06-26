@@ -160,8 +160,8 @@ export class HealthCheckWatcher {
 
   bonderLowLiquidityThreshold: number = 0.10
   unbondedTransfersMinTimeToWaitMinutes: number = 30
-  unbondedTransferRootsMinTimeToWaitHours: number = 6
-  incompleteSettlemetsMinTimeToWaitHours: number = 12
+  unbondedTransferRootsMinTimeToWaitHours: number = 1
+  incompleteSettlemetsMinTimeToWaitHours: number = 4
   minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
     [Chain.Ethereum]: 1000,
     [Chain.Polygon]: 2000,
@@ -514,13 +514,17 @@ export class HealthCheckWatcher {
       if (x.sourceChain !== 'ethereum' && x.bonderFee === '0') {
         return false
       }
-
       // spam transfers with very low bonder fee
       if (x.token === 'ETH' && (x.bonderFee === '1140000000000' || x.bonderFee === '140000000000')) {
         return false
       }
-
-      return true
+      if (x.destinationChain === 'ethereum') {
+        return Number(x.bonderFeeFormatted) > 0.001
+      }
+      if (['USDC', 'USDT', 'DAI'].includes(x.token)) {
+        return Number(x.bonderFeeFormatted) > 0.25
+      }
+      return Number(x.bonderFeeFormatted) > 0.0001
     })
 
     this.logger.debug(`unbonded transfers: ${result.length}`)

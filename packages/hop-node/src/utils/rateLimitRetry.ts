@@ -8,7 +8,7 @@ const logger = new Logger('rateLimitRetry')
 const notifier = new Notifier(`rateLimitRetry, host: ${hostname}`)
 
 export default function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn: FN): (...args: Parameters<FN>) => Promise<Awaited<ReturnType<FN>>> {
-  const id = `${process.hrtime()[1]}`
+  const id = `${process.hrtime.bigint()}`
   const log = logger.create({ id })
   return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {
     let retries = 0
@@ -25,8 +25,8 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         const errMsg = err.message
         const rateLimitErrorRegex = /(rate limit|too many concurrent requests|exceeded|socket hang up)/i
         const timeoutErrorRegex = /(timeout|time-out|time out|timedout|timed out)/i
-        const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED|SERVER_ERROR)/i
-        const badResponseErrorRegex = /(bad response|response error|missing response|processing response error)/i
+        const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED|SERVER_ERROR|EPROTO)/i
+        const badResponseErrorRegex = /(bad response|response error|missing response|processing response error|invalid json response body|FetchError)/i
         const revertErrorRegex = /revert/i
 
         const isRateLimitError = rateLimitErrorRegex.test(errMsg)
@@ -52,8 +52,8 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         if (retries >= rateLimitMaxRetries) {
           logger.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${err}`)
           // this must be a regular console log to print original function name
-          console.log(fn, id, ...args)
-          notifier.error(`max retries (${rateLimitMaxRetries}) reached. Error: ${errMsg}`)
+          console.error('max retries reach', fn, id, ...args)
+          notifier.error(`max retries (${rateLimitMaxRetries}) reached (logId: ${id}). Error: ${errMsg}`)
           throw err
         }
 

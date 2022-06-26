@@ -207,7 +207,11 @@ const Send: FC = () => {
         return
       }
 
-      const isAvailable = BigNumber.from(availableLiquidity).gte(requiredLiquidity)
+      let isAvailable = BigNumber.from(availableLiquidity).gte(requiredLiquidity)
+      if (fromNetwork?.isL1) {
+        isAvailable = true
+      }
+
       const formattedAmount = toTokenDisplay(availableLiquidity, sourceToken.decimals)
 
       const warningMessage = (

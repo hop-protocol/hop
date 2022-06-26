@@ -24,6 +24,7 @@
     "unused-imports/no-unused-imports": 1,
     "new-cap": 0,
     "prefer-const": 1,
+    "array-callback-return": 0,
     "no-async-promise-executor": 0,
     "node/no-callback-literal": 0,
     "sort-imports-es6-autofix/sort-imports-es6": [1, {

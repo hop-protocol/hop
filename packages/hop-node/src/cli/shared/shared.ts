@@ -56,7 +56,7 @@ export function parseString (value: string) {
 }
 
 export function parseStringArray (value: string) {
-  return (value ?? '').split(',').map((v: string) => v.trim())
+  return (value ?? '').trim().split(',').map((v: string) => v.trim())
 }
 
 export function parseBool (value: string) {

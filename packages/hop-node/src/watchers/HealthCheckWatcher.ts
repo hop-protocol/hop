@@ -114,12 +114,23 @@ type Result = {
   unsyncedSubgraphs: UnsyncedSubgraph[]
 }
 
+export type EnabledChecks = {
+  lowBonderBalances: boolean
+  unbondedTransfers: boolean
+  unbondedTransferRoots: boolean
+  incompleteSettlements: boolean
+  challengedTransferRoots: boolean
+  unsyncedSubgraphs: boolean
+  lowAvailableLiquidityBonders: boolean
+}
+
 export type Config = {
   days?: number
   offsetDays?: number
   s3Upload?: boolean
   s3Namespace?: string
   cacheFile?: string
+  enabledChecks?: EnabledChecks
 }
 
 export class HealthCheckWatcher {
@@ -159,7 +170,7 @@ export class HealthCheckWatcher {
     [Chain.Arbitrum]: 10000
   }
 
-  enabledChecks: Record<string, boolean> = {
+  enabledChecks: EnabledChecks = {
     lowBonderBalances: true,
     unbondedTransfers: true,
     unbondedTransferRoots: true,
@@ -172,7 +183,7 @@ export class HealthCheckWatcher {
   lastNotificationSentAt: number
 
   constructor (config: Config) {
-    const { days, offsetDays, s3Upload, s3Namespace, cacheFile } = config
+    const { days, offsetDays, s3Upload, s3Namespace, cacheFile, enabledChecks } = config
     if (days) {
       this.days = days
     }
@@ -182,9 +193,15 @@ export class HealthCheckWatcher {
     this.notifier = new Notifier(
       `HealthCheck: ${hostname}`
     )
+
+    if (enabledChecks) {
+      this.enabledChecks = Object.assign(this.enabledChecks, enabledChecks)
+    }
+
     this.logger.debug(`days: ${this.days}`)
     this.logger.debug(`offsetDays: ${this.offsetDays}`)
     this.logger.debug(`s3Upload: ${!!s3Upload}`)
+    this.logger.debug('enabledChecks:', JSON.stringify(this.enabledChecks))
     if (s3Upload) {
       const bucket = 'assets.hop.exchange'
       const filePath = `${s3Namespace ?? globalConfig.network}/v1-health-check.json`
@@ -491,6 +508,19 @@ export class HealthCheckWatcher {
       const isBonderFeeTooLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.005 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && [Chain.Gnosis, Chain.Polygon].includes(x.destinationChain))
       x.isBonderFeeTooLow = isBonderFeeTooLow
       return x
+    })
+
+    result = result.filter((x: any) => {
+      if (x.sourceChain !== 'ethereum' && x.bonderFee === '0') {
+        return false
+      }
+
+      // spam transfers with very low bonder fee
+      if (x.token === 'ETH' && (x.bonderFee === '1140000000000' || x.bonderFee === '140000000000')) {
+        return false
+      }
+
+      return true
     })
 
     this.logger.debug(`unbonded transfers: ${result.length}`)

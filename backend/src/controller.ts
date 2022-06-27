@@ -66,6 +66,8 @@ export class Controller {
     const amountFormattedCmp = params.amountFormattedCmp
     const amountUsd = Number(params.amountUsd)
     const amountUsdCmp = params.amountUsdCmp
+    const bonderFeeUsd = Number(params.bonderFeeUsd)
+    const bonderFeeUsdCmp = params.bonderFeeUsdCmp
     const transferId = params.transferId
     const startDate = params.startDate
     const endDate = params.endDate
@@ -147,6 +149,8 @@ export class Controller {
       amountFormattedCmp,
       amountUsd,
       amountUsdCmp,
+      bonderFeeUsd,
+      bonderFeeUsdCmp,
       transferId,
       endTimestamp,
       startTimestamp,

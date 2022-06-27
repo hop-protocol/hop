@@ -121,6 +121,12 @@ const queryTransfers = async (params: any) => {
   if (!filtered['amountUsd']) {
     delete filtered['amountUsdCmp']
   }
+  if (!filtered['bonderFeeUsd']) {
+    delete filtered['bonderFeeUsdCmp']
+  }
+  if (!filtered['bonderFeeUsd']) {
+    delete filtered['bonderFeeUsdCmp']
+  }
   if (filtered['endDate'] === currentDate) {
     delete filtered['endDate']
   }
@@ -154,6 +160,8 @@ function useData () {
   const [filterAmountComparator, setFilterAmountComparator] = useState(queryParams.amountCmp || 'gt')
   const [filterAmountUsd, setFilterAmountUsd] = useState(queryParams.amountUsd || '')
   const [filterAmountUsdComparator, setFilterAmountUsdComparator] = useState(queryParams.amountUsdCmp || 'gt')
+  const [filterBonderFeeUsd, setFilterBonderFeeUsd] = useState(queryParams.bonderFeeUsd || '')
+  const [filterBonderFeeUsdComparator, setFilterBonderFeeUsdComparator] = useState(queryParams.bonderFeeUsdCmp || 'gt')
   const [filterBonder, setFilterBonder] = useState(queryParams.bonder || '')
   const [filterAccount, setFilterAccount] = useState(queryParams.account || '')
   const [filterRecipient, setFilterRecipient] = useState(queryParams.recipient || '')
@@ -315,6 +323,8 @@ function useData () {
         amountCmp: filterAmountComparator,
         amountUsd: filterAmountUsd,
         amountUsdCmp: filterAmountUsdComparator,
+        bonderFeeUsd: filterBonderFeeUsd,
+        bonderFeeUsdCmp: filterBonderFeeUsdComparator,
         bonder: filterBonder,
         account: filterAccount,
         recipient: filterRecipient,
@@ -412,6 +422,18 @@ function useData () {
     updateQueryParams({ amountUsdCmp: value })
   }
 
+  function updateFilterBonderFeeUsd (event: any) {
+    const value = event.target.value
+    setFilterBonderFeeUsd(value)
+    updateQueryParams({ bonderFeeUsd: value })
+  }
+
+  function updateFilterBonderFeeUsdComparator (event: any) {
+    const value = event.target.value
+    setFilterBonderFeeUsdComparator(value)
+    updateQueryParams({ bonderFeeUsdCmp: value })
+  }
+
   function updateFilterBonder (event: any) {
     const value = event.target.value
     setFilterBonder(value)
@@ -481,7 +503,7 @@ function useData () {
 
   useEffect(() => {
     refreshTransfers()
-  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonder, filterAccount, filterRecipient, filterTransferId, filterStartDate, filterEndDate, filterSortBy, filterSortDirection, page, perPage])
+  }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonderFeeUsd, filterBonderFeeUsdComparator, filterBonder, filterAccount, filterRecipient, filterTransferId, filterStartDate, filterEndDate, filterSortBy, filterSortDirection, page, perPage])
 
   function resetPage () {
     setPage(0)
@@ -516,6 +538,8 @@ function useData () {
       amountCmp: null,
       amountUsd: null,
       amountUsdCmp: null,
+      bonderFeeUsd: null,
+      bonderFeeUsdCmp: null,
       bonder: null,
       account: null,
       transferId: null,
@@ -564,6 +588,10 @@ function useData () {
     updateFilterAmountUsdComparator,
     filterAmountUsd,
     updateFilterAmountUsd,
+    filterBonderFeeUsd,
+    filterBonderFeeUsdComparator,
+    updateFilterBonderFeeUsd,
+    updateFilterBonderFeeUsdComparator,
     filterAccount,
     updateFilterAccount,
     filterRecipient,
@@ -621,6 +649,10 @@ const Index: NextPage = () => {
     updateFilterAmountUsdComparator,
     filterAmountUsd,
     updateFilterAmountUsd,
+    filterBonderFeeUsd,
+    filterBonderFeeUsdComparator,
+    updateFilterBonderFeeUsd,
+    updateFilterBonderFeeUsdComparator,
     filterAccount,
     updateFilterAccount,
     filterRecipient,
@@ -772,6 +804,15 @@ const Index: NextPage = () => {
                   <option value="lt">&lt;</option>
                 </select>
                 <input className="filterAmountUsd" value={filterAmountUsd} onChange={updateFilterAmountUsd} placeholder="amount USD" />
+              </div>
+              <div>
+                <label>BonderFee USD:</label>
+                <select className="select selectSmall" value={filterBonderFeeUsdComparator} onChange={updateFilterBonderFeeUsdComparator}>
+                  <option value="eq">=</option>
+                  <option value="gt">&gt;</option>
+                  <option value="lt">&lt;</option>
+                </select>
+                <input className="filterBonderFeeUsd" value={filterBonderFeeUsd} onChange={updateFilterBonderFeeUsd} placeholder="bonder fee USD" />
               </div>
               <div>
                 <label>Bonder:</label>

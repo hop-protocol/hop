@@ -385,6 +385,8 @@ class Db {
       amountFormattedCmp,
       amountUsd,
       amountUsdCmp,
+      bonderFeeUsd,
+      bonderFeeUsdCmp,
       transferId,
       startTimestamp,
       endTimestamp,
@@ -469,6 +471,14 @@ class Db {
       if (cmp) {
         whereClauses.push(`amount_usd ${cmp} $${i++}`)
         queryParams.push(amountUsd)
+      }
+    }
+
+    if (bonderFeeUsd) {
+      const cmp = cmps[bonderFeeUsdCmp]
+      if (cmp) {
+        whereClauses.push(`bonder_fee_usd ${cmp} $${i++}`)
+        queryParams.push(bonderFeeUsd)
       }
     }
 

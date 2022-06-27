@@ -523,6 +523,8 @@ function useData () {
     setFilterAmountComparator('gt')
     setFilterAmountUsd('')
     setFilterAmountUsdComparator('gt')
+    setFilterBonderFeeUsd('')
+    setFilterBonderFeeUsdComparator('gt')
     setFilterBonder('')
     setFilterAccount('')
     setFilterRecipient('')
@@ -806,7 +808,7 @@ const Index: NextPage = () => {
                 <input className="filterAmountUsd" value={filterAmountUsd} onChange={updateFilterAmountUsd} placeholder="amount USD" />
               </div>
               <div>
-                <label>BonderFee USD:</label>
+                <label>Bonder Fee USD:</label>
                 <select className="select selectSmall" value={filterBonderFeeUsdComparator} onChange={updateFilterBonderFeeUsdComparator}>
                   <option value="eq">=</option>
                   <option value="gt">&gt;</option>

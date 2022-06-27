@@ -597,21 +597,30 @@ export class WithdrawalProof {
       return 0
     })
 
-    const seen = {}
+    const seen: any = {}
+    const replace: any = {}
 
     // remove any transfer id after a second index of 0,
     // which occurs if commit transfers is triggered on a transfer sent
-    transferIds = transferIds.filter((x, i) => {
+    transferIds = transferIds.filter((x: any, i: number) => {
       if (seen[x.index]) {
+        if (x.index > 10 && x.blockNumber > seen[x.index].blockNumber && x.blockNumber > startBlockNumber) {
+          replace[x.index] = x
+        }
         return false
       }
-      seen[x.index] = true
+      seen[x.index] = x
       return true
     })
-      .filter((x, i) => {
+
+    transferIds = transferIds.filter((x: any, i: number) => {
       // filter out any transfers ids after sequence breaks
-        return x.index === i
-      })
+      return x.index === i
+    })
+
+    for (const i in replace) {
+      transferIds[i] = replace[i]
+    }
 
     // filter only transfer ids for leaves
     const leaves = transferIds.map((x: Transfer) => {

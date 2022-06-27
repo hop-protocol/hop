@@ -395,14 +395,17 @@ class Db {
     const count = perPage
     const skip = (page * perPage)
 
-    let queryParams = []
-    let whereClauses = []
+    const queryParams = []
+    const whereClauses = []
 
     const sortDirection = params.sortDirection ? params.sortDirection?.toUpperCase() : 'DESC'
     const sortBy = params.sortBy || 'timestamp'
 
-    queryParams.push(count, skip)
-    let i = 3
+    let i = 1
+    if (!countOnly) {
+      queryParams.push(count, skip)
+      i = 3
+    }
 
     const cmps: any = {
       gt: '>',
@@ -559,37 +562,6 @@ class Db {
         `
 
     if (countOnly) {
-      i = 1
-      queryParams = []
-      whereClauses = []
-
-      if (sourceChainSlug) {
-        whereClauses.push(`source_chain_slug = $${i++}`)
-        queryParams.push(sourceChainSlug)
-      }
-
-      if (destinationChainSlug) {
-        whereClauses.push(`destination_chain_slug = $${i++}`)
-        queryParams.push(destinationChainSlug)
-      }
-
-      if (token) {
-        whereClauses.push(`token = $${i++}`)
-        queryParams.push(token)
-      }
-
-      if (startTimestamp) {
-        whereClauses.push(`timestamp >= $${i++}`)
-        queryParams.push(startTimestamp)
-      }
-
-      if (endTimestamp) {
-        whereClauses.push(`timestamp <= $${i++}`)
-        queryParams.push(endTimestamp)
-      }
-
-      const whereClause = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : ''
-
       sql = `
         SELECT
           COUNT(*) AS "count"

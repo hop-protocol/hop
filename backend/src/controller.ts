@@ -159,7 +159,8 @@ export class Controller {
       countOnly
     })
     if (countOnly) {
-      return { count: transfers }
+      const [count] = transfers
+      return count
     }
     let data = (transfers as any[]).map((x: any, i: number) => {
       x.sourceChainId = Number(x.sourceChainId)

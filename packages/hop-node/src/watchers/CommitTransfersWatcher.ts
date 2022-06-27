@@ -80,6 +80,10 @@ class CommitTransfersWatcher extends BaseWatcher {
         destinationChainIds.push(destinationChainId)
       }
     }
+
+    this.logger.info(
+        `checking ${destinationChainIds.length} destinationChainIds of uncommitted transfers`
+    )
     for (const destinationChainId of destinationChainIds) {
       await this.checkIfShouldCommit(destinationChainId)
     }

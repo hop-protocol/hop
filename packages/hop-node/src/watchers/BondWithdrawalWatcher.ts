@@ -58,7 +58,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const chunkSize = 20
     const allChunks = chunk(dbTransfers, chunkSize)
+    let i = 0
     for (const chunks of allChunks) {
+      i++
+      this.logger.debug(`processing batch ${i}/${allChunks.length}`)
       await Promise.all(chunks.map(async (dbTransfer) => {
         const {
           transferId,
@@ -67,7 +70,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           withdrawalBondTxError
         } = dbTransfer
         const logger = this.logger.create({ id: transferId })
-        logger.debug(`checking db poll, transferId: ${transferId}`)
+        logger.debug('checking db poll')
         const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
         const notEnoughCredit = availableCredit.lt(amount)
         const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
@@ -76,7 +79,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
             `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
             `withdrawalBondTxError: ${withdrawalBondTxError}`
           )
-          logger.debug(`db poll completed, transferId: ${transferId}`)
+          logger.debug('db poll completed')
           return
         }
 
@@ -86,7 +89,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
           this.logger.error('checkTransferId error:', err)
         }
 
-        logger.debug(`db poll completed, transferId: ${transferId}`)
+        logger.debug('db poll completed')
       }))
     }
 

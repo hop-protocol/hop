@@ -3,6 +3,7 @@ import { chunk } from 'lodash'
 
 export type Options = {
   concurrency: number
+  timeoutMs?: number
 }
 
 export async function promiseQueue (items: any[], cb: any, options: Options) {
@@ -22,8 +23,8 @@ async function promiseQueueChunk (items: any[], cb: any, options: Options) {
 }
 
 async function promiseQueueConcurrent (items: any[], cb: any, options: Options) {
-  const { concurrency } = options
-  const queue = new PQueue({ concurrency })
+  const { concurrency, timeoutMs: timeout } = options
+  const queue = new PQueue({ concurrency, timeout })
   for (let i = 0; i < items.length; i++) {
     queue.add(async () => await cb(items[i], i))
   }

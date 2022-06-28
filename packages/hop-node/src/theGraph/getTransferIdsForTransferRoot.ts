@@ -148,7 +148,7 @@ export default async function getTransferIdsForTransferRoot (
   // which occurs if commit transfers is triggered on a transfer sent
   transferIds = transferIds.filter((x: any, i: number) => {
     if (seen[x.index]) {
-      if (x.index > 10 && x.blockNumber > seen[x.index].blockNumber && x.blockNumber > startBlockNumber) {
+      if (x.index > 100 && x.blockNumber > seen[x.index].blockNumber && x.blockNumber > startBlockNumber) {
         replace[x.index] = x
       }
       return false

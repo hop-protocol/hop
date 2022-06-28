@@ -9,6 +9,7 @@ const emptyRoute = {
     href: '',
     linkText: '',
     postText: '',
+    severity: ''
   },
   source: '',
   destination: '',
@@ -40,7 +41,8 @@ const validChainSlugs = new Set([...Object.values(Slug), ALL])
 
 export function parseDisabledRoutes(
   serializedDisabledRoutes: string,
-  serializedWarningRoutes: string
+  serializedWarningRoutes: string,
+  disabledRoutesNoLiquidityWarningMessage: boolean
 ): DisabledRoute[] {
   const disabledRoutes = serializedDisabledRoutes?.split(',')
   const warningRoutes = serializedWarningRoutes?.split(',')
@@ -68,6 +70,7 @@ export function parseDisabledRoutes(
         href: discordUrl,
         linkText: 'Discord',
         postText: 'for updates and more information.',
+        severity: 'error'
       }
 
       // Defaults to disabling the Send button. If REACT_APP_WARNING_ROUTES contains a string,
@@ -79,6 +82,16 @@ export function parseDisabledRoutes(
         message.href = ''
         message.linkText = ''
         message.postText = ''
+        message.severity = 'warning'
+      }
+
+      if (disabledRoutesNoLiquidityWarningMessage) {
+        const text = `Insufficient liquidity. There is 0 bonder liquidity available on ${destination}. Please try again in a few minutes when liquidity becomes available again.`
+        message.text = text
+        message.href = ''
+        message.linkText = ''
+        message.postText = ''
+        message.severity = 'warning'
       }
 
       return {
@@ -95,8 +108,9 @@ export function parseDisabledRoutes(
 // ex: all:polygon,all:arbitrum,gnosis:ethereum
 const serializedDisabledRoutes = process.env.REACT_APP_DISABLED_ROUTES || ''
 const serializedWarningRoutes = process.env.REACT_APP_WARNING_ROUTES || ''
+const disabledRoutesNoLiquidityWarningMessage = !!(process.env.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE || '')
 // ex: '0,Warning: transfers to exchanges that do not support internal transactions may result in lost funds.,false'
 
-const disabledRoutes = parseDisabledRoutes(serializedDisabledRoutes, serializedWarningRoutes)
+const disabledRoutes = parseDisabledRoutes(serializedDisabledRoutes, serializedWarningRoutes, disabledRoutesNoLiquidityWarningMessage)
 
 export { disabledRoutes }

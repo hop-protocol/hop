@@ -48,6 +48,7 @@ class IncompleteSettlementsWatcher {
   withdrawalBondSettleds: any = {}
   rootTransferIds: any = {}
   transferRootConfirmeds: any = {}
+  transferRootSets: any = {}
   withdrews: any = {}
 
   // state to track
@@ -57,6 +58,7 @@ class IncompleteSettlementsWatcher {
   rootHashSettlements: any = {}
   rootHashWithdrews: any = {}
   rootHashConfirmeds: any = {}
+  rootHashSets: any = {}
   rootHashSettledTotalAmounts: any = {}
   transferIdWithdrews: any = {}
   transferIdWithdrawalBondSettled: any = {}
@@ -120,6 +122,7 @@ class IncompleteSettlementsWatcher {
         promises.push(this.setMultipleWithdrawalsSettleds(chain, token))
         promises.push(this.setWithdrawalBondSettleds(chain, token))
         promises.push(this.setWithdrews(chain, token))
+        promises.push(this.setTransferRootSets(chain, token))
         this.logger.debug(`${chain} ${token} done reading events`)
       }
       await Promise.all(promises)
@@ -209,6 +212,15 @@ class IncompleteSettlementsWatcher {
     const logs = await this.setEvents(chain, token, filter, this.transferRootConfirmeds)
     for (const log of logs) {
       this.rootHashConfirmeds[log.args.rootHash] = log
+    }
+  }
+
+  private async setTransferRootSets (chain: string, token: string) {
+    const contract = this.getContract(chain, token)
+    const filter = contract.filters.TransferRootSet()
+    const logs = await this.setEvents(chain, token, filter, this.transferRootSets)
+    for (const log of logs) {
+      this.rootHashSets[log.args.rootHash] = log
     }
   }
 
@@ -365,6 +377,7 @@ class IncompleteSettlementsWatcher {
         const totalAmount = this.rootHashTotals[rootHash]
         const timestamp = this.rootHashTimestamps[rootHash]
         const isConfirmed = !!this.rootHashConfirmeds[rootHash]
+        const isSet = !!this.rootHashSets[rootHash]
         const tokenDecimals = getTokenDecimals(token)
         // const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
         const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
@@ -398,11 +411,12 @@ class IncompleteSettlementsWatcher {
             withdrewEvents,
             transfersCount,
             isConfirmed,
+            isSet,
             unsettledTransfers,
             unsettledTransferBonders
           })
         }
-        this.logger.debug(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}, unsettledTransfers: ${JSON.stringify(unsettledTransfers)}, unsettledTransferBonders: ${JSON.stringify(unsettledTransferBonders)}`)
+        this.logger.debug(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, isSet: ${isSet}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}, unsettledTransfers: ${JSON.stringify(unsettledTransfers)}, unsettledTransferBonders: ${JSON.stringify(unsettledTransferBonders)}`)
       }))
     }
 

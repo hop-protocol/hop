@@ -6,7 +6,8 @@ import {
   config as globalConfig,
   slackAuthToken,
   slackChannel,
-  slackUsername
+  slackUsername,
+  bondWithdrawalBatchSize
 } from 'src/config'
 
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
@@ -95,6 +96,7 @@ async function main (source: any) {
         config.settleBondedWithdrawals?.thresholdPercent
     }
   }
+  logger.debug(`bondWithdrawalBatchSize: ${bondWithdrawalBatchSize}`)
   const slackEnabled = slackAuthToken && slackChannel && slackUsername
   if (slackEnabled) {
     logger.debug(`slack notifications enabled. channel #${slackChannel}`)

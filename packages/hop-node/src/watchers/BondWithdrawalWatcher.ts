@@ -10,8 +10,8 @@ import { BigNumber, constants } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
-import { UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { bondWithdrawalBatchSize, config as globalConfig } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
 import { promiseQueue } from 'src/utils/promiseQueue'
@@ -56,7 +56,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       `checking ${dbTransfers.length} unbonded transfers db items`
     )
 
-    await promiseQueue(dbTransfers, async (dbTransfer: any, i: number) => {
+    await promiseQueue(dbTransfers, async (dbTransfer: Transfer, i: number) => {
       this.logger.debug(`processing item ${i}/${dbTransfers.length}`)
       const {
         transferId,
@@ -66,12 +66,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
       } = dbTransfer
       const logger = this.logger.create({ id: transferId })
       logger.debug('checking db poll')
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
-      const notEnoughCredit = availableCredit.lt(amount)
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
+      const notEnoughCredit = availableCredit.lt(amount!)
       const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
       if (isUnbondable) {
         logger.warn(
-          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
           `withdrawalBondTxError: ${withdrawalBondTxError}`
         )
         logger.debug('db poll completed')

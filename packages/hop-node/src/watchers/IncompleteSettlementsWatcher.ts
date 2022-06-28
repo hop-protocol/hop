@@ -356,50 +356,55 @@ class IncompleteSettlementsWatcher {
     this.logger.debug(`roots to check: ${rootsCount}`)
 
     const rootHashes = Object.keys(this.rootHashTotals)
-    await Promise.all(rootHashes.map(async (rootHash: string) => {
-      const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
-      const totalAmount = this.rootHashTotals[rootHash]
-      const timestamp = this.rootHashTimestamps[rootHash]
-      const isConfirmed = !!this.rootHashConfirmeds[rootHash]
-      const tokenDecimals = getTokenDecimals(token)
-      // const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
-      const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
-      const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
-      const _totalAmount = totalAmount.toString()
-      const totalAmountFormatted = Number(formatUnits(_totalAmount, tokenDecimals))
-      const diff = totalAmount.sub(settledTotalAmount).toString()
-      const diffFormatted = Number(formatUnits(diff, tokenDecimals))
-      const isIncomplete = diffFormatted > 0 && (settledTotalAmount.eq(0) || !settledTotalAmount.eq(totalAmount))
-      let unsettledTransfers: any[] = []
-      let unsettledTransferBonders: string[] = []
-      if (isIncomplete) {
-        const settlementEvents = this.rootHashSettlements[rootHash]?.length ?? 0
-        const withdrewEvents = this.rootHashWithdrews[rootHash]?.length ?? 0
-        const [_unsettledTransfers, _unsettledTransferBonders, transferIds] = await this.getUnsettledTransfers(rootHash)
-        unsettledTransfers = _unsettledTransfers
-        unsettledTransferBonders = _unsettledTransferBonders
-        const transfersCount = transferIds.length
-        incompletes.push({
-          timestamp,
-          timestampRelative,
-          token,
-          sourceChain,
-          destinationChain,
-          totalAmount: _totalAmount,
-          totalAmountFormatted,
-          diff,
-          diffFormatted,
-          rootHash,
-          settlementEvents,
-          withdrewEvents,
-          transfersCount,
-          isConfirmed,
-          unsettledTransfers,
-          unsettledTransferBonders
-        })
-      }
-      this.logger.debug(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}, unsettledTransfers: ${JSON.stringify(unsettledTransfers)}, unsettledTransferBonders: ${JSON.stringify(unsettledTransferBonders)}`)
-    }))
+
+    const chunkSize = 20
+    const allChunks = chunk(rootHashes, chunkSize)
+    for (const chunks of allChunks) {
+      await Promise.all(chunks.map(async (rootHash: string) => {
+        const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
+        const totalAmount = this.rootHashTotals[rootHash]
+        const timestamp = this.rootHashTimestamps[rootHash]
+        const isConfirmed = !!this.rootHashConfirmeds[rootHash]
+        const tokenDecimals = getTokenDecimals(token)
+        // const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
+        const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
+        const timestampRelative = DateTime.fromSeconds(timestamp).toRelative()
+        const _totalAmount = totalAmount.toString()
+        const totalAmountFormatted = Number(formatUnits(_totalAmount, tokenDecimals))
+        const diff = totalAmount.sub(settledTotalAmount).toString()
+        const diffFormatted = Number(formatUnits(diff, tokenDecimals))
+        const isIncomplete = diffFormatted > 0 && (settledTotalAmount.eq(0) || !settledTotalAmount.eq(totalAmount))
+        let unsettledTransfers: any[] = []
+        let unsettledTransferBonders: string[] = []
+        if (isIncomplete) {
+          const settlementEvents = this.rootHashSettlements[rootHash]?.length ?? 0
+          const withdrewEvents = this.rootHashWithdrews[rootHash]?.length ?? 0
+          const [_unsettledTransfers, _unsettledTransferBonders, transferIds] = await this.getUnsettledTransfers(rootHash)
+          unsettledTransfers = _unsettledTransfers
+          unsettledTransferBonders = _unsettledTransferBonders
+          const transfersCount = transferIds.length
+          incompletes.push({
+            timestamp,
+            timestampRelative,
+            token,
+            sourceChain,
+            destinationChain,
+            totalAmount: _totalAmount,
+            totalAmountFormatted,
+            diff,
+            diffFormatted,
+            rootHash,
+            settlementEvents,
+            withdrewEvents,
+            transfersCount,
+            isConfirmed,
+            unsettledTransfers,
+            unsettledTransferBonders
+          })
+        }
+        this.logger.debug(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}, unsettledTransfers: ${JSON.stringify(unsettledTransfers)}, unsettledTransferBonders: ${JSON.stringify(unsettledTransferBonders)}`)
+      }))
+    }
 
     incompletes = incompletes.sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))
 
@@ -432,7 +437,7 @@ class IncompleteSettlementsWatcher {
     const transferIds = await this.rootTransferIds[rootHash] || []
     const unsettledTransfers: any[] = []
     const unsettledTransferBonders = new Set()
-    const chunkSize = 30
+    const chunkSize = 20
     const allChunks = chunk(transferIds, chunkSize)
     for (const chunks of allChunks) {
       await Promise.all(chunks.map(async (transferId: string) => {

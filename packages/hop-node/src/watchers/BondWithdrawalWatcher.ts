@@ -13,7 +13,7 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TxError } from 'src/constants'
 import { UnbondedSentTransfer } from 'src/db/TransfersDb'
-import { config as globalConfig, bondWithdrawalBatchSize } from 'src/config'
+import { bondWithdrawalBatchSize, config as globalConfig } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
 
 type Config = {

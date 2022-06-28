@@ -4,7 +4,6 @@ import BaseWatcher from './classes/BaseWatcher'
 import Bridge from './classes/Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
-import chunk from 'lodash/chunk'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, constants } from 'ethers'
@@ -15,6 +14,7 @@ import { TxError } from 'src/constants'
 import { UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { bondWithdrawalBatchSize, config as globalConfig } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
+import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
   chainSlug: string
@@ -56,42 +56,36 @@ class BondWithdrawalWatcher extends BaseWatcher {
       `checking ${dbTransfers.length} unbonded transfers db items`
     )
 
-    const chunkSize = bondWithdrawalBatchSize
-    const allChunks = chunk(dbTransfers, chunkSize)
-    let i = 0
-    for (const chunks of allChunks) {
-      i++
-      this.logger.debug(`processing batch ${i}/${allChunks.length}`)
-      await Promise.all(chunks.map(async (dbTransfer) => {
-        const {
-          transferId,
-          destinationChainId,
-          amount,
-          withdrawalBondTxError
-        } = dbTransfer
-        const logger = this.logger.create({ id: transferId })
-        logger.debug('checking db poll')
-        const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
-        const notEnoughCredit = availableCredit.lt(amount)
-        const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
-        if (isUnbondable) {
-          logger.warn(
-            `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
-            `withdrawalBondTxError: ${withdrawalBondTxError}`
-          )
-          logger.debug('db poll completed')
-          return
-        }
-
-        try {
-          await this.checkTransferId(transferId)
-        } catch (err: any) {
-          this.logger.error('checkTransferId error:', err)
-        }
-
+    await promiseQueue(dbTransfers, async (dbTransfer: any, i: number) => {
+      this.logger.debug(`processing item ${i}/${dbTransfers.length}`)
+      const {
+        transferId,
+        destinationChainId,
+        amount,
+        withdrawalBondTxError
+      } = dbTransfer
+      const logger = this.logger.create({ id: transferId })
+      logger.debug('checking db poll')
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
+      const notEnoughCredit = availableCredit.lt(amount)
+      const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
+      if (isUnbondable) {
+        logger.warn(
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
+          `withdrawalBondTxError: ${withdrawalBondTxError}`
+        )
         logger.debug('db poll completed')
-      }))
-    }
+        return
+      }
+
+      try {
+        await this.checkTransferId(transferId)
+      } catch (err: any) {
+        this.logger.error('checkTransferId error:', err)
+      }
+
+      logger.debug('db poll completed')
+    }, { concurrency: bondWithdrawalBatchSize })
 
     this.logger.debug('checkTransferSentFromDb completed')
   }

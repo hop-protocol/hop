@@ -22,7 +22,6 @@ async function main (source: any) {
     sourceChain: chain,
     token,
     rootHash,
-    totalAmount,
     dry: dryMode
   } = source
   if (!chain) {
@@ -33,9 +32,6 @@ async function main (source: any) {
   }
   if (!rootHash) {
     throw new Error('transfer root hash is required')
-  }
-  if (!totalAmount) {
-    throw new Error('total amount is required')
   }
 
   const watcher = await getBondTransferRootWatcher({ chain, token, dryMode })

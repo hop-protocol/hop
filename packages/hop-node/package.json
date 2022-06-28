@@ -94,7 +94,7 @@
     "module-alias": "^2.2.2",
     "nearest-date": "^1.0.1",
     "node-fetch": "^2.6.1",
-    "p-queue": "^7.2.0",
+    "p-queue": "^6.6.2",
     "pidusage": "^2.0.21",
     "pify": "^5.0.0",
     "prompt": "^1.1.0",

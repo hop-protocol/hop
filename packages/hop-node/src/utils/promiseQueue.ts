@@ -1,4 +1,4 @@
-// import PQueue from 'p-queue'
+import PQueue from 'p-queue'
 import { chunk } from 'lodash'
 
 export type Options = {
@@ -6,6 +6,10 @@ export type Options = {
 }
 
 export async function promiseQueue (items: any[], cb: any, options: Options) {
+  return promiseQueueConcurrent(items, cb, options)
+}
+
+async function promiseQueueChunk (items: any[], cb: any, options: Options) {
   const { concurrency } = options
   const allChunks = chunk(items, concurrency)
   let i = 0
@@ -17,8 +21,7 @@ export async function promiseQueue (items: any[], cb: any, options: Options) {
   }
 }
 
-/*
-export async function promiseQueue (items: any[], cb: any, options: Options) {
+async function promiseQueueConcurrent (items: any[], cb: any, options: Options) {
   const { concurrency } = options
   const queue = new PQueue({ concurrency })
   for (let i = 0; i < items.length; i++) {
@@ -27,4 +30,3 @@ export async function promiseQueue (items: any[], cb: any, options: Options) {
   await queue.onEmpty()
   await queue.onIdle()
 }
-*/

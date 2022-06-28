@@ -1,13 +1,13 @@
 import OsWatcher from 'src/watchers/OsWatcher'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
+  bondWithdrawalBatchSize,
   defaultEnabledNetworks,
   gitRev,
   config as globalConfig,
   slackAuthToken,
   slackChannel,
-  slackUsername,
-  bondWithdrawalBatchSize
+  slackUsername
 } from 'src/config'
 
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'

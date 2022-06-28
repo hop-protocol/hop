@@ -66,11 +66,11 @@ export function parseDisabledRoutes(
       const direction = formatDirection(source, destination)
 
       const message = {
-        text: `Warning: transfers ${direction} are temporarily disabled. Please, check the #status channel in the Hop`,
+        text: `Transfers ${direction} are temporarily disabled. Please, check the #status channel in the Hop`,
         href: discordUrl,
         linkText: 'Discord',
         postText: 'for updates and more information.',
-        severity: 'error'
+        severity: 'warning'
       }
 
       // Defaults to disabling the Send button. If REACT_APP_WARNING_ROUTES contains a string,

@@ -897,7 +897,7 @@ const Index: NextPage = () => {
             <table>
               <thead>
                 <tr>
-                  <th></th><th>Date</th><th>Source</th><th>Destination</th><th>Transfer ID</th><th>Transfer Tx</th><th>Token</th><th>Amount</th><th>Amount USD</th><th>Bonder Fee</th><th>Bonder Fee USD</th><th>Bonded</th><th>Bonded Tx</th><th>Bonded Date</th><th>Bonded Within</th><th>Bonder</th><th>Account</th><th>Recipient</th>
+                  <th></th><th title="Date">Date</th><th title="Source chain">Source</th><th title="Destination chain">Destination</th><th title="Transfer ID">Transfer ID</th><th title="Transfer transaction hash">Transfer Tx</th><th title="Token">Token</th><th title="Amount in token">Amount</th><th title="Amount in USD">Amount USD</th><th title="Bonder fee in token">Bonder Fee</th><th title="Bonder fee in USD">Bonder Fee USD</th><th title="Transfer token was received at destination chain">Bonded</th><th title="Bonded or receive at destination chain transaction hash">Bonded Tx</th><th title="Date transfer was received at destination chain">Bonded Date</th><th title="Time it took to receive transfer at destination chain">Bonded Within</th><th title="The address of bonder who bonded transfer">Bonder</th><th title="The sender address">Account</th><th title="The receipient address">Recipient</th>
                 </tr>
               </thead>
               <tbody>

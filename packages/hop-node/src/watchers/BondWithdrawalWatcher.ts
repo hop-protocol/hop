@@ -338,7 +338,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const isBonderFeeOk = bonderFee.gte(minBonderFeeTotal)
     logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, minBpsFee: ${minBpsFee}, isBonderFeeOk: ${isBonderFeeOk}`)
 
-    this.logAdditionalBonderFeeData(bonderFee, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, logger)
+    this.logAdditionalBonderFeeData(bonderFee, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, transferId, logger)
     return isBonderFeeOk
   }
 
@@ -348,6 +348,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     minBpsFee: BigNumber,
     gasCostInToken: BigNumber,
     destinationChain: string,
+    transferId: string,
     logger: Logger
   ) {
     // Log how much additional % is being paid
@@ -362,9 +363,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const expectedMinBonderFeeOverage = precision
     if (bonderFeeOverage.lt(expectedMinBonderFeeOverage)) {
-      const msg = `Bonder fee too low. bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`
-      logger.error(msg)
-      this.notifier.error(msg)
+      const msg = `Bonder fee too low. bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, token: ${this.bridge.tokenSymbol}, sourceChain: ${this.bridge.chainSlug}, destinationChain: ${destinationChain}, transferId: ${transferId}`
+      logger.warn(msg)
+      this.notifier.warn(msg)
     }
   }
 

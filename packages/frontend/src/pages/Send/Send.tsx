@@ -610,7 +610,7 @@ const Send: FC = () => {
       </div>
 
       {disabledTx && (
-        <Alert severity={disabledTx.warningOnly ? 'warning' : 'error'}>
+        <Alert severity={disabledTx?.message?.severity ||  'warning'}>
           <ExternalLink
             href={disabledTx.message?.href}
             text={disabledTx.message?.text}

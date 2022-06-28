@@ -141,21 +141,30 @@ export default async function getTransferIdsForTransferRoot (
     return 0
   })
 
-  const seen: { [key: string]: boolean } = {}
+  const seen: any = {}
+  const replace: any = {}
 
   // remove any transfer id after a second index of 0,
   // which occurs if commit transfers is triggered on a transfer sent
   transferIds = transferIds.filter((x: any, i: number) => {
     if (seen[x.index]) {
+      if (x.index > 100 && x.blockNumber > seen[x.index].blockNumber && x.blockNumber > startBlockNumber) {
+        replace[x.index] = x
+      }
       return false
     }
-    seen[x.index] = true
+    seen[x.index] = x
     return true
   })
-    .filter((x: any, i: number) => {
+
+  transferIds = transferIds.filter((x: any, i: number) => {
     // filter out any transfers ids after sequence breaks
-      return x.index === i
-    })
+    return x.index === i
+  })
+
+  for (const i in replace) {
+    transferIds[i] = replace[i]
+  }
 
   // filter only transfer ids for leaves
   const leaves = transferIds.map((x: any) => {
@@ -164,8 +173,9 @@ export default async function getTransferIdsForTransferRoot (
 
   // verify that the computed root matches the original root hash
   const tree = new MerkleTree(leaves)
-  if (tree.getHexRoot() !== rootHash) {
-    throw new Error('computed transfer root hash does not match')
+  const treeRoot = tree.getHexRoot()
+  if (treeRoot !== rootHash) {
+    throw new Error(`computed transfer root hash does not match; got: ${treeRoot}, expected: ${rootHash}`)
   }
 
   return transferIds

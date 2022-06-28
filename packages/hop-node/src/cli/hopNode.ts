@@ -1,6 +1,7 @@
 import OsWatcher from 'src/watchers/OsWatcher'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
+  bondWithdrawalBatchSize,
   defaultEnabledNetworks,
   gitRev,
   config as globalConfig,
@@ -95,6 +96,7 @@ async function main (source: any) {
         config.settleBondedWithdrawals?.thresholdPercent
     }
   }
+  logger.debug(`bondWithdrawalBatchSize: ${bondWithdrawalBatchSize}`)
   const slackEnabled = slackAuthToken && slackChannel && slackUsername
   if (slackEnabled) {
     logger.debug(`slack notifications enabled. channel #${slackChannel}`)

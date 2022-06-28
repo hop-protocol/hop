@@ -4,17 +4,17 @@ import BaseWatcher from './classes/BaseWatcher'
 import Bridge from './classes/Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
-import chunk from 'lodash/chunk'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, constants } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
-import { UnbondedSentTransfer } from 'src/db/TransfersDb'
-import { config as globalConfig } from 'src/config'
+import { bondWithdrawalBatchSize, config as globalConfig } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
+import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
   chainSlug: string
@@ -56,42 +56,36 @@ class BondWithdrawalWatcher extends BaseWatcher {
       `checking ${dbTransfers.length} unbonded transfers db items`
     )
 
-    const chunkSize = 20
-    const allChunks = chunk(dbTransfers, chunkSize)
-    let i = 0
-    for (const chunks of allChunks) {
-      i++
-      this.logger.debug(`processing batch ${i}/${allChunks.length}`)
-      await Promise.all(chunks.map(async (dbTransfer) => {
-        const {
-          transferId,
-          destinationChainId,
-          amount,
-          withdrawalBondTxError
-        } = dbTransfer
-        const logger = this.logger.create({ id: transferId })
-        logger.debug('checking db poll')
-        const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
-        const notEnoughCredit = availableCredit.lt(amount)
-        const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
-        if (isUnbondable) {
-          logger.warn(
-            `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount.toString()}`,
-            `withdrawalBondTxError: ${withdrawalBondTxError}`
-          )
-          logger.debug('db poll completed')
-          return
-        }
-
-        try {
-          await this.checkTransferId(transferId)
-        } catch (err: any) {
-          this.logger.error('checkTransferId error:', err)
-        }
-
+    await promiseQueue(dbTransfers, async (dbTransfer: Transfer, i: number) => {
+      this.logger.debug(`processing item ${i}/${dbTransfers.length}`)
+      const {
+        transferId,
+        destinationChainId,
+        amount,
+        withdrawalBondTxError
+      } = dbTransfer
+      const logger = this.logger.create({ id: transferId })
+      logger.debug('checking db poll')
+      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
+      const notEnoughCredit = availableCredit.lt(amount!)
+      const isUnbondable = notEnoughCredit && withdrawalBondTxError === TxError.NotEnoughLiquidity
+      if (isUnbondable) {
+        logger.warn(
+          `invalid credit or liquidity. availableCredit: ${availableCredit.toString()}, amount: ${amount!.toString()}`,
+          `withdrawalBondTxError: ${withdrawalBondTxError}`
+        )
         logger.debug('db poll completed')
-      }))
-    }
+        return
+      }
+
+      try {
+        await this.checkTransferId(transferId)
+      } catch (err: any) {
+        this.logger.error('checkTransferId error:', err)
+      }
+
+      logger.debug('db poll completed')
+    }, { concurrency: bondWithdrawalBatchSize })
 
     this.logger.debug('checkTransferSentFromDb completed')
   }
@@ -338,7 +332,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const isBonderFeeOk = bonderFee.gte(minBonderFeeTotal)
     logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, minBpsFee: ${minBpsFee}, isBonderFeeOk: ${isBonderFeeOk}`)
 
-    this.logAdditionalBonderFeeData(bonderFee, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, logger)
+    this.logAdditionalBonderFeeData(bonderFee, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, transferId, logger)
     return isBonderFeeOk
   }
 
@@ -348,6 +342,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     minBpsFee: BigNumber,
     gasCostInToken: BigNumber,
     destinationChain: string,
+    transferId: string,
     logger: Logger
   ) {
     // Log how much additional % is being paid
@@ -362,9 +357,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const expectedMinBonderFeeOverage = precision
     if (bonderFeeOverage.lt(expectedMinBonderFeeOverage)) {
-      const msg = `Bonder fee too low. bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}`
-      logger.error(msg)
-      this.notifier.error(msg)
+      const msg = `Bonder fee too low. bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, token: ${this.bridge.tokenSymbol}, sourceChain: ${this.bridge.chainSlug}, destinationChain: ${destinationChain}, transferId: ${transferId}`
+      logger.warn(msg)
+      this.notifier.warn(msg)
     }
   }
 

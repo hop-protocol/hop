@@ -1,19 +1,15 @@
-import { BigNumber } from 'ethers'
 import {
   getBondTransferRootWatcher
 } from 'src/watchers/watchers'
 
-import chainSlugToId from 'src/utils/chainSlugToId'
-import { actionHandler, parseBool, parseString, root } from './shared'
+import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 
 root
   .command('bond-transfer-root')
   .description('Bond transfer root')
   .option('--source-chain <slug>', 'Source chain', parseString)
-  .option('--destination-chain <slug>', 'Destination chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
-  .option('--root-hash <hash>', 'Transfer root hash', parseString)
-  .option('--total-amount <amount>', 'Total amount of the root', parseString)
+  .option('--root-hashes <hash, ...>', 'Comma-separated transfer root hashes', parseStringArray)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
@@ -24,26 +20,18 @@ root
 async function main (source: any) {
   const {
     sourceChain: chain,
-    destinationChain,
     token,
-    rootHash,
-    totalAmount,
+    rootHashes,
     dry: dryMode
   } = source
   if (!chain) {
     throw new Error('chain is required')
   }
-  if (!destinationChain) {
-    throw new Error('destination chain is required')
-  }
   if (!token) {
     throw new Error('token is required')
   }
-  if (!rootHash) {
+  if (!rootHashes) {
     throw new Error('transfer root hash is required')
-  }
-  if (!totalAmount) {
-    throw new Error('total amount is required')
   }
 
   const watcher = await getBondTransferRootWatcher({ chain, token, dryMode })
@@ -51,10 +39,12 @@ async function main (source: any) {
     throw new Error('watcher not found')
   }
 
-  const destinationChainId = chainSlugToId(destinationChain)
-  if (!destinationChainId) {
-    throw new Error('destination chain id is required')
+  for (const rootHash of rootHashes) {
+    const dbTransferRoot: any = await watcher.db.transferRoots.getByTransferRootHash(rootHash)
+    if (!dbTransferRoot) {
+      throw new Error('TransferRoot does not exist in the DB')
+    }
+
+    await watcher.sendBondTransferRoot(rootHash, dbTransferRoot.destinationChainId, dbTransferRoot.totalAmount)
   }
-  const totalAmountBn = BigNumber.from(totalAmount)
-  await watcher.sendBondTransferRoot(rootHash, destinationChainId, totalAmountBn)
 }

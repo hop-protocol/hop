@@ -86,6 +86,7 @@ type IncompleteSettlement = {
   unsettledTransfers: UnsettledTransfer[]
   unsettledTransferBonders: string[]
   isConfirmed: boolean
+  isSet: boolean
 }
 
 type ChallengedTransferRoot = {
@@ -596,6 +597,7 @@ export class HealthCheckWatcher {
         withdrewEvents: item.withdrewEvents,
         transfersCount: item.transfersCount,
         isConfirmed: item.isConfirmed,
+        isSet: item.isSet,
         unsettledTransfers: item.unsettledTransfers,
         unsettledTransferBonders: item.unsettledTransferBonders
       }

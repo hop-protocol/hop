@@ -11,9 +11,9 @@ import wait from 'src/utils/wait'
 import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
-import { chunk } from 'lodash'
 import { formatUnits } from 'ethers/lib/utils'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Options = {
   token?: string
@@ -48,6 +48,7 @@ class IncompleteSettlementsWatcher {
   withdrawalBondSettleds: any = {}
   rootTransferIds: any = {}
   transferRootConfirmeds: any = {}
+  transferRootSets: any = {}
   withdrews: any = {}
 
   // state to track
@@ -57,6 +58,7 @@ class IncompleteSettlementsWatcher {
   rootHashSettlements: any = {}
   rootHashWithdrews: any = {}
   rootHashConfirmeds: any = {}
+  rootHashSets: any = {}
   rootHashSettledTotalAmounts: any = {}
   transferIdWithdrews: any = {}
   transferIdWithdrawalBondSettled: any = {}
@@ -120,6 +122,7 @@ class IncompleteSettlementsWatcher {
         promises.push(this.setMultipleWithdrawalsSettleds(chain, token))
         promises.push(this.setWithdrawalBondSettleds(chain, token))
         promises.push(this.setWithdrews(chain, token))
+        promises.push(this.setTransferRootSets(chain, token))
         this.logger.debug(`${chain} ${token} done reading events`)
       }
       await Promise.all(promises)
@@ -209,6 +212,15 @@ class IncompleteSettlementsWatcher {
     const logs = await this.setEvents(chain, token, filter, this.transferRootConfirmeds)
     for (const log of logs) {
       this.rootHashConfirmeds[log.args.rootHash] = log
+    }
+  }
+
+  private async setTransferRootSets (chain: string, token: string) {
+    const contract = this.getContract(chain, token)
+    const filter = contract.filters.TransferRootSet()
+    const logs = await this.setEvents(chain, token, filter, this.transferRootSets)
+    for (const log of logs) {
+      this.rootHashSets[log.args.rootHash] = log
     }
   }
 
@@ -356,11 +368,15 @@ class IncompleteSettlementsWatcher {
     this.logger.debug(`roots to check: ${rootsCount}`)
 
     const rootHashes = Object.keys(this.rootHashTotals)
-    await Promise.all(rootHashes.map(async (rootHash: string) => {
+
+    const concurrency = 20
+    await promiseQueue(rootHashes, async (rootHash: string, i: number) => {
+      this.logger.debug(`processing item ${i}/${rootHashes.length}`)
       const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
       const totalAmount = this.rootHashTotals[rootHash]
       const timestamp = this.rootHashTimestamps[rootHash]
       const isConfirmed = !!this.rootHashConfirmeds[rootHash]
+      const isSet = !!this.rootHashSets[rootHash]
       const tokenDecimals = getTokenDecimals(token)
       // const settledTotalAmount = this.rootHashSettledTotalAmounts[rootHash] ?? BigNumber.from(0)
       const settledTotalAmount = await this.getOnchainTotalAmountWithdrawn(destinationChain, token, rootHash, totalAmount)
@@ -394,12 +410,13 @@ class IncompleteSettlementsWatcher {
           withdrewEvents,
           transfersCount,
           isConfirmed,
+          isSet,
           unsettledTransfers,
           unsettledTransferBonders
         })
       }
-      this.logger.debug(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}, unsettledTransfers: ${JSON.stringify(unsettledTransfers)}, unsettledTransferBonders: ${JSON.stringify(unsettledTransferBonders)}`)
-    }))
+      this.logger.debug(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, isSet: ${isSet}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}, unsettledTransfers: ${JSON.stringify(unsettledTransfers)}, unsettledTransferBonders: ${JSON.stringify(unsettledTransferBonders)}`)
+    }, { concurrency })
 
     incompletes = incompletes.sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))
 
@@ -432,39 +449,37 @@ class IncompleteSettlementsWatcher {
     const transferIds = await this.rootTransferIds[rootHash] || []
     const unsettledTransfers: any[] = []
     const unsettledTransferBonders = new Set()
-    const chunkSize = 30
-    const allChunks = chunk(transferIds, chunkSize)
-    for (const chunks of allChunks) {
-      await Promise.all(chunks.map(async (transferId: string) => {
-        const bondWithdrawalEvent = await getBondedWithdrawal(destinationChain, token, transferId)
-        if (!bondWithdrawalEvent) {
-          const { amount } = await getTransfer(sourceChain, token, transferId)
-          const amountFormatted = Number(formatUnits(amount, tokenDecimals))
-          unsettledTransfers.push({
-            bonded: false,
-            transferId,
-            bonder: null,
-            amount,
-            amountFormatted
-          })
-          return
-        }
-        const bonder = bondWithdrawalEvent.from
-        const bondedWithdrawalAmount = await contract.getBondedWithdrawalAmount(bonder, transferId)
-        if (bondedWithdrawalAmount.gt(0)) {
-          const amount = bondedWithdrawalAmount.toString()
-          const amountFormatted = Number(formatUnits(amount, tokenDecimals))
-          unsettledTransfers.push({
-            bonded: true,
-            transferId,
-            bonder,
-            amount,
-            amountFormatted
-          })
-          unsettledTransferBonders.add(bonder)
-        }
-      }))
-    }
+    const concurrency = 20
+    await promiseQueue(transferIds, async (transferId: string, i: number) => {
+      this.logger.debug(`processing item ${i}/${transferIds.length}`)
+      const bondWithdrawalEvent = await getBondedWithdrawal(destinationChain, token, transferId)
+      if (!bondWithdrawalEvent) {
+        const { amount } = await getTransfer(sourceChain, token, transferId)
+        const amountFormatted = Number(formatUnits(amount, tokenDecimals))
+        unsettledTransfers.push({
+          bonded: false,
+          transferId,
+          bonder: null,
+          amount,
+          amountFormatted
+        })
+        return
+      }
+      const bonder = bondWithdrawalEvent.from
+      const bondedWithdrawalAmount = await contract.getBondedWithdrawalAmount(bonder, transferId)
+      if (bondedWithdrawalAmount.gt(0)) {
+        const amount = bondedWithdrawalAmount.toString()
+        const amountFormatted = Number(formatUnits(amount, tokenDecimals))
+        unsettledTransfers.push({
+          bonded: true,
+          transferId,
+          bonder,
+          amount,
+          amountFormatted
+        })
+        unsettledTransferBonders.add(bonder)
+      }
+    }, { concurrency })
 
     return [unsettledTransfers, Array.from(unsettledTransferBonders), transferIds]
   }

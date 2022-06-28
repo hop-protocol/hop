@@ -235,30 +235,6 @@ class TransfersDb extends BaseDb {
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
   }
 
-  async migration () {
-    this.logger.debug('TransfersDb migration started')
-    const entries = await this.getKeyValues()
-    this.logger.debug(`TransfersDb migration: ${entries.length} entries`)
-    const promises: Array<Promise<any>> = []
-    for (const { key, value } of entries) {
-      let shouldUpdate = false
-      if (value?.sourceChainSlug === 'xdai') {
-        shouldUpdate = true
-        value.sourceChainSlug = 'gnosis'
-      }
-      if (value?.destinationChainSlug === 'xdai') {
-        shouldUpdate = true
-        value.destinationChainSlug = 'gnosis'
-      }
-      if (shouldUpdate) {
-        promises.push(this._update(key, value))
-      }
-    }
-
-    await Promise.all(promises)
-    this.logger.debug('TransfersDb migration complete')
-  }
-
   private isRouteOk (filter: GetItemsFilter = {}, item: Transfer) {
     if (filter.sourceChainId) {
       if (!item.sourceChainId || filter.sourceChainId !== item.sourceChainId) {

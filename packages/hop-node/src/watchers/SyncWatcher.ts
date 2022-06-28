@@ -2,7 +2,6 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
-import chunk from 'lodash/chunk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import isL1ChainId from 'src/utils/isL1ChainId'
@@ -15,6 +14,7 @@ import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEven
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { oruChains } from 'src/config'
+import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
   chainSlug: string
@@ -112,25 +112,22 @@ class SyncWatcher extends BaseWatcher {
 
   async incompleteTransferRootsPollSync () {
     try {
-      const chunkSize = 30
+      const concurrency = 30
       const incompleteTransferRoots = await this.db.transferRoots.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
       this.logger.info(`transfer roots incomplete items: ${incompleteTransferRoots.length}`)
       if (incompleteTransferRoots.length) {
-        const allChunks = chunk(incompleteTransferRoots, chunkSize)
-        for (const chunks of allChunks) {
-          await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
-            const { transferRootId } = transferRoot
-            const logger = this.logger.create({ id: transferRootId })
-            logger.debug(`populating transferRoot id: ${transferRootId}`)
-            return this.populateTransferRootDbItem(transferRootId)
-              .catch((err: Error) => {
-                logger.error('populateTransferRootDbItem error:', err)
-                this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
-              })
-          }))
-        }
+        await promiseQueue(incompleteTransferRoots, async (transferRoot: TransferRoot, i: number) => {
+          const { transferRootId } = transferRoot
+          const logger = this.logger.create({ id: transferRootId })
+          logger.debug(`populating transferRoot id: ${transferRootId}`)
+          return this.populateTransferRootDbItem(transferRootId)
+            .catch((err: Error) => {
+              logger.error('populateTransferRootDbItem error:', err)
+              this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
+            })
+        }, { concurrency })
       }
     } catch (err: any) {
       this.logger.error(`incomplete transfer roots poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
@@ -140,25 +137,23 @@ class SyncWatcher extends BaseWatcher {
 
   async incompleteTransfersPollSync () {
     try {
+      const concurrency = 30
       const chunkSize = 30
       const incompleteTransfers = await this.db.transfers.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
       this.logger.info(`transfers incomplete items: ${incompleteTransfers.length}`)
       if (incompleteTransfers.length) {
-        const allChunks = chunk(incompleteTransfers, chunkSize)
-        for (const chunks of allChunks) {
-          await Promise.all(chunks.map(async (transfer: Transfer) => {
-            const { transferId } = transfer
-            const logger = this.logger.create({ id: transferId })
-            logger.debug(`populating transferId: ${transferId}`)
-            return this.populateTransferDbItem(transferId)
-              .catch((err: Error) => {
-                logger.error('populateTransferDbItem error:', err)
-                this.notifier.error(`populateTransferDbItem error: ${err.message}`)
-              })
-          }))
-        }
+        await promiseQueue(incompleteTransfers, async (transfer: Transfer, i: number) => {
+          const { transferId } = transfer
+          const logger = this.logger.create({ id: transferId })
+          logger.debug(`populating transferId: ${transferId}`)
+          return this.populateTransferDbItem(transferId)
+            .catch((err: Error) => {
+              logger.error('populateTransferDbItem error:', err)
+              this.notifier.error(`populateTransferDbItem error: ${err.message}`)
+            })
+        }, { concurrency })
       }
     } catch (err: any) {
       this.logger.error(`incomplete transfers poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)

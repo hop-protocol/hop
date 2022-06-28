@@ -96,8 +96,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       const pendingAmount = await this.getOruToL1PendingAmount()
       availableCredit = availableCredit.sub(pendingAmount)
 
-      // const unbondedTransferRootAmounts = await this.getOruToAllUnbondedTransferRootAmounts()
-      // availableCredit = availableCredit.sub(unbondedTransferRootAmounts)
+      const unbondedTransferRootAmounts = await this.getOruToAllUnbondedTransferRootAmounts()
+      availableCredit = availableCredit.sub(unbondedTransferRootAmounts)
     }
 
     if (availableCredit.lt(0)) {

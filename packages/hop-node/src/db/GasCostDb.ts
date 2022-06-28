@@ -31,21 +31,6 @@ class GasCostDb extends BaseDb {
     this.startPrunePoller()
   }
 
-  async migration () {
-    this.logger.debug('GasCostDb migration started')
-    const entries = await this.getKeyValues()
-    this.logger.debug(`GasCostDb migration: ${entries.length} entries`)
-    const promises: Array<Promise<any>> = []
-    for (const { key, value } of entries) {
-      if (value?.chain === 'xdai') {
-        value.chain = 'gnosis'
-        promises.push(this._update(key, value))
-      }
-    }
-    await Promise.all(promises)
-    this.logger.debug('GasCostDb migration complete')
-  }
-
   private async startPrunePoller () {
     await this.tilReady()
     while (true) {

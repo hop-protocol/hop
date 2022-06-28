@@ -326,15 +326,6 @@ class TransferRootsDb extends BaseDb {
     this.logger.debug('TransferRootsDb initialized')
   }
 
-  async migration () {
-    this.logger.debug('TransferRootsDb migration started')
-    const entries = await this.getKeyValues()
-    this.logger.debug(`TransferRootsDb migration: ${entries.length} entries`)
-    for (const entry of entries) {
-      await this.subDbBondedAt.insertItem(entry.value)
-    }
-  }
-
   private isRouteOk (filter: GetItemsFilter = {}, item: TransferRoot) {
     if (filter.sourceChainId) {
       if (!item.sourceChainId || filter.sourceChainId !== item.sourceChainId) {

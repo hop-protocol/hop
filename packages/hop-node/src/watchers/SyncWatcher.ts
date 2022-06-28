@@ -14,6 +14,7 @@ import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEven
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { oruChains } from 'src/config'
+import { parseEther } from 'ethers/lib/utils'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -348,7 +349,7 @@ class SyncWatcher extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
-      const isBondable = this.getIsBondable(amountOutMin, deadline, destinationChainId)
+      const isBondable = this.getIsBondable(amountOutMin, deadline, destinationChainId, BigNumber.from(bonderFee))
 
       logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
@@ -1209,14 +1210,35 @@ class SyncWatcher extends BaseWatcher {
   getIsBondable = (
     amountOutMin: BigNumber,
     deadline: BigNumber,
-    destinationChainId: number
+    destinationChainId: number,
+    bonderFee: BigNumber
   ): boolean => {
     const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin, deadline)
     if (attemptSwap && isL1ChainId(destinationChainId)) {
       return false
     }
 
+    const isTooLow = this.isBonderFeeTooLow(bonderFee)
+    if (isTooLow) {
+      return false
+    }
+
     return true
+  }
+
+  isBonderFeeTooLow (bonderFee: BigNumber) {
+    if (bonderFee.eq(0)) {
+      return true
+    }
+
+    if (this.tokenSymbol === 'ETH') {
+      const minEthBonderFee = parseEther('0.00001')
+      if (bonderFee.lt(minEthBonderFee)) {
+        return true
+      }
+    }
+
+    return false
   }
 
   public getIsDbTransfersAllSettled (dbTransfers: Transfer[]) {

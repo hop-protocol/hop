@@ -130,7 +130,7 @@ export class WithdrawalProof {
 
     const transferRoot = await this.getTransferRootForTransferId(transfer)
     if (!transferRoot) {
-      throw new Error('Transfer root not found for transfer ID. Transfer root has not been committed yet. Withdrawal can only occur after the transfer root has been set at the destination. This may take a few hours or days.')
+      throw new Error('Transfer root not found for transfer ID. Transfer root has not been committed yet. Withdrawal can only occur after the transfer root has been set at the destination. This may take a few hours or days depending on the chain. Please try again later.')
     }
     const { rootHash: transferRootHash, totalAmount: rootTotalAmount } = transferRoot
     const transferIds = transferRoot.transferIds.map((x:Transfer) => x.transferId)

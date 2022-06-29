@@ -1,5 +1,6 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getTransferRootId from 'src/utils/getTransferRootId'
 import makeRequest from './makeRequest'
 import { DateTime } from 'luxon'
 import { formatUnits } from 'ethers/lib/utils'
@@ -36,10 +37,12 @@ export default async function getUnbondedTransferRoots (chain: string, token: st
       console.log(`No bond for ${rootHash} committed at ${formattedTimestamp} with an amount of ${totalAmount}`)
       const decimals = getTokenDecimals(token)
       const totalAmountFormatted = Number(formatUnits(totalAmount, decimals))
+      const rootId = getTransferRootId(rootHash, totalAmount)
       result.push({
         sourceChain: chain,
         destinationChain,
         transferRootHash: rootHash,
+        transferRootId: rootId,
         totalAmountFormatted,
         totalAmount,
         token,

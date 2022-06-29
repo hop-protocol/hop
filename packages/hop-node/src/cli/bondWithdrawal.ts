@@ -1,4 +1,3 @@
-import { Chain } from 'src/constants'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'

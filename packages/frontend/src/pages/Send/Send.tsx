@@ -507,7 +507,7 @@ const Send: FC = () => {
     // setManualError('')
   }, [fromNetwork?.slug, toNetwork?.slug])
 
-  const { disabledTx } = useDisableTxs(fromNetwork, toNetwork)
+  const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, sourceToken?.symbol)
 
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 

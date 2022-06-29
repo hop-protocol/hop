@@ -107,7 +107,7 @@ class GasBoostSigner extends Wallet {
   }
 
   private async _sendTransaction (tx: providers.TransactionRequest, id: string): Promise<providers.TransactionResponse> {
-    const _timeId = `GasBoostTransaction elapsed ${id}`
+    const _timeId = `GasBoostTransaction elapsed ${id} `
     console.time(_timeId)
     const logger = this.logger.create({ id })
     // logger.debug('_sendTransaction getDbNonce start')

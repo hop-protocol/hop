@@ -94,6 +94,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   receipt?: providers.TransactionReceipt
   private _is1559Supported: boolean // set to true if EIP-1559 type transactions are supported
   readonly minMultiplier: number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
+  logId: string
 
   reorgWaitConfirmations: number = 1
   originalTxParams: providers.TransactionRequest
@@ -137,6 +138,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (transferId) {
       prefix = `${prefix} transferId: ${transferId}`
     }
+    this.logId = prefix
     this.logger = new Logger({
       tag,
       prefix
@@ -314,7 +316,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async send () {
+    const _timeId = `GasBoostTransaction send getBumpedGasFeeData elapsed ${this.logId} `
+    console.time(_timeId)
     let gasFeeData = await this.getBumpedGasFeeData()
+    console.timeEnd(_timeId)
 
     // use passed in tx gas values if they were specified
     if (this.gasPrice) {
@@ -680,12 +685,21 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           payload.maxPriorityFeePerGas = gasFeeData.maxPriorityFeePerGas
         }
 
-        this.logger.debug(`tx index ${i}: checking for enough funds`)
-        await this.checkHasEnoughFunds(payload, gasFeeData)
+        if (i === 1) {
+          this.logger.debug(`tx index ${i}: checking for enough funds`)
+          const _timeId = `GasBoostTransaction _sendTransaction checkHasEnoughFunds elapsed ${this.logId} ${i} `
+          console.time(_timeId)
+          await this.checkHasEnoughFunds(payload, gasFeeData)
+          console.timeEnd(_timeId)
+        }
 
         this.logger.debug(`tx index ${i}: sending transaction`)
+
+        const _timeId = `GasBoostTransaction signer.sendTransaction elapsed ${this.logId} ${i} `
         // await here is intentional to catch error below
+        console.time(_timeId)
         const tx = await this.signer.sendTransaction(payload)
+        console.timeEnd(_timeId)
 
         this.logger.debug(`tx index ${i} completed`)
         return tx
@@ -719,12 +733,26 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   private async checkHasEnoughFunds (payload: providers.TransactionRequest, gasFeeData: Partial<GasFeeData>) {
     let gasLimit
+    let ethBalance
+
+    const _timeId1 = `GasBoostTransaction checkHasEnoughFunds estimateGas elapsed ${this.logId} `
+    console.time(_timeId1)
     try {
       gasLimit = await this.signer.estimateGas(payload)
     } catch (err) {
-      throw new Error(`checkHasEnoughFunds estimateGas failed ${err.message}`)
+      throw new Error(`checkHasEnoughFunds estimateGas failed. Error: ${err.message}`)
     }
-    const ethBalance = await this.signer.getBalance()
+    console.timeEnd(_timeId1)
+
+    const _timeId2 = `GasBoostTransaction checkHasEnoughFunds getBalance elapsed ${this.logId} `
+    console.time(_timeId2)
+    try {
+      ethBalance = await this.signer.getBalance()
+    } catch (err) {
+      throw new Error(`checkHasEnoughFunds getBalance failed. Error: ${err.message}`)
+    }
+    console.timeEnd(_timeId2)
+
     const gasPrice = gasFeeData.gasPrice || gasFeeData.maxFeePerGas // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
     const gasCost = gasLimit.mul(gasPrice!) // eslint-disable-line
     const warnEthBalance = parseUnits((this.warnEthBalance || 0).toString(), 18)

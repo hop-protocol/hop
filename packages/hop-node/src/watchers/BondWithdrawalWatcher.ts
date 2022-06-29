@@ -189,6 +189,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         const msg = 'Total bonder fee is too low. Cannot bond withdrawal.'
         logger.debug(msg)
 
+        // TODO: remove this after a week since it was added because it's handled in SyncWatcher
         const isTooLow = this.syncWatcher.isBonderFeeTooLow(bonderFee)
         if (isTooLow) {
           logger.debug('marking as unbondable because fee is too low')

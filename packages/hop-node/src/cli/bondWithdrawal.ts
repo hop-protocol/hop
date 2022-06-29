@@ -1,7 +1,7 @@
+import { Chain } from 'src/constants'
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
-import { Chain } from 'src/constants'
 
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 

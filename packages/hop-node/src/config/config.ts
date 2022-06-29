@@ -6,6 +6,7 @@ import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
 import { Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
+import { parseEther } from 'ethers/lib/utils'
 import * as goerliConfig from './goerli'
 import * as kovanConfig from './kovan'
 import * as mainnetConfig from './mainnet'
@@ -51,6 +52,7 @@ export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
+export const minEthBonderFeeBn = parseEther('0.00001')
 
 type SyncConfig = {
   totalBlocks?: number

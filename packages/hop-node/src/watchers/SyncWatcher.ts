@@ -13,8 +13,7 @@ import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, Transfer
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { oruChains } from 'src/config'
-import { parseEther } from 'ethers/lib/utils'
+import { minEthBonderFeeBn, oruChains } from 'src/config'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -1232,8 +1231,7 @@ class SyncWatcher extends BaseWatcher {
     }
 
     if (this.tokenSymbol === 'ETH') {
-      const minEthBonderFee = parseEther('0.00001')
-      if (bonderFee.lt(minEthBonderFee)) {
+      if (bonderFee.lt(minEthBonderFeeBn)) {
         return true
       }
     }

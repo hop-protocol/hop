@@ -36,6 +36,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   async checkTransfersCommittedFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
+      this.logger.debug('no unbonded transfer root db items to check')
       return
     }
 

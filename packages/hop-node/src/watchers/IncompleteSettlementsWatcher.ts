@@ -371,7 +371,7 @@ class IncompleteSettlementsWatcher {
 
     const concurrency = 20
     await promiseQueue(rootHashes, async (rootHash: string, i: number) => {
-      this.logger.debug(`processing item ${i}/${rootHashes.length}`)
+      this.logger.debug(`processing item ${i + 1}/${rootHashes.length}`)
       const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
       const totalAmount = this.rootHashTotals[rootHash]
       const timestamp = this.rootHashTimestamps[rootHash]
@@ -451,7 +451,7 @@ class IncompleteSettlementsWatcher {
     const unsettledTransferBonders = new Set()
     const concurrency = 20
     await promiseQueue(transferIds, async (transferId: string, i: number) => {
-      this.logger.debug(`processing item ${i}/${transferIds.length}`)
+      this.logger.debug(`processing item ${i + 1}/${transferIds.length}`)
       const bondWithdrawalEvent = await getBondedWithdrawal(destinationChain, token, transferId)
       if (!bondWithdrawalEvent) {
         const { amount } = await getTransfer(sourceChain, token, transferId)

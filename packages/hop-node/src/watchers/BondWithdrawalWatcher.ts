@@ -51,6 +51,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   async checkTransferSentFromDb () {
     const dbTransfers = await this.db.transfers.getUnbondedSentTransfers(await this.getFilterRoute())
     if (!dbTransfers.length) {
+      this.logger.debug('no unbonded transfer db items to check')
       return
     }
 
@@ -59,7 +60,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     )
 
     await promiseQueue(dbTransfers, async (dbTransfer: Transfer, i: number) => {
-      this.logger.debug(`processing item ${i}/${dbTransfers.length}`)
+      this.logger.debug(`processing item ${i + 1}/${dbTransfers.length}`)
       const {
         transferId,
         destinationChainId,
@@ -191,6 +192,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         const msg = 'Total bonder fee is too low. Cannot bond withdrawal.'
         logger.debug(msg)
 
+        // TODO: remove this after a week since it was added because it's handled in SyncWatcher
         const isTooLow = this.syncWatcher.isBonderFeeTooLow(bonderFee)
         if (isTooLow) {
           logger.debug('marking as unbondable because fee is too low')

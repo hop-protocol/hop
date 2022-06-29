@@ -107,10 +107,12 @@ class GasBoostSigner extends Wallet {
   }
 
   private async _sendTransaction (tx: providers.TransactionRequest, id: string): Promise<providers.TransactionResponse> {
+    const _timeId = `GasBoostTransaction elapsed ${id}`
+    console.time(_timeId)
     const logger = this.logger.create({ id })
-    logger.debug('_sendTransaction getDbNonce start')
+    // logger.debug('_sendTransaction getDbNonce start')
     const nonce = await this.getDbNonce()
-    logger.debug('_sendTransaction getDbNonce done')
+    // logger.debug('_sendTransaction getDbNonce done')
     if (!tx.nonce) {
       tx.nonce = nonce
     }
@@ -124,20 +126,21 @@ class GasBoostSigner extends Wallet {
       // if nonce too low then we still want to increment the tracked nonce
       // before throwing error
       if (err instanceof NonceTooLowError) {
-        logger.debug('_sendTransaction inNonce in catch start')
+        // logger.debug('_sendTransaction inNonce in catch start')
         await this.incNonce()
-        logger.debug('_sendTransaction inNonce in catch done')
-        logger.debug('_sendTransaction getDbNonce in catch start')
+        // logger.debug('_sendTransaction inNonce in catch done')
+        // logger.debug('_sendTransaction getDbNonce in catch start')
         const newNonce = await this.getDbNonce()
-        logger.debug('_sendTransaction getDbNonce in catch done')
+        // logger.debug('_sendTransaction getDbNonce in catch done')
         logger.debug(`increment for NonceTooLowError. new nonce ${newNonce}`)
       }
       throw err
     }
-    logger.debug('_sendTransaction incNonce start')
+    // logger.debug('_sendTransaction incNonce start')
     await this.incNonce()
-    logger.debug('_sendTransaction incNonce done')
+    // logger.debug('_sendTransaction incNonce done')
     this.lastTxSentTimestamp = Date.now()
+    console.timeEnd(_timeId)
     return gTx
   }
 

@@ -54,10 +54,17 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     this.logger.info(
-      `checking ${dbTransfers.length} unbonded transfers db items`
+      `total unbonded transfers db items: ${dbTransfers.length}`
     )
 
-    await promiseQueue(dbTransfers, async (dbTransfer: Transfer, i: number) => {
+    const listSize = 250
+    const batchedDbTransfers = dbTransfers.slice(0, listSize)
+
+    this.logger.info(
+      `checking unbonded transfers db items ${batchedDbTransfers.length} (out of ${dbTransfers.length})`
+    )
+
+    await promiseQueue(batchedDbTransfers, async (dbTransfer: Transfer, i: number) => {
       const {
         transferId,
         destinationChainId,
@@ -65,7 +72,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
       const logger = this.logger.create({ id: transferId })
-      logger.debug(`processing item ${i + 1}/${dbTransfers.length} start`)
+      logger.debug(`processing item ${i + 1}/${batchedDbTransfers.length} start`)
       logger.debug('checking db poll')
       const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
       const notEnoughCredit = availableCredit.lt(amount!)
@@ -86,7 +93,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         logger.error('checkTransferId error:', err)
       }
 
-      logger.debug(`processing item ${i + 1}/${dbTransfers.length} complete`)
+      logger.debug(`processing item ${i + 1}/${batchedDbTransfers.length} complete`)
       logger.debug('db poll completed')
     }, { concurrency: bondWithdrawalBatchSize, timeoutMs: 10 * 60 * 1000 })
 

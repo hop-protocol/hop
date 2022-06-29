@@ -113,7 +113,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   chainId: number // type 0 and 2 tx required property
   confirmations: number = 0 // type 0 and 2 tx required property
 
-  constructor (tx: providers.TransactionRequest, signer: Signer, store?: Store, options: Partial<Options> = {}) {
+  constructor (tx: providers.TransactionRequest, signer: Signer, store: Store, options: Partial<Options> = {}, id?: string) {
     super()
     this.signer = signer
     if (store != null) {
@@ -122,7 +122,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.createdAt = Date.now()
     this.originalTxParams = tx
     this.setOwnTxParams(tx)
-    this.id = this.generateId()
+    this.id = id ?? this.generateId()
     this.setOptions(options)
 
     const chainSlug = getProviderChainSlug(this.signer.provider)

@@ -80,6 +80,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       try {
+        logger.debug('checkTransferId start')
         await this.checkTransferId(transferId)
       } catch (err: any) {
         logger.error('checkTransferId error:', err)
@@ -131,6 +132,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
     if (isReceivingNativeToken) {
+      logger.debug('checkTransferId getIsRecipientReceivable')
       const isRecipientReceivable = await this.getIsRecipientReceivable(recipient, destBridge, logger)
       logger.debug(`processing bondWithdrawal. isRecipientReceivable: ${isRecipientReceivable}`)
       if (!isRecipientReceivable) {
@@ -162,6 +164,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     await this.withdrawFromVaultIfNeeded(destinationChainId, amount)
 
+    logger.debug('checkTransferId sourceL2Bridge.getTransaction')
     const sourceTx = await sourceL2Bridge.getTransaction(
       transferSentTxHash
     )
@@ -186,6 +189,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     })
 
     try {
+      logger.debug('checkTransferId getIsBonderFeeOk')
       const isBonderFeeOk = await this.getIsBonderFeeOk(transferId, attemptSwap)
       if (!isBonderFeeOk) {
         const msg = 'Total bonder fee is too low. Cannot bond withdrawal.'
@@ -203,6 +207,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         throw new BonderFeeTooLowError(msg)
       }
 
+      logger.debug('checkTransferId sendBondWithdrawalTx')
       const tx = await this.sendBondWithdrawalTx({
         transferId,
         sender,
@@ -277,6 +282,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       // )
       const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge as L2Bridge
+      logger.debug('checkTransferId l2Bridge.bondWithdrawalAndAttemptSwap')
       return await l2Bridge.bondWithdrawalAndAttemptSwap(
         recipient,
         amount,
@@ -288,6 +294,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } else {
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
       const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
+      logger.debug('checkTransferId bridge.bondWithdrawal')
       return bridge.bondWithdrawal(
         recipient,
         amount,

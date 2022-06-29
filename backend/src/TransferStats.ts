@@ -426,6 +426,55 @@ class TransferStats {
     return transfers
   }
 
+  async fetchBondTransferIdEvents (chain: string, startTime: number, endTime: number, lastId?: string) {
+    const query = `
+      query WithdrawalBondeds($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
+        withdrawalBondeds: withdrawalBondeds(
+          where: {
+            timestamp_gte: $startTime,
+            timestamp_lte: $endTime,
+            id_gt: $lastId
+          },
+          first: $perPage,
+          orderBy: id,
+          orderDirection: asc
+        ) {
+          id
+          transferId
+          transactionHash
+          timestamp
+          token
+          from
+        }
+      }
+    `
+
+    const url = this.getUrl(chain)
+    if (!lastId) {
+      lastId = '0'
+    }
+    const data = await this.queryFetch(url, query, {
+      perPage: 1000,
+      startTime,
+      endTime,
+      lastId
+    })
+
+    let bonds = data.withdrawalBondeds.filter((x: any) => x)
+
+    if (bonds.length === 1000) {
+      lastId = bonds[bonds.length - 1].id
+      bonds = bonds.concat(...(await this.fetchBondTransferIdEvents(
+        chain,
+        startTime,
+        endTime,
+        lastId
+      )))
+    }
+
+    return bonds
+  }
+
   async fetchBonds (chain: string, transferIds: string[]) {
     const query = `
       query WithdrawalBondeds($transferIds: [String]) {
@@ -655,6 +704,10 @@ class TransferStats {
       }),
       wait(30 * 60 * 1000).then(() => {
         return this.trackHourlyTransfers(24, 12 * 60 * 60 * 1000)
+      }),
+      this.trackRecentBonds(20, 60 * 1000),
+      wait(0 * 60 * 1000).then(() => {
+        return this.trackRecentBonds(2 * 60, 10 * 60 * 1000)
       })
       /*
       wait(60 * 60 * 1000).then(() => {
@@ -692,6 +745,41 @@ class TransferStats {
         }
 
         console.log('done fetching transfers data for hours:', hours)
+      } catch (err) {
+        console.error(err)
+      }
+      await wait(delay)
+    }
+  }
+
+  async trackRecentBonds (minutes: number, delay: number) {
+    await this.tilReady()
+    while (true) {
+      try {
+        console.log('tracking recent bonds, minutes: ', minutes)
+        const now = DateTime.now().toUTC()
+        const startTime = Math.floor(now.minus({ minute: minutes }).toSeconds())
+        const endTime = Math.floor(now.toSeconds())
+
+        console.log('fetching all bonds data for hour', startTime)
+        const items = await this.getBondsBetweenDates(startTime, endTime)
+        console.log('items:', items.length)
+        for (const item of items) {
+          let retries = 0
+          while (retries < 5) {
+            try {
+              await this.upsertItem(item)
+              break
+            } catch (err: any) {
+              console.error('upsert error:', err)
+              console.log(item)
+              await wait(10 * 1000)
+              retries++
+            }
+          }
+        }
+
+        console.log('done fetching bonds data for minutes:', minutes)
       } catch (err) {
         console.error(err)
       }
@@ -961,7 +1049,7 @@ class TransferStats {
       x.receiveStatusUnknown = x.sourceChainId === 1 && !x.bondTxExplorerUrl && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
     }
     if (x.receiveStatusUnknown) {
-      x.bonded = true
+      // x.bonded = true
     }
 
     if (!x.bondTimestamp) {
@@ -1057,6 +1145,30 @@ class TransferStats {
       optimismTransfers,
       arbitrumTransfers,
       mainnetTransfers
+    }
+  }
+
+  async getBondTransferIdEventsBetweenDates (startTime: number, endTime: number) {
+    const [
+      gnosisBonds,
+      polygonBonds,
+      optimismBonds,
+      arbitrumBonds,
+      mainnetBonds
+    ] = await Promise.all([
+      enabledChains.includes('gnosis') ? this.fetchBondTransferIdEvents('gnosis', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? this.fetchBondTransferIdEvents('polygon', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? this.fetchBondTransferIdEvents('optimism', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? this.fetchBondTransferIdEvents('arbitrum', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('ethereum') ? this.fetchBondTransferIdEvents('ethereum', startTime, endTime) : Promise.resolve([])
+    ])
+
+    return {
+      gnosisBonds,
+      polygonBonds,
+      optimismBonds,
+      arbitrumBonds,
+      mainnetBonds
     }
   }
 
@@ -1319,6 +1431,104 @@ class TransferStats {
 
   async getTransfersBetweenDates (startTime: number, endTime: number) {
     const events = await this.getTransferEventsBetweenDates(startTime, endTime)
+    const data = await this.normalizeTransferEvents(events)
+    return this.getRemainingData(data)
+  }
+
+  async fetchTransferEventsByTransferIds (chain: string, transferIds: string[]) {
+    if (chain === 'mainnet' || chain === 'ethereum') {
+      return []
+    }
+    const query = `
+      query TransferSents($transferIds: [String]) {
+        transferSents: transferSents(
+          where: {
+            transferId_in: $transferIds
+          },
+          first: 1000,
+          orderBy: id,
+          orderDirection: asc
+        ) {
+          id
+          transferId
+          destinationChainId
+          amount
+          amountOutMin
+          bonderFee
+          recipient
+          deadline
+          transactionHash
+          timestamp
+          token
+          from
+        }
+      }
+    `
+
+    transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
+    const url = this.getUrl(chain)
+    let transferSents: any = []
+    const chunkSize = 1000
+    const allChunks = chunk(transferIds, chunkSize)
+    for (const _transferIds of allChunks) {
+      const data = await this.queryFetch(url, query, {
+        transferIds: _transferIds
+      })
+
+      transferSents = transferSents.concat(data.transferSents || [])
+    }
+
+    return transferSents.filter((x: any) => x)
+  }
+
+  async getBondsBetweenDates (startTime: number, endTime: number) {
+    const {
+      gnosisBonds,
+      polygonBonds,
+      optimismBonds,
+      arbitrumBonds,
+      mainnetBonds
+    } = await this.getBondTransferIdEventsBetweenDates(startTime, endTime)
+
+    const allIds : string[] = []
+    for (const item of gnosisBonds) {
+      allIds.push(item.transferId)
+    }
+    for (const item of polygonBonds) {
+      allIds.push(item.transferId)
+    }
+    for (const item of optimismBonds) {
+      allIds.push(item.transferId)
+    }
+    for (const item of arbitrumBonds) {
+      allIds.push(item.transferId)
+    }
+    for (const item of mainnetBonds) {
+      allIds.push(item.transferId)
+    }
+
+    const [
+      gnosisTransfers,
+      polygonTransfers,
+      optimismTransfers,
+      arbitrumTransfers,
+      mainnetTransfers
+    ] = await Promise.all([
+      enabledChains.includes('gnosis') ? this.fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? this.fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? this.fetchTransferEventsByTransferIds('optimism', allIds) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? this.fetchTransferEventsByTransferIds('arbitrum', allIds) : Promise.resolve([]),
+      enabledChains.includes('ethereum') ? this.fetchTransferEventsByTransferIds('ethereum', allIds) : Promise.resolve([])
+    ])
+
+    const events = {
+      gnosisTransfers,
+      polygonTransfers,
+      optimismTransfers,
+      arbitrumTransfers,
+      mainnetTransfers
+    }
+
     const data = await this.normalizeTransferEvents(events)
     return this.getRemainingData(data)
   }

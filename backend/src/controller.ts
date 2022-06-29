@@ -183,7 +183,7 @@ export class Controller {
 
       x.receiveStatusUnknown = x.sourceChainId === 1 && !x.bondTxExplorerUrl && DateTime.now().toUTC().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
       if (x.receiveStatusUnknown) {
-        x.bonded = true
+        // x.bonded = true
       }
       x.preregenesis = !!x.preregenesis
       x.bondTimestampRelative = x.bondTimestamp ? DateTime.fromSeconds(x.bondTimestamp).toRelative() : ''

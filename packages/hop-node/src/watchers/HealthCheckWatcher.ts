@@ -56,6 +56,7 @@ type UnbondedTransferRoot = {
   sourceChain: string
   destinationChain: string
   transferRootHash: string
+  transferRootId: string
   token: string
   timestamp: number
   totalAmount: string
@@ -73,6 +74,7 @@ type UnsettledTransfer = {
 type IncompleteSettlement = {
   timestamp: number
   transferRootHash: string
+  transferRootId: string
   sourceChain: string
   destinationChain: string
   token: string
@@ -309,7 +311,7 @@ export class HealthCheckWatcher {
 
       for (const item of incompleteSettlements) {
         const timestampRelative = DateTime.fromSeconds(item.timestamp).toRelative()
-        const msg = `IncompleteSettlements: transferRootHash: ${item.transferRootHash}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted?.toFixed(4)}, diffAmount: ${item.diffAmountFormatted?.toFixed(4)}, token: ${item.token}, committedAt: ${item.timestamp} (${timestampRelative})`
+        const msg = `IncompleteSettlements: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, source: ${item.sourceChain}, destination: ${item.destinationChain}, totalAmount: ${item.totalAmountFormatted?.toFixed(4)}, diffAmount: ${item.diffAmountFormatted?.toFixed(4)}, token: ${item.token}, committedAt: ${item.timestamp} (${timestampRelative})`
         messages.push(msg)
       }
 
@@ -562,6 +564,7 @@ export class HealthCheckWatcher {
         sourceChain: item.sourceChain,
         destinationChain: item.destinationChain,
         transferRootHash: item.transferRootHash,
+        transferRootId: item.transferRootId,
         token: item.token,
         timestamp: item.timestamp,
         totalAmount: item.totalAmount,
@@ -586,6 +589,7 @@ export class HealthCheckWatcher {
       return {
         timestamp: item.timestamp,
         transferRootHash: item.rootHash,
+        transferRootId: item.rootId,
         sourceChain: item.sourceChain,
         destinationChain: item.destinationChain,
         token: item.token,

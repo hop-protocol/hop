@@ -416,11 +416,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const use1559 = await this.is1559Supported() && !this.gasPrice && this.type !== 0
 
     if (use1559) {
-      let maxFeePerGas = await this.getMarketMaxFeePerGas()
-      const maxPriorityFeePerGas = await this.getBumpedMaxPriorityFeePerGas(multiplier)
+      let [maxFeePerGas, maxPriorityFeePerGas, currentBaseFeePerGas] = await Promise.all([
+        this.getMarketMaxFeePerGas(),
+        this.getBumpedMaxPriorityFeePerGas(multiplier),
+        this.getCurrentBaseFeePerGas()
+      ])
       maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas)
 
-      const currentBaseFeePerGas = await this.getCurrentBaseFeePerGas()
       const maxGasPrice = this.getMaxGasPrice()
       if (currentBaseFeePerGas && maxFeePerGas.lte(currentBaseFeePerGas)) {
         maxFeePerGas = currentBaseFeePerGas.mul(2)

@@ -220,6 +220,8 @@ class SubDbRootHashes extends BaseDb {
   }
 }
 
+const arbitrumChainId = 42161
+
 // structure:
 // key: `<transferId>`
 // value: `{ ...Transfer }`
@@ -286,6 +288,20 @@ class TransfersDb extends BaseDb {
   // sort explainer: https://stackoverflow.com/a/9175783/1439168
   private readonly sortItems = (a: any, b: any) => {
     /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+    if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
+    if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
+    if (a.transferSentIndex! > b.transferSentIndex!) return 1
+    if (a.transferSentIndex! < b.transferSentIndex!) return -1
+    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+    return 0
+  }
+
+  private readonly prioritizeSortItems = (a: any, b: any) => {
+    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+    // place anything that is to Arbitrum at bottom of list
+    if (a.destinationChainId === arbitrumChainId) return 1
+    if (b.destinationChainId === arbitrumChainId) return -1
+
     if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
     if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
     if (a.transferSentIndex! > b.transferSentIndex!) return 1
@@ -376,6 +392,7 @@ class TransfersDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<UnbondedSentTransfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
+    const isEthToken = this.prefix?.startsWith('ETH')
     const filtered = transfers.filter(item => {
       if (!item?.transferId) {
         return false
@@ -408,7 +425,6 @@ class TransfersDb extends BaseDb {
       // TODO: remove this after a week since it was added because it's handled in SyncWatcher
       let bonderFeeOk = true
       if (item.bonderFee) {
-        const isEthToken = this.prefix?.startsWith('ETH')
         if (isEthToken) {
           bonderFeeOk = item.bonderFee?.gte(minEthBonderFeeBn)
         }
@@ -426,7 +442,9 @@ class TransfersDb extends BaseDb {
       )
     })
 
-    return filtered as UnbondedSentTransfer[]
+    const sorted = isEthToken ? filtered.sort(this.prioritizeSortItems) : filtered
+
+    return sorted as UnbondedSentTransfer[]
   }
 
   async getIncompleteItems (

@@ -29,20 +29,29 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         const badResponseErrorRegex = /(bad response|response error|missing response|processing response error|invalid json response body|FetchError)/i
         const revertErrorRegex = /revert/i
         const oversizedDataRegex = /oversized data/i
-        const bridgeContractError = /BRG:/
+        const bridgeContractErrorRegex = /BRG:/
+        const nonceTooLowErrorRegex = /(nonce.*too low|same nonce|already been used|NONCE_EXPIRED|OldNonce|invalid transaction nonce)/i
+        const estimateGasFailedErrorRegex = /eth_estimateGas/i
+        const alreadyKnownErrorRegex = /(AlreadyKnown|already known)/
+        const feeTooLowErrorRegex = /FeeTooLowToCompete|transaction underpriced/
 
         const isRateLimitError = rateLimitErrorRegex.test(errMsg)
         const isTimeoutError = timeoutErrorRegex.test(errMsg)
         const isConnectionError = connectionErrorRegex.test(errMsg)
         const isBadResponseError = badResponseErrorRegex.test(errMsg)
         const isOversizedDataError = oversizedDataRegex.test(errMsg)
-        const isBridgeContractError = bridgeContractError.test(errMsg)
+        const isBridgeContractError = bridgeContractErrorRegex.test(errMsg)
+        const isNonceTooLowErrorError = nonceTooLowErrorRegex.test(errMsg)
+        const isEstimateGasFailedError = estimateGasFailedErrorRegex.test(errMsg)
+        const isAlreadyKnownErrorRegex = alreadyKnownErrorRegex.test(errMsg)
+        const isFeeTooLowErrorRegex = feeTooLowErrorRegex.test(errMsg)
 
         // a connection error, such as 'ECONNREFUSED', will cause ethers to return a "missing revert data in call exception" error,
         // so we want to exclude server connection errors from actual contract call revert errors.
         const isRevertError = revertErrorRegex.test(errMsg) && !isConnectionError && !isTimeoutError
 
-        const shouldRetry = (isRateLimitError || isTimeoutError || isConnectionError || isBadResponseError) && !isRevertError && !isOversizedDataError && !isBridgeContractError
+        const shouldNotRetryErrors = (isOversizedDataError || isBridgeContractError || isNonceTooLowErrorError || isEstimateGasFailedError || isAlreadyKnownErrorRegex || isFeeTooLowErrorRegex)
+        const shouldRetry = (isRateLimitError || isTimeoutError || isConnectionError || isBadResponseError) && !isRevertError && !shouldNotRetryErrors
 
         logger.debug(`isRateLimitError: ${isRateLimitError}, isTimeoutError: ${isTimeoutError}, isConnectionError: ${isConnectionError}, isBadResponseError: ${isBadResponseError}, isRevertError: ${isRevertError}, shouldRetry: ${shouldRetry}`)
 

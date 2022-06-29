@@ -70,6 +70,8 @@ type Type2GasData = {
 
 type GasFeeData = Type0GasData & Type2GasData
 
+const enoughFundsCheckCache: Record<string, number> = {}
+
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
@@ -688,11 +690,19 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         }
 
         if (i === 1) {
-          this.logger.debug(`tx index ${i}: checking for enough funds`)
-          const _timeId = `GasBoostTransaction _sendTransaction checkHasEnoughFunds elapsed ${this.logId} ${i} `
-          console.time(_timeId)
-          await this.checkHasEnoughFunds(payload, gasFeeData)
-          console.timeEnd(_timeId)
+          const timeLimitMs = 60 * 1000
+          let shouldCheck = true
+          if (enoughFundsCheckCache[this.chainSlug]) {
+            shouldCheck = enoughFundsCheckCache[this.chainSlug] + timeLimitMs < Date.now()
+          }
+          if (shouldCheck) {
+            this.logger.debug(`tx index ${i}: checking for enough funds`)
+            const _timeId = `GasBoostTransaction _sendTransaction checkHasEnoughFunds elapsed ${this.logId} ${i} `
+            console.time(_timeId)
+            enoughFundsCheckCache[this.chainSlug] = Date.now()
+            await this.checkHasEnoughFunds(payload, gasFeeData)
+            console.timeEnd(_timeId)
+          }
         }
 
         this.logger.debug(`tx index ${i}: sending transaction`)

@@ -37,6 +37,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const fees = globalConfig?.fees?.[this.tokenSymbol]
     this.logger.log('bonder fees:', JSON.stringify(fees))
+
+    this.pollIntervalMs = 30 * 1000
   }
 
   async pollHandler () {
@@ -58,7 +60,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
     )
 
     await promiseQueue(dbTransfers, async (dbTransfer: Transfer, i: number) => {
-      this.logger.debug(`processing item ${i + 1}/${dbTransfers.length}`)
       const {
         transferId,
         destinationChainId,
@@ -66,6 +67,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
         withdrawalBondTxError
       } = dbTransfer
       const logger = this.logger.create({ id: transferId })
+      logger.debug(`processing item ${i + 1}/${dbTransfers.length} start`)
       logger.debug('checking db poll')
       const availableCredit = this.getAvailableCreditForTransfer(destinationChainId!)
       const notEnoughCredit = availableCredit.lt(amount!)
@@ -82,9 +84,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
       try {
         await this.checkTransferId(transferId)
       } catch (err: any) {
-        this.logger.error('checkTransferId error:', err)
+        logger.error('checkTransferId error:', err)
       }
 
+      logger.debug(`processing item ${i + 1}/${dbTransfers.length} complete`)
       logger.debug('db poll completed')
     }, { concurrency: bondWithdrawalBatchSize, timeoutMs: 30 * 1000 })
 
@@ -161,13 +164,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     await this.withdrawFromVaultIfNeeded(destinationChainId, amount)
 
-    logger.debug('attempting to send bondWithdrawal tx')
-
     const sourceTx = await sourceL2Bridge.getTransaction(
       transferSentTxHash
     )
     if (!sourceTx) {
-      this.logger.warn(`source tx data for tx hash "${transferSentTxHash}" not found. Cannot proceed`)
+      logger.warn(`source tx data for tx hash "${transferSentTxHash}" not found. Cannot proceed`)
       return
     }
     const { from: sender, data } = sourceTx
@@ -179,6 +180,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       })
       return
     }
+
+    logger.debug('attempting to send bondWithdrawal tx')
 
     await this.db.transfers.update(transferId, {
       bondWithdrawalAttemptedAt: Date.now()

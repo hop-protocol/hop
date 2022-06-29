@@ -70,6 +70,8 @@ type Type2GasData = {
 
 type GasFeeData = Type0GasData & Type2GasData
 
+const enoughFundsCheckCache: Record<string, number> = {}
+
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
@@ -416,11 +418,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const use1559 = await this.is1559Supported() && !this.gasPrice && this.type !== 0
 
     if (use1559) {
-      let maxFeePerGas = await this.getMarketMaxFeePerGas()
-      const maxPriorityFeePerGas = await this.getBumpedMaxPriorityFeePerGas(multiplier)
+      let [maxFeePerGas, maxPriorityFeePerGas, currentBaseFeePerGas] = await Promise.all([
+        this.getMarketMaxFeePerGas(),
+        this.getBumpedMaxPriorityFeePerGas(multiplier),
+        this.getCurrentBaseFeePerGas()
+      ])
       maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas)
 
-      const currentBaseFeePerGas = await this.getCurrentBaseFeePerGas()
       const maxGasPrice = this.getMaxGasPrice()
       if (currentBaseFeePerGas && maxFeePerGas.lte(currentBaseFeePerGas)) {
         maxFeePerGas = currentBaseFeePerGas.mul(2)
@@ -686,11 +690,19 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         }
 
         if (i === 1) {
-          this.logger.debug(`tx index ${i}: checking for enough funds`)
-          const _timeId = `GasBoostTransaction _sendTransaction checkHasEnoughFunds elapsed ${this.logId} ${i} `
-          console.time(_timeId)
-          await this.checkHasEnoughFunds(payload, gasFeeData)
-          console.timeEnd(_timeId)
+          const timeLimitMs = 60 * 1000
+          let shouldCheck = true
+          if (enoughFundsCheckCache[this.chainSlug]) {
+            shouldCheck = enoughFundsCheckCache[this.chainSlug] + timeLimitMs < Date.now()
+          }
+          if (shouldCheck) {
+            this.logger.debug(`tx index ${i}: checking for enough funds`)
+            const _timeId = `GasBoostTransaction _sendTransaction checkHasEnoughFunds elapsed ${this.logId} ${i} `
+            console.time(_timeId)
+            enoughFundsCheckCache[this.chainSlug] = Date.now()
+            await this.checkHasEnoughFunds(payload, gasFeeData)
+            console.timeEnd(_timeId)
+          }
         }
 
         this.logger.debug(`tx index ${i}: sending transaction`)

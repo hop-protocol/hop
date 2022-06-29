@@ -85,7 +85,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
 
       logger.debug('db poll completed')
-    }, { concurrency: bondWithdrawalBatchSize, timeoutMs: 60 * 1000 })
+    }, { concurrency: bondWithdrawalBatchSize, timeoutMs: 30 * 1000 })
 
     this.logger.debug('checkTransferSentFromDb completed')
   }

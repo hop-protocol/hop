@@ -37,8 +37,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const fees = globalConfig?.fees?.[this.tokenSymbol]
     this.logger.log('bonder fees:', JSON.stringify(fees))
-
-    this.pollIntervalMs = 30 * 1000
   }
 
   async pollHandler () {
@@ -273,9 +271,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = params
     const logger = this.logger.create({ id: transferId })
     if (attemptSwap) {
-      logger.debug(
-        `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
-      )
+      // logger.debug(
+      //   `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
+      // )
       const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge as L2Bridge
       return await l2Bridge.bondWithdrawalAndAttemptSwap(

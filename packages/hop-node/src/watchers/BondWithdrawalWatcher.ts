@@ -57,7 +57,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       `total unbonded transfers db items: ${dbTransfers.length}`
     )
 
-    const listSize = 250
+    const listSize = 100
     const batchedDbTransfers = dbTransfers.slice(0, listSize)
 
     this.logger.info(

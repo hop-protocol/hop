@@ -5,6 +5,7 @@ import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransfer from 'src/theGraph/getTransfer'
+import getTransferRootId from 'src/utils/getTransferRootId'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import wait from 'src/utils/wait'
@@ -388,6 +389,7 @@ class IncompleteSettlementsWatcher {
       const isIncomplete = diffFormatted > 0 && (settledTotalAmount.eq(0) || !settledTotalAmount.eq(totalAmount))
       let unsettledTransfers: any[] = []
       let unsettledTransferBonders: string[] = []
+      const rootId = getTransferRootId(rootHash, totalAmount)
       if (isIncomplete) {
         const settlementEvents = this.rootHashSettlements[rootHash]?.length ?? 0
         const withdrewEvents = this.rootHashWithdrews[rootHash]?.length ?? 0
@@ -406,6 +408,7 @@ class IncompleteSettlementsWatcher {
           diff,
           diffFormatted,
           rootHash,
+          rootId,
           settlementEvents,
           withdrewEvents,
           transfersCount,

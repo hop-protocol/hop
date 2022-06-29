@@ -49,6 +49,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   async checkTransferSentFromDb () {
     const dbTransfers = await this.db.transfers.getUnbondedSentTransfers(await this.getFilterRoute())
     if (!dbTransfers.length) {
+      this.logger.debug('no unbonded transfer db items to check')
       return
     }
 
@@ -57,7 +58,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     )
 
     await promiseQueue(dbTransfers, async (dbTransfer: Transfer, i: number) => {
-      this.logger.debug(`processing item ${i}/${dbTransfers.length}`)
+      this.logger.debug(`processing item ${i + 1}/${dbTransfers.length}`)
       const {
         transferId,
         destinationChainId,

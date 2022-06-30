@@ -87,7 +87,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           continue
         }
 
-        logger.debug(`unsettled transferId: ${dbTransfer?.transferId}, transferRootHash: ${dbTransferRoot?.transferRootHash}`)
+        logger.debug(`unsettled transferId: ${dbTransfer?.transferId}, transferRootHash: ${dbTransferRoot?.transferRootHash}, transferAmount: ${this.bridge.formatUnits(dbTransfer.amount!)}`)
         bonderSet.add(dbTransfer.withdrawalBonder!)
       }
 
@@ -213,7 +213,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         transferIds,
         totalAmount
       )
-      const msg = `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${tx.hash} transferRootHash: ${transferRootHash} transferIds: ${transferIds.length}`
+      const msg = `settleBondedWithdrawals on destinationChainId: ${destinationChainId} (sourceChainId: ${sourceChainId}) tx: ${tx.hash}, transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {

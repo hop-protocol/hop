@@ -1,4 +1,4 @@
-import { ChainSlug, Slug } from '@hop-protocol/sdk'
+import { ChainSlug, Slug, CanonicalToken } from '@hop-protocol/sdk'
 import capitalize from 'lodash/capitalize'
 import logger from 'src/logger'
 import { discordUrl } from 'src/utils'
@@ -13,6 +13,7 @@ const emptyRoute = {
   },
   source: '',
   destination: '',
+  tokenSymbol: '',
   warningOnly: false,
 }
 
@@ -21,11 +22,12 @@ export const ALL = 'all'
 export interface DisabledRoute {
   source: ChainSlug | 'all'
   destination: ChainSlug | 'all'
+  tokenSymbol: CanonicalToken
   message: any
   warningOnly: boolean
 }
 
-function formatDirection(source, destination) {
+function formatDirection(source: any, destination: any) {
   let direction: string | undefined
   if (source === ALL) {
     direction = `to ${capitalize(destination)}`
@@ -38,29 +40,37 @@ function formatDirection(source, destination) {
 }
 
 const validChainSlugs = new Set([...Object.values(Slug), ALL])
+const validTokenSymbols = new Set(Object.values(CanonicalToken))
 
 export function parseDisabledRoutes(
   serializedDisabledRoutes: string,
   serializedWarningRoutes: string,
   disabledRoutesNoLiquidityWarningMessage: boolean
 ): DisabledRoute[] {
-  const disabledRoutes = serializedDisabledRoutes?.split(',')
-  const warningRoutes = serializedWarningRoutes?.split(',')
+  const disabledRoutes = serializedDisabledRoutes?.split(',').map(x => x?.trim())
+  const warningRoutes = serializedWarningRoutes?.split(',').map(x => x?.trim())
 
   if (!disabledRoutes[0] || disabledRoutes[0] === 'false') return []
 
   if (disabledRoutes[0] !== '') {
-    return (disabledRoutes as any[]).map((disabledRoute, i) => {
-      const [source, destination] = disabledRoute.split(':')
+    return (disabledRoutes as string[]).map((disabledRoute: string, i: number) => {
+      const [source, destination, tokenSymbol] = disabledRoute.split(':')
 
       if (
         !(
-          validChainSlugs.has(source.toLowerCase()) &&
-          validChainSlugs.has(destination.toLowerCase())
+          validChainSlugs.has(source?.toLowerCase()) &&
+          validChainSlugs.has(destination?.toLowerCase())
         )
       ) {
         logger.error(`TYPO: Invalid source (${source}) or destination (${destination}).`)
         return emptyRoute
+      }
+
+      if (tokenSymbol) {
+        if (!validTokenSymbols.has(tokenSymbol as CanonicalToken)) {
+          logger.error(`TYPO: Invalid token "${tokenSymbol}", source: ${source}, destination: ${destination}`)
+          return emptyRoute
+        }
       }
 
       const direction = formatDirection(source, destination)
@@ -96,8 +106,9 @@ export function parseDisabledRoutes(
 
       return {
         message,
-        source,
-        destination,
+        source: source as any,
+        destination: destination as any,
+        tokenSymbol: tokenSymbol as any,
         warningOnly,
       }
     })

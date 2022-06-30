@@ -512,7 +512,10 @@ export default class Bridge extends ContractBase {
   }
 
   formatUnits (value: BigNumber) {
-    return Number(formatUnits(value.toString(), this.tokenDecimals))
+    if (!value) {
+      return 0
+    }
+    return Number(formatUnits(value?.toString() ?? '', this.tokenDecimals))
   }
 
   parseUnits (value: string | number) {

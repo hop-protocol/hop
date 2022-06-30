@@ -173,7 +173,9 @@ class IncompleteSettlementsWatcher {
     const contract = this.getContract(chain, token)
     const filter = contract.filters.TransfersCommitted()
     const logs = await this.setEvents(chain, token, filter, this.transferCommitteds)
-    await Promise.all(logs.map(async (log: any) => {
+
+    const concurrency = 20
+    await promiseQueue(logs, async (log: any, i: number) => {
       const { rootHash, totalAmount, destinationChainId } = log.args
       const destinationChain = chainIdToSlug(destinationChainId)
       this.rootHashMeta[rootHash] = {
@@ -186,16 +188,18 @@ class IncompleteSettlementsWatcher {
       const provider = getRpcProvider(chain)
       const { timestamp } = await provider!.getBlock(log.blockNumber)
       this.rootHashTimestamps[rootHash] = timestamp
-    }))
+    }, { concurrency })
   }
 
   private async setMultipleWithdrawalsSettleds (chain: string, token: string) {
     const contract = this.getContract(chain, token)
     const filter = contract.filters.MultipleWithdrawalsSettled()
     const logs = await this.setEvents(chain, token, filter, this.multipleWithdrawalsSettleds)
-    await Promise.all(logs.map(async (log: any) => {
-      return this.setRootTransferIds(chain, token, log)
-    }))
+
+    const concurrency = 20
+    await promiseQueue(logs, async (log: any, i: number) => {
+      await this.setRootTransferIds(chain, token, log)
+    }, { concurrency })
   }
 
   private async setWithdrawalBondSettleds (chain: string, token: string) {
@@ -369,10 +373,11 @@ class IncompleteSettlementsWatcher {
     this.logger.debug(`roots to check: ${rootsCount}`)
 
     const rootHashes = Object.keys(this.rootHashTotals)
+    this.logger.debug(`rootHashes count: ${rootHashes.length}`)
 
-    const concurrency = 20
+    const concurrency = 10
     await promiseQueue(rootHashes, async (rootHash: string, i: number) => {
-      this.logger.debug(`processing item ${i + 1}/${rootHashes.length}`)
+      this.logger.debug(`rootHashes processing item ${i + 1}/${rootHashes.length}`)
       const { sourceChain, destinationChain, token } = this.rootHashMeta[rootHash]
       const totalAmount = this.rootHashTotals[rootHash]
       const timestamp = this.rootHashTimestamps[rootHash]
@@ -454,7 +459,7 @@ class IncompleteSettlementsWatcher {
     const unsettledTransferBonders = new Set()
     const concurrency = 20
     await promiseQueue(transferIds, async (transferId: string, i: number) => {
-      this.logger.debug(`processing item ${i + 1}/${transferIds.length}`)
+      this.logger.debug(`rootHash transferIds processing item ${i + 1}/${transferIds.length}`)
       const bondWithdrawalEvent = await getBondedWithdrawal(destinationChain, token, transferId)
       if (!bondWithdrawalEvent) {
         const { amount } = await getTransfer(sourceChain, token, transferId)

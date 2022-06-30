@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { BigNumber, providers } from 'ethers'
+import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { getVotes } from './claims'

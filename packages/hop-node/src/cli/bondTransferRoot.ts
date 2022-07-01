@@ -30,7 +30,7 @@ async function main (source: any) {
   if (!token) {
     throw new Error('token is required')
   }
-  if (!rootHashes) {
+  if (!rootHashes?.length) {
     throw new Error('transfer root hash is required')
   }
 

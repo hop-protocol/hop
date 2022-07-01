@@ -21,7 +21,7 @@ async function main (source: any) {
   if (!token) {
     throw new Error('token is required')
   }
-  if (!transferIds) {
+  if (!transferIds?.length) {
     throw new Error('transfer ID is required')
   }
 

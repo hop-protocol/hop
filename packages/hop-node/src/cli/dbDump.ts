@@ -35,10 +35,33 @@ async function main (source: any) {
   const db = getDbSet(tokenSymbol)
   let items: any[] = []
   if (dbName === 'transfer-roots') {
-    items = await db.transferRoots.getTransferRoots({
-      fromUnix: fromDate,
-      toUnix: toDate
-    })
+    if (inputFileList) {
+      const output: any[] = []
+      for (const transferRootId of inputFileList) {
+        const item = await db.transferRoots.getByTransferRootId(transferRootId)
+        output.push(item || { transferRootId })
+      }
+      const filtered = output.map((x: any) => {
+        const { transferRootId, transferRootHash, totalAmount, bonded, comitted, committedAt, confirmed, rootSetTimestamp, allSettled } = x
+        return {
+          transferRootId,
+          transferRootHash,
+          totalAmount,
+          bonded,
+          comitted,
+          committedAt,
+          confirmed,
+          rootSetTimestamp,
+          allSettled
+        }
+      })
+      items = filtered
+    } else {
+      items = await db.transferRoots.getTransferRoots({
+        fromUnix: fromDate,
+        toUnix: toDate
+      })
+    }
   } else if (dbName === 'unbonded-roots') {
     items = await db.transferRoots.getUnbondedTransferRoots({
       sourceChainId: chainSlugToId(chain)
@@ -51,9 +74,10 @@ async function main (source: any) {
         output.push(item || { transferId })
       }
       const filtered = output.map((x: any) => {
-        const { transferId, transferSentTimestamp, withdrawalBonded, isBondable, withdrawalBondTxError, bondWithdrawalAttemptedAt } = x
+        const { transferId, amount, transferSentTimestamp, withdrawalBonded, isBondable, withdrawalBondTxError, bondWithdrawalAttemptedAt } = x
         return {
           transferId,
+          amount,
           withdrawalBonded,
           isBondable,
           transferSentTimestamp,

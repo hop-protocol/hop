@@ -5,7 +5,7 @@ import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import isHToken from 'src/utils/isHToken'
 import wallets from 'src/wallets'
 import { BigNumber, utils as ethersUtils } from 'ethers'
-import { Chain, TokenIndex, nativeChainTokens } from 'src/constants'
+import { Chain, MinPolygonGasPrice, TokenIndex, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 
 import { swap as oneInchSwap } from 'src/1inch'
@@ -229,11 +229,15 @@ async function wrapToken (chain: string, parsedAmount: BigNumber) {
   const data = ethersInterface.encodeFunctionData(
     'deposit', []
   )
-  return wallet.sendTransaction({
+  const tx: any = {
     to: wrappedTokenAddress,
     value: parsedAmount,
     data
-  })
+  }
+  if (chain === Chain.Polygon) {
+    tx.gasPrice = MinPolygonGasPrice
+  }
+  return wallet.sendTransaction(tx)
 }
 
 async function unwrapToken (chain: string, parsedAmount: BigNumber) {
@@ -244,10 +248,15 @@ async function unwrapToken (chain: string, parsedAmount: BigNumber) {
   const data = ethersInterface.encodeFunctionData(
     'withdraw', [parsedAmount]
   )
-  return wallet.sendTransaction({
+  const tx: any = {
     to: wrappedTokenAddress,
     data
-  })
+  }
+  if (chain === Chain.Polygon) {
+    tx.gasPrice = MinPolygonGasPrice
+  }
+  console.log(tx)
+  return wallet.sendTransaction(tx)
 }
 
 function isWrappedNativeToken (token: string, chain: string) {

@@ -28,7 +28,7 @@ async function main (source: any) {
   if (!token) {
     throw new Error('token is required')
   }
-  if (!commitTxHashes) {
+  if (!commitTxHashes?.length) {
     throw new Error('commit tx hash is required')
   }
 

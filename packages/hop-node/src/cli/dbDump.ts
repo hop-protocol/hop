@@ -1,4 +1,6 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
+import fs from 'fs'
+import path from 'path'
 import { getDbSet } from 'src/db'
 import {
   config as globalConfig,
@@ -21,10 +23,11 @@ root
   .option('--nearest <timestamp>', 'Nearest timestamp in seconds', parseNumber)
   .option('--from-date <timestamp>', 'From date timestamp in seconds', parseNumber)
   .option('--to-date <timestamp>', 'To date timestamp in seconds', parseNumber)
+  .option('--input-file <filepath>', 'Filepath containing list of ids', parseString)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { dbPath, db: dbName, chain, token: tokenSymbol, nearest, fromDate, toDate } = source
+  const { dbPath, db: dbName, chain, token: tokenSymbol, nearest, fromDate, toDate, inputFile } = source
   if (dbPath) {
     setDbPath(dbPath)
   }
@@ -43,10 +46,31 @@ async function main (source: any) {
       sourceChainId: chainSlugToId(chain)
     })
   } else if (dbName === 'transfers') {
-    items = await db.transfers.getTransfers({
-      fromUnix: fromDate,
-      toUnix: toDate
-    })
+    if (inputFile) {
+      const list = fs.readFileSync(path.resolve(inputFile), 'utf8').split('\n').map(x => x.trim().toLowerCase()).filter((x: any) => x)
+      const output: any[] = []
+      for (const transferId of list) {
+        const item = await db.transfers.getByTransferId(transferId)
+        output.push(item)
+      }
+      const filtered = output.map((x: any) => {
+        const { transferId, transferSentTimestamp, withdrawalBonded, isBondable, withdrawalBondTxError, bondWithdrawalAttemptedAt } = x
+        return {
+          transferId,
+          withdrawalBonded,
+          isBondable,
+          transferSentTimestamp,
+          withdrawalBondTxError,
+          bondWithdrawalAttemptedAt
+        }
+      })
+      items = filtered
+    } else {
+      items = await db.transfers.getTransfers({
+        fromUnix: fromDate,
+        toUnix: toDate
+      })
+    }
   } else if (dbName === 'sync-state') {
     items = await db.syncState.getItems()
   } else if (dbName === 'gas-cost') {

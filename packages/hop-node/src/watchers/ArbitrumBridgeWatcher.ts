@@ -3,8 +3,8 @@ import Logger from 'src/logger'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1TransactionReceipt, L2TransactionReceipt, getL2Network } from '@arbitrum/sdk'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { L2TransactionReceipt, getL2Network } from '@arbitrum/sdk'
 import { Wallet, providers } from 'ethers'
 
 type Config = {
@@ -12,6 +12,14 @@ type Config = {
   tokenSymbol: string
   bridgeContract?: L1BridgeContract | L2BridgeContract
   dryMode?: boolean
+}
+
+const l1ToL2TxStatuses: Record<number, string> = {
+  1: 'Not yet created',
+  2: 'Creation failed',
+  3: 'Funds deposited on L2. They to be manually redeemed.',
+  4: 'Redeemed',
+  5: 'Expired'
 }
 
 class ArbitrumBridgeWatcher extends BaseWatcher {
@@ -82,6 +90,18 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     const msg = `sent chain ${this.bridge.chainId} confirmTransferRoot exit tx ${tx.hash}`
     logger.info(msg)
     this.notifier.info(msg)
+  }
+
+  async redeemArbitrumTransaction (l1TxHash: string) {
+    const txReceipt = await this.l1Wallet.provider.getTransactionReceipt(l1TxHash)
+    const l1TxnReceipt = new L1TransactionReceipt(txReceipt)
+    const l1ToL2Message = await l1TxnReceipt.getL1ToL2Message(this.l2Wallet)
+    const res = await l1ToL2Message.waitForStatus()
+    if (res?.status !== 3) {
+      this.logger.error(`Transaction not redeemable. Status: ${l1ToL2TxStatuses[res.status]}`)
+      throw new Error('Transaction unredeemable')
+    }
+    await l1ToL2Message.redeem()
   }
 }
 

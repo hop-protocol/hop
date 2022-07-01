@@ -17,11 +17,11 @@ export const config : Config = {
       arbitrum: 23
     },
     DAI: {
-      ethereum: 13,
-      polygon: 13,
+      ethereum: 20,
+      polygon: 20,
       gnosis: 25,
-      optimism: 13,
-      arbitrum: 13
+      optimism: 20,
+      arbitrum: 20
     },
     MATIC: {
       ethereum: 20,

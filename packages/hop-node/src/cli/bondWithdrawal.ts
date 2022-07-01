@@ -21,7 +21,7 @@ async function main (source: any) {
   if (!token) {
     throw new Error('token is required')
   }
-  if (!transferIds) {
+  if (!transferIds?.length) {
     throw new Error('transfer ID is required')
   }
 
@@ -31,15 +31,17 @@ async function main (source: any) {
   }
 
   for (const transferId of transferIds) {
-    const dbTransfer: any = await watcher.db.transfers.getByTransferId(transferId)
-    if (!dbTransfer) {
-      throw new Error('TransferId does not exist in the DB')
-    }
-    dbTransfer.attemptSwap = watcher.bridge.shouldAttemptSwap(dbTransfer.amountOutMin, dbTransfer.deadline)
-    if (dbTransfer.attemptSwap && dbTransfer.destinationChainId === 1) {
-      throw new Error('Cannot bond transfer because a swap is being attempted on mainnet. Please withdraw instead.')
-    }
+    try {
+      const dbTransfer: any = await watcher.db.transfers.getByTransferId(transferId)
+      if (!dbTransfer) {
+        throw new Error('TransferId does not exist in the DB')
+      }
+      dbTransfer.attemptSwap = watcher.bridge.shouldAttemptSwap(dbTransfer.amountOutMin, dbTransfer.deadline)
+      if (dbTransfer.attemptSwap && dbTransfer.destinationChainId === 1) {
+        throw new Error('Cannot bond transfer because a swap is being attempted on mainnet. Please withdraw instead.')
+      }
 
-    await watcher.sendBondWithdrawalTx(dbTransfer)
+      await watcher.sendBondWithdrawalTx(dbTransfer)
+    } catch {}
   }
 }

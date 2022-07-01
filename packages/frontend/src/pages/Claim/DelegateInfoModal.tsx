@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React from 'react'
 import { Link } from 'src/components/Link'
 import Button from 'src/components/buttons/Button'
 import Typography from '@material-ui/core/Typography'

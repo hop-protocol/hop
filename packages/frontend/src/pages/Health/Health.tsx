@@ -1,7 +1,6 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { useInterval } from 'react-use'
-import styled from 'styled-components/macro'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import { DateTime } from 'luxon'
 import { Div, Icon } from 'src/components/ui'
@@ -150,7 +149,7 @@ function useData() {
         setLowAvailableLiquidityBonders(result.data.lowAvailableLiquidityBonders)
       }
       if (Array.isArray(result?.data?.unbondedTransfers)) {
-        setUnbondedTransfers(result.data.unbondedTransfers)
+        setUnbondedTransfers(result.data.unbondedTransfers.slice(0, 100))
       }
       if (Array.isArray(result?.data?.unbondedTransferRoots)) {
         setUnbondedTransferRoots(result.data.unbondedTransferRoots)

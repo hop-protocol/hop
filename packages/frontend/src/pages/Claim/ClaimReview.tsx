@@ -1,5 +1,5 @@
 import React from 'react'
-import { Circle, Div, Icon } from 'src/components/ui'
+import { Div, Icon } from 'src/components/ui'
 import Button from 'src/components/buttons/Button'
 import hopTokenLogo from 'src/assets/logos/hop-token-logo.svg'
 import { toTokenDisplay } from 'src/utils'

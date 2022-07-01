@@ -2,13 +2,14 @@ import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
 
-import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
+import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared'
 
 root
   .command('bond-withdrawal')
   .description('Bond withdrawal')
   .option('--token <symbol>', 'Token', parseString)
   .option('--transfer-ids <id, ...>', 'Comma-separated transfer ids', parseStringArray)
+  .option('--transfer-ids-file <filepath>', 'Filenamepath containing list of transfer IDs', parseInputFileList)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
@@ -17,7 +18,10 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { token, dry: dryMode, transferIds } = source
+  let { token, dry: dryMode, transferIds, transferIdsFile: transferIdsFileList } = source
+  if (transferIdsFileList && !transferIds) {
+    transferIds = transferIdsFileList
+  }
   if (!token) {
     throw new Error('token is required')
   }
@@ -42,6 +46,10 @@ async function main (source: any) {
       }
 
       await watcher.sendBondWithdrawalTx(dbTransfer)
-    } catch {}
+    } catch (err: any) {
+      // nop
+    }
   }
+
+  console.log('complete')
 }

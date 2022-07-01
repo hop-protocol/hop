@@ -34,7 +34,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.Ethereum) ? fetchTransfers(Chain.Ethereum, startTime, endTime) : Promise.resolve([])
   ])
 
-  console.log('getTransfersData: got transfers')
+  console.log('getTransfersData: got transfers', gnosisTransfers.length, polygonTransfers.length, optimismTransfers.length, arbitrumTransfers.length, mainnetTransfers.length)
 
   for (const x of gnosisTransfers) {
     data.push({
@@ -285,20 +285,18 @@ export async function fetchTransfers (chain: Chain, startTime: number, endTime: 
   let transfers: any[] = []
   let lastId = '0'
 
-  do {
+  while (true) {
     transfers = await _fetchTransfers(chain, startTime, endTime, lastId)
-    console.log('fetchTransfers', startTime, endTime, chain, lastId)
-    if (transfers.length > 0) {
-      const newLastId = transfers[transfers.length - 1].id
-      if (newLastId === lastId) {
-        break
-      }
-      lastId = newLastId
-    }
     result = result.concat(...transfers)
-  } while (transfers.length > 0)
+    console.log('fetchTransfers', startTime, endTime, chain, lastId)
+    if (transfers.length === 1000) {
+      lastId = transfers[transfers.length - 1].id
+    } else {
+      break
+    }
+  }
 
-  return uniqBy(result, (x: any) => x.id)
+  return uniqBy(result, (x: any) => x.id).filter((x: any) => x)
 }
 
 export async function _fetchTransfers (chain: Chain, startTime: number, endTime: number, lastId: string = '0') {

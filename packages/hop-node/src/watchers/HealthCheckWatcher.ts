@@ -507,6 +507,8 @@ export class HealthCheckWatcher {
     })
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
     result = result.filter((x: any) => x.sourceChain !== Chain.Ethereum)
+
+    // TODO: clean up these bonder fee too low checks
     result = result.map((x: any) => {
       const isBonderFeeTooLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.005 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && [Chain.Gnosis, Chain.Polygon].includes(x.destinationChain))
       x.isBonderFeeTooLow = isBonderFeeTooLow

@@ -17,6 +17,7 @@ export async function getUnbondedTransfers (days: number, offsetDays: number = 0
 }
 
 async function getTransfersData (startTime: number, endTime: number) {
+  const enabledChains = [Chain.Gnosis, Chain.Polygon, Chain.Optimism, Chain.Arbitrum, Chain.Ethereum]
   console.log('getTransfersData: fetching transfers')
   let data: any[] = []
   const [
@@ -26,14 +27,14 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrumTransfers,
     mainnetTransfers
   ] = await Promise.all([
-    fetchTransfers(Chain.Gnosis, startTime, endTime),
-    fetchTransfers(Chain.Polygon, startTime, endTime),
-    fetchTransfers(Chain.Optimism, startTime, endTime),
-    fetchTransfers(Chain.Arbitrum, startTime, endTime),
-    fetchTransfers(Chain.Ethereum, startTime, endTime)
+    enabledChains.includes(Chain.Gnosis) ? fetchTransfers(Chain.Gnosis, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.Polygon) ? fetchTransfers(Chain.Polygon, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.Optimism) ? fetchTransfers(Chain.Optimism, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.Arbitrum) ? fetchTransfers(Chain.Arbitrum, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.Ethereum) ? fetchTransfers(Chain.Ethereum, startTime, endTime) : Promise.resolve([])
   ])
 
-  console.log('getTransfersData: got transfers')
+  console.log('getTransfersData: got transfers', gnosisTransfers.length, polygonTransfers.length, optimismTransfers.length, arbitrumTransfers.length, mainnetTransfers.length)
 
   for (const x of gnosisTransfers) {
     data.push({
@@ -133,11 +134,11 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrumBondedWithdrawals,
     mainnetBondedWithdrawals
   ] = await Promise.all([
-    fetchBonds(Chain.Gnosis, transferIds),
-    fetchBonds(Chain.Polygon, transferIds),
-    fetchBonds(Chain.Optimism, transferIds),
-    fetchBonds(Chain.Arbitrum, transferIds),
-    fetchBonds(Chain.Ethereum, transferIds)
+    enabledChains.includes(Chain.Gnosis) ? fetchBonds(Chain.Gnosis, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.Polygon) ? fetchBonds(Chain.Polygon, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.Optimism) ? fetchBonds(Chain.Optimism, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.Arbitrum) ? fetchBonds(Chain.Arbitrum, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.Ethereum) ? fetchBonds(Chain.Ethereum, transferIds) : Promise.resolve([])
   ])
 
   console.log('getTransfersData: got bonds')
@@ -150,11 +151,11 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrumWithdrews,
     mainnetWithdrews
   ] = await Promise.all([
-    fetchWithdrews(Chain.Gnosis, startTime, endTime),
-    fetchWithdrews(Chain.Polygon, startTime, endTime),
-    fetchWithdrews(Chain.Optimism, startTime, endTime),
-    fetchWithdrews(Chain.Arbitrum, startTime, endTime),
-    fetchWithdrews(Chain.Ethereum, startTime, endTime)
+    enabledChains.includes(Chain.Gnosis) ? fetchWithdrews(Chain.Gnosis, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.Polygon) ? fetchWithdrews(Chain.Polygon, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.Optimism) ? fetchWithdrews(Chain.Optimism, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.Arbitrum) ? fetchWithdrews(Chain.Arbitrum, transferIds) : Promise.resolve([]),
+    enabledChains.includes(Chain.Ethereum) ? fetchWithdrews(Chain.Ethereum, transferIds) : Promise.resolve([])
   ])
 
   console.log('getTransfersData: got withdrews')
@@ -166,10 +167,10 @@ async function getTransfersData (startTime: number, endTime: number) {
     optimismFromL1Completeds,
     arbitrumFromL1Completeds
   ] = await Promise.all([
-    fetchTransferFromL1Completeds(Chain.Gnosis, startTime, endTime),
-    fetchTransferFromL1Completeds(Chain.Polygon, startTime, endTime),
-    fetchTransferFromL1Completeds(Chain.Optimism, startTime, endTime),
-    fetchTransferFromL1Completeds(Chain.Arbitrum, startTime, endTime)
+    enabledChains.includes(Chain.Gnosis) ? fetchTransferFromL1Completeds(Chain.Gnosis, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.Polygon) ? fetchTransferFromL1Completeds(Chain.Polygon, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.Optimism) ? fetchTransferFromL1Completeds(Chain.Optimism, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.Arbitrum) ? fetchTransferFromL1Completeds(Chain.Arbitrum, startTime, endTime) : Promise.resolve([])
   ])
 
   console.log('getTransfersData: got L1 completeds')
@@ -274,21 +275,41 @@ async function getTransfersData (startTime: number, endTime: number) {
       return x
     })
 
-  console.log(`getTransfersData: got populated data. count ${populatedData}`)
+  console.log(`getTransfersData: got populated data. count ${populatedData.length}`)
 
   return populatedData
 }
 
 export async function fetchTransfers (chain: Chain, startTime: number, endTime: number) {
+  let result: any[] = []
+  let transfers: any[] = []
+  let lastId = '0'
+
+  while (true) {
+    transfers = await _fetchTransfers(chain, startTime, endTime, lastId)
+    result = result.concat(...transfers)
+    console.log('fetchTransfers', startTime, endTime, chain, lastId)
+    if (transfers.length === 1000) {
+      lastId = transfers[transfers.length - 1].id
+    } else {
+      break
+    }
+  }
+
+  return uniqBy(result, (x: any) => x.id).filter((x: any) => x)
+}
+
+export async function _fetchTransfers (chain: Chain, startTime: number, endTime: number, lastId: string = '0') {
   const queryL1 = `
-    query TransferSentToL2($startTime: Int, $endTime: Int) {
+    query TransferSentToL2($startTime: Int, $endTime: Int, $lastId: ID) {
       transferSents: transferSentToL2S(
         where: {
           timestamp_gte: $startTime,
-          timestamp_lte: $endTime
+          timestamp_lte: $endTime,
+          id_gt: $lastId
         },
         first: 1000,
-        orderBy: timestamp,
+        orderBy: id,
         orderDirection: asc
       ) {
         id
@@ -305,14 +326,15 @@ export async function fetchTransfers (chain: Chain, startTime: number, endTime: 
     }
   `
   const queryL2 = `
-    query TransferSents($startTime: Int, $endTime: Int) {
+    query TransferSents($startTime: Int, $endTime: Int, $lastId: ID) {
       transferSents(
         where: {
           timestamp_gte: $startTime,
-          timestamp_lte: $endTime
+          timestamp_lte: $endTime,
+          id_gt: $lastId
         },
         first: 1000,
-        orderBy: timestamp,
+        orderBy: id,
         orderDirection: asc
       ) {
         id
@@ -335,36 +357,18 @@ export async function fetchTransfers (chain: Chain, startTime: number, endTime: 
   }
   const data = await makeRequest(chain, query, {
     startTime,
-    endTime
+    endTime,
+    lastId
   })
 
-  let transfers = data.transferSents
+  const transfers = data.transferSents
     .filter((x: any) => x)
     .map((x: any) => {
       x.destinationChainId = Number(x.destinationChainId)
       return x
     })
 
-  if (transfers.length > 0) {
-    try {
-      const lastTimestamp = Number(transfers[transfers.length - 1].timestamp)
-      if (startTime === lastTimestamp) {
-        return transfers
-      }
-      startTime = lastTimestamp
-      transfers = transfers.concat(...(await fetchTransfers(
-        chain,
-        startTime,
-        endTime
-      )))
-    } catch (err: any) {
-      if (!err.message.includes('The `skip` argument must be between')) {
-        throw err
-      }
-    }
-  }
-
-  return uniqBy(transfers, (x: any) => x.id)
+  return transfers
 }
 
 async function fetchBonds (chain: Chain, transferIds: string[]) {
@@ -403,17 +407,16 @@ async function fetchBonds (chain: Chain, transferIds: string[]) {
   return bonds
 }
 
-async function fetchWithdrews (chain: Chain, startTime: number, endTime: number, transferIds?: string[], skip?: number) {
+async function fetchWithdrews (chain: Chain, transferIds: string[]) {
   const query = `
-    query Withdrews($perPage: Int, $startTime: Int, $endTime: Int, $transferId: String) {
+    query Withdrews($perPage: Int, $transferIds: [String]) {
       withdrews(
         where: {
-          ${transferIds ? 'transferId_in: $transferIds' : 'timestamp_gte: $startTime, timestamp_lte: $endTime'}
+          transferId_in: $transferIds
         },
-        first: $perPage,
-        orderBy: timestamp,
-        orderDirection: desc,
-        skip: $skip
+        first: 1000,
+        orderBy: id,
+        orderDirection: asc
       ) {
         id
         transferId
@@ -423,32 +426,17 @@ async function fetchWithdrews (chain: Chain, startTime: number, endTime: number,
       }
     }
   `
-  if (!skip) {
-    skip = 0
-  }
-  const data = await makeRequest(chain, query, {
-    perPage: 1000,
-    startTime,
-    endTime,
-    transferIds,
-    skip
-  })
-  let withdrawals = data.withdrews || []
 
-  if (withdrawals.length === 1000) {
-    try {
-      withdrawals = withdrawals.concat(...(await fetchWithdrews(
-        chain,
-        startTime,
-        endTime,
-        transferIds,
-        skip + 1000
-      )))
-    } catch (err: any) {
-      if (!err.message.includes('The `skip` argument must be between')) {
-        throw err
-      }
-    }
+  transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
+  const chunkSize = 1000
+  const allChunks = chunk(transferIds, chunkSize)
+  let withdrawals: any = []
+  for (const _transferIds of allChunks) {
+    const data = await makeRequest(chain, query, {
+      transferIds: _transferIds
+    })
+
+    withdrawals = withdrawals.concat(data.withdrews)
   }
 
   return withdrawals

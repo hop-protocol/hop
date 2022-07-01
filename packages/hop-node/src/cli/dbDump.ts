@@ -1,13 +1,11 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
-import fs from 'fs'
-import path from 'path'
 import { getDbSet } from 'src/db'
 import {
   config as globalConfig,
   setDbPath
 } from 'src/config'
 
-import { actionHandler, logger, parseNumber, parseString, root } from './shared'
+import { actionHandler, logger, parseInputFileList, parseNumber, parseString, root } from './shared'
 
 root
   .command('db-dump')
@@ -23,11 +21,11 @@ root
   .option('--nearest <timestamp>', 'Nearest timestamp in seconds', parseNumber)
   .option('--from-date <timestamp>', 'From date timestamp in seconds', parseNumber)
   .option('--to-date <timestamp>', 'To date timestamp in seconds', parseNumber)
-  .option('--input-file <filepath>', 'Filepath containing list of ids', parseString)
+  .option('--input-file <filepath>', 'Filepath containing list of ids', parseInputFileList)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { dbPath, db: dbName, chain, token: tokenSymbol, nearest, fromDate, toDate, inputFile } = source
+  const { dbPath, db: dbName, chain, token: tokenSymbol, nearest, fromDate, toDate, inputFile: inputFileList } = source
   if (dbPath) {
     setDbPath(dbPath)
   }
@@ -37,26 +35,49 @@ async function main (source: any) {
   const db = getDbSet(tokenSymbol)
   let items: any[] = []
   if (dbName === 'transfer-roots') {
-    items = await db.transferRoots.getTransferRoots({
-      fromUnix: fromDate,
-      toUnix: toDate
-    })
+    if (inputFileList) {
+      const output: any[] = []
+      for (const transferRootId of inputFileList) {
+        const item = await db.transferRoots.getByTransferRootId(transferRootId)
+        output.push(item || { transferRootId })
+      }
+      const filtered = output.map((x: any) => {
+        const { transferRootId, transferRootHash, totalAmount, bonded, comitted, committedAt, confirmed, rootSetTimestamp, allSettled } = x
+        return {
+          transferRootId,
+          transferRootHash,
+          totalAmount,
+          bonded,
+          comitted,
+          committedAt,
+          confirmed,
+          rootSetTimestamp,
+          allSettled
+        }
+      })
+      items = filtered
+    } else {
+      items = await db.transferRoots.getTransferRoots({
+        fromUnix: fromDate,
+        toUnix: toDate
+      })
+    }
   } else if (dbName === 'unbonded-roots') {
     items = await db.transferRoots.getUnbondedTransferRoots({
       sourceChainId: chainSlugToId(chain)
     })
   } else if (dbName === 'transfers') {
-    if (inputFile) {
-      const list = fs.readFileSync(path.resolve(inputFile), 'utf8').split('\n').map(x => x.trim().toLowerCase()).filter((x: any) => x)
+    if (inputFileList) {
       const output: any[] = []
-      for (const transferId of list) {
+      for (const transferId of inputFileList) {
         const item = await db.transfers.getByTransferId(transferId)
-        output.push(item)
+        output.push(item || { transferId })
       }
       const filtered = output.map((x: any) => {
-        const { transferId, transferSentTimestamp, withdrawalBonded, isBondable, withdrawalBondTxError, bondWithdrawalAttemptedAt } = x
+        const { transferId, amount, transferSentTimestamp, withdrawalBonded, isBondable, withdrawalBondTxError, bondWithdrawalAttemptedAt } = x
         return {
           transferId,
+          amount,
           withdrawalBonded,
           isBondable,
           transferSentTimestamp,

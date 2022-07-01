@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom';
-import { Link, useTheme } from '@material-ui/core'
+import { useTheme } from '@material-ui/core'
 import Button from 'src/components/buttons/Button'
-import { Div, Flex } from 'src/components/ui'
+import { Div } from 'src/components/ui'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'

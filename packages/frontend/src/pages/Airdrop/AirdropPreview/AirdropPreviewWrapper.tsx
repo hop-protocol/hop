@@ -1,6 +1,6 @@
 import React from 'react'
 import Box from '@material-ui/core/Box'
-import { EthAddress, Flex } from 'src/components/ui'
+import { Flex } from 'src/components/ui'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 

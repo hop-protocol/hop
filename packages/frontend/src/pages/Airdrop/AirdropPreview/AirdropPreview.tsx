@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Alert from 'src/components/alert/Alert'
 import Box from '@material-ui/core/Box'
-import { EthAddress, Flex } from 'src/components/ui'
+import { EthAddress } from 'src/components/ui'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { AirdropPreviewWrapper } from './AirdropPreviewWrapper'
 import { StyledButton } from 'src/components/buttons/StyledButton'

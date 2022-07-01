@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import Button from 'src/components/buttons/Button'
 import Typography from '@material-ui/core/Typography'
 import { Input } from 'src/components/ui'

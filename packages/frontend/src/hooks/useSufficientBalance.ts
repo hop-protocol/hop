@@ -1,7 +1,6 @@
 import { Token } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { useEffect, useState } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { toTokenDisplay } from 'src/utils'
 

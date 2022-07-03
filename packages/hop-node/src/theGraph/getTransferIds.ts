@@ -11,6 +11,9 @@ export default async function getTransferIds (
   filters: Partial<Filters> = {},
   lastId: string = constants.AddressZero
 ): Promise<any[]> {
+  if (chain === 'ethereum') {
+    return []
+  }
   const query = `
     query TransfersSent(${token ? '$token: String, ' : ''}$orderDirection: String, $startDate: Int, $endDate: Int, $lastId: ID) {
       transferSents(

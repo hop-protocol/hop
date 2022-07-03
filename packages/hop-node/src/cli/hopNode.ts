@@ -151,7 +151,8 @@ async function main (source: any) {
         incompleteSettlements: enabledChecks.includes('incompleteSettlements'),
         challengedTransferRoots: enabledChecks.includes('challengedTransferRoots'),
         unsyncedSubgraphs: enabledChecks.includes('unsyncedSubgraphs'),
-        lowAvailableLiquidityBonders: enabledChecks.includes('lowAvailableLiquidityBonders')
+        lowAvailableLiquidityBonders: enabledChecks.includes('lowAvailableLiquidityBonders'),
+        missedEvents: enabledChecks.includes('missedEvents')
       }
     }
 

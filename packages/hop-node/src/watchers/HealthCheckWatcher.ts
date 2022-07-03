@@ -18,6 +18,7 @@ import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Brid
 import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getDbSet } from 'src/db'
 import { getEnabledTokens } from 'src/config/config'
+import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawals'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
 import { config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
@@ -116,6 +117,12 @@ type MissedEvent = {
   transferId: string
 }
 
+type InvalidBondWithdrawal = {
+  destinationChain: string
+  token: string
+  transferId: string
+}
+
 type Result = {
   lowBonderBalances: LowBonderBalance[]
   lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
@@ -125,6 +132,7 @@ type Result = {
   challengedTransferRoots: ChallengedTransferRoot[]
   unsyncedSubgraphs: UnsyncedSubgraph[]
   missedEvents: MissedEvent[]
+  invalidBondWithdrawals: InvalidBondWithdrawal[]
 }
 
 export type EnabledChecks = {
@@ -136,6 +144,7 @@ export type EnabledChecks = {
   unsyncedSubgraphs: boolean
   lowAvailableLiquidityBonders: boolean
   missedEvents: boolean
+  invalidBondWithdrawals: boolean
 }
 
 export type Config = {
@@ -192,7 +201,8 @@ export class HealthCheckWatcher {
     challengedTransferRoots: true,
     unsyncedSubgraphs: true,
     lowAvailableLiquidityBonders: true,
-    missedEvents: true
+    missedEvents: true,
+    invalidBondWithdrawals: true
   }
 
   lastNotificationSentAt: number
@@ -262,7 +272,8 @@ export class HealthCheckWatcher {
       incompleteSettlements,
       challengedTransferRoots,
       unsyncedSubgraphs,
-      missedEvents
+      missedEvents,
+      invalidBondWithdrawals
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
       this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([]),
@@ -271,7 +282,8 @@ export class HealthCheckWatcher {
       this.enabledChecks.incompleteSettlements ? this.getIncompleteSettlements() : Promise.resolve([]),
       this.enabledChecks.challengedTransferRoots ? this.getChallengedTransferRoots() : Promise.resolve([]),
       this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([]),
-      this.enabledChecks.missedEvents ? this.getMissedEvents() : Promise.resolve([])
+      this.enabledChecks.missedEvents ? this.getMissedEvents() : Promise.resolve([]),
+      this.enabledChecks.invalidBondWithdrawals ? this.getInvalidBondWithdrawals() : Promise.resolve([])
     ])
 
     return {
@@ -282,7 +294,8 @@ export class HealthCheckWatcher {
       incompleteSettlements,
       challengedTransferRoots,
       unsyncedSubgraphs,
-      missedEvents
+      missedEvents,
+      invalidBondWithdrawals
     }
   }
 
@@ -739,5 +752,20 @@ export class HealthCheckWatcher {
     await Promise.all(promises)
 
     return missedEvents
+  }
+
+  async getInvalidBondWithdrawals (): Promise<InvalidBondWithdrawal[]> {
+    const now = DateTime.now().toUTC()
+    const endDate = now.minus({ hours: 1 })
+    const startDate = endDate.minus({ hours: 6 })
+    const items = await getInvalidBondWithdrawals(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+    return items.map((item: any) => {
+      const { transferId, token, destinationChain } = item
+      return {
+        transferId,
+        token,
+        destinationChain
+      }
+    })
   }
 }

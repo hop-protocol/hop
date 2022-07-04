@@ -121,6 +121,28 @@ export const populateUnsyncedSubgraphs = (item: any) => {
   }
 }
 
+export const populateMissedEvents = (item: any) => {
+  const chain = findNetworkBySlug(item.sourceChain)
+  const token = getTokenImage(item.token)
+
+  return {
+    sourceChain: chain?.imageUrl,
+    token,
+    transferId: item.transferId
+  }
+}
+
+export const populateInvalidBondWithdrawals = (item: any) => {
+  const chain = findNetworkBySlug(item.destinationChain)
+  const token = getTokenImage(item.token)
+
+  return {
+    destinationChain: chain?.imageUrl,
+    token,
+    transferId: item.transferId
+  }
+}
+
 function useData() {
   const [lowBonderBalances, setLowBonderBalances] = useState<any>([])
   const [lowAvailableLiquidityBonders, setLowAvailableLiquidityBonders] = useState<any>([])
@@ -129,6 +151,8 @@ function useData() {
   const [incompleteSettlements, setIncompleteSettlements] = useState<any>([])
   const [challengedTransferRoots, setChallengedTransferRoots] = useState<any>([])
   const [unsyncedSubgraphs, setUnsyncedSubgraphs] = useState<any>([])
+  const [missedEvents, setMissedEvents] = useState<any>([])
+  const [invalidBondWithdrawals, setInvalidBondWithdrawals] = useState<any>([])
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [fetching, setFetching] = useState<boolean>(false)
 
@@ -163,6 +187,12 @@ function useData() {
       if (Array.isArray(result?.data?.unsyncedSubgraphs)) {
         setUnsyncedSubgraphs(result.data.unsyncedSubgraphs)
       }
+      if (Array.isArray(result?.data?.missedEvents)) {
+        setMissedEvents(result.data.missedEvents)
+      }
+      if (Array.isArray(result?.data?.invalidBondWithdrawals)) {
+        setInvalidBondWithdrawals(result.data.invalidBondWithdrawals)
+      }
     } catch (err) {
       console.error(err)
     }
@@ -185,6 +215,8 @@ function useData() {
     incompleteSettlements,
     challengedTransferRoots,
     unsyncedSubgraphs,
+    missedEvents,
+    invalidBondWithdrawals,
     lastUpdated,
     fetching
   }
@@ -199,6 +231,8 @@ const Health = () => {
     incompleteSettlements,
     challengedTransferRoots,
     unsyncedSubgraphs,
+    missedEvents,
+    invalidBondWithdrawals,
     lastUpdated,
     fetching
   } = useData()
@@ -492,6 +526,48 @@ const Health = () => {
     ]
   }]
 
+  const missedEventsColumns = [{
+    Header: `Missed Events (${missedEvents.length})`,
+    columns: [
+      {
+        Header: 'Source Chain',
+        accessor: 'sourceChain',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Token',
+        accessor: 'token',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Transfer ID',
+        accessor: 'transferId',
+        Cell: cellAddress
+      }
+    ]
+  }]
+
+  const invalidBondWithdrawalsColumns = [{
+    Header: `Invalid Bond Withdrawals (${invalidBondWithdrawals.length})`,
+    columns: [
+      {
+        Header: 'Destination Chain',
+        accessor: 'destinationChain',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Token',
+        accessor: 'token',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Transfer ID',
+        accessor: 'transferId',
+        Cell: cellAddress
+      }
+    ]
+  }]
+
   return (
     <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
       <Box display="flex" flexDirection="column" alignItems="flex-start" width="100%" sx={{ overflow: 'auto' }}>
@@ -553,6 +629,22 @@ const Health = () => {
             stats={ unsyncedSubgraphs }
             columns={ unsyncedSubgraphsColumns }
             populateDataFn={ populateUnsyncedSubgraphs }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ missedEvents }
+            columns={ missedEventsColumns }
+            populateDataFn={ populateMissedEvents }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ invalidBondWithdrawals }
+            columns={ invalidBondWithdrawalsColumns }
+            populateDataFn={ populateInvalidBondWithdrawals }
             loading={ fetching }
           />
         </Box>

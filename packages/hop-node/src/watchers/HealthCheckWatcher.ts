@@ -306,7 +306,9 @@ export class HealthCheckWatcher {
       unbondedTransferRoots,
       incompleteSettlements,
       challengedTransferRoots,
-      unsyncedSubgraphs
+      unsyncedSubgraphs,
+      missedEvents,
+      invalidBondWithdrawals
     } = result
 
     const messages: string[] = []
@@ -345,6 +347,16 @@ export class HealthCheckWatcher {
 
       for (const item of challengedTransferRoots) {
         const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted?.toFixed(4)}, token: ${item.token}`
+        messages.push(msg)
+      }
+
+      for (const item of missedEvents) {
+        const msg = `MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}`
+        messages.push(msg)
+      }
+
+      for (const item of invalidBondWithdrawals) {
+        const msg = `InvalidBondWithdrawal: transferId: ${item.transferId}, destination: ${item.destinationChain}, token: ${item.token}`
         messages.push(msg)
       }
     }

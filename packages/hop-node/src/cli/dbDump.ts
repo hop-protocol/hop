@@ -96,6 +96,9 @@ async function main (source: any) {
     items = await db.syncState.getItems()
   } else if (dbName === 'gas-cost') {
     if (tokenSymbol && nearest) {
+      if (!chain) {
+        throw new Error('chain flag is required')
+      }
       items = [
         await db.gasCost.getNearest(chain, tokenSymbol, false, nearest),
         await db.gasCost.getNearest(chain, tokenSymbol, true, nearest)

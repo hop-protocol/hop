@@ -3,7 +3,6 @@ import { DateTime } from 'luxon'
 import { Filters, normalizeEntity } from './shared'
 import { MaxInt32 } from 'src/constants'
 import { constants } from 'ethers'
-import { padHex } from 'src/utils/padHex'
 
 export default async function getTransferIds (
   chain: string,
@@ -11,6 +10,9 @@ export default async function getTransferIds (
   filters: Partial<Filters> = {},
   lastId: string = constants.AddressZero
 ): Promise<any[]> {
+  if (chain === 'ethereum') {
+    return []
+  }
   const query = `
     query TransfersSent(${token ? '$token: String, ' : ''}$orderDirection: String, $startDate: Int, $endDate: Int, $lastId: ID) {
       transferSents(
@@ -48,7 +50,7 @@ export default async function getTransferIds (
     token,
     startDate: 0,
     endDate: MaxInt32,
-    lastId: padHex(lastId)
+    lastId: lastId
   }
   if (filters.startDate) {
     variables.startDate = DateTime.fromISO(filters.startDate).toSeconds() >>> 0

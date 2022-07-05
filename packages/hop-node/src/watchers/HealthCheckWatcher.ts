@@ -7,6 +7,7 @@ import fetch from 'node-fetch'
 import fs from 'fs'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getTransferIds from 'src/theGraph/getTransferIds'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
@@ -15,6 +16,9 @@ import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
 import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
+import { getDbSet } from 'src/db'
+import { getEnabledTokens } from 'src/config/config'
+import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawals'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
 import { config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
@@ -107,6 +111,23 @@ type UnsyncedSubgraph = {
   diffBlockNumber: number
 }
 
+type MissedEvent = {
+  sourceChain: string
+  token: string
+  transferId: string
+  amount: string
+  bonderFee: string
+  timestamp: number
+}
+
+type InvalidBondWithdrawal = {
+  destinationChain: string
+  token: string
+  transferId: string
+  amount: string
+  timestamp: number
+}
+
 type Result = {
   lowBonderBalances: LowBonderBalance[]
   lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
@@ -115,6 +136,8 @@ type Result = {
   incompleteSettlements: IncompleteSettlement[]
   challengedTransferRoots: ChallengedTransferRoot[]
   unsyncedSubgraphs: UnsyncedSubgraph[]
+  missedEvents: MissedEvent[]
+  invalidBondWithdrawals: InvalidBondWithdrawal[]
 }
 
 export type EnabledChecks = {
@@ -125,6 +148,8 @@ export type EnabledChecks = {
   challengedTransferRoots: boolean
   unsyncedSubgraphs: boolean
   lowAvailableLiquidityBonders: boolean
+  missedEvents: boolean
+  invalidBondWithdrawals: boolean
 }
 
 export type Config = {
@@ -180,7 +205,9 @@ export class HealthCheckWatcher {
     incompleteSettlements: true,
     challengedTransferRoots: true,
     unsyncedSubgraphs: true,
-    lowAvailableLiquidityBonders: true
+    lowAvailableLiquidityBonders: true,
+    missedEvents: true,
+    invalidBondWithdrawals: true
   }
 
   lastNotificationSentAt: number
@@ -249,7 +276,9 @@ export class HealthCheckWatcher {
       unbondedTransferRoots,
       incompleteSettlements,
       challengedTransferRoots,
-      unsyncedSubgraphs
+      unsyncedSubgraphs,
+      missedEvents,
+      invalidBondWithdrawals
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
       this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([]),
@@ -257,7 +286,9 @@ export class HealthCheckWatcher {
       this.enabledChecks.unbondedTransferRoots ? this.getUnbondedTransferRoots() : Promise.resolve([]),
       this.enabledChecks.incompleteSettlements ? this.getIncompleteSettlements() : Promise.resolve([]),
       this.enabledChecks.challengedTransferRoots ? this.getChallengedTransferRoots() : Promise.resolve([]),
-      this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([])
+      this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([]),
+      this.enabledChecks.missedEvents ? this.getMissedEvents() : Promise.resolve([]),
+      this.enabledChecks.invalidBondWithdrawals ? this.getInvalidBondWithdrawals() : Promise.resolve([])
     ])
 
     return {
@@ -267,7 +298,9 @@ export class HealthCheckWatcher {
       unbondedTransferRoots,
       incompleteSettlements,
       challengedTransferRoots,
-      unsyncedSubgraphs
+      unsyncedSubgraphs,
+      missedEvents,
+      invalidBondWithdrawals
     }
   }
 
@@ -278,7 +311,9 @@ export class HealthCheckWatcher {
       unbondedTransferRoots,
       incompleteSettlements,
       challengedTransferRoots,
-      unsyncedSubgraphs
+      unsyncedSubgraphs,
+      missedEvents,
+      invalidBondWithdrawals
     } = result
 
     const messages: string[] = []
@@ -317,6 +352,16 @@ export class HealthCheckWatcher {
 
       for (const item of challengedTransferRoots) {
         const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted?.toFixed(4)}, token: ${item.token}`
+        messages.push(msg)
+      }
+
+      for (const item of missedEvents) {
+        const msg = `Possible MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}, amount: ${item.amount}, bonderFee: ${item.bonderFee}, timestamp: ${item.timestamp}`
+        messages.push(msg)
+      }
+
+      for (const item of invalidBondWithdrawals) {
+        const msg = `Possible InvalidBondWithdrawal: transferId: ${item.transferId}, destination: ${item.destinationChain}, token: ${item.token}, amount: ${item.amount}, timestamp: ${item.timestamp}`
         messages.push(msg)
       }
     }
@@ -686,5 +731,66 @@ export class HealthCheckWatcher {
       }
     }
     return result
+  }
+
+  async getMissedEvents (): Promise<MissedEvent[]> {
+    const missedEvents: MissedEvent[] = []
+    const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum]
+    const tokens = getEnabledTokens()
+    const now = DateTime.now().toUTC()
+    const endDate = now.minus({ hours: 1 })
+    const startDate = endDate.minus({ days: this.days })
+    const filters = {
+      startDate: startDate.toISO(),
+      endDate: endDate.toISO()
+    }
+    const promises: Array<Promise<null>> = []
+    for (const sourceChain of sourceChains) {
+      for (const token of tokens) {
+        if (['arbitrum', 'optimism'].includes(sourceChain) && token === 'MATIC') {
+          continue
+        }
+        promises.push(new Promise(async (resolve, reject) => {
+          try {
+            const db = getDbSet(token)
+            this.logger.debug('fetching getTransferIds', sourceChain, token)
+            const transfers = await getTransferIds(sourceChain, token, filters)
+            this.logger.debug('checking', sourceChain, token, transfers.length)
+            for (const transfer of transfers) {
+              const { transferId, amount, bonderFee, bonded, timestamp } = transfer
+              const item = await db.transfers.getByTransferId(transferId)
+              if (!item?.transferSentTxHash && !item.withdrawalBonded) {
+                missedEvents.push({ token, sourceChain, transferId, amount, bonderFee, timestamp })
+              }
+            }
+            resolve(null)
+          } catch (err: any) {
+            reject(err)
+          }
+        }))
+      }
+    }
+
+    await Promise.all(promises)
+    this.logger.debug('done fetching all getTransferIds')
+
+    return missedEvents
+  }
+
+  async getInvalidBondWithdrawals (): Promise<InvalidBondWithdrawal[]> {
+    const now = DateTime.now().toUTC()
+    const endDate = now.minus({ hours: 1 })
+    const startDate = endDate.minus({ days: this.days })
+    const items = await getInvalidBondWithdrawals(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+    return items.map((item: any) => {
+      const { transferId, token, destinationChain, amount, timestamp } = item
+      return {
+        transferId,
+        amount,
+        token,
+        destinationChain,
+        timestamp
+      }
+    })
   }
 }

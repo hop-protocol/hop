@@ -214,6 +214,11 @@ export class Controller {
         return !x.bonded
       })
     }
+    if (bondedStatus === 'bonded') {
+      data = data.filter((x: any) => {
+        return x.sourceChainSlug !== 'ethereum'
+      })
+    }
 
     if ((accountAddress || transferId) && data?.length > 0) {
       // refetch recent transfers by account or single transferId

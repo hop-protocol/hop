@@ -710,6 +710,11 @@ class TransferStats {
         return this.trackRecentBonds(2 * 60, 10 * 60 * 1000)
       })
       /*
+      wait(120 * 1000).then(() => {
+        return this.trackRecentBonds(24 * 60, 30 * 60 * 1000)
+      })
+      */
+      /*
       wait(60 * 60 * 1000).then(() => {
         this.trackDailyTransfers()
       })

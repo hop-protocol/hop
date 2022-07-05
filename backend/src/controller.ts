@@ -215,22 +215,27 @@ export class Controller {
       })
     }
 
-    if (transferId) {
-      const key = `__worker__checking__${transferId}`
-      const alreadyChecking = mcache.get(key)
-      if (!alreadyChecking) {
-        mcache.put(key, true, 60 * 1000)
-        if (data.length) {
-          const item = data?.[0]
+    if ((accountAddress || transferId) && data?.length > 0) {
+      // refetch recent transfers by account or single transferId
+      const checkItems = data.slice(0, 5)
+      for (const item of checkItems) {
+        const { transferId } = item
+        const key = `__worker__checking__${transferId}`
+        const alreadyChecking = mcache.get(key)
+        if (!alreadyChecking) {
+          mcache.put(key, true, 60 * 1000)
           const { timestamp, bonded, bondTransactionHash } = item
           const shouldCheck = (timestamp && !bonded) || (bonded && !bondTransactionHash)
           if (shouldCheck) {
             this.worker?.transferStats?.updateTransferDataForTransferId(transferId)
           }
-        } else {
-          this.worker?.transferStats?.updateTransferDataForTransferId(transferId)
         }
       }
+    }
+
+    // fetch transfer that may not be indexed
+    if (transferId && data?.length === 0) {
+      this.worker?.transferStats?.updateTransferDataForTransferId(transferId)
     }
 
     return data

@@ -757,7 +757,7 @@ export class HealthCheckWatcher {
             const transfers = await getTransferIds(sourceChain, token, filters)
             this.logger.debug('checking', sourceChain, token, transfers.length)
             for (const transfer of transfers) {
-              const { transferId, amount, bonderFee, bonded, timestamp } = transfer
+              const { transferId, amount, bonderFee, timestamp } = transfer
               const item = await db.transfers.getByTransferId(transferId)
               if (!item?.transferSentTxHash && !item.withdrawalBonded) {
                 missedEvents.push({ token, sourceChain, transferId, amount, bonderFee, timestamp })

@@ -260,36 +260,21 @@ class IncompleteSettlementsWatcher {
     return contract
   }
 
-  private async getLogs (filter: any, chain: string, startBlockNumber: number, endBlockNumber: number, contract: any, noStartEnd: boolean = false) {
-    let logs = []
-    const loop = chain === 'gnosis'
-    if (loop) {
-      const batchSize = 10000
-      let start = startBlockNumber
-      let end = start + batchSize
-      while (end < endBlockNumber) {
-        const _logs = await contract.queryFilter(
-          filter,
-          start,
-          end
-        )
+  private async getLogs (filter: any, chain: string, startBlockNumber: number, endBlockNumber: number, contract: any) {
+    const logs: any[] = []
+    const batchSize = 10000
+    let start = startBlockNumber
+    let end = start + batchSize
+    while (end < endBlockNumber) {
+      const _logs = await contract.queryFilter(
+        filter,
+        start,
+        end
+      )
 
-        logs.push(..._logs)
-        start = end
-        end = start + batchSize
-      }
-    } else {
-      if (noStartEnd) {
-        logs = await contract.queryFilter(
-          filter
-        )
-      } else {
-        logs = await contract.queryFilter(
-          filter,
-          startBlockNumber,
-          endBlockNumber
-        )
-      }
+      logs.push(..._logs)
+      start = end
+      end = start + batchSize
     }
     return logs
   }

@@ -356,12 +356,12 @@ export class HealthCheckWatcher {
       }
 
       for (const item of missedEvents) {
-        const msg = `MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}, amount: ${item.amount}, bonderFee: ${item.bonderFee}, timestamp: ${item.timestamp}`
+        const msg = `Possible MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}, amount: ${item.amount}, bonderFee: ${item.bonderFee}, timestamp: ${item.timestamp}`
         messages.push(msg)
       }
 
       for (const item of invalidBondWithdrawals) {
-        const msg = `InvalidBondWithdrawal: transferId: ${item.transferId}, destination: ${item.destinationChain}, token: ${item.token}, amount: ${item.amount}, timestamp: ${item.timestamp}`
+        const msg = `Possible InvalidBondWithdrawal: transferId: ${item.transferId}, destination: ${item.destinationChain}, token: ${item.token}, amount: ${item.amount}, timestamp: ${item.timestamp}`
         messages.push(msg)
       }
     }
@@ -757,9 +757,9 @@ export class HealthCheckWatcher {
             const transfers = await getTransferIds(sourceChain, token, filters)
             this.logger.debug('checking', sourceChain, token, transfers.length)
             for (const transfer of transfers) {
-              const { transferId, amount, bonderFee, timestamp } = transfer
+              const { transferId, amount, bonderFee, bonded, timestamp } = transfer
               const item = await db.transfers.getByTransferId(transferId)
-              if (!item?.transferSentTimestamp) {
+              if (!item?.transferSentTxHash && !item.withdrawalBonded) {
                 missedEvents.push({ token, sourceChain, transferId, amount, bonderFee, timestamp })
               }
             }

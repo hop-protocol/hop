@@ -126,6 +126,7 @@ export const populateMissedEvents = (item: any) => {
   const token = getTokenImage(item.token)
 
   return {
+    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
     sourceChain: chain?.imageUrl,
     token,
     transferId: item.transferId
@@ -137,6 +138,7 @@ export const populateInvalidBondWithdrawals = (item: any) => {
   const token = getTokenImage(item.token)
 
   return {
+    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
     destinationChain: chain?.imageUrl,
     token,
     transferId: item.transferId
@@ -530,6 +532,11 @@ const Health = () => {
     Header: `Missed Events (${missedEvents.length})`,
     columns: [
       {
+        Header: 'Date',
+        accessor: 'timestamp',
+        Cell: cell,
+      },
+      {
         Header: 'Source Chain',
         accessor: 'sourceChain',
         Cell: cellIcon,
@@ -550,6 +557,11 @@ const Health = () => {
   const invalidBondWithdrawalsColumns = [{
     Header: `Invalid Bond Withdrawals (${invalidBondWithdrawals.length})`,
     columns: [
+      {
+        Header: 'Date',
+        accessor: 'timestamp',
+        Cell: cell,
+      },
       {
         Header: 'Destination Chain',
         accessor: 'destinationChain',

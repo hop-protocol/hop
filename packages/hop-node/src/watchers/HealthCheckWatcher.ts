@@ -115,12 +115,17 @@ type MissedEvent = {
   sourceChain: string
   token: string
   transferId: string
+  amount: string
+  bonderFee: string
+  timestamp: number
 }
 
 type InvalidBondWithdrawal = {
   destinationChain: string
   token: string
   transferId: string
+  amount: string
+  timestamp: number
 }
 
 type Result = {
@@ -351,12 +356,12 @@ export class HealthCheckWatcher {
       }
 
       for (const item of missedEvents) {
-        const msg = `MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}`
+        const msg = `MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}, amount: ${item.amount}, bonderFee: ${item.bonderFee}, timestamp: ${item.timestamp}`
         messages.push(msg)
       }
 
       for (const item of invalidBondWithdrawals) {
-        const msg = `InvalidBondWithdrawal: transferId: ${item.transferId}, destination: ${item.destinationChain}, token: ${item.token}`
+        const msg = `InvalidBondWithdrawal: transferId: ${item.transferId}, destination: ${item.destinationChain}, token: ${item.token}, amount: ${item.amount}, timestamp: ${item.timestamp}`
         messages.push(msg)
       }
     }
@@ -734,7 +739,7 @@ export class HealthCheckWatcher {
     const tokens = getEnabledTokens()
     const now = DateTime.now().toUTC()
     const endDate = now.minus({ hours: 1 })
-    const startDate = endDate.minus({ hours: 6 })
+    const startDate = endDate.minus({ days: this.days })
     const filters = {
       startDate: startDate.toISO(),
       endDate: endDate.toISO()
@@ -742,15 +747,20 @@ export class HealthCheckWatcher {
     const promises: Array<Promise<null>> = []
     for (const sourceChain of sourceChains) {
       for (const token of tokens) {
+        if (['arbitrum', 'optimism'].includes(sourceChain) && token === 'MATIC') {
+          continue
+        }
         promises.push(new Promise(async (resolve, reject) => {
           try {
             const db = getDbSet(token)
+            this.logger.debug('fetching getTransferIds', sourceChain, token)
             const transfers = await getTransferIds(sourceChain, token, filters)
+            this.logger.debug('checking', sourceChain, token, transfers.length)
             for (const transfer of transfers) {
-              const { transferId } = transfer
+              const { transferId, amount, bonderFee, timestamp } = transfer
               const item = await db.transfers.getByTransferId(transferId)
               if (!item?.transferSentTimestamp) {
-                missedEvents.push({ token, sourceChain, transferId })
+                missedEvents.push({ token, sourceChain, transferId, amount, bonderFee, timestamp })
               }
             }
             resolve(null)
@@ -762,6 +772,7 @@ export class HealthCheckWatcher {
     }
 
     await Promise.all(promises)
+    this.logger.debug('done fetching all getTransferIds')
 
     return missedEvents
   }
@@ -769,14 +780,16 @@ export class HealthCheckWatcher {
   async getInvalidBondWithdrawals (): Promise<InvalidBondWithdrawal[]> {
     const now = DateTime.now().toUTC()
     const endDate = now.minus({ hours: 1 })
-    const startDate = endDate.minus({ hours: 6 })
+    const startDate = endDate.minus({ days: this.days })
     const items = await getInvalidBondWithdrawals(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     return items.map((item: any) => {
-      const { transferId, token, destinationChain } = item
+      const { transferId, token, destinationChain, amount, timestamp } = item
       return {
         transferId,
+        amount,
         token,
-        destinationChain
+        destinationChain,
+        timestamp
       }
     })
   }

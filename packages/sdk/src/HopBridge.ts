@@ -727,7 +727,7 @@ class HopBridge extends Base {
       }
 
       // enforce bonderFeeAbsolute after adjustment
-      const bonderFeeAbsolute = await this.getBonderFeeAbsolute()
+      const bonderFeeAbsolute = await this.getBonderFeeAbsolute(sourceChain)
       adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute)
         ? adjustedBonderFee
         : bonderFeeAbsolute
@@ -2034,15 +2034,31 @@ class HopBridge extends Base {
     return bonderFeeRelative
   }
 
-  private async getBonderFeeAbsolute (): Promise<BigNumber> {
+  private async getBonderFeeAbsolute (sourceChain: TChain): Promise<BigNumber> {
+    sourceChain = this.toChainModel(sourceChain)
     const token = this.toTokenModel(this.tokenSymbol)
-    const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.symbol)
+
+    let onChainBonderFeeAbsolutePromise : any
+    if (token.canonicalSymbol === TokenModel.ETH) {
+      if (Chain.Gnosis.equals(sourceChain) || Chain.Polygon.equals(sourceChain)) {
+        const l2Bridge = await this.getL2Bridge(sourceChain)
+        onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
+      }
+    }
+
+    const [tokenPrice, onChainBonderFeeAbsolute] = await Promise.all([
+      this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol),
+      onChainBonderFeeAbsolutePromise ?? Promise.resolve(BigNumber.from(0))
+    ])
     const minBonderFeeUsd = 0.25
     const bonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPrice).toFixed(token.decimals),
       token.decimals
     )
-    return bonderFeeAbsolute
+
+    const absoluteFee = onChainBonderFeeAbsolute.gt(bonderFeeAbsolute) ? onChainBonderFeeAbsolute : bonderFeeAbsolute
+
+    return absoluteFee
   }
 
   private getRate (

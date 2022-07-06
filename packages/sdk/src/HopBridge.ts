@@ -327,6 +327,12 @@ class HopBridge extends Base {
     }
 
     this.checkConnectedChain(this.signer, sourceChain)
+
+    const willFail = await this.willTransferFail(sourceChain, destinationChain, options?.recipient)
+    if (willFail) {
+      throw new Error('Transfer will fail at the destination. Make sure recipient can receive asset.')
+    }
+
     return this.sendTransaction(populatedTx, sourceChain)
   }
 
@@ -961,6 +967,25 @@ class HopBridge extends Base {
     }
   }
 
+  async willTransferFail (
+    sourceChain: TChain,
+    destinationChain: TChain,
+    recipient?: string
+  ): Promise<any> {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    try {
+      const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain, recipient)
+      const bonderAddress = await this.getBonderAddress(sourceChain, destinationChain)
+      populatedTx.from = bonderAddress
+      await destinationChain.provider.estimateGas(populatedTx)
+      return false
+    } catch (err) {
+      console.error('willTransferFail error:', err)
+      return true
+    }
+  }
+
   async estimateBondWithdrawalGasLimit (
     sourceChain: TChain,
     destinationChain: TChain
@@ -986,7 +1011,8 @@ class HopBridge extends Base {
 
   async populateBondWithdrawalTx (
     sourceChain: TChain,
-    destinationChain: TChain
+    destinationChain: TChain,
+    recipient?: string
   ): Promise<any> {
     destinationChain = this.toChainModel(destinationChain)
     let destinationBridge
@@ -1002,7 +1028,9 @@ class HopBridge extends Base {
     const bonderFee = BigNumber.from(1)
     const deadline = this.defaultDeadlineSeconds
     const transferNonce = `0x${'0'.repeat(64)}`
-    const recipient = `0x${'1'.repeat(40)}`
+    if (!recipient) {
+      recipient = `0x${'1'.repeat(40)}`
+    }
     const attemptSwap = this.shouldAttemptSwap(amountOutMin, deadline)
     if (attemptSwap && !destinationChain.isL1) {
       const payload = [

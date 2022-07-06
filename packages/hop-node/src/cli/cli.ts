@@ -34,6 +34,7 @@ import './unbondedTransferRoots'
 import './unstake'
 import './updateConfig'
 import './vault'
+import './verifyCommits'
 import './withdraw'
 import './withdrawalProof'
 

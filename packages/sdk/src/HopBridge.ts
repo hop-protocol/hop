@@ -327,6 +327,13 @@ class HopBridge extends Base {
     }
 
     this.checkConnectedChain(this.signer, sourceChain)
+
+    const recipient = options?.recipient ?? await this.getSignerAddress()
+    const willFail = await this.willTransferFail(sourceChain, destinationChain, recipient)
+    if (willFail) {
+      throw new Error('Transfer will fail at the destination. Make sure recipient can receive asset.')
+    }
+
     return this.sendTransaction(populatedTx, sourceChain)
   }
 
@@ -727,7 +734,7 @@ class HopBridge extends Base {
       }
 
       // enforce bonderFeeAbsolute after adjustment
-      const bonderFeeAbsolute = await this.getBonderFeeAbsolute()
+      const bonderFeeAbsolute = await this.getBonderFeeAbsolute(sourceChain)
       adjustedBonderFee = adjustedBonderFee.gt(bonderFeeAbsolute)
         ? adjustedBonderFee
         : bonderFeeAbsolute
@@ -961,6 +968,38 @@ class HopBridge extends Base {
     }
   }
 
+  async willTransferFail (
+    sourceChain: TChain,
+    destinationChain: TChain,
+    recipient: string
+  ): Promise<any> {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    try {
+      const bonderAddress = await this.getBonderAddress(sourceChain, destinationChain)
+      const isDestinationNativeToken = this.isNativeToken(destinationChain)
+      if (!isDestinationNativeToken) {
+        return false
+      }
+      if (sourceChain.isL1) {
+        await destinationChain.provider.estimateGas({
+          value: BigNumber.from('1'),
+          from: bonderAddress,
+          to: recipient
+        })
+        return false
+      } else {
+        const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain, recipient)
+        populatedTx.from = bonderAddress
+        await destinationChain.provider.estimateGas(populatedTx)
+        return false
+      }
+    } catch (err) {
+      console.error('willTransferFail error:', err)
+      return true
+    }
+  }
+
   async estimateBondWithdrawalGasLimit (
     sourceChain: TChain,
     destinationChain: TChain
@@ -986,7 +1025,8 @@ class HopBridge extends Base {
 
   async populateBondWithdrawalTx (
     sourceChain: TChain,
-    destinationChain: TChain
+    destinationChain: TChain,
+    recipient?: string
   ): Promise<any> {
     destinationChain = this.toChainModel(destinationChain)
     let destinationBridge
@@ -1002,7 +1042,9 @@ class HopBridge extends Base {
     const bonderFee = BigNumber.from(1)
     const deadline = this.defaultDeadlineSeconds
     const transferNonce = `0x${'0'.repeat(64)}`
-    const recipient = `0x${'1'.repeat(40)}`
+    if (!recipient) {
+      recipient = `0x${'1'.repeat(40)}`
+    }
     const attemptSwap = this.shouldAttemptSwap(amountOutMin, deadline)
     if (attemptSwap && !destinationChain.isL1) {
       const payload = [
@@ -2034,15 +2076,31 @@ class HopBridge extends Base {
     return bonderFeeRelative
   }
 
-  private async getBonderFeeAbsolute (): Promise<BigNumber> {
+  private async getBonderFeeAbsolute (sourceChain: TChain): Promise<BigNumber> {
+    sourceChain = this.toChainModel(sourceChain)
     const token = this.toTokenModel(this.tokenSymbol)
-    const tokenPrice = await this.priceFeed.getPriceByTokenSymbol(token.symbol)
+
+    let onChainBonderFeeAbsolutePromise : any
+    if (token.canonicalSymbol === TokenModel.ETH) {
+      if (Chain.Gnosis.equals(sourceChain) || Chain.Polygon.equals(sourceChain)) {
+        const l2Bridge = await this.getL2Bridge(sourceChain)
+        onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
+      }
+    }
+
+    const [tokenPrice, onChainBonderFeeAbsolute] = await Promise.all([
+      this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol),
+      onChainBonderFeeAbsolutePromise ?? Promise.resolve(BigNumber.from(0))
+    ])
     const minBonderFeeUsd = 0.25
-    const bonderFeeAbsolute = parseUnits(
+    const minBonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPrice).toFixed(token.decimals),
       token.decimals
     )
-    return bonderFeeAbsolute
+
+    const absoluteFee = onChainBonderFeeAbsolute.gt(minBonderFeeAbsolute) ? onChainBonderFeeAbsolute : minBonderFeeAbsolute
+
+    return absoluteFee
   }
 
   private getRate (

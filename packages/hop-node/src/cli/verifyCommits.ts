@@ -1,8 +1,8 @@
-import { actionHandler, parseString, parseStringArray, root } from './shared'
-import { Chain } from 'src/constants'
-import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
-import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
+import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
+import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
+import { Chain } from 'src/constants'
+import { actionHandler, parseString, parseStringArray, root } from './shared'
 
 root
   .command('verify-commits')
@@ -24,27 +24,27 @@ async function main (source: any) {
     console.log(`\nChecking ${token}`)
 
     const commitsRes = await getTransfersCommitted(chain, token)
-    let rootsCommitted: string[] = []
+    const rootsCommitted: string[] = []
     for (const res of commitsRes) {
       rootsCommitted.push(res.rootHash)
     }
     console.log(`Commits retrieved: ${rootsCommitted.length}`)
 
     const confirmedRes = await getTransferRootConfirmed(Chain.Ethereum, token)
-    let rootsConfirmed: string[] = []
+    const rootsConfirmed: string[] = []
     for (const res of confirmedRes) {
       rootsConfirmed.push(res.rootHash)
     }
     console.log(`Confirms retrieved: ${rootsConfirmed.length}`)
 
     const bondedRes = await getTransferRootBonded(Chain.Ethereum, token)
-    let rootsBonded: string[] = []
+    const rootsBonded: string[] = []
     for (const res of bondedRes) {
       rootsBonded.push(res.root)
     }
     console.log(`Bonds retrieved: ${rootsBonded.length}`)
 
-    let unverifiedRoots: string[] = []
+    const unverifiedRoots: string[] = []
     for (const rootCommitted of rootsCommitted) {
       if (rootsConfirmed.includes(rootCommitted)) continue
       if (rootsBonded.includes(rootCommitted)) continue

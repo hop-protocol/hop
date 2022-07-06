@@ -1,3 +1,4 @@
+import MerkleTree from 'src/utils/MerkleTree'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import { getDbSet } from 'src/db'
 import {
@@ -22,10 +23,12 @@ root
   .option('--from-date <timestamp>', 'From date timestamp in seconds', parseNumber)
   .option('--to-date <timestamp>', 'To date timestamp in seconds', parseNumber)
   .option('--input-file <filepath>', 'Filepath containing list of ids', parseInputFileList)
+  .option('--transfer-root-hash <transferRootHash>', 'Transfer root hash', parseString)
+  .option('--transfer-root-id <transferRootId>', 'Transfer root hash', parseString)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { dbPath, db: dbName, chain, token: tokenSymbol, nearest, fromDate, toDate, inputFile: inputFileList } = source
+  let { dbPath, db: dbName, chain, token: tokenSymbol, nearest, fromDate, toDate, inputFile: inputFileList, transferRootId, transferRootHash } = source
   if (dbPath) {
     setDbPath(dbPath)
   }
@@ -35,6 +38,40 @@ async function main (source: any) {
   const db = getDbSet(tokenSymbol)
   let items: any[] = []
   if (dbName === 'transfer-roots') {
+    if (transferRootId || transferRootHash) {
+      let dbTransferRoot
+      if (transferRootHash) {
+        dbTransferRoot = await db.transferRoots.getByTransferRootHash(
+          transferRootHash
+        )
+      } else if (transferRootId) {
+        dbTransferRoot = await db.transferRoots.getByTransferRootId(
+          transferRootId
+        )
+      }
+      if (!dbTransferRoot) {
+        throw new Error('db item not found')
+      }
+      transferRootHash = dbTransferRoot.transferRootHash
+      transferRootId = dbTransferRoot.transferRootId
+      const transferIds = dbTransferRoot.transferIds
+      if (!Array.isArray(transferIds)) {
+        console.log(dbTransferRoot)
+        throw new Error('transferIds expected to be array')
+      }
+
+      const tree = new MerkleTree(transferIds)
+      const calculatedTransferRootHash = tree.getHexRoot()
+      if (calculatedTransferRootHash !== transferRootHash) {
+        logger.debug('transferIds:', JSON.stringify(transferIds))
+        throw new Error(
+          `transfers computed transfer root hash doesn't match. Expected ${transferRootHash}, got ${calculatedTransferRootHash}`
+        )
+      }
+      console.log(dbTransferRoot)
+      return
+    }
+
     if (inputFileList) {
       const output: any[] = []
       for (const transferRootId of inputFileList) {

@@ -324,4 +324,8 @@ export default class L2Bridge extends Bridge {
       chainId
     )
   }
+
+  async getOnChainMinBonderFeeAbsolute (): Promise<BigNumber> {
+    return this.l2BridgeContract.minBonderFeeAbsolute()
+  }
 }

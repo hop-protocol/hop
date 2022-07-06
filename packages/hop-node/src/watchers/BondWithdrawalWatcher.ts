@@ -321,10 +321,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
       throw new Error('expected db transfer item')
     }
 
-    const { amount, bonderFee, destinationChainId } = dbTransfer
-    if (!amount || !bonderFee || !destinationChainId) {
+    const { amount, bonderFee, sourceChainId, destinationChainId } = dbTransfer
+    if (!amount || !bonderFee || !sourceChainId || !destinationChainId) {
       throw new Error('expected complete dbTransfer data')
     }
+    const sourceChain = this.chainIdToSlug(sourceChainId)
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const transferSentTimestamp = dbTransfer?.transferSentTimestamp
     if (!transferSentTimestamp) {
@@ -336,6 +337,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const nearestItemToNow = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, attemptSwap, now)
     let gasCostInToken: BigNumber
     let minBonderFeeAbsolute: BigNumber
+
+    const sourceL2Bridge = this.getSiblingWatcherByChainSlug(sourceChain).bridge as L2Bridge
+    const onChainBonderFeeAbsolute = await sourceL2Bridge.getOnChainMinBonderFeeAbsolute()
+
     if (nearestItemToTransferSent && nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToTransferSent)
       const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
@@ -348,6 +353,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } else {
       throw new Error('expected nearestItemToTransferSent or nearestItemToNow')
     }
+
+    minBonderFeeAbsolute = onChainBonderFeeAbsolute.gt(minBonderFeeAbsolute) ? onChainBonderFeeAbsolute : minBonderFeeAbsolute
 
     logger.debug('gasCostInToken:', gasCostInToken?.toString())
     logger.debug('minBonderFeeAbsolute:', minBonderFeeAbsolute?.toString())

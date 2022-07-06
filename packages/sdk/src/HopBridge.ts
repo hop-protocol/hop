@@ -2051,12 +2051,12 @@ class HopBridge extends Base {
       onChainBonderFeeAbsolutePromise ?? Promise.resolve(BigNumber.from(0))
     ])
     const minBonderFeeUsd = 0.25
-    const bonderFeeAbsolute = parseUnits(
+    const minBonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPrice).toFixed(token.decimals),
       token.decimals
     )
 
-    const absoluteFee = onChainBonderFeeAbsolute.gt(bonderFeeAbsolute) ? onChainBonderFeeAbsolute : bonderFeeAbsolute
+    const absoluteFee = onChainBonderFeeAbsolute.gt(minBonderFeeAbsolute) ? onChainBonderFeeAbsolute : minBonderFeeAbsolute
 
     return absoluteFee
   }

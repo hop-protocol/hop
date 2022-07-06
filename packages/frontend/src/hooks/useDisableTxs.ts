@@ -1,4 +1,4 @@
-import { ChainSlug, Token } from '@hop-protocol/sdk'
+import { ChainSlug } from '@hop-protocol/sdk'
 import { useEffect, useState } from 'react'
 import { DisabledRoute, disabledRoutes, ALL } from 'src/config/disabled'
 import Network from 'src/models/Network'

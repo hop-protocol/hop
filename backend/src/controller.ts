@@ -211,7 +211,7 @@ export class Controller {
 
     if (bondedStatus === 'pending') {
       data = data.filter((x: any) => {
-        return !x.bonded
+        return !x.bonded && x.sourceChainSlug !== 'ethereum'
       })
     }
     if (bondedStatus === 'bonded') {

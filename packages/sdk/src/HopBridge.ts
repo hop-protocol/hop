@@ -328,7 +328,8 @@ class HopBridge extends Base {
 
     this.checkConnectedChain(this.signer, sourceChain)
 
-    const willFail = await this.willTransferFail(sourceChain, destinationChain, options?.recipient)
+    const recipient = options?.recipient ?? await this.getSignerAddress()
+    const willFail = await this.willTransferFail(sourceChain, destinationChain, recipient)
     if (willFail) {
       throw new Error('Transfer will fail at the destination. Make sure recipient can receive asset.')
     }
@@ -970,16 +971,29 @@ class HopBridge extends Base {
   async willTransferFail (
     sourceChain: TChain,
     destinationChain: TChain,
-    recipient?: string
+    recipient: string
   ): Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     try {
-      const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain, recipient)
       const bonderAddress = await this.getBonderAddress(sourceChain, destinationChain)
-      populatedTx.from = bonderAddress
-      await destinationChain.provider.estimateGas(populatedTx)
-      return false
+      const isDestinationNativeToken = this.isNativeToken(destinationChain)
+      if (!isDestinationNativeToken) {
+        return false
+      }
+      if (sourceChain.isL1) {
+        await destinationChain.provider.estimateGas({
+          value: BigNumber.from('1'),
+          from: bonderAddress,
+          to: recipient
+        })
+        return false
+      } else {
+        const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain, recipient)
+        populatedTx.from = bonderAddress
+        await destinationChain.provider.estimateGas(populatedTx)
+        return false
+      }
     } catch (err) {
       console.error('willTransferFail error:', err)
       return true

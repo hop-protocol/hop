@@ -386,3 +386,7 @@ export async function getXDomainMessageRelayWatcher (config: GetWatcherConfig) {
 export async function getSettleBondedWithdrawalsWatcher (config: GetWatcherConfig) {
   return getWatcher({ ...config, watcherName: Watchers.SettleBondedWithdrawals })
 }
+
+export async function getSyncWatcher (config: GetWatcherConfig) {
+  return (await getBondWithdrawalWatcher(config)).syncWatcher
+}

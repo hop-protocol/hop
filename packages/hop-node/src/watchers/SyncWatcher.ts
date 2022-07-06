@@ -13,6 +13,7 @@ import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, Transfer
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
+import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import { minEthBonderFeeBn, oruChains } from 'src/config'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
@@ -995,34 +996,10 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  async checkTransferRootFromChain (transferRootId: string) {
-    const logger = this.logger.create({ root: transferRootId })
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
-    if (!dbTransferRoot) {
-      throw new Error('expected db transfer root item')
-    }
-    const { transferRootHash, sourceChainId, destinationChainId, totalAmount, commitTxBlockNumber, transferIds: dbTransferIds } = dbTransferRoot
-    if (!sourceChainId) {
-      throw new Error('expected source chain id')
-    }
-    if (!commitTxBlockNumber) {
-      throw new Error('expected commit tx block number')
-    }
-    if (!this.hasSiblingWatcher(sourceChainId)) {
-      logger.error(`no sibling watcher found for ${sourceChainId}`)
-      return
-    }
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
-      .bridge as L2Bridge
-
-    const eventBlockNumber: number = commitTxBlockNumber
+  async lookupTransferIds (sourceBridge: L2Bridge, transferRootHash: string, destinationChainId: number, endBlockNumber: number) {
+    const logger = this.logger.create({ root: transferRootHash })
     let startEvent: TransfersCommittedEvent | undefined
     let endEvent: TransfersCommittedEvent | undefined
-
-    logger.debug(
-      `looking on-chain for transfer ids for transferRootHash ${transferRootHash}`
-    )
-
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
@@ -1048,15 +1025,13 @@ class SyncWatcher extends BaseWatcher {
 
       return true
     },
-    { endBlockNumber: eventBlockNumber, startBlockNumber })
+    { endBlockNumber, startBlockNumber })
 
     if (!endEvent) {
-      logger.warn(`populateTransferRootTransferIds no end event found for transferRootHash ${transferRootHash}. isNotFound: true`)
-      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
-      return
+      return { endEvent: null }
     }
 
-    const endBlockNumber = endEvent.blockNumber
+    endBlockNumber = endEvent.blockNumber
     if (startEvent) {
       startBlockNumber = startEvent.blockNumber
     }
@@ -1091,23 +1066,72 @@ class SyncWatcher extends BaseWatcher {
           if (event.blockNumber === endEvent?.blockNumber) {
             // If TransferSent is in the same tx as TransfersCommitted or later,
             // the transferId should be included in the next transferRoot
-            if (event.transactionIndex >= endEvent.transactionIndex) {
+            if (event.transactionIndex > endEvent.transactionIndex) {
               continue
             }
           }
 
           transfers.unshift({
             transferId: event.args.transferId,
-            index: Number(event.args.index.toString())
+            index: Number(event.args.index.toString()),
+            blockNumber: event.blockNumber
           })
         }
       },
       { startBlockNumber, endBlockNumber }
     )
 
-    logger.debug(`transfer ids: ${JSON.stringify(transfers)}}`)
+    const sortedTransfers = getSortedTransferIds(transfers, startBlockNumber)
+    const transferIds = sortedTransfers.map((x: any) => x.transferId)
+    return { startEvent, endEvent, transferIds }
+  }
 
-    const transferIds = transfers.map((x: any) => x.transferId)
+  async checkTransferRootFromChain (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      throw new Error('expected db transfer root item')
+    }
+    const { transferRootHash, sourceChainId, destinationChainId, commitTxBlockNumber } = dbTransferRoot
+    if (!transferRootHash) {
+      throw new Error('expected transfer root hash')
+    }
+    if (!sourceChainId) {
+      throw new Error('expected source chain id')
+    }
+    if (!destinationChainId) {
+      throw new Error('expected destination chain id')
+    }
+    if (!commitTxBlockNumber) {
+      throw new Error('expected commit tx block number')
+    }
+    if (!this.hasSiblingWatcher(sourceChainId)) {
+      logger.error(`no sibling watcher found for ${sourceChainId}`)
+      return
+    }
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
+      .bridge as L2Bridge
+
+    const eventBlockNumber: number = commitTxBlockNumber
+
+    logger.debug(
+      `looking on-chain for transfer ids for transferRootHash ${transferRootHash}`
+    )
+
+    const { endEvent, transferIds } = await this.lookupTransferIds(sourceBridge, transferRootHash, destinationChainId, eventBlockNumber)
+
+    if (!transferIds) {
+      throw new Error('expected transfer ids')
+    }
+
+    if (!endEvent) {
+      logger.warn(`populateTransferRootTransferIds no end event found for transferRootHash ${transferRootHash}. isNotFound: true`)
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+    }
+
+    logger.debug(`transfer ids: ${JSON.stringify(transferIds)}}`)
+
     const tree = new MerkleTree(transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {

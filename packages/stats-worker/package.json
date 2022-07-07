@@ -12,7 +12,7 @@
     "start:apr": "ts-node src/index.ts --apr",
     "start:volume": "ts-node src/index.ts --volume",
     "start:tvl": "ts-node src/index.ts --tvl",
-    "start:bonder": "ts-node src/index.ts --bonder",
+    "start:bonder": "ts-node src/index.ts --bonder --bonderDays=30",
     "build": "tsc",
     "lint": "prettier-standard --format",
     "clean": "rimraf dist",

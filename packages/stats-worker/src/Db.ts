@@ -65,7 +65,9 @@ class Db {
           eth_price_usd NUMERIC NOT NULL,
           matic_price_usd NUMERIC NOT NULL,
           result NUMERIC NOT NULL,
-          timestamp INTEGER NOT NULL
+          timestamp INTEGER NOT NULL,
+          result2 NUMERIC,
+          eth_amounts NUMERIC
       )`)
       if (argv.resetBonderFeesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_fees`)
@@ -115,6 +117,12 @@ class Db {
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_tx_fees_token_timestamp ON bonder_tx_fees (token, timestamp);'
       )
+      if (argv.migration) {
+        this.db.run('ALTER TABLE bonder_balances ADD COLUMN result2 NUMERIC;')
+        this.db.run(
+          'ALTER TABLE bonder_balances ADD COLUMN eth_amounts NUMERIC;'
+        )
+      }
     })
   }
 
@@ -220,10 +228,12 @@ class Db {
     ethPriceUsd: number,
     maticPriceUsd: number,
     result: number,
-    timestamp: number
+    timestamp: number,
+    result2: number = 0,
+    ethAmounts: number = 0
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -253,7 +263,9 @@ class Db {
       ethPriceUsd,
       maticPriceUsd,
       result,
-      timestamp
+      timestamp,
+      result2,
+      ethAmounts
     )
     stmt.finalize()
   }

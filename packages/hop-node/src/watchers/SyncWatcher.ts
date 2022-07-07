@@ -1001,6 +1001,8 @@ class SyncWatcher extends BaseWatcher {
     let startEvent: TransfersCommittedEvent | undefined
     let endEvent: TransfersCommittedEvent | undefined
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
+    console.log("START", startBlockNumber)
+    console.log("END", endBlockNumber)
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
       if (!events.length) {

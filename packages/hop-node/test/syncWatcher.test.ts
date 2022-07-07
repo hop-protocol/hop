@@ -7,6 +7,8 @@ import {
 import { promiseQueue } from '../src/utils/promiseQueue'
 
 const transferRootHashes = [
+  '0x6f2ede653d27a3e186469930dc1d6252de00218d17531e4a00ec2bfe568207b1',
+
   '0x11b3d88d87621bd7ec731dd1164e2048741203bfe6094c1629fde90e54e04e6f',
   '0x5b9af53450a79166dc2853e632b76bce79efa7686369b79a04af448f1974b2ff',
   '0x335c1c8eeec4af7e6da5b57f364e73bc626bf9cd07b0b0616803132505e80d07',
@@ -1030,7 +1032,7 @@ const transferRootHashes = [
   '0xad341836557a3bfdf9ffdd96a226e78d6ddd730f5fddfbdb7281d894308b4984',
   '0x7ccf0aebe41d97c3253cb4a5d3a3bf5c2c84355ca29ad751edc382c26f519ff5',
   '0x8d7618c0376f5d23a3f07c1abd8517de457ca741346fb0c942a1599dd8071ba8'
-]
+].slice(0, 1)
 
 async function main () {
   const token = 'ETH'

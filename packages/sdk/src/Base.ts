@@ -257,6 +257,9 @@ class Base {
     if (typeof chain === 'string') {
       chain = Chain.fromSlug(chain)
     }
+    if (!chain) {
+      throw new Error(`invalid chain "${chain}"`)
+    }
     if (chain.slug === 'xdai') {
       console.warn(Errors.xDaiRebrand)
       chain = Chain.fromSlug('gnosis')

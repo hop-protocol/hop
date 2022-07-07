@@ -1085,7 +1085,16 @@ class SyncWatcher extends BaseWatcher {
       { startBlockNumber, endBlockNumber }
     )
 
-    const sortedTransfers = getSortedTransferIds(transfers, startBlockNumber)
+    const { sortedTransfers, missingIndexes, lastIndex } = getSortedTransferIds(transfers, startBlockNumber)
+
+    if (sortedTransfers) {
+      logger.debug(`last index number found in transferIds list: ${lastIndex}`)
+    }
+
+    if (missingIndexes?.length) {
+      logger.warn(`missing indexes from list of transferIds (${missingIndexes.length}): ${JSON.stringify(missingIndexes)}`)
+    }
+
     const transferIds = sortedTransfers.map((x: any) => x.transferId)
     return { startEvent, endEvent, transferIds }
   }
@@ -1151,7 +1160,7 @@ class SyncWatcher extends BaseWatcher {
       JSON.stringify(transferIds)
     )
 
-    await Promise.all(transferIds.map(async transferId => {
+    await Promise.all(transferIds.map(async (transferId: string) => {
       await this.db.transfers.update(transferId, {
         transferRootHash,
         transferRootId

@@ -132,7 +132,9 @@ export default async function getTransferIdsForTransferRoot (
 
   // normalize fields
   const _transfers = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
-  const transferIds = getSortedTransferIds(_transfers, startBlockNumber)
+  const { sortedTransfers } = getSortedTransferIds(_transfers, startBlockNumber)
+
+  const transferIds = sortedTransfers.map((x: any) => x.transferId)
 
   // verify that the computed root matches the original root hash
   const tree = new MerkleTree(transferIds)
@@ -141,5 +143,5 @@ export default async function getTransferIdsForTransferRoot (
     throw new Error(`computed transfer root hash does not match; got: ${treeRoot}, expected: ${rootHash}`)
   }
 
-  return transferIds
+  return sortedTransfers
 }

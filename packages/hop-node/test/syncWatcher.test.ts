@@ -6,6 +6,16 @@ import {
 } from 'src/config'
 import { promiseQueue } from '../src/utils/promiseQueue'
 
+// known to cause getLogs issues
+/*
+const transferRootHashes = [
+  // '0x6f2ede653d27a3e186469930dc1d6252de00218d17531e4a00ec2bfe568207b1',
+  // '0x8d7618c0376f5d23a3f07c1abd8517de457ca741346fb0c942a1599dd8071ba8',
+  // '0xde7022d8ad057111098fce5f4261fdbe442dc5a754b175d7edb28b47ceb47321',
+  // '0x9599c2cd203c2182d9d7041efd40fb858b12e72efd8549330c67d695e97af9f1',
+]
+*/
+
 const transferRootHashes = [
   '0x11b3d88d87621bd7ec731dd1164e2048741203bfe6094c1629fde90e54e04e6f',
   '0x5b9af53450a79166dc2853e632b76bce79efa7686369b79a04af448f1974b2ff',
@@ -1042,6 +1052,9 @@ async function main () {
   await promiseQueue(transferRootHashes, async (transferRootHash: string) => {
     try {
       const dbItem = await watcher.db.transferRoots.getByTransferRootHash(transferRootHash)
+      if (!dbItem) {
+        throw new Error('expected db item')
+      }
       const { sourceChainId, destinationChainId, commitTxBlockNumber } = dbItem
       if (!(sourceChainId && destinationChainId && commitTxBlockNumber)) {
         throw new Error('expected values')

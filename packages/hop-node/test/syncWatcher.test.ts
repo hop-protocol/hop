@@ -6,10 +6,10 @@ import {
 } from 'src/config'
 import { promiseQueue } from '../src/utils/promiseQueue'
 
-// known to cause getLogs issues
+// known to cause getLogs issues with alchemy
 /*
 const transferRootHashes = [
-  // '0x6f2ede653d27a3e186469930dc1d6252de00218d17531e4a00ec2bfe568207b1',
+  // '0x6f2ede653d27a3e186469930dc1d6252de00218d17531e4a00ec2bfe568207b1'
   // '0x8d7618c0376f5d23a3f07c1abd8517de457ca741346fb0c942a1599dd8071ba8',
   // '0xde7022d8ad057111098fce5f4261fdbe442dc5a754b175d7edb28b47ceb47321',
   // '0x9599c2cd203c2182d9d7041efd40fb858b12e72efd8549330c67d695e97af9f1',

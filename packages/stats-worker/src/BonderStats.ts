@@ -40,7 +40,7 @@ const totalBalances: Record<string, BigNumber> = {
   MATIC: parseUnits('731948.94', 18)
 }
 
-const initialAggregateBalances: Record<string, BigNumber> = {
+const initialAggregateBalancesInAssetToken: Record<string, BigNumber> = {
   USDC: parseUnits('0', 6),
   USDT: parseUnits('0', 6),
   DAI: parseUnits('0', 18),
@@ -58,6 +58,20 @@ const initialAggregateNativeBalances: any = {
   ETH: {},
   MATIC: {},
   WBTC: {}
+}
+
+const unstakedAmountsEth: Record<string, any> = {
+  USDT: {
+    [1642492800]: parseUnits('22.7886', 18), // 01/18/2022 (22.7886 ETH)
+    [1643011201]: parseUnits('0.25', 18) // 01/24/2022 (0.25 ETH)
+  }
+}
+
+const unstakedAmountsToken: Record<string, any> = {
+  USDT: {
+    [1643011200]: parseUnits('7228.11', 6), // 01/24/2022
+    [1643356800]: parseUnits('0.87', 6) // 01/28/2022
+  }
 }
 
 const unstakedAmounts: Record<string, any> = {
@@ -162,7 +176,7 @@ type Options = {
 class BonderStats {
   db = new Db()
   days: number = 1
-  tokens?: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC']
+  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC']
   chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
 
   tokenDecimals: Record<string, number> = {
@@ -422,7 +436,8 @@ class BonderStats {
       priceMap
     )
 
-    const initialAggregateBalance = initialAggregateBalances?.[token]
+    const initialAggregateBalanceInAssetToken =
+      initialAggregateBalancesInAssetToken?.[token]
     const initialAggregateNativeBalance =
       initialAggregateNativeBalances?.[token]
 
@@ -434,6 +449,32 @@ class BonderStats {
           ts,
           'subtract unstaked amount',
           unstakedAmounts[token][ts].toString()
+        )
+      }
+    }
+
+    let unstakedAmountEth = BigNumber.from(0)
+    for (const ts in unstakedAmountsEth[token]) {
+      if (Number(ts) <= timestamp) {
+        unstakedAmountEth = unstakedAmountEth.add(unstakedAmountsEth[token][ts])
+        console.log(
+          ts,
+          'subtract unstaked amount ETH',
+          unstakedAmountsEth[token][ts].toString()
+        )
+      }
+    }
+
+    let unstakedAmountToken = BigNumber.from(0)
+    for (const ts in unstakedAmountsToken[token]) {
+      if (Number(ts) <= timestamp) {
+        unstakedAmountToken = unstakedAmountToken.add(
+          unstakedAmountsToken[token][ts]
+        )
+        console.log(
+          ts,
+          'subtract unstaked amount',
+          unstakedAmountsToken[token][ts].toString()
         )
       }
     }
@@ -452,10 +493,24 @@ class BonderStats {
 
     const { resultFormatted } = await this.computeResult({
       token,
-      initialAggregateBalance,
+      initialAggregateBalanceInAssetToken,
       initialAggregateNativeBalance,
       restakedAmount,
       unstakedAmount,
+      bonderBalances,
+      priceMap
+    })
+
+    const {
+      resultFormatted: result2Formatted,
+      ethAmountsFormatted
+    } = await this.computeResult2({
+      token,
+      initialAggregateBalanceInAssetToken,
+      initialAggregateNativeBalance,
+      restakedAmount,
+      unstakedAmountToken,
+      unstakedAmountEth,
       bonderBalances,
       priceMap
     })
@@ -500,7 +555,9 @@ class BonderStats {
         dbData.ethPriceUsd,
         dbData.maticPriceUsd,
         resultFormatted,
-        timestamp
+        timestamp,
+        result2Formatted,
+        ethAmountsFormatted
       )
       console.log(day, 'upserted', token, timestamp)
     } catch (err) {
@@ -721,14 +778,14 @@ class BonderStats {
   async computeResult (data: any = {}) {
     const {
       token,
-      initialAggregateBalance,
+      initialAggregateBalanceInAssetToken,
       initialAggregateNativeBalance,
       restakedAmount,
       unstakedAmount,
       bonderBalances,
       priceMap
     } = data
-    let aggregateBalance = initialAggregateBalance
+    let aggregateBalance = initialAggregateBalanceInAssetToken
       .sub(unstakedAmount)
       .add(restakedAmount)
     const nativeBalances: Record<string, any> = {}
@@ -785,6 +842,90 @@ class BonderStats {
     return {
       result,
       resultFormatted
+    }
+  }
+
+  async computeResult2 (data: any = {}) {
+    const {
+      token,
+      initialAggregateBalanceInAssetToken,
+      initialAggregateNativeBalance,
+      restakedAmount,
+      unstakedAmountToken,
+      unstakedAmountEth,
+      bonderBalances,
+      priceMap
+    } = data
+    let aggregateBalanceToken = initialAggregateBalanceInAssetToken
+      .sub(unstakedAmountToken)
+      .add(restakedAmount)
+    const nativeBalances: Record<string, any> = {}
+    for (const chain of this.chains) {
+      nativeBalances[chain] = BigNumber.from(0)
+    }
+
+    for (const chain in bonderBalances) {
+      const { canonical, hToken, native, alias } = bonderBalances[chain]
+      aggregateBalanceToken = aggregateBalanceToken.add(canonical).add(hToken)
+      nativeBalances[chain] = native.add(alias)
+    }
+    const nativeTokenDiffs: Record<string, any> = {}
+    for (const chain of this.chains) {
+      nativeTokenDiffs[chain] = nativeBalances[chain].sub(
+        initialAggregateNativeBalance?.[chain] ?? 0
+      )
+    }
+
+    let ethAmounts = BigNumber.from(0).sub(unstakedAmountEth)
+
+    const nonEthNativeTokenDiffsInToken: Record<string, any> = {}
+    for (const chain of this.chains) {
+      const multiplier = parseEther('1')
+      const nativeSymbol = this.getChainNativeTokenSymbol(chain)
+      if (nativeSymbol === 'ETH') {
+        ethAmounts = ethAmounts.add(nativeTokenDiffs[chain])
+        continue
+      }
+      const nativeTokenPriceUsdWei = parseEther(
+        priceMap[nativeSymbol].toString()
+      )
+      const tokenPriceUsdWei = parseEther(priceMap[token].toString())
+      const nativeTokenDecimals = this.tokenDecimals[nativeSymbol]
+      const rate = nativeTokenPriceUsdWei.mul(multiplier).div(tokenPriceUsdWei)
+      const exponent = nativeTokenDecimals - this.tokenDecimals[token]
+
+      const diff = nativeTokenDiffs[chain]
+      const resultInTokenWei = diff.mul(rate).div(multiplier)
+      const resultInToken = resultInTokenWei.div(
+        BigNumber.from(10).pow(exponent)
+      )
+      nonEthNativeTokenDiffsInToken[chain] = resultInToken.sub(
+        initialAggregateNativeBalance?.[chain] ?? 0
+      )
+    }
+
+    let nonEthNativeTokenDiffSum = BigNumber.from(0)
+    for (const chain of this.chains) {
+      nonEthNativeTokenDiffSum = nonEthNativeTokenDiffSum.add(
+        nonEthNativeTokenDiffsInToken[chain] ?? BigNumber.from(0)
+      )
+    }
+
+    let result = aggregateBalanceToken.add(nonEthNativeTokenDiffSum)
+    if (result.lt(0)) {
+      result = BigNumber.from(0)
+    }
+    const resultFormatted = Number(
+      formatUnits(result.toString(), this.tokenDecimals[token])
+    )
+
+    const ethAmountsFormatted = Number(formatUnits(ethAmounts.toString(), 18))
+
+    return {
+      result,
+      resultFormatted,
+      ethAmounts,
+      ethAmountsFormatted
     }
   }
 

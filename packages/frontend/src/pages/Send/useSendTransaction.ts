@@ -50,6 +50,7 @@ export function useSendTransaction(props) {
   } = props
   const [tx, setTx] = useState<Transaction>()
   const [sending, setSending] = useState<boolean>(false)
+  const [isGnosisSafeWallet, setIsGnosisSafeWallet] = useState<boolean>(false)
   const { provider, address, checkConnectedNetworkId, walletName } = useWeb3Context()
   const [recipient, setRecipient] = useState<string>()
   const [signer, setSigner] = useState<Signer>()
@@ -201,6 +202,7 @@ export function useSendTransaction(props) {
       kind: 'send',
       inputProps: {
         customRecipient,
+        isGnosisSafeWallet,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -236,6 +238,7 @@ export function useSendTransaction(props) {
       kind: 'send',
       inputProps: {
         customRecipient,
+        isGnosisSafeWallet,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -277,6 +280,7 @@ export function useSendTransaction(props) {
       kind: 'send',
       inputProps: {
         customRecipient,
+        isGnosisSafeWallet,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -318,5 +322,6 @@ export function useSendTransaction(props) {
     sending,
     tx,
     setTx,
+    setIsGnosisSafeWallet
   }
 }

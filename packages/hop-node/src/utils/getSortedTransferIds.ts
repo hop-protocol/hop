@@ -1,10 +1,12 @@
+import { findMissingIndexes } from 'src/utils/findMissingIndexes'
+
 type Transfer = {
   transferId: string
   blockNumber: number
   index: number
 }
 
-export function getSortedTransferIds (_transfers: Transfer[], startBlockNumber: number = 0): string[] {
+export function getSortedTransferIds (_transfers: Transfer[], startBlockNumber: number = 0): any {
   let transfers: any[] = _transfers.sort((a: any, b: any) => {
     if (a.index > b.index) return 1
     if (a.index < b.index) return -1
@@ -37,5 +39,8 @@ export function getSortedTransferIds (_transfers: Transfer[], startBlockNumber: 
     transfers[i as any] = replace[i]
   }
 
-  return transfers
+  const lastIndex = transfers[transfers.length - 1]?.index
+  const missingIndexes = findMissingIndexes(transfers)
+
+  return { sortedTransfers: transfers, missingIndexes, lastIndex }
 }

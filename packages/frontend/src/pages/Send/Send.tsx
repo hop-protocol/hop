@@ -394,7 +394,7 @@ const Send: FC = () => {
   // Send tokens
   // ==============================================================================================
 
-  const { tx, setTx, send, sending } = useSendTransaction({
+  const { tx, setTx, send, sending, setIsGnosisSafeWallet } = useSendTransaction({
     amountOutMin,
     customRecipient,
     deadline,
@@ -408,7 +408,7 @@ const Send: FC = () => {
     toNetwork,
     txConfirm,
     txHistory,
-    estimatedReceived: estimatedReceivedDisplay,
+    estimatedReceived: estimatedReceivedDisplay
   })
 
   useEffect(() => {
@@ -422,8 +422,12 @@ const Send: FC = () => {
     tx,
     customRecipient,
     fromNetwork,
-    toNetwork
+    toNetwork,
   )
+
+  useEffect(() => {
+    setIsGnosisSafeWallet(gnosisEnabled)
+  }, [gnosisEnabled])
 
   // ==============================================================================================
   // User actions

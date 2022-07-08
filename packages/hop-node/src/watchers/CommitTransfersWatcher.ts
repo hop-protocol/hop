@@ -5,7 +5,7 @@ import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { TxRetryDelayMs, getEnabledNetworks, pendingCountCommitThreshold } from 'src/config'
+import { TxRetryDelayMs, getEnabledNetworks, config as globalConfig, pendingCountCommitThreshold } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -150,6 +150,11 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.commitTxSentAt[destinationChainId] = Date.now()
 
     try {
+      let contractAddress: string | undefined
+      if (this.chainSlug === Chain.Polygon) {
+        // TODO
+        contractAddress = globalConfig.addresses[this.tokenSymbol][this.chainSlug].l2Bridge
+      }
       const tx = await l2Bridge.commitTransfers(destinationChainId)
       const sourceChainId = await l2Bridge.getChainId()
       const msg = `L2 (${sourceChainId}) commitTransfers (destination chain ${destinationChainId}) tx: ${tx.hash}`

@@ -287,9 +287,14 @@ export default class L2Bridge extends Bridge {
   }
 
   commitTransfers = async (
-    destinationChainId: number
+    destinationChainId: number,
+    contractAddress?: string
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.l2BridgeContract.commitTransfers(
+    let contract = this.l2BridgeContract
+    if (contractAddress) {
+      contract = contract.attach(contractAddress)
+    }
+    const tx = await contract.commitTransfers(
       destinationChainId,
       await this.txOverrides()
     )

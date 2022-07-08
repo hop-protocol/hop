@@ -52,6 +52,7 @@ export type Options = {
   pollMs: number
   timeTilBoostMs: number
   gasPriceMultiplier: number
+  initialTxGasPriceMultiplier: number
   maxGasPriceGwei: number
   minPriorityFeePerGas: number
   priorityFeePerGasCap: number
@@ -77,6 +78,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 3 * 60 * 1000
   gasPriceMultiplier: number = MaxGasPriceMultiplier // multiplier for gasPrice
+  initialTxGasPriceMultiplier: number = MaxGasPriceMultiplier // multiplier for gasPrice for first tx
   maxGasPriceGwei: number = 500 // the max we'll keep bumping gasPrice in type 0 txs
   maxGasPriceReached: boolean = false // this is set to true when gasPrice is greater than maxGasPrice
   minPriorityFeePerGas: number = MinPriorityFeePerGas // we use this priorityFeePerGas or the ethers suggestions; which ever one is greater
@@ -242,6 +244,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.gasPriceMultiplier = gasPriceMultiplier
   }
 
+  setInitialTxGasPriceMultiplier (initialTxGasPriceMultiplier: number) {
+    this.initialTxGasPriceMultiplier = initialTxGasPriceMultiplier
+  }
+
   setMaxGasPriceGwei (maxGasPriceGwei: number) {
     this.maxGasPriceGwei = maxGasPriceGwei
   }
@@ -320,7 +326,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   async send () {
     const _timeId = `GasBoostTransaction send getBumpedGasFeeData elapsed ${this.logId} `
     console.time(_timeId)
-    let gasFeeData = await this.getBumpedGasFeeData()
+    let gasFeeData = await this.getBumpedGasFeeData(this.initialTxGasPriceMultiplier)
     console.timeEnd(_timeId)
 
     // use passed in tx gas values if they were specified
@@ -481,6 +487,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         throw new Error(`multiplier must be greater than ${this.minMultiplier}`)
       }
       this.gasPriceMultiplier = options.gasPriceMultiplier
+      this.initialTxGasPriceMultiplier = options.gasPriceMultiplier
+    }
+    if (options.initialTxGasPriceMultiplier) {
+      if (options.initialTxGasPriceMultiplier < 1) {
+        throw new Error('initial tx multiplier must be greater than or equal to 1')
+      }
+      this.initialTxGasPriceMultiplier = options.initialTxGasPriceMultiplier
     }
     if (options.maxGasPriceGwei) {
       this.maxGasPriceGwei = options.maxGasPriceGwei

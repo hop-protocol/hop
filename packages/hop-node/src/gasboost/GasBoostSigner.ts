@@ -188,6 +188,12 @@ class GasBoostSigner extends Wallet {
     })
   }
 
+  setInitialTxGasPriceMultiplier (initialTxGasPriceMultiplier: number) {
+    this.setOptions({
+      initialTxGasPriceMultiplier
+    })
+  }
+
   setMaxGasPriceGwei (maxGasPriceGwei: number) {
     this.setOptions({
       maxGasPriceGwei

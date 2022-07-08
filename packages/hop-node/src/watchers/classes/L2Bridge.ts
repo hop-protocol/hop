@@ -216,6 +216,15 @@ export default class L2Bridge extends Bridge {
     )
   }
 
+  pendingTransferExistsAtIndex = async (chainId: number, index: number) => {
+    try {
+      await this.getPendingTransferByIndex(chainId, index)
+      return true
+    } catch (err) {
+      return false
+    }
+  }
+
   async doPendingTransfersExist (chainId: number): Promise<boolean> {
     try {
       await this.getPendingTransferByIndex(chainId, 0)

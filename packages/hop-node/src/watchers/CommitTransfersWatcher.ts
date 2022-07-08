@@ -2,6 +2,7 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import { BigNumber } from 'ethers'
+import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TxRetryDelayMs, getEnabledNetworks } from 'src/config'
@@ -36,9 +37,6 @@ class CommitTransfersWatcher extends BaseWatcher {
         )
       }
     }
-
-    // Commit watcher is less time sensitive than others
-    this.pollIntervalMs = 6 * 10 * 1000
   }
 
   async start () {
@@ -122,7 +120,13 @@ class CommitTransfersWatcher extends BaseWatcher {
     const formattedPendingAmount = this.bridge.formatUnits(totalPendingAmount)
 
     const minThresholdAmount = this.getMinThresholdAmount(destinationChainId)
-    if (totalPendingAmount.lte(minThresholdAmount)) {
+    let pendingCountOk = true
+    if (this.chainSlug === Chain.Polygon) {
+      const pendingCountThreshold = 256
+      pendingCountOk = await l2Bridge.pendingTransferExistsAtIndex(destinationChainId, pendingCountThreshold - 1)
+    }
+    const canCommit = totalPendingAmount.gte(minThresholdAmount) || pendingCountOk
+    if (!canCommit) {
       const formattedThreshold = this.bridge.formatUnits(
         minThresholdAmount
       )

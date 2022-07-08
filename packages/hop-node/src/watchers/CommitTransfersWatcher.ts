@@ -5,7 +5,7 @@ import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { TxRetryDelayMs, getEnabledNetworks } from 'src/config'
+import { TxRetryDelayMs, getEnabledNetworks, pendingCountCommitThreshold } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -120,10 +120,9 @@ class CommitTransfersWatcher extends BaseWatcher {
     const formattedPendingAmount = this.bridge.formatUnits(totalPendingAmount)
 
     const minThresholdAmount = this.getMinThresholdAmount(destinationChainId)
-    let pendingCountOk = true
+    let pendingCountOk = false
     if (this.chainSlug === Chain.Polygon) {
-      const pendingCountThreshold = 256
-      pendingCountOk = await l2Bridge.pendingTransferExistsAtIndex(destinationChainId, pendingCountThreshold - 1)
+      pendingCountOk = await l2Bridge.pendingTransferExistsAtIndex(destinationChainId, pendingCountCommitThreshold - 1)
     }
     const canCommit = totalPendingAmount.gte(minThresholdAmount) || pendingCountOk
     if (!canCommit) {

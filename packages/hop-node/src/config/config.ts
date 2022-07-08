@@ -54,6 +54,7 @@ export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 export const minEthBonderFeeBn = parseEther('0.00001')
+export const pendingCountCommitThreshold = 256
 
 type SyncConfig = {
   totalBlocks?: number

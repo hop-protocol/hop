@@ -545,7 +545,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1MessengerWrapper: '0x415BfeA97B6ccDBac30AC897232e0B81EBe89Cd7',
+        l1MessengerWrapper: '0xAEE7034e7BBfAe6cfE92f9186246275e29B3929d',
         l2CanonicalBridge: '0x45c32fA6DF82ead1e2EF74d17b76547EDdFaFF89',
         l2CanonicalToken: '0x45c32fA6DF82ead1e2EF74d17b76547EDdFaFF89',
         l2Bridge: '0x536d32D71ea4e7D0E2d0De6f9392193130c2FAe4',
@@ -553,9 +553,10 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x71139b5d8844642aA1797435Bd5df1FbC9De0813',
         l2SaddleSwap: '0xD5d8A485D826F39Eb5b512A963A310508128aB31',
         l2SaddleLpToken: '0x34Cc492d3648f887574B41Eee8D2e5E5a14e0FC4',
-        l1FxBaseRootTunnel: '0x415BfeA97B6ccDBac30AC897232e0B81EBe89Cd7',
+        l1FxBaseRootTunnel: '0xAEE7034e7BBfAe6cfE92f9186246275e29B3929d',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
+        l2MessengerProxy: '0x5c4E42EE6a5A5130147a43E7c0f32Cd5A32e5981',
         bridgeDeployedBlockNumber: 29620460
       },
       optimism: {

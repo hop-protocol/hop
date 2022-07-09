@@ -59,7 +59,11 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
 
         // throw error as usual if it's not a rate limit error
         if (!shouldRetry) {
-          logger.error(errMsg)
+          // static call revert errors are expected when reading public things on-chain where nested mappings don't exist (see L2Bridge.pendingTransferExistsAtIndex()
+          // so we don't want to log as error everytime it's polled
+          if (!isCallRevertError) {
+            logger.error(errMsg)
+          }
           throw err
         }
         retries++

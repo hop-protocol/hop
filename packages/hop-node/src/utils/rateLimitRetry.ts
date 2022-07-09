@@ -34,7 +34,11 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         const estimateGasFailedErrorRegex = /eth_estimateGas/i
         const alreadyKnownErrorRegex = /(AlreadyKnown|already known)/
         const feeTooLowErrorRegex = /FeeTooLowToCompete|transaction underpriced/
-        const isCallRevertErrorRegex = /missing revert data in call exception/
+
+        // this invalid opcode error occurs when doing an on-chain lookup on a nested mapping where the index doesn't exist.
+        // it doesn't necessary mean there's an eror, only that the value at the index hasn't been set yet.
+        // for example, l2Bridge.pendingTransferIdsForChainId(...)
+        const isCallLookupRevertErrorRegex = /missing revert data in call exception.*invalid opcode/
 
         const isRateLimitError = rateLimitErrorRegex.test(errMsg)
         const isTimeoutError = timeoutErrorRegex.test(errMsg)
@@ -46,22 +50,20 @@ export default function rateLimitRetry<FN extends (...args: any[]) => Promise<an
         const isEstimateGasFailedError = estimateGasFailedErrorRegex.test(errMsg)
         const isAlreadyKnownError = alreadyKnownErrorRegex.test(errMsg)
         const isFeeTooLowError = feeTooLowErrorRegex.test(errMsg)
-        const isCallRevertError = isCallRevertErrorRegex.test(errMsg)
+        const isCallLookupRevertError = isCallLookupRevertErrorRegex.test(errMsg)
 
         // a connection error, such as 'ECONNREFUSED', will cause ethers to return a "missing revert data in call exception" error,
         // so we want to exclude server connection errors from actual contract call revert errors.
         const isRevertError = revertErrorRegex.test(errMsg) && !isConnectionError && !isTimeoutError
 
-        const shouldNotRetryErrors = (isOversizedDataError || isBridgeContractError || isNonceTooLowErrorError || isEstimateGasFailedError || isAlreadyKnownError || isFeeTooLowError || isCallRevertError)
+        const shouldNotRetryErrors = (isOversizedDataError || isBridgeContractError || isNonceTooLowErrorError || isEstimateGasFailedError || isAlreadyKnownError || isFeeTooLowError || isCallLookupRevertError)
         const shouldRetry = (isRateLimitError || isTimeoutError || isConnectionError || isBadResponseError) && !isRevertError && !shouldNotRetryErrors
 
         logger.debug(`isRateLimitError: ${isRateLimitError}, isTimeoutError: ${isTimeoutError}, isConnectionError: ${isConnectionError}, isBadResponseError: ${isBadResponseError}, isRevertError: ${isRevertError}, shouldRetry: ${shouldRetry}`)
 
         // throw error as usual if it's not a rate limit error
         if (!shouldRetry) {
-          // static call revert errors are expected when reading public things on-chain where nested mappings don't exist (see L2Bridge.pendingTransferExistsAtIndex()
-          // so we don't want to log as error everytime it's polled
-          if (!isCallRevertError) {
+          if (!isCallLookupRevertError) {
             logger.error(errMsg)
           }
           throw err

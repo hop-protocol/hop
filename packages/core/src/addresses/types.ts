@@ -42,6 +42,7 @@ export type Bridges = {
       l1FxBaseRootTunnel: string
       l1PosRootChainManager: string
       l1PosPredicate: string
+      l2MessengerProxy: string
       bridgeDeployedBlockNumber: number
     }
     gnosis: {

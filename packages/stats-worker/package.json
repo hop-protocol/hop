@@ -22,7 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.29.0",
-    "@hop-protocol/core": "0.0.1-beta.67",
+    "@hop-protocol/core": "0.0.1-beta.68",
     "@hop-protocol/sdk": "0.0.1-beta.330",
     "@pinata/sdk": "^1.1.23",
     "@types/lodash": "^4.14.178",

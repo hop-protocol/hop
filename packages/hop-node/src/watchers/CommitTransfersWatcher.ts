@@ -166,7 +166,7 @@ class CommitTransfersWatcher extends BaseWatcher {
         // TODO
         contractAddress = globalConfig.addresses[this.tokenSymbol][this.chainSlug].l2Bridge
       }
-      const tx = await l2Bridge.commitTransfers(destinationChainId)
+      const tx = await l2Bridge.commitTransfers(destinationChainId, contractAddress)
       const sourceChainId = await l2Bridge.getChainId()
       const msg = `L2 (${sourceChainId}) commitTransfers (destination chain ${destinationChainId}) tx: ${tx.hash}`
       this.logger.info(msg)

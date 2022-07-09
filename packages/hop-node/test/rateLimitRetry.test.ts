@@ -26,6 +26,17 @@ class Example {
     })
   })
 
+  triggerCallRevertError= rateLimitRetry(async () => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        this.counter++
+        reject(new Error(
+          'missing revert data in call exception; Transaction reverted without a reason string [ See: https://links.ethers.org/v5-errors-CALL_EXCEPTION ] (data="0x", transaction={"from":"0xd8781cA9163E9f132A4D8392332E64115688013a","to":"0x553bC791D746767166fA3888432038193cEED5E2","data":"0x98445caf000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000ff","accessList":null}, error={"reason":"processing response error","code":"SERVER_ERROR","body":"{\"jsonrpc\":\"2.0\",\"id\":162,\"error\":{\"code\":-32000,\"message\":\"invalid opcode: opcode 0xfe not defined\"}}","error":{"code":-32000},"requestBody":"{\"method\":\"eth_call\",\"params\":[{\"from\":\"0xd8781ca9163e9f132a4d8392332e64115688013a\",\"to\":\"0x553bc791d746767166fa3888432038193ceed5e2\",\"data\":\"0x98445caf000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000ff\"},\"latest\"],\"id\":162,\"jsonrpc\":\"2.0\"}","requestMethod":"POST","url":"https://polygon2.rpc.hop.exchange/"}, code=CALL_EXCEPTION, version=providers/5.6.8)'
+        ))
+      }, 100)
+    })
+  })
+
   triggerGatewayTimeoutError= rateLimitRetry(async () => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -67,6 +78,18 @@ describe('rateLimitRetry', () => {
     let errMsg: string | undefined
     try {
       await example.triggerRevertError()
+    } catch (err) {
+      errMsg = err.message
+    }
+    expect(errMsg).toBeTruthy()
+    expect(example.counter).toBe(1)
+  }, 60 * 1000)
+  it.only('should not retry', async () => {
+    const example = new Example()
+    expect(example.counter).toBe(0)
+    let errMsg: string | undefined
+    try {
+      await example.triggerCallRevertError()
     } catch (err) {
       errMsg = err.message
     }

@@ -163,8 +163,7 @@ class CommitTransfersWatcher extends BaseWatcher {
     try {
       let contractAddress: string | undefined
       if (this.chainSlug === Chain.Polygon) {
-        // TODO
-        contractAddress = globalConfig.addresses[this.tokenSymbol][this.chainSlug].l2Bridge
+        contractAddress = globalConfig.addresses[this.tokenSymbol][this.chainSlug].l2MessengerProxy
       }
       const tx = await l2Bridge.commitTransfers(destinationChainId, contractAddress)
       const sourceChainId = await l2Bridge.getChainId()

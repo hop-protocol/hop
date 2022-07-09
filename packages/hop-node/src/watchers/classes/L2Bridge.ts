@@ -216,6 +216,15 @@ export default class L2Bridge extends Bridge {
     )
   }
 
+  pendingTransferExistsAtIndex = async (chainId: number, index: number) => {
+    try {
+      await this.getPendingTransferByIndex(chainId, index)
+      return true
+    } catch (err) {
+      return false
+    }
+  }
+
   async doPendingTransfersExist (chainId: number): Promise<boolean> {
     try {
       await this.getPendingTransferByIndex(chainId, 0)
@@ -278,9 +287,14 @@ export default class L2Bridge extends Bridge {
   }
 
   commitTransfers = async (
-    destinationChainId: number
+    destinationChainId: number,
+    contractAddress?: string
   ): Promise<providers.TransactionResponse> => {
-    const tx = await this.l2BridgeContract.commitTransfers(
+    let contract = this.l2BridgeContract
+    if (contractAddress) {
+      contract = contract.attach(contractAddress)
+    }
+    const tx = await contract.commitTransfers(
       destinationChainId,
       await this.txOverrides()
     )

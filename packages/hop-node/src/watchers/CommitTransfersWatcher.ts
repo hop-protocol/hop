@@ -124,14 +124,25 @@ class CommitTransfersWatcher extends BaseWatcher {
     if (this.chainSlug === Chain.Polygon) {
       pendingCountOk = await l2Bridge.pendingTransferExistsAtIndex(destinationChainId, pendingCountCommitThreshold - 1)
     }
-    const canCommit = totalPendingAmount.gte(minThresholdAmount) || pendingCountOk
+    const pendingAmountOk = totalPendingAmount.gte(minThresholdAmount)
+    const canCommit = pendingAmountOk || pendingCountOk
+    this.logger.debug(
+      `destinationChainId: ${destinationChainId}, pendingAmountOk: ${pendingAmountOk}, pendingCountOk: ${pendingCountOk}`
+    )
     if (!canCommit) {
-      const formattedThreshold = this.bridge.formatUnits(
-        minThresholdAmount
-      )
-      this.logger.warn(
-        `dest ${destinationChainId}: pending amt ${formattedPendingAmount} less than min of ${formattedThreshold}.`
-      )
+      if (!pendingCountOk) {
+        this.logger.warn(
+          `destinationChainId: ${destinationChainId}, pending count has not yet reached threshold of ${pendingCountCommitThreshold}`
+        )
+      }
+      if (!pendingAmountOk) {
+        const formattedThreshold = this.bridge.formatUnits(
+          minThresholdAmount
+        )
+        this.logger.warn(
+          `destinationChainid: ${destinationChainId}, pending amount ${formattedPendingAmount} is less than min of ${formattedThreshold}`
+        )
+      }
       return
     }
 

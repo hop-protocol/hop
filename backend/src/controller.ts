@@ -3,6 +3,17 @@ import Db, { getInstance } from './Db'
 import { DateTime } from 'luxon'
 import Worker from './worker'
 
+const colorsMap: any = {
+  ethereum: '#868dac',
+  gnosis: '#46a4a1',
+  polygon: '#8b57e1',
+  optimism: '#e64b5d',
+  arbitrum: '#289fef',
+  bonded: '#81ff81',
+  pending: '#ffc55a',
+  fallback: '#9f9fa3'
+}
+
 function truncateAddress (address :string) {
   return truncateString(address, 4)
 }
@@ -34,6 +45,63 @@ function explorerLinkAddress (chain: string, address: string) {
   return `${base}/address/${address}`
 }
 
+type Transfer = {
+  id: string
+  transferId: string
+  transferIdTruncated: string
+  transactionHash: string
+  transactionHashTruncated: string
+  transactionHashExplorerUrl: string
+  sourceChainId: string
+  sourceChainSlug: string
+  sourceChainName: string
+  sourceChainImageUrl: string
+  destinationChainId: string
+  destinationChainSlug: string
+  destinationChainName: string
+  destinationChainImageUrl: string
+  accountAddress: string
+  amount: string
+  amountFormatted: string
+  amountDisplay: string
+  amountUsd: string
+  amountUsdDisplay: string
+  amountOutMin: string
+  deadline: string
+  recipientAddress: string
+  recipientAddressTruncated: string
+  recipientAddressExplorerUrl: string
+  bonderFee: string
+  bonderFeeFormatted: string
+  bonderFeeDisplay: string
+  bonderFeeUsd: string
+  bonderFeeUsdDisplay: string
+  bonded: boolean
+  bondTimestamp: string
+  bondTimestampIso: string
+  bondWithinTimestamp: string
+  bondWithinTimestampRelative: string
+  bondTransactionHash: string
+  bondTransactionHashTruncated: string
+  bondTransactionHashExplorerUrl: string
+  bonderAddress: string
+  bonderAddressTruncated: string
+  bonderAddressExplorerUrl: string
+  token: string
+  tokenImageUrl: string
+  tokenPriceUsd: string
+  tokenPriceUsdDisplay: string
+  timestamp: string
+  timestampIso: string
+  preregenesis: boolean
+
+  sourceChainColor: string
+  destinationChainColor: string
+  bondStatusColor: string
+  recievedHTokens: boolean
+  convertHTokenUrl: string
+}
+
 export class Controller {
   db : Db = getInstance()
   worker: Worker
@@ -50,7 +118,7 @@ export class Controller {
     worker.start()
   }
 
-  async getTransfers (params: any) {
+  async getTransfers (params: any): Promise<Transfer[]> {
     const _key = `transfers-${Date.now()}-${Math.random()}`
     console.time(_key)
     let page = Number(params.page || 0)
@@ -203,6 +271,23 @@ export class Controller {
       // TODO: rerun worker
       if (!x.recipientAddressExplorerUrl || x.recipientAddressExplorerUrl?.includes('undefined')) {
         x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recipientAddress)
+      }
+
+      if (!x.sourceChainColor) {
+        x.sourceChainColor = colorsMap[x.sourceChainSlug] ?? colorsMap.fallback
+      }
+
+      if (!x.destinationChainColor) {
+        x.destinationChainColor = colorsMap[x.destinationChainSlug] ?? colorsMap.fallback
+      }
+
+      if (!x.bondStatusColor) {
+        x.bondStatusColor = x.bonded ? colorsMap.bonded : colorsMap.pending
+      }
+
+      x.recievedHTokens = false
+      if (!x.convertHTokenUrl) {
+        x.convertHTokenUrl = `https://app.hop.exchange/#/convert/amm?token=${x.token}&sourceNetwork=${x.sourceChainSlug}&destNetwork=${x.destinationChainSlug}&fromHToken=true`
       }
 
       return x

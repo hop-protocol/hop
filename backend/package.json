@@ -9,6 +9,7 @@
     "start:worker": "ts-node src/cli.ts --transfers",
     "start:dist": "node dist/index.js",
     "start:local": "PORT=8000 npx ts-node src/index.ts --worker --transfers --days=1",
+    "dev:local": "npm run start:local",
     "lint": "npx eslint --ext .ts --fix src/*.ts",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",

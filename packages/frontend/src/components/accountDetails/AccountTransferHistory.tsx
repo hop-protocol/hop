@@ -6,6 +6,7 @@ import { useTheme } from '@material-ui/core'
 import { Link, ExternalLink } from 'src/components/Link'
 import NavigateNextIcon from '@material-ui/icons/NavigateNext'
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore'
+import { useQuery } from 'react-query'
 
 type Item = {
   transferId: string
@@ -32,17 +33,17 @@ type Item = {
 
 function useData(props: any) {
   const { address } = props
-  const [items, setItems] = useState<Item[]>([])
   const [perPage] = useState<number>(5)
   const [page, setPage] = useState<number>(0)
   const [hasPreviousPage, setHasPreviousPage] = useState<boolean>(false)
   const [hasNextPage, setHasNextPage] = useState<boolean>(false)
 
-  useEffect(() => {
-    async function update() {
+const queryKey = `accountTransfersHistory:${address}:${perPage}:${page}`
+  const { isLoading, data, error } = useQuery(
+    [queryKey, address, page, perPage],
+    async () => {
       if (!address) {
-        setItems([])
-        return
+        return []
       }
       const baseUrl = 'https://explorer-api.hop.exchange'
       // const baseUrl = 'http://localhost:8000'
@@ -50,14 +51,18 @@ function useData(props: any) {
       const res = await fetch(url)
       const json = await res.json()
       const transfers = json.data
-      console.log(json)
-      if (Array.isArray(transfers)) {
-        setItems(transfers)
+      if (!Array.isArray(transfers)) {
+        return []
       }
+      return transfers
+    },
+    {
+      enabled: !!address,
+      refetchInterval: 10 * 1000,
     }
+  )
 
-    update().catch(console.error)
-  }, [address, page])
+  const items = data ?? []
 
   useEffect(() => {
     if (page === 0) {
@@ -85,6 +90,7 @@ function useData(props: any) {
   }
 
   return {
+    isLoading,
     items,
     hasPreviousPage,
     hasNextPage,
@@ -100,11 +106,11 @@ type Props = {
 export function AccountTransferHistory (props: Props) {
   const { address } = props
   const theme = useTheme()
-  const { items, hasPreviousPage, hasNextPage, handlePreviousPageClick, handleNextPageClick } = useData({ address })
+  const { isLoading, items, hasPreviousPage, hasNextPage, handlePreviousPageClick, handleNextPageClick } = useData({ address })
 
-  if (!items.length) {
+  if (!items.length && !isLoading) {
     return (
-      <div></div>
+      <></>
     )
   }
 
@@ -118,6 +124,13 @@ export function AccountTransferHistory (props: Props) {
       </Box>
       <Box>
         <Box>
+          {isLoading && (
+            <Box>
+              <Typography variant="body1">
+                Loading...
+              </Typography>
+            </Box>
+          )}
           {items?.map((item: Item, i: number) => {
             return (
               <Box key={i} mb={3}>

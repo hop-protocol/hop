@@ -27,7 +27,7 @@ type Item = {
   timestampRelative: string
   bondWithinTimestampRelative: string
   bondStatusColor: string
-  recievedHTokens: boolean
+  receivedHTokens: boolean
   convertHTokenUrl: string
 }
 
@@ -141,7 +141,7 @@ export function AccountTransferHistory (props: Props) {
                   {(item.bondWithinTimestampRelative) && (
                     <Box ml={1} display="inline-flex">
                       <Typography variant="body2" component="span" color="secondary">
-                        (<span style={{ color: '#52c106' }}>{item.sourceChainSlug === 'ethereum' ? 'recieved' : 'bonded'}</span> {item.bondWithinTimestampRelative} ago)
+                        (<span style={{ color: '#52c106' }}>{item.sourceChainSlug === 'ethereum' ? 'received' : 'bonded'}</span> {item.bondWithinTimestampRelative} ago)
                       </Typography>
                     </Box>
                   )}
@@ -178,7 +178,7 @@ export function AccountTransferHistory (props: Props) {
                     )}
                   </Box>
                   <Box ml={2} display="inline-flex">
-                    {(item.recievedHTokens && item.convertHTokenUrl) && (
+                    {(item.receivedHTokens && item.convertHTokenUrl) && (
                       <Link href={item.convertHTokenUrl.replace('https://app.hop.exchange', '')}>swap h{item.token}{'<>'}{item.token}</Link>
                     )}
                   </Box>

@@ -3,7 +3,7 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import { useTheme } from '@material-ui/core'
-import { ExternalLink } from 'src/components/Link'
+import { Link, ExternalLink } from 'src/components/Link'
 import NavigateNextIcon from '@material-ui/icons/NavigateNext'
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore'
 
@@ -11,8 +11,10 @@ type Item = {
   transferId: string
   sourceChainSlug: string
   sourceChainName: string
+  sourceChainColor: string
   destinationChainSlug: string
   destinationChainName: string
+  destinationChainColor: string
   transactionHash: string
   transactionHashExplorerUrl: string
   bondTransactionHashExplorerUrl: string
@@ -23,6 +25,9 @@ type Item = {
   tokenImageUrl: string
   timestampRelative: string
   bondWithinTimestampRelative: string
+  bondStatusColor: string
+  recievedHTokens: boolean
+  convertHTokenUrl: string
 }
 
 function useData(props: any) {
@@ -39,10 +44,13 @@ function useData(props: any) {
         setItems([])
         return
       }
-      const url = `https://explorer-api.hop.exchange/v1/transfers?account=${address}&perPage=${perPage}&page=${page}`
+      const baseUrl = 'https://explorer-api.hop.exchange'
+      // const baseUrl = 'http://localhost:8000'
+      const url = `${baseUrl}/v1/transfers?account=${address}&perPage=${perPage}&page=${page}`
       const res = await fetch(url)
       const json = await res.json()
       const transfers = json.data
+      console.log(json)
       if (Array.isArray(transfers)) {
         setItems(transfers)
       }
@@ -120,7 +128,7 @@ export function AccountTransferHistory (props: Props) {
                   {(item.bondWithinTimestampRelative) && (
                     <Box ml={1} display="inline-flex">
                       <Typography variant="body2" component="span" color="secondary">
-                        ({item.sourceChainSlug === 'ethereum' ? 'recieved' : 'bonded'} {item.bondWithinTimestampRelative} ago)
+                        (<span style={{ color: '#52c106' }}>{item.sourceChainSlug === 'ethereum' ? 'recieved' : 'bonded'}</span> {item.bondWithinTimestampRelative} ago)
                       </Typography>
                     </Box>
                   )}
@@ -138,20 +146,29 @@ export function AccountTransferHistory (props: Props) {
                   <Box mr={0.5} display="flex">
                     <img src={item.sourceChainImageUrl} width={16} alt="icon" />
                   </Box>
-                  {item.transactionHashExplorerUrl ? (
-                    <ExternalLink href={item.transactionHashExplorerUrl}>{item.sourceChainName}</ExternalLink>
-                  ) : (
-                    <Box>{item.sourceChainName}</Box>
-                  )}
-                  <Box ml={1} mr={1} display="flex">→</Box>
+                  <Box display="inline-flex" style={{ color: item.sourceChainColor }}>
+                    {item.transactionHashExplorerUrl ? (
+                      <ExternalLink href={item.transactionHashExplorerUrl} style={{ color: item.sourceChainColor }}>{item.sourceChainName}</ExternalLink>
+                    ) : (
+                      <Box>{item.sourceChainName}</Box>
+                    )}
+                    <Box ml={0.2} mr={1} display="flex">→</Box>
+                  </Box>
                   <Box mr={0.5} display="flex">
                     <img src={item.destinationChainImageUrl} width={16} alt="icon" />
                   </Box>
-                  {item.bondTransactionHashExplorerUrl ? (
-                    <ExternalLink href={item.bondTransactionHashExplorerUrl}>{item.destinationChainName}</ExternalLink>
-                  ) : (
-                    <Box>{item.destinationChainName}</Box>
-                  )}
+                  <Box display="inline-flex" style={{ color: item.destinationChainColor }}>
+                    {item.bondTransactionHashExplorerUrl ? (
+                      <ExternalLink href={item.bondTransactionHashExplorerUrl} style={{ color: item.destinationChainColor }}>{item.destinationChainName}</ExternalLink>
+                    ) : (
+                      <Box>{item.destinationChainName}</Box>
+                    )}
+                  </Box>
+                  <Box ml={2} display="inline-flex">
+                    {(item.recievedHTokens && item.convertHTokenUrl) && (
+                      <Link href={item.convertHTokenUrl.replace('https://app.hop.exchange', '')}>swap h{item.token}{'<>'}{item.token}</Link>
+                    )}
+                  </Box>
                 </Box>
               </Box>
             )

@@ -8,6 +8,8 @@ import { actionHandler, parseString, root } from './shared'
 import { BigNumber, utils } from 'ethers'
 import { getAllChains } from 'src/config'
 
+type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
+
 root
   .command('unsettled-roots')
   .description('Get all unsettled roots, their unsettled amounts, and the unsettled bonder')
@@ -28,7 +30,7 @@ async function main (source: any) {
   const startTimestamp = 1640995200
 
   // Get all settlements
-  const settledRootsPerBonder: any = await getSettledRoots(settlementChain, token)
+  const settledRootsPerBonder: SettledRootsPerBonder = await getSettledRoots(settlementChain, token)
 
   // Get all roots from source chains
   const allChains = getAllChains()
@@ -119,7 +121,7 @@ async function main (source: any) {
   }
 }
 
-async function getSettledRoots(chain: string, token: string): Promise<any> {
+async function getSettledRoots(chain: string, token: string): Promise<SettledRootsPerBonder> {
   const multipleWithdrawalsSettledRes = await getMultipleWithdrawalsSettled(chain, token)
   const settledPerBonder: any = {}
   for (const res of multipleWithdrawalsSettledRes) {

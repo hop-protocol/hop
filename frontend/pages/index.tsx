@@ -699,7 +699,7 @@ const Index: NextPage = () => {
       {showBanner && (
         <div id="banner">
           <div>
-            ⚠️ The <a href={unsyncedSubgraphUrl} target="_blank" rel="noreferrer noopener">subgraph</a> is currently experiencing some issues so the table might not reflect the latest state.
+            <span>⚠️</span> The <a href={unsyncedSubgraphUrl} target="_blank" rel="noreferrer noopener">subgraph</a> is currently experiencing some issues so the table might not reflect the latest state.
           </div>
         </div>
       )}
@@ -970,6 +970,9 @@ const Index: NextPage = () => {
                             <span>
                               Received
                             </span>
+                          )}
+                          {x.receivedHTokens && (
+                            <span title={`Received h${x.token}`}> ⚠️</span>
                           )}
                         </a>
                         )}

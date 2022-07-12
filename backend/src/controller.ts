@@ -193,6 +193,7 @@ export class Controller {
         transferId: 'transfer_id',
         bondTimestamp: 'bond_timestamp',
         bondWithinTimestamp: 'bond_within_timestamp',
+        receivedHTokens: 'received_htokens',
         token: 'token'
       }
       sortBy = sortBys[sortBy]

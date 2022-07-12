@@ -684,7 +684,7 @@ class TransferStats {
     this.prices = prices
   }
 
-  async getRecievedHtokens (bondTransactionHash: string, destinationChainSlug: string) {
+  async getReceivedHtokens (bondTransactionHash: string, destinationChainSlug: string) {
     try {
       if (
         !bondTransactionHash ||
@@ -712,7 +712,7 @@ class TransferStats {
     while (true) {
       try {
         const now = DateTime.now().toUTC()
-        const startTimestamp = Math.floor(now.minus({ days: 16 }).toSeconds())
+        const startTimestamp = Math.floor(now.minus({ hours: 6 }).toSeconds())
         const endTimestamp = Math.floor(now.toSeconds())
         const perPage = 100
         const items = await this.db.getTransfers({
@@ -751,7 +751,7 @@ class TransferStats {
             ) {
               return
             }
-            const receivedHTokens = await this.getRecievedHtokens(item.bondTransactionHash, item.destinationChainSlug)
+            const receivedHTokens = await this.getReceivedHtokens(item.bondTransactionHash, item.destinationChainSlug)
             item.receivedHTokens = receivedHTokens
             console.log('receivedHTokens?', item.transferId, receivedHTokens)
             await this.upsertItem(item)
@@ -972,7 +972,7 @@ class TransferStats {
     for (const item of items) {
       try {
         if (item.bonded && item.receivedHTokens == null) {
-          item.receivedHTokens = await this.getRecievedHtokens(item.bondTransactionHash, item.destinationChainSlug)
+          item.receivedHTokens = await this.getReceivedHtokens(item.bondTransactionHash, item.destinationChainSlug)
         }
         console.log('upserting', item.transferId)
         await this.upsertItem(item)

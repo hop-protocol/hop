@@ -38,6 +38,7 @@ import './vault'
 import './verifyCommits'
 import './withdraw'
 import './withdrawalProof'
+import './unsettledRoots'
 
 program.version(packageJson.version)
 program.parse(process.argv)

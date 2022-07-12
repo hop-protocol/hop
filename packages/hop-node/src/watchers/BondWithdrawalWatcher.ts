@@ -284,9 +284,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = params
     const logger = this.logger.create({ id: transferId })
     if (attemptSwap) {
-      // logger.debug(
-      //   `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
-      // )
+      logger.debug(
+        `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
+      )
       const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge as L2Bridge
       logger.debug('checkTransferId l2Bridge.bondWithdrawalAndAttemptSwap')

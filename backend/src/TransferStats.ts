@@ -978,6 +978,13 @@ class TransferStats {
 
   async upsertItem (item: any) {
     try {
+      if (item.receivedHTokens == null) {
+        const _item = await this.db.getTransfers({ transferId: item.transferId })
+        if (_item) {
+          item.receivedHTokens = _item.receivedHTokens
+        }
+      }
+
       await this.db.upsertTransfer(
         item.transferId,
         item.transferIdTruncated,
@@ -1028,7 +1035,7 @@ class TransferStats {
         item.timestamp,
         item.timestampIso,
         item.preregenesis,
-        item.receivedHTokens ?? false
+        item.receivedHTokens
       )
     } catch (err) {
       if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {

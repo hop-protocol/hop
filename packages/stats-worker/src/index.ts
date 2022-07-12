@@ -12,6 +12,7 @@ function main () {
     bonder: argv.bonder,
     regenesis: argv.regenesis,
     days: argv.days,
+    offsetDays: argv.offsetDays,
     bonderTokens: argv.bonderTokens ? argv.bonderTokens.split(',') : null,
     bonderDays: argv.bonderDays
   })

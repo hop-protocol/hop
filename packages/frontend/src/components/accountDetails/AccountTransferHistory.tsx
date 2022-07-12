@@ -143,7 +143,7 @@ export function AccountTransferHistory (props: Props) {
                   {(item.bondTimestampRelative) && (
                     <Box ml={1} display="inline-flex">
                       <Typography variant="body2" component="span" color="secondary">
-                        (<span style={{ color: '#52c106' }}>{item.sourceChainSlug === 'ethereum' ? 'received' : 'bonded'}</span> {item.bondTimestampRelative} ago)
+                        (<span style={{ color: '#52c106' }}>{item.sourceChainSlug === 'ethereum' ? 'received' : 'bonded'}</span> {item.bondTimestampRelative})
                       </Typography>
                     </Box>
                   )}

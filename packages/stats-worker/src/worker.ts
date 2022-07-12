@@ -12,6 +12,7 @@ type Options = {
   bonder?: boolean
   regenesis?: boolean
   days?: number
+  offsetDays?: number
   bonderDays?: number
   bonderTokens?: string[]
 }
@@ -35,6 +36,7 @@ class Worker {
       volume,
       regenesis,
       days,
+      offsetDays,
       bonder,
       bonderDays,
       bonderTokens
@@ -53,6 +55,7 @@ class Worker {
     })
     this.bonderStats = new BonderStats({
       days: bonderDays,
+      offsetDays: offsetDays,
       tokens: bonderTokens
     })
   }

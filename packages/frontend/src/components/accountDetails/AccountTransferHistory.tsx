@@ -26,7 +26,7 @@ type Item = {
   token: string
   tokenImageUrl: string
   timestampRelative: string
-  bondWithinTimestampRelative: string
+  bondTimestampRelative: string
   bondStatusColor: string
   receivedHTokens: boolean
   convertHTokenUrl: string
@@ -140,10 +140,10 @@ export function AccountTransferHistory (props: Props) {
                   <Typography variant="body2" component="span">
                     {item.timestampRelative}
                   </Typography>
-                  {(item.bondWithinTimestampRelative) && (
+                  {(item.bondTimestampRelative) && (
                     <Box ml={1} display="inline-flex">
                       <Typography variant="body2" component="span" color="secondary">
-                        (<span style={{ color: '#52c106' }}>{item.sourceChainSlug === 'ethereum' ? 'received' : 'bonded'}</span> {item.bondWithinTimestampRelative} ago)
+                        (<span style={{ color: '#52c106' }}>{item.sourceChainSlug === 'ethereum' ? 'received' : 'bonded'}</span> {item.bondTimestampRelative} ago)
                       </Typography>
                     </Box>
                   )}

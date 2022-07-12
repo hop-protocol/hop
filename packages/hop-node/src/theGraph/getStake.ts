@@ -2,16 +2,19 @@ import makeRequest from './makeRequest'
 import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
-export default async function getMultipleWithdrawalsSettled (
+export default async function getStake (
   chain: string,
   token: string,
+  bonder: string,
   lastId: string = constants.AddressZero
 ) {
+  bonder = bonder.toLowerCase()
   const query = `
-    query MultipleWithdrawalsSettled($token: String, $lastId: ID) {
-      multipleWithdrawalsSettleds(
+    query Stake($token: String, $bonder: String, $lastId: ID) {
+      stakes(
         where: {
           id_gt: $lastId
+          account: $bonder
           token: $token
         },
         orderBy: id,
@@ -19,27 +22,27 @@ export default async function getMultipleWithdrawalsSettled (
         first: 1000
       ) {
         id
-        rootHash
-        totalBondsSettled
-        bonder
+        amount
       }
     }
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
+    bonder,
     lastId: lastId
   })
-  let withdrawalsSettled = jsonRes.multipleWithdrawalsSettleds.map((x: any) => normalizeEntity(x))
+  let stakes = jsonRes.stakes.map((x: any) => normalizeEntity(x))
 
   const maxItemsLength = 1000
-  if (withdrawalsSettled.length === maxItemsLength) {
-    lastId = withdrawalsSettled[withdrawalsSettled.length - 1].id
-    withdrawalsSettled = withdrawalsSettled.concat(await getMultipleWithdrawalsSettled(
+  if (stakes.length === maxItemsLength) {
+    lastId = stakes[stakes.length - 1].id
+    stakes = stakes.concat(await getStake(
       chain,
       token,
+      bonder,
       lastId
     ))
   }
 
-  return withdrawalsSettled
+  return stakes
 }

@@ -2092,7 +2092,10 @@ class HopBridge extends Base {
       this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol),
       onChainBonderFeeAbsolutePromise ?? Promise.resolve(BigNumber.from(0))
     ])
-    const minBonderFeeUsd = 0.25
+    let minBonderFeeUsd = 0.25
+    if (sourceChain === Chain.Polygon) {
+      minBonderFeeUsd = 0.5
+    }
     const minBonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPrice).toFixed(token.decimals),
       token.decimals

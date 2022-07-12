@@ -5,14 +5,16 @@ import { normalizeEntity } from './shared'
 export default async function getTransfersCommitted (
   chain: string,
   token: string,
+  startTimestamp: number = 0,
+  destinationChainId: number = 0,
   lastId: string = constants.AddressZero
 ) {
+  const filters = getFilters(startTimestamp, destinationChainId)
   const query = `
-    query TransfersCommitted($token: String, $lastId: ID) {
+    query TransfersCommitted($token: String, $startTimestamp: Int, $destinationChainId: Int, $lastId: ID) {
       transfersCommitteds(
         where: {
-          id_gt: $lastId
-          token: $token
+          ${filters}
         },
         orderBy: id,
         orderDirection: asc,
@@ -26,6 +28,8 @@ export default async function getTransfersCommitted (
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
+    startTimestamp,
+    destinationChainId,
     lastId: lastId
   })
   let transfersCommitted = jsonRes.transfersCommitteds.map((x: any) => normalizeEntity(x))
@@ -36,9 +40,28 @@ export default async function getTransfersCommitted (
     transfersCommitted = transfersCommitted.concat(await getTransfersCommitted(
       chain,
       token,
+      startTimestamp,
+      destinationChainId,
       lastId
     ))
   }
 
   return transfersCommitted
+}
+
+function getFilters (startTimestamp: number, destinationChainId: number): string {
+  let filters: string = `
+    id_gt: $lastId
+    token: $token
+  `
+
+  if(startTimestamp) {
+    filters += 'timestamp_gte: $startTimestamp'
+  }
+
+  if (destinationChainId) {
+    filters += `destinationChainId: $destinationChainId`
+  }
+
+  return filters
 }

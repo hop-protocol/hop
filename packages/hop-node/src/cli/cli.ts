@@ -23,6 +23,7 @@ import './showConfig'
 import './stake'
 import './stakeStatus'
 import './swap'
+import './totalStake'
 import './transferId'
 import './transferIds'
 import './transferRoot'
@@ -37,6 +38,7 @@ import './vault'
 import './verifyCommits'
 import './withdraw'
 import './withdrawalProof'
+import './unsettledRoots'
 
 program.version(packageJson.version)
 program.parse(process.argv)

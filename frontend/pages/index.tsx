@@ -868,6 +868,7 @@ const Index: NextPage = () => {
                   <option value="recipient">Recipient</option>
                   <option value="bondTimestamp">Bonded Timestamp</option>
                   <option value="bondWithinTimestamp">Bonded Within Timestamp</option>
+                  <option value="receivedHTokens">Received hTokens</option>
                 </select>
               </div>
               <div>

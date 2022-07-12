@@ -142,6 +142,7 @@ export class Controller {
     let sortBy = params.sortBy
     const sortDirection = params.sortDirection
     const countOnly = params.countOnly
+    const receivedHTokens = params.receivedHTokens
     let bonded : any
 
     if (bondedStatus === 'pending') {
@@ -224,6 +225,7 @@ export class Controller {
       startTimestamp,
       sortBy,
       sortDirection,
+      receivedHTokens,
       countOnly
     })
     if (countOnly) {

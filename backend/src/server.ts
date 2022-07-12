@@ -60,6 +60,7 @@ app.get('/v1/transfers', responseCache, async (req: any, res: any) => {
       endDate,
       sortBy,
       sortDirection,
+      receivedHTokens,
       countOnly
     } = req.query
     const data = await controller.getTransfers({
@@ -83,6 +84,7 @@ app.get('/v1/transfers', responseCache, async (req: any, res: any) => {
       endDate,
       sortBy,
       sortDirection,
+      receivedHTokens,
       countOnly
     })
     res.status(200).json({ status: 'ok', data })
@@ -109,7 +111,8 @@ app.get('/v1/transfers/count', responseCache, async (req: any, res: any) => {
       bonderFeeUsdCmp,
       transferId,
       startDate,
-      endDate
+      endDate,
+      receivedHTokens
     } = req.query
     const data = await controller.getTransfers({
       sourceChainSlug,
@@ -128,6 +131,7 @@ app.get('/v1/transfers/count', responseCache, async (req: any, res: any) => {
       transferId,
       startDate,
       endDate,
+      receivedHTokens,
       countOnly: true
     })
     res.status(200).json({ status: 'ok', data })

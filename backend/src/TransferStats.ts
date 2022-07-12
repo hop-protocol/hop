@@ -712,7 +712,7 @@ class TransferStats {
     while (true) {
       try {
         const now = DateTime.now().toUTC()
-        const startTimestamp = Math.floor(now.minus({ days: this.days }).toSeconds())
+        const startTimestamp = Math.floor(now.minus({ days: 16 }).toSeconds())
         const endTimestamp = Math.floor(now.toSeconds())
         const perPage = 100
         const items = await this.db.getTransfers({
@@ -736,21 +736,26 @@ class TransferStats {
           await wait(60 * 1000)
           continue
         }
-        for (const item of items) {
-          if (item.sourceChainSlug === 'ethereum') {
-            continue
-          }
-          if (
-            !item.bondTransactionHash ||
-            !item.destinationChainSlug ||
-            item.destinationChainSlug === 'ethereum'
-          ) {
-            continue
-          }
-          const receivedHTokens = await this.getRecievedHtokens(item.bondTransactionHash, item.destinationChainSlug)
-          item.receivedHTokens = receivedHTokens
-          console.log('receivedHTokens?', item.transferId, receivedHTokens)
-          await this.upsertItem(item)
+
+        const chunkSize = 10
+        const allChunks = chunk(items, chunkSize)
+        for (const chunks of allChunks) {
+          await Promise.all(chunks.map(async (item: any) => {
+            if (item.sourceChainSlug === 'ethereum') {
+              return
+            }
+            if (
+              !item.bondTransactionHash ||
+              !item.destinationChainSlug ||
+              item.destinationChainSlug === 'ethereum'
+            ) {
+              return
+            }
+            const receivedHTokens = await this.getRecievedHtokens(item.bondTransactionHash, item.destinationChainSlug)
+            item.receivedHTokens = receivedHTokens
+            console.log('receivedHTokens?', item.transferId, receivedHTokens)
+            await this.upsertItem(item)
+          }))
         }
       } catch (err) {
         console.error(err)
@@ -966,6 +971,9 @@ class TransferStats {
 
     for (const item of items) {
       try {
+        if (item.bonded && item.receivedHTokens == null) {
+          item.receivedHTokens = await this.getRecievedHtokens(item.bondTransactionHash, item.destinationChainSlug)
+        }
         console.log('upserting', item.transferId)
         await this.upsertItem(item)
         break

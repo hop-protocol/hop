@@ -26,6 +26,21 @@ Docker build
 make build-docker
 ```
 
+Env vars
+
+```
+POSTGRES_USER=
+POSTGRES_PASS=
+POSTGRES_DBNAME=
+POSTGRES_HOST=
+
+ETHEREUM_RPC=
+GNOSIS_RPC=
+POLYGON_RPC=
+OPTIMISM_RPC=
+ARBITRUM_RPC=
+```
+
 ## License
 
 [MIT](LICENSE)

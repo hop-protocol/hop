@@ -98,7 +98,7 @@ type Transfer = {
   sourceChainColor: string
   destinationChainColor: string
   bondStatusColor: string
-  recievedHTokens: boolean
+  receivedHTokens: boolean
   convertHTokenUrl: string
 }
 
@@ -285,7 +285,9 @@ export class Controller {
         x.bondStatusColor = x.bonded ? colorsMap.bonded : colorsMap.pending
       }
 
-      x.recievedHTokens = false
+      if (typeof x.receivedHTokens !== 'boolean') {
+        x.receivedHTokens = false
+      }
       if (!x.convertHTokenUrl) {
         x.convertHTokenUrl = `https://app.hop.exchange/#/convert/amm?token=${x.token}&sourceNetwork=${x.sourceChainSlug}&destNetwork=${x.destinationChainSlug}&fromHToken=true`
       }

@@ -38,6 +38,9 @@ class Db {
       await this.db.query(`
         ALTER TABLE transfers ADD COLUMN IF NOT EXISTS account_address_explorer_url TEXT
       `)
+      await this.db.query(`
+        ALTER TABLE transfers ADD COLUMN IF NOT EXISTS received_htokens BOOLEAN
+      `)
     }
 
     await this.db.query(`CREATE TABLE IF NOT EXISTS transfers (
@@ -90,7 +93,8 @@ class Db {
         token_price_usd_display TEXT NOT NULL,
         timestamp NUMERIC NOT NULL,
         timestamp_iso TEXT NOT NULL,
-        preregenesis BOOLEAN
+        preregenesis BOOLEAN,
+        recieved_htokens BOOLEAN
     )`)
 
     await this.db.query(`CREATE TABLE IF NOT EXISTS token_prices (
@@ -207,7 +211,8 @@ class Db {
     tokenPriceUsdDisplay: string,
     timestamp: number,
     timestampIso: string,
-    preregenesis: boolean
+    preregenesis: boolean,
+    receivedHTokens: boolean
   ) {
     const args = [
       transferId,
@@ -259,7 +264,8 @@ class Db {
       tokenPriceUsdDisplay,
       timestamp,
       timestampIso,
-      preregenesis
+      preregenesis,
+      receivedHTokens
     ]
     await this.db.query(
       `INSERT INTO transfers (
@@ -312,8 +318,9 @@ class Db {
         token_price_usd_display,
         timestamp,
         timestamp_iso,
-        preregenesis
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50) ON CONFLICT (
+        preregenesis,
+        received_htokens
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51) ON CONFLICT (
       transfer_id
       ) DO UPDATE SET
         id = $1,
@@ -365,15 +372,16 @@ class Db {
         token_price_usd_display = $47,
         timestamp = $48,
         timestamp_iso = $49,
-        preregenesis = $50
+        preregenesis = $50,
+        received_htokens = $51
       `, args
     )
   }
 
   async getTransfers (params: any) {
     const {
-      page,
-      perPage,
+      page = 0,
+      perPage = 10,
       sourceChainSlug,
       destinationChainSlug,
       token,
@@ -390,7 +398,8 @@ class Db {
       transferId,
       startTimestamp,
       endTimestamp,
-      countOnly
+      countOnly,
+      receivedHTokens
     } = params
     const count = perPage
     const skip = (page * perPage)
@@ -485,6 +494,15 @@ class Db {
       }
     }
 
+    if (receivedHTokens !== undefined) {
+      if (receivedHTokens === null) {
+        whereClauses.push('received_htokens IS NULL')
+      } else {
+        whereClauses.push(`received_htokens = $${i++}`)
+        queryParams.push(receivedHTokens)
+      }
+    }
+
     if (!(transferId || accountAddress || recipientAddress || bonderAddress)) {
       if (startTimestamp) {
         whereClauses.push(`timestamp >= $${i++}`)
@@ -516,6 +534,8 @@ class Db {
           destination_chain_name AS "destinationChainName",
           destination_chain_image_url AS "destinationChainImageUrl",
           account_address AS "accountAddress",
+          account_address_truncated AS "accountAddressTruncated",
+          account_address_explorer_url AS "accountAddressExplorerUrl",
           amount,
           amount_formatted AS "amountFormatted",
           amount_display AS "amountDisplay",
@@ -548,7 +568,8 @@ class Db {
           token_price_usd_display AS "tokenPriceUsdDisplay",
           timestamp,
           timestamp_iso AS "timestampIso",
-          preregenesis
+          preregenesis,
+          received_htokens AS "receivedHTokens"
         FROM
           transfers
         ${whereClause}

@@ -10,6 +10,14 @@ import wait from 'wait'
 const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
 const enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
 
+const rpcUrls = {
+  gnosis: process.env.GNOSIS_RPC,
+  polygon: process.env.POLYGON_RPC,
+  arbitrum: process.env.ARBITRUM_RPC,
+  optimism: process.env.OPTIMISM_RPC,
+  ethereum: process.env.ETHEREUM_RPC
+}
+
 function padHex (hex: string) {
   return toHex(hex, { evenLength: true, addPrefix: true })
 }
@@ -676,6 +684,80 @@ class TransferStats {
     this.prices = prices
   }
 
+  async getRecievedHtokens (bondTransactionHash: string, destinationChainSlug: string) {
+    try {
+      if (
+        !bondTransactionHash ||
+        !destinationChainSlug ||
+        destinationChainSlug === 'ethereum'
+      ) {
+        return false
+      }
+      const rpcUrl = rpcUrls[destinationChainSlug]
+      if (!rpcUrl) {
+        throw new Error(`rpc url not found for "${destinationChainSlug}"`)
+      }
+      const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+      const receipt = await provider.getTransactionReceipt(bondTransactionHash)
+      const receivedHTokens = receipt.logs.length === 8
+      return receivedHTokens
+    } catch (err) {
+      console.error(err)
+      return false
+    }
+  }
+
+  async trackReceivedHTokenStatus () {
+    let page = 0
+    while (true) {
+      try {
+        const now = DateTime.now().toUTC()
+        const startTimestamp = Math.floor(now.minus({ days: this.days }).toSeconds())
+        const endTimestamp = Math.floor(now.toSeconds())
+        const perPage = 100
+        const items = await this.db.getTransfers({
+          perPage,
+          page,
+          receivedHTokens: null,
+          startTimestamp,
+          endTimestamp,
+          sortBy: 'timestamp',
+          sortDirection: 'asc'
+        })
+        if (items.length === perPage) {
+          page++
+        } else {
+          page = 0
+          await wait(60 * 1000)
+        }
+        console.log('items to check for receivedHTokens:', items.length)
+        if (!items.length) {
+          page = 0
+          await wait(60 * 1000)
+          continue
+        }
+        for (const item of items) {
+          if (item.sourceChainSlug === 'ethereum') {
+            continue
+          }
+          if (
+            !item.bondTransactionHash ||
+            !item.destinationChainSlug ||
+            item.destinationChainSlug === 'ethereum'
+          ) {
+            continue
+          }
+          const receivedHTokens = await this.getRecievedHtokens(item.bondTransactionHash, item.destinationChainSlug)
+          item.receivedHTokens = receivedHTokens
+          console.log('receivedHTokens?', item.transferId, receivedHTokens)
+          await this.upsertItem(item)
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+  }
+
   async trackTransfers () {
     await this.tilReady()
     console.log('upserting prices')
@@ -692,8 +774,10 @@ class TransferStats {
         }
       }
     }
+
     console.log('done upserting prices')
     await Promise.all([
+      this.trackReceivedHTokenStatus(),
       // this.trackAllDailyTransfers(),
       this.trackHourlyTransfers(1, 60 * 1000),
       wait(1 * 60 * 1000).then(() => {
@@ -943,7 +1027,8 @@ class TransferStats {
         item.tokenPriceUsdDisplay,
         item.timestamp,
         item.timestampIso,
-        item.preregenesis
+        item.preregenesis,
+        item.receivedHTokens ?? false
       )
     } catch (err) {
       if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {
@@ -1124,7 +1209,7 @@ class TransferStats {
 
   async getTransfersForDay (filterDate: string) {
     const endDate = DateTime.fromFormat(filterDate, 'yyyy-MM-dd').toUTC().plus({ days: 1 }).endOf('day')
-    const startTime = Math.floor(endDate.minus({ days: 1 }).startOf('day').toSeconds())
+    const startTime = Math.floor(endDate.minus({ days: this.days }).startOf('day').toSeconds())
     const endTime = Math.floor(endDate.toSeconds())
     return this.getTransfersBetweenDates(startTime, endTime)
   }

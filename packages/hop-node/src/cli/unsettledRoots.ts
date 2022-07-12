@@ -3,6 +3,7 @@ import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSe
 import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
 import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
 import getWithdrawal from 'src/theGraph/getWithdrawal'
+import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { Chain } from 'src/constants'
 import { actionHandler, parseString, root } from './shared'
 import { BigNumber, utils } from 'ethers'
@@ -28,6 +29,7 @@ async function main (source: any) {
 
   console.log('\n*** This will only look back until 01/01/2022 due to the OVM regenesis. ***\n')
   const startTimestamp = 1640995200
+  const decimals = getTokenDecimals(token)
 
   // Get all settlements
   const settledRootsPerBonder: SettledRootsPerBonder = await getSettledRoots(settlementChain, token)
@@ -114,7 +116,7 @@ async function main (source: any) {
         }
 
         if (diff.eq('0')) continue
-        console.log(`${root} ${bonder} ${utils.formatUnits(diff)} (${diff})`)
+        console.log(`${root} ${bonder} ${utils.formatUnits(diff, decimals)} (${diff})`)
       }
     }
     console.log('\n')

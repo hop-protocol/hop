@@ -3,10 +3,11 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import { useTheme } from '@material-ui/core'
-import { Link, ExternalLink } from 'src/components/Link'
+import { ExternalLink } from 'src/components/Link'
 import NavigateNextIcon from '@material-ui/icons/NavigateNext'
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore'
 import { useQuery } from 'react-query'
+import useQueryParams from 'src/hooks/useQueryParams'
 
 type Item = {
   transferId: string
@@ -32,7 +33,8 @@ type Item = {
 }
 
 function useData(props: any) {
-  const { address } = props
+  const { queryParams } = useQueryParams()
+  const address = queryParams.address ?? props.address
   const [perPage] = useState<number>(5)
   const [page, setPage] = useState<number>(0)
   const [hasPreviousPage, setHasPreviousPage] = useState<boolean>(false)
@@ -119,7 +121,7 @@ export function AccountTransferHistory (props: Props) {
       <Box mt={4} mb={2}>
         <Box mb={2} width="100%" style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
         <Typography variant="body1">
-          Account transfers history
+          Account transfer history
         </Typography>
       </Box>
       <Box>
@@ -178,9 +180,11 @@ export function AccountTransferHistory (props: Props) {
                     )}
                   </Box>
                   <Box ml={2} display="inline-flex">
-                    {(item.receivedHTokens && item.convertHTokenUrl) && (
-                      <Link href={item.convertHTokenUrl.replace('https://app.hop.exchange', '')}>swap h{item.token}{'<>'}{item.token}</Link>
-                    )}
+                    <Typography variant="body2">
+                      {(item.receivedHTokens && item.convertHTokenUrl) && (
+                        <ExternalLink href={item.convertHTokenUrl.replace('https://app.hop.exchange', '')}>click to swap h{item.token}{'<>'}{item.token}</ExternalLink>
+                      )}
+                    </Typography>
                   </Box>
                 </Box>
               </Box>

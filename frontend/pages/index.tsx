@@ -133,6 +133,10 @@ const queryTransfers = async (params: any) => {
   if (filtered['sortBy'] === defaultSortBy) {
     delete filtered['sortBy']
   }
+  if (filtered['sortBy'] === 'receivedHTokens') {
+    filtered.receivedHTokens = true
+    filtered['sortBy'] = 'timestamp'
+  }
   if (filtered['sortDirection'] === defaultSortDirection) {
     delete filtered['sortDirection']
   }

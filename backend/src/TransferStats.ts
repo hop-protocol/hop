@@ -722,7 +722,7 @@ class TransferStats {
           startTimestamp,
           endTimestamp,
           sortBy: 'timestamp',
-          sortDirection: 'asc'
+          sortDirection: 'desc'
         })
         if (items.length === perPage) {
           page++

@@ -10,6 +10,9 @@ type Options = {
   tvl?: boolean
   volume?: boolean
   bonder?: boolean
+  bonderProfit?: boolean
+  bonderFees?: boolean
+  bonderTxFees?: boolean
   regenesis?: boolean
   days?: number
   offsetDays?: number
@@ -38,13 +41,19 @@ class Worker {
       days,
       offsetDays,
       bonder,
+      bonderProfit,
+      bonderFees,
+      bonderTxFees,
       bonderDays,
       bonderTokens
     } = options
     this.apr = apr
     this.tvl = tvl
     this.volume = volume
-    this.bonder = bonder
+
+    if (bonder || bonderProfit || bonderFees || bonderTxFees) {
+      this.bonder = true
+    }
     this.aprStats = new AprStats()
     this.volumeStats = new VolumeStats({
       regenesis
@@ -56,7 +65,10 @@ class Worker {
     this.bonderStats = new BonderStats({
       days: bonderDays,
       offsetDays: offsetDays,
-      tokens: bonderTokens
+      tokens: bonderTokens,
+      trackBonderProfit: bonderProfit ?? bonder,
+      trackBonderFees: bonderFees ?? bonder,
+      trackBonderTxFees: bonderTxFees ?? bonder
     })
   }
 

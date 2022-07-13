@@ -123,7 +123,7 @@ const unstakedAmounts: Record<string, any> = {
     [1639641600]: parseEther('26'), // 12/16/2021
     [1645689600]: parseEther('675'), // 02/24/2022
     [1656399600]: parseEther('300'), // 06/28/2022
-    [1656572400]: parseEther('1400'), // 06/30/2022
+    [1656572400]: parseEther('1400') // 06/30/2022
   },
   // 0xd8781ca9163e9f132a4d8392332e64115688013a
   MATIC: {},
@@ -154,7 +154,7 @@ const restakedProfits: Record<string, any> = {
     [1643184000]: parseEther('10'), // 01/26/2022
     [1645776000]: parseEther('675'), // 02/25/2022
     [1656486000]: parseEther('300'), // 06/29/2022
-    [1656658800]: parseEther('1400'), // 07/01/2022
+    [1656658800]: parseEther('1400') // 07/01/2022
   },
   // 0xd8781ca9163e9f132a4d8392332e64115688013a
   MATIC: {},
@@ -240,6 +240,9 @@ type Options = {
   days?: number
   offsetDays?: number
   tokens?: string[]
+  trackBonderProfit?: boolean
+  trackBonderFees?: boolean
+  trackBonderTxFees?: boolean
 }
 
 class BonderStats {
@@ -248,6 +251,9 @@ class BonderStats {
   offsetDays: number = 0
   tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC']
   chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
+  trackOnlyProfit = false
+  trackOnlyTxFees = false
+  trackOnlyFees = false
 
   tokenDecimals: Record<string, number> = {
     USDC: 6,
@@ -268,6 +274,12 @@ class BonderStats {
     if (options.tokens) {
       this.tokens = options.tokens
     }
+
+    this.trackOnlyProfit = !!options.trackBonderProfit
+    this.trackOnlyTxFees = !!options.trackBonderTxFees
+    this.trackOnlyFees = !!options.trackBonderFees
+
+    console.log(`trackOnlyProfit: ${this.trackOnlyProfit}, trackOnlyTxFees: ${this.trackOnlyTxFees}, trackOnlyFees: ${this.trackOnlyFees}`)
 
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
@@ -329,14 +341,15 @@ class BonderStats {
         chainFees = chainFees.add(BigNumber.from(bonderFee))
       }
       totalFees = totalFees.add(chainFees)
-      const chainFeesFormatted = Number(formatUnits(
-        chainFees,
-        this.tokenDecimals[token]
-      ))
+      const chainFeesFormatted = Number(
+        formatUnits(chainFees, this.tokenDecimals[token])
+      )
       dbData[`${chain}FeesAmount`] = chainFeesFormatted
       console.log(day, 'chain bonder fees', isoDate, chain, chainFeesFormatted)
     }
-    const totalFeesFormatted = Number(formatUnits(totalFees, this.tokenDecimals[token]))
+    const totalFeesFormatted = Number(
+      formatUnits(totalFees, this.tokenDecimals[token])
+    )
     dbData.totalFeesAmount = totalFeesFormatted
     console.log(day, 'total bonder fees', isoDate, totalFeesFormatted)
 
@@ -362,12 +375,11 @@ class BonderStats {
   async run () {
     while (true) {
       try {
-        const argv = require('minimist')(process.argv.slice(2))
-        if (argv.onlyProfit) {
+        if (this.trackOnlyProfit) {
           await this.trackProfit()
-        } else if (argv.onlyTxFees) {
+        } else if (this.trackOnlyTxFees) {
           await this.trackBonderTxFees()
-        } else if (argv.onlyBonderFees) {
+        } else if (this.trackOnlyFees) {
           await this.trackBonderFee()
         } else {
           await Promise.all([
@@ -630,32 +642,31 @@ class BonderStats {
       priceMap
     })
 
-    dbData.unstakedAmount = Number(formatUnits(
-      unstakedAmount,
-      this.tokenDecimals[token]
-    ))
+    dbData.unstakedAmount = Number(
+      formatUnits(unstakedAmount, this.tokenDecimals[token])
+    )
 
-    dbData.restakedAmount = Number(formatUnits(
-      restakedAmount,
-      this.tokenDecimals[token]
-    ))
+    dbData.restakedAmount = Number(
+      formatUnits(restakedAmount, this.tokenDecimals[token])
+    )
 
-    dbData.depositAmount = Number(formatUnits(depositAmount, this.tokenDecimals[token]))
+    dbData.depositAmount = Number(
+      formatUnits(depositAmount, this.tokenDecimals[token])
+    )
 
-    dbData.stakedAmount = Number(formatUnits(stakedAmount, this.tokenDecimals[token]))
+    dbData.stakedAmount = Number(
+      formatUnits(stakedAmount, this.tokenDecimals[token])
+    )
 
-    dbData.initialCanonicalAmount = Number(formatUnits(
-      initialCanonicalAmount,
-      this.tokenDecimals[token]
-    ))
+    dbData.initialCanonicalAmount = Number(
+      formatUnits(initialCanonicalAmount, this.tokenDecimals[token])
+    )
 
     console.log('results', token, timestamp, resultFormatted)
 
     dbData.xdaiPriceUsd = 1
 
-    const {
-      resultFormatted: result3Formatted
-    } = await this.computeResult3({
+    const { resultFormatted: result3Formatted } = await this.computeResult3({
       token,
       dbData
     })
@@ -836,10 +847,7 @@ class BonderStats {
                       aliasAddress = oldArbitrumAliases[token]
                     }
                     balancePromises.push(
-                      archiveProvider.getBalance(
-                        aliasAddress,
-                        blockTag
-                      )
+                      archiveProvider.getBalance(aliasAddress, blockTag)
                     )
                   } else {
                     balancePromises.push(Promise.resolve(0))
@@ -859,7 +867,12 @@ class BonderStats {
 
                   dbData[`${chain}BlockNumber`] = blockTag
                   dbData[`${chain}CanonicalAmount`] = balance
-                    ? Number(formatUnits(balance.toString(), this.tokenDecimals[token]))
+                    ? Number(
+                        formatUnits(
+                          balance.toString(),
+                          this.tokenDecimals[token]
+                        )
+                      )
                     : 0
                   dbData[`${chain}NativeAmount`] = native
                     ? Number(formatEther(native.toString()))
@@ -868,10 +881,12 @@ class BonderStats {
                   dbData.maticPriceUsd = Number(priceMap['MATIC'])
                   if (chain !== 'ethereum') {
                     dbData[`${chain}HTokenAmount`] = hBalance
-                      ? Number(formatUnits(
-                          hBalance.toString(),
-                          this.tokenDecimals[token]
-                        ))
+                      ? Number(
+                          formatUnits(
+                            hBalance.toString(),
+                            this.tokenDecimals[token]
+                          )
+                        )
                       : 0
                   }
                   if (chain === 'arbitrum') {
@@ -1072,19 +1087,34 @@ class BonderStats {
   }
 
   async computeResult3 (data: any = {}) {
-    const {
-      token,
-      dbData
-    } = data
+    const { token, dbData } = data
 
-    const totalBalances = dbData.initialCanonicalAmount + dbData.polygonCanonicalAmount + dbData.polygonHTokenAmount + dbData.gnosisCanonicalAmount + dbData.gnosisHTokenAmount + dbData.arbitrumCanonicalAmount + dbData.arbitrumHTokenAmount + dbData.optimismCanonicalAmount + dbData.optimismHTokenAmount + dbData.ethereumCanonicalAmount + (dbData.stakedAmount - dbData.unstakedAmount)
+    const totalBalances =
+      dbData.initialCanonicalAmount +
+      dbData.polygonCanonicalAmount +
+      dbData.polygonHTokenAmount +
+      dbData.gnosisCanonicalAmount +
+      dbData.gnosisHTokenAmount +
+      dbData.arbitrumCanonicalAmount +
+      dbData.arbitrumHTokenAmount +
+      dbData.optimismCanonicalAmount +
+      dbData.optimismHTokenAmount +
+      dbData.ethereumCanonicalAmount +
+      (dbData.stakedAmount - dbData.unstakedAmount)
     const totalDeposits = dbData.depositAmount
 
     let nativeStartingTokenAmount = 0
     if (token === 'DAI') {
       nativeStartingTokenAmount = 10.58487 * dbData.ethPriceUsd
     }
-    let nativeTokenDebt = (dbData.polygonNativeAmount * dbData.maticPriceUsd) + (dbData.gnosisNativeAmount * dbData.xdaiPriceUsd) + ((dbData.ethereumNativeAmount + dbData.optimismNativeAmount + dbData.arbitrumNativeAmount + dbData.arbitrumAliasAmount) * dbData.ethPriceUsd)
+    let nativeTokenDebt =
+      dbData.polygonNativeAmount * dbData.maticPriceUsd +
+      dbData.gnosisNativeAmount * dbData.xdaiPriceUsd +
+      (dbData.ethereumNativeAmount +
+        dbData.optimismNativeAmount +
+        dbData.arbitrumNativeAmount +
+        dbData.arbitrumAliasAmount) *
+        dbData.ethPriceUsd
     nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt
     const result = totalBalances - totalDeposits - nativeTokenDebt
     const resultFormatted = result

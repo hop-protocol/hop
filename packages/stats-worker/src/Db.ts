@@ -131,22 +131,34 @@ class Db {
           this.db.run('ALTER TABLE bonder_balances ADD COLUMN result2 NUMERIC;')
         }
         if (migrations.includes(1)) {
-          this.db.run('ALTER TABLE bonder_balances ADD COLUMN eth_amounts NUMERIC;')
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN eth_amounts NUMERIC;'
+          )
         }
         if (migrations.includes(2)) {
-          this.db.run('ALTER TABLE bonder_balances ADD COLUMN xdai_price_usd NUMERIC;')
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN xdai_price_usd NUMERIC;'
+          )
         }
         if (migrations.includes(3)) {
-          this.db.run('ALTER TABLE bonder_tx_fees ADD COLUMN xdai_price_usd NUMERIC;')
+          this.db.run(
+            'ALTER TABLE bonder_tx_fees ADD COLUMN xdai_price_usd NUMERIC;'
+          )
         }
         if (migrations.includes(4)) {
-          this.db.run('ALTER TABLE bonder_balances ADD COLUMN deposit_amount NUMERIC;')
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN deposit_amount NUMERIC;'
+          )
         }
         if (migrations.includes(5)) {
-          this.db.run('ALTER TABLE bonder_balances ADD COLUMN staked_amount NUMERIC;')
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN staked_amount NUMERIC;'
+          )
         }
         if (migrations.includes(6)) {
-          this.db.run('ALTER TABLE bonder_balances ADD COLUMN initial_canonical_amount NUMERIC;')
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN initial_canonical_amount NUMERIC;'
+          )
         }
         if (migrations.includes(7)) {
           this.db.run('ALTER TABLE bonder_balances ADD COLUMN result3 NUMERIC;')
@@ -265,7 +277,7 @@ class Db {
     depositAmount: number = 0,
     stakedAmount: number = 0,
     initialCanonicalAmount: number = 0,
-    result3: number = 0,
+    result3: number = 0
   ) {
     const stmt = this.db.prepare(
       'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'

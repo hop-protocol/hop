@@ -1067,7 +1067,13 @@ class BonderStats {
 
     const totalBalances = dbData.initialCanonicalAmount + dbData.polygonCanonicalAmount + dbData.polygonHTokenAmount + dbData.gnosisCanonicalAmount + dbData.gnosisHTokenAmount + dbData.arbitrumCanonicalAmount + dbData.arbitrumHTokenAmount + dbData.optimismCanonicalAmount + dbData.optimismHTokenAmount + dbData.ethereumCanonicalAmount + (dbData.stakedAmount - dbData.unstakedAmount)
     const totalDeposits = dbData.depositAmount
-    const nativeTokenDebt = (dbData.polygonNativeAmount * dbData.maticPriceUsd) + (dbData.gnosisNativeAmount * dbData.xdaiPriceUsd) + ((dbData.ethereumNativeAmount + dbData.optimismNativeAmount + dbData.arbitrumNativeAmount + dbData.arbitrumAliasAmount) * dbData.ethPriceUsd)
+
+    let nativeStartingTokenAmount = 0
+    if (token === 'DAI') {
+      nativeStartingTokenAmount = 10.58487 * dbData.ethPriceUsd
+    }
+    let nativeTokenDebt = (dbData.polygonNativeAmount * dbData.maticPriceUsd) + (dbData.gnosisNativeAmount * dbData.xdaiPriceUsd) + ((dbData.ethereumNativeAmount + dbData.optimismNativeAmount + dbData.arbitrumNativeAmount + dbData.arbitrumAliasAmount) * dbData.ethPriceUsd)
+    nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt
     const result = totalBalances - totalDeposits - nativeTokenDebt
     const resultFormatted = result
 

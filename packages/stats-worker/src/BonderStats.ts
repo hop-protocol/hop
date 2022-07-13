@@ -1090,7 +1090,7 @@ class BonderStats {
     const { token, dbData } = data
 
     const totalBalances =
-      dbData.initialCanonicalAmount +
+      (dbData.restakedAmount +
       dbData.polygonCanonicalAmount +
       dbData.polygonHTokenAmount +
       dbData.gnosisCanonicalAmount +
@@ -1101,6 +1101,8 @@ class BonderStats {
       dbData.optimismHTokenAmount +
       dbData.ethereumCanonicalAmount +
       (dbData.stakedAmount - dbData.unstakedAmount)
+    )
+    - dbData.initialCanonicalAmount
     const totalDeposits = dbData.depositAmount
 
     let nativeStartingTokenAmount = 0

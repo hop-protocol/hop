@@ -32,6 +32,14 @@ const arbitrumAliases: Record<string, string> = {
   WBTC: '0xa2cE9cceC64FC22475323a0E55d58F7786588a16'
 }
 
+const oldArbitrumAliases: Record<string, string> = {
+  USDC: '0xBDaCAbf20ef2338D7F4A152aF43bedDC80c6BF3b',
+  USDT: '0x81B872dDc3413E3456E5A3b2c30cB749c9578e30',
+  DAI: '0x36B6a48C35e75bD2EFF53d94F0BB60D5a00e47fB',
+  ETH: '0xFe0368be00308980b5B3FCd0975d47c4C8e1493b',
+  WBTC: '0x22902F67Cd7570E0e8fd30264F96ca39Eebc2B6F'
+}
+
 const totalBalances: Record<string, BigNumber> = {
   USDC: parseUnits('6026000', 6),
   USDT: parseUnits('2121836', 6),
@@ -823,9 +831,13 @@ class BonderStats {
                   )
 
                   if (chain === 'arbitrum') {
+                    let aliasAddress = arbitrumAliases[token]
+                    if (token === 'DAI' && timestamp < 1650092400) {
+                      aliasAddress = oldArbitrumAliases[token]
+                    }
                     balancePromises.push(
                       archiveProvider.getBalance(
-                        arbitrumAliases[token],
+                        aliasAddress,
                         blockTag
                       )
                     )

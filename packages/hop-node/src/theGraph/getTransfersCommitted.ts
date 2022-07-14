@@ -55,12 +55,12 @@ function getFilters (startTimestamp: number, destinationChainId: number): string
     token: $token
   `
 
-  if(startTimestamp) {
+  if (startTimestamp) {
     filters += 'timestamp_gte: $startTimestamp'
   }
 
   if (destinationChainId) {
-    filters += `destinationChainId: $destinationChainId`
+    filters += 'destinationChainId: $destinationChainId'
   }
 
   return filters

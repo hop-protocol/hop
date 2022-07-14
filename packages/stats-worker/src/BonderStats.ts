@@ -707,6 +707,8 @@ class BonderStats {
       dbData
     })
 
+    console.log('result3', token, timestamp, result3Formatted)
+
     try {
       await this.db.upsertBonderBalances(
         token,
@@ -1170,6 +1172,14 @@ class BonderStats {
         dbData.arbitrumNativeAmount +
         dbData.arbitrumAliasAmount) *
         dbData.ethPriceUsd
+
+    if (token === 'ETH') {
+      nativeTokenDebt =
+        ((dbData.polygonNativeAmount * dbData.maticPriceUsd) / dbData.ethPriceUsd) +
+        ((dbData.gnosisNativeAmount * 1) / dbData.ethPriceUsd) +
+        ((dbData.ethereumNativeAmount + dbData.optimismNativeAmount + dbData.arbitrumNativeAmount + dbData.arbitrumAliasAmount))
+    }
+
     nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt
     const result = totalBalances - totalDeposits - nativeTokenDebt
     const resultFormatted = result

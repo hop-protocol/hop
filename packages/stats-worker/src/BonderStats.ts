@@ -40,6 +40,10 @@ const oldArbitrumAliases: Record<string, string> = {
   WBTC: '0x22902F67Cd7570E0e8fd30264F96ca39Eebc2B6F'
 }
 
+const wethAddresses: Record<string, string> = {
+  arbitrum: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+}
+
 const totalBalances: Record<string, BigNumber> = {
   USDC: parseUnits('6026000', 6),
   USDT: parseUnits('2121836', 6),
@@ -119,7 +123,11 @@ const unstakedAmounts: Record<string, any> = {
     [1639555200]: parseEther('6.07'), // 12/15/2021 // owed
     [1639555201]: parseEther('0.10'), // 12/15/2021 // withdrawn
     [1639555202]: parseEther('0.05'), // 12/15/2021 // not staked
-    [1639641600]: parseEther('26') // 12/16/2021
+    [1639641600]: parseEther('26'), // 12/16/2021
+    [1656313200]: parseEther('10'), // 06/27/2022
+    [1656486000]: parseEther('25'), // 06/29/2022
+    [1656486001]: parseEther('25'), // 06/29/2022
+    [1656572400]: parseEther('250') // 06/30/2022
     //[1656572400]: parseEther('1400'), // 06/30/2022
   },
   // 0xd8781ca9163e9f132a4d8392332e64115688013a
@@ -148,7 +156,7 @@ const restakedProfits: Record<string, any> = {
   // 0x710bDa329b2a6224E4B44833DE30F38E7f81d564
   ETH: {
     [1640764800]: parseEther('6.07'), // 12/28/2021
-    [1643184000]: parseEther('10') // 01/26/2022
+    [1643184000]: parseEther('10'), // 01/26/2022
   },
   // 0xd8781ca9163e9f132a4d8392332e64115688013a
   MATIC: {},
@@ -198,8 +206,12 @@ const stakedAmounts: Record<string, any> = {
     [1654153200]: parseEther('750'), // 06/03/2022
     [1656140400]: parseEther('305'), // 06/25/2022
     [1656399600]: parseEther('250'), // 06/28/2022
-    [1656399601]: parseEther('50') // 06/28/2022
-    //[1656658800]: parseEther('1400'), // 07/01/2022
+    [1656399601]: parseEther('50'), // 06/28/2022
+    //[1656658800]: parseEther('1400'), // 07/01/2022 // restake unstaked
+    [1656572400]: parseEther('250'), // 06/30/2022 // restake unstaked
+    [1657436400]: parseEther('10'), // 07/10/2022 // restake unstaked
+    [1657436401]: parseEther('200'), // 07/10/2022 // restake unstaked
+    [1657436402]: parseEther('50'), // 07/10/2022 // restake unstaked
   },
   MATIC: {},
   WBTC: {}
@@ -744,7 +756,8 @@ class BonderStats {
         dbData.depositAmount,
         dbData.stakedAmount,
         dbData.initialCanonicalAmount,
-        result3Formatted
+        result3Formatted,
+        dbData.arbitrumWethAmount
       )
       console.log(
         day,
@@ -943,6 +956,23 @@ class BonderStats {
                       `${chain} ${token} alias balance`,
                       Number(formatEther(aliasBalance.toString()))
                     )
+                  }
+
+                  if (chain === 'arbitrum') {
+                    const wethAddress = wethAddresses[chain]
+                    const wethContract = new Contract(
+                      wethAddress,
+                      erc20Abi,
+                      provider
+                    )
+
+                    const wethBalance = await wethContract.balanceOf(bonder, {
+                      blockTag
+                    })
+
+                    console.log('weth bal', wethBalance.toString())
+
+                    dbData[`${chain}WethAmount`] = Number(formatEther(wethBalance.toString()))
                   }
 
                   // NOTE: this is to account for offset issue with unstake/stake timestamps

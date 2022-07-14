@@ -74,7 +74,8 @@ class Db {
           deposit_amount NUMERIC,
           staked_amount NUMERIC,
           initial_canonical_amount NUMERIC,
-          result3 NUMERIC
+          result3 NUMERIC,
+          arbitrum_weth_amount NUMERIC
       )`)
       if (argv.resetBonderFeesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_fees`)
@@ -162,6 +163,9 @@ class Db {
         }
         if (migrations.includes(7)) {
           this.db.run('ALTER TABLE bonder_balances ADD COLUMN result3 NUMERIC;')
+        }
+        if (migrations.includes(8)) {
+          this.db.run('ALTER TABLE bonder_balances ADD COLUMN arbitrum_weth_amount NUMERIC;')
         }
         migrationRan = true
       }
@@ -277,10 +281,11 @@ class Db {
     depositAmount: number = 0,
     stakedAmount: number = 0,
     initialCanonicalAmount: number = 0,
-    result3: number = 0
+    result3: number = 0,
+    arbitrumWethAmount: number = 0
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -317,7 +322,8 @@ class Db {
       depositAmount,
       stakedAmount,
       initialCanonicalAmount,
-      result3
+      result3,
+      arbitrumWethAmount
     )
     stmt.finalize()
   }

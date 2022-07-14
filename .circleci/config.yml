@@ -51,6 +51,46 @@ jobs:
           event: pass
           template: basic_success_1
 
+  build_stats_worker:
+    working_directory: /app
+    docker:
+      - image: docker:17.05.0-ce-git
+    environment:
+      DOCKER_IMAGE=hopprotocol/stats-worker
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Install dependencies
+          command: |
+            apk update
+            apk upgrade
+            apk add --no-cache curl
+            apk add --no-cache jq
+            apk add --no-cache py-pip=9.0.0-r1
+            pip install \
+              docker-compose==1.12.0 \
+              awscli==1.11.76
+      - run:
+          name: Build application Docker image
+          command: |
+            cd backend
+            docker build \
+              -f Dockerfile \
+              --no-cache \
+              --build-arg=GIT_REV=$CIRCLE_SHA1 \
+              -t app .
+      - deploy:
+          name: Push Hop Node Docker image to Docker Hub
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            export BRANCH=$(echo $CIRCLE_BRANCH | sed 's/\//-/g')
+            docker tag app $DOCKER_IMAGE:$CIRCLE_SHA1
+            docker tag app $DOCKER_IMAGE:$BRANCH
+            docker push $DOCKER_IMAGE:$CIRCLE_SHA1
+            docker push $DOCKER_IMAGE:$BRANCH
+            test $BRANCH == "develop" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
+
 workflows:
   main:
     jobs:
@@ -65,4 +105,10 @@ workflows:
                 - goerli-bonder
                 - kovan-bonder
                 - rinkeby-bonder
+              ignore: /.*/
+      - build_stats_worker:
+          filters:
+            branches:
+              only:
+                - develop
               ignore: /.*/

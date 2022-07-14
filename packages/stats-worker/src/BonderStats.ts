@@ -44,7 +44,7 @@ const totalBalances: Record<string, BigNumber> = {
   USDC: parseUnits('6026000', 6),
   USDT: parseUnits('2121836', 6),
   DAI: parseUnits('5000000', 18),
-  ETH: parseUnits('3984', 18),
+  ETH: parseEther('3984'),
   MATIC: parseUnits('731948.94', 18)
 }
 
@@ -52,7 +52,7 @@ const initialAggregateBalancesInAssetToken: Record<string, BigNumber> = {
   USDC: parseUnits('0', 6),
   USDT: parseUnits('0', 6),
   DAI: parseUnits('0', 18),
-  ETH: parseUnits('0', 18),
+  ETH: parseEther('0'),
   MATIC: parseUnits('0', 18),
   WBTC: parseUnits('0', 8)
 }
@@ -108,9 +108,6 @@ const unstakedAmounts: Record<string, any> = {
   },
   // 0x305933e09871D4043b5036e09af794FACB3f6170
   DAI: {
-    // [1636617600]: parseUnits('8752.88', 18), // 11/11/2021 (2.98487439824493 * 2932.41)
-    // [1636617601]: parseUnits('23422.52', 18), // 11/11/2021
-    // [1643961600]: parseUnits('300000', 18), // 02/4/2022
     [1638950400]: parseUnits('350000.00', 18), // 12/8/2021
     [1656572400]: parseUnits('250000.00', 18), // 06/30/2022
     [1656572401]: parseUnits('250000.00', 18), // 06/30/2022
@@ -119,11 +116,11 @@ const unstakedAmounts: Record<string, any> = {
   },
   // 0x710bDa329b2a6224E4B44833DE30F38E7f81d564
   ETH: {
-    [1639555200]: parseEther('6.07'), // 12/15/2021
-    [1639641600]: parseEther('26'), // 12/16/2021
-    [1645689600]: parseEther('675'), // 02/24/2022
-    [1656399600]: parseEther('300'), // 06/28/2022
-    [1656572400]: parseEther('1400') // 06/30/2022
+    [1639555200]: parseEther('6.07'), // 12/15/2021 // owed
+    [1639555201]: parseEther('0.10'), // 12/15/2021 // withdrawn
+    [1639555202]: parseEther('0.05'), // 12/15/2021 // not staked
+    [1639641600]: parseEther('26') // 12/16/2021
+    //[1656572400]: parseEther('1400'), // 06/30/2022
   },
   // 0xd8781ca9163e9f132a4d8392332e64115688013a
   MATIC: {},
@@ -150,11 +147,8 @@ const restakedProfits: Record<string, any> = {
   },
   // 0x710bDa329b2a6224E4B44833DE30F38E7f81d564
   ETH: {
-    [1640678400]: parseEther('6.07'), // 12/28/2021
-    [1643184000]: parseEther('10'), // 01/26/2022
-    [1645776000]: parseEther('675'), // 02/25/2022
-    [1656486000]: parseEther('300'), // 06/29/2022
-    [1656658800]: parseEther('1400') // 07/01/2022
+    [1640764800]: parseEther('6.07'), // 12/28/2021
+    [1643184000]: parseEther('10') // 01/26/2022
   },
   // 0xd8781ca9163e9f132a4d8392332e64115688013a
   MATIC: {},
@@ -183,7 +177,30 @@ const stakedAmounts: Record<string, any> = {
     [1644048000]: parseUnits('1500000.00', 18), // 2/5/2022
     [1644220800]: parseUnits('300000.00', 18) // 2/7/2022
   },
-  ETH: {},
+  ETH: {
+    [1639555200]: parseEther('0.15'), // 12/15/2021
+    [1639641600]: parseEther('54'), // 12/16/2021
+    [1639641601]: parseEther('250'), // 12/16/2021
+    [1639641602]: parseEther('250'), // 12/16/2021
+    [1639641603]: parseEther('250'), // 12/16/2021
+    [1639641604]: parseEther('1670'), // 12/16/2021
+    [1642060800]: parseEther('500'), // 01/13/2022
+    [1643184000]: parseEther('510'), // 01/26/2022
+    [1644220800]: parseEther('50'), // 02/07/2022
+    [1644220801]: parseEther('200'), // 02/07/2022
+    [1644220802]: parseEther('125'), // 02/07/2022
+    [1644220803]: parseEther('125'), // 02/07/2022
+    [1645689600]: parseEther('2250'), // 02/24/2022
+    [1645689601]: parseEther('75'), // 02/24/2022
+    [1645776000]: parseEther('225'), // 02/24/2022
+    [1645776001]: parseEther('225'), // 02/24/2022
+    [1645776002]: parseEther('225'), // 02/24/2022
+    [1654153200]: parseEther('750'), // 06/03/2022
+    [1656140400]: parseEther('305'), // 06/25/2022
+    [1656399600]: parseEther('250'), // 06/28/2022
+    [1656399601]: parseEther('50') // 06/28/2022
+    //[1656658800]: parseEther('1400'), // 07/01/2022
+  },
   MATIC: {},
   WBTC: {}
 }
@@ -197,7 +214,18 @@ const depositAmounts: Record<string, any> = {
     [1643961600]: parseUnits('1000000', 18), // 02/04/2022
     [1644048000]: parseUnits('1500000', 18) // 02/05/2022
   },
-  ETH: {},
+  ETH: {
+    [1639555200]: parseEther('0.15'), // 12/15/2021
+    [1639641600]: parseEther('1'), // 12/16/2021
+    [1639641601]: parseEther('2499'), // 12/16/2021
+    [1642060800]: parseEther('500'), // 01/13/2022
+    [1643184000]: parseEther('500'), // 01/26/2022
+    [1644220800]: parseEther('500'), // 02/07/2022
+    [1645689600]: parseEther('3000'), // 02/24/2022
+    [1654153200]: parseEther('750'), // 06/01/2022
+    [1656140400]: parseEther('305'), // 06/25/2022
+    [1656313200]: parseEther('300') // 06/27/2022
+  },
   WBTC: {}
 }
 
@@ -279,7 +307,9 @@ class BonderStats {
     this.trackOnlyTxFees = !!options.trackBonderTxFees
     this.trackOnlyFees = !!options.trackBonderFees
 
-    console.log(`trackOnlyProfit: ${this.trackOnlyProfit}, trackOnlyTxFees: ${this.trackOnlyTxFees}, trackOnlyFees: ${this.trackOnlyFees}`)
+    console.log(
+      `trackOnlyProfit: ${this.trackOnlyProfit}, trackOnlyTxFees: ${this.trackOnlyTxFees}, trackOnlyFees: ${this.trackOnlyFees}`
+    )
 
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
@@ -364,7 +394,13 @@ class BonderStats {
         dbData.totalFeesAmount,
         startDate
       )
-      console.log(day, 'upserted', token, startDate)
+      console.log(
+        day,
+        'upserted',
+        token,
+        startDate,
+        DateTime.fromSeconds(startDate).toISO()
+      )
     } catch (err) {
       if (!err.message.includes('UNIQUE constraint failed')) {
         throw err
@@ -708,7 +744,14 @@ class BonderStats {
         dbData.initialCanonicalAmount,
         result3Formatted
       )
-      console.log(day, 'upserted', token, timestamp)
+      console.log(
+        day,
+        'upserted bonder balance',
+        token,
+        timestamp,
+        DateTime.fromSeconds(timestamp).toISO(),
+        result3Formatted
+      )
     } catch (err) {
       if (!err.message.includes('UNIQUE constraint failed')) {
         throw err
@@ -877,6 +920,7 @@ class BonderStats {
                   dbData[`${chain}NativeAmount`] = native
                     ? Number(formatEther(native.toString()))
                     : 0
+
                   dbData.ethPriceUsd = Number(priceMap['ETH'])
                   dbData.maticPriceUsd = Number(priceMap['MATIC'])
                   if (chain !== 'ethereum') {
@@ -897,6 +941,16 @@ class BonderStats {
                       `${chain} ${token} alias balance`,
                       Number(formatEther(aliasBalance.toString()))
                     )
+                  }
+
+                  // NOTE: this is to account for offset issue with unstake/stake timestamps
+                  if (
+                    timestamp > 1656486000 &&
+                    timestamp < 1656658800 &&
+                    dbData.ethereumNativeAmount > 1400
+                  ) {
+                    dbData.ethereumNativeAmount =
+                      dbData.ethereumNativeAmount - 1400
                   }
 
                   console.log(
@@ -1090,7 +1144,7 @@ class BonderStats {
     const { token, dbData } = data
 
     const totalBalances =
-      (dbData.restakedAmount +
+      dbData.restakedAmount +
       dbData.polygonCanonicalAmount +
       dbData.polygonHTokenAmount +
       dbData.gnosisCanonicalAmount +
@@ -1100,9 +1154,8 @@ class BonderStats {
       dbData.optimismCanonicalAmount +
       dbData.optimismHTokenAmount +
       dbData.ethereumCanonicalAmount +
-      (dbData.stakedAmount - dbData.unstakedAmount)
-    )
-    - dbData.initialCanonicalAmount
+      (dbData.stakedAmount - dbData.unstakedAmount) -
+      dbData.initialCanonicalAmount
     const totalDeposits = dbData.depositAmount
 
     let nativeStartingTokenAmount = 0

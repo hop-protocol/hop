@@ -91,13 +91,21 @@ const unstakedEthAmounts: Record<string, any> = {
     [1643011200]: parseEther('2.833318361'), // 01/24/2022 (2.833318361 * 2551.11 = 7228.11)
     // [1642492800]: parseEther('22.7886'), // 01/18/2022 (22.7886 ETH)
     // [1643011201]: parseEther('0.25') // 01/24/2022 (0.25 ETH)
-  }
+  },
+  DAI: {},
+  ETH: {},
+  MATIC: {},
+  WBTC: {}
 }
 
 const unstakedAmounts: Record<string, any> = {
   // 0xa6a688F107851131F0E1dce493EbBebFAf99203e
   USDC: {
-    [1625036400]: parseUnits('9955.84', 6) // 06/30/2021
+    [1625036400]: parseUnits('9955.84', 6), // 06/30/2021
+    [1629788400]: parseUnits('100000', 6), // 08/24/2021
+    [1629788401]: parseUnits('150000', 6), // 08/24/2021
+    [1637395200]: parseUnits('580000', 6), // 11/20/2021
+    [1643443200]: parseUnits('4886.96', 6), // 01/29/2022 // amount not staked
   },
   // 0x15ec4512516d980090050fe101de21832c8edfee
   USDT: {
@@ -140,6 +148,7 @@ const restakedProfits: Record<string, any> = {
   USDC: {
     [1627628400]: parseUnits('9000', 6), // 7/30/2021
     [1637395200]: parseUnits('1340.36', 6), // 11/20/2021
+    [1643356800]: parseUnits('100.92', 6), // 01/28/2022
     [1643443200]: parseUnits('2998.70', 6) // 01/29/2022
   },
   // 0x15ec4512516d980090050fe101de21832c8edfee
@@ -164,7 +173,26 @@ const restakedProfits: Record<string, any> = {
 }
 
 const stakedAmounts: Record<string, any> = {
-  USDC: {},
+  USDC: {
+    [1625986800]: parseUnits('500000', 6), // 07/11/2021
+    [1625986801]: parseUnits('250000', 6), // 07/11/2021
+    [1625986802]: parseUnits('250000', 6), // 07/11/2021
+    [1627628400]: parseUnits('3000', 6), // 07/30/2021
+    [1627628401]: parseUnits('3000', 6), // 07/30/2021
+    [1627628402]: parseUnits('3000', 6), // 07/30/2021
+    [1630911600]: parseUnits('747000', 6), // 09/06/2021
+    [1631775600]: parseUnits('250000', 6), // 09/16/2021
+    [1631775601]: parseUnits('250000', 6), // 09/16/2021
+    [1637308800]: parseUnits('790000', 6), // 11/19/2021
+    [1637308801]: parseUnits('100000', 6), // 11/19/2021
+    [1637395200]: parseUnits('940000', 6), // 11/20/2021
+    [1637395201]: parseUnits('250000', 6), // 11/20/2021
+    [1637395202]: parseUnits('250000', 6), // 11/20/2021
+    [1637395203]: parseUnits('250000', 6), // 11/20/2021
+    [1643356800]: parseUnits('750000', 6), // 01/28/2022
+    [1643443200]: parseUnits('1220000', 6), // 01/29/2022
+    [1643443201]: parseUnits('50000', 6), // 01/29/2022
+  },
   USDT: {
     [1642147200]: parseUnits('10', 6), // 01/24/2022
     [1643356800]: parseUnits('150000', 6), // 01/28/2022
@@ -224,7 +252,18 @@ const stakedAmounts: Record<string, any> = {
 }
 
 const depositAmounts: Record<string, any> = {
-  USDC: {},
+  USDC: {
+    [1625036400]: parseUnits('9955.84', 6), // 06/30/2021
+    [1625986800]: parseUnits('1000', 6), // 07/11/2021
+    [1625986801]: parseUnits('999000', 6), // 07/11/2021
+    [1630911600]: parseUnits('997000', 6), // 09/06/2021
+    [1637308800]: parseUnits('799988', 6), // 11/19/2021 // transfer
+    [1637395200]: parseUnits('948654.05', 6), // 11/20/2021 // transfer
+    [1637395201]: parseUnits('250017.59', 6), // 11/20/2021 // transfer
+    [1643356800]: parseUnits('749899.08', 6), // 01/28/2022
+    [1643443200]: parseUnits('1224886.96', 6), // 01/29/2022
+    [1643443201]: parseUnits('47001.30', 6), // 01/29/2022
+  },
   USDT: {
     [1643011200]: parseUnits('21', 6), // 01/24/2022
     [1643356800]: parseUnits('2081815.87', 6), // 01/28/2022
@@ -1024,6 +1063,17 @@ class BonderStats {
                   ) {
                     dbData.ethereumCanonicalAmount =
                       dbData.ethereumCanonicalAmount - 228588.20
+                  }
+
+                  // NOTE: this is to account for offset issue with unstake/stake timestamps
+                  if (
+                    token === 'USDC' &&
+                    timestamp > 1654239600 &&
+                    timestamp < 1654412400 &&
+                    dbData.ethereumCanonicalAmount > 1998270.56
+                  ) {
+                    dbData.ethereumCanonicalAmount =
+                      dbData.ethereumCanonicalAmount - 1998270.56
                   }
 
                   console.log(

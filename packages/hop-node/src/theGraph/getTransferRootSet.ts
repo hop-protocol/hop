@@ -20,6 +20,7 @@ export default async function getTransferRootSet (
       ) {
         id
         rootHash
+        totalAmount
       }
     }
   `

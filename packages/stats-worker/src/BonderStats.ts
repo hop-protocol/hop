@@ -64,7 +64,7 @@ const initialAggregateBalancesInAssetToken: Record<string, BigNumber> = {
 const initialCanonicalAmounts: any = {
   USDC: {},
   USDT: {
-    [1643011200]: parseUnits('7228.11', 6), // 01/24/2022 (2.833318361 * 2551.11)
+    // [1643011200]: parseUnits('7228.11', 6), // 01/24/2022 (2.833318361 * 2551.11)
   },
   DAI: {
     [1636617600]: parseUnits('8752.88', 18), // 11/11/2021 (2.98487439824493 * 2932.41)
@@ -86,17 +86,11 @@ const initialAggregateNativeBalances: any = {
   WBTC: {}
 }
 
-const unstakedAmountsEth: Record<string, any> = {
+const unstakedEthAmounts: Record<string, any> = {
   USDT: {
-    //[1642492800]: parseUnits('22.7886', 18), // 01/18/2022 (22.7886 ETH)
-    //[1643011201]: parseUnits('0.25', 18) // 01/24/2022 (0.25 ETH)
-  }
-}
-
-const unstakedAmountsToken: Record<string, any> = {
-  USDT: {
-    //[1643011200]: parseUnits('7228.11', 6), // 01/24/2022 (2.833318361 * 2551.11)
-    //[1643356800]: parseUnits('0.87', 6) // 01/28/2022
+    [1643011200]: parseEther('2.833318361'), // 01/24/2022 (2.833318361 * 2551.11 = 7228.11)
+    // [1642492800]: parseEther('22.7886'), // 01/18/2022 (22.7886 ETH)
+    // [1643011201]: parseEther('0.25') // 01/24/2022 (0.25 ETH)
   }
 }
 
@@ -107,6 +101,7 @@ const unstakedAmounts: Record<string, any> = {
   },
   // 0x15ec4512516d980090050fe101de21832c8edfee
   USDT: {
+    // [1643011200]: parseUnits('7228.11', 6), // 01/24/2022 (2.833318361 * 2551.11) // owed
     [1642147200]: parseUnits('10', 6), // 01/24/2022
     //[1642492800]: parseUnits('58043.34', 6), // 01/18/2022 (22.7886 ETH)
     //[1643011200]: parseUnits('7228.11', 6), // 01/24/2022
@@ -616,28 +611,14 @@ class BonderStats {
       }
     }
 
-    let unstakedAmountEth = BigNumber.from(0)
-    for (const ts in unstakedAmountsEth[token]) {
+    let unstakedEthAmount = BigNumber.from(0)
+    for (const ts in unstakedEthAmounts[token]) {
       if (Number(ts) <= timestamp) {
-        unstakedAmountEth = unstakedAmountEth.add(unstakedAmountsEth[token][ts])
+        unstakedEthAmount = unstakedEthAmount.add(unstakedEthAmounts[token][ts])
         console.log(
           ts,
           'subtract unstaked amount ETH',
-          unstakedAmountsEth[token][ts].toString()
-        )
-      }
-    }
-
-    let unstakedAmountToken = BigNumber.from(0)
-    for (const ts in unstakedAmountsToken[token]) {
-      if (Number(ts) <= timestamp) {
-        unstakedAmountToken = unstakedAmountToken.add(
-          unstakedAmountsToken[token][ts]
-        )
-        console.log(
-          ts,
-          'subtract unstaked amount',
-          unstakedAmountsToken[token][ts].toString()
+          unstakedEthAmounts[token][ts].toString()
         )
       }
     }
@@ -722,14 +703,18 @@ class BonderStats {
       initialAggregateBalanceInAssetToken,
       initialAggregateNativeBalance,
       restakedAmount,
-      unstakedAmountToken,
-      unstakedAmountEth,
+      unstakedAmount,
+      unstakedEthAmount,
       bonderBalances,
       priceMap
     })
 
     dbData.unstakedAmount = Number(
       formatUnits(unstakedAmount, this.tokenDecimals[token])
+    )
+
+    dbData.unstakedEthAmount = Number(
+      formatEther(unstakedEthAmount)
     )
 
     dbData.restakedAmount = Number(
@@ -800,7 +785,8 @@ class BonderStats {
         dbData.initialCanonicalAmount,
         result3Formatted,
         dbData.arbitrumWethAmount,
-        dbData.withdrawnAmount
+        dbData.withdrawnAmount,
+        dbData.unstakedEthAmount,
       )
       console.log(
         day,
@@ -1020,12 +1006,24 @@ class BonderStats {
 
                   // NOTE: this is to account for offset issue with unstake/stake timestamps
                   if (
+                    token === 'ETH' &&
                     timestamp > 1656486000 &&
                     timestamp < 1656658800 &&
                     dbData.ethereumNativeAmount > 1400
                   ) {
                     dbData.ethereumNativeAmount =
                       dbData.ethereumNativeAmount - 1400
+                  }
+
+                  // NOTE: this is to account for offset issue with unstake/stake timestamps
+                  if (
+                    token === 'USDT' &&
+                    timestamp > 1657177200 &&
+                    timestamp < 1657350000 &&
+                    dbData.ethereumCanonicalAmount > 228588.20
+                  ) {
+                    dbData.ethereumCanonicalAmount =
+                      dbData.ethereumCanonicalAmount - 228588.20
                   }
 
                   console.log(
@@ -1137,13 +1135,13 @@ class BonderStats {
       initialAggregateBalanceInAssetToken,
       initialAggregateNativeBalance,
       restakedAmount,
-      unstakedAmountToken,
-      unstakedAmountEth,
+      unstakedAmount,
+      unstakedEthAmount,
       bonderBalances,
       priceMap
     } = data
     let aggregateBalanceToken = initialAggregateBalanceInAssetToken
-      .sub(unstakedAmountToken)
+      .sub(unstakedAmount)
       .add(restakedAmount)
     const nativeBalances: Record<string, any> = {}
     for (const chain of this.chains) {
@@ -1162,7 +1160,7 @@ class BonderStats {
       )
     }
 
-    let ethAmounts = BigNumber.from(0).sub(unstakedAmountEth)
+    let ethAmounts = BigNumber.from(0).sub(unstakedEthAmount)
 
     const nonEthNativeTokenDiffsInToken: Record<string, any> = {}
     for (const chain of this.chains) {
@@ -1230,8 +1228,9 @@ class BonderStats {
       dbData.optimismHTokenAmount +
       dbData.ethereumCanonicalAmount +
       (dbData.stakedAmount - dbData.unstakedAmount) -
-      dbData.initialCanonicalAmount
-    const totalDeposits = dbData.depositAmount
+      dbData.initialCanonicalAmount -
+      (dbData.unstakedEthAmount * dbData.ethPriceUsd)
+    const totalDeposits = dbData.depositAmount - dbData.withdrawnAmount
 
     let nativeStartingTokenAmount = 0
     if (token === 'DAI') {

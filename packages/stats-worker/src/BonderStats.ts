@@ -46,9 +46,9 @@ const wethAddresses: Record<string, string> = {
 
 const totalBalances: Record<string, BigNumber> = {
   USDC: parseUnits('6026000', 6),
-  USDT: parseUnits('2121836', 6),
+  USDT: parseUnits('1893247.79', 6),
   DAI: parseUnits('5000000', 18),
-  ETH: parseEther('3984'),
+  ETH: parseEther('8339.00'),
   MATIC: parseUnits('731948.94', 18)
 }
 
@@ -63,9 +63,7 @@ const initialAggregateBalancesInAssetToken: Record<string, BigNumber> = {
 
 const initialCanonicalAmounts: any = {
   USDC: {},
-  USDT: {
-    // [1643011200]: parseUnits('7228.11', 6), // 01/24/2022 (2.833318361 * 2551.11)
-  },
+  USDT: {},
   DAI: {
     [1636617600]: parseUnits('8752.88', 18), // 11/11/2021 (2.98487439824493 * 2932.41)
     [1636617601]: parseUnits('23422.52', 18) // 11/11/2021

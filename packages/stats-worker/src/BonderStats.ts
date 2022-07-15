@@ -63,7 +63,9 @@ const initialAggregateBalancesInAssetToken: Record<string, BigNumber> = {
 
 const initialCanonicalAmounts: any = {
   USDC: {},
-  USDT: {},
+  USDT: {
+    [1643011200]: parseUnits('7228.11', 6), // 01/24/2022 (2.833318361 * 2551.11)
+  },
   DAI: {
     [1636617600]: parseUnits('8752.88', 18), // 11/11/2021 (2.98487439824493 * 2932.41)
     [1636617601]: parseUnits('23422.52', 18) // 11/11/2021
@@ -86,15 +88,15 @@ const initialAggregateNativeBalances: any = {
 
 const unstakedAmountsEth: Record<string, any> = {
   USDT: {
-    [1642492800]: parseUnits('22.7886', 18), // 01/18/2022 (22.7886 ETH)
-    [1643011201]: parseUnits('0.25', 18) // 01/24/2022 (0.25 ETH)
+    //[1642492800]: parseUnits('22.7886', 18), // 01/18/2022 (22.7886 ETH)
+    //[1643011201]: parseUnits('0.25', 18) // 01/24/2022 (0.25 ETH)
   }
 }
 
 const unstakedAmountsToken: Record<string, any> = {
   USDT: {
-    [1643011200]: parseUnits('7228.11', 6), // 01/24/2022
-    [1643356800]: parseUnits('0.87', 6) // 01/28/2022
+    //[1643011200]: parseUnits('7228.11', 6), // 01/24/2022 (2.833318361 * 2551.11)
+    //[1643356800]: parseUnits('0.87', 6) // 01/28/2022
   }
 }
 
@@ -105,10 +107,12 @@ const unstakedAmounts: Record<string, any> = {
   },
   // 0x15ec4512516d980090050fe101de21832c8edfee
   USDT: {
-    [1642492800]: parseUnits('58043.34', 6), // 01/18/2022 (22.7886 ETH)
-    [1643011200]: parseUnits('7228.11', 6), // 01/24/2022
-    [1643011201]: parseUnits('610.57', 6), // 01/24/2022 (0.25 ETH)
-    [1643356800]: parseUnits('0.87', 6) // 01/28/2022
+    [1642147200]: parseUnits('10', 6), // 01/24/2022
+    //[1642492800]: parseUnits('58043.34', 6), // 01/18/2022 (22.7886 ETH)
+    //[1643011200]: parseUnits('7228.11', 6), // 01/24/2022
+    //[1643011201]: parseUnits('610.57', 6), // 01/24/2022 (0.25 ETH)
+    [1643356800]: parseUnits('0.87', 6), // 01/28/2022 // amount not staked
+    [1657090800]: parseUnits('228406.00', 6), // 07/6/2022
   },
   // 0x305933e09871D4043b5036e09af794FACB3f6170
   DAI: {
@@ -166,7 +170,14 @@ const restakedProfits: Record<string, any> = {
 
 const stakedAmounts: Record<string, any> = {
   USDC: {},
-  USDT: {},
+  USDT: {
+    [1642147200]: parseUnits('10', 6), // 01/24/2022
+    [1643356800]: parseUnits('150000', 6), // 01/28/2022
+    [1643356801]: parseUnits('350000', 6), // 01/28/2022
+    [1643356802]: parseUnits('350000', 6), // 01/28/2022
+    [1643356803]: parseUnits('350000', 6), // 01/28/2022
+    [1643356804]: parseUnits('921836', 6), // 01/28/2022
+  },
   DAI: {
     [1637222400]: parseUnits('1.00', 18), // 11/18/2021
     [1637222401]: parseUnits('1149999.00', 18), // 11/18/2021
@@ -219,7 +230,12 @@ const stakedAmounts: Record<string, any> = {
 
 const depositAmounts: Record<string, any> = {
   USDC: {},
-  USDT: {},
+  USDT: {
+    [1643011200]: parseUnits('21', 6), // 01/24/2022
+    [1643356800]: parseUnits('2081815.87', 6), // 01/28/2022
+    [1643356801]: parseUnits('1000', 6), // 01/28/2022
+    [1643356802]: parseUnits('39000', 6), // 01/28/2022
+  },
   DAI: {
     [1636617600]: parseUnits('2000000', 18), // 11/11/2021
     [1643356800]: parseUnits('500000', 18), // 01/28/2022
@@ -239,6 +255,16 @@ const depositAmounts: Record<string, any> = {
     [1656313200]: parseEther('300') // 06/27/2022
   },
   WBTC: {}
+}
+
+const withdrawnAmounts: Record<string, any> = {
+  USDC: {},
+  USDT: {
+    [1657090801]: parseUnits('228588.20', 6) // 07/6/2022 // withdrawn
+  },
+  DAI: {},
+  ETH: {},
+  WBTC: {},
 }
 
 const bonderAddresses: Record<string, string> = {
@@ -640,6 +666,18 @@ class BonderStats {
       }
     }
 
+    let withdrawnAmount = BigNumber.from(0)
+    for (const ts in withdrawnAmounts[token]) {
+      if (Number(ts) <= timestamp) {
+        withdrawnAmount = withdrawnAmount.add(withdrawnAmounts[token][ts])
+        console.log(
+          ts,
+          'subtract withdrawn amount',
+          withdrawnAmounts[token][ts].toString()
+        )
+      }
+    }
+
     let stakedAmount = BigNumber.from(0)
     for (const ts in stakedAmounts[token]) {
       if (Number(ts) <= timestamp) {
@@ -702,6 +740,10 @@ class BonderStats {
       formatUnits(depositAmount, this.tokenDecimals[token])
     )
 
+    dbData.withdrawnAmount = Number(
+      formatUnits(withdrawnAmount, this.tokenDecimals[token])
+    )
+
     dbData.stakedAmount = Number(
       formatUnits(stakedAmount, this.tokenDecimals[token])
     )
@@ -757,7 +799,8 @@ class BonderStats {
         dbData.stakedAmount,
         dbData.initialCanonicalAmount,
         result3Formatted,
-        dbData.arbitrumWethAmount
+        dbData.arbitrumWethAmount,
+        dbData.withdrawnAmount
       )
       console.log(
         day,

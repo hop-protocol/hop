@@ -13,7 +13,7 @@
     "start:volume": "ts-node src/index.ts --volume",
     "start:tvl": "ts-node src/index.ts --tvl",
     "start:bonder": "ts-node src/index.ts --bonder --bonderDays=30",
-    "start:bonderProfit": "ts-node src/index.ts --bonderDays=30 --offsetDays=0 --bonderTokens=ETH --bonderProfit",
+    "start:bonderProfit": "ts-node src/index.ts --bonderDays=200 --offsetDays=0 --bonderTokens=USDT --bonderProfit",
     "build": "tsc",
     "lint": "prettier-standard --format",
     "clean": "rimraf dist",

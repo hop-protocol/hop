@@ -77,7 +77,9 @@ class Db {
           result3 NUMERIC,
           arbitrum_weth_amount NUMERIC,
           withdrawn_amount NUMERIC,
-          unstaked_eth_amount NUMERIC
+          unstaked_eth_amount NUMERIC,
+          bonder_address TEXT NOT NULL,
+          deposit_event  TEXT
       )`)
       if (argv.resetBonderFeesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_fees`)
@@ -167,7 +169,9 @@ class Db {
           this.db.run('ALTER TABLE bonder_balances ADD COLUMN result3 NUMERIC;')
         }
         if (migrations.includes(8)) {
-          this.db.run('ALTER TABLE bonder_balances ADD COLUMN arbitrum_weth_amount NUMERIC;')
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN arbitrum_weth_amount NUMERIC;'
+          )
         }
         if (migrations.includes(9)) {
           this.db.run(
@@ -177,6 +181,16 @@ class Db {
         if (migrations.includes(10)) {
           this.db.run(
             'ALTER TABLE bonder_balances ADD COLUMN unstaked_eth_amount NUMERIC;'
+          )
+        }
+        if (migrations.includes(11)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN bonder_address TEXT;'
+          )
+        }
+        if (migrations.includes(12)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN deposit_event TEXT;'
           )
         }
         migrationRan = true
@@ -297,9 +311,11 @@ class Db {
     arbitrumWethAmount: number = 0,
     withdrawnAmount: number = 0,
     unstakedEthAmount: number = 0,
+    bonderAddress: string = '',
+    depositEvent: number | null = null
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -340,6 +356,8 @@ class Db {
       arbitrumWethAmount,
       withdrawnAmount,
       unstakedEthAmount,
+      bonderAddress,
+      depositEvent
     )
     stmt.finalize()
   }

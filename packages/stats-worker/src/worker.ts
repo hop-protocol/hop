@@ -17,6 +17,8 @@ type Options = {
   days?: number
   offsetDays?: number
   bonderDays?: number
+  bonderStartDate?: string
+  bonderEndDate?: string
   bonderTokens?: string[]
 }
 
@@ -33,7 +35,7 @@ class Worker {
   bonder: boolean = false
 
   constructor (options: Options = {}) {
-    const {
+    let {
       apr,
       tvl,
       volume,
@@ -45,6 +47,8 @@ class Worker {
       bonderFees,
       bonderTxFees,
       bonderDays,
+      bonderStartDate,
+      bonderEndDate,
       bonderTokens
     } = options
     this.apr = apr
@@ -65,6 +69,8 @@ class Worker {
     this.bonderStats = new BonderStats({
       days: bonderDays,
       offsetDays: offsetDays,
+      startDate: bonderStartDate,
+      endDate: bonderEndDate,
       tokens: bonderTokens,
       trackBonderProfit: bonderProfit ?? bonder,
       trackBonderFees: bonderFees ?? bonder,

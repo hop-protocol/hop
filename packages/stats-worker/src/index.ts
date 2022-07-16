@@ -17,7 +17,9 @@ function main () {
     days: argv.days,
     offsetDays: argv.offsetDays,
     bonderTokens: argv.bonderTokens ? argv.bonderTokens.split(',') : null,
-    bonderDays: argv.bonderDays
+    bonderDays: argv.bonderDays,
+    bonderStartDate: argv.bonderStartDate,
+    bonderEndDate: argv.bonderEndDate
   })
 
   worker.start()

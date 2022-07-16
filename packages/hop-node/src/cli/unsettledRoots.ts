@@ -4,7 +4,6 @@ import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSe
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
-import getTransferRootSet from 'src/theGraph/getTransferRootSet'
 import { BigNumber, utils } from 'ethers'
 import { Chain } from 'src/constants'
 import { actionHandler, parseString, root } from './shared'

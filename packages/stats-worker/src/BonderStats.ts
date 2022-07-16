@@ -1,4 +1,5 @@
 import path from 'path'
+import fs from 'fs'
 import BlockDater from 'ethereum-block-by-date'
 import { BigNumber, providers, Contract, constants } from 'ethers'
 import {
@@ -22,291 +23,19 @@ import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { createObjectCsvWriter } from 'csv-writer'
 import { chunk } from 'lodash'
+import { parse } from 'comment-json'
 
-// DATA /////////////////////////////////////////////
-const arbitrumAliases: Record<string, string> = {
-  USDC: '0xc4D28710fE030A75A3a981A1AbaC0dB984E52964',
-  USDT: '0xCA0A0E115499082747bA5DA94732863b12cB3036',
-  DAI: '0x482BfCa8246806b8dc09091d40005b9317dC751D',
-  ETH: '0xF8c59bA692773251E78AD50293Cf4d64B67cbb8B',
-  WBTC: '0xa2cE9cceC64FC22475323a0E55d58F7786588a16'
-}
+const jsonData = parse(
+  fs
+    .readFileSync(path.resolve(__dirname, 'data/bonder_profits.json'))
+    .toString()
+) as any
 
-const oldArbitrumAliases: Record<string, string> = {
-  USDC: '0xBDaCAbf20ef2338D7F4A152aF43bedDC80c6BF3b',
-  USDT: '0x81B872dDc3413E3456E5A3b2c30cB749c9578e30',
-  DAI: '0x36B6a48C35e75bD2EFF53d94F0BB60D5a00e47fB',
-  ETH: '0xFe0368be00308980b5B3FCd0975d47c4C8e1493b',
-  WBTC: '0x22902F67Cd7570E0e8fd30264F96ca39Eebc2B6F'
-}
-
-const wethAddresses: Record<string, string> = {
-  arbitrum: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-}
-
-const totalBalances: Record<string, BigNumber> = {
-  USDC: parseUnits('6026000', 6),
-  USDT: parseUnits('1893247.79', 6),
-  DAI: parseUnits('5000000', 18),
-  ETH: parseEther('8339.00'),
-  MATIC: parseUnits('731948.94', 18)
-}
-
-const initialAggregateBalancesInAssetToken: Record<string, BigNumber> = {
-  USDC: parseUnits('0', 6),
-  USDT: parseUnits('0', 6),
-  DAI: parseUnits('0', 18),
-  ETH: parseEther('0'),
-  MATIC: parseUnits('0', 18),
-  WBTC: parseUnits('0', 8)
-}
-
-const initialCanonicalAmounts: any = {
-  USDC: {},
-  USDT: {},
-  DAI: {
-    [1636617600]: parseUnits('8752.88', 18), // 11/11/2021 (2.98487439824493 * 2932.41)
-    [1636617601]: parseUnits('23422.52', 18) // 11/11/2021
-  },
-  ETH: {},
-  MATIC: {},
-  WBTC: {}
-}
-
-const initialAggregateNativeBalances: any = {
-  USDC: {
-    // ethereum: parseUnits('14', 18)
-  },
-  USDT: {},
-  DAI: {},
-  ETH: {},
-  MATIC: {},
-  WBTC: {}
-}
-
-const unstakedEthAmounts: Record<string, any> = {
-  USDT: {
-    [1643011200]: parseEther('2.833318361'), // 01/24/2022 (2.833318361 * 2551.11 = 7228.11)
-    // [1642492800]: parseEther('22.7886'), // 01/18/2022 (22.7886 ETH)
-    // [1643011201]: parseEther('0.25') // 01/24/2022 (0.25 ETH)
-  },
-  DAI: {},
-  ETH: {},
-  MATIC: {},
-  WBTC: {}
-}
-
-const unstakedAmounts: Record<string, any> = {
-  // 0xa6a688F107851131F0E1dce493EbBebFAf99203e
-  USDC: {
-    [1625036400]: parseUnits('9955.84', 6), // 06/30/2021
-    [1629788400]: parseUnits('100000', 6), // 08/24/2021
-    [1629788401]: parseUnits('150000', 6), // 08/24/2021
-    [1637395200]: parseUnits('580000', 6), // 11/20/2021
-    [1643443200]: parseUnits('4886.96', 6), // 01/29/2022 // amount not staked
-  },
-  // 0x15ec4512516d980090050fe101de21832c8edfee
-  USDT: {
-    // [1643011200]: parseUnits('7228.11', 6), // 01/24/2022 (2.833318361 * 2551.11) // owed
-    [1642147200]: parseUnits('10', 6), // 01/24/2022
-    //[1642492800]: parseUnits('58043.34', 6), // 01/18/2022 (22.7886 ETH)
-    //[1643011200]: parseUnits('7228.11', 6), // 01/24/2022
-    //[1643011201]: parseUnits('610.57', 6), // 01/24/2022 (0.25 ETH)
-    [1643356800]: parseUnits('0.87', 6), // 01/28/2022 // amount not staked
-    [1657090800]: parseUnits('228406.00', 6), // 07/6/2022
-  },
-  // 0x305933e09871D4043b5036e09af794FACB3f6170
-  DAI: {
-    [1638950400]: parseUnits('350000.00', 18), // 12/8/2021
-    [1656572400]: parseUnits('250000.00', 18), // 06/30/2022
-    [1656572401]: parseUnits('250000.00', 18), // 06/30/2022
-    [1656572402]: parseUnits('250000.00', 18), // 06/30/2022
-    [1656572403]: parseUnits('750000.00', 18) // 06/30/2022
-  },
-  // 0x710bDa329b2a6224E4B44833DE30F38E7f81d564
-  ETH: {
-    [1639555200]: parseEther('6.07'), // 12/15/2021 // owed
-    [1639555201]: parseEther('0.10'), // 12/15/2021 // withdrawn
-    [1639555202]: parseEther('0.05'), // 12/15/2021 // not staked
-    [1639641600]: parseEther('26'), // 12/16/2021
-    [1656313200]: parseEther('10'), // 06/27/2022
-    [1656486000]: parseEther('25'), // 06/29/2022
-    [1656486001]: parseEther('25'), // 06/29/2022
-    [1656572400]: parseEther('250'), // 06/30/2022
-    //[1656572400]: parseEther('1400'), // 06/30/2022
-    [1657436400]: parseEther('200') // 07/10/2022
-  },
-  // 0xd8781ca9163e9f132a4d8392332e64115688013a
-  MATIC: {},
-  // 0x2A6303e6b99d451Df3566068EBb110708335658f
-  WBTC: {}
-}
-
-const restakedProfits: Record<string, any> = {
-  // 0xa6a688F107851131F0E1dce493EbBebFAf99203e
-  USDC: {
-    [1627628400]: parseUnits('9000', 6), // 7/30/2021
-    [1637395200]: parseUnits('1340.36', 6), // 11/20/2021
-    [1643356800]: parseUnits('100.92', 6), // 01/28/2022
-    [1643443200]: parseUnits('2998.70', 6) // 01/29/2022
-  },
-  // 0x15ec4512516d980090050fe101de21832c8edfee
-  USDT: {
-    [1643011200]: parseUnits('244.23', 6) // 01/24/2021 // idle (0.1 ETH)
-  },
-  // 0x305933e09871D4043b5036e09af794FACB3f6170
-  DAI: {
-    // [1644220800]: parseUnits('300000', 18), // 02/7/2022 // idle
-    [1644480001]: parseUnits('23422.52', 18), // 02/11/2022 (2.98487439824493*2932.41)
-    [1644652800]: parseUnits('8752.88', 18) // 02/12/2022
-  },
-  // 0x710bDa329b2a6224E4B44833DE30F38E7f81d564
-  ETH: {
-    [1640764800]: parseEther('6.07'), // 12/28/2021
-    [1643184000]: parseEther('10'), // 01/26/2022
-  },
-  // 0xd8781ca9163e9f132a4d8392332e64115688013a
-  MATIC: {},
-  // 0x2A6303e6b99d451Df3566068EBb110708335658f
-  WBTC: {}
-}
-
-const stakedAmounts: Record<string, any> = {
-  USDC: {
-    [1625986800]: parseUnits('500000', 6), // 07/11/2021
-    [1625986801]: parseUnits('250000', 6), // 07/11/2021
-    [1625986802]: parseUnits('250000', 6), // 07/11/2021
-    [1627628400]: parseUnits('3000', 6), // 07/30/2021
-    [1627628401]: parseUnits('3000', 6), // 07/30/2021
-    [1627628402]: parseUnits('3000', 6), // 07/30/2021
-    [1630911600]: parseUnits('747000', 6), // 09/06/2021
-    [1631775600]: parseUnits('250000', 6), // 09/16/2021
-    [1631775601]: parseUnits('250000', 6), // 09/16/2021
-    [1637308800]: parseUnits('790000', 6), // 11/19/2021
-    [1637308801]: parseUnits('100000', 6), // 11/19/2021
-    [1637395200]: parseUnits('940000', 6), // 11/20/2021
-    [1637395201]: parseUnits('250000', 6), // 11/20/2021
-    [1637395202]: parseUnits('250000', 6), // 11/20/2021
-    [1637395203]: parseUnits('250000', 6), // 11/20/2021
-    [1643356800]: parseUnits('750000', 6), // 01/28/2022
-    [1643443200]: parseUnits('1220000', 6), // 01/29/2022
-    [1643443201]: parseUnits('50000', 6), // 01/29/2022
-  },
-  USDT: {
-    [1642147200]: parseUnits('10', 6), // 01/24/2022
-    [1643356800]: parseUnits('150000', 6), // 01/28/2022
-    [1643356801]: parseUnits('350000', 6), // 01/28/2022
-    [1643356802]: parseUnits('350000', 6), // 01/28/2022
-    [1643356803]: parseUnits('350000', 6), // 01/28/2022
-    [1643356804]: parseUnits('921836', 6), // 01/28/2022
-  },
-  DAI: {
-    [1637222400]: parseUnits('1.00', 18), // 11/18/2021
-    [1637222401]: parseUnits('1149999.00', 18), // 11/18/2021
-    [1637222402]: parseUnits('100000.00', 18), // 11/18/2021
-    [1637308800]: parseUnits('250000.00', 18), // 11/19/2021
-    [1637308801]: parseUnits('250000.00', 18), // 11/19/2021
-    [1637308802]: parseUnits('250000.00', 18), // 11/19/2021
-    [1638950400]: parseUnits('100000.00', 18), // 12/8/2021
-    [1638950401]: parseUnits('100000.00', 18), // 12/8/2021
-    [1638950402]: parseUnits('100000.00', 18), // 12/8/2021
-    [1638950403]: parseUnits('50000.00', 18), // 12/8/2021
-    [1643356800]: parseUnits('500000.00', 18), // 1/28/2022
-    [1643961601]: parseUnits('300000.00', 18), // 2/4/2022
-    [1643961602]: parseUnits('300000.00', 18), // 2/4/2022
-    [1643961603]: parseUnits('100000.00', 18), // 2/4/2022
-    [1644048000]: parseUnits('1500000.00', 18), // 2/5/2022
-    [1644220800]: parseUnits('300000.00', 18) // 2/7/2022
-  },
-  ETH: {
-    [1639555200]: parseEther('0.15'), // 12/15/2021
-    [1639641600]: parseEther('54'), // 12/16/2021
-    [1639641601]: parseEther('250'), // 12/16/2021
-    [1639641602]: parseEther('250'), // 12/16/2021
-    [1639641603]: parseEther('250'), // 12/16/2021
-    [1639641604]: parseEther('1670'), // 12/16/2021
-    [1642060800]: parseEther('500'), // 01/13/2022
-    [1643184000]: parseEther('510'), // 01/26/2022
-    [1644220800]: parseEther('50'), // 02/07/2022
-    [1644220801]: parseEther('200'), // 02/07/2022
-    [1644220802]: parseEther('125'), // 02/07/2022
-    [1644220803]: parseEther('125'), // 02/07/2022
-    [1645689600]: parseEther('2250'), // 02/24/2022
-    [1645689601]: parseEther('75'), // 02/24/2022
-    [1645776000]: parseEther('225'), // 02/24/2022
-    [1645776001]: parseEther('225'), // 02/24/2022
-    [1645776002]: parseEther('225'), // 02/24/2022
-    [1654153200]: parseEther('750'), // 06/03/2022
-    [1656140400]: parseEther('305'), // 06/25/2022
-    [1656399600]: parseEther('250'), // 06/28/2022
-    [1656399601]: parseEther('50'), // 06/28/2022
-    //[1656658800]: parseEther('1400'), // 07/01/2022 // restake unstaked
-    [1656572400]: parseEther('250'), // 06/30/2022 // restake unstaked
-    [1657436400]: parseEther('10'), // 07/10/2022 // restake unstaked
-    [1657436401]: parseEther('200'), // 07/10/2022 // restake unstaked
-    [1657436402]: parseEther('50'), // 07/10/2022 // restake unstaked
-  },
-  MATIC: {},
-  WBTC: {}
-}
-
-const depositAmounts: Record<string, any> = {
-  USDC: {
-    [1625036400]: parseUnits('9955.84', 6), // 06/30/2021
-    [1625986800]: parseUnits('1000', 6), // 07/11/2021
-    [1625986801]: parseUnits('999000', 6), // 07/11/2021
-    [1630911600]: parseUnits('997000', 6), // 09/06/2021
-    [1637308800]: parseUnits('799988', 6), // 11/19/2021 // transfer
-    [1637395200]: parseUnits('948654.05', 6), // 11/20/2021 // transfer
-    [1637395201]: parseUnits('250017.59', 6), // 11/20/2021 // transfer
-    [1643356800]: parseUnits('749899.08', 6), // 01/28/2022
-    [1643443200]: parseUnits('1224886.96', 6), // 01/29/2022
-    [1643443201]: parseUnits('47001.30', 6), // 01/29/2022
-  },
-  USDT: {
-    [1643011200]: parseUnits('21', 6), // 01/24/2022
-    [1643356800]: parseUnits('2081815.87', 6), // 01/28/2022
-    [1643356801]: parseUnits('1000', 6), // 01/28/2022
-    [1643356802]: parseUnits('39000', 6), // 01/28/2022
-  },
-  DAI: {
-    [1636617600]: parseUnits('2000000', 18), // 11/11/2021
-    [1643356800]: parseUnits('500000', 18), // 01/28/2022
-    [1643961600]: parseUnits('1000000', 18), // 02/04/2022
-    [1644048000]: parseUnits('1500000', 18) // 02/05/2022
-  },
-  ETH: {
-    [1639555200]: parseEther('0.15'), // 12/15/2021
-    [1639641600]: parseEther('1'), // 12/16/2021
-    [1639641601]: parseEther('2499'), // 12/16/2021
-    [1642060800]: parseEther('500'), // 01/13/2022
-    [1643184000]: parseEther('500'), // 01/26/2022
-    [1644220800]: parseEther('500'), // 02/07/2022
-    [1645689600]: parseEther('3000'), // 02/24/2022
-    [1654153200]: parseEther('750'), // 06/01/2022
-    [1656140400]: parseEther('305'), // 06/25/2022
-    [1656313200]: parseEther('300') // 06/27/2022
-  },
-  WBTC: {}
-}
-
-const withdrawnAmounts: Record<string, any> = {
-  USDC: {},
-  USDT: {
-    [1657090801]: parseUnits('228588.20', 6) // 07/6/2022 // withdrawn
-  },
-  DAI: {},
-  ETH: {},
-  WBTC: {},
-}
-
-const bonderAddresses: Record<string, string> = {
-  USDC: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-  USDT: '0x15ec4512516d980090050fe101de21832c8edfee',
-  DAI: '0x305933e09871D4043b5036e09af794FACB3f6170',
-  ETH: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-  MATIC: '0xd8781ca9163e9f132a4d8392332e64115688013a'
-}
+const {
+  arbitrumAliases,
+  oldArbitrumAliases
+} = require('./data/arbitrum_alises.json')
+const { wethAddresses } = require('./data/weth_addresses.json')
 
 const etherscanUrls: Record<string, string> = {
   ethereum: 'https://api.etherscan.io',
@@ -315,8 +44,6 @@ const etherscanUrls: Record<string, string> = {
   arbitrum: 'https://api.arbiscan.io',
   gnosis: 'https://blockscout.com/poa/xdai'
 }
-
-/////////////////////////////////////////////////////
 
 const wait = (t: number) =>
   new Promise(resolve => setTimeout(() => resolve(null), t))
@@ -338,6 +65,8 @@ const allArchiveProviders: Record<string, any> = {
 type Options = {
   days?: number
   offsetDays?: number
+  startDate?: string
+  endDate?: string
   tokens?: string[]
   trackBonderProfit?: boolean
   trackBonderFees?: boolean
@@ -348,6 +77,8 @@ class BonderStats {
   db = new Db()
   days: number = 1
   offsetDays: number = 0
+  startDate?: DateTime
+  endDate?: DateTime
   tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC']
   chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
   trackOnlyProfit = false
@@ -369,6 +100,23 @@ class BonderStats {
     }
     if (options.offsetDays) {
       this.offsetDays = options.offsetDays
+    }
+    if (options.startDate) {
+      this.startDate = DateTime.fromISO(options.startDate)
+        .toUTC()
+        .startOf('day')
+    }
+    if (options.endDate) {
+      this.endDate = DateTime.fromISO(options.endDate)
+        .toUTC()
+        .startOf('day')
+    }
+    if (this.startDate && this.endDate) {
+      this.offsetDays = 0
+      this.days = this.endDate.diff(this.startDate, ['days']).days
+      if (this.days < 0) {
+        throw new Error('invalid date range')
+      }
     }
     if (options.tokens) {
       this.tokens = options.tokens
@@ -508,7 +256,7 @@ class BonderStats {
     const startDate = Math.floor(date.toSeconds())
     const endDate = Math.floor(date.endOf('day').toSeconds())
     const isoDate = date.toISO()
-    const address = bonderAddresses[token]
+    const address = Object.keys(jsonData[token])[0]
     if (!address) {
       throw new Error(`no address found for token "${token}"`)
     }
@@ -610,237 +358,267 @@ class BonderStats {
   }
 
   async trackProfitDay (day: number, token: string, prices: any) {
-    console.log('day:', day)
-    const now = DateTime.utc()
-    const date = now.minus({ days: day + this.offsetDays }).startOf('day')
-    console.log('date:', date.toISO())
-    const timestamp = Math.floor(date.toSeconds())
-    const isoDate = date.toISO()
-    console.log('date:', isoDate)
+    for (const bonderAddress in jsonData[token]) {
+      const bonderData = jsonData[token][bonderAddress]
 
-    const priceMap: any = {}
-    for (const _token in prices) {
-      const dates = prices[_token].reverse().map((x: any) => x[0])
-      const nearest = this.nearestDate(dates, timestamp)
-      const price = prices[_token][nearest][1]
-      priceMap[_token] = price
-    }
+      console.log('day:', day)
+      let now = this.endDate ?? DateTime.utc()
+      let date = now.minus({ days: day + this.offsetDays }).startOf('day')
+      console.log('date:', date.toISO())
+      const timestamp = Math.floor(date.toSeconds())
+      const isoDate = date.toISO()
+      console.log('date:', isoDate)
 
-    const { bonderBalances, dbData } = await this.fetchBonderBalances(
-      token,
-      timestamp,
-      priceMap
-    )
-
-    const initialAggregateBalanceInAssetToken =
-      initialAggregateBalancesInAssetToken?.[token]
-    const initialAggregateNativeBalance =
-      initialAggregateNativeBalances?.[token]
-
-    let unstakedAmount = BigNumber.from(0)
-    for (const ts in unstakedAmounts[token]) {
-      if (Number(ts) <= timestamp) {
-        unstakedAmount = unstakedAmount.add(unstakedAmounts[token][ts])
-        console.log(
-          ts,
-          'subtract unstaked amount',
-          unstakedAmounts[token][ts].toString()
-        )
+      const priceMap: any = {}
+      for (const _token in prices) {
+        const dates = prices[_token].reverse().map((x: any) => x[0])
+        const nearest = this.nearestDate(dates, timestamp)
+        const price = prices[_token][nearest][1]
+        priceMap[_token] = price
       }
-    }
 
-    let unstakedEthAmount = BigNumber.from(0)
-    for (const ts in unstakedEthAmounts[token]) {
-      if (Number(ts) <= timestamp) {
-        unstakedEthAmount = unstakedEthAmount.add(unstakedEthAmounts[token][ts])
-        console.log(
-          ts,
-          'subtract unstaked amount ETH',
-          unstakedEthAmounts[token][ts].toString()
-        )
-      }
-    }
-
-    let restakedAmount = BigNumber.from(0)
-    for (const ts in restakedProfits[token]) {
-      if (Number(ts) <= timestamp) {
-        restakedAmount = restakedAmount.add(restakedProfits[token][ts])
-        console.log(
-          ts,
-          'add restaked amount',
-          restakedProfits[token][ts].toString()
-        )
-      }
-    }
-
-    let depositAmount = BigNumber.from(0)
-    for (const ts in depositAmounts[token]) {
-      if (Number(ts) <= timestamp) {
-        depositAmount = depositAmount.add(depositAmounts[token][ts])
-        console.log(
-          ts,
-          'subtract deposit amount',
-          depositAmounts[token][ts].toString()
-        )
-      }
-    }
-
-    let withdrawnAmount = BigNumber.from(0)
-    for (const ts in withdrawnAmounts[token]) {
-      if (Number(ts) <= timestamp) {
-        withdrawnAmount = withdrawnAmount.add(withdrawnAmounts[token][ts])
-        console.log(
-          ts,
-          'subtract withdrawn amount',
-          withdrawnAmounts[token][ts].toString()
-        )
-      }
-    }
-
-    let stakedAmount = BigNumber.from(0)
-    for (const ts in stakedAmounts[token]) {
-      if (Number(ts) <= timestamp) {
-        stakedAmount = stakedAmount.add(stakedAmounts[token][ts])
-        console.log(
-          ts,
-          'subtract staked amount',
-          stakedAmounts[token][ts].toString()
-        )
-      }
-    }
-
-    let initialCanonicalAmount = BigNumber.from(0)
-    for (const ts in initialCanonicalAmounts[token]) {
-      if (Number(ts) <= timestamp) {
-        initialCanonicalAmount = initialCanonicalAmount.add(
-          initialCanonicalAmounts[token][ts]
-        )
-        console.log(
-          ts,
-          'subtract initial canonical amount',
-          initialCanonicalAmounts[token][ts].toString()
-        )
-      }
-    }
-
-    const { resultFormatted } = await this.computeResult({
-      token,
-      initialAggregateBalanceInAssetToken,
-      initialAggregateNativeBalance,
-      restakedAmount,
-      unstakedAmount,
-      bonderBalances,
-      priceMap
-    })
-
-    const {
-      resultFormatted: result2Formatted,
-      ethAmountsFormatted
-    } = await this.computeResult2({
-      token,
-      initialAggregateBalanceInAssetToken,
-      initialAggregateNativeBalance,
-      restakedAmount,
-      unstakedAmount,
-      unstakedEthAmount,
-      bonderBalances,
-      priceMap
-    })
-
-    dbData.unstakedAmount = Number(
-      formatUnits(unstakedAmount, this.tokenDecimals[token])
-    )
-
-    dbData.unstakedEthAmount = Number(
-      formatEther(unstakedEthAmount)
-    )
-
-    dbData.restakedAmount = Number(
-      formatUnits(restakedAmount, this.tokenDecimals[token])
-    )
-
-    dbData.depositAmount = Number(
-      formatUnits(depositAmount, this.tokenDecimals[token])
-    )
-
-    dbData.withdrawnAmount = Number(
-      formatUnits(withdrawnAmount, this.tokenDecimals[token])
-    )
-
-    dbData.stakedAmount = Number(
-      formatUnits(stakedAmount, this.tokenDecimals[token])
-    )
-
-    dbData.initialCanonicalAmount = Number(
-      formatUnits(initialCanonicalAmount, this.tokenDecimals[token])
-    )
-
-    console.log('results', token, timestamp, resultFormatted)
-
-    dbData.xdaiPriceUsd = 1
-
-    const { resultFormatted: result3Formatted } = await this.computeResult3({
-      token,
-      dbData
-    })
-
-    console.log('result3', token, timestamp, result3Formatted)
-
-    try {
-      await this.db.upsertBonderBalances(
-        token,
-        dbData.polygonBlockNumber,
-        dbData.polygonCanonicalAmount,
-        dbData.polygonHTokenAmount,
-        dbData.polygonNativeAmount,
-        dbData.gnosisBlockNumber,
-        dbData.gnosisCanonicalAmount,
-        dbData.gnosisHTokenAmount,
-        dbData.gnosisNativeAmount,
-        dbData.arbitrumBlockNumber,
-        dbData.arbitrumCanonicalAmount,
-        dbData.arbitrumHTokenAmount,
-        dbData.arbitrumNativeAmount,
-        dbData.arbitrumAliasAmount,
-        dbData.optimismBlockNumber,
-        dbData.optimismCanonicalAmount,
-        dbData.optimismHTokenAmount,
-        dbData.optimismNativeAmount,
-        dbData.ethereumBlockNumber,
-        dbData.ethereumCanonicalAmount,
-        dbData.ethereumNativeAmount,
-        dbData.unstakedAmount,
-        dbData.restakedAmount,
-        dbData.ethPriceUsd,
-        dbData.maticPriceUsd,
-        resultFormatted,
-        timestamp,
-        result2Formatted,
-        ethAmountsFormatted,
-        dbData.xdaiPriceUsd,
-        dbData.depositAmount,
-        dbData.stakedAmount,
-        dbData.initialCanonicalAmount,
-        result3Formatted,
-        dbData.arbitrumWethAmount,
-        dbData.withdrawnAmount,
-        dbData.unstakedEthAmount,
-      )
-      console.log(
-        day,
-        'upserted bonder balance',
+      const { bonderBalances, dbData } = await this.fetchBonderBalances(
         token,
         timestamp,
-        DateTime.fromSeconds(timestamp).toISO(),
-        result3Formatted
+        priceMap
       )
-    } catch (err) {
-      if (!err.message.includes('UNIQUE constraint failed')) {
-        throw err
-      }
-    }
 
-    return dbData
+      const initialAggregateBalanceInAssetToken = BigNumber.from(0)
+      const initialAggregateNativeBalance = BigNumber.from(0)
+
+      const initialCanonicalAmounts = bonderData.initialCanonicalAmounts
+      let initialCanonicalAmount = BigNumber.from(0)
+      for (const date in initialCanonicalAmounts) {
+        const ts = this.dateToUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(
+            initialCanonicalAmounts[date],
+            token
+          )
+          for (const amount of amounts) {
+            initialCanonicalAmount = initialCanonicalAmount.add(amount)
+            console.log(
+              ts,
+              'subtract initial canonical amount',
+              amount.toString()
+            )
+          }
+        }
+      }
+
+      const depositAmounts = bonderData.depositAmounts
+      let depositAmount = BigNumber.from(0)
+      let depositEvent: any = null
+      for (const date in depositAmounts) {
+        const ts = this.dateToUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(depositAmounts[date], token)
+          for (const amount of amounts) {
+            depositAmount = depositAmount.add(amount)
+            console.log('HERE', ts, timestamp)
+            if (ts === timestamp) {
+              if (!depositEvent) {
+                depositEvent = BigNumber.from(0)
+              }
+              depositEvent = depositEvent.add(amount)
+            }
+            console.log(ts, 'subtract deposit amount', amount.toString())
+          }
+        }
+      }
+
+      const stakedAmounts = bonderData.stakedAmounts
+      let stakedAmount = BigNumber.from(0)
+      for (const date in stakedAmounts) {
+        const ts = this.dateToUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(stakedAmounts[date], token)
+          for (const amount of amounts) {
+            stakedAmount = stakedAmount.add(amount)
+            console.log(ts, 'subtract staked amount', amount.toString())
+          }
+        }
+      }
+
+      const unstakedAmounts = bonderData.unstakedAmounts
+      let unstakedAmount = BigNumber.from(0)
+      for (const date in unstakedAmounts) {
+        const ts = this.dateToUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(unstakedAmounts[date], token)
+          for (const amount of amounts) {
+            unstakedAmount = unstakedAmount.add(amount)
+            console.log(ts, 'subtract unstaked amount', amount.toString())
+          }
+        }
+      }
+
+      const unstakedEthAmounts = bonderData.unstakedEthAmounts
+      let unstakedEthAmount = BigNumber.from(0)
+      for (const date in unstakedEthAmounts) {
+        const ts = this.dateToUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(unstakedEthAmounts[date], 'ETH')
+          for (const amount of amounts) {
+            unstakedEthAmount = unstakedEthAmount.add(amount)
+            console.log(ts, 'subtract unstaked amount ETH', amount.toString())
+          }
+        }
+      }
+
+      const restakedProfits = bonderData.restakedProfits
+      let restakedAmount = BigNumber.from(0)
+      for (const date in restakedProfits) {
+        const ts = this.dateToUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(restakedProfits[date], token)
+          for (const amount of amounts) {
+            restakedAmount = restakedAmount.add(amount)
+            console.log(ts, 'add restaked amount', amount.toString())
+          }
+        }
+      }
+
+      const withdrawnAmounts = bonderData.withdrawnAmounts
+      let withdrawnAmount = BigNumber.from(0)
+      for (const date in withdrawnAmounts) {
+        const ts = this.dateToUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(withdrawnAmounts[date], token)
+          for (const amount of amounts) {
+            withdrawnAmount = withdrawnAmount.add(amount)
+            console.log(ts, 'subtract withdrawn amount', amount.toString())
+          }
+        }
+      }
+
+      const { resultFormatted } = await this.computeResult({
+        token,
+        initialAggregateBalanceInAssetToken,
+        initialAggregateNativeBalance,
+        restakedAmount,
+        unstakedAmount,
+        bonderBalances,
+        priceMap
+      })
+
+      const {
+        resultFormatted: result2Formatted,
+        ethAmountsFormatted
+      } = await this.computeResult2({
+        token,
+        initialAggregateBalanceInAssetToken,
+        initialAggregateNativeBalance,
+        restakedAmount,
+        unstakedAmount,
+        unstakedEthAmount,
+        bonderBalances,
+        priceMap
+      })
+
+      dbData.unstakedAmount = Number(
+        formatUnits(unstakedAmount, this.tokenDecimals[token])
+      )
+
+      dbData.unstakedEthAmount = Number(formatEther(unstakedEthAmount))
+
+      dbData.restakedAmount = Number(
+        formatUnits(restakedAmount, this.tokenDecimals[token])
+      )
+
+      dbData.depositAmount = Number(
+        formatUnits(depositAmount, this.tokenDecimals[token])
+      )
+
+      dbData.withdrawnAmount = Number(
+        formatUnits(withdrawnAmount, this.tokenDecimals[token])
+      )
+
+      dbData.stakedAmount = Number(
+        formatUnits(stakedAmount, this.tokenDecimals[token])
+      )
+
+      dbData.initialCanonicalAmount = Number(
+        formatUnits(initialCanonicalAmount, this.tokenDecimals[token])
+      )
+
+      console.log('results', token, timestamp, resultFormatted)
+
+      dbData.xdaiPriceUsd = 1
+
+      const { resultFormatted: result3Formatted } = await this.computeResult3({
+        token,
+        dbData
+      })
+
+      console.log('result3', token, timestamp, result3Formatted)
+
+      dbData.bonderAddress = bonderAddress.toLowerCase()
+
+      if (depositEvent) {
+        depositEvent = Number(
+          formatUnits(depositEvent, this.tokenDecimals[token])
+        )
+      }
+
+      try {
+        await this.db.upsertBonderBalances(
+          token,
+          dbData.polygonBlockNumber,
+          dbData.polygonCanonicalAmount,
+          dbData.polygonHTokenAmount,
+          dbData.polygonNativeAmount,
+          dbData.gnosisBlockNumber,
+          dbData.gnosisCanonicalAmount,
+          dbData.gnosisHTokenAmount,
+          dbData.gnosisNativeAmount,
+          dbData.arbitrumBlockNumber,
+          dbData.arbitrumCanonicalAmount,
+          dbData.arbitrumHTokenAmount,
+          dbData.arbitrumNativeAmount,
+          dbData.arbitrumAliasAmount,
+          dbData.optimismBlockNumber,
+          dbData.optimismCanonicalAmount,
+          dbData.optimismHTokenAmount,
+          dbData.optimismNativeAmount,
+          dbData.ethereumBlockNumber,
+          dbData.ethereumCanonicalAmount,
+          dbData.ethereumNativeAmount,
+          dbData.unstakedAmount,
+          dbData.restakedAmount,
+          dbData.ethPriceUsd,
+          dbData.maticPriceUsd,
+          resultFormatted,
+          timestamp,
+          result2Formatted,
+          ethAmountsFormatted,
+          dbData.xdaiPriceUsd,
+          dbData.depositAmount,
+          dbData.stakedAmount,
+          dbData.initialCanonicalAmount,
+          result3Formatted,
+          dbData.arbitrumWethAmount,
+          dbData.withdrawnAmount,
+          dbData.unstakedEthAmount,
+          dbData.bonderAddress,
+          depositEvent
+        )
+        console.log(
+          day,
+          'upserted bonder balance',
+          token,
+          timestamp,
+          DateTime.fromSeconds(timestamp).toISO(),
+          result3Formatted
+        )
+      } catch (err) {
+        if (!err.message.includes('UNIQUE constraint failed')) {
+          throw err
+        }
+      }
+
+      return dbData
+    }
   }
 
   async trackProfit () {
@@ -1039,10 +817,13 @@ class BonderStats {
 
                     console.log('weth bal', wethBalance.toString())
 
-                    dbData[`${chain}WethAmount`] = Number(formatEther(wethBalance.toString()))
+                    dbData[`${chain}WethAmount`] = Number(
+                      formatEther(wethBalance.toString())
+                    )
                   }
 
                   // NOTE: this is to account for offset issue with unstake/stake timestamps
+                  // TODO: move to config
                   if (
                     token === 'ETH' &&
                     timestamp > 1656486000 &&
@@ -1054,17 +835,19 @@ class BonderStats {
                   }
 
                   // NOTE: this is to account for offset issue with unstake/stake timestamps
+                  // TODO: move to config
                   if (
                     token === 'USDT' &&
                     timestamp > 1657177200 &&
                     timestamp < 1657350000 &&
-                    dbData.ethereumCanonicalAmount > 228588.20
+                    dbData.ethereumCanonicalAmount > 228588.2
                   ) {
                     dbData.ethereumCanonicalAmount =
-                      dbData.ethereumCanonicalAmount - 228588.20
+                      dbData.ethereumCanonicalAmount - 228588.2
                   }
 
                   // NOTE: this is to account for offset issue with unstake/stake timestamps
+                  // TODO: move to config
                   if (
                     token === 'USDC' &&
                     timestamp > 1654239600 &&
@@ -1073,6 +856,18 @@ class BonderStats {
                   ) {
                     dbData.ethereumCanonicalAmount =
                       dbData.ethereumCanonicalAmount - 1998270.56
+                  }
+
+                  // NOTE: this is to account for offset issue with unstake/stake timestamps
+                  // TODO: move to config
+                  if (
+                    token === 'DAI' &&
+                    timestamp > 1656486000 &&
+                    timestamp < 1656658800 &&
+                    dbData.ethereumCanonicalAmount < 1500000
+                  ) {
+                    dbData.ethereumCanonicalAmount =
+                      dbData.ethereumCanonicalAmount + 1500000
                   }
 
                   console.log(
@@ -1108,6 +903,7 @@ class BonderStats {
     }
   }
 
+  // TODO: remove this
   async computeResult (data: any = {}) {
     const {
       token,
@@ -1178,6 +974,7 @@ class BonderStats {
     }
   }
 
+  // TODO: remove this
   async computeResult2 (data: any = {}) {
     const {
       token,
@@ -1278,12 +1075,17 @@ class BonderStats {
       dbData.ethereumCanonicalAmount +
       (dbData.stakedAmount - dbData.unstakedAmount) -
       dbData.initialCanonicalAmount -
-      (dbData.unstakedEthAmount * dbData.ethPriceUsd)
+      dbData.unstakedEthAmount * dbData.ethPriceUsd
     const totalDeposits = dbData.depositAmount - dbData.withdrawnAmount
 
     let nativeStartingTokenAmount = 0
     if (token === 'DAI') {
+      // TODO: move to config
       nativeStartingTokenAmount = 10.58487 * dbData.ethPriceUsd
+    }
+    if (token === 'USDC') {
+      // TODO: move to config
+      nativeStartingTokenAmount = 15.09 * dbData.ethPriceUsd
     }
     let nativeTokenDebt =
       dbData.polygonNativeAmount * dbData.maticPriceUsd +
@@ -1296,9 +1098,13 @@ class BonderStats {
 
     if (token === 'ETH') {
       nativeTokenDebt =
-        ((dbData.polygonNativeAmount * dbData.maticPriceUsd) / dbData.ethPriceUsd) +
-        ((dbData.gnosisNativeAmount * 1) / dbData.ethPriceUsd) +
-        ((dbData.ethereumNativeAmount + dbData.optimismNativeAmount + dbData.arbitrumNativeAmount + dbData.arbitrumAliasAmount))
+        (dbData.polygonNativeAmount * dbData.maticPriceUsd) /
+          dbData.ethPriceUsd +
+        (dbData.gnosisNativeAmount * 1) / dbData.ethPriceUsd +
+        (dbData.ethereumNativeAmount +
+          dbData.optimismNativeAmount +
+          dbData.arbitrumNativeAmount +
+          dbData.arbitrumAliasAmount)
     }
 
     nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt
@@ -1516,6 +1322,26 @@ class BonderStats {
       chain
     ] || ''}`
     return url
+  }
+
+  dateToUnix (date: string) {
+    return Math.floor(
+      DateTime.fromISO(date)
+        .toUTC()
+        .startOf('day')
+        .toSeconds()
+    )
+  }
+
+  amountsToArray (amount: string | string[], token: string) {
+    let arr = [amount]
+    if (Array.isArray(amount)) {
+      arr = amount
+    }
+
+    return arr.map((value: string) =>
+      parseUnits(value, this.tokenDecimals[token])
+    )
   }
 }
 

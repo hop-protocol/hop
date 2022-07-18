@@ -749,6 +749,9 @@ class BonderStats {
                     if (token === 'DAI' && timestamp < 1650092400) {
                       aliasAddress = oldArbitrumAliases[token]
                     }
+                    if (token === 'ETH' && timestamp < 1650067200) {
+                      aliasAddress = oldArbitrumAliases[token]
+                    }
                     balancePromises.push(
                       archiveProvider.getBalance(aliasAddress, blockTag)
                     )

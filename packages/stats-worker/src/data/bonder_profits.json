@@ -2,11 +2,9 @@
   "USDC": {
     "0xa6a688F107851131F0E1dce493EbBebFAf99203e": {
       "totalStaked": "6026000.00",
-      "initialCanonicalAmounts": {
-        // "2021-11-11": ["2006000.00"]
-      },
+      "initialCanonicalAmounts": {},
       "depositAmounts": {
-        "2021-11-15": "8490.14", // initial canonical amount
+        "2021-11-15": "2014490.14", // initial canonical amount (2006000.00 + 8490.14)
         "2021-11-19": "799988.00", // transfer
         "2021-11-20": ["948654.05", "250017.59"], // transfer
         "2022-01-28": "749899.08",

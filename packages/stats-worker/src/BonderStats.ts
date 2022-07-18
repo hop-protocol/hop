@@ -825,19 +825,6 @@ class BonderStats {
                     )
                   }
 
-                  // NOTE: this is to account for offset issue with unstake/stake timestamps
-                  // TODO: move to config
-                  /*
-                  if (
-                    token === 'ETH' &&
-                    timestamp > 1656486000 &&
-                    timestamp < 1656658800 &&
-                    dbData.ethereumNativeAmount > 1400
-                  ) {
-                    dbData.ethereumNativeAmount =
-                      dbData.ethereumNativeAmount - 1400
-                  }
-                  */
 
                   // NOTE: this is to account for offset issue with unstake/stake timestamps
                   // TODO: move to config

@@ -146,9 +146,7 @@
         "2022-07-10": "200.00"
       },
       "unstakedEthAmounts": {},
-      "restakedProfits": {
-        "2022-01-26": "10.00"
-      },
+      "restakedProfits": {},
       "withdrawnAmounts": {
         "2021-12-15": "0.10",
         "2021-12-29": "6.07"

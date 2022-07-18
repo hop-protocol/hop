@@ -1331,6 +1331,7 @@ class BonderStats {
     return Math.floor(
       DateTime.fromISO(date)
         .toUTC()
+        .plus({days: 1})
         .startOf('day')
         .toSeconds()
     )

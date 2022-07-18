@@ -4,6 +4,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import Bridge from './classes/Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
+import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, constants } from 'ethers'
@@ -283,6 +284,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline
     } = params
     const logger = this.logger.create({ id: transferId })
+    const calculatedTransferId = getTransferId(destinationChainId, recipient, amount, transferNonce, bonderFee, amountOutMin, deadline)
+    const doesExistInDb = !!(await this.db.transfers.getByTransferId(calculatedTransferId))
+    if (!doesExistInDb) {
+      throw new Error(`Calculated transferId (${calculatedTransferId}) does not match transferId in db`)
+    }
+
     if (attemptSwap) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`

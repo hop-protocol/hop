@@ -47,6 +47,7 @@ async function main (source: any) {
 
       await watcher.sendBondWithdrawalTx(dbTransfer)
     } catch (err: any) {
+      console.log(err)
       // nop
     }
   }

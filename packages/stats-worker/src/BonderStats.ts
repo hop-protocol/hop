@@ -389,7 +389,7 @@ class BonderStats {
       const initialCanonicalAmounts = bonderData.initialCanonicalAmounts
       let initialCanonicalAmount = BigNumber.from(0)
       for (const date in initialCanonicalAmounts) {
-        const ts = this.dateToUnix(date)
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
         if (ts <= timestamp) {
           const amounts = this.amountsToArray(
             initialCanonicalAmounts[date],
@@ -410,7 +410,7 @@ class BonderStats {
       let depositAmount = BigNumber.from(0)
       let depositEvent: any = null
       for (const date in depositAmounts) {
-        const ts = this.dateToUnix(date)
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
         if (ts <= timestamp) {
           const amounts = this.amountsToArray(depositAmounts[date], token)
           for (const amount of amounts) {
@@ -430,7 +430,7 @@ class BonderStats {
       const stakedAmounts = bonderData.stakedAmounts
       let stakedAmount = BigNumber.from(0)
       for (const date in stakedAmounts) {
-        const ts = this.dateToUnix(date)
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
         if (ts <= timestamp) {
           const amounts = this.amountsToArray(stakedAmounts[date], token)
           for (const amount of amounts) {
@@ -443,7 +443,7 @@ class BonderStats {
       const unstakedAmounts = bonderData.unstakedAmounts
       let unstakedAmount = BigNumber.from(0)
       for (const date in unstakedAmounts) {
-        const ts = this.dateToUnix(date)
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
         if (ts <= timestamp) {
           const amounts = this.amountsToArray(unstakedAmounts[date], token)
           for (const amount of amounts) {
@@ -456,7 +456,7 @@ class BonderStats {
       const unstakedEthAmounts = bonderData.unstakedEthAmounts
       let unstakedEthAmount = BigNumber.from(0)
       for (const date in unstakedEthAmounts) {
-        const ts = this.dateToUnix(date)
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
         if (ts <= timestamp) {
           const amounts = this.amountsToArray(unstakedEthAmounts[date], 'ETH')
           for (const amount of amounts) {
@@ -469,7 +469,7 @@ class BonderStats {
       const restakedProfits = bonderData.restakedProfits
       let restakedAmount = BigNumber.from(0)
       for (const date in restakedProfits) {
-        const ts = this.dateToUnix(date)
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
         if (ts <= timestamp) {
           const amounts = this.amountsToArray(restakedProfits[date], token)
           for (const amount of amounts) {
@@ -482,7 +482,7 @@ class BonderStats {
       const withdrawnAmounts = bonderData.withdrawnAmounts
       let withdrawnAmount = BigNumber.from(0)
       for (const date in withdrawnAmounts) {
-        const ts = this.dateToUnix(date)
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
         if (ts <= timestamp) {
           const amounts = this.amountsToArray(withdrawnAmounts[date], token)
           for (const amount of amounts) {
@@ -1327,7 +1327,7 @@ class BonderStats {
     return url
   }
 
-  dateToUnix (date: string) {
+  parseConfigDateToStartOfNextDayUnix (date: string) {
     return Math.floor(
       DateTime.fromISO(date)
         .toUTC()

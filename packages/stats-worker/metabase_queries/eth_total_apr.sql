@@ -3,16 +3,16 @@ select
 from (
   select
     SUM(amount*days) as days_total,
-    6026000.00 as total,
-    (select result3 from bonder_balances where token = 'USDC' order by timestamp desc limit 1) as profit
+    8339.0 as total,
+    (select result3 from bonder_balances where token = 'ETH' order by timestamp desc limit 1) as profit
 from (
     select deposit_event as amount,
     julianday(datetime('now')) - julianday(strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc'))) as days
     from bonder_balances
     where
       deposit_event is not null
-      and token = 'USDC'
-      and strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) >= '2021-11-15'
+      and token = 'ETH'
+      and strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) >= '2021-12-17'
   )
 )
 

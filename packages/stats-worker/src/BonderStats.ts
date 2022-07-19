@@ -421,7 +421,6 @@ class BonderStats {
           const amounts = this.amountsToArray(depositAmounts[date], token)
           for (const amount of amounts) {
             depositAmount = depositAmount.add(amount)
-            console.log('HERE', ts, timestamp)
             if (ts === timestamp) {
               if (!depositEvent) {
                 depositEvent = BigNumber.from(0)

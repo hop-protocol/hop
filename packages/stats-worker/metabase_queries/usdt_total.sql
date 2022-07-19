@@ -2,6 +2,6 @@ select
   result3 as profit
   from bonder_balances
 where
-  token = 'USDC'
+  token = 'USDT'
 order by timestamp desc
 limit 1

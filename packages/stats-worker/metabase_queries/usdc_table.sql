@@ -28,16 +28,16 @@ select
   total_balances,
   total_deposits,
   native_token_debt,
-  (total_balances - total_deposits - native_token_debt) as "profit",
+  (total_balances - total_deposits - native_token_debt) as profit,
   day
 from (
     select
     (
         (restaked_amount + polygon_canonical_amount + polygon_hToken_amount + gnosis_canonical_amount + gnosis_hToken_amount + arbitrum_canonical_amount + arbitrum_hToken_amount + optimism_canonical_amount + optimism_hToken_amount + ethereum_canonical_amount + (staked_amount - unstaked_amount)) - initial_canonical_amount - (unstaked_eth_amount * eth_price_usd)
-    ) as "total_balances",
+    ) as total_balances,
     (
         deposit_amount - withdrawn_amount
-    ) as "total_deposits",
+    ) as total_deposits,
     (
         (
           (13.51 * eth_price_usd) +
@@ -49,8 +49,8 @@ from (
           (gnosis_native_amount * 1) +
           ((ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount) * eth_price_usd)
         )
-    ) as "native_token_debt",
-    (ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount) as "total_eth_amount",
+    ) as native_token_debt,
+    (ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount) as total_eth_amount,
     initial_canonical_amount,
     polygon_canonical_amount,
     polygon_hToken_amount,
@@ -76,12 +76,12 @@ from (
     unstaked_amount,
     unstaked_eth_amount,
     (staked_amount - unstaked_amount) as current_staked_amount,
-    strftime('%m - %d  - %Y', datetime(timestamp, 'unixepoch', 'utc')) as "day"
+    strftime('%m - %d  - %Y', datetime(timestamp, 'unixepoch', 'utc')) as day,
+    result3 as result
     from
         bonder_balances
     where
         token = 'USDC'
         and strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) >= '2021-11-01'
-        and strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) < '2022-12-30'
     order by timestamp desc
 )

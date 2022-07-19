@@ -1,7 +1,17 @@
 select
-  (((result3/( ((((2000000.0*243))+((500000.0*165))+((1000000.0*158))+((1500000.0*157)))/5000000. 0)  /365.0)) / 5000000.0) * 100) as apr
-from bonder_balances
-where
-  token = 'DAI'
-order by timestamp desc
-limit 1
+  (((profit /( ( days_total / total) / 365.0)) / total) * 100) as apr
+from (
+  select
+    SUM(amount*days) as days_total,
+    5000000.00 as total,
+    (select result3 from bonder_balances where token = 'DAI' order by timestamp desc limit 1) as profit
+from (
+    select deposit_event as amount,
+    julianday(datetime('now')) - julianday(strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc'))) as days
+    from bonder_balances
+    where
+      deposit_event is not null
+      and token = 'DAI'
+      and strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) >= '2021-11-12'
+  )
+)

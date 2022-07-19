@@ -542,7 +542,7 @@ class BonderStats {
         formatUnits(initialCanonicalAmount, this.tokenDecimals[token])
       )
 
-      console.log('results', token, timestamp, resultFormatted)
+      dbData.bonderAddress = bonderAddress.toLowerCase()
 
       dbData.xdaiPriceUsd = 1
 
@@ -552,8 +552,6 @@ class BonderStats {
       })
 
       console.log('result3', token, timestamp, result3Formatted)
-
-      dbData.bonderAddress = bonderAddress.toLowerCase()
 
       if (depositEvent) {
         depositEvent = Number(
@@ -818,13 +816,10 @@ class BonderStats {
                       blockTag
                     })
 
-                    console.log('weth bal', wethBalance.toString())
-
                     dbData[`${chain}WethAmount`] = Number(
                       formatEther(wethBalance.toString())
                     )
                   }
-
 
                   // NOTE: this is to account for offset issue with unstake/stake timestamps
                   // TODO: move to config
@@ -1071,13 +1066,33 @@ class BonderStats {
     const totalDeposits = dbData.depositAmount - dbData.withdrawnAmount
 
     let nativeStartingTokenAmount = 0
-    if (token === 'DAI') {
+    if (
+      token === 'DAI' &&
+      dbData.bonderAddress ===
+        '0x305933e09871D4043b5036e09af794FACB3f6170'.toLowerCase()
+    ) {
       // TODO: move to config
       nativeStartingTokenAmount = 10.58487 * dbData.ethPriceUsd
     }
-    if (token === 'USDC') {
+    if (
+      token === 'USDC' &&
+      dbData.bonderAddress ===
+        '0xa6a688F107851131F0E1dce493EbBebFAf99203e'.toLowerCase()
+    ) {
       // TODO: move to config
-      nativeStartingTokenAmount = 15.09 * dbData.ethPriceUsd
+      nativeStartingTokenAmount =
+        13.51 * dbData.ethPriceUsd + 682.9 * dbData.maticPriceUsd + 260.77 * 1
+    }
+    if (
+      token === 'ETH' &&
+      dbData.bonderAddress ===
+        '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'.toLowerCase()
+    ) {
+      // TODO: move to config
+      nativeStartingTokenAmount =
+        (1000 * dbData.maticPriceUsd) / dbData.ethPriceUsd +
+        (150 * 1) / dbData.ethPriceUsd +
+        32.07
     }
     let nativeTokenDebt =
       dbData.polygonNativeAmount * dbData.maticPriceUsd +
@@ -1320,7 +1335,7 @@ class BonderStats {
     return Math.floor(
       DateTime.fromISO(date)
         .toUTC()
-        .plus({days: 1})
+        .plus({ days: 1 })
         .startOf('day')
         .toSeconds()
     )

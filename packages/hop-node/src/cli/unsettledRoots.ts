@@ -1,12 +1,15 @@
-import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
-import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled'
-import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
-import getWithdrawal from 'src/theGraph/getWithdrawal'
+import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled'
+import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
+import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
+import { BigNumber, utils } from 'ethers'
 import { Chain } from 'src/constants'
 import { actionHandler, parseString, root } from './shared'
-import { BigNumber, utils } from 'ethers'
 import { getAllChains } from 'src/config'
+
+type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
 
 root
   .command('unsettled-roots')
@@ -16,7 +19,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { chain: settlementChain, token, startTimestamp: start } = source
+  const { chain: settlementChain, token } = source
   if (!settlementChain) {
     throw new Error('chain is required')
   }
@@ -24,29 +27,22 @@ async function main (source: any) {
     throw new Error('token is required')
   }
 
-  console.log('\n*** This will only look back until 01/01/2022 due to the OVM regenesis. ***\n')
+  console.log('\n*** This will only look back until 01/01/2022. Prior data may be invalid due to the OVM regenesis. ***\n')
   const startTimestamp = 1640995200
+  const decimals = getTokenDecimals(token)
 
   // Get all settlements
-  const settledRootsPerBonder: any = await getSettledRoots(settlementChain, token)
+  const settledRootsPerBonder: SettledRootsPerBonder = await getSettledRoots(settlementChain, token)
 
   // Get all roots from source chains
-  const allChains = getAllChains()
-  let sourceChains: string[] = []
-  for (const chain of allChains) {
-    if (
-      chain === Chain.Ethereum ||
-      chain === settlementChain
-    ) continue
-    
-    sourceChains.push(chain)
-  }
+  const sourceChains = getSourceChains(settlementChain, token)
 
   for (const chain of sourceChains) {
     console.log(`Searching ${chain}`)
 
     // Get all roots that were committed at the source
-    const commitsRes = await getTransfersCommitted(chain, token, startTimestamp)
+    const settlementChainId = chainSlugToId(settlementChain)
+    const commitsRes = await getTransfersCommitted(chain, token, startTimestamp, settlementChainId)
     const rootsCommitted: any = {}
     for (const res of commitsRes) {
       rootsCommitted[res.rootHash] = BigNumber.from(res.totalAmount)
@@ -56,13 +52,14 @@ async function main (source: any) {
     const unsettledRoots: string[] = []
     for (const root in rootsCommitted) {
       let diff: BigNumber = rootsCommitted[root]
-      
+
       for (const bonder in settledRootsPerBonder) {
         if (!settledRootsPerBonder[bonder][root]) continue
         diff = rootsCommitted[root].sub(settledRootsPerBonder[bonder][root])
       }
 
-      if (diff.eq('0')) continue
+      const isFullySettled = diff.eq('0')
+      if (isFullySettled) continue
       unsettledRoots.push(root)
     }
 
@@ -81,17 +78,12 @@ async function main (source: any) {
     // Log which roots have unsettled transfers
     let tempAmt = BigNumber.from('0')
     for (const root of unsettledRoots) {
-      let bondedAmountPerBonder: any = {}
+      const bondedAmountPerBonder: any = {}
 
       const transferIds = transfersPerRoot[root]
       for (const transferId of transferIds) {
         const bondData = await getBondedWithdrawal(settlementChain, token, transferId)
         if (!bondData) continue
-
-        const withdrewData = await getWithdrawal(settlementChain, token, transferId)
-        if (withdrewData) {
-          continue
-        }
 
         tempAmt = tempAmt.add(bondData.amount)
         const bonder = bondData.from
@@ -100,7 +92,6 @@ async function main (source: any) {
         }
         bondedAmountPerBonder[bonder] = bondedAmountPerBonder[bonder].add(bondData.amount)
       }
-
 
       for (const bonder in bondedAmountPerBonder) {
         const amount = bondedAmountPerBonder[bonder]
@@ -111,15 +102,38 @@ async function main (source: any) {
           diff = amount
         }
 
-        if (diff.eq('0')) continue
-        console.log(`${root} ${bonder} ${utils.formatUnits(diff)} (${diff})`)
+        const isFullySettled = diff.eq('0')
+        if (isFullySettled) continue
+        console.log(`${root} ${bonder} ${utils.formatUnits(diff, decimals)} (${diff})`)
       }
     }
     console.log('\n')
   }
 }
 
-async function getSettledRoots(chain: string, token: string): Promise<any> {
+function getSourceChains (settlementChain: string, token: string): string[] {
+  const allChains = getAllChains()
+  const sourceChains: string[] = []
+  for (const chain of allChains) {
+    if (
+      chain === Chain.Ethereum ||
+      chain === settlementChain
+    ) continue
+
+    if (token === 'MATIC') {
+      if (
+        chain === Chain.Arbitrum ||
+        chain === Chain.Optimism
+      ) continue
+    }
+
+    sourceChains.push(chain)
+  }
+
+  return sourceChains
+}
+
+async function getSettledRoots (chain: string, token: string): Promise<SettledRootsPerBonder> {
   const multipleWithdrawalsSettledRes = await getMultipleWithdrawalsSettled(chain, token)
   const settledPerBonder: any = {}
   for (const res of multipleWithdrawalsSettledRes) {

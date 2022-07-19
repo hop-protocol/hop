@@ -1,10 +1,9 @@
-import { actionHandler, parseBool, parseString, root } from './shared'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
+import getTransferRoot from 'src/theGraph/getTransferRoot'
+import { actionHandler, parseBool, parseString, root } from './shared'
 import {
   getSettleBondedWithdrawalsWatcher
 } from 'src/watchers/watchers'
-import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
-import getTransferRoot from 'src/theGraph/getTransferRoot'
 
 root
   .command('settle')

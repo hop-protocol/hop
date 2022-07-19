@@ -13,7 +13,8 @@
     "start:volume": "ts-node src/index.ts --volume",
     "start:tvl": "ts-node src/index.ts --tvl",
     "start:bonder": "ts-node src/index.ts --bonder --bonderDays=30",
-    "build": "tsc",
+    "start:bonderProfit": "ts-node src/index.ts --bonderStartDate=2022-02-23 --bonderEndDate=2022-02-27 --bonderTokens=ETH --bonderProfit",
+    "build": "tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
     "lint": "prettier-standard --format",
     "clean": "rimraf dist",
     "test": "jest test"
@@ -29,6 +30,7 @@
     "@types/luxon": "^2.0.7",
     "@types/node": "^16.7.10",
     "@types/uuid": "^8.3.3",
+    "comment-json": "^4.2.2",
     "csv-writer": "^1.6.0",
     "dotenv": "^10.0.0",
     "ethereum-block-by-date": "^1.4.2",

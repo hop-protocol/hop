@@ -6,6 +6,8 @@ console.log('db path:', dbPath)
 
 const argv = require('minimist')(process.argv.slice(2))
 
+let migrationRan = false
+
 class Db {
   db = new sqlite3.Database(dbPath)
 
@@ -67,7 +69,17 @@ class Db {
           result NUMERIC NOT NULL,
           timestamp INTEGER NOT NULL,
           result2 NUMERIC,
-          eth_amounts NUMERIC
+          eth_amounts NUMERIC,
+          xdai_price_usd NUMERIC,
+          deposit_amount NUMERIC,
+          staked_amount NUMERIC,
+          initial_canonical_amount NUMERIC,
+          result3 NUMERIC,
+          arbitrum_weth_amount NUMERIC,
+          withdrawn_amount NUMERIC,
+          unstaked_eth_amount NUMERIC,
+          bonder_address TEXT NOT NULL,
+          deposit_event  TEXT
       )`)
       if (argv.resetBonderFeesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_fees`)
@@ -99,7 +111,8 @@ class Db {
           total_tx_fees NUMERIC NOT NULL,
           eth_price_usd NUMERIC NOT NULL,
           matic_price_usd NUMERIC NOT NULL,
-          timestamp INTEGER NOT NULL
+          timestamp INTEGER NOT NULL,
+          xdai_price_usd NUMERIC NOT NULL
       )`)
 
       this.db.run(
@@ -117,11 +130,70 @@ class Db {
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_tx_fees_token_timestamp ON bonder_tx_fees (token, timestamp);'
       )
-      if (argv.migration) {
-        this.db.run('ALTER TABLE bonder_balances ADD COLUMN result2 NUMERIC;')
-        this.db.run(
-          'ALTER TABLE bonder_balances ADD COLUMN eth_amounts NUMERIC;'
-        )
+      if (argv.migrations && !migrationRan) {
+        const migrations = JSON.parse(argv.migrations)
+        if (migrations.includes(0)) {
+          this.db.run('ALTER TABLE bonder_balances ADD COLUMN result2 NUMERIC;')
+        }
+        if (migrations.includes(1)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN eth_amounts NUMERIC;'
+          )
+        }
+        if (migrations.includes(2)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN xdai_price_usd NUMERIC;'
+          )
+        }
+        if (migrations.includes(3)) {
+          this.db.run(
+            'ALTER TABLE bonder_tx_fees ADD COLUMN xdai_price_usd NUMERIC;'
+          )
+        }
+        if (migrations.includes(4)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN deposit_amount NUMERIC;'
+          )
+        }
+        if (migrations.includes(5)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN staked_amount NUMERIC;'
+          )
+        }
+        if (migrations.includes(6)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN initial_canonical_amount NUMERIC;'
+          )
+        }
+        if (migrations.includes(7)) {
+          this.db.run('ALTER TABLE bonder_balances ADD COLUMN result3 NUMERIC;')
+        }
+        if (migrations.includes(8)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN arbitrum_weth_amount NUMERIC;'
+          )
+        }
+        if (migrations.includes(9)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN withdrawn_amount NUMERIC;'
+          )
+        }
+        if (migrations.includes(10)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN unstaked_eth_amount NUMERIC;'
+          )
+        }
+        if (migrations.includes(11)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN bonder_address TEXT;'
+          )
+        }
+        if (migrations.includes(12)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN deposit_event TEXT;'
+          )
+        }
+        migrationRan = true
       }
     })
   }
@@ -230,10 +302,20 @@ class Db {
     result: number,
     timestamp: number,
     result2: number = 0,
-    ethAmounts: number = 0
+    ethAmounts: number = 0,
+    xdaiPriceUsd: number = 1,
+    depositAmount: number = 0,
+    stakedAmount: number = 0,
+    initialCanonicalAmount: number = 0,
+    result3: number = 0,
+    arbitrumWethAmount: number = 0,
+    withdrawnAmount: number = 0,
+    unstakedEthAmount: number = 0,
+    bonderAddress: string = '',
+    depositEvent: number | null = null
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -265,7 +347,17 @@ class Db {
       result,
       timestamp,
       result2,
-      ethAmounts
+      ethAmounts,
+      xdaiPriceUsd,
+      depositAmount,
+      stakedAmount,
+      initialCanonicalAmount,
+      result3,
+      arbitrumWethAmount,
+      withdrawnAmount,
+      unstakedEthAmount,
+      bonderAddress,
+      depositEvent
     )
     stmt.finalize()
   }
@@ -286,14 +378,15 @@ class Db {
     stmt.run(
       uuid(),
       token,
-      token,
       polygonFees,
       gnosisFees,
       arbitrumFees,
       optimismFees,
+      ethereumFees,
       totalFees,
       timestamp
     )
+
     stmt.finalize()
   }
 
@@ -307,10 +400,11 @@ class Db {
     totalFees: number = 0,
     ethPriceUsd: number = 0,
     maticPriceUsd: number = 0,
-    timestamp: number = 0
+    timestamp: number = 0,
+    xdaiPriceUsd: number = 0
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_tx_fees VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_tx_fees VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -323,7 +417,8 @@ class Db {
       totalFees,
       ethPriceUsd,
       maticPriceUsd,
-      timestamp
+      timestamp,
+      xdaiPriceUsd
     )
     stmt.finalize()
   }

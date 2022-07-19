@@ -13,11 +13,11 @@ from (
         (
           (13.51 * eth_price_usd) +
           (682.9 * matic_price_usd) +
-          (260.77 * 1)
+          (260.77 * xdai_price_usd)
         ) -
         (
           (polygon_native_amount * matic_price_usd) +
-          (gnosis_native_amount * 1) +
+          (gnosis_native_amount * xdai_price_usd) +
           ((ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount) * eth_price_usd)
         )
     ) as native_token_debt,

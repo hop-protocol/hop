@@ -1,11 +1,9 @@
 select
-  (((profit /( ( days_total / total) / 365.0)) / total) * 100) as apr,
-  days_total,
-  profit
+  (((profit /( ( days_total / total) / 365.0)) / total) * 100) as apr
 from (
   select
     SUM(amount*days) as days_total,
-    1893247.0 as total,
+    (select (staked_amount - unstaked_amount) as total from bonder_balances where token = 'USDT' order by timestamp desc limit 1) as total,
     (select result3 from bonder_balances where token = 'USDT' order by timestamp desc limit 1) as profit
 from (
     select deposit_event as amount,

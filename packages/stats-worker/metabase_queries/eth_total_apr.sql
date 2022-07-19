@@ -3,7 +3,7 @@ select
 from (
   select
     SUM(amount*days) as days_total,
-    8339.0 as total,
+    (select (staked_amount - unstaked_amount) as total from bonder_balances where token = 'ETH' order by timestamp desc limit 1) as total,
     (select result3 from bonder_balances where token = 'ETH' order by timestamp desc limit 1) as profit
 from (
     select deposit_event as amount,

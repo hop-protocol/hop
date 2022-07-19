@@ -71,6 +71,7 @@ type Options = {
   trackBonderProfit?: boolean
   trackBonderFees?: boolean
   trackBonderTxFees?: boolean
+  writeCsv?: boolean
 }
 
 class BonderStats {
@@ -84,6 +85,7 @@ class BonderStats {
   trackOnlyProfit = false
   trackOnlyTxFees = false
   trackOnlyFees = false
+  writeCsv = false
 
   tokenDecimals: Record<string, number> = {
     USDC: 6,
@@ -129,6 +131,10 @@ class BonderStats {
     console.log(
       `trackOnlyProfit: ${this.trackOnlyProfit}, trackOnlyTxFees: ${this.trackOnlyTxFees}, trackOnlyFees: ${this.trackOnlyFees}`
     )
+
+    if (options.writeCsv) {
+      this.writeCsv = options.writeCsv
+    }
 
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
@@ -654,8 +660,10 @@ class BonderStats {
         })
       })
 
-      await csvWriter.writeRecords(rows)
-      console.log(`wrote ${csvPath}`)
+      if (this.writeCsv) {
+        await csvWriter.writeRecords(rows)
+        console.log(`wrote ${csvPath}`)
+      }
     }
   }
 

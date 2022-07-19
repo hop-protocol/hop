@@ -22,6 +22,6 @@ from (
         bonder_balances
     where
         token = 'DAI'
-        and strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) >= '2021-11-12'
+        and timestamp >= (select timestamp from bonder_balances where token = 'DAI' and deposit_event is not null order by timestamp asc limit 1)
     order by timestamp asc
 )

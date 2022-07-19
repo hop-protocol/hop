@@ -26,6 +26,6 @@ from (
         bonder_balances
     where
         token = 'ETH'
-        and strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) >= '2021-12-17'
+        and timestamp > (select timestamp from bonder_balances where token = 'ETH' and deposit_event is not null order by timestamp asc limit 1)
     order by timestamp asc
 )

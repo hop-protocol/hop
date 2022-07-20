@@ -1,5 +1,8 @@
 select
   initial_canonical_amount,
+  initial_eth_amount,
+  initial_matic_amount,
+  initial_xdai_amount,
   polygon_canonical_amount,
   polygon_hToken_amount,
   gnosis_canonical_amount,
@@ -40,9 +43,9 @@ from (
     ) as total_deposits,
     (
         (
-          (19.37 * eth_price_usd) +
-          (996.63 * matic_price_usd) +
-          (501.82 * xdai_price_usd)
+          (initial_eth_amount * eth_price_usd) +
+          (initial_matic_amount * matic_price_usd) +
+          (initial_xdai_amount * xdai_price_usd)
         ) -
         (
           (polygon_native_amount * matic_price_usd) +
@@ -52,6 +55,9 @@ from (
     ) as native_token_debt,
     (ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount) as total_eth_amount,
     initial_canonical_amount,
+    initial_eth_amount,
+    initial_matic_amount,
+    initial_xdai_amount,
     polygon_canonical_amount,
     polygon_hToken_amount,
     gnosis_canonical_amount,

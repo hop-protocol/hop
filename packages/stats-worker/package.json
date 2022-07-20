@@ -13,7 +13,7 @@
     "start:volume": "ts-node src/index.ts --volume",
     "start:tvl": "ts-node src/index.ts --tvl",
     "start:bonder": "ts-node src/index.ts --bonder --bonderDays=30",
-    "start:bonderProfit": "ts-node src/index.ts --bonderStartDate=2022-03-01 --bonderEndDate=2022-07-20 --bonderTokens=USDT --bonderProfit",
+    "start:bonderProfit": "ts-node src/index.ts --bonderStartDate=2022-06-30 --bonderEndDate=2022-07-20 --bonderTokens=ETH --bonderProfit",
     "build": "tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
     "lint": "prettier-standard --format",
     "clean": "rimraf dist",

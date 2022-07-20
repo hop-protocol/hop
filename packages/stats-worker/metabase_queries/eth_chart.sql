@@ -11,9 +11,9 @@ from (
     ) as total_deposits,
     (
         (
-          ((1000 * matic_price_usd) / eth_price_usd) +
-          ((150 * xdai_price_usd) / eth_price_usd) +
-          (32.07)
+          ((initial_matic_amount * matic_price_usd) / eth_price_usd) +
+          ((initial_xdai_amount * xdai_price_usd) / eth_price_usd) +
+          (initial_eth_amount)
         ) -
         (
           ((polygon_native_amount * matic_price_usd) / eth_price_usd) +

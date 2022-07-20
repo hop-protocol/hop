@@ -3,6 +3,11 @@
     "0xa6a688F107851131F0E1dce493EbBebFAf99203e": {
       "totalStaked": "6026000.00",
       "initialCanonicalAmounts": {},
+      "initialNativeAmounts": {
+        "ETH": "13.51",
+        "MATIC": "682.9",
+        "XDAI": "260.77"
+      },
       "depositAmounts": {
         "2021-11-14": "2014490.14", // initial staked+canonical amount (2006000.00 + 8490.14)
         "2021-11-19": "799988.00", // transfer
@@ -35,6 +40,12 @@
   "USDT": {
     "0x15ec4512516d980090050fe101de21832c8edfee": {
       "totalStaked": "1893247.79",
+      "initialCanonicalAmounts": {},
+      "initialNativeAmounts": {
+        "ETH": "19.37",
+        "MATIC": "996.63",
+        "XDAI": "501.82"
+      },
       "depositAmounts": {
         "2022-01-28": ["2081815.87", "1000.00", "39000.00"]
       },
@@ -64,6 +75,11 @@
     "0x305933e09871D4043b5036e09af794FACB3f6170": {
       "totalStaked": "5000000.00",
       "initialCanonicalAmounts": {},
+      "initialNativeAmounts": {
+        "ETH": "10.58487",
+        "MATIC": "150.00",
+        "XDAI": "100.00"
+      },
       "depositAmounts": {
         "2021-11-11": "2000000.00",
         "2022-01-28": "500000.00",
@@ -96,6 +112,11 @@
     "0x710bDa329b2a6224E4B44833DE30F38E7f81d564": {
       "totalStaked": "8339.00",
       "initialCanonicalAmounts": {},
+      "initialNativeAmounts": {
+        "ETH": "32.07",
+        "MATIC": "1000.00",
+        "XDAI": "150.00"
+      },
       "depositAmounts": {
         "2021-12-15": "0.15",
         "2021-12-16": ["1.00", "2473.00"],

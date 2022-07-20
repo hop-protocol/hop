@@ -80,7 +80,10 @@ class Db {
           unstaked_eth_amount NUMERIC,
           bonder_address TEXT NOT NULL,
           deposit_event  TEXT,
-          restaked_eth_amount NUMERIC
+          restaked_eth_amount NUMERIC,
+          initial_eth_amount NUMERIC,
+          initial_matic_amount NUMERIC,
+          initial_xdai_amount NUMERIC
       )`)
       if (argv.resetBonderFeesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_fees`)
@@ -199,6 +202,22 @@ class Db {
             'ALTER TABLE bonder_balances ADD COLUMN restaked_eth_amount TEXT;'
           )
         }
+        if (migrations.includes(14)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN initial_eth_amount NUMERIC;'
+          )
+        }
+        if (migrations.includes(15)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN initial_matic_amount NUMERIC;'
+          )
+        }
+        if (migrations.includes(16)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN initial_xdai_amount NUMERIC;'
+          )
+        }
+
         migrationRan = true
       }
     })
@@ -319,10 +338,13 @@ class Db {
     unstakedEthAmount: number = 0,
     bonderAddress: string = '',
     depositEvent: number | null = null,
-    restakedEthAmount: number | null = null
+    restakedEthAmount: number | null = null,
+    initialEthAmount: number | null = null,
+    initialMaticAmount: number | null = null,
+    initialxDaiAmount: number | null = null
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -365,7 +387,10 @@ class Db {
       unstakedEthAmount,
       bonderAddress,
       depositEvent,
-      restakedEthAmount
+      restakedEthAmount,
+      initialEthAmount,
+      initialMaticAmount,
+      initialxDaiAmount
     )
     stmt.finalize()
   }

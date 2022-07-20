@@ -568,6 +568,10 @@ class BonderStats {
 
       dbData.xdaiPriceUsd = 1
 
+      dbData.initialEthAmount = Number(bonderData.initialNativeAmounts?.ETH ?? 0)
+      dbData.initialMaticAmount = Number(bonderData.initialNativeAmounts?.MATIC ?? 0)
+      dbData.initialxDaiAmount = Number(bonderData.initialNativeAmounts?.XDAI ?? 0)
+
       const { resultFormatted: result3Formatted } = await this.computeResult3({
         token,
         dbData
@@ -622,7 +626,10 @@ class BonderStats {
           dbData.unstakedEthAmount,
           dbData.bonderAddress,
           depositEvent,
-          dbData.restakedEthAmount
+          dbData.restakedEthAmount,
+          dbData.initialEthAmount,
+          dbData.initialMaticAmount,
+          dbData.initialxDaiAmount
         )
         console.log(
           day,
@@ -1091,49 +1098,19 @@ class BonderStats {
     const totalDeposits = dbData.depositAmount - dbData.withdrawnAmount
 
     let nativeStartingTokenAmount = 0
-    if (
-      token === 'DAI' &&
-      dbData.bonderAddress ===
-        '0x305933e09871D4043b5036e09af794FACB3f6170'.toLowerCase()
-    ) {
-      // TODO: move to config
+    if (token === 'DAI' || token === 'USDC' || token === 'USDT') {
       nativeStartingTokenAmount =
-        10.58487 * dbData.ethPriceUsd +
-        150.0 * dbData.maticPriceUsd +
-        100.0 * dbData.xdaiPriceUsd
+        dbData.initialEthAmount * dbData.ethPriceUsd +
+        dbData.initialMaticAmount * dbData.maticPriceUsd +
+        dbData.initialxDaiAmount * dbData.xdaiPriceUsd
     }
-    if (
-      token === 'USDC' &&
-      dbData.bonderAddress ===
-        '0xa6a688F107851131F0E1dce493EbBebFAf99203e'.toLowerCase()
-    ) {
+    if (token === 'ETH') {
       // TODO: move to config
       nativeStartingTokenAmount =
-        13.51 * dbData.ethPriceUsd +
-        682.9 * dbData.maticPriceUsd +
-        260.77 * dbData.xdaiPriceUsd
-    }
-    if (
-      token === 'USDT' &&
-      dbData.bonderAddress ===
-        '0x15ec4512516d980090050fe101de21832c8edfee'.toLowerCase()
-    ) {
-      // TODO: move to config
-      nativeStartingTokenAmount =
-        19.37 * dbData.ethPriceUsd +
-        996.63 * dbData.maticPriceUsd +
-        501.82 * dbData.xdaiPriceUsd
-    }
-    if (
-      token === 'ETH' &&
-      dbData.bonderAddress ===
-        '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'.toLowerCase()
-    ) {
-      // TODO: move to config
-      nativeStartingTokenAmount =
-        (1000.0 * dbData.maticPriceUsd) / dbData.ethPriceUsd +
-        (150.0 * dbData.xdaiPriceUsd) / dbData.ethPriceUsd +
-        32.07
+        (dbData.initialMaticAmount * dbData.maticPriceUsd) /
+          dbData.ethPriceUsd +
+        (dbData.initialxDaiAmount * dbData.xdaiPriceUsd) / dbData.ethPriceUsd +
+        dbData.initialEthAmount
     }
     let nativeTokenDebt =
       dbData.polygonNativeAmount * dbData.maticPriceUsd +

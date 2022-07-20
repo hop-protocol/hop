@@ -392,7 +392,7 @@ class BonderStats {
       const initialAggregateBalanceInAssetToken = BigNumber.from(0)
       const initialAggregateNativeBalance = BigNumber.from(0)
 
-      const initialCanonicalAmounts = bonderData.initialCanonicalAmounts
+      const initialCanonicalAmounts = bonderData.initialCanonicalAmounts ?? {}
       let initialCanonicalAmount = BigNumber.from(0)
       for (const date in initialCanonicalAmounts) {
         const ts = this.parseConfigDateToStartOfNextDayUnix(date)
@@ -412,7 +412,7 @@ class BonderStats {
         }
       }
 
-      const depositAmounts = bonderData.depositAmounts
+      const depositAmounts = bonderData.depositAmounts ?? {}
       let depositAmount = BigNumber.from(0)
       let depositEvent: any = null
       for (const date in depositAmounts) {
@@ -432,7 +432,7 @@ class BonderStats {
         }
       }
 
-      const stakedAmounts = bonderData.stakedAmounts
+      const stakedAmounts = bonderData.stakedAmounts ?? {}
       let stakedAmount = BigNumber.from(0)
       for (const date in stakedAmounts) {
         const ts = this.parseConfigDateToStartOfNextDayUnix(date)
@@ -445,7 +445,7 @@ class BonderStats {
         }
       }
 
-      const unstakedAmounts = bonderData.unstakedAmounts
+      const unstakedAmounts = bonderData.unstakedAmounts ?? {}
       let unstakedAmount = BigNumber.from(0)
       for (const date in unstakedAmounts) {
         const ts = this.parseConfigDateToStartOfNextDayUnix(date)
@@ -458,7 +458,7 @@ class BonderStats {
         }
       }
 
-      const unstakedEthAmounts = bonderData.unstakedEthAmounts
+      const unstakedEthAmounts = bonderData.unstakedEthAmounts ?? {}
       let unstakedEthAmount = BigNumber.from(0)
       for (const date in unstakedEthAmounts) {
         const ts = this.parseConfigDateToStartOfNextDayUnix(date)
@@ -471,7 +471,7 @@ class BonderStats {
         }
       }
 
-      const restakedProfits = bonderData.restakedProfits
+      const restakedProfits = bonderData.restakedProfits ?? {}
       let restakedAmount = BigNumber.from(0)
       for (const date in restakedProfits) {
         const ts = this.parseConfigDateToStartOfNextDayUnix(date)
@@ -484,7 +484,20 @@ class BonderStats {
         }
       }
 
-      const withdrawnAmounts = bonderData.withdrawnAmounts
+      const restakedEthProfits = bonderData.restakedEthProfits ?? {}
+      let restakedEthAmount = BigNumber.from(0)
+      for (const date in restakedEthProfits) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(restakedEthProfits[date], token)
+          for (const amount of amounts) {
+            restakedEthAmount = restakedEthAmount.add(amount)
+            console.log(ts, 'add restaked eth amount', amount.toString())
+          }
+        }
+      }
+
+      const withdrawnAmounts = bonderData.withdrawnAmounts ?? {}
       let withdrawnAmount = BigNumber.from(0)
       for (const date in withdrawnAmounts) {
         const ts = this.parseConfigDateToStartOfNextDayUnix(date)
@@ -529,6 +542,10 @@ class BonderStats {
 
       dbData.restakedAmount = Number(
         formatUnits(restakedAmount, this.tokenDecimals[token])
+      )
+
+      dbData.restakedEthAmount = Number(
+        formatUnits(restakedEthAmount, this.tokenDecimals[token])
       )
 
       dbData.depositAmount = Number(
@@ -604,7 +621,8 @@ class BonderStats {
           dbData.withdrawnAmount,
           dbData.unstakedEthAmount,
           dbData.bonderAddress,
-          depositEvent
+          depositEvent,
+          dbData.restakedEthAmount
         )
         console.log(
           day,

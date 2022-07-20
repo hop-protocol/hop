@@ -26,6 +26,6 @@ from (
         bonder_balances
     where
         token = 'DAI'
-        and timestamp >= (select timestamp from bonder_balances where token = 'DAI' and deposit_event is not null order by timestamp asc limit 1)
+        and timestamp > (select timestamp from bonder_balances where token = 'DAI' and deposit_event is not null order by timestamp asc limit 1)
     order by timestamp asc
 )

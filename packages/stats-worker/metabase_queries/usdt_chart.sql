@@ -26,6 +26,6 @@ from (
         bonder_balances
     where
         token = 'USDT'
-        and timestamp > (select timestamp from bonder_balances where token = 'USDT' and deposit_event is not null order by timestamp asc limit 1)
+        and strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) > '2022-01-28'
     order by timestamp asc
 )

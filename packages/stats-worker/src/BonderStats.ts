@@ -1097,7 +1097,10 @@ class BonderStats {
         '0x305933e09871D4043b5036e09af794FACB3f6170'.toLowerCase()
     ) {
       // TODO: move to config
-      nativeStartingTokenAmount = 10.58487 * dbData.ethPriceUsd
+      nativeStartingTokenAmount =
+        10.58487 * dbData.ethPriceUsd +
+        150.0 * dbData.maticPriceUsd +
+        100.0 * dbData.xdaiPriceUsd
     }
     if (
       token === 'USDC' &&
@@ -1106,7 +1109,20 @@ class BonderStats {
     ) {
       // TODO: move to config
       nativeStartingTokenAmount =
-        13.51 * dbData.ethPriceUsd + 682.9 * dbData.maticPriceUsd + 260.77 * 1
+        13.51 * dbData.ethPriceUsd +
+        682.9 * dbData.maticPriceUsd +
+        260.77 * dbData.xdaiPriceUsd
+    }
+    if (
+      token === 'USDT' &&
+      dbData.bonderAddress ===
+        '0x15ec4512516d980090050fe101de21832c8edfee'.toLowerCase()
+    ) {
+      // TODO: move to config
+      nativeStartingTokenAmount =
+        19.37 * dbData.ethPriceUsd +
+        996.63 * dbData.maticPriceUsd +
+        501.82 * dbData.xdaiPriceUsd
     }
     if (
       token === 'ETH' &&
@@ -1115,8 +1131,8 @@ class BonderStats {
     ) {
       // TODO: move to config
       nativeStartingTokenAmount =
-        (1000 * dbData.maticPriceUsd) / dbData.ethPriceUsd +
-        (150 * 1) / dbData.ethPriceUsd +
+        (1000.0 * dbData.maticPriceUsd) / dbData.ethPriceUsd +
+        (150.0 * dbData.xdaiPriceUsd) / dbData.ethPriceUsd +
         32.07
     }
     let nativeTokenDebt =
@@ -1132,7 +1148,7 @@ class BonderStats {
       nativeTokenDebt =
         (dbData.polygonNativeAmount * dbData.maticPriceUsd) /
           dbData.ethPriceUsd +
-        (dbData.gnosisNativeAmount * 1) / dbData.ethPriceUsd +
+        (dbData.gnosisNativeAmount * dbData.xdaiPriceUsd) / dbData.ethPriceUsd +
         (dbData.ethereumNativeAmount +
           dbData.optimismNativeAmount +
           dbData.arbitrumNativeAmount +

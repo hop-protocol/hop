@@ -39,8 +39,8 @@ from (
     (
         (
           (10.58487 * eth_price_usd) +
-          (150 * matic_price_usd) +
-          (100 * xdai_price_usd)
+          (150.00 * matic_price_usd) +
+          (100.00 * xdai_price_usd)
         ) -
         (
           (polygon_native_amount * matic_price_usd) +

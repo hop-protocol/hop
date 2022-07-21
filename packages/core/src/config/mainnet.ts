@@ -10,18 +10,18 @@ export const config : Config = {
       arbitrum: 14
     },
     USDT: {
-      ethereum: 23,
-      polygon: 23,
-      gnosis: 25,
-      optimism: 23,
-      arbitrum: 23
+      ethereum: 26,
+      polygon: 26,
+      gnosis: 30,
+      optimism: 26,
+      arbitrum: 26
     },
     DAI: {
-      ethereum: 20,
-      polygon: 20,
-      gnosis: 25,
-      optimism: 20,
-      arbitrum: 20
+      ethereum: 26,
+      polygon: 26,
+      gnosis: 30,
+      optimism: 26,
+      arbitrum: 26
     },
     MATIC: {
       ethereum: 20,

@@ -568,9 +568,40 @@ class BonderStats {
 
       dbData.xdaiPriceUsd = 1
 
-      dbData.initialEthAmount = Number(bonderData.initialNativeAmounts?.ETH ?? 0)
-      dbData.initialMaticAmount = Number(bonderData.initialNativeAmounts?.MATIC ?? 0)
-      dbData.initialxDaiAmount = Number(bonderData.initialNativeAmounts?.XDAI ?? 0)
+      const initialEthNativeAmounts = bonderData.initialNativeAmounts?.ETH ?? {}
+      let initialEthAmount = 0
+      for (const date in initialEthNativeAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          initialEthAmount = Number(initialEthNativeAmounts[date])
+        }
+      }
+
+      dbData.initialEthAmount = initialEthAmount
+
+      const initialMaticNativeAmounts =
+        bonderData.initialNativeAmounts?.MATIC ?? {}
+      let initialMaticAmount = 0
+      for (const date in initialMaticNativeAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          initialMaticAmount = Number(initialMaticNativeAmounts[date])
+        }
+      }
+
+      dbData.initialMaticAmount = initialMaticAmount
+
+      const initialxDaiNativeAmounts =
+        bonderData.initialNativeAmounts?.XDAI ?? {}
+      let initialxDaiAmount = 0
+      for (const date in initialxDaiNativeAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          initialxDaiAmount = Number(initialxDaiNativeAmounts[date])
+        }
+      }
+
+      dbData.initialxDaiAmount = initialxDaiAmount
 
       const { resultFormatted: result3Formatted } = await this.computeResult3({
         token,

@@ -40,6 +40,7 @@
   "license": "MIT",
   "dependencies": {
     "@aave/contract-helpers": "^1.4.0",
+    "@aave/math-utils": "^1.4.0",
     "@arbitrum/sdk": "^1.1.4",
     "@aws-sdk/client-s3": "^3.33.0",
     "@eth-optimism/contracts": "^0.5.3",
@@ -99,6 +100,7 @@
     "pidusage": "^2.0.21",
     "pify": "^5.0.0",
     "prompt": "^1.1.0",
+    "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "subleveldown": "^6.0.1",
     "to-hex": "0.0.18",

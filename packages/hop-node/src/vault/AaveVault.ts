@@ -1,4 +1,5 @@
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
+import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { BigNumber, Contract, constants } from 'ethers'
 import { Chain } from 'src/constants'
@@ -34,6 +35,7 @@ export class AaveVault implements Vault {
   chain: Chain
   token: string
   signer: any
+  provider: any
   slippage = 0.01 // needed for zapIn/zapOut
   aave: Yearn<any>
   decimals: number
@@ -54,11 +56,12 @@ export class AaveVault implements Vault {
     this.chain = chain
     this.token = token
     this.tokenAddress = tokenAddresses[token][chain].token
-    this.aTokenAddress = tokenAddresses[token][chain].token
-    this.signer = signer
+    this.aTokenAddress = tokenAddresses[token][chain].aToken
+    this.provider = getRpcProvider(chain)!
+    this.signer = signer.connect(this.provider)
     this.decimals = getTokenDecimals(token)
 
-    this.pool = new Pool(this.signer.getProvider(), {
+    this.pool = new Pool(this.provider, {
       POOL: aaveAddresses[chain].LENDING_POOL,
       WETH_GATEWAY: aaveAddresses[chain].WETH_GATEWAY
     })
@@ -81,6 +84,8 @@ export class AaveVault implements Vault {
       amount: this.formatUnits(amount).toString(),
       deadline: deadline.toString()
     })
+
+    console.log('account:', account)
 
     const parsedData = JSON.parse(dataToSign)
     const { domain, types, message: value } = parsedData

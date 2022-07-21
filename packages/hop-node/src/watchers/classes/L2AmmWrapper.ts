@@ -5,9 +5,9 @@ import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Hop } from '@hop-protocol/sdk'
+import { PayableOverrides } from '@ethersproject/contracts'
 import { formatUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
-import { PayableOverrides } from '@ethersproject/contracts'
 
 export default class L2AmmWrapper extends ContractBase {
   decodeSwapAndSendData (data: string): any {

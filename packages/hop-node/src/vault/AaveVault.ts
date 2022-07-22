@@ -5,9 +5,9 @@ import { BigNumber, Contract, constants } from 'ethers'
 import { Chain } from 'src/constants'
 import { Pool } from '@aave/contract-helpers'
 import { Vault } from './Vault'
-import { Yearn } from '@yfi/sdk'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
+// https://github.com/aave/interface/blob/9aa7bc269e58e452def540f5b76f194373b5c61b/src/ui-config/marketsConfig.tsx
 const aaveAddresses: Record<string, any> = {
   arbitrum: {
     LENDING_POOL_ADDRESS_PROVIDER: '0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb',
@@ -22,29 +22,46 @@ const aaveAddresses: Record<string, any> = {
   }
 }
 
+// note: aave v3 on arbitirum, aave v2 on ethereum (v3 not available on ethereum)
 const tokenAddresses: Record<string, any> = {
   USDC: {
     arbitrum: {
       token: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
       aToken: '0x625e7708f30ca75bfd92586e17077590c60eb4cd'
+    },
+    ethereum: {
+      token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      aToken: '0xbcca60bb61934080951369a648fb03df4f96263c'
     }
   },
   USDT: {
     arbitrum: {
       token: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
       aToken: '0x6ab707aca953edaefbc4fd23ba73294241490620'
+    },
+    ethereum: {
+      token: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      aToken: '0x3ed3b47dd13ec9a98b44e6204a523e766b225811'
     }
   },
   DAI: {
     arbitrum: {
       token: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
       aToken: '0x82e64f49ed5ec1bc6e43dad4fc8af9bb3a2312ee'
+    },
+    ethereum: {
+      token: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      aToken: '0x028171bca77440897b824ca71d1c56cac55b68a3'
     }
   },
   ETH: {
     arbitrum: {
       token: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
       aToken: '0xe50fa9b3c56ffb159cb0fca61f5c9d750e8128c8'
+    },
+    ethereum: {
+      token: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+      aToken: '0x030ba81f1c18d280636f32af80b9aad02cf0854e'
     }
   }
 }
@@ -54,8 +71,6 @@ export class AaveVault implements Vault {
   token: string
   signer: any
   provider: any
-  slippage = 0.01 // needed for zapIn/zapOut
-  aave: Yearn<any>
   decimals: number
   tokenAddress: string
   aTokenAddress: string
@@ -99,7 +114,9 @@ export class AaveVault implements Vault {
     console.log('account:', account)
 
     let txs: any[] = []
-    const canSupplyWithPermit = ['USDC', 'USDT'].includes(this.token)
+
+    // available on aave v3 and doesn't work with DAI
+    const canSupplyWithPermit = this.chain === 'arbitrum' && ['USDC', 'USDT'].includes(this.token)
     if (canSupplyWithPermit) {
       const dataToSign = await this.pool.signERC20Approval({
         user: account,
@@ -121,11 +138,21 @@ export class AaveVault implements Vault {
         deadline: deadline.toString()
       })
     } else {
-      txs = await this.pool.supply({
-        user: account,
-        reserve: this.tokenAddress,
-        amount: this.formatUnits(amount).toString()
-      })
+      if (this.chain === Chain.Ethereum) {
+        // aave v2
+        txs = await this.pool.deposit({
+          user: account,
+          reserve: this.tokenAddress,
+          amount: this.formatUnits(amount).toString()
+        })
+      } else {
+        // aave v3
+        txs = await this.pool.supply({
+          user: account,
+          reserve: this.tokenAddress,
+          amount: this.formatUnits(amount).toString()
+        })
+      }
     }
 
     console.log(txs)
@@ -145,6 +172,8 @@ export class AaveVault implements Vault {
 
   async withdraw (amount: BigNumber) {
     const account = await this.signer.getAddress()
+
+    // aave v2 and v3
     const txs = await this.pool.withdraw({
       user: account,
       reserve: this.tokenAddress,
@@ -159,6 +188,9 @@ export class AaveVault implements Vault {
     for (const item of txs) {
       console.log(await item.gas())
       const txPayload = await item.tx()
+      if (txPayload.value) {
+        txPayload.value = BigNumber.from(txPayload.value).toHexString()
+      }
       tx = await this.signer.sendTransaction(txPayload)
       console.log(tx)
       await tx.wait()

@@ -162,6 +162,9 @@ export class AaveVault implements Vault {
     for (const item of txs) {
       console.log(await item.gas())
       const txPayload = await item.tx()
+      if (txPayload.value) {
+        txPayload.value = BigNumber.from(txPayload.value).toHexString()
+      }
       tx = await this.signer.sendTransaction(txPayload)
       console.log(tx)
       await tx.wait()
@@ -188,9 +191,6 @@ export class AaveVault implements Vault {
     for (const item of txs) {
       console.log(await item.gas())
       const txPayload = await item.tx()
-      if (txPayload.value) {
-        txPayload.value = BigNumber.from(txPayload.value).toHexString()
-      }
       tx = await this.signer.sendTransaction(txPayload)
       console.log(tx)
       await tx.wait()

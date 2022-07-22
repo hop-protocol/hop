@@ -155,10 +155,10 @@ export class AaveVault implements Vault {
       }
     }
 
-    console.log(txs)
-    let tx: any
-
+    console.log('aave txs:', txs)
     console.log('attempting to deposit')
+
+    let tx: any
     for (const item of txs) {
       console.log(await item.gas())
       const txPayload = await item.tx()
@@ -184,9 +184,9 @@ export class AaveVault implements Vault {
       aTokenAddress: this.aTokenAddress
     })
 
+    console.log('aave txs:', txs)
     console.log('attempting to withdraw')
 
-    console.log(txs)
     let tx: any
     for (const item of txs) {
       console.log(await item.gas())

@@ -11,6 +11,7 @@ export abstract class Vault {
       return new YearnVault(chain, token, signer)
     }
 
+    // TODO: determine what tokens and chain to use aave vault for
     const aaveVaultTokens = new Set(['USDC'])
     const useAaveVault = chain === Chain.Arbitrum && aaveVaultTokens.has(token)
     if (useAaveVault) {

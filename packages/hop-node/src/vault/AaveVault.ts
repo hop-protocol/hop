@@ -7,6 +7,8 @@ import { Pool } from '@aave/contract-helpers'
 import { Vault } from './Vault'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
+const NativeTokenAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+
 // https://github.com/aave/interface/blob/9aa7bc269e58e452def540f5b76f194373b5c61b/src/ui-config/marketsConfig.tsx
 const aaveAddresses: Record<string, any> = {
   arbitrum: {
@@ -76,17 +78,17 @@ const tokenAddresses: Record<string, any> = {
   },
   ETH: {
     arbitrum: {
-      token: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+      token: NativeTokenAddress,
       aToken: '0xe50fa9b3c56ffb159cb0fca61f5c9d750e8128c8'
     },
     ethereum: {
-      token: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+      token: NativeTokenAddress,
       aToken: '0x030ba81f1c18d280636f32af80b9aad02cf0854e'
     }
   },
   MATIC: {
     polygon: {
-      token: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+      token: NativeTokenAddress,
       aToken: '0x6d80113e533a2c0fe82eabd35f1875dcea89ea97'
     }
   }
@@ -136,9 +138,17 @@ export class AaveVault implements Vault {
 
   async deposit (amount: BigNumber) {
     const account = await this.signer.getAddress()
-    const deadline = Math.floor(Date.now() / 1000) + (60 * 60)
     console.log('account:', account)
 
+    const needsApproval = await this.needsDepositApproval(amount)
+    if (needsApproval) {
+      console.log('needs approval; sending approval tx')
+      const tx = await this.approveDeposit()
+      console.log('approval tx:', tx.hash)
+      await tx.wait()
+    }
+
+    const deadline = Math.floor(Date.now() / 1000) + (60 * 60)
     let txs: any[] = []
 
     // available on aave v3 and doesn't work with DAI
@@ -201,6 +211,15 @@ export class AaveVault implements Vault {
 
   async withdraw (amount: BigNumber) {
     const account = await this.signer.getAddress()
+    console.log('account:', account)
+
+    const needsApproval = await this.needsWithdrawalApproval(amount)
+    if (needsApproval) {
+      console.log('needs approval; sending approval tx')
+      const tx = await this.approveWithdrawal()
+      console.log('approval tx:', tx.hash)
+      await tx.wait()
+    }
 
     // aave v2 and v3
     const txs = await this.pool.withdraw({
@@ -238,6 +257,9 @@ export class AaveVault implements Vault {
 
   async needsDepositApproval (amount: BigNumber = constants.MaxUint256) {
     const account = await this.signer.getAddress()
+    if (this.tokenAddress === NativeTokenAddress) {
+      return false
+    }
     const contract = this.getErc20(this.tokenAddress)
     const spender = aaveAddresses[this.chain].LENDING_POOL
     const allowance = await contract.allowance(account, spender)
@@ -247,6 +269,9 @@ export class AaveVault implements Vault {
 
   async needsWithdrawalApproval (amount: BigNumber = constants.MaxUint256) {
     const account = await this.signer.getAddress()
+    if (this.tokenAddress === NativeTokenAddress) {
+      return false
+    }
     const contract = this.getErc20(this.aTokenAddress)
     const spender = aaveAddresses[this.chain].LENDING_POOL
     const allowance = await contract.allowance(account, spender)

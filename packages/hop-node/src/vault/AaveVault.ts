@@ -28,6 +28,24 @@ const tokenAddresses: Record<string, any> = {
       token: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
       aToken: '0x625e7708f30ca75bfd92586e17077590c60eb4cd'
     }
+  },
+  USDT: {
+    arbitrum: {
+      token: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
+      aToken: '0x6ab707aca953edaefbc4fd23ba73294241490620'
+    }
+  },
+  DAI: {
+    arbitrum: {
+      token: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+      aToken: '0x82e64f49ed5ec1bc6e43dad4fc8af9bb3a2312ee'
+    }
+  },
+  ETH: {
+    arbitrum: {
+      token: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+      aToken: '0xe50fa9b3c56ffb159cb0fca61f5c9d750e8128c8'
+    }
   }
 }
 
@@ -78,27 +96,37 @@ export class AaveVault implements Vault {
   async deposit (amount: BigNumber) {
     const account = await this.signer.getAddress()
     const deadline = Math.floor(Date.now() / 1000) + (60 * 60)
-    const dataToSign = await this.pool.signERC20Approval({
-      user: account,
-      reserve: this.tokenAddress,
-      amount: this.formatUnits(amount).toString(),
-      deadline: deadline.toString()
-    })
-
     console.log('account:', account)
 
-    const parsedData = JSON.parse(dataToSign)
-    const { domain, types, message: value } = parsedData
-    delete types.EIP712Domain
-    const signature = await this.signer._signTypedData(domain, types, value)
+    let txs: any[] = []
+    const canSupplyWithPermit = ['USDC', 'USDT'].includes(this.token)
+    if (canSupplyWithPermit) {
+      const dataToSign = await this.pool.signERC20Approval({
+        user: account,
+        reserve: this.tokenAddress,
+        amount: this.formatUnits(amount).toString(),
+        deadline: deadline.toString()
+      })
 
-    const txs = await this.pool.supplyWithPermit({
-      user: account,
-      reserve: this.tokenAddress,
-      amount: this.formatUnits(amount).toString(),
-      signature,
-      deadline: deadline.toString()
-    })
+      const parsedData = JSON.parse(dataToSign)
+      const { domain, types, message: value } = parsedData
+      delete types.EIP712Domain
+      const signature = await this.signer._signTypedData(domain, types, value)
+
+      txs = await this.pool.supplyWithPermit({
+        user: account,
+        reserve: this.tokenAddress,
+        amount: this.formatUnits(amount).toString(),
+        signature,
+        deadline: deadline.toString()
+      })
+    } else {
+      txs = await this.pool.supply({
+        user: account,
+        reserve: this.tokenAddress,
+        amount: this.formatUnits(amount).toString()
+      })
+    }
 
     console.log(txs)
     let tx: any
@@ -109,6 +137,7 @@ export class AaveVault implements Vault {
       const txPayload = await item.tx()
       tx = await this.signer.sendTransaction(txPayload)
       console.log(tx)
+      await tx.wait()
     }
 
     return tx
@@ -132,6 +161,7 @@ export class AaveVault implements Vault {
       const txPayload = await item.tx()
       tx = await this.signer.sendTransaction(txPayload)
       console.log(tx)
+      await tx.wait()
     }
     return tx
   }

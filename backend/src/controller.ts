@@ -121,7 +121,7 @@ export class Controller {
   async getTransfers (params: any): Promise<Transfer[]> {
     const _key = `transfers-${Date.now()}-${Math.random()}`
     console.time(_key)
-    let page = Number(params.page || 0)
+    let page = Number(params.page || 1)
     let perPage = Number(params.perPage || 100)
     const sourceChainSlug = params.sourceChainSlug
     const destinationChainSlug = params.destinationChainSlug
@@ -152,8 +152,8 @@ export class Controller {
       bonded = true
     }
 
-    if (page <= 0) {
-      page = 0
+    if (page <= 1) {
+      page = 1
     }
 
     if (transferId) {
@@ -167,6 +167,8 @@ export class Controller {
     if (perPage > 100) {
       perPage = 100
     }
+
+    page = page - 1 // db page
 
     let startTimestamp :any
     if (startDate) {

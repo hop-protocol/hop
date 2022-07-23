@@ -175,7 +175,7 @@ function useData () {
   const [transfers, setTransfers] = useState<any>([])
   const [showBanner, setShowBanner] = useState<boolean>(false)
   const [unsyncedSubgraphUrl, setUnsyncedSubgraphUrl] = useState<string>('')
-  const [page, setPage] = useState(Number(queryParams.page || 0))
+  const [page, setPage] = useState(Number(queryParams.page || 1))
   const [perPage, setPerPage] = useState(() => {
       try {
         if (queryParams.perPage) {
@@ -191,8 +191,8 @@ function useData () {
     return 25
   })
 
-  const hasFirstPage = page > 0
-  const hasPreviousPage = page > 0
+  const hasFirstPage = page > 1
+  const hasPreviousPage = page > 1
   const hasNextPage = true // page < (allTransfers.length / perPage) - 1
 
   useEffect(() => {
@@ -349,14 +349,14 @@ function useData () {
   }
 
   function previousPage () {
-    const _page = Math.max(page - 1, 0)
+    const _page = Math.max(page - 1, 1)
     setPage(_page)
     updateQueryParams({ page: _page })
   }
 
   function firstPage () {
-    setPage(0)
-    updateQueryParams({ page: 0 })
+    setPage(1)
+    updateQueryParams({ page: 1 })
   }
 
   function nextPage () {
@@ -510,7 +510,7 @@ function useData () {
   }, [filterBonded, filterSource, filterDestination, filterToken, filterAmount, filterAmountComparator, filterAmountUsd, filterAmountUsdComparator, filterBonderFeeUsd, filterBonderFeeUsdComparator, filterBonder, filterAccount, filterRecipient, filterTransferId, filterStartDate, filterEndDate, filterSortBy, filterSortDirection, page, perPage])
 
   function resetPage () {
-    setPage(0)
+    setPage(1)
   }
 
   function resetFilters(event: any) {
@@ -534,7 +534,7 @@ function useData () {
     setFilterRecipient('')
     setFilterTransferId('')
     setChartAmountSize(false)
-    setPage(0)
+    setPage(1)
     updateQueryParams({
       bonded: null,
       source: null,
@@ -910,7 +910,7 @@ const Index: NextPage = () => {
                 {transfers.map((x: any, index: number) => {
                   return (
                     <tr key={index}>
-                      <td className="index">{ ((page * perPage) + index + 1) }</td>
+                      <td className="index">{ ((Math.max(page-1, 0) * perPage) + index + 1) }</td>
                       <td className="timestamp" title={x.timestampIso}>{ x.timestampRelative }</td>
                       <td className={x.sourceChainSlug}>
                         <Image width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />

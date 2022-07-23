@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import Skeleton from '@material-ui/lab/Skeleton'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
@@ -8,6 +9,7 @@ import NavigateNextIcon from '@material-ui/icons/NavigateNext'
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore'
 import { useQuery } from 'react-query'
 import useQueryParams from 'src/hooks/useQueryParams'
+import InfoTooltip from 'src/components/InfoTooltip'
 
 type Item = {
   transferId: string
@@ -30,13 +32,14 @@ type Item = {
   bondStatusColor: string
   receivedHTokens: boolean
   convertHTokenUrl: string
+  bonded: boolean
 }
 
 function useData(props: any) {
   const { queryParams } = useQueryParams()
   const address = queryParams.address ?? props.address
   const [perPage] = useState<number>(5)
-  const [page, setPage] = useState<number>(0)
+  const [page, setPage] = useState<number>(1)
   const [hasPreviousPage, setHasPreviousPage] = useState<boolean>(false)
   const [hasNextPage, setHasNextPage] = useState<boolean>(false)
 
@@ -67,7 +70,7 @@ const queryKey = `accountTransfersHistory:${address}:${perPage}:${page}`
   const items = data ?? []
 
   useEffect(() => {
-    if (page === 0) {
+    if (page === 1) {
       setHasPreviousPage(false)
     } else {
       setHasPreviousPage(true)
@@ -81,8 +84,8 @@ const queryKey = `accountTransfersHistory:${address}:${perPage}:${page}`
 
   function handlePreviousPageClick(event: any) {
     event.preventDefault()
-    if (page > 0) {
-      setPage(page - 1)
+    if (page > 1) {
+      setPage(Math.max(page - 1, 1))
     }
   }
 
@@ -128,22 +131,33 @@ export function AccountTransferHistory (props: Props) {
         <Box>
           {isLoading && (
             <Box>
-              <Typography variant="body1">
-                Loading...
-              </Typography>
+              <Skeleton animation="wave" width={'20%'} />
+              <Skeleton animation="wave" width={'100%'} />
+              <Skeleton animation="wave" width={'20%'} />
+              <Skeleton animation="wave" width={'100%'} />
             </Box>
           )}
           {items?.map((item: Item, i: number) => {
+            if (!item) {
+              return null
+            }
             return (
               <Box key={i} mb={3}>
                 <Box mb={0.2} mr={1} display="flex">
                   <Typography variant="body2" component="span">
-                    {item.timestampRelative}
+                    {item?.timestampRelative ?? ''}
                   </Typography>
-                  {(item.bondTimestampRelative) && (
+                  {!!item?.bondTimestampRelative && (
                     <Box ml={1} display="inline-flex">
                       <Typography variant="body2" component="span" color="secondary">
-                        (<span style={{ color: '#52c106' }}>{item.sourceChainSlug === 'ethereum' ? 'received' : 'bonded'}</span> {item.bondTimestampRelative})
+                        (<span style={{ color: '#52c106' }}>{item.sourceChainSlug === 'ethereum' ? 'received' : 'bonded'}</span> {item.bondTimestampRelative ?? ''})
+                      </Typography>
+                    </Box>
+                  )}
+                  {!item?.bonded && (
+                    <Box ml={1} display="inline-flex">
+                      <Typography variant="body2" component="span" color="secondary">
+                        (<span>pending</span> <InfoTooltip title="This may take 5-15 minutes depending on the route" />)
                       </Typography>
                     </Box>
                   )}
@@ -151,38 +165,44 @@ export function AccountTransferHistory (props: Props) {
                 <Box display="flex" justifyItems="center" alignItems="center">
                   <Box mr={2} display="flex">
                     <Typography variant="body1" component="span">
-                      <Box display="flex">{item.amountDisplay}
-                      <Box ml={0.5} mr={0.5} display="inline-flex">
-                        <img src={item.tokenImageUrl} width={16} alt="icon" />
-                      </Box>
-                      {item.token}</Box>
+                      <Box display="flex">{item?.amountDisplay ?? ''}
+                        {!!item?.tokenImageUrl && (
+                          <Box ml={0.5} mr={0.5} display="inline-flex">
+                            <img src={item.tokenImageUrl} width={16} alt="icon" />
+                          </Box>
+                        )}
+                      {item?.token ?? ''}</Box>
                     </Typography>
                   </Box>
-                  <Box mr={0.5} display="flex">
-                    <img src={item.sourceChainImageUrl} width={16} alt="icon" />
-                  </Box>
-                  <Box display="inline-flex" style={{ color: item.sourceChainColor }}>
-                    {item.transactionHashExplorerUrl ? (
-                      <ExternalLink href={item.transactionHashExplorerUrl} style={{ color: item.sourceChainColor }}>{item.sourceChainName}</ExternalLink>
+                  {!!item?.sourceChainImageUrl && (
+                    <Box mr={0.5} display="flex">
+                      <img src={item.sourceChainImageUrl} width={16} alt="icon" />
+                    </Box>
+                  )}
+                  <Box display="inline-flex" style={{ color: item?.sourceChainColor }}>
+                    {item?.transactionHashExplorerUrl ? (
+                      <ExternalLink href={item.transactionHashExplorerUrl} style={{ color: item?.sourceChainColor }}>{item?.sourceChainName ?? ''}</ExternalLink>
                     ) : (
-                      <Box>{item.sourceChainName}</Box>
+                      <Box>{item?.sourceChainName ?? ''}</Box>
                     )}
                     <Box ml={0.2} mr={1} display="flex">→</Box>
                   </Box>
-                  <Box mr={0.5} display="flex">
-                    <img src={item.destinationChainImageUrl} width={16} alt="icon" />
-                  </Box>
-                  <Box display="inline-flex" style={{ color: item.destinationChainColor }}>
-                    {item.bondTransactionHashExplorerUrl ? (
-                      <ExternalLink href={item.bondTransactionHashExplorerUrl} style={{ color: item.destinationChainColor }}>{item.destinationChainName}</ExternalLink>
+                  {!!item?.destinationChainImageUrl && (
+                    <Box mr={0.5} display="flex">
+                      <img src={item.destinationChainImageUrl} width={16} alt="icon" />
+                    </Box>
+                  )}
+                  <Box display="inline-flex" style={{ color: item?.destinationChainColor }}>
+                    {item?.bondTransactionHashExplorerUrl ? (
+                      <ExternalLink href={item?.bondTransactionHashExplorerUrl} style={{ color: item?.destinationChainColor }}>{item?.destinationChainName}</ExternalLink>
                     ) : (
-                      <Box>{item.destinationChainName}</Box>
+                      <Box>{item?.destinationChainName ?? ''}</Box>
                     )}
                   </Box>
                   <Box ml={2} display="inline-flex">
                     <Typography variant="body2">
-                      {(item.receivedHTokens && item.convertHTokenUrl) && (
-                        <ExternalLink href={item.convertHTokenUrl.replace('https://app.hop.exchange', '')}>click to swap h{item.token}{'<>'}{item.token}</ExternalLink>
+                      {(item?.receivedHTokens && item?.convertHTokenUrl) && (
+                        <ExternalLink href={item?.convertHTokenUrl.replace('https://app.hop.exchange', '')}>click to swap h{item?.token}{'<>'}{item?.token}</ExternalLink>
                       )}
                     </Typography>
                   </Box>

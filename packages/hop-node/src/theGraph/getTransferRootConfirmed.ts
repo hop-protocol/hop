@@ -20,6 +20,7 @@ export default async function getTransferRootConfirmed (
       ) {
         id
         rootHash
+        transactionHash
       }
     }
   `

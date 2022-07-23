@@ -86,7 +86,7 @@ function getFilters (token: string, destinationChainId: number): string {
   `
 
   if (destinationChainId) {
-    filters += 'destinationChainId: $destinationChainId'
+    filters += 'destinationChainId: $destinationChainId\n'
   }
 
   return filters

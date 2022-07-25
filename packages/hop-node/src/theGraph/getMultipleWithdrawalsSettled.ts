@@ -22,6 +22,7 @@ export default async function getMultipleWithdrawalsSettled (
         rootHash
         totalBondsSettled
         bonder
+        transactionHash
       }
     }
   `

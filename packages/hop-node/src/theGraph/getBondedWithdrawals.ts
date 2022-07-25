@@ -61,7 +61,7 @@ function getFilters (bonder: string): string {
   `
 
   if (bonder) {
-    filters += 'from: $bonder'
+    filters += 'from: $bonder\n'
   }
 
   return filters

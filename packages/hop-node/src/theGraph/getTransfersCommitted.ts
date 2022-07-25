@@ -23,6 +23,7 @@ export default async function getTransfersCommitted (
         id
         rootHash
         totalAmount
+        transactionHash
       }
     }
   `
@@ -56,11 +57,11 @@ function getFilters (startTimestamp: number, destinationChainId: number): string
   `
 
   if (startTimestamp) {
-    filters += 'timestamp_gte: $startTimestamp'
+    filters += 'timestamp_gte: $startTimestamp\n'
   }
 
   if (destinationChainId) {
-    filters += 'destinationChainId: $destinationChainId'
+    filters += 'destinationChainId: $destinationChainId\n'
   }
 
   return filters

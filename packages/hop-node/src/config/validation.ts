@@ -237,7 +237,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     validateKeys(validTokenKeys, vaultTokens)
     for (const tokenSymbol in config.vault) {
       const tokenConfig = config.vault[tokenSymbol]
-      const validTokenConfigKeys = ['thresholdAmount', 'depositAmount', 'strategy']
+      const validTokenConfigKeys = ['thresholdAmount', 'depositAmount', 'strategy', 'autoWithdraw', 'autoDeposit']
       const tokenConfigKeys = Object.keys(tokenConfig)
       validateKeys(validTokenConfigKeys, tokenConfigKeys)
     }
@@ -336,6 +336,12 @@ export async function validateConfigValues (config?: Config) {
       }
       if (typeof tokenConfig.depositAmount !== 'number') {
         throw new Error('depositAmount should be a number')
+      }
+      if (typeof tokenConfig.autoDeposit !== 'boolean') {
+        throw new Error('autoDeposit should be boolean')
+      }
+      if (typeof tokenConfig.autoWithdraw !== 'boolean') {
+        throw new Error('autoWithdraw should be boolean')
       }
 
       const validStrategies = new Set(['yearn', 'aave'])

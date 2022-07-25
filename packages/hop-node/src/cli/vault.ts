@@ -2,9 +2,9 @@ import Token from 'src/watchers/classes/Token'
 import contracts from 'src/contracts'
 import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
-import { Chain, nativeChainTokens } from 'src/constants'
 import { Vault } from 'src/vault'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
+import { nativeChainTokens } from 'src/constants'
 
 enum Actions {
   Deposit = 'deposit',

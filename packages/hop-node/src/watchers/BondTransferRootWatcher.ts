@@ -9,6 +9,7 @@ import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -207,6 +208,10 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async withdrawFromVaultIfNeeded (destinationChainId: number, bondAmount: BigNumber) {
+    if (!globalConfig.vault[this.tokenSymbol]?.autoWithdraw) {
+      return
+    }
+
     if (!isL1ChainId(destinationChainId)) {
       return
     }

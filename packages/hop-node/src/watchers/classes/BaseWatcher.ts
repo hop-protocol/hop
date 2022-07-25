@@ -229,6 +229,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async unstakeAndDepositToVault (amount: BigNumber) {
+    if (!globalConfig.vault[this.tokenSymbol]?.autoDeposit) {
+      return
+    }
+
     if (!this.vault) {
       return
     }

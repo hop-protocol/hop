@@ -87,6 +87,8 @@ type Tokens = Record<string, boolean>
 export type VaultToken = {
   thresholdAmount: number
   depositAmount: number
+  autoDeposit: boolean
+  autoWithdraw: boolean
   strategy: string
 }
 export type Vault = Record<string, VaultToken>

@@ -1,10 +1,10 @@
 import { AaveVault } from './AaveVault'
-import { BigNumber } from 'ethers'
+import { BigNumber, Signer } from 'ethers'
 import { Chain } from 'src/constants'
 import { YearnVault } from './YearnVault'
 
 export abstract class Vault {
-  static from (chain: Chain, token: string, signer: any) {
+  static from (chain: Chain, token: string, signer: Signer) {
     const yearnVaultTokens = new Set(['ETH', 'USDC', 'USDT', 'DAI'])
     const useYearnVault = chain === Chain.Ethereum && yearnVaultTokens.has(token)
     if (useYearnVault) {
@@ -15,7 +15,7 @@ export abstract class Vault {
     const aaveVaultTokens = new Set(['USDC'])
     const useAaveVault = chain === Chain.Arbitrum && aaveVaultTokens.has(token)
     if (useAaveVault) {
-      return new AaveVault(chain, token, chain)
+      return new AaveVault(chain, token, signer)
     }
   }
 

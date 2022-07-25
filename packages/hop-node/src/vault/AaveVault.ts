@@ -1,7 +1,7 @@
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
-import { BigNumber, Contract, constants } from 'ethers'
+import { BigNumber, Contract, Signer, constants } from 'ethers'
 import { Chain } from 'src/constants'
 import { Pool } from '@aave/contract-helpers'
 import { Vault } from './Vault'
@@ -85,7 +85,7 @@ export class AaveVault implements Vault {
   aTokenAddress: string
   pool: Pool
 
-  constructor (chain: Chain, token: string, signer: any) {
+  constructor (chain: Chain, token: string, signer: Signer) {
     if (!tokenAddresses[token]) {
       throw new Error('token is not supported')
     }

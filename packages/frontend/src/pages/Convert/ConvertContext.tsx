@@ -25,6 +25,7 @@ import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import { toTokenDisplay, commafy } from 'src/utils'
 import { defaultL2Network, l1Network } from 'src/config/networks'
 import {
+  useQueryParams,
   useTransactionReplacement,
   useApprove,
   useBalance,
@@ -71,12 +72,13 @@ type ConvertContextProps = {
 const ConvertContext = createContext<ConvertContextProps | undefined>(undefined)
 
 const ConvertProvider: FC = ({ children }) => {
+  const { queryParams } = useQueryParams()
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const { selectedBridge, txConfirm, sdk, settings } = useApp()
   const { slippageTolerance, deadline } = settings
   const { pathname } = useLocation()
   const { selectedNetwork, selectBothNetworks } = useSelectedNetwork()
-  const [isConvertingToHToken, setIsConvertingToHToken] = useState(true)
+  const [isConvertingToHToken, setIsConvertingToHToken] = useState(queryParams?.fromHToken !== 'true')
   const switchDirection = () => setIsConvertingToHToken(direction => !direction)
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
@@ -372,10 +374,12 @@ const ConvertProvider: FC = ({ children }) => {
           source: {
             amount: sourceTokenAmount,
             token: sourceToken,
+            network: sourceNetwork
           },
           dest: {
             amount: destTokenAmount,
             token: destToken,
+            network: destNetwork
           },
         },
         onConfirm: async () => {

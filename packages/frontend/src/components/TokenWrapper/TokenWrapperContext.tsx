@@ -129,6 +129,9 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       const tokenWrapTx = await txConfirm?.show({
         kind: 'wrapToken',
         inputProps: {
+          source: {
+            network: selectedNetwork,
+          },
           token: {
             amount: amount,
             token: canonicalToken,
@@ -183,6 +186,9 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       const tokenUnwrapTx = await txConfirm?.show({
         kind: 'unwrapToken',
         inputProps: {
+          source: {
+            network: selectedNetwork,
+          },
           token: {
             amount: amount,
             token: wrappedToken,

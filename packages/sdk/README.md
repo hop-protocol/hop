@@ -14,6 +14,20 @@
 yarn add @hop-protocol/sdk
 ```
 
+## CDN
+
+[https://cdn.jsdelivr.net/npm/@hop-protocol/sdk@latest/hop.js](jsDelivr CDN)
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@hop-protocol/sdk@latest/hop.js"></script>
+```
+
+[https://unpkg.com/@hop-protocol/sdk@latest/hop.js](unpkg CDN)
+
+```html
+<script src="https://unpkg.com/@hop-protocol/sdk@latest/hop.js"></script>
+```
+
 ## Documentation
 
 See [docs.hop.protocol/js-sdk](https://docs.hop.exchange/js-sdk)

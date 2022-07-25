@@ -1,16 +1,25 @@
 import CoinGecko from './CoinGecko'
 import Coinbase from './Coinbase'
 
-class PriceFeed {
-  private readonly services = [new CoinGecko(), new Coinbase()]
-  cacheTimeMs = 5 * 60 * 1000
+const cache: {
+  [tokenSymbol: string]: {
+    timestamp: number
+    price: number
+  }
+} = {}
 
-  cache: {
-    [tokenSymbol: string]: {
-      timestamp: number
-      price: number
-    }
-  } = {}
+export type ApiKeys = {
+  coingecko?: string
+}
+
+interface Service {
+  getPriceByTokenSymbol(symbol: string): Promise<number>
+}
+
+class PriceFeed {
+  cacheTimeMs = 5 * 60 * 1000
+  apiKeys: ApiKeys = {}
+  services: Service[] = []
 
   aliases: { [tokenSymbol: string]: string } = {
     WETH: 'ETH',
@@ -19,12 +28,28 @@ class PriceFeed {
     WXDAI: 'DAI'
   }
 
+  constructor (apiKeysMap: ApiKeys = {}) {
+    if (apiKeysMap) {
+      this.apiKeys = apiKeysMap
+    }
+    this.setServices()
+  }
+
+  setApiKeys (apiKeysMap: ApiKeys = {}) {
+    this.apiKeys = apiKeysMap
+    this.setServices()
+  }
+
+  private setServices () {
+    this.services = [new CoinGecko(this.apiKeys?.coingecko), new Coinbase()]
+  }
+
   async getPriceByTokenSymbol (tokenSymbol: string) {
     if (this.aliases[tokenSymbol]) {
       tokenSymbol = this.aliases[tokenSymbol]
     }
 
-    const cached = this.cache[tokenSymbol]
+    const cached = cache[tokenSymbol]
     if (cached) {
       const isRecent = cached.timestamp > Date.now() - this.cacheTimeMs
       if (isRecent) {
@@ -39,7 +64,7 @@ class PriceFeed {
         if (price === null) {
           throw new Error(`null price for ${tokenSymbol}`)
         }
-        this.cache[tokenSymbol] = {
+        cache[tokenSymbol] = {
           timestamp: Date.now(),
           price
         }

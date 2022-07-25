@@ -8,7 +8,7 @@ import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 const useNeedsTokenForFee = (network: Network | undefined) => {
   const [needsToken, setNeedsToken] = useState(false)
   const { provider: walletProvider, address } = useWeb3Context()
-  const isSmartContractWallet = useIsSmartContractWallet()
+  const { isSmartContractWallet } = useIsSmartContractWallet()
 
   useEffect(() => {
     const checkBalance = async () => {

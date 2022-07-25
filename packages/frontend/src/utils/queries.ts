@@ -3,15 +3,19 @@ import { BigNumberish } from 'ethers'
 import logger from 'src/logger'
 
 export function getUrl(chain: Slug | string) {
-  if (chain === Slug.ethereum) {
-    chain = Slug.mainnet
-  }
-
   if (chain === Slug.gnosis) {
     chain = 'xdai'
   }
+  if (chain === Slug.ethereum) {
+    chain = 'mainnet'
+  }
 
-  return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+  if (chain === Slug.mainnet) {
+    // return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet`
+    return 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
+  } else {
+    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+  }
 }
 
 async function queryFetch(url, query, variables?: any) {

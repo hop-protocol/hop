@@ -5,7 +5,7 @@ import { BigNumber } from 'ethers'
 import { OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
-const varianceSeconds = 10 * 60
+const varianceSeconds = 20 * 60
 
 type GasCost = BaseItem & {
   id?: string
@@ -31,21 +31,6 @@ class GasCostDb extends BaseDb {
     this.startPrunePoller()
   }
 
-  async migration () {
-    this.logger.debug('GasCostDb migration started')
-    const entries = await this.getKeyValues()
-    this.logger.debug(`GasCostDb migration: ${entries.length} entries`)
-    const promises: Array<Promise<any>> = []
-    for (const { key, value } of entries) {
-      if (value?.chain === 'xdai') {
-        value.chain = 'gnosis'
-        promises.push(this._update(key, value))
-      }
-    }
-    await Promise.all(promises)
-    this.logger.debug('GasCostDb migration complete')
-  }
-
   private async startPrunePoller () {
     await this.tilReady()
     while (true) {
@@ -64,7 +49,8 @@ class GasCostDb extends BaseDb {
 
   async addGasCost (data: GasCost) {
     const key = `${data.chain}:${data.token}:${data.timestamp}:${Number(data.attemptSwap)}`
-    return this.update(key, data)
+    await this.update(key, data)
+    this.logger.debug(`updated db gasCost item. ${JSON.stringify(data)}`)
   }
 
   async getItems (filter?: KeyFilter): Promise<GasCost[]> {

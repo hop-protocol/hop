@@ -16,5 +16,7 @@ export default function useIsSmartContractWallet() {
     checkAddress()
   }, [provider, address])
 
-  return isSmartContractWallet
+  return {
+    isSmartContractWallet,
+  }
 }

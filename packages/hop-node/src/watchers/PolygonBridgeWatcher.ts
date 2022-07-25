@@ -16,9 +16,7 @@ import { setProofApi, use } from '@maticnetwork/maticjs'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  label?: string
   bridgeContract?: L1BridgeContract | L2BridgeContract
-  isL1?: boolean
   dryMode?: boolean
 }
 
@@ -37,10 +35,8 @@ class PolygonBridgeWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
-      isL1: config.isL1,
       dryMode: config.dryMode
     })
 
@@ -49,7 +45,7 @@ class PolygonBridgeWatcher extends BaseWatcher {
     this.l1Provider = this.l1Wallet.provider
     this.l2Provider = this.l2Wallet.provider
 
-    this.chainId = chainSlugToId(config.chainSlug)! // eslint-disable-line
+    this.chainId = chainSlugToId(config.chainSlug)
     this.apiUrl = `https://apis.matic.network/api/v1/${
       this.chainId === this.polygonMainnetChainId ? 'matic' : 'mumbai'
     }/block-included`

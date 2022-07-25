@@ -1,8 +1,11 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import Button from 'src/components/buttons/Button'
 import { makeStyles } from '@material-ui/core/styles'
-import MuiSlider from '@material-ui/core/Slider'
+import { Slider } from 'src/components/slider'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { BigNumber } from 'ethers'
 import Typography from '@material-ui/core/Typography'
+import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import { Token } from '@hop-protocol/sdk'
 import logger from 'src/logger'
 import { commafy } from 'src/utils'
@@ -20,87 +23,65 @@ const useStyles = makeStyles(() => ({
   amounts: {
     fontSize: '2rem',
   },
-  action: {},
-  sendButton: {},
-  sliderContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
+  amountInput: {
+    marginTop: '1rem',
     marginBottom: '2rem',
   },
-  slider: {
-    width: '100%',
-    maxWidth: '260px',
-    margin: '0 auto',
-  },
+  action: {},
+  sendButton: {}
 }))
-
-type SliderProps = {
-  onChange?: (value: number) => void
-}
-
-const Slider: FC<SliderProps> = (props: SliderProps) => {
-  const styles = useStyles()
-  const [value, setValue] = useState<number>(0)
-  const handleChange = (event: any, _value: number | number[]) => {
-    setValue(_value as number)
-  }
-
-  useEffect(() => {
-    if (props.onChange) {
-      props.onChange(value)
-    }
-  }, [value])
-
-  return (
-    <div className={styles.sliderContainer}>
-      <Typography variant="body1" color="textPrimary">
-        Amount
-      </Typography>
-      <Typography variant="h4" color="textPrimary">
-        {value}%
-      </Typography>
-      <div className={styles.slider}>
-        <MuiSlider
-          value={value}
-          valueLabelDisplay="auto"
-          step={1}
-          marks
-          min={0}
-          max={100}
-          onChange={handleChange}
-        />
-      </div>
-    </div>
-  )
-}
 
 interface Props {
   token: Token
-  amount: string
-  onConfirm: (confirmed: boolean, amountPercent?: number) => void
+  maxBalance: BigNumber
+  onConfirm: (confirmed: boolean, withdrawAmount: BigNumber) => void
 }
 
 const WithdrawStake = (props: Props) => {
-  const { token, amount, onConfirm } = props
+          //const withdrawAmount = stakeBalance.mul(amountPercent).div(100)
+  const { token, maxBalance, onConfirm } = props
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
-  const [amountPercent, setAmountPercent] = useState<number>(0)
+  const [withdrawAmount, setWithdrawAmount] = useState<BigNumber>(BigNumber.from(0))
+  const [inputValue, setInputValue] = useState<string>('')
+  const [amountSliderValue, setAmountSliderValue] = useState<number>(0)
+  const tokenDecimals = token.decimals
 
   const handleSubmit = async () => {
     try {
       setSending(true)
-      onConfirm(true, amountPercent)
+      onConfirm(true, withdrawAmount)
     } catch (err) {
       logger.error(err)
     }
     setSending(false)
   }
 
-  const disabled = amountPercent === 0
-  const tokenAmount = Number(amount) * (amountPercent / 100)
+  const handleAmountSliderChange = (percent: number) => {
+    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const _amount = (_balance ?? 0) * (percent / 100)
+    setInputValue(_amount.toFixed(5))
+    setAmountSliderValue(percent)
+    if (percent === 100) {
+      setWithdrawAmount(maxBalance)
+    } else {
+      setWithdrawAmount(parseUnits(_amount.toString(), tokenDecimals))
+    }
+  }
+
+  const handleAmountChange = (_amount: string) => {
+    const value = Number(_amount)
+    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const sliderValue = 100 / (_balance / value)
+    setInputValue(_amount)
+    setAmountSliderValue(sliderValue)
+    setWithdrawAmount(parseUnits(_amount, tokenDecimals))
+  }
+
+  const disabled = amountSliderValue === 0
+  const tokenAmount = Number(formatUnits(withdrawAmount, tokenDecimals))
   const formattedAmount = commafy(tokenAmount.toFixed(5), 5)
-  const withdrawAndClaim = amountPercent === 100
+  const withdrawAndClaim = amountSliderValue === 100
 
   return (
     <div className={styles.root}>
@@ -112,11 +93,23 @@ const WithdrawStake = (props: Props) => {
           {formattedAmount} {token.symbol}
         </Typography>
       </div>
-      <Slider
-        onChange={value => {
-          setAmountPercent(value)
-        }}
-      />
+      <div>
+        <div className={styles.amountInput}>
+          <AmountSelectorCard
+            label={`${token.symbol} to withdraw`}
+            balance={maxBalance}
+            balanceLabel={'Available:'}
+            value={inputValue}
+            token={token as any}
+            onChange={handleAmountChange}
+            decimalPlaces={5}
+          />
+        </div>
+        <Slider
+          defaultValue={0}
+          value={amountSliderValue}
+          onChange={handleAmountSliderChange} />
+      </div>
       <div className={styles.action}>
         <Button
           disabled={disabled}

@@ -1,11 +1,12 @@
 import CanonicalBridge from '../CanonicalBridge'
+import EventEmitter from 'eventemitter3'
 import { default as BaseWatcher } from './BaseWatcher'
 import { Chain } from '../models'
-import { ERC20__factory } from '@hop-protocol/core/contracts'
+import { ERC20__factory } from '@hop-protocol/core/contracts/factories/ERC20__factory'
 import { tokenTransferTopic, tokensBridgedTopic } from '../constants/eventTopics'
 
 class L1ToL2Watcher extends BaseWatcher {
-  public watch () {
+  public watch (): EventEmitter {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee
   }

@@ -1,3 +1,4 @@
+import AvailableLiquidityWatcher from 'src/watchers/AvailableLiquidityWatcher'
 import BNMin from 'src/utils/BNMin'
 import L1Bridge from './L1Bridge'
 import L2Bridge from './L2Bridge'
@@ -19,14 +20,14 @@ import { Vault } from 'src/vault'
 import { config as globalConfig, hostname } from 'src/config'
 
 const mutexes: Record<string, Mutex> = {}
+export type BridgeContract = L1BridgeContract | L2BridgeContract
 
 type Config = {
   chainSlug: string
   tokenSymbol: string
   prefix?: string
   logColor?: string
-  isL1?: boolean
-  bridgeContract?: L1BridgeContract | L2BridgeContract
+  bridgeContract?: BridgeContract
   dryMode?: boolean
 }
 
@@ -39,10 +40,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   chainSlug: string
   tokenSymbol: string
 
-  isL1: boolean
   bridge: L2Bridge | L1Bridge
   siblingWatchers: { [chainId: string]: any }
   syncWatcher: SyncWatcher
+  availableLiquidityWatcher: AvailableLiquidityWatcher
   metrics = new Metrics()
   dryMode: boolean = false
   tag: string
@@ -52,7 +53,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   constructor (config: Config) {
     super()
-    const { chainSlug, tokenSymbol, prefix, logColor } = config
+    const { chainSlug, tokenSymbol, logColor } = config
+    const prefix = `${chainSlug}.${tokenSymbol}`
     const tag = this.constructor.name
     this.logger = new Logger({
       tag,
@@ -71,9 +73,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     this.notifier = new Notifier(
       `watcher: ${tag}, label: ${prefix}, host: ${hostname}`
     )
-    if (config.isL1) {
-      this.isL1 = config.isL1
-    }
     if (config.bridgeContract != null) {
       if (this.isL1) {
         this.bridge = new L1Bridge(config.bridgeContract as L1BridgeContract)
@@ -91,6 +90,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     }
 
     this.mutex = mutexes[this.chainSlug]
+  }
+
+  get isL1 (): boolean {
+    return this.chainSlug === Chain.Ethereum
   }
 
   isAllSiblingWatchersInitialSyncCompleted (): boolean {
@@ -172,6 +175,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   setSyncWatcher (syncWatcher: SyncWatcher): void {
     this.syncWatcher = syncWatcher
+  }
+
+  setAvailableLiquidityWatcher (availableLiquidityWatcher: AvailableLiquidityWatcher): void {
+    this.availableLiquidityWatcher = availableLiquidityWatcher
   }
 
   chainIdToSlug (chainId: number): Chain {

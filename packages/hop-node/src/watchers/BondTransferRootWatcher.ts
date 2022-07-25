@@ -3,6 +3,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import getTransferRootId from 'src/utils/getTransferRootId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
@@ -13,8 +14,6 @@ type Config = {
   chainSlug: string
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L2BridgeContract
-  label: string
-  isL1: boolean
   dryMode?: boolean
 }
 
@@ -25,9 +24,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'cyan',
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
@@ -40,6 +37,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   async checkTransfersCommittedFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getUnbondedTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
+      this.logger.debug('no unbonded transfer root db items to check')
       return
     }
 
@@ -61,24 +59,24 @@ class BondTransferRootWatcher extends BaseWatcher {
       const logger = this.logger.create({ root: transferRootId })
 
       const bondChainId = chainSlugToId(Chain.Ethereum)
-      const availableCredit = this.getAvailableCreditForBond(bondChainId!)
-      const notEnoughCredit = availableCredit.lt(totalAmount!)
+      const availableCredit = this.getAvailableCreditForBond(bondChainId)
+      const notEnoughCredit = availableCredit.lt(totalAmount)
       if (notEnoughCredit) {
         logger.debug(
         `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
           availableCredit
-        )}, need ${this.bridge.formatUnits(totalAmount!)}`)
+        )}, need ${this.bridge.formatUnits(totalAmount)}`)
         continue
       }
 
       promises.push(this.checkTransfersCommitted(
         transferRootId,
-        transferRootHash!,
-        totalAmount!,
-        destinationChainId!,
-        committedAt!,
-        sourceChainId!,
-        transferIds!
+        transferRootHash,
+        totalAmount,
+        destinationChainId,
+        committedAt,
+        sourceChainId,
+        transferIds
       ))
     }
 
@@ -141,7 +139,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     const bondChainId = chainSlugToId(Chain.Ethereum)
     const bondAmount = await l1Bridge.getBondForTransferAmount(totalAmount)
-    const availableCredit = this.getAvailableCreditForBond(bondChainId!)
+    const availableCredit = this.getAvailableCreditForBond(bondChainId)
     const notEnoughCredit = availableCredit.lt(bondAmount)
     if (notEnoughCredit) {
       const msg = `not enough credit to bond transferRoot. Have ${this.bridge.formatUnits(
@@ -173,11 +171,11 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId,
         totalAmount
       )
-      const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash}`
+      const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
-      logger.error(err.message)
+      logger.error('sendBondTransferRoot error:', err.message)
       throw err
     }
   }
@@ -187,6 +185,14 @@ class BondTransferRootWatcher extends BaseWatcher {
     destinationChainId: number,
     totalAmount: BigNumber
   ) {
+    const calculatedTransferRootId = getTransferRootId(transferRootHash, totalAmount)
+    const dbEntry = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
+    const doesExistInDb = !!dbEntry
+    const isSameDestinationChainId = dbEntry?.destinationChainId === destinationChainId
+    if (!doesExistInDb || !isSameDestinationChainId) {
+      throw new Error(`Calculated transferRootId (${calculatedTransferRootId}) or destinationChainId (${destinationChainId}) does not match db entry`)
+    }
+
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(
       transferRootHash,
@@ -196,7 +202,7 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   getAvailableCreditForBond (destinationChainId: number) {
-    const baseAvailableCredit = this.syncWatcher.getBaseAvailableCreditIncludingVault(destinationChainId)
+    const baseAvailableCredit = this.availableLiquidityWatcher.getBaseAvailableCreditIncludingVault(destinationChainId)
     return baseAvailableCredit
   }
 
@@ -207,7 +213,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     return await this.mutex.runExclusive(async () => {
       const availableCredit = this.getAvailableCreditForBond(destinationChainId)
-      const vaultBalance = this.syncWatcher.getVaultBalance(destinationChainId)
+      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
       const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
       if (shouldWithdraw) {
         try {

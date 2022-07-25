@@ -20,10 +20,12 @@ async function _makeRequest (
   }
   let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
   if (chain === Chain.Ethereum) {
-    url = `${url}-mainnet`
+    // url = `${url}-mainnet`
+    url = 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
   } else {
     url = `${url}-${chain}`
   }
+
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -37,6 +39,7 @@ async function _makeRequest (
   })
   const jsonRes = await res.json()
   if (Array.isArray(jsonRes.errors) && jsonRes.errors.length) {
+    console.error('query:', query)
     throw new Error(jsonRes.errors[0].message)
   }
   return jsonRes.data

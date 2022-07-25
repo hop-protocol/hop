@@ -8,3 +8,5 @@ export const tokenTransferTopic =
   '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 export const transferFromL1CompletedTopic =
   '0x320958176930804eb66c2343c7343fc0367dc16249590c0f195783bee199d094'
+export const withdrawalBondedTopic =
+  '0x0c3d250c7831051e78aa6a56679e590374c7c424415ffe4aa474491def2fe705'

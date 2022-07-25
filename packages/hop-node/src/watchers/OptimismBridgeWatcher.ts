@@ -11,9 +11,7 @@ import { getMessagesAndProofsForL2Transaction } from '@eth-optimism/message-rela
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  label?: string
   bridgeContract?: L1BridgeContract | L2BridgeContract
-  isL1?: boolean
   dryMode?: boolean
 }
 
@@ -30,10 +28,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'yellow',
       bridgeContract: config.bridgeContract,
-      isL1: config.isL1,
       dryMode: config.dryMode
     })
 
@@ -122,7 +118,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
-      this.logger.error(err.message)
+      this.logger.error('relayXDomainMessage error:', err.message)
       const isNotCheckpointedYet = err.message.includes('unable to find state root batch for tx')
       const isProofNotFound = err.message.includes('messagePairs not found')
       const isInsideFraudProofWindow = err.message.includes('exit within challenge window')

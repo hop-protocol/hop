@@ -2,11 +2,10 @@ import React from 'react'
 import Button from 'src/components/buttons/Button'
 import Alert from 'src/components/alert/Alert'
 import { makeStyles } from '@material-ui/core/styles'
-import Token from 'src/models/Token'
-import Network from 'src/models/Network'
 import Typography from '@material-ui/core/Typography'
-import { commafy } from 'src/utils'
+import { commafy, NetworkTokenEntity } from 'src/utils'
 import Address from 'src/models/Address'
+import Box from '@material-ui/core/Box'
 import { useSendingTransaction } from './useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
@@ -29,25 +28,24 @@ const useStyles = makeStyles(() => ({
   sendButton: {},
 }))
 
-interface TokenEntity {
-  token: Token
-  network: Network
-  amount: string
-}
 
 interface Props {
   customRecipient?: string
-  source: TokenEntity
-  dest: Partial<TokenEntity>
+  source: NetworkTokenEntity
+  dest: Partial<NetworkTokenEntity>
   onConfirm: (confirmed: boolean) => void
   estimatedReceived: string
+  isGnosisSafeWallet?: boolean
 }
 
 const ConfirmSend = (props: Props) => {
-  const { customRecipient, source, dest, onConfirm, estimatedReceived } = props
+  const { customRecipient, source, dest, onConfirm, estimatedReceived, isGnosisSafeWallet = false } = props
   const styles = useStyles()
 
-  const { sending, handleSubmit } = useSendingTransaction({ onConfirm })
+  const { sending, handleSubmit } = useSendingTransaction({
+    onConfirm,
+    source,
+  })
 
   let warning = ''
   if (customRecipient && !dest?.network?.isLayer1) {
@@ -55,15 +53,22 @@ const ConfirmSend = (props: Props) => {
       'If the recipient is an exchange, then there is possibility of loss funds if the token swap fails.'
   }
 
+  const showDeadlineWarning = !!isGnosisSafeWallet
+
   return (
     <div className={styles.root}>
       <div className={styles.title}>
-        <div style={{
-          marginBottom: '1rem'
-        }}>
+        <div
+          style={{
+            marginBottom: '1rem',
+          }}
+        >
           <Typography variant="h6" color="textSecondary">
-            Send <strong>{commafy(source.amount, 5)} {source.token.symbol}</strong> from {source.network.name} to{' '}
-            {dest?.network?.name}
+            Send{' '}
+            <strong>
+              {commafy(source.amount, 5)} {source.token.symbol}
+            </strong>{' '}
+            from {source.network.name} to {dest?.network?.name}
           </Typography>
         </div>
         <div>
@@ -83,6 +88,18 @@ const ConfirmSend = (props: Props) => {
         )}
         {!!warning && <Alert severity="warning" text={warning} className={styles.warning} />}
       </div>
+      {showDeadlineWarning && (
+        <Box mb={2}>
+          <Alert severity="warning" text="The swap deadline will expire in 7 days. If this is a Gnosis Safe transaction, make sure to execute it within the deadline." className={styles.warning} />
+        </Box>
+      )}
+      <Box mb={2} display="flex" flexDirection="column" alignItems="center" textAlign="center">
+        <Box style={{ maxWidth: '200px' }}>
+        <Typography variant="body2" color="textSecondary">
+          Please make sure your wallet is connected to the <strong>{source.network.name}</strong> network.
+        </Typography>
+        </Box>
+      </Box>
       <div className={styles.action}>
         <Button
           className={styles.sendButton}

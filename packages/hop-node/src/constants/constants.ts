@@ -15,12 +15,18 @@ export enum Chain {
   Gnosis = 'gnosis',
 }
 
+export enum NativeChainToken {
+  ETH = 'ETH',
+  XDAI = 'XDAI',
+  MATIC = 'MATIC'
+}
+
 export const nativeChainTokens: Record<string, string> = {
-  ethereum: 'ETH',
-  arbitrum: 'ETH',
-  optimism: 'ETH',
-  polygon: 'MATIC',
-  gnosis: 'XDAI'
+  ethereum: NativeChainToken.ETH,
+  arbitrum: NativeChainToken.ETH,
+  optimism: NativeChainToken.ETH,
+  polygon: NativeChainToken.MATIC,
+  gnosis: NativeChainToken.XDAI
 }
 
 export enum Token {
@@ -44,6 +50,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
 
 const SecondsInDay = 86400
 const SecondsInWeek = SecondsInDay * 7
+export const OneDayMs = SecondsInDay * 1000
 export const TotalBlocks = {
   Ethereum: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Ethereum),
   Polygon: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Polygon),
@@ -57,7 +64,6 @@ export const OneHourSeconds = 60 * 60
 export const OneHourMs = 60 * 60 * 1000
 export const OneWeekMs = 7 * 24 * 60 * 60 * 1000
 
-export const TxRetryDelayMs = OneHourMs
 export const RootSetSettleDelayMs = 5 * 60 * 1000
 export const ChallengePeriodMs = 24 * OneHourMs
 
@@ -73,6 +79,7 @@ export const MaxGasPriceMultiplier = 1.25
 export const MinPriorityFeePerGas = 4
 export const PriorityFeePerGasCap = 20
 export const MinPolygonGasPrice = 90_000_000_000
+export const MinGnosisGasPrice = 20_000_000_000
 
 export enum TokenIndex {
   CanonicalToken = 0,

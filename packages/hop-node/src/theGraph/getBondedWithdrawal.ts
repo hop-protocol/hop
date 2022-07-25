@@ -23,6 +23,7 @@ export default async function getBondedWithdrawal (chain: string, token: string,
         blockNumber
         contractAddress
         token
+        from
       }
     }
   `

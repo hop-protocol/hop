@@ -8,9 +8,9 @@ import React, {
   useCallback,
 } from 'react'
 import Onboard from 'bnc-onboard'
-import { ethers, Contract, BigNumber } from 'ethers'
+import { ethers, BigNumber } from 'ethers'
 import Address from 'src/models/Address'
-import { networkIdToSlug, getRpcUrl, getBaseExplorerUrl } from 'src/utils'
+import { networkIdToSlug, networkSlugToId, getRpcUrl, getBaseExplorerUrl } from 'src/utils'
 import { blocknativeDappid } from 'src/config'
 import { l1Network } from 'src/config/networks'
 import './onboardStyles.css'
@@ -26,7 +26,7 @@ type Props = {
   provider: ethers.providers.Web3Provider | undefined
   address: Address | undefined
   balance?: BigNumber
-  connectedNetworkId: string
+  connectedNetworkId: number | undefined
   validConnectedNetworkId: boolean
   requestWallet: () => void
   disconnectWallet: () => void
@@ -90,7 +90,7 @@ const walletSelectOptions: WalletSelectModuleOptions = {
       },
     },
     {
-      walletName: "gnosis",
+      walletName: 'gnosis',
       preferred: true,
     },
     {
@@ -114,11 +114,29 @@ const walletChecks: WalletCheckInit[] = [
 const Web3ContextProvider: FC = ({ children }) => {
   // logger.debug('Web3ContextProvider render')
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>()
-  const [connectedNetworkId, setConnectedNetworkId] = useState<string>('')
+  const [connectedNetworkId, setConnectedNetworkId] = useState<number|undefined>()
   const [validConnectedNetworkId] = useState<boolean>(false)
   const [walletName, setWalletName] = useState<string>('')
   const [address, setAddress] = useState<Address | undefined>()
   const [balance, setBalance] = useState<BigNumber>()
+  const [onboardNetworkId] = useState<number>(() => {
+    try {
+      const parsedHash = new URLSearchParams(
+        window.location.hash.substring(1)
+      )
+
+      const slug = parsedHash.get("sourceNetwork")
+      if (slug) {
+        const networkId = networkSlugToId(slug)
+        if (networkId) {
+          return networkId
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+    return l1Network.networkId
+  })
   // const { isDarkMode } = useThemeMode()
 
   // walletSelect()
@@ -161,7 +179,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const onboard = useMemo(() => {
     const instance = Onboard({
       dappId: blocknativeDappid,
-      networkId: Number(l1Network.networkId),
+      networkId: onboardNetworkId,
       // darkMode: isDarkMode,
       // blockPollingInterval: 4000,
       hideBranding: true,
@@ -179,9 +197,9 @@ const Web3ContextProvider: FC = ({ children }) => {
         // },
         network: (connectedNetworkId: number) => {
           if (connectedNetworkId) {
-            setConnectedNetworkId(connectedNetworkId.toString())
+            setConnectedNetworkId(connectedNetworkId)
           } else {
-            setConnectedNetworkId('')
+            setConnectedNetworkId(undefined)
           }
         },
         balance: bal => {
@@ -236,7 +254,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     })
 
     return instance
-  }, [setProvider, setConnectedNetworkId])
+  }, [setProvider, setConnectedNetworkId, onboardNetworkId])
 
   useEffect(() => {
     if (onboard) {
@@ -276,73 +294,71 @@ const Web3ContextProvider: FC = ({ children }) => {
   const walletConnected = !!address
 
   // TODO: cleanup
-  const checkConnectedNetworkId = useCallback(
-    async (networkId?: number): Promise<boolean> => {
-      if (!(networkId && provider)) return false
+  const checkConnectedNetworkId = async (networkId?: number): Promise<boolean> => {
+    if (!(networkId && provider)) return false
 
-      const signerNetworkId = (await provider.getNetwork())?.chainId
-      logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
+    const signerNetworkId = (await provider.getNetwork())?.chainId
+    logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
 
-      if (networkId.toString() === signerNetworkId?.toString()) {
-        return true
-      }
+    // TODO: this block of code is too confident. use separate hook to check last-minute tx details
+    if (networkId === signerNetworkId) {
+      return true
+    }
 
-      onboard.config({ networkId })
-      if (onboard.getState().address) {
-        try {
-          const wantNetworkName = networkNames[networkId] || 'local'
-          const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
-            wantNetworkName
-          )
+    onboard.config({ networkId })
+    if (onboard.getState().address) {
+      try {
+        const wantNetworkName = networkNames[networkId] || 'local'
+        const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
+          wantNetworkName
+        )
 
-          if (isL1) {
-            await provider?.send('wallet_switchEthereumChain', [
-              {
-                chainId: `0x${Number(networkId).toString(16)}`,
-              },
-            ])
-          } else {
-            let nativeCurrency: any
-
-            if (networkId === ChainId.Gnosis) {
-              nativeCurrency = {
-                name: 'xDAI',
-                symbol: 'XDAI',
-                decimals: 18,
-              }
-            } else if (networkId === ChainId.Polygon) {
-              nativeCurrency = {
-                name: 'Matic',
-                symbol: 'MATIC',
-                decimals: 18,
-              }
-            }
-
-            const rpcObj = {
+        if (isL1) {
+          await provider?.send('wallet_switchEthereumChain', [
+            {
               chainId: `0x${Number(networkId).toString(16)}`,
-              chainName: networkNames[networkId],
-              rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
-              blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
-              nativeCurrency,
+            },
+          ])
+        } else {
+          let nativeCurrency: any
+
+          if (networkId === ChainId.Gnosis) {
+            nativeCurrency = {
+              name: 'xDAI',
+              symbol: 'XDAI',
+              decimals: 18,
             }
-
-            await provider?.send('wallet_addEthereumChain', [rpcObj])
+          } else if (networkId === ChainId.Polygon) {
+            nativeCurrency = {
+              name: 'Matic',
+              symbol: 'MATIC',
+              decimals: 18,
+            }
           }
-        } catch (err) {
-          logger.error(err)
+
+          const rpcObj = {
+            chainId: `0x${Number(networkId).toString(16)}`,
+            chainName: networkNames[networkId],
+            rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
+            blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
+            nativeCurrency,
+          }
+
+          await provider?.send('wallet_addEthereumChain', [rpcObj])
         }
+      } catch (err) {
+        logger.error(err)
       }
-      const p = await provider.getNetwork()
-      if (p.chainId === networkId) {
-        return true
-      }
+    }
+    const p = await provider.getNetwork()
+    if (p.chainId === networkId) {
+      return true
+    }
 
-      await onboard.walletCheck()
+    await onboard.walletCheck()
 
-      return false
-    },
-    [provider, onboard]
-  )
+    return false
+  }
 
   return (
     <Web3Context.Provider
@@ -357,7 +373,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         requestWallet,
         disconnectWallet,
         walletName,
-        checkConnectedNetworkId
+        checkConnectedNetworkId,
       }}
     >
       {children}

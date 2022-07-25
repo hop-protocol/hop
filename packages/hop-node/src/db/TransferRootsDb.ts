@@ -1,9 +1,9 @@
 import BaseDb, { KV, KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs, TxRetryDelayMs } from 'src/constants'
+import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs } from 'src/constants'
+import { TxRetryDelayMs, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
-import { oruChains } from 'src/config'
 
 interface BaseTransferRoot {
   allSettled?: boolean
@@ -22,8 +22,6 @@ interface BaseTransferRoot {
   confirmTxHash?: string
   destinationChainId?: number
   isNotFound?: boolean
-  multipleWithdrawalsSettledTotalAmount?: BigNumber
-  multipleWithdrawalsSettledTxHash?: string
   rootSetBlockNumber?: number
   rootSetTimestamp?: number
   rootSetTxHash?: string
@@ -54,6 +52,64 @@ type TransferRootsDateFilter = {
 
 type GetItemsFilter = Partial<TransferRoot> & {
   destinationChainIds?: number[]
+}
+
+interface MultipleWithdrawalsSettled {
+  transferRootHash: string
+  transferRootId: string
+  bonder: string
+  totalBondsSettled: BigNumber
+  txHash: string
+  blockNumber: number
+  txIndex: number
+  logIndex: number
+}
+
+type UnsettledTransferRoot = {
+  transferRootId: string
+  transferRootHash: string
+  totalAmount: BigNumber
+  transferIds: string[]
+  destinationChainId: number
+  rootSetTxHash: string
+  committed: boolean
+  committedAt: number
+  allSettled: boolean
+}
+
+type UnbondedTransferRoot = {
+  bonded: boolean
+  bondedAt: number
+  confirmed: boolean
+  transferRootHash: string
+  transferRootId: string
+  committedAt: number
+  commitTxHash: string
+  commitTxBlockNumber: number
+  destinationChainId: number
+  sourceChainId: number
+  totalAmount: BigNumber
+  transferIds: string[]
+}
+
+export type ExitableTransferRoot = {
+  commitTxHash: string
+  confirmed: boolean
+  transferRootHash: string
+  transferRootId: string
+  totalAmount: BigNumber
+  destinationChainId: number
+  committed: boolean
+  committedAt: number
+}
+
+export type ChallengeableTransferRoot = {
+  transferRootId: string
+  transferRootHash: string
+  committed: boolean
+  totalAmount: BigNumber
+  bonded: boolean
+  challenged: boolean
 }
 
 // structure:
@@ -145,8 +201,7 @@ class SubDbIncompletes extends BaseDb {
       (item.commitTxHash && !item.committedAt) ||
       (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
       (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
-      (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds) ||
-      (item.multipleWithdrawalsSettledTxHash && item.multipleWithdrawalsSettledTotalAmount && !item.transferIds)
+      (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }
@@ -212,6 +267,45 @@ class SubDbBondedAt extends BaseDb {
 }
 
 // structure:
+// key: `<transferRootId>:<txHash>`
+// value: `{ ...MultipleWithdrawalsSettled }`
+class SubDbMultipleWithdrawalsSettleds extends BaseDb {
+  constructor (prefix: string, _namespace?: string) {
+    super(`${prefix}:multipleWithdrawalsSettleds`, _namespace)
+  }
+
+  getInsertKey (event: MultipleWithdrawalsSettled) {
+    if (event.transferRootId && event.txHash) {
+      return `${event.transferRootId}:${event.txHash}`
+    }
+  }
+
+  async insertItem (event: MultipleWithdrawalsSettled) {
+    const { transferRootId } = event
+    const logger = this.logger.create({ id: transferRootId })
+    const key = this.getInsertKey(event)
+    if (!key) {
+      return
+    }
+    const exists = await this.getById(key)
+    if (!exists) {
+      logger.debug(`storing db MultipleWithdrawalsSettled item. key: ${key}`)
+      await this._update(key, event)
+      logger.debug(`updated db MultipleWithdrawalsSettled item. key: ${key}`)
+    }
+  }
+
+  async getEvents (transferRootId: string): Promise<MultipleWithdrawalsSettled[]> {
+    const filter: KeyFilter = {
+      gte: `${transferRootId}:`,
+      lte: `${transferRootId}:~`
+    }
+
+    return this.getValues(filter)
+  }
+}
+
+// structure:
 // key: `<transferRootId>`
 // value: `{ ...TransferRoot }`
 class TransferRootsDb extends BaseDb {
@@ -219,6 +313,7 @@ class TransferRootsDb extends BaseDb {
   subDbIncompletes: SubDbIncompletes
   subDbRootHashes: SubDbRootHashes
   subDbBondedAt: SubDbBondedAt
+  subDbMultipleWithdrawalsSettleds: SubDbMultipleWithdrawalsSettleds
 
   constructor (prefix: string, _namespace?: string) {
     super(prefix, _namespace)
@@ -227,16 +322,8 @@ class TransferRootsDb extends BaseDb {
     this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
     this.subDbBondedAt = new SubDbBondedAt(prefix, _namespace)
+    this.subDbMultipleWithdrawalsSettleds = new SubDbMultipleWithdrawalsSettleds(prefix, _namespace)
     this.logger.debug('TransferRootsDb initialized')
-  }
-
-  async migration () {
-    this.logger.debug('TransferRootsDb migration started')
-    const entries = await this.getKeyValues()
-    this.logger.debug(`TransferRootsDb migration: ${entries.length} entries`)
-    for (const entry of entries) {
-      await this.subDbBondedAt.insertItem(entry.value)
-    }
   }
 
   private isRouteOk (filter: GetItemsFilter = {}, item: TransferRoot) {
@@ -352,10 +439,10 @@ class TransferRootsDb extends BaseDb {
 
   async getUnbondedTransferRoots (
     filter: GetItemsFilter = {}
-  ): Promise<TransferRoot[]> {
+  ): Promise<UnbondedTransferRoot[]> {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
       }
@@ -392,14 +479,16 @@ class TransferRootsDb extends BaseDb {
         timestampOk
       )
     })
+
+    return filtered as UnbondedTransferRoot[]
   }
 
   async getExitableTransferRoots (
     filter: GetItemsFilter = {}
-  ): Promise<TransferRoot[]> {
+  ): Promise<ExitableTransferRoot[]> {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
       }
@@ -461,7 +550,29 @@ class TransferRootsDb extends BaseDb {
         '0xca297c65043360ca5651ad1a89ff9550e8d909325e99dba809c6a67d27fc9f81',
         '0x24669e11cc950403761449aef4a55e439558bfbaeeea0e4fc27d69df699c798b',
         '0xea98791d1bce8158cd6121c600f319d01fb7c8d647e32fddf418d907bd053753',
-        '0x3063e76907e8b65615fdd3e9fd2200e4ae9b511eb96f0a3076b82b95019f0b2d'
+        '0x3063e76907e8b65615fdd3e9fd2200e4ae9b511eb96f0a3076b82b95019f0b2d',
+        '0x390bfa3f8b8f3d1fb974d3cebf55837934cb2a8d4fd6313892b4521a0bb01e4e',
+        '0xcc5a01771dca373ab483ed6aec76c00f1b26b33558ff8259d5315ad7a5986fcf',
+        '0xebe971088388ede4dca10b55ccfe85000218da83a211b9b1ec48a33c7a6a150d',
+        '0xcb8c474f41ea58b3450e6df8debd566e1fceda9b717fa17aa6ad5ed21d2fbceb',
+        '0xbb21b6e3864d5b267e9b140f030d153b32f869fe83cd46348e827fa7f8a42af2',
+        '0x0035e8dd5e0bc7718e05d2bdacc971507d8683996c0fdc4bd0aa8e57758beae4',
+        '0xcd48a178d86767b616b8820c022b9f4eb053acb7c0d420a97388242f71be3ee2',
+        '0xd067cc762a79262f21c4b8789c5dd4290fc1021614e86167af6612eb21152537',
+        '0x7ccf0aebe41d97c3253cb4a5d3a3bf5c2c84355ca29ad751edc382c26f519ff5',
+        '0x177a56761a1badfec8e16fccb5a8b1d90c3eb2ff9aa4abdbaadea396caa95dcf',
+        '0xad720713fc7d62607556a93555096a9bb13ea10090f9e445d65dec2c7e2d2bd2',
+        '0xad341836557a3bfdf9ffdd96a226e78d6ddd730f5fddfbdb7281d894308b4984',
+        '0xb3b499204821affb21397ebe0951d6d23019b0f3358838223aa59b9cb7310d8f',
+        '0x79c7739ad31c681a8711f85795e7948e05a0c414b4cabd8f43a3053b67ebad64',
+        '0xf63eeb8ef45179bda89849ddb361bc134cc26b32f29bbd7242ba5b5521dc3049',
+        '0xcb5c205eef29c99bced0509a52a78e4bf3582ad161c3cbf9f90dd42d13ad395c',
+        '0x64832892e02adcc6ab0650251b7bb0269976ccd20798c05b2d030e0708173220',
+        '0x9165e761d821b420ca1011f41226817bda2ba232062040d3b5e74df71cb28b3f',
+        '0x97465c0645c1b7ed2b7f194d7eb830e6678fcff035cbed411087192442dc69b6',
+        '0xbc216a8317c2fbc0066b251c675dcc355ec7b7fb7c4772ba843320eb70d9f87c',
+        '0x2020ce8a92caf3b7be42790d20e7088d96dfdb19ebc61a8e7e0282cec7040293',
+        '0x275e2e579326cd79a86a54e6cc1797491f9f45fe576f1255b6666d3f2afc6bbc'
       ]
 
       if (hashesToIgnore.includes(item.transferRootHash!)) {
@@ -506,14 +617,16 @@ class TransferRootsDb extends BaseDb {
         oruShouldExit
       )
     })
+
+    return filtered as ExitableTransferRoot[]
   }
 
   async getChallengeableTransferRoots (
     filter: GetItemsFilter = {}
-  ): Promise<TransferRoot[]> {
+  ): Promise<ChallengeableTransferRoot[]> {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getBondedTransferRootsFromTwoWeeks()
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
         return false
       }
@@ -543,14 +656,16 @@ class TransferRootsDb extends BaseDb {
         isWithinChallengePeriod
       )
     })
+
+    return filtered as ChallengeableTransferRoot[]
   }
 
   async getUnsettledTransferRoots (
     filter: GetItemsFilter = {}
-  ): Promise<TransferRoot[]> {
+  ): Promise<UnsettledTransferRoot[]> {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
       }
@@ -595,6 +710,8 @@ class TransferRootsDb extends BaseDb {
         settleAttemptTimestampOk
       )
     })
+
+    return filtered as UnsettledTransferRoot[]
   }
 
   async getIncompleteItems (
@@ -609,7 +726,7 @@ class TransferRootsDb extends BaseDb {
 
     const batchedItems = await this.batchGetByIds(transferRootIds)
     const transferRoots = batchedItems.map(this.normalizeItem)
-    return transferRoots.filter(item => {
+    const filtered = transferRoots.filter((item: TransferRoot) => {
       if (filter.sourceChainId && item.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
@@ -622,6 +739,29 @@ class TransferRootsDb extends BaseDb {
 
       return this.subDbIncompletes.isItemIncomplete(item)
     })
+
+    return filtered
+  }
+
+  async updateMultipleWithdrawalsSettledEvent (event: MultipleWithdrawalsSettled) {
+    await this.subDbMultipleWithdrawalsSettleds.insertItem(event)
+  }
+
+  async getMultipleWithdrawalsSettledTotalAmount (transferRootId: string) {
+    // sum up all the totalBondsSettled amounts to get total settled amount
+    const events = await this.subDbMultipleWithdrawalsSettleds.getEvents(transferRootId)
+    let settledTotalAmount = BigNumber.from(0)
+    for (const event of events) {
+      settledTotalAmount = settledTotalAmount.add(event.totalBondsSettled)
+    }
+    return settledTotalAmount
+  }
+
+  async getMultipleWithdrawalsSettledTxHash (transferRootId: string) {
+    const events = await this.subDbMultipleWithdrawalsSettleds.getEvents(transferRootId)
+
+    // we can use any tx hash since we'll be using it to decode list of transfer ids upstream
+    return events?.[0]?.txHash
   }
 }
 

@@ -1,8 +1,7 @@
 import React, { FC, useState, useMemo } from 'react'
 import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
-import { HopBridge, Token } from '@hop-protocol/sdk'
+import { Chain, HopBridge, Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
@@ -19,7 +18,7 @@ import {
   formatError,
 } from 'src/utils'
 import Alert from 'src/components/alert/Alert'
-import DetailRow from 'src/components/DetailRow'
+import { DetailRow } from 'src/components/InfoTooltip'
 import { useTransactionReplacement, useApprove, useAsyncMemo, useBalance } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
@@ -165,7 +164,7 @@ const StakeWidget: FC<Props> = props => {
   }, [stakingRewards, rewardsExpired])
 
   const userRewardsPerDay = useMemo(() => {
-    if (!(totalRewardsPerDay && stakeBalance?.gt(0) && totalStaked)) {
+    if (!(totalRewardsPerDay && stakeBalance?.gt(0) && totalStaked?.gt(0))) {
       return
     }
     return totalRewardsPerDay.mul(stakeBalance).div(totalStaked)
@@ -257,7 +256,6 @@ const StakeWidget: FC<Props> = props => {
     if (!isNetworkConnected || !parsedAmount) return
 
     const tx = await approve(parsedAmount, stakingToken, stakingRewards?.address)
-
     await tx?.wait()
   }
 
@@ -282,12 +280,17 @@ const StakeWidget: FC<Props> = props => {
       const tx = await txConfirm?.show({
         kind: 'stake',
         inputProps: {
+          source: {
+            network,
+          },
           amount: amount,
           token: stakingToken,
         },
         onConfirm: async () => {
+          const chain = Chain.fromSlug(network.slug)
+          const overrides = await stakingToken?.txOverrides(chain)
           const signer = await sdk.getSignerOrProvider(network.slug)
-          return stakingRewards.connect(signer).stake(parsedAmount)
+          return stakingRewards.connect(signer).stake(parsedAmount, overrides)
         },
       })
 
@@ -322,8 +325,10 @@ const StakeWidget: FC<Props> = props => {
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
 
+      const chain = Chain.fromSlug(network.slug)
+      const overrides = await stakingToken?.txOverrides(chain)
       const signer = await sdk.getSignerOrProvider(network.slug)
-      await stakingRewards.connect(signer).getReward()
+      await stakingRewards.connect(signer).getReward(overrides)
     } catch (err: any) {
       console.error(err)
     }
@@ -346,18 +351,16 @@ const StakeWidget: FC<Props> = props => {
         kind: 'withdrawStake',
         inputProps: {
           token: stakingToken,
-          amount: Number(formatUnits(stakeBalance, stakingToken?.decimals)),
+          maxBalance: stakeBalance,
         },
-        onConfirm: async (amountPercent: number) => {
-          if (!amountPercent) return
-
-          if (amountPercent === 100) {
+        onConfirm: async (withdrawAmount: BigNumber) => {
+          if (withdrawAmount.eq(stakeBalance)) {
             return _stakingRewards.exit()
           }
 
-          const withdrawAmount = stakeBalance.mul(amountPercent).div(100)
-
-          return _stakingRewards.withdraw(withdrawAmount)
+          const chain = Chain.fromSlug(network.slug)
+          const overrides = await stakingToken?.txOverrides(chain)
+          return _stakingRewards.withdraw(withdrawAmount, overrides)
         },
       })
 

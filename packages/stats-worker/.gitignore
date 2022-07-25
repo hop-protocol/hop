@@ -5,3 +5,5 @@ _data
 generated
 sqlite3.db
 *.csv
+
+scripts/*

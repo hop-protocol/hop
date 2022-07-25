@@ -578,6 +578,9 @@ const PoolsProvider: FC = ({ children }) => {
       const addLiquidityTx = await txConfirm?.show({
         kind: 'addLiquidity',
         inputProps: {
+          source: {
+            network: selectedNetwork
+          },
           token0: {
             amount: token0Amount || '0',
             token: canonicalToken,
@@ -690,6 +693,9 @@ const PoolsProvider: FC = ({ children }) => {
       const removeLiquidityTx = await txConfirm?.show({
         kind: 'removeLiquidity',
         inputProps: {
+          source: {
+            network: selectedNetwork
+          },
           token0: {
             amount: token0Amount,
             token: canonicalToken,

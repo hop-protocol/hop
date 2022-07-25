@@ -7,6 +7,7 @@ import reportWebVitals from './reportWebVitals'
 import ThemeProvider from './theme/ThemeProvider'
 import Web3Provider from './contexts/Web3Context'
 import AppProvider from './contexts/AppContext'
+import SafeProvider from '@gnosis.pm/safe-apps-react-sdk'
 import { ReactQueryDevtools } from 'react-query/devtools'
 
 const isIPFS = !!process.env.REACT_APP_IPFS_BUILD
@@ -29,18 +30,20 @@ const queryClient = new QueryClient({
 })
 
 ReactDOM.render(
-  <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <Web3Provider>
-          <AppProvider>
-            <App />
-            <ReactQueryDevtools />
-          </AppProvider>
-        </Web3Provider>
-      </Router>
-    </QueryClientProvider>
-  </ThemeProvider>,
+  <SafeProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <Web3Provider>
+            <AppProvider>
+              <App />
+              <ReactQueryDevtools />
+            </AppProvider>
+          </Web3Provider>
+        </Router>
+      </QueryClientProvider>
+    </ThemeProvider>
+  </SafeProvider>,
   document.getElementById('root')
 )
 

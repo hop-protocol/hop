@@ -1,17 +1,20 @@
 import makeRequest from './makeRequest'
+import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
 export default async function getBondedWithdrawals (
   chain: string,
   token: string,
-  lastId: string = '0x0000000000000000000000000000000000000000'
+  bonder: string = '',
+  lastId: string = constants.AddressZero
 ) {
+  bonder = bonder.toLowerCase()
+  const filters = getFilters(bonder)
   const query = `
-    query WithdrawalBonded($token: String, $lastId: ID) {
+    query WithdrawalBonded($token: String, $bonder: String $lastId: ID) {
       withdrawalBondeds(
         where: {
-          token: $token,
-          id_gt: $lastId
+          ${filters}
         },
         orderBy: id,
         orderDirection: asc,
@@ -32,7 +35,8 @@ export default async function getBondedWithdrawals (
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    lastId
+    bonder,
+    lastId: lastId
   })
   let withdrawals = jsonRes.withdrawalBondeds.map((x: any) => normalizeEntity(x))
 
@@ -42,9 +46,23 @@ export default async function getBondedWithdrawals (
     withdrawals = withdrawals.concat(await getBondedWithdrawals(
       chain,
       token,
+      bonder,
       lastId
     ))
   }
 
   return withdrawals
+}
+
+function getFilters (bonder: string): string {
+  let filters: string = `
+    id_gt: $lastId
+    token: $token
+  `
+
+  if (bonder) {
+    filters += 'from: $bonder\n'
+  }
+
+  return filters
 }

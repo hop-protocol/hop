@@ -1,24 +1,19 @@
-import React, { FC, useEffect, useState, ChangeEvent } from 'react'
+import React, { useEffect, useState, ChangeEvent } from 'react'
 import Button from 'src/components/buttons/Button'
 import { makeStyles } from '@material-ui/core/styles'
-import MuiSlider from '@material-ui/core/Slider'
-import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
-import LargeTextField from 'src/components/LargeTextField'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
-import Token from 'src/models/Token'
-import Network from 'src/models/Network'
 import logger from 'src/logger'
-import { amountToBN, commafy, toPercentDisplay } from 'src/utils'
+import { commafy, NetworkTokenEntity } from 'src/utils'
 import { BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Slider } from 'src/components/slider'
 import MenuItem from '@material-ui/core/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
-import DetailRow from 'src/components/DetailRow'
+import DetailRow from 'src/components/InfoTooltip/DetailRow'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -29,27 +24,24 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: '2rem',
   },
   selection: {
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   proportionalAmount: {
-    marginBottom: '1rem'
+    marginBottom: '1rem',
   },
   amountInput: {
     marginTop: '1rem',
-    marginBottom: '2rem'
+    marginBottom: '2rem',
   },
   action: {},
   sendButton: {},
   details: {
     width: '20rem',
-    margin: '0 auto 3rem auto'
+    margin: '0 auto 3rem auto',
   },
 }))
 
-interface TokenEntity {
-  network: Network
-  token: Token
-  amount: BigNumber
+type TokenEntity = NetworkTokenEntity & {
   max: BigNumber
 }
 
@@ -71,10 +63,10 @@ const RemoveLiquidity = (props: Props) => {
   const { token0, token1, onConfirm, calculatePriceImpact } = props
   const styles = useStyles()
   const [sending, setSending] = useState<boolean>(false)
-  const selections :any[] = [
+  const selections: any[] = [
     { label: 'All tokens', value: -1 },
     { label: token0.token.symbol, value: 0, icon: (token0.token as any).image },
-    { label: token1.token.symbol, value: 1, icon: (token1.token as any).image }
+    { label: token1.token.symbol, value: 1, icon: (token1.token as any).image },
   ]
   const [selection, setSelection] = useState<any>(selections[0])
   const [proportional, setProportional] = useState<boolean>(true)
@@ -88,7 +80,7 @@ const RemoveLiquidity = (props: Props) => {
   const selectedToken = tokenIndex ? token1.token : token0.token
   const maxBalance = tokenIndex ? token1.max : token0.max
   const tokenDecimals = token0.token.decimals
-  const disabled = proportional ? !amountPercent : (amountBN.lte(0) || amountBN.gt(maxBalance))
+  const disabled = proportional ? !amountPercent : amountBN.lte(0) || amountBN.gt(maxBalance)
 
   const handleSubmit = async () => {
     try {
@@ -97,7 +89,7 @@ const RemoveLiquidity = (props: Props) => {
         proportional,
         tokenIndex,
         amountPercent,
-        amount: amountBN
+        amount: amountBN,
       })
     } catch (err) {
       logger.error(err)
@@ -163,7 +155,7 @@ const RemoveLiquidity = (props: Props) => {
           proportional,
           amountPercent,
           tokenIndex,
-          amount: amountBN
+          amount: amountBN,
         })
         if (isSubscribed) {
           setPriceImpact(_priceImpact)
@@ -196,25 +188,21 @@ const RemoveLiquidity = (props: Props) => {
         <RaisedSelect value={selection.value} onChange={handleSelection}>
           {selections.map((item: any) => (
             <MenuItem value={item.value} key={item.label}>
-              <SelectOption
-                value={item.label}
-                icon={item.icon}
-                label={item.label}
-              />
+              <SelectOption value={item.label} icon={item.icon} label={item.label} />
             </MenuItem>
           ))}
         </RaisedSelect>
       </div>
-      {proportional ? <div>
-        <Typography variant="subtitle2" color="textPrimary">
-          Proportional withdraw
-        </Typography>
-        <div className={styles.proportionalAmount}>
-          {displayAmount}
+      {proportional ? (
+        <div>
+          <Typography variant="subtitle2" color="textPrimary">
+            Proportional withdraw
+          </Typography>
+          <div className={styles.proportionalAmount}>{displayAmount}</div>
+          <Slider onChange={handleProportionSliderChange} defaultValue={100} />
         </div>
-        <Slider onChange={handleProportionSliderChange} defaultValue={100} />
-      </div>
-      : <div>
+      ) : (
+        <div>
           <Typography variant="subtitle2" color="textPrimary">
             Withdraw only {selectedToken.symbol}
           </Typography>
@@ -237,8 +225,8 @@ const RemoveLiquidity = (props: Props) => {
               value={`${priceImpactFormatted}`}
             />
           </div>
-      </div>
-      }
+        </div>
+      )}
       <div className={styles.action}>
         <Button
           disabled={disabled}

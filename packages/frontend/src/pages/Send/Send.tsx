@@ -5,7 +5,7 @@ import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
 import TxStatusModal from 'src/components/modal/TxStatusModal'
-import DetailRow from 'src/components/DetailRow'
+import DetailRow from 'src/components/InfoTooltip/DetailRow'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
@@ -15,9 +15,9 @@ import logger from 'src/logger'
 import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
-import FeeDetails from 'src/components/FeeDetails'
+import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
 import { hopAppNetwork } from 'src/config'
-import InfoTooltip from 'src/components/infoTooltip'
+import InfoTooltip from 'src/components/InfoTooltip'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
 import { useSendStyles } from './useSendStyles'
@@ -36,10 +36,13 @@ import {
   useEstimateTxCost,
   useTxResult,
   useSufficientBalance,
+  useDisableTxs,
+  useGnosisSafeTransaction,
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import { ExternalLink } from 'src/components/Link'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -70,7 +73,8 @@ const Send: FC = () => {
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
   const [customRecipient, setCustomRecipient] = useState<string>()
   const [manualWarning, setManualWarning] = useState<string>('')
-  const isSmartContractWallet = useIsSmartContractWallet()
+  const { isSmartContractWallet } = useIsSmartContractWallet()
+  const [manualError, setManualError] = useState<string>('')
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -145,7 +149,7 @@ const Send: FC = () => {
       return
     }
 
-    let amount
+    let amount : any
     if (amountOut) {
       amount = toTokenDisplay(amountOut, destToken.decimals)
     }
@@ -203,7 +207,11 @@ const Send: FC = () => {
         return
       }
 
-      const isAvailable = BigNumber.from(availableLiquidity).gte(requiredLiquidity)
+      let isAvailable = BigNumber.from(availableLiquidity).gte(requiredLiquidity)
+      if (fromNetwork?.isL1) {
+        isAvailable = true
+      }
+
       const formattedAmount = toTokenDisplay(availableLiquidity, sourceToken.decimals)
 
       const warningMessage = (
@@ -228,10 +236,10 @@ const Send: FC = () => {
           />
         </>
       )
-      if (!isAvailable && !fromNetwork?.isLayer1) {
+      if (!isAvailable) {
         if (hopAppNetwork !== 'staging') {
           setIsLiquidityAvailable(false)
-          setNoLiquidityWarning(warningMessage)
+          return setNoLiquidityWarning(warningMessage)
         }
       } else {
         setIsLiquidityAvailable(true)
@@ -282,7 +290,7 @@ const Send: FC = () => {
     estimatedReceived,
     priceImpact,
     fromTokenAmount,
-    toTokenAmount
+    toTokenAmount,
   ])
 
   useEffect(() => {
@@ -386,7 +394,7 @@ const Send: FC = () => {
   // Send tokens
   // ==============================================================================================
 
-  const { tx, setTx, send, sending } = useSendTransaction({
+  const { tx, setTx, send, sending, setIsGnosisSafeWallet } = useSendTransaction({
     amountOutMin,
     customRecipient,
     deadline,
@@ -400,7 +408,7 @@ const Send: FC = () => {
     toNetwork,
     txConfirm,
     txHistory,
-    estimatedReceived: estimatedReceivedDisplay,
+    estimatedReceived: estimatedReceivedDisplay
   })
 
   useEffect(() => {
@@ -409,6 +417,17 @@ const Send: FC = () => {
       setFromTokenAmount('')
     }
   }, [tx])
+
+  const { gnosisEnabled, gnosisSafeWarning, isCorrectSignerNetwork } = useGnosisSafeTransaction(
+    tx,
+    customRecipient,
+    fromNetwork,
+    toNetwork,
+  )
+
+  useEffect(() => {
+    setIsGnosisSafeWallet(gnosisEnabled)
+  }, [gnosisEnabled])
 
   // ==============================================================================================
   // User actions
@@ -485,6 +504,15 @@ const Send: FC = () => {
     setManualWarning('')
   }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
+  useEffect(() => {
+    // if (fromNetwork?.slug === ChainSlug.Polygon || toNetwork?.slug === ChainSlug.Polygon) {
+    //   return setManualError('Warning: transfers to/from Polygon are temporarily down.')
+    // }
+    // setManualError('')
+  }, [fromNetwork?.slug, toNetwork?.slug])
+
+  const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, sourceToken?.symbol)
+
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
   const sendButtonActive = useMemo(() => {
@@ -499,7 +527,10 @@ const Send: FC = () => {
       rate &&
       sufficientBalance &&
       isLiquidityAvailable &&
-      estimatedReceived?.gt(0)
+      estimatedReceived?.gt(0) &&
+      !manualError &&
+      (!disabledTx || disabledTx?.warningOnly) &&
+      (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet)
     )
   }, [
     needsApproval,
@@ -513,6 +544,11 @@ const Send: FC = () => {
     sufficientBalance,
     isLiquidityAvailable,
     estimatedReceived,
+    manualError,
+    disabledTx,
+    gnosisEnabled,
+    isCorrectSignerNetwork,
+    isSmartContractWallet,
   ])
 
   return (
@@ -574,12 +610,19 @@ const Send: FC = () => {
       />
 
       <div className={styles.smartContractWalletWarning}>
-        <Alert severity="warning">{
-          isSmartContractWallet 
-            ? 'The connected account is detected to be a smart contract wallet. Please provide a custom recipient to proceed with this transaction.' 
-            : ''}
-        </Alert>
+        <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
       </div>
+
+      {disabledTx && (
+        <Alert severity={disabledTx?.message?.severity ||  'warning'}>
+          <ExternalLink
+            href={disabledTx.message?.href}
+            text={disabledTx.message?.text}
+            linkText={disabledTx.message?.linkText}
+            postText={disabledTx.message?.postText}
+          />
+        </Alert>
+      )}
 
       <div className={styles.details}>
         <div className={styles.destinationTxFeeAndAmount}>
@@ -612,7 +655,7 @@ const Send: FC = () => {
       <Alert severity="error" onClose={() => setError(null)} text={error} />
       {!error && <Alert severity="warning">{warning}</Alert>}
       <Alert severity="warning">{manualWarning}</Alert>
-      
+      <Alert severity="error">{manualError}</Alert>
 
       <ButtonsWrapper>
         {!sendButtonActive && (
@@ -648,7 +691,7 @@ const Send: FC = () => {
 
       <Flex mt={1}>
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />
-        {tx && <TxStatusModal onClose={() => setTx(null)} tx={tx} />}
+        {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}
       </Flex>
     </Flex>
   )

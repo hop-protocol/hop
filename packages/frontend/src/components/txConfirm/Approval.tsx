@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Checkbox from '@material-ui/core/Checkbox'
-import { commafy } from 'src/utils'
+import { commafy, NetworkTokenEntity } from 'src/utils'
 import { useSendingTransaction } from './useSendingTransaction'
 
 const useStyles = makeStyles(() => ({
@@ -35,15 +35,16 @@ interface Props {
   tagline?: string
   tokenSymbol: string
   onConfirm: (confirmed: boolean, params?: any) => void
+  source: NetworkTokenEntity
 }
 
 const Approval = (props: Props) => {
-  const { amount, tokenSymbol, onConfirm, tagline } = props
+  const { amount, tokenSymbol, onConfirm, tagline, source } = props
   const styles = useStyles()
   const [approveAll, setApproveAll] = useState<boolean>(true)
   const showApproveAll = !!amount
 
-  const { sending, handleSubmit } = useSendingTransaction({ onConfirm })
+  const { sending, handleSubmit } = useSendingTransaction({ onConfirm, source })
 
   const handleApproveAll = (event: ChangeEvent<HTMLInputElement>) => {
     const checked = event.target.checked

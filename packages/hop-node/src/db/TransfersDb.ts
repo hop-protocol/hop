@@ -1,7 +1,8 @@
 import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { OneWeekMs, TxError, TxRetryDelayMs } from 'src/constants'
+import { OneWeekMs, TxError } from 'src/constants'
+import { TxRetryDelayMs, minEthBonderFeeBn } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransfer {
@@ -28,11 +29,12 @@ interface BaseTransfer {
   transferSentTxHash?: string
   transferSpentTxHash?: string
   withdrawalBondBackoffIndex?: number
+  withdrawalBondSettled?: boolean
+  withdrawalBondSettledTxHash?: string
+  withdrawalBondTxError?: TxError
   withdrawalBonded?: boolean
   withdrawalBondedTxHash?: string
   withdrawalBonder?: string
-  withdrawalBondSettled?: boolean
-  withdrawalBondTxError?: TxError
 }
 
 export interface Transfer extends BaseTransfer {
@@ -50,6 +52,32 @@ type TransfersDateFilter = {
 
 type GetItemsFilter = Partial<Transfer> & {
   destinationChainIds?: number[]
+}
+
+export type UnbondedSentTransfer = {
+  transferId: string
+  transferSentTimestamp: number
+  withdrawalBonded: boolean
+  transferSentTxHash: string
+  isBondable: boolean
+  isTransferSpent: boolean
+  destinationChainId: number
+  amount: BigNumber
+  withdrawalBondTxError: TxError
+  sourceChainId: number
+  recipient: string
+  amountOutMin: BigNumber
+  bonderFee: BigNumber
+  transferNonce: string
+  deadline: BigNumber
+}
+
+export type UncommittedTransfer = {
+  transferId: string
+  transferRootId: string
+  transferSentTxHash: string
+  committed: boolean
+  destinationChainId: number
 }
 
 // structure:
@@ -143,7 +171,8 @@ class SubDbIncompletes extends BaseDb {
       !item.destinationChainId ||
       !item.transferSentBlockNumber ||
       (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
-      (item.withdrawalBondedTxHash && !item.withdrawalBonder)
+      (item.withdrawalBondedTxHash && !item.withdrawalBonder) ||
+      (item.withdrawalBondSettledTxHash && !item.withdrawalBondSettled)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }
@@ -191,6 +220,8 @@ class SubDbRootHashes extends BaseDb {
   }
 }
 
+const arbitrumChainId = 42161
+
 // structure:
 // key: `<transferId>`
 // value: `{ ...Transfer }`
@@ -204,29 +235,6 @@ class TransfersDb extends BaseDb {
     this.subDbTimestamps = new SubDbTimestamps(prefix, _namespace)
     this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
-  }
-
-  async migration () {
-    this.logger.debug('TransfersDb migration started')
-    const entries = await this.getKeyValues()
-    this.logger.debug(`TransfersDb migration: ${entries.length} entries`)
-    const promises: Array<Promise<any>> = []
-    for (const { key, value } of entries) {
-      let shouldUpdate = false
-      if (value?.sourceChainSlug === 'xdai') {
-        shouldUpdate = true
-        value.sourceChainSlug = 'gnosis'
-      }
-      if (value?.destinationChainSlug === 'xdai') {
-        shouldUpdate = true
-        value.destinationChainSlug = 'gnosis'
-      }
-      if (shouldUpdate) {
-        promises.push(this._update(key, value))
-      }
-    }
-    await Promise.all(promises)
-    this.logger.debug('TransfersDb migration complete')
   }
 
   private isRouteOk (filter: GetItemsFilter = {}, item: Transfer) {
@@ -288,6 +296,20 @@ class TransfersDb extends BaseDb {
     return 0
   }
 
+  private readonly prioritizeSortItems = (a: any, b: any) => {
+    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+    // place anything that is to Arbitrum at bottom of list
+    if (a.destinationChainId === arbitrumChainId) return 1
+    if (b.destinationChainId === arbitrumChainId) return -1
+
+    if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
+    if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
+    if (a.transferSentIndex! > b.transferSentIndex!) return 1
+    if (a.transferSentIndex! < b.transferSentIndex!) return -1
+    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+    return 0
+  }
+
   async update (transferId: string, transfer: UpdateTransfer) {
     const logger = this.logger.create({ id: transferId })
     logger.debug('update called')
@@ -311,6 +333,10 @@ class TransfersDb extends BaseDb {
 
   async getItems (dateFilter?: TransfersDateFilter): Promise<Transfer[]> {
     const transferIds = await this.getTransferIds(dateFilter)
+    return this.getMultipleTransfersByTransferIds(transferIds)
+  }
+
+  async getMultipleTransfersByTransferIds (transferIds: string[]) {
     const batchedItems = await this.batchGetByIds(transferIds)
     const transfers = batchedItems.map(this.normalizeItem)
     const items = transfers.sort(this.sortItems)
@@ -344,9 +370,9 @@ class TransfersDb extends BaseDb {
 
   async getUncommittedTransfers (
     filter: GetItemsFilter = {}
-  ): Promise<Transfer[]> {
+  ): Promise<UncommittedTransfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
-    return transfers.filter(item => {
+    const filtered = transfers.filter(item => {
       if (!this.isRouteOk(filter, item)) {
         return false
       }
@@ -358,13 +384,16 @@ class TransfersDb extends BaseDb {
         !item.committed
       )
     })
+
+    return filtered as UncommittedTransfer[]
   }
 
   async getUnbondedSentTransfers (
     filter: GetItemsFilter = {}
-  ): Promise<Transfer[]> {
+  ): Promise<UnbondedSentTransfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
-    return transfers.filter(item => {
+    const isEthToken = this.prefix?.startsWith('ETH')
+    const filtered = transfers.filter(item => {
       if (!item?.transferId) {
         return false
       }
@@ -393,6 +422,14 @@ class TransfersDb extends BaseDb {
         }
       }
 
+      // TODO: remove this after a week since it was added because it's handled in SyncWatcher
+      let bonderFeeOk = true
+      if (item.bonderFee) {
+        if (isEthToken) {
+          bonderFeeOk = item.bonderFee?.gte(minEthBonderFeeBn)
+        }
+      }
+
       return (
         item.transferId &&
         item.transferSentTimestamp &&
@@ -400,9 +437,14 @@ class TransfersDb extends BaseDb {
         item.transferSentTxHash &&
         item.isBondable &&
         !item.isTransferSpent &&
-        timestampOk
+        timestampOk &&
+        bonderFeeOk
       )
     })
+
+    const sorted = isEthToken ? filtered.sort(this.prioritizeSortItems) : filtered
+
+    return sorted as UnbondedSentTransfer[]
   }
 
   async getIncompleteItems (

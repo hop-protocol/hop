@@ -15,18 +15,20 @@ interface StyleProps {
   onClick?: any
   loading?: boolean
   isDarkMode?: boolean
+  fullWidth?: boolean
 }
 
 export type ButtonProps = Partial<StyleProps> &
   MuiButtonProps & { boxShadow?: any; minWidth?: string }
 
 const useStyles = makeStyles(theme => ({
-  root: ({ highlighted, large, flat, isDarkMode }: StyleProps) => ({
+  root: ({ highlighted, large, flat, isDarkMode, fullWidth }: StyleProps) => ({
     borderRadius: '3.0rem',
     textTransform: 'none',
     padding: large ? '0.8rem 4.2rem' : '0.8rem 2.8rem',
-    height: large ? '5.5rem' : '4.0rem',
+    minHeight: large ? '5.5rem' : '4.0rem',
     fontSize: large ? '2.2rem' : '1.5rem',
+    width: fullWidth ? '100%' : 'auto',
     color: highlighted ? 'white' : theme.palette.text.primary,
     background: highlighted
       ? theme.bgGradient.main
@@ -73,13 +75,14 @@ const LargeButton: FC<ButtonProps> = props => {
     boxShadow,
     minWidth,
     borderRadius,
+    fullWidth = false,
     ...buttonProps
   } = props
   const { isDarkMode } = useThemeMode()
-  const styles = useStyles({ highlighted, large, flat, isDarkMode })
+  const styles = useStyles({ highlighted, large, flat, isDarkMode, fullWidth })
 
   return (
-    <Flex justifyCenter alignCenter borderRadius={borderRadius || '3.0rem'}>
+    <Flex justifyCenter alignCenter borderRadius={borderRadius || '3.0rem'} fullWidth>
       <MuiButton
         {...buttonProps}
         disabled={disabled || loading}

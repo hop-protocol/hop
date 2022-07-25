@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from 'react'
+import React, { FC, useEffect, useState } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
@@ -80,6 +80,7 @@ const ConvertContent: FC = () => {
     validFormFields,
     warning,
   } = useConvert()
+  const [manualWarning, setManualWarning] = useState<string>('')
 
   useEffect(() => {
     setSourceTokenAmount('')
@@ -105,9 +106,17 @@ const ConvertContent: FC = () => {
     approveTokens()
   }
 
+  useEffect(() => {
+    if (sourceNetwork?.slug === ChainSlug.Polygon || destNetwork?.slug === ChainSlug.Polygon) {
+      return setManualWarning('')
+      // return setManualWarning('Warning: transfers to/from Polygon are temporarily down.')
+    }
+    setManualWarning('')
+  }, [destNetwork?.slug, sourceNetwork?.slug])
+
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
   const sendButtonActive =
-    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error
+    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning
 
   const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
 
@@ -152,6 +161,7 @@ const ConvertContent: FC = () => {
           <div className={styles.details}>{details}</div>
           <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
+          <Alert severity="error">{manualWarning}</Alert>
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
           <ButtonsWrapper>

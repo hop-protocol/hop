@@ -1,8 +1,10 @@
-export { default as Hop } from './Hop'
+import Hop from './Hop'
+export { Hop }
 export { default as HopBridge } from './HopBridge'
 export { default as CanonicalBridge } from './CanonicalBridge'
 export { default as AMM } from './AMM'
 export { default as Token } from './Token'
+export { default as Base } from './Base'
 
 export { Chain } from './models'
 export { Route } from './models'
@@ -19,3 +21,7 @@ export {
   WrappedToken,
   HToken
 } from './constants/constants'
+
+if (typeof window !== 'undefined') {
+  ;(window as any).Hop = Hop
+}

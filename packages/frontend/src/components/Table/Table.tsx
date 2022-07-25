@@ -1,8 +1,9 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useTable, useSortBy, sortTypes } from 'react-table'
+import { useTable, useSortBy } from 'react-table'
 import makeData from './makeData'
 import { Div } from '../ui'
+import Skeleton from '@material-ui/lab/Skeleton'
 
 const Styles = styled.div`
   padding: 0.25rem;
@@ -10,9 +11,17 @@ const Styles = styled.div`
   table {
     border-spacing: 0;
     border-radius: 8px;
-    min-width: 90vw;
+    min-width: 85vw;
 
     @media screen and (min-width: 600px) {
+      min-width: 70vw;
+    }
+
+    @media screen and (min-width: 960px) {
+      min-width: 500px;
+    }
+
+    @media screen and (min-width: 1280px) {
       min-width: auto;
     }
 
@@ -33,6 +42,7 @@ const Styles = styled.div`
         :nth-child(odd) {
           background-color: ${({ theme }) => theme.colors.background.contrast};
         }
+
         &:hover {
           background-color: ${({ theme }) => theme.colors.action.hover};
           color: black;
@@ -44,7 +54,7 @@ const Styles = styled.div`
     td {
       transition: background 0.15s ease-out;
       margin: 0;
-      padding: 0.5rem;
+      padding: 0.5rem 1rem;
       border-bottom: 1px solid #dbdbdb;
 
       :last-child {
@@ -54,55 +64,63 @@ const Styles = styled.div`
   }
 `
 
-function Table({ columns, data }) {
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    state,
-    setHiddenColumns,
-    ...rest
-  } = useTable(
+function Table({ columns, data, loading }) {
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable(
     {
       columns,
       data,
-      sortTypes,
     },
     useSortBy
   )
 
   return (
-    <Div>
+    <Div style={{ width: '100%' }}>
       <table {...getTableProps()}>
         <thead>
-          {headerGroups.map(headerGroup => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column, i) => (
+          {headerGroups.map((headerGroup: any, i) => (
+            <tr
+              {...headerGroup.getHeaderGroupProps([
+                {
+                  style: {
+                    ...headerGroup.style,
+                    textAlign: i === 0 ? 'left' : 'center',
+                    fontSize: i === 0 ? '2rem' : '1.5rem',
+                    color: i === 0 ? '#B32EFF' : 'inherit',
+                  },
+                },
+              ])}
+            >
+              {headerGroup.headers.map((column: any, i) => (
                 // Add the sorting props to control sorting. For this example
                 // we can add them into the header props
                 <th
-                  {...column.getHeaderProps([
+                  {...column.getHeaderProps(column.getSortByToggleProps(), [
                     {
                       style: {
                         ...column.style,
-                        backgroundColor: column.isSorted ? '#eed0ff' : 'transparent',
+                        backgroundColor: (column as any).isSorted ? '#eed0ff' : 'transparent',
                       },
                     },
-                    column.getSortByToggleProps(),
                   ])}
                 >
                   {column.render('Header')}
                   <span style={{ color: '#B32EFF' }}>
-                    {column.isSorted ? (column.isSortedDesc ? ' ↑' : ' ↓') : ''}
+                    {column.isSorted ? ' ↑' : column.isSortedDesc && ' ↓'}
                   </span>
                 </th>
               ))}
             </tr>
           ))}
         </thead>
+
         <tbody {...getTableBodyProps()}>
+          {loading && (
+            <tr>
+              <td colSpan={headerGroups?.[1].headers?.length}>
+                <Skeleton animation="wave" width={'100%'} />
+              </td>
+            </tr>
+          )}
           {rows.map((row, i) => {
             prepareRow(row)
             return (
@@ -124,16 +142,20 @@ interface Props {
   columns: any[]
   populateDataFn: (item: any, ...rest: any) => void
   extraData?: any
+  loading?: boolean
 }
 
 function SortableTable(props: Props) {
-  const { stats, columns, populateDataFn, extraData } = props
+  const { stats, columns, populateDataFn, extraData, loading } = props
 
-  const data = React.useMemo(() => makeData(stats, populateDataFn, extraData), [stats])
+  const data = React.useMemo(
+    () => makeData(stats, populateDataFn, extraData),
+    [stats, extraData, populateDataFn]
+  )
 
   return (
     <Styles>
-      <Table columns={columns} data={data} />
+      <Table columns={columns} data={data} loading={loading} />
     </Styles>
   )
 }

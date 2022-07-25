@@ -1,9 +1,11 @@
 import Base, { ChainProviders } from './Base'
 import CanonicalBridge from './CanonicalBridge'
 import CanonicalWatcher from './watchers/CanonicalWatcher'
+import EventEmitter from 'eventemitter3'
 import HopBridge from './HopBridge'
 import Watcher from './watchers/Watcher'
 import _version from './version'
+import { ApiKeys } from './priceFeed'
 import { Chain, Token } from './models'
 import { Event } from './watchers/BaseWatcher'
 import { TChain, TProvider, TToken } from './types'
@@ -37,6 +39,8 @@ class Hop extends Base {
 
   /** Token class */
   Token = Token
+
+  priceFeedApiKeys: ApiKeys | null = null
 
   /**
    * @desc Instantiates Hop SDK.
@@ -76,14 +80,18 @@ class Hop extends Base {
    * @returns {Object} A HopBridge instance.
    * @example
    *```js
-   *import { Hop, Token } from '@hop-protocol/sdk'
+   *import { Hop } from '@hop-protocol/sdk'
    *
    *const hop = new Hop()
-   *const bridge = hop.bridge(Token.USDC)
+   *const bridge = hop.bridge('USDC')
    *```
    */
   public bridge (token: TToken) {
-    return new HopBridge(this.network, this.signer, token, this.chainProviders)
+    const hopBridge = new HopBridge(this.network, this.signer, token, this.chainProviders)
+    if (this.priceFeedApiKeys) {
+      hopBridge.priceFeed.setApiKeys(this.priceFeedApiKeys)
+    }
+    return hopBridge
   }
 
   /**
@@ -93,10 +101,10 @@ class Hop extends Base {
    * @returns {Object} A CanonicalBridge instance.
    * @example
    *```js
-   *import { Hop, Token } from '@hop-protocol/sdk'
+   *import { Hop } from '@hop-protocol/sdk'
    *
    *const hop = new Hop()
-   *const bridge = hop.canonicalBridge(Token.USDC)
+   *const bridge = hop.canonicalBridge('USDC')
    *```
    */
   public canonicalBridge (token: TToken, chain?: TChain) {
@@ -156,7 +164,7 @@ class Hop extends Base {
    *
    *const hop = new Hop()
    * hop
-   *   .watch(tx.hash, Token.USDC, Chain.Ethereum, Chain.Gnosis)
+   *   .watch(tx.hash, 'USDC', Chain.Ethereum, Chain.Gnosis)
    *   .on('receipt', ({receipt, chain}) => {
    *     console.log(chain.Name, receipt)
    *   })
@@ -169,7 +177,7 @@ class Hop extends Base {
     destinationChain: TChain,
     isCanonicalTransfer: boolean = false,
     options: WatchOptions = {}
-  ) {
+  ): EventEmitter | Error | any {
     // TODO: detect type of transfer
     return isCanonicalTransfer
       ? this.watchCanonical(txHash, token, sourceChain, destinationChain)
@@ -212,6 +220,10 @@ class Hop extends Base {
       sourceChain: sourceChain,
       destinationChain: destinationChain
     }).watch()
+  }
+
+  setPriceFeedApiKeys (apiKeys: ApiKeys = {}) {
+    this.priceFeedApiKeys = apiKeys
   }
 }
 

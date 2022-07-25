@@ -5,6 +5,7 @@ import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import isNativeToken from 'src/utils/isNativeToken'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
@@ -237,12 +238,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       return
     }
 
-    if (this.chainSlug !== Chain.Ethereum) {
-      return
-    }
-
     const creditBalance = await this.bridge.getBaseAvailableCredit()
     if (amount.lt(creditBalance)) {
+      this.logger.warn(`available credit balance is less than amount wanting to deposit. Returning. creditBalance: ${this.bridge.formatUnits(creditBalance)}, unstakeAndDepositAmount: ${this.bridge.formatUnits(amount)}`)
       return
     }
 
@@ -261,12 +259,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       return
     }
 
-    if (this.chainSlug !== Chain.Ethereum) {
-      return
-    }
-
     const vaultBalance = await this.vault.getBalance()
     if (amount.lt(vaultBalance)) {
+      this.logger.warn(`vault balance is less than amount wanting to withdraw. Returning. vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, withdrawAndStakeAmount: ${this.bridge.formatUnits(amount)}`)
       return
     }
 
@@ -275,7 +270,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     await tx.wait()
 
     let balance: BigNumber
-    if (this.tokenSymbol === 'ETH') {
+    const isNative = isNativeToken(this.chainSlug as Chain, this.tokenSymbol)
+    if (isNative) {
       const address = await this.bridge.getBonderAddress()
       balance = await this.bridge.getBalance(address)
     } else {

@@ -13,7 +13,7 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
-import { bondWithdrawalBatchSize, config as globalConfig } from 'src/config'
+import { bondWithdrawalBatchSize, config as globalConfig, zeroAvailableCreditTest } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
@@ -431,7 +431,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async withdrawFromVaultIfNeeded (destinationChainId: number, amount: BigNumber) {
+  async withdrawFromVaultIfNeeded (destinationChainId: number, bondAmount: BigNumber) {
     if (!globalConfig.vault[this.tokenSymbol]?.autoWithdraw) {
       return
     }
@@ -441,9 +441,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     return await this.mutex.runExclusive(async () => {
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
+      let availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
+      if (zeroAvailableCreditTest) {
+        availableCredit = BigNumber.from(0)
+      }
       const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
-      const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(amount)
+      const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
+      this.logger.debug(`availableCredit: ${this.bridge.formatUnits(availableCredit)}, vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, bondAmount: ${this.bridge.formatUnits(bondAmount)}, shouldWithdraw: ${shouldWithdraw}`)
       if (shouldWithdraw) {
         try {
           const msg = `attempting withdrawFromVaultAndStake. amount: ${this.bridge.formatUnits(vaultBalance)}`

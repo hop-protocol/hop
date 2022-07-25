@@ -220,6 +220,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       const availableCredit = this.getAvailableCreditForBond(destinationChainId)
       const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
       const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
+      this.logger.debug(`availableCredit: ${this.bridge.formatUnits(availableCredit)}, vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, bondAmount: ${this.bridge.formatUnits(bondAmount)}, shouldWithdraw: ${shouldWithdraw}`)
       if (shouldWithdraw) {
         try {
           const msg = `attempting withdrawFromVaultAndStake. amount: ${this.bridge.formatUnits(vaultBalance)}`

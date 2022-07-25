@@ -2,7 +2,7 @@ import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { BigNumber, Contract, Signer, constants } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, MinPolygonGasPrice } from 'src/constants'
 import { Pool } from '@aave/contract-helpers'
 import { Vault } from './Vault'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -179,7 +179,7 @@ export class AaveVault implements Vault {
       if (txPayload.value) {
         txPayload.value = BigNumber.from(txPayload.value).toHexString()
       }
-      tx = await this.signer.sendTransaction(txPayload)
+      tx = await this.sendTx(txPayload)
       console.log(tx)
       await tx.wait()
     }
@@ -214,7 +214,7 @@ export class AaveVault implements Vault {
     for (const item of txs) {
       console.log(await item.gas())
       const txPayload = await item.tx()
-      tx = await this.signer.sendTransaction(txPayload)
+      tx = await this.sendTx(txPayload)
       console.log(tx)
       await tx.wait()
     }
@@ -259,6 +259,16 @@ export class AaveVault implements Vault {
 
   private getErc20 (address: string) {
     return new Contract(address, erc20Abi, this.signer)
+  }
+
+  private async sendTx (txPayload: any) {
+    if (this.chain === Chain.Polygon) {
+      const gasPriceBn = BigNumber.from(txPayload.gasPrice ?? 0)
+      if (gasPriceBn.lt(MinPolygonGasPrice)) {
+        txPayload.gasPrice = MinPolygonGasPrice
+      }
+    }
+    return this.signer.sendTransaction(txPayload)
   }
 
   formatUnits (amount: BigNumber): number {

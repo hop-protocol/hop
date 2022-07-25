@@ -157,10 +157,10 @@ export class Controller {
     }
 
     if (transferId) {
-      page = 0
+      page = 1
     }
 
-    if (perPage <= 0) {
+    if (perPage < 0) {
       perPage = 0
     }
 

@@ -401,8 +401,16 @@ class Db {
       countOnly,
       receivedHTokens
     } = params
-    const count = perPage
-    const skip = (page * perPage)
+    let count = perPage
+    let skip = (page * perPage)
+
+    if (count < 0) {
+      count = 0
+    }
+
+    if (skip < 0) {
+      skip = 0
+    }
 
     const queryParams = []
     const whereClauses = []

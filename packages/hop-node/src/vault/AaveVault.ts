@@ -87,13 +87,10 @@ export class AaveVault implements Vault {
 
   constructor (chain: Chain, token: string, signer: Signer) {
     if (!tokenAddresses[token]) {
-      throw new Error('token is not supported')
+      throw new Error(`token "${token}" is not supported for aave vault`)
     }
-    if (!tokenAddresses[token][chain]) {
-      throw new Error('chain is not supported')
-    }
-    if (!aaveAddresses[chain]) {
-      throw new Error('chain is not supported')
+    if (!(tokenAddresses[token][chain] && aaveAddresses[chain])) {
+      throw new Error(`chain ${chain} is not supported for aave vault`)
     }
     this.chain = chain
     this.token = token

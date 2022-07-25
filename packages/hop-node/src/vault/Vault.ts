@@ -3,20 +3,31 @@ import { BigNumber, Signer } from 'ethers'
 import { Chain } from 'src/constants'
 import { YearnVault } from './YearnVault'
 
-export abstract class Vault {
-  static from (chain: Chain, token: string, signer: Signer) {
-    const yearnVaultTokens = new Set(['ETH', 'USDC', 'USDT', 'DAI'])
-    const useYearnVault = chain === Chain.Ethereum && yearnVaultTokens.has(token)
-    if (useYearnVault) {
-      return new YearnVault(chain, token, signer)
-    }
+export enum Strategy {
+  Yearn = 'yearn',
+  Aaave = 'aave'
+}
 
-    // TODO: determine what tokens and chain to use aave vault for
-    const aaveVaultTokens = new Set(['USDC'])
-    const useAaveVault = chain === Chain.Arbitrum && aaveVaultTokens.has(token)
-    if (useAaveVault) {
+export abstract class Vault {
+  static from (strategy: Strategy, chain: Chain, token: string, signer: Signer) {
+    if (!strategy) {
+      throw new Error('vault strategy is required')
+    }
+    if (!chain) {
+      throw new Error('vault chain is required')
+    }
+    if (!token) {
+      throw new Error('vault token is required')
+    }
+    if (!signer) {
+      throw new Error('vault signer is required')
+    }
+    if (strategy === Strategy.Yearn) {
+      return new YearnVault(chain, token, signer)
+    } else if (strategy === Strategy.Aaave) {
       return new AaveVault(chain, token, signer)
     }
+    throw new Error(`strategy ${strategy} is invalid`)
   }
 
   abstract getBalance (account?: string): Promise<BigNumber>

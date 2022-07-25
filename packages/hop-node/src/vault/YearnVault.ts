@@ -59,7 +59,10 @@ export class YearnVault implements Vault {
 
   constructor (chain: Chain, token: string, signer: Signer) {
     if (!addresses[token]) {
-      throw new Error('token is not supported')
+      throw new Error(`token "${token}" is not supported for yearn vault`)
+    }
+    if (chain !== Chain.Ethereum) {
+      throw new Error(`chain "${chain}" is not supported for yearn vault`)
     }
     this.chain = chain
     this.token = token

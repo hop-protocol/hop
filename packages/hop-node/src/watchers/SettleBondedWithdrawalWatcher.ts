@@ -262,8 +262,8 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
 
     return await this.mutex.runExclusive(async () => {
-      const availableCredit = await this.syncWatcher.getEffectiveAvailableCredit(destinationChainId)
-      const vaultBalance = await this.syncWatcher.getVaultBalance(destinationChainId)
+      const availableCredit = this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
+      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
       const availableCreditMinusVault = availableCredit.sub(vaultBalance)
       const shouldDeposit = (availableCreditMinusVault.sub(depositAmount)).gt(thresholdAmount)
       if (shouldDeposit) {

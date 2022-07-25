@@ -14,6 +14,7 @@ enum Actions {
 root
   .command('vault')
   .description('Yearn vault')
+  .option('--strategy <value>', 'Vault strategy: Options are: yearn, aave', parseString)
   .option('--token <symbol>', 'Token', parseString)
   .option('--amount <number>', 'From token amount (in human readable format)', parseNumber)
   .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
@@ -25,7 +26,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { args, token, amount, max, dry: dryMode } = source
+  const { args, strategy, token, amount, max, dry: dryMode } = source
   const action = args[0]
   const actionOptions = Object.values(Actions)
   if (!action) {
@@ -33,6 +34,9 @@ async function main (source: any) {
   }
   if (!actionOptions.includes(action)) {
     throw new Error(`Please choose a valid option. Valid options include ${actionOptions}.`)
+  }
+  if (!strategy) {
+    throw new Error('strategy is required')
   }
   if (!token) {
     throw new Error('token is required')
@@ -47,7 +51,7 @@ async function main (source: any) {
   const chain = Chain.Ethereum
   const signer = wallets.get(chain)
   const isNative = nativeChainTokens[chain] === token
-  const vault = Vault.from(chain, token, signer)
+  const vault = Vault.from(strategy, chain, token, signer)
   if (!vault) {
     throw new Error(`no vault strategy found for token "${token}" on chain "${chain}"`)
   }

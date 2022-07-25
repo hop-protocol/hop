@@ -16,7 +16,7 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
-import { Vault } from 'src/vault'
+import { Strategy, Vault } from 'src/vault'
 import { config as globalConfig, hostname } from 'src/config'
 
 const mutexes: Record<string, Mutex> = {}
@@ -84,7 +84,12 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       this.dryMode = config.dryMode
     }
     const signer = wallets.get(this.chainSlug)
-    this.vault = Vault.from(this.chainSlug as Chain, this.tokenSymbol, signer)
+    if (globalConfig.vault[this.tokenSymbol]) {
+      const strategy = globalConfig.vault[this.tokenSymbol].strategy as Strategy
+      if (strategy) {
+        this.vault = Vault.from(strategy, this.chainSlug as Chain, this.tokenSymbol, signer)
+      }
+    }
     if (!mutexes[this.chainSlug]) {
       mutexes[this.chainSlug] = new Mutex()
     }

@@ -2,7 +2,7 @@ import chainSlugToId from 'src/utils/chainSlugToId'
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import getRpcUrl from 'src/utils/getRpcUrl'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
-import { BigNumber, Contract, constants, providers } from 'ethers'
+import { BigNumber, Contract, Signer, constants, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Provider as EthersProvider } from '@ethersproject/abstract-provider'
 import { Vault } from './Vault'
@@ -57,7 +57,7 @@ export class YearnVault implements Vault {
   yearn: Yearn<any>
   decimals: number
 
-  constructor (chain: Chain, token: string, signer: any) {
+  constructor (chain: Chain, token: string, signer: Signer) {
     if (!addresses[token]) {
       throw new Error('token is not supported')
     }

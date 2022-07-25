@@ -4,6 +4,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import Bridge from './classes/Bridge'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
+import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, constants } from 'ethers'
@@ -12,7 +13,7 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { TxError } from 'src/constants'
-import { bondWithdrawalBatchSize, config as globalConfig } from 'src/config'
+import { bondWithdrawalBatchSize, config as globalConfig, zeroAvailableCreditTest } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
@@ -283,10 +284,16 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline
     } = params
     const logger = this.logger.create({ id: transferId })
+    const calculatedTransferId = getTransferId(destinationChainId, recipient, amount, transferNonce, bonderFee, amountOutMin, deadline)
+    const doesExistInDb = !!(await this.db.transfers.getByTransferId(calculatedTransferId))
+    if (!doesExistInDb) {
+      throw new Error(`Calculated transferId (${calculatedTransferId}) does not match transferId in db`)
+    }
+
     if (attemptSwap) {
-      // logger.debug(
-      //   `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
-      // )
+      logger.debug(
+        `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
+      )
       const l2Bridge = this.getSiblingWatcherByChainId(destinationChainId)
         .bridge as L2Bridge
       logger.debug('checkTransferId l2Bridge.bondWithdrawalAndAttemptSwap')
@@ -424,15 +431,23 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async withdrawFromVaultIfNeeded (destinationChainId: number, amount: BigNumber) {
+  async withdrawFromVaultIfNeeded (destinationChainId: number, bondAmount: BigNumber) {
+    if (!globalConfig.vault[this.tokenSymbol]?.autoWithdraw) {
+      return
+    }
+
     if (!isL1ChainId(destinationChainId)) {
       return
     }
 
     return await this.mutex.runExclusive(async () => {
-      const availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
+      let availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
+      if (zeroAvailableCreditTest) {
+        availableCredit = BigNumber.from(0)
+      }
       const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
-      const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(amount)
+      const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
+      this.logger.debug(`availableCredit: ${this.bridge.formatUnits(availableCredit)}, vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, bondAmount: ${this.bridge.formatUnits(bondAmount)}, shouldWithdraw: ${shouldWithdraw}`)
       if (shouldWithdraw) {
         try {
           const msg = `attempting withdrawFromVaultAndStake. amount: ${this.bridge.formatUnits(vaultBalance)}`

@@ -39,6 +39,7 @@ export const addresses: Addresses = {
         l1FxBaseRootTunnel: '0x7a4f56B0Dd21d730604A266245a0067b97605DAE',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
         l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34',
+        l2MessengerProxy: '0x712bBC63f8831f53c5Cb79D451822A1E06C65e87',
         bridgeDeployedBlockNumber: 15200513
       }
     },
@@ -61,6 +62,7 @@ export const addresses: Addresses = {
         l1FxBaseRootTunnel: '0x210942Df6AfE6Cc1d3909B0faa3B3f2D20017F0D',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
         l1PosPredicate: '0x37c3bfC05d5ebF9EBb3FF80ce0bd0133Bf221BC8',
+        l2MessengerProxy: '0xd75005fBB30973c302Ef68C0c90F732713420EA0',
         bridgeDeployedBlockNumber: 15200943
       }
     }

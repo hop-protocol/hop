@@ -3,11 +3,13 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import getTransferRootId from 'src/utils/getTransferRootId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -184,6 +186,14 @@ class BondTransferRootWatcher extends BaseWatcher {
     destinationChainId: number,
     totalAmount: BigNumber
   ) {
+    const calculatedTransferRootId = getTransferRootId(transferRootHash, totalAmount)
+    const dbEntry = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
+    const doesExistInDb = !!dbEntry
+    const isSameDestinationChainId = dbEntry?.destinationChainId === destinationChainId
+    if (!doesExistInDb || !isSameDestinationChainId) {
+      throw new Error(`Calculated transferRootId (${calculatedTransferRootId}) or destinationChainId (${destinationChainId}) does not match db entry`)
+    }
+
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(
       transferRootHash,
@@ -198,6 +208,10 @@ class BondTransferRootWatcher extends BaseWatcher {
   }
 
   async withdrawFromVaultIfNeeded (destinationChainId: number, bondAmount: BigNumber) {
+    if (!globalConfig.vault[this.tokenSymbol]?.autoWithdraw) {
+      return
+    }
+
     if (!isL1ChainId(destinationChainId)) {
       return
     }
@@ -206,6 +220,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       const availableCredit = this.getAvailableCreditForBond(destinationChainId)
       const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
       const shouldWithdraw = (availableCredit.sub(vaultBalance)).lt(bondAmount)
+      this.logger.debug(`availableCredit: ${this.bridge.formatUnits(availableCredit)}, vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, bondAmount: ${this.bridge.formatUnits(bondAmount)}, shouldWithdraw: ${shouldWithdraw}`)
       if (shouldWithdraw) {
         try {
           const msg = `attempting withdrawFromVaultAndStake. amount: ${this.bridge.formatUnits(vaultBalance)}`

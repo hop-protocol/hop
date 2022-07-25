@@ -43,6 +43,7 @@ export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
 export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
+export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
 const envNetwork = process.env.NETWORK ?? Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
@@ -84,6 +85,15 @@ export type CommitTransfersConfig = {
 }
 type Tokens = Record<string, boolean>
 
+export type VaultToken = {
+  thresholdAmount: number
+  depositAmount: number
+  autoDeposit: boolean
+  autoWithdraw: boolean
+  strategy: string
+}
+export type Vault = Record<string, VaultToken>
+
 export type Config = {
   isMainnet: boolean
   tokens: Tokens
@@ -99,6 +109,7 @@ export type Config = {
   commitTransfers: CommitTransfersConfig
   fees: Fees
   routes: Routes
+  vault: Vault
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -175,7 +186,8 @@ export const config: Config = {
   },
   commitTransfers: {
     minThresholdAmount: {}
-  }
+  },
+  vault: {}
 }
 
 export const setConfigByNetwork = (network: string) => {
@@ -288,6 +300,10 @@ export const setCommitTransfersConfig = (commitTransfers: CommitTransfersConfig)
 
 export const setConfigTokens = (tokens: Tokens) => {
   config.tokens = { ...config.tokens, ...tokens }
+}
+
+export const setVaultConfig = (vault: Vault) => {
+  config.vault = { ...config.vault, ...vault }
 }
 
 export const getBonderConfig = (tokens: Tokens) => {

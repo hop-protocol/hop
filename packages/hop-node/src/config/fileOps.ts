@@ -4,7 +4,8 @@ import os from 'os'
 import path from 'path'
 import {
   Bonders,
-  CommitTransfersConfig, Fees, Routes, Watchers,
+  CommitTransfersConfig,
+  Fees, Routes, Vault, Watchers,
   defaultConfigFilePath,
   setBonderPrivateKey,
   setCommitTransfersConfig,
@@ -18,7 +19,8 @@ import {
   setNetworkMaxGasPrice,
   setNetworkRpcUrl,
   setRoutesConfig,
-  setSyncConfig
+  setSyncConfig,
+  setVaultConfig
 } from './config'
 import { Chain } from 'src/constants'
 import { getParameter } from 'src/aws/parameterStore'
@@ -97,6 +99,7 @@ export type FileConfig = {
   fees?: Fees
   routes: Routes
   bonders?: Bonders
+  vault?: Vault
 }
 
 export async function setGlobalConfigFromConfigFile (
@@ -224,6 +227,10 @@ export async function setGlobalConfigFromConfigFile (
 
   if (config.bonders) {
     setConfigBonders(config.bonders)
+  }
+
+  if (config.vault) {
+    setVaultConfig(config.vault)
   }
 }
 

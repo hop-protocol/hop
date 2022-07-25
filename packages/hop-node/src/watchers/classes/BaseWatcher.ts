@@ -5,6 +5,7 @@ import L2Bridge from './L2Bridge'
 import Logger from 'src/logger'
 import Metrics from './Metrics'
 import SyncWatcher from 'src/watchers/SyncWatcher'
+import isNativeToken from 'src/utils/isNativeToken'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
@@ -16,7 +17,7 @@ import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bri
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Mutex } from 'async-mutex'
 import { Notifier } from 'src/notifier'
-import { Vault } from 'src/vault'
+import { Strategy, Vault } from 'src/vault'
 import { config as globalConfig, hostname } from 'src/config'
 
 const mutexes: Record<string, Mutex> = {}
@@ -84,7 +85,12 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       this.dryMode = config.dryMode
     }
     const signer = wallets.get(this.chainSlug)
-    this.vault = Vault.from(this.chainSlug as Chain, this.tokenSymbol, signer)
+    if (globalConfig.vault[this.tokenSymbol]) {
+      const strategy = globalConfig.vault[this.tokenSymbol].strategy as Strategy
+      if (strategy) {
+        this.vault = Vault.from(strategy, this.chainSlug as Chain, this.tokenSymbol, signer)
+      }
+    }
     if (!mutexes[this.chainSlug]) {
       mutexes[this.chainSlug] = new Mutex()
     }
@@ -224,16 +230,17 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async unstakeAndDepositToVault (amount: BigNumber) {
-    if (!this.vault) {
+    if (!globalConfig.vault[this.tokenSymbol]?.autoDeposit) {
       return
     }
 
-    if (this.chainSlug !== Chain.Ethereum) {
+    if (!this.vault) {
       return
     }
 
     const creditBalance = await this.bridge.getBaseAvailableCredit()
     if (amount.lt(creditBalance)) {
+      this.logger.warn(`available credit balance is less than amount wanting to deposit. Returning. creditBalance: ${this.bridge.formatUnits(creditBalance)}, unstakeAndDepositAmount: ${this.bridge.formatUnits(amount)}`)
       return
     }
 
@@ -252,12 +259,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       return
     }
 
-    if (this.chainSlug !== Chain.Ethereum) {
-      return
-    }
-
     const vaultBalance = await this.vault.getBalance()
     if (amount.lt(vaultBalance)) {
+      this.logger.warn(`vault balance is less than amount wanting to withdraw. Returning. vaultBalance: ${this.bridge.formatUnits(vaultBalance)}, withdrawAndStakeAmount: ${this.bridge.formatUnits(amount)}`)
       return
     }
 
@@ -266,7 +270,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     await tx.wait()
 
     let balance: BigNumber
-    if (this.tokenSymbol === 'ETH') {
+    const isNative = isNativeToken(this.chainSlug as Chain, this.tokenSymbol)
+    if (isNative) {
       const address = await this.bridge.getBonderAddress()
       balance = await this.bridge.getBalance(address)
     } else {

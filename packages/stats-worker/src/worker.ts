@@ -10,9 +10,15 @@ type Options = {
   tvl?: boolean
   volume?: boolean
   bonder?: boolean
+  bonderProfit?: boolean
+  bonderFees?: boolean
+  bonderTxFees?: boolean
   regenesis?: boolean
   days?: number
+  offsetDays?: number
   bonderDays?: number
+  bonderStartDate?: string
+  bonderEndDate?: string
   bonderTokens?: string[]
 }
 
@@ -29,20 +35,29 @@ class Worker {
   bonder: boolean = false
 
   constructor (options: Options = {}) {
-    const {
+    let {
       apr,
       tvl,
       volume,
       regenesis,
       days,
+      offsetDays,
       bonder,
+      bonderProfit,
+      bonderFees,
+      bonderTxFees,
       bonderDays,
+      bonderStartDate,
+      bonderEndDate,
       bonderTokens
     } = options
     this.apr = apr
     this.tvl = tvl
     this.volume = volume
-    this.bonder = bonder
+
+    if (bonder || bonderProfit || bonderFees || bonderTxFees) {
+      this.bonder = true
+    }
     this.aprStats = new AprStats()
     this.volumeStats = new VolumeStats({
       regenesis
@@ -53,7 +68,13 @@ class Worker {
     })
     this.bonderStats = new BonderStats({
       days: bonderDays,
-      tokens: bonderTokens
+      offsetDays: offsetDays,
+      startDate: bonderStartDate,
+      endDate: bonderEndDate,
+      tokens: bonderTokens,
+      trackBonderProfit: bonderProfit ?? bonder,
+      trackBonderFees: bonderFees ?? bonder,
+      trackBonderTxFees: bonderTxFees ?? bonder
     })
   }
 

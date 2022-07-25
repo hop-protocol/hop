@@ -20,6 +20,7 @@ export default async function getTransferRootBonded (
       ) {
         id
         root
+        transactionHash
       }
     }
   `

@@ -16,6 +16,7 @@ root
   .description('Yearn vault')
   .option('--strategy <value>', 'Vault strategy: Options are: yearn, aave', parseString)
   .option('--token <symbol>', 'Token', parseString)
+  .option('--chain <slug>', 'Chain', parseString)
   .option('--amount <number>', 'From token amount (in human readable format)', parseNumber)
   .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
   .option(
@@ -26,7 +27,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { args, strategy, token, amount, max, dry: dryMode } = source
+  const { args, strategy, token, chain, amount, max, dry: dryMode } = source
   const action = args[0]
   const actionOptions = Object.values(Actions)
   if (!action) {
@@ -41,6 +42,9 @@ async function main (source: any) {
   if (!token) {
     throw new Error('token is required')
   }
+  if (!chain) {
+    throw new Error('chain is required')
+  }
   if (!(amount || max)) {
     throw new Error('amount is required')
   }
@@ -48,7 +52,6 @@ async function main (source: any) {
     throw new Error('cannot use both amount and max flags')
   }
 
-  const chain = Chain.Ethereum
   const signer = wallets.get(chain)
   const isNative = nativeChainTokens[chain] === token
   const vault = Vault.from(strategy, chain, token, signer)

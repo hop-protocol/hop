@@ -1,7 +1,6 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import MerkleTree from 'src/utils/MerkleTree'
-import isL1ChainId from 'src/utils/isL1ChainId'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
@@ -246,17 +245,17 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
   }
 
   async depositToVaultIfNeeded (destinationChainId: number) {
-    if (!isL1ChainId(destinationChainId)) {
+    const vaultConfig = (globalConfig.vault as any)?.[this.tokenSymbol]?.[this.chainSlug]
+    if (!vaultConfig) {
       return
     }
 
-    const tokenConfig = globalConfig.vault?.[this.tokenSymbol]
-    if (!tokenConfig) {
+    if (!vaultConfig?.autoDeposit) {
       return
     }
 
-    const thresholdAmount = this.bridge.parseUnits(tokenConfig.thresholdAmount)
-    const depositAmount = this.bridge.parseUnits(tokenConfig.depositAmount)
+    const thresholdAmount = this.bridge.parseUnits(vaultConfig.thresholdAmount)
+    const depositAmount = this.bridge.parseUnits(vaultConfig.depositAmount)
     if (depositAmount.eq(0) || thresholdAmount.eq(0)) {
       return
     }

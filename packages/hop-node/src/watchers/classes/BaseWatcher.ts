@@ -85,8 +85,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       this.dryMode = config.dryMode
     }
     const signer = wallets.get(this.chainSlug)
-    if (globalConfig.vault[this.tokenSymbol]) {
-      const strategy = globalConfig.vault[this.tokenSymbol].strategy as Strategy
+    const vaultConfig = globalConfig.vault as any
+    if (vaultConfig[this.tokenSymbol]?.[this.chainSlug]) {
+      const strategy = vaultConfig[this.tokenSymbol]?.[this.chainSlug]?.strategy as Strategy
       if (strategy) {
         this.logger.debug(`setting vault instance. strategy: ${strategy}, chain: ${this.chainSlug}, token: ${this.tokenSymbol}`)
         this.vault = Vault.from(strategy, this.chainSlug as Chain, this.tokenSymbol, signer)
@@ -231,10 +232,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
   }
 
   async unstakeAndDepositToVault (amount: BigNumber) {
-    if (!globalConfig.vault[this.tokenSymbol]?.autoDeposit) {
-      return
-    }
-
     if (!this.vault) {
       return
     }

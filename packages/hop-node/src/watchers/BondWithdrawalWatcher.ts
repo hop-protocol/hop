@@ -432,7 +432,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
   }
 
   async withdrawFromVaultIfNeeded (destinationChainId: number, bondAmount: BigNumber) {
-    if (!globalConfig.vault[this.tokenSymbol]?.autoWithdraw) {
+    if (!globalConfig.vault[this.tokenSymbol]?.[this.chainIdToSlug(destinationChainId)]?.autoWithdraw) {
       return
     }
 

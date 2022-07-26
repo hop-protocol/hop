@@ -436,10 +436,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    if (!isL1ChainId(destinationChainId)) {
-      return
-    }
-
     return await this.mutex.runExclusive(async () => {
       let availableCredit = this.getAvailableCreditForTransfer(destinationChainId)
       if (zeroAvailableCreditTest) {

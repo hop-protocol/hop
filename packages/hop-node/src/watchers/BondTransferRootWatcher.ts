@@ -212,10 +212,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    if (!isL1ChainId(destinationChainId)) {
-      return
-    }
-
     return await this.mutex.runExclusive(async () => {
       const availableCredit = this.getAvailableCreditForBond(destinationChainId)
       const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)

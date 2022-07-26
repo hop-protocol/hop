@@ -85,14 +85,23 @@ export type CommitTransfersConfig = {
 }
 type Tokens = Record<string, boolean>
 
-export type VaultToken = {
+export type VaultChainTokenConfig = {
   thresholdAmount: number
   depositAmount: number
   autoDeposit: boolean
   autoWithdraw: boolean
   strategy: string
 }
-export type Vault = Record<string, VaultToken>
+
+export type VaultChain = {
+  ethereum?: VaultChainTokenConfig
+  polygon?: VaultChainTokenConfig
+  gnosis?: VaultChainTokenConfig
+  optimism?: VaultChainTokenConfig
+  arbitrum?: VaultChainTokenConfig
+}
+
+export type Vault = Record<string, VaultChain>
 
 export type Config = {
   isMainnet: boolean

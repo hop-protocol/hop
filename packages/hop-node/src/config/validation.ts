@@ -233,13 +233,18 @@ export async function validateConfigFileStructure (config?: FileConfig) {
   }
 
   if (config.vault) {
-    const vaultTokens = Object.keys(config.vault)
+    const vaultConfig = config.vault as any
+    const vaultTokens = Object.keys(vaultConfig)
     validateKeys(validTokenKeys, vaultTokens)
-    for (const tokenSymbol in config.vault) {
-      const tokenConfig = config.vault[tokenSymbol]
-      const validTokenConfigKeys = ['thresholdAmount', 'depositAmount', 'strategy', 'autoWithdraw', 'autoDeposit']
-      const tokenConfigKeys = Object.keys(tokenConfig)
-      validateKeys(validTokenConfigKeys, tokenConfigKeys)
+    for (const tokenSymbol in vaultConfig) {
+      const vaultChains = Object.keys(vaultConfig[tokenSymbol])
+      validateKeys(validChainKeys, vaultChains)
+      for (const chain in vaultConfig[tokenSymbol]) {
+        const chainTokenConfig = vaultConfig[tokenSymbol][chain]
+        const validConfigKeys = ['thresholdAmount', 'depositAmount', 'strategy', 'autoWithdraw', 'autoDeposit']
+        const chainTokenConfigKeys = Object.keys(chainTokenConfig)
+        validateKeys(validConfigKeys, chainTokenConfigKeys)
+      }
     }
   }
 }
@@ -329,24 +334,27 @@ export async function validateConfigValues (config?: Config) {
   }
 
   if (config.vault) {
-    for (const tokenSymbol in config.vault) {
-      const tokenConfig = config.vault[tokenSymbol]
-      if (typeof tokenConfig.thresholdAmount !== 'number') {
-        throw new Error('thresholdAmount should be a number')
-      }
-      if (typeof tokenConfig.depositAmount !== 'number') {
-        throw new Error('depositAmount should be a number')
-      }
-      if (typeof tokenConfig.autoDeposit !== 'boolean') {
-        throw new Error('autoDeposit should be boolean')
-      }
-      if (typeof tokenConfig.autoWithdraw !== 'boolean') {
-        throw new Error('autoWithdraw should be boolean')
-      }
+    const vaultConfig = config.vault as any
+    for (const tokenSymbol in vaultConfig) {
+      for (const chain in vaultConfig[tokenSymbol]) {
+        const chainTokenConfig = vaultConfig[tokenSymbol][chain]
+        if (typeof chainTokenConfig.thresholdAmount !== 'number') {
+          throw new Error('thresholdAmount should be a number')
+        }
+        if (typeof chainTokenConfig.depositAmount !== 'number') {
+          throw new Error('depositAmount should be a number')
+        }
+        if (typeof chainTokenConfig.autoDeposit !== 'boolean') {
+          throw new Error('autoDeposit should be boolean')
+        }
+        if (typeof chainTokenConfig.autoWithdraw !== 'boolean') {
+          throw new Error('autoWithdraw should be boolean')
+        }
 
-      const validStrategies = new Set(['yearn', 'aave'])
-      if (!validStrategies.has(tokenConfig.strategy)) {
-        throw new Error('strategy is invalid. Valid options are: yearn, aave')
+        const validStrategies = new Set(['yearn', 'aave'])
+        if (!validStrategies.has(chainTokenConfig.strategy)) {
+          throw new Error('strategy is invalid. Valid options are: yearn, aave')
+        }
       }
     }
   }

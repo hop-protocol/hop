@@ -229,6 +229,7 @@ export async function setGlobalConfigFromConfigFile (
     setConfigBonders(config.bonders)
   }
 
+  logger.debug('optional vault config:', config.vault)
   if (config.vault) {
     setVaultConfig(config.vault)
   }

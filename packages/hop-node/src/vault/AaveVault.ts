@@ -96,8 +96,8 @@ export class AaveVault implements Vault {
     this.token = token
     this.tokenAddress = tokenAddresses[token][chain].token
     this.aTokenAddress = tokenAddresses[token][chain].aToken
-    this.provider = getRpcProvider(chain)!
-    this.signer = signer.connect(this.provider)
+    this.signer = signer
+    this.provider = signer.provider
     this.decimals = getTokenDecimals(token)
 
     this.pool = new Pool(this.provider, {

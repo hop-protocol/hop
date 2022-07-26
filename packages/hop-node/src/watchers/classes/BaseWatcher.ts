@@ -88,6 +88,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     if (globalConfig.vault[this.tokenSymbol]) {
       const strategy = globalConfig.vault[this.tokenSymbol].strategy as Strategy
       if (strategy) {
+        this.logger.debug(`setting vault instance. strategy: ${strategy}, chain: ${this.chainSlug}, token: ${this.tokenSymbol}`)
         this.vault = Vault.from(strategy, this.chainSlug as Chain, this.tokenSymbol, signer)
       }
     }

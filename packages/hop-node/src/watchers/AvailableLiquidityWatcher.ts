@@ -88,7 +88,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const destinationBridge = destinationWatcher.bridge
     const baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
     const vaultBalance = await destinationWatcher.getOnchainVaultBalance(bonder)
-    this.logger.debug(`vault balance ${destinationChain} ${vaultBalance.toString()}`)
+    this.logger.debug(`on-chain vault balance; bonder: ${bonder}, chain: ${destinationChain}, balance: ${vaultBalance.toString()}`)
     const baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
     let availableCredit = baseAvailableCreditIncludingVault
     const isToL1 = destinationChain === Chain.Ethereum
@@ -155,7 +155,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
   async getBonderAddress (destinationChain: string): Promise<string> {
     const routeBonder = getConfigBonderForRoute(this.tokenSymbol, this.chainSlug, destinationChain)
-    return routeBonder || await this.bridge.getBonderAddress()
+    return (routeBonder || await this.bridge.getBonderAddress())?.toLowerCase()
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {
@@ -332,6 +332,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   async getOnchainVaultBalance (bonder?: string) {
+    this.logger.debug(`getOnchainVaultBalance, bonder: ${bonder}, vault: ${!!this.vault}`)
     if (!this.vault) {
       return BigNumber.from(0)
     }

@@ -345,7 +345,7 @@ export async function validateConfigValues (config?: Config) {
       }
 
       const validStrategies = new Set(['yearn', 'aave'])
-      if (validStrategies.has(tokenConfig.strategy)) {
+      if (!validStrategies.has(tokenConfig.strategy)) {
         throw new Error('strategy is invalid. Valid options are: yearn, aave')
       }
     }

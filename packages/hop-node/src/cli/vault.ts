@@ -9,6 +9,7 @@ import { nativeChainTokens } from 'src/constants'
 enum Actions {
   Deposit = 'deposit',
   Withdraw = 'withdraw',
+  Balance = 'balance'
 }
 
 root
@@ -19,6 +20,7 @@ root
   .option('--chain <slug>', 'Chain', parseString)
   .option('--amount <number>', 'From token amount (in human readable format)', parseNumber)
   .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
+  .option('--bonder <address>', '(optional) Bonder address to get balance of', parseString)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
@@ -27,7 +29,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { args, strategy, token, chain, amount, max, dry: dryMode } = source
+  const { args, strategy, token, chain, amount, max, bonder, dry: dryMode } = source
   const action = args[0]
   const actionOptions = Object.values(Actions)
   if (!action) {
@@ -45,11 +47,13 @@ async function main (source: any) {
   if (!chain) {
     throw new Error('chain is required')
   }
-  if (!(amount || max)) {
-    throw new Error('amount is required')
-  }
-  if (amount && max) {
-    throw new Error('cannot use both amount and max flags')
+  if (action === Actions.Deposit || action === Actions.Withdraw) {
+    if (!(amount || max)) {
+      throw new Error('amount is required')
+    }
+    if (amount && max) {
+      throw new Error('cannot use both amount and max flags')
+    }
   }
 
   const signer = wallets.get(chain)
@@ -97,6 +101,9 @@ async function main (source: any) {
       const tx = await vault.withdraw(parsedAmount)
       logger.log('withdraw tx:', tx.hash)
     }
+  } else if (action === Actions.Balance) {
+    const balance = await vault.getBalance(bonder)
+    console.log(`${strategy} ${token} vault balance: ${vault.formatUnits(balance)}`)
   }
 
   logger.log('done')

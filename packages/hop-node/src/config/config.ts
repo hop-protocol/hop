@@ -86,7 +86,7 @@ export type CommitTransfersConfig = {
 type Tokens = Record<string, boolean>
 
 export type VaultChainTokenConfig = {
-  thresholdAmount: number
+  depositThresholdAmount: number
   depositAmount: number
   autoDeposit: boolean
   autoWithdraw: boolean

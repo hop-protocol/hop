@@ -1,5 +1,4 @@
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
-import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { BigNumber, Contract, Signer, constants } from 'ethers'
 import { Chain, MinPolygonGasPrice } from 'src/constants'

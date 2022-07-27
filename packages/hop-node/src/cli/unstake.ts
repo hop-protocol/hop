@@ -63,7 +63,7 @@ export async function unstake (
   logger.info(`unstake tx: ${(tx.hash)}`)
   const receipt = await tx.wait()
   if (receipt.status) {
-    logger.debug(`successfully unstaked ${parsedAmount} tokens`)
+    logger.debug(`successfully unstaked ${bridge.formatUnits(parsedAmount)} tokens`)
   } else {
     logger.error('unstake was unsuccessful. tx status=0')
   }

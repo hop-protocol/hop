@@ -254,9 +254,9 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    const thresholdAmount = this.bridge.parseUnits(vaultConfig.thresholdAmount)
+    const depositThresholdAmount = this.bridge.parseUnits(vaultConfig.depositThresholdAmount)
     const depositAmount = this.bridge.parseUnits(vaultConfig.depositAmount)
-    if (depositAmount.eq(0) || thresholdAmount.eq(0)) {
+    if (depositAmount.eq(0) || depositThresholdAmount.eq(0)) {
       return
     }
 
@@ -264,7 +264,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
       const availableCredit = this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
       const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
       const availableCreditMinusVault = availableCredit.sub(vaultBalance)
-      const shouldDeposit = (availableCreditMinusVault.sub(depositAmount)).gt(thresholdAmount)
+      const shouldDeposit = (availableCreditMinusVault.sub(depositAmount)).gt(depositThresholdAmount)
       if (shouldDeposit) {
         try {
           const msg = `attempting unstakeAndDepositToVault. amount: ${this.bridge.formatUnits(depositAmount)}`

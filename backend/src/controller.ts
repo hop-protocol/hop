@@ -143,6 +143,7 @@ export class Controller {
     const sortDirection = params.sortDirection
     const countOnly = params.countOnly
     const receivedHTokens = params.receivedHTokens
+    const refreshFlag = params.refresh
     let bonded : any
 
     if (bondedStatus === 'pending') {
@@ -322,7 +323,7 @@ export class Controller {
         if (!alreadyChecking) {
           mcache.put(key, true, 60 * 1000)
           const { timestamp, bonded, bondTransactionHash } = item
-          const shouldCheck = (timestamp && !bonded) || (bonded && !bondTransactionHash)
+          const shouldCheck = refreshFlag || (timestamp && !bonded) || (bonded && !bondTransactionHash)
           if (shouldCheck) {
             this.worker?.transferStats?.updateTransferDataForTransferId(transferId)
           }

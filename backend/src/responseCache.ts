@@ -6,7 +6,8 @@ export function responseCache (req: any, res: any, next: any) {
   const urlKey = req.originalUrl || req.url
   const key = `__express__${urlKey}`
   const cachedBody = mcache.get(key)
-  if (cachedBody) {
+  const refreshFlag = req.query?.refresh
+  if (cachedBody && !refreshFlag) {
     res.send(cachedBody)
     return
   }

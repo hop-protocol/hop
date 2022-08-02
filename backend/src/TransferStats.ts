@@ -6,6 +6,7 @@ import Db, { getInstance } from './Db'
 import { chunk } from 'lodash'
 import toHex from 'to-hex'
 import wait from 'wait'
+import { mainnet as addresses } from '@hop-protocol/core/addresses'
 
 const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
 const enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
@@ -684,8 +685,9 @@ class TransferStats {
     this.prices = prices
   }
 
-  async getReceivedHtokens (bondTransactionHash: string, destinationChainSlug: string) {
+  async getReceivedHtokens (item: any) {
     try {
+      const { bondTransactionHash, token, sourceChainSlug, destinationChainSlug } = item
       if (
         !bondTransactionHash ||
         !destinationChainSlug ||
@@ -699,8 +701,24 @@ class TransferStats {
       }
       const provider = new providers.StaticJsonRpcProvider(rpcUrl)
       const receipt = await provider.getTransactionReceipt(bondTransactionHash)
-      const receivedHTokens = receipt.logs.length === 8
-      return receivedHTokens
+      if (sourceChainSlug === 'ethereum') {
+        for (const log of receipt.logs) {
+          const topic = log.topics[0]
+          const transferTopic = '0xddf252ad'
+          if (topic.startsWith(transferTopic)) {
+            const hTokenAddress = addresses?.bridges?.[token]?.[destinationChainSlug]?.l2HopBridgeToken
+            if (hTokenAddress?.toLowerCase() === log.address?.toLowerCase() && item.recipientAddress) {
+              if (log.topics[2].includes(item.recipientAddress?.toLowerCase().slice(2))) {
+                return true
+              }
+            }
+          }
+        }
+        return false
+      } else {
+        const receivedHTokens = receipt.logs.length === 8
+        return receivedHTokens
+      }
     } catch (err) {
       console.error(err)
       return false
@@ -741,9 +759,6 @@ class TransferStats {
         const allChunks = chunk(items, chunkSize)
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (item: any) => {
-            if (item.sourceChainSlug === 'ethereum') {
-              return
-            }
             if (
               !item.bondTransactionHash ||
               !item.destinationChainSlug ||
@@ -751,7 +766,7 @@ class TransferStats {
             ) {
               return
             }
-            const receivedHTokens = await this.getReceivedHtokens(item.bondTransactionHash, item.destinationChainSlug)
+            const receivedHTokens = await this.getReceivedHtokens(item)
             item.receivedHTokens = receivedHTokens
             console.log('receivedHTokens?', item.transferId, receivedHTokens)
             await this.upsertItem(item)
@@ -972,7 +987,7 @@ class TransferStats {
     for (const item of items) {
       try {
         if (item.bonded && item.receivedHTokens == null) {
-          item.receivedHTokens = await this.getReceivedHtokens(item.bondTransactionHash, item.destinationChainSlug)
+          item.receivedHTokens = await this.getReceivedHtokens(item)
         }
         console.log('upserting', item.transferId)
         await this.upsertItem(item)

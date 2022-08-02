@@ -295,7 +295,7 @@ export class Controller {
         x.receivedHTokens = false
       }
       if (!x.convertHTokenUrl) {
-        x.convertHTokenUrl = `https://app.hop.exchange/#/convert/amm?token=${x.token}&sourceNetwork=${x.sourceChainSlug}&destNetwork=${x.destinationChainSlug}&fromHToken=true`
+        x.convertHTokenUrl = `https://app.hop.exchange/#/convert/amm?token=${x.token}&sourceNetwork=${x.destinationChainSlug}&fromHToken=true`
       }
 
       return x

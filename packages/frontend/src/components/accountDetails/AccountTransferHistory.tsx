@@ -33,6 +33,10 @@ type Item = {
   receivedHTokens: boolean
   convertHTokenUrl: string
   bonded: boolean
+  accountAddress: string
+  recipientAddress: string
+  recipientAddressTruncated: string
+  recipientAddressExplorerUrl: string
 }
 
 function useData(props: any) {
@@ -141,6 +145,7 @@ export function AccountTransferHistory (props: Props) {
             if (!item) {
               return null
             }
+            const showRecipient = item.recipientAddress && (item.accountAddress?.toLowerCase() !== item.recipientAddress?.toLowerCase())
             return (
               <Box key={i} mb={3}>
                 <Box mb={0.2} mr={1} display="flex">
@@ -207,6 +212,13 @@ export function AccountTransferHistory (props: Props) {
                     </Typography>
                   </Box>
                 </Box>
+                {showRecipient && (
+                  <Box>
+                    <Typography variant="body2">
+                      Recipient: <ExternalLink href={item.recipientAddressExplorerUrl}>{item.recipientAddressTruncated}</ExternalLink> <InfoTooltip title={`This transfer had the recipient address set to ${item.recipientAddress}`} />
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             )
           })}

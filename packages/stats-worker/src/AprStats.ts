@@ -136,72 +136,41 @@ class AprStats {
 
   async getStakingApr (token: string, chain: string): Promise<number> {
     const bridge = this.sdk.bridge(token)
-    const canonToken = await bridge.getCanonicalToken(chain)
+    const canonToken = bridge.getCanonicalToken(chain)
     const amm = bridge.getAmm(chain)
 
-    const _provider = this.sdk.getChainProvider(chain)
-    const srAddrs = stakingRewardsContracts[chain]
-    if (!srAddrs) {
+    const provider = this.sdk.getChainProvider(chain)
+    const stakingRewardsAddress = stakingRewardsContracts?.[chain]?.[token]
+    if (!stakingRewardsAddress) {
       return 0
     }
-    const _stakingRewards = Object.keys(srAddrs).reduce((acc, tokenSymbol) => {
-      const addr = srAddrs[tokenSymbol]
-      return {
-        ...acc,
-        [tokenSymbol.toLowerCase()]: StakingRewards__factory.connect(
-          addr,
-          _provider
-        )
-      }
-    }, {} as { [key: string]: StakingRewards })
 
-    const allBridges = {
-      eth: this.sdk.bridge('ETH'),
-      matic: this.sdk.bridge('MATIC'),
-      dai: this.sdk.bridge('DAI'),
-      usdc: this.sdk.bridge('USDC'),
-      usdt: this.sdk.bridge('USDT')
-    }
-
-    const stakingTokens: any = {
-      eth: allBridges.eth.getSaddleLpToken(chain),
-      matic: allBridges.matic.getSaddleLpToken(chain),
-      dai: allBridges.dai.getSaddleLpToken(chain),
-      usdc: allBridges.usdc.getSaddleLpToken(chain),
-      usdt: allBridges.usdt.getSaddleLpToken(chain)
-    }
-
-    const stakingRewards = _stakingRewards?.[token.toLowerCase()]
-    const stakingToken = stakingTokens?.[token.toLowerCase()]
-    if (!stakingRewards) {
-      return 0
-    }
-    if (!stakingToken) {
-      return 0
-    }
+    const ethBridge = this.sdk.bridge('ETH')
+    const assetBridge = this.sdk.bridge(token)
+    const stakingRewards = StakingRewards__factory.connect(
+      stakingRewardsAddress,
+      provider
+    )
+    const stakingToken = assetBridge.getSaddleLpToken(chain)
 
     const totalStaked = await stakingToken.balanceOf(stakingRewards?.address)
     if (totalStaked.lte(0)) {
       return 0
     }
-    let stakedTotal = BigNumber.from(0)
-    try {
-      stakedTotal = await amm.calculateTotalAmountForLpToken(totalStaked)
-    } catch (err) {
-      return 0
-    }
+
+    const stakedTotal = await amm.calculateTotalAmountForLpToken(totalStaked)
     if (stakedTotal.lte(0)) {
       return 0
     }
+
     const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(token)
     const rewardTokenSymbol = chain === 'gnosis' ? 'GNO' : 'MATIC'
-    const rewardTokenUsdPrice = await allBridges.eth?.priceFeed.getPriceByTokenSymbol(
+    const rewardTokenUsdPrice = await ethBridge?.priceFeed.getPriceByTokenSymbol(
       rewardTokenSymbol
     )
 
-    let rewardsExpired = false
     const timestamp = await stakingRewards.periodFinish()
-    rewardsExpired = await this.isRewardsExpired(timestamp)
+    const rewardsExpired = await this.isRewardsExpired(timestamp)
 
     let totalRewardsPerDay = BigNumber.from(0)
     if (!rewardsExpired) {
@@ -220,6 +189,12 @@ class AprStats {
     return Number(formatUnits(aprBn.toString(), TOTAL_AMOUNTS_DECIMALS))
   }
 
+  async isRewardsExpired (timestamp: BigNumber) {
+    const expirationDate = Number(timestamp.toString())
+    const now = (Date.now() / 1000) | 0
+    return now > expirationDate
+  }
+
   // ((REWARD-TOKEN_PER_DAY * REWARD-TOKEN_PRICE)/((STAKED_USDC + STAKED_HUSDC)*STAKED_TOKEN_PRICE)) * DAYS_PER_YEAR
   calculateStakingApr (
     tokenDecimals: number,
@@ -230,14 +205,17 @@ class AprStats {
   ) {
     const rewardTokenUsdPriceBn = this.amountToBN(
       rewardTokenUsdPrice.toString(),
-      18
+      TOTAL_AMOUNTS_DECIMALS
     )
-    const tokenUsdPriceBn = this.amountToBN(tokenUsdPrice.toString(), 18)
+    const tokenUsdPriceBn = this.amountToBN(
+      tokenUsdPrice.toString(),
+      TOTAL_AMOUNTS_DECIMALS
+    )
     const stakedTotal18d = this.shiftBNDecimals(
       stakedTotal,
       TOTAL_AMOUNTS_DECIMALS - tokenDecimals
     )
-    const precision = this.amountToBN('1', 18)
+    const precision = this.amountToBN('1', TOTAL_AMOUNTS_DECIMALS)
 
     return totalRewardsPerDay
       .mul(rewardTokenUsdPriceBn)
@@ -283,12 +261,6 @@ class AprStats {
 
   sanitizeNumericalString (numStr: string) {
     return numStr.replace(/[^0-9.]|\.(?=.*\.)/g, '')
-  }
-
-  async isRewardsExpired (timestamp: BigNumber) {
-    const expirationDate = Number(timestamp.toString())
-    const now = (Date.now() / 1000) | 0
-    return now > expirationDate
   }
 }
 

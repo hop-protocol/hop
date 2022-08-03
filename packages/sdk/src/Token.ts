@@ -2,9 +2,11 @@ import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
+import { ERC20 } from '@hop-protocol/core/contracts/ERC20'
 import { ERC20__factory } from '@hop-protocol/core/contracts/factories/ERC20__factory'
 import { TAmount, TChain } from './types'
 import { TokenSymbol, WrappedToken } from './constants'
+import { WETH9 } from '@hop-protocol/core/contracts/WETH9'
 import { WETH9__factory } from '@hop-protocol/core/contracts/factories/WETH9__factory'
 
 /**
@@ -207,7 +209,7 @@ class Token extends Base {
    * @param {Object} chain - Chain model.
    * @returns {Object} Ethers contract instance.
    */
-  public async getErc20 () {
+  public async getErc20 (): Promise<ERC20|WETH9> {
     if (this.isNativeToken) {
       return this.getWethContract()
     }
@@ -258,7 +260,7 @@ class Token extends Base {
     return this.chain.provider.getBalance(address)
   }
 
-  async getWethContract () {
+  async getWethContract (): Promise<WETH9> {
     const provider = await this.getSignerOrProvider(this.chain)
     return WETH9__factory.connect(this.address, provider)
   }

@@ -100,6 +100,7 @@ type Transfer = {
   bondStatusColor: string
   receivedHTokens: boolean
   convertHTokenUrl: string
+  hopExplorerUrl: string
 }
 
 export class Controller {
@@ -297,6 +298,8 @@ export class Controller {
       if (!x.convertHTokenUrl) {
         x.convertHTokenUrl = `https://app.hop.exchange/#/convert/amm?token=${x.token}&sourceNetwork=${x.destinationChainSlug}&fromHToken=true`
       }
+
+      x.hopExplorerUrl = `https://explorer.hop.exchange/?transferId=${x.transferId}`
 
       return x
     })

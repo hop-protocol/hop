@@ -37,6 +37,7 @@ type Item = {
   recipientAddress: string
   recipientAddressTruncated: string
   recipientAddressExplorerUrl: string
+  hopExplorerUrl: string
 }
 
 function useData(props: any) {
@@ -150,7 +151,7 @@ export function AccountTransferHistory (props: Props) {
               <Box key={i} mb={3}>
                 <Box mb={0.2} mr={1} display="flex">
                   <Typography variant="body2" component="span">
-                    {item?.timestampRelative ?? ''}
+                    <ExternalLink style={{ color: theme.palette.text.primary }} href={item?.hopExplorerUrl}>{item?.timestampRelative ?? ''}</ExternalLink>
                   </Typography>
                   {!!item?.bondTimestampRelative && (
                     <Box ml={1} display="inline-flex">

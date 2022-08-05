@@ -1262,6 +1262,16 @@ class SyncWatcher extends BaseWatcher {
     return true
   }
 
+  getIsRedeemable = (
+    relayerFee: BigNumber
+  ): boolean => {
+    if (relayerFee.eq(0)) {
+      return false
+    }
+
+    return true
+  }
+
   isBonderFeeTooLow (bonderFee: BigNumber) {
     if (bonderFee.eq(0)) {
       return true

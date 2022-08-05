@@ -92,7 +92,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.notifier.info(msg)
   }
 
-  async redeemArbitrumTransaction (l1TxHash: string) {
+  async redeemArbitrumTransaction (l1TxHash: string): Promise<providers.TransactionResponse> {
     const txReceipt = await this.l1Wallet.provider.getTransactionReceipt(l1TxHash)
     const l1TxnReceipt = new L1TransactionReceipt(txReceipt)
     const l1ToL2Message = await l1TxnReceipt.getL1ToL2Message(this.l2Wallet)
@@ -101,7 +101,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       this.logger.error(`Transaction not redeemable. Status: ${l1ToL2TxStatuses[res.status]}`)
       throw new Error('Transaction unredeemable')
     }
-    await l1ToL2Message.redeem()
+    return await l1ToL2Message.redeem()
   }
 }
 

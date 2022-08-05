@@ -72,6 +72,7 @@ export const MaxInt32 = 2147483647
 export enum TxError {
   CallException = 'CALL_EXCEPTION',
   BonderFeeTooLow = 'BONDER_FEE_TOO_LOW',
+  RelayerFeeTooLow = 'RELAYER_FEE_TOO_LOW',
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
 }
 

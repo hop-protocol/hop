@@ -41,7 +41,7 @@
   "dependencies": {
     "@aave/contract-helpers": "^1.4.0",
     "@aave/math-utils": "^1.4.0",
-    "@arbitrum/sdk": "^1.1.4",
+    "@arbitrum/sdk": "2.0.9",
     "@aws-sdk/client-s3": "^3.33.0",
     "@eth-optimism/contracts": "^0.5.3",
     "@eth-optimism/core-utils": "^0.5.2",

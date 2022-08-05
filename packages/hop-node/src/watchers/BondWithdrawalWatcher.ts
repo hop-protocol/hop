@@ -197,8 +197,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
     })
 
     try {
-      logger.debug('checkTransferId getIsBonderFeeOk')
-      const isBonderFeeOk = await this.getIsBonderFeeOk(transferId, attemptSwap)
+      logger.debug('checkTransferId isBonderFeeOk')
+      const transactionType = attemptSwap ? GasCostTransactionType.BondWithdrawalAndAttemptSwap : GasCostTransactionType.BondWithdrawal
+      const isBonderFeeOk = await this.getIsFeeOk(transferId, transactionType)
       if (!isBonderFeeOk) {
         const msg = 'Total bonder fee is too low. Cannot bond withdrawal.'
         logger.debug(msg)
@@ -315,92 +316,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferNonce,
         bonderFee
       )
-    }
-  }
-
-  async getIsBonderFeeOk (
-    transferId: string,
-    attemptSwap: boolean
-  ): Promise<boolean> {
-    const logger = this.logger.create({ id: transferId })
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    if (!dbTransfer) {
-      throw new Error('expected db transfer item')
-    }
-
-    const { amount, bonderFee, sourceChainId, destinationChainId } = dbTransfer
-    if (!amount || !bonderFee || !sourceChainId || !destinationChainId) {
-      throw new Error('expected complete dbTransfer data')
-    }
-    const sourceChain = this.chainIdToSlug(sourceChainId)
-    const destinationChain = this.chainIdToSlug(destinationChainId)
-    const transferSentTimestamp = dbTransfer?.transferSentTimestamp
-    if (!transferSentTimestamp) {
-      throw new Error('expected transferSentTimestamp')
-    }
-
-    const now = Math.floor(Date.now() / 1000)
-    const transactionType = attemptSwap ? GasCostTransactionType.BondWithdrawalAndAttemptSwap : GasCostTransactionType.BondWithdrawal
-    const nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, transferSentTimestamp)
-    const nearestItemToNow = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)
-    let gasCostInToken: BigNumber
-    let minBonderFeeAbsolute: BigNumber
-
-    const sourceL2Bridge = this.getSiblingWatcherByChainSlug(sourceChain).bridge as L2Bridge
-    const onChainBonderFeeAbsolute = await sourceL2Bridge.getOnChainMinBonderFeeAbsolute()
-
-    if (nearestItemToTransferSent && nearestItemToNow) {
-      ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToTransferSent)
-      const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
-      gasCostInToken = BNMin(gasCostInToken, currentGasCostInToken)
-      minBonderFeeAbsolute = BNMin(minBonderFeeAbsolute, currentMinBonderFeeAbsolute)
-      this.logger.debug('using nearestItemToTransferSent')
-    } else if (nearestItemToNow) {
-      ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToNow)
-      this.logger.warn('nearestItemToTransferSent not found, using only nearestItemToNow')
-    } else {
-      throw new Error('expected nearestItemToTransferSent or nearestItemToNow')
-    }
-
-    minBonderFeeAbsolute = onChainBonderFeeAbsolute.gt(minBonderFeeAbsolute) ? onChainBonderFeeAbsolute : minBonderFeeAbsolute
-
-    logger.debug('gasCostInToken:', gasCostInToken?.toString())
-    logger.debug('minBonderFeeAbsolute:', minBonderFeeAbsolute?.toString())
-
-    const minBpsFee = await this.bridge.getBonderFeeBps(destinationChain, amount, minBonderFeeAbsolute)
-    const minTxFee = gasCostInToken.div(2)
-    const minBonderFeeTotal = minBpsFee.add(minTxFee)
-    const isBonderFeeOk = bonderFee.gte(minBonderFeeTotal)
-    logger.debug(`bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, minBpsFee: ${minBpsFee}, isBonderFeeOk: ${isBonderFeeOk}`)
-
-    this.logAdditionalBonderFeeData(bonderFee, minBonderFeeTotal, minBpsFee, gasCostInToken, destinationChain, transferId, logger)
-    return isBonderFeeOk
-  }
-
-  logAdditionalBonderFeeData (
-    bonderFee: BigNumber,
-    minBonderFeeTotal: BigNumber,
-    minBpsFee: BigNumber,
-    gasCostInToken: BigNumber,
-    destinationChain: string,
-    transferId: string,
-    logger: Logger
-  ) {
-    // Log how much additional % is being paid
-    const precision = this.bridge.parseEth('1')
-    const bonderFeeOverage = bonderFee.mul(precision).div(minBonderFeeTotal)
-    logger.debug(`dest: ${destinationChain}, bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}`)
-
-    // Log how much additional % is being paid without destination tx fee buffer
-    const minBonderFeeWithoutBuffer = minBpsFee.add(gasCostInToken)
-    const bonderFeeOverageWithoutBuffer = bonderFee.mul(precision).div(minBonderFeeWithoutBuffer)
-    logger.debug(`dest: ${destinationChain}, bonder fee overage (without buffer): ${this.bridge.formatEth(bonderFeeOverageWithoutBuffer)}`)
-
-    const expectedMinBonderFeeOverage = precision
-    if (bonderFeeOverage.lt(expectedMinBonderFeeOverage)) {
-      const msg = `Bonder fee too low. bonder fee overage: ${this.bridge.formatEth(bonderFeeOverage)}, bonderFee: ${bonderFee}, minBonderFeeTotal: ${minBonderFeeTotal}, token: ${this.bridge.tokenSymbol}, sourceChain: ${this.bridge.chainSlug}, destinationChain: ${destinationChain}, transferId: ${transferId}`
-      logger.warn(msg)
-      this.notifier.warn(msg)
     }
   }
 

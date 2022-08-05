@@ -22,7 +22,11 @@ import {
   WithdrewEvent,
   TransferSentToL2Event
 } from '@hop-protocol/core/contracts/L1Bridge'
-import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
+import {
+  L2Bridge as L2BridgeContract,
+  TransferSentEvent,
+  TransfersCommittedEvent
+} from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'

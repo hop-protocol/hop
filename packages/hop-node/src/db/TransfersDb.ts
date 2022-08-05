@@ -27,6 +27,8 @@ interface BaseTransfer {
   relayerFee?: BigNumber
   sourceChainId?: number
   sourceChainSlug?: string
+  transferFromL1Complete?: boolean
+  transferFromL1CompleteTxHash?: string
   transferNonce?: string
   transferRelayed?: boolean
   transferRootHash?: string
@@ -511,6 +513,7 @@ class TransfersDb extends BaseDb {
         item.transferSentTxHash &&
         item.isRelayable &&
         !item.isRelayed &&
+        !item.transferFromL1Complete &&
         timestampOk 
       )
     })

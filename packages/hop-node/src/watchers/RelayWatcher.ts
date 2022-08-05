@@ -168,10 +168,26 @@ class RelayWatcher extends BaseWatcher {
         transferSentTxHash
       })
 
+      // This will not work as intended if the process restarts after the tx is sent but before this is executed.
+      // This is expected because we cannot watch for the event because it does not emit enough info for a unique DB entry
+      // since the L1 to L2 transferId relies on the L1 transaction hash. If the server does restart, we will be alerted
+      // that a tx has not been relayed and we can investigate the status.
+      await this.db.transfers.update(transferId, {
+        transferFromL1Complete: true,
+        transferFromL1CompleteTxHash: tx.hash
+      })
+
       const msg = `sent redemption on ${destinationChainId} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err: any) {
+
+      // For this watcher, we will always mark the transfer as incomplete if the process gets here
+      await this.db.transfers.update(transferId, {
+        transferFromL1Complete: false,
+        transferFromL1CompleteTxHash: undefined
+      })
+
       logger.error('redemptionTx error:', err.message)
       const isUnrelayableError = /Blacklistable: account is blacklisted/i.test(err.message)
       if (isUnrelayableError) {

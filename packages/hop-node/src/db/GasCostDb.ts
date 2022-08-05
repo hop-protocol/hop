@@ -2,7 +2,7 @@ import BaseDb, { BaseItem, KeyFilter } from './BaseDb'
 import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
-import { OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
+import { GasCostTransactionType, OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 const varianceSeconds = 20 * 60
@@ -21,12 +21,6 @@ type GasCost = BaseItem & {
   nativeTokenPriceUsd: number
   minBonderFeeAbsolute: BigNumber
   attemptSwap?: boolean // TODO: Remove after migration
-}
-
-export enum GasCostTransactionType {
-  BondWithdrawal = 'bondWithdrawal',
-  BondWithdrawalAndAttemptSwap =  'bondWithdrawalAndAttemptSwap',
-  Redeem = 'redeem'
 }
 
 // structure:

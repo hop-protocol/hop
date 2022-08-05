@@ -86,4 +86,10 @@ export enum TokenIndex {
   HopBridgeToken = 1,
 }
 
+export enum GasCostTransactionType {
+  BondWithdrawal = 'bondWithdrawal',
+  BondWithdrawalAndAttemptSwap =  'bondWithdrawalAndAttemptSwap',
+  Redeem = 'redeem'
+}
+
 export const DefaultRelayerAddress = ethersConstants.AddressZero

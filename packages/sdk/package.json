@@ -29,7 +29,8 @@
     "release": "npm run clean && npm test && npm run publish:latest",
     "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
     "prepare": "npm run lint && npm run build && npm run build:browser",
-    "docs": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
+    "docs": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
+    "docs:concat": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts && npx concat-md --toc --decrease-title-levels --dir-name-as-title docs > docs/README.md",
     "docs:update-gitbook": "./scripts/update_gitbook.sh"
   },
   "directories": {},
@@ -46,7 +47,7 @@
     "fast-memoize": "2.5.2",
     "isomorphic-fetch": "3.0.0",
     "luxon": "2.5.0",
-    "web3": "^1.7.5"
+    "web3": "1.7.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.7.0",
@@ -66,7 +67,6 @@
     "@typescript-eslint/parser": "^4.28.2",
     "babelify": "^10.0.0",
     "browserify": "^16.5.0",
-    "concat-md": "0.4.0",
     "eslint": "^7.30.0",
     "eslint-config-standard": "^16.0.3",
     "eslint-plugin-import": "^2.23.4",

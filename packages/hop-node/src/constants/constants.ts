@@ -92,5 +92,3 @@ export enum GasCostTransactionType {
   BondWithdrawalAndAttemptSwap =  'bondWithdrawalAndAttemptSwap',
   Relay = 'relay'
 }
-
-export const DefaultRelayerAddress = ethersConstants.AddressZero

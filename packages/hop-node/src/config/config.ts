@@ -329,6 +329,7 @@ export enum Watchers {
   CommitTransfers = 'commitTransfers',
   SettleBondedWithdrawals = 'settleBondedWithdrawals',
   xDomainMessageRelay = 'xDomainMessageRelay',
+  L1ToL2Relay = 'L1toL2Relay',
 }
 
 export { Bonders }

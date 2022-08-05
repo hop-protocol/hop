@@ -29,7 +29,7 @@ class RelayWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      logColor: 'green',
+      logColor: 'redBright',
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })

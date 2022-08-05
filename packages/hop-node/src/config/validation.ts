@@ -56,7 +56,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Watchers.Challenge,
     Watchers.CommitTransfers,
     Watchers.SettleBondedWithdrawals,
-    Watchers.xDomainMessageRelay
+    Watchers.xDomainMessageRelay,
+    Watchers.L1ToL2Relay
   ]
 
   const validChainKeys = [

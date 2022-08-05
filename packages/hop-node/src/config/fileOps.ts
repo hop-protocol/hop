@@ -56,6 +56,7 @@ type WatchersConfig = {
   [Watchers.CommitTransfers]: boolean
   [Watchers.SettleBondedWithdrawals]: boolean
   [Watchers.xDomainMessageRelay]: boolean
+  [Watchers.L1ToL2Relay]: boolean
 }
 
 type DbConfig = {

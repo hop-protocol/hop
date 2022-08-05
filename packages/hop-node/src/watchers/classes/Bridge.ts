@@ -8,6 +8,7 @@ import { BigNumber, Contract, providers } from 'ethers'
 import { Chain, SettlementGasLimitPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
+import { GasCostTransactionType } from 'src/db/GasCostDb'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
@@ -762,24 +763,31 @@ export default class Bridge extends ContractBase {
     chain: string,
     tokenSymbol: string,
     gasLimit: BigNumber,
+    transactionType: GasCostTransactionType,
     data?: string,
     to?: string
   ) {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const provider = getRpcProvider(chain)!
     let gasPrice = await provider.getGasPrice()
-    // Arbitrum returns a gasLimit & gasPriceBid that exceeds the actual used.
-    // The values change as they collect more data. 2x here is generous but they should never go under this.
-    if (this.chainSlug === Chain.Arbitrum) {
-      gasPrice = gasPrice.div(2)
-      gasLimit = gasLimit.div(2)
+
+    let gasCost: BigNumber = BigNumber.from('0')
+    if (transactionType === GasCostTransactionType.Redeem) {
+      gasCost = gasLimit.mul(gasPrice)
+    } else {
+      // Arbitrum returns a gasLimit & gasPriceBid that exceeds the actual used.
+      // The values change as they collect more data. 2x here is generous but they should never go under this.
+      if (this.chainSlug === Chain.Arbitrum) {
+        gasPrice = gasPrice.div(2)
+        gasLimit = gasLimit.div(2)
+      }
+
+      // Include the cost to settle an individual transfer
+      const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[chain]
+      const gasLimitWithSettlement = gasLimit.add(settlementGasLimitPerTx)
+
+      gasCost = gasLimitWithSettlement.mul(gasPrice)
     }
-
-    // Include the cost to settle an individual transfer
-    const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[chain]
-    const gasLimitWithSettlement = gasLimit.add(settlementGasLimitPerTx)
-
-    let gasCost = gasLimitWithSettlement.mul(gasPrice)
 
     if (this.chainSlug === Chain.Optimism && data && to) {
       try {

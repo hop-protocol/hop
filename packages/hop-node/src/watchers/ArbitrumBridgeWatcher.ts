@@ -60,7 +60,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       throw new Error(`tx hash ${txHash} did not initiate an outgoing messages`)
     }
 
-    const msg = outGoingMessagesFromTxn[0]
+    const msg: any = outGoingMessagesFromTxn[0]
     const proofInfo = await msg.tryGetProof(this.l2Wallet.provider)
     if (!proofInfo) {
       throw new Error(`proof not found for tx hash ${txHash}`)

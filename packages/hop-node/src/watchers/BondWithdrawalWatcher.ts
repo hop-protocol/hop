@@ -9,6 +9,7 @@ import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, constants } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
+import { GasCostTransactionType } from 'src/db/GasCostDb'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
@@ -340,8 +341,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
 
     const now = Math.floor(Date.now() / 1000)
-    const nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, attemptSwap, transferSentTimestamp)
-    const nearestItemToNow = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, attemptSwap, now)
+    const transactionType = attemptSwap ? GasCostTransactionType.BondWithdrawalAndAttemptSwap : GasCostTransactionType.BondWithdrawal
+    const nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, transferSentTimestamp)
+    const nearestItemToNow = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)
     let gasCostInToken: BigNumber
     let minBonderFeeAbsolute: BigNumber
 
@@ -407,28 +409,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
   // L2 -> L2: (credit - debit)
   getAvailableCreditForTransfer (destinationChainId: number) {
     return this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
-  }
-
-  async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge, logger: Logger) {
-    // It has been verified that all chains have at least 1 wei at 0x0.
-    const tx = {
-      from: constants.AddressZero,
-      to: recipient,
-      value: '1'
-    }
-
-    try {
-      await destinationBridge.provider.call(tx)
-      return true
-    } catch (err) {
-      const isRevertError = isExecutionError(err.message)
-      if (isRevertError) {
-        logger.error(`getIsRecipientReceivable err: ${err.message}`)
-        return false
-      }
-      logger.error(`getIsRecipientReceivable non-revert err: ${err.message}`)
-      return true
-    }
   }
 
   async withdrawFromVaultIfNeeded (destinationChainId: number, bondAmount: BigNumber) {

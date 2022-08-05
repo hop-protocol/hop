@@ -7,7 +7,7 @@ import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain, DefaultRelayerAddress } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
-import { L1Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { config as globalConfig } from 'src/config'
 
@@ -58,6 +58,17 @@ export default class L1Bridge extends Bridge {
     )
   }
 
+  getTransferSentToL2Events = async (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ) => {
+    return await this.l1BridgeContract.queryFilter(
+      this.l1BridgeContract.filters.TransferSentToL2(),
+      startBlockNumber,
+      endBlockNumber
+    )
+  }
+
   async mapTransferRootBondedEvents<R> (
     cb: EventCb<TransferRootBondedEvent, R>,
     options?: Partial<EventsBatchOptions>
@@ -70,6 +81,13 @@ export default class L1Bridge extends Bridge {
     options?: Partial<EventsBatchOptions>
   ) {
     return await this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
+  }
+
+  async mapTransferSentToL2Events<R> (
+    cb: EventCb<TransferSentToL2Event, R>,
+    options?: Partial<EventsBatchOptions>
+  ) {
+    return await this.mapEventsBatch(this.getTransferSentToL2Events, cb, options)
   }
 
   async getTransferRootBondedEvent (

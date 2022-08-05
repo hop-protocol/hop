@@ -373,7 +373,7 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     logger.debug('transactionType:', transactionType)
 
     const minTxFee = gasCostInToken.div(2)
-    if (transactionType === GasCostTransactionType.Redeem) {
+    if (transactionType === GasCostTransactionType.Relay) {
       const isRedemptionFeeOk = relayerFee!.gte(minTxFee)
       return isRedemptionFeeOk
     }

@@ -90,7 +90,7 @@ export enum TokenIndex {
 export enum GasCostTransactionType {
   BondWithdrawal = 'bondWithdrawal',
   BondWithdrawalAndAttemptSwap =  'bondWithdrawalAndAttemptSwap',
-  Redeem = 'redeem'
+  Relay = 'relay'
 }
 
 export const DefaultRelayerAddress = ethersConstants.AddressZero

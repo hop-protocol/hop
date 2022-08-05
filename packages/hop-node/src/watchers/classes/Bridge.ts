@@ -771,7 +771,7 @@ export default class Bridge extends ContractBase {
     let gasPrice = await provider.getGasPrice()
 
     let gasCost: BigNumber = BigNumber.from('0')
-    if (transactionType === GasCostTransactionType.Redeem) {
+    if (transactionType === GasCostTransactionType.Relay) {
       gasCost = gasLimit.mul(gasPrice)
     } else {
       // Arbitrum returns a gasLimit & gasPriceBid that exceeds the actual used.

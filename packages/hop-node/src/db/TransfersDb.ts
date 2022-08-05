@@ -1,7 +1,7 @@
 import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { OneWeekMs, TxError } from 'src/constants'
+import { Chain, OneWeekMs, TxError } from 'src/constants'
 import { TxRetryDelayMs, minEthBonderFeeBn } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -15,12 +15,20 @@ interface BaseTransfer {
   destinationChainId?: number
   destinationChainSlug?: string
   isBondable?: boolean
+  isRelayable?: boolean
+  isRelayed?: boolean
   isNotFound?: boolean
   isTransferSpent?: boolean
   recipient?: string
+  relayAttemptedAt?: number
+  relayBackoffIndex?: number
+  relayTxError?: TxError
+  relayer?: string
+  relayerFee?: BigNumber
   sourceChainId?: number
   sourceChainSlug?: string
   transferNonce?: string
+  transferRelayed?: boolean
   transferRootHash?: string
   transferRootId?: string
   transferSentBlockNumber?: number
@@ -70,6 +78,18 @@ export type UnbondedSentTransfer = {
   bonderFee: BigNumber
   transferNonce: string
   deadline: BigNumber
+}
+
+export type UnrelayedSentTransfer = {
+  sourceChainId: number,
+  destinationChainId: number,
+  recipient: string,
+  amount: BigNumber,
+  relayer: string,
+  relayerFee: BigNumber,
+  amountOutMin: BigNumber,
+  deadline: BigNumber,
+  transferSentTxHash: string
 }
 
 export type UncommittedTransfer = {
@@ -445,6 +465,57 @@ class TransfersDb extends BaseDb {
     const sorted = isEthToken ? filtered.sort(this.prioritizeSortItems) : filtered
 
     return sorted as UnbondedSentTransfer[]
+  }
+
+  async getUnrelayedSentTransfers (
+    filter: GetItemsFilter = {}
+  ): Promise<UnrelayedSentTransfer[]> {
+    const transfers: Transfer[] = await this.getTransfersFromWeek()
+    const filtered = transfers.filter(item => {
+      if (!item?.transferId) {
+        return false
+      }
+
+      if (!this.isRouteOk(filter, item)) {
+        return false
+      }
+
+      if (item.isNotFound) {
+        return false
+      }
+
+      if (item?.destinationChainSlug !== Chain.Arbitrum) {
+        return false
+      }
+
+      let timestampOk = true
+      if (item.relayAttemptedAt) {
+        if (TxError.RelayerFeeTooLow === item.relayTxError) {
+          const delay = TxRetryDelayMs + ((1 << item.relayBackoffIndex!) * 60 * 1000) // eslint-disable-line
+          // TODO: use `sentTransferTimestamp` once it's added to db
+
+          // don't attempt to relay after a week
+          if (delay > OneWeekMs) {
+            return false
+          }
+          timestampOk = item.relayAttemptedAt + delay < Date.now()
+        } else {
+          timestampOk = item.relayAttemptedAt + TxRetryDelayMs < Date.now()
+        }
+      }
+
+      return (
+        item.transferId &&
+        item.transferSentTimestamp &&
+        !item.transferRelayed &&
+        item.transferSentTxHash &&
+        item.isRelayable &&
+        !item.isRelayed &&
+        timestampOk 
+      )
+    })
+
+    return filtered as UnrelayedSentTransfer[]
   }
 
   async getIncompleteItems (

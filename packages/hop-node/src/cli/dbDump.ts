@@ -5,7 +5,7 @@ import {
   config as globalConfig,
   setDbPath
 } from 'src/config'
-
+import { GasCostTransactionType } from 'src/constants'
 import { actionHandler, logger, parseInputFileList, parseNumber, parseString, root } from './shared'
 
 root
@@ -137,8 +137,9 @@ async function main (source: any) {
         throw new Error('chain flag is required')
       }
       items = [
-        await db.gasCost.getNearest(chain, tokenSymbol, false, nearest),
-        await db.gasCost.getNearest(chain, tokenSymbol, true, nearest)
+        await db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.BondWithdrawal, nearest),
+        await db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.BondWithdrawalAndAttemptSwap, nearest),
+        await db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.Relay, nearest)
       ]
     } else {
       items = await db.gasCost.getItems()

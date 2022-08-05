@@ -54,8 +54,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       )
     }
 
-    const l2Network = await getL2Network(this.l2Wallet.provider)
-    const outGoingMessagesFromTxn = await initiatingTxnReceipt.getL2ToL1Messages(this.l1Wallet, l2Network)
+    const outGoingMessagesFromTxn = await initiatingTxnReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider)
     if (outGoingMessagesFromTxn.length === 0) {
       throw new Error(`tx hash ${txHash} did not initiate an outgoing messages`)
     }

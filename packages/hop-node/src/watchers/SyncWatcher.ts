@@ -4,12 +4,24 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
+import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
-import { BigNumber } from 'ethers'
+import { BigNumber, constants, utils as ethersUtils } from 'ethers'
 import { Chain, GasCostTransactionType, OneWeekMs } from 'src/constants'
 import { DateTime } from 'luxon'
-import { GasCostTransactionType } from 'src/db/GasCostDb'
+import {
+  L1Bridge as L1BridgeContract,
+  MultipleWithdrawalsSettledEvent,
+  TransferBondChallengedEvent,
+  TransferRootBondedEvent,
+  TransferRootConfirmedEvent,
+  TransferRootSetEvent,
+  WithdrawalBondSettledEvent,
+  WithdrawalBondedEvent,
+  WithdrewEvent,
+  TransferSentToL2Event
+} from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
@@ -230,6 +242,15 @@ class SyncWatcher extends BaseWatcher {
       )
 
       promises.push(
+        l1Bridge.mapTransferSentToL2Events(
+          async (event: TransferSentToL2Event) => {
+            return await this.handleTransferSentToL2Event(event)
+          },
+          getOptions(l1Bridge.TransferSentToL2)
+        )
+      )
+
+      promises.push(
         l1Bridge.mapTransferRootConfirmedEvents(
           async (event: TransferRootConfirmedEvent) => {
             return await this.handleTransferRootConfirmedEvent(event)
@@ -325,6 +346,64 @@ class SyncWatcher extends BaseWatcher {
     // and syncAvailableCredit must be last
     await Promise.all(promises)
       .then(async () => await this.availableLiquidityWatcher.syncBonderCredit())
+  }
+
+  async handleTransferSentToL2Event (event: TransferSentToL2Event) {
+    const {
+      chainId: destinationChainIdBn,
+      recipient,
+      amount,
+      amountOutMin,
+      deadline,
+      relayer,
+      relayerFee
+    } = event.args
+    const { transactionHash } = event
+    const transferId = getTransferSentToL2TransferId(Number(destinationChainIdBn), recipient, amount, amountOutMin, deadline, relayer, relayerFee, transactionHash)
+    const logger = this.logger.create({ id: transferId })
+    logger.debug('handling TransferSentToL2 event')
+
+    try {
+      const blockNumber: number = event.blockNumber
+      const destinationChainId = Number(destinationChainIdBn.toString())
+      const sourceChainId = 1
+      const isRelayable = this.getIsRelayable(relayerFee)
+
+      logger.debug('sourceChainId:', sourceChainId)
+      logger.debug('destinationChainId:', destinationChainId)
+      logger.debug('isRelayable:', isRelayable)
+      logger.debug('transferId:', transferId)
+      logger.debug('amount:', this.bridge.formatUnits(amount))
+      logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
+      logger.debug('deadline:', deadline.toString())
+      logger.debug('transferSentBlockNumber:', blockNumber)
+      logger.debug('relayer:', relayer)
+      logger.debug('relayerFee:', this.bridge.formatUnits(relayerFee))
+
+      if (!isRelayable) {
+        logger.warn('transfer is not relayable', relayerFee.toString())
+      }
+
+      await this.db.transfers.update(transferId, {
+        transferId,
+        destinationChainId,
+        sourceChainId,
+        recipient,
+        amount,
+        amountOutMin,
+        isRelayable,
+        deadline,
+        relayer,
+        relayerFee,
+        transferSentTxHash: transactionHash,
+        transferSentBlockNumber: blockNumber
+      })
+
+      logger.debug('handleTransferSentToL2Event: stored transfer item')
+    } catch (err) {
+      logger.error(`handleTransferSentToL2Event error: ${err.message}`)
+      this.notifier.error(`handleTransferSentToL2Event error: ${err.message}`)
+    }
   }
 
   async handleTransferSentEvent (event: TransferSentEvent) {
@@ -634,6 +713,7 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
+    await this.populateTransferSentToL2Timestamp(transferId)
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
     await this.populateTransferWithdrawalBondSettled(transferId)
@@ -659,6 +739,37 @@ class SyncWatcher extends BaseWatcher {
     await this.populateTransferRootMultipleWithdrawSettled(transferRootId)
     await this.populateTransferRootTransferIds(transferRootId)
   }
+
+  async populateTransferSentToL2Timestamp (transferId: string) {
+    const logger = this.logger.create({ id: transferId })
+    logger.debug('starting populateTransferSentToL2Timestamp')
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    const { transferSentTimestamp, transferSentBlockNumber, sourceChainId } = dbTransfer
+    if (
+      !transferSentBlockNumber ||
+      transferSentTimestamp
+    ) {
+      logger.debug('populateTransferSentToL2Timestamp already found')
+      return
+    }
+    if (!sourceChainId) {
+      logger.warn(`populateTransferSentToL2Timestamp marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
+      await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+    const timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
+    if (!timestamp) {
+      logger.warn(`populateTransferSentToL2Timestamp marking item not found: timestamp for block number ${transferSentBlockNumber} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
+      await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+    logger.debug(`transferSentToL2Timestamp: ${timestamp}`)
+    await this.db.transfers.update(transferId, {
+      transferSentTimestamp: timestamp
+    })
+  }
+
 
   async populateTransferSentTimestamp (transferId: string) {
     const logger = this.logger.create({ id: transferId })
@@ -1262,7 +1373,7 @@ class SyncWatcher extends BaseWatcher {
     return true
   }
 
-  getIsRedeemable = (
+  getIsRelayable = (
     relayerFee: BigNumber
   ): boolean => {
     if (relayerFee.eq(0)) {
@@ -1347,8 +1458,8 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (this.chainSlug === Chain.Arbitrum) {
-          const gasLimit = await this._getRedeemGasLimit()
-          estimates.push({ gasLimit, transactionType: GasCostTransactionType.Redeem })
+          const gasLimit = await this._getRelayGasLimit()
+          estimates.push({ gasLimit, transactionType: GasCostTransactionType.Relay })
         }
 
         this.logger.debug('pollGasCost estimate. estimates complete')
@@ -1391,7 +1502,7 @@ class SyncWatcher extends BaseWatcher {
     return !this.isL1
   }
 
-  private async _getRedeemGasLimit(): Promise<BigNumber> {
+  private async _getRelayGasLimit(): Promise<BigNumber> {
     // Submission Cost
     const l1Provider = getRpcProvider(Chain.Ethereum)! 
     const distributeCalldataSize: number = 196
@@ -1399,6 +1510,7 @@ class SyncWatcher extends BaseWatcher {
     const submissionCost: BigNumber = this._calculateRetryableSubmissionFee(distributeCalldataSize, baseFeePerGas!)
 
     // Redemption Cost
+    // TODO
     const redemptionCost = BigNumber.from('0')
 
     // Distribution Cost

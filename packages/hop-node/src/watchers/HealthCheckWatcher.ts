@@ -8,6 +8,7 @@ import fs from 'fs'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferIds from 'src/theGraph/getTransferIds'
+import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
@@ -128,6 +129,12 @@ type InvalidBondWithdrawal = {
   timestamp: number
 }
 
+type UnrelayedTransfers = {
+}
+
+type UnsetTransferRoots = {
+}
+
 type Result = {
   lowBonderBalances: LowBonderBalance[]
   lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
@@ -138,6 +145,8 @@ type Result = {
   unsyncedSubgraphs: UnsyncedSubgraph[]
   missedEvents: MissedEvent[]
   invalidBondWithdrawals: InvalidBondWithdrawal[]
+  unrelayedTransfers: UnrelayedTransfers[]
+  unsetTransferRoots: UnsetTransferRoots[]
 }
 
 export type EnabledChecks = {
@@ -150,6 +159,8 @@ export type EnabledChecks = {
   lowAvailableLiquidityBonders: boolean
   missedEvents: boolean
   invalidBondWithdrawals: boolean
+  unrelayedTransfers: boolean
+  unsetTransferRoots: boolean
 }
 
 export type Config = {
@@ -189,7 +200,7 @@ export class HealthCheckWatcher {
   bonderLowLiquidityThreshold: number = 0.10
   unbondedTransfersMinTimeToWaitMinutes: number = 30
   unbondedTransferRootsMinTimeToWaitHours: number = 1
-  incompleteSettlemetsMinTimeToWaitHours: number = 4
+  incompleteSettlementsMinTimeToWaitHours: number = 4
   minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
     [Chain.Ethereum]: 1000,
     [Chain.Polygon]: 2000,
@@ -207,7 +218,9 @@ export class HealthCheckWatcher {
     unsyncedSubgraphs: true,
     lowAvailableLiquidityBonders: true,
     missedEvents: true,
-    invalidBondWithdrawals: true
+    invalidBondWithdrawals: true,
+    unrelayedTransfers: true,
+    unsetTransferRoots: true
   }
 
   lastNotificationSentAt: number
@@ -278,7 +291,9 @@ export class HealthCheckWatcher {
       challengedTransferRoots,
       unsyncedSubgraphs,
       missedEvents,
-      invalidBondWithdrawals
+      invalidBondWithdrawals,
+      unrelayedTransfers,
+      unsetTransferRoots
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
       this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([]),
@@ -288,7 +303,9 @@ export class HealthCheckWatcher {
       this.enabledChecks.challengedTransferRoots ? this.getChallengedTransferRoots() : Promise.resolve([]),
       this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([]),
       this.enabledChecks.missedEvents ? this.getMissedEvents() : Promise.resolve([]),
-      this.enabledChecks.invalidBondWithdrawals ? this.getInvalidBondWithdrawals() : Promise.resolve([])
+      this.enabledChecks.invalidBondWithdrawals ? this.getInvalidBondWithdrawals() : Promise.resolve([]),
+      this.enabledChecks.unrelayedTransfers? this.getUnrelayedTransfers() : Promise.resolve([]),
+      this.enabledChecks.unsetTransferRoots? this.getUnsetTransferRoots() : Promise.resolve([])
     ])
 
     return {
@@ -300,7 +317,9 @@ export class HealthCheckWatcher {
       challengedTransferRoots,
       unsyncedSubgraphs,
       missedEvents,
-      invalidBondWithdrawals
+      invalidBondWithdrawals,
+      unrelayedTransfers,
+      unsetTransferRoots
     }
   }
 
@@ -313,7 +332,9 @@ export class HealthCheckWatcher {
       challengedTransferRoots,
       unsyncedSubgraphs,
       missedEvents,
-      invalidBondWithdrawals
+      invalidBondWithdrawals,
+      unrelayedTransfers,
+      unsetTransferRoots
     } = result
 
     const messages: string[] = []
@@ -362,6 +383,16 @@ export class HealthCheckWatcher {
 
       for (const item of invalidBondWithdrawals) {
         const msg = `Possible InvalidBondWithdrawal: transferId: ${item.transferId}, destination: ${item.destinationChain}, token: ${item.token}, amount: ${item.amount}, timestamp: ${item.timestamp}`
+        messages.push(msg)
+      }
+
+      for (const item of unrelayedTransfers) {
+        const msg = `Possible unrelayed transfer: TODO`
+        messages.push(msg)
+      }
+
+      for (const item of unsetTransferRoots) {
+        const msg = `Possible unset transferRoot: TODO`
         messages.push(msg)
       }
     }
@@ -629,7 +660,7 @@ export class HealthCheckWatcher {
       format: 'json'
     })
     let result = await incompleteSettlementsWatcher.getDiffResults()
-    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.incompleteSettlemetsMinTimeToWaitHours * 60 * 60)))
+    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.incompleteSettlementsMinTimeToWaitHours * 60 * 60)))
     result = result.filter((x: any) => x.diffFormatted > 0.01)
     this.logger.debug('done fetching incomplete settlements')
     result = result.map((item: any) => {
@@ -791,6 +822,18 @@ export class HealthCheckWatcher {
         destinationChain,
         timestamp
       }
+    })
+  }
+
+  async getUnrelayedTransfers (): Promise<UnrelayedTransfers[]> {
+  }
+
+  async getUnsetTransferRoots (): Promise<UnsetTransferRoots[]> {
+    const now = DateTime.now().toUTC()
+    const endDate = now.minus({ days: 1 })
+    const startDate = endDate.minus({ days: this.days })
+    const items = await getUnsetTransferRoots(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+    return items.map((item: any) => {
     })
   }
 }

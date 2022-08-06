@@ -11,7 +11,7 @@ import getTransferIds from 'src/theGraph/getTransferIds'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
-import { Chain, NativeChainToken, OneDayMs } from 'src/constants'
+import { Chain, NativeChainToken, OneDayMs, SecondsInDay } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
@@ -675,12 +675,18 @@ export class HealthCheckWatcher {
 
   private async getChallengedTransferRoots (): Promise<ChallengedTransferRoot[]> {
     const result: any[] = []
+    const provider = getRpcProvider(Chain.Ethereum)!
+
+    // Challenges can only be made for the last 24 hours
+    const mainnetBlockTimeSec = 12
+    const challengeTimeWithBuffer = SecondsInDay * 1.25
+    const blocksInADay = challengeTimeWithBuffer / mainnetBlockTimeSec
+
     for (const token of this.tokens) {
       this.logger.debug(`done ${token} bridge for challenged roots`)
       const l1BridgeContract = contracts.get(token, Chain.Ethereum).l1Bridge
-      const provider = getRpcProvider(Chain.Ethereum)!
-      const startBlockNumber = 0
       const endBlockNumber = Number((await provider.getBlockNumber()).toString())
+      const startBlockNumber = endBlockNumber - blocksInADay
       const l1Bridge = new L1Bridge(l1BridgeContract)
       await l1Bridge.mapTransferBondChallengedEvents(
         async (event: TransferBondChallengedEvent) => {

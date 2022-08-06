@@ -48,7 +48,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   arbitrum: 59105
 }
 
-const SecondsInDay = 86400
+export const SecondsInDay = 86400
 const SecondsInWeek = SecondsInDay * 7
 export const OneDayMs = SecondsInDay * 1000
 export const TotalBlocks = {
@@ -61,8 +61,9 @@ export const DefaultBatchBlocks = 10000
 export const TenSecondsMs = 10 * 1000
 export const TenMinutesMs = 10 * 60 * 1000
 export const OneHourSeconds = 60 * 60
-export const OneHourMs = 60 * 60 * 1000
-export const OneWeekMs = 7 * 24 * 60 * 60 * 1000
+export const OneHourMs = OneHourSeconds * 1000
+export const OneWeekSeconds = 7 * 24 * 60 * 60 * 1000
+export const OneWeekMs = OneWeekSeconds * 1000
 
 export const RootSetSettleDelayMs = 5 * 60 * 1000
 export const ChallengePeriodMs = 24 * OneHourMs

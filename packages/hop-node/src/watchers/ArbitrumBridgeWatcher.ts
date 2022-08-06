@@ -3,7 +3,7 @@ import Logger from 'src/logger'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1TransactionReceipt, L2TransactionReceipt, getL2Network } from '@arbitrum/sdk'
+import { L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Wallet, providers } from 'ethers'
 
@@ -92,15 +92,26 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
   }
 
   async redeemArbitrumTransaction (l1TxHash: string): Promise<providers.TransactionResponse> {
-    const txReceipt = await this.l1Wallet.provider.getTransactionReceipt(l1TxHash)
-    const l1TxnReceipt = new L1TransactionReceipt(txReceipt)
-    const l1ToL2Message = await l1TxnReceipt.getL1ToL2Message(this.l2Wallet)
-    const res = await l1ToL2Message.waitForStatus()
-    if (res?.status !== 3) {
-      this.logger.error(`Transaction not redeemable. Status: ${l1ToL2TxStatuses[res.status]}`)
+    const l1ToL2Message = await this.getL1ToL2Message(l1TxHash)
+    const status = (await l1ToL2Message.waitForStatus()).status
+    if (status !== 3) {
+      this.logger.error(`Transaction not redeemable. Status: ${l1ToL2TxStatuses[status]}`)
       throw new Error('Transaction unredeemable')
     }
+
     return await l1ToL2Message.redeem()
+  }
+
+  async isTransactionRedeemed (l1TxHash: string): Promise<boolean> {
+    const l1ToL2Message = await this.getL1ToL2Message(l1TxHash)
+    const status = (await l1ToL2Message.waitForStatus()).status
+    return status === 4
+  }
+
+  async getL1ToL2Message (l1TxHash: string): Promise<any> {
+    const txReceipt = await this.l1Wallet.provider.getTransactionReceipt(l1TxHash)
+    const l1TxnReceipt = new L1TransactionReceipt(txReceipt)
+    return l1TxnReceipt.getL1ToL2Message(this.l2Wallet)
   }
 }
 

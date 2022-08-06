@@ -9,6 +9,7 @@ import { RelayerFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
+import { RelayableTransferRoots } from 'src/db/TransferRootsDb'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { relayTransactionBatchSize } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
@@ -45,7 +46,13 @@ class RelayWatcher extends BaseWatcher {
     if (this.isL1) {
       return
     }
-    await this.checkTransferSentToL2FromDb()
+    const promises: Array<Promise<any>> = []
+
+    promises.push(
+      this.checkTransferSentToL2FromDb(),
+      this.checkRelayableTransferRootsFromDb()
+    )
+    await Promise.all(promises)
   }
 
   async checkTransferSentToL2FromDb () {
@@ -88,6 +95,26 @@ class RelayWatcher extends BaseWatcher {
     this.logger.debug('checkTransferSentFromDb completed')
   }
 
+  async checkRelayableTransferRootsFromDb () {
+    const dbTransferRoots = await this.db.transferRoots.getRelayableTransferRoots(await this.getFilterRoute())
+    if (!dbTransferRoots.length) {
+      this.logger.debug('no relayable transfer root db items to check')
+      return
+    }
+
+    this.logger.info(
+        `checking ${dbTransferRoots.length} unrelayed transfer roots db items`
+    )
+
+    const promises: Array<Promise<any>> = []
+    for (const dbTransferRoot of dbTransferRoots) {
+      const { transferRootId } = dbTransferRoot
+      promises.push(this.checkRelayableTransferRoots(transferRootId))
+    }
+
+    await Promise.all(promises)
+  }
+
   async checkTransferSentToL2 (transferId: string) {
     const dbTransfer = await this.db.transfers.getByTransferId(transferId) as UnrelayedSentTransfer
     if (!dbTransfer) {
@@ -106,7 +133,7 @@ class RelayWatcher extends BaseWatcher {
       transferSentTxHash
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })
-    logger.debug('processing relay')
+    logger.debug('processing transfer relay')
     logger.debug('amount:', amount && this.bridge.formatUnits(amount))
     logger.debug('recipient:', recipient)
     logger.debug('relayer:', relayer)
@@ -114,6 +141,15 @@ class RelayWatcher extends BaseWatcher {
 
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
+
+    logger.debug('processing transfer relay. checking isRelayComplete')
+    const isRelayComplete = await destBridge.isTransactionRedeemed(transferSentTxHash)
+    logger.debug(`processing bondWithdrawal. isRelayComplete: ${isRelayComplete?.toString()}`)
+    if (isRelayComplete) {
+      logger.warn('checkTransferSentToL2 already complete. marking item not found')
+      await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
 
     const bonderAddress = await destBridge.getBonderAddress()
     const isCorrectRelayer = bonderAddress.toLowerCase() === relayer.toLowerCase()
@@ -156,7 +192,7 @@ class RelayWatcher extends BaseWatcher {
       }
 
       logger.debug('checkTransferSentToL2 sentRedemptionTx')
-      const tx = await this.sendRedemptionTx({
+      const tx = await this.sendTransferRelayTx({
         transferId,
         destinationChainId,
         recipient,
@@ -225,7 +261,64 @@ class RelayWatcher extends BaseWatcher {
     }
   }
 
-  async sendRedemptionTx (params: any): Promise<providers.TransactionResponse> {
+  async checkRelayableTransferRoots (transferRootId: string ) {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId) as RelayableTransferRoots
+    if (!dbTransferRoot) {
+      this.logger.warn(`transferRoot id "${transferRootId}" not found in db`)
+      return
+    }
+    const {
+      transferRootHash,
+      totalAmount,
+      destinationChainId
+    } = dbTransferRoot
+
+    const logger = this.logger.create({ root: transferRootId })
+
+    // bondedTxHash should be checked first because a root can have both but it should be bonded prior to being confirmed
+    const l1TxHash = dbTransferRoot?.bondTxHash || dbTransferRoot?.confirmTxHash
+
+    logger.debug('processing transfer root relay')
+    logger.debug('transferRootHash:', transferRootHash)
+    logger.debug('totalAmount:', totalAmount)
+    logger.debug('destinationChainId:', destinationChainId)
+    logger.debug('l1txHash:', l1TxHash)
+
+    const isSet = await this.bridge.isTransferRootSet(transferRootHash, totalAmount)
+    if (isSet) {
+      logger.warn('checkRelayableTransferRoots already set. marking item not found.')
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+    }
+
+    if (this.dryMode) {
+      logger.warn(`dry: ${this.dryMode}, skipping bondTransferRoot`)
+      return
+    }
+
+    logger.debug(
+      `attempting to relay root id ${transferRootId} with destination chain ${destinationChainId} and l1TxHash ${l1TxHash}`
+    )
+
+    await this.db.transferRoots.update(transferRootId, {
+      sentRelayTxAt: Date.now()
+    })
+
+    try {
+      const tx = await this.sendTransferRootRelayTx(
+        transferRootId,
+        l1TxHash!
+      )
+      const msg = `transferRootSet dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
+      logger.info(msg)
+      this.notifier.info(msg)
+    } catch (err) {
+      logger.error('transferRootSet error:', err.message)
+      throw err
+    }
+  }
+
+  async sendTransferRelayTx (params: any): Promise<providers.TransactionResponse> {
     const {
       transferId,
       destinationChainId,
@@ -245,10 +338,23 @@ class RelayWatcher extends BaseWatcher {
     }
 
     logger.debug(
-      `relay destinationChainId: ${destinationChainId}`
+      `relay transfer destinationChainId: ${destinationChainId}`
     )
     logger.debug('checkTransferSentToL2 l2Bridge.distribute')
-    return await this.relayWatcher.redeemArbitrumTransaction(transferSentTxHash)
+    return await this.sendRelayTx(transferSentTxHash)
+  }
+
+  async sendTransferRootRelayTx (transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
+    const logger = this.logger.create({ root: transferRootId })
+    logger.debug(
+      `relay root destinationChainId`
+    )
+    logger.debug('checkRelayableTransferRoots l2Bridge.distribute')
+    return await this.sendRelayTx(txHash)
+  }
+
+  async sendRelayTx (txHash: string): Promise<providers.TransactionResponse> {
+    return await this.relayWatcher.redeemArbitrumTransaction(txHash)
   }
 }
 

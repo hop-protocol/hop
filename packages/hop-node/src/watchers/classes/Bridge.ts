@@ -857,4 +857,13 @@ export default class Bridge extends ContractBase {
 
     return 'ETH'
   }
+
+  async isTransferRootSet (transferRootHash: string, totalAmount: BigNumber): Promise<boolean> {
+    const transferRootStruct = await this.getTransferRoot(transferRootHash, totalAmount)
+    if (!transferRootStruct) {
+      throw new Error('transfer root struct not found')
+    }
+    const createdAt = Number(transferRootStruct.createdAt?.toString())
+    return createdAt > 0
+  }
 }

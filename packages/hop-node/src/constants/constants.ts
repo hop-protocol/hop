@@ -92,3 +92,11 @@ export enum GasCostTransactionType {
   BondWithdrawalAndAttemptSwap =  'bondWithdrawalAndAttemptSwap',
   Relay = 'relay'
 }
+
+export const RelayableChains: string[] = [
+  Chain.Arbitrum
+]
+
+export const TimeFromL1ToL2Ms: any = {
+  arbitrum: TenMinutesMs
+}

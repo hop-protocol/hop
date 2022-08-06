@@ -1,7 +1,15 @@
 import BaseDb, { KV, KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs } from 'src/constants'
+import {
+  Chain,
+  ChallengePeriodMs,
+  OneHourMs,
+  OneWeekMs,
+  RelayableChains,
+  RootSetSettleDelayMs,
+  TimeFromL1ToL2Ms
+} from 'src/constants'
 import { TxRetryDelayMs, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -28,6 +36,7 @@ interface BaseTransferRoot {
   sentBondTxAt?: number
   sentCommitTxAt?: number
   sentConfirmTxAt?: number
+  sentRelayTxAt?: number
   settleAttemptedAt?: number
   shouldBondTransferRoot?: boolean
   sourceChainId?: number
@@ -101,6 +110,9 @@ export type ExitableTransferRoot = {
   destinationChainId: number
   committed: boolean
   committedAt: number
+}
+
+export type RelayableTransferRoots = {
 }
 
 export type ChallengeableTransferRoot = {
@@ -619,6 +631,55 @@ class TransferRootsDb extends BaseDb {
     })
 
     return filtered as ExitableTransferRoot[]
+  }
+
+  async getRelayableTransferRoots (
+    filter: GetItemsFilter = {}
+  ): Promise<RelayableTransferRoots[]> {
+    await this.tilReady()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const filtered = transferRoots.filter(item => {
+      if (!item.sourceChainId) {
+        return false
+      }
+
+      if (!this.isRouteOk(filter, item)) {
+        return false
+      }
+
+      if (!item.destinationChainId) {
+        return false
+      }
+
+      const destinationChain = chainIdToSlug(item?.destinationChainId)
+      if (!RelayableChains.includes(destinationChain)) {
+        return false
+      }
+
+      let isSeenOnL1 = item?.confirmed || item?.bonded
+
+      let sentTxTimestampOk = true
+      if (item.sentRelayTxAt) {
+        sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
+      }
+
+      const seenOnL1Timestamp = item?.confirmedAt || item?.bondedAt
+      const seenOnL1TimestampMs: number = seenOnL1Timestamp! * 1000
+      const seenOnL1TimestampOk = seenOnL1TimestampMs + TimeFromL1ToL2Ms[destinationChain] < Date.now()
+
+      return (
+        item.commitTxHash &&
+        item.transferRootHash &&
+        item.transferRootId &&
+        item.committed &&
+        item.committedAt &&
+        isSeenOnL1 &&
+        sentTxTimestampOk &&
+        seenOnL1TimestampOk
+      )
+    })
+
+    return filtered as RelayableTransferRoots[]
   }
 
   async getChallengeableTransferRoots (

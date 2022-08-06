@@ -1,7 +1,7 @@
 import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, OneWeekMs, TxError } from 'src/constants'
+import { Chain, OneWeekMs, RelayableChains, TimeFromL1ToL2Ms, TxError } from 'src/constants'
 import { TxRetryDelayMs, minEthBonderFeeBn } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -486,7 +486,15 @@ class TransfersDb extends BaseDb {
         return false
       }
 
-      if (item?.destinationChainSlug !== Chain.Arbitrum) {
+      if (item?.sourceChainSlug !== Chain.Ethereum) {
+        return false
+      }
+
+      if (!item?.destinationChainSlug) {
+        return false
+      }
+
+      if (!RelayableChains.includes(item.destinationChainSlug)) {
         return false
       }
 
@@ -506,6 +514,9 @@ class TransfersDb extends BaseDb {
         }
       }
 
+      const seenOnL1TimestampMs: number = item.transferSentTimestamp! * 1000
+      const seenOnL1TimestampOk = seenOnL1TimestampMs + TimeFromL1ToL2Ms[item.destinationChainSlug] < Date.now()
+
       return (
         item.transferId &&
         item.transferSentTimestamp &&
@@ -514,7 +525,8 @@ class TransfersDb extends BaseDb {
         item.isRelayable &&
         !item.isRelayed &&
         !item.transferFromL1Complete &&
-        timestampOk 
+        timestampOk &&
+        seenOnL1TimestampOk
       )
     })
 

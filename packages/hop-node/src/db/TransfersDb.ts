@@ -422,14 +422,6 @@ class TransfersDb extends BaseDb {
         }
       }
 
-      // TODO: remove this after a week since it was added because it's handled in SyncWatcher
-      let bonderFeeOk = true
-      if (item.bonderFee) {
-        if (isEthToken) {
-          bonderFeeOk = item.bonderFee?.gte(minEthBonderFeeBn)
-        }
-      }
-
       return (
         item.transferId &&
         item.transferSentTimestamp &&
@@ -437,8 +429,7 @@ class TransfersDb extends BaseDb {
         item.transferSentTxHash &&
         item.isBondable &&
         !item.isTransferSpent &&
-        timestampOk &&
-        bonderFeeOk
+        timestampOk
       )
     })
 

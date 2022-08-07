@@ -10,83 +10,90 @@
     - [Properties](#properties)
     - [Accessors](#accessors)
     - [Methods](#methods)
-  - [Class: CanonicalBridge](#class-canonicalbridge)
+  - [Class: Base](#class-base)
     - [Hierarchy](#hierarchy-1)
     - [Table of contents](#table-of-contents-1)
     - [Constructors](#constructors-1)
     - [Properties](#properties-1)
     - [Accessors](#accessors-1)
     - [Methods](#methods-1)
-  - [Class: Chain](#class-chain)
+  - [Class: CanonicalBridge](#class-canonicalbridge)
+    - [Hierarchy](#hierarchy-2)
     - [Table of contents](#table-of-contents-2)
     - [Constructors](#constructors-2)
     - [Properties](#properties-2)
     - [Accessors](#accessors-2)
     - [Methods](#methods-2)
-  - [Class: Hop](#class-hop)
-    - [Hierarchy](#hierarchy-2)
+  - [Class: Chain](#class-chain)
     - [Table of contents](#table-of-contents-3)
     - [Constructors](#constructors-3)
     - [Properties](#properties-3)
     - [Accessors](#accessors-3)
     - [Methods](#methods-3)
-  - [Class: HopBridge](#class-hopbridge)
+  - [Class: Hop](#class-hop)
     - [Hierarchy](#hierarchy-3)
     - [Table of contents](#table-of-contents-4)
     - [Constructors](#constructors-4)
     - [Properties](#properties-4)
     - [Accessors](#accessors-4)
     - [Methods](#methods-4)
-  - [Class: Route](#class-route)
+  - [Class: HopBridge](#class-hopbridge)
+    - [Hierarchy](#hierarchy-4)
     - [Table of contents](#table-of-contents-5)
     - [Constructors](#constructors-5)
     - [Properties](#properties-5)
-  - [Class: Token](#class-token)
-    - [Hierarchy](#hierarchy-4)
+    - [Accessors](#accessors-5)
+    - [Methods](#methods-5)
+  - [Class: Route](#class-route)
     - [Table of contents](#table-of-contents-6)
     - [Constructors](#constructors-6)
     - [Properties](#properties-6)
-    - [Accessors](#accessors-5)
-    - [Methods](#methods-5)
-  - [Class: TokenAmount](#class-tokenamount)
+  - [Class: Token](#class-token)
+    - [Hierarchy](#hierarchy-5)
     - [Table of contents](#table-of-contents-7)
     - [Constructors](#constructors-7)
     - [Properties](#properties-7)
-  - [Class: TokenModel](#class-tokenmodel)
+    - [Accessors](#accessors-6)
+    - [Methods](#methods-6)
+  - [Class: TokenAmount](#class-tokenamount)
     - [Table of contents](#table-of-contents-8)
     - [Constructors](#constructors-8)
     - [Properties](#properties-8)
-    - [Accessors](#accessors-6)
-    - [Methods](#methods-6)
+  - [Class: TokenModel](#class-tokenmodel)
+    - [Table of contents](#table-of-contents-9)
+    - [Constructors](#constructors-9)
+    - [Properties](#properties-9)
+    - [Accessors](#accessors-7)
+    - [Methods](#methods-7)
 - [Enums](#enums)
   - [Enumeration: CanonicalToken](#enumeration-canonicaltoken)
-    - [Table of contents](#table-of-contents-9)
-    - [Enumeration members](#enumeration-members)
-  - [Enumeration: ChainId](#enumeration-chainid)
     - [Table of contents](#table-of-contents-10)
-    - [Enumeration members](#enumeration-members-1)
-  - [Enumeration: ChainSlug](#enumeration-chainslug)
+    - [Enumeration Members](#enumeration-members)
+  - [Enumeration: ChainId](#enumeration-chainid)
     - [Table of contents](#table-of-contents-11)
-    - [Enumeration members](#enumeration-members-2)
-  - [Enumeration: HToken](#enumeration-htoken)
+    - [Enumeration Members](#enumeration-members-1)
+  - [Enumeration: ChainSlug](#enumeration-chainslug)
     - [Table of contents](#table-of-contents-12)
-    - [Enumeration members](#enumeration-members-3)
-  - [Enumeration: NetworkSlug](#enumeration-networkslug)
+    - [Enumeration Members](#enumeration-members-2)
+  - [Enumeration: HToken](#enumeration-htoken)
     - [Table of contents](#table-of-contents-13)
-    - [Enumeration members](#enumeration-members-4)
-  - [Enumeration: Slug](#enumeration-slug)
+    - [Enumeration Members](#enumeration-members-3)
+  - [Enumeration: NetworkSlug](#enumeration-networkslug)
     - [Table of contents](#table-of-contents-14)
-    - [Enumeration members](#enumeration-members-5)
-  - [Enumeration: WrappedToken](#enumeration-wrappedtoken)
+    - [Enumeration Members](#enumeration-members-4)
+  - [Enumeration: Slug](#enumeration-slug)
     - [Table of contents](#table-of-contents-15)
-    - [Enumeration members](#enumeration-members-6)
+    - [Enumeration Members](#enumeration-members-5)
+  - [Enumeration: WrappedToken](#enumeration-wrappedtoken)
+    - [Table of contents](#table-of-contents-16)
+    - [Enumeration Members](#enumeration-members-6)
 - [@hop-protocol/sdk](#hop-protocolsdk)
-  - [Table of contents](#table-of-contents-16)
+  - [Table of contents](#table-of-contents-17)
     - [Namespaces](#namespaces)
     - [Enumerations](#enumerations)
     - [Classes](#classes-1)
-    - [Type aliases](#type-aliases)
-  - [Type aliases](#type-aliases-1)
+    - [Type Aliases](#type-aliases)
+  - [Type Aliases](#type-aliases-1)
     - [<a id="tamount" name="tamount"></a> TAmount](#a-idtamount-nametamounta-tamount)
     - [<a id="tchain" name="tchain"></a> TChain](#a-idtchain-nametchaina-tchain)
     - [<a id="tprovider" name="tprovider"></a> TProvider](#a-idtprovider-nametprovidera-tprovider)
@@ -96,7 +103,7 @@
     - [<a id="tokensymbol" name="tokensymbol"></a> TokenSymbol](#a-idtokensymbol-nametokensymbola-tokensymbol)
 - [Modules](#modules)
   - [Namespace: eventTopics](#namespace-eventtopics)
-    - [Table of contents](#table-of-contents-17)
+    - [Table of contents](#table-of-contents-18)
     - [Variables](#variables)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -114,11 +121,13 @@
 
 Class reprensenting AMM contract
 
-**`namespace`** AMM
+**`Namespace`**
+
+AMM
 
 ### Hierarchy
 
-- `Base`
+- [`Base`](#classesbasemd)
 
   ↳ **`AMM`**
 
@@ -160,6 +169,7 @@ Class reprensenting AMM contract
 - [calculateTotalAmountForLpToken](#calculatetotalamountforlptoken)
 - [connect](#connect)
 - [estimateOptimismL1FeeFromData](#estimateoptimisml1feefromdata)
+- [fetchConfigFromS3](#fetchconfigfroms3)
 - [getApr](#getapr)
 - [getArbChainAddress](#getarbchainaddress)
 - [getBumpedGasPrice](#getbumpedgasprice)
@@ -169,6 +179,7 @@ Class reprensenting AMM contract
 - [getChainProviderUrls](#getchainproviderurls)
 - [getChainProviders](#getchainproviders)
 - [getConfigAddresses](#getconfigaddresses)
+- [getDestinationFeeGasPriceMultiplier](#getdestinationfeegaspricemultiplier)
 - [getFeeBps](#getfeebps)
 - [getHopTokenAddress](#gethoptokenaddress)
 - [getL1AmbBridgeAddress](#getl1ambbridgeaddress)
@@ -206,6 +217,7 @@ Class reprensenting AMM contract
 - [removeLiquidity](#removeliquidity)
 - [removeLiquidityImbalance](#removeliquidityimbalance)
 - [removeLiquidityOneToken](#removeliquidityonetoken)
+- [sendTransaction](#sendtransaction)
 - [setChainProvider](#setchainprovider)
 - [setChainProviderUrls](#setchainproviderurls)
 - [setChainProviders](#setchainproviders)
@@ -221,10 +233,17 @@ Class reprensenting AMM contract
 
 • **new AMM**(`network`, `tokenSymbol`, `chain?`, `signer?`, `chainProviders?`)
 
-**`desc`** Instantiates AMM instance.
+**`Desc`**
+
+Instantiates AMM instance.
 Returns a new Hop AMM SDK instance.
 
-**`example`**
+**`Returns`**
+
+Hop AMM instance
+
+**`Example`**
+
 ```js
 import { AMM, Chain } from '@hop-protocol/sdk'
 
@@ -243,7 +262,7 @@ const amm = new AMM('mainnet', 'USDC', Chain.Gnosis)
 
 ##### Overrides
 
-Base.constructor
+[Base](#classesbasemd).[constructor](#constructor)
 
 ### Properties
 
@@ -261,7 +280,7 @@ ___
 
 ##### Inherited from
 
-Base.chainProviders
+[Base](#classesbasemd).[chainProviders](#chainproviders)
 
 ___
 
@@ -271,7 +290,7 @@ ___
 
 ##### Inherited from
 
-Base.destinationFeeGasPriceMultiplier
+[Base](#classesbasemd).[destinationFeeGasPriceMultiplier](#destinationfeegaspricemultiplier)
 
 ___
 
@@ -285,7 +304,7 @@ ___
 
 ##### Inherited from
 
-Base.fees
+[Base](#classesbasemd).[fees](#fees)
 
 ___
 
@@ -295,7 +314,7 @@ ___
 
 ##### Inherited from
 
-Base.gasPriceMultiplier
+[Base](#classesbasemd).[gasPriceMultiplier](#gaspricemultiplier)
 
 ___
 
@@ -321,7 +340,7 @@ ___
 
 ##### Inherited from
 
-Base.getContract
+[Base](#classesbasemd).[getContract](#getcontract)
 
 ___
 
@@ -333,7 +352,7 @@ Network name
 
 ##### Inherited from
 
-Base.network
+[Base](#classesbasemd).[network](#network)
 
 ___
 
@@ -345,7 +364,7 @@ Ethers signer or provider
 
 ##### Inherited from
 
-Base.signer
+[Base](#classesbasemd).[signer](#signer)
 
 ___
 
@@ -361,9 +380,9 @@ Token class instance
 
 • `get` **defaultDeadlineSeconds**(): `number`
 
-**`readonly`**
+**`Desc`**
 
-**`desc`** The default deadline to use in seconds.
+The default deadline to use in seconds.
 
 ##### Returns
 
@@ -403,7 +422,7 @@ Base.supportedNetworks
 
 #### <a id="_getbonderaddress" name="_getbonderaddress"></a> \_getBonderAddress
 
-▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -415,11 +434,11 @@ Base.supportedNetworks
 
 ##### Returns
 
-`string`
+`Promise`<`string`\>
 
 ##### Inherited from
 
-Base.\_getBonderAddress
+[Base](#classesbasemd).[_getBonderAddress](#_getbonderaddress)
 
 ___
 
@@ -427,9 +446,12 @@ ___
 
 ▸ **addLiquidity**(`amount0Desired`, `amount1Desired`, `minToMint?`, `deadline?`): `Promise`<`TransactionResponse`\>
 
-**`desc`** Sends transaction to add liquidity to AMM.
+**`Desc`**
 
-**`example`**
+Sends transaction to add liquidity to AMM.
+
+**`Example`**
+
 ```js
 import { AMM } from '@hop-protocol/sdk'
 
@@ -590,9 +612,12 @@ ___
 
 ▸ **connect**(`signer`): [`AMM`](#classesammmd)
 
-**`desc`** Returns hop AMM instance with signer connected. Used for adding or changing signer.
+**`Desc`**
 
-**`example`**
+Returns hop AMM instance with signer connected. Used for adding or changing signer.
+
+**`Example`**
+
 ```js
 import { AMM } from '@hop-protocol/sdk'
 
@@ -634,7 +659,21 @@ ___
 
 ##### Inherited from
 
-Base.estimateOptimismL1FeeFromData
+[Base](#classesbasemd).[estimateOptimismL1FeeFromData](#estimateoptimisml1feefromdata)
+
+___
+
+#### <a id="fetchconfigfroms3" name="fetchconfigfroms3"></a> fetchConfigFromS3
+
+▸ **fetchConfigFromS3**(): `Promise`<`any`\>
+
+##### Returns
+
+`Promise`<`any`\>
+
+##### Inherited from
+
+[Base](#classesbasemd).[fetchConfigFromS3](#fetchconfigfroms3)
 
 ___
 
@@ -665,7 +704,7 @@ ___
 
 ##### Inherited from
 
-Base.getArbChainAddress
+[Base](#classesbasemd).[getArbChainAddress](#getarbchainaddress)
 
 ___
 
@@ -673,9 +712,12 @@ ___
 
 ▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
 
-**`desc`** Calculates current gas price plus increased percentage amount.
+**`Desc`**
 
-**`example`**
+Calculates current gas price plus increased percentage amount.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -699,7 +741,7 @@ Bumped as price as BigNumber
 
 ##### Inherited from
 
-Base.getBumpedGasPrice
+[Base](#classesbasemd).[getBumpedGasPrice](#getbumpedgasprice)
 
 ___
 
@@ -707,7 +749,9 @@ ___
 
 ▸ **getCanonicalTokenAddress**(): `Promise`<`any`\>
 
-**`desc`** Returns the address of the L2 canonical token.
+**`Desc`**
+
+Returns the address of the L2 canonical token.
 
 ##### Returns
 
@@ -721,7 +765,9 @@ ___
 
 ▸ **getChainId**(`chain`): `number`
 
-**`desc`** Returns Chain ID for specified Chain model.
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
 
 ##### Parameters
 
@@ -737,7 +783,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainId
+[Base](#classesbasemd).[getChainId](#getchainid)
 
 ___
 
@@ -745,7 +791,9 @@ ___
 
 ▸ **getChainProvider**(`chain`): `Provider`
 
-**`desc`** Returns Ethers provider for specified Chain model.
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
 
 ##### Parameters
 
@@ -761,7 +809,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProvider
+[Base](#classesbasemd).[getChainProvider](#getchainprovider)
 
 ___
 
@@ -775,7 +823,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProviderUrls
+[Base](#classesbasemd).[getChainProviderUrls](#getchainproviderurls)
 
 ___
 
@@ -789,7 +837,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProviders
+[Base](#classesbasemd).[getChainProviders](#getchainproviders)
 
 ___
 
@@ -810,13 +858,27 @@ ___
 
 ##### Inherited from
 
-Base.getConfigAddresses
+[Base](#classesbasemd).[getConfigAddresses](#getconfigaddresses)
+
+___
+
+#### <a id="getdestinationfeegaspricemultiplier" name="getdestinationfeegaspricemultiplier"></a> getDestinationFeeGasPriceMultiplier
+
+▸ **getDestinationFeeGasPriceMultiplier**(): `number`
+
+##### Returns
+
+`number`
+
+##### Inherited from
+
+[Base](#classesbasemd).[getDestinationFeeGasPriceMultiplier](#getdestinationfeegaspricemultiplier)
 
 ___
 
 #### <a id="getfeebps" name="getfeebps"></a> getFeeBps
 
-▸ **getFeeBps**(`token`, `destinationChain`): `number`
+▸ **getFeeBps**(`token`, `destinationChain`): `Promise`<`number`\>
 
 ##### Parameters
 
@@ -827,11 +889,11 @@ ___
 
 ##### Returns
 
-`number`
+`Promise`<`number`\>
 
 ##### Inherited from
 
-Base.getFeeBps
+[Base](#classesbasemd).[getFeeBps](#getfeebps)
 
 ___
 
@@ -839,7 +901,9 @@ ___
 
 ▸ **getHopTokenAddress**(): `Promise`<`any`\>
 
-**`desc`** Returns the address of the L2 hop token.
+**`Desc`**
+
+Returns the address of the L2 hop token.
 
 ##### Returns
 
@@ -866,7 +930,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1AmbBridgeAddress
+[Base](#classesbasemd).[getL1AmbBridgeAddress](#getl1ambbridgeaddress)
 
 ___
 
@@ -887,7 +951,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1BridgeAddress
+[Base](#classesbasemd).[getL1BridgeAddress](#getl1bridgeaddress)
 
 ___
 
@@ -908,7 +972,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1CanonicalBridgeAddress
+[Base](#classesbasemd).[getL1CanonicalBridgeAddress](#getl1canonicalbridgeaddress)
 
 ___
 
@@ -929,7 +993,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1CanonicalTokenAddress
+[Base](#classesbasemd).[getL1CanonicalTokenAddress](#getl1canonicaltokenaddress)
 
 ___
 
@@ -950,7 +1014,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1PosErc20PredicateAddress
+[Base](#classesbasemd).[getL1PosErc20PredicateAddress](#getl1poserc20predicateaddress)
 
 ___
 
@@ -971,7 +1035,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1PosRootChainManagerAddress
+[Base](#classesbasemd).[getL1PosRootChainManagerAddress](#getl1posrootchainmanageraddress)
 
 ___
 
@@ -992,7 +1056,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2AmbBridgeAddress
+[Base](#classesbasemd).[getL2AmbBridgeAddress](#getl2ambbridgeaddress)
 
 ___
 
@@ -1013,7 +1077,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2AmmWrapperAddress
+[Base](#classesbasemd).[getL2AmmWrapperAddress](#getl2ammwrapperaddress)
 
 ___
 
@@ -1034,7 +1098,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2BridgeAddress
+[Base](#classesbasemd).[getL2BridgeAddress](#getl2bridgeaddress)
 
 ___
 
@@ -1055,7 +1119,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2CanonicalBridgeAddress
+[Base](#classesbasemd).[getL2CanonicalBridgeAddress](#getl2canonicalbridgeaddress)
 
 ___
 
@@ -1076,7 +1140,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2CanonicalTokenAddress
+[Base](#classesbasemd).[getL2CanonicalTokenAddress](#getl2canonicaltokenaddress)
 
 ___
 
@@ -1097,7 +1161,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2HopBridgeTokenAddress
+[Base](#classesbasemd).[getL2HopBridgeTokenAddress](#getl2hopbridgetokenaddress)
 
 ___
 
@@ -1118,7 +1182,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2SaddleLpTokenAddress
+[Base](#classesbasemd).[getL2SaddleLpTokenAddress](#getl2saddlelptokenaddress)
 
 ___
 
@@ -1139,7 +1203,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2SaddleSwapAddress
+[Base](#classesbasemd).[getL2SaddleSwapAddress](#getl2saddleswapaddress)
 
 ___
 
@@ -1207,7 +1271,7 @@ ___
 
 ##### Inherited from
 
-Base.getS3ConfigData
+[Base](#classesbasemd).[getS3ConfigData](#gets3configdata)
 
 ___
 
@@ -1215,7 +1279,9 @@ ___
 
 ▸ **getSaddleSwap**(): `Promise`<`Swap`\>
 
-**`desc`** Returns the Saddle swap contract instance for the specified chain.
+**`Desc`**
+
+Returns the Saddle swap contract instance for the specified chain.
 
 ##### Returns
 
@@ -1229,9 +1295,12 @@ ___
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
 
-**`desc`** Returns the connected signer address.
+**`Desc`**
 
-**`example`**
+Returns the connected signer address.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -1248,15 +1317,17 @@ Ethers signer address.
 
 ##### Inherited from
 
-Base.getSignerAddress
+[Base](#classesbasemd).[getSignerAddress](#getsigneraddress)
 
 ___
 
 #### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
-▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Signer` \| `Provider`\>
+▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
 
-**`desc`** Returns the connected signer if it's connected to the specified
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
 chain id, otherwise it returns a regular provider for the specified chain.
 
 ##### Parameters
@@ -1268,13 +1339,13 @@ chain id, otherwise it returns a regular provider for the specified chain.
 
 ##### Returns
 
-`Promise`<`Signer` \| `Provider`\>
+`Promise`<`Provider` \| `Signer`\>
 
 Ethers signer or provider
 
 ##### Inherited from
 
-Base.getSignerOrProvider
+[Base](#classesbasemd).[getSignerOrProvider](#getsignerorprovider)
 
 ___
 
@@ -1288,7 +1359,7 @@ ___
 
 ##### Inherited from
 
-Base.getSupportedAssets
+[Base](#classesbasemd).[getSupportedAssets](#getsupportedassets)
 
 ___
 
@@ -1308,7 +1379,7 @@ ___
 
 ##### Inherited from
 
-Base.getSupportedAssetsForChain
+[Base](#classesbasemd).[getSupportedAssetsForChain](#getsupportedassetsforchain)
 
 ___
 
@@ -1342,7 +1413,7 @@ ___
 
 ##### Inherited from
 
-Base.init
+[Base](#classesbasemd).[init](#init)
 
 ___
 
@@ -1378,7 +1449,7 @@ ___
 
 ##### Inherited from
 
-Base.isValidChain
+[Base](#classesbasemd).[isValidChain](#isvalidchain)
 
 ___
 
@@ -1398,7 +1469,7 @@ ___
 
 ##### Inherited from
 
-Base.isValidNetwork
+[Base](#classesbasemd).[isValidNetwork](#isvalidnetwork)
 
 ___
 
@@ -1444,9 +1515,12 @@ ___
 
 ▸ **removeLiquidity**(`liquidityTokenAmount`, `amount0Min?`, `amount1Min?`, `deadline?`): `Promise`<`TransactionResponse`\>
 
-**`desc`** Sends transaction to remove liquidity from AMM.
+**`Desc`**
 
-**`example`**
+Sends transaction to remove liquidity from AMM.
+
+**`Example`**
+
 ```js
 import { AMM } from '@hop-protocol/sdk'
 
@@ -1510,6 +1584,27 @@ ___
 
 ___
 
+#### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
+
+▸ **sendTransaction**(`transactionRequest`, `chain`): `Promise`<`TransactionResponse`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `transactionRequest` | `TransactionRequest` |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`Promise`<`TransactionResponse`\>
+
+##### Inherited from
+
+[Base](#classesbasemd).[sendTransaction](#sendtransaction)
+
+___
+
 #### <a id="setchainprovider" name="setchainprovider"></a> setChainProvider
 
 ▸ **setChainProvider**(`chain`, `provider`): `void`
@@ -1527,7 +1622,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProvider
+[Base](#classesbasemd).[setChainProvider](#setchainprovider)
 
 ___
 
@@ -1547,7 +1642,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProviderUrls
+[Base](#classesbasemd).[setChainProviderUrls](#setchainproviderurls)
 
 ___
 
@@ -1567,7 +1662,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProviders
+[Base](#classesbasemd).[setChainProviders](#setchainproviders)
 
 ___
 
@@ -1587,7 +1682,7 @@ ___
 
 ##### Inherited from
 
-Base.setConfigAddresses
+[Base](#classesbasemd).[setConfigAddresses](#setconfigaddresses)
 
 ___
 
@@ -1607,7 +1702,7 @@ ___
 
 ##### Inherited from
 
-Base.setGasPriceMultiplier
+[Base](#classesbasemd).[setGasPriceMultiplier](#setgaspricemultiplier)
 
 ___
 
@@ -1615,7 +1710,9 @@ ___
 
 ▸ **toChainModel**(`chain`): [`Chain`](#classeschainmd)
 
-**`desc`** Returns a Chain model instance with connected provider.
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
 
 ##### Parameters
 
@@ -1631,7 +1728,7 @@ ___
 
 ##### Inherited from
 
-Base.toChainModel
+[Base](#classesbasemd).[toChainModel](#tochainmodel)
 
 ___
 
@@ -1639,7 +1736,9 @@ ___
 
 ▸ **toTokenModel**(`token`): [`TokenModel`](#classestokenmodelmd)
 
-**`desc`** Returns a Token instance.
+**`Desc`**
+
+Returns a Token instance.
 
 ##### Parameters
 
@@ -1655,7 +1754,7 @@ ___
 
 ##### Inherited from
 
-Base.toTokenModel
+[Base](#classesbasemd).[toTokenModel](#totokenmodel)
 
 ___
 
@@ -1675,7 +1774,932 @@ ___
 
 ##### Inherited from
 
-Base.txOverrides
+[Base](#classesbasemd).[txOverrides](#txoverrides)
+
+
+<a name="classesbasemd"></a>
+
+## Class: Base
+
+Class with base methods.
+
+**`Namespace`**
+
+Base
+
+### Hierarchy
+
+- **`Base`**
+
+  ↳ [`Hop`](#classeshopmd)
+
+  ↳ [`HopBridge`](#classeshopbridgemd)
+
+  ↳ [`CanonicalBridge`](#classescanonicalbridgemd)
+
+  ↳ [`AMM`](#classesammmd)
+
+  ↳ [`Token`](#classestokenmd)
+
+### Table of contents
+
+#### Constructors
+
+- [constructor](#constructor)
+
+#### Properties
+
+- [chainProviders](#chainproviders)
+- [destinationFeeGasPriceMultiplier](#destinationfeegaspricemultiplier)
+- [fees](#fees)
+- [gasPriceMultiplier](#gaspricemultiplier)
+- [getContract](#getcontract)
+- [network](#network)
+- [signer](#signer)
+
+#### Accessors
+
+- [supportedChains](#supportedchains)
+- [supportedNetworks](#supportednetworks)
+
+#### Methods
+
+- [\_getBonderAddress](#_getbonderaddress)
+- [estimateOptimismL1FeeFromData](#estimateoptimisml1feefromdata)
+- [fetchConfigFromS3](#fetchconfigfroms3)
+- [getArbChainAddress](#getarbchainaddress)
+- [getBumpedGasPrice](#getbumpedgasprice)
+- [getChainId](#getchainid)
+- [getChainProvider](#getchainprovider)
+- [getChainProviderUrls](#getchainproviderurls)
+- [getChainProviders](#getchainproviders)
+- [getConfigAddresses](#getconfigaddresses)
+- [getDestinationFeeGasPriceMultiplier](#getdestinationfeegaspricemultiplier)
+- [getFeeBps](#getfeebps)
+- [getL1AmbBridgeAddress](#getl1ambbridgeaddress)
+- [getL1BridgeAddress](#getl1bridgeaddress)
+- [getL1CanonicalBridgeAddress](#getl1canonicalbridgeaddress)
+- [getL1CanonicalTokenAddress](#getl1canonicaltokenaddress)
+- [getL1PosErc20PredicateAddress](#getl1poserc20predicateaddress)
+- [getL1PosRootChainManagerAddress](#getl1posrootchainmanageraddress)
+- [getL2AmbBridgeAddress](#getl2ambbridgeaddress)
+- [getL2AmmWrapperAddress](#getl2ammwrapperaddress)
+- [getL2BridgeAddress](#getl2bridgeaddress)
+- [getL2CanonicalBridgeAddress](#getl2canonicalbridgeaddress)
+- [getL2CanonicalTokenAddress](#getl2canonicaltokenaddress)
+- [getL2HopBridgeTokenAddress](#getl2hopbridgetokenaddress)
+- [getL2SaddleLpTokenAddress](#getl2saddlelptokenaddress)
+- [getL2SaddleSwapAddress](#getl2saddleswapaddress)
+- [getS3ConfigData](#gets3configdata)
+- [getSignerAddress](#getsigneraddress)
+- [getSignerOrProvider](#getsignerorprovider)
+- [getSupportedAssets](#getsupportedassets)
+- [getSupportedAssetsForChain](#getsupportedassetsforchain)
+- [init](#init)
+- [isValidChain](#isvalidchain)
+- [isValidNetwork](#isvalidnetwork)
+- [sendTransaction](#sendtransaction)
+- [setChainProvider](#setchainprovider)
+- [setChainProviderUrls](#setchainproviderurls)
+- [setChainProviders](#setchainproviders)
+- [setConfigAddresses](#setconfigaddresses)
+- [setGasPriceMultiplier](#setgaspricemultiplier)
+- [toChainModel](#tochainmodel)
+- [toTokenModel](#totokenmodel)
+- [txOverrides](#txoverrides)
+
+### Constructors
+
+#### <a id="constructor" name="constructor"></a> constructor
+
+• **new Base**(`network`, `signer`, `chainProviders?`)
+
+**`Desc`**
+
+Instantiates Base class.
+Returns a new Base class instance.
+
+##### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `network` | `string` | L1 network name (e.g. 'mainnet', 'kovan', 'goerli') |
+| `signer` | [`TProvider`](#tprovider) | - |
+| `chainProviders?` | `ChainProviders` | - |
+
+### Properties
+
+#### <a id="chainproviders" name="chainproviders"></a> chainProviders
+
+• **chainProviders**: `ChainProviders` = `{}`
+
+___
+
+#### <a id="destinationfeegaspricemultiplier" name="destinationfeegaspricemultiplier"></a> destinationFeeGasPriceMultiplier
+
+• **destinationFeeGasPriceMultiplier**: `number` = `1`
+
+___
+
+#### <a id="fees" name="fees"></a> fees
+
+• **fees**: `Object`
+
+##### Index signature
+
+▪ [token: `string`]: `Record`<`string`, `number`\>
+
+___
+
+#### <a id="gaspricemultiplier" name="gaspricemultiplier"></a> gasPriceMultiplier
+
+• **gasPriceMultiplier**: `number` = `0`
+
+___
+
+#### <a id="getcontract" name="getcontract"></a> getContract
+
+• **getContract**: (`factory`: `Factory`, `address`: `string`, `provider`: [`TProvider`](#tprovider)) => `Promise`<`any`\> = `getContract`
+
+##### Type declaration
+
+▸ (`factory`, `address`, `provider`): `Promise`<`any`\>
+
+###### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `factory` | `Factory` |
+| `address` | `string` |
+| `provider` | [`TProvider`](#tprovider) |
+
+###### Returns
+
+`Promise`<`any`\>
+
+___
+
+#### <a id="network" name="network"></a> network
+
+• **network**: `string`
+
+Network name
+
+___
+
+#### <a id="signer" name="signer"></a> signer
+
+• **signer**: [`TProvider`](#tprovider)
+
+Ethers signer or provider
+
+### Accessors
+
+#### <a id="supportedchains" name="supportedchains"></a> supportedChains
+
+• `get` **supportedChains**(): `string`[]
+
+##### Returns
+
+`string`[]
+
+___
+
+#### <a id="supportednetworks" name="supportednetworks"></a> supportedNetworks
+
+• `get` **supportedNetworks**(): `string`[]
+
+##### Returns
+
+`string`[]
+
+### Methods
+
+#### <a id="_getbonderaddress" name="_getbonderaddress"></a> \_getBonderAddress
+
+▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `Promise`<`string`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `sourceChain` | [`TChain`](#tchain) |
+| `destinationChain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`Promise`<`string`\>
+
+___
+
+#### <a id="estimateoptimisml1feefromdata" name="estimateoptimisml1feefromdata"></a> estimateOptimismL1FeeFromData
+
+▸ **estimateOptimismL1FeeFromData**(`gasLimit`, `data?`, `to?`): `Promise`<`any`\>
+
+##### Parameters
+
+| Name | Type | Default value |
+| :------ | :------ | :------ |
+| `gasLimit` | `BigNumberish` | `undefined` |
+| `data` | `string` | `'0x'` |
+| `to` | `string` | `constants.AddressZero` |
+
+##### Returns
+
+`Promise`<`any`\>
+
+___
+
+#### <a id="fetchconfigfroms3" name="fetchconfigfroms3"></a> fetchConfigFromS3
+
+▸ **fetchConfigFromS3**(): `Promise`<`any`\>
+
+##### Returns
+
+`Promise`<`any`\>
+
+___
+
+#### <a id="getarbchainaddress" name="getarbchainaddress"></a> getArbChainAddress
+
+▸ **getArbChainAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getbumpedgasprice" name="getbumpedgasprice"></a> getBumpedGasPrice
+
+▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
+
+**`Desc`**
+
+Calculates current gas price plus increased percentage amount.
+
+**`Example`**
+
+```js
+import { Hop } from '@hop-protocol/sdk'
+
+const hop = new Hop()
+const bumpedGasPrice = await hop.getBumpedGasPrice(signer, 1.20)
+console.log(bumpedGasPrice.toNumber())
+```
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `signer` | [`TProvider`](#tprovider) |
+| `percent` | `number` |
+
+##### Returns
+
+`Promise`<`BigNumber`\>
+
+Bumped as price as BigNumber
+
+___
+
+#### <a id="getchainid" name="getchainid"></a> getChainId
+
+▸ **getChainId**(`chain`): `number`
+
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chain` | [`Chain`](#classeschainmd) |
+
+##### Returns
+
+`number`
+
+- Chain ID.
+
+___
+
+#### <a id="getchainprovider" name="getchainprovider"></a> getChainProvider
+
+▸ **getChainProvider**(`chain`): `Provider`
+
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chain` | `string` \| [`Chain`](#classeschainmd) |
+
+##### Returns
+
+`Provider`
+
+- Ethers provider.
+
+___
+
+#### <a id="getchainproviderurls" name="getchainproviderurls"></a> getChainProviderUrls
+
+▸ **getChainProviderUrls**(): `Record`<`string`, `string`\>
+
+##### Returns
+
+`Record`<`string`, `string`\>
+
+___
+
+#### <a id="getchainproviders" name="getchainproviders"></a> getChainProviders
+
+▸ **getChainProviders**(): `Record`<`string`, `Provider`\>
+
+##### Returns
+
+`Record`<`string`, `Provider`\>
+
+___
+
+#### <a id="getconfigaddresses" name="getconfigaddresses"></a> getConfigAddresses
+
+▸ **getConfigAddresses**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getdestinationfeegaspricemultiplier" name="getdestinationfeegaspricemultiplier"></a> getDestinationFeeGasPriceMultiplier
+
+▸ **getDestinationFeeGasPriceMultiplier**(): `number`
+
+##### Returns
+
+`number`
+
+___
+
+#### <a id="getfeebps" name="getfeebps"></a> getFeeBps
+
+▸ **getFeeBps**(`token`, `destinationChain`): `Promise`<`number`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `destinationChain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`Promise`<`number`\>
+
+___
+
+#### <a id="getl1ambbridgeaddress" name="getl1ambbridgeaddress"></a> getL1AmbBridgeAddress
+
+▸ **getL1AmbBridgeAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl1bridgeaddress" name="getl1bridgeaddress"></a> getL1BridgeAddress
+
+▸ **getL1BridgeAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl1canonicalbridgeaddress" name="getl1canonicalbridgeaddress"></a> getL1CanonicalBridgeAddress
+
+▸ **getL1CanonicalBridgeAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl1canonicaltokenaddress" name="getl1canonicaltokenaddress"></a> getL1CanonicalTokenAddress
+
+▸ **getL1CanonicalTokenAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl1poserc20predicateaddress" name="getl1poserc20predicateaddress"></a> getL1PosErc20PredicateAddress
+
+▸ **getL1PosErc20PredicateAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl1posrootchainmanageraddress" name="getl1posrootchainmanageraddress"></a> getL1PosRootChainManagerAddress
+
+▸ **getL1PosRootChainManagerAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl2ambbridgeaddress" name="getl2ambbridgeaddress"></a> getL2AmbBridgeAddress
+
+▸ **getL2AmbBridgeAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl2ammwrapperaddress" name="getl2ammwrapperaddress"></a> getL2AmmWrapperAddress
+
+▸ **getL2AmmWrapperAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl2bridgeaddress" name="getl2bridgeaddress"></a> getL2BridgeAddress
+
+▸ **getL2BridgeAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl2canonicalbridgeaddress" name="getl2canonicalbridgeaddress"></a> getL2CanonicalBridgeAddress
+
+▸ **getL2CanonicalBridgeAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl2canonicaltokenaddress" name="getl2canonicaltokenaddress"></a> getL2CanonicalTokenAddress
+
+▸ **getL2CanonicalTokenAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl2hopbridgetokenaddress" name="getl2hopbridgetokenaddress"></a> getL2HopBridgeTokenAddress
+
+▸ **getL2HopBridgeTokenAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl2saddlelptokenaddress" name="getl2saddlelptokenaddress"></a> getL2SaddleLpTokenAddress
+
+▸ **getL2SaddleLpTokenAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getl2saddleswapaddress" name="getl2saddleswapaddress"></a> getL2SaddleSwapAddress
+
+▸ **getL2SaddleSwapAddress**(`token`, `chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="gets3configdata" name="gets3configdata"></a> getS3ConfigData
+
+▸ **getS3ConfigData**(): `Promise`<`any`\>
+
+##### Returns
+
+`Promise`<`any`\>
+
+___
+
+#### <a id="getsigneraddress" name="getsigneraddress"></a> getSignerAddress
+
+▸ **getSignerAddress**(): `Promise`<`string`\>
+
+**`Desc`**
+
+Returns the connected signer address.
+
+**`Example`**
+
+```js
+import { Hop } from '@hop-protocol/sdk'
+
+const hop = new Hop()
+const address = await hop.getSignerAddress()
+console.log(address)
+```
+
+##### Returns
+
+`Promise`<`string`\>
+
+Ethers signer address.
+
+___
+
+#### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
+
+▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
+
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
+chain id, otherwise it returns a regular provider for the specified chain.
+
+##### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `chain` | [`TChain`](#tchain) | Chain name or model |
+| `signer` | [`TProvider`](#tprovider) | Ethers signer or provider |
+
+##### Returns
+
+`Promise`<`Provider` \| `Signer`\>
+
+Ethers signer or provider
+
+___
+
+#### <a id="getsupportedassets" name="getsupportedassets"></a> getSupportedAssets
+
+▸ **getSupportedAssets**(): `any`
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="getsupportedassetsforchain" name="getsupportedassetsforchain"></a> getSupportedAssetsForChain
+
+▸ **getSupportedAssetsForChain**(`chain`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`any`
+
+___
+
+#### <a id="init" name="init"></a> init
+
+▸ **init**(): `Promise`<`void`\>
+
+##### Returns
+
+`Promise`<`void`\>
+
+___
+
+#### <a id="isvalidchain" name="isvalidchain"></a> isValidChain
+
+▸ **isValidChain**(`chain`): `boolean`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chain` | `string` |
+
+##### Returns
+
+`boolean`
+
+___
+
+#### <a id="isvalidnetwork" name="isvalidnetwork"></a> isValidNetwork
+
+▸ **isValidNetwork**(`network`): `boolean`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `network` | `string` |
+
+##### Returns
+
+`boolean`
+
+___
+
+#### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
+
+▸ **sendTransaction**(`transactionRequest`, `chain`): `Promise`<`TransactionResponse`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `transactionRequest` | `TransactionRequest` |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`Promise`<`TransactionResponse`\>
+
+___
+
+#### <a id="setchainprovider" name="setchainprovider"></a> setChainProvider
+
+▸ **setChainProvider**(`chain`, `provider`): `void`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chain` | [`TChain`](#tchain) |
+| `provider` | `Provider` |
+
+##### Returns
+
+`void`
+
+___
+
+#### <a id="setchainproviderurls" name="setchainproviderurls"></a> setChainProviderUrls
+
+▸ **setChainProviderUrls**(`chainProviders`): `void`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainProviders` | `Record`<`string`, `string`\> |
+
+##### Returns
+
+`void`
+
+___
+
+#### <a id="setchainproviders" name="setchainproviders"></a> setChainProviders
+
+▸ **setChainProviders**(`chainProviders`): `void`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chainProviders` | `ChainProviders` |
+
+##### Returns
+
+`void`
+
+___
+
+#### <a id="setconfigaddresses" name="setconfigaddresses"></a> setConfigAddresses
+
+▸ **setConfigAddresses**(`addresses`): `void`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `addresses` | `Addresses` |
+
+##### Returns
+
+`void`
+
+___
+
+#### <a id="setgaspricemultiplier" name="setgaspricemultiplier"></a> setGasPriceMultiplier
+
+▸ **setGasPriceMultiplier**(`gasPriceMultiplier`): `number`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `gasPriceMultiplier` | `number` |
+
+##### Returns
+
+`number`
+
+___
+
+#### <a id="tochainmodel" name="tochainmodel"></a> toChainModel
+
+▸ **toChainModel**(`chain`): [`Chain`](#classeschainmd)
+
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+[`Chain`](#classeschainmd)
+
+- Chain model with connected provider.
+
+___
+
+#### <a id="totokenmodel" name="totokenmodel"></a> toTokenModel
+
+▸ **toTokenModel**(`token`): [`TokenModel`](#classestokenmodelmd)
+
+**`Desc`**
+
+Returns a Token instance.
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](#ttoken) |
+
+##### Returns
+
+[`TokenModel`](#classestokenmodelmd)
+
+- Token model.
+
+___
+
+#### <a id="txoverrides" name="txoverrides"></a> txOverrides
+
+▸ **txOverrides**(`chain`): `Promise`<`any`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chain` | [`Chain`](#classeschainmd) |
+
+##### Returns
+
+`Promise`<`any`\>
 
 
 <a name="classescanonicalbridgemd"></a>
@@ -1684,11 +2708,13 @@ Base.txOverrides
 
 Class reprensenting Canonical Token Bridge.
 
-**`namespace`** CanonicalBridge
+**`Namespace`**
+
+CanonicalBridge
 
 ### Hierarchy
 
-- `Base`
+- [`Base`](#classesbasemd)
 
   ↳ **`CanonicalBridge`**
 
@@ -1725,6 +2751,7 @@ Class reprensenting Canonical Token Bridge.
 - [deposit](#deposit)
 - [estimateOptimismL1FeeFromData](#estimateoptimisml1feefromdata)
 - [exit](#exit)
+- [fetchConfigFromS3](#fetchconfigfroms3)
 - [getAmbBridge](#getambbridge)
 - [getArbChainAddress](#getarbchainaddress)
 - [getBumpedGasPrice](#getbumpedgasprice)
@@ -1735,6 +2762,7 @@ Class reprensenting Canonical Token Bridge.
 - [getChainProviders](#getchainproviders)
 - [getConfigAddresses](#getconfigaddresses)
 - [getDepositApprovalAddress](#getdepositapprovaladdress)
+- [getDestinationFeeGasPriceMultiplier](#getdestinationfeegaspricemultiplier)
 - [getFeeBps](#getfeebps)
 - [getL1AmbBridgeAddress](#getl1ambbridgeaddress)
 - [getL1BridgeAddress](#getl1bridgeaddress)
@@ -1763,6 +2791,7 @@ Class reprensenting Canonical Token Bridge.
 - [init](#init)
 - [isValidChain](#isvalidchain)
 - [isValidNetwork](#isvalidnetwork)
+- [sendTransaction](#sendtransaction)
 - [setChainProvider](#setchainprovider)
 - [setChainProviderUrls](#setchainproviderurls)
 - [setChainProviders](#setchainproviders)
@@ -1781,10 +2810,13 @@ Class reprensenting Canonical Token Bridge.
 
 • **new CanonicalBridge**(`network`, `signer`, `token`, `chain`, `chainProviders?`)
 
-**`desc`** Instantiates Canonical Token Bridge.
+**`Desc`**
+
+Instantiates Canonical Token Bridge.
 Returns a new Canonical Token Bridge instance.
 
-**`example`**
+**`Example`**
+
 ```js
 import { CanonicalHop, Chain } from '@hop-protocol/sdk'
 import { Wallet } from 'ethers'
@@ -1805,7 +2837,7 @@ const bridge = new CanonicalBridge('kovan', signer, 'USDC', Chain.Optimism)
 
 ##### Overrides
 
-Base.constructor
+[Base](#classesbasemd).[constructor](#constructor)
 
 ### Properties
 
@@ -1823,7 +2855,7 @@ ___
 
 ##### Inherited from
 
-Base.chainProviders
+[Base](#classesbasemd).[chainProviders](#chainproviders)
 
 ___
 
@@ -1833,7 +2865,7 @@ ___
 
 ##### Inherited from
 
-Base.destinationFeeGasPriceMultiplier
+[Base](#classesbasemd).[destinationFeeGasPriceMultiplier](#destinationfeegaspricemultiplier)
 
 ___
 
@@ -1847,7 +2879,7 @@ ___
 
 ##### Inherited from
 
-Base.fees
+[Base](#classesbasemd).[fees](#fees)
 
 ___
 
@@ -1857,7 +2889,7 @@ ___
 
 ##### Inherited from
 
-Base.gasPriceMultiplier
+[Base](#classesbasemd).[gasPriceMultiplier](#gaspricemultiplier)
 
 ___
 
@@ -1883,7 +2915,7 @@ ___
 
 ##### Inherited from
 
-Base.getContract
+[Base](#classesbasemd).[getContract](#getcontract)
 
 ___
 
@@ -1895,7 +2927,7 @@ Network name
 
 ##### Inherited from
 
-Base.network
+[Base](#classesbasemd).[network](#network)
 
 ___
 
@@ -1907,7 +2939,7 @@ Ethers signer or provider
 
 ##### Inherited from
 
-Base.signer
+[Base](#classesbasemd).[signer](#signer)
 
 ___
 
@@ -1923,7 +2955,9 @@ Token class instance
 
 • `get` **address**(): `any`
 
-**`desc`** Return address of L1 canonical token bridge.
+**`Desc`**
+
+Return address of L1 canonical token bridge.
 
 ##### Returns
 
@@ -1963,7 +2997,7 @@ Base.supportedNetworks
 
 #### <a id="_getbonderaddress" name="_getbonderaddress"></a> \_getBonderAddress
 
-▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -1975,11 +3009,11 @@ Base.supportedNetworks
 
 ##### Returns
 
-`string`
+`Promise`<`string`\>
 
 ##### Inherited from
 
-Base.\_getBonderAddress
+[Base](#classesbasemd).[_getBonderAddress](#_getbonderaddress)
 
 ___
 
@@ -1987,7 +3021,9 @@ ___
 
 ▸ **approveDeposit**(`amount`, `chain?`): `Promise`<`TransactionResponse`\>
 
-**`desc`** Sends transaction to approve tokens for canonical token bridge deposit.
+**`Desc`**
+
+Sends transaction to approve tokens for canonical token bridge deposit.
 Will only send approval transaction if necessary.
 
 ##### Parameters
@@ -2009,7 +3045,9 @@ ___
 
 ▸ **approveWithdraw**(`amount`): `Promise`<`TransactionResponse`\>
 
-**`desc`** Sends transaction to approve tokens for canonical token bridge withdrawal.
+**`Desc`**
+
+Sends transaction to approve tokens for canonical token bridge withdrawal.
 Will only send approval transaction if necessary.
 
 ##### Parameters
@@ -2030,7 +3068,9 @@ ___
 
 ▸ **connect**(`signer`): [`CanonicalBridge`](#classescanonicalbridgemd)
 
-**`desc`** Returns canonical bridge instance with signer connected. Used for adding or changing signer.
+**`Desc`**
+
+Returns canonical bridge instance with signer connected. Used for adding or changing signer.
 
 ##### Parameters
 
@@ -2050,7 +3090,9 @@ ___
 
 ▸ **deposit**(`amount`, `chain?`): `Promise`<`any`\>
 
-**`desc`** Sends transaction to canonical token bridge to deposit tokens into L2.
+**`Desc`**
+
+Sends transaction to canonical token bridge to deposit tokens into L2.
 
 ##### Parameters
 
@@ -2085,7 +3127,7 @@ ___
 
 ##### Inherited from
 
-Base.estimateOptimismL1FeeFromData
+[Base](#classesbasemd).[estimateOptimismL1FeeFromData](#estimateoptimisml1feefromdata)
 
 ___
 
@@ -2093,7 +3135,9 @@ ___
 
 ▸ **exit**(`txHash`, `chain`): `Promise`<`TransactionResponse`\>
 
-**`desc`** Sends transaction to finalize withdrawal.
+**`Desc`**
+
+Sends transaction to finalize withdrawal.
 This call is necessary on Polygon to finalize L2 withdrawal into L1 on
 certain chains. Will only send transaction if necessary.
 
@@ -2109,6 +3153,20 @@ certain chains. Will only send transaction if necessary.
 `Promise`<`TransactionResponse`\>
 
 Ethers transaction object.
+
+___
+
+#### <a id="fetchconfigfroms3" name="fetchconfigfroms3"></a> fetchConfigFromS3
+
+▸ **fetchConfigFromS3**(): `Promise`<`any`\>
+
+##### Returns
+
+`Promise`<`any`\>
+
+##### Inherited from
+
+[Base](#classesbasemd).[fetchConfigFromS3](#fetchconfigfroms3)
 
 ___
 
@@ -2145,7 +3203,7 @@ ___
 
 ##### Inherited from
 
-Base.getArbChainAddress
+[Base](#classesbasemd).[getArbChainAddress](#getarbchainaddress)
 
 ___
 
@@ -2153,9 +3211,12 @@ ___
 
 ▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
 
-**`desc`** Calculates current gas price plus increased percentage amount.
+**`Desc`**
 
-**`example`**
+Calculates current gas price plus increased percentage amount.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -2179,7 +3240,7 @@ Bumped as price as BigNumber
 
 ##### Inherited from
 
-Base.getBumpedGasPrice
+[Base](#classesbasemd).[getBumpedGasPrice](#getbumpedgasprice)
 
 ___
 
@@ -2203,7 +3264,9 @@ ___
 
 ▸ **getChainId**(`chain`): `number`
 
-**`desc`** Returns Chain ID for specified Chain model.
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
 
 ##### Parameters
 
@@ -2219,7 +3282,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainId
+[Base](#classesbasemd).[getChainId](#getchainid)
 
 ___
 
@@ -2227,7 +3290,9 @@ ___
 
 ▸ **getChainProvider**(`chain`): `Provider`
 
-**`desc`** Returns Ethers provider for specified Chain model.
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
 
 ##### Parameters
 
@@ -2243,7 +3308,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProvider
+[Base](#classesbasemd).[getChainProvider](#getchainprovider)
 
 ___
 
@@ -2257,7 +3322,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProviderUrls
+[Base](#classesbasemd).[getChainProviderUrls](#getchainproviderurls)
 
 ___
 
@@ -2271,7 +3336,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProviders
+[Base](#classesbasemd).[getChainProviders](#getchainproviders)
 
 ___
 
@@ -2292,7 +3357,7 @@ ___
 
 ##### Inherited from
 
-Base.getConfigAddresses
+[Base](#classesbasemd).[getConfigAddresses](#getconfigaddresses)
 
 ___
 
@@ -2312,9 +3377,23 @@ ___
 
 ___
 
+#### <a id="getdestinationfeegaspricemultiplier" name="getdestinationfeegaspricemultiplier"></a> getDestinationFeeGasPriceMultiplier
+
+▸ **getDestinationFeeGasPriceMultiplier**(): `number`
+
+##### Returns
+
+`number`
+
+##### Inherited from
+
+[Base](#classesbasemd).[getDestinationFeeGasPriceMultiplier](#getdestinationfeegaspricemultiplier)
+
+___
+
 #### <a id="getfeebps" name="getfeebps"></a> getFeeBps
 
-▸ **getFeeBps**(`token`, `destinationChain`): `number`
+▸ **getFeeBps**(`token`, `destinationChain`): `Promise`<`number`\>
 
 ##### Parameters
 
@@ -2325,11 +3404,11 @@ ___
 
 ##### Returns
 
-`number`
+`Promise`<`number`\>
 
 ##### Inherited from
 
-Base.getFeeBps
+[Base](#classesbasemd).[getFeeBps](#getfeebps)
 
 ___
 
@@ -2350,7 +3429,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1AmbBridgeAddress
+[Base](#classesbasemd).[getL1AmbBridgeAddress](#getl1ambbridgeaddress)
 
 ___
 
@@ -2371,7 +3450,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1BridgeAddress
+[Base](#classesbasemd).[getL1BridgeAddress](#getl1bridgeaddress)
 
 ___
 
@@ -2402,7 +3481,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1CanonicalBridgeAddress
+[Base](#classesbasemd).[getL1CanonicalBridgeAddress](#getl1canonicalbridgeaddress)
 
 ___
 
@@ -2423,7 +3502,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1CanonicalTokenAddress
+[Base](#classesbasemd).[getL1CanonicalTokenAddress](#getl1canonicaltokenaddress)
 
 ___
 
@@ -2444,7 +3523,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1PosErc20PredicateAddress
+[Base](#classesbasemd).[getL1PosErc20PredicateAddress](#getl1poserc20predicateaddress)
 
 ___
 
@@ -2465,7 +3544,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1PosRootChainManagerAddress
+[Base](#classesbasemd).[getL1PosRootChainManagerAddress](#getl1posrootchainmanageraddress)
 
 ___
 
@@ -2496,7 +3575,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2AmbBridgeAddress
+[Base](#classesbasemd).[getL2AmbBridgeAddress](#getl2ambbridgeaddress)
 
 ___
 
@@ -2517,7 +3596,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2AmmWrapperAddress
+[Base](#classesbasemd).[getL2AmmWrapperAddress](#getl2ammwrapperaddress)
 
 ___
 
@@ -2538,7 +3617,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2BridgeAddress
+[Base](#classesbasemd).[getL2BridgeAddress](#getl2bridgeaddress)
 
 ___
 
@@ -2569,7 +3648,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2CanonicalBridgeAddress
+[Base](#classesbasemd).[getL2CanonicalBridgeAddress](#getl2canonicalbridgeaddress)
 
 ___
 
@@ -2590,7 +3669,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2CanonicalTokenAddress
+[Base](#classesbasemd).[getL2CanonicalTokenAddress](#getl2canonicaltokenaddress)
 
 ___
 
@@ -2611,7 +3690,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2HopBridgeTokenAddress
+[Base](#classesbasemd).[getL2HopBridgeTokenAddress](#getl2hopbridgetokenaddress)
 
 ___
 
@@ -2648,7 +3727,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2SaddleLpTokenAddress
+[Base](#classesbasemd).[getL2SaddleLpTokenAddress](#getl2saddlelptokenaddress)
 
 ___
 
@@ -2669,7 +3748,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2SaddleSwapAddress
+[Base](#classesbasemd).[getL2SaddleSwapAddress](#getl2saddleswapaddress)
 
 ___
 
@@ -2683,7 +3762,7 @@ ___
 
 ##### Inherited from
 
-Base.getS3ConfigData
+[Base](#classesbasemd).[getS3ConfigData](#gets3configdata)
 
 ___
 
@@ -2691,9 +3770,12 @@ ___
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
 
-**`desc`** Returns the connected signer address.
+**`Desc`**
 
-**`example`**
+Returns the connected signer address.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -2710,15 +3792,17 @@ Ethers signer address.
 
 ##### Inherited from
 
-Base.getSignerAddress
+[Base](#classesbasemd).[getSignerAddress](#getsigneraddress)
 
 ___
 
 #### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
-▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Signer` \| `Provider`\>
+▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
 
-**`desc`** Returns the connected signer if it's connected to the specified
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
 chain id, otherwise it returns a regular provider for the specified chain.
 
 ##### Parameters
@@ -2730,13 +3814,13 @@ chain id, otherwise it returns a regular provider for the specified chain.
 
 ##### Returns
 
-`Promise`<`Signer` \| `Provider`\>
+`Promise`<`Provider` \| `Signer`\>
 
 Ethers signer or provider
 
 ##### Inherited from
 
-Base.getSignerOrProvider
+[Base](#classesbasemd).[getSignerOrProvider](#getsignerorprovider)
 
 ___
 
@@ -2750,7 +3834,7 @@ ___
 
 ##### Inherited from
 
-Base.getSupportedAssets
+[Base](#classesbasemd).[getSupportedAssets](#getsupportedassets)
 
 ___
 
@@ -2770,7 +3854,7 @@ ___
 
 ##### Inherited from
 
-Base.getSupportedAssetsForChain
+[Base](#classesbasemd).[getSupportedAssetsForChain](#getsupportedassetsforchain)
 
 ___
 
@@ -2800,7 +3884,7 @@ ___
 
 ##### Inherited from
 
-Base.init
+[Base](#classesbasemd).[init](#init)
 
 ___
 
@@ -2820,7 +3904,7 @@ ___
 
 ##### Inherited from
 
-Base.isValidChain
+[Base](#classesbasemd).[isValidChain](#isvalidchain)
 
 ___
 
@@ -2840,7 +3924,28 @@ ___
 
 ##### Inherited from
 
-Base.isValidNetwork
+[Base](#classesbasemd).[isValidNetwork](#isvalidnetwork)
+
+___
+
+#### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
+
+▸ **sendTransaction**(`transactionRequest`, `chain`): `Promise`<`TransactionResponse`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `transactionRequest` | `TransactionRequest` |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`Promise`<`TransactionResponse`\>
+
+##### Inherited from
+
+[Base](#classesbasemd).[sendTransaction](#sendtransaction)
 
 ___
 
@@ -2861,7 +3966,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProvider
+[Base](#classesbasemd).[setChainProvider](#setchainprovider)
 
 ___
 
@@ -2881,7 +3986,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProviderUrls
+[Base](#classesbasemd).[setChainProviderUrls](#setchainproviderurls)
 
 ___
 
@@ -2901,7 +4006,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProviders
+[Base](#classesbasemd).[setChainProviders](#setchainproviders)
 
 ___
 
@@ -2921,7 +4026,7 @@ ___
 
 ##### Inherited from
 
-Base.setConfigAddresses
+[Base](#classesbasemd).[setConfigAddresses](#setconfigaddresses)
 
 ___
 
@@ -2941,7 +4046,7 @@ ___
 
 ##### Inherited from
 
-Base.setGasPriceMultiplier
+[Base](#classesbasemd).[setGasPriceMultiplier](#setgaspricemultiplier)
 
 ___
 
@@ -2967,7 +4072,9 @@ ___
 
 ▸ **toChainModel**(`chain`): [`Chain`](#classeschainmd)
 
-**`desc`** Returns a Chain model instance with connected provider.
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
 
 ##### Parameters
 
@@ -2983,7 +4090,7 @@ ___
 
 ##### Inherited from
 
-Base.toChainModel
+[Base](#classesbasemd).[toChainModel](#tochainmodel)
 
 ___
 
@@ -3009,7 +4116,9 @@ ___
 
 ▸ **toTokenModel**(`token`): [`TokenModel`](#classestokenmodelmd)
 
-**`desc`** Returns a Token instance.
+**`Desc`**
+
+Returns a Token instance.
 
 ##### Parameters
 
@@ -3025,7 +4134,7 @@ ___
 
 ##### Inherited from
 
-Base.toTokenModel
+[Base](#classesbasemd).[toTokenModel](#totokenmodel)
 
 ___
 
@@ -3045,7 +4154,7 @@ ___
 
 ##### Inherited from
 
-Base.txOverrides
+[Base](#classesbasemd).[txOverrides](#txoverrides)
 
 ___
 
@@ -3053,7 +4162,9 @@ ___
 
 ▸ **withdraw**(`amount`, `chain?`): `Promise`<`any`\>
 
-**`desc`** Sends transaction to L2 canonical token bridge to withdraw tokens into L1.
+**`Desc`**
+
+Sends transaction to L2 canonical token bridge to withdraw tokens into L1.
 
 ##### Parameters
 
@@ -3113,7 +4224,7 @@ Ethers transaction object.
 | Name | Type |
 | :------ | :------ |
 | `name` | `string` |
-| `chainId?` | `string` \| `number` |
+| `chainId?` | `number` |
 | `provider?` | `Provider` |
 
 ### Properties
@@ -3231,11 +4342,13 @@ ___
 
 Class reprensenting Hop
 
-**`namespace`** Hop
+**`Namespace`**
+
+Hop
 
 ### Hierarchy
 
-- `Base`
+- [`Base`](#classesbasemd)
 
   ↳ **`Hop`**
 
@@ -3256,10 +4369,11 @@ Class reprensenting Hop
 - [gasPriceMultiplier](#gaspricemultiplier)
 - [getContract](#getcontract)
 - [network](#network)
+- [priceFeedApiKeys](#pricefeedapikeys)
 - [signer](#signer)
-- [Chain](#chain)
-- [Event](#event)
-- [Token](#token)
+- [Chain](#chain-1)
+- [Event](#event-1)
+- [Token](#token-1)
 
 #### Accessors
 
@@ -3274,6 +4388,7 @@ Class reprensenting Hop
 - [canonicalBridge](#canonicalbridge)
 - [connect](#connect)
 - [estimateOptimismL1FeeFromData](#estimateoptimisml1feefromdata)
+- [fetchConfigFromS3](#fetchconfigfroms3)
 - [getArbChainAddress](#getarbchainaddress)
 - [getBumpedGasPrice](#getbumpedgasprice)
 - [getChainId](#getchainid)
@@ -3281,6 +4396,7 @@ Class reprensenting Hop
 - [getChainProviderUrls](#getchainproviderurls)
 - [getChainProviders](#getchainproviders)
 - [getConfigAddresses](#getconfigaddresses)
+- [getDestinationFeeGasPriceMultiplier](#getdestinationfeegaspricemultiplier)
 - [getFeeBps](#getfeebps)
 - [getL1AmbBridgeAddress](#getl1ambbridgeaddress)
 - [getL1BridgeAddress](#getl1bridgeaddress)
@@ -3304,11 +4420,13 @@ Class reprensenting Hop
 - [init](#init)
 - [isValidChain](#isvalidchain)
 - [isValidNetwork](#isvalidnetwork)
+- [sendTransaction](#sendtransaction)
 - [setChainProvider](#setchainprovider)
 - [setChainProviderUrls](#setchainproviderurls)
 - [setChainProviders](#setchainproviders)
 - [setConfigAddresses](#setconfigaddresses)
 - [setGasPriceMultiplier](#setgaspricemultiplier)
+- [setPriceFeedApiKeys](#setpricefeedapikeys)
 - [toChainModel](#tochainmodel)
 - [toTokenModel](#totokenmodel)
 - [txOverrides](#txoverrides)
@@ -3322,17 +4440,21 @@ Class reprensenting Hop
 
 • **new Hop**(`network`, `signer?`, `chainProviders?`)
 
-**`desc`** Instantiates Hop SDK.
+**`Desc`**
+
+Instantiates Hop SDK.
 Returns a new Hop SDK instance.
 
-**`example`**
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
 const hop = new Hop('mainnet')
 ```
 
-**`example`**
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 import { Wallet } from 'ethers'
@@ -3351,7 +4473,7 @@ const hop = new Hop('mainnet', signer)
 
 ##### Overrides
 
-Base.constructor
+[Base](#classesbasemd).[constructor](#constructor)
 
 ### Properties
 
@@ -3385,7 +4507,7 @@ ___
 
 ##### Inherited from
 
-Base.chainProviders
+[Base](#classesbasemd).[chainProviders](#chainproviders)
 
 ___
 
@@ -3395,7 +4517,7 @@ ___
 
 ##### Inherited from
 
-Base.destinationFeeGasPriceMultiplier
+[Base](#classesbasemd).[destinationFeeGasPriceMultiplier](#destinationfeegaspricemultiplier)
 
 ___
 
@@ -3409,7 +4531,7 @@ ___
 
 ##### Inherited from
 
-Base.fees
+[Base](#classesbasemd).[fees](#fees)
 
 ___
 
@@ -3419,7 +4541,7 @@ ___
 
 ##### Inherited from
 
-Base.gasPriceMultiplier
+[Base](#classesbasemd).[gasPriceMultiplier](#gaspricemultiplier)
 
 ___
 
@@ -3445,7 +4567,7 @@ ___
 
 ##### Inherited from
 
-Base.getContract
+[Base](#classesbasemd).[getContract](#getcontract)
 
 ___
 
@@ -3457,7 +4579,13 @@ Network name
 
 ##### Inherited from
 
-Base.network
+[Base](#classesbasemd).[network](#network)
+
+___
+
+#### <a id="pricefeedapikeys" name="pricefeedapikeys"></a> priceFeedApiKeys
+
+• **priceFeedApiKeys**: `ApiKeys` = `null`
 
 ___
 
@@ -3469,11 +4597,11 @@ Ethers signer or provider
 
 ##### Inherited from
 
-Base.signer
+[Base](#classesbasemd).[signer](#signer)
 
 ___
 
-#### <a id="chain" name="chain"></a> Chain
+#### <a id="chain-1" name="chain-1"></a> Chain
 
 ▪ `Static` **Chain**: typeof [`Chain`](#classeschainmd) = `Chain`
 
@@ -3481,7 +4609,7 @@ Chain class
 
 ___
 
-#### <a id="event" name="event"></a> Event
+#### <a id="event-1" name="event-1"></a> Event
 
 ▪ `Static` **Event**: typeof `Event` = `Event`
 
@@ -3489,7 +4617,7 @@ Event enum
 
 ___
 
-#### <a id="token" name="token"></a> Token
+#### <a id="token-1" name="token-1"></a> Token
 
 ▪ `Static` **Token**: typeof [`TokenModel`](#classestokenmodelmd) = `Token`
 
@@ -3529,9 +4657,12 @@ ___
 
 • `get` **version**(): `string`
 
-**`desc`** Returns the SDK version.
+**`Desc`**
 
-**`example`**
+Returns the SDK version.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -3549,7 +4680,7 @@ version string
 
 #### <a id="_getbonderaddress" name="_getbonderaddress"></a> \_getBonderAddress
 
-▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -3561,11 +4692,11 @@ version string
 
 ##### Returns
 
-`string`
+`Promise`<`string`\>
 
 ##### Inherited from
 
-Base.\_getBonderAddress
+[Base](#classesbasemd).[_getBonderAddress](#_getbonderaddress)
 
 ___
 
@@ -3573,9 +4704,12 @@ ___
 
 ▸ **bridge**(`token`): [`HopBridge`](#classeshopbridgemd)
 
-**`desc`** Returns a bridge set instance.
+**`Desc`**
 
-**`example`**
+Returns a bridge set instance.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -3601,9 +4735,12 @@ ___
 
 ▸ **canonicalBridge**(`token`, `chain?`): [`CanonicalBridge`](#classescanonicalbridgemd)
 
-**`desc`** Returns a canonical bridge sdk instance.
+**`Desc`**
 
-**`example`**
+Returns a canonical bridge sdk instance.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -3630,9 +4767,12 @@ ___
 
 ▸ **connect**(`signer`): [`Hop`](#classeshopmd)
 
-**`desc`** Returns hop instance with signer connected. Used for adding or changing signer.
+**`Desc`**
 
-**`example`**
+Returns hop instance with signer connected. Used for adding or changing signer.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 import { Wallet } from 'ethers'
@@ -3675,7 +4815,21 @@ ___
 
 ##### Inherited from
 
-Base.estimateOptimismL1FeeFromData
+[Base](#classesbasemd).[estimateOptimismL1FeeFromData](#estimateoptimisml1feefromdata)
+
+___
+
+#### <a id="fetchconfigfroms3" name="fetchconfigfroms3"></a> fetchConfigFromS3
+
+▸ **fetchConfigFromS3**(): `Promise`<`any`\>
+
+##### Returns
+
+`Promise`<`any`\>
+
+##### Inherited from
+
+[Base](#classesbasemd).[fetchConfigFromS3](#fetchconfigfroms3)
 
 ___
 
@@ -3696,7 +4850,7 @@ ___
 
 ##### Inherited from
 
-Base.getArbChainAddress
+[Base](#classesbasemd).[getArbChainAddress](#getarbchainaddress)
 
 ___
 
@@ -3704,9 +4858,12 @@ ___
 
 ▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
 
-**`desc`** Calculates current gas price plus increased percentage amount.
+**`Desc`**
 
-**`example`**
+Calculates current gas price plus increased percentage amount.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -3730,7 +4887,7 @@ Bumped as price as BigNumber
 
 ##### Inherited from
 
-Base.getBumpedGasPrice
+[Base](#classesbasemd).[getBumpedGasPrice](#getbumpedgasprice)
 
 ___
 
@@ -3738,7 +4895,9 @@ ___
 
 ▸ **getChainId**(`chain`): `number`
 
-**`desc`** Returns Chain ID for specified Chain model.
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
 
 ##### Parameters
 
@@ -3754,7 +4913,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainId
+[Base](#classesbasemd).[getChainId](#getchainid)
 
 ___
 
@@ -3762,7 +4921,9 @@ ___
 
 ▸ **getChainProvider**(`chain`): `Provider`
 
-**`desc`** Returns Ethers provider for specified Chain model.
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
 
 ##### Parameters
 
@@ -3778,7 +4939,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProvider
+[Base](#classesbasemd).[getChainProvider](#getchainprovider)
 
 ___
 
@@ -3792,7 +4953,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProviderUrls
+[Base](#classesbasemd).[getChainProviderUrls](#getchainproviderurls)
 
 ___
 
@@ -3806,7 +4967,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProviders
+[Base](#classesbasemd).[getChainProviders](#getchainproviders)
 
 ___
 
@@ -3827,13 +4988,27 @@ ___
 
 ##### Inherited from
 
-Base.getConfigAddresses
+[Base](#classesbasemd).[getConfigAddresses](#getconfigaddresses)
+
+___
+
+#### <a id="getdestinationfeegaspricemultiplier" name="getdestinationfeegaspricemultiplier"></a> getDestinationFeeGasPriceMultiplier
+
+▸ **getDestinationFeeGasPriceMultiplier**(): `number`
+
+##### Returns
+
+`number`
+
+##### Inherited from
+
+[Base](#classesbasemd).[getDestinationFeeGasPriceMultiplier](#getdestinationfeegaspricemultiplier)
 
 ___
 
 #### <a id="getfeebps" name="getfeebps"></a> getFeeBps
 
-▸ **getFeeBps**(`token`, `destinationChain`): `number`
+▸ **getFeeBps**(`token`, `destinationChain`): `Promise`<`number`\>
 
 ##### Parameters
 
@@ -3844,11 +5019,11 @@ ___
 
 ##### Returns
 
-`number`
+`Promise`<`number`\>
 
 ##### Inherited from
 
-Base.getFeeBps
+[Base](#classesbasemd).[getFeeBps](#getfeebps)
 
 ___
 
@@ -3869,7 +5044,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1AmbBridgeAddress
+[Base](#classesbasemd).[getL1AmbBridgeAddress](#getl1ambbridgeaddress)
 
 ___
 
@@ -3890,7 +5065,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1BridgeAddress
+[Base](#classesbasemd).[getL1BridgeAddress](#getl1bridgeaddress)
 
 ___
 
@@ -3911,7 +5086,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1CanonicalBridgeAddress
+[Base](#classesbasemd).[getL1CanonicalBridgeAddress](#getl1canonicalbridgeaddress)
 
 ___
 
@@ -3932,7 +5107,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1CanonicalTokenAddress
+[Base](#classesbasemd).[getL1CanonicalTokenAddress](#getl1canonicaltokenaddress)
 
 ___
 
@@ -3953,7 +5128,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1PosErc20PredicateAddress
+[Base](#classesbasemd).[getL1PosErc20PredicateAddress](#getl1poserc20predicateaddress)
 
 ___
 
@@ -3974,7 +5149,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1PosRootChainManagerAddress
+[Base](#classesbasemd).[getL1PosRootChainManagerAddress](#getl1posrootchainmanageraddress)
 
 ___
 
@@ -3995,7 +5170,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2AmbBridgeAddress
+[Base](#classesbasemd).[getL2AmbBridgeAddress](#getl2ambbridgeaddress)
 
 ___
 
@@ -4016,7 +5191,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2AmmWrapperAddress
+[Base](#classesbasemd).[getL2AmmWrapperAddress](#getl2ammwrapperaddress)
 
 ___
 
@@ -4037,7 +5212,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2BridgeAddress
+[Base](#classesbasemd).[getL2BridgeAddress](#getl2bridgeaddress)
 
 ___
 
@@ -4058,7 +5233,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2CanonicalBridgeAddress
+[Base](#classesbasemd).[getL2CanonicalBridgeAddress](#getl2canonicalbridgeaddress)
 
 ___
 
@@ -4079,7 +5254,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2CanonicalTokenAddress
+[Base](#classesbasemd).[getL2CanonicalTokenAddress](#getl2canonicaltokenaddress)
 
 ___
 
@@ -4100,7 +5275,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2HopBridgeTokenAddress
+[Base](#classesbasemd).[getL2HopBridgeTokenAddress](#getl2hopbridgetokenaddress)
 
 ___
 
@@ -4121,7 +5296,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2SaddleLpTokenAddress
+[Base](#classesbasemd).[getL2SaddleLpTokenAddress](#getl2saddlelptokenaddress)
 
 ___
 
@@ -4142,7 +5317,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2SaddleSwapAddress
+[Base](#classesbasemd).[getL2SaddleSwapAddress](#getl2saddleswapaddress)
 
 ___
 
@@ -4156,7 +5331,7 @@ ___
 
 ##### Inherited from
 
-Base.getS3ConfigData
+[Base](#classesbasemd).[getS3ConfigData](#gets3configdata)
 
 ___
 
@@ -4164,9 +5339,12 @@ ___
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
 
-**`desc`** Returns the connected signer address.
+**`Desc`**
 
-**`example`**
+Returns the connected signer address.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -4183,15 +5361,17 @@ Ethers signer address.
 
 ##### Inherited from
 
-Base.getSignerAddress
+[Base](#classesbasemd).[getSignerAddress](#getsigneraddress)
 
 ___
 
 #### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
-▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Signer` \| `Provider`\>
+▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
 
-**`desc`** Returns the connected signer if it's connected to the specified
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
 chain id, otherwise it returns a regular provider for the specified chain.
 
 ##### Parameters
@@ -4203,13 +5383,13 @@ chain id, otherwise it returns a regular provider for the specified chain.
 
 ##### Returns
 
-`Promise`<`Signer` \| `Provider`\>
+`Promise`<`Provider` \| `Signer`\>
 
 Ethers signer or provider
 
 ##### Inherited from
 
-Base.getSignerOrProvider
+[Base](#classesbasemd).[getSignerOrProvider](#getsignerorprovider)
 
 ___
 
@@ -4223,7 +5403,7 @@ ___
 
 ##### Inherited from
 
-Base.getSupportedAssets
+[Base](#classesbasemd).[getSupportedAssets](#getsupportedassets)
 
 ___
 
@@ -4243,7 +5423,7 @@ ___
 
 ##### Inherited from
 
-Base.getSupportedAssetsForChain
+[Base](#classesbasemd).[getSupportedAssetsForChain](#getsupportedassetsforchain)
 
 ___
 
@@ -4257,7 +5437,7 @@ ___
 
 ##### Inherited from
 
-Base.init
+[Base](#classesbasemd).[init](#init)
 
 ___
 
@@ -4277,7 +5457,7 @@ ___
 
 ##### Inherited from
 
-Base.isValidChain
+[Base](#classesbasemd).[isValidChain](#isvalidchain)
 
 ___
 
@@ -4297,7 +5477,28 @@ ___
 
 ##### Inherited from
 
-Base.isValidNetwork
+[Base](#classesbasemd).[isValidNetwork](#isvalidnetwork)
+
+___
+
+#### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
+
+▸ **sendTransaction**(`transactionRequest`, `chain`): `Promise`<`TransactionResponse`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `transactionRequest` | `TransactionRequest` |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`Promise`<`TransactionResponse`\>
+
+##### Inherited from
+
+[Base](#classesbasemd).[sendTransaction](#sendtransaction)
 
 ___
 
@@ -4318,7 +5519,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProvider
+[Base](#classesbasemd).[setChainProvider](#setchainprovider)
 
 ___
 
@@ -4338,7 +5539,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProviderUrls
+[Base](#classesbasemd).[setChainProviderUrls](#setchainproviderurls)
 
 ___
 
@@ -4358,7 +5559,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProviders
+[Base](#classesbasemd).[setChainProviders](#setchainproviders)
 
 ___
 
@@ -4378,7 +5579,7 @@ ___
 
 ##### Inherited from
 
-Base.setConfigAddresses
+[Base](#classesbasemd).[setConfigAddresses](#setconfigaddresses)
 
 ___
 
@@ -4398,7 +5599,23 @@ ___
 
 ##### Inherited from
 
-Base.setGasPriceMultiplier
+[Base](#classesbasemd).[setGasPriceMultiplier](#setgaspricemultiplier)
+
+___
+
+#### <a id="setpricefeedapikeys" name="setpricefeedapikeys"></a> setPriceFeedApiKeys
+
+▸ **setPriceFeedApiKeys**(`apiKeys?`): `void`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `apiKeys` | `ApiKeys` |
+
+##### Returns
+
+`void`
 
 ___
 
@@ -4406,7 +5623,9 @@ ___
 
 ▸ **toChainModel**(`chain`): [`Chain`](#classeschainmd)
 
-**`desc`** Returns a Chain model instance with connected provider.
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
 
 ##### Parameters
 
@@ -4422,7 +5641,7 @@ ___
 
 ##### Inherited from
 
-Base.toChainModel
+[Base](#classesbasemd).[toChainModel](#tochainmodel)
 
 ___
 
@@ -4430,7 +5649,9 @@ ___
 
 ▸ **toTokenModel**(`token`): [`TokenModel`](#classestokenmodelmd)
 
-**`desc`** Returns a Token instance.
+**`Desc`**
+
+Returns a Token instance.
 
 ##### Parameters
 
@@ -4446,7 +5667,7 @@ ___
 
 ##### Inherited from
 
-Base.toTokenModel
+[Base](#classesbasemd).[toTokenModel](#totokenmodel)
 
 ___
 
@@ -4466,17 +5687,20 @@ ___
 
 ##### Inherited from
 
-Base.txOverrides
+[Base](#classesbasemd).[txOverrides](#txoverrides)
 
 ___
 
 #### <a id="watch" name="watch"></a> watch
 
-▸ **watch**(`txHash`, `token`, `sourceChain`, `destinationChain`, `isCanonicalTransfer?`, `options?`): `EventEmitter`<`string` \| `symbol`, `any`\> \| `Error`
+▸ **watch**(`txHash`, `token`, `sourceChain`, `destinationChain`, `isCanonicalTransfer?`, `options?`): `any`
 
-**`desc`** Watches for Hop transaction events.
+**`Desc`**
 
-**`example`**
+Watches for Hop transaction events.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -4501,7 +5725,7 @@ hop
 
 ##### Returns
 
-`EventEmitter`<`string` \| `symbol`, `any`\> \| `Error`
+`any`
 
 ___
 
@@ -4527,7 +5751,7 @@ ___
 
 #### <a id="watchcanonical" name="watchcanonical"></a> watchCanonical
 
-▸ **watchCanonical**(`txHash`, `token`, `sourceChain`, `destinationChain`): `EventEmitter`<`string` \| `symbol`, `any`\> \| `Error`
+▸ **watchCanonical**(`txHash`, `token`, `sourceChain`, `destinationChain`): `Error` \| `EventEmitter`<`string` \| `symbol`, `any`\>
 
 ##### Parameters
 
@@ -4540,7 +5764,7 @@ ___
 
 ##### Returns
 
-`EventEmitter`<`string` \| `symbol`, `any`\> \| `Error`
+`Error` \| `EventEmitter`<`string` \| `symbol`, `any`\>
 
 
 <a name="classeshopbridgemd"></a>
@@ -4549,11 +5773,13 @@ ___
 
 Class representing Hop bridge.
 
-**`namespace`** HopBridge
+**`Namespace`**
+
+HopBridge
 
 ### Hierarchy
 
-- `Base`
+- [`Base`](#classesbasemd)
 
   ↳ **`HopBridge`**
 
@@ -4574,6 +5800,7 @@ Class representing Hop bridge.
 - [getContract](#getcontract)
 - [network](#network)
 - [priceFeed](#pricefeed)
+- [priceFeedApiKeys](#pricefeedapikeys)
 - [signer](#signer)
 - [sourceChain](#sourcechain)
 
@@ -4595,6 +5822,8 @@ Class representing Hop bridge.
 - [estimateSendGasLimit](#estimatesendgaslimit)
 - [estimateSendHTokensGasLimit](#estimatesendhtokensgaslimit)
 - [execSaddleSwap](#execsaddleswap)
+- [fetchBonderAvailableLiquidityData](#fetchbonderavailableliquiditydata)
+- [fetchConfigFromS3](#fetchconfigfroms3)
 - [getAmbBridge](#getambbridge)
 - [getAmm](#getamm)
 - [getAmmData](#getammdata)
@@ -4615,6 +5844,7 @@ Class representing Hop bridge.
 - [getConfigAddresses](#getconfigaddresses)
 - [getCredit](#getcredit)
 - [getDebit](#getdebit)
+- [getDestinationFeeGasPriceMultiplier](#getdestinationfeegaspricemultiplier)
 - [getDestinationTransactionFee](#getdestinationtransactionfee)
 - [getEthBalance](#getethbalance)
 - [getFeeBps](#getfeebps)
@@ -4673,11 +5903,13 @@ Class representing Hop bridge.
 - [send](#send)
 - [sendApproval](#sendapproval)
 - [sendHToken](#sendhtoken)
+- [sendTransaction](#sendtransaction)
 - [setChainProvider](#setchainprovider)
 - [setChainProviderUrls](#setchainproviderurls)
 - [setChainProviders](#setchainproviders)
 - [setConfigAddresses](#setconfigaddresses)
 - [setGasPriceMultiplier](#setgaspricemultiplier)
+- [setPriceFeedApiKeys](#setpricefeedapikeys)
 - [shouldAttemptSwap](#shouldattemptswap)
 - [timeSlotSize](#timeslotsize)
 - [timeSlotToAmountBonded](#timeslottoamountbonded)
@@ -4686,6 +5918,7 @@ Class representing Hop bridge.
 - [toHopToken](#tohoptoken)
 - [toTokenModel](#totokenmodel)
 - [txOverrides](#txoverrides)
+- [willTransferFail](#willtransferfail)
 - [withdraw](#withdraw)
 
 ### Constructors
@@ -4694,10 +5927,13 @@ Class representing Hop bridge.
 
 • **new HopBridge**(`network`, `signer`, `token`, `chainProviders?`)
 
-**`desc`** Instantiates Hop Bridge.
+**`Desc`**
+
+Instantiates Hop Bridge.
 Returns a new Hop Bridge instance.
 
-**`example`**
+**`Example`**
+
 ```js
 import { HopBridge, Chain, Token } from '@hop-protocol/sdk'
 import { Wallet } from 'ethers'
@@ -4717,7 +5953,7 @@ const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.
 
 ##### Overrides
 
-Base.constructor
+[Base](#classesbasemd).[constructor](#constructor)
 
 ### Properties
 
@@ -4727,7 +5963,7 @@ Base.constructor
 
 ##### Inherited from
 
-Base.chainProviders
+[Base](#classesbasemd).[chainProviders](#chainproviders)
 
 ___
 
@@ -4753,7 +5989,7 @@ ___
 
 ##### Inherited from
 
-Base.destinationFeeGasPriceMultiplier
+[Base](#classesbasemd).[destinationFeeGasPriceMultiplier](#destinationfeegaspricemultiplier)
 
 ___
 
@@ -4767,7 +6003,7 @@ ___
 
 ##### Inherited from
 
-Base.fees
+[Base](#classesbasemd).[fees](#fees)
 
 ___
 
@@ -4777,7 +6013,7 @@ ___
 
 ##### Inherited from
 
-Base.gasPriceMultiplier
+[Base](#classesbasemd).[gasPriceMultiplier](#gaspricemultiplier)
 
 ___
 
@@ -4803,7 +6039,7 @@ ___
 
 ##### Inherited from
 
-Base.getContract
+[Base](#classesbasemd).[getContract](#getcontract)
 
 ___
 
@@ -4815,13 +6051,19 @@ Network name
 
 ##### Inherited from
 
-Base.network
+[Base](#classesbasemd).[network](#network)
 
 ___
 
 #### <a id="pricefeed" name="pricefeed"></a> priceFeed
 
-• `Readonly` **priceFeed**: `PriceFeed`
+• **priceFeed**: `PriceFeed`
+
+___
+
+#### <a id="pricefeedapikeys" name="pricefeedapikeys"></a> priceFeedApiKeys
+
+• **priceFeedApiKeys**: `ApiKeys` = `null`
 
 ___
 
@@ -4833,7 +6075,7 @@ Ethers signer or provider
 
 ##### Inherited from
 
-Base.signer
+[Base](#classesbasemd).[signer](#signer)
 
 ___
 
@@ -4849,9 +6091,9 @@ Source Chain model
 
 • `get` **defaultDeadlineSeconds**(): `number`
 
-**`readonly`**
+**`Desc`**
 
-**`desc`** The default deadline to use in seconds.
+The default deadline to use in seconds.
 
 ##### Returns
 
@@ -4891,7 +6133,7 @@ Base.supportedNetworks
 
 #### <a id="_getbonderaddress" name="_getbonderaddress"></a> \_getBonderAddress
 
-▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -4903,11 +6145,11 @@ Base.supportedNetworks
 
 ##### Returns
 
-`string`
+`Promise`<`string`\>
 
 ##### Inherited from
 
-Base.\_getBonderAddress
+[Base](#classesbasemd).[_getBonderAddress](#_getbonderaddress)
 
 ___
 
@@ -4915,7 +6157,9 @@ ___
 
 ▸ **addLiquidity**(`amount0Desired`, `amount1Desired`, `chain?`, `options?`): `Promise`<`TransactionResponse`\>
 
-**`desc`** Sends transaction to add liquidity to AMM.
+**`Desc`**
+
+Sends transaction to add liquidity to AMM.
 
 ##### Parameters
 
@@ -4954,11 +6198,11 @@ ___
 
 #### <a id="challengeperiod" name="challengeperiod"></a> challengePeriod
 
-▸ **challengePeriod**(): `Promise`<`BigNumber`\>
+▸ `Readonly` **challengePeriod**(): `Promise`<`BigNumber`\>
 
-**`readonly`**
+**`Desc`**
 
-**`desc`** The challenge period.
+The challenge period.
 
 ##### Returns
 
@@ -4972,9 +6216,12 @@ ___
 
 ▸ **connect**(`signer`): [`HopBridge`](#classeshopbridgemd)
 
-**`desc`** Returns hop bridge instance with signer connected. Used for adding or changing signer.
+**`Desc`**
 
-**`example`**
+Returns hop bridge instance with signer connected. Used for adding or changing signer.
+
+**`Example`**
+
 ```js
 import { Hop, Token } from '@hop-protocol/sdk'
 import { Wallet } from 'ethers'
@@ -5034,7 +6281,7 @@ ___
 
 ##### Inherited from
 
-Base.estimateOptimismL1FeeFromData
+[Base](#classesbasemd).[estimateOptimismL1FeeFromData](#estimateoptimisml1feefromdata)
 
 ___
 
@@ -5080,7 +6327,9 @@ ___
 
 ▸ **execSaddleSwap**(`sourceChain`, `toHop`, `amount`, `minAmountOut`, `deadline`): `Promise`<`ContractTransaction`\>
 
-**`desc`** Sends transaction to execute swap on Saddle contract.
+**`Desc`**
+
+Sends transaction to execute swap on Saddle contract.
 
 ##### Parameters
 
@@ -5097,6 +6346,30 @@ ___
 `Promise`<`ContractTransaction`\>
 
 Ethers transaction object.
+
+___
+
+#### <a id="fetchbonderavailableliquiditydata" name="fetchbonderavailableliquiditydata"></a> fetchBonderAvailableLiquidityData
+
+▸ **fetchBonderAvailableLiquidityData**(): `Promise`<`any`\>
+
+##### Returns
+
+`Promise`<`any`\>
+
+___
+
+#### <a id="fetchconfigfroms3" name="fetchconfigfroms3"></a> fetchConfigFromS3
+
+▸ **fetchConfigFromS3**(): `Promise`<`any`\>
+
+##### Returns
+
+`Promise`<`any`\>
+
+##### Inherited from
+
+[Base](#classesbasemd).[fetchConfigFromS3](#fetchconfigfroms3)
 
 ___
 
@@ -5155,7 +6428,9 @@ ___
 
 ▸ **getAmmWrapper**(`chain`, `signer?`): `Promise`<`L2AmmWrapper`\>
 
-**`desc`** Returns Hop Bridge AMM wrapper Ethers contract instance.
+**`Desc`**
+
+Returns Hop Bridge AMM wrapper Ethers contract instance.
 
 ##### Parameters
 
@@ -5176,9 +6451,12 @@ ___
 
 ▸ **getAmountOut**(`tokenAmountIn`, `sourceChain?`, `destinationChain?`): `Promise`<`BigNumber`\>
 
-**`desc`** Estimate token amount out.
+**`Desc`**
 
-**`example`**
+Estimate token amount out.
+
+**`Example`**
+
 ```js
 import { Hop, Chain } from '@hop-protocol/sdk'
 
@@ -5221,7 +6499,7 @@ ___
 
 ##### Inherited from
 
-Base.getArbChainAddress
+[Base](#classesbasemd).[getArbChainAddress](#getarbchainaddress)
 
 ___
 
@@ -5244,7 +6522,7 @@ ___
 
 #### <a id="getbonderaddress" name="getbonderaddress"></a> getBonderAddress
 
-▸ **getBonderAddress**(`sourceChain`, `destinationChain`): `string`
+▸ **getBonderAddress**(`sourceChain`, `destinationChain`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -5255,7 +6533,7 @@ ___
 
 ##### Returns
 
-`string`
+`Promise`<`string`\>
 
 ___
 
@@ -5273,7 +6551,9 @@ ___
 
 ▸ **getBridgeContract**(`chain`): `Promise`<`Contract`\>
 
-**`desc`** Returns bridge contract instance for specified chain.
+**`Desc`**
+
+Returns bridge contract instance for specified chain.
 
 ##### Parameters
 
@@ -5293,9 +6573,12 @@ ___
 
 ▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
 
-**`desc`** Calculates current gas price plus increased percentage amount.
+**`Desc`**
 
-**`example`**
+Calculates current gas price plus increased percentage amount.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -5319,7 +6602,7 @@ Bumped as price as BigNumber
 
 ##### Inherited from
 
-Base.getBumpedGasPrice
+[Base](#classesbasemd).[getBumpedGasPrice](#getbumpedgasprice)
 
 ___
 
@@ -5343,7 +6626,9 @@ ___
 
 ▸ **getChainId**(`chain`): `number`
 
-**`desc`** Returns Chain ID for specified Chain model.
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
 
 ##### Parameters
 
@@ -5359,7 +6644,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainId
+[Base](#classesbasemd).[getChainId](#getchainid)
 
 ___
 
@@ -5383,7 +6668,9 @@ ___
 
 ▸ **getChainProvider**(`chain`): `Provider`
 
-**`desc`** Returns Ethers provider for specified Chain model.
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
 
 ##### Parameters
 
@@ -5399,7 +6686,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProvider
+[Base](#classesbasemd).[getChainProvider](#getchainprovider)
 
 ___
 
@@ -5413,7 +6700,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProviderUrls
+[Base](#classesbasemd).[getChainProviderUrls](#getchainproviderurls)
 
 ___
 
@@ -5427,7 +6714,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProviders
+[Base](#classesbasemd).[getChainProviders](#getchainproviders)
 
 ___
 
@@ -5448,7 +6735,7 @@ ___
 
 ##### Inherited from
 
-Base.getConfigAddresses
+[Base](#classesbasemd).[getConfigAddresses](#getconfigaddresses)
 
 ___
 
@@ -5456,7 +6743,9 @@ ___
 
 ▸ **getCredit**(`sourceChain`, `bonder`): `Promise`<`BigNumber`\>
 
-**`desc`** Returns total credit that bonder holds on Hop bridge at specified chain.
+**`Desc`**
+
+Returns total credit that bonder holds on Hop bridge at specified chain.
 
 ##### Parameters
 
@@ -5477,7 +6766,9 @@ ___
 
 ▸ **getDebit**(`sourceChain`, `bonder`): `Promise`<`BigNumber`\>
 
-**`desc`** Returns total debit that bonder holds on Hop bridge at specified chain.
+**`Desc`**
+
+Returns total debit that bonder holds on Hop bridge at specified chain.
 
 ##### Parameters
 
@@ -5491,6 +6782,20 @@ ___
 `Promise`<`BigNumber`\>
 
 Total debit as BigNumber.
+
+___
+
+#### <a id="getdestinationfeegaspricemultiplier" name="getdestinationfeegaspricemultiplier"></a> getDestinationFeeGasPriceMultiplier
+
+▸ **getDestinationFeeGasPriceMultiplier**(): `number`
+
+##### Returns
+
+`number`
+
+##### Inherited from
+
+[Base](#classesbasemd).[getDestinationFeeGasPriceMultiplier](#getdestinationfeegaspricemultiplier)
 
 ___
 
@@ -5530,7 +6835,7 @@ ___
 
 #### <a id="getfeebps" name="getfeebps"></a> getFeeBps
 
-▸ **getFeeBps**(`token`, `destinationChain`): `number`
+▸ **getFeeBps**(`token`, `destinationChain`): `Promise`<`number`\>
 
 ##### Parameters
 
@@ -5541,11 +6846,11 @@ ___
 
 ##### Returns
 
-`number`
+`Promise`<`number`\>
 
 ##### Inherited from
 
-Base.getFeeBps
+[Base](#classesbasemd).[getFeeBps](#getfeebps)
 
 ___
 
@@ -5553,7 +6858,9 @@ ___
 
 ▸ **getFrontendAvailableLiquidity**(`sourceChain`, `destinationChain`): `Promise`<`BigNumber`\>
 
-**`desc`** Returns available liquidity for Hop bridge at specified chain.
+**`Desc`**
+
+Returns available liquidity for Hop bridge at specified chain.
 
 ##### Parameters
 
@@ -5587,7 +6894,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1AmbBridgeAddress
+[Base](#classesbasemd).[getL1AmbBridgeAddress](#getl1ambbridgeaddress)
 
 ___
 
@@ -5595,7 +6902,9 @@ ___
 
 ▸ **getL1Bridge**(`signer?`): `Promise`<`L1ERC20Bridge`\>
 
-**`desc`** Returns Hop L1 Bridge Ethers contract instance.
+**`Desc`**
+
+Returns Hop L1 Bridge Ethers contract instance.
 
 ##### Parameters
 
@@ -5628,7 +6937,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1BridgeAddress
+[Base](#classesbasemd).[getL1BridgeAddress](#getl1bridgeaddress)
 
 ___
 
@@ -5649,7 +6958,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1CanonicalBridgeAddress
+[Base](#classesbasemd).[getL1CanonicalBridgeAddress](#getl1canonicalbridgeaddress)
 
 ___
 
@@ -5670,7 +6979,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1CanonicalTokenAddress
+[Base](#classesbasemd).[getL1CanonicalTokenAddress](#getl1canonicaltokenaddress)
 
 ___
 
@@ -5691,7 +7000,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1PosErc20PredicateAddress
+[Base](#classesbasemd).[getL1PosErc20PredicateAddress](#getl1poserc20predicateaddress)
 
 ___
 
@@ -5712,7 +7021,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1PosRootChainManagerAddress
+[Base](#classesbasemd).[getL1PosRootChainManagerAddress](#getl1posrootchainmanageraddress)
 
 ___
 
@@ -5743,7 +7052,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2AmbBridgeAddress
+[Base](#classesbasemd).[getL2AmbBridgeAddress](#getl2ambbridgeaddress)
 
 ___
 
@@ -5764,7 +7073,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2AmmWrapperAddress
+[Base](#classesbasemd).[getL2AmmWrapperAddress](#getl2ammwrapperaddress)
 
 ___
 
@@ -5772,7 +7081,9 @@ ___
 
 ▸ **getL2Bridge**(`chain`, `signer?`): `Promise`<`L2Bridge`\>
 
-**`desc`** Returns Hop L2 Bridge Ethers contract instance.
+**`Desc`**
+
+Returns Hop L2 Bridge Ethers contract instance.
 
 ##### Parameters
 
@@ -5806,7 +7117,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2BridgeAddress
+[Base](#classesbasemd).[getL2BridgeAddress](#getl2bridgeaddress)
 
 ___
 
@@ -5827,7 +7138,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2CanonicalBridgeAddress
+[Base](#classesbasemd).[getL2CanonicalBridgeAddress](#getl2canonicalbridgeaddress)
 
 ___
 
@@ -5848,7 +7159,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2CanonicalTokenAddress
+[Base](#classesbasemd).[getL2CanonicalTokenAddress](#getl2canonicaltokenaddress)
 
 ___
 
@@ -5869,7 +7180,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2HopBridgeTokenAddress
+[Base](#classesbasemd).[getL2HopBridgeTokenAddress](#getl2hopbridgetokenaddress)
 
 ___
 
@@ -5906,7 +7217,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2SaddleLpTokenAddress
+[Base](#classesbasemd).[getL2SaddleLpTokenAddress](#getl2saddlelptokenaddress)
 
 ___
 
@@ -5927,7 +7238,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2SaddleSwapAddress
+[Base](#classesbasemd).[getL2SaddleSwapAddress](#getl2saddleswapaddress)
 
 ___
 
@@ -5970,9 +7281,12 @@ ___
 
 ▸ **getRequiredLiquidity**(`tokenAmountIn`, `sourceChain`): `Promise`<`BigNumber`\>
 
-**`desc`** Estimate the bonder liquidity needed at the destination.
+**`Desc`**
 
-**`example`**
+Estimate the bonder liquidity needed at the destination.
+
+**`Example`**
+
 ```js
 import { Hop, Chain } from '@hop-protocol/sdk'
 
@@ -6023,7 +7337,7 @@ ___
 
 ##### Inherited from
 
-Base.getS3ConfigData
+[Base](#classesbasemd).[getS3ConfigData](#gets3configdata)
 
 ___
 
@@ -6031,7 +7345,9 @@ ___
 
 ▸ **getSaddleLpToken**(`chain`, `signer?`): [`Token`](#classestokenmd)
 
-**`desc`** Returns Hop Bridge Saddle Swap LP Token Ethers contract instance.
+**`Desc`**
+
+Returns Hop Bridge Saddle Swap LP Token Ethers contract instance.
 
 ##### Parameters
 
@@ -6052,7 +7368,9 @@ ___
 
 ▸ **getSaddleSwapReserves**(`chain?`): `Promise`<[`BigNumber`, `BigNumber`]\>
 
-**`desc`** Returns Hop Bridge Saddle reserve amounts.
+**`Desc`**
+
+Returns Hop Bridge Saddle reserve amounts.
 
 ##### Parameters
 
@@ -6128,9 +7446,12 @@ ___
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
 
-**`desc`** Returns the connected signer address.
+**`Desc`**
 
-**`example`**
+Returns the connected signer address.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -6147,15 +7468,17 @@ Ethers signer address.
 
 ##### Inherited from
 
-Base.getSignerAddress
+[Base](#classesbasemd).[getSignerAddress](#getsigneraddress)
 
 ___
 
 #### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
-▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Signer` \| `Provider`\>
+▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
 
-**`desc`** Returns the connected signer if it's connected to the specified
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
 chain id, otherwise it returns a regular provider for the specified chain.
 
 ##### Parameters
@@ -6167,13 +7490,13 @@ chain id, otherwise it returns a regular provider for the specified chain.
 
 ##### Returns
 
-`Promise`<`Signer` \| `Provider`\>
+`Promise`<`Provider` \| `Signer`\>
 
 Ethers signer or provider
 
 ##### Inherited from
 
-Base.getSignerOrProvider
+[Base](#classesbasemd).[getSignerOrProvider](#getsignerorprovider)
 
 ___
 
@@ -6187,7 +7510,7 @@ ___
 
 ##### Inherited from
 
-Base.getSupportedAssets
+[Base](#classesbasemd).[getSupportedAssets](#getsupportedassets)
 
 ___
 
@@ -6207,17 +7530,17 @@ ___
 
 ##### Inherited from
 
-Base.getSupportedAssetsForChain
+[Base](#classesbasemd).[getSupportedAssetsForChain](#getsupportedassetsforchain)
 
 ___
 
 #### <a id="gettimeslot" name="gettimeslot"></a> getTimeSlot
 
-▸ **getTimeSlot**(`time`): `Promise`<`BigNumber`\>
+▸ `Readonly` **getTimeSlot**(`time`): `Promise`<`BigNumber`\>
 
-**`readonly`**
+**`Desc`**
 
-**`desc`** The time slot for the current time.
+The time slot for the current time.
 
 ##### Parameters
 
@@ -6257,7 +7580,9 @@ ___
 
 ▸ **getTotalDebit**(`sourceChain`, `bonder`): `Promise`<`BigNumber`\>
 
-**`desc`** Returns total debit, including sliding window debit, that bonder holds on Hop bridge at specified chain.
+**`Desc`**
+
+Returns total debit, including sliding window debit, that bonder holds on Hop bridge at specified chain.
 
 ##### Parameters
 
@@ -6336,7 +7661,7 @@ ___
 
 ##### Inherited from
 
-Base.init
+[Base](#classesbasemd).[init](#init)
 
 ___
 
@@ -6388,7 +7713,7 @@ ___
 
 ##### Inherited from
 
-Base.isValidChain
+[Base](#classesbasemd).[isValidChain](#isvalidchain)
 
 ___
 
@@ -6408,13 +7733,13 @@ ___
 
 ##### Inherited from
 
-Base.isValidNetwork
+[Base](#classesbasemd).[isValidNetwork](#isvalidnetwork)
 
 ___
 
 #### <a id="populatebondwithdrawaltx" name="populatebondwithdrawaltx"></a> populateBondWithdrawalTx
 
-▸ **populateBondWithdrawalTx**(`sourceChain`, `destinationChain`): `Promise`<`any`\>
+▸ **populateBondWithdrawalTx**(`sourceChain`, `destinationChain`, `recipient?`): `Promise`<`any`\>
 
 ##### Parameters
 
@@ -6422,6 +7747,7 @@ ___
 | :------ | :------ |
 | `sourceChain` | [`TChain`](#tchain) |
 | `destinationChain` | [`TChain`](#tchain) |
+| `recipient?` | `string` |
 
 ##### Returns
 
@@ -6489,7 +7815,9 @@ ___
 
 ▸ **removeLiquidity**(`liquidityTokenAmount`, `chain?`, `options?`): `Promise`<`TransactionResponse`\>
 
-**`desc`** Sends transaction to remove liquidity from AMM.
+**`Desc`**
+
+Sends transaction to remove liquidity from AMM.
 
 ##### Parameters
 
@@ -6549,15 +7877,18 @@ ___
 
 ▸ **send**(`tokenAmount`, `sourceChain?`, `destinationChain?`, `options?`): `Promise`<`TransactionResponse`\>
 
-**`desc`** Send tokens to another chain.
+**`Desc`**
 
-**`example`**
+Send tokens to another chain.
+
+**`Example`**
+
 ```js
 import { Hop, Chain, Token } from '@hop-protocol/sdk'
 
 const hop = new Hop()
 const bridge = hop.connect(signer).bridge(Token.USDC)
-\// send 1 USDC token from Optimism -> Gnosis
+// send 1 USDC token from Optimism -> Gnosis
 const tx = await bridge.send('1000000000000000000', Chain.Optimism, Chain.Gnosis)
 console.log(tx.hash)
 ```
@@ -6617,6 +7948,27 @@ ___
 
 ___
 
+#### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
+
+▸ **sendTransaction**(`transactionRequest`, `chain`): `Promise`<`TransactionResponse`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `transactionRequest` | `TransactionRequest` |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`Promise`<`TransactionResponse`\>
+
+##### Inherited from
+
+[Base](#classesbasemd).[sendTransaction](#sendtransaction)
+
+___
+
 #### <a id="setchainprovider" name="setchainprovider"></a> setChainProvider
 
 ▸ **setChainProvider**(`chain`, `provider`): `void`
@@ -6634,7 +7986,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProvider
+[Base](#classesbasemd).[setChainProvider](#setchainprovider)
 
 ___
 
@@ -6654,7 +8006,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProviderUrls
+[Base](#classesbasemd).[setChainProviderUrls](#setchainproviderurls)
 
 ___
 
@@ -6674,7 +8026,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProviders
+[Base](#classesbasemd).[setChainProviders](#setchainproviders)
 
 ___
 
@@ -6694,7 +8046,7 @@ ___
 
 ##### Inherited from
 
-Base.setConfigAddresses
+[Base](#classesbasemd).[setConfigAddresses](#setconfigaddresses)
 
 ___
 
@@ -6714,7 +8066,23 @@ ___
 
 ##### Inherited from
 
-Base.setGasPriceMultiplier
+[Base](#classesbasemd).[setGasPriceMultiplier](#setgaspricemultiplier)
+
+___
+
+#### <a id="setpricefeedapikeys" name="setpricefeedapikeys"></a> setPriceFeedApiKeys
+
+▸ **setPriceFeedApiKeys**(`apiKeys?`): `void`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `apiKeys` | `ApiKeys` |
+
+##### Returns
+
+`void`
 
 ___
 
@@ -6737,11 +8105,11 @@ ___
 
 #### <a id="timeslotsize" name="timeslotsize"></a> timeSlotSize
 
-▸ **timeSlotSize**(): `Promise`<`BigNumber`\>
+▸ `Readonly` **timeSlotSize**(): `Promise`<`BigNumber`\>
 
-**`readonly`**
+**`Desc`**
 
-**`desc`** The size of the time slots.
+The size of the time slots.
 
 ##### Returns
 
@@ -6753,11 +8121,11 @@ ___
 
 #### <a id="timeslottoamountbonded" name="timeslottoamountbonded"></a> timeSlotToAmountBonded
 
-▸ **timeSlotToAmountBonded**(`timeSlot`, `bonder`): `Promise`<`BigNumber`\>
+▸ `Readonly` **timeSlotToAmountBonded**(`timeSlot`, `bonder`): `Promise`<`BigNumber`\>
 
-**`readonly`**
+**`Desc`**
 
-**`desc`** The amount bonded for a time slot for a bonder.
+The amount bonded for a time slot for a bonder.
 
 ##### Parameters
 
@@ -6796,7 +8164,9 @@ ___
 
 ▸ **toChainModel**(`chain`): [`Chain`](#classeschainmd)
 
-**`desc`** Returns a Chain model instance with connected provider.
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
 
 ##### Parameters
 
@@ -6812,7 +8182,7 @@ ___
 
 ##### Inherited from
 
-Base.toChainModel
+[Base](#classesbasemd).[toChainModel](#tochainmodel)
 
 ___
 
@@ -6838,7 +8208,9 @@ ___
 
 ▸ **toTokenModel**(`token`): [`TokenModel`](#classestokenmodelmd)
 
-**`desc`** Returns a Token instance.
+**`Desc`**
+
+Returns a Token instance.
 
 ##### Parameters
 
@@ -6854,7 +8226,7 @@ ___
 
 ##### Inherited from
 
-Base.toTokenModel
+[Base](#classesbasemd).[toTokenModel](#totokenmodel)
 
 ___
 
@@ -6874,7 +8246,25 @@ ___
 
 ##### Inherited from
 
-Base.txOverrides
+[Base](#classesbasemd).[txOverrides](#txoverrides)
+
+___
+
+#### <a id="willtransferfail" name="willtransferfail"></a> willTransferFail
+
+▸ **willTransferFail**(`sourceChain`, `destinationChain`, `recipient`): `Promise`<`any`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `sourceChain` | [`TChain`](#tchain) |
+| `destinationChain` | [`TChain`](#tchain) |
+| `recipient` | `string` |
+
+##### Returns
+
+`Promise`<`any`\>
 
 ___
 
@@ -6951,11 +8341,13 @@ ___
 
 Class reprensenting ERC20 Token
 
-**`namespace`** Token
+**`Namespace`**
+
+Token
 
 ### Hierarchy
 
-- `Base`
+- [`Base`](#classesbasemd)
 
   ↳ **`Token`**
 
@@ -7000,6 +8392,7 @@ Class reprensenting ERC20 Token
 - [connect](#connect)
 - [eq](#eq)
 - [estimateOptimismL1FeeFromData](#estimateoptimisml1feefromdata)
+- [fetchConfigFromS3](#fetchconfigfroms3)
 - [getArbChainAddress](#getarbchainaddress)
 - [getBumpedGasPrice](#getbumpedgasprice)
 - [getChainId](#getchainid)
@@ -7007,6 +8400,7 @@ Class reprensenting ERC20 Token
 - [getChainProviderUrls](#getchainproviderurls)
 - [getChainProviders](#getchainproviders)
 - [getConfigAddresses](#getconfigaddresses)
+- [getDestinationFeeGasPriceMultiplier](#getdestinationfeegaspricemultiplier)
 - [getErc20](#geterc20)
 - [getFeeBps](#getfeebps)
 - [getL1AmbBridgeAddress](#getl1ambbridgeaddress)
@@ -7035,8 +8429,12 @@ Class reprensenting ERC20 Token
 - [init](#init)
 - [isValidChain](#isvalidchain)
 - [isValidNetwork](#isvalidnetwork)
+- [needsApproval](#needsapproval)
 - [overrides](#overrides)
 - [populateApproveTx](#populateapprovetx)
+- [populateUnwrapTokenTx](#populateunwraptokentx)
+- [populateWrapTokenTx](#populatewraptokentx)
+- [sendTransaction](#sendtransaction)
 - [setChainProvider](#setchainprovider)
 - [setChainProviderUrls](#setchainproviderurls)
 - [setChainProviders](#setchainproviders)
@@ -7058,7 +8456,9 @@ Class reprensenting ERC20 Token
 
 • **new Token**(`network`, `chain`, `address`, `decimals`, `symbol`, `name`, `image`, `signer?`, `chainProviders?`)
 
-**`desc`** Instantiates Token class.
+**`Desc`**
+
+Instantiates Token class.
 
 ##### Parameters
 
@@ -7071,12 +8471,12 @@ Class reprensenting ERC20 Token
 | `symbol` | `string` | Token symbol. |
 | `name` | `string` | Token name. |
 | `image` | `string` | - |
-| `signer?` | `Signer` \| `Provider` | Ethers signer. |
+| `signer?` | `Provider` \| `Signer` | Ethers signer. |
 | `chainProviders?` | `ChainProviders` | - |
 
 ##### Overrides
 
-Base.constructor
+[Base](#classesbasemd).[constructor](#constructor)
 
 ### Properties
 
@@ -7104,7 +8504,7 @@ ___
 
 ##### Inherited from
 
-Base.chainProviders
+[Base](#classesbasemd).[chainProviders](#chainproviders)
 
 ___
 
@@ -7126,7 +8526,7 @@ ___
 
 ##### Inherited from
 
-Base.destinationFeeGasPriceMultiplier
+[Base](#classesbasemd).[destinationFeeGasPriceMultiplier](#destinationfeegaspricemultiplier)
 
 ___
 
@@ -7140,7 +8540,7 @@ ___
 
 ##### Inherited from
 
-Base.fees
+[Base](#classesbasemd).[fees](#fees)
 
 ___
 
@@ -7150,7 +8550,7 @@ ___
 
 ##### Inherited from
 
-Base.gasPriceMultiplier
+[Base](#classesbasemd).[gasPriceMultiplier](#gaspricemultiplier)
 
 ___
 
@@ -7176,7 +8576,7 @@ ___
 
 ##### Inherited from
 
-Base.getContract
+[Base](#classesbasemd).[getContract](#getcontract)
 
 ___
 
@@ -7200,7 +8600,7 @@ Network name
 
 ##### Inherited from
 
-Base.network
+[Base](#classesbasemd).[network](#network)
 
 ___
 
@@ -7212,7 +8612,7 @@ Ethers signer or provider
 
 ##### Inherited from
 
-Base.signer
+[Base](#classesbasemd).[signer](#signer)
 
 ### Accessors
 
@@ -7286,7 +8686,7 @@ ___
 
 #### <a id="_getbonderaddress" name="_getbonderaddress"></a> \_getBonderAddress
 
-▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+▸ `Protected` **_getBonderAddress**(`token`, `sourceChain`, `destinationChain`): `Promise`<`string`\>
 
 ##### Parameters
 
@@ -7298,11 +8698,11 @@ ___
 
 ##### Returns
 
-`string`
+`Promise`<`string`\>
 
 ##### Inherited from
 
-Base.\_getBonderAddress
+[Base](#classesbasemd).[_getBonderAddress](#_getbonderaddress)
 
 ___
 
@@ -7310,9 +8710,12 @@ ___
 
 ▸ **allowance**(`spender`, `address?`): `Promise`<`BigNumber`\>
 
-**`desc`** Returns token allowance.
+**`Desc`**
 
-**`example`**
+Returns token allowance.
+
+**`Example`**
+
 ```js
 import { Hop, Chain } from '@hop-protocol/sdk'
 
@@ -7344,9 +8747,12 @@ ___
 
 ▸ **approve**(`spender`, `amount?`): `Promise`<`TransactionResponse`\>
 
-**`desc`** Approve address to spend tokens if not enough allowance .
+**`Desc`**
 
-**`example`**
+Approve address to spend tokens if not enough allowance .
+
+**`Example`**
+
 ```js
 import { Hop, Chain } from '@hop-protocol/sdk'
 
@@ -7375,9 +8781,12 @@ ___
 
 ▸ **balanceOf**(`address?`): `Promise`<`BigNumber`\>
 
-**`desc`** Returns token balance of signer.
+**`Desc`**
 
-**`example`**
+Returns token balance of signer.
+
+**`Example`**
+
 ```js
 import { Hop, Chain } from '@hop-protocol/sdk'
 
@@ -7404,13 +8813,15 @@ ___
 
 ▸ **connect**(`signer`): [`Token`](#classestokenmd)
 
-**`desc`** Returns a token instance with signer connected. Used for adding or changing signer.
+**`Desc`**
+
+Returns a token instance with signer connected. Used for adding or changing signer.
 
 ##### Parameters
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `signer` | `Signer` \| `Provider` | Ethers `Signer` for signing transactions. |
+| `signer` | `Provider` \| `Signer` | Ethers `Signer` for signing transactions. |
 
 ##### Returns
 
@@ -7454,7 +8865,21 @@ ___
 
 ##### Inherited from
 
-Base.estimateOptimismL1FeeFromData
+[Base](#classesbasemd).[estimateOptimismL1FeeFromData](#estimateoptimisml1feefromdata)
+
+___
+
+#### <a id="fetchconfigfroms3" name="fetchconfigfroms3"></a> fetchConfigFromS3
+
+▸ **fetchConfigFromS3**(): `Promise`<`any`\>
+
+##### Returns
+
+`Promise`<`any`\>
+
+##### Inherited from
+
+[Base](#classesbasemd).[fetchConfigFromS3](#fetchconfigfroms3)
 
 ___
 
@@ -7475,7 +8900,7 @@ ___
 
 ##### Inherited from
 
-Base.getArbChainAddress
+[Base](#classesbasemd).[getArbChainAddress](#getarbchainaddress)
 
 ___
 
@@ -7483,9 +8908,12 @@ ___
 
 ▸ **getBumpedGasPrice**(`signer`, `percent`): `Promise`<`BigNumber`\>
 
-**`desc`** Calculates current gas price plus increased percentage amount.
+**`Desc`**
 
-**`example`**
+Calculates current gas price plus increased percentage amount.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -7509,7 +8937,7 @@ Bumped as price as BigNumber
 
 ##### Inherited from
 
-Base.getBumpedGasPrice
+[Base](#classesbasemd).[getBumpedGasPrice](#getbumpedgasprice)
 
 ___
 
@@ -7517,7 +8945,9 @@ ___
 
 ▸ **getChainId**(`chain`): `number`
 
-**`desc`** Returns Chain ID for specified Chain model.
+**`Desc`**
+
+Returns Chain ID for specified Chain model.
 
 ##### Parameters
 
@@ -7533,7 +8963,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainId
+[Base](#classesbasemd).[getChainId](#getchainid)
 
 ___
 
@@ -7541,7 +8971,9 @@ ___
 
 ▸ **getChainProvider**(`chain`): `Provider`
 
-**`desc`** Returns Ethers provider for specified Chain model.
+**`Desc`**
+
+Returns Ethers provider for specified Chain model.
 
 ##### Parameters
 
@@ -7557,7 +8989,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProvider
+[Base](#classesbasemd).[getChainProvider](#getchainprovider)
 
 ___
 
@@ -7571,7 +9003,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProviderUrls
+[Base](#classesbasemd).[getChainProviderUrls](#getchainproviderurls)
 
 ___
 
@@ -7585,7 +9017,7 @@ ___
 
 ##### Inherited from
 
-Base.getChainProviders
+[Base](#classesbasemd).[getChainProviders](#getchainproviders)
 
 ___
 
@@ -7606,19 +9038,35 @@ ___
 
 ##### Inherited from
 
-Base.getConfigAddresses
+[Base](#classesbasemd).[getConfigAddresses](#getconfigaddresses)
+
+___
+
+#### <a id="getdestinationfeegaspricemultiplier" name="getdestinationfeegaspricemultiplier"></a> getDestinationFeeGasPriceMultiplier
+
+▸ **getDestinationFeeGasPriceMultiplier**(): `number`
+
+##### Returns
+
+`number`
+
+##### Inherited from
+
+[Base](#classesbasemd).[getDestinationFeeGasPriceMultiplier](#getdestinationfeegaspricemultiplier)
 
 ___
 
 #### <a id="geterc20" name="geterc20"></a> getErc20
 
-▸ **getErc20**(): `Promise`<`WETH9` \| `ERC20`\>
+▸ **getErc20**(): `Promise`<`ERC20` \| `WETH9`\>
 
-**`desc`** Returns a token Ethers contract instance.
+**`Desc`**
+
+Returns a token Ethers contract instance.
 
 ##### Returns
 
-`Promise`<`WETH9` \| `ERC20`\>
+`Promise`<`ERC20` \| `WETH9`\>
 
 Ethers contract instance.
 
@@ -7626,7 +9074,7 @@ ___
 
 #### <a id="getfeebps" name="getfeebps"></a> getFeeBps
 
-▸ **getFeeBps**(`token`, `destinationChain`): `number`
+▸ **getFeeBps**(`token`, `destinationChain`): `Promise`<`number`\>
 
 ##### Parameters
 
@@ -7637,11 +9085,11 @@ ___
 
 ##### Returns
 
-`number`
+`Promise`<`number`\>
 
 ##### Inherited from
 
-Base.getFeeBps
+[Base](#classesbasemd).[getFeeBps](#getfeebps)
 
 ___
 
@@ -7662,7 +9110,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1AmbBridgeAddress
+[Base](#classesbasemd).[getL1AmbBridgeAddress](#getl1ambbridgeaddress)
 
 ___
 
@@ -7683,7 +9131,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1BridgeAddress
+[Base](#classesbasemd).[getL1BridgeAddress](#getl1bridgeaddress)
 
 ___
 
@@ -7704,7 +9152,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1CanonicalBridgeAddress
+[Base](#classesbasemd).[getL1CanonicalBridgeAddress](#getl1canonicalbridgeaddress)
 
 ___
 
@@ -7725,7 +9173,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1CanonicalTokenAddress
+[Base](#classesbasemd).[getL1CanonicalTokenAddress](#getl1canonicaltokenaddress)
 
 ___
 
@@ -7746,7 +9194,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1PosErc20PredicateAddress
+[Base](#classesbasemd).[getL1PosErc20PredicateAddress](#getl1poserc20predicateaddress)
 
 ___
 
@@ -7767,7 +9215,7 @@ ___
 
 ##### Inherited from
 
-Base.getL1PosRootChainManagerAddress
+[Base](#classesbasemd).[getL1PosRootChainManagerAddress](#getl1posrootchainmanageraddress)
 
 ___
 
@@ -7788,7 +9236,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2AmbBridgeAddress
+[Base](#classesbasemd).[getL2AmbBridgeAddress](#getl2ambbridgeaddress)
 
 ___
 
@@ -7809,7 +9257,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2AmmWrapperAddress
+[Base](#classesbasemd).[getL2AmmWrapperAddress](#getl2ammwrapperaddress)
 
 ___
 
@@ -7830,7 +9278,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2BridgeAddress
+[Base](#classesbasemd).[getL2BridgeAddress](#getl2bridgeaddress)
 
 ___
 
@@ -7851,7 +9299,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2CanonicalBridgeAddress
+[Base](#classesbasemd).[getL2CanonicalBridgeAddress](#getl2canonicalbridgeaddress)
 
 ___
 
@@ -7872,7 +9320,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2CanonicalTokenAddress
+[Base](#classesbasemd).[getL2CanonicalTokenAddress](#getl2canonicaltokenaddress)
 
 ___
 
@@ -7893,7 +9341,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2HopBridgeTokenAddress
+[Base](#classesbasemd).[getL2HopBridgeTokenAddress](#getl2hopbridgetokenaddress)
 
 ___
 
@@ -7914,7 +9362,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2SaddleLpTokenAddress
+[Base](#classesbasemd).[getL2SaddleLpTokenAddress](#getl2saddlelptokenaddress)
 
 ___
 
@@ -7935,7 +9383,7 @@ ___
 
 ##### Inherited from
 
-Base.getL2SaddleSwapAddress
+[Base](#classesbasemd).[getL2SaddleSwapAddress](#getl2saddleswapaddress)
 
 ___
 
@@ -7965,7 +9413,7 @@ ___
 
 ##### Inherited from
 
-Base.getS3ConfigData
+[Base](#classesbasemd).[getS3ConfigData](#gets3configdata)
 
 ___
 
@@ -7973,9 +9421,12 @@ ___
 
 ▸ **getSignerAddress**(): `Promise`<`string`\>
 
-**`desc`** Returns the connected signer address.
+**`Desc`**
 
-**`example`**
+Returns the connected signer address.
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -7992,15 +9443,17 @@ Ethers signer address.
 
 ##### Inherited from
 
-Base.getSignerAddress
+[Base](#classesbasemd).[getSignerAddress](#getsigneraddress)
 
 ___
 
 #### <a id="getsignerorprovider" name="getsignerorprovider"></a> getSignerOrProvider
 
-▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Signer` \| `Provider`\>
+▸ **getSignerOrProvider**(`chain`, `signer?`): `Promise`<`Provider` \| `Signer`\>
 
-**`desc`** Returns the connected signer if it's connected to the specified
+**`Desc`**
+
+Returns the connected signer if it's connected to the specified
 chain id, otherwise it returns a regular provider for the specified chain.
 
 ##### Parameters
@@ -8012,13 +9465,13 @@ chain id, otherwise it returns a regular provider for the specified chain.
 
 ##### Returns
 
-`Promise`<`Signer` \| `Provider`\>
+`Promise`<`Provider` \| `Signer`\>
 
 Ethers signer or provider
 
 ##### Inherited from
 
-Base.getSignerOrProvider
+[Base](#classesbasemd).[getSignerOrProvider](#getsignerorprovider)
 
 ___
 
@@ -8032,7 +9485,7 @@ ___
 
 ##### Inherited from
 
-Base.getSupportedAssets
+[Base](#classesbasemd).[getSupportedAssets](#getsupportedassets)
 
 ___
 
@@ -8052,7 +9505,7 @@ ___
 
 ##### Inherited from
 
-Base.getSupportedAssetsForChain
+[Base](#classesbasemd).[getSupportedAssetsForChain](#getsupportedassetsforchain)
 
 ___
 
@@ -8102,7 +9555,7 @@ ___
 
 ##### Inherited from
 
-Base.init
+[Base](#classesbasemd).[init](#init)
 
 ___
 
@@ -8122,7 +9575,7 @@ ___
 
 ##### Inherited from
 
-Base.isValidChain
+[Base](#classesbasemd).[isValidChain](#isvalidchain)
 
 ___
 
@@ -8142,7 +9595,25 @@ ___
 
 ##### Inherited from
 
-Base.isValidNetwork
+[Base](#classesbasemd).[isValidNetwork](#isvalidnetwork)
+
+___
+
+#### <a id="needsapproval" name="needsapproval"></a> needsApproval
+
+▸ **needsApproval**(`spender`, `amount`, `address?`): `Promise`<`boolean`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `spender` | `string` |
+| `amount` | `BigNumberish` |
+| `address?` | `string` |
+
+##### Returns
+
+`Promise`<`boolean`\>
 
 ___
 
@@ -8173,6 +9644,59 @@ ___
 
 ___
 
+#### <a id="populateunwraptokentx" name="populateunwraptokentx"></a> populateUnwrapTokenTx
+
+▸ **populateUnwrapTokenTx**(`amount`): `Promise`<`PopulatedTransaction`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `amount` | `BigNumberish` |
+
+##### Returns
+
+`Promise`<`PopulatedTransaction`\>
+
+___
+
+#### <a id="populatewraptokentx" name="populatewraptokentx"></a> populateWrapTokenTx
+
+▸ **populateWrapTokenTx**(`amount`): `Promise`<`PopulatedTransaction`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `amount` | `BigNumberish` |
+
+##### Returns
+
+`Promise`<`PopulatedTransaction`\>
+
+___
+
+#### <a id="sendtransaction" name="sendtransaction"></a> sendTransaction
+
+▸ **sendTransaction**(`transactionRequest`, `chain`): `Promise`<`TransactionResponse`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `transactionRequest` | `TransactionRequest` |
+| `chain` | [`TChain`](#tchain) |
+
+##### Returns
+
+`Promise`<`TransactionResponse`\>
+
+##### Inherited from
+
+[Base](#classesbasemd).[sendTransaction](#sendtransaction)
+
+___
+
 #### <a id="setchainprovider" name="setchainprovider"></a> setChainProvider
 
 ▸ **setChainProvider**(`chain`, `provider`): `void`
@@ -8190,7 +9714,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProvider
+[Base](#classesbasemd).[setChainProvider](#setchainprovider)
 
 ___
 
@@ -8210,7 +9734,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProviderUrls
+[Base](#classesbasemd).[setChainProviderUrls](#setchainproviderurls)
 
 ___
 
@@ -8230,7 +9754,7 @@ ___
 
 ##### Inherited from
 
-Base.setChainProviders
+[Base](#classesbasemd).[setChainProviders](#setchainproviders)
 
 ___
 
@@ -8250,7 +9774,7 @@ ___
 
 ##### Inherited from
 
-Base.setConfigAddresses
+[Base](#classesbasemd).[setConfigAddresses](#setconfigaddresses)
 
 ___
 
@@ -8270,7 +9794,7 @@ ___
 
 ##### Inherited from
 
-Base.setGasPriceMultiplier
+[Base](#classesbasemd).[setGasPriceMultiplier](#setgaspricemultiplier)
 
 ___
 
@@ -8278,7 +9802,9 @@ ___
 
 ▸ **toChainModel**(`chain`): [`Chain`](#classeschainmd)
 
-**`desc`** Returns a Chain model instance with connected provider.
+**`Desc`**
+
+Returns a Chain model instance with connected provider.
 
 ##### Parameters
 
@@ -8294,7 +9820,7 @@ ___
 
 ##### Inherited from
 
-Base.toChainModel
+[Base](#classesbasemd).[toChainModel](#tochainmodel)
 
 ___
 
@@ -8321,7 +9847,9 @@ ___
 
 ▸ **toTokenModel**(`token`): [`TokenModel`](#classestokenmodelmd)
 
-**`desc`** Returns a Token instance.
+**`Desc`**
+
+Returns a Token instance.
 
 ##### Parameters
 
@@ -8337,7 +9865,7 @@ ___
 
 ##### Inherited from
 
-Base.toTokenModel
+[Base](#classesbasemd).[toTokenModel](#totokenmodel)
 
 ___
 
@@ -8355,9 +9883,12 @@ ___
 
 ▸ **transfer**(`recipient`, `amount`): `Promise`<`TransactionResponse`\>
 
-**`desc`** ERC20 token transfer
+**`Desc`**
 
-**`example`**
+ERC20 token transfer
+
+**`Example`**
+
 ```js
 import { Hop } from '@hop-protocol/sdk'
 
@@ -8398,13 +9929,13 @@ ___
 
 ##### Inherited from
 
-Base.txOverrides
+[Base](#classesbasemd).[txOverrides](#txoverrides)
 
 ___
 
 #### <a id="unwraptoken" name="unwraptoken"></a> unwrapToken
 
-▸ **unwrapToken**(`amount`): `Promise`<`ContractTransaction`\>
+▸ **unwrapToken**(`amount`): `Promise`<`TransactionResponse`\>
 
 ##### Parameters
 
@@ -8414,13 +9945,13 @@ ___
 
 ##### Returns
 
-`Promise`<`ContractTransaction`\>
+`Promise`<`TransactionResponse`\>
 
 ___
 
 #### <a id="wraptoken" name="wraptoken"></a> wrapToken
 
-▸ **wrapToken**(`amount`, `estimateGasOnly?`): `Promise`<`BigNumber` \| `ContractTransaction`\>
+▸ **wrapToken**(`amount`, `estimateGasOnly?`): `Promise`<`BigNumber` \| `TransactionResponse`\>
 
 ##### Parameters
 
@@ -8431,7 +9962,7 @@ ___
 
 ##### Returns
 
-`Promise`<`BigNumber` \| `ContractTransaction`\>
+`Promise`<`BigNumber` \| `TransactionResponse`\>
 
 ___
 
@@ -8682,7 +10213,7 @@ ___
 
 ### Table of contents
 
-#### Enumeration members
+#### Enumeration Members
 
 - [DAI](#dai)
 - [ETH](#eth)
@@ -8694,59 +10225,59 @@ ___
 - [sBTC](#sbtc)
 - [sETH](#seth)
 
-### Enumeration members
+### Enumeration Members
 
 #### <a id="dai" name="dai"></a> DAI
 
-• **DAI** = `"DAI"`
+• **DAI** = ``"DAI"``
 
 ___
 
 #### <a id="eth" name="eth"></a> ETH
 
-• **ETH** = `"ETH"`
+• **ETH** = ``"ETH"``
 
 ___
 
 #### <a id="matic" name="matic"></a> MATIC
 
-• **MATIC** = `"MATIC"`
+• **MATIC** = ``"MATIC"``
 
 ___
 
 #### <a id="usdc" name="usdc"></a> USDC
 
-• **USDC** = `"USDC"`
+• **USDC** = ``"USDC"``
 
 ___
 
 #### <a id="usdt" name="usdt"></a> USDT
 
-• **USDT** = `"USDT"`
+• **USDT** = ``"USDT"``
 
 ___
 
 #### <a id="wbtc" name="wbtc"></a> WBTC
 
-• **WBTC** = `"WBTC"`
+• **WBTC** = ``"WBTC"``
 
 ___
 
 #### <a id="xdai" name="xdai"></a> XDAI
 
-• **XDAI** = `"XDAI"`
+• **XDAI** = ``"XDAI"``
 
 ___
 
 #### <a id="sbtc" name="sbtc"></a> sBTC
 
-• **sBTC** = `"sBTC"`
+• **sBTC** = ``"sBTC"``
 
 ___
 
 #### <a id="seth" name="seth"></a> sETH
 
-• **sETH** = `"sETH"`
+• **sETH** = ``"sETH"``
 
 
 <a name="enumschainidmd"></a>
@@ -8755,7 +10286,7 @@ ___
 
 ### Table of contents
 
-#### Enumeration members
+#### Enumeration Members
 
 - [Arbitrum](#arbitrum)
 - [Ethereum](#ethereum)
@@ -8763,35 +10294,35 @@ ___
 - [Optimism](#optimism)
 - [Polygon](#polygon)
 
-### Enumeration members
+### Enumeration Members
 
 #### <a id="arbitrum" name="arbitrum"></a> Arbitrum
 
-• **Arbitrum** = `42161`
+• **Arbitrum** = ``42161``
 
 ___
 
 #### <a id="ethereum" name="ethereum"></a> Ethereum
 
-• **Ethereum** = `1`
+• **Ethereum** = ``1``
 
 ___
 
 #### <a id="gnosis" name="gnosis"></a> Gnosis
 
-• **Gnosis** = `100`
+• **Gnosis** = ``100``
 
 ___
 
 #### <a id="optimism" name="optimism"></a> Optimism
 
-• **Optimism** = `10`
+• **Optimism** = ``10``
 
 ___
 
 #### <a id="polygon" name="polygon"></a> Polygon
 
-• **Polygon** = `137`
+• **Polygon** = ``137``
 
 
 <a name="enumschainslugmd"></a>
@@ -8800,7 +10331,7 @@ ___
 
 ### Table of contents
 
-#### Enumeration members
+#### Enumeration Members
 
 - [Arbitrum](#arbitrum)
 - [Ethereum](#ethereum)
@@ -8808,35 +10339,35 @@ ___
 - [Optimism](#optimism)
 - [Polygon](#polygon)
 
-### Enumeration members
+### Enumeration Members
 
 #### <a id="arbitrum" name="arbitrum"></a> Arbitrum
 
-• **Arbitrum** = `"arbitrum"`
+• **Arbitrum** = ``"arbitrum"``
 
 ___
 
 #### <a id="ethereum" name="ethereum"></a> Ethereum
 
-• **Ethereum** = `"ethereum"`
+• **Ethereum** = ``"ethereum"``
 
 ___
 
 #### <a id="gnosis" name="gnosis"></a> Gnosis
 
-• **Gnosis** = `"gnosis"`
+• **Gnosis** = ``"gnosis"``
 
 ___
 
 #### <a id="optimism" name="optimism"></a> Optimism
 
-• **Optimism** = `"optimism"`
+• **Optimism** = ``"optimism"``
 
 ___
 
 #### <a id="polygon" name="polygon"></a> Polygon
 
-• **Polygon** = `"polygon"`
+• **Polygon** = ``"polygon"``
 
 
 <a name="enumshtokenmd"></a>
@@ -8845,7 +10376,7 @@ ___
 
 ### Table of contents
 
-#### Enumeration members
+#### Enumeration Members
 
 - [hDAI](#hdai)
 - [hETH](#heth)
@@ -8853,35 +10384,35 @@ ___
 - [hUSDC](#husdc)
 - [hUSDT](#husdt)
 
-### Enumeration members
+### Enumeration Members
 
 #### <a id="hdai" name="hdai"></a> hDAI
 
-• **hDAI** = `"hDAI"`
+• **hDAI** = ``"hDAI"``
 
 ___
 
 #### <a id="heth" name="heth"></a> hETH
 
-• **hETH** = `"hETH"`
+• **hETH** = ``"hETH"``
 
 ___
 
 #### <a id="hmatic" name="hmatic"></a> hMATIC
 
-• **hMATIC** = `"hMATIC"`
+• **hMATIC** = ``"hMATIC"``
 
 ___
 
 #### <a id="husdc" name="husdc"></a> hUSDC
 
-• **hUSDC** = `"hUSDC"`
+• **hUSDC** = ``"hUSDC"``
 
 ___
 
 #### <a id="husdt" name="husdt"></a> hUSDT
 
-• **hUSDT** = `"hUSDT"`
+• **hUSDT** = ``"hUSDT"``
 
 
 <a name="enumsnetworkslugmd"></a>
@@ -8890,36 +10421,36 @@ ___
 
 ### Table of contents
 
-#### Enumeration members
+#### Enumeration Members
 
 - [Goerli](#goerli)
 - [Kovan](#kovan)
 - [Mainnet](#mainnet)
 - [Staging](#staging)
 
-### Enumeration members
+### Enumeration Members
 
 #### <a id="goerli" name="goerli"></a> Goerli
 
-• **Goerli** = `"goerli"`
+• **Goerli** = ``"goerli"``
 
 ___
 
 #### <a id="kovan" name="kovan"></a> Kovan
 
-• **Kovan** = `"kovan"`
+• **Kovan** = ``"kovan"``
 
 ___
 
 #### <a id="mainnet" name="mainnet"></a> Mainnet
 
-• **Mainnet** = `"mainnet"`
+• **Mainnet** = ``"mainnet"``
 
 ___
 
 #### <a id="staging" name="staging"></a> Staging
 
-• **Staging** = `"staging"`
+• **Staging** = ``"staging"``
 
 
 <a name="enumsslugmd"></a>
@@ -8928,7 +10459,7 @@ ___
 
 ### Table of contents
 
-#### Enumeration members
+#### Enumeration Members
 
 - [arbitrum](#arbitrum)
 - [ethereum](#ethereum)
@@ -8940,59 +10471,59 @@ ___
 - [polygon](#polygon)
 - [staging](#staging)
 
-### Enumeration members
+### Enumeration Members
 
 #### <a id="arbitrum" name="arbitrum"></a> arbitrum
 
-• **arbitrum** = `"arbitrum"`
+• **arbitrum** = ``"arbitrum"``
 
 ___
 
 #### <a id="ethereum" name="ethereum"></a> ethereum
 
-• **ethereum** = `"ethereum"`
+• **ethereum** = ``"ethereum"``
 
 ___
 
 #### <a id="gnosis" name="gnosis"></a> gnosis
 
-• **gnosis** = `"gnosis"`
+• **gnosis** = ``"gnosis"``
 
 ___
 
 #### <a id="goerli" name="goerli"></a> goerli
 
-• **goerli** = `"goerli"`
+• **goerli** = ``"goerli"``
 
 ___
 
 #### <a id="kovan" name="kovan"></a> kovan
 
-• **kovan** = `"kovan"`
+• **kovan** = ``"kovan"``
 
 ___
 
 #### <a id="mainnet" name="mainnet"></a> mainnet
 
-• **mainnet** = `"mainnet"`
+• **mainnet** = ``"mainnet"``
 
 ___
 
 #### <a id="optimism" name="optimism"></a> optimism
 
-• **optimism** = `"optimism"`
+• **optimism** = ``"optimism"``
 
 ___
 
 #### <a id="polygon" name="polygon"></a> polygon
 
-• **polygon** = `"polygon"`
+• **polygon** = ``"polygon"``
 
 ___
 
 #### <a id="staging" name="staging"></a> staging
 
-• **staging** = `"staging"`
+• **staging** = ``"staging"``
 
 
 <a name="enumswrappedtokenmd"></a>
@@ -9001,29 +10532,29 @@ ___
 
 ### Table of contents
 
-#### Enumeration members
+#### Enumeration Members
 
 - [WETH](#weth)
 - [WMATIC](#wmatic)
 - [WXDAI](#wxdai)
 
-### Enumeration members
+### Enumeration Members
 
 #### <a id="weth" name="weth"></a> WETH
 
-• **WETH** = `"WETH"`
+• **WETH** = ``"WETH"``
 
 ___
 
 #### <a id="wmatic" name="wmatic"></a> WMATIC
 
-• **WMATIC** = `"WMATIC"`
+• **WMATIC** = ``"WMATIC"``
 
 ___
 
 #### <a id="wxdai" name="wxdai"></a> WXDAI
 
-• **WXDAI** = `"WXDAI"`
+• **WXDAI** = ``"WXDAI"``
 
 
 <a name="modulesmd"></a>
@@ -9049,6 +10580,7 @@ ___
 ### Classes
 
 - [AMM](#classesammmd)
+- [Base](#classesbasemd)
 - [CanonicalBridge](#classescanonicalbridgemd)
 - [Chain](#classeschainmd)
 - [Hop](#classeshopmd)
@@ -9058,7 +10590,7 @@ ___
 - [TokenAmount](#classestokenamountmd)
 - [TokenModel](#classestokenmodelmd)
 
-### Type aliases
+### Type Aliases
 
 - [TAmount](#tamount)
 - [TChain](#tchain)
@@ -9068,7 +10600,7 @@ ___
 - [TToken](#ttoken)
 - [TokenSymbol](#tokensymbol)
 
-## Type aliases
+## Type Aliases
 
 ### <a id="tamount" name="tamount"></a> TAmount
 
@@ -9138,33 +10670,40 @@ ___
 - [transferFromL1CompletedTopic](#transferfroml1completedtopic)
 - [transferSentToL2Topic](#transfersenttol2topic)
 - [transferSentTopic](#transfersenttopic)
+- [withdrawalBondedTopic](#withdrawalbondedtopic)
 
 ### Variables
 
 #### <a id="tokentransfertopic" name="tokentransfertopic"></a> tokenTransferTopic
 
-• **tokenTransferTopic**: ``"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"``
+• `Const` **tokenTransferTopic**: ``"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"``
 
 ___
 
 #### <a id="tokensbridgedtopic" name="tokensbridgedtopic"></a> tokensBridgedTopic
 
-• **tokensBridgedTopic**: ``"0x9afd47907e25028cdaca89d193518c302bbb128617d5a992c5abd45815526593"``
+• `Const` **tokensBridgedTopic**: ``"0x9afd47907e25028cdaca89d193518c302bbb128617d5a992c5abd45815526593"``
 
 ___
 
 #### <a id="transferfroml1completedtopic" name="transferfroml1completedtopic"></a> transferFromL1CompletedTopic
 
-• **transferFromL1CompletedTopic**: ``"0x320958176930804eb66c2343c7343fc0367dc16249590c0f195783bee199d094"``
+• `Const` **transferFromL1CompletedTopic**: ``"0x320958176930804eb66c2343c7343fc0367dc16249590c0f195783bee199d094"``
 
 ___
 
 #### <a id="transfersenttol2topic" name="transfersenttol2topic"></a> transferSentToL2Topic
 
-• **transferSentToL2Topic**: ``"0x0a0607688c86ec1775abcdbab7b33a3a35a6c9cde677c9be880150c231cc6b0b"``
+• `Const` **transferSentToL2Topic**: ``"0x0a0607688c86ec1775abcdbab7b33a3a35a6c9cde677c9be880150c231cc6b0b"``
 
 ___
 
 #### <a id="transfersenttopic" name="transfersenttopic"></a> transferSentTopic
 
-• **transferSentTopic**: ``"0xe35dddd4ea75d7e9b3fe93af4f4e40e778c3da4074c9d93e7c6536f1e803c1eb"``
+• `Const` **transferSentTopic**: ``"0xe35dddd4ea75d7e9b3fe93af4f4e40e778c3da4074c9d93e7c6536f1e803c1eb"``
+
+___
+
+#### <a id="withdrawalbondedtopic" name="withdrawalbondedtopic"></a> withdrawalBondedTopic
+
+• `Const` **withdrawalBondedTopic**: ``"0x0c3d250c7831051e78aa6a56679e590374c7c424415ffe4aa474491def2fe705"``

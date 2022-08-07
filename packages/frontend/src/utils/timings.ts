@@ -1,10 +1,3 @@
-import dayjs from 'dayjs'
-
-const oneMinMs = 60 * 1000
-const oneHourMs = oneMinMs * 60
-
-export function isOlderThanOneHour(timestamp: number) {
-  const now = dayjs()
-  const oneHourAgo = now.subtract(oneHourMs)
-  return oneHourAgo.isAfter(timestamp)
+export function isOlderThanOneHour(timestampMs: number) {
+  return (Date.now() - (60 * 60 * 1000)) > timestampMs
 }

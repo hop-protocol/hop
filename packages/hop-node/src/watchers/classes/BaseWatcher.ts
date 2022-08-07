@@ -236,6 +236,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       return
     }
 
+    if (amount.eq(0)) {
+      return
+    }
+
     const creditBalance = await this.bridge.getBaseAvailableCredit()
     if (creditBalance.lt(amount)) {
       this.logger.warn(`available credit balance is less than amount wanting to deposit. Returning. creditBalance: ${this.bridge.formatUnits(creditBalance)}, unstakeAndDepositAmount: ${this.bridge.formatUnits(amount)}`)
@@ -254,6 +258,10 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
   async withdrawFromVaultAndStake (amount: BigNumber) {
     if (!this.vault) {
+      return
+    }
+
+    if (amount.eq(0)) {
       return
     }
 

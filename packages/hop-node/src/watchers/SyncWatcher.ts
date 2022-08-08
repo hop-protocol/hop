@@ -1507,6 +1507,8 @@ class SyncWatcher extends BaseWatcher {
   }
 
   private async _getRelayGasLimit(): Promise<BigNumber> {
+    const provider = getRpcProvider(this.chainSlug)!
+
     // Submission Cost
     const l1Provider = getRpcProvider(Chain.Ethereum)! 
     const distributeCalldataSize: number = 196
@@ -1514,29 +1516,48 @@ class SyncWatcher extends BaseWatcher {
     const submissionCost: BigNumber = this._calculateRetryableSubmissionFee(distributeCalldataSize, baseFeePerGas!)
 
     // Redemption Cost
-    // TODO
-    const redemptionCost = BigNumber.from('0')
-
+    const encodedRedemptionData = await this._getEncodedGasInfo()
+    const arbGasInfo = '0x000000000000000000000000000000000000006C'
+    const redemptionTx = {
+      to: arbGasInfo,
+      data: encodedRedemptionData
+    }
+    const gasInfo = await provider.call(redemptionTx)
+    const types = ['uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256']
+    const decoded = ethersUtils.defaultAbiCoder.decode(types, gasInfo)
+    const redemptionGasPrice = decoded[1]
+    const redemptionGasLimit = BigNumber.from(1980)
+    const redemptionCost = redemptionGasLimit.mul(redemptionGasPrice)
+  
     // Distribution Cost
     const encodedDistributeData = await this._getEncodedDistributeData()
     const encodedEstimateRetryableTicketData = await this._getEncodedEstimateRetryableTicketData(encodedDistributeData)
-
     const nodeInterfaceAddress = '0x00000000000000000000000000000000000000C8'
-    const tx = {
+    const distributionTx = {
       to: nodeInterfaceAddress,
       from: await this.bridge.getBonderAddress(),
       data: encodedEstimateRetryableTicketData
     }
 
-    const provider = getRpcProvider(this.chainSlug)!
-    const distributionCost = await provider.estimateGas(tx)
+    const distributionCost = await provider.estimateGas(distributionTx)
 
+    this.logger.debug(`_getRelayGasLimit data. submissionCost: ${submissionCost.toString()}, redemptionCost: ${redemptionCost.toString()}, redemptionGasPrice: ${redemptionGasPrice}, distributionCost: ${distributionCost.toString()}`)
     return submissionCost.add(redemptionCost).add(distributionCost)
   }
 
   private _calculateRetryableSubmissionFee (dataLength: number, baseFee: BigNumber): BigNumber {
     const dataCost: number = 1400 + 6 * dataLength
     return BigNumber.from(dataCost).mul(baseFee)
+  }
+
+  private async _getEncodedGasInfo (): Promise<string> {
+    const abi = ['function getPricesInWei()']
+    const ethersInterface = new ethersUtils.Interface(abi)
+    const encodedData = ethersInterface.encodeFunctionData(
+      'getPricesInWei', []
+    )
+
+    return encodedData
   }
 
   private async _getEncodedDistributeData (): Promise<string> {

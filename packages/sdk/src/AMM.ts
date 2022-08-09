@@ -350,30 +350,38 @@ class AMM extends Base {
     return Number(formatUnits(swapFee.toString(), poolFeePrecision))
   }
 
-  public async getApr () {
+  public async getAprForDay (unixTimestamp: number): Promise<any> {
     const token = this.toTokenModel(this.tokenSymbol)
     const provider = this.chain.provider
     const saddleSwap = await this.getSaddleSwap()
-    const [reserve0, reserve1, data, block] = await Promise.all([
-      saddleSwap.getTokenBalance(0),
-      saddleSwap.getTokenBalance(1),
-      saddleSwap.swapStorage(),
-      provider.getBlock('latest')
-    ])
-
-    const endBlockNumber = block.number
-    let startBlockNumber: number
 
     const blockDater = new BlockDater(provider)
-    const currentTimestamp = block.timestamp
-    const date = DateTime.fromSeconds(currentTimestamp)
+    const date = DateTime.fromSeconds(unixTimestamp)
+    const info = await blockDater.getDate(date.toJSDate())
+    if (!info) {
+      throw new Error('could not retrieve block number from timestamp')
+    }
+    const endBlockNumber = info.block
+
+    const callOverrides = {
+      blockTag: endBlockNumber
+    }
+
+    const [reserve0, reserve1, data] = await Promise.all([
+      saddleSwap.getTokenBalance(0, callOverrides),
+      saddleSwap.getTokenBalance(1, callOverrides),
+      saddleSwap.swapStorage(callOverrides)
+    ])
+
+    const startBlockDater = new BlockDater(provider)
+    const startDate = DateTime.fromSeconds(unixTimestamp)
       .minus({ days: 1 })
       .toJSDate()
-    const info = await blockDater.getDate(date)
-    if (!info) {
+    const startInfo = await startBlockDater.getDate(startDate)
+    if (!startInfo) {
       throw new Error('could not retrieve block number from 24 hours ago')
     }
-    startBlockNumber = info.block
+    let startBlockNumber = startInfo.block
 
     const tokenSwapEvents: any[] = []
     const perBatch = 1000
@@ -416,7 +424,41 @@ class AMM extends Base {
       formatUnits(totalLiquidity, decimals)
     )
     const totalFeesFormatted = Number(formatUnits(totalFees, decimals))
-    return (totalFeesFormatted * 365) / totalLiquidityFormatted
+
+    return { totalFeesFormatted, totalLiquidityFormatted }
+  }
+
+  public async getApr (days: 1 | 7 | 30 = 1) {
+    if (![1, 7, 30].includes(days)) {
+      throw new Error('invalid arg: valid days are: 1, 7, 30')
+    }
+
+    const weeks = Math.floor(365 / days)
+    const provider = this.chain.provider
+    const block = await provider.getBlock('latest')
+    const endTimestamp = block.timestamp
+    const startTimestamp = DateTime.fromSeconds(endTimestamp)
+      .minus({ days })
+      .toSeconds()
+
+    const { totalFeesFormatted, totalLiquidityFormatted } = await this.getAprForDay(endTimestamp)
+
+    let totalFeesFormattedDaysAgo = 0
+    let totalLiquidityFormattedDaysAgo = 0
+    if (days > 1) {
+      ;({ totalFeesFormatted: totalFeesFormattedDaysAgo, totalLiquidityFormatted: totalLiquidityFormattedDaysAgo } = await this.getAprForDay(startTimestamp))
+    }
+
+    const f = totalFeesFormatted
+    const l = totalFeesFormattedDaysAgo
+
+    // previous calc:
+    // (totalFeesFormatted * 365) / totalLiquidityFormatted
+
+    // calculation: ((interestEarned_today - interestEarned_xdays_ago) / (365 / xdays)) * principle) * 100
+    const apr = ((f - l) / (days / 365)) / totalLiquidityFormatted
+
+    return apr
   }
 
   public async getVirtualPrice () {

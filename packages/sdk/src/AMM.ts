@@ -440,21 +440,16 @@ class AMM extends Base {
       .minus({ days })
       .toSeconds()
 
-    const { totalFeesFormatted, totalLiquidityFormatted } = await this.getAprForDay(endTimestamp)
+    const { totalFeesFormatted: feesEarnedToday, totalLiquidityFormatted: totalLiquidityToday } = await this.getAprForDay(endTimestamp)
 
-    let totalFeesFormattedDaysAgo = 0
+    let feesEarnedDaysAgo = 0
     if (days > 1) {
-      ;({ totalFeesFormatted: totalFeesFormattedDaysAgo } = await this.getAprForDay(startTimestamp))
+      ;({ totalFeesFormatted: feesEarnedDaysAgo } = await this.getAprForDay(startTimestamp))
     }
 
-    const f = totalFeesFormatted
-    const l = totalFeesFormattedDaysAgo
-    const apr = ((f - l) / (days / 365)) / totalLiquidityFormatted
-    if (apr < 0) {
-      return 0
-    }
+    const apr = ((feesEarnedToday - feesEarnedDaysAgo) / (days / 365)) / totalLiquidityToday
 
-    return apr
+    return Math.max(apr, 0)
   }
 
   public async getVirtualPrice () {

@@ -35,6 +35,7 @@ interface BaseTransfer {
   transferRootId?: string
   transferSentBlockNumber?: number
   transferSentIndex?: number
+  transferSentLogIndex?: number
   transferSentTimestamp?: number
   transferSentTxHash?: string
   transferSpentTxHash?: string
@@ -516,6 +517,7 @@ class TransfersDb extends BaseDb {
         item.isRelayable &&
         !item.isRelayed &&
         !item.transferFromL1Complete &&
+        item.transferSentLogIndex &&
         timestampOk &&
         seenOnL1TimestampOk
       )

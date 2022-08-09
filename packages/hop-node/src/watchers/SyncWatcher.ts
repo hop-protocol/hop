@@ -362,8 +362,8 @@ class SyncWatcher extends BaseWatcher {
       relayer,
       relayerFee
     } = event.args
-    const { transactionHash } = event
-    const transferId = getTransferSentToL2TransferId(Number(destinationChainIdBn), recipient, amount, amountOutMin, deadline, relayer, relayerFee, transactionHash)
+    const { transactionHash, logIndex } = event
+    const transferId = getTransferSentToL2TransferId(Number(destinationChainIdBn), recipient, amount, amountOutMin, deadline, relayer, relayerFee, transactionHash, logIndex)
     const logger = this.logger.create({ id: transferId })
     logger.debug('handling TransferSentToL2 event')
 
@@ -383,6 +383,8 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('transferSentBlockNumber:', blockNumber)
       logger.debug('relayer:', relayer)
       logger.debug('relayerFee:', this.bridge.formatUnits(relayerFee))
+      logger.debug('transactionHash:', transactionHash)
+      logger.debug('logIndex:', logIndex)
 
       if (!isRelayable) {
         logger.warn('transfer is not relayable', relayerFee.toString())
@@ -400,7 +402,8 @@ class SyncWatcher extends BaseWatcher {
         relayer,
         relayerFee,
         transferSentTxHash: transactionHash,
-        transferSentBlockNumber: blockNumber
+        transferSentBlockNumber: blockNumber,
+        transferSentLogIndex: logIndex
       })
 
       logger.debug('handleTransferSentToL2Event: stored transfer item')
@@ -1527,7 +1530,8 @@ class SyncWatcher extends BaseWatcher {
     const decoded = ethersUtils.defaultAbiCoder.decode(types, gasInfo)
     const redemptionGasPrice = decoded[1]
     const redemptionGasLimit = BigNumber.from(1980)
-    const redemptionCost = redemptionGasLimit.mul(redemptionGasPrice)
+    const l1TransactionCost = ethersUtils.parseUnits('0.00015')
+    const redemptionCost = redemptionGasLimit.mul(redemptionGasPrice).add(l1TransactionCost)
   
     // Distribution Cost
     const encodedDistributeData = await this._getEncodedDistributeData()

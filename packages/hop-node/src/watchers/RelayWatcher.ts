@@ -328,10 +328,11 @@ class RelayWatcher extends BaseWatcher {
       deadline,
       relayer,
       relayerFee,
-      transferSentTxHash
+      transferSentTxHash,
+      logIndex
     } = params
     const logger = this.logger.create({ id: transferId })
-    const calculatedTransferId = getTransferSentToL2TransferId(destinationChainId, recipient, amount, amountOutMin, deadline, relayer, relayerFee, transferSentTxHash)
+    const calculatedTransferId = getTransferSentToL2TransferId(destinationChainId, recipient, amount, amountOutMin, deadline, relayer, relayerFee, transferSentTxHash, logIndex)
     const doesExistInDb = !!(await this.db.transfers.getByTransferId(calculatedTransferId))
     if (!doesExistInDb) {
       throw new Error(`Calculated transferId (${calculatedTransferId}) does not match transferId in db`)

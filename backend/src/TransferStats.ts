@@ -144,7 +144,8 @@ const tokenLogosMap: any = {
   MATIC: 'https://assets.hop.exchange/logos/matic.svg',
   ETH: 'https://assets.hop.exchange/logos/eth.svg',
   WBTC: 'https://assets.hop.exchange/logos/wbtc.svg',
-  FRAX: 'https://assets.hop.exchange/logos/frax.svg'
+  FRAX: 'https://assets.hop.exchange/logos/frax.svg',
+  HOP: 'https://assets.hop.exchange/logos/hop.svg'
 }
 
 const tokenDecimals: any = {
@@ -154,6 +155,7 @@ const tokenDecimals: any = {
   MATIC: 18,
   ETH: 18,
   FRAX: 18,
+  HOP: 18,
   WBTC: 8
 }
 
@@ -668,7 +670,8 @@ class TransferStats {
       this.getPriceHistory('ethereum', daysN),
       this.getPriceHistory('matic-network', daysN),
       this.getPriceHistory('wrapped-bitcoin', daysN),
-      this.getPriceHistory('frax', daysN)
+      this.getPriceHistory('frax', daysN),
+      this.getPriceHistory('hop-protocol', daysN)
     ])
     console.log('done fetching prices')
 
@@ -679,7 +682,8 @@ class TransferStats {
       ETH: pricesArr[3],
       MATIC: pricesArr[4],
       WBTC: pricesArr[5],
-      FRAX: pricesArr[6]
+      FRAX: pricesArr[6],
+      HOP: pricesArr[7]
     }
 
     this.prices = prices

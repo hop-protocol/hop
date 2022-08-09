@@ -8,11 +8,11 @@ export default async function getTransferRootSet (
   lastId: string = constants.AddressZero
 ) {
   const query = `
-    query TransferRootSet($token: String, $lastId: ID) {
+    query TransferRootSet(${token ? '$token: String, ' : ''}$lastId: ID) {
       transferRootSets(
         where: {
           id_gt: $lastId
-          token: $token
+          ${token ? 'token: $token,' : ''}
         },
         orderBy: id,
         orderDirection: asc,

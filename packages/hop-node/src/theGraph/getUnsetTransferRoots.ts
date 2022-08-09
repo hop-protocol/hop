@@ -1,16 +1,22 @@
 import { Chain } from 'src/constants'
 import { getAllChains } from 'src/config'
+import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
+import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
+import getTransferRootSet from 'src/theGraph/getTransferRootSet'
 
 export default async function getUnsetTransferRoots (startDate: number, endDate: number) {
+  // An empty token address represents all tokens.
+  const token = ''
   const transferRoots: Record<string, any> = {}
   console.log('fetching bonded roots', Chain.Ethereum, startDate, endDate)
-  let items = await getBonds(chain, startDate, endDate)
+  let items = await getTransferRootBonded(Chain.Ethereum, token, startDate, endDate)
   for (const item of items) {
     transferRoots[item.transferRootHash] = item
+    transferRoots[item.transferRootHash].rootHash = item.root
   }
 
   console.log('fetching confirmed roots', Chain.Ethereum, startDate, endDate)
-  items = await getBonds(chain, startDate, endDate)
+  items = await getTransferRootConfirmed(Chain.Ethereum, token, startDate, endDate)
   for (const item of items) {
     transferRoots[item.transferRootHash] = item
   }
@@ -20,7 +26,7 @@ export default async function getUnsetTransferRoots (startDate: number, endDate:
   const transferRootHashes = Object.values(transferRoots).map((x: any) => x.transferRootHash)
   for (const chain of chains) {
     console.log('fetching transferRootSets', chain, transferRootHashes.length)
-    const items = await getTransferRootSet(chain, transferRootHashes)
+    const items = await getTransferRootSet(chain, token)
     for (const item of items) {
       setTransferRoots[item.transferRootHash] = item
     }

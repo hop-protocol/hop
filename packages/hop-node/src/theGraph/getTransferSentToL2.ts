@@ -1,9 +1,9 @@
 import makeRequest from './makeRequest'
-import { constants } from 'ethers'
 import { MaxInt32 } from 'src/constants'
+import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
-export default async function getTransferRootConfirmed (
+export default async function getTransferSentToL2 (
   chain: string,
   token: string,
   startDate: number = 0,
@@ -11,8 +11,8 @@ export default async function getTransferRootConfirmed (
   lastId: string = constants.AddressZero
 ) {
   const query = `
-    query TransferRootConfirmed(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {
-      transferRootConfirmeds(
+    query TransferSentToL2(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {
+      transferSentToL2s(
         where: {
           ${token ? 'token: $token,' : ''}
           timestamp_gte: $startDate
@@ -24,11 +24,8 @@ export default async function getTransferRootConfirmed (
         first: 1000
       ) {
         id
-        rootHash
         transactionHash
-        totalAmount
         destinationChainId
-        timestamp
       }
     }
   `
@@ -38,12 +35,12 @@ export default async function getTransferRootConfirmed (
     endDate,
     lastId: lastId
   })
-  let transferRoots = jsonRes.transferRootConfirmeds.map((x: any) => normalizeEntity(x))
+  let transfers = jsonRes.transferSentToL2s.map((x: any) => normalizeEntity(x))
 
   const maxItemsLength = 1000
-  if (transferRoots.length === maxItemsLength) {
-    lastId = transferRoots[transferRoots.length - 1].id
-    transferRoots = transferRoots.concat(await getTransferRootConfirmed(
+  if (transfers.length === maxItemsLength) {
+    lastId = transfers[transfers.length - 1].id
+    transfers = transfers.concat(await getTransferSentToL2(
       chain,
       token,
       startDate,
@@ -52,5 +49,5 @@ export default async function getTransferRootConfirmed (
     ))
   }
 
-  return transferRoots
+  return transfers
 }

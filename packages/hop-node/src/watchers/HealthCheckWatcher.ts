@@ -8,6 +8,7 @@ import fs from 'fs'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferIds from 'src/theGraph/getTransferIds'
+import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import wait from 'src/utils/wait'
@@ -133,6 +134,10 @@ type UnrelayedTransfers = {
 }
 
 type UnsetTransferRoots = {
+  transferRootHash: string
+  totalAmount: BigNumber
+  destinationChainId: number
+  timestamp: number
 }
 
 type Result = {
@@ -392,7 +397,7 @@ export class HealthCheckWatcher {
       }
 
       for (const item of unsetTransferRoots) {
-        const msg = `Possible unset transferRoot: TODO`
+        const msg = `Possible unset transferRoot: transferRootHash: ${item.transferRootHash}, totalAmount: ${item.totalAmount}, destinationChainId: ${item.destinationChainId}, timestamp: ${item.timestamp}`
         messages.push(msg)
       }
     }
@@ -834,6 +839,13 @@ export class HealthCheckWatcher {
     const startDate = endDate.minus({ days: this.days })
     const items = await getUnsetTransferRoots(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     return items.map((item: any) => {
+      const { rootHash, totalAmount, destinationChainId, timestamp } = item
+      return {
+        transferRootHash: rootHash,
+        totalAmount,
+        destinationChainId,
+        timestamp
+      }
     })
   }
 }

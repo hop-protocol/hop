@@ -40,6 +40,8 @@ const rewardTokenAddresses: any = {
 
 type PoolData = {
   apr: number
+  apr7Day: number
+  apr30Day: number
   stakingApr?: number
 }
 
@@ -90,6 +92,8 @@ class AprStats {
         if (!data[token][chain]) {
           data[token][chain] = {
             apr: 0,
+            apr7Day: 0,
+            apr30Day: 0,
             stakingApr: 0
           }
         }
@@ -98,6 +102,22 @@ class AprStats {
             .then(apr => {
               console.log(`${chain}.${token} got apr`)
               data[token][chain].apr = apr
+            })
+            .catch(err => console.error(err))
+        )
+        promises.push(
+          this.getApr(token, chain, 7)
+            .then(apr => {
+              console.log(`${chain}.${token} got apr 7 day`)
+              data[token][chain].apr7Day = apr
+            })
+            .catch(err => console.error(err))
+        )
+        promises.push(
+          this.getApr(token, chain, 30)
+            .then(apr => {
+              console.log(`${chain}.${token} got apr 30 day`)
+              data[token][chain].apr30Day = apr
             })
             .catch(err => console.error(err))
         )
@@ -124,10 +144,10 @@ class AprStats {
     return response
   }
 
-  async getApr (token: string, chain: string) {
+  async getApr (token: string, chain: string, days: number = 1) {
     const bridge = this.sdk.bridge(token)
     const amm = bridge.getAmm(chain)
-    const apr = await amm.getApr()
+    const apr = await amm.getApr(days)
     if (!apr) {
       return 0
     }

@@ -428,12 +428,11 @@ class AMM extends Base {
     return { totalFeesFormatted, totalLiquidityFormatted }
   }
 
-  public async getApr (days: 1 | 7 | 30 = 1) {
+  public async getApr (days: number = 1) {
     if (![1, 7, 30].includes(days)) {
       throw new Error('invalid arg: valid days are: 1, 7, 30')
     }
 
-    const weeks = Math.floor(365 / days)
     const provider = this.chain.provider
     const block = await provider.getBlock('latest')
     const endTimestamp = block.timestamp
@@ -444,19 +443,16 @@ class AMM extends Base {
     const { totalFeesFormatted, totalLiquidityFormatted } = await this.getAprForDay(endTimestamp)
 
     let totalFeesFormattedDaysAgo = 0
-    let totalLiquidityFormattedDaysAgo = 0
     if (days > 1) {
-      ;({ totalFeesFormatted: totalFeesFormattedDaysAgo, totalLiquidityFormatted: totalLiquidityFormattedDaysAgo } = await this.getAprForDay(startTimestamp))
+      ;({ totalFeesFormatted: totalFeesFormattedDaysAgo } = await this.getAprForDay(startTimestamp))
     }
 
     const f = totalFeesFormatted
     const l = totalFeesFormattedDaysAgo
-
-    // previous calc:
-    // (totalFeesFormatted * 365) / totalLiquidityFormatted
-
-    // calculation: ((interestEarned_today - interestEarned_xdays_ago) / (365 / xdays)) * principle) * 100
     const apr = ((f - l) / (days / 365)) / totalLiquidityFormatted
+    if (apr < 0) {
+      return 0
+    }
 
     return apr
   }

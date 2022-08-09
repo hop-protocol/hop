@@ -2,6 +2,7 @@ import {
   ARBImage,
   DAIImage,
   ETHImage,
+  HopImage,
   MATICImage,
   USDCImage,
   USDTImage,
@@ -72,5 +73,11 @@ export const tokens: Tokens = {
     name: 'Wrapped BTC',
     decimals: 8,
     image: WBTCImage
+  },
+  HOP: {
+    symbol: 'HOP',
+    name: 'Hop',
+    decimals: 18,
+    image: HopImage
   }
 }

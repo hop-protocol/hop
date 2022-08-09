@@ -80,7 +80,7 @@ class BonderStats {
   offsetDays: number = 0
   startDate?: DateTime
   endDate?: DateTime
-  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC']
+  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC', 'HOP']
   chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
   trackOnlyProfit = false
   trackOnlyTxFees = false
@@ -93,7 +93,8 @@ class BonderStats {
     DAI: 18,
     MATIC: 18,
     ETH: 18,
-    WBTC: 8
+    WBTC: 8,
+    HOP: 18
   }
 
   constructor (options: Options = {}) {
@@ -349,7 +350,8 @@ class BonderStats {
       this.getPriceHistory('dai', priceDays),
       this.getPriceHistory('ethereum', priceDays),
       this.getPriceHistory('matic-network', priceDays),
-      this.getPriceHistory('wrapped-bitcoin', priceDays)
+      this.getPriceHistory('wrapped-bitcoin', priceDays),
+      this.getPriceHistory('hop-protocol', priceDays)
     ])
     const prices: Record<string, any> = {
       USDC: pricesArr[0],
@@ -357,7 +359,8 @@ class BonderStats {
       DAI: pricesArr[2],
       ETH: pricesArr[3],
       MATIC: pricesArr[4],
-      WBTC: pricesArr[5]
+      WBTC: pricesArr[5],
+      HOP: pricesArr[6]
     }
 
     return prices

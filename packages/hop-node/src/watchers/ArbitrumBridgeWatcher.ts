@@ -60,12 +60,11 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     }
 
     const msg: any = outGoingMessagesFromTxn[0]
-    const proofInfo = await msg.tryGetProof(this.l2Wallet.provider)
-    if (!proofInfo) {
-      throw new Error(`proof not found for tx hash ${txHash}`)
+    if (!msg) {
+      throw new Error(`msg not found for tx hash ${txHash}`)
     }
 
-    return msg.execute(proofInfo)
+    return msg.execute(this.l2Wallet.provider)
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {

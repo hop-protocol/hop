@@ -7,9 +7,9 @@ import fetch from 'node-fetch'
 import fs from 'fs'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getTransferFromL1Completed from 'src/theGraph/getTransferFromL1Completed'
 import getTransferIds from 'src/theGraph/getTransferIds'
 import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
-import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import wait from 'src/utils/wait'
@@ -132,8 +132,9 @@ type InvalidBondWithdrawal = {
 }
 
 type UnrelayedTransfers = {
-  transferId: string
+  transactionHash: string
   token: string
+  recipient: string
   destinationChainId: number
   amount: BigNumber
   relayer: string
@@ -399,7 +400,7 @@ export class HealthCheckWatcher {
       }
 
       for (const item of unrelayedTransfers) {
-        const msg = `Possible unrelayed transfer: transferId: ${item.transferId}, token: ${item.token}, destinationChainId: ${item.destinationChainId}, amount: ${item.amount}, relayer: ${item.relayer}, relayerFee: ${item.relayerFee}`
+        const msg = `Possible unrelayed transfer: transactionHash: ${item.transactionHash}, token: ${item.token}, recipient: ${item.recipient}, destinationChainId: ${item.destinationChainId}, amount: ${item.amount}, relayer: ${item.relayer}, relayerFee: ${item.relayerFee}`
         messages.push(msg)
       }
 
@@ -841,38 +842,44 @@ export class HealthCheckWatcher {
     const now = DateTime.now().toUTC()
     const endDate = now.minus({ hours: 1 })
     const startDate = endDate.minus({ days: this.days })
-    const token = ''
-    const items = await getTransferSentToL2(Chain.Ethereum, token, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+    const tokens = ''
+    const transfersSent = await getTransferSentToL2(Chain.Ethereum, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+    const transfersReceived = await getTransferFromL1Completed(Chain.Arbitrum, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     
-    return items.map(async (item: any) => {
-      const { 
-        transactionHash,
-        destinationChainId,
-        logIndex,
-        recipient,
-        amount,
-        amountOutMin,
-        deadline,
-        relayer,
-        relayerFee,
-        token
-      } = item
-      const transferId = getTransferSentToL2TransferId(destinationChainId, recipient, amount, amountOutMin, deadline, relayer, relayerFee, transactionHash, logIndex)
-      const db = getDbSet(token)
-      const dbTransfer = await db.transfers.getByTransferId(transferId)
+    const missingTransfers: any[] = []
+    for (const transferSent of transfersSent) {
+      const { transactionHash, recipient, amount, amountOutMin, deadline, relayer, relayerFee, token, destinationChainId } = transferSent
+      let isFound = false
+      for (const transferReceived of transfersReceived) {
+        if (
+          recipient === transferReceived.recipient &&
+          amount === transferReceived.amount &&
+          amountOutMin === transferReceived.amountOutMin &&
+          deadline === transferReceived.deadline &&
+          relayer === transferReceived.relayer &&
+          relayerFee === transferReceived.relayerFee
+        ) {
+          isFound = true
+          break
+        }
 
-
-      if (!dbTransfer?.transferFromL1Complete) {
-        return {
-          transferId,
-          token,
-          destinationChainId,
-          amount,
-          relayer,
-          relayerFee
+        if (isFound) {
+          continue
+        } else {
+          missingTransfers.push([
+            transactionHash,
+            token,
+            recipient,
+            destinationChainId,
+            amount,
+            relayer,
+            relayerFee,
+          ])
         }
       }
-    })
+    }
+  
+    return missingTransfers
   }
 
   async getUnsetTransferRoots (): Promise<UnsetTransferRoots[]> {

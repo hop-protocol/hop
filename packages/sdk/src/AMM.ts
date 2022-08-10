@@ -361,7 +361,7 @@ class AMM extends Base {
     if (!info) {
       throw new Error('could not retrieve block number from timestamp')
     }
-    const endBlockNumber = info.block
+    const endBlockNumber = info.block - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
     const callOverrides = {
       blockTag: endBlockNumber

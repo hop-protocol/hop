@@ -84,15 +84,18 @@ export type UnbondedSentTransfer = {
 }
 
 export type UnrelayedSentTransfer = {
-  sourceChainId: number,
-  destinationChainId: number,
-  recipient: string,
-  amount: BigNumber,
-  relayer: string,
-  relayerFee: BigNumber,
-  amountOutMin: BigNumber,
-  deadline: BigNumber,
+  transferId: string
+  sourceChainId: number
+  destinationChainId: number
+  recipient: string
+  amount: BigNumber
+  relayer: string
+  relayerFee: BigNumber
+  amountOutMin: BigNumber
+  deadline: BigNumber
   transferSentTxHash: string
+  transferSentTimestamp: number
+  transferSentLogIndex: number
 }
 
 export type UncommittedTransfer = {
@@ -518,6 +521,7 @@ class TransfersDb extends BaseDb {
         !item.isRelayed &&
         !item.transferFromL1Complete &&
         item.transferSentLogIndex &&
+        item.transferSentTimestamp &&
         timestampOk &&
         seenOnL1TimestampOk
       )

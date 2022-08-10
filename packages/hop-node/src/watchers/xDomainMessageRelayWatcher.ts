@@ -125,7 +125,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     await watcher.handleCommitTxHash(commitTxHash, transferRootId, logger)
   }
 
-  async redeemArbitrumTransaction (l1TxHash: string, chainSlug: string) {
+  async redeemArbitrumTransaction (l1TxHash: string, chainSlug: string, messageIndex: number = 0) {
     const watcher = this.watchers[chainSlug] as ArbitrumBridgeWatcher
     if (!watcher) {
       this.logger.error('Arbitrum exit watcher is required for this transaction')
@@ -133,7 +133,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
 
     this.logger.debug(`redeeming Arbitrum transaction for L1 tx: ${l1TxHash}`)
-    await watcher.redeemArbitrumTransaction(l1TxHash)
+    await watcher.redeemArbitrumTransaction(l1TxHash, messageIndex)
   }
 }
 

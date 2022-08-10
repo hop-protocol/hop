@@ -91,9 +91,10 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.notifier.info(msg)
   }
 
-  async redeemArbitrumTransaction (l1TxHash: string): Promise<providers.TransactionResponse> {
-    const l1ToL2Message = await this.getL1ToL2Message(l1TxHash)
-    const status = (await l1ToL2Message.waitForStatus()).status
+  async redeemArbitrumTransaction (l1TxHash: string, messageIndex: number = 0): Promise<providers.TransactionResponse> {
+    const l1ToL2Message = await this.getL1ToL2Message(l1TxHash, messageIndex)
+    const res = await l1ToL2Message.waitForStatus()
+    const status = res.status
     if (status !== 3) {
       this.logger.error(`Transaction not redeemable. Status: ${l1ToL2TxStatuses[status]}`)
       throw new Error('Transaction unredeemable')
@@ -102,16 +103,22 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     return await l1ToL2Message.redeem()
   }
 
-  async isTransactionRedeemed (l1TxHash: string): Promise<boolean> {
-    const l1ToL2Message = await this.getL1ToL2Message(l1TxHash)
-    const status = (await l1ToL2Message.waitForStatus()).status
-    return status === 4
+  async getL1ToL2Message (l1TxHash: string, messageIndex: number = 0): Promise<any> {
+    const l1ToL2Messages = await this.getL1ToL2Messages(l1TxHash)
+    return l1ToL2Messages[messageIndex]
   }
 
-  async getL1ToL2Message (l1TxHash: string): Promise<any> {
+  async getL1ToL2Messages (l1TxHash: string): Promise<any[]> {
     const txReceipt = await this.l1Wallet.provider.getTransactionReceipt(l1TxHash)
     const l1TxnReceipt = new L1TransactionReceipt(txReceipt)
-    return l1TxnReceipt.getL1ToL2Message(this.l2Wallet)
+    return l1TxnReceipt.getL1ToL2Messages(this.l2Wallet)
+  }
+
+  async isTransactionRedeemed (l1TxHash: string, messageIndex: number = 0): Promise<boolean> {
+    const l1ToL2Message = await this.getL1ToL2Message(l1TxHash, messageIndex)
+    const res = await l1ToL2Message.waitForStatus()
+    const status = res.status
+    return status === 4
   }
 }
 

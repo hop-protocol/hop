@@ -130,6 +130,7 @@ class RelayWatcher extends BaseWatcher {
       relayerFee,
       amountOutMin,
       deadline,
+      transferSentTimestamp,
       transferSentTxHash
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })
@@ -141,6 +142,12 @@ class RelayWatcher extends BaseWatcher {
 
     const destBridge = this.getSiblingWatcherByChainId(destinationChainId)
       .bridge
+
+    const l1ToL2Messages = await this.relayWatcher.getL1ToL2Messages(transferSentTxHash)
+    let messageIndex = 0
+    if (l1ToL2Messages.length > 1) {
+      messageIndex = await this.getMessageIndex(transferId, transferSentTxHash, transferSentTimestamp)
+    }
 
     logger.debug('processing transfer relay. checking isRelayComplete')
     const isRelayComplete = await destBridge.isTransactionRedeemed(transferSentTxHash)
@@ -201,7 +208,8 @@ class RelayWatcher extends BaseWatcher {
         deadline,
         relayer,
         relayerFee,
-        transferSentTxHash
+        transferSentTxHash,
+        messageIndex
       })
 
       // This will not work as intended if the process restarts after the tx is sent but before this is executed.
@@ -329,7 +337,8 @@ class RelayWatcher extends BaseWatcher {
       relayer,
       relayerFee,
       transferSentTxHash,
-      logIndex
+      logIndex,
+      messageIndex
     } = params
     const logger = this.logger.create({ id: transferId })
     const calculatedTransferId = getTransferSentToL2TransferId(destinationChainId, recipient, amount, amountOutMin, deadline, relayer, relayerFee, transferSentTxHash, logIndex)
@@ -339,10 +348,10 @@ class RelayWatcher extends BaseWatcher {
     }
 
     logger.debug(
-      `relay transfer destinationChainId: ${destinationChainId}`
+      `relay transfer destinationChainId: ${destinationChainId} with messageIndex ${messageIndex}`
     )
     logger.debug('checkTransferSentToL2 l2Bridge.distribute')
-    return await this.sendRelayTx(transferSentTxHash)
+    return await this.sendRelayTx(transferSentTxHash, messageIndex)
   }
 
   async sendTransferRootRelayTx (transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
@@ -354,8 +363,34 @@ class RelayWatcher extends BaseWatcher {
     return await this.sendRelayTx(txHash)
   }
 
-  async sendRelayTx (txHash: string): Promise<providers.TransactionResponse> {
-    return await this.relayWatcher.redeemArbitrumTransaction(txHash)
+  async sendRelayTx (txHash: string, messageIndex: number = 0): Promise<providers.TransactionResponse> {
+    return await this.relayWatcher.redeemArbitrumTransaction(txHash, messageIndex)
+  }
+
+  async getMessageIndex (transferId: string, transferSentTxHash: string, transferSentTimestamp: number): Promise<number> {
+    // We need to deterministically order all the messages in an L1 tx, even if they have already been relayed
+    const dateFilter =  {
+      fromUnix: transferSentTimestamp,
+      toUnix: transferSentTimestamp
+    }
+    const transfers: Transfer[] = await this.db.transfers.getTransfers(dateFilter)
+
+    const logIndicesPerTransferId: Record<string, number> = {}
+    for (const transfer of transfers) {
+      if (transfer.transferSentTxHash !== transferSentTxHash) continue
+      logIndicesPerTransferId[transfer.transferId] = transfer.transferSentLogIndex!
+    }
+
+    const entries = Object.entries(logIndicesPerTransferId)
+    const sortedTransferIdsAndIndices = entries.sort((a, b) => a[1] - b[1])
+
+    let count = 0
+    for (const sortedTransferIdAndIndex of sortedTransferIdsAndIndices) {
+      if (sortedTransferIdAndIndex[0] === transferId) break
+      count++
+    }
+
+    return count
   }
 }
 

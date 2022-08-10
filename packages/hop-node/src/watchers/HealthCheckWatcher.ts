@@ -9,6 +9,7 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferIds from 'src/theGraph/getTransferIds'
 import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
+import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import wait from 'src/utils/wait'
@@ -131,6 +132,12 @@ type InvalidBondWithdrawal = {
 }
 
 type UnrelayedTransfers = {
+  transferId: string
+  token: string
+  destinationChainId: number
+  amount: BigNumber
+  relayer: string
+  relayerFee: BigNumber
 }
 
 type UnsetTransferRoots = {
@@ -392,7 +399,7 @@ export class HealthCheckWatcher {
       }
 
       for (const item of unrelayedTransfers) {
-        const msg = `Possible unrelayed transfer: TODO`
+        const msg = `Possible unrelayed transfer: transferId: ${item.transferId}, token: ${item.token}, destinationChainId: ${item.destinationChainId}, amount: ${item.amount}, relayer: ${item.relayer}, relayerFee: ${item.relayerFee}`
         messages.push(msg)
       }
 
@@ -831,6 +838,41 @@ export class HealthCheckWatcher {
   }
 
   async getUnrelayedTransfers (): Promise<UnrelayedTransfers[]> {
+    const now = DateTime.now().toUTC()
+    const endDate = now.minus({ hours: 1 })
+    const startDate = endDate.minus({ days: this.days })
+    const token = ''
+    const items = await getTransferSentToL2(Chain.Ethereum, token, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+    
+    return items.map(async (item: any) => {
+      const { 
+        transactionHash,
+        destinationChainId,
+        logIndex,
+        recipient,
+        amount,
+        amountOutMin,
+        deadline,
+        relayer,
+        relayerFee,
+        token
+      } = item
+      const transferId = getTransferSentToL2TransferId(destinationChainId, recipient, amount, amountOutMin, deadline, relayer, relayerFee, transactionHash, logIndex)
+      const db = getDbSet(token)
+      const dbTransfer = await db.transfers.getByTransferId(transferId)
+
+
+      if (!dbTransfer?.transferFromL1Complete) {
+        return {
+          transferId,
+          token,
+          destinationChainId,
+          amount,
+          relayer,
+          relayerFee
+        }
+      }
+    })
   }
 
   async getUnsetTransferRoots (): Promise<UnsetTransferRoots[]> {

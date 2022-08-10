@@ -26,6 +26,14 @@ export default async function getTransferSentToL2 (
         id
         transactionHash
         destinationChainId
+        logIndex
+        recipient
+        amount
+        amountOutMin
+        deadline
+        relayer
+        relayerFee
+        token
       }
     }
   `

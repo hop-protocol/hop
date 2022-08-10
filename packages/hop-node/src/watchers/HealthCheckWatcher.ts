@@ -846,6 +846,7 @@ export class HealthCheckWatcher {
     const transfersSent = await getTransferSentToL2(Chain.Ethereum, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     const transfersReceived = await getTransferFromL1Completed(Chain.Arbitrum, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
 
+    // There is no relayerFeeTooLow check here but there may need to be. If too many relayer fees are too low, then we can add logic to check for that.
     const missingTransfers: any[] = []
     for (const transferSent of transfersSent) {
       const { transactionHash, recipient, amount, amountOutMin, deadline, relayer, relayerFee, token, destinationChainId } = transferSent

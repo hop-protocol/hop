@@ -1,4 +1,3 @@
-import { constants as ethersConstants } from 'ethers'
 
 export enum Network {
   Mainnet = 'mainnet',
@@ -89,7 +88,7 @@ export enum TokenIndex {
 
 export enum GasCostTransactionType {
   BondWithdrawal = 'bondWithdrawal',
-  BondWithdrawalAndAttemptSwap =  'bondWithdrawalAndAttemptSwap',
+  BondWithdrawalAndAttemptSwap = 'bondWithdrawalAndAttemptSwap',
   Relay = 'relay'
 }
 
@@ -97,6 +96,6 @@ export const RelayableChains: string[] = [
   Chain.Arbitrum
 ]
 
-export const TimeFromL1ToL2Ms: any = {
+export const TimeFromL1ToL2Ms: Record<string, number> = {
   arbitrum: TenMinutesMs
 }

@@ -1,12 +1,12 @@
 import MerkleTree from 'src/utils/MerkleTree'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import { GasCostTransactionType } from 'src/constants'
+import { actionHandler, logger, parseInputFileList, parseNumber, parseString, root } from './shared'
 import { getDbSet } from 'src/db'
 import {
   config as globalConfig,
   setDbPath
 } from 'src/config'
-import { GasCostTransactionType } from 'src/constants'
-import { actionHandler, logger, parseInputFileList, parseNumber, parseString, root } from './shared'
 
 root
   .command('db-dump')

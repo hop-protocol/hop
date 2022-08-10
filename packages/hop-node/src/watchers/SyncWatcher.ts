@@ -17,10 +17,10 @@ import {
   TransferRootBondedEvent,
   TransferRootConfirmedEvent,
   TransferRootSetEvent,
+  TransferSentToL2Event,
   WithdrawalBondSettledEvent,
   WithdrawalBondedEvent,
-  WithdrewEvent,
-  TransferSentToL2Event
+  WithdrewEvent
 } from '@hop-protocol/core/contracts/L1Bridge'
 import {
   L2Bridge as L2BridgeContract,
@@ -777,7 +777,6 @@ class SyncWatcher extends BaseWatcher {
     })
   }
 
-
   async populateTransferSentTimestamp (transferId: string) {
     const logger = this.logger.create({ id: transferId })
     logger.debug('starting populateTransferSentTimestamp')
@@ -1509,11 +1508,11 @@ class SyncWatcher extends BaseWatcher {
     return !this.isL1
   }
 
-  private async _getRelayGasLimit(): Promise<BigNumber> {
+  private async _getRelayGasLimit (): Promise<BigNumber> {
     const provider = getRpcProvider(this.chainSlug)!
 
     // Submission Cost
-    const l1Provider = getRpcProvider(Chain.Ethereum)! 
+    const l1Provider = getRpcProvider(Chain.Ethereum)!
     const distributeCalldataSize: number = 196
     const { baseFeePerGas } = await l1Provider.getBlock('latest')
     const submissionCost: BigNumber = this._calculateRetryableSubmissionFee(distributeCalldataSize, baseFeePerGas!)
@@ -1532,7 +1531,7 @@ class SyncWatcher extends BaseWatcher {
     const redemptionGasLimit = BigNumber.from(1980)
     const l1TransactionCost = ethersUtils.parseUnits('0.00015')
     const redemptionCost = redemptionGasLimit.mul(redemptionGasPrice).add(l1TransactionCost)
-  
+
     // Distribution Cost
     const encodedDistributeData = await this._getEncodedDistributeData()
     const encodedEstimateRetryableTicketData = await this._getEncodedEstimateRetryableTicketData(encodedDistributeData)
@@ -1588,7 +1587,7 @@ class SyncWatcher extends BaseWatcher {
     return encodedData
   }
 
-  private async _getEncodedEstimateRetryableTicketData(encodedDistributeData: string): Promise<string> {
+  private async _getEncodedEstimateRetryableTicketData (encodedDistributeData: string): Promise<string> {
     const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(Chain.Ethereum)!) as L1BridgeContract
     const messengerWrapperAddress = await bridgeContract.crossDomainMessengerWrappers(this.chainSlugToId(this.chainSlug))
     const sender = messengerWrapperAddress

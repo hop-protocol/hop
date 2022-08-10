@@ -4,16 +4,16 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isNativeToken from 'src/utils/isNativeToken'
-import { providers } from 'ethers'
-import { RelayerFeeTooLowError, NonceTooLowError } from 'src/types/error'
+import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
+import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayableTransferRoots } from 'src/db/TransferRootsDb'
-import { GasCostTransactionType, TxError } from 'src/constants'
-import { relayTransactionBatchSize } from 'src/config'
+import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
 import { isExecutionError } from 'src/utils/isExecutionError'
 import { promiseQueue } from 'src/utils/promiseQueue'
+import { providers } from 'ethers'
+import { relayTransactionBatchSize } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -24,7 +24,7 @@ type Config = {
 
 class RelayWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: RelayWatcher }
-  relayWatcher : ArbitrumBridgeWatcher
+  relayWatcher: ArbitrumBridgeWatcher
 
   constructor (config: Config) {
     super({
@@ -225,7 +225,6 @@ class RelayWatcher extends BaseWatcher {
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err: any) {
-
       // For this watcher, we will always mark the transfer as incomplete if the process gets here
       await this.db.transfers.update(transferId, {
         transferFromL1Complete: false,
@@ -269,7 +268,7 @@ class RelayWatcher extends BaseWatcher {
     }
   }
 
-  async checkRelayableTransferRoots (transferRootId: string ) {
+  async checkRelayableTransferRoots (transferRootId: string) {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId) as RelayableTransferRoots
     if (!dbTransferRoot) {
       this.logger.warn(`transferRoot id "${transferRootId}" not found in db`)
@@ -284,7 +283,7 @@ class RelayWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
 
     // bondedTxHash should be checked first because a root can have both but it should be bonded prior to being confirmed
-    const l1TxHash = dbTransferRoot?.bondTxHash || dbTransferRoot?.confirmTxHash
+    const l1TxHash = dbTransferRoot?.bondTxHash ?? dbTransferRoot?.confirmTxHash
 
     logger.debug('processing transfer root relay')
     logger.debug('transferRootHash:', transferRootHash)
@@ -357,7 +356,7 @@ class RelayWatcher extends BaseWatcher {
   async sendTransferRootRelayTx (transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug(
-      `relay root destinationChainId`
+      'relay root destinationChainId'
     )
     logger.debug('checkRelayableTransferRoots l2Bridge.distribute')
     return await this.sendRelayTx(txHash)
@@ -369,7 +368,7 @@ class RelayWatcher extends BaseWatcher {
 
   async getMessageIndex (transferId: string, transferSentTxHash: string, transferSentTimestamp: number): Promise<number> {
     // We need to deterministically order all the messages in an L1 tx, even if they have already been relayed
-    const dateFilter =  {
+    const dateFilter = {
       fromUnix: transferSentTimestamp,
       toUnix: transferSentTimestamp
     }

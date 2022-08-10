@@ -258,7 +258,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     this.logger.debug('unstake and vault deposit complete')
   }
 
-
   async getIsRecipientReceivable (recipient: string, destinationBridge: Bridge, logger: Logger) {
     // It has been verified that all chains have at least 1 wei at 0x0.
     const tx = {
@@ -416,7 +415,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       this.notifier.warn(msg)
     }
   }
-
 }
 
 export default BaseWatcher

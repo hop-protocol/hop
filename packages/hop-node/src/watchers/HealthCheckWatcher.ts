@@ -10,8 +10,8 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferFromL1Completed from 'src/theGraph/getTransferFromL1Completed'
 import getTransferIds from 'src/theGraph/getTransferIds'
 import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
-import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
+import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
 import { Chain, NativeChainToken, OneDayMs } from 'src/constants'
@@ -317,8 +317,8 @@ export class HealthCheckWatcher {
       this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([]),
       this.enabledChecks.missedEvents ? this.getMissedEvents() : Promise.resolve([]),
       this.enabledChecks.invalidBondWithdrawals ? this.getInvalidBondWithdrawals() : Promise.resolve([]),
-      this.enabledChecks.unrelayedTransfers? this.getUnrelayedTransfers() : Promise.resolve([]),
-      this.enabledChecks.unsetTransferRoots? this.getUnsetTransferRoots() : Promise.resolve([])
+      this.enabledChecks.unrelayedTransfers ? this.getUnrelayedTransfers() : Promise.resolve([]),
+      this.enabledChecks.unsetTransferRoots ? this.getUnsetTransferRoots() : Promise.resolve([])
     ])
 
     return {
@@ -845,7 +845,7 @@ export class HealthCheckWatcher {
     const tokens = ''
     const transfersSent = await getTransferSentToL2(Chain.Ethereum, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     const transfersReceived = await getTransferFromL1Completed(Chain.Arbitrum, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
-    
+
     const missingTransfers: any[] = []
     for (const transferSent of transfersSent) {
       const { transactionHash, recipient, amount, amountOutMin, deadline, relayer, relayerFee, token, destinationChainId } = transferSent
@@ -873,12 +873,12 @@ export class HealthCheckWatcher {
             destinationChainId,
             amount,
             relayer,
-            relayerFee,
+            relayerFee
           ])
         }
       }
     }
-  
+
     return missingTransfers
   }
 

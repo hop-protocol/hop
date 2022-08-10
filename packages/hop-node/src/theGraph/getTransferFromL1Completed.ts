@@ -1,6 +1,6 @@
 import makeRequest from './makeRequest'
-import { constants } from 'ethers'
 import { MaxInt32 } from 'src/constants'
+import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
 export default async function getTransferFromL1Completed (

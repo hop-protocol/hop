@@ -1,8 +1,8 @@
-import { Chain } from 'src/constants'
-import { getAllChains } from 'src/config'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
 import getTransferRootSet from 'src/theGraph/getTransferRootSet'
+import { Chain } from 'src/constants'
+import { getAllChains } from 'src/config'
 
 export default async function getUnsetTransferRoots (startDate: number, endDate: number) {
   // An empty token address represents all tokens.

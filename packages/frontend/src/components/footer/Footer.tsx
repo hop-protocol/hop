@@ -12,6 +12,7 @@ import {
   githubUrl,
   mediumUrl,
   twitterUrl,
+  forumUrl,
 } from 'src/utils/constants'
 import { Flex, SvgImg } from '../ui'
 import { StyledLink } from '../ui/StyledLink'
@@ -55,6 +56,9 @@ const Footer = () => {
         </StyledLink>
         <StyledLink href={docsUrl} ml={['1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">Docs</Typography>
+        </StyledLink>
+        <StyledLink href={forumUrl} ml={[0, '1.6rem']} opacity={0.6}>
+          <Typography variant="subtitle2">Forum</Typography>
         </StyledLink>
         <StyledLink href={careersUrl} ml={['1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">Careers</Typography>

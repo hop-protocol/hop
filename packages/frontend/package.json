@@ -11,7 +11,7 @@
     "@gnosis.pm/safe-apps-react-sdk": "4.3.1",
     "@gnosis.pm/safe-apps-sdk": "7.3.0",
     "@hop-protocol/core": "0.0.1-beta.71",
-    "@hop-protocol/sdk": "0.0.1-beta.333",
+    "@hop-protocol/sdk": "0.0.1-beta.335",
     "@material-ui/core": "4.12.4",
     "@material-ui/icons": "4.11.3",
     "@material-ui/lab": "4.0.0-alpha.60",
@@ -32,7 +32,7 @@
     "react": "^17.0.2",
     "react-confetti": "6.1.0",
     "react-copy-to-clipboard": "5.1.0",
-    "react-dom": "17.0.2",
+    "react-dom": "^17.0.2",
     "react-feather": "2.0.10",
     "react-google-recaptcha": "2.1.0",
     "react-jazzicon": "1.0.4",
@@ -46,7 +46,8 @@
     "remark-gfm": "3.0.1",
     "styled-components": "5.3.5",
     "styled-system": "5.1.5",
-    "web-vitals": "0.2.4"
+    "web-vitals": "0.2.4",
+    "typescript": "4.7.4"
   },
   "resolutions": {
     "react-error-overlay": "6.0.9"
@@ -123,7 +124,6 @@
     "lerna-sync-version": "0.0.5",
     "prettier": "^2.5.1",
     "react-app-rewired": "^2.2.1",
-    "rimraf": "^3.0.2",
-    "typescript": "^4.3.4"
+    "rimraf": "^3.0.2"
   }
 }

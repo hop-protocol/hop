@@ -675,16 +675,16 @@ export class HealthCheckWatcher {
   }
 
   private async getChallengedTransferRoots (): Promise<ChallengedTransferRoot[]> {
-    const result: any[] = []
+    const date = DateTime.now().toUTC()
+    const now = date.toSeconds()
+    const dayAgo = date.minus({ days: 1 }).toSeconds()
+    const endBlockNumber = await getBlockNumberFromDate(Chain.Ethereum, now)
+    const startBlockNumber = await getBlockNumberFromDate(Chain.Ethereum, dayAgo)
 
+    const result: any[] = []
     for (const token of this.tokens) {
       this.logger.debug(`done ${token} bridge for challenged roots`)
       const l1BridgeContract = contracts.get(token, Chain.Ethereum).l1Bridge
-      const date = DateTime.now().toUTC()
-      const now = date.toSeconds()
-      const dayAgo = date.minus({ days: 1 }).toSeconds()
-      const endBlockNumber = await getBlockNumberFromDate(Chain.Ethereum, now)
-      const startBlockNumber = await getBlockNumberFromDate(Chain.Ethereum, dayAgo)
       const l1Bridge = new L1Bridge(l1BridgeContract)
       await l1Bridge.mapTransferBondChallengedEvents(
         async (event: TransferBondChallengedEvent) => {

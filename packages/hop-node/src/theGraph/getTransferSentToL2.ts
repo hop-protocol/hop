@@ -12,7 +12,7 @@ export default async function getTransferSentToL2 (
 ) {
   const query = `
     query TransferSentToL2(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {
-      transferSentToL2s(
+      transferSentToL2S(
         where: {
           ${token ? 'token: $token,' : ''}
           timestamp_gte: $startDate
@@ -26,7 +26,6 @@ export default async function getTransferSentToL2 (
         id
         transactionHash
         destinationChainId
-        logIndex
         recipient
         amount
         amountOutMin
@@ -43,7 +42,7 @@ export default async function getTransferSentToL2 (
     endDate,
     lastId: lastId
   })
-  let transfers = jsonRes.transferSentToL2s.map((x: any) => normalizeEntity(x))
+  let transfers = jsonRes.transferSentToL2S.map((x: any) => normalizeEntity(x))
 
   const maxItemsLength = 1000
   if (transfers.length === maxItemsLength) {

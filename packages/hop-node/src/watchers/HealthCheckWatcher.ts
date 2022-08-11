@@ -2,6 +2,7 @@ import IncompleteSettlementsWatcher from 'src/watchers/IncompleteSettlementsWatc
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import Logger from 'src/logger'
 import S3Upload from 'src/aws/s3Upload'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import contracts from 'src/contracts'
 import fetch from 'node-fetch'
 import fs from 'fs'
@@ -145,7 +146,6 @@ type UnrelayedTransfers = {
 type UnsetTransferRoots = {
   transferRootHash: string
   totalAmount: BigNumber
-  destinationChainId: number
   timestamp: number
 }
 
@@ -406,7 +406,7 @@ export class HealthCheckWatcher {
       }
 
       for (const item of unsetTransferRoots) {
-        const msg = `Possible unset transferRoot: transferRootHash: ${item.transferRootHash}, totalAmount: ${item.totalAmount}, destinationChainId: ${item.destinationChainId}, timestamp: ${item.timestamp}`
+        const msg = `Possible unset transferRoot: transferRootHash: ${item.transferRootHash}, totalAmount: ${item.totalAmount}, timestamp: ${item.timestamp}`
         messages.push(msg)
       }
     }
@@ -848,29 +848,37 @@ export class HealthCheckWatcher {
     const startDate = endDate.minus({ days: this.days })
     const tokens = ''
     const transfersSent = await getTransferSentToL2(Chain.Ethereum, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
-    const transfersReceived = await getTransferFromL1Completed(Chain.Arbitrum, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
 
     // There is no relayerFeeTooLow check here but there may need to be. If too many relayer fees are too low, then we can add logic to check for that.
-    const missingTransfers: any[] = []
-    for (const transferSent of transfersSent) {
-      const { transactionHash, recipient, amount, amountOutMin, deadline, relayer, relayerFee, token, destinationChainId } = transferSent
-      let isFound = false
-      for (const transferReceived of transfersReceived) {
-        if (
-          recipient === transferReceived.recipient &&
-          amount === transferReceived.amount &&
-          amountOutMin === transferReceived.amountOutMin &&
-          deadline === transferReceived.deadline &&
-          relayer === transferReceived.relayer &&
-          relayerFee === transferReceived.relayerFee
-        ) {
-          isFound = true
-          break
-        }
 
-        if (isFound) {
+    const missingTransfers: any[] = []
+    const chains = [Chain.Arbitrum]
+    for (const chain of chains) {
+      const transfersReceived = await getTransferFromL1Completed(chain, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+      const receiveHashesFounds: any = {}
+      for (const transferSent of transfersSent) {
+        const { transactionHash, recipient, amount, amountOutMin, deadline, relayer, relayerFee, token, destinationChainId } = transferSent
+        const destinationChain = chainIdToSlug(destinationChainId)
+        if (destinationChain !== chain) {
           continue
-        } else {
+        }
+        let isFound = false
+        for (const transferReceived of transfersReceived) {
+          if (
+            recipient === transferReceived.recipient &&
+            amount === transferReceived.amount &&
+            amountOutMin === transferReceived.amountOutMin &&
+            deadline === transferReceived.deadline &&
+            relayer === transferReceived.relayer &&
+            relayerFee === transferReceived.relayerFee &&
+            !receiveHashesFounds[transferReceived.transactionHash]
+          ) {
+            isFound = true
+            receiveHashesFounds[transferReceived.transactionHash] = true
+            break
+          }
+        }
+        if (!isFound) {
           missingTransfers.push([
             transactionHash,
             token,
@@ -893,11 +901,10 @@ export class HealthCheckWatcher {
     const startDate = endDate.minus({ days: this.days })
     const items = await getUnsetTransferRoots(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     return items.map((item: any) => {
-      const { rootHash, totalAmount, destinationChainId, timestamp } = item
+      const { rootHash, totalAmount, timestamp } = item
       return {
         transferRootHash: rootHash,
         totalAmount,
-        destinationChainId,
         timestamp
       }
     })

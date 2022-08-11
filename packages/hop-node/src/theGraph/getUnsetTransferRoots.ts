@@ -11,8 +11,7 @@ export default async function getUnsetTransferRoots (startDate: number, endDate:
   console.log('fetching bonded roots', Chain.Ethereum, startDate, endDate)
   let items = await getTransferRootBonded(Chain.Ethereum, token, startDate, endDate)
   for (const item of items) {
-    transferRoots[item.transferRootHash] = item
-    transferRoots[item.transferRootHash].rootHash = item.root
+    transferRoots[item.transferRootHash] = { ...item, rootHash: item.root, totalAmount: item.amount }
   }
 
   console.log('fetching confirmed roots', Chain.Ethereum, startDate, endDate)

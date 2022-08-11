@@ -26,8 +26,7 @@ export default async function getTransferRootBonded (
         id
         root
         transactionHash
-        totalAmount
-        destinationChainId
+        amount
         timestamp
       }
     }

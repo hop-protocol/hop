@@ -717,7 +717,9 @@ class HopBridge extends Base {
       adjustedDestinationTxFee = BigNumber.from(0)
       totalFee = BigNumber.from(0)
     } else if (sourceChain.isL1 && relayableChains.includes(destinationChain.slug)) {
-      const relayerFee = bonderFeeRelative
+      adjustedBonderFee = BigNumber.from(0)
+      adjustedDestinationTxFee = BigNumber.from(0)
+      const relayerFee = destinationTxFee
       totalFee = relayerFee
     } else {
       if (isHTokenSend) {
@@ -899,8 +901,7 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    if (sourceChain?.equals(Chain.Ethereum)) {
-      // Any relayer fees are accounted for in the bonderFee
+    if (sourceChain.isL1 && !relayableChains.includes(destinationChain.slug)) {
       return BigNumber.from(0)
     }
 
@@ -933,7 +934,13 @@ class HopBridge extends Base {
     const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[destinationChain.slug]
     const bondTransferGasLimitWithSettlement = bondTransferGasLimit.add(settlementGasLimitPerTx)
 
-    let txFeeEth = gasPrice.mul(bondTransferGasLimitWithSettlement)
+    let txFeeEth: BigNumber
+    if (sourceChain.isL1 && relayableChains.includes(destinationChain.slug)) {
+      txFeeEth = await this.getRelayerFee(destinationChain)
+    } else {
+      txFeeEth = gasPrice.mul(bondTransferGasLimitWithSettlement)
+    }
+
     const oneEth = ethers.utils.parseEther('1')
     const rateBN = ethers.utils.parseUnits(
       rate.toFixed(canonicalToken.decimals),
@@ -2068,12 +2075,9 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    if (sourceChain.isL1 && !relayableChains.includes(destinationChain.slug)) {
+    if (sourceChain.isL1) {
+      // Relayer fees are handled in the destination fee
       return BigNumber.from(0)
-    }
-
-    if (sourceChain.isL1 && relayableChains.includes(destinationChain.slug)) {
-      return this.getRelayerFee(destinationChain)
     }
 
     const hTokenAmount = await this.calcToHTokenAmount(
@@ -2253,17 +2257,12 @@ class HopBridge extends Base {
   }
 
   private async getRelayerFee (destinationChain: TChain) {
-    let gasLimit = BigNumber.from(0)
     if (destinationChain === Chain.Arbitrum) {
-      gasLimit = await this.getArbitrumRelayGasLimit(destinationChain)
+      return this.getArbitrumRelayGasCost(destinationChain)
     }
-
-    destinationChain = this.toChainModel(destinationChain)
-    const gasPrice = await destinationChain.provider.getGasPrice()
-    return gasLimit.mul(gasPrice)
   }
 
-  private async getArbitrumRelayGasLimit (destinationChain: TChain) {
+  private async getArbitrumRelayGasCost (destinationChain: TChain) {
     const sourceChain = this.toChainModel(Chain.Ethereum)
     destinationChain = this.toChainModel(destinationChain)
 
@@ -2296,8 +2295,9 @@ class HopBridge extends Base {
       from: await this.getBonderAddress(sourceChain, destinationChain),
       data: encodedEstimateRetryableTicketData
     }
-
-    const distributionCost = await destinationChain.provider.estimateGas(distributionTx)
+    const distributionGasLimit = await destinationChain.provider.estimateGas(distributionTx)
+    const distributionGasPrice = await destinationChain.provider.getGasPrice()
+    const distributionCost = distributionGasLimit.mul(distributionGasPrice)
 
     return submissionCost.add(redemptionCost).add(distributionCost)
   }
@@ -2342,11 +2342,10 @@ class HopBridge extends Base {
   }
 
   private async _getEncodedEstimateRetryableTicketData (destinationChain: TChain, encodedDistributeData: string): Promise<string> {
-    const sourceChain = this.toChainModel(Chain.Ethereum)
     const messengerWrapperAddress = await this.getMessengerWrapperAddress(destinationChain)
     const sender = messengerWrapperAddress
     const deposit = BigNumber.from(0)
-    const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
+    const l2Bridge = await this.getL2Bridge(destinationChain)
     const to = l2Bridge.address
     const l2CallValue = BigNumber.from(0)
     const excessFeeRefundAddress = ethers.constants.AddressZero

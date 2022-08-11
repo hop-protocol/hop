@@ -1464,7 +1464,7 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (this.chainSlug === Chain.Arbitrum) {
-          const gasLimit = await this._getRelayGasLimit()
+          const gasLimit = await this._getRelayGasCost()
           estimates.push({ gasLimit, transactionType: GasCostTransactionType.Relay })
         }
 
@@ -1508,7 +1508,7 @@ class SyncWatcher extends BaseWatcher {
     return !this.isL1
   }
 
-  private async _getRelayGasLimit (): Promise<BigNumber> {
+  private async _getRelayGasCost (): Promise<BigNumber> {
     const provider = getRpcProvider(this.chainSlug)!
 
     // Submission Cost
@@ -1541,11 +1541,13 @@ class SyncWatcher extends BaseWatcher {
       from: await this.bridge.getBonderAddress(),
       data: encodedEstimateRetryableTicketData
     }
+    const distributionGasLimit = await provider.estimateGas(distributionTx)
+    const distributionGasPrice = await provider.getGasPrice()
+    const distributionCost = distributionGasLimit.mul(distributionGasPrice)
 
-    const distributionCost = await provider.estimateGas(distributionTx)
-
-    this.logger.debug(`_getRelayGasLimit data. submissionCost: ${submissionCost.toString()}, redemptionCost: ${redemptionCost.toString()}, redemptionGasPrice: ${redemptionGasPrice}, distributionCost: ${distributionCost.toString()}`)
-    return submissionCost.add(redemptionCost).add(distributionCost)
+    const totalCost = submissionCost.add(redemptionCost).add(distributionCost)
+    this.logger.debug(`_getRelayGasCost data. totalCost: ${totalCost.toString()}, submissionCost: ${submissionCost.toString()}, redemptionCost: ${redemptionCost.toString()}, redemptionGasPrice: ${redemptionGasPrice}, distributionCost: ${distributionCost.toString()}`)
+    return totalCost
   }
 
   private _calculateRetryableSubmissionFee (dataLength: number, baseFee: BigNumber): BigNumber {

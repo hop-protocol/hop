@@ -375,7 +375,7 @@ class HopBridge extends Base {
         destinationChain: destinationChain,
         sourceChain,
         relayer: options?.relayer ?? ethers.constants.AddressZero,
-        relayerFee: options?.relayerFee ?? 0,
+        relayerFee: options?.relayerFee ?? BigNumber.from(0),
         amount: tokenAmount,
         amountOutMin: options?.amountOutMin ?? 0,
         deadline: options?.deadline,
@@ -597,7 +597,7 @@ class HopBridge extends Base {
       : defaultBonderFee
     const amountOutMin = BigNumber.from(0)
     const deadline = BigNumber.from(0)
-    const relayer = ethers.constants.AddressZero
+    const relayer = await this.getBonderAddress(sourceChain, destinationChain)
 
     if (sourceChain.isL1) {
       if (bonderFee.gt(0)) {
@@ -1837,7 +1837,7 @@ class HopBridge extends Base {
       amountOutMin,
       deadline,
       relayer,
-      relayerFee || 0,
+      relayerFee || BigNumber.from(0),
       {
         ...(await this.txOverrides(Chain.Ethereum)),
         value: isNativeToken ? amount : undefined
@@ -2256,13 +2256,16 @@ class HopBridge extends Base {
     this.priceFeed.setApiKeys(this.priceFeedApiKeys)
   }
 
-  private async getRelayerFee (destinationChain: TChain) {
-    if (destinationChain === Chain.Arbitrum) {
-      return this.getArbitrumRelayGasCost(destinationChain)
-    }
+  private async getRelayerFee (destinationChain: TChain): Promise<BigNumber> {
+    // TODO: Introduce this post-nova
+    // if (destinationChain === Chain.Arbitrum) {
+    //   return this.getArbitrumRelayGasCost(destinationChain)
+    // }
+
+    return BigNumber.from(0)
   }
 
-  private async getArbitrumRelayGasCost (destinationChain: TChain) {
+  private async getArbitrumRelayGasCost (destinationChain: TChain): Promise<BigNumber> {
     const sourceChain = this.toChainModel(Chain.Ethereum)
     destinationChain = this.toChainModel(destinationChain)
 

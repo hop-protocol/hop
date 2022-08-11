@@ -373,8 +373,8 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
 
     const minTxFee = gasCostInToken.div(2)
     if (transactionType === GasCostTransactionType.Relay) {
-      const isRedemptionFeeOk = relayerFee!.gte(minTxFee)
-      return isRedemptionFeeOk
+      const isRelayFeeOk = relayerFee!.gte(minTxFee)
+      return isRelayFeeOk
     }
 
     minBonderFeeAbsolute = onChainBonderFeeAbsolute.gt(minBonderFeeAbsolute) ? onChainBonderFeeAbsolute : minBonderFeeAbsolute

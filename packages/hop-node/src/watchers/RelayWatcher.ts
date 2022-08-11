@@ -170,7 +170,7 @@ class RelayWatcher extends BaseWatcher {
     if (isReceivingNativeToken) {
       logger.debug('checkTransferSentToL2 getIsRecipientReceivable')
       const isRecipientReceivable = await this.getIsRecipientReceivable(recipient, destBridge, logger)
-      logger.debug(`processing redemption. isRecipientReceivable: ${isRecipientReceivable}`)
+      logger.debug(`processing relay. isRecipientReceivable: ${isRecipientReceivable}`)
       if (!isRecipientReceivable) {
         logger.warn('recipient cannot receive transfer. marking item not relayable')
         await this.db.transfers.update(transferId, { isRelayable: false })
@@ -183,7 +183,7 @@ class RelayWatcher extends BaseWatcher {
       return
     }
 
-    logger.debug('attempting to send redemption tx')
+    logger.debug('attempting to send relay tx')
 
     await this.db.transfers.update(transferId, {
       relayAttemptedAt: Date.now()
@@ -198,7 +198,7 @@ class RelayWatcher extends BaseWatcher {
         throw new RelayerFeeTooLowError(msg)
       }
 
-      logger.debug('checkTransferSentToL2 sentRedemptionTx')
+      logger.debug('checkTransferSentToL2 sendRelayTx')
       const tx = await this.sendTransferRelayTx({
         transferId,
         destinationChainId,
@@ -221,7 +221,7 @@ class RelayWatcher extends BaseWatcher {
         transferFromL1CompleteTxHash: tx.hash
       })
 
-      const msg = `sent redemption on ${destinationChainId} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
+      const msg = `sent relay on ${destinationChainId} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err: any) {
@@ -231,7 +231,7 @@ class RelayWatcher extends BaseWatcher {
         transferFromL1CompleteTxHash: undefined
       })
 
-      logger.error('redemptionTx error:', err.message)
+      logger.error('relayTx error:', err.message)
       const isUnrelayableError = /Blacklistable: account is blacklisted/i.test(err.message)
       if (isUnrelayableError) {
         logger.debug(`marking as unrelayable due to error: ${err.message}`)

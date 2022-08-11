@@ -1464,7 +1464,9 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (this.chainSlug === Chain.Arbitrum) {
-          const gasLimit = await this._getRelayGasCost()
+          // TODO: Introduce this post-nova
+          // const gasLimit = await this._getRelayGasCost()
+          const gasLimit = BigNumber.from(0)
           estimates.push({ gasLimit, transactionType: GasCostTransactionType.Relay })
         }
 

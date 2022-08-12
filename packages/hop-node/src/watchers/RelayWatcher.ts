@@ -4,6 +4,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import isNativeToken from 'src/utils/isNativeToken'
 import { GasCostTransactionType, TxError } from 'src/constants'
+import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayableTransferRoots } from 'src/db/TransferRootsDb'
@@ -16,7 +17,7 @@ import { relayTransactionBatchSize } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  bridgeContract: L2BridgeContract
+  bridgeContract: L1BridgeContract | L2BridgeContract
   dryMode?: boolean
 }
 

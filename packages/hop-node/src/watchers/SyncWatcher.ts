@@ -1519,7 +1519,7 @@ class SyncWatcher extends BaseWatcher {
     return !this.isL1
   }
 
-  private async getRelayerFee (destinationChain: TChain): Promise<BigNumber> {
+  private async getRelayerFee (destinationChain: Chain): Promise<BigNumber> {
     // TODO: Introduce this post-nitro
     // if (destinationChain === Chain.Arbitrum) {
     //   return this.getArbitrumRelayGasCost(destinationChain)

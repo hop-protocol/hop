@@ -40,7 +40,7 @@ export default async function getTransferSentToL2 (
     token,
     startDate,
     endDate,
-    lastId: lastId
+    lastId
   })
   let transfers = jsonRes.transferSentToL2S.map((x: any) => normalizeEntity(x))
 

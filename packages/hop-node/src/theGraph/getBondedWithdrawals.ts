@@ -36,7 +36,7 @@ export default async function getBondedWithdrawals (
   const jsonRes = await makeRequest(chain, query, {
     token,
     bonder,
-    lastId: lastId
+    lastId
   })
   let withdrawals = jsonRes.withdrawalBondeds.map((x: any) => normalizeEntity(x))
 

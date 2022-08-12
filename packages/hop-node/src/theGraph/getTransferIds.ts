@@ -49,7 +49,7 @@ export default async function getTransferIds (
     startDate: 0,
     endDate: MaxInt32,
     destinationChainId: 0,
-    lastId: lastId
+    lastId
   }
   if (filters.startDate) {
     variables.startDate = DateTime.fromISO(filters.startDate).toSeconds() >>> 0

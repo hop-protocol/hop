@@ -28,7 +28,7 @@ export default async function getMultipleWithdrawalsSettled (
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    lastId: lastId
+    lastId
   })
   let withdrawalsSettled = jsonRes.multipleWithdrawalsSettleds.map((x: any) => normalizeEntity(x))
 

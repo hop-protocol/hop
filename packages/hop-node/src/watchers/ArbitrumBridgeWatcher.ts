@@ -2,8 +2,8 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
+import { IL1ToL2MessageWriter, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Wallet, providers } from 'ethers'
 
@@ -102,12 +102,12 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     return await l1ToL2Message.redeem()
   }
 
-  async getL1ToL2Message (l1TxHash: string, messageIndex: number = 0): Promise<any> {
+  async getL1ToL2Message (l1TxHash: string, messageIndex: number = 0): Promise<IL1ToL2MessageWriter> {
     const l1ToL2Messages = await this.getL1ToL2Messages(l1TxHash)
     return l1ToL2Messages[messageIndex]
   }
 
-  async getL1ToL2Messages (l1TxHash: string): Promise<any[]> {
+  async getL1ToL2Messages (l1TxHash: string): Promise<IL1ToL2MessageWriter[]> {
     const txReceipt = await this.l1Wallet.provider.getTransactionReceipt(l1TxHash)
     const l1TxnReceipt = new L1TransactionReceipt(txReceipt)
     return l1TxnReceipt.getL1ToL2Messages(this.l2Wallet)

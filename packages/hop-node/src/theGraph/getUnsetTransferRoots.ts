@@ -30,7 +30,7 @@ export default async function getUnsetTransferRoots (startDate: number, endDate:
       setTransferRoots[item.transferRootHash] = item
     }
   }
-  const unsetTransferRoots: Record<string, any> = []
+  const unsetTransferRoots: Record<string, any> = {}
   for (const transferRootHash in transferRoots) {
     if (!setTransferRoots[transferRootHash]) {
       unsetTransferRoots[transferRootHash] = transferRoots[transferRootHash]

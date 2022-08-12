@@ -29,7 +29,7 @@ export default async function getUnstake (
   const jsonRes = await makeRequest(chain, query, {
     token,
     bonder,
-    lastId: lastId
+    lastId
   })
   let unstakes = jsonRes.unstakes.map((x: any) => normalizeEntity(x))
 

@@ -855,6 +855,9 @@ export class HealthCheckWatcher {
     const chains = [Chain.Arbitrum]
     for (const chain of chains) {
       const transfersReceived = await getTransferFromL1Completed(chain, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+
+      // L1 to L2 transfers don't have a unique identifier from the perspective of the L1 event, so we need to track which L2 hashes have been observed
+      // and can use that to filter out duplicates.
       const receiveHashesFounds: any = {}
       for (const transferSent of transfersSent) {
         const { transactionHash, recipient, amount, amountOutMin, deadline, relayer, relayerFee, token, destinationChainId } = transferSent
@@ -897,7 +900,7 @@ export class HealthCheckWatcher {
 
   async getUnsetTransferRoots (): Promise<UnsetTransferRoots[]> {
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ days: 1 })
+    const endDate = now.minus({ hours: 1 })
     const startDate = endDate.minus({ days: this.days })
     const items = await getUnsetTransferRoots(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     return items.map((item: any) => {

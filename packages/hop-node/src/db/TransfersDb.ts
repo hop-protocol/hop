@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, RelayableChains, TimeFromL1ToL2Ms, TxError } from 'src/constants'
-import { isNitroLive, nitroStartTimestamp, TxRetryDelayMs } from 'src/config'
+import { TxRetryDelayMs, isNitroLive, nitroStartTimestamp } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransfer {
@@ -91,8 +91,6 @@ export type UnrelayedSentTransfer = {
   amount: BigNumber
   relayer: string
   relayerFee: BigNumber
-  amountOutMin: BigNumber
-  deadline: BigNumber
   transferSentTxHash: string
   transferSentTimestamp: number
   transferSentLogIndex: number
@@ -498,7 +496,7 @@ class TransfersDb extends BaseDb {
         return false
       }
 
-      // TODO: Remove this post-nitro
+      // TODO: Remove this one week post-nitro
       if (item.transferSentTimestamp && item.transferSentTimestamp < nitroStartTimestamp) {
         return false
       }

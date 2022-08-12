@@ -772,7 +772,8 @@ export default class Bridge extends ContractBase {
 
     let gasCost: BigNumber = BigNumber.from('0')
     if (transactionType === GasCostTransactionType.Relay) {
-      gasCost = gasLimit.mul(gasPrice)
+      // Relay transactions use the gasLimit as the gasCost
+      gasCost = gasLimit
     } else {
       // Arbitrum returns a gasLimit & gasPriceBid that exceeds the actual used.
       // The values change as they collect more data. 2x here is generous but they should never go under this.

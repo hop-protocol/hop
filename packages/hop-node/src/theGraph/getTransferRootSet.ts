@@ -26,7 +26,7 @@ export default async function getTransferRootSet (
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    lastId: lastId
+    lastId
   })
   let transferRoot = jsonRes.transferRootSets.map((x: any) => normalizeEntity(x))
 

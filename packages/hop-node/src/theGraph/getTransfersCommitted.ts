@@ -31,7 +31,7 @@ export default async function getTransfersCommitted (
     token,
     startTimestamp,
     destinationChainId,
-    lastId: lastId
+    lastId
   })
   let transfersCommitted = jsonRes.transfersCommitteds.map((x: any) => normalizeEntity(x))
 

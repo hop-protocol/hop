@@ -35,7 +35,7 @@ export default async function getTransferRoots (
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    lastId: lastId
+    lastId
   })
 
   let roots = jsonRes.transfersCommitteds.map((x: any) => normalizeEntity(x))

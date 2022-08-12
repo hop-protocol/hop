@@ -10,7 +10,7 @@ import {
   RootSetSettleDelayMs,
   TimeFromL1ToL2Ms
 } from 'src/constants'
-import { isNitroLive, nitroStartTimestamp, TxRetryDelayMs, oruChains } from 'src/config'
+import { TxRetryDelayMs, isNitroLive, nitroStartTimestamp, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransferRoot {
@@ -585,22 +585,26 @@ class TransferRootsDb extends BaseDb {
         return false
       }
 
-      const destinationChain = chainIdToSlug(item?.destinationChainId)
+      if (item.isNotFound) {
+        return false
+      }
+
+      const destinationChain = chainIdToSlug(item.destinationChainId)
       if (!RelayableChains.includes(destinationChain)) {
         return false
       }
 
-      // TODO: Remove this post-nitro
+      // TODO: Remove this one week post-nitro
       if (item.bondedAt && item.bondedAt < nitroStartTimestamp) {
         return false
       }
 
-      // TODO: Remove this post-nitro
+      // TODO: Remove this one week post-nitro
       if (item.confirmedAt && item.confirmedAt < nitroStartTimestamp) {
         return false
       }
 
-      const isSeenOnL1 = item?.confirmed ?? item?.bonded
+      const isSeenOnL1 = item?.bonded ?? item?.confirmed
 
       let sentTxTimestampOk = true
       if (item.sentRelayTxAt) {

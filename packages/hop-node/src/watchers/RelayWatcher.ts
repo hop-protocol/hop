@@ -2,10 +2,8 @@ import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
-import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isNativeToken from 'src/utils/isNativeToken'
 import { GasCostTransactionType, TxError } from 'src/constants'
-import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayableTransferRoots } from 'src/db/TransferRootsDb'
@@ -18,13 +16,15 @@ import { relayTransactionBatchSize } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  bridgeContract: L1BridgeContract | L2BridgeContract
+  bridgeContract: L2BridgeContract
   dryMode?: boolean
 }
 
+type RelayWatchers = ArbitrumBridgeWatcher
+
 class RelayWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: RelayWatcher }
-  relayWatcher: ArbitrumBridgeWatcher
+  relayWatcher: RelayWatchers
 
   constructor (config: Config) {
     super({
@@ -46,8 +46,8 @@ class RelayWatcher extends BaseWatcher {
     if (this.isL1) {
       return
     }
-    const promises: Array<Promise<any>> = []
 
+    const promises: Array<Promise<any>> = []
     promises.push(
       this.checkTransferSentToL2FromDb(),
       this.checkRelayableTransferRootsFromDb()
@@ -128,8 +128,6 @@ class RelayWatcher extends BaseWatcher {
       amount,
       relayer,
       relayerFee,
-      amountOutMin,
-      deadline,
       transferSentTimestamp,
       transferSentTxHash
     } = dbTransfer
@@ -202,12 +200,6 @@ class RelayWatcher extends BaseWatcher {
       const tx = await this.sendTransferRelayTx({
         transferId,
         destinationChainId,
-        recipient,
-        amount,
-        amountOutMin,
-        deadline,
-        relayer,
-        relayerFee,
         transferSentTxHash,
         messageIndex
       })
@@ -331,22 +323,10 @@ class RelayWatcher extends BaseWatcher {
     const {
       transferId,
       destinationChainId,
-      recipient,
-      amount,
-      amountOutMin,
-      deadline,
-      relayer,
-      relayerFee,
       transferSentTxHash,
-      logIndex,
       messageIndex
     } = params
     const logger = this.logger.create({ id: transferId })
-    const calculatedTransferId = getTransferSentToL2TransferId(destinationChainId, recipient, amount, amountOutMin, deadline, relayer, relayerFee, transferSentTxHash, logIndex)
-    const doesExistInDb = !!(await this.db.transfers.getByTransferId(calculatedTransferId))
-    if (!doesExistInDb) {
-      throw new Error(`Calculated transferId (${calculatedTransferId}) does not match transferId in db`)
-    }
 
     logger.debug(
       `relay transfer destinationChainId: ${destinationChainId} with messageIndex ${messageIndex}`
@@ -370,28 +350,32 @@ class RelayWatcher extends BaseWatcher {
 
   async getMessageIndex (transferId: string, transferSentTxHash: string, transferSentTimestamp: number): Promise<number> {
     // We need to deterministically order all the messages in an L1 tx, even if they have already been relayed
+
+    // Get all the transfers at the same time so we can get the messageIndex for each one
     const dateFilter = {
       fromUnix: transferSentTimestamp,
       toUnix: transferSentTimestamp
     }
     const transfers: Transfer[] = await this.db.transfers.getTransfers(dateFilter)
 
+    // Get all transfers within the same L1 tx and store their log index
     const logIndicesPerTransferId: Record<string, number> = {}
     for (const transfer of transfers) {
       if (transfer.transferSentTxHash !== transferSentTxHash) continue
       logIndicesPerTransferId[transfer.transferId] = transfer.transferSentLogIndex!
     }
 
+    // Sort the transfers by their log index
     const entries = Object.entries(logIndicesPerTransferId)
     const sortedTransferIdsAndIndices = entries.sort((a, b) => a[1] - b[1])
 
-    let count = 0
+    let index = 0
     for (const sortedTransferIdAndIndex of sortedTransferIdsAndIndices) {
       if (sortedTransferIdAndIndex[0] === transferId) break
-      count++
+      index++
     }
 
-    return count
+    return index
   }
 }
 

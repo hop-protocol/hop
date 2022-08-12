@@ -11,7 +11,7 @@ export default async function getTransferFromL1Completed (
   lastId: string = constants.AddressZero
 ) {
   const query = `
-    query TransferFromL1Completeds(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {
+    query TransferFromL1Completed(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {
       transferFromL1Completeds(
         where: {
           ${token ? 'token: $token,' : ''}
@@ -38,7 +38,7 @@ export default async function getTransferFromL1Completed (
     token,
     startDate,
     endDate,
-    lastId: lastId
+    lastId
   })
   let transfers = jsonRes.transferFromL1Completeds.map((x: any) => normalizeEntity(x))
 

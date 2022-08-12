@@ -363,7 +363,17 @@ class SyncWatcher extends BaseWatcher {
       relayerFee
     } = event.args
     const { transactionHash, logIndex } = event
-    const transferId = getTransferSentToL2TransferId(Number(destinationChainIdBn), recipient, amount, amountOutMin, deadline, relayer, relayerFee, transactionHash, logIndex)
+    const transferId = getTransferSentToL2TransferId(
+      Number(destinationChainIdBn.toString()),
+      recipient,
+      amount,
+      amountOutMin,
+      deadline,
+      relayer,
+      relayerFee,
+      transactionHash,
+      logIndex
+    )
     const logger = this.logger.create({ id: transferId })
     logger.debug('handling TransferSentToL2 event')
 
@@ -398,10 +408,10 @@ class SyncWatcher extends BaseWatcher {
         recipient,
         amount,
         amountOutMin,
-        isRelayable,
         deadline,
         relayer,
         relayerFee,
+        isRelayable,
         transferSentTxHash: transactionHash,
         transferSentBlockNumber: blockNumber,
         transferSentLogIndex: logIndex
@@ -1465,9 +1475,7 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (this.chainSlug === Chain.Arbitrum) {
-          // TODO: Introduce this post-nitro
-          // const gasLimit = await this._getRelayGasCost()
-          const gasLimit = BigNumber.from(0)
+          const gasLimit = await this._getRelayGasCost()
           estimates.push({ gasLimit, transactionType: GasCostTransactionType.Relay })
         }
 
@@ -1511,7 +1519,24 @@ class SyncWatcher extends BaseWatcher {
     return !this.isL1
   }
 
+  private async getRelayerFee (destinationChain: TChain): Promise<BigNumber> {
+    // TODO: Introduce this post-nitro
+    // if (destinationChain === Chain.Arbitrum) {
+    //   return this.getArbitrumRelayGasCost(destinationChain)
+    // }
+
+    return BigNumber.from(0)
+  }
+
   private async _getRelayGasCost (): Promise<BigNumber> {
+    if (this.chainSlug === Chain.Arbitrum) {
+      return this._getArbitrumRelayGasCost()
+    }
+
+    throw new Error('Unsupported relay chain')
+  }
+
+  private async _getArbitrumRelayGasCost (): Promise<BigNumber> {
     const provider = getRpcProvider(this.chainSlug)!
 
     // Submission Cost

@@ -36,7 +36,7 @@ export default async function getTransferRootConfirmed (
     token,
     startDate,
     endDate,
-    lastId: lastId
+    lastId
   })
   let transferRoots = jsonRes.transferRootConfirmeds.map((x: any) => normalizeEntity(x))
 

@@ -35,7 +35,7 @@ export default async function getTransferRootBonded (
     token,
     startDate,
     endDate,
-    lastId: lastId
+    lastId
   })
   let transferRoots = jsonRes.transferRootBondeds.map((x: any) => normalizeEntity(x))
 

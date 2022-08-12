@@ -277,13 +277,15 @@ class RelayWatcher extends BaseWatcher {
     const {
       transferRootHash,
       totalAmount,
-      destinationChainId
+      destinationChainId,
+      bondTxHash,
+      confirmTxHash
     } = dbTransferRoot
 
     const logger = this.logger.create({ root: transferRootId })
 
-    // bondedTxHash should be checked first because a root can have both but it should be bonded prior to being confirmed
-    const l1TxHash = dbTransferRoot?.bondTxHash ?? dbTransferRoot?.confirmTxHash
+    // bondTxHash should be checked first because a root can have both but it should be bonded prior to being confirmed
+    const l1TxHash = bondTxHash ?? confirmTxHash
 
     logger.debug('processing transfer root relay')
     logger.debug('transferRootHash:', transferRootHash)

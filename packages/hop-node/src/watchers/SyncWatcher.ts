@@ -369,8 +369,9 @@ class SyncWatcher extends BaseWatcher {
 
     try {
       const blockNumber: number = event.blockNumber
+      const l1Bridge = this.bridge as L1Bridge
+      const sourceChainId = await l1Bridge.getChainId()
       const destinationChainId = Number(destinationChainIdBn.toString())
-      const sourceChainId = 1
       const isRelayable = this.getIsRelayable(relayerFee)
 
       logger.debug('sourceChainId:', sourceChainId)
@@ -1464,7 +1465,7 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (this.chainSlug === Chain.Arbitrum) {
-          // TODO: Introduce this post-nova
+          // TODO: Introduce this post-nitro
           // const gasLimit = await this._getRelayGasCost()
           const gasLimit = BigNumber.from(0)
           estimates.push({ gasLimit, transactionType: GasCostTransactionType.Relay })

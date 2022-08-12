@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, RelayableChains, TimeFromL1ToL2Ms, TxError } from 'src/constants'
-import { TxRetryDelayMs } from 'src/config'
+import { isNitroLive, nitroStartTimestamp, TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransfer {
@@ -467,6 +467,11 @@ class TransfersDb extends BaseDb {
   async getUnrelayedSentTransfers (
     filter: GetItemsFilter = {}
   ): Promise<UnrelayedSentTransfer[]> {
+    // TODO: Remove this post-nitro
+    if (!isNitroLive) {
+      return []
+    }
+
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     const filtered = transfers.filter(item => {
       if (!item?.transferId) {
@@ -490,6 +495,11 @@ class TransfersDb extends BaseDb {
       }
 
       if (!RelayableChains.includes(item.destinationChainSlug)) {
+        return false
+      }
+
+      // TODO: Remove this post-nitro
+      if (item.transferSentTimestamp && item.transferSentTimestamp < nitroStartTimestamp) {
         return false
       }
 

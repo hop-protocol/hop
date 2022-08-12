@@ -10,7 +10,7 @@ import {
   RootSetSettleDelayMs,
   TimeFromL1ToL2Ms
 } from 'src/constants'
-import { TxRetryDelayMs, oruChains } from 'src/config'
+import { isNitroLive, nitroStartTimestamp, TxRetryDelayMs, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransferRoot {
@@ -567,6 +567,10 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<RelayableTransferRoots[]> {
     await this.tilReady()
+    // TODO: Remove this post-nitro
+    if (!isNitroLive) {
+      return []
+    }
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
@@ -583,6 +587,16 @@ class TransferRootsDb extends BaseDb {
 
       const destinationChain = chainIdToSlug(item?.destinationChainId)
       if (!RelayableChains.includes(destinationChain)) {
+        return false
+      }
+
+      // TODO: Remove this post-nitro
+      if (item.bondedAt && item.bondedAt < nitroStartTimestamp) {
+        return false
+      }
+
+      // TODO: Remove this post-nitro
+      if (item.confirmedAt && item.confirmedAt < nitroStartTimestamp) {
         return false
       }
 

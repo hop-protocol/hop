@@ -58,6 +58,11 @@ export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 export const minEthBonderFeeBn = parseEther('0.00001')
 export const pendingCountCommitThreshold = 256
 
+// TODO: Remove this post-nitro
+export const isNitroLive = process.env.IS_NITRO_LIVE ?? false
+// TODO: Remove this post-nitro
+export const nitroStartTimestamp = process.env.NITRO_START_TIMESTAMP ?? 0
+
 type SyncConfig = {
   totalBlocks?: number
   batchBlocks?: number

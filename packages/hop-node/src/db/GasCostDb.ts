@@ -67,7 +67,7 @@ class GasCostDb extends BaseDb {
   }
 
   async addGasCost (data: GasCost) {
-    const key = `${data.chain}:${data.token}:${data.timestamp}:${Number(data.transactionType)}`
+    const key = `${data.chain}:${data.token}:${data.timestamp}:${data.transactionType}`
     await this.update(key, data)
     this.logger.debug(`updated db gasCost item. ${JSON.stringify(data)}`)
   }

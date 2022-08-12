@@ -3,13 +3,13 @@ import {
   getXDomainMessageRelayWatcher
 } from 'src/watchers/watchers'
 
-import { actionHandler, parseString, parseStringArray, root } from './shared'
+import { actionHandler, parseNumber, parseString, parseStringArray, root } from './shared'
 
 root
   .command('retry-arb-ticket')
   .description('Retry a stuck Arbitrum ticket')
   .option('--token <symbol>', 'Token', parseString)
-  .option('--message-index <number>', 'Message index of redemption transaction', parseString)
+  .option('--message-index <number>', 'Message index of redemption transaction', parseNumber)
   .option('--tx-hashes <hash, ...>', 'Comma-separated L1 tx hashes', parseStringArray)
   .action(actionHandler(main))
 

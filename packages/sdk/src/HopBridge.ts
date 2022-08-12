@@ -2257,7 +2257,7 @@ class HopBridge extends Base {
   }
 
   private async getRelayerFee (destinationChain: TChain): Promise<BigNumber> {
-    // TODO: Introduce this post-nova
+    // TODO: Introduce this post-nitro
     // if (destinationChain === Chain.Arbitrum) {
     //   return this.getArbitrumRelayGasCost(destinationChain)
     // }

@@ -1,4 +1,5 @@
 import Logger, { setLogLevel } from 'src/logger'
+import fetch from 'node-fetch'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -244,11 +245,17 @@ export async function setGlobalConfigFromConfigFile (
       config.blocklist.addresses = {}
     }
     if (config.blocklist.path) {
-      const filepath = path.resolve(config.blocklist.path)
-      if (!fs.existsSync(filepath)) {
-        throw new Error(`blocklist filepath "${filepath}" does not exist`)
+      let data = ''
+      if (config.blocklist.path.startsWith('http')) {
+        const res = await fetch(config.blocklist.path)
+        data = await res.text()
+      } else {
+        const filepath = path.resolve(config.blocklist.path)
+        if (!fs.existsSync(filepath)) {
+          throw new Error(`blocklist filepath "${filepath}" does not exist`)
+        }
+        data = fs.readFileSync(filepath, 'utf8')
       }
-      const data = fs.readFileSync(filepath, 'utf8')
       const list = data.split('\n').filter(x => x)
       for (const address of list) {
         config.blocklist.addresses[address.toLowerCase()] = true

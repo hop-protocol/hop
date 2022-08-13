@@ -251,7 +251,7 @@ class AMM extends Base {
   public async calculateAddLiquidityMinimum (
     amount0: TAmount,
     amount1: TAmount
-  ) {
+  ): Promise<BigNumber> {
     const amounts = [amount0, amount1]
     const saddleSwap = await this.getSaddleSwap()
     const recipient = await this.getSignerAddress()

@@ -370,19 +370,27 @@ const PoolsProvider: FC = ({ children }) => {
       if (token0Amount || token1Amount) {
         let amount0 = 0
         let amount1 = 0
+        let token0AmountBn = BigNumber.from(0)
+        let token1AmountBn = BigNumber.from(0)
 
         const reserve0 = Number(formatUnits(poolReserves[0]?.toString(), canonicalToken?.decimals))
         const reserve1 = Number(formatUnits(poolReserves[1]?.toString(), canonicalToken.decimals))
 
         if (token0Amount) {
-          amount0 = (Number(token0Amount) * Number(totalSupply)) / reserve0
+          token0AmountBn = parseUnits(token0Amount?.toString(), canonicalToken?.decimals)
+          amount0 = Number(token0Amount)
         }
         if (token1Amount) {
-          amount1 = (Number(token1Amount) * Number(totalSupply)) / reserve1
+          token1AmountBn = parseUnits(token1Amount?.toString(), canonicalToken?.decimals)
+          amount1 = Number(token1Amount)
         }
         const liquidity = amount0 + amount1
+        const bridge = sdk.bridge(canonicalToken.symbol)
+        const amm = bridge.getAmm(selectedNetwork.slug)
+        const lpTokensForDepositBn = await amm.calculateAddLiquidityMinimum(token0AmountBn, token1AmountBn)
+        const lpTokensForDeposit = Number(formatUnits(lpTokensForDepositBn.toString(), TOTAL_AMOUNTS_DECIMALS))
         const sharePercentage = Math.max(
-          Math.min(Number(((liquidity / (Number(totalSupply) + liquidity)) * 100).toFixed(2)), 100),
+          Math.min(Number(((liquidity / (Number(totalSupply) + lpTokensForDeposit)) * 100).toFixed(2)), 100),
           0
         )
         setPoolSharePercentage((sharePercentage || '0').toString())

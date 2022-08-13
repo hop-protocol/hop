@@ -35,6 +35,7 @@ interface BaseTransfer {
   withdrawalBonded?: boolean
   withdrawalBondedTxHash?: string
   withdrawalBonder?: string
+  sender?: string
 }
 
 export interface Transfer extends BaseTransfer {
@@ -172,7 +173,8 @@ class SubDbIncompletes extends BaseDb {
       !item.transferSentBlockNumber ||
       (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
       (item.withdrawalBondedTxHash && !item.withdrawalBonder) ||
-      (item.withdrawalBondSettledTxHash && !item.withdrawalBondSettled)
+      (item.withdrawalBondSettledTxHash && !item.withdrawalBondSettled) ||
+      (!item.sender)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }

@@ -14,6 +14,7 @@ import { toTokenDisplay } from 'src/utils'
 import { formatError } from 'src/utils/format'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
+import InfoTooltip from 'src/components/InfoTooltip'
 
 interface Token {
   symbol: string
@@ -250,7 +251,7 @@ export function RewardsWidget(props: Props) {
       {!!claimRecipient && (
         <Box>
           <Box mb={2}>
-            <Typography variant="h6">{title}</Typography>
+            <Typography variant="h6">{title} <InfoTooltip title={<><div>Merkle rewards</div><div>Latest root: {latestRoot}</div><div>published root: {onchainRoot}</div></>} /></Typography>
           </Box>
           {loading && (
             <Box mb={4} display="flex" flexDirection="column" justifyContent="center" textAlign="center">
@@ -261,10 +262,10 @@ export function RewardsWidget(props: Props) {
           )}
           <Box mb={4} display="flex" flexDirection="column" justifyContent="center" textAlign="center">
             <Typography variant="body1">
-              Claimable: <strong>{claimableAmountDisplay} {tokenSymbol}</strong>
+              Claimable: <strong>{claimableAmountDisplay} {tokenSymbol}</strong> <InfoTooltip title={'Tokens that can be claimed now'} />
             </Typography>
             <Typography variant="body1">
-              Locked: {unclaimableAmountDisplay} {tokenSymbol}
+              Locked: {unclaimableAmountDisplay} {tokenSymbol} <InfoTooltip title={'Tokens that will be claimable once merkle root is published on-chain'} />
             </Typography>
           </Box>
           <Box mb={2}>

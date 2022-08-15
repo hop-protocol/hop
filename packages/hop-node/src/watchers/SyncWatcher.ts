@@ -719,7 +719,9 @@ class SyncWatcher extends BaseWatcher {
 
     const isBlocklisted = this.getIsBlocklisted([from, recipient])
     if (isBlocklisted) {
-      logger.warn(`transfer is unbondable because sender or recipient is in blocklist. transferId: ${transferId}, sender: ${from}, recipient: ${recipient}`)
+      const msg = `transfer is unbondable because sender or recipient is in blocklist. transferId: ${transferId}, sender: ${from}, recipient: ${recipient}`
+      logger.warn(msg)
+      this.notifier.warn(msg)
       await this.db.transfers.update(transferId, {
         isBondable: false
       })

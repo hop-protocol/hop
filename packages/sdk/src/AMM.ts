@@ -4,6 +4,7 @@ import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
 import { DateTime } from 'luxon'
+import { Swap } from '@hop-protocol/core/contracts/Swap'
 import { Swap__factory } from '@hop-protocol/core/contracts/factories/Swap__factory'
 import { TAmount, TChain, TProvider } from './types'
 import { TokenIndex, TokenSymbol } from './constants'
@@ -250,7 +251,7 @@ class AMM extends Base {
   public async calculateAddLiquidityMinimum (
     amount0: TAmount,
     amount1: TAmount
-  ) {
+  ): Promise<BigNumber> {
     const amounts = [amount0, amount1]
     const saddleSwap = await this.getSaddleSwap()
     const recipient = await this.getSignerAddress()
@@ -327,7 +328,7 @@ class AMM extends Base {
    * @param {Object} chain - Chain name or model
    * @returns {Object} Ethers contract instance.
    */
-  public async getSaddleSwap () {
+  public async getSaddleSwap (): Promise<Swap> {
     const saddleSwapAddress = this.getL2SaddleSwapAddress(
       this.tokenSymbol,
       this.chain
@@ -349,30 +350,38 @@ class AMM extends Base {
     return Number(formatUnits(swapFee.toString(), poolFeePrecision))
   }
 
-  public async getApr () {
+  public async getAprForDay (unixTimestamp: number): Promise<any> {
     const token = this.toTokenModel(this.tokenSymbol)
     const provider = this.chain.provider
     const saddleSwap = await this.getSaddleSwap()
-    const [reserve0, reserve1, data, block] = await Promise.all([
-      saddleSwap.getTokenBalance(0),
-      saddleSwap.getTokenBalance(1),
-      saddleSwap.swapStorage(),
-      provider.getBlock('latest')
-    ])
-
-    const endBlockNumber = block.number
-    let startBlockNumber: number
 
     const blockDater = new BlockDater(provider)
-    const currentTimestamp = block.timestamp
-    const date = DateTime.fromSeconds(currentTimestamp)
+    const date = DateTime.fromSeconds(unixTimestamp)
+    const info = await blockDater.getDate(date.toJSDate())
+    if (!info) {
+      throw new Error('could not retrieve block number from timestamp')
+    }
+    const endBlockNumber = info.block - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
+
+    const callOverrides = {
+      blockTag: endBlockNumber
+    }
+
+    const [reserve0, reserve1, data] = await Promise.all([
+      saddleSwap.getTokenBalance(0, callOverrides),
+      saddleSwap.getTokenBalance(1, callOverrides),
+      saddleSwap.swapStorage(callOverrides)
+    ])
+
+    const startBlockDater = new BlockDater(provider)
+    const startDate = DateTime.fromSeconds(unixTimestamp)
       .minus({ days: 1 })
       .toJSDate()
-    const info = await blockDater.getDate(date)
-    if (!info) {
+    const startInfo = await startBlockDater.getDate(startDate)
+    if (!startInfo) {
       throw new Error('could not retrieve block number from 24 hours ago')
     }
-    startBlockNumber = info.block
+    let startBlockNumber = startInfo.block
 
     const tokenSwapEvents: any[] = []
     const perBatch = 1000
@@ -415,7 +424,32 @@ class AMM extends Base {
       formatUnits(totalLiquidity, decimals)
     )
     const totalFeesFormatted = Number(formatUnits(totalFees, decimals))
-    return (totalFeesFormatted * 365) / totalLiquidityFormatted
+
+    return { totalFeesFormatted, totalLiquidityFormatted }
+  }
+
+  public async getApr (days: number = 1) {
+    if (![1, 7, 30].includes(days)) {
+      throw new Error('invalid arg: valid days are: 1, 7, 30')
+    }
+
+    const provider = this.chain.provider
+    const block = await provider.getBlock('latest')
+    const endTimestamp = block.timestamp
+    const startTimestamp = DateTime.fromSeconds(endTimestamp)
+      .minus({ days })
+      .toSeconds()
+
+    const { totalFeesFormatted: feesEarnedToday, totalLiquidityFormatted: totalLiquidityToday } = await this.getAprForDay(endTimestamp)
+
+    let feesEarnedDaysAgo = 0
+    if (days > 1) {
+      ;({ totalFeesFormatted: feesEarnedDaysAgo } = await this.getAprForDay(startTimestamp))
+    }
+
+    const apr = ((feesEarnedToday - feesEarnedDaysAgo) / (days / 365)) / totalLiquidityToday
+
+    return Math.max(apr, 0)
   }
 
   public async getVirtualPrice () {

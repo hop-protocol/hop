@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
 import { OneWeekMs, TxError } from 'src/constants'
-import { TxRetryDelayMs, minEthBonderFeeBn } from 'src/config'
+import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransfer {
@@ -35,6 +35,7 @@ interface BaseTransfer {
   withdrawalBonded?: boolean
   withdrawalBondedTxHash?: string
   withdrawalBonder?: string
+  sender?: string
 }
 
 export interface Transfer extends BaseTransfer {
@@ -172,7 +173,8 @@ class SubDbIncompletes extends BaseDb {
       !item.transferSentBlockNumber ||
       (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
       (item.withdrawalBondedTxHash && !item.withdrawalBonder) ||
-      (item.withdrawalBondSettledTxHash && !item.withdrawalBondSettled)
+      (item.withdrawalBondSettledTxHash && !item.withdrawalBondSettled) ||
+      (!item.sender)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }
@@ -422,14 +424,6 @@ class TransfersDb extends BaseDb {
         }
       }
 
-      // TODO: remove this after a week since it was added because it's handled in SyncWatcher
-      let bonderFeeOk = true
-      if (item.bonderFee) {
-        if (isEthToken) {
-          bonderFeeOk = item.bonderFee?.gte(minEthBonderFeeBn)
-        }
-      }
-
       return (
         item.transferId &&
         item.transferSentTimestamp &&
@@ -437,8 +431,7 @@ class TransfersDb extends BaseDb {
         item.transferSentTxHash &&
         item.isBondable &&
         !item.isTransferSpent &&
-        timestampOk &&
-        bonderFeeOk
+        timestampOk
       )
     })
 

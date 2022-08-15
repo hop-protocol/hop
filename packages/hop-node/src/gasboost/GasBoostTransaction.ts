@@ -692,7 +692,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           data: this.data,
           value: this.value,
           nonce: this.nonce,
-          gasLimit: this.gasLimit
+          gasLimit: this.gasLimit,
+          chainId: this.chainId
         }
 
         if (gasFeeData.gasPrice != null) {
@@ -925,7 +926,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       gasLimit: this.gasLimit,
       gasPrice: this.gasPrice,
       maxFeePerGas: this.maxFeePerGas,
-      maxPriorityFeePerGas: this.maxPriorityFeePerGas
+      maxPriorityFeePerGas: this.maxPriorityFeePerGas,
+      chainId: this.chainId
     }
 
     const tx = await this.signer.sendTransaction(payload)

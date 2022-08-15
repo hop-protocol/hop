@@ -699,3 +699,23 @@ describe.skip('PriceFeed', () => {
     expect(price).toBeLessThan(2)
   })
 })
+
+describe.skip('Apr', () => {
+  it('should return apr', async () => {
+    const hop = new Hop('mainnet')
+    const token = 'USDC'
+    const chain = 'gnosis'
+    const bridge = hop.bridge(token)
+    /*
+    bridge.setChainProviderUrls({
+      gnosis: '',
+      optimism: ''
+    })
+    */
+    const amm = bridge.getAmm(chain)
+    const apr = await amm.getApr()
+    console.log(token, chain, apr)
+    expect(apr).toBeGreaterThan(0)
+    expect(apr).toBeLessThan(50)
+  }, 10 * 60 * 1000)
+})

@@ -14,7 +14,7 @@ import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEven
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
-import { minEthBonderFeeBn, oruChains } from 'src/config'
+import { config as globalConfig, minEthBonderFeeBn, oruChains } from 'src/config'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -635,6 +635,7 @@ class SyncWatcher extends BaseWatcher {
     }
 
     await this.populateTransferSentTimestamp(transferId)
+    await this.populateTransferSender(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
     await this.populateTransferWithdrawalBondSettled(transferId)
   }
@@ -688,6 +689,41 @@ class SyncWatcher extends BaseWatcher {
     await this.db.transfers.update(transferId, {
       transferSentTimestamp: timestamp
     })
+  }
+
+  async populateTransferSender (transferId: string) {
+    const logger = this.logger.create({ id: transferId })
+    logger.debug('starting populateTransferSender')
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    const { sourceChainId, transferSentTxHash, sender, recipient } = dbTransfer
+    if (sourceChainId && transferSentTxHash && sender) {
+      logger.debug('populateTransferSender already found')
+      return
+    }
+    if (!sourceChainId || !transferSentTxHash) {
+      logger.debug('populateTransferSender expected sourceChainId and transferSentTxHash')
+      return
+    }
+    const bridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+    const tx = await bridge.getTransaction(transferSentTxHash)
+    if (!tx) {
+      logger.warn(`populateTransferSender marking item not found. dbItem: ${JSON.stringify(dbTransfer)}`)
+      await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+    const { from } = tx
+    logger.debug(`sender: ${from}`)
+    await this.db.transfers.update(transferId, {
+      sender: from
+    })
+
+    const isBlocklisted = this.getIsBlocklisted([from, recipient])
+    if (isBlocklisted) {
+      logger.warn(`transfer is unbondable because sender or recipient is in blocklist. transferId: ${transferId}, sender: ${from}, recipient: ${recipient}`)
+      await this.db.transfers.update(transferId, {
+        isBondable: false
+      })
+    }
   }
 
   async populateTransferWithdrawalBonder (transferId: string) {
@@ -1260,6 +1296,16 @@ class SyncWatcher extends BaseWatcher {
     }
 
     return true
+  }
+
+  getIsBlocklisted (addresses: string[]) {
+    for (const address of addresses) {
+      const isBlocklisted = globalConfig?.blocklist?.addresses?.[address?.toLowerCase()]
+      if (isBlocklisted) {
+        return true
+      }
+    }
+    return false
   }
 
   isBonderFeeTooLow (bonderFee: BigNumber) {

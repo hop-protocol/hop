@@ -12,6 +12,8 @@ import { networkIdToSlug } from 'src/utils/networks'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
 import { toTokenDisplay } from 'src/utils'
 import { formatError } from 'src/utils/format'
+import useAsyncMemo from 'src/hooks/useAsyncMemo'
+import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 
 interface Token {
   symbol: string
@@ -22,12 +24,11 @@ interface Props {
   rewardsContractAddress: string
   merkleBaseUrl: string
   requiredChainId: number
-  token: Token
   title: string
 }
 
 export function RewardsWidget(props: Props) {
-  const { rewardsContractAddress, merkleBaseUrl, requiredChainId, token, title } = props
+  const { rewardsContractAddress, merkleBaseUrl, requiredChainId, title } = props
   const { checkConnectedNetworkId, address, provider, connectedNetworkId } = useWeb3Context()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -37,6 +38,8 @@ export function RewardsWidget(props: Props) {
   const [entryTotal, setEntryTotal] = useState(BigNumber.from(0))
   const [onchainRoot, setOnchainRoot] = useState('')
   const [latestRoot, setLatestRoot] = useState('')
+  const [tokenDecimals, setTokenDecimals] = useState<number|null>(null)
+  const [tokenSymbol, setTokenSymbol] = useState('')
   const [latestRootTotal, setLatestRootTotal] = useState(BigNumber.from(0))
   const claimRecipient = address?.address
   const contract = useMemo(() => {
@@ -53,6 +56,17 @@ export function RewardsWidget(props: Props) {
     }
   }, [provider, rewardsContractAddress])
 
+  const token = useAsyncMemo(async () => {
+    try {
+      if (contract) {
+        const tokenAddress = await contract.rewardsToken()
+        return new Contract(tokenAddress, erc20Abi, contract.provider)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }, [contract])
+
   const getOnchainRoot = async () => {
     try {
       if (contract) {
@@ -63,6 +77,19 @@ export function RewardsWidget(props: Props) {
       console.error(err)
     }
   }
+
+  useEffect(() => {
+    async function update() {
+      if (token) {
+        setTokenDecimals(await token.decimals())
+        setTokenSymbol(await token.symbol())
+      }
+    }
+
+    update().catch(console.error)
+  }, [token])
+
+  useInterval(getOnchainRoot, 10 * 1000)
 
   useEffect(() => {
     getOnchainRoot().catch(console.error)
@@ -205,8 +232,8 @@ export function RewardsWidget(props: Props) {
     setClaiming(false)
   }
 
-  const claimableAmountDisplay = toTokenDisplay(claimableAmount, token.decimals)
-  const unclaimableAmountDisplay = toTokenDisplay(unclaimableAmount, token.decimals)
+  const claimableAmountDisplay = tokenDecimals ? toTokenDisplay(claimableAmount, tokenDecimals) : ''
+  const unclaimableAmountDisplay = tokenDecimals ? toTokenDisplay(unclaimableAmount, tokenDecimals) : ''
 
   return (
     <Box maxWidth="500px" margin="0 auto" flexDirection="column" display="flex" justifyContent="center" textAlign="center">
@@ -234,10 +261,10 @@ export function RewardsWidget(props: Props) {
           )}
           <Box mb={4} display="flex" flexDirection="column" justifyContent="center" textAlign="center">
             <Typography variant="body1">
-              Claimable: <strong>{claimableAmountDisplay} {token.symbol}</strong>
+              Claimable: <strong>{claimableAmountDisplay} {tokenSymbol}</strong>
             </Typography>
             <Typography variant="body1">
-              Locked: {unclaimableAmountDisplay} {token.symbol}
+              Locked: {unclaimableAmountDisplay} {tokenSymbol}
             </Typography>
           </Box>
           <Box mb={2}>

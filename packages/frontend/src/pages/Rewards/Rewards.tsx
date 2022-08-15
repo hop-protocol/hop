@@ -13,10 +13,6 @@ export function Rewards() {
             requiredChainId={config.chainId}
             rewardsContractAddress={config.rewardsContractAddress}
             merkleBaseUrl={config.merkleBaseUrl}
-            token={{
-              symbol: 'OP',
-              decimals: 18
-            }}
             title="Optimism Fee Refund"
           />
         )

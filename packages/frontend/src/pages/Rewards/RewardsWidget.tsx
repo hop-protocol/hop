@@ -15,11 +15,7 @@ import { formatError } from 'src/utils/format'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import InfoTooltip from 'src/components/InfoTooltip'
-
-interface Token {
-  symbol: string
-  decimals: number
-}
+import useQueryParams from 'src/hooks/useQueryParams'
 
 interface Props {
   rewardsContractAddress: string
@@ -29,6 +25,7 @@ interface Props {
 }
 
 export function RewardsWidget(props: Props) {
+  const { queryParams } = useQueryParams()
   const { rewardsContractAddress, merkleBaseUrl, requiredChainId, title } = props
   const { checkConnectedNetworkId, address, provider, connectedNetworkId } = useWeb3Context()
   const [error, setError] = useState('')
@@ -42,7 +39,8 @@ export function RewardsWidget(props: Props) {
   const [tokenDecimals, setTokenDecimals] = useState<number|null>(null)
   const [tokenSymbol, setTokenSymbol] = useState('')
   const [latestRootTotal, setLatestRootTotal] = useState(BigNumber.from(0))
-  const claimRecipient = address?.address
+  const claimRecipient = queryParams.address as string ?? address?.address
+  const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
     try {
       if (rewardsContractAddress) {
@@ -103,7 +101,8 @@ export function RewardsWidget(props: Props) {
       if (!merkleBaseUrl) {
         return
       }
-      const res = await fetch(`${merkleBaseUrl}/latest.json`)
+      const url = `${merkleBaseUrl}/latest.json`
+      const res = await fetch(url)
       const json = await res.json()
       setLatestRoot(json.root)
       const { root, total } = await ShardedMerkleTree.fetchRootFile(merkleBaseUrl, json.root)
@@ -156,8 +155,11 @@ export function RewardsWidget(props: Props) {
 
   useInterval(getClaimableAmount, 10 * 1000)
 
-  const getUnclaimableAmount = async () => {
+  const getUnclaimableAmountFromRepo = async () => {
     try {
+      if (pollUnclaimableAmountFromBackend) {
+        return
+      }
       if (!(
         onchainRoot &&
         latestRoot &&
@@ -193,10 +195,35 @@ export function RewardsWidget(props: Props) {
   }
 
   useEffect(() => {
-    getUnclaimableAmount().catch(console.error)
+    getUnclaimableAmountFromRepo().catch(console.error)
   }, [onchainRoot, claimRecipient, latestRoot, merkleBaseUrl, claimableAmount, entryTotal])
 
-  useInterval(getUnclaimableAmount, 10 * 1000)
+  useInterval(getUnclaimableAmountFromRepo, 10 * 1000)
+
+  const getUnclaimableAmountFromBackend = async () => {
+    try {
+      if (!pollUnclaimableAmountFromBackend) {
+        return
+      }
+      const url = `https://hop-merkle-rewards-backend.hop.exchange/v1/rewards?address=${claimRecipient}`
+      const res = await fetch(url)
+      const json = await res.json()
+      if (json.error) {
+        throw new Error(json.err)
+      }
+      if (json.data.rewards.balance) {
+        setUnclaimableAmount(json.data.rewards.balance)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  useEffect(() => {
+    getUnclaimableAmountFromBackend().catch(console.error)
+  }, [getUnclaimableAmountFromBackend, claimRecipient])
+
+  useInterval(getUnclaimableAmountFromBackend, 10 * 1000)
 
   async function claim() {
     try {
@@ -251,7 +278,7 @@ export function RewardsWidget(props: Props) {
       {!!claimRecipient && (
         <Box>
           <Box mb={2}>
-            <Typography variant="h6">{title} <InfoTooltip title={<><div>Merkle rewards</div><div>Latest root: {latestRoot}</div><div>published root: {onchainRoot}</div></>} /></Typography>
+            <Typography variant="h6">{title} <InfoTooltip title={<><div>Merkle rewards</div><div>published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>latest root total: ${latestRootTotal?.toString()}</div></>} /></Typography>
           </Box>
           {loading && (
             <Box mb={4} display="flex" flexDirection="column" justifyContent="center" textAlign="center">

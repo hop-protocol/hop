@@ -2,7 +2,6 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
-import chunk from 'lodash/chunk'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import isL1ChainId from 'src/utils/isL1ChainId'
@@ -14,7 +13,9 @@ import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, Transfer
 import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { oruChains } from 'src/config'
+import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
+import { config as globalConfig, minEthBonderFeeBn, oruChains } from 'src/config'
+import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
   chainSlug: string
@@ -112,25 +113,22 @@ class SyncWatcher extends BaseWatcher {
 
   async incompleteTransferRootsPollSync () {
     try {
-      const chunkSize = 30
+      const concurrency = 30
       const incompleteTransferRoots = await this.db.transferRoots.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
       this.logger.info(`transfer roots incomplete items: ${incompleteTransferRoots.length}`)
       if (incompleteTransferRoots.length) {
-        const allChunks = chunk(incompleteTransferRoots, chunkSize)
-        for (const chunks of allChunks) {
-          await Promise.all(chunks.map(async (transferRoot: TransferRoot) => {
-            const { transferRootId } = transferRoot
-            const logger = this.logger.create({ id: transferRootId })
-            logger.debug(`populating transferRoot id: ${transferRootId}`)
-            return this.populateTransferRootDbItem(transferRootId)
-              .catch((err: Error) => {
-                logger.error('populateTransferRootDbItem error:', err)
-                this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
-              })
-          }))
-        }
+        await promiseQueue(incompleteTransferRoots, async (transferRoot: TransferRoot, i: number) => {
+          const { transferRootId } = transferRoot
+          const logger = this.logger.create({ id: transferRootId })
+          logger.debug(`populating transferRoot id: ${transferRootId}`)
+          return this.populateTransferRootDbItem(transferRootId)
+            .catch((err: Error) => {
+              logger.error('populateTransferRootDbItem error:', err)
+              this.notifier.error(`populateTransferRootDbItem error: ${err.message}`)
+            })
+        }, { concurrency })
       }
     } catch (err: any) {
       this.logger.error(`incomplete transfer roots poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
@@ -140,25 +138,23 @@ class SyncWatcher extends BaseWatcher {
 
   async incompleteTransfersPollSync () {
     try {
+      const concurrency = 30
       const chunkSize = 30
       const incompleteTransfers = await this.db.transfers.getIncompleteItems({
         sourceChainId: this.chainSlugToId(this.chainSlug)
       })
       this.logger.info(`transfers incomplete items: ${incompleteTransfers.length}`)
       if (incompleteTransfers.length) {
-        const allChunks = chunk(incompleteTransfers, chunkSize)
-        for (const chunks of allChunks) {
-          await Promise.all(chunks.map(async (transfer: Transfer) => {
-            const { transferId } = transfer
-            const logger = this.logger.create({ id: transferId })
-            logger.debug(`populating transferId: ${transferId}`)
-            return this.populateTransferDbItem(transferId)
-              .catch((err: Error) => {
-                logger.error('populateTransferDbItem error:', err)
-                this.notifier.error(`populateTransferDbItem error: ${err.message}`)
-              })
-          }))
-        }
+        await promiseQueue(incompleteTransfers, async (transfer: Transfer, i: number) => {
+          const { transferId } = transfer
+          const logger = this.logger.create({ id: transferId })
+          logger.debug(`populating transferId: ${transferId}`)
+          return this.populateTransferDbItem(transferId)
+            .catch((err: Error) => {
+              logger.error('populateTransferDbItem error:', err)
+              this.notifier.error(`populateTransferDbItem error: ${err.message}`)
+            })
+        }, { concurrency })
       }
     } catch (err: any) {
       this.logger.error(`incomplete transfers poll sync watcher error: ${err.message}\ntrace: ${err.stack}`)
@@ -353,7 +349,7 @@ class SyncWatcher extends BaseWatcher {
       const l2Bridge = this.bridge as L2Bridge
       const destinationChainId = Number(destinationChainIdBn.toString())
       const sourceChainId = await l2Bridge.getChainId()
-      const isBondable = this.getIsBondable(amountOutMin, deadline, destinationChainId)
+      const isBondable = this.getIsBondable(amountOutMin, deadline, destinationChainId, BigNumber.from(bonderFee))
 
       logger.debug('sourceChainId:', sourceChainId)
       logger.debug('destinationChainId:', destinationChainId)
@@ -639,6 +635,7 @@ class SyncWatcher extends BaseWatcher {
     }
 
     await this.populateTransferSentTimestamp(transferId)
+    await this.populateTransferSender(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
     await this.populateTransferWithdrawalBondSettled(transferId)
   }
@@ -692,6 +689,43 @@ class SyncWatcher extends BaseWatcher {
     await this.db.transfers.update(transferId, {
       transferSentTimestamp: timestamp
     })
+  }
+
+  async populateTransferSender (transferId: string) {
+    const logger = this.logger.create({ id: transferId })
+    logger.debug('starting populateTransferSender')
+    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
+    const { sourceChainId, transferSentTxHash, sender, recipient } = dbTransfer
+    if (sourceChainId && transferSentTxHash && sender) {
+      logger.debug('populateTransferSender already found')
+      return
+    }
+    if (!sourceChainId || !transferSentTxHash) {
+      logger.debug('populateTransferSender expected sourceChainId and transferSentTxHash')
+      return
+    }
+    const bridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
+    const tx = await bridge.getTransaction(transferSentTxHash)
+    if (!tx) {
+      logger.warn(`populateTransferSender marking item not found. dbItem: ${JSON.stringify(dbTransfer)}`)
+      await this.db.transfers.update(transferId, { isNotFound: true })
+      return
+    }
+    const { from } = tx
+    logger.debug(`sender: ${from}`)
+    await this.db.transfers.update(transferId, {
+      sender: from
+    })
+
+    const isBlocklisted = this.getIsBlocklisted([from, recipient])
+    if (isBlocklisted) {
+      const msg = `transfer is unbondable because sender or recipient is in blocklist. transferId: ${transferId}, sender: ${from}, recipient: ${recipient}`
+      logger.warn(msg)
+      this.notifier.warn(msg)
+      await this.db.transfers.update(transferId, {
+        isBondable: false
+      })
+    }
   }
 
   async populateTransferWithdrawalBonder (transferId: string) {
@@ -1000,35 +1034,15 @@ class SyncWatcher extends BaseWatcher {
     )
   }
 
-  async checkTransferRootFromChain (transferRootId: string) {
-    const logger = this.logger.create({ root: transferRootId })
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
-    if (!dbTransferRoot) {
-      throw new Error('expected db transfer root item')
-    }
-    const { transferRootHash, sourceChainId, destinationChainId, totalAmount, commitTxBlockNumber, transferIds: dbTransferIds } = dbTransferRoot
-    if (!sourceChainId) {
-      throw new Error('expected source chain id')
-    }
-    if (!commitTxBlockNumber) {
-      throw new Error('expected commit tx block number')
-    }
-    if (!this.hasSiblingWatcher(sourceChainId)) {
-      logger.error(`no sibling watcher found for ${sourceChainId}`)
-      return
-    }
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
-      .bridge as L2Bridge
-
-    const eventBlockNumber: number = commitTxBlockNumber
+  async lookupTransferIds (sourceBridge: L2Bridge, transferRootHash: string, destinationChainId: number, endBlockNumber: number) {
+    const logger = this.logger.create({ root: transferRootHash })
     let startEvent: TransfersCommittedEvent | undefined
     let endEvent: TransfersCommittedEvent | undefined
-
-    logger.debug(
-      `looking on-chain for transfer ids for transferRootHash ${transferRootHash}`
-    )
-
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
+
+    logger.debug('startBlockNumber:', startBlockNumber)
+    logger.debug('endBlockNumber:', startBlockNumber)
+
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
       if (!events.length) {
@@ -1053,15 +1067,13 @@ class SyncWatcher extends BaseWatcher {
 
       return true
     },
-    { endBlockNumber: eventBlockNumber, startBlockNumber })
+    { endBlockNumber, startBlockNumber })
 
     if (!endEvent) {
-      logger.warn(`populateTransferRootTransferIds no end event found for transferRootHash ${transferRootHash}. isNotFound: true`)
-      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
-      return
+      return { endEvent: null }
     }
 
-    const endBlockNumber = endEvent.blockNumber
+    endBlockNumber = endEvent.blockNumber
     if (startEvent) {
       startBlockNumber = startEvent.blockNumber
     }
@@ -1096,23 +1108,81 @@ class SyncWatcher extends BaseWatcher {
           if (event.blockNumber === endEvent?.blockNumber) {
             // If TransferSent is in the same tx as TransfersCommitted or later,
             // the transferId should be included in the next transferRoot
-            if (event.transactionIndex >= endEvent.transactionIndex) {
+            if (event.transactionIndex > endEvent.transactionIndex) {
               continue
             }
           }
 
           transfers.unshift({
             transferId: event.args.transferId,
-            index: Number(event.args.index.toString())
+            index: Number(event.args.index.toString()),
+            blockNumber: event.blockNumber
           })
         }
       },
       { startBlockNumber, endBlockNumber }
     )
 
-    logger.debug(`transfer ids: ${JSON.stringify(transfers)}}`)
+    const { sortedTransfers, missingIndexes, lastIndex } = getSortedTransferIds(transfers, startBlockNumber)
 
-    const transferIds = transfers.map((x: any) => x.transferId)
+    if (sortedTransfers) {
+      logger.debug(`last index number found in transferIds list: ${lastIndex}`)
+    }
+
+    if (missingIndexes?.length) {
+      logger.warn(`missing indexes from list of transferIds (${missingIndexes.length}): ${JSON.stringify(missingIndexes)}`)
+    }
+
+    const transferIds = sortedTransfers.map((x: any) => x.transferId)
+    return { startEvent, endEvent, transferIds }
+  }
+
+  async checkTransferRootFromChain (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    if (!dbTransferRoot) {
+      throw new Error('expected db transfer root item')
+    }
+    const { transferRootHash, sourceChainId, destinationChainId, commitTxBlockNumber } = dbTransferRoot
+    if (!transferRootHash) {
+      throw new Error('expected transfer root hash')
+    }
+    if (!sourceChainId) {
+      throw new Error('expected source chain id')
+    }
+    if (!destinationChainId) {
+      throw new Error('expected destination chain id')
+    }
+    if (!commitTxBlockNumber) {
+      throw new Error('expected commit tx block number')
+    }
+    if (!this.hasSiblingWatcher(sourceChainId)) {
+      logger.error(`no sibling watcher found for ${sourceChainId}`)
+      return
+    }
+    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId)
+      .bridge as L2Bridge
+
+    const eventBlockNumber: number = commitTxBlockNumber
+
+    logger.debug(
+      `looking on-chain for transfer ids for transferRootHash ${transferRootHash}`
+    )
+
+    const { endEvent, transferIds } = await this.lookupTransferIds(sourceBridge, transferRootHash, destinationChainId, eventBlockNumber)
+
+    if (!transferIds) {
+      throw new Error('expected transfer ids')
+    }
+
+    if (!endEvent) {
+      logger.warn(`populateTransferRootTransferIds no end event found for transferRootHash ${transferRootHash}. isNotFound: true`)
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+    }
+
+    logger.debug(`transfer ids: ${JSON.stringify(transferIds)}}`)
+
     const tree = new MerkleTree(transferIds)
     const computedTransferRootHash = tree.getHexRoot()
     if (computedTransferRootHash !== transferRootHash) {
@@ -1128,7 +1198,7 @@ class SyncWatcher extends BaseWatcher {
       JSON.stringify(transferIds)
     )
 
-    await Promise.all(transferIds.map(async transferId => {
+    await Promise.all(transferIds.map(async (transferId: string) => {
       await this.db.transfers.update(transferId, {
         transferRootHash,
         transferRootId
@@ -1214,14 +1284,44 @@ class SyncWatcher extends BaseWatcher {
   getIsBondable = (
     amountOutMin: BigNumber,
     deadline: BigNumber,
-    destinationChainId: number
+    destinationChainId: number,
+    bonderFee: BigNumber
   ): boolean => {
     const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin, deadline)
     if (attemptSwap && isL1ChainId(destinationChainId)) {
       return false
     }
 
+    const isTooLow = this.isBonderFeeTooLow(bonderFee)
+    if (isTooLow) {
+      return false
+    }
+
     return true
+  }
+
+  getIsBlocklisted (addresses: string[]) {
+    for (const address of addresses) {
+      const isBlocklisted = globalConfig?.blocklist?.addresses?.[address?.toLowerCase()]
+      if (isBlocklisted) {
+        return true
+      }
+    }
+    return false
+  }
+
+  isBonderFeeTooLow (bonderFee: BigNumber) {
+    if (bonderFee.eq(0)) {
+      return true
+    }
+
+    if (this.tokenSymbol === 'ETH') {
+      if (bonderFee.lt(minEthBonderFeeBn)) {
+        return true
+      }
+    }
+
+    return false
   }
 
   public getIsDbTransfersAllSettled (dbTransfers: Transfer[]) {
@@ -1252,9 +1352,6 @@ class SyncWatcher extends BaseWatcher {
 
     while (true) {
       try {
-        const txOverrides = await this.bridge.txOverrides()
-        txOverrides.from = bonder
-
         const timestamp = Math.floor(Date.now() / 1000)
         const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
         const payload = [
@@ -1262,7 +1359,9 @@ class SyncWatcher extends BaseWatcher {
           amount,
           transferNonce,
           bonderFee,
-          txOverrides
+          {
+            from: bonder
+          }
         ] as const
         const gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
         const tx = await bridgeContract.populateTransaction.bondWithdrawal(...payload)
@@ -1276,7 +1375,9 @@ class SyncWatcher extends BaseWatcher {
             bonderFee,
             amountOutMin,
             deadline,
-            txOverrides
+            {
+              from: bonder
+            }
           ] as const
           const gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
           const tx = await bridgeContract.populateTransaction.bondWithdrawalAndDistribute(...payload)

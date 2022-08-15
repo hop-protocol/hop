@@ -4,6 +4,7 @@ import MerkleTree from 'src/utils/MerkleTree'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Transfer } from 'src/db/TransfersDb'
+import { config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -87,7 +88,7 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
           continue
         }
 
-        logger.debug(`unsettled transferId: ${dbTransfer?.transferId}, transferRootHash: ${dbTransferRoot?.transferRootHash}`)
+        logger.debug(`unsettled transferId: ${dbTransfer?.transferId}, transferRootHash: ${dbTransferRoot?.transferRootHash}, transferAmount: ${this.bridge.formatUnits(dbTransfer.amount!)}`)
         bonderSet.add(dbTransfer.withdrawalBonder!)
       }
 
@@ -213,9 +214,14 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
         transferIds,
         totalAmount
       )
-      const msg = `settleBondedWithdrawals on destinationChainId:${destinationChainId} tx: ${tx.hash} transferRootHash: ${transferRootHash} transferIds: ${transferIds.length}`
+      const msg = `settleBondedWithdrawals on destinationChainId: ${destinationChainId} (sourceChainId: ${sourceChainId}) tx: ${tx.hash}, transferRootId: ${transferRootId}, transferRootHash: ${transferRootHash}, totalAmount: ${this.bridge.formatUnits(totalAmount!)}, transferIds: ${transferIds.length}`
       logger.info(msg)
       this.notifier.info(msg)
+
+      tx.wait()
+        .then(() => {
+          this.depositToVaultIfNeeded(destinationChainId!)
+        })
     } catch (err) {
       logger.error('settleBondedWithdrawals error:', err.message)
       throw err
@@ -236,6 +242,44 @@ class SettleBondedWithdrawalWatcher extends BaseWatcher {
     }
 
     return await this.checkTransferRootId(transferRootId!, withdrawalBonder!)
+  }
+
+  async depositToVaultIfNeeded (destinationChainId: number) {
+    const vaultConfig = (globalConfig.vault as any)?.[this.tokenSymbol]?.[this.chainSlug]
+    if (!vaultConfig) {
+      return
+    }
+
+    if (!vaultConfig?.autoDeposit) {
+      return
+    }
+
+    const depositThresholdAmount = this.bridge.parseUnits(vaultConfig.depositThresholdAmount)
+    const depositAmount = this.bridge.parseUnits(vaultConfig.depositAmount)
+    if (depositAmount.eq(0) || depositThresholdAmount.eq(0)) {
+      return
+    }
+
+    return await this.mutex.runExclusive(async () => {
+      const availableCredit = this.availableLiquidityWatcher.getEffectiveAvailableCredit(destinationChainId)
+      const vaultBalance = this.availableLiquidityWatcher.getVaultBalance(destinationChainId)
+      const availableCreditMinusVault = availableCredit.sub(vaultBalance)
+      const shouldDeposit = (availableCreditMinusVault.sub(depositAmount)).gt(depositThresholdAmount)
+      if (shouldDeposit) {
+        try {
+          const msg = `attempting unstakeAndDepositToVault. amount: ${this.bridge.formatUnits(depositAmount)}`
+          this.notifier.info(msg)
+          this.logger.info(msg)
+          const destinationWatcher = this.getSiblingWatcherByChainId(destinationChainId)
+          await destinationWatcher.unstakeAndDepositToVault(depositAmount)
+        } catch (err) {
+          const errMsg = `unstakeAndDepositToVault error: ${err.message}`
+          this.notifier.error(errMsg)
+          this.logger.error(errMsg)
+          throw err
+        }
+      }
+    })
   }
 }
 

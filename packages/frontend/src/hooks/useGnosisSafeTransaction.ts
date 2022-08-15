@@ -51,7 +51,7 @@ export function useGnosisSafeTransaction(
   const gnosisEnabled = useMemo(() => {
     if (isSmartContractWallet) {
       // require customRecipient if it's gnosis-safe
-      return isGnosisSafeWallet && customRecipient
+      return !!(isGnosisSafeWallet && customRecipient)
     }
 
     return !customRecipient && false
@@ -87,7 +87,7 @@ export function useGnosisSafeTransaction(
     if (isSmartContractWallet && !customRecipient) {
       // no custom recipient set
       return {
-        severity: 'error',
+        severity: 'warning',
         text: `The connected account is detected to be a ${
           isGnosisSafeWallet ? 'Gnosis Safe' : 'smart contract wallet'
         }. Please provide a custom recipient to proceed with this transaction.`,

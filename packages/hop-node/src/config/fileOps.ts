@@ -1,11 +1,15 @@
 import Logger, { setLogLevel } from 'src/logger'
+import fetch from 'node-fetch'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import {
+  BlocklistConfig,
   Bonders,
-  CommitTransfersConfig, Fees, Routes, Watchers,
+  CommitTransfersConfig, Fees, Routes, Vault,
+  Watchers,
   defaultConfigFilePath,
+  setBlocklistConfig,
   setBonderPrivateKey,
   setCommitTransfersConfig,
   setConfigAddresses,
@@ -18,9 +22,11 @@ import {
   setNetworkMaxGasPrice,
   setNetworkRpcUrl,
   setRoutesConfig,
-  setSyncConfig
+  setSyncConfig,
+  setVaultConfig
 } from './config'
 import { Chain } from 'src/constants'
+import { getAddress } from 'ethers/lib/utils'
 import { getParameter } from 'src/aws/parameterStore'
 import { promptPassphrase } from 'src/prompt'
 import { recoverKeystore } from 'src/keystore'
@@ -97,6 +103,8 @@ export type FileConfig = {
   fees?: Fees
   routes: Routes
   bonders?: Bonders
+  vault?: Vault
+  blocklist?: BlocklistConfig
 }
 
 export async function setGlobalConfigFromConfigFile (
@@ -224,6 +232,44 @@ export async function setGlobalConfigFromConfigFile (
 
   if (config.bonders) {
     setConfigBonders(config.bonders)
+  }
+
+  logger.debug('optional vault config:', JSON.stringify(config.vault))
+  if (config.vault) {
+    setVaultConfig(config.vault)
+  }
+
+  logger.debug('optional blocklist config:', JSON.stringify(config.blocklist))
+  if (config.blocklist) {
+    if (!config.blocklist.addresses) {
+      config.blocklist.addresses = {}
+    }
+    if (config.blocklist.path) {
+      let data = ''
+      if (config.blocklist.path.startsWith('http')) {
+        const res = await fetch(config.blocklist.path)
+        data = await res.text()
+      } else {
+        const filepath = path.resolve(config.blocklist.path)
+        if (!fs.existsSync(filepath)) {
+          throw new Error(`blocklist filepath "${filepath}" does not exist`)
+        }
+        data = fs.readFileSync(filepath, 'utf8')
+      }
+      const list = data.split('\n').filter(x => x)
+      for (const address of list) {
+        config.blocklist.addresses[address.toLowerCase()] = true
+      }
+      for (const address in config.blocklist.addresses) {
+        try {
+          delete config.blocklist.addresses[address]
+          config.blocklist.addresses[getAddress(address).toLowerCase()] = true
+        } catch (err) {
+          throw new Error(`blocklist address "${address}" is invalid`)
+        }
+      }
+    }
+    setBlocklistConfig(config.blocklist)
   }
 }
 

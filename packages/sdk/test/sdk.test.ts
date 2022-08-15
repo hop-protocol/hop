@@ -685,3 +685,37 @@ describe.skip('get estimated gas (no signer connected)', () => {
     expect(estimatedGas.gt(0)).toBeTruthy()
   })
 })
+
+describe.skip('PriceFeed', () => {
+  it('should return price', async () => {
+    const hop = new Hop('mainnet')
+    hop.setPriceFeedApiKeys({
+      // coingecko: '123'
+    })
+    const bridge = hop.bridge('USDC')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('USDC')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(2)
+  })
+})
+
+describe.skip('Apr', () => {
+  it('should return apr', async () => {
+    const hop = new Hop('mainnet')
+    const token = 'USDC'
+    const chain = 'gnosis'
+    const bridge = hop.bridge(token)
+    /*
+    bridge.setChainProviderUrls({
+      gnosis: '',
+      optimism: ''
+    })
+    */
+    const amm = bridge.getAmm(chain)
+    const apr = await amm.getApr()
+    console.log(token, chain, apr)
+    expect(apr).toBeGreaterThan(0)
+    expect(apr).toBeLessThan(50)
+  }, 10 * 60 * 1000)
+})

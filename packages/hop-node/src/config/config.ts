@@ -6,6 +6,7 @@ import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
 import { Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
+import { parseEther } from 'ethers/lib/utils'
 import * as goerliConfig from './goerli'
 import * as kovanConfig from './kovan'
 import * as mainnetConfig from './mainnet'
@@ -28,6 +29,7 @@ export const gasBoostWarnSlackChannel = process.env.GAS_BOOST_WARN_SLACK_CHANNEL
 export const gasBoostErrorSlackChannel = process.env.GAS_BOOST_ERROR_SLACK_CHANNEL // optional
 export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL // optional
 export const gasPriceMultiplier = normalizeEnvVarNumber(process.env.GAS_PRICE_MULTIPLIER)
+export const initialTxGasPriceMultiplier = normalizeEnvVarNumber(process.env.INITIAL_TX_GAS_PRICE_MULTIPLIER)
 export const minPriorityFeePerGas = normalizeEnvVarNumber(process.env.MIN_PRIORITY_FEE_PER_GAS)
 export const priorityFeePerGasCap = normalizeEnvVarNumber(process.env.PRIORITY_FEE_PER_GAS_CAP)
 export const maxGasPriceGwei = normalizeEnvVarNumber(process.env.MAX_GAS_PRICE_GWEI)
@@ -40,6 +42,8 @@ export const gitRev = buildInfo.rev
 export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
+export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
+export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
 const envNetwork = process.env.NETWORK ?? Network.Kovan
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
@@ -50,6 +54,8 @@ export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
+export const minEthBonderFeeBn = parseEther('0.00001')
+export const pendingCountCommitThreshold = 256
 
 type SyncConfig = {
   totalBlocks?: number
@@ -79,6 +85,29 @@ export type CommitTransfersConfig = {
 }
 type Tokens = Record<string, boolean>
 
+export type VaultChainTokenConfig = {
+  depositThresholdAmount: number
+  depositAmount: number
+  autoDeposit: boolean
+  autoWithdraw: boolean
+  strategy: string
+}
+
+export type VaultChain = {
+  ethereum?: VaultChainTokenConfig
+  polygon?: VaultChainTokenConfig
+  gnosis?: VaultChainTokenConfig
+  optimism?: VaultChainTokenConfig
+  arbitrum?: VaultChainTokenConfig
+}
+
+export type Vault = Record<string, VaultChain>
+
+export type BlocklistConfig = {
+  path: string
+  addresses: Record<string, boolean>
+}
+
 export type Config = {
   isMainnet: boolean
   tokens: Tokens
@@ -94,6 +123,8 @@ export type Config = {
   commitTransfers: CommitTransfersConfig
   fees: Fees
   routes: Routes
+  vault: Vault
+  blocklist: BlocklistConfig
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -158,7 +189,7 @@ export const config: Config = {
     },
     [Chain.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 2000
     },
     [Chain.Gnosis]: {
       totalBlocks: TotalBlocks.Gnosis,
@@ -170,6 +201,11 @@ export const config: Config = {
   },
   commitTransfers: {
     minThresholdAmount: {}
+  },
+  vault: {},
+  blocklist: {
+    path: '',
+    addresses: {}
   }
 }
 
@@ -283,6 +319,14 @@ export const setCommitTransfersConfig = (commitTransfers: CommitTransfersConfig)
 
 export const setConfigTokens = (tokens: Tokens) => {
   config.tokens = { ...config.tokens, ...tokens }
+}
+
+export const setVaultConfig = (vault: Vault) => {
+  config.vault = { ...config.vault, ...vault }
+}
+
+export const setBlocklistConfig = (blocklist: BlocklistConfig) => {
+  config.blocklist = { ...config.blocklist, ...blocklist }
 }
 
 export const getBonderConfig = (tokens: Tokens) => {

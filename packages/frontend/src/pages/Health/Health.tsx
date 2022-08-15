@@ -1,7 +1,6 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Typography from '@material-ui/core/Typography'
 import { useInterval } from 'react-use'
-import styled from 'styled-components/macro'
 import { CellWrapper, SortableTable } from 'src/components/Table'
 import { DateTime } from 'luxon'
 import { Div, Icon } from 'src/components/ui'
@@ -95,7 +94,7 @@ export const populateIncompleteSettlements = (item: any) => {
     unsettledTransfers,
     unsettledTransferBonders,
     unbondedTransfers: unbondedTransfers.length,
-    isConfirmed: `${item.isConfirmed}`,
+    isConfirmed: item.isConfirmed
   }
 }
 
@@ -122,6 +121,30 @@ export const populateUnsyncedSubgraphs = (item: any) => {
   }
 }
 
+export const populateMissedEvents = (item: any) => {
+  const chain = findNetworkBySlug(item.sourceChain)
+  const token = getTokenImage(item.token)
+
+  return {
+    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
+    sourceChain: chain?.imageUrl,
+    token,
+    transferId: item.transferId
+  }
+}
+
+export const populateInvalidBondWithdrawals = (item: any) => {
+  const chain = findNetworkBySlug(item.destinationChain)
+  const token = getTokenImage(item.token)
+
+  return {
+    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
+    destinationChain: chain?.imageUrl,
+    token,
+    transferId: item.transferId
+  }
+}
+
 function useData() {
   const [lowBonderBalances, setLowBonderBalances] = useState<any>([])
   const [lowAvailableLiquidityBonders, setLowAvailableLiquidityBonders] = useState<any>([])
@@ -130,6 +153,8 @@ function useData() {
   const [incompleteSettlements, setIncompleteSettlements] = useState<any>([])
   const [challengedTransferRoots, setChallengedTransferRoots] = useState<any>([])
   const [unsyncedSubgraphs, setUnsyncedSubgraphs] = useState<any>([])
+  const [missedEvents, setMissedEvents] = useState<any>([])
+  const [invalidBondWithdrawals, setInvalidBondWithdrawals] = useState<any>([])
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [fetching, setFetching] = useState<boolean>(false)
 
@@ -150,7 +175,7 @@ function useData() {
         setLowAvailableLiquidityBonders(result.data.lowAvailableLiquidityBonders)
       }
       if (Array.isArray(result?.data?.unbondedTransfers)) {
-        setUnbondedTransfers(result.data.unbondedTransfers)
+        setUnbondedTransfers(result.data.unbondedTransfers.slice(0, 100))
       }
       if (Array.isArray(result?.data?.unbondedTransferRoots)) {
         setUnbondedTransferRoots(result.data.unbondedTransferRoots)
@@ -163,6 +188,12 @@ function useData() {
       }
       if (Array.isArray(result?.data?.unsyncedSubgraphs)) {
         setUnsyncedSubgraphs(result.data.unsyncedSubgraphs)
+      }
+      if (Array.isArray(result?.data?.missedEvents)) {
+        setMissedEvents(result.data.missedEvents)
+      }
+      if (Array.isArray(result?.data?.invalidBondWithdrawals)) {
+        setInvalidBondWithdrawals(result.data.invalidBondWithdrawals)
       }
     } catch (err) {
       console.error(err)
@@ -186,6 +217,8 @@ function useData() {
     incompleteSettlements,
     challengedTransferRoots,
     unsyncedSubgraphs,
+    missedEvents,
+    invalidBondWithdrawals,
     lastUpdated,
     fetching
   }
@@ -200,6 +233,8 @@ const Health = () => {
     incompleteSettlements,
     challengedTransferRoots,
     unsyncedSubgraphs,
+    missedEvents,
+    invalidBondWithdrawals,
     lastUpdated,
     fetching
   } = useData()
@@ -493,6 +528,58 @@ const Health = () => {
     ]
   }]
 
+  const missedEventsColumns = [{
+    Header: `Missed Events (${missedEvents.length})`,
+    columns: [
+      {
+        Header: 'Date',
+        accessor: 'timestamp',
+        Cell: cell,
+      },
+      {
+        Header: 'Source Chain',
+        accessor: 'sourceChain',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Token',
+        accessor: 'token',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Transfer ID',
+        accessor: 'transferId',
+        Cell: cellAddress
+      }
+    ]
+  }]
+
+  const invalidBondWithdrawalsColumns = [{
+    Header: `Invalid Bond Withdrawals (${invalidBondWithdrawals.length})`,
+    columns: [
+      {
+        Header: 'Date',
+        accessor: 'timestamp',
+        Cell: cell,
+      },
+      {
+        Header: 'Destination Chain',
+        accessor: 'destinationChain',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Token',
+        accessor: 'token',
+        Cell: cellIcon,
+      },
+      {
+        Header: 'Transfer ID',
+        accessor: 'transferId',
+        Cell: cellAddress
+      }
+    ]
+  }]
+
   return (
     <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
       <Box display="flex" flexDirection="column" alignItems="flex-start" width="100%" sx={{ overflow: 'auto' }}>
@@ -554,6 +641,22 @@ const Health = () => {
             stats={ unsyncedSubgraphs }
             columns={ unsyncedSubgraphsColumns }
             populateDataFn={ populateUnsyncedSubgraphs }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ missedEvents }
+            columns={ missedEventsColumns }
+            populateDataFn={ populateMissedEvents }
+            loading={ fetching }
+          />
+        </Box>
+        <Box m={2} display="flex" justifyContent="center">
+          <SortableTable
+            stats={ invalidBondWithdrawals }
+            columns={ invalidBondWithdrawalsColumns }
+            populateDataFn={ populateInvalidBondWithdrawals }
             loading={ fetching }
           />
         </Box>

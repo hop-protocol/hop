@@ -207,7 +207,11 @@ const Send: FC = () => {
         return
       }
 
-      const isAvailable = BigNumber.from(availableLiquidity).gte(requiredLiquidity)
+      let isAvailable = BigNumber.from(availableLiquidity).gte(requiredLiquidity)
+      if (fromNetwork?.isL1) {
+        isAvailable = true
+      }
+
       const formattedAmount = toTokenDisplay(availableLiquidity, sourceToken.decimals)
 
       const warningMessage = (
@@ -390,7 +394,7 @@ const Send: FC = () => {
   // Send tokens
   // ==============================================================================================
 
-  const { tx, setTx, send, sending } = useSendTransaction({
+  const { tx, setTx, send, sending, setIsGnosisSafeWallet } = useSendTransaction({
     amountOutMin,
     customRecipient,
     deadline,
@@ -404,7 +408,7 @@ const Send: FC = () => {
     toNetwork,
     txConfirm,
     txHistory,
-    estimatedReceived: estimatedReceivedDisplay,
+    estimatedReceived: estimatedReceivedDisplay
   })
 
   useEffect(() => {
@@ -418,8 +422,12 @@ const Send: FC = () => {
     tx,
     customRecipient,
     fromNetwork,
-    toNetwork
+    toNetwork,
   )
+
+  useEffect(() => {
+    setIsGnosisSafeWallet(gnosisEnabled)
+  }, [gnosisEnabled])
 
   // ==============================================================================================
   // User actions
@@ -503,7 +511,7 @@ const Send: FC = () => {
     // setManualError('')
   }, [fromNetwork?.slug, toNetwork?.slug])
 
-  const { disabledTx } = useDisableTxs(fromNetwork, toNetwork)
+  const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, sourceToken?.symbol)
 
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
@@ -606,7 +614,7 @@ const Send: FC = () => {
       </div>
 
       {disabledTx && (
-        <Alert severity={disabledTx.warningOnly ? 'warning' : 'error'}>
+        <Alert severity={disabledTx?.message?.severity ||  'warning'}>
           <ExternalLink
             href={disabledTx.message?.href}
             text={disabledTx.message?.text}

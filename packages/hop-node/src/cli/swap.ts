@@ -5,7 +5,7 @@ import getCanonicalTokenSymbol from 'src/utils/getCanonicalTokenSymbol'
 import isHToken from 'src/utils/isHToken'
 import wallets from 'src/wallets'
 import { BigNumber, utils as ethersUtils } from 'ethers'
-import { Chain, TokenIndex, nativeChainTokens } from 'src/constants'
+import { Chain, MinPolygonGasPrice, TokenIndex, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 
 import { swap as oneInchSwap } from 'src/1inch'
@@ -48,8 +48,8 @@ async function main (source: any) {
     throw new Error('from-token and to-token cannot be the same')
   }
 
-  const isWrapperDeposit = fromNative && isWrappedToken(toToken)
-  const isWrapperWithdrawal = isWrappedToken(fromToken) && toNative
+  const isWrapperDeposit = fromNative && isWrappedNativeToken(toToken, chain)
+  const isWrapperWithdrawal = isWrappedNativeToken(fromToken, chain) && toNative
   const fromTokenIsHToken = isHToken(fromToken)
   const toTokenIsHToken = isHToken(toToken)
   const isAmmSwap = fromTokenIsHToken || toTokenIsHToken
@@ -140,9 +140,9 @@ async function main (source: any) {
 
     let amountOut: BigNumber
     if (fromTokenIsHToken) {
-      amountOut = await amm.calculateToHTokensAmount(amountIn)
-    } else {
       amountOut = await amm.calculateFromHTokensAmount(amountIn)
+    } else {
+      amountOut = await amm.calculateToHTokensAmount(amountIn)
     }
 
     const slippageToleranceBps = (slippage || 0.5) * 100
@@ -229,11 +229,15 @@ async function wrapToken (chain: string, parsedAmount: BigNumber) {
   const data = ethersInterface.encodeFunctionData(
     'deposit', []
   )
-  return wallet.sendTransaction({
+  const tx: any = {
     to: wrappedTokenAddress,
     value: parsedAmount,
     data
-  })
+  }
+  if (chain === Chain.Polygon) {
+    tx.gasPrice = MinPolygonGasPrice
+  }
+  return wallet.sendTransaction(tx)
 }
 
 async function unwrapToken (chain: string, parsedAmount: BigNumber) {
@@ -244,14 +248,27 @@ async function unwrapToken (chain: string, parsedAmount: BigNumber) {
   const data = ethersInterface.encodeFunctionData(
     'withdraw', [parsedAmount]
   )
-  return wallet.sendTransaction({
+  const tx: any = {
     to: wrappedTokenAddress,
     data
-  })
+  }
+  if (chain === Chain.Polygon) {
+    tx.gasPrice = MinPolygonGasPrice
+  }
+  console.log(tx)
+  return wallet.sendTransaction(tx)
 }
 
-function isWrappedToken (token: string) {
-  return !!wrappedNativeToNative[token]
+function isWrappedNativeToken (token: string, chain: string) {
+  const isWrapped = !!wrappedNativeToNative[token]
+  if (isWrapped) {
+    const unwrappedToken = wrappedNativeToNative[token]
+    if (chainPerNativeToken[unwrappedToken].includes(chain)) {
+      return true
+    }
+  }
+
+  return false
 }
 
 function isValidChainWrapTokens (chain: string, nativeToken: string, wrappedToken: string) {
@@ -276,4 +293,10 @@ const nativeToWrappedNative: Record<string, string> = {
   ETH: 'WETH',
   MATIC: 'WMATIC',
   XDAI: 'WXDAI'
+}
+
+const chainPerNativeToken: Record<string, string[]> = {
+  ETH: ['mainnet', 'optimism', 'arbitrum'],
+  MATIC: ['polygon'],
+  XDAI: ['xdai']
 }

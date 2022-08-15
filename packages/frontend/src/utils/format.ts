@@ -47,12 +47,14 @@ export function formatError(error: any, network?: Network) {
     errMsg = `An RPC error occured. Please check you have enough ${feeToken} to pay for fees and check your wallet network settings are correct. Refresh to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   } else if (errMsg.includes('call revert exception') || errMsg.includes('missing revert data')) {
     errMsg = `An RPC error occured. Please check your wallet network settings are correct and refresh page to try again. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
-  } else if (errMsg.includes('unsupported block number') || errMsg.includes('rlp: expected List')) {
+  } else if (errMsg.includes('unsupported block number') || errMsg.includes('rlp: expected List') || errMsg.includes('PermissionDenied, permission denied for tx type: Call')) {
     errMsg = `An RPC error occured. Please refresh page to try again. Error: ${errMsg}`
   } else if (errMsg.includes('transaction underpriced')) {
     errMsg = `An RPC error occured. The transaction is underpriced. Please try again and increase gas price. If you are seeing is error a lot, try resetting the nonce for your wallet account. Error: ${errMsg}`
   } else if (errMsg.includes('header not found')) {
     errMsg = `An RPC error occurred. Please check your wallet network settings are correct and try again. Consider using a different RPC provider if you are seeing this error frequently. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
+  } else if (errMsg.includes('sequencer transaction forwarding not configured') || errMsg.includes('rate limit') || errMsg.includes('compute units')) {
+    errMsg = `An RPC error occurred. Please try again. Consider using a different RPC provider if you are seeing this error often. More info: https://docs.hop.exchange/rpc-endpoints. Error: ${errMsg}`
   }
 
   return prettifyErrorMessage(errMsg)

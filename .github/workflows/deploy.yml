@@ -102,6 +102,7 @@ jobs:
           REACT_APP_DISABLED_ROUTES: ${{ secrets.REACT_APP_DISABLED_ROUTES }}
           REACT_APP_WARNING_ROUTES: ${{ secrets.REACT_APP_WARNING_ROUTES }}
           REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS: ${{ secrets.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS }}
+          REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE: ${{ secrets.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE }}
         run: yarn build
 
       - name: Pin to IPFS on Pinata
@@ -113,15 +114,6 @@ jobs:
           verbose: false
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
-
-      - name: Pin to Crust
-        uses: crustio/ipfs-crust-action@v2.0.3
-        if: contains(github.ref, 'production')
-        continue-on-error: true
-        timeout-minutes: 2
-        with:
-          cid: ${{ steps.upload.outputs.hash }}
-          seeds: ${{ secrets.CRUST_SEEDS }}
 
       - name: Update CloudFlare DNS with new IPFS hash
         env:

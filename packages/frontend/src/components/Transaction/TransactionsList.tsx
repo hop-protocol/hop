@@ -12,7 +12,7 @@ function TransactionsList(props: any) {
   const { transactions, clear, removeTransaction } = useTxHistory(props.transactions)
 
   if (!transactions || transactions.length === 0) {
-    return <Typography variant="body1">Your transactions will appear here...</Typography>
+    return <Typography variant="body1">Your recent transactions will appear here...</Typography>
   }
 
   return (

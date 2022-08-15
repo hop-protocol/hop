@@ -1,4 +1,5 @@
 import path from 'path'
+import fs from 'fs'
 import BlockDater from 'ethereum-block-by-date'
 import { BigNumber, providers, Contract, constants } from 'ethers'
 import {
@@ -22,110 +23,19 @@ import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
 import { createObjectCsvWriter } from 'csv-writer'
 import { chunk } from 'lodash'
+import { parse } from 'comment-json'
 
-// DATA /////////////////////////////////////////////
-const arbitrumAliases: Record<string, string> = {
-  USDC: '0xc4D28710fE030A75A3a981A1AbaC0dB984E52964',
-  USDT: '0xCA0A0E115499082747bA5DA94732863b12cB3036',
-  DAI: '0x482BfCa8246806b8dc09091d40005b9317dC751D',
-  ETH: '0xF8c59bA692773251E78AD50293Cf4d64B67cbb8B',
-  WBTC: '0xa2cE9cceC64FC22475323a0E55d58F7786588a16'
-}
+const jsonData = parse(
+  fs
+    .readFileSync(path.resolve(__dirname, 'data/bonder_profits.json'))
+    .toString()
+) as any
 
-const totalBalances: Record<string, BigNumber> = {
-  USDC: parseUnits('6026000', 6),
-  USDT: parseUnits('2121836', 6),
-  DAI: parseUnits('5000000', 18),
-  ETH: parseUnits('3984', 18),
-  MATIC: parseUnits('731948.94', 18)
-}
-
-const initialAggregateBalances: Record<string, BigNumber> = {
-  USDC: parseUnits('0', 6),
-  USDT: parseUnits('0', 6),
-  DAI: parseUnits('0', 18),
-  ETH: parseUnits('0', 18),
-  MATIC: parseUnits('0', 18),
-  WBTC: parseUnits('0', 8)
-}
-
-const initialAggregateNativeBalances: any = {
-  USDC: {
-    // ethereum: parseUnits('14', 18)
-  },
-  USDT: {},
-  DAI: {},
-  ETH: {},
-  MATIC: {},
-  WBTC: {}
-}
-
-const unstakedAmounts: Record<string, any> = {
-  // 0xa6a688F107851131F0E1dce493EbBebFAf99203e
-  USDC: {
-    [1625036400]: parseUnits('9955.84', 6) // 06/30/2021
-  },
-  // 0x15ec4512516d980090050fe101de21832c8edfee
-  USDT: {
-    [1642492800]: parseUnits('58043.34', 6), // 01/18/2022 (22.7886 ETH)
-    [1643011200]: parseUnits('7228.11', 6), // 01/24/2022
-    [1643011201]: parseUnits('610.57', 6), // 01/24/2022 (0.25 ETH)
-    [1643356800]: parseUnits('0.87', 6) // 01/28/2022
-  },
-  // 0x305933e09871D4043b5036e09af794FACB3f6170
-  DAI: {
-    [1636617600]: parseUnits('8752.88', 18), // 11/11/2021
-    [1636617601]: parseUnits('23422.52', 18), // 11/11/2021
-    [1643961600]: parseUnits('300000', 18) // 02/4/2022
-  },
-  // 0x710bDa329b2a6224E4B44833DE30F38E7f81d564
-  ETH: {
-    [1639555200]: parseEther('6.07'), // 12/15/2021
-    [1639641600]: parseEther('26'), // 12/16/2021
-    [1645689600]: parseEther('675') // 02/24/2022
-  },
-  // 0xd8781ca9163e9f132a4d8392332e64115688013a
-  MATIC: {},
-  // 0x2A6303e6b99d451Df3566068EBb110708335658f
-  WBTC: {}
-}
-
-const restakedProfits: Record<string, any> = {
-  // 0xa6a688F107851131F0E1dce493EbBebFAf99203e
-  USDC: {
-    [1627628400]: parseUnits('9000', 6), // 7/30/2021
-    [1637395200]: parseUnits('1340.36', 6), // 11/20/2021
-    [1643443200]: parseUnits('2998.70', 6) // 01/29/2022
-  },
-  // 0x15ec4512516d980090050fe101de21832c8edfee
-  USDT: {
-    [1643011200]: parseUnits('244.23', 6) // 01/24/2021 // idle (0.1 ETH)
-  },
-  // 0x305933e09871D4043b5036e09af794FACB3f6170
-  DAI: {
-    [1644220800]: parseUnits('300000', 18), // 02/7/2022 // idle
-    [1644480000]: parseUnits('8752.88', 18), // 02/11/2022
-    [1644480001]: parseUnits('23422.52', 18) // 02/11/2022
-  },
-  // 0x710bDa329b2a6224E4B44833DE30F38E7f81d564
-  ETH: {
-    [1640678400]: parseEther('6.07'), // 12/28/2021
-    [1643184000]: parseEther('10'), // 01/26/2022
-    [1645776000]: parseEther('675') // 02/25/2022
-  },
-  // 0xd8781ca9163e9f132a4d8392332e64115688013a
-  MATIC: {},
-  // 0x2A6303e6b99d451Df3566068EBb110708335658f
-  WBTC: {}
-}
-
-const bonderAddresses: Record<string, string> = {
-  USDC: '0xa6a688F107851131F0E1dce493EbBebFAf99203e',
-  USDT: '0x15ec4512516d980090050fe101de21832c8edfee',
-  DAI: '0x305933e09871D4043b5036e09af794FACB3f6170',
-  ETH: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
-  MATIC: '0xd8781ca9163e9f132a4d8392332e64115688013a'
-}
+const {
+  arbitrumAliases,
+  oldArbitrumAliases
+} = require('./data/arbitrum_alises.json')
+const { wethAddresses } = require('./data/weth_addresses.json')
 
 const etherscanUrls: Record<string, string> = {
   ethereum: 'https://api.etherscan.io',
@@ -134,8 +44,6 @@ const etherscanUrls: Record<string, string> = {
   arbitrum: 'https://api.arbiscan.io',
   gnosis: 'https://blockscout.com/poa/xdai'
 }
-
-/////////////////////////////////////////////////////
 
 const wait = (t: number) =>
   new Promise(resolve => setTimeout(() => resolve(null), t))
@@ -156,14 +64,28 @@ const allArchiveProviders: Record<string, any> = {
 
 type Options = {
   days?: number
+  offsetDays?: number
+  startDate?: string
+  endDate?: string
   tokens?: string[]
+  trackBonderProfit?: boolean
+  trackBonderFees?: boolean
+  trackBonderTxFees?: boolean
+  writeCsv?: boolean
 }
 
 class BonderStats {
   db = new Db()
   days: number = 1
-  tokens?: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC']
+  offsetDays: number = 0
+  startDate?: DateTime
+  endDate?: DateTime
+  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC']
   chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
+  trackOnlyProfit = false
+  trackOnlyTxFees = false
+  trackOnlyFees = false
+  writeCsv = false
 
   tokenDecimals: Record<string, number> = {
     USDC: 6,
@@ -178,8 +100,40 @@ class BonderStats {
     if (options.days) {
       this.days = options.days
     }
+    if (options.offsetDays) {
+      this.offsetDays = options.offsetDays
+    }
+    if (options.startDate) {
+      this.startDate = DateTime.fromISO(options.startDate)
+        .toUTC()
+        .startOf('day')
+    }
+    if (options.endDate) {
+      this.endDate = DateTime.fromISO(options.endDate)
+        .toUTC()
+        .startOf('day')
+    }
+    if (this.startDate && this.endDate) {
+      this.offsetDays = 0
+      this.days = this.endDate.diff(this.startDate, ['days']).days
+      if (this.days < 0) {
+        throw new Error('invalid date range')
+      }
+    }
     if (options.tokens) {
       this.tokens = options.tokens
+    }
+
+    this.trackOnlyProfit = !!options.trackBonderProfit
+    this.trackOnlyTxFees = !!options.trackBonderTxFees
+    this.trackOnlyFees = !!options.trackBonderFees
+
+    console.log(
+      `trackOnlyProfit: ${this.trackOnlyProfit}, trackOnlyTxFees: ${this.trackOnlyTxFees}, trackOnlyFees: ${this.trackOnlyFees}`
+    )
+
+    if (options.writeCsv) {
+      this.writeCsv = options.writeCsv
     }
 
     process.once('uncaughtException', async err => {
@@ -242,14 +196,15 @@ class BonderStats {
         chainFees = chainFees.add(BigNumber.from(bonderFee))
       }
       totalFees = totalFees.add(chainFees)
-      const chainFeesFormatted = formatUnits(
-        chainFees,
-        this.tokenDecimals[token]
+      const chainFeesFormatted = Number(
+        formatUnits(chainFees, this.tokenDecimals[token])
       )
       dbData[`${chain}FeesAmount`] = chainFeesFormatted
       console.log(day, 'chain bonder fees', isoDate, chain, chainFeesFormatted)
     }
-    const totalFeesFormatted = formatUnits(totalFees, this.tokenDecimals[token])
+    const totalFeesFormatted = Number(
+      formatUnits(totalFees, this.tokenDecimals[token])
+    )
     dbData.totalFeesAmount = totalFeesFormatted
     console.log(day, 'total bonder fees', isoDate, totalFeesFormatted)
 
@@ -264,7 +219,13 @@ class BonderStats {
         dbData.totalFeesAmount,
         startDate
       )
-      console.log(day, 'upserted', token, startDate)
+      console.log(
+        day,
+        'upserted',
+        token,
+        startDate,
+        DateTime.fromSeconds(startDate).toISO()
+      )
     } catch (err) {
       if (!err.message.includes('UNIQUE constraint failed')) {
         throw err
@@ -275,12 +236,11 @@ class BonderStats {
   async run () {
     while (true) {
       try {
-        const argv = require('minimist')(process.argv.slice(2))
-        if (argv.onlyProfit) {
+        if (this.trackOnlyProfit) {
           await this.trackProfit()
-        } else if (argv.onlyTxFees) {
+        } else if (this.trackOnlyTxFees) {
           await this.trackBonderTxFees()
-        } else if (argv.onlyBonderFees) {
+        } else if (this.trackOnlyFees) {
           await this.trackBonderFee()
         } else {
           await Promise.all([
@@ -302,7 +262,7 @@ class BonderStats {
     const startDate = Math.floor(date.toSeconds())
     const endDate = Math.floor(date.endOf('day').toSeconds())
     const isoDate = date.toISO()
-    const address = bonderAddresses[token]
+    const address = Object.keys(jsonData[token])[0]
     if (!address) {
       throw new Error(`no address found for token "${token}"`)
     }
@@ -326,7 +286,7 @@ class BonderStats {
           startDate,
           endDate
         )
-        const chainFeesFormatted = formatEther(gasFees)
+        const chainFeesFormatted = Number(formatEther(gasFees))
         dbData[`${chain}TxFees`] = chainFeesFormatted
         console.log(chain, chainFeesFormatted)
       })
@@ -334,9 +294,17 @@ class BonderStats {
 
     const ethPrice = priceMap.ETH
     const maticPrice = priceMap.MATIC
+    const xdaiPrice = 1
     dbData.ethPrice = ethPrice
     dbData.maticPrice = maticPrice
-    dbData.totalFees = (Number(dbData.polygonTxFees || 0) * maticPrice) + Number(dbData.gnosisTxFees || 0) + ((Number(dbData.arbitrumTxFees || 0) + Number(dbData.optimismTxFees || 0) + Number(dbData.ethereumTxFees || 0)) * ethPrice)
+    dbData.xdaiPrice = xdaiPrice
+    dbData.totalFees =
+      Number(dbData.polygonTxFees || 0) * maticPrice +
+      Number(dbData.gnosisTxFees || 0) * xdaiPrice +
+      (Number(dbData.arbitrumTxFees || 0) +
+        Number(dbData.optimismTxFees || 0) +
+        Number(dbData.ethereumTxFees || 0)) *
+        ethPrice
     console.log(dbData.totalFees)
 
     try {
@@ -350,6 +318,7 @@ class BonderStats {
         dbData.totalFees,
         dbData.ethPrice,
         dbData.maticPrice,
+        dbData.xdaiPrice,
         startDate
       )
       console.log(day, 'upserted', token, startDate)
@@ -395,115 +364,320 @@ class BonderStats {
   }
 
   async trackProfitDay (day: number, token: string, prices: any) {
-    console.log('day:', day)
-    const now = DateTime.utc()
-    const date = now.minus({ days: day }).startOf('day')
-    const timestamp = Math.floor(date.toSeconds())
-    const isoDate = date.toISO()
-    console.log('date:', isoDate)
+    for (const bonderAddress in jsonData[token]) {
+      const bonderData = jsonData[token][bonderAddress]
 
-    const priceMap: any = {}
-    for (const _token in prices) {
-      const dates = prices[_token].reverse().map((x: any) => x[0])
-      const nearest = this.nearestDate(dates, timestamp)
-      const price = prices[_token][nearest][1]
-      priceMap[_token] = price
-    }
+      console.log('day:', day)
+      let now = this.endDate ?? DateTime.utc()
+      let date = now.minus({ days: day + this.offsetDays }).startOf('day')
+      console.log('date:', date.toISO())
+      const timestamp = Math.floor(date.toSeconds())
+      const isoDate = date.toISO()
+      console.log('date:', isoDate)
 
-    const { bonderBalances, dbData } = await this.fetchBonderBalances(
-      token,
-      timestamp,
-      priceMap
-    )
-
-    const initialAggregateBalance = initialAggregateBalances?.[token]
-    const initialAggregateNativeBalance =
-      initialAggregateNativeBalances?.[token]
-
-    let unstakedAmount = BigNumber.from(0)
-    for (const ts in unstakedAmounts[token]) {
-      if (Number(ts) <= timestamp) {
-        unstakedAmount = unstakedAmount.add(unstakedAmounts[token][ts])
-        console.log(
-          ts,
-          'subtract unstaked amount',
-          unstakedAmounts[token][ts].toString()
-        )
+      const priceMap: any = {}
+      for (const _token in prices) {
+        const dates = prices[_token].reverse().map((x: any) => x[0])
+        const nearest = this.nearestDate(dates, timestamp)
+        const price = prices[_token][nearest][1]
+        priceMap[_token] = price
       }
-    }
 
-    let restakedAmount = BigNumber.from(0)
-    for (const ts in restakedProfits[token]) {
-      if (Number(ts) <= timestamp) {
-        restakedAmount = restakedAmount.add(restakedProfits[token][ts])
-        console.log(
-          ts,
-          'add restaked amount',
-          restakedProfits[token][ts].toString()
-        )
-      }
-    }
-
-    const { resultFormatted } = await this.computeResult({
-      token,
-      initialAggregateBalance,
-      initialAggregateNativeBalance,
-      restakedAmount,
-      unstakedAmount,
-      bonderBalances,
-      priceMap
-    })
-
-    dbData.unstakedAmount = formatUnits(
-      unstakedAmount,
-      this.tokenDecimals[token]
-    )
-
-    dbData.restakedAmount = formatUnits(
-      restakedAmount,
-      this.tokenDecimals[token]
-    )
-
-    console.log('results', token, timestamp, resultFormatted)
-
-    try {
-      await this.db.upsertBonderBalances(
+      const { bonderBalances, dbData } = await this.fetchBonderBalances(
         token,
-        dbData.polygonBlockNumber,
-        dbData.polygonCanonicalAmount,
-        dbData.polygonHTokenAmount,
-        dbData.polygonNativeAmount,
-        dbData.gnosisBlockNumber,
-        dbData.gnosisCanonicalAmount,
-        dbData.gnosisHTokenAmount,
-        dbData.gnosisNativeAmount,
-        dbData.arbitrumBlockNumber,
-        dbData.arbitrumCanonicalAmount,
-        dbData.arbitrumHTokenAmount,
-        dbData.arbitrumNativeAmount,
-        dbData.arbitrumAliasAmount,
-        dbData.optimismBlockNumber,
-        dbData.optimismCanonicalAmount,
-        dbData.optimismHTokenAmount,
-        dbData.optimismNativeAmount,
-        dbData.ethereumBlockNumber,
-        dbData.ethereumCanonicalAmount,
-        dbData.ethereumNativeAmount,
-        dbData.unstakedAmount,
-        dbData.restakedAmount,
-        dbData.ethPriceUsd,
-        dbData.maticPriceUsd,
-        resultFormatted,
-        timestamp
+        timestamp,
+        priceMap
       )
-      console.log(day, 'upserted', token, timestamp)
-    } catch (err) {
-      if (!err.message.includes('UNIQUE constraint failed')) {
-        throw err
-      }
-    }
 
-    return dbData
+      const initialAggregateBalanceInAssetToken = BigNumber.from(0)
+      const initialAggregateNativeBalance = BigNumber.from(0)
+
+      const initialCanonicalAmounts = bonderData.initialCanonicalAmounts ?? {}
+      let initialCanonicalAmount = BigNumber.from(0)
+      for (const date in initialCanonicalAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(
+            initialCanonicalAmounts[date],
+            token
+          )
+          for (const amount of amounts) {
+            initialCanonicalAmount = initialCanonicalAmount.add(amount)
+            console.log(
+              ts,
+              'subtract initial canonical amount',
+              amount.toString()
+            )
+          }
+        }
+      }
+
+      const depositAmounts = bonderData.depositAmounts ?? {}
+      let depositAmount = BigNumber.from(0)
+      let depositEvent: any = null
+      for (const date in depositAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(depositAmounts[date], token)
+          for (const amount of amounts) {
+            depositAmount = depositAmount.add(amount)
+            if (ts === timestamp) {
+              if (!depositEvent) {
+                depositEvent = BigNumber.from(0)
+              }
+              depositEvent = depositEvent.add(amount)
+            }
+            console.log(ts, 'subtract deposit amount', amount.toString())
+          }
+        }
+      }
+
+      const stakedAmounts = bonderData.stakedAmounts ?? {}
+      let stakedAmount = BigNumber.from(0)
+      for (const date in stakedAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(stakedAmounts[date], token)
+          for (const amount of amounts) {
+            stakedAmount = stakedAmount.add(amount)
+            console.log(ts, 'subtract staked amount', amount.toString())
+          }
+        }
+      }
+
+      const unstakedAmounts = bonderData.unstakedAmounts ?? {}
+      let unstakedAmount = BigNumber.from(0)
+      for (const date in unstakedAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(unstakedAmounts[date], token)
+          for (const amount of amounts) {
+            unstakedAmount = unstakedAmount.add(amount)
+            console.log(ts, 'subtract unstaked amount', amount.toString())
+          }
+        }
+      }
+
+      const unstakedEthAmounts = bonderData.unstakedEthAmounts ?? {}
+      let unstakedEthAmount = BigNumber.from(0)
+      for (const date in unstakedEthAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(unstakedEthAmounts[date], 'ETH')
+          for (const amount of amounts) {
+            unstakedEthAmount = unstakedEthAmount.add(amount)
+            console.log(ts, 'subtract unstaked amount ETH', amount.toString())
+          }
+        }
+      }
+
+      const restakedProfits = bonderData.restakedProfits ?? {}
+      let restakedAmount = BigNumber.from(0)
+      for (const date in restakedProfits) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(restakedProfits[date], token)
+          for (const amount of amounts) {
+            restakedAmount = restakedAmount.add(amount)
+            console.log(ts, 'add restaked amount', amount.toString())
+          }
+        }
+      }
+
+      const restakedEthProfits = bonderData.restakedEthProfits ?? {}
+      let restakedEthAmount = BigNumber.from(0)
+      for (const date in restakedEthProfits) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(restakedEthProfits[date], token)
+          for (const amount of amounts) {
+            restakedEthAmount = restakedEthAmount.add(amount)
+            console.log(ts, 'add restaked eth amount', amount.toString())
+          }
+        }
+      }
+
+      const withdrawnAmounts = bonderData.withdrawnAmounts ?? {}
+      let withdrawnAmount = BigNumber.from(0)
+      for (const date in withdrawnAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          const amounts = this.amountsToArray(withdrawnAmounts[date], token)
+          for (const amount of amounts) {
+            withdrawnAmount = withdrawnAmount.add(amount)
+            console.log(ts, 'subtract withdrawn amount', amount.toString())
+          }
+        }
+      }
+
+      const { resultFormatted } = await this.computeResult({
+        token,
+        initialAggregateBalanceInAssetToken,
+        initialAggregateNativeBalance,
+        restakedAmount,
+        unstakedAmount,
+        bonderBalances,
+        priceMap
+      })
+
+      const {
+        resultFormatted: result2Formatted,
+        ethAmountsFormatted
+      } = await this.computeResult2({
+        token,
+        initialAggregateBalanceInAssetToken,
+        initialAggregateNativeBalance,
+        restakedAmount,
+        unstakedAmount,
+        unstakedEthAmount,
+        bonderBalances,
+        priceMap
+      })
+
+      dbData.unstakedAmount = Number(
+        formatUnits(unstakedAmount, this.tokenDecimals[token])
+      )
+
+      dbData.unstakedEthAmount = Number(formatEther(unstakedEthAmount))
+
+      dbData.restakedAmount = Number(
+        formatUnits(restakedAmount, this.tokenDecimals[token])
+      )
+
+      dbData.restakedEthAmount = Number(
+        formatUnits(restakedEthAmount, this.tokenDecimals[token])
+      )
+
+      dbData.depositAmount = Number(
+        formatUnits(depositAmount, this.tokenDecimals[token])
+      )
+
+      dbData.withdrawnAmount = Number(
+        formatUnits(withdrawnAmount, this.tokenDecimals[token])
+      )
+
+      dbData.stakedAmount = Number(
+        formatUnits(stakedAmount, this.tokenDecimals[token])
+      )
+
+      dbData.initialCanonicalAmount = Number(
+        formatUnits(initialCanonicalAmount, this.tokenDecimals[token])
+      )
+
+      dbData.bonderAddress = bonderAddress.toLowerCase()
+
+      dbData.xdaiPriceUsd = 1
+
+      const initialEthNativeAmounts = bonderData.initialNativeAmounts?.ETH ?? {}
+      let initialEthAmount = 0
+      for (const date in initialEthNativeAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          initialEthAmount = Number(initialEthNativeAmounts[date])
+        }
+      }
+
+      dbData.initialEthAmount = initialEthAmount
+
+      const initialMaticNativeAmounts =
+        bonderData.initialNativeAmounts?.MATIC ?? {}
+      let initialMaticAmount = 0
+      for (const date in initialMaticNativeAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          initialMaticAmount = Number(initialMaticNativeAmounts[date])
+        }
+      }
+
+      dbData.initialMaticAmount = initialMaticAmount
+
+      const initialxDaiNativeAmounts =
+        bonderData.initialNativeAmounts?.XDAI ?? {}
+      let initialxDaiAmount = 0
+      for (const date in initialxDaiNativeAmounts) {
+        const ts = this.parseConfigDateToStartOfNextDayUnix(date)
+        if (ts <= timestamp) {
+          initialxDaiAmount = Number(initialxDaiNativeAmounts[date])
+        }
+      }
+
+      dbData.initialxDaiAmount = initialxDaiAmount
+
+      const { resultFormatted: result3Formatted } = await this.computeResult3({
+        token,
+        dbData
+      })
+
+      console.log('result3', token, timestamp, result3Formatted)
+
+      if (depositEvent) {
+        depositEvent = Number(
+          formatUnits(depositEvent, this.tokenDecimals[token])
+        )
+      }
+
+      try {
+        await this.db.upsertBonderBalances(
+          token,
+          dbData.polygonBlockNumber,
+          dbData.polygonCanonicalAmount,
+          dbData.polygonHTokenAmount,
+          dbData.polygonNativeAmount,
+          dbData.gnosisBlockNumber,
+          dbData.gnosisCanonicalAmount,
+          dbData.gnosisHTokenAmount,
+          dbData.gnosisNativeAmount,
+          dbData.arbitrumBlockNumber,
+          dbData.arbitrumCanonicalAmount,
+          dbData.arbitrumHTokenAmount,
+          dbData.arbitrumNativeAmount,
+          dbData.arbitrumAliasAmount,
+          dbData.optimismBlockNumber,
+          dbData.optimismCanonicalAmount,
+          dbData.optimismHTokenAmount,
+          dbData.optimismNativeAmount,
+          dbData.ethereumBlockNumber,
+          dbData.ethereumCanonicalAmount,
+          dbData.ethereumNativeAmount,
+          dbData.unstakedAmount,
+          dbData.restakedAmount,
+          dbData.ethPriceUsd,
+          dbData.maticPriceUsd,
+          resultFormatted,
+          timestamp,
+          result2Formatted,
+          ethAmountsFormatted,
+          dbData.xdaiPriceUsd,
+          dbData.depositAmount,
+          dbData.stakedAmount,
+          dbData.initialCanonicalAmount,
+          result3Formatted,
+          dbData.arbitrumWethAmount,
+          dbData.withdrawnAmount,
+          dbData.unstakedEthAmount,
+          dbData.bonderAddress,
+          depositEvent,
+          dbData.restakedEthAmount,
+          dbData.initialEthAmount,
+          dbData.initialMaticAmount,
+          dbData.initialxDaiAmount
+        )
+        console.log(
+          day,
+          'upserted bonder balance',
+          token,
+          timestamp,
+          DateTime.fromSeconds(timestamp).toISO(),
+          result3Formatted
+        )
+      } catch (err) {
+        if (!err.message.includes('UNIQUE constraint failed')) {
+          throw err
+        }
+      }
+
+      return dbData
+    }
   }
 
   async trackProfit () {
@@ -541,8 +715,10 @@ class BonderStats {
         })
       })
 
-      await csvWriter.writeRecords(rows)
-      console.log(`wrote ${csvPath}`)
+      if (this.writeCsv) {
+        await csvWriter.writeRecords(rows)
+        console.log(`wrote ${csvPath}`)
+      }
     }
   }
 
@@ -630,11 +806,15 @@ class BonderStats {
                   )
 
                   if (chain === 'arbitrum') {
+                    let aliasAddress = arbitrumAliases[token]
+                    if (token === 'DAI' && timestamp < 1650092400) {
+                      aliasAddress = oldArbitrumAliases[token]
+                    }
+                    if (token === 'ETH' && timestamp < 1650067200) {
+                      aliasAddress = oldArbitrumAliases[token]
+                    }
                     balancePromises.push(
-                      archiveProvider.getBalance(
-                        arbitrumAliases[token],
-                        blockTag
-                      )
+                      archiveProvider.getBalance(aliasAddress, blockTag)
                     )
                   } else {
                     balancePromises.push(Promise.resolve(0))
@@ -654,26 +834,90 @@ class BonderStats {
 
                   dbData[`${chain}BlockNumber`] = blockTag
                   dbData[`${chain}CanonicalAmount`] = balance
-                    ? formatUnits(balance.toString(), this.tokenDecimals[token])
+                    ? Number(
+                        formatUnits(
+                          balance.toString(),
+                          this.tokenDecimals[token]
+                        )
+                      )
                     : 0
                   dbData[`${chain}NativeAmount`] = native
-                    ? formatEther(native.toString())
+                    ? Number(formatEther(native.toString()))
                     : 0
-                  dbData.ethPriceUsd = priceMap['ETH']
-                  dbData.maticPriceUsd = priceMap['MATIC']
+
+                  dbData.ethPriceUsd = Number(priceMap['ETH'])
+                  dbData.maticPriceUsd = Number(priceMap['MATIC'])
                   if (chain !== 'ethereum') {
                     dbData[`${chain}HTokenAmount`] = hBalance
-                      ? formatUnits(
-                          hBalance.toString(),
-                          this.tokenDecimals[token]
+                      ? Number(
+                          formatUnits(
+                            hBalance.toString(),
+                            this.tokenDecimals[token]
+                          )
                         )
                       : 0
                   }
                   if (chain === 'arbitrum') {
                     dbData[`${chain}AliasAmount`] = aliasBalance
-                      ? formatEther(aliasBalance.toString())
+                      ? Number(formatEther(aliasBalance.toString()))
                       : 0
-                    console.log(`${chain} ${token} alias balance`, formatEther(aliasBalance.toString()))
+                    console.log(
+                      `${chain} ${token} alias balance`,
+                      Number(formatEther(aliasBalance.toString()))
+                    )
+                  }
+
+                  if (chain === 'arbitrum') {
+                    const wethAddress = wethAddresses[chain]
+                    const wethContract = new Contract(
+                      wethAddress,
+                      erc20Abi,
+                      provider
+                    )
+
+                    const wethBalance = await wethContract.balanceOf(bonder, {
+                      blockTag
+                    })
+
+                    dbData[`${chain}WethAmount`] = Number(
+                      formatEther(wethBalance.toString())
+                    )
+                  }
+
+                  // NOTE: this is to account for offset issue with unstake/stake timestamps
+                  // TODO: move to config
+                  if (
+                    token === 'USDT' &&
+                    timestamp > 1657177200 &&
+                    timestamp < 1657350000 &&
+                    dbData.ethereumCanonicalAmount > 228588.2
+                  ) {
+                    dbData.ethereumCanonicalAmount =
+                      dbData.ethereumCanonicalAmount - 228588.2
+                  }
+
+                  // NOTE: this is to account for offset issue with unstake/stake timestamps
+                  // TODO: move to config
+                  if (
+                    token === 'USDC' &&
+                    timestamp > 1654239600 &&
+                    timestamp < 1654412400 &&
+                    dbData.ethereumCanonicalAmount > 1998270.56
+                  ) {
+                    dbData.ethereumCanonicalAmount =
+                      dbData.ethereumCanonicalAmount - 1998270.56
+                  }
+
+                  // NOTE: this is to account for offset issue with unstake/stake timestamps
+                  // TODO: move to config
+                  if (
+                    token === 'DAI' &&
+                    timestamp > 1656486000 &&
+                    timestamp < 1656658800 &&
+                    dbData.ethereumCanonicalAmount < 1500000
+                  ) {
+                    dbData.ethereumCanonicalAmount =
+                      dbData.ethereumCanonicalAmount + 1500000
                   }
 
                   console.log(
@@ -709,17 +953,18 @@ class BonderStats {
     }
   }
 
+  // TODO: remove this
   async computeResult (data: any = {}) {
     const {
       token,
-      initialAggregateBalance,
+      initialAggregateBalanceInAssetToken,
       initialAggregateNativeBalance,
       restakedAmount,
       unstakedAmount,
       bonderBalances,
       priceMap
     } = data
-    let aggregateBalance = initialAggregateBalance
+    let aggregateBalance = initialAggregateBalanceInAssetToken
       .sub(unstakedAmount)
       .add(restakedAmount)
     const nativeBalances: Record<string, any> = {}
@@ -775,6 +1020,154 @@ class BonderStats {
 
     return {
       result,
+      resultFormatted
+    }
+  }
+
+  // TODO: remove this
+  async computeResult2 (data: any = {}) {
+    const {
+      token,
+      initialAggregateBalanceInAssetToken,
+      initialAggregateNativeBalance,
+      restakedAmount,
+      unstakedAmount,
+      unstakedEthAmount,
+      bonderBalances,
+      priceMap
+    } = data
+    let aggregateBalanceToken = initialAggregateBalanceInAssetToken
+      .sub(unstakedAmount)
+      .add(restakedAmount)
+    const nativeBalances: Record<string, any> = {}
+    for (const chain of this.chains) {
+      nativeBalances[chain] = BigNumber.from(0)
+    }
+
+    for (const chain in bonderBalances) {
+      const { canonical, hToken, native, alias } = bonderBalances[chain]
+      aggregateBalanceToken = aggregateBalanceToken.add(canonical).add(hToken)
+      nativeBalances[chain] = native.add(alias)
+    }
+    const nativeTokenDiffs: Record<string, any> = {}
+    for (const chain of this.chains) {
+      nativeTokenDiffs[chain] = nativeBalances[chain].sub(
+        initialAggregateNativeBalance?.[chain] ?? 0
+      )
+    }
+
+    let ethAmounts = BigNumber.from(0).sub(unstakedEthAmount)
+
+    const nonEthNativeTokenDiffsInToken: Record<string, any> = {}
+    for (const chain of this.chains) {
+      const multiplier = parseEther('1')
+      const nativeSymbol = this.getChainNativeTokenSymbol(chain)
+      if (nativeSymbol === 'ETH') {
+        ethAmounts = ethAmounts.add(nativeTokenDiffs[chain])
+        continue
+      }
+      const nativeTokenPriceUsdWei = parseEther(
+        priceMap[nativeSymbol].toString()
+      )
+      const tokenPriceUsdWei = parseEther(priceMap[token].toString())
+      const nativeTokenDecimals = this.tokenDecimals[nativeSymbol]
+      const rate = nativeTokenPriceUsdWei.mul(multiplier).div(tokenPriceUsdWei)
+      const exponent = nativeTokenDecimals - this.tokenDecimals[token]
+
+      const diff = nativeTokenDiffs[chain]
+      const resultInTokenWei = diff.mul(rate).div(multiplier)
+      const resultInToken = resultInTokenWei.div(
+        BigNumber.from(10).pow(exponent)
+      )
+      nonEthNativeTokenDiffsInToken[chain] = resultInToken.sub(
+        initialAggregateNativeBalance?.[chain] ?? 0
+      )
+    }
+
+    let nonEthNativeTokenDiffSum = BigNumber.from(0)
+    for (const chain of this.chains) {
+      nonEthNativeTokenDiffSum = nonEthNativeTokenDiffSum.add(
+        nonEthNativeTokenDiffsInToken[chain] ?? BigNumber.from(0)
+      )
+    }
+
+    let result = aggregateBalanceToken.add(nonEthNativeTokenDiffSum)
+    if (result.lt(0)) {
+      result = BigNumber.from(0)
+    }
+    const resultFormatted = Number(
+      formatUnits(result.toString(), this.tokenDecimals[token])
+    )
+
+    const ethAmountsFormatted = Number(formatUnits(ethAmounts.toString(), 18))
+
+    return {
+      result,
+      resultFormatted,
+      ethAmounts,
+      ethAmountsFormatted
+    }
+  }
+
+  async computeResult3 (data: any = {}) {
+    const { token, dbData } = data
+
+    const totalBalances =
+      dbData.restakedAmount +
+      dbData.polygonCanonicalAmount +
+      dbData.polygonHTokenAmount +
+      dbData.gnosisCanonicalAmount +
+      dbData.gnosisHTokenAmount +
+      dbData.arbitrumCanonicalAmount +
+      dbData.arbitrumHTokenAmount +
+      dbData.optimismCanonicalAmount +
+      dbData.optimismHTokenAmount +
+      dbData.ethereumCanonicalAmount +
+      (dbData.stakedAmount - dbData.unstakedAmount) -
+      dbData.initialCanonicalAmount -
+      dbData.unstakedEthAmount * dbData.ethPriceUsd
+    const totalDeposits = dbData.depositAmount - dbData.withdrawnAmount
+
+    let nativeStartingTokenAmount = 0
+    if (token === 'DAI' || token === 'USDC' || token === 'USDT') {
+      nativeStartingTokenAmount =
+        dbData.initialEthAmount * dbData.ethPriceUsd +
+        dbData.initialMaticAmount * dbData.maticPriceUsd +
+        dbData.initialxDaiAmount * dbData.xdaiPriceUsd
+    }
+    if (token === 'ETH') {
+      // TODO: move to config
+      nativeStartingTokenAmount =
+        (dbData.initialMaticAmount * dbData.maticPriceUsd) /
+          dbData.ethPriceUsd +
+        (dbData.initialxDaiAmount * dbData.xdaiPriceUsd) / dbData.ethPriceUsd +
+        dbData.initialEthAmount
+    }
+    let nativeTokenDebt =
+      dbData.polygonNativeAmount * dbData.maticPriceUsd +
+      dbData.gnosisNativeAmount * dbData.xdaiPriceUsd +
+      (dbData.ethereumNativeAmount +
+        dbData.optimismNativeAmount +
+        dbData.arbitrumNativeAmount +
+        dbData.arbitrumAliasAmount) *
+        dbData.ethPriceUsd
+
+    if (token === 'ETH') {
+      nativeTokenDebt =
+        (dbData.polygonNativeAmount * dbData.maticPriceUsd) /
+          dbData.ethPriceUsd +
+        (dbData.gnosisNativeAmount * dbData.xdaiPriceUsd) / dbData.ethPriceUsd +
+        (dbData.ethereumNativeAmount +
+          dbData.optimismNativeAmount +
+          dbData.arbitrumNativeAmount +
+          dbData.arbitrumAliasAmount)
+    }
+
+    nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt
+    const result = totalBalances - totalDeposits - nativeTokenDebt
+    const resultFormatted = result
+
+    return {
       resultFormatted
     }
   }
@@ -985,6 +1378,27 @@ class BonderStats {
       chain
     ] || ''}`
     return url
+  }
+
+  parseConfigDateToStartOfNextDayUnix (date: string) {
+    return Math.floor(
+      DateTime.fromISO(date)
+        .toUTC()
+        .plus({ days: 1 })
+        .startOf('day')
+        .toSeconds()
+    )
+  }
+
+  amountsToArray (amount: string | string[], token: string) {
+    let arr = [amount]
+    if (Array.isArray(amount)) {
+      arr = amount
+    }
+
+    return arr.map((value: string) =>
+      parseUnits(value, this.tokenDecimals[token])
+    )
   }
 }
 

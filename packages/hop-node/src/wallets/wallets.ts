@@ -6,6 +6,7 @@ import {
   gasPriceMultiplier,
   getNetworkMaxGasPrice,
   config as globalConfig,
+  initialTxGasPriceMultiplier,
   minPriorityFeePerGas,
   priorityFeePerGasCap,
   timeTilBoostMs
@@ -24,6 +25,7 @@ const constructWallet = memoize(
     const { waitConfirmations: reorgWaitConfirmations } = globalConfig.networks[network]!
     signer.setOptions({
       gasPriceMultiplier,
+      initialTxGasPriceMultiplier,
       maxGasPriceGwei,
       minPriorityFeePerGas,
       priorityFeePerGasCap,

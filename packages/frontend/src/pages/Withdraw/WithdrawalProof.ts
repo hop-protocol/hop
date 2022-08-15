@@ -130,7 +130,7 @@ export class WithdrawalProof {
 
     const transferRoot = await this.getTransferRootForTransferId(transfer)
     if (!transferRoot) {
-      throw new Error('Transfer root not found for transfer ID. Transfer root has not been committed yet. Withdrawal can only occur after the transfer root has been set at the destination. This may take a few hours or days.')
+      throw new Error('Transfer root not found for transfer ID. Transfer root has not been committed yet. Withdrawal can only occur after the transfer root has been set at the destination. This may take a few hours or days depending on the chain. Please try again later.')
     }
     const { rootHash: transferRootHash, totalAmount: rootTotalAmount } = transferRoot
     const transferIds = transferRoot.transferIds.map((x:Transfer) => x.transferId)
@@ -597,21 +597,30 @@ export class WithdrawalProof {
       return 0
     })
 
-    const seen = {}
+    const seen: any = {}
+    const replace: any = {}
 
     // remove any transfer id after a second index of 0,
     // which occurs if commit transfers is triggered on a transfer sent
-    transferIds = transferIds.filter((x, i) => {
+    transferIds = transferIds.filter((x: any, i: number) => {
       if (seen[x.index]) {
+        if (x.index > 100 && x.blockNumber > seen[x.index].blockNumber && x.blockNumber > startBlockNumber) {
+          replace[x.index] = x
+        }
         return false
       }
-      seen[x.index] = true
+      seen[x.index] = x
       return true
     })
-      .filter((x, i) => {
+
+    transferIds = transferIds.filter((x: any, i: number) => {
       // filter out any transfers ids after sequence breaks
-        return x.index === i
-      })
+      return x.index === i
+    })
+
+    for (const i in replace) {
+      transferIds[i] = replace[i]
+    }
 
     // filter only transfer ids for leaves
     const leaves = transferIds.map((x: Transfer) => {

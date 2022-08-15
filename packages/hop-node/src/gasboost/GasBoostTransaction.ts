@@ -52,6 +52,7 @@ export type Options = {
   pollMs: number
   timeTilBoostMs: number
   gasPriceMultiplier: number
+  initialTxGasPriceMultiplier: number
   maxGasPriceGwei: number
   minPriorityFeePerGas: number
   priorityFeePerGasCap: number
@@ -70,11 +71,14 @@ type Type2GasData = {
 
 type GasFeeData = Type0GasData & Type2GasData
 
+const enoughFundsCheckCache: Record<string, number> = {}
+
 class GasBoostTransaction extends EventEmitter implements providers.TransactionResponse {
   started: boolean = false
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 3 * 60 * 1000
   gasPriceMultiplier: number = MaxGasPriceMultiplier // multiplier for gasPrice
+  initialTxGasPriceMultiplier: number = MaxGasPriceMultiplier // multiplier for gasPrice for first tx
   maxGasPriceGwei: number = 500 // the max we'll keep bumping gasPrice in type 0 txs
   maxGasPriceReached: boolean = false // this is set to true when gasPrice is greater than maxGasPrice
   minPriorityFeePerGas: number = MinPriorityFeePerGas // we use this priorityFeePerGas or the ethers suggestions; which ever one is greater
@@ -94,6 +98,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   receipt?: providers.TransactionReceipt
   private _is1559Supported: boolean // set to true if EIP-1559 type transactions are supported
   readonly minMultiplier: number = 1.10 // the minimum gas price multiplier that miners will accept for transaction replacements
+  logId: string
 
   reorgWaitConfirmations: number = 1
   originalTxParams: providers.TransactionRequest
@@ -113,7 +118,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   chainId: number // type 0 and 2 tx required property
   confirmations: number = 0 // type 0 and 2 tx required property
 
-  constructor (tx: providers.TransactionRequest, signer: Signer, store?: Store, options: Partial<Options> = {}) {
+  constructor (tx: providers.TransactionRequest, signer: Signer, store: Store, options: Partial<Options> = {}, id?: string) {
     super()
     this.signer = signer
     if (store != null) {
@@ -122,7 +127,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.createdAt = Date.now()
     this.originalTxParams = tx
     this.setOwnTxParams(tx)
-    this.id = this.generateId()
+    this.id = id ?? this.generateId()
     this.setOptions(options)
 
     const chainSlug = getProviderChainSlug(this.signer.provider)
@@ -137,6 +142,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (transferId) {
       prefix = `${prefix} transferId: ${transferId}`
     }
+    this.logId = prefix
     this.logger = new Logger({
       tag,
       prefix
@@ -238,6 +244,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.gasPriceMultiplier = gasPriceMultiplier
   }
 
+  setInitialTxGasPriceMultiplier (initialTxGasPriceMultiplier: number) {
+    this.initialTxGasPriceMultiplier = initialTxGasPriceMultiplier
+  }
+
   setMaxGasPriceGwei (maxGasPriceGwei: number) {
     this.maxGasPriceGwei = maxGasPriceGwei
   }
@@ -314,7 +324,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async send () {
-    let gasFeeData = await this.getBumpedGasFeeData()
+    const _timeId = `GasBoostTransaction send getBumpedGasFeeData elapsed ${this.logId} `
+    console.time(_timeId)
+    let gasFeeData = await this.getBumpedGasFeeData(this.initialTxGasPriceMultiplier)
+    console.timeEnd(_timeId)
 
     // use passed in tx gas values if they were specified
     if (this.gasPrice) {
@@ -411,11 +424,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const use1559 = await this.is1559Supported() && !this.gasPrice && this.type !== 0
 
     if (use1559) {
-      let maxFeePerGas = await this.getMarketMaxFeePerGas()
-      const maxPriorityFeePerGas = await this.getBumpedMaxPriorityFeePerGas(multiplier)
+      let [maxFeePerGas, maxPriorityFeePerGas, currentBaseFeePerGas] = await Promise.all([
+        this.getMarketMaxFeePerGas(),
+        this.getBumpedMaxPriorityFeePerGas(multiplier),
+        this.getCurrentBaseFeePerGas()
+      ])
       maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas)
 
-      const currentBaseFeePerGas = await this.getCurrentBaseFeePerGas()
       const maxGasPrice = this.getMaxGasPrice()
       if (currentBaseFeePerGas && maxFeePerGas.lte(currentBaseFeePerGas)) {
         maxFeePerGas = currentBaseFeePerGas.mul(2)
@@ -472,6 +487,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         throw new Error(`multiplier must be greater than ${this.minMultiplier}`)
       }
       this.gasPriceMultiplier = options.gasPriceMultiplier
+      this.initialTxGasPriceMultiplier = options.gasPriceMultiplier
+    }
+    if (options.initialTxGasPriceMultiplier) {
+      if (options.initialTxGasPriceMultiplier < 1) {
+        throw new Error('initial tx multiplier must be greater than or equal to 1')
+      }
+      this.initialTxGasPriceMultiplier = options.initialTxGasPriceMultiplier
     }
     if (options.maxGasPriceGwei) {
       this.maxGasPriceGwei = options.maxGasPriceGwei
@@ -670,7 +692,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           data: this.data,
           value: this.value,
           nonce: this.nonce,
-          gasLimit: this.gasLimit
+          gasLimit: this.gasLimit,
+          chainId: this.chainId
         }
 
         if (gasFeeData.gasPrice != null) {
@@ -680,12 +703,29 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
           payload.maxPriorityFeePerGas = gasFeeData.maxPriorityFeePerGas
         }
 
-        this.logger.debug(`tx index ${i}: checking for enough funds`)
-        await this.checkHasEnoughFunds(payload, gasFeeData)
+        if (i === 1) {
+          const timeLimitMs = 60 * 1000
+          let shouldCheck = true
+          if (enoughFundsCheckCache[this.chainSlug]) {
+            shouldCheck = enoughFundsCheckCache[this.chainSlug] + timeLimitMs < Date.now()
+          }
+          if (shouldCheck) {
+            this.logger.debug(`tx index ${i}: checking for enough funds`)
+            const _timeId = `GasBoostTransaction _sendTransaction checkHasEnoughFunds elapsed ${this.logId} ${i} `
+            console.time(_timeId)
+            enoughFundsCheckCache[this.chainSlug] = Date.now()
+            await this.checkHasEnoughFunds(payload, gasFeeData)
+            console.timeEnd(_timeId)
+          }
+        }
 
         this.logger.debug(`tx index ${i}: sending transaction`)
+
+        const _timeId = `GasBoostTransaction signer.sendTransaction elapsed ${this.logId} ${i} `
         // await here is intentional to catch error below
+        console.time(_timeId)
         const tx = await this.signer.sendTransaction(payload)
+        console.timeEnd(_timeId)
 
         this.logger.debug(`tx index ${i} completed`)
         return tx
@@ -719,12 +759,26 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
   private async checkHasEnoughFunds (payload: providers.TransactionRequest, gasFeeData: Partial<GasFeeData>) {
     let gasLimit
+    let ethBalance
+
+    const _timeId1 = `GasBoostTransaction checkHasEnoughFunds estimateGas elapsed ${this.logId} `
+    console.time(_timeId1)
     try {
       gasLimit = await this.signer.estimateGas(payload)
     } catch (err) {
-      throw new Error(`checkHasEnoughFunds estimateGas failed ${err.message}`)
+      throw new Error(`checkHasEnoughFunds estimateGas failed. Error: ${err.message}`)
     }
-    const ethBalance = await this.signer.getBalance()
+    console.timeEnd(_timeId1)
+
+    const _timeId2 = `GasBoostTransaction checkHasEnoughFunds getBalance elapsed ${this.logId} `
+    console.time(_timeId2)
+    try {
+      ethBalance = await this.signer.getBalance()
+    } catch (err) {
+      throw new Error(`checkHasEnoughFunds getBalance failed. Error: ${err.message}`)
+    }
+    console.timeEnd(_timeId2)
+
     const gasPrice = gasFeeData.gasPrice || gasFeeData.maxFeePerGas // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
     const gasCost = gasLimit.mul(gasPrice!) // eslint-disable-line
     const warnEthBalance = parseUnits((this.warnEthBalance || 0).toString(), 18)
@@ -872,7 +926,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       gasLimit: this.gasLimit,
       gasPrice: this.gasPrice,
       maxFeePerGas: this.maxFeePerGas,
-      maxPriorityFeePerGas: this.maxPriorityFeePerGas
+      maxPriorityFeePerGas: this.maxPriorityFeePerGas,
+      chainId: this.chainId
     }
 
     const tx = await this.signer.sendTransaction(payload)

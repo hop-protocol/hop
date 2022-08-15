@@ -5,6 +5,7 @@ import EventEmitter from 'eventemitter3'
 import HopBridge from './HopBridge'
 import Watcher from './watchers/Watcher'
 import _version from './version'
+import { ApiKeys } from './priceFeed'
 import { Chain, Token } from './models'
 import { Event } from './watchers/BaseWatcher'
 import { TChain, TProvider, TToken } from './types'
@@ -38,6 +39,8 @@ class Hop extends Base {
 
   /** Token class */
   Token = Token
+
+  priceFeedApiKeys: ApiKeys | null = null
 
   /**
    * @desc Instantiates Hop SDK.
@@ -84,7 +87,11 @@ class Hop extends Base {
    *```
    */
   public bridge (token: TToken) {
-    return new HopBridge(this.network, this.signer, token, this.chainProviders)
+    const hopBridge = new HopBridge(this.network, this.signer, token, this.chainProviders)
+    if (this.priceFeedApiKeys) {
+      hopBridge.priceFeed.setApiKeys(this.priceFeedApiKeys)
+    }
+    return hopBridge
   }
 
   /**
@@ -213,6 +220,10 @@ class Hop extends Base {
       sourceChain: sourceChain,
       destinationChain: destinationChain
     }).watch()
+  }
+
+  setPriceFeedApiKeys (apiKeys: ApiKeys = {}) {
+    this.priceFeedApiKeys = apiKeys
   }
 }
 

@@ -18,8 +18,8 @@ class GasBoostTransactionFactory {
     this.setOptions(options)
   }
 
-  createTransaction (tx: providers.TransactionRequest) {
-    const gTx = new GasBoostTransaction(tx, this.signer, this.store, this.options)
+  createTransaction (tx: providers.TransactionRequest, id?: string) {
+    const gTx = new GasBoostTransaction(tx, this.signer, this.store, this.options, id)
     return gTx
   }
 

@@ -11,7 +11,7 @@ import { getRecentTransactionsByFromAddress } from 'src/utils/blocks'
 import { find } from 'lodash'
 
 const useTransactionStatus = (transaction?: Transaction, chain?: TChain) => {
-  const { transactions, updateTransaction, addTransaction } = useTxHistory()
+  const { transactions, updateTransaction } = useTxHistory()
   const [completed, setCompleted] = useState<boolean>(transaction?.pending === false)
   const [networkConfirmations, setNetworkConfirmations] = useState<number>()
   const [confirmations, setConfirmations] = useState<number>()

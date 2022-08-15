@@ -2,9 +2,10 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import { BigNumber } from 'ethers'
+import { Chain } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { TxRetryDelayMs, getEnabledNetworks } from 'src/config'
+import { TxRetryDelayMs, getEnabledNetworks, config as globalConfig, pendingCountCommitThreshold } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -36,9 +37,6 @@ class CommitTransfersWatcher extends BaseWatcher {
         )
       }
     }
-
-    // Commit watcher is less time sensitive than others
-    this.pollIntervalMs = 6 * 10 * 1000
   }
 
   async start () {
@@ -80,6 +78,10 @@ class CommitTransfersWatcher extends BaseWatcher {
         destinationChainIds.push(destinationChainId)
       }
     }
+
+    this.logger.info(
+        `checking ${destinationChainIds.length} destinationChainIds of uncommitted transfers`
+    )
     for (const destinationChainId of destinationChainIds) {
       await this.checkIfShouldCommit(destinationChainId)
     }
@@ -118,13 +120,29 @@ class CommitTransfersWatcher extends BaseWatcher {
     const formattedPendingAmount = this.bridge.formatUnits(totalPendingAmount)
 
     const minThresholdAmount = this.getMinThresholdAmount(destinationChainId)
-    if (totalPendingAmount.lte(minThresholdAmount)) {
-      const formattedThreshold = this.bridge.formatUnits(
-        minThresholdAmount
-      )
-      this.logger.warn(
-        `dest ${destinationChainId}: pending amt ${formattedPendingAmount} less than min of ${formattedThreshold}.`
-      )
+    let pendingCountOk = false
+    if (this.chainSlug === Chain.Polygon) {
+      pendingCountOk = await l2Bridge.pendingTransferExistsAtIndex(destinationChainId, pendingCountCommitThreshold - 1)
+    }
+    const pendingAmountOk = totalPendingAmount.gte(minThresholdAmount)
+    const canCommit = pendingAmountOk || pendingCountOk
+    this.logger.debug(
+      `destinationChainId: ${destinationChainId}, pendingAmountOk: ${pendingAmountOk}, pendingCountOk: ${pendingCountOk}`
+    )
+    if (!canCommit) {
+      if (!pendingCountOk) {
+        this.logger.warn(
+          `destinationChainId: ${destinationChainId}, pending count has not yet reached threshold of ${pendingCountCommitThreshold}`
+        )
+      }
+      if (!pendingAmountOk) {
+        const formattedThreshold = this.bridge.formatUnits(
+          minThresholdAmount
+        )
+        this.logger.warn(
+          `destinationChainid: ${destinationChainId}, pending amount ${formattedPendingAmount} is less than min of ${formattedThreshold}`
+        )
+      }
       return
     }
 
@@ -143,7 +161,11 @@ class CommitTransfersWatcher extends BaseWatcher {
     this.commitTxSentAt[destinationChainId] = Date.now()
 
     try {
-      const tx = await l2Bridge.commitTransfers(destinationChainId)
+      let contractAddress: string | undefined
+      if (this.chainSlug === Chain.Polygon) {
+        contractAddress = globalConfig.addresses[this.tokenSymbol][this.chainSlug].l2MessengerProxy
+      }
+      const tx = await l2Bridge.commitTransfers(destinationChainId, contractAddress)
       const sourceChainId = await l2Bridge.getChainId()
       const msg = `L2 (${sourceChainId}) commitTransfers (destination chain ${destinationChainId}) tx: ${tx.hash}`
       this.logger.info(msg)

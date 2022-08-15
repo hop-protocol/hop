@@ -35,6 +35,7 @@ interface BaseTransfer {
   withdrawalBonded?: boolean
   withdrawalBondedTxHash?: string
   withdrawalBonder?: string
+  sender?: string
 }
 
 export interface Transfer extends BaseTransfer {
@@ -172,7 +173,8 @@ class SubDbIncompletes extends BaseDb {
       !item.transferSentBlockNumber ||
       (item.transferSentBlockNumber && !item.transferSentTimestamp) ||
       (item.withdrawalBondedTxHash && !item.withdrawalBonder) ||
-      (item.withdrawalBondSettledTxHash && !item.withdrawalBondSettled)
+      (item.withdrawalBondSettledTxHash && !item.withdrawalBondSettled) ||
+      (!item.sender)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     )
   }
@@ -220,6 +222,8 @@ class SubDbRootHashes extends BaseDb {
   }
 }
 
+const arbitrumChainId = 42161
+
 // structure:
 // key: `<transferId>`
 // value: `{ ...Transfer }`
@@ -233,30 +237,6 @@ class TransfersDb extends BaseDb {
     this.subDbTimestamps = new SubDbTimestamps(prefix, _namespace)
     this.subDbIncompletes = new SubDbIncompletes(prefix, _namespace)
     this.subDbRootHashes = new SubDbRootHashes(prefix, _namespace)
-  }
-
-  async migration () {
-    this.logger.debug('TransfersDb migration started')
-    const entries = await this.getKeyValues()
-    this.logger.debug(`TransfersDb migration: ${entries.length} entries`)
-    const promises: Array<Promise<any>> = []
-    for (const { key, value } of entries) {
-      let shouldUpdate = false
-      if (value?.sourceChainSlug === 'xdai') {
-        shouldUpdate = true
-        value.sourceChainSlug = 'gnosis'
-      }
-      if (value?.destinationChainSlug === 'xdai') {
-        shouldUpdate = true
-        value.destinationChainSlug = 'gnosis'
-      }
-      if (shouldUpdate) {
-        promises.push(this._update(key, value))
-      }
-    }
-
-    await Promise.all(promises)
-    this.logger.debug('TransfersDb migration complete')
   }
 
   private isRouteOk (filter: GetItemsFilter = {}, item: Transfer) {
@@ -310,6 +290,20 @@ class TransfersDb extends BaseDb {
   // sort explainer: https://stackoverflow.com/a/9175783/1439168
   private readonly sortItems = (a: any, b: any) => {
     /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+    if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
+    if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
+    if (a.transferSentIndex! > b.transferSentIndex!) return 1
+    if (a.transferSentIndex! < b.transferSentIndex!) return -1
+    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+    return 0
+  }
+
+  private readonly prioritizeSortItems = (a: any, b: any) => {
+    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+    // place anything that is to Arbitrum at bottom of list
+    if (a.destinationChainId === arbitrumChainId) return 1
+    if (b.destinationChainId === arbitrumChainId) return -1
+
     if (a.transferSentBlockNumber! > b.transferSentBlockNumber!) return 1
     if (a.transferSentBlockNumber! < b.transferSentBlockNumber!) return -1
     if (a.transferSentIndex! > b.transferSentIndex!) return 1
@@ -400,6 +394,7 @@ class TransfersDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<UnbondedSentTransfer[]> {
     const transfers: Transfer[] = await this.getTransfersFromWeek()
+    const isEthToken = this.prefix?.startsWith('ETH')
     const filtered = transfers.filter(item => {
       if (!item?.transferId) {
         return false
@@ -440,7 +435,9 @@ class TransfersDb extends BaseDb {
       )
     })
 
-    return filtered as UnbondedSentTransfer[]
+    const sorted = isEthToken ? filtered.sort(this.prioritizeSortItems) : filtered
+
+    return sorted as UnbondedSentTransfer[]
   }
 
   async getIncompleteItems (

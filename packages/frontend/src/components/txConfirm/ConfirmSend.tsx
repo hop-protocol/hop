@@ -35,10 +35,11 @@ interface Props {
   dest: Partial<NetworkTokenEntity>
   onConfirm: (confirmed: boolean) => void
   estimatedReceived: string
+  isGnosisSafeWallet?: boolean
 }
 
 const ConfirmSend = (props: Props) => {
-  const { customRecipient, source, dest, onConfirm, estimatedReceived } = props
+  const { customRecipient, source, dest, onConfirm, estimatedReceived, isGnosisSafeWallet = false } = props
   const styles = useStyles()
 
   const { sending, handleSubmit } = useSendingTransaction({
@@ -51,6 +52,8 @@ const ConfirmSend = (props: Props) => {
     warning =
       'If the recipient is an exchange, then there is possibility of loss funds if the token swap fails.'
   }
+
+  const showDeadlineWarning = !!isGnosisSafeWallet
 
   return (
     <div className={styles.root}>
@@ -85,6 +88,11 @@ const ConfirmSend = (props: Props) => {
         )}
         {!!warning && <Alert severity="warning" text={warning} className={styles.warning} />}
       </div>
+      {showDeadlineWarning && (
+        <Box mb={2}>
+          <Alert severity="warning" text="The swap deadline will expire in 7 days. If this is a Gnosis Safe transaction, make sure to execute it within the deadline." className={styles.warning} />
+        </Box>
+      )}
       <Box mb={2} display="flex" flexDirection="column" alignItems="center" textAlign="center">
         <Box style={{ maxWidth: '200px' }}>
         <Typography variant="body2" color="textSecondary">

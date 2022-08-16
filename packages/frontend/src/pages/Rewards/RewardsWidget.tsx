@@ -40,7 +40,7 @@ export function RewardsWidget(props: Props) {
   const [tokenSymbol, setTokenSymbol] = useState('')
   const [latestRootTotal, setLatestRootTotal] = useState(BigNumber.from(0))
   const claimRecipient = queryParams.address as string ?? address?.address
-  const pollUnclaimableAmountFromBackend = true
+  const pollUnclaimableAmountFromBackend = false
   const contract = useMemo(() => {
     try {
       if (rewardsContractAddress) {
@@ -129,6 +129,10 @@ export function RewardsWidget(props: Props) {
         claimRecipient
       )) {
         setClaimableAmount(BigNumber.from(0))
+        return
+      }
+      const isSet = !BigNumber.from(onchainRoot).eq(BigNumber.from(0))
+      if (!isSet) {
         return
       }
       const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
@@ -240,6 +244,10 @@ export function RewardsWidget(props: Props) {
       }
       const isNetworkConnected = await checkConnectedNetworkId(requiredChainId)
       if (!isNetworkConnected) {
+        return
+      }
+      const isSet = !BigNumber.from(onchainRoot).eq(BigNumber.from(0))
+      if (!isSet) {
         return
       }
 

@@ -270,6 +270,7 @@ export function RewardsWidget(props: Props) {
 
   const claimableAmountDisplay = tokenDecimals ? toTokenDisplay(claimableAmount, tokenDecimals) : ''
   const unclaimableAmountDisplay = tokenDecimals ? toTokenDisplay(unclaimableAmount, tokenDecimals) : ''
+  const latestRootTotalDisplay = tokenDecimals ? toTokenDisplay(latestRootTotal, tokenDecimals) : ''
 
   return (
     <Box maxWidth="500px" margin="0 auto" flexDirection="column" display="flex" justifyContent="center" textAlign="center">
@@ -286,7 +287,7 @@ export function RewardsWidget(props: Props) {
       {!!claimRecipient && (
         <Box>
           <Box mb={2}>
-            <Typography variant="h6">{title} <InfoTooltip title={<><div>Merkle rewards</div><div>published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>latest root total: ${latestRootTotal?.toString()}</div></>} /></Typography>
+            <Typography variant="h6">{title} <InfoTooltip title={<><div>Merkle rewards</div><div>published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>latest root total: {latestRootTotalDisplay}</div></>} /></Typography>
           </Box>
           {loading && (
             <Box mb={4} display="flex" flexDirection="column" justifyContent="center" textAlign="center">

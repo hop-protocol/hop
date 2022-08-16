@@ -3,6 +3,7 @@ import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { mainnet as metadata } from '@hop-protocol/core/metadata'
 
 const addresses = mainnetAddresses.bridges
+const bonders = mainnetAddresses.bonders
 const networks: any = {}
 
 for (const chain in _networks) {
@@ -16,4 +17,4 @@ for (const chain in _networks) {
   networks[chain].waitConfirmations = network?.waitConfirmations
 }
 
-export { addresses, networks, metadata }
+export { addresses, bonders, networks, metadata }

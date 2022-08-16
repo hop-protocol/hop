@@ -45,7 +45,7 @@ export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env
 export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
 export const relayTransactionBatchSize = bondWithdrawalBatchSize
 export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
-const envNetwork = process.env.NETWORK ?? Network.Kovan
+const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
@@ -142,14 +142,15 @@ const normalizeNetwork = (network: string) => {
   return network
 }
 
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'networks' | 'metadata' | 'isMainnet'> => {
+  const { addresses, bonders, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
 
   return {
     network,
     addresses,
+    bonders,
     networks,
     metadata,
     isMainnet
@@ -157,7 +158,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
 }
 
 // get default config
-const { addresses, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
+const { addresses, bonders, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
 
 // defaults
 export const config: Config = {
@@ -168,7 +169,7 @@ export const config: Config = {
   tokens: {},
   bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
-  bonders: {},
+  bonders,
   fees: {},
   routes: {},
   db: {

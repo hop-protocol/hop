@@ -1,6 +1,5 @@
 import makeRequest from './makeRequest'
 import { MaxInt32 } from 'src/constants'
-import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
 export default async function getTransferSentToL2 (
@@ -8,7 +7,7 @@ export default async function getTransferSentToL2 (
   token: string,
   startDate: number = 0,
   endDate: number = MaxInt32,
-  lastId: string = constants.AddressZero
+  lastId: string = '0'
 ) {
   const query = `
     query TransferSentToL2(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {

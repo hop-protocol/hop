@@ -100,3 +100,5 @@ export const RelayableChains: string[] = [
 export const TimeFromL1ToL2Ms: Record<string, number> = {
   arbitrum: TenMinutesMs
 }
+
+export const MaxDeadline: number = 9999999999

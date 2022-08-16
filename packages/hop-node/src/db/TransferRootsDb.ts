@@ -112,7 +112,7 @@ export type ExitableTransferRoot = {
   committedAt: number
 }
 
-export type RelayableTransferRoots = {
+export type RelayableTransferRoot = {
   transferRootId: string
   transferRootHash: string
   totalAmount: BigNumber
@@ -565,7 +565,7 @@ class TransferRootsDb extends BaseDb {
 
   async getRelayableTransferRoots (
     filter: GetItemsFilter = {}
-  ): Promise<RelayableTransferRoots[]> {
+  ): Promise<RelayableTransferRoot[]> {
     await this.tilReady()
     // TODO: Remove this post-nitro
     if (!isNitroLive) {
@@ -591,6 +591,10 @@ class TransferRootsDb extends BaseDb {
 
       const destinationChain = chainIdToSlug(item.destinationChainId)
       if (!RelayableChains.includes(destinationChain)) {
+        return false
+      }
+
+      if (!(item?.bondedAt ?? item?.confirmedAt)) {
         return false
       }
 
@@ -628,7 +632,7 @@ class TransferRootsDb extends BaseDb {
       )
     })
 
-    return filtered as RelayableTransferRoots[]
+    return filtered as RelayableTransferRoot[]
   }
 
   async getChallengeableTransferRoots (

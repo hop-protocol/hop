@@ -2,7 +2,7 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { IL1ToL2MessageWriter, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
+import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Wallet, providers } from 'ethers'
@@ -12,14 +12,6 @@ type Config = {
   tokenSymbol: string
   bridgeContract?: L1BridgeContract | L2BridgeContract
   dryMode?: boolean
-}
-
-const l1ToL2TxStatuses: Record<number, string> = {
-  1: 'Not yet created',
-  2: 'Creation failed',
-  3: 'Funds deposited on L2. They to be manually redeemed.',
-  4: 'Redeemed',
-  5: 'Expired'
 }
 
 class ArbitrumBridgeWatcher extends BaseWatcher {
@@ -94,8 +86,8 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     const l1ToL2Message = await this.getL1ToL2Message(l1TxHash, messageIndex)
     const res = await l1ToL2Message.waitForStatus()
     const status = res.status
-    if (status !== 3) {
-      this.logger.error(`Transaction not redeemable. Status: ${l1ToL2TxStatuses[status]}`)
+    if (status !== L1ToL2MessageStatus.REDEEMED) {
+      this.logger.error(`Transaction not redeemable. Status: ${L1ToL2MessageStatus[status]}`)
       throw new Error('Transaction unredeemable')
     }
 
@@ -117,7 +109,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     const l1ToL2Message = await this.getL1ToL2Message(l1TxHash, messageIndex)
     const res = await l1ToL2Message.waitForStatus()
     const status = res.status
-    return status === 4
+    return status === L1ToL2MessageStatus.REDEEMED
   }
 }
 

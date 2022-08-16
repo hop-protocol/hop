@@ -2,13 +2,12 @@ import makeRequest from './makeRequest'
 import { DateTime } from 'luxon'
 import { Filters, normalizeEntity } from './shared'
 import { MaxInt32 } from 'src/constants'
-import { constants } from 'ethers'
 
 export default async function getTransferIds (
   chain: string,
   token: string,
   filters: Partial<Filters> = {},
-  lastId: string = constants.AddressZero
+  lastId: string = '0'
 ): Promise<any[]> {
   if (chain === 'ethereum') {
     return []

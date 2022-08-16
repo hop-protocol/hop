@@ -7,7 +7,7 @@ import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
-import { RelayableTransferRoots } from 'src/db/TransferRootsDb'
+import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
 import { isExecutionError } from 'src/utils/isExecutionError'
 import { promiseQueue } from 'src/utils/promiseQueue'
@@ -48,12 +48,11 @@ class RelayWatcher extends BaseWatcher {
       return
     }
 
-    const promises: Array<Promise<any>> = []
-    promises.push(
+    await Promise.all([
       this.checkTransferSentToL2FromDb(),
       this.checkRelayableTransferRootsFromDb()
-    )
-    await Promise.all(promises)
+    ])
+    this.logger.debug('RelayWatcher pollHandler completed')
   }
 
   async checkTransferSentToL2FromDb () {
@@ -93,7 +92,7 @@ class RelayWatcher extends BaseWatcher {
       logger.debug('db poll completed')
     }, { concurrency: relayTransactionBatchSize, timeoutMs: 10 * 60 * 1000 })
 
-    this.logger.debug('checkTransferSentFromDb completed')
+    this.logger.debug('checkTransferSentToL2FromDb completed')
   }
 
   async checkRelayableTransferRootsFromDb () {
@@ -114,6 +113,7 @@ class RelayWatcher extends BaseWatcher {
     }
 
     await Promise.all(promises)
+    this.logger.debug('checkRelayableTransferRootsFromDb completed')
   }
 
   async checkTransferSentToL2 (transferId: string) {
@@ -193,7 +193,8 @@ class RelayWatcher extends BaseWatcher {
       const isRelayerFeeOk = await this.getIsFeeOk(transferId, GasCostTransactionType.Relay)
       if (!isRelayerFeeOk) {
         const msg = 'Relayer fee is too low. Cannot relay.'
-        logger.debug(msg)
+        logger.warn(msg)
+        this.notifier.warn(msg)
         throw new RelayerFeeTooLowError(msg)
       }
 
@@ -262,7 +263,7 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async checkRelayableTransferRoots (transferRootId: string) {
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId) as RelayableTransferRoots
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId) as RelayableTransferRoot
     if (!dbTransferRoot) {
       this.logger.warn(`transferRoot id "${transferRootId}" not found in db`)
       return
@@ -279,6 +280,11 @@ class RelayWatcher extends BaseWatcher {
 
     // bondTxHash should be checked first because a root can have both but it should be bonded prior to being confirmed
     const l1TxHash = bondTxHash ?? confirmTxHash
+    if (!l1TxHash) {
+      logger.warn('No l1TxHash found.')
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+    }
 
     logger.debug('processing transfer root relay')
     logger.debug('transferRootHash:', transferRootHash)
@@ -309,7 +315,7 @@ class RelayWatcher extends BaseWatcher {
     try {
       const tx = await this.sendTransferRootRelayTx(
         transferRootId,
-        l1TxHash!
+        l1TxHash
       )
       const msg = `transferRootSet dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
@@ -351,6 +357,8 @@ class RelayWatcher extends BaseWatcher {
 
   async getMessageIndex (transferId: string, transferSentTxHash: string, transferSentTimestamp: number): Promise<number> {
     // We need to deterministically order all the messages in an L1 tx, even if they have already been relayed
+    type TransferId = string
+    type LogIndex = number
 
     // Get all the transfers at the same time so we can get the messageIndex for each one
     const dateFilter = {
@@ -360,23 +368,19 @@ class RelayWatcher extends BaseWatcher {
     const transfers: Transfer[] = await this.db.transfers.getTransfers(dateFilter)
 
     // Get all transfers within the same L1 tx and store their log index
-    const logIndicesPerTransferId: Record<string, number> = {}
+    const logIndicesPerTransferId: Record<TransferId, LogIndex> = {}
     for (const transfer of transfers) {
       if (transfer.transferSentTxHash !== transferSentTxHash) continue
-      logIndicesPerTransferId[transfer.transferId] = transfer.transferSentLogIndex!
+      if (typeof transfer.transferSentLogIndex === 'undefined') {
+        throw new Error(`transfer ${transfer.transferId} has no transferSentLogIndex. All L1 to L2 transfers with a tx hash should have a log index.`)
+      }
+      logIndicesPerTransferId[transfer.transferId] = transfer.transferSentLogIndex
     }
 
     // Sort the transfers by their log index
-    const entries = Object.entries(logIndicesPerTransferId)
-    const sortedTransferIdsAndIndices = entries.sort((a, b) => a[1] - b[1])
-
-    let index = 0
-    for (const sortedTransferIdAndIndex of sortedTransferIdsAndIndices) {
-      if (sortedTransferIdAndIndex[0] === transferId) break
-      index++
-    }
-
-    return index
+    const entries: Array<[TransferId, LogIndex]> = Object.entries(logIndicesPerTransferId)
+    const sortedTransferIdsAndIndices: Array<[TransferId, LogIndex]> = entries.sort((a, b) => a[1] - b[1])
+    return sortedTransferIdsAndIndices.map(([t]) => t).indexOf(transferId)
   }
 }
 

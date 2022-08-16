@@ -8,7 +8,7 @@ import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2Transfer
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber, constants, utils as ethersUtils } from 'ethers'
-import { Chain, GasCostTransactionType, OneWeekMs } from 'src/constants'
+import { Chain, GasCostTransactionType, MaxDeadline, OneWeekMs, RelayableChains } from 'src/constants'
 import { DateTime } from 'luxon'
 import {
   L1Bridge as L1BridgeContract,
@@ -363,8 +363,9 @@ class SyncWatcher extends BaseWatcher {
       relayerFee
     } = event.args
     const { transactionHash, logIndex } = event
+    const destinationChainId: number = Number(destinationChainIdBn.toString())
     const transferId = getTransferSentToL2TransferId(
-      Number(destinationChainIdBn.toString()),
+      destinationChainId,
       recipient,
       amount,
       amountOutMin,
@@ -381,7 +382,6 @@ class SyncWatcher extends BaseWatcher {
       const blockNumber: number = event.blockNumber
       const l1Bridge = this.bridge as L1Bridge
       const sourceChainId = await l1Bridge.getChainId()
-      const destinationChainId = Number(destinationChainIdBn.toString())
       const isRelayable = this.getIsRelayable(relayerFee)
 
       logger.debug('sourceChainId:', sourceChainId)
@@ -731,7 +731,6 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
-    await this.populateTransferSentToL2Timestamp(transferId)
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferWithdrawalBonder(transferId)
     await this.populateTransferWithdrawalBondSettled(transferId)
@@ -756,36 +755,6 @@ class SyncWatcher extends BaseWatcher {
     await this.populateTransferRootTimestamp(transferRootId)
     await this.populateTransferRootMultipleWithdrawSettled(transferRootId)
     await this.populateTransferRootTransferIds(transferRootId)
-  }
-
-  async populateTransferSentToL2Timestamp (transferId: string) {
-    const logger = this.logger.create({ id: transferId })
-    logger.debug('starting populateTransferSentToL2Timestamp')
-    const dbTransfer = await this.db.transfers.getByTransferId(transferId)
-    const { transferSentTimestamp, transferSentBlockNumber, sourceChainId } = dbTransfer
-    if (
-      !transferSentBlockNumber ||
-      transferSentTimestamp
-    ) {
-      logger.debug('populateTransferSentToL2Timestamp already found')
-      return
-    }
-    if (!sourceChainId) {
-      logger.warn(`populateTransferSentToL2Timestamp marking item not found: sourceChainId. dbItem: ${JSON.stringify(dbTransfer)}`)
-      await this.db.transfers.update(transferId, { isNotFound: true })
-      return
-    }
-    const sourceBridge = this.getSiblingWatcherByChainId(sourceChainId).bridge
-    const timestamp = await sourceBridge.getBlockTimestamp(transferSentBlockNumber)
-    if (!timestamp) {
-      logger.warn(`populateTransferSentToL2Timestamp marking item not found: timestamp for block number ${transferSentBlockNumber} on sourceChainId ${sourceChainId}. dbItem: ${JSON.stringify(dbTransfer)}`)
-      await this.db.transfers.update(transferId, { isNotFound: true })
-      return
-    }
-    logger.debug(`transferSentToL2Timestamp: ${timestamp}`)
-    await this.db.transfers.update(transferId, {
-      transferSentTimestamp: timestamp
-    })
   }
 
   async populateTransferSentTimestamp (transferId: string) {
@@ -1393,11 +1362,7 @@ class SyncWatcher extends BaseWatcher {
   getIsRelayable = (
     relayerFee: BigNumber
   ): boolean => {
-    if (relayerFee.eq(0)) {
-      return false
-    }
-
-    return true
+    return relayerFee.gt(0)
   }
 
   isBonderFeeTooLow (bonderFee: BigNumber) {
@@ -1474,7 +1439,7 @@ class SyncWatcher extends BaseWatcher {
           estimates.push({ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawal })
         }
 
-        if (this.chainSlug === Chain.Arbitrum) {
+        if (RelayableChains.includes(this.chainSlug)) {
           const gasLimit = await this._getRelayGasCost()
           estimates.push({ gasLimit, transactionType: GasCostTransactionType.Relay })
         }
@@ -1494,7 +1459,7 @@ class SyncWatcher extends BaseWatcher {
           const minBonderFeeAbsolute = await this.bridge.getMinBonderFeeAbsolute(this.tokenSymbol, tokenPriceUsd)
           this.logger.debug(`pollGasCost estimate. minBonderFeeAbsolute: ${minBonderFeeAbsolute.toString()}`)
 
-          await this.db.gasCost.addGasCost({
+          await this.db.gasCost.update({
             chain: this.chainSlug,
             token: this.tokenSymbol,
             timestamp,
@@ -1597,7 +1562,7 @@ class SyncWatcher extends BaseWatcher {
     const recipient = constants.AddressZero
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
-    const deadline = BigNumber.from('9999999999')
+    const deadline = BigNumber.from(MaxDeadline)
     const relayer = await this.bridge.getBonderAddress()
     const relayerFee = BigNumber.from(1)
 

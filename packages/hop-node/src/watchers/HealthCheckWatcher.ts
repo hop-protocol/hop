@@ -16,7 +16,7 @@ import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
-import { Chain, NativeChainToken, OneDayMs } from 'src/constants'
+import { Chain, NativeChainToken, OneDayMs, RelayableChains } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
@@ -133,19 +133,19 @@ type InvalidBondWithdrawal = {
   timestamp: number
 }
 
-type UnrelayedTransfers = {
+type UnrelayedTransfer = {
   transactionHash: string
   token: string
   recipient: string
   destinationChainId: number
-  amount: BigNumber
+  amount: string
   relayer: string
-  relayerFee: BigNumber
+  relayerFee: string
 }
 
-type UnsetTransferRoots = {
+type UnsetTransferRoot = {
   transferRootHash: string
-  totalAmount: BigNumber
+  totalAmount: string
   timestamp: number
 }
 
@@ -159,8 +159,8 @@ type Result = {
   unsyncedSubgraphs: UnsyncedSubgraph[]
   missedEvents: MissedEvent[]
   invalidBondWithdrawals: InvalidBondWithdrawal[]
-  unrelayedTransfers: UnrelayedTransfers[]
-  unsetTransferRoots: UnsetTransferRoots[]
+  unrelayedTransfers: UnrelayedTransfer[]
+  unsetTransferRoots: UnsetTransferRoot[]
 }
 
 export type EnabledChecks = {
@@ -842,7 +842,7 @@ export class HealthCheckWatcher {
     })
   }
 
-  async getUnrelayedTransfers (): Promise<UnrelayedTransfers[]> {
+  async getUnrelayedTransfers (): Promise<UnrelayedTransfer[]> {
     const now = DateTime.now().toUTC()
     const endDate = now.minus({ hours: 1 })
     const startDate = endDate.minus({ days: this.days })
@@ -852,8 +852,7 @@ export class HealthCheckWatcher {
     // There is no relayerFeeTooLow check here but there may need to be. If too many relayer fees are too low, then we can add logic to check for that.
 
     const missingTransfers: any[] = []
-    const chains = [Chain.Arbitrum]
-    for (const chain of chains) {
+    for (const chain of RelayableChains) {
       const transfersReceived = await getTransferFromL1Completed(chain, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
 
       // L1 to L2 transfers don't have a unique identifier from the perspective of the L1 event, so we need to track which L2 hashes have been observed
@@ -898,7 +897,7 @@ export class HealthCheckWatcher {
     return missingTransfers
   }
 
-  async getUnsetTransferRoots (): Promise<UnsetTransferRoots[]> {
+  async getUnsetTransferRoots (): Promise<UnsetTransferRoot[]> {
     const now = DateTime.now().toUTC()
     const endDate = now.minus({ hours: 1 })
     const startDate = endDate.minus({ days: this.days })

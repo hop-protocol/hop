@@ -225,7 +225,10 @@ export default class L1Bridge extends Bridge {
     const transactionType = GasCostTransactionType.BondWithdrawal
     const now = Math.floor(Date.now() / 1000)
     const nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)
-    const { gasCostInToken } = nearestItemToTransferSent!
+    if (!nearestItemToTransferSent) {
+      throw new Error('nearestItemToTransferSent not found')
+    }
+    const { gasCostInToken } = nearestItemToTransferSent
 
     const relayer = await this.getBonderAddress()
     const relayerFee = gasCostInToken || '0'
@@ -266,7 +269,10 @@ export default class L1Bridge extends Bridge {
     const transactionType = GasCostTransactionType.BondWithdrawal
     const now = Math.floor(Date.now() / 1000)
     const nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)
-    const { gasCostInToken } = nearestItemToTransferSent!
+    if (!nearestItemToTransferSent) {
+      throw new Error('nearestItemToTransferSent not found')
+    }
+    const { gasCostInToken } = nearestItemToTransferSent
 
     const sdk = new Hop(globalConfig.network)
     const bridge = sdk.bridge(this.tokenSymbol)

@@ -741,6 +741,7 @@ describe.skip('getMessengerWrapperAddress', () => {
     console.log(messengerWrapper)
     expect(messengerWrapper).toBeFalsy()
   })
+})
 
 describe.skip('Apr', () => {
   it('should return apr', async () => {

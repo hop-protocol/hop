@@ -1,6 +1,5 @@
 import makeRequest from './makeRequest'
 import { MaxInt32 } from 'src/constants'
-import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
 export default async function getTransferRootBonded (
@@ -8,7 +7,7 @@ export default async function getTransferRootBonded (
   token: string,
   startDate: number = 0,
   endDate: number = MaxInt32,
-  lastId: string = constants.AddressZero
+  lastId: string = '0'
 ) {
   const query = `
     query TransferRootBonded(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {

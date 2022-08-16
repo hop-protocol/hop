@@ -496,6 +496,10 @@ class TransfersDb extends BaseDb {
         return false
       }
 
+      if (!item.transferSentTimestamp) {
+        return false
+      }
+
       // TODO: Remove this one week post-nitro
       if (item.transferSentTimestamp && item.transferSentTimestamp < nitroStartTimestamp) {
         return false
@@ -517,7 +521,7 @@ class TransfersDb extends BaseDb {
         }
       }
 
-      const seenOnL1TimestampMs: number = item.transferSentTimestamp! * 1000
+      const seenOnL1TimestampMs: number = item.transferSentTimestamp * 1000
       const seenOnL1TimestampOk = seenOnL1TimestampMs + TimeFromL1ToL2Ms[item.destinationChainSlug] < Date.now()
 
       return (

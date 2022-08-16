@@ -541,7 +541,7 @@ class Base {
     token = this.toTokenModel(token)
     destinationChain = this.toChainModel(destinationChain)
 
-    const messengerWrapper = this.addresses?.[token.canonicalSymbol]?.[destinationChain.slug].l1MessengerWrapper
+    const messengerWrapper = this.addresses?.[token.canonicalSymbol]?.[destinationChain.slug]?.l1MessengerWrapper
     if (!messengerWrapper) {
       console.warn(`messengerWrapper address not found for route ${token.symbol}. destinationChain ${destinationChain.slug}`)
     }

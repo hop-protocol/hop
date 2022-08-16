@@ -136,11 +136,11 @@ async function main (source: any) {
       if (!chain) {
         throw new Error('chain flag is required')
       }
-      items = [
-        await db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.BondWithdrawal, nearest),
-        await db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.BondWithdrawalAndAttemptSwap, nearest),
-        await db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.Relay, nearest)
-      ]
+      items = await Promise.all([
+        db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.BondWithdrawal, nearest),
+        db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.BondWithdrawalAndAttemptSwap, nearest),
+        db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.Relay, nearest)
+      ])
     } else {
       items = await db.gasCost.getItems()
     }

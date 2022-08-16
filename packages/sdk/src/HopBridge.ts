@@ -27,6 +27,7 @@ import {
   Errors,
   HToken,
   LpFeeBps,
+  MaxDeadline,
   PendingAmountBuffer,
   SettlementGasLimitPerTx,
   TokenIndex,
@@ -2324,7 +2325,7 @@ class HopBridge extends Base {
     const recipient = ethers.constants.AddressZero
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
-    const deadline = BigNumber.from('9999999999')
+    const deadline = BigNumber.from(MaxDeadline)
     const relayer = await this.getBonderAddress(sourceChain, destinationChain)
     const relayerFee = BigNumber.from(1)
 

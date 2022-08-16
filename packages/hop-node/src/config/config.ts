@@ -61,7 +61,7 @@ export const pendingCountCommitThreshold = 256
 // TODO: Remove this post-nitro
 export const isNitroLive = process.env.IS_NITRO_LIVE ?? false
 // TODO: Remove this post-nitro
-export const nitroStartTimestamp = process.env.NITRO_START_TIMESTAMP ?? 0
+export const nitroStartTimestamp = normalizeEnvVarNumber(process.env.NITRO_START_TIMESTAMP) ?? 0
 
 type SyncConfig = {
   totalBlocks?: number

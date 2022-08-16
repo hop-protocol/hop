@@ -4,9 +4,7 @@ import getTransferRootSet from 'src/theGraph/getTransferRootSet'
 import { Chain } from 'src/constants'
 import { getAllChains } from 'src/config'
 
-export default async function getUnsetTransferRoots (startDate: number, endDate: number) {
-  // An empty token address represents all tokens.
-  const token = ''
+export default async function getUnsetTransferRoots (startDate: number, endDate: number, token: string = '') {
   const transferRoots: Record<string, any> = {}
   console.log('fetching bonded roots', Chain.Ethereum, startDate, endDate)
   let items = await getTransferRootBonded(Chain.Ethereum, token, startDate, endDate)

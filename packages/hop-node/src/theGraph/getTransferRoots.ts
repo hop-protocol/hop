@@ -1,11 +1,10 @@
 import makeRequest from './makeRequest'
-import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
 export default async function getTransferRoots (
   chain: string,
   token: string,
-  lastId: string = constants.AddressZero
+  lastId: string = '0'
 ): Promise<any[]> {
   const query = `
     query TransferRoots($token: String, $lastId: ID) {

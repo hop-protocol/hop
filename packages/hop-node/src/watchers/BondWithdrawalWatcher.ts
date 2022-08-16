@@ -200,8 +200,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       const isBonderFeeOk = await this.getIsFeeOk(transferId, transactionType)
       if (!isBonderFeeOk) {
         const msg = 'Total bonder fee is too low. Cannot bond withdrawal.'
-        logger.debug(msg)
-
+        logger.warn(msg)
+        this.notifier.warn(msg)
         throw new BonderFeeTooLowError(msg)
       }
 

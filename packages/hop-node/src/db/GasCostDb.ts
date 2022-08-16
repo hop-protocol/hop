@@ -49,6 +49,10 @@ class GasCostDb extends BaseDb {
     const entries = await this.getKeyValues()
     this.logger.debug(`GasCostDb migration: ${entries.length} entries`)
     for (const entry of entries) {
+      if (typeof entry.value.transactionType !== 'undefined') {
+        continue
+      }
+
       let transactionType: GasCostTransactionType
       if (entry.value.attemptSwap) {
         transactionType = GasCostTransactionType.BondWithdrawalAndAttemptSwap
@@ -58,17 +62,13 @@ class GasCostDb extends BaseDb {
 
       entry.value.transactionType = transactionType
       delete entry.value.attemptSwap
-      await this.addGasCost(entry.value)
+      await this.update(entry.value)
     }
   }
 
-  async update (key: string, data: GasCost) {
-    return this._update(key, data)
-  }
-
-  async addGasCost (data: GasCost) {
+  async update (data: GasCost) {
     const key = `${data.chain}:${data.token}:${data.timestamp}:${data.transactionType}`
-    await this.update(key, data)
+    await this._update(key, data)
     this.logger.debug(`updated db gasCost item. ${JSON.stringify(data)}`)
   }
 

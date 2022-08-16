@@ -1,18 +1,25 @@
-import getRpcProvider from 'src/utils/getRpcProvider'
-import { BigNumber, constants, utils as ethersUtils } from 'ethers'
-import { Chain, MaxDeadline } from 'src/constants'
-import {
-  config as globalConfig
-} from 'src/config'
+import { BigNumber, constants, utils as ethersUtils, providers } from 'ethers'
+import { Chain } from '../models'
 import { IRelayerFee } from './IRelayerFee'
-
+import { MaxDeadline } from '../constants'
+import { config } from '../config'
 
 export class ArbitrumRelayerFee implements IRelayerFee {
+  // The token has a negligible effect on the gas cost, so we can use any token
+  token: string = 'USDC'
+  network: string
+
+  constructor (network: string) {
+    this.network = network
+  }
+
   async getRelayCost (): Promise<BigNumber> {
-    const provider = getRpcProvider(Chain.Arbitrum)!
+    const arbitrumRpcUrl = config.chains[this.network][Chain.Arbitrum.slug].rpcUrl
+    const provider = new providers.StaticJsonRpcProvider({ url: arbitrumRpcUrl })
 
     // Submission Cost
-    const l1Provider = getRpcProvider(Chain.Ethereum)!
+    const l1RpcUrl = config.chains[this.network][Chain.Ethereum.slug].rpcUrl
+    const l1Provider = new providers.StaticJsonRpcProvider({ url: l1RpcUrl })
     const distributeCalldataSize: number = 196
     const { baseFeePerGas } = await l1Provider.getBlock('latest')
     const submissionCost: BigNumber = this._calculateRetryableSubmissionFee(distributeCalldataSize, baseFeePerGas!)
@@ -89,12 +96,10 @@ export class ArbitrumRelayerFee implements IRelayerFee {
   }
 
   private async _getEncodedEstimateRetryableTicketData (encodedDistributeData: string): Promise<string> {
-    // The token has a negligible effect on the gas cost, so we can use any token
-    const token = 'USDC'
-    const messengerWrapperAddress = this._getMessengerWrapperAddress(token)
+    const messengerWrapperAddress = this._getMessengerWrapperAddress()
     const sender = messengerWrapperAddress
     const deposit = BigNumber.from(0)
-    const to = this._getL2BridgeAddress(token)
+    const to = this._getL2BridgeAddress()
     const l2CallValue = BigNumber.from(0)
     const excessFeeRefundAddress = constants.AddressZero
     const callValueRefundAddress = constants.AddressZero
@@ -117,16 +122,16 @@ export class ArbitrumRelayerFee implements IRelayerFee {
     return encodedData
   }
 
-  private _getMessengerWrapperAddress (token: string): string {
-    const messengerWrapperAddress = globalConfig?.addresses?.[token]?.[Chain.Arbitrum]?.l1MessengerWrapper
+  private _getMessengerWrapperAddress (): string {
+    const messengerWrapperAddress = config?.addresses?.[this.network]?.[this.token]?.[Chain.Arbitrum.slug]?.l1MessengerWrapper
     if (!messengerWrapperAddress) {
       throw new Error('messengerWrapperAddress not found')
     }
     return messengerWrapperAddress
   }
 
-  private _getL2BridgeAddress (token: string): string {
-    const l2BridgeAddress = globalConfig?.addresses?.[token]?.[Chain.Arbitrum]?.l2Bridge
+  private _getL2BridgeAddress (): string {
+    const l2BridgeAddress = config?.addresses?.[this.network]?.[this.token]?.[Chain.Arbitrum.slug]?.l2Bridge
     if (!l2BridgeAddress) {
       throw new Error('l2BridgeAddress not found')
     }
@@ -134,9 +139,7 @@ export class ArbitrumRelayerFee implements IRelayerFee {
   }
 
   private _getBonderAddress (): string {
-    // The bonder is the same for every route, so the final parameter can be any chain
-    const token = 'USDC'
-    const bonderAddress = globalConfig?.bonders?.[token]?.[Chain.Arbitrum]?.[Chain.Ethereum]
+    const bonderAddress = config?.bonders?.[this.network]?.[this.token]?.[Chain.Arbitrum.slug]?.[Chain.Ethereum.slug]
     if (!bonderAddress) {
       throw new Error('bonderAddress not found')
     }

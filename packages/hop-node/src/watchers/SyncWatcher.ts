@@ -7,8 +7,8 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
-import { BigNumber, constants, utils as ethersUtils } from 'ethers'
-import { Chain, GasCostTransactionType, MaxDeadline, OneWeekMs, RelayableChains } from 'src/constants'
+import { BigNumber } from 'ethers'
+import { Chain, GasCostTransactionType, OneWeekMs, RelayableChains } from 'src/constants'
 import { DateTime } from 'luxon'
 import {
   L1Bridge as L1BridgeContract,
@@ -27,10 +27,11 @@ import {
   TransferSentEvent,
   TransfersCommittedEvent
 } from '@hop-protocol/core/contracts/L2Bridge'
+import { RelayerFee } from '@hop-protocol/sdk'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
-import { minEthBonderFeeBn, oruChains } from 'src/config'
+import { config as globalConfig, minEthBonderFeeBn, oruChains  } from 'src/config'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
 type Config = {
@@ -1440,8 +1441,9 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (RelayableChains.includes(this.chainSlug)) {
-          const gasLimit = await this._getRelayGasCost()
-          estimates.push({ gasLimit, transactionType: GasCostTransactionType.Relay })
+          const relayerFee = new RelayerFee(globalConfig.network)
+          const gasCost = await relayerFee.getRelayCost(this.chainSlug)
+          estimates.push({ gasLimit: gasCost, transactionType: GasCostTransactionType.Relay })
         }
 
         this.logger.debug('pollGasCost estimate. estimates complete')
@@ -1482,132 +1484,6 @@ class SyncWatcher extends BaseWatcher {
 
   private _isL2BridgeContract (bridgeContract: L1BridgeContract | L2BridgeContract): bridgeContract is L2BridgeContract {
     return !this.isL1
-  }
-
-  private async getRelayerFee (destinationChain: Chain): Promise<BigNumber> {
-    // TODO: Introduce this post-nitro
-    // if (destinationChain === Chain.Arbitrum) {
-    //   return this.getArbitrumRelayGasCost(destinationChain)
-    // }
-
-    return BigNumber.from(0)
-  }
-
-  private async _getRelayGasCost (): Promise<BigNumber> {
-    if (this.chainSlug === Chain.Arbitrum) {
-      return this._getArbitrumRelayGasCost()
-    }
-
-    throw new Error('Unsupported relay chain')
-  }
-
-  private async _getArbitrumRelayGasCost (): Promise<BigNumber> {
-    const provider = getRpcProvider(this.chainSlug)!
-
-    // Submission Cost
-    const l1Provider = getRpcProvider(Chain.Ethereum)!
-    const distributeCalldataSize: number = 196
-    const { baseFeePerGas } = await l1Provider.getBlock('latest')
-    const submissionCost: BigNumber = this._calculateRetryableSubmissionFee(distributeCalldataSize, baseFeePerGas!)
-
-    // Redemption Cost
-    const encodedRedemptionData = await this._getEncodedGasInfo()
-    const arbGasInfo = '0x000000000000000000000000000000000000006C'
-    const redemptionTx = {
-      to: arbGasInfo,
-      data: encodedRedemptionData
-    }
-    const gasInfo = await provider.call(redemptionTx)
-    const types = ['uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256']
-    const decoded = ethersUtils.defaultAbiCoder.decode(types, gasInfo)
-    const redemptionGasPrice = decoded[1]
-    const redemptionGasLimit = BigNumber.from(1980)
-    const l1TransactionCost = ethersUtils.parseUnits('0.00015')
-    const redemptionCost = redemptionGasLimit.mul(redemptionGasPrice).add(l1TransactionCost)
-
-    // Distribution Cost
-    const encodedDistributeData = await this._getEncodedDistributeData()
-    const encodedEstimateRetryableTicketData = await this._getEncodedEstimateRetryableTicketData(encodedDistributeData)
-    const nodeInterfaceAddress = '0x00000000000000000000000000000000000000C8'
-    const distributionTx = {
-      to: nodeInterfaceAddress,
-      from: await this.bridge.getBonderAddress(),
-      data: encodedEstimateRetryableTicketData
-    }
-    const distributionGasLimit = await provider.estimateGas(distributionTx)
-    const distributionGasPrice = await provider.getGasPrice()
-    const distributionCost = distributionGasLimit.mul(distributionGasPrice)
-
-    const totalCost = submissionCost.add(redemptionCost).add(distributionCost)
-    this.logger.debug(`_getRelayGasCost data. totalCost: ${totalCost.toString()}, submissionCost: ${submissionCost.toString()}, redemptionCost: ${redemptionCost.toString()}, redemptionGasPrice: ${redemptionGasPrice}, distributionCost: ${distributionCost.toString()}`)
-    return totalCost
-  }
-
-  private _calculateRetryableSubmissionFee (dataLength: number, baseFee: BigNumber): BigNumber {
-    const dataCost: number = 1400 + 6 * dataLength
-    return BigNumber.from(dataCost).mul(baseFee)
-  }
-
-  private async _getEncodedGasInfo (): Promise<string> {
-    const abi = ['function getPricesInWei()']
-    const ethersInterface = new ethersUtils.Interface(abi)
-    const encodedData = ethersInterface.encodeFunctionData(
-      'getPricesInWei', []
-    )
-
-    return encodedData
-  }
-
-  private async _getEncodedDistributeData (): Promise<string> {
-    const recipient = constants.AddressZero
-    const amount = BigNumber.from(10)
-    const amountOutMin = BigNumber.from(0)
-    const deadline = BigNumber.from(MaxDeadline)
-    const relayer = await this.bridge.getBonderAddress()
-    const relayerFee = BigNumber.from(1)
-
-    const abi = ['function distribute(address recipient, uint256 amount, uint256 amountOutMin, uint256 deadline, address relayer, uint256 relayerFee)']
-    const ethersInterface = new ethersUtils.Interface(abi)
-    const encodedData = ethersInterface.encodeFunctionData(
-      'distribute', [
-        recipient,
-        amount,
-        amountOutMin,
-        deadline,
-        relayer,
-        relayerFee
-      ]
-    )
-
-    return encodedData
-  }
-
-  private async _getEncodedEstimateRetryableTicketData (encodedDistributeData: string): Promise<string> {
-    const bridgeContract = this.bridge.bridgeContract.connect(getRpcProvider(Chain.Ethereum)!) as L1BridgeContract
-    const messengerWrapperAddress = await bridgeContract.crossDomainMessengerWrappers(this.chainSlugToId(this.chainSlug))
-    const sender = messengerWrapperAddress
-    const deposit = BigNumber.from(0)
-    const to = this.bridge.getAddress()
-    const l2CallValue = BigNumber.from(0)
-    const excessFeeRefundAddress = constants.AddressZero
-    const callValueRefundAddress = constants.AddressZero
-    const data = encodedDistributeData
-
-    const abi = ['function estimateRetryableTicket(address sender, uint256 deposit, address to, uint256 l2CallValue, address excessFeeRefundAddress, address callValueRefundAddress, bytes data)']
-    const ethersInterface = new ethersUtils.Interface(abi)
-    const encodedData = ethersInterface.encodeFunctionData(
-      'estimateRetryableTicket', [
-        sender,
-        deposit,
-        to,
-        l2CallValue,
-        excessFeeRefundAddress,
-        callValueRefundAddress,
-        data
-      ]
-    )
-
-    return encodedData
   }
 }
 

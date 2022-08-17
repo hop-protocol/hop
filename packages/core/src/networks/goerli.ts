@@ -13,11 +13,24 @@ export const networks: Networks = {
     name: chains.polygon.name,
     networkId: 80001,
     publicRpcUrl: 'https://matic-testnet-archive-rpc.bwarelabs.com',
-    explorerUrls: [
-      'https://mumbai.polygonscan.com',
-      'https://explorer-mumbai.maticvigil.com'
-    ],
+    explorerUrls: ['https://mumbai.polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
+    waitConfirmations: 1
+  },
+  optimism: {
+    name: chains.optimism.name,
+    networkId: 420,
+    publicRpcUrl: 'https://goerli.optimism.io',
+    explorerUrls: ['https://blockscout.com/optimism/goerli'],
+    nativeBridgeUrl: 'https://app.optimism.io/bridge',
+    waitConfirmations: 1
+  },
+  arbitrum: {
+    name: chains.arbitrum.name,
+    networkId: 421613,
+    publicRpcUrl: 'https://goerli-rollup.arbitrum.io/rpc',
+    explorerUrls: ['https://goerli-rollup-explorer.arbitrum.io'],
+    nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 1
   }
 }

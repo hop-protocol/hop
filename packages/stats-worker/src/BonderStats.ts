@@ -499,12 +499,19 @@ class BonderStats {
 
       const withdrawnAmounts = bonderData.withdrawnAmounts ?? {}
       let withdrawnAmount = BigNumber.from(0)
+      let withdrawEvent: any = null
       for (const date in withdrawnAmounts) {
         const ts = this.parseConfigDateToStartOfNextDayUnix(date)
         if (ts <= timestamp) {
           const amounts = this.amountsToArray(withdrawnAmounts[date], token)
           for (const amount of amounts) {
             withdrawnAmount = withdrawnAmount.add(amount)
+            if (ts === timestamp) {
+              if (!withdrawEvent) {
+                withdrawEvent = BigNumber.from(0)
+              }
+              withdrawEvent = withdrawEvent.add(amount)
+            }
             console.log(ts, 'subtract withdrawn amount', amount.toString())
           }
         }
@@ -616,6 +623,12 @@ class BonderStats {
         )
       }
 
+      if (withdrawEvent) {
+        withdrawEvent = Number(
+          formatUnits(withdrawEvent, this.tokenDecimals[token])
+        )
+      }
+
       try {
         await this.db.upsertBonderBalances(
           token,
@@ -660,7 +673,8 @@ class BonderStats {
           dbData.restakedEthAmount,
           dbData.initialEthAmount,
           dbData.initialMaticAmount,
-          dbData.initialxDaiAmount
+          dbData.initialxDaiAmount,
+          withdrawEvent
         )
         console.log(
           day,
@@ -1109,6 +1123,7 @@ class BonderStats {
     }
   }
 
+  // this is the final "profit" result
   async computeResult3 (data: any = {}) {
     const { token, dbData } = data
 
@@ -1136,7 +1151,6 @@ class BonderStats {
         dbData.initialxDaiAmount * dbData.xdaiPriceUsd
     }
     if (token === 'ETH') {
-      // TODO: move to config
       nativeStartingTokenAmount =
         (dbData.initialMaticAmount * dbData.maticPriceUsd) /
           dbData.ethPriceUsd +

@@ -33,10 +33,6 @@ import { recoverKeystore } from 'src/keystore'
 
 const logger = new Logger('config')
 
-type EnabledChainsConfig = {
-  [key: string]: any
-}
-
 type ChainsConfig = {
   [key: string]: any
 }
@@ -85,7 +81,6 @@ export type Addresses = {
 
 export type FileConfig = {
   network: string
-  enabledChains: EnabledChainsConfig
   chains: ChainsConfig
   tokens: TokensConfig
   watchers: Partial<WatchersConfig>
@@ -152,10 +147,6 @@ export async function setGlobalConfigFromConfigFile (
   }
   logger.info(`network: "${network}"`)
   setConfigByNetwork(network)
-
-  if (!config.enabledChains) {
-    throw new Error('config for enabledChains is required')
-  }
 
   if (!config.chains) {
     throw new Error('config for chains is required')

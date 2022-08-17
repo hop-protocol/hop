@@ -71,14 +71,14 @@ async function main (source: any) {
     }
   }
 
-  const enabledNetworks = config.enabledChains
-
+  let enabledNetworks: any = {}
   if (config?.chains) {
     for (const k in config.chains) {
       enabledNetworks[k] = !!config.chains[k]
     }
   }
 
+  console.log(enabledNetworks)
   let commitTransfersMinThresholdAmounts: any = {}
   if (config?.commitTransfers) {
     if (config.commitTransfers?.minThresholdAmount) {

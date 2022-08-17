@@ -25,7 +25,6 @@ import {
   setSyncConfig,
   setVaultConfig
 } from './config'
-import { Chain } from 'src/constants'
 import { getAddress } from 'ethers/lib/utils'
 import { getParameter } from 'src/aws/parameterStore'
 import { promptPassphrase } from 'src/prompt'

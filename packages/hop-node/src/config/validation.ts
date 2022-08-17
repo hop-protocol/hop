@@ -32,6 +32,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
   const validSectionKeys = [
     'network',
+    'enabledChains',
     'chains',
     'sync',
     'tokens',
@@ -80,12 +81,19 @@ export async function validateConfigFileStructure (config?: FileConfig) {
   const sectionKeys = Object.keys(config)
   validateKeys(validSectionKeys, sectionKeys)
 
-  const enabledChains = Object.keys(config.chains)
+  const enabledChains: string[] = Object.keys(config.enabledChains)
   if (!enabledChains.includes(Chain.Ethereum)) {
     throw new Error(`config for chain "${Chain.Ethereum}" is required`)
   }
 
   validateKeys(validChainKeys, enabledChains)
+
+  for (const chain of enabledChains) {
+    const chains = Object.keys(config.chains)
+    if (!chains.includes(chain)) {
+      throw new Error(`config for chain "${chain}" is required`)
+    }
+  }
 
   for (const key in config.chains) {
     const chain = config.chains[key]

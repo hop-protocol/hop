@@ -109,6 +109,11 @@ export type VaultChain = {
 
 export type Vault = Record<string, VaultChain>
 
+export type BlocklistConfig = {
+  path: string
+  addresses: Record<string, boolean>
+}
+
 export type Config = {
   isMainnet: boolean
   tokens: Tokens
@@ -125,6 +130,7 @@ export type Config = {
   fees: Fees
   routes: Routes
   vault: Vault
+  blocklist: BlocklistConfig
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -203,7 +209,11 @@ export const config: Config = {
   commitTransfers: {
     minThresholdAmount: {}
   },
-  vault: {}
+  vault: {},
+  blocklist: {
+    path: '',
+    addresses: {}
+  }
 }
 
 export const setConfigByNetwork = (network: string) => {
@@ -320,6 +330,10 @@ export const setConfigTokens = (tokens: Tokens) => {
 
 export const setVaultConfig = (vault: Vault) => {
   config.vault = { ...config.vault, ...vault }
+}
+
+export const setBlocklistConfig = (blocklist: BlocklistConfig) => {
+  config.blocklist = { ...config.blocklist, ...blocklist }
 }
 
 export const getBonderConfig = (tokens: Tokens) => {

@@ -3,17 +3,18 @@ import {
   getXDomainMessageRelayWatcher
 } from 'src/watchers/watchers'
 
-import { actionHandler, parseString, parseStringArray, root } from './shared'
+import { actionHandler, parseNumber, parseString, parseStringArray, root } from './shared'
 
 root
   .command('retry-arb-ticket')
   .description('Retry a stuck Arbitrum ticket')
   .option('--token <symbol>', 'Token', parseString)
+  .option('--message-index <number>', 'Message index of redemption transaction', parseNumber)
   .option('--tx-hashes <hash, ...>', 'Comma-separated L1 tx hashes', parseStringArray)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { token, txHashes } = source
+  let { token, messageIndex, txHashes } = source
 
   if (!token) {
     throw new Error('Token not found')
@@ -22,14 +23,19 @@ async function main (source: any) {
     throw new Error('Tx hash not found')
   }
 
+  if (txHashes?.length > 1 && messageIndex) {
+    throw new Error('Cannot specify message index when retrying multiple tx hashes')
+  }
+
   const dryMode = false
   const watcher = await getXDomainMessageRelayWatcher({ token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
   }
 
+  messageIndex = messageIndex ?? 0
   const chainSlug = Chain.Arbitrum
   for (const txHash of txHashes) {
-    await watcher.redeemArbitrumTransaction(txHash, chainSlug)
+    await watcher.redeemArbitrumTransaction(txHash, chainSlug, messageIndex)
   }
 }

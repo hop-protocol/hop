@@ -1,8 +1,8 @@
 import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { OneWeekMs, TxError } from 'src/constants'
-import { TxRetryDelayMs } from 'src/config'
+import { Chain, OneWeekMs, RelayableChains, TimeFromL1ToL2Ms, TxError } from 'src/constants'
+import { TxRetryDelayMs, isNitroLive, nitroStartTimestamp } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransfer {
@@ -15,16 +15,27 @@ interface BaseTransfer {
   destinationChainId?: number
   destinationChainSlug?: string
   isBondable?: boolean
+  isRelayable?: boolean
+  isRelayed?: boolean
   isNotFound?: boolean
   isTransferSpent?: boolean
   recipient?: string
+  relayAttemptedAt?: number
+  relayBackoffIndex?: number
+  relayTxError?: TxError
+  relayer?: string
+  relayerFee?: BigNumber
   sourceChainId?: number
   sourceChainSlug?: string
+  transferFromL1Complete?: boolean
+  transferFromL1CompleteTxHash?: string
   transferNonce?: string
+  transferRelayed?: boolean
   transferRootHash?: string
   transferRootId?: string
   transferSentBlockNumber?: number
   transferSentIndex?: number
+  transferSentLogIndex?: number
   transferSentTimestamp?: number
   transferSentTxHash?: string
   transferSpentTxHash?: string
@@ -71,6 +82,19 @@ export type UnbondedSentTransfer = {
   bonderFee: BigNumber
   transferNonce: string
   deadline: BigNumber
+}
+
+export type UnrelayedSentTransfer = {
+  transferId: string
+  sourceChainId: number
+  destinationChainId: number
+  recipient: string
+  amount: BigNumber
+  relayer: string
+  relayerFee: BigNumber
+  transferSentTxHash: string
+  transferSentTimestamp: number
+  transferSentLogIndex: number
 }
 
 export type UncommittedTransfer = {
@@ -438,6 +462,86 @@ class TransfersDb extends BaseDb {
     const sorted = isEthToken ? filtered.sort(this.prioritizeSortItems) : filtered
 
     return sorted as UnbondedSentTransfer[]
+  }
+
+  async getUnrelayedSentTransfers (
+    filter: GetItemsFilter = {}
+  ): Promise<UnrelayedSentTransfer[]> {
+    // TODO: Remove this post-nitro
+    if (!isNitroLive) {
+      return []
+    }
+
+    const transfers: Transfer[] = await this.getTransfersFromWeek()
+    const filtered = transfers.filter(item => {
+      if (!item?.transferId) {
+        return false
+      }
+
+      if (!this.isRouteOk(filter, item)) {
+        return false
+      }
+
+      if (item.isNotFound) {
+        return false
+      }
+
+      if (item?.sourceChainSlug !== Chain.Ethereum) {
+        return false
+      }
+
+      if (!item?.destinationChainSlug) {
+        return false
+      }
+
+      if (!RelayableChains.includes(item.destinationChainSlug)) {
+        return false
+      }
+
+      if (!item.transferSentTimestamp) {
+        return false
+      }
+
+      // TODO: Remove this one week post-nitro
+      if (item.transferSentTimestamp && item.transferSentTimestamp < nitroStartTimestamp) {
+        return false
+      }
+
+      let timestampOk = true
+      if (item.relayAttemptedAt) {
+        if (TxError.RelayerFeeTooLow === item.relayTxError) {
+          const delay = TxRetryDelayMs + ((1 << item.relayBackoffIndex!) * 60 * 1000) // eslint-disable-line
+          // TODO: use `sentTransferTimestamp` once it's added to db
+
+          // don't attempt to relay after a week
+          if (delay > OneWeekMs) {
+            return false
+          }
+          timestampOk = item.relayAttemptedAt + delay < Date.now()
+        } else {
+          timestampOk = item.relayAttemptedAt + TxRetryDelayMs < Date.now()
+        }
+      }
+
+      const seenOnL1TimestampMs: number = item.transferSentTimestamp * 1000
+      const seenOnL1TimestampOk = seenOnL1TimestampMs + TimeFromL1ToL2Ms[item.destinationChainSlug] < Date.now()
+
+      return (
+        item.transferId &&
+        item.transferSentTimestamp &&
+        !item.transferRelayed &&
+        item.transferSentTxHash &&
+        item.isRelayable &&
+        !item.isRelayed &&
+        !item.transferFromL1Complete &&
+        item.transferSentLogIndex &&
+        item.transferSentTimestamp &&
+        timestampOk &&
+        seenOnL1TimestampOk
+      )
+    })
+
+    return filtered as UnrelayedSentTransfer[]
   }
 
   async getIncompleteItems (

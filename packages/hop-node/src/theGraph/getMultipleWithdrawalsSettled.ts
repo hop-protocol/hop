@@ -1,11 +1,10 @@
 import makeRequest from './makeRequest'
-import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
 export default async function getMultipleWithdrawalsSettled (
   chain: string,
   token: string,
-  lastId: string = constants.AddressZero
+  lastId: string = '0'
 ) {
   const query = `
     query MultipleWithdrawalsSettled($token: String, $lastId: ID) {
@@ -28,7 +27,7 @@ export default async function getMultipleWithdrawalsSettled (
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    lastId: lastId
+    lastId
   })
   let withdrawalsSettled = jsonRes.multipleWithdrawalsSettleds.map((x: any) => normalizeEntity(x))
 

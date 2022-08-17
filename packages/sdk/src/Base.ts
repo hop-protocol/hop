@@ -536,6 +536,19 @@ class Base {
     return bonder
   }
 
+  protected async _getMessengerWrapperAddress (token: TToken, destinationChain: TChain): Promise<string> {
+    await this.fetchConfigFromS3()
+    token = this.toTokenModel(token)
+    destinationChain = this.toChainModel(destinationChain)
+
+    const messengerWrapper = this.addresses?.[token.canonicalSymbol]?.[destinationChain.slug]?.l1MessengerWrapper
+    if (!messengerWrapper) {
+      console.warn(`messengerWrapper address not found for route ${token.symbol}. destinationChain ${destinationChain.slug}`)
+    }
+
+    return messengerWrapper
+  }
+
   public async getFeeBps (token: TToken, destinationChain: TChain) {
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)

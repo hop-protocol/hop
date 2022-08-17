@@ -1,12 +1,11 @@
 import makeRequest from './makeRequest'
-import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
 export default async function getBondedWithdrawals (
   chain: string,
   token: string,
   bonder: string = '',
-  lastId: string = constants.AddressZero
+  lastId: string = '0'
 ) {
   bonder = bonder.toLowerCase()
   const filters = getFilters(bonder)
@@ -36,7 +35,7 @@ export default async function getBondedWithdrawals (
   const jsonRes = await makeRequest(chain, query, {
     token,
     bonder,
-    lastId: lastId
+    lastId
   })
   let withdrawals = jsonRes.withdrawalBondeds.map((x: any) => normalizeEntity(x))
 

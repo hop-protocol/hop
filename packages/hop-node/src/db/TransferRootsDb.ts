@@ -1,8 +1,16 @@
 import BaseDb, { KV, KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs } from 'src/constants'
-import { TxRetryDelayMs, oruChains } from 'src/config'
+import {
+  Chain,
+  ChallengePeriodMs,
+  OneHourMs,
+  OneWeekMs,
+  RelayableChains,
+  RootSetSettleDelayMs,
+  TimeFromL1ToL2Ms
+} from 'src/constants'
+import { TxRetryDelayMs, isNitroLive, nitroStartTimestamp, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransferRoot {
@@ -28,6 +36,7 @@ interface BaseTransferRoot {
   sentBondTxAt?: number
   sentCommitTxAt?: number
   sentConfirmTxAt?: number
+  sentRelayTxAt?: number
   settleAttemptedAt?: number
   shouldBondTransferRoot?: boolean
   sourceChainId?: number
@@ -101,6 +110,15 @@ export type ExitableTransferRoot = {
   destinationChainId: number
   committed: boolean
   committedAt: number
+}
+
+export type RelayableTransferRoot = {
+  transferRootId: string
+  transferRootHash: string
+  totalAmount: BigNumber
+  destinationChainId: number
+  confirmTxHash?: string
+  bondTxHash?: string
 }
 
 export type ChallengeableTransferRoot = {
@@ -543,6 +561,78 @@ class TransferRootsDb extends BaseDb {
     })
 
     return filtered as ExitableTransferRoot[]
+  }
+
+  async getRelayableTransferRoots (
+    filter: GetItemsFilter = {}
+  ): Promise<RelayableTransferRoot[]> {
+    await this.tilReady()
+    // TODO: Remove this post-nitro
+    if (!isNitroLive) {
+      return []
+    }
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const filtered = transferRoots.filter(item => {
+      if (!item.sourceChainId) {
+        return false
+      }
+
+      if (!this.isRouteOk(filter, item)) {
+        return false
+      }
+
+      if (!item.destinationChainId) {
+        return false
+      }
+
+      if (item.isNotFound) {
+        return false
+      }
+
+      const destinationChain = chainIdToSlug(item.destinationChainId)
+      if (!RelayableChains.includes(destinationChain)) {
+        return false
+      }
+
+      if (!(item?.bondedAt ?? item?.confirmedAt)) {
+        return false
+      }
+
+      // TODO: Remove this one week post-nitro
+      if (item.bondedAt && item.bondedAt < nitroStartTimestamp) {
+        return false
+      }
+
+      // TODO: Remove this one week post-nitro
+      if (item.confirmedAt && item.confirmedAt < nitroStartTimestamp) {
+        return false
+      }
+
+      const isSeenOnL1 = item?.bonded ?? item?.confirmed
+
+      let sentTxTimestampOk = true
+      if (item.sentRelayTxAt) {
+        sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
+      }
+
+      // bondedAt should be checked first because a root can have both but it should be bonded prior to being confirmed
+      const seenOnL1Timestamp = item?.bondedAt ?? item?.confirmedAt
+      const seenOnL1TimestampMs: number = seenOnL1Timestamp! * 1000
+      const seenOnL1TimestampOk = seenOnL1TimestampMs + TimeFromL1ToL2Ms[destinationChain] < Date.now()
+
+      return (
+        item.commitTxHash &&
+        item.transferRootHash &&
+        item.transferRootId &&
+        item.committed &&
+        item.committedAt &&
+        isSeenOnL1 &&
+        sentTxTimestampOk &&
+        seenOnL1TimestampOk
+      )
+    })
+
+    return filtered as RelayableTransferRoot[]
   }
 
   async getChallengeableTransferRoots (

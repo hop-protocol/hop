@@ -2,7 +2,7 @@ import makeRequest from './makeRequest'
 import { MaxInt32 } from 'src/constants'
 import { normalizeEntity } from './shared'
 
-export default async function getTransferRootBonded (
+export default async function getTransferFromL1Completed (
   chain: string,
   token: string,
   startDate: number = 0,
@@ -10,8 +10,8 @@ export default async function getTransferRootBonded (
   lastId: string = '0'
 ) {
   const query = `
-    query TransferRootBonded(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {
-      transferRootBondeds(
+    query TransferFromL1Completed(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {
+      transferFromL1Completeds(
         where: {
           ${token ? 'token: $token,' : ''}
           timestamp_gte: $startDate
@@ -23,10 +23,13 @@ export default async function getTransferRootBonded (
         first: 1000
       ) {
         id
-        root
-        transactionHash
+        recipient
         amount
-        timestamp
+        amountOutMin
+        deadline
+        relayer
+        relayerFee
+        transactionHash
       }
     }
   `
@@ -36,12 +39,12 @@ export default async function getTransferRootBonded (
     endDate,
     lastId
   })
-  let transferRoots = jsonRes.transferRootBondeds.map((x: any) => normalizeEntity(x))
+  let transfers = jsonRes.transferFromL1Completeds.map((x: any) => normalizeEntity(x))
 
   const maxItemsLength = 1000
-  if (transferRoots.length === maxItemsLength) {
-    lastId = transferRoots[transferRoots.length - 1].id
-    transferRoots = transferRoots.concat(await getTransferRootBonded(
+  if (transfers.length === maxItemsLength) {
+    lastId = transfers[transfers.length - 1].id
+    transfers = transfers.concat(await getTransferFromL1Completed(
       chain,
       token,
       startDate,
@@ -50,5 +53,5 @@ export default async function getTransferRootBonded (
     ))
   }
 
-  return transferRoots
+  return transfers
 }

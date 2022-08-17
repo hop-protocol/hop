@@ -25,7 +25,6 @@ import {
   setSyncConfig,
   setVaultConfig
 } from './config'
-import { Chain } from 'src/constants'
 import { getAddress } from 'ethers/lib/utils'
 import { getParameter } from 'src/aws/parameterStore'
 import { promptPassphrase } from 'src/prompt'
@@ -52,6 +51,7 @@ type WatchersConfig = {
   [Watchers.CommitTransfers]: boolean
   [Watchers.SettleBondedWithdrawals]: boolean
   [Watchers.xDomainMessageRelay]: boolean
+  [Watchers.L1ToL2Relay]: boolean
 }
 
 type DbConfig = {

@@ -71,7 +71,7 @@ async function main (source: any) {
     }
   }
 
-  let enabledNetworks: any = {}
+  const enabledNetworks: any = {}
   if (config?.chains) {
     for (const k in config.chains) {
       enabledNetworks[k] = !!config.chains[k]

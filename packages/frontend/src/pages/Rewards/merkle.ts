@@ -1,13 +1,13 @@
-import { utils, BigNumber } from 'ethers'
+import { BigNumber } from 'ethers'
+import { solidityKeccak256 } from 'ethers/lib/utils'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
-import { merkleBaseUrl } from './config'
 
-function hashLeaf([address, entry]) {
-  return utils.solidityKeccak256(['address', 'uint256'], [address, entry.balance])
+function hashLeaf ([address, entry]: any) {
+  return solidityKeccak256(['address', 'uint256'], [address, entry.balance])
 }
 
-export function getEntryProofIndex(address: string, entry: any, proof: any) {
+export function getEntryProofIndex (address: string, entry: any, proof: any) {
   let index = 0
   let computedHash = hashLeaf([address, entry])
 
@@ -17,10 +17,10 @@ export function getEntryProofIndex(address: string, entry: any, proof: any) {
 
     if (computedHash <= proofElement) {
       // Hash(current computed hash + current element of the proof)
-      computedHash = utils.solidityKeccak256(['bytes32', 'bytes32'], [computedHash, proofElement])
+      computedHash = solidityKeccak256(['bytes32', 'bytes32'], [computedHash, proofElement])
     } else {
       // Hash(current element of the proof + current computed hash)
-      computedHash = utils.solidityKeccak256(['bytes32', 'bytes32'], [proofElement, computedHash])
+      computedHash = solidityKeccak256(['bytes32', 'bytes32'], [proofElement, computedHash])
       index += 1
     }
   }
@@ -35,7 +35,7 @@ class ShardedMerkleTree {
   shards: any
   trees: any
 
-  constructor(fetcher: any, shardNybbles: any, root: any, total: any) {
+  constructor (fetcher: any, shardNybbles: any, root: any, total: any) {
     this.fetcher = fetcher
     this.shardNybbles = shardNybbles
     this.root = root
@@ -44,7 +44,7 @@ class ShardedMerkleTree {
     this.trees = {}
   }
 
-  async getProof(address: string) {
+  async getProof (address: string) {
     const shardid = address.slice(2, 2 + this.shardNybbles).toLowerCase()
 
     let shard = this.shards[shardid]
@@ -52,7 +52,7 @@ class ShardedMerkleTree {
     if (shard === undefined) {
       shard = this.shards[shardid] = await this.fetcher(shardid)
       this.trees[shardid] = new MerkleTree(Object.entries(shard.entries).map(hashLeaf), keccak256, {
-        sort: true,
+        sort: true
       })
     }
 
@@ -68,14 +68,14 @@ class ShardedMerkleTree {
     return [entry, proof.concat(shard.proof)]
   }
 
-  async fetchProof(address :string) {
+  async fetchProof (address :string) {
     const shardid = address.slice(2, 2 + this.shardNybbles).toLowerCase()
     let shard = this.shards[shardid]
 
     if (shard === undefined) {
       shard = this.shards[shardid] = await this.fetcher(shardid)
       this.trees[shardid] = new MerkleTree(Object.entries(shard.entries).map(hashLeaf), keccak256, {
-        sort: true,
+        sort: true
       })
     }
 
@@ -91,8 +91,8 @@ class ShardedMerkleTree {
     return [entry, proof.concat(shard.proof)]
   }
 
-  static build (entries: any, shardNybbles: any) {
-    const shards = {}
+  static build (entries: any, shardNybbles: any, directory: string) {
+    const shards: any = {}
     let total = BigNumber.from(0)
     for (const [address, entry] of entries) {
       const shard = address.slice(2, 2 + shardNybbles).toLowerCase()
@@ -105,14 +105,16 @@ class ShardedMerkleTree {
     const roots = Object.fromEntries(
       Object.entries(shards).map(([shard, entries]: any) => [
         shard,
-        new MerkleTree(entries.map(hashLeaf), keccak256, { sort: true }).getRoot(),
+        new MerkleTree(entries.map(hashLeaf), keccak256, { sort: true }).getRoot()
       ])
     )
     const tree = new MerkleTree(Object.values(roots), keccak256, { sort: true })
+
+    return tree
   }
 
-  static async fetchRootFile() {
-    const url = `${merkleBaseUrl}/root.json`
+  static async fetchRootFile (merkleBaseUrl: string, rootHash: string) {
+    const url = `${merkleBaseUrl}/${rootHash}/root.json`
     const res = await fetch(url)
     const rootFile = await res.json()
     if (!rootFile.root) {
@@ -126,11 +128,11 @@ class ShardedMerkleTree {
     }
   }
 
-  static async fetchTree() {
-    const { root, shardNybbles, total } = await ShardedMerkleTree.fetchRootFile()
+  static async fetchTree (merkleBaseUrl: string, rootHash: string) {
+    const { root, shardNybbles, total } = await ShardedMerkleTree.fetchRootFile(merkleBaseUrl, rootHash)
     return new ShardedMerkleTree(
       async (shard: any) => {
-        const url = `${merkleBaseUrl}/${shard}.json`
+        const url = `${merkleBaseUrl}/${rootHash}/${shard}.json`
         const res = await fetch(url)
         if (res.status === 404) {
           throw new Error('Invalid Entry')

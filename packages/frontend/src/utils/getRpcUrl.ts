@@ -3,7 +3,7 @@ import { networks } from 'src/config'
 import { ChainSlug } from '@hop-protocol/sdk'
 
 export const getRpcUrl = (network: string) => {
-  let networkRpcUrl = networks[network]?.rpcUrl
+  let networkRpcUrl = networks?.[network]?.rpcUrl
   if (!networkRpcUrl && network === 'goerli') {
     networkRpcUrl = 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213' // infura id is from ethers
   }

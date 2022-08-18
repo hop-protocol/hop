@@ -10,7 +10,6 @@ import { claimChainId } from './config'
 import { networkIdToSlug } from 'src/utils/networks'
 import { useInterval } from 'react-use'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
-import { reactAppNetwork } from 'src/config'
 
 export interface TokenClaim {
   entry: {
@@ -54,7 +53,7 @@ export function useClaim() {
   const [airdropSupply, setAirdropSupply] = useState<BigNumber>(BigNumber.from(0))
   const [merkleRootSet, setMerkleRootSet] = useState<boolean>(false)
   const [claimProvider, setClaimProvider] = useState(() => {
-    return getProviderByNetworkName(reactAppNetwork)
+    return getProviderByNetworkName(networkIdToSlug(claimChainId))
   })
 
   useEffect(() => {

@@ -958,9 +958,11 @@ export class HealthCheckWatcher {
         }]
       }
 
-      return []
+      this.logger.debug(`got expected DNS name servers: domain: ${appTld}, expectedNameservers: ${expectedNameservers}, gotNameservers: ${servers}`)
     } catch (err) {
       this.logger.error('getDnsServersChanged error:', err)
     }
+
+    return []
   }
 }

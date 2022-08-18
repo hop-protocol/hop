@@ -165,10 +165,6 @@ export async function getWatchers (config: GetWatchersConfig) {
 
   if (enabledWatchers.includes(Watchers.L1ToL2Relay)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, chainSlug, tokenSymbol, bridgeContract }: GetSiblingWatchersCbConfig) => {
-      if (isL1) {
-        return
-      }
-
       return new RelayWatcher({
         chainSlug,
         tokenSymbol,

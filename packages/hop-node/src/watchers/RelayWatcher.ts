@@ -44,7 +44,7 @@ class RelayWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    if (this.isL1) {
+    if (!this.isL1) {
       return
     }
 
@@ -149,7 +149,7 @@ class RelayWatcher extends BaseWatcher {
     }
 
     logger.debug('processing transfer relay. checking isRelayComplete')
-    const isRelayComplete = await destBridge.isTransactionRedeemed(transferSentTxHash)
+    const isRelayComplete = await this.relayWatcher.isTransactionRedeemed(transferSentTxHash)
     logger.debug(`processing bondWithdrawal. isRelayComplete: ${isRelayComplete?.toString()}`)
     if (isRelayComplete) {
       logger.warn('checkTransferSentToL2 already complete. marking item not found')

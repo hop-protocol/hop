@@ -373,10 +373,11 @@ class HopBridge extends Base {
         throw new Error('Cannot send from layer 1 to layer 1')
       }
       // L1 -> L2
+      const bonderAddress = await this.getBonderAddress(sourceChain, destinationChain)
       return this.populateSendL1ToL2Tx({
         destinationChain: destinationChain,
         sourceChain,
-        relayer: options?.relayer ?? ethers.constants.AddressZero,
+        relayer: options?.relayer ?? bonderAddress,
         relayerFee: options?.relayerFee ?? BigNumber.from(0),
         amount: tokenAmount,
         amountOutMin: options?.amountOutMin ?? 0,
@@ -720,9 +721,8 @@ class HopBridge extends Base {
       totalFee = BigNumber.from(0)
     } else if (sourceChain.isL1 && relayableChains.includes(destinationChain.slug)) {
       adjustedBonderFee = BigNumber.from(0)
-      adjustedDestinationTxFee = BigNumber.from(0)
-      const relayerFee = destinationTxFee
-      totalFee = relayerFee
+      adjustedDestinationTxFee = destinationTxFee
+      totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
     } else {
       if (isHTokenSend) {
         // fees do not need to be adjusted for AMM slippage when sending hTokens
@@ -2261,7 +2261,8 @@ class HopBridge extends Base {
   private async getRelayerFee (destinationChain: TChain): Promise<BigNumber> {
     // TODO: Remove Goerli check post-nitro
     if (this.network === NetworkSlug.Goerli) {
-      if (destinationChain === Chain.Arbitrum) {
+      destinationChain = this.toChainModel(destinationChain)
+      if (destinationChain.slug === Chain.Arbitrum.slug) {
         return this.getArbitrumRelayGasCost(destinationChain)
       }
     }

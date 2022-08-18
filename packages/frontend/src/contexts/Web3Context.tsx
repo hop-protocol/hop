@@ -53,55 +53,66 @@ const networkNames: any = {
   137: 'Polygon',
 }
 
+const getRpcUrls = (networkId: number): Record<string, string> => {
+  if (networkId === 5) {
+    return { 
+      5: getRpcUrl(ChainSlug.Ethereum),
+      421613: getRpcUrl(ChainSlug.Arbitrum),
+      420: getRpcUrl(ChainSlug.Optimism),
+      80001: getRpcUrl(ChainSlug.Polygon),
+    }
+  } else {
+    return {
+      1: getRpcUrl(ChainSlug.Ethereum),
+      42: getRpcUrl(ChainSlug.Ethereum),
+      42161: getRpcUrl(ChainSlug.Arbitrum),
+      421611: getRpcUrl(ChainSlug.Arbitrum),
+      200: getRpcUrl(ChainSlug.Arbitrum),
+      10: getRpcUrl(ChainSlug.Optimism),
+      69: getRpcUrl(ChainSlug.Optimism),
+      100: getRpcUrl(ChainSlug.Gnosis),
+      137: getRpcUrl(ChainSlug.Polygon),
+    }
+  }
+}
+
 const Web3Context = createContext<Props | undefined>(undefined)
 
 // TODO: modularize
-const walletSelectOptions: WalletSelectModuleOptions = {
-  heading: 'Connect Wallet',
-  description: '',
-  // agreement: {
-  //   version: '0.0.1'
-  //   termsUrl: '', // optional
-  //   privacyUrl: '', // optional
-  // },
-  wallets: [
-    // preferred: shown at the top of the selection screen
-    // label: override name
-    // svg: string that overrides the icon
-    // iconSrc: alternative to svg string (url source)
-    // display: { desktop: true, mobile: true }
-    { walletName: 'metamask', preferred: true, iconSrc: mmLogo },
-    {
-      walletName: 'walletConnect',
-      label: 'Wallet Connect',
-      preferred: true,
-      rpc: {
-        1: getRpcUrl(ChainSlug.Ethereum),
-        5: getRpcUrl(ChainSlug.Ethereum),
-        42: getRpcUrl(ChainSlug.Ethereum),
-        42161: getRpcUrl(ChainSlug.Arbitrum),
-        421611: getRpcUrl(ChainSlug.Arbitrum),
-        421613: getRpcUrl(ChainSlug.Arbitrum),
-        200: getRpcUrl(ChainSlug.Arbitrum),
-        10: getRpcUrl(ChainSlug.Optimism),
-        69: getRpcUrl(ChainSlug.Optimism),
-        420: getRpcUrl(ChainSlug.Optimism),
-        100: getRpcUrl(ChainSlug.Gnosis),
-        137: getRpcUrl(ChainSlug.Polygon),
-        80001: getRpcUrl(ChainSlug.Polygon),
+const walletSelectOptions = (networkId: number): WalletSelectModuleOptions => {
+  return {
+    heading: 'Connect Wallet',
+    description: '',
+    // agreement: {
+    //   version: '0.0.1'
+    //   termsUrl: '', // optional
+    //   privacyUrl: '', // optional
+    // },
+    wallets: [
+      // preferred: shown at the top of the selection screen
+      // label: override name
+      // svg: string that overrides the icon
+      // iconSrc: alternative to svg string (url source)
+      // display: { desktop: true, mobile: true }
+      { walletName: 'metamask', preferred: true, iconSrc: mmLogo },
+      {
+        walletName: 'walletConnect',
+        label: 'Wallet Connect',
+        preferred: true,
+        rpc: getRpcUrls(networkId),
       },
-    },
-    {
-      walletName: 'gnosis',
-      preferred: true,
-    },
-    {
-      walletName: 'walletLink',
-      preferred: true,
-      rpcUrl: getRpcUrl(ChainSlug.Ethereum),
-      appName: 'Hop',
-    },
-  ],
+      {
+        walletName: 'gnosis',
+        preferred: true,
+      },
+      {
+        walletName: 'walletLink',
+        preferred: true,
+        rpcUrl: getRpcUrl(ChainSlug.Ethereum),
+        appName: 'Hop',
+      },
+    ],
+  }
 }
 
 // TODO: modularize
@@ -250,7 +261,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         },
       },
       // Defines how the wallet select screen will render
-      walletSelect: walletSelectOptions,
+      walletSelect: walletSelectOptions(onboardNetworkId),
       // Used to check if the user is ready to transact
       walletCheck: walletChecks,
     })

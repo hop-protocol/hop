@@ -545,6 +545,29 @@ describe.skip('getSendData', () => {
     expect(requiredLiquidity).toBeGreaterThan(0)
     expect(availableLiquidity).toBeGreaterThan(requiredLiquidity)
   })
+  it('relayer fee', async () => {
+    const sdk = new Hop('mainnet')
+    const bridge = sdk.bridge('USDC')
+    const amountIn = BigNumber.from('1000000')
+    const sendData = await bridge.getSendData(
+      amountIn,
+      Chain.Ethereum,
+      Chain.Arbitrum
+    )
+    const adjustedBonderFee = Number(
+      formatUnits(sendData.adjustedBonderFee.toString(), 6)
+    )
+    const adjustedDestinationTxFee = Number(
+      formatUnits(sendData.adjustedDestinationTxFee.toString(), 6)
+    )
+    const totalFee = Number(
+      formatUnits(sendData.totalFee.toString(), 6)
+    )
+
+    expect(adjustedBonderFee).toBe(0)
+    expect(adjustedDestinationTxFee).toBe(0)
+    expect(totalFee).toBeGreaterThan(0)
+  })
 })
 
 describe('getSupportedAssets', () => {
@@ -697,6 +720,26 @@ describe.skip('PriceFeed', () => {
     console.log(price)
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(2)
+  })
+})
+
+describe.skip('getMessengerWrapperAddress', () => {
+  it('should return the messenger wrapper', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const destinationChain = 'arbitrum'
+    const messengerWrapper = await bridge.getMessengerWrapperAddress(destinationChain)
+    console.log(messengerWrapper)
+    expect(messengerWrapper).toBeTruthy()
+    expect(messengerWrapper.length).toBe(42)
+  })
+  it('should not return the messenger wrapper for mainnet because one does not exist', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const destinationChain = 'ethereum'
+    const messengerWrapper = await bridge.getMessengerWrapperAddress(destinationChain)
+    console.log(messengerWrapper)
+    expect(messengerWrapper).toBeFalsy()
   })
 })
 

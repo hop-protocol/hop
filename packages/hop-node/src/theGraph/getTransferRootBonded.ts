@@ -1,17 +1,21 @@
 import makeRequest from './makeRequest'
-import { constants } from 'ethers'
+import { MaxInt32 } from 'src/constants'
 import { normalizeEntity } from './shared'
 
 export default async function getTransferRootBonded (
   chain: string,
   token: string,
-  lastId: string = constants.AddressZero
+  startDate: number = 0,
+  endDate: number = MaxInt32,
+  lastId: string = '0'
 ) {
   const query = `
-    query TransferRootBonded($token: String, $lastId: ID) {
+    query TransferRootBonded(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {
       transferRootBondeds(
         where: {
-          token: $token
+          ${token ? 'token: $token,' : ''}
+          timestamp_gte: $startDate
+          timestamp_lte: $endDate
           id_gt: $lastId
         },
         orderBy: id,
@@ -21,12 +25,16 @@ export default async function getTransferRootBonded (
         id
         root
         transactionHash
+        amount
+        timestamp
       }
     }
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    lastId: lastId
+    startDate,
+    endDate,
+    lastId
   })
   let transferRoots = jsonRes.transferRootBondeds.map((x: any) => normalizeEntity(x))
 
@@ -36,6 +44,8 @@ export default async function getTransferRootBonded (
     transferRoots = transferRoots.concat(await getTransferRootBonded(
       chain,
       token,
+      startDate,
+      endDate,
       lastId
     ))
   }

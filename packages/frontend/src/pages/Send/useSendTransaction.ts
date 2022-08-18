@@ -220,10 +220,11 @@ export function useSendTransaction(props) {
         const isNetworkConnected = await checkConnectedNetworkId(networkId)
         if (!isNetworkConnected) return
 
+        const relayerFeeWithId = getBonderFeeWithId(totalFee)
+
         return bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
           deadline: deadline(),
-          relayer: constants.AddressZero,
-          relayerFee: 0,
+          relayerFee: relayerFeeWithId,
           recipient,
           amountOutMin,
         })

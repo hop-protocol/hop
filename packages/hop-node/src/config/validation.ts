@@ -57,7 +57,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Watchers.Challenge,
     Watchers.CommitTransfers,
     Watchers.SettleBondedWithdrawals,
-    Watchers.xDomainMessageRelay
+    Watchers.xDomainMessageRelay,
+    Watchers.L1ToL2Relay
   ]
 
   const validChainKeys = [
@@ -80,7 +81,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
   const sectionKeys = Object.keys(config)
   validateKeys(validSectionKeys, sectionKeys)
 
-  const enabledChains = Object.keys(config.chains)
+  const enabledChains: string[] = Object.keys(config.chains)
   if (!enabledChains.includes(Chain.Ethereum)) {
     throw new Error(`config for chain "${Chain.Ethereum}" is required`)
   }

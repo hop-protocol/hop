@@ -7,6 +7,7 @@ export { default as Token } from './Token'
 export { default as Base } from './Base'
 
 export { Chain } from './models'
+export { RelayerFee } from './relayerFee'
 export { Route } from './models'
 export { TokenAmount, Token as TokenModel } from './models'
 export * from './types'

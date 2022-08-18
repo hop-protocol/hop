@@ -104,3 +104,5 @@ export enum EventNames {
   TransferSent = 'TransferSent',
   TransferSentToL2 = 'TransferSentToL2',
 }
+
+export const MaxDeadline: number = 9999999999

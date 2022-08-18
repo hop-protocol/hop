@@ -1,18 +1,17 @@
 import makeRequest from './makeRequest'
-import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
 export default async function getTransferRootSet (
   chain: string,
   token: string,
-  lastId: string = constants.AddressZero
+  lastId: string = '0'
 ) {
   const query = `
-    query TransferRootSet($token: String, $lastId: ID) {
+    query TransferRootSet(${token ? '$token: String, ' : ''}$lastId: ID) {
       transferRootSets(
         where: {
           id_gt: $lastId
-          token: $token
+          ${token ? 'token: $token,' : ''}
         },
         orderBy: id,
         orderDirection: asc,
@@ -26,7 +25,7 @@ export default async function getTransferRootSet (
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    lastId: lastId
+    lastId
   })
   let transferRoot = jsonRes.transferRootSets.map((x: any) => normalizeEntity(x))
 

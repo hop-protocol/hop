@@ -2,27 +2,32 @@ import IncompleteSettlementsWatcher from 'src/watchers/IncompleteSettlementsWatc
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import Logger from 'src/logger'
 import S3Upload from 'src/aws/s3Upload'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import contracts from 'src/contracts'
 import fetch from 'node-fetch'
 import fs from 'fs'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getTransferFromL1Completed from 'src/theGraph/getTransferFromL1Completed'
 import getTransferIds from 'src/theGraph/getTransferIds'
+import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
+import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
-import { Chain, NativeChainToken, OneDayMs } from 'src/constants'
+import { Chain, NativeChainToken, OneDayMs, RelayableChains } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
+import { appTld, expectedNameservers, config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getDbSet } from 'src/db'
 import { getEnabledTokens } from 'src/config/config'
 import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawals'
+import { getNameservers } from 'src/utils/getNameservers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
-import { config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 
 type LowBonderBalance = {
   bridge: string
@@ -129,6 +134,28 @@ type InvalidBondWithdrawal = {
   timestamp: number
 }
 
+type UnrelayedTransfer = {
+  transactionHash: string
+  token: string
+  recipient: string
+  destinationChainId: number
+  amount: string
+  relayer: string
+  relayerFee: string
+}
+
+type UnsetTransferRoot = {
+  transferRootHash: string
+  totalAmount: string
+  timestamp: number
+}
+
+type DnsNameserversChanged = {
+  domain: string
+  expectedNameservers: string[]
+  gotNameservers: string[]
+}
+
 type Result = {
   lowBonderBalances: LowBonderBalance[]
   lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
@@ -139,6 +166,9 @@ type Result = {
   unsyncedSubgraphs: UnsyncedSubgraph[]
   missedEvents: MissedEvent[]
   invalidBondWithdrawals: InvalidBondWithdrawal[]
+  unrelayedTransfers: UnrelayedTransfer[]
+  unsetTransferRoots: UnsetTransferRoot[]
+  dnsNameserversChanged: DnsNameserversChanged[]
 }
 
 export type EnabledChecks = {
@@ -151,6 +181,9 @@ export type EnabledChecks = {
   lowAvailableLiquidityBonders: boolean
   missedEvents: boolean
   invalidBondWithdrawals: boolean
+  unrelayedTransfers: boolean
+  unsetTransferRoots: boolean
+  dnsNameserversChanged: boolean
 }
 
 export type Config = {
@@ -190,7 +223,7 @@ export class HealthCheckWatcher {
   bonderLowLiquidityThreshold: number = 0.10
   unbondedTransfersMinTimeToWaitMinutes: number = 30
   unbondedTransferRootsMinTimeToWaitHours: number = 1
-  incompleteSettlemetsMinTimeToWaitHours: number = 4
+  incompleteSettlementsMinTimeToWaitHours: number = 4
   minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
     [Chain.Ethereum]: 1000,
     [Chain.Polygon]: 2000,
@@ -208,7 +241,10 @@ export class HealthCheckWatcher {
     unsyncedSubgraphs: true,
     lowAvailableLiquidityBonders: true,
     missedEvents: true,
-    invalidBondWithdrawals: true
+    invalidBondWithdrawals: true,
+    unrelayedTransfers: true,
+    unsetTransferRoots: true,
+    dnsNameserversChanged: true
   }
 
   lastNotificationSentAt: number
@@ -279,7 +315,10 @@ export class HealthCheckWatcher {
       challengedTransferRoots,
       unsyncedSubgraphs,
       missedEvents,
-      invalidBondWithdrawals
+      invalidBondWithdrawals,
+      unrelayedTransfers,
+      unsetTransferRoots,
+      dnsNameserversChanged
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
       this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([]),
@@ -289,7 +328,10 @@ export class HealthCheckWatcher {
       this.enabledChecks.challengedTransferRoots ? this.getChallengedTransferRoots() : Promise.resolve([]),
       this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([]),
       this.enabledChecks.missedEvents ? this.getMissedEvents() : Promise.resolve([]),
-      this.enabledChecks.invalidBondWithdrawals ? this.getInvalidBondWithdrawals() : Promise.resolve([])
+      this.enabledChecks.invalidBondWithdrawals ? this.getInvalidBondWithdrawals() : Promise.resolve([]),
+      this.enabledChecks.unrelayedTransfers ? this.getUnrelayedTransfers() : Promise.resolve([]),
+      this.enabledChecks.unsetTransferRoots ? this.getUnsetTransferRoots() : Promise.resolve([]),
+      this.enabledChecks.dnsNameserversChanged ? this.getDnsServersChanged() : Promise.resolve([])
     ])
 
     return {
@@ -301,7 +343,10 @@ export class HealthCheckWatcher {
       challengedTransferRoots,
       unsyncedSubgraphs,
       missedEvents,
-      invalidBondWithdrawals
+      invalidBondWithdrawals,
+      unrelayedTransfers,
+      unsetTransferRoots,
+      dnsNameserversChanged
     }
   }
 
@@ -314,7 +359,10 @@ export class HealthCheckWatcher {
       challengedTransferRoots,
       unsyncedSubgraphs,
       missedEvents,
-      invalidBondWithdrawals
+      invalidBondWithdrawals,
+      unrelayedTransfers,
+      unsetTransferRoots,
+      dnsNameserversChanged
     } = result
 
     const messages: string[] = []
@@ -363,6 +411,21 @@ export class HealthCheckWatcher {
 
       for (const item of invalidBondWithdrawals) {
         const msg = `Possible InvalidBondWithdrawal: transferId: ${item.transferId}, destination: ${item.destinationChain}, token: ${item.token}, amount: ${item.amount}, timestamp: ${item.timestamp}`
+        messages.push(msg)
+      }
+
+      for (const item of unrelayedTransfers) {
+        const msg = `Possible unrelayed transfer: transactionHash: ${item.transactionHash}, token: ${item.token}, recipient: ${item.recipient}, destinationChainId: ${item.destinationChainId}, amount: ${item.amount}, relayer: ${item.relayer}, relayerFee: ${item.relayerFee}`
+        messages.push(msg)
+      }
+
+      for (const item of unsetTransferRoots) {
+        const msg = `Possible unset transferRoot: transferRootHash: ${item.transferRootHash}, totalAmount: ${item.totalAmount}, timestamp: ${item.timestamp}`
+        messages.push(msg)
+      }
+
+      for (const item of dnsNameserversChanged) {
+        const msg = `Possible DNS Nameserver changed: domain: ${item.domain}, expectedNameservers: ${JSON.stringify(item.expectedNameservers)}, gotNameservers: ${JSON.stringify(item.gotNameservers)}`
         messages.push(msg)
       }
     }
@@ -630,7 +693,7 @@ export class HealthCheckWatcher {
       format: 'json'
     })
     let result = await incompleteSettlementsWatcher.getDiffResults()
-    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.incompleteSettlemetsMinTimeToWaitHours * 60 * 60)))
+    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.incompleteSettlementsMinTimeToWaitHours * 60 * 60)))
     result = result.filter((x: any) => x.diffFormatted > 0.01)
     this.logger.debug('done fetching incomplete settlements')
     result = result.map((item: any) => {
@@ -796,5 +859,110 @@ export class HealthCheckWatcher {
         timestamp
       }
     })
+  }
+
+  async getUnrelayedTransfers (): Promise<UnrelayedTransfer[]> {
+    const now = DateTime.now().toUTC()
+    const endDate = now.minus({ hours: 1 })
+    const startDate = endDate.minus({ days: this.days })
+    const tokens = ''
+    const transfersSent = await getTransferSentToL2(Chain.Ethereum, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+
+    // There is no relayerFeeTooLow check here but there may need to be. If too many relayer fees are too low, then we can add logic to check for that.
+
+    const missingTransfers: any[] = []
+    for (const chain of RelayableChains) {
+      const transfersReceived = await getTransferFromL1Completed(chain, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+
+      // L1 to L2 transfers don't have a unique identifier from the perspective of the L1 event, so we need to track which L2 hashes have been observed
+      // and can use that to filter out duplicates.
+      const receiveHashesFounds: any = {}
+      for (const transferSent of transfersSent) {
+        const { transactionHash, recipient, amount, amountOutMin, deadline, relayer, relayerFee, token, destinationChainId } = transferSent
+        const destinationChain = chainIdToSlug(destinationChainId)
+        if (destinationChain !== chain) {
+          continue
+        }
+        let isFound = false
+        for (const transferReceived of transfersReceived) {
+          if (
+            recipient === transferReceived.recipient &&
+            amount === transferReceived.amount &&
+            amountOutMin === transferReceived.amountOutMin &&
+            deadline === transferReceived.deadline &&
+            relayer === transferReceived.relayer &&
+            relayerFee === transferReceived.relayerFee &&
+            !receiveHashesFounds[transferReceived.transactionHash]
+          ) {
+            isFound = true
+            receiveHashesFounds[transferReceived.transactionHash] = true
+            break
+          }
+        }
+        if (!isFound) {
+          missingTransfers.push([
+            transactionHash,
+            token,
+            recipient,
+            destinationChainId,
+            amount,
+            relayer,
+            relayerFee
+          ])
+        }
+      }
+    }
+
+    return missingTransfers
+  }
+
+  async getUnsetTransferRoots (): Promise<UnsetTransferRoot[]> {
+    const now = DateTime.now().toUTC()
+    const endDate = now.minus({ hours: 1 })
+    const startDate = endDate.minus({ days: this.days })
+    const items = await getUnsetTransferRoots(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+    return items.map((item: any) => {
+      const { rootHash, totalAmount, timestamp } = item
+      return {
+        transferRootHash: rootHash,
+        totalAmount,
+        timestamp
+      }
+    })
+  }
+
+  async getDnsServersChanged (): Promise<DnsNameserversChanged[]> {
+    try {
+      if (expectedNameservers.length === 0) {
+        this.logger.debug('getDnsServersChanged: expectedNameservers not set. skipping check')
+        return []
+      }
+      if (!appTld) {
+        this.logger.debug('getDnsServersChanged: appTld not set. skipping check')
+        return []
+      }
+
+      this.logger.debug(`checking expected DNS name servers: domain: ${appTld}, expectedNameservers: ${expectedNameservers}`)
+
+      const servers = await getNameservers(appTld)
+      if (!servers.length) {
+        throw new Error('getNameservers call returned no nameservers')
+      }
+
+      const doesNotMatch = servers.length !== expectedNameservers.length || servers.sort().join(',') !== expectedNameservers.sort().join(',')
+      if (doesNotMatch) {
+        return [{
+          domain: appTld,
+          expectedNameservers,
+          gotNameservers: servers
+        }]
+      }
+
+      this.logger.debug(`got expected DNS name servers: domain: ${appTld}, expectedNameservers: ${expectedNameservers}, gotNameservers: ${servers}`)
+    } catch (err) {
+      this.logger.error('getDnsServersChanged error:', err)
+    }
+
+    return []
   }
 }

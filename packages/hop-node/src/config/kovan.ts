@@ -3,6 +3,7 @@ import { kovan as kovanAddresses } from '@hop-protocol/core/addresses'
 import { kovan as metadata } from '@hop-protocol/core/metadata'
 
 const addresses = kovanAddresses.bridges
+const bonders = kovanAddresses.bonders
 const networks: any = {}
 
 for (const chain in _networks) {
@@ -16,4 +17,4 @@ for (const chain in _networks) {
   networks[chain].waitConfirmations = network?.waitConfirmations
 }
 
-export { addresses, networks, metadata }
+export { addresses, bonders, networks, metadata }

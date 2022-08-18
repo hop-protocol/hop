@@ -56,7 +56,7 @@ class ShardedMerkleTree {
       })
     }
 
-    const entry = shard.entries[address]
+    const entry = shard.entries[address.toLowerCase()]
     if (!entry) {
       throw new Error('Invalid Entry')
     }

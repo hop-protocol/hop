@@ -25,21 +25,12 @@ import {
   setSyncConfig,
   setVaultConfig
 } from './config'
-import { Chain } from 'src/constants'
 import { getAddress } from 'ethers/lib/utils'
 import { getParameter } from 'src/aws/parameterStore'
 import { promptPassphrase } from 'src/prompt'
 import { recoverKeystore } from 'src/keystore'
 
 const logger = new Logger('config')
-
-export const defaultEnabledNetworks: { [key: string]: boolean } = {
-  [Chain.Optimism]: true,
-  [Chain.Arbitrum]: true,
-  [Chain.Gnosis]: true,
-  [Chain.Polygon]: true,
-  [Chain.Ethereum]: true
-}
 
 type ChainsConfig = {
   [key: string]: any
@@ -60,6 +51,7 @@ type WatchersConfig = {
   [Watchers.CommitTransfers]: boolean
   [Watchers.SettleBondedWithdrawals]: boolean
   [Watchers.xDomainMessageRelay]: boolean
+  [Watchers.L1ToL2Relay]: boolean
 }
 
 type DbConfig = {

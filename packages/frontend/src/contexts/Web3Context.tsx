@@ -77,9 +77,11 @@ const walletSelectOptions: WalletSelectModuleOptions = {
       preferred: true,
       rpc: {
         1: getRpcUrl(ChainSlug.Ethereum),
+        5: getRpcUrl(ChainSlug.Ethereum),
         42: getRpcUrl(ChainSlug.Ethereum),
         42161: getRpcUrl(ChainSlug.Arbitrum),
         421611: getRpcUrl(ChainSlug.Arbitrum),
+        421613: getRpcUrl(ChainSlug.Arbitrum),
         200: getRpcUrl(ChainSlug.Arbitrum),
         10: getRpcUrl(ChainSlug.Optimism),
         69: getRpcUrl(ChainSlug.Optimism),

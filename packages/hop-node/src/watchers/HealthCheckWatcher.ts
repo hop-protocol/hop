@@ -20,13 +20,14 @@ import { Chain, NativeChainToken, OneDayMs, RelayableChains } from 'src/constant
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
+import { appTld, expectedNameservers, config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getDbSet } from 'src/db'
 import { getEnabledTokens } from 'src/config/config'
 import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawals'
+import { getNameservers } from 'src/utils/getNameservers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
-import { config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 
 type LowBonderBalance = {
   bridge: string
@@ -149,6 +150,12 @@ type UnsetTransferRoot = {
   timestamp: number
 }
 
+type DnsNameserversChanged = {
+  domain: string
+  expectedNameservers: string[]
+  gotNameservers: string[]
+}
+
 type Result = {
   lowBonderBalances: LowBonderBalance[]
   lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
@@ -161,6 +168,7 @@ type Result = {
   invalidBondWithdrawals: InvalidBondWithdrawal[]
   unrelayedTransfers: UnrelayedTransfer[]
   unsetTransferRoots: UnsetTransferRoot[]
+  dnsNameserversChanged: DnsNameserversChanged[]
 }
 
 export type EnabledChecks = {
@@ -175,6 +183,7 @@ export type EnabledChecks = {
   invalidBondWithdrawals: boolean
   unrelayedTransfers: boolean
   unsetTransferRoots: boolean
+  dnsNameserversChanged: boolean
 }
 
 export type Config = {
@@ -234,7 +243,8 @@ export class HealthCheckWatcher {
     missedEvents: true,
     invalidBondWithdrawals: true,
     unrelayedTransfers: true,
-    unsetTransferRoots: true
+    unsetTransferRoots: true,
+    dnsNameserversChanged: true
   }
 
   lastNotificationSentAt: number
@@ -307,7 +317,8 @@ export class HealthCheckWatcher {
       missedEvents,
       invalidBondWithdrawals,
       unrelayedTransfers,
-      unsetTransferRoots
+      unsetTransferRoots,
+      dnsNameserversChanged
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
       this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([]),
@@ -319,7 +330,8 @@ export class HealthCheckWatcher {
       this.enabledChecks.missedEvents ? this.getMissedEvents() : Promise.resolve([]),
       this.enabledChecks.invalidBondWithdrawals ? this.getInvalidBondWithdrawals() : Promise.resolve([]),
       this.enabledChecks.unrelayedTransfers ? this.getUnrelayedTransfers() : Promise.resolve([]),
-      this.enabledChecks.unsetTransferRoots ? this.getUnsetTransferRoots() : Promise.resolve([])
+      this.enabledChecks.unsetTransferRoots ? this.getUnsetTransferRoots() : Promise.resolve([]),
+      this.enabledChecks.dnsNameserversChanged ? this.getDnsServersChanged() : Promise.resolve([])
     ])
 
     return {
@@ -333,7 +345,8 @@ export class HealthCheckWatcher {
       missedEvents,
       invalidBondWithdrawals,
       unrelayedTransfers,
-      unsetTransferRoots
+      unsetTransferRoots,
+      dnsNameserversChanged
     }
   }
 
@@ -348,7 +361,8 @@ export class HealthCheckWatcher {
       missedEvents,
       invalidBondWithdrawals,
       unrelayedTransfers,
-      unsetTransferRoots
+      unsetTransferRoots,
+      dnsNameserversChanged
     } = result
 
     const messages: string[] = []
@@ -407,6 +421,11 @@ export class HealthCheckWatcher {
 
       for (const item of unsetTransferRoots) {
         const msg = `Possible unset transferRoot: transferRootHash: ${item.transferRootHash}, totalAmount: ${item.totalAmount}, timestamp: ${item.timestamp}`
+        messages.push(msg)
+      }
+
+      for (const item of dnsNameserversChanged) {
+        const msg = `Possible DNS Nameserver changed: domain: ${item.domain}, expectedNameservers: ${JSON.stringify(item.expectedNameservers)}, gotNameservers: ${JSON.stringify(item.gotNameservers)}`
         messages.push(msg)
       }
     }
@@ -910,5 +929,40 @@ export class HealthCheckWatcher {
         timestamp
       }
     })
+  }
+
+  async getDnsServersChanged (): Promise<DnsNameserversChanged[]> {
+    try {
+      if (expectedNameservers.length === 0) {
+        this.logger.debug('getDnsServersChanged: expectedNameservers not set. skipping check')
+        return []
+      }
+      if (!appTld) {
+        this.logger.debug('getDnsServersChanged: appTld not set. skipping check')
+        return []
+      }
+
+      this.logger.debug(`checking expected DNS name servers: domain: ${appTld}, expectedNameservers: ${expectedNameservers}`)
+
+      const servers = await getNameservers(appTld)
+      if (!servers.length) {
+        throw new Error('getNameservers call returned no nameservers')
+      }
+
+      const doesNotMatch = servers.length !== expectedNameservers.length || servers.sort().join(',') !== expectedNameservers.sort().join(',')
+      if (doesNotMatch) {
+        return [{
+          domain: appTld,
+          expectedNameservers,
+          gotNameservers: servers
+        }]
+      }
+
+      this.logger.debug(`got expected DNS name servers: domain: ${appTld}, expectedNameservers: ${expectedNameservers}, gotNameservers: ${servers}`)
+    } catch (err) {
+      this.logger.error('getDnsServersChanged error:', err)
+    }
+
+    return []
   }
 }

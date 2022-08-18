@@ -1,4 +1,5 @@
 import buildInfo from 'src/.build-info.json'
+import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
@@ -57,6 +58,8 @@ export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 export const minEthBonderFeeBn = parseEther('0.00001')
 export const pendingCountCommitThreshold = 256
+export const appTld = process.env.APP_TLD ?? 'hop.exchange'
+export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 
 // TODO: Remove this post-nitro
 export const isNitroLive = process.env.IS_NITRO_LIVE ?? false

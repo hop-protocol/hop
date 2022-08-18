@@ -26,7 +26,8 @@ async function main (source: any) {
       unsyncedSubgraphs: enabledChecks.includes('unsyncedSubgraphs'),
       lowAvailableLiquidityBonders: enabledChecks.includes('lowAvailableLiquidityBonders'),
       missedEvents: enabledChecks.includes('missedEvents'),
-      invalidBondWithdrawals: enabledChecks.includes('invalidBondWithdrawals')
+      invalidBondWithdrawals: enabledChecks.includes('invalidBondWithdrawals'),
+      dnsNameserversChanged: enabledChecks.includes('dnsNameserversChanged')
     }
   }
 

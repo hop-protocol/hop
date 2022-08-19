@@ -86,7 +86,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     const l1ToL2Message = await this.getL1ToL2Message(l1TxHash, messageIndex)
     const res = await l1ToL2Message.waitForStatus()
     const status = res.status
-    if (status !== L1ToL2MessageStatus.REDEEMED) {
+    if (status !== L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2) {
       this.logger.error(`Transaction not redeemable. Status: ${L1ToL2MessageStatus[status]}`)
       throw new Error('Transaction unredeemable')
     }

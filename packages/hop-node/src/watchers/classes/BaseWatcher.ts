@@ -351,9 +351,6 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
     let gasCostInToken: BigNumber
     let minBonderFeeAbsolute: BigNumber
 
-    const sourceL2Bridge = this.getSiblingWatcherByChainSlug(sourceChain).bridge as L2Bridge
-    const onChainBonderFeeAbsolute = await sourceL2Bridge.getOnChainMinBonderFeeAbsolute()
-
     if (nearestItemToTransferSent && nearestItemToNow) {
       ({ gasCostInToken, minBonderFeeAbsolute } = nearestItemToTransferSent)
       const { gasCostInToken: currentGasCostInToken, minBonderFeeAbsolute: currentMinBonderFeeAbsolute } = nearestItemToNow
@@ -379,6 +376,9 @@ class BaseWatcher extends EventEmitter implements IBaseWatcher {
       logger.debug(`isRelayerFeeOk: relayerFee: ${relayerFee}, minTxFee: ${minTxFee}, isRelayFeeOk: ${isRelayFeeOk}`)
       return isRelayFeeOk
     }
+
+    const sourceL2Bridge = this.getSiblingWatcherByChainSlug(sourceChain).bridge as L2Bridge
+    const onChainBonderFeeAbsolute = await sourceL2Bridge.getOnChainMinBonderFeeAbsolute()
 
     minBonderFeeAbsolute = onChainBonderFeeAbsolute.gt(minBonderFeeAbsolute) ? onChainBonderFeeAbsolute : minBonderFeeAbsolute
     logger.debug('minBonderFeeAbsolute:', minBonderFeeAbsolute?.toString())

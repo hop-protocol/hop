@@ -611,8 +611,8 @@ class HopBridge extends Base {
     const relayer = await this.getBonderAddress(sourceChain, destinationChain)
 
     if (sourceChain.isL1) {
-      if (bonderFee.gt(0)) {
-        throw new Error('Bonder fee should be 0 when sending hToken to L2')
+      if (bonderFee.gt(0) && !relayableChains.includes(destinationChain.slug)) {
+        throw new Error('Bonder fee should be 0 when sending hToken to a non-relayable L2')
       }
 
       const isNativeToken = this.isNativeToken(sourceChain)

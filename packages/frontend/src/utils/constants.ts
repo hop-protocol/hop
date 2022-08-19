@@ -42,3 +42,7 @@ export interface NetworkTokenEntity {
   token: Token
   amount: string
 }
+
+export const RelayableChains: string[] = [
+  ChainSlug.Arbitrum
+]

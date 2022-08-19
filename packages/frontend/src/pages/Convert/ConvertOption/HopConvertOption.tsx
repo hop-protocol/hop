@@ -4,6 +4,7 @@ import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
 import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
+import { RelayableChains } from 'src/utils/constants'
 import DetailRow from 'src/components/InfoTooltip/DetailRow'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
@@ -38,7 +39,7 @@ class HopConvertOption extends ConvertOption {
       bonderFee = getBonderFeeWithId(BigNumber.from(bonderFee))
     }
 
-    if (sourceNetwork.isLayer1) {
+    if (sourceNetwork.isLayer1 && !RelayableChains.includes(destNetwork.slug)) {
       bonderFee = BigNumber.from(0)
     }
 

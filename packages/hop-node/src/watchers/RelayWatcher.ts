@@ -93,22 +93,18 @@ class RelayWatcher extends BaseWatcher {
 
   async checkRelayableTransferRootsFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getRelayableTransferRoots(await this.getFilterRoute())
-    console.log('shane - PRE000')
     if (!dbTransferRoots.length) {
       this.logger.debug('no relayable transfer root db items to check')
       return
     }
 
-    console.log('shane - 000')
     this.logger.info(
         `checking ${dbTransferRoots.length} unrelayed transfer roots db items`
     )
 
-    console.log('shane - 111')
     const promises: Array<Promise<any>> = []
     for (const dbTransferRoot of dbTransferRoots) {
       const { transferRootId } = dbTransferRoot
-      console.log('shane - 222', transferRootId)
       promises.push(this.checkRelayableTransferRoots(transferRootId))
     }
 

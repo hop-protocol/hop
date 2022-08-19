@@ -386,7 +386,7 @@ class HopBridge extends Base {
         destinationChain: destinationChain,
         sourceChain,
         relayer: options?.relayer ?? bonderAddress,
-        relayerFee: relayerFee,
+        relayerFee,
         amount: tokenAmount,
         amountOutMin: options?.amountOutMin ?? 0,
         deadline: options?.deadline,

@@ -909,6 +909,10 @@ const Index: NextPage = () => {
               </thead>
               <tbody>
                 {transfers.map((x: any, index: number) => {
+                  x.isDifferentRecipient = false
+                  if (x.recipientAddress && x.accountAddress) {
+                    x.isDifferentRecipient = x.recipientAddress !== x.accountAddress
+                  }
                   return (
                     <tr key={index}>
                       <td className="index">{ ((Math.max(page-1, 0) * perPage) + index + 1) }</td>
@@ -1027,9 +1031,14 @@ const Index: NextPage = () => {
                       </td>
                       <td className="bondedWithin" title={x.recipientAddress}>
                         {x.recipientAddressExplorerUrl && (
+                          <>
+                          {x.isDifferentRecipient && (
+                            <span title="The recipient is different than the sender. If this was not expected then make sure that the website you sent from was not a scam site. The official website is app.hop.exchange">⚠️ </span>
+                          )}
                           <a className="bonder" href={x.recipientAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.recipientAddress}`}>
                             { x.recipientAddressTruncated }
                           </a>
+                          </>
                         )}
                       </td>
                     </tr>

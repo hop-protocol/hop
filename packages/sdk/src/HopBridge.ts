@@ -374,11 +374,19 @@ class HopBridge extends Base {
       }
       // L1 -> L2
       const bonderAddress = await this.getBonderAddress(sourceChain, destinationChain)
+      let relayerFee = options?.relayerFee
+      if (!relayerFee) {
+        relayerFee = await this.getTotalFee(
+          tokenAmount,
+          sourceChain,
+          destinationChain
+        )
+      }
       return this.populateSendL1ToL2Tx({
         destinationChain: destinationChain,
         sourceChain,
         relayer: options?.relayer ?? bonderAddress,
-        relayerFee: options?.relayerFee ?? BigNumber.from(0),
+        relayerFee,
         amount: tokenAmount,
         amountOutMin: options?.amountOutMin ?? 0,
         deadline: options?.deadline,
@@ -2262,7 +2270,7 @@ class HopBridge extends Base {
     // TODO: Remove Goerli check post-nitro
     if (this.network === NetworkSlug.Goerli) {
       destinationChain = this.toChainModel(destinationChain)
-      if (destinationChain.slug === Chain.Arbitrum.slug) {
+      if (destinationChain.equals(Chain.Arbitrum)) {
         return this.getArbitrumRelayGasCost(destinationChain)
       }
     }

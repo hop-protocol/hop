@@ -1485,7 +1485,7 @@ class SyncWatcher extends BaseWatcher {
           ] as const
           const gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
           const tx = await bridgeContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
-          estimates.push({ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawal })
+          estimates.push({ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawalAndAttemptSwap })
         }
 
         if (RelayableChains.includes(this.chainSlug)) {

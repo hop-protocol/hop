@@ -78,7 +78,6 @@ async function main (source: any) {
     }
   }
 
-  console.log(enabledNetworks)
   let commitTransfersMinThresholdAmounts: any = {}
   if (config?.commitTransfers) {
     if (config.commitTransfers?.minThresholdAmount) {

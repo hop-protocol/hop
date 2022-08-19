@@ -187,7 +187,7 @@ export const config: Config = {
   sync: {
     [Chain.Ethereum]: {
       totalBlocks: TotalBlocks.Ethereum,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 2000
     },
     [Chain.Arbitrum]: {
       totalBlocks: 100_000,

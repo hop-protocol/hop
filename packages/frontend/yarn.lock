@@ -3453,10 +3453,10 @@
   dependencies:
     ethers "5.6.9"
 
-"@hop-protocol/sdk@0.0.1-beta.337":
-  version "0.0.1-beta.337"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.337.tgz#a76c2ed5c62b4ba8a62fbefc97713f97dff25176"
-  integrity sha512-pVQRbDRzjzB4WvJG899MAOV39yXZMv5HNGv9AWuxe2YDK4arCbMbrZMeuAsouLVgwEee/uNkiNHBD1JPHOv3CA==
+"@hop-protocol/sdk@0.0.1-beta.340":
+  version "0.0.1-beta.340"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.340.tgz#d0d4b536433207bfff7bf68b4f585bea67d82b9d"
+  integrity sha512-SSv7VgHbQWASiiRN9m4JBKvQ5QSeAuRGVcNqQWIms2DsOElDAO2NVEreahSaWfNj/rcYUNjFnZeOlXIQKCO3Sw==
   dependencies:
     "@eth-optimism/contracts" "0.5.2"
     "@hop-protocol/core" "0.0.1-beta.73"
@@ -19506,6 +19506,11 @@ usb@^1.6.3:
   dependencies:
     node-addon-api "^4.2.0"
     node-gyp-build "^4.3.0"
+
+use-async-memo@^1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/use-async-memo/-/use-async-memo-1.2.4.tgz#3122eea51645ee56b9ed699eaafcd74af0ad77b0"
+  integrity sha512-J4RLCD/Gxh3VYRldO6xLLYuqwyOfXhFOqlVNCAAA+kvhE2DNsUB6YLJKvSJ8GCS3aiSiI8jJ/AvI7GYWCa/Djw==
 
 use@^3.1.0:
   version "3.1.1"

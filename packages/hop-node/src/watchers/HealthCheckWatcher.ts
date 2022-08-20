@@ -28,6 +28,7 @@ import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawal
 import { getNameservers } from 'src/utils/getNameservers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
+import OsWatcher from 'src/watchers/OsWatcher'
 
 type LowBonderBalance = {
   bridge: string
@@ -156,6 +157,13 @@ type DnsNameserversChanged = {
   gotNameservers: string[]
 }
 
+type LowOsResource = {
+  kind: string
+  used: string
+  total: string
+  percent: string
+}
+
 type Result = {
   lowBonderBalances: LowBonderBalance[]
   lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
@@ -169,6 +177,7 @@ type Result = {
   unrelayedTransfers: UnrelayedTransfer[]
   unsetTransferRoots: UnsetTransferRoot[]
   dnsNameserversChanged: DnsNameserversChanged[]
+  lowOsResources: LowOsResource[]
 }
 
 export type EnabledChecks = {
@@ -184,6 +193,7 @@ export type EnabledChecks = {
   unrelayedTransfers: boolean
   unsetTransferRoots: boolean
   dnsNameserversChanged: boolean
+  lowOsResources: boolean
 }
 
 export type Config = {
@@ -244,10 +254,12 @@ export class HealthCheckWatcher {
     invalidBondWithdrawals: true,
     unrelayedTransfers: true,
     unsetTransferRoots: true,
-    dnsNameserversChanged: true
+    dnsNameserversChanged: true,
+    lowOsResources: true
   }
 
-  lastNotificationSentAt: number
+  lastUnsyncedSubgraphNotificationSentAt: number
+  lastLowOsResourceNotificationSentAt: number
 
   constructor (config: Config) {
     const { days, offsetDays, s3Upload, s3Namespace, cacheFile, enabledChecks } = config
@@ -318,7 +330,8 @@ export class HealthCheckWatcher {
       invalidBondWithdrawals,
       unrelayedTransfers,
       unsetTransferRoots,
-      dnsNameserversChanged
+      dnsNameserversChanged,
+      lowOsResources
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
       this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([]),
@@ -331,7 +344,8 @@ export class HealthCheckWatcher {
       this.enabledChecks.invalidBondWithdrawals ? this.getInvalidBondWithdrawals() : Promise.resolve([]),
       this.enabledChecks.unrelayedTransfers ? this.getUnrelayedTransfers() : Promise.resolve([]),
       this.enabledChecks.unsetTransferRoots ? this.getUnsetTransferRoots() : Promise.resolve([]),
-      this.enabledChecks.dnsNameserversChanged ? this.getDnsServersChanged() : Promise.resolve([])
+      this.enabledChecks.dnsNameserversChanged ? this.getDnsServersChanged() : Promise.resolve([]),
+      this.enabledChecks.lowOsResources ? this.getLowOsResources() : Promise.resolve([])
     ])
 
     return {
@@ -346,7 +360,8 @@ export class HealthCheckWatcher {
       invalidBondWithdrawals,
       unrelayedTransfers,
       unsetTransferRoots,
-      dnsNameserversChanged
+      dnsNameserversChanged,
+      lowOsResources
     }
   }
 
@@ -362,17 +377,13 @@ export class HealthCheckWatcher {
       invalidBondWithdrawals,
       unrelayedTransfers,
       unsetTransferRoots,
-      dnsNameserversChanged
+      dnsNameserversChanged,
+      lowOsResources
     } = result
 
     const messages: string[] = []
 
     if (!unsyncedSubgraphs.length) {
-      for (const item of lowBonderBalances) {
-        const msg = `LowBonderBalance: bonder: ${item.bonder}, chain: ${item.chain}, amount: ${item.amountFormatted?.toFixed(2)} ${item.nativeToken}`
-        messages.push(msg)
-      }
-
       for (const item of unbondedTransfers) {
         if (item.isBonderFeeTooLow) {
           continue
@@ -423,22 +434,38 @@ export class HealthCheckWatcher {
         const msg = `Possible unset transferRoot: transferRootHash: ${item.transferRootHash}, totalAmount: ${item.totalAmount}, timestamp: ${item.timestamp}`
         messages.push(msg)
       }
+    }
 
-      for (const item of dnsNameserversChanged) {
-        const msg = `Possible DNS Nameserver changed: domain: ${item.domain}, expectedNameservers: ${JSON.stringify(item.expectedNameservers)}, gotNameservers: ${JSON.stringify(item.gotNameservers)}`
+    for (const item of lowBonderBalances) {
+      const msg = `LowBonderBalance: bonder: ${item.bonder}, chain: ${item.chain}, amount: ${item.amountFormatted?.toFixed(2)} ${item.nativeToken}`
+      messages.push(msg)
+    }
+
+    for (const item of dnsNameserversChanged) {
+      const msg = `Possible DNS Nameserver changed: domain: ${item.domain}, expectedNameservers: ${JSON.stringify(item.expectedNameservers)}, gotNameservers: ${JSON.stringify(item.gotNameservers)}`
+      messages.push(msg)
+    }
+
+    let shouldSendLowOsResourceNotification = true
+    if (this.lastLowOsResourceNotificationSentAt) {
+      shouldSendLowOsResourceNotification = this.lastLowOsResourceNotificationSentAt + OneDayMs < Date.now()
+    }
+    if (shouldSendLowOsResourceNotification) {
+      for (const item of lowOsResources) {
+        const msg = `LowOsResource: kind: ${item.kind}, used: ${item.used}, total: ${item.total}, percent: ${item.percent}`
         messages.push(msg)
       }
     }
 
     let shouldSendUnsyncedSubgraphNotification = true
-    if (this.lastNotificationSentAt) {
-      shouldSendUnsyncedSubgraphNotification = this.lastNotificationSentAt + OneDayMs < Date.now()
+    if (this.lastUnsyncedSubgraphNotificationSentAt) {
+      shouldSendUnsyncedSubgraphNotification = this.lastUnsyncedSubgraphNotificationSentAt + OneDayMs < Date.now()
     }
     if (shouldSendUnsyncedSubgraphNotification) {
       for (const item of unsyncedSubgraphs) {
         const msg = `UnsyncedSubgraph: chain: ${item.chain}, syncedBlockNumber: ${item.syncedBlockNumber}, headBlockNumber: ${item.headBlockNumber}, diffBlockNumber: ${item.diffBlockNumber}`
         messages.push(msg)
-        this.lastNotificationSentAt = Date.now()
+        this.lastUnsyncedSubgraphNotificationSentAt = Date.now()
       }
     }
 
@@ -964,5 +991,50 @@ export class HealthCheckWatcher {
     }
 
     return []
+  }
+
+  async getLowOsResources (): Promise<LowOsResource[]> {
+    const lowOsResources : LowOsResource[] = []
+    const {
+      usedSizeGb: diskUsed,
+      totalSizeGb: diskTotal,
+      usedPercent: diskPercent
+    } = await OsWatcher.getDiskUsage()
+
+    if (diskPercent > 95) {
+      lowOsResources.push({
+        kind: 'disk',
+        used: diskUsed,
+        total: diskTotal,
+        percent: diskPercent
+      })
+    }
+
+    const {
+      cpuPercent: cpuPercent,
+      usedMemoryMb: memoryUsed,
+      totalMemoryMb: memoryTotal,
+      memoryPercent: memoryPercent
+    } = await OsWatcher.getCpuMemoryUsage()
+
+    if (cpuPercent > 95) {
+      lowOsResources.push({
+        kind: 'cpu',
+        used: '',
+        total: '',
+        percent: cpuPercent
+      })
+    }
+
+    if (memoryPercent > 95) {
+      lowOsResources.push({
+        kind: 'memory',
+        used: memoryUsed,
+        total: memoryTotal,
+        percent: memoryPercent
+      })
+    }
+
+    return lowOsResources
   }
 }

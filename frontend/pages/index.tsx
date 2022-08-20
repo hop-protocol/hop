@@ -3,7 +3,6 @@ import Clipboard from 'clipboard'
 import * as luxon from 'luxon'
 import type {NextPage} from 'next'
 import Head from 'next/head'
-import Image from 'next/image'
 import Script from 'next/script'
 import React, {useEffect, useState } from 'react'
 
@@ -918,12 +917,12 @@ const Index: NextPage = () => {
                       <td className="index">{ ((Math.max(page-1, 0) * perPage) + index + 1) }</td>
                       <td className="timestamp" title={x.timestampIso}>{ x.timestampRelative }</td>
                       <td className={x.sourceChainSlug}>
-                        <Image width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
+                        <image width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
                         { x.sourceChainName }
                         <span className="small-arrow">⟶</span>
                       </td>
                       <td className={x.destinationChainSlug}>
-                        <Image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                        <image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                         { x.destinationChainName }
                       </td>
                       <td className="transferId">
@@ -939,7 +938,7 @@ const Index: NextPage = () => {
                         </a>
                       </td>
                       <td className="token">
-                        <Image width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
+                        <image width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
                         { x.token }
                       </td>
                       <td className="amount number" title={x.amount}>{ x.amountDisplay }</td>
@@ -971,7 +970,7 @@ const Index: NextPage = () => {
                       <td className="bonded">
                         {x.bonded && (
                         <a className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title="View on block explorer">
-                          <Image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                          <image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                           {x.sourceChainId !== 1 && (
                             <span>
                               Bonded
@@ -989,7 +988,7 @@ const Index: NextPage = () => {
                         )}
                         {(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
                           <span className="no">
-                            <Image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                            <image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                             Pending
                           </span>
                         )}

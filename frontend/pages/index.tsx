@@ -917,12 +917,12 @@ const Index: NextPage = () => {
                       <td className="index">{ ((Math.max(page-1, 0) * perPage) + index + 1) }</td>
                       <td className="timestamp" title={x.timestampIso}>{ x.timestampRelative }</td>
                       <td className={x.sourceChainSlug}>
-                        <image width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
+                        <img width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
                         { x.sourceChainName }
                         <span className="small-arrow">⟶</span>
                       </td>
                       <td className={x.destinationChainSlug}>
-                        <image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                        <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                         { x.destinationChainName }
                       </td>
                       <td className="transferId">
@@ -938,7 +938,7 @@ const Index: NextPage = () => {
                         </a>
                       </td>
                       <td className="token">
-                        <image width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
+                        <img width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
                         { x.token }
                       </td>
                       <td className="amount number" title={x.amount}>{ x.amountDisplay }</td>
@@ -970,7 +970,7 @@ const Index: NextPage = () => {
                       <td className="bonded">
                         {x.bonded && (
                         <a className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title="View on block explorer">
-                          <image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                          <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                           {x.sourceChainId !== 1 && (
                             <span>
                               Bonded
@@ -988,7 +988,7 @@ const Index: NextPage = () => {
                         )}
                         {(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
                           <span className="no">
-                            <image width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                            <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                             Pending
                           </span>
                         )}

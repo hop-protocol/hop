@@ -1,12 +1,11 @@
 import makeRequest from './makeRequest'
-import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
 export default async function getStake (
   chain: string,
   token: string,
   bonder: string,
-  lastId: string = constants.AddressZero
+  lastId: string = '0'
 ) {
   bonder = bonder.toLowerCase()
   const query = `
@@ -29,7 +28,7 @@ export default async function getStake (
   const jsonRes = await makeRequest(chain, query, {
     token,
     bonder,
-    lastId: lastId
+    lastId
   })
   let stakes = jsonRes.stakes.map((x: any) => normalizeEntity(x))
 

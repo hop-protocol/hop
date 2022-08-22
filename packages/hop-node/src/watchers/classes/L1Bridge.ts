@@ -1,13 +1,14 @@
 import Bridge, { EventCb, EventsBatchOptions } from './Bridge'
 import Token from './Token'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.json'
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'
-import { Chain, DefaultRelayerAddress } from 'src/constants'
+import { Chain, GasCostTransactionType } from 'src/constants'
 import { ERC20 } from '@hop-protocol/core/contracts'
 import { Hop } from '@hop-protocol/sdk'
-import { L1Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent } from '@hop-protocol/core/contracts/L1Bridge'
+import { L1Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/core/contracts/L1Bridge'
 import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { config as globalConfig } from 'src/config'
 
@@ -58,6 +59,17 @@ export default class L1Bridge extends Bridge {
     )
   }
 
+  getTransferSentToL2Events = async (
+    startBlockNumber: number,
+    endBlockNumber: number
+  ) => {
+    return await this.l1BridgeContract.queryFilter(
+      this.l1BridgeContract.filters.TransferSentToL2(),
+      startBlockNumber,
+      endBlockNumber
+    )
+  }
+
   async mapTransferRootBondedEvents<R> (
     cb: EventCb<TransferRootBondedEvent, R>,
     options?: Partial<EventsBatchOptions>
@@ -70,6 +82,13 @@ export default class L1Bridge extends Bridge {
     options?: Partial<EventsBatchOptions>
   ) {
     return await this.mapEventsBatch(this.getTransferBondChallengedEvents, cb, options)
+  }
+
+  async mapTransferSentToL2Events<R> (
+    cb: EventCb<TransferSentToL2Event, R>,
+    options?: Partial<EventsBatchOptions>
+  ) {
+    return await this.mapEventsBatch(this.getTransferSentToL2Events, cb, options)
   }
 
   async getTransferRootBondedEvent (
@@ -202,8 +221,17 @@ export default class L1Bridge extends Bridge {
       throw new Error(`chain ID "${destinationChainId}" is not supported`)
     }
 
-    const relayer = DefaultRelayerAddress
-    const relayerFee = '0'
+    const destinationChain = chainIdToSlug(destinationChainId)
+    const transactionType = GasCostTransactionType.BondWithdrawal
+    const now = Math.floor(Date.now() / 1000)
+    const nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)
+    if (!nearestItemToTransferSent) {
+      throw new Error('nearestItemToTransferSent not found')
+    }
+    const { gasCostInToken } = nearestItemToTransferSent
+
+    const relayer = await this.getBonderAddress()
+    const relayerFee = gasCostInToken || '0'
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
 
@@ -237,10 +265,19 @@ export default class L1Bridge extends Bridge {
       throw new Error(`chain ID "${destinationChainId}" is not supported`)
     }
 
+    const destinationChain = chainIdToSlug(destinationChainId)
+    const transactionType = GasCostTransactionType.BondWithdrawal
+    const now = Math.floor(Date.now() / 1000)
+    const nearestItemToTransferSent = await this.db.gasCost.getNearest(destinationChain, this.tokenSymbol, transactionType, now)
+    if (!nearestItemToTransferSent) {
+      throw new Error('nearestItemToTransferSent not found')
+    }
+    const { gasCostInToken } = nearestItemToTransferSent
+
     const sdk = new Hop(globalConfig.network)
     const bridge = sdk.bridge(this.tokenSymbol)
-    const relayer = DefaultRelayerAddress
-    const relayerFee = '0'
+    const relayer = await this.getBonderAddress()
+    const relayerFee = gasCostInToken || '0'
     const deadline = bridge.defaultDeadlineSeconds
     const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.chainIdToSlug(destinationChainId))
     const slippageTolerance = 0.1

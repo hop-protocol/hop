@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "engines": {
-    "node": ">=14",
-    "yarn": "^1.22.11"
+    "node": ">=14"
   },
   "scripts": {
     "start": "ts-node src/index.ts",
@@ -13,7 +12,7 @@
     "start:volume": "ts-node src/index.ts --volume",
     "start:tvl": "ts-node src/index.ts --tvl",
     "start:bonder": "ts-node src/index.ts --bonder --bonderDays=30",
-    "start:bonderProfit": "ts-node src/index.ts --bonderStartDate=2022-07-20 --bonderEndDate=2022-08-04 --bonderTokens=USDT --bonderProfit",
+    "start:bonderProfit": "ts-node src/index.ts --bonderStartDate=2021-08-01 --bonderEndDate=2022-08-18 --bonderTokens=USDT --bonderProfit",
     "build": "tsc && mkdir -p dist/src/data && cp src/data/* dist/src/data",
     "lint": "prettier-standard --format",
     "clean": "rimraf dist",
@@ -24,8 +23,8 @@
   "dependencies": {
     "@pinata/sdk": "1.1.26",
     "@aws-sdk/client-s3": "3.29.0",
-    "@hop-protocol/core": "0.0.1-beta.71",
-    "@hop-protocol/sdk": "0.0.1-beta.335",
+    "@hop-protocol/core": "0.0.1-beta.73",
+    "@hop-protocol/sdk": "0.0.1-beta.342",
     "comment-json": "4.2.2",
     "csv-writer": "1.6.0",
     "dotenv": "10.0.0",

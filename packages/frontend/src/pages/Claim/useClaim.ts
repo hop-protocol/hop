@@ -9,7 +9,8 @@ import { formatError } from 'src/utils/format'
 import { claimChainId } from './config'
 import { networkIdToSlug } from 'src/utils/networks'
 import { useInterval } from 'react-use'
-import { getProviderByNetworkName } from 'src/utils/getProvider'
+import { getProviderByNetworkName, getProvider } from 'src/utils/getProvider'
+import { reactAppNetwork } from 'src/config'
 
 export interface TokenClaim {
   entry: {
@@ -53,6 +54,13 @@ export function useClaim() {
   const [airdropSupply, setAirdropSupply] = useState<BigNumber>(BigNumber.from(0))
   const [merkleRootSet, setMerkleRootSet] = useState<boolean>(false)
   const [claimProvider, setClaimProvider] = useState(() => {
+    // makes mainnet rpc available when react app network is testnet
+    // so claim flow doesn't break frontend
+    if (reactAppNetwork !== 'mainnet' && claimChainId === 1) {
+      const rpcUrl = 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213' // infura id is from ethers
+      return getProvider(rpcUrl)
+    }
+
     return getProviderByNetworkName(networkIdToSlug(claimChainId))
   })
 

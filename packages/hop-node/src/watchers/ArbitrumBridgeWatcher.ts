@@ -1,9 +1,10 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
+import getRpcUrl from 'src/utils/getRpcUrl'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
+import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1TransactionReceipt, L2TransactionReceipt, getL2Network } from '@arbitrum/sdk'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Wallet, providers } from 'ethers'
 
@@ -14,17 +15,10 @@ type Config = {
   dryMode?: boolean
 }
 
-const l1ToL2TxStatuses: Record<number, string> = {
-  1: 'Not yet created',
-  2: 'Creation failed',
-  3: 'Funds deposited on L2. They to be manually redeemed.',
-  4: 'Redeemed',
-  5: 'Expired'
-}
-
 class ArbitrumBridgeWatcher extends BaseWatcher {
   l1Wallet: Wallet
   l2Wallet: Wallet
+  defaultL2Provider: providers.Provider
   ready: boolean
 
   constructor (config: Config) {
@@ -38,6 +32,9 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
 
     this.l1Wallet = wallets.get(Chain.Ethereum)
     this.l2Wallet = wallets.get(Chain.Arbitrum)
+
+    const rpcUrl = getRpcUrl(Chain.Arbitrum)
+    this.defaultL2Provider = new providers.JsonRpcProvider(rpcUrl)
   }
 
   async relayXDomainMessage (
@@ -54,19 +51,17 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       )
     }
 
-    const l2Network = await getL2Network(this.l2Wallet.provider)
-    const outGoingMessagesFromTxn = await initiatingTxnReceipt.getL2ToL1Messages(this.l1Wallet, l2Network)
+    const outGoingMessagesFromTxn = await initiatingTxnReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider)
     if (outGoingMessagesFromTxn.length === 0) {
       throw new Error(`tx hash ${txHash} did not initiate an outgoing messages`)
     }
 
-    const msg = outGoingMessagesFromTxn[0]
-    const proofInfo = await msg.tryGetProof(this.l2Wallet.provider)
-    if (!proofInfo) {
-      throw new Error(`proof not found for tx hash ${txHash}`)
+    const msg: any = outGoingMessagesFromTxn[0]
+    if (!msg) {
+      throw new Error(`msg not found for tx hash ${txHash}`)
     }
 
-    return msg.execute(proofInfo)
+    return msg.execute(this.l2Wallet.provider)
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
@@ -92,16 +87,40 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.notifier.info(msg)
   }
 
-  async redeemArbitrumTransaction (l1TxHash: string) {
-    const txReceipt = await this.l1Wallet.provider.getTransactionReceipt(l1TxHash)
-    const l1TxnReceipt = new L1TransactionReceipt(txReceipt)
-    const l1ToL2Message = await l1TxnReceipt.getL1ToL2Message(this.l2Wallet)
-    const res = await l1ToL2Message.waitForStatus()
-    if (res?.status !== 3) {
-      this.logger.error(`Transaction not redeemable. Status: ${l1ToL2TxStatuses[res.status]}`)
+  async redeemArbitrumTransaction (l1TxHash: string, messageIndex: number = 0): Promise<providers.TransactionResponse> {
+    const status = await this.getMessageStatus(l1TxHash, messageIndex)
+    if (status !== L1ToL2MessageStatus.FUNDS_DEPOSITED_ON_L2) {
+      this.logger.error(`Transaction not redeemable. Status: ${L1ToL2MessageStatus[status]}`)
       throw new Error('Transaction unredeemable')
     }
-    await l1ToL2Message.redeem()
+
+    const l1ToL2Message = await this.getL1ToL2Message(l1TxHash, messageIndex)
+    return await l1ToL2Message.redeem()
+  }
+
+  async getL1ToL2Message (l1TxHash: string, messageIndex: number = 0, useDefaultProvider: boolean = false): Promise<IL1ToL2MessageWriter> {
+    const l1ToL2Messages = await this.getL1ToL2Messages(l1TxHash, useDefaultProvider)
+    return l1ToL2Messages[messageIndex]
+  }
+
+  async getL1ToL2Messages (l1TxHash: string, useDefaultProvider: boolean = false): Promise<IL1ToL2MessageWriter[]> {
+    const l2Wallet = useDefaultProvider ? this.l2Wallet.connect(this.defaultL2Provider) : this.l2Wallet
+    const txReceipt = await this.l1Wallet.provider.getTransactionReceipt(l1TxHash)
+    const l1TxnReceipt = new L1TransactionReceipt(txReceipt)
+    return l1TxnReceipt.getL1ToL2Messages(l2Wallet)
+  }
+
+  async isTransactionRedeemed (l1TxHash: string, messageIndex: number = 0): Promise<boolean> {
+    const status = await this.getMessageStatus(l1TxHash, messageIndex)
+    return status === L1ToL2MessageStatus.REDEEMED
+  }
+
+  async getMessageStatus (l1TxHash: string, messageIndex: number = 0): Promise<L1ToL2MessageStatus> {
+    // We cannot use our provider here because the SDK will rateLimitRetry and exponentially backoff as it retries an on-chain call
+    const useDefaultProvider = true
+    const l1ToL2Message = await this.getL1ToL2Message(l1TxHash, messageIndex, useDefaultProvider)
+    const res = await l1ToL2Message.waitForStatus()
+    return res.status
   }
 }
 

@@ -2,7 +2,7 @@ import BaseDb, { BaseItem, KeyFilter } from './BaseDb'
 import nearest from 'nearest-date'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
-import { OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
+import { GasCostTransactionType, OneHourMs, OneHourSeconds, OneWeekMs } from 'src/constants'
 import { normalizeDbItem } from './utils'
 
 const varianceSeconds = 20 * 60
@@ -12,7 +12,7 @@ type GasCost = BaseItem & {
   chain: string
   token: string
   timestamp: number // in seconds
-  attemptSwap: boolean
+  transactionType: GasCostTransactionType
   gasCost: BigNumber
   gasCostInToken: BigNumber
   gasPrice: BigNumber
@@ -20,10 +20,11 @@ type GasCost = BaseItem & {
   tokenPriceUsd: number
   nativeTokenPriceUsd: number
   minBonderFeeAbsolute: BigNumber
+  attemptSwap?: boolean // TODO: Remove after migration
 }
 
 // structure:
-// key: `<chain>:<token>:<timestamp>:<attemptSwap>`
+// key: `<chain>:<token>:<timestamp>:<transactionType>`
 // value: `{ ...GasCost }`
 class GasCostDb extends BaseDb {
   constructor (prefix: string, _namespace?: string) {
@@ -43,13 +44,31 @@ class GasCostDb extends BaseDb {
     }
   }
 
-  async update (key: string, data: GasCost) {
-    return this._update(key, data)
+  async migration () {
+    this.logger.debug('GasCostDb migration started')
+    const entries = await this.getKeyValues()
+    this.logger.debug(`GasCostDb migration: ${entries.length} entries`)
+    for (const entry of entries) {
+      if (typeof entry.value.transactionType !== 'undefined') {
+        continue
+      }
+
+      let transactionType: GasCostTransactionType
+      if (entry.value.attemptSwap) {
+        transactionType = GasCostTransactionType.BondWithdrawalAndAttemptSwap
+      } else {
+        transactionType = GasCostTransactionType.BondWithdrawal
+      }
+
+      entry.value.transactionType = transactionType
+      delete entry.value.attemptSwap
+      await this.update(entry.value)
+    }
   }
 
-  async addGasCost (data: GasCost) {
-    const key = `${data.chain}:${data.token}:${data.timestamp}:${Number(data.attemptSwap)}`
-    await this.update(key, data)
+  async update (data: GasCost) {
+    const key = `${data.chain}:${data.token}:${data.timestamp}:${data.transactionType}`
+    await this._update(key, data)
     this.logger.debug(`updated db gasCost item. ${JSON.stringify(data)}`)
   }
 
@@ -58,7 +77,7 @@ class GasCostDb extends BaseDb {
     return items.filter(x => x)
   }
 
-  async getNearest (chain: string, token: string, attemptSwap: boolean, targetTimestamp: number): Promise<GasCost | null> {
+  async getNearest (chain: string, token: string, transactionType: GasCostTransactionType, targetTimestamp: number): Promise<GasCost | null> {
     await this.tilReady()
     const startTimestamp = targetTimestamp - OneHourSeconds
     const endTimestamp = targetTimestamp + OneHourSeconds
@@ -70,7 +89,7 @@ class GasCostDb extends BaseDb {
       return (
         item.chain === chain &&
         item.token === token &&
-        item.attemptSwap === attemptSwap &&
+        item.transactionType === transactionType &&
         item.timestamp
       )
     })

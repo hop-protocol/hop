@@ -1,5 +1,4 @@
 import makeRequest from './makeRequest'
-import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
 
 export default async function getTransfersCommitted (
@@ -7,7 +6,7 @@ export default async function getTransfersCommitted (
   token: string,
   startTimestamp: number = 0,
   destinationChainId: number = 0,
-  lastId: string = constants.AddressZero
+  lastId: string = '0'
 ) {
   const filters = getFilters(startTimestamp, destinationChainId)
   const query = `
@@ -31,7 +30,7 @@ export default async function getTransfersCommitted (
     token,
     startTimestamp,
     destinationChainId,
-    lastId: lastId
+    lastId
   })
   let transfersCommitted = jsonRes.transfersCommitteds.map((x: any) => normalizeEntity(x))
 

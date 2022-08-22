@@ -4,13 +4,30 @@ import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
+import getTransferSentToL2TransferId from 'src/utils/getTransferSentToL2TransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import wait from 'src/utils/wait'
 import { BigNumber } from 'ethers'
-import { Chain, OneWeekMs } from 'src/constants'
+import { Chain, GasCostTransactionType, OneWeekMs, RelayableChains } from 'src/constants'
 import { DateTime } from 'luxon'
-import { L1Bridge as L1BridgeContract, MultipleWithdrawalsSettledEvent, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/L1Bridge'
-import { L2Bridge as L2BridgeContract, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
+import {
+  L1Bridge as L1BridgeContract,
+  MultipleWithdrawalsSettledEvent,
+  TransferBondChallengedEvent,
+  TransferRootBondedEvent,
+  TransferRootConfirmedEvent,
+  TransferRootSetEvent,
+  TransferSentToL2Event,
+  WithdrawalBondSettledEvent,
+  WithdrawalBondedEvent,
+  WithdrewEvent
+} from '@hop-protocol/core/contracts/L1Bridge'
+import {
+  L2Bridge as L2BridgeContract,
+  TransferSentEvent,
+  TransfersCommittedEvent
+} from '@hop-protocol/core/contracts/L2Bridge'
+import { RelayerFee } from '@hop-protocol/sdk'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
@@ -230,6 +247,15 @@ class SyncWatcher extends BaseWatcher {
       )
 
       promises.push(
+        l1Bridge.mapTransferSentToL2Events(
+          async (event: TransferSentToL2Event) => {
+            return await this.handleTransferSentToL2Event(event)
+          },
+          getOptions(l1Bridge.TransferSentToL2)
+        )
+      )
+
+      promises.push(
         l1Bridge.mapTransferRootConfirmedEvents(
           async (event: TransferRootConfirmedEvent) => {
             return await this.handleTransferRootConfirmedEvent(event)
@@ -325,6 +351,78 @@ class SyncWatcher extends BaseWatcher {
     // and syncAvailableCredit must be last
     await Promise.all(promises)
       .then(async () => await this.availableLiquidityWatcher.syncBonderCredit())
+  }
+
+  async handleTransferSentToL2Event (event: TransferSentToL2Event) {
+    const {
+      chainId: destinationChainIdBn,
+      recipient,
+      amount,
+      amountOutMin,
+      deadline,
+      relayer,
+      relayerFee
+    } = event.args
+    const { transactionHash, logIndex } = event
+    const destinationChainId: number = Number(destinationChainIdBn.toString())
+    const transferId = getTransferSentToL2TransferId(
+      destinationChainId,
+      recipient,
+      amount,
+      amountOutMin,
+      deadline,
+      relayer,
+      relayerFee,
+      transactionHash,
+      logIndex
+    )
+    const logger = this.logger.create({ id: transferId })
+    logger.debug('handling TransferSentToL2 event')
+
+    try {
+      const blockNumber: number = event.blockNumber
+      const l1Bridge = this.bridge as L1Bridge
+      const sourceChainId = await l1Bridge.getChainId()
+      const isRelayable = this.getIsRelayable(relayerFee)
+
+      logger.debug('sourceChainId:', sourceChainId)
+      logger.debug('destinationChainId:', destinationChainId)
+      logger.debug('isRelayable:', isRelayable)
+      logger.debug('transferId:', transferId)
+      logger.debug('amount:', this.bridge.formatUnits(amount))
+      logger.debug('amountOutMin:', this.bridge.formatUnits(amountOutMin))
+      logger.debug('deadline:', deadline.toString())
+      logger.debug('transferSentBlockNumber:', blockNumber)
+      logger.debug('relayer:', relayer)
+      logger.debug('relayerFee:', this.bridge.formatUnits(relayerFee))
+      logger.debug('transactionHash:', transactionHash)
+      logger.debug('logIndex:', logIndex)
+
+      if (!isRelayable) {
+        logger.warn('transfer is not relayable. fee:', relayerFee.toString())
+      }
+
+      await this.db.transfers.update(transferId, {
+        transferId,
+        destinationChainId,
+        sourceChainId,
+        recipient,
+        amount,
+        amountOutMin,
+        deadline,
+        relayer,
+        relayerFee,
+        isRelayable,
+        transferSentTxHash: transactionHash,
+        transferSentBlockNumber: blockNumber,
+        transferSentLogIndex: logIndex
+      })
+
+      logger.debug('handleTransferSentToL2Event: stored transfer item')
+    } catch (err) {
+      logger.error(`handleTransferSentToL2Event error: ${err.message}`)
+      this.notifier.error(`handleTransferSentToL2Event error: ${err.message}`)
+    }
   }
 
   async handleTransferSentEvent (event: TransferSentEvent) {
@@ -1300,6 +1398,12 @@ class SyncWatcher extends BaseWatcher {
     return true
   }
 
+  getIsRelayable = (
+    relayerFee: BigNumber
+  ): boolean => {
+    return relayerFee.gt(0)
+  }
+
   getIsBlocklisted (addresses: string[]) {
     for (const address of addresses) {
       const isBlocklisted = globalConfig?.blocklist?.addresses?.[address?.toLowerCase()]
@@ -1365,7 +1469,7 @@ class SyncWatcher extends BaseWatcher {
         ] as const
         const gasLimit = await bridgeContract.estimateGas.bondWithdrawal(...payload)
         const tx = await bridgeContract.populateTransaction.bondWithdrawal(...payload)
-        const estimates = [{ gasLimit, ...tx, attemptSwap: false }]
+        const estimates = [{ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawal }]
 
         if (this._isL2BridgeContract(bridgeContract) && bridgeContract.bondWithdrawalAndDistribute) {
           const payload = [
@@ -1381,28 +1485,35 @@ class SyncWatcher extends BaseWatcher {
           ] as const
           const gasLimit = await bridgeContract.estimateGas.bondWithdrawalAndDistribute(...payload)
           const tx = await bridgeContract.populateTransaction.bondWithdrawalAndDistribute(...payload)
-          estimates.push({ gasLimit, ...tx, attemptSwap: true })
+          estimates.push({ gasLimit, ...tx, transactionType: GasCostTransactionType.BondWithdrawalAndAttemptSwap })
+        }
+
+        if (RelayableChains.includes(this.chainSlug)) {
+          const relayerFee = new RelayerFee(globalConfig.network)
+          const gasCost = await relayerFee.getRelayCost(this.chainSlug)
+          estimates.push({ gasLimit: gasCost, transactionType: GasCostTransactionType.Relay })
         }
 
         this.logger.debug('pollGasCost estimate. estimates complete')
-        await Promise.all(estimates.map(async ({ gasLimit, data, to, attemptSwap }) => {
+        await Promise.all(estimates.map(async ({ gasLimit, data, to, transactionType }) => {
           const { gasCost, gasCostInToken, gasPrice, tokenPriceUsd, nativeTokenPriceUsd } = await this.bridge.getGasCostEstimation(
             this.chainSlug,
             this.tokenSymbol,
             gasLimit,
+            transactionType,
             data,
             to
           )
 
-          this.logger.debug(`pollGasCost estimate. attemptSwap: ${attemptSwap}, gasLimit: ${gasLimit?.toString()}, gasPrice: ${gasPrice?.toString()}, gasCost: ${gasCost?.toString()}, gasCostInToken: ${gasCostInToken?.toString()}, tokenPriceUsd: ${tokenPriceUsd?.toString()}`)
+          this.logger.debug(`pollGasCost estimate. transactionType: ${transactionType}, gasLimit: ${gasLimit?.toString()}, gasPrice: ${gasPrice?.toString()}, gasCost: ${gasCost?.toString()}, gasCostInToken: ${gasCostInToken?.toString()}, tokenPriceUsd: ${tokenPriceUsd?.toString()}`)
           const minBonderFeeAbsolute = await this.bridge.getMinBonderFeeAbsolute(this.tokenSymbol, tokenPriceUsd)
           this.logger.debug(`pollGasCost estimate. minBonderFeeAbsolute: ${minBonderFeeAbsolute.toString()}`)
 
-          await this.db.gasCost.addGasCost({
+          await this.db.gasCost.update({
             chain: this.chainSlug,
             token: this.tokenSymbol,
             timestamp,
-            attemptSwap,
+            transactionType,
             gasCost,
             gasCostInToken,
             gasPrice,

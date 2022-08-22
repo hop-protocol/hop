@@ -1,12 +1,11 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.341",
+  "version": "0.0.1-beta.342",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "engines": {
-    "node": ">=14",
-    "yarn": "^1.22.11"
+    "node": ">=14"
   },
   "scripts": {
     "test": "jest",

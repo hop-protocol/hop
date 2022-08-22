@@ -1,5 +1,6 @@
 import React, { FC, useState, useMemo } from 'react'
 import { BigNumber } from 'ethers'
+import { parseUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import { Chain, HopBridge, Token } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
@@ -142,7 +143,8 @@ const StakeWidget: FC<Props> = props => {
     try {
       if (!stakingRewards) return
       const timestamp = await stakingRewards.periodFinish()
-      return isRewardsExpired(timestamp)
+      const isExpired = isRewardsExpired(timestamp)
+      return isExpired
     } catch (err: any) {
       logger.error(formatError(err))
     }
@@ -177,8 +179,34 @@ const StakeWidget: FC<Props> = props => {
       ) {
         return
       }
+      const canonToken = bridge.getCanonicalToken(network.slug)
 
-      const canonToken = await bridge.getCanonicalToken(network.slug)
+      try {
+        const url = 'https://assets.hop.exchange/v1-pool-stats.json'
+        const res = await fetch(url)
+        const json = await res.json()
+        let symbol = canonToken.symbol
+        if (symbol === 'WETH') {
+          symbol = 'ETH'
+        }
+        if (symbol === 'XDAI') {
+          symbol = 'DAI'
+        }
+        const oneHourMs = 60 * 60 * 1000
+        const isRecent = json.timestamp > Date.now() - oneHourMs
+        if (isRecent) {
+          const apr = json.data[symbol][network.slug].stakingApr
+          if (apr != null) {
+            const aprBn = parseUnits(apr.toString(), 18)
+            if (aprBn.lt(0)) {
+              return BigNumber.from(0)
+            }
+          }
+        }
+      } catch (err) {
+        console.error(err)
+      }
+
       const amm = bridge.getAmm(network.slug)
       const stakedTotal = await amm.calculateTotalAmountForLpToken(totalStaked)
       if (stakedTotal.lte(0)) {

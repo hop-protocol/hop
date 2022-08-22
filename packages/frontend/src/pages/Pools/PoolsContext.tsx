@@ -235,7 +235,7 @@ const PoolsProvider: FC = ({ children }) => {
           setApr(undefined)
           return
         }
-        const token = await selectedBridge.getCanonicalToken(selectedNetwork.slug)
+        const token = selectedBridge.getCanonicalToken(selectedNetwork.slug)
         const cacheKey = `apr:${selectedNetwork.slug}:${token.symbol}`
         try {
           const cached = JSON.parse(localStorage.getItem(cacheKey) || '')

@@ -1,12 +1,12 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
+import getRpcUrl from 'src/utils/getRpcUrl'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Wallet, providers } from 'ethers'
-import getRpcUrl from 'src/utils/getRpcUrl'
 
 type Config = {
   chainSlug: string

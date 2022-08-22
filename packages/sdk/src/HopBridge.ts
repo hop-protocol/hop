@@ -331,7 +331,7 @@ class HopBridge extends Base {
       throw new Error('Insufficient liquidity available by bonder. Try again in a few minutes')
     }
 
-    this.checkConnectedChain(this.signer, sourceChain)
+    await this.checkConnectedChain(this.signer, sourceChain)
 
     const recipient = options?.recipient ?? await this.getSignerAddress()
     const willFail = await this.willTransferFail(sourceChain, destinationChain, recipient)
@@ -530,7 +530,7 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     const populatedTx = await this.populateSendApprovalTx(tokenAmount, sourceChain, isHTokenTransfer)
     if (populatedTx) {
-      this.checkConnectedChain(this.signer, sourceChain)
+      await this.checkConnectedChain(this.signer, sourceChain)
       return this.sendTransaction(populatedTx, sourceChain)
     }
   }
@@ -544,7 +544,7 @@ class HopBridge extends Base {
   ) {
     sourceChain = this.toChainModel(sourceChain)
     const populatedTx = await this.populateSendHTokensTx(tokenAmount, sourceChain, destinationChain, options)
-    this.checkConnectedChain(this.signer, sourceChain)
+    await this.checkConnectedChain(this.signer, sourceChain)
     return this.sendTransaction(populatedTx, sourceChain)
   }
 
@@ -1825,7 +1825,7 @@ class HopBridge extends Base {
     let l1Bridge = await this.getL1Bridge(sourceChain.provider)
 
     if (checkAllowance) {
-      this.checkConnectedChain(this.signer, sourceChain)
+      await this.checkConnectedChain(this.signer, sourceChain)
       l1Bridge = await this.getL1Bridge(this.signer)
       if (!isNativeToken) {
         const l1Token = this.getL1Token()
@@ -1905,7 +1905,7 @@ class HopBridge extends Base {
     const isNativeToken = this.isNativeToken(sourceChain)
 
     if (checkAllowance) {
-      this.checkConnectedChain(this.signer, sourceChain)
+      await this.checkConnectedChain(this.signer, sourceChain)
       ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
       l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
       if (!isNativeToken) {
@@ -1993,7 +1993,7 @@ class HopBridge extends Base {
     const isNativeToken = this.isNativeToken(sourceChain)
 
     if (checkAllowance) {
-      this.checkConnectedChain(this.signer, sourceChain)
+      await this.checkConnectedChain(this.signer, sourceChain)
       ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
       if (!isNativeToken) {
         const l2CanonicalToken = this.getCanonicalToken(sourceChain)
@@ -2256,7 +2256,7 @@ class HopBridge extends Base {
       await this.txOverrides(chain)
     ] as const
 
-    this.checkConnectedChain(this.signer, chain)
+    await this.checkConnectedChain(this.signer, chain)
     const bridge = await this.getBridgeContract(chain)
     return bridge.withdraw(...txOptions)
   }

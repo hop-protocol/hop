@@ -399,7 +399,7 @@ class SyncWatcher extends BaseWatcher {
       logger.debug('logIndex:', logIndex)
 
       if (!isRelayable) {
-        logger.warn('transfer is not relayable', relayerFee.toString())
+        logger.warn('transfer is not relayable. fee:', relayerFee.toString())
       }
 
       await this.db.transfers.update(transferId, {

@@ -10,7 +10,7 @@ import {
   RootSetSettleDelayMs,
   TimeFromL1ToL2Ms
 } from 'src/constants'
-import { TxRetryDelayMs, isNitroLive, nitroStartTimestamp, oruChains } from 'src/config'
+import { TxRetryDelayMs, nitroStartTimestamp, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransferRoot {
@@ -568,7 +568,7 @@ class TransferRootsDb extends BaseDb {
   ): Promise<RelayableTransferRoot[]> {
     await this.tilReady()
     // TODO: Remove this post-nitro
-    if (!isNitroLive) {
+    if (!nitroStartTimestamp) {
       return []
     }
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()

@@ -62,8 +62,6 @@ export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 
 // TODO: Remove this post-nitro
-export const isNitroLive = process.env.IS_NITRO_LIVE ?? false
-// TODO: Remove this post-nitro
 export const nitroStartTimestamp = normalizeEnvVarNumber(process.env.NITRO_START_TIMESTAMP) ?? 0
 
 type SyncConfig = {

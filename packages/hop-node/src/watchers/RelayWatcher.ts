@@ -142,6 +142,7 @@ class RelayWatcher extends BaseWatcher {
     let messageIndex = 0
     if (l1ToL2Messages.length > 1) {
       messageIndex = await this.getMessageIndex(transferId, transferSentTxHash, transferSentTimestamp)
+      logger.debug(`messageIndex: ${messageIndex}`)
     }
 
     logger.debug('processing transfer relay. checking isRelayComplete')
@@ -156,7 +157,7 @@ class RelayWatcher extends BaseWatcher {
     const bonderAddress = await destBridge.getBonderAddress()
     const isCorrectRelayer = bonderAddress.toLowerCase() === relayer.toLowerCase()
     if (!isCorrectRelayer) {
-      logger.warn('relayer is not correct. marking item not relayable')
+      logger.warn('relayer is not correct. marking item not relayable.')
       await this.db.transfers.update(transferId, { isRelayable: false })
       return
     }

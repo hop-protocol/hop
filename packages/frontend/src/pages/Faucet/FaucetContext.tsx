@@ -12,6 +12,7 @@ import { L1_NETWORK } from 'src/utils/constants'
 import { formatError } from 'src/utils/format'
 import { l1Network } from 'src/config/networks'
 import { addresses } from 'src/config'
+import { getTokenDecimals } from 'src/utils/tokens'
 
 type FaucetContextProps = {
   mintToken: () => void
@@ -36,19 +37,22 @@ const FaucetContext = createContext<FaucetContextProps>({
 const FaucetContextProvider: FC = ({ children }) => {
   const [mintAmount] = useState<string>('10')
   const [isMinting, setMinting] = useState<boolean>(false)
-  const { txHistory, tokens } = useApp()
+  const { selectedBridge, txHistory, tokens } = useApp()
   const selectedNetwork = l1Network
   const { checkConnectedNetworkId, address, provider } = useWeb3Context()
-  const [selectedToken, setSelectedToken] = useState<Token | undefined>(tokens[0])
   const [error, setError] = useState<string | null | undefined>(null)
 
   const mintToken = async () => {
     try {
-      if (!selectedToken?.symbol) {
-        return
-      }
+      if (!selectedNetwork?.networkId) return
+      const networkId = Number(selectedNetwork.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
 
-      const address = addresses.tokens[selectedToken.symbol][L1_NETWORK]?.l1CanonicalToken
+      const tokenSymbol = selectedBridge.getTokenSymbol()
+      if (!tokenSymbol) return
+
+      const address = addresses.tokens[tokenSymbol][L1_NETWORK]?.l1CanonicalToken
       if (!address) {
         return
       }
@@ -63,9 +67,9 @@ const FaucetContextProvider: FC = ({ children }) => {
       }
 
       setMinting(true)
-
-      const recipient = address?.toString()
-      const parsedAmount = parseUnits(mintAmount, selectedToken.decimals)
+      const recipient = await signer.getAddress()
+      const tokenDecimals = getTokenDecimals(tokenSymbol)
+      const parsedAmount = parseUnits(mintAmount, tokenDecimals)
       const contract = new Contract(address, erc20Abi, signer)
 
       const tx = await contract?.mint(recipient, parsedAmount)

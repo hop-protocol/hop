@@ -27,8 +27,8 @@ async function main (source: any) {
       lowAvailableLiquidityBonders: enabledChecks.includes('lowAvailableLiquidityBonders'),
       missedEvents: enabledChecks.includes('missedEvents'),
       invalidBondWithdrawals: enabledChecks.includes('invalidBondWithdrawals'),
-			unrelaytedTransfers: enabledChecks.includes('unrelaytedTransfers'),
-			unsetTransferRoots: enabledChecks.includes('unsetTransferRoots'),
+      unrelaytedTransfers: enabledChecks.includes('unrelaytedTransfers'),
+      unsetTransferRoots: enabledChecks.includes('unsetTransferRoots'),
       dnsNameserversChanged: enabledChecks.includes('dnsNameserversChanged'),
       lowOsResources: enabledChecks.includes('lowOsResources')
     }

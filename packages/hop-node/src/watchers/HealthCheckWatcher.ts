@@ -1,6 +1,7 @@
 import IncompleteSettlementsWatcher from 'src/watchers/IncompleteSettlementsWatcher'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import Logger from 'src/logger'
+import OsWatcher from 'src/watchers/OsWatcher'
 import S3Upload from 'src/aws/s3Upload'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import contracts from 'src/contracts'
@@ -28,7 +29,6 @@ import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawal
 import { getNameservers } from 'src/utils/getNameservers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
-import OsWatcher from 'src/watchers/OsWatcher'
 
 type LowBonderBalance = {
   bridge: string
@@ -652,6 +652,12 @@ export class HealthCheckWatcher {
     })
 
     result = result.filter((x: any) => {
+      if (!x) {
+        return false
+      }
+      if (!x.transferId) {
+        return false
+      }
       if (x.sourceChain !== 'ethereum' && x.bonderFee === '0') {
         return false
       }
@@ -994,7 +1000,7 @@ export class HealthCheckWatcher {
   }
 
   async getLowOsResources (): Promise<LowOsResource[]> {
-    const lowOsResources : LowOsResource[] = []
+    const lowOsResources: LowOsResource[] = []
     const {
       usedSizeGb: diskUsed,
       totalSizeGb: diskTotal,
@@ -1011,10 +1017,10 @@ export class HealthCheckWatcher {
     }
 
     const {
-      cpuPercent: cpuPercent,
+      cpuPercent,
       usedMemoryMb: memoryUsed,
       totalMemoryMb: memoryTotal,
-      memoryPercent: memoryPercent
+      memoryPercent
     } = await OsWatcher.getCpuMemoryUsage()
 
     if (cpuPercent > 95) {

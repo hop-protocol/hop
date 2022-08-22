@@ -3453,7 +3453,7 @@
   dependencies:
     ethers "5.6.9"
 
-"@hop-protocol/sdk@0.0.1-beta.340":
+"@hop-protocol/sdk@^0.0.1-beta.340":
   version "0.0.1-beta.340"
   resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.340.tgz#d0d4b536433207bfff7bf68b4f585bea67d82b9d"
   integrity sha512-SSv7VgHbQWASiiRN9m4JBKvQ5QSeAuRGVcNqQWIms2DsOElDAO2NVEreahSaWfNj/rcYUNjFnZeOlXIQKCO3Sw==
@@ -14938,8 +14938,8 @@ original@^1.0.0:
 
 os-browserify@^0.3.0:
   version "0.3.0"
-  resolved "https://registry.npmjs.org/os-browserify/-/os-browserify-0.3.0.tgz#854373c7f5c2315914fc9bfc6bd8238fdda1ec27"
-  integrity sha1-hUNzx/XCMVkU/Jv8a9gjj92h7Cc=
+  resolved "https://registry.yarnpkg.com/os-browserify/-/os-browserify-0.3.0.tgz#854373c7f5c2315914fc9bfc6bd8238fdda1ec27"
+  integrity sha512-gjcpUc3clBf9+210TRaDWbf+rZZZEshZ+DlXMRCeAjp0xhTrnQsKHypIy1J3d5hKdUzj69t708EHtU8P6bUn0A==
 
 os-locale@^1.4.0:
   version "1.4.0"
@@ -18290,7 +18290,7 @@ stream-browserify@^2.0.1:
 
 stream-browserify@^3.0.0:
   version "3.0.0"
-  resolved "https://registry.npmjs.org/stream-browserify/-/stream-browserify-3.0.0.tgz#22b0a2850cdf6503e73085da1fc7b7d0c2122f2f"
+  resolved "https://registry.yarnpkg.com/stream-browserify/-/stream-browserify-3.0.0.tgz#22b0a2850cdf6503e73085da1fc7b7d0c2122f2f"
   integrity sha512-H73RAHsVBapbim0tU2JwwOiXUj+fikfiaoYAKHF3VJfA0pe2BCzkhAHBlLG6REzE+2WNZcxOXjK7lkso+9euLA==
   dependencies:
     inherits "~2.0.4"
@@ -19493,8 +19493,8 @@ url-to-options@^1.0.1:
 
 url@^0.11.0:
   version "0.11.0"
-  resolved "https://registry.npmjs.org/url/-/url-0.11.0.tgz#3838e97cfc60521eb73c525a8e55bfdd9e2e28f1"
-  integrity sha1-ODjpfPxgUh63PFJajlW/3Z4uKPE=
+  resolved "https://registry.yarnpkg.com/url/-/url-0.11.0.tgz#3838e97cfc60521eb73c525a8e55bfdd9e2e28f1"
+  integrity sha512-kbailJa29QrtXnxgq+DdCEGlbTeYM2eJUxsz6vjZavrCYPMIFHMKQmSKYAIuUK2i7hgPm28a8piX5NTUtM/LKQ==
   dependencies:
     punycode "1.3.2"
     querystring "0.2.0"
@@ -19507,7 +19507,7 @@ usb@^1.6.3:
     node-addon-api "^4.2.0"
     node-gyp-build "^4.3.0"
 
-use-async-memo@^1.2.4:
+use-async-memo@1.2.4:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/use-async-memo/-/use-async-memo-1.2.4.tgz#3122eea51645ee56b9ed699eaafcd74af0ad77b0"
   integrity sha512-J4RLCD/Gxh3VYRldO6xLLYuqwyOfXhFOqlVNCAAA+kvhE2DNsUB6YLJKvSJ8GCS3aiSiI8jJ/AvI7GYWCa/Djw==

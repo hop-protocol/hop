@@ -20,7 +20,6 @@ type GasCost = BaseItem & {
   tokenPriceUsd: number
   nativeTokenPriceUsd: number
   minBonderFeeAbsolute: BigNumber
-  attemptSwap?: boolean // TODO: Remove after migration
 }
 
 // structure:
@@ -41,28 +40,6 @@ class GasCostDb extends BaseDb {
       } catch (err) {
         this.logger.error(`prune poller error: ${err.message}`)
       }
-    }
-  }
-
-  async migration () {
-    this.logger.debug('GasCostDb migration started')
-    const entries = await this.getKeyValues()
-    this.logger.debug(`GasCostDb migration: ${entries.length} entries`)
-    for (const entry of entries) {
-      if (typeof entry.value.transactionType !== 'undefined') {
-        continue
-      }
-
-      let transactionType: GasCostTransactionType
-      if (entry.value.attemptSwap) {
-        transactionType = GasCostTransactionType.BondWithdrawalAndAttemptSwap
-      } else {
-        transactionType = GasCostTransactionType.BondWithdrawal
-      }
-
-      entry.value.transactionType = transactionType
-      delete entry.value.attemptSwap
-      await this.update(entry.value)
     }
   }
 

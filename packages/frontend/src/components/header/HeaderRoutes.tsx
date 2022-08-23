@@ -37,7 +37,7 @@ const HeaderRoutes: FC = () => {
       <Tab label="Send" value="/send" />
       <Tab label="Pool" value="/pool" />
       <Tab label="Convert" value="/convert" />
-      <Tab label="Stake" value="/stake" />
+      {isMainnet && <Tab label="Stake" value="/stake" />}
       <Tab label="Airdrop" value="/airdrop" />
       {canClaim && (
         <Tab label="Claim HOP" value="/claim" className="rainbow-animated" style={{

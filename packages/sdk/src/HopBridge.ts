@@ -36,7 +36,7 @@ import {
 } from './constants'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata, relayableChains } from './config'
-import { getAddress as checksumAddress, defaultAbiCoder, parseUnits, formatUnits } from 'ethers/lib/utils'
+import { getAddress as checksumAddress, defaultAbiCoder, formatUnits, parseUnits } from 'ethers/lib/utils'
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0

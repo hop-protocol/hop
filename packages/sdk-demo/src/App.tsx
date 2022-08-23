@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useInterval } from 'react-use'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { tomorrow as theme } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-// import LoadingButton from '@mui/lab/LoadingButton'
+import LoadingButton from '@mui/lab/LoadingButton'
 import Alert from '@mui/material/Alert'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
@@ -146,9 +148,13 @@ function App () {
 
   async function updateNeedsApproval () {
     if (signer) {
-      const amountBn = bridge.parseUnits(amount)
-      const _needsApproval = await bridge.needsApproval(amountBn, fromChain)
-      setNeedsApproval(_needsApproval)
+      try {
+        const amountBn = bridge.parseUnits(amount)
+        const _needsApproval = await bridge.needsApproval(amountBn, fromChain)
+        setNeedsApproval(_needsApproval)
+      } catch (err: any) {
+        setError(err.message)
+      }
     }
   }
 
@@ -244,7 +250,10 @@ function App () {
   const estimatedReceivedFormatted = estimate && amount ? `${bridge.formatUnits(estimate.estimatedReceived).toFixed(4)} ${tokenSymbol}` : '-'
   const sendEnabled = isConnected && estimate && amount && !needsApproval
   const codeSnippet = useMemo(() => {
-    const amountBn = bridge.parseUnits(amount)
+    let amountString = ''
+    try {
+      amountString = bridge.parseUnits(amount).toString()
+    } catch (err: any) { }
     return `
 import { Hop } from '@hop-protocol/sdk'
 import { providers } from 'ethers'
@@ -254,18 +263,18 @@ function main() {
   const signer = provider.getSigner()
   const hop = new Hop('mainnet', signer)
   const bridge = hop.bridge('${tokenSymbol}')
-  const { totalFee, estimatedReceived } = await bridge.getSendData('${amountBn.toString()}', '${fromChain}', '${toChain}')
-  const needsApproval = await bridge.needsApproval('${amountBn.toString()}', '${fromChain}')
+  const { totalFee, estimatedReceived } = await bridge.getSendData('${amountString}', '${fromChain}', '${toChain}')
+  const needsApproval = await bridge.needsApproval('${amountString}', '${fromChain}')
   if (needsApproval) {
-    const tx = await bridge.sendApproval('${amountBn.toString()}', '${fromChain}', '${toChain}')
+    const tx = await bridge.sendApproval('${amountString}', '${fromChain}', '${toChain}')
     await tx.wait()
   }
-  const tx = await bridge.send('${amountBn.toString()}', '${fromChain}', '${toChain}', { bonderFee: totalFee })
+  const tx = await bridge.send('${amountString}', '${fromChain}', '${toChain}', { bonderFee: totalFee })
   console.log(tx.hash)
 }
 
 main().catch(console.error)
-  `
+  `.trim()
   }, [bridge, tokenSymbol, fromChain, toChain, amount])
 
   return (
@@ -277,7 +286,9 @@ main().catch(console.error)
           </Typography>
         </Box>
         {!isConnected && (
-          <Button onClick={handleConnect} variant="contained">Connect Wallet</Button>
+          <Box mb={2}>
+            <Button onClick={handleConnect} variant="contained">Connect Wallet</Button>
+          </Box>
         )}
         {isConnected && (
           <Box mb={2}>
@@ -335,27 +346,32 @@ main().catch(console.error)
                 </Box>
               </Box>
               <Box mb={4}>
-                <Button disabled={!needsApproval} onClick={handleApprove} variant="contained">Approve</Button>
+                <LoadingButton disabled={!needsApproval} onClick={handleApprove} variant="contained">Approve</LoadingButton>
               </Box>
               <Box mb={4}>
-                <Button disabled={!sendEnabled} onClick={handleSend} variant="contained">Send</Button>
+                <LoadingButton disabled={!sendEnabled} onClick={handleSend} variant="contained">Send</LoadingButton>
               </Box>
+              {!!error && (
+                <Box mb={4} style={{ maxWidth: '400px', wordBreak: 'break-word' }}>
+                  <Alert severity="error">{error}</Alert>
+                </Box>
+              )}
+              {!!success && (
+                <Box mb={4}>
+                  <Alert severity="success">{success}</Alert>
+                </Box>
+              )}
             </Box>
             <Box p={4}>
-              <pre>
+              <SyntaxHighlighter
+                language="javascript"
+                style={theme}
+                showLineNumbers={true}
+                wrapLongLines={true}
+              >
                 {codeSnippet}
-              </pre>
+              </SyntaxHighlighter>
             </Box>
-          </Box>
-        )}
-        {!!error && (
-          <Box mb={4} style={{ maxWidth: '400px', wordBreak: 'break-word' }}>
-            <Alert severity="error">{error}</Alert>
-          </Box>
-        )}
-        {!!success && (
-          <Box mb={4}>
-            <Alert severity="success">{success}</Alert>
           </Box>
         )}
       </Box>

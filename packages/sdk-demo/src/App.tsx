@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useInterval } from 'react-use'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -7,13 +7,34 @@ import Alert from '@mui/material/Alert'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import { providers } from 'ethers'
-import { formatEther, parseUnits, formatUnits } from 'ethers/lib/utils'
+import { formatEther } from 'ethers/lib/utils'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import { Hop } from '@hop-protocol/sdk'
 import './App.css'
+
+function TokenDropdown (props: any) {
+  const { label, value, handleChange } = props
+  return (
+    <FormControl fullWidth>
+      <InputLabel id="select-label">{label}</InputLabel>
+      <Select
+        labelId="select-label"
+        id="simple-select"
+        value={value}
+        label={label}
+        onChange={handleChange}
+      >
+        <MenuItem value="USDC">USDC</MenuItem>
+        <MenuItem value="USDT">USDT</MenuItem>
+        <MenuItem value="DAI">DAI</MenuItem>
+        <MenuItem value="ETH">ETH</MenuItem>
+      </Select>
+    </FormControl>
+  )
+}
 
 function ChainDropdown (props: any) {
   const { label, value, handleChange } = props
@@ -41,19 +62,27 @@ function App () {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [address, setAddress] = useState('')
-  const [balance, setBalance] = useState('-')
+  const [nativeTokenBalance, setNativeTokenBalance] = useState<any>(null)
   const [amount, setAmount] = useState('')
   const [signer, setSigner] = useState<any>(null)
   const [provider] = useState(() => {
     try {
-      return new providers.Web3Provider((window as any).ethereum)
+      return new providers.Web3Provider((window as any).ethereum, 'any')
     } catch (err: any) {
       setError(err.message)
     }
   })
-  const [fromChain, setFromChain] = useState('ethereum')
+  const [tokenSymbol, setTokenSymbol] = useState('USDC')
+  const [fromChain, setFromChain] = useState('optimism')
   const [toChain, setToChain] = useState('arbitrum')
   const [estimate, setEstimate] = useState<any>(null)
+  const [needsApproval, setNeedsApproval] = useState(false)
+  const [tokenBalance, setTokenBalance] = useState<any>(null)
+  const bridge = useMemo(() => {
+    const hop = new Hop('mainnet', signer)
+    const bridge = hop.bridge(tokenSymbol)
+    return bridge
+  }, [tokenSymbol, signer])
 
   const updateBalance = async () => {
     try {
@@ -64,7 +93,7 @@ function App () {
         return
       }
       const _balance = await provider.getBalance(address)
-      setBalance(formatEther(_balance.toString()))
+      setNativeTokenBalance(_balance)
     } catch (err: any) {
       console.error(err.message)
     }
@@ -80,6 +109,28 @@ function App () {
 
   useInterval(updateBalance, 5 * 1000)
 
+  const updateTokenBalance = async () => {
+    try {
+      if (!address) {
+        return
+      }
+      const _balance = await bridge.getTokenBalance(fromChain)
+      setTokenBalance(_balance)
+    } catch (err: any) {
+      console.error(err.message)
+    }
+  }
+
+  const updateTokenBalanceCb = useCallback(updateTokenBalance, [updateTokenBalance])
+
+  useEffect(() => {
+    if (address) {
+      updateTokenBalanceCb()
+    }
+  }, [address, updateTokenBalanceCb])
+
+  useInterval(updateTokenBalance, 5 * 1000)
+
   useEffect(() => {
     async function update () {
       if (signer) {
@@ -92,6 +143,22 @@ function App () {
 
     update().catch(console.error)
   }, [signer])
+
+  async function updateNeedsApproval () {
+    if (signer) {
+      const amountBn = bridge.parseUnits(amount)
+      const _needsApproval = await bridge.needsApproval(amountBn, fromChain)
+      setNeedsApproval(_needsApproval)
+    }
+  }
+
+  const updateNeedsApprovalCb = useCallback(updateNeedsApproval, [updateNeedsApproval])
+
+  useEffect(() => {
+    updateNeedsApprovalCb().catch(console.error)
+  }, [updateNeedsApprovalCb])
+
+  useInterval(updateNeedsApproval, 5 * 1000)
 
   async function handleConnect (event: any) {
     event.preventDefault()
@@ -112,18 +179,34 @@ function App () {
     setSigner(null)
   }
 
-  async function handleEstimate (event: any) {
+  useEffect(() => {
+    async function update () {
+      try {
+        setSuccess('')
+        setError('')
+        setEstimate(null)
+        const amountBn = bridge.parseUnits(amount)
+        const _estimate = await bridge.getSendData(amountBn, fromChain, toChain)
+        setEstimate(_estimate)
+      } catch (err: any) {
+        setError(err.message)
+      }
+    }
+    update().catch(console.error)
+  }, [bridge, fromChain, toChain, amount])
+
+  async function handleApprove (event: any) {
     event.preventDefault()
     try {
       setSuccess('')
       setError('')
-      const hop = new Hop('mainnet')
-      const bridge = hop.bridge('USDC')
-      const decimals = 6
-      const amountBn = parseUnits(amount, decimals)
-      const data = await bridge.getSendData(amountBn, fromChain, toChain)
-      setEstimate(data)
+      const amountBn = bridge.parseUnits(amount)
+      const tx = await bridge.sendApproval(amountBn, fromChain, toChain)
+      if (tx.hash) {
+        setSuccess(`Sent approval: ${tx.hash}`)
+      }
     } catch (err: any) {
+      setSuccess('')
       setError(err.message)
     }
   }
@@ -133,22 +216,33 @@ function App () {
     try {
       setSuccess('')
       setError('')
-      const hop = new Hop('mainnet')
-      const bridge = hop.connect(signer).bridge('USDC')
-      const decimals = 6
-      const amountBn = parseUnits(amount, decimals)
-      const tx = await bridge.send(amountBn, fromChain, toChain, {
-        bonderFee: estimate.totalFee
-      })
+      const amountBn = bridge.parseUnits(amount)
+      let options :any = {}
+      if (fromChain === 'ethereum') {
+        options = {
+          relayerFee: 0
+        }
+      } else {
+        options = {
+          bonderFee: estimate.totalFee
+        }
+      }
+      const tx = await bridge.send(amountBn, fromChain, toChain, options)
       if (tx.hash) {
         setSuccess(`Sent ${tx.hash}`)
       }
     } catch (err: any) {
+      setSuccess('')
       setError(err.message)
     }
   }
 
   const isConnected = !!signer
+  const nativeTokenBalanceFormatted = address && nativeTokenBalance ? Number(formatEther(nativeTokenBalance)).toFixed(4) : '-'
+  const tokenBalanceFormatted = address && tokenBalance ? bridge.formatUnits(tokenBalance).toFixed(4) : '-'
+  const totalFeeFormatted = estimate && amount ? `${bridge.formatUnits(estimate.totalFee).toFixed(4)} ${tokenSymbol}` : '-'
+  const estimatedReceivedFormatted = estimate && amount ? `${bridge.formatUnits(estimate.estimatedReceived).toFixed(4)} ${tokenSymbol}` : '-'
+  const sendEnabled = isConnected && estimate && amount && !needsApproval
 
   return (
     <Box>
@@ -168,18 +262,26 @@ function App () {
         )}
         {isConnected && (
           <Box mb={1}>
-            {address}
+            Account: {address}
           </Box>
         )}
         {isConnected && (
-          <Box mb={4}>ETH: {balance}</Box>
+          <Box mb={4}>
+            <Box mb={1}>ETH: {nativeTokenBalanceFormatted}</Box>
+            <Box mb={1}>{tokenSymbol}: {tokenBalanceFormatted}</Box>
+          </Box>
         )}
         {isConnected && (
           <Box>
             <Box mb={2}>
               <Typography variant="body1">
-                Send USDC
+                Send {tokenSymbol}
               </Typography>
+            </Box>
+            <Box mb={2}>
+              <TokenDropdown label="Token" value={tokenSymbol} handleChange={(event: any) => {
+                setTokenSymbol(event.target.value)
+              }} />
             </Box>
             <Box mb={2}>
               <ChainDropdown label="From Chain" value={fromChain} handleChange={(event: any) => {
@@ -197,27 +299,22 @@ function App () {
               }} />
             </Box>
             <Box mb={4}>
-              <Button onClick={handleEstimate} variant="contained">Get Estimate Cost</Button>
+              <Box mb={1}>
+                Send {amount} {tokenSymbol} {fromChain} {'→'} {toChain}
+              </Box>
+              <Box mb={1}>
+                Total Fee: {totalFeeFormatted}
+              </Box>
+              <Box mb={1}>
+                Estimated Received: <strong>{estimatedReceivedFormatted}</strong>
+              </Box>
             </Box>
-            {!!estimate && (
-              <Box><pre>{JSON.stringify(estimate, null, 2)}</pre></Box>
-            )}
-            {!!estimate && (
-              <>
-                <Box mb={1}>
-                  {amount} {'USDC'} {fromChain} {'->'} {toChain}
-                </Box>
-                <Box mb={1}>
-                  Total Fee: {formatUnits(estimate.totalFee, 6)} {'USDC'}
-                </Box>
-                <Box mb={1}>
-                  Estimated Received: {formatUnits(estimate.estimatedReceived, 6)} {'USDC'}
-                </Box>
-                <Box mb={4}>
-                  <Button onClick={handleSend} variant="contained">Send Tx</Button>
-                </Box>
-              </>
-            )}
+            <Box mb={4}>
+              <Button disabled={!needsApproval} onClick={handleApprove} variant="contained">Approve</Button>
+            </Box>
+            <Box mb={4}>
+              <Button disabled={!sendEnabled} onClick={handleSend} variant="contained">Send</Button>
+            </Box>
           </Box>
         )}
         {!!error && (

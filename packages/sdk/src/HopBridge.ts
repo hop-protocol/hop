@@ -36,7 +36,7 @@ import {
 } from './constants'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata, relayableChains } from './config'
-import { getAddress as checksumAddress, defaultAbiCoder, parseUnits } from 'ethers/lib/utils'
+import { getAddress as checksumAddress, defaultAbiCoder, parseUnits, formatUnits } from 'ethers/lib/utils'
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0
@@ -524,7 +524,7 @@ class HopBridge extends Base {
   public async sendApproval (
     tokenAmount: TAmount,
     sourceChain: TChain,
-    destinationChain: TChain,
+    destinationChain: TChain, // might need to keep this param for backward compatibility
     isHTokenTransfer: boolean = false
   ) {
     sourceChain = this.toChainModel(sourceChain)
@@ -660,6 +660,16 @@ class HopBridge extends Base {
   // ToDo: Docs
   public getTokenImage () {
     return this.getL1Token()?.image
+  }
+
+  getTokenDecimals ():number {
+    const token = this.toTokenModel(this.tokenSymbol)
+    return token.decimals
+  }
+
+  async getTokenBalance (chain: TChain, address?: string):Promise<BigNumber> {
+    const token = this.getCanonicalToken(chain)
+    return token.balanceOf(address)
   }
 
   // ToDo: Docs
@@ -2383,6 +2393,32 @@ class HopBridge extends Base {
     )
 
     return encodedData
+  }
+
+  async needsApproval (amount: TAmount, chain: TChain, address?: string) {
+    const token = this.getCanonicalToken(chain)
+    const isHTokenTransfer = false
+    const spender = await this.getSendApprovalAddress(chain, isHTokenTransfer)
+    return token.needsApproval(spender, amount, address)
+  }
+
+  async needsHTokenApproval (amount: TAmount, chain: TChain, address?: string) {
+    const token = this.getCanonicalToken(chain)
+    const isHTokenTransfer = true
+    const spender = await this.getSendApprovalAddress(chain, isHTokenTransfer)
+    return token.needsApproval(spender, amount, address)
+  }
+
+  parseUnits (value: TAmount):BigNumber {
+    value = value.toString() || '0'
+    const token = this.toTokenModel(this.tokenSymbol)
+    return parseUnits(value, token.decimals)
+  }
+
+  formatUnits (value: TAmount):number {
+    value = value.toString() || '0'
+    const token = this.toTokenModel(this.tokenSymbol)
+    return Number(formatUnits(value, token.decimals))
   }
 }
 

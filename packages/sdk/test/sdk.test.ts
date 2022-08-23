@@ -763,10 +763,18 @@ describe.skip('Apr', () => {
   }, 10 * 60 * 1000)
 })
 
-describe('waitConfirmation', () => {
+describe('getWaitConfirmations', () => {
   it('should return waitConfirmations', () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('USDC')
     expect(bridge.getWaitConfirmations('polygon')).toBe(256)
+  })
+})
+
+describe('getExplorerUrl', () => {
+  it('should return explorer url for transfer id', () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    expect(bridge.getExplorerUrlForTransferId('0x3686977a4c3ce1e42b2cc113f2889723d95251d55b874910fd97ef6b16982024')).toBe('https://explorer.hop.exchange/?transferId=0x3686977a4c3ce1e42b2cc113f2889723d95251d55b874910fd97ef6b16982024')
   })
 })

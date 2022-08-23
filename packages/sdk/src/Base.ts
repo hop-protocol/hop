@@ -108,6 +108,8 @@ class Base {
   gasPriceMultiplier: number = 0
   destinationFeeGasPriceMultiplier : number = 1
 
+  baseExplorerUrl: string = 'https://explorer.hop.exchange'
+
   /**
    * @desc Instantiates Base class.
    * Returns a new Base class instance.
@@ -641,6 +643,22 @@ class Base {
     }
 
     return waitConfirmations
+  }
+
+  getExplorerUrl (): string {
+    return this.baseExplorerUrl
+  }
+
+  getExplorerUrlForAccount (accountAddress: string): string {
+    return `${this.baseExplorerUrl}/?account=${accountAddress}`
+  }
+
+  getExplorerUrlForTransferId (transferId: string): string {
+    return `${this.baseExplorerUrl}/?transferId=${transferId}`
+  }
+
+  getExplorerUrlForTransactionHash (transactionHash: string): string {
+    return `${this.baseExplorerUrl}/?transferId=${transactionHash}`
   }
 }
 

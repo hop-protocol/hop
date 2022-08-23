@@ -311,8 +311,8 @@ main().catch(console.error)
                 <Box mb={1}>{tokenSymbol}: {tokenBalanceFormatted}</Box>
               </Box>
             </Box>
-            <Box display="flex" justifyContent="space-between">
-              <Box width="400px" p={4}>
+            <Box display="flex" flexWrap="wrap">
+              <Box minWidth="400px" p={4}>
                 <Box mb={2}>
                   <Typography variant="body1">
                     Send {tokenSymbol}
@@ -376,7 +376,6 @@ main().catch(console.error)
                   language="javascript"
                   style={theme}
                   showLineNumbers={true}
-                  wrapLongLines={true}
                 >
                   {codeSnippet}
                 </SyntaxHighlighter>

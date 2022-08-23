@@ -660,6 +660,17 @@ class Base {
   getExplorerUrlForTransactionHash (transactionHash: string): string {
     return `${this.baseExplorerUrl}/?transferId=${transactionHash}`
   }
+
+  async getTransferStatus (transferIdOrTxHash: String):Promise<any> {
+    const baseApiUrl = 'https://explorer-api.hop.exchange'
+    const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
+    const res = await fetch(url)
+    const json = await res.json()
+    if (json.error) {
+      throw new Error(json.error)
+    }
+    return json.data?.[0] ?? null
+  }
 }
 
 export default Base

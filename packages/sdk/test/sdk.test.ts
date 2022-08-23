@@ -778,3 +778,13 @@ describe('getExplorerUrl', () => {
     expect(bridge.getExplorerUrlForTransferId('0x3686977a4c3ce1e42b2cc113f2889723d95251d55b874910fd97ef6b16982024')).toBe('https://explorer.hop.exchange/?transferId=0x3686977a4c3ce1e42b2cc113f2889723d95251d55b874910fd97ef6b16982024')
   })
 })
+
+describe('getTransferStatus', () => {
+  it('should return status for transfer id', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const status = await bridge.getTransferStatus('0x198cf61a0dfa6d86e9b3b2b92a10df33acd8a4b722c8d670b8c94638d590d3c5180')
+    expect(status.sourceChainSlug).toBe('ethereum')
+    expect(status.bonded).toBe(true)
+  })
+})

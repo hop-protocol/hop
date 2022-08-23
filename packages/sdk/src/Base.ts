@@ -629,6 +629,19 @@ class Base {
     const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
     return l1FeeInWei
   }
+
+  getWaitConfirmations (chain: TChain):number {
+    chain = this.toChainModel(chain)
+    if (!chain) {
+      throw new Error(`chain "${chain}" not found`)
+    }
+    const waitConfirmations = config.chains[this.network]?.[chain.slug]?.waitConfirmations
+    if (waitConfirmations === undefined) {
+      throw new Error(`waitConfirmations for chain "${chain}" not found`)
+    }
+
+    return waitConfirmations
+  }
 }
 
 export default Base

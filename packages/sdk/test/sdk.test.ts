@@ -762,3 +762,11 @@ describe.skip('Apr', () => {
     expect(apr).toBeLessThan(50)
   }, 10 * 60 * 1000)
 })
+
+describe('waitConfirmation', () => {
+  it('should return waitConfirmations', () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    expect(bridge.getWaitConfirmations('polygon')).toBe(256)
+  })
+})

@@ -2167,7 +2167,7 @@ class HopBridge extends Base {
   private async checkConnectedChain (signer: TProvider, chain: Chain) {
     const connectedChainId = await (signer as Signer)?.getChainId()
     if (connectedChainId !== chain.chainId) {
-      throw new Error('invalid connected chain ID. Make sure signer provider is connected to source chain network')
+      throw new Error(`invalid connected chain ID "${connectedChainId}". Make sure web3 signer provider is connected to source chain from network "${chain.slug}" chain ID "${chain.chainId}"`)
     }
   }
 

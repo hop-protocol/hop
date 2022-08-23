@@ -1,3 +1,13 @@
+# Hop SDK Demo
+
+> A simple React demo for the [Hop SDK](https://github.com/hop-protocol/hop/tree/develop/packages/sdk)
+
+## Demo
+
+[https://sdk-demo.hop.exchange/](https://sdk-demo.hop.exchange/)
+
+---
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

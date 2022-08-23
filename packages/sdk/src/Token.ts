@@ -109,6 +109,9 @@ class Token extends Base {
 
   // TODO: docs
   public async needsApproval (spender: string, amount: TAmount, address?: string) {
+    if (this.isNativeToken) {
+      return false
+    }
     const allowance = await this.allowance(spender, address)
     return allowance.lt(amount)
   }

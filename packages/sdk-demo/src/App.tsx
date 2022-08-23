@@ -243,10 +243,34 @@ function App () {
   const totalFeeFormatted = estimate && amount ? `${bridge.formatUnits(estimate.totalFee).toFixed(4)} ${tokenSymbol}` : '-'
   const estimatedReceivedFormatted = estimate && amount ? `${bridge.formatUnits(estimate.estimatedReceived).toFixed(4)} ${tokenSymbol}` : '-'
   const sendEnabled = isConnected && estimate && amount && !needsApproval
+  const codeSnippet = useMemo(() => {
+    const amountBn = bridge.parseUnits(amount)
+    return `
+import { Hop } from '@hop-protocol/sdk'
+import { providers } from 'ethers'
+
+function main() {
+  const provider = new providers.Web3Provider(window.ethereum, 'any')
+  const signer = provider.getSigner()
+  const hop = new Hop('mainnet', signer)
+  const bridge = hop.bridge('${tokenSymbol}')
+  const { totalFee, estimatedReceived } = await bridge.getSendData('${amountBn.toString()}', '${fromChain}', '${toChain}')
+  const needsApproval = await bridge.needsApproval('${amountBn.toString()}', '${fromChain}')
+  if (needsApproval) {
+    const tx = await bridge.sendApproval('${amountBn.toString()}', '${fromChain}', '${toChain}')
+    await tx.wait()
+  }
+  const tx = await bridge.send('${amountBn.toString()}', '${fromChain}', '${toChain}', { bonderFee: totalFee })
+  console.log(tx.hash)
+}
+
+main().catch(console.error)
+  `
+  }, [bridge, tokenSymbol, fromChain, toChain, amount])
 
   return (
     <Box>
-      <Box width="400px" p={4} m="0 auto" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+      <Box p={4} m="0 auto" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
         <Box mb={4}>
           <Typography variant="h4">
             Hop SDK Demo
@@ -272,48 +296,55 @@ function App () {
           </Box>
         )}
         {isConnected && (
-          <Box>
-            <Box mb={2}>
-              <Typography variant="body1">
-                Send {tokenSymbol}
-              </Typography>
-            </Box>
-            <Box mb={2}>
-              <TokenDropdown label="Token" value={tokenSymbol} handleChange={(event: any) => {
-                setTokenSymbol(event.target.value)
-              }} />
-            </Box>
-            <Box mb={2}>
-              <ChainDropdown label="From Chain" value={fromChain} handleChange={(event: any) => {
-                setFromChain(event.target.value)
-              }} />
-            </Box>
-            <Box mb={2}>
-              <ChainDropdown label="To Chain" value={toChain} handleChange={(event: any) => {
-                setToChain(event.target.value)
-              }} />
-            </Box>
-            <Box mb={4}>
-              <TextField label="Amount" value={amount} onChange={(event: any) => {
-                setAmount(event.target.value)
-              }} />
-            </Box>
-            <Box mb={4}>
-              <Box mb={1}>
-                Send {amount} {tokenSymbol} {fromChain} {'→'} {toChain}
+          <Box display="flex" justifyContent="space-between">
+            <Box width="400px" p={4}>
+              <Box mb={2}>
+                <Typography variant="body1">
+                  Send {tokenSymbol}
+                </Typography>
               </Box>
-              <Box mb={1}>
-                Total Fee: {totalFeeFormatted}
+              <Box mb={2}>
+                <TokenDropdown label="Token" value={tokenSymbol} handleChange={(event: any) => {
+                  setTokenSymbol(event.target.value)
+                }} />
               </Box>
-              <Box mb={1}>
-                Estimated Received: <strong>{estimatedReceivedFormatted}</strong>
+              <Box mb={2}>
+                <ChainDropdown label="From Chain" value={fromChain} handleChange={(event: any) => {
+                  setFromChain(event.target.value)
+                }} />
+              </Box>
+              <Box mb={2}>
+                <ChainDropdown label="To Chain" value={toChain} handleChange={(event: any) => {
+                  setToChain(event.target.value)
+                }} />
+              </Box>
+              <Box mb={4}>
+                <TextField label="Amount" value={amount} onChange={(event: any) => {
+                  setAmount(event.target.value)
+                }} />
+              </Box>
+              <Box mb={4}>
+                <Box mb={1}>
+                  Send {amount} {tokenSymbol} {fromChain} {'→'} {toChain}
+                </Box>
+                <Box mb={1}>
+                  Total Fee: {totalFeeFormatted}
+                </Box>
+                <Box mb={1}>
+                  Estimated Received: <strong>{estimatedReceivedFormatted}</strong>
+                </Box>
+              </Box>
+              <Box mb={4}>
+                <Button disabled={!needsApproval} onClick={handleApprove} variant="contained">Approve</Button>
+              </Box>
+              <Box mb={4}>
+                <Button disabled={!sendEnabled} onClick={handleSend} variant="contained">Send</Button>
               </Box>
             </Box>
-            <Box mb={4}>
-              <Button disabled={!needsApproval} onClick={handleApprove} variant="contained">Approve</Button>
-            </Box>
-            <Box mb={4}>
-              <Button disabled={!sendEnabled} onClick={handleSend} variant="contained">Send</Button>
+            <Box p={4}>
+              <pre>
+                {codeSnippet}
+              </pre>
             </Box>
           </Box>
         )}

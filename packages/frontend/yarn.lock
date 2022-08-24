@@ -3453,10 +3453,10 @@
   dependencies:
     ethers "5.6.9"
 
-"@hop-protocol/sdk@^0.0.1-beta.340":
-  version "0.0.1-beta.340"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.340.tgz#d0d4b536433207bfff7bf68b4f585bea67d82b9d"
-  integrity sha512-SSv7VgHbQWASiiRN9m4JBKvQ5QSeAuRGVcNqQWIms2DsOElDAO2NVEreahSaWfNj/rcYUNjFnZeOlXIQKCO3Sw==
+"@hop-protocol/sdk@0.0.1-beta.341":
+  version "0.0.1-beta.341"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.341.tgz#43011768a0ab9741ae9bb655b5d38c66d0cda51f"
+  integrity sha512-a5emmtHaqjXR0/WDRSQOhUHPqhFn3jZumpTv29oBo3lpP3hv3RVR3k+ml8L532svWe3Bbp+G27m1jPGLhcvB5Q==
   dependencies:
     "@eth-optimism/contracts" "0.5.2"
     "@hop-protocol/core" "0.0.1-beta.73"

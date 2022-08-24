@@ -4,8 +4,7 @@ import React, {
   useContext,
   useMemo,
   useState,
-  useEffect,
-  useCallback,
+  useEffect
 } from 'react'
 import Onboard from 'bnc-onboard'
 import { ethers, BigNumber } from 'ethers'
@@ -55,7 +54,7 @@ const networkNames: any = {
 
 const getRpcUrls = (networkId: number): Record<string, string> => {
   if (networkId === 5) {
-    return { 
+    return {
       5: getRpcUrl(ChainSlug.Ethereum),
       421613: getRpcUrl(ChainSlug.Arbitrum),
       420: getRpcUrl(ChainSlug.Optimism),

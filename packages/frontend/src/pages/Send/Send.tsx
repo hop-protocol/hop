@@ -75,6 +75,7 @@ const Send: FC = () => {
   const [manualWarning, setManualWarning] = useState<string>('')
   const { isSmartContractWallet } = useIsSmartContractWallet()
   const [manualError, setManualError] = useState<string>('')
+  const [feeRefund, setFeeRefund] = useState<BigNumber>(BigNumber.from(0))
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -160,6 +161,7 @@ const Send: FC = () => {
   const {
     destinationTxFeeDisplay,
     bonderFeeDisplay,
+    totalBonderFee,
     totalBonderFeeDisplay,
     estimatedReceivedDisplay,
   } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
@@ -551,6 +553,35 @@ const Send: FC = () => {
     isSmartContractWallet,
   ])
 
+  useEffect(() => {
+    async function update() {
+      if (!fromNetwork || !toNetwork || !sourceToken || !fromTokenAmountBN || !totalBonderFee) return
+      if (toNetwork?.slug === ChainSlug.Optimism) {
+        const payload = {
+          gasLimit: '144561', // TODO
+          gasPrice: '9408027411', // TODO
+          amount: fromTokenAmountBN.toString(),
+          token: sourceToken.symbol,
+          bonderFee: totalBonderFee.toString(),
+          fromChain: fromNetwork?.slug
+        }
+
+        const query = new URLSearchParams(payload).toString()
+        const url = `https://hop-merkle-rewards-backend.hop.exchange/v1/refund-amount?${query}`
+        const res = await fetch(url)
+        const json = await res.json()
+        console.log(json)
+        const _amount = BigNumber.from(json.data.refund.amount)
+        setFeeRefund(_amount)
+      }
+    }
+
+    update().catch(console.error)
+  }, [fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee])
+
+  const showFeeRefund = toNetwork?.slug === ChainSlug.Optimism
+  const feeRefundDisplay = feeRefund && sourceToken?.decimals ? formatUnits(feeRefund, 18) : ''
+
   return (
     <Flex column alignCenter>
       <SendHeader
@@ -634,6 +665,15 @@ const Send: FC = () => {
             value={totalBonderFeeDisplay}
             large
           />
+
+          {showFeeRefund && (
+            <DetailRow
+              title={'Fee Refund'}
+              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism`}
+              value={feeRefundDisplay}
+              large
+            />
+          )}
 
           <DetailRow
             title="Estimated Received"

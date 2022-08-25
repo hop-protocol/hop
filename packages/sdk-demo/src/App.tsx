@@ -65,7 +65,6 @@ function App () {
   const [success, setSuccess] = useState('')
   const [address, setAddress] = useState('')
   const [nativeTokenBalance, setNativeTokenBalance] = useState<any>(null)
-  const [amount, setAmount] = useState('')
   const [signer, setSigner] = useState<any>(null)
   const [provider] = useState(() => {
     try {
@@ -77,6 +76,8 @@ function App () {
   const [tokenSymbol, setTokenSymbol] = useState('USDC')
   const [fromChain, setFromChain] = useState('optimism')
   const [toChain, setToChain] = useState('arbitrum')
+  const [amount, setAmount] = useState('')
+  const [recipient, setRecipient] = useState('')
   const [estimate, setEstimate] = useState<any>(null)
   const [needsApproval, setNeedsApproval] = useState(false)
   const [tokenBalance, setTokenBalance] = useState<any>(null)
@@ -224,6 +225,9 @@ function App () {
       setError('')
       const amountBn = bridge.parseUnits(amount)
       let options :any = {}
+      if (recipient) {
+        options.recipient = recipient
+      }
       if (fromChain === 'ethereum') {
         options = {
           relayerFee: 0
@@ -249,6 +253,7 @@ function App () {
   const totalFeeFormatted = estimate && amount ? `${bridge.formatUnits(estimate.totalFee).toFixed(4)} ${tokenSymbol}` : '-'
   const estimatedReceivedFormatted = estimate && amount ? `${bridge.formatUnits(estimate.estimatedReceived).toFixed(4)} ${tokenSymbol}` : '-'
   const sendEnabled = isConnected && estimate && amount && !needsApproval
+  const sendSummary = `Send ${amount} ${tokenSymbol} ${fromChain} → ${toChain}`
   const codeSnippet = useMemo(() => {
     let amountString = ''
     try {
@@ -269,13 +274,15 @@ function main() {
     const tx = await bridge.sendApproval('${amountString}', '${fromChain}', '${toChain}')
     await tx.wait()
   }
-  const tx = await bridge.send('${amountString}', '${fromChain}', '${toChain}', { bonderFee: totalFee })
+  const tx = await bridge.send('${amountString}', '${fromChain}', '${toChain}', {
+    ${fromChain === 'ethereum' ? 'relayerFee' : 'bonderFee'}: totalFee${recipient ? `,\n\trecipient: '${recipient}'` : ''}
+  })
   console.log(tx.hash)
 }
 
 main().catch(console.error)
   `.trim()
-  }, [bridge, tokenSymbol, fromChain, toChain, amount])
+  }, [bridge, tokenSymbol, fromChain, toChain, amount, recipient])
 
   return (
     <Box>
@@ -291,86 +298,88 @@ main().catch(console.error)
           </Box>
         )}
         {isConnected && (
-          <Box mb={2}>
-            <Button onClick={handleDisconnect} variant="contained">Disconnect</Button>
-          </Box>
-        )}
-        {isConnected && (
-          <Box mb={1}>
-            Account: {address}
-          </Box>
-        )}
-        {isConnected && (
-          <Box mb={4}>
-            <Box mb={1}>ETH: {nativeTokenBalanceFormatted}</Box>
-            <Box mb={1}>{tokenSymbol}: {tokenBalanceFormatted}</Box>
-          </Box>
-        )}
-        {isConnected && (
-          <Box display="flex" justifyContent="space-between">
-            <Box width="400px" p={4}>
+          <Box>
+            <Box display="flex" flexDirection="column" alignItems="center">
               <Box mb={2}>
-                <Typography variant="body1">
-                  Send {tokenSymbol}
-                </Typography>
+                <Button onClick={handleDisconnect} variant="contained">Disconnect</Button>
               </Box>
-              <Box mb={2}>
-                <TokenDropdown label="Token" value={tokenSymbol} handleChange={(event: any) => {
-                  setTokenSymbol(event.target.value)
-                }} />
-              </Box>
-              <Box mb={2}>
-                <ChainDropdown label="From Chain" value={fromChain} handleChange={(event: any) => {
-                  setFromChain(event.target.value)
-                }} />
-              </Box>
-              <Box mb={2}>
-                <ChainDropdown label="To Chain" value={toChain} handleChange={(event: any) => {
-                  setToChain(event.target.value)
-                }} />
+              <Box mb={1}>
+                Account: {address}
               </Box>
               <Box mb={4}>
-                <TextField label="Amount" value={amount} onChange={(event: any) => {
-                  setAmount(event.target.value)
-                }} />
+                <Box mb={1}>ETH: {nativeTokenBalanceFormatted}</Box>
+                <Box mb={1}>{tokenSymbol}: {tokenBalanceFormatted}</Box>
               </Box>
-              <Box mb={4}>
-                <Box mb={1}>
-                  Send {amount} {tokenSymbol} {fromChain} {'→'} {toChain}
-                </Box>
-                <Box mb={1}>
-                  Total Fee: {totalFeeFormatted}
-                </Box>
-                <Box mb={1}>
-                  Estimated Received: <strong>{estimatedReceivedFormatted}</strong>
-                </Box>
-              </Box>
-              <Box mb={4}>
-                <LoadingButton disabled={!needsApproval} onClick={handleApprove} variant="contained">Approve</LoadingButton>
-              </Box>
-              <Box mb={4}>
-                <LoadingButton disabled={!sendEnabled} onClick={handleSend} variant="contained">Send</LoadingButton>
-              </Box>
-              {!!error && (
-                <Box mb={4} style={{ maxWidth: '400px', wordBreak: 'break-word' }}>
-                  <Alert severity="error">{error}</Alert>
-                </Box>
-              )}
-              {!!success && (
-                <Box mb={4}>
-                  <Alert severity="success">{success}</Alert>
-                </Box>
-              )}
             </Box>
-            <Box p={4}>
-              <SyntaxHighlighter
-                language="javascript"
-                style={theme}
-                showLineNumbers={true}
-                wrapLongLines={true}
-              >
-                {codeSnippet}
-              </SyntaxHighlighter>
+            <Box display="flex" flexWrap="wrap">
+              <Box minWidth="400px" p={4}>
+                <Box mb={2}>
+                  <Typography variant="body1">
+                    Send {tokenSymbol}
+                  </Typography>
+                </Box>
+                <Box mb={2}>
+                  <TokenDropdown label="Token" value={tokenSymbol} handleChange={(event: any) => {
+                    setTokenSymbol(event.target.value)
+                  }} />
+                </Box>
+                <Box mb={2}>
+                  <ChainDropdown label="From Chain" value={fromChain} handleChange={(event: any) => {
+                    setFromChain(event.target.value)
+                  }} />
+                </Box>
+                <Box mb={2}>
+                  <ChainDropdown label="To Chain" value={toChain} handleChange={(event: any) => {
+                    setToChain(event.target.value)
+                  }} />
+                </Box>
+                <Box mb={2}>
+                  <TextField fullWidth label="Amount" value={amount} onChange={(event: any) => {
+                    setAmount(event.target.value)
+                  }} />
+                </Box>
+                <Box mb={4}>
+                  <TextField fullWidth label="Recipient (optional)" value={recipient} onChange={(event: any) => {
+                    setRecipient(event.target.value)
+                  }} />
+                </Box>
+                <Box mb={4}>
+                  <Box mb={1}>
+                    {sendSummary}
+                  </Box>
+                  <Box mb={1}>
+                    Total Fee: {totalFeeFormatted}
+                  </Box>
+                  <Box mb={1}>
+                    Estimated Received: <strong>{estimatedReceivedFormatted}</strong>
+                  </Box>
+                </Box>
+                <Box mb={4}>
+                  <LoadingButton disabled={!needsApproval} onClick={handleApprove} variant="contained">Approve</LoadingButton>
+                </Box>
+                <Box mb={4}>
+                  <LoadingButton disabled={!sendEnabled} onClick={handleSend} variant="contained">Send</LoadingButton>
+                </Box>
+                {!!error && (
+                  <Box mb={4} style={{ maxWidth: '400px', wordBreak: 'break-word' }}>
+                    <Alert severity="error">{error}</Alert>
+                  </Box>
+                )}
+                {!!success && (
+                  <Box mb={4}>
+                    <Alert severity="success">{success}</Alert>
+                  </Box>
+                )}
+              </Box>
+              <Box p={4}>
+                <SyntaxHighlighter
+                  language="javascript"
+                  style={theme}
+                  showLineNumbers={true}
+                >
+                  {codeSnippet}
+                </SyntaxHighlighter>
+              </Box>
             </Box>
           </Box>
         )}

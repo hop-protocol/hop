@@ -14,6 +14,7 @@ for (const chain in networks) {
   chains[chain].chainId = network?.networkId
   chains[chain].rpcUrl = network?.publicRpcUrl
   chains[chain].explorerUrl = network?.explorerUrls?.[0]
+  chains[chain].waitConfirmations = network?.waitConfirmations ?? 1
 }
 
 const addresses = stagingAddresses.bridges

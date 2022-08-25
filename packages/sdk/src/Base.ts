@@ -108,6 +108,8 @@ class Base {
   gasPriceMultiplier: number = 0
   destinationFeeGasPriceMultiplier : number = 1
 
+  baseExplorerUrl: string = 'https://explorer.hop.exchange'
+
   /**
    * @desc Instantiates Base class.
    * Returns a new Base class instance.
@@ -628,6 +630,46 @@ class Base {
     })
     const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
     return l1FeeInWei
+  }
+
+  getWaitConfirmations (chain: TChain):number {
+    chain = this.toChainModel(chain)
+    if (!chain) {
+      throw new Error(`chain "${chain}" not found`)
+    }
+    const waitConfirmations = config.chains[this.network]?.[chain.slug]?.waitConfirmations
+    if (waitConfirmations === undefined) {
+      throw new Error(`waitConfirmations for chain "${chain}" not found`)
+    }
+
+    return waitConfirmations
+  }
+
+  getExplorerUrl (): string {
+    return this.baseExplorerUrl
+  }
+
+  getExplorerUrlForAccount (accountAddress: string): string {
+    return `${this.baseExplorerUrl}/?account=${accountAddress}`
+  }
+
+  getExplorerUrlForTransferId (transferId: string): string {
+    return `${this.baseExplorerUrl}/?transferId=${transferId}`
+  }
+
+  getExplorerUrlForTransactionHash (transactionHash: string): string {
+    return `${this.baseExplorerUrl}/?transferId=${transactionHash}`
+  }
+
+  async getTransferStatus (transferIdOrTxHash: String):Promise<any> {
+    const baseApiUrl = 'https://explorer-api.hop.exchange'
+    const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
+    const res = await fetch(url)
+    const json = await res.json()
+    if (json.error) {
+      throw new Error(json.error)
+    }
+    return json.data?.[0] ?? null
   }
 }
 

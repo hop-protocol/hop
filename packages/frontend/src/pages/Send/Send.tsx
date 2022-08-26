@@ -313,6 +313,39 @@ const Send: FC = () => {
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${destToken.symbol}`)
   }, [amountOutMin])
 
+  useEffect(() => {
+    async function update() {
+      try {
+        if (fromNetwork && toNetwork && sourceToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism) {
+          const payload :any = {
+            gasCost: estimatedGasCost?.toString(),
+            amount: fromTokenAmountBN?.toString(),
+            token: sourceToken?.symbol,
+            bonderFee: totalBonderFee.toString(),
+            fromChain: fromNetwork?.slug
+          }
+
+          const query = new URLSearchParams(payload).toString()
+          const url = `https://hop-merkle-rewards-backend.hop.exchange/v1/refund-amount?${query}`
+          const res = await fetch(url)
+          const json = await res.json()
+          if (json.error) {
+            throw new Error(json.error)
+          }
+          const _amount = BigNumber.from(json.data.refund.amount)
+          setFeeRefund(_amount)
+        } else {
+          setFeeRefund(BigNumber.from(0))
+        }
+      } catch (err) {
+        console.error(err)
+        setFeeRefund(BigNumber.from(0))
+      }
+    }
+
+    update().catch(console.error)
+  }, [fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
+
   // ==============================================================================================
   // Approve fromNetwork / fromToken
   // ==============================================================================================
@@ -553,34 +586,8 @@ const Send: FC = () => {
     isSmartContractWallet,
   ])
 
-  useEffect(() => {
-    async function update() {
-      if (!fromNetwork || !toNetwork || !sourceToken || !fromTokenAmountBN || !totalBonderFee) return
-      if (toNetwork?.slug === ChainSlug.Optimism) {
-        const payload = {
-          gasLimit: '144561', // TODO
-          gasPrice: '9408027411', // TODO
-          amount: fromTokenAmountBN.toString(),
-          token: sourceToken.symbol,
-          bonderFee: totalBonderFee.toString(),
-          fromChain: fromNetwork?.slug
-        }
-
-        const query = new URLSearchParams(payload).toString()
-        const url = `https://hop-merkle-rewards-backend.hop.exchange/v1/refund-amount?${query}`
-        const res = await fetch(url)
-        const json = await res.json()
-        console.log(json)
-        const _amount = BigNumber.from(json.data.refund.amount)
-        setFeeRefund(_amount)
-      }
-    }
-
-    update().catch(console.error)
-  }, [fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee])
-
-  const showFeeRefund = toNetwork?.slug === ChainSlug.Optimism
-  const feeRefundDisplay = feeRefund && sourceToken?.decimals ? formatUnits(feeRefund, 18) : ''
+  const showFeeRefund = toNetwork?.slug === ChainSlug.Optimism && feeRefund?.gt(0)
+  const feeRefundDisplay = feeRefund && sourceToken?.decimals ? `$${commafy(formatUnits(feeRefund, 18), 2)}` : ''
 
   return (
     <Flex column alignCenter>
@@ -669,7 +676,7 @@ const Send: FC = () => {
           {showFeeRefund && (
             <DetailRow
               title={'Fee Refund'}
-              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism`}
+              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism. This refund includes a percentage of  the source transaction cost + bonder fee + AMM LP fee`}
               value={feeRefundDisplay}
               large
             />

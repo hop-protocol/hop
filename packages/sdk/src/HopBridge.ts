@@ -2110,7 +2110,7 @@ class HopBridge extends Base {
     return bonderFeeRelative
   }
 
-  private async getBonderFeeAbsolute (sourceChain: TChain): Promise<BigNumber> {
+  public async getBonderFeeAbsolute (sourceChain: TChain): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     const token = this.toTokenModel(this.tokenSymbol)
 

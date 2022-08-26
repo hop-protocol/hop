@@ -56,7 +56,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1MessengerWrapper: '0xF7C52d88A1D39966C22F9e07A61f43f61eC1eF1d',
+        l1MessengerWrapper: '0x4b95e110178D51ef406C225462748A3F739d99Da',
         l2CanonicalBridge: '0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa',
         l2CanonicalToken: '0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa',
         l2Bridge: '0x34E8251051687BfF4EA23C18e466b3Ed13492abd',
@@ -64,15 +64,15 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x0e0E3d2C5c292161999474247956EF542caBF8dd',
         l2SaddleSwap: '0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a',
         l2SaddleLpToken: '0x307C0fc195e1ddc927ee73856558Ab8C9297B3FB',
-        l1FxBaseRootTunnel: '0xF7C52d88A1D39966C22F9e07A61f43f61eC1eF1d',
+        l1FxBaseRootTunnel: '0x4b95e110178D51ef406C225462748A3F739d99Da',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
         l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34',
-        l2MessengerProxy: '0x0a6b1904369fE59E002ad0713ae89d4E3dF5A7Cf',
+        l2MessengerProxy: '0xB3DF06d0Cd5CceDe67265b53317dE091Bb21864b',
         bridgeDeployedBlockNumber: 27594937
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796',
+        l1MessengerWrapper: '0x579F3d41C6C9EA61001A960f475683C021dFd571',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xcb5ddfb8d0038247dc0beeecaa7f3457befcb77c',
         l2Bridge: '0xb276BC046DFf5024D20A3947475eA20C9F08eB1F',
@@ -84,7 +84,7 @@ export const addresses: Addresses = {
       },
       optimism: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x067ccEaf99b0Eb154DeaCBAa852C21dDB19F2f7F',
+        l1MessengerWrapper: '0x56900d66D74Cb14E3c86895789901C9135c95b16',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0xDc38c5aF436B9652225f92c370A011C673FA7Ba5',
         l2Bridge: '0x2708E5C7087d4C6D295c8B58b2D452c360D505C7',
@@ -103,7 +103,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
-        l1MessengerWrapper: '0x7aA3c554500E562D0ab26d756473D201e9051dFD',
+        l1MessengerWrapper: '0x91f8490eC27cbB1b2FaEdd29c2eC23011d7355FB',
         l2CanonicalBridge: '0x6D4dd09982853F08d9966aC3cA4Eb5885F16f2b2',
         l2CanonicalToken: '0x6D4dd09982853F08d9966aC3cA4Eb5885F16f2b2',
         l2Bridge: '0x3c0FFAca566fCcfD9Cc95139FEF6CBA143795963',
@@ -111,15 +111,15 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0xa81D244A1814468C734E5b4101F7b9c0c577a8fC',
         l2SaddleSwap: '0x76b22b8C1079A44F1211D867D68b1eda76a635A7',
         l2SaddleLpToken: '0x4a1a092BFFA8514E7F07ea3980C0be12139EFfFb',
-        l1FxBaseRootTunnel: '0x7aA3c554500E562D0ab26d756473D201e9051dFD',
+        l1FxBaseRootTunnel: '0x91f8490eC27cbB1b2FaEdd29c2eC23011d7355FB',
         l1PosRootChainManager: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
         l1PosPredicate: '0xdD6596F2029e6233DEFfaCa316e6A95217d4Dc34',
-        l2MessengerProxy: '0xCB0a4177E0A60247C0ad18Be87f8eDfF6DD30283',
+        l2MessengerProxy: '0xa5A33aB9063395A90CCbEa2D86a62EcCf27B5742',
         bridgeDeployedBlockNumber: 27606309
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0xe28EA9254a9A433EC4E92227c498A1CeAD8210C2',
+        l1MessengerWrapper: '0x43A24BF6AAE1F8FE86528C13A5236153172a6863',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0x17078F231AA8dc256557b49a8f2F72814A71f633',
         l2Bridge: '0x86cA30bEF97fB651b8d866D45503684b90cb3312',
@@ -131,7 +131,7 @@ export const addresses: Addresses = {
       },
       optimism: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0xe7F40BF16AB09f4a6906Ac2CAA4094aD2dA48Cc2',
+        l1MessengerWrapper: '0xA49600627D913B61714fF2a205Fb1096f1bceAb2',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0xCB4cEeFce514B2d910d3ac529076D18e3aDD3775',
         l2Bridge: '0x76b22b8C1079A44F1211D867D68b1eda76a635A7',

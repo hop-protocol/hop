@@ -855,12 +855,8 @@ class HopBridge extends Base {
     )
 
     const priceImpact = this.getPriceImpact(rate, marketRate)
-
     const oneDestBN = ethers.utils.parseUnits('1', sourceToken.decimals)
-
-    const slippageToleranceBps = slippageTolerance * 100
-    const minBps = Math.ceil(10000 - slippageToleranceBps)
-    const amountOutMin = amountOut.mul(minBps).div(10000)
+    const amountOutMin = this.calcAmountOutMin(amountOut, slippageTolerance)
 
     // Divide by 10000 at the end so that the amount isn't floored at 0
     const lpFee = BigNumber.from(LpFeeBps)
@@ -2110,7 +2106,7 @@ class HopBridge extends Base {
     return bonderFeeRelative
   }
 
-  private async getBonderFeeAbsolute (sourceChain: TChain): Promise<BigNumber> {
+  public async getBonderFeeAbsolute (sourceChain: TChain): Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     const token = this.toTokenModel(this.tokenSymbol)
 
@@ -2419,6 +2415,13 @@ class HopBridge extends Base {
     value = value.toString() || '0'
     const token = this.toTokenModel(this.tokenSymbol)
     return Number(formatUnits(value, token.decimals))
+  }
+
+  calcAmountOutMin (amountOut: TAmount, slippageTolerance: number) {
+    amountOut = BigNumber.from(amountOut.toString())
+    const slippageToleranceBps = slippageTolerance * 100
+    const minBps = Math.ceil(10000 - slippageToleranceBps)
+    return amountOut.mul(minBps).div(10000)
   }
 }
 

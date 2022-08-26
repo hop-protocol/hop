@@ -76,6 +76,7 @@ const Send: FC = () => {
   const { isSmartContractWallet } = useIsSmartContractWallet()
   const [manualError, setManualError] = useState<string>('')
   const [feeRefund, setFeeRefund] = useState<BigNumber>(BigNumber.from(0))
+  const [feeRefundEnabled] = useState<boolean>(true)
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -316,6 +317,9 @@ const Send: FC = () => {
   useEffect(() => {
     async function update() {
       try {
+        if (!feeRefundEnabled) {
+          return
+        }
         if (fromNetwork && toNetwork && sourceToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism) {
           const payload :any = {
             gasCost: estimatedGasCost?.toString(),
@@ -344,7 +348,7 @@ const Send: FC = () => {
     }
 
     update().catch(console.error)
-  }, [fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
+  }, [feeRefundEnabled, fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
 
   // ==============================================================================================
   // Approve fromNetwork / fromToken
@@ -586,7 +590,7 @@ const Send: FC = () => {
     isSmartContractWallet,
   ])
 
-  const showFeeRefund = toNetwork?.slug === ChainSlug.Optimism && feeRefund?.gt(0)
+  const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && feeRefund?.gt(0)
   const feeRefundDisplay = feeRefund && sourceToken?.decimals ? `$${commafy(formatUnits(feeRefund, 18), 2)}` : ''
 
   return (

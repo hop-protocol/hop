@@ -606,7 +606,7 @@ const Send: FC = () => {
         styles={styles}
         customRecipient={customRecipient}
         handleCustomRecipientInput={handleCustomRecipientInput}
-        isOpen={isSmartContractWallet}
+        isOpen={customRecipient || isSmartContractWallet}
       />
 
       <div className={styles.smartContractWalletWarning}>

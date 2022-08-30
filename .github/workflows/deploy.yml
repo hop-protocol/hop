@@ -171,4 +171,6 @@ jobs:
             - https://gateway.ipfs.io/ipfs/${{ needs.build.outputs.hash }}/
             - https://crustwebsites.net/ipfs/${{ needs.build.outputs.hash }}/
             - [ipfs://${{ needs.build.outputs.hash }}/](ipfs://${{ needs.build.outputs.hash }}/)
+            - https://hop.eth.limo/
+            - https://hop.eth.link/
             ${{ needs.bump_version.outputs.changelog }}

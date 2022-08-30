@@ -799,3 +799,12 @@ describe('calcAmountOutMin', () => {
     expect(bridge.formatUnits(amountOutMin)).toBe(0.995)
   })
 })
+
+describe.only('isDestinationChainIdPaused', () => {
+  it('should return false if chain id is not paused', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const isPaused = await bridge.isDestinationChainPaused('polygon')
+    expect(isPaused).toBe(false)
+  })
+})

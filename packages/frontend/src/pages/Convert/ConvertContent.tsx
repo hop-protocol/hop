@@ -113,6 +113,9 @@ const useStyles = makeStyles(theme => ({
   },
   smartContractWalletWarning: {
     marginTop: theme.padding.light,
+  },
+  pausedWarning: {
+    marginTop: theme.padding.light,
   }
 }))
 
@@ -147,7 +150,8 @@ const ConvertContent: FC = () => {
     unsupportedAsset,
     validFormFields,
     warning,
-    convertOption
+    convertOption,
+    destinationChainPaused
   } = useConvert()
   const [manualWarning, setManualWarning] = useState<string>('')
   const [customRecipient, setCustomRecipient] = useState<string>()
@@ -260,6 +264,11 @@ const ConvertContent: FC = () => {
           {allowCustomRecipient && (
             <div className={styles.smartContractWalletWarning}>
               <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
+            </div>
+          )}
+          {destinationChainPaused && (
+            <div className={styles.pausedWarning}>
+              <Alert severity="warning">Deposits to destination chain {destNetwork?.name} are currently paused. Please check official announcement channels for status updates.</Alert>
             </div>
           )}
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}

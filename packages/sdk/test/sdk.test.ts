@@ -800,7 +800,7 @@ describe('calcAmountOutMin', () => {
   })
 })
 
-describe.only('isDestinationChainIdPaused', () => {
+describe('isDestinationChainIdPaused', () => {
   it('should return false if chain id is not paused', async () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('USDC')

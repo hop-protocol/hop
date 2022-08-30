@@ -923,7 +923,7 @@ class HopBridge extends Base {
 
     const canonicalToken = this.getCanonicalToken(sourceChain)
     const chainNativeToken = this.getChainNativeToken(destinationChain)
-    let [chainNativeTokenPrice, tokenPrice, gasPrice, bondTransferGasLimit, l1FeeInWei] = await Promise.all([
+    const [chainNativeTokenPrice, tokenPrice, gasPrice, bondTransferGasLimit, l1FeeInWei] = await Promise.all([
       this.priceFeed.getPriceByTokenSymbol(
         chainNativeToken.symbol
       ),
@@ -939,12 +939,6 @@ class HopBridge extends Base {
     ])
 
     const rate = chainNativeTokenPrice / tokenPrice
-
-    // Arbitrum returns a gasLimit & gasPriceBid of appx 1.5x what is generally paid
-    if (destinationChain.equals(Chain.Arbitrum)) {
-      gasPrice = gasPrice.mul(10).div(15)
-      bondTransferGasLimit = bondTransferGasLimit.mul(10).div(15)
-    }
 
     // Include the cost to settle an individual transfer
     const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[destinationChain.slug]

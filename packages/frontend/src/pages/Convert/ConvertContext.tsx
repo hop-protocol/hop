@@ -68,6 +68,7 @@ type ConvertContextProps = {
   validFormFields: boolean
   warning?: ReactNode
   convertOption: ConvertOption
+  destinationChainPaused: boolean
 }
 
 const ConvertContext = createContext<ConvertContextProps | undefined>(undefined)
@@ -96,6 +97,7 @@ const ConvertProvider: FC = ({ children }) => {
   const [tx, setTx] = useState<Transaction | undefined>()
   const debouncer = useRef(0)
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
+  const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
 
   const { unsupportedAsset } = useAssets(selectedBridge, selectedNetwork)
 
@@ -455,6 +457,20 @@ const ConvertProvider: FC = ({ children }) => {
     }
   }, [sourceBalance, enoughBalance, needsTokenForFee, sourceNetwork])
 
+  useEffect(() => {
+    const update = async () => {
+      if (sourceNetwork?.isL1 && destNetwork && sourceToken) {
+        const bridge = sdk.bridge(sourceToken.symbol)
+        const isPaused = await bridge.isDestinationChainPaused(destNetwork?.slug)
+        setDestinationChainPaused(isPaused)
+      } else {
+        setDestinationChainPaused(false)
+      }
+    }
+
+    update().catch(console.error)
+  }, [sdk, sourceToken, sourceNetwork, destNetwork])
+
   return (
     <ConvertContext.Provider
       value={{
@@ -490,6 +506,7 @@ const ConvertProvider: FC = ({ children }) => {
         unsupportedAsset,
         validFormFields,
         warning,
+        destinationChainPaused
       }}
     >
       {children}

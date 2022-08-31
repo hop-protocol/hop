@@ -631,6 +631,11 @@ class HopBridge extends Base {
       ] as const
 
       const l1Bridge = await this.getL1Bridge(sourceChain.provider)
+      const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
+      if (isPaused) {
+        throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+      }
+
       return l1Bridge.populateTransaction.sendToL2(...txOptions)
     } else {
       if (bonderFee.eq(0)) {
@@ -923,7 +928,7 @@ class HopBridge extends Base {
 
     const canonicalToken = this.getCanonicalToken(sourceChain)
     const chainNativeToken = this.getChainNativeToken(destinationChain)
-    let [chainNativeTokenPrice, tokenPrice, gasPrice, bondTransferGasLimit, l1FeeInWei] = await Promise.all([
+    const [chainNativeTokenPrice, tokenPrice, gasPrice, bondTransferGasLimit, l1FeeInWei] = await Promise.all([
       this.priceFeed.getPriceByTokenSymbol(
         chainNativeToken.symbol
       ),
@@ -939,12 +944,6 @@ class HopBridge extends Base {
     ])
 
     const rate = chainNativeTokenPrice / tokenPrice
-
-    // Arbitrum returns a gasLimit & gasPriceBid of appx 1.5x what is generally paid
-    if (destinationChain.equals(Chain.Arbitrum)) {
-      gasPrice = gasPrice.mul(10).div(15)
-      bondTransferGasLimit = bondTransferGasLimit.mul(10).div(15)
-    }
 
     // Include the cost to settle an individual transfer
     const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[destinationChain.slug]
@@ -1860,6 +1859,11 @@ class HopBridge extends Base {
       }
     ] as const
 
+    const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
+    if (isPaused) {
+      throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+    }
+
     return l1Bridge.populateTransaction.sendToL2(
       ...txOptions
     )
@@ -2422,6 +2426,13 @@ class HopBridge extends Base {
     const slippageToleranceBps = slippageTolerance * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     return amountOut.mul(minBps).div(10000)
+  }
+
+  async isDestinationChainPaused (destinationChain: TChain) {
+    destinationChain = this.toChainModel(destinationChain)
+    const l1Bridge = await this.getL1Bridge()
+    const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
+    return isPaused
   }
 }
 

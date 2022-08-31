@@ -75,7 +75,8 @@ const Send: FC = () => {
   const [manualWarning, setManualWarning] = useState<string>('')
   const { isSmartContractWallet } = useIsSmartContractWallet()
   const [manualError, setManualError] = useState<string>('')
-  const [feeRefund, setFeeRefund] = useState<BigNumber>(BigNumber.from(0))
+  const [feeRefund, setFeeRefund] = useState<string>('')
+  const [feeRefundUsd, setFeeRefundUsd] = useState<string>('')
   const [feeRefundEnabled] = useState<boolean>(false)
   const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
 
@@ -351,14 +352,18 @@ const Send: FC = () => {
           if (json.error) {
             throw new Error(json.error)
           }
-          const _amount = BigNumber.from(json.data.refund.amount)
-          setFeeRefund(_amount)
+          console.log(json.data.refund)
+          const { refundAmountInRefundToken, refundAmountInUsd } = json.data.refund
+          setFeeRefund(refundAmountInRefundToken.toFixed(4))
+          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
         } else {
-          setFeeRefund(BigNumber.from(0))
+          setFeeRefund('')
+          setFeeRefundUsd('')
         }
       } catch (err) {
         console.error(err)
-        setFeeRefund(BigNumber.from(0))
+        setFeeRefund('')
+        setFeeRefundUsd('')
       }
     }
 
@@ -606,8 +611,8 @@ const Send: FC = () => {
     isSmartContractWallet,
   ])
 
-  const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && feeRefund?.gt(0)
-  const feeRefundDisplay = feeRefund && sourceToken?.decimals ? `$${commafy(formatUnits(feeRefund, 18), 2)}` : ''
+  const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd
+  const feeRefundDisplay = feeRefund && feeRefundUsd ? `${feeRefundUsd} OP ($${feeRefundUsd})` : ''
 
   return (
     <Flex column alignCenter>

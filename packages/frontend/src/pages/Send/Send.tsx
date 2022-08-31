@@ -76,7 +76,7 @@ const Send: FC = () => {
   const { isSmartContractWallet } = useIsSmartContractWallet()
   const [manualError, setManualError] = useState<string>('')
   const [feeRefund, setFeeRefund] = useState<BigNumber>(BigNumber.from(0))
-  const [feeRefundEnabled] = useState<boolean>(true)
+  const [feeRefundEnabled] = useState<boolean>(false)
   const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
 
   // Reset error message when fromNetwork/toNetwork changes

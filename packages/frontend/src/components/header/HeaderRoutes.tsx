@@ -4,9 +4,9 @@ import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import { isMainnet } from 'src/config'
 import { useClaim } from 'src/pages/Claim/useClaim'
-import { useHasRewards } from 'src/pages/Rewards/useHasRewards'
 import { makeStyles } from '@material-ui/core/styles'
 import { useTheme } from '@material-ui/core'
+// import { useHasRewards } from 'src/pages/Rewards/useHasRewards'
 
 const useStyles = makeStyles((theme) => ({
   tabs: {
@@ -33,7 +33,10 @@ const HeaderRoutes: FC = () => {
 
   const value = pathname.split('/').slice(0, 2).join('/')
   const { canClaim } = useClaim()
-  const { hasRewards } = useHasRewards()
+
+  // TODO: enable once live
+  // const { hasRewards } = useHasRewards()
+  const hasRewards = false
 
   return (
     <Tabs value={value || '/send'} onChange={handleChange} style={{ width: 'max-content' }} variant="scrollable"

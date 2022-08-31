@@ -72,7 +72,8 @@ export class ArbitrumRelayerFee implements IRelayerFee {
   }
 
   private async _getEncodedDistributeData (): Promise<string> {
-    const recipient = constants.AddressZero
+    // Do not use the zero address since some ERC20 tokens throw when sending to the zero address
+    const recipient = '0x0000000000000000000000000000000000000001'
     const amount = BigNumber.from(10)
     const amountOutMin = BigNumber.from(0)
     const deadline = BigNumber.from(MaxDeadline)

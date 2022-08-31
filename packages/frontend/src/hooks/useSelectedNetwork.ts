@@ -1,12 +1,15 @@
-import { ChangeEvent, useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import Network from 'src/models/Network'
 import { defaultL2Network, l2Networks } from 'src/config/networks'
-import { findNetworkBySlug } from 'src/utils'
+import { findNetworkBySlug, networkSlugToId } from 'src/utils'
 import useQueryParams from './useQueryParams'
+import { SafeInfo } from '@gnosis.pm/safe-apps-sdk'
+import { ChainSlug } from '@hop-protocol/sdk'
 
 interface Options {
   l2Only?: boolean
   availableNetworks?: Network[]
+  gnosisSafe?: SafeInfo
 }
 
 export function useSelectedNetwork(opts: Options = { l2Only: false }) {
@@ -32,6 +35,16 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
       setSelectedNetwork(defaultL2Network)
     }
   }, [opts.l2Only])
+
+  const isMatchingSignerAndSourceChainNetwork = useMemo(() => {
+    if (queryParams?.sourceNetwork) {
+      const chainId = networkSlugToId(queryParams.sourceNetwork as ChainSlug)
+      if (opts.gnosisSafe?.chainId === chainId) {
+        return true
+      }
+    }
+    return false
+  }, [opts, queryParams])
 
   const selectSourceNetwork = (event: ChangeEvent<{ value: any }>) => {
     const selectedNetworkSlug = event.target.value
@@ -72,5 +85,6 @@ export function useSelectedNetwork(opts: Options = { l2Only: false }) {
     selectSourceNetwork,
     selectDestNetwork,
     selectBothNetworks,
+    isMatchingSignerAndSourceChainNetwork,
   }
 }

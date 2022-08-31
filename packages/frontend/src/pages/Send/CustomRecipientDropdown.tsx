@@ -3,11 +3,11 @@ import Card from '@material-ui/core/Card'
 import Typography from '@material-ui/core/Typography'
 import LargeTextField from 'src/components/LargeTextField'
 
-function CustomRecipientDropdown(props) {
-  const { styles, customRecipient, handleCustomRecipientInput } = props
+function CustomRecipientDropdown(props: any) {
+  const { styles, customRecipient, handleCustomRecipientInput, isOpen = false } = props
 
   return (
-    <details className={styles.detailsDropdown}>
+    <details className={styles.detailsDropdown} open={isOpen}>
       <summary className={styles.detailsDropdownSummary}>
         <Typography
           variant="subtitle1"

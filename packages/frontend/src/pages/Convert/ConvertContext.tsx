@@ -25,6 +25,7 @@ import HopConvertOption from 'src/pages/Convert/ConvertOption/HopConvertOption'
 import { toTokenDisplay, commafy } from 'src/utils'
 import { defaultL2Network, l1Network } from 'src/config/networks'
 import {
+  useQueryParams,
   useTransactionReplacement,
   useApprove,
   useBalance,
@@ -38,7 +39,7 @@ type ConvertContextProps = {
   approveTokens: () => void
   approving: boolean
   convertOptions: ConvertOption[]
-  convertTokens: () => void
+  convertTokens: (customRecipient?: string) => void
   destBalance?: BigNumber
   destNetwork?: Network
   destToken?: Token
@@ -66,17 +67,19 @@ type ConvertContextProps = {
   unsupportedAsset: any
   validFormFields: boolean
   warning?: ReactNode
+  convertOption: ConvertOption
 }
 
 const ConvertContext = createContext<ConvertContextProps | undefined>(undefined)
 
 const ConvertProvider: FC = ({ children }) => {
+  const { queryParams } = useQueryParams()
   const { provider, checkConnectedNetworkId, address } = useWeb3Context()
   const { selectedBridge, txConfirm, sdk, settings } = useApp()
   const { slippageTolerance, deadline } = settings
   const { pathname } = useLocation()
   const { selectedNetwork, selectBothNetworks } = useSelectedNetwork()
-  const [isConvertingToHToken, setIsConvertingToHToken] = useState(true)
+  const [isConvertingToHToken, setIsConvertingToHToken] = useState(queryParams?.fromHToken !== 'true')
   const switchDirection = () => setIsConvertingToHToken(direction => !direction)
   const [sourceTokenAmount, setSourceTokenAmount] = useState<string>('')
   const [destTokenAmount, setDestTokenAmount] = useState<string>('')
@@ -341,7 +344,7 @@ const ConvertProvider: FC = ({ children }) => {
     }
   }
 
-  const convertTokens = async () => {
+  const convertTokens = async (customRecipient?: string) => {
     try {
       setTx(undefined)
       const networkId = Number(sourceNetwork?.networkId)
@@ -363,7 +366,6 @@ const ConvertProvider: FC = ({ children }) => {
 
       const signer = provider?.getSigner()
       const value = amountToBN(sourceTokenAmount, sourceToken.decimals).toString()
-      const l1Bridge = await selectedBridge.getL1Bridge()
       const isCanonicalTransfer = false
 
       const tx = await txConfirm?.show({
@@ -372,11 +374,14 @@ const ConvertProvider: FC = ({ children }) => {
           source: {
             amount: sourceTokenAmount,
             token: sourceToken,
+            network: sourceNetwork
           },
           dest: {
             amount: destTokenAmount,
             token: destToken,
+            network: destNetwork
           },
+          customRecipient: convertOption?.slug === 'hop-bridge' ? customRecipient : ''
         },
         onConfirm: async () => {
           await approveTokens()
@@ -395,7 +400,8 @@ const ConvertProvider: FC = ({ children }) => {
             value,
             amountOutMin,
             deadline(),
-            bonderFee
+            bonderFee,
+            customRecipient
           )
         },
       })
@@ -454,6 +460,7 @@ const ConvertProvider: FC = ({ children }) => {
       value={{
         approveTokens,
         approving,
+        convertOption,
         convertOptions,
         convertTokens,
         destBalance,

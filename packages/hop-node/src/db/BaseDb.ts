@@ -1,6 +1,6 @@
 import Logger from 'src/logger'
 import groupBy from 'lodash/groupBy'
-import level from 'level'
+import level from 'level-party'
 import merge from 'lodash/merge'
 import mkdirp from 'mkdirp'
 import os from 'os'
@@ -186,7 +186,7 @@ class BaseDb extends EventEmitter {
   }
 
   async _update (key: string, data: any) {
-    return this._updateWithBatch(key, data)
+    return this._updateSingle(key, data)
   }
 
   async _updateSingle (key: string, data: any) {
@@ -258,7 +258,7 @@ class BaseDb extends EventEmitter {
   async getById (id: string, defaultValue: any = null) {
     try {
       const value = await this.db.get(id)
-      return this.normalizeReadValue(id, value)
+      return value
     } catch (err) {
       if (!err.message.includes('Key not found in database')) {
         this.logger.error(`getById error: ${err.message}`)
@@ -267,22 +267,8 @@ class BaseDb extends EventEmitter {
     }
   }
 
-  attachId (id: string, item: any) {
-    if (item) {
-      item._id = id
-    }
-    return item
-  }
-
-  normalizeReadValue (key: string, value: any) {
-    return this.attachId(key, value)
-  }
-
   async batchGetByIds (ids: string[], defaultValue: any = null) {
-    const values = []
-    for (const id of ids) {
-      values.push(await this.getById(id))
-    }
+    const values = await this.db.getMany(ids)
     return values.filter(this.filterExisty)
   }
 

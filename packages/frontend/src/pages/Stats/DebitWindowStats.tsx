@@ -1,118 +1,119 @@
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import Skeleton from '@material-ui/lab/Skeleton'
-import Paper from '@material-ui/core/Paper'
-import Box from '@material-ui/core/Box'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
 import { useStats } from 'src/pages/Stats/StatsContext'
 import { commafy } from 'src/utils'
+import { Div, Icon } from 'src/components/ui'
+import { CellWrapper, RightAlignedValue, SortableTable } from 'src/components/Table'
 
-const useStyles = makeStyles(theme => ({
-  paper: {
-    padding: '2rem',
-  },
-  table: {
-    width: '800px',
-  },
-  cell: {
-    fontSize: '1.4rem',
-  },
-  flex: {
-    display: 'flex',
-  },
-  title: {
-    marginBottom: '4.2rem',
-  },
-  box: {
-    marginBottom: '2rem',
-    flexDirection: 'column',
-  },
-}))
+export const populateDebitWindowStats = (item: any, bonderStats, i) => {
+  return {
+    token: item.token.imageUrl,
+    slot0: item.amountBonded[0],
+    slot1: item.amountBonded[1],
+    slot2: item.amountBonded[2],
+    slot3: item.amountBonded[3],
+    slot4: item.amountBonded[4],
+    slot5: item.amountBonded[5],
+    minutes: item.remainingMin,
+    virtualDebt: bonderStats[i]?.virtualDebt,
+  }
+}
 
 const DebitWindowStats: FC = () => {
-  const styles = useStyles()
-  const { debitWindowStats, fetchingDebitWindowStats } = useStats()
+  const { debitWindowStats, bonderStats, fetchingDebitWindowStats } = useStats()
+
+  const columns = React.useMemo(
+    () => [
+      {
+        Header: 'Debit Window Stats',
+        columns: [
+          {
+            Header: 'Token',
+            accessor: 'token',
+            Cell: ({ cell }) => {
+              return (
+                <CellWrapper cell={cell}>
+                  <Icon src={cell.value} />
+                </CellWrapper>
+              )
+            },
+          },
+          {
+            Header: 'Slot 0',
+            accessor: 'slot0',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Slot 1',
+            accessor: 'slot1',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Slot 2',
+            accessor: 'slot2',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Slot 3',
+            accessor: 'slot3',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Slot 4',
+            accessor: 'slot4',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Slot 5',
+            accessor: 'slot5',
+            Cell: ({ cell }) => {
+              return <RightAlignedValue cell={cell} />
+            },
+          },
+          {
+            Header: 'Minutes',
+            accessor: 'minutes',
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell} end>
+                {cell.value}
+              </CellWrapper>
+            ),
+          },
+          {
+            Header: 'Virtual Debt',
+            accessor: 'virtualDebt',
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell} end>
+                <Icon mr={1} src={cell.row.values.token} />
+                {cell.value && <>{commafy(cell.value)}</>}
+              </CellWrapper>
+            ),
+          },
+        ],
+      },
+    ],
+    [bonderStats]
+  )
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
-      <Box display="flex" alignItems="center">
-        <Typography variant="h4" className={styles.title}>
-          Debit Window Stats
-        </Typography>
-      </Box>
-      <Box display="flex" alignItems="center" className={styles.box}>
-        <Paper className={styles.paper}>
-          <TableContainer>
-            <Table className={styles.table}>
-              <TableHead>
-                <TableRow>
-                  <th>Token</th>
-                  <th>Slot 0</th>
-                  <th>Slot 1</th>
-                  <th>Slot 2</th>
-                  <th>Slot 3</th>
-                  <th>Slot 4</th>
-                  <th>Slot 5</th>
-                  <th>Mins Remaining</th>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {fetchingDebitWindowStats
-                  ? Array(2)
-                      .fill(null)
-                      .map((x, i) => {
-                        return (
-                          <TableRow key={i}>
-                            <TableCell colSpan={8}>
-                              <Skeleton animation="wave" width={'100%'} />
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
-                  : debitWindowStats?.map(item => {
-                      return (
-                        <TableRow key={item.id}>
-                          <TableCell className={styles.cell}>
-                            <div className={styles.flex}>
-                              <span>{item.token.symbol}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[0])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[1])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[2])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[3])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[4])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.amountBonded[5])}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.remainingMin)}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      </Box>
-    </Box>
+    <Div fontSize={[0, 1, 2]} overflowX="scroll">
+      <SortableTable
+        stats={debitWindowStats}
+        columns={columns}
+        populateDataFn={populateDebitWindowStats}
+        extraData={bonderStats}
+        loading={fetchingDebitWindowStats}
+      />
+    </Div>
   )
 }
 

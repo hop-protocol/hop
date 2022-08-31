@@ -4,7 +4,7 @@ import { normalizeEntity } from './shared'
 export default async function getTransferRoots (
   chain: string,
   token: string,
-  lastId: string = '0x0000000000000000000000000000000000000000'
+  lastId: string = '0'
 ): Promise<any[]> {
   const query = `
     query TransferRoots($token: String, $lastId: ID) {

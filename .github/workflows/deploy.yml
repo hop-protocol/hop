@@ -3,29 +3,79 @@ on:
   push:
     branches:
       - production
+      - preprod
       - mainnet
+      - mainnet2
+      - staging
 
 jobs:
   set_environment:
     outputs:
       env_name: ${{ steps.setenv.outputs.env_name }}
+      dnslink_subdomain: ${{ steps.setdnslink.outputs.dnslink_subdomain }}
     runs-on: ubuntu-latest
     steps:
-    - id: setenv
-      run: echo "::set-output name=env_name::${GITHUB_REF#refs/heads/}"
+    - name: Set "environment" var
+      id: setenv
+      run: |
+        if [[ "${GITHUB_REF#refs/heads/}" == "production" || "${GITHUB_REF#refs/heads/}" == "preprod" ]]
+        then
+          echo "::set-output name=env_name::production"
+        else
+          echo "::set-output name=env_name::mainnet"
+        fi
+
+    - name: Set dnslink var
+      id: setdnslink
+      run: |
+        if [[ "${GITHUB_REF#refs/heads/}" == "production" ]]
+        then
+          echo "::set-output name=dnslink_subdomain::_dnslink.app"
+        else
+          echo "::set-output name=dnslink_subdomain::_dnslink.${GITHUB_REF#refs/heads/}"
+        fi
+
+  bump_version:
+    name: Bump Version
+    if: contains(github.ref, 'production')
+    runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.github_tag_action.outputs.new_tag }}
+      changelog: ${{ steps.github_tag_action.outputs.changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Bump version and push tag
+        id: github_tag_action
+        uses: mathieudutour/github-tag-action@331898d5052eedac9b15fec867b5ba66ebf9b692
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          release_branches: production
+          default_bump: patch
 
   build:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: set_environment
+    needs: [set_environment]
+    outputs:
+      hash: ${{ steps.upload.outputs.hash }}
     environment:
       name: ${{ needs.set_environment.outputs.env_name }}
+    env:
+      ENV_NAME: ${{ needs.set_environment.outputs.env_name }}
+      RECORD_NAME: ${{ needs.set_environment.outputs.dnslink_subdomain }}
     defaults:
       run:
         working-directory: ./packages/frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Log set env vars
+        run: |
+          echo "ENV_NAME=${ENV_NAME}"
+          echo "RECORD_NAME=${RECORD_NAME}"
 
       - name: Set up node
         uses: actions/setup-node@v2
@@ -49,6 +99,10 @@ jobs:
           REACT_APP_ENABLED_TOKENS: ${{ secrets.REACT_APP_ENABLED_TOKENS }}
           REACT_APP_FORTMATIC_KEY: ${{ secrets.REACT_APP_FORTMATIC_KEY }}
           REACT_APP_PORTIS_ID: ${{ secrets.REACT_APP_PORTIS_ID }}
+          REACT_APP_DISABLED_ROUTES: ${{ secrets.REACT_APP_DISABLED_ROUTES }}
+          REACT_APP_WARNING_ROUTES: ${{ secrets.REACT_APP_WARNING_ROUTES }}
+          REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS: ${{ secrets.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS }}
+          REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE: ${{ secrets.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE }}
         run: yarn build
 
       - name: Pin to IPFS on Pinata
@@ -61,21 +115,62 @@ jobs:
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
 
-      - name: Pin to Crust
-        uses: crustio/ipfs-crust-action@v2.0.3
-        if: "contains(github.ref, 'production')"
-        continue-on-error: true
-        timeout-minutes: 2
-        with:
-          cid: ${{ steps.upload.outputs.hash }}
-          seeds: ${{ secrets.CRUST_SEEDS }}
-
       - name: Update CloudFlare DNS with new IPFS hash
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
           RECORD_DOMAIN: 'hop.exchange'
-          RECORD_NAME: ${{ secrets.IPFS_DEPLOY_DNSLINK_SUBDOMAIN }}
+          RECORD_NAME: ${{ needs.set_environment.outputs.dnslink_subdomain }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         uses: textileio/cloudflare-update-dnslink@30414a408191218c8259e932ebdf4cbb7c652fe8
         with:
           cid: ${{ steps.upload.outputs.hash }}
+
+  release:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [build, bump_version]
+    environment:
+      name: ${{ needs.set_environment.outputs.env_name }}
+    env:
+      ENV_NAME: ${{ needs.set_environment.outputs.env_name }}
+      RECORD_NAME: ${{ needs.set_environment.outputs.dnslink_subdomain }}
+    defaults:
+      run:
+        working-directory: ./packages/frontend
+    steps:
+      - name: Convert CIDv0 to CIDv1
+        id: convert_cidv0
+        uses: uniswap/convert-cidv0-cidv1@v1.0.0
+        with:
+          cidv0: ${{ needs.build.outputs.hash }}
+
+      - name: Create GitHub Release
+        id: create_release
+        if: contains(github.ref, 'production') && ${{ needs.bump_version.outputs.new_tag != null }}
+        uses: actions/create-release@v1.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.bump_version.outputs.new_tag }}
+          release_name: Release ${{ needs.bump_version.outputs.new_tag }}
+          body: |
+            IPFS hash of the deployment:
+            - CIDv0: `${{ needs.build.outputs.hash }}`
+            - CIDv1: `${{ steps.convert_cidv0.outputs.cidv1 }}`
+            The latest release is always accessible via our alias to the Cloudflare IPFS gateway at [app.hop.exchange](https://app.hop.exchange).
+            You can also access the Hop Interface directly from an IPFS gateway.
+            **Note**: The Hop interface uses [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) to remember your settings, such as slippage tolerance.
+            **You should always use an IPFS gateway that enforces origin separation**, or our alias to the latest release at [app.hop.exchange](https://app.hop.exchange).
+            Your Hop settings are never remembered across different URLs.
+            IPFS gateways:
+            - https://${{ steps.convert_cidv0.outputs.cidv1 }}.ipfs.cf-ipfs.com/
+            - https://${{ steps.convert_cidv0.outputs.cidv1 }}.ipfs.dweb.link/
+            - https://hop.mypinata.cloud/ipfs/${{ needs.build.outputs.hash }}/
+            - https://gateway.pinata.cloud/ipfs/${{ needs.build.outputs.hash }}/
+            - https://cloudflare-ipfs.com/ipfs/${{ needs.build.outputs.hash }}/
+            - https://gateway.ipfs.io/ipfs/${{ needs.build.outputs.hash }}/
+            - https://crustwebsites.net/ipfs/${{ needs.build.outputs.hash }}/
+            - [ipfs://${{ needs.build.outputs.hash }}/](ipfs://${{ needs.build.outputs.hash }}/)
+            - https://hop.eth.limo/
+            - https://hop.eth.link/
+            ${{ needs.bump_version.outputs.changelog }}

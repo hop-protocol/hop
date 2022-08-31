@@ -1,6 +1,7 @@
 import OsWatcher from 'src/watchers/OsWatcher'
+import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
-  defaultEnabledNetworks,
+  bondWithdrawalBatchSize,
   gitRev,
   config as globalConfig,
   slackAuthToken,
@@ -8,7 +9,7 @@ import {
   slackUsername
 } from 'src/config'
 
-import { actionHandler, logger, parseBool, parseString, root } from './shared'
+import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 import { printHopArt } from './shared/art'
 import {
   startWatchers
@@ -31,7 +32,10 @@ root
   .option('--sync-from-date <string>', 'Date to start syncing db from, in ISO format YYYY-MM-DD', parseString)
   .option('--s3-upload [boolean]', 'Upload available liquidity info as JSON to S3', parseBool)
   .option('--s3-namespace <name>', 'S3 bucket namespace', parseString)
+  .option('--health-check-days <number>', 'Health checker number of days to check for', parseNumber)
+  .option('--health-check-cache-file <filepath>', 'Health checker cache file', parseString)
   .option('--heapdump [boolean]', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
+  .option('--enabled-checks <enabledChecks>', 'Enabled checks. Options are: lowBonderBalances,unbondedTransfers,unbondedTransferRoots,incompleteSettlements,challengedTransferRoots,unsyncedSubgraphs,lowAvailableLiquidityBonders', parseStringArray)
   .action(actionHandler(main))
 
 async function main (source: any) {
@@ -39,7 +43,7 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, dry: dryMode } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode } = source
   if (!config) {
     throw new Error('config file is required')
   }
@@ -67,10 +71,7 @@ async function main (source: any) {
     }
   }
 
-  const enabledNetworks: { [key: string]: boolean } = Object.assign(
-    {},
-    defaultEnabledNetworks
-  )
+  const enabledNetworks: any = {}
   if (config?.chains) {
     for (const k in config.chains) {
       enabledNetworks[k] = !!config.chains[k]
@@ -91,6 +92,7 @@ async function main (source: any) {
         config.settleBondedWithdrawals?.thresholdPercent
     }
   }
+  logger.debug(`bondWithdrawalBatchSize: ${bondWithdrawalBatchSize}`)
   const slackEnabled = slackAuthToken && slackChannel && slackUsername
   if (slackEnabled) {
     logger.debug(`slack notifications enabled. channel #${slackChannel}`)
@@ -134,5 +136,38 @@ async function main (source: any) {
     }).start()
     resolve()
   }))
+
+  if (healthCheckDays) {
+    let enabledChecksObj: any = null
+    if (enabledChecks?.length) {
+      enabledChecksObj = {
+        lowBonderBalances: enabledChecks.includes('lowBonderBalances'),
+        unbondedTransfers: enabledChecks.includes('unbondedTransfers'),
+        unbondedTransferRoots: enabledChecks.includes('unbondedTransferRoots'),
+        incompleteSettlements: enabledChecks.includes('incompleteSettlements'),
+        challengedTransferRoots: enabledChecks.includes('challengedTransferRoots'),
+        unsyncedSubgraphs: enabledChecks.includes('unsyncedSubgraphs'),
+        lowAvailableLiquidityBonders: enabledChecks.includes('lowAvailableLiquidityBonders'),
+        missedEvents: enabledChecks.includes('missedEvents'),
+        invalidBondWithdrawals: enabledChecks.includes('invalidBondWithdrawals'),
+        unrelaytedTransfers: enabledChecks.includes('unrelaytedTransfers'),
+        unsetTransferRoots: enabledChecks.includes('unsetTransferRoots'),
+        dnsNameserversChanged: enabledChecks.includes('dnsNameserversChanged'),
+        lowOsResources: enabledChecks.includes('lowOsResources')
+      }
+    }
+
+    promises.push(new Promise((resolve) => {
+      new HealthCheckWatcher({
+        days: healthCheckDays,
+        s3Upload,
+        s3Namespace,
+        cacheFile: healthCheckCacheFile,
+        enabledChecks: enabledChecksObj
+      }).start()
+      resolve()
+    }))
+  }
+
   await Promise.all([...starts, ...promises])
 }

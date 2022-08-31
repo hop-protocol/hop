@@ -24,7 +24,7 @@ const Div: React.FC<DivProps> = styled.div<DivProps>`
   ${({ pointer }) => pointer && 'cursor: pointer;'}
   ${({ fullWidth }) => fullWidth && 'width: 100%;'}
 
-  transition: background 0.15s ease-out;
+  transition: background 0.15s ease-out, color 0.15s ease-out;
 
   ${composedStyleFns}
 `

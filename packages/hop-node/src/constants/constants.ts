@@ -1,4 +1,3 @@
-import { constants as ethersConstants } from 'ethers'
 
 export enum Network {
   Mainnet = 'mainnet',
@@ -13,6 +12,20 @@ export enum Chain {
   Arbitrum = 'arbitrum',
   Polygon = 'polygon',
   Gnosis = 'gnosis',
+}
+
+export enum NativeChainToken {
+  ETH = 'ETH',
+  XDAI = 'XDAI',
+  MATIC = 'MATIC'
+}
+
+export const nativeChainTokens: Record<string, string> = {
+  ethereum: NativeChainToken.ETH,
+  arbitrum: NativeChainToken.ETH,
+  optimism: NativeChainToken.ETH,
+  polygon: NativeChainToken.MATIC,
+  gnosis: NativeChainToken.XDAI
 }
 
 export enum Token {
@@ -34,22 +47,23 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   arbitrum: 59105
 }
 
-const SecondsInDay = 86400
-const SecondsInWeek = SecondsInDay * 7
-export const TotalBlocks = {
-  Ethereum: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Ethereum),
-  Polygon: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Polygon),
-  Gnosis: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Gnosis)
-}
 export const DefaultBatchBlocks = 10000
 
 export const TenSecondsMs = 10 * 1000
 export const TenMinutesMs = 10 * 60 * 1000
 export const OneHourSeconds = 60 * 60
-export const OneHourMs = 60 * 60 * 1000
-export const OneWeekMs = 7 * 24 * 60 * 60 * 1000
+export const OneHourMs = OneHourSeconds * 1000
+export const OneDaySeconds = 24 * 60 * 60
+export const OneDayMs = OneDaySeconds * 1000
+export const OneWeekSeconds = 7 * 24 * 60 * 60
+export const OneWeekMs = OneWeekSeconds * 1000
 
-export const TxRetryDelayMs = OneHourMs
+export const TotalBlocks = {
+  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Ethereum),
+  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Polygon),
+  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Gnosis)
+}
+
 export const RootSetSettleDelayMs = 5 * 60 * 1000
 export const ChallengePeriodMs = 24 * OneHourMs
 
@@ -58,6 +72,7 @@ export const MaxInt32 = 2147483647
 export enum TxError {
   CallException = 'CALL_EXCEPTION',
   BonderFeeTooLow = 'BONDER_FEE_TOO_LOW',
+  RelayerFeeTooLow = 'RELAYER_FEE_TOO_LOW',
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
 }
 
@@ -65,10 +80,25 @@ export const MaxGasPriceMultiplier = 1.25
 export const MinPriorityFeePerGas = 4
 export const PriorityFeePerGasCap = 20
 export const MinPolygonGasPrice = 90_000_000_000
+export const MinGnosisGasPrice = 20_000_000_000
 
 export enum TokenIndex {
   CanonicalToken = 0,
   HopBridgeToken = 1,
 }
 
-export const DefaultRelayerAddress = ethersConstants.AddressZero
+export enum GasCostTransactionType {
+  BondWithdrawal = 'bondWithdrawal',
+  BondWithdrawalAndAttemptSwap = 'bondWithdrawalAndAttemptSwap',
+  Relay = 'relay'
+}
+
+export const RelayableChains: string[] = [
+  Chain.Arbitrum
+]
+
+export const TimeFromL1ToL2Ms: Record<string, number> = {
+  arbitrum: TenMinutesMs
+}
+
+export const MaxDeadline: number = 9999999999

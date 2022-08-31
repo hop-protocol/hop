@@ -1,6 +1,6 @@
 import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core'
-import DetailRow from 'src/components/DetailRow'
+import { DetailRow } from 'src/components/InfoTooltip'
 import { commafy } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({

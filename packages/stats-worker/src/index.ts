@@ -10,10 +10,16 @@ function main () {
     tvl: argv.tvl,
     volume: argv.volume,
     bonder: argv.bonder,
+    bonderProfit: argv.bonderProfit,
+    bonderFees: argv.bonderFees,
+    bonderTxFees: argv.bonderTxFees,
     regenesis: argv.regenesis,
     days: argv.days,
+    offsetDays: argv.offsetDays,
     bonderTokens: argv.bonderTokens ? argv.bonderTokens.split(',') : null,
-    bonderDays: argv.bonderDays
+    bonderDays: argv.bonderDays,
+    bonderStartDate: argv.bonderStartDate,
+    bonderEndDate: argv.bonderEndDate
   })
 
   worker.start()

@@ -1,8 +1,12 @@
+import BlockDater from 'ethereum-block-by-date'
+import EventEmitter from 'eventemitter3'
 import { default as BaseWatcher, Event } from './BaseWatcher'
+import { Chain } from '../models'
+import { DateTime } from 'luxon'
 import { transferSentTopic } from '../constants/eventTopics'
 
 class L2ToL2Watcher extends BaseWatcher {
-  public watch () {
+  public watch (): EventEmitter {
     this.start().catch((err: Error) => this.ee.emit('error', err))
     return this.ee
   }
@@ -17,7 +21,7 @@ class L2ToL2Watcher extends BaseWatcher {
       // here the await is intential so it's handled by the catch if it fails
       return await this.wrapperWatcher()
     } catch (err) {
-      console.log(err)
+      // console.error(err)
       return this.ammWatcher()
     }
   }
@@ -69,29 +73,43 @@ class L2ToL2Watcher extends BaseWatcher {
       return false
     }
     l2Dest.on(filter, handleEvent)
+    let tailBlock : number
+    const batchBlocks = this.destinationChain === Chain.Polygon ? 500 : 1000
     return async () => {
-      const headBlock =
-        this.options?.destinationHeadBlockNumber ||
-        (await this.destinationChain.provider.getBlockNumber())
+      let headBlock = this.options?.destinationHeadBlockNumber
+      if (!headBlock) {
+        headBlock = await this.destinationChain.provider.getBlockNumber()
+      }
+      if (!tailBlock) {
+        const blockDater = new BlockDater(this.destinationChain.provider)
+        const date = DateTime.fromSeconds(this.sourceBlock.timestamp - (60 * 60)).toJSDate()
+        const info = await blockDater.getDate(date)
+        if (info) {
+          tailBlock = info.block
+        }
+      }
+
       if (!headBlock) {
         return false
       }
-      const tailBlock = headBlock - 10000
-      const getRecentLogs = async (head: number): Promise<any[]> => {
-        if (head < tailBlock) {
+      const getRecentLogs = async (start: number, end: number): Promise<any[]> => {
+        if (end > headBlock) {
+          end = headBlock
+          start = end - batchBlocks
+        }
+        if (end <= start) {
           return []
         }
-        const start = head - 1000
-        const end = head
         const events = (
           (await l2Dest.queryFilter(filter, start, end)) ?? []
         ).reverse()
+        tailBlock = start + batchBlocks
         if (events.length) {
           return events
         }
-        return getRecentLogs(start)
+        return getRecentLogs(tailBlock, end + batchBlocks)
       }
-      const events = await getRecentLogs(headBlock)
+      const events = await getRecentLogs(tailBlock, tailBlock + batchBlocks)
       for (const event of events) {
         if (await handleEvent(event)) {
           return true

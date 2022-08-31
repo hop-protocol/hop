@@ -64,8 +64,8 @@ class OsWatcher {
     }
   }
 
-  async logDisk () {
-    return await new Promise((resolve) => {
+  static async getDiskUsage (): Promise<any> {
+    return new Promise((resolve) => {
       checkDiskSpace('/').then((diskSpace) => {
         const totalSize = diskSpace?.size
         const freeSize = diskSpace?.free
@@ -77,15 +77,30 @@ class OsWatcher {
         const totalSizeFormatted = `${totalSizeGb?.toFixed(2)}GB`
         const usedPercent = (usedSizeGb / totalSizeGb) * 100
         const usedPercentFormatted = `${usedPercent.toFixed(2)}%`
-        this.logger.info(`DISK: ${usedSizeFormatted}/${totalSizeFormatted} (${usedPercentFormatted})`)
-        this.metrics.setDisk(totalSize, freeSize, usedSize)
-        resolve(null)
+        resolve({
+          totalSize,
+          freeSize,
+          freeSizeGb,
+          totalSizeGb,
+          usedSize,
+          usedSizeGb,
+          usedSizeFormatted,
+          totalSizeFormatted,
+          usedPercent,
+          usedPercentFormatted
+        })
       })
     })
   }
 
-  async logCpuMemory () {
-    return await new Promise((resolve, reject) => {
+  async logDisk () {
+    const { totalSize, freeSize, usedSize, usedSizeFormatted, totalSizeFormatted, usedPercentFormatted } = await OsWatcher.getDiskUsage()
+    this.logger.info(`DISK: ${usedSizeFormatted}/${totalSizeFormatted} (${usedPercentFormatted})`)
+    this.metrics.setDisk(totalSize, freeSize, usedSize)
+  }
+
+  static async getCpuMemoryUsage (): Promise<any> {
+    return new Promise((resolve, reject) => {
       pidusage(process.pid, (err: Error, stats: any) => {
         if (err) {
           reject(err)
@@ -95,9 +110,9 @@ class OsWatcher {
           reject(new Error('expected stats'))
           return
         }
-        const vcpus = os.cpus().length
-        const cpuPercent = stats?.cpu
-        const cpuFormatted = `${cpuPercent?.toFixed(2)}% out of 100*vcpus (${vcpus})`
+        const vcores = os.cpus().length
+        const cpuPercent = (stats?.cpu / (100 * vcores)) * 100
+        const cpuFormatted = `${cpuPercent?.toFixed(2)}% out of 100 (${stats?.cpu}% out of 100 * ${vcores} vcore)`
         const totalMemory = os?.totalmem()
         const totalMemoryMb = totalMemory / 1024 / 1024
         const usedMemory = stats?.memory
@@ -105,12 +120,28 @@ class OsWatcher {
         const freeMemory = totalMemory - usedMemory
         const memoryPercent = (usedMemoryMb / totalMemoryMb) * 100
         const memoryFormatted = `${usedMemoryMb?.toFixed(2)}MB out of ${totalMemoryMb?.toFixed(2)}MB (${memoryPercent?.toFixed(2)}%)`
-        this.logger.info(`CPU: ${cpuFormatted}`)
-        this.logger.info(`MEMORY: ${memoryFormatted}`)
-        this.metrics.setMemory(totalMemory, freeMemory, usedMemory)
-        resolve(null)
+
+        resolve({
+          vcores,
+          cpuPercent,
+          cpuFormatted,
+          totalMemory,
+          totalMemoryMb,
+          usedMemory,
+          usedMemoryMb,
+          freeMemory,
+          memoryPercent,
+          memoryFormatted
+        })
       })
     })
+  }
+
+  async logCpuMemory () {
+    const { totalMemory, freeMemory, usedMemory, cpuFormatted, memoryFormatted } = await OsWatcher.getCpuMemoryUsage()
+    this.logger.info(`CPU: ${cpuFormatted}`)
+    this.logger.info(`MEMORY: ${memoryFormatted}`)
+    this.metrics.setMemory(totalMemory, freeMemory, usedMemory)
   }
 
   async logHeapdump () {

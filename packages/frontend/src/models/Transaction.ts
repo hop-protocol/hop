@@ -17,6 +17,7 @@ import { formatError } from 'src/utils/format'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 import { sigHashes } from 'src/hooks/useTransaction'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
+import { GatewayTransactionDetails } from '@gnosis.pm/safe-apps-sdk'
 
 interface ContructorArgs {
   hash: string
@@ -34,6 +35,7 @@ interface ContructorArgs {
   nonce?: number | undefined
   from?: string | undefined
   to?: string | undefined
+  safeTx?: GatewayTransactionDetails
 }
 
 class Transaction extends EventEmitter {
@@ -56,6 +58,7 @@ class Transaction extends EventEmitter {
   nonce?: number | undefined = undefined
   from?: string | undefined = undefined
   to?: string | undefined = undefined
+  safeTx?: GatewayTransactionDetails
 
   constructor({
     hash,
@@ -72,6 +75,7 @@ class Transaction extends EventEmitter {
     nonce,
     from,
     to,
+    safeTx,
   }: ContructorArgs) {
     super()
     this.hash = (hash || '').trim().toLowerCase()
@@ -94,6 +98,7 @@ class Transaction extends EventEmitter {
     this.from = from
     this.to = to
     this.token = token || null
+    this.safeTx = safeTx
 
     this.getTransaction().then((txResponse: providers.TransactionResponse) => {
       const funcSig = txResponse?.data?.slice(0, 10)
@@ -104,7 +109,7 @@ class Transaction extends EventEmitter {
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
       this.blockNumber = receipt.blockNumber
       const block = await this.provider.getBlock(receipt.blockNumber)
-      this.timestampMs = block.timestamp * 1000
+      this.timestampMs = block ? block.timestamp * 1000 : 1000
 
       if (tsDetails?.chainId) {
         this.destNetworkName = networkIdToSlug(tsDetails.chainId)

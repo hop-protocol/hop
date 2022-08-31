@@ -6,6 +6,7 @@ export type Filters = {
   startDate: string
   endDate: string
   orderDesc: boolean
+  destinationChainId?: number
 }
 
 export const chainIdToSlug: any = {

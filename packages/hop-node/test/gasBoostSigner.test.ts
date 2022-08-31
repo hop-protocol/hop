@@ -8,14 +8,13 @@ import { Wallet } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
 import { privateKey } from './config'
 
-describe('GasBoostSigner', () => {
+describe.skip('GasBoostSigner', () => {
   it('initialize', async () => {
     const provider = getRpcProvider('gnosis')
     expectDefined(provider)
     expectDefined(privateKey)
     const store = new MemoryStore()
     const signer = new GasBoostSigner(privateKey, provider)
-    signer.setStore(store)
     expect(await signer.getAddress()).toBeTruthy()
   })
   it.skip('sendTransaction - gnosis', async () => {
@@ -142,7 +141,7 @@ describe('GasBoostSigner', () => {
     })
     const recipient = await signer.getAddress()
     console.log('recipient:', recipient)
-    expect(signer.nonce).toBe(0)
+    expect(signer.getNonce()).toBe(0)
     let errMsg = ''
     const nonce = await signer.getTransactionCount('pending')
     try {
@@ -156,7 +155,87 @@ describe('GasBoostSigner', () => {
       errMsg = err.message
     }
     expect(errMsg).toBe('NonceTooLow')
-    expect(signer.nonce).toBe(nonce + 1)
+    expect(signer.getNonce()).toBe(nonce + 1)
+  }, 10 * 60 * 1000)
+  it.skip('reorg test', async () => {
+    const chain = 'gnosis'
+    const provider = getRpcProvider(chain)
+    expectDefined(provider)
+    expectDefined(privateKey)
+    const store = new MemoryStore()
+    const signer = new GasBoostSigner(privateKey, provider, store, {
+      timeTilBoostMs: 5 * 1000,
+      reorgWaitConfirmations: 2
+    })
+    const recipient = await signer.getAddress()
+    const tx = await signer.sendTransaction({
+      to: recipient,
+      value: '0'
+    })
+    let confirmed = false
+    ;(tx as GasBoostTransaction).on('confirmed', (tx: any) => {
+      confirmed = true
+    })
+    await tx.wait()
+    expect(confirmed).toBeTruthy()
+
+    // set invalid tx hash after confirmation to simulate reorg
+    const reorgedTxHash = '0x9999999999999999999999999999999999999999999999999999999999999999'
+    ;(tx as GasBoostTransaction).txHash = reorgedTxHash
+
+    // a new nonce is needed to send a rebroadcast tx but in practice
+    // the same nonce would be reused
+    ;(tx as GasBoostTransaction).originalTxParams.nonce = tx.nonce + 1
+
+    let reorged = false
+    ;(tx as GasBoostTransaction).on('reorg', (txHash: string) => {
+      reorged = true
+      expect(txHash).toBe(reorgedTxHash)
+    })
+    await wait(20 * 1000)
+    expect(reorged).toBeTruthy()
+    const receipt = await tx.wait()
+    expect((tx as GasBoostTransaction).txHash).toBeTruthy()
+    expect((tx as GasBoostTransaction).txHash).not.toBe(reorgedTxHash)
+  }, 10 * 60 * 1000)
+  it.skip('sendTransaction - kovan - uses market maxFeePerGas for boosted tx', async () => {
+    const provider = getRpcProvider('ethereum')
+    expectDefined(provider)
+    expectDefined(privateKey)
+    const store = new MemoryStore()
+    const signer = new GasBoostSigner(privateKey, provider, store, {
+      timeTilBoostMs: 10 * 1000,
+      priorityFeePerGasCap: 1
+    })
+    const recipient = await signer.getAddress()
+    console.log('recipient:', recipient)
+    const tx = await signer.sendTransaction({
+      to: recipient,
+      value: '0',
+      gasPrice: parseUnits('1', 9)
+    })
+    expect(tx.hash).toBeTruthy()
+    let confirmed = false
+    ;(tx as GasBoostTransaction).on('confirmed', (tx: any) => {
+      confirmed = true
+    })
+    let boosted = false
+    ;(tx as GasBoostTransaction).on('boosted', (boostedTx: any, boostIndex: number) => {
+      console.log('boosted', {
+        hash: boostedTx.hash,
+        type: tx.type,
+        gasPrice: tx.gasPrice?.toString(),
+        maxFeePerGas: tx.maxFeePerGas?.toString(),
+        maxPriorityFeePerGas: tx.maxPriorityFeePerGas?.toString(),
+        boostIndex
+      })
+      boosted = true
+      expect(boostedTx).toBeTruthy()
+    })
+    await tx.wait()
+    await wait(1 * 1000)
+    expect(confirmed).toBeTruthy()
+    expect(boosted).toBeTruthy()
   }, 10 * 60 * 1000)
 })
 

@@ -1,111 +1,86 @@
 import React, { FC } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
-import Skeleton from '@material-ui/lab/Skeleton'
-import Link from '@material-ui/core/Link'
-import Paper from '@material-ui/core/Paper'
-import Box from '@material-ui/core/Box'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
 import { useStats } from 'src/pages/Stats/StatsContext'
-import { commafy } from 'src/utils'
+import { commafy, formatTokenString } from 'src/utils'
+import { Div, Icon } from 'src/components/ui'
+import { CellWrapper, SortableTable } from 'src/components/Table'
 
-const useStyles = makeStyles(theme => ({
-  paper: {
-    padding: '2rem',
-  },
-  table: {
-    width: '800px',
-  },
-  cell: {
-    fontSize: '1.4rem',
-  },
-  flex: {
-    display: 'flex',
-  },
-  title: {
-    marginBottom: '4.2rem',
-  },
-  box: {
-    marginBottom: '2rem',
-    flexDirection: 'column',
-  },
-}))
+export const populatePendingAmountStats = (item: any) => {
+  return {
+    source: item.sourceNetwork.imageUrl,
+    destination: item.destinationNetwork.imageUrl,
+    pendingAmount: item.formattedPendingAmount,
+    tokenDecimals: item.token.decimals,
+    availableLiquidity: formatTokenString(item.availableLiquidity.toString(), item.token.decimals),
+    token: item.token.imageUrl,
+  }
+}
 
-const PoolStats: FC = () => {
-  const styles = useStyles()
+const PendingAmountStats: FC = () => {
   const { pendingAmounts, fetchingPendingAmounts } = useStats()
 
+  const columns = React.useMemo(
+    () => [
+      {
+        Header: 'Pending Amount Stats',
+        columns: [
+          {
+            Header: 'Source',
+            accessor: 'source',
+            Cell: ({ cell }) => {
+              return (
+                <CellWrapper cell={cell}>
+                  <Icon src={cell.value} />
+                </CellWrapper>
+              )
+            },
+          },
+          {
+            Header: 'Destination',
+            accessor: 'destination',
+            Cell: ({ cell }) => {
+              return (
+                <CellWrapper cell={cell}>
+                  <Icon src={cell.value} />
+                </CellWrapper>
+              )
+            },
+          },
+          {
+            Header: 'Pending Amount',
+            accessor: 'pendingAmount',
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell} end>
+                <Icon mr={1} src={cell.row.original.token} />
+                {commafy(cell.value)}
+              </CellWrapper>
+            ),
+          },
+          {
+            Header: 'Available Liquidity',
+            accessor: 'availableLiquidity',
+            Cell: ({ cell }) => (
+              <CellWrapper cell={cell} end>
+                <Icon mr={1} src={cell.row.original.token} />
+                {commafy(cell.value)}
+              </CellWrapper>
+            ),
+          },
+        ],
+      },
+    ],
+    []
+  )
+
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
-      <Box display="flex" alignItems="center" className={styles.box}>
-        <Paper className={styles.paper}>
-          <TableContainer>
-            <Table className={styles.table}>
-              <TableHead>
-                <TableRow>
-                  <th>Source</th>
-                  <th>Destination</th>
-                  <th><div>Pending Amount</div><div>for Commit</div></th>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {fetchingPendingAmounts
-                  ? Array(2)
-                      .fill(null)
-                      .map((x, i) => {
-                        return (
-                          <TableRow key={i}>
-                            <TableCell colSpan={6}>
-                              <Skeleton animation="wave" width={'100%'} />
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
-                  : pendingAmounts?.map(item => {
-                      return (
-                        <TableRow key={item.id}>
-                          <TableCell className={styles.cell}>
-                            <img
-                              style={{
-                                display: 'inline-block',
-                                marginRight: '0.5em',
-                              }}
-                              src={item.sourceNetwork.imageUrl}
-                              alt=""
-                              width="16"
-                            />
-                            {item.sourceNetwork.name}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            <img
-                              style={{
-                                display: 'inline-block',
-                                marginRight: '0.5em',
-                              }}
-                              src={item.destinationNetwork.imageUrl}
-                              alt=""
-                              width="16"
-                            />
-                            {item.destinationNetwork.name}
-                          </TableCell>
-                          <TableCell className={styles.cell}>
-                            {commafy(item.formattedPendingAmount)} {item.token.symbol}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      </Box>
-    </Box>
+    <Div fontSize={[0, 1, 2]}>
+      <SortableTable
+        stats={pendingAmounts}
+        columns={columns}
+        populateDataFn={populatePendingAmountStats}
+        loading={fetchingPendingAmounts}
+      />
+    </Div>
   )
 }
 
-export default PoolStats
+export default PendingAmountStats

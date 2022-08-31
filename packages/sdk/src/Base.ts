@@ -1,27 +1,25 @@
 import fetch from 'isomorphic-fetch'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
-import {
-  ArbERC20,
-  ArbERC20__factory,
-  ArbitrumGlobalInbox,
-  ArbitrumGlobalInbox__factory,
-  L1OptimismTokenBridge,
-  L1OptimismTokenBridge__factory,
-  L1PolygonPosRootChainManager,
-  L1PolygonPosRootChainManager__factory,
-  L1XDaiForeignOmniBridge,
-  L1XDaiForeignOmniBridge__factory,
-  L2OptimismTokenBridge,
-  L2OptimismTokenBridge__factory,
-  L2PolygonChildERC20,
-  L2PolygonChildERC20__factory,
-  L2XDaiToken,
-  L2XDaiToken__factory
-} from '@hop-protocol/core/contracts'
+import { ArbERC20 } from '@hop-protocol/core/contracts/ArbERC20'
+import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/ArbERC20__factory'
+import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/ArbitrumGlobalInbox'
+import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/ArbitrumGlobalInbox__factory'
 import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { ChainSlug, Errors, MinPolygonGasPrice, NetworkSlug } from './constants'
+import { ChainSlug, Errors, MinPolygonGasLimit, MinPolygonGasPrice, NetworkSlug } from './constants'
+import { L1OptimismTokenBridge } from '@hop-protocol/core/contracts/L1OptimismTokenBridge'
+import { L1OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L1OptimismTokenBridge__factory'
+import { L1PolygonPosRootChainManager } from '@hop-protocol/core/contracts/L1PolygonPosRootChainManager'
+import { L1PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/L1PolygonPosRootChainManager__factory'
+import { L1XDaiForeignOmniBridge } from '@hop-protocol/core/contracts/L1XDaiForeignOmniBridge'
+import { L1XDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/L1XDaiForeignOmniBridge__factory'
+import { L2OptimismTokenBridge } from '@hop-protocol/core/contracts/L2OptimismTokenBridge'
+import { L2OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L2OptimismTokenBridge__factory'
+import { L2PolygonChildERC20 } from '@hop-protocol/core/contracts/L2PolygonChildERC20'
+import { L2PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/L2PolygonChildERC20__factory'
+import { L2XDaiToken } from '@hop-protocol/core/contracts/L2XDaiToken'
+import { L2XDaiToken__factory } from '@hop-protocol/core/contracts/factories/L2XDaiToken__factory'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
@@ -38,6 +36,8 @@ type Factory = L1Factory | L2Factory
 export type ChainProviders = { [slug in ChainSlug | string]: providers.Provider }
 
 const s3FileCache : Record<string, any> = {}
+let s3FileCacheTimestamp: number = 0
+const cacheExpireMs = 1 * 60 * 1000
 
 // cache provider
 const getProvider = memoize((network: string, chain: string) => {
@@ -50,7 +50,7 @@ const getProvider = memoize((network: string, chain: string) => {
   }
   return new providers.StaticJsonRpcProvider({
     url: rpcUrl,
-    timeout: 60 * 1000
+    timeout: 5 * 60 * 1000
   })
 })
 
@@ -108,6 +108,8 @@ class Base {
   gasPriceMultiplier: number = 0
   destinationFeeGasPriceMultiplier : number = 1
 
+  baseExplorerUrl: string = 'https://explorer.hop.exchange'
+
   /**
    * @desc Instantiates Base class.
    * Returns a new Base class instance.
@@ -148,6 +150,20 @@ class Base {
 
   async init () {
     try {
+      await this.fetchConfigFromS3()
+    } catch (err) {
+      console.error('sdk init error:', err)
+    }
+  }
+
+  async fetchConfigFromS3 () {
+    try {
+      const cached = s3FileCache[this.network]
+      const isExpired = s3FileCacheTimestamp + cacheExpireMs < Date.now()
+      if (cached && !isExpired) {
+        return cached
+      }
+
       const data = s3FileCache[this.network] || await this.getS3ConfigData()
       if (data.bonders) {
         this.bonders = data.bonders
@@ -159,9 +175,16 @@ class Base {
         this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
       }
       s3FileCache[this.network] = data
-    } catch (err) {
-      console.error(err)
+      s3FileCacheTimestamp = Date.now()
+      return data
+    } catch (err: any) {
+      console.error('fetchConfigFromS3 error:', err)
     }
+  }
+
+  sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain) {
+    const chainId = this.toChainModel(chain).chainId
+    return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
   }
 
   setConfigAddresses (addresses: Addresses) {
@@ -232,9 +255,12 @@ class Base {
    * @param {Object} - Chain name or model.
    * @returns {Object} - Chain model with connected provider.
    */
-  public toChainModel (chain: TChain) {
+  public toChainModel (chain: TChain): Chain {
     if (typeof chain === 'string') {
       chain = Chain.fromSlug(chain)
+    }
+    if (!chain) {
+      throw new Error(`invalid chain "${chain}"`)
     }
     if (chain.slug === 'xdai') {
       console.warn(Errors.xDaiRebrand)
@@ -492,12 +518,14 @@ class Base {
       if (txOptions.gasPrice?.lt(MinPolygonGasPrice)) {
         txOptions.gasPrice = BigNumber.from(MinPolygonGasPrice)
       }
+      txOptions.gasLimit = MinPolygonGasLimit
     }
 
     return txOptions
   }
 
-  protected _getBonderAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): string {
+  protected async _getBonderAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): Promise<string> {
+    await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
@@ -510,7 +538,21 @@ class Base {
     return bonder
   }
 
-  public getFeeBps (token: TToken, destinationChain: TChain) {
+  protected async _getMessengerWrapperAddress (token: TToken, destinationChain: TChain): Promise<string> {
+    await this.fetchConfigFromS3()
+    token = this.toTokenModel(token)
+    destinationChain = this.toChainModel(destinationChain)
+
+    const messengerWrapper = this.addresses?.[token.canonicalSymbol]?.[destinationChain.slug]?.l1MessengerWrapper
+    if (!messengerWrapper) {
+      console.warn(`messengerWrapper address not found for route ${token.symbol}. destinationChain ${destinationChain.slug}`)
+    }
+
+    return messengerWrapper
+  }
+
+  public async getFeeBps (token: TToken, destinationChain: TChain) {
+    await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
     destinationChain = this.toChainModel(destinationChain)
     if (!token) {
@@ -532,8 +574,13 @@ class Base {
     return (this.gasPriceMultiplier = gasPriceMultiplier)
   }
 
+  getDestinationFeeGasPriceMultiplier () {
+    return this.destinationFeeGasPriceMultiplier
+  }
+
   async getS3ConfigData () {
-    const url = `https://assets.hop.exchange/${this.network}/v1-core-config.json`
+    const cacheBust = Date.now()
+    const url = `https://assets.hop.exchange/${this.network}/v1-core-config.json?cb=${cacheBust}`
     const res = await fetch(url)
     const json = await res.json()
     if (!json) {
@@ -546,6 +593,7 @@ class Base {
 
   getSupportedAssets () {
     const supported : any = {}
+
     for (const token in this.addresses) {
       for (const chain in this.addresses[token]) {
         if (!supported[chain]) {
@@ -582,6 +630,46 @@ class Base {
     })
     const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
     return l1FeeInWei
+  }
+
+  getWaitConfirmations (chain: TChain):number {
+    chain = this.toChainModel(chain)
+    if (!chain) {
+      throw new Error(`chain "${chain}" not found`)
+    }
+    const waitConfirmations = config.chains[this.network]?.[chain.slug]?.waitConfirmations
+    if (waitConfirmations === undefined) {
+      throw new Error(`waitConfirmations for chain "${chain}" not found`)
+    }
+
+    return waitConfirmations
+  }
+
+  getExplorerUrl (): string {
+    return this.baseExplorerUrl
+  }
+
+  getExplorerUrlForAccount (accountAddress: string): string {
+    return `${this.baseExplorerUrl}/?account=${accountAddress}`
+  }
+
+  getExplorerUrlForTransferId (transferId: string): string {
+    return `${this.baseExplorerUrl}/?transferId=${transferId}`
+  }
+
+  getExplorerUrlForTransactionHash (transactionHash: string): string {
+    return `${this.baseExplorerUrl}/?transferId=${transactionHash}`
+  }
+
+  async getTransferStatus (transferIdOrTxHash: String):Promise<any> {
+    const baseApiUrl = 'https://explorer-api.hop.exchange'
+    const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
+    const res = await fetch(url)
+    const json = await res.json()
+    if (json.error) {
+      throw new Error(json.error)
+    }
+    return json.data?.[0] ?? null
   }
 }
 

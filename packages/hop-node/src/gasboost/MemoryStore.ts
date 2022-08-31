@@ -8,10 +8,6 @@ export default class MemoryStore {
     return this.items[key]
   }
 
-  async getItems (): Promise<any[]> {
-    return Object.values(this.items)
-  }
-
   async deleteItem (key: string): Promise<void> {
     delete this.items[key]
   }

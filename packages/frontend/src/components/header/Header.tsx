@@ -144,8 +144,8 @@ const Header: FC = () => {
 
   return (
     <>
-      <Box className={styles.root} display="flex" alignItems="center">
-        <Box display="flex" flexDirection="row" flex={1} justifyContent="flex-start">
+      <Box className={styles.root} display="flex" flexDirection="row" alignItems="center">
+        <Box display="flex" flexDirection="row" justifyContent="flex-start" flex={1}>
           <Link to="/">
             <img
               className={styles.hopLogo}
@@ -156,14 +156,14 @@ const Header: FC = () => {
           </Link>
         </Box>
 
-        <Box display="flex" flexDirection="row" flex={1} justifyContent="center" alignSelf="center">
+        <Box display="flex" flexDirection="row" justifyContent="center" alignSelf="center" flex={1} width="100%" flexWrap="wrap">
           <HeaderRoutes />
         </Box>
 
         <Box
           display="flex"
-          flexDirection="row"
           flex={1}
+          flexDirection="row"
           justifyContent="flex-end"
           alignItems="center"
         >

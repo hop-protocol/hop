@@ -97,7 +97,7 @@ const useInputStyles = makeStyles(theme => ({
   },
 }))
 
-const TextField: FC<LargeTextFieldProps> = props => {
+const LargeTextField: FC<LargeTextFieldProps> = props => {
   const {
     units,
     centerAlign = false,
@@ -136,4 +136,4 @@ const TextField: FC<LargeTextFieldProps> = props => {
   )
 }
 
-export default TextField
+export default LargeTextField

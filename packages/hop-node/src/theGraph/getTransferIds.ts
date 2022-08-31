@@ -7,16 +7,17 @@ export default async function getTransferIds (
   chain: string,
   token: string,
   filters: Partial<Filters> = {},
-  lastId: string = '0x0000000000000000000000000000000000000000'
+  lastId: string = '0'
 ): Promise<any[]> {
+  if (chain === 'ethereum') {
+    return []
+  }
+  const queryFilters = getFilters(token, filters.destinationChainId!)
   const query = `
-    query TransfersSent(${token ? '$token: String, ' : ''}$orderDirection: String, $startDate: Int, $endDate: Int, $lastId: ID) {
+    query TransfersSent(${token ? '$token: String, ' : ''}$orderDirection: String, $startDate: Int, $endDate: Int, $destinationChainId: Int, $lastId: ID) {
       transferSents(
         where: {
-          ${token ? 'token: $token,' : ''}
-          timestamp_gte: $startDate,
-          timestamp_lte: $endDate,
-          id_gt: $lastId
+          ${queryFilters}
         },
         orderBy: id,
         orderDirection: asc,
@@ -46,6 +47,7 @@ export default async function getTransferIds (
     token,
     startDate: 0,
     endDate: MaxInt32,
+    destinationChainId: 0,
     lastId
   }
   if (filters.startDate) {
@@ -53,6 +55,9 @@ export default async function getTransferIds (
   }
   if (filters.endDate) {
     variables.endDate = DateTime.fromISO(filters.endDate).toSeconds() >>> 0
+  }
+  if (filters.destinationChainId) {
+    variables.destinationChainId = filters.destinationChainId
   }
   const jsonRes = await makeRequest(chain, query, variables)
   let transfers = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
@@ -69,4 +74,19 @@ export default async function getTransferIds (
   }
 
   return transfers
+}
+
+function getFilters (token: string, destinationChainId: number): string {
+  let filters: string = `
+    ${token ? 'token: $token,' : ''}
+    timestamp_gte: $startDate,
+    timestamp_lte: $endDate,
+    id_gt: $lastId
+  `
+
+  if (destinationChainId) {
+    filters += 'destinationChainId: $destinationChainId\n'
+  }
+
+  return filters
 }

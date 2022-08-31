@@ -1,11 +1,13 @@
 import React, { ReactNode } from 'react'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
+import { getAddress } from 'ethers/lib/utils'
 import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
 import { toTokenDisplay, getBonderFeeWithId } from 'src/utils'
-import DetailRow from 'src/components/DetailRow'
-import FeeDetails from 'src/components/FeeDetails'
+import { RelayableChains } from 'src/utils/constants'
+import DetailRow from 'src/components/InfoTooltip/DetailRow'
+import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
 
 class HopConvertOption extends ConvertOption {
@@ -31,19 +33,34 @@ class HopConvertOption extends ConvertOption {
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
     deadline: number,
-    bonderFee?: BigNumberish
+    bonderFee?: BigNumberish,
+    customRecipient?: string
   ) {
     const bridge = sdk.bridge(l1TokenSymbol).connect(signer as Signer)
     if (bonderFee) {
       bonderFee = getBonderFeeWithId(BigNumber.from(bonderFee))
     }
 
-    if (sourceNetwork.isLayer1) {
+    if (sourceNetwork.isLayer1 && !RelayableChains.includes(destNetwork.slug)) {
       bonderFee = BigNumber.from(0)
+    }
+
+    try {
+      if (customRecipient) {
+        getAddress(customRecipient) // attempts to checksum
+      }
+    } catch (err) {
+      throw new Error('Custom recipient address is invalid')
+    }
+
+    let recipient : string | undefined
+    if (customRecipient) {
+      recipient = customRecipient
     }
 
     return bridge.sendHToken(amountIn, sourceNetwork.slug, destNetwork.slug, {
       bonderFee,
+      recipient
     })
   }
 

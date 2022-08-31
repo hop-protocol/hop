@@ -52,9 +52,10 @@ const useStyles = makeStyles((theme: Theme) => ({
     position: 'fixed',
     width: '100%',
     maxWidth: '560px',
+    maxHeight: '100%',
     height: 'auto',
     overflow: 'auto',
-    top: '40%',
+    top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
     transition: 'all 0.15s ease-out',
@@ -74,6 +75,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     '&.exited': {
       opacity: 0,
       transform: 'translate(-50%, -50%) scale(0)',
+    },
+    '& img': {
+      maxWidth: '100%'
     },
     [theme.breakpoints.down('xs')]: {
       maxWidth: '90%',

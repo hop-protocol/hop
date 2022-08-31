@@ -14,7 +14,7 @@ const useStyles = makeStyles(theme => ({
   button: {
     margin: `0 ${theme.padding.light}`,
     minWidth: '11rem',
-    transition: 'all 0.15s ease-out, box-shadow 4s ease-out',
+    transition: 'all 0.15s ease-out, box-shadow 0.15s ease-out',
   },
   warning: {
     marginBottom: theme.padding.default,
@@ -65,13 +65,14 @@ const TokenWrapper: FC<Props> = (props: Props) => {
   const hasWrappedToken = wrappedTokenBalance?.gt(0)
   const hasNativeToken = canonicalTokenBalance?.gt(0)
   const loadingBalance = !(canonicalTokenBalance && wrappedTokenBalance)
+  const tokenSymbol = canonicalToken?.symbol
 
   if (!isNativeToken || !isWrappedTokenValid) {
     return null
   }
 
   return (
-    <Expandable title="Wrap/Unwrap">
+    <Expandable title={`Click here to Wrap or Unwrap ${tokenSymbol}`}>
       <Flex alignCenter my={1} justifyAround fullWidth>
         <Flex column alignCenter fullWidth>
           <AmountSelectorCard

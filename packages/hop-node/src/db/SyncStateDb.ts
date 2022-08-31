@@ -4,6 +4,7 @@ export type State = {
   key: string
   latestBlockSynced: number
   timestamp: number
+  _createdAt: number
 }
 
 // structure:

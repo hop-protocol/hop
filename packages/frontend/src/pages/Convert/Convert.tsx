@@ -9,10 +9,9 @@ import { useApp } from 'src/contexts/AppContext'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 import ConvertContent from 'src/pages/Convert/ConvertContent'
-import InfoTooltip from 'src/components/infoTooltip'
+import InfoTooltip from 'src/components/InfoTooltip'
 import { useConvert } from 'src/pages/Convert/ConvertContext'
-import useQueryParams from 'src/hooks/useQueryParams'
-import { findMatchingBridge, findNetworkBySlug } from 'src/utils'
+import { findMatchingBridge } from 'src/utils'
 import { l2Networks } from 'src/config/networks'
 
 const useStyles = makeStyles(theme => ({

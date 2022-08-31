@@ -1,10 +1,10 @@
 import React from 'react'
 import Stats from './Stats'
-import StatsContext from './StatsContext'
+import StatsProvider from './StatsContext'
 
 const fc = () => (
-  <StatsContext>
+  <StatsProvider>
     <Stats />
-  </StatsContext>
+  </StatsProvider>
 )
 export default fc

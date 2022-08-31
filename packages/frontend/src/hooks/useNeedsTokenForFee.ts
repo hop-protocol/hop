@@ -3,22 +3,29 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { BigNumber } from 'ethers'
 import logger from 'src/logger'
+import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 
 const useNeedsTokenForFee = (network: Network | undefined) => {
   const [needsToken, setNeedsToken] = useState(false)
   const { provider: walletProvider, address } = useWeb3Context()
+  const { isSmartContractWallet } = useIsSmartContractWallet()
 
   useEffect(() => {
     const checkBalance = async () => {
       const provider = network?.provider
       const signer = walletProvider?.getSigner()
 
-      if (!provider || !signer) {
+      if (!provider || !signer || !address) {
         setNeedsToken(false)
         return
       }
 
-      const balance = await provider.getBalance(await signer?.getAddress())
+      if (isSmartContractWallet) {
+        setNeedsToken(false)
+        return
+      }
+
+      const balance = await provider.getBalance(address.address)
 
       const gasPrice = await provider.getGasPrice()
       const gasNeeded = BigNumber.from('100000')

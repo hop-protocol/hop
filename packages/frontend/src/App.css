@@ -17,3 +17,20 @@ body {
 span {
   line-height: normal;
 }
+
+.rainbow-animated {
+  background: linear-gradient(99.85deg,
+    /* Base gradient stops */
+    rgb(179, 46, 255), rgb(242, 164, 152),
+    /* Repeat your base gradient stops */
+    rgb(179, 46, 255), rgb(242, 164, 152),
+    /* Repeat your first gradient stop */
+    rgb(179, 46, 255));
+  animation: rainbowAnimation 6s linear infinite;
+  background-size: 200% 200%;
+}
+
+@keyframes rainbowAnimation {
+  0% { background-position: 100% 100% }
+  100% { background-position: 0% 0% }
+}

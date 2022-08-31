@@ -8,6 +8,8 @@ import {
   compose,
   flexbox,
   FlexboxProps,
+  grid,
+  GridProps,
   layout,
   LayoutProps,
   position,
@@ -21,7 +23,7 @@ import {
 } from 'styled-system'
 
 export const composedStyleFns = () =>
-  compose(space, color, layout, typography, border, background, shadow, position, flexbox)
+  compose(space, color, layout, typography, border, background, shadow, position, flexbox, grid)
 
 export type ComposedStyleProps = BackgroundProps &
   BorderProps &
@@ -31,7 +33,8 @@ export type ComposedStyleProps = BackgroundProps &
   PositionProps &
   ShadowProps &
   TypographyProps &
-  SpaceProps
+  SpaceProps &
+  GridProps
 
 export interface SquareDimensions {
   size?: number | string

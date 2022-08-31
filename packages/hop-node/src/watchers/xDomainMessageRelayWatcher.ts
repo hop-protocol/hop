@@ -6,6 +6,7 @@ import L1Bridge from './classes/L1Bridge'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import { Chain } from 'src/constants'
+import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { getEnabledNetworks } from 'src/config'
@@ -13,11 +14,8 @@ import { getEnabledNetworks } from 'src/config'
 type Config = {
   chainSlug: string
   tokenSymbol: string
-  isL1: boolean
   bridgeContract: L1BridgeContract | L2BridgeContract
   l1BridgeContract: L1BridgeContract
-  label: string
-  token: string
   dryMode?: boolean
 }
 
@@ -32,9 +30,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     super({
       chainSlug: config.chainSlug,
       tokenSymbol: config.tokenSymbol,
-      prefix: config.label,
       logColor: 'yellow',
-      isL1: config.isL1,
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
@@ -45,10 +41,8 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.Gnosis] = new GnosisBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
-        label: config.label,
         l1BridgeContract: config.l1BridgeContract,
         bridgeContract: config.bridgeContract,
-        isL1: config.isL1,
         dryMode: config.dryMode
       })
     }
@@ -56,9 +50,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.Polygon] = new PolygonBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
-        label: config.label,
         bridgeContract: config.bridgeContract,
-        isL1: config.isL1,
         dryMode: config.dryMode
       })
     }
@@ -66,9 +58,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
-        label: config.label,
         bridgeContract: config.bridgeContract,
-        isL1: config.isL1,
         dryMode: config.dryMode
       })
     }
@@ -76,9 +66,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
-        label: config.label,
         bridgeContract: config.bridgeContract,
-        isL1: config.isL1,
         dryMode: config.dryMode
       })
     }
@@ -105,8 +93,8 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
   }
 
-  checkTransfersCommitted = async (transferRootId: string) => {
-    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+  async checkTransfersCommitted (transferRootId: string) {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId) as ExitableTransferRoot
     if (!dbTransferRoot) {
       throw new Error(`transfer root db item not found, root id "${transferRootId}"`)
     }
@@ -116,7 +104,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
-      destinationChainId!,
+      destinationChainId,
       transferRootId
     )
     if (isTransferRootIdConfirmed) {
@@ -134,7 +122,18 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
 
     logger.debug(`handling commit tx hash ${commitTxHash} from ${destinationChainId}`)
-    await watcher.handleCommitTxHash(commitTxHash!, transferRootId, logger)
+    await watcher.handleCommitTxHash(commitTxHash, transferRootId, logger)
+  }
+
+  async redeemArbitrumTransaction (l1TxHash: string, chainSlug: string, messageIndex: number = 0) {
+    const watcher = this.watchers[chainSlug] as ArbitrumBridgeWatcher
+    if (!watcher) {
+      this.logger.error('Arbitrum exit watcher is required for this transaction')
+      return
+    }
+
+    this.logger.debug(`redeeming Arbitrum transaction for L1 tx: ${l1TxHash}`)
+    await watcher.redeemArbitrumTransaction(l1TxHash, messageIndex)
   }
 }
 

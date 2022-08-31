@@ -2,9 +2,12 @@ import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
-import { ERC20__factory, WETH9__factory } from '@hop-protocol/core/contracts'
+import { ERC20 } from '@hop-protocol/core/contracts/ERC20'
+import { ERC20__factory } from '@hop-protocol/core/contracts/factories/ERC20__factory'
 import { TAmount, TChain } from './types'
 import { TokenSymbol, WrappedToken } from './constants'
+import { WETH9 } from '@hop-protocol/core/contracts/WETH9'
+import { WETH9__factory } from '@hop-protocol/core/contracts/factories/WETH9__factory'
 
 /**
  * Class reprensenting ERC20 Token
@@ -84,11 +87,15 @@ class Token extends Base {
    * @returns {Object} Ethers Transaction object.
    * @example
    *```js
-   *import { Hop, Chain, Token } from '@hop-protocol/sdk'
+   *import { Hop, Chain } from '@hop-protocol/sdk'
    *
-   *const bridge = hop.bridge(Token.USDC).connect(signer)
-   *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
-   *const allowance = bridge.allowance(Chain.Gnosis, spender)
+   *const hop = new Hop('mainnet')
+   *const bridge = hop.bridge('USDC')
+   *const token = bridge.getCanonicalToken(Chain.Polygon)
+   *const spender = await bridge.getSendApprovalAddress(Chain.Polygon)
+   *const account = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+   *const allowance = await token.allowance(spender, account)
+   *console.log(allowance)
    *```
    */
   public async allowance (spender: string, address?: string) {
@@ -100,15 +107,24 @@ class Token extends Base {
     return tokenContract.allowance(address, spender)
   }
 
+  // TODO: docs
+  public async needsApproval (spender: string, amount: TAmount, address?: string) {
+    if (this.isNativeToken) {
+      return false
+    }
+    const allowance = await this.allowance(spender, address)
+    return allowance.lt(amount)
+  }
+
   /**
    * @desc Returns token balance of signer.
    * @param {String} spender - spender address.
    * @returns {Object} Ethers Transaction object.
    * @example
    *```js
-   *import { Hop, Chain, Token } from '@hop-protocol/sdk'
+   *import { Hop, Chain } from '@hop-protocol/sdk'
    *
-   *const bridge = hop.bridge(Token.USDC).connect(signer)
+   *const bridge = hop.bridge('USDC').connect(signer)
    *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
    *const allowance = bridge.allowance(Chain.Gnosis, spender)
    *```
@@ -132,9 +148,9 @@ class Token extends Base {
    * @returns {Object} Ethers Transaction object.
    * @example
    *```js
-   *import { Hop, Token } from '@hop-protocol/sdk'
+   *import { Hop } from '@hop-protocol/sdk'
    *
-   *const bridge = hop.bridge(Token.USDC).connect(signer)
+   *const bridge = hop.bridge('USDC').connect(signer)
    *const recipient = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
    *const amount = '1000000000000000000'
    *const tx = await bridge.erc20Transfer(spender, amount)
@@ -142,10 +158,10 @@ class Token extends Base {
    */
   public async transfer (recipient: string, amount: TAmount) {
     if (this.isNativeToken) {
-      return (this.signer as Signer).sendTransaction({
+      return this.sendTransaction({
         to: recipient,
         value: amount
-      })
+      }, this.chain)
     }
     const tokenContract = await this.getErc20()
     return tokenContract.transfer(recipient, amount, await this.overrides())
@@ -159,9 +175,9 @@ class Token extends Base {
    * @returns {Object} Ethers Transaction object.
    * @example
    *```js
-   *import { Hop, Chain, Token } from '@hop-protocol/sdk'
+   *import { Hop, Chain } from '@hop-protocol/sdk'
    *
-   *const bridge = hop.bridge(Token.USDC).connect(signer)
+   *const bridge = hop.bridge('USDC').connect(signer)
    *const spender = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
    *const amount = '1000000000000000000'
    *const tx = await bridge.approve(Chain.Gnosis, spender, amount)
@@ -171,10 +187,12 @@ class Token extends Base {
     spender: string,
     amount: TAmount = ethers.constants.MaxUint256
   ) {
-    const populatedTx = await this.populateApproveTx(spender, amount)
-    const allowance = await this.allowance(spender)
+    const [populatedTx, allowance] = await Promise.all([
+      this.populateApproveTx(spender, amount),
+      this.allowance(spender)
+    ])
     if (allowance.lt(BigNumber.from(amount))) {
-      return this.signer.sendTransaction(populatedTx)
+      return this.sendTransaction(populatedTx, this.chain)
     }
   }
 
@@ -194,7 +212,7 @@ class Token extends Base {
    * @param {Object} chain - Chain model.
    * @returns {Object} Ethers contract instance.
    */
-  public async getErc20 () {
+  public async getErc20 (): Promise<ERC20|WETH9> {
     if (this.isNativeToken) {
       return this.getWethContract()
     }
@@ -245,8 +263,9 @@ class Token extends Base {
     return this.chain.provider.getBalance(address)
   }
 
-  async getWethContract () {
-    return WETH9__factory.connect(this.address, this.signer)
+  async getWethContract (): Promise<WETH9> {
+    const provider = await this.getSignerOrProvider(this.chain)
+    return WETH9__factory.connect(this.address, provider)
   }
 
   getWrappedToken () {
@@ -267,6 +286,13 @@ class Token extends Base {
     )
   }
 
+  async populateWrapTokenTx (amount: TAmount) {
+    const contract = await this.getWethContract()
+    return contract.populateTransaction.deposit({
+      value: amount
+    })
+  }
+
   async wrapToken (amount: TAmount, estimateGasOnly: boolean = false) {
     const contract = await this.getWethContract()
     if (estimateGasOnly) {
@@ -277,14 +303,19 @@ class Token extends Base {
         from
       })
     }
-    return contract.deposit({
-      value: amount
-    })
+
+    const populatedTx = await this.populateWrapTokenTx(amount)
+    return this.sendTransaction(populatedTx, this.chain)
+  }
+
+  async populateUnwrapTokenTx (amount: TAmount) {
+    const contract = await this.getWethContract()
+    return contract.populateTransaction.withdraw(amount)
   }
 
   async unwrapToken (amount: TAmount) {
-    const contract = await this.getWethContract()
-    return contract.withdraw(amount)
+    const populatedTx = await this.populateUnwrapTokenTx(amount)
+    return this.sendTransaction(populatedTx, this.chain)
   }
 
   async getWrapTokenEstimatedGas (
@@ -318,6 +349,14 @@ class Token extends Base {
       address = await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
     }
     return address
+  }
+
+  public async totalSupply (): Promise<BigNumber> {
+    if (this.isNativeToken) {
+      return BigNumber.from(0)
+    }
+    const tokenContract = await this.getErc20()
+    return tokenContract.totalSupply()
   }
 
   static fromJSON (json: any): Token {

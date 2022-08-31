@@ -19,7 +19,7 @@ import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { shiftBNDecimals, BNMin } from 'src/utils'
+import { commafy, shiftBNDecimals, BNMin } from 'src/utils'
 import { l2Networks } from 'src/config/networks'
 import { amountToBN, formatError } from 'src/utils/format'
 import {
@@ -77,6 +77,8 @@ type PoolsContextProps = {
   validFormFields: boolean
   virtualPrice?: number
   warning?: string
+  lpTokenTotalSupply?: BigNumber
+  lpTokenTotalSupplyFormatted?: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -103,6 +105,8 @@ const PoolsProvider: FC = ({ children }) => {
   const [reserveTotalsUsd, setReserveTotalsUsd] = useState<number | undefined>()
   const [virtualPrice, setVirutalPrice] = useState<number | undefined>()
   const [fee, setFee] = useState<number | undefined>()
+  const [lpTokenTotalSupply, setLpTokenTotalSupply] = useState<BigNumber | undefined>()
+  const [lpTokenTotalSupplyFormatted, setLpTokenTotalSupplyFormatted] = useState<string>('')
 
   const { txConfirm, sdk, selectedBridge, settings } = useApp()
   const { deadline, slippageTolerance } = settings
@@ -231,7 +235,7 @@ const PoolsProvider: FC = ({ children }) => {
           setApr(undefined)
           return
         }
-        const token = await selectedBridge.getCanonicalToken(selectedNetwork.slug)
+        const token = selectedBridge.getCanonicalToken(selectedNetwork.slug)
         const cacheKey = `apr:${selectedNetwork.slug}:${token.symbol}`
         try {
           const cached = JSON.parse(localStorage.getItem(cacheKey) || '')
@@ -366,19 +370,27 @@ const PoolsProvider: FC = ({ children }) => {
       if (token0Amount || token1Amount) {
         let amount0 = 0
         let amount1 = 0
+        let token0AmountBn = BigNumber.from(0)
+        let token1AmountBn = BigNumber.from(0)
 
         const reserve0 = Number(formatUnits(poolReserves[0]?.toString(), canonicalToken?.decimals))
         const reserve1 = Number(formatUnits(poolReserves[1]?.toString(), canonicalToken.decimals))
 
         if (token0Amount) {
-          amount0 = (Number(token0Amount) * Number(totalSupply)) / reserve0
+          token0AmountBn = parseUnits(token0Amount?.toString(), canonicalToken?.decimals)
+          amount0 = Number(token0Amount)
         }
         if (token1Amount) {
-          amount1 = (Number(token1Amount) * Number(totalSupply)) / reserve1
+          token1AmountBn = parseUnits(token1Amount?.toString(), canonicalToken?.decimals)
+          amount1 = Number(token1Amount)
         }
         const liquidity = amount0 + amount1
+        const bridge = sdk.bridge(canonicalToken.symbol)
+        const amm = bridge.getAmm(selectedNetwork.slug)
+        const lpTokensForDepositBn = await amm.calculateAddLiquidityMinimum(token0AmountBn, token1AmountBn)
+        const lpTokensForDeposit = Number(formatUnits(lpTokensForDepositBn.toString(), TOTAL_AMOUNTS_DECIMALS))
         const sharePercentage = Math.max(
-          Math.min(Number(((liquidity / (Number(totalSupply) + liquidity)) * 100).toFixed(2)), 100),
+          Math.min(Number(((liquidity / (Number(totalSupply) + lpTokensForDeposit)) * 100).toFixed(2)), 100),
           0
         )
         setPoolSharePercentage((sharePercentage || '0').toString())
@@ -406,19 +418,25 @@ const PoolsProvider: FC = ({ children }) => {
     let isSubscribed = true
     const update = async () => {
       setPoolReserves([])
+      setLpTokenTotalSupply(undefined)
+      setLpTokenTotalSupplyFormatted('')
       if (!(canonicalToken && hopToken && selectedNetwork && !unsupportedAsset?.chain)) {
         return
       }
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
-      const [lpDecimalsBn, reserves] = await Promise.all([
+      const [lpDecimalsBn, reserves, lpTokenTotalSupply] = await Promise.all([
         lpToken.decimals,
         bridge.getSaddleSwapReserves(selectedNetwork.slug),
+        lpToken.totalSupply(),
       ])
 
       const lpDecimals = Number(lpDecimalsBn.toString())
       if (isSubscribed) {
         setPoolReserves(reserves)
+        setLpTokenTotalSupply(lpTokenTotalSupply)
+        const lpTokenTotalSupplyFormatted = commafy(Number(formatUnits(lpTokenTotalSupply.toString(), lpDecimals)), 5)
+        setLpTokenTotalSupplyFormatted(lpTokenTotalSupplyFormatted)
       }
     }
 
@@ -568,6 +586,9 @@ const PoolsProvider: FC = ({ children }) => {
       const addLiquidityTx = await txConfirm?.show({
         kind: 'addLiquidity',
         inputProps: {
+          source: {
+            network: selectedNetwork
+          },
           token0: {
             amount: token0Amount || '0',
             token: canonicalToken,
@@ -680,6 +701,9 @@ const PoolsProvider: FC = ({ children }) => {
       const removeLiquidityTx = await txConfirm?.show({
         kind: 'removeLiquidity',
         inputProps: {
+          source: {
+            network: selectedNetwork
+          },
           token0: {
             amount: token0Amount,
             token: canonicalToken,
@@ -854,6 +878,8 @@ const PoolsProvider: FC = ({ children }) => {
         validFormFields,
         virtualPrice,
         warning,
+        lpTokenTotalSupply,
+        lpTokenTotalSupplyFormatted,
       }}
     >
       {children}

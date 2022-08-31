@@ -3,6 +3,7 @@ interface Chain {
   chainId: number
   rpcUrl: string
   explorerUrl: string
+  waitConfirmations: number
 }
 
 export interface Chains {

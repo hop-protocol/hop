@@ -1,5 +1,7 @@
+const hTokens = new Set(['hUSDC', 'hUSDT', 'hDAI', 'hMATIC', 'hETH'])
+
 function isHToken (tokenSymbol: string) {
-  return ['hUSDC', 'hUSDT', 'hDAI', 'hMATIC', 'hETH'].includes(tokenSymbol)
+  return hTokens.has(tokenSymbol)
 }
 
 export default isHToken

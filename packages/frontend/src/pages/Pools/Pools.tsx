@@ -20,7 +20,7 @@ import {
   toTokenDisplay,
 } from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
-import DetailRow from 'src/components/DetailRow'
+import DetailRow from 'src/components/InfoTooltip/DetailRow'
 import { useNeedsTokenForFee } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
@@ -135,6 +135,7 @@ const Pools: FC = () => {
     userPoolTokenPercentage,
     virtualPrice,
     warning,
+    lpTokenTotalSupplyFormatted,
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -333,6 +334,11 @@ const Pools: FC = () => {
                 title="Reserves"
                 tooltip={`AMM pool reserve totals, consisting of total ${canonicalTokenSymbol} + ${hopTokenSymbol}`}
                 value={`${reserve0Formatted} / ${reserve1Formatted}`}
+              />
+              <DetailRow
+                title="LP Tokens"
+                tooltip={'Total supply of LP tokens'}
+                value={`${lpTokenTotalSupplyFormatted || '-'}`}
               />
               <DetailRow
                 title="TVL"

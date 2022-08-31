@@ -1,19 +1,17 @@
 import Base, { ChainProviders, L1Factory, L2Factory } from './Base'
 import Token from './models/Token'
 import TokenClass from './Token'
-import {
-  ArbERC20__factory,
-  ArbitrumGlobalInbox__factory,
-  L1HomeAMBNativeToErc20__factory,
-  L1OptimismTokenBridge__factory,
-  L1PolygonPosRootChainManager__factory,
-  L1XDaiForeignOmniBridge__factory,
-  L2OptimismTokenBridge__factory,
-  L2PolygonChildERC20__factory,
-  L2XDaiToken__factory
-} from '@hop-protocol/core/contracts'
+import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/ArbERC20__factory'
+import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/ArbitrumGlobalInbox__factory'
 import { Chain } from './models'
 import { Contract, Signer, ethers } from 'ethers'
+import { L1HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/L1HomeAMBNativeToErc20__factory'
+import { L1OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L1OptimismTokenBridge__factory'
+import { L1PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/L1PolygonPosRootChainManager__factory'
+import { L1XDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/L1XDaiForeignOmniBridge__factory'
+import { L2OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L2OptimismTokenBridge__factory'
+import { L2PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/L2PolygonChildERC20__factory'
+import { L2XDaiToken__factory } from '@hop-protocol/core/contracts/factories/L2XDaiToken__factory'
 import { TAmount, TChain, TProvider, TToken } from './types'
 import { TokenSymbol } from './constants'
 import { formatUnits } from 'ethers/lib/utils'
@@ -42,11 +40,11 @@ class CanonicalBridge extends Base {
    * @returns {Object} CanonicalBridge SDK instance.
    * @example
    *```js
-   *import { CanonicalHop, Chain, Token } from '@hop-protocol/sdk'
+   *import { CanonicalHop, Chain } from '@hop-protocol/sdk'
    *import { Wallet } from 'ethers'
    *
    *const signer = new Wallet(privateKey)
-   *const bridge = new CanonicalBridge('kovan', signer, Token.USDC, Chain.Optimism)
+   *const bridge = new CanonicalBridge('kovan', signer, 'USDC', Chain.Optimism)
    *```
    */
   constructor (

@@ -154,7 +154,7 @@ const ConvertContent: FC = () => {
     destinationChainPaused
   } = useConvert()
   const [manualWarning, setManualWarning] = useState<string>('')
-  const [customRecipient, setCustomRecipient] = useState<string>()
+  const [customRecipient, setCustomRecipient] = useState<string>('')
   const { isSmartContractWallet } = useIsSmartContractWallet()
   const { gnosisEnabled, gnosisSafeWarning, isCorrectSignerNetwork } = useGnosisSafeTransaction(
     tx,

@@ -71,7 +71,7 @@ const Send: FC = () => {
   const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
-  const [customRecipient, setCustomRecipient] = useState<string>()
+  const [customRecipient, setCustomRecipient] = useState<string>('')
   const [manualWarning, setManualWarning] = useState<string>('')
   const { isSmartContractWallet } = useIsSmartContractWallet()
   const [manualError, setManualError] = useState<string>('')

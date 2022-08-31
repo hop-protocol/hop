@@ -788,3 +788,23 @@ describe('getTransferStatus', () => {
     expect(status.bonded).toBe(true)
   })
 })
+
+describe('calcAmountOutMin', () => {
+  it('should return min amount out given slippage tolerance', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const amountOut = bridge.parseUnits('1')
+    const slippageTolerance = 0.5
+    const amountOutMin = bridge.calcAmountOutMin(amountOut, slippageTolerance)
+    expect(bridge.formatUnits(amountOutMin)).toBe(0.995)
+  })
+})
+
+describe('isDestinationChainIdPaused', () => {
+  it('should return false if chain id is not paused', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const isPaused = await bridge.isDestinationChainPaused('polygon')
+    expect(isPaused).toBe(false)
+  })
+})

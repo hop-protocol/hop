@@ -117,5 +117,8 @@ export const useSendStyles = makeStyles(theme => ({
   },
   smartContractWalletWarning: {
     marginTop: theme.padding.light,
+  },
+  pausedWarning: {
+    marginTop: theme.padding.light,
   }
 }))

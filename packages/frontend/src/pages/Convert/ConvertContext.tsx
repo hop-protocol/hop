@@ -39,7 +39,7 @@ type ConvertContextProps = {
   approveTokens: () => void
   approving: boolean
   convertOptions: ConvertOption[]
-  convertTokens: () => void
+  convertTokens: (customRecipient?: string) => void
   destBalance?: BigNumber
   destNetwork?: Network
   destToken?: Token
@@ -67,6 +67,8 @@ type ConvertContextProps = {
   unsupportedAsset: any
   validFormFields: boolean
   warning?: ReactNode
+  convertOption: ConvertOption
+  destinationChainPaused: boolean
 }
 
 const ConvertContext = createContext<ConvertContextProps | undefined>(undefined)
@@ -95,6 +97,7 @@ const ConvertProvider: FC = ({ children }) => {
   const [tx, setTx] = useState<Transaction | undefined>()
   const debouncer = useRef(0)
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
+  const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
 
   const { unsupportedAsset } = useAssets(selectedBridge, selectedNetwork)
 
@@ -343,7 +346,7 @@ const ConvertProvider: FC = ({ children }) => {
     }
   }
 
-  const convertTokens = async () => {
+  const convertTokens = async (customRecipient?: string) => {
     try {
       setTx(undefined)
       const networkId = Number(sourceNetwork?.networkId)
@@ -365,7 +368,6 @@ const ConvertProvider: FC = ({ children }) => {
 
       const signer = provider?.getSigner()
       const value = amountToBN(sourceTokenAmount, sourceToken.decimals).toString()
-      const l1Bridge = await selectedBridge.getL1Bridge()
       const isCanonicalTransfer = false
 
       const tx = await txConfirm?.show({
@@ -381,6 +383,7 @@ const ConvertProvider: FC = ({ children }) => {
             token: destToken,
             network: destNetwork
           },
+          customRecipient: convertOption?.slug === 'hop-bridge' ? customRecipient : ''
         },
         onConfirm: async () => {
           await approveTokens()
@@ -399,7 +402,8 @@ const ConvertProvider: FC = ({ children }) => {
             value,
             amountOutMin,
             deadline(),
-            bonderFee
+            bonderFee,
+            customRecipient
           )
         },
       })
@@ -453,11 +457,26 @@ const ConvertProvider: FC = ({ children }) => {
     }
   }, [sourceBalance, enoughBalance, needsTokenForFee, sourceNetwork])
 
+  useEffect(() => {
+    const update = async () => {
+      if (sourceNetwork?.isL1 && destNetwork && sourceToken) {
+        const bridge = sdk.bridge(sourceToken.symbol)
+        const isPaused = await bridge.isDestinationChainPaused(destNetwork?.slug)
+        setDestinationChainPaused(isPaused)
+      } else {
+        setDestinationChainPaused(false)
+      }
+    }
+
+    update().catch(console.error)
+  }, [sdk, sourceToken, sourceNetwork, destNetwork])
+
   return (
     <ConvertContext.Provider
       value={{
         approveTokens,
         approving,
+        convertOption,
         convertOptions,
         convertTokens,
         destBalance,
@@ -487,6 +506,7 @@ const ConvertProvider: FC = ({ children }) => {
         unsupportedAsset,
         validFormFields,
         warning,
+        destinationChainPaused
       }}
     >
       {children}

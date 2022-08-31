@@ -77,6 +77,7 @@ const Send: FC = () => {
   const [manualError, setManualError] = useState<string>('')
   const [feeRefund, setFeeRefund] = useState<BigNumber>(BigNumber.from(0))
   const [feeRefundEnabled] = useState<boolean>(true)
+  const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -184,6 +185,20 @@ const Send: FC = () => {
     estimatedGasCost,
     fromBalance
   )
+
+  useEffect(() => {
+    const update = async () => {
+      if (fromNetwork?.isL1 && toNetwork && sourceToken) {
+        const bridge = sdk.bridge(sourceToken.symbol)
+        const isPaused = await bridge.isDestinationChainPaused(toNetwork?.slug)
+        setDestinationChainPaused(isPaused)
+      } else {
+        setDestinationChainPaused(false)
+      }
+    }
+
+    update().catch(console.error)
+  }, [sdk, sourceToken, fromNetwork, toNetwork])
 
   // ==============================================================================================
   // Error and warning messages
@@ -569,7 +584,8 @@ const Send: FC = () => {
       estimatedReceived?.gt(0) &&
       !manualError &&
       (!disabledTx || disabledTx?.warningOnly) &&
-      (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet)
+      (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet) &&
+      !destinationChainPaused
     )
   }, [
     needsApproval,
@@ -648,12 +664,18 @@ const Send: FC = () => {
         styles={styles}
         customRecipient={customRecipient}
         handleCustomRecipientInput={handleCustomRecipientInput}
-        isOpen={isSmartContractWallet}
+        isOpen={customRecipient || isSmartContractWallet}
       />
 
       <div className={styles.smartContractWalletWarning}>
         <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
       </div>
+
+      {destinationChainPaused && (
+        <div className={styles.pausedWarning}>
+          <Alert severity="warning">Deposits to destination chain {toNetwork?.name} are currently paused. Please check official announcement channels for status updates.</Alert>
+        </div>
+      )}
 
       {disabledTx && (
         <Alert severity={disabledTx?.message?.severity ||  'warning'}>

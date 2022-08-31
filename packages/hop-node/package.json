@@ -40,7 +40,7 @@
   "dependencies": {
     "@aave/contract-helpers": "1.4.0",
     "@aave/math-utils": "1.4.0",
-    "@arbitrum/sdk": "2.0.13",
+    "@arbitrum/sdk": "2.0.17",
     "@aws-sdk/client-s3": "3.33.0",
     "@eth-optimism/contracts": "0.5.3",
     "@eth-optimism/core-utils": "0.5.2",
@@ -49,7 +49,7 @@
     "@ethersproject/hdnode": "5.0.9",
     "@fxportal/maticjs-fxportal": "1.1.1",
     "@hop-protocol/core": "0.0.1-beta.73",
-    "@hop-protocol/sdk": "0.0.1-beta.344",
+    "@hop-protocol/sdk": "0.0.1-beta.346",
     "@maticnetwork/maticjs": "3.2.0",
     "@maticnetwork/maticjs-ethers": "1.0.2",
     "@slack/web-api": "6.7.2",

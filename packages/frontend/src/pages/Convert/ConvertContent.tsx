@@ -11,9 +11,11 @@ import { useConvert } from 'src/pages/Convert/ConvertContext'
 import TokenWrapper from 'src/components/TokenWrapper'
 import { sanitizeNumericalString } from 'src/utils'
 import { ChainSlug } from '@hop-protocol/sdk'
-import { MethodNames } from 'src/hooks'
+import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
+import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
+import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -30,10 +32,13 @@ const useStyles = makeStyles(theme => ({
     width: '2.4rem',
   },
   lastSelector: {
-    marginBottom: '5.4rem',
+    marginBottom: '0'
   },
   details: {
-    marginBottom: theme.padding.light,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    marginBottom: '0',
     width: '46.0rem',
     [theme.breakpoints.down('xs')]: {
       width: '90%',
@@ -46,6 +51,72 @@ const useStyles = makeStyles(theme => ({
     margin: `0 ${theme.padding.light}`,
     minWidth: '17.5rem',
   },
+  customRecipientBox: {
+    marginBottom: '5.4rem',
+  },
+  detailRow: {},
+  detailLabel: {
+    display: 'flex',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  detailsDropdown: {
+    width: '51.6rem',
+    marginTop: '2rem',
+    '&[open] summary span::before': {
+      content: '"▾"',
+    },
+    [theme.breakpoints.down('xs')]: {
+      width: '90%',
+    },
+  },
+  detailsDropdownSummary: {
+    listStyle: 'none',
+    display: 'block',
+    textAlign: 'right',
+    fontWeight: 'normal',
+    paddingRight: '4rem',
+    '&::marker': {
+      display: 'none',
+    },
+  },
+  detailsDropdownLabel: {
+    position: 'relative',
+    cursor: 'pointer',
+    '& > span': {
+      position: 'relative',
+      display: 'inline-flex',
+      justifyItems: 'center',
+      alignItems: 'center',
+    },
+    '& > span::before': {
+      display: 'block',
+      content: '"▸"',
+      position: 'absolute',
+      top: '0',
+      right: '-1.5rem',
+    },
+  },
+  customRecipient: {
+    width: '51.6rem',
+    marginTop: '1rem',
+    boxSizing: 'border-box',
+    borderRadius: '3rem',
+    boxShadow: theme.boxShadow.inner,
+    [theme.breakpoints.down('xs')]: {
+      width: '100%',
+    },
+  },
+  customRecipientLabel: {
+    textAlign: 'right',
+    marginBottom: '1.5rem',
+  },
+  smartContractWalletWarning: {
+    marginTop: theme.padding.light,
+  },
+  pausedWarning: {
+    marginTop: theme.padding.light,
+  }
 }))
 
 const ConvertContent: FC = () => {
@@ -79,8 +150,18 @@ const ConvertContent: FC = () => {
     unsupportedAsset,
     validFormFields,
     warning,
+    convertOption,
+    destinationChainPaused
   } = useConvert()
   const [manualWarning, setManualWarning] = useState<string>('')
+  const [customRecipient, setCustomRecipient] = useState<string>()
+  const { isSmartContractWallet } = useIsSmartContractWallet()
+  const { gnosisEnabled, gnosisSafeWarning, isCorrectSignerNetwork } = useGnosisSafeTransaction(
+    tx,
+    customRecipient,
+    sourceNetwork,
+    destNetwork
+  )
 
   useEffect(() => {
     setSourceTokenAmount('')
@@ -99,7 +180,7 @@ const ConvertContent: FC = () => {
   }
 
   const handleSend = async () => {
-    convertTokens()
+    convertTokens(customRecipient)
   }
 
   const handleApprove = async () => {
@@ -114,11 +195,17 @@ const ConvertContent: FC = () => {
     setManualWarning('')
   }, [destNetwork?.slug, sourceNetwork?.slug])
 
+  const handleCustomRecipientInput = (event: any) => {
+    const value = event.target.value.trim()
+    setCustomRecipient(value)
+  }
+
   const sendableWarning = !warning || (warning as any)?.startsWith('Warning:')
   const sendButtonActive =
-    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning
+    validFormFields && !unsupportedAsset && !needsApproval && sendableWarning && !error && !manualWarning && (gnosisEnabled ? isCorrectSignerNetwork : true)
 
   const approvalButtonActive = !needsTokenForFee && needsApproval && validFormFields
+  const allowCustomRecipient = convertOption?.slug === 'hop-bridge'
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -158,10 +245,32 @@ const ConvertContent: FC = () => {
             loadingBalance={loadingDestBalance}
             disableInput
           />
+
+          <Box className={styles.customRecipientBox}>
+            {allowCustomRecipient && (
+              <CustomRecipientDropdown
+                styles={styles}
+                customRecipient={customRecipient}
+                handleCustomRecipientInput={handleCustomRecipientInput}
+                isOpen={customRecipient || isSmartContractWallet}
+              />
+            )}
+          </Box>
+
           <div className={styles.details}>{details}</div>
           <Alert severity="error" onClose={() => setError()} text={error} />
           <Alert severity="warning">{warning}</Alert>
           <Alert severity="error">{manualWarning}</Alert>
+          {allowCustomRecipient && (
+            <div className={styles.smartContractWalletWarning}>
+              <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
+            </div>
+          )}
+          {destinationChainPaused && (
+            <div className={styles.pausedWarning}>
+              <Alert severity="warning">Deposits to destination chain {destNetwork?.name} are currently paused. Please check official announcement channels for status updates.</Alert>
+            </div>
+          )}
           {tx && <TxStatusModal onClose={handleTxStatusClose} tx={tx} />}
 
           <ButtonsWrapper>

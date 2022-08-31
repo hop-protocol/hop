@@ -103,6 +103,7 @@ jobs:
           REACT_APP_WARNING_ROUTES: ${{ secrets.REACT_APP_WARNING_ROUTES }}
           REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS: ${{ secrets.REACT_APP_DISABLE_NATIVE_ASSET_TRANSFERS }}
           REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE: ${{ secrets.REACT_APP_DISABLED_ROUTES_NO_LIQUIDITY_WARNING_MESSAGE }}
+          REACT_APP_SHOW_BANNER_MESSAGE: ${{ secrets.REACT_APP_SHOW_BANNER_MESSAGE }}
         run: yarn build
 
       - name: Pin to IPFS on Pinata
@@ -171,4 +172,6 @@ jobs:
             - https://gateway.ipfs.io/ipfs/${{ needs.build.outputs.hash }}/
             - https://crustwebsites.net/ipfs/${{ needs.build.outputs.hash }}/
             - [ipfs://${{ needs.build.outputs.hash }}/](ipfs://${{ needs.build.outputs.hash }}/)
+            - https://hop.eth.limo/
+            - https://hop.eth.link/
             ${{ needs.bump_version.outputs.changelog }}

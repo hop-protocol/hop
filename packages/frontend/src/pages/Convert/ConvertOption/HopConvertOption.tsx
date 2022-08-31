@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react'
 import { Signer, BigNumber, BigNumberish } from 'ethers'
+import { getAddress } from 'ethers/lib/utils'
 import { Hop, HopBridge, Token, TokenSymbol } from '@hop-protocol/sdk'
 import Network from 'src/models/Network'
 import ConvertOption, { SendData } from './ConvertOption'
@@ -32,7 +33,8 @@ class HopConvertOption extends ConvertOption {
     amountIn: BigNumberish,
     amountOutMin: BigNumberish,
     deadline: number,
-    bonderFee?: BigNumberish
+    bonderFee?: BigNumberish,
+    customRecipient?: string
   ) {
     const bridge = sdk.bridge(l1TokenSymbol).connect(signer as Signer)
     if (bonderFee) {
@@ -43,8 +45,22 @@ class HopConvertOption extends ConvertOption {
       bonderFee = BigNumber.from(0)
     }
 
+    try {
+      if (customRecipient) {
+        getAddress(customRecipient) // attempts to checksum
+      }
+    } catch (err) {
+      throw new Error('Custom recipient address is invalid')
+    }
+
+    let recipient : string | undefined
+    if (customRecipient) {
+      recipient = customRecipient
+    }
+
     return bridge.sendHToken(amountIn, sourceNetwork.slug, destNetwork.slug, {
       bonderFee,
+      recipient
     })
   }
 

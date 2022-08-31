@@ -41,6 +41,8 @@ import {
 } from 'src/hooks'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
+import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import { ExternalLink } from 'src/components/Link'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -561,6 +563,15 @@ const Send: FC = () => {
     setManualWarning('')
   }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
+  useEffect(() => {
+    // if (fromNetwork?.slug === ChainSlug.Polygon || toNetwork?.slug === ChainSlug.Polygon) {
+    //   return setManualError('Warning: transfers to/from Polygon are temporarily down.')
+    // }
+    // setManualError('')
+  }, [fromNetwork?.slug, toNetwork?.slug])
+
+  const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, sourceToken?.symbol)
+
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
 
   const sendButtonActive = useMemo(() => {
@@ -593,6 +604,11 @@ const Send: FC = () => {
     sufficientBalance,
     isLiquidityAvailable,
     estimatedReceived,
+    manualError,
+    disabledTx,
+    gnosisEnabled,
+    isCorrectSignerNetwork,
+    isSmartContractWallet,
   ])
 
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd

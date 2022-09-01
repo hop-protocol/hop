@@ -62,9 +62,9 @@ const Faucet: FC = () => {
             Mint {mintAmount} {selectedNetwork?.name}
           </Typography>
           <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleTokenChange}>
-            {tokens.map(token => (
+            {tokens.filter(token => token.symbol !== 'ETH').map(token => (
               <MenuItem value={token.symbol} key={token.symbol}>
-                {token.symbol !== 'ETH' && token.symbol}
+                {token.symbol}
               </MenuItem>
             ))}
           </RaisedSelect>

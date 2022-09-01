@@ -33,7 +33,7 @@ export const useRewards = (props: Props) => {
   const [tokenSymbol, setTokenSymbol] = useState('')
   const [latestRootTotal, setLatestRootTotal] = useState(BigNumber.from(0))
   const claimRecipient = queryParams.address as string ?? address?.address
-  const pollUnclaimableAmountFromBackend = false
+  const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
     try {
       if (rewardsContractAddress) {
@@ -210,7 +210,7 @@ export const useRewards = (props: Props) => {
         throw new Error(json.err)
       }
       if (json.data.rewards.balance) {
-        setUnclaimableAmount(json.data.rewards.balance)
+        setUnclaimableAmount(BigNumber.from(json.data.rewards.balance))
       }
     } catch (err) {
       console.error(err)

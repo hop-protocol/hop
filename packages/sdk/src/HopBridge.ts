@@ -1460,7 +1460,7 @@ class HopBridge extends Base {
     // TODO: Remove after Arbitrum RPC endpoint is fixed
     const txOptions: any = {}
     if (sourceChain.equals(Chain.Arbitrum)) {
-      txOptions.gasLimit = 2000000
+      txOptions.gasLimit = 5000000
     }
 
     return saddleSwap.swap(

@@ -22,7 +22,7 @@ export const useRewards = (props: Props) => {
   const { rewardsContractAddress, merkleBaseUrl, requiredChainId } = props
   const { checkConnectedNetworkId, address, provider, connectedNetworkId } = useWeb3Context()
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [claiming, setClaiming] = useState(false)
   const [claimableAmount, setClaimableAmount] = useState(BigNumber.from(0))
   const [unclaimableAmount, setUnclaimableAmount] = useState(BigNumber.from(0))
@@ -33,7 +33,7 @@ export const useRewards = (props: Props) => {
   const [tokenSymbol, setTokenSymbol] = useState('')
   const [latestRootTotal, setLatestRootTotal] = useState(BigNumber.from(0))
   const claimRecipient = queryParams.address as string ?? address?.address
-  const pollUnclaimableAmountFromBackend = false
+  const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
     try {
       if (rewardsContractAddress) {
@@ -128,6 +128,7 @@ export const useRewards = (props: Props) => {
       if (!isSet) {
         return
       }
+      setLoading(true)
       const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
       const [entry] = await shardedMerkleTree.getProof(claimRecipient)
       if (!entry) {
@@ -209,7 +210,7 @@ export const useRewards = (props: Props) => {
         throw new Error(json.err)
       }
       if (json.data.rewards.balance) {
-        setUnclaimableAmount(json.data.rewards.balance)
+        setUnclaimableAmount(BigNumber.from(json.data.rewards.balance))
       }
     } catch (err) {
       console.error(err)
@@ -247,6 +248,8 @@ export const useRewards = (props: Props) => {
       setClaiming(true)
       const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
       const [entry, proof] = await shardedMerkleTree.getProof(claimRecipient)
+      console.log('entry', entry)
+      console.log('proof', proof)
       if (!entry) {
         throw new Error('no entry')
       }

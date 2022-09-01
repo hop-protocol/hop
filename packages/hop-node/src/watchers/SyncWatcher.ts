@@ -1401,7 +1401,9 @@ class SyncWatcher extends BaseWatcher {
   getIsRelayable = (
     relayerFee: BigNumber
   ): boolean => {
-    return relayerFee.gt(0)
+    // TODO: Introduce after integration updates
+    return true
+    // return relayerFee.gt(0)
   }
 
   getIsBlocklisted (addresses: string[]) {

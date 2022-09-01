@@ -157,9 +157,11 @@ class RelayWatcher extends BaseWatcher {
     const bonderAddress = await destBridge.getBonderAddress()
     const isCorrectRelayer = bonderAddress.toLowerCase() === relayer.toLowerCase()
     if (!isCorrectRelayer) {
-      logger.warn('relayer is not correct. marking item not relayable.')
-      await this.db.transfers.update(transferId, { isRelayable: false })
-      return
+      // Re-introduce when enforcing
+      logger.debug('relayer address is not correct')
+      // logger.warn('relayer is not correct. marking item not relayable.')
+      // await this.db.transfers.update(transferId, { isRelayable: false })
+      // return
     }
 
     const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
@@ -189,10 +191,12 @@ class RelayWatcher extends BaseWatcher {
       logger.debug('checkTransferSentToL2 getIsRelayerFeeOk')
       const isRelayerFeeOk = await this.getIsFeeOk(transferId, GasCostTransactionType.Relay)
       if (!isRelayerFeeOk) {
-        const msg = 'Relayer fee is too low. Cannot relay.'
-        logger.warn(msg)
-        this.notifier.warn(msg)
-        throw new RelayerFeeTooLowError(msg)
+        // Re-introduce when enforcing
+        logger.debug('relayer fee is too low')
+        // const msg = 'Relayer fee is too low. Cannot relay.'
+        // logger.warn(msg)
+        // this.notifier.warn(msg)
+        // throw new RelayerFeeTooLowError(msg)
       }
 
       logger.debug('checkTransferSentToL2 sendRelayTx')

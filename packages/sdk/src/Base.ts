@@ -523,7 +523,7 @@ class Base {
 
     // TODO: Remove after Arbitrum RPC endpoint fix
     if (chain.equals(Chain.Arbitrum)) {
-      txOptions.gasLimit = 2000000
+      txOptions.gasLimit = 5000000
     }
 
     return txOptions

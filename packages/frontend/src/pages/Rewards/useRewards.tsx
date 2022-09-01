@@ -248,6 +248,8 @@ export const useRewards = (props: Props) => {
       setClaiming(true)
       const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
       const [entry, proof] = await shardedMerkleTree.getProof(claimRecipient)
+      console.log('entry', entry)
+      console.log('proof', proof)
       if (!entry) {
         throw new Error('no entry')
       }

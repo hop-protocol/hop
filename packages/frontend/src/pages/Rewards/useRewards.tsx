@@ -203,14 +203,17 @@ export const useRewards = (props: Props) => {
       if (!pollUnclaimableAmountFromBackend) {
         return
       }
+      if (!claimRecipient) {
+        return
+      }
       const url = `https://hop-merkle-rewards-backend.hop.exchange/v1/rewards?address=${claimRecipient}`
       const res = await fetch(url)
       const json = await res.json()
       if (json.error) {
-        throw new Error(json.err)
+        throw new Error(json.error)
       }
-      if (json.data.rewards.balance) {
-        setUnclaimableAmount(BigNumber.from(json.data.rewards.balance))
+      if (json.data.rewards.lockedBalance) {
+        setUnclaimableAmount(BigNumber.from(json.data.rewards.lockedBalance))
       }
     } catch (err) {
       console.error(err)
@@ -219,7 +222,7 @@ export const useRewards = (props: Props) => {
 
   useEffect(() => {
     getUnclaimableAmountFromBackend().catch(console.error)
-  }, [getUnclaimableAmountFromBackend, claimRecipient])
+  }, [claimRecipient])
 
   useInterval(getUnclaimableAmountFromBackend, 10 * 1000)
 

@@ -77,6 +77,7 @@ const Send: FC = () => {
   const [manualError, setManualError] = useState<string>('')
   const [feeRefund, setFeeRefund] = useState<string>('')
   const [feeRefundUsd, setFeeRefundUsd] = useState<string>('')
+  const [feeRefundTokenSymbol, setFeeRefundTokenSymbol] = useState<string>('')
   const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
   // TODO: enable once rewards live
   const [feeRefundEnabled] = useState<boolean>(reactAppNetwork === 'goerli')
@@ -354,9 +355,10 @@ const Send: FC = () => {
             throw new Error(json.error)
           }
           console.log(json.data.refund)
-          const { refundAmountInRefundToken, refundAmountInUsd } = json.data.refund
+          const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
           setFeeRefund(refundAmountInRefundToken.toFixed(4))
           setFeeRefundUsd(refundAmountInUsd.toFixed(2))
+          setFeeRefundTokenSymbol(refundTokenSymbol)
         } else {
           setFeeRefund('')
           setFeeRefundUsd('')
@@ -612,8 +614,8 @@ const Send: FC = () => {
     isSmartContractWallet,
   ])
 
-  const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd
-  const feeRefundDisplay = feeRefund && feeRefundUsd ? `${feeRefundUsd} OP ($${feeRefundUsd})` : ''
+  const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
+  const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ${feeRefundTokenSymbol} ($${feeRefundUsd})` : ''
 
   return (
     <Flex column alignCenter>

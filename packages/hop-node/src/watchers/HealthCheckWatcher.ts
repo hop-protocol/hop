@@ -381,6 +381,7 @@ export class HealthCheckWatcher {
       lowOsResources
     } = result
 
+    this.logger.debug('sending notifications', JSON.stringify(result, null, 2))
     const messages: string[] = []
 
     if (!unsyncedSubgraphs.length) {
@@ -933,7 +934,7 @@ export class HealthCheckWatcher {
           }
         }
         if (!isFound) {
-          missingTransfers.push([
+          missingTransfers.push({
             transactionHash,
             token,
             recipient,
@@ -941,7 +942,7 @@ export class HealthCheckWatcher {
             amount,
             relayer,
             relayerFee
-          ])
+        })
         }
       }
     }

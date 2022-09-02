@@ -448,7 +448,7 @@ export const addresses: Addresses = {
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0xE7B49ba692773251e78Ad50293cf4D64b67CAa7a',
+        l1MessengerWrapper: '0x34AFcC4704b6A342007174A4Ce361929521fcB90',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
         l2Bridge: '0x3749C4f034022c39ecafFaBA182555d4508caCCC',

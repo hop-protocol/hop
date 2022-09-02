@@ -219,6 +219,7 @@ class SubDbIncompletes extends BaseDb {
       !item.commitTxBlockNumber ||
       (item.commitTxHash && !item.committedAt) ||
       (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
+      (item.confirmTxHash && !item.confirmedAt) ||
       (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
       (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */

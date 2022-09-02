@@ -1002,10 +1002,9 @@ class SyncWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug('starting populateTransferRootConfirmedAt')
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
-    const { confirmTxHash, confirmBlockNumber, confirmed, confirmedAt } = dbTransferRoot
+    const { confirmTxHash, confirmBlockNumber, confirmedAt } = dbTransferRoot
     if (
       !confirmTxHash ||
-      !confirmed ||
       confirmedAt
     ) {
       logger.debug('populateTransferRootConfirmedAt already found')

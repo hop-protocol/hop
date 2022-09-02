@@ -5,12 +5,12 @@ import { MaxDeadline } from '../constants'
 import { config } from '../config'
 
 export class ArbitrumRelayerFee implements IRelayerFee {
-  // The token has a negligible effect on the gas cost, so we can use any token
-  token: string = 'USDC'
   network: string
+  token: string
 
-  constructor (network: string) {
+  constructor (network: string, token: string) {
     this.network = network
+    this.token = token
   }
 
   async getRelayCost (): Promise<BigNumber> {

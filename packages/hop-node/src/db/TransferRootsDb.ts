@@ -622,6 +622,7 @@ class TransferRootsDb extends BaseDb {
       const seenOnL1TimestampOk = seenOnL1TimestampMs + TimeFromL1ToL2Ms[destinationChain] < Date.now()
 
       return (
+        !item.rootSetTxHash &&
         item.commitTxHash &&
         item.transferRootHash &&
         item.transferRootId &&

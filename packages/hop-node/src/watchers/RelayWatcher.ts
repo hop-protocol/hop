@@ -289,7 +289,7 @@ class RelayWatcher extends BaseWatcher {
 
     logger.debug('processing transfer root relay')
     logger.debug('transferRootHash:', transferRootHash)
-    logger.debug('totalAmount:', totalAmount)
+    logger.debug('totalAmount:', totalAmount.toString())
     logger.debug('destinationChainId:', destinationChainId)
     logger.debug('l1txHash:', l1TxHash)
 
@@ -346,9 +346,8 @@ class RelayWatcher extends BaseWatcher {
   async sendTransferRootRelayTx (transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug(
-      'relay root destinationChainId'
+      `relay root destinationChainId with txHash ${txHash}`,
     )
-    logger.debug('checkRelayableTransferRoots l2Bridge.distribute')
     return await this.sendRelayTx(txHash)
   }
 

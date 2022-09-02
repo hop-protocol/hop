@@ -540,10 +540,11 @@ class SyncWatcher extends BaseWatcher {
     logger.debug('handling TransferRootConfirmed event')
 
     try {
-      const { transactionHash } = event
+      const { transactionHash, blockNumber } = event
       await this.db.transferRoots.update(transferRootId, {
         confirmed: true,
-        confirmTxHash: transactionHash
+        confirmTxHash: transactionHash,
+        confirmBlockNumber: blockNumber
       })
     } catch (err) {
       logger.error(`handleTransferRootConfirmedEvent error: ${err.message}`)
@@ -754,6 +755,7 @@ class SyncWatcher extends BaseWatcher {
 
     await this.populateTransferRootCommittedAt(transferRootId)
     await this.populateTransferRootBondedAt(transferRootId)
+    await this.populateTransferRootConfirmedAt(transferRootId)
     await this.populateTransferRootTimestamp(transferRootId)
     await this.populateTransferRootMultipleWithdrawSettled(transferRootId)
     await this.populateTransferRootTransferIds(transferRootId)
@@ -993,6 +995,43 @@ class SyncWatcher extends BaseWatcher {
     await this.db.transferRoots.update(transferRootId, {
       bonder: from,
       bondedAt: timestamp
+    })
+  }
+
+  async populateTransferRootConfirmedAt (transferRootId: string) {
+    const logger = this.logger.create({ root: transferRootId })
+    logger.debug('starting populateTransferRootConfirmedAt')
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId)
+    const { confirmTxHash, confirmBlockNumber, confirmed, confirmedAt } = dbTransferRoot
+    if (
+      !confirmTxHash ||
+      !confirmed ||
+      confirmedAt
+    ) {
+      logger.debug('populateTransferRootConfirmedAt already found')
+      return
+    }
+
+    const destinationBridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge
+    const tx = await destinationBridge.getTransaction(confirmTxHash)
+    if (!tx) {
+      logger.warn(`populateTransferRootConfirmedAt marking item not found: tx object for transactionHash: ${confirmTxHash} on chain: ${Chain.Ethereum}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+    }
+
+    const timestamp = await destinationBridge.getBlockTimestamp(confirmBlockNumber)
+
+    if (!timestamp) {
+      logger.warn(`populateTransferRootConfirmedAt marking item not found. timestamp for confirmBlockNumber: ${confirmBlockNumber}. dbItem: ${JSON.stringify(dbTransferRoot)}`)
+      await this.db.transferRoots.update(transferRootId, { isNotFound: true })
+      return
+    }
+
+    logger.debug(`confirmedAt: ${timestamp}`)
+
+    await this.db.transferRoots.update(transferRootId, {
+      confirmedAt: timestamp
     })
   }
 

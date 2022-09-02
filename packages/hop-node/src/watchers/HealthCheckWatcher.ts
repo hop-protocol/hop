@@ -899,14 +899,20 @@ export class HealthCheckWatcher {
     const now = DateTime.now().toUTC()
     const endDate = now.minus({ hours: 1 })
     const startDate = endDate.minus({ days: this.days })
+    const endDateSeconds = Math.floor(endDate.toSeconds())
+    const startDateSeconds = Math.floor(startDate.toSeconds())
     const tokens = ''
-    const transfersSent = await getTransferSentToL2(Chain.Ethereum, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+    const transfersSent = await getTransferSentToL2(Chain.Ethereum, tokens, startDateSeconds, endDateSeconds)
 
     // There is no relayerFeeTooLow check here but there may need to be. If too many relayer fees are too low, then we can add logic to check for that.
 
     const missingTransfers: any[] = []
     for (const chain of RelayableChains) {
-      const transfersReceived = await getTransferFromL1Completed(chain, tokens, Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+      // Transfers received needs a buffer so that a transfer that is seen on L1 has time to be seen on L2
+      const endDateWithBuffer = endDate.plus({ minutes: 30 })
+      const endDateWithBufferSeconds = Math.floor(endDateWithBuffer.toSeconds())
+      const transfersReceived = await getTransferFromL1Completed(chain, tokens, startDateSeconds, endDateWithBufferSeconds)
+
 
       // L1 to L2 transfers don't have a unique identifier from the perspective of the L1 event, so we need to track which L2 hashes have been observed
       // and can use that to filter out duplicates.

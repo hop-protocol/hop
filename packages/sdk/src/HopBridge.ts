@@ -2375,6 +2375,7 @@ class HopBridge extends Base {
   }
 
   private async _getEncodedEstimateRetryableTicketData (destinationChain: TChain, encodedDistributeData: string): Promise<string> {
+    // The alias address on Arbitrum needs to have enough funds to cover the tx in order for this to work
     const messengerWrapperAddress = await this.getMessengerWrapperAddress(destinationChain)
     const sender = messengerWrapperAddress
     const deposit = BigNumber.from(0)

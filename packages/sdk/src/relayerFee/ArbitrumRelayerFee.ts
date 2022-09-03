@@ -35,9 +35,8 @@ export class ArbitrumRelayerFee implements IRelayerFee {
     const types = ['uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256']
     const decoded = ethersUtils.defaultAbiCoder.decode(types, gasInfo)
     const redemptionGasPrice = decoded[1]
-    const redemptionGasLimit = BigNumber.from(1980)
-    const l1TransactionCost = ethersUtils.parseUnits('0.00015')
-    const redemptionCost = redemptionGasLimit.mul(redemptionGasPrice).add(l1TransactionCost)
+    const redemptionGasLimit = BigNumber.from(1000)
+    const redemptionCost = redemptionGasLimit.mul(redemptionGasPrice)
 
     // Distribution Cost
     const encodedDistributeData = await this._getEncodedDistributeData()
@@ -97,6 +96,7 @@ export class ArbitrumRelayerFee implements IRelayerFee {
   }
 
   private async _getEncodedEstimateRetryableTicketData (encodedDistributeData: string): Promise<string> {
+    // The alias address on Arbitrum needs to have enough funds to cover the tx in order for this to work
     const messengerWrapperAddress = this._getMessengerWrapperAddress()
     const sender = messengerWrapperAddress
     const deposit = BigNumber.from(0)

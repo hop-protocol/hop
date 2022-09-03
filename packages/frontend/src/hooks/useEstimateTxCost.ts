@@ -86,6 +86,13 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
         // Get estimated gas limit
         const bonderFee = await bridge.getBonderFeeAbsolute(fromNetwork.slug)
         const amount = (bonderFee ?? BigNumber.from('100')).mul(2)
+
+        // RelayerFee amount does not matter for estimation
+        let relayerFee
+        if (fromNetwork.slug === ChainSlug.Ethereum) {
+          relayerFee = BigNumber.from('1')
+        }
+
         const estimatedGasLimit = await bridge.estimateSendGasLimit(
           amount,
           fromNetwork.slug as string,
@@ -97,6 +104,7 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
             deadline: deadline(),
             destinationAmountOutMin,
             destinationDeadline,
+            relayerFee
           }
         )
 

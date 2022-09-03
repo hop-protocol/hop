@@ -47,12 +47,20 @@ const destinationFeeGasPriceMultiplier: {[network: string]: number} = {
   goerli: goerli.destinationFeeGasPriceMultiplier
 }
 
+const relayerFeeEnabled: {[network: string]: Record<string, boolean>} = {
+  mainnet: mainnet.relayerFeeEnabled,
+  staging: staging.relayerFeeEnabled,
+  kovan: kovan.relayerFeeEnabled,
+  goerli: goerli.relayerFeeEnabled
+}
+
 const config = {
   addresses,
   chains,
   bonders,
   bonderFeeBps,
-  destinationFeeGasPriceMultiplier
+  destinationFeeGasPriceMultiplier,
+  relayerFeeEnabled
 }
 
 export { metadata, config }

@@ -10,5 +10,11 @@ export const config : Config = {
       arbitrum: 14
     }
   },
-  destinationFeeGasPriceMultiplier: 1.2
+  destinationFeeGasPriceMultiplier: 1.2,
+  relayerFeeEnabled: {
+    polygon: false,
+    gnosis: false,
+    optimism: false,
+    arbitrum: false
+  }
 }

@@ -21,5 +21,6 @@ const addresses = kovanAddresses.bridges
 const bonders = kovanAddresses.bonders
 const bonderFeeBps = kovanConfig.bonderFeeBps
 const destinationFeeGasPriceMultiplier = kovanConfig.destinationFeeGasPriceMultiplier
+const relayerFeeEnabled = kovanConfig.relayerFeeEnabled
 
-export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier }
+export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier, relayerFeeEnabled }

@@ -28,7 +28,6 @@ import {
   HToken,
   LpFeeBps,
   MaxDeadline,
-  NetworkSlug,
   PendingAmountBuffer,
   SettlementGasLimitPerTx,
   TokenIndex,
@@ -2284,12 +2283,14 @@ class HopBridge extends Base {
   }
 
   private async getRelayerFee (destinationChain: TChain): Promise<BigNumber> {
-    // TODO: Remove Goerli check post-nitro
-    if (this.network === NetworkSlug.Goerli) {
-      destinationChain = this.toChainModel(destinationChain)
-      if (destinationChain.equals(Chain.Arbitrum)) {
-        return this.getArbitrumRelayGasCost(destinationChain)
-      }
+    destinationChain = this.toChainModel(destinationChain)
+    const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
+    if (!isFeeEnabled) {
+      return BigNumber.from(0)
+    }
+
+    if (destinationChain.equals(Chain.Arbitrum)) {
+      return this.getArbitrumRelayGasCost(destinationChain)
     }
 
     return BigNumber.from(0)

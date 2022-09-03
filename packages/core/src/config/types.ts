@@ -15,7 +15,15 @@ export type Fees = {
   WBTC?: Bps
 }
 
+type RelayerFee = {
+  polygon?: boolean
+  gnosis?: boolean
+  optimism?: boolean
+  arbitrum?: boolean
+}
+
 export type Config = {
   bonderFeeBps: Fees
   destinationFeeGasPriceMultiplier: number
+  relayerFeeEnabled: RelayerFee
 }

@@ -415,7 +415,7 @@ const StatsProvider: FC = ({ children }) => {
           continue
         }
         const messengerWrapperAddress: string = tokenConfig.l1MessengerWrapper
-        addressDatas.push([arbitrumSlug, `${token.symbol} Wrapper`, messengerWrapperAddress, token.symbol])
+        addressDatas.push(['ethereum', `${token.symbol} Wrapper`, messengerWrapperAddress, token.symbol])
       }
       const promises: Promise<any>[] = []
       for (const addressData of addressDatas) {

@@ -2,7 +2,7 @@ import Chain from '../../src/models/Chain'
 import { RelayerFee } from '../../src/relayerFee'
 
 describe('RelayerFee', () => {
-  it('test ', async () => {
+  it('Arbitrum relayer fee test', async () => {
     const relayerFee = new RelayerFee('mainnet', 'USDC')
     const relayCost = await relayerFee.getRelayCost(Chain.Arbitrum.slug)
     expect(relayCost).toBeTruthy()

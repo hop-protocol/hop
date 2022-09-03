@@ -44,7 +44,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   polygon: 5933,
   gnosis: 3218,
   optimism: 8545,
-  arbitrum: 59105
+  arbitrum: 19843
 }
 
 export const DefaultBatchBlocks = 10000

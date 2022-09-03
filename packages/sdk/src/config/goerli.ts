@@ -21,5 +21,6 @@ const addresses = goerliAddresses.bridges
 const bonders = goerliAddresses.bonders
 const bonderFeeBps = goerliConfig.bonderFeeBps
 const destinationFeeGasPriceMultiplier = goerliConfig.destinationFeeGasPriceMultiplier
+const relayerFeeEnabled = goerliConfig.relayerFeeEnabled
 
-export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier }
+export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier, relayerFeeEnabled }

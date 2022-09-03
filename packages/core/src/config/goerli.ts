@@ -11,5 +11,8 @@ export const config : Config = {
       polygon: 0
     }
   },
-  destinationFeeGasPriceMultiplier: 1
+  destinationFeeGasPriceMultiplier: 1,
+  relayerFeeEnabled: {
+    polygon: false
+  }
 }

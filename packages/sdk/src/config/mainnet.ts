@@ -21,5 +21,6 @@ const addresses = mainnetAddresses.bridges
 const bonders = mainnetAddresses.bonders
 const bonderFeeBps = mainnetConfig.bonderFeeBps
 const destinationFeeGasPriceMultiplier = mainnetConfig.destinationFeeGasPriceMultiplier
+const relayerFeeEnabled = mainnetConfig.relayerFeeEnabled
 
-export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier }
+export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier, relayerFeeEnabled }

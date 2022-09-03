@@ -3,7 +3,7 @@ import { BigNumber } from 'ethers'
 import { formatEther, formatUnits } from 'ethers/lib/utils'
 import Network from 'src/models/Network'
 import Token from 'src/models/Token'
-import { findNetworkBySlug, getArbitrumAlias } from 'src/utils'
+import { findNetworkBySlug } from 'src/utils'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
 import * as config from 'src/config'
@@ -415,8 +415,7 @@ const StatsProvider: FC = ({ children }) => {
           continue
         }
         const messengerWrapperAddress: string = tokenConfig.l1MessengerWrapper
-        const aliasAddress: string = getArbitrumAlias(messengerWrapperAddress)
-        addressDatas.push([arbitrumSlug, `${token.symbol} Alias`, aliasAddress, token.symbol])
+        addressDatas.push(['ethereum', `${token.symbol} Wrapper`, messengerWrapperAddress, token.symbol])
       }
       const promises: Promise<any>[] = []
       for (const addressData of addressDatas) {

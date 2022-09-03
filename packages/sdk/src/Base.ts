@@ -107,6 +107,7 @@ class Base {
   fees : { [token: string]: Record<string, number>}
   gasPriceMultiplier: number = 0
   destinationFeeGasPriceMultiplier : number = 1
+  relayerFeeEnabled: Record<string, boolean>
 
   baseExplorerUrl: string = 'https://explorer.hop.exchange'
 
@@ -144,6 +145,7 @@ class Base {
     this.bonders = config.bonders[network]
     this.fees = config.bonderFeeBps[network]
     this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
+    this.relayerFeeEnabled = config.relayerFeeEnabled[network]
 
     this.init()
   }

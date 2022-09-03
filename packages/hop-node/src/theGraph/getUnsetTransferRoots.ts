@@ -9,13 +9,13 @@ export default async function getUnsetTransferRoots (startDate: number, endDate:
   console.log('fetching bonded roots', Chain.Ethereum, startDate, endDate)
   let items = await getTransferRootBonded(Chain.Ethereum, token, startDate, endDate)
   for (const item of items) {
-    transferRoots[item.transferRootHash] = { ...item, rootHash: item.root, totalAmount: item.amount }
+    transferRoots[item.root] = { ...item, rootHash: item.root, totalAmount: item.amount }
   }
 
   console.log('fetching confirmed roots', Chain.Ethereum, startDate, endDate)
   items = await getTransferRootConfirmed(Chain.Ethereum, token, startDate, endDate)
   for (const item of items) {
-    transferRoots[item.transferRootHash] = item
+    transferRoots[item.rootHash] = item
   }
 
   const setTransferRoots: Record<string, any> = {}
@@ -25,7 +25,7 @@ export default async function getUnsetTransferRoots (startDate: number, endDate:
     console.log('fetching transferRootSets', chain, transferRootHashes.length)
     const items = await getTransferRootSet(chain, token)
     for (const item of items) {
-      setTransferRoots[item.transferRootHash] = item
+      setTransferRoots[item.rootHash] = item
     }
   }
   const unsetTransferRoots: Record<string, any> = {}

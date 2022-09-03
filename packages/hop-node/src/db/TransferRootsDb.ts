@@ -25,6 +25,7 @@ interface BaseTransferRoot {
   committedAt?: number
   commitTxBlockNumber?: number
   commitTxHash?: string
+  confirmBlockNumber?: number
   confirmed?: boolean
   confirmedAt?: number
   confirmTxHash?: string
@@ -218,6 +219,7 @@ class SubDbIncompletes extends BaseDb {
       !item.commitTxBlockNumber ||
       (item.commitTxHash && !item.committedAt) ||
       (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
+      (item.confirmTxHash && !item.confirmedAt) ||
       (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
       (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
@@ -621,6 +623,7 @@ class TransferRootsDb extends BaseDb {
       const seenOnL1TimestampOk = seenOnL1TimestampMs + TimeFromL1ToL2Ms[destinationChain] < Date.now()
 
       return (
+        !item.rootSetTxHash &&
         item.commitTxHash &&
         item.transferRootHash &&
         item.transferRootId &&

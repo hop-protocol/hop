@@ -157,9 +157,11 @@ class RelayWatcher extends BaseWatcher {
     const bonderAddress = await destBridge.getBonderAddress()
     const isCorrectRelayer = bonderAddress.toLowerCase() === relayer.toLowerCase()
     if (!isCorrectRelayer) {
-      logger.warn('relayer is not correct. marking item not relayable.')
-      await this.db.transfers.update(transferId, { isRelayable: false })
-      return
+      // Re-introduce when enforcing
+      logger.debug('relayer address is not correct')
+      // logger.warn('relayer is not correct. marking item not relayable.')
+      // await this.db.transfers.update(transferId, { isRelayable: false })
+      // return
     }
 
     const isReceivingNativeToken = isNativeToken(destBridge.chainSlug, this.tokenSymbol)
@@ -189,10 +191,12 @@ class RelayWatcher extends BaseWatcher {
       logger.debug('checkTransferSentToL2 getIsRelayerFeeOk')
       const isRelayerFeeOk = await this.getIsFeeOk(transferId, GasCostTransactionType.Relay)
       if (!isRelayerFeeOk) {
-        const msg = 'Relayer fee is too low. Cannot relay.'
-        logger.warn(msg)
-        this.notifier.warn(msg)
-        throw new RelayerFeeTooLowError(msg)
+        // Re-introduce when enforcing
+        logger.debug('relayer fee is too low')
+        // const msg = 'Relayer fee is too low. Cannot relay.'
+        // logger.warn(msg)
+        // this.notifier.warn(msg)
+        // throw new RelayerFeeTooLowError(msg)
       }
 
       logger.debug('checkTransferSentToL2 sendRelayTx')
@@ -285,7 +289,7 @@ class RelayWatcher extends BaseWatcher {
 
     logger.debug('processing transfer root relay')
     logger.debug('transferRootHash:', transferRootHash)
-    logger.debug('totalAmount:', totalAmount)
+    logger.debug('totalAmount:', totalAmount.toString())
     logger.debug('destinationChainId:', destinationChainId)
     logger.debug('l1txHash:', l1TxHash)
 
@@ -342,9 +346,8 @@ class RelayWatcher extends BaseWatcher {
   async sendTransferRootRelayTx (transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug(
-      'relay root destinationChainId'
+      `relay root destinationChainId with txHash ${txHash}`,
     )
-    logger.debug('checkRelayableTransferRoots l2Bridge.distribute')
     return await this.sendRelayTx(txHash)
   }
 

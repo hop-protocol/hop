@@ -645,9 +645,17 @@ export class HealthCheckWatcher {
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
     result = result.filter((x: any) => x.sourceChain !== Chain.Ethereum)
 
-    // TODO: clean up these bonder fee too low checks
+    // TODO: clean up these bonder fee too low checks and use the same logic that bonders do
+    const l1Chains: string[] = [Chain.Ethereum]
+    const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
     result = result.map((x: any) => {
-      const isBonderFeeTooLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.005 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && [Chain.Gnosis, Chain.Polygon].includes(x.destinationChain))
+      const isBonderFeeTooLow = 
+      x.bonderFeeFormatted === 0 ||
+      (x.token === 'ETH' && x.bonderFeeFormatted < 0.0005 && l1Chains.includes(x.destinationChain)) ||
+      (x.token === 'ETH' && x.bonderFeeFormatted < 0.0001 && l2Chains.includes(x.destinationChain)) ||
+      (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && l1Chains.includes(x.destinationChain)) ||
+      (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && l2Chains.includes(x.destinationChain))
+
       x.isBonderFeeTooLow = isBonderFeeTooLow
       return x
     })

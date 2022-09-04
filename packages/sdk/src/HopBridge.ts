@@ -27,15 +27,15 @@ import {
   Errors,
   HToken,
   LpFeeBps,
-  MaxDeadline,
   PendingAmountBuffer,
   SettlementGasLimitPerTx,
   TokenIndex,
   TokenSymbol
 } from './constants'
+import { RelayerFee } from './relayerFee'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata, relayableChains } from './config'
-import { getAddress as checksumAddress, defaultAbiCoder, formatUnits, parseUnits } from 'ethers/lib/utils'
+import { getAddress as checksumAddress, formatUnits, parseUnits } from 'ethers/lib/utils'
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0
@@ -2290,118 +2290,11 @@ class HopBridge extends Base {
     }
 
     if (destinationChain.equals(Chain.Arbitrum)) {
-      return this.getArbitrumRelayGasCost(destinationChain)
+      const relayerFee = new RelayerFee(this.network, this.tokenSymbol)
+      return relayerFee.getRelayCost(destinationChain.slug)
     }
 
     return BigNumber.from(0)
-  }
-
-  private async getArbitrumRelayGasCost (destinationChain: TChain): Promise<BigNumber> {
-    const sourceChain = this.toChainModel(Chain.Ethereum)
-    destinationChain = this.toChainModel(destinationChain)
-
-    // Submission Cost
-    const distributeCalldataSize: number = 196
-    const { baseFeePerGas } = await sourceChain.provider.getBlock('latest')
-    const submissionCost: BigNumber = this._calculateRetryableSubmissionFee(distributeCalldataSize, baseFeePerGas!)
-
-    // Redemption Cost
-    const encodedRedemptionData = await this._getEncodedGasInfo()
-    const arbGasInfo = '0x000000000000000000000000000000000000006C'
-    const redemptionTx = {
-      to: arbGasInfo,
-      data: encodedRedemptionData
-    }
-    const gasInfo = await destinationChain.provider.call(redemptionTx)
-    const types = ['uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256']
-    const decoded = defaultAbiCoder.decode(types, gasInfo)
-    const redemptionGasPrice = decoded[1]
-    const redemptionGasLimit = BigNumber.from(1980)
-    const l1TransactionCost = parseUnits('0.00015')
-    const redemptionCost = redemptionGasLimit.mul(redemptionGasPrice).add(l1TransactionCost)
-
-    // Distribution Cost
-    const encodedDistributeData = await this._getEncodedDistributeData(sourceChain, destinationChain)
-    const encodedEstimateRetryableTicketData = await this._getEncodedEstimateRetryableTicketData(destinationChain, encodedDistributeData)
-    const nodeInterfaceAddress = '0x00000000000000000000000000000000000000C8'
-    const distributionTx = {
-      to: nodeInterfaceAddress,
-      from: await this.getBonderAddress(sourceChain, destinationChain),
-      data: encodedEstimateRetryableTicketData
-    }
-    const distributionGasLimit = await destinationChain.provider.estimateGas(distributionTx)
-    const distributionGasPrice = await destinationChain.provider.getGasPrice()
-    const distributionCost = distributionGasLimit.mul(distributionGasPrice)
-
-    return submissionCost.add(redemptionCost).add(distributionCost)
-  }
-
-  private _calculateRetryableSubmissionFee (dataLength: number, baseFee: BigNumber): BigNumber {
-    const dataCost: number = 1400 + 6 * dataLength
-    return BigNumber.from(dataCost).mul(baseFee)
-  }
-
-  private async _getEncodedGasInfo (): Promise<string> {
-    const abi = ['function getPricesInWei()']
-    const ethersInterface = new ethers.utils.Interface(abi)
-    const encodedData = ethersInterface.encodeFunctionData(
-      'getPricesInWei', []
-    )
-
-    return encodedData
-  }
-
-  private async _getEncodedDistributeData (sourceChain: TChain, destinationChain: TChain): Promise<string> {
-    const recipient = ethers.constants.AddressZero
-    const amount = BigNumber.from(10)
-    const amountOutMin = BigNumber.from(0)
-    const deadline = BigNumber.from(MaxDeadline)
-    const relayer = await this.getBonderAddress(sourceChain, destinationChain)
-    const relayerFee = BigNumber.from(1)
-
-    const abi = ['function distribute(address recipient, uint256 amount, uint256 amountOutMin, uint256 deadline, address relayer, uint256 relayerFee)']
-    const ethersInterface = new ethers.utils.Interface(abi)
-    const encodedData = ethersInterface.encodeFunctionData(
-      'distribute', [
-        recipient,
-        amount,
-        amountOutMin,
-        deadline,
-        relayer,
-        relayerFee
-      ]
-    )
-
-    return encodedData
-  }
-
-  private async _getEncodedEstimateRetryableTicketData (destinationChain: TChain, encodedDistributeData: string): Promise<string> {
-    // The alias address on Arbitrum needs to have enough funds to cover the tx in order for this to work
-    const messengerWrapperAddress = await this.getMessengerWrapperAddress(destinationChain)
-    const sender = messengerWrapperAddress
-    const deposit = BigNumber.from(0)
-    const l2Bridge = await this.getL2Bridge(destinationChain)
-    const to = l2Bridge.address
-    const l2CallValue = BigNumber.from(0)
-    const excessFeeRefundAddress = ethers.constants.AddressZero
-    const callValueRefundAddress = ethers.constants.AddressZero
-    const data = encodedDistributeData
-
-    const abi = ['function estimateRetryableTicket(address sender, uint256 deposit, address to, uint256 l2CallValue, address excessFeeRefundAddress, address callValueRefundAddress, bytes data)']
-    const ethersInterface = new ethers.utils.Interface(abi)
-    const encodedData = ethersInterface.encodeFunctionData(
-      'estimateRetryableTicket', [
-        sender,
-        deposit,
-        to,
-        l2CallValue,
-        excessFeeRefundAddress,
-        callValueRefundAddress,
-        data
-      ]
-    )
-
-    return encodedData
   }
 
   async needsApproval (amount: TAmount, chain: TChain, address?: string) {

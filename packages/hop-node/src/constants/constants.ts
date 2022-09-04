@@ -97,8 +97,9 @@ export const RelayableChains: string[] = [
   Chain.Arbitrum
 ]
 
+const arbitrumTimeFromL1ToL2Ms = 8 * 60 * 1000
 export const TimeFromL1ToL2Ms: Record<string, number> = {
-  arbitrum: TenMinutesMs
+  arbitrum: arbitrumTimeFromL1ToL2Ms
 }
 
 export const MaxDeadline: number = 9999999999

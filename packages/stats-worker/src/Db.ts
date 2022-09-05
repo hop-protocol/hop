@@ -224,6 +224,11 @@ class Db {
             'ALTER TABLE bonder_balances ADD COLUMN withdraw_event TEXT;'
           )
         }
+        if (migrations.includes(18)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN arbitrum_messenger_wrapper_amount NUMERIC;'
+          )
+        }
 
         migrationRan = true
       }

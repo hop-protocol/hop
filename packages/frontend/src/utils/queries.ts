@@ -1,6 +1,7 @@
 import { Slug } from '@hop-protocol/sdk'
 import { BigNumberish } from 'ethers'
 import logger from 'src/logger'
+import { reactAppNetwork } from 'src/config'
 
 export function getUrl(chain: Slug | string) {
   if (chain === Slug.gnosis) {
@@ -8,6 +9,26 @@ export function getUrl(chain: Slug | string) {
   }
   if (chain === Slug.ethereum) {
     chain = 'mainnet'
+  }
+
+  if (reactAppNetwork === 'goerli') {
+    if (chain === 'mainnet') {
+      chain = 'goerli'
+    }
+    if (chain === 'polygon') {
+      chain = 'mumbai'
+    }
+    if (chain === 'optimism') {
+      chain = 'optimism-goerli'
+    }
+    if (chain === 'arbitrum') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
+    if (chain === 'xdai') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
+
+    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
   }
 
   if (chain === Slug.mainnet) {

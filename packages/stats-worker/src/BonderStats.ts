@@ -674,7 +674,8 @@ class BonderStats {
           dbData.initialEthAmount,
           dbData.initialMaticAmount,
           dbData.initialxDaiAmount,
-          withdrawEvent
+          withdrawEvent,
+          dbData.messengerWrapperAmount
         )
         console.log(
           day,
@@ -764,7 +765,8 @@ class BonderStats {
                       canonical: BigNumber.from(0),
                       hToken: BigNumber.from(0),
                       native: BigNumber.from(0),
-                      alias: BigNumber.from(0)
+                      alias: BigNumber.from(0),
+                      messengerWrapper: BigNumber.from(0)
                     }
                   }
                   const bridgeMap = (mainnetAddresses as any).bridges[token][
@@ -834,17 +836,29 @@ class BonderStats {
                     balancePromises.push(Promise.resolve(0))
                   }
 
+                  if (chain === 'arbitrum') {
+                    const ethereumArchiveProvider = allArchiveProviders['ethereum']
+                    const messengerWrapperAddress = bridgeMap.l1MessengerWrapper
+                    balancePromises.push(
+                      ethereumArchiveProvider.getBalance(messengerWrapperAddress, blockTag)
+                    )
+                  } else {
+                    balancePromises.push(Promise.resolve(0))
+                  }
+
                   const [
                     balance,
                     hBalance,
                     native,
-                    aliasBalance
+                    aliasBalance,
+                    messengerWrapperBalance
                   ] = await Promise.all(balancePromises)
 
                   bonderBalances[chain].canonical = balance
                   bonderBalances[chain].hToken = hBalance
                   bonderBalances[chain].native = native
                   bonderBalances[chain].alias = aliasBalance
+                  bonderBalances[chain].messengerWrapper = messengerWrapperBalance
 
                   dbData[`${chain}BlockNumber`] = blockTag
                   dbData[`${chain}CanonicalAmount`] = balance
@@ -878,6 +892,15 @@ class BonderStats {
                     console.log(
                       `${chain} ${token} alias balance`,
                       Number(formatEther(aliasBalance.toString()))
+                    )
+                  }
+                  if (chain === 'arbitrum') {
+                    dbData[`${chain}MessengerWrapperAmount`] = messengerWrapperBalance
+                      ? Number(formatEther(messengerWrapperBalance.toString()))
+                      : 0
+                    console.log(
+                      `${chain} ${token} messenger wrapper balance`,
+                      Number(formatEther(messengerWrapperBalance.toString()))
                     )
                   }
 
@@ -987,9 +1010,10 @@ class BonderStats {
     }
 
     for (const chain in bonderBalances) {
-      const { canonical, hToken, native, alias } = bonderBalances[chain]
+      const { canonical, hToken, native, alias, messengerWrapper } = bonderBalances[chain]
       aggregateBalance = aggregateBalance.add(canonical).add(hToken)
       nativeBalances[chain] = native.add(alias)
+      nativeBalances[chain] = native.add(messengerWrapper)
     }
     const nativeTokenDiffs: Record<string, any> = {}
     for (const chain of this.chains) {
@@ -1059,9 +1083,10 @@ class BonderStats {
     }
 
     for (const chain in bonderBalances) {
-      const { canonical, hToken, native, alias } = bonderBalances[chain]
+      const { canonical, hToken, native, alias, messengerWrapper } = bonderBalances[chain]
       aggregateBalanceToken = aggregateBalanceToken.add(canonical).add(hToken)
       nativeBalances[chain] = native.add(alias)
+      nativeBalances[chain] = native.add(messengerWrapper)
     }
     const nativeTokenDiffs: Record<string, any> = {}
     for (const chain of this.chains) {
@@ -1163,7 +1188,8 @@ class BonderStats {
       (dbData.ethereumNativeAmount +
         dbData.optimismNativeAmount +
         dbData.arbitrumNativeAmount +
-        dbData.arbitrumAliasAmount) *
+        dbData.arbitrumAliasAmount +
+        dbData.arbitrumMessengerWrapperAmount) *
         dbData.ethPriceUsd
 
     if (token === 'ETH') {
@@ -1174,7 +1200,8 @@ class BonderStats {
         (dbData.ethereumNativeAmount +
           dbData.optimismNativeAmount +
           dbData.arbitrumNativeAmount +
-          dbData.arbitrumAliasAmount)
+          dbData.arbitrumAliasAmount +
+          dbData.arbitrumMessengerWrapperAmount)
     }
 
     nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt

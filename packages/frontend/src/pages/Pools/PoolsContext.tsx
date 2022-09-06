@@ -239,8 +239,8 @@ const PoolsProvider: FC = ({ children }) => {
         const cacheKey = `apr:${selectedNetwork.slug}:${token.symbol}`
         try {
           const cached = JSON.parse(localStorage.getItem(cacheKey) || '')
-          const tenMinutes = 10 * 60 * 1000
-          const isRecent = cached.timestamp > Date.now() - tenMinutes
+          const onHourMs = 60 * 60 * 1000
+          const isRecent = cached.timestamp > Date.now() - onHourMs
           if (cached && isRecent && typeof cached.apr === 'number') {
             setApr(cached.apr)
             return
@@ -261,6 +261,7 @@ const PoolsProvider: FC = ({ children }) => {
 
           apr = json.data[token.symbol][selectedNetwork.slug].apr
         } catch (err) {
+          logger.error('apr fetch error:', err)
           const bridge = await sdk.bridge(token.symbol)
           const amm = bridge.getAmm(selectedNetwork.slug)
           apr = await amm.getApr()
@@ -280,7 +281,7 @@ const PoolsProvider: FC = ({ children }) => {
           setApr(apr)
         }
       } catch (err) {
-        logger.error(err)
+        logger.error('apr error:', err)
       }
     }
 

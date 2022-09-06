@@ -412,16 +412,6 @@ export class HealthCheckWatcher {
         messages.push(msg)
       }
 
-      for (const item of challengedTransferRoots) {
-        const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted?.toFixed(4)}, token: ${item.token}`
-        messages.push(msg)
-      }
-
-      for (const item of missedEvents) {
-        const msg = `Possible MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}, amount: ${item.amount}, bonderFee: ${item.bonderFee}, timestamp: ${item.timestamp}`
-        messages.push(msg)
-      }
-
       for (const item of invalidBondWithdrawals) {
         const msg = `Possible InvalidBondWithdrawal: transferId: ${item.transferId}, destination: ${item.destinationChain}, token: ${item.token}, amount: ${item.amount}, timestamp: ${item.timestamp}`
         messages.push(msg)
@@ -437,6 +427,17 @@ export class HealthCheckWatcher {
         messages.push(msg)
       }
     }
+
+    for (const item of challengedTransferRoots) {
+      const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted?.toFixed(4)}, token: ${item.token}`
+      messages.push(msg)
+    }
+
+    for (const item of missedEvents) {
+      const msg = `Possible MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}, amount: ${item.amount}, bonderFee: ${item.bonderFee}, timestamp: ${item.timestamp}`
+      messages.push(msg)
+    }
+
 
     for (const item of lowBonderBalances) {
       const msg = `LowBonderBalance: bonder: ${item.bonder}, chain: ${item.chain}, amount: ${item.amountFormatted?.toFixed(2)} ${item.nativeToken}`

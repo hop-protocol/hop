@@ -239,8 +239,8 @@ const PoolsProvider: FC = ({ children }) => {
         const cacheKey = `apr:${selectedNetwork.slug}:${token.symbol}`
         try {
           const cached = JSON.parse(localStorage.getItem(cacheKey) || '')
-          const onHourMs = 60 * 60 * 1000
-          const isRecent = cached.timestamp > Date.now() - onHourMs
+          const expiresTimeMs = 2 * 60 * 60 * 1000 // 2hrs
+          const isRecent = cached.timestamp > Date.now() - expiresTimeMs
           if (cached && isRecent && typeof cached.apr === 'number') {
             setApr(cached.apr)
             return

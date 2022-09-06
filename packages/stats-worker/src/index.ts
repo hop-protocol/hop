@@ -19,7 +19,8 @@ function main () {
     bonderTokens: argv.bonderTokens ? argv.bonderTokens.split(',') : null,
     bonderDays: argv.bonderDays,
     bonderStartDate: argv.bonderStartDate,
-    bonderEndDate: argv.bonderEndDate
+    bonderEndDate: argv.bonderEndDate,
+    pollIntervalSeconds: argv.pollIntervalSeconds
   })
 
   worker.start()

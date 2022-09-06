@@ -837,10 +837,14 @@ class BonderStats {
                   }
 
                   if (chain === 'arbitrum') {
-                    const ethereumArchiveProvider = allArchiveProviders['ethereum']
+                    const ethereumArchiveProvider =
+                      allArchiveProviders['ethereum']
                     const messengerWrapperAddress = bridgeMap.l1MessengerWrapper
                     balancePromises.push(
-                      ethereumArchiveProvider.getBalance(messengerWrapperAddress, blockTag)
+                      ethereumArchiveProvider.getBalance(
+                        messengerWrapperAddress,
+                        blockTag
+                      )
                     )
                   } else {
                     balancePromises.push(Promise.resolve(0))
@@ -858,7 +862,9 @@ class BonderStats {
                   bonderBalances[chain].hToken = hBalance
                   bonderBalances[chain].native = native
                   bonderBalances[chain].alias = aliasBalance
-                  bonderBalances[chain].messengerWrapper = messengerWrapperBalance
+                  bonderBalances[
+                    chain
+                  ].messengerWrapper = messengerWrapperBalance
 
                   dbData[`${chain}BlockNumber`] = blockTag
                   dbData[`${chain}CanonicalAmount`] = balance
@@ -895,7 +901,9 @@ class BonderStats {
                     )
                   }
                   if (chain === 'arbitrum') {
-                    dbData[`${chain}MessengerWrapperAmount`] = messengerWrapperBalance
+                    dbData[
+                      `${chain}MessengerWrapperAmount`
+                    ] = messengerWrapperBalance
                       ? Number(formatEther(messengerWrapperBalance.toString()))
                       : 0
                     console.log(
@@ -1010,7 +1018,13 @@ class BonderStats {
     }
 
     for (const chain in bonderBalances) {
-      const { canonical, hToken, native, alias, messengerWrapper } = bonderBalances[chain]
+      const {
+        canonical,
+        hToken,
+        native,
+        alias,
+        messengerWrapper
+      } = bonderBalances[chain]
       aggregateBalance = aggregateBalance.add(canonical).add(hToken)
       nativeBalances[chain] = native.add(alias)
       nativeBalances[chain] = native.add(messengerWrapper)
@@ -1083,7 +1097,13 @@ class BonderStats {
     }
 
     for (const chain in bonderBalances) {
-      const { canonical, hToken, native, alias, messengerWrapper } = bonderBalances[chain]
+      const {
+        canonical,
+        hToken,
+        native,
+        alias,
+        messengerWrapper
+      } = bonderBalances[chain]
       aggregateBalanceToken = aggregateBalanceToken.add(canonical).add(hToken)
       nativeBalances[chain] = native.add(alias)
       nativeBalances[chain] = native.add(messengerWrapper)

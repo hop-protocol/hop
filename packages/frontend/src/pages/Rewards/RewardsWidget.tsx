@@ -16,7 +16,7 @@ interface Props {
 
 export function RewardsWidget(props: Props) {
   const { rewardsContractAddress, merkleBaseUrl, requiredChainId, title } = props
-  const { tokenDecimals, tokenSymbol, claimableAmount, unclaimableAmount, latestRootTotal, latestRoot, claimRecipient, error, onchainRoot, loading, claim, claiming } = useRewards({ rewardsContractAddress, merkleBaseUrl, requiredChainId })
+  const { tokenDecimals, tokenSymbol, claimableAmount, unclaimableAmount, latestRootTotal, latestRoot, claimRecipient, error, onchainRoot, loading, claim, claiming, estimatedDate } = useRewards({ rewardsContractAddress, merkleBaseUrl, requiredChainId })
 
   const claimableAmountDisplay = tokenDecimals ? toTokenDisplay(claimableAmount, tokenDecimals) : ''
   const unclaimableAmountDisplay = tokenDecimals ? toTokenDisplay(unclaimableAmount, tokenDecimals) : ''
@@ -53,6 +53,11 @@ export function RewardsWidget(props: Props) {
             <Typography variant="body1">
               Locked: {unclaimableAmountDisplay} {tokenSymbol} <InfoTooltip title={'Tokens that will be claimable once merkle root is published on-chain'} />
             </Typography>
+            {!!unclaimableAmountDisplay && (
+              <Typography variant="body1">
+                <small>estimated to unlock {estimatedDate}</small>
+              </Typography>
+            )}
           </Box>
           <Box mb={2}>
             <Button variant="contained" onClick={claim} loading={claiming} disabled={claiming || claimableAmount.eq(0)} highlighted={claimableAmount.gt(0)}>Claim Rewards</Button>

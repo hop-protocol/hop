@@ -10,6 +10,7 @@ import { getProviderByNetworkName } from 'src/utils/getProvider'
 import { networkIdToSlug } from 'src/utils/networks'
 import merkleRewardsAbi from 'src/abis/MerkleRewards.json'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import { DateTime } from 'luxon'
 
 interface Props {
   rewardsContractAddress: string
@@ -32,6 +33,7 @@ export const useRewards = (props: Props) => {
   const [tokenDecimals, setTokenDecimals] = useState<number|null>(null)
   const [tokenSymbol, setTokenSymbol] = useState('')
   const [latestRootTotal, setLatestRootTotal] = useState(BigNumber.from(0))
+  const [estimatedDate, setEstimatedDate] = useState('')
   const claimRecipient = queryParams.address as string ?? address?.address
   const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
@@ -226,6 +228,34 @@ export const useRewards = (props: Props) => {
 
   useInterval(getUnclaimableAmountFromBackend, 10 * 1000)
 
+  const getRewardsInfoFromBackend = async () => {
+    try {
+      if (!pollUnclaimableAmountFromBackend) {
+        return
+      }
+      const url = 'https://hop-merkle-rewards-backend.hop.exchange/v1/rewards-info'
+      const res = await fetch(url)
+      const json = await res.json()
+      if (json.error) {
+        throw new Error(json.error)
+      }
+      if (json.data.estimatedDateMs) {
+        const relative = DateTime.fromMillis(json.data.estimatedDateMs).toRelative()
+        if (relative) {
+          setEstimatedDate(relative)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  useEffect(() => {
+    getRewardsInfoFromBackend().catch(console.error)
+  }, [])
+
+  useInterval(getRewardsInfoFromBackend, 60 * 1000)
+
   async function claim() {
     try {
       setError('')
@@ -282,6 +312,7 @@ export const useRewards = (props: Props) => {
     tokenSymbol,
     claimRecipient,
     onchainRoot,
-    hasRewards
+    hasRewards,
+    estimatedDate
   }
 }

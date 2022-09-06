@@ -83,13 +83,13 @@ export const useRewards = (props: Props) => {
     update().catch(console.error)
   }, [token])
 
-  useInterval(getOnchainRoot, 10 * 1000)
+  useInterval(getOnchainRoot, 30 * 1000)
 
   useEffect(() => {
     getOnchainRoot().catch(console.error)
   }, [contract])
 
-  useInterval(getOnchainRoot, 10 * 1000)
+  useInterval(getOnchainRoot, 30 * 1000)
 
   const getLatestRoot = async () => {
     try {
@@ -113,7 +113,7 @@ export const useRewards = (props: Props) => {
     getLatestRoot().catch(console.error)
   }, [contract, merkleBaseUrl])
 
-  useInterval(getLatestRoot, 10 * 1000)
+  useInterval(getLatestRoot, 30 * 1000)
 
   const getClaimableAmount = async () => {
     try {

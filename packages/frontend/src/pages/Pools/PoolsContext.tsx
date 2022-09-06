@@ -258,8 +258,34 @@ const PoolsProvider: FC = ({ children }) => {
           const url = 'https://assets.hop.exchange/v1-pool-stats.json'
           const res = await fetch(url)
           const json = await res.json()
+          console.log('apr data response:', json)
+          if (!json.data) {
+            throw new Error('expected data')
+          }
+          let symbol = token.symbol
+          if (symbol === 'WETH') {
+            symbol = 'ETH'
+          }
+          if (symbol === 'XDAI') {
+            symbol = 'DAI'
+          }
+          if (symbol === 'WXDAI') {
+            symbol = 'DAI'
+          }
+          if (symbol === 'WMATIC') {
+            symbol = 'MATIC'
+          }
+          if (!json.data[symbol]) {
+            throw new Error(`expected data for token symbol "${symbol}"`)
+          }
+          if (!json.data[symbol][selectedNetwork.slug]) {
+            throw new Error(`expected data for network "${selectedNetwork.slug}"`)
+          }
+          if (json.data[symbol][selectedNetwork.slug].apr === undefined) {
+            throw new Error(`expected apr value for token "${symbol}" and network "${selectedNetwork.slug}"`)
+          }
 
-          apr = json.data[token.symbol][selectedNetwork.slug].apr
+          apr = json.data[symbol][selectedNetwork.slug].apr
         } catch (err) {
           logger.error('apr fetch error:', err)
           const bridge = await sdk.bridge(token.symbol)

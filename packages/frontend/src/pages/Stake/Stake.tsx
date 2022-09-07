@@ -13,12 +13,17 @@ import { useQuery } from 'react-query'
 
 const Stake = () => {
   const { bridges, sdk, networks } = useApp()
-  const availableNetworks = networks.filter(n =>
-    Object.keys(stakingRewardsContracts).includes(n.slug as ChainSlug)
-  )
+  const availableNetworks = networks.filter((n: any) => {
+    return Object.keys(stakingRewardsContracts).includes(n.slug as ChainSlug)
+  }).sort((a: any, b: any) => {
+    if (a.slug < b.slug) return -1
+    else if (a.slug > b.slug) return 1
+    return 0
+  })
   const { selectedNetwork, selectBothNetworks } = useSelectedNetwork({
     l2Only: true,
     availableNetworks,
+    preferredDefault: ChainSlug.Gnosis
   })
 
   const allBridges = useMemo(() => {

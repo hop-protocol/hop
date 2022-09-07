@@ -89,27 +89,35 @@ const StakeWidget: FC<Props> = props => {
       address?.toString(),
     ],
     async (): Promise<any> => {
-      if (!(bridge && network && stakingToken && stakingRewards && address)) {
+      if (!(bridge && network && stakingToken && stakingRewards)) {
         return
       }
 
       try {
         const token = await bridge.getL1Token()
         const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
-        const earned = await stakingRewards?.earned(address.toString())
-        const allowance = await stakingToken?.allowance(stakingRewards.address, address.toString())
+        if (address) {
+          const earned = await stakingRewards?.earned(address.toString())
+          const allowance = await stakingToken?.allowance(stakingRewards.address, address.toString())
+
+          return {
+            tokenUsdPrice,
+            earned,
+            allowance,
+          }
+        }
 
         return {
           tokenUsdPrice,
-          earned,
-          allowance,
+          earned: BigNumber.from(0),
+          allowance: BigNumber.from(0)
         }
       } catch (error) {
         console.log(`error:`, error)
       }
     },
     {
-      enabled: !!bridge && !!network && !!address && !!stakingToken && !!stakingRewards,
+      enabled: !!bridge && !!network && !!stakingToken && !!stakingRewards,
       refetchInterval: 10e3,
     }
   )
@@ -120,7 +128,7 @@ const StakeWidget: FC<Props> = props => {
     if (!(address && data?.allowance && parsedAmount)) {
       return
     }
-    return data.allowance.lt(parsedAmount)
+    return data?.allowance.lt(parsedAmount)
   }, [data?.allowance.toString(), parsedAmount])
 
   const isStakeEnabled = useMemo(() => {
@@ -192,6 +200,7 @@ const StakeWidget: FC<Props> = props => {
         if (symbol === 'XDAI') {
           symbol = 'DAI'
         }
+        console.log('apr data', json)
         const oneHourMs = 60 * 60 * 1000
         const isRecent = json.timestamp > Date.now() - oneHourMs
         if (isRecent) {
@@ -235,6 +244,7 @@ const StakeWidget: FC<Props> = props => {
   const stakedPosition = useAsyncMemo(async () => {
     if (
       !(
+        address &&
         bridge &&
         data?.earned &&
         data?.tokenUsdPrice &&
@@ -263,6 +273,7 @@ const StakeWidget: FC<Props> = props => {
       console.log(`error:`, error)
     }
   }, [
+    address,
     bridge?.network,
     network.slug,
     stakeBalance,

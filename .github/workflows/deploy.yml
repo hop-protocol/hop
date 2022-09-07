@@ -145,7 +145,7 @@ jobs:
 
       - name: Create GitHub Release
         id: create_release
-        if: contains(github.ref, 'production') && ${{ needs.bump_version.outputs.new_tag != null }}
+        if: contains(github.ref, 'production')
         uses: actions/create-release@v1.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -154,7 +154,7 @@ jobs:
           release_name: Release ${{ needs.bump_version.outputs.new_tag || steps.vars.outputs.sha_short }}
           body: |
             IPFS hash of the deployment:
-            - CIDv0: `${{ steps.build.outputs.hash }}`
+            - CIDv0: `${{ steps.upload.outputs.hash }}`
             - CIDv1: `${{ steps.convert_cidv0.outputs.cidv1 }}`
             The latest release is always accessible via our alias to the Cloudflare IPFS gateway at [app.hop.exchange](https://app.hop.exchange).
             You can also access the Hop Interface directly from an IPFS gateway.
@@ -164,12 +164,12 @@ jobs:
             IPFS gateways:
             - https://${{ steps.convert_cidv0.outputs.cidv1 }}.ipfs.cf-ipfs.com/
             - https://${{ steps.convert_cidv0.outputs.cidv1 }}.ipfs.dweb.link/
-            - https://hop.mypinata.cloud/ipfs/${{ steps.build.outputs.hash }}/
-            - https://gateway.pinata.cloud/ipfs/${{ steps.build.outputs.hash }}/
-            - https://cloudflare-ipfs.com/ipfs/${{ steps.build.outputs.hash }}/
-            - https://gateway.ipfs.io/ipfs/${{ steps.build.outputs.hash }}/
-            - https://crustwebsites.net/ipfs/${{ steps.build.outputs.hash }}/
-            - [ipfs://${{ steps.build.outputs.hash }}/](ipfs://${{ steps.build.outputs.hash }}/)
+            - https://hop.mypinata.cloud/ipfs/${{ steps.upload.outputs.hash }}/
+            - https://gateway.pinata.cloud/ipfs/${{ steps.upload.outputs.hash }}/
+            - https://cloudflare-ipfs.com/ipfs/${{ steps.upload.outputs.hash }}/
+            - https://gateway.ipfs.io/ipfs/${{ steps.upload.outputs.hash }}/
+            - https://crustwebsites.net/ipfs/${{ steps.upload.outputs.hash }}/
+            - [ipfs://${{ steps.upload.outputs.hash }}/](ipfs://${{ steps.upload.outputs.hash }}/)
             - https://hop.eth.limo/
             - https://hop.eth.link/
             ${{ needs.bump_version.outputs.changelog }}

@@ -6,7 +6,11 @@ import Head from 'next/head'
 import Script from 'next/script'
 import React, {useEffect, useState } from 'react'
 
+const isGoerli = process.env.NEXT_PUBLIC_NETWORK === 'goerli'
 let apiBaseUrl = 'https://explorer-api.hop.exchange'
+if (isGoerli) {
+  apiBaseUrl = 'https://goerli-explorer-api.hop.exchange'
+}
 if (process.env.NEXT_PUBLIC_LOCAL) {
   apiBaseUrl = 'http://localhost:8000'
 }
@@ -38,7 +42,10 @@ function Spinner() {
 
 const poll = true
 const pollInterval = 15 * 1000
-const enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
+let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
+if (isGoerli) {
+  enabledChains = ['ethereum', 'polygon', 'arbitrum', 'optimism']
+}
 
 let queryParams: any = {}
   try {
@@ -214,6 +221,9 @@ function useData () {
 
   useEffect(() => {
     const update = async () => {
+      if (isGoerli) {
+        return
+      }
       const url = 'https://assets.hop.exchange/mainnet/v1-health-check.json'
       const res = await fetch(url)
       const json = await res.json()
@@ -688,7 +698,7 @@ const Index: NextPage = () => {
       <Script strategy="beforeInteractive" src="/lib/sankey.patched.js" />
       <Script strategy="beforeInteractive" src="/static.js" />
       <Head>
-        <title>Hop Explorer</title>
+        <title>Hop Explorer{isGoerli ? ' - Goerli' : ''}</title>
         <meta charSet="UTF-8" />
         <meta httpEquiv="content-language" content="en-us" />
         <meta name="description" content="Hop Explorer" />

@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:goerli": "NEXT_PUBLIC_NETWORK=goerli next dev",
     "dev:local": "NEXT_PUBLIC_LOCAL=true next dev",
+    "dev:local:goerli": "NEXT_PUBLIC_LOCAL=true NEXT_PUBLIC_NETWORK=goerli next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

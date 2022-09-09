@@ -340,7 +340,7 @@ export class Controller {
         x.convertHTokenUrl = `https://${isGoerli ? 'goerli.hop.exchange' : 'app.hop.exchange'}/#/convert/amm?token=${x.token}&sourceNetwork=${x.destinationChainSlug}&fromHToken=true`
       }
 
-      x.hopExplorerUrl = `https://${isGoerli ? 'goerli-explorer.hop.exchange' : 'explorer.hop.exchange'}/?transferId=${x.transferId}`
+      x.hopExplorerUrl = `https://${isGoerli ? 'goerli.explorer.hop.exchange' : 'explorer.hop.exchange'}/?transferId=${x.transferId}`
 
       return x
     })

@@ -9,7 +9,7 @@ import React, {useEffect, useState } from 'react'
 const isGoerli = process.env.NEXT_PUBLIC_NETWORK === 'goerli'
 let apiBaseUrl = 'https://explorer-api.hop.exchange'
 if (isGoerli) {
-  apiBaseUrl = 'https://goerli-explorer-api.hop.exchange'
+  apiBaseUrl = 'https://goerli.explorer-api.hop.exchange'
 }
 if (process.env.NEXT_PUBLIC_LOCAL) {
   apiBaseUrl = 'http://localhost:8000'

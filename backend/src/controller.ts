@@ -2,6 +2,7 @@ import mcache from 'memory-cache'
 import Db, { getInstance } from './Db'
 import { DateTime } from 'luxon'
 import Worker from './worker'
+import { isGoerli } from './config'
 
 const colorsMap: any = {
   ethereum: '#868dac',
@@ -23,18 +24,58 @@ function truncateString (str: string, splitNum: number) {
   return str.substring(0, 2 + splitNum) + '…' + str.substring(str.length - splitNum, str.length)
 }
 
+function getSourceChainId (chain: string) {
+  if (chain === 'ethereum') {
+    if (isGoerli) {
+      return 5
+    }
+    return 1
+  }
+  if (chain === 'gnosis') {
+    return 100
+  }
+  if (chain === 'polygon') {
+    if (isGoerli) {
+      return 80001
+    }
+    return 137
+  }
+  if (chain === 'optimism') {
+    if (isGoerli) {
+      return 420
+    }
+    return 10
+  }
+  if (chain === 'arbitrum') {
+    if (isGoerli) {
+      return 421613
+    }
+    return 42161
+  }
+  throw new Error(`unsupported chain "${chain}"`)
+}
+
 function explorerLink (chain: string) {
   let base = ''
   if (chain === 'gnosis') {
     base = 'https://blockscout.com/xdai/mainnet'
   } else if (chain === 'polygon') {
     base = 'https://polygonscan.com'
+    if (isGoerli) {
+      base = 'https://mumbai.polygonscan.com'
+    }
   } else if (chain === 'optimism') {
     base = 'https://optimistic.etherscan.io'
+    if (isGoerli) {
+      base = 'https://goerli-optimism.etherscan.io'
+    }
   } else if (chain === 'arbitrum') {
     base = 'https://arbiscan.io'
   } else {
     base = 'https://etherscan.io'
+    if (isGoerli) {
+      base = 'https://goerli.etherscan.io'
+    }
   }
 
   return base
@@ -256,7 +297,7 @@ export class Controller {
 
       const transferTime = DateTime.fromSeconds(x.timestamp)
 
-      x.receiveStatusUnknown = x.sourceChainId === 1 && !x.bondTxExplorerUrl && DateTime.now().toUTC().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
+      x.receiveStatusUnknown = x.sourceChainId === getSourceChainId('ethereum') && !x.bondTxExplorerUrl && DateTime.now().toUTC().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
       if (x.receiveStatusUnknown) {
         // x.bonded = true
       }
@@ -296,10 +337,10 @@ export class Controller {
         x.receivedHTokens = false
       }
       if (!x.convertHTokenUrl) {
-        x.convertHTokenUrl = `https://app.hop.exchange/#/convert/amm?token=${x.token}&sourceNetwork=${x.destinationChainSlug}&fromHToken=true`
+        x.convertHTokenUrl = `https://${isGoerli ? 'goerli.hop.exchange' : 'app.hop.exchange'}/#/convert/amm?token=${x.token}&sourceNetwork=${x.destinationChainSlug}&fromHToken=true`
       }
 
-      x.hopExplorerUrl = `https://explorer.hop.exchange/?transferId=${x.transferId}`
+      x.hopExplorerUrl = `https://${isGoerli ? 'goerli-explorer.hop.exchange' : 'explorer.hop.exchange'}/?transferId=${x.transferId}`
 
       return x
     })

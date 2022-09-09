@@ -15,6 +15,37 @@ if (process.env.NEXT_PUBLIC_LOCAL) {
   apiBaseUrl = 'http://localhost:8000'
 }
 
+function getSourceChainId (chain: string) {
+  if (chain === 'ethereum') {
+    if (isGoerli) {
+      return 5
+    }
+    return 1
+  }
+  if (chain === 'gnosis') {
+    return 100
+  }
+  if (chain === 'polygon') {
+    if (isGoerli) {
+      return 80001
+    }
+    return 137
+  }
+  if (chain === 'optimism') {
+    if (isGoerli) {
+      return 420
+    }
+    return 10
+  }
+  if (chain === 'arbitrum') {
+    if (isGoerli) {
+      return 421613
+    }
+    return 42161
+  }
+  throw new Error(`unsupported chain "${chain}"`)
+}
+
 function Spinner() {
   useEffect(() => {
     const duration = 600
@@ -954,24 +985,24 @@ const Index: NextPage = () => {
                       <td className="amount number" title={x.amount}>{ x.amountDisplay }</td>
                       <td className="amount number" title={`${x.amountUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>{ x.amountUsdDisplay }</td>
                       <td className="bonderFee number" title={x.bonderFee}>
-                        {x.sourceChainId !== 1 && (
+                        {x.sourceChainId !== getSourceChainId('ethereum') && (
                           <span>
                             { x.bonderFeeDisplay }
                           </span>
                         )}
-                        {x.sourceChainId === 1 && (
+                        {x.sourceChainId === getSourceChainId('ethereum') && (
                           <span className="na">
                             <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
                           </span>
                         )}
                       </td>
                       <td className="bonderFee number" title={`${x.bonderFeeUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>
-                        {x.sourceChainId !== 1 && (
+                        {x.sourceChainId !== getSourceChainId('ethereum') && (
                           <span>
                             { x.bonderFeeUsdDisplay }
                           </span>
                         )}
-                        {x.sourceChainId === 1 && (
+                        {x.sourceChainId === getSourceChainId('ethereum') && (
                           <span className="na">
                             <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
                           </span>
@@ -981,12 +1012,12 @@ const Index: NextPage = () => {
                         {x.bonded && (
                         <a className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title="View on block explorer">
                           <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                          {x.sourceChainId !== 1 && (
+                          {x.sourceChainId !== getSourceChainId('ethereum') && (
                             <span>
                               Bonded
                             </span>
                           )}
-                          {x.sourceChainId === 1 && (
+                          {x.sourceChainId === getSourceChainId('ethereum') && (
                             <span>
                               Received
                             </span>

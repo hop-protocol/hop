@@ -9,7 +9,7 @@ import { responseCache } from './responseCache'
 const app = express()
 const controller = new Controller()
 
-const whitelist = ['http://localhost:3000', 'https://staging.explorer.hop.exchange', 'https://explorer.hop.exchange']
+const whitelist = ['http://localhost:3000', 'https://staging.explorer.hop.exchange', 'https://explorer.hop.exchange', 'https://goerli-explorer.hop.exchange']
 const corsOptions: any = {
   origin: function (origin: string, callback: any) {
     if (whitelist.includes(origin)) {

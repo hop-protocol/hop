@@ -7,9 +7,15 @@ import { chunk } from 'lodash'
 import toHex from 'to-hex'
 import wait from 'wait'
 import { mainnet as addresses } from '@hop-protocol/core/addresses'
+import { isGoerli } from './config'
 
-const enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
-const enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
+let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
+let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
+
+if (isGoerli) {
+  enabledTokens = ['USDC', 'ETH']
+  enabledChains = ['ethereum', 'polygon', 'optimism']
+}
 
 const rpcUrls = {
   gnosis: process.env.GNOSIS_RPC,
@@ -18,6 +24,8 @@ const rpcUrls = {
   optimism: process.env.OPTIMISM_RPC,
   ethereum: process.env.ETHEREUM_RPC
 }
+
+console.log(rpcUrls)
 
 function padHex (hex: string) {
   return toHex(hex, { evenLength: true, addPrefix: true })
@@ -42,12 +50,21 @@ function explorerLink (chain: string) {
     base = 'https://blockscout.com/xdai/mainnet'
   } else if (chain === 'polygon') {
     base = 'https://polygonscan.com'
+    if (isGoerli) {
+      base = 'https://mumbai.polygonscan.com'
+    }
   } else if (chain === 'optimism') {
     base = 'https://optimistic.etherscan.io'
+    if (isGoerli) {
+      base = 'https://goerli-optimism.etherscan.io'
+    }
   } else if (chain === 'arbitrum') {
     base = 'https://arbiscan.io'
   } else {
     base = 'https://etherscan.io'
+    if (isGoerli) {
+      base = 'https://goerli.etherscan.io'
+    }
   }
 
   return base
@@ -78,14 +95,18 @@ function explorerLinkTx (chain: string, transactionHash: string) {
 
 const chainIdToSlugMap: any = {
   1: 'ethereum',
+  5: 'ethereum',
   42: 'ethereum',
   10: 'optimism',
   69: 'optimism',
+  420: 'optimism',
   77: 'gnosis',
   100: 'gnosis',
   137: 'polygon',
+  80001: 'polygon',
   42161: 'arbitrum',
-  421611: 'arbitrum'
+  421611: 'arbitrum',
+  421613: 'arbitrum'
 }
 
 const chainSlugToNameMap: any = {
@@ -94,6 +115,37 @@ const chainSlugToNameMap: any = {
   polygon: 'Polygon',
   arbitrum: 'Arbitrum',
   optimism: 'Optimism'
+}
+
+function getSourceChainId (chain: string) {
+  if (chain === 'ethereum') {
+    if (isGoerli) {
+      return 5
+    }
+    return 1
+  }
+  if (chain === 'gnosis') {
+    return 100
+  }
+  if (chain === 'polygon') {
+    if (isGoerli) {
+      return 80001
+    }
+    return 137
+  }
+  if (chain === 'optimism') {
+    if (isGoerli) {
+      return 420
+    }
+    return 10
+  }
+  if (chain === 'arbitrum') {
+    if (isGoerli) {
+      return 421613
+    }
+    return 42161
+  }
+  throw new Error(`unsupported chain "${chain}"`)
 }
 
 function nearestDate (dates: any[], target: any) {
@@ -223,7 +275,26 @@ class TransferStats {
       return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
     }
 
-    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+    if (isGoerli) {
+      if (chain === 'mainnet') {
+        chain = 'goerli'
+      }
+      if (chain === 'polygon') {
+        chain = 'mumbai'
+      }
+      if (chain === 'optimism') {
+        chain = 'optimism-goerli'
+      }
+      if (chain === 'arbitrum') {
+        throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+      }
+      if (chain === 'xdai') {
+        throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+      }
+    }
+
+    const url = `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+    return url
   }
 
   async queryFetch (url: string, query: string, variables?: any) {
@@ -299,7 +370,12 @@ class TransferStats {
         }
       }
     `
-    const url = this.getUrl(chain)
+    let url :string
+    try {
+      url = this.getUrl(chain)
+    } catch (err) {
+      return []
+    }
     let query = queryL1
     if (chain !== 'ethereum') {
       query = queryL2
@@ -417,7 +493,12 @@ class TransferStats {
         }
       }
     `
-    const url = this.getUrl(chain)
+    let url :string
+    try {
+      url = this.getUrl(chain)
+    } catch (err) {
+      return []
+    }
     let query = transferId.length === 66 ? queryL1TxHash : queryL1TransferId
     if (chain !== 'ethereum') {
       transferId = padHex(transferId)
@@ -460,7 +541,12 @@ class TransferStats {
       }
     `
 
-    const url = this.getUrl(chain)
+    let url :string
+    try {
+      url = this.getUrl(chain)
+    } catch (err) {
+      return []
+    }
     if (!lastId) {
       lastId = '0'
     }
@@ -523,7 +609,12 @@ class TransferStats {
     `
 
     transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
-    const url = this.getUrl(chain)
+    let url :string
+    try {
+      url = this.getUrl(chain)
+    } catch (err) {
+      return []
+    }
     let bonds: any = []
     const chunkSize = 1000
     const allChunks = chunk(transferIds, chunkSize)
@@ -559,7 +650,12 @@ class TransferStats {
       }
     `
     transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
-    const url = this.getUrl(chain)
+    let url :string
+    try {
+      url = this.getUrl(chain)
+    } catch (err) {
+      return []
+    }
     let withdrawals: any = []
     const chunkSize = 1000
     const allChunks = chunk(transferIds, chunkSize)
@@ -599,7 +695,12 @@ class TransferStats {
       }
     `
 
-    const url = this.getUrl(chain)
+    let url :string
+    try {
+      url = this.getUrl(chain)
+    } catch (err) {
+      return []
+    }
     const data = await this.queryFetch(url, query, {
       startTime,
       endTime,
@@ -1170,7 +1271,7 @@ class TransferStats {
     }
 
     if (!x.receiveStatusUnknown) {
-      x.receiveStatusUnknown = x.sourceChainId === 1 && !x.bondTxExplorerUrl && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
+      x.receiveStatusUnknown = x.sourceChainId === getSourceChainId('ethereum') && !x.bondTxExplorerUrl && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
     }
     if (x.receiveStatusUnknown) {
       // x.bonded = true
@@ -1308,7 +1409,7 @@ class TransferStats {
 
     for (const x of gnosisTransfers) {
       data.push({
-        sourceChain: 100,
+        sourceChain: getSourceChainId('gnosis'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,
@@ -1324,7 +1425,7 @@ class TransferStats {
     }
     for (const x of polygonTransfers) {
       data.push({
-        sourceChain: 137,
+        sourceChain: getSourceChainId('polygon'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,
@@ -1340,7 +1441,7 @@ class TransferStats {
     }
     for (const x of optimismTransfers) {
       data.push({
-        sourceChain: 10,
+        sourceChain: getSourceChainId('optimism'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         bonderFee: x.bonderFee,
@@ -1355,7 +1456,7 @@ class TransferStats {
     }
     for (const x of arbitrumTransfers) {
       data.push({
-        sourceChain: 42161,
+        sourceChain: getSourceChainId('arbitrum'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,
@@ -1371,7 +1472,7 @@ class TransferStats {
     }
     for (const x of mainnetTransfers) {
       data.push({
-        sourceChain: 1,
+        sourceChain: getSourceChainId('ethereum'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
         amountOutMin: x.amountOutMin,
@@ -1590,7 +1691,12 @@ class TransferStats {
     `
 
     transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
-    const url = this.getUrl(chain)
+    let url :string
+    try {
+      url = this.getUrl(chain)
+    } catch (err) {
+      return []
+    }
     let transferSents: any = []
     const chunkSize = 1000
     const allChunks = chunk(transferIds, chunkSize)

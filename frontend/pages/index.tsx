@@ -90,7 +90,7 @@ let queryParams: any = {}
   }
 
 const currentDate = luxon.DateTime.now().toFormat('yyyy-MM-dd')
-const yesterdayDate = luxon.DateTime.now().minus({ days: 1 }).toFormat('yyyy-MM-dd')
+const yesterdayDate = luxon.DateTime.now().minus({ days: isGoerli ? 7 : 1 }).toFormat('yyyy-MM-dd')
 const defaultSortBy = 'timestamp'
 const defaultSortDirection = 'desc'
 

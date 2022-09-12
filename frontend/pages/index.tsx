@@ -90,7 +90,7 @@ let queryParams: any = {}
   }
 
 const currentDate = luxon.DateTime.now().toFormat('yyyy-MM-dd')
-const yesterdayDate = luxon.DateTime.now().minus({ days: isGoerli ? 7 : 1 }).toFormat('yyyy-MM-dd')
+const defaultStartDate = luxon.DateTime.now().minus({ days: isGoerli ? 7 : 1 }).toFormat('yyyy-MM-dd')
 const defaultSortBy = 'timestamp'
 const defaultSortDirection = 'desc'
 
@@ -189,7 +189,7 @@ function useData () {
   const [loadingData, setLoadingData] = useState(false)
   const [minDate] = useState('2020-07-01')
   const [maxDate] = useState(currentDate)
-  const [filterStartDate, setFilterStartDate] = useState(queryParams.startDate || yesterdayDate)
+  const [filterStartDate, setFilterStartDate] = useState(queryParams.startDate || defaultStartDate)
   const [filterEndDate, setFilterEndDate] = useState(queryParams.endDate || queryParams.date || currentDate)
   const [filterSortBy, setFilterSortBy] = useState(queryParams.sortBy || defaultSortBy)
   const [filterSortDirection, setFilterSortDirection] = useState(queryParams.sortDirection || defaultSortDirection)
@@ -555,7 +555,7 @@ function useData () {
 
   function resetFilters(event: any) {
     event.preventDefault()
-    setFilterStartDate(yesterdayDate)
+    setFilterStartDate(defaultStartDate)
     setFilterEndDate(currentDate)
     setFilterSortBy('')
     setFilterSortDirection('')

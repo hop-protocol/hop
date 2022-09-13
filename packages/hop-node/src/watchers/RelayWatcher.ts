@@ -346,7 +346,7 @@ class RelayWatcher extends BaseWatcher {
   async sendTransferRootRelayTx (transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug(
-      `relay root destinationChainId with txHash ${txHash}`,
+      `relay root destinationChainId with txHash ${txHash}`
     )
     return await this.sendRelayTx(txHash)
   }

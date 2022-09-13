@@ -438,7 +438,6 @@ export class HealthCheckWatcher {
       messages.push(msg)
     }
 
-
     for (const item of lowBonderBalances) {
       const msg = `LowBonderBalance: bonder: ${item.bonder}, chain: ${item.chain}, amount: ${item.amountFormatted?.toFixed(2)} ${item.nativeToken}`
       messages.push(msg)
@@ -651,7 +650,7 @@ export class HealthCheckWatcher {
     const l1Chains: string[] = [Chain.Ethereum]
     const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
     result = result.map((x: any) => {
-      const isBonderFeeTooLow = 
+      const isBonderFeeTooLow =
       x.bonderFeeFormatted === 0 ||
       (x.token === 'ETH' && x.bonderFeeFormatted < 0.0005 && l1Chains.includes(x.destinationChain)) ||
       (x.token === 'ETH' && x.bonderFeeFormatted < 0.0001 && l2Chains.includes(x.destinationChain)) ||
@@ -923,7 +922,6 @@ export class HealthCheckWatcher {
       const endDateWithBufferSeconds = Math.floor(endDateWithBuffer.toSeconds())
       const transfersReceived = await getTransferFromL1Completed(chain, tokens, startDateSeconds, endDateWithBufferSeconds)
 
-
       // L1 to L2 transfers don't have a unique identifier from the perspective of the L1 event, so we need to track which L2 hashes have been observed
       // and can use that to filter out duplicates.
       const receiveHashesFounds: any = {}
@@ -958,7 +956,7 @@ export class HealthCheckWatcher {
             amount,
             relayer,
             relayerFee
-        })
+          })
         }
       }
     }

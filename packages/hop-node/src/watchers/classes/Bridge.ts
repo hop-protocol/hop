@@ -5,7 +5,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain, GasCostTransactionType, SettlementGasLimitPerTx  } from 'src/constants'
+import { Chain, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
@@ -768,14 +768,13 @@ export default class Bridge extends ContractBase {
   ) {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const provider = getRpcProvider(chain)!
-    let gasPrice = await provider.getGasPrice()
+    const gasPrice = await provider.getGasPrice()
 
     let gasCost: BigNumber = BigNumber.from('0')
     if (transactionType === GasCostTransactionType.Relay) {
       // Relay transactions use the gasLimit as the gasCost
       gasCost = gasLimit
-    }
-    else {
+    } else {
       // Include the cost to settle an individual transfer
       const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[chain]
       const gasLimitWithSettlement = gasLimit.add(settlementGasLimitPerTx)

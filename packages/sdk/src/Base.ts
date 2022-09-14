@@ -20,6 +20,7 @@ import { L2PolygonChildERC20 } from '@hop-protocol/core/contracts/L2PolygonChild
 import { L2PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/L2PolygonChildERC20__factory'
 import { L2XDaiToken } from '@hop-protocol/core/contracts/L2XDaiToken'
 import { L2XDaiToken__factory } from '@hop-protocol/core/contracts/factories/L2XDaiToken__factory'
+import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
@@ -166,7 +167,7 @@ class Base {
         return cached
       }
 
-      const data = s3FileCache[this.network] || await this.getS3ConfigData()
+      const data = await this.getS3ConfigData()
       if (data.bonders) {
         this.bonders = data.bonders
       }
@@ -586,6 +587,22 @@ class Base {
 
   getDestinationFeeGasPriceMultiplier () {
     return this.destinationFeeGasPriceMultiplier
+  }
+
+  public async getRelayerFee (destinationChain: TChain, tokenSymbol: string): Promise<BigNumber> {
+    await this.fetchConfigFromS3()
+    destinationChain = this.toChainModel(destinationChain)
+    const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
+    if (!isFeeEnabled) {
+      return BigNumber.from(0)
+    }
+
+    if (destinationChain.equals(Chain.Arbitrum)) {
+      const relayerFee = new RelayerFee(this.network, tokenSymbol)
+      return relayerFee.getRelayCost(destinationChain.slug)
+    }
+
+    return BigNumber.from(0)
   }
 
   async getS3ConfigData () {

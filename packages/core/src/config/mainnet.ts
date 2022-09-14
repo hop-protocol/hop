@@ -50,6 +50,6 @@ export const config : Config = {
     polygon: false,
     gnosis: false,
     optimism: false,
-    arbitrum: true
+    arbitrum: false
   }
 }

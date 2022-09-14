@@ -161,13 +161,13 @@ class Base {
 
   async fetchConfigFromS3 () {
     try {
-      const cached = s3FileCache[this.network]
+      let cached = s3FileCache[this.network]
       const isExpired = s3FileCacheTimestamp + cacheExpireMs < Date.now()
-      if (cached && !isExpired) {
-        return cached
+      if (cached && isExpired) {
+        cached = null
       }
 
-      const data = await this.getS3ConfigData()
+      const data = cached || await this.getS3ConfigData()
       if (data.bonders) {
         this.bonders = data.bonders
       }
@@ -180,8 +180,11 @@ class Base {
       if (data.relayerFeeEnabled) {
         this.relayerFeeEnabled = data.relayerFeeEnabled
       }
-      s3FileCache[this.network] = data
-      s3FileCacheTimestamp = Date.now()
+
+      if (!cached) {
+        s3FileCache[this.network] = data
+        s3FileCacheTimestamp = Date.now()
+      }
       return data
     } catch (err: any) {
       console.error('fetchConfigFromS3 error:', err)

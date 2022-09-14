@@ -18,7 +18,7 @@ from (
         (
           ((polygon_native_amount * matic_price_usd) / eth_price_usd) +
           ((gnosis_native_amount * xdai_price_usd) / eth_price_usd) +
-          ((ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount + arbitrum_messenger_wrapper_amount))
+          ((ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount + IFNULL(arbitrum_messenger_wrapper_amount, 0)))
         )
     ) as native_token_debt,
     strftime('%m - %d  - %Y', datetime(timestamp, 'unixepoch', 'utc')) as day

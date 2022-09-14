@@ -48,10 +48,10 @@ from (
         (
           ((polygon_native_amount * matic_price_usd) / eth_price_usd) +
           ((gnosis_native_amount * xdai_price_usd) / eth_price_usd) +
-          ((ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount))
+          ((ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount + IFNULL(arbitrum_messenger_wrapper_amount, 0)))
         )
     ) as native_token_debt,
-    (ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount) as total_eth_amount,
+    (ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount + IFNULL(arbitrum_messenger_wrapper_amount, 0)) as total_eth_amount,
     initial_canonical_amount,
     initial_eth_amount,
     initial_matic_amount,
@@ -72,7 +72,7 @@ from (
     optimism_native_amount,
     arbitrum_native_amount,
     arbitrum_alias_amount,
-    arbitrum_messenger_wrapper_amount,
+    IFNULL(arbitrum_messenger_wrapper_amount, 0) as arbitrum_messenger_wrapper_amount,
     eth_price_usd,
     restaked_amount,
     staked_amount,

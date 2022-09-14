@@ -20,6 +20,7 @@ import { L2PolygonChildERC20 } from '@hop-protocol/core/contracts/L2PolygonChild
 import { L2PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/L2PolygonChildERC20__factory'
 import { L2XDaiToken } from '@hop-protocol/core/contracts/L2XDaiToken'
 import { L2XDaiToken__factory } from '@hop-protocol/core/contracts/factories/L2XDaiToken__factory'
+import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
@@ -160,13 +161,13 @@ class Base {
 
   async fetchConfigFromS3 () {
     try {
-      const cached = s3FileCache[this.network]
+      let cached = s3FileCache[this.network]
       const isExpired = s3FileCacheTimestamp + cacheExpireMs < Date.now()
-      if (cached && !isExpired) {
-        return cached
+      if (cached && isExpired) {
+        cached = null
       }
 
-      const data = s3FileCache[this.network] || await this.getS3ConfigData()
+      const data = cached || await this.getS3ConfigData()
       if (data.bonders) {
         this.bonders = data.bonders
       }
@@ -176,8 +177,14 @@ class Base {
       if (data.destinationFeeGasPriceMultiplier) {
         this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
       }
-      s3FileCache[this.network] = data
-      s3FileCacheTimestamp = Date.now()
+      if (data.relayerFeeEnabled) {
+        this.relayerFeeEnabled = data.relayerFeeEnabled
+      }
+
+      if (!cached) {
+        s3FileCache[this.network] = data
+        s3FileCacheTimestamp = Date.now()
+      }
       return data
     } catch (err: any) {
       console.error('fetchConfigFromS3 error:', err)
@@ -583,6 +590,22 @@ class Base {
 
   getDestinationFeeGasPriceMultiplier () {
     return this.destinationFeeGasPriceMultiplier
+  }
+
+  public async getRelayerFee (destinationChain: TChain, tokenSymbol: string): Promise<BigNumber> {
+    await this.fetchConfigFromS3()
+    destinationChain = this.toChainModel(destinationChain)
+    const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
+    if (!isFeeEnabled) {
+      return BigNumber.from(0)
+    }
+
+    if (destinationChain.equals(Chain.Arbitrum)) {
+      const relayerFee = new RelayerFee(this.network, tokenSymbol)
+      return relayerFee.getRelayCost(destinationChain.slug)
+    }
+
+    return BigNumber.from(0)
   }
 
   async getS3ConfigData () {

@@ -43,6 +43,7 @@ import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { ExternalLink } from 'src/components/Link'
+import { FeeRefund } from './FeeRefund'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -615,7 +616,7 @@ const Send: FC = () => {
   ])
 
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
-  const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ${feeRefundTokenSymbol} ($${feeRefundUsd})` : ''
+  const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
 
   return (
     <Flex column alignCenter>
@@ -707,15 +708,6 @@ const Send: FC = () => {
             large
           />
 
-          {showFeeRefund && (
-            <DetailRow
-              title={'Fee Refund'}
-              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism. This refund includes a percentage of  the source transaction cost + bonder fee + AMM LP fee`}
-              value={feeRefundDisplay}
-              large
-            />
-          )}
-
           <DetailRow
             title="Estimated Received"
             tooltip={
@@ -730,6 +722,15 @@ const Send: FC = () => {
             xlarge
             bold
           />
+
+          {showFeeRefund && (
+            <FeeRefund
+              title={`OP Onboarding Reward`}
+              tokenSymbol={feeRefundTokenSymbol}
+              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism. This refund includes a percentage of  the source transaction cost + bonder fee + AMM LP fee`}
+              value={feeRefundDisplay}
+            />
+          )}
         </div>
       </div>
 

@@ -32,7 +32,6 @@ import {
   TokenIndex,
   TokenSymbol
 } from './constants'
-import { RelayerFee } from './relayerFee'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata, relayableChains } from './config'
 import { getAddress as checksumAddress, formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -950,7 +949,7 @@ class HopBridge extends Base {
 
     let txFeeEth: BigNumber
     if (sourceChain.isL1 && relayableChains.includes(destinationChain.slug)) {
-      txFeeEth = await this.getRelayerFee(destinationChain)
+      txFeeEth = await this.getRelayerFee(destinationChain, this.tokenSymbol)
     } else {
       txFeeEth = gasPrice.mul(bondTransferGasLimitWithSettlement)
     }
@@ -2280,21 +2279,6 @@ class HopBridge extends Base {
   setPriceFeedApiKeys (apiKeys: ApiKeys = {}) {
     this.priceFeedApiKeys = apiKeys
     this.priceFeed.setApiKeys(this.priceFeedApiKeys)
-  }
-
-  private async getRelayerFee (destinationChain: TChain): Promise<BigNumber> {
-    destinationChain = this.toChainModel(destinationChain)
-    const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
-    if (!isFeeEnabled) {
-      return BigNumber.from(0)
-    }
-
-    if (destinationChain.equals(Chain.Arbitrum)) {
-      const relayerFee = new RelayerFee(this.network, this.tokenSymbol)
-      return relayerFee.getRelayCost(destinationChain.slug)
-    }
-
-    return BigNumber.from(0)
   }
 
   async needsApproval (amount: TAmount, chain: TChain, address?: string) {

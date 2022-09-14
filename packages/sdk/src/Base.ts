@@ -176,6 +176,9 @@ class Base {
       if (data.destinationFeeGasPriceMultiplier) {
         this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
       }
+      if (data.relayerFeeEnabled) {
+        this.relayerFeeEnabled = data.relayerFeeEnabled
+      }
       s3FileCache[this.network] = data
       s3FileCacheTimestamp = Date.now()
       return data

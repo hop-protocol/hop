@@ -4,7 +4,8 @@ import { metadata, addresses } from 'src/config'
 export function getTokenImage(tokenSymbol: string = 'ETH') {
   const token = metadata.tokens[tokenSymbol]
   if (!token) {
-    throw new Error(`could not find token: ${tokenSymbol}`)
+    console.error(`could not find token: ${tokenSymbol}`)
+    return ''
   }
   return token.image
 }

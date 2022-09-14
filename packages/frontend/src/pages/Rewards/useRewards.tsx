@@ -11,6 +11,7 @@ import { networkIdToSlug, findNetworkBySlug } from 'src/utils/networks'
 import merkleRewardsAbi from 'src/abis/MerkleRewards.json'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { DateTime } from 'luxon'
+import { getTokenImage } from 'src/utils/tokens'
 
 interface Props {
   rewardsContractAddress: string
@@ -50,6 +51,7 @@ export const useRewards = (props: Props) => {
     }
   }, [provider, rewardsContractAddress])
   const claimChain = findNetworkBySlug(networkIdToSlug(requiredChainId))
+  const tokenImageUrl = getTokenImage(tokenSymbol)
 
   const token = useAsyncMemo(async () => {
     try {
@@ -325,6 +327,7 @@ export const useRewards = (props: Props) => {
     hasRewards,
     estimatedDate,
     claimChain,
-    txHistoryLink
+    txHistoryLink,
+    tokenImageUrl
   }
 }

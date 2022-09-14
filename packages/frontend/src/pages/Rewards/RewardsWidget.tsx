@@ -34,7 +34,7 @@ export const useStyles = makeStyles(theme => ({
 export function RewardsWidget(props: Props) {
   const styles = useStyles()
   const { rewardsContractAddress, merkleBaseUrl, requiredChainId, title } = props
-  const { tokenDecimals, tokenSymbol, claimableAmount, unclaimableAmount, latestRootTotal, latestRoot, claimRecipient, error, onchainRoot, loading, claim, claiming, estimatedDate, claimChain, txHistoryLink } = useRewards({ rewardsContractAddress, merkleBaseUrl, requiredChainId })
+  const { tokenDecimals, tokenSymbol, claimableAmount, unclaimableAmount, latestRootTotal, latestRoot, claimRecipient, error, onchainRoot, loading, claim, claiming, estimatedDate, tokenImageUrl, txHistoryLink } = useRewards({ rewardsContractAddress, merkleBaseUrl, requiredChainId })
 
   const claimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(claimableAmount, tokenDecimals)).toFixed(2) : ''
   const unclaimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(unclaimableAmount, tokenDecimals)).toFixed(2) : ''
@@ -70,19 +70,13 @@ export function RewardsWidget(props: Props) {
                       Claimable {tokenSymbol} <InfoTooltip title={'Tokens that can be claimed now'} />
                     </Typography>
                   </Box>
-                  <Box mb={2}>
+                  <Box mb={2} display="flex" alignItems="center">
+                    {tokenImageUrl && (
+                      <Box mr={1} display="flex">
+                        <img src={tokenImageUrl} alt={tokenSymbol} width="32px" />
+                      </Box>
+                    )}
                     <Typography variant="subtitle1">
-                      {claimChain && (
-                      <Circle style={{
-                        width: '32px',
-                        height: '32px',
-                        display: 'inline-block',
-                        verticalAlign: 'middle',
-                        marginRight: '1rem'
-                      }}>
-                        <img src={claimChain.imageUrl} alt={claimChain.name} title={claimChain.name} width="100%" />
-                      </Circle>
-                      )}
                       {claimableAmountDisplay} {tokenSymbol}
                     </Typography>
                   </Box>
@@ -101,19 +95,13 @@ export function RewardsWidget(props: Props) {
                     </Typography>
                   </Box>
                   <Box mb={2} display="flex" justifyContent="space-between">
-                    <Box>
+                    <Box mb={2} display="flex" alignItems="center">
+                      {tokenImageUrl && (
+                        <Box mr={1} display="flex">
+                          <img src={tokenImageUrl} alt={tokenSymbol} width="32px" />
+                        </Box>
+                      )}
                       <Typography variant="subtitle1">
-                        {claimChain && (
-                          <Circle style={{
-                            width: '32px',
-                            height: '32px',
-                            display: 'inline-block',
-                            verticalAlign: 'middle',
-                            marginRight: '1rem'
-                          }}>
-                            <img src={claimChain.imageUrl} alt={claimChain.name} title={claimChain.name} width="100%" />
-                          </Circle>
-                        )}
                         {unclaimableAmountDisplay} {tokenSymbol}
                       </Typography>
                     </Box>

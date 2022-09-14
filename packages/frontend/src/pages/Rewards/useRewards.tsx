@@ -7,10 +7,11 @@ import useQueryParams from 'src/hooks/useQueryParams'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
-import { networkIdToSlug } from 'src/utils/networks'
+import { networkIdToSlug, findNetworkBySlug } from 'src/utils/networks'
 import merkleRewardsAbi from 'src/abis/MerkleRewards.json'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { DateTime } from 'luxon'
+import { getTokenImage } from 'src/utils/tokens'
 
 interface Props {
   rewardsContractAddress: string
@@ -49,6 +50,8 @@ export const useRewards = (props: Props) => {
       console.error(err)
     }
   }, [provider, rewardsContractAddress])
+  const claimChain = findNetworkBySlug(networkIdToSlug(requiredChainId))
+  const tokenImageUrl = getTokenImage(tokenSymbol)
 
   const token = useAsyncMemo(async () => {
     try {
@@ -130,7 +133,9 @@ export const useRewards = (props: Props) => {
       if (!isSet) {
         return
       }
-      setLoading(true)
+      if (claimableAmount?.eq(0)) {
+        setLoading(true)
+      }
       const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
       const [entry] = await shardedMerkleTree.getProof(claimRecipient)
       if (!entry) {
@@ -297,7 +302,14 @@ export const useRewards = (props: Props) => {
     setClaiming(false)
   }
 
-  const hasRewards = claimableAmount?.gt(0) || unclaimableAmount?.gt(0)
+  const hasRewards = !!address && (claimableAmount?.gt(0) || unclaimableAmount?.gt(0))
+  let txHistoryLink = 'https://explorer.hop.exchange/?'
+  if (address) {
+   txHistoryLink += `&account=${address}`
+  }
+  if (claimChain) {
+   txHistoryLink += `&destination=${claimChain?.slug}`
+  }
 
   return {
     tokenDecimals,
@@ -313,6 +325,9 @@ export const useRewards = (props: Props) => {
     claimRecipient,
     onchainRoot,
     hasRewards,
-    estimatedDate
+    estimatedDate,
+    claimChain,
+    txHistoryLink,
+    tokenImageUrl
   }
 }

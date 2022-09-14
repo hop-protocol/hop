@@ -61,9 +61,14 @@ const HeaderRoutes: FC = () => {
       {showRewards && (
         <Tab label={<span style={{
             display: 'inline-block',
+            position: 'relative'
           }}>Rewards {hasRewards && <mark style={{
           background: 'none',
-          color: theme.palette.primary.main
+          color: theme.palette.primary.main,
+          display: 'inline-block',
+          position: 'absolute',
+          top: '-10px',
+          right: '-10px'
         }}>•</mark>}</span>} value="/rewards" />
       )}
       {!isMainnet && <Tab label="Faucet" value="/faucet" />}

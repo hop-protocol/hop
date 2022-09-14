@@ -898,7 +898,7 @@ class BonderStats {
                   }
                   if (chain === 'ethereum') {
                     dbData[
-                      `${chain}MessengerWrapperAmount`
+                      `arbitrumMessengerWrapperAmount`
                     ] = messengerWrapperBalance
                       ? Number(formatEther(messengerWrapperBalance.toString()))
                       : 0
@@ -906,6 +906,10 @@ class BonderStats {
                       `${chain} ${token} messenger wrapper balance`,
                       Number(formatEther(messengerWrapperBalance.toString()))
                     )
+                  }
+
+                  if (!dbData[`${chain}MessengerWrapperAmount`]) {
+                    dbData[`${chain}MessengerWrapperAmount`] = 0
                   }
 
                   if (chain === 'arbitrum') {

@@ -1,7 +1,7 @@
 import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, OneWeekMs, RelayableChains, TimeFromL1ToL2Ms, TxError } from 'src/constants'
+import { Chain, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs, nitroStartTimestamp } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -523,9 +523,6 @@ class TransfersDb extends BaseDb {
         }
       }
 
-      const seenOnL1TimestampMs: number = item.transferSentTimestamp * 1000
-      const seenOnL1TimestampOk = seenOnL1TimestampMs + TimeFromL1ToL2Ms[item.destinationChainSlug] < Date.now()
-
       return (
         item.transferId &&
         item.transferSentTimestamp &&
@@ -536,8 +533,7 @@ class TransfersDb extends BaseDb {
         !item.transferFromL1Complete &&
         item.transferSentLogIndex &&
         item.transferSentTimestamp &&
-        timestampOk &&
-        seenOnL1TimestampOk
+        timestampOk
       )
     })
 

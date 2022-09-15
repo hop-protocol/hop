@@ -7,8 +7,7 @@ import {
   OneHourMs,
   OneWeekMs,
   RelayableChains,
-  RootSetSettleDelayMs,
-  TimeFromL1ToL2Ms
+  RootSetSettleDelayMs
 } from 'src/constants'
 import { TxRetryDelayMs, nitroStartTimestamp, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
@@ -617,11 +616,6 @@ class TransferRootsDb extends BaseDb {
         sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
       }
 
-      // bondedAt should be checked first because a root can have both but it should be bonded prior to being confirmed
-      const seenOnL1Timestamp = item?.bondedAt ?? item?.confirmedAt
-      const seenOnL1TimestampMs: number = seenOnL1Timestamp! * 1000
-      const seenOnL1TimestampOk = seenOnL1TimestampMs + TimeFromL1ToL2Ms[destinationChain] < Date.now()
-
       return (
         !item.rootSetTxHash &&
         item.commitTxHash &&
@@ -630,8 +624,7 @@ class TransferRootsDb extends BaseDb {
         item.committed &&
         item.committedAt &&
         isSeenOnL1 &&
-        sentTxTimestampOk &&
-        seenOnL1TimestampOk
+        sentTxTimestampOk
       )
     })
 

@@ -53,7 +53,7 @@ export const useRewards = (props: Props) => {
     }
   }, [provider, rewardsContractAddress])
   const claimChain = findNetworkBySlug(networkIdToSlug(requiredChainId))
-  const tokenImageUrl = getTokenImage(tokenSymbol)
+  const tokenImageUrl = tokenSymbol ? getTokenImage(tokenSymbol) : ''
 
   const token = useAsyncMemo(async () => {
     try {
@@ -122,6 +122,9 @@ export const useRewards = (props: Props) => {
 
   const getClaimableAmount = async () => {
     try {
+      if (pollUnclaimableAmountFromBackend) {
+        return
+      }
       if (!(
         onchainRoot &&
         contract &&
@@ -221,9 +224,13 @@ export const useRewards = (props: Props) => {
       if (json.data.rewards.lockedBalance) {
         setUnclaimableAmount(BigNumber.from(json.data.rewards.lockedBalance))
       }
+      if (json.data.rewards.balance) {
+        setClaimableAmount(BigNumber.from(json.data.rewards.balance))
+      }
     } catch (err) {
       console.error(err)
     }
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -321,7 +328,7 @@ export const useRewards = (props: Props) => {
    txHistoryLink += `&account=${address}`
   }
   if (claimChain) {
-   txHistoryLink += `&destination=${claimChain?.slug}`
+   txHistoryLink += `&destination=optimism`
   }
 
   const repoUrl = (merkleBaseUrl ?? '').replace(/.*\.com\/(.*)\/master/gi, 'https://github.com/$1')

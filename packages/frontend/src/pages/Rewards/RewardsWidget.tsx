@@ -35,12 +35,11 @@ export const useStyles = makeStyles(theme => ({
 export function RewardsWidget(props: Props) {
   const styles = useStyles()
   const { rewardsContractAddress, merkleBaseUrl, requiredChainId, title, description } = props
-  const { tokenDecimals, tokenSymbol, claimableAmount, unclaimableAmount, latestRootTotal, latestRoot, claimRecipient, error, onchainRoot, loading, claim, claiming, estimatedDate, tokenImageUrl, txHistoryLink } = useRewards({ rewardsContractAddress, merkleBaseUrl, requiredChainId })
+  const { tokenDecimals, tokenSymbol, claimableAmount, unclaimableAmount, latestRootTotal, latestRoot, claimRecipient, error, onchainRoot, loading, claim, claiming, tokenImageUrl, txHistoryLink, repoUrl, countdown } = useRewards({ rewardsContractAddress, merkleBaseUrl, requiredChainId })
 
   const claimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(claimableAmount, tokenDecimals)).toFixed(2) : ''
   const unclaimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(unclaimableAmount, tokenDecimals)).toFixed(2) : ''
   const latestRootTotalDisplay = tokenDecimals ? toTokenDisplay(latestRootTotal, tokenDecimals) : ''
-  const repoUrl = (merkleBaseUrl ?? '').replace(/.*\.com\/(.*)\/master/gi, 'https://github.com/$1')
 
   return (
     <Box maxWidth="640px" margin="0 auto" flexDirection="column" display="flex" justifyContent="center" textAlign="center">
@@ -116,7 +115,7 @@ export function RewardsWidget(props: Props) {
                         </Box>
                         <Box>
                           <Typography variant="body1">
-                            {estimatedDate}
+                            {countdown}
                           </Typography>
                         </Box>
                       </Box>

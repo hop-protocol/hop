@@ -5,7 +5,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
+import { Chain, ChainHasFinalizationTag, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
@@ -615,8 +615,13 @@ export default class Bridge extends ContractBase {
     let start: number
     let totalBlocksInBatch: number
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
-    const currentBlockNumber = await this.getBlockNumber()
-    const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+    let currentBlockNumberWithFinality: number
+    if (ChainHasFinalizationTag[this.chainSlug]) {
+      currentBlockNumberWithFinality = await this.getFinalizedBlockNumber()
+    } else {
+      const currentBlockNumber = await this.getBlockNumber()
+      currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+    }
     const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
     const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
 

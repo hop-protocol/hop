@@ -73,6 +73,16 @@ export default class ContractBase extends EventEmitter {
     return await this.contract.provider.getBlockNumber()
   }
 
+  getFinalizedBlockNumber = async (): Promise<number> => {
+    const block = await this.contract.provider.getBlock('finalized')
+    return Number(block.number)
+  }
+
+  getSafeBlockNumber = async (): Promise<number> => {
+    const block = await this.contract.provider.getBlock('safe')
+    return Number(block.number)
+  }
+
   getTransactionBlockNumber = async (txHash: string): Promise<number> => {
     const tx = await this.contract.provider.getTransaction(txHash)
     if (!tx) {

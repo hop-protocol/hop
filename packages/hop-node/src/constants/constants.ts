@@ -103,3 +103,7 @@ export const TimeFromL1ToL2Ms: Record<string, number> = {
 }
 
 export const MaxDeadline: number = 9999999999
+
+export const ChainHasFinalizationTag: Record<string, boolean> = {
+  ethereum: true
+}

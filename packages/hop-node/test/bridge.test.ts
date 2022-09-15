@@ -264,4 +264,17 @@ describe.skip('events batch - Non-Happy Path', () => {
       )
     }
   })
+
+  test.only('block numbers with different tags', async () => {
+    const latestBlockNumber = await bridge.getBlockNumber()
+    const safeBlockNumber = await bridge.getSafeBlockNumber()
+    const finalizedBlockNumber = await bridge.getFinalizedBlockNumber()
+
+    expect(typeof latestBlockNumber).toBe('number')
+    expect(typeof safeBlockNumber).toBe('number')
+    expect(typeof finalizedBlockNumber).toBe('number')
+
+    expect(safeBlockNumber - finalizedBlockNumber).toBe(31)
+    expect(latestBlockNumber).toBeGreaterThan(safeBlockNumber)
+  })
 })

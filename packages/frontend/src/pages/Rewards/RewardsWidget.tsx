@@ -15,6 +15,7 @@ interface Props {
   merkleBaseUrl: string
   requiredChainId: number
   title: string
+  description: string
 }
 
 export const useStyles = makeStyles(theme => ({
@@ -33,12 +34,13 @@ export const useStyles = makeStyles(theme => ({
 
 export function RewardsWidget(props: Props) {
   const styles = useStyles()
-  const { rewardsContractAddress, merkleBaseUrl, requiredChainId, title } = props
-  const { tokenDecimals, tokenSymbol, claimableAmount, unclaimableAmount, latestRootTotal, latestRoot, claimRecipient, error, onchainRoot, loading, claim, claiming, estimatedDate, tokenImageUrl, txHistoryLink } = useRewards({ rewardsContractAddress, merkleBaseUrl, requiredChainId })
+  const { rewardsContractAddress, merkleBaseUrl, requiredChainId, title, description } = props
+  const { tokenDecimals, tokenSymbol, claimableAmount, unclaimableAmount, latestRootTotal, latestRoot, claimRecipient, error, onchainRoot, loading, claim, claiming, tokenImageUrl, txHistoryLink, repoUrl, countdown } = useRewards({ rewardsContractAddress, merkleBaseUrl, requiredChainId })
 
   const claimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(claimableAmount, tokenDecimals)).toFixed(2) : ''
   const unclaimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(unclaimableAmount, tokenDecimals)).toFixed(2) : ''
   const latestRootTotalDisplay = tokenDecimals ? toTokenDisplay(latestRootTotal, tokenDecimals) : ''
+  const showCountdown = unclaimableAmount?.gt(0)
 
   return (
     <Box maxWidth="640px" margin="0 auto" flexDirection="column" display="flex" justifyContent="center" textAlign="center">
@@ -52,7 +54,7 @@ export function RewardsWidget(props: Props) {
       {!!claimRecipient && (
         <Box>
           <Box mb={4} flexDirection="column" textAlign="left">
-            <Typography variant="h5">{title} <InfoTooltip title={<><div>Merkle rewards</div><div>published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>latest root total: {latestRootTotalDisplay}</div></>} /></Typography>
+            <Typography variant="h5">{title} <InfoTooltip title={<><div>{description}</div><br /><div>Merkle rewards info</div><div>Published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>Latest root total: {latestRootTotalDisplay}</div><div>Github repo: {repoUrl}</div></>} /></Typography>
           </Box>
           {loading && (
             <Box mb={4} display="flex" flexDirection="column" justifyContent="center" textAlign="center">
@@ -70,7 +72,7 @@ export function RewardsWidget(props: Props) {
                       Claimable {tokenSymbol} <InfoTooltip title={'Tokens that can be claimed now'} />
                     </Typography>
                   </Box>
-                  <Box mb={2} display="flex" alignItems="center">
+                  <Box mb={2} display="flex" alignItems="center" minHeight="50px">
                     {tokenImageUrl && (
                       <Box mr={1} display="flex">
                         <img src={tokenImageUrl} alt={tokenSymbol} width="32px" />
@@ -94,7 +96,7 @@ export function RewardsWidget(props: Props) {
                       Pending {tokenSymbol} <InfoTooltip title={'Tokens that will be claimable once merkle root is published on-chain'} />
                     </Typography>
                   </Box>
-                  <Box mb={2} display="flex" justifyContent="space-between">
+                  <Box mb={2} display="flex" justifyContent="space-between" minHeight="50px">
                     <Box mb={2} display="flex" alignItems="center">
                       {tokenImageUrl && (
                         <Box mr={1} display="flex">
@@ -105,8 +107,8 @@ export function RewardsWidget(props: Props) {
                         {unclaimableAmountDisplay} {tokenSymbol}
                       </Typography>
                     </Box>
-                    {!!unclaimableAmountDisplay && (
-                      <Box>
+                    {showCountdown && (
+                      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
                         <Box>
                           <Typography variant="body1">
                             <strong>Countdown</strong>
@@ -114,7 +116,7 @@ export function RewardsWidget(props: Props) {
                         </Box>
                         <Box>
                           <Typography variant="body1">
-                            {estimatedDate}
+                            {countdown}
                           </Typography>
                         </Box>
                       </Box>
@@ -122,7 +124,7 @@ export function RewardsWidget(props: Props) {
                   </Box>
                 </Box>
                 <Box mb={2}>
-                  <Button variant="contained" href={txHistoryLink} fullWidth large target="_blank" rel="noopener noreferrer">Tx History →</Button>
+                  <Button variant="contained" href={txHistoryLink} fullWidth large target="_blank" rel="noopener noreferrer" disabled={!showCountdown}>Tx History →</Button>
                 </Box>
               </Card>
             </Box>

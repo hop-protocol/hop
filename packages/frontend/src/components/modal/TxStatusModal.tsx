@@ -28,10 +28,12 @@ function TxStatusModal(props: Props) {
   }
 
   const sourceChain = tx?.networkName ? Chain.fromSlug(tx.networkName) : null
-  const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
+  // const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
   let timeEstimate = '5 minutes'
-  if (sourceChain?.isL1 && destinationChain?.equals(Chain.Polygon)) {
+  if (sourceChain?.isL1) {
     timeEstimate = '15 minutes'
+  } else if (sourceChain?.equals(Chain.Polygon)) {
+    timeEstimate = '10 minutes'
   }
 
   const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(

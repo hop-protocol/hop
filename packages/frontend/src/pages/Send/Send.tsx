@@ -727,7 +727,7 @@ const Send: FC = () => {
             <FeeRefund
               title={`OP Onboarding Reward`}
               tokenSymbol={feeRefundTokenSymbol}
-              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism. This refund includes a percentage of  the source transaction cost + bonder fee + AMM LP fee`}
+              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism. This refund includes a percentage of the source transaction cost + bonder fee + AMM LP fee`}
               value={feeRefundDisplay}
             />
           )}

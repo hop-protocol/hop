@@ -13,7 +13,7 @@ export function Rewards() {
             requiredChainId={config.chainId}
             rewardsContractAddress={config.rewardsContractAddress}
             merkleBaseUrl={config.merkleBaseUrl}
-            title="Optimism Fee Refund"
+            title="Optimism Onboarding Rewards"
           />
         )
       })}

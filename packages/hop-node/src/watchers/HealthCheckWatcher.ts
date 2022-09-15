@@ -234,10 +234,11 @@ export class HealthCheckWatcher {
   unbondedTransfersMinTimeToWaitMinutes: number = 30
   unbondedTransferRootsMinTimeToWaitHours: number = 1
   incompleteSettlementsMinTimeToWaitHours: number = 4
+  // Targeting roughly 1 hour
   minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
-    [Chain.Ethereum]: 1000,
+    [Chain.Ethereum]: 300,
     [Chain.Polygon]: 2000,
-    [Chain.Gnosis]: 2000,
+    [Chain.Gnosis]: 750,
     [Chain.Optimism]: 10000,
     [Chain.Arbitrum]: 10000
   }
@@ -411,16 +412,6 @@ export class HealthCheckWatcher {
         messages.push(msg)
       }
 
-      for (const item of challengedTransferRoots) {
-        const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted?.toFixed(4)}, token: ${item.token}`
-        messages.push(msg)
-      }
-
-      for (const item of missedEvents) {
-        const msg = `Possible MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}, amount: ${item.amount}, bonderFee: ${item.bonderFee}, timestamp: ${item.timestamp}`
-        messages.push(msg)
-      }
-
       for (const item of invalidBondWithdrawals) {
         const msg = `Possible InvalidBondWithdrawal: transferId: ${item.transferId}, destination: ${item.destinationChain}, token: ${item.token}, amount: ${item.amount}, timestamp: ${item.timestamp}`
         messages.push(msg)
@@ -435,6 +426,16 @@ export class HealthCheckWatcher {
         const msg = `Possible unset transferRoot: transferRootHash: ${item.transferRootHash}, totalAmount: ${item.totalAmount}, timestamp: ${item.timestamp}`
         messages.push(msg)
       }
+    }
+
+    for (const item of challengedTransferRoots) {
+      const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted?.toFixed(4)}, token: ${item.token}`
+      messages.push(msg)
+    }
+
+    for (const item of missedEvents) {
+      const msg = `Possible MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}, amount: ${item.amount}, bonderFee: ${item.bonderFee}, timestamp: ${item.timestamp}`
+      messages.push(msg)
     }
 
     for (const item of lowBonderBalances) {
@@ -649,7 +650,7 @@ export class HealthCheckWatcher {
     const l1Chains: string[] = [Chain.Ethereum]
     const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
     result = result.map((x: any) => {
-      const isBonderFeeTooLow = 
+      const isBonderFeeTooLow =
       x.bonderFeeFormatted === 0 ||
       (x.token === 'ETH' && x.bonderFeeFormatted < 0.0005 && l1Chains.includes(x.destinationChain)) ||
       (x.token === 'ETH' && x.bonderFeeFormatted < 0.0001 && l2Chains.includes(x.destinationChain)) ||
@@ -921,7 +922,6 @@ export class HealthCheckWatcher {
       const endDateWithBufferSeconds = Math.floor(endDateWithBuffer.toSeconds())
       const transfersReceived = await getTransferFromL1Completed(chain, tokens, startDateSeconds, endDateWithBufferSeconds)
 
-
       // L1 to L2 transfers don't have a unique identifier from the perspective of the L1 event, so we need to track which L2 hashes have been observed
       // and can use that to filter out duplicates.
       const receiveHashesFounds: any = {}
@@ -956,7 +956,7 @@ export class HealthCheckWatcher {
             amount,
             relayer,
             relayerFee
-        })
+          })
         }
       }
     }

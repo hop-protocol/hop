@@ -1,7 +1,7 @@
 import fetch from 'isomorphic-fetch'
 
-export async function makeRequest (chain: string, query: string, variables?: any) {
-  const url = getUrl(chain)
+export async function makeRequest (network: string, chain: string, query: string, variables?: any) {
+  const url = getUrl(network, chain)
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -20,13 +20,33 @@ export async function makeRequest (chain: string, query: string, variables?: any
   return jsonRes.data
 }
 
-function getUrl (chain: string) {
+function getUrl (network: string, chain: string) {
   if (chain === 'gnosis') {
     chain = 'xdai'
   }
 
   if (chain === 'ethereum') {
     chain = 'mainnet'
+  }
+
+  if (network === 'goerli') {
+    if (chain === 'mainnet') {
+      chain = 'goerli'
+    }
+    if (chain === 'polygon') {
+      chain = 'mumbai'
+    }
+    if (chain === 'optimism') {
+      chain = 'optimism-goerli'
+    }
+    if (chain === 'arbitrum') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
+    if (chain === 'xdai') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
+
+    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
   }
 
   if (chain === 'mainnet') {

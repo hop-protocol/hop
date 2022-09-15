@@ -62,7 +62,7 @@ class L1ToL2Watcher extends BaseWatcher {
       const dateTime = DateTime.fromSeconds(this.sourceBlock.timestamp)
       const startTime = Math.floor(dateTime.minus({ hour: 1 }).toSeconds())
       const endTime = Math.floor(dateTime.plus({ hour: 24 }).toSeconds())
-      const events = await getTransferFromL1CompletedEvents(this.destinationChain.slug, startTime, endTime)
+      const events = await getTransferFromL1CompletedEvents(this.network, this.destinationChain.slug, startTime, endTime)
       for (const event of events) {
         if (event.recipient.toLowerCase() === recipient.toLowerCase()) {
           if (event.amount.toString() === amount.toString()) {
@@ -77,7 +77,7 @@ class L1ToL2Watcher extends BaseWatcher {
   }
 }
 
-async function getTransferFromL1CompletedEvents (chain: string, startTime: number, endTime: number) {
+async function getTransferFromL1CompletedEvents (network: string, chain: string, startTime: number, endTime: number) {
   const query = `
     query TransferFromL1Completed($startTime: Int, $endTime: Int) {
       events: transferFromL1Completeds(
@@ -100,7 +100,7 @@ async function getTransferFromL1CompletedEvents (chain: string, startTime: numbe
     }
   `
 
-  const data = await makeRequest(chain, query, {
+  const data = await makeRequest(network, chain, query, {
     startTime,
     endTime
   })

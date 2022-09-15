@@ -7,9 +7,11 @@ import useQueryParams from 'src/hooks/useQueryParams'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
-import { networkIdToSlug } from 'src/utils/networks'
+import { networkIdToSlug, findNetworkBySlug } from 'src/utils/networks'
 import merkleRewardsAbi from 'src/abis/MerkleRewards.json'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import { DateTime } from 'luxon'
+import { getTokenImage } from 'src/utils/tokens'
 
 interface Props {
   rewardsContractAddress: string
@@ -32,6 +34,7 @@ export const useRewards = (props: Props) => {
   const [tokenDecimals, setTokenDecimals] = useState<number|null>(null)
   const [tokenSymbol, setTokenSymbol] = useState('')
   const [latestRootTotal, setLatestRootTotal] = useState(BigNumber.from(0))
+  const [estimatedDate, setEstimatedDate] = useState('')
   const claimRecipient = queryParams.address as string ?? address?.address
   const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
@@ -47,6 +50,8 @@ export const useRewards = (props: Props) => {
       console.error(err)
     }
   }, [provider, rewardsContractAddress])
+  const claimChain = findNetworkBySlug(networkIdToSlug(requiredChainId))
+  const tokenImageUrl = getTokenImage(tokenSymbol)
 
   const token = useAsyncMemo(async () => {
     try {
@@ -81,13 +86,13 @@ export const useRewards = (props: Props) => {
     update().catch(console.error)
   }, [token])
 
-  useInterval(getOnchainRoot, 10 * 1000)
+  useInterval(getOnchainRoot, 30 * 1000)
 
   useEffect(() => {
     getOnchainRoot().catch(console.error)
   }, [contract])
 
-  useInterval(getOnchainRoot, 10 * 1000)
+  useInterval(getOnchainRoot, 30 * 1000)
 
   const getLatestRoot = async () => {
     try {
@@ -111,7 +116,7 @@ export const useRewards = (props: Props) => {
     getLatestRoot().catch(console.error)
   }, [contract, merkleBaseUrl])
 
-  useInterval(getLatestRoot, 10 * 1000)
+  useInterval(getLatestRoot, 30 * 1000)
 
   const getClaimableAmount = async () => {
     try {
@@ -128,7 +133,9 @@ export const useRewards = (props: Props) => {
       if (!isSet) {
         return
       }
-      setLoading(true)
+      if (claimableAmount?.eq(0)) {
+        setLoading(true)
+      }
       const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
       const [entry] = await shardedMerkleTree.getProof(claimRecipient)
       if (!entry) {
@@ -226,6 +233,34 @@ export const useRewards = (props: Props) => {
 
   useInterval(getUnclaimableAmountFromBackend, 10 * 1000)
 
+  const getRewardsInfoFromBackend = async () => {
+    try {
+      if (!pollUnclaimableAmountFromBackend) {
+        return
+      }
+      const url = 'https://hop-merkle-rewards-backend.hop.exchange/v1/rewards-info'
+      const res = await fetch(url)
+      const json = await res.json()
+      if (json.error) {
+        throw new Error(json.error)
+      }
+      if (json.data.estimatedDateMs) {
+        const relative = DateTime.fromMillis(json.data.estimatedDateMs).toRelative()
+        if (relative) {
+          setEstimatedDate(relative)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  useEffect(() => {
+    getRewardsInfoFromBackend().catch(console.error)
+  }, [])
+
+  useInterval(getRewardsInfoFromBackend, 60 * 1000)
+
   async function claim() {
     try {
       setError('')
@@ -267,7 +302,14 @@ export const useRewards = (props: Props) => {
     setClaiming(false)
   }
 
-  const hasRewards = claimableAmount?.gt(0) || unclaimableAmount?.gt(0)
+  const hasRewards = !!address && (claimableAmount?.gt(0) || unclaimableAmount?.gt(0))
+  let txHistoryLink = 'https://explorer.hop.exchange/?'
+  if (address) {
+   txHistoryLink += `&account=${address}`
+  }
+  if (claimChain) {
+   txHistoryLink += `&destination=${claimChain?.slug}`
+  }
 
   return {
     tokenDecimals,
@@ -282,6 +324,10 @@ export const useRewards = (props: Props) => {
     tokenSymbol,
     claimRecipient,
     onchainRoot,
-    hasRewards
+    hasRewards,
+    estimatedDate,
+    claimChain,
+    txHistoryLink,
+    tokenImageUrl
   }
 }

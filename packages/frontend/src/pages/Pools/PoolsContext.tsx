@@ -239,8 +239,8 @@ const PoolsProvider: FC = ({ children }) => {
         const cacheKey = `apr:${selectedNetwork.slug}:${token.symbol}`
         try {
           const cached = JSON.parse(localStorage.getItem(cacheKey) || '')
-          const tenMinutes = 10 * 60 * 1000
-          const isRecent = cached.timestamp > Date.now() - tenMinutes
+          const expiresTimeMs = 2 * 60 * 60 * 1000 // 2hrs
+          const isRecent = cached.timestamp > Date.now() - expiresTimeMs
           if (cached && isRecent && typeof cached.apr === 'number') {
             setApr(cached.apr)
             return
@@ -258,9 +258,36 @@ const PoolsProvider: FC = ({ children }) => {
           const url = 'https://assets.hop.exchange/v1-pool-stats.json'
           const res = await fetch(url)
           const json = await res.json()
+          console.log('apr data response:', json)
+          if (!json.data) {
+            throw new Error('expected data')
+          }
+          let symbol = token.symbol
+          if (symbol === 'WETH') {
+            symbol = 'ETH'
+          }
+          if (symbol === 'XDAI') {
+            symbol = 'DAI'
+          }
+          if (symbol === 'WXDAI') {
+            symbol = 'DAI'
+          }
+          if (symbol === 'WMATIC') {
+            symbol = 'MATIC'
+          }
+          if (!json.data[symbol]) {
+            throw new Error(`expected data for token symbol "${symbol}"`)
+          }
+          if (!json.data[symbol][selectedNetwork.slug]) {
+            throw new Error(`expected data for network "${selectedNetwork.slug}"`)
+          }
+          if (json.data[symbol][selectedNetwork.slug].apr === undefined) {
+            throw new Error(`expected apr value for token "${symbol}" and network "${selectedNetwork.slug}"`)
+          }
 
-          apr = json.data[token.symbol][selectedNetwork.slug].apr
+          apr = json.data[symbol][selectedNetwork.slug].apr
         } catch (err) {
+          logger.error('apr fetch error:', err)
           const bridge = await sdk.bridge(token.symbol)
           const amm = bridge.getAmm(selectedNetwork.slug)
           apr = await amm.getApr()
@@ -280,7 +307,7 @@ const PoolsProvider: FC = ({ children }) => {
           setApr(apr)
         }
       } catch (err) {
-        logger.error(err)
+        logger.error('apr error:', err)
       }
     }
 

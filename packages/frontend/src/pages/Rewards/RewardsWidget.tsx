@@ -70,7 +70,7 @@ export function RewardsWidget(props: Props) {
                       Claimable {tokenSymbol} <InfoTooltip title={'Tokens that can be claimed now'} />
                     </Typography>
                   </Box>
-                  <Box mb={2} display="flex" alignItems="center">
+                  <Box mb={2} display="flex" alignItems="center" minHeight="50px">
                     {tokenImageUrl && (
                       <Box mr={1} display="flex">
                         <img src={tokenImageUrl} alt={tokenSymbol} width="32px" />
@@ -94,7 +94,7 @@ export function RewardsWidget(props: Props) {
                       Pending {tokenSymbol} <InfoTooltip title={'Tokens that will be claimable once merkle root is published on-chain'} />
                     </Typography>
                   </Box>
-                  <Box mb={2} display="flex" justifyContent="space-between">
+                  <Box mb={2} display="flex" justifyContent="space-between" minHeight="50px">
                     <Box mb={2} display="flex" alignItems="center">
                       {tokenImageUrl && (
                         <Box mr={1} display="flex">
@@ -106,7 +106,7 @@ export function RewardsWidget(props: Props) {
                       </Typography>
                     </Box>
                     {!!unclaimableAmountDisplay && (
-                      <Box>
+                      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
                         <Box>
                           <Typography variant="body1">
                             <strong>Countdown</strong>

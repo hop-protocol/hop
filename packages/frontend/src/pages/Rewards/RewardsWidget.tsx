@@ -40,6 +40,7 @@ export function RewardsWidget(props: Props) {
   const claimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(claimableAmount, tokenDecimals)).toFixed(2) : ''
   const unclaimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(unclaimableAmount, tokenDecimals)).toFixed(2) : ''
   const latestRootTotalDisplay = tokenDecimals ? toTokenDisplay(latestRootTotal, tokenDecimals) : ''
+  const showCountdown = unclaimableAmount?.gt(0)
 
   return (
     <Box maxWidth="640px" margin="0 auto" flexDirection="column" display="flex" justifyContent="center" textAlign="center">
@@ -106,7 +107,7 @@ export function RewardsWidget(props: Props) {
                         {unclaimableAmountDisplay} {tokenSymbol}
                       </Typography>
                     </Box>
-                    {!!unclaimableAmountDisplay && (
+                    {showCountdown && (
                       <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
                         <Box>
                           <Typography variant="body1">
@@ -123,7 +124,7 @@ export function RewardsWidget(props: Props) {
                   </Box>
                 </Box>
                 <Box mb={2}>
-                  <Button variant="contained" href={txHistoryLink} fullWidth large target="_blank" rel="noopener noreferrer">Tx History →</Button>
+                  <Button variant="contained" href={txHistoryLink} fullWidth large target="_blank" rel="noopener noreferrer" disabled={!showCountdown}>Tx History →</Button>
                 </Box>
               </Card>
             </Box>

@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/core",
-  "version": "0.0.1-beta.80",
+  "version": "0.0.1-beta.81",
   "description": "Hop Protocol networks config",
   "main": "index.js",
   "types": "index.d.ts",
@@ -36,7 +36,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "ethers": "5.6.9"
+    "ethers": "5.7.1"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.44.0",

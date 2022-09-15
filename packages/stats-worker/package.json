@@ -23,8 +23,8 @@
   "dependencies": {
     "@pinata/sdk": "1.1.26",
     "@aws-sdk/client-s3": "3.29.0",
-    "@hop-protocol/core": "0.0.1-beta.80",
-    "@hop-protocol/sdk": "0.0.1-beta.359",
+    "@hop-protocol/core": "0.0.1-beta.81",
+    "@hop-protocol/sdk": "0.0.1-beta.360",
     "comment-json": "4.2.2",
     "csv-writer": "1.6.0",
     "dotenv": "10.0.0",

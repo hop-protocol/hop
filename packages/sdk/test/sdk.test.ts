@@ -808,3 +808,15 @@ describe('isDestinationChainIdPaused', () => {
     expect(isPaused).toBe(false)
   })
 })
+
+describe.skip('relayerFeeEnabled', () => {
+  it('should return enabled value for arbitrum', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const enabled = bridge.relayerFeeEnabled.arbitrum
+    expect(enabled).toBe(true)
+
+    const fee = await bridge.getRelayerFee('arbitrum', 'USDC')
+    expect(fee.eq(0)).toBe(true)
+  })
+})

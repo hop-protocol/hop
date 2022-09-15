@@ -15,6 +15,7 @@ interface Props {
   merkleBaseUrl: string
   requiredChainId: number
   title: string
+  description: string
 }
 
 export const useStyles = makeStyles(theme => ({
@@ -33,12 +34,13 @@ export const useStyles = makeStyles(theme => ({
 
 export function RewardsWidget(props: Props) {
   const styles = useStyles()
-  const { rewardsContractAddress, merkleBaseUrl, requiredChainId, title } = props
+  const { rewardsContractAddress, merkleBaseUrl, requiredChainId, title, description } = props
   const { tokenDecimals, tokenSymbol, claimableAmount, unclaimableAmount, latestRootTotal, latestRoot, claimRecipient, error, onchainRoot, loading, claim, claiming, estimatedDate, tokenImageUrl, txHistoryLink } = useRewards({ rewardsContractAddress, merkleBaseUrl, requiredChainId })
 
   const claimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(claimableAmount, tokenDecimals)).toFixed(2) : ''
   const unclaimableAmountDisplay = tokenDecimals ? Number(toTokenDisplay(unclaimableAmount, tokenDecimals)).toFixed(2) : ''
   const latestRootTotalDisplay = tokenDecimals ? toTokenDisplay(latestRootTotal, tokenDecimals) : ''
+  const repoUrl = (merkleBaseUrl ?? '').replace(/.*\.com\/(.*)\/master/gi, 'https://github.com/$1')
 
   return (
     <Box maxWidth="640px" margin="0 auto" flexDirection="column" display="flex" justifyContent="center" textAlign="center">
@@ -52,7 +54,7 @@ export function RewardsWidget(props: Props) {
       {!!claimRecipient && (
         <Box>
           <Box mb={4} flexDirection="column" textAlign="left">
-            <Typography variant="h5">{title} <InfoTooltip title={<><div>Merkle rewards</div><div>published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>latest root total: {latestRootTotalDisplay}</div></>} /></Typography>
+            <Typography variant="h5">{title} <InfoTooltip title={<><div>{description}</div><br /><div>Merkle rewards info</div><div>Published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>Latest root total: {latestRootTotalDisplay}</div><div>Github repo: {repoUrl}</div></>} /></Typography>
           </Box>
           {loading && (
             <Box mb={4} display="flex" flexDirection="column" justifyContent="center" textAlign="center">

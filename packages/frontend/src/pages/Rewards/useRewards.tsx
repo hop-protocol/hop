@@ -24,7 +24,7 @@ export const useRewards = (props: Props) => {
   const { rewardsContractAddress, merkleBaseUrl, requiredChainId } = props
   const { checkConnectedNetworkId, address, provider, connectedNetworkId } = useWeb3Context()
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [claiming, setClaiming] = useState(false)
   const [claimableAmount, setClaimableAmount] = useState(BigNumber.from(0))
   const [unclaimableAmount, setUnclaimableAmount] = useState(BigNumber.from(0))
@@ -132,9 +132,6 @@ export const useRewards = (props: Props) => {
       const isSet = !BigNumber.from(onchainRoot).eq(BigNumber.from(0))
       if (!isSet) {
         return
-      }
-      if (claimableAmount?.eq(0)) {
-        setLoading(true)
       }
       const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
       const [entry] = await shardedMerkleTree.getProof(claimRecipient)

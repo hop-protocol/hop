@@ -2,10 +2,12 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
+import getRpcUrl from 'src/utils/getRpcUrl'
 import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
 import { Chain, MinGnosisGasPrice, MinPolygonGasPrice } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
+import { providers as providersUpdated } from 'ethers-updated'
 import { Transaction } from 'src/types'
 import { config as globalConfig } from 'src/config'
 
@@ -74,12 +76,18 @@ export default class ContractBase extends EventEmitter {
   }
 
   getFinalizedBlockNumber = async (): Promise<number> => {
-    const block = await this.contract.provider.getBlock('finalized')
+    // TODO: Use this.contract.provider when ethers.js is updated
+    const rpcUrl = getRpcUrl(this.chainSlug)
+    const provider = new providersUpdated.JsonRpcProvider(rpcUrl)
+    const block = await provider.getBlock('finalized')
     return Number(block.number)
   }
 
   getSafeBlockNumber = async (): Promise<number> => {
-    const block = await this.contract.provider.getBlock('safe')
+    // TODO: Use this.contract.provider when ethers.js is updated
+    const rpcUrl = getRpcUrl(this.chainSlug)
+    const provider = new providersUpdated.JsonRpcProvider(rpcUrl)
+    const block = await provider.getBlock('safe')
     return Number(block.number)
   }
 

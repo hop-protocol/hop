@@ -9,9 +9,14 @@
 ## Development
 
 ```sh
-(./scripts/postgres_dev.sh)
-(cd backend && npm run dev:local)
-(cd fronted && npm run dev:local)
+# terminal 1
+./scripts/postgres_dev.sh
+
+# terminal 2
+cd backend && npm run dev:local
+
+# terminal 3
+cd frontend && npm run dev:local
 ```
 
 ## License

@@ -226,7 +226,7 @@ export function useSendTransaction (props: any) {
           deadline: deadline(),
           relayerFee: relayerFeeWithId,
           recipient,
-          amountOutMin,
+          amountOutMin: amountOutMin.sub(relayerFeeWithId),
         })
       },
     })

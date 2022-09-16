@@ -467,11 +467,6 @@ class TransfersDb extends BaseDb {
   async getUnrelayedSentTransfers (
     filter: GetItemsFilter = {}
   ): Promise<UnrelayedSentTransfer[]> {
-    // TODO: Remove this post-nitro
-    if (!nitroStartTimestamp) {
-      return []
-    }
-
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     const filtered = transfers.filter(item => {
       if (!item?.transferId) {
@@ -499,11 +494,6 @@ class TransfersDb extends BaseDb {
       }
 
       if (!item.transferSentTimestamp) {
-        return false
-      }
-
-      // TODO: Remove this one week post-nitro
-      if (item.transferSentTimestamp && item.transferSentTimestamp < nitroStartTimestamp) {
         return false
       }
 

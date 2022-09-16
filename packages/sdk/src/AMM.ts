@@ -4,7 +4,6 @@ import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
 import { DateTime } from 'luxon'
-import { Swap } from '@hop-protocol/core/contracts/Swap'
 import { Swap__factory } from '@hop-protocol/core/contracts/factories/Swap__factory'
 import { TAmount, TChain, TProvider } from './types'
 import { TokenIndex, TokenSymbol } from './constants'
@@ -328,7 +327,7 @@ class AMM extends Base {
    * @param {Object} chain - Chain name or model
    * @returns {Object} Ethers contract instance.
    */
-  public async getSaddleSwap (): Promise<Swap> {
+  public async getSaddleSwap (): Promise<any> {
     const saddleSwapAddress = this.getL2SaddleSwapAddress(
       this.tokenSymbol,
       this.chain

@@ -5,11 +5,8 @@ import Token from './Token'
 import TokenModel from './models/Token'
 import fetch from 'isomorphic-fetch'
 
-import { L1ERC20Bridge } from '@hop-protocol/core/contracts/L1ERC20Bridge'
 import { L1ERC20Bridge__factory } from '@hop-protocol/core/contracts/factories/L1ERC20Bridge__factory'
-import { L1HomeAMBNativeToErc20 } from '@hop-protocol/core/contracts/L1HomeAMBNativeToErc20'
 import { L1HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/L1HomeAMBNativeToErc20__factory'
-import { L2AmmWrapper } from '@hop-protocol/core/contracts/L2AmmWrapper'
 import { L2AmmWrapper__factory } from '@hop-protocol/core/contracts/factories/L2AmmWrapper__factory'
 import { L2Bridge } from '@hop-protocol/core/contracts/L2Bridge'
 import { L2Bridge__factory } from '@hop-protocol/core/contracts/factories/L2Bridge__factory'
@@ -1476,7 +1473,7 @@ class HopBridge extends Base {
    * @param {Object} signer - Ethers signer
    * @returns {Object} Ethers contract instance.
    */
-  public async getL1Bridge (signer: TProvider = this.signer): Promise<L1ERC20Bridge> {
+  public async getL1Bridge (signer: TProvider = this.signer): Promise<any> {
     const bridgeAddress = this.getL1BridgeAddress(
       this.tokenSymbol,
       Chain.Ethereum
@@ -1494,7 +1491,7 @@ class HopBridge extends Base {
    * @param {Object} signer - Ethers signer
    * @returns {Object} Ethers contract instance.
    */
-  public async getL2Bridge (chain: TChain, signer: TProvider = this.signer): Promise<L2Bridge> {
+  public async getL2Bridge (chain: TChain, signer: TProvider = this.signer): Promise<any> {
     chain = this.toChainModel(chain)
     const bridgeAddress = this.getL2BridgeAddress(this.tokenSymbol, chain)
     if (!bridgeAddress) {
@@ -1522,7 +1519,7 @@ class HopBridge extends Base {
    * @param {Object} signer - Ethers signer
    * @returns {Object} Ethers contract instance.
    */
-  public async getAmmWrapper (chain: TChain, signer: TProvider = this.signer): Promise<L2AmmWrapper> {
+  public async getAmmWrapper (chain: TChain, signer: TProvider = this.signer): Promise<any> {
     chain = this.toChainModel(chain)
     const ammWrapperAddress = this.getL2AmmWrapperAddress(
       this.tokenSymbol,
@@ -2177,7 +2174,7 @@ class HopBridge extends Base {
   }
 
   // Gnosis AMB bridge
-  async getAmbBridge (chain: TChain): Promise<L1HomeAMBNativeToErc20> {
+  async getAmbBridge (chain: TChain): Promise<any> {
     chain = this.toChainModel(chain)
     if (chain.equals(Chain.Ethereum)) {
       const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)

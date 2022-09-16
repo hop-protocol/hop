@@ -8,6 +8,22 @@
 
 ## Development
 
+`backend/.env`
+
+```sh
+POSTGRES_USER=postgres
+POSTGRES_PASS=password
+POSTGRES_DBNAME=postgres
+POSTGRES_HOST=localhost
+
+# fill in
+ETHEREUM_RPC=
+GNOSIS_RPC=
+POLYGON_RPC=
+OPTIMISM_RPC=
+ARBITRUM_RPC=
+```
+
 ```sh
 # terminal 1
 ./scripts/postgres_dev.sh

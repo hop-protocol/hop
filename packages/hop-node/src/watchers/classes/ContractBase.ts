@@ -7,7 +7,6 @@ import { BigNumber, BigNumberish, Contract, providers } from 'ethers'
 import { Chain, MinGnosisGasPrice, MinPolygonGasPrice } from 'src/constants'
 import { Event, PayableOverrides } from '@ethersproject/contracts'
 import { EventEmitter } from 'events'
-import { providers as providersUpdated } from 'ethers-updated'
 import { Transaction } from 'src/types'
 import { config as globalConfig } from 'src/config'
 
@@ -78,7 +77,7 @@ export default class ContractBase extends EventEmitter {
   getFinalizedBlockNumber = async (): Promise<number> => {
     // TODO: Use this.contract.provider when ethers.js is updated
     const rpcUrl = getRpcUrl(this.chainSlug)
-    const provider = new providersUpdated.JsonRpcProvider(rpcUrl)
+    const provider = new providers.JsonRpcProvider(rpcUrl)
     const block = await provider.getBlock('finalized')
     return Number(block.number)
   }
@@ -86,7 +85,7 @@ export default class ContractBase extends EventEmitter {
   getSafeBlockNumber = async (): Promise<number> => {
     // TODO: Use this.contract.provider when ethers.js is updated
     const rpcUrl = getRpcUrl(this.chainSlug)
-    const provider = new providersUpdated.JsonRpcProvider(rpcUrl)
+    const provider = new providers.JsonRpcProvider(rpcUrl)
     const block = await provider.getBlock('safe')
     return Number(block.number)
   }

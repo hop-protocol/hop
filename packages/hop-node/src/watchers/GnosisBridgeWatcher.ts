@@ -7,7 +7,7 @@ import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { Contract, providers } from 'ethers'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1XDaiAMB, L2XDaiAMB } from '@hop-protocol/core/contracts'
+import { L1_xDaiAMB, L2_xDaiAMB } from '@hop-protocol/core/contracts'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { config as globalConfig } from 'src/config'
 import { solidityKeccak256 } from 'ethers/lib/utils'
@@ -23,13 +23,13 @@ type Config = {
 const getL1Amb = (token: string) => {
   const l1Wallet = wallets.get(Chain.Ethereum)
   const l1AmbAddress = globalConfig.addresses[token].gnosis.l1Amb
-  return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1XDaiAMB
+  return new Contract(l1AmbAddress, l1xDaiAmbAbi, l1Wallet) as L1_xDaiAMB
 }
 
 const getL2Amb = (token: string) => {
   const l2xDaiProvider = wallets.get(Chain.Gnosis).provider
   const l2AmbAddress = globalConfig.addresses[token].gnosis.l2Amb
-  return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2XDaiAMB
+  return new Contract(l2AmbAddress, l2xDaiAmbAbi, l2xDaiProvider) as L2_xDaiAMB
 }
 
 // reference:

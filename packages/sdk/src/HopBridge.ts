@@ -1452,19 +1452,12 @@ class HopBridge extends Base {
       tokenIndexTo = canonicalTokenIndex
     }
 
-    // TODO: Remove after Arbitrum RPC endpoint is fixed
-    const txOptions: any = {}
-    if (sourceChain.equals(Chain.Arbitrum)) {
-      txOptions.gasLimit = 5000000
-    }
-
     return saddleSwap.swap(
       tokenIndexFrom,
       tokenIndexTo,
       amount,
       minAmountOut,
-      deadline,
-      txOptions
+      deadline
     )
   }
 

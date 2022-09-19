@@ -16,7 +16,15 @@ export type Fees = {
   HOP?: Bps
 }
 
+type RelayerFee = {
+  polygon?: boolean
+  gnosis?: boolean
+  optimism?: boolean
+  arbitrum?: boolean
+}
+
 export type Config = {
   bonderFeeBps: Fees
   destinationFeeGasPriceMultiplier: number
+  relayerFeeEnabled: RelayerFee
 }

@@ -16,7 +16,7 @@ import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } 
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
-import { hopAppNetwork } from 'src/config'
+import { hopAppNetwork, reactAppNetwork } from 'src/config'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
@@ -43,6 +43,7 @@ import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { ExternalLink } from 'src/components/Link'
+import { FeeRefund } from './FeeRefund'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -71,10 +72,16 @@ const Send: FC = () => {
   const [minimumSendWarning, setMinimumSendWarning] = useState<string | null | undefined>(null)
   const [info, setInfo] = useState<string | null | undefined>(null)
   const [isLiquidityAvailable, setIsLiquidityAvailable] = useState<boolean>(true)
-  const [customRecipient, setCustomRecipient] = useState<string>()
+  const [customRecipient, setCustomRecipient] = useState<string>('')
   const [manualWarning, setManualWarning] = useState<string>('')
   const { isSmartContractWallet } = useIsSmartContractWallet()
   const [manualError, setManualError] = useState<string>('')
+  const [feeRefund, setFeeRefund] = useState<string>('')
+  const [feeRefundUsd, setFeeRefundUsd] = useState<string>('')
+  const [feeRefundTokenSymbol, setFeeRefundTokenSymbol] = useState<string>('')
+  const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
+  // TODO: enable once rewards live
+  const [feeRefundEnabled] = useState<boolean>(reactAppNetwork === 'goerli')
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -160,6 +167,7 @@ const Send: FC = () => {
   const {
     destinationTxFeeDisplay,
     bonderFeeDisplay,
+    totalBonderFee,
     totalBonderFeeDisplay,
     estimatedReceivedDisplay,
   } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
@@ -181,6 +189,20 @@ const Send: FC = () => {
     estimatedGasCost,
     fromBalance
   )
+
+  useEffect(() => {
+    const update = async () => {
+      if (fromNetwork?.isL1 && toNetwork && sourceToken) {
+        const bridge = sdk.bridge(sourceToken.symbol)
+        const isPaused = await bridge.isDestinationChainPaused(toNetwork?.slug)
+        setDestinationChainPaused(isPaused)
+      } else {
+        setDestinationChainPaused(false)
+      }
+    }
+
+    update().catch(console.error)
+  }, [sdk, sourceToken, fromNetwork, toNetwork])
 
   // ==============================================================================================
   // Error and warning messages
@@ -310,6 +332,47 @@ const Send: FC = () => {
     const amountOutMinFormatted = commafy(formatUnits(_amountOutMin, destToken.decimals), 4)
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${destToken.symbol}`)
   }, [amountOutMin])
+
+  useEffect(() => {
+    async function update() {
+      try {
+        if (!feeRefundEnabled) {
+          return
+        }
+        if (fromNetwork && toNetwork && sourceToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism) {
+          const payload :any = {
+            gasCost: estimatedGasCost?.toString(),
+            amount: fromTokenAmountBN?.toString(),
+            token: sourceToken?.symbol,
+            bonderFee: totalBonderFee.toString(),
+            fromChain: fromNetwork?.slug
+          }
+
+          const query = new URLSearchParams(payload).toString()
+          const url = `https://hop-merkle-rewards-backend.hop.exchange/v1/refund-amount?${query}`
+          const res = await fetch(url)
+          const json = await res.json()
+          if (json.error) {
+            throw new Error(json.error)
+          }
+          console.log(json.data.refund)
+          const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
+          setFeeRefund(refundAmountInRefundToken.toFixed(4))
+          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
+          setFeeRefundTokenSymbol(refundTokenSymbol)
+        } else {
+          setFeeRefund('')
+          setFeeRefundUsd('')
+        }
+      } catch (err) {
+        console.error(err)
+        setFeeRefund('')
+        setFeeRefundUsd('')
+      }
+    }
+
+    update().catch(console.error)
+  }, [feeRefundEnabled, fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
 
   // ==============================================================================================
   // Approve fromNetwork / fromToken
@@ -530,7 +593,8 @@ const Send: FC = () => {
       estimatedReceived?.gt(0) &&
       !manualError &&
       (!disabledTx || disabledTx?.warningOnly) &&
-      (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet)
+      (gnosisEnabled ? isCorrectSignerNetwork : !isSmartContractWallet) &&
+      !destinationChainPaused
     )
   }, [
     needsApproval,
@@ -550,6 +614,9 @@ const Send: FC = () => {
     isCorrectSignerNetwork,
     isSmartContractWallet,
   ])
+
+  const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
+  const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
 
   return (
     <Flex column alignCenter>
@@ -606,12 +673,18 @@ const Send: FC = () => {
         styles={styles}
         customRecipient={customRecipient}
         handleCustomRecipientInput={handleCustomRecipientInput}
-        isOpen={isSmartContractWallet}
+        isOpen={customRecipient || isSmartContractWallet}
       />
 
       <div className={styles.smartContractWalletWarning}>
         <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
       </div>
+
+      {destinationChainPaused && (
+        <div className={styles.pausedWarning}>
+          <Alert severity="warning">Deposits to destination chain {toNetwork?.name} are currently paused. Please check official announcement channels for status updates.</Alert>
+        </div>
+      )}
 
       {disabledTx && (
         <Alert severity={disabledTx?.message?.severity ||  'warning'}>
@@ -649,6 +722,15 @@ const Send: FC = () => {
             xlarge
             bold
           />
+
+          {showFeeRefund && (
+            <FeeRefund
+              title={`OP Onboarding Reward`}
+              tokenSymbol={feeRefundTokenSymbol}
+              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism. This refund includes a percentage of the source transaction cost + bonder fee + AMM LP fee`}
+              value={feeRefundDisplay}
+            />
+          )}
         </div>
       </div>
 

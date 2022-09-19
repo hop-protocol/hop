@@ -14,11 +14,13 @@ for (const chain in networks) {
   chains[chain].chainId = network?.networkId
   chains[chain].rpcUrl = network?.publicRpcUrl
   chains[chain].explorerUrl = network?.explorerUrls?.[0]
+  chains[chain].waitConfirmations = network?.waitConfirmations ?? 1
 }
 
 const addresses = kovanAddresses.bridges
 const bonders = kovanAddresses.bonders
 const bonderFeeBps = kovanConfig.bonderFeeBps
 const destinationFeeGasPriceMultiplier = kovanConfig.destinationFeeGasPriceMultiplier
+const relayerFeeEnabled = kovanConfig.relayerFeeEnabled
 
-export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier }
+export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier, relayerFeeEnabled }

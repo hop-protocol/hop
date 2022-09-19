@@ -20,7 +20,7 @@ export const config : Config = {
       polygon: 1,
       optimism: 1,
       arbitrum: 1
-    },
+    }
   },
   destinationFeeGasPriceMultiplier: 1,
   relayerFeeEnabled: {

@@ -1,4 +1,5 @@
 import buildInfo from 'src/.build-info.json'
+import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
@@ -43,8 +44,9 @@ export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
 export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
 export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
 export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
+export const relayTransactionBatchSize = bondWithdrawalBatchSize
 export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
-const envNetwork = process.env.NETWORK ?? Network.Kovan
+const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
@@ -56,6 +58,8 @@ export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 export const minEthBonderFeeBn = parseEther('0.00001')
 export const pendingCountCommitThreshold = 256
+export const appTld = process.env.APP_TLD ?? 'hop.exchange'
+export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 
 type SyncConfig = {
   totalBlocks?: number
@@ -103,6 +107,11 @@ export type VaultChain = {
 
 export type Vault = Record<string, VaultChain>
 
+export type BlocklistConfig = {
+  path: string
+  addresses: Record<string, boolean>
+}
+
 export type Config = {
   isMainnet: boolean
   tokens: Tokens
@@ -119,6 +128,7 @@ export type Config = {
   fees: Fees
   routes: Routes
   vault: Vault
+  blocklist: BlocklistConfig
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -136,14 +146,15 @@ const normalizeNetwork = (network: string) => {
   return network
 }
 
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'networks' | 'metadata' | 'isMainnet'> => {
+  const { addresses, bonders, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
 
   return {
     network,
     addresses,
+    bonders,
     networks,
     metadata,
     isMainnet
@@ -151,7 +162,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
 }
 
 // get default config
-const { addresses, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
+const { addresses, bonders, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
 
 // defaults
 export const config: Config = {
@@ -162,7 +173,7 @@ export const config: Config = {
   tokens: {},
   bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
-  bonders: {},
+  bonders,
   fees: {},
   routes: {},
   db: {
@@ -171,7 +182,7 @@ export const config: Config = {
   sync: {
     [Chain.Ethereum]: {
       totalBlocks: TotalBlocks.Ethereum,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 2000
     },
     [Chain.Arbitrum]: {
       totalBlocks: 100_000,
@@ -196,7 +207,11 @@ export const config: Config = {
   commitTransfers: {
     minThresholdAmount: {}
   },
-  vault: {}
+  vault: {},
+  blocklist: {
+    path: '',
+    addresses: {}
+  }
 }
 
 export const setConfigByNetwork = (network: string) => {
@@ -315,6 +330,10 @@ export const setVaultConfig = (vault: Vault) => {
   config.vault = { ...config.vault, ...vault }
 }
 
+export const setBlocklistConfig = (blocklist: BlocklistConfig) => {
+  config.blocklist = { ...config.blocklist, ...blocklist }
+}
+
 export const getBonderConfig = (tokens: Tokens) => {
   config.tokens = { ...config.tokens, ...tokens }
 }
@@ -328,6 +347,7 @@ export enum Watchers {
   CommitTransfers = 'commitTransfers',
   SettleBondedWithdrawals = 'settleBondedWithdrawals',
   xDomainMessageRelay = 'xDomainMessageRelay',
+  L1ToL2Relay = 'L1ToL2Relay',
 }
 
 export { Bonders }

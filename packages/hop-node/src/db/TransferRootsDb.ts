@@ -1,7 +1,14 @@
 import BaseDb, { KV, KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, ChallengePeriodMs, OneHourMs, OneWeekMs, RootSetSettleDelayMs } from 'src/constants'
+import {
+  Chain,
+  ChallengePeriodMs,
+  OneHourMs,
+  OneWeekMs,
+  RelayableChains,
+  RootSetSettleDelayMs
+} from 'src/constants'
 import { TxRetryDelayMs, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -17,6 +24,7 @@ interface BaseTransferRoot {
   committedAt?: number
   commitTxBlockNumber?: number
   commitTxHash?: string
+  confirmBlockNumber?: number
   confirmed?: boolean
   confirmedAt?: number
   confirmTxHash?: string
@@ -28,6 +36,7 @@ interface BaseTransferRoot {
   sentBondTxAt?: number
   sentCommitTxAt?: number
   sentConfirmTxAt?: number
+  sentRelayTxAt?: number
   settleAttemptedAt?: number
   shouldBondTransferRoot?: boolean
   sourceChainId?: number
@@ -101,6 +110,15 @@ export type ExitableTransferRoot = {
   destinationChainId: number
   committed: boolean
   committedAt: number
+}
+
+export type RelayableTransferRoot = {
+  transferRootId: string
+  transferRootHash: string
+  totalAmount: BigNumber
+  destinationChainId: number
+  confirmTxHash?: string
+  bondTxHash?: string
 }
 
 export type ChallengeableTransferRoot = {
@@ -200,6 +218,7 @@ class SubDbIncompletes extends BaseDb {
       !item.commitTxBlockNumber ||
       (item.commitTxHash && !item.committedAt) ||
       (item.bondTxHash && (!item.bonder || !item.bondedAt)) ||
+      (item.confirmTxHash && !item.confirmedAt) ||
       (item.rootSetBlockNumber && !item.rootSetTimestamp) ||
       (item.sourceChainId && item.destinationChainId && item.commitTxBlockNumber && item.totalAmount && !item.transferIds)
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
@@ -543,6 +562,59 @@ class TransferRootsDb extends BaseDb {
     })
 
     return filtered as ExitableTransferRoot[]
+  }
+
+  async getRelayableTransferRoots (
+    filter: GetItemsFilter = {}
+  ): Promise<RelayableTransferRoot[]> {
+    await this.tilReady()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const filtered = transferRoots.filter(item => {
+      if (!item.sourceChainId) {
+        return false
+      }
+
+      if (!this.isRouteOk(filter, item)) {
+        return false
+      }
+
+      if (!item.destinationChainId) {
+        return false
+      }
+
+      if (item.isNotFound) {
+        return false
+      }
+
+      const destinationChain = chainIdToSlug(item.destinationChainId)
+      if (!RelayableChains.includes(destinationChain)) {
+        return false
+      }
+
+      if (!(item?.bondedAt ?? item?.confirmedAt)) {
+        return false
+      }
+
+      const isSeenOnL1 = item?.bonded ?? item?.confirmed
+
+      let sentTxTimestampOk = true
+      if (item.sentRelayTxAt) {
+        sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
+      }
+
+      return (
+        !item.rootSetTxHash &&
+        item.commitTxHash &&
+        item.transferRootHash &&
+        item.transferRootId &&
+        item.committed &&
+        item.committedAt &&
+        isSeenOnL1 &&
+        sentTxTimestampOk
+      )
+    })
+
+    return filtered as RelayableTransferRoot[]
   }
 
   async getChallengeableTransferRoots (

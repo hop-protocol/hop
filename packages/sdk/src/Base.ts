@@ -20,6 +20,7 @@ import { L2PolygonChildERC20 } from '@hop-protocol/core/contracts/L2PolygonChild
 import { L2PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/L2PolygonChildERC20__factory'
 import { L2XDaiToken } from '@hop-protocol/core/contracts/L2XDaiToken'
 import { L2XDaiToken__factory } from '@hop-protocol/core/contracts/factories/L2XDaiToken__factory'
+import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
@@ -107,6 +108,9 @@ class Base {
   fees : { [token: string]: Record<string, number>}
   gasPriceMultiplier: number = 0
   destinationFeeGasPriceMultiplier : number = 1
+  relayerFeeEnabled: Record<string, boolean>
+
+  baseExplorerUrl: string = 'https://explorer.hop.exchange'
 
   /**
    * @desc Instantiates Base class.
@@ -142,6 +146,7 @@ class Base {
     this.bonders = config.bonders[network]
     this.fees = config.bonderFeeBps[network]
     this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
+    this.relayerFeeEnabled = config.relayerFeeEnabled[network]
 
     this.init()
   }
@@ -156,13 +161,13 @@ class Base {
 
   async fetchConfigFromS3 () {
     try {
-      const cached = s3FileCache[this.network]
+      let cached = s3FileCache[this.network]
       const isExpired = s3FileCacheTimestamp + cacheExpireMs < Date.now()
-      if (cached && !isExpired) {
-        return cached
+      if (cached && isExpired) {
+        cached = null
       }
 
-      const data = s3FileCache[this.network] || await this.getS3ConfigData()
+      const data = cached || await this.getS3ConfigData()
       if (data.bonders) {
         this.bonders = data.bonders
       }
@@ -172,8 +177,14 @@ class Base {
       if (data.destinationFeeGasPriceMultiplier) {
         this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
       }
-      s3FileCache[this.network] = data
-      s3FileCacheTimestamp = Date.now()
+      if (data.relayerFeeEnabled) {
+        this.relayerFeeEnabled = data.relayerFeeEnabled
+      }
+
+      if (!cached) {
+        s3FileCache[this.network] = data
+        s3FileCacheTimestamp = Date.now()
+      }
       return data
     } catch (err: any) {
       console.error('fetchConfigFromS3 error:', err)
@@ -536,6 +547,19 @@ class Base {
     return bonder
   }
 
+  protected async _getMessengerWrapperAddress (token: TToken, destinationChain: TChain): Promise<string> {
+    await this.fetchConfigFromS3()
+    token = this.toTokenModel(token)
+    destinationChain = this.toChainModel(destinationChain)
+
+    const messengerWrapper = this.addresses?.[token.canonicalSymbol]?.[destinationChain.slug]?.l1MessengerWrapper
+    if (!messengerWrapper) {
+      console.warn(`messengerWrapper address not found for route ${token.symbol}. destinationChain ${destinationChain.slug}`)
+    }
+
+    return messengerWrapper
+  }
+
   public async getFeeBps (token: TToken, destinationChain: TChain) {
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
@@ -561,6 +585,22 @@ class Base {
 
   getDestinationFeeGasPriceMultiplier () {
     return this.destinationFeeGasPriceMultiplier
+  }
+
+  public async getRelayerFee (destinationChain: TChain, tokenSymbol: string): Promise<BigNumber> {
+    await this.fetchConfigFromS3()
+    destinationChain = this.toChainModel(destinationChain)
+    const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
+    if (!isFeeEnabled) {
+      return BigNumber.from(0)
+    }
+
+    if (destinationChain.equals(Chain.Arbitrum)) {
+      const relayerFee = new RelayerFee(this.network, tokenSymbol)
+      return relayerFee.getRelayCost(destinationChain.slug)
+    }
+
+    return BigNumber.from(0)
   }
 
   async getS3ConfigData () {
@@ -615,6 +655,46 @@ class Base {
     })
     const l1FeeInWei = await ovmGasPriceOracle.getL1Fee(serializedTx)
     return l1FeeInWei
+  }
+
+  getWaitConfirmations (chain: TChain):number {
+    chain = this.toChainModel(chain)
+    if (!chain) {
+      throw new Error(`chain "${chain}" not found`)
+    }
+    const waitConfirmations = config.chains[this.network]?.[chain.slug]?.waitConfirmations
+    if (waitConfirmations === undefined) {
+      throw new Error(`waitConfirmations for chain "${chain}" not found`)
+    }
+
+    return waitConfirmations
+  }
+
+  getExplorerUrl (): string {
+    return this.baseExplorerUrl
+  }
+
+  getExplorerUrlForAccount (accountAddress: string): string {
+    return `${this.baseExplorerUrl}/?account=${accountAddress}`
+  }
+
+  getExplorerUrlForTransferId (transferId: string): string {
+    return `${this.baseExplorerUrl}/?transferId=${transferId}`
+  }
+
+  getExplorerUrlForTransactionHash (transactionHash: string): string {
+    return `${this.baseExplorerUrl}/?transferId=${transactionHash}`
+  }
+
+  async getTransferStatus (transferIdOrTxHash: String):Promise<any> {
+    const baseApiUrl = 'https://explorer-api.hop.exchange'
+    const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
+    const res = await fetch(url)
+    const json = await res.json()
+    if (json.error) {
+      throw new Error(json.error)
+    }
+    return json.data?.[0] ?? null
   }
 }
 

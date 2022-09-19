@@ -53,9 +53,9 @@ export function formatStakingValues(
   }
 }
 
-export async function isRewardsExpired(timestamp: BigNumber) {
+export function isRewardsExpired(timestamp: BigNumber) {
   const expirationDate = Number(timestamp.toString())
-  const now = (Date.now() / 1000) | 0
+  const now = Math.floor((Date.now() / 1000))
   return now > expirationDate
 }
 

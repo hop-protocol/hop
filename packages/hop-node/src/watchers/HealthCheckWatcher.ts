@@ -1,27 +1,34 @@
 import IncompleteSettlementsWatcher from 'src/watchers/IncompleteSettlementsWatcher'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import Logger from 'src/logger'
+import OsWatcher from 'src/watchers/OsWatcher'
 import S3Upload from 'src/aws/s3Upload'
+import chainIdToSlug from 'src/utils/chainIdToSlug'
 import contracts from 'src/contracts'
 import fetch from 'node-fetch'
 import fs from 'fs'
+import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
+import getTransferFromL1Completed from 'src/theGraph/getTransferFromL1Completed'
 import getTransferIds from 'src/theGraph/getTransferIds'
+import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
+import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
-import { Chain, NativeChainToken, OneDayMs } from 'src/constants'
+import { Chain, NativeChainToken, OneDayMs, RelayableChains } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
+import { appTld, expectedNameservers, config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getDbSet } from 'src/db'
 import { getEnabledTokens } from 'src/config/config'
 import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawals'
+import { getNameservers } from 'src/utils/getNameservers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
-import { config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 
 type LowBonderBalance = {
   bridge: string
@@ -128,6 +135,35 @@ type InvalidBondWithdrawal = {
   timestamp: number
 }
 
+type UnrelayedTransfer = {
+  transactionHash: string
+  token: string
+  recipient: string
+  destinationChainId: number
+  amount: string
+  relayer: string
+  relayerFee: string
+}
+
+type UnsetTransferRoot = {
+  transferRootHash: string
+  totalAmount: string
+  timestamp: number
+}
+
+type DnsNameserversChanged = {
+  domain: string
+  expectedNameservers: string[]
+  gotNameservers: string[]
+}
+
+type LowOsResource = {
+  kind: string
+  used: string
+  total: string
+  percent: string
+}
+
 type Result = {
   lowBonderBalances: LowBonderBalance[]
   lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
@@ -138,6 +174,10 @@ type Result = {
   unsyncedSubgraphs: UnsyncedSubgraph[]
   missedEvents: MissedEvent[]
   invalidBondWithdrawals: InvalidBondWithdrawal[]
+  unrelayedTransfers: UnrelayedTransfer[]
+  unsetTransferRoots: UnsetTransferRoot[]
+  dnsNameserversChanged: DnsNameserversChanged[]
+  lowOsResources: LowOsResource[]
 }
 
 export type EnabledChecks = {
@@ -150,6 +190,10 @@ export type EnabledChecks = {
   lowAvailableLiquidityBonders: boolean
   missedEvents: boolean
   invalidBondWithdrawals: boolean
+  unrelayedTransfers: boolean
+  unsetTransferRoots: boolean
+  dnsNameserversChanged: boolean
+  lowOsResources: boolean
 }
 
 export type Config = {
@@ -189,11 +233,12 @@ export class HealthCheckWatcher {
   bonderLowLiquidityThreshold: number = 0.10
   unbondedTransfersMinTimeToWaitMinutes: number = 30
   unbondedTransferRootsMinTimeToWaitHours: number = 1
-  incompleteSettlemetsMinTimeToWaitHours: number = 4
+  incompleteSettlementsMinTimeToWaitHours: number = 4
+  // Targeting roughly 1 hour
   minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
-    [Chain.Ethereum]: 1000,
+    [Chain.Ethereum]: 300,
     [Chain.Polygon]: 2000,
-    [Chain.Gnosis]: 2000,
+    [Chain.Gnosis]: 750,
     [Chain.Optimism]: 10000,
     [Chain.Arbitrum]: 10000
   }
@@ -207,10 +252,15 @@ export class HealthCheckWatcher {
     unsyncedSubgraphs: true,
     lowAvailableLiquidityBonders: true,
     missedEvents: true,
-    invalidBondWithdrawals: true
+    invalidBondWithdrawals: true,
+    unrelayedTransfers: true,
+    unsetTransferRoots: true,
+    dnsNameserversChanged: true,
+    lowOsResources: true
   }
 
-  lastNotificationSentAt: number
+  lastUnsyncedSubgraphNotificationSentAt: number
+  lastLowOsResourceNotificationSentAt: number
 
   constructor (config: Config) {
     const { days, offsetDays, s3Upload, s3Namespace, cacheFile, enabledChecks } = config
@@ -278,7 +328,11 @@ export class HealthCheckWatcher {
       challengedTransferRoots,
       unsyncedSubgraphs,
       missedEvents,
-      invalidBondWithdrawals
+      invalidBondWithdrawals,
+      unrelayedTransfers,
+      unsetTransferRoots,
+      dnsNameserversChanged,
+      lowOsResources
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
       this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([]),
@@ -288,7 +342,11 @@ export class HealthCheckWatcher {
       this.enabledChecks.challengedTransferRoots ? this.getChallengedTransferRoots() : Promise.resolve([]),
       this.enabledChecks.unsyncedSubgraphs ? this.getUnsyncedSubgraphs() : Promise.resolve([]),
       this.enabledChecks.missedEvents ? this.getMissedEvents() : Promise.resolve([]),
-      this.enabledChecks.invalidBondWithdrawals ? this.getInvalidBondWithdrawals() : Promise.resolve([])
+      this.enabledChecks.invalidBondWithdrawals ? this.getInvalidBondWithdrawals() : Promise.resolve([]),
+      this.enabledChecks.unrelayedTransfers ? this.getUnrelayedTransfers() : Promise.resolve([]),
+      this.enabledChecks.unsetTransferRoots ? this.getUnsetTransferRoots() : Promise.resolve([]),
+      this.enabledChecks.dnsNameserversChanged ? this.getDnsServersChanged() : Promise.resolve([]),
+      this.enabledChecks.lowOsResources ? this.getLowOsResources() : Promise.resolve([])
     ])
 
     return {
@@ -300,7 +358,11 @@ export class HealthCheckWatcher {
       challengedTransferRoots,
       unsyncedSubgraphs,
       missedEvents,
-      invalidBondWithdrawals
+      invalidBondWithdrawals,
+      unrelayedTransfers,
+      unsetTransferRoots,
+      dnsNameserversChanged,
+      lowOsResources
     }
   }
 
@@ -313,17 +375,17 @@ export class HealthCheckWatcher {
       challengedTransferRoots,
       unsyncedSubgraphs,
       missedEvents,
-      invalidBondWithdrawals
+      invalidBondWithdrawals,
+      unrelayedTransfers,
+      unsetTransferRoots,
+      dnsNameserversChanged,
+      lowOsResources
     } = result
 
+    this.logger.debug('sending notifications', JSON.stringify(result, null, 2))
     const messages: string[] = []
 
     if (!unsyncedSubgraphs.length) {
-      for (const item of lowBonderBalances) {
-        const msg = `LowBonderBalance: bonder: ${item.bonder}, chain: ${item.chain}, amount: ${item.amountFormatted?.toFixed(2)} ${item.nativeToken}`
-        messages.push(msg)
-      }
-
       for (const item of unbondedTransfers) {
         if (item.isBonderFeeTooLow) {
           continue
@@ -350,31 +412,62 @@ export class HealthCheckWatcher {
         messages.push(msg)
       }
 
-      for (const item of challengedTransferRoots) {
-        const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted?.toFixed(4)}, token: ${item.token}`
-        messages.push(msg)
-      }
-
-      for (const item of missedEvents) {
-        const msg = `Possible MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}, amount: ${item.amount}, bonderFee: ${item.bonderFee}, timestamp: ${item.timestamp}`
-        messages.push(msg)
-      }
-
       for (const item of invalidBondWithdrawals) {
         const msg = `Possible InvalidBondWithdrawal: transferId: ${item.transferId}, destination: ${item.destinationChain}, token: ${item.token}, amount: ${item.amount}, timestamp: ${item.timestamp}`
+        messages.push(msg)
+      }
+
+      for (const item of unrelayedTransfers) {
+        const msg = `Possible unrelayed transfer: transactionHash: ${item.transactionHash}, token: ${item.token}, recipient: ${item.recipient}, destinationChainId: ${item.destinationChainId}, amount: ${item.amount}, relayer: ${item.relayer}, relayerFee: ${item.relayerFee}`
+        messages.push(msg)
+      }
+
+      for (const item of unsetTransferRoots) {
+        const msg = `Possible unset transferRoot: transferRootHash: ${item.transferRootHash}, totalAmount: ${item.totalAmount}, timestamp: ${item.timestamp}`
+        messages.push(msg)
+      }
+    }
+
+    for (const item of challengedTransferRoots) {
+      const msg = `ChallengedTransferRoot: transferRootHash: ${item.transferRootHash}, transferRootId: ${item.transferRootId}, originalAmount: ${item.originalAmountFormatted?.toFixed(4)}, token: ${item.token}`
+      messages.push(msg)
+    }
+
+    for (const item of missedEvents) {
+      const msg = `Possible MissedEvent: transferId: ${item.transferId}, source: ${item.sourceChain}, token: ${item.token}, amount: ${item.amount}, bonderFee: ${item.bonderFee}, timestamp: ${item.timestamp}`
+      messages.push(msg)
+    }
+
+    for (const item of lowBonderBalances) {
+      const msg = `LowBonderBalance: bonder: ${item.bonder}, chain: ${item.chain}, amount: ${item.amountFormatted?.toFixed(2)} ${item.nativeToken}`
+      messages.push(msg)
+    }
+
+    for (const item of dnsNameserversChanged) {
+      const msg = `Possible DNS Nameserver changed: domain: ${item.domain}, expectedNameservers: ${JSON.stringify(item.expectedNameservers)}, gotNameservers: ${JSON.stringify(item.gotNameservers)}`
+      messages.push(msg)
+    }
+
+    let shouldSendLowOsResourceNotification = true
+    if (this.lastLowOsResourceNotificationSentAt) {
+      shouldSendLowOsResourceNotification = this.lastLowOsResourceNotificationSentAt + OneDayMs < Date.now()
+    }
+    if (shouldSendLowOsResourceNotification) {
+      for (const item of lowOsResources) {
+        const msg = `LowOsResource: kind: ${item.kind}, used: ${item.used}, total: ${item.total}, percent: ${item.percent}`
         messages.push(msg)
       }
     }
 
     let shouldSendUnsyncedSubgraphNotification = true
-    if (this.lastNotificationSentAt) {
-      shouldSendUnsyncedSubgraphNotification = this.lastNotificationSentAt + OneDayMs < Date.now()
+    if (this.lastUnsyncedSubgraphNotificationSentAt) {
+      shouldSendUnsyncedSubgraphNotification = this.lastUnsyncedSubgraphNotificationSentAt + OneDayMs < Date.now()
     }
     if (shouldSendUnsyncedSubgraphNotification) {
       for (const item of unsyncedSubgraphs) {
         const msg = `UnsyncedSubgraph: chain: ${item.chain}, syncedBlockNumber: ${item.syncedBlockNumber}, headBlockNumber: ${item.headBlockNumber}, diffBlockNumber: ${item.diffBlockNumber}`
         messages.push(msg)
-        this.lastNotificationSentAt = Date.now()
+        this.lastUnsyncedSubgraphNotificationSentAt = Date.now()
       }
     }
 
@@ -553,14 +646,28 @@ export class HealthCheckWatcher {
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
     result = result.filter((x: any) => x.sourceChain !== Chain.Ethereum)
 
-    // TODO: clean up these bonder fee too low checks
+    // TODO: clean up these bonder fee too low checks and use the same logic that bonders do
+    const l1Chains: string[] = [Chain.Ethereum]
+    const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
     result = result.map((x: any) => {
-      const isBonderFeeTooLow = x.bonderFeeFormatted === 0 || (x.token === 'ETH' && x.bonderFeeFormatted < 0.005 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum].includes(x.destinationChain)) || (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && [Chain.Gnosis, Chain.Polygon].includes(x.destinationChain))
+      const isBonderFeeTooLow =
+      x.bonderFeeFormatted === 0 ||
+      (x.token === 'ETH' && x.bonderFeeFormatted < 0.0005 && l1Chains.includes(x.destinationChain)) ||
+      (x.token === 'ETH' && x.bonderFeeFormatted < 0.0001 && l2Chains.includes(x.destinationChain)) ||
+      (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && l1Chains.includes(x.destinationChain)) ||
+      (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && l2Chains.includes(x.destinationChain))
+
       x.isBonderFeeTooLow = isBonderFeeTooLow
       return x
     })
 
     result = result.filter((x: any) => {
+      if (!x) {
+        return false
+      }
+      if (!x.transferId) {
+        return false
+      }
       if (x.sourceChain !== 'ethereum' && x.bonderFee === '0') {
         return false
       }
@@ -629,7 +736,7 @@ export class HealthCheckWatcher {
       format: 'json'
     })
     let result = await incompleteSettlementsWatcher.getDiffResults()
-    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.incompleteSettlemetsMinTimeToWaitHours * 60 * 60)))
+    result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.incompleteSettlementsMinTimeToWaitHours * 60 * 60)))
     result = result.filter((x: any) => x.diffFormatted > 0.01)
     this.logger.debug('done fetching incomplete settlements')
     result = result.map((item: any) => {
@@ -674,13 +781,16 @@ export class HealthCheckWatcher {
   }
 
   private async getChallengedTransferRoots (): Promise<ChallengedTransferRoot[]> {
+    const date = DateTime.now().toUTC()
+    const now = date.toSeconds()
+    const dayAgo = date.minus({ days: 1 }).toSeconds()
+    const endBlockNumber = await getBlockNumberFromDate(Chain.Ethereum, now)
+    const startBlockNumber = await getBlockNumberFromDate(Chain.Ethereum, dayAgo)
+
     const result: any[] = []
     for (const token of this.tokens) {
       this.logger.debug(`done ${token} bridge for challenged roots`)
       const l1BridgeContract = contracts.get(token, Chain.Ethereum).l1Bridge
-      const provider = getRpcProvider(Chain.Ethereum)!
-      const startBlockNumber = 0
-      const endBlockNumber = Number((await provider.getBlockNumber()).toString())
       const l1Bridge = new L1Bridge(l1BridgeContract)
       await l1Bridge.mapTransferBondChallengedEvents(
         async (event: TransferBondChallengedEvent) => {
@@ -792,5 +902,160 @@ export class HealthCheckWatcher {
         timestamp
       }
     })
+  }
+
+  async getUnrelayedTransfers (): Promise<UnrelayedTransfer[]> {
+    const now = DateTime.now().toUTC()
+    const endDate = now.minus({ hours: 1 })
+    const startDate = endDate.minus({ days: this.days })
+    const endDateSeconds = Math.floor(endDate.toSeconds())
+    const startDateSeconds = Math.floor(startDate.toSeconds())
+    const tokens = ''
+    const transfersSent = await getTransferSentToL2(Chain.Ethereum, tokens, startDateSeconds, endDateSeconds)
+
+    // There is no relayerFeeTooLow check here but there may need to be. If too many relayer fees are too low, then we can add logic to check for that.
+
+    const missingTransfers: any[] = []
+    for (const chain of RelayableChains) {
+      // Transfers received needs a buffer so that a transfer that is seen on L1 has time to be seen on L2
+      const endDateWithBuffer = endDate.plus({ minutes: 30 })
+      const endDateWithBufferSeconds = Math.floor(endDateWithBuffer.toSeconds())
+      const transfersReceived = await getTransferFromL1Completed(chain, tokens, startDateSeconds, endDateWithBufferSeconds)
+
+      // L1 to L2 transfers don't have a unique identifier from the perspective of the L1 event, so we need to track which L2 hashes have been observed
+      // and can use that to filter out duplicates.
+      const receiveHashesFounds: any = {}
+      for (const transferSent of transfersSent) {
+        const { transactionHash, recipient, amount, amountOutMin, deadline, relayer, relayerFee, token, destinationChainId } = transferSent
+        const destinationChain = chainIdToSlug(destinationChainId)
+        if (destinationChain !== chain) {
+          continue
+        }
+        let isFound = false
+        for (const transferReceived of transfersReceived) {
+          if (
+            recipient === transferReceived.recipient &&
+            amount === transferReceived.amount &&
+            amountOutMin === transferReceived.amountOutMin &&
+            deadline === transferReceived.deadline &&
+            relayer === transferReceived.relayer &&
+            relayerFee === transferReceived.relayerFee &&
+            !receiveHashesFounds[transferReceived.transactionHash]
+          ) {
+            isFound = true
+            receiveHashesFounds[transferReceived.transactionHash] = true
+            break
+          }
+        }
+        if (!isFound) {
+          missingTransfers.push({
+            transactionHash,
+            token,
+            recipient,
+            destinationChainId,
+            amount,
+            relayer,
+            relayerFee
+          })
+        }
+      }
+    }
+
+    return missingTransfers
+  }
+
+  async getUnsetTransferRoots (): Promise<UnsetTransferRoot[]> {
+    const now = DateTime.now().toUTC()
+    const endDate = now.minus({ hours: 1 })
+    const startDate = endDate.minus({ days: this.days })
+    const items = await getUnsetTransferRoots(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
+    return items.map((item: any) => {
+      const { rootHash, totalAmount, timestamp } = item
+      return {
+        transferRootHash: rootHash,
+        totalAmount,
+        timestamp
+      }
+    })
+  }
+
+  async getDnsServersChanged (): Promise<DnsNameserversChanged[]> {
+    try {
+      if (expectedNameservers.length === 0) {
+        this.logger.debug('getDnsServersChanged: expectedNameservers not set. skipping check')
+        return []
+      }
+      if (!appTld) {
+        this.logger.debug('getDnsServersChanged: appTld not set. skipping check')
+        return []
+      }
+
+      this.logger.debug(`checking expected DNS name servers: domain: ${appTld}, expectedNameservers: ${expectedNameservers}`)
+
+      const servers = await getNameservers(appTld)
+      if (!servers.length) {
+        throw new Error('getNameservers call returned no nameservers')
+      }
+
+      const doesNotMatch = servers.length !== expectedNameservers.length || servers.sort().join(',') !== expectedNameservers.sort().join(',')
+      if (doesNotMatch) {
+        return [{
+          domain: appTld,
+          expectedNameservers,
+          gotNameservers: servers
+        }]
+      }
+
+      this.logger.debug(`got expected DNS name servers: domain: ${appTld}, expectedNameservers: ${expectedNameservers}, gotNameservers: ${servers}`)
+    } catch (err) {
+      this.logger.error('getDnsServersChanged error:', err)
+    }
+
+    return []
+  }
+
+  async getLowOsResources (): Promise<LowOsResource[]> {
+    const lowOsResources: LowOsResource[] = []
+    const {
+      usedSizeGb: diskUsed,
+      totalSizeGb: diskTotal,
+      usedPercent: diskPercent
+    } = await OsWatcher.getDiskUsage()
+
+    if (diskPercent > 95) {
+      lowOsResources.push({
+        kind: 'disk',
+        used: diskUsed,
+        total: diskTotal,
+        percent: diskPercent
+      })
+    }
+
+    const {
+      cpuPercent,
+      usedMemoryMb: memoryUsed,
+      totalMemoryMb: memoryTotal,
+      memoryPercent
+    } = await OsWatcher.getCpuMemoryUsage()
+
+    if (cpuPercent > 95) {
+      lowOsResources.push({
+        kind: 'cpu',
+        used: '',
+        total: '',
+        percent: cpuPercent
+      })
+    }
+
+    if (memoryPercent > 95) {
+      lowOsResources.push({
+        kind: 'memory',
+        used: memoryUsed,
+        total: memoryTotal,
+        percent: memoryPercent
+      })
+    }
+
+    return lowOsResources
   }
 }

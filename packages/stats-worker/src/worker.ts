@@ -20,6 +20,7 @@ type Options = {
   bonderStartDate?: string
   bonderEndDate?: string
   bonderTokens?: string[]
+  pollIntervalSeconds?: number
 }
 
 class Worker {
@@ -49,11 +50,15 @@ class Worker {
       bonderDays,
       bonderStartDate,
       bonderEndDate,
-      bonderTokens
+      bonderTokens,
+      pollIntervalSeconds
     } = options
     this.apr = apr
     this.tvl = tvl
     this.volume = volume
+    if (pollIntervalSeconds) {
+      this.pollIntervalMs = pollIntervalSeconds * 1000
+    }
 
     if (bonder || bonderProfit || bonderFees || bonderTxFees) {
       this.bonder = true

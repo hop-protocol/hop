@@ -7,7 +7,7 @@ export const networks: Networks = {
     networkId: 1,
     publicRpcUrl: 'https://mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     explorerUrls: ['https://etherscan.io'],
-    waitConfirmations: 12
+    waitConfirmations: 64
   },
   arbitrum: {
     name: chains.arbitrum.name,
@@ -39,6 +39,6 @@ export const networks: Networks = {
     publicRpcUrl: 'https://polygon-rpc.com',
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
-    waitConfirmations: 256
+    waitConfirmations: 128
   }
 }

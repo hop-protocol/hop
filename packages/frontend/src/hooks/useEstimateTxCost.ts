@@ -5,6 +5,7 @@ import Transaction from 'src/models/Transaction'
 import { Token, ChainSlug } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
+import { BNMax } from 'src/utils/BNMax'
 
 export enum MethodNames {
   convertTokens = 'convertTokens',
@@ -37,13 +38,14 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
       }
 
       const bridge = sdk.bridge(token.symbol)
-
+      const bonderFee = await bridge.getBonderFeeAbsolute(network.slug)
+      const amount = (bonderFee ?? BigNumber.from('100')).mul(2)
       const estimatedGasLimit = await bridge.estimateSendHTokensGasLimit(
-        '420',
+        amount,
         network.slug,
         destNetwork.slug,
         {
-          bonderFee: '0',
+          bonderFee
         }
       )
 
@@ -82,17 +84,27 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
         }
 
         // Get estimated gas limit
+        const bonderFee = await bridge.getBonderFeeAbsolute(fromNetwork.slug)
+        const amount = (bonderFee ?? BigNumber.from('100')).mul(2)
+
+        // RelayerFee amount does not matter for estimation
+        let relayerFee
+        if (fromNetwork.slug === ChainSlug.Ethereum) {
+          relayerFee = BigNumber.from('1')
+        }
+
         const estimatedGasLimit = await bridge.estimateSendGasLimit(
-          '10',
+          amount,
           fromNetwork.slug as string,
           toNetwork.slug as string,
           {
             recipient: constants.AddressZero,
-            bonderFee: '1',
+            bonderFee,
             amountOutMin: '0',
             deadline: deadline(),
             destinationAmountOutMin,
             destinationDeadline,
+            relayerFee
           }
         )
 

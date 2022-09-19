@@ -1,4 +1,3 @@
-import { constants as ethersConstants } from 'ethers'
 
 export enum Network {
   Mainnet = 'mainnet',
@@ -45,24 +44,25 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   polygon: 5933,
   gnosis: 3218,
   optimism: 8545,
-  arbitrum: 59105
+  arbitrum: 19843
 }
 
-const SecondsInDay = 86400
-const SecondsInWeek = SecondsInDay * 7
-export const OneDayMs = SecondsInDay * 1000
-export const TotalBlocks = {
-  Ethereum: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Ethereum),
-  Polygon: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Polygon),
-  Gnosis: Math.floor(SecondsInWeek / AvgBlockTimeSeconds.Gnosis)
-}
 export const DefaultBatchBlocks = 10000
 
 export const TenSecondsMs = 10 * 1000
 export const TenMinutesMs = 10 * 60 * 1000
 export const OneHourSeconds = 60 * 60
-export const OneHourMs = 60 * 60 * 1000
-export const OneWeekMs = 7 * 24 * 60 * 60 * 1000
+export const OneHourMs = OneHourSeconds * 1000
+export const OneDaySeconds = 24 * 60 * 60
+export const OneDayMs = OneDaySeconds * 1000
+export const OneWeekSeconds = 7 * 24 * 60 * 60
+export const OneWeekMs = OneWeekSeconds * 1000
+
+export const TotalBlocks = {
+  Ethereum: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Ethereum),
+  Polygon: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Polygon),
+  Gnosis: Math.floor(OneWeekSeconds / AvgBlockTimeSeconds.Gnosis)
+}
 
 export const RootSetSettleDelayMs = 5 * 60 * 1000
 export const ChallengePeriodMs = 24 * OneHourMs
@@ -72,6 +72,7 @@ export const MaxInt32 = 2147483647
 export enum TxError {
   CallException = 'CALL_EXCEPTION',
   BonderFeeTooLow = 'BONDER_FEE_TOO_LOW',
+  RelayerFeeTooLow = 'RELAYER_FEE_TOO_LOW',
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
 }
 
@@ -86,4 +87,18 @@ export enum TokenIndex {
   HopBridgeToken = 1,
 }
 
-export const DefaultRelayerAddress = ethersConstants.AddressZero
+export enum GasCostTransactionType {
+  BondWithdrawal = 'bondWithdrawal',
+  BondWithdrawalAndAttemptSwap = 'bondWithdrawalAndAttemptSwap',
+  Relay = 'relay'
+}
+
+export const RelayableChains: string[] = [
+  Chain.Arbitrum
+]
+
+export const MaxDeadline: number = 9999999999
+
+export const ChainHasFinalizationTag: Record<string, boolean> = {
+  ethereum: true
+}

@@ -545,6 +545,29 @@ describe.skip('getSendData', () => {
     expect(requiredLiquidity).toBeGreaterThan(0)
     expect(availableLiquidity).toBeGreaterThan(requiredLiquidity)
   })
+  it('relayer fee', async () => {
+    const sdk = new Hop('mainnet')
+    const bridge = sdk.bridge('USDC')
+    const amountIn = BigNumber.from('1000000')
+    const sendData = await bridge.getSendData(
+      amountIn,
+      Chain.Ethereum,
+      Chain.Arbitrum
+    )
+    const adjustedBonderFee = Number(
+      formatUnits(sendData.adjustedBonderFee.toString(), 6)
+    )
+    const adjustedDestinationTxFee = Number(
+      formatUnits(sendData.adjustedDestinationTxFee.toString(), 6)
+    )
+    const totalFee = Number(
+      formatUnits(sendData.totalFee.toString(), 6)
+    )
+
+    expect(adjustedBonderFee).toBe(0)
+    expect(adjustedDestinationTxFee).toBe(0)
+    expect(totalFee).toBeGreaterThan(0)
+  })
 })
 
 describe('getSupportedAssets', () => {
@@ -700,6 +723,26 @@ describe.skip('PriceFeed', () => {
   })
 })
 
+describe.skip('getMessengerWrapperAddress', () => {
+  it('should return the messenger wrapper', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const destinationChain = 'arbitrum'
+    const messengerWrapper = await bridge.getMessengerWrapperAddress(destinationChain)
+    console.log(messengerWrapper)
+    expect(messengerWrapper).toBeTruthy()
+    expect(messengerWrapper.length).toBe(42)
+  })
+  it('should not return the messenger wrapper for mainnet because one does not exist', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const destinationChain = 'ethereum'
+    const messengerWrapper = await bridge.getMessengerWrapperAddress(destinationChain)
+    console.log(messengerWrapper)
+    expect(messengerWrapper).toBeFalsy()
+  })
+})
+
 describe.skip('Apr', () => {
   it('should return apr', async () => {
     const hop = new Hop('mainnet')
@@ -718,4 +761,62 @@ describe.skip('Apr', () => {
     expect(apr).toBeGreaterThan(0)
     expect(apr).toBeLessThan(50)
   }, 10 * 60 * 1000)
+})
+
+describe('getWaitConfirmations', () => {
+  it('should return waitConfirmations', () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    expect(bridge.getWaitConfirmations('polygon')).toBe(128)
+  })
+})
+
+describe('getExplorerUrl', () => {
+  it('should return explorer url for transfer id', () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    expect(bridge.getExplorerUrlForTransferId('0x3686977a4c3ce1e42b2cc113f2889723d95251d55b874910fd97ef6b16982024')).toBe('https://explorer.hop.exchange/?transferId=0x3686977a4c3ce1e42b2cc113f2889723d95251d55b874910fd97ef6b16982024')
+  })
+})
+
+describe('getTransferStatus', () => {
+  it('should return status for transfer id', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const status = await bridge.getTransferStatus('0x198cf61a0dfa6d86e9b3b2b92a10df33acd8a4b722c8d670b8c94638d590d3c5180')
+    expect(status.sourceChainSlug).toBe('ethereum')
+    expect(status.bonded).toBe(true)
+  })
+})
+
+describe('calcAmountOutMin', () => {
+  it('should return min amount out given slippage tolerance', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const amountOut = bridge.parseUnits('1')
+    const slippageTolerance = 0.5
+    const amountOutMin = bridge.calcAmountOutMin(amountOut, slippageTolerance)
+    expect(bridge.formatUnits(amountOutMin)).toBe(0.995)
+  })
+})
+
+describe('isDestinationChainIdPaused', () => {
+  it('should return false if chain id is not paused', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const isPaused = await bridge.isDestinationChainPaused('polygon')
+    expect(isPaused).toBe(false)
+  })
+})
+
+describe.skip('relayerFeeEnabled', () => {
+  it('should return enabled value for arbitrum', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const enabled = bridge.relayerFeeEnabled.arbitrum
+    expect(enabled).toBe(true)
+
+    const fee = await bridge.getRelayerFee('arbitrum', 'USDC')
+    expect(fee.eq(0)).toBe(true)
+  })
 })

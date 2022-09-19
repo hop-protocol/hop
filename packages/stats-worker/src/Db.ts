@@ -79,11 +79,13 @@ class Db {
           withdrawn_amount NUMERIC,
           unstaked_eth_amount NUMERIC,
           bonder_address TEXT NOT NULL,
-          deposit_event  TEXT,
+          deposit_event TEXT,
+          withdraw_event TEXT,
           restaked_eth_amount NUMERIC,
           initial_eth_amount NUMERIC,
           initial_matic_amount NUMERIC,
-          initial_xdai_amount NUMERIC
+          initial_xdai_amount NUMERIC,
+          arbitrum_messenger_wrapper_amount NUMERIC
       )`)
       if (argv.resetBonderFeesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_fees`)
@@ -217,6 +219,16 @@ class Db {
             'ALTER TABLE bonder_balances ADD COLUMN initial_xdai_amount NUMERIC;'
           )
         }
+        if (migrations.includes(17)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN withdraw_event TEXT;'
+          )
+        }
+        if (migrations.includes(18)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN arbitrum_messenger_wrapper_amount NUMERIC;'
+          )
+        }
 
         migrationRan = true
       }
@@ -341,10 +353,12 @@ class Db {
     restakedEthAmount: number | null = null,
     initialEthAmount: number | null = null,
     initialMaticAmount: number | null = null,
-    initialxDaiAmount: number | null = null
+    initialxDaiAmount: number | null = null,
+    withdrawEvent: number | null = null,
+    arbitrumMessengerWrapperAmount: number = 0
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -390,7 +404,9 @@ class Db {
       restakedEthAmount,
       initialEthAmount,
       initialMaticAmount,
-      initialxDaiAmount
+      initialxDaiAmount,
+      withdrawEvent,
+      arbitrumMessengerWrapperAmount
     )
     stmt.finalize()
   }

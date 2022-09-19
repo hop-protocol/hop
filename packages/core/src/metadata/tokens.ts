@@ -2,7 +2,7 @@ import {
   ARBImage,
   DAIImage,
   ETHImage,
-  HopImage,
+  HOPImage,
   MATICImage,
   USDCImage,
   USDTImage,
@@ -78,6 +78,6 @@ export const tokens: Tokens = {
     symbol: 'HOP',
     name: 'Hop',
     decimals: 18,
-    image: HopImage
+    image: HOPImage
   }
 }

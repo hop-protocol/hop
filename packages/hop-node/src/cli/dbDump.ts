@@ -1,12 +1,12 @@
 import MerkleTree from 'src/utils/MerkleTree'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import { GasCostTransactionType } from 'src/constants'
+import { actionHandler, logger, parseInputFileList, parseNumber, parseString, root } from './shared'
 import { getDbSet } from 'src/db'
 import {
   config as globalConfig,
   setDbPath
 } from 'src/config'
-
-import { actionHandler, logger, parseInputFileList, parseNumber, parseString, root } from './shared'
 
 root
   .command('db-dump')
@@ -136,10 +136,11 @@ async function main (source: any) {
       if (!chain) {
         throw new Error('chain flag is required')
       }
-      items = [
-        await db.gasCost.getNearest(chain, tokenSymbol, false, nearest),
-        await db.gasCost.getNearest(chain, tokenSymbol, true, nearest)
-      ]
+      items = await Promise.all([
+        db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.BondWithdrawal, nearest),
+        db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.BondWithdrawalAndAttemptSwap, nearest),
+        db.gasCost.getNearest(chain, tokenSymbol, GasCostTransactionType.Relay, nearest)
+      ])
     } else {
       items = await db.gasCost.getItems()
     }

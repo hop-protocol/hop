@@ -47,7 +47,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'fees',
     'routes',
     'bonders',
-    'vault'
+    'vault',
+    'blocklist'
   ]
 
   const validWatcherKeys = [
@@ -56,7 +57,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Watchers.Challenge,
     Watchers.CommitTransfers,
     Watchers.SettleBondedWithdrawals,
-    Watchers.xDomainMessageRelay
+    Watchers.xDomainMessageRelay,
+    Watchers.L1ToL2Relay
   ]
 
   const validChainKeys = [
@@ -80,7 +82,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
   const sectionKeys = Object.keys(config)
   validateKeys(validSectionKeys, sectionKeys)
 
-  const enabledChains = Object.keys(config.chains)
+  const enabledChains: string[] = Object.keys(config.chains)
   if (!enabledChains.includes(Chain.Ethereum)) {
     throw new Error(`config for chain "${Chain.Ethereum}" is required`)
   }
@@ -248,6 +250,16 @@ export async function validateConfigFileStructure (config?: FileConfig) {
       }
     }
   }
+
+  if (config.blocklist) {
+    const blocklistConfig = config.blocklist as any
+    if (!(blocklistConfig instanceof Object)) {
+      throw new Error('blocklist config must be an object')
+    }
+    const validBlocklistKeys = ['path', 'addresses']
+    const keys = Object.keys(blocklistConfig)
+    validateKeys(validBlocklistKeys, keys)
+  }
 }
 
 export async function validateConfigValues (config?: Config) {
@@ -359,6 +371,12 @@ export async function validateConfigValues (config?: Config) {
           throw new Error('strategy is invalid. Valid options are: yearn, aave')
         }
       }
+    }
+  }
+
+  if (config.blocklist) {
+    if (typeof config.blocklist.path !== 'string') {
+      throw new Error('blocklist.path must be a string')
     }
   }
 }

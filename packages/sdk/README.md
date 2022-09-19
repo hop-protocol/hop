@@ -8,10 +8,14 @@
 [![NPM version](https://badge.fury.io/js/%40hop-protocol%2Fsdk.svg)](https://badge.fury.io/js/%40hop-protocol%2Fsdk)
 [![npm bundle size (scoped version)](https://img.shields.io/bundlephobia/minzip/@hop-protocol/sdk/latest.svg)](https://bundlephobia.com/result?p=@hop-protocol/sdk@latest)
 
+## Demo
+
+[https://sdk-demo.hop.exchange/](https://sdk-demo.hop.exchange/)
+
 ## Install
 
 ```bash
-yarn add @hop-protocol/sdk
+npm install @hop-protocol/sdk
 ```
 
 ## CDN
@@ -37,25 +41,25 @@ See [docs.hop.protocol/js-sdk](https://docs.hop.exchange/js-sdk)
 Install dependencies
 
 ```bash
-yarn install
+npm install
 ```
 
 Run watcher
 
 ```bash
-yarn run dev
+npm run dev
 ```
 
 Generate documentation
 
 ```bash
-yarn run docs
+npm run docs
 ```
 
 ## Test
 
 ```bash
-yarn test
+npm test
 ```
 
 ## License

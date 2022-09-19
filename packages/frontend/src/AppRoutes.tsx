@@ -4,11 +4,13 @@ import Components from 'src/pages/Components'
 import Send from 'src/pages/Send'
 import Pools from 'src/pages/Pools'
 import Stake from 'src/pages/Stake'
+import Rewards from 'src/pages/Rewards'
 import SocialVerify from 'src/pages/Airdrop/SocialVerify'
 import AuthereumVerify from 'src/pages/Airdrop/AuthereumVerify'
 import Convert from 'src/pages/Convert'
 import Stats from 'src/pages/Stats'
 import Withdraw from 'src/pages/Withdraw'
+import Faucet from 'src/pages/Faucet'
 import Health from 'src/pages/Health'
 import TransactionPage from 'src/pages/Transaction'
 import { Div } from './components/ui'
@@ -30,8 +32,10 @@ const AppRoutes: FC = () => {
           <Route path="/convert" component={Convert} />
           <Route exact path="/pool" component={Pools} />
           <Route exact path="/stake" component={Stake} />
+          <Route exact path="/rewards" component={Rewards} />
           <Route exact path="/withdraw" component={Withdraw} />
           <Route exact path="/health" component={Health} />
+          <Route exact path="/faucet" component={Faucet} />
           <Route path="/claim" component={Claim} />
           <Route exact path="/airdrop/social-verify" component={SocialVerify} />
           <Route path="/airdrop/preview" component={AirdropPreview} />

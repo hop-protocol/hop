@@ -14,11 +14,13 @@ for (const chain in networks) {
   chains[chain].chainId = network?.networkId
   chains[chain].rpcUrl = network?.publicRpcUrl
   chains[chain].explorerUrl = network?.explorerUrls?.[0]
+  chains[chain].waitConfirmations = network?.waitConfirmations ?? 1
 }
 
 const addresses = stagingAddresses.bridges
 const bonders = stagingAddresses.bonders
 const bonderFeeBps = stagingConfig.bonderFeeBps
 const destinationFeeGasPriceMultiplier = stagingConfig.destinationFeeGasPriceMultiplier
+const relayerFeeEnabled = stagingConfig.relayerFeeEnabled
 
-export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier }
+export { addresses, chains, bonders, bonderFeeBps, destinationFeeGasPriceMultiplier, relayerFeeEnabled }

@@ -1,18 +1,22 @@
 import makeRequest from './makeRequest'
-import { constants } from 'ethers'
+import { MaxInt32 } from 'src/constants'
 import { normalizeEntity } from './shared'
 
 export default async function getTransferRootConfirmed (
   chain: string,
   token: string,
-  lastId: string = constants.AddressZero
+  startDate: number = 0,
+  endDate: number = MaxInt32,
+  lastId: string = '0'
 ) {
   const query = `
-    query TransferRootConfirmed($token: String, $lastId: ID) {
+    query TransferRootConfirmed(${token ? '$token: String, ' : ''}$startDate: Int, $endDate: Int, $lastId: ID) {
       transferRootConfirmeds(
         where: {
+          ${token ? 'token: $token,' : ''}
+          timestamp_gte: $startDate
+          timestamp_lte: $endDate
           id_gt: $lastId
-          token: $token
         },
         orderBy: id,
         orderDirection: asc,
@@ -21,12 +25,17 @@ export default async function getTransferRootConfirmed (
         id
         rootHash
         transactionHash
+        totalAmount
+        destinationChainId
+        timestamp
       }
     }
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    lastId: lastId
+    startDate,
+    endDate,
+    lastId
   })
   let transferRoots = jsonRes.transferRootConfirmeds.map((x: any) => normalizeEntity(x))
 
@@ -36,6 +45,8 @@ export default async function getTransferRootConfirmed (
     transferRoots = transferRoots.concat(await getTransferRootConfirmed(
       chain,
       token,
+      startDate,
+      endDate,
       lastId
     ))
   }

@@ -2,7 +2,6 @@ import OsWatcher from 'src/watchers/OsWatcher'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
   bondWithdrawalBatchSize,
-  defaultEnabledNetworks,
   gitRev,
   config as globalConfig,
   slackAuthToken,
@@ -72,10 +71,7 @@ async function main (source: any) {
     }
   }
 
-  const enabledNetworks: { [key: string]: boolean } = Object.assign(
-    {},
-    defaultEnabledNetworks
-  )
+  const enabledNetworks: any = {}
   if (config?.chains) {
     for (const k in config.chains) {
       enabledNetworks[k] = !!config.chains[k]
@@ -153,7 +149,11 @@ async function main (source: any) {
         unsyncedSubgraphs: enabledChecks.includes('unsyncedSubgraphs'),
         lowAvailableLiquidityBonders: enabledChecks.includes('lowAvailableLiquidityBonders'),
         missedEvents: enabledChecks.includes('missedEvents'),
-        invalidBondWithdrawals: enabledChecks.includes('invalidBondWithdrawals')
+        invalidBondWithdrawals: enabledChecks.includes('invalidBondWithdrawals'),
+        unrelayedTransfers: enabledChecks.includes('unrelayedTransfers'),
+        unsetTransferRoots: enabledChecks.includes('unsetTransferRoots'),
+        dnsNameserversChanged: enabledChecks.includes('dnsNameserversChanged'),
+        lowOsResources: enabledChecks.includes('lowOsResources')
       }
     }
 

@@ -20,6 +20,7 @@ select
   optimism_native_amount,
   arbitrum_native_amount,
   arbitrum_alias_amount,
+  arbitrum_messenger_wrapper_amount,
   eth_price_usd,
   total_eth_amount,
   restaked_amount,
@@ -48,10 +49,10 @@ from (
         (
           (polygon_native_amount * matic_price_usd) +
           (gnosis_native_amount * xdai_price_usd) +
-          ((ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount) * eth_price_usd)
+          ((ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount + IFNULL(arbitrum_messenger_wrapper_amount, 0)) * eth_price_usd)
         )
     ) as native_token_debt,
-    (ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount) as total_eth_amount,
+    (ethereum_native_amount + optimism_native_amount + arbitrum_native_amount + arbitrum_alias_amount + IFNULL(arbitrum_messenger_wrapper_amount, 0)) as total_eth_amount,
     (polygon_canonical_amount + polygon_hToken_amount + gnosis_canonical_amount + gnosis_hToken_amount + arbitrum_canonical_amount + arbitrum_hToken_amount + optimism_canonical_amount + optimism_hToken_amount + ethereum_canonical_amount) as total_canonical_amounts,
     initial_canonical_amount,
     initial_eth_amount,
@@ -73,6 +74,7 @@ from (
     optimism_native_amount,
     arbitrum_native_amount,
     arbitrum_alias_amount,
+    IFNULL(arbitrum_messenger_wrapper_amount, 0) as arbitrum_messenger_wrapper_amount,
     eth_price_usd,
     restaked_amount,
     staked_amount,

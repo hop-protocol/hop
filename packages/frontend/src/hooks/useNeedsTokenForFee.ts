@@ -15,7 +15,7 @@ const useNeedsTokenForFee = (network: Network | undefined) => {
       const provider = network?.provider
       const signer = walletProvider?.getSigner()
 
-      if (!provider || !signer) {
+      if (!provider || !signer || !address) {
         setNeedsToken(false)
         return
       }
@@ -25,7 +25,7 @@ const useNeedsTokenForFee = (network: Network | undefined) => {
         return
       }
 
-      const balance = await provider.getBalance(await signer?.getAddress())
+      const balance = await provider.getBalance(address.address)
 
       const gasPrice = await provider.getGasPrice()
       const gasNeeded = BigNumber.from('100000')

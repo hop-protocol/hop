@@ -13,5 +13,9 @@ export const config : Config = {
       optimism: 0
     }
   },
-  destinationFeeGasPriceMultiplier: 1
+  destinationFeeGasPriceMultiplier: 1,
+  relayerFeeEnabled: {
+    gnosis: false,
+    optimism: false
+  }
 }

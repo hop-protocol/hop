@@ -4,7 +4,6 @@ import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
 import { DateTime } from 'luxon'
-import { Swap } from '@hop-protocol/core/contracts/Swap'
 import { Swap__factory } from '@hop-protocol/core/contracts/factories/Swap__factory'
 import { TAmount, TChain, TProvider } from './types'
 import { TokenIndex, TokenSymbol } from './constants'
@@ -251,7 +250,7 @@ class AMM extends Base {
   public async calculateAddLiquidityMinimum (
     amount0: TAmount,
     amount1: TAmount
-  ) {
+  ): Promise<BigNumber> {
     const amounts = [amount0, amount1]
     const saddleSwap = await this.getSaddleSwap()
     const recipient = await this.getSignerAddress()
@@ -328,7 +327,7 @@ class AMM extends Base {
    * @param {Object} chain - Chain name or model
    * @returns {Object} Ethers contract instance.
    */
-  public async getSaddleSwap (): Promise<Swap> {
+  public async getSaddleSwap (): Promise<any> {
     const saddleSwapAddress = this.getL2SaddleSwapAddress(
       this.tokenSymbol,
       this.chain
@@ -361,7 +360,7 @@ class AMM extends Base {
     if (!info) {
       throw new Error('could not retrieve block number from timestamp')
     }
-    const endBlockNumber = info.block
+    const endBlockNumber = info.block - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
     const callOverrides = {
       blockTag: endBlockNumber
@@ -440,21 +439,16 @@ class AMM extends Base {
       .minus({ days })
       .toSeconds()
 
-    const { totalFeesFormatted, totalLiquidityFormatted } = await this.getAprForDay(endTimestamp)
+    const { totalFeesFormatted: feesEarnedToday, totalLiquidityFormatted: totalLiquidityToday } = await this.getAprForDay(endTimestamp)
 
-    let totalFeesFormattedDaysAgo = 0
+    let feesEarnedDaysAgo = 0
     if (days > 1) {
-      ;({ totalFeesFormatted: totalFeesFormattedDaysAgo } = await this.getAprForDay(startTimestamp))
+      ;({ totalFeesFormatted: feesEarnedDaysAgo } = await this.getAprForDay(startTimestamp))
     }
 
-    const f = totalFeesFormatted
-    const l = totalFeesFormattedDaysAgo
-    const apr = ((f - l) / (days / 365)) / totalLiquidityFormatted
-    if (apr < 0) {
-      return 0
-    }
+    const apr = ((feesEarnedToday - feesEarnedDaysAgo) / (days / 365)) / totalLiquidityToday
 
-    return apr
+    return Math.max(apr, 0)
   }
 
   public async getVirtualPrice () {

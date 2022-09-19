@@ -135,6 +135,7 @@ class AprStats {
     }
 
     await Promise.all(promises)
+    console.log('apr stats:')
     console.log(JSON.stringify(data, null, 2))
     const response: Response = {
       timestamp,

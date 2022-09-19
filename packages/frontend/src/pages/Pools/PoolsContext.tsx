@@ -235,12 +235,12 @@ const PoolsProvider: FC = ({ children }) => {
           setApr(undefined)
           return
         }
-        const token = await selectedBridge.getCanonicalToken(selectedNetwork.slug)
+        const token = selectedBridge.getCanonicalToken(selectedNetwork.slug)
         const cacheKey = `apr:${selectedNetwork.slug}:${token.symbol}`
         try {
           const cached = JSON.parse(localStorage.getItem(cacheKey) || '')
-          const tenMinutes = 10 * 60 * 1000
-          const isRecent = cached.timestamp > Date.now() - tenMinutes
+          const expiresTimeMs = 2 * 60 * 60 * 1000 // 2hrs
+          const isRecent = cached.timestamp > Date.now() - expiresTimeMs
           if (cached && isRecent && typeof cached.apr === 'number') {
             setApr(cached.apr)
             return
@@ -258,9 +258,36 @@ const PoolsProvider: FC = ({ children }) => {
           const url = 'https://assets.hop.exchange/v1-pool-stats.json'
           const res = await fetch(url)
           const json = await res.json()
+          console.log('apr data response:', json)
+          if (!json.data) {
+            throw new Error('expected data')
+          }
+          let symbol = token.symbol
+          if (symbol === 'WETH') {
+            symbol = 'ETH'
+          }
+          if (symbol === 'XDAI') {
+            symbol = 'DAI'
+          }
+          if (symbol === 'WXDAI') {
+            symbol = 'DAI'
+          }
+          if (symbol === 'WMATIC') {
+            symbol = 'MATIC'
+          }
+          if (!json.data[symbol]) {
+            throw new Error(`expected data for token symbol "${symbol}"`)
+          }
+          if (!json.data[symbol][selectedNetwork.slug]) {
+            throw new Error(`expected data for network "${selectedNetwork.slug}"`)
+          }
+          if (json.data[symbol][selectedNetwork.slug].apr === undefined) {
+            throw new Error(`expected apr value for token "${symbol}" and network "${selectedNetwork.slug}"`)
+          }
 
-          apr = json.data[token.symbol][selectedNetwork.slug].apr
+          apr = json.data[symbol][selectedNetwork.slug].apr
         } catch (err) {
+          logger.error('apr fetch error:', err)
           const bridge = await sdk.bridge(token.symbol)
           const amm = bridge.getAmm(selectedNetwork.slug)
           apr = await amm.getApr()
@@ -280,7 +307,7 @@ const PoolsProvider: FC = ({ children }) => {
           setApr(apr)
         }
       } catch (err) {
-        logger.error(err)
+        logger.error('apr error:', err)
       }
     }
 
@@ -370,19 +397,27 @@ const PoolsProvider: FC = ({ children }) => {
       if (token0Amount || token1Amount) {
         let amount0 = 0
         let amount1 = 0
+        let token0AmountBn = BigNumber.from(0)
+        let token1AmountBn = BigNumber.from(0)
 
         const reserve0 = Number(formatUnits(poolReserves[0]?.toString(), canonicalToken?.decimals))
         const reserve1 = Number(formatUnits(poolReserves[1]?.toString(), canonicalToken.decimals))
 
         if (token0Amount) {
-          amount0 = (Number(token0Amount) * Number(totalSupply)) / reserve0
+          token0AmountBn = parseUnits(token0Amount?.toString(), canonicalToken?.decimals)
+          amount0 = Number(token0Amount)
         }
         if (token1Amount) {
-          amount1 = (Number(token1Amount) * Number(totalSupply)) / reserve1
+          token1AmountBn = parseUnits(token1Amount?.toString(), canonicalToken?.decimals)
+          amount1 = Number(token1Amount)
         }
         const liquidity = amount0 + amount1
+        const bridge = sdk.bridge(canonicalToken.symbol)
+        const amm = bridge.getAmm(selectedNetwork.slug)
+        const lpTokensForDepositBn = await amm.calculateAddLiquidityMinimum(token0AmountBn, token1AmountBn)
+        const lpTokensForDeposit = Number(formatUnits(lpTokensForDepositBn.toString(), TOTAL_AMOUNTS_DECIMALS))
         const sharePercentage = Math.max(
-          Math.min(Number(((liquidity / (Number(totalSupply) + liquidity)) * 100).toFixed(2)), 100),
+          Math.min(Number(((liquidity / (Number(totalSupply) + lpTokensForDeposit)) * 100).toFixed(2)), 100),
           0
         )
         setPoolSharePercentage((sharePercentage || '0').toString())

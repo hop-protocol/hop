@@ -5,6 +5,7 @@ import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
 import Logger from 'src/logger'
+import RelayWatcher from 'src/watchers/RelayWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
 import SyncWatcher from 'src/watchers/SyncWatcher'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
@@ -24,10 +25,11 @@ const WatcherClasses: Record<string, any> = {
   [Watchers.Challenge]: ChallengeWatcher,
   [Watchers.CommitTransfers]: CommitTransfersWatcher,
   [Watchers.SettleBondedWithdrawals]: SettleBondedWithdrawalWatcher,
-  [Watchers.xDomainMessageRelay]: xDomainMessageRelayWatcher
+  [Watchers.xDomainMessageRelay]: xDomainMessageRelayWatcher,
+  [Watchers.L1ToL2Relay]: RelayWatcher
 }
 
-type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | xDomainMessageRelayWatcher | SyncWatcher | AvailableLiquidityWatcher
+type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | xDomainMessageRelayWatcher | SyncWatcher | AvailableLiquidityWatcher | RelayWatcher
 
 type CommitTransfersMinThresholdAmounts = {
   [token: string]: any
@@ -156,6 +158,17 @@ export async function getWatchers (config: GetWatchersConfig) {
         tokenSymbol,
         bridgeContract,
         l1BridgeContract,
+        dryMode
+      })
+    }))
+  }
+
+  if (enabledWatchers.includes(Watchers.L1ToL2Relay)) {
+    watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, chainSlug, tokenSymbol, bridgeContract }: GetSiblingWatchersCbConfig) => {
+      return new RelayWatcher({
+        chainSlug,
+        tokenSymbol,
+        bridgeContract,
         dryMode
       })
     }))
@@ -385,6 +398,10 @@ export async function getXDomainMessageRelayWatcher (config: GetWatcherConfig) {
 
 export async function getSettleBondedWithdrawalsWatcher (config: GetWatcherConfig) {
   return getWatcher({ ...config, watcherName: Watchers.SettleBondedWithdrawals })
+}
+
+export async function getL1ToL2RelayWatcher (config: GetWatcherConfig) {
+  return getWatcher({ ...config, watcherName: Watchers.L1ToL2Relay })
 }
 
 export async function getSyncWatcher (config: GetWatcherConfig) {

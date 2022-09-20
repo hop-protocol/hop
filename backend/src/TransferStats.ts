@@ -918,6 +918,7 @@ class TransferStats {
       wait(0 * 60 * 1000).then(() => {
         return this.trackRecentBonds(2 * 60, 10 * 60 * 1000)
       })
+      // this.trackRecentBonds(this.days * 24 * 60, 24 * 60 * 1000)
       /*
       wait(120 * 1000).then(() => {
         return this.trackRecentBonds(24 * 60, 30 * 60 * 1000)
@@ -931,7 +932,7 @@ class TransferStats {
     ])
   }
 
-  async trackHourlyTransfers (hours: number, delay: number) {
+  async trackHourlyTransfers (hours: number, delayMs: number) {
     await this.tilReady()
     while (true) {
       try {
@@ -962,11 +963,11 @@ class TransferStats {
       } catch (err) {
         console.error(err)
       }
-      await wait(delay)
+      await wait(delayMs)
     }
   }
 
-  async trackRecentBonds (minutes: number, delay: number) {
+  async trackRecentBonds (minutes: number, delayMs: number) {
     await this.tilReady()
     while (true) {
       try {
@@ -997,7 +998,7 @@ class TransferStats {
       } catch (err) {
         console.error(err)
       }
-      await wait(delay)
+      await wait(delayMs)
     }
   }
 

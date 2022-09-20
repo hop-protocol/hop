@@ -126,6 +126,7 @@ class HopBridge extends Base {
 
   priceFeed: PriceFeed
   priceFeedApiKeys: ApiKeys | null = null
+  doesUseAmm: boolean
 
   /**
    * @desc Instantiates Hop Bridge.
@@ -164,6 +165,7 @@ class HopBridge extends Base {
     }
 
     this.priceFeed = new PriceFeed(this.priceFeedApiKeys)
+    this.doesUseAmm = this.tokenSymbol !== CanonicalToken.HOP
   }
 
   /**
@@ -255,13 +257,20 @@ class HopBridge extends Base {
     const { name, decimals, image } = metadata.tokens[network][token.canonicalSymbol]
     const address = this.getL2HopBridgeTokenAddress(token.symbol, chain)
 
+    let formattedSymbol = token.canonicalSymbol as HToken
+    let formattedName = name
+    if (this.doesUseAmm) {
+      formattedSymbol = `h${formattedSymbol}` as HToken
+      formattedName = `Hop ${formattedName}`
+    }
+
     return new Token(
       network,
       chain,
       address,
       decimals,
-      `h${token.canonicalSymbol}` as HToken,
-      `Hop ${name}`,
+      formattedSymbol,
+      formattedName,
       image,
       this.signer,
       this.chainProviders
@@ -490,7 +499,14 @@ class HopBridge extends Base {
       this.tokenSymbol,
       sourceChain
     )
-    return isHTokenTransfer ? l2BridgeAddress : ammWrapperAddress
+
+    let approvalAddress: string
+    if (isHTokenTransfer || !this.doesUseAmm) {
+      approvalAddress = l2BridgeAddress
+    } else {
+      approvalAddress = ammWrapperAddress
+    }
+    return approvalAddress
   }
 
   public async populateSendApprovalTx (
@@ -1898,8 +1914,8 @@ class HopBridge extends Base {
     }
     recipient = checksumAddress(recipient)
 
-    let ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
-    let l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
+    const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
+    const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
     const attemptSwapAtSource = this.shouldAttemptSwap(amountOutMin, deadline)
     const spender = attemptSwapAtSource ? ammWrapper.address : l2Bridge.address
 
@@ -1911,8 +1927,6 @@ class HopBridge extends Base {
 
     if (checkAllowance) {
       await this.checkConnectedChain(this.signer, sourceChain)
-      ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
-      l2Bridge = await this.getL2Bridge(sourceChain, this.signer)
       if (!isNativeToken) {
         const l2CanonicalToken = this.getCanonicalToken(sourceChain)
         const allowance = await l2CanonicalToken.allowance(spender)
@@ -1994,15 +2008,17 @@ class HopBridge extends Base {
     }
     recipient = checksumAddress(recipient)
 
-    let ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
+    const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
+    const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
+    const attemptSwapAtSource = this.shouldAttemptSwap(amountOutMin, deadline)
+    const spender = attemptSwapAtSource ? ammWrapper.address : l2Bridge.address
     const isNativeToken = this.isNativeToken(sourceChain)
 
     if (checkAllowance) {
       await this.checkConnectedChain(this.signer, sourceChain)
-      ammWrapper = await this.getAmmWrapper(sourceChain, this.signer)
       if (!isNativeToken) {
         const l2CanonicalToken = this.getCanonicalToken(sourceChain)
-        const allowance = await l2CanonicalToken.allowance(ammWrapper.address)
+        const allowance = await l2CanonicalToken.allowance(spender)
         if (allowance.lt(BigNumber.from(amount))) {
           throw new Error(Errors.NotEnoughAllowance)
         }
@@ -2023,22 +2039,41 @@ class HopBridge extends Base {
       amount,
       bonderFee,
       amountOutMin,
-      deadline,
-      destinationAmountOutMin,
-      destinationDeadline,
+      deadline
+    ] as const
+
+    if (attemptSwapAtSource) {
+      const additionalOptions = [
+        destinationAmountOutMin,
+        destinationDeadline,
+        {
+          ...(await this.txOverrides(sourceChain)),
+          value: isNativeToken ? amount : undefined
+        }
+      ] as const
+
+      return ammWrapper.populateTransaction.swapAndSend(
+        ...txOptions,
+        ...additionalOptions
+      )
+    }
+
+    return l2Bridge.populateTransaction.send(
+      ...txOptions,
       {
         ...(await this.txOverrides(sourceChain)),
         value: isNativeToken ? amount : undefined
       }
-    ] as const
-
-    return ammWrapper.populateTransaction.swapAndSend(...txOptions)
+    )
   }
 
   private async calcToHTokenAmount (
     amount: TAmount,
     chain: Chain
   ): Promise<BigNumber> {
+    if (!this.doesUseAmm) {
+      return BigNumber.from(amount)
+    }
     amount = BigNumber.from(amount.toString())
     if (chain.isL1) {
       return amount
@@ -2063,6 +2098,9 @@ class HopBridge extends Base {
     amount: TAmount,
     chain: Chain
   ): Promise<BigNumber> {
+    if (!this.doesUseAmm) {
+      return BigNumber.from(amount)
+    }
     amount = BigNumber.from(amount.toString())
     if (chain.isL1) {
       return BigNumber.from(amount)
@@ -2219,6 +2257,9 @@ class HopBridge extends Base {
   }
 
   shouldAttemptSwap (amountOutMin: BigNumber, deadline: BigNumberish): boolean {
+    if (!this.doesUseAmm) {
+      return false
+    }
     deadline = BigNumber.from(deadline?.toString() || 0)
     return amountOutMin?.gt(0) || deadline?.gt(0)
   }

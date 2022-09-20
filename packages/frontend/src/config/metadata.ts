@@ -13,6 +13,7 @@ import usdtLogo from 'src/assets/logos/usdt.svg'
 import wBtcLogo from 'src/assets/logos/wbtc.svg'
 import ethLogo from 'src/assets/logos/eth.svg'
 import maticLogo from 'src/assets/logos/matic.svg'
+import hopLogo from 'src/assets/logos/hop.svg'
 import { TokenSymbol, Slug } from '@hop-protocol/sdk'
 import { hopAppNetwork } from 'src/config'
 
@@ -46,6 +47,7 @@ const images = {
   WBTC: wBtcLogo,
   ETH: ethLogo,
   MATIC: maticLogo,
+  HOP: hopLogo
 }
 
 const tokens = Object.keys(images).reduce((obj, token) => {

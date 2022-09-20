@@ -820,3 +820,25 @@ describe.skip('relayerFeeEnabled', () => {
     expect(fee.eq(0)).toBe(true)
   })
 })
+
+describe.only('hop bridge)', () => {
+  it('Should not use AMM', async () => {
+    const hop = new Hop('goerli')
+    const bridge = hop.bridge('HOP')
+    expect(bridge.doesUseAmm).toBe(false)
+  })
+  it('Should not use h prefix', async () => {
+    const hop = new Hop('goerli')
+    const bridge = hop.bridge('HOP')
+    const hopToken = bridge.toHopToken('HOP', 'goerli', 'polygon')
+    expect(hopToken.name).toBe('Hop')
+    expect(hopToken._symbol).toBe('HOP')
+  })
+  it('Should use correct approval address', async () => {
+    const hop = new Hop('goerli')
+    const bridge = hop.bridge('HOP')
+    const approvalAddress = bridge.getSendApprovalAddress('polygon')
+    const expectedAddress = addresses.goerli.bridges.HOP.polygon?.l2Bridge
+    expect(approvalAddress).toBe(expectedAddress)
+  })
+})

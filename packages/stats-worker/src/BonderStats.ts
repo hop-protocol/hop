@@ -675,7 +675,7 @@ class BonderStats {
           dbData.initialMaticAmount,
           dbData.initialxDaiAmount,
           withdrawEvent,
-          dbData.messengerWrapperAmount
+          dbData.arbitrumMessengerWrapperAmount
         )
         console.log(
           day,
@@ -836,15 +836,11 @@ class BonderStats {
                     balancePromises.push(Promise.resolve(0))
                   }
 
-                  if (chain === 'arbitrum') {
-                    const ethereumArchiveProvider =
-                      allArchiveProviders['ethereum']
-                    const messengerWrapperAddress = bridgeMap.l1MessengerWrapper
+                  if (chain === 'ethereum') {
+                    const messengerWrapperAddress = (mainnetAddresses as any)
+                      .bridges[token]['arbitrum'].l1MessengerWrapper
                     balancePromises.push(
-                      ethereumArchiveProvider.getBalance(
-                        messengerWrapperAddress,
-                        blockTag
-                      )
+                      provider.getBalance(messengerWrapperAddress, blockTag)
                     )
                   } else {
                     balancePromises.push(Promise.resolve(0))
@@ -900,9 +896,9 @@ class BonderStats {
                       Number(formatEther(aliasBalance.toString()))
                     )
                   }
-                  if (chain === 'arbitrum') {
+                  if (chain === 'ethereum') {
                     dbData[
-                      `${chain}MessengerWrapperAmount`
+                      `arbitrumMessengerWrapperAmount`
                     ] = messengerWrapperBalance
                       ? Number(formatEther(messengerWrapperBalance.toString()))
                       : 0
@@ -910,6 +906,10 @@ class BonderStats {
                       `${chain} ${token} messenger wrapper balance`,
                       Number(formatEther(messengerWrapperBalance.toString()))
                     )
+                  }
+
+                  if (!dbData[`${chain}MessengerWrapperAmount`]) {
+                    dbData[`${chain}MessengerWrapperAmount`] = 0
                   }
 
                   if (chain === 'arbitrum') {
@@ -1026,8 +1026,7 @@ class BonderStats {
         messengerWrapper
       } = bonderBalances[chain]
       aggregateBalance = aggregateBalance.add(canonical).add(hToken)
-      nativeBalances[chain] = native.add(alias)
-      nativeBalances[chain] = native.add(messengerWrapper)
+      nativeBalances[chain] = native.add(alias).add(messengerWrapper)
     }
     const nativeTokenDiffs: Record<string, any> = {}
     for (const chain of this.chains) {
@@ -1105,8 +1104,7 @@ class BonderStats {
         messengerWrapper
       } = bonderBalances[chain]
       aggregateBalanceToken = aggregateBalanceToken.add(canonical).add(hToken)
-      nativeBalances[chain] = native.add(alias)
-      nativeBalances[chain] = native.add(messengerWrapper)
+      nativeBalances[chain] = native.add(alias).add(messengerWrapper)
     }
     const nativeTokenDiffs: Record<string, any> = {}
     for (const chain of this.chains) {
@@ -1240,6 +1238,7 @@ class BonderStats {
       .then(json => {
         if (!json.prices) {
           console.log(json)
+          throw new Error(`got api error: ${JSON.stringify(json)}`)
         }
         return json.prices.map((data: any[]) => {
           data[0] = Math.floor(data[0] / 1000)

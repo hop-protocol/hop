@@ -7,8 +7,7 @@ import {
   OneHourMs,
   OneWeekMs,
   RelayableChains,
-  RootSetSettleDelayMs,
-  TimeFromL1ToL2Ms
+  RootSetSettleDelayMs
 } from 'src/constants'
 import { TxRetryDelayMs, nitroStartTimestamp, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
@@ -569,10 +568,6 @@ class TransferRootsDb extends BaseDb {
     filter: GetItemsFilter = {}
   ): Promise<RelayableTransferRoot[]> {
     await this.tilReady()
-    // TODO: Remove this post-nitro
-    if (!nitroStartTimestamp) {
-      return []
-    }
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     const filtered = transferRoots.filter(item => {
       if (!item.sourceChainId) {
@@ -600,27 +595,12 @@ class TransferRootsDb extends BaseDb {
         return false
       }
 
-      // TODO: Remove this one week post-nitro
-      if (item.bondedAt && item.bondedAt < nitroStartTimestamp) {
-        return false
-      }
-
-      // TODO: Remove this one week post-nitro
-      if (item.confirmedAt && item.confirmedAt < nitroStartTimestamp) {
-        return false
-      }
-
       const isSeenOnL1 = item?.bonded ?? item?.confirmed
 
       let sentTxTimestampOk = true
       if (item.sentRelayTxAt) {
         sentTxTimestampOk = item.sentRelayTxAt + TxRetryDelayMs < Date.now()
       }
-
-      // bondedAt should be checked first because a root can have both but it should be bonded prior to being confirmed
-      const seenOnL1Timestamp = item?.bondedAt ?? item?.confirmedAt
-      const seenOnL1TimestampMs: number = seenOnL1Timestamp! * 1000
-      const seenOnL1TimestampOk = seenOnL1TimestampMs + TimeFromL1ToL2Ms[destinationChain] < Date.now()
 
       return (
         !item.rootSetTxHash &&
@@ -630,8 +610,7 @@ class TransferRootsDb extends BaseDb {
         item.committed &&
         item.committedAt &&
         isSeenOnL1 &&
-        sentTxTimestampOk &&
-        seenOnL1TimestampOk
+        sentTxTimestampOk
       )
     })
 

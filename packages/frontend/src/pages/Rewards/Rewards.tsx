@@ -13,7 +13,8 @@ export function Rewards() {
             requiredChainId={config.chainId}
             rewardsContractAddress={config.rewardsContractAddress}
             merkleBaseUrl={config.merkleBaseUrl}
-            title="Optimism Fee Refund"
+            title="Optimism Onboarding Rewards"
+            description="These rewards are refunds for bridging into Optimism. The refund includes a percentage of the source transaction cost + bonder fee + AMM LP fee"
           />
         )
       })}

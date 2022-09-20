@@ -7,10 +7,12 @@ import useQueryParams from 'src/hooks/useQueryParams'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
 import erc20Abi from '@hop-protocol/core/abi/generated/ERC20.json'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
-import { networkIdToSlug } from 'src/utils/networks'
+import { networkIdToSlug, findNetworkBySlug } from 'src/utils/networks'
 import merkleRewardsAbi from 'src/abis/MerkleRewards.json'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { DateTime } from 'luxon'
+import { getTokenImage } from 'src/utils/tokens'
+import { reactAppNetwork } from 'src/config'
 
 interface Props {
   rewardsContractAddress: string
@@ -23,7 +25,7 @@ export const useRewards = (props: Props) => {
   const { rewardsContractAddress, merkleBaseUrl, requiredChainId } = props
   const { checkConnectedNetworkId, address, provider, connectedNetworkId } = useWeb3Context()
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [claiming, setClaiming] = useState(false)
   const [claimableAmount, setClaimableAmount] = useState(BigNumber.from(0))
   const [unclaimableAmount, setUnclaimableAmount] = useState(BigNumber.from(0))
@@ -33,8 +35,9 @@ export const useRewards = (props: Props) => {
   const [tokenDecimals, setTokenDecimals] = useState<number|null>(null)
   const [tokenSymbol, setTokenSymbol] = useState('')
   const [latestRootTotal, setLatestRootTotal] = useState(BigNumber.from(0))
-  const [estimatedDate, setEstimatedDate] = useState('')
+  const [estimatedDate, setEstimatedDate] = useState(0)
   const claimRecipient = queryParams.address as string ?? address?.address
+  const [countdown, setCountdown] = useState('')
   const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
     try {
@@ -49,6 +52,8 @@ export const useRewards = (props: Props) => {
       console.error(err)
     }
   }, [provider, rewardsContractAddress])
+  const claimChain = findNetworkBySlug(networkIdToSlug(requiredChainId))
+  const tokenImageUrl = tokenSymbol ? getTokenImage(tokenSymbol) : ''
 
   const token = useAsyncMemo(async () => {
     try {
@@ -117,6 +122,9 @@ export const useRewards = (props: Props) => {
 
   const getClaimableAmount = async () => {
     try {
+      if (pollUnclaimableAmountFromBackend) {
+        return
+      }
       if (!(
         onchainRoot &&
         contract &&
@@ -130,7 +138,6 @@ export const useRewards = (props: Props) => {
       if (!isSet) {
         return
       }
-      setLoading(true)
       const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
       const [entry] = await shardedMerkleTree.getProof(claimRecipient)
       if (!entry) {
@@ -217,9 +224,13 @@ export const useRewards = (props: Props) => {
       if (json.data.rewards.lockedBalance) {
         setUnclaimableAmount(BigNumber.from(json.data.rewards.lockedBalance))
       }
+      if (json.data.rewards.balance) {
+        setClaimableAmount(BigNumber.from(json.data.rewards.balance))
+      }
     } catch (err) {
       console.error(err)
     }
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -240,9 +251,8 @@ export const useRewards = (props: Props) => {
         throw new Error(json.error)
       }
       if (json.data.estimatedDateMs) {
-        const relative = DateTime.fromMillis(json.data.estimatedDateMs).toRelative()
-        if (relative) {
-          setEstimatedDate(relative)
+        if (json.data.estimatedDateMs) {
+          setEstimatedDate(json.data.estimatedDateMs)
         }
       }
     } catch (err) {
@@ -254,7 +264,22 @@ export const useRewards = (props: Props) => {
     getRewardsInfoFromBackend().catch(console.error)
   }, [])
 
-  useInterval(getRewardsInfoFromBackend, 60 * 1000)
+  async function updateCountdown() {
+    if (!estimatedDate) {
+      return
+    }
+
+    const end = DateTime.fromMillis(estimatedDate)
+    const now = DateTime.now()
+    const remaining = end.diff(now)
+    setCountdown(remaining.toFormat(`d'd' h'h' m'm' ss`))
+  }
+
+  useEffect(() => {
+    updateCountdown().catch(console.error)
+  }, [])
+
+  useInterval(updateCountdown, 1 * 1000)
 
   async function claim() {
     try {
@@ -297,7 +322,16 @@ export const useRewards = (props: Props) => {
     setClaiming(false)
   }
 
-  const hasRewards = claimableAmount?.gt(0) || unclaimableAmount?.gt(0)
+  const hasRewards = !!address && (claimableAmount?.gt(0) || unclaimableAmount?.gt(0))
+  let txHistoryLink = `https://${reactAppNetwork === 'goerli' ? 'goerli.explorer' : 'explorer'}.hop.exchange/?`
+  if (address) {
+   txHistoryLink += `&account=${address}`
+  }
+  if (claimChain) {
+   txHistoryLink += `&destination=optimism`
+  }
+
+  const repoUrl = (merkleBaseUrl ?? '').replace(/.*\.com\/(.*)\/master/gi, 'https://github.com/$1')
 
   return {
     tokenDecimals,
@@ -313,6 +347,11 @@ export const useRewards = (props: Props) => {
     claimRecipient,
     onchainRoot,
     hasRewards,
-    estimatedDate
+    estimatedDate,
+    claimChain,
+    txHistoryLink,
+    tokenImageUrl,
+    repoUrl,
+    countdown
   }
 }

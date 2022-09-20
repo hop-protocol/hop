@@ -147,7 +147,7 @@ class RelayWatcher extends BaseWatcher {
 
     logger.debug('processing transfer relay. checking isRelayComplete')
     const isRelayComplete = await this.relayWatcher.isTransactionRedeemed(transferSentTxHash)
-    logger.debug(`processing bondWithdrawal. isRelayComplete: ${isRelayComplete?.toString()}`)
+    logger.debug(`processing transfer relay. isRelayComplete: ${isRelayComplete?.toString()}`)
     if (isRelayComplete) {
       logger.warn('checkTransferSentToL2 already complete. marking item not found')
       await this.db.transfers.update(transferId, { isNotFound: true })
@@ -346,7 +346,7 @@ class RelayWatcher extends BaseWatcher {
   async sendTransferRootRelayTx (transferRootId: string, txHash: string): Promise<providers.TransactionResponse> {
     const logger = this.logger.create({ root: transferRootId })
     logger.debug(
-      `relay root destinationChainId with txHash ${txHash}`,
+      `relay root destinationChainId with txHash ${txHash}`
     )
     return await this.sendRelayTx(txHash)
   }

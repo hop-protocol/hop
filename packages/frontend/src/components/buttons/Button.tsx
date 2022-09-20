@@ -16,6 +16,8 @@ interface StyleProps {
   loading?: boolean
   isDarkMode?: boolean
   fullWidth?: boolean
+  target?: string
+  rel?: string
 }
 
 export type ButtonProps = Partial<StyleProps> &

@@ -48,7 +48,6 @@ const HeaderRoutes: FC = () => {
       <Tab label="Pool" value="/pool" />
       <Tab label="Convert" value="/convert" />
       {isMainnet && <Tab label="Stake" value="/stake" />}
-      <Tab label="Airdrop" value="/airdrop" />
       {canClaim && (
         <Tab label="Claim HOP" value="/claim" className="rainbow-animated" style={{
           // background: 'rgba(0, 0, 0, 0) linear-gradient(99.85deg, rgb(179, 46, 255) -18.29%, rgb(242, 164, 152) 109.86%) repeat scroll 0% 0%',
@@ -61,9 +60,14 @@ const HeaderRoutes: FC = () => {
       {showRewards && (
         <Tab label={<span style={{
             display: 'inline-block',
+            position: 'relative'
           }}>Rewards {hasRewards && <mark style={{
           background: 'none',
-          color: theme.palette.primary.main
+          color: theme.palette.primary.main,
+          display: 'inline-block',
+          position: 'absolute',
+          top: '-10px',
+          right: '-10px'
         }}>•</mark>}</span>} value="/rewards" />
       )}
       {!isMainnet && <Tab label="Faucet" value="/faucet" />}

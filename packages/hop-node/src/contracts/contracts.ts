@@ -1,22 +1,21 @@
 import '../moduleAlias'
 import memoize from 'fast-memoize'
 import { Chain } from 'src/constants'
-import { Signer } from 'ethers'
+import { Signer, providers } from 'ethers'
 
 import wallets from 'src/wallets'
-import { ERC20__factory, L1ERC20BridgeLegacy__factory, L1ERC20Bridge__factory, L2AmmWrapper__factory, L2Bridge__factory, SaddleLpToken__factory } from '@hop-protocol/core/contracts'
-import { Provider } from '@ethersproject/providers'
+import { ERC20__factory, L1_ERC20_Bridge_Legacy__factory, L1_ERC20_Bridge__factory, L2_AmmWrapper__factory, L2_Bridge__factory, SaddleLpToken__factory } from '@hop-protocol/core/contracts'
 import { config as globalConfig } from 'src/config'
 
 const getL1BridgeContract = (token: string) => {
   let abi: any
   if (token === 'USDC') {
-    return L1ERC20BridgeLegacy__factory.connect(
+    return L1_ERC20_Bridge_Legacy__factory.connect(
       globalConfig.addresses[token][Chain.Ethereum].l1Bridge,
       wallets.get(Chain.Ethereum)
     )
   }
-  return L1ERC20Bridge__factory.connect(
+  return L1_ERC20_Bridge__factory.connect(
     globalConfig.addresses[token][Chain.Ethereum].l1Bridge,
     wallets.get(Chain.Ethereum)
   )
@@ -29,7 +28,7 @@ const getL1TokenContract = (token: string) => {
   )
 }
 
-const getL2TokenContract = (token: string, network: string, wallet: Signer | Provider) => {
+const getL2TokenContract = (token: string, network: string, wallet: Signer | providers.Provider) => {
   return ERC20__factory.connect(
     globalConfig.addresses[token][network].l2CanonicalToken,
     wallet
@@ -39,7 +38,7 @@ const getL2TokenContract = (token: string, network: string, wallet: Signer | Pro
 const getL2HopBridgeTokenContract = (
   token: string,
   network: string,
-  wallet: Signer | Provider
+  wallet: Signer | providers.Provider
 ) => {
   return ERC20__factory.connect(
     globalConfig.addresses[token][network].l2HopBridgeToken,
@@ -47,8 +46,8 @@ const getL2HopBridgeTokenContract = (
   )
 }
 
-const getL2BridgeContract = (token: string, network: string, wallet: Signer | Provider) => {
-  return L2Bridge__factory.connect(
+const getL2BridgeContract = (token: string, network: string, wallet: Signer | providers.Provider) => {
+  return L2_Bridge__factory.connect(
     globalConfig.addresses[token][network].l2Bridge,
     wallet
   )
@@ -57,9 +56,9 @@ const getL2BridgeContract = (token: string, network: string, wallet: Signer | Pr
 const getL2AmmWrapperContract = (
   token: string,
   network: string,
-  wallet: Signer | Provider
+  wallet: Signer | providers.Provider
 ) => {
-  return L2AmmWrapper__factory.connect(
+  return L2_AmmWrapper__factory.connect(
     globalConfig.addresses[token][network].l2AmmWrapper,
     wallet
   )
@@ -68,7 +67,7 @@ const getL2AmmWrapperContract = (
 const getL2SaddleSwapContract = (
   token: string,
   network: string,
-  wallet: Signer | Provider
+  wallet: Signer | providers.Provider
 ) => {
   return SaddleLpToken__factory.connect(
     globalConfig.addresses[token][network].l2SaddleSwap,

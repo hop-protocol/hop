@@ -11,7 +11,7 @@ const useQueryParams = () => {
     [location.search]
   )
 
-  const updateQueryParams = (updates: { [index: string]: string }) => {
+  const updateQueryParams = (updates: { [index: string]: string | undefined }) => {
     Object.assign(queryParams, updates)
 
     history.push({

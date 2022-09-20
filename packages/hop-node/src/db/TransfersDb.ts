@@ -1,7 +1,7 @@
 import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
-import { Chain, OneWeekMs, RelayableChains, TimeFromL1ToL2Ms, TxError } from 'src/constants'
+import { Chain, OneWeekMs, RelayableChains, TxError } from 'src/constants'
 import { TxRetryDelayMs, nitroStartTimestamp } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -467,11 +467,6 @@ class TransfersDb extends BaseDb {
   async getUnrelayedSentTransfers (
     filter: GetItemsFilter = {}
   ): Promise<UnrelayedSentTransfer[]> {
-    // TODO: Remove this post-nitro
-    if (!nitroStartTimestamp) {
-      return []
-    }
-
     const transfers: Transfer[] = await this.getTransfersFromWeek()
     const filtered = transfers.filter(item => {
       if (!item?.transferId) {
@@ -502,11 +497,6 @@ class TransfersDb extends BaseDb {
         return false
       }
 
-      // TODO: Remove this one week post-nitro
-      if (item.transferSentTimestamp && item.transferSentTimestamp < nitroStartTimestamp) {
-        return false
-      }
-
       let timestampOk = true
       if (item.relayAttemptedAt) {
         if (TxError.RelayerFeeTooLow === item.relayTxError) {
@@ -523,9 +513,6 @@ class TransfersDb extends BaseDb {
         }
       }
 
-      const seenOnL1TimestampMs: number = item.transferSentTimestamp * 1000
-      const seenOnL1TimestampOk = seenOnL1TimestampMs + TimeFromL1ToL2Ms[item.destinationChainSlug] < Date.now()
-
       return (
         item.transferId &&
         item.transferSentTimestamp &&
@@ -536,8 +523,7 @@ class TransfersDb extends BaseDb {
         !item.transferFromL1Complete &&
         item.transferSentLogIndex &&
         item.transferSentTimestamp &&
-        timestampOk &&
-        seenOnL1TimestampOk
+        timestampOk
       )
     })
 

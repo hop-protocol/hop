@@ -179,8 +179,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
     const { from: sender, data } = sourceTx
-    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin, deadline)
-    if (attemptSwap && isL1ChainId(destinationChainId)) {
+    const attemptSwapDuringBondWithdrawal = this.bridge.shouldAttemptSwapDuringBondWithdrawal(amountOutMin, deadline)
+    if (attemptSwapDuringBondWithdrawal && isL1ChainId(destinationChainId)) {
       logger.debug('marking as unbondable. Destination is L1 and attemptSwap is true')
       await this.db.transfers.update(transferId, {
         isBondable: false
@@ -196,7 +196,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     try {
       logger.debug('checkTransferId isBonderFeeOk')
-      const transactionType = attemptSwap ? GasCostTransactionType.BondWithdrawalAndAttemptSwap : GasCostTransactionType.BondWithdrawal
+      const transactionType = attemptSwapDuringBondWithdrawal ? GasCostTransactionType.BondWithdrawalAndAttemptSwap : GasCostTransactionType.BondWithdrawal
       const isBonderFeeOk = await this.getIsFeeOk(transferId, transactionType)
       if (!isBonderFeeOk) {
         const msg = 'Total bonder fee is too low. Cannot bond withdrawal.'
@@ -213,13 +213,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
         amount,
         transferNonce,
         bonderFee,
-        attemptSwap,
+        attemptSwap: attemptSwapDuringBondWithdrawal,
         destinationChainId,
         amountOutMin,
         deadline
       })
 
-      const sentChain = attemptSwap ? `destination chain ${destinationChainId}` : 'L1'
+      const sentChain = attemptSwapDuringBondWithdrawal ? `destination chain ${destinationChainId}` : 'L1'
       const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
       this.notifier.info(msg)
@@ -296,6 +296,10 @@ class BondWithdrawalWatcher extends BaseWatcher {
         deadline
       )
     } else {
+      // Redundantly verify that both amountOutMin and deadline are 0
+      if (!(amountOutMin.eq(0) && deadline.eq(0))) {
+        throw new Error('sendBondWithdrawalTx: amountOutMin and deadline must be 0 when calling bondWithdrawal')
+      }
       logger.debug(`bondWithdrawal chain: ${destinationChainId}`)
       const bridge = this.getSiblingWatcherByChainId(destinationChainId).bridge
       logger.debug('checkTransferId bridge.bondWithdrawal')

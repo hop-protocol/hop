@@ -28,8 +28,8 @@ describe('coinGecko', () => {
     expect(maticPrice).toBeLessThan(3)
   }, 10 * 1000)
   it('HOP price', async () => {
-    const fraxPrice = await coinGecko.getPriceByTokenSymbol('HOP')
-    expect(fraxPrice).toBeGreaterThan(0)
-    expect(fraxPrice).toBeLessThan(1)
+    const hopPrice = await coinGecko.getPriceByTokenSymbol('HOP')
+    expect(hopPrice).toBeGreaterThan(0)
+    expect(hopPrice).toBeLessThan(1000)
   }, 10 * 1000)
 })

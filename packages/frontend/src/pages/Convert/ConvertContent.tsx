@@ -148,6 +148,7 @@ const ConvertContent: FC = () => {
     switchDirection,
     tx,
     unsupportedAsset,
+    assetWithoutAmm,
     validFormFields,
     warning,
     convertOption,
@@ -209,7 +210,7 @@ const ConvertContent: FC = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      {unsupportedAsset ? (
+      {(unsupportedAsset || (assetWithoutAmm && convertOption?.slug === 'amm')) ? (
         <>
           <Typography variant="subtitle1" color="textSecondary" component="div">
             {error}

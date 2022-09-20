@@ -389,15 +389,7 @@ const Send: FC = () => {
       const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
       const bridge = sdk.bridge(sourceToken.symbol)
 
-      let spender: string
-      if (fromNetwork.isLayer1) {
-        const l1Bridge = await bridge.getL1Bridge()
-        spender = l1Bridge.address
-      } else {
-        const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
-        spender = ammWrapper.address
-      }
-
+      const spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
       return checkApproval(parsedAmount, sourceToken, spender)
     } catch (err: any) {
       logger.error(err)
@@ -425,15 +417,7 @@ const Send: FC = () => {
     const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
     const bridge = sdk.bridge(sourceToken.symbol)
 
-    let spender: string
-    if (fromNetwork.isLayer1) {
-      const l1Bridge = await bridge.getL1Bridge()
-      spender = l1Bridge.address
-    } else {
-      const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
-      spender = ammWrapper.address
-    }
-
+    const spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
     const tx = await approve(parsedAmount, sourceToken, spender)
 
     await tx?.wait()

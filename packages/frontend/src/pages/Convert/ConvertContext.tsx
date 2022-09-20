@@ -65,6 +65,7 @@ type ConvertContextProps = {
   switchDirection: () => void
   tx?: Transaction
   unsupportedAsset: any
+  assetWithoutAmm: any
   validFormFields: boolean
   warning?: ReactNode
   convertOption: ConvertOption
@@ -99,7 +100,7 @@ const ConvertProvider: FC = ({ children }) => {
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
 
-  const { unsupportedAsset } = useAssets(selectedBridge, selectedNetwork)
+  const { assetWithoutAmm, unsupportedAsset } = useAssets(selectedBridge, selectedNetwork)
 
   const convertOptions = [new AmmConvertOption(), new HopConvertOption()]
   const convertOption = useMemo(
@@ -136,10 +137,13 @@ const ConvertProvider: FC = ({ children }) => {
     if (unsupportedAsset) {
       const { chain, tokenSymbol } = unsupportedAsset
       setError(`${tokenSymbol} is currently not supported on ${chain}`)
+    } else if (assetWithoutAmm) {
+      const { chain, tokenSymbol } = assetWithoutAmm
+      setError(`${tokenSymbol} does not use an AMM on ${chain}`)
     } else {
       setError('')
     }
-  }, [unsupportedAsset])
+  }, [unsupportedAsset, assetWithoutAmm])
 
   const needsTokenForFee = useNeedsTokenForFee(sourceNetwork)
 
@@ -504,6 +508,7 @@ const ConvertProvider: FC = ({ children }) => {
         switchDirection,
         tx,
         unsupportedAsset,
+        assetWithoutAmm,
         validFormFields,
         warning,
         destinationChainPaused

@@ -130,6 +130,7 @@ const Pools: FC = () => {
     token1Deposited,
     tokenSumDeposited,
     unsupportedAsset,
+    assetWithoutAmm,
     userPoolBalance,
     userPoolBalanceFormatted,
     userPoolTokenPercentage,
@@ -238,7 +239,7 @@ const Pools: FC = () => {
         />
       </Box>
 
-      {unsupportedAsset ? (
+      {(unsupportedAsset || assetWithoutAmm) ? (
         <>
           <Typography variant="subtitle1" color="textSecondary" component="div">
             {error}

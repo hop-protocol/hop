@@ -71,6 +71,7 @@ type PoolsContextProps = {
   totalSupply?: string
   txHash?: string
   unsupportedAsset: any
+  assetWithoutAmm: any
   userPoolBalance?: BigNumber
   userPoolBalanceFormatted?: string
   userPoolTokenPercentage?: string
@@ -119,7 +120,7 @@ const PoolsProvider: FC = ({ children }) => {
   const { selectedNetwork, selectBothNetworks } = useSelectedNetwork({
     l2Only: true,
   })
-  const { unsupportedAsset } = useAssets(selectedBridge, selectedNetwork)
+  const { unsupportedAsset, assetWithoutAmm } = useAssets(selectedBridge, selectedNetwork)
 
   const isNativeToken =
     useMemo(() => {
@@ -170,10 +171,13 @@ const PoolsProvider: FC = ({ children }) => {
     if (unsupportedAsset) {
       const { chain, tokenSymbol } = unsupportedAsset
       setError(`${tokenSymbol} is currently not supported on ${chain}`)
+    } else if (assetWithoutAmm) {
+      const { chain, tokenSymbol } = assetWithoutAmm
+      setError(`${tokenSymbol} does not use an AMM on ${chain}`)
     } else {
       setError('')
     }
-  }, [unsupportedAsset])
+  }, [unsupportedAsset, assetWithoutAmm])
 
   const tokenUsdPrice = useAsyncMemo(async () => {
     try {
@@ -899,6 +903,7 @@ const PoolsProvider: FC = ({ children }) => {
         totalSupply,
         txHash,
         unsupportedAsset,
+        assetWithoutAmm,
         userPoolBalance,
         userPoolBalanceFormatted,
         userPoolTokenPercentage,

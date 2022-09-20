@@ -1916,7 +1916,7 @@ class HopBridge extends Base {
 
     const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
     const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
-    const attemptSwapAtSource = this.doesUseAmm && this.shouldAttemptSwap(amountOutMin, deadline)
+    const attemptSwapAtSource = this.shouldAttemptSwap(amountOutMin, deadline)
     const spender = attemptSwapAtSource ? ammWrapper.address : l2Bridge.address
 
     if (BigNumber.from(bonderFee).gt(amount)) {
@@ -2010,7 +2010,7 @@ class HopBridge extends Base {
 
     const ammWrapper = await this.getAmmWrapper(sourceChain, sourceChain.provider)
     const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
-    const attemptSwapAtSource = this.doesUseAmm && this.shouldAttemptSwap(amountOutMin, deadline)
+    const attemptSwapAtSource = this.shouldAttemptSwap(amountOutMin, deadline)
     const spender = attemptSwapAtSource ? ammWrapper.address : l2Bridge.address
     const isNativeToken = this.isNativeToken(sourceChain)
 
@@ -2257,6 +2257,9 @@ class HopBridge extends Base {
   }
 
   shouldAttemptSwap (amountOutMin: BigNumber, deadline: BigNumberish): boolean {
+    if (!this.doesUseAmm) {
+      return false
+    }
     deadline = BigNumber.from(deadline?.toString() || 0)
     return amountOutMin?.gt(0) || deadline?.gt(0)
   }

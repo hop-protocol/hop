@@ -14,6 +14,7 @@ import { ChainSlug } from '@hop-protocol/sdk'
 import { MethodNames, useGnosisSafeTransaction } from 'src/hooks'
 import { Div, Flex } from 'src/components/ui'
 import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
+import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 
@@ -210,7 +211,7 @@ const ConvertContent: FC = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      {(unsupportedAsset || (assetWithoutAmm && convertOption?.slug === 'amm')) ? (
+      {(unsupportedAsset || (assetWithoutAmm && convertOption instanceof AmmConvertOption)) ? (
         <>
           <Typography variant="subtitle1" color="textSecondary" component="div">
             {error}

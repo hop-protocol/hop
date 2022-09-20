@@ -137,13 +137,13 @@ const ConvertProvider: FC = ({ children }) => {
     if (unsupportedAsset) {
       const { chain, tokenSymbol } = unsupportedAsset
       setError(`${tokenSymbol} is currently not supported on ${chain}`)
-    } else if (assetWithoutAmm) {
+    } else if (assetWithoutAmm && convertOption instanceof AmmConvertOption) {
       const { chain, tokenSymbol } = assetWithoutAmm
       setError(`${tokenSymbol} does not use an AMM on ${chain}`)
     } else {
       setError('')
     }
-  }, [unsupportedAsset, assetWithoutAmm])
+  }, [unsupportedAsset, assetWithoutAmm, convertOption])
 
   const needsTokenForFee = useNeedsTokenForFee(sourceNetwork)
 

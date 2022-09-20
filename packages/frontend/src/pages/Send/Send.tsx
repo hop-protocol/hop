@@ -108,6 +108,15 @@ const Send: FC = () => {
     _setToNetwork(_toNetwork)
   }, [queryParams, networks])
 
+  useEffect(() => {
+    if (queryParams.amount && !Number.isNaN(Number(queryParams.amount))) {
+      setFromTokenAmount(queryParams.amount as string)
+      updateQueryParams({
+        amount: undefined
+      })
+    }
+  }, [queryParams])
+
   // Get assets
   const { unsupportedAsset, sourceToken, destToken, placeholderToken } = useAssets(
     selectedBridge,

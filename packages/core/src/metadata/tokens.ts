@@ -4,13 +4,13 @@ import {
   ETHImage,
   HOPImage,
   MATICImage,
+  OPImage,
   USDCImage,
   USDTImage,
   WBTCImage,
   XDAIImage,
   sBTCImage,
-  sETHImage,
-  OPImage
+  sETHImage
 } from './assets'
 import { Tokens } from './types'
 

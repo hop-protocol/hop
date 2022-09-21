@@ -1948,13 +1948,13 @@ class HopBridge extends Base {
       destinationChainId,
       recipient,
       amount,
-      bonderFee,
-      amountOutMin,
-      deadline
+      bonderFee
     ] as const
 
     if (attemptSwapAtSource) {
       const additionalOptions = [
+        amountOutMin,
+        deadline,
         destinationAmountOutMin,
         destinationDeadline,
         {
@@ -1969,12 +1969,18 @@ class HopBridge extends Base {
       )
     }
 
-    return l2Bridge.populateTransaction.send(
-      ...txOptions,
+    const additionalOptions = [
+      destinationAmountOutMin,
+      destinationDeadline,
       {
         ...(await this.txOverrides(sourceChain)),
         value: isNativeToken ? amount : undefined
       }
+    ] as const
+
+    return l2Bridge.populateTransaction.send(
+      ...txOptions,
+      ...additionalOptions
     )
   }
 
@@ -2037,13 +2043,13 @@ class HopBridge extends Base {
       destinationChainId,
       recipient,
       amount,
-      bonderFee,
-      amountOutMin,
-      deadline
+      bonderFee
     ] as const
 
     if (attemptSwapAtSource) {
       const additionalOptions = [
+        amountOutMin,
+        deadline,
         destinationAmountOutMin,
         destinationDeadline,
         {
@@ -2058,12 +2064,18 @@ class HopBridge extends Base {
       )
     }
 
-    return l2Bridge.populateTransaction.send(
-      ...txOptions,
+    const additionalOptions = [
+      destinationAmountOutMin,
+      destinationDeadline,
       {
         ...(await this.txOverrides(sourceChain)),
         value: isNativeToken ? amount : undefined
       }
+    ] as const
+
+    return l2Bridge.populateTransaction.send(
+      ...txOptions,
+      ...additionalOptions
     )
   }
 

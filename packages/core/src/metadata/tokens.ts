@@ -9,7 +9,8 @@ import {
   WBTCImage,
   XDAIImage,
   sBTCImage,
-  sETHImage
+  sETHImage,
+  OPImage
 } from './assets'
 import { Tokens } from './types'
 
@@ -79,5 +80,11 @@ export const tokens: Tokens = {
     name: 'Hop',
     decimals: 18,
     image: HOPImage
+  },
+  OP: {
+    symbol: 'OP',
+    name: 'Optimism',
+    decimals: 18,
+    image: OPImage
   }
 }

@@ -39,7 +39,7 @@ export const useRewards = (props: Props) => {
   const [estimatedDate, setEstimatedDate] = useState(0)
   const claimRecipient = queryParams.address as string ?? address?.address
   const [countdown, setCountdown] = useState('')
-  const apiBaseUrl = 'https://hop-merkle-rewards-backend.hop.exchange'
+  const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
   // const apiBaseUrl = 'http://localhost:8000'
   const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {

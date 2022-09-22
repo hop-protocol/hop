@@ -81,7 +81,7 @@ const Send: FC = () => {
   const [feeRefundTokenSymbol, setFeeRefundTokenSymbol] = useState<string>('')
   const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
   // TODO: enable once rewards live
-  const [feeRefundEnabled] = useState<boolean>(reactAppNetwork === 'goerli')
+  const [feeRefundEnabled] = useState<boolean>(reactAppNetwork === 'goerli' || location.hostname === 'localhost' || location.hostname === 'mainnet.hop.exchange')
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -358,7 +358,9 @@ const Send: FC = () => {
           }
 
           const query = new URLSearchParams(payload).toString()
-          const url = `https://hop-merkle-rewards-backend.hop.exchange/v1/refund-amount?${query}`
+          const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
+          // const apiBaseUrl = 'http://localhost:8000'
+          const url = `${apiBaseUrl}/v1/refund-amount?${query}`
           const res = await fetch(url)
           const json = await res.json()
           if (json.error) {

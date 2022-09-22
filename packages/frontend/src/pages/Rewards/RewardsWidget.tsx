@@ -93,7 +93,7 @@ export function RewardsWidget(props: Props) {
                 <Box mb={4}>
                   <Box mb={2}>
                     <Typography variant="h6">
-                      Pending {tokenSymbol} <InfoTooltip title={'Tokens that will be claimable once merkle root is published on-chain'} />
+                      Pending {tokenSymbol} <InfoTooltip title={'Tokens that will be claimable once merkle root is published on-chain, which occurs once a week'} />
                     </Typography>
                   </Box>
                   <Box mb={2} display="flex" justifyContent="space-between" minHeight="50px">

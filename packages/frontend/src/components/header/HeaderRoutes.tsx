@@ -35,7 +35,7 @@ const HeaderRoutes: FC = () => {
   const { canClaim } = useClaim()
 
   // TODO: enable once rewards live
-  const showRewards = reactAppNetwork === 'goerli'
+  const showRewards = reactAppNetwork === 'goerli' || location.hostname === 'localhost' || location.hostname === 'mainnet.hop.exchange'
   let hasRewards = false
   if (showRewards) {
     ({ hasRewards } = useHasRewards())

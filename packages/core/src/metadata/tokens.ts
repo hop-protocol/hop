@@ -4,6 +4,7 @@ import {
   ETHImage,
   HOPImage,
   MATICImage,
+  OPImage,
   USDCImage,
   USDTImage,
   WBTCImage,
@@ -79,5 +80,11 @@ export const tokens: Tokens = {
     name: 'Hop',
     decimals: 18,
     image: HOPImage
+  },
+  OP: {
+    symbol: 'OP',
+    name: 'Optimism',
+    decimals: 18,
+    image: OPImage
   }
 }

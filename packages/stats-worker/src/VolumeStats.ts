@@ -30,7 +30,8 @@ const tokenDecimals: any = {
   USDT: 6,
   DAI: 18,
   MATIC: 18,
-  ETH: 18
+  ETH: 18,
+  HOP: 18
 }
 
 function sumAmounts (items: any) {
@@ -161,7 +162,8 @@ class VolumeStats {
       this.getPriceHistory('dai', daysN),
       this.getPriceHistory('ethereum', daysN),
       this.getPriceHistory('matic-network', daysN),
-      this.getPriceHistory('wrapped-bitcoin', daysN)
+      this.getPriceHistory('wrapped-bitcoin', daysN),
+      this.getPriceHistory('hop-protocol', daysN)
     ])
     console.log('done fetching prices')
 
@@ -171,7 +173,8 @@ class VolumeStats {
       DAI: pricesArr[2],
       ETH: pricesArr[3],
       MATIC: pricesArr[4],
-      WBTC: pricesArr[5]
+      WBTC: pricesArr[5],
+      HOP: pricesArr[6]
     }
 
     console.log('upserting prices')

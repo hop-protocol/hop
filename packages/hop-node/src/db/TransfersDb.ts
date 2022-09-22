@@ -2,7 +2,7 @@ import BaseDb, { KeyFilter } from './BaseDb'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import { BigNumber } from 'ethers'
 import { Chain, OneWeekMs, RelayableChains, TxError } from 'src/constants'
-import { TxRetryDelayMs, nitroStartTimestamp } from 'src/config'
+import { TxRetryDelayMs } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransfer {

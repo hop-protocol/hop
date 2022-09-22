@@ -44,8 +44,8 @@ const cacheExpireMs = 1 * 60 * 1000
 const getProvider = memoize((network: string, chain: string) => {
   const rpcUrl = config.chains[network][chain].rpcUrl
   if (!rpcUrl) {
-    if (network === 'staging') {
-      network = 'mainnet'
+    if (network === NetworkSlug.Staging) {
+      network = NetworkSlug.Mainnet
     }
     return providers.getDefaultProvider(network)
   }
@@ -147,6 +147,9 @@ class Base {
     this.fees = config.bonderFeeBps[network]
     this.destinationFeeGasPriceMultiplier = config.destinationFeeGasPriceMultiplier[network]
     this.relayerFeeEnabled = config.relayerFeeEnabled[network]
+    if (this.network === NetworkSlug.Goerli) {
+      this.baseExplorerUrl = 'https://goerli.explorer.hop.exchange'
+    }
 
     this.init()
   }

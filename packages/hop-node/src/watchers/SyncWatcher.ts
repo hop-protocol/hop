@@ -1423,8 +1423,8 @@ class SyncWatcher extends BaseWatcher {
     destinationChainId: number,
     bonderFee: BigNumber
   ): boolean => {
-    const attemptSwap = this.bridge.shouldAttemptSwap(amountOutMin, deadline)
-    if (attemptSwap && isL1ChainId(destinationChainId)) {
+    const attemptSwapDuringBondWithdrawal = this.bridge.shouldAttemptSwapDuringBondWithdrawal(amountOutMin, deadline)
+    if (attemptSwapDuringBondWithdrawal && isL1ChainId(destinationChainId)) {
       return false
     }
 

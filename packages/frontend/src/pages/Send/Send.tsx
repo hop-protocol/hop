@@ -342,49 +342,6 @@ const Send: FC = () => {
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${destToken.symbol}`)
   }, [amountOutMin])
 
-  useEffect(() => {
-    async function update() {
-      try {
-        if (!feeRefundEnabled) {
-          return
-        }
-        if (fromNetwork && toNetwork && sourceToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism) {
-          const payload :any = {
-            gasCost: estimatedGasCost?.toString(),
-            amount: fromTokenAmountBN?.toString(),
-            token: sourceToken?.symbol,
-            bonderFee: totalBonderFee.toString(),
-            fromChain: fromNetwork?.slug
-          }
-
-          const query = new URLSearchParams(payload).toString()
-          const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
-          // const apiBaseUrl = 'http://localhost:8000'
-          const url = `${apiBaseUrl}/v1/refund-amount?${query}`
-          const res = await fetch(url)
-          const json = await res.json()
-          if (json.error) {
-            throw new Error(json.error)
-          }
-          console.log(json.data.refund)
-          const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
-          setFeeRefund(refundAmountInRefundToken.toFixed(4))
-          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
-          setFeeRefundTokenSymbol(refundTokenSymbol)
-        } else {
-          setFeeRefund('')
-          setFeeRefundUsd('')
-        }
-      } catch (err) {
-        console.error(err)
-        setFeeRefund('')
-        setFeeRefundUsd('')
-      }
-    }
-
-    update().catch(console.error)
-  }, [feeRefundEnabled, fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
-
   // ==============================================================================================
   // Approve fromNetwork / fromToken
   // ==============================================================================================
@@ -447,6 +404,53 @@ const Send: FC = () => {
     }
     setApproving(false)
   }
+
+  // ==============================================================================================
+  // Fee refund
+  // ==============================================================================================
+
+  useEffect(() => {
+    async function update() {
+      try {
+        if (!feeRefundEnabled) {
+          return
+        }
+        if (!needsApproval && fromNetwork && toNetwork && sourceToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism) {
+          const payload :any = {
+            gasCost: estimatedGasCost?.toString(),
+            amount: fromTokenAmountBN?.toString(),
+            token: sourceToken?.symbol,
+            bonderFee: totalBonderFee.toString(),
+            fromChain: fromNetwork?.slug
+          }
+
+          const query = new URLSearchParams(payload).toString()
+          const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
+          // const apiBaseUrl = 'http://localhost:8000'
+          const url = `${apiBaseUrl}/v1/refund-amount?${query}`
+          const res = await fetch(url)
+          const json = await res.json()
+          if (json.error) {
+            throw new Error(json.error)
+          }
+          console.log(json.data.refund)
+          const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
+          setFeeRefund(refundAmountInRefundToken.toFixed(4))
+          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
+          setFeeRefundTokenSymbol(refundTokenSymbol)
+        } else {
+          setFeeRefund('')
+          setFeeRefundUsd('')
+        }
+      } catch (err) {
+        console.error('fee refund fetch error:', err)
+        setFeeRefund('')
+        setFeeRefundUsd('')
+      }
+    }
+
+    update().catch(console.error)
+  }, [feeRefundEnabled, needsApproval, fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
 
   // ==============================================================================================
   // Send tokens

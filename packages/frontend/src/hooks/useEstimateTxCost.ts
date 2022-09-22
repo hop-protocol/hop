@@ -13,12 +13,20 @@ export enum MethodNames {
 }
 
 async function estimateGasCost(network: Network, estimatedGasLimit: BigNumber) {
+  let gasPrice = BigNumber.from(0)
   try {
     // Get current gas price
-    const gasPrice = await network.provider.getGasPrice()
+    try {
+      const { maxFeePerGas } = await network.provider.getFeeData()
+      if (maxFeePerGas) {
+        gasPrice = maxFeePerGas
+      }
+    } catch (err) {
+      gasPrice = await network.provider.getGasPrice()
+    }
     // Add some wiggle room
     const bufferGas = BigNumber.from(70_000)
-    return estimatedGasLimit.add(bufferGas).mul(gasPrice)
+    return (estimatedGasLimit.add(bufferGas)).mul(gasPrice)
   } catch (error) {
     logger.error(error)
   }

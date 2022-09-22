@@ -1885,27 +1885,22 @@ class HopBridge extends Base {
       destinationChain,
       sourceChain,
       amount,
-      destinationAmountOutMin,
       bonderFee,
       recipient,
       amountOutMin,
       deadline,
-      destinationDeadline,
       checkAllowance
     } = input
     const destinationChainId = destinationChain.chainId
     deadline = deadline === undefined ? this.defaultDeadlineSeconds : deadline
     amountOutMin = BigNumber.from((amountOutMin || 0).toString())
-    destinationDeadline = destinationDeadline || 0
-    destinationAmountOutMin = BigNumber.from(
-      (destinationAmountOutMin || 0).toString()
-    )
 
-    if (destinationChain.isL1) {
-      const attemptSwap = this.shouldAttemptSwap(destinationAmountOutMin, destinationDeadline)
-      if (attemptSwap) {
-        throw new Error('"destinationAmountOutMin" and "destinationDeadline" must be 0 when sending to an L1')
-      }
+    // Destination values will always be 0 going to L1
+    const destinationDeadline = BigNumber.from(0)
+    const destinationAmountOutMin = BigNumber.from(0)
+
+    if (!destinationChain.isL1) {
+      throw new Error('All transfers populated here must be sent to L1')
     }
 
     recipient = recipient || await this.getSignerAddress()
@@ -1938,10 +1933,6 @@ class HopBridge extends Base {
 
     if (amountOutMin.lt(0)) {
       amountOutMin = BigNumber.from(0)
-    }
-
-    if (destinationAmountOutMin.lt(0)) {
-      destinationAmountOutMin = BigNumber.from(0)
     }
 
     const txOptions = [

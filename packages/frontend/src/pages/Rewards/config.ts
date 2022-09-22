@@ -11,7 +11,7 @@ if (reactAppNetwork === 'goerli') {
 } else {
   configs = [{
     chainId: 10,
-    rewardsContractAddress: '0xFfAF1B79fE7C03D833E3DEF83eA558B1989399c5',
+    rewardsContractAddress: '0x45269F59aA76bB491D0Fc4c26F468D8E1EE26b73',
     merkleBaseUrl: 'https://raw.githubusercontent.com/hop-protocol/optimism-refund-merkle-rewards/master'
   }]
 }

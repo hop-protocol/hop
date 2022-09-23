@@ -177,6 +177,17 @@ const queryTransfers = async (params: any) => {
   if (filtered['sortDirection'] === defaultSortDirection) {
     delete filtered['sortDirection']
   }
+  if (filtered['startTimestamp'] && filtered['startDate']) {
+    delete filtered['startDate']
+  }
+  if (filtered['endTimestamp'] && filtered['endDate']) {
+    delete filtered['endDate']
+  }
+  if (!(filtered['startDate'] || filtered['startTimestamp'])) {
+    if (!(filtered['account'] || filtered['recipient'] || filtered['bonder'])) {
+      filtered['startDate'] = defaultStartDate
+    }
+  }
   const serializedParams = new URLSearchParams(filtered).toString()
   const url = `${apiBaseUrl}/v1/transfers?${serializedParams}`
   const res = await fetch(url)
@@ -189,8 +200,14 @@ function useData () {
   const [loadingData, setLoadingData] = useState(false)
   const [minDate] = useState('2020-07-01')
   const [maxDate] = useState(currentDate)
-  const [filterStartDate, setFilterStartDate] = useState(queryParams.startDate || defaultStartDate)
-  const [filterEndDate, setFilterEndDate] = useState(queryParams.endDate || queryParams.date || currentDate)
+  const [filterStartDate, setFilterStartDate] = useState(() => {
+    return queryParams.startDate || ''
+  })
+  const [filterEndDate, setFilterEndDate] = useState(() => {
+    return queryParams.endDate || queryParams.date || ''
+  })
+  const [filterStartTimestamp, setFilterStartTimestamp] = useState(queryParams.startTimestamp)
+  const [filterEndTimestamp, setFilterEndTimestamp] = useState(queryParams.endTimestamp)
   const [filterSortBy, setFilterSortBy] = useState(queryParams.sortBy || defaultSortBy)
   const [filterSortDirection, setFilterSortDirection] = useState(queryParams.sortDirection || defaultSortDirection)
   const [filterBonded, setFilterBonded] = useState(queryParams.bonded || '')
@@ -357,6 +374,8 @@ function useData () {
         perPage,
         startDate: filterStartDate,
         endDate: filterEndDate,
+        startTimestamp: filterStartTimestamp,
+        endTimestamp: filterEndTimestamp,
         sortBy: filterSortBy,
         sortDirection: filterSortDirection,
         bonded: filterBonded,
@@ -555,8 +574,10 @@ function useData () {
 
   function resetFilters(event: any) {
     event.preventDefault()
-    setFilterStartDate(defaultStartDate)
-    setFilterEndDate(currentDate)
+    setFilterStartDate('')
+    setFilterEndDate('')
+    setFilterStartTimestamp('')
+    setFilterEndTimestamp('')
     setFilterSortBy('')
     setFilterSortDirection('')
     setFilterBonded('')
@@ -591,6 +612,8 @@ function useData () {
       transferId: null,
       startDate: null,
       endDate: null,
+      startTimestamp: null,
+      endTimestamp: null,
       page: null,
       sortBy: null,
       sortDirection: null

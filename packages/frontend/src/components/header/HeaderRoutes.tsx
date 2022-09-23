@@ -2,7 +2,7 @@ import React, { FC, ChangeEvent } from 'react'
 import { useLocation, useHistory } from 'react-router-dom'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
-import { isMainnet, reactAppNetwork } from 'src/config'
+import { isMainnet, showRewards } from 'src/config'
 import { useClaim } from 'src/pages/Claim/useClaim'
 import { makeStyles } from '@material-ui/core/styles'
 import { useTheme } from '@material-ui/core'
@@ -34,8 +34,6 @@ const HeaderRoutes: FC = () => {
   const value = pathname.split('/').slice(0, 2).join('/')
   const { canClaim } = useClaim()
 
-  // TODO: enable once rewards live
-  const showRewards = reactAppNetwork === 'goerli' || location.hostname === 'localhost' || location.hostname === 'mainnet.hop.exchange'
   let hasRewards = false
   if (showRewards) {
     ({ hasRewards } = useHasRewards())

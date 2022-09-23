@@ -16,7 +16,7 @@ import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } 
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
-import { hopAppNetwork, reactAppNetwork } from 'src/config'
+import { hopAppNetwork, reactAppNetwork, showRewards } from 'src/config'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
@@ -80,8 +80,7 @@ const Send: FC = () => {
   const [feeRefundUsd, setFeeRefundUsd] = useState<string>('')
   const [feeRefundTokenSymbol, setFeeRefundTokenSymbol] = useState<string>('')
   const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
-  // TODO: enable once rewards live
-  const [feeRefundEnabled] = useState<boolean>(reactAppNetwork === 'goerli' || location.hostname === 'localhost' || location.hostname === 'mainnet.hop.exchange')
+  const [feeRefundEnabled] = useState<boolean>(showRewards)
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {

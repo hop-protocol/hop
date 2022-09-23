@@ -175,6 +175,29 @@ export const addresses: Addresses = {
         gnosis: '0x2A6303e6b99d451Df3566068EBb110708335658f',
         optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f'
       }
+    },
+    // TODO
+    HOP: {
+      ethereum: {
+        optimism: '',
+        arbitrum: '',
+        polygon: ''
+      },
+      optimism: {
+        ethereum: '',
+        arbitrum: '',
+        polygon: ''
+      },
+      arbitrum: {
+        ethereum: '',
+        optimism: '',
+        polygon: ''
+      },
+      polygon: {
+        ethereum: '',
+        arbitrum: '',
+        optimism: ''
+      }
     }
   },
   bridges: {

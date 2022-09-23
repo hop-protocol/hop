@@ -297,6 +297,7 @@ class Transaction extends EventEmitter {
         if (isSpent) {
           this.setPendingDestinationConfirmed()
         }
+
         logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
         return isSpent
       }

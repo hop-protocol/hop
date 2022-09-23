@@ -5,7 +5,7 @@ import Transaction from 'src/models/Transaction'
 import { Token, ChainSlug } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
-import { BNMax } from 'src/utils/BNMax'
+import { formatUnits } from 'ethers/lib/utils'
 
 export enum MethodNames {
   convertTokens = 'convertTokens',
@@ -13,12 +13,23 @@ export enum MethodNames {
 }
 
 async function estimateGasCost(network: Network, estimatedGasLimit: BigNumber) {
+  let gasPrice = BigNumber.from(0)
   try {
     // Get current gas price
-    const gasPrice = await network.provider.getGasPrice()
+    try {
+      const { maxFeePerGas, maxPriorityFeePerGas } = await network.provider.getFeeData()
+      if (maxFeePerGas && maxPriorityFeePerGas) {
+        gasPrice = (maxFeePerGas.sub(maxPriorityFeePerGas)).div(2)
+      } else {
+        gasPrice = await network.provider.getGasPrice()
+      }
+    } catch (err) {
+      gasPrice = await network.provider.getGasPrice()
+    }
+    console.log('gasPrice estimate:', gasPrice.toString(), formatUnits(gasPrice.toString(), 9))
     // Add some wiggle room
     const bufferGas = BigNumber.from(70_000)
-    return estimatedGasLimit.add(bufferGas).mul(gasPrice)
+    return (estimatedGasLimit.add(bufferGas)).mul(gasPrice)
   } catch (error) {
     logger.error(error)
   }

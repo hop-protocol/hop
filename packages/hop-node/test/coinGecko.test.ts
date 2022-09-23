@@ -24,7 +24,12 @@ describe('coinGecko', () => {
   }, 10 * 1000)
   it('MATIC price', async () => {
     const maticPrice = await coinGecko.getPriceByTokenSymbol('MATIC')
-    expect(maticPrice).toBeGreaterThan(1)
+    expect(maticPrice).toBeGreaterThan(0)
     expect(maticPrice).toBeLessThan(3)
+  }, 10 * 1000)
+  it('HOP price', async () => {
+    const hopPrice = await coinGecko.getPriceByTokenSymbol('HOP')
+    expect(hopPrice).toBeGreaterThan(0)
+    expect(hopPrice).toBeLessThan(1000)
   }, 10 * 1000)
 })

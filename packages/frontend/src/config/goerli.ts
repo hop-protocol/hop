@@ -20,20 +20,28 @@ export const networks: Networks = {
     networkId: _networks.ethereum.networkId,
     rpcUrl: _networks.ethereum.publicRpcUrl,
     explorerUrl: _networks.ethereum.explorerUrls[0],
+    nativeBridgeUrl: _networks.ethereum.nativeBridgeUrl,
+    waitConfirmations: _networks.ethereum.waitConfirmations
   },
   polygon: {
     networkId: _networks.polygon.networkId,
     rpcUrl: _networks.polygon.publicRpcUrl,
     explorerUrl: _networks.polygon.explorerUrls[0],
+    nativeBridgeUrl: _networks.polygon.nativeBridgeUrl,
+    waitConfirmations: _networks.polygon.waitConfirmations
   },
   optimism: {
     networkId: _networks.optimism.networkId,
     rpcUrl: _networks.optimism.publicRpcUrl,
     explorerUrl: _networks.optimism.explorerUrls[0],
+    nativeBridgeUrl: _networks.optimism.nativeBridgeUrl,
+    waitConfirmations: _networks.optimism.waitConfirmations
   },
   arbitrum: {
     networkId: _networks.arbitrum.networkId,
     rpcUrl: _networks.arbitrum.publicRpcUrl,
     explorerUrl: _networks.arbitrum.explorerUrls[0],
+    nativeBridgeUrl: _networks.arbitrum.nativeBridgeUrl,
+    waitConfirmations: _networks.arbitrum.waitConfirmations
   },
 }

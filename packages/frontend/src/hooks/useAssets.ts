@@ -33,6 +33,36 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
     return null
   }, [selectedBridge, network, toNetwork])
 
+  // Check if asset uses an AMM
+  const assetWithoutAmm = useMemo<any>(() => {
+    if (!(selectedBridge && network)) {
+      return null
+    }
+    const assetsWithoutAmm = {
+      Polygon: [CanonicalToken.HOP],
+      Optimism: [CanonicalToken.HOP],
+      Arbitrum: [CanonicalToken.HOP],
+      Gnosis: [CanonicalToken.HOP],
+    }
+    const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
+    for (const chain in assetsWithoutAmm) {
+      const tokenSymbols = assetsWithoutAmm[chain]
+      for (const tokenSymbol of tokenSymbols) {
+        const isUnsupported =
+          selectedTokenSymbol === tokenSymbol &&
+          [network?.slug, toNetwork?.slug].includes(chain.toLowerCase())
+        if (isUnsupported) {
+          return {
+            chain,
+            tokenSymbol,
+          }
+        }
+      }
+    }
+
+    return null
+  }, [selectedBridge, network, toNetwork])
+
   // Set source token
   const sourceToken = useMemo(() => {
     try {
@@ -51,7 +81,7 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
     } catch (err) {
       logger.error(err)
     }
-  }, [unsupportedAsset, selectedBridge, toNetwork])
+  }, [unsupportedAsset, selectedBridge, toNetwork, assetWithoutAmm])
 
   // Set placeholder token
   const placeholderToken = useMemo(() => {
@@ -64,5 +94,6 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
     sourceToken,
     destToken,
     placeholderToken,
+    assetWithoutAmm
   }
 }

@@ -9,7 +9,7 @@ import {
   RelayableChains,
   RootSetSettleDelayMs
 } from 'src/constants'
-import { TxRetryDelayMs, nitroStartTimestamp, oruChains } from 'src/config'
+import { TxRetryDelayMs, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransferRoot {

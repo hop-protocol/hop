@@ -14,6 +14,12 @@ export const config : Config = {
       polygon: 1,
       optimism: 1,
       arbitrum: 1
+    },
+    HOP: {
+      ethereum: 1,
+      polygon: 1,
+      optimism: 1,
+      arbitrum: 1
     }
   },
   destinationFeeGasPriceMultiplier: 1,

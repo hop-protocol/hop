@@ -181,6 +181,8 @@ export class Controller {
     const transferId = params.transferId
     const startDate = params.startDate
     const endDate = params.endDate
+    let startTimestamp = params.startTimestamp
+    let endTimestamp = params.endTimestamp
     let sortBy = params.sortBy
     const sortDirection = params.sortDirection
     const countOnly = params.countOnly
@@ -213,12 +215,18 @@ export class Controller {
 
     page = page - 1 // db page
 
-    let startTimestamp :any
+    if (startTimestamp) {
+      startTimestamp = parseInt(startTimestamp)
+    }
+
+    if (endTimestamp) {
+      endTimestamp = parseInt(endTimestamp)
+    }
+
     if (startDate) {
       startTimestamp = Math.floor(DateTime.fromFormat(startDate, 'yyyy-MM-dd').startOf('day').toUTC().toSeconds())
     }
 
-    let endTimestamp :any
     if (endDate) {
       endTimestamp = Math.floor(DateTime.fromFormat(endDate, 'yyyy-MM-dd').endOf('day').toUTC().toSeconds())
     }
@@ -267,8 +275,8 @@ export class Controller {
       bonderFeeUsd,
       bonderFeeUsdCmp,
       transferId,
-      endTimestamp,
       startTimestamp,
+      endTimestamp,
       sortBy,
       sortDirection,
       receivedHTokens,

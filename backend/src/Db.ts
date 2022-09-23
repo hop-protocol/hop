@@ -511,7 +511,7 @@ class Db {
       }
     }
 
-    if (!(transferId || accountAddress || recipientAddress || bonderAddress)) {
+    if (!transferId) {
       if (startTimestamp) {
         whereClauses.push(`timestamp >= $${i++}`)
         queryParams.push(startTimestamp)

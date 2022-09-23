@@ -108,10 +108,12 @@ export function RewardsWidget(props: Props) {
                       </Typography>
                     </Box>
                     {showCountdown && (
-                      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+                      <Box display="flex" flexDirection="column" alignItems="center">
                         <Box>
                           <Typography variant="body1">
-                            <strong>Countdown</strong>
+                            <Box display="flex" justifyContent="center" alignItems="center">
+                              <strong>Countdown</strong> <InfoTooltip title={'Estimated date when rewards will become claimable.'} />
+                            </Box>
                           </Typography>
                         </Box>
                         <Box>

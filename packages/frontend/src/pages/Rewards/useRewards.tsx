@@ -328,7 +328,7 @@ export const useRewards = (props: Props) => {
   }
 
   const hasRewards = !!address && (claimableAmount?.gt(0) || unclaimableAmount?.gt(0))
-  let txHistoryLink = `https://${reactAppNetwork === 'goerli' ? 'goerli.explorer' : 'explorer'}.hop.exchange/?`
+  let txHistoryLink = `https://${reactAppNetwork === 'goerli' ? 'goerli.explorer' : 'explorer'}.hop.exchange/?startDate=2022-09-23`
   if (address) {
    txHistoryLink += `&account=${address}`
   }

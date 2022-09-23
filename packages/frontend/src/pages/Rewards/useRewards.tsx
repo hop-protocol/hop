@@ -73,9 +73,11 @@ export const useRewards = (props: Props) => {
     try {
       if (contract) {
         const root = await contract.merkleRoot()
-        const isSet = !BigNumber.from(onchainRoot).eq(BigNumber.from(0))
-        setOnchainRoot(root)
-        setOnchainRootSet(isSet)
+        if (root) {
+          const isSet = !BigNumber.from(root).eq(BigNumber.from(0))
+          setOnchainRoot(root)
+          setOnchainRootSet(isSet)
+        }
       }
     } catch (err) {
       console.error(err)

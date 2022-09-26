@@ -848,6 +848,7 @@ const Index: NextPage = () => {
                   <option value="WBTC">WBTC</option>
                   <option value="FRAX">FRAX</option>
                   <option value="HOP">HOP</option>
+                  <option value="SNX">SNX</option>
                 </select>
               </div>
               <div>

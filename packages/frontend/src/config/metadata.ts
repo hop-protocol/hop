@@ -15,6 +15,7 @@ import ethLogo from 'src/assets/logos/eth.svg'
 import maticLogo from 'src/assets/logos/matic.svg'
 import hopLogo from 'src/assets/logos/hop.svg'
 import opLogo from 'src/assets/logos/op.svg'
+import snxLogo from 'src/assets/logos/snx.svg'
 import { TokenSymbol, Slug } from '@hop-protocol/sdk'
 import { hopAppNetwork } from 'src/config'
 
@@ -49,7 +50,8 @@ const images = {
   ETH: ethLogo,
   MATIC: maticLogo,
   HOP: hopLogo,
-  OP: opLogo
+  OP: opLogo,
+  SNX: snxLogo
 }
 
 const tokens = Object.keys(images).reduce((obj, token) => {

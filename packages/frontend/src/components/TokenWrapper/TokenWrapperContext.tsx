@@ -56,12 +56,20 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
 
   // TODO: mv to useBridges or new hook (useNetworkBridges)
   const canonicalToken = useMemo(() => {
-    if (selectedNetwork?.slug) {
-      return selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+    try {
+      if (selectedNetwork?.slug) {
+        return selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+      }
+    } catch (err) {
+      console.error('getCanonicalToken error:', err)
     }
   }, [selectedBridge, selectedNetwork])
   const wrappedToken = useMemo(() => {
-    return canonicalToken?.getWrappedToken()
+    try {
+      return canonicalToken?.getWrappedToken()
+    } catch (err) {
+      console.error('getWrappedToken error:', err)
+    }
   }, [canonicalToken])
 
   const signer = provider?.getSigner()

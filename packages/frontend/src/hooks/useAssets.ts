@@ -11,8 +11,10 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
       return null
     }
     const unsupportedAssets = {
+      Gnosis: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.SNX],
+      Polygon: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.SNX],
       Optimism: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.MATIC],
-      Arbitrum: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.MATIC],
+      Arbitrum: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.MATIC, CanonicalToken.SNX]
     }
     const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
     for (const chain in unsupportedAssets) {

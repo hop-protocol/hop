@@ -709,8 +709,8 @@ describe.skip('get estimated gas (no signer connected)', () => {
   })
 })
 
-describe.skip('PriceFeed', () => {
-  it('should return price', async () => {
+describe('PriceFeed', () => {
+  it('should return USDC price', async () => {
     const hop = new Hop('mainnet')
     hop.setPriceFeedApiKeys({
       // coingecko: '123'
@@ -720,6 +720,14 @@ describe.skip('PriceFeed', () => {
     console.log(price)
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(2)
+  })
+  it('should return SNX price', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('SNX')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('SNX')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(5)
   })
 })
 

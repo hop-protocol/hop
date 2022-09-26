@@ -5,17 +5,6 @@ import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
 import OptimismLogo from 'src/assets/logos/optimism.svg'
 import GnosisLogo from 'src/assets/logos/gnosis.svg'
 import PolygonLogo from 'src/assets/logos/polygon.svg'
-import DaiLogo from 'src/assets/logos/dai.svg'
-import SynthEthLogo from 'src/assets/logos/seth.svg'
-import SynthBtcLogo from 'src/assets/logos/sbtc.svg'
-import UsdcLogo from 'src/assets/logos/usdc.svg'
-import usdtLogo from 'src/assets/logos/usdt.svg'
-import wBtcLogo from 'src/assets/logos/wbtc.svg'
-import ethLogo from 'src/assets/logos/eth.svg'
-import maticLogo from 'src/assets/logos/matic.svg'
-import hopLogo from 'src/assets/logos/hop.svg'
-import opLogo from 'src/assets/logos/op.svg'
-import snxLogo from 'src/assets/logos/snx.svg'
 import { TokenSymbol, Slug } from '@hop-protocol/sdk'
 import { hopAppNetwork } from 'src/config'
 
@@ -39,27 +28,7 @@ type Metadata = {
   }
 }
 
-const images = {
-  DAI: DaiLogo,
-  ARB: ArbitrumLogo,
-  sETH: SynthEthLogo,
-  sBTC: SynthBtcLogo,
-  USDC: UsdcLogo,
-  USDT: usdtLogo,
-  WBTC: wBtcLogo,
-  ETH: ethLogo,
-  MATIC: maticLogo,
-  HOP: hopLogo,
-  OP: opLogo,
-  SNX: snxLogo
-}
-
-const tokens = Object.keys(images).reduce((obj, token) => {
-  obj[token] = deepmerge(hopMetadata[hopAppNetwork].tokens[token], {
-    image: images[token],
-  })
-  return obj
-}, {})
+const { tokens } = hopMetadata[hopAppNetwork]
 
 export const metadata: Metadata = {
   tokens,

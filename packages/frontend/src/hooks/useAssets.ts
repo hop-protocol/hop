@@ -7,27 +7,26 @@ import Network from 'src/models/Network'
 export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwork?: Network) {
   // Check if asset is supported by networks
   const unsupportedAsset = useMemo<any>(() => {
-    if (!(selectedBridge && network)) {
+    if (!selectedBridge) {
       return null
     }
-    const unsupportedAssets = {
-      Gnosis: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.SNX],
-      Polygon: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.SNX],
-      Optimism: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.MATIC],
-      Arbitrum: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.MATIC, CanonicalToken.SNX]
+
+    const tokenSymbol = selectedBridge?.getTokenSymbol()
+
+    if (network) {
+      if (!selectedBridge?.isSupportedAsset(network?.slug)) {
+        return {
+          chain: network?.slug,
+          tokenSymbol
+        }
+      }
     }
-    const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
-    for (const chain in unsupportedAssets) {
-      const tokenSymbols = unsupportedAssets[chain]
-      for (const tokenSymbol of tokenSymbols) {
-        const isUnsupported =
-          selectedTokenSymbol === tokenSymbol &&
-          [network?.slug, toNetwork?.slug].includes(chain.toLowerCase())
-        if (isUnsupported) {
-          return {
-            chain,
-            tokenSymbol,
-          }
+
+    if (toNetwork) {
+      if (!selectedBridge?.isSupportedAsset(toNetwork?.slug)) {
+        return {
+          chain: toNetwork?.slug,
+          tokenSymbol
         }
       }
     }

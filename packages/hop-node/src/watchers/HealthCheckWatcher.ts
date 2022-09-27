@@ -239,8 +239,8 @@ export class HealthCheckWatcher {
     [Chain.Ethereum]: 300,
     [Chain.Polygon]: 2000,
     [Chain.Gnosis]: 750,
-    [Chain.Optimism]: 10000,
-    [Chain.Arbitrum]: 10000
+    [Chain.Optimism]: 5000,
+    [Chain.Arbitrum]: 5000
   }
 
   enabledChecks: EnabledChecks = {

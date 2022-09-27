@@ -414,7 +414,7 @@ const Send: FC = () => {
         if (!feeRefundEnabled) {
           return
         }
-        if (!needsApproval && fromNetwork && toNetwork && sourceToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism) {
+        if (fromNetwork && toNetwork && sourceToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism) {
           const payload :any = {
             gasCost: estimatedGasCost?.toString(),
             amount: fromTokenAmountBN?.toString(),
@@ -449,7 +449,7 @@ const Send: FC = () => {
     }
 
     update().catch(console.error)
-  }, [feeRefundEnabled, needsApproval, fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
+  }, [feeRefundEnabled, fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
 
   // ==============================================================================================
   // Send tokens

@@ -206,7 +206,7 @@ export type Config = {
 }
 
 export class HealthCheckWatcher {
-  tokens: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'HOP']
+  tokens: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'HOP', 'SNX']
   logger: Logger = new Logger('HealthCheckWatcher')
   s3Upload: S3Upload
   s3Filename: string
@@ -227,7 +227,8 @@ export class HealthCheckWatcher {
     USDT: parseUnits('2121836', 6),
     DAI: parseUnits('5000000', 18),
     ETH: parseUnits('4659', 18),
-    MATIC: parseUnits('731948.94', 18)
+    MATIC: parseUnits('731948.94', 18),
+    SNX: parseUnits('0', 6) // TODO
   }
 
   bonderLowLiquidityThreshold: number = 0.10
@@ -592,6 +593,9 @@ export class HealthCheckWatcher {
       }
       const chainAmounts: any = {}
       const totalLiquidity = this.bonderTotalLiquidity[token]
+      if (totalLiquidity?.eq(0)) {
+        continue
+      }
       const availableAmounts = tokenData.baseAvailableCreditIncludingVault
       for (const source in availableAmounts) {
         for (const dest in availableAmounts[source]) {
@@ -858,6 +862,9 @@ export class HealthCheckWatcher {
     for (const sourceChain of sourceChains) {
       for (const token of tokens) {
         if (['arbitrum', 'optimism'].includes(sourceChain) && token === 'MATIC') {
+          continue
+        }
+        if (['arbitrum', 'polygon', 'gnosis'].includes(sourceChain) && token === 'SNX') {
           continue
         }
         promises.push(new Promise(async (resolve, reject) => {

@@ -206,7 +206,7 @@ export type Config = {
 }
 
 export class HealthCheckWatcher {
-  tokens: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'HOP', 'SNX']
+  tokens: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'HOP']
   logger: Logger = new Logger('HealthCheckWatcher')
   s3Upload: S3Upload
   s3Filename: string

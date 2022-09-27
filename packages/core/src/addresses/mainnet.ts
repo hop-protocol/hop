@@ -198,6 +198,15 @@ export const addresses: Addresses = {
         arbitrum: '',
         optimism: ''
       }
+    },
+    // TODO
+    SNX: {
+      ethereum: {
+        optimism: ''
+      },
+      optimism: {
+        ethereum: ''
+      }
     }
   },
   bridges: {
@@ -541,6 +550,26 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0x7191061D5d4C60f598214cC6913502184BAddf18',
         l2SaddleLpToken: '0xa16768F69667e2ec8ebacdD4c9A9092ae2fFe2ca',
         bridgeDeployedBlockNumber: 2481596
+      }
+    },
+    // TODO
+    SNX: {
+      ethereum: {
+        l1CanonicalToken: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
+        l1Bridge: '',
+        bridgeDeployedBlockNumber: 0
+      },
+      optimism: {
+        l1CanonicalBridge: '',
+        l1MessengerWrapper: '',
+        l2CanonicalBridge: '',
+        l2CanonicalToken: '0x8700daec35af8ff88c16bdf0418774cb3d7599b4',
+        l2Bridge: '',
+        l2HopBridgeToken: '',
+        l2AmmWrapper: '',
+        l2SaddleSwap: '',
+        l2SaddleLpToken: '',
+        bridgeDeployedBlockNumber: 0
       }
     }
   }

@@ -103,6 +103,7 @@ export type Bonders = {
   ETH?: Routes
   WBTC?: Routes
   HOP?: Routes
+  SNX?: Routes
 }
 
 export type Addresses = {

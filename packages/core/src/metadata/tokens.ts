@@ -5,6 +5,7 @@ import {
   HOPImage,
   MATICImage,
   OPImage,
+  SNXImage,
   USDCImage,
   USDTImage,
   WBTCImage,
@@ -86,5 +87,11 @@ export const tokens: Tokens = {
     name: 'Optimism',
     decimals: 18,
     image: OPImage
+  },
+  SNX: {
+    symbol: 'SNX',
+    name: 'Synthetix Network Token',
+    decimals: 18,
+    image: SNXImage
   }
 }

@@ -54,6 +54,7 @@ export enum CanonicalToken {
   sBTC = 'sBTC',
   sETH = 'sETH',
   HOP = 'HOP',
+  SNX = 'SNX'
 }
 
 export enum WrappedToken {

@@ -43,6 +43,19 @@ export const config : Config = {
       gnosis: 25,
       optimism: 23,
       arbitrum: 23
+    },
+    // TODO
+    HOP: {
+      ethereum: 0,
+      polygon: 0,
+      gnosis: 0,
+      optimism: 0,
+      arbitrum: 0
+    },
+    // TODO
+    SNX: {
+      ethereum: 0,
+      optimism: 0
     }
   },
   destinationFeeGasPriceMultiplier: 1.2,

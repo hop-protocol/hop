@@ -15,10 +15,12 @@ function useTransactionReplacement(walletName?: WalletName | string) {
 
   const waitForTransaction = useCallback(
     async (transaction: ContractTransaction, txModelArgs: any) => {
-      if (!(transaction && connected && provider)) return
+      if (!(transaction && provider)) {
+        return
+      }
 
       try {
-        if (walletName === WalletName.GnosisSafe) {
+        if (walletName === WalletName.GnosisSafe && connected) {
           const safeTx = await getSafeTx(transaction)
           console.log(`GOT safeTx:`, safeTx)
 

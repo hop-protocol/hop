@@ -17,11 +17,11 @@ export type TransactionHandled = {
 }
 
 function handleTransaction(
-  tx,
-  fromNetwork,
-  toNetwork,
-  sourceToken,
-  addTransaction
+  tx: any,
+  fromNetwork: any,
+  toNetwork: any,
+  sourceToken: any,
+  addTransaction: any
 ): TransactionHandled {
   const txModel = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
   addTransaction(txModel)

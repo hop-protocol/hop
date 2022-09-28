@@ -102,6 +102,8 @@ export type Bonders = {
   MATIC?: Routes
   ETH?: Routes
   WBTC?: Routes
+  HOP?: Routes
+  SNX?: Routes
 }
 
 export type Addresses = {

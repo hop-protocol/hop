@@ -16,7 +16,7 @@ import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } 
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
-import { hopAppNetwork, reactAppNetwork } from 'src/config'
+import { hopAppNetwork, reactAppNetwork, showRewards } from 'src/config'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
@@ -80,8 +80,7 @@ const Send: FC = () => {
   const [feeRefundUsd, setFeeRefundUsd] = useState<string>('')
   const [feeRefundTokenSymbol, setFeeRefundTokenSymbol] = useState<string>('')
   const [destinationChainPaused, setDestinationChainPaused] = useState<boolean>(false)
-  // TODO: enable once rewards live
-  const [feeRefundEnabled] = useState<boolean>(reactAppNetwork === 'goerli')
+  const [feeRefundEnabled] = useState<boolean>(showRewards)
 
   // Reset error message when fromNetwork/toNetwork changes
   useEffect(() => {
@@ -107,6 +106,15 @@ const Send: FC = () => {
 
     _setToNetwork(_toNetwork)
   }, [queryParams, networks])
+
+  useEffect(() => {
+    if (queryParams.amount && !Number.isNaN(Number(queryParams.amount))) {
+      setFromTokenAmount(queryParams.amount as string)
+      updateQueryParams({
+        amount: undefined
+      })
+    }
+  }, [queryParams])
 
   // Get assets
   const { unsupportedAsset, sourceToken, destToken, placeholderToken } = useAssets(
@@ -333,47 +341,6 @@ const Send: FC = () => {
     setAmountOutMinDisplay(`${amountOutMinFormatted} ${destToken.symbol}`)
   }, [amountOutMin])
 
-  useEffect(() => {
-    async function update() {
-      try {
-        if (!feeRefundEnabled) {
-          return
-        }
-        if (fromNetwork && toNetwork && sourceToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism) {
-          const payload :any = {
-            gasCost: estimatedGasCost?.toString(),
-            amount: fromTokenAmountBN?.toString(),
-            token: sourceToken?.symbol,
-            bonderFee: totalBonderFee.toString(),
-            fromChain: fromNetwork?.slug
-          }
-
-          const query = new URLSearchParams(payload).toString()
-          const url = `https://hop-merkle-rewards-backend.hop.exchange/v1/refund-amount?${query}`
-          const res = await fetch(url)
-          const json = await res.json()
-          if (json.error) {
-            throw new Error(json.error)
-          }
-          console.log(json.data.refund)
-          const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
-          setFeeRefund(refundAmountInRefundToken.toFixed(4))
-          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
-          setFeeRefundTokenSymbol(refundTokenSymbol)
-        } else {
-          setFeeRefund('')
-          setFeeRefundUsd('')
-        }
-      } catch (err) {
-        console.error(err)
-        setFeeRefund('')
-        setFeeRefundUsd('')
-      }
-    }
-
-    update().catch(console.error)
-  }, [feeRefundEnabled, fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
-
   // ==============================================================================================
   // Approve fromNetwork / fromToken
   // ==============================================================================================
@@ -389,15 +356,7 @@ const Send: FC = () => {
       const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
       const bridge = sdk.bridge(sourceToken.symbol)
 
-      let spender: string
-      if (fromNetwork.isLayer1) {
-        const l1Bridge = await bridge.getL1Bridge()
-        spender = l1Bridge.address
-      } else {
-        const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
-        spender = ammWrapper.address
-      }
-
+      const spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
       return checkApproval(parsedAmount, sourceToken, spender)
     } catch (err: any) {
       logger.error(err)
@@ -425,15 +384,7 @@ const Send: FC = () => {
     const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
     const bridge = sdk.bridge(sourceToken.symbol)
 
-    let spender: string
-    if (fromNetwork.isLayer1) {
-      const l1Bridge = await bridge.getL1Bridge()
-      spender = l1Bridge.address
-    } else {
-      const ammWrapper = await bridge.getAmmWrapper(fromNetwork.slug)
-      spender = ammWrapper.address
-    }
-
+    const spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
     const tx = await approve(parsedAmount, sourceToken, spender)
 
     await tx?.wait()
@@ -452,6 +403,53 @@ const Send: FC = () => {
     }
     setApproving(false)
   }
+
+  // ==============================================================================================
+  // Fee refund
+  // ==============================================================================================
+
+  useEffect(() => {
+    async function update() {
+      try {
+        if (!feeRefundEnabled) {
+          return
+        }
+        if (fromNetwork && toNetwork && sourceToken && fromTokenAmountBN && totalBonderFee && estimatedGasCost && toNetwork?.slug === ChainSlug.Optimism) {
+          const payload :any = {
+            gasCost: estimatedGasCost?.toString(),
+            amount: fromTokenAmountBN?.toString(),
+            token: sourceToken?.symbol,
+            bonderFee: totalBonderFee.toString(),
+            fromChain: fromNetwork?.slug
+          }
+
+          const query = new URLSearchParams(payload).toString()
+          const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
+          // const apiBaseUrl = 'http://localhost:8000'
+          const url = `${apiBaseUrl}/v1/refund-amount?${query}`
+          const res = await fetch(url)
+          const json = await res.json()
+          if (json.error) {
+            throw new Error(json.error)
+          }
+          console.log(json.data.refund)
+          const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
+          setFeeRefund(refundAmountInRefundToken.toFixed(4))
+          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
+          setFeeRefundTokenSymbol(refundTokenSymbol)
+        } else {
+          setFeeRefund('')
+          setFeeRefundUsd('')
+        }
+      } catch (err) {
+        console.error('fee refund fetch error:', err)
+        setFeeRefund('')
+        setFeeRefundUsd('')
+      }
+    }
+
+    update().catch(console.error)
+  }, [feeRefundEnabled, fromNetwork, toNetwork, sourceToken, fromTokenAmountBN, totalBonderFee, estimatedGasCost])
 
   // ==============================================================================================
   // Send tokens
@@ -727,7 +725,7 @@ const Send: FC = () => {
             <FeeRefund
               title={`OP Onboarding Reward`}
               tokenSymbol={feeRefundTokenSymbol}
-              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism. This refund includes a percentage of the source transaction cost + bonder fee + AMM LP fee`}
+              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism. This refund includes a percentage of the source transaction cost + bonder fee + AMM LP fee. The refund is capped at 20 OP per transfer.`}
               value={feeRefundDisplay}
             />
           )}

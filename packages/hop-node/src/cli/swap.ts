@@ -117,7 +117,6 @@ async function main (source: any) {
     }
     const l2Bridge = new L2Bridge(l2BridgeContract)
     const amm = l2Bridge.amm
-    const ammWrapper = l2Bridge.ammWrapper
 
     let fromTokenIndex: number
     let toTokenIndex: number

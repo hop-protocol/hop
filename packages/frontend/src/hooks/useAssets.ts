@@ -7,16 +7,47 @@ import Network from 'src/models/Network'
 export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwork?: Network) {
   // Check if asset is supported by networks
   const unsupportedAsset = useMemo<any>(() => {
+    if (!selectedBridge) {
+      return null
+    }
+
+    const tokenSymbol = selectedBridge?.getTokenSymbol()
+
+    if (network) {
+      if (!selectedBridge?.isSupportedAsset(network?.slug)) {
+        return {
+          chain: network?.slug,
+          tokenSymbol
+        }
+      }
+    }
+
+    if (toNetwork) {
+      if (!selectedBridge?.isSupportedAsset(toNetwork?.slug)) {
+        return {
+          chain: toNetwork?.slug,
+          tokenSymbol
+        }
+      }
+    }
+
+    return null
+  }, [selectedBridge, network, toNetwork])
+
+  // Check if asset uses an AMM
+  const assetWithoutAmm = useMemo<any>(() => {
     if (!(selectedBridge && network)) {
       return null
     }
-    const unsupportedAssets = {
-      Optimism: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.MATIC],
-      Arbitrum: hopAppNetwork === 'kovan' ? [] : [CanonicalToken.MATIC],
+    const assetsWithoutAmm = {
+      Polygon: [CanonicalToken.HOP],
+      Optimism: [CanonicalToken.HOP],
+      Arbitrum: [CanonicalToken.HOP],
+      Gnosis: [CanonicalToken.HOP],
     }
     const selectedTokenSymbol = selectedBridge?.getTokenSymbol()
-    for (const chain in unsupportedAssets) {
-      const tokenSymbols = unsupportedAssets[chain]
+    for (const chain in assetsWithoutAmm) {
+      const tokenSymbols = assetsWithoutAmm[chain]
       for (const tokenSymbol of tokenSymbols) {
         const isUnsupported =
           selectedTokenSymbol === tokenSymbol &&
@@ -51,7 +82,7 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
     } catch (err) {
       logger.error(err)
     }
-  }, [unsupportedAsset, selectedBridge, toNetwork])
+  }, [unsupportedAsset, selectedBridge, toNetwork, assetWithoutAmm])
 
   // Set placeholder token
   const placeholderToken = useMemo(() => {
@@ -64,5 +95,6 @@ export function useAssets(selectedBridge?: HopBridge, network?: Network, toNetwo
     sourceToken,
     destToken,
     placeholderToken,
+    assetWithoutAmm
   }
 }

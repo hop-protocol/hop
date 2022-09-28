@@ -2,7 +2,10 @@ import {
   ARBImage,
   DAIImage,
   ETHImage,
+  HOPImage,
   MATICImage,
+  OPImage,
+  SNXImage,
   USDCImage,
   USDTImage,
   WBTCImage,
@@ -72,5 +75,23 @@ export const tokens: Tokens = {
     name: 'Wrapped BTC',
     decimals: 8,
     image: WBTCImage
+  },
+  HOP: {
+    symbol: 'HOP',
+    name: 'Hop',
+    decimals: 18,
+    image: HOPImage
+  },
+  OP: {
+    symbol: 'OP',
+    name: 'Optimism',
+    decimals: 18,
+    image: OPImage
+  },
+  SNX: {
+    symbol: 'SNX',
+    name: 'Synthetix Network Token',
+    decimals: 18,
+    image: SNXImage
   }
 }

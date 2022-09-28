@@ -709,8 +709,8 @@ describe.skip('get estimated gas (no signer connected)', () => {
   })
 })
 
-describe.skip('PriceFeed', () => {
-  it('should return price', async () => {
+describe('PriceFeed', () => {
+  it('should return USDC price', async () => {
     const hop = new Hop('mainnet')
     hop.setPriceFeedApiKeys({
       // coingecko: '123'
@@ -720,6 +720,14 @@ describe.skip('PriceFeed', () => {
     console.log(price)
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(2)
+  })
+  it('should return SNX price', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('SNX')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('SNX')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(5)
   })
 })
 
@@ -818,5 +826,27 @@ describe.skip('relayerFeeEnabled', () => {
 
     const fee = await bridge.getRelayerFee('arbitrum', 'USDC')
     expect(fee.eq(0)).toBe(true)
+  })
+})
+
+describe.only('hop bridge)', () => {
+  it('Should not use AMM', async () => {
+    const hop = new Hop('goerli')
+    const bridge = hop.bridge('HOP')
+    expect(bridge.doesUseAmm).toBe(false)
+  })
+  it('Should not use h prefix', async () => {
+    const hop = new Hop('goerli')
+    const bridge = hop.bridge('HOP')
+    const hopToken = bridge.toHopToken('HOP', 'goerli', 'polygon')
+    expect(hopToken.name).toBe('Hop')
+    expect(hopToken._symbol).toBe('HOP')
+  })
+  it('Should use correct approval address', async () => {
+    const hop = new Hop('goerli')
+    const bridge = hop.bridge('HOP')
+    const approvalAddress = bridge.getSendApprovalAddress('polygon')
+    const expectedAddress = addresses.goerli.bridges.HOP.polygon?.l2Bridge
+    expect(approvalAddress).toBe(expectedAddress)
   })
 })

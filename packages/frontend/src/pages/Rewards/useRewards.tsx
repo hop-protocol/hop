@@ -31,6 +31,7 @@ export const useRewards = (props: Props) => {
   const [unclaimableAmount, setUnclaimableAmount] = useState(BigNumber.from(0))
   const [entryTotal, setEntryTotal] = useState(BigNumber.from(0))
   const [onchainRoot, setOnchainRoot] = useState('')
+  const [onchainRootSet, setOnchainRootSet] = useState(false)
   const [latestRoot, setLatestRoot] = useState('')
   const [tokenDecimals, setTokenDecimals] = useState<number|null>(null)
   const [tokenSymbol, setTokenSymbol] = useState('')
@@ -38,6 +39,8 @@ export const useRewards = (props: Props) => {
   const [estimatedDate, setEstimatedDate] = useState(0)
   const claimRecipient = queryParams.address as string ?? address?.address
   const [countdown, setCountdown] = useState('')
+  const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
+  // const apiBaseUrl = 'http://localhost:8000'
   const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
     try {
@@ -70,7 +73,11 @@ export const useRewards = (props: Props) => {
     try {
       if (contract) {
         const root = await contract.merkleRoot()
-        setOnchainRoot(root)
+        if (root) {
+          const isSet = !BigNumber.from(root).eq(BigNumber.from(0))
+          setOnchainRoot(root)
+          setOnchainRootSet(isSet)
+        }
       }
     } catch (err) {
       console.error(err)
@@ -134,8 +141,7 @@ export const useRewards = (props: Props) => {
         setClaimableAmount(BigNumber.from(0))
         return
       }
-      const isSet = !BigNumber.from(onchainRoot).eq(BigNumber.from(0))
-      if (!isSet) {
+      if (!onchainRootSet) {
         return
       }
       const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
@@ -158,7 +164,7 @@ export const useRewards = (props: Props) => {
 
   useEffect(() => {
     getClaimableAmount().catch(console.error)
-  }, [contract, claimRecipient, onchainRoot, merkleBaseUrl])
+  }, [contract, claimRecipient, onchainRoot, onchainRootSet, merkleBaseUrl])
 
   useInterval(getClaimableAmount, 10 * 1000)
 
@@ -215,7 +221,7 @@ export const useRewards = (props: Props) => {
       if (!claimRecipient) {
         return
       }
-      const url = `https://hop-merkle-rewards-backend.hop.exchange/v1/rewards?address=${claimRecipient}`
+      const url = `${apiBaseUrl}/v1/rewards?address=${claimRecipient}`
       const res = await fetch(url)
       const json = await res.json()
       if (json.error) {
@@ -244,7 +250,7 @@ export const useRewards = (props: Props) => {
       if (!pollUnclaimableAmountFromBackend) {
         return
       }
-      const url = 'https://hop-merkle-rewards-backend.hop.exchange/v1/rewards-info'
+      const url = `${apiBaseUrl}/v1/rewards-info`
       const res = await fetch(url)
       const json = await res.json()
       if (json.error) {
@@ -298,8 +304,7 @@ export const useRewards = (props: Props) => {
       if (!isNetworkConnected) {
         return
       }
-      const isSet = !BigNumber.from(onchainRoot).eq(BigNumber.from(0))
-      if (!isSet) {
+      if (!onchainRootSet) {
         return
       }
 
@@ -323,7 +328,7 @@ export const useRewards = (props: Props) => {
   }
 
   const hasRewards = !!address && (claimableAmount?.gt(0) || unclaimableAmount?.gt(0))
-  let txHistoryLink = `https://${reactAppNetwork === 'goerli' ? 'goerli.explorer' : 'explorer'}.hop.exchange/?`
+  let txHistoryLink = `https://${reactAppNetwork === 'goerli' ? 'goerli.explorer' : 'explorer'}.hop.exchange/?startDate=2022-09-23`
   if (address) {
    txHistoryLink += `&account=${address}`
   }

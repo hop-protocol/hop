@@ -3107,20 +3107,20 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@hop-protocol/core@0.0.1-beta.85":
-  version "0.0.1-beta.85"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.85.tgz#b863a7386d8483371519c1a0372fc06d6b63cb58"
-  integrity sha512-4qj4WBV0UZktO/fXrCtP42RU9nQ5hl4uHNpSZ6fX4wAPxNCPe6F4rNbFMkiOXrWPkqN3OnQ98xiThGK7C4w/bg==
+"@hop-protocol/core@0.0.1-beta.86":
+  version "0.0.1-beta.86"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/core/-/core-0.0.1-beta.86.tgz#5fe48422e5a3bbf77a168d8053863d4912bb4cf8"
+  integrity sha512-p8ZL5M9QZxavCFd4L6dwKm4484vUGFpJnigJRoRr9cTsjxEsuaYKHSzZOpb9+L1E9vtRvhAPMKqZTDtsSFS9AQ==
   dependencies:
-    ethers "^5.7.1"
+    ethers "5.7.1"
 
-"@hop-protocol/sdk@0.0.1-beta.365":
-  version "0.0.1-beta.365"
-  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.365.tgz#c1402012629700353c92817dacf397ede184d805"
-  integrity sha512-sRG7DnFOFMKnvIzOKwxhgw4WvITG15mELrjdtdV5xEOZp3wFADALQc+MSBdUTdhIXh9bKWwvCF3JwbVI7/n4LA==
+"@hop-protocol/sdk@0.0.1-beta.367":
+  version "0.0.1-beta.367"
+  resolved "https://registry.yarnpkg.com/@hop-protocol/sdk/-/sdk-0.0.1-beta.367.tgz#3fab59f87c0c131db98a685e18292073b6100266"
+  integrity sha512-maeVPMniQhMb6PdcIr1JWWvoBW+DT9Z2j4Ya/YnA+GOoeZVpTtThQCKQAzpVBJBcrb5keWNlZzfRnynwKZf4Yg==
   dependencies:
     "@eth-optimism/contracts" "0.5.2"
-    "@hop-protocol/core" "0.0.1-beta.85"
+    "@hop-protocol/core" "0.0.1-beta.86"
     "@maticnetwork/maticjs" "3.4.0-beta.0"
     dotenv "8.6.0"
     ethereum-block-by-date "1.4.5"

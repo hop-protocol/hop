@@ -89,7 +89,7 @@ const TokenWrapper: FC<Props> = (props: Props) => {
             balanceLabel={`${wrappedToken?.symbol}:`}
             loadingBalance={loadingBalance}
             hideSymbol
-            decimalPlaces={2}
+            decimalPlaces={4}
             methodName="wrapToken"
             selectedNetwork={selectedNetwork}
           />

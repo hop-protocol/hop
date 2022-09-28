@@ -1,4 +1,4 @@
-import { Gauge } from 'prom-client'
+import { Counter, Gauge } from 'prom-client'
 
 export const metrics = {
   bonderBalance: new Gauge({
@@ -29,5 +29,10 @@ export const metrics = {
   usedMemory: new Gauge({
     name: 'used_memory',
     help: 'Used memory'
+  }),
+  rpcProviderMethod: new Counter({
+    name: 'rpc_provider_method',
+    help: 'RPC provider method call',
+    labelNames: ['url', 'method', 'params', 'instance_hostname']
   })
 }

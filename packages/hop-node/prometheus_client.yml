@@ -1,0 +1,19 @@
+global:
+  scrape_interval:     15s
+
+  external_labels:
+    monitor: 'hop-node-monitor'
+
+scrape_configs:
+  - job_name: 'prometheus'
+
+    scrape_interval: 5s
+
+    static_configs:
+      - targets: ['localhost:8080']
+
+remote_write:
+  - url: http://IP_ADDRESS_GOES_HERE:9090/api/v1/write
+    basic_auth:
+      username: USERNAME_GOES_HERE
+      password: PASSWORD_GOES_HERE

@@ -1,3 +1,4 @@
+import Metrics from 'src/watchers/classes/Metrics'
 import fs from 'fs'
 import rateLimitRetry from 'src/utils/rateLimitRetry'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
@@ -7,36 +8,62 @@ import { Network } from '@ethersproject/networks'
 import { monitorProviderCalls } from 'src/config'
 import { providers } from 'ethers'
 
+const inMemoryMonitor = false
 const calls: Record<string, any> = {}
 
 if (monitorProviderCalls) {
-  setInterval(() => {
-    fs.writeFileSync('provider_calls.json', JSON.stringify(calls, null, 2))
-  }, 5 * 1000)
+  if (inMemoryMonitor) {
+    setInterval(() => {
+      fs.writeFileSync('provider_calls.json', JSON.stringify(calls, null, 2))
+    }, 5 * 1000)
+  }
 }
 
 // reference: https://github.com/ethers-io/ethers.js/blob/b1458989761c11bf626591706aa4ce98dae2d6a9/packages/abstract-provider/src.ts/index.ts#L225
 export class Provider extends providers.StaticJsonRpcProvider implements EthersProvider {
+  metrics: Metrics
+
+  constructor (rpcUrl: string) {
+    super(rpcUrl)
+    this.metrics = new Metrics()
+  }
+
   async perform (method: string, params: any): Promise<any> {
-    await this._monitor(method, params)
+    this._monitorRequest(method, params)
     return super.perform(method, params)
   }
 
-  private async _monitor (method: string, params: any): Promise<any> {
+  private _monitorRequest (method: string, params: any) {
     if (!monitorProviderCalls) {
-      return false
+      return
     }
     const host = this.connection.url
-    if (!calls[host]) {
-      calls[host] = {}
+    if (inMemoryMonitor) {
+      if (!calls[host]) {
+        calls[host] = {}
+      }
+      if (!calls[host][method]) {
+        calls[host][method] = {}
+      }
+      if (!calls[host][method][JSON.stringify(params)]) {
+        calls[host][method][JSON.stringify(params)] = 0
+      }
+      calls[host][method][JSON.stringify(params)]++
     }
-    if (!calls[host][method]) {
-      calls[host][method] = {}
+    this.metrics.setRpcProviderMethod(host, method, params)
+  }
+
+  private _trackStackTrace (label: string, stackTrace: string | undefined) {
+    const trace = this._parseStackTrace(stackTrace)
+    const filtered = trace.filter(x => x.includes('watchers'))[0]
+    console.log('TRACE', label, filtered)
+  }
+
+  private _parseStackTrace (stackTrace: string | undefined): string[] {
+    if (!stackTrace) {
+      return []
     }
-    if (!calls[host][method][JSON.stringify(params)]) {
-      calls[host][method][JSON.stringify(params)] = 0
-    }
-    calls[host][method][JSON.stringify(params)]++
+    return stackTrace?.toString().split('\n').filter(x => x.trim().startsWith('at ')).map(x => x.trim().replace(/.*at /g, ''))
   }
 
   // Network
@@ -102,6 +129,7 @@ export class Provider extends providers.StaticJsonRpcProvider implements EthersP
 
   // Bloom-filter Queries
   getLogs = rateLimitRetry(async (filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Log[]> => {
+    // this._trackStackTrace('getLogs', new Error().stack)
     return super.getLogs(filter)
   })
 

@@ -8,7 +8,8 @@ docker run \
   --restart=unless-stopped \
   -d \
   -v $PWD/prometheus_client.yml:/etc/prometheus/prometheus.yml \
-  -v $PWD/web.yml:/web.yml \
+  -v $PWD/prometheus_web.yml:/web.yml \
+  -v $PWD/prometheus_pass.txt:/prometheus_pass.txt \
   --net=host \
   -p 9091:9090 \
   prom/prometheus \

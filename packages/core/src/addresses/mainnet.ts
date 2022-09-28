@@ -199,13 +199,12 @@ export const addresses: Addresses = {
         optimism: ''
       }
     },
-    // TODO
     SNX: {
       ethereum: {
-        optimism: ''
+        optimism: '0x547d28cDd6A69e3366d6aE3EC39543F09Bd09417'
       },
       optimism: {
-        ethereum: ''
+        ethereum: '0x547d28cDd6A69e3366d6aE3EC39543F09Bd09417'
       }
     }
   },
@@ -556,20 +555,20 @@ export const addresses: Addresses = {
     SNX: {
       ethereum: {
         l1CanonicalToken: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
-        l1Bridge: '',
-        bridgeDeployedBlockNumber: 0
+        l1Bridge: '0x893246FACF345c99e4235E5A7bbEE7404c988b96',
+        bridgeDeployedBlockNumber: 15634323
       },
       optimism: {
-        l1CanonicalBridge: '',
-        l1MessengerWrapper: '',
-        l2CanonicalBridge: '',
-        l2CanonicalToken: '0x8700daec35af8ff88c16bdf0418774cb3d7599b4',
-        l2Bridge: '',
-        l2HopBridgeToken: '',
-        l2AmmWrapper: '',
-        l2SaddleSwap: '',
-        l2SaddleLpToken: '',
-        bridgeDeployedBlockNumber: 0
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0x30ca9afabA0DA59F507756cA43619f96f176d214',
+        l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
+        l2CanonicalToken: '0x8700dAec35aF8Ff88c16BdF0418774CB3D7599B4',
+        l2Bridge: '0x16284c7323c35F4960540583998C98B1CfC581a7',
+        l2HopBridgeToken: '0x13B7F51BD865410c3AcC4d56083C5B56aB38D203',
+        l2AmmWrapper: '0xf11EBB94EC986EA891Aec29cfF151345C83b33Ec',
+        l2SaddleSwap: '0x1990BC6dfe2ef605Bfc08f5A23564dB75642Ad73',
+        l2SaddleLpToken: '0xe63337211DdE2569C348D9B3A0acb5637CFa8aB3',
+        bridgeDeployedBlockNumber: 26092038
       }
     }
   }

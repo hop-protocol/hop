@@ -220,7 +220,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     }
     const tokens = Object.keys(bonders)
     validateKeys(enabledTokens, tokens)
-    for (const token in bonders) {
+    for (const token of enabledTokens) {
       if (!(bonders[token] instanceof Object)) {
         throw new Error(`bonders config for "${token}" should be an object`)
       }
@@ -310,10 +310,12 @@ export async function validateConfigValues (config?: Config) {
     }
   }
 
+  const enabledTokens = getEnabledTokens()
+
   if (config.commitTransfers) {
     const { minThresholdAmount } = config.commitTransfers
     if (Object.keys(minThresholdAmount).length) {
-      for (const token of getEnabledTokens()) {
+      for (const token of enabledTokens) {
         for (const sourceChain in config.routes) {
           if (sourceChain === Chain.Ethereum) {
             continue
@@ -330,7 +332,7 @@ export async function validateConfigValues (config?: Config) {
 
   if (config.bonders) {
     const bonders = config.bonders as any
-    for (const token in bonders) {
+    for (const token of enabledTokens) {
       for (const sourceChain in bonders[token]) {
         for (const destinationChain in bonders[token][sourceChain]) {
           const bonderAddress = bonders[token][sourceChain][destinationChain]

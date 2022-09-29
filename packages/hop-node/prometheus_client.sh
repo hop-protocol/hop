@@ -8,7 +8,6 @@ docker run \
   --restart=unless-stopped \
   -d \
   -v $PWD/prometheus_client.yml:/etc/prometheus/prometheus.yml \
-  -v $PWD/prometheus_web.yml:/web.yml \
   -v $PWD/prometheus_pass.txt:/prometheus_pass.txt \
   --net=host \
   -p 9091:9090 \
@@ -17,5 +16,4 @@ docker run \
   --storage.tsdb.path=/prometheus \
   --web.console.libraries=/usr/share/prometheus/console_libraries \
   --web.console.templates=/usr/share/prometheus/consoles \
-  --web.config.file=/web.yml \
   --web.listen-address=:9091

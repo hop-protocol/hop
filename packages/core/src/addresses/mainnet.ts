@@ -176,27 +176,36 @@ export const addresses: Addresses = {
         optimism: '0x2A6303e6b99d451Df3566068EBb110708335658f'
       }
     },
-    // TODO
     HOP: {
       ethereum: {
-        optimism: '',
-        arbitrum: '',
-        polygon: ''
+        optimism: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        arbitrum: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        gnosis: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        polygon: '0x881296Edcb252080bd476c464cEB521d08df7631'
       },
       optimism: {
-        ethereum: '',
-        arbitrum: '',
-        polygon: ''
+        ethereum: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        arbitrum: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        gnosis: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        polygon: '0x881296Edcb252080bd476c464cEB521d08df7631'
       },
       arbitrum: {
-        ethereum: '',
-        optimism: '',
-        polygon: ''
+        ethereum: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        optimism: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        gnosis: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        polygon: '0x881296Edcb252080bd476c464cEB521d08df7631'
+      },
+      gnosis: {
+        ethereum: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        arbitrum: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        optimism: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        polygon: '0x881296Edcb252080bd476c464cEB521d08df7631'
       },
       polygon: {
-        ethereum: '',
-        arbitrum: '',
-        optimism: ''
+        ethereum: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        arbitrum: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        gnosis: '0x881296Edcb252080bd476c464cEB521d08df7631',
+        optimism: '0x881296Edcb252080bd476c464cEB521d08df7631'
       }
     },
     SNX: {

@@ -19,6 +19,13 @@ type Config = {
   dryMode?: boolean
 }
 
+type ConfirmRootData = {
+  rootHash: string
+  totalAmount: string
+  destinationChainId: string
+  rootCommittedAt: string
+}
+
 type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
 
 class xDomainMessageRelayWatcher extends BaseWatcher {
@@ -134,6 +141,9 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
 
     this.logger.debug(`redeeming Arbitrum transaction for L1 tx: ${l1TxHash}`)
     await watcher.redeemArbitrumTransaction(l1TxHash, messageIndex)
+  }
+
+  async confirmRootsViaWrapper (rootData: ConfirmRootData[]): Promise<void> {
   }
 }
 

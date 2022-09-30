@@ -13,8 +13,7 @@ root
   .option('--chain <slug>', 'Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
   .option('--tx-hashes <hash, ...>', 'Comma-separated tx hashes with CommitTransfers event log', parseStringArray)
-  .option('--roots <root, ...>', 'Comma-separated roots to be confirmed', parseStringArray)
-  .option('--roots-file <filepath>', 'Filenamepath containing list of roots to be confirmed', parseInputFileList)
+  .option('--roots-data-file <filepath>', 'Filenamepath containing list of roots to be confirmed', parseInputFileList)
   .option('--bypass-canonical-bridge [boolean]', 'Confirm a root via the messenger wrapper', parseBool)
   .option(
     '--dry [boolean]',
@@ -28,8 +27,7 @@ async function main (source: any) {
     chain,
     token,
     txHashes: commitTxHashes,
-    roots,
-    rootsFile: rootsFileList,
+    rootsDataFile: rootsDataFileList,
     bypassCanonicalBridge,
     dry: dryMode
   } = source
@@ -45,17 +43,14 @@ async function main (source: any) {
     if (commitTxHashes?.length) {
       throw new Error('commit tx hash is not supported when bypassing canonical bridge')
     }
-    if (!roots?.length && !rootsFileList) {
-      throw new Error('root is required when bypassing canonical bridge')
-    }
-    if (roots?.length && rootsFileList) {
-      throw new Error('only specify roots or roots file, not both')
+    if (!rootsDataFileList) {
+      throw new Error('root data is required when bypassing canonical bridge')
     }
   } else {
     if (!commitTxHashes?.length) {
       throw new Error('commit tx hash is required')
     }
-    if (roots?.length || rootsFileList) {
+    if (rootsDataFileList) {
       throw new Error('root is not supported when exiting via the canonical messenger')
     }
   }
@@ -65,13 +60,10 @@ async function main (source: any) {
     throw new Error('watcher not found')
   }
 
-  const chainSpecificWatcher: ExitWatcher = watcher.watchers[chain]
-
   if (bypassCanonicalBridge) {
-    const confirmationRoots = roots ?? rootsFileList
-    for (const confirmationRoot of confirmationRoots) {
-    }
+    await watcher.confirmRootsViaWrapper(rootsDataFileList)
   } else {
+    const chainSpecificWatcher: ExitWatcher = watcher.watchers[chain]
     for (const commitTxHash of commitTxHashes) {
       await chainSpecificWatcher.relayXDomainMessage(commitTxHash)
     }

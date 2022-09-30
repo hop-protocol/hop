@@ -2,9 +2,8 @@ import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
 import { Chain } from 'src/constants'
-import { actionHandler, parseStringArray, root } from './shared'
+import { actionHandler, getSourceChains, parseStringArray, root } from './shared'
 import { DateTime } from 'luxon'
-import { getAllChains } from 'src/config'
 
 interface RootsCommitted {
   rootHash: string,
@@ -105,32 +104,6 @@ async function getRootsCommitted(token: string): Promise<Record<string, RootsCom
 
   return rootsCommitted
 }
-
-function getSourceChains (token: string): string[] {
-  const allChains = getAllChains()
-  const sourceChains: string[] = []
-  for (const chain of allChains) {
-    if (chain === Chain.Ethereum) continue
-
-    if (token === 'MATIC') {
-      if (
-        chain === Chain.Arbitrum ||
-        chain === Chain.Optimism
-      ) continue
-    }
-
-    if (token === 'SNX') {
-      if (
-        chain !== Chain.Optimism
-      ) continue
-    }
-
-    sourceChains.push(chain)
-  }
-
-  return sourceChains
-}
-
 
 const nonRpcRoots: Record<string, RootsCommitted> = {
   // pre-regenesis

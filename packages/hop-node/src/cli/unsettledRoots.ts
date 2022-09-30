@@ -127,6 +127,12 @@ function getSourceChains (settlementChain: string, token: string): string[] {
       ) continue
     }
 
+    if (token === 'SNX') {
+      if (
+        chain !== Chain.Optimism
+      ) continue
+    }
+
     sourceChains.push(chain)
   }
 

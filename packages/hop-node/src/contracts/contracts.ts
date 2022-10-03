@@ -4,11 +4,18 @@ import { Chain } from 'src/constants'
 import { Signer, providers } from 'ethers'
 
 import wallets from 'src/wallets'
-import { ERC20__factory, L1_ERC20_Bridge_Legacy__factory, L1_ERC20_Bridge__factory, L2_AmmWrapper__factory, L2_Bridge__factory, SaddleLpToken__factory } from '@hop-protocol/core/contracts'
 import { config as globalConfig } from 'src/config'
+import {
+  ERC20__factory,
+  L1_ERC20_Bridge_Legacy__factory,
+  L1_ERC20_Bridge__factory,
+  L2_AmmWrapper__factory,
+  L2_Bridge__factory,
+  MessengerWrapper__factory,
+  SaddleLpToken__factory
+} from '@hop-protocol/core/contracts'
 
 const getL1BridgeContract = (token: string) => {
-  let abi: any
   if (token === 'USDC') {
     return L1_ERC20_Bridge_Legacy__factory.connect(
       globalConfig.addresses[token][Chain.Ethereum].l1Bridge,
@@ -75,6 +82,17 @@ const getL2SaddleSwapContract = (
   )
 }
 
+const getMessengerWrapperContract = (
+  token: string,
+  network: string
+) => {
+  // Note: This only returns the base implementation, not the chain-specific implementation
+  return MessengerWrapper__factory.connect(
+    globalConfig.addresses[token][network].l1MessengerWrapper,
+    wallets.get(Chain.Ethereum)
+  )
+}
+
 const constructContractsObject = memoize((token: string) => {
   if (!globalConfig.addresses[token]) {
     return null
@@ -95,7 +113,8 @@ const constructContractsObject = memoize((token: string) => {
         l2CanonicalToken: getL2TokenContract(token, network, wallet),
         l2HopBridgeToken: getL2HopBridgeTokenContract(token, network, wallet),
         ammWrapper: getL2AmmWrapperContract(token, network, wallet),
-        saddleSwap: getL2SaddleSwapContract(token, network, wallet)
+        saddleSwap: getL2SaddleSwapContract(token, network, wallet),
+        messengerWrapper: getMessengerWrapperContract(token, network)
       }
     }
     return obj

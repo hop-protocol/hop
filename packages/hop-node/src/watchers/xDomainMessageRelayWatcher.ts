@@ -3,13 +3,17 @@ import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
+import MessengerWrapper from './classes/MessengerWrapper'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
+import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { MessengerWrapper as MessengerWrapperContract } from '@hop-protocol/core/contracts/MessengerWrapper'
 import { getEnabledNetworks } from 'src/config'
+import contracts from 'src/contracts'
 
 type Config = {
   chainSlug: string
@@ -21,9 +25,9 @@ type Config = {
 
 type ConfirmRootData = {
   rootHash: string
-  totalAmount: string
-  destinationChainId: string
-  rootCommittedAt: string
+  destinationChainId: number
+  totalAmount: string | BigNumber
+  rootCommittedAt: number
 }
 
 type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
@@ -32,6 +36,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   lastSeen: {[key: string]: number} = {}
   watchers: {[chain: string]: Watcher} = {}
+  messengerWrapper: MessengerWrapper
 
   constructor (config: Config) {
     super({
@@ -77,6 +82,13 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         dryMode: config.dryMode
       })
     }
+
+
+    const messengerWrapperContract: MessengerWrapperContract = contracts.get(this.tokenSymbol, this.chainSlug)?.messengerWrapper
+    if (!messengerWrapperContract) {
+      throw new Error(`Messenger wrapper contract not found for ${this.chainSlug}.${this.tokenSymbol}`)
+    }
+    this.messengerWrapper = new MessengerWrapper(messengerWrapperContract)
 
     // xDomain relayer is less time sensitive than others
     this.pollIntervalMs = 10 * 60 * 1000
@@ -144,6 +156,22 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
   }
 
   async confirmRootsViaWrapper (rootData: ConfirmRootData[]): Promise<void> {
+    const rootHashes: string[] = []
+    const destinationChainIds: number[] = []
+    const totalAmounts: BigNumber[] = []
+    const rootCommittedAt: number[] = []
+    for (const data of rootData) {
+      rootHashes.push(data.rootHash),
+      destinationChainIds.push(data.destinationChainId),
+      totalAmounts.push(BigNumber.from(data.totalAmount)),
+      rootCommittedAt.push(data.rootCommittedAt)
+    }
+    this.messengerWrapper.confirmRoots(
+      rootHashes,
+      destinationChainIds,
+      totalAmounts,
+      rootCommittedAt,
+    )
   }
 }
 

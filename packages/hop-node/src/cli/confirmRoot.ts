@@ -4,12 +4,19 @@ import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared'
 import { getXDomainMessageRelayWatcher } from 'src/watchers/watchers'
+import { BigNumber } from 'ethers'
 
 type ExitWatcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
+type ConfirmRootData = {
+  rootHash: string
+  destinationChainId: string
+  totalAmount: string
+  rootCommittedAt: string
+}
 
 root
   .command('confirm-root')
-  .description('Confirm a root')
+  .description('Confirm a root with an exit from the canonical bridge or with the messenger wrapper')
   .option('--chain <slug>', 'Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
   .option('--tx-hashes <hash, ...>', 'Comma-separated tx hashes with CommitTransfers event log', parseStringArray)
@@ -61,7 +68,15 @@ async function main (source: any) {
   }
 
   if (bypassCanonicalBridge) {
-    await watcher.confirmRootsViaWrapper(rootsDataFileList)
+    const rootData = rootsDataFileList.map((data: ConfirmRootData) => {
+      return {
+        rootHash: data.rootHash,
+        destinationChainId: Number(data.destinationChainId),
+        totalAmount: BigNumber.from(data.totalAmount),
+        rootCommittedAt: Number(data.rootCommittedAt)
+      }
+    })
+    await watcher.confirmRootsViaWrapper(rootData)
   } else {
     const chainSpecificWatcher: ExitWatcher = watcher.watchers[chain]
     for (const commitTxHash of commitTxHashes) {

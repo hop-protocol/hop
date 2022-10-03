@@ -61,6 +61,9 @@ export const pendingCountCommitThreshold = 256
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 
+// TODO: Remove this when the exit system is fully live
+export const IsExitSystemLive = process.env.IS_EXIT_SYSTEM_LIVE ?? false
+
 type SyncConfig = {
   totalBlocks?: number
   batchBlocks?: number

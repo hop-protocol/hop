@@ -95,11 +95,28 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
   }
 
   async pollHandler () {
-    await this.checkTransfersCommittedFromDb()
+    await Promise.all([
+      this.checkExitableTransferRootsFromDb(),
+      this.checkConfirmableTransferRootsFromDb()
+    ])
+    this.logger.debug('xDomainMessageRelayWatcher pollHandler completed')
   }
 
-  async checkTransfersCommittedFromDb () {
+  async checkExitableTransferRootsFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getExitableTransferRoots(await this.getFilterRoute())
+    if (!dbTransferRoots.length) {
+      return
+    }
+    this.logger.debug(
+      `checking ${dbTransferRoots.length} unexited transfer roots db items`
+    )
+    for (const { transferRootId } of dbTransferRoots) {
+      await this.checkExitableTransferRoots(transferRootId)
+    }
+  }
+
+  async checkConfirmableTransferRootsFromDb () {
+    const dbTransferRoots = await this.db.transferRoots.getConfirmableTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
       return
     }
@@ -107,12 +124,11 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
     )
     for (const { transferRootId } of dbTransferRoots) {
-      // Parallelizing these calls produces RPC errors on Optimism
-      await this.checkTransfersCommitted(transferRootId)
+      await this.checkConfirmableTransferRoots(transferRootId)
     }
   }
 
-  async checkTransfersCommitted (transferRootId: string) {
+  async checkExitableTransferRoots (transferRootId: string) {
     const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId) as ExitableTransferRoot
     if (!dbTransferRoot) {
       throw new Error(`transfer root db item not found, root id "${transferRootId}"`)
@@ -121,7 +137,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     const { destinationChainId, commitTxHash } = dbTransferRoot
 
     const logger = this.logger.create({ root: transferRootId })
-    const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
       destinationChainId,
       transferRootId
@@ -134,15 +149,56 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       return
     }
 
+    const chainSlug = this.chainIdToSlug(await this.bridge.getChainId())
     const watcher = this.watchers[chainSlug]
     if (!watcher) {
       logger.warn(`exit watcher for ${chainSlug} is not implemented yet`)
       return
     }
 
-    logger.debug(`handling commit tx hash ${commitTxHash} from ${destinationChainId}`)
+    logger.debug(`handling commit tx hash ${commitTxHash} to ${destinationChainId}`)
     await watcher.handleCommitTxHash(commitTxHash, transferRootId, logger)
   }
+
+  async checkConfirmableTransferRoots (transferRootId: string) {
+    const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(transferRootId) as ExitableTransferRoot
+    if (!dbTransferRoot) {
+      throw new Error(`transfer root db item not found, root id "${transferRootId}"`)
+    }
+
+    const { transferRootHash, destinationChainId, totalAmount, committedAt } = dbTransferRoot
+
+    const logger = this.logger.create({ root: transferRootId })
+    const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
+      destinationChainId,
+      transferRootId
+    )
+    if (isTransferRootIdConfirmed) {
+      logger.warn('Transfer root already confirmed')
+      await this.db.transferRoots.update(transferRootId, {
+        confirmed: true
+      })
+      return
+    }
+
+    if (this.dryMode) {
+      this.logger.warn(`dry: ${this.dryMode}, skipping confirmRootsViaWrapper`)
+      return
+    }
+
+    await this.db.transferRoots.update(transferRootId, {
+      sentConfirmTxAt: Date.now()
+    })
+
+    logger.debug(`handling confirmable transfer root ${transferRootHash}, destination ${destinationChainId}, amount ${totalAmount.toString()}, committedAt ${committedAt}`)
+    await this.confirmRootsViaWrapper([{
+      rootHash: transferRootHash,
+      destinationChainId,
+      totalAmount,
+      rootCommittedAt: committedAt
+    }])
+  }
+
   async confirmRootsViaWrapper (rootData: ConfirmRootData[]): Promise<void> {
     const rootHashes: string[] = []
     const destinationChainIds: number[] = []

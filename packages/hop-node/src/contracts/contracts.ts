@@ -4,7 +4,6 @@ import { Chain } from 'src/constants'
 import { Signer, providers } from 'ethers'
 
 import wallets from 'src/wallets'
-import { config as globalConfig } from 'src/config'
 import {
   ERC20__factory,
   L1_ERC20_Bridge_Legacy__factory,
@@ -14,6 +13,7 @@ import {
   MessengerWrapper__factory,
   SaddleLpToken__factory
 } from '@hop-protocol/core/contracts'
+import { config as globalConfig } from 'src/config'
 
 const getL1BridgeContract = (token: string) => {
   if (token === 'USDC') {

@@ -1,18 +1,17 @@
-import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
-import { Chain } from 'src/constants'
-import { actionHandler, getSourceChains, parseStringArray, root } from './shared'
-import { DateTime } from 'luxon'
+import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber } from 'ethers'
+import { Chain } from 'src/constants'
+import { DateTime } from 'luxon'
+import { actionHandler, getSourceChains, parseStringArray, root } from './shared'
 
 interface RootsCommitted {
-  rootHash: string,
-  destinationChainId: string,
-  totalAmount: BigNumber,
+  rootHash: string
+  destinationChainId: string
+  totalAmount: BigNumber
   rootCommittedAt: string
 }
-
 
 root
   .command('unconfirmed-roots')
@@ -51,25 +50,25 @@ async function main (source: any) {
   }
 }
 
-async function getRootsBonded(token: string, endDateSeconds: number): Promise<string[]> {
-    const startDate = 0
-    const bondedRes = await getTransferRootBonded(Chain.Ethereum, token, startDate, endDateSeconds)
-    const rootsBonded: string[] = []
-    for (const res of bondedRes) {
-      rootsBonded.push(res.root)
-    }
+async function getRootsBonded (token: string, endDateSeconds: number): Promise<string[]> {
+  const startDate = 0
+  const bondedRes = await getTransferRootBonded(Chain.Ethereum, token, startDate, endDateSeconds)
+  const rootsBonded: string[] = []
+  for (const res of bondedRes) {
+    rootsBonded.push(res.root)
+  }
 
-    return rootsBonded
+  return rootsBonded
 }
 
-async function getRootsConfirmed(token: string): Promise<string[]> {
-    const confirmedRes = await getTransferRootConfirmed(Chain.Ethereum, token)
-    const rootsConfirmed: string[] = []
-    for (const res of confirmedRes) {
-      rootsConfirmed.push(res.rootHash)
-    }
+async function getRootsConfirmed (token: string): Promise<string[]> {
+  const confirmedRes = await getTransferRootConfirmed(Chain.Ethereum, token)
+  const rootsConfirmed: string[] = []
+  for (const res of confirmedRes) {
+    rootsConfirmed.push(res.rootHash)
+  }
 
-    return rootsConfirmed
+  return rootsConfirmed
 }
 
 async function getRootsBondedButNotConfirmed (rootsBonded: string[], rootsConfirmed: string[]): Promise<string[]> {
@@ -79,10 +78,10 @@ async function getRootsBondedButNotConfirmed (rootsBonded: string[], rootsConfir
     rootsBondedButNotConfirmed.push(rootBonded)
   }
 
-  return rootsBondedButNotConfirmed 
+  return rootsBondedButNotConfirmed
 }
 
-async function getRootsCommitted(token: string): Promise<Record<string, RootsCommitted>> {
+async function getRootsCommitted (token: string): Promise<Record<string, RootsCommitted>> {
   const sourceChains = getSourceChains(token)
   const rpcRootsCommitted: Record<string, RootsCommitted> = {}
 

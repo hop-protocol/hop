@@ -2,10 +2,10 @@ import ArbitrumBridgeWatcher from 'src/watchers/ArbitrumBridgeWatcher'
 import GnosisBridgeWatcher from 'src/watchers/GnosisBridgeWatcher'
 import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
-import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared'
-import { getXDomainMessageRelayWatcher } from 'src/watchers/watchers'
 import { BigNumber } from 'ethers'
 import { ConfirmRootData } from 'src/watchers/xDomainMessageRelayWatcher'
+import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared'
+import { getXDomainMessageRelayWatcher } from 'src/watchers/watchers'
 
 type ExitWatcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
 

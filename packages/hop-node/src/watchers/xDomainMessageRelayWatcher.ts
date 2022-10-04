@@ -6,14 +6,14 @@ import L1Bridge from './classes/L1Bridge'
 import L1MessengerWrapper from './classes/L1MessengerWrapper'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
+import contracts from 'src/contracts'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/MessengerWrapper'
+import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { getEnabledNetworks } from 'src/config'
-import contracts from 'src/contracts'
 
 type Config = {
   chainSlug: string
@@ -82,7 +82,6 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         dryMode: config.dryMode
       })
     }
-
 
     const l1MessengerWrapperContract: L1MessengerWrapperContract = contracts.get(this.tokenSymbol, this.chainSlug)?.messengerWrapper
     if (!l1MessengerWrapperContract) {
@@ -209,16 +208,16 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     const totalAmounts: BigNumber[] = []
     const rootCommittedAt: number[] = []
     for (const data of rootData) {
-      rootHashes.push(data.rootHash),
-      destinationChainIds.push(data.destinationChainId),
-      totalAmounts.push(data.totalAmount),
+      rootHashes.push(data.rootHash)
+      destinationChainIds.push(data.destinationChainId)
+      totalAmounts.push(data.totalAmount)
       rootCommittedAt.push(data.rootCommittedAt)
     }
     this.l1MessengerWrapper.confirmRoots(
       rootHashes,
       destinationChainIds,
       totalAmounts,
-      rootCommittedAt,
+      rootCommittedAt
     )
   }
 }

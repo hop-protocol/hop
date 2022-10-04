@@ -567,7 +567,6 @@ class TransferRootsDb extends BaseDb {
   async getConfirmableTransferRoots (
     filter: GetItemsFilter = {}
   ): Promise<ExitableTransferRoot[]> {
-
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     const filtered = transferRoots.filter(item => {

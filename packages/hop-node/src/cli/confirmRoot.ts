@@ -57,7 +57,7 @@ async function main (source: any) {
     }
   }
 
-  const watcher = await getConfirmRootsWatcher ({ chain, token, dryMode })
+  const watcher = await getConfirmRootsWatcher({ chain, token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
   }

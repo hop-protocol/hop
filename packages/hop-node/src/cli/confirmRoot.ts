@@ -3,9 +3,9 @@ import GnosisBridgeWatcher from 'src/watchers/GnosisBridgeWatcher'
 import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import { BigNumber } from 'ethers'
-import { ConfirmRootData } from 'src/watchers/xDomainMessageRelayWatcher'
+import { ConfirmRootsData } from 'src/watchers/ConfirmRootsWatcher'
 import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared'
-import { getXDomainMessageRelayWatcher } from 'src/watchers/watchers'
+import { getConfirmRootsWatcher } from 'src/watchers/watchers'
 
 type ExitWatcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
 
@@ -57,13 +57,13 @@ async function main (source: any) {
     }
   }
 
-  const watcher = await getXDomainMessageRelayWatcher({ chain, token, dryMode })
+  const watcher = await getConfirmRootsWatcher ({ chain, token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
   }
 
   if (bypassCanonicalBridge) {
-    const rootData: ConfirmRootData[] = rootsDataFileList.map((data: ConfirmRootData) => {
+    const rootData: ConfirmRootsData[] = rootsDataFileList.map((data: ConfirmRootsData) => {
       return {
         rootHash: data.rootHash,
         destinationChainId: Number(data.destinationChainId),

@@ -57,7 +57,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Watchers.Challenge,
     Watchers.CommitTransfers,
     Watchers.SettleBondedWithdrawals,
-    Watchers.xDomainMessageRelay,
+    Watchers.ConfirmRoots,
     Watchers.L1ToL2Relay
   ]
 

@@ -829,7 +829,7 @@ describe.skip('relayerFeeEnabled', () => {
   })
 })
 
-describe.only('hop bridge)', () => {
+describe('hop bridge', () => {
   it('Should not use AMM', async () => {
     const hop = new Hop('goerli')
     const bridge = hop.bridge('HOP')
@@ -848,5 +848,15 @@ describe.only('hop bridge)', () => {
     const approvalAddress = bridge.getSendApprovalAddress('polygon')
     const expectedAddress = addresses.goerli.bridges.HOP.polygon?.l2Bridge
     expect(approvalAddress).toBe(expectedAddress)
+  })
+})
+
+describe('supported chains', () => {
+  it('Should return supported chains', async () => {
+    const hop = new Hop('mainnet')
+    const usdcBridge = hop.bridge('USDC')
+    expect(JSON.stringify(usdcBridge.supportedChains)).toBe(JSON.stringify(['ethereum', 'arbitrum', 'optimism', 'gnosis', 'polygon']))
+    const maticBridge = hop.bridge('MATIC')
+    expect(JSON.stringify(maticBridge.supportedChains)).toBe(JSON.stringify(['ethereum', 'gnosis', 'polygon']))
   })
 })

@@ -21,6 +21,7 @@ import {
 import {
   BondTransferGasLimit,
   CanonicalToken,
+  ChainSlug,
   Errors,
   HToken,
   LpFeeBps,
@@ -2353,6 +2354,31 @@ class HopBridge extends Base {
     const l1Bridge = await this.getL1Bridge()
     const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
     return isPaused
+  }
+
+  get supportedChains (): string[] {
+    const supported = new Set()
+    for (const chain in this.chains) {
+      if (this.addresses[this.tokenSymbol][chain]) {
+        supported.add(chain)
+      }
+    }
+    return Array.from(supported) as string[]
+  }
+
+  get supportedLpChains (): string[] {
+    const supported = new Set()
+    for (const chain of this.supportedChains) {
+      if (chain === ChainSlug.Ethereum || this.tokenSymbol === TokenModel.HOP) {
+        continue
+      }
+      supported.add(chain)
+    }
+    return Array.from(supported) as string[]
+  }
+
+  getSupportedLpChains (): string[] {
+    return this.supportedLpChains
   }
 }
 

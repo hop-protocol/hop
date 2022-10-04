@@ -3,7 +3,7 @@ import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
-import MessengerWrapper from './classes/MessengerWrapper'
+import L1MessengerWrapper from './classes/L1MessengerWrapper'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import { BigNumber } from 'ethers'
@@ -11,7 +11,7 @@ import { Chain } from 'src/constants'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { MessengerWrapper as MessengerWrapperContract } from '@hop-protocol/core/contracts/MessengerWrapper'
+import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/MessengerWrapper'
 import { getEnabledNetworks } from 'src/config'
 import contracts from 'src/contracts'
 
@@ -23,10 +23,10 @@ type Config = {
   dryMode?: boolean
 }
 
-type ConfirmRootData = {
+export type ConfirmRootData = {
   rootHash: string
   destinationChainId: number
-  totalAmount: string | BigNumber
+  totalAmount: BigNumber
   rootCommittedAt: number
 }
 
@@ -36,7 +36,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   lastSeen: {[key: string]: number} = {}
   watchers: {[chain: string]: Watcher} = {}
-  messengerWrapper: MessengerWrapper
+  l1MessengerWrapper: L1MessengerWrapper
 
   constructor (config: Config) {
     super({
@@ -84,22 +84,26 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }
 
 
-    const messengerWrapperContract: MessengerWrapperContract = contracts.get(this.tokenSymbol, this.chainSlug)?.messengerWrapper
-    if (!messengerWrapperContract) {
+    const l1MessengerWrapperContract: L1MessengerWrapperContract = contracts.get(this.tokenSymbol, this.chainSlug)?.messengerWrapper
+    if (!l1MessengerWrapperContract) {
       throw new Error(`Messenger wrapper contract not found for ${this.chainSlug}.${this.tokenSymbol}`)
     }
-    this.messengerWrapper = new MessengerWrapper(messengerWrapperContract)
+    this.l1MessengerWrapper = new L1MessengerWrapper(l1MessengerWrapperContract)
 
     // xDomain relayer is less time sensitive than others
     this.pollIntervalMs = 10 * 60 * 1000
   }
 
   async pollHandler () {
-    await Promise.all([
-      this.checkExitableTransferRootsFromDb(),
-      this.checkConfirmableTransferRootsFromDb()
-    ])
-    this.logger.debug('xDomainMessageRelayWatcher pollHandler completed')
+    try {
+      await Promise.all([
+        this.checkExitableTransferRootsFromDb(),
+        this.checkConfirmableTransferRootsFromDb()
+      ])
+      this.logger.debug('xDomainMessageRelayWatcher pollHandler completed')
+    } catch (err) {
+      this.logger.debug(`xDomainMessageRelayWatcher pollHandler error ${err.message}`)
+    }
   }
 
   async checkExitableTransferRootsFromDb () {
@@ -207,10 +211,10 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     for (const data of rootData) {
       rootHashes.push(data.rootHash),
       destinationChainIds.push(data.destinationChainId),
-      totalAmounts.push(BigNumber.from(data.totalAmount)),
+      totalAmounts.push(data.totalAmount),
       rootCommittedAt.push(data.rootCommittedAt)
     }
-    this.messengerWrapper.confirmRoots(
+    this.l1MessengerWrapper.confirmRoots(
       rootHashes,
       destinationChainIds,
       totalAmounts,

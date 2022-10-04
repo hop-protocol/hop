@@ -5,14 +5,9 @@ import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared'
 import { getXDomainMessageRelayWatcher } from 'src/watchers/watchers'
 import { BigNumber } from 'ethers'
+import { ConfirmRootData } from 'src/watchers/xDomainMessageRelayWatcher'
 
 type ExitWatcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
-type ConfirmRootData = {
-  rootHash: string
-  destinationChainId: string
-  totalAmount: string
-  rootCommittedAt: string
-}
 
 root
   .command('confirm-root')
@@ -68,7 +63,7 @@ async function main (source: any) {
   }
 
   if (bypassCanonicalBridge) {
-    const rootData = rootsDataFileList.map((data: ConfirmRootData) => {
+    const rootData: ConfirmRootData[] = rootsDataFileList.map((data: ConfirmRootData) => {
       return {
         rootHash: data.rootHash,
         destinationChainId: Number(data.destinationChainId),

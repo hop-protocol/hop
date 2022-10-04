@@ -82,7 +82,7 @@ const getL2SaddleSwapContract = (
   )
 }
 
-const getMessengerWrapperContract = (
+const getL1MessengerWrapperContract = (
   token: string,
   network: string
 ) => {
@@ -114,7 +114,7 @@ const constructContractsObject = memoize((token: string) => {
         l2HopBridgeToken: getL2HopBridgeTokenContract(token, network, wallet),
         ammWrapper: getL2AmmWrapperContract(token, network, wallet),
         saddleSwap: getL2SaddleSwapContract(token, network, wallet),
-        messengerWrapper: getMessengerWrapperContract(token, network)
+        l1MessengerWrapper: getL1MessengerWrapperContract(token, network)
       }
     }
     return obj

@@ -349,7 +349,7 @@ export enum Watchers {
   Challenge = 'challenge',
   CommitTransfers = 'commitTransfers',
   SettleBondedWithdrawals = 'settleBondedWithdrawals',
-  xDomainMessageRelay = 'xDomainMessageRelay',
+  ConfirmRoots = 'confirmRoots',
   L1ToL2Relay = 'L1ToL2Relay',
 }
 

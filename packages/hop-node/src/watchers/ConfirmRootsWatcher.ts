@@ -23,7 +23,7 @@ type Config = {
   dryMode?: boolean
 }
 
-export type ConfirmRootData = {
+export type ConfirmRootsData = {
   rootHash: string
   destinationChainId: number
   totalAmount: BigNumber
@@ -32,7 +32,7 @@ export type ConfirmRootData = {
 
 type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
 
-class xDomainMessageRelayWatcher extends BaseWatcher {
+class ConfirmRootsWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
   lastSeen: {[key: string]: number} = {}
   watchers: {[chain: string]: Watcher} = {}
@@ -83,13 +83,13 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
       })
     }
 
-    const l1MessengerWrapperContract: L1MessengerWrapperContract = contracts.get(this.tokenSymbol, this.chainSlug)?.messengerWrapper
+    const l1MessengerWrapperContract: L1MessengerWrapperContract = contracts.get(this.tokenSymbol, this.chainSlug)?.l1MessengerWrapper
     if (!l1MessengerWrapperContract) {
       throw new Error(`Messenger wrapper contract not found for ${this.chainSlug}.${this.tokenSymbol}`)
     }
     this.l1MessengerWrapper = new L1MessengerWrapper(l1MessengerWrapperContract)
 
-    // xDomain relayer is less time sensitive than others
+    // confirmation watcher is less time sensitive than others
     this.pollIntervalMs = 10 * 60 * 1000
   }
 
@@ -99,9 +99,9 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
         this.checkExitableTransferRootsFromDb(),
         this.checkConfirmableTransferRootsFromDb()
       ])
-      this.logger.debug('xDomainMessageRelayWatcher pollHandler completed')
+      this.logger.debug('confirmRootsWatcher pollHandler completed')
     } catch (err) {
-      this.logger.debug(`xDomainMessageRelayWatcher pollHandler error ${err.message}`)
+      this.logger.debug(`confirmRootsWatcher pollHandler error ${err.message}`)
     }
   }
 
@@ -202,7 +202,7 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
     }])
   }
 
-  async confirmRootsViaWrapper (rootData: ConfirmRootData[]): Promise<void> {
+  async confirmRootsViaWrapper (rootData: ConfirmRootsData[]): Promise<void> {
     const rootHashes: string[] = []
     const destinationChainIds: number[] = []
     const totalAmounts: BigNumber[] = []
@@ -222,4 +222,4 @@ class xDomainMessageRelayWatcher extends BaseWatcher {
   }
 }
 
-export default xDomainMessageRelayWatcher
+export default ConfirmRootsWatcher

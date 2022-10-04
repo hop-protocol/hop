@@ -1,6 +1,5 @@
-import { Chain } from 'src/constants'
 import {
-  getXDomainMessageRelayWatcher
+  getL1ToL2RelayWatcher
 } from 'src/watchers/watchers'
 
 import { actionHandler, parseNumber, parseString, parseStringArray, root } from './shared'
@@ -28,14 +27,13 @@ async function main (source: any) {
   }
 
   const dryMode = false
-  const watcher = await getXDomainMessageRelayWatcher({ token, dryMode })
+  const watcher = await getL1ToL2RelayWatcher({ token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
   }
 
   messageIndex = messageIndex ?? 0
-  const chainSlug = Chain.Arbitrum
   for (const txHash of txHashes) {
-    await watcher.redeemArbitrumTransaction(txHash, chainSlug, messageIndex)
+    await watcher.sendRelayTx(txHash, messageIndex)
   }
 }

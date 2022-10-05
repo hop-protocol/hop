@@ -55,8 +55,8 @@ export function PoolRow (props: Props) {
           <Box p={1} display="flex">
             <Box mr={2}>
               <Box className={styles.imageContainer}>
-                <img className={styles.chainImage} src={chain.imageUrl} alt="" />
-                <img className={styles.tokenImage} src={token.imageUrl} alt="" />
+                <img className={styles.chainImage} src={chain.imageUrl} alt={chain.name} />
+                <img className={styles.tokenImage} src={token.imageUrl} alt={token.symbol} />
               </Box>
             </Box>
             <Box display="flex" flexDirection="column">

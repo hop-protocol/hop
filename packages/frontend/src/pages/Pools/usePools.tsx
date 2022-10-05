@@ -38,7 +38,7 @@ export function usePools () {
             apr: '-',
             stakingApr: '-',
             totalApr: '-',
-            depositLink
+            depositLink,
           })
         }
       }
@@ -92,11 +92,43 @@ export function usePools () {
     update().catch(console.error)
   }, [pools])
 
+  useEffect(() => {
+    async function update() {
+      if (filterTokens.length) {
+        return
+      }
+      const tokens :any = {}
+      for (const pool of pools) {
+        if (!tokens[pool.token.symbol]) {
+          tokens[pool.token.symbol] = { ...pool.token, enabled: true }
+        }
+      }
+      setFilterTokens(Object.values(tokens))
+    }
+    update().catch(console.error)
+  }, [pools])
+
+  useEffect(() => {
+    async function update() {
+      if (filterChains.length) {
+        return
+      }
+      const chains :any = {}
+      for (const pool of pools) {
+        if (!chains[pool.chain.slug]) {
+          chains[pool.chain.slug] = { ...pool.chain, enabled: true }
+        }
+      }
+      setFilterChains(Object.values(chains))
+    }
+    update().catch(console.error)
+  }, [pools])
+
   async function getPoolStatsFile () {
     const url = 'https://assets.hop.exchange/v1-pool-stats.json'
     const res = await fetch(url)
     const json = await res.json()
-    console.log('apr data response:', json)
+    console.log('pool stats data response:', json)
     if (!json.data) {
       throw new Error('expected data')
     }
@@ -153,10 +185,44 @@ export function usePools () {
     update().catch(console.error)
   }, [isSet])
 
+  function toggleFilterToken (symbol: string) {
+    for (const filterToken of filterTokens) {
+      if (filterToken.symbol === symbol) {
+        filterToken.enabled = !filterToken.enabled
+      }
+    }
+    setFilterTokens([...filterTokens])
+  }
+
+  function toggleFilterChain (slug: string) {
+    for (const filterChain of filterChains) {
+      if (filterChain.slug === slug) {
+        filterChain.enabled = !filterChain.enabled
+      }
+    }
+    setFilterChains([...filterChains])
+  }
+
+  const filteredPools = pools.filter((x: any) => {
+    for (const filterToken of filterTokens) {
+      if (x.token.symbol === filterToken.symbol && !filterToken.enabled) {
+        return false
+      }
+    }
+    for (const filterChain of filterChains) {
+      if (x.chain.slug === filterChain.slug && !filterChain.enabled) {
+        return false
+      }
+    }
+    return true
+  })
+
   return {
-    pools,
+    pools: filteredPools,
     userPools,
     filterTokens,
-    filterChains
+    filterChains,
+    toggleFilterToken,
+    toggleFilterChain,
   }
 }

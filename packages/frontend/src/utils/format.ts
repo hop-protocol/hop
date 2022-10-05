@@ -97,7 +97,7 @@ export function truncateHash(hash) {
   return `${hash.substring(0, 6)}…${hash.substring(62, 66)}`
 }
 
-export function formatTokenString(value, tokenDecimals = 18, trailingDecimals = 2) {
+export function formatTokenString(value: BigNumber, tokenDecimals = 18, trailingDecimals = 2) {
   return fixedDecimals(toTokenDisplay(value, tokenDecimals), trailingDecimals)
 }
 

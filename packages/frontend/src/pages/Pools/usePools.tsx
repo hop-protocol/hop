@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useApp } from 'src/contexts/AppContext'
 import { addresses } from 'src/config'
-import { toTokenDisplay, toPercentDisplay } from 'src/utils'
-import { formatUnits } from 'ethers/lib/utils'
+import { toPercentDisplay } from 'src/utils'
+import { formatTokenString, formatTokenDecimalString } from 'src/utils/format'
+import { findNetworkBySlug } from 'src/utils/networks'
+import { getTokenImage } from 'src/utils/tokens'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export function usePools () {
@@ -11,6 +13,8 @@ export function usePools () {
   const [userPools, setUserPools] = useState<any[]>([])
   const [pools, setPools] = useState<any[]>([])
   const [isSet, setIsSet] = useState<boolean>(false)
+  const [filterTokens, setFilterTokens] = useState<any[]>([])
+  const [filterChains, setFilterChains] = useState<any[]>([])
 
   useEffect(() => {
     async function update () {
@@ -18,13 +22,23 @@ export function usePools () {
       for (const token in addresses.tokens) {
         const bridge = sdk.bridge(token)
         for (const chain of bridge.getSupportedLpChains()) {
+          const chainModel = findNetworkBySlug(chain)!
+          const tokenModel = bridge.toTokenModel(token)
+          const tokenImage = getTokenImage(tokenModel.symbol)
+          const poolName = `${token} ${chainModel.name} Pool`
+          const poolSubtitle = `${token} - h${token}`
+          const depositLink = `/pool?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           _pools.push({
-            token,
-            chain,
+            token: { ...tokenModel, imageUrl: tokenImage },
+            chain: chainModel,
+            poolName,
+            poolSubtitle,
             userBalance: '-',
             tvl: '-',
             apr: '-',
-            stakingApr: '-'
+            stakingApr: '-',
+            totalApr: '-',
+            depositLink
           })
         }
       }
@@ -37,9 +51,9 @@ export function usePools () {
   useEffect(() => {
     async function update() {
       await Promise.all(pools.map(async pool => {
-        const bridge = sdk.bridge(pool.token)
-        const tvl = await bridge.getReservesTotal(pool.chain)
-        pool.tvl = bridge.formatUnits(tvl)
+        const bridge = sdk.bridge(pool.token.symbol)
+        const tvl = await bridge.getReservesTotal(pool.chain.slug)
+        pool.tvl = formatTokenDecimalString(tvl, pool.token.decimals, 4)
         setPools([...pools])
       }))
     }
@@ -55,11 +69,13 @@ export function usePools () {
         return
       }
       await Promise.all(pools.map(async pool => {
-        const bridge = sdk.bridge(pool.token)
-        const lpToken = bridge.getSaddleLpToken(pool.chain)
+        const bridge = sdk.bridge(pool.token.symbol)
+        const lpToken = bridge.getSaddleLpToken(pool.chain.slug)
         const balance = await lpToken.balanceOf(address.address)
-        const balanceFormatted = formatUnits(balance, 18)
-        pool.userBalance = balanceFormatted
+        const balanceFormatted = formatTokenDecimalString(balance, 18, 4)
+        if (balance.gt(0)) {
+          pool.userBalance = balanceFormatted
+        }
         setPools([...pools])
       }))
     }
@@ -92,8 +108,8 @@ export function usePools () {
       const json = await getPoolStatsFile()
       await Promise.all(pools.map(async pool => {
         try {
-          let symbol = pool.token
-          const chain = pool.chain
+          let symbol = pool.token.symbol
+          const chain = pool.chain.slug
 
           if (symbol === 'WETH') {
             symbol = 'ETH'
@@ -117,15 +133,17 @@ export function usePools () {
             throw new Error(`expected apr value for token "${symbol}" and network "${chain}"`)
           }
 
-          const apr = json.data[symbol][chain].apr
-          const stakingApr = json.data[symbol][chain].stakingApr
+          const apr = json.data[symbol][chain].apr ?? 0
+          const stakingApr = json.data[symbol][chain].stakingApr ?? 0
           pool.apr = toPercentDisplay(apr)
           pool.stakingApr = toPercentDisplay(stakingApr)
+          pool.totalApr = toPercentDisplay(apr + stakingApr)
 
           setPools([...pools])
         } catch (err) {
           pool.apr = toPercentDisplay(0)
           pool.stakingApr = toPercentDisplay(0)
+          pool.totalApr = toPercentDisplay(0)
 
           setPools([...pools])
           console.error(err)
@@ -137,6 +155,8 @@ export function usePools () {
 
   return {
     pools,
-    userPools
+    userPools,
+    filterTokens,
+    filterChains
   }
 }

@@ -2,16 +2,16 @@ import Logger from 'src/logger'
 import MerkleTree from 'src/utils/MerkleTree'
 import fs from 'fs'
 import path from 'path'
+import { Chain } from 'src/constants'
 import { Command } from 'commander'
 import {
-  config as globalConfig,
   getAllChains,
+  config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
   validateConfigFileStructure,
   validateConfigValues
 } from 'src/config'
-import { Chain } from 'src/constants'
 
 export const logger = new Logger('config')
 export const program = new Command()

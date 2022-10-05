@@ -21,7 +21,7 @@ export const networks: Networks = {
     name: chains.optimism.name,
     networkId: 420,
     publicRpcUrl: 'https://goerli.optimism.io',
-    explorerUrls: ['https://blockscout.com/optimism/goerli'],
+    explorerUrls: ['https://goerli-optimism.etherscan.io/'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
     waitConfirmations: 1
   },

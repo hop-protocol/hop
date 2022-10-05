@@ -6,7 +6,7 @@ export const ipRateLimitMiddleware = rateLimit({
   max: ipRateLimitReqPerSec,
   message: 'Too many attempts from your IP address. Please wait a few seconds.',
   keyGenerator: (req: any) => {
-    console.log('ip:', req.ip, req.url)
+    // console.log('ip:', req.ip, req.url)
     return req.ip
   }
 })

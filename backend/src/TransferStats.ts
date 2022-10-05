@@ -25,7 +25,7 @@ const rpcUrls = {
   ethereum: process.env.ETHEREUM_RPC
 }
 
-console.log(rpcUrls)
+console.log('rpcUrls:', rpcUrls)
 
 function padHex (hex: string) {
   return toHex(hex, { evenLength: true, addPrefix: true })
@@ -910,29 +910,30 @@ class TransferStats {
       // this.trackAllDailyTransfers(),
       this.trackHourlyTransfers(1, 60 * 1000),
       wait(1 * 60 * 1000).then(() => {
-        return this.trackHourlyTransfers(6, 30 * 60 * 1000)
+        const hours = 6
+        const delayMs = 30 * 60 * 1000
+        return this.trackHourlyTransfers(hours, delayMs)
       }),
       wait(15 * 60 * 1000).then(() => {
-        return this.trackHourlyTransfers(12, 2 * 60 * 60 * 1000)
+        const hours = 12
+        const delayMs = 2 * 60 * 60 * 1000
+        return this.trackHourlyTransfers(hours, delayMs)
       }),
       wait(30 * 60 * 1000).then(() => {
-        return this.trackHourlyTransfers(24, 12 * 60 * 60 * 1000)
+        const hours = 24
+        const delayMs = 12 * 60 * 60 * 1000
+        return this.trackHourlyTransfers(hours, delayMs)
       }),
-      this.trackRecentBonds(20, 60 * 1000),
+      wait(1 * 1000).then(() => {
+        const minutes = 20
+        const delayMs = 60 * 1000
+        this.trackRecentBonds(minutes, delayMs)
+      }),
       wait(0 * 60 * 1000).then(() => {
-        return this.trackRecentBonds(2 * 60, 10 * 60 * 1000)
+        const minutes = 2 * 60
+        const delayMs = 10 * 60 * 1000
+        return this.trackRecentBonds(minutes, delayMs)
       })
-      // this.trackRecentBonds(this.days * 24 * 60, 24 * 60 * 1000)
-      /*
-      wait(120 * 1000).then(() => {
-        return this.trackRecentBonds(24 * 60, 30 * 60 * 1000)
-      })
-      */
-      /*
-      wait(60 * 60 * 1000).then(() => {
-        this.trackDailyTransfers()
-      })
-      */
     ])
   }
 

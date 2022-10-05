@@ -15,6 +15,8 @@ export function usePools () {
   const [isSet, setIsSet] = useState<boolean>(false)
   const [filterTokens, setFilterTokens] = useState<any[]>([])
   const [filterChains, setFilterChains] = useState<any[]>([])
+  const [columnSort, setColumnSort] = useState<string>('')
+  const [columnSortDesc, setColumnSortDesc] = useState(true)
 
   useEffect(() => {
     async function update () {
@@ -33,11 +35,16 @@ export function usePools () {
             chain: chainModel,
             poolName,
             poolSubtitle,
-            userBalance: '-',
-            tvl: '-',
-            apr: '-',
-            stakingApr: '-',
-            totalApr: '-',
+            userBalance: 0,
+            userBalanceFormatted: '-',
+            tvl: 0,
+            tvlFormatted: '-',
+            apr: 0,
+            aprFormatted: '-',
+            stakingApr: 0,
+            stakingAprFormatted: '-',
+            totalApr: 0,
+            totalAprFormatted: '-',
             depositLink,
           })
         }
@@ -53,7 +60,8 @@ export function usePools () {
       await Promise.all(pools.map(async pool => {
         const bridge = sdk.bridge(pool.token.symbol)
         const tvl = await bridge.getReservesTotal(pool.chain.slug)
-        pool.tvl = formatTokenDecimalString(tvl, pool.token.decimals, 4)
+        pool.tvl = bridge.formatUnits(tvl)
+        pool.tvlFormatted = formatTokenDecimalString(tvl, pool.token.decimals, 4)
         setPools([...pools])
       }))
     }
@@ -74,7 +82,8 @@ export function usePools () {
         const balance = await lpToken.balanceOf(address.address)
         const balanceFormatted = formatTokenDecimalString(balance, 18, 4)
         if (balance.gt(0)) {
-          pool.userBalance = balanceFormatted
+          pool.userBalance = bridge.formatUnits(balance, 18)
+          pool.userBalanceFormatted = balanceFormatted
         }
         setPools([...pools])
       }))
@@ -167,15 +176,18 @@ export function usePools () {
 
           const apr = json.data[symbol][chain].apr ?? 0
           const stakingApr = json.data[symbol][chain].stakingApr ?? 0
-          pool.apr = toPercentDisplay(apr)
-          pool.stakingApr = toPercentDisplay(stakingApr)
-          pool.totalApr = toPercentDisplay(apr + stakingApr)
+          pool.apr = apr
+          pool.aprFormatted = toPercentDisplay(apr)
+          pool.stakingApr = stakingApr
+          pool.stakingAprFormatted = toPercentDisplay(stakingApr)
+          pool.totalApr = apr + stakingApr
+          pool.totalAprFormatted = toPercentDisplay(apr + stakingApr)
 
           setPools([...pools])
         } catch (err) {
-          pool.apr = toPercentDisplay(0)
-          pool.stakingApr = toPercentDisplay(0)
-          pool.totalApr = toPercentDisplay(0)
+          pool.aprFormatted = toPercentDisplay(0)
+          pool.stakingAprFormatted = toPercentDisplay(0)
+          pool.totalAprFormatted = toPercentDisplay(0)
 
           setPools([...pools])
           console.error(err)
@@ -203,7 +215,16 @@ export function usePools () {
     setFilterChains([...filterChains])
   }
 
-  const filteredPools = pools.filter((x: any) => {
+  function toggleColumnSort(column: string) {
+    if (column === columnSort) {
+      setColumnSortDesc(!columnSortDesc)
+    } else {
+      setColumnSort(column)
+      setColumnSortDesc(true)
+    }
+  }
+
+  let filteredPools = pools.filter((x: any) => {
     for (const filterToken of filterTokens) {
       if (x.token.symbol === filterToken.symbol && !filterToken.enabled) {
         return false
@@ -217,12 +238,28 @@ export function usePools () {
     return true
   })
 
+  if (columnSort) {
+    filteredPools = filteredPools.sort((a, b) => {
+      if (columnSortDesc) {
+        return b[columnSort] - a[columnSort]
+      } else {
+        return a[columnSort] - b[columnSort]
+      }
+    })
+  }
+
+  const filteredUserPools = userPools.sort((a, b) => {
+    return b.userBalance - a.userBalance
+  })
+
   return {
     pools: filteredPools,
-    userPools,
+    userPools: filteredUserPools,
     filterTokens,
     filterChains,
     toggleFilterToken,
     toggleFilterChain,
+    toggleColumnSort,
+    columnSort,
   }
 }

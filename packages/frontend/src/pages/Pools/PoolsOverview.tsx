@@ -2,6 +2,7 @@ import React from 'react'
 import { usePools } from './usePools'
 import Box from '@material-ui/core/Box'
 import { PoolRow } from './PoolRow'
+import { Link } from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
@@ -14,6 +15,10 @@ export const useStyles = makeStyles(theme => ({
   },
   table: {
     width: '100%'
+  },
+  thLink: {
+    cursor: 'pointer',
+    textDecoration: 'none'
   },
   filterImageContainer: {
 
@@ -28,7 +33,7 @@ export const useStyles = makeStyles(theme => ({
 
 export function PoolsOverview () {
   const styles = useStyles()
-  const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain } = usePools()
+  const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort } = usePools()
 
   function handleTokenToggleFilterFn (symbol: string) {
     return (event: any) => {
@@ -41,6 +46,13 @@ export function PoolsOverview () {
     return (event: any) => {
       event.preventDefault()
       toggleFilterChain(slug)
+    }
+  }
+
+  function handleColumnSortFn(column: string) {
+    return (event: any) => {
+      event.preventDefault()
+      toggleColumnSort(column)
     }
   }
 
@@ -161,23 +173,29 @@ export function PoolsOverview () {
               </th>
               <th>
                 <Box p={1} textAlign="left">
-                  <Typography variant="subtitle2" color="secondary">
-                   My Liquidity
-                  </Typography>
+                  <a className={styles.thLink} onClick={handleColumnSortFn('userBalance')}>
+                    <Typography variant="subtitle2" color="secondary">
+                    My Liquidity
+                    </Typography>
+                  </a>
                 </Box>
               </th>
               <th>
                 <Box p={1} textAlign="left">
-                  <Typography variant="subtitle2" color="secondary">
-                   TVL
-                  </Typography>
+                  <a className={styles.thLink} onClick={handleColumnSortFn('tvl')}>
+                    <Typography variant="subtitle2" color="secondary">
+                    TVL
+                    </Typography>
+                  </a>
                 </Box>
               </th>
               <th>
                 <Box p={1} textAlign="left">
-                  <Typography variant="subtitle2" color="secondary">
-                   Total APR
-                  </Typography>
+                  <a className={styles.thLink} onClick={handleColumnSortFn('totalApr')}>
+                    <Typography variant="subtitle2" color="secondary">
+                    Total APR
+                    </Typography>
+                  </a>
                 </Box>
               </th>
               <th>

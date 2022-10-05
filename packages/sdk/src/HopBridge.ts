@@ -2330,16 +2330,16 @@ class HopBridge extends Base {
     return token.needsApproval(spender, amount, address)
   }
 
-  parseUnits (value: TAmount):BigNumber {
+  parseUnits (value: TAmount, decimals?: number):BigNumber {
     value = value.toString() || '0'
     const token = this.toTokenModel(this.tokenSymbol)
-    return parseUnits(value, token.decimals)
+    return parseUnits(value, decimals ?? token.decimals)
   }
 
-  formatUnits (value: TAmount):number {
+  formatUnits (value: TAmount, decimals?: number):number {
     value = value.toString() || '0'
     const token = this.toTokenModel(this.tokenSymbol)
-    return Number(formatUnits(value, token.decimals))
+    return Number(formatUnits(value, decimals ?? token.decimals))
   }
 
   calcAmountOutMin (amountOut: TAmount, slippageTolerance: number) {

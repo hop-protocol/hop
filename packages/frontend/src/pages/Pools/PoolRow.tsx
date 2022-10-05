@@ -32,11 +32,16 @@ type Data = {
   chain: any
   poolName: string
   poolSubtitle: string
-  tvl: string
-  apr: string
-  stakingApr: string
-  totalApr: string
-  userBalance: string
+  tvl: number
+  tvlFormatted: string
+  apr: number
+  aprFormatted: string
+  stakingApr: number
+  stakingAprFormatted: string
+  totalApr: number
+  totalAprFormatted: string
+  userBalance: number
+  userBalanceFormatted: string
   depositLink: string
 }
 
@@ -46,7 +51,7 @@ type Props = {
 
 export function PoolRow (props: Props) {
   const styles = useStyles()
-  const { token, chain, poolName, poolSubtitle, userBalance, tvl, totalApr, depositLink } = props.data
+  const { token, chain, poolName, poolSubtitle, userBalanceFormatted, tvlFormatted, totalAprFormatted, depositLink } = props.data
 
   return (
     <tr>
@@ -77,21 +82,21 @@ export function PoolRow (props: Props) {
       <td>
         <Box p={1}>
           <Typography variant="body1">
-            {userBalance}
+            {userBalanceFormatted}
           </Typography>
         </Box>
       </td>
       <td>
         <Box p={1}>
           <Typography variant="body1">
-            {tvl}
+            {tvlFormatted}
           </Typography>
         </Box>
       </td>
       <td>
         <Box p={1}>
           <Typography variant="body1">
-            <strong>{totalApr}</strong>
+            <strong>{totalAprFormatted}</strong>
           </Typography>
         </Box>
       </td>

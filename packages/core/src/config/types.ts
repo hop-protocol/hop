@@ -14,6 +14,8 @@ export type Fees = {
   ETH?: Bps
   WBTC?: Bps
   HOP?: Bps
+  SNX?: Bps
+  sUSD?: Bps
 }
 
 type RelayerFee = {

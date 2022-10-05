@@ -1,4 +1,4 @@
-import { config as globalConfig } from 'src/config'
+import { config as globalConfig, hostname } from 'src/config'
 import { metrics } from 'src/metrics'
 
 class Metrics {
@@ -28,6 +28,21 @@ class Metrics {
     this.metrics?.totalMemory.set({}, totalMemory)
     this.metrics?.freeMemory.set({}, freeMemory)
     this.metrics?.usedMemory.set({}, usedMemory)
+  }
+
+  setRpcProviderMethod (url: string, method: string, params: any) {
+    if (!this.enabled) {
+      return
+    }
+    let value = ''
+    if (typeof params === 'object') {
+      value = JSON.stringify(params)
+    } else if (typeof params === 'string') {
+      value = params
+    } else if (typeof params === 'number') {
+      value = params.toString()
+    }
+    this.metrics?.rpcProviderMethod.inc({ instance_hostname: hostname, url, method, params: value })
   }
 }
 

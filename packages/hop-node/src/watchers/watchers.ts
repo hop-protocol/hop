@@ -4,6 +4,7 @@ import BondTransferRootWatcher from 'src/watchers/BondTransferRootWatcher'
 import BondWithdrawalWatcher from 'src/watchers/BondWithdrawalWatcher'
 import ChallengeWatcher from 'src/watchers/ChallengeWatcher'
 import CommitTransfersWatcher from 'src/watchers/CommitTransfersWatcher'
+import ConfirmRootsWatcher from 'src/watchers/ConfirmRootsWatcher'
 import Logger from 'src/logger'
 import RelayWatcher from 'src/watchers/RelayWatcher'
 import SettleBondedWithdrawalWatcher from 'src/watchers/SettleBondedWithdrawalWatcher'
@@ -11,7 +12,6 @@ import SyncWatcher from 'src/watchers/SyncWatcher'
 import chainIdToSlug from 'src/utils/chainIdToSlug'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
-import xDomainMessageRelayWatcher from 'src/watchers/xDomainMessageRelayWatcher'
 import { BridgeContract } from 'src/watchers/classes/BaseWatcher'
 import { Chain } from 'src/constants'
 import { MetricsServer } from 'src/metrics'
@@ -25,11 +25,11 @@ const WatcherClasses: Record<string, any> = {
   [Watchers.Challenge]: ChallengeWatcher,
   [Watchers.CommitTransfers]: CommitTransfersWatcher,
   [Watchers.SettleBondedWithdrawals]: SettleBondedWithdrawalWatcher,
-  [Watchers.xDomainMessageRelay]: xDomainMessageRelayWatcher,
+  [Watchers.ConfirmRoots]: ConfirmRootsWatcher,
   [Watchers.L1ToL2Relay]: RelayWatcher
 }
 
-type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | xDomainMessageRelayWatcher | SyncWatcher | AvailableLiquidityWatcher | RelayWatcher
+type Watcher = BondTransferRootWatcher | BondWithdrawalWatcher | ChallengeWatcher | CommitTransfersWatcher | SettleBondedWithdrawalWatcher | ConfirmRootsWatcher | SyncWatcher | AvailableLiquidityWatcher | RelayWatcher
 
 type CommitTransfersMinThresholdAmounts = {
   [token: string]: any
@@ -144,7 +144,7 @@ export async function getWatchers (config: GetWatchersConfig) {
     }))
   }
 
-  if (enabledWatchers.includes(Watchers.xDomainMessageRelay)) {
+  if (enabledWatchers.includes(Watchers.ConfirmRoots)) {
     watchers.push(...getSiblingWatchers({ networks, tokens }, ({ isL1, chainSlug, tokenSymbol, bridgeContract }: GetSiblingWatchersCbConfig) => {
       if (isL1) {
         return
@@ -153,7 +153,7 @@ export async function getWatchers (config: GetWatchersConfig) {
       if (!l1BridgeContract) {
         return
       }
-      return new xDomainMessageRelayWatcher({
+      return new ConfirmRootsWatcher({
         chainSlug,
         tokenSymbol,
         bridgeContract,
@@ -392,8 +392,8 @@ export async function getCommitTransfersWatcher (config: GetWatcherConfig) {
   return getWatcher({ ...config, watcherName: Watchers.CommitTransfers })
 }
 
-export async function getXDomainMessageRelayWatcher (config: GetWatcherConfig) {
-  return getWatcher({ ...config, watcherName: Watchers.xDomainMessageRelay })
+export async function getConfirmRootsWatcher (config: GetWatcherConfig) {
+  return getWatcher({ ...config, watcherName: Watchers.ConfirmRoots })
 }
 
 export async function getSettleBondedWithdrawalsWatcher (config: GetWatcherConfig) {

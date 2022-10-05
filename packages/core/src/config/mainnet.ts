@@ -51,6 +51,16 @@ export const config : Config = {
       gnosis: 0,
       optimism: 0,
       arbitrum: 0
+    },
+    // TODO
+    SNX: {
+      ethereum: 0,
+      optimism: 0
+    },
+    // TODO
+    sUSD: {
+      ethereum: 0,
+      optimism: 0
     }
   },
   destinationFeeGasPriceMultiplier: 1.2,

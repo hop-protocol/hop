@@ -36,7 +36,7 @@ class IncompleteSettlementsWatcher {
     Chain.Polygon
   ]
 
-  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'HOP']
+  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'HOP', 'SNX', 'sUSD']
 
   days: number = 7
   offsetDays: number = 0
@@ -112,6 +112,10 @@ class IncompleteSettlementsWatcher {
       for (const token of this.tokens) {
         this.logger.debug(`${chain} ${token} reading events`)
         if (['optimism', 'arbitrum'].includes(chain) && token === 'MATIC') {
+          continue
+        }
+        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis'] 
+        if (nonSynthChains.includes(chain) && (token === 'SNX' || token === 'sUSD')) {
           continue
         }
         if (chain === 'ethereum') {

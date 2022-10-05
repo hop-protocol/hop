@@ -11,3 +11,4 @@ src/scripts
 *.log
 .build-info.json
 provider_calls.json
+prometheus_pass.txt

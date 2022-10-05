@@ -45,6 +45,9 @@ class Token extends Base {
   ) {
     super(network, signer, chainProviders)
 
+    if (!address) {
+      throw new Error('address is required')
+    }
     this.address = ethers.utils.getAddress(address)
     this.decimals = decimals
     this._symbol = symbol

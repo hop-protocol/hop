@@ -9,7 +9,7 @@ import {
   RelayableChains,
   RootSetSettleDelayMs
 } from 'src/constants'
-import { TxRetryDelayMs, oruChains } from 'src/config'
+import { IsExitSystemLive, TxRetryDelayMs, oruChains } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransferRoot {
@@ -558,6 +558,59 @@ class TransferRootsDb extends BaseDb {
         timestampOk &&
         oruTimestampOk &&
         oruShouldExit
+      )
+    })
+
+    return filtered as ExitableTransferRoot[]
+  }
+
+  async getConfirmableTransferRoots (
+    filter: GetItemsFilter = {}
+  ): Promise<ExitableTransferRoot[]> {
+    await this.tilReady()
+    const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
+    const filtered = transferRoots.filter(item => {
+      // TODO: Remove this when the exit system is fully live
+      if (!IsExitSystemLive) {
+        return false
+      }
+
+      if (!item.sourceChainId) {
+        return false
+      }
+
+      if (!this.isRouteOk(filter, item)) {
+        return false
+      }
+
+      let timestampOk = true
+      if (item.sentConfirmTxAt) {
+        timestampOk =
+          item.sentConfirmTxAt + TxRetryDelayMs < Date.now()
+      }
+
+      const isChallenged = item?.challenged === true
+
+      let bondTimestampOk = true
+      if (item?.bondedAt) {
+        const bondedAtMs = item.bondedAt * 1000
+        bondTimestampOk = bondedAtMs + ChallengePeriodMs < Date.now()
+      }
+
+      return (
+        item.commitTxHash &&
+        !item.confirmed &&
+        item.transferRootHash &&
+        item.transferRootId &&
+        item.totalAmount &&
+        item.destinationChainId &&
+        item.committed &&
+        item.committedAt &&
+        item.bonded &&
+        item.bondedAt &&
+        !isChallenged &&
+        timestampOk &&
+        bondTimestampOk
       )
     })
 

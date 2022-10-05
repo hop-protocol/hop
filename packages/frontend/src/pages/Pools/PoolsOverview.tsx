@@ -4,7 +4,7 @@ import Box from '@material-ui/core/Box'
 import { PoolRow } from './PoolRow'
 
 export function PoolsOverview () {
-  const { pools } = usePools()
+  const { pools, userPools } = usePools()
 
   return (
     <Box>
@@ -16,6 +16,9 @@ export function PoolsOverview () {
           chain
         </Box>
         <Box>
+         my position
+        </Box>
+        <Box>
           tvl
         </Box>
         <Box>
@@ -25,17 +28,39 @@ export function PoolsOverview () {
           staking apr
         </Box>
       </Box>
-      {pools.map((x: any) => {
-        return (
-          <PoolRow
-            token={x.token}
-            chain={x.chain}
-            tvl={x.tvl}
-            apr={x.apr}
-            stakingApr={x.stakingApr}
-          />
-        )
-      })}
+      {userPools.length > 0 && (
+        <Box mb={4}>
+          My Pools
+          <Box>
+            {userPools.map((x: any) => {
+              return (
+                <PoolRow
+                  token={x.token}
+                  chain={x.chain}
+                  userBalance={x.userBalance}
+                  tvl={x.tvl}
+                  apr={x.apr}
+                  stakingApr={x.stakingApr}
+                />
+              )
+            })}
+          </Box>
+        </Box>
+      )}
+      <Box>
+        {pools.map((x: any) => {
+          return (
+            <PoolRow
+              token={x.token}
+              chain={x.chain}
+              userBalance={x.userBalance}
+              tvl={x.tvl}
+              apr={x.apr}
+              stakingApr={x.stakingApr}
+            />
+          )
+        })}
+      </Box>
     </Box>
   )
 }

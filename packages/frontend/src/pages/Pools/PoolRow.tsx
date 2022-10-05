@@ -8,10 +8,11 @@ type Props = {
   tvl: string
   apr: string
   stakingApr: string
+  userBalance: string
 }
 
 export function PoolRow (props: Props) {
-  const { token, chain, tvl, apr, stakingApr } = props
+  const { token, chain, userBalance, tvl, apr, stakingApr } = props
 
   return (
     <Box display="flex" justifyContent="space-between">
@@ -20,6 +21,9 @@ export function PoolRow (props: Props) {
       </Box>
       <Box>
         {chain}
+      </Box>
+      <Box>
+        {userBalance}
       </Box>
       <Box>
         {tvl}

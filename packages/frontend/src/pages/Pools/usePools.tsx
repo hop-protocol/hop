@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { useApp } from 'src/contexts/AppContext'
 import { addresses } from 'src/config'
-import { commafy, shiftBNDecimals, BNMin, toTokenDisplay, toPercentDisplay } from 'src/utils'
+import { toTokenDisplay, toPercentDisplay } from 'src/utils'
+import { formatUnits } from 'ethers/lib/utils'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export function usePools () {
   const { sdk } = useApp()
+  const { address } = useWeb3Context()
+  const [userPools, setUserPools] = useState<any[]>([])
   const [pools, setPools] = useState<any[]>([])
   const [isSet, setIsSet] = useState<boolean>(false)
 
@@ -17,6 +21,7 @@ export function usePools () {
           _pools.push({
             token,
             chain,
+            userBalance: '-',
             tvl: '-',
             apr: '-',
             stakingApr: '-'
@@ -40,6 +45,36 @@ export function usePools () {
     }
     update().catch(console.error)
   }, [isSet])
+
+  useEffect(() => {
+    async function update() {
+      if (!isSet) {
+        return
+      }
+      if (!address) {
+        return
+      }
+      await Promise.all(pools.map(async pool => {
+        const bridge = sdk.bridge(pool.token)
+        const lpToken = bridge.getSaddleLpToken(pool.chain)
+        const balance = await lpToken.balanceOf(address.address)
+        const balanceFormatted = formatUnits(balance, 18)
+        pool.userBalance = balanceFormatted
+        setPools([...pools])
+      }))
+    }
+    update().catch(console.error)
+  }, [isSet, address])
+
+  useEffect(() => {
+    async function update() {
+      const _userPools = pools.filter((x: any) => {
+        return (Number(x.userBalance) > 0)
+      })
+      setUserPools(_userPools)
+    }
+    update().catch(console.error)
+  }, [pools])
 
   async function getPoolStatsFile () {
     const url = 'https://assets.hop.exchange/v1-pool-stats.json'
@@ -101,6 +136,7 @@ export function usePools () {
   }, [isSet])
 
   return {
-    pools
+    pools,
+    userPools
   }
 }

@@ -109,7 +109,6 @@ async function main (source: any) {
   }
 }
 
-
 async function getSettledRoots (chain: string, token: string): Promise<SettledRootsPerBonder> {
   const multipleWithdrawalsSettledRes = await getMultipleWithdrawalsSettled(chain, token)
   const settledPerBonder: any = {}

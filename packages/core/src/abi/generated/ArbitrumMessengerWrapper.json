@@ -13,22 +13,12 @@
       },
       {
         "internalType": "contract IInbox",
-        "name": "_arbInbox",
+        "name": "_l1MessengerAddress",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "_defaultGasLimit",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_defaultGasPrice",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_defaultCallValue",
+        "name": "_l2ChainId",
         "type": "uint256"
       }
     ],
@@ -36,52 +26,112 @@
     "type": "constructor"
   },
   {
-    "inputs": [],
-    "name": "arbInbox",
-    "outputs": [
+    "anonymous": false,
+    "inputs": [
       {
-        "internalType": "contract IInbox",
-        "name": "",
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
         "type": "address"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "name": "OwnershipTransferred",
+    "type": "event"
   },
   {
-    "inputs": [],
-    "name": "defaultCallValue",
-    "outputs": [
+    "inputs": [
+      {
+        "internalType": "contract IL1Bridge",
+        "name": "l1Bridge",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "rootHash",
+        "type": "bytes32"
+      },
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "totalAmount",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "challengePeriod",
+        "type": "uint256"
+      }
+    ],
+    "name": "canConfirmRoot",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "defaultGasLimit",
-    "outputs": [
+    "inputs": [
+      {
+        "internalType": "address payable",
+        "name": "recipient",
+        "type": "address"
+      },
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "amount",
         "type": "uint256"
       }
     ],
-    "stateMutability": "view",
+    "name": "claimFunds",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "rootHashes",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "destinationChainIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "totalAmounts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "rootCommittedAts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "confirmRoots",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "defaultGasPrice",
+    "name": "isRootConfirmation",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "bool",
         "name": "",
-        "type": "uint256"
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -93,6 +143,19 @@
     "outputs": [
       {
         "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "l1MessengerAddress",
+    "outputs": [
+      {
+        "internalType": "contract IInbox",
         "name": "",
         "type": "address"
       }
@@ -114,6 +177,39 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "l2ChainId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes",
@@ -122,6 +218,19 @@
       }
     ],
     "name": "sendCrossDomainMessage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -143,5 +252,9 @@
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
   }
 ]

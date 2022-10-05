@@ -317,6 +317,7 @@ export const useRewards = (props: Props) => {
         throw new Error('no entry')
       }
       const totalAmount = BigNumber.from(entry.balance)
+      console.log('totalAmount:', totalAmount.toString())
       const tx = await contract.connect(provider.getSigner()).claim(claimRecipient, totalAmount, proof)
       console.log(tx)
       await tx.wait()

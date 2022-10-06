@@ -16,7 +16,7 @@ import {
 import { config as globalConfig } from 'src/config'
 
 const getL1BridgeContract = (token: string) => {
-  if (token === 'USDC') {
+  if (token === 'USDC' && globalConfig.network === 'mainnet') {
     return L1_ERC20_Bridge_Legacy__factory.connect(
       globalConfig.addresses[token][Chain.Ethereum].l1Bridge,
       wallets.get(Chain.Ethereum)
@@ -97,6 +97,7 @@ const constructContractsObject = memoize((token: string) => {
   if (!globalConfig.addresses[token]) {
     return null
   }
+
   return Object.keys(globalConfig.addresses[token]).reduce<any>((obj, network) => {
     const wallet = wallets.get(network)
     if (!wallet) {

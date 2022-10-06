@@ -51,6 +51,7 @@ const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
 export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum])
+export const wrapperConfirmationChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Polygon])
 export const rateLimitMaxRetries = 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`

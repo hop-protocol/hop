@@ -9,7 +9,7 @@ import {
   RelayableChains,
   RootSetSettleDelayMs
 } from 'src/constants'
-import { IsExitSystemLive, TxRetryDelayMs, oruChains } from 'src/config'
+import { IsExitSystemLive, TxRetryDelayMs, oruChains, wrapperConfirmationChains } from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransferRoot {
@@ -597,6 +597,9 @@ class TransferRootsDb extends BaseDb {
         bondTimestampOk = bondedAtMs + ChallengePeriodMs < Date.now()
       }
 
+      const sourceChain = chainIdToSlug(item.sourceChainId)
+      const isWrapperConfirmableChain = wrapperConfirmationChains.has(sourceChain)
+
       return (
         item.commitTxHash &&
         !item.confirmed &&
@@ -610,7 +613,8 @@ class TransferRootsDb extends BaseDb {
         item.bondedAt &&
         !isChallenged &&
         timestampOk &&
-        bondTimestampOk
+        bondTimestampOk &&
+        isWrapperConfirmableChain
       )
     })
 

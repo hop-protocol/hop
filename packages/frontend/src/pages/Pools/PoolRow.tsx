@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
+import Skeleton from '@material-ui/lab/Skeleton'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -82,21 +83,21 @@ export function PoolRow (props: Props) {
       <td>
         <Box p={1}>
           <Typography variant="body1">
-            {userBalanceFormatted}
+            {userBalanceFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : userBalanceFormatted }
           </Typography>
         </Box>
       </td>
       <td>
         <Box p={1}>
           <Typography variant="body1">
-            {tvlFormatted}
+            {tvlFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : tvlFormatted }
           </Typography>
         </Box>
       </td>
       <td>
         <Box p={1}>
           <Typography variant="body1">
-            <strong>{totalAprFormatted}</strong>
+            {totalAprFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : <strong>{totalAprFormatted}</strong> }
           </Typography>
         </Box>
       </td>

@@ -36,15 +36,15 @@ export function usePools () {
             poolName,
             poolSubtitle,
             userBalance: 0,
-            userBalanceFormatted: '-',
+            userBalanceFormatted: '',
             tvl: 0,
-            tvlFormatted: '-',
+            tvlFormatted: '',
             apr: 0,
-            aprFormatted: '-',
+            aprFormatted: '',
             stakingApr: 0,
-            stakingAprFormatted: '-',
+            stakingAprFormatted: '',
             totalApr: 0,
-            totalAprFormatted: '-',
+            totalAprFormatted: '',
             depositLink,
           })
         }
@@ -84,6 +84,8 @@ export function usePools () {
         if (balance.gt(0)) {
           pool.userBalance = bridge.formatUnits(balance, 18)
           pool.userBalanceFormatted = balanceFormatted
+        } else {
+          pool.userBalanceFormatted = '-'
         }
         setPools([...pools])
       }))

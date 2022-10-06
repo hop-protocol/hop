@@ -16,6 +16,8 @@ class CoinGecko {
   private readonly _baseUrl: string = 'https://api.coingecko.com/api/v3'
   private readonly _maxPerPage: number = 100
   private readonly _maxPages: number = 40
+
+  // note: all symbols should be uppercased
   private readonly _tokenSymbolAddressMap: { [key: string]: string } = {
     ADT: '0xD0D6D6C5Fe4a677D343cC433536BB717bAe167dD',
     BAT: '0x0D8775F648430679A709E98d2b0Cb6250d2887EF',
@@ -57,7 +59,7 @@ class CoinGecko {
     ZRX: '0xE41d2489571d322189246DaFA5ebDe1F4699F498',
     HOP: '0xc5102fE9359FD9a28f877a67E36B0F050d81a3CC',
     SNX: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
-    sUSD: '0x57Ab1ec28D129707052df4dF418D58a2D46d5f51'
+    SUSD: '0x57Ab1ec28D129707052df4dF418D58a2D46d5f51'
   }
 
   private readonly _nonEthTokens: { [key: string]: string } = {

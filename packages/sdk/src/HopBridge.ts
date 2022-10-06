@@ -1564,6 +1564,20 @@ class HopBridge extends Base {
     return reserve0.add(reserve1)
   }
 
+  public async getTvl (chain: TChain = this.sourceChain) {
+    return this.getReservesTotal(chain)
+  }
+
+  public async getTvlUsd (chain: TChain = this.sourceChain): Promise<number> {
+    const token = this.toTokenModel(this.tokenSymbol)
+    const [tvl, tokenPrice] = await Promise.all([
+      this.getTvl(chain),
+      this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
+    ])
+    const tvlFormatted = this.formatUnits(tvl)
+    return tvlFormatted * tokenPrice
+  }
+
   /**
    * @desc Returns Hop Bridge Saddle Swap LP Token Ethers contract instance.
    * @param {Object} chain - Chain model.
@@ -2358,8 +2372,9 @@ class HopBridge extends Base {
 
   get supportedChains (): string[] {
     const supported = new Set()
+    const token = this.toTokenModel(this.tokenSymbol)
     for (const chain in this.chains) {
-      if (this.addresses[this.tokenSymbol][chain]) {
+      if (this.addresses[token.canonicalSymbol][chain]) {
         supported.add(chain)
       }
     }
@@ -2367,9 +2382,10 @@ class HopBridge extends Base {
   }
 
   get supportedLpChains (): string[] {
+    const token = this.toTokenModel(this.tokenSymbol)
     const supported = new Set()
     for (const chain of this.supportedChains) {
-      if (chain === ChainSlug.Ethereum || this.tokenSymbol === TokenModel.HOP) {
+      if (chain === ChainSlug.Ethereum || token.canonicalSymbol === TokenModel.HOP) {
         continue
       }
       supported.add(chain)

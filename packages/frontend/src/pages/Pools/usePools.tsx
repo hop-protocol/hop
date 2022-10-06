@@ -59,9 +59,9 @@ export function usePools () {
     async function update() {
       await Promise.all(pools.map(async pool => {
         const bridge = sdk.bridge(pool.token.symbol)
-        const tvl = await bridge.getReservesTotal(pool.chain.slug)
-        pool.tvl = bridge.formatUnits(tvl)
-        pool.tvlFormatted = formatTokenDecimalString(tvl, pool.token.decimals, 4)
+        const tvl = await bridge.getTvlUsd(pool.chain.slug)
+        pool.tvl = tvl
+        pool.tvlFormatted = `$${formatTokenDecimalString(tvl, 0, 4)}`
         setPools([...pools])
       }))
     }

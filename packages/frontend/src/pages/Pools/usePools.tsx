@@ -82,12 +82,10 @@ export function usePools () {
       }
       await Promise.all(pools.map(async pool => {
         const bridge = sdk.bridge(pool.token.symbol)
-        const lpToken = bridge.getSaddleLpToken(pool.chain.slug)
-        const balance = await lpToken.balanceOf(address.address)
-        const balanceFormatted = formatTokenDecimalString(balance, 18, 4)
-        if (balance.gt(0)) {
-          pool.userBalance = bridge.formatUnits(balance, 18)
-          pool.userBalanceFormatted = balanceFormatted
+        const balance = await bridge.getAccountLpCanonicalBalanceUsd(pool.chain.slug, address.address)
+        if (balance > 0) {
+          pool.userBalance = balance
+          pool.userBalanceFormatted = `$${formatTokenDecimalString(balance, 0, 4)}`
         } else {
           pool.userBalanceFormatted = '-'
         }

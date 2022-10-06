@@ -1574,8 +1574,16 @@ class HopBridge extends Base {
       this.getTvl(chain),
       this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
     ])
+    if (tvl.lte(0)) {
+      return 0
+    }
     const tvlFormatted = this.formatUnits(tvl)
-    return tvlFormatted * tokenPrice
+    let tvlUsd = tvlFormatted * tokenPrice
+    if (tvlUsd < 0) {
+      tvlUsd = 0
+    }
+
+    return tvlUsd
   }
 
   /**
@@ -2395,6 +2403,39 @@ class HopBridge extends Base {
 
   getSupportedLpChains (): string[] {
     return this.supportedLpChains
+  }
+
+  async getAccountLpBalance (chain: TChain, account?: string) {
+    const lpToken = this.getSaddleLpToken(chain)
+    const balance = await lpToken.balanceOf(account)
+    return balance
+  }
+
+  async getAccountLpCanonicalBalance (chain: TChain, account?: string) {
+    const token = this.toTokenModel(this.tokenSymbol)
+    const lpToken = this.getSaddleLpToken(chain)
+    const balance = await lpToken.balanceOf(account)
+    const amm = this.getAmm(chain)
+    const virtualPrice = await amm.getVirtualPrice()
+    const canonicalBalance = balance.mul(virtualPrice).div(parseUnits('1', 18))
+    return canonicalBalance
+  }
+
+  async getAccountLpCanonicalBalanceUsd (chain: TChain, account?: string) {
+    const token = this.toTokenModel(this.tokenSymbol)
+    const [balance, tokenPrice] = await Promise.all([
+      this.getAccountLpCanonicalBalance(chain, account),
+      this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
+    ])
+    if (balance.lte(0)) {
+      return 0
+    }
+    const balanceFormatted = this.formatUnits(balance, 18)
+    let balanceUsd = balanceFormatted * tokenPrice
+    if (balanceUsd < 0) {
+      balanceUsd = 0
+    }
+    return balanceUsd
   }
 }
 

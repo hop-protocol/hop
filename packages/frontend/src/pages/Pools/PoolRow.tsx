@@ -12,19 +12,24 @@ export const useStyles = makeStyles(theme => ({
     position: 'relative'
   },
   chainImage: {
-    width: '16px',
+    width: '18px',
     position: 'absolute',
     top: '-5px',
     left: '-5px'
   },
   tokenImage: {
-    width: '32px'
+    width: '36px'
   },
   poolLink: {
     textDecoration: 'none'
   },
   depositLink: {
     textDecoration: 'none'
+  },
+  hideMobile: {
+    [theme.breakpoints.down('xs')]: {
+      display: 'none'
+    },
   }
 }))
 
@@ -47,12 +52,14 @@ type Data = {
 }
 
 type Props = {
+  isAllPools?: boolean
   data: Data
 }
 
 export function PoolRow (props: Props) {
   const styles = useStyles()
-  const { token, chain, poolName, poolSubtitle, userBalanceFormatted, tvlFormatted, totalAprFormatted, depositLink } = props.data
+  const { isAllPools, data } = props
+  const { token, chain, poolName, poolSubtitle, userBalanceFormatted, tvlFormatted, totalAprFormatted, depositLink } = data
 
   return (
     <tr>
@@ -80,21 +87,21 @@ export function PoolRow (props: Props) {
           </Box>
         </Link>
       </td>
-      <td>
+      <td className={isAllPools ? styles.hideMobile : ''}>
         <Box p={1}>
           <Typography variant="body1">
             {userBalanceFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : userBalanceFormatted }
           </Typography>
         </Box>
       </td>
-      <td>
+      <td className={styles.hideMobile}>
         <Box p={1}>
           <Typography variant="body1">
             {tvlFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : tvlFormatted }
           </Typography>
         </Box>
       </td>
-      <td>
+      <td className={!isAllPools ? styles.hideMobile : ''}>
         <Box p={1}>
           <Typography variant="body1">
             {totalAprFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : <strong>{totalAprFormatted}</strong> }

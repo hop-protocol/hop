@@ -74,6 +74,10 @@ export function usePools () {
         return
       }
       if (!address) {
+        for (const pool of pools) {
+          pool.userBalanceFormatted = '-'
+        }
+        setPools([...pools])
         return
       }
       await Promise.all(pools.map(async pool => {

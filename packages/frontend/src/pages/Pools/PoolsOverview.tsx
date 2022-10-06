@@ -20,14 +20,24 @@ export const useStyles = makeStyles(theme => ({
     cursor: 'pointer',
     textDecoration: 'none'
   },
+  filters: {
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column'
+    },
+  },
   filterImageContainer: {
 
   },
   filterImage: {
-    width: '16px',
+    width: '18px',
     '&[data-disabled="true"]': {
        filter: 'grayscale(0.8)'
     }
+  },
+  hideMobile: {
+    [theme.breakpoints.down('xs')]: {
+      display: 'none'
+    },
   }
 }))
 
@@ -57,7 +67,12 @@ export function PoolsOverview () {
   }
 
   return (
-    <Box maxWidth={"800px"} m={"0 auto"}>
+    <Box maxWidth={"900px"} m={"0 auto"}>
+      <Box mb={4} p={1} textAlign="left">
+        <Typography variant="h4">
+          Add liquidity to earn trading fees and rewards.
+        </Typography>
+      </Box>
       {userPools.length > 0 && (
         <Box className={styles.box} p={4} mb={6}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
@@ -84,14 +99,14 @@ export function PoolsOverview () {
                     </Typography>
                   </Box>
                 </th>
-                <th>
+                <th className={styles.hideMobile}>
                   <Box p={1} textAlign="left">
                     <Typography variant="subtitle2" color="secondary">
                     TVL
                     </Typography>
                   </Box>
                 </th>
-                <th>
+                <th className={styles.hideMobile}>
                   <Box p={1} textAlign="left">
                     <Typography variant="subtitle2" color="secondary">
                     Total APR
@@ -122,7 +137,7 @@ export function PoolsOverview () {
               All Pools
             </Typography>
           </Box>
-          <Box display="flex">
+          <Box display="flex" className={styles.filters}>
             <Box display="flex" alignItems="center" mr={2}>
               <Box mr={1}>
                 <Typography variant="subtitle2">
@@ -171,7 +186,7 @@ export function PoolsOverview () {
                   </Typography>
                 </Box>
               </th>
-              <th>
+              <th className={styles.hideMobile}>
                 <Box p={1} textAlign="left">
                   <a className={styles.thLink} onClick={handleColumnSortFn('userBalance')}>
                     <Typography variant="subtitle2" color="secondary">
@@ -180,7 +195,7 @@ export function PoolsOverview () {
                   </a>
                 </Box>
               </th>
-              <th>
+              <th className={styles.hideMobile}>
                 <Box p={1} textAlign="left">
                   <a className={styles.thLink} onClick={handleColumnSortFn('tvl')}>
                     <Typography variant="subtitle2" color="secondary">
@@ -208,7 +223,7 @@ export function PoolsOverview () {
             </tr>
             {pools.map((data: any) => {
               return (
-                <PoolRow data={data} />
+                <PoolRow data={data} isAllPools />
               )
             })}
           </table>

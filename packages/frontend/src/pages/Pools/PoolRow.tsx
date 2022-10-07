@@ -2,7 +2,8 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import Button from '@material-ui/core/Button'
+import MuiButton from '@material-ui/core/Button'
+import Button from 'src/components/buttons/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import Skeleton from '@material-ui/lab/Skeleton'
 
@@ -36,6 +37,12 @@ export const useStyles = makeStyles(theme => ({
     background: 'none',
     boxShadow: 'none'
   },
+  claimLink: {
+    textDecoration: 'none',
+    background: 'none',
+    boxShadow: 'none',
+    color: 'white'
+  },
   hideMobile: {
     [theme.breakpoints.down('xs')]: {
       display: 'none'
@@ -60,6 +67,8 @@ type Data = {
   userBalance: number
   userBalanceFormatted: string
   depositLink: string
+  canClaim: boolean
+  claimLink: string
 }
 
 type Props = {
@@ -70,7 +79,7 @@ type Props = {
 export function PoolRow (props: Props) {
   const styles = useStyles()
   const { isAllPools, data } = props
-  const { token, chain, poolName, poolSubtitle, userBalanceFormatted, tvlFormatted, totalAprFormatted, stakingApr, stakingAprChain, depositLink } = data
+  const { token, chain, poolName, poolSubtitle, userBalanceFormatted, tvlFormatted, totalAprFormatted, stakingApr, stakingAprChain, depositLink, canClaim, claimLink } = data
 
   return (
     <tr>
@@ -128,14 +137,23 @@ export function PoolRow (props: Props) {
         }
       </td>
       <td>
-        <Box p={1}>
-          <Button variant="text" className={styles.depositLink}>
-            <Link to={depositLink} className={styles.depositLink}>
-              <Typography variant="body1" component="span" title="Deposit into pool">
-                <strong>Invest</strong>
-              </Typography>
-            </Link>
-          </Button>
+        <Box p={1} display="flex" justifyContent="center">
+          {canClaim ? <>
+            <Button highlighted>
+                <Link to={claimLink} className={styles.claimLink}>
+                Claim
+                </Link>
+              </Button>
+          </> : <>
+          <MuiButton variant="text" className={styles.depositLink}>
+              <Link to={depositLink} className={styles.depositLink}>
+                <Typography variant="body1" component="span" title="Deposit into pool">
+                  <strong>Invest</strong>
+                </Typography>
+              </Link>
+            </MuiButton>
+         </>
+          }
         </Box>
       </td>
     </tr>

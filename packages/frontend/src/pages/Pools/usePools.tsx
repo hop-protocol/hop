@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
+import { BigNumber } from 'ethers'
 import { useApp } from 'src/contexts/AppContext'
-import { addresses } from 'src/config'
+import { addresses, stakingRewardsContracts } from 'src/config'
 import { toPercentDisplay } from 'src/utils'
 import { formatTokenString, formatTokenDecimalString } from 'src/utils/format'
 import { findNetworkBySlug } from 'src/utils/networks'
 import { getTokenImage } from 'src/utils/tokens'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import { StakingRewards, StakingRewards__factory } from '@hop-protocol/core/contracts'
 
 const cache : any = {}
 
@@ -27,12 +29,16 @@ export function usePools () {
       for (const token in addresses.tokens) {
         const bridge = sdk.bridge(token)
         for (const chain of bridge.getSupportedLpChains()) {
-          const chainModel = findNetworkBySlug(chain)!
+          const chainModel = findNetworkBySlug(chain)
           const tokenModel = bridge.toTokenModel(token)
+          if (!(chainModel && tokenModel)) {
+            continue
+          }
           const tokenImage = getTokenImage(tokenModel.symbol)
           const poolName = `${token} ${chainModel.name} Pool`
           const poolSubtitle = `${token} - h${token}`
           const depositLink = `/pool?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
+          const claimLink = `/stake?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           _pools.push({
             token: { ...tokenModel, imageUrl: tokenImage },
             chain: chainModel,
@@ -50,6 +56,8 @@ export function usePools () {
             totalApr: 0,
             totalAprFormatted: '',
             depositLink,
+            canClaim: false,
+            claimLink
           })
         }
       }
@@ -225,6 +233,47 @@ export function usePools () {
     }
     update().catch(console.error)
   }, [isSet])
+
+  useEffect(() => {
+    async function update() {
+      if (!isSet) {
+        return
+      }
+      if (!accountAddress) {
+        for (const pool of pools) {
+          if (pool.canClaim) {
+            pool.canClaim = false
+            setPools([...pools])
+          }
+        }
+        return
+      }
+      await Promise.all(pools.map(async (pool: any) => {
+        try {
+          const cacheKey = `${pool.chain.slug}:${pool.token.symbol}:${accountAddress}`
+          const address = stakingRewardsContracts?.[pool.chain.slug]?.[pool.token.symbol]
+          if (address) {
+            let earned = BigNumber.from(0)
+            if (cache[cacheKey]) {
+              earned = cache[cacheKey]
+            } else {
+              const _provider = sdk.getChainProvider(pool.chain.slug)
+              const contract = StakingRewards__factory.connect(address, _provider)
+              earned = await contract?.earned(accountAddress)
+              cache[cacheKey] = earned
+            }
+            if (earned.gt(0)) {
+              pool.canClaim = true
+              setPools([...pools])
+            }
+          }
+        } catch (err) {
+          console.error(err)
+        }
+      }))
+    }
+    update().catch(console.error)
+  }, [isSet, pools, accountAddress])
 
   function toggleFilterToken (symbol: string) {
     for (const filterToken of filterTokens) {

@@ -125,7 +125,7 @@ export function PoolsOverview () {
                 <th>
                   <Box p={1} textAlign="left">
                     <Typography variant="subtitle2" color="secondary">
-                     <Box display="flex" alignItems="center">
+                     <Box display="flex" alignItems="center" justifyContent="center">
                        Action <InfoTooltip title="Deposit into pool or withdraw from pool" />
                     </Box>
                     </Typography>
@@ -241,7 +241,7 @@ export function PoolsOverview () {
               <th>
                 <Box p={1} textAlign="left">
                   <Typography variant="subtitle2" color="secondary">
-                    <Box display="flex" alignItems="center">
+                    <Box display="flex" alignItems="center" justifyContent="center">
                      Action <InfoTooltip title="Deposit into pool" />
                     </Box>
                   </Typography>

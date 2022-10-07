@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
+import Button from '@material-ui/core/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import Skeleton from '@material-ui/lab/Skeleton'
 
@@ -24,10 +25,16 @@ export const useStyles = makeStyles(theme => ({
     width: '36px'
   },
   poolLink: {
-    textDecoration: 'none'
+    textDecoration: 'none',
+    display: 'block',
+    '&:hover': {
+      background: '#0000000d'
+    }
   },
   depositLink: {
-    textDecoration: 'none'
+    textDecoration: 'none',
+    background: 'none',
+    boxShadow: 'none'
   },
   hideMobile: {
     [theme.breakpoints.down('xs')]: {
@@ -93,7 +100,7 @@ export function PoolRow (props: Props) {
       </td>
       <td className={isAllPools ? styles.hideMobile : ''}>
         <Box p={1}>
-          {userBalanceFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : <Typography variant="body1" title="Your pool position value in USD">
+          {userBalanceFormatted === '' ? <Skeleton animation="wave" width={'100%'} title="loading" /> : <Typography variant="body1" title="Your pool position value in USD">
               {userBalanceFormatted}
             </Typography>
           }
@@ -101,14 +108,14 @@ export function PoolRow (props: Props) {
       </td>
       <td className={styles.hideMobile}>
         <Box p={1}>
-          {tvlFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : <Typography variant="body1" title="Total value locked in USD">
+          {tvlFormatted === '' ? <Skeleton animation="wave" width={'100%'} title="loading" /> : <Typography variant="body1" title="Total value locked in USD">
               {tvlFormatted}
             </Typography>
           }
         </Box>
       </td>
       <td className={!isAllPools ? styles.hideMobile : ''}>
-        {totalAprFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : <Box p={1} display="flex" justifyContent="flex-start" alignItems="center">
+        {totalAprFormatted === '' ? <Skeleton animation="wave" width={'100%'} title="loading" /> : <Box p={1} display="flex" justifyContent="flex-start" alignItems="center">
             <Typography variant="body1" title="Total APR which is AMM APR + any staking rewards APR">
               <strong>{totalAprFormatted}</strong>
             </Typography>
@@ -122,11 +129,13 @@ export function PoolRow (props: Props) {
       </td>
       <td>
         <Box p={1}>
-          <Link to={depositLink} className={styles.depositLink}>
-            <Typography variant="body1" component="span">
-               <strong>Invest</strong>
-            </Typography>
-          </Link>
+          <Button variant="text" className={styles.depositLink}>
+            <Link to={depositLink} className={styles.depositLink}>
+              <Typography variant="body1" component="span" title="Deposit into pool">
+                <strong>Invest</strong>
+              </Typography>
+            </Link>
+          </Button>
         </Box>
       </td>
     </tr>

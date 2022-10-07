@@ -7,6 +7,8 @@ import { findNetworkBySlug } from 'src/utils/networks'
 import { getTokenImage } from 'src/utils/tokens'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 
+const cache : any = {}
+
 export function usePools () {
   const { sdk } = useApp()
   const { address } = useWeb3Context()
@@ -17,6 +19,7 @@ export function usePools () {
   const [filterChains, setFilterChains] = useState<any[]>([])
   const [columnSort, setColumnSort] = useState<string>('')
   const [columnSortDesc, setColumnSortDesc] = useState(true)
+  const accountAddress = address?.address
 
   useEffect(() => {
     async function update () {
@@ -59,11 +62,25 @@ export function usePools () {
   useEffect(() => {
     async function update() {
       await Promise.all(pools.map(async pool => {
-        const bridge = sdk.bridge(pool.token.symbol)
-        const tvl = await bridge.getTvlUsd(pool.chain.slug)
-        pool.tvl = tvl
-        pool.tvlFormatted = `$${formatTokenDecimalString(tvl, 0, 4)}`
-        setPools([...pools])
+        try {
+          const cacheKey = `${pool.token.symbol}:${pool.chain.slug}`
+          if (cache[cacheKey]) {
+            const tvl = cache[cacheKey]
+            pool.tvl = tvl
+            pool.tvlFormatted = `$${formatTokenDecimalString(tvl, 0, 4)}`
+            setPools([...pools])
+            return
+          }
+          const bridge = sdk.bridge(pool.token.symbol)
+          const tvl = await bridge.getTvlUsd(pool.chain.slug)
+          cache[cacheKey] = tvl
+          pool.tvl = tvl
+          pool.tvlFormatted = `$${formatTokenDecimalString(tvl, 0, 4)}`
+          setPools([...pools])
+        } catch (err: any) {
+          // alert(err.message)
+          console.error(err)
+        }
       }))
     }
     update().catch(console.error)
@@ -74,27 +91,33 @@ export function usePools () {
       if (!isSet) {
         return
       }
-      if (!address) {
+      if (!accountAddress) {
         for (const pool of pools) {
+          pool.userBalance = 0
           pool.userBalanceFormatted = '-'
         }
         setPools([...pools])
         return
       }
       await Promise.all(pools.map(async pool => {
-        const bridge = sdk.bridge(pool.token.symbol)
-        const balance = await bridge.getAccountLpCanonicalBalanceUsd(pool.chain.slug, address.address)
-        if (balance > 0) {
-          pool.userBalance = balance
-          pool.userBalanceFormatted = `$${formatTokenDecimalString(balance, 0, 4)}`
-        } else {
-          pool.userBalanceFormatted = '-'
+        try {
+          const bridge = sdk.bridge(pool.token.symbol)
+          const balance = await bridge.getAccountLpCanonicalBalanceUsd(pool.chain.slug, accountAddress)
+          if (balance > 0) {
+            pool.userBalance = balance
+            pool.userBalanceFormatted = `$${formatTokenDecimalString(balance, 0, 4)}`
+          } else {
+            pool.userBalanceFormatted = '-'
+          }
+          setPools([...pools])
+        } catch (err: any) {
+          // alert(err.message)
+          console.error(err)
         }
-        setPools([...pools])
       }))
     }
     update().catch(console.error)
-  }, [isSet, address])
+  }, [isSet, accountAddress])
 
   useEffect(() => {
     async function update() {

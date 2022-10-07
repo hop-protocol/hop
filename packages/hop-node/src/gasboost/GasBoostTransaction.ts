@@ -580,7 +580,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.clearInflightTxs()
     this.emit(State.Error)
     const warnMsg = `max rebroadcast index reached. cannot rebroadcast.`
-    this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
+   const errMsg = `max rebroadcast index reached. cannot rebroadcast.`
+    this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
+    this.logger.error(errMsg)
     this.logger.warn(warnMsg)
   }
 

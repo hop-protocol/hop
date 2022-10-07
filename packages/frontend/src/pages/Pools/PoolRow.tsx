@@ -17,6 +17,9 @@ export const useStyles = makeStyles(theme => ({
     top: '-5px',
     left: '-5px'
   },
+  stakingAprChainImage: {
+    width: '20px',
+  },
   tokenImage: {
     width: '36px'
   },
@@ -44,6 +47,7 @@ type Data = {
   aprFormatted: string
   stakingApr: number
   stakingAprFormatted: string
+  stakingAprChain: any
   totalApr: number
   totalAprFormatted: string
   userBalance: number
@@ -59,7 +63,7 @@ type Props = {
 export function PoolRow (props: Props) {
   const styles = useStyles()
   const { isAllPools, data } = props
-  const { token, chain, poolName, poolSubtitle, userBalanceFormatted, tvlFormatted, totalAprFormatted, depositLink } = data
+  const { token, chain, poolName, poolSubtitle, userBalanceFormatted, tvlFormatted, totalAprFormatted, stakingApr, stakingAprChain, depositLink } = data
 
   return (
     <tr>
@@ -68,18 +72,18 @@ export function PoolRow (props: Props) {
           <Box p={1} display="flex">
             <Box mr={2}>
               <Box className={styles.imageContainer}>
-                <img className={styles.chainImage} src={chain.imageUrl} alt={chain.name} />
-                <img className={styles.tokenImage} src={token.imageUrl} alt={token.symbol} />
+                <img className={styles.chainImage} src={chain.imageUrl} alt={chain.name} title={chain.name} />
+                <img className={styles.tokenImage} src={token.imageUrl} alt={token.symbol} title={token.symbol} />
               </Box>
             </Box>
             <Box display="flex" flexDirection="column">
               <Box>
-                <Typography variant="body1">
+                <Typography variant="body1" title="Pool">
                   <strong>{poolName}</strong>
                 </Typography>
               </Box>
               <Box>
-                <Typography variant="body2" color="secondary">
+                <Typography variant="body2" color="secondary" title="Tokens in pool">
                   {poolSubtitle}
                 </Typography>
               </Box>
@@ -89,24 +93,32 @@ export function PoolRow (props: Props) {
       </td>
       <td className={isAllPools ? styles.hideMobile : ''}>
         <Box p={1}>
-          <Typography variant="body1">
-            {userBalanceFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : userBalanceFormatted }
-          </Typography>
+          {userBalanceFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : <Typography variant="body1" title="Your pool position value in USD">
+              {userBalanceFormatted}
+            </Typography>
+          }
         </Box>
       </td>
       <td className={styles.hideMobile}>
         <Box p={1}>
-          <Typography variant="body1">
-            {tvlFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : tvlFormatted }
-          </Typography>
+          {tvlFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : <Typography variant="body1" title="Total value locked in USD">
+              {tvlFormatted}
+            </Typography>
+          }
         </Box>
       </td>
       <td className={!isAllPools ? styles.hideMobile : ''}>
-        <Box p={1}>
-          <Typography variant="body1">
-            {totalAprFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : <strong>{totalAprFormatted}</strong> }
-          </Typography>
-        </Box>
+        {totalAprFormatted === '' ? <Skeleton animation="wave" width={'100%'} /> : <Box p={1} display="flex" justifyContent="flex-start" alignItems="center">
+            <Typography variant="body1" title="Total APR which is AMM APR + any staking rewards APR">
+              <strong>{totalAprFormatted}</strong>
+            </Typography>
+            {stakingApr > 0 ? <Box ml={1} display="flex" justifyContent="center" alignItems="center">
+              <span title="Boosted APR">⚡</span>
+              {stakingAprChain ? <Box ml={1} display="flex">
+              <img className={styles.stakingAprChainImage} src={stakingAprChain.imageUrl} alt={stakingAprChain.name} title={stakingAprChain.name} /></Box> : null}
+            </Box> : null}
+          </Box>
+        }
       </td>
       <td>
         <Box p={1}>

@@ -149,7 +149,7 @@ export function PoolsOverview () {
                   return (
                     <Box display="flex" className={styles.filterImageContainer}>
                       <IconButton onClick={handleTokenToggleFilterFn(x.symbol)} size="small" >
-                        <img className={styles.filterImage} src={x.imageUrl} alt={x.symbol} data-disabled={!x.enabled} />
+                        <img className={styles.filterImage} src={x.imageUrl} alt={x.symbol} data-disabled={!x.enabled} title={x.symbol} />
                       </IconButton>
                     </Box>
                   )
@@ -167,7 +167,7 @@ export function PoolsOverview () {
                   return (
                     <Box display="flex" className={styles.filterImageContainer}>
                       <IconButton onClick={handleChainToggleFilterFn(x.slug)} size="small">
-                        <img className={styles.filterImage} src={x.imageUrl} alt={x.name} data-disabled={!x.enabled} />
+                        <img className={styles.filterImage} src={x.imageUrl} alt={x.name} data-disabled={!x.enabled} title={x.name} />
                       </IconButton>
                     </Box>
                   )

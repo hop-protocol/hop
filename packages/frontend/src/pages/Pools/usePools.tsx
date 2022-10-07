@@ -43,6 +43,7 @@ export function usePools () {
             aprFormatted: '',
             stakingApr: 0,
             stakingAprFormatted: '',
+            stakingAprChain: null,
             totalApr: 0,
             totalAprFormatted: '',
             depositLink,
@@ -186,6 +187,7 @@ export function usePools () {
           pool.stakingAprFormatted = toPercentDisplay(stakingApr)
           pool.totalApr = apr + stakingApr
           pool.totalAprFormatted = toPercentDisplay(apr + stakingApr)
+          pool.stakingAprChain = findNetworkBySlug(chain)!
 
           setPools([...pools])
         } catch (err) {

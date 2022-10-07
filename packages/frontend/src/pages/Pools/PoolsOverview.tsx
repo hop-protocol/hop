@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
+import InfoTooltip from 'src/components/InfoTooltip'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -78,7 +79,9 @@ export function PoolsOverview () {
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
             <Box p={1} textAlign="left">
               <Typography variant="h5">
-                My Pools
+                <Box display="flex" alignItems="center">
+                  My Pools <InfoTooltip title="The pools the connected account has deposited into" />
+                </Box>
               </Typography>
             </Box>
           </Box>
@@ -95,28 +98,36 @@ export function PoolsOverview () {
                 <th>
                   <Box p={1} textAlign="left">
                     <Typography variant="subtitle2" color="secondary">
-                    My Liquidity
+                     <Box display="flex" alignItems="center">
+                       My Liquidity <InfoTooltip title="Your pool position value in USD" />
+                     </Box>
                     </Typography>
                   </Box>
                 </th>
                 <th className={styles.hideMobile}>
                   <Box p={1} textAlign="left">
                     <Typography variant="subtitle2" color="secondary">
-                    TVL
+                     <Box display="flex" alignItems="center">
+                       TVL <InfoTooltip title="Total Value Locked; the total number of tokens that are in the pool, shown in USD" />
+                     </Box>
                     </Typography>
                   </Box>
                 </th>
                 <th className={styles.hideMobile}>
                   <Box p={1} textAlign="left">
                     <Typography variant="subtitle2" color="secondary">
-                    Total APR
+                     <Box display="flex" alignItems="center">
+                      Total APR <InfoTooltip title="Total APR is AMM APR + any staking rewards APR" />
+                     </Box>
                     </Typography>
                   </Box>
                 </th>
                 <th>
                   <Box p={1} textAlign="left">
                     <Typography variant="subtitle2" color="secondary">
-                    Action
+                     <Box display="flex" alignItems="center">
+                       Action <InfoTooltip title="Deposit into pool or withdraw from pool" />
+                    </Box>
                     </Typography>
                   </Box>
                 </th>
@@ -134,12 +145,17 @@ export function PoolsOverview () {
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
           <Box p={1} textAlign="left">
             <Typography variant="h5">
-              All Pools
+              <Box display="flex" alignItems="center">
+                All Pools <InfoTooltip title="All the pools you can deposit into" />
+              </Box>
             </Typography>
           </Box>
           <Box display="flex" className={styles.filters}>
             <Box display="flex" alignItems="center" mr={2}>
-              <Box mr={1}>
+              <Box display="flex" alignItems="center" mr={1}>
+                <Box display="flex" alignItems="center">
+                  <InfoTooltip title="Filter table by selected tokens" />
+                </Box>
                 <Typography variant="subtitle2">
                   Tokens:
                 </Typography>
@@ -157,7 +173,10 @@ export function PoolsOverview () {
               </Box>
             </Box>
             <Box display="flex" alignItems="center">
-              <Box>
+              <Box display="flex" alignItems="center">
+                <Box display="flex" alignItems="center">
+                  <InfoTooltip title="Filter table by selected networks" />
+                </Box>
                 <Typography variant="subtitle2">
                   Networks:
                 </Typography>
@@ -190,7 +209,9 @@ export function PoolsOverview () {
                 <Box p={1} textAlign="left">
                   <a className={styles.thLink} onClick={handleColumnSortFn('userBalance')}>
                     <Typography variant="subtitle2" color="secondary">
-                    My Liquidity
+                     <Box display="flex" alignItems="center">
+                       My Liquidity <InfoTooltip title="Your pool position value in USD" />
+                     </Box>
                     </Typography>
                   </a>
                 </Box>
@@ -199,7 +220,9 @@ export function PoolsOverview () {
                 <Box p={1} textAlign="left">
                   <a className={styles.thLink} onClick={handleColumnSortFn('tvl')}>
                     <Typography variant="subtitle2" color="secondary">
-                    TVL
+                     <Box display="flex" alignItems="center">
+                      TVL <InfoTooltip title="Total Value Locked; the total number of tokens that are in the pool, shown in USD" />
+                     </Box>
                     </Typography>
                   </a>
                 </Box>
@@ -208,7 +231,9 @@ export function PoolsOverview () {
                 <Box p={1} textAlign="left">
                   <a className={styles.thLink} onClick={handleColumnSortFn('totalApr')}>
                     <Typography variant="subtitle2" color="secondary">
-                    Total APR
+                     <Box display="flex" alignItems="center">
+                       Total APR <InfoTooltip title="Total APR is AMM APR + any staking rewards APR" />
+                     </Box>
                     </Typography>
                   </a>
                 </Box>
@@ -216,7 +241,9 @@ export function PoolsOverview () {
               <th>
                 <Box p={1} textAlign="left">
                   <Typography variant="subtitle2" color="secondary">
-                   Action
+                    <Box display="flex" alignItems="center">
+                     Action <InfoTooltip title="Deposit into pool" />
+                    </Box>
                   </Typography>
                 </Box>
               </th>

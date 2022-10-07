@@ -81,11 +81,14 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   initialTxGasPriceMultiplier: number = MaxGasPriceMultiplier // multiplier for gasPrice for first tx
   maxGasPriceGwei: number = 500 // the max we'll keep bumping gasPrice in type 0 txs
   maxGasPriceReached: boolean = false // this is set to true when gasPrice is greater than maxGasPrice
+  maxRebroadcastIndex: number = 10
+  maxRebroadcastIndexReached: boolean = false
   minPriorityFeePerGas: number = MinPriorityFeePerGas // we use this priorityFeePerGas or the ethers suggestions; which ever one is greater
   priorityFeePerGasCap: number = PriorityFeePerGasCap // this the max we'll keep bumping maxPriorityFeePerGas to in type 2 txs. Since maxPriorityFeePerGas is already a type 2 argument, it uses the term cap instead
   compareMarketGasPrice: boolean = true
   warnEthBalance: number = 0.1 // how low ETH balance of signer must get before we log a warning
   boostIndex: number = 0 // number of times transaction has been boosted
+  rebroadcastIndex: number = 0 // number of times transaction has been rebroadcasted
   inflightItems: InflightItem[] = []
   signer: Signer
   store: Store
@@ -475,6 +478,10 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     return this.boostIndex
   }
 
+  getRebroadcastCount (): number {
+    return this.rebroadcastIndex
+  }
+
   setOptions (options: Partial<Options> = {}): void {
     if (options.pollMs) {
       this.pollMs = options.pollMs
@@ -564,8 +571,17 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!
     this.receipt = receipt
     this.emit(State.Confirmed, receipt)
-    this.logger.debug(`confirmed tx: ${tx.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
+    this.logger.debug(`confirmed tx: ${tx.hash}, boostIndex: ${this.boostIndex}, rebroadcastIndex: ${this.rebroadcastIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
     this.watchForReorg()
+  }
+
+  private async handleMaxRebroadcastIndexReached () {
+    this.maxRebroadcastIndexReached = true
+    this.clearInflightTxs()
+    this.emit(State.Error)
+    const warnMsg = `max rebroadcast index reached. cannot rebroadcast.`
+    this.notifier.warn(warnMsg, { channel: gasBoostWarnSlackChannel })
+    this.logger.warn(warnMsg)
   }
 
   private async getReceipt (txHash: string) {
@@ -578,8 +594,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     this.started = true
     while (true) {
-      if (this.confirmations) {
-        this.logger.debug('ending poller. confirmations found.')
+      if (this.confirmations || this.maxRebroadcastIndexReached) {
+        this.logger.debug(`ending poller. confirmations: ${this.confirmations}, maxRebroadcastIndexReached: ${this.maxRebroadcastIndexReached}`)
         break
       }
       try {
@@ -803,7 +819,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     if (prevItem) {
       this.logger.debug(`tracking: prevItem ${JSON.stringify(prevItem)}`)
       prevItem.boosted = true
-      this.logger.debug(`tracking boosted tx: ${tx.hash}, previous tx: ${prevItem.hash}, boostIndex: ${this.boostIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
+      this.logger.debug(`tracking boosted tx: ${tx.hash}, previous tx: ${prevItem.hash}, boostIndex: ${this.boostIndex}, rebroadcastIndex: ${this.rebroadcastIndex}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
     } else {
       this.logger.debug(`tracking new tx: ${tx.hash}, nonce: ${this.nonce.toString()}, ${this.getGasFeeDataAsString()}`)
     }
@@ -891,7 +907,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
         const waitConfirmationsBlockNumber = confirmedBlockNumber + this.reorgWaitConfirmations
         const { number: headBlockNumber } = await this.signer.provider!.getBlock('latest')
         if (headBlockNumber >= waitConfirmationsBlockNumber) {
-          this.logger.debug('checking for tx receipt to see if reorg occured')
+          this.logger.debug('checking for tx receipt to see if reorg occurred')
           const receipt = await this.signer.provider!.getTransactionReceipt(this.hash)
           if (receipt) {
             this.logger.debug(`no reorg; receipt found after waiting reorgWaitConfirmations (${this.reorgWaitConfirmations})`)
@@ -916,7 +932,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   private async rebroadcastLatestTx () {
-    this.logger.debug('attempting to rebroadcast latest transaction')
+    this.logger.debug(`attempting to rebroadcast latest transaction with index ${this.rebroadcastIndex}`)
     const payload: providers.TransactionRequest = {
       type: this.type,
       to: this.to,
@@ -930,10 +946,19 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       chainId: this.chainId
     }
 
-    const tx = await this.signer.sendTransaction(payload)
-    this.logger.debug(`rebroadcasted transaction, tx hash: ${tx.hash}`)
+    // Update state before the tx is sent in case of error
     const item = this.getLatestInflightItem()
     item!.sentAt = Date.now()
+    this.rebroadcastIndex++
+
+    let isMaxReached = this.rebroadcastIndex > this.maxRebroadcastIndex
+    if (isMaxReached) {
+      await this.handleMaxRebroadcastIndexReached()
+      return
+    }
+
+    const tx = await this.signer.sendTransaction(payload)
+    this.logger.debug(`rebroadcasted transaction, tx hash: ${tx.hash}`)
 
     return tx
   }

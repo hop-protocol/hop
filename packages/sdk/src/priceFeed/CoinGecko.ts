@@ -15,6 +15,8 @@ class CoinGecko {
   private _baseUrl: string = 'https://api.coingecko.com/api/v3'
   private _maxPerPage: number = 100
   private _maxPages: number = 40
+
+  // note: all symbols should be uppercased
   private _tokenSymbolAddressMap: { [key: string]: string } = {
     DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     ETH: '0x0000000000000000000000000000000000000000',
@@ -27,7 +29,7 @@ class CoinGecko {
     WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     HOP: '0xc5102fE9359FD9a28f877a67E36B0F050d81a3CC',
     SNX: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
-    sUSD: '0x57Ab1ec28D129707052df4dF418D58a2D46d5f51'
+    SUSD: '0x57Ab1ec28D129707052df4dF418D58a2D46d5f51'
   }
 
   constructor (apiKey?: string) {

@@ -102,9 +102,9 @@ class Base {
 
   public chainProviders: ChainProviders = {}
 
-  private addresses : Record<string, any>
-  private chains: Record<string, any>
-  private bonders :Record<string, any>
+  addresses : Record<string, any>
+  chains: Record<string, any>
+  bonders :Record<string, any>
   fees : { [token: string]: Record<string, number>}
   gasPriceMultiplier: number = 0
   destinationFeeGasPriceMultiplier : number = 1
@@ -254,8 +254,12 @@ class Base {
     return this.supportedNetworks.includes(network)
   }
 
-  get supportedChains () {
+  get supportedChains (): string[] {
     return Object.keys(this.chains)
+  }
+
+  getSupportedChains (): string[] {
+    return this.supportedChains
   }
 
   isValidChain (chain: string) {

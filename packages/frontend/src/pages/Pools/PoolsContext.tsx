@@ -31,6 +31,7 @@ import {
   useAssets,
 } from 'src/hooks'
 import { useInterval } from 'react-use'
+import { getTokenImage } from 'src/utils/tokens'
 
 type PoolsContextProps = {
   addLiquidity: () => void
@@ -94,6 +95,11 @@ type PoolsContextProps = {
   poolSharePercentageFormatted: string
   virtualPriceFormatted: string
   reserveTotalsUsdFormatted: string
+  poolName: string
+  tokenImageUrl: string
+  chainImageUrl: string
+  tokenSymbol: string
+  chainName: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -890,6 +896,11 @@ const PoolsProvider: FC = ({ children }) => {
   const poolSharePercentageFormatted = poolSharePercentage ? `${commafy(poolSharePercentage)}%` : ''
   const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : ''
   const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
+  const tokenSymbol = selectedBridge?.getTokenSymbol() ?? ''
+  const poolName = `${tokenSymbol} ${selectedNetwork?.name} Pool`
+  const tokenImageUrl = tokenSymbol ? getTokenImage(tokenSymbol) : ''
+  const chainImageUrl = selectedNetwork?.imageUrl ?? ''
+  const chainName = selectedNetwork?.name ?? ''
 
   return (
     <PoolsContext.Provider
@@ -955,6 +966,11 @@ const PoolsProvider: FC = ({ children }) => {
         poolSharePercentageFormatted,
         virtualPriceFormatted,
         reserveTotalsUsdFormatted,
+        poolName,
+        tokenImageUrl,
+        chainImageUrl,
+        tokenSymbol,
+        chainName
       }}
     >
       {children}

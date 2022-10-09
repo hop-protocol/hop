@@ -275,10 +275,14 @@ export const useRewards = (props: Props) => {
       return
     }
 
-    const end = DateTime.fromMillis(estimatedDate)
-    const now = DateTime.now()
-    const remaining = end.diff(now)
-    setCountdown(remaining.toFormat(`d'd' h'h' m'm' ss`))
+    if (estimatedDate < Date.now()) {
+      setCountdown('Claimable soon')
+    } else {
+      const end = DateTime.fromMillis(estimatedDate)
+      const now = DateTime.now()
+      const remaining = end.diff(now)
+      setCountdown(remaining.toFormat(`d'd' h'h' m'm' ss`))
+    }
   }
 
   useEffect(() => {

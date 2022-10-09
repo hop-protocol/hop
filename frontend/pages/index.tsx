@@ -1051,12 +1051,17 @@ const Index: NextPage = () => {
                           )}
                         </a>
                         )}
-                        {(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
+                        {x.unbondable ?
+                          <span className="unbondable" title="This transfer is unbondable because of invalid parameters">
+                            ⚠️ Unbondable
+                          </span>
+                        : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
                           <span className="no">
                             <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                             Pending
                           </span>
-                        )}
+                        )}</>
+                         }
                       </td>
                       <td className="bondTx">
                         {x.preregenesis && (

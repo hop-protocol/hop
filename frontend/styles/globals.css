@@ -154,6 +154,9 @@ table img {
 .bonded .no {
   color: #ffc55a;
 }
+.bonded .unbondable {
+  color: #ff7878;
+}
 .bonder {
   color: #ffffff8a;
 }

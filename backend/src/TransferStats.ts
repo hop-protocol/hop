@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-fetch'
-import { Contract, providers } from 'ethers'
+import { Contract, providers, BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db, { getInstance } from './Db'
@@ -313,6 +313,7 @@ class TransferStats {
     })
     const jsonRes = await res.json()
     if (jsonRes.errors?.length) {
+      console.log('error query:', query)
       throw new Error(jsonRes.errors[0].message)
     }
     return jsonRes.data
@@ -1169,7 +1170,8 @@ class TransferStats {
         item.timestamp,
         item.timestampIso,
         item.preregenesis,
-        item.receivedHTokens
+        item.receivedHTokens,
+        item.unbondable
       )
     } catch (err) {
       if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {
@@ -1656,6 +1658,11 @@ class TransferStats {
         x.index = i
         return x
       })
+
+    for (const x of populatedData) {
+      const isUnbondable = (x.destinationChainSlug === 'ethereum' && x.deadline > 0 && BigNumber.from(x.amountOutMin || 0).gt(0))
+      x.unbondable = isUnbondable
+    }
 
     return populatedData
   }

@@ -41,6 +41,9 @@ class Db {
       await this.db.query(`
         ALTER TABLE transfers ADD COLUMN IF NOT EXISTS received_htokens BOOLEAN
       `)
+      await this.db.query(`
+        ALTER TABLE transfers ADD COLUMN IF NOT EXISTS unbondable BOOLEAN
+      `)
     }
 
     await this.db.query(`CREATE TABLE IF NOT EXISTS transfers (
@@ -94,7 +97,8 @@ class Db {
         timestamp NUMERIC NOT NULL,
         timestamp_iso TEXT NOT NULL,
         preregenesis BOOLEAN,
-        received_htokens BOOLEAN
+        received_htokens BOOLEAN,
+        unbondable BOOLEAN
     )`)
 
     await this.db.query(`CREATE TABLE IF NOT EXISTS token_prices (
@@ -212,7 +216,8 @@ class Db {
     timestamp: number,
     timestampIso: string,
     preregenesis: boolean,
-    receivedHTokens: boolean
+    receivedHTokens: boolean,
+    unbondable: boolean
   ) {
     const args = [
       transferId,
@@ -265,7 +270,8 @@ class Db {
       timestamp,
       timestampIso,
       preregenesis,
-      receivedHTokens
+      receivedHTokens,
+      unbondable
     ]
     await this.db.query(
       `INSERT INTO transfers (
@@ -319,8 +325,9 @@ class Db {
         timestamp,
         timestamp_iso,
         preregenesis,
-        received_htokens
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51) ON CONFLICT (
+        received_htokens,
+        unbondable
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52) ON CONFLICT (
       transfer_id
       ) DO UPDATE SET
         id = $1,
@@ -373,7 +380,8 @@ class Db {
         timestamp = $48,
         timestamp_iso = $49,
         preregenesis = $50,
-        received_htokens = $51
+        received_htokens = $51,
+        unbondable = $52
       `, args
     )
   }
@@ -577,7 +585,8 @@ class Db {
           timestamp,
           timestamp_iso AS "timestampIso",
           preregenesis,
-          received_htokens AS "receivedHTokens"
+          received_htokens AS "receivedHTokens",
+          unbondable
         FROM
           transfers
         ${whereClause}

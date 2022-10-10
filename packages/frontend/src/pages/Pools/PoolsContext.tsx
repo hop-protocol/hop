@@ -19,7 +19,7 @@ import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { commafy, shiftBNDecimals, BNMin } from 'src/utils'
+import { commafy, shiftBNDecimals, BNMin, toTokenDisplay, toPercentDisplay } from 'src/utils'
 import { l2Networks } from 'src/config/networks'
 import { amountToBN, formatError } from 'src/utils/format'
 import {
@@ -80,6 +80,20 @@ type PoolsContextProps = {
   warning?: string
   lpTokenTotalSupply?: BigNumber
   lpTokenTotalSupplyFormatted?: string
+  hasBalance: boolean
+  canonicalTokenSymbol: string
+  hopTokenSymbol: string
+  reserve0: string
+  reserve1: string
+  reserve0Formatted: string
+  reserve1Formatted: string
+  feeFormatted: string
+  aprFormatted: string
+  priceImpactLabel: string
+  priceImpactFormatted: string
+  poolSharePercentageFormatted: string
+  virtualPriceFormatted: string
+  reserveTotalsUsdFormatted: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -862,6 +876,21 @@ const PoolsProvider: FC = ({ children }) => {
     sendButtonText = 'Insufficient funds'
   }
 
+  const hasBalance = userPoolBalance?.gt(0) ?? false
+  const canonicalTokenSymbol = canonicalToken?.symbol || ''
+  const hopTokenSymbol = hopToken?.symbol || ''
+  const reserve0 = toTokenDisplay(poolReserves?.[0], canonicalToken?.decimals)
+  const reserve1 = toTokenDisplay(poolReserves?.[1], canonicalToken?.decimals)
+  const reserve0Formatted = `${commafy(reserve0, 0) || '-'} ${canonicalTokenSymbol}`
+  const reserve1Formatted = `${commafy(reserve1, 0) || '-'} ${hopTokenSymbol}`
+  const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
+  const aprFormatted = toPercentDisplay(apr)
+  const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
+  const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
+  const poolSharePercentageFormatted = poolSharePercentage ? `${commafy(poolSharePercentage)}%` : ''
+  const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : ''
+  const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
+
   return (
     <PoolsContext.Provider
       value={{
@@ -912,6 +941,20 @@ const PoolsProvider: FC = ({ children }) => {
         warning,
         lpTokenTotalSupply,
         lpTokenTotalSupplyFormatted,
+        hasBalance,
+        canonicalTokenSymbol,
+        hopTokenSymbol,
+        reserve0,
+        reserve1,
+        reserve0Formatted,
+        reserve1Formatted,
+        feeFormatted,
+        aprFormatted,
+        priceImpactLabel,
+        priceImpactFormatted,
+        poolSharePercentageFormatted,
+        virtualPriceFormatted,
+        reserveTotalsUsdFormatted,
       }}
     >
       {children}

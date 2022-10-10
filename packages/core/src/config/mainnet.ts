@@ -44,16 +44,20 @@ export const config : Config = {
       optimism: 23,
       arbitrum: 23
     },
-    // TODO
     HOP: {
-      ethereum: 0,
-      polygon: 0,
-      gnosis: 0,
-      optimism: 0,
-      arbitrum: 0
+      ethereum: 10,
+      polygon: 10,
+      gnosis: 20,
+      optimism: 10,
+      arbitrum: 10
     },
     // TODO
     SNX: {
+      ethereum: 0,
+      optimism: 0
+    },
+    // TODO
+    sUSD: {
       ethereum: 0,
       optimism: 0
     }

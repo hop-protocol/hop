@@ -42,7 +42,7 @@ const etherscanUrls: Record<string, string> = {
   polygon: 'https://api.polygonscan.com',
   optimism: 'https://api-optimistic.etherscan.io',
   arbitrum: 'https://api.arbiscan.io',
-  gnosis: 'https://blockscout.com/poa/xdai'
+  gnosis: 'https://blockscout.com/poa/' // TODO: update to gnosisscan
 }
 
 const wait = (t: number) =>

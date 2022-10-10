@@ -275,10 +275,14 @@ export const useRewards = (props: Props) => {
       return
     }
 
-    const end = DateTime.fromMillis(estimatedDate)
-    const now = DateTime.now()
-    const remaining = end.diff(now)
-    setCountdown(remaining.toFormat(`d'd' h'h' m'm' ss`))
+    if (estimatedDate < Date.now()) {
+      setCountdown('Claimable soon')
+    } else {
+      const end = DateTime.fromMillis(estimatedDate)
+      const now = DateTime.now()
+      const remaining = end.diff(now)
+      setCountdown(remaining.toFormat(`d'd' h'h' m'm' ss`))
+    }
   }
 
   useEffect(() => {
@@ -317,6 +321,7 @@ export const useRewards = (props: Props) => {
         throw new Error('no entry')
       }
       const totalAmount = BigNumber.from(entry.balance)
+      console.log('totalAmount:', totalAmount.toString())
       const tx = await contract.connect(provider.getSigner()).claim(claimRecipient, totalAmount, proof)
       console.log(tx)
       await tx.wait()
@@ -327,7 +332,7 @@ export const useRewards = (props: Props) => {
     setClaiming(false)
   }
 
-  const hasRewards = !!address && (claimableAmount?.gt(0) || unclaimableAmount?.gt(0))
+  const hasRewards = !!(address && claimableAmount?.gt(0))
   let txHistoryLink = `https://${reactAppNetwork === 'goerli' ? 'goerli.explorer' : 'explorer'}.hop.exchange/?startDate=2022-09-23`
   if (address) {
    txHistoryLink += `&account=${address}`

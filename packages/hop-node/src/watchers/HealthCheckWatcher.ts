@@ -206,6 +206,7 @@ export type Config = {
 }
 
 export class HealthCheckWatcher {
+  // TODO: Add SNX and sUSD
   tokens: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'HOP']
   logger: Logger = new Logger('HealthCheckWatcher')
   s3Upload: S3Upload
@@ -228,7 +229,8 @@ export class HealthCheckWatcher {
     DAI: parseUnits('5000000', 18),
     ETH: parseUnits('4659', 18),
     MATIC: parseUnits('731948.94', 18),
-    SNX: parseUnits('0', 6) // TODO
+    SNX: parseUnits('0', 6), // TODO
+    sUSD: parseUnits('0', 6) // TODO
   }
 
   bonderLowLiquidityThreshold: number = 0.10
@@ -864,7 +866,8 @@ export class HealthCheckWatcher {
         if (['arbitrum', 'optimism'].includes(sourceChain) && token === 'MATIC') {
           continue
         }
-        if (['arbitrum', 'polygon', 'gnosis'].includes(sourceChain) && token === 'SNX') {
+        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis']
+        if (nonSynthChains.includes(sourceChain) && (token === 'SNX' || token === 'sUSD')) {
           continue
         }
         promises.push(new Promise(async (resolve, reject) => {

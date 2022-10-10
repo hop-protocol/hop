@@ -142,6 +142,9 @@ type Transfer = {
   receivedHTokens: boolean
   convertHTokenUrl: string
   hopExplorerUrl: string
+  unbondabe: boolean
+  amountReceived: string
+  amountReceivedFormatted: string
 }
 
 export class Controller {
@@ -298,6 +301,9 @@ export class Controller {
       x.bondWithinTimestamp = x.bondWithinTimestamp ? Number(x.bondWithinTimestamp) : null
       x.tokenPriceUsd = x.tokenPriceUsd ? Number(x.tokenPriceUsd) : null
       x.timestamp = x.timestamp ? Number(x.timestamp) : null
+      if (x.amountReceivedFormatted) {
+        x.amountReceivedFormatted = Number(x.amountReceivedFormatted)
+      }
 
       x.i = i
       x.bonded = !!x.bonded

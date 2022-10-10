@@ -811,10 +811,11 @@ class TransferStats {
       }
       const provider = new providers.StaticJsonRpcProvider(rpcUrl)
       const receipt = await provider.getTransactionReceipt(bondTransactionHash)
+      const transferTopic = '0xddf252ad'
+
       if (sourceChainSlug === 'ethereum') {
         for (const log of receipt.logs) {
           const topic = log.topics[0]
-          const transferTopic = '0xddf252ad'
           if (topic.startsWith(transferTopic)) {
             const hTokenAddress = addresses?.bridges?.[token]?.[destinationChainSlug]?.l2HopBridgeToken
             if (hTokenAddress?.toLowerCase() === log.address?.toLowerCase() && item.recipientAddress) {
@@ -888,6 +889,123 @@ class TransferStats {
     }
   }
 
+  async getReceivedAmount (item: any) {
+    try {
+      const { bondTransactionHash, token, destinationChainSlug } = item
+      if (
+        !bondTransactionHash ||
+        !destinationChainSlug
+      ) {
+        return null
+      }
+      const rpcUrl = rpcUrls[destinationChainSlug]
+      if (!rpcUrl) {
+        throw new Error(`rpc url not found for "${destinationChainSlug}"`)
+      }
+      const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+      const receipt = await provider.getTransactionReceipt(bondTransactionHash)
+      const transferTopic = '0xddf252ad'
+
+      let amount = BigNumber.from(0)
+      for (const log of receipt.logs) {
+        const topic = log.topics[0]
+        if (topic.startsWith(transferTopic)) {
+          if (log.topics[2].includes(item.recipientAddress?.toLowerCase().slice(2))) {
+            let canonicalTokenAddress = addresses?.bridges?.[token]?.[destinationChainSlug]?.l2CanonicalToken
+            if (destinationChainSlug === 'ethereum') {
+              canonicalTokenAddress = addresses?.bridges?.[token]?.[destinationChainSlug]?.l1CanonicalToken
+            }
+            if (canonicalTokenAddress?.toLowerCase() === log.address?.toLowerCase()) {
+              amount = BigNumber.from(log.data)
+            }
+          }
+        }
+      }
+
+      if (amount.eq(0) && destinationChainSlug !== 'ethereum') {
+        for (const log of receipt.logs) {
+          const topic = log.topics[0]
+          if (topic.startsWith(transferTopic)) {
+            if (log.topics[2].includes(item.recipientAddress?.toLowerCase().slice(2))) {
+              const hTokenAddress = addresses?.bridges?.[token]?.[destinationChainSlug]?.l2HopBridgeToken
+              if (hTokenAddress?.toLowerCase() === log.address?.toLowerCase()) {
+                amount = BigNumber.from(log.data)
+              }
+            }
+          }
+        }
+      }
+
+      if (amount.gt(0)) {
+        const amountReceived = amount.toString()
+        const decimals = tokenDecimals[item.token]
+        const amountReceivedFormatted = Number(formatUnits(amountReceived, decimals))
+        return { amountReceived, amountReceivedFormatted }
+      }
+
+      return null
+    } catch (err) {
+      console.error(err)
+      return null
+    }
+  }
+
+  async trackReceivedAmountStatus () {
+    let page = 0
+    while (true) {
+      try {
+        const now = DateTime.now().toUTC()
+        const startTimestamp = Math.floor(now.minus({ hours: 6 }).toSeconds())
+        const endTimestamp = Math.floor(now.toSeconds())
+        const perPage = 100
+        const items = await this.db.getTransfers({
+          perPage,
+          page,
+          amountReceived: null,
+          startTimestamp,
+          endTimestamp,
+          sortBy: 'timestamp',
+          sortDirection: 'desc'
+        })
+        if (items.length === perPage) {
+          page++
+        } else {
+          page = 0
+          await wait(60 * 1000)
+        }
+        console.log('items to check for amountReceived:', items.length)
+        if (!items.length) {
+          page = 0
+          await wait(60 * 1000)
+          continue
+        }
+
+        const chunkSize = 10
+        const allChunks = chunk(items, chunkSize)
+        for (const chunks of allChunks) {
+          await Promise.all(chunks.map(async (item: any) => {
+            if (
+              !item.bondTransactionHash ||
+              !item.destinationChainSlug
+            ) {
+              return
+            }
+            const data: any = await this.getReceivedAmount(item)
+            if (data) {
+              const { amountReceived, amountReceivedFormatted } = data
+              item.amountReceived = amountReceived
+              item.amountReceivedFormatted = amountReceivedFormatted
+              console.log('amountReceived?', item.transferId, amountReceived, amountReceivedFormatted)
+              await this.upsertItem(item)
+            }
+          }))
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+  }
+
   async trackTransfers () {
     await this.tilReady()
     console.log('upserting prices')
@@ -908,6 +1026,7 @@ class TransferStats {
     console.log('done upserting prices')
     await Promise.all([
       this.trackReceivedHTokenStatus(),
+      this.trackReceivedAmountStatus(),
       // this.trackAllDailyTransfers(),
       this.trackHourlyTransfers(1, 60 * 1000),
       wait(1 * 60 * 1000).then(() => {
@@ -1101,6 +1220,14 @@ class TransferStats {
         if (item.bonded && item.receivedHTokens == null) {
           item.receivedHTokens = await this.getReceivedHtokens(item)
         }
+        if (item.bonded && item.amountReceived == null) {
+          const data: any = await this.getReceivedAmount(item)
+          if (data) {
+            const { amountReceived, amountReceivedFormatted } = data
+            item.amountReceived = amountReceived
+            item.amountReceivedFormatted = amountReceivedFormatted
+          }
+        }
         console.log('upserting', item.transferId)
         await this.upsertItem(item)
         break
@@ -1117,6 +1244,13 @@ class TransferStats {
         const _item = await this.db.getTransfers({ transferId: item.transferId })
         if (_item) {
           item.receivedHTokens = _item.receivedHTokens
+        }
+      }
+      if (item.amountReceived == null) {
+        const _item = await this.db.getTransfers({ transferId: item.transferId })
+        if (_item) {
+          item.amountReceived = _item.amountReceived
+          item.amountReceivedFormatted = _item.amountReceivedFormatted
         }
       }
 
@@ -1171,7 +1305,9 @@ class TransferStats {
         item.timestampIso,
         item.preregenesis,
         item.receivedHTokens,
-        item.unbondable
+        item.unbondable,
+        item.amountReceived,
+        item.amountReceivedFormatted
       )
     } catch (err) {
       if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {

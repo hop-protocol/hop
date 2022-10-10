@@ -8,6 +8,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
 import ArrowLeft from '@material-ui/icons/ChevronLeft'
 import InfoTooltip from 'src/components/InfoTooltip'
+import { TRex } from './TRex'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -130,10 +131,31 @@ export function PoolDetails () {
           </Box>
           <Box p={2} display="flex">
             <Box p={2} width="50%">
-              Add liquidity
+              <Box>
+                <TRex />
+              </Box>
+              <Box p={2}>
+                <Box display="flex" justifyContent="center">
+                  <Typography variant="h5">
+                    Add liquidity to earn
+                  </Typography>
+                </Box>
+              </Box>
+              <Box pl={2} pr={2} mb={2} display="flex" justifyContent="center" textAlign="center">
+                <Typography variant="body1">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et magna aliqua.
+                </Typography>
+              </Box>
+              <Box mb={2} display="flex" justifyContent="center">
+                <Typography variant="body2">
+                  Learn more
+                </Typography>
+              </Box>
             </Box>
             <Box p={2} width="50%">
-              Deposit input
+              <Typography variant="h6">
+                Deposit input
+              </Typography>
             </Box>
           </Box>
         </Box>

@@ -143,7 +143,7 @@ export default class L1Bridge extends Bridge {
 
   getTransferRootCommittedAt = async (destChainId: number, transferRootId: string): Promise<number> => {
     let committedAt
-    if (this.tokenSymbol === 'USDC') {
+    if (this.tokenSymbol === 'USDC' && globalConfig.network === 'mainnet') {
       committedAt = await (this.l1BridgeContract as L1BridgeContract).transferRootCommittedAt(transferRootId)
     } else {
       committedAt = await (this.l1BridgeContract as L1ERC20BridgeContract).transferRootCommittedAt(destChainId, transferRootId)

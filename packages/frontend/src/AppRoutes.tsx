@@ -3,6 +3,7 @@ import { Switch, Route, Redirect } from 'react-router-dom'
 import Components from 'src/pages/Components'
 import Send from 'src/pages/Send'
 import Pools from 'src/pages/Pools'
+import { PoolsOverview } from 'src/pages/Pools/PoolsOverview'
 import Stake from 'src/pages/Stake'
 import Rewards from 'src/pages/Rewards'
 import SocialVerify from 'src/pages/Airdrop/SocialVerify'
@@ -30,6 +31,7 @@ const AppRoutes: FC = () => {
           <Route exact path="/send" component={Send} />
 
           <Route path="/convert" component={Convert} />
+          <Route exact path="/pools" component={PoolsOverview} />
           <Route exact path="/pool" component={Pools} />
           <Route exact path="/stake" component={Stake} />
           <Route exact path="/rewards" component={Rewards} />

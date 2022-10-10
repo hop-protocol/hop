@@ -39,7 +39,7 @@ export const useRewards = (props: Props) => {
   const [estimatedDate, setEstimatedDate] = useState(0)
   const claimRecipient = queryParams.address as string ?? address?.address
   const [countdown, setCountdown] = useState('')
-  const apiBaseUrl = 'https://hop-merkle-rewards-backend.hop.exchange'
+  const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
   // const apiBaseUrl = 'http://localhost:8000'
   const pollUnclaimableAmountFromBackend = true
   const contract = useMemo(() => {
@@ -73,9 +73,11 @@ export const useRewards = (props: Props) => {
     try {
       if (contract) {
         const root = await contract.merkleRoot()
-        const isSet = !BigNumber.from(onchainRoot).eq(BigNumber.from(0))
-        setOnchainRoot(root)
-        setOnchainRootSet(isSet)
+        if (root) {
+          const isSet = !BigNumber.from(root).eq(BigNumber.from(0))
+          setOnchainRoot(root)
+          setOnchainRootSet(isSet)
+        }
       }
     } catch (err) {
       console.error(err)
@@ -273,10 +275,14 @@ export const useRewards = (props: Props) => {
       return
     }
 
-    const end = DateTime.fromMillis(estimatedDate)
-    const now = DateTime.now()
-    const remaining = end.diff(now)
-    setCountdown(remaining.toFormat(`d'd' h'h' m'm' ss`))
+    if (estimatedDate < Date.now()) {
+      setCountdown('Claimable soon')
+    } else {
+      const end = DateTime.fromMillis(estimatedDate)
+      const now = DateTime.now()
+      const remaining = end.diff(now)
+      setCountdown(remaining.toFormat(`d'd' h'h' m'm' ss`))
+    }
   }
 
   useEffect(() => {
@@ -315,6 +321,7 @@ export const useRewards = (props: Props) => {
         throw new Error('no entry')
       }
       const totalAmount = BigNumber.from(entry.balance)
+      console.log('totalAmount:', totalAmount.toString())
       const tx = await contract.connect(provider.getSigner()).claim(claimRecipient, totalAmount, proof)
       console.log(tx)
       await tx.wait()
@@ -325,8 +332,8 @@ export const useRewards = (props: Props) => {
     setClaiming(false)
   }
 
-  const hasRewards = !!address && (claimableAmount?.gt(0) || unclaimableAmount?.gt(0))
-  let txHistoryLink = `https://${reactAppNetwork === 'goerli' ? 'goerli.explorer' : 'explorer'}.hop.exchange/?`
+  const hasRewards = !!(address && claimableAmount?.gt(0))
+  let txHistoryLink = `https://${reactAppNetwork === 'goerli' ? 'goerli.explorer' : 'explorer'}.hop.exchange/?startDate=2022-09-23`
   if (address) {
    txHistoryLink += `&account=${address}`
   }

@@ -14,7 +14,12 @@ export const toTokenDisplay = (num?: BigNumberish, decimals: number = 18, symbol
     significantDecimals = 8 - nonDecimalNum.length
   }
 
-  let formatted = commafy(formatUnits(num, decimals), significantDecimals)
+  let formatted = ''
+  if (decimals <= 1) {
+    formatted = commafy(num.toString(), significantDecimals)
+  } else {
+    formatted = commafy(formatUnits(num, decimals), significantDecimals)
+  }
 
   if (symbol) {
     formatted += ` ${symbol}`

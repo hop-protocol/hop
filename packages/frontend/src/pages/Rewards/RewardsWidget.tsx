@@ -93,7 +93,7 @@ export function RewardsWidget(props: Props) {
                 <Box mb={4}>
                   <Box mb={2}>
                     <Typography variant="h6">
-                      Pending {tokenSymbol} <InfoTooltip title={'Tokens that will be claimable once merkle root is published on-chain'} />
+                      Pending {tokenSymbol} <InfoTooltip title={'Tokens that will be claimable once merkle root is published on-chain, which occurs once a week'} />
                     </Typography>
                   </Box>
                   <Box mb={2} display="flex" justifyContent="space-between" minHeight="50px">
@@ -108,10 +108,12 @@ export function RewardsWidget(props: Props) {
                       </Typography>
                     </Box>
                     {showCountdown && (
-                      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+                      <Box display="flex" flexDirection="column" alignItems="center">
                         <Box>
                           <Typography variant="body1">
-                            <strong>Countdown</strong>
+                            <Box display="flex" justifyContent="center" alignItems="center">
+                              <strong>Countdown</strong> <InfoTooltip title={'Estimated date when rewards will become claimable.'} />
+                            </Box>
                           </Typography>
                         </Box>
                         <Box>

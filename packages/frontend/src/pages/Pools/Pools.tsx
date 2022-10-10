@@ -131,12 +131,22 @@ const Pools: FC = () => {
     tokenSumDeposited,
     unsupportedAsset,
     assetWithoutAmm,
-    userPoolBalance,
     userPoolBalanceFormatted,
     userPoolTokenPercentage,
-    virtualPrice,
     warning,
     lpTokenTotalSupplyFormatted,
+    hasBalance,
+    canonicalTokenSymbol,
+    hopTokenSymbol,
+    reserve0Formatted,
+    reserve1Formatted,
+    feeFormatted,
+    aprFormatted,
+    priceImpactLabel,
+    priceImpactFormatted,
+    poolSharePercentageFormatted,
+    virtualPriceFormatted,
+    reserveTotalsUsdFormatted
   } = usePools()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
@@ -171,22 +181,6 @@ const Pools: FC = () => {
     event.preventDefault()
     removeLiquidity()
   }
-
-  const hasBalance = userPoolBalance?.gt(0)
-  const canonicalTokenSymbol = canonicalToken?.symbol || ''
-  const hopTokenSymbol = hopToken?.symbol || ''
-
-  const reserve0 = toTokenDisplay(poolReserves?.[0], canonicalToken?.decimals)
-  const reserve1 = toTokenDisplay(poolReserves?.[1], canonicalToken?.decimals)
-  const reserve0Formatted = `${commafy(reserve0, 0) || '-'} ${canonicalTokenSymbol}`
-  const reserve1Formatted = `${commafy(reserve1, 0) || '-'} ${hopTokenSymbol}`
-  const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
-  const aprFormatted = toPercentDisplay(apr)
-  const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
-  const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
-  const poolSharePercentageFormatted = poolSharePercentage ? `${commafy(poolSharePercentage)}%` : ''
-  const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : ''
-  const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
 
   const needsTokenForFee = useNeedsTokenForFee(selectedNetwork)
   const token0DepositedFormatted = token0Deposited

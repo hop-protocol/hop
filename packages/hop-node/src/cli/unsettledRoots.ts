@@ -5,9 +5,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferIdsForTransferRoot from 'src/theGraph/getTransferIdsForTransferRoot'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber, utils } from 'ethers'
-import { Chain } from 'src/constants'
-import { actionHandler, parseString, root } from './shared'
-import { getAllChains } from 'src/config'
+import { actionHandler, getSourceChains, parseString, root } from './shared'
 
 type SettledRootsPerBonder = Record<string, Record<string, BigNumber>>
 
@@ -35,7 +33,7 @@ async function main (source: any) {
   const settledRootsPerBonder: SettledRootsPerBonder = await getSettledRoots(settlementChain, token)
 
   // Get all roots from source chains
-  const sourceChains = getSourceChains(settlementChain, token)
+  const sourceChains = getSourceChains(token, settlementChain)
 
   for (const chain of sourceChains) {
     console.log(`Searching ${chain}`)
@@ -109,28 +107,6 @@ async function main (source: any) {
     }
     console.log('\n')
   }
-}
-
-function getSourceChains (settlementChain: string, token: string): string[] {
-  const allChains = getAllChains()
-  const sourceChains: string[] = []
-  for (const chain of allChains) {
-    if (
-      chain === Chain.Ethereum ||
-      chain === settlementChain
-    ) continue
-
-    if (token === 'MATIC') {
-      if (
-        chain === Chain.Arbitrum ||
-        chain === Chain.Optimism
-      ) continue
-    }
-
-    sourceChains.push(chain)
-  }
-
-  return sourceChains
 }
 
 async function getSettledRoots (chain: string, token: string): Promise<SettledRootsPerBonder> {

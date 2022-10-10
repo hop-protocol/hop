@@ -51,6 +51,7 @@ const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
 export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum])
+export const wrapperConfirmationChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Polygon])
 export const rateLimitMaxRetries = 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
@@ -60,6 +61,9 @@ export const minEthBonderFeeBn = parseEther('0.00001')
 export const pendingCountCommitThreshold = 256
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
+
+// TODO: Remove this when the exit system is fully live
+export const IsExitSystemLive = process.env.IS_EXIT_SYSTEM_LIVE ?? false
 
 type SyncConfig = {
   totalBlocks?: number
@@ -346,7 +350,7 @@ export enum Watchers {
   Challenge = 'challenge',
   CommitTransfers = 'commitTransfers',
   SettleBondedWithdrawals = 'settleBondedWithdrawals',
-  xDomainMessageRelay = 'xDomainMessageRelay',
+  ConfirmRoots = 'confirmRoots',
   L1ToL2Relay = 'L1ToL2Relay',
 }
 

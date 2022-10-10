@@ -5,7 +5,7 @@ import Transaction from 'src/models/Transaction'
 import { Token, ChainSlug } from '@hop-protocol/sdk'
 import { useApp } from 'src/contexts/AppContext'
 import Network from 'src/models/Network'
-import { BNMax } from 'src/utils/BNMax'
+import { formatUnits } from 'ethers/lib/utils'
 
 export enum MethodNames {
   convertTokens = 'convertTokens',
@@ -13,14 +13,25 @@ export enum MethodNames {
 }
 
 async function estimateGasCost(network: Network, estimatedGasLimit: BigNumber) {
+  let gasPrice = BigNumber.from(0)
   try {
     // Get current gas price
-    const gasPrice = await network.provider.getGasPrice()
+    try {
+      const { maxFeePerGas, maxPriorityFeePerGas } = await network.provider.getFeeData()
+      if (maxFeePerGas && maxPriorityFeePerGas) {
+        gasPrice = (maxFeePerGas.sub(maxPriorityFeePerGas)).div(2)
+      } else {
+        gasPrice = await network.provider.getGasPrice()
+      }
+    } catch (err) {
+      gasPrice = await network.provider.getGasPrice()
+    }
+    console.log('gasPrice estimate:', gasPrice.toString(), formatUnits(gasPrice.toString(), 9))
     // Add some wiggle room
     const bufferGas = BigNumber.from(70_000)
-    return estimatedGasLimit.add(bufferGas).mul(gasPrice)
-  } catch (error) {
-    logger.error(error)
+    return (estimatedGasLimit.add(bufferGas)).mul(gasPrice)
+  } catch (err) {
+    logger.error('estimateGasCost error:', err)
   }
 }
 
@@ -88,25 +99,40 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
         const amount = (bonderFee ?? BigNumber.from('100')).mul(2)
 
         // RelayerFee amount does not matter for estimation
-        let relayerFee
+        let relayerFee : BigNumber | undefined
         if (fromNetwork.slug === ChainSlug.Ethereum) {
           relayerFee = BigNumber.from('1')
         }
 
-        const estimatedGasLimit = await bridge.estimateSendGasLimit(
-          amount,
-          fromNetwork.slug as string,
-          toNetwork.slug as string,
-          {
-            recipient: constants.AddressZero,
-            bonderFee,
-            amountOutMin: '0',
-            deadline: deadline(),
-            destinationAmountOutMin,
-            destinationDeadline,
-            relayerFee
+        let estimatedGasLimit : BigNumber
+        try {
+          estimatedGasLimit = await bridge.estimateSendGasLimit(
+            amount,
+            fromNetwork.slug as string,
+            toNetwork.slug as string,
+            {
+              recipient: constants.AddressZero,
+              bonderFee,
+              amountOutMin: '0',
+              deadline: deadline(),
+              destinationAmountOutMin,
+              destinationDeadline,
+              relayerFee
+            }
+          )
+        } catch (err) {
+          logger.error('estimateSendGasLimit error:', err)
+          const defaultSendGasLimits = {
+            ethereum: token.symbol === 'ETH' ? 130000 : 180000,
+            arbitrum: token.symbol === 'ETH' ? 500000 : 700000,
+            optimism: token.symbol === 'ETH' ? 225000 : 240000,
+            gnosis: token.symbol === 'ETH' ? 260000 : 390000,
+            polygon: token.symbol === 'ETH' ? 260000 : 260000,
           }
-        )
+          const defaultGasLimit = defaultSendGasLimits[fromNetwork.slug]
+          logger.debug('using default gasLimit:', defaultGasLimit)
+          estimatedGasLimit = BigNumber.from(defaultGasLimit)
+        }
 
         if (estimatedGasLimit) {
           let gasCost = await estimateGasCost(fromNetwork, estimatedGasLimit)
@@ -116,8 +142,8 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
           }
           return gasCost
         }
-      } catch (error) {
-        logger.error(error)
+      } catch (err) {
+        logger.error('estimateSend error:', err)
       }
     },
     [sdk, selectedNetwork]
@@ -143,8 +169,8 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
           }
           return gasCost
         }
-      } catch (error) {
-        logger.error(error)
+      } catch (err) {
+        logger.error('estimateWrap error:', err)
       }
     },
     [selectedNetwork]
@@ -171,8 +197,8 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
           default:
             break
         }
-      } catch (error) {
-        logger.error(error)
+      } catch (err) {
+        logger.error('estimateMaxValue error:', err)
       }
     },
     [sdk, selectedNetwork]

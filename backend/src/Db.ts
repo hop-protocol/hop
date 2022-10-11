@@ -104,7 +104,9 @@ class Db {
         timestamp_iso TEXT NOT NULL,
         preregenesis BOOLEAN,
         received_htokens BOOLEAN,
-        unbondable BOOLEAN
+        unbondable BOOLEAN,
+        amount_received TEXT,
+        amount_received_formatted NUMERIC
     )`)
 
     await this.db.query(`CREATE TABLE IF NOT EXISTS token_prices (

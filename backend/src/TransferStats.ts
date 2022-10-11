@@ -9,7 +9,7 @@ import wait from 'wait'
 import { mainnet as addresses } from '@hop-protocol/core/addresses'
 import { isGoerli } from './config'
 
-let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC']
+let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX']
 let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
 
 if (isGoerli) {

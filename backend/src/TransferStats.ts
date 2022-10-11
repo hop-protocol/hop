@@ -1796,7 +1796,7 @@ class TransferStats {
       })
 
     for (const x of populatedData) {
-      const isUnbondable = (x.destinationChainSlug === 'ethereum' && x.deadline > 0 && BigNumber.from(x.amountOutMin || 0).gt(0))
+      const isUnbondable = (x.destinationChainSlug === 'ethereum' && (x.deadline > 0 || BigNumber.from(x.amountOutMin || 0).gt(0)))
       x.unbondable = isUnbondable
     }
 

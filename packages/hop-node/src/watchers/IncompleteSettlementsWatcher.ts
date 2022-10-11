@@ -114,7 +114,7 @@ class IncompleteSettlementsWatcher {
         if (['optimism', 'arbitrum'].includes(chain) && token === 'MATIC') {
           continue
         }
-        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis'] 
+        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis']
         if (nonSynthChains.includes(chain) && (token === 'SNX' || token === 'sUSD')) {
           continue
         }

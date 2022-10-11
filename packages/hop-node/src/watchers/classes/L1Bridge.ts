@@ -233,7 +233,7 @@ export default class L1Bridge extends Bridge {
     }
 
     const relayer = await this.getBonderAddress()
-    const relayerFee = nearestItemToTransferSent?.gasCostInToken || '0'
+    const relayerFee = nearestItemToTransferSent?.gasCostInToken ?? '0'
     const deadline = '0' // must be 0
     const amountOutMin = '0' // must be 0
 
@@ -281,7 +281,7 @@ export default class L1Bridge extends Bridge {
     const sdk = new Hop(globalConfig.network)
     const bridge = sdk.bridge(this.tokenSymbol)
     const relayer = await this.getBonderAddress()
-    const relayerFee = nearestItemToTransferSent?.gasCostInToken || '0'
+    const relayerFee = nearestItemToTransferSent?.gasCostInToken ?? '0'
     const deadline = bridge.defaultDeadlineSeconds
     const { amountOut } = await bridge.getSendData(amount, this.chainSlug, this.chainIdToSlug(destinationChainId))
     const slippageTolerance = 0.1

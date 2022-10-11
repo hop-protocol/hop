@@ -8,7 +8,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
 import ArrowLeft from '@material-ui/icons/ChevronLeft'
 import InfoTooltip from 'src/components/InfoTooltip'
-import { TRex } from './TRex'
+import { DinoGame } from './DinoGame'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -132,7 +132,7 @@ export function PoolDetails () {
           <Box p={2} display="flex">
             <Box p={2} width="50%">
               <Box>
-                <TRex />
+                <DinoGame />
               </Box>
               <Box p={2}>
                 <Box display="flex" justifyContent="center">

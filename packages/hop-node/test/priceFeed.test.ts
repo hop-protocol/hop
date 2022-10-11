@@ -38,7 +38,7 @@ describe('priceFeed', () => {
     expect(snxPrice).toBeLessThan(50)
   }, 10 * 1000)
   it('sUSD price', async () => {
-    const sUsdPrice= await priceFeed.getPriceByTokenSymbol('sUSD')
+    const sUsdPrice = await priceFeed.getPriceByTokenSymbol('sUSD')
     expect(sUsdPrice).toBeGreaterThan(0)
     expect(sUsdPrice).toBeLessThan(2)
   }, 10 * 1000)

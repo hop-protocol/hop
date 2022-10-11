@@ -78,7 +78,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'WBTC',
     'HOP',
     'SNX',
-    'sUSD',
+    'sUSD'
   ]
 
   const sectionKeys = Object.keys(config)

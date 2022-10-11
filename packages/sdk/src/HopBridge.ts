@@ -2386,6 +2386,7 @@ class HopBridge extends Base {
     return isPaused
   }
 
+  // chains that the asset supports
   get supportedChains (): string[] {
     const supported = new Set()
     const token = this.toTokenModel(this.tokenSymbol)
@@ -2397,6 +2398,7 @@ class HopBridge extends Base {
     return Array.from(supported) as string[]
   }
 
+  // L2 chains that the asset supports to LP
   get supportedLpChains (): string[] {
     const token = this.toTokenModel(this.tokenSymbol)
     const supported = new Set()

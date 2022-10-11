@@ -579,7 +579,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     this.maxRebroadcastIndexReached = true
     this.clearInflightTxs()
     this.emit(State.Error)
-    const errMsg = `max rebroadcast index reached. cannot rebroadcast.`
+    const errMsg = 'max rebroadcast index reached. cannot rebroadcast.'
     this.notifier.error(errMsg, { channel: gasBoostErrorSlackChannel })
     this.logger.error(errMsg)
   }
@@ -951,7 +951,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     item!.sentAt = Date.now()
     this.rebroadcastIndex++
 
-    let isMaxReached = this.rebroadcastIndex > this.maxRebroadcastIndex
+    const isMaxReached = this.rebroadcastIndex > this.maxRebroadcastIndex
     if (isMaxReached) {
       await this.handleMaxRebroadcastIndexReached()
       return

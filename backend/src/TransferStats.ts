@@ -1588,6 +1588,7 @@ class TransferStats {
         sourceChain: getSourceChainId('optimism'),
         destinationChain: x.destinationChainId,
         amount: x.amount,
+        amountOutMin: x.amountOutMin,
         bonderFee: x.bonderFee,
         recipient: x.recipient,
         deadline: Number(x.deadline),
@@ -1797,6 +1798,7 @@ class TransferStats {
 
     for (const x of populatedData) {
       const isUnbondable = (x.destinationChainSlug === 'ethereum' && (x.deadline > 0 || BigNumber.from(x.amountOutMin || 0).gt(0)))
+      console.log('isUnbondable?', isUnbondable, x.transferId, x.deadline, x.amountOutMin)
       x.unbondable = isUnbondable
     }
 

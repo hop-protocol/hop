@@ -254,7 +254,14 @@ class Base {
     return this.supportedNetworks.includes(network)
   }
 
+  // all chains supported.
+  // this may be overriden by child class to make it asset specific.
   get supportedChains (): string[] {
+    return this.configChains
+  }
+
+  // all chains available in config
+  get configChains (): string[] {
     return Object.keys(this.chains)
   }
 
@@ -262,8 +269,12 @@ class Base {
     return this.supportedChains
   }
 
+  geConfigChains (): string[] {
+    return this.configChains
+  }
+
   isValidChain (chain: string) {
-    return this.supportedChains.includes(chain)
+    return this.configChains.includes(chain)
   }
 
   /**
@@ -286,7 +297,7 @@ class Base {
       throw new Error(
         `chain "${
           chain.slug
-        }" is unsupported. Supported chains are: ${this.supportedChains.join(
+        }" is unsupported. Supported chains are: ${this.configChains.join(
           ','
         )}`
       )
@@ -368,7 +379,7 @@ class Base {
 
   public getChainProviders = () => {
     const obj : Record<string, providers.Provider> = {}
-    for (const chainSlug of this.supportedChains) {
+    for (const chainSlug of this.configChains) {
       const provider = this.getChainProvider(chainSlug)
       obj[chainSlug] = provider
     }
@@ -378,7 +389,7 @@ class Base {
 
   public getChainProviderUrls = () => {
     const obj : Record<string, string> = {}
-    for (const chainSlug of this.supportedChains) {
+    for (const chainSlug of this.configChains) {
       const provider = this.getChainProvider(chainSlug)
       obj[chainSlug] = (provider as any)?.connection?.url
     }

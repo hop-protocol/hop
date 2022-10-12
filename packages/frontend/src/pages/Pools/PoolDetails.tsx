@@ -6,7 +6,9 @@ import { Link } from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
+import MuiLink from '@material-ui/core/Link'
 import ArrowLeft from '@material-ui/icons/ChevronLeft'
+import LaunchIcon from '@material-ui/icons/Launch'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { DinoGame } from './DinoGame'
 
@@ -45,6 +47,37 @@ export const useStyles = makeStyles(theme => ({
     borderRadius: '3rem'
   },
 }))
+
+function PoolEmptyState() {
+  return (
+    <Box>
+      <Box>
+        <DinoGame />
+      </Box>
+      <Box p={2}>
+        <Box display="flex" justifyContent="center">
+          <Typography variant="h5">
+            Add liquidity to earn
+          </Typography>
+        </Box>
+      </Box>
+      <Box pl={2} pr={2} mb={2} display="flex" justifyContent="center" textAlign="center">
+        <Typography variant="body1">
+            You can deposit a single asset or both assets in any ratio you like. The pool will automatically handle the conversion for you.
+        </Typography>
+      </Box>
+      <Box mb={2} display="flex" justifyContent="center">
+        <Typography variant="body1">
+          <MuiLink target="_blank" rel="noopener noreferrer" href="https://help.hop.exchange/hc/en-us/articles/4406095303565-What-do-I-need-in-order-to-provide-liquidity-on-Hop-" >
+            <Box display="flex" justifyContent="center" alignItems="center">
+              Learn more <Box ml={1} display="flex" justifyContent="center" alignItems="center"><LaunchIcon /></Box>
+            </Box>
+          </MuiLink>
+        </Typography>
+      </Box>
+    </Box>
+  )
+}
 
 export function PoolDetails () {
   const styles = useStyles()
@@ -131,26 +164,7 @@ export function PoolDetails () {
           </Box>
           <Box p={2} display="flex">
             <Box p={2} width="50%">
-              <Box>
-                <DinoGame />
-              </Box>
-              <Box p={2}>
-                <Box display="flex" justifyContent="center">
-                  <Typography variant="h5">
-                    Add liquidity to earn
-                  </Typography>
-                </Box>
-              </Box>
-              <Box pl={2} pr={2} mb={2} display="flex" justifyContent="center" textAlign="center">
-                <Typography variant="body1">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et magna aliqua.
-                </Typography>
-              </Box>
-              <Box mb={2} display="flex" justifyContent="center">
-                <Typography variant="body2">
-                  Learn more
-                </Typography>
-              </Box>
+              <PoolEmptyState />
             </Box>
             <Box p={2} width="50%">
               <Typography variant="h6">

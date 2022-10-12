@@ -1,4 +1,7 @@
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import Box from '@material-ui/core/Box'
+
+// source: https://github.com/wayou/t-rex-runner
 
 const html = `
 <style>
@@ -9,8 +12,9 @@ const html = `
 }
 
 .icon-offline {
-  content: -webkit-image-set( url(https://raw.githubusercontent.com/wayou/t-rex-runner/gh-pages/assets/default_100_percent/100-error-offline.png) 1x, url(https://raw.githubusercontent.com/wayou/t-rex-runner/gh-pages/assets/default_200_percent/200-error-offline.png) 2x);
+  content: -webkit-image-set( url(https://assets.hop.exchange/dino-game/100-error-offline.png) 1x, url(https://assets.hop.exchange/dino-game/200-error-offline.png) 2x);
   position: relative;
+  margin: 0 auto;
 }
 
 .hidden {
@@ -31,7 +35,6 @@ const html = `
   line-height: 1.55;
   margin: 0 auto;
   max-width: 600px;
-  padding-top: 100px;
   width: 100%;
 }
 
@@ -40,7 +43,7 @@ const html = `
   max-width: 300px;
   position: absolute;
   top: 0;
-  left: 36px;
+  left: 0;
 }
 
 .offline .runner-canvas {
@@ -113,6 +116,10 @@ const html = `
   overflow: hidden;
 }
 
+#main-content {
+  display: flex;
+}
+
 .arcade-mode #buttons,
 .arcade-mode #main-content {
   opacity: 0;
@@ -120,6 +127,7 @@ const html = `
 }
 
 .arcade-mode #main-content {
+  display: block;
   position: relative;
 }
 
@@ -161,12 +169,27 @@ function createMarkup() {
 }
 
 export function DinoGame() {
-  useEffect(() => {
-    new (window as any).Runner('.interstitial-wrapper') // eslint-disable-line
-  }, [])
+  const [play, setPlay] = useState(false)
 
-//offline-sprite-2x.png
+  function handleClick (event: any) {
+    event.preventDefault()
+    try {
+      if (!play) {
+        setPlay(true)
+        const runner = new (window as any).Runner('.interstitial-wrapper') // eslint-disable-line
+        const el: any = document.querySelector('.interstitial-wrapper')
+        if (el) {
+          el.style.paddingTop = '100px'
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   return (
-    <div dangerouslySetInnerHTML={createMarkup()} />
+    <Box onClick={handleClick} display="flex" justifyContent="center" alignItems="center" title="Click to Play Game" style={{ width: '300px', cursor: 'pointer' }}>
+      <div dangerouslySetInnerHTML={createMarkup()} />
+    </Box>
   )
 }

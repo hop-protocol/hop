@@ -1,3 +1,4 @@
+// source: https://github.com/wayou/t-rex-runner
 // Copyright (c) 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -352,8 +353,7 @@
          */
         init: function () {
             // Hide the static icon.
-            document.querySelector('.' + Runner.classes.ICON).style.visibility =
-                'hidden';
+            document.querySelector('.' + Runner.classes.ICON).style.visibility = 'hidden';
 
             this.adjustDimensions();
             this.setSpeed();

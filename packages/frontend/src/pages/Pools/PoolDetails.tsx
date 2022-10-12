@@ -14,6 +14,7 @@ import InfoTooltip from 'src/components/InfoTooltip'
 import { DinoGame } from './DinoGame'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
+import Skeleton from '@material-ui/lab/Skeleton'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -95,27 +96,51 @@ function AccountPosition(props: any) {
 
   return (
     <Box>
-      <Typography variant="subtitle1">
-        Balance
-      </Typography>
-      <Typography variant="subtitle1">
-        {userPoolBalanceUsdFormatted}
-      </Typography>
-      <Typography variant="body1">
-        {token0DepositedFormatted} {canonicalTokenSymbol} + {token1DepositedFormatted} {hopTokenSymbol}
-      </Typography>
-      <Typography variant="body1">
-        LP Balance
-      </Typography>
-      <Typography variant="body1">
-        {userPoolBalanceFormatted}
-      </Typography>
-      <Typography variant="body1">
-        Share of Pool
-      </Typography>
-      <Typography variant="body1">
-        {userPoolTokenPercentageFormatted}
-      </Typography>
+      <Box mb={4}>
+        <Box mb={1}>
+          <Typography variant="subtitle1" color="secondary">
+            Balance
+          </Typography>
+        </Box>
+        <Box mb={1}>
+          <Typography variant="h4">
+            {userPoolBalanceUsdFormatted}
+          </Typography>
+        </Box>
+        <Box>
+          <Typography variant="subtitle2" color="secondary">
+            {token0DepositedFormatted} {canonicalTokenSymbol} + {token1DepositedFormatted} {hopTokenSymbol}
+          </Typography>
+        </Box>
+      </Box>
+      <Box maxWidth="300px">
+        <Box display="flex" justifyContent="space-between">
+          <Box>
+            <Box mb={1}>
+              <Typography variant="subtitle1" color="secondary">
+                LP Balance
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle1">
+                {userPoolBalanceFormatted}
+              </Typography>
+            </Box>
+          </Box>
+          <Box>
+            <Box mb={1}>
+              <Typography variant="subtitle1" color="secondary">
+                Share of Pool
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle1">
+                {userPoolTokenPercentageFormatted}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
     </Box>
   )
 }
@@ -226,6 +251,7 @@ export function PoolDetails () {
     token0DepositedFormatted,
     token1DepositedFormatted,
     userPoolBalanceUsdFormatted,
+    loading
   } = usePool()
   const tvlFormatted = reserveTotalsUsdFormatted
   const volume24hFormatted = '-'
@@ -307,20 +333,31 @@ export function PoolDetails () {
                   My Liquidity
                 </Typography>
               </Box>
-              {hasBalance ? (
-               <AccountPosition
-                data={{
-                  userPoolBalanceFormatted,
-                  userPoolTokenPercentageFormatted,
-                  token0DepositedFormatted,
-                  token1DepositedFormatted,
-                  canonicalTokenSymbol,
-                  hopTokenSymbol,
-                  userPoolBalanceUsdFormatted,
-                }}
-               />
-              ) : (
-               <PoolEmptyState />
+              {loading && (
+                <Box>
+                  <Skeleton animation="wave" width={'100px'} title="loading" />
+                  <Skeleton animation="wave" width={'200px'} title="loading" />
+                </Box>
+              )}
+              {!loading && (
+                <>
+                {hasBalance && (
+                <AccountPosition
+                  data={{
+                    userPoolBalanceFormatted,
+                    userPoolTokenPercentageFormatted,
+                    token0DepositedFormatted,
+                    token1DepositedFormatted,
+                    canonicalTokenSymbol,
+                    hopTokenSymbol,
+                    userPoolBalanceUsdFormatted,
+                  }}
+                />
+                )}
+                {!hasBalance && (
+                <PoolEmptyState />
+                )}
+                </>
               )}
             </Box>
             <Box width="50%">
@@ -344,7 +381,9 @@ export function PoolDetails () {
         data={{
           poolName,
           canonicalTokenSymbol,
+          hopTokenSymbol,
           reserve0Formatted,
+          reserve1Formatted,
           lpTokenTotalSupplyFormatted,
           feeFormatted
         }}

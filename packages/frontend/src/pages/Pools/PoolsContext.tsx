@@ -106,6 +106,7 @@ type PoolsContextProps = {
   tokenSumDepositedFormatted: string
   userPoolBalanceUsd: number
   userPoolBalanceUsdFormatted: string
+  loading: boolean
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -133,7 +134,7 @@ const PoolsProvider: FC = ({ children }) => {
   const [virtualPrice, setVirutalPrice] = useState<number | undefined>()
   const [fee, setFee] = useState<number | undefined>()
   const [lpTokenTotalSupply, setLpTokenTotalSupply] = useState<BigNumber | undefined>()
-  const [lpTokenTotalSupplyFormatted, setLpTokenTotalSupplyFormatted] = useState<string>('')
+  const [lpTokenTotalSupplyFormatted, setLpTokenTotalSupplyFormatted] = useState<string>('-')
 
   const { txConfirm, sdk, selectedBridge, settings } = useApp()
   const { deadline, slippageTolerance } = settings
@@ -147,6 +148,7 @@ const PoolsProvider: FC = ({ children }) => {
     l2Only: true,
   })
   const { unsupportedAsset, assetWithoutAmm } = useAssets(selectedBridge, selectedNetwork)
+  const [loading, setLoading] = useState(true)
 
   const isNativeToken =
     useMemo(() => {
@@ -476,23 +478,22 @@ const PoolsProvider: FC = ({ children }) => {
     const update = async () => {
       setPoolReserves([])
       setLpTokenTotalSupply(undefined)
-      setLpTokenTotalSupplyFormatted('')
+      setLpTokenTotalSupplyFormatted('-')
       if (!(canonicalToken && hopToken && selectedNetwork && !unsupportedAsset?.chain)) {
         return
       }
       const bridge = await sdk.bridge(canonicalToken.symbol)
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
-      const [lpDecimalsBn, reserves, lpTokenTotalSupply] = await Promise.all([
-        lpToken.decimals,
+      const [reserves, lpTokenTotalSupply] = await Promise.all([
         bridge.getSaddleSwapReserves(selectedNetwork.slug),
         lpToken.totalSupply(),
       ])
 
-      const lpDecimals = Number(lpDecimalsBn.toString())
+      const lpDecimals = 18
       if (isSubscribed) {
         setPoolReserves(reserves)
         setLpTokenTotalSupply(lpTokenTotalSupply)
-        const lpTokenTotalSupplyFormatted = commafy(Number(formatUnits(lpTokenTotalSupply.toString(), lpDecimals)), 5)
+        const lpTokenTotalSupplyFormatted = commafy(Number(formatUnits(lpTokenTotalSupply.toString(), lpDecimals)), 0)
         setLpTokenTotalSupplyFormatted(lpTokenTotalSupplyFormatted)
       }
     }
@@ -502,6 +503,12 @@ const PoolsProvider: FC = ({ children }) => {
       isSubscribed = false
     }
   }, [unsupportedAsset, canonicalToken, hopToken, selectedNetwork])
+
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false)
+    }, 2 * 1000)
+  }, [])
 
   const updateUserPoolPositions = useCallback(async () => {
     try {
@@ -522,11 +529,10 @@ const PoolsProvider: FC = ({ children }) => {
         setUserPoolTokenPercentage('')
         return
       }
-      const bridge = await sdk.bridge(canonicalToken.symbol)
-      const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
+      const bridge = sdk.bridge(canonicalToken.symbol)
+      const lpToken = bridge.getSaddleLpToken(selectedNetwork.slug)
 
-      const [lpDecimalsBn, totalSupply, balance, reserves] = await Promise.all([
-        lpToken.decimals,
+      const [totalSupply, balance, reserves] = await Promise.all([
         (await lpToken.getErc20()).totalSupply(),
         lpToken.balanceOf(),
         bridge.getSaddleSwapReserves(selectedNetwork.slug),
@@ -534,7 +540,7 @@ const PoolsProvider: FC = ({ children }) => {
       setUserPoolBalance(balance)
 
       const tokenDecimals = canonicalToken?.decimals
-      const lpDecimals = Number(lpDecimalsBn.toString())
+      const lpDecimals = 18
 
       const [reserve0, reserve1] = reserves
       const formattedTotalSupply = formatUnits(totalSupply.toString(), lpDecimals)
@@ -576,7 +582,8 @@ const PoolsProvider: FC = ({ children }) => {
     } catch (err) {
       logger.error(err)
     }
-  }, [unsupportedAsset, provider, selectedNetwork, canonicalToken, hopToken])
+    setLoading(false)
+  }, [unsupportedAsset, provider, selectedNetwork, canonicalToken, hopToken, address])
 
   useEffect(() => {
     updateUserPoolPositions()
@@ -723,7 +730,7 @@ const PoolsProvider: FC = ({ children }) => {
       const amm = bridge.getAmm(selectedNetwork!.slug)
       const saddleSwap = await amm.getSaddleSwap()
       const lpToken = await bridge.getSaddleLpToken(selectedNetwork!.slug)
-      const lpTokenDecimals = await lpToken.decimals
+      const lpTokenDecimals = 18
       const token0Amount = token0Deposited
       const token1Amount = token1Deposited
       const totalAmount = token0Amount?.add(token1Amount || 0)
@@ -996,6 +1003,7 @@ const PoolsProvider: FC = ({ children }) => {
         tokenSumDepositedFormatted,
         userPoolBalanceUsd,
         userPoolBalanceUsdFormatted,
+        loading
       }}
     >
       {children}

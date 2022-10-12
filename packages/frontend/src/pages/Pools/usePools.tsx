@@ -37,7 +37,7 @@ export function usePools () {
           const tokenImage = getTokenImage(tokenModel.symbol)
           const poolName = `${token} ${chainModel.name} Pool`
           const poolSubtitle = `${token} - h${token}`
-          const depositLink = `/pool?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
+          const depositLink = `/pool/deposit?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           const claimLink = `/stake?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           _pools.push({
             token: { ...tokenModel, imageUrl: tokenImage },

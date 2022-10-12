@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent } from 'react'
-import { usePools } from './PoolsContext'
+import { usePool } from './PoolsContext'
 import Box from '@material-ui/core/Box'
 import { useParams } from 'react-router'
 import { PoolRow } from './PoolRow'
@@ -82,6 +82,44 @@ function PoolEmptyState() {
   )
 }
 
+function AccountPosition(props: any) {
+  const {
+    hopTokenSymbol,
+    canonicalTokenSymbol,
+    token0DepositedFormatted,
+    token1DepositedFormatted,
+    userPoolBalanceFormatted,
+    userPoolTokenPercentageFormatted,
+    userPoolBalanceUsdFormatted
+  } = props.data
+
+  return (
+    <Box>
+      <Typography variant="subtitle1">
+        Balance
+      </Typography>
+      <Typography variant="subtitle1">
+        {userPoolBalanceUsdFormatted}
+      </Typography>
+      <Typography variant="body1">
+        {token0DepositedFormatted} {canonicalTokenSymbol} + {token1DepositedFormatted} {hopTokenSymbol}
+      </Typography>
+      <Typography variant="body1">
+        LP Balance
+      </Typography>
+      <Typography variant="body1">
+        {userPoolBalanceFormatted}
+      </Typography>
+      <Typography variant="body1">
+        Share of Pool
+      </Typography>
+      <Typography variant="body1">
+        {userPoolTokenPercentageFormatted}
+      </Typography>
+    </Box>
+  )
+}
+
 function DepositForm() {
   return (
     <Box>deposit</Box>
@@ -100,6 +138,71 @@ function StakeForm() {
   )
 }
 
+function PoolStats (props:any) {
+  const styles = useStyles()
+  const {
+    poolName,
+    canonicalTokenSymbol,
+    hopTokenSymbol,
+    reserve0Formatted,
+    reserve1Formatted,
+    lpTokenTotalSupplyFormatted,
+    feeFormatted,
+  } = props.data
+
+  return (
+    <Box p={4} className={styles.poolStats}>
+      <Box mb={4}>
+        <Typography variant="h5">
+          {poolName} Info
+        </Typography>
+      </Box>
+      <Box display="flex" justifyContent="space-between">
+        <Box width="100%">
+          <Box mb={1}>
+            <Typography variant="subtitle2" color="secondary">
+            {canonicalTokenSymbol} Reserves
+            </Typography>
+          </Box>
+          <Typography variant="subtitle2">
+            {reserve0Formatted}
+          </Typography>
+        </Box>
+        <Box width="100%">
+          <Box mb={1}>
+            <Typography variant="subtitle2" color="secondary">
+            {hopTokenSymbol} Reserves
+            </Typography>
+          </Box>
+          <Typography variant="subtitle2">
+            {reserve1Formatted}
+          </Typography>
+        </Box>
+        <Box width="100%">
+          <Box mb={1}>
+            <Typography variant="subtitle2" color="secondary">
+            LP Tokens
+            </Typography>
+          </Box>
+          <Typography variant="subtitle2">
+            {lpTokenTotalSupplyFormatted}
+          </Typography>
+        </Box>
+        <Box width="100%">
+          <Box mb={1}>
+            <Typography variant="subtitle2" color="secondary">
+            Fee
+            </Typography>
+          </Box>
+          <Typography variant="subtitle2">
+            {feeFormatted}
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  )
+}
+
 export function PoolDetails () {
   const styles = useStyles()
   const {
@@ -115,8 +218,15 @@ export function PoolDetails () {
     tokenImageUrl,
     chainImageUrl,
     tokenSymbol,
-    chainName
-  } = usePools()
+    chainName,
+    userPoolBalance,
+    userPoolBalanceFormatted,
+    userPoolTokenPercentageFormatted,
+    hasBalance,
+    token0DepositedFormatted,
+    token1DepositedFormatted,
+    userPoolBalanceUsdFormatted,
+  } = usePool()
   const tvlFormatted = reserveTotalsUsdFormatted
   const volume24hFormatted = '-'
   const { pathname, search } = useLocation()
@@ -197,7 +307,21 @@ export function PoolDetails () {
                   My Liquidity
                 </Typography>
               </Box>
-              <PoolEmptyState />
+              {hasBalance ? (
+               <AccountPosition
+                data={{
+                  userPoolBalanceFormatted,
+                  userPoolTokenPercentageFormatted,
+                  token0DepositedFormatted,
+                  token1DepositedFormatted,
+                  canonicalTokenSymbol,
+                  hopTokenSymbol,
+                  userPoolBalanceUsdFormatted,
+                }}
+               />
+              ) : (
+               <PoolEmptyState />
+              )}
             </Box>
             <Box width="50%">
               <Tabs value={selectedTab} onChange={handleTabChange} style={{ width: 'max-content' }} variant="scrollable">
@@ -216,55 +340,15 @@ export function PoolDetails () {
           </Box>
         </Box>
       </Box>
-      <Box p={4} className={styles.poolStats}>
-        <Box mb={4}>
-          <Typography variant="h5">
-            {poolName} Info
-          </Typography>
-        </Box>
-        <Box display="flex" justifyContent="space-between">
-          <Box width="100%">
-            <Box mb={1}>
-              <Typography variant="subtitle2" color="secondary">
-              {canonicalTokenSymbol} Reserves
-              </Typography>
-            </Box>
-            <Typography variant="subtitle2">
-              {reserve0Formatted}
-            </Typography>
-          </Box>
-          <Box width="100%">
-            <Box mb={1}>
-              <Typography variant="subtitle2" color="secondary">
-              {hopTokenSymbol} Reserves
-              </Typography>
-            </Box>
-            <Typography variant="subtitle2">
-              {reserve1Formatted}
-            </Typography>
-          </Box>
-          <Box width="100%">
-            <Box mb={1}>
-              <Typography variant="subtitle2" color="secondary">
-              LP Tokens
-              </Typography>
-            </Box>
-            <Typography variant="subtitle2">
-              {lpTokenTotalSupplyFormatted}
-            </Typography>
-          </Box>
-          <Box width="100%">
-            <Box mb={1}>
-              <Typography variant="subtitle2" color="secondary">
-              Fee
-              </Typography>
-            </Box>
-            <Typography variant="subtitle2">
-              {feeFormatted}
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+      <PoolStats
+        data={{
+          poolName,
+          canonicalTokenSymbol,
+          reserve0Formatted,
+          lpTokenTotalSupplyFormatted,
+          feeFormatted
+        }}
+       />
     </Box>
   )
 }

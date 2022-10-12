@@ -43,7 +43,7 @@ const HeaderRoutes: FC = () => {
     <Tabs value={value || '/send'} onChange={handleChange} style={{ width: 'max-content' }} variant="scrollable"
     scrollButtons="auto" className={styles.tabs}>
       <Tab label="Send" value="/send" />
-      <Tab label="Pool" value="/pool" />
+      <Tab label="Pool" value="/pools" />
       <Tab label="Convert" value="/convert" />
       {isMainnet && <Tab label="Stake" value="/stake" />}
       {canClaim && (

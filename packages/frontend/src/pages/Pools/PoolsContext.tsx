@@ -76,6 +76,7 @@ type PoolsContextProps = {
   userPoolBalance?: BigNumber
   userPoolBalanceFormatted?: string
   userPoolTokenPercentage?: string
+  userPoolTokenPercentageFormatted?: string
   validFormFields: boolean
   virtualPrice?: number
   warning?: string
@@ -100,6 +101,11 @@ type PoolsContextProps = {
   chainImageUrl: string
   tokenSymbol: string
   chainName: string
+  token0DepositedFormatted: string
+  token1DepositedFormatted: string
+  tokenSumDepositedFormatted: string
+  userPoolBalanceUsd: number
+  userPoolBalanceUsdFormatted: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -116,7 +122,7 @@ const PoolsProvider: FC = ({ children }) => {
   const [token0Price, setToken0Price] = useState<string>('-')
   const [token1Price, setToken1Price] = useState<string>('-')
   const [userPoolBalance, setUserPoolBalance] = useState<BigNumber>()
-  const [userPoolBalanceFormatted, setUserPoolBalanceFormatted] = useState<string>()
+  const [userPoolBalanceFormatted, setUserPoolBalanceFormatted] = useState<string>('')
   const [userPoolTokenPercentage, setUserPoolTokenPercentage] = useState<string>('')
   const [token0Deposited, setToken0Deposited] = useState<BigNumber | undefined>()
   const [token1Deposited, setToken1Deposited] = useState<BigNumber | undefined>()
@@ -539,7 +545,7 @@ const PoolsProvider: FC = ({ children }) => {
       if (Number(formattedBalance) === 0 && balance.gt(0)) {
         formattedBalance = '<0.00001'
       }
-      setUserPoolBalanceFormatted(formattedBalance)
+      setUserPoolBalanceFormatted(`${commafy(formattedBalance, 5)}`)
 
       const oneToken = parseUnits('1', lpDecimals)
       const poolPercentage = balance.mul(oneToken).div(totalSupply).mul(100)
@@ -901,6 +907,19 @@ const PoolsProvider: FC = ({ children }) => {
   const tokenImageUrl = tokenSymbol ? getTokenImage(tokenSymbol) : ''
   const chainImageUrl = selectedNetwork?.imageUrl ?? ''
   const chainName = selectedNetwork?.name ?? ''
+  const userPoolTokenPercentageFormatted = userPoolTokenPercentage ? `${commafy(userPoolTokenPercentage)}%` : ''
+  const token0DepositedFormatted = token0Deposited
+    ? commafy(Number(formatUnits(token0Deposited, canonicalToken?.decimals)), 5)
+    : ''
+  const token1DepositedFormatted = token1Deposited
+    ? commafy(Number(formatUnits(token1Deposited, hopToken?.decimals)), 5)
+    : ''
+  const tokenSumDepositedFormatted = tokenSumDeposited
+    ? commafy(Number(formatUnits(tokenSumDeposited, hopToken?.decimals)), 5)
+    : ''
+
+  const userPoolBalanceUsd = (hasBalance && userPoolBalance && virtualPrice && tokenUsdPrice) ? (Number(virtualPrice) * Number(formatUnits(userPoolBalance, 18))) * tokenUsdPrice : 0
+  const userPoolBalanceUsdFormatted = `$${commafy(userPoolBalanceUsd, 4)}`
 
   return (
     <PoolsContext.Provider
@@ -947,6 +966,7 @@ const PoolsProvider: FC = ({ children }) => {
         userPoolBalance,
         userPoolBalanceFormatted,
         userPoolTokenPercentage,
+        userPoolTokenPercentageFormatted,
         validFormFields,
         virtualPrice,
         warning,
@@ -970,7 +990,12 @@ const PoolsProvider: FC = ({ children }) => {
         tokenImageUrl,
         chainImageUrl,
         tokenSymbol,
-        chainName
+        chainName,
+        token0DepositedFormatted,
+        token1DepositedFormatted,
+        tokenSumDepositedFormatted,
+        userPoolBalanceUsd,
+        userPoolBalanceUsdFormatted,
       }}
     >
       {children}
@@ -978,10 +1003,10 @@ const PoolsProvider: FC = ({ children }) => {
   )
 }
 
-export function usePools() {
+export function usePool() {
   const ctx = useContext(PoolsContext)
   if (ctx === undefined) {
-    throw new Error('usePools must be used within PoolsProvider')
+    throw new Error('usePool must be used within PoolsProvider')
   }
   return ctx
 }

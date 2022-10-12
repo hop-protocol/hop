@@ -1,7 +1,7 @@
 import React, { FC } from 'react'
 import SendIcon from '@material-ui/icons/Send'
 import { makeStyles } from '@material-ui/core/styles'
-import { usePools } from 'src/pages/Pools/PoolsContext'
+import { usePool } from 'src/pages/Pools/PoolsContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Button from 'src/components/buttons/Button'
 
@@ -16,7 +16,7 @@ type Props = {}
 
 const SendButton: FC<Props> = (props: Props) => {
   const styles = useStyles()
-  const { validFormFields, addLiquidity, sending, sendButtonText, unsupportedAsset } = usePools()
+  const { validFormFields, addLiquidity, sending, sendButtonText, unsupportedAsset } = usePool()
   const { walletConnected } = useWeb3Context()
   const handleSubmit = async () => {
     addLiquidity()

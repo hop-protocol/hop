@@ -3,6 +3,7 @@ import { usePool } from './PoolsContext'
 import Box from '@material-ui/core/Box'
 import { useParams } from 'react-router'
 import { PoolRow } from './PoolRow'
+import Button from 'src/components/buttons/Button'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { Link, useLocation, useHistory } from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
@@ -177,26 +178,66 @@ function DepositForm(props: any) {
   const { tokenImageUrl, balanceFormatted } = props.data
   return (
     <Box>
-      <Box mb={1} display="flex" justifyContent="flex-end">
-        <Typography variant="body2" color="secondary">
-          Balance: {balanceFormatted}
-        </Typography>
+      <Box mb={4}>
+        <Box mb={1} display="flex" justifyContent="space-between">
+          <Box>
+            <Typography variant="body2" color="secondary">
+              <MuiLink><strong>Wrap/Unwrap WETH</strong></MuiLink>
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="body2" color="secondary">
+              <strong>Balance: {balanceFormatted}</strong>
+            </Typography>
+          </Box>
+        </Box>
+        <Box mb={1}>
+          <InputField tokenSymbol={'WETH'} tokenImageUrl={tokenImageUrl} />
+        </Box>
+        <Box display="flex" justifyContent="center">
+          <Typography variant="h6" color="secondary">
+          +
+          </Typography>
+        </Box>
+        <Box mb={1} display="flex" justifyContent="flex-end">
+          <Typography variant="body2" color="secondary">
+            <strong>Balance: {balanceFormatted}</strong>
+          </Typography>
+        </Box>
+        <Box mb={1}>
+          <InputField tokenSymbol={'hETH'} tokenImageUrl={tokenImageUrl} />
+        </Box>
       </Box>
-      <Box mb={1}>
-        <InputField tokenSymbol={'WETH'} tokenImageUrl={tokenImageUrl} />
+      <Box margin="0 auto" width="90%">
+        <Box mb={1} display="flex" alignItems="center" justifyContent="space-between">
+          <Box>
+            <Typography variant="subtitle2">
+              Price Impact
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="subtitle2">
+              0.8%
+            </Typography>
+          </Box>
+        </Box>
+        <Box mb={1} display="flex" alignItems="center" justifyContent="space-between">
+          <Box mb={1}>
+            <Typography variant="h6">
+              Total
+            </Typography>
+          </Box>
+          <Box mb={1}>
+            <Typography variant="h6">
+              $3324,324
+            </Typography>
+          </Box>
+        </Box>
       </Box>
-      <Box display="flex" justifyContent="center">
-        <Typography variant="h6" color="secondary">
-        +
-        </Typography>
-      </Box>
-      <Box mb={1} display="flex" justifyContent="flex-end">
-        <Typography variant="body2" color="secondary">
-          Balance: {balanceFormatted}
-        </Typography>
-      </Box>
-      <Box mb={1}>
-        <InputField tokenSymbol={'hETH'} tokenImageUrl={tokenImageUrl} />
+      <Box>
+        <Button highlighted fullWidth>
+          Preview
+        </Button>
       </Box>
     </Box>
   )
@@ -412,7 +453,7 @@ export function PoolDetails () {
                 </>
               )}
             </Box>
-            <Box width="50%">
+            <Box width="50%" className={styles.poolDetailsBox}>
               <Tabs value={selectedTab} onChange={handleTabChange} style={{ width: 'max-content' }} variant="scrollable">
                 <Tab label="Deposit" value="deposit" />
                 <Tab label="Withdraw" value="withdraw" />

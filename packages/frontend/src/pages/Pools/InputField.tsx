@@ -52,7 +52,7 @@ export function InputField (props: any) {
           </Typography>
         </Box>
       </Box>
-      <input type="text" placeholder="0" className={styles.input} />
+      <input type="text" placeholder="0.0" className={styles.input} />
     </Box>
   )
 }

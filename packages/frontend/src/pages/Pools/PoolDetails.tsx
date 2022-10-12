@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, ChangeEvent } from 'react'
 import { usePools } from './PoolsContext'
 import Box from '@material-ui/core/Box'
 import { PoolRow } from './PoolRow'
@@ -11,6 +11,8 @@ import ArrowLeft from '@material-ui/icons/ChevronLeft'
 import LaunchIcon from '@material-ui/icons/Launch'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { DinoGame } from './DinoGame'
+import Tabs from '@material-ui/core/Tabs'
+import Tab from '@material-ui/core/Tab'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -79,6 +81,24 @@ function PoolEmptyState() {
   )
 }
 
+function DepositForm() {
+  return (
+    <Box>deposit</Box>
+  )
+}
+
+function WithdrawForm() {
+  return (
+    <Box>withdraw</Box>
+  )
+}
+
+function StakeForm() {
+  return (
+    <Box>stake</Box>
+  )
+}
+
 export function PoolDetails () {
   const styles = useStyles()
   const {
@@ -98,6 +118,11 @@ export function PoolDetails () {
   } = usePools()
   const tvlFormatted = reserveTotalsUsdFormatted
   const volume24hFormatted = '-'
+  const [selectedTab, setSelectedTab] = useState('deposit')
+
+  function handleTabChange(event: ChangeEvent<{}>, newValue: string) {
+    setSelectedTab(newValue)
+  }
 
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
@@ -157,19 +182,28 @@ export function PoolDetails () {
       </Box>
       <Box mb={4}>
         <Box p={4} className={styles.box}>
-          <Box mb={4}>
-            <Typography variant="h4">
-              My Liquidity
-            </Typography>
-          </Box>
           <Box p={2} display="flex">
-            <Box p={2} width="50%">
+            <Box p={2} width="50%" display="flex" flexDirection="column">
+              <Box mb={4}>
+                <Typography variant="h4">
+                  My Liquidity
+                </Typography>
+              </Box>
               <PoolEmptyState />
             </Box>
-            <Box p={2} width="50%">
-              <Typography variant="h6">
-                Deposit input
-              </Typography>
+            <Box width="50%">
+              <Tabs value={selectedTab} onChange={handleTabChange} style={{ width: 'max-content' }} variant="scrollable">
+                <Tab label="Deposit" value="deposit" />
+                <Tab label="Withdraw" value="withdraw" />
+                <Tab label="Stake" value="stake" />
+              </Tabs>
+              <Box p={2}>
+                <Box>
+                  {selectedTab === 'deposit' && <DepositForm />}
+                  {selectedTab === 'withdraw' && <WithdrawForm />}
+                  {selectedTab === 'stake' && <StakeForm />}
+                </Box>
+              </Box>
             </Box>
           </Box>
         </Box>

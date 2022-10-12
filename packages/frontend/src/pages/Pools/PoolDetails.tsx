@@ -3,6 +3,7 @@ import { usePool } from './PoolsContext'
 import Box from '@material-ui/core/Box'
 import { useParams } from 'react-router'
 import { PoolRow } from './PoolRow'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 import { Link, useLocation, useHistory } from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
@@ -17,11 +18,6 @@ import Tab from '@material-ui/core/Tab'
 import Skeleton from '@material-ui/lab/Skeleton'
 
 export const useStyles = makeStyles(theme => ({
-  box: {
-    boxShadow: theme.boxShadow.inner,
-    transition: 'all 0.15s ease-out',
-    borderRadius: '3rem'
-  },
   backLink: {
     cursor: 'pointer',
     textDecoration: 'none'
@@ -39,16 +35,47 @@ export const useStyles = makeStyles(theme => ({
     left: '-5px'
   },
   topBox: {
-    background: 'white',
+    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '3rem',
     width: '100%',
     [theme.breakpoints.down('xs')]: {
+      marginBottom: '1rem',
+      marginLeft: 0,
+      width: '90%'
+    },
+  },
+  topBoxes: {
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column'
     },
   },
   poolStats: {
     boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
     borderRadius: '3rem'
+  },
+  poolStatBoxes: {
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column'
+    },
+  },
+  poolDetails: {
+    boxShadow: theme.boxShadow.inner,
+    transition: 'all 0.15s ease-out',
+    borderRadius: '3rem',
+    [theme.breakpoints.down('xs')]: {
+      padding: 0
+    },
+  },
+  poolDetailsBoxes: {
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column'
+    },
+  },
+  poolDetailsBox: {
+    [theme.breakpoints.down('xs')]: {
+      width: '100%'
+    },
   },
 }))
 
@@ -182,7 +209,7 @@ function PoolStats (props:any) {
           {poolName} Info
         </Typography>
       </Box>
-      <Box display="flex" justifyContent="space-between">
+      <Box display="flex" justifyContent="space-between" className={styles.poolStatBoxes}>
         <Box width="100%">
           <Box mb={1}>
             <Typography variant="subtitle2" color="secondary">
@@ -259,6 +286,7 @@ export function PoolDetails () {
   const history = useHistory()
   const { tab } = useParams<{ tab: string }>()
   const [selectedTab, setSelectedTab] = useState(tab || 'deposit')
+  const { theme } = useThemeMode()
 
   function handleTabChange(event: ChangeEvent<{}>, newValue: string) {
     history.push({
@@ -292,7 +320,7 @@ export function PoolDetails () {
           </Box>
         </Box>
       </Box>
-      <Box mb={4} p={1} display="flex" justifyContent="space-between">
+      <Box mb={4} p={1} display="flex" justifyContent="space-between" className={styles.topBoxes}>
         <Box mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
           <Box mb={2}>
             <Typography variant="subtitle1" color="secondary">
@@ -325,9 +353,9 @@ export function PoolDetails () {
         </Box>
       </Box>
       <Box mb={4}>
-        <Box p={4} className={styles.box}>
-          <Box p={2} display="flex">
-            <Box p={2} width="50%" display="flex" flexDirection="column">
+        <Box p={4} className={styles.poolDetails}>
+          <Box p={2} display="flex" className={styles.poolDetailsBoxes}>
+            <Box p={2} width="50%" display="flex" flexDirection="column" className={styles.poolDetailsBox}>
               <Box mb={4}>
                 <Typography variant="h4">
                   My Liquidity

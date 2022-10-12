@@ -1,8 +1,9 @@
 import React, { useState, ChangeEvent } from 'react'
 import { usePools } from './PoolsContext'
 import Box from '@material-ui/core/Box'
+import { useParams } from 'react-router'
 import { PoolRow } from './PoolRow'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useHistory } from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
@@ -118,9 +119,16 @@ export function PoolDetails () {
   } = usePools()
   const tvlFormatted = reserveTotalsUsdFormatted
   const volume24hFormatted = '-'
-  const [selectedTab, setSelectedTab] = useState('deposit')
+  const { pathname, search } = useLocation()
+  const history = useHistory()
+  const { tab } = useParams<{ tab: string }>()
+  const [selectedTab, setSelectedTab] = useState(tab || 'deposit')
 
   function handleTabChange(event: ChangeEvent<{}>, newValue: string) {
+    history.push({
+      pathname: `/pool/${newValue}`,
+      search,
+    })
     setSelectedTab(newValue)
   }
 

@@ -32,7 +32,8 @@ const AppRoutes: FC = () => {
 
           <Route path="/convert" component={Convert} />
           <Route exact path="/pools" component={PoolsOverview} />
-          <Route exact path="/pool" component={PoolDetails} />
+          <Route path="/pool/:tab" component={PoolDetails} />
+          <Route exact path="/pool" component={() => <Redirect to="/pool/deposit" />} />
           <Route exact path="/stake" component={Stake} />
           <Route exact path="/rewards" component={Rewards} />
           <Route exact path="/withdraw" component={Withdraw} />

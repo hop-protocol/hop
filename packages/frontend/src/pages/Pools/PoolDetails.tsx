@@ -16,6 +16,7 @@ import { DinoGame } from './DinoGame'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import Skeleton from '@material-ui/lab/Skeleton'
+import { InputField } from './InputField'
 
 export const useStyles = makeStyles(theme => ({
   backLink: {
@@ -172,9 +173,32 @@ function AccountPosition(props: any) {
   )
 }
 
-function DepositForm() {
+function DepositForm(props: any) {
+  const { tokenImageUrl, balanceFormatted } = props.data
   return (
-    <Box>deposit</Box>
+    <Box>
+      <Box mb={1} display="flex" justifyContent="flex-end">
+        <Typography variant="body2" color="secondary">
+          Balance: {balanceFormatted}
+        </Typography>
+      </Box>
+      <Box mb={1}>
+        <InputField tokenSymbol={'WETH'} tokenImageUrl={tokenImageUrl} />
+      </Box>
+      <Box display="flex" justifyContent="center">
+        <Typography variant="h6" color="secondary">
+        +
+        </Typography>
+      </Box>
+      <Box mb={1} display="flex" justifyContent="flex-end">
+        <Typography variant="body2" color="secondary">
+          Balance: {balanceFormatted}
+        </Typography>
+      </Box>
+      <Box mb={1}>
+        <InputField tokenSymbol={'hETH'} tokenImageUrl={tokenImageUrl} />
+      </Box>
+    </Box>
   )
 }
 
@@ -396,7 +420,12 @@ export function PoolDetails () {
               </Tabs>
               <Box p={2}>
                 <Box>
-                  {selectedTab === 'deposit' && <DepositForm />}
+                  {selectedTab === 'deposit' && <DepositForm
+                    data={{
+                      tokenImageUrl,
+                      balanceFormatted: userPoolBalanceFormatted
+                    }}
+                  />}
                   {selectedTab === 'withdraw' && <WithdrawForm />}
                   {selectedTab === 'stake' && <StakeForm />}
                 </Box>

@@ -19,7 +19,7 @@ import Skeleton from '@material-ui/lab/Skeleton'
 
 export const useStyles = makeStyles(theme => ({
   box: {
-    background: 'white',
+    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '1rem',
     position: 'relative'
   },
@@ -30,7 +30,9 @@ export const useStyles = makeStyles(theme => ({
     border: 0,
     outline: 0,
     width: '100%',
-    textAlign: 'right'
+    textAlign: 'right',
+    background: 'none',
+    color: theme.palette.text.primary,
   },
   image: {
     width: '24px'
@@ -39,7 +41,10 @@ export const useStyles = makeStyles(theme => ({
 
 export function InputField (props: any) {
   const styles = useStyles()
-  const { tokenImageUrl, tokenSymbol } = props
+  const { tokenImageUrl, tokenSymbol, value, onChange } = props
+  function handleChange(event: any) {
+    onChange(event.target.value)
+  }
   return (
     <Box p={2} className={styles.box} display="flex">
       <Box display="flex" alignItems="center">
@@ -52,7 +57,7 @@ export function InputField (props: any) {
           </Typography>
         </Box>
       </Box>
-      <input type="text" placeholder="0.0" className={styles.input} />
+      <input type="text" placeholder="0.0" value={value} onChange={handleChange} className={styles.input} />
     </Box>
   )
 }

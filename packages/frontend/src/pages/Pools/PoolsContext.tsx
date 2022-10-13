@@ -107,6 +107,9 @@ type PoolsContextProps = {
   userPoolBalanceUsd: number
   userPoolBalanceUsdFormatted: string
   loading: boolean
+  token0BalanceFormatted: string
+  token1BalanceFormatted: string
+  depositAmountTotalDisplayFormatted: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -905,9 +908,9 @@ const PoolsProvider: FC = ({ children }) => {
   const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
   const aprFormatted = toPercentDisplay(apr)
   const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
-  const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
+  const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : '-'
   const poolSharePercentageFormatted = poolSharePercentage ? `${commafy(poolSharePercentage)}%` : ''
-  const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : ''
+  const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : '-'
   const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
   const tokenSymbol = selectedBridge?.getTokenSymbol() ?? ''
   const poolName = `${tokenSymbol} ${selectedNetwork?.name} Pool`
@@ -925,8 +928,15 @@ const PoolsProvider: FC = ({ children }) => {
     ? commafy(Number(formatUnits(tokenSumDeposited, hopToken?.decimals)), 5)
     : ''
 
-  const userPoolBalanceUsd = (hasBalance && userPoolBalance && virtualPrice && tokenUsdPrice) ? (Number(virtualPrice) * Number(formatUnits(userPoolBalance, 18))) * tokenUsdPrice : 0
-  const userPoolBalanceUsdFormatted = `$${commafy(userPoolBalanceUsd, 4)}`
+  const userPoolBalanceSum = (hasBalance && userPoolBalance && virtualPrice && tokenUsdPrice) ? (Number(virtualPrice) * Number(formatUnits(userPoolBalance, 18))) : 0
+  const userPoolBalanceUsd = tokenUsdPrice ? userPoolBalanceSum * tokenUsdPrice : 0
+  const userPoolBalanceUsdFormatted = userPoolBalanceUsd ? `$${commafy(userPoolBalanceUsd, 2)}` : commafy(userPoolBalanceSum, 4)
+
+  const token0BalanceFormatted = commafy(token0Balance, 4)
+  const token1BalanceFormatted = commafy(token1Balance, 4)
+  const depositAmountTotal = (Number(token0Amount || 0) + Number(token1Amount || 0))
+  const depositAmountTotalUsd = (tokenUsdPrice && depositAmountTotal) ? depositAmountTotal * tokenUsdPrice : 0
+  const depositAmountTotalDisplayFormatted = depositAmountTotalUsd ? `$${commafy(depositAmountTotalUsd, 2)}` : `${commafy(depositAmountTotal, 2)}`
 
   return (
     <PoolsContext.Provider
@@ -1003,7 +1013,10 @@ const PoolsProvider: FC = ({ children }) => {
         tokenSumDepositedFormatted,
         userPoolBalanceUsd,
         userPoolBalanceUsdFormatted,
-        loading
+        loading,
+        token0BalanceFormatted,
+        token1BalanceFormatted,
+        depositAmountTotalDisplayFormatted
       }}
     >
       {children}

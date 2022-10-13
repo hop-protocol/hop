@@ -3,6 +3,7 @@ import { usePool } from './PoolsContext'
 import Box from '@material-ui/core/Box'
 import { useParams } from 'react-router'
 import { PoolRow } from './PoolRow'
+import Alert from 'src/components/alert/Alert'
 import Button from 'src/components/buttons/Button'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { Link, useLocation, useHistory } from 'react-router-dom'
@@ -12,12 +13,19 @@ import IconButton from '@material-ui/core/IconButton'
 import MuiLink from '@material-ui/core/Link'
 import ArrowLeft from '@material-ui/icons/ChevronLeft'
 import LaunchIcon from '@material-ui/icons/Launch'
-import InfoTooltip from 'src/components/InfoTooltip'
 import { DinoGame } from './DinoGame'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import Skeleton from '@material-ui/lab/Skeleton'
 import { InputField } from './InputField'
+import InfoTooltip from 'src/components/InfoTooltip'
+import {
+  commafy,
+  findMatchingBridge,
+  sanitizeNumericalString,
+  toPercentDisplay,
+  toTokenDisplay,
+} from 'src/utils'
 
 export const useStyles = makeStyles(theme => ({
   backLink: {
@@ -83,7 +91,7 @@ export const useStyles = makeStyles(theme => ({
 
 function PoolEmptyState() {
   return (
-    <Box>
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%">
       <Box>
         <DinoGame />
       </Box>
@@ -128,7 +136,9 @@ function AccountPosition(props: any) {
       <Box mb={4}>
         <Box mb={1}>
           <Typography variant="subtitle1" color="secondary">
-            Balance
+            <Box display="flex" alignItems="center">
+              Balance <InfoTooltip title="USD value of current position in this pool" />
+            </Box>
           </Typography>
         </Box>
         <Box mb={1}>
@@ -147,7 +157,9 @@ function AccountPosition(props: any) {
           <Box>
             <Box mb={1}>
               <Typography variant="subtitle1" color="secondary">
-                LP Balance
+                <Box display="flex" alignItems="center">
+                  LP Balance <InfoTooltip title="Liquidity provider (LP) tokens this account has for depositing into pool" />
+                </Box>
               </Typography>
             </Box>
             <Box>
@@ -159,7 +171,9 @@ function AccountPosition(props: any) {
           <Box>
             <Box mb={1}>
               <Typography variant="subtitle1" color="secondary">
-                Share of Pool
+                <Box display="flex" alignItems="center">
+                  Share of Pool <InfoTooltip title="Share of pool percentage for account" />
+                </Box>
               </Typography>
             </Box>
             <Box>
@@ -175,24 +189,69 @@ function AccountPosition(props: any) {
 }
 
 function DepositForm(props: any) {
-  const { tokenImageUrl, balanceFormatted } = props.data
+  const {
+    token0Symbol,
+    token1Symbol,
+    token0ImageUrl,
+    token1ImageUrl,
+    balance0Formatted,
+    balance1Formatted,
+    token0Amount,
+    token1Amount,
+    setToken0Amount,
+    setToken1Amount,
+    addLiquidity,
+    priceImpactFormatted,
+    depositAmountTotalDisplayFormatted
+  } = props.data
+
+  function handleToken0Change (value: string) {
+    const token0Value = sanitizeNumericalString(value)
+    if (!token0Value) {
+      setToken0Amount('')
+      return
+    }
+
+    setToken0Amount(token0Value)
+  }
+
+  function handleToken1Change (value: string) {
+    const token1Value = sanitizeNumericalString(value)
+    if (!token1Value) {
+      setToken1Amount('')
+      return
+    }
+
+    setToken1Amount(token1Value)
+  }
+
+  function handleClick (event: any) {
+    event.preventDefault()
+    addLiquidity()
+  }
+
   return (
     <Box>
       <Box mb={4}>
         <Box mb={1} display="flex" justifyContent="space-between">
           <Box>
             <Typography variant="body2" color="secondary">
-              <MuiLink><strong>Wrap/Unwrap WETH</strong></MuiLink>
+              <MuiLink><strong>Wrap/Unwrap token</strong></MuiLink>
             </Typography>
           </Box>
           <Box>
             <Typography variant="body2" color="secondary">
-              <strong>Balance: {balanceFormatted}</strong>
+              <strong>Balance: {balance0Formatted}</strong>
             </Typography>
           </Box>
         </Box>
         <Box mb={1}>
-          <InputField tokenSymbol={'WETH'} tokenImageUrl={tokenImageUrl} />
+          <InputField
+            tokenSymbol={token0Symbol}
+            tokenImageUrl={token0ImageUrl}
+            value={token0Amount}
+            onChange={handleToken0Change}
+          />
         </Box>
         <Box display="flex" justifyContent="center">
           <Typography variant="h6" color="secondary">
@@ -201,41 +260,50 @@ function DepositForm(props: any) {
         </Box>
         <Box mb={1} display="flex" justifyContent="flex-end">
           <Typography variant="body2" color="secondary">
-            <strong>Balance: {balanceFormatted}</strong>
+            <strong>Balance: {balance1Formatted}</strong>
           </Typography>
         </Box>
         <Box mb={1}>
-          <InputField tokenSymbol={'hETH'} tokenImageUrl={tokenImageUrl} />
+          <InputField
+            tokenSymbol={token1Symbol}
+            tokenImageUrl={token1ImageUrl}
+            value={token1Amount}
+            onChange={handleToken1Change}
+          />
         </Box>
       </Box>
       <Box margin="0 auto" width="90%">
         <Box mb={1} display="flex" alignItems="center" justifyContent="space-between">
           <Box>
             <Typography variant="subtitle2">
-              Price Impact
+              <Box display="flex" alignItems="center">
+                Price Impact <InfoTooltip title="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens." />
+              </Box>
             </Typography>
           </Box>
           <Box>
             <Typography variant="subtitle2">
-              0.8%
+              {priceImpactFormatted}
             </Typography>
           </Box>
         </Box>
         <Box mb={1} display="flex" alignItems="center" justifyContent="space-between">
           <Box mb={1}>
             <Typography variant="h6">
-              Total
+              <Box display="flex" alignItems="center">
+                Total <InfoTooltip title="Total value of deposit in USD" />
+              </Box>
             </Typography>
           </Box>
           <Box mb={1}>
             <Typography variant="h6">
-              $3324,324
+              {depositAmountTotalDisplayFormatted}
             </Typography>
           </Box>
         </Box>
       </Box>
       <Box>
-        <Button highlighted fullWidth>
+        <Button highlighted fullWidth onClick={handleClick}>
           Preview
         </Button>
       </Box>
@@ -245,13 +313,21 @@ function DepositForm(props: any) {
 
 function WithdrawForm() {
   return (
-    <Box>withdraw</Box>
+    <Box>
+      <Typography>
+        Withdraw form comming soon
+      </Typography>
+    </Box>
   )
 }
 
 function StakeForm() {
   return (
-    <Box>stake</Box>
+    <Box>
+      <Typography>
+        Stake form comming soon
+      </Typography>
+    </Box>
   )
 }
 
@@ -265,6 +341,7 @@ function PoolStats (props:any) {
     reserve1Formatted,
     lpTokenTotalSupplyFormatted,
     feeFormatted,
+    virtualPriceFormatted
   } = props.data
 
   return (
@@ -278,7 +355,9 @@ function PoolStats (props:any) {
         <Box width="100%">
           <Box mb={1}>
             <Typography variant="subtitle2" color="secondary">
-            {canonicalTokenSymbol} Reserves
+              <Box display="flex" alignItems="center">
+                {canonicalTokenSymbol} Reserves <InfoTooltip title="Total amount of canonical tokens in pool" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="subtitle2">
@@ -288,7 +367,9 @@ function PoolStats (props:any) {
         <Box width="100%">
           <Box mb={1}>
             <Typography variant="subtitle2" color="secondary">
-            {hopTokenSymbol} Reserves
+              <Box display="flex" alignItems="center">
+                {hopTokenSymbol} Reserves <InfoTooltip title="Total amount of h-tokens in pool" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="subtitle2">
@@ -298,7 +379,9 @@ function PoolStats (props:any) {
         <Box width="100%">
           <Box mb={1}>
             <Typography variant="subtitle2" color="secondary">
-            LP Tokens
+              <Box display="flex" alignItems="center">
+                LP Tokens <InfoTooltip title="Total supply of liquidity provider (LP) tokens for pool" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="subtitle2">
@@ -308,11 +391,25 @@ function PoolStats (props:any) {
         <Box width="100%">
           <Box mb={1}>
             <Typography variant="subtitle2" color="secondary">
-            Fee
+              <Box display="flex" alignItems="center">
+                Fee <InfoTooltip title="Each trade has this fee percentage that goes to liquidity providers" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="subtitle2">
             {feeFormatted}
+          </Typography>
+        </Box>
+        <Box width="100%">
+          <Box mb={1}>
+            <Typography variant="subtitle2" color="secondary">
+              <Box display="flex" alignItems="center">
+                Virtual Price <InfoTooltip title="The virtual price, to help calculate profit. Virtual price is calculated as `pool_reserves / lp_supply`" />
+              </Box>
+            </Typography>
+          </Box>
+          <Typography variant="subtitle2">
+            {virtualPriceFormatted}
           </Typography>
         </Box>
       </Box>
@@ -331,6 +428,7 @@ export function PoolDetails () {
     reserve1Formatted,
     lpTokenTotalSupplyFormatted,
     feeFormatted,
+    virtualPriceFormatted,
     poolName,
     tokenImageUrl,
     chainImageUrl,
@@ -343,7 +441,21 @@ export function PoolDetails () {
     token0DepositedFormatted,
     token1DepositedFormatted,
     userPoolBalanceUsdFormatted,
-    loading
+    loading,
+    setToken0Amount,
+    token0Amount,
+    setToken1Amount,
+    token1Amount,
+    canonicalToken,
+    hopToken,
+    token0BalanceFormatted,
+    token1BalanceFormatted,
+    warning,
+    error,
+    setError,
+    addLiquidity,
+    priceImpactFormatted,
+    depositAmountTotalDisplayFormatted
   } = usePool()
   const tvlFormatted = reserveTotalsUsdFormatted
   const volume24hFormatted = '-'
@@ -389,7 +501,9 @@ export function PoolDetails () {
         <Box mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
           <Box mb={2}>
             <Typography variant="subtitle1" color="secondary">
-             TVL
+              <Box display="flex" alignItems="center">
+                TVL <InfoTooltip title="Total value locked in USD" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="h5">
@@ -399,7 +513,9 @@ export function PoolDetails () {
         <Box ml={1} mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
           <Box mb={2}>
             <Typography variant="subtitle1" color="secondary">
-              24hr Volume
+              <Box display="flex" alignItems="center">
+                24hr Volume <InfoTooltip title="Total volume in AMM in last 24 hours" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="h5">
@@ -409,7 +525,9 @@ export function PoolDetails () {
         <Box ml={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
           <Box mb={2}>
             <Typography variant="subtitle1" color="secondary">
-              APR
+              <Box display="flex" alignItems="center">
+                APR <InfoTooltip title="Annual Percentage Rate (APR) from earning fees, based on 24hr trading volume" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="h5">
@@ -459,16 +577,31 @@ export function PoolDetails () {
                 <Tab label="Withdraw" value="withdraw" />
                 <Tab label="Stake" value="stake" />
               </Tabs>
-              <Box p={2}>
-                <Box>
+              <Box p={2} display="flex" flexDirection="column">
+                <Box mb={2} >
                   {selectedTab === 'deposit' && <DepositForm
                     data={{
-                      tokenImageUrl,
-                      balanceFormatted: userPoolBalanceFormatted
+                      token0Symbol: canonicalTokenSymbol,
+                      token1Symbol: hopTokenSymbol,
+                      token0ImageUrl: canonicalToken?.imageUrl,
+                      token1ImageUrl: hopToken?.imageUrl,
+                      balance0Formatted: token0BalanceFormatted,
+                      balance1Formatted: token1BalanceFormatted,
+                      token0Amount,
+                      token1Amount,
+                      setToken0Amount,
+                      setToken1Amount,
+                      addLiquidity,
+                      priceImpactFormatted,
+                      depositAmountTotalDisplayFormatted
                     }}
                   />}
                   {selectedTab === 'withdraw' && <WithdrawForm />}
                   {selectedTab === 'stake' && <StakeForm />}
+                </Box>
+                <Box>
+                  <Alert severity="warning">{warning}</Alert>
+                  <Alert severity="error" onClose={() => setError(null)} text={error} />
                 </Box>
               </Box>
             </Box>
@@ -483,7 +616,8 @@ export function PoolDetails () {
           reserve0Formatted,
           reserve1Formatted,
           lpTokenTotalSupplyFormatted,
-          feeFormatted
+          feeFormatted,
+          virtualPriceFormatted
         }}
        />
     </Box>

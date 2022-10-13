@@ -1,8 +1,9 @@
-import React, { useState, ChangeEvent } from 'react'
+import React, { useState, ChangeEvent, useEffect } from 'react'
 import { usePool } from './PoolsContext'
 import Box from '@material-ui/core/Box'
 import { useParams } from 'react-router'
 import { PoolRow } from './PoolRow'
+import Alert from 'src/components/alert/Alert'
 import Button from 'src/components/buttons/Button'
 import { useThemeMode } from 'src/theme/ThemeProvider'
 import { Link, useLocation, useHistory } from 'react-router-dom'
@@ -12,12 +13,26 @@ import IconButton from '@material-ui/core/IconButton'
 import MuiLink from '@material-ui/core/Link'
 import ArrowLeft from '@material-ui/icons/ChevronLeft'
 import LaunchIcon from '@material-ui/icons/Launch'
-import InfoTooltip from 'src/components/InfoTooltip'
 import { DinoGame } from './DinoGame'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import Skeleton from '@material-ui/lab/Skeleton'
 import { InputField } from './InputField'
+import InfoTooltip from 'src/components/InfoTooltip'
+import RaisedSelect from 'src/components/selects/RaisedSelect'
+import MenuItem from '@material-ui/core/MenuItem'
+import SelectOption from 'src/components/selects/SelectOption'
+import { Slider } from 'src/components/slider'
+import { BigNumber } from 'ethers'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import {
+  commafy,
+  findMatchingBridge,
+  sanitizeNumericalString,
+  toPercentDisplay,
+  toTokenDisplay,
+  BNMin
+} from 'src/utils'
 
 export const useStyles = makeStyles(theme => ({
   backLink: {
@@ -83,7 +98,7 @@ export const useStyles = makeStyles(theme => ({
 
 function PoolEmptyState() {
   return (
-    <Box>
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%">
       <Box>
         <DinoGame />
       </Box>
@@ -128,7 +143,9 @@ function AccountPosition(props: any) {
       <Box mb={4}>
         <Box mb={1}>
           <Typography variant="subtitle1" color="secondary">
-            Balance
+            <Box display="flex" alignItems="center">
+              Balance <InfoTooltip title="USD value of current position in this pool" />
+            </Box>
           </Typography>
         </Box>
         <Box mb={1}>
@@ -147,7 +164,9 @@ function AccountPosition(props: any) {
           <Box>
             <Box mb={1}>
               <Typography variant="subtitle1" color="secondary">
-                LP Balance
+                <Box display="flex" alignItems="center">
+                  LP Balance <InfoTooltip title="Liquidity provider (LP) tokens this account has for depositing into pool" />
+                </Box>
               </Typography>
             </Box>
             <Box>
@@ -159,7 +178,9 @@ function AccountPosition(props: any) {
           <Box>
             <Box mb={1}>
               <Typography variant="subtitle1" color="secondary">
-                Share of Pool
+                <Box display="flex" alignItems="center">
+                  Share of Pool <InfoTooltip title="Share of pool percentage for account" />
+                </Box>
               </Typography>
             </Box>
             <Box>
@@ -175,24 +196,69 @@ function AccountPosition(props: any) {
 }
 
 function DepositForm(props: any) {
-  const { tokenImageUrl, balanceFormatted } = props.data
+  const {
+    token0Symbol,
+    token1Symbol,
+    token0ImageUrl,
+    token1ImageUrl,
+    balance0Formatted,
+    balance1Formatted,
+    token0Amount,
+    token1Amount,
+    setToken0Amount,
+    setToken1Amount,
+    addLiquidity,
+    priceImpactFormatted,
+    depositAmountTotalDisplayFormatted
+  } = props.data
+
+  function handleToken0Change (value: string) {
+    const token0Value = sanitizeNumericalString(value)
+    if (!token0Value) {
+      setToken0Amount('')
+      return
+    }
+
+    setToken0Amount(token0Value)
+  }
+
+  function handleToken1Change (value: string) {
+    const token1Value = sanitizeNumericalString(value)
+    if (!token1Value) {
+      setToken1Amount('')
+      return
+    }
+
+    setToken1Amount(token1Value)
+  }
+
+  function handleClick (event: any) {
+    event.preventDefault()
+    addLiquidity()
+  }
+
   return (
     <Box>
       <Box mb={4}>
         <Box mb={1} display="flex" justifyContent="space-between">
           <Box>
             <Typography variant="body2" color="secondary">
-              <MuiLink><strong>Wrap/Unwrap WETH</strong></MuiLink>
+              <MuiLink><strong>Wrap/Unwrap token</strong></MuiLink>
             </Typography>
           </Box>
           <Box>
             <Typography variant="body2" color="secondary">
-              <strong>Balance: {balanceFormatted}</strong>
+              <strong>Balance: {balance0Formatted}</strong>
             </Typography>
           </Box>
         </Box>
         <Box mb={1}>
-          <InputField tokenSymbol={'WETH'} tokenImageUrl={tokenImageUrl} />
+          <InputField
+            tokenSymbol={token0Symbol}
+            tokenImageUrl={token0ImageUrl}
+            value={token0Amount}
+            onChange={handleToken0Change}
+          />
         </Box>
         <Box display="flex" justifyContent="center">
           <Typography variant="h6" color="secondary">
@@ -201,41 +267,50 @@ function DepositForm(props: any) {
         </Box>
         <Box mb={1} display="flex" justifyContent="flex-end">
           <Typography variant="body2" color="secondary">
-            <strong>Balance: {balanceFormatted}</strong>
+            <strong>Balance: {balance1Formatted}</strong>
           </Typography>
         </Box>
         <Box mb={1}>
-          <InputField tokenSymbol={'hETH'} tokenImageUrl={tokenImageUrl} />
+          <InputField
+            tokenSymbol={token1Symbol}
+            tokenImageUrl={token1ImageUrl}
+            value={token1Amount}
+            onChange={handleToken1Change}
+          />
         </Box>
       </Box>
       <Box margin="0 auto" width="90%">
         <Box mb={1} display="flex" alignItems="center" justifyContent="space-between">
           <Box>
             <Typography variant="subtitle2">
-              Price Impact
+              <Box display="flex" alignItems="center">
+                Price Impact <InfoTooltip title="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens." />
+              </Box>
             </Typography>
           </Box>
           <Box>
             <Typography variant="subtitle2">
-              0.8%
+              {priceImpactFormatted}
             </Typography>
           </Box>
         </Box>
         <Box mb={1} display="flex" alignItems="center" justifyContent="space-between">
           <Box mb={1}>
             <Typography variant="h6">
-              Total
+              <Box display="flex" alignItems="center">
+                Total <InfoTooltip title="Total value of deposit in USD" />
+              </Box>
             </Typography>
           </Box>
           <Box mb={1}>
             <Typography variant="h6">
-              $3324,324
+              {depositAmountTotalDisplayFormatted}
             </Typography>
           </Box>
         </Box>
       </Box>
       <Box>
-        <Button highlighted fullWidth>
+        <Button highlighted fullWidth onClick={handleClick}>
           Preview
         </Button>
       </Box>
@@ -243,15 +318,236 @@ function DepositForm(props: any) {
   )
 }
 
-function WithdrawForm() {
+function WithdrawForm(props: any) {
+  const {
+    token0Symbol,
+    token1Symbol,
+    token0ImageUrl,
+    token1ImageUrl,
+    balance0Formatted,
+    balance1Formatted,
+    token0Amount,
+    token1Amount,
+    setToken0Amount,
+    setToken1Amount,
+    addLiquidity,
+    depositAmountTotalDisplayFormatted,
+    tokenDecimals,
+    token0AmountBn,
+    token1AmountBn,
+    token0Max,
+    token1Max,
+    calculatePriceImpact
+  } = props.data
+
+  function handleToken0Change (value: string) {
+    const token0Value = sanitizeNumericalString(value)
+    if (!token0Value) {
+      setToken0Amount('')
+      return
+    }
+
+    setToken0Amount(token0Value)
+  }
+
+  function handleToken1Change (value: string) {
+    const token1Value = sanitizeNumericalString(value)
+    if (!token1Value) {
+      setToken1Amount('')
+      return
+    }
+
+    setToken1Amount(token1Value)
+  }
+
+  function handleClick (event: any) {
+    event.preventDefault()
+    addLiquidity()
+  }
+
+  const selections: any[] = [
+    { label: 'All tokens', value: -1 },
+    { label: token0Symbol, value: 0, icon: token0ImageUrl },
+    { label: token1Symbol, value: 1, icon: token1ImageUrl },
+  ]
+
+  const [selection, setSelection] = useState<any>(selections[0])
+  const [proportional, setProportional] = useState<boolean>(true)
+  const [tokenIndex, setTokenIndex] = useState<number>(0)
+  const [displayAmount, setDisplayAmount] = useState<string>('')
+  const [amountPercent, setAmountPercent] = useState<number>(100)
+
+  const handleSelection = (event: ChangeEvent<{ value: unknown }>) => {
+    const value = Number(event.target.value)
+    const _selection = selections.find(item => item.value === value)
+    const _proportional = value === -1
+    setSelection(_selection)
+    setProportional(_proportional)
+    if (value > -1) {
+      setTokenIndex(value)
+    }
+  }
+
+  const updateDisplayAmount = (percent: number = amountPercent) => {
+    if (!token0AmountBn) {
+      return
+    }
+    if (!token1AmountBn) {
+      return
+    }
+    const _amount0 = Number(formatUnits(token0AmountBn, tokenDecimals))
+    const _amount1 = Number(formatUnits(token1AmountBn, tokenDecimals))
+    const amount0 = commafy((_amount0 * (percent / 100)).toFixed(5), 5)
+    const amount1 = commafy((_amount1 * (percent / 100)).toFixed(5), 5)
+    const display = `${amount0} ${token0Symbol} + ${amount1} ${token1Symbol}`
+    setDisplayAmount(display)
+  }
+
+  const handleProportionSliderChange = async (percent: number) => {
+    setAmountPercent(percent)
+    updateDisplayAmount(percent)
+  }
+
+  const selectedTokenSymbol = tokenIndex ? token1Symbol : token0Symbol
+  const [amount, setAmount] = useState<string>('')
+  const [amountBN, setAmountBN] = useState<BigNumber>(BigNumber.from(0))
+  const maxBalance = tokenIndex ? token1Max : token0Max
+  const [amountSliderValue, setAmountSliderValue] = useState<number>(0)
+
+  const handleAmountSliderChange = (percent: number) => {
+    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const _amount = (_balance ?? 0) * (percent / 100)
+    setAmount(_amount.toFixed(5))
+    if (percent === 100) {
+      setAmountBN(maxBalance)
+    }
+  }
+
+  const handleAmountChange = (_amount: string) => {
+    const value = Number(_amount)
+    const _balance = Number(formatUnits(maxBalance, tokenDecimals))
+    const sliderValue = 100 / (_balance / value)
+    setAmount(_amount)
+    setAmountSliderValue(sliderValue)
+  }
+
+  const [priceImpact, setPriceImpact] = useState<number | undefined>()
+
+  useEffect(() => {
+    updateDisplayAmount()
+  }, [])
+
+  useEffect(() => {
+    setAmountBN(parseUnits((amount || 0).toString(), tokenDecimals))
+  }, [amount])
+
+  useEffect(() => {
+    let isSubscribed = true
+    const update = async () => {
+      try {
+        const _priceImpact = await calculatePriceImpact({
+          proportional,
+          amountPercent,
+          tokenIndex,
+          amount: amountBN,
+        })
+        if (isSubscribed) {
+          setPriceImpact(_priceImpact)
+        }
+      } catch (err) {
+        console.log(err)
+        if (isSubscribed) {
+          setPriceImpact(undefined)
+        }
+      }
+    }
+
+    update().catch(console.error)
+    return () => {
+      isSubscribed = false
+    }
+  }, [amountBN, proportional, amountPercent, tokenIndex])
+
+  const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
+  const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
+
   return (
-    <Box>withdraw</Box>
+    <Box>
+
+      <Box>
+        <RaisedSelect value={selection.value} onChange={handleSelection}>
+          {selections.map((item: any) => (
+            <MenuItem value={item.value} key={item.label}>
+              <SelectOption value={item.label} icon={item.icon} label={item.label} />
+            </MenuItem>
+          ))}
+        </RaisedSelect>
+      </Box>
+
+      {proportional ? (
+        <div>
+          <Typography variant="subtitle2" color="textPrimary">
+            Proportional withdraw
+          </Typography>
+          <Box mb={1}>{displayAmount}</Box>
+          <Slider onChange={handleProportionSliderChange} defaultValue={100} />
+        </div>
+      ) : (
+        <Box>
+          <Typography variant="subtitle2" color="textPrimary">
+            Withdraw only {selectedTokenSymbol}
+          </Typography>
+          <Box mb={1}>
+            <InputField
+              tokenSymbol={selectedTokenSymbol}
+              tokenImageUrl={token0ImageUrl}
+              value={amount}
+              onChange={handleAmountChange}
+            />
+          </Box>
+          <Slider onChange={handleAmountSliderChange} defaultValue={0} value={amountSliderValue} />
+          <Box>
+            <Typography variant="subtitle2">
+              <Box display="flex" alignItems="center">
+                Price Impact <InfoTooltip title="Withdrawing overpooled assets will give you bonus tokens. Withdrawaing underpooled assets will give you less tokens." />
+              </Box>
+            </Typography>
+          </Box>
+        </Box>
+      )}
+
+      <Box margin="0 auto" width="90%">
+        <Box mb={1} display="flex" alignItems="center" justifyContent="space-between">
+          <Box>
+            <Typography variant="subtitle2">
+              <Box display="flex" alignItems="center">
+                Price Impact <InfoTooltip title="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens." />
+              </Box>
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="subtitle2">
+              {priceImpactFormatted}
+            </Typography>
+          </Box>
+        </Box>
+      <Box>
+        <Button highlighted fullWidth onClick={handleClick}>
+          Preview
+        </Button>
+      </Box>
+    </Box>
+    </Box>
   )
 }
 
 function StakeForm() {
   return (
-    <Box>stake</Box>
+    <Box>
+      <Typography>
+        Stake form comming soon
+      </Typography>
+    </Box>
   )
 }
 
@@ -265,6 +561,7 @@ function PoolStats (props:any) {
     reserve1Formatted,
     lpTokenTotalSupplyFormatted,
     feeFormatted,
+    virtualPriceFormatted
   } = props.data
 
   return (
@@ -278,7 +575,9 @@ function PoolStats (props:any) {
         <Box width="100%">
           <Box mb={1}>
             <Typography variant="subtitle2" color="secondary">
-            {canonicalTokenSymbol} Reserves
+              <Box display="flex" alignItems="center">
+                {canonicalTokenSymbol} Reserves <InfoTooltip title="Total amount of canonical tokens in pool" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="subtitle2">
@@ -288,7 +587,9 @@ function PoolStats (props:any) {
         <Box width="100%">
           <Box mb={1}>
             <Typography variant="subtitle2" color="secondary">
-            {hopTokenSymbol} Reserves
+              <Box display="flex" alignItems="center">
+                {hopTokenSymbol} Reserves <InfoTooltip title="Total amount of h-tokens in pool" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="subtitle2">
@@ -298,7 +599,9 @@ function PoolStats (props:any) {
         <Box width="100%">
           <Box mb={1}>
             <Typography variant="subtitle2" color="secondary">
-            LP Tokens
+              <Box display="flex" alignItems="center">
+                LP Tokens <InfoTooltip title="Total supply of liquidity provider (LP) tokens for pool" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="subtitle2">
@@ -308,11 +611,25 @@ function PoolStats (props:any) {
         <Box width="100%">
           <Box mb={1}>
             <Typography variant="subtitle2" color="secondary">
-            Fee
+              <Box display="flex" alignItems="center">
+                Fee <InfoTooltip title="Each trade has this fee percentage that goes to liquidity providers" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="subtitle2">
             {feeFormatted}
+          </Typography>
+        </Box>
+        <Box width="100%">
+          <Box mb={1}>
+            <Typography variant="subtitle2" color="secondary">
+              <Box display="flex" alignItems="center">
+                Virtual Price <InfoTooltip title="The virtual price, to help calculate profit. Virtual price is calculated as `pool_reserves / lp_supply`" />
+              </Box>
+            </Typography>
+          </Box>
+          <Typography variant="subtitle2">
+            {virtualPriceFormatted}
           </Typography>
         </Box>
       </Box>
@@ -331,6 +648,7 @@ export function PoolDetails () {
     reserve1Formatted,
     lpTokenTotalSupplyFormatted,
     feeFormatted,
+    virtualPriceFormatted,
     poolName,
     tokenImageUrl,
     chainImageUrl,
@@ -340,10 +658,29 @@ export function PoolDetails () {
     userPoolBalanceFormatted,
     userPoolTokenPercentageFormatted,
     hasBalance,
+    token0Deposited,
+    token1Deposited,
     token0DepositedFormatted,
     token1DepositedFormatted,
     userPoolBalanceUsdFormatted,
-    loading
+    loading,
+    setToken0Amount,
+    token0Amount,
+    setToken1Amount,
+    token1Amount,
+    canonicalToken,
+    hopToken,
+    token0BalanceFormatted,
+    token1BalanceFormatted,
+    warning,
+    error,
+    setError,
+    addLiquidity,
+    priceImpactFormatted,
+    depositAmountTotalDisplayFormatted,
+    poolReserves,
+    calculateRemoveLiquidityPriceImpactFn,
+    selectedNetwork
   } = usePool()
   const tvlFormatted = reserveTotalsUsdFormatted
   const volume24hFormatted = '-'
@@ -353,6 +690,8 @@ export function PoolDetails () {
   const [selectedTab, setSelectedTab] = useState(tab || 'deposit')
   const { theme } = useThemeMode()
 
+  const calculateRemoveLiquidityPriceImpact = calculateRemoveLiquidityPriceImpactFn(userPoolBalance)
+
   function handleTabChange(event: ChangeEvent<{}>, newValue: string) {
     history.push({
       pathname: `/pool/${newValue}`,
@@ -360,6 +699,10 @@ export function PoolDetails () {
     })
     setSelectedTab(newValue)
   }
+
+  const totalAmount = token0Deposited?.add(token1Deposited || 0)
+  const token0Max = BNMin(poolReserves[0], totalAmount)
+  const token1Max = BNMin(poolReserves[1], totalAmount)
 
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
@@ -389,7 +732,9 @@ export function PoolDetails () {
         <Box mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
           <Box mb={2}>
             <Typography variant="subtitle1" color="secondary">
-             TVL
+              <Box display="flex" alignItems="center">
+                TVL <InfoTooltip title="Total value locked in USD" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="h5">
@@ -399,7 +744,9 @@ export function PoolDetails () {
         <Box ml={1} mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
           <Box mb={2}>
             <Typography variant="subtitle1" color="secondary">
-              24hr Volume
+              <Box display="flex" alignItems="center">
+                24hr Volume <InfoTooltip title="Total volume in AMM in last 24 hours" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="h5">
@@ -409,7 +756,9 @@ export function PoolDetails () {
         <Box ml={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
           <Box mb={2}>
             <Typography variant="subtitle1" color="secondary">
-              APR
+              <Box display="flex" alignItems="center">
+                APR <InfoTooltip title="Annual Percentage Rate (APR) from earning fees, based on 24hr trading volume" />
+              </Box>
             </Typography>
           </Box>
           <Typography variant="h5">
@@ -459,16 +808,52 @@ export function PoolDetails () {
                 <Tab label="Withdraw" value="withdraw" />
                 <Tab label="Stake" value="stake" />
               </Tabs>
-              <Box p={2}>
-                <Box>
+              <Box p={2} display="flex" flexDirection="column">
+                <Box mb={2} >
                   {selectedTab === 'deposit' && <DepositForm
                     data={{
-                      tokenImageUrl,
-                      balanceFormatted: userPoolBalanceFormatted
+                      token0Symbol: canonicalTokenSymbol,
+                      token1Symbol: hopTokenSymbol,
+                      token0ImageUrl: canonicalToken?.imageUrl,
+                      token1ImageUrl: hopToken?.imageUrl,
+                      balance0Formatted: token0BalanceFormatted,
+                      balance1Formatted: token1BalanceFormatted,
+                      token0Amount,
+                      token1Amount,
+                      setToken0Amount,
+                      setToken1Amount,
+                      addLiquidity,
+                      priceImpactFormatted,
+                      depositAmountTotalDisplayFormatted
                     }}
                   />}
-                  {selectedTab === 'withdraw' && <WithdrawForm />}
+                  {selectedTab === 'withdraw' && <WithdrawForm
+                    data={{
+                      token0Symbol: canonicalTokenSymbol,
+                      token1Symbol: hopTokenSymbol,
+                      token0ImageUrl: canonicalToken?.imageUrl,
+                      token1ImageUrl: hopToken?.imageUrl,
+                      balance0Formatted: token0BalanceFormatted,
+                      balance1Formatted: token1BalanceFormatted,
+                      token0Amount,
+                      token1Amount,
+                      setToken0Amount,
+                      setToken1Amount,
+                      addLiquidity,
+                      depositAmountTotalDisplayFormatted,
+                      token0AmountBn: token0Deposited,
+                      token1AmountBn: token1Deposited,
+                      tokenDecimals: canonicalToken?.decimals,
+                      token0Max,
+                      token1Max,
+                      calculatePriceImpact: calculateRemoveLiquidityPriceImpact
+                    }}
+                  />}
                   {selectedTab === 'stake' && <StakeForm />}
+                </Box>
+                <Box>
+                  <Alert severity="warning">{warning}</Alert>
+                  <Alert severity="error" onClose={() => setError(null)} text={error} />
                 </Box>
               </Box>
             </Box>
@@ -483,7 +868,8 @@ export function PoolDetails () {
           reserve0Formatted,
           reserve1Formatted,
           lpTokenTotalSupplyFormatted,
-          feeFormatted
+          feeFormatted,
+          virtualPriceFormatted
         }}
        />
     </Box>

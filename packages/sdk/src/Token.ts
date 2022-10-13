@@ -382,6 +382,10 @@ class Token extends Base {
       symbol: this._symbol
     }
   }
+
+  get imageUrl () {
+    return this.image
+  }
 }
 
 export default Token

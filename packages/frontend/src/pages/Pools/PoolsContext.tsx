@@ -110,7 +110,8 @@ type PoolsContextProps = {
   token0BalanceFormatted: string
   token1BalanceFormatted: string
   depositAmountTotalDisplayFormatted: string
-  calculateRemoveLiquidityPriceImpactFn: any
+  calculateRemoveLiquidityPriceImpactFn: any,
+  walletConnected: boolean,
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -145,7 +146,7 @@ const PoolsProvider: FC = ({ children }) => {
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const slippageToleranceBps = slippageTolerance * 100
   const minBps = Math.ceil(10000 - slippageToleranceBps)
-  const { address, provider, checkConnectedNetworkId } = useWeb3Context()
+  const { address, provider, checkConnectedNetworkId, walletConnected } = useWeb3Context()
   const [error, setError] = useState<string | null | undefined>(null)
   const [warning, setWarning] = useState<string>()
   const { selectedNetwork, selectBothNetworks } = useSelectedNetwork({
@@ -1029,7 +1030,8 @@ const PoolsProvider: FC = ({ children }) => {
         token0BalanceFormatted,
         token1BalanceFormatted,
         depositAmountTotalDisplayFormatted,
-        calculateRemoveLiquidityPriceImpactFn
+        calculateRemoveLiquidityPriceImpactFn,
+        walletConnected
       }}
     >
       {children}

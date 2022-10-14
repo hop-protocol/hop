@@ -1,5 +1,6 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
 import { usePool } from './PoolsContext'
+import MuiButton from '@material-ui/core/Button'
 import Box from '@material-ui/core/Box'
 import { useParams } from 'react-router'
 import { PoolRow } from './PoolRow'
@@ -197,6 +198,7 @@ function AccountPosition(props: any) {
 
 function DepositForm(props: any) {
   const {
+    hasBalance,
     token0Symbol,
     token1Symbol,
     token0ImageUrl,
@@ -209,7 +211,8 @@ function DepositForm(props: any) {
     setToken1Amount,
     addLiquidity,
     priceImpactFormatted,
-    depositAmountTotalDisplayFormatted
+    depositAmountTotalDisplayFormatted,
+    walletConnected
   } = props.data
 
   function handleToken0Change (value: string) {
@@ -237,6 +240,10 @@ function DepositForm(props: any) {
     addLiquidity()
   }
 
+  const formDisabled = false
+  const sendDisabled = formDisabled || (!(token0Amount || token1Amount))
+  const sendButtonText = walletConnected ? 'Preview' : 'Connect Wallet'
+
   return (
     <Box>
       <Box mb={4}>
@@ -258,6 +265,7 @@ function DepositForm(props: any) {
             tokenImageUrl={token0ImageUrl}
             value={token0Amount}
             onChange={handleToken0Change}
+            disabled={formDisabled}
           />
         </Box>
         <Box display="flex" justifyContent="center">
@@ -276,6 +284,7 @@ function DepositForm(props: any) {
             tokenImageUrl={token1ImageUrl}
             value={token1Amount}
             onChange={handleToken1Change}
+            disabled={formDisabled}
           />
         </Box>
       </Box>
@@ -310,8 +319,8 @@ function DepositForm(props: any) {
         </Box>
       </Box>
       <Box>
-        <Button highlighted fullWidth onClick={handleClick}>
-          Preview
+        <Button large highlighted fullWidth onClick={handleClick} disabled={sendDisabled}>
+          {sendButtonText}
         </Button>
       </Box>
     </Box>
@@ -319,7 +328,9 @@ function DepositForm(props: any) {
 }
 
 function WithdrawForm(props: any) {
+  const styles = useStyles()
   const {
+    hasBalance,
     token0Symbol,
     token1Symbol,
     token0ImageUrl,
@@ -337,7 +348,8 @@ function WithdrawForm(props: any) {
     token1AmountBn,
     token0Max,
     token1Max,
-    calculatePriceImpact
+    calculatePriceImpact,
+    goToTab,
   } = props.data
 
   function handleToken0Change (value: string) {
@@ -362,7 +374,7 @@ function WithdrawForm(props: any) {
 
   function handleClick (event: any) {
     event.preventDefault()
-    addLiquidity()
+    alert('TODO')
   }
 
   const selections: any[] = [
@@ -471,10 +483,32 @@ function WithdrawForm(props: any) {
   const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
   const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
 
+  const formDisabled = !hasBalance
+  const sendDisabled = formDisabled || !amount
+
+  if (!hasBalance) {
+    return (
+      <Box>
+        <Box mb={2}>
+          <Typography variant="body1">
+            You don't have any LP tokens tokens to withdraw.
+          </Typography>
+        </Box>
+        <Box>
+          <Button onClick={() => goToTab('deposit')}>
+            <Typography variant="body1">
+              Deposit
+            </Typography>
+          </Button>
+        </Box>
+      </Box>
+    )
+  }
+
   return (
     <Box>
 
-      <Box>
+      <Box mb={3} display="flex" justifyContent="center">
         <RaisedSelect value={selection.value} onChange={handleSelection}>
           {selections.map((item: any) => (
             <MenuItem value={item.value} key={item.label}>
@@ -485,13 +519,15 @@ function WithdrawForm(props: any) {
       </Box>
 
       {proportional ? (
-        <div>
+        <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
           <Typography variant="subtitle2" color="textPrimary">
             Proportional withdraw
           </Typography>
           <Box mb={1}>{displayAmount}</Box>
-          <Slider onChange={handleProportionSliderChange} defaultValue={100} />
-        </div>
+          <Box width="100%" textAlign="center">
+            <Slider onChange={handleProportionSliderChange} defaultValue={100} />
+          </Box>
+        </Box>
       ) : (
         <Box>
           <Typography variant="subtitle2" color="textPrimary">
@@ -503,15 +539,11 @@ function WithdrawForm(props: any) {
               tokenImageUrl={token0ImageUrl}
               value={amount}
               onChange={handleAmountChange}
+              disabled={formDisabled}
             />
           </Box>
-          <Slider onChange={handleAmountSliderChange} defaultValue={0} value={amountSliderValue} />
-          <Box>
-            <Typography variant="subtitle2">
-              <Box display="flex" alignItems="center">
-                Price Impact <InfoTooltip title="Withdrawing overpooled assets will give you bonus tokens. Withdrawaing underpooled assets will give you less tokens." />
-              </Box>
-            </Typography>
+          <Box width="100%" textAlign="center">
+            <Slider onChange={handleAmountSliderChange} defaultValue={0} value={amountSliderValue} />
           </Box>
         </Box>
       )}
@@ -521,7 +553,7 @@ function WithdrawForm(props: any) {
           <Box>
             <Typography variant="subtitle2">
               <Box display="flex" alignItems="center">
-                Price Impact <InfoTooltip title="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens." />
+                Price Impact <InfoTooltip title="Withdrawing overpooled assets will give you bonus tokens. Withdrawaing underpooled assets will give you less tokens." />
               </Box>
             </Typography>
           </Box>
@@ -532,7 +564,7 @@ function WithdrawForm(props: any) {
           </Box>
         </Box>
       <Box>
-        <Button highlighted fullWidth onClick={handleClick}>
+        <Button large highlighted fullWidth onClick={handleClick} disabled={sendDisabled}>
           Preview
         </Button>
       </Box>
@@ -545,7 +577,7 @@ function StakeForm() {
   return (
     <Box>
       <Typography>
-        Stake form comming soon
+        Stake form coming soon
       </Typography>
     </Box>
   )
@@ -680,7 +712,8 @@ export function PoolDetails () {
     depositAmountTotalDisplayFormatted,
     poolReserves,
     calculateRemoveLiquidityPriceImpactFn,
-    selectedNetwork
+    selectedNetwork,
+    walletConnected
   } = usePool()
   const tvlFormatted = reserveTotalsUsdFormatted
   const volume24hFormatted = '-'
@@ -692,12 +725,16 @@ export function PoolDetails () {
 
   const calculateRemoveLiquidityPriceImpact = calculateRemoveLiquidityPriceImpactFn(userPoolBalance)
 
-  function handleTabChange(event: ChangeEvent<{}>, newValue: string) {
+  function goToTab(value: string) {
     history.push({
-      pathname: `/pool/${newValue}`,
+      pathname: `/pool/${value}`,
       search,
     })
-    setSelectedTab(newValue)
+    setSelectedTab(value)
+  }
+
+  function handleTabChange(event: ChangeEvent<{}>, newValue: string) {
+    goToTab(newValue)
   }
 
   const totalAmount = token0Deposited?.add(token1Deposited || 0)
@@ -706,6 +743,11 @@ export function PoolDetails () {
 
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
+      <Box mb={4} display="flex" alignItems="center">
+        <Alert severity="info">
+        This page is still a work in progress and not fully functional.
+        </Alert>
+      </Box>
       <Box mb={4} display="flex" alignItems="center">
         <Box display="flex" alignItems="center">
           <Link to={'/pools'} className={styles.backLink}>
@@ -812,6 +854,7 @@ export function PoolDetails () {
                 <Box mb={2} >
                   {selectedTab === 'deposit' && <DepositForm
                     data={{
+                      hasBalance,
                       token0Symbol: canonicalTokenSymbol,
                       token1Symbol: hopTokenSymbol,
                       token0ImageUrl: canonicalToken?.imageUrl,
@@ -824,11 +867,13 @@ export function PoolDetails () {
                       setToken1Amount,
                       addLiquidity,
                       priceImpactFormatted,
-                      depositAmountTotalDisplayFormatted
+                      depositAmountTotalDisplayFormatted,
+                      walletConnected
                     }}
                   />}
                   {selectedTab === 'withdraw' && <WithdrawForm
                     data={{
+                      hasBalance,
                       token0Symbol: canonicalTokenSymbol,
                       token1Symbol: hopTokenSymbol,
                       token0ImageUrl: canonicalToken?.imageUrl,
@@ -846,7 +891,8 @@ export function PoolDetails () {
                       tokenDecimals: canonicalToken?.decimals,
                       token0Max,
                       token1Max,
-                      calculatePriceImpact: calculateRemoveLiquidityPriceImpact
+                      calculatePriceImpact: calculateRemoveLiquidityPriceImpact,
+                      goToTab
                     }}
                   />}
                   {selectedTab === 'stake' && <StakeForm />}

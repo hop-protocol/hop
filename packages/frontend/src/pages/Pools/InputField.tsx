@@ -41,7 +41,7 @@ export const useStyles = makeStyles(theme => ({
 
 export function InputField (props: any) {
   const styles = useStyles()
-  const { tokenImageUrl, tokenSymbol, value, onChange } = props
+  const { tokenImageUrl, tokenSymbol, value, onChange, disabled } = props
   function handleChange(event: any) {
     onChange(event.target.value)
   }
@@ -57,7 +57,7 @@ export function InputField (props: any) {
           </Typography>
         </Box>
       </Box>
-      <input type="text" placeholder="0.0" value={value} onChange={handleChange} className={styles.input} />
+      <input type="text" placeholder="0.0" value={value} onChange={handleChange} className={styles.input} disabled={disabled} />
     </Box>
   )
 }

@@ -1031,7 +1031,7 @@ const PoolsProvider: FC = ({ children }) => {
         token1BalanceFormatted,
         depositAmountTotalDisplayFormatted,
         calculateRemoveLiquidityPriceImpactFn,
-        walletConnected
+        walletConnected,
       }}
     >
       {children}

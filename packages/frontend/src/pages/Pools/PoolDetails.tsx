@@ -892,7 +892,7 @@ export function PoolDetails () {
                       token0Max,
                       token1Max,
                       calculatePriceImpact: calculateRemoveLiquidityPriceImpact,
-                      goToTab
+                      goToTab,
                     }}
                   />}
                   {selectedTab === 'stake' && <StakeForm />}

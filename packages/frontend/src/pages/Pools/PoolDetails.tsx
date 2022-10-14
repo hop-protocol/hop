@@ -241,8 +241,9 @@ function DepositForm(props: any) {
   }
 
   const formDisabled = false
-  const sendDisabled = formDisabled || (!(token0Amount || token1Amount))
-  const sendButtonText = walletConnected ? 'Preview' : 'Connect Wallet'
+  const isEmptyAmount = (!(token0Amount || token1Amount))
+  const sendDisabled = formDisabled || isEmptyAmount
+  const sendButtonText = walletConnected ? (isEmptyAmount ? 'Amount needed' : 'Preview') : 'Connect Wallet'
 
   return (
     <Box>
@@ -350,6 +351,7 @@ function WithdrawForm(props: any) {
     token1Max,
     calculatePriceImpact,
     goToTab,
+    walletConnected
   } = props.data
 
   function handleToken0Change (value: string) {
@@ -484,15 +486,23 @@ function WithdrawForm(props: any) {
   const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
 
   const formDisabled = !hasBalance
-  const sendDisabled = formDisabled || !amount
+  const isEmptyAmount = (proportional ? !amountPercent : amountBN.lte(0) || amountBN.gt(maxBalance))
+  const sendDisabled = formDisabled || isEmptyAmount
+  const sendButtonText = walletConnected ? (isEmptyAmount ? 'Select amount' : 'Preview') : 'Connect Wallet'
 
   if (!hasBalance) {
     return (
       <Box>
         <Box mb={2}>
-          <Typography variant="body1">
-            You don't have any LP tokens tokens to withdraw.
-          </Typography>
+          {walletConnected ? (
+            <Typography variant="body1">
+              You don't have any LP tokens tokens to withdraw.
+            </Typography>
+          ) : (
+            <Typography variant="body1">
+              Connect wallet to deposit
+            </Typography>
+          )}
         </Box>
         <Box>
           <Button onClick={() => goToTab('deposit')}>
@@ -565,7 +575,7 @@ function WithdrawForm(props: any) {
         </Box>
       <Box>
         <Button large highlighted fullWidth onClick={handleClick} disabled={sendDisabled}>
-          Preview
+          {sendButtonText}
         </Button>
       </Box>
     </Box>
@@ -893,6 +903,7 @@ export function PoolDetails () {
                       token1Max,
                       calculatePriceImpact: calculateRemoveLiquidityPriceImpact,
                       goToTab,
+                      walletConnected
                     }}
                   />}
                   {selectedTab === 'stake' && <StakeForm />}

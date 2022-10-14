@@ -386,6 +386,10 @@ class Token extends Base {
   get imageUrl () {
     return this.image
   }
+
+  getImageUrl () {
+    return this.imageUrl
+  }
 }
 
 export default Token

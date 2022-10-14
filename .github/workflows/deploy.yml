@@ -5,7 +5,6 @@ on:
       - production
       - preprod
       - mainnet
-      - mainnet2
 
 jobs:
   set_environment:

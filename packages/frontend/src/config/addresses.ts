@@ -86,6 +86,23 @@ const rewardTokenAddresses = {
   GNO: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb',
 }
 
+const hopStakingRewardsContracts = {
+  goerli: {
+    polygon: {
+      ETH: '0x370A51222E99274bC8Db343C3163CFe446B355F7',
+      USDC: '0x07C592684Ee9f71D58853F9387579332d471b6Ca'
+    },
+    arbitrum: {
+      ETH: '0x9142C0C1b0ea0008B0b6734E1688c8355FB93b62',
+      USDC: '0x740913C318dE0B5DF0fF9103a9Be5B4ee7d83fE2'
+    },
+    optimism: {
+      ETH: '0xd691E3f40692a28f0b8090D989cC29F24B59f945',
+      USDC: '0xFCd39f8d53A74f99830849331AB433bBCe0e28E0'
+    }
+  }
+}
+
 export {
   addresses,
   reactAppNetwork,
@@ -96,4 +113,5 @@ export {
   fortmaticApiKey,
   stakingRewardsContracts,
   rewardTokenAddresses,
+  hopStakingRewardsContracts,
 }

@@ -1,9 +1,7 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
-import { usePool } from './PoolsContext'
-import MuiButton from '@material-ui/core/Button'
+import { usePool } from '../PoolsContext'
 import Box from '@material-ui/core/Box'
 import { useParams } from 'react-router'
-import { PoolRow } from './PoolRow'
 import Alert from 'src/components/alert/Alert'
 import Button from 'src/components/buttons/Button'
 import { useThemeMode } from 'src/theme/ThemeProvider'
@@ -18,7 +16,7 @@ import { DinoGame } from './DinoGame'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import Skeleton from '@material-ui/lab/Skeleton'
-import { InputField } from './InputField'
+import { InputField } from '../components/InputField'
 import InfoTooltip from 'src/components/InfoTooltip'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -28,12 +26,12 @@ import { BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import {
   commafy,
-  findMatchingBridge,
   sanitizeNumericalString,
-  toPercentDisplay,
-  toTokenDisplay,
   BNMin
 } from 'src/utils'
+import { useStaking } from '../useStaking'
+import { stakingRewardsContracts } from 'src/config/addresses'
+import { usePoolStats } from '../usePoolStats'
 
 export const useStyles = makeStyles(theme => ({
   backLink: {
@@ -533,7 +531,11 @@ function WithdrawForm(props: any) {
           <Typography variant="subtitle2" color="textPrimary">
             Proportional withdraw
           </Typography>
-          <Box mb={1}>{displayAmount}</Box>
+          <Box mb={1}>
+            <Typography variant="body1">
+              {displayAmount}
+            </Typography>
+          </Box>
           <Box width="100%" textAlign="center">
             <Slider onChange={handleProportionSliderChange} defaultValue={100} />
           </Box>
@@ -583,12 +585,124 @@ function WithdrawForm(props: any) {
   )
 }
 
-function StakeForm() {
+function StakeForm(props: any) {
+  const {
+    chainSlug,
+    tokenSymbol,
+    walletConnected,
+  } = props.data
+  const stakingContractAddress = stakingRewardsContracts[chainSlug]?.[tokenSymbol]
+  const {
+    earnedFormatted,
+    depositedFormatted,
+    rewardsTokenSymbol,
+    lpTokenSymbol,
+    canClaim,
+    canWithdraw,
+    aprFormatted,
+    rewardsPerDayFormatted,
+    rewardsTotalUsdFormatted,
+    overallTotalStakedFormatted,
+    lpBalanceFormatted,
+    overallTotalRewardsPerDayFormatted
+  } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
+  const noStaking = !stakingContractAddress
+  const [amount, setAmount] = useState<string>('')
+  const { poolStats, getPoolStats } = usePoolStats()
+
+  const stakingAprFormatted = getPoolStats(chainSlug, tokenSymbol)?.stakingAprFormatted ?? ''
+
+  const handleAmountChange = (_amount: string) => {
+    setAmount(_amount)
+  }
+
+  const isEmptyAmount = !amount
+  const formDisabled = !walletConnected
+  const sendDisabled = formDisabled || isEmptyAmount
+  const sendButtonText = walletConnected ? (isEmptyAmount ? 'Amount needed' : 'Preview') : 'Connect Wallet'
+
+  const claimDisabled = !canClaim
+  const withdrawDisabled = !canWithdraw
+
+  function handleClick (event: any) {
+    event.preventDefault()
+    alert('TODO')
+  }
+
+  function handleClaimClick (event: any) {
+    event.preventDefault()
+    alert('TODO')
+  }
+
+  function handleWithdrawClick (event: any) {
+    event.preventDefault()
+    alert('TODO')
+  }
+
+  if (noStaking) {
+    return (
+      <Box>
+        <Typography>
+          There is no staking available for this asset on this chain.
+        </Typography>
+      </Box>
+    )
+  }
+
   return (
     <Box>
       <Typography>
-        Stake form coming soon
+        apr <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />: {stakingAprFormatted}
       </Typography>
+      <Typography>
+        deposited <InfoTooltip title="LP tokens that have been deposited to earn rewards" />: {depositedFormatted}
+      </Typography>
+      <Typography>
+        earned <InfoTooltip title="Rewards earned that are claimable" />: {earnedFormatted}
+      </Typography>
+      <Typography>
+        your rewards <InfoTooltip title="The rewards you're earning per day" />: {rewardsPerDayFormatted}
+      </Typography>
+      <Typography>
+        your total <InfoTooltip title="The total worth of your staked LP position in USD" />: {rewardsTotalUsdFormatted}
+      </Typography>
+      <Typography>
+        overall total staked <InfoTooltip title="The total amount of LP tokens staked for rewards" />: {overallTotalStakedFormatted}
+      </Typography>
+      <Typography>
+        overall total rewards <InfoTooltip title="The total rewards being distributed per day" />: {overallTotalRewardsPerDayFormatted}
+      </Typography>
+      <Typography>
+        balance: {lpBalanceFormatted}
+      </Typography>
+      <Box mb={1}>
+        <InputField
+          tokenSymbol={lpTokenSymbol}
+          value={amount}
+          onChange={handleAmountChange}
+          disabled={formDisabled}
+        />
+      </Box>
+      <Box>
+        <Button large highlighted fullWidth onClick={handleClick} disabled={sendDisabled}>
+          Approve
+        </Button>
+      </Box>
+      <Box>
+        <Button large highlighted fullWidth onClick={handleClick} disabled={sendDisabled}>
+          {sendButtonText}
+        </Button>
+      </Box>
+      <Box>
+        <Button large highlighted fullWidth onClick={handleClaimClick} disabled={claimDisabled}>
+          Claim
+        </Button>
+      </Box>
+      <Box>
+        <Button large highlighted fullWidth onClick={handleWithdrawClick} disabled={withdrawDisabled}>
+          Withdraw
+        </Button>
+      </Box>
     </Box>
   )
 }
@@ -723,7 +837,8 @@ export function PoolDetails () {
     poolReserves,
     calculateRemoveLiquidityPriceImpactFn,
     selectedNetwork,
-    walletConnected
+    walletConnected,
+    chainSlug
   } = usePool()
   const tvlFormatted = reserveTotalsUsdFormatted
   const volume24hFormatted = '-'
@@ -906,7 +1021,13 @@ export function PoolDetails () {
                       walletConnected
                     }}
                   />}
-                  {selectedTab === 'stake' && <StakeForm />}
+                  {selectedTab === 'stake' && <StakeForm
+                    data={{
+                      chainSlug,
+                      tokenSymbol,
+                      walletConnected
+                    }}
+                  />}
                 </Box>
                 <Box>
                   <Alert severity="warning">{warning}</Alert>

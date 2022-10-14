@@ -112,6 +112,7 @@ type PoolsContextProps = {
   depositAmountTotalDisplayFormatted: string
   calculateRemoveLiquidityPriceImpactFn: any,
   walletConnected: boolean,
+  chainSlug: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -950,6 +951,7 @@ const PoolsProvider: FC = ({ children }) => {
   const depositAmountTotal = (Number(token0Amount || 0) + Number(token1Amount || 0))
   const depositAmountTotalUsd = (tokenUsdPrice && depositAmountTotal) ? depositAmountTotal * tokenUsdPrice : 0
   const depositAmountTotalDisplayFormatted = depositAmountTotalUsd ? `$${commafy(depositAmountTotalUsd, 2)}` : `${commafy(depositAmountTotal, 2)}`
+  const chainSlug = selectedNetwork?.slug ?? ''
 
   return (
     <PoolsContext.Provider
@@ -1032,6 +1034,7 @@ const PoolsProvider: FC = ({ children }) => {
         depositAmountTotalDisplayFormatted,
         calculateRemoveLiquidityPriceImpactFn,
         walletConnected,
+        chainSlug
       }}
     >
       {children}

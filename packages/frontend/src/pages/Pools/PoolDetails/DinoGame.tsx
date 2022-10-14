@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Box from '@material-ui/core/Box'
 
 // source: https://github.com/wayou/t-rex-runner
@@ -165,7 +165,7 @@ const html = `
 `
 
 function createMarkup() {
-  return { __html: html };
+  return { __html: html }
 }
 
 export function DinoGame() {
@@ -173,6 +173,7 @@ export function DinoGame() {
 
   function handleClick (event: any) {
     event.preventDefault()
+
     try {
       if (!play) {
         setPlay(true)

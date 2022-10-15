@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React, { useMemo, useEffect, useState } from 'react'
 import { BigNumber } from 'ethers'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { StakingRewards__factory, ERC20__factory } from '@hop-protocol/core/contracts'
 import { formatTokenDecimalString } from 'src/utils/format'
-import { isRewardsExpired, calculateStakedPosition } from 'src/utils'
-import { formatUnits } from 'ethers/lib/utils'
+import { findMatchingBridge, isRewardsExpired, calculateStakedPosition, findNetworkBySlug, formatError } from 'src/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { useTransactionReplacement, useApprove, useAsyncMemo, useBalance } from 'src/hooks'
 
 export function useStaking (chainSlug: string, tokenSymbol: string, contractAddress: string) {
-  const { sdk } = useApp()
-  const { address } = useWeb3Context()
+  const { bridges, sdk, txConfirm } = useApp()
+  const { checkConnectedNetworkId, address } = useWeb3Context()
   const [contract, setContract] = useState<any>()
   const [earned, setEarned] = useState<any>(BigNumber.from(0))
   const [deposited, setDeposited] = useState<any>(BigNumber.from(0))
@@ -23,7 +24,21 @@ export function useStaking (chainSlug: string, tokenSymbol: string, contractAddr
   const [overallTotalStaked, setOverallTotalStaked] = useState(BigNumber.from(0))
   const [rewardsPerDay, setRewardsPerDay] = useState(BigNumber.from(0))
   const [userRewardsTotalUsd, setUserRewardsTotalUsd] = useState(BigNumber.from(0))
+  const [userLpBalance, setUserLpBalance] = useState(BigNumber.from(0))
+  const [isClaiming, setIsClaiming] = useState(false)
+  const [isWithdrawing, setIsWithdrawing] = useState(false)
+  const [isApproving, setIsApproving] = useState(false)
+  const [approvalNeeded, setApprovalNeeded] = useState(false)
+  const [error, setError] = useState<any>(null)
   const accountAddress = address?.address
+  const [amount, setAmount] = useState<string>('')
+  const [isStaking, setIsStaking] = useState(false)
+
+  const lpToken = useAsyncMemo(async () => {
+    const bridge = findMatchingBridge(bridges, tokenSymbol)!
+    return bridge.getSaddleLpToken(chainSlug)
+  }, [bridges, tokenSymbol, chainSlug])
+  const { approve } = useApprove(lpToken)
 
   useEffect(() => {
     async function update () {
@@ -116,7 +131,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, contractAddr
     update().catch(console.error)
   }, [rewardsTokenContract])
 
-  const lpTokenSymbol = `LP`
+  const lpTokenSymbol = `LP-${tokenSymbol}`
   const earnedFormatted = `${formatTokenDecimalString(earned, 18, 4)} ${rewardsTokenSymbol}`
   const depositedFormatted = `${formatTokenDecimalString(deposited, 18, 4)} ${lpTokenSymbol}`
   const canClaim = earned?.gt(0) ?? false
@@ -127,23 +142,8 @@ export function useStaking (chainSlug: string, tokenSymbol: string, contractAddr
   const rewardsPerDayFormatted = `${rewardsPerDayNumber < 0.001 && userRewardsPerDay.gt(0) ? '<0.001' : formatTokenDecimalString(userRewardsPerDay, 18, 4)} ${rewardsTokenSymbol} / day`
   const rewardsTotalUsdFormatted = `$${formatTokenDecimalString(userRewardsTotalUsd, 18, 4)}`
   const overallTotalStakedFormatted = `${formatTokenDecimalString(overallTotalStaked, 18, 4)} ${lpTokenSymbol}`
-  const lpBalanceFormatted = ''
+  const lpBalanceFormatted = `${formatTokenDecimalString(userLpBalance, 18, 4)} ${lpTokenSymbol}`
   const overallTotalRewardsPerDayFormatted = `${formatTokenDecimalString(rewardsPerDay, 18, 4)} ${rewardsTokenSymbol} / day`
-
-/*
-        const token = await bridge.getL1Token()
-        const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
-        if (address) {
-          const earned = await stakingRewards?.earned(address.toString())
-          const allowance = await stakingToken?.allowance(stakingRewards.address, address.toString())
-
-          return {
-            tokenUsdPrice,
-            earned,
-            allowance,
-          }
-        }
-        */
 
   useEffect(() => {
     async function update() {
@@ -158,7 +158,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, contractAddr
 
   useEffect(() => {
     async function update() {
-      if (rewardsPerDay && overallTotalStaked && deposited) {
+      if (rewardsPerDay && overallTotalStaked?.gt(0) && deposited) {
         const _userRewardsPerDay = rewardsPerDay.mul(deposited).div(overallTotalStaked)
         setUserRewardsPerDay(_userRewardsPerDay)
       }
@@ -175,6 +175,16 @@ export function useStaking (chainSlug: string, tokenSymbol: string, contractAddr
     }
     update().catch(console.error)
   }, [stakingTokenContract])
+
+  useEffect(() => {
+    async function update() {
+      if (stakingTokenContract && accountAddress) {
+        const balance = await stakingTokenContract?.balanceOf(accountAddress)
+        setUserLpBalance(balance)
+      }
+    }
+    update().catch(console.error)
+  }, [stakingTokenContract, accountAddress])
 
   useEffect(() => {
     async function update() {
@@ -212,6 +222,133 @@ export function useStaking (chainSlug: string, tokenSymbol: string, contractAddr
     update().catch(console.error)
   }, [earned, deposited, rewardsTokenSymbol])
 
+  async function claim () {
+    try {
+      const network = findNetworkBySlug(chainSlug)!
+      const networkId = Number(network.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
+      setIsClaiming(true)
+      const signer = await sdk.getSignerOrProvider(chainSlug)
+      const tx = await contract.connect(signer).getReward()
+      await tx.wait()
+    } catch (err: any) {
+      console.error(err)
+      setError(formatError(err))
+    }
+    setIsClaiming(false)
+  }
+
+  async function withdraw () {
+    try {
+      const network = findNetworkBySlug(chainSlug)!
+      const networkId = Number(network.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
+      setIsWithdrawing(true)
+      const signer = await sdk.getSignerOrProvider(chainSlug)
+      const _stakingRewards = contract.connect(signer)
+      const stakeBalance = deposited
+      const stakingToken = {
+        decimals: 18,
+        symbol: lpTokenSymbol,
+      }
+
+      const tx = await txConfirm?.show({
+        kind: 'withdrawStake',
+        inputProps: {
+          token: stakingToken,
+          maxBalance: stakeBalance,
+        },
+        onConfirm: async (withdrawAmount: BigNumber) => {
+          if (withdrawAmount.eq(stakeBalance)) {
+            return _stakingRewards.exit()
+          }
+
+          return _stakingRewards.withdraw(withdrawAmount)
+        },
+      })
+
+      await tx.wait()
+    } catch (err: any) {
+      console.error(err)
+      setError(formatError(err))
+    }
+    setIsWithdrawing(false)
+  }
+
+  async function approveTokens () {
+    try {
+      const network = findNetworkBySlug(chainSlug)!
+      const networkId = Number(network.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      const parsedAmount = parseUnits(amount || '0', 18)
+      if (!isNetworkConnected) return
+
+      setIsApproving(true)
+      await approve(parsedAmount, lpToken!, contractAddress)
+    } catch (err) {
+      console.error(err)
+      setError(formatError(err))
+    }
+    setIsApproving(false)
+  }
+
+  useEffect(() => {
+    async function update() {
+      try {
+        if (stakingTokenContract) {
+          const allowance = await stakingTokenContract.allowance(accountAddress, contractAddress)
+          const parsedAmount = parseUnits(amount || '0', 18)
+          const _approvalNeeded = allowance.lt(parsedAmount)
+          setApprovalNeeded(_approvalNeeded)
+        }
+      } catch (err) {
+      }
+    }
+    update().catch(console.error)
+  }, [amount, stakingTokenContract, contractAddress, accountAddress])
+
+  async function stake() {
+    try {
+      const network = findNetworkBySlug(chainSlug)!
+      const networkId = Number(network.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected) return
+
+      setIsStaking(true)
+
+      const stakingToken = {
+        decimals: 18,
+        symbol: lpTokenSymbol,
+      }
+
+      const tx = await txConfirm?.show({
+        kind: 'stake',
+        inputProps: {
+          source: {
+            network,
+          },
+          amount: amount,
+          token: stakingToken,
+        },
+        onConfirm: async () => {
+          const signer = await sdk.getSignerOrProvider(chainSlug)
+          const parsedAmount = parseUnits(amount || '0', 18)
+          return contract.connect(signer).stake(parsedAmount)
+        },
+      })
+
+      await tx.wait()
+      setAmount('')
+    } catch (err: any) {
+      console.error(err)
+      setError(formatError(err))
+    }
+    setIsStaking(false)
+  }
 
   return {
     earned,
@@ -230,6 +367,19 @@ export function useStaking (chainSlug: string, tokenSymbol: string, contractAddr
     overallTotalStakedFormatted,
     lpBalanceFormatted,
     overallTotalRewardsPerDayFormatted,
-    rewardsExpired
+    rewardsExpired,
+    claim,
+    isClaiming,
+    error,
+    setError,
+    withdraw,
+    isWithdrawing,
+    approvalNeeded,
+    isApproving,
+    approveTokens,
+    amount,
+    setAmount,
+    stake,
+    isStaking
   }
 }

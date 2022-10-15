@@ -9,6 +9,9 @@ export const useStyles = makeStyles(theme => ({
     borderRadius: '1rem',
     position: 'relative'
   },
+  label: {
+    'white-space': 'nowrap'
+  },
   input: {
     fontSize: '2rem',
     fontWeight: 'bold',
@@ -50,7 +53,7 @@ export function InputField (props: any) {
           </Box>
         )}
         <Box mr={1} display="flex" alignItems="center">
-          <Typography variant="subtitle1">
+          <Typography variant="subtitle1" className={styles.label}>
             {tokenSymbol}
           </Typography>
         </Box>

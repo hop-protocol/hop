@@ -604,10 +604,23 @@ function StakeForm(props: any) {
     rewardsTotalUsdFormatted,
     overallTotalStakedFormatted,
     lpBalanceFormatted,
-    overallTotalRewardsPerDayFormatted
+    overallTotalRewardsPerDayFormatted,
+    rewardsExpired,
+    claim,
+    isClaiming,
+    error,
+    setError,
+    withdraw,
+    isWithdrawing,
+    approvalNeeded,
+    isApproving,
+    approveTokens,
+    amount,
+    setAmount,
+    stake,
+    isStaking
   } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
   const noStaking = !stakingContractAddress
-  const [amount, setAmount] = useState<string>('')
   const { poolStats, getPoolStats } = usePoolStats()
 
   const stakingAprFormatted = getPoolStats(chainSlug, tokenSymbol)?.stakingAprFormatted ?? ''
@@ -616,27 +629,33 @@ function StakeForm(props: any) {
     setAmount(_amount)
   }
 
-  const isEmptyAmount = !amount
+  const isEmptyAmount = !Number(amount)
   const formDisabled = !walletConnected
-  const sendDisabled = formDisabled || isEmptyAmount
-  const sendButtonText = walletConnected ? (isEmptyAmount ? 'Amount needed' : 'Preview') : 'Connect Wallet'
+  const sendButtonText = walletConnected ? 'Stake' : 'Connect Wallet'
+  const approveDisabled = formDisabled || isEmptyAmount || !approvalNeeded
+  const sendDisabled = formDisabled || isEmptyAmount || approvalNeeded
 
-  const claimDisabled = !canClaim
-  const withdrawDisabled = !canWithdraw
+  const claimDisabled = formDisabled || !canClaim
+  const withdrawDisabled = formDisabled || !canWithdraw
 
-  function handleClick (event: any) {
+  function handleApproveClick (event: any) {
     event.preventDefault()
-    alert('TODO')
+    approveTokens()
+  }
+
+  function handleStakeClick (event: any) {
+    event.preventDefault()
+    stake()
   }
 
   function handleClaimClick (event: any) {
     event.preventDefault()
-    alert('TODO')
+    claim()
   }
 
   function handleWithdrawClick (event: any) {
     event.preventDefault()
-    alert('TODO')
+    withdraw()
   }
 
   if (noStaking) {
@@ -651,31 +670,56 @@ function StakeForm(props: any) {
 
   return (
     <Box>
-      <Typography>
-        apr <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />: {stakingAprFormatted}
-      </Typography>
-      <Typography>
-        deposited <InfoTooltip title="LP tokens that have been deposited to earn rewards" />: {depositedFormatted}
-      </Typography>
-      <Typography>
-        earned <InfoTooltip title="Rewards earned that are claimable" />: {earnedFormatted}
-      </Typography>
-      <Typography>
-        your rewards <InfoTooltip title="The rewards you're earning per day" />: {rewardsPerDayFormatted}
-      </Typography>
-      <Typography>
-        your total <InfoTooltip title="The total worth of your staked LP position in USD" />: {rewardsTotalUsdFormatted}
-      </Typography>
-      <Typography>
-        overall total staked <InfoTooltip title="The total amount of LP tokens staked for rewards" />: {overallTotalStakedFormatted}
-      </Typography>
-      <Typography>
-        overall total rewards <InfoTooltip title="The total rewards being distributed per day" />: {overallTotalRewardsPerDayFormatted}
-      </Typography>
-      <Typography>
-        balance: {lpBalanceFormatted}
-      </Typography>
+      <Box mb={4}>
+        <Typography variant="subtitle1">
+          My deposits
+        </Typography>
+        <Typography>
+          LP Balance: {lpBalanceFormatted}
+        </Typography>
+        <Typography>
+          Staked LP <InfoTooltip title="LP tokens that have been deposited to earn rewards" />: {depositedFormatted}
+        </Typography>
+        <Typography>
+          Total <InfoTooltip title="The total worth of your staked LP position in USD" />: {rewardsTotalUsdFormatted}
+        </Typography>
+        <Typography>
+          Rewards <InfoTooltip title="The rewards you're earning per day" />: {rewardsPerDayFormatted}
+        </Typography>
+        <Typography>
+          Earned <InfoTooltip title="Rewards earned that are claimable" />: {earnedFormatted}
+        </Typography>
+        <Box mt={2}>
+          <Box mb={1}>
+            <Button large highlighted fullWidth onClick={handleClaimClick} disabled={claimDisabled} loading={isClaiming}>
+              Claim
+            </Button>
+          </Box>
+          <Box mb={1}>
+            <Button large highlighted fullWidth onClick={handleWithdrawClick} disabled={withdrawDisabled} loading={isWithdrawing}>
+              Withdraw
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+      <Box mb={2}>
+        <Typography variant="subtitle1">
+          Staking stats
+        </Typography>
+        <Typography>
+          APR <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />: {stakingAprFormatted} {rewardsExpired ? '(rewards ended)' : ''}
+        </Typography>
+        <Typography>
+          Total Staked <InfoTooltip title="The total amount of LP tokens staked for rewards" />: {overallTotalStakedFormatted}
+        </Typography>
+        <Typography>
+          Total Rewards <InfoTooltip title="The total rewards being distributed per day" />: {overallTotalRewardsPerDayFormatted}
+        </Typography>
+      </Box>
       <Box mb={1}>
+        <Typography variant="subtitle1">
+          Stake LP
+        </Typography>
         <InputField
           tokenSymbol={lpTokenSymbol}
           value={amount}
@@ -683,25 +727,18 @@ function StakeForm(props: any) {
           disabled={formDisabled}
         />
       </Box>
-      <Box>
-        <Button large highlighted fullWidth onClick={handleClick} disabled={sendDisabled}>
+      <Box mb={1}>
+        <Button large highlighted fullWidth onClick={handleApproveClick} disabled={approveDisabled} loading={isApproving}>
           Approve
         </Button>
       </Box>
-      <Box>
-        <Button large highlighted fullWidth onClick={handleClick} disabled={sendDisabled}>
+      <Box mb={1}>
+        <Button large highlighted fullWidth onClick={handleStakeClick} disabled={sendDisabled} loading={isStaking}>
           {sendButtonText}
         </Button>
       </Box>
       <Box>
-        <Button large highlighted fullWidth onClick={handleClaimClick} disabled={claimDisabled}>
-          Claim
-        </Button>
-      </Box>
-      <Box>
-        <Button large highlighted fullWidth onClick={handleWithdrawClick} disabled={withdrawDisabled}>
-          Withdraw
-        </Button>
+        <Alert severity="error" onClose={() => setError(null)} text={error} />
       </Box>
     </Box>
   )

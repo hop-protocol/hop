@@ -1,27 +1,16 @@
-import React, { useState, ChangeEvent } from 'react'
-import { usePool } from './PoolsContext'
+import React from 'react'
 import Box from '@material-ui/core/Box'
-import { useParams } from 'react-router'
-import { PoolRow } from './PoolRow'
-import { useThemeMode } from 'src/theme/ThemeProvider'
-import { Link, useLocation, useHistory } from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
-import IconButton from '@material-ui/core/IconButton'
-import MuiLink from '@material-ui/core/Link'
-import ArrowLeft from '@material-ui/icons/ChevronLeft'
-import LaunchIcon from '@material-ui/icons/Launch'
-import InfoTooltip from 'src/components/InfoTooltip'
-import { DinoGame } from './DinoGame'
-import Tabs from '@material-ui/core/Tabs'
-import Tab from '@material-ui/core/Tab'
-import Skeleton from '@material-ui/lab/Skeleton'
 
 export const useStyles = makeStyles(theme => ({
   box: {
     background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '1rem',
     position: 'relative'
+  },
+  label: {
+    'white-space': 'nowrap'
   },
   input: {
     fontSize: '2rem',
@@ -41,18 +30,30 @@ export const useStyles = makeStyles(theme => ({
 
 export function InputField (props: any) {
   const styles = useStyles()
-  const { tokenImageUrl, tokenSymbol, value, onChange, disabled } = props
+  const {
+    tokenImageUrl,
+    tokenSymbol,
+    value,
+    onChange,
+    disabled
+  } = props
+
   function handleChange(event: any) {
-    onChange(event.target.value)
+    if (onChange) {
+      onChange(event.target.value)
+    }
   }
+
   return (
     <Box p={2} className={styles.box} display="flex">
       <Box display="flex" alignItems="center">
+        {!!tokenImageUrl && (
+          <Box mr={1} display="flex" alignItems="center">
+            <img className={styles.image} src={tokenImageUrl} alt={tokenSymbol} title={tokenSymbol} />
+          </Box>
+        )}
         <Box mr={1} display="flex" alignItems="center">
-          <img className={styles.image} src={tokenImageUrl} alt={tokenSymbol} title={tokenSymbol} />
-        </Box>
-        <Box mr={1} display="flex" alignItems="center">
-          <Typography variant="subtitle1">
+          <Typography variant="subtitle1" className={styles.label}>
             {tokenSymbol}
           </Typography>
         </Box>

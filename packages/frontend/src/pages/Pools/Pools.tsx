@@ -1,5 +1,4 @@
 import React, { FC, ChangeEvent, useEffect } from 'react'
-import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Button from 'src/components/buttons/Button'
@@ -16,8 +15,6 @@ import {
   commafy,
   findMatchingBridge,
   sanitizeNumericalString,
-  toPercentDisplay,
-  toTokenDisplay,
 } from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/InfoTooltip/DetailRow'

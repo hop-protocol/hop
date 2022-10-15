@@ -350,6 +350,14 @@ export function useStaking (chainSlug: string, tokenSymbol: string, contractAddr
     setIsStaking(false)
   }
 
+  const warning = useMemo(() => {
+    if (!amount || !userLpBalance) return
+    const parsedAmount = parseUnits(amount || '0', 18)
+    if (parsedAmount.gt(userLpBalance)) {
+      return 'Insufficient balance'
+    }
+  }, [amount, userLpBalance])
+
   return {
     earned,
     earnedFormatted,
@@ -380,6 +388,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, contractAddr
     amount,
     setAmount,
     stake,
-    isStaking
+    isStaking,
+    warning
   }
 }

@@ -32,6 +32,7 @@ import {
 import { useStaking } from '../useStaking'
 import { stakingRewardsContracts } from 'src/config/addresses'
 import { usePoolStats } from '../usePoolStats'
+import TokenWrapper from 'src/components/TokenWrapper'
 
 export const useStyles = makeStyles(theme => ({
   backLink: {
@@ -210,7 +211,10 @@ function DepositForm(props: any) {
     addLiquidity,
     priceImpactFormatted,
     depositAmountTotalDisplayFormatted,
-    walletConnected
+    walletConnected,
+    enoughBalance,
+    selectedNetwork,
+    isDepositing
   } = props.data
 
   function handleToken0Change (value: string) {
@@ -240,18 +244,24 @@ function DepositForm(props: any) {
 
   const formDisabled = false
   const isEmptyAmount = (!(token0Amount || token1Amount))
-  const sendDisabled = formDisabled || isEmptyAmount
-  const sendButtonText = walletConnected ? (isEmptyAmount ? 'Amount needed' : 'Preview') : 'Connect Wallet'
+  const sendDisabled = formDisabled || isEmptyAmount || !enoughBalance
+  let sendButtonText = walletConnected ? 'Deposit' : 'Connect Wallet'
+  if (!enoughBalance) {
+    sendButtonText = 'Insufficient Balance'
+  }
 
   return (
     <Box>
       <Box mb={4}>
-        <Box mb={1} display="flex" justifyContent="space-between">
-          <Box>
-            <Typography variant="body2" color="secondary">
-              <MuiLink><strong>Wrap/Unwrap token</strong></MuiLink>
-            </Typography>
-          </Box>
+        <Box mb={1}>
+          {/*
+          <Typography variant="body2" color="secondary">
+            <MuiLink><strong>Wrap/Unwrap token</strong></MuiLink>
+          </Typography>
+          */}
+          <TokenWrapper network={selectedNetwork} />
+        </Box>
+        <Box mb={1} display="flex" justifyContent="flex-end">
           <Box>
             <Typography variant="body2" color="secondary">
               <strong>Balance: {balance0Formatted}</strong>
@@ -318,7 +328,7 @@ function DepositForm(props: any) {
         </Box>
       </Box>
       <Box>
-        <Button large highlighted fullWidth onClick={handleClick} disabled={sendDisabled}>
+        <Button large highlighted fullWidth onClick={handleClick} disabled={sendDisabled} loading={isDepositing}>
           {sendButtonText}
         </Button>
       </Box>
@@ -349,7 +359,9 @@ function WithdrawForm(props: any) {
     token1Max,
     calculatePriceImpact,
     goToTab,
-    walletConnected
+    walletConnected,
+    removeLiquidity,
+    isWithdrawing
   } = props.data
 
   function handleToken0Change (value: string) {
@@ -374,7 +386,8 @@ function WithdrawForm(props: any) {
 
   function handleClick (event: any) {
     event.preventDefault()
-    alert('TODO')
+    const amounts = { proportional, tokenIndex, amountPercent, amount: amountBN }
+    removeLiquidity(amounts)
   }
 
   const selections: any[] = [
@@ -486,7 +499,7 @@ function WithdrawForm(props: any) {
   const formDisabled = !hasBalance
   const isEmptyAmount = (proportional ? !amountPercent : amountBN.lte(0) || amountBN.gt(maxBalance))
   const sendDisabled = formDisabled || isEmptyAmount
-  const sendButtonText = walletConnected ? (isEmptyAmount ? 'Select amount' : 'Preview') : 'Connect Wallet'
+  const sendButtonText = walletConnected ? 'Withdraw' : 'Connect Wallet'
 
   if (!hasBalance) {
     return (
@@ -576,7 +589,7 @@ function WithdrawForm(props: any) {
           </Box>
         </Box>
       <Box>
-        <Button large highlighted fullWidth onClick={handleClick} disabled={sendDisabled}>
+        <Button large highlighted fullWidth onClick={handleClick} disabled={sendDisabled} loading={isWithdrawing}>
           {sendButtonText}
         </Button>
       </Box>
@@ -618,7 +631,8 @@ function StakeForm(props: any) {
     amount,
     setAmount,
     stake,
-    isStaking
+    isStaking,
+    warning
   } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
   const noStaking = !stakingContractAddress
   const { poolStats, getPoolStats } = usePoolStats()
@@ -633,7 +647,7 @@ function StakeForm(props: any) {
   const formDisabled = !walletConnected
   const sendButtonText = walletConnected ? 'Stake' : 'Connect Wallet'
   const approveDisabled = formDisabled || isEmptyAmount || !approvalNeeded
-  const sendDisabled = formDisabled || isEmptyAmount || approvalNeeded
+  const sendDisabled = formDisabled || isEmptyAmount || approvalNeeded || !warning
 
   const claimDisabled = formDisabled || !canClaim
   const withdrawDisabled = formDisabled || !canWithdraw
@@ -738,6 +752,7 @@ function StakeForm(props: any) {
         </Button>
       </Box>
       <Box>
+        <Alert severity="warning">{warning}</Alert>
         <Alert severity="error" onClose={() => setError(null)} text={error} />
       </Box>
     </Box>
@@ -875,7 +890,11 @@ export function PoolDetails () {
     calculateRemoveLiquidityPriceImpactFn,
     selectedNetwork,
     walletConnected,
-    chainSlug
+    chainSlug,
+    enoughBalance,
+    removeLiquiditySimple,
+    isWithdrawing,
+    isDepositing
   } = usePool()
   const tvlFormatted = reserveTotalsUsdFormatted
   const volume24hFormatted = '-'
@@ -1030,7 +1049,10 @@ export function PoolDetails () {
                       addLiquidity,
                       priceImpactFormatted,
                       depositAmountTotalDisplayFormatted,
-                      walletConnected
+                      walletConnected,
+                      enoughBalance,
+                      selectedNetwork,
+                      isDepositing
                     }}
                   />}
                   {selectedTab === 'withdraw' && <WithdrawForm
@@ -1055,7 +1077,9 @@ export function PoolDetails () {
                       token1Max,
                       calculatePriceImpact: calculateRemoveLiquidityPriceImpact,
                       goToTab,
-                      walletConnected
+                      walletConnected,
+                      removeLiquidity: removeLiquiditySimple,
+                      isWithdrawing
                     }}
                   />}
                   {selectedTab === 'stake' && <StakeForm

@@ -30,8 +30,7 @@ import {
   BNMin
 } from 'src/utils'
 import { useStaking } from '../useStaking'
-import { stakingRewardsContracts, hopStakingRewardsContracts } from 'src/config/addresses'
-import { reactAppNetwork } from 'src/config'
+import { stakingRewardsContracts, hopStakingRewardsContracts, metadata, reactAppNetwork } from 'src/config'
 import { usePoolStats } from '../usePoolStats'
 import TokenWrapper from 'src/components/TokenWrapper'
 
@@ -54,7 +53,7 @@ export const useStyles = makeStyles(theme => ({
   },
   topBox: {
     background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
-    borderRadius: '3rem',
+    borderRadius: '2rem',
     width: '100%',
     [theme.breakpoints.down('xs')]: {
       marginBottom: '1rem',
@@ -95,6 +94,18 @@ export const useStyles = makeStyles(theme => ({
       width: '100%'
     },
   },
+  hopRewards: {
+    [theme.breakpoints.down('xs')]: {
+      width: '90%'
+    },
+  },
+  hopRewardsBox: {
+    background: 'white',
+    borderRadius: '1rem',
+  },
+  hopImage: {
+    width: '30px'
+  }
 }))
 
 function PoolEmptyState() {
@@ -128,7 +139,68 @@ function PoolEmptyState() {
   )
 }
 
+function HopRewardsClaim(props: any) {
+  const {
+    chainSlug,
+    tokenSymbol,
+    walletConnected,
+    hopStakingContractAddress
+  } = props.data
+  const styles = useStyles()
+  const {
+    canClaim,
+    claim,
+    isClaiming,
+    earnedFormatted
+  } = useStaking(chainSlug, tokenSymbol, hopStakingContractAddress)
+
+  function handleClaimClick(event: any) {
+    event.preventDefault()
+    claim()
+  }
+
+  const hopLogo = metadata.tokens.HOP.image
+
+  if (!canClaim) {
+    return (
+      <></>
+    )
+  }
+
+  return (
+    <Box mt={8} maxWidth="400px" width="100%" className={styles.hopRewards}>
+      <Box p={2} className={styles.hopRewardsBox}>
+        <Box display="flex" justifyItems="space-between">
+          <Box mr={2} display="flex" justifyContent="center" alignItems="center">
+            <Box display="flex" justifyItems="center" alignItems="center">
+              <img className={styles.hopImage} src={hopLogo} alt='HOP' title='HOP' />
+            </Box>
+          </Box>
+          <Box width="100%">
+            <Box>
+              <Typography variant="subtitle2" color="secondary">
+                Unclaimed Rewards
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">
+                {earnedFormatted}
+              </Typography>
+            </Box>
+          </Box>
+          <Box pl={2} display="flex" justifyContent="center" alignItems="center" width="90%">
+            <Button highlighted fullWidth onClick={handleClaimClick} loading={isClaiming}>
+              Claim
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  )
+}
+
 function AccountPosition(props: any) {
+  const styles = useStyles()
   const {
     hopTokenSymbol,
     canonicalTokenSymbol,
@@ -136,7 +208,11 @@ function AccountPosition(props: any) {
     token1DepositedFormatted,
     userPoolBalanceFormatted,
     userPoolTokenPercentageFormatted,
-    userPoolBalanceUsdFormatted
+    userPoolBalanceUsdFormatted,
+    chainSlug,
+    tokenSymbol,
+    walletConnected,
+    hopStakingContractAddress
   } = props.data
 
   return (
@@ -192,6 +268,12 @@ function AccountPosition(props: any) {
           </Box>
         </Box>
       </Box>
+      <HopRewardsClaim data={{
+          chainSlug,
+          tokenSymbol,
+          walletConnected,
+          hopStakingContractAddress
+      }} />
     </Box>
   )
 }
@@ -765,7 +847,57 @@ function StakeForm(props: any) {
   )
 }
 
-function PoolStats (props:any) {
+function TopPoolStats (props:any) {
+  const styles = useStyles()
+  const {
+    tvlFormatted,
+    volume24hFormatted,
+    aprFormatted
+  } = props.data
+
+  return (
+      <Box mb={4} p={1} display="flex" justifyContent="space-between" className={styles.topBoxes}>
+        <Box mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
+          <Box mb={2}>
+            <Typography variant="subtitle1" color="secondary">
+              <Box display="flex" alignItems="center">
+                TVL <InfoTooltip title="Total value locked in USD" />
+              </Box>
+            </Typography>
+          </Box>
+          <Typography variant="h5">
+            {tvlFormatted}
+          </Typography>
+        </Box>
+        <Box ml={1} mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
+          <Box mb={2}>
+            <Typography variant="subtitle1" color="secondary">
+              <Box display="flex" alignItems="center">
+                24hr Volume <InfoTooltip title="Total volume in AMM in last 24 hours" />
+              </Box>
+            </Typography>
+          </Box>
+          <Typography variant="h5">
+            {volume24hFormatted}
+          </Typography>
+        </Box>
+        <Box ml={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
+          <Box mb={2}>
+            <Typography variant="subtitle1" color="secondary">
+              <Box display="flex" alignItems="center">
+                APR <InfoTooltip title="Annual Percentage Rate (APR) from earning fees, based on 24hr trading volume" />
+              </Box>
+            </Typography>
+          </Box>
+          <Typography variant="h5">
+            {aprFormatted}
+          </Typography>
+        </Box>
+      </Box>
+  )
+}
+
+function BottomPoolStats (props:any) {
   const styles = useStyles()
   const {
     poolName,
@@ -961,44 +1093,13 @@ export function PoolDetails () {
           </Box>
         </Box>
       </Box>
-      <Box mb={4} p={1} display="flex" justifyContent="space-between" className={styles.topBoxes}>
-        <Box mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
-          <Box mb={2}>
-            <Typography variant="subtitle1" color="secondary">
-              <Box display="flex" alignItems="center">
-                TVL <InfoTooltip title="Total value locked in USD" />
-              </Box>
-            </Typography>
-          </Box>
-          <Typography variant="h5">
-            {tvlFormatted}
-          </Typography>
-        </Box>
-        <Box ml={1} mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
-          <Box mb={2}>
-            <Typography variant="subtitle1" color="secondary">
-              <Box display="flex" alignItems="center">
-                24hr Volume <InfoTooltip title="Total volume in AMM in last 24 hours" />
-              </Box>
-            </Typography>
-          </Box>
-          <Typography variant="h5">
-            {volume24hFormatted}
-          </Typography>
-        </Box>
-        <Box ml={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
-          <Box mb={2}>
-            <Typography variant="subtitle1" color="secondary">
-              <Box display="flex" alignItems="center">
-                APR <InfoTooltip title="Annual Percentage Rate (APR) from earning fees, based on 24hr trading volume" />
-              </Box>
-            </Typography>
-          </Box>
-          <Typography variant="h5">
-            {aprFormatted}
-          </Typography>
-        </Box>
-      </Box>
+      <TopPoolStats
+        data={{
+          tvlFormatted,
+          volume24hFormatted,
+          aprFormatted
+        }}
+      />
       <Box mb={4}>
         <Box p={4} className={styles.poolDetails}>
           <Box p={2} display="flex" className={styles.poolDetailsBoxes}>
@@ -1026,6 +1127,10 @@ export function PoolDetails () {
                     canonicalTokenSymbol,
                     hopTokenSymbol,
                     userPoolBalanceUsdFormatted,
+                    hopStakingContractAddress,
+                    chainSlug,
+                    tokenSymbol,
+                    walletConnected,
                   }}
                 />
                 )}
@@ -1139,7 +1244,7 @@ export function PoolDetails () {
           </Box>
         </Box>
       </Box>
-      <PoolStats
+      <BottomPoolStats
         data={{
           poolName,
           canonicalTokenSymbol,

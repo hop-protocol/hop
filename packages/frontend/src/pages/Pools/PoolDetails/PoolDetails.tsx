@@ -158,7 +158,7 @@ function HopRewardsClaim(props: any) {
     canClaim,
     claim,
     isClaiming,
-    earnedFormatted
+    earnedAmountFormatted
   } = useStaking(chainSlug, tokenSymbol, hopStakingContractAddress)
 
   function handleClaimClick(event: any) {
@@ -191,7 +191,7 @@ function HopRewardsClaim(props: any) {
             </Box>
             <Box>
               <Typography variant="subtitle2">
-                {earnedFormatted}
+                {earnedAmountFormatted}
               </Typography>
             </Box>
           </Box>
@@ -287,7 +287,6 @@ function AccountPosition(props: any) {
 
 function DepositForm(props: any) {
   const {
-    hasBalance,
     token0Symbol,
     token1Symbol,
     token0ImageUrl,
@@ -427,21 +426,14 @@ function DepositForm(props: any) {
 }
 
 function WithdrawForm(props: any) {
-  const styles = useStyles()
   const {
     hasBalance,
     token0Symbol,
     token1Symbol,
     token0ImageUrl,
     token1ImageUrl,
-    balance0Formatted,
-    balance1Formatted,
-    token0Amount,
-    token1Amount,
     setToken0Amount,
     setToken1Amount,
-    addLiquidity,
-    depositAmountTotalDisplayFormatted,
     tokenDecimals,
     token0AmountBn,
     token1AmountBn,
@@ -692,55 +684,51 @@ function StakeForm(props: any) {
   const {
     chainSlug,
     tokenSymbol,
-    walletConnected,
     stakingContractAddress
   } = props.data
   const {
-    earnedFormatted,
-    depositedFormatted,
-    rewardsTokenSymbol,
-    lpTokenSymbol,
+    amount,
+    approveTokens,
     canClaim,
     canWithdraw,
-    aprFormatted,
-    rewardsPerDayFormatted,
-    rewardsTotalUsdFormatted,
-    overallTotalStakedFormatted,
-    lpBalanceFormatted,
-    overallTotalRewardsPerDayFormatted,
-    rewardsExpired,
     claim,
-    isClaiming,
+    depositedAmountFormatted,
+    earnedAmountFormatted,
     error,
-    setError,
-    withdraw,
-    isWithdrawing,
-    approvalNeeded,
+    isApprovalNeeded,
     isApproving,
-    approveTokens,
-    amount,
-    setAmount,
-    stake,
+    isClaiming,
+    isRewardsExpired,
     isStaking,
-    warning
+    isWithdrawing,
+    lpBalanceFormatted,
+    lpTokenSymbol,
+    noStaking,
+    overallTotalRewardsPerDayFormatted,
+    overallTotalStakedFormatted,
+    rewardsTokenSymbol,
+    setAmount,
+    setError,
+    stake,
+    stakingAprFormatted,
+    userRewardsPerDayFormatted,
+    userRewardsTotalUsdFormatted,
+    walletConnected,
+    warning,
+    withdraw,
   } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
-  const noStaking = !stakingContractAddress
-  const { poolStats, getPoolStats } = usePoolStats()
-
-  const stakingAprFormatted = getPoolStats(chainSlug, tokenSymbol)?.stakingAprFormatted ?? ''
-
-  const handleAmountChange = (_amount: string) => {
-    setAmount(_amount)
-  }
 
   const isEmptyAmount = !Number(amount)
   const formDisabled = !walletConnected
-  const sendButtonText = walletConnected ? 'Stake' : 'Connect Wallet'
-  const approveDisabled = formDisabled || isEmptyAmount || !approvalNeeded
-  const sendDisabled = formDisabled || isEmptyAmount || approvalNeeded || !!warning
+  const stakeButtonText = walletConnected ? 'Stake' : 'Connect Wallet'
+  const approveDisabled = formDisabled || isEmptyAmount || !isApprovalNeeded
+  const stakeButtonDisabled = formDisabled || isEmptyAmount || isApprovalNeeded || !!warning
+  const claimButtonDisabled = formDisabled || !canClaim
+  const withdrawButtonDisabled = formDisabled || !canWithdraw
 
-  const claimDisabled = formDisabled || !canClaim
-  const withdrawDisabled = formDisabled || !canWithdraw
+  function handleAmountChange (_amount: string) {
+    setAmount(_amount)
+  }
 
   function handleApproveClick (event: any) {
     event.preventDefault()
@@ -752,14 +740,14 @@ function StakeForm(props: any) {
     stake()
   }
 
-  function handleClaimClick (event: any) {
-    event.preventDefault()
-    claim()
-  }
-
   function handleWithdrawClick (event: any) {
     event.preventDefault()
     withdraw()
+  }
+
+  function handleClaimClick (event: any) {
+    event.preventDefault()
+    claim()
   }
 
   if (noStaking) {
@@ -787,25 +775,25 @@ function StakeForm(props: any) {
           LP Balance: {lpBalanceFormatted}
         </Typography>
         <Typography>
-          Staked LP <InfoTooltip title="LP tokens that have been deposited to earn rewards" />: {depositedFormatted}
+          Staked LP <InfoTooltip title="LP tokens that have been deposited to earn rewards" />: {depositedAmountFormatted}
         </Typography>
         <Typography>
-          Total <InfoTooltip title="The total worth of your staked LP position in USD" />: {rewardsTotalUsdFormatted}
+          Total <InfoTooltip title="The total worth of your staked LP position in USD" />: {userRewardsTotalUsdFormatted}
         </Typography>
         <Typography>
-          Rewards <InfoTooltip title="The rewards you're earning per day" />: {rewardsPerDayFormatted}
+          Rewards <InfoTooltip title="The rewards you're earning per day" />: {userRewardsPerDayFormatted}
         </Typography>
         <Typography>
-          Earned <InfoTooltip title="Rewards earned that are claimable" />: {earnedFormatted}
+          Earned <InfoTooltip title="Rewards earned that are claimable" />: {earnedAmountFormatted}
         </Typography>
         <Box mt={2}>
           <Box mb={1}>
-            <Button large highlighted fullWidth onClick={handleClaimClick} disabled={claimDisabled} loading={isClaiming}>
+            <Button large highlighted fullWidth onClick={handleClaimClick} disabled={claimButtonDisabled} loading={isClaiming}>
               Claim
             </Button>
           </Box>
           <Box mb={1}>
-            <Button large highlighted fullWidth onClick={handleWithdrawClick} disabled={withdrawDisabled} loading={isWithdrawing}>
+            <Button large highlighted fullWidth onClick={handleWithdrawClick} disabled={withdrawButtonDisabled} loading={isWithdrawing}>
               Withdraw
             </Button>
           </Box>
@@ -816,7 +804,7 @@ function StakeForm(props: any) {
           Staking stats
         </Typography>
         <Typography>
-          APR <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />: {stakingAprFormatted} {rewardsExpired ? '(rewards ended)' : ''}
+          APR <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />: {stakingAprFormatted} {isRewardsExpired ? '(rewards ended)' : ''}
         </Typography>
         <Typography>
           Total Staked <InfoTooltip title="The total amount of LP tokens staked for rewards" />: {overallTotalStakedFormatted}
@@ -842,8 +830,8 @@ function StakeForm(props: any) {
         </Button>
       </Box>
       <Box mb={1}>
-        <Button large highlighted fullWidth onClick={handleStakeClick} disabled={sendDisabled} loading={isStaking}>
-          {sendButtonText}
+        <Button large highlighted fullWidth onClick={handleStakeClick} disabled={stakeButtonDisabled} loading={isStaking}>
+          {stakeButtonText}
         </Button>
       </Box>
       <Box>
@@ -1216,7 +1204,6 @@ export function PoolDetails () {
                               data={{
                                 chainSlug,
                                 tokenSymbol,
-                                walletConnected,
                                 stakingContractAddress
                               }}
                             />
@@ -1228,7 +1215,6 @@ export function PoolDetails () {
                               data={{
                                 chainSlug,
                                 tokenSymbol,
-                                walletConnected,
                                 stakingContractAddress: hopStakingContractAddress
                               }}
                             />

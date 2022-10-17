@@ -100,8 +100,15 @@ export const useStyles = makeStyles(theme => ({
     },
   },
   hopRewardsBox: {
-    background: 'white',
+    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '1rem',
+  },
+  hopRewardsFlex: {
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column',
+      justifyContent: 'center',
+      textAlign: 'center',
+    },
   },
   hopImage: {
     width: '30px'
@@ -170,7 +177,7 @@ function HopRewardsClaim(props: any) {
   return (
     <Box mt={8} maxWidth="400px" width="100%" className={styles.hopRewards}>
       <Box p={2} className={styles.hopRewardsBox}>
-        <Box display="flex" justifyItems="space-between">
+        <Box display="flex" justifyItems="space-between" className={styles.hopRewardsFlex}>
           <Box mr={2} display="flex" justifyContent="center" alignItems="center">
             <Box display="flex" justifyItems="center" alignItems="center">
               <img className={styles.hopImage} src={hopLogo} alt='HOP' title='HOP' />
@@ -1103,42 +1110,44 @@ export function PoolDetails () {
       <Box mb={4}>
         <Box p={4} className={styles.poolDetails}>
           <Box p={2} display="flex" className={styles.poolDetailsBoxes}>
-            <Box p={2} width="50%" display="flex" flexDirection="column" className={styles.poolDetailsBox}>
-              <Box mb={4}>
-                <Typography variant="h4">
-                  My Liquidity
-                </Typography>
-              </Box>
-              {loading && (
-                <Box>
-                  <Skeleton animation="wave" width={'100px'} title="loading" />
-                  <Skeleton animation="wave" width={'200px'} title="loading" />
+            <Box width="50%" display="flex" flexDirection="column" className={styles.poolDetailsBox}>
+              <Box p={2}>
+                <Box mb={4}>
+                  <Typography variant="h4">
+                    My Liquidity
+                  </Typography>
                 </Box>
-              )}
-              {!loading && (
-                <>
-                {hasBalance && (
-                <AccountPosition
-                  data={{
-                    userPoolBalanceFormatted,
-                    userPoolTokenPercentageFormatted,
-                    token0DepositedFormatted,
-                    token1DepositedFormatted,
-                    canonicalTokenSymbol,
-                    hopTokenSymbol,
-                    userPoolBalanceUsdFormatted,
-                    hopStakingContractAddress,
-                    chainSlug,
-                    tokenSymbol,
-                    walletConnected,
-                  }}
-                />
+                {loading && (
+                  <Box>
+                    <Skeleton animation="wave" width={'100px'} title="loading" />
+                    <Skeleton animation="wave" width={'200px'} title="loading" />
+                  </Box>
                 )}
-                {!hasBalance && (
-                <PoolEmptyState />
+                {!loading && (
+                  <>
+                  {hasBalance && (
+                  <AccountPosition
+                    data={{
+                      userPoolBalanceFormatted,
+                      userPoolTokenPercentageFormatted,
+                      token0DepositedFormatted,
+                      token1DepositedFormatted,
+                      canonicalTokenSymbol,
+                      hopTokenSymbol,
+                      userPoolBalanceUsdFormatted,
+                      hopStakingContractAddress,
+                      chainSlug,
+                      tokenSymbol,
+                      walletConnected,
+                    }}
+                  />
+                  )}
+                  {!hasBalance && (
+                  <PoolEmptyState />
+                  )}
+                  </>
                 )}
-                </>
-              )}
+              </Box>
             </Box>
             <Box width="50%" className={styles.poolDetailsBox}>
               <Tabs value={selectedTab} onChange={handleTabChange} style={{ width: 'max-content' }} variant="scrollable">

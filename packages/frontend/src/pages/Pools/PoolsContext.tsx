@@ -930,7 +930,7 @@ const PoolsProvider: FC = ({ children }) => {
   const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
   const aprFormatted = toPercentDisplay(apr)
   const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
-  const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : '-'
+  const priceImpactFormatted = priceImpact ? `${commafy((priceImpact * 100), 2)}%` : '-'
   const poolSharePercentageFormatted = poolSharePercentage ? `${commafy(poolSharePercentage)}%` : ''
   const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : '-'
   const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`

@@ -27,7 +27,8 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import {
   commafy,
   sanitizeNumericalString,
-  BNMin
+  BNMin,
+  formatTokenDecimalString
 } from 'src/utils'
 import { useStaking } from '../useStaking'
 import { stakingRewardsContracts, hopStakingRewardsContracts, metadata, reactAppNetwork } from 'src/config'
@@ -38,6 +39,13 @@ export const useStyles = makeStyles(theme => ({
   backLink: {
     cursor: 'pointer',
     textDecoration: 'none'
+  },
+  balanceLink: {
+    cursor: 'pointer',
+    textDecoration: 'none',
+    '&:hover': {
+      textDecoration: 'underline'
+    }
   },
   imageContainer: {
     position: 'relative'
@@ -114,6 +122,29 @@ export const useStyles = makeStyles(theme => ({
     width: '30px'
   }
 }))
+
+function BalanceText(props: any) {
+  const styles = useStyles()
+  const { balanceFormatted, onClick } = props
+
+  function handleClick (event: any) {
+    event.preventDefault()
+    if (onClick) {
+      const value = sanitizeNumericalString(balanceFormatted)
+      onClick(value)
+    }
+  }
+
+  return (
+    <Box>
+      <Link to="" onClick={handleClick} className={styles.balanceLink}>
+        <Typography variant="body2" color="secondary">
+          <strong>Balance: {balanceFormatted}</strong>
+        </Typography>
+      </Link>
+    </Box>
+  )
+}
 
 function PoolEmptyState() {
   return (
@@ -195,7 +226,7 @@ function HopRewardsClaim(props: any) {
               </Typography>
             </Box>
           </Box>
-          <Box pl={2} display="flex" justifyContent="center" alignItems="center" width="90%">
+          <Box pl={2} display="flex" justifyContent="center" alignItems="center" width="80%">
             <Button highlighted fullWidth onClick={handleClaimClick} loading={isClaiming}>
               Claim
             </Button>
@@ -351,11 +382,7 @@ function DepositForm(props: any) {
           <TokenWrapper network={selectedNetwork} />
         </Box>
         <Box mb={1} display="flex" justifyContent="flex-end">
-          <Box>
-            <Typography variant="body2" color="secondary">
-              <strong>Balance: {balance0Formatted}</strong>
-            </Typography>
-          </Box>
+          <BalanceText balanceFormatted={balance0Formatted} onClick={setToken0Amount} />
         </Box>
         <Box mb={1}>
           <InputField
@@ -372,9 +399,7 @@ function DepositForm(props: any) {
           </Typography>
         </Box>
         <Box mb={1} display="flex" justifyContent="flex-end">
-          <Typography variant="body2" color="secondary">
-            <strong>Balance: {balance1Formatted}</strong>
-          </Typography>
+          <BalanceText balanceFormatted={balance1Formatted} onClick={setToken1Amount} />
         </Box>
         <Box mb={1}>
           <InputField
@@ -437,6 +462,7 @@ function WithdrawForm(props: any) {
     tokenDecimals,
     token0AmountBn,
     token1AmountBn,
+    totalAmount,
     token0Max,
     token1Max,
     calculatePriceImpact,
@@ -531,12 +557,15 @@ function WithdrawForm(props: any) {
   }
 
   const handleAmountChange = (_amount: string) => {
-    const value = Number(_amount)
+    setAmount(_amount)
+  }
+
+  useEffect(() => {
+    const value = Number(amount)
     const _balance = Number(formatUnits(maxBalance, tokenDecimals))
     const sliderValue = 100 / (_balance / value)
-    setAmount(_amount)
     setAmountSliderValue(sliderValue)
-  }
+  }, [amount])
 
   const [priceImpact, setPriceImpact] = useState<number | undefined>()
 
@@ -608,6 +637,8 @@ function WithdrawForm(props: any) {
     )
   }
 
+  const maxBalanceFormatted = `${formatTokenDecimalString(maxBalance, tokenDecimals, 4)}`
+
   return (
     <Box>
 
@@ -637,9 +668,12 @@ function WithdrawForm(props: any) {
         </Box>
       ) : (
         <Box>
-          <Typography variant="subtitle2" color="textPrimary">
-            Withdraw only {selectedTokenSymbol}
-          </Typography>
+          <Box mb={1} display="flex" justifyContent="space-between">
+            <Typography variant="subtitle2" color="textPrimary">
+              Withdraw only {selectedTokenSymbol}
+            </Typography>
+            <BalanceText balanceFormatted={maxBalanceFormatted} onClick={setAmount} />
+          </Box>
           <Box mb={1}>
             <InputField
               tokenSymbol={selectedTokenSymbol}
@@ -772,7 +806,7 @@ function StakeForm(props: any) {
           My deposits
         </Typography>
         <Typography>
-          LP Balance: {lpBalanceFormatted}
+          LP Balance: {lpBalanceFormatted} {lpTokenSymbol}
         </Typography>
         <Typography>
           Staked LP <InfoTooltip title="LP tokens that have been deposited to earn rewards" />: {depositedAmountFormatted}
@@ -817,6 +851,9 @@ function StakeForm(props: any) {
         <Typography variant="subtitle1">
           Stake LP
         </Typography>
+        <Box mb={1} display="flex" justifyContent="flex-end">
+          <BalanceText balanceFormatted={lpBalanceFormatted} onClick={setAmount} />
+        </Box>
         <InputField
           tokenSymbol={lpTokenSymbol}
           value={amount}
@@ -1051,7 +1088,7 @@ export function PoolDetails () {
     goToTab(newValue)
   }
 
-  const totalAmount = token0Deposited?.add(token1Deposited || 0)
+  const totalAmount = token0Deposited?.add(token1Deposited || 0) ?? BigNumber.from(0)
   const token0Max = BNMin(poolReserves[0], totalAmount)
   const token1Max = BNMin(poolReserves[1], totalAmount)
 
@@ -1191,7 +1228,8 @@ export function PoolDetails () {
                       goToTab,
                       walletConnected,
                       removeLiquidity: removeLiquiditySimple,
-                      isWithdrawing
+                      isWithdrawing,
+                      totalAmount
                     }}
                   />}
                   {selectedTab === 'stake' && (

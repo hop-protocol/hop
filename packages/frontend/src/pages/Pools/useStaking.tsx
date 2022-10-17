@@ -362,7 +362,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   const canClaim = earnedAmountBn.gt(0) ?? false
   const canWithdraw = depositedAmountBn.gt(0) ?? false
   const stakingAprFormatted = getPoolStats(chainSlug, tokenSymbol)?.stakingAprFormatted ?? ''
-  const lpBalanceFormatted = `${formatTokenDecimalString(userLpBalance, 18, 4)} ${lpTokenSymbol}`
+  const lpBalanceFormatted = `${formatTokenDecimalString(userLpBalance, 18, 4)}`
   const earnedAmountFormatted = `${formatTokenDecimalString(earnedAmountBn, 18, 4)} ${rewardsTokenSymbol}`
   const depositedAmountFormatted = `${formatTokenDecimalString(depositedAmountBn, 18, 4)} ${lpTokenSymbol}`
   const userRewardsPerDayNumber = Number(formatUnits(userRewardsPerDayBn, 18))

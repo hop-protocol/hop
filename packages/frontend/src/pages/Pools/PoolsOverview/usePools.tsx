@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { BigNumber } from 'ethers'
 import { useApp } from 'src/contexts/AppContext'
-import { addresses, stakingRewardsContracts } from 'src/config'
+import { addresses, stakingRewardsContracts, reactAppNetwork } from 'src/config'
 import { toPercentDisplay } from 'src/utils'
 import { formatTokenDecimalString } from 'src/utils/format'
 import { findNetworkBySlug } from 'src/utils/networks'
@@ -221,7 +221,7 @@ export function usePools () {
       await Promise.all(pools.map(async (pool: any) => {
         try {
           const cacheKey = `${pool.chain.slug}:${pool.token.symbol}:${accountAddress}`
-          const address = stakingRewardsContracts?.[pool.chain.slug]?.[pool.token.symbol]
+          const address = stakingRewardsContracts?.[reactAppNetwork]?.[pool.chain.slug]?.[pool.token.symbol]
           if (address) {
             let earned = BigNumber.from(0)
             if (cache[cacheKey]) {

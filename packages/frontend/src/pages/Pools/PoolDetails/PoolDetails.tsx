@@ -30,7 +30,7 @@ import {
   BNMin
 } from 'src/utils'
 import { useStaking } from '../useStaking'
-import { stakingRewardsContracts } from 'src/config/addresses'
+import { stakingRewardsContracts, hopStakingRewardsContracts, metadata, reactAppNetwork } from 'src/config'
 import { usePoolStats } from '../usePoolStats'
 import TokenWrapper from 'src/components/TokenWrapper'
 
@@ -53,7 +53,7 @@ export const useStyles = makeStyles(theme => ({
   },
   topBox: {
     background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
-    borderRadius: '3rem',
+    borderRadius: '2rem',
     width: '100%',
     [theme.breakpoints.down('xs')]: {
       marginBottom: '1rem',
@@ -94,6 +94,25 @@ export const useStyles = makeStyles(theme => ({
       width: '100%'
     },
   },
+  hopRewards: {
+    [theme.breakpoints.down('xs')]: {
+      width: '90%'
+    },
+  },
+  hopRewardsBox: {
+    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
+    borderRadius: '1rem',
+  },
+  hopRewardsFlex: {
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column',
+      justifyContent: 'center',
+      textAlign: 'center',
+    },
+  },
+  hopImage: {
+    width: '30px'
+  }
 }))
 
 function PoolEmptyState() {
@@ -127,7 +146,68 @@ function PoolEmptyState() {
   )
 }
 
+function HopRewardsClaim(props: any) {
+  const {
+    chainSlug,
+    tokenSymbol,
+    walletConnected,
+    hopStakingContractAddress
+  } = props.data
+  const styles = useStyles()
+  const {
+    canClaim,
+    claim,
+    isClaiming,
+    earnedAmountFormatted
+  } = useStaking(chainSlug, tokenSymbol, hopStakingContractAddress)
+
+  function handleClaimClick(event: any) {
+    event.preventDefault()
+    claim()
+  }
+
+  const hopLogo = metadata.tokens.HOP.image
+
+  if (!canClaim) {
+    return (
+      <></>
+    )
+  }
+
+  return (
+    <Box mt={8} maxWidth="400px" width="100%" className={styles.hopRewards}>
+      <Box p={2} className={styles.hopRewardsBox}>
+        <Box display="flex" justifyItems="space-between" className={styles.hopRewardsFlex}>
+          <Box mr={2} display="flex" justifyContent="center" alignItems="center">
+            <Box display="flex" justifyItems="center" alignItems="center">
+              <img className={styles.hopImage} src={hopLogo} alt='HOP' title='HOP' />
+            </Box>
+          </Box>
+          <Box width="100%">
+            <Box>
+              <Typography variant="subtitle2" color="secondary">
+                Unclaimed Rewards
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">
+                {earnedAmountFormatted}
+              </Typography>
+            </Box>
+          </Box>
+          <Box pl={2} display="flex" justifyContent="center" alignItems="center" width="90%">
+            <Button highlighted fullWidth onClick={handleClaimClick} loading={isClaiming}>
+              Claim
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  )
+}
+
 function AccountPosition(props: any) {
+  const styles = useStyles()
   const {
     hopTokenSymbol,
     canonicalTokenSymbol,
@@ -135,7 +215,11 @@ function AccountPosition(props: any) {
     token1DepositedFormatted,
     userPoolBalanceFormatted,
     userPoolTokenPercentageFormatted,
-    userPoolBalanceUsdFormatted
+    userPoolBalanceUsdFormatted,
+    chainSlug,
+    tokenSymbol,
+    walletConnected,
+    hopStakingContractAddress
   } = props.data
 
   return (
@@ -191,13 +275,18 @@ function AccountPosition(props: any) {
           </Box>
         </Box>
       </Box>
+      <HopRewardsClaim data={{
+          chainSlug,
+          tokenSymbol,
+          walletConnected,
+          hopStakingContractAddress
+      }} />
     </Box>
   )
 }
 
 function DepositForm(props: any) {
   const {
-    hasBalance,
     token0Symbol,
     token1Symbol,
     token0ImageUrl,
@@ -337,21 +426,14 @@ function DepositForm(props: any) {
 }
 
 function WithdrawForm(props: any) {
-  const styles = useStyles()
   const {
     hasBalance,
     token0Symbol,
     token1Symbol,
     token0ImageUrl,
     token1ImageUrl,
-    balance0Formatted,
-    balance1Formatted,
-    token0Amount,
-    token1Amount,
     setToken0Amount,
     setToken1Amount,
-    addLiquidity,
-    depositAmountTotalDisplayFormatted,
     tokenDecimals,
     token0AmountBn,
     token1AmountBn,
@@ -602,55 +684,51 @@ function StakeForm(props: any) {
   const {
     chainSlug,
     tokenSymbol,
-    walletConnected,
+    stakingContractAddress
   } = props.data
-  const stakingContractAddress = stakingRewardsContracts[chainSlug]?.[tokenSymbol]
   const {
-    earnedFormatted,
-    depositedFormatted,
-    rewardsTokenSymbol,
-    lpTokenSymbol,
+    amount,
+    approveTokens,
     canClaim,
     canWithdraw,
-    aprFormatted,
-    rewardsPerDayFormatted,
-    rewardsTotalUsdFormatted,
-    overallTotalStakedFormatted,
-    lpBalanceFormatted,
-    overallTotalRewardsPerDayFormatted,
-    rewardsExpired,
     claim,
-    isClaiming,
+    depositedAmountFormatted,
+    earnedAmountFormatted,
     error,
-    setError,
-    withdraw,
-    isWithdrawing,
-    approvalNeeded,
+    isApprovalNeeded,
     isApproving,
-    approveTokens,
-    amount,
-    setAmount,
-    stake,
+    isClaiming,
+    isRewardsExpired,
     isStaking,
-    warning
+    isWithdrawing,
+    lpBalanceFormatted,
+    lpTokenSymbol,
+    noStaking,
+    overallTotalRewardsPerDayFormatted,
+    overallTotalStakedFormatted,
+    rewardsTokenSymbol,
+    setAmount,
+    setError,
+    stake,
+    stakingAprFormatted,
+    userRewardsPerDayFormatted,
+    userRewardsTotalUsdFormatted,
+    walletConnected,
+    warning,
+    withdraw,
   } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
-  const noStaking = !stakingContractAddress
-  const { poolStats, getPoolStats } = usePoolStats()
-
-  const stakingAprFormatted = getPoolStats(chainSlug, tokenSymbol)?.stakingAprFormatted ?? ''
-
-  const handleAmountChange = (_amount: string) => {
-    setAmount(_amount)
-  }
 
   const isEmptyAmount = !Number(amount)
   const formDisabled = !walletConnected
-  const sendButtonText = walletConnected ? 'Stake' : 'Connect Wallet'
-  const approveDisabled = formDisabled || isEmptyAmount || !approvalNeeded
-  const sendDisabled = formDisabled || isEmptyAmount || approvalNeeded || !warning
+  const stakeButtonText = walletConnected ? 'Stake' : 'Connect Wallet'
+  const approveDisabled = formDisabled || isEmptyAmount || !isApprovalNeeded
+  const stakeButtonDisabled = formDisabled || isEmptyAmount || isApprovalNeeded || !!warning
+  const claimButtonDisabled = formDisabled || !canClaim
+  const withdrawButtonDisabled = formDisabled || !canWithdraw
 
-  const claimDisabled = formDisabled || !canClaim
-  const withdrawDisabled = formDisabled || !canWithdraw
+  function handleAmountChange (_amount: string) {
+    setAmount(_amount)
+  }
 
   function handleApproveClick (event: any) {
     event.preventDefault()
@@ -662,14 +740,14 @@ function StakeForm(props: any) {
     stake()
   }
 
-  function handleClaimClick (event: any) {
-    event.preventDefault()
-    claim()
-  }
-
   function handleWithdrawClick (event: any) {
     event.preventDefault()
     withdraw()
+  }
+
+  function handleClaimClick (event: any) {
+    event.preventDefault()
+    claim()
   }
 
   if (noStaking) {
@@ -684,6 +762,11 @@ function StakeForm(props: any) {
 
   return (
     <Box>
+      <Box mb={2}>
+        <Typography variant="h6">
+          {rewardsTokenSymbol} Rewards
+        </Typography>
+      </Box>
       <Box mb={4}>
         <Typography variant="subtitle1">
           My deposits
@@ -692,25 +775,25 @@ function StakeForm(props: any) {
           LP Balance: {lpBalanceFormatted}
         </Typography>
         <Typography>
-          Staked LP <InfoTooltip title="LP tokens that have been deposited to earn rewards" />: {depositedFormatted}
+          Staked LP <InfoTooltip title="LP tokens that have been deposited to earn rewards" />: {depositedAmountFormatted}
         </Typography>
         <Typography>
-          Total <InfoTooltip title="The total worth of your staked LP position in USD" />: {rewardsTotalUsdFormatted}
+          Total <InfoTooltip title="The total worth of your staked LP position in USD" />: {userRewardsTotalUsdFormatted}
         </Typography>
         <Typography>
-          Rewards <InfoTooltip title="The rewards you're earning per day" />: {rewardsPerDayFormatted}
+          Rewards <InfoTooltip title="The rewards you're earning per day" />: {userRewardsPerDayFormatted}
         </Typography>
         <Typography>
-          Earned <InfoTooltip title="Rewards earned that are claimable" />: {earnedFormatted}
+          Earned <InfoTooltip title="Rewards earned that are claimable" />: {earnedAmountFormatted}
         </Typography>
         <Box mt={2}>
           <Box mb={1}>
-            <Button large highlighted fullWidth onClick={handleClaimClick} disabled={claimDisabled} loading={isClaiming}>
+            <Button large highlighted fullWidth onClick={handleClaimClick} disabled={claimButtonDisabled} loading={isClaiming}>
               Claim
             </Button>
           </Box>
           <Box mb={1}>
-            <Button large highlighted fullWidth onClick={handleWithdrawClick} disabled={withdrawDisabled} loading={isWithdrawing}>
+            <Button large highlighted fullWidth onClick={handleWithdrawClick} disabled={withdrawButtonDisabled} loading={isWithdrawing}>
               Withdraw
             </Button>
           </Box>
@@ -721,7 +804,7 @@ function StakeForm(props: any) {
           Staking stats
         </Typography>
         <Typography>
-          APR <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />: {stakingAprFormatted} {rewardsExpired ? '(rewards ended)' : ''}
+          APR <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />: {stakingAprFormatted} {isRewardsExpired ? '(rewards ended)' : ''}
         </Typography>
         <Typography>
           Total Staked <InfoTooltip title="The total amount of LP tokens staked for rewards" />: {overallTotalStakedFormatted}
@@ -747,8 +830,8 @@ function StakeForm(props: any) {
         </Button>
       </Box>
       <Box mb={1}>
-        <Button large highlighted fullWidth onClick={handleStakeClick} disabled={sendDisabled} loading={isStaking}>
-          {sendButtonText}
+        <Button large highlighted fullWidth onClick={handleStakeClick} disabled={stakeButtonDisabled} loading={isStaking}>
+          {stakeButtonText}
         </Button>
       </Box>
       <Box>
@@ -759,7 +842,57 @@ function StakeForm(props: any) {
   )
 }
 
-function PoolStats (props:any) {
+function TopPoolStats (props:any) {
+  const styles = useStyles()
+  const {
+    tvlFormatted,
+    volume24hFormatted,
+    aprFormatted
+  } = props.data
+
+  return (
+      <Box mb={4} p={1} display="flex" justifyContent="space-between" className={styles.topBoxes}>
+        <Box mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
+          <Box mb={2}>
+            <Typography variant="subtitle1" color="secondary">
+              <Box display="flex" alignItems="center">
+                TVL <InfoTooltip title="Total value locked in USD" />
+              </Box>
+            </Typography>
+          </Box>
+          <Typography variant="h5">
+            {tvlFormatted}
+          </Typography>
+        </Box>
+        <Box ml={1} mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
+          <Box mb={2}>
+            <Typography variant="subtitle1" color="secondary">
+              <Box display="flex" alignItems="center">
+                24hr Volume <InfoTooltip title="Total volume in AMM in last 24 hours" />
+              </Box>
+            </Typography>
+          </Box>
+          <Typography variant="h5">
+            {volume24hFormatted}
+          </Typography>
+        </Box>
+        <Box ml={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
+          <Box mb={2}>
+            <Typography variant="subtitle1" color="secondary">
+              <Box display="flex" alignItems="center">
+                APR <InfoTooltip title="Annual Percentage Rate (APR) from earning fees, based on 24hr trading volume" />
+              </Box>
+            </Typography>
+          </Box>
+          <Typography variant="h5">
+            {aprFormatted}
+          </Typography>
+        </Box>
+      </Box>
+  )
+}
+
+function BottomPoolStats (props:any) {
   const styles = useStyles()
   const {
     poolName,
@@ -922,6 +1055,10 @@ export function PoolDetails () {
   const token0Max = BNMin(poolReserves[0], totalAmount)
   const token1Max = BNMin(poolReserves[1], totalAmount)
 
+  const stakingContractAddress = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+  const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+  const stakingEnabled = !!(stakingContractAddress || hopStakingContractAddress)
+
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
       <Box mb={4} display="flex" alignItems="center">
@@ -951,79 +1088,54 @@ export function PoolDetails () {
           </Box>
         </Box>
       </Box>
-      <Box mb={4} p={1} display="flex" justifyContent="space-between" className={styles.topBoxes}>
-        <Box mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
-          <Box mb={2}>
-            <Typography variant="subtitle1" color="secondary">
-              <Box display="flex" alignItems="center">
-                TVL <InfoTooltip title="Total value locked in USD" />
-              </Box>
-            </Typography>
-          </Box>
-          <Typography variant="h5">
-            {tvlFormatted}
-          </Typography>
-        </Box>
-        <Box ml={1} mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
-          <Box mb={2}>
-            <Typography variant="subtitle1" color="secondary">
-              <Box display="flex" alignItems="center">
-                24hr Volume <InfoTooltip title="Total volume in AMM in last 24 hours" />
-              </Box>
-            </Typography>
-          </Box>
-          <Typography variant="h5">
-            {volume24hFormatted}
-          </Typography>
-        </Box>
-        <Box ml={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
-          <Box mb={2}>
-            <Typography variant="subtitle1" color="secondary">
-              <Box display="flex" alignItems="center">
-                APR <InfoTooltip title="Annual Percentage Rate (APR) from earning fees, based on 24hr trading volume" />
-              </Box>
-            </Typography>
-          </Box>
-          <Typography variant="h5">
-            {aprFormatted}
-          </Typography>
-        </Box>
-      </Box>
+      <TopPoolStats
+        data={{
+          tvlFormatted,
+          volume24hFormatted,
+          aprFormatted
+        }}
+      />
       <Box mb={4}>
         <Box p={4} className={styles.poolDetails}>
           <Box p={2} display="flex" className={styles.poolDetailsBoxes}>
-            <Box p={2} width="50%" display="flex" flexDirection="column" className={styles.poolDetailsBox}>
-              <Box mb={4}>
-                <Typography variant="h4">
-                  My Liquidity
-                </Typography>
-              </Box>
-              {loading && (
-                <Box>
-                  <Skeleton animation="wave" width={'100px'} title="loading" />
-                  <Skeleton animation="wave" width={'200px'} title="loading" />
+            <Box width="50%" display="flex" flexDirection="column" className={styles.poolDetailsBox}>
+              <Box p={2}>
+                <Box mb={4}>
+                  <Typography variant="h4">
+                    My Liquidity
+                  </Typography>
                 </Box>
-              )}
-              {!loading && (
-                <>
-                {hasBalance && (
-                <AccountPosition
-                  data={{
-                    userPoolBalanceFormatted,
-                    userPoolTokenPercentageFormatted,
-                    token0DepositedFormatted,
-                    token1DepositedFormatted,
-                    canonicalTokenSymbol,
-                    hopTokenSymbol,
-                    userPoolBalanceUsdFormatted,
-                  }}
-                />
+                {loading && (
+                  <Box>
+                    <Skeleton animation="wave" width={'100px'} title="loading" />
+                    <Skeleton animation="wave" width={'200px'} title="loading" />
+                  </Box>
                 )}
-                {!hasBalance && (
-                <PoolEmptyState />
+                {!loading && (
+                  <>
+                  {hasBalance && (
+                  <AccountPosition
+                    data={{
+                      userPoolBalanceFormatted,
+                      userPoolTokenPercentageFormatted,
+                      token0DepositedFormatted,
+                      token1DepositedFormatted,
+                      canonicalTokenSymbol,
+                      hopTokenSymbol,
+                      userPoolBalanceUsdFormatted,
+                      hopStakingContractAddress,
+                      chainSlug,
+                      tokenSymbol,
+                      walletConnected,
+                    }}
+                  />
+                  )}
+                  {!hasBalance && (
+                  <PoolEmptyState />
+                  )}
+                  </>
                 )}
-                </>
-              )}
+              </Box>
             </Box>
             <Box width="50%" className={styles.poolDetailsBox}>
               <Tabs value={selectedTab} onChange={handleTabChange} style={{ width: 'max-content' }} variant="scrollable">
@@ -1082,13 +1194,41 @@ export function PoolDetails () {
                       isWithdrawing
                     }}
                   />}
-                  {selectedTab === 'stake' && <StakeForm
-                    data={{
-                      chainSlug,
-                      tokenSymbol,
-                      walletConnected
-                    }}
-                  />}
+                  {selectedTab === 'stake' && (
+                    <>
+                      {stakingEnabled && (
+                        <>
+                        {!!stakingContractAddress && (
+                          <Box mb={4}>
+                            <StakeForm
+                              data={{
+                                chainSlug,
+                                tokenSymbol,
+                                stakingContractAddress
+                              }}
+                            />
+                          </Box>
+                        )}
+                        {!!hopStakingContractAddress && (
+                          <Box mb={4}>
+                            <StakeForm
+                              data={{
+                                chainSlug,
+                                tokenSymbol,
+                                stakingContractAddress: hopStakingContractAddress
+                              }}
+                            />
+                          </Box>
+                        )}
+                        </>
+                      )}
+                      {!stakingEnabled && (
+                        <Typography>
+                          There is no staking available for this asset on this chain.
+                        </Typography>
+                      )}
+                    </>
+                  )}
                 </Box>
                 <Box>
                   <Alert severity="warning">{warning}</Alert>
@@ -1099,7 +1239,7 @@ export function PoolDetails () {
           </Box>
         </Box>
       </Box>
-      <PoolStats
+      <BottomPoolStats
         data={{
           poolName,
           canonicalTokenSymbol,

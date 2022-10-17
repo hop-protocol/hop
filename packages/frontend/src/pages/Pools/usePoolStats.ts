@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useApp } from 'src/contexts/AppContext'
-import { addresses, stakingRewardsContracts } from 'src/config'
+import { addresses } from 'src/config'
 import { toPercentDisplay } from 'src/utils'
 import { findNetworkBySlug } from 'src/utils/networks'
 

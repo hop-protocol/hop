@@ -30,7 +30,8 @@ import {
   BNMin
 } from 'src/utils'
 import { useStaking } from '../useStaking'
-import { stakingRewardsContracts } from 'src/config/addresses'
+import { stakingRewardsContracts, hopStakingRewardsContracts } from 'src/config/addresses'
+import { reactAppNetwork } from 'src/config'
 import { usePoolStats } from '../usePoolStats'
 import TokenWrapper from 'src/components/TokenWrapper'
 
@@ -603,8 +604,8 @@ function StakeForm(props: any) {
     chainSlug,
     tokenSymbol,
     walletConnected,
+    stakingContractAddress
   } = props.data
-  const stakingContractAddress = stakingRewardsContracts[chainSlug]?.[tokenSymbol]
   const {
     earnedFormatted,
     depositedFormatted,
@@ -647,7 +648,7 @@ function StakeForm(props: any) {
   const formDisabled = !walletConnected
   const sendButtonText = walletConnected ? 'Stake' : 'Connect Wallet'
   const approveDisabled = formDisabled || isEmptyAmount || !approvalNeeded
-  const sendDisabled = formDisabled || isEmptyAmount || approvalNeeded || !warning
+  const sendDisabled = formDisabled || isEmptyAmount || approvalNeeded || !!warning
 
   const claimDisabled = formDisabled || !canClaim
   const withdrawDisabled = formDisabled || !canWithdraw
@@ -684,6 +685,11 @@ function StakeForm(props: any) {
 
   return (
     <Box>
+      <Box mb={2}>
+        <Typography variant="h6">
+          {rewardsTokenSymbol} Rewards
+        </Typography>
+      </Box>
       <Box mb={4}>
         <Typography variant="subtitle1">
           My deposits
@@ -922,6 +928,10 @@ export function PoolDetails () {
   const token0Max = BNMin(poolReserves[0], totalAmount)
   const token1Max = BNMin(poolReserves[1], totalAmount)
 
+  const stakingContractAddress = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+  const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+  const stakingEnabled = !!(stakingContractAddress || hopStakingContractAddress)
+
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
       <Box mb={4} display="flex" alignItems="center">
@@ -1082,13 +1092,43 @@ export function PoolDetails () {
                       isWithdrawing
                     }}
                   />}
-                  {selectedTab === 'stake' && <StakeForm
-                    data={{
-                      chainSlug,
-                      tokenSymbol,
-                      walletConnected
-                    }}
-                  />}
+                  {selectedTab === 'stake' && (
+                    <>
+                      {stakingEnabled && (
+                        <>
+                        {!!stakingContractAddress && (
+                          <Box mb={4}>
+                            <StakeForm
+                              data={{
+                                chainSlug,
+                                tokenSymbol,
+                                walletConnected,
+                                stakingContractAddress
+                              }}
+                            />
+                          </Box>
+                        )}
+                        {!!hopStakingContractAddress && (
+                          <Box mb={4}>
+                            <StakeForm
+                              data={{
+                                chainSlug,
+                                tokenSymbol,
+                                walletConnected,
+                                stakingContractAddress: hopStakingContractAddress
+                              }}
+                            />
+                          </Box>
+                        )}
+                        </>
+                      )}
+                      {!stakingEnabled && (
+                        <Typography>
+                          There is no staking available for this asset on this chain.
+                        </Typography>
+                      )}
+                    </>
+                  )}
                 </Box>
                 <Box>
                   <Alert severity="warning">{warning}</Alert>

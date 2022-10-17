@@ -950,7 +950,8 @@ const PoolsProvider: FC = ({ children }) => {
     ? commafy(Number(formatUnits(tokenSumDeposited, hopToken?.decimals)), 5)
     : ''
 
-  const userPoolBalanceSum = (hasBalance && userPoolBalance && virtualPrice && tokenUsdPrice) ? (Number(virtualPrice) * Number(formatUnits(userPoolBalance, 18))) : 0
+    const tokenDecimals = canonicalToken?.decimals!
+  const userPoolBalanceSum = (hasBalance && userPoolBalance && tokenUsdPrice) ? (Number(formatUnits(token0Deposited || 0, tokenDecimals)) + Number(formatUnits(token1Deposited || 0, tokenDecimals))) : 0
   const userPoolBalanceUsd = tokenUsdPrice ? userPoolBalanceSum * tokenUsdPrice : 0
   const userPoolBalanceUsdFormatted = userPoolBalanceUsd ? `$${commafy(userPoolBalanceUsd, 2)}` : commafy(userPoolBalanceSum, 4)
 
@@ -972,7 +973,6 @@ const PoolsProvider: FC = ({ children }) => {
       const bridge = sdk.bridge(tokenSymbol)
       const amm = bridge.getAmm(selectedNetwork.slug)
       const lpTokenDecimals = 18
-      const tokenDecimals = canonicalToken?.decimals!
 
       const lpToken = bridge.getSaddleLpToken(selectedNetwork.slug)
       const balance = await lpToken.balanceOf()

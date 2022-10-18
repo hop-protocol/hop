@@ -96,11 +96,17 @@ const rewardTokenAddresses: any = {
   GNO: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb'
 }
 
+type StakingAprRes = {
+  apr: number
+  aprTokenSymbol: string
+}
+
 type PoolData = {
   apr: number
   apr7Day: number
   apr30Day: number
   stakingApr?: number
+  stakingAprTokenSymbol?: string
 }
 
 type Data = { [token: string]: { [chain: string]: PoolData } }
@@ -181,10 +187,14 @@ class AprStats {
         )
         promises.push(
           this.getStakingApr(token, chain)
-            .then(apr => {
-              if (apr) {
+            .then(res => {
+              if (res?.apr) {
                 console.log(`${chain}.${token} got staking apr`)
-                data[token][chain].stakingApr = apr
+                data[token][chain].stakingApr = res.apr
+              }
+              if (res?.aprTokenSymbol) {
+                console.log(`${chain}.${token} got staking apr token symbol`)
+                data[token][chain].stakingAprTokenSymbol = res.aprTokenSymbol
               }
             })
             .catch(err => console.error(err))
@@ -213,7 +223,7 @@ class AprStats {
     return apr
   }
 
-  async getStakingApr (token: string, chain: string): Promise<number> {
+  async getStakingApr (token: string, chain: string): Promise<StakingAprRes> {
     const bridge = this.sdk.bridge(token)
     const canonToken = bridge.getCanonicalToken(chain)
     const amm = bridge.getAmm(chain)
@@ -221,10 +231,14 @@ class AprStats {
     const provider = this.sdk.getChainProvider(chain)
     const stakingRewardsAddresses = stakingRewardsContracts?.[chain]?.[token]
     if (!stakingRewardsAddresses?.length) {
-      return 0
+      return {
+        apr: 0,
+        aprTokenSymbol: ''
+      }
     }
 
-    let totalAprBn = BigNumber.from(0)
+    let maxAprBn = BigNumber.from(0)
+    let maxAprTokenSymbol
     for (const stakingRewardsAddress of stakingRewardsAddresses) {
       const ethBridge = this.sdk.bridge('ETH')
       const assetBridge = this.sdk.bridge(token)
@@ -236,14 +250,19 @@ class AprStats {
 
       const totalStaked = await stakingToken.balanceOf(stakingRewards?.address)
       if (totalStaked.lte(0)) {
-        return 0
+        return {
+          apr: 0,
+          aprTokenSymbol: ''
+        }
       }
 
       const stakedTotal = await amm.calculateTotalAmountForLpToken(totalStaked)
       if (stakedTotal.lte(0)) {
-        return 0
+        return {
+          apr: 0,
+          aprTokenSymbol: ''
+        }
       }
-
 
       const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(token)
 
@@ -274,10 +293,14 @@ class AprStats {
         totalRewardsPerDay
       )
 
-      totalAprBn = totalAprBn.add(aprBn)
+      maxAprBn = maxAprBn.gt(aprBn) ? maxAprBn : aprBn
+      maxAprTokenSymbol = rewardsTokenSymbol
     }
 
-    return Number(formatUnits(totalAprBn.toString(), TOTAL_AMOUNTS_DECIMALS))
+    return {
+      apr: Number(formatUnits(maxAprBn.toString(), TOTAL_AMOUNTS_DECIMALS)),
+      aprTokenSymbol: maxAprTokenSymbol
+    }
   }
 
   async isRewardsExpired (timestamp: BigNumber) {

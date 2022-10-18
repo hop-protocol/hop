@@ -6,6 +6,7 @@ import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import Skeleton from '@material-ui/lab/Skeleton'
+import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -61,14 +62,16 @@ type Data = {
   aprFormatted: string
   stakingApr: number
   stakingAprFormatted: string
-  stakingAprChain: any
+  stakingRewards: any[]
   totalApr: number
   totalAprFormatted: string
-  userBalance: number
-  userBalanceFormatted: string
+  userBalanceUsdFormatted: string
+  hopRewardsStakedUsdFormatted: string
+  userBalanceTotalUsdFormatted: string
   depositLink: string
   canClaim: boolean
   claimLink: string
+  stakingRewardsStakedTotalUsdFormatted: string
 }
 
 type Props = {
@@ -79,7 +82,7 @@ type Props = {
 export function PoolRow (props: Props) {
   const styles = useStyles()
   const { isAllPools, data } = props
-  const { token, chain, poolName, poolSubtitle, userBalanceFormatted, tvlFormatted, totalAprFormatted, stakingApr, stakingAprChain, depositLink, canClaim, claimLink } = data
+  const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, claimLink } = data
 
   return (
     <tr>
@@ -109,8 +112,8 @@ export function PoolRow (props: Props) {
       </td>
       <td className={isAllPools ? styles.hideMobile : ''}>
         <Box p={1}>
-          {userBalanceFormatted === '' ? <Skeleton animation="wave" width={'100%'} title="loading" /> : <Typography variant="body1" title="Your pool position value in USD">
-              {userBalanceFormatted}
+          {userBalanceTotalUsdFormatted === '' ? <Skeleton animation="wave" width={'100%'} title="loading" /> : <Typography variant="body1" title={`${'Your pool position value in USD'}. unstaked=${userBalanceUsdFormatted} staked=${stakingRewardsStakedTotalUsdFormatted}`}>
+              {userBalanceTotalUsdFormatted}
             </Typography>
           }
         </Box>
@@ -128,10 +131,17 @@ export function PoolRow (props: Props) {
             <Typography variant="body1" title="Total APR which is AMM APR + any staking rewards APR">
               <strong>{totalAprFormatted}</strong>
             </Typography>
-            {stakingApr > 0 ? <Box ml={1} display="flex" justifyContent="center" alignItems="center">
-              <span title="Boosted APR">⚡</span>
-              {stakingAprChain ? <Box ml={1} display="flex">
-              <img className={styles.stakingAprChainImage} src={stakingAprChain.imageUrl} alt={stakingAprChain.name} title={stakingAprChain.name} /></Box> : null}
+            {stakingRewards.length > 0 ? <Box ml={1} display="flex" justifyContent="center" alignItems="center">
+              <span title="Boosted APR"><Bolt /></span>
+              {stakingRewards.length > 0 ? <Box ml={0.5} display="flex">
+                {stakingRewards.map((x: any, i: number) => {
+                  return (
+                    <img className={styles.stakingAprChainImage} src={x.imageUrl} alt={x.name} title={x.name} style={{
+                      transform: `translateX(-${8 * i}px)`
+                    }} />
+                  )
+                })}
+              </Box> : null}
             </Box> : null}
           </Box>
         }

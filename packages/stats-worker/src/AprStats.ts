@@ -11,6 +11,7 @@ import { Hop } from '@hop-protocol/sdk'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import {
   StakingRewards,
+  ERC20__factory,
   StakingRewards__factory
 } from '@hop-protocol/core/contracts'
 
@@ -18,18 +19,75 @@ const TOTAL_AMOUNTS_DECIMALS = 18
 const oneYearDays = 365
 
 const stakingRewardsContracts: any = {
+  arbitrum: {
+    ETH: [
+      'TODO',
+    ],
+    USDC: [
+      'TODO',
+    ],
+    DAI: [
+      'TODO',
+    ],
+    USDT: [
+      'TODO',
+    ]
+  },
+  optimism: {
+    ETH: [
+      'TODO',
+    ],
+    USDC: [
+      'TODO',
+    ],
+    DAI: [
+      'TODO',
+    ],
+    USDT: [
+      'TODO',
+    ],
+    SNX: [
+      'TODO',
+    ]
+  },
   polygon: {
-    ETH: '0x7bCeDA1Db99D64F25eFA279BB11CE48E15Fda427',
-    MATIC: '0x7dEEbCaD1416110022F444B03aEb1D20eB4Ea53f',
-    DAI: '0x4Aeb0B5B1F3e74314A7Fa934dB090af603E8289b',
-    USDC: '0x2C2Ab81Cf235e86374468b387e241DF22459A265',
-    USDT: '0x07932e9A5AB8800922B2688FB1FA0DAAd8341772'
+    ETH: [
+      '0x7bCeDA1Db99D64F25eFA279BB11CE48E15Fda427',
+      'TODO',
+    ],
+    USDC: [
+      '0x2C2Ab81Cf235e86374468b387e241DF22459A265',
+      'TODO',
+    ],
+    DAI: [
+      '0x4Aeb0B5B1F3e74314A7Fa934dB090af603E8289b',
+      'TODO',
+    ],
+    USDT: [
+      '0x07932e9A5AB8800922B2688FB1FA0DAAd8341772',
+      'TODO',
+    ],
+    MATIC: [
+      '0x7dEEbCaD1416110022F444B03aEb1D20eB4Ea53f',
+    ]
   },
   gnosis: {
-    ETH: '0xC61bA16e864eFbd06a9fe30Aab39D18B8F63710a',
-    DAI: '0x12a3a66720dD925fa93f7C895bC20Ca9560AdFe7',
-    USDC: '0x5D13179c5fa40b87D53Ff67ca26245D3D5B2F872',
-    USDT: '0x2C2Ab81Cf235e86374468b387e241DF22459A265'
+    ETH: [
+      '0xC61bA16e864eFbd06a9fe30Aab39D18B8F63710a',
+      'TODO',
+    ],
+    USDC: [
+      '0x5D13179c5fa40b87D53Ff67ca26245D3D5B2F872',
+      'TODO',
+    ],
+    DAI: [
+      '0x12a3a66720dD925fa93f7C895bC20Ca9560AdFe7',
+      'TODO',
+    ],
+    USDT: [
+      '0x2C2Ab81Cf235e86374468b387e241DF22459A265',
+      'TODO',
+    ]
   }
 }
 
@@ -161,53 +219,65 @@ class AprStats {
     const amm = bridge.getAmm(chain)
 
     const provider = this.sdk.getChainProvider(chain)
-    const stakingRewardsAddress = stakingRewardsContracts?.[chain]?.[token]
-    if (!stakingRewardsAddress) {
+    const stakingRewardsAddresses = stakingRewardsContracts?.[chain]?.[token]
+    if (!stakingRewardsAddresses?.length) {
       return 0
     }
 
-    const ethBridge = this.sdk.bridge('ETH')
-    const assetBridge = this.sdk.bridge(token)
-    const stakingRewards = StakingRewards__factory.connect(
-      stakingRewardsAddress,
-      provider
-    )
-    const stakingToken = assetBridge.getSaddleLpToken(chain)
+    let totalAprBn = BigNumber.from(0)
+    for (const stakingRewardsAddress of stakingRewardsAddresses) {
+      const ethBridge = this.sdk.bridge('ETH')
+      const assetBridge = this.sdk.bridge(token)
+      const stakingRewards = StakingRewards__factory.connect(
+        stakingRewardsAddress,
+        provider
+      )
+      const stakingToken = assetBridge.getSaddleLpToken(chain)
 
-    const totalStaked = await stakingToken.balanceOf(stakingRewards?.address)
-    if (totalStaked.lte(0)) {
-      return 0
+      const totalStaked = await stakingToken.balanceOf(stakingRewards?.address)
+      if (totalStaked.lte(0)) {
+        return 0
+      }
+
+      const stakedTotal = await amm.calculateTotalAmountForLpToken(totalStaked)
+      if (stakedTotal.lte(0)) {
+        return 0
+      }
+
+
+      const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(token)
+
+      const rewardsTokenAddress = await stakingRewards.rewardsToken()
+      const rewardsToken = ERC20__factory.connect(
+        rewardsTokenAddress,
+        provider
+      )
+      const rewardsTokenSymbol = await rewardsToken.symbol()
+      const rewardTokenUsdPrice = await ethBridge?.priceFeed.getPriceByTokenSymbol(
+        rewardsTokenSymbol
+      )
+
+      const timestamp = await stakingRewards.periodFinish()
+      const rewardsExpired = await this.isRewardsExpired(timestamp)
+
+      let totalRewardsPerDay = BigNumber.from(0)
+      if (!rewardsExpired) {
+        const rewardRate = await stakingRewards.rewardRate()
+        totalRewardsPerDay = rewardRate.mul(86400) // multiply by 1 day
+      }
+
+      const aprBn = this.calculateStakingApr(
+        canonToken.decimals,
+        tokenUsdPrice,
+        rewardTokenUsdPrice,
+        stakedTotal,
+        totalRewardsPerDay
+      )
+
+      totalAprBn = totalAprBn.add(aprBn)
     }
 
-    const stakedTotal = await amm.calculateTotalAmountForLpToken(totalStaked)
-    if (stakedTotal.lte(0)) {
-      return 0
-    }
-
-    const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(token)
-    const rewardTokenSymbol = chain === 'gnosis' ? 'GNO' : 'MATIC'
-    const rewardTokenUsdPrice = await ethBridge?.priceFeed.getPriceByTokenSymbol(
-      rewardTokenSymbol
-    )
-
-    const timestamp = await stakingRewards.periodFinish()
-    const rewardsExpired = await this.isRewardsExpired(timestamp)
-
-    let totalRewardsPerDay = BigNumber.from(0)
-    if (!rewardsExpired) {
-      const rewardRate = await stakingRewards.rewardRate()
-      totalRewardsPerDay = rewardRate.mul(86400) // multiply by 1 day
-    }
-
-    const aprBn = this.calculateStakingApr(
-      canonToken.decimals,
-      tokenUsdPrice,
-      rewardTokenUsdPrice,
-      stakedTotal,
-      totalRewardsPerDay
-    )
-
-    return Number(formatUnits(aprBn.toString(), TOTAL_AMOUNTS_DECIMALS))
+    return Number(formatUnits(totalAprBn.toString(), TOTAL_AMOUNTS_DECIMALS))
   }
 
   async isRewardsExpired (timestamp: BigNumber) {

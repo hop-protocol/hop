@@ -10,7 +10,6 @@ import {
 import { Hop } from '@hop-protocol/sdk'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import {
-  StakingRewards,
   ERC20__factory,
   StakingRewards__factory
 } from '@hop-protocol/core/contracts'
@@ -159,7 +158,8 @@ class AprStats {
             apr: 0,
             apr7Day: 0,
             apr30Day: 0,
-            stakingApr: 0
+            stakingApr: 0,
+            stakingAprTokenSymbol: ''
           }
         }
         promises.push(
@@ -288,7 +288,10 @@ class AprStats {
       )
 
       maxAprBn = maxAprBn.gt(aprBn) ? maxAprBn : aprBn
-      maxAprTokenSymbol = rewardsTokenSymbol
+      // If the rewards have expired, do not log a token symbol
+      if (!aprBn.eq(0)) {
+        maxAprTokenSymbol = rewardsTokenSymbol
+      }
     }
 
     return {

@@ -365,7 +365,7 @@ function DepositForm(props: any) {
   const formDisabled = false
   const isEmptyAmount = (!(token0Amount || token1Amount))
   const sendDisabled = formDisabled || isEmptyAmount || !enoughBalance
-  let sendButtonText = walletConnected ? 'Deposit' : 'Connect Wallet'
+  let sendButtonText = walletConnected ? 'Preview' : 'Connect Wallet'
   if (!enoughBalance) {
     sendButtonText = 'Insufficient Balance'
   }

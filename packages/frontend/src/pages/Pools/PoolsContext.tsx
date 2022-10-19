@@ -817,6 +817,18 @@ const PoolsProvider: FC = ({ children }) => {
       await txConfirm?.show({
         kind: 'addLiquidityAndStake',
         inputProps: {
+          token0: {
+            amount: commafy(token0Amount || '0', 4),
+            amountUsd: tokenUsdPrice ? `$${commafy(Number(token0Amount || 0) * tokenUsdPrice)}` : '',
+            token: canonicalToken,
+          },
+          token1: {
+            amount: commafy(token1Amount || '0', 4),
+            amountUsd: tokenUsdPrice ? `$${commafy(Number(token1Amount || 0) * tokenUsdPrice)}` : '',
+            token: hopToken,
+          },
+          priceImpact: priceImpactFormatted || '-',
+          total: depositAmountTotalDisplayFormatted,
         },
         onConfirm: async (opts: any) => {
           const { stake } = opts

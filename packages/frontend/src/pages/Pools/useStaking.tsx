@@ -39,6 +39,9 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   const lpTokenSymbol = `LP-${tokenSymbol}`
 
   const lpToken = useAsyncMemo(async () => {
+    if (!(tokenSymbol && chainSlug)) {
+      return
+    }
     const bridge = findMatchingBridge(bridges, tokenSymbol)!
     return bridge.getSaddleLpToken(chainSlug)
   }, [bridges, tokenSymbol, chainSlug])
@@ -58,7 +61,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
 
   useEffectInterval(() => {
     async function update () {
-      if (stakingContract && accountAddress) {
+      if (chainSlug && stakingContract && accountAddress) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const _earned = await stakingContract.connect(_provider).earned(accountAddress)
         setEarnedAmountBn(_earned)
@@ -66,11 +69,11 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     }
 
     update().catch(console.error)
-  }, [stakingContract, accountAddress], pollIntervalMs)
+  }, [stakingContract, accountAddress, chainSlug], pollIntervalMs)
 
   useEffectInterval(() => {
     async function update () {
-      if (stakingContract && accountAddress) {
+      if (chainSlug && stakingContract && accountAddress) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const _deposited = await stakingContract.connect(_provider).balanceOf(accountAddress)
         setDepositedAmountBn(_deposited)
@@ -78,11 +81,11 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     }
 
     update().catch(console.error)
-  }, [stakingContract, accountAddress], pollIntervalMs)
+  }, [stakingContract, accountAddress, chainSlug], pollIntervalMs)
 
   useEffect(() => {
     async function update () {
-      if (stakingContract) {
+      if (chainSlug && stakingContract) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const _address = await stakingContract.connect(_provider).rewardsToken()
         setRewardsTokenAddress(_address)
@@ -90,11 +93,11 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     }
 
     update().catch(console.error)
-  }, [stakingContract])
+  }, [stakingContract, chainSlug])
 
   useEffect(() => {
     async function update () {
-      if (stakingContract) {
+      if (chainSlug && stakingContract) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const _address = await stakingContract.connect(_provider).stakingToken()
         setStakingTokenAddress(_address)
@@ -102,7 +105,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     }
 
     update().catch(console.error)
-  }, [stakingContract])
+  }, [stakingContract, chainSlug])
 
   useEffect(() => {
     async function update () {
@@ -130,7 +133,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
 
   useEffect(() => {
     async function update () {
-      if (rewardsTokenContract) {
+      if (chainSlug && rewardsTokenContract) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const _symbol = await rewardsTokenContract.connect(_provider).symbol()
         setRewardsTokenSymbol(_symbol)
@@ -138,11 +141,11 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     }
 
     update().catch(console.error)
-  }, [rewardsTokenContract])
+  }, [rewardsTokenContract, chainSlug])
 
   useEffectInterval(() => {
     async function update() {
-      if (stakingContract) {
+      if (chainSlug && stakingContract) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const timestamp = await stakingContract.connect(_provider).periodFinish()
         const _isExpired = isRewardsExpiredCheck(timestamp)
@@ -150,7 +153,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       }
     }
     update().catch(console.error)
-  }, [stakingContract], pollIntervalMs)
+  }, [stakingContract, chainSlug], pollIntervalMs)
 
   useEffectInterval(() => {
     async function update() {
@@ -164,29 +167,29 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
 
   useEffectInterval(() => {
     async function update() {
-      if (stakingTokenContract && stakingContractAddress) {
+      if (chainSlug && stakingTokenContract && stakingContractAddress) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const totalStaked = await stakingTokenContract.connect(_provider).balanceOf(stakingContractAddress)
         setOverallTotalStakedBn(totalStaked)
       }
     }
     update().catch(console.error)
-  }, [stakingTokenContract], pollIntervalMs)
+  }, [stakingTokenContract, chainSlug], pollIntervalMs)
 
   useEffectInterval(() => {
     async function update() {
-      if (stakingTokenContract && accountAddress) {
+      if (chainSlug && stakingTokenContract && accountAddress) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const balance = await stakingTokenContract.connect(_provider).balanceOf(accountAddress)
         setUserLpBalance(balance)
       }
     }
     update().catch(console.error)
-  }, [stakingTokenContract, accountAddress], pollIntervalMs)
+  }, [stakingTokenContract, accountAddress, chainSlug], pollIntervalMs)
 
   useEffectInterval(() => {
     async function update() {
-      if (stakingContract && !isRewardsExpired) {
+      if (chainSlug && stakingContract && !isRewardsExpired) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const rewardRate = await stakingContract.connect(_provider).rewardRate()
         const oneDaySeconds = 86400
@@ -195,11 +198,11 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       }
     }
     update().catch(console.error)
-  }, [stakingContract, isRewardsExpired], pollIntervalMs)
+  }, [stakingContract, isRewardsExpired, chainSlug], pollIntervalMs)
 
   useEffectInterval(() => {
     async function update() {
-      if (earnedAmountBn && depositedAmountBn && rewardsTokenSymbol) {
+      if (chainSlug && tokenSymbol && earnedAmountBn && depositedAmountBn && rewardsTokenSymbol) {
         const bridge = sdk.bridge(tokenSymbol)
         const amm = bridge.getAmm(chainSlug)
         const userStakedTotal = await amm.calculateTotalAmountForLpToken(depositedAmountBn)
@@ -220,12 +223,12 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       }
     }
     update().catch(console.error)
-  }, [earnedAmountBn, depositedAmountBn, rewardsTokenSymbol], pollIntervalMs)
+  }, [earnedAmountBn, depositedAmountBn, rewardsTokenSymbol, tokenSymbol, chainSlug], pollIntervalMs)
 
   useEffectInterval(() => {
     async function update() {
       try {
-        if (stakingTokenContract) {
+        if (chainSlug && stakingTokenContract) {
           const _provider = await sdk.getSignerOrProvider(chainSlug)
           const allowance = await stakingTokenContract.connect(_provider).allowance(accountAddress, stakingContractAddress)
           const parsedAmount = parseUnits(amount || '0', 18)
@@ -236,7 +239,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       }
     }
     update().catch(console.error)
-  }, [amount, stakingTokenContract, stakingContractAddress, accountAddress], pollIntervalMs)
+  }, [amount, stakingTokenContract, stakingContractAddress, accountAddress, chainSlug], pollIntervalMs)
 
   async function approveTokens () {
     try {
@@ -378,6 +381,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     canClaim,
     canWithdraw,
     claim,
+    stakingContractAddress,
     depositedAmountBn,
     depositedAmountFormatted,
     earnedAmountBn,
@@ -389,6 +393,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     isRewardsExpired,
     isStaking,
     isWithdrawing,
+    lpToken,
     lpBalanceFormatted,
     lpTokenSymbol,
     noStaking,
@@ -400,6 +405,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     setAmount,
     setError,
     stake,
+    stakingContract,
     stakingAprFormatted,
     userRewardsPerDayFormatted,
     userRewardsTotalUsdFormatted,

@@ -4,6 +4,8 @@ import Approval from 'src/components/txConfirm/Approval'
 import ConfirmSend from 'src/components/txConfirm/ConfirmSend'
 import ConfirmConvert from 'src/components/txConfirm/ConfirmConvert'
 import AddLiquidity from 'src/components/txConfirm/AddLiquidity'
+import { AddLiquidityAndStake } from 'src/components/txConfirm/AddLiquidityAndStake'
+import { TxList } from 'src/components/txConfirm/TxList'
 import RemoveLiquidity from 'src/components/txConfirm/RemoveLiquidity'
 import ConfirmStake from 'src/components/txConfirm/ConfirmStake'
 import WithdrawStake from 'src/components/txConfirm/WithdrawStake'
@@ -24,12 +26,14 @@ const TxConfirm: FC = props => {
     send: ConfirmSend,
     convert: ConfirmConvert,
     addLiquidity: AddLiquidity,
+    addLiquidityAndStake: AddLiquidityAndStake,
     removeLiquidity: RemoveLiquidity,
     stake: ConfirmStake,
     withdrawStake: WithdrawStake,
     wrapToken: WrapToken,
     unwrapToken: UnwrapToken,
-    withdrawReview: WithdrawReview
+    withdrawReview: WithdrawReview,
+    txList: TxList
   }
 
   const Component: FC = components[kind]

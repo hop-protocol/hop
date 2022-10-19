@@ -239,9 +239,8 @@ class AprStats {
     }
 
     let maxAprBn = BigNumber.from(0)
-    let maxAprTokenSymbol
+    let maxAprTokenSymbol = ''
     for (const stakingRewardsAddress of stakingRewardsAddresses) {
-      const ethBridge = this.sdk.bridge('ETH')
       const assetBridge = this.sdk.bridge(token)
       const stakingRewards = StakingRewards__factory.connect(
         stakingRewardsAddress,
@@ -251,18 +250,12 @@ class AprStats {
 
       const totalStaked = await stakingToken.balanceOf(stakingRewards?.address)
       if (totalStaked.lte(0)) {
-        return {
-          apr: 0,
-          aprTokenSymbol: ''
-        }
+        continue
       }
 
       const stakedTotal = await amm.calculateTotalAmountForLpToken(totalStaked)
       if (stakedTotal.lte(0)) {
-        return {
-          apr: 0,
-          aprTokenSymbol: ''
-        }
+        continue
       }
 
       const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(token)
@@ -273,7 +266,7 @@ class AprStats {
         provider
       )
       const rewardsTokenSymbol = await rewardsToken.symbol()
-      const rewardTokenUsdPrice = await ethBridge?.priceFeed.getPriceByTokenSymbol(
+      const rewardTokenUsdPrice = await bridge?.priceFeed.getPriceByTokenSymbol(
         rewardsTokenSymbol
       )
 

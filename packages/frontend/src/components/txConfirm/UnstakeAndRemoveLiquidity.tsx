@@ -24,20 +24,20 @@ interface Props {
   token1: any
   priceImpact: string
   total: string
+  showUnstakeOption: boolean
   onConfirm: (confirmed: boolean, opts: any) => void
-  showStakeOption: boolean
 }
 
-export function AddLiquidityAndStake (props: Props) {
-  const { onConfirm, token0, token1, priceImpact, total, showStakeOption } = props
+export function UnstakeAndRemoveLiquidity (props: Props) {
+  const { onConfirm, token0, token1, priceImpact, total, showUnstakeOption } = props
   const styles = useStyles()
 
-  function handleDepositAndStake() {
-    onConfirm(true, { stake: true })
+  function handleUnstakeAndWithdraw () {
+    onConfirm(true, { unstake: true })
   }
 
-  function handleDeposit() {
-    onConfirm(true, { stake: false })
+  function handleWithdraw() {
+    onConfirm(true, { unstake: false })
   }
 
   const token0Amount = token0.amount
@@ -54,7 +54,7 @@ export function AddLiquidityAndStake (props: Props) {
     <Box className={styles.root} margin="0 auto" maxWidth="350px">
       <Box mb={4} display="flex" justifyContent="center" alignItems="center" textAlign="center">
         <Typography variant="h5">
-          Confirm Add Liquidity
+          Confirm Remove Liquidity
         </Typography>
       </Box>
       <Box mb={4} p={2} className={styles.boxWrapper}>
@@ -121,26 +121,26 @@ export function AddLiquidityAndStake (props: Props) {
           </Typography>
         </Box>
       </Box>
-      {showStakeOption && (
+      {showUnstakeOption && (
         <Box mb={4} justifyContent="center" alignItems="center">
           <Button
-            onClick={handleDepositAndStake}
+            onClick={handleUnstakeAndWithdraw}
             fullWidth
             large
             highlighted
           >
-            Deposit + Stake
+            Unstake + Withdraw
           </Button>
         </Box>
       )}
       <Box mb={4} justifyContent="center" alignItems="center">
         <Button
-          onClick={handleDeposit}
+          onClick={handleWithdraw}
           fullWidth
           large
           highlighted
         >
-          Deposit
+          Withdraw
         </Button>
       </Box>
     </Box>

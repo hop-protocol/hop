@@ -78,7 +78,7 @@ export function TxList (props: Props) {
 
   const activeStep = txList.findIndex((item) => item.status !== 'success')
 
-  let finalIcon = <CropSquare fontSize="inherit" style={{ color: '#D9D9D9' }}/>
+  let finalIcon = <CropSquare fontSize="inherit" style={{ color: '#D9D9D9' }} />
   if (complete) {
     finalIcon = <Check fontSize="inherit" style={{ color: '#04BB00' }} />
   }

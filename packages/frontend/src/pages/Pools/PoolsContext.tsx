@@ -38,6 +38,7 @@ import { getTokenImage } from 'src/utils/tokens'
 type PoolsContextProps = {
   addLiquidity: () => void
   addLiquidityAndStake: () => void
+  unstakeAndRemoveLiquidity: (amounts: any) => void
   address?: Address
   apr?: number
   canonicalBalance?: BigNumber
@@ -738,12 +739,11 @@ const PoolsProvider: FC = ({ children }) => {
         return
       }
 
-      if (!canonicalToken) {
+      if (!(canonicalToken && hopToken && accountAddress && lpToken)) {
         return
       }
 
       const chainSlug = selectedNetwork?.slug
-      const tokenSymbol = canonicalToken.symbol
       const signer = provider?.getSigner()
       const bridge = sdk.bridge(tokenSymbol).connect(signer as Signer)
       const amm = bridge.getAmm(chainSlug)
@@ -754,36 +754,51 @@ const PoolsProvider: FC = ({ children }) => {
 
       if (Number(token0Amount)) {
         txList.push({
-          label: `Approve ${tokenSymbol}`,
+          label: `Approve ${canonicalToken.symbol}`,
           fn: async () => {
             let token = bridge.getCanonicalToken(chainSlug)
             if (token.isNativeToken) {
               token = token.getWrappedToken()
             }
 
-            return token.approve(spender)
+            const allowance = await token.allowance(spender)
+            if (allowance.lt(amountToBN(token0Amount, canonicalToken.decimals))) {
+              return token.approve(spender)
+            }
           }
         })
       }
 
       if (Number(token1Amount)) {
         txList.push({
-          label: `Approve h${tokenSymbol}`,
+          label: `Approve ${hopToken.symbol}`,
           fn: async () => {
             let token = bridge.getL2HopToken(chainSlug)
             if (token.isNativeToken) {
               token = token.getWrappedToken()
             }
 
-            return token.approve(spender)
+            const allowance = await token.allowance(spender)
+            if (allowance.lt(amountToBN(token1Amount, hopToken.decimals))) {
+              return token.approve(spender)
+            }
           }
         })
       }
 
       const getDepositedLpTokens :any = { fn: async () => {} }
 
+      let depositLabel = 'Deposit'
+      if (Number(token0Amount) && Number(token1Amount)) {
+        depositLabel = `Deposit ${canonicalToken.symbol} + ${hopToken.symbol}`
+      } else if (Number(token0Amount)) {
+        depositLabel = `Deposit ${canonicalToken.symbol}`
+      } else if (Number(token1Amount)) {
+        depositLabel = `Deposit ${hopToken.symbol}`
+      }
+
       txList.push({
-        label: `Deposit ${tokenSymbol}`,
+        label: depositLabel,
         fn: async () => {
           const amount0Desired = amountToBN(token0Amount || '0', canonicalToken?.decimals)
           const amount1Desired = amountToBN(token1Amount || '0', hopToken?.decimals)
@@ -829,6 +844,7 @@ const PoolsProvider: FC = ({ children }) => {
           },
           priceImpact: priceImpactFormatted || '-',
           total: depositAmountTotalDisplayFormatted,
+          showStakeOption: !!hopStakingContractAddress
         },
         onConfirm: async (opts: any) => {
           const { stake } = opts
@@ -837,7 +853,14 @@ const PoolsProvider: FC = ({ children }) => {
             txList.push({
               label: `Approve ${tokenSymbol}-LP`,
               fn: async () => {
-                return lpToken!.approve(stakingContractAddress, constants.MaxUint256)
+                const amount = await getDepositedLpTokens.fn()
+                if (amount.gt(0)) {
+                  const allowance = await lpToken.allowance(stakingContractAddress)
+                  const amount = await getDepositedLpTokens.fn()
+                  if (allowance.lt(amount)) {
+                    return lpToken.approve(stakingContractAddress, constants.MaxUint256)
+                  }
+                }
               }
             })
             txList.push({
@@ -858,15 +881,186 @@ const PoolsProvider: FC = ({ children }) => {
               title: 'Add Liquidity',
               txList: _txList
             },
-            onConfirm: async (opts: any) => {
-              console.log('here', opts)
+            onConfirm: async () => {
             },
           })
         },
       })
     } catch (err: any) {
+      console.error(err)
       setError(formatError(err))
     }
+  }
+
+  async function unstakeAndRemoveLiquidity (amounts: any) {
+    try {
+      const networkId = Number(selectedNetwork?.networkId)
+      const isNetworkConnected = await checkConnectedNetworkId(networkId)
+      if (!isNetworkConnected || !selectedNetwork) return
+
+      if (!(canonicalToken && hopToken)) {
+        return
+      }
+
+      setIsWithdrawing(true)
+      const signer = provider?.getSigner()
+      const bridge = sdk.bridge(tokenSymbol)
+      const amm = bridge.getAmm(selectedNetwork.slug)
+      const lpTokenDecimals = 18
+
+      const lpToken = bridge.getSaddleLpToken(selectedNetwork.slug)
+      const { proportional, tokenIndex, amountPercent, amount, priceImpactFormatted, proportionalAmount0, proportionalAmount1 } = amounts
+      const saddleSwap = await amm.getSaddleSwap()
+
+      const txList :any = []
+
+      let token0Amount = ''
+      let token1Amount = ''
+      if (proportional) {
+        token0Amount = Number(proportionalAmount0 || 0).toString()
+        token1Amount = Number(proportionalAmount1 || 0).toString()
+      } else {
+        token0Amount = tokenIndex === 0 ? formatUnits(amount, canonicalToken.decimals) : ''
+        token1Amount = tokenIndex === 1 ? formatUnits(amount, hopToken.decimals) : ''
+      }
+
+      const totalDisplayFormatted = commafy(Number(token0Amount || 0) + Number(token1Amount || 0), 4)
+
+      await txConfirm?.show({
+        kind: 'unstakeAndRemoveLiquidity',
+        inputProps: {
+          token0: {
+            amount: commafy(token0Amount || '0', 4),
+            amountUsd: '',
+            token: canonicalToken,
+          },
+          token1: {
+            amount: commafy(token1Amount || '0', 4),
+            amountUsd: '',
+            token: hopToken,
+          },
+          priceImpact: priceImpactFormatted || '-',
+          total: totalDisplayFormatted,
+          showUnstakeOption: false
+        },
+        onConfirm: async (opts: any) => {
+          const { unstake } = opts
+
+          const lpBalanceStaked = await stakingContract.balanceOf(accountAddress)
+          if (unstake) {
+            if (lpBalanceStaked.gt(0)) {
+              txList.push({
+                label: `Unstake ${tokenSymbol}-LP`,
+                fn: async () => {
+                  return stakingContract.connect(signer).withdraw(lpBalanceStaked)
+                }
+              })
+            }
+          }
+
+          txList.push({
+            label: `Approve ${tokenSymbol}-LP`,
+            fn: async () => {
+              const balance = await lpToken.balanceOf()
+              const allowance = await lpToken.allowance(saddleSwap.address)
+              if (allowance.lt(balance)) {
+                return lpToken.approve(saddleSwap.address, constants.MaxUint256)
+              }
+            }
+          })
+
+          if (proportional) {
+            txList.push({
+              label: `Withdraw ${tokenSymbol}-LP`,
+              fn: async () => {
+                const balance = await lpToken.balanceOf()
+                const liquidityTokenAmount = balance.mul(amountPercent).div(100)
+                const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
+                const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
+                  liquidityTokenAmountWithSlippage
+                )
+                const amount0Min = minimumAmounts[0]
+                const amount1Min = minimumAmounts[1]
+                logger.debug('removeLiquidity:', {
+                  balance,
+                  proportional,
+                  amountPercent,
+                  liquidityTokenAmount,
+                  liquidityTokenAmountWithSlippage,
+                  amount0Min,
+                  amount1Min,
+                })
+
+                if (liquidityTokenAmount.eq(0)) {
+                  throw new Error('calculation error: liquidityTokenAmount cannot be 0')
+                }
+
+                return bridge
+                  .connect(signer as Signer)
+                  .removeLiquidity(liquidityTokenAmount, selectedNetwork!.slug, {
+                    amount0Min,
+                    amount1Min,
+                    deadline: deadline(),
+                  })
+              }
+            })
+          } else {
+            txList.push({
+              label: `Withdraw ${tokenSymbol}-LP`,
+              fn: async () => {
+              const balance = await lpToken.balanceOf()
+              const amount18d = shiftBNDecimals(amount, lpTokenDecimals - tokenDecimals)
+              let tokenAmount = await amm.calculateRemoveLiquidityOneToken(amount18d, tokenIndex)
+              tokenAmount = shiftBNDecimals(tokenAmount, lpTokenDecimals - tokenDecimals)
+              if (tokenAmount.gt(balance)) {
+                tokenAmount = balance
+              }
+              const liquidityTokenAmountWithSlippage = tokenAmount.mul(minBps).div(10000)
+              const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
+                liquidityTokenAmountWithSlippage
+              )
+              const amountMin = minimumAmounts[tokenIndex].mul(minBps).div(10000)
+
+              logger.debug('removeLiquidity:', {
+                balance,
+                amount,
+                tokenIndex,
+                tokenAmount,
+                liquidityTokenAmountWithSlippage,
+                amountMin,
+              })
+
+              if (tokenAmount.eq(0)) {
+                throw new Error('calculation error: tokenAmount cannot be 0')
+              }
+
+              return bridge
+                .connect(signer as Signer)
+                .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork!.slug, {
+                  amountMin: amountMin,
+                  deadline: deadline(),
+                })
+              }
+            })
+          }
+
+          const _txList = txList.filter((x: any) => x)
+          await txConfirm?.show({
+            kind: 'txList',
+            inputProps: {
+              title: 'Remove Liquidity',
+              txList: _txList
+            },
+            onConfirm: async () => {
+            },
+          })
+        }
+      })
+
+    } catch (err) {
+      setError(formatError(err))
+    }
+    setIsWithdrawing(false)
   }
 
   const calculateRemoveLiquidityPriceImpactFn = (balance: BigNumber) => {
@@ -1221,6 +1415,7 @@ const PoolsProvider: FC = ({ children }) => {
         poolSharePercentage,
         priceImpact,
         removeLiquidity,
+        unstakeAndRemoveLiquidity,
         removing,
         reserveTotalsUsd,
         selectedNetwork,

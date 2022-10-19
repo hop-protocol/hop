@@ -414,14 +414,14 @@ function DepositForm(props: any) {
       <Box margin="0 auto" width="90%">
         <Box mb={1} display="flex" alignItems="center" justifyContent="space-between">
           <Box>
-            <Typography variant="subtitle2">
+            <Typography variant="subtitle2" color="secondary">
               <Box display="flex" alignItems="center">
                 Price Impact <InfoTooltip title="Depositing underpooled assets will give you bonus LP tokens. Depositing overpooled assets will give you less LP tokens." />
               </Box>
             </Typography>
           </Box>
           <Box>
-            <Typography variant="subtitle2">
+            <Typography variant="subtitle2" color="secondary">
               {priceImpactFormatted}
             </Typography>
           </Box>
@@ -492,12 +492,6 @@ function WithdrawForm(props: any) {
     setToken1Amount(token1Value)
   }
 
-  function handleClick (event: any) {
-    event.preventDefault()
-    const amounts = { proportional, tokenIndex, amountPercent, amount: amountBN }
-    removeLiquidity(amounts)
-  }
-
   const selections: any[] = [
     { label: 'All tokens', value: -1 },
     { label: token0Symbol, value: 0, icon: token0ImageUrl },
@@ -509,6 +503,8 @@ function WithdrawForm(props: any) {
   const [tokenIndex, setTokenIndex] = useState<number>(0)
   const [displayAmount, setDisplayAmount] = useState<string>('')
   const [amountPercent, setAmountPercent] = useState<number>(100)
+  const [proportionalAmount0, setProportionalAmount0] = useState<string>('')
+  const [proportionalAmount1, setProportionalAmount1] = useState<string>('')
 
   const handleSelection = (event: ChangeEvent<{ value: unknown }>) => {
     const value = Number(event.target.value)
@@ -530,10 +526,14 @@ function WithdrawForm(props: any) {
     }
     const _amount0 = Number(formatUnits(token0AmountBn, tokenDecimals))
     const _amount1 = Number(formatUnits(token1AmountBn, tokenDecimals))
-    const amount0 = commafy((_amount0 * (percent / 100)).toFixed(5), 5)
-    const amount1 = commafy((_amount1 * (percent / 100)).toFixed(5), 5)
+    const _amount0Percent = _amount0 * percent / 100
+    const _amount1Percent = _amount1 * percent / 100
+    const amount0 = commafy(_amount0Percent.toFixed(5), 5)
+    const amount1 = commafy(_amount1Percent.toFixed(5), 5)
     const display = `${amount0} ${token0Symbol} + ${amount1} ${token1Symbol}`
     setDisplayAmount(display)
+    setProportionalAmount0(_amount0Percent.toString())
+    setProportionalAmount1(_amount1Percent.toString())
   }
 
   const handleProportionSliderChange = async (percent: number) => {
@@ -607,10 +607,16 @@ function WithdrawForm(props: any) {
   const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
   const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
 
+  function handleClick (event: any) {
+    event.preventDefault()
+    const amounts = { proportional, tokenIndex, amountPercent, amount: amountBN, priceImpactFormatted, proportionalAmount0, proportionalAmount1 }
+    removeLiquidity(amounts)
+  }
+
   const formDisabled = !hasBalance
   const isEmptyAmount = (proportional ? !amountPercent : amountBN.lte(0) || amountBN.gt(maxBalance))
   const sendDisabled = formDisabled || isEmptyAmount
-  const sendButtonText = walletConnected ? 'Withdraw' : 'Connect Wallet'
+  const sendButtonText = walletConnected ? 'Preview' : 'Connect Wallet'
 
   if (!hasBalance) {
     return (
@@ -690,16 +696,16 @@ function WithdrawForm(props: any) {
       )}
 
       <Box margin="0 auto" width="90%">
-        <Box mb={1} display="flex" alignItems="center" justifyContent="space-between">
+        <Box mb={2} display="flex" alignItems="center" justifyContent="space-between">
           <Box>
-            <Typography variant="subtitle2">
+            <Typography variant="subtitle2" color="secondary">
               <Box display="flex" alignItems="center">
                 Price Impact <InfoTooltip title="Withdrawing overpooled assets will give you bonus tokens. Withdrawaing underpooled assets will give you less tokens." />
               </Box>
             </Typography>
           </Box>
           <Box>
-            <Typography variant="subtitle2">
+            <Typography variant="subtitle2" color="secondary">
               {priceImpactFormatted}
             </Typography>
           </Box>
@@ -1063,7 +1069,7 @@ export function PoolDetails () {
     walletConnected,
     chainSlug,
     enoughBalance,
-    removeLiquiditySimple,
+    unstakeAndRemoveLiquidity,
     isWithdrawing,
     isDepositing
   } = usePool()
@@ -1228,7 +1234,7 @@ export function PoolDetails () {
                       calculatePriceImpact: calculateRemoveLiquidityPriceImpact,
                       goToTab,
                       walletConnected,
-                      removeLiquidity: removeLiquiditySimple,
+                      removeLiquidity: unstakeAndRemoveLiquidity,
                       isWithdrawing,
                       totalAmount
                     }}

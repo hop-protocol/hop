@@ -14,7 +14,8 @@ export const useStyles = makeStyles(theme => ({
     borderRadius: '3rem'
   },
   table: {
-    width: '100%'
+    width: '100%',
+    borderCollapse: 'collapse'
   },
   thLink: {
     cursor: 'pointer',

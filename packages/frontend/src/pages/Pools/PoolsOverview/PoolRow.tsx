@@ -26,12 +26,14 @@ export const useStyles = makeStyles(theme => ({
   tokenImage: {
     width: '36px'
   },
+  tr: {
+    '&:hover': {
+      background: theme.palette.type === 'dark' ? '#0000001a' : '#00000005'
+    }
+  },
   poolLink: {
     textDecoration: 'none',
     display: 'block',
-    '&:hover': {
-      background: '#0000000d'
-    }
   },
   depositLink: {
     textDecoration: 'none',
@@ -85,7 +87,7 @@ export function PoolRow (props: Props) {
   const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, claimLink } = data
 
   return (
-    <tr>
+    <tr className={styles.tr}>
       <td>
         <Link to={depositLink} className={styles.poolLink}>
           <Box p={1} display="flex">
@@ -111,22 +113,27 @@ export function PoolRow (props: Props) {
         </Link>
       </td>
       <td className={isAllPools ? styles.hideMobile : ''}>
+        <Link to={depositLink} className={styles.poolLink}>
         <Box p={1}>
           {userBalanceTotalUsdFormatted === '' ? <Skeleton animation="wave" width={'100%'} title="loading" /> : <Typography variant="body1" title={`${'Your pool position value in USD'}. unstaked=${userBalanceUsdFormatted} staked=${stakingRewardsStakedTotalUsdFormatted}`}>
               {userBalanceTotalUsdFormatted}
             </Typography>
           }
         </Box>
+        </Link>
       </td>
       <td className={styles.hideMobile}>
+        <Link to={depositLink} className={styles.poolLink}>
         <Box p={1}>
           {tvlFormatted === '' ? <Skeleton animation="wave" width={'100%'} title="loading" /> : <Typography variant="body1" title="Total value locked in USD">
               {tvlFormatted}
             </Typography>
           }
         </Box>
+        </Link>
       </td>
       <td className={!isAllPools ? styles.hideMobile : ''}>
+        <Link to={depositLink} className={styles.poolLink}>
         {totalAprFormatted === '' ? <Skeleton animation="wave" width={'100%'} title="loading" /> : <Box p={1} display="flex" justifyContent="flex-start" alignItems="center">
             <Typography variant="body1" title="Total APR which is AMM APR + any staking rewards APR">
               <strong>{totalAprFormatted}</strong>
@@ -145,8 +152,10 @@ export function PoolRow (props: Props) {
             </Box> : null}
           </Box>
         }
+        </Link>
       </td>
       <td>
+        <Link to={depositLink} className={styles.poolLink}>
         <Box p={1} display="flex" justifyContent="center">
           {canClaim ? <>
             <Button highlighted>
@@ -165,6 +174,7 @@ export function PoolRow (props: Props) {
          </>
           }
         </Box>
+        </Link>
       </td>
     </tr>
   )

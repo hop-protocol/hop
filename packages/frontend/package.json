@@ -64,7 +64,8 @@
     "deploy": "npx --yes netlify-cli deploy --prod",
     "deploy:ipfs": "npx --yes ipfs-deploy -p infura build --no-open --no-clipboard",
     "deploy:local": "git stash && yarn clean && yarn build && yarn deploy",
-    "dnslink": "IPFS_HASH=$(npm run deploy:ipfs 2>&1 | tail -1) node ./scripts/update_dnslink.js"
+    "dnslink": "IPFS_HASH=$(npm run deploy:ipfs 2>&1 | tail -1) node ./scripts/update_dnslink.js",
+    "analyze": "node scripts/analyze"
   },
   "eslintConfig": {
     "extends": [
@@ -125,6 +126,7 @@
     "lerna-sync-version": "0.0.5",
     "prettier": "^2.5.1",
     "react-app-rewired": "^2.2.1",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "webpack-bundle-analyzer": "^4.6.1"
   }
 }

@@ -208,7 +208,7 @@ export function usePools () {
           pool.totalApr = _poolStats.totalApr
           pool.totalAprFormatted = _poolStats.totalAprFormatted
           if (pool.stakingApr > 0) {
-            pool.stakingRewards.push([_poolStats.stakingAprChain])
+            pool.stakingRewards.push(_poolStats.stakingAprChain)
           }
 
           setPools([...pools])

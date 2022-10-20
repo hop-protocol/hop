@@ -924,23 +924,25 @@ const PoolsProvider: FC = ({ children }) => {
         token1Amount = tokenIndex === 1 ? formatUnits(amount, hopToken.decimals) : ''
       }
 
-      const totalDisplayFormatted = commafy(Number(token0Amount || 0) + Number(token1Amount || 0), 4)
+      const withdrawAmountTotal = (Number(token0Amount || 0) + Number(token1Amount || 0))
+      const withdrawAmountTotalUsd = (tokenUsdPrice && withdrawAmountTotal) ? withdrawAmountTotal * tokenUsdPrice : 0
+      const withdrawAmountTotalDisplayFormatted = withdrawAmountTotalUsd ? `$${commafy(withdrawAmountTotalUsd, 2)}` : `${commafy(withdrawAmountTotal, 2)}`
 
       await txConfirm?.show({
         kind: 'unstakeAndRemoveLiquidity',
         inputProps: {
           token0: {
             amount: commafy(token0Amount || '0', 4),
-            amountUsd: '',
+            amountUsd: tokenUsdPrice ? `$${commafy(Number(token0Amount || 0) * tokenUsdPrice)}` : '',
             token: canonicalToken,
           },
           token1: {
             amount: commafy(token1Amount || '0', 4),
-            amountUsd: '',
+            amountUsd: tokenUsdPrice ? `$${commafy(Number(token1Amount || 0) * tokenUsdPrice)}` : '',
             token: hopToken,
           },
           priceImpact: priceImpactFormatted || '-',
-          total: totalDisplayFormatted,
+          total: withdrawAmountTotalDisplayFormatted,
           showUnstakeOption: false
         },
         onConfirm: async (opts: any) => {

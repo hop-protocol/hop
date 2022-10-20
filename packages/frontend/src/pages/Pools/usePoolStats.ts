@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useApp } from 'src/contexts/AppContext'
 import { addresses } from 'src/config'
-import { toPercentDisplay } from 'src/utils'
+import { commafy, toPercentDisplay } from 'src/utils'
 import { findNetworkBySlug } from 'src/utils/networks'
 
 export function usePoolStats () {
@@ -60,6 +60,8 @@ export function usePoolStats () {
               stakingAprFormatted: '',
               totalApr: 0,
               totalAprFormatted: '',
+              dailyVolume: '',
+              dailyVolumeFormatted: '',
               stakingAprChain: null
             }
           }
@@ -77,6 +79,7 @@ export function usePoolStats () {
 
             const apr = json.data[symbol][chain].apr ?? 0
             const stakingApr = json.data[symbol][chain].stakingApr ?? 0
+            const dailyVolume = json.data[symbol][chain].dailyVolume ?? 0
             pool.apr = apr
             pool.aprFormatted = toPercentDisplay(apr)
             pool.stakingApr = stakingApr
@@ -84,12 +87,15 @@ export function usePoolStats () {
             pool.totalApr = apr + stakingApr
             pool.totalAprFormatted = toPercentDisplay(apr + stakingApr)
             pool.stakingAprChain = findNetworkBySlug(chain)!
+            pool.dailyVolume = dailyVolume
+            pool.dailyVolumeFormatted = dailyVolume ? `${commafy(dailyVolume, 2)}` : '-'
           } catch (err) {
             console.error(err)
 
             pool.aprFormatted = toPercentDisplay(0)
             pool.stakingAprFormatted = toPercentDisplay(0)
             pool.totalAprFormatted = toPercentDisplay(0)
+            pool.dailyVolumeFormatted = '-'
           }
         }
       }

@@ -34,6 +34,7 @@ import {
 } from 'src/hooks'
 import { useInterval } from 'react-use'
 import { getTokenImage } from 'src/utils/tokens'
+import { usePoolStats } from './usePoolStats'
 
 type PoolsContextProps = {
   addLiquidity: () => void
@@ -123,6 +124,7 @@ type PoolsContextProps = {
   removeLiquiditySimple: any
   isWithdrawing: boolean
   isDepositing: boolean
+  volumeUsdFormatted : string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -167,6 +169,7 @@ const PoolsProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [isWithdrawing, setIsWithdrawing] = useState(false)
   const [isDepositing, setIsDepositing] = useState(false)
+  const { getPoolStats } = usePoolStats()
   const accountAddress = address?.address
 
   const isNativeToken =
@@ -1304,6 +1307,9 @@ const PoolsProvider: FC = ({ children }) => {
   const depositAmountTotalUsd = (tokenUsdPrice && depositAmountTotal) ? depositAmountTotal * tokenUsdPrice : 0
   const depositAmountTotalDisplayFormatted = depositAmountTotalUsd ? `$${commafy(depositAmountTotalUsd, 2)}` : `${commafy(depositAmountTotal, 2)}`
   const chainSlug = selectedNetwork?.slug ?? ''
+  const volume = getPoolStats(chainSlug, tokenSymbol)?.dailyVolume ?? 0
+  const volumeUsd = tokenUsdPrice ? volume * tokenUsdPrice : 0
+  const volumeUsdFormatted = volumeUsd ? `$${commafy(volumeUsd, 2)}` : '-'
 
   const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
   const { lpToken, stakingContractAddress, stakingContract } = useStaking(chainSlug, tokenSymbol, hopStakingContractAddress)
@@ -1488,6 +1494,7 @@ const PoolsProvider: FC = ({ children }) => {
         removeLiquiditySimple,
         isWithdrawing,
         isDepositing,
+        volumeUsdFormatted
       }}
     >
       {children}

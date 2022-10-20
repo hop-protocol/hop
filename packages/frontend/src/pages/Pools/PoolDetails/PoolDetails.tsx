@@ -32,7 +32,6 @@ import {
 } from 'src/utils'
 import { useStaking } from '../useStaking'
 import { stakingRewardsContracts, hopStakingRewardsContracts, metadata, reactAppNetwork } from 'src/config'
-import { usePoolStats } from '../usePoolStats'
 import TokenWrapper from 'src/components/TokenWrapper'
 
 export const useStyles = makeStyles(theme => ({
@@ -1051,10 +1050,10 @@ export function PoolDetails () {
     enoughBalance,
     unstakeAndRemoveLiquidity,
     isWithdrawing,
-    isDepositing
+    isDepositing,
+    volumeUsdFormatted,
   } = usePool()
   const tvlFormatted = reserveTotalsUsdFormatted
-  const volume24hFormatted = '-'
   const { pathname, search } = useLocation()
   const history = useHistory()
   const { tab } = useParams<{ tab: string }>()
@@ -1086,11 +1085,6 @@ export function PoolDetails () {
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
       <Box mb={4} display="flex" alignItems="center">
-        <Alert severity="info">
-        This page is still a work in progress and not fully functional.
-        </Alert>
-      </Box>
-      <Box mb={4} display="flex" alignItems="center">
         <Box display="flex" alignItems="center">
           <Link to={'/pools'} className={styles.backLink}>
             <IconButton>
@@ -1115,7 +1109,7 @@ export function PoolDetails () {
       <TopPoolStats
         data={{
           tvlFormatted,
-          volume24hFormatted,
+          volume24hFormatted: volumeUsdFormatted,
           aprFormatted
         }}
       />

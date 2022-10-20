@@ -125,12 +125,12 @@ export const useStyles = makeStyles(theme => ({
 
 function BalanceText(props: any) {
   const styles = useStyles()
-  const { balanceFormatted, onClick } = props
+  const { balanceFormatted, balanceNum, balanceBn, onClick } = props
 
   function handleClick (event: any) {
     event.preventDefault()
     if (onClick) {
-      const value = sanitizeNumericalString(balanceFormatted)
+      const value = balanceBn ?? balanceNum?.toString() ?? sanitizeNumericalString(balanceFormatted)
       onClick(value)
     }
   }
@@ -324,6 +324,8 @@ function DepositForm(props: any) {
     token1ImageUrl,
     balance0Formatted,
     balance1Formatted,
+    balance0,
+    balance1,
     token0Amount,
     token1Amount,
     setToken0Amount,
@@ -363,7 +365,7 @@ function DepositForm(props: any) {
   }
 
   const formDisabled = false
-  const isEmptyAmount = (!(token0Amount || token1Amount))
+  const isEmptyAmount = (!(Number(token0Amount) || Number(token1Amount)))
   const sendDisabled = formDisabled || isEmptyAmount || !enoughBalance
   let sendButtonText = walletConnected ? 'Preview' : 'Connect Wallet'
   if (!enoughBalance) {
@@ -382,7 +384,7 @@ function DepositForm(props: any) {
           <TokenWrapper network={selectedNetwork} />
         </Box>
         <Box mb={1} display="flex" justifyContent="flex-end">
-          <BalanceText balanceFormatted={balance0Formatted} onClick={setToken0Amount} />
+          <BalanceText balanceFormatted={balance0Formatted} balanceNum={balance0} onClick={setToken0Amount} />
         </Box>
         <Box mb={1}>
           <InputField
@@ -399,7 +401,7 @@ function DepositForm(props: any) {
           </Typography>
         </Box>
         <Box mb={1} display="flex" justifyContent="flex-end">
-          <BalanceText balanceFormatted={balance1Formatted} onClick={setToken1Amount} />
+          <BalanceText balanceFormatted={balance1Formatted} balanceNum={balance1} onClick={setToken1Amount} />
         </Box>
         <Box mb={1}>
           <InputField
@@ -457,12 +459,9 @@ function WithdrawForm(props: any) {
     token1Symbol,
     token0ImageUrl,
     token1ImageUrl,
-    setToken0Amount,
-    setToken1Amount,
     tokenDecimals,
     token0AmountBn,
     token1AmountBn,
-    totalAmount,
     token0Max,
     token1Max,
     calculatePriceImpact,
@@ -471,26 +470,6 @@ function WithdrawForm(props: any) {
     removeLiquidity,
     isWithdrawing
   } = props.data
-
-  function handleToken0Change (value: string) {
-    const token0Value = sanitizeNumericalString(value)
-    if (!token0Value) {
-      setToken0Amount('')
-      return
-    }
-
-    setToken0Amount(token0Value)
-  }
-
-  function handleToken1Change (value: string) {
-    const token1Value = sanitizeNumericalString(value)
-    if (!token1Value) {
-      setToken1Amount('')
-      return
-    }
-
-    setToken1Amount(token1Value)
-  }
 
   const selections: any[] = [
     { label: 'All tokens', value: -1 },
@@ -556,10 +535,6 @@ function WithdrawForm(props: any) {
     }
   }
 
-  const handleAmountChange = (_amount: string) => {
-    setAmount(_amount)
-  }
-
   useEffect(() => {
     const value = Number(amount)
     const _balance = Number(formatUnits(maxBalance, tokenDecimals))
@@ -614,9 +589,15 @@ function WithdrawForm(props: any) {
   }
 
   const formDisabled = !hasBalance
-  const isEmptyAmount = (proportional ? !amountPercent : amountBN.lte(0) || amountBN.gt(maxBalance))
+  const isEmptyAmount = (proportional ? !amountPercent : (amountBN.lte(0) || amountBN.gt(maxBalance)))
   const sendDisabled = formDisabled || isEmptyAmount
   const sendButtonText = walletConnected ? 'Preview' : 'Connect Wallet'
+
+  function handleMaxClick (_value: BigNumber) {
+    setAmount(formatUnits(_value.toString(), tokenDecimals))
+    setAmountBN(_value)
+  }
+
 
   if (!hasBalance) {
     return (
@@ -678,14 +659,14 @@ function WithdrawForm(props: any) {
             <Typography variant="subtitle2" color="textPrimary">
               Withdraw only {selectedTokenSymbol}
             </Typography>
-            <BalanceText balanceFormatted={maxBalanceFormatted} onClick={setAmount} />
+            <BalanceText balanceFormatted={maxBalanceFormatted} balanceBn={maxBalance} onClick={handleMaxClick} />
           </Box>
           <Box mb={1}>
             <InputField
               tokenSymbol={selectedTokenSymbol}
               tokenImageUrl={token0ImageUrl}
               value={amount}
-              onChange={handleAmountChange}
+              onChange={setAmount}
               disabled={formDisabled}
             />
           </Box>
@@ -742,6 +723,7 @@ function StakeForm(props: any) {
     isStaking,
     isWithdrawing,
     lpBalanceFormatted,
+    lpBalance,
     lpTokenSymbol,
     noStaking,
     overallTotalRewardsPerDayFormatted,
@@ -765,10 +747,6 @@ function StakeForm(props: any) {
   const stakeButtonDisabled = formDisabled || isEmptyAmount || isApprovalNeeded || !!warning
   const claimButtonDisabled = formDisabled || !canClaim
   const withdrawButtonDisabled = formDisabled || !canWithdraw
-
-  function handleAmountChange (_amount: string) {
-    setAmount(_amount)
-  }
 
   function handleApproveClick (event: any) {
     event.preventDefault()
@@ -858,12 +836,12 @@ function StakeForm(props: any) {
           Stake LP
         </Typography>
         <Box mb={1} display="flex" justifyContent="flex-end">
-          <BalanceText balanceFormatted={lpBalanceFormatted} onClick={setAmount} />
+          <BalanceText balanceFormatted={lpBalanceFormatted} balanceNum={lpBalance} onClick={setAmount} />
         </Box>
         <InputField
           tokenSymbol={lpTokenSymbol}
           value={amount}
-          onChange={handleAmountChange}
+          onChange={setAmount}
           disabled={formDisabled}
         />
       </Box>
@@ -1056,6 +1034,8 @@ export function PoolDetails () {
     hopToken,
     token0BalanceFormatted,
     token1BalanceFormatted,
+    token0Balance,
+    token1Balance,
     warning,
     error,
     setError,
@@ -1095,7 +1075,7 @@ export function PoolDetails () {
     goToTab(newValue)
   }
 
-  const totalAmount = token0Deposited?.add(token1Deposited || 0) ?? BigNumber.from(0)
+  const totalAmount = BigNumber.from(token0Deposited || 0).add(BigNumber.from(token1Deposited || 0))
   const token0Max = BNMin(poolReserves[0], totalAmount)
   const token1Max = BNMin(poolReserves[1], totalAmount)
 
@@ -1198,6 +1178,8 @@ export function PoolDetails () {
                       token1ImageUrl: hopToken?.imageUrl,
                       balance0Formatted: token0BalanceFormatted,
                       balance1Formatted: token1BalanceFormatted,
+                      balance0: token0Balance,
+                      balance1: token1Balance,
                       token0Amount,
                       token1Amount,
                       setToken0Amount,
@@ -1218,8 +1200,6 @@ export function PoolDetails () {
                       token1Symbol: hopTokenSymbol,
                       token0ImageUrl: canonicalToken?.imageUrl,
                       token1ImageUrl: hopToken?.imageUrl,
-                      balance0Formatted: token0BalanceFormatted,
-                      balance1Formatted: token1BalanceFormatted,
                       token0Amount,
                       token1Amount,
                       setToken0Amount,

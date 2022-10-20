@@ -113,6 +113,8 @@ type PoolsContextProps = {
   loading: boolean
   token0BalanceFormatted: string
   token1BalanceFormatted: string
+  token0Balance: number
+  token1Balance: number
   depositAmountTotalDisplayFormatted: string
   calculateRemoveLiquidityPriceImpactFn: any,
   walletConnected: boolean,
@@ -1476,6 +1478,8 @@ const PoolsProvider: FC = ({ children }) => {
         loading,
         token0BalanceFormatted,
         token1BalanceFormatted,
+        token0Balance,
+        token1Balance,
         depositAmountTotalDisplayFormatted,
         calculateRemoveLiquidityPriceImpactFn,
         walletConnected,

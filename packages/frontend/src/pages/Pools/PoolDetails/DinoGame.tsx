@@ -2,9 +2,14 @@ import React, { useState } from 'react'
 import Box from '@material-ui/core/Box'
 
 // source: https://github.com/wayou/t-rex-runner
+// script js: /public/js/dinoGame.js
 
 const html = `
 <style>
+.no-scroll {
+  overflow: hidden;
+}
+
 .icon {
   -webkit-user-select: none;
   user-select: none;
@@ -175,6 +180,7 @@ export function DinoGame() {
     event.preventDefault()
 
     try {
+      document.body.classList.add('no-scroll')
       if (!play) {
         setPlay(true)
         const runner = new (window as any).Runner('.interstitial-wrapper') // eslint-disable-line
@@ -182,6 +188,13 @@ export function DinoGame() {
         if (el) {
           el.style.paddingTop = '100px'
         }
+        window.addEventListener('keydown', (e: any) => {
+          if (e.key.toLowerCase() === 'escape') {
+            runner.stop()
+            setPlay(false)
+            document.body.classList.remove('no-scroll')
+          }
+        })
       }
     } catch (err) {
       console.error(err)

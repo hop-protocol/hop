@@ -784,6 +784,7 @@
             this.stop();
             this.crashed = true;
             this.distanceMeter.acheivement = false;
+            document.body.classList.remove('no-scroll')
 
             this.tRex.update(100, Trex.status.CRASHED);
 

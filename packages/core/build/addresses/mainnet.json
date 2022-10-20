@@ -80,34 +80,34 @@
     },
     "DAI": {
       "ethereum": {
-        "optimism": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "arbitrum": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "gnosis": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "polygon": "0x305933e09871D4043b5036e09af794FACB3f6170"
+        "optimism": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "arbitrum": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "gnosis": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "polygon": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af"
       },
       "optimism": {
-        "ethereum": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "arbitrum": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "gnosis": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "polygon": "0x305933e09871D4043b5036e09af794FACB3f6170"
+        "ethereum": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "arbitrum": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "gnosis": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "polygon": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af"
       },
       "arbitrum": {
-        "ethereum": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "optimism": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "gnosis": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "polygon": "0x305933e09871D4043b5036e09af794FACB3f6170"
+        "ethereum": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "optimism": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "gnosis": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "polygon": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af"
       },
       "gnosis": {
-        "ethereum": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "arbitrum": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "optimism": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "polygon": "0x305933e09871D4043b5036e09af794FACB3f6170"
+        "ethereum": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "arbitrum": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "optimism": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "polygon": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af"
       },
       "polygon": {
-        "ethereum": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "arbitrum": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "gnosis": "0x305933e09871D4043b5036e09af794FACB3f6170",
-        "optimism": "0x305933e09871D4043b5036e09af794FACB3f6170"
+        "ethereum": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "arbitrum": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "gnosis": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af",
+        "optimism": "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af"
       }
     },
     "ETH": {

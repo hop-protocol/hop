@@ -91,11 +91,6 @@ const stakingRewardsContracts: any = {
   }
 }
 
-const rewardTokenAddresses: any = {
-  WMATIC: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
-  GNO: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb'
-}
-
 type YieldDataRes = {
   apr: number
   apy: number
@@ -106,7 +101,7 @@ type StakingYieldDataRes = {
   apy: number
   rewardToken: string
   stakingRewardsContractAddress: string
-  isOptimal: boolean
+  isOptimalStakingContract: boolean
 }
 
 type PoolData = {
@@ -118,6 +113,7 @@ type StakingRewardsData = {
   apr: number
   apy: number
   rewardToken: string
+  isOptimalStakingContract: boolean
 }
 
 type OptimalYieldData = {
@@ -211,14 +207,8 @@ class YieldStats {
                 yieldData.stakingRewards[token][chain][stakingYieldData.stakingRewardsContractAddress] = {
                   apr: stakingYieldData.apr,
                   apy: stakingYieldData.apy,
-                  rewardToken: stakingYieldData.rewardToken
-                }
-                if (stakingYieldData.isOptimal) {
-                  yieldData.optimalYield[token][chain] = {
-                    apr: stakingYieldData.apr,
-                    apy: stakingYieldData.apy,
-                    rewardToken: stakingYieldData.rewardToken
-                  }
+                  rewardToken: stakingYieldData.rewardToken,
+                  isOptimalStakingContract: stakingYieldData.isOptimalStakingContract
                 }
               }
             })
@@ -229,14 +219,29 @@ class YieldStats {
 
     await Promise.all(promises)
 
-    // Add the pool yield to the staking yield to produce the optimal yield
-    for (const token in yieldData.optimalYield) {
-      const tokenData = yieldData.optimalYield[token]
+    // Calculate the optimal yield per chain per asset
+    for (const token in yieldData.stakingRewards) {
+      const tokenData = yieldData.stakingRewards[token]
       for (const chain in tokenData) {
         const chainData = tokenData[chain]
-        if (chainData?.apr > 0) {
-          yieldData.optimalYield[token][chain].apr += yieldData.pools[token][chain].apr
-          yieldData.optimalYield[token][chain].apy += yieldData.pools[token][chain].apy
+        for (const stakingRewardsContractAddress in chainData) {
+          const stakingRewardsData = chainData[stakingRewardsContractAddress]
+          if (stakingRewardsData.isOptimalStakingContract) {
+            yieldData.optimalYield[token][chain] = {
+              apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
+              apy: yieldData.pools[token][chain].apy + stakingRewardsData.apy,
+              rewardToken: stakingRewardsData.rewardToken
+            }
+          }
+        }
+        // If there is no optimal staking contract, just use the pool yield
+        const isNoOptimalStakingContract = yieldData.optimalYield[token][chain].apy === 0
+        if  (isNoOptimalStakingContract) {
+          yieldData.optimalYield[token][chain] = {
+            apr: yieldData.pools[token][chain].apr,
+            apy: yieldData.pools[token][chain].apy,
+            rewardToken: ''
+          }
         }
       }
     }
@@ -283,7 +288,8 @@ class YieldStats {
             yieldData.stakingRewards[token][chain][stakingContract] = {
               apr: 0,
               apy: 0,
-              rewardToken: ''
+              rewardToken: '',
+              isOptimalStakingContract: false
             }
           }
         }
@@ -397,7 +403,7 @@ class YieldStats {
         apy,
         rewardToken,
         stakingRewardsContractAddress,
-        isOptimal: apr > currentOptimalApr
+        isOptimalStakingContract: apr > currentOptimalApr
       })
 
       currentOptimalApr = apr > currentOptimalApr ? apr : currentOptimalApr

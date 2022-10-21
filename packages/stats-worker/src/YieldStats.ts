@@ -317,16 +317,23 @@ class YieldStats {
     // Some bridges might have been deployed and added to the config but do not yet have a bonder
     for (const token in yieldData.pools) {
       const tokenData = yieldData.pools[token]
+      // The returned data might be missing a single chain's data due to an RPC error.
+      // We do not want to remove the entire bridge because of an RPC error.
+      // We only want to remove bridges that are completely inactive and missing all chains
+      let areAllChainsMissing = true
       for (const chain in tokenData) {
-        // const chainData = tokenData[chain]
-        // const isInactive = !chainData || chainData?.apr === 0 || chainData?.apr === null || isNaN(chainData?.apr)
-        const isInactive = token === 'SNX' || token === 'sUSD' || token === 'WBTC'
-        if (isInactive) {
-          delete yieldData.pools[token]
-          delete yieldData.optimalYield[token]
-          if (yieldData.stakingRewards?.[token]) {
-            delete yieldData.stakingRewards[token]
-          }
+        const chainData = tokenData[chain]
+        const isInactive = !chainData || chainData?.apr === 0 || chainData?.apr === null || isNaN(chainData?.apr)
+        if (!isInactive) {
+          areAllChainsMissing = false
+          break
+        }
+      }
+      if (areAllChainsMissing) {
+        delete yieldData.pools[token]
+        delete yieldData.optimalYield[token]
+        if (yieldData.stakingRewards?.[token]) {
+          delete yieldData.stakingRewards[token]
         }
       }
     }

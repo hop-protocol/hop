@@ -222,6 +222,7 @@ class YieldStats {
 
     await Promise.all(promises)
     this.removeInactiveBridges(yieldData)
+    this.removeInactiveStakingContracts(yieldData)
     this.getOptimalYield(yieldData)
     const legacyYieldData = this.getLegacyYieldData(yieldData)
 
@@ -323,6 +324,30 @@ class YieldStats {
         if (yieldData.stakingRewards?.[token]) {
           delete yieldData.stakingRewards[token]
         }
+      }
+    }
+  }
+
+  removeInactiveStakingContracts (yieldData: YieldData) {
+    // Some staking contracts might have been deployed and added to the config but do not yet have rewards active
+    for (const token in yieldData.stakingRewards) {
+      const tokenData = yieldData.stakingRewards[token]
+      for (const chain in tokenData) {
+        const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
+        for (const stakingRewardsContractAddress in stakingRewardData) {
+          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
+          if (stakingRewardsData.apr === 0) {
+            delete yieldData.stakingRewards[token][chain][stakingRewardsContractAddress]
+          }
+        }
+        const isStakingContractsForChainRemaining = Object.keys(yieldData.stakingRewards[token][chain]).length > 0
+        if (!isStakingContractsForChainRemaining) {
+          delete yieldData.stakingRewards[token][chain]
+        }
+      }
+      const isStakingContractsForTokenRemaining = Object.keys(yieldData.stakingRewards[token]).length > 0
+      if (!isStakingContractsForTokenRemaining) {
+        delete yieldData.stakingRewards[token]
       }
     }
   }

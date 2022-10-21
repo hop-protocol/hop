@@ -178,13 +178,8 @@ class YieldStats {
     const promises: Promise<any>[] = []
     for (let token in bridges) {
       for (let chain in bridges[token]) {
-        if (chain === 'ethereum') {
-          continue
-        }
-        if (!bridges[token][chain]) {
-          continue
-        }
-        if (bridges[token][chain].l2CanonicalToken === constants.AddressZero) {
+        const shouldSkip = this.shouldSkipYields(bridges, chain, token)
+        if (shouldSkip) {
           continue
         }
 
@@ -220,12 +215,12 @@ class YieldStats {
     await Promise.all(promises)
 
     // Calculate the optimal yield per chain per asset
-    for (const token in yieldData.stakingRewards) {
-      const tokenData = yieldData.stakingRewards[token]
+    for (const token in yieldData.pools) {
+      const tokenData = yieldData.pools[token]
       for (const chain in tokenData) {
-        const chainData = tokenData[chain]
-        for (const stakingRewardsContractAddress in chainData) {
-          const stakingRewardsData = chainData[stakingRewardsContractAddress]
+        const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
+        for (const stakingRewardsContractAddress in stakingRewardData) {
+          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
           if (stakingRewardsData.isOptimalStakingContract) {
             yieldData.optimalYield[token][chain] = {
               apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
@@ -246,6 +241,21 @@ class YieldStats {
       }
     }
 
+    // Remove all inactive bridges, such as bridges that have been deployed and added to the config but do not yet have a bonder
+    for (const token in yieldData.pools) {
+      const tokenData = yieldData.pools[token]
+      for (const chain in tokenData) {
+        const isInactive = token === 'SNX' || token === 'sUSD' || token === 'WBTC'
+        if (isInactive) {
+          delete yieldData.pools[token]
+          delete yieldData.optimalYield[token]
+          if (yieldData.stakingRewards?.[token]) {
+            delete yieldData.stakingRewards[token]
+          }
+        }
+      }
+    }
+
     console.log('yield data stats:')
     console.log(JSON.stringify(yieldData, null, 2))
     const response: Response = {
@@ -260,13 +270,8 @@ class YieldStats {
     const yieldData: any = {}
     for (let token in bridges) {
       for (let chain in bridges[token]) {
-        if (chain === 'ethereum') {
-          continue
-        }
-        if (!bridges[token][chain]) {
-          continue
-        }
-        if (bridges[token][chain].l2CanonicalToken === constants.AddressZero) {
+        const shouldSkip = this.shouldSkipYields(bridges, chain, token)
+        if (shouldSkip) {
           continue
         }
 
@@ -444,10 +449,9 @@ class YieldStats {
       .mul(precision)
       .div(stakedTotal18d.mul(tokenUsdPriceBn))
 
-
     const rate = Number(formatUnits(rateBn.toString(), TOTAL_AMOUNTS_DECIMALS))
     const apr = rate * oneYearDays
-    const apy = (1 + rate) ** (oneYearDays) - 1
+    const apy = (1 + rate) ** oneYearDays - 1
 
     return {
       apr,
@@ -492,6 +496,22 @@ class YieldStats {
 
   sanitizeNumericalString (numStr: string) {
     return numStr.replace(/[^0-9.]|\.(?=.*\.)/g, '')
+  }
+
+  shouldSkipYields (bridges: any, chain: string, token: string) {
+    if (chain === 'ethereum') {
+      return true 
+    }
+    if (!bridges[token][chain]) {
+      return true 
+    }
+    if (bridges[token][chain].l2CanonicalToken === constants.AddressZero) {
+      return true 
+    }
+    if (token === 'HOP') {
+      return true 
+    }
+    return false
   }
 }
 

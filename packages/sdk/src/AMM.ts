@@ -454,7 +454,7 @@ class AMM extends Base {
     const rate = (feesEarnedToday - feesEarnedDaysAgo) / totalLiquidityToday
     const period = 365 / days
     const apr = rate * period
-    const apy = (1 + rate) ** (period) - 1
+    const apy = (1 + rate) ** period - 1
 
     return {
       apr: Math.max(apr, 0),

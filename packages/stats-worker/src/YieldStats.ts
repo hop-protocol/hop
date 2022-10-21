@@ -384,7 +384,6 @@ class YieldStats {
     return yieldData
   }
 
-
   async getYieldData (token: string, chain: string): Promise<YieldDataRes> {
     const bridge = this.sdk.bridge(token)
     const amm = bridge.getAmm(chain)
@@ -392,7 +391,7 @@ class YieldStats {
     return {
       apr: apr ?? 0,
       apy: apy ?? 0,
-      dailyVolume: volumeFormatted
+      dailyVolume: volumeFormatted ?? 0
     }
   }
 

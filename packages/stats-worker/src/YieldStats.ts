@@ -239,80 +239,9 @@ class YieldStats {
     }
 
     await Promise.all(promises)
-
-    // Calculate the optimal yield per chain per asset
-    for (const token in yieldData.pools) {
-      const tokenData = yieldData.pools[token]
-      for (const chain in tokenData) {
-        const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
-        for (const stakingRewardsContractAddress in stakingRewardData) {
-          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
-          if (stakingRewardsData.isOptimalStakingContract) {
-            yieldData.optimalYield[token][chain] = {
-              apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
-              apy: yieldData.pools[token][chain].apy + stakingRewardsData.apy,
-              dailyVolume: yieldData.pools[token][chain].dailyVolume,
-              rewardToken: stakingRewardsData.rewardToken
-            }
-          }
-        }
-        // If there is no optimal staking contract, just use the pool yield
-        const isNoOptimalStakingContract = yieldData.optimalYield[token][chain].apy === 0
-        if  (isNoOptimalStakingContract) {
-          yieldData.optimalYield[token][chain] = {
-            apr: yieldData.pools[token][chain].apr,
-            apy: yieldData.pools[token][chain].apy,
-            dailyVolume: yieldData.pools[token][chain].dailyVolume,
-            rewardToken: ''
-          }
-        }
-      }
-    }
-
-    // Remove all inactive bridges, such as bridges that have been deployed and added to the config but do not yet have a bonder
-    for (const token in yieldData.pools) {
-      const tokenData = yieldData.pools[token]
-      for (const chain in tokenData) {
-        const isInactive = token === 'SNX' || token === 'sUSD' || token === 'WBTC'
-        if (isInactive) {
-          delete yieldData.pools[token]
-          delete yieldData.optimalYield[token]
-          if (yieldData.stakingRewards?.[token]) {
-            delete yieldData.stakingRewards[token]
-          }
-        }
-      }
-    }
-
-    // Generate v1 format
-    const legacyYieldData: any = {}
-    for (const token in yieldData.optimalYield) {
-      const tokenData = yieldData.optimalYield[token]
-      for (const chain in tokenData) {
-        if (!legacyYieldData[token]) {
-          legacyYieldData[token] = {}
-        }
-        if (!legacyYieldData[token][chain]) {
-          legacyYieldData[token][chain] = {}
-        }
-
-        const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
-        let stakingApr: number = 0
-        for (const stakingRewardsContractAddress in stakingRewardData) {
-          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
-          if (stakingRewardsData.isOptimalStakingContract) {
-            stakingApr = stakingRewardsData.apr
-          }
-        }
-        legacyYieldData[token][chain] = {
-          apr: yieldData.pools[token][chain].apr,
-          apr7Day: 0,
-          apr30Day: 0,
-          stakingApr,
-          dailyVolume: yieldData.pools[token][chain].dailyVolume
-        }
-      }
-    }
+    this.removeInactiveBridges(yieldData)
+    this.getOptimalYield(yieldData)
+    const legacyYieldData = this.getLegacyYieldData(yieldData)
 
     console.log('yield data stats:')
     console.log(JSON.stringify(yieldData, null, 2))
@@ -382,6 +311,84 @@ class YieldStats {
     }
 
     return yieldData
+  }
+
+  removeInactiveBridges (yieldData: YieldData) {
+    // Some bridges might have been deployed and added to the config but do not yet have a bonder
+    for (const token in yieldData.pools) {
+      const tokenData = yieldData.pools[token]
+      for (const chain in tokenData) {
+        // const chainData = tokenData[chain]
+        // const isInactive = !chainData || chainData?.apr === 0 || chainData?.apr === null || isNaN(chainData?.apr)
+        const isInactive = token === 'SNX' || token === 'sUSD' || token === 'WBTC'
+        if (isInactive) {
+          delete yieldData.pools[token]
+          delete yieldData.optimalYield[token]
+          if (yieldData.stakingRewards?.[token]) {
+            delete yieldData.stakingRewards[token]
+          }
+        }
+      }
+    }
+  }
+
+  getOptimalYield (yieldData: YieldData) {
+    for (const token in yieldData.pools) {
+      const tokenData = yieldData.pools[token]
+      for (const chain in tokenData) {
+        const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
+        for (const stakingRewardsContractAddress in stakingRewardData) {
+          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
+          if (stakingRewardsData.isOptimalStakingContract) {
+            yieldData.optimalYield[token][chain] = {
+              apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
+              apy: yieldData.pools[token][chain].apy + stakingRewardsData.apy,
+              dailyVolume: yieldData.pools[token][chain].dailyVolume,
+              rewardToken: stakingRewardsData.rewardToken
+            }
+          }
+        }
+        // If there is no optimal staking contract, just use the pool yield
+        const isNoOptimalStakingContract = yieldData.optimalYield[token][chain].apy === 0
+        if  (isNoOptimalStakingContract) {
+          yieldData.optimalYield[token][chain] = {
+            apr: yieldData.pools[token][chain].apr,
+            apy: yieldData.pools[token][chain].apy,
+            dailyVolume: yieldData.pools[token][chain].dailyVolume,
+            rewardToken: ''
+          }
+        }
+      }
+    }
+  }
+
+  getLegacyYieldData (yieldData: YieldData): LegacyYieldData {
+    const legacyYieldData: LegacyYieldData = {}
+    for (const token in yieldData.optimalYield) {
+      const tokenData = yieldData.optimalYield[token]
+      for (const chain in tokenData) {
+        if (!legacyYieldData[token]) {
+          legacyYieldData[token] = {}
+        }
+        const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
+        let stakingApr: number = 0
+        for (const stakingRewardsContractAddress in stakingRewardData) {
+          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
+          if (stakingRewardsData.isOptimalStakingContract) {
+            stakingApr = stakingRewardsData.apr
+          }
+        }
+        legacyYieldData[token][chain] = {
+          apr: yieldData.pools[token][chain].apr,
+          apr7Day: 0,
+          apr30Day: 0,
+          stakingApr,
+          dailyVolume: yieldData.pools[token][chain].dailyVolume
+        }
+      }
+    }
+
+    return legacyYieldData
   }
 
   async getYieldData (token: string, chain: string): Promise<YieldDataRes> {

@@ -142,15 +142,37 @@ type OptimalYield = {
   }
 }
 
+type LegacyYieldData = {
+  [token: string]: {
+    [chain: string]: {
+      apr: number
+      apr7Day: number
+      apr30Day: number
+      stakingApr: number
+      dailyVolume: number
+    }
+  }
+}
+
 type YieldData = {
-  pools: Pools,
-  stakingRewards: StakingRewards,
+  pools: Pools
+  stakingRewards: StakingRewards
   optimalYield: OptimalYield
 }
 
+type YieldDatas = {
+  legacyYieldData: {
+    timestamp: number
+    data: LegacyYieldData
+  }
+  yieldData: {
+    timestamp: number
+    data: YieldData
+  }
+}
+
 type Response = {
-  timestamp: number
-  yieldData: YieldData
+  yieldDatas: YieldDatas
 }
 
 class YieldStats {
@@ -256,11 +278,51 @@ class YieldStats {
       }
     }
 
+    // Generate v1 format
+    const legacyYieldData: any = {}
+    for (const token in yieldData.optimalYield) {
+      const tokenData = yieldData.optimalYield[token]
+      for (const chain in tokenData) {
+        if (!legacyYieldData[token]) {
+          legacyYieldData[token] = {}
+        }
+        if (!legacyYieldData[token][chain]) {
+          legacyYieldData[token][chain] = {}
+        }
+
+        const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
+        let stakingApr: number = 0
+        for (const stakingRewardsContractAddress in stakingRewardData) {
+          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
+          if (stakingRewardsData.isOptimalStakingContract) {
+            stakingApr = stakingRewardsData.apr
+          }
+        }
+        legacyYieldData[token][chain] = {
+          apr: yieldData.pools[token][chain].apr,
+          apr7Day: 0,
+          apr30Day: 0,
+          stakingApr,
+          dailyVolume: 0
+        }
+      }
+    }
+
     console.log('yield data stats:')
     console.log(JSON.stringify(yieldData, null, 2))
+
+    const yieldDatas = {
+      legacyYieldData: {
+        timestamp,
+        data: legacyYieldData
+      },
+      yieldData: {
+        timestamp,
+        data: yieldData
+      }
+    }
     const response: Response = {
-      timestamp,
-      yieldData
+      yieldDatas
     }
 
     return response
@@ -400,6 +462,8 @@ class YieldStats {
       if (isActiveRewards) {
         rewardToken = rewardsTokenSymbol
         stakingRewardsContractAddress = stakingRewardsAddress
+      } else {
+        continue
       }
 
 

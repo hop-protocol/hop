@@ -138,8 +138,12 @@ class Worker {
     while (true) {
       try {
         console.log('fetching yield stats')
-        const data = await this.yieldStats.getAllYields()
-        await this.hosting.upload(data)
+        const res = await this.yieldStats.getAllYields()
+        const { legacyYieldData, yieldData } = res.yieldDatas
+        const legacyKey = 'v1-pool-stats.json'
+        await this.hosting.upload(legacyKey, legacyYieldData)
+        const key = 'v1.1-pool-stats.json'
+        await this.hosting.upload(key, yieldData)
         console.log('done uploading yield stats')
       } catch (err) {
         console.error(err)

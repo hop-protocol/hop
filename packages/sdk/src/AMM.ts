@@ -349,9 +349,9 @@ class AMM extends Base {
     return Number(formatUnits(swapFee.toString(), poolFeePrecision))
   }
 
-  public async getAprForDay (unixTimestamp: number): Promise<any> {
+  public async getYieldStatsForDay (unixTimestamp: number): Promise<any> {
     if (this.tokenSymbol === 'HOP') {
-      throw new Error('getAprForDay: Unsupported, there is no AMM for HOP token.')
+      throw new Error('getYieldStatsForDay: Unsupported, there is no AMM for HOP token.')
     }
     const token = this.toTokenModel(this.tokenSymbol)
     const provider = this.chain.provider
@@ -364,7 +364,7 @@ class AMM extends Base {
       throw new Error('could not retrieve block number from timestamp')
     }
     if (!info.block) {
-      throw new Error('getAprForDay: could not fetch block by timestamp')
+      throw new Error('getYieldStatsForDay: could not fetch block by timestamp')
     }
     const endBlockNumber = info.block - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
@@ -472,16 +472,14 @@ class AMM extends Base {
       totalLiquidityFormatted: totalLiquidityToday,
       totalVolume,
       totalVolumeFormatted
-    } = await this.getAprForDay(endTimestamp)
+    } = await this.getYieldStatsForDay(endTimestamp)
 
     let feesEarnedDaysAgo = 0
     if (days > 1) {
-      ;({ totalFeesFormatted: feesEarnedDaysAgo } = await this.getAprForDay(startTimestamp))
+      ;({ totalFeesFormatted: feesEarnedDaysAgo } = await this.getYieldStatsForDay(startTimestamp))
     }
-    const rate = (feesEarnedToday - feesEarnedDaysAgo) / totalLiquidityToday
-    const period = 365 / days
-    const apr = rate * period
-    const apy = (1 + rate) ** period - 1
+
+    const { apr, apy } = this.calcYield(feesEarnedToday, feesEarnedDaysAgo, totalLiquidityToday, days)
 
     return {
       apr: Math.max(apr, 0),
@@ -489,6 +487,14 @@ class AMM extends Base {
       volume: totalVolume,
       volumeFormatted: totalVolumeFormatted
     }
+  }
+
+  public calcYield (feesEarned: number, feesEarnedAgo: number, principal: number, days: number) {
+    const rate = (feesEarned - feesEarnedAgo) / principal
+    const period = 365 / days
+    const apr = rate * period
+    const apy = (1 + rate) ** period - 1
+    return { apr, apy }
   }
 
   public async getVirtualPrice () {

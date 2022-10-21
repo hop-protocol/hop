@@ -221,9 +221,7 @@ class YieldStats {
     }
 
     await Promise.all(promises)
-    this.removeInactiveBridges(yieldData)
-    this.removeInactiveStakingContracts(yieldData)
-    this.getOptimalYield(yieldData)
+    yieldData = this.normalizeResult(yieldData)
     const legacyYieldData = this.getLegacyYieldData(yieldData)
 
     console.log('yield data stats:')
@@ -298,7 +296,16 @@ class YieldStats {
     return yieldData
   }
 
-  removeInactiveBridges (yieldData: YieldData) {
+  normalizeResult (yieldData: YieldData): YieldData {
+    yieldData = this.removeInactiveBridges(yieldData)
+    yieldData = this.removeInactiveStakingContracts(yieldData)
+    yieldData = this.getOptimalYield(yieldData)
+    return yieldData
+  }
+
+  removeInactiveBridges (yieldData: YieldData): YieldData {
+    yieldData = Object.assign({}, yieldData)
+
     // Some bridges might have been deployed and added to the config but do not yet have a bonder
     for (const token in yieldData.pools) {
       const tokenData = yieldData.pools[token]
@@ -326,9 +333,11 @@ class YieldStats {
         }
       }
     }
+
+    return yieldData
   }
 
-  removeInactiveStakingContracts (yieldData: YieldData) {
+  removeInactiveStakingContracts (yieldData: YieldData): YieldData {
     // Some staking contracts might have been deployed and added to the config but do not yet have rewards active
     for (const token in yieldData.stakingRewards) {
       const tokenData = yieldData.stakingRewards[token]
@@ -350,9 +359,11 @@ class YieldStats {
         delete yieldData.stakingRewards[token]
       }
     }
+
+    return yieldData
   }
 
-  getOptimalYield (yieldData: YieldData) {
+  getOptimalYield (yieldData: YieldData): YieldData {
     for (const token in yieldData.pools) {
       const tokenData = yieldData.pools[token]
       for (const chain in tokenData) {
@@ -380,6 +391,8 @@ class YieldStats {
         }
       }
     }
+
+    return yieldData
   }
 
   getLegacyYieldData (yieldData: YieldData): LegacyYieldData {

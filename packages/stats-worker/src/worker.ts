@@ -63,7 +63,7 @@ class Worker {
     if (bonder || bonderProfit || bonderFees || bonderTxFees) {
       this.bonder = true
     }
-    this.yieldStats= new YieldStats()
+    this.yieldStats = new YieldStats()
     this.volumeStats = new VolumeStats({
       regenesis
     })

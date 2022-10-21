@@ -1,4 +1,4 @@
-import AprStats from './AprStats'
+import YieldStats from './YieldStats'
 import VolumeStats from './VolumeStats'
 import TvlStats from './TvlStats'
 import BonderStats from './BonderStats'
@@ -6,7 +6,7 @@ import S3Upload from './S3Upload'
 import wait from 'wait'
 
 type Options = {
-  apr?: boolean
+  yields?: boolean
   tvl?: boolean
   volume?: boolean
   bonder?: boolean
@@ -24,20 +24,20 @@ type Options = {
 }
 
 class Worker {
-  aprStats: AprStats
+  yieldStats: YieldStats
   volumeStats: VolumeStats
   tvlStats: TvlStats
   bonderStats: BonderStats
   hosting = new S3Upload()
   pollIntervalMs: number = 60 * 60 * 1000
-  apr: boolean = false
+  yields: boolean = false
   tvl: boolean = false
   volume: boolean = false
   bonder: boolean = false
 
   constructor (options: Options = {}) {
     let {
-      apr,
+      yields,
       tvl,
       volume,
       regenesis,
@@ -53,7 +53,7 @@ class Worker {
       bonderTokens,
       pollIntervalSeconds
     } = options
-    this.apr = apr
+    this.yields = yields
     this.tvl = tvl
     this.volume = volume
     if (pollIntervalSeconds) {
@@ -63,7 +63,7 @@ class Worker {
     if (bonder || bonderProfit || bonderFees || bonderTxFees) {
       this.bonder = true
     }
-    this.aprStats = new AprStats()
+    this.yieldStats= new YieldStats()
     this.volumeStats = new VolumeStats({
       regenesis
     })
@@ -87,8 +87,8 @@ class Worker {
     console.log('worker started')
     console.log(`polling every ${this.pollIntervalMs}ms`)
     const promises: Promise<any>[] = []
-    if (this.apr) {
-      promises.push(this.aprStatsPoll())
+    if (this.yields) {
+      promises.push(this.yieldStatsPoll())
     }
     if (this.tvl) {
       promises.push(this.tvlStatsPoll())
@@ -133,14 +133,14 @@ class Worker {
     }
   }
 
-  async aprStatsPoll () {
-    console.log('aprStatsPoll started')
+  async yieldStatsPoll () {
+    console.log('yieldStatsPoll started')
     while (true) {
       try {
-        console.log('fetching apr stats')
-        const data = await this.aprStats.getAllAprs()
+        console.log('fetching yield stats')
+        const data = await this.yieldStats.getAllYields()
         await this.hosting.upload(data)
-        console.log('done uploading apr stats')
+        console.log('done uploading yield stats')
       } catch (err) {
         console.error(err)
       }

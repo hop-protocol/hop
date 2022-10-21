@@ -96,27 +96,68 @@ const rewardTokenAddresses: any = {
   GNO: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb'
 }
 
-type StakingAprRes = {
+type YieldDataRes = {
   apr: number
-  aprTokenSymbol: string
+  apy: number
+}
+
+type StakingYieldDataRes = {
+  apr: number
+  apy: number
+  rewardToken: string
+  stakingRewardsContractAddress: string
+  isOptimal: boolean
 }
 
 type PoolData = {
   apr: number
-  apr7Day: number
-  apr30Day: number
-  stakingApr?: number
-  stakingAprTokenSymbol?: string
+  apy: number
 }
 
-type Data = { [token: string]: { [chain: string]: PoolData } }
+type StakingRewardsData = {
+  apr: number
+  apy: number
+  rewardToken: string
+}
+
+type OptimalYieldData = {
+  apr: number
+  apy: number
+  rewardToken: string
+}
+
+type Pools = {
+  [token: string]: {
+    [chain: string]: PoolData
+  }
+}
+
+type StakingRewards = {
+  [token: string]: {
+    [chain: string]: {
+      [rewardContractAddress: string]: StakingRewardsData
+    }
+  }
+}
+
+type OptimalYield = {
+  [token: string]: {
+    [chain: string]: OptimalYieldData
+  }
+}
+
+type YieldData = {
+  pools: Pools,
+  stakingRewards: StakingRewards,
+  optimalYield: OptimalYield
+}
 
 type Response = {
   timestamp: number
-  data: Data
+  yieldData: YieldData
 }
 
-class AprStats {
+class YieldStats {
   sdk = new Hop('mainnet')
 
   constructor () {
@@ -134,10 +175,10 @@ class AprStats {
     )
   }
 
-  async getAllAprs () {
+  async getAllYields () {
     const timestamp = (Date.now() / 1000) | 0
-    const data: Data = {}
     const bridges: any = mainnetAddresses.bridges
+    let yieldData: YieldData = this.initializeYieldData(bridges)
     const promises: Promise<any>[] = []
     for (let token in bridges) {
       for (let chain in bridges[token]) {
@@ -150,52 +191,35 @@ class AprStats {
         if (bridges[token][chain].l2CanonicalToken === constants.AddressZero) {
           continue
         }
-        if (!data[token]) {
-          data[token] = {}
-        }
-        if (!data[token][chain]) {
-          data[token][chain] = {
-            apr: 0,
-            apr7Day: 0,
-            apr30Day: 0,
-            stakingApr: 0,
-            stakingAprTokenSymbol: ''
-          }
-        }
+
         promises.push(
-          this.getApr(token, chain)
-            .then(apr => {
-              console.log(`${chain}.${token} got apr`)
-              data[token][chain].apr = apr
-            })
-            .catch(err => console.error(err))
-        )
-        promises.push(
-          this.getApr(token, chain, 7)
-            .then(apr => {
-              console.log(`${chain}.${token} got apr 7 day`)
-              data[token][chain].apr7Day = apr
-            })
-            .catch(err => console.error(err))
-        )
-        promises.push(
-          this.getApr(token, chain, 30)
-            .then(apr => {
-              console.log(`${chain}.${token} got apr 30 day`)
-              data[token][chain].apr30Day = apr
-            })
-            .catch(err => console.error(err))
-        )
-        promises.push(
-          this.getStakingApr(token, chain)
+          this.getYieldData(token, chain)
             .then(res => {
-              if (res?.apr) {
-                console.log(`${chain}.${token} got staking apr`)
-                data[token][chain].stakingApr = res.apr
+              console.log(`${chain}.${token} got yield data`)
+              yieldData.pools[token][chain] = {
+                apr: res.apr,
+                apy: res.apy
               }
-              if (res?.aprTokenSymbol) {
-                console.log(`${chain}.${token} got staking apr token symbol`)
-                data[token][chain].stakingAprTokenSymbol = res.aprTokenSymbol
+            })
+            .catch(err => console.error(err))
+        )
+        promises.push(
+          this.getStakingYieldData(token, chain)
+            .then(res => {
+              console.log(`${chain}.${token} got staking yield data`)
+              for (const stakingYieldData of res) {
+                yieldData.stakingRewards[token][chain][stakingYieldData.stakingRewardsContractAddress] = {
+                  apr: stakingYieldData.apr,
+                  apy: stakingYieldData.apy,
+                  rewardToken: stakingYieldData.rewardToken
+                }
+                if (stakingYieldData.isOptimal) {
+                  yieldData.optimalYield[token][chain] = {
+                    apr: stakingYieldData.apr,
+                    apy: stakingYieldData.apy,
+                    rewardToken: stakingYieldData.rewardToken
+                  }
+                }
               }
             })
             .catch(err => console.error(err))
@@ -204,27 +228,98 @@ class AprStats {
     }
 
     await Promise.all(promises)
-    console.log('apr stats:')
-    console.log(JSON.stringify(data, null, 2))
+
+    // Add the pool yield to the staking yield to produce the optimal yield
+    for (const token in yieldData.optimalYield) {
+      const tokenData = yieldData.optimalYield[token]
+      for (const chain in tokenData) {
+        const chainData = tokenData[chain]
+        if (chainData?.apr > 0) {
+          yieldData.optimalYield[token][chain].apr += yieldData.pools[token][chain].apr
+          yieldData.optimalYield[token][chain].apy += yieldData.pools[token][chain].apy
+        }
+      }
+    }
+
+    console.log('yield data stats:')
+    console.log(JSON.stringify(yieldData, null, 2))
     const response: Response = {
       timestamp,
-      data
+      yieldData
     }
 
     return response
   }
 
-  async getApr (token: string, chain: string, days: number = 1) {
-    const bridge = this.sdk.bridge(token)
-    const amm = bridge.getAmm(chain)
-    const apr = await amm.getApr(days)
-    if (!apr) {
-      return 0
+  initializeYieldData (bridges: any): YieldData {
+    const yieldData: any = {}
+    for (let token in bridges) {
+      for (let chain in bridges[token]) {
+        if (chain === 'ethereum') {
+          continue
+        }
+        if (!bridges[token][chain]) {
+          continue
+        }
+        if (bridges[token][chain].l2CanonicalToken === constants.AddressZero) {
+          continue
+        }
+
+        if (!yieldData.pools) yieldData.pools = {}
+        if (!yieldData.pools[token]) yieldData.pools[token] = {}
+        if (!yieldData.pools[token][chain]) {
+          yieldData.pools[token][chain] = {
+            apr: 0,
+            apy: 0
+          }
+        }
+
+        const stakingContracts = stakingRewardsContracts[chain][token]
+        if (stakingContracts?.length > 0) {
+          if(!yieldData.stakingRewards) yieldData.stakingRewards = {}
+          if(!yieldData.stakingRewards[token]) yieldData.stakingRewards[token] = {}
+          if(!yieldData.stakingRewards[token][chain]) yieldData.stakingRewards[token][chain] = {}
+          for (const stakingContract of stakingContracts) {
+            yieldData.stakingRewards[token][chain][stakingContract] = {
+              apr: 0,
+              apy: 0,
+              rewardToken: ''
+            }
+          }
+        }
+
+        if(!yieldData.optimalYield) yieldData.optimalYield = {}
+        if(!yieldData.optimalYield[token]) yieldData.optimalYield[token] = {}
+        if(!yieldData.optimalYield[token][chain]) {
+          yieldData.optimalYield[token][chain] = {
+            apr: 0,
+            apy: 0,
+            rewardToken: ''
+          }
+        }
+      }
     }
-    return apr
+
+    return yieldData
   }
 
-  async getStakingApr (token: string, chain: string): Promise<StakingAprRes> {
+
+  async getYieldData (token: string, chain: string): Promise<YieldDataRes> {
+    const bridge = this.sdk.bridge(token)
+    const amm = bridge.getAmm(chain)
+    let apr = await amm.getApr()
+    if (!apr) {
+      apr = 0
+    }
+
+
+    return {
+      apr,
+      apy: 0
+    }
+  }
+
+  async getStakingYieldData (token: string, chain: string): Promise<StakingYieldDataRes[]> {
     const bridge = this.sdk.bridge(token)
     const canonToken = bridge.getCanonicalToken(chain)
     const amm = bridge.getAmm(chain)
@@ -232,14 +327,11 @@ class AprStats {
     const provider = this.sdk.getChainProvider(chain)
     const stakingRewardsAddresses = stakingRewardsContracts?.[chain]?.[token]
     if (!stakingRewardsAddresses?.length) {
-      return {
-        apr: 0,
-        aprTokenSymbol: ''
-      }
+      return []
     }
 
-    let maxAprBn = BigNumber.from(0)
-    let maxAprTokenSymbol = ''
+    let currentOptimalAprBn = BigNumber.from(0)
+    const stakingYieldData: StakingYieldDataRes[] = []
     for (const stakingRewardsAddress of stakingRewardsAddresses) {
       const assetBridge = this.sdk.bridge(token)
       const stakingRewards = StakingRewards__factory.connect(
@@ -279,7 +371,7 @@ class AprStats {
         totalRewardsPerDay = rewardRate.mul(86400) // multiply by 1 day
       }
 
-      const aprBn = this.calculateStakingApr(
+      const { aprBn, apyBn } = this.calculateStakingYield(
         canonToken.decimals,
         tokenUsdPrice,
         rewardTokenUsdPrice,
@@ -287,17 +379,35 @@ class AprStats {
         totalRewardsPerDay
       )
 
-      maxAprBn = maxAprBn.gt(aprBn) ? maxAprBn : aprBn
-      // If the rewards have expired, do not log a token symbol
-      if (!aprBn.eq(0)) {
-        maxAprTokenSymbol = rewardsTokenSymbol
+      // Sanity check
+      if (
+        (aprBn.lte(0) && apyBn.gt(0)) ||
+        (apyBn.lte(0) && aprBn.gt(0))
+      ) {
+        throw new Error('Cannot have negative APR and positive APY or vice versa')
       }
-    }
 
-    return {
-      apr: Number(formatUnits(maxAprBn.toString(), TOTAL_AMOUNTS_DECIMALS)),
-      aprTokenSymbol: maxAprTokenSymbol
+      // If the rewards have expired, do not log a token symbol
+      let rewardToken = ''
+      let stakingRewardsContractAddress = ''
+      const isActiveRewards = aprBn.gt(0) && apyBn.gt(0)
+      if (isActiveRewards) {
+        rewardToken = rewardsTokenSymbol
+        stakingRewardsContractAddress = stakingRewardsAddress
+      }
+
+
+      stakingYieldData.push({
+        apr: Number(formatUnits(aprBn.toString(), TOTAL_AMOUNTS_DECIMALS)),
+        rewardToken,
+        stakingRewardsContractAddress,
+        isOptimal: aprBn.gt(currentOptimalAprBn)
+      })
+
+      currentOptimalAprBn = aprBn.gt(currentOptimalAprBn) ? aprBn : currentOptimalAprBn
     }
+    
+    return stakingYieldData
   }
 
   async isRewardsExpired (timestamp: BigNumber) {
@@ -307,7 +417,7 @@ class AprStats {
   }
 
   // ((REWARD-TOKEN_PER_DAY * REWARD-TOKEN_PRICE)/((STAKED_USDC + STAKED_HUSDC)*STAKED_TOKEN_PRICE)) * DAYS_PER_YEAR
-  calculateStakingApr (
+  calculateStakingYield (
     tokenDecimals: number,
     tokenUsdPrice: number,
     rewardTokenUsdPrice: number,
@@ -327,12 +437,19 @@ class AprStats {
       TOTAL_AMOUNTS_DECIMALS - tokenDecimals
     )
     const precision = this.amountToBN('1', TOTAL_AMOUNTS_DECIMALS)
-
-    return totalRewardsPerDay
+    const rate = totalRewardsPerDay
       .mul(rewardTokenUsdPriceBn)
       .mul(precision)
       .div(stakedTotal18d.mul(tokenUsdPriceBn))
-      .mul(oneYearDays)
+
+
+    const aprBn = rate.mul(oneYearDays)
+    const apyBn = (rate.add(1)).pow(oneYearDays).sub(1)
+
+    return {
+      aprBn,
+      apyBn,
+    }
   }
 
   shiftBNDecimals (bn: BigNumber, shiftAmount: number): BigNumber {
@@ -375,4 +492,4 @@ class AprStats {
   }
 }
 
-export default AprStats
+export default YieldStats

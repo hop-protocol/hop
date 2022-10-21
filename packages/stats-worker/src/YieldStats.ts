@@ -94,6 +94,7 @@ const stakingRewardsContracts: any = {
 type YieldDataRes = {
   apr: number
   apy: number
+  dailyVolume: number
 }
 
 type StakingYieldDataRes = {
@@ -107,6 +108,7 @@ type StakingYieldDataRes = {
 type PoolData = {
   apr: number
   apy: number
+  dailyVolume: number
 }
 
 type StakingRewardsData = {
@@ -119,6 +121,7 @@ type StakingRewardsData = {
 type OptimalYieldData = {
   apr: number
   apy: number
+  dailyVolume: number
   rewardToken: string
 }
 
@@ -211,10 +214,11 @@ class YieldStats {
               console.log(`${chain}.${token} got yield data`)
               yieldData.pools[token][chain] = {
                 apr: res.apr,
-                apy: res.apy
+                apy: res.apy,
+                dailyVolume: res.dailyVolume
               }
             })
-            .catch(err => console.error(err))
+            .catch(err => console.error(`apr 1 day ${chain} ${token} error:`, err))
         )
         promises.push(
           this.getStakingYieldData(token, chain)
@@ -229,7 +233,7 @@ class YieldStats {
                 }
               }
             })
-            .catch(err => console.error(err))
+            .catch(err => console.error(`staking apr 1 ${chain} ${token} error:`, err))
         )
       }
     }
@@ -247,6 +251,7 @@ class YieldStats {
             yieldData.optimalYield[token][chain] = {
               apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
               apy: yieldData.pools[token][chain].apy + stakingRewardsData.apy,
+              dailyVolume: yieldData.pools[token][chain].dailyVolume,
               rewardToken: stakingRewardsData.rewardToken
             }
           }
@@ -257,6 +262,7 @@ class YieldStats {
           yieldData.optimalYield[token][chain] = {
             apr: yieldData.pools[token][chain].apr,
             apy: yieldData.pools[token][chain].apy,
+            dailyVolume: yieldData.pools[token][chain].dailyVolume,
             rewardToken: ''
           }
         }
@@ -303,7 +309,7 @@ class YieldStats {
           apr7Day: 0,
           apr30Day: 0,
           stakingApr,
-          dailyVolume: 0
+          dailyVolume: yieldData.pools[token][chain].dailyVolume
         }
       }
     }
@@ -342,7 +348,8 @@ class YieldStats {
         if (!yieldData.pools[token][chain]) {
           yieldData.pools[token][chain] = {
             apr: 0,
-            apy: 0
+            apy: 0,
+            dailyVolume: 0
           }
         }
 
@@ -367,6 +374,7 @@ class YieldStats {
           yieldData.optimalYield[token][chain] = {
             apr: 0,
             apy: 0,
+            dailyVolume: 0,
             rewardToken: ''
           }
         }
@@ -380,10 +388,11 @@ class YieldStats {
   async getYieldData (token: string, chain: string): Promise<YieldDataRes> {
     const bridge = this.sdk.bridge(token)
     const amm = bridge.getAmm(chain)
-    const { apr, apy } = await amm.getYields()
+    const { apr, apy, volumeFormatted } = await amm.getYieldData()
     return {
       apr: apr ?? 0,
-      apy: apy ?? 0
+      apy: apy ?? 0,
+      dailyVolume: volumeFormatted
     }
   }
 
@@ -574,6 +583,9 @@ class YieldStats {
     }
     if (token === 'HOP') {
       return true 
+    }
+    if (bridges[token][chain].l2SaddleSwap === constants.AddressZero) {
+      return true
     }
     return false
   }

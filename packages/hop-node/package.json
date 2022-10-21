@@ -48,7 +48,7 @@
     "@eth-optimism/watcher": "0.0.1-alpha.9",
     "@ethersproject/hdnode": "5.0.9",
     "@fxportal/maticjs-fxportal": "1.1.1",
-    "@hop-protocol/core": "0.0.1-beta.97",
+    "@hop-protocol/core": "0.0.1-beta.98",
     "@hop-protocol/sdk": "0.0.1-beta.386",
     "@maticnetwork/maticjs": "3.2.0",
     "@maticnetwork/maticjs-ethers": "1.0.2",

@@ -438,30 +438,24 @@ class AMM extends Base {
   }
 
   public async getDailyVolume () {
-    const provider = this.chain.provider
-    const block = await provider.getBlock('latest')
-    const endTimestamp = block.timestamp
-    if (!endTimestamp) {
-      throw new Error('getDailyVolume: could not retrieve timestamp')
-    }
-    const { totalVolume, totalVolumeFormatted } = await this.getAprForDay(endTimestamp)
+    const { volume, volumeFormatted } = await this.getYieldData()
     return {
-      volume: totalVolume,
-      volumeFormatted: totalVolumeFormatted
+      volume,
+      volumeFormatted
     }
   }
 
   public async getApr (days: number = 1) {
-    const { apr } = await this.getYields(days)
+    const { apr } = await this.getYieldData(days)
     return apr
   }
 
   public async getApy (days: number = 1) {
-    const { apy } = await this.getYields(days)
+    const { apy } = await this.getYieldData(days)
     return apy
   }
 
-  public async getYields (days: number = 1) {
+  public async getYieldData (days: number = 1) {
     const provider = this.chain.provider
     const block = await provider.getBlock('latest')
     const endTimestamp = block.timestamp
@@ -469,7 +463,12 @@ class AMM extends Base {
       .minus({ days })
       .toSeconds()
 
-    const { totalFeesFormatted: feesEarnedToday, totalLiquidityFormatted: totalLiquidityToday } = await this.getAprForDay(endTimestamp)
+    const {
+      totalFeesFormatted: feesEarnedToday,
+      totalLiquidityFormatted: totalLiquidityToday,
+      totalVolume,
+      totalVolumeFormatted
+    } = await this.getAprForDay(endTimestamp)
 
     let feesEarnedDaysAgo = 0
     if (days > 1) {
@@ -482,7 +481,9 @@ class AMM extends Base {
 
     return {
       apr: Math.max(apr, 0),
-      apy: Math.max(apy, 0)
+      apy: Math.max(apy, 0),
+      volume: totalVolume,
+      volumeFormatted: totalVolumeFormatted
     }
   }
 

@@ -456,6 +456,10 @@ class AMM extends Base {
   }
 
   public async getYieldData (days: number = 1) {
+    if (![1, 7, 30].includes(days)) {
+      throw new Error('invalid arg: valid days are: 1, 7, 30')
+    }
+
     const provider = this.chain.provider
     const block = await provider.getBlock('latest')
     const endTimestamp = block.timestamp

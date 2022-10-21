@@ -350,6 +350,9 @@ class AMM extends Base {
   }
 
   public async getAprForDay (unixTimestamp: number): Promise<any> {
+    if (this.tokenSymbol === 'HOP') {
+      throw new Error('getAprForDay: Unsupported, there is no AMM for HOP token.')
+    }
     const token = this.toTokenModel(this.tokenSymbol)
     const provider = this.chain.provider
     const saddleSwap = await this.getSaddleSwap()
@@ -359,6 +362,9 @@ class AMM extends Base {
     const info = await blockDater.getDate(date.toJSDate())
     if (!info) {
       throw new Error('could not retrieve block number from timestamp')
+    }
+    if (!info.block) {
+      throw new Error('getAprForDay: could not fetch block by timestamp')
     }
     const endBlockNumber = info.block - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
@@ -408,6 +414,7 @@ class AMM extends Base {
     const FEE_DENOMINATOR = '10000000000' // 10**10
     const decimals = token.decimals
 
+    let totalVolume = BigNumber.from(0)
     let totalFees = BigNumber.from(0)
     for (const event of tokenSwapEvents) {
       const tokensSold = event.args.tokensSold
@@ -416,6 +423,8 @@ class AMM extends Base {
           .mul(BigNumber.from(basisPoints))
           .div(BigNumber.from(FEE_DENOMINATOR))
       )
+
+      totalVolume = totalVolume.add(tokensSold)
     }
 
     const totalLiquidity = reserve0.add(reserve1)
@@ -423,8 +432,23 @@ class AMM extends Base {
       formatUnits(totalLiquidity, decimals)
     )
     const totalFeesFormatted = Number(formatUnits(totalFees, decimals))
+    const totalVolumeFormatted = Number(formatUnits(totalVolume, decimals))
 
-    return { totalFeesFormatted, totalLiquidityFormatted }
+    return { totalFeesFormatted, totalLiquidityFormatted, totalVolume, totalVolumeFormatted }
+  }
+
+  public async getDailyVolume () {
+    const provider = this.chain.provider
+    const block = await provider.getBlock('latest')
+    const endTimestamp = block.timestamp
+    if (!endTimestamp) {
+      throw new Error('getDailyVolume: could not retrieve timestamp')
+    }
+    const { totalVolume, totalVolumeFormatted } = await this.getAprForDay(endTimestamp)
+    return {
+      volume: totalVolume,
+      volumeFormatted: totalVolumeFormatted
+    }
   }
 
   public async getApr (days: number = 1) {

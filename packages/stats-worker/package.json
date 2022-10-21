@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "ts-node src/index.ts",
-    "start:apr": "ts-node src/index.ts --apr",
+    "start:yields": "ts-node src/index.ts --yields",
     "start:volume": "ts-node src/index.ts --volume",
     "start:tvl": "ts-node src/index.ts --tvl",
     "start:bonder": "ts-node src/index.ts --bonder --bonderDays=30",

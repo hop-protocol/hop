@@ -6,7 +6,7 @@ console.debug('flags:', argv)
 
 function main () {
   const worker = new Worker({
-    yield: argv.yield,
+    yields: argv.yields,
     tvl: argv.tvl,
     volume: argv.volume,
     bonder: argv.bonder,

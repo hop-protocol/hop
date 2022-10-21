@@ -428,10 +428,16 @@ class AMM extends Base {
   }
 
   public async getApr (days: number = 1) {
-    if (![1, 7, 30].includes(days)) {
-      throw new Error('invalid arg: valid days are: 1, 7, 30')
-    }
+    const { apr } = await this.getYields(days)
+    return apr
+  }
 
+  public async getApy (days: number = 1) {
+    const { apy } = await this.getYields(days)
+    return apy
+  }
+
+  public async getYields (days: number = 1) {
     const provider = this.chain.provider
     const block = await provider.getBlock('latest')
     const endTimestamp = block.timestamp
@@ -445,10 +451,15 @@ class AMM extends Base {
     if (days > 1) {
       ;({ totalFeesFormatted: feesEarnedDaysAgo } = await this.getAprForDay(startTimestamp))
     }
+    const rate = (feesEarnedToday - feesEarnedDaysAgo) / totalLiquidityToday
+    const period = 365 / days
+    const apr = rate * period
+    const apy = (1 + rate) ** (period) - 1
 
-    const apr = ((feesEarnedToday - feesEarnedDaysAgo) / (days / 365)) / totalLiquidityToday
-
-    return Math.max(apr, 0)
+    return {
+      apr: Math.max(apr, 0),
+      apy: Math.max(apy, 0)
+    }
   }
 
   public async getVirtualPrice () {

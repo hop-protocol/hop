@@ -307,15 +307,10 @@ class YieldStats {
   async getYieldData (token: string, chain: string): Promise<YieldDataRes> {
     const bridge = this.sdk.bridge(token)
     const amm = bridge.getAmm(chain)
-    let apr = await amm.getApr()
-    if (!apr) {
-      apr = 0
-    }
-
-
+    const { apr, apy } = await amm.getYields()
     return {
-      apr,
-      apy: 0
+      apr: apr ?? 0,
+      apy: apy ?? 0
     }
   }
 
@@ -330,7 +325,7 @@ class YieldStats {
       return []
     }
 
-    let currentOptimalAprBn = BigNumber.from(0)
+    let currentOptimalApr = 0
     const stakingYieldData: StakingYieldDataRes[] = []
     for (const stakingRewardsAddress of stakingRewardsAddresses) {
       const assetBridge = this.sdk.bridge(token)
@@ -371,7 +366,7 @@ class YieldStats {
         totalRewardsPerDay = rewardRate.mul(86400) // multiply by 1 day
       }
 
-      const { aprBn, apyBn } = this.calculateStakingYield(
+      const { apr, apy } = this.calculateStakingYield(
         canonToken.decimals,
         tokenUsdPrice,
         rewardTokenUsdPrice,
@@ -381,8 +376,8 @@ class YieldStats {
 
       // Sanity check
       if (
-        (aprBn.lte(0) && apyBn.gt(0)) ||
-        (apyBn.lte(0) && aprBn.gt(0))
+        (apr <= 0 && apy > 0) ||
+        (apy <= 0 && apr > 0)
       ) {
         throw new Error('Cannot have negative APR and positive APY or vice versa')
       }
@@ -390,7 +385,7 @@ class YieldStats {
       // If the rewards have expired, do not log a token symbol
       let rewardToken = ''
       let stakingRewardsContractAddress = ''
-      const isActiveRewards = aprBn.gt(0) && apyBn.gt(0)
+      const isActiveRewards = apr > 0 && apy > 0
       if (isActiveRewards) {
         rewardToken = rewardsTokenSymbol
         stakingRewardsContractAddress = stakingRewardsAddress
@@ -398,13 +393,14 @@ class YieldStats {
 
 
       stakingYieldData.push({
-        apr: Number(formatUnits(aprBn.toString(), TOTAL_AMOUNTS_DECIMALS)),
+        apr,
+        apy,
         rewardToken,
         stakingRewardsContractAddress,
-        isOptimal: aprBn.gt(currentOptimalAprBn)
+        isOptimal: apr > currentOptimalApr
       })
 
-      currentOptimalAprBn = aprBn.gt(currentOptimalAprBn) ? aprBn : currentOptimalAprBn
+      currentOptimalApr = apr > currentOptimalApr ? apr : currentOptimalApr
     }
     
     return stakingYieldData
@@ -437,18 +433,19 @@ class YieldStats {
       TOTAL_AMOUNTS_DECIMALS - tokenDecimals
     )
     const precision = this.amountToBN('1', TOTAL_AMOUNTS_DECIMALS)
-    const rate = totalRewardsPerDay
+    const rateBn = totalRewardsPerDay
       .mul(rewardTokenUsdPriceBn)
       .mul(precision)
       .div(stakedTotal18d.mul(tokenUsdPriceBn))
 
 
-    const aprBn = rate.mul(oneYearDays)
-    const apyBn = (rate.add(1)).pow(oneYearDays).sub(1)
+    const rate = Number(formatUnits(rateBn.toString(), TOTAL_AMOUNTS_DECIMALS))
+    const apr = rate * oneYearDays
+    const apy = (1 + rate) ** (oneYearDays) - 1
 
     return {
-      aprBn,
-      apyBn,
+      apr,
+      apy
     }
   }
 

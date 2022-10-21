@@ -1,5 +1,5 @@
 import Base, { ChainProviders } from './Base'
-import BlockDater from 'ethereum-block-by-date'
+import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
 import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
@@ -357,16 +357,9 @@ class AMM extends Base {
     const provider = this.chain.provider
     const saddleSwap = await this.getSaddleSwap()
 
-    const blockDater = new BlockDater(provider)
-    const date = DateTime.fromSeconds(unixTimestamp)
-    const info = await blockDater.getDate(date.toJSDate())
-    if (!info) {
-      throw new Error('could not retrieve block number from timestamp')
-    }
-    if (!info.block) {
-      throw new Error('getYieldStatsForDay: could not fetch block by timestamp')
-    }
-    const endBlockNumber = info.block - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
+    const date = DateTime.fromSeconds(unixTimestamp).toJSDate()
+    let endBlockNumber = await getBlockNumberFromDate(provider, date)
+    endBlockNumber = endBlockNumber - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
     const callOverrides = {
       blockTag: endBlockNumber
@@ -378,15 +371,10 @@ class AMM extends Base {
       saddleSwap.swapStorage(callOverrides)
     ])
 
-    const startBlockDater = new BlockDater(provider)
     const startDate = DateTime.fromSeconds(unixTimestamp)
       .minus({ days: 1 })
       .toJSDate()
-    const startInfo = await startBlockDater.getDate(startDate)
-    if (!startInfo) {
-      throw new Error('could not retrieve block number from 24 hours ago')
-    }
-    let startBlockNumber = startInfo.block
+    let startBlockNumber = await getBlockNumberFromDate(provider, startDate)
 
     const tokenSwapEvents: any[] = []
     const perBatch = 1000

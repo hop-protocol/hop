@@ -13,6 +13,7 @@ import WithdrawStake from 'src/components/txConfirm/WithdrawStake'
 import WrapToken from 'src/components/txConfirm/WrapToken'
 import UnwrapToken from 'src/components/txConfirm/UnwrapToken'
 import WithdrawReview from 'src/components/txConfirm/WithdrawReview'
+import { ApproveAndStake } from 'src/components/txConfirm/ApproveAndStake'
 import { useApp } from 'src/contexts/AppContext'
 
 const TxConfirm: FC = props => {
@@ -35,6 +36,7 @@ const TxConfirm: FC = props => {
     wrapToken: WrapToken,
     unwrapToken: UnwrapToken,
     withdrawReview: WithdrawReview,
+    approveAndStake: ApproveAndStake,
     txList: TxList
   }
 

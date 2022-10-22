@@ -759,7 +759,7 @@ function StakeForm(props: any) {
     rewardsTokenImageUrl,
     setAmount,
     setError,
-    stake,
+    approveAndStake,
     stakingApr,
     stakingAprFormatted,
     walletConnected,
@@ -776,7 +776,7 @@ function StakeForm(props: any) {
 
   function handleStakeClick (event: any) {
     event.preventDefault()
-    stake()
+    approveAndStake()
   }
 
   function handleWithdrawClick (event: any) {

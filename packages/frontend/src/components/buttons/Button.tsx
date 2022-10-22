@@ -42,7 +42,7 @@ const useStyles = makeStyles(theme => ({
       : 'none'),
     boxShadow: text ? 'none' : (highlighted ? theme.boxShadow.button.highlighted : theme.boxShadow.button.default),
     '&:hover': {
-      color: text ? theme.palette.text.primary : 'inherit',
+      color: text ? theme.palette.text.primary : (highlighted ? 'white' : theme.palette.text.primary),
       background: text ? 'none' : (highlighted
         ? theme.bgGradient.main
         : flat

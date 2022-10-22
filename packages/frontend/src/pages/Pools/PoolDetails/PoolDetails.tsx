@@ -29,7 +29,8 @@ import {
   commafy,
   sanitizeNumericalString,
   BNMin,
-  formatTokenDecimalString
+  formatTokenDecimalString,
+  getTokenImage
 } from 'src/utils'
 import { useStaking } from '../useStaking'
 import { stakingRewardsContracts, hopStakingRewardsContracts, metadata, reactAppNetwork } from 'src/config'
@@ -124,6 +125,21 @@ export const useStyles = makeStyles(theme => ({
   stakingAprChainImage: {
     width: '20px',
   },
+  stakingTabsContainer: {
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column'
+    },
+  },
+  stakingTabButton: {
+    padding: '0.5rem 2.5rem',
+    '&[data-selected="true"]': {
+      borderRadius: '3rem',
+      boxShadow: theme.palette.type === 'dark' ? '-6px 6px 12px 0px #121212, -5px -5px 14px 0px #00000026 inset, -6px 6px 12px 0px #26262666 inset' : '5px -5px 12px 0px #FFFFFF, -6px 6px 12px 0px #D8D5DC, -5px -5px 14px 0px #FFFFFF26 inset, -6px 6px 12px 0px #E9E5E866 inset',
+    }
+  },
+  stakingTabImage: {
+    width: '18px'
+  }
 }))
 
 function BalanceText(props: any) {
@@ -1061,6 +1077,7 @@ export function PoolDetails () {
   const history = useHistory()
   const { tab } = useParams<{ tab: string }>()
   const [selectedTab, setSelectedTab] = useState(tab || 'deposit')
+  const [selectedStaking, setSelectedStaking] = useState('0')
   const { theme } = useThemeMode()
 
   const calculateRemoveLiquidityPriceImpact = calculateRemoveLiquidityPriceImpactFn(userPoolBalance)
@@ -1077,13 +1094,40 @@ export function PoolDetails () {
     goToTab(newValue)
   }
 
+  function handleStakingChange(event: ChangeEvent<{}>, newValue: string) {
+    setSelectedStaking(newValue)
+  }
+
   const totalAmount = BigNumber.from(token0Deposited || 0).add(BigNumber.from(token1Deposited || 0))
   const token0Max = BNMin(poolReserves[0], totalAmount)
   const token1Max = BNMin(poolReserves[1], totalAmount)
 
   const stakingContractAddress = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
   const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
-  const stakingEnabled = !!(stakingContractAddress || hopStakingContractAddress)
+  const stakingRewards :any[] = []
+  if (hopStakingContractAddress) {
+    const rewardTokenSymbol = 'HOP'
+    stakingRewards.push({
+      stakingContractAddress: hopStakingContractAddress,
+      rewardTokenSymbol,
+      rewardTokenImageUrl: getTokenImage(rewardTokenSymbol),
+    })
+    stakingRewards.push({
+      stakingContractAddress: hopStakingContractAddress,
+      rewardTokenSymbol: 'OP',
+      rewardTokenImageUrl: getTokenImage('OP')
+    })
+  }
+  if (stakingContractAddress) {
+    const rewardTokenSymbol = chainSlug === 'gnosis' ? 'GNO' : (chainSlug === 'polygon' ? 'MATIC' : 'ETH')
+    stakingRewards.push({
+      stakingContractAddress: stakingContractAddress,
+      rewardTokenSymbol,
+      rewardTokenImageUrl: getTokenImage(rewardTokenSymbol)
+    })
+  }
+
+  const stakingEnabled = stakingRewards.length > 0
 
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
@@ -1220,32 +1264,46 @@ export function PoolDetails () {
                     <>
                       {stakingEnabled && (
                         <>
-                        {!!stakingContractAddress && (
-                          <Box mb={4}>
-                            <StakeForm
-                              data={{
-                                chainSlug,
-                                tokenSymbol,
-                                stakingContractAddress
-                              }}
-                            />
+                        {stakingRewards.length > 1 && (
+                          <Box mb={2} display="flex" alignItems="center" className={styles.stakingTabsContainer}>
+                            <Box mr={2}>
+                              <Typography variant="subtitle1">
+                                Earn
+                              </Typography>
+                            </Box>
+                            <Tabs value={selectedStaking} onChange={handleStakingChange}>
+                              {stakingRewards.map((stakingReward, index) => {
+                                const value = index.toString()
+                                return (
+                                  <Tab label={<Box style={{ paddingLeft: '1rem', paddingBottom: '1rem' }}>
+                                  <Box display="flex" alignItems="center" data-selected={selectedStaking === value} className={styles.stakingTabButton}>
+                                    <Box mr={0.5} display="flex" justifyItems="center" alignItems="center">
+                                      <img className={styles.stakingTabImage} src={stakingReward.rewardTokenImageUrl} alt={stakingReward.rewardTokenSymbol} title={stakingReward.rewardTokenSymbol} />
+                                    </Box>
+                                    <Typography variant="body2">
+                                      {stakingReward.rewardTokenSymbol}
+                                    </Typography>
+                                  </Box>
+                                  </Box>} value={value} />
+                                )
+                              })}
+                            </Tabs>
                           </Box>
                         )}
-                        {!!hopStakingContractAddress && (
-                          <Box mb={4}>
-                            <StakeForm
-                              data={{
-                                chainSlug,
-                                tokenSymbol,
-                                stakingContractAddress: hopStakingContractAddress
-                              }}
-                            />
-                          </Box>
-                        )}
+
+                        <Box mb={4}>
+                          <StakeForm
+                            data={{
+                              chainSlug,
+                              tokenSymbol,
+                              stakingContractAddress: stakingRewards[selectedStaking].stakingContractAddress,
+                            }}
+                          />
+                        </Box>
                         </>
                       )}
                       {!stakingEnabled && (
-                        <Typography>
+                        <Typography variant="body1">
                           There is no staking available for this asset on this chain.
                         </Typography>
                       )}

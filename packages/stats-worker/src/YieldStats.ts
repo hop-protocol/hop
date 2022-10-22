@@ -182,8 +182,8 @@ class YieldStats {
     const timestamp = (Date.now() / 1000) | 0
     const bridges: any = mainnetAddresses.bridges
     let yieldData: YieldData = this.initializeYieldData(bridges)
-    const promises: Promise<any>[] = []
     for (let token in bridges) {
+      const promises: Promise<any>[] = []
       for (let chain in bridges[token]) {
         const shouldSkip = this.shouldSkipYields(bridges, chain, token)
         if (shouldSkip) {
@@ -218,9 +218,12 @@ class YieldStats {
             .catch(err => console.error(`staking apr 1 ${chain} ${token} error:`, err))
         )
       }
+
+      // RPC endpoints cannot handle too many chain/token combinations at once. To avoid this,
+      // get all chains for a given token before proceeding to the next token
+      await Promise.all(promises)
     }
 
-    await Promise.all(promises)
     yieldData = this.normalizeResult(yieldData)
     const legacyYieldData = this.getLegacyYieldData(yieldData)
 

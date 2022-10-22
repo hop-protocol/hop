@@ -18,34 +18,36 @@ interface StyleProps {
   fullWidth?: boolean
   target?: string
   rel?: string
+  text?: boolean
 }
 
 export type ButtonProps = Partial<StyleProps> &
   MuiButtonProps & { boxShadow?: any; minWidth?: string }
 
 const useStyles = makeStyles(theme => ({
-  root: ({ highlighted, large, flat, isDarkMode, fullWidth }: StyleProps) => ({
+  root: ({ highlighted, large, flat, text, isDarkMode, fullWidth }: StyleProps) => ({
     borderRadius: '3.0rem',
     textTransform: 'none',
     padding: large ? '0.8rem 4.2rem' : '0.8rem 2.8rem',
     minHeight: large ? '5.5rem' : '4.0rem',
     fontSize: large ? '2.2rem' : '1.5rem',
     width: fullWidth ? '100%' : 'auto',
-    color: highlighted ? 'white' : theme.palette.text.primary,
-    background: highlighted
+    color: text ? theme.palette.text.secondary : (highlighted ? 'white' : theme.palette.text.primary),
+    background: text ? 'none' : (highlighted
       ? theme.bgGradient.main
       : isDarkMode
       ? '#3A3547'
       : flat
       ? '#E2E2E5'
-      : 'none',
-    boxShadow: highlighted ? theme.boxShadow.button.highlighted : theme.boxShadow.button.default,
+      : 'none'),
+    boxShadow: text ? 'none' : (highlighted ? theme.boxShadow.button.highlighted : theme.boxShadow.button.default),
     '&:hover': {
-      background: highlighted
+      color: text ? theme.palette.text.primary : 'inherit',
+      background: text ? 'none' : (highlighted
         ? theme.bgGradient.main
         : flat
         ? theme.palette.secondary.light
-        : '#ffffff33',
+        : '#ffffff33'),
     },
     transition: 'background-color 0.15s ease-out, box-shadow 0.15s ease-out',
     '&:disabled': {
@@ -71,6 +73,7 @@ const LargeButton: FC<ButtonProps> = props => {
     highlighted = false,
     large = false,
     flat = false,
+    text = false,
     disabled = false,
     loading = false,
     size = 40,
@@ -81,7 +84,7 @@ const LargeButton: FC<ButtonProps> = props => {
     ...buttonProps
   } = props
   const { isDarkMode } = useThemeMode()
-  const styles = useStyles({ highlighted, large, flat, isDarkMode, fullWidth })
+  const styles = useStyles({ highlighted, large, flat, text, isDarkMode, fullWidth })
 
   return (
     <Flex justifyCenter alignCenter borderRadius={borderRadius || '3.0rem'} fullWidth>

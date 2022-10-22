@@ -24,6 +24,7 @@ import SelectOption from 'src/components/selects/SelectOption'
 import { Slider } from 'src/components/slider'
 import { BigNumber } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 import {
   commafy,
   sanitizeNumericalString,
@@ -119,12 +120,15 @@ export const useStyles = makeStyles(theme => ({
   },
   hopImage: {
     width: '30px'
-  }
+  },
+  stakingAprChainImage: {
+    width: '20px',
+  },
 }))
 
 function BalanceText(props: any) {
   const styles = useStyles()
-  const { balanceFormatted, balanceNum, balanceBn, onClick } = props
+  const { label, balanceFormatted, balanceNum, balanceBn, onClick } = props
 
   function handleClick (event: any) {
     event.preventDefault()
@@ -134,13 +138,26 @@ function BalanceText(props: any) {
     }
   }
 
+  const text = (
+    <Typography variant="body2" color="secondary">
+      <strong>{label || 'Balance'}: {balanceFormatted}</strong>
+    </Typography>
+  )
+
+  const showLink = !!onClick
+  if (showLink) {
+    return (
+      <Box>
+        <Link to="" onClick={handleClick} className={styles.balanceLink}>
+          {text}
+        </Link>
+      </Box>
+    )
+  }
+
   return (
     <Box>
-      <Link to="" onClick={handleClick} className={styles.balanceLink}>
-        <Typography variant="body2" color="secondary">
-          <strong>Balance: {balanceFormatted}</strong>
-        </Typography>
-      </Link>
+      {text}
     </Box>
   )
 }
@@ -701,6 +718,7 @@ function WithdrawForm(props: any) {
 }
 
 function StakeForm(props: any) {
+  const styles = useStyles()
   const {
     chainSlug,
     tokenSymbol,
@@ -708,16 +726,10 @@ function StakeForm(props: any) {
   } = props.data
   const {
     amount,
-    approveTokens,
-    canClaim,
     canWithdraw,
-    claim,
     depositedAmountFormatted,
-    earnedAmountFormatted,
     error,
     isApprovalNeeded,
-    isApproving,
-    isClaiming,
     isRewardsExpired,
     isStaking,
     isWithdrawing,
@@ -728,12 +740,12 @@ function StakeForm(props: any) {
     overallTotalRewardsPerDayFormatted,
     overallTotalStakedFormatted,
     rewardsTokenSymbol,
+    rewardsTokenImageUrl,
     setAmount,
     setError,
     stake,
+    stakingApr,
     stakingAprFormatted,
-    userRewardsPerDayFormatted,
-    userRewardsTotalUsdFormatted,
     walletConnected,
     warning,
     withdraw,
@@ -741,16 +753,10 @@ function StakeForm(props: any) {
 
   const isEmptyAmount = !Number(amount)
   const formDisabled = !walletConnected
-  const stakeButtonText = walletConnected ? 'Stake' : 'Connect Wallet'
-  const approveDisabled = formDisabled || isEmptyAmount || !isApprovalNeeded
+  const stakeButtonText = walletConnected ? 'Preview' : 'Connect Wallet'
   const stakeButtonDisabled = formDisabled || isEmptyAmount || isApprovalNeeded || !!warning
-  const claimButtonDisabled = formDisabled || !canClaim
   const withdrawButtonDisabled = formDisabled || !canWithdraw
-
-  function handleApproveClick (event: any) {
-    event.preventDefault()
-    approveTokens()
-  }
+  const showOverallStats = true
 
   function handleStakeClick (event: any) {
     event.preventDefault()
@@ -760,11 +766,6 @@ function StakeForm(props: any) {
   function handleWithdrawClick (event: any) {
     event.preventDefault()
     withdraw()
-  }
-
-  function handleClaimClick (event: any) {
-    event.preventDefault()
-    claim()
   }
 
   if (noStaking) {
@@ -777,65 +778,25 @@ function StakeForm(props: any) {
     )
   }
 
+  let stakingAprDisplay : any = ''
+  if (stakingApr > 0) {
+    stakingAprDisplay = (
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <Box mr={0.5} title="Boosted APR"><Bolt /></Box>
+        {!!rewardsTokenImageUrl && <Box ><img className={styles.stakingAprChainImage} src={rewardsTokenImageUrl} alt={rewardsTokenSymbol} title={rewardsTokenSymbol} /></Box>}
+        <Box ml={1}>{stakingAprFormatted}</Box>
+      </Box>
+    )
+  } else {
+    stakingAprDisplay = `${stakingAprFormatted} ${isRewardsExpired ? '(rewards ended)' : ''}`
+  }
+
   return (
     <Box>
       <Box mb={2}>
-        <Typography variant="h6">
-          {rewardsTokenSymbol} Rewards
-        </Typography>
-      </Box>
-      <Box mb={4}>
-        <Typography variant="subtitle1">
-          My deposits
-        </Typography>
-        <Typography>
-          LP Balance: {lpBalanceFormatted} {lpTokenSymbol}
-        </Typography>
-        <Typography>
-          Staked LP <InfoTooltip title="LP tokens that have been deposited to earn rewards" />: {depositedAmountFormatted}
-        </Typography>
-        <Typography>
-          Total <InfoTooltip title="The total worth of your staked LP position in USD" />: {userRewardsTotalUsdFormatted}
-        </Typography>
-        <Typography>
-          Rewards <InfoTooltip title="The rewards you're earning per day" />: {userRewardsPerDayFormatted}
-        </Typography>
-        <Typography>
-          Earned <InfoTooltip title="Rewards earned that are claimable" />: {earnedAmountFormatted}
-        </Typography>
-        <Box mt={2}>
-          <Box mb={1}>
-            <Button large highlighted fullWidth onClick={handleClaimClick} disabled={claimButtonDisabled} loading={isClaiming}>
-              Claim
-            </Button>
-          </Box>
-          <Box mb={1}>
-            <Button large highlighted fullWidth onClick={handleWithdrawClick} disabled={withdrawButtonDisabled} loading={isWithdrawing}>
-              Withdraw
-            </Button>
-          </Box>
-        </Box>
-      </Box>
-      <Box mb={2}>
-        <Typography variant="subtitle1">
-          Staking stats
-        </Typography>
-        <Typography>
-          APR <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />: {stakingAprFormatted} {isRewardsExpired ? '(rewards ended)' : ''}
-        </Typography>
-        <Typography>
-          Total Staked <InfoTooltip title="The total amount of LP tokens staked for rewards" />: {overallTotalStakedFormatted}
-        </Typography>
-        <Typography>
-          Total Rewards <InfoTooltip title="The total rewards being distributed per day" />: {overallTotalRewardsPerDayFormatted}
-        </Typography>
-      </Box>
-      <Box mb={1}>
-        <Typography variant="subtitle1">
-          Stake LP
-        </Typography>
-        <Box mb={1} display="flex" justifyContent="flex-end">
-          <BalanceText balanceFormatted={lpBalanceFormatted} balanceNum={lpBalance} onClick={setAmount} />
+        <Box mb={1} display="flex" justifyContent="space-between">
+          <BalanceText label="Staked" balanceFormatted={depositedAmountFormatted} />
+          <BalanceText label="Unstaked" balanceFormatted={lpBalanceFormatted} balanceNum={lpBalance} onClick={setAmount} />
         </Box>
         <InputField
           tokenSymbol={lpTokenSymbol}
@@ -844,15 +805,57 @@ function StakeForm(props: any) {
           disabled={formDisabled}
         />
       </Box>
-      <Box mb={1}>
-        <Button large highlighted fullWidth onClick={handleApproveClick} disabled={approveDisabled} loading={isApproving}>
-          Approve
-        </Button>
-      </Box>
-      <Box mb={1}>
+      {showOverallStats && (
+        <Box mb={1}>
+          <Box display="flex" justifyContent="space-between">
+            <Box>
+              <Typography variant="body1">
+                APR <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="body1">
+                {stakingAprDisplay}
+              </Typography>
+            </Box>
+          </Box>
+          <Box display="flex" justifyContent="space-between">
+            <Box>
+              <Typography variant="body1">
+                Total Staked <InfoTooltip title="The total amount of LP tokens staked for rewards" />
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="body1">
+                {overallTotalStakedFormatted}
+              </Typography>
+            </Box>
+          </Box>
+          <Box display="flex" justifyContent="space-between">
+            <Box>
+              <Typography variant="body1">
+                Total Rewards <InfoTooltip title="The total rewards being distributed per day" />
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="body1">
+                {overallTotalRewardsPerDayFormatted}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      )}
+      <Box mt={4} mb={1}>
         <Button large highlighted fullWidth onClick={handleStakeClick} disabled={stakeButtonDisabled} loading={isStaking}>
           {stakeButtonText}
         </Button>
+        {canWithdraw && (
+          <Box mt={4}>
+            <Button text fullWidth onClick={handleWithdrawClick} disabled={withdrawButtonDisabled} loading={isWithdrawing}>
+              Withdraw
+            </Button>
+          </Box>
+        )}
       </Box>
       <Box>
         <Alert severity="warning">{warning}</Alert>

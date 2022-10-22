@@ -4,7 +4,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { StakingRewards__factory, ERC20__factory } from '@hop-protocol/core/contracts'
 import { formatTokenDecimalString } from 'src/utils/format'
-import { findMatchingBridge, isRewardsExpired as isRewardsExpiredCheck, calculateStakedPosition, findNetworkBySlug, formatError } from 'src/utils'
+import { getTokenImage, findMatchingBridge, isRewardsExpired as isRewardsExpiredCheck, calculateStakedPosition, findNetworkBySlug, formatError } from 'src/utils'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { useApprove, useAsyncMemo, useEffectInterval } from 'src/hooks'
 import { usePoolStats } from './usePoolStats'
@@ -36,7 +36,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   const [isStaking, setIsStaking] = useState(false)
   const accountAddress = address?.address
   const pollIntervalMs = 5 * 1000
-  const lpTokenSymbol = `LP-${tokenSymbol}`
+  const lpTokenSymbol = `${tokenSymbol}-LP`
 
   const lpToken = useAsyncMemo(async () => {
     if (!(tokenSymbol && chainSlug)) {
@@ -364,17 +364,19 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
 
   const canClaim = earnedAmountBn.gt(0) ?? false
   const canWithdraw = depositedAmountBn.gt(0) ?? false
+  const stakingApr = getPoolStats(chainSlug, tokenSymbol)?.stakingApr ?? 0
   const stakingAprFormatted = getPoolStats(chainSlug, tokenSymbol)?.stakingAprFormatted ?? ''
   const lpBalanceFormatted = `${formatTokenDecimalString(userLpBalance, 18, 4)}`
   const lpBalance = Number(formatUnits(userLpBalance, 18))
   const earnedAmountFormatted = `${formatTokenDecimalString(earnedAmountBn, 18, 4)} ${rewardsTokenSymbol}`
-  const depositedAmountFormatted = `${formatTokenDecimalString(depositedAmountBn, 18, 4)} ${lpTokenSymbol}`
+  const depositedAmountFormatted = `${formatTokenDecimalString(depositedAmountBn, 18, 4)}`
   const userRewardsPerDayNumber = Number(formatUnits(userRewardsPerDayBn, 18))
   const userRewardsPerDayFormatted = `${userRewardsPerDayNumber < 0.001 && userRewardsPerDayBn.gt(0) ? '<0.001' : formatTokenDecimalString(userRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
   const userRewardsTotalUsdFormatted = `$${formatTokenDecimalString(userRewardsTotalUsd, 18, 4)}`
-  const overallTotalStakedFormatted = `${formatTokenDecimalString(overallTotalStakedBn, 18, 4)} ${lpTokenSymbol}`
+  const overallTotalStakedFormatted = `${formatTokenDecimalString(overallTotalStakedBn, 18, 4)}`
   const overallTotalRewardsPerDayFormatted = `${formatTokenDecimalString(overallRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
   const noStaking = !stakingContractAddress
+  const rewardsTokenImageUrl = getTokenImage(rewardsTokenSymbol)
 
   return {
     amount,
@@ -404,10 +406,12 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     overallTotalStakedFormatted,
     rewardsTokenAddress,
     rewardsTokenSymbol,
+    rewardsTokenImageUrl,
     setAmount,
     setError,
     stake,
     stakingContract,
+    stakingApr,
     stakingAprFormatted,
     userRewardsPerDayFormatted,
     userRewardsTotalUsdFormatted,

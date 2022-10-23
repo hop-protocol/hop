@@ -43,6 +43,7 @@ type PoolData = {
   apr7Day: number
   apr30Day: number
   stakingApr?: number
+  dailyVolume: number
 }
 
 type Data = { [token: string]: { [chain: string]: PoolData } }
@@ -80,10 +81,16 @@ class AprStats {
         if (chain === 'ethereum') {
           continue
         }
+        if (token === 'HOP') {
+          continue
+        }
         if (!bridges[token][chain]) {
           continue
         }
         if (bridges[token][chain].l2CanonicalToken === constants.AddressZero) {
+          continue
+        }
+        if (bridges[token][chain].l2SaddleSwap === constants.AddressZero) {
           continue
         }
         if (!data[token]) {
@@ -94,16 +101,25 @@ class AprStats {
             apr: 0,
             apr7Day: 0,
             apr30Day: 0,
-            stakingApr: 0
+            stakingApr: 0,
+            dailyVolume: 0
           }
         }
         promises.push(
-          this.getApr(token, chain)
+          this.getDailyVolume(token, chain)
+            .then(volume => {
+              console.log(`${chain}.${token} got daily volume`, volume)
+              data[token][chain].dailyVolume = volume
+            })
+            .catch(err => console.error(`daily volume ${chain} ${token} error:`, err))
+        )
+        promises.push(
+          this.getApr(token, chain, 1)
             .then(apr => {
-              console.log(`${chain}.${token} got apr`)
+              console.log(`${chain}.${token} got apr`, apr)
               data[token][chain].apr = apr
             })
-            .catch(err => console.error(err))
+            .catch(err => console.error(`apr 1 day ${chain} ${token} error:`, err))
         )
         promises.push(
           this.getApr(token, chain, 7)
@@ -111,7 +127,7 @@ class AprStats {
               console.log(`${chain}.${token} got apr 7 day`)
               data[token][chain].apr7Day = apr
             })
-            .catch(err => console.error(err))
+            .catch(err => console.error(`apr 7 day ${chain} ${token} error:`, err))
         )
         promises.push(
           this.getApr(token, chain, 30)
@@ -119,7 +135,7 @@ class AprStats {
               console.log(`${chain}.${token} got apr 30 day`)
               data[token][chain].apr30Day = apr
             })
-            .catch(err => console.error(err))
+            .catch(err => console.error(`apr 30 day ${chain} ${token} error:`, err))
         )
         promises.push(
           this.getStakingApr(token, chain)
@@ -129,7 +145,7 @@ class AprStats {
                 data[token][chain].stakingApr = apr
               }
             })
-            .catch(err => console.error(err))
+            .catch(err => console.error('staking apr 1 day error:', err))
         )
       }
     }
@@ -208,6 +224,13 @@ class AprStats {
     )
 
     return Number(formatUnits(aprBn.toString(), TOTAL_AMOUNTS_DECIMALS))
+  }
+
+  async getDailyVolume (token: string, chain: string) {
+    const bridge = this.sdk.bridge(token)
+    const amm = bridge.getAmm(chain)
+    const { volumeFormatted } = await amm.getDailyVolume()
+    return volumeFormatted
   }
 
   async isRewardsExpired (timestamp: BigNumber) {

@@ -748,6 +748,7 @@ const PoolsProvider: FC = ({ children }) => {
         return
       }
 
+      setIsDepositing(true)
       const chainSlug = selectedNetwork?.slug
       const signer = provider?.getSigner()
       const bridge = sdk.bridge(tokenSymbol).connect(signer as Signer)
@@ -895,6 +896,7 @@ const PoolsProvider: FC = ({ children }) => {
       console.error(err)
       setError(formatError(err))
     }
+    setIsDepositing(false)
   }
 
   async function unstakeAndRemoveLiquidity (amounts: any) {

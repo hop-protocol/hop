@@ -103,23 +103,23 @@ export const useStyles = makeStyles(theme => ({
       width: '100%'
     },
   },
-  hopRewards: {
+  claimRewards: {
     [theme.breakpoints.down('xs')]: {
       width: '90%'
     },
   },
-  hopRewardsBox: {
+  claimRewardsBox: {
     background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '1rem',
   },
-  hopRewardsFlex: {
+  claimRewardsFlex: {
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
       justifyContent: 'center',
       textAlign: 'center',
     },
   },
-  hopImage: {
+  stakingRewardsImage: {
     width: '30px'
   },
   stakingAprChainImage: {
@@ -130,7 +130,7 @@ export const useStyles = makeStyles(theme => ({
       flexDirection: 'column'
     },
   },
-  stakingTabButton: {
+  stakingTabButtonBox: {
     padding: '0.5rem 2.5rem',
     '&[data-selected="true"]': {
       borderRadius: '3rem',
@@ -209,27 +209,29 @@ function PoolEmptyState() {
   )
 }
 
-function HopRewardsClaim(props: any) {
+function StakingRewardsClaim(props: any) {
   const {
     chainSlug,
     tokenSymbol,
-    walletConnected,
-    hopStakingContractAddress
+    stakingContractAddress
   } = props.data
+  if (!stakingContractAddress) {
+    return null
+  }
   const styles = useStyles()
   const {
     canClaim,
     claim,
     isClaiming,
-    earnedAmountFormatted
-  } = useStaking(chainSlug, tokenSymbol, hopStakingContractAddress)
+    earnedAmountFormatted,
+    rewardsTokenSymbol,
+    rewardsTokenImageUrl,
+  } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
 
   function handleClaimClick(event: any) {
     event.preventDefault()
     claim()
   }
-
-  const hopLogo = metadata.tokens.HOP.image
 
   if (!canClaim) {
     return (
@@ -238,12 +240,12 @@ function HopRewardsClaim(props: any) {
   }
 
   return (
-    <Box mt={8} maxWidth="400px" width="100%" className={styles.hopRewards}>
-      <Box p={2} className={styles.hopRewardsBox}>
-        <Box display="flex" justifyItems="space-between" className={styles.hopRewardsFlex}>
+    <Box mt={8} maxWidth="400px" width="100%" className={styles.claimRewards}>
+      <Box p={2} className={styles.claimRewardsBox}>
+        <Box display="flex" justifyItems="space-between" className={styles.claimRewardsFlex}>
           <Box mr={2} display="flex" justifyContent="center" alignItems="center">
             <Box display="flex" justifyItems="center" alignItems="center">
-              <img className={styles.hopImage} src={hopLogo} alt='HOP' title='HOP' />
+              <img className={styles.stakingRewardsImage} src={rewardsTokenImageUrl} alt={rewardsTokenSymbol} title={rewardsTokenSymbol} />
             </Box>
           </Box>
           <Box width="100%">
@@ -282,7 +284,7 @@ function AccountPosition(props: any) {
     chainSlug,
     tokenSymbol,
     walletConnected,
-    hopStakingContractAddress
+    stakingContractAddress
   } = props.data
 
   return (
@@ -338,12 +340,14 @@ function AccountPosition(props: any) {
           </Box>
         </Box>
       </Box>
-      <HopRewardsClaim data={{
-          chainSlug,
-          tokenSymbol,
-          walletConnected,
-          hopStakingContractAddress
-      }} />
+      {!!stakingContractAddress && (
+        <StakingRewardsClaim data={{
+            chainSlug,
+            tokenSymbol,
+            walletConnected,
+            stakingContractAddress
+        }} />
+      )}
     </Box>
   )
 }
@@ -799,7 +803,7 @@ function StakeForm(props: any) {
     stakingAprDisplay = (
       <Box display="flex" justifyContent="center" alignItems="center">
         <Box mr={0.5} title="Boosted APR"><Bolt /></Box>
-        {!!rewardsTokenImageUrl && <Box ><img className={styles.stakingAprChainImage} src={rewardsTokenImageUrl} alt={rewardsTokenSymbol} title={rewardsTokenSymbol} /></Box>}
+        {!!rewardsTokenImageUrl && <Box display="flex"><img className={styles.stakingAprChainImage} src={rewardsTokenImageUrl} alt={rewardsTokenSymbol} title={rewardsTokenSymbol} /></Box>}
         <Box ml={1}>{stakingAprFormatted}</Box>
       </Box>
     )
@@ -823,7 +827,7 @@ function StakeForm(props: any) {
       </Box>
       {showOverallStats && (
         <Box mb={1}>
-          <Box display="flex" justifyContent="space-between">
+          <Box mb={2} display="flex" justifyContent="space-between">
             <Box>
               <Typography variant="body1">
                 APR <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />
@@ -835,7 +839,7 @@ function StakeForm(props: any) {
               </Typography>
             </Box>
           </Box>
-          <Box display="flex" justifyContent="space-between">
+          <Box mb={2} display="flex" justifyContent="space-between">
             <Box>
               <Typography variant="body1">
                 Total Staked <InfoTooltip title="The total amount of LP tokens staked for rewards" />
@@ -847,7 +851,7 @@ function StakeForm(props: any) {
               </Typography>
             </Box>
           </Box>
-          <Box display="flex" justifyContent="space-between">
+          <Box mb={1} display="flex" justifyContent="space-between">
             <Box>
               <Typography variant="body1">
                 Total Rewards <InfoTooltip title="The total rewards being distributed per day" />
@@ -1112,11 +1116,6 @@ export function PoolDetails () {
       rewardTokenSymbol,
       rewardTokenImageUrl: getTokenImage(rewardTokenSymbol),
     })
-    stakingRewards.push({
-      stakingContractAddress: hopStakingContractAddress,
-      rewardTokenSymbol: 'OP',
-      rewardTokenImageUrl: getTokenImage('OP')
-    })
   }
   if (stakingContractAddress) {
     const rewardTokenSymbol = chainSlug === 'gnosis' ? 'GNO' : (chainSlug === 'polygon' ? 'MATIC' : 'ETH')
@@ -1128,6 +1127,7 @@ export function PoolDetails () {
   }
 
   const stakingEnabled = stakingRewards.length > 0
+  const selectedStakingContractAddress = stakingRewards[selectedStaking]?.stakingContractAddress
 
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
@@ -1192,6 +1192,7 @@ export function PoolDetails () {
                       chainSlug,
                       tokenSymbol,
                       walletConnected,
+                      stakingContractAddress: selectedStakingContractAddress
                     }}
                   />
                   )}
@@ -1264,9 +1265,9 @@ export function PoolDetails () {
                     <>
                       {stakingEnabled && (
                         <>
-                        {stakingRewards.length > 1 && (
+                        {stakingRewards.length > 0 && (
                           <Box mb={2} display="flex" alignItems="center" className={styles.stakingTabsContainer}>
-                            <Box mr={2}>
+                            <Box>
                               <Typography variant="subtitle1">
                                 Earn
                               </Typography>
@@ -1274,9 +1275,14 @@ export function PoolDetails () {
                             <Tabs value={selectedStaking} onChange={handleStakingChange}>
                               {stakingRewards.map((stakingReward, index) => {
                                 const value = index.toString()
+                                const selected = selectedStaking === value
                                 return (
-                                  <Tab label={<Box style={{ paddingLeft: '1rem', paddingBottom: '1rem' }}>
-                                  <Box display="flex" alignItems="center" data-selected={selectedStaking === value} className={styles.stakingTabButton}>
+                                  <Tab label={<Box style={{
+                                    paddingLeft: '1rem',
+                                    paddingBottom: '1rem',
+                                    transition: 'translate(0, 5px)',
+                                  }} >
+                                  <Box display="flex" alignItems="center" data-selected={selected} className={styles.stakingTabButtonBox}>
                                     <Box mr={0.5} display="flex" justifyItems="center" alignItems="center">
                                       <img className={styles.stakingTabImage} src={stakingReward.rewardTokenImageUrl} alt={stakingReward.rewardTokenSymbol} title={stakingReward.rewardTokenSymbol} />
                                     </Box>

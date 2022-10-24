@@ -23,6 +23,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import SelectOption from 'src/components/selects/SelectOption'
 import { Slider } from 'src/components/slider'
 import { BigNumber } from 'ethers'
+import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 import {
@@ -103,9 +104,16 @@ export const useStyles = makeStyles(theme => ({
       width: '100%'
     },
   },
+  tabs: {
+    [theme.breakpoints.down('xs')]: {
+      margin: '0 auto'
+    },
+  },
   claimRewards: {
     [theme.breakpoints.down('xs')]: {
-      width: '90%'
+      width: '90%',
+      marginLeft: 'auto',
+      marginRight: 'auto',
     },
   },
   claimRewardsBox: {
@@ -669,7 +677,9 @@ function WithdrawForm(props: any) {
         <RaisedSelect value={selection.value} onChange={handleSelection}>
           {selections.map((item: any) => (
             <MenuItem value={item.value} key={item.label}>
-              <SelectOption value={item.label} icon={item.icon} label={item.label} />
+              <SelectOption value={item.label} icon={
+                <TokenIcon src={item.icon} alt={item.label} />
+              } label={item.label} />
             </MenuItem>
           ))}
         </RaisedSelect>
@@ -756,6 +766,7 @@ function StakeForm(props: any) {
     lpBalanceFormatted,
     lpBalance,
     lpTokenSymbol,
+    lpTokenImageUrl,
     noStaking,
     overallTotalRewardsPerDayFormatted,
     overallTotalStakedFormatted,
@@ -820,6 +831,7 @@ function StakeForm(props: any) {
         </Box>
         <InputField
           tokenSymbol={lpTokenSymbol}
+          tokenImageUrl={lpTokenImageUrl}
           value={amount}
           onChange={setAmount}
           disabled={formDisabled}
@@ -1204,7 +1216,7 @@ export function PoolDetails () {
               </Box>
             </Box>
             <Box width="50%" className={styles.poolDetailsBox}>
-              <Tabs value={selectedTab} onChange={handleTabChange} style={{ width: 'max-content' }} variant="scrollable">
+              <Tabs value={selectedTab} onChange={handleTabChange} className={styles.tabs} style={{ width: 'max-content' }} variant="scrollable">
                 <Tab label="Deposit" value="deposit" />
                 <Tab label="Withdraw" value="withdraw" />
                 <Tab label="Stake" value="stake" />
@@ -1277,7 +1289,7 @@ export function PoolDetails () {
                                 const value = index.toString()
                                 const selected = selectedStaking === value
                                 return (
-                                  <Tab label={<Box style={{
+                                  <Tab key={stakingReward.rewardTokenSymbol} label={<Box style={{
                                     paddingLeft: '1rem',
                                     paddingBottom: '1rem',
                                     transition: 'translate(0, 5px)',

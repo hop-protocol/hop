@@ -143,7 +143,7 @@ export function PoolRow (props: Props) {
               {stakingRewards.length > 0 ? <Box ml={0.5} display="flex">
                 {stakingRewards.map((x: any, i: number) => {
                   return (
-                    <img className={styles.stakingAprChainImage} src={x.imageUrl} alt={x.name} title={x.name} style={{
+                    <img key={x.name} className={styles.stakingAprChainImage} src={x.imageUrl} alt={x.name} title={x.name} style={{
                       transform: `translateX(-${8 * i}px)`
                     }} />
                   )

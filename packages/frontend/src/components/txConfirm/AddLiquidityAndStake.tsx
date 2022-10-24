@@ -3,12 +3,10 @@ import Button from 'src/components/buttons/Button'
 import Box from '@material-ui/core/Box'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
+import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
 
 const useStyles = makeStyles(() => ({
   root: {
-  },
-  image: {
-    width: '24px'
   },
   label: {
     'white-space': 'nowrap'
@@ -62,7 +60,7 @@ export function AddLiquidityAndStake (props: Props) {
           <Box display="flex" alignItems="center">
             {!!token0ImageUrl && (
               <Box mr={1} display="flex" alignItems="center">
-                <img className={styles.image} src={token0ImageUrl} alt={token0Symbol} title={token0Symbol} />
+                <TokenIcon width="24px" src={token0ImageUrl} alt={token0Symbol} title={token0Symbol} />
               </Box>
             )}
             <Box mr={1} display="flex" alignItems="center">
@@ -81,7 +79,7 @@ export function AddLiquidityAndStake (props: Props) {
           <Box display="flex" alignItems="center">
             {!!token1ImageUrl && (
               <Box mr={1} display="flex" alignItems="center">
-                <img className={styles.image} src={token1ImageUrl} alt={token1Symbol} title={token1Symbol} />
+                <TokenIcon width="24px" src={token1ImageUrl} alt={token1Symbol} title={token1Symbol} />
               </Box>
             )}
             <Box mr={1} display="flex" alignItems="center">

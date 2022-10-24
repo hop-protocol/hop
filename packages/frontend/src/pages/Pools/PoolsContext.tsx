@@ -857,7 +857,7 @@ const PoolsProvider: FC = ({ children }) => {
 
           if (stake) {
             txList.push({
-              label: `Approve ${tokenSymbol}-LP`,
+              label: `Approve ${lpTokenSymbol}`,
               fn: async () => {
                 const amount = await getDepositedLpTokens.fn()
                 if (amount.gt(0)) {
@@ -870,7 +870,7 @@ const PoolsProvider: FC = ({ children }) => {
               }
             })
             txList.push({
-              label: `Stake ${tokenSymbol}-LP`,
+              label: `Stake ${lpTokenSymbol}`,
               fn: async () => {
                 const amount = await getDepositedLpTokens.fn()
                 if (amount.gt(0)) {
@@ -959,7 +959,7 @@ const PoolsProvider: FC = ({ children }) => {
           if (unstake) {
             if (lpBalanceStaked.gt(0)) {
               txList.push({
-                label: `Unstake ${tokenSymbol}-LP`,
+                label: `Unstake ${lpTokenSymbol}`,
                 fn: async () => {
                   return stakingContract.connect(signer).withdraw(lpBalanceStaked)
                 }
@@ -968,7 +968,7 @@ const PoolsProvider: FC = ({ children }) => {
           }
 
           txList.push({
-            label: `Approve ${tokenSymbol}-LP`,
+            label: `Approve ${lpTokenSymbol}`,
             fn: async () => {
               const balance = await lpToken.balanceOf()
               const allowance = await lpToken.allowance(saddleSwap.address)
@@ -980,7 +980,7 @@ const PoolsProvider: FC = ({ children }) => {
 
           if (proportional) {
             txList.push({
-              label: `Withdraw ${tokenSymbol}-LP`,
+              label: `Withdraw ${lpTokenSymbol}`,
               fn: async () => {
                 const balance = await lpToken.balanceOf()
                 const liquidityTokenAmount = balance.mul(amountPercent).div(100)
@@ -1015,7 +1015,7 @@ const PoolsProvider: FC = ({ children }) => {
             })
           } else {
             txList.push({
-              label: `Withdraw ${tokenSymbol}-LP`,
+              label: `Withdraw ${lpTokenSymbol}`,
               fn: async () => {
               const balance = await lpToken.balanceOf()
               const amount18d = shiftBNDecimals(amount, lpTokenDecimals - tokenDecimals)
@@ -1307,14 +1307,14 @@ const PoolsProvider: FC = ({ children }) => {
   const token1BalanceFormatted = commafy(token1Balance, 4)
   const depositAmountTotal = (Number(token0Amount || 0) + Number(token1Amount || 0))
   const depositAmountTotalUsd = (tokenUsdPrice && depositAmountTotal) ? depositAmountTotal * tokenUsdPrice : 0
-  const depositAmountTotalDisplayFormatted = depositAmountTotalUsd ? `$${commafy(depositAmountTotalUsd, 2)}` : `${commafy(depositAmountTotal, 2)}`
+  const depositAmountTotalDisplayFormatted = depositAmountTotalUsd ? `$${commafy(depositAmountTotalUsd, 2)}` : (depositAmountTotal ? `${commafy(depositAmountTotal, 2)}` : '-')
   const chainSlug = selectedNetwork?.slug ?? ''
   const volume = getPoolStats(chainSlug, tokenSymbol)?.dailyVolume ?? 0
   const volumeUsd = tokenUsdPrice ? volume * tokenUsdPrice : 0
   const volumeUsdFormatted = volumeUsd ? `$${commafy(volumeUsd, 2)}` : '-'
 
   const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
-  const { lpToken, stakingContractAddress, stakingContract } = useStaking(chainSlug, tokenSymbol, hopStakingContractAddress)
+  const { lpToken, lpTokenSymbol, stakingContractAddress, stakingContract } = useStaking(chainSlug, tokenSymbol, hopStakingContractAddress)
 
   async function removeLiquiditySimple(amounts: any) {
     try {

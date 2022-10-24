@@ -2,6 +2,7 @@ import React from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
+import { TokenIcon } from './TokenIcon'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -23,9 +24,6 @@ export const useStyles = makeStyles(theme => ({
     background: 'none',
     color: theme.palette.text.primary,
   },
-  image: {
-    width: '24px'
-  }
 }))
 
 export function InputField (props: any) {
@@ -49,7 +47,7 @@ export function InputField (props: any) {
       <Box display="flex" alignItems="center">
         {!!tokenImageUrl && (
           <Box mr={1} display="flex" alignItems="center">
-            <img className={styles.image} src={tokenImageUrl} alt={tokenSymbol} title={tokenSymbol} />
+            <TokenIcon src={tokenImageUrl} alt={tokenSymbol} title={tokenSymbol} width="24px" />
           </Box>
         )}
         <Box mr={1} display="flex" alignItems="center">

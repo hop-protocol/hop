@@ -37,6 +37,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   const accountAddress = address?.address
   const pollIntervalMs = 5 * 1000
   const lpTokenSymbol = `${tokenSymbol}-LP`
+  const lpTokenImageUrl = getTokenImage(tokenSymbol)
 
   const lpToken = useAsyncMemo(async () => {
     if (!(tokenSymbol && chainSlug)) {
@@ -446,7 +447,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   const overallTotalStakedFormatted = `${formatTokenDecimalString(overallTotalStakedBn, 18, 4)}`
   const overallTotalRewardsPerDayFormatted = `${formatTokenDecimalString(overallRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
   const noStaking = !stakingContractAddress
-  const rewardsTokenImageUrl = getTokenImage(rewardsTokenSymbol)
+  const rewardsTokenImageUrl = rewardsTokenSymbol ? getTokenImage(rewardsTokenSymbol) : ''
 
   return {
     amount,
@@ -470,6 +471,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     lpBalanceFormatted,
     lpBalance,
     lpTokenSymbol,
+    lpTokenImageUrl,
     noStaking,
     overallTotalRewardsPerDayFormatted,
     overallTotalStakedBn,

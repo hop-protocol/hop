@@ -11,7 +11,11 @@ export const useStyles = makeStyles(theme => ({
   box: {
     boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
-    borderRadius: '3rem'
+    borderRadius: '3rem',
+    [theme.breakpoints.down('xs')]: {
+      paddingLeft: '1rem',
+      paddingRight: '1rem'
+    },
   },
   table: {
     width: '100%',
@@ -142,7 +146,7 @@ export function PoolsOverview () {
         </Box>
       )}
       <Box className={styles.box} p={4}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} overflow="auto">
           <Box p={1} textAlign="left">
             <Typography variant="h5">
               <Box display="flex" alignItems="center">

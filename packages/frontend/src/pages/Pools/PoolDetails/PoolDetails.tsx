@@ -710,7 +710,7 @@ function WithdrawForm(props: any) {
         <Box>
           <Box mb={1} display="flex" justifyContent="space-between">
             <Typography variant="subtitle2" color="textPrimary">
-              Withdraw only {selectedTokenSymbol}
+              Withdraw the amount to {selectedTokenSymbol}
             </Typography>
             <BalanceText balanceFormatted={maxBalanceFormatted} balanceBn={maxBalance} onClick={handleMaxClick} />
           </Box>

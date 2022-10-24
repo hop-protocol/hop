@@ -1,28 +1,14 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useApp } from 'src/contexts/AppContext'
 import { addresses } from 'src/config'
 import { commafy, toPercentDisplay } from 'src/utils'
 import { findNetworkBySlug } from 'src/utils/networks'
+import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 
 export function usePoolStats () {
   const { sdk } = useApp()
   const [poolStats, setPoolStats] = useState<any>({})
 
-  function normalizeTokenSymbol(symbol: string) {
-    if (symbol === 'WETH') {
-      symbol = 'ETH'
-    }
-    if (symbol === 'XDAI') {
-      symbol = 'DAI'
-    }
-    if (symbol === 'WXDAI') {
-      symbol = 'DAI'
-    }
-    if (symbol === 'WMATIC') {
-      symbol = 'MATIC'
-    }
-    return symbol
-  }
 
   function getPoolStats(chain: string, token: string) {
     token = normalizeTokenSymbol(token)

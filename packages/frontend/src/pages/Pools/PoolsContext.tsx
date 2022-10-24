@@ -1073,8 +1073,11 @@ const PoolsProvider: FC = ({ children }) => {
   }
 
   const calculateRemoveLiquidityPriceImpactFn = (balance: BigNumber) => {
-    const bridge = sdk.bridge(canonicalToken!.symbol)
-    const amm = bridge.getAmm(selectedNetwork!.slug)
+    if (!(canonicalToken && selectedNetwork)) {
+      return async () => { }
+    }
+    const bridge = sdk.bridge(canonicalToken.symbol)
+    const amm = bridge.getAmm(selectedNetwork.slug)
     return (amounts: any) => {
       if (!balance) {
         return 0

@@ -10,7 +10,6 @@ import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
 import MuiLink from '@material-ui/core/Link'
-import ArrowLeft from '@material-ui/icons/ChevronLeft'
 import LaunchIcon from '@material-ui/icons/Launch'
 import { DinoGame } from './DinoGame'
 import Tabs from '@material-ui/core/Tabs'
@@ -34,13 +33,21 @@ import {
   getTokenImage
 } from 'src/utils'
 import { useStaking } from '../useStaking'
-import { stakingRewardsContracts, hopStakingRewardsContracts, metadata, reactAppNetwork } from 'src/config'
+import { stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
 import TokenWrapper from 'src/components/TokenWrapper'
 
 export const useStyles = makeStyles(theme => ({
   backLink: {
     cursor: 'pointer',
     textDecoration: 'none'
+  },
+  backLinkIcon: {
+    fontSize: '5rem',
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   balanceLink: {
     cursor: 'pointer',
@@ -1143,28 +1150,30 @@ export function PoolDetails () {
 
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
-      <Box mb={4} display="flex" alignItems="center">
-        <Box display="flex" alignItems="center">
-          <Link to={'/pools'} className={styles.backLink}>
-            <IconButton>
-              <ArrowLeft fontSize={'large'} />
-            </IconButton>
-          </Link>
-        </Box>
-        <Box display="flex">
-          <Box mr={2}>
-            <Box className={styles.imageContainer}>
-              <img className={styles.chainImage} src={chainImageUrl} alt={chainName} title={chainName} />
-              <img className={styles.tokenImage} src={tokenImageUrl} alt={tokenSymbol} title={tokenSymbol} />
+      <Link to={'/pools'} className={styles.backLink}>
+        <Box mb={4} display="flex" alignItems="center">
+          <Box display="flex" alignItems="center">
+              <IconButton title="Go back to pools overview">
+                <Typography variant="body1" color="secondary" className={styles.backLinkIcon}>
+                ‹
+                </Typography>
+              </IconButton>
+          </Box>
+          <Box display="flex">
+            <Box mr={2}>
+              <Box className={styles.imageContainer}>
+                <img className={styles.chainImage} src={chainImageUrl} alt={chainName} title={chainName} />
+                <img className={styles.tokenImage} src={tokenImageUrl} alt={tokenSymbol} title={tokenSymbol} />
+              </Box>
+            </Box>
+            <Box display="flex" alignItems="center">
+              <Typography variant="h4">
+                {poolName}
+              </Typography>
             </Box>
           </Box>
-          <Box display="flex" alignItems="center">
-            <Typography variant="h4">
-              {poolName}
-            </Typography>
-          </Box>
         </Box>
-      </Box>
+      </Link>
       <TopPoolStats
         data={{
           tvlFormatted,

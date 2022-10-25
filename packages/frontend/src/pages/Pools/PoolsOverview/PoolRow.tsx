@@ -73,7 +73,6 @@ type Data = {
   totalApr: number
   totalAprFormatted: string
   userBalanceUsdFormatted: string
-  hopRewardsStakedUsdFormatted: string
   userBalanceTotalUsdFormatted: string
   depositLink: string
   canClaim: boolean

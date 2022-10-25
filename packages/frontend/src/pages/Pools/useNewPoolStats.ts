@@ -88,6 +88,8 @@ export function usePoolStats () {
               throw new Error(`expected apr value for token "${symbol}" and network "${chain}"`)
             }
 
+            const stakingRewardTokens = new Set<any>([])
+
             const _stakingStatsObj : any = {}
             let stakingApr = 0
             for (const _token in _stakingStats) {
@@ -97,6 +99,10 @@ export function usePoolStats () {
                   const _value = _stakingStats[_token][_chain][_address]
                   _stakingStatsObj[key] = _value
                   stakingApr = Math.max(stakingApr, _value.apr)
+
+                  if (chain === _chain && token === _token) {
+                    stakingRewardTokens.add(_value.rewardToken)
+                  }
                 }
               }
             }
@@ -114,6 +120,7 @@ export function usePoolStats () {
             pool.stakingAprChain = findNetworkBySlug(chain)!
             pool.dailyVolume = dailyVolume
             pool.dailyVolumeFormatted = dailyVolume ? `${commafy(dailyVolume, 2)}` : '-'
+            pool.stakingRewardTokens = Array.from(stakingRewardTokens)
           } catch (err) {
             console.error('pool stats error:', err)
 
@@ -121,6 +128,7 @@ export function usePoolStats () {
             pool.stakingAprFormatted = toPercentDisplay(0)
             pool.totalAprFormatted = toPercentDisplay(0)
             pool.dailyVolumeFormatted = '-'
+            pool.stakingRewardTokens = []
           }
         }
       }

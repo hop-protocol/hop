@@ -86,6 +86,27 @@ const stakingRewardsContracts = {
   }
 }
 
+export const stakingRewardTokens = {
+  mainnet: {
+    polygon: {
+      '0x7bceda1db99d64f25efa279bb11ce48e15fda427': 'MATIC',
+      '0x7deebcad1416110022f444b03aeb1d20eb4ea53f': 'MATIC',
+      '0x4aeb0b5b1f3e74314a7fa934db090af603e8289b': 'MATIC',
+      '0x2c2ab81cf235e86374468b387e241df22459a265': 'MATIC',
+      '0x07932e9a5ab8800922b2688fb1fa0daad8341772': 'MATIC',
+    },
+    gnosis: {
+      '0xc61ba16e864efbd06a9fe30aab39d18b8f63710a': 'GNO',
+      '0x12a3a66720dd925fa93f7c895bc20ca9560adfe7': 'GNO',
+      '0x5d13179c5fa40b87d53ff67ca26245d3d5b2f872': 'GNO',
+      '0x2c2ab81cf235e86374468b387e241df22459a265': 'GNO',
+    },
+    optimism: {
+      '0x09992dd7b32f7b35d347de9bdaf1919a57d38e82': 'OP'
+    }
+  }
+}
+
 const rewardTokenAddresses = {
   mainnet: {
     WMATIC: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',

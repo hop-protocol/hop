@@ -1,1 +1,1 @@
-export { PoolsOverview } from './PoolsOverview'
+export { PoolsOverview as default } from './PoolsOverview'

@@ -33,10 +33,10 @@ Run bonder profit stats worker only
 ts-node src/index.ts --bonderProfit --bonderDays=30 --bonderTokens=USDC
 ```
 
-Run apr worker
+Run yields worker
 
 ```sh
-ts-node src/index.ts --apr
+ts-node src/index.ts --yields
 ```
 
 Run volume worker

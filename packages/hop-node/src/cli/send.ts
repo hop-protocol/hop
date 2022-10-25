@@ -67,10 +67,21 @@ async function sendNativeToken (
     throw new Error('not enough token balance to send')
   }
 
-  logger.debug(`attempting to send ${amount} to ${recipient} on ${chain}`)
+  let bridge: any
+  let txOverrides: any = {}
+  if (chain === Chain.Polygon) {
+    const tokenContracts = contracts.get('ETH', Chain.Polygon)
+    if (!tokenContracts) {
+      throw new Error('token contracts not found')
+    }
+    bridge = new L2Bridge(tokenContracts.l2Bridge)
+    txOverrides = await bridge.txOverrides()
+  }
+  logger.debug(`sendNativeToken: attempting to send ${amount} to ${recipient} on ${chain}`)
   const tx = await wallet.sendTransaction({
     value: parsedAmount,
-    to: recipient
+    to: recipient,
+    ...txOverrides
   })
   logger.info(`send tx: ${tx.hash}`)
   await tx.wait()
@@ -144,7 +155,7 @@ async function transferTokens (
   }
 
   const formattedAmount = (await (instance.formatUnits(parsedAmount))).toString()
-  logger.debug(`attempting to send ${formattedAmount} ${label} to ${recipient}`)
+  logger.debug(`transferTokens: attempting to send ${formattedAmount} ${label} to ${recipient}`)
   const tx = await instance.transfer(recipient, parsedAmount)
   logger.info(`transfer tx: ${tx.hash}`)
   await tx.wait()
@@ -223,7 +234,7 @@ async function sendTokens (
   }
 
   const formattedAmount = (await bridge.formatUnits(parsedAmount)).toString()
-  logger.debug(`attempting to send ${formattedAmount} ${label} ⟶  ${toChain} to ${recipient}`)
+  logger.debug(`sendTokens: attempting to send ${formattedAmount} ${label} ⟶  ${toChain} to ${recipient}`)
   const destinationChainId = chainSlugToId(toChain)
   if (fromChain === Chain.Ethereum) {
     if (isHToken) {

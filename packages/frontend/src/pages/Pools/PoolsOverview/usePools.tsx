@@ -9,7 +9,7 @@ import { findNetworkBySlug } from 'src/utils/networks'
 import { getTokenImage } from 'src/utils/tokens'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { StakingRewards__factory } from '@hop-protocol/core/contracts'
-import { usePoolStats } from '../usePoolStats'
+import { usePoolStats } from '../useNewPoolStats'
 
 const cache : any = {}
 

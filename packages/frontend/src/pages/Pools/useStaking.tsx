@@ -7,12 +7,12 @@ import { formatTokenDecimalString } from 'src/utils/format'
 import { commafy, getTokenImage, findMatchingBridge, isRewardsExpired as isRewardsExpiredCheck, calculateStakedPosition, findNetworkBySlug, formatError } from 'src/utils'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { useApprove, useAsyncMemo, useEffectInterval } from 'src/hooks'
-import { usePoolStats } from './usePoolStats'
+import { usePoolStats } from './useNewPoolStats'
 
 export function useStaking (chainSlug: string, tokenSymbol: string, stakingContractAddress: string) {
   const { bridges, sdk, txConfirm } = useApp()
   const { checkConnectedNetworkId, walletConnected, address } = useWeb3Context()
-  const { getPoolStats } = usePoolStats()
+  const { getStakingStats } = usePoolStats()
   const [amount, setAmount] = useState<string>('')
   const [error, setError] = useState<any>(null)
   const [loading, setIsLoading] = useState(false)
@@ -135,6 +135,10 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   }, [chainSlug, rewardsTokenAddress, sdk])
 
   useEffect(() => {
+    setIsLoading(true)
+  }, [rewardsTokenAddress])
+
+  useEffect(() => {
     async function update () {
       if (sdk && chainSlug && stakingTokenAddress) {
         const _provider = sdk.getChainProvider(chainSlug)
@@ -151,7 +155,6 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   useEffect(() => {
     async function update () {
       if (chainSlug && rewardsTokenContract) {
-        setIsLoading(true)
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const _symbol = await rewardsTokenContract.connect(_provider).symbol()
         setRewardsTokenSymbol(_symbol)
@@ -165,7 +168,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
 
   useEffectInterval(() => {
     async function update() {
-      if (chainSlug && stakingContract) {
+      if (chainSlug && stakingContract && rewardRateBn.gt(0)) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const timestamp = await stakingContract.connect(_provider).periodFinish()
         const _isExpired = isRewardsExpiredCheck(timestamp)
@@ -175,7 +178,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       }
     }
     update().catch(console.error)
-  }, [stakingContract, chainSlug], pollIntervalMs)
+  }, [stakingContract, chainSlug, rewardRateBn], pollIntervalMs)
 
   useEffectInterval(() => {
     async function update() {
@@ -218,20 +221,24 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
 
   useEffectInterval(() => {
     async function update() {
-      if (chainSlug && stakingContract && !isRewardsExpired) {
+      if (chainSlug && stakingContract) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const rewardRate = await stakingContract.connect(_provider).rewardRate()
         setRewardRateBn(rewardRate)
-        const oneDaySeconds = 86400
-        const _rewardsPerDay = rewardRate.mul(oneDaySeconds)
-        setOverallRewardsPerDayBn(_rewardsPerDay)
+        if (rewardRate.gt(0)) {
+          const oneDaySeconds = 86400
+          const _rewardsPerDay = rewardRate.mul(oneDaySeconds)
+          setOverallRewardsPerDayBn(_rewardsPerDay)
+        } else {
+          setOverallRewardsPerDayBn(BigNumber.from(0))
+        }
       } else {
         setRewardRateBn(BigNumber.from(0))
         setOverallRewardsPerDayBn(BigNumber.from(0))
       }
     }
     update().catch(console.error)
-  }, [stakingContract, isRewardsExpired, chainSlug], pollIntervalMs)
+  }, [stakingContract, chainSlug], pollIntervalMs)
 
   useEffectInterval(() => {
     async function update() {
@@ -471,8 +478,10 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
 
   const canClaim = earnedAmountBn.gt(0) ?? false
   const canWithdraw = depositedAmountBn.gt(0) ?? false
-  const stakingApr = loading ? '-' : getPoolStats(chainSlug, tokenSymbol)?.stakingApr ?? 0
-  const stakingAprFormatted = getPoolStats(chainSlug, tokenSymbol)?.stakingAprFormatted ?? ''
+  const stakingApr = getStakingStats(chainSlug, tokenSymbol, stakingContractAddress)?.stakingApr ?? 0
+  const stakingAprFormatted = useMemo(() => {
+    return getStakingStats(chainSlug, tokenSymbol, stakingContractAddress)?.stakingAprFormatted ?? ''
+  }, [chainSlug, tokenSymbol, stakingContractAddress])
   const lpBalanceFormatted = `${formatTokenDecimalString(userLpBalance, 18, 4)}`
   const lpBalance = Number(formatUnits(userLpBalance, 18))
   const earnedAmountFormatted = `${commafy(formatUnits(earnedAmountBn.toString(), 18), 5)} ${rewardsTokenSymbol}`
@@ -480,11 +489,11 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   const userRewardsPerDayNumber = Number(formatUnits(userRewardsPerDayBn, 18))
   const userRewardsPerDayFormatted = `${userRewardsPerDayNumber < 0.001 && userRewardsPerDayBn.gt(0) ? '<0.001' : formatTokenDecimalString(userRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
   const userRewardsTotalUsdFormatted = `$${formatTokenDecimalString(userRewardsTotalUsd, 18, 4)}`
-  const overallTotalStakedFormatted = loading ? '-' : `${formatTokenDecimalString(overallTotalStakedBn, 18, 4)}`
-  const overallTotalRewardsPerDayFormatted = loading ? '-' : `${formatTokenDecimalString(overallRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
+  const overallTotalStakedFormatted = `${formatTokenDecimalString(overallTotalStakedBn, 18, 4)}`
+  const overallTotalRewardsPerDayFormatted = `${formatTokenDecimalString(overallRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
   const noStaking = !stakingContractAddress
   const rewardsTokenImageUrl = rewardsTokenSymbol ? getTokenImage(rewardsTokenSymbol) : ''
-  const isActive = !loading && rewardRateBn.gt(0)
+  const isActive = rewardRateBn.gt(0)
 
   return {
     isActive,

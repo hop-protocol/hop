@@ -45,7 +45,7 @@ At the moment we're only considering bug fixes and small improvements. If you ha
 
 ### Release process
 
-Releases are cut automatically from the `production` branch according to the [release workflow](./.github/workflows/deploy.yaml).
+Releases are cut automatically from the `production` branch according to the [release workflow](./.github/workflows/deploy.yml).
 
 Fix pull requests should be merged whenever ready and tested.
 

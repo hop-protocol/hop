@@ -61,7 +61,6 @@ const LoadingWrapper: any = styled.div<any>`
       background-color: grey;
     `
   }};
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   animation: ${({ load }) =>
     load
       ? css`

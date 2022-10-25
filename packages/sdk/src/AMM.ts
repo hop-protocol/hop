@@ -1,5 +1,5 @@
 import Base, { ChainProviders } from './Base'
-import BlockDater from 'ethereum-block-by-date'
+import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
 import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
@@ -349,18 +349,17 @@ class AMM extends Base {
     return Number(formatUnits(swapFee.toString(), poolFeePrecision))
   }
 
-  public async getAprForDay (unixTimestamp: number): Promise<any> {
+  public async getYieldStatsForDay (unixTimestamp: number): Promise<any> {
+    if (this.tokenSymbol === 'HOP') {
+      throw new Error('getYieldStatsForDay: Unsupported, there is no AMM for HOP token.')
+    }
     const token = this.toTokenModel(this.tokenSymbol)
     const provider = this.chain.provider
     const saddleSwap = await this.getSaddleSwap()
 
-    const blockDater = new BlockDater(provider)
-    const date = DateTime.fromSeconds(unixTimestamp)
-    const info = await blockDater.getDate(date.toJSDate())
-    if (!info) {
-      throw new Error('could not retrieve block number from timestamp')
-    }
-    const endBlockNumber = info.block - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
+    const date = DateTime.fromSeconds(unixTimestamp).toJSDate()
+    let endBlockNumber = await getBlockNumberFromDate(provider, date)
+    endBlockNumber = endBlockNumber - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
     const callOverrides = {
       blockTag: endBlockNumber
@@ -372,15 +371,10 @@ class AMM extends Base {
       saddleSwap.swapStorage(callOverrides)
     ])
 
-    const startBlockDater = new BlockDater(provider)
     const startDate = DateTime.fromSeconds(unixTimestamp)
       .minus({ days: 1 })
       .toJSDate()
-    const startInfo = await startBlockDater.getDate(startDate)
-    if (!startInfo) {
-      throw new Error('could not retrieve block number from 24 hours ago')
-    }
-    let startBlockNumber = startInfo.block
+    let startBlockNumber = await getBlockNumberFromDate(provider, startDate)
 
     const tokenSwapEvents: any[] = []
     const perBatch = 1000
@@ -408,6 +402,7 @@ class AMM extends Base {
     const FEE_DENOMINATOR = '10000000000' // 10**10
     const decimals = token.decimals
 
+    let totalVolume = BigNumber.from(0)
     let totalFees = BigNumber.from(0)
     for (const event of tokenSwapEvents) {
       const tokensSold = event.args.tokensSold
@@ -416,6 +411,8 @@ class AMM extends Base {
           .mul(BigNumber.from(basisPoints))
           .div(BigNumber.from(FEE_DENOMINATOR))
       )
+
+      totalVolume = totalVolume.add(tokensSold)
     }
 
     const totalLiquidity = reserve0.add(reserve1)
@@ -423,11 +420,30 @@ class AMM extends Base {
       formatUnits(totalLiquidity, decimals)
     )
     const totalFeesFormatted = Number(formatUnits(totalFees, decimals))
+    const totalVolumeFormatted = Number(formatUnits(totalVolume, decimals))
 
-    return { totalFeesFormatted, totalLiquidityFormatted }
+    return { totalFeesFormatted, totalLiquidityFormatted, totalVolume, totalVolumeFormatted }
+  }
+
+  public async getDailyVolume () {
+    const { volume, volumeFormatted } = await this.getYieldData()
+    return {
+      volume,
+      volumeFormatted
+    }
   }
 
   public async getApr (days: number = 1) {
+    const { apr } = await this.getYieldData(days)
+    return apr
+  }
+
+  public async getApy (days: number = 1) {
+    const { apy } = await this.getYieldData(days)
+    return apy
+  }
+
+  public async getYieldData (days: number = 1) {
     if (![1, 7, 30].includes(days)) {
       throw new Error('invalid arg: valid days are: 1, 7, 30')
     }
@@ -439,16 +455,34 @@ class AMM extends Base {
       .minus({ days })
       .toSeconds()
 
-    const { totalFeesFormatted: feesEarnedToday, totalLiquidityFormatted: totalLiquidityToday } = await this.getAprForDay(endTimestamp)
+    const {
+      totalFeesFormatted: feesEarnedToday,
+      totalLiquidityFormatted: totalLiquidityToday,
+      totalVolume,
+      totalVolumeFormatted
+    } = await this.getYieldStatsForDay(endTimestamp)
 
     let feesEarnedDaysAgo = 0
     if (days > 1) {
-      ;({ totalFeesFormatted: feesEarnedDaysAgo } = await this.getAprForDay(startTimestamp))
+      ;({ totalFeesFormatted: feesEarnedDaysAgo } = await this.getYieldStatsForDay(startTimestamp))
     }
 
-    const apr = ((feesEarnedToday - feesEarnedDaysAgo) / (days / 365)) / totalLiquidityToday
+    const { apr, apy } = this.calcYield(feesEarnedToday, feesEarnedDaysAgo, totalLiquidityToday, days)
 
-    return Math.max(apr, 0)
+    return {
+      apr: Math.max(apr, 0),
+      apy: Math.max(apy, 0),
+      volume: totalVolume,
+      volumeFormatted: totalVolumeFormatted
+    }
+  }
+
+  public calcYield (feesEarned: number, feesEarnedAgo: number, principal: number, days: number) {
+    const rate = (feesEarned - feesEarnedAgo) / principal
+    const period = 365 / days
+    const apr = rate * period
+    const apy = (1 + rate) ** period - 1
+    return { apr, apy }
   }
 
   public async getVirtualPrice () {

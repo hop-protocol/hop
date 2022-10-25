@@ -20,7 +20,7 @@ export const networks: Networks = {
   optimism: {
     name: chains.optimism.name,
     networkId: 10,
-    publicRpcUrl: 'https://mainnet.optimism.io',
+    publicRpcUrl: 'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     explorerUrls: ['https://optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',
     waitConfirmations: 1

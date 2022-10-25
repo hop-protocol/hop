@@ -42,11 +42,18 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   const lpTokenImageUrl = getTokenImage(tokenSymbol)
 
   const lpToken = useAsyncMemo(async () => {
-    if (!(tokenSymbol && chainSlug)) {
-      return
+    try {
+      if (!(tokenSymbol && chainSlug)) {
+        return
+      }
+      const bridge = findMatchingBridge(bridges, tokenSymbol)
+      if (!bridge) {
+        return
+      }
+      return bridge.getSaddleLpToken(chainSlug)
+    } catch (err) {
+      console.error(err)
     }
-    const bridge = findMatchingBridge(bridges, tokenSymbol)!
-    return bridge.getSaddleLpToken(chainSlug)
   }, [bridges, tokenSymbol, chainSlug])
   const { approve } = useApprove(lpToken)
 

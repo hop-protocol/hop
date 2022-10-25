@@ -33,7 +33,7 @@ import {
   getTokenImage
 } from 'src/utils'
 import { useStaking } from '../useStaking'
-import { stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
+import { stakingRewardTokens, stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
 import TokenWrapper from 'src/components/TokenWrapper'
 
 export const useStyles = makeStyles(theme => ({
@@ -1139,7 +1139,7 @@ export function PoolDetails () {
     })
   }
   if (stakingContractAddress) {
-    const rewardTokenSymbol = chainSlug === 'gnosis' ? 'GNO' : (chainSlug === 'polygon' ? 'MATIC' : 'ETH')
+    const rewardTokenSymbol = stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()] ?? ''
     stakingRewards.push({
       stakingContractAddress: stakingContractAddress,
       rewardTokenSymbol,

@@ -787,10 +787,11 @@ function StakeForm(props: any) {
     walletConnected,
     warning,
     withdraw,
+    isActive
   } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
 
   const isEmptyAmount = !Number(amount)
-  const formDisabled = !walletConnected
+  const formDisabled = !(walletConnected && isActive)
   const stakeButtonText = walletConnected ? 'Preview' : 'Connect Wallet'
   const stakeButtonDisabled = formDisabled || isEmptyAmount || isApprovalNeeded || !!warning
   const withdrawButtonDisabled = formDisabled || !canWithdraw

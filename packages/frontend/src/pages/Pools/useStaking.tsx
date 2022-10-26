@@ -14,6 +14,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   const { checkConnectedNetworkId, walletConnected, address } = useWeb3Context()
   const { getStakingStats } = usePoolStats()
   const [amount, setAmount] = useState<string>('')
+  const [parsedAmount, setParsedAmount] = useState<any>(BigNumber.from(0))
   const [error, setError] = useState<any>(null)
   const [loading, setIsLoading] = useState(false)
   const [stakingContract, setStakingContract] = useState<any>(null)
@@ -280,7 +281,6 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
         if (chainSlug && stakingTokenContract) {
           const _provider = await sdk.getSignerOrProvider(chainSlug)
           const allowance = await stakingTokenContract.connect(_provider).allowance(accountAddress, stakingContractAddress)
-          const parsedAmount = parseUnits(amount || '0', 18)
           const _approvalNeeded = allowance.lt(parsedAmount)
           setIsApprovalNeeded(_approvalNeeded)
         } else {
@@ -297,7 +297,6 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const network = findNetworkBySlug(chainSlug)!
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      const parsedAmount = parseUnits(amount || '0', 18)
       if (!isNetworkConnected) return
 
       setIsApproving(true)
@@ -334,13 +333,13 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
         },
         onConfirm: async () => {
           const signer = await sdk.getSignerOrProvider(chainSlug)
-          const parsedAmount = parseUnits(amount || '0', 18)
           return stakingContract.connect(signer).stake(parsedAmount)
         },
       })
 
       await tx.wait()
       setAmount('')
+      setParsedAmount(BigNumber.from(0))
     } catch (err: any) {
       console.error(err)
       setError(formatError(err))
@@ -381,7 +380,6 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
         label: `Stake ${lpTokenSymbol}`,
         fn: async () => {
           const signer = await sdk.getSignerOrProvider(chainSlug)
-          const parsedAmount = parseUnits(amount || '0', 18)
           return stakingContract.connect(signer).stake(parsedAmount)
         }
       })
@@ -477,11 +475,10 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
 
   const warning = useMemo(() => {
     if (!amount || !userLpBalance) return
-    const parsedAmount = parseUnits(amount || '0', 18)
     if (parsedAmount.gt(userLpBalance)) {
       return 'Insufficient balance'
     }
-  }, [amount, userLpBalance])
+  }, [amount, parsedAmount, userLpBalance])
 
   const canClaim = earnedAmountBn.gt(0) ?? false
   const canWithdraw = depositedAmountBn.gt(0) ?? false
@@ -524,6 +521,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     lpToken,
     lpBalanceFormatted,
     lpBalance,
+    userLpBalance,
     lpTokenSymbol,
     lpTokenImageUrl,
     noStaking,
@@ -534,6 +532,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     rewardsTokenSymbol,
     rewardsTokenImageUrl,
     setAmount,
+    setParsedAmount,
     setError,
     approveAndStake,
     stake,

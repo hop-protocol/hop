@@ -772,6 +772,7 @@ function StakeForm(props: any) {
     isWithdrawing,
     lpBalanceFormatted,
     lpBalance,
+    userLpBalance,
     lpTokenSymbol,
     lpTokenImageUrl,
     noStaking,
@@ -780,6 +781,7 @@ function StakeForm(props: any) {
     rewardsTokenSymbol,
     rewardsTokenImageUrl,
     setAmount,
+    setParsedAmount,
     setError,
     approveAndStake,
     stakingApr,
@@ -834,13 +836,27 @@ function StakeForm(props: any) {
       <Box mb={2}>
         <Box mb={1} display="flex" justifyContent="space-between">
           <BalanceText label="Staked" balanceFormatted={depositedAmountFormatted} />
-          <BalanceText label="Unstaked" balanceFormatted={lpBalanceFormatted} balanceNum={lpBalance} onClick={setAmount} />
+          <BalanceText label="Unstaked" balanceFormatted={lpBalanceFormatted} balanceBn={userLpBalance} onClick={(value: any) => {
+            try {
+              setParsedAmount(value)
+              const _amount = formatUnits(value.toString(), 18)
+              setAmount(_amount)
+            } catch (err) {
+            }
+          }} />
         </Box>
         <InputField
           tokenSymbol={lpTokenSymbol}
           tokenImageUrl={lpTokenImageUrl}
           value={amount}
-          onChange={setAmount}
+          onChange={(value: string) => {
+            try {
+              setAmount(value)
+              const _parsedAmount = parseUnits(value || '0', 18)
+              setParsedAmount(_parsedAmount)
+            } catch (err) {
+            }
+          }}
           disabled={formDisabled}
         />
       </Box>

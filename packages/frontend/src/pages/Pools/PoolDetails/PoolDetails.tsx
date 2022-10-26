@@ -793,7 +793,7 @@ function StakeForm(props: any) {
   const isEmptyAmount = !Number(amount)
   const formDisabled = !walletConnected
   const stakeButtonText = walletConnected ? 'Preview' : 'Connect Wallet'
-  const stakeButtonDisabled = formDisabled || isEmptyAmount || isApprovalNeeded || !!warning
+  const stakeButtonDisabled = formDisabled || isEmptyAmount || !!warning
   const withdrawButtonDisabled = formDisabled || !canWithdraw
   const showOverallStats = true
 

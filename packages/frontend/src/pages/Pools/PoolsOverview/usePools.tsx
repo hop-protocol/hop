@@ -146,7 +146,7 @@ export function usePools () {
   useEffect(() => {
     async function update() {
       const _userPools = pools.filter((x: any) => {
-        return (Number(x.userBalanceUsd) > 0) || x.canClaim || x.hopRewardsStakedFormatted
+        return (Number(x.userBalanceUsd) > 0) || x.canClaim || x.stakingRewardsStakedTotalUsd
       }).map((x: any) => {
         x.userBalanceTotalUsd = x.userBalanceUsd + x.stakingRewardsStakedTotalUsd
         x.userBalanceTotalUsdFormatted = `$${commafy(x.userBalanceTotalUsd, 4)}`

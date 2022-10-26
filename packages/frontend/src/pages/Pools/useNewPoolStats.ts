@@ -99,7 +99,7 @@ export function usePoolStats () {
                   const _value = _stakingStats[_token][_chain][_address]
                   _stakingStatsObj[key] = _value
                   if (_chain === chain && _token === token) {
-                    if (_value.isOptimalStaingContract) {
+                    if (_value.isOptimalStakingContract) {
                       stakingApr = _value.apr
                     }
                   }

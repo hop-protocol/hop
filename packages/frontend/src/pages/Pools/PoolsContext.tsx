@@ -191,6 +191,7 @@ const PoolsProvider: FC = ({ children }) => {
   const stakingContractAddress = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
   const { lpToken, lpTokenSymbol, stakingContract: hopStakingContract } = useStaking(chainSlug, tokenSymbol, hopStakingContractAddress)
   const { stakingContract } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
+  const tokenDecimals = getTokenDecimals(tokenSymbol)
 
   const isNativeToken =
     useMemo(() => {
@@ -550,12 +551,12 @@ const PoolsProvider: FC = ({ children }) => {
     setTokenSumDeposited(undefined)
     setUserPoolBalance(undefined)
     setLoading(true)
-  }, [accountAddress, selectedNetwork, selectedBridge])
+  }, [accountAddress, selectedNetwork, selectedBridge, tokenDecimals])
 
   useEffect(() => {
     setTimeout(() => {
       setLoading(false)
-    }, 6 * 1000)
+    }, 8 * 1000)
   }, [])
 
   const updateUserPoolPositions = useCallback(async () => {
@@ -590,8 +591,6 @@ const PoolsProvider: FC = ({ children }) => {
         bridge.getSaddleSwapReserves(selectedNetwork.slug),
       ])
       setUserPoolBalance(balance)
-
-      const tokenDecimals = canonicalToken?.decimals
 
       const [reserve0, reserve1] = reserves
       const formattedTotalSupply = formatUnits(_totalSupplyBn.toString(), lpDecimals)
@@ -638,7 +637,7 @@ const PoolsProvider: FC = ({ children }) => {
       logger.error(err)
     }
     setLoading(false)
-  }, [unsupportedAsset, provider, selectedNetwork, canonicalToken, hopToken, address, accountAddress, stakingContract, hopStakingContract, poolReserves])
+  }, [unsupportedAsset, provider, selectedNetwork, canonicalToken, hopToken, address, accountAddress, stakingContract, hopStakingContract, poolReserves, selectedBridge])
 
   useEffect(() => {
     updateUserPoolPositions()
@@ -1303,8 +1302,6 @@ const PoolsProvider: FC = ({ children }) => {
     setRemoving(false)
   }
 
-  const tokenDecimals = getTokenDecimals(tokenSymbol) ?? canonicalToken?.decimals
-
   // ToDo: Use BigNumber everywhere and get rid of this conversion
   const token0Balance =
     canonicalToken && canonicalBalance
@@ -1407,6 +1404,9 @@ const PoolsProvider: FC = ({ children }) => {
   const overallUserPoolBalanceSum = (hasBalance && overallUserLpBalance && tokenUsdPrice) ? (Number(formatUnits(overallToken0Deposited || 0, tokenDecimals)) + Number(formatUnits(overallToken1Deposited || 0, tokenDecimals))) : 0
   const overallUserPoolBalanceUsd = tokenUsdPrice ? overallUserPoolBalanceSum * tokenUsdPrice : 0
   const overallUserPoolBalanceUsdFormatted = overallUserPoolBalanceUsd ? `$${commafy(overallUserPoolBalanceUsd, 2)}` : commafy(overallUserPoolBalanceSum, 4)
+
+
+  // console.log("LOADING", loading, overallUserPoolBalanceUsdFormatted)
 
   async function removeLiquiditySimple(amounts: any) {
     try {

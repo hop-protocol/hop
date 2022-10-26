@@ -2,10 +2,11 @@ import CoinGecko from './CoinGecko'
 import Coinbase from './Coinbase'
 
 const cache: {
-  [tokenSymbol: string]: {
-    timestamp: number
-    price: number
-  }
+  [tokenSymbol: string]: Promise<any>
+} = {}
+
+const cacheTimestamps: {
+  [tokenSymbol: string]: number
 } = {}
 
 export type ApiKeys = {
@@ -48,15 +49,19 @@ class PriceFeed {
     if (this.aliases[tokenSymbol]) {
       tokenSymbol = this.aliases[tokenSymbol]
     }
-
-    const cached = cache[tokenSymbol]
-    if (cached) {
-      const isRecent = cached.timestamp > Date.now() - this.cacheTimeMs
+    if (cache[tokenSymbol] && cacheTimestamps[tokenSymbol]) {
+      const isRecent = cacheTimestamps[tokenSymbol] > Date.now() - this.cacheTimeMs
       if (isRecent) {
-        return cached.price
+        return cache[tokenSymbol]
       }
     }
+    const promise = this._getPriceByTokenSymbol(tokenSymbol)
+    cache[tokenSymbol] = promise
+    cacheTimestamps[tokenSymbol] = Date.now()
+    return promise
+  }
 
+  async _getPriceByTokenSymbol (tokenSymbol: string) {
     const errors: Error[] = []
     for (const service of this.services) {
       try {
@@ -64,15 +69,13 @@ class PriceFeed {
         if (price === null) {
           throw new Error(`null price for ${tokenSymbol}`)
         }
-        cache[tokenSymbol] = {
-          timestamp: Date.now(),
-          price
-        }
         return price
       } catch (err) {
         const isLastService = this.services.indexOf(service) === this.services.length - 1
         errors.push(err.message)
         if (isLastService) {
+          cache[tokenSymbol] = null
+          cacheTimestamps[tokenSymbol] = null
           throw new Error(`PriceFeed error(s): ${errors.join(' ')}`)
         }
       }

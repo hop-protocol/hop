@@ -2,16 +2,15 @@ import React, { FC, lazy, Suspense } from 'react'
 import { Switch, Route, Redirect } from 'react-router-dom'
 
 import Send from 'src/pages/Send'
-
-import { PoolsOverview } from 'src/pages/Pools/PoolsOverview'
-
 import { Div } from './components/ui'
 import { Claim } from 'src/pages/Claim'
 
 import { AirdropPreview } from './pages/Airdrop/AirdropPreview'
 import { Loading } from './components/Loading'
 
-const Pools = lazy(() => import(/* webpackChunkName: "Pools" */ 'src/pages/Pools'))
+const PoolsOld = lazy(() => import(/* webpackChunkName: "Pools" */ 'src/pages/Pools/PoolsOld'))
+const PoolsOverview = lazy(() => import(/* webpackChunkName: "Pools" */ 'src/pages/Pools/PoolsOverview'))
+const PoolDetails = lazy(() => import(/* webpackChunkName: "Pools" */ 'src/pages/Pools'))
 const Stake = lazy(() => import(/* webpackChunkName: "Stake" */ 'src/pages/Stake'))
 const Convert = lazy(() => import(/* webpackChunkName: "Convert" */ 'src/pages/Convert'))
 const Stats = lazy(() => import(/* webpackChunkName: "Stats" */ 'src/pages/Stats'))
@@ -47,10 +46,11 @@ const AppRoutes: FC = () => {
           <Suspense fallback={<Loading />}>
             <Route exact path="/stats" component={Stats} />
             <Route exact path="/send" component={Send} />
-
             <Route path="/convert" component={Convert} />
+            <Route exact path="/pool-old" component={PoolsOld} />
             <Route exact path="/pools" component={PoolsOverview} />
-            <Route exact path="/pool" component={Pools} />
+            <Route exact path="/pool" component={() => <Redirect to="/pool/deposit" />} />
+            <Route path="/pool/:tab" component={PoolDetails} />
             <Route exact path="/stake" component={Stake} />
             <Route exact path="/rewards" component={Rewards} />
             <Route exact path="/withdraw" component={Withdraw} />
@@ -63,7 +63,6 @@ const AppRoutes: FC = () => {
             <Route exact path="/authereum-verified" component={AuthereumVerified} />
             <Route exact path="/airdrop/authereum" component={AuthereumVerify} />
             <Route exact path={['/tx', '/tx/:hash']} component={TransactionPage} />
-
             <Route exact path="/components" component={Components} />
           </Suspense>
         </Div>

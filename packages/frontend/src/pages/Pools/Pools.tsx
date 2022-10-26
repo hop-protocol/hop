@@ -1,5 +1,4 @@
 import React, { FC, ChangeEvent, useEffect } from 'react'
-import { formatUnits } from 'ethers/lib/utils'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Button from 'src/components/buttons/Button'
@@ -10,14 +9,12 @@ import Alert from 'src/components/alert/Alert'
 import AmountSelectorCard from 'src/components/AmountSelectorCard'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
-import { usePools } from 'src/pages/Pools/PoolsContext'
+import { usePool } from 'src/pages/Pools/PoolsContext'
 import SendButton from 'src/pages/Pools/SendButton'
 import {
   commafy,
   findMatchingBridge,
   sanitizeNumericalString,
-  toPercentDisplay,
-  toTokenDisplay,
 } from 'src/utils'
 import TokenWrapper from 'src/components/TokenWrapper'
 import DetailRow from 'src/components/InfoTooltip/DetailRow'
@@ -146,8 +143,11 @@ const Pools: FC = () => {
     priceImpactFormatted,
     poolSharePercentageFormatted,
     virtualPriceFormatted,
-    reserveTotalsUsdFormatted
-  } = usePools()
+    reserveTotalsUsdFormatted,
+    token0DepositedFormatted,
+    token1DepositedFormatted,
+    tokenSumDepositedFormatted
+  } = usePool()
 
   const handleBridgeChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
@@ -183,15 +183,6 @@ const Pools: FC = () => {
   }
 
   const needsTokenForFee = useNeedsTokenForFee(selectedNetwork)
-  const token0DepositedFormatted = token0Deposited
-    ? commafy(Number(formatUnits(token0Deposited, canonicalToken?.decimals)), 5)
-    : ''
-  const token1DepositedFormatted = token1Deposited
-    ? commafy(Number(formatUnits(token1Deposited, hopToken?.decimals)), 5)
-    : ''
-  const tokenSumDepositedFormatted = tokenSumDeposited
-    ? commafy(Number(formatUnits(tokenSumDeposited, hopToken?.decimals)), 5)
-    : ''
 
   useEffect(() => {
     if (needsTokenForFee && selectedNetwork) {
@@ -289,7 +280,7 @@ const Pools: FC = () => {
                   Your Position
                 </Typography>
               </Box>
-              <DetailRow title={`LP Tokens`} value={`${commafy(userPoolBalanceFormatted, 5)}`} />
+              <DetailRow title={`LP Tokens`} value={userPoolBalanceFormatted} />
               {userPoolTokenPercentage && (
                 <DetailRow title={'Pool share'} value={`${commafy(userPoolTokenPercentage)}%`} />
               )}

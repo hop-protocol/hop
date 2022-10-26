@@ -2,7 +2,6 @@ import React from 'react'
 import { usePools } from './usePools'
 import Box from '@material-ui/core/Box'
 import { PoolRow } from './PoolRow'
-import { Link } from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
@@ -12,10 +11,15 @@ export const useStyles = makeStyles(theme => ({
   box: {
     boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
-    borderRadius: '3rem'
+    borderRadius: '3rem',
+    [theme.breakpoints.down('xs')]: {
+      paddingLeft: '1rem',
+      paddingRight: '1rem'
+    },
   },
   table: {
-    width: '100%'
+    width: '100%',
+    borderCollapse: 'collapse'
   },
   thLink: {
     cursor: 'pointer',
@@ -87,62 +91,66 @@ export function PoolsOverview () {
           </Box>
           <Box overflow="auto">
             <table className={styles.table}>
-              <tr>
-                <th>
-                  <Box p={1} textAlign="left">
-                    <Typography variant="subtitle2" color="secondary">
-                      Pool
-                    </Typography>
-                  </Box>
-                </th>
-                <th>
-                  <Box p={1} textAlign="left">
-                    <Typography variant="subtitle2" color="secondary">
-                     <Box display="flex" alignItems="center">
-                       My Liquidity <InfoTooltip title="Your pool position value in USD" />
-                     </Box>
-                    </Typography>
-                  </Box>
-                </th>
-                <th className={styles.hideMobile}>
-                  <Box p={1} textAlign="left">
-                    <Typography variant="subtitle2" color="secondary">
-                     <Box display="flex" alignItems="center">
-                       TVL <InfoTooltip title="Total Value Locked; the total number of tokens that are in the pool, shown in USD" />
-                     </Box>
-                    </Typography>
-                  </Box>
-                </th>
-                <th className={styles.hideMobile}>
-                  <Box p={1} textAlign="left">
-                    <Typography variant="subtitle2" color="secondary">
-                     <Box display="flex" alignItems="center">
-                      Total APR <InfoTooltip title="Total APR is AMM APR + any staking rewards APR" />
-                     </Box>
-                    </Typography>
-                  </Box>
-                </th>
-                <th>
-                  <Box p={1} textAlign="left">
-                    <Typography variant="subtitle2" color="secondary">
-                     <Box display="flex" alignItems="center" justifyContent="center">
-                       Action <InfoTooltip title="Deposit into pool or withdraw from pool" />
+              <thead>
+                <tr>
+                  <th>
+                    <Box p={1} textAlign="left">
+                      <Typography variant="subtitle2" color="secondary">
+                        Pool
+                      </Typography>
                     </Box>
-                    </Typography>
-                  </Box>
-                </th>
-              </tr>
-              {userPools.map((data: any) => {
-                return (
-                  <PoolRow data={data} />
-                )
-              })}
+                  </th>
+                  <th>
+                    <Box p={1} textAlign="left">
+                      <Typography variant="subtitle2" color="secondary">
+                      <Box display="flex" alignItems="center">
+                        My Liquidity <InfoTooltip title="Your pool position value in USD" />
+                      </Box>
+                      </Typography>
+                    </Box>
+                  </th>
+                  <th className={styles.hideMobile}>
+                    <Box p={1} textAlign="left">
+                      <Typography variant="subtitle2" color="secondary">
+                      <Box display="flex" alignItems="center">
+                        TVL <InfoTooltip title="Total Value Locked; the total number of tokens that are in the pool, shown in USD" />
+                      </Box>
+                      </Typography>
+                    </Box>
+                  </th>
+                  <th className={styles.hideMobile}>
+                    <Box p={1} textAlign="left">
+                      <Typography variant="subtitle2" color="secondary">
+                      <Box display="flex" alignItems="center">
+                        Total APR <InfoTooltip title="Total APR is AMM APR + any staking rewards APR" />
+                      </Box>
+                      </Typography>
+                    </Box>
+                  </th>
+                  <th>
+                    <Box p={1} textAlign="left">
+                      <Typography variant="subtitle2" color="secondary">
+                      <Box display="flex" alignItems="center" justifyContent="center">
+                        Action <InfoTooltip title="Deposit into pool or withdraw from pool" />
+                      </Box>
+                      </Typography>
+                    </Box>
+                  </th>
+                </tr>
+                </thead>
+                <tbody>
+                {userPools.map((data: any, i: number) => {
+                  return (
+                    <PoolRow key={i} data={data} />
+                  )
+                })}
+                </tbody>
             </table>
           </Box>
         </Box>
       )}
       <Box className={styles.box} p={4}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} overflow="auto">
           <Box p={1} textAlign="left">
             <Typography variant="h5">
               <Box display="flex" alignItems="center">
@@ -161,9 +169,9 @@ export function PoolsOverview () {
                 </Typography>
               </Box>
               <Box display="flex">
-                {filterTokens.map((x) => {
+                {filterTokens.map((x, i: number) => {
                   return (
-                    <Box display="flex" className={styles.filterImageContainer}>
+                    <Box key={i} display="flex" className={styles.filterImageContainer}>
                       <IconButton onClick={handleTokenToggleFilterFn(x.symbol)} size="small" >
                         <img className={styles.filterImage} src={x.imageUrl} alt={x.symbol} data-disabled={!x.enabled} title={x.symbol} />
                       </IconButton>
@@ -182,9 +190,9 @@ export function PoolsOverview () {
                 </Typography>
               </Box>
               <Box display="flex">
-                {filterChains.map((x) => {
+                {filterChains.map((x: any, i: number) => {
                   return (
-                    <Box display="flex" className={styles.filterImageContainer}>
+                    <Box key={i} display="flex" className={styles.filterImageContainer}>
                       <IconButton onClick={handleChainToggleFilterFn(x.slug)} size="small">
                         <img className={styles.filterImage} src={x.imageUrl} alt={x.name} data-disabled={!x.enabled} title={x.name} />
                       </IconButton>
@@ -197,6 +205,7 @@ export function PoolsOverview () {
         </Box>
         <Box overflow="auto">
           <table className={styles.table}>
+            <thead>
             <tr>
               <th>
                 <Box p={1} textAlign="left">
@@ -248,11 +257,14 @@ export function PoolsOverview () {
                 </Box>
               </th>
             </tr>
-            {pools.map((data: any) => {
+            </thead>
+            <tbody>
+            {pools.map((data: any, i: number) => {
               return (
-                <PoolRow data={data} isAllPools />
+                <PoolRow key={i} data={data} isAllPools />
               )
             })}
+            </tbody>
           </table>
         </Box>
       </Box>

@@ -1,7 +1,9 @@
 import { ChainSlug, TokenSymbol } from '@hop-protocol/sdk'
 import { metadata, addresses } from 'src/config'
+import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 
 export function getTokenImage(tokenSymbol: string = 'ETH') {
+  tokenSymbol = normalizeTokenSymbol(tokenSymbol)
   const token = metadata.tokens[tokenSymbol]
   if (!token) {
     console.error(`could not find token: ${tokenSymbol}`)
@@ -11,6 +13,7 @@ export function getTokenImage(tokenSymbol: string = 'ETH') {
 }
 
 export function getTokenDecimals(tokenSymbol: string) {
+  tokenSymbol = normalizeTokenSymbol(tokenSymbol)
   const token = metadata.tokens[tokenSymbol]
   if (!token) {
     throw new Error(`could not find token: ${tokenSymbol}`)

@@ -20,7 +20,7 @@ import Price from 'src/models/Price'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
 import { commafy, shiftBNDecimals, BNMin, toTokenDisplay, toPercentDisplay } from 'src/utils'
-import { hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
+import { hopStakingRewardsContracts, stakingRewardsContracts, reactAppNetwork } from 'src/config'
 import { l2Networks } from 'src/config/networks'
 import { amountToBN, formatError } from 'src/utils/format'
 import { useStaking } from './useStaking'
@@ -172,6 +172,13 @@ const PoolsProvider: FC = ({ children }) => {
   const { getPoolStats } = usePoolStats()
   const accountAddress = address?.address
 
+  const chainSlug = selectedNetwork?.slug ?? ''
+  const tokenSymbol = selectedBridge?.getTokenSymbol() ?? ''
+  const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+  const stakingContractAddress = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+  const { lpToken, lpTokenSymbol, stakingContract: hopStakingContract } = useStaking(chainSlug, tokenSymbol, hopStakingContractAddress)
+  const { stakingContract } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
+
   const isNativeToken =
     useMemo(() => {
       try {
@@ -234,8 +241,8 @@ const PoolsProvider: FC = ({ children }) => {
       if (!canonicalToken || unsupportedAsset?.chain) {
         return
       }
-      const bridge = await sdk.bridge(canonicalToken.symbol)
-      const token = await bridge.getL1Token()
+      const bridge = sdk.bridge(canonicalToken.symbol)
+      const token = bridge.getL1Token()
       return bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
     } catch (err) {
       console.error(err)
@@ -342,7 +349,7 @@ const PoolsProvider: FC = ({ children }) => {
           apr = json.data[symbol][selectedNetwork.slug].apr
         } catch (err) {
           logger.error('apr fetch error:', err)
-          const bridge = await sdk.bridge(token.symbol)
+          const bridge = sdk.bridge(token.symbol)
           const amm = bridge.getAmm(selectedNetwork.slug)
           apr = await amm.getApr()
         }
@@ -376,7 +383,7 @@ const PoolsProvider: FC = ({ children }) => {
       return
     }
     try {
-      const bridge = await sdk.bridge(canonicalToken.symbol)
+      const bridge = sdk.bridge(canonicalToken.symbol)
       const amm = bridge.getAmm(selectedNetwork.slug)
       const amount0 = amountToBN(token0Amount || '0', canonicalToken?.decimals)
       const amount1 = amountToBN(token1Amount || '0', hopToken?.decimals)
@@ -395,7 +402,7 @@ const PoolsProvider: FC = ({ children }) => {
         return
       }
       try {
-        const bridge = await sdk.bridge(canonicalToken.symbol)
+        const bridge = sdk.bridge(canonicalToken.symbol)
         const amm = bridge.getAmm(selectedNetwork.slug)
         const vPrice = await amm.getVirtualPrice()
         if (isSubscribed) {
@@ -420,8 +427,7 @@ const PoolsProvider: FC = ({ children }) => {
         return
       }
       try {
-        const poolFeePrecision = 10
-        const bridge = await sdk.bridge(canonicalToken.symbol)
+        const bridge = sdk.bridge(canonicalToken.symbol)
         const amm = bridge.getAmm(selectedNetwork.slug)
         if (isSubscribed) {
           setFee(await amm.getSwapFee())
@@ -454,8 +460,8 @@ const PoolsProvider: FC = ({ children }) => {
         let token0AmountBn = BigNumber.from(0)
         let token1AmountBn = BigNumber.from(0)
 
-        const reserve0 = Number(formatUnits(poolReserves[0]?.toString(), canonicalToken?.decimals))
-        const reserve1 = Number(formatUnits(poolReserves[1]?.toString(), canonicalToken.decimals))
+        // const reserve0 = Number(formatUnits(poolReserves[0]?.toString(), canonicalToken?.decimals))
+        // const reserve1 = Number(formatUnits(poolReserves[1]?.toString(), canonicalToken.decimals))
 
         if (token0Amount) {
           token0AmountBn = parseUnits(token0Amount?.toString(), canonicalToken?.decimals)
@@ -504,8 +510,8 @@ const PoolsProvider: FC = ({ children }) => {
       if (!(canonicalToken && hopToken && selectedNetwork && !unsupportedAsset?.chain)) {
         return
       }
-      const bridge = await sdk.bridge(canonicalToken.symbol)
-      const lpToken = await bridge.getSaddleLpToken(selectedNetwork.slug)
+      const bridge = sdk.bridge(canonicalToken.symbol)
+      const lpToken = bridge.getSaddleLpToken(selectedNetwork.slug)
       const [reserves, lpTokenTotalSupply] = await Promise.all([
         bridge.getSaddleSwapReserves(selectedNetwork.slug),
         lpToken.totalSupply(),
@@ -615,6 +621,24 @@ const PoolsProvider: FC = ({ children }) => {
 
   useInterval(updateUserPoolPositions, 5 * 1000)
 
+  useEffect(() => {
+    async function update() {
+      let stakedBalance = BigNumber.from(0)
+      if (stakingContract) {
+        const balance = await stakingContract.balanceOf(accountAddress)
+        stakedBalance = stakedBalance.add(balance)
+      }
+      if (hopStakingContract) {
+        const balance = await hopStakingContract.balanceOf(accountAddress)
+        stakedBalance = stakedBalance.add(balance)
+      }
+
+      console.log('stakedBalance:', stakedBalance)
+    }
+
+    update().catch(err => logger.error(err))
+  }, [stakingContract, hopStakingContract, accountAddress])
+
   const { approve } = useApprove(canonicalToken)
   const approveTokens = async (isHop: boolean, amount: string, network: Network) => {
     if (!canonicalToken) {
@@ -626,7 +650,7 @@ const PoolsProvider: FC = ({ children }) => {
     }
 
     const signer = provider?.getSigner()
-    const bridge = await sdk.bridge(canonicalToken.symbol).connect(signer as Signer)
+    const bridge = sdk.bridge(canonicalToken.symbol).connect(signer as Signer)
     const amm = bridge.getAmm(network.slug)
     const saddleSwap = await amm.getSaddleSwap()
     const spender = saddleSwap.address
@@ -861,10 +885,10 @@ const PoolsProvider: FC = ({ children }) => {
               fn: async () => {
                 const amount = await getDepositedLpTokens.fn()
                 if (amount.gt(0)) {
-                  const allowance = await lpToken.allowance(stakingContractAddress)
+                  const allowance = await lpToken.allowance(hopStakingContractAddress)
                   const amount = await getDepositedLpTokens.fn()
                   if (allowance.lt(amount)) {
-                    return lpToken.approve(stakingContractAddress, constants.MaxUint256)
+                    return lpToken.approve(hopStakingContractAddress, constants.MaxUint256)
                   }
                 }
               }
@@ -874,7 +898,7 @@ const PoolsProvider: FC = ({ children }) => {
               fn: async () => {
                 const amount = await getDepositedLpTokens.fn()
                 if (amount.gt(0)) {
-                  return stakingContract.connect(signer).stake(amount)
+                  return hopStakingContract.connect(signer).stake(amount)
                 }
               }
             })
@@ -955,13 +979,13 @@ const PoolsProvider: FC = ({ children }) => {
         onConfirm: async (opts: any) => {
           const { unstake } = opts
 
-          const lpBalanceStaked = await stakingContract.balanceOf(accountAddress)
+          const lpBalanceStaked = await hopStakingContract.balanceOf(accountAddress)
           if (unstake) {
             if (lpBalanceStaked.gt(0)) {
               txList.push({
                 label: `Unstake ${lpTokenSymbol}`,
                 fn: async () => {
-                  return stakingContract.connect(signer).withdraw(lpBalanceStaked)
+                  return hopStakingContract.connect(signer).withdraw(lpBalanceStaked)
                 }
               })
             }
@@ -1128,7 +1152,7 @@ const PoolsProvider: FC = ({ children }) => {
       const bridge = sdk.bridge(canonicalToken.symbol)
       const amm = bridge.getAmm(selectedNetwork!.slug)
       const saddleSwap = await amm.getSaddleSwap()
-      const lpToken = await bridge.getSaddleLpToken(selectedNetwork!.slug)
+      const lpToken = bridge.getSaddleLpToken(selectedNetwork!.slug)
       const lpTokenDecimals = 18
       const token0Amount = token0Deposited
       const token1Amount = token1Deposited
@@ -1285,7 +1309,6 @@ const PoolsProvider: FC = ({ children }) => {
   const poolSharePercentageFormatted = poolSharePercentage ? `${commafy(poolSharePercentage)}%` : ''
   const virtualPriceFormatted = virtualPrice ? `${Number(virtualPrice.toFixed(4))}` : '-'
   const reserveTotalsUsdFormatted = `$${reserveTotalsUsd ? commafy(reserveTotalsUsd, 2) : '-'}`
-  const tokenSymbol = selectedBridge?.getTokenSymbol() ?? ''
   const poolName = `${tokenSymbol} ${selectedNetwork?.name} Pool`
   const tokenImageUrl = tokenSymbol ? getTokenImage(tokenSymbol) : ''
   const chainImageUrl = selectedNetwork?.imageUrl ?? ''
@@ -1311,13 +1334,9 @@ const PoolsProvider: FC = ({ children }) => {
   const depositAmountTotal = (Number(token0Amount || 0) + Number(token1Amount || 0))
   const depositAmountTotalUsd = (tokenUsdPrice && depositAmountTotal) ? depositAmountTotal * tokenUsdPrice : 0
   const depositAmountTotalDisplayFormatted = depositAmountTotalUsd ? `$${commafy(depositAmountTotalUsd, 2)}` : (depositAmountTotal ? `${commafy(depositAmountTotal, 2)}` : '-')
-  const chainSlug = selectedNetwork?.slug ?? ''
   const volume = getPoolStats(chainSlug, tokenSymbol)?.dailyVolume ?? 0
   const volumeUsd = tokenUsdPrice ? volume * tokenUsdPrice : 0
   const volumeUsdFormatted = volumeUsd ? `$${commafy(volumeUsd, 2)}` : '-'
-
-  const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
-  const { lpToken, lpTokenSymbol, stakingContractAddress, stakingContract } = useStaking(chainSlug, tokenSymbol, hopStakingContractAddress)
 
   async function removeLiquiditySimple(amounts: any) {
     try {

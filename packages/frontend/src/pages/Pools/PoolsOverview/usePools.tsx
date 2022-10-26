@@ -3,6 +3,7 @@ import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { useApp } from 'src/contexts/AppContext'
 import { metadata, addresses, stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
+import { useQueryParams } from 'src/hooks'
 import { toPercentDisplay, commafy } from 'src/utils'
 import { formatTokenDecimalString } from 'src/utils/format'
 import { findNetworkBySlug } from 'src/utils/networks'
@@ -15,6 +16,7 @@ const cache : any = {}
 
 export function usePools () {
   const { sdk } = useApp()
+  const { queryParams } = useQueryParams()
   const { address } = useWeb3Context()
   const { poolStats, getPoolStats } = usePoolStats()
   const [userPools, setUserPools] = useState<any[]>([])
@@ -25,7 +27,7 @@ export function usePools () {
   const [filterChains, setFilterChains] = useState<any[]>([])
   const [columnSort, setColumnSort] = useState<string>('')
   const [columnSortDesc, setColumnSortDesc] = useState(true)
-  const accountAddress = address?.address
+  const accountAddress = (queryParams?.address as string) || address?.address
 
   useEffect(() => {
     async function update () {
@@ -64,6 +66,7 @@ export function usePools () {
             depositLink,
             canClaim: false,
             canStake: false,
+            hasStakingContract: false,
             claimLink,
             stakingRewardsStaked: 0,
             stakingRewardsStakedUsd: 0,
@@ -148,7 +151,7 @@ export function usePools () {
         x.userBalanceTotalUsd = x.userBalanceUsd + x.stakingRewardsStakedTotalUsd
         x.userBalanceTotalUsdFormatted = `$${commafy(x.userBalanceTotalUsd, 4)}`
 
-        if (x.userBalanceUsd && !x.stakingRewardsStakedTotalUsd && !x.canClaim) {
+        if (x.hasStakingContract && x.userBalanceUsd && !x.stakingRewardsStakedTotalUsd && !x.canClaim) {
           x.canStake = true
         }
 
@@ -262,7 +265,9 @@ export function usePools () {
           const address = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
           const bridge = sdk.bridge(tokenSymbol)
           const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
+          let hasStakingContract = false
           if (address) {
+            hasStakingContract = true
             const _provider = sdk.getChainProvider(pool.chain.slug)
             const contract = StakingRewards__factory.connect(address, _provider)
             const balance = await contract?.balanceOf(accountAddress)
@@ -279,6 +284,7 @@ export function usePools () {
 
           const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
           if (hopStakingContractAddress) {
+            hasStakingContract = true
             const _provider = sdk.getChainProvider(chainSlug)
             const contract = StakingRewards__factory.connect(hopStakingContractAddress, _provider)
             const balance = await contract?.balanceOf(accountAddress)
@@ -292,6 +298,7 @@ export function usePools () {
               pool.canClaim = true
             }
           }
+          pool.hasStakingContract = hasStakingContract
           pool.stakingRewardsStakedTotalUsd = pool.stakingRewardsStakedUsd + pool.hopRewardsStakedUsd
           pool.stakingRewardsStakedTotalUsdFormatted = `$${commafy(pool.stakingRewardsStakedTotalUsd, 2)}`
           setPools([...pools])

@@ -1,10 +1,10 @@
 import React from 'react'
-import PoolDetails from './PoolDetails'
+import Pools from './Pools'
 import PoolsProvider from './PoolsContext'
 
 const fc = () => (
   <PoolsProvider>
-    <PoolDetails />
+    <Pools />
   </PoolsProvider>
 )
 export default fc

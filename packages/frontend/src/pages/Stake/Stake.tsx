@@ -4,7 +4,7 @@ import { Token, CanonicalToken, WrappedToken, ChainSlug } from '@hop-protocol/sd
 import { useApp } from 'src/contexts/AppContext'
 import StakeWidget from 'src/pages/Stake/StakeWidget'
 import { useSelectedNetwork } from 'src/hooks'
-import { rewardTokenAddresses, stakingRewardsContracts } from 'src/config'
+import { rewardTokenAddresses, stakingRewardsContracts, reactAppNetwork } from 'src/config'
 import { Div, Flex } from 'src/components/ui'
 import { findMatchingBridge } from 'src/utils'
 import { StakingRewards, StakingRewards__factory } from '@hop-protocol/core/contracts'
@@ -13,8 +13,9 @@ import { useQuery } from 'react-query'
 
 const Stake = () => {
   const { bridges, sdk, networks } = useApp()
+  const _stakingRewardsContracts = stakingRewardsContracts[reactAppNetwork] ?? {}
   const availableNetworks = networks.filter((n: any) => {
-    return Object.keys(stakingRewardsContracts).includes(n.slug as ChainSlug)
+    return Object.keys(_stakingRewardsContracts).includes(n.slug as ChainSlug)
   }).sort((a: any, b: any) => {
     if (a.slug < b.slug) return -1
     else if (a.slug > b.slug) return 1
@@ -48,7 +49,7 @@ const Stake = () => {
 
   const stakingRewards = useMemo(() => {
     const _provider = sdk.getChainProvider(selectedNetwork.slug)
-    const srAddrs = stakingRewardsContracts[selectedNetwork.slug]
+    const srAddrs = _stakingRewardsContracts[selectedNetwork.slug]
     return Object.keys(srAddrs).reduce((acc, tokenSymbol) => {
       const addr = srAddrs[tokenSymbol]
       return {
@@ -59,18 +60,21 @@ const Stake = () => {
   }, [sdk, selectedNetwork.slug])
 
   const rewardsToken = useMemo(() => {
-    if (selectedNetwork.slug === ChainSlug.Polygon) {
-      return new Token(
-        'mainnet',
-        ChainSlug.Polygon,
-        rewardTokenAddresses.WMATIC,
-        18,
-        WrappedToken.WMATIC,
-        'Wrapped Matic',
-        ''
-      )
+    try {
+      if (selectedNetwork.slug === ChainSlug.Polygon) {
+          return new Token(
+            'mainnet',
+            ChainSlug.Polygon,
+            rewardTokenAddresses?.[reactAppNetwork]?.WMATIC,
+            18,
+            WrappedToken.WMATIC,
+            'Wrapped Matic',
+            ''
+          )
+      }
+      return new Token('mainnet', ChainSlug.Gnosis, rewardTokenAddresses?.[reactAppNetwork].GNO, 18, 'GNO', 'Gnosis', '')
+    } catch (err) {
     }
-    return new Token('mainnet', ChainSlug.Gnosis, rewardTokenAddresses.GNO, 18, 'GNO', 'Gnosis', '')
   }, [selectedNetwork.slug])
 
   const { data: rewardTokenUsdPrice } = useQuery(

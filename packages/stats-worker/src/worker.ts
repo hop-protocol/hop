@@ -109,7 +109,7 @@ class Worker {
     console.log('volumeStatsPoll started')
     while (true) {
       try {
-        console.log('fetching volume stats')
+        console.log(`fetching volume stats (${new Date()})`)
         await this.volumeStats.trackDailyVolume()
         console.log('done tracking volume stats')
       } catch (err) {
@@ -123,7 +123,7 @@ class Worker {
     console.log('tvlStatsPoll started')
     while (true) {
       try {
-        console.log('fetching tvl stats')
+        console.log(`fetching tvl stats (${new Date()})`)
         await this.tvlStats.trackTvl()
         console.log('done tracking tvl stats')
       } catch (err) {
@@ -137,7 +137,7 @@ class Worker {
     console.log('yieldStatsPoll started')
     while (true) {
       try {
-        console.log('fetching yield stats')
+        console.log(`fetching yield stats (${new Date()})`)
         const res = await this.yieldStats.getAllYields()
         const { legacyYieldData, yieldData } = res.yieldDatas
         const legacyKey = 'v1-pool-stats.json'
@@ -156,7 +156,7 @@ class Worker {
     console.log('bonderStatsPoll started')
     while (true) {
       try {
-        console.log('fetching bonder stats')
+        console.log(`fetching bonder stats (${new Date()})`)
         await this.bonderStats.run()
         console.log('done tracking bonder stats')
       } catch (err) {

@@ -58,7 +58,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   label: {
     fontSize: '1rem',
     position: 'absolute',
-    bottom: '-0.2rem',
+    bottom: '-1rem',
     right: '0',
     opacity: '0.2',
   },
@@ -150,7 +150,7 @@ const Header: FC = () => {
       )}
       <Box className={styles.root} display="flex" flexDirection="row" alignItems="center">
         <Box display="flex" flexDirection="row" justifyContent="flex-start" flex={1}>
-          <Link to="/">
+          <Link to="/" style={{ position: 'relative' }}>
             <img
               className={styles.hopLogo}
               src={isDarkMode ? HopLogoWhite : HopLogoBlack}

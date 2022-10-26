@@ -844,8 +844,17 @@ const PoolsProvider: FC = ({ children }) => {
       txList.push({
         label: depositLabel,
         fn: async () => {
-          const amount0Desired = amountToBN(token0Amount || '0', canonicalToken?.decimals)
-          const amount1Desired = amountToBN(token1Amount || '0', hopToken?.decimals)
+          let amount0Desired = amountToBN(token0Amount || '0', canonicalToken?.decimals)
+          let amount1Desired = amountToBN(token1Amount || '0', hopToken?.decimals)
+
+          const balance0 = await canonicalToken.balanceOf(accountAddress)
+          const balance1 = await hopToken.balanceOf(accountAddress)
+          if (amount0Desired.gt(balance0)) {
+            amount0Desired = balance0
+          }
+          if (amount1Desired.gt(balance1)) {
+            amount1Desired = balance1
+          }
 
           const minAmount0 = amount0Desired.mul(minBps).div(10000)
           const minAmount1 = amount1Desired.mul(minBps).div(10000)

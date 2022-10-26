@@ -771,7 +771,6 @@ function StakeForm(props: any) {
     isStaking,
     isWithdrawing,
     lpBalanceFormatted,
-    lpBalance,
     userLpBalance,
     lpTokenSymbol,
     lpTokenImageUrl,

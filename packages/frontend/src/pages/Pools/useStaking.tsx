@@ -2,6 +2,7 @@ import React, { useMemo, useEffect, useState } from 'react'
 import { BigNumber } from 'ethers'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import { reactAppNetwork, stakingRewardTokens } from 'src/config'
 import { StakingRewards__factory, ERC20__factory } from '@hop-protocol/core/contracts'
 import { formatTokenDecimalString } from 'src/utils/format'
 import { commafy, getTokenImage, findMatchingBridge, isRewardsExpired as isRewardsExpiredCheck, calculateStakedPosition, findNetworkBySlug, formatError } from 'src/utils'
@@ -199,6 +200,18 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     }
     update().catch(console.error)
   }, [overallRewardsPerDayBn, overallTotalStakedBn, depositedAmountBn], pollIntervalMs)
+
+  useEffect(() => {
+  try {
+    setOverallTotalStakedBn(BigNumber.from(0))
+    setRewardRateBn(BigNumber.from(0))
+    setOverallRewardsPerDayBn(BigNumber.from(0))
+    setRewardsTokenSymbol(stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress.toLowerCase()] ?? '')
+    setIsRewardsExpired(false)
+  } catch (err) {
+    console.error(err)
+  }
+}, [stakingContractAddress])
 
   useEffectInterval(() => {
     async function update() {

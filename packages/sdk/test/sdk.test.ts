@@ -822,7 +822,7 @@ describe('isDestinationChainIdPaused', () => {
     const bridge = hop.bridge('USDC')
     const isPaused = await bridge.isDestinationChainPaused('polygon')
     expect(isPaused).toBe(false)
-  })
+  }, 10 * 1000)
 })
 
 describe.skip('relayerFeeEnabled', () => {

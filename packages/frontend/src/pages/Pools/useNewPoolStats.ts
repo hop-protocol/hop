@@ -98,7 +98,11 @@ export function usePoolStats () {
                   const key = `${_chain}:${_token}:${_address?.toLowerCase()}`
                   const _value = _stakingStats[_token][_chain][_address]
                   _stakingStatsObj[key] = _value
-                  stakingApr = Math.max(stakingApr, _value.apr)
+                  if (_chain === chain && _token === token) {
+                    if (_value.isOptimalStaingContract) {
+                      stakingApr = _value.apr
+                    }
+                  }
 
                   if (chain === _chain && token === _token) {
                     stakingRewardTokens.add(_value.rewardToken)

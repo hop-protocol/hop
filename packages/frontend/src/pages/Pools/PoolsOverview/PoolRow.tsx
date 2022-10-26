@@ -172,7 +172,7 @@ export function PoolRow (props: Props) {
           <MuiButton variant="text" className={styles.depositLink}>
               <Link to={depositLink} className={styles.depositLink}>
                 <Typography variant="body1" component="span" title="Deposit into pool">
-                  <strong>Invest</strong>
+                  <strong>Add Liquidity</strong>
                 </Typography>
               </Link>
             </MuiButton>

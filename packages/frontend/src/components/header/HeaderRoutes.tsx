@@ -31,7 +31,10 @@ const HeaderRoutes: FC = () => {
     })
   }
 
-  const value = pathname.split('/').slice(0, 2).join('/')
+  let value = pathname.split('/').slice(0, 2).join('/')
+  if (value?.includes('/pool')) {
+    value = '/pools'
+  }
   const { canClaim } = useClaim()
 
   let hasRewards = false

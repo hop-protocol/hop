@@ -125,8 +125,10 @@ export function usePoolStats () {
             pool.dailyVolume = dailyVolume
             pool.dailyVolumeFormatted = dailyVolume ? `${commafy(dailyVolume, 2)}` : '-'
             pool.stakingRewardTokens = Array.from(stakingRewardTokens)
-          } catch (err) {
-            console.error('pool stats error:', err)
+          } catch (err: any) {
+            if (!err.message?.includes('expected data')) {
+              console.error('pool stats error:', err)
+            }
 
             pool.aprFormatted = toPercentDisplay(0)
             pool.stakingAprFormatted = toPercentDisplay(0)

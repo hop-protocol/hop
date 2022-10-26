@@ -627,8 +627,8 @@ const PoolsProvider: FC = ({ children }) => {
         stakedBalance = stakedBalance.add(balance)
       }
 
-      const stakedToken0Deposited = stakedBalance.mul(poolReserves[0]).div(_totalSupplyBn)
-      const stakedToken1Deposited = stakedBalance.mul(poolReserves[1]).div(_totalSupplyBn)
+      const stakedToken0Deposited = stakedBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(_totalSupplyBn)
+      const stakedToken1Deposited = stakedBalance.mul(BigNumber.from(poolReserves[1] || 0)).div(_totalSupplyBn)
       setStakedBalance(stakedBalance)
       setStakedToken0Deposited(stakedToken0Deposited)
       setStakedToken1Deposited(stakedToken1Deposited)
@@ -1390,8 +1390,8 @@ const PoolsProvider: FC = ({ children }) => {
 
   const overallUserPoolTokenPercentageFormatted = overallUserPoolTokenPercentage ? `${commafy(overallUserPoolTokenPercentage)}%` : ''
 
-  const overallToken0Deposited = BigNumber.from(token0Deposited || 0).add(stakedToken0Deposited)
-  const overallToken1Deposited = BigNumber.from(token1Deposited || 0).add(stakedToken1Deposited)
+  const overallToken0Deposited = BigNumber.from(token0Deposited || 0).add(BigNumber.from(stakedToken0Deposited || 0))
+  const overallToken1Deposited = BigNumber.from(token1Deposited || 0).add(BigNumber.from(stakedToken1Deposited || 0))
 
   const overallToken1DepositedFormatted = overallToken1Deposited
     ? commafy(Number(formatUnits(overallToken1Deposited, hopToken?.decimals)), 5)

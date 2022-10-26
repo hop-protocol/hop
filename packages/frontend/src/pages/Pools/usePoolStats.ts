@@ -75,8 +75,10 @@ export function usePoolStats () {
             pool.stakingAprChain = findNetworkBySlug(chain)!
             pool.dailyVolume = dailyVolume
             pool.dailyVolumeFormatted = dailyVolume ? `${commafy(dailyVolume, 2)}` : '-'
-          } catch (err) {
-            console.error(err)
+          } catch (err: any) {
+            if (!err.message?.includes('expected data')) {
+              console.error('pool stats error:', err)
+            }
 
             pool.aprFormatted = toPercentDisplay(0)
             pool.stakingAprFormatted = toPercentDisplay(0)

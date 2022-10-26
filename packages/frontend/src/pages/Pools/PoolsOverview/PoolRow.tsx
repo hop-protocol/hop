@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import MuiButton from '@material-ui/core/Button'
@@ -88,6 +88,7 @@ type Props = {
 
 export function PoolRow (props: Props) {
   const styles = useStyles()
+  const history = useHistory()
   const { isAllPools, data } = props
   const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, canStake, claimLink } = data
 
@@ -163,18 +164,14 @@ export function PoolRow (props: Props) {
         <Link to={depositLink} className={styles.poolLink}>
         <Box p={1} display="flex" justifyContent="center">
           {(canClaim || canStake) ? <>
-            <Button highlighted>
-                <Link to={claimLink} className={styles.claimLink}>
-                {canStake ? 'Stake' : 'Claim'}
-                </Link>
-              </Button>
+            <Button highlighted onClick={() => history.push(claimLink)}>
+              {canStake ? 'Stake' : 'Claim'}
+            </Button>
           </> : <>
-          <MuiButton variant="text" className={styles.depositLink}>
-              <Link to={depositLink} className={styles.depositLink}>
-                <Typography variant="body1" component="span" title="Deposit into pool">
-                  <strong>Add Liquidity</strong>
-                </Typography>
-              </Link>
+          <MuiButton variant="text" className={styles.depositLink} onClick={() => history.push(depositLink)}>
+              <Typography variant="body1" component="span" title="Deposit into pool">
+                <strong>Add Liquidity</strong>
+              </Typography>
             </MuiButton>
          </>
           }

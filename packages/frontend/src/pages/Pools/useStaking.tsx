@@ -206,7 +206,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     setOverallTotalStakedBn(BigNumber.from(0))
     setRewardRateBn(BigNumber.from(0))
     setOverallRewardsPerDayBn(BigNumber.from(0))
-    setRewardsTokenSymbol(stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress.toLowerCase()] ?? '')
+    setRewardsTokenSymbol(stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()] ?? '')
     setIsRewardsExpired(false)
   } catch (err) {
     console.error(err)

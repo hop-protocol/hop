@@ -708,10 +708,12 @@ function WithdrawForm(props: any) {
         </Box>
       ) : (
         <Box>
-          <Box mb={1} display="flex" justifyContent="space-between">
-            <Typography variant="subtitle2" color="textPrimary">
+          <Box mb={1} display="flex" alignItems="center" justifyContent="center">
+            <Typography variant="body1" color="textPrimary">
               Withdraw the amount to {selectedTokenSymbol}
             </Typography>
+          </Box>
+          <Box mb={1} display="flex" justifyContent="flex-end">
             <BalanceText balanceFormatted={maxBalanceFormatted} balanceBn={maxBalance} onClick={handleMaxClick} />
           </Box>
           <Box mb={1}>
@@ -863,7 +865,7 @@ function StakeForm(props: any) {
         <Box mb={1}>
           <Box mb={2} display="flex" justifyContent="space-between">
             <Box>
-              <Typography variant="body1">
+              <Typography variant="body1" component="div">
                 APR <InfoTooltip title="Annual Percentage Rate (APR) from staking LP tokens" />
               </Typography>
             </Box>
@@ -875,7 +877,7 @@ function StakeForm(props: any) {
           </Box>
           <Box mb={2} display="flex" justifyContent="space-between">
             <Box>
-              <Typography variant="body1">
+              <Typography variant="body1" component="div">
                 Total Staked <InfoTooltip title="The total amount of LP tokens staked for rewards" />
               </Typography>
             </Box>
@@ -887,7 +889,7 @@ function StakeForm(props: any) {
           </Box>
           <Box mb={1} display="flex" justifyContent="space-between">
             <Box>
-              <Typography variant="body1">
+              <Typography variant="body1" component="div">
                 Total Rewards <InfoTooltip title="The total rewards being distributed per day" />
               </Typography>
             </Box>
@@ -931,8 +933,8 @@ function TopPoolStats (props:any) {
       <Box mb={4} p={1} display="flex" justifyContent="space-between" className={styles.topBoxes}>
         <Box mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
           <Box mb={2}>
-            <Typography variant="subtitle1" color="secondary">
-              <Box display="flex" alignItems="center">
+            <Typography variant="subtitle1" color="secondary" component="div">
+              <Box display="flex" alignItems="center" component="div">
                 TVL <InfoTooltip title="Total value locked in USD" />
               </Box>
             </Typography>
@@ -943,8 +945,8 @@ function TopPoolStats (props:any) {
         </Box>
         <Box ml={1} mr={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
           <Box mb={2}>
-            <Typography variant="subtitle1" color="secondary">
-              <Box display="flex" alignItems="center">
+            <Typography variant="subtitle1" color="secondary" component="div">
+              <Box display="flex" alignItems="center" component="div">
                 24hr Volume <InfoTooltip title="Total volume in AMM in last 24 hours" />
               </Box>
             </Typography>
@@ -955,8 +957,8 @@ function TopPoolStats (props:any) {
         </Box>
         <Box ml={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
           <Box mb={2}>
-            <Typography variant="subtitle1" color="secondary">
-              <Box display="flex" alignItems="center">
+            <Typography variant="subtitle1" color="secondary" component="div">
+              <Box display="flex" alignItems="center" component="div">
                 APR <InfoTooltip title="Annual Percentage Rate (APR) from earning fees, based on 24hr trading volume" />
               </Box>
             </Typography>
@@ -992,7 +994,7 @@ function BottomPoolStats (props:any) {
       <Box display="flex" justifyContent="space-between" className={styles.poolStatBoxes}>
         <Box width="100%">
           <Box mb={1}>
-            <Typography variant="subtitle2" color="secondary">
+            <Typography variant="subtitle2" color="secondary" component="div">
               <Box display="flex" alignItems="center">
                 {canonicalTokenSymbol} Reserves <InfoTooltip title="Total amount of canonical tokens in pool" />
               </Box>
@@ -1004,7 +1006,7 @@ function BottomPoolStats (props:any) {
         </Box>
         <Box width="100%">
           <Box mb={1}>
-            <Typography variant="subtitle2" color="secondary">
+            <Typography variant="subtitle2" color="secondary" component="div">
               <Box display="flex" alignItems="center">
                 {hopTokenSymbol} Reserves <InfoTooltip title="Total amount of h-tokens in pool" />
               </Box>
@@ -1016,7 +1018,7 @@ function BottomPoolStats (props:any) {
         </Box>
         <Box width="100%">
           <Box mb={1}>
-            <Typography variant="subtitle2" color="secondary">
+            <Typography variant="subtitle2" color="secondary" component="div">
               <Box display="flex" alignItems="center">
                 LP Tokens <InfoTooltip title="Total supply of liquidity provider (LP) tokens for pool" />
               </Box>
@@ -1028,7 +1030,7 @@ function BottomPoolStats (props:any) {
         </Box>
         <Box width="100%">
           <Box mb={1}>
-            <Typography variant="subtitle2" color="secondary">
+            <Typography variant="subtitle2" color="secondary" component="div">
               <Box display="flex" alignItems="center">
                 Fee <InfoTooltip title="Each trade has this fee percentage that goes to liquidity providers" />
               </Box>
@@ -1040,7 +1042,7 @@ function BottomPoolStats (props:any) {
         </Box>
         <Box width="100%">
           <Box mb={1}>
-            <Typography variant="subtitle2" color="secondary">
+            <Typography variant="subtitle2" color="secondary" component="div">
               <Box display="flex" alignItems="center">
                 Virtual Price <InfoTooltip title="The virtual price, to help calculate profit. Virtual price is calculated as `pool_reserves / lp_supply`" />
               </Box>

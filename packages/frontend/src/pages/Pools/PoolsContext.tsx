@@ -25,6 +25,7 @@ import { l2Networks } from 'src/config/networks'
 import { amountToBN, formatError } from 'src/utils/format'
 import { useStaking } from './useStaking'
 import {
+  useQueryParams,
   useTransactionReplacement,
   useAsyncMemo,
   useBalance,
@@ -35,6 +36,8 @@ import {
 import { useInterval } from 'react-use'
 import { getTokenImage } from 'src/utils/tokens'
 import { usePoolStats } from './usePoolStats'
+
+// TODO: This hook needs refactoring
 
 type PoolsContextProps = {
   addLiquidity: () => void
@@ -125,6 +128,11 @@ type PoolsContextProps = {
   isWithdrawing: boolean
   isDepositing: boolean
   volumeUsdFormatted : string
+  overallUserPoolBalanceFormatted: string
+  overallUserPoolTokenPercentageFormatted: string
+  overallToken0DepositedFormatted: string
+  overallToken1DepositedFormatted: string
+  overallUserPoolBalanceUsdFormatted: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -132,21 +140,25 @@ const TOTAL_AMOUNTS_DECIMALS = 18
 const PoolsContext = createContext<PoolsContextProps | undefined>(undefined)
 
 const PoolsProvider: FC = ({ children }) => {
+  const { queryParams } = useQueryParams()
   const [token0Amount, setToken0Amount] = useState<string>('')
   const [token1Amount, setToken1Amount] = useState<string>('')
   const [totalSupply, setTotalSupply] = useState<string>('')
+  const [totalSupplyBn, setTotalSupplyBn] = useState<any>(BigNumber.from(0))
   const [token1Rate, setToken1Rate] = useState<string>('')
   const [poolReserves, setPoolReserves] = useState<BigNumber[]>([])
   const [poolSharePercentage, setPoolSharePercentage] = useState<string>('0')
   const [token0Price, setToken0Price] = useState<string>('-')
   const [token1Price, setToken1Price] = useState<string>('-')
   const [userPoolBalance, setUserPoolBalance] = useState<BigNumber>()
-  const [userPoolBalanceFormatted, setUserPoolBalanceFormatted] = useState<string>('')
   const [userPoolTokenPercentage, setUserPoolTokenPercentage] = useState<string>('')
   const [token0Deposited, setToken0Deposited] = useState<BigNumber | undefined>()
   const [token1Deposited, setToken1Deposited] = useState<BigNumber | undefined>()
   const [tokenSumDeposited, setTokenSumDeposited] = useState<BigNumber | undefined>()
   const [apr, setApr] = useState<number | undefined>()
+  const [stakedBalance, setStakedBalance] = useState<any>(BigNumber.from(0))
+  const [stakedToken0Deposited, setStakedToken0Deposited] = useState<any>(BigNumber.from(0))
+  const [stakedToken1Deposited, setStakedToken1Deposited] = useState<any>(BigNumber.from(0))
   const aprRef = useRef<string>('')
   const [reserveTotalsUsd, setReserveTotalsUsd] = useState<number | undefined>()
   const [virtualPrice, setVirutalPrice] = useState<number | undefined>()
@@ -170,7 +182,8 @@ const PoolsProvider: FC = ({ children }) => {
   const [isWithdrawing, setIsWithdrawing] = useState(false)
   const [isDepositing, setIsDepositing] = useState(false)
   const { getPoolStats } = usePoolStats()
-  const accountAddress = address?.address
+  const lpDecimals = 18
+  const accountAddress = (queryParams?.address as string) || address?.address
 
   const chainSlug = selectedNetwork?.slug ?? ''
   const tokenSymbol = selectedBridge?.getTokenSymbol() ?? ''
@@ -517,7 +530,6 @@ const PoolsProvider: FC = ({ children }) => {
         lpToken.totalSupply(),
       ])
 
-      const lpDecimals = 18
       if (isSubscribed) {
         setPoolReserves(reserves)
         setLpTokenTotalSupply(lpTokenTotalSupply)
@@ -535,7 +547,7 @@ const PoolsProvider: FC = ({ children }) => {
   useEffect(() => {
     setTimeout(() => {
       setLoading(false)
-    }, 2 * 1000)
+    }, 6 * 1000)
   }, [])
 
   const updateUserPoolPositions = useCallback(async () => {
@@ -554,13 +566,17 @@ const PoolsProvider: FC = ({ children }) => {
         setToken1Deposited(undefined)
         setTokenSumDeposited(undefined)
         setTotalSupply('')
+        setTotalSupplyBn(BigNumber.from(0))
         setUserPoolTokenPercentage('')
+        setStakedBalance(BigNumber.from(0))
+        setStakedToken0Deposited(BigNumber.from(0))
+        setStakedToken1Deposited(BigNumber.from(0))
         return
       }
       const bridge = sdk.bridge(canonicalToken.symbol)
       const lpToken = bridge.getSaddleLpToken(selectedNetwork.slug)
 
-      const [totalSupply, balance, reserves] = await Promise.all([
+      const [_totalSupplyBn, balance, reserves] = await Promise.all([
         (await lpToken.getErc20()).totalSupply(),
         lpToken.balanceOf(),
         bridge.getSaddleSwapReserves(selectedNetwork.slug),
@@ -568,28 +584,21 @@ const PoolsProvider: FC = ({ children }) => {
       setUserPoolBalance(balance)
 
       const tokenDecimals = canonicalToken?.decimals
-      const lpDecimals = 18
 
       const [reserve0, reserve1] = reserves
-      const formattedTotalSupply = formatUnits(totalSupply.toString(), lpDecimals)
+      const formattedTotalSupply = formatUnits(_totalSupplyBn.toString(), lpDecimals)
       setTotalSupply(formattedTotalSupply)
-
-      let formattedBalance = formatUnits(balance.toString(), lpDecimals)
-      formattedBalance = Number(formattedBalance).toFixed(5)
-      if (Number(formattedBalance) === 0 && balance.gt(0)) {
-        formattedBalance = '<0.00001'
-      }
-      setUserPoolBalanceFormatted(`${commafy(formattedBalance, 5)}`)
+      setTotalSupplyBn(_totalSupplyBn)
 
       const oneToken = parseUnits('1', lpDecimals)
-      const poolPercentage = balance.mul(oneToken).div(totalSupply).mul(100)
+      const poolPercentage = balance.mul(oneToken).div(_totalSupplyBn).mul(100)
       const formattedPoolPercentage = Number(formatUnits(poolPercentage, lpDecimals)).toFixed(2)
       setUserPoolTokenPercentage(
         formattedPoolPercentage === '0.00' ? '<0.01' : formattedPoolPercentage
       )
 
-      const token0Deposited = balance.mul(reserve0).div(totalSupply)
-      const token1Deposited = balance.mul(reserve1).div(totalSupply)
+      const token0Deposited = balance.mul(reserve0).div(_totalSupplyBn)
+      const token1Deposited = balance.mul(reserve1).div(_totalSupplyBn)
       const tokenSumDeposited = token0Deposited.add(token1Deposited)
 
       if (token0Deposited.gt(0)) {
@@ -607,11 +616,27 @@ const PoolsProvider: FC = ({ children }) => {
         const amount0 = formatUnits(reserve1.mul(oneToken).div(reserve0), tokenDecimals)
         setToken1Rate(Number(amount0).toFixed(2))
       }
+
+      let stakedBalance = BigNumber.from(0)
+      if (stakingContract) {
+        const balance = await stakingContract.balanceOf(accountAddress)
+        stakedBalance = stakedBalance.add(balance)
+      }
+      if (hopStakingContract) {
+        const balance = await hopStakingContract.balanceOf(accountAddress)
+        stakedBalance = stakedBalance.add(balance)
+      }
+
+      const stakedToken0Deposited = stakedBalance.mul(poolReserves[0]).div(_totalSupplyBn)
+      const stakedToken1Deposited = stakedBalance.mul(poolReserves[1]).div(_totalSupplyBn)
+      setStakedBalance(stakedBalance)
+      setStakedToken0Deposited(stakedToken0Deposited)
+      setStakedToken1Deposited(stakedToken1Deposited)
     } catch (err) {
       logger.error(err)
     }
     setLoading(false)
-  }, [unsupportedAsset, provider, selectedNetwork, canonicalToken, hopToken, address])
+  }, [unsupportedAsset, provider, selectedNetwork, canonicalToken, hopToken, address, accountAddress, stakingContract, hopStakingContract, poolReserves])
 
   useEffect(() => {
     updateUserPoolPositions()
@@ -623,21 +648,10 @@ const PoolsProvider: FC = ({ children }) => {
 
   useEffect(() => {
     async function update() {
-      let stakedBalance = BigNumber.from(0)
-      if (stakingContract) {
-        const balance = await stakingContract.balanceOf(accountAddress)
-        stakedBalance = stakedBalance.add(balance)
-      }
-      if (hopStakingContract) {
-        const balance = await hopStakingContract.balanceOf(accountAddress)
-        stakedBalance = stakedBalance.add(balance)
-      }
-
-      console.log('stakedBalance:', stakedBalance)
     }
 
     update().catch(err => logger.error(err))
-  }, [stakingContract, hopStakingContract, accountAddress])
+  }, [stakingContract, hopStakingContract, accountAddress, poolReserves, totalSupplyBn])
 
   const { approve } = useApprove(canonicalToken)
   const approveTokens = async (isHop: boolean, amount: string, network: Network) => {
@@ -1295,7 +1309,8 @@ const PoolsProvider: FC = ({ children }) => {
     sendButtonText = 'Insufficient funds'
   }
 
-  const hasBalance = userPoolBalance?.gt(0) ?? false
+  const totalUserBalance = BigNumber.from(userPoolBalance || 0).add(stakedBalance || 0)
+  const hasBalance = totalUserBalance.gt(0)
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
   const hopTokenSymbol = hopToken?.symbol || ''
   const reserve0 = toTokenDisplay(poolReserves?.[0], canonicalToken?.decimals)
@@ -1337,6 +1352,49 @@ const PoolsProvider: FC = ({ children }) => {
   const volume = getPoolStats(chainSlug, tokenSymbol)?.dailyVolume ?? 0
   const volumeUsd = tokenUsdPrice ? volume * tokenUsdPrice : 0
   const volumeUsdFormatted = volumeUsd ? `$${commafy(volumeUsd, 2)}` : '-'
+
+  let userPoolBalanceFormatted = ''
+  if (userPoolBalance) {
+    let formattedBalance = formatUnits(userPoolBalance.toString(), lpDecimals)
+    formattedBalance = Number(formattedBalance).toFixed(5)
+    if (Number(formattedBalance) === 0 && userPoolBalance.gt(0)) {
+      formattedBalance = '<0.00001'
+    }
+    userPoolBalanceFormatted = `${commafy(formattedBalance, 5)}`
+  }
+
+  const overallUserLpBalance = (userPoolBalance && stakedBalance) ? userPoolBalance.add(stakedBalance) : BigNumber.from(0)
+  let overallUserPoolBalanceFormatted = userPoolBalanceFormatted
+  if (userPoolBalance && stakedBalance) {
+    let formattedBalance = formatUnits(overallUserLpBalance.toString(), lpDecimals)
+    formattedBalance = Number(formattedBalance).toFixed(5)
+    if (Number(formattedBalance) === 0 && overallUserLpBalance.gt(0)) {
+      formattedBalance = '<0.00001'
+    }
+    overallUserPoolBalanceFormatted = `${commafy(formattedBalance, 5)}`
+  }
+
+  const oneToken = parseUnits('1', lpDecimals)
+  const overallPoolPercentage = totalSupplyBn.gt(0) ? overallUserLpBalance.mul(oneToken).div(totalSupplyBn).mul(100) : BigNumber.from(0)
+  const formattedOverallPoolPercentage = Number(formatUnits(overallPoolPercentage, lpDecimals)).toFixed(2)
+  const overallUserPoolTokenPercentage = formattedOverallPoolPercentage === '0.00' ? '<0.01' : formattedOverallPoolPercentage
+
+  const overallUserPoolTokenPercentageFormatted = overallUserPoolTokenPercentage ? `${commafy(overallUserPoolTokenPercentage)}%` : ''
+
+  const overallToken0Deposited = BigNumber.from(token0Deposited || 0).add(stakedToken0Deposited)
+  const overallToken1Deposited = BigNumber.from(token1Deposited || 0).add(stakedToken1Deposited)
+
+  const overallToken1DepositedFormatted = overallToken1Deposited
+    ? commafy(Number(formatUnits(overallToken1Deposited, hopToken?.decimals)), 5)
+    : ''
+
+  const overallToken0DepositedFormatted = overallToken0Deposited
+    ? commafy(Number(formatUnits(overallToken0Deposited, canonicalToken?.decimals)), 5)
+    : ''
+
+  const overallUserPoolBalanceSum = (hasBalance && overallUserLpBalance && tokenUsdPrice) ? (Number(formatUnits(overallToken0Deposited || 0, tokenDecimals)) + Number(formatUnits(overallToken1Deposited || 0, tokenDecimals))) : 0
+  const overallUserPoolBalanceUsd = tokenUsdPrice ? overallUserPoolBalanceSum * tokenUsdPrice : 0
+  const overallUserPoolBalanceUsdFormatted = overallUserPoolBalanceUsd ? `$${commafy(overallUserPoolBalanceUsd, 2)}` : commafy(overallUserPoolBalanceSum, 4)
 
   async function removeLiquiditySimple(amounts: any) {
     try {
@@ -1518,7 +1576,12 @@ const PoolsProvider: FC = ({ children }) => {
         removeLiquiditySimple,
         isWithdrawing,
         isDepositing,
-        volumeUsdFormatted
+        volumeUsdFormatted,
+        overallUserPoolBalanceFormatted,
+        overallUserPoolTokenPercentageFormatted,
+        overallToken0DepositedFormatted,
+        overallToken1DepositedFormatted,
+        overallUserPoolBalanceUsdFormatted,
       }}
     >
       {children}

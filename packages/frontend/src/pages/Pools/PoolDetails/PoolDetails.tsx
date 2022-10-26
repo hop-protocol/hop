@@ -1094,6 +1094,11 @@ export function PoolDetails () {
     isWithdrawing,
     isDepositing,
     volumeUsdFormatted,
+    overallUserPoolBalanceFormatted,
+    overallUserPoolTokenPercentageFormatted,
+    overallToken0DepositedFormatted,
+    overallToken1DepositedFormatted,
+    overallUserPoolBalanceUsdFormatted
   } = usePool()
   const tvlFormatted = reserveTotalsUsdFormatted
   const { pathname, search } = useLocation()
@@ -1202,13 +1207,13 @@ export function PoolDetails () {
                   {hasBalance && (
                   <AccountPosition
                     data={{
-                      userPoolBalanceFormatted,
-                      userPoolTokenPercentageFormatted,
-                      token0DepositedFormatted,
-                      token1DepositedFormatted,
+                      userPoolBalanceFormatted: overallUserPoolBalanceFormatted,
+                      userPoolTokenPercentageFormatted: overallUserPoolTokenPercentageFormatted,
+                      token0DepositedFormatted: overallToken0DepositedFormatted,
+                      token1DepositedFormatted: overallToken1DepositedFormatted,
+                      userPoolBalanceUsdFormatted: overallUserPoolBalanceUsdFormatted,
                       canonicalTokenSymbol,
                       hopTokenSymbol,
-                      userPoolBalanceUsdFormatted,
                       hopStakingContractAddress,
                       chainSlug,
                       tokenSymbol,

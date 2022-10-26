@@ -2,12 +2,15 @@ import { useQuery } from 'react-query'
 import { ChainId, Token } from '@hop-protocol/sdk'
 import { Addressish } from 'src/models/Address'
 import { StakingRewards } from '@hop-protocol/core/contracts'
+import { Contract } from 'ethers'
 
-async function fetchBalance(token: Token | StakingRewards, address: string) {
+type ContractType = Token | StakingRewards | Token | Contract
+
+async function fetchBalance(token: ContractType, address: string) {
   return await token.balanceOf(address)
 }
 
-const useBalance = (token?: Token | StakingRewards, address?: Addressish, chainId?: ChainId) => {
+const useBalance = (token?: ContractType, address?: Addressish, chainId?: ChainId) => {
   chainId = token instanceof Token ? token.chain.chainId : chainId
 
   const queryKey = `balance:${chainId}:${token?.address}:${address?.toString()}`

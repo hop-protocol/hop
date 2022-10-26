@@ -434,9 +434,14 @@ const Send: FC = () => {
           }
           console.log(json.data.refund)
           const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
-          setFeeRefund(refundAmountInRefundToken.toFixed(4))
-          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
           setFeeRefundTokenSymbol(refundTokenSymbol)
+          if (refundAmountInUsd > 0) {
+            setFeeRefund(refundAmountInRefundToken.toFixed(4))
+            setFeeRefundUsd(refundAmountInUsd.toFixed(2))
+          } else {
+            setFeeRefund('')
+            setFeeRefundUsd('')
+          }
         } else {
           setFeeRefund('')
           setFeeRefundUsd('')

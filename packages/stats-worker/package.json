@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "ts-node src/index.ts",
-    "start:apr": "ts-node src/index.ts --apr",
+    "start:yields": "ts-node src/index.ts --yields",
     "start:volume": "ts-node src/index.ts --volume",
     "start:tvl": "ts-node src/index.ts --tvl",
     "start:bonder": "ts-node src/index.ts --bonder --bonderDays=30",
@@ -22,8 +22,8 @@
   "license": "MIT",
   "dependencies": {
     "@aws-sdk/client-s3": "3.29.0",
-    "@hop-protocol/core": "0.0.1-beta.96",
-    "@hop-protocol/sdk": "0.0.1-beta.383",
+    "@hop-protocol/core": "0.0.1-beta.101",
+    "@hop-protocol/sdk": "0.0.1-beta.389",
     "@pinata/sdk": "1.1.26",
     "comment-json": "4.2.2",
     "csv-writer": "1.6.0",

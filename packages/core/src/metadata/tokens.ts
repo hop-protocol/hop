@@ -2,6 +2,7 @@ import {
   ARBImage,
   DAIImage,
   ETHImage,
+  GNOImage,
   HOPImage,
   MATICImage,
   OPImage,
@@ -100,5 +101,11 @@ export const tokens: Tokens = {
     name: 'Synth sUSD',
     decimals: 18,
     image: sUSDImage
+  },
+  GNO: {
+    symbol: 'GNO',
+    name: 'Gnosis',
+    decimals: 18,
+    image: GNOImage
   }
 }

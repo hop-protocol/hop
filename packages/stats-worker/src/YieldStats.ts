@@ -83,6 +83,7 @@ type StakingYieldDataRes = {
   apr: number
   apy: number
   rewardToken: string
+  rewardTokenAddress: string
   stakingRewardsContractAddress: string
   isOptimalStakingContract: boolean
 }
@@ -97,6 +98,7 @@ type StakingRewardsData = {
   apr: number
   apy: number
   rewardToken: string
+  rewardTokenAddress: string
   isOptimalStakingContract: boolean
 }
 
@@ -105,6 +107,7 @@ type OptimalYieldData = {
   apy: number
   dailyVolume: number
   rewardToken: string
+  rewardTokenAddress: string
 }
 
 type Pools = {
@@ -211,6 +214,7 @@ class YieldStats {
                   apr: stakingYieldData.apr,
                   apy: stakingYieldData.apy,
                   rewardToken: stakingYieldData.rewardToken,
+                  rewardTokenAddress: stakingYieldData.rewardTokenAddress,
                   isOptimalStakingContract: stakingYieldData.isOptimalStakingContract
                 }
               }
@@ -278,6 +282,7 @@ class YieldStats {
               apr: 0,
               apy: 0,
               rewardToken: '',
+              rewardTokenAddress: '',
               isOptimalStakingContract: false
             }
           }
@@ -290,7 +295,8 @@ class YieldStats {
             apr: 0,
             apy: 0,
             dailyVolume: 0,
-            rewardToken: ''
+            rewardToken: '',
+            rewardTokenAddress: ''
           }
         }
       }
@@ -378,7 +384,8 @@ class YieldStats {
               apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
               apy: yieldData.pools[token][chain].apy + stakingRewardsData.apy,
               dailyVolume: yieldData.pools[token][chain].dailyVolume,
-              rewardToken: stakingRewardsData.rewardToken
+              rewardToken: stakingRewardsData.rewardToken,
+              rewardTokenAddress: stakingRewardsData.rewardTokenAddress
             }
           }
         }
@@ -389,7 +396,8 @@ class YieldStats {
             apr: yieldData.pools[token][chain].apr,
             apy: yieldData.pools[token][chain].apy,
             dailyVolume: yieldData.pools[token][chain].dailyVolume,
-            rewardToken: ''
+            rewardToken: '',
+            rewardTokenAddress: ''
           }
         }
       }
@@ -471,8 +479,8 @@ class YieldStats {
 
       const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(token)
 
-      const rewardsTokenAddress = await stakingRewards.rewardsToken()
-      const rewardsToken = ERC20__factory.connect(rewardsTokenAddress, provider)
+      const rewardsTokenAddr = await stakingRewards.rewardsToken()
+      const rewardsToken = ERC20__factory.connect(rewardsTokenAddr, provider)
       const rewardsTokenSymbol = await rewardsToken.symbol()
       const rewardTokenUsdPrice = await bridge?.priceFeed.getPriceByTokenSymbol(
         rewardsTokenSymbol
@@ -504,10 +512,12 @@ class YieldStats {
       }
 
       let rewardToken = ''
+      let rewardTokenAddress = ''
       let stakingRewardsContractAddress = ''
       const isActiveRewards = apr > 0 && apy > 0
       if (isActiveRewards) {
         rewardToken = rewardsTokenSymbol
+        rewardTokenAddress = rewardsTokenAddr
         stakingRewardsContractAddress = stakingRewardsAddress
       } else {
         continue
@@ -517,6 +527,7 @@ class YieldStats {
         apr,
         apy,
         rewardToken,
+        rewardTokenAddress,
         stakingRewardsContractAddress,
         isOptimalStakingContract: apr > currentOptimalApr
       })

@@ -63,6 +63,7 @@ export function usePools () {
             totalAprFormatted: '',
             depositLink,
             canClaim: false,
+            canStake: false,
             claimLink,
             stakingRewardsStaked: 0,
             stakingRewardsStakedUsd: 0,
@@ -146,6 +147,11 @@ export function usePools () {
       }).map((x: any) => {
         x.userBalanceTotalUsd = x.userBalanceUsd + x.stakingRewardsStakedTotalUsd
         x.userBalanceTotalUsdFormatted = `$${commafy(x.userBalanceTotalUsd, 4)}`
+
+        if (x.userBalanceUsd && !x.stakingRewardsStakedTotalUsd && !x.canClaim) {
+          x.canStake = true
+        }
+
         return x
       })
       setUserPools(_userPools)
@@ -207,13 +213,11 @@ export function usePools () {
           pool.stakingAprFormatted = _poolStats.stakingAprFormatted
           pool.totalApr = _poolStats.totalApr
           pool.totalAprFormatted = _poolStats.totalAprFormatted
-          if (pool.stakingApr > 0) {
-            for (const rewardToken of _poolStats.stakingRewardTokens) {
-              pool.stakingRewards.push({
-                name: rewardToken,
-                imageUrl: getTokenImage(rewardToken),
-              })
-            }
+          for (const rewardToken of _poolStats.stakingRewardTokens) {
+            pool.stakingRewards.push({
+              name: rewardToken,
+              imageUrl: getTokenImage(rewardToken),
+            })
           }
 
           setPools([...pools])
@@ -243,6 +247,7 @@ export function usePools () {
         for (const pool of pools) {
           if (pool.canClaim) {
             pool.canClaim = false
+            pool.canStake = false
             setPools([...pools])
           }
         }
@@ -261,10 +266,14 @@ export function usePools () {
             const _provider = sdk.getChainProvider(pool.chain.slug)
             const contract = StakingRewards__factory.connect(address, _provider)
             const balance = await contract?.balanceOf(accountAddress)
+            const earned = await contract?.earned(accountAddress)
             if (balance.gt(0)) {
               pool.stakingRewardsStaked = Number(formatUnits(balance, 18))
               pool.stakingRewardsStakedUsd = pool.stakingRewardsStaked * tokenUsdPrice
               pool.stakingRewardsStakedUsdFormatted = `$${commafy(pool.stakingRewardsStakedUsd, 2)}`
+            }
+            if (earned.gt(0)) {
+              pool.canClaim = true
             }
           }
 

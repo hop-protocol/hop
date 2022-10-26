@@ -76,6 +76,7 @@ type Data = {
   userBalanceTotalUsdFormatted: string
   depositLink: string
   canClaim: boolean
+  canStake: boolean
   claimLink: string
   stakingRewardsStakedTotalUsdFormatted: string
 }
@@ -88,7 +89,7 @@ type Props = {
 export function PoolRow (props: Props) {
   const styles = useStyles()
   const { isAllPools, data } = props
-  const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, claimLink } = data
+  const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, canStake, claimLink } = data
 
   return (
     <tr className={styles.tr}>
@@ -161,10 +162,10 @@ export function PoolRow (props: Props) {
       <td>
         <Link to={depositLink} className={styles.poolLink}>
         <Box p={1} display="flex" justifyContent="center">
-          {canClaim ? <>
+          {(canClaim || canStake) ? <>
             <Button highlighted>
                 <Link to={claimLink} className={styles.claimLink}>
-                Claim
+                {canStake ? 'Stake' : 'Claim'}
                 </Link>
               </Button>
           </> : <>

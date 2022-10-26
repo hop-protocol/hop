@@ -19,7 +19,7 @@ import Address from 'src/models/Address'
 import Price from 'src/models/Price'
 import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { commafy, shiftBNDecimals, BNMin, toTokenDisplay, toPercentDisplay } from 'src/utils'
+import { commafy, shiftBNDecimals, BNMin, toTokenDisplay, toPercentDisplay, getTokenDecimals } from 'src/utils'
 import { hopStakingRewardsContracts, stakingRewardsContracts, reactAppNetwork } from 'src/config'
 import { l2Networks } from 'src/config/networks'
 import { amountToBN, formatError } from 'src/utils/format'
@@ -545,6 +545,14 @@ const PoolsProvider: FC = ({ children }) => {
   }, [unsupportedAsset, canonicalToken, hopToken, selectedNetwork])
 
   useEffect(() => {
+    setToken0Deposited(undefined)
+    setToken1Deposited(undefined)
+    setTokenSumDeposited(undefined)
+    setUserPoolBalance(undefined)
+    setLoading(true)
+  }, [accountAddress, selectedNetwork, selectedBridge])
+
+  useEffect(() => {
     setTimeout(() => {
       setLoading(false)
     }, 6 * 1000)
@@ -601,15 +609,9 @@ const PoolsProvider: FC = ({ children }) => {
       const token1Deposited = balance.mul(reserve1).div(_totalSupplyBn)
       const tokenSumDeposited = token0Deposited.add(token1Deposited)
 
-      if (token0Deposited.gt(0)) {
-        setToken0Deposited(token0Deposited)
-      }
-      if (token1Deposited.gt(0)) {
-        setToken1Deposited(token1Deposited)
-      }
-      if (tokenSumDeposited.gt(0)) {
-        setTokenSumDeposited(tokenSumDeposited)
-      }
+      setToken0Deposited(token0Deposited)
+      setToken1Deposited(token1Deposited)
+      setTokenSumDeposited(tokenSumDeposited)
       if (reserve0?.eq(0) && reserve1?.eq(0)) {
         setToken1Rate('0')
       } else {
@@ -1301,13 +1303,15 @@ const PoolsProvider: FC = ({ children }) => {
     setRemoving(false)
   }
 
+  const tokenDecimals = getTokenDecimals(tokenSymbol) ?? canonicalToken?.decimals
+
   // ToDo: Use BigNumber everywhere and get rid of this conversion
   const token0Balance =
     canonicalToken && canonicalBalance
-      ? Number(formatUnits(canonicalBalance, canonicalToken.decimals))
+      ? Number(formatUnits(canonicalBalance, tokenDecimals))
       : 0
   const token1Balance =
-    hopToken && hopBalance ? Number(formatUnits(hopBalance, hopToken.decimals)) : 0
+    hopToken && hopBalance ? Number(formatUnits(hopBalance, tokenDecimals)) : 0
 
   const enoughBalance =
     (Number(token0Amount) ? token0Balance >= Number(token0Amount) : true) &&
@@ -1342,13 +1346,12 @@ const PoolsProvider: FC = ({ children }) => {
     ? commafy(Number(formatUnits(token0Deposited, canonicalToken?.decimals)), 5)
     : ''
   const token1DepositedFormatted = token1Deposited
-    ? commafy(Number(formatUnits(token1Deposited, hopToken?.decimals)), 5)
+    ? commafy(Number(formatUnits(token1Deposited, tokenDecimals)), 5)
     : ''
   const tokenSumDepositedFormatted = tokenSumDeposited
-    ? commafy(Number(formatUnits(tokenSumDeposited, hopToken?.decimals)), 5)
+    ? commafy(Number(formatUnits(tokenSumDeposited, tokenDecimals)), 5)
     : ''
 
-    const tokenDecimals = canonicalToken?.decimals!
   const userPoolBalanceSum = (hasBalance && userPoolBalance && tokenUsdPrice) ? (Number(formatUnits(token0Deposited || 0, tokenDecimals)) + Number(formatUnits(token1Deposited || 0, tokenDecimals))) : 0
   const userPoolBalanceUsd = tokenUsdPrice ? userPoolBalanceSum * tokenUsdPrice : 0
   const userPoolBalanceUsdFormatted = userPoolBalanceUsd ? `$${commafy(userPoolBalanceUsd, 2)}` : commafy(userPoolBalanceSum, 4)
@@ -1394,11 +1397,11 @@ const PoolsProvider: FC = ({ children }) => {
   const overallToken1Deposited = BigNumber.from(token1Deposited || 0).add(BigNumber.from(stakedToken1Deposited || 0))
 
   const overallToken1DepositedFormatted = overallToken1Deposited
-    ? commafy(Number(formatUnits(overallToken1Deposited, hopToken?.decimals)), 5)
+    ? commafy(Number(formatUnits(overallToken1Deposited, tokenDecimals)), 5)
     : ''
 
   const overallToken0DepositedFormatted = overallToken0Deposited
-    ? commafy(Number(formatUnits(overallToken0Deposited, canonicalToken?.decimals)), 5)
+    ? commafy(Number(formatUnits(overallToken0Deposited, tokenDecimals)), 5)
     : ''
 
   const overallUserPoolBalanceSum = (hasBalance && overallUserLpBalance && tokenUsdPrice) ? (Number(formatUnits(overallToken0Deposited || 0, tokenDecimals)) + Number(formatUnits(overallToken1Deposited || 0, tokenDecimals))) : 0

@@ -217,6 +217,9 @@ export function usePools () {
           pool.totalApr = _poolStats.totalApr
           pool.totalAprFormatted = _poolStats.totalAprFormatted
           for (const rewardToken of _poolStats.stakingRewardTokens) {
+            if (rewardToken === 'HOP') {
+              continue
+            }
             pool.stakingRewards.push({
               name: rewardToken,
               imageUrl: getTokenImage(rewardToken),

@@ -4,7 +4,7 @@ import Box from '@material-ui/core/Box'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
   },
   image: {
@@ -14,7 +14,7 @@ const useStyles = makeStyles(() => ({
     'white-space': 'nowrap'
   },
   boxWrapper: {
-    background: '#fff',
+    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '2rem'
   }
 }))

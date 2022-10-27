@@ -31,7 +31,8 @@ const tokenDecimals: any = {
   DAI: 18,
   MATIC: 18,
   ETH: 18,
-  HOP: 18
+  HOP: 18,
+  SNX: 18
 }
 
 function sumAmounts (items: any) {
@@ -156,26 +157,19 @@ class VolumeStats {
   async trackDailyVolume () {
     const daysN = 365
     console.log('fetching prices')
-    const pricesArr = await Promise.all([
-      this.getPriceHistory('usd-coin', daysN),
-      this.getPriceHistory('tether', daysN),
-      this.getPriceHistory('dai', daysN),
-      this.getPriceHistory('ethereum', daysN),
-      this.getPriceHistory('matic-network', daysN),
-      this.getPriceHistory('wrapped-bitcoin', daysN),
-      this.getPriceHistory('hop-protocol', daysN)
-    ])
-    console.log('done fetching prices')
 
     const prices: any = {
-      USDC: pricesArr[0],
-      USDT: pricesArr[1],
-      DAI: pricesArr[2],
-      ETH: pricesArr[3],
-      MATIC: pricesArr[4],
-      WBTC: pricesArr[5],
-      HOP: pricesArr[6]
+      USDC: await this.getPriceHistory('usd-coin', daysN),
+      USDT: await this.getPriceHistory('tether', daysN),
+      DAI: await this.getPriceHistory('dai', daysN),
+      ETH: await this.getPriceHistory('ethereum', daysN),
+      MATIC: await this.getPriceHistory('matic-network', daysN),
+      WBTC: await this.getPriceHistory('wrapped-bitcoin', daysN),
+      HOP: await this.getPriceHistory('hop-protocol', daysN),
+      SNX: await this.getPriceHistory('havven', daysN)
     }
+
+    console.log('done fetching prices')
 
     console.log('upserting prices')
     for (let token in prices) {
@@ -212,6 +206,10 @@ class VolumeStats {
           const token = item.token
           const decimals = tokenDecimals[token]
           const formattedAmount = Number(formatUnits(amount, decimals))
+          if (!prices[token]) {
+            console.log('not found', token)
+            return
+          }
 
           const dates = prices[token].reverse().map((x: any) => x[0])
           const nearest = nearestDate(dates, timestamp)
@@ -228,6 +226,7 @@ class VolumeStats {
             )
           } catch (err) {
             if (!err.message.includes('UNIQUE constraint failed')) {
+              console.log('error', chain, item.token)
               throw err
             }
           }

@@ -206,23 +206,30 @@ class YieldStats {
                 dailyVolume: res.dailyVolume
               }
             })
-            .catch(err => console.error(`apr 1 day ${chain} ${token} error:`, err))
+            .catch(err =>
+              console.error(`apr 1 day ${chain} ${token} error:`, err)
+            )
         )
         promises.push(
           this.getStakingYieldData(token, chain)
             .then(res => {
               console.log(`${chain}.${token} got staking yield data`)
               for (const stakingYieldData of res) {
-                yieldData.stakingRewards[token][chain][stakingYieldData.stakingRewardsContractAddress] = {
+                yieldData.stakingRewards[token][chain][
+                  stakingYieldData.stakingRewardsContractAddress
+                ] = {
                   apr: stakingYieldData.apr,
                   apy: stakingYieldData.apy,
                   rewardToken: stakingYieldData.rewardToken,
                   rewardTokenAddress: stakingYieldData.rewardTokenAddress,
-                  isOptimalStakingContract: stakingYieldData.isOptimalStakingContract
+                  isOptimalStakingContract:
+                    stakingYieldData.isOptimalStakingContract
                 }
               }
             })
-            .catch(err => console.error(`staking apr 1 ${chain} ${token} error:`, err))
+            .catch(err =>
+              console.error(`staking apr 1 ${chain} ${token} error:`, err)
+            )
         )
       }
 
@@ -357,17 +364,22 @@ class YieldStats {
       for (const chain in tokenData) {
         const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
         for (const stakingRewardsContractAddress in stakingRewardData) {
-          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
+          const stakingRewardsData =
+            stakingRewardData[stakingRewardsContractAddress]
           if (stakingRewardsData.apr === 0) {
-            delete yieldData.stakingRewards[token][chain][stakingRewardsContractAddress]
+            delete yieldData.stakingRewards[token][chain][
+              stakingRewardsContractAddress
+            ]
           }
         }
-        const isStakingContractsForChainRemaining = Object.keys(yieldData.stakingRewards[token][chain]).length > 0
+        const isStakingContractsForChainRemaining =
+          Object.keys(yieldData.stakingRewards[token][chain]).length > 0
         if (!isStakingContractsForChainRemaining) {
           delete yieldData.stakingRewards[token][chain]
         }
       }
-      const isStakingContractsForTokenRemaining = Object.keys(yieldData.stakingRewards[token]).length > 0
+      const isStakingContractsForTokenRemaining =
+        Object.keys(yieldData.stakingRewards[token]).length > 0
       if (!isStakingContractsForTokenRemaining) {
         delete yieldData.stakingRewards[token]
       }
@@ -382,7 +394,8 @@ class YieldStats {
       for (const chain in tokenData) {
         const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
         for (const stakingRewardsContractAddress in stakingRewardData) {
-          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
+          const stakingRewardsData =
+            stakingRewardData[stakingRewardsContractAddress]
           if (stakingRewardsData.isOptimalStakingContract) {
             yieldData.optimalYield[token][chain] = {
               apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
@@ -394,7 +407,8 @@ class YieldStats {
           }
         }
         // If there is no optimal staking contract, just use the pool yield
-        const isNoOptimalStakingContract = yieldData.optimalYield[token][chain].apy === 0
+        const isNoOptimalStakingContract =
+          yieldData.optimalYield[token][chain].apy === 0
         if (isNoOptimalStakingContract) {
           yieldData.optimalYield[token][chain] = {
             apr: yieldData.pools[token][chain].apr,
@@ -421,7 +435,8 @@ class YieldStats {
         const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
         let stakingApr: number = 0
         for (const stakingRewardsContractAddress in stakingRewardData) {
-          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
+          const stakingRewardsData =
+            stakingRewardData[stakingRewardsContractAddress]
           if (stakingRewardsData.isOptimalStakingContract) {
             stakingApr = stakingRewardsData.apr
           }
@@ -452,7 +467,10 @@ class YieldStats {
     }
   }
 
-  async getStakingYieldData (token: string, chain: string): Promise<StakingYieldDataRes[]> {
+  async getStakingYieldData (
+    token: string,
+    chain: string
+  ): Promise<StakingYieldDataRes[]> {
     const bridge = this.sdk.bridge(token)
     const canonToken = bridge.getCanonicalToken(chain)
     const amm = bridge.getAmm(chain)
@@ -510,11 +528,10 @@ class YieldStats {
       )
 
       // Sanity check
-      if (
-        (apr <= 0 && apy > 0) ||
-        (apy <= 0 && apr > 0)
-      ) {
-        throw new Error('Cannot have negative APR and positive APY or vice versa')
+      if ((apr <= 0 && apy > 0) || (apy <= 0 && apr > 0)) {
+        throw new Error(
+          'Cannot have negative APR and positive APY or vice versa'
+        )
       }
 
       let rewardToken = ''

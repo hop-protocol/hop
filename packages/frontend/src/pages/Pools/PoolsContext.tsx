@@ -572,7 +572,8 @@ const PoolsProvider: FC = ({ children }) => {
           provider &&
           selectedNetwork?.provider &&
           poolReserves &&
-          !unsupportedAsset?.chain
+          !unsupportedAsset?.chain &&
+          accountAddress
         )
       ) {
         setToken1Rate('')
@@ -962,6 +963,9 @@ const PoolsProvider: FC = ({ children }) => {
 
   async function unstakeAndRemoveLiquidity (amounts: any) {
     try {
+      if (!accountAddress) {
+        return
+      }
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected || !selectedNetwork) return

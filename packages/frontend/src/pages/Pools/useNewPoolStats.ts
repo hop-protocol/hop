@@ -4,52 +4,17 @@ import { addresses } from 'src/config'
 import { commafy, toPercentDisplay } from 'src/utils'
 import { findNetworkBySlug } from 'src/utils/networks'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
+import { useQuery } from 'react-query'
 
 export function usePoolStats () {
   const { sdk } = useApp()
-  const [poolStats, setPoolStats] = useState<any>({})
   const [stakingStats, setStakingStats] = useState<any>({})
 
-  function getPoolStats(chain: string, token: string) {
-    token = normalizeTokenSymbol(token)
-    return poolStats?.[chain]?.[token]
-  }
-
-  function getStakingStats(chain: string, token: string, contractAddress: string) {
-    token = normalizeTokenSymbol(token)
-    try {
-      const key = `${chain}:${token}:${contractAddress?.toLowerCase()}`
-      const value = stakingStats?.[key] ?? {
-        apr: 0,
-        apy: 0,
-        rewardToken: "",
-      }
-
-      return {
-        stakingApr: value.apr,
-        stakingAprFormatted: toPercentDisplay(value.apr)
-      }
-    } catch (err) {
-      return {
-        stakingApr: 0,
-        stakingAprFormatted: toPercentDisplay(0)
-      }
-    }
-  }
-
-  async function getPoolStatsFile () {
-    const url = 'https://assets.hop.exchange/v1.1-pool-stats.json'
-    const res = await fetch(url)
-    const json = await res.json()
-    console.log('pool stats data response:', json)
-    if (!json?.data) {
-      throw new Error('expected data')
-    }
-    return json.data
-  }
-
-  useEffect(() => {
-    async function update() {
+  const { data: poolStats } = useQuery(
+    [
+      'usePoolStats'
+    ],
+    async () => {
       const json = await getPoolStatsFile()
 
       const _poolStats :any = {}
@@ -144,10 +109,51 @@ export function usePoolStats () {
           }
         }
       }
-      setPoolStats(_poolStats)
+      return _poolStats
+    },
+    {
+      enabled: true,
+      refetchInterval: 60 * 1000
     }
-    update().catch(console.error)
-  }, [])
+  )
+
+  function getPoolStats(chain: string, token: string) {
+    token = normalizeTokenSymbol(token)
+    return poolStats?.[chain]?.[token]
+  }
+
+  function getStakingStats(chain: string, token: string, contractAddress: string) {
+    token = normalizeTokenSymbol(token)
+    try {
+      const key = `${chain}:${token}:${contractAddress?.toLowerCase()}`
+      const value = stakingStats?.[key] ?? {
+        apr: 0,
+        apy: 0,
+        rewardToken: "",
+      }
+
+      return {
+        stakingApr: value.apr,
+        stakingAprFormatted: toPercentDisplay(value.apr)
+      }
+    } catch (err) {
+      return {
+        stakingApr: 0,
+        stakingAprFormatted: toPercentDisplay(0)
+      }
+    }
+  }
+
+  async function getPoolStatsFile () {
+    const url = 'https://assets.hop.exchange/v1.1-pool-stats.json'
+    const res = await fetch(url)
+    const json = await res.json()
+    console.log('pool stats data response:', json)
+    if (!json?.data) {
+      throw new Error('expected data')
+    }
+    return json.data
+  }
 
    return {
      poolStats,

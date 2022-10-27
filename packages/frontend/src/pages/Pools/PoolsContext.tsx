@@ -786,13 +786,17 @@ const PoolsProvider: FC = ({ children }) => {
         return
       }
 
-      if (!(canonicalToken && hopToken && accountAddress && lpToken)) {
+      if (!(canonicalToken && hopToken && accountAddress && lpToken && hopStakingContract)) {
+        return
+      }
+
+      const signer = provider?.getSigner()
+      if (!signer) {
         return
       }
 
       setIsDepositing(true)
       const chainSlug = selectedNetwork?.slug
-      const signer = provider?.getSigner()
       const bridge = sdk.bridge(tokenSymbol).connect(signer as Signer)
       const amm = bridge.getAmm(chainSlug)
       const saddleSwap = await amm.getSaddleSwap()
@@ -956,12 +960,16 @@ const PoolsProvider: FC = ({ children }) => {
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected || !selectedNetwork) return
 
-      if (!(canonicalToken && hopToken)) {
+      if (!(canonicalToken && hopToken && hopStakingContract)) {
+        return
+      }
+
+      const signer = provider?.getSigner()
+      if (!signer) {
         return
       }
 
       setIsWithdrawing(true)
-      const signer = provider?.getSigner()
       const bridge = sdk.bridge(tokenSymbol)
       const amm = bridge.getAmm(selectedNetwork.slug)
       const lpTokenDecimals = 18

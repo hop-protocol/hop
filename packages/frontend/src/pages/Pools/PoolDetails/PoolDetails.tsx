@@ -915,7 +915,7 @@ function StakeForm(props: any) {
       </Box>
       <Box>
         <Alert severity="warning">{warning}</Alert>
-        <Alert severity="error" onClose={() => setError(null)} text={error} />
+        <Alert severity="error" onClose={() => setError('')} text={error} />
       </Box>
     </Box>
   )
@@ -1364,7 +1364,7 @@ export function PoolDetails () {
                 </Box>
                 <Box>
                   <Alert severity="warning">{warning}</Alert>
-                  <Alert severity="error" onClose={() => setError(null)} text={error} />
+                  <Alert severity="error" onClose={() => setError('')} text={error} />
                 </Box>
               </Box>
             </Box>

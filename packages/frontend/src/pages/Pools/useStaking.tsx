@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from 'react'
-import { BigNumber } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
 import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { reactAppNetwork, stakingRewardTokens } from 'src/config'
@@ -15,33 +15,33 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   const { checkConnectedNetworkId, walletConnected, address } = useWeb3Context()
   const { getStakingStats } = usePoolStats()
   const [amount, setAmount] = useState<string>('')
-  const [parsedAmount, setParsedAmount] = useState<any>(BigNumber.from(0))
-  const [error, setError] = useState<any>(null)
-  const [loading, setIsLoading] = useState(false)
-  const [stakingContract, setStakingContract] = useState<any>(null)
-  const [earnedAmountBn, setEarnedAmountBn] = useState<any>(BigNumber.from(0))
-  const [depositedAmountBn, setDepositedAmountBn] = useState<any>(BigNumber.from(0))
-  const [stakingTokenContract, setStakingTokenContract] = useState<any>(null)
-  const [stakingTokenAddress, setStakingTokenAddress] = useState<any>('')
-  const [rewardsTokenContract, setRewardsTokenContract] = useState<any>(null)
-  const [rewardsTokenAddress, setRewardsTokenAddress] = useState<any>('')
-  const [rewardsTokenSymbol, setRewardsTokenSymbol] = useState<any>('')
-  const [isRewardsExpired, setIsRewardsExpired] = useState(false)
-  const [overallTotalStakedBn, setOverallTotalStakedBn] = useState(BigNumber.from(0))
-  const [overallRewardsPerDayBn, setOverallRewardsPerDayBn] = useState(BigNumber.from(0))
-  const [userRewardsPerDayBn, setUserRewardsPerDayBn] = useState(BigNumber.from(0))
-  const [userRewardsTotalUsd, setUserRewardsTotalUsd] = useState(BigNumber.from(0))
-  const [userLpBalance, setUserLpBalance] = useState(BigNumber.from(0))
-  const [isClaiming, setIsClaiming] = useState(false)
-  const [isWithdrawing, setIsWithdrawing] = useState(false)
-  const [isApproving, setIsApproving] = useState(false)
+  const [depositedAmountBn, setDepositedAmountBn] = useState<BigNumber>(BigNumber.from(0))
+  const [earnedAmountBn, setEarnedAmountBn] = useState<BigNumber>(BigNumber.from(0))
+  const [error, setError] = useState<string>('')
   const [isApprovalNeeded, setIsApprovalNeeded] = useState(false)
+  const [isApproving, setIsApproving] = useState(false)
+  const [isClaiming, setIsClaiming] = useState(false)
+  const [isRewardsExpired, setIsRewardsExpired] = useState(false)
   const [isStaking, setIsStaking] = useState(false)
-  const [rewardRateBn, setRewardRateBn] = useState(BigNumber.from(0))
+  const [isWithdrawing, setIsWithdrawing] = useState(false)
+  const [loading, setIsLoading] = useState(false)
+  const [overallRewardsPerDayBn, setOverallRewardsPerDayBn] = useState<BigNumber>(BigNumber.from(0))
+  const [overallTotalStakedBn, setOverallTotalStakedBn] = useState<BigNumber>(BigNumber.from(0))
+  const [parsedAmount, setParsedAmount] = useState<BigNumber>(BigNumber.from(0))
+  const [rewardRateBn, setRewardRateBn] = useState<BigNumber>(BigNumber.from(0))
+  const [rewardsTokenAddress, setRewardsTokenAddress] = useState<string>('')
+  const [rewardsTokenContract, setRewardsTokenContract] = useState<Contract | null>(null)
+  const [rewardsTokenSymbol, setRewardsTokenSymbol] = useState<string>('')
+  const [stakingContract, setStakingContract] = useState<Contract | null>(null)
+  const [stakingTokenAddress, setStakingTokenAddress] = useState<string>('')
+  const [stakingTokenContract, setStakingTokenContract] = useState<Contract | null>(null)
+  const [userLpBalance, setUserLpBalance] = useState<BigNumber>(BigNumber.from(0))
+  const [userRewardsPerDayBn, setUserRewardsPerDayBn] = useState<BigNumber>(BigNumber.from(0))
+  const [userRewardsTotalUsd, setUserRewardsTotalUsd] = useState<BigNumber>(BigNumber.from(0))
   const accountAddress = address?.address
-  const pollIntervalMs = 5 * 1000
-  const lpTokenSymbol = `${tokenSymbol}-LP`
   const lpTokenImageUrl = getTokenImage(tokenSymbol)
+  const lpTokenSymbol = `${tokenSymbol}-LP`
+  const pollIntervalMs = 5 * 1000
 
   const lpToken = useAsyncMemo(async () => {
     try {
@@ -327,6 +327,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
+      if (!stakingContract) return
 
       setIsStaking(true)
 
@@ -366,6 +367,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
+      if (!stakingContract) return
 
       if (!lpToken) {
         return
@@ -435,6 +437,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
+      if (!stakingContract) return
 
       setIsWithdrawing(true)
       const signer = await sdk.getSignerOrProvider(chainSlug)
@@ -474,6 +477,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
+      if (!stakingContract) return
 
       setIsClaiming(true)
       const signer = await sdk.getSignerOrProvider(chainSlug)
@@ -493,70 +497,69 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     }
   }, [amount, parsedAmount, userLpBalance])
 
-  const canClaim = earnedAmountBn.gt(0) ?? false
-  const canWithdraw = depositedAmountBn.gt(0) ?? false
-  const stakingApr = getStakingStats(chainSlug, tokenSymbol, stakingContractAddress)?.stakingApr ?? 0
-  const stakingAprFormatted = useMemo(() => {
-    return getStakingStats(chainSlug, tokenSymbol, stakingContractAddress)?.stakingAprFormatted ?? ''
-  }, [chainSlug, tokenSymbol, stakingContractAddress])
-  const lpBalanceFormatted = `${formatTokenDecimalString(userLpBalance, 18, 4)}`
-  const lpBalance = Number(formatUnits(userLpBalance, 18))
-  const earnedAmountFormatted = `${commafy(formatUnits(earnedAmountBn.toString(), 18), 5)} ${rewardsTokenSymbol}`
+  const _stakingStats = getStakingStats(chainSlug, tokenSymbol, stakingContractAddress)
+  const canClaim = earnedAmountBn.gt(0)
+  const canWithdraw = depositedAmountBn.gt(0)
   const depositedAmountFormatted = `${formatTokenDecimalString(depositedAmountBn, 18, 4)}`
+  const earnedAmountFormatted = `${commafy(formatUnits(earnedAmountBn.toString(), 18), 5)} ${rewardsTokenSymbol}`
+  const isActive = rewardRateBn.gt(0)
+  const lpBalance = Number(formatUnits(userLpBalance, 18))
+  const lpBalanceFormatted = `${formatTokenDecimalString(userLpBalance, 18, 4)}`
+  const noStaking = !stakingContractAddress
+  const overallTotalRewardsPerDayFormatted = `${formatTokenDecimalString(overallRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
+  const overallTotalStakedFormatted = `${formatTokenDecimalString(overallTotalStakedBn, 18, 4)}`
+  const rewardsTokenImageUrl = rewardsTokenSymbol ? getTokenImage(rewardsTokenSymbol) : ''
+  const stakingApr = _stakingStats?.stakingApr ?? 0
+  const stakingAprFormatted = _stakingStats?.stakingAprFormatted ?? '-'
   const userRewardsPerDayNumber = Number(formatUnits(userRewardsPerDayBn, 18))
   const userRewardsPerDayFormatted = `${userRewardsPerDayNumber < 0.001 && userRewardsPerDayBn.gt(0) ? '<0.001' : formatTokenDecimalString(userRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
   const userRewardsTotalUsdFormatted = `$${formatTokenDecimalString(userRewardsTotalUsd, 18, 4)}`
-  const overallTotalStakedFormatted = `${formatTokenDecimalString(overallTotalStakedBn, 18, 4)}`
-  const overallTotalRewardsPerDayFormatted = `${formatTokenDecimalString(overallRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
-  const noStaking = !stakingContractAddress
-  const rewardsTokenImageUrl = rewardsTokenSymbol ? getTokenImage(rewardsTokenSymbol) : ''
-  const isActive = rewardRateBn.gt(0)
 
   return {
-    isActive,
     amount,
+    approveAndStake,
     approveTokens,
     canClaim,
     canWithdraw,
     claim,
-    stakingContractAddress,
     depositedAmountBn,
     depositedAmountFormatted,
     earnedAmountBn,
     earnedAmountFormatted,
     error,
+    isActive,
     isApprovalNeeded,
     isApproving,
     isClaiming,
     isRewardsExpired,
     isStaking,
     isWithdrawing,
-    lpToken,
-    lpBalanceFormatted,
+    loading,
     lpBalance,
-    userLpBalance,
-    lpTokenSymbol,
+    lpBalanceFormatted,
+    lpToken,
     lpTokenImageUrl,
+    lpTokenSymbol,
     noStaking,
     overallTotalRewardsPerDayFormatted,
     overallTotalStakedBn,
     overallTotalStakedFormatted,
     rewardsTokenAddress,
-    rewardsTokenSymbol,
     rewardsTokenImageUrl,
+    rewardsTokenSymbol,
     setAmount,
-    setParsedAmount,
     setError,
-    approveAndStake,
+    setParsedAmount,
     stake,
-    stakingContract,
     stakingApr,
     stakingAprFormatted,
+    stakingContract,
+    stakingContractAddress,
+    userLpBalance,
     userRewardsPerDayFormatted,
     userRewardsTotalUsdFormatted,
     walletConnected,
     warning,
     withdraw,
-    loading
   }
 }

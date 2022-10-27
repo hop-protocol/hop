@@ -45,6 +45,8 @@ type PoolsContextProps = {
   unstakeAndRemoveLiquidity: (amounts: any) => void
   address?: Address
   apr?: number
+  totalApr?: number
+  totalAprFormatted?: string
   canonicalBalance?: BigNumber
   canonicalToken?: Token
   error?: string | null
@@ -1319,6 +1321,7 @@ const PoolsProvider: FC = ({ children }) => {
     sendButtonText = 'Insufficient funds'
   }
 
+  const _poolStats = getPoolStats(chainSlug, tokenSymbol)
   const totalUserBalance = BigNumber.from(userPoolBalance || 0).add(stakedBalance || 0)
   const hasBalance = totalUserBalance.gt(0)
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
@@ -1329,6 +1332,8 @@ const PoolsProvider: FC = ({ children }) => {
   const reserve1Formatted = `${commafy(reserve1, 0) || '-'} ${hopTokenSymbol}`
   const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
   const aprFormatted = toPercentDisplay(apr)
+  const totalApr = _poolStats?.totalApr ?? 0
+  const totalAprFormatted = _poolStats ? toPercentDisplay(_poolStats?.totalApr) : '-'
   const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
   const priceImpactFormatted = priceImpact ? `${commafy((priceImpact * 100), 2)}%` : '-'
   const poolSharePercentageFormatted = poolSharePercentage ? `${commafy(poolSharePercentage)}%` : ''
@@ -1358,7 +1363,7 @@ const PoolsProvider: FC = ({ children }) => {
   const depositAmountTotal = (Number(token0Amount || 0) + Number(token1Amount || 0))
   const depositAmountTotalUsd = (tokenUsdPrice && depositAmountTotal) ? depositAmountTotal * tokenUsdPrice : 0
   const depositAmountTotalDisplayFormatted = depositAmountTotalUsd ? `$${commafy(depositAmountTotalUsd, 2)}` : (depositAmountTotal ? `${commafy(depositAmountTotal, 2)}` : '-')
-  const volume = getPoolStats(chainSlug, tokenSymbol)?.dailyVolume ?? 0
+  const volume = _poolStats?.dailyVolume ?? 0
   const volumeUsd = tokenUsdPrice ? volume * tokenUsdPrice : 0
   const volumeUsdFormatted = volumeUsd ? `$${commafy(volumeUsd, 2)}` : '-'
 
@@ -1505,6 +1510,8 @@ const PoolsProvider: FC = ({ children }) => {
         addLiquidityAndStake,
         address,
         apr,
+        totalApr,
+        totalAprFormatted,
         canonicalBalance,
         canonicalToken,
         error,

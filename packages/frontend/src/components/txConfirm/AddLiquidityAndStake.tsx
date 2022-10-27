@@ -5,14 +5,14 @@ import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
   },
   label: {
     'white-space': 'nowrap'
   },
   boxWrapper: {
-    background: '#fff',
+    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
     borderRadius: '2rem'
   }
 }))

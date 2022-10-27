@@ -70,6 +70,8 @@ export function usePoolStats () {
               totalAprFormatted: '',
               dailyVolume: '',
               dailyVolumeFormatted: '',
+              tvlUsd: '',
+              tvlUsdFormatted: '',
               stakingAprChain: null
             }
           }
@@ -115,6 +117,7 @@ export function usePoolStats () {
 
             const apr = data.apr ?? 0
             const dailyVolume = data.dailyVolume ?? 0
+            const tvlUsd = data.tvlUsd ?? 0
             pool.apr = apr
             pool.aprFormatted = toPercentDisplay(apr)
             pool.stakingApr = stakingApr
@@ -124,6 +127,8 @@ export function usePoolStats () {
             pool.stakingAprChain = findNetworkBySlug(chain)!
             pool.dailyVolume = dailyVolume
             pool.dailyVolumeFormatted = dailyVolume ? `${commafy(dailyVolume, 2)}` : '-'
+            pool.tvlUsd = tvlUsd
+            pool.tvlUsdFormatted = dailyVolume ? `$${commafy(tvlUsd, 2)}` : '-'
             pool.stakingRewardTokens = Array.from(stakingRewardTokens)
           } catch (err: any) {
             if (!err.message?.includes('expected data')) {
@@ -134,6 +139,7 @@ export function usePoolStats () {
             pool.stakingAprFormatted = toPercentDisplay(0)
             pool.totalAprFormatted = toPercentDisplay(0)
             pool.dailyVolumeFormatted = '-'
+            pool.tvlUsdFormatted = '-'
             pool.stakingRewardTokens = []
           }
         }

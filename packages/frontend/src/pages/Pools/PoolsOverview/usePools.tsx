@@ -53,8 +53,8 @@ export function usePools () {
             userBalanceBn: BigNumber.from(0),
             userBalanceUsd: 0,
             userBalanceFormatted: '',
-            userBalanceUsdTotal: 0,
-            userBalanceUSdTotalFormatted: '',
+            userBalanceTotalUsd: 0,
+            userBalanceTotalUsdFormatted: '-',
             tvl: 0,
             tvlFormatted: '',
             apr: 0,
@@ -86,32 +86,6 @@ export function usePools () {
     }
     update().catch(console.error)
   }, [])
-
-  useEffect(() => {
-    async function update() {
-      await Promise.all(pools.map(async pool => {
-        try {
-          const cacheKey = `${pool.token.symbol}:${pool.chain.slug}`
-          if (cache[cacheKey]) {
-            const tvl = cache[cacheKey]
-            pool.tvl = tvl
-            pool.tvlFormatted = `$${formatTokenDecimalString(tvl, 0, 4)}`
-            setPools([...pools])
-            return
-          }
-          const bridge = sdk.bridge(pool.token.symbol)
-          const tvl = await bridge.getTvlUsd(pool.chain.slug)
-          cache[cacheKey] = tvl
-          pool.tvl = tvl
-          pool.tvlFormatted = `$${formatTokenDecimalString(tvl, 0, 4)}`
-          setPools([...pools])
-        } catch (err: any) {
-          console.error(err)
-        }
-      }))
-    }
-    update().catch(console.error)
-  }, [isSet])
 
   useEffect(() => {
     async function update() {
@@ -234,6 +208,8 @@ export function usePools () {
           pool.stakingAprFormatted = _poolStats.stakingAprFormatted
           pool.totalApr = _poolStats.totalApr
           pool.totalAprFormatted = _poolStats.totalAprFormatted
+          pool.tvl = _poolStats.tvl
+          pool.tvlFormatted = _poolStats.tvlUsdFormatted
           for (const rewardToken of _poolStats.stakingRewardTokens) {
             if (rewardToken === 'HOP') {
               continue

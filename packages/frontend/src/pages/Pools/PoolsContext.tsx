@@ -35,7 +35,7 @@ import {
 } from 'src/hooks'
 import { useInterval } from 'react-use'
 import { getTokenImage } from 'src/utils/tokens'
-import { usePoolStats } from './usePoolStats'
+import { usePoolStats } from './useNewPoolStats'
 
 // TODO: This hook needs refactoring
 
@@ -135,6 +135,7 @@ type PoolsContextProps = {
   overallToken0DepositedFormatted: string
   overallToken1DepositedFormatted: string
   overallUserPoolBalanceUsdFormatted: string
+  tvlFormatted: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -1322,6 +1323,7 @@ const PoolsProvider: FC = ({ children }) => {
   }
 
   const _poolStats = getPoolStats(chainSlug, tokenSymbol)
+  const tvlFormatted = _poolStats ? _poolStats?.tvlUsdFormatted ?? '' : '-'
   const totalUserBalance = BigNumber.from(userPoolBalance || 0).add(stakedBalance || 0)
   const hasBalance = totalUserBalance.gt(0)
   const canonicalTokenSymbol = canonicalToken?.symbol || ''
@@ -1601,6 +1603,7 @@ const PoolsProvider: FC = ({ children }) => {
         overallToken0DepositedFormatted,
         overallToken1DepositedFormatted,
         overallUserPoolBalanceUsdFormatted,
+        tvlFormatted,
       }}
     >
       {children}

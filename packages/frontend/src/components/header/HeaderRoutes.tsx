@@ -49,15 +49,6 @@ const HeaderRoutes: FC = () => {
       <Tab label="Pool" value="/pools" />
       <Tab label="Convert" value="/convert" />
       {/* isMainnet && <Tab label="Stake" value="/stake" /> */}
-      {canClaim && (
-        <Tab label="Claim HOP" value="/claim" className="rainbow-animated" style={{
-          // background: 'rgba(0, 0, 0, 0) linear-gradient(99.85deg, rgb(179, 46, 255) -18.29%, rgb(242, 164, 152) 109.86%) repeat scroll 0% 0%',
-          color: '#fff',
-          padding: '1rem 3rem',
-          margin: '1rem 0 1rem 1rem',
-          opacity: 1
-        }}/>
-      )}
       {showRewards && (
         <Tab label={<span style={{
             display: 'inline-block',
@@ -72,6 +63,15 @@ const HeaderRoutes: FC = () => {
         }}>•</mark>}</span>} value="/rewards" />
       )}
       {!isMainnet && <Tab label="Faucet" value="/faucet" />}
+      {canClaim && (
+        <Tab label="Claim HOP" value="/claim" className="rainbow-animated" style={{
+          // background: 'rgba(0, 0, 0, 0) linear-gradient(99.85deg, rgb(179, 46, 255) -18.29%, rgb(242, 164, 152) 109.86%) repeat scroll 0% 0%',
+          color: '#fff',
+          padding: '1rem 3rem',
+          margin: '1rem 0 1rem 1rem',
+          opacity: 1
+        }}/>
+      )}
     </Tabs>
   )
 }

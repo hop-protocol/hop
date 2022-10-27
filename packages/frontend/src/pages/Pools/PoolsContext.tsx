@@ -157,6 +157,8 @@ const PoolsProvider: FC = ({ children }) => {
   const [userPoolTokenPercentage, setUserPoolTokenPercentage] = useState<string>('')
   const [token0Deposited, setToken0Deposited] = useState<BigNumber | undefined>()
   const [token1Deposited, setToken1Deposited] = useState<BigNumber | undefined>()
+  const [overallToken0Deposited, setOverallToken0Deposited] = useState<BigNumber>(BigNumber.from(0))
+  const [overallToken1Deposited, setOverallToken1Deposited] = useState<BigNumber>(BigNumber.from(0))
   const [tokenSumDeposited, setTokenSumDeposited] = useState<BigNumber | undefined>()
   const [apr, setApr] = useState<number | undefined>()
   const [stakedBalance, setStakedBalance] = useState<any>(BigNumber.from(0))
@@ -260,7 +262,7 @@ const PoolsProvider: FC = ({ children }) => {
       }
       const bridge = sdk.bridge(canonicalToken.symbol)
       const token = bridge.getL1Token()
-      return bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+      return ['USDC', 'USDT', 'DAI'].includes(token.symbol) ? 1 : bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
     } catch (err) {
       console.error(err)
     }
@@ -581,8 +583,8 @@ const PoolsProvider: FC = ({ children }) => {
         setTotalSupplyBn(BigNumber.from(0))
         setUserPoolTokenPercentage('')
         setStakedBalance(BigNumber.from(0))
-        setStakedToken0Deposited(BigNumber.from(0))
-        setStakedToken1Deposited(BigNumber.from(0))
+        setOverallToken0Deposited(BigNumber.from(0))
+        setOverallToken1Deposited(BigNumber.from(0))
         return
       }
       const bridge = sdk.bridge(canonicalToken.symbol)
@@ -631,11 +633,12 @@ const PoolsProvider: FC = ({ children }) => {
         stakedBalance = stakedBalance.add(balance)
       }
 
-      const stakedToken0Deposited = stakedBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(_totalSupplyBn)
-      const stakedToken1Deposited = stakedBalance.mul(BigNumber.from(poolReserves[1] || 0)).div(_totalSupplyBn)
+      const totalLpTokens = balance.add(stakedBalance)
+      const _overallToken0Deposited = totalLpTokens.mul(BigNumber.from(poolReserves[0] || 0)).div(_totalSupplyBn)
+      const _overallToken1Deposited = totalLpTokens.mul(BigNumber.from(poolReserves[1] || 0)).div(_totalSupplyBn)
+      setOverallToken0Deposited(_overallToken0Deposited)
+      setOverallToken1Deposited(_overallToken1Deposited)
       setStakedBalance(stakedBalance)
-      setStakedToken0Deposited(stakedToken0Deposited)
-      setStakedToken1Deposited(stakedToken1Deposited)
     } catch (err) {
       logger.error(err)
     }
@@ -786,7 +789,7 @@ const PoolsProvider: FC = ({ children }) => {
         return
       }
 
-      if (!(canonicalToken && hopToken && accountAddress && lpToken && hopStakingContract)) {
+      if (!(canonicalToken && hopToken && accountAddress && lpToken)) {
         return
       }
 
@@ -927,6 +930,9 @@ const PoolsProvider: FC = ({ children }) => {
             txList.push({
               label: `Stake ${lpTokenSymbol}`,
               fn: async () => {
+                if (!hopStakingContract) {
+                  return
+                }
                 const amount = await getDepositedLpTokens.fn()
                 if (amount.gt(0)) {
                   return hopStakingContract.connect(signer).stake(amount)
@@ -960,7 +966,7 @@ const PoolsProvider: FC = ({ children }) => {
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected || !selectedNetwork) return
 
-      if (!(canonicalToken && hopToken && hopStakingContract)) {
+      if (!(canonicalToken && hopToken)) {
         return
       }
 
@@ -1009,20 +1015,22 @@ const PoolsProvider: FC = ({ children }) => {
           },
           priceImpact: priceImpactFormatted || '-',
           total: withdrawAmountTotalDisplayFormatted,
-          showUnstakeOption: false
+          showUnstakeOption: false // !!hopStakingContract
         },
         onConfirm: async (opts: any) => {
           const { unstake } = opts
 
-          const lpBalanceStaked = await hopStakingContract.balanceOf(accountAddress)
-          if (unstake) {
-            if (lpBalanceStaked.gt(0)) {
-              txList.push({
-                label: `Unstake ${lpTokenSymbol}`,
-                fn: async () => {
-                  return hopStakingContract.connect(signer).withdraw(lpBalanceStaked)
-                }
-              })
+          if (hopStakingContract) {
+            const lpBalanceStaked = await hopStakingContract.balanceOf(accountAddress)
+            if (unstake) {
+              if (lpBalanceStaked.gt(0)) {
+                txList.push({
+                  label: `Unstake ${lpTokenSymbol}`,
+                  fn: async () => {
+                    return hopStakingContract.connect(signer).withdraw(lpBalanceStaked)
+                  }
+                })
+              }
             }
           }
 
@@ -1405,8 +1413,8 @@ const PoolsProvider: FC = ({ children }) => {
 
   const overallUserPoolTokenPercentageFormatted = overallUserPoolTokenPercentage ? `${commafy(overallUserPoolTokenPercentage)}%` : ''
 
-  const overallToken0Deposited = BigNumber.from(token0Deposited || 0).add(BigNumber.from(stakedToken0Deposited || 0))
-  const overallToken1Deposited = BigNumber.from(token1Deposited || 0).add(BigNumber.from(stakedToken1Deposited || 0))
+//  const overallToken0Deposited = BigNumber.from(token0Deposited || 0).add(BigNumber.from(stakedToken0Deposited || 0))
+  //const overallToken1Deposited = BigNumber.from(token1Deposited || 0).add(BigNumber.from(stakedToken1Deposited || 0))
 
   const overallToken1DepositedFormatted = overallToken1Deposited
     ? commafy(Number(formatUnits(overallToken1Deposited, tokenDecimals)), 5)
@@ -1419,9 +1427,6 @@ const PoolsProvider: FC = ({ children }) => {
   const overallUserPoolBalanceSum = (hasBalance && overallUserLpBalance && tokenUsdPrice) ? (Number(formatUnits(overallToken0Deposited || 0, tokenDecimals)) + Number(formatUnits(overallToken1Deposited || 0, tokenDecimals))) : 0
   const overallUserPoolBalanceUsd = tokenUsdPrice ? overallUserPoolBalanceSum * tokenUsdPrice : 0
   const overallUserPoolBalanceUsdFormatted = overallUserPoolBalanceUsd ? `$${commafy(overallUserPoolBalanceUsd, 2)}` : commafy(overallUserPoolBalanceSum, 4)
-
-
-  // console.log("LOADING", loading, overallUserPoolBalanceUsdFormatted)
 
   async function removeLiquiditySimple(amounts: any) {
     try {

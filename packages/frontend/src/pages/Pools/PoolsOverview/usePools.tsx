@@ -110,7 +110,10 @@ export function usePools () {
             bridge.getSaddleSwapReserves(pool.chain.slug),
             lpToken.totalSupply(),
           ])
-          const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
+          if (lpTokenTotalSupplyBn.eq(0)) {
+            return
+          }
+          const tokenUsdPrice = ['USDC', 'USDT', 'DAI'].includes(pool.token.symbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
           const lpBalance = await lpToken.balanceOf(accountAddress)
           if (lpBalance.gt(0)) {
             const token0Deposited = lpBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(lpTokenTotalSupplyBn)
@@ -262,13 +265,17 @@ export function usePools () {
           const address = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
           const bridge = sdk.bridge(tokenSymbol)
           const tokenDecimals = bridge.getTokenDecimals()
-          const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
+          const tokenUsdPrice = ['USDC', 'USDT', 'DAI'].includes(tokenSymbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
 
           const lpToken = bridge.getSaddleLpToken(chainSlug)
           const [poolReserves, lpTokenTotalSupplyBn] = await Promise.all([
             bridge.getSaddleSwapReserves(chainSlug),
             lpToken.totalSupply(),
           ])
+
+          if (lpTokenTotalSupplyBn.eq(0)) {
+            return
+          }
 
           let hasStakingContract = false
           let totalStakedBalance = BigNumber.from(0)

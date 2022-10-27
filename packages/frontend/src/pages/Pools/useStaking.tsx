@@ -268,8 +268,8 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
         const amm = bridge.getAmm(chainSlug)
         const userStakedTotal = await amm.calculateTotalAmountForLpToken(depositedAmountBn)
         const canonToken = bridge.getCanonicalToken(chainSlug)
-        const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
-        const rewardTokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(rewardsTokenSymbol)
+        const tokenUsdPrice = ['USDC', 'USDT', 'DAI'].includes(tokenSymbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
+        const rewardTokenUsdPrice = ['USDC', 'USDT', 'DAI'].includes(rewardsTokenSymbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(rewardsTokenSymbol)
 
         const stakedPosition = calculateStakedPosition(
           earnedAmountBn,
@@ -424,6 +424,9 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
           })
         }
       })
+
+      setAmount('')
+      setParsedAmount(BigNumber.from(0))
     } catch (err: any) {
       console.error(err)
       setError(formatError(err))

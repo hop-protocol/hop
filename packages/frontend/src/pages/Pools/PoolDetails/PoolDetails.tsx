@@ -772,7 +772,7 @@ function StakeForm(props: any) {
     isStaking,
     isWithdrawing,
     lpBalanceFormatted,
-    userLpBalance,
+    userLpBalanceBn,
     lpTokenSymbol,
     lpTokenImageUrl,
     noStaking,
@@ -836,7 +836,7 @@ function StakeForm(props: any) {
       <Box mb={2}>
         <Box mb={1} display="flex" justifyContent="space-between">
           <BalanceText label="Staked" balanceFormatted={depositedAmountFormatted} />
-          <BalanceText label="Unstaked" balanceFormatted={lpBalanceFormatted} balanceBn={userLpBalance} onClick={(value: any) => {
+          <BalanceText label="Unstaked" balanceFormatted={lpBalanceFormatted} balanceBn={userLpBalanceBn} onClick={(value: any) => {
             try {
               setParsedAmount(value)
               const _amount = formatUnits(value.toString(), 18)
@@ -1076,14 +1076,9 @@ export function PoolDetails () {
     tokenSymbol,
     chainName,
     userPoolBalance,
-    userPoolBalanceFormatted,
-    userPoolTokenPercentageFormatted,
     hasBalance,
     token0Deposited,
     token1Deposited,
-    token0DepositedFormatted,
-    token1DepositedFormatted,
-    userPoolBalanceUsdFormatted,
     loading,
     setToken0Amount,
     token0Amount,

@@ -926,7 +926,8 @@ function TopPoolStats (props:any) {
   const {
     tvlFormatted,
     volume24hFormatted,
-    aprFormatted
+    aprFormatted,
+    totalAprFormatted
   } = props.data
 
   return (
@@ -959,12 +960,12 @@ function TopPoolStats (props:any) {
           <Box mb={2}>
             <Typography variant="subtitle1" color="secondary" component="div">
               <Box display="flex" alignItems="center" component="div">
-                APR <InfoTooltip title="Annual Percentage Rate (APR) from earning fees, based on 24hr trading volume" />
+                Total APR <InfoTooltip title={`Annual Percentage Rate (APR) from earning fees (${aprFormatted}) and staking LP tokens, based on 24hr trading volume`} />
               </Box>
             </Typography>
           </Box>
           <Typography variant="h5">
-            {aprFormatted}
+            {totalAprFormatted}
           </Typography>
         </Box>
       </Box>
@@ -1061,6 +1062,7 @@ export function PoolDetails () {
   const styles = useStyles()
   const {
     aprFormatted,
+    totalAprFormatted,
     reserveTotalsUsdFormatted,
     canonicalTokenSymbol,
     hopTokenSymbol,
@@ -1200,7 +1202,8 @@ export function PoolDetails () {
         data={{
           tvlFormatted,
           volume24hFormatted: volumeUsdFormatted,
-          aprFormatted
+          aprFormatted,
+          totalAprFormatted,
         }}
       />
       <Box mb={4}>

@@ -18,6 +18,7 @@ async function getBlockNumberFromDate (provider: TProvider, date: Date) {
       }
     } catch (err) {
       retryCount++
+      console.log(`getBlockNumberFromDate: retrying ${retryCount}`)
       if (retryCount < 5) continue
       break
     }

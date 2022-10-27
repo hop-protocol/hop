@@ -53,8 +53,8 @@ export function usePools () {
             userBalanceBn: BigNumber.from(0),
             userBalanceUsd: 0,
             userBalanceFormatted: '',
-            userBalanceUsdTotal: 0,
-            userBalanceUSdTotalFormatted: '',
+            userBalanceTotalUsd: 0,
+            userBalanceTotalUsdFormatted: '-',
             tvl: 0,
             tvlFormatted: '',
             apr: 0,
@@ -89,32 +89,6 @@ export function usePools () {
 
   useEffect(() => {
     async function update() {
-      await Promise.all(pools.map(async pool => {
-        try {
-          const cacheKey = `${pool.token.symbol}:${pool.chain.slug}`
-          if (cache[cacheKey]) {
-            const tvl = cache[cacheKey]
-            pool.tvl = tvl
-            pool.tvlFormatted = `$${formatTokenDecimalString(tvl, 0, 4)}`
-            setPools([...pools])
-            return
-          }
-          const bridge = sdk.bridge(pool.token.symbol)
-          const tvl = await bridge.getTvlUsd(pool.chain.slug)
-          cache[cacheKey] = tvl
-          pool.tvl = tvl
-          pool.tvlFormatted = `$${formatTokenDecimalString(tvl, 0, 4)}`
-          setPools([...pools])
-        } catch (err: any) {
-          console.error(err)
-        }
-      }))
-    }
-    update().catch(console.error)
-  }, [isSet])
-
-  useEffect(() => {
-    async function update() {
       if (!isSet) {
         return
       }
@@ -136,7 +110,10 @@ export function usePools () {
             bridge.getSaddleSwapReserves(pool.chain.slug),
             lpToken.totalSupply(),
           ])
-          const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
+          if (lpTokenTotalSupplyBn.eq(0)) {
+            return
+          }
+          const tokenUsdPrice = ['USDC', 'USDT', 'DAI'].includes(pool.token.symbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
           const lpBalance = await lpToken.balanceOf(accountAddress)
           if (lpBalance.gt(0)) {
             const token0Deposited = lpBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(lpTokenTotalSupplyBn)
@@ -234,6 +211,8 @@ export function usePools () {
           pool.stakingAprFormatted = _poolStats.stakingAprFormatted
           pool.totalApr = _poolStats.totalApr
           pool.totalAprFormatted = _poolStats.totalAprFormatted
+          pool.tvl = _poolStats.tvl
+          pool.tvlFormatted = _poolStats.tvlUsdFormatted
           for (const rewardToken of _poolStats.stakingRewardTokens) {
             if (rewardToken === 'HOP') {
               continue
@@ -286,13 +265,17 @@ export function usePools () {
           const address = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
           const bridge = sdk.bridge(tokenSymbol)
           const tokenDecimals = bridge.getTokenDecimals()
-          const tokenUsdPrice = await bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
+          const tokenUsdPrice = ['USDC', 'USDT', 'DAI'].includes(tokenSymbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
 
           const lpToken = bridge.getSaddleLpToken(chainSlug)
           const [poolReserves, lpTokenTotalSupplyBn] = await Promise.all([
             bridge.getSaddleSwapReserves(chainSlug),
             lpToken.totalSupply(),
           ])
+
+          if (lpTokenTotalSupplyBn.eq(0)) {
+            return
+          }
 
           let hasStakingContract = false
           let totalStakedBalance = BigNumber.from(0)

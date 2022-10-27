@@ -915,7 +915,7 @@ function StakeForm(props: any) {
       </Box>
       <Box>
         <Alert severity="warning">{warning}</Alert>
-        <Alert severity="error" onClose={() => setError(null)} text={error} />
+        <Alert severity="error" onClose={() => setError('')} text={error} />
       </Box>
     </Box>
   )
@@ -1117,9 +1117,9 @@ export function PoolDetails () {
     overallUserPoolTokenPercentageFormatted,
     overallToken0DepositedFormatted,
     overallToken1DepositedFormatted,
-    overallUserPoolBalanceUsdFormatted
+    overallUserPoolBalanceUsdFormatted,
+    tvlFormatted
   } = usePool()
-  const tvlFormatted = reserveTotalsUsdFormatted
   const { pathname, search } = useLocation()
   const history = useHistory()
   const { tab } = useParams<{ tab: string }>()
@@ -1364,7 +1364,7 @@ export function PoolDetails () {
                 </Box>
                 <Box>
                   <Alert severity="warning">{warning}</Alert>
-                  <Alert severity="error" onClose={() => setError(null)} text={error} />
+                  <Alert severity="error" onClose={() => setError('')} text={error} />
                 </Box>
               </Box>
             </Box>

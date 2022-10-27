@@ -76,6 +76,7 @@ const stakingRewardsContracts: any = {
 type YieldDataRes = {
   apr: number
   apy: number
+  tvlUsd: number
   dailyVolume: number
 }
 
@@ -91,6 +92,7 @@ type StakingYieldDataRes = {
 type PoolData = {
   apr: number
   apy: number
+  tvlUsd: number
   dailyVolume: number
 }
 
@@ -200,6 +202,7 @@ class YieldStats {
               yieldData.pools[token][chain] = {
                 apr: res.apr,
                 apy: res.apy,
+                tvlUsd: res.tvlUsd,
                 dailyVolume: res.dailyVolume
               }
             })
@@ -266,6 +269,7 @@ class YieldStats {
           yieldData.pools[token][chain] = {
             apr: 0,
             apy: 0,
+            tvlUsd: 0,
             dailyVolume: 0
           }
         }
@@ -439,9 +443,11 @@ class YieldStats {
     const bridge = this.sdk.bridge(token)
     const amm = bridge.getAmm(chain)
     const { apr, apy, volumeFormatted } = await amm.getYieldData()
+    const tvl = await bridge.getTvlUsd(chain)
     return {
       apr: apr ?? 0,
       apy: apy ?? 0,
+      tvlUsd: tvl ?? 0,
       dailyVolume: volumeFormatted ?? 0
     }
   }

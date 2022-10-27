@@ -630,7 +630,6 @@ function WithdrawForm(props: any) {
     }
   }, [amountBN, proportional, amountPercent, tokenIndex])
 
-  const priceImpactLabel = Number(priceImpact) > 0 ? 'Bonus' : 'Price Impact'
   const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
 
   function handleClick (event: any) {

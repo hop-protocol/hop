@@ -217,10 +217,11 @@ export class HealthCheckWatcher {
   pollIntervalSeconds: number = 300
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
+  // These values target appx 100 transactions on an average gas day
   lowBalanceThresholds: Record<string, BigNumber> = {
     [NativeChainToken.ETH]: parseEther('0.5'),
-    [NativeChainToken.XDAI]: parseEther('50'),
-    [NativeChainToken.MATIC]: parseEther('50')
+    [NativeChainToken.XDAI]: parseEther('10'),
+    [NativeChainToken.MATIC]: parseEther('10')
   }
 
   bonderTotalLiquidity: Record<string, BigNumber> = {
@@ -244,6 +245,10 @@ export class HealthCheckWatcher {
     [Chain.Gnosis]: 750,
     [Chain.Optimism]: 5000,
     [Chain.Arbitrum]: 5000
+  }
+
+  chainsIgnoredByBonder: Record<string, string[]> = {
+    '0x547d28cdd6a69e3366d6ae3ec39543f09bd09417': ['gnosis', 'arbitrum', 'polygon']
   }
 
   enabledChecks: EnabledChecks = {
@@ -520,6 +525,7 @@ export class HealthCheckWatcher {
   }
 
   private async getLowBonderBalances (): Promise<LowBonderBalance[]> {
+    // TODO: Add Arbitrum and Optimism
     const chainProviders: Record<string, providers.Provider> = {
       [Chain.Ethereum]: getRpcProvider(Chain.Ethereum)!,
       [Chain.Gnosis]: getRpcProvider(Chain.Gnosis)!,
@@ -549,7 +555,8 @@ export class HealthCheckWatcher {
         chainProviders[Chain.Polygon].getBalance(bonder)
       ])
 
-      if (ethBalance.lt(this.lowBalanceThresholds.ETH)) {
+      const excludedChains = this.chainsIgnoredByBonder[bonder]
+      if (ethBalance.lt(this.lowBalanceThresholds.ETH) && excludedChains && !excludedChains.includes(Chain.Ethereum)) {
         result.push({
           bonder,
           bridge,
@@ -560,7 +567,7 @@ export class HealthCheckWatcher {
         })
       }
 
-      if (xdaiBalance.lt(this.lowBalanceThresholds.XDAI)) {
+      if (xdaiBalance.lt(this.lowBalanceThresholds.XDAI) && excludedChains && !excludedChains.includes(Chain.Gnosis)) {
         result.push({
           bonder,
           bridge,
@@ -571,7 +578,7 @@ export class HealthCheckWatcher {
         })
       }
 
-      if (maticBalance.lt(this.lowBalanceThresholds.MATIC)) {
+      if (maticBalance.lt(this.lowBalanceThresholds.MATIC) && excludedChains && !excludedChains.includes(Chain.Polygon)) {
         result.push({
           bonder,
           bridge,

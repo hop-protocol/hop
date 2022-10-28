@@ -15,6 +15,19 @@ export function usePoolStats () {
       'usePoolStats'
     ],
     async () => {
+      try {
+        const cached = localStorage.getItem('poolStats')
+        if (cached) {
+          const json = JSON.parse(cached)
+          if (json.timestamp > Date.now() - (10 * 60 * 1000)) {
+            if (json.data) {
+              console.log('returning cached poolStats')
+              return json.data
+            }
+          }
+        }
+      } catch (err: any) { }
+
       const json = await getPoolStatsFile()
 
       const _poolStats :any = {}
@@ -109,6 +122,10 @@ export function usePoolStats () {
           }
         }
       }
+
+      try {
+        localStorage.setItem('poolStats', JSON.stringify({ data: _poolStats, timestamp: Date.now() }))
+      } catch (err: any) { }
       return _poolStats
     },
     {

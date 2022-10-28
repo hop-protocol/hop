@@ -9,39 +9,26 @@ import { commafy, getTokenImage, findMatchingBridge, isRewardsExpired as isRewar
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { useApprove, useAsyncMemo, useEffectInterval } from 'src/hooks'
 import { usePoolStats } from './useNewPoolStats'
+import { useQuery } from 'react-query'
 
 export function useStaking (chainSlug: string, tokenSymbol: string, stakingContractAddress: string) {
   const { bridges, sdk, txConfirm } = useApp()
   const { checkConnectedNetworkId, walletConnected, address } = useWeb3Context()
   const { getStakingStats } = usePoolStats()
   const [amount, setAmount] = useState<string>('')
-  const [depositedAmountBn, setDepositedAmountBn] = useState<BigNumber>(BigNumber.from(0))
-  const [earnedAmountBn, setEarnedAmountBn] = useState<BigNumber>(BigNumber.from(0))
   const [error, setError] = useState<string>('')
-  const [isApprovalNeeded, setIsApprovalNeeded] = useState(false)
   const [isApproving, setIsApproving] = useState(false)
   const [isClaiming, setIsClaiming] = useState(false)
-  const [isRewardsExpired, setIsRewardsExpired] = useState(false)
   const [isStaking, setIsStaking] = useState(false)
   const [isWithdrawing, setIsWithdrawing] = useState(false)
   const [loading, setIsLoading] = useState(false)
   const [overallRewardsPerDayBn, setOverallRewardsPerDayBn] = useState<BigNumber>(BigNumber.from(0))
-  const [overallTotalStakedBn, setOverallTotalStakedBn] = useState<BigNumber>(BigNumber.from(0))
   const [parsedAmount, setParsedAmount] = useState<BigNumber>(BigNumber.from(0))
   const [rewardRateBn, setRewardRateBn] = useState<BigNumber>(BigNumber.from(0))
-  const [rewardsTokenAddress, setRewardsTokenAddress] = useState<string>('')
-  const [rewardsTokenContract, setRewardsTokenContract] = useState<Contract | null>(null)
-  const [rewardsTokenSymbol, setRewardsTokenSymbol] = useState<string>('')
-  const [stakingContract, setStakingContract] = useState<Contract | null>(null)
-  const [stakingTokenAddress, setStakingTokenAddress] = useState<string>('')
-  const [stakingTokenContract, setStakingTokenContract] = useState<Contract | null>(null)
-  const [userLpBalance, setUserLpBalance] = useState<BigNumber>(BigNumber.from(0))
-  const [userRewardsPerDayBn, setUserRewardsPerDayBn] = useState<BigNumber>(BigNumber.from(0))
-  const [userRewardsTotalUsd, setUserRewardsTotalUsd] = useState<BigNumber>(BigNumber.from(0))
   const accountAddress = address?.address
   const lpTokenImageUrl = getTokenImage(tokenSymbol)
   const lpTokenSymbol = `${tokenSymbol}-LP`
-  const pollIntervalMs = 5 * 1000
+  const pollIntervalMs = 10 * 1000
 
   const lpToken = useAsyncMemo(async () => {
     try {
@@ -59,188 +46,223 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   }, [bridges, tokenSymbol, chainSlug])
   const { approve } = useApprove(lpToken)
 
-  useEffect(() => {
-    async function update () {
+  const stakingContract = useMemo(() => {
+    try {
       if (sdk && chainSlug && stakingContractAddress) {
         const _provider = sdk.getChainProvider(chainSlug)
         const _contract = StakingRewards__factory.connect(stakingContractAddress, _provider)
-        setStakingContract(_contract)
-      } else {
-        setStakingContract(null)
+        return _contract
       }
+    } catch (err) {
+      console.error(err)
     }
-
-    update().catch(console.error)
   }, [chainSlug, stakingContractAddress, sdk])
 
-  useEffectInterval(() => {
-    async function update () {
+  const { data: earnedAmountBn } = useQuery(
+    [
+      `useStaking:earnedAmountBn:${stakingContract?.address}:${chainSlug}:${accountAddress}`,
+      stakingContract?.address,
+      chainSlug,
+      accountAddress,
+    ],
+    async () => {
       if (chainSlug && stakingContract && accountAddress) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const _earned = await stakingContract.connect(_provider).earned(accountAddress)
-        setEarnedAmountBn(_earned)
-      } else {
-        setEarnedAmountBn(BigNumber.from(0))
+        return _earned
       }
+    },
+    {
+      enabled: !!stakingContract?.address && !!chainSlug && !!accountAddress,
+      refetchInterval: pollIntervalMs,
     }
+  )
 
-    update().catch(console.error)
-  }, [stakingContract, accountAddress, chainSlug], pollIntervalMs)
-
-  useEffectInterval(() => {
-    async function update () {
+  const { data: depositedAmountBn } = useQuery(
+    [
+      `useStaking:depositedAmountBn:${stakingContract?.address}:${chainSlug}:${accountAddress}`,
+      stakingContract?.address,
+      chainSlug,
+      accountAddress,
+    ],
+    async () => {
       if (chainSlug && stakingContract && accountAddress) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const _deposited = await stakingContract.connect(_provider).balanceOf(accountAddress)
-        setDepositedAmountBn(_deposited)
-      } else {
-        setDepositedAmountBn(BigNumber.from(0))
+        return _deposited
       }
+    },
+    {
+      enabled: !!stakingContract?.address && !!chainSlug && !!accountAddress,
+      refetchInterval: pollIntervalMs,
     }
+  )
 
-    update().catch(console.error)
-  }, [stakingContract, accountAddress, chainSlug], pollIntervalMs)
-
-  useEffect(() => {
-    async function update () {
+  const { data: rewardsTokenAddress } = useQuery(
+    [
+      `useStaking:rewardsTokenAddress:${stakingContract?.address}:${chainSlug}`,
+      stakingContract?.address,
+      chainSlug,
+    ],
+    async () => {
       if (chainSlug && stakingContract) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const _address = await stakingContract.connect(_provider).rewardsToken()
-        setRewardsTokenAddress(_address)
-      } else {
-        setRewardsTokenAddress('')
+        return _address
       }
+    },
+    {
+      enabled: !!stakingContract?.address && !!chainSlug,
+      refetchInterval: pollIntervalMs,
     }
+  )
 
-    update().catch(console.error)
-  }, [stakingContract, chainSlug])
-
-  useEffect(() => {
-    async function update () {
+  const { data: stakingTokenAddress } = useQuery(
+    [
+      `useStaking:stakingTokenAddress:${stakingContract?.address}:${chainSlug}`,
+      stakingContract?.address,
+      chainSlug,
+    ],
+    async () => {
       if (chainSlug && stakingContract) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const _address = await stakingContract.connect(_provider).stakingToken()
-        setStakingTokenAddress(_address)
-      } else {
-        setStakingTokenAddress('')
+        return _address
       }
+    },
+    {
+      enabled: !!stakingContract?.address && !!chainSlug,
+      refetchInterval: pollIntervalMs,
     }
+  )
 
-    update().catch(console.error)
-  }, [stakingContract, chainSlug])
-
-  useEffect(() => {
-    async function update () {
+  const rewardsTokenContract = useMemo(() => {
+    try {
       if (sdk && chainSlug && rewardsTokenAddress) {
         const _provider = sdk.getChainProvider(chainSlug)
         const _contract = ERC20__factory.connect(rewardsTokenAddress, _provider)
-        setRewardsTokenContract(_contract)
-      } else {
-        setRewardsTokenContract(null)
+        return _contract
       }
+    } catch (err) {
+      console.error(err)
     }
-
-    update().catch(console.error)
   }, [chainSlug, rewardsTokenAddress, sdk])
 
   useEffect(() => {
-    setIsLoading(true)
+    if (!loading) {
+      setIsLoading(true)
+    }
   }, [rewardsTokenAddress])
 
-  useEffect(() => {
-    async function update () {
+  const stakingTokenContract = useMemo(() => {
+    try {
       if (sdk && chainSlug && stakingTokenAddress) {
         const _provider = sdk.getChainProvider(chainSlug)
         const _contract = ERC20__factory.connect(stakingTokenAddress, _provider)
-        setStakingTokenContract(_contract)
-      } else {
-        setStakingTokenContract(null)
+        return _contract
       }
+    } catch (err) {
+      console.error(err)
     }
-
-    update().catch(console.error)
   }, [chainSlug, stakingTokenAddress, sdk])
 
-  useEffect(() => {
-    async function update () {
+  const { data: rewardsTokenSymbol } = useQuery(
+    [
+      `useStaking:rewardsTokenSymbol:${rewardsTokenContract?.address}:${chainSlug}}`,
+      rewardsTokenContract?.address,
+      chainSlug,
+    ],
+    async () => {
       if (chainSlug && rewardsTokenContract) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const _symbol = await rewardsTokenContract.connect(_provider).symbol()
-        setRewardsTokenSymbol(_symbol)
-      } else {
-        setRewardsTokenSymbol('')
+        return _symbol
       }
+    },
+    {
+      enabled: !!rewardsTokenContract?.address && !!chainSlug,
+      refetchInterval: pollIntervalMs,
     }
+  )
 
-    update().catch(console.error)
-  }, [rewardsTokenContract, chainSlug])
-
-  useEffectInterval(() => {
-    async function update() {
-      if (chainSlug && stakingContract && rewardRateBn.gt(0)) {
+  const { data: isRewardsExpired } = useQuery(
+    [
+      `useStaking:isRewardsExpired:${stakingContract?.address}:${chainSlug}:${rewardRateBn?.toString()}`,
+      stakingContract?.address,
+      chainSlug,
+      rewardRateBn?.toString(),
+    ],
+    async () => {
+      if (chainSlug && stakingContract && accountAddress) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const timestamp = await stakingContract.connect(_provider).periodFinish()
         const _isExpired = isRewardsExpiredCheck(timestamp)
-        setIsRewardsExpired(_isExpired)
-      } else {
-        setIsRewardsExpired(false)
+        return _isExpired
       }
+    },
+    {
+      enabled: !!stakingContract?.address && !!chainSlug && !!rewardRateBn?.toString(),
+      refetchInterval: pollIntervalMs,
     }
-    update().catch(console.error)
-  }, [stakingContract, chainSlug, rewardRateBn], pollIntervalMs)
+  )
 
-  useEffectInterval(() => {
-    async function update() {
-      if (overallRewardsPerDayBn && overallTotalStakedBn.gt(0) && depositedAmountBn) {
-        const _userRewardsPerDay = overallRewardsPerDayBn.mul(depositedAmountBn).div(overallTotalStakedBn)
-        setUserRewardsPerDayBn(_userRewardsPerDay)
-      } else {
-        setUserRewardsPerDayBn(BigNumber.from(0))
-      }
-    }
-    update().catch(console.error)
-  }, [overallRewardsPerDayBn, overallTotalStakedBn, depositedAmountBn], pollIntervalMs)
-
-  useEffect(() => {
-  try {
-    setOverallTotalStakedBn(BigNumber.from(0))
-    setRewardRateBn(BigNumber.from(0))
-    setOverallRewardsPerDayBn(BigNumber.from(0))
-    setRewardsTokenSymbol(stakingRewardTokens?.[reactAppNetwork]?.[chainSlug]?.[stakingContractAddress?.toLowerCase()] ?? '')
-    setIsRewardsExpired(false)
-  } catch (err) {
-    console.error(err)
-  }
-}, [stakingContractAddress])
-
-  useEffectInterval(() => {
-    async function update() {
+  const { data: overallTotalStakedBn } = useQuery(
+    [
+      `useStaking:overallTotalStakedBn:${stakingContractAddress}:${stakingTokenContract?.address}:${chainSlug}`,
+      stakingTokenContract?.address,
+      chainSlug
+    ],
+    async () => {
       if (chainSlug && stakingTokenContract && stakingContractAddress) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const totalStaked = await stakingTokenContract.connect(_provider).balanceOf(stakingContractAddress)
-        setOverallTotalStakedBn(totalStaked)
         setIsLoading(false)
-      } else {
-        setOverallTotalStakedBn(BigNumber.from(0))
+        return totalStaked
       }
+    },
+    {
+      enabled: !!stakingContractAddress && !!stakingTokenContract?.address && !!chainSlug,
+      refetchInterval: pollIntervalMs,
     }
-    update().catch(console.error)
-  }, [stakingTokenContract, chainSlug], pollIntervalMs)
+  )
 
-  useEffectInterval(() => {
-    async function update() {
+  const { data: userRewardsPerDayBn } = useQuery(
+    [
+      `useStaking:userRewardsPerDayBn:${overallRewardsPerDayBn?.toString()}:${overallTotalStakedBn?.toString()}:${depositedAmountBn?.toString()}`,
+      overallRewardsPerDayBn?.toString(),
+      overallTotalStakedBn?.toString(),
+      depositedAmountBn?.toString(),
+    ],
+    async () => {
+      if (overallRewardsPerDayBn?.gt(0) && overallTotalStakedBn?.gt(0) && depositedAmountBn?.gt(0)) {
+        const _userRewardsPerDay = overallRewardsPerDayBn.mul(depositedAmountBn).div(overallTotalStakedBn)
+        return _userRewardsPerDay
+      }
+    },
+    {
+      enabled: !!overallRewardsPerDayBn?.toString() && !!overallTotalStakedBn?.toString() && !!depositedAmountBn?.toString(),
+      refetchInterval: pollIntervalMs,
+    }
+  )
+
+  const { data: userLpBalanceBn } = useQuery(
+    [
+      `useStaking:userLpBalanceBn:${stakingTokenContract?.toString()}:${accountAddress}:${chainSlug}`,
+    ],
+    async () => {
       if (chainSlug && stakingTokenContract && accountAddress) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
         const balance = await stakingTokenContract.connect(_provider).balanceOf(accountAddress)
-        setUserLpBalance(balance)
-      } else {
-        setUserLpBalance(BigNumber.from(0))
+        return balance
       }
+    },
+    {
+      enabled: !!stakingTokenContract?.toString() && !!accountAddress && !!chainSlug,
+      refetchInterval: pollIntervalMs,
     }
-    update().catch(console.error)
-  }, [stakingTokenContract, accountAddress, chainSlug], pollIntervalMs)
+  )
 
-  useEffectInterval(() => {
+  useEffect(() => {
     async function update() {
       if (chainSlug && stakingContract) {
         const _provider = await sdk.getSignerOrProvider(chainSlug)
@@ -259,11 +281,19 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       }
     }
     update().catch(console.error)
-  }, [stakingContract, chainSlug], pollIntervalMs)
+  }, [stakingContract, chainSlug]) // , pollIntervalMs)
 
-  useEffectInterval(() => {
-    async function update() {
-      if (chainSlug && tokenSymbol && earnedAmountBn && depositedAmountBn && rewardsTokenSymbol) {
+  const { data: userRewardsTotalUsdBn } = useQuery(
+    [
+      `useStaking:userRewardsTotalUsdBn:${earnedAmountBn?.toString()}:${rewardsTokenSymbol}:${tokenSymbol}:${chainSlug}:${depositedAmountBn?.toString()}`,
+      earnedAmountBn?.toString(),
+      rewardsTokenSymbol,
+      tokenSymbol,
+      chainSlug,
+      depositedAmountBn?.toString(),
+    ],
+    async () => {
+      if (chainSlug && tokenSymbol && earnedAmountBn && depositedAmountBn?.gt(0) && rewardsTokenSymbol) {
         const bridge = sdk.bridge(tokenSymbol)
         const amm = bridge.getAmm(chainSlug)
         const userStakedTotal = await amm.calculateTotalAmountForLpToken(depositedAmountBn)
@@ -280,30 +310,36 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
           18
         )
 
-        setUserRewardsTotalUsd(stakedPosition)
-      } else {
-        setUserRewardsTotalUsd(BigNumber.from(0))
+        return stakedPosition
       }
+    },
+    {
+      enabled: !!earnedAmountBn?.toString() && !!rewardsTokenSymbol && !!tokenSymbol && !!chainSlug && !!depositedAmountBn?.toString(),
+      refetchInterval: pollIntervalMs,
     }
-    update().catch(console.error)
-  }, [earnedAmountBn, depositedAmountBn, rewardsTokenSymbol, tokenSymbol, chainSlug], pollIntervalMs)
+  )
 
-  useEffectInterval(() => {
-    async function update() {
-      try {
-        if (chainSlug && stakingTokenContract) {
-          const _provider = await sdk.getSignerOrProvider(chainSlug)
-          const allowance = await stakingTokenContract.connect(_provider).allowance(accountAddress, stakingContractAddress)
-          const _approvalNeeded = allowance.lt(parsedAmount)
-          setIsApprovalNeeded(_approvalNeeded)
-        } else {
-          setIsApprovalNeeded(false)
-        }
-      } catch (err) {
+  const { data: isApprovalNeeded } = useQuery(
+    [
+      `useStaking:isApprovalNeeded:${chainSlug}:${stakingContract?.address}:${accountAddress}:${parsedAmount?.toString()}`,
+      chainSlug,
+      stakingContract?.address,
+      accountAddress,
+      parsedAmount?.toString()
+    ],
+    async () => {
+      if (chainSlug && stakingTokenContract && stakingContractAddress && accountAddress && parsedAmount) {
+        const _provider = await sdk.getSignerOrProvider(chainSlug)
+        const allowance = await stakingTokenContract.connect(_provider).allowance(accountAddress, stakingContractAddress)
+        const _approvalNeeded = allowance.lt(parsedAmount)
+        return _approvalNeeded
       }
+    },
+    {
+      enabled: !!chainSlug && !!stakingContractAddress && !!accountAddress && !!parsedAmount?.toString(),
+      refetchInterval: pollIntervalMs,
     }
-    update().catch(console.error)
-  }, [amount, stakingTokenContract, stakingContractAddress, accountAddress, chainSlug], pollIntervalMs)
+  )
 
   async function approveTokens () {
     try {
@@ -441,11 +477,14 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
       if (!isNetworkConnected) return
       if (!stakingContract) return
+      const stakeBalance = depositedAmountBn
+      if (!stakeBalance) {
+        return
+      }
 
       setIsWithdrawing(true)
       const signer = await sdk.getSignerOrProvider(chainSlug)
       const _stakingRewards = stakingContract.connect(signer)
-      const stakeBalance = depositedAmountBn
       const stakingToken = {
         decimals: 18,
         symbol: lpTokenSymbol,
@@ -494,29 +533,29 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   }
 
   const warning = useMemo(() => {
-    if (!amount || !userLpBalance) return
-    if (parsedAmount.gt(userLpBalance)) {
+    if (!amount || !userLpBalanceBn) return
+    if (parsedAmount.gt(userLpBalanceBn)) {
       return 'Insufficient balance'
     }
-  }, [amount, parsedAmount, userLpBalance])
+  }, [amount, parsedAmount, userLpBalanceBn])
 
   const _stakingStats = getStakingStats(chainSlug, tokenSymbol, stakingContractAddress)
-  const canClaim = earnedAmountBn.gt(0)
-  const canWithdraw = depositedAmountBn.gt(0)
-  const depositedAmountFormatted = `${formatTokenDecimalString(depositedAmountBn, 18, 4)}`
-  const earnedAmountFormatted = `${commafy(formatUnits(earnedAmountBn.toString(), 18), 5)} ${rewardsTokenSymbol}`
+  const canClaim = earnedAmountBn?.gt(0)
+  const canWithdraw = depositedAmountBn?.gt(0)
+  const depositedAmountFormatted = depositedAmountBn ? `${formatTokenDecimalString(depositedAmountBn, 18, 4)}` : '-'
+  const earnedAmountFormatted = earnedAmountBn ? `${commafy(formatUnits(earnedAmountBn.toString(), 18), 5)} ${rewardsTokenSymbol}` : '-'
   const isActive = rewardRateBn.gt(0)
-  const lpBalance = Number(formatUnits(userLpBalance, 18))
-  const lpBalanceFormatted = `${formatTokenDecimalString(userLpBalance, 18, 4)}`
+  const lpBalance = userLpBalanceBn ? Number(formatUnits(userLpBalanceBn, 18)) : 0
+  const lpBalanceFormatted = userLpBalanceBn ? `${formatTokenDecimalString(userLpBalanceBn, 18, 4)}` : '-'
   const noStaking = !stakingContractAddress
   const overallTotalRewardsPerDayFormatted = `${formatTokenDecimalString(overallRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
-  const overallTotalStakedFormatted = `${formatTokenDecimalString(overallTotalStakedBn, 18, 4)}`
+  const overallTotalStakedFormatted = overallTotalStakedBn ? `${formatTokenDecimalString(overallTotalStakedBn, 18, 4)}` : '-'
   const rewardsTokenImageUrl = rewardsTokenSymbol ? getTokenImage(rewardsTokenSymbol) : ''
   const stakingApr = _stakingStats?.stakingApr ?? 0
   const stakingAprFormatted = _stakingStats?.stakingAprFormatted ?? '-'
-  const userRewardsPerDayNumber = Number(formatUnits(userRewardsPerDayBn, 18))
-  const userRewardsPerDayFormatted = `${userRewardsPerDayNumber < 0.001 && userRewardsPerDayBn.gt(0) ? '<0.001' : formatTokenDecimalString(userRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`
-  const userRewardsTotalUsdFormatted = `$${formatTokenDecimalString(userRewardsTotalUsd, 18, 4)}`
+  const userRewardsPerDayNumber = userRewardsPerDayBn ? Number(formatUnits(userRewardsPerDayBn, 18)) : 0
+  const userRewardsPerDayFormatted = userRewardsPerDayBn ? (`${userRewardsPerDayNumber < 0.001 && userRewardsPerDayBn.gt(0) ? '<0.001' : formatTokenDecimalString(userRewardsPerDayBn, 18, 4)} ${rewardsTokenSymbol} / day`) : '-'
+  const userRewardsTotalUsdFormatted = userRewardsTotalUsdBn ? `$${formatTokenDecimalString(userRewardsTotalUsdBn, 18, 4)}` : '-'
 
   return {
     amount,
@@ -558,7 +597,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
     stakingAprFormatted,
     stakingContract,
     stakingContractAddress,
-    userLpBalance,
+    userLpBalanceBn,
     userRewardsPerDayFormatted,
     userRewardsTotalUsdFormatted,
     walletConnected,

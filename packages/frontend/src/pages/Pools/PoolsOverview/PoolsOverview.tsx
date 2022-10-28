@@ -6,6 +6,7 @@ import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
 import InfoTooltip from 'src/components/InfoTooltip'
+import Skeleton from '@material-ui/lab/Skeleton'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -48,7 +49,7 @@ export const useStyles = makeStyles(theme => ({
 
 export function PoolsOverview () {
   const styles = useStyles()
-  const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort } = usePools()
+  const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort, isAccountLoading } = usePools()
 
   function handleTokenToggleFilterFn (symbol: string) {
     return (event: any) => {
@@ -78,7 +79,7 @@ export function PoolsOverview () {
           Add liquidity to earn trading fees and rewards.
         </Typography>
       </Box>
-      {userPools.length > 0 && (
+      {(userPools.length > 0 || isAccountLoading) && (
         <Box className={styles.box} p={4} mb={6}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
             <Box p={1} textAlign="left">
@@ -144,6 +145,20 @@ export function PoolsOverview () {
                     <PoolRow key={i} data={data} />
                   )
                 })}
+                {(!userPools.length || isAccountLoading) && (
+                    <>
+                    <tr>
+                      <td colSpan={2}>
+                        <Skeleton animation="wave" width={'100%'} title="loading" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <Skeleton animation="wave" width={'100%'} title="loading" />
+                      </td>
+                    </tr>
+                    </>
+                )}
                 </tbody>
             </table>
           </Box>
@@ -264,6 +279,20 @@ export function PoolsOverview () {
                 <PoolRow key={i} data={data} isAllPools />
               )
             })}
+            {!pools.length && (
+              <>
+              <tr>
+                <td colSpan={2}>
+                  <Skeleton animation="wave" width={'100%'} title="loading" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <Skeleton animation="wave" width={'100%'} title="loading" />
+                </td>
+              </tr>
+              </>
+            )}
             </tbody>
           </table>
         </Box>

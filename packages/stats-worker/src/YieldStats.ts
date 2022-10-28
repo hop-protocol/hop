@@ -8,7 +8,7 @@ import {
   arbitrumRpc
 } from './config'
 import { Hop } from '@hop-protocol/sdk'
-import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { mainnet as mainnetAddresses, Bridges, RewardsContracts } from '@hop-protocol/core/addresses'
 import {
   ERC20__factory,
   StakingRewards__factory
@@ -16,62 +16,6 @@ import {
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 const oneYearDays = 365
-
-const stakingRewardsContracts: any = {
-  arbitrum: {
-    ETH: ['0x755569159598f3702bdD7DFF6233A317C156d3Dd'],
-    USDC: ['0xb0CabFE930642AD3E7DECdc741884d8C3F7EbC70'],
-    DAI: ['0xd4D28588ac1D9EF272aa29d4424e3E2A03789D1E'],
-    USDT: ['0x9Dd8685463285aD5a94D2c128bda3c5e8a6173c8']
-  },
-  optimism: {
-    ETH: ['0x95d6A95BECfd98a7032Ed0c7d950ff6e0Fa8d697'],
-    USDC: ['0xf587B9309c603feEdf0445aF4D3B21300989e93a'],
-    DAI: ['0x392B9780cFD362bD6951edFA9eBc31e68748b190'],
-    USDT: ['0xAeB1b49921E0D2D96FcDBe0D486190B2907B3e0B'],
-    SNX: [
-      '0x25a5A48C35e75BD2EFf53D94f0BB60d5A00E36ea',
-      '0x09992Dd7B32f7b35D347DE9Bdaf1919a57d38E82'
-    ]
-  },
-  polygon: {
-    ETH: [
-      '0x7bCeDA1Db99D64F25eFA279BB11CE48E15Fda427',
-      '0xAA7b3a4A084e6461D486E53a03CF45004F0963b7'
-    ],
-    USDC: [
-      '0x2C2Ab81Cf235e86374468b387e241DF22459A265',
-      '0x7811737716942967Ae6567B26a5051cC72af550E'
-    ],
-    DAI: [
-      '0x4Aeb0B5B1F3e74314A7Fa934dB090af603E8289b',
-      '0xd6dC6F69f81537Fe9DEcc18152b7005B45Dc2eE7'
-    ],
-    USDT: [
-      '0x07932e9A5AB8800922B2688FB1FA0DAAd8341772',
-      '0x297E5079DF8173Ae1696899d3eACD708f0aF82Ce'
-    ],
-    MATIC: ['0x7dEEbCaD1416110022F444B03aEb1D20eB4Ea53f']
-  },
-  gnosis: {
-    ETH: [
-      '0xC61bA16e864eFbd06a9fe30Aab39D18B8F63710a',
-      '0x712F0cf37Bdb8299D0666727F73a5cAbA7c1c24c'
-    ],
-    USDC: [
-      '0x5D13179c5fa40b87D53Ff67ca26245D3D5B2F872',
-      '0x636A7ee78faCd079DaBC8f81EDA1D09AA9D440A7'
-    ],
-    DAI: [
-      '0x12a3a66720dD925fa93f7C895bC20Ca9560AdFe7',
-      '0xBF7a02d963b23D84313F07a04ad663409CEE5A92'
-    ],
-    USDT: [
-      '0x2C2Ab81Cf235e86374468b387e241DF22459A265',
-      '0x3d4Cc8A61c7528Fd86C55cfe061a78dCBA48EDd1'
-    ]
-  }
-}
 
 type YieldDataRes = {
   apr: number
@@ -167,6 +111,8 @@ type Response = {
 
 class YieldStats {
   sdk = new Hop('mainnet')
+  bridges: Bridges
+  stakingRewardsContracts: RewardsContracts
 
   constructor () {
     this.sdk.setChainProviderUrls({
@@ -177,6 +123,9 @@ class YieldStats {
       arbitrum: arbitrumRpc
     })
 
+    this.bridges = mainnetAddresses.bridges
+    this.stakingRewardsContracts = mainnetAddresses.rewardsContracts
+
     console.log(
       'provider urls:',
       JSON.stringify(this.sdk.getChainProviderUrls())
@@ -185,12 +134,11 @@ class YieldStats {
 
   async getAllYields () {
     const timestamp = (Date.now() / 1000) | 0
-    const bridges: any = mainnetAddresses.bridges
-    let yieldData: YieldData = this.initializeYieldData(bridges)
-    for (let token in bridges) {
+    let yieldData: YieldData = this.initializeYieldData(this.bridges)
+    for (let token in this.bridges) {
       const promises: Promise<any>[] = []
-      for (let chain in bridges[token]) {
-        const shouldSkip = this.shouldSkipYields(bridges, chain, token)
+      for (let chain in this.bridges[token]) {
+        const shouldSkip = this.shouldSkipYields(this.bridges, chain, token)
         if (shouldSkip) {
           continue
         }
@@ -206,23 +154,30 @@ class YieldStats {
                 dailyVolume: res.dailyVolume
               }
             })
-            .catch(err => console.error(`apr 1 day ${chain} ${token} error:`, err))
+            .catch(err =>
+              console.error(`apr 1 day ${chain} ${token} error:`, err)
+            )
         )
         promises.push(
           this.getStakingYieldData(token, chain)
             .then(res => {
               console.log(`${chain}.${token} got staking yield data`)
               for (const stakingYieldData of res) {
-                yieldData.stakingRewards[token][chain][stakingYieldData.stakingRewardsContractAddress] = {
+                yieldData.stakingRewards[token][chain][
+                  stakingYieldData.stakingRewardsContractAddress
+                ] = {
                   apr: stakingYieldData.apr,
                   apy: stakingYieldData.apy,
                   rewardToken: stakingYieldData.rewardToken,
                   rewardTokenAddress: stakingYieldData.rewardTokenAddress,
-                  isOptimalStakingContract: stakingYieldData.isOptimalStakingContract
+                  isOptimalStakingContract:
+                    stakingYieldData.isOptimalStakingContract
                 }
               }
             })
-            .catch(err => console.error(`staking apr 1 ${chain} ${token} error:`, err))
+            .catch(err =>
+              console.error(`staking apr 1 ${chain} ${token} error:`, err)
+            )
         )
       }
 
@@ -274,7 +229,7 @@ class YieldStats {
           }
         }
 
-        const stakingContracts = stakingRewardsContracts[chain][token]
+        const stakingContracts = this.stakingRewardsContracts?.[token]?.[chain]
         if (stakingContracts?.length > 0) {
           if (!yieldData.stakingRewards) yieldData.stakingRewards = {}
           if (!yieldData.stakingRewards[token])
@@ -357,17 +312,22 @@ class YieldStats {
       for (const chain in tokenData) {
         const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
         for (const stakingRewardsContractAddress in stakingRewardData) {
-          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
+          const stakingRewardsData =
+            stakingRewardData[stakingRewardsContractAddress]
           if (stakingRewardsData.apr === 0) {
-            delete yieldData.stakingRewards[token][chain][stakingRewardsContractAddress]
+            delete yieldData.stakingRewards[token][chain][
+              stakingRewardsContractAddress
+            ]
           }
         }
-        const isStakingContractsForChainRemaining = Object.keys(yieldData.stakingRewards[token][chain]).length > 0
+        const isStakingContractsForChainRemaining =
+          Object.keys(yieldData.stakingRewards[token][chain]).length > 0
         if (!isStakingContractsForChainRemaining) {
           delete yieldData.stakingRewards[token][chain]
         }
       }
-      const isStakingContractsForTokenRemaining = Object.keys(yieldData.stakingRewards[token]).length > 0
+      const isStakingContractsForTokenRemaining =
+        Object.keys(yieldData.stakingRewards[token]).length > 0
       if (!isStakingContractsForTokenRemaining) {
         delete yieldData.stakingRewards[token]
       }
@@ -382,7 +342,8 @@ class YieldStats {
       for (const chain in tokenData) {
         const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
         for (const stakingRewardsContractAddress in stakingRewardData) {
-          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
+          const stakingRewardsData =
+            stakingRewardData[stakingRewardsContractAddress]
           if (stakingRewardsData.isOptimalStakingContract) {
             yieldData.optimalYield[token][chain] = {
               apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
@@ -394,7 +355,8 @@ class YieldStats {
           }
         }
         // If there is no optimal staking contract, just use the pool yield
-        const isNoOptimalStakingContract = yieldData.optimalYield[token][chain].apy === 0
+        const isNoOptimalStakingContract =
+          yieldData.optimalYield[token][chain].apy === 0
         if (isNoOptimalStakingContract) {
           yieldData.optimalYield[token][chain] = {
             apr: yieldData.pools[token][chain].apr,
@@ -421,7 +383,8 @@ class YieldStats {
         const stakingRewardData = yieldData.stakingRewards?.[token]?.[chain]
         let stakingApr: number = 0
         for (const stakingRewardsContractAddress in stakingRewardData) {
-          const stakingRewardsData = stakingRewardData[stakingRewardsContractAddress]
+          const stakingRewardsData =
+            stakingRewardData[stakingRewardsContractAddress]
           if (stakingRewardsData.isOptimalStakingContract) {
             stakingApr = stakingRewardsData.apr
           }
@@ -452,13 +415,16 @@ class YieldStats {
     }
   }
 
-  async getStakingYieldData (token: string, chain: string): Promise<StakingYieldDataRes[]> {
+  async getStakingYieldData (
+    token: string,
+    chain: string
+  ): Promise<StakingYieldDataRes[]> {
     const bridge = this.sdk.bridge(token)
     const canonToken = bridge.getCanonicalToken(chain)
     const amm = bridge.getAmm(chain)
 
     const provider = this.sdk.getChainProvider(chain)
-    const stakingRewardsAddresses = stakingRewardsContracts?.[chain]?.[token]
+    const stakingRewardsAddresses = this.stakingRewardsContracts?.[token]?.[chain]
     if (!stakingRewardsAddresses?.length) {
       return []
     }
@@ -510,11 +476,10 @@ class YieldStats {
       )
 
       // Sanity check
-      if (
-        (apr <= 0 && apy > 0) ||
-        (apy <= 0 && apr > 0)
-      ) {
-        throw new Error('Cannot have negative APR and positive APY or vice versa')
+      if ((apr <= 0 && apy > 0) || (apy <= 0 && apr > 0)) {
+        throw new Error(
+          'Cannot have negative APR and positive APY or vice versa'
+        )
       }
 
       let rewardToken = ''

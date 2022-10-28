@@ -173,8 +173,8 @@ export function usePoolStats () {
   }
 
    return {
-     poolStats,
      getPoolStats,
-     getStakingStats
+     getStakingStats,
+     poolStats,
    }
 }

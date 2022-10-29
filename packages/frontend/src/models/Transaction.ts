@@ -13,7 +13,6 @@ import {
 } from 'src/utils'
 import { hopAppNetwork } from 'src/config'
 import logger from 'src/logger'
-import { formatError } from 'src/utils/format'
 import { getNetworkWaitConfirmations } from 'src/utils/networks'
 import { sigHashes } from 'src/hooks/useTransaction'
 import { getProviderByNetworkName } from 'src/utils/getProvider'
@@ -106,6 +105,9 @@ class Transaction extends EventEmitter {
     })
 
     this.receipt().then(async (receipt: providers.TransactionReceipt) => {
+      if (!receipt) {
+        return
+      }
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
       this.blockNumber = receipt.blockNumber
       const block = await this.provider.getBlock(receipt.blockNumber)
@@ -176,7 +178,8 @@ class Transaction extends EventEmitter {
     return `${this.hash.substring(0, 6)}…${this.hash.substring(62, 66)}`
   }
 
-  async receipt() {
+  async receipt(): Promise<any> {
+    // fyi issue: https://github.com/ethers-io/ethers.js/issues/3477
     return this.provider.waitForTransaction(this.hash)
   }
 
@@ -208,6 +211,9 @@ class Transaction extends EventEmitter {
         return true
       }
       const receipt = await this.receipt()
+      if (!receipt) {
+        return false
+      }
       // Get the event data (topics)
       const tsDetails = getTransferSentDetailsFromLogs(receipt.logs)
       const bridge = sdk.bridge(this.token.symbol)
@@ -301,8 +307,8 @@ class Transaction extends EventEmitter {
         logger.debug(`isSpent(${this.transferId.slice(0, 10)}: transferId):`, isSpent)
         return isSpent
       }
-    } catch (error) {
-      logger.error(formatError(error))
+    } catch (err: any) {
+      logger.error('Transaction Model checkIsTransferIdSpent error:', err)
     }
 
     return false

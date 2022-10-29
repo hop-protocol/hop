@@ -21,7 +21,7 @@ export interface UpdateTransactionOptions {
   replaced?: boolean | string
 }
 
-const cacheKey = 'recentTransactions'
+const cacheKey = 'recentTransactions:v000'
 
 const localStorageSerializationOptions = {
   raw: false,
@@ -51,6 +51,8 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
   const addTransaction = useCallback(
     (tx: Transaction) => {
+      // disable this feature
+      return
       // If tx exists with hash == tx.replaced, remove it
       const match = find(transactions, ['hash', tx.replaced])
       filterSortAndSetTransactions(tx, transactions, match?.hash)
@@ -69,6 +71,8 @@ const useTxHistory = (defaultTxs: Transaction[] = []): TxHistory => {
 
   const updateTransaction = useCallback(
     (tx: Transaction, updateOpts: UpdateTransactionOptions, matchingHash?: string) => {
+      // disable this feature
+      return
       for (const key in updateOpts) {
         tx[key] = updateOpts[key]
       }

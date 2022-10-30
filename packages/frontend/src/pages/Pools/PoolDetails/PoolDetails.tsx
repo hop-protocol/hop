@@ -505,6 +505,7 @@ function DepositForm(props: any) {
 
 function WithdrawForm(props: any) {
   const {
+    goToTab,
     hasBalance,
     token0Symbol,
     token1Symbol,
@@ -516,7 +517,6 @@ function WithdrawForm(props: any) {
     token0Max,
     token1Max,
     calculatePriceImpact,
-    goToTab,
     walletConnected,
     removeLiquidity,
     isWithdrawing
@@ -639,7 +639,7 @@ function WithdrawForm(props: any) {
   }
 
   const formDisabled = !hasBalance
-  const isEmptyAmount = (proportional ? !amountPercent : (amountBN.lte(0) || amountBN.gt(maxBalance)))
+  const isEmptyAmount = (proportional ? !(amountPercent && (token0Max?.gt(0) || token1Max.gt(0))) : (amountBN.lte(0) || amountBN.gt(maxBalance)))
   const sendDisabled = formDisabled || isEmptyAmount
   const sendButtonText = walletConnected ? 'Preview' : 'Connect Wallet'
 
@@ -678,6 +678,14 @@ function WithdrawForm(props: any) {
 
   return (
     <Box>
+      <Box mb={2} display="flex" justifyContent="center">
+        <Typography variant="body1">
+          <em>To withdraw staked tokens, first unstake on the <MuiLink href="" onClick={(event: any) => {
+            event.preventDefault()
+            goToTab('stake')
+          }}>stake tab</MuiLink>.</em>
+        </Typography>
+      </Box>
 
       <Box mb={3} display="flex" justifyContent="center">
         <RaisedSelect value={selection.value} onChange={handleSelection}>
@@ -1277,6 +1285,7 @@ export function PoolDetails () {
                   />}
                   {selectedTab === 'withdraw' && <WithdrawForm
                     data={{
+                      goToTab,
                       hasBalance,
                       token0Symbol: canonicalTokenSymbol,
                       token1Symbol: hopTokenSymbol,
@@ -1294,7 +1303,6 @@ export function PoolDetails () {
                       token0Max,
                       token1Max,
                       calculatePriceImpact: calculateRemoveLiquidityPriceImpact,
-                      goToTab,
                       walletConnected,
                       removeLiquidity: unstakeAndRemoveLiquidity,
                       isWithdrawing,

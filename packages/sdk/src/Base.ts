@@ -171,22 +171,24 @@ class Base {
       }
 
       const data = cached || await this.getS3ConfigData()
-      if (data.bonders) {
-        this.bonders = data.bonders
-      }
-      if (data.bonderFeeBps) {
-        this.fees = data.bonderFeeBps
-      }
-      if (data.destinationFeeGasPriceMultiplier) {
-        this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
-      }
-      if (data.relayerFeeEnabled) {
-        this.relayerFeeEnabled = data.relayerFeeEnabled
-      }
+      if (data) {
+        if (data.bonders) {
+          this.bonders = data.bonders
+        }
+        if (data.bonderFeeBps) {
+          this.fees = data.bonderFeeBps
+        }
+        if (data.destinationFeeGasPriceMultiplier) {
+          this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
+        }
+        if (data.relayerFeeEnabled) {
+          this.relayerFeeEnabled = data.relayerFeeEnabled
+        }
 
-      if (!cached) {
-        s3FileCache[this.network] = data
-        s3FileCacheTimestamp = Date.now()
+        if (!cached) {
+          s3FileCache[this.network] = data
+          s3FileCacheTimestamp = Date.now()
+        }
       }
       return data
     } catch (err: any) {
@@ -622,9 +624,14 @@ class Base {
   }
 
   async getS3ConfigData () {
+    const controller = new AbortController()
+    const timeoutMs = 5 * 1000
+    setTimeout(() => controller.abort(), timeoutMs)
     const cacheBust = Date.now()
     const url = `https://assets.hop.exchange/${this.network}/v1-core-config.json?cb=${cacheBust}`
-    const res = await fetch(url)
+    const res = await fetch(url, {
+      signal: controller.signal
+    })
     const json = await res.json()
     if (!json) {
       throw new Error('expected json object')

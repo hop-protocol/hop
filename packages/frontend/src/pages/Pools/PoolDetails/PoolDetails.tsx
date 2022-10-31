@@ -775,7 +775,6 @@ function StakeForm(props: any) {
     canWithdraw,
     depositedAmountFormatted,
     error,
-    isApprovalNeeded,
     isRewardsExpired,
     isStaking,
     isWithdrawing,

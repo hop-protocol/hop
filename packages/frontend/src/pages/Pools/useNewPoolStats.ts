@@ -15,20 +15,7 @@ export function usePoolStats () {
       'usePoolStats'
     ],
     async () => {
-      try {
-        const cached = localStorage.getItem('poolStats')
-        if (cached) {
-          const json = JSON.parse(cached)
-          if (json.timestamp > Date.now() - (10 * 60 * 1000)) {
-            if (json.data) {
-              console.log('returning cached poolStats')
-              return json.data
-            }
-          }
-        }
-      } catch (err: any) { }
-
-      const json = await getPoolStatsFile()
+      const json = await getPoolStatsRawData()
 
       const _poolStats :any = {}
       for (const token in addresses.tokens) {
@@ -123,9 +110,6 @@ export function usePoolStats () {
         }
       }
 
-      try {
-        localStorage.setItem('poolStats', JSON.stringify({ data: _poolStats, timestamp: Date.now() }))
-      } catch (err: any) { }
       return _poolStats
     },
     {
@@ -159,6 +143,30 @@ export function usePoolStats () {
         stakingAprFormatted: toPercentDisplay(0)
       }
     }
+  }
+
+  async function getPoolStatsRawData() {
+    const cacheKey = 'poolStats:v000'
+    try {
+      const cached = localStorage.getItem(cacheKey)
+      if (cached) {
+        const json = JSON.parse(cached)
+        if (json.timestamp > Date.now() - (10 * 60 * 1000)) {
+          if (json.data) {
+            console.log('returning cached poolStats')
+            return json.data
+          }
+        }
+      }
+    } catch (err: any) { }
+
+    const json = await getPoolStatsFile()
+
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({ data: json, timestamp: Date.now() }))
+    } catch (err: any) { }
+
+    return json
   }
 
   async function getPoolStatsFile () {

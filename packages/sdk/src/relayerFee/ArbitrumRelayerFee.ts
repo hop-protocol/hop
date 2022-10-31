@@ -1,8 +1,9 @@
-import { BigNumber, constants, utils as ethersUtils, providers } from 'ethers'
+import { BigNumber, constants, utils as ethersUtils } from 'ethers'
 import { Chain } from '../models'
 import { IRelayerFee } from './IRelayerFee'
 import { MaxDeadline } from '../constants'
 import { config } from '../config'
+import { getProviderFromUrl } from '../utils/getProviderFromUrl'
 
 export class ArbitrumRelayerFee implements IRelayerFee {
   network: string
@@ -15,11 +16,11 @@ export class ArbitrumRelayerFee implements IRelayerFee {
 
   async getRelayCost (): Promise<BigNumber> {
     const arbitrumRpcUrl = config.chains[this.network][Chain.Arbitrum.slug].rpcUrl
-    const provider = new providers.StaticJsonRpcProvider({ url: arbitrumRpcUrl })
+    const provider = getProviderFromUrl(arbitrumRpcUrl)
 
     // Submission Cost
     const l1RpcUrl = config.chains[this.network][Chain.Ethereum.slug].rpcUrl
-    const l1Provider = new providers.StaticJsonRpcProvider({ url: l1RpcUrl })
+    const l1Provider = getProviderFromUrl(l1RpcUrl)
     const distributeCalldataSize: number = 196
     const { baseFeePerGas } = await l1Provider.getBlock('latest')
     const submissionCost: BigNumber = this._calculateRetryableSubmissionFee(distributeCalldataSize, baseFeePerGas!)

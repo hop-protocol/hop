@@ -24,6 +24,7 @@ import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
+import { getProviderFromUrl } from './utils/getProviderFromUrl'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
 export type L1Factory = L1PolygonPosRootChainManager__factory | L1XDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1OptimismTokenBridge__factory
@@ -49,10 +50,9 @@ const getProvider = memoize((network: string, chain: string) => {
     }
     return providers.getDefaultProvider(network)
   }
-  return new providers.StaticJsonRpcProvider({
-    url: rpcUrl,
-    timeout: 5 * 60 * 1000
-  })
+
+  const provider = getProviderFromUrl(rpcUrl)
+  return provider
 })
 
 const getContractMemo = memoize(
@@ -243,7 +243,7 @@ class Base {
         )
       }
       if (chainProviders[chainSlug]) {
-        this.chainProviders[chain.slug] = new providers.StaticJsonRpcProvider(chainProviders[chainSlug])
+        this.chainProviders[chain.slug] = getProviderFromUrl(chainProviders[chainSlug])
       }
     }
   }

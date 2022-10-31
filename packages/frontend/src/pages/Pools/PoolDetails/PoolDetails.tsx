@@ -876,7 +876,7 @@ function StakeForm(props: any) {
               </Typography>
             </Box>
             <Box>
-              <Typography variant="body1">
+              <Typography variant="body1" component="div">
                 {stakingAprDisplay}
               </Typography>
             </Box>

@@ -112,9 +112,14 @@ export const useStyles = makeStyles(theme => ({
     },
   },
   tabs: {
+    marginTop: '0.8rem',
     [theme.breakpoints.down('xs')]: {
+      marginTop: 0,
       margin: '0 auto'
     },
+  },
+  tab: {
+    fontSize: '2rem'
   },
   claimRewards: {
     [theme.breakpoints.down('xs')]: {
@@ -1252,9 +1257,9 @@ export function PoolDetails () {
             </Box>
             <Box width="50%" className={styles.poolDetailsBox}>
               <Tabs value={selectedTab} onChange={handleTabChange} className={styles.tabs} style={{ width: 'max-content' }} variant="scrollable">
-                <Tab label="Deposit" value="deposit" />
-                <Tab label="Withdraw" value="withdraw" />
-                <Tab label="Stake" value="stake" />
+                <Tab label="Deposit" value="deposit" className={styles.tab} />
+                <Tab label="Withdraw" value="withdraw" className={styles.tab} />
+                <Tab label="Stake" value="stake" className={styles.tab} />
               </Tabs>
               <Box p={2} display="flex" flexDirection="column">
                 <Box mb={2} >

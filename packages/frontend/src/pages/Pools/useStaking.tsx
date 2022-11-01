@@ -553,8 +553,8 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   }, [amount, parsedAmount, userLpBalanceBn])
 
   const _stakingStats = getStakingStats(chainSlug, tokenSymbol, stakingContractAddress)
-  const canClaim = earnedAmountBn?.gt(0)
-  const canWithdraw = depositedAmountBn?.gt(0)
+  const canClaim = earnedAmountBn?.gt(0) ?? false
+  const canWithdraw = depositedAmountBn?.gt(0) ?? false
   const depositedAmountFormatted = depositedAmountBn ? `${formatTokenDecimalString(depositedAmountBn, 18, 4)}` : '-'
   const earnedAmountFormatted = earnedAmountBn ? `${commafy(formatUnits(earnedAmountBn.toString(), 18), 5)} ${rewardsTokenSymbol}` : '-'
   const isActive = rewardRateBn.gt(0)

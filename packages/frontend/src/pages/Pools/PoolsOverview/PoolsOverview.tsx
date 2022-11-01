@@ -7,6 +7,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
 import InfoTooltip from 'src/components/InfoTooltip'
 import Skeleton from '@material-ui/lab/Skeleton'
+import { StakingRewardsClaim } from '../PoolDetails/StakingRewardsClaim'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -16,6 +17,11 @@ export const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       paddingLeft: '1rem',
       paddingRight: '1rem'
+    },
+  },
+  header: {
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column',
     },
   },
   table: {
@@ -79,9 +85,10 @@ export function PoolsOverview () {
           Add liquidity to earn trading fees and rewards.
         </Typography>
       </Box>
+
       {(userPools.length > 0 || isAccountLoading) && (
         <Box className={styles.box} p={4} mb={6}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} className={styles.header}>
             <Box p={1} textAlign="left">
               <Typography variant="h5">
                 <Box display="flex" alignItems="center">
@@ -89,6 +96,9 @@ export function PoolsOverview () {
                 </Box>
               </Typography>
             </Box>
+            <StakingRewardsClaim data={{
+              claimAll: true,
+            }} />
           </Box>
           <Box overflow="auto">
             <table className={styles.table}>

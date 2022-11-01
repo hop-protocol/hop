@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useApp } from 'src/contexts/AppContext'
 import { addresses } from 'src/config'
 import { commafy, toPercentDisplay } from 'src/utils'
@@ -6,9 +6,10 @@ import { findNetworkBySlug } from 'src/utils/networks'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 import { useQuery } from 'react-query'
 
+let stakingStats = {}
+
 export function usePoolStats () {
   const { sdk } = useApp()
-  const [stakingStats, setStakingStats] = useState<any>({})
 
   const { data: poolStats } = useQuery(
     [
@@ -78,7 +79,7 @@ export function usePoolStats () {
               }
             }
 
-            setStakingStats(_stakingStatsObj)
+            stakingStats = _stakingStatsObj
 
             const apr = data.apr ?? 0
             const dailyVolume = data.dailyVolume ?? 0
@@ -118,12 +119,12 @@ export function usePoolStats () {
     }
   )
 
-  function getPoolStats(chain: string, token: string) {
+  const getPoolStats = useCallback((chain: string, token: string) => {
     token = normalizeTokenSymbol(token)
     return poolStats?.[chain]?.[token]
-  }
+  }, [poolStats])
 
-  function getStakingStats(chain: string, token: string, contractAddress: string) {
+  const getStakingStats = useCallback((chain: string, token: string, contractAddress: string) => {
     token = normalizeTokenSymbol(token)
     try {
       const key = `${chain}:${token}:${contractAddress?.toLowerCase()}`
@@ -143,7 +144,7 @@ export function usePoolStats () {
         stakingAprFormatted: toPercentDisplay(0)
       }
     }
-  }
+  }, [stakingStats])
 
   async function getPoolStatsRawData() {
     const cacheKey = 'poolStats:v000'
@@ -184,5 +185,6 @@ export function usePoolStats () {
      getPoolStats,
      getStakingStats,
      poolStats,
+     stakingStats
    }
 }

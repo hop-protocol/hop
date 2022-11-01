@@ -212,7 +212,7 @@ function PoolEmptyState() {
         </Typography>
       </Box>
       <Box mb={2} display="flex" justifyContent="center">
-        <Typography variant="body1">
+        <Typography variant="body1" component="div">
           <MuiLink target="_blank" rel="noopener noreferrer" href="https://help.hop.exchange/hc/en-us/articles/4406095303565-What-do-I-need-in-order-to-provide-liquidity-on-Hop-" >
             <Box display="flex" justifyContent="center" alignItems="center">
               Learn more <Box ml={1} display="flex" justifyContent="center" alignItems="center"><LaunchIcon /></Box>

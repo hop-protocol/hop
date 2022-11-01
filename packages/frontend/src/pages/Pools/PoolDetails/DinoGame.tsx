@@ -39,12 +39,14 @@ const html = `
   font-size: 1em;
   line-height: 1.55;
   margin: 0 auto;
+  min-width: 300px;
   max-width: 600px;
   width: 100%;
 }
 
 .offline .runner-container {
   height: 150px;
+  min-width: 300px;
   max-width: 300px;
   position: absolute;
   top: 0;
@@ -53,6 +55,7 @@ const html = `
 
 .offline .runner-canvas {
   height: 80px;
+  min-width: 300px;
   max-width: 300px;
   opacity: 1;
   z-index: 2;

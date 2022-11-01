@@ -60,6 +60,7 @@ export function usePools () {
           const poolSubtitle = `${token} - h${token}`
           const depositLink = `/pool/deposit?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           const claimLink = `/pool/stake?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
+          const stakeLink = `/pool/stake?token=${tokenModel.symbol}&sourceNetwork=${chainModel.slug}`
           _pools.push({
             token: { ...tokenModel, imageUrl: tokenImage },
             chain: chainModel,
@@ -84,6 +85,7 @@ export function usePools () {
             canStake: false,
             hasStakingContract: false,
             claimLink,
+            stakeLink,
             hasStaked: false,
             stakingRewardsStaked: 0,
             stakingRewardsStakedUsd: 0,

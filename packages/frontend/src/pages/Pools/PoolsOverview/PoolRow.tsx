@@ -78,6 +78,7 @@ type Data = {
   canClaim: boolean
   canStake: boolean
   claimLink: string
+  stakeLink: string
   stakingRewardsStakedTotalUsdFormatted: string
 }
 
@@ -90,7 +91,7 @@ export function PoolRow (props: Props) {
   const styles = useStyles()
   const history = useHistory()
   const { isAllPools, data } = props
-  const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, canStake, claimLink } = data
+  const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, canStake, claimLink, stakeLink } = data
 
   return (
     <tr className={styles.tr}>
@@ -161,22 +162,29 @@ export function PoolRow (props: Props) {
         </Link>
       </td>
       <td>
-        <Link to={depositLink} className={styles.poolLink}>
         <Box p={1} display="flex" justifyContent="center">
           {(canClaim || canStake) ? <>
-            <Button highlighted onClick={() => history.push(claimLink)}>
-              {canStake ? 'Stake' : 'Claim'}
-            </Button>
+            {canStake ? (
+              <Button highlighted onClick={() => history.push(stakeLink)}>
+                Stake
+              </Button>
+            ) : (
+              <Button highlighted onClick={() => history.push(claimLink)}>
+                Claim
+              </Button>
+            )
+            }
           </> : <>
-          <MuiButton variant="text" className={styles.depositLink} onClick={() => history.push(depositLink)}>
-              <Typography variant="body1" component="span" title="Deposit into pool">
-                <strong>Add Liquidity</strong>
-              </Typography>
-            </MuiButton>
-         </>
+            <Link to={depositLink} className={styles.poolLink}>
+              <MuiButton variant="text" className={styles.depositLink} onClick={() => history.push(depositLink)}>
+                  <Typography variant="body1" component="span" title="Deposit into pool">
+                    <strong>Add Liquidity</strong>
+                  </Typography>
+                </MuiButton>
+            </Link>
+          </>
           }
         </Box>
-        </Link>
       </td>
     </tr>
   )

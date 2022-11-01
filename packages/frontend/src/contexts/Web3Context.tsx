@@ -367,8 +367,6 @@ const Web3ContextProvider: FC = ({ children }) => {
       return true
     }
 
-    await onboard.walletCheck()
-
     return false
   }
 

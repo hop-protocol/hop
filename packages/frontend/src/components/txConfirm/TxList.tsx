@@ -32,6 +32,7 @@ export function TxList (props: Props) {
   const [running, setRunning] = useState(false)
   const [error, setError] = useState('')
   const [txList, setTxList] = useState([..._txList])
+  const [statusText, setStatusText] = useState('')
 
   async function runTxList() {
     setRunning(true)
@@ -43,7 +44,11 @@ export function TxList (props: Props) {
         }
         item.status = 'pending'
         setTxList([...txList])
+        setStatusText('Confirm the transaction in your wallet to continue')
         const tx = await item.fn()
+        if (tx?.wait) {
+          setStatusText('Waiting for transaction confirmation')
+        }
         await tx?.wait()
         item.status = 'success'
         setTxList([...txList])
@@ -141,7 +146,7 @@ export function TxList (props: Props) {
       </Box>
       <Box display="flex" justifyContent="center" alignItems="center">
         <Typography variant="subtitle1" color="secondary">
-          Confirm the transactions in your wallet to continue
+          {complete ? 'All transactions are completed' : statusText}
         </Typography>
       </Box>
       <Box mt={2}>
@@ -154,7 +159,7 @@ export function TxList (props: Props) {
             large
             highlighted
           >
-            Close
+            Done
           </Button>
         </Box>
       )}

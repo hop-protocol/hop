@@ -35,6 +35,7 @@ import {
 import { useStaking } from '../useStaking'
 import { stakingRewardTokens, stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
 import TokenWrapper from 'src/components/TokenWrapper'
+import { StakingRewardsClaim } from './StakingRewardsClaim'
 
 export const useStyles = makeStyles(theme => ({
   backLink: {
@@ -112,30 +113,14 @@ export const useStyles = makeStyles(theme => ({
     },
   },
   tabs: {
+    marginTop: '0.8rem',
     [theme.breakpoints.down('xs')]: {
+      marginTop: 0,
       margin: '0 auto'
     },
   },
-  claimRewards: {
-    [theme.breakpoints.down('xs')]: {
-      width: '90%',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-    },
-  },
-  claimRewardsBox: {
-    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
-    borderRadius: '1rem',
-  },
-  claimRewardsFlex: {
-    [theme.breakpoints.down('xs')]: {
-      flexDirection: 'column',
-      justifyContent: 'center',
-      textAlign: 'center',
-    },
-  },
-  stakingRewardsImage: {
-    width: '30px'
+  tab: {
+    fontSize: '2rem'
   },
   stakingAprChainImage: {
     width: '20px',
@@ -224,68 +209,6 @@ function PoolEmptyState() {
   )
 }
 
-function StakingRewardsClaim(props: any) {
-  const {
-    chainSlug,
-    tokenSymbol,
-    stakingContractAddress
-  } = props.data
-  if (!stakingContractAddress) {
-    return null
-  }
-  const styles = useStyles()
-  const {
-    canClaim,
-    claim,
-    isClaiming,
-    earnedAmountFormatted,
-    rewardsTokenSymbol,
-    rewardsTokenImageUrl,
-  } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
-
-  function handleClaimClick(event: any) {
-    event.preventDefault()
-    claim()
-  }
-
-  if (!canClaim) {
-    return (
-      <></>
-    )
-  }
-
-  return (
-    <Box mt={8} maxWidth="400px" width="100%" className={styles.claimRewards}>
-      <Box p={2} className={styles.claimRewardsBox}>
-        <Box display="flex" justifyItems="space-between" className={styles.claimRewardsFlex}>
-          <Box mr={2} display="flex" justifyContent="center" alignItems="center">
-            <Box display="flex" justifyItems="center" alignItems="center">
-              <img className={styles.stakingRewardsImage} src={rewardsTokenImageUrl} alt={rewardsTokenSymbol} title={rewardsTokenSymbol} />
-            </Box>
-          </Box>
-          <Box width="100%">
-            <Box>
-              <Typography variant="subtitle2" color="secondary">
-                Unclaimed Rewards
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="subtitle2">
-                {earnedAmountFormatted}
-              </Typography>
-            </Box>
-          </Box>
-          <Box pl={2} display="flex" justifyContent="center" alignItems="center" width="80%">
-            <Button highlighted fullWidth onClick={handleClaimClick} loading={isClaiming}>
-              Claim
-            </Button>
-          </Box>
-        </Box>
-      </Box>
-    </Box>
-  )
-}
-
 function AccountPosition(props: any) {
   const styles = useStyles()
   const {
@@ -356,12 +279,13 @@ function AccountPosition(props: any) {
         </Box>
       </Box>
       {!!stakingContractAddress && (
-        <StakingRewardsClaim data={{
-            chainSlug,
-            tokenSymbol,
-            walletConnected,
-            stakingContractAddress
-        }} />
+        <Box mt={8}>
+          <StakingRewardsClaim data={{
+              chainSlug,
+              tokenSymbol,
+              stakingContractAddress
+          }} />
+        </Box>
       )}
     </Box>
   )
@@ -1252,9 +1176,9 @@ export function PoolDetails () {
             </Box>
             <Box width="50%" className={styles.poolDetailsBox}>
               <Tabs value={selectedTab} onChange={handleTabChange} className={styles.tabs} style={{ width: 'max-content' }} variant="scrollable">
-                <Tab label="Deposit" value="deposit" />
-                <Tab label="Withdraw" value="withdraw" />
-                <Tab label="Stake" value="stake" />
+                <Tab label="Deposit" value="deposit" className={styles.tab} />
+                <Tab label="Withdraw" value="withdraw" className={styles.tab} />
+                <Tab label="Stake" value="stake" className={styles.tab} />
               </Tabs>
               <Box p={2} display="flex" flexDirection="column">
                 <Box mb={2} >

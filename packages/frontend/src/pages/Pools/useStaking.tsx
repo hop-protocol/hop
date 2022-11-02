@@ -348,6 +348,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       if (!isNetworkConnected) return
 
       setIsApproving(true)
+      setError('')
       await approve(parsedAmount, lpToken!, stakingContractAddress)
     } catch (err) {
       console.error(err)
@@ -409,6 +410,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       }
 
       setIsStaking(true)
+      setError('')
 
       const amountFormatted = commafy(amount || '0', 4)
       const totalFormatted = `${amountFormatted} ${lpTokenSymbol}`
@@ -418,6 +420,11 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       txList.push({
         label: `Approve ${lpTokenSymbol}`,
         fn: async () => {
+          const isNetworkConnected = await checkConnectedNetworkId(networkId)
+          if (!isNetworkConnected) {
+            throw new Error('wrong network connected')
+          }
+
           const spender = stakingContractAddress
           const allowance = await lpToken.allowance(spender)
           if (allowance.lt(parseUnits(amount, 18))) {
@@ -429,6 +436,11 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       txList.push({
         label: `Stake ${lpTokenSymbol}`,
         fn: async () => {
+          const isNetworkConnected = await checkConnectedNetworkId(networkId)
+          if (!isNetworkConnected) {
+            throw new Error('wrong network connected')
+          }
+
           const signer = await sdk.getSignerOrProvider(chainSlug)
           return stakingContract.connect(signer).stake(parsedAmount)
         }
@@ -482,6 +494,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       }
 
       setIsWithdrawing(true)
+      setError('')
       const signer = await sdk.getSignerOrProvider(chainSlug)
       const _stakingRewards = stakingContract.connect(signer)
       const stakingToken = {
@@ -521,6 +534,7 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       if (!stakingContract) return
 
       setIsClaiming(true)
+      setError('')
       const signer = await sdk.getSignerOrProvider(chainSlug)
       const tx = await stakingContract.connect(signer).getReward()
       await tx.wait()
@@ -539,8 +553,8 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
   }, [amount, parsedAmount, userLpBalanceBn])
 
   const _stakingStats = getStakingStats(chainSlug, tokenSymbol, stakingContractAddress)
-  const canClaim = earnedAmountBn?.gt(0)
-  const canWithdraw = depositedAmountBn?.gt(0)
+  const canClaim = earnedAmountBn?.gt(0) ?? false
+  const canWithdraw = depositedAmountBn?.gt(0) ?? false
   const depositedAmountFormatted = depositedAmountBn ? `${formatTokenDecimalString(depositedAmountBn, 18, 4)}` : '-'
   const earnedAmountFormatted = earnedAmountBn ? `${commafy(formatUnits(earnedAmountBn.toString(), 18), 5)} ${rewardsTokenSymbol}` : '-'
   const isActive = rewardRateBn.gt(0)

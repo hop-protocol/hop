@@ -133,10 +133,10 @@ export function AddLiquidityAndStake (props: Props) {
       )}
       <Box mb={4} justifyContent="center" alignItems="center">
         <Button
+          text
           onClick={handleDeposit}
           fullWidth
           large
-          highlighted
         >
           Deposit
         </Button>

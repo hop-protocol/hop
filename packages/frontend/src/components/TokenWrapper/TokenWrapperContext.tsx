@@ -114,7 +114,9 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       if (!selectedNetwork?.networkId) return
       const networkId = Number(selectedNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setError(null)
       setWrapping(true)
@@ -147,6 +149,10 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           },
         },
         onConfirm: async () => {
+          const isNetworkConnected = await checkConnectedNetworkId(networkId)
+          if (!isNetworkConnected) {
+            throw new Error('wrong network connected')
+          }
           return wrappedToken.connect(signer as Signer).wrapToken(parsedAmount)
         },
       })
@@ -174,7 +180,9 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
     try {
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setError(null)
       setUnwrapping(true)
@@ -204,6 +212,10 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           },
         },
         onConfirm: async () => {
+          const isNetworkConnected = await checkConnectedNetworkId(networkId)
+          if (!isNetworkConnected) {
+            throw new Error('wrong network connected')
+          }
           return wrappedToken.connect(signer as Signer).unwrapToken(parsedAmount)
         },
       })

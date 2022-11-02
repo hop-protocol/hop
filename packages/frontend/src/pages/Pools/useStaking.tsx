@@ -345,7 +345,9 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const network = findNetworkBySlug(chainSlug)!
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setIsApproving(true)
       setError('')
@@ -362,7 +364,9 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const network = findNetworkBySlug(chainSlug)!
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
       if (!stakingContract) return
 
       setIsStaking(true)

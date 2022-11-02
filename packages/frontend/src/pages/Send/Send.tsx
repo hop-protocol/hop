@@ -379,7 +379,9 @@ const Send: FC = () => {
 
     const networkId = Number(fromNetwork.networkId)
     const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected) return
+    if (!isNetworkConnected) {
+      throw new Error('wrong network connected')
+    }
 
     const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
     const bridge = sdk.bridge(sourceToken.symbol)

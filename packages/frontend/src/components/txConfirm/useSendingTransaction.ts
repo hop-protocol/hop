@@ -46,7 +46,9 @@ export function useSendingTransaction(props: SendingTransaction) {
       }
       const txChainId = Number(src?.network?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(txChainId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setSending(true)
       onConfirm(true, opts)

@@ -324,7 +324,9 @@ const ConvertProvider: FC = ({ children }) => {
     try {
       const networkId = Number(sourceNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
       setError(undefined)
       setApproving(true)
       if (!sourceToken) {
@@ -355,7 +357,9 @@ const ConvertProvider: FC = ({ children }) => {
       setTx(undefined)
       const networkId = Number(sourceNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setError(undefined)
       if (

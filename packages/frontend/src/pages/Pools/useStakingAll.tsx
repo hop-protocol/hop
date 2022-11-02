@@ -42,7 +42,9 @@ export function useStakingAll () {
                 fn: async () => {
                   const networkId = Number(network.networkId)
                   const isNetworkConnected = await checkConnectedNetworkId(networkId)
-                  if (!isNetworkConnected) return
+                  if (!isNetworkConnected) {
+                    throw new Error('wrong network connected')
+                  }
                   const _provider = await sdk.getSignerOrProvider(chainSlug)
                   const contract = StakingRewards__factory.connect(address, _provider)
                   return contract?.getReward()

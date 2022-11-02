@@ -306,7 +306,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const walletConnected = !!address
 
   // TODO: cleanup
-  const checkConnectedNetworkId = async (networkId?: number): Promise<boolean> => {
+  const checkConnectedNetworkId = async (networkId?: number, recheck: boolean = true): Promise<boolean> => {
     if (!(networkId && provider)) return false
 
     const signerNetworkId = (await provider.getNetwork())?.chainId
@@ -365,6 +365,11 @@ const Web3ContextProvider: FC = ({ children }) => {
     const p = await provider.getNetwork()
     if (p.chainId === networkId) {
       return true
+    }
+
+    await onboard.walletCheck()
+    if (recheck) {
+      return checkConnectedNetworkId(networkId, false)
     }
 
     return false

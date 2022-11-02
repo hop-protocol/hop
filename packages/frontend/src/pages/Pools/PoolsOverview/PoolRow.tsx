@@ -7,6 +7,7 @@ import Button from 'src/components/buttons/Button'
 import { makeStyles } from '@material-ui/core/styles'
 import Skeleton from '@material-ui/lab/Skeleton'
 import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
+import { AprDetailsTooltip } from 'src/components/InfoTooltip/AprDetailsTooltip'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -91,7 +92,7 @@ export function PoolRow (props: Props) {
   const styles = useStyles()
   const history = useHistory()
   const { isAllPools, data } = props
-  const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, canStake, claimLink, stakeLink } = data
+  const { token, chain, poolName, poolSubtitle, userBalanceUsdFormatted, stakingRewardsStakedTotalUsdFormatted, userBalanceTotalUsdFormatted, tvlFormatted, aprFormatted, totalAprFormatted, stakingRewards, depositLink, canClaim, canStake, claimLink, stakeLink } = data
 
   return (
     <tr className={styles.tr}>
@@ -140,26 +141,44 @@ export function PoolRow (props: Props) {
         </Link>
       </td>
       <td className={!isAllPools ? styles.hideMobile : ''}>
-        <Link to={depositLink} className={styles.poolLink}>
-        {totalAprFormatted === '' ? <Skeleton animation="wave" width={'100%'} title="loading" /> : <Box p={1} display="flex" justifyContent="flex-start" alignItems="center">
-            <Typography variant="body1" title="Total APR which is AMM APR + any staking rewards APR">
-              <strong>{totalAprFormatted}</strong>
-            </Typography>
-            {stakingRewards.length > 0 ? <Box ml={1} display="flex" justifyContent="center" alignItems="center">
-              <span title="Boosted APR"><Bolt /></span>
-              {stakingRewards.length > 0 ? <Box ml={0.5} display="flex">
-                {stakingRewards.map((x: any, i: number) => {
-                  return (
-                    <img key={x.name} className={styles.stakingAprChainImage} src={x.imageUrl} alt={x.name} title={x.name} style={{
-                      transform: `translateX(-${8 * i}px)`
-                    }} />
-                  )
-                })}
+          <Link to={depositLink} className={styles.poolLink}>
+          <AprDetailsTooltip
+            total={{
+              aprFormatted: totalAprFormatted
+            }}
+            tradingFees={{
+              aprFormatted: aprFormatted
+            }}
+            rewards={stakingRewards?.map((x: any) => {
+              return {
+                rewardTokenSymbol: x.tokenSymbol,
+                rewardTokenImageUrl: x.imageUrl,
+                aprFormatted: x.aprFormatted
+              }
+            })}
+          >
+          <Box display="inline-block">
+          {totalAprFormatted === '' ? <Skeleton animation="wave" width={'100%'} title="loading" /> : <Box p={1} display="flex" justifyContent="flex-start" alignItems="center">
+              <Typography variant="body1" title="Total APR which is AMM APR + any staking rewards APR">
+                <strong>{totalAprFormatted}</strong>
+              </Typography>
+              {stakingRewards.length > 0 ? <Box ml={1} display="flex" justifyContent="center" alignItems="center">
+                <span title="Boosted APR"><Bolt /></span>
+                {stakingRewards.length > 0 ? <Box ml={0.5} display="flex">
+                  {stakingRewards.map((x: any, i: number) => {
+                    return (
+                      <img key={x.tokenSymbol} className={styles.stakingAprChainImage} src={x.imageUrl} alt={x.tokenSymbol} title={x.tokenSymbol} style={{
+                        transform: `translateX(-${8 * i}px)`
+                      }} />
+                    )
+                  })}
+                </Box> : null}
               </Box> : null}
-            </Box> : null}
+            </Box>
+          }
           </Box>
-        }
-        </Link>
+          </AprDetailsTooltip>
+          </Link>
       </td>
       <td>
         <Box p={1} display="flex" justifyContent="center">

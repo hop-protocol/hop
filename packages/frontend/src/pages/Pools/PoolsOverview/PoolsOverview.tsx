@@ -133,7 +133,7 @@ export function PoolsOverview () {
                     <Box p={1} textAlign="left">
                       <Typography variant="subtitle2" color="secondary">
                       <Box display="flex" alignItems="center">
-                        Total APR <InfoTooltip title="Total APR is AMM APR + any staking rewards APR" />
+                        Total APR <InfoTooltip title="Total APR is AMM APR + highest staking rewards APR. Hover over row APR to see breakdown." />
                       </Box>
                       </Typography>
                     </Box>
@@ -266,7 +266,7 @@ export function PoolsOverview () {
                   <a className={styles.thLink} onClick={handleColumnSortFn('totalApr')}>
                     <Typography variant="subtitle2" color="secondary">
                      <Box display="flex" alignItems="center">
-                       Total APR <InfoTooltip title="Total APR is AMM APR + any staking rewards APR" />
+                       Total APR <InfoTooltip title="Total APR is AMM APR + highest staking rewards APR. Hover over row APR to see breakdown." />
                      </Box>
                     </Typography>
                   </a>

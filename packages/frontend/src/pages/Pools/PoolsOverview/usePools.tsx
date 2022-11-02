@@ -133,15 +133,7 @@ export function usePools () {
         try {
           const symbol = pool.token.symbol
           const chain = pool.chain.slug
-          pool.stakingRewards = []
-          const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chain]?.[symbol]
-          if (hopStakingContractAddress) {
-            const hopLogo = metadata.tokens.HOP.image
-            pool.stakingRewards.push({
-              name: 'Hop',
-              imageUrl: hopLogo,
-            })
-          }
+          const stakingRewards :any[] = []
           const _poolStats = getPoolStats(chain, symbol)
           if (_poolStats) {
             pool.apr = _poolStats.apr
@@ -152,15 +144,14 @@ export function usePools () {
             pool.totalAprFormatted = _poolStats.totalAprFormatted
             pool.tvl = _poolStats.tvl
             pool.tvlFormatted = _poolStats.tvlUsdFormatted
-            for (const rewardToken of _poolStats.stakingRewardTokens) {
-              if (rewardToken === 'HOP') {
-                continue
-              }
-              pool.stakingRewards.push({
-                name: rewardToken,
-                imageUrl: getTokenImage(rewardToken),
+            for (const item of _poolStats.stakingRewardTokens) {
+              stakingRewards.push({
+                tokenSymbol: item.tokenSymbol,
+                imageUrl: getTokenImage(item.tokenSymbol),
+                aprFormatted: item.aprFormatted
               })
             }
+            pool.stakingRewards = [...stakingRewards.filter((x: any) => x.tokenSymbol === 'HOP'), ...stakingRewards.filter((x: any) => x.tokenSymbol !== 'HOP')]
           }
         } catch (err) {
           console.error('err', pool, err)

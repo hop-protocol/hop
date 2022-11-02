@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useCallback } from 'react'
 import { useApp } from 'src/contexts/AppContext'
 import { addresses } from 'src/config'
 import { commafy, toPercentDisplay } from 'src/utils'

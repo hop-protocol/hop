@@ -90,7 +90,7 @@ export const Withdraw: FC = () => {
                 const networkId = Number(wp.transfer.destinationChainId)
                 const isNetworkConnected = await checkConnectedNetworkId(networkId)
                 if (!isNetworkConnected) {
-                  return
+                  throw new Error('wrong network connected')
                 }
                 const {
                   recipient,

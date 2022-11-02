@@ -698,7 +698,9 @@ const PoolsProvider: FC = ({ children }) => {
       setError(null)
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected || !selectedNetwork) return
+      if (!isNetworkConnected || !selectedNetwork) {
+        throw new Error('wrong network connected')
+      }
 
       if (!(Number(token0Amount) || Number(token1Amount))) {
         return
@@ -784,7 +786,9 @@ const PoolsProvider: FC = ({ children }) => {
     try {
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected || !selectedNetwork) return
+      if (!isNetworkConnected || !selectedNetwork) {
+        throw new Error('wrong network connected')
+      }
 
       if (!(Number(token0Amount) || Number(token1Amount))) {
         return
@@ -994,7 +998,9 @@ const PoolsProvider: FC = ({ children }) => {
       }
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected || !selectedNetwork) return
+      if (!isNetworkConnected || !selectedNetwork) {
+        throw new Error('wrong network connected')
+      }
 
       if (!(canonicalToken && hopToken)) {
         return
@@ -1235,7 +1241,9 @@ const PoolsProvider: FC = ({ children }) => {
       setError(null)
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setRemoving(true)
       const bridge = sdk.bridge(canonicalToken.symbol)
@@ -1478,7 +1486,9 @@ const PoolsProvider: FC = ({ children }) => {
     try {
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected || !selectedNetwork) return
+      if (!isNetworkConnected || !selectedNetwork) {
+        throw new Error('wrong network connected')
+      }
 
       setIsWithdrawing(true)
       const signer = provider?.getSigner()

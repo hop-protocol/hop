@@ -47,7 +47,9 @@ const FaucetContextProvider: FC = ({ children }) => {
       if (!selectedNetwork?.networkId) return
       const networkId = Number(selectedNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       const tokenSymbol = selectedBridge.getTokenSymbol()
       if (!tokenSymbol) return

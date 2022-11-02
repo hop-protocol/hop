@@ -345,7 +345,9 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const network = findNetworkBySlug(chainSlug)!
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setIsApproving(true)
       setError('')
@@ -362,7 +364,9 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const network = findNetworkBySlug(chainSlug)!
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
       if (!stakingContract) return
 
       setIsStaking(true)
@@ -402,7 +406,9 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const network = findNetworkBySlug(chainSlug)!
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
       if (!stakingContract) return
 
       if (!lpToken) {
@@ -486,7 +492,9 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const network = findNetworkBySlug(chainSlug)!
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
       if (!stakingContract) return
       const stakeBalance = depositedAmountBn
       if (!stakeBalance) {
@@ -509,6 +517,11 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
           maxBalance: stakeBalance,
         },
         onConfirm: async (withdrawAmount: BigNumber) => {
+          const isNetworkConnected = await checkConnectedNetworkId(networkId)
+          if (!isNetworkConnected) {
+            throw new Error('wrong network connected')
+          }
+
           if (withdrawAmount.eq(stakeBalance)) {
             return _stakingRewards.exit()
           }
@@ -530,7 +543,9 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
       const network = findNetworkBySlug(chainSlug)!
       const networkId = Number(network.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
       if (!stakingContract) return
 
       setIsClaiming(true)

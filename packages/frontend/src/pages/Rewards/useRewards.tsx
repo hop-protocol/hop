@@ -306,7 +306,7 @@ export const useRewards = (props: Props) => {
       }
       const isNetworkConnected = await checkConnectedNetworkId(requiredChainId)
       if (!isNetworkConnected) {
-        return
+        throw new Error('wrong network connected')
       }
       if (!onchainRootSet) {
         return

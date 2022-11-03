@@ -11,6 +11,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
 import MuiLink from '@material-ui/core/Link'
 import LaunchIcon from '@material-ui/icons/Launch'
+import ErrorIcon from '@material-ui/icons/ErrorOutline'
 import { DinoGame } from './DinoGame'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
@@ -139,6 +140,15 @@ export const useStyles = makeStyles(theme => ({
   },
   stakingTabImage: {
     width: '18px'
+  },
+  notStakedMessage: {
+    background: 'rgba(179, 46, 255, 0.1)',
+    borderRadius: '0.5rem',
+    maxWidth: '100px',
+    cursor: 'pointer'
+  },
+  notStakedMessageColor: {
+    color: '#B32EFF'
   }
 }))
 
@@ -857,7 +867,9 @@ function TopPoolStats (props:any) {
     tvlFormatted,
     volume24hFormatted,
     aprFormatted,
-    totalAprFormatted
+    totalAprFormatted,
+    showStakeMessage,
+    goToTab
   } = props.data
 
   return (
@@ -886,17 +898,41 @@ function TopPoolStats (props:any) {
             {volume24hFormatted}
           </Typography>
         </Box>
-        <Box ml={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
-          <Box mb={2}>
-            <Typography variant="subtitle1" color="secondary" component="div">
-              <Box display="flex" alignItems="center" component="div">
-                Total APR <InfoTooltip title={`Annual Percentage Rate (APR) from earning fees (${aprFormatted}) and staking LP tokens, based on 24hr trading volume`} />
-              </Box>
+        <Box ml={1} p={2} display="flex" justifyContent="space-between" className={styles.topBox}>
+          <Box display="flex" flexDirection="column">
+            <Box mb={2}>
+              <Typography variant="subtitle1" color="secondary" component="div">
+                <Box display="flex" alignItems="center" component="div">
+                  Total APR <InfoTooltip title={`Annual Percentage Rate (APR) from earning fees (${aprFormatted}) and staking LP tokens, based on 24hr trading volume`} />
+                </Box>
+              </Typography>
+            </Box>
+            <Typography variant="h5">
+              {totalAprFormatted}
             </Typography>
           </Box>
-          <Typography variant="h5">
-            {totalAprFormatted}
-          </Typography>
+          {showStakeMessage && (
+            <Box ml={2} p={1.5} className={styles.notStakedMessage} display="flex" flexDirection="column" justifyContent="center" onClick={(event: any) => {
+              event.preventDefault()
+              goToTab('stake')
+            }}>
+              <Box mb={1}>
+                <Typography variant="body2" component="div">
+                  <Box display="flex" justifyContent="center" alignItems="center" className={styles.notStakedMessageColor}>
+                    <Box mr={0.5} display="flex" justifyContent="center" alignItems="center">
+                      <ErrorIcon className={styles.notStakedMessageColor} style={{ fontSize: '2.5rem' }}/>
+                    </Box>
+                    <strong>Not staked</strong>
+                  </Box>
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" component="div">
+                  <strong>Stake below to earn rewards</strong>
+                </Typography>
+              </Box>
+            </Box>
+          )}
         </Box>
       </Box>
   )
@@ -1043,7 +1079,9 @@ export function PoolDetails () {
     overallToken0DepositedFormatted,
     overallToken1DepositedFormatted,
     overallUserPoolBalanceUsdFormatted,
-    tvlFormatted
+    tvlFormatted,
+    hasStaked,
+    hasStakeContract
   } = usePool()
   const { pathname, search } = useLocation()
   const history = useHistory()
@@ -1096,6 +1134,7 @@ export function PoolDetails () {
 
   const stakingEnabled = stakingRewards.length > 0
   const selectedStakingContractAddress = stakingRewards[selectedStaking]?.stakingContractAddress
+  const showStakeMessage = !loading && walletConnected && !hasStaked && hasStakeContract
 
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
@@ -1129,6 +1168,8 @@ export function PoolDetails () {
           volume24hFormatted: volumeUsdFormatted,
           aprFormatted,
           totalAprFormatted,
+          showStakeMessage,
+          goToTab
         }}
       />
       <Box mb={4}>

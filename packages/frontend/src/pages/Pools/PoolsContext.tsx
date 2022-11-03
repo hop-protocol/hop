@@ -36,6 +36,8 @@ import {
 import { useInterval } from 'react-use'
 import { getTokenImage } from 'src/utils/tokens'
 import { usePoolStats } from './useNewPoolStats'
+import { useQuery } from 'react-query'
+import { StakingRewards__factory } from '@hop-protocol/core/contracts'
 
 // TODO: This hook needs refactoring
 
@@ -136,6 +138,8 @@ type PoolsContextProps = {
   overallToken1DepositedFormatted: string
   overallUserPoolBalanceUsdFormatted: string
   tvlFormatted: string
+  hasStaked: boolean
+  hasStakeContract: boolean
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -1375,6 +1379,50 @@ const PoolsProvider: FC = ({ children }) => {
     setRemoving(false)
   }
 
+  const { data: hasStaked } = useQuery(
+    [
+      `usePool:hasStaked:${accountAddress}:${chainSlug}:${tokenSymbol}`,
+      accountAddress,
+      chainSlug,
+      tokenSymbol
+    ],
+    async () => {
+      if (!(accountAddress && chainSlug && tokenSymbol)) {
+        return false
+      }
+
+      {
+        const address = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+        if (address) {
+          const _provider = sdk.getChainProvider(chainSlug)
+          const contract = StakingRewards__factory.connect(address, _provider)
+          const stakedBalance = await contract?.balanceOf(accountAddress)
+          if (stakedBalance.gt(0)) {
+            return true
+          }
+        }
+      }
+
+      {
+        const address = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+        if (address) {
+          const _provider = sdk.getChainProvider(chainSlug)
+          const contract = StakingRewards__factory.connect(address, _provider)
+          const stakedBalance = await contract?.balanceOf(accountAddress)
+          if (stakedBalance.gt(0)) {
+            return true
+          }
+        }
+      }
+
+      return false
+    },
+    {
+      enabled: !!chainSlug,
+      refetchInterval: 100 * 1000
+    }
+  )
+
   // ToDo: Use BigNumber everywhere and get rid of this conversion
   const token0Balance =
     canonicalToken && canonicalBalance
@@ -1574,6 +1622,8 @@ const PoolsProvider: FC = ({ children }) => {
     setIsWithdrawing(false)
   }
 
+  const hasStakeContract = !!(stakingContract || hopStakingContract)
+
   return (
     <PoolsContext.Provider
       value={{
@@ -1673,6 +1723,8 @@ const PoolsProvider: FC = ({ children }) => {
         overallToken1DepositedFormatted,
         overallUserPoolBalanceUsdFormatted,
         tvlFormatted,
+        hasStaked: !!hasStaked,
+        hasStakeContract
       }}
     >
       {children}

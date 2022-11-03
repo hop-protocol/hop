@@ -6,6 +6,8 @@ import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
 import InfoTooltip from 'src/components/InfoTooltip'
+import Skeleton from '@material-ui/lab/Skeleton'
+import { StakingRewardsClaim } from '../PoolDetails/StakingRewardsClaim'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -15,6 +17,11 @@ export const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       paddingLeft: '1rem',
       paddingRight: '1rem'
+    },
+  },
+  header: {
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column',
     },
   },
   table: {
@@ -43,12 +50,49 @@ export const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       display: 'none'
     },
+  },
+  chips: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    rowGap: '1rem'
+  },
+  chip: {
+    padding: '0.5rem 1rem',
+    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
+    borderRadius: '1rem',
+    cursor: 'pointer'
+  },
+  chipImage: {
+    width: '18px'
   }
 }))
 
+function Chip(props: any) {
+  const styles = useStyles()
+  const { label, icon, onDelete } = props
+
+  return (
+    <Box mr={1} onClick={onDelete} display="flex" justifyContent="center" alignItems="center" className={styles.chip}>
+      <Box mr={0.5} display="flex" justifyContent="center" alignItems="center">
+        <img className={styles.chipImage} src={icon} alt={label} title={label} />
+      </Box>
+      <Box mr={0.5} display="flex" justifyContent="center" alignItems="center">
+        <Typography variant="body1">
+        {label}
+        </Typography>
+      </Box>
+      <Box>
+        <Typography variant="body2" color="secondary">
+          ×
+        </Typography>
+      </Box>
+    </Box>
+  )
+}
+
 export function PoolsOverview () {
   const styles = useStyles()
-  const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort } = usePools()
+  const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort, isAccountLoading } = usePools()
 
   function handleTokenToggleFilterFn (symbol: string) {
     return (event: any) => {
@@ -78,9 +122,10 @@ export function PoolsOverview () {
           Add liquidity to earn trading fees and rewards.
         </Typography>
       </Box>
-      {userPools.length > 0 && (
+
+      {(userPools.length > 0 || isAccountLoading) && (
         <Box className={styles.box} p={4} mb={6}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} className={styles.header}>
             <Box p={1} textAlign="left">
               <Typography variant="h5">
                 <Box display="flex" alignItems="center">
@@ -88,6 +133,9 @@ export function PoolsOverview () {
                 </Box>
               </Typography>
             </Box>
+            <StakingRewardsClaim data={{
+              claimAll: true,
+            }} />
           </Box>
           <Box overflow="auto">
             <table className={styles.table}>
@@ -122,7 +170,7 @@ export function PoolsOverview () {
                     <Box p={1} textAlign="left">
                       <Typography variant="subtitle2" color="secondary">
                       <Box display="flex" alignItems="center">
-                        Total APR <InfoTooltip title="Total APR is AMM APR + any staking rewards APR" />
+                        Total APR <InfoTooltip title="Total APR is AMM APR + highest staking rewards APR. Hover over row APR to see breakdown." />
                       </Box>
                       </Typography>
                     </Box>
@@ -144,6 +192,20 @@ export function PoolsOverview () {
                     <PoolRow key={i} data={data} />
                   )
                 })}
+                {(!userPools.length || isAccountLoading) && (
+                    <>
+                    <tr>
+                      <td colSpan={2}>
+                        <Skeleton animation="wave" width={'100%'} title="loading" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <Skeleton animation="wave" width={'100%'} title="loading" />
+                      </td>
+                    </tr>
+                    </>
+                )}
                 </tbody>
             </table>
           </Box>
@@ -159,6 +221,28 @@ export function PoolsOverview () {
             </Typography>
           </Box>
           <Box display="flex" className={styles.filters}>
+            <Box display="flex" className={styles.chips}>
+              {filterTokens.filter((x: any) => !x.enabled).map((x: any, i: number) => {
+                return (
+                  <Chip
+                      key={i}
+                      label={x.symbol}
+                      icon={x.imageUrl}
+                      onDelete={handleTokenToggleFilterFn(x.symbol)}
+                    />
+                )
+              })}
+              {filterChains.filter((x: any) => !x.enabled).map((x: any, i: number) => {
+                return (
+                  <Chip
+                      key={i}
+                      label={x.name}
+                      icon={x.imageUrl}
+                      onDelete={handleChainToggleFilterFn(x.slug)}
+                    />
+                )
+              })}
+            </Box>
             <Box display="flex" alignItems="center" mr={2}>
               <Box display="flex" alignItems="center" mr={1}>
                 <Box display="flex" alignItems="center">
@@ -169,7 +253,7 @@ export function PoolsOverview () {
                 </Typography>
               </Box>
               <Box display="flex">
-                {filterTokens.map((x, i: number) => {
+                {filterTokens.filter((x: any) => x.enabled).map((x: any, i: number) => {
                   return (
                     <Box key={i} display="flex" className={styles.filterImageContainer}>
                       <IconButton onClick={handleTokenToggleFilterFn(x.symbol)} size="small" >
@@ -190,7 +274,7 @@ export function PoolsOverview () {
                 </Typography>
               </Box>
               <Box display="flex">
-                {filterChains.map((x: any, i: number) => {
+                {filterChains.filter((x: any) => x.enabled).map((x: any, i: number) => {
                   return (
                     <Box key={i} display="flex" className={styles.filterImageContainer}>
                       <IconButton onClick={handleChainToggleFilterFn(x.slug)} size="small">
@@ -241,7 +325,7 @@ export function PoolsOverview () {
                   <a className={styles.thLink} onClick={handleColumnSortFn('totalApr')}>
                     <Typography variant="subtitle2" color="secondary">
                      <Box display="flex" alignItems="center">
-                       Total APR <InfoTooltip title="Total APR is AMM APR + any staking rewards APR" />
+                       Total APR <InfoTooltip title="Total APR is AMM APR + highest staking rewards APR. Hover over row APR to see breakdown." />
                      </Box>
                     </Typography>
                   </a>
@@ -264,6 +348,20 @@ export function PoolsOverview () {
                 <PoolRow key={i} data={data} isAllPools />
               )
             })}
+            {!pools.length && (
+              <>
+              <tr>
+                <td colSpan={2}>
+                  <Skeleton animation="wave" width={'100%'} title="loading" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <Skeleton animation="wave" width={'100%'} title="loading" />
+                </td>
+              </tr>
+              </>
+            )}
             </tbody>
           </table>
         </Box>

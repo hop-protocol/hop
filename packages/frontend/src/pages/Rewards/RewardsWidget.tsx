@@ -7,7 +7,6 @@ import Typography from '@material-ui/core/Typography'
 import { toTokenDisplay } from 'src/utils'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { useRewards } from './useRewards'
-import { Circle } from 'src/components/ui'
 import { makeStyles } from '@material-ui/core/styles'
 
 interface Props {
@@ -54,7 +53,7 @@ export function RewardsWidget(props: Props) {
       {!!claimRecipient && (
         <Box>
           <Box mb={4} flexDirection="column" textAlign="left">
-            <Typography variant="h5">{title} <InfoTooltip title={<><div>{description}</div><br /><div>Merkle rewards info</div><div>Published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>Latest root total: {latestRootTotalDisplay}</div><div>Github repo: {repoUrl}</div></>} /></Typography>
+            <Typography variant="h5" component="div">{title} <InfoTooltip title={<><div>{description}</div><br /><div>Merkle rewards info</div><div>Published root: {onchainRoot}</div><div>Latest root: {latestRoot}</div><div>Latest root total: {latestRootTotalDisplay}</div><div>Github repo: {repoUrl}</div></>} /></Typography>
           </Box>
           {loading && (
             <Box mb={4} display="flex" flexDirection="column" justifyContent="center" textAlign="center">
@@ -68,7 +67,7 @@ export function RewardsWidget(props: Props) {
               <Card className={styles.box}>
                 <Box mb={4}>
                   <Box mb={2}>
-                    <Typography variant="h6">
+                    <Typography variant="h6" component="div">
                       Claimable {tokenSymbol} <InfoTooltip title={'Tokens that can be claimed now'} />
                     </Typography>
                   </Box>
@@ -78,7 +77,7 @@ export function RewardsWidget(props: Props) {
                         <img src={tokenImageUrl} alt={tokenSymbol} width="32px" />
                       </Box>
                     )}
-                    <Typography variant="subtitle1">
+                    <Typography variant="subtitle1" component="div">
                       {claimableAmountDisplay} {tokenSymbol}
                     </Typography>
                   </Box>
@@ -92,7 +91,7 @@ export function RewardsWidget(props: Props) {
               <Card className={styles.box}>
                 <Box mb={4}>
                   <Box mb={2}>
-                    <Typography variant="h6">
+                    <Typography variant="h6" component="div">
                       Pending {tokenSymbol} <InfoTooltip title={'Tokens that will be claimable once merkle root is published on-chain, which occurs once a week'} />
                     </Typography>
                   </Box>
@@ -103,21 +102,21 @@ export function RewardsWidget(props: Props) {
                           <img src={tokenImageUrl} alt={tokenSymbol} width="32px" />
                         </Box>
                       )}
-                      <Typography variant="subtitle1">
+                      <Typography variant="subtitle1" component="div">
                         {unclaimableAmountDisplay} {tokenSymbol}
                       </Typography>
                     </Box>
                     {showCountdown && (
                       <Box display="flex" flexDirection="column" alignItems="center">
                         <Box>
-                          <Typography variant="body1">
+                          <Typography variant="body1" component="div">
                             <Box display="flex" justifyContent="center" alignItems="center">
                               <strong>Countdown</strong> <InfoTooltip title={'Estimated date when rewards will become claimable.'} />
                             </Box>
                           </Typography>
                         </Box>
                         <Box>
-                          <Typography variant="body1">
+                          <Typography variant="body1" component="div">
                             {countdown}
                           </Typography>
                         </Box>

@@ -11,6 +11,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
 import MuiLink from '@material-ui/core/Link'
 import LaunchIcon from '@material-ui/icons/Launch'
+import ErrorIcon from '@material-ui/icons/ErrorOutline'
 import { DinoGame } from './DinoGame'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
@@ -35,6 +36,7 @@ import {
 import { useStaking } from '../useStaking'
 import { stakingRewardTokens, stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
 import TokenWrapper from 'src/components/TokenWrapper'
+import { StakingRewardsClaim } from './StakingRewardsClaim'
 
 export const useStyles = makeStyles(theme => ({
   backLink: {
@@ -112,30 +114,14 @@ export const useStyles = makeStyles(theme => ({
     },
   },
   tabs: {
+    marginTop: '0.8rem',
     [theme.breakpoints.down('xs')]: {
+      marginTop: 0,
       margin: '0 auto'
     },
   },
-  claimRewards: {
-    [theme.breakpoints.down('xs')]: {
-      width: '90%',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-    },
-  },
-  claimRewardsBox: {
-    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
-    borderRadius: '1rem',
-  },
-  claimRewardsFlex: {
-    [theme.breakpoints.down('xs')]: {
-      flexDirection: 'column',
-      justifyContent: 'center',
-      textAlign: 'center',
-    },
-  },
-  stakingRewardsImage: {
-    width: '30px'
+  tab: {
+    fontSize: '2rem'
   },
   stakingAprChainImage: {
     width: '20px',
@@ -154,6 +140,15 @@ export const useStyles = makeStyles(theme => ({
   },
   stakingTabImage: {
     width: '18px'
+  },
+  notStakedMessage: {
+    background: 'rgba(179, 46, 255, 0.1)',
+    borderRadius: '0.5rem',
+    maxWidth: '100px',
+    cursor: 'pointer'
+  },
+  notStakedMessageColor: {
+    color: '#B32EFF'
   }
 }))
 
@@ -212,75 +207,13 @@ function PoolEmptyState() {
         </Typography>
       </Box>
       <Box mb={2} display="flex" justifyContent="center">
-        <Typography variant="body1">
+        <Typography variant="body1" component="div">
           <MuiLink target="_blank" rel="noopener noreferrer" href="https://help.hop.exchange/hc/en-us/articles/4406095303565-What-do-I-need-in-order-to-provide-liquidity-on-Hop-" >
             <Box display="flex" justifyContent="center" alignItems="center">
               Learn more <Box ml={1} display="flex" justifyContent="center" alignItems="center"><LaunchIcon /></Box>
             </Box>
           </MuiLink>
         </Typography>
-      </Box>
-    </Box>
-  )
-}
-
-function StakingRewardsClaim(props: any) {
-  const {
-    chainSlug,
-    tokenSymbol,
-    stakingContractAddress
-  } = props.data
-  if (!stakingContractAddress) {
-    return null
-  }
-  const styles = useStyles()
-  const {
-    canClaim,
-    claim,
-    isClaiming,
-    earnedAmountFormatted,
-    rewardsTokenSymbol,
-    rewardsTokenImageUrl,
-  } = useStaking(chainSlug, tokenSymbol, stakingContractAddress)
-
-  function handleClaimClick(event: any) {
-    event.preventDefault()
-    claim()
-  }
-
-  if (!canClaim) {
-    return (
-      <></>
-    )
-  }
-
-  return (
-    <Box mt={8} maxWidth="400px" width="100%" className={styles.claimRewards}>
-      <Box p={2} className={styles.claimRewardsBox}>
-        <Box display="flex" justifyItems="space-between" className={styles.claimRewardsFlex}>
-          <Box mr={2} display="flex" justifyContent="center" alignItems="center">
-            <Box display="flex" justifyItems="center" alignItems="center">
-              <img className={styles.stakingRewardsImage} src={rewardsTokenImageUrl} alt={rewardsTokenSymbol} title={rewardsTokenSymbol} />
-            </Box>
-          </Box>
-          <Box width="100%">
-            <Box>
-              <Typography variant="subtitle2" color="secondary">
-                Unclaimed Rewards
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="subtitle2">
-                {earnedAmountFormatted}
-              </Typography>
-            </Box>
-          </Box>
-          <Box pl={2} display="flex" justifyContent="center" alignItems="center" width="80%">
-            <Button highlighted fullWidth onClick={handleClaimClick} loading={isClaiming}>
-              Claim
-            </Button>
-          </Box>
-        </Box>
       </Box>
     </Box>
   )
@@ -356,12 +289,13 @@ function AccountPosition(props: any) {
         </Box>
       </Box>
       {!!stakingContractAddress && (
-        <StakingRewardsClaim data={{
-            chainSlug,
-            tokenSymbol,
-            walletConnected,
-            stakingContractAddress
-        }} />
+        <Box mt={8}>
+          <StakingRewardsClaim data={{
+              chainSlug,
+              tokenSymbol,
+              stakingContractAddress
+          }} />
+        </Box>
       )}
     </Box>
   )
@@ -505,6 +439,7 @@ function DepositForm(props: any) {
 
 function WithdrawForm(props: any) {
   const {
+    goToTab,
     hasBalance,
     token0Symbol,
     token1Symbol,
@@ -516,7 +451,6 @@ function WithdrawForm(props: any) {
     token0Max,
     token1Max,
     calculatePriceImpact,
-    goToTab,
     walletConnected,
     removeLiquidity,
     isWithdrawing
@@ -639,7 +573,7 @@ function WithdrawForm(props: any) {
   }
 
   const formDisabled = !hasBalance
-  const isEmptyAmount = (proportional ? !amountPercent : (amountBN.lte(0) || amountBN.gt(maxBalance)))
+  const isEmptyAmount = (proportional ? !(amountPercent && (token0Max?.gt(0) || token1Max.gt(0))) : (amountBN.lte(0) || amountBN.gt(maxBalance)))
   const sendDisabled = formDisabled || isEmptyAmount
   const sendButtonText = walletConnected ? 'Preview' : 'Connect Wallet'
 
@@ -678,6 +612,14 @@ function WithdrawForm(props: any) {
 
   return (
     <Box>
+      <Box mb={2} display="flex" justifyContent="center">
+        <Typography variant="body1">
+          <em>To withdraw staked tokens, first unstake on the <MuiLink href="" onClick={(event: any) => {
+            event.preventDefault()
+            goToTab('stake')
+          }}>stake tab</MuiLink>.</em>
+        </Typography>
+      </Box>
 
       <Box mb={3} display="flex" justifyContent="center">
         <RaisedSelect value={selection.value} onChange={handleSelection}>
@@ -767,7 +709,6 @@ function StakeForm(props: any) {
     canWithdraw,
     depositedAmountFormatted,
     error,
-    isApprovalNeeded,
     isRewardsExpired,
     isStaking,
     isWithdrawing,
@@ -869,7 +810,7 @@ function StakeForm(props: any) {
               </Typography>
             </Box>
             <Box>
-              <Typography variant="body1">
+              <Typography variant="body1" component="div">
                 {stakingAprDisplay}
               </Typography>
             </Box>
@@ -926,7 +867,9 @@ function TopPoolStats (props:any) {
     tvlFormatted,
     volume24hFormatted,
     aprFormatted,
-    totalAprFormatted
+    totalAprFormatted,
+    showStakeMessage,
+    goToTab
   } = props.data
 
   return (
@@ -955,17 +898,41 @@ function TopPoolStats (props:any) {
             {volume24hFormatted}
           </Typography>
         </Box>
-        <Box ml={1} p={2} display="flex" flexDirection="column" className={styles.topBox}>
-          <Box mb={2}>
-            <Typography variant="subtitle1" color="secondary" component="div">
-              <Box display="flex" alignItems="center" component="div">
-                Total APR <InfoTooltip title={`Annual Percentage Rate (APR) from earning fees (${aprFormatted}) and staking LP tokens, based on 24hr trading volume`} />
-              </Box>
+        <Box ml={1} p={2} display="flex" justifyContent="space-between" className={styles.topBox}>
+          <Box display="flex" flexDirection="column">
+            <Box mb={2}>
+              <Typography variant="subtitle1" color="secondary" component="div">
+                <Box display="flex" alignItems="center" component="div">
+                  Total APR <InfoTooltip title={`Annual Percentage Rate (APR) from earning fees (${aprFormatted}) and staking LP tokens, based on 24hr trading volume`} />
+                </Box>
+              </Typography>
+            </Box>
+            <Typography variant="h5">
+              {totalAprFormatted}
             </Typography>
           </Box>
-          <Typography variant="h5">
-            {totalAprFormatted}
-          </Typography>
+          {showStakeMessage && (
+            <Box ml={2} p={1.5} className={styles.notStakedMessage} display="flex" flexDirection="column" justifyContent="center" onClick={(event: any) => {
+              event.preventDefault()
+              goToTab('stake')
+            }}>
+              <Box mb={1}>
+                <Typography variant="body2" component="div">
+                  <Box display="flex" justifyContent="center" alignItems="center" className={styles.notStakedMessageColor}>
+                    <Box mr={0.5} display="flex" justifyContent="center" alignItems="center">
+                      <ErrorIcon className={styles.notStakedMessageColor} style={{ fontSize: '2.5rem' }}/>
+                    </Box>
+                    <strong>Not staked</strong>
+                  </Box>
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" component="div">
+                  <strong>Stake below to earn rewards</strong>
+                </Typography>
+              </Box>
+            </Box>
+          )}
         </Box>
       </Box>
   )
@@ -1112,7 +1079,9 @@ export function PoolDetails () {
     overallToken0DepositedFormatted,
     overallToken1DepositedFormatted,
     overallUserPoolBalanceUsdFormatted,
-    tvlFormatted
+    tvlFormatted,
+    hasStaked,
+    hasStakeContract
   } = usePool()
   const { pathname, search } = useLocation()
   const history = useHistory()
@@ -1165,6 +1134,7 @@ export function PoolDetails () {
 
   const stakingEnabled = stakingRewards.length > 0
   const selectedStakingContractAddress = stakingRewards[selectedStaking]?.stakingContractAddress
+  const showStakeMessage = !loading && walletConnected && !hasStaked && hasStakeContract
 
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>
@@ -1198,6 +1168,8 @@ export function PoolDetails () {
           volume24hFormatted: volumeUsdFormatted,
           aprFormatted,
           totalAprFormatted,
+          showStakeMessage,
+          goToTab
         }}
       />
       <Box mb={4}>
@@ -1245,9 +1217,9 @@ export function PoolDetails () {
             </Box>
             <Box width="50%" className={styles.poolDetailsBox}>
               <Tabs value={selectedTab} onChange={handleTabChange} className={styles.tabs} style={{ width: 'max-content' }} variant="scrollable">
-                <Tab label="Deposit" value="deposit" />
-                <Tab label="Withdraw" value="withdraw" />
-                <Tab label="Stake" value="stake" />
+                <Tab label="Deposit" value="deposit" className={styles.tab} />
+                <Tab label="Withdraw" value="withdraw" className={styles.tab} />
+                <Tab label="Stake" value="stake" className={styles.tab} />
               </Tabs>
               <Box p={2} display="flex" flexDirection="column">
                 <Box mb={2} >
@@ -1277,6 +1249,7 @@ export function PoolDetails () {
                   />}
                   {selectedTab === 'withdraw' && <WithdrawForm
                     data={{
+                      goToTab,
                       hasBalance,
                       token0Symbol: canonicalTokenSymbol,
                       token1Symbol: hopTokenSymbol,
@@ -1294,7 +1267,6 @@ export function PoolDetails () {
                       token0Max,
                       token1Max,
                       calculatePriceImpact: calculateRemoveLiquidityPriceImpact,
-                      goToTab,
                       walletConnected,
                       removeLiquidity: unstakeAndRemoveLiquidity,
                       isWithdrawing,

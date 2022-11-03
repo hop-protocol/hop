@@ -24,6 +24,7 @@ import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
+import { getProviderFromUrl } from './utils/getProviderFromUrl'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
 export type L1Factory = L1PolygonPosRootChainManager__factory | L1XDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1OptimismTokenBridge__factory
@@ -49,10 +50,9 @@ const getProvider = memoize((network: string, chain: string) => {
     }
     return providers.getDefaultProvider(network)
   }
-  return new providers.StaticJsonRpcProvider({
-    url: rpcUrl,
-    timeout: 5 * 60 * 1000
-  })
+
+  const provider = getProviderFromUrl(rpcUrl)
+  return provider
 })
 
 const getContractMemo = memoize(
@@ -171,22 +171,24 @@ class Base {
       }
 
       const data = cached || await this.getS3ConfigData()
-      if (data.bonders) {
-        this.bonders = data.bonders
-      }
-      if (data.bonderFeeBps) {
-        this.fees = data.bonderFeeBps
-      }
-      if (data.destinationFeeGasPriceMultiplier) {
-        this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
-      }
-      if (data.relayerFeeEnabled) {
-        this.relayerFeeEnabled = data.relayerFeeEnabled
-      }
+      if (data) {
+        if (data.bonders) {
+          this.bonders = data.bonders
+        }
+        if (data.bonderFeeBps) {
+          this.fees = data.bonderFeeBps
+        }
+        if (data.destinationFeeGasPriceMultiplier) {
+          this.destinationFeeGasPriceMultiplier = data.destinationFeeGasPriceMultiplier
+        }
+        if (data.relayerFeeEnabled) {
+          this.relayerFeeEnabled = data.relayerFeeEnabled
+        }
 
-      if (!cached) {
-        s3FileCache[this.network] = data
-        s3FileCacheTimestamp = Date.now()
+        if (!cached) {
+          s3FileCache[this.network] = data
+          s3FileCacheTimestamp = Date.now()
+        }
       }
       return data
     } catch (err: any) {
@@ -241,7 +243,7 @@ class Base {
         )
       }
       if (chainProviders[chainSlug]) {
-        this.chainProviders[chain.slug] = new providers.StaticJsonRpcProvider(chainProviders[chainSlug])
+        this.chainProviders[chain.slug] = getProviderFromUrl(chainProviders[chainSlug])
       }
     }
   }
@@ -622,9 +624,14 @@ class Base {
   }
 
   async getS3ConfigData () {
+    const controller = new AbortController()
+    const timeoutMs = 5 * 1000
+    setTimeout(() => controller.abort(), timeoutMs)
     const cacheBust = Date.now()
     const url = `https://assets.hop.exchange/${this.network}/v1-core-config.json?cb=${cacheBust}`
-    const res = await fetch(url)
+    const res = await fetch(url, {
+      signal: controller.signal
+    })
     const json = await res.json()
     if (!json) {
       throw new Error('expected json object')

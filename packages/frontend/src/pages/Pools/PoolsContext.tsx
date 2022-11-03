@@ -36,6 +36,8 @@ import {
 import { useInterval } from 'react-use'
 import { getTokenImage } from 'src/utils/tokens'
 import { usePoolStats } from './useNewPoolStats'
+import { useQuery } from 'react-query'
+import { StakingRewards__factory } from '@hop-protocol/core/contracts'
 
 // TODO: This hook needs refactoring
 
@@ -136,6 +138,8 @@ type PoolsContextProps = {
   overallToken1DepositedFormatted: string
   overallUserPoolBalanceUsdFormatted: string
   tvlFormatted: string
+  hasStaked: boolean
+  hasStakeContract: boolean
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -698,7 +702,9 @@ const PoolsProvider: FC = ({ children }) => {
       setError(null)
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected || !selectedNetwork) return
+      if (!isNetworkConnected || !selectedNetwork) {
+        throw new Error('wrong network connected')
+      }
 
       if (!(Number(token0Amount) || Number(token1Amount))) {
         return
@@ -784,7 +790,9 @@ const PoolsProvider: FC = ({ children }) => {
     try {
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected || !selectedNetwork) return
+      if (!isNetworkConnected || !selectedNetwork) {
+        throw new Error('wrong network connected')
+      }
 
       if (!(Number(token0Amount) || Number(token1Amount))) {
         return
@@ -800,6 +808,7 @@ const PoolsProvider: FC = ({ children }) => {
       }
 
       setIsDepositing(true)
+      setError('')
       const chainSlug = selectedNetwork?.slug
       const bridge = sdk.bridge(tokenSymbol).connect(signer as Signer)
       const amm = bridge.getAmm(chainSlug)
@@ -812,6 +821,11 @@ const PoolsProvider: FC = ({ children }) => {
         txList.push({
           label: `Approve ${canonicalToken.symbol}`,
           fn: async () => {
+            const isNetworkConnected = await checkConnectedNetworkId(networkId)
+            if (!isNetworkConnected) {
+              throw new Error('wrong network connected')
+            }
+
             let token = bridge.getCanonicalToken(chainSlug)
             if (token.isNativeToken) {
               token = token.getWrappedToken()
@@ -829,6 +843,11 @@ const PoolsProvider: FC = ({ children }) => {
         txList.push({
           label: `Approve ${hopToken.symbol}`,
           fn: async () => {
+            const isNetworkConnected = await checkConnectedNetworkId(networkId)
+            if (!isNetworkConnected) {
+              throw new Error('wrong network connected')
+            }
+
             let token = bridge.getL2HopToken(chainSlug)
             if (token.isNativeToken) {
               token = token.getWrappedToken()
@@ -856,6 +875,11 @@ const PoolsProvider: FC = ({ children }) => {
       txList.push({
         label: depositLabel,
         fn: async () => {
+          const isNetworkConnected = await checkConnectedNetworkId(networkId)
+          if (!isNetworkConnected) {
+            throw new Error('wrong network connected')
+          }
+
           let amount0Desired = amountToBN(token0Amount || '0', canonicalToken?.decimals)
           let amount1Desired = amountToBN(token1Amount || '0', hopToken?.decimals)
 
@@ -918,6 +942,11 @@ const PoolsProvider: FC = ({ children }) => {
             txList.push({
               label: `Approve ${lpTokenSymbol}`,
               fn: async () => {
+                const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                if (!isNetworkConnected) {
+                  throw new Error('wrong network connected')
+                }
+
                 const amount = await getDepositedLpTokens.fn()
                 if (amount.gt(0)) {
                   const allowance = await lpToken.allowance(hopStakingContractAddress)
@@ -931,6 +960,11 @@ const PoolsProvider: FC = ({ children }) => {
             txList.push({
               label: `Stake ${lpTokenSymbol}`,
               fn: async () => {
+                const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                if (!isNetworkConnected) {
+                  throw new Error('wrong network connected')
+                }
+
                 if (!hopStakingContract) {
                   return
                 }
@@ -968,7 +1002,9 @@ const PoolsProvider: FC = ({ children }) => {
       }
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected || !selectedNetwork) return
+      if (!isNetworkConnected || !selectedNetwork) {
+        throw new Error('wrong network connected')
+      }
 
       if (!(canonicalToken && hopToken)) {
         return
@@ -980,6 +1016,7 @@ const PoolsProvider: FC = ({ children }) => {
       }
 
       setIsWithdrawing(true)
+      setError('')
       const bridge = sdk.bridge(tokenSymbol)
       const amm = bridge.getAmm(selectedNetwork.slug)
       const lpTokenDecimals = 18
@@ -1031,6 +1068,11 @@ const PoolsProvider: FC = ({ children }) => {
                 txList.push({
                   label: `Unstake ${lpTokenSymbol}`,
                   fn: async () => {
+                    const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                    if (!isNetworkConnected) {
+                      throw new Error('wrong network connected')
+                    }
+
                     return hopStakingContract.connect(signer).withdraw(lpBalanceStaked)
                   }
                 })
@@ -1053,6 +1095,11 @@ const PoolsProvider: FC = ({ children }) => {
             txList.push({
               label: `Withdraw ${lpTokenSymbol}`,
               fn: async () => {
+                const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                if (!isNetworkConnected) {
+                  throw new Error('wrong network connected')
+                }
+
                 const balance = await lpToken.balanceOf()
                 const liquidityTokenAmount = balance.mul(amountPercent).div(100)
                 const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
@@ -1088,38 +1135,43 @@ const PoolsProvider: FC = ({ children }) => {
             txList.push({
               label: `Withdraw ${lpTokenSymbol}`,
               fn: async () => {
-              const balance = await lpToken.balanceOf()
-              const amount18d = shiftBNDecimals(amount, lpTokenDecimals - tokenDecimals)
-              let tokenAmount = await amm.calculateRemoveLiquidityOneToken(amount18d, tokenIndex)
-              tokenAmount = shiftBNDecimals(tokenAmount, lpTokenDecimals - tokenDecimals)
-              if (tokenAmount.gt(balance)) {
-                tokenAmount = balance
-              }
-              const liquidityTokenAmountWithSlippage = tokenAmount.mul(minBps).div(10000)
-              const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
-                liquidityTokenAmountWithSlippage
-              )
-              const amountMin = minimumAmounts[tokenIndex].mul(minBps).div(10000)
+                const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                if (!isNetworkConnected) {
+                  throw new Error('wrong network connected')
+                }
 
-              logger.debug('removeLiquidity:', {
-                balance,
-                amount,
-                tokenIndex,
-                tokenAmount,
-                liquidityTokenAmountWithSlippage,
-                amountMin,
-              })
+                const balance = await lpToken.balanceOf()
+                const amount18d = shiftBNDecimals(amount, lpTokenDecimals - tokenDecimals)
+                let tokenAmount = await amm.calculateRemoveLiquidityOneToken(amount18d, tokenIndex)
+                tokenAmount = shiftBNDecimals(tokenAmount, lpTokenDecimals - tokenDecimals)
+                if (tokenAmount.gt(balance)) {
+                  tokenAmount = balance
+                }
+                const liquidityTokenAmountWithSlippage = tokenAmount.mul(minBps).div(10000)
+                const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
+                  liquidityTokenAmountWithSlippage
+                )
+                const amountMin = minimumAmounts[tokenIndex].mul(minBps).div(10000)
 
-              if (tokenAmount.eq(0)) {
-                throw new Error('calculation error: tokenAmount cannot be 0')
-              }
-
-              return bridge
-                .connect(signer as Signer)
-                .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork!.slug, {
-                  amountMin: amountMin,
-                  deadline: deadline(),
+                logger.debug('removeLiquidity:', {
+                  balance,
+                  amount,
+                  tokenIndex,
+                  tokenAmount,
+                  liquidityTokenAmountWithSlippage,
+                  amountMin,
                 })
+
+                if (tokenAmount.eq(0)) {
+                  throw new Error('calculation error: tokenAmount cannot be 0')
+                }
+
+                return bridge
+                  .connect(signer as Signer)
+                  .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork!.slug, {
+                    amountMin: amountMin,
+                    deadline: deadline(),
+                  })
               }
             })
           }
@@ -1193,7 +1245,9 @@ const PoolsProvider: FC = ({ children }) => {
       setError(null)
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setRemoving(true)
       const bridge = sdk.bridge(canonicalToken.symbol)
@@ -1325,6 +1379,50 @@ const PoolsProvider: FC = ({ children }) => {
     setRemoving(false)
   }
 
+  const { data: hasStaked } = useQuery(
+    [
+      `usePool:hasStaked:${accountAddress}:${chainSlug}:${tokenSymbol}`,
+      accountAddress,
+      chainSlug,
+      tokenSymbol
+    ],
+    async () => {
+      if (!(accountAddress && chainSlug && tokenSymbol)) {
+        return false
+      }
+
+      {
+        const address = hopStakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+        if (address) {
+          const _provider = sdk.getChainProvider(chainSlug)
+          const contract = StakingRewards__factory.connect(address, _provider)
+          const stakedBalance = await contract?.balanceOf(accountAddress)
+          if (stakedBalance.gt(0)) {
+            return true
+          }
+        }
+      }
+
+      {
+        const address = stakingRewardsContracts?.[reactAppNetwork]?.[chainSlug]?.[tokenSymbol]
+        if (address) {
+          const _provider = sdk.getChainProvider(chainSlug)
+          const contract = StakingRewards__factory.connect(address, _provider)
+          const stakedBalance = await contract?.balanceOf(accountAddress)
+          if (stakedBalance.gt(0)) {
+            return true
+          }
+        }
+      }
+
+      return false
+    },
+    {
+      enabled: !!chainSlug,
+      refetchInterval: 100 * 1000
+    }
+  )
+
   // ToDo: Use BigNumber everywhere and get rid of this conversion
   const token0Balance =
     canonicalToken && canonicalBalance
@@ -1430,13 +1528,15 @@ const PoolsProvider: FC = ({ children }) => {
 
   const overallUserPoolBalanceSum = (hasBalance && overallUserLpBalance && tokenUsdPrice) ? (Number(formatUnits(overallToken0Deposited || 0, tokenDecimals)) + Number(formatUnits(overallToken1Deposited || 0, tokenDecimals))) : 0
   const overallUserPoolBalanceUsd = tokenUsdPrice ? overallUserPoolBalanceSum * tokenUsdPrice : 0
-  const overallUserPoolBalanceUsdFormatted = overallUserPoolBalanceUsd ? `$${commafy(overallUserPoolBalanceUsd, 2)}` : commafy(overallUserPoolBalanceSum, 4)
+  const overallUserPoolBalanceUsdFormatted = overallUserPoolBalanceUsd ? `$${commafy(overallUserPoolBalanceUsd, 4)}` : commafy(overallUserPoolBalanceSum, 4)
 
   async function removeLiquiditySimple(amounts: any) {
     try {
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected || !selectedNetwork) return
+      if (!isNetworkConnected || !selectedNetwork) {
+        throw new Error('wrong network connected')
+      }
 
       setIsWithdrawing(true)
       const signer = provider?.getSigner()
@@ -1521,6 +1621,8 @@ const PoolsProvider: FC = ({ children }) => {
     }
     setIsWithdrawing(false)
   }
+
+  const hasStakeContract = !!(stakingContract || hopStakingContract)
 
   return (
     <PoolsContext.Provider
@@ -1621,6 +1723,8 @@ const PoolsProvider: FC = ({ children }) => {
         overallToken1DepositedFormatted,
         overallUserPoolBalanceUsdFormatted,
         tvlFormatted,
+        hasStaked: !!hasStaked,
+        hasStakeContract
       }}
     >
       {children}

@@ -74,7 +74,7 @@ aside.bn-onboard-modal {
 /* What is a wallet? */
 .bn-onboard-custom.bn-onboard-select-wallet-info.svelte-w9ftfy {
   font-family: 'Nunito' !important;
-  color: white;
+  color: #fff;
 }
 
 a.bn-onboard-clickable {

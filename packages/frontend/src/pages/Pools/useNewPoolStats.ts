@@ -73,7 +73,11 @@ export function usePoolStats () {
                   }
 
                   if (chain === _chain && token === _token) {
-                    stakingRewardTokens.add(_value.rewardToken)
+                    stakingRewardTokens.add({
+                      tokenSymbol: _value.rewardToken,
+                      apr: _value.apr,
+                      aprFormatted: toPercentDisplay(_value.apr)
+                    })
                   }
                 }
               }

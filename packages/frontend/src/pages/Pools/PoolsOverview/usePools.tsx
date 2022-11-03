@@ -133,15 +133,7 @@ export function usePools () {
         try {
           const symbol = pool.token.symbol
           const chain = pool.chain.slug
-          pool.stakingRewards = []
-          const hopStakingContractAddress = hopStakingRewardsContracts?.[reactAppNetwork]?.[chain]?.[symbol]
-          if (hopStakingContractAddress) {
-            const hopLogo = metadata.tokens.HOP.image
-            pool.stakingRewards.push({
-              name: 'Hop',
-              imageUrl: hopLogo,
-            })
-          }
+          const stakingRewards :any[] = []
           const _poolStats = getPoolStats(chain, symbol)
           if (_poolStats) {
             pool.apr = _poolStats.apr
@@ -152,15 +144,14 @@ export function usePools () {
             pool.totalAprFormatted = _poolStats.totalAprFormatted
             pool.tvl = _poolStats.tvl
             pool.tvlFormatted = _poolStats.tvlUsdFormatted
-            for (const rewardToken of _poolStats.stakingRewardTokens) {
-              if (rewardToken === 'HOP') {
-                continue
-              }
-              pool.stakingRewards.push({
-                name: rewardToken,
-                imageUrl: getTokenImage(rewardToken),
+            for (const item of _poolStats.stakingRewardTokens) {
+              stakingRewards.push({
+                tokenSymbol: item.tokenSymbol,
+                imageUrl: getTokenImage(item.tokenSymbol),
+                aprFormatted: item.aprFormatted
               })
             }
+            pool.stakingRewards = [...stakingRewards.filter((x: any) => x.tokenSymbol === 'HOP'), ...stakingRewards.filter((x: any) => x.tokenSymbol !== 'HOP')]
           }
         } catch (err) {
           console.error('err', pool, err)
@@ -361,7 +352,7 @@ export function usePools () {
       const tokens :any = {}
       for (const pool of pools) {
         if (!tokens[pool.token.symbol]) {
-          tokens[pool.token.symbol] = { ...pool.token, enabled: true }
+          tokens[pool.token.symbol] = { ...pool.token, enabled: true, filterBy: true }
         }
       }
       setFilterTokens(Object.values(tokens))
@@ -380,7 +371,7 @@ export function usePools () {
       const chains :any = {}
       for (const pool of pools) {
         if (!chains[pool.chain.slug]) {
-          chains[pool.chain.slug] = { ...pool.chain, enabled: true }
+          chains[pool.chain.slug] = { ...pool.chain, enabled: true, filterBy: true }
         }
       }
       setFilterChains(Object.values(chains))
@@ -388,22 +379,37 @@ export function usePools () {
     update().catch(console.error)
   }, [pools?.length])
 
-  function toggleFilterToken (symbol: string) {
-    for (const filterToken of filterTokens) {
-      if (filterToken.symbol === symbol) {
-        filterToken.enabled = !filterToken.enabled
+  function toggleFilterItem(items: any[], keyName: string, toggleKey: string) {
+    const isFirst = items.every((x: any) => x.enabled)
+    for (const item of items) {
+      if (item[keyName] === toggleKey) {
+        const enabled = !item.enabled
+        item.enabled = enabled
+        item.filterBy = !enabled
+      } else {
+        if (isFirst) {
+          item.filterBy = false
+        }
       }
     }
-    setFilterTokens([...filterTokens])
+    const shouldFilterAll = items.every((x: any) => x.enabled)
+    if (shouldFilterAll) {
+      for (const item of items) {
+        item.filterBy = true
+      }
+    }
+
+    return items
+  }
+
+  function toggleFilterToken (symbol: string) {
+    const _filterTokens = toggleFilterItem(filterTokens, 'symbol', symbol)
+    setFilterTokens([..._filterTokens])
   }
 
   function toggleFilterChain (slug: string) {
-    for (const filterChain of filterChains) {
-      if (filterChain.slug === slug) {
-        filterChain.enabled = !filterChain.enabled
-      }
-    }
-    setFilterChains([...filterChains])
+    const _filterChains = toggleFilterItem(filterChains, 'slug', slug)
+    setFilterChains([..._filterChains])
   }
 
   function toggleColumnSort(column: string) {
@@ -417,12 +423,12 @@ export function usePools () {
 
   let filteredPools = pools ? pools.filter((x: any) => {
     for (const filterToken of filterTokens) {
-      if (x.token.symbol === filterToken.symbol && !filterToken.enabled) {
+      if (x.token.symbol === filterToken.symbol && !filterToken.filterBy) {
         return false
       }
     }
     for (const filterChain of filterChains) {
-      if (x.chain.slug === filterChain.slug && !filterChain.enabled) {
+      if (x.chain.slug === filterChain.slug && !filterChain.filterBy) {
         return false
       }
     }

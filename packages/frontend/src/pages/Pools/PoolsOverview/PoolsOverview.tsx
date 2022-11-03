@@ -50,8 +50,45 @@ export const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       display: 'none'
     },
+  },
+  chips: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    rowGap: '1rem'
+  },
+  chip: {
+    padding: '0.5rem 1rem',
+    background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
+    borderRadius: '1rem',
+    cursor: 'pointer'
+  },
+  chipImage: {
+    width: '18px'
   }
 }))
+
+function Chip(props: any) {
+  const styles = useStyles()
+  const { label, icon, onDelete } = props
+
+  return (
+    <Box mr={1} onClick={onDelete} display="flex" justifyContent="center" alignItems="center" className={styles.chip}>
+      <Box mr={0.5} display="flex" justifyContent="center" alignItems="center">
+        <img className={styles.chipImage} src={icon} alt={label} title={label} />
+      </Box>
+      <Box mr={0.5} display="flex" justifyContent="center" alignItems="center">
+        <Typography variant="body1">
+        {label}
+        </Typography>
+      </Box>
+      <Box>
+        <Typography variant="body2" color="secondary">
+          ×
+        </Typography>
+      </Box>
+    </Box>
+  )
+}
 
 export function PoolsOverview () {
   const styles = useStyles()
@@ -133,7 +170,7 @@ export function PoolsOverview () {
                     <Box p={1} textAlign="left">
                       <Typography variant="subtitle2" color="secondary">
                       <Box display="flex" alignItems="center">
-                        Total APR <InfoTooltip title="Total APR is AMM APR + any staking rewards APR" />
+                        Total APR <InfoTooltip title="Total APR is AMM APR + highest staking rewards APR. Hover over row APR to see breakdown." />
                       </Box>
                       </Typography>
                     </Box>
@@ -184,6 +221,28 @@ export function PoolsOverview () {
             </Typography>
           </Box>
           <Box display="flex" className={styles.filters}>
+            <Box display="flex" className={styles.chips}>
+              {filterTokens.filter((x: any) => !x.enabled).map((x: any, i: number) => {
+                return (
+                  <Chip
+                      key={i}
+                      label={x.symbol}
+                      icon={x.imageUrl}
+                      onDelete={handleTokenToggleFilterFn(x.symbol)}
+                    />
+                )
+              })}
+              {filterChains.filter((x: any) => !x.enabled).map((x: any, i: number) => {
+                return (
+                  <Chip
+                      key={i}
+                      label={x.name}
+                      icon={x.imageUrl}
+                      onDelete={handleChainToggleFilterFn(x.slug)}
+                    />
+                )
+              })}
+            </Box>
             <Box display="flex" alignItems="center" mr={2}>
               <Box display="flex" alignItems="center" mr={1}>
                 <Box display="flex" alignItems="center">
@@ -194,7 +253,7 @@ export function PoolsOverview () {
                 </Typography>
               </Box>
               <Box display="flex">
-                {filterTokens.map((x, i: number) => {
+                {filterTokens.filter((x: any) => x.enabled).map((x: any, i: number) => {
                   return (
                     <Box key={i} display="flex" className={styles.filterImageContainer}>
                       <IconButton onClick={handleTokenToggleFilterFn(x.symbol)} size="small" >
@@ -215,7 +274,7 @@ export function PoolsOverview () {
                 </Typography>
               </Box>
               <Box display="flex">
-                {filterChains.map((x: any, i: number) => {
+                {filterChains.filter((x: any) => x.enabled).map((x: any, i: number) => {
                   return (
                     <Box key={i} display="flex" className={styles.filterImageContainer}>
                       <IconButton onClick={handleChainToggleFilterFn(x.slug)} size="small">
@@ -266,7 +325,7 @@ export function PoolsOverview () {
                   <a className={styles.thLink} onClick={handleColumnSortFn('totalApr')}>
                     <Typography variant="subtitle2" color="secondary">
                      <Box display="flex" alignItems="center">
-                       Total APR <InfoTooltip title="Total APR is AMM APR + any staking rewards APR" />
+                       Total APR <InfoTooltip title="Total APR is AMM APR + highest staking rewards APR. Hover over row APR to see breakdown." />
                      </Box>
                     </Typography>
                   </a>

@@ -493,7 +493,6 @@ class AMM extends Base {
   public async getPriceImpact (amount0: TAmount, amount1: TAmount) {
     const token = this.toTokenModel(this.tokenSymbol)
     const decimals = token.decimals
-    const saddleSwap = await this.getSaddleSwap()
     const [virtualPrice, depositLpTokenAmount] = await Promise.all([
       this.getVirtualPrice(),
       this.calculateAddLiquidityMinimum(amount0, amount1)
@@ -505,18 +504,20 @@ class AMM extends Base {
     // convert to 18 decimals
     tokenInputSum = shiftBNDecimals(tokenInputSum, 18 - decimals)
 
-    return this.calculatePriceImpact(
+    const isWithdraw = false
+    const priceImpact = this.calculatePriceImpact(
       tokenInputSum,
       depositLpTokenAmount,
       virtualPrice,
-      false
+      isWithdraw
     )
+
+    return priceImpact
   }
 
   public async getRemoveLiquidityPriceImpact (amount0: TAmount, amount1: TAmount) {
     const token = this.toTokenModel(this.tokenSymbol)
     const decimals = token.decimals
-    const saddleSwap = await this.getSaddleSwap()
     const [virtualPrice, withdrawLpTokenAmount] = await Promise.all([
       this.getVirtualPrice(),
       this.calculateRemoveLiquidityMinimumLpTokens(amount0, amount1)
@@ -528,12 +529,15 @@ class AMM extends Base {
     // convert to 18 decimals
     tokenInputSum = shiftBNDecimals(tokenInputSum, 18 - decimals)
 
-    return this.calculatePriceImpact(
+    const isWithdraw = true
+    const priceImpact = this.calculatePriceImpact(
       withdrawLpTokenAmount,
       tokenInputSum,
       virtualPrice,
-      true
+      isWithdraw
     )
+
+    return priceImpact
   }
 
   private async calculateSwap (
@@ -572,6 +576,10 @@ class AMM extends Base {
     return priceImpact.lte(negOne)
   }
 
+  // We want to multiply the lpTokenAmount by virtual price
+  // Deposits: (VP * output) / input - 1
+  // Swaps: (1 * output) / input - 1
+  // Withdraws: output / (input * VP) - 1
   private calculatePriceImpact (
     tokenInputAmount: BigNumber, // assumed to be 18d precision
     tokenOutputAmount: BigNumber,
@@ -579,7 +587,11 @@ class AMM extends Base {
     isWithdraw: boolean = false
   ): BigNumber {
     if (tokenInputAmount.eq(0) && tokenOutputAmount.eq(0)) {
-      return BigNumber.from(0)
+      return constants.Zero
+    }
+
+    if (tokenInputAmount.lte(0)) {
+      return constants.Zero
     }
 
     if (isWithdraw) {
@@ -589,12 +601,10 @@ class AMM extends Base {
         .sub(BigNumber.from(10).pow(18))
     }
 
-    return tokenInputAmount.gt(0)
-      ? virtualPrice
-        .mul(tokenOutputAmount)
-        .div(tokenInputAmount)
-        .sub(BigNumber.from(10).pow(18))
-      : constants.Zero
+    return virtualPrice
+      .mul(tokenOutputAmount)
+      .div(tokenInputAmount)
+      .sub(BigNumber.from(10).pow(18))
   }
 
   public async getReserves () {

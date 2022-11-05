@@ -1,13 +1,13 @@
 import React from 'react'
-import { Link, useHistory } from 'react-router-dom'
 import Box from '@material-ui/core/Box'
-import Typography from '@material-ui/core/Typography'
-import MuiButton from '@material-ui/core/Button'
 import Button from 'src/components/buttons/Button'
-import { makeStyles } from '@material-ui/core/styles'
+import MuiButton from '@material-ui/core/Button'
 import Skeleton from '@material-ui/lab/Skeleton'
-import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
+import Typography from '@material-ui/core/Typography'
 import { AprDetailsTooltip } from 'src/components/InfoTooltip/AprDetailsTooltip'
+import { Link, useHistory } from 'react-router-dom'
+import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
+import { makeStyles } from '@material-ui/core/styles'
 
 export const useStyles = makeStyles(theme => ({
   box: {

@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useEffect } from 'react'
+import React, { ChangeEvent } from 'react'
 import Box from '@material-ui/core/Box'
 import Button from 'src/components/buttons/Button'
 import Typography from '@material-ui/core/Typography'
@@ -30,13 +30,20 @@ export const useStyles = makeStyles(theme => ({
   },
 }))
 
-export function StakingRewardsClaim(props: any) {
+type Props = {
+  chainSlug?: string
+  claimAll?: boolean
+  stakingContractAddress?: string
+  tokenSymbol?: string
+}
+
+export function StakingRewardsClaim(props: Props) {
   const {
-    claimAll,
     chainSlug,
+    claimAll,
+    stakingContractAddress,
     tokenSymbol,
-    stakingContractAddress
-  } = props.data
+  } = props
   const styles = useStyles()
 
   let canClaim = false
@@ -56,7 +63,7 @@ export function StakingRewardsClaim(props: any) {
       rewardsTokenImageUrl,
     } = useStakingAll())
   } else {
-    if (!stakingContractAddress) {
+    if (!(stakingContractAddress && chainSlug && tokenSymbol)) {
       return null
     }
     ({
@@ -69,7 +76,7 @@ export function StakingRewardsClaim(props: any) {
     } = useStaking(chainSlug, tokenSymbol, stakingContractAddress))
   }
 
-  function handleClaimClick(event: any) {
+  function handleClaimClick(event: ChangeEvent<{}>) {
     event.preventDefault()
     claim()
   }

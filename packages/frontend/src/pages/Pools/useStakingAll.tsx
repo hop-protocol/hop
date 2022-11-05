@@ -1,11 +1,11 @@
-import React, { useMemo, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BigNumber } from 'ethers'
-import { metadata, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import { StakingRewards__factory } from '@hop-protocol/core/contracts'
-import { useApp } from 'src/contexts/AppContext'
 import { commafy, findNetworkBySlug } from 'src/utils'
 import { formatUnits } from 'ethers/lib/utils'
+import { metadata, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
+import { useApp } from 'src/contexts/AppContext'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export function useStakingAll () {
   const { sdk, txConfirm } = useApp()

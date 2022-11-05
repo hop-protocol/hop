@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import { useApp } from 'src/contexts/AppContext'
-import { metadata, addresses, stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
-import { useQueryParams } from 'src/hooks'
-import { toPercentDisplay, commafy } from 'src/utils'
-import { formatTokenDecimalString } from 'src/utils/format'
-import { findNetworkBySlug } from 'src/utils/networks'
-import { getTokenImage } from 'src/utils/tokens'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import { StakingRewards__factory } from '@hop-protocol/core/contracts'
-import { usePoolStats } from '../useNewPoolStats'
+import { addresses, stakingRewardsContracts, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
+import { findNetworkBySlug } from 'src/utils/networks'
+import { formatTokenDecimalString } from 'src/utils/format'
+import { formatUnits } from 'ethers/lib/utils'
+import { getTokenImage } from 'src/utils/tokens'
+import { toPercentDisplay, commafy } from 'src/utils'
+import { useApp } from 'src/contexts/AppContext'
+import { usePoolStats } from '../usePoolStats'
 import { useQuery } from 'react-query'
+import { useQueryParams } from 'src/hooks'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 let cache :any = {}
 const cacheExpiresMs = (2 * 60 * 1000)
@@ -452,14 +452,14 @@ export function usePools () {
   const isAccountLoading = !!accountAddress && !hasFetchedAccount && !filteredUserPools?.length
 
   return {
-    pools: filteredPools,
-    userPools: filteredUserPools,
-    isAccountLoading,
-    filterTokens,
-    filterChains,
-    toggleFilterToken,
-    toggleFilterChain,
-    toggleColumnSort,
     columnSort,
+    filterChains,
+    filterTokens,
+    isAccountLoading,
+    pools: filteredPools,
+    toggleColumnSort,
+    toggleFilterChain,
+    toggleFilterToken,
+    userPools: filteredUserPools,
   }
 }

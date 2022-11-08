@@ -43,6 +43,9 @@ const cacheExpireMs = 1 * 60 * 1000
 
 // cache provider
 const getProvider = memoize((network: string, chain: string) => {
+  if (!config.chains[network]?.[chain]) {
+    throw new Error(`config for chain not found: ${network} ${chain}`)
+  }
   const rpcUrl = config.chains[network][chain].rpcUrl
   if (!rpcUrl) {
     if (network === NetworkSlug.Staging) {
@@ -51,7 +54,10 @@ const getProvider = memoize((network: string, chain: string) => {
     return providers.getDefaultProvider(network)
   }
 
-  const provider = getProviderFromUrl(rpcUrl)
+  const fallbackRpcUrls = config.chains[network][chain].fallbackRpcUrls ?? []
+  const rpcUrls = [rpcUrl, ...fallbackRpcUrls]
+
+  const provider = getProviderFromUrl(rpcUrls)
   return provider
 })
 

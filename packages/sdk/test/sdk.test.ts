@@ -9,6 +9,7 @@ import { privateKey } from './config'
 import * as addresses from '@hop-protocol/core/addresses'
 // @ts-ignore
 import pkg from '../package.json'
+import { FallbackProvider } from '../src/provider'
 
 describe('sdk setup', () => {
   const hop = new Hop('kovan')
@@ -867,4 +868,16 @@ describe('supported chains', () => {
     const maticBridge = hop.bridge('MATIC')
     expect(JSON.stringify(maticBridge.supportedChains)).toBe(JSON.stringify(['ethereum', 'gnosis', 'polygon']))
   })
+})
+
+describe('fallback provider', () => {
+  it('Should return supported chains', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const provider = bridge.toChainModel('optimism').provider
+    expect(provider instanceof FallbackProvider).toBe(true)
+    const network = await provider.getNetwork()
+    console.log('network:', network)
+    expect(network.name).toBe('optimism')
+  }, 60 * 1000)
 })

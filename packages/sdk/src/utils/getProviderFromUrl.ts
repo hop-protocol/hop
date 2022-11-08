@@ -24,6 +24,11 @@ function getProviderWithFallbacks (rpcUrls: string[]) : any {
     priority--
   }
 
+  // see discussion as to why ethers fallback provider doesn't work as expexted:
+  // https://github.com/ethers-io/ethers.js/discussions/3500
+  // const quorum = 1
+  // const provider = new providers.FallbackProvider(rpcProviders, quorum)
+
   const provider = new FallbackProvider(rpcProviders.map((x: any) => x.provider))
   return provider
 }

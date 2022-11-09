@@ -94,38 +94,47 @@ export class RetryProvider extends providers.StaticJsonRpcProvider implements Et
 }
 
 export class FallbackProvider implements EthersProvider {
-  private providersFn: any[] = []
-  private providers: EthersProvider[] = []
+  private _providersFn: any[] = []
+  private _providers: EthersProvider[] = []
   private activeIndex = 0
   _isProvider: boolean = true
 
   constructor (providers: any[]) {
-    this.providersFn = providers
+    this._providersFn = providers
   }
 
   static fromUrls (urls: string[]): FallbackProvider {
     return getProviderWithFallbacks(urls)
   }
 
+  get providers () {
+    return this._providersFn.map((p: any) => {
+      if (typeof p === 'function') {
+        return p()
+      }
+      return p
+    })
+  }
+
   private getActiveProvider () {
-    if (this.providers[this.activeIndex]) {
-      return this.providers[this.activeIndex]
+    if (this._providers[this.activeIndex]) {
+      return this._providers[this.activeIndex]
     }
 
-    if (typeof this.providersFn[this.activeIndex] === 'function') {
-      this.providers[this.activeIndex] = this.providersFn[this.activeIndex]()
+    if (typeof this._providersFn[this.activeIndex] === 'function') {
+      this._providers[this.activeIndex] = this._providersFn[this.activeIndex]()
     } else {
-      this.providers[this.activeIndex] = this.providersFn[this.activeIndex]
+      this._providers[this.activeIndex] = this._providersFn[this.activeIndex]
     }
 
-    return this.providers[this.activeIndex]
+    return this._providers[this.activeIndex]
   }
 
   async tryProvider (fn: any) {
     return fn().catch((err: any) => {
       if (/noNetwork|rate limit|/.test(err.message)) {
         console.log('tryProvider error:', err)
-        this.activeIndex = (this.activeIndex + 1) % this.providersFn.length
+        this.activeIndex = (this.activeIndex + 1) % this._providersFn.length
         return fn()
       }
       throw err

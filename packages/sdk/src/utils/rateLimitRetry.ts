@@ -20,7 +20,7 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
         const errMsg = err.message
         const rateLimitErrorRegex = /(rate limit|too many concurrent requests|exceeded|socket hang up)/i
         const timeoutErrorRegex = /(timeout|time-out|time out|timedout|timed out)/i
-        const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED|SERVER_ERROR|EPROTO|EHOSTUNREACH)/i
+        const connectionErrorRegex = /(ETIMEDOUT|ENETUNREACH|ECONNRESET|ECONNREFUSED|SERVER_ERROR|EPROTO|EHOSTUNREACH|ERR_NAME_NOT_RESOLVED|could not detect network)/i
         const badResponseErrorRegex = /(bad response|response error|missing response|processing response error|invalid json response body|FetchError)/i
         const revertErrorRegex = /revert/i
         const oversizedDataRegex = /oversized data/i
@@ -29,11 +29,7 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
         const estimateGasFailedErrorRegex = /eth_estimateGas/i
         const alreadyKnownErrorRegex = /(AlreadyKnown|already known)/
         const feeTooLowErrorRegex = /FeeTooLowToCompete|transaction underpriced/
-
-        // this invalid opcode error occurs when doing an on-chain lookup on a nested mapping where the index doesn't exist.
-        // it doesn't necessary mean there's an eror, only that the value at the index hasn't been set yet.
-        // for example, l2Bridge.pendingTransferIdsForChainId(...)
-        const isCallLookupRevertErrorRegex = /missing revert data in call exception.*invalid opcode/
+        const isCallLookupRevertErrorRegex = /missing revert data in call exception/
 
         const isRateLimitError = rateLimitErrorRegex.test(errMsg)
         const isTimeoutError = timeoutErrorRegex.test(errMsg)
@@ -54,21 +50,21 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
         const shouldNotRetryErrors = (isOversizedDataError || isBridgeContractError || isNonceTooLowErrorError || isEstimateGasFailedError || isAlreadyKnownError || isFeeTooLowError || isCallLookupRevertError)
         const shouldRetry = (isRateLimitError || isTimeoutError || isConnectionError || isBadResponseError) && !isRevertError && !shouldNotRetryErrors
 
-        console.debug(logPrefix, `isRateLimitError: ${isRateLimitError}, isTimeoutError: ${isTimeoutError}, isConnectionError: ${isConnectionError}, isBadResponseError: ${isBadResponseError}, isRevertError: ${isRevertError}, shouldRetry: ${shouldRetry}`)
+        // console.debug(logPrefix, `isRateLimitError: ${isRateLimitError}, isTimeoutError: ${isTimeoutError}, isConnectionError: ${isConnectionError}, isBadResponseError: ${isBadResponseError}, isRevertError: ${isRevertError}, shouldRetry: ${shouldRetry}`)
 
         // throw error as usual if it's not a rate limit error
         if (!shouldRetry) {
           if (!isCallLookupRevertError) {
-            console.error(logPrefix, errMsg)
+            // console.error(logPrefix, errMsg)
           }
           throw err
         }
         retries++
         // if it's a rate limit error, then throw error after max retries attempted.
         if (retries >= rateLimitMaxRetries) {
-          console.error(logPrefix, `max retries reached (${rateLimitMaxRetries}). Error: ${err}`)
+          // console.error(logPrefix, `max retries reached (${rateLimitMaxRetries}). Error: ${err}`)
           // this must be a regular console log to print original function name
-          console.error('max retries reached', fn, id, ...args)
+          // console.error('max retries reached', fn, id, ...args)
           throw err
         }
 

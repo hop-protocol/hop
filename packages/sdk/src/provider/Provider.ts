@@ -1,7 +1,8 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, FeeData, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
+import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
 import { Deferrable } from '@ethersproject/properties'
 import { Network } from '@ethersproject/networks'
+import { getProviderWithFallbacks } from '../utils/getProviderFromUrl'
 import { providers } from 'ethers'
 import { rateLimitRetry } from '../utils/rateLimitRetry'
 
@@ -9,7 +10,7 @@ import { rateLimitRetry } from '../utils/rateLimitRetry'
 
 export class RetryProvider extends providers.StaticJsonRpcProvider implements EthersProvider {
   async perform (method: string, params: any): Promise<any> {
-    return super.perform(method, params)
+    return await super.perform(method, params)
   }
 
   // Network
@@ -86,54 +87,76 @@ export class RetryProvider extends providers.StaticJsonRpcProvider implements Et
   lookupAddress = rateLimitRetry(async (address: string | Promise<string>): Promise<null | string> => {
     return super.lookupAddress(address)
   })
+
+  getAvatar = rateLimitRetry(async (nameOrAddress: string): Promise<string> => {
+    return super.getAvatar(nameOrAddress)
+  })
 }
 
 export class FallbackProvider implements EthersProvider {
-  providers: EthersProvider[] = []
-  activeIndex = 0
+  private providersFn: any[] = []
+  private providers: EthersProvider[] = []
+  private activeIndex = 0
   _isProvider: boolean = true
 
   constructor (providers: any[]) {
-    this.providers = providers
+    this.providersFn = providers
   }
 
-  getActiveProvider () {
+  static fromUrls (urls: string[]): FallbackProvider {
+    return getProviderWithFallbacks(urls)
+  }
+
+  private getActiveProvider () {
+    if (this.providers[this.activeIndex]) {
+      return this.providers[this.activeIndex]
+    }
+
+    if (typeof this.providersFn[this.activeIndex] === 'function') {
+      this.providers[this.activeIndex] = this.providersFn[this.activeIndex]()
+    } else {
+      this.providers[this.activeIndex] = this.providersFn[this.activeIndex]
+    }
+
     return this.providers[this.activeIndex]
   }
 
-  async tryProvider (promise: any) {
-    return promise().catch((err: any) => {
-      console.log('tryProvider error:', err)
-      this.activeIndex = (this.activeIndex + 1) % this.providers.length
-      return this.tryProvider(promise)
+  async tryProvider (fn: any) {
+    return fn().catch((err: any) => {
+      if (/noNetwork|rate limit|/.test(err.message)) {
+        console.log('tryProvider error:', err)
+        this.activeIndex = (this.activeIndex + 1) % this.providersFn.length
+        return fn()
+      }
+      throw err
     })
   }
 
   // Network
   getNetwork = async (): Promise<Network> => {
-    return this.tryProvider(async () => this.getActiveProvider().getNetwork())
+    return this.tryProvider(() => this.getActiveProvider().getNetwork())
   }
 
   // Latest State
   getBlockNumber = async (): Promise<number> => {
-    return this.tryProvider(async () => this.getActiveProvider().getBlockNumber())
+    return this.tryProvider(() => this.getActiveProvider().getBlockNumber())
   }
 
   getGasPrice = async (): Promise<BigNumber> => {
-    return this.tryProvider(async () => this.getActiveProvider().getGasPrice())
+    return this.tryProvider(() => this.getActiveProvider().getGasPrice())
   }
 
   // Account
   getBalance = async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<BigNumber> => {
-    return this.tryProvider(async () => this.getActiveProvider().getBalance(addressOrName, blockTag))
+    return this.tryProvider(() => this.getActiveProvider().getBalance(addressOrName, blockTag))
   }
 
   getTransactionCount = async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<number> => {
-    return this.tryProvider(async () => this.getActiveProvider().getTransactionCount(addressOrName, blockTag))
+    return this.tryProvider(() => this.getActiveProvider().getTransactionCount(addressOrName, blockTag))
   }
 
   getCode = async (addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string> => {
-    return this.tryProvider(async () => this.getActiveProvider().getCode(addressOrName, blockTag))
+    return this.tryProvider(() => this.getActiveProvider().getCode(addressOrName, blockTag))
   }
 
   getStorageAt = async (addressOrName: string | Promise<string>, position: BigNumberish | Promise<BigNumberish>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string> => {
@@ -184,7 +207,7 @@ export class FallbackProvider implements EthersProvider {
     return this.tryProvider(() => this.getActiveProvider().lookupAddress(address))
   }
 
-  getFeeData (): Promise<FeeData> {
+  getFeeData (): Promise<any> {
     return this.tryProvider(() => this.getActiveProvider().getFeeData())
   }
 
@@ -232,5 +255,9 @@ export class FallbackProvider implements EthersProvider {
   addListener (eventName: string, listener: any): any {
     this.getActiveProvider().addListener(eventName, listener)
     return this
+  }
+
+  public getAvatar (address: string): Promise<string> {
+    return this.tryProvider(() => (this.getActiveProvider() as any).getAvatar(address))
   }
 }

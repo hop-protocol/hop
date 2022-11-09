@@ -64,8 +64,10 @@ export const useRewards = (props: Props) => {
         const tokenAddress = await contract.rewardsToken()
         return new Contract(tokenAddress, erc20Abi, contract.provider)
       }
-    } catch (err) {
-      console.error(err)
+    } catch (err: any) {
+      if (!/noNetwork/.test(err.message)) {
+        console.error(err)
+      }
     }
   }, [contract])
 
@@ -79,8 +81,10 @@ export const useRewards = (props: Props) => {
           setOnchainRootSet(isSet)
         }
       }
-    } catch (err) {
-      console.error(err)
+    } catch (err: any) {
+      if (!/noNetwork/.test(err.message)) {
+        console.error(err)
+      }
     }
   }
 

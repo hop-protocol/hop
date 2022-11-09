@@ -27,9 +27,9 @@ export const networks: Networks = {
   optimism: {
     name: chains.optimism.name,
     networkId: 10,
-    publicRpcUrl: 'https://mainnet.optimism.io',
+    publicRpcUrl: 'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [
-      'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
+      'https://mainnet.optimism.io',
       'https://rpc.ankr.com/optimism'
     ],
     explorerUrls: ['https://optimistic.etherscan.io'],

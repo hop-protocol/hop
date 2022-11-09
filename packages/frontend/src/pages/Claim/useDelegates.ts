@@ -19,7 +19,7 @@ let cached : any[] = []
 export function useDelegates() {
   const [delegates, setDelegates] = useState<any[]>(cached || [])
   const { provider, address, connectedNetworkId } = useWeb3Context()
-  const [claimProvider, setClaimProvider] = useState(() => {
+  const [claimProvider, setClaimProvider] = useState<any>(() => {
     return getProviderByNetworkName(networkIdToSlug(claimChainId))
   })
 

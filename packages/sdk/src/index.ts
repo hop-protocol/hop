@@ -22,6 +22,7 @@ export {
   WrappedToken,
   HToken
 } from './constants/constants'
+export * from './provider'
 
 if (typeof window !== 'undefined') {
   ;(window as any).Hop = Hop

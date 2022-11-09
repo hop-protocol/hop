@@ -285,8 +285,10 @@ export function usePools () {
             setTimeout(() => {
               setHasFetchedAccount(true)
             }, 2 * 1000)
-          } catch (err) {
-            console.error(err)
+          } catch (err: any) {
+            if (!/noNetwork/.test(err.message)) {
+              console.error('usePools error:', err)
+            }
           }
         }
         return pool

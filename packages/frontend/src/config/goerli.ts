@@ -19,6 +19,7 @@ export const networks: Networks = {
   ethereum: {
     networkId: _networks.ethereum.networkId,
     rpcUrl: _networks.ethereum.publicRpcUrl,
+    fallbackRpcUrls: _networks.ethereum.fallbackPublicRpcUrls,
     explorerUrl: _networks.ethereum.explorerUrls[0],
     nativeBridgeUrl: _networks.ethereum.nativeBridgeUrl,
     waitConfirmations: _networks.ethereum.waitConfirmations
@@ -26,6 +27,7 @@ export const networks: Networks = {
   polygon: {
     networkId: _networks.polygon.networkId,
     rpcUrl: _networks.polygon.publicRpcUrl,
+    fallbackRpcUrls: _networks.polygon.fallbackPublicRpcUrls,
     explorerUrl: _networks.polygon.explorerUrls[0],
     nativeBridgeUrl: _networks.polygon.nativeBridgeUrl,
     waitConfirmations: _networks.polygon.waitConfirmations
@@ -33,6 +35,7 @@ export const networks: Networks = {
   optimism: {
     networkId: _networks.optimism.networkId,
     rpcUrl: _networks.optimism.publicRpcUrl,
+    fallbackRpcUrls: _networks.optimism.fallbackPublicRpcUrls,
     explorerUrl: _networks.optimism.explorerUrls[0],
     nativeBridgeUrl: _networks.optimism.nativeBridgeUrl,
     waitConfirmations: _networks.optimism.waitConfirmations
@@ -40,6 +43,7 @@ export const networks: Networks = {
   arbitrum: {
     networkId: _networks.arbitrum.networkId,
     rpcUrl: _networks.arbitrum.publicRpcUrl,
+    fallbackRpcUrls: _networks.arbitrum.fallbackPublicRpcUrls,
     explorerUrl: _networks.arbitrum.explorerUrls[0],
     nativeBridgeUrl: _networks.arbitrum.nativeBridgeUrl,
     waitConfirmations: _networks.arbitrum.waitConfirmations

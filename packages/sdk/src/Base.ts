@@ -25,6 +25,7 @@ import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getProviderFromUrl } from './utils/getProviderFromUrl'
+import { getUrlFromProvider } from './utils/getUrlFromProvider'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
 export type L1Factory = L1PolygonPosRootChainManager__factory | L1XDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1OptimismTokenBridge__factory
@@ -89,8 +90,8 @@ const getContract = async (
   const signerAddress = p?.getAddress ? await p?.getAddress() : ''
   const chainId = p?.provider?._network?.chainId ?? ''
   await p?._networkPromise
-  const fallbackProviderChainId = p?._network?.chainId ?? ''
-  const rpcUrl = p?.connection?.url ?? ''
+  const fallbackProviderChainId = p?._network?.chainId ?? p?.providers?.[0]?._network?.chainId ?? ''
+  const rpcUrl = getUrlFromProvider(p)
   const cacheKey = `${signerAddress}${chainId}${fallbackProviderChainId}${rpcUrl}`
   return getContractMemo(factory, address, cacheKey)(provider)
 }
@@ -726,6 +727,10 @@ class Base {
       throw new Error(json.error)
     }
     return json.data?.[0] ?? null
+  }
+
+  getProviderRpcUrl (provider: any) {
+    return getUrlFromProvider(provider)
   }
 }
 

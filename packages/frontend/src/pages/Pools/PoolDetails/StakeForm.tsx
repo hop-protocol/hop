@@ -9,6 +9,7 @@ import { BalanceText } from '../components/BalanceText'
 import { InputField } from '../components/InputField'
 import { ReactComponent as Bolt } from 'src/assets/bolt.svg'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { sanitizeNumericalString } from 'src/utils'
 import { useStaking } from '../useStaking'
 import { useStyles } from './useStyles'
 
@@ -74,10 +75,12 @@ export function StakeForm(props: Props) {
 
   function handleInputChange (value: string) {
     try {
+      value = sanitizeNumericalString(value)
       setAmount(value)
       const _parsedAmount = parseUnits(value || '0', 18)
       setParsedAmount(_parsedAmount)
     } catch (err) {
+      console.error(err)
     }
   }
 

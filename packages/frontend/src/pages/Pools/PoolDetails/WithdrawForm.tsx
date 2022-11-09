@@ -12,7 +12,7 @@ import { BigNumber } from 'ethers'
 import { InputField } from '../components/InputField'
 import { Slider } from 'src/components/slider'
 import { TokenIcon } from 'src/pages/Pools/components/TokenIcon'
-import { commafy, formatTokenDecimalString } from 'src/utils'
+import { commafy, formatTokenDecimalString, sanitizeNumericalString } from 'src/utils'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 type Props = {
@@ -84,7 +84,10 @@ export function WithdrawForm(props: any) {
   }, [])
 
   useEffect(() => {
-    setAmountBN(parseUnits((amount || 0).toString(), tokenDecimals))
+    try {
+      setAmountBN(parseUnits((amount || 0).toString(), tokenDecimals))
+    } catch (err) {
+    }
   }, [amount])
 
   useEffect(() => {
@@ -174,6 +177,14 @@ export function WithdrawForm(props: any) {
     goToTab('stake')
   }
 
+  function handleInputAmountChange (value: string) {
+    try {
+      setAmount(sanitizeNumericalString(value))
+    } catch (err: any) {
+      console.error(err)
+    }
+  }
+
   const priceImpactFormatted = priceImpact ? `${Number((priceImpact * 100).toFixed(4))}%` : ''
   const formDisabled = !hasBalance
   const isEmptyAmount = (proportional ? !(amountPercent && (token0MaxBn?.gt(0) || token1MaxBn.gt(0))) : (amountBN.lte(0) || amountBN.gt(maxBalance)))
@@ -256,7 +267,7 @@ export function WithdrawForm(props: any) {
               tokenSymbol={selectedTokenSymbol}
               tokenImageUrl={token0ImageUrl}
               value={amount}
-              onChange={setAmount}
+              onChange={handleInputAmountChange}
               disabled={formDisabled}
             />
           </Box>

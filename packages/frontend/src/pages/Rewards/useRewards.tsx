@@ -237,8 +237,10 @@ export const useRewards = (props: Props) => {
       if (json.data.rewards.balance) {
         setClaimableAmount(BigNumber.from(json.data.rewards.balance))
       }
-    } catch (err) {
-      console.error(err)
+    } catch (err: any) {
+      if (!/Invalid Entry/.test(err.message)) {
+        console.error('useRewards error:', err)
+      }
     }
     setLoading(false)
   }

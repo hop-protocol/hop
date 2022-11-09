@@ -112,5 +112,10 @@ export const useStyles = makeStyles(theme => ({
   },
   notStakedMessageColor: {
     color: '#B32EFF'
+  },
+  bolt: {
+    '& path': {
+      fill: theme.palette.type === 'dark' ? '#fff' : '#000'
+    }
   }
 }))

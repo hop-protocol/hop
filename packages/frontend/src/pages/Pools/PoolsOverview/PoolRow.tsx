@@ -56,6 +56,11 @@ export const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       display: 'none'
     },
+  },
+  bolt: {
+    '& path': {
+      fill: theme.palette.type === 'dark' ? '#fff' : '#000'
+    }
   }
 }))
 
@@ -163,7 +168,7 @@ export function PoolRow (props: Props) {
                 <strong>{totalAprFormatted}</strong>
               </Typography>
               {stakingRewards.length > 0 ? <Box ml={1} display="flex" justifyContent="center" alignItems="center">
-                <span title="Boosted APR"><Bolt /></span>
+                <span title="Boosted APR"><Bolt className={styles.bolt} /></span>
                 {stakingRewards.length > 0 ? <Box ml={0.5} display="flex">
                   {stakingRewards.map((x: any, i: number) => {
                     return (

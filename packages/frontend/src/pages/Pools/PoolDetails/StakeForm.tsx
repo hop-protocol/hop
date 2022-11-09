@@ -106,7 +106,7 @@ export function StakeForm(props: Props) {
   if (stakingApr > 0) {
     stakingAprDisplay = (
       <Box display="flex" justifyContent="center" alignItems="center">
-        <Box mr={0.5} title="Boosted APR"><Bolt /></Box>
+        <Box mr={0.5} title="Boosted APR"><Bolt className={styles.bolt} /></Box>
         {!!rewardsTokenImageUrl && <Box display="flex"><img className={styles.stakingAprChainImage} src={rewardsTokenImageUrl} alt={rewardsTokenSymbol} title={rewardsTokenSymbol} /></Box>}
         <Box ml={1}>{stakingAprFormatted}</Box>
       </Box>

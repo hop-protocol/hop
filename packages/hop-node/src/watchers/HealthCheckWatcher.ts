@@ -214,7 +214,7 @@ export class HealthCheckWatcher {
   cacheFile: string
   days: number = 1 // days back to check for
   offsetDays: number = 0
-  pollIntervalSeconds: number = 300
+  pollIntervalSeconds: number = 30 * 60
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
   // These values target appx 100 transactions on an average gas day

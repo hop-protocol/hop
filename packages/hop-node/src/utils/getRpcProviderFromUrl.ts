@@ -1,4 +1,4 @@
-import { Provider } from 'src/provider'
+import { Provider } from '../provider'
 import { providers } from 'ethers'
 
 const cache: any = {}

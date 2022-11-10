@@ -9,6 +9,7 @@ import { privateKey } from './config'
 import * as addresses from '@hop-protocol/core/addresses'
 // @ts-ignore
 import pkg from '../package.json'
+import { FallbackProvider } from '../src/provider'
 
 describe('sdk setup', () => {
   const hop = new Hop('kovan')
@@ -494,11 +495,11 @@ describe('custom chain providers', () => {
     let provider = bridge.getChainProvider('polygon')
     const currentUrl = 'https://polygon-rpc.com'
     const newUrl = 'https://polygon-rpc2.com'
-    expect((provider as any).connection.url).toBe(currentUrl)
+    expect(bridge.getProviderRpcUrl(provider)).toBe(currentUrl)
     const newProvider = new providers.StaticJsonRpcProvider(newUrl)
     sdk.setChainProvider('polygon', newProvider)
     provider = bridge.getChainProvider('polygon')
-    expect((provider as any).connection.url).toBe(newUrl)
+    expect(bridge.getProviderRpcUrl(provider)).toBe(newUrl)
   })
   it('should set multiple custom chain provider', () => {
     const sdk = new Hop('mainnet')
@@ -509,16 +510,16 @@ describe('custom chain providers', () => {
     const currentGnosisUrl = 'https://rpc.gnosischain.com/'
     const newPolygonUrl = 'https://polygon-rpc2.com'
     const newGnosisUrl = 'https://rpc.gnosischain2.com'
-    expect((polygonProvider as any).connection.url).toBe(currentPolygonUrl)
-    expect((gnosisProvider as any).connection.url).toBe(currentGnosisUrl)
+    expect(bridge.getProviderRpcUrl(polygonProvider)).toBe(currentPolygonUrl)
+    expect(bridge.getProviderRpcUrl(gnosisProvider)).toBe(currentGnosisUrl)
     sdk.setChainProviders({
       polygon: new providers.StaticJsonRpcProvider(newPolygonUrl),
       gnosis: new providers.StaticJsonRpcProvider(newGnosisUrl)
     })
     polygonProvider = bridge.getChainProvider('polygon')
     gnosisProvider = bridge.getChainProvider('gnosis')
-    expect((polygonProvider as any).connection.url).toBe(newPolygonUrl)
-    expect((gnosisProvider as any).connection.url).toBe(newGnosisUrl)
+    expect(bridge.getProviderRpcUrl(polygonProvider)).toBe(newPolygonUrl)
+    expect(bridge.getProviderRpcUrl(gnosisProvider)).toBe(newGnosisUrl)
   })
 })
 
@@ -867,4 +868,16 @@ describe('supported chains', () => {
     const maticBridge = hop.bridge('MATIC')
     expect(JSON.stringify(maticBridge.supportedChains)).toBe(JSON.stringify(['ethereum', 'gnosis', 'polygon']))
   })
+})
+
+describe('fallback provider', () => {
+  it('Should return supported chains', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('USDC')
+    const provider = bridge.toChainModel('optimism').provider
+    expect(provider instanceof FallbackProvider).toBe(true)
+    const network = await provider.getNetwork()
+    console.log('network:', network)
+    expect(network.name).toBe('optimism')
+  }, 60 * 1000)
 })

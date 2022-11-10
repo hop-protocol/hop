@@ -25,14 +25,6 @@ const bonders: {[network: string]: {[token: string]: Record<string, Record<strin
   goerli: goerli.bonders
 }
 
-type Bps = {
-  ethereum: number
-  polygon: number
-  gnosis: number
-  optimism: number
-  arbitrum: number
-}
-
 const bonderFeeBps: {[network: string]: {[token: string]: Record<string, number>}} = {
   mainnet: mainnet.bonderFeeBps,
   staging: staging.bonderFeeBps,
@@ -67,3 +59,6 @@ export { metadata, config }
 
 export const bondableChains = ['optimism', 'arbitrum']
 export const relayableChains = ['arbitrum']
+
+export const rateLimitMaxRetries = 1
+export const rpcTimeoutSeconds = 2 * 60

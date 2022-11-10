@@ -3,13 +3,11 @@ import { mainnet } from '@hop-protocol/core/networks'
 import { metadata } from '../config'
 import { providers } from 'ethers'
 
-type Provider = providers.Provider
-
 class Chain {
   chainId: number
   name: ChainName | string = ''
   slug: Slug | string = ''
-  provider: Provider | null = null
+  provider: providers.Provider | null = null
   isL1: boolean = false
   nativeTokenSymbol: string
 
@@ -28,7 +26,7 @@ class Chain {
     return newChain(slug)
   }
 
-  constructor (name: ChainName | string, chainId?: number, provider?: Provider) {
+  constructor (name: ChainName | string, chainId?: number, provider?: providers.Provider) {
     this.name = name
     this.slug = (name || '').trim().toLowerCase()
     if (

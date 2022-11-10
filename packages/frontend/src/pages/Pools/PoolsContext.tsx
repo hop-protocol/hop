@@ -1132,8 +1132,9 @@ const PoolsProvider: FC = ({ children }) => {
   const overallUserPoolBalanceUsd = tokenUsdPrice ? overallUserPoolBalanceSum * tokenUsdPrice : 0
   const overallUserPoolBalanceUsdFormatted = overallUserPoolBalanceUsd ? `$${commafy(overallUserPoolBalanceUsd, 4)}` : commafy(overallUserPoolBalanceSum, 4)
   const hasStakeContract = !!(stakingContract || hopStakingContract)
-  const token0BalanceBn = parseUnits(token0Balance?.toString() || '0', tokenDecimals)
-  const token1BalanceBn = parseUnits(token1Balance?.toString() || '0', tokenDecimals)
+
+  const token0BalanceBn = canonicalBalance ?? BigNumber.from(0)
+  const token1BalanceBn = hopBalance ?? BigNumber.from(0)
 
   return (
     <PoolsContext.Provider

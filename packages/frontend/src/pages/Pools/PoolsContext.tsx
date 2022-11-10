@@ -9,137 +9,123 @@ import React, {
   useCallback,
   ChangeEvent,
 } from 'react'
-import { Signer, BigNumber, constants } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { Token } from '@hop-protocol/sdk'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
-import Network from 'src/models/Network'
 import Address from 'src/models/Address'
+import Network from 'src/models/Network'
 import Price from 'src/models/Price'
-import Transaction from 'src/models/Transaction'
 import logger from 'src/logger'
-import { commafy, shiftBNDecimals, BNMin, toTokenDisplay, toPercentDisplay, getTokenDecimals } from 'src/utils'
+import { Signer, BigNumber, constants } from 'ethers'
+import { StakingRewards__factory } from '@hop-protocol/core/contracts'
+import { Token } from '@hop-protocol/sdk'
+import { amountToBN, formatError } from 'src/utils/format'
+import { commafy, shiftBNDecimals, toTokenDisplay, toPercentDisplay, getTokenDecimals } from 'src/utils'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { getTokenImage } from 'src/utils/tokens'
 import { hopStakingRewardsContracts, stakingRewardsContracts, reactAppNetwork } from 'src/config'
 import { l2Networks } from 'src/config/networks'
-import { amountToBN, formatError } from 'src/utils/format'
-import { useStaking } from './useStaking'
-import {
-  useQueryParams,
-  useTransactionReplacement,
-  useAsyncMemo,
-  useBalance,
-  useApprove,
-  useSelectedNetwork,
-  useAssets,
-} from 'src/hooks'
+import { useApp } from 'src/contexts/AppContext'
 import { useInterval } from 'react-use'
-import { getTokenImage } from 'src/utils/tokens'
-import { usePoolStats } from './useNewPoolStats'
+import { usePoolStats } from './usePoolStats'
 import { useQuery } from 'react-query'
-import { StakingRewards__factory } from '@hop-protocol/core/contracts'
-
-// TODO: This hook needs refactoring
+import { useQueryParams, useTransactionReplacement, useAsyncMemo, useBalance, useApprove, useSelectedNetwork, useAssets } from 'src/hooks'
+import { useStaking } from './useStaking'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 type PoolsContextProps = {
-  addLiquidity: () => void
   addLiquidityAndStake: () => void
-  unstakeAndRemoveLiquidity: (amounts: any) => void
   address?: Address
-  apr?: number
-  totalApr?: number
-  totalAprFormatted?: string
+  apr: number
+  aprFormatted: string
+  assetWithoutAmm: any
+  calculateRemoveLiquidityPriceImpactFn: any,
   canonicalBalance?: BigNumber
   canonicalToken?: Token
+  canonicalTokenSymbol: string
+  chainImageUrl: string
+  chainName: string
+  chainSlug: string
+  depositAmountTotalDisplayFormatted: string
+  enoughBalance: boolean
   error?: string | null
   fee?: number
+  feeFormatted: string
+  hasBalance: boolean
+  hasStakeContract: boolean
+  hasStaked: boolean
   hopBalance?: BigNumber
   hopToken?: Token
+  hopTokenSymbol: string
+  isDepositing: boolean
   isNativeToken: boolean
+  isWithdrawing: boolean
+  loading: boolean
   loadingCanonicalBalance: boolean
   loadingHopBalance: boolean
+  lpTokenTotalSupply?: BigNumber
+  lpTokenTotalSupplyFormatted: string
   networks: Network[]
+  overallToken0DepositedFormatted: string
+  overallToken1DepositedFormatted: string
+  overallUserPoolBalanceFormatted: string
+  overallUserPoolBalanceUsdFormatted: string
+  overallUserPoolTokenPercentageFormatted: string
+  poolName: string
   poolReserves: BigNumber[]
   poolSharePercentage?: string
+  poolSharePercentageFormatted: string
   priceImpact?: number
-  removeLiquidity: () => void
-  removing: boolean
+  priceImpactFormatted: string
+  priceImpactLabel: string
+  reserve0: string
+  reserve0Formatted: string
+  reserve1: string
+  reserve1Formatted: string
   reserveTotalsUsd?: number
+  reserveTotalsUsdFormatted: string
   selectBothNetworks: (event: ChangeEvent<{ value: any }>) => void
   selectedNetwork?: Network
   sendButtonText: string
-  sending: boolean
   setError: (error?: string | null) => void
   setToken0Amount: (value: string) => void
   setToken1Amount: (value: string) => void
   setWarning: (warning?: string) => void
   token0Amount: string
+  token0Balance: number
+  token0BalanceBn: BigNumber
+  token0BalanceFormatted: string
   token0Deposited?: BigNumber
+  token0DepositedFormatted: string
   token0Price?: string
   token1Amount: string
+  token1Balance: number
+  token1BalanceBn: BigNumber
+  token1BalanceFormatted: string
   token1Deposited?: BigNumber
+  token1DepositedFormatted: string
   token1Price?: string
   token1Rate?: string
+  tokenDecimals: number
+  tokenImageUrl: string
   tokenSumDeposited?: BigNumber
+  tokenSumDepositedFormatted: string
+  tokenSymbol: string
+  totalApr?: number
+  totalAprFormatted: string
   totalSupply?: string
-  txHash?: string
+  tvlFormatted: string
+  unstakeAndRemoveLiquidity: (amounts: any) => void
   unsupportedAsset: any
-  assetWithoutAmm: any
   userPoolBalance?: BigNumber
   userPoolBalanceFormatted?: string
+  userPoolBalanceUsd: number
+  userPoolBalanceUsdFormatted: string
   userPoolTokenPercentage?: string
   userPoolTokenPercentageFormatted?: string
   validFormFields: boolean
   virtualPrice?: number
-  warning?: string
-  lpTokenTotalSupply?: BigNumber
-  lpTokenTotalSupplyFormatted?: string
-  hasBalance: boolean
-  canonicalTokenSymbol: string
-  hopTokenSymbol: string
-  reserve0: string
-  reserve1: string
-  reserve0Formatted: string
-  reserve1Formatted: string
-  feeFormatted: string
-  aprFormatted: string
-  priceImpactLabel: string
-  priceImpactFormatted: string
-  poolSharePercentageFormatted: string
   virtualPriceFormatted: string
-  reserveTotalsUsdFormatted: string
-  poolName: string
-  tokenImageUrl: string
-  chainImageUrl: string
-  tokenSymbol: string
-  chainName: string
-  token0DepositedFormatted: string
-  token1DepositedFormatted: string
-  tokenSumDepositedFormatted: string
-  userPoolBalanceUsd: number
-  userPoolBalanceUsdFormatted: string
-  loading: boolean
-  token0BalanceFormatted: string
-  token1BalanceFormatted: string
-  token0Balance: number
-  token1Balance: number
-  depositAmountTotalDisplayFormatted: string
-  calculateRemoveLiquidityPriceImpactFn: any,
-  walletConnected: boolean,
-  chainSlug: string
-  enoughBalance: boolean
-  removeLiquiditySimple: any
-  isWithdrawing: boolean
-  isDepositing: boolean
   volumeUsdFormatted : string
-  overallUserPoolBalanceFormatted: string
-  overallUserPoolTokenPercentageFormatted: string
-  overallToken0DepositedFormatted: string
-  overallToken1DepositedFormatted: string
-  overallUserPoolBalanceUsdFormatted: string
-  tvlFormatted: string
-  hasStaked: boolean
-  hasStakeContract: boolean
+  walletConnected: boolean,
+  warning?: string
 }
 
 const TOTAL_AMOUNTS_DECIMALS = 18
@@ -164,11 +150,7 @@ const PoolsProvider: FC = ({ children }) => {
   const [overallToken0Deposited, setOverallToken0Deposited] = useState<BigNumber>(BigNumber.from(0))
   const [overallToken1Deposited, setOverallToken1Deposited] = useState<BigNumber>(BigNumber.from(0))
   const [tokenSumDeposited, setTokenSumDeposited] = useState<BigNumber | undefined>()
-  const [apr, setApr] = useState<number | undefined>()
   const [stakedBalance, setStakedBalance] = useState<any>(BigNumber.from(0))
-  const [stakedToken0Deposited, setStakedToken0Deposited] = useState<any>(BigNumber.from(0))
-  const [stakedToken1Deposited, setStakedToken1Deposited] = useState<any>(BigNumber.from(0))
-  const aprRef = useRef<string>('')
   const [reserveTotalsUsd, setReserveTotalsUsd] = useState<number | undefined>()
   const [virtualPrice, setVirutalPrice] = useState<number | undefined>()
   const [fee, setFee] = useState<number | undefined>()
@@ -177,7 +159,6 @@ const PoolsProvider: FC = ({ children }) => {
 
   const { txConfirm, sdk, selectedBridge, settings } = useApp()
   const { deadline, slippageTolerance } = settings
-  const { waitForTransaction, addTransaction } = useTransactionReplacement()
   const slippageToleranceBps = slippageTolerance * 100
   const minBps = Math.ceil(10000 - slippageToleranceBps)
   const { address, provider, checkConnectedNetworkId, walletConnected } = useWeb3Context()
@@ -236,28 +217,12 @@ const PoolsProvider: FC = ({ children }) => {
     }
   }, [unsupportedAsset, selectedBridge, selectedNetwork])
 
-  const [txHash, setTxHash] = useState<string | undefined>()
-  const [sending, setSending] = useState<boolean>(false)
-  const [removing, setRemoving] = useState<boolean>(false)
-
   const { balance: canonicalBalance, loading: loadingCanonicalBalance } = useBalance(
     canonicalToken,
     address
   )
 
   const { balance: hopBalance, loading: loadingHopBalance } = useBalance(hopToken, address)
-
-  useEffect(() => {
-    if (unsupportedAsset) {
-      const { chain, tokenSymbol } = unsupportedAsset
-      setError(`${tokenSymbol} is currently not supported on ${chain}`)
-    } else if (assetWithoutAmm) {
-      const { chain, tokenSymbol } = assetWithoutAmm
-      setError(`${tokenSymbol} does not use an AMM on ${chain}`)
-    } else {
-      setError('')
-    }
-  }, [unsupportedAsset, assetWithoutAmm])
 
   const tokenUsdPrice = useAsyncMemo(async () => {
     try {
@@ -271,6 +236,18 @@ const PoolsProvider: FC = ({ children }) => {
       console.error(err)
     }
   }, [unsupportedAsset, canonicalToken])
+
+  useEffect(() => {
+    if (unsupportedAsset) {
+      const { chain, tokenSymbol } = unsupportedAsset
+      setError(`${tokenSymbol} is currently not supported on ${chain}`)
+    } else if (assetWithoutAmm) {
+      const { chain, tokenSymbol } = assetWithoutAmm
+      setError(`${tokenSymbol} does not use an AMM on ${chain}`)
+    } else {
+      setError('')
+    }
+  }, [unsupportedAsset, assetWithoutAmm])
 
   useEffect(() => {
     let isSubscribed = true
@@ -310,96 +287,6 @@ const PoolsProvider: FC = ({ children }) => {
       isSubscribed = false
     }
   }, [unsupportedAsset, selectedNetwork, canonicalToken, tokenUsdPrice])
-
-  useEffect(() => {
-    let isSubscribed = true
-    const update = async () => {
-      try {
-        if (!(selectedBridge && selectedNetwork && !unsupportedAsset?.chain)) {
-          setApr(undefined)
-          return
-        }
-        const token = selectedBridge.getCanonicalToken(selectedNetwork.slug)
-        const cacheKey = `apr:${selectedNetwork.slug}:${token.symbol}`
-        try {
-          const cached = JSON.parse(localStorage.getItem(cacheKey) || '')
-          const expiresTimeMs = 2 * 60 * 60 * 1000 // 2hrs
-          const isRecent = cached.timestamp > Date.now() - expiresTimeMs
-          if (cached && isRecent && typeof cached.apr === 'number') {
-            setApr(cached.apr)
-            return
-          }
-        } catch (err) {
-          // noop
-        }
-        if (aprRef.current === cacheKey) {
-          return
-        }
-        setApr(undefined)
-        aprRef.current = cacheKey
-        let apr: number
-        try {
-          const url = 'https://assets.hop.exchange/v1-pool-stats.json'
-          const res = await fetch(url)
-          const json = await res.json()
-          console.log('apr data response:', json)
-          if (!json.data) {
-            throw new Error('expected data')
-          }
-          let symbol = token.symbol
-          if (symbol === 'WETH') {
-            symbol = 'ETH'
-          }
-          if (symbol === 'XDAI') {
-            symbol = 'DAI'
-          }
-          if (symbol === 'WXDAI') {
-            symbol = 'DAI'
-          }
-          if (symbol === 'WMATIC') {
-            symbol = 'MATIC'
-          }
-          if (!json.data[symbol]) {
-            throw new Error(`expected data for token symbol "${symbol}"`)
-          }
-          if (!json.data[symbol][selectedNetwork.slug]) {
-            throw new Error(`expected data for network "${selectedNetwork.slug}"`)
-          }
-          if (json.data[symbol][selectedNetwork.slug].apr === undefined) {
-            throw new Error(`expected apr value for token "${symbol}" and network "${selectedNetwork.slug}"`)
-          }
-
-          apr = json.data[symbol][selectedNetwork.slug].apr
-        } catch (err) {
-          logger.error('apr fetch error:', err)
-          const bridge = sdk.bridge(token.symbol)
-          const amm = bridge.getAmm(selectedNetwork.slug)
-          apr = await amm.getApr()
-        }
-        try {
-          localStorage.setItem(
-            cacheKey,
-            JSON.stringify({
-              timestamp: Date.now(),
-              apr,
-            })
-          )
-        } catch (err) {
-          // noop
-        }
-        if (isSubscribed) {
-          setApr(apr)
-        }
-      } catch (err) {
-        logger.error('apr error:', err)
-      }
-    }
-
-    update().catch(err => logger.error(err))
-    return () => {
-      isSubscribed = false
-    }
-  }, [unsupportedAsset, sdk, selectedBridge, selectedNetwork])
 
   const priceImpact = useAsyncMemo(async () => {
     if (!(canonicalToken && hopToken && selectedNetwork && !unsupportedAsset?.chain)) {
@@ -655,136 +542,7 @@ const PoolsProvider: FC = ({ children }) => {
   }, [provider, selectedNetwork, canonicalToken, hopToken, updateUserPoolPositions])
 
   useInterval(updatePrices, 5 * 1000)
-
   useInterval(updateUserPoolPositions, 5 * 1000)
-
-  useEffect(() => {
-    async function update() {
-    }
-
-    update().catch(err => logger.error(err))
-  }, [stakingContract, hopStakingContract, accountAddress, poolReserves, totalSupplyBn])
-
-  const { approve } = useApprove(canonicalToken)
-  const approveTokens = async (isHop: boolean, amount: string, network: Network) => {
-    if (!canonicalToken) {
-      throw new Error('Canonical token is required')
-    }
-
-    if (!hopToken) {
-      throw new Error('Hop token is required')
-    }
-
-    const signer = provider?.getSigner()
-    const bridge = sdk.bridge(canonicalToken.symbol).connect(signer as Signer)
-    const amm = bridge.getAmm(network.slug)
-    const saddleSwap = await amm.getSaddleSwap()
-    const spender = saddleSwap.address
-    const parsedAmount = amountToBN(amount, canonicalToken.decimals)
-    let token = isHop ? bridge.getL2HopToken(network.slug) : bridge.getCanonicalToken(network.slug)
-    if (token.isNativeToken) {
-      token = token.getWrappedToken()
-    }
-
-    return approve(parsedAmount, token, spender)
-  }
-
-  const addLiquidity = async () => {
-    if (!canonicalToken) {
-      throw new Error('Canonical token is required')
-    }
-
-    if (!hopToken) {
-      throw new Error('Hop token is required')
-    }
-
-    try {
-      setError(null)
-      const networkId = Number(selectedNetwork?.networkId)
-      const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected || !selectedNetwork) {
-        throw new Error('wrong network connected')
-      }
-
-      if (!(Number(token0Amount) || Number(token1Amount))) {
-        return
-      }
-
-      setSending(true)
-      setIsDepositing(true)
-      if (Number(token0Amount)) {
-        const approval0Tx = await approveTokens(false, token0Amount, selectedNetwork)
-        await approval0Tx?.wait()
-      }
-
-      if (Number(token1Amount)) {
-        const approval1Tx = await approveTokens(true, token1Amount, selectedNetwork)
-        await approval1Tx?.wait()
-      }
-
-      const addLiquidityTx = await txConfirm?.show({
-        kind: 'addLiquidity',
-        inputProps: {
-          source: {
-            network: selectedNetwork
-          },
-          token0: {
-            amount: token0Amount || '0',
-            token: canonicalToken,
-            network: selectedNetwork,
-          },
-          token1: {
-            amount: token1Amount || '0',
-            token: hopToken,
-            network: selectedNetwork,
-          },
-        },
-        onConfirm: async () => {
-          const signer = provider?.getSigner()
-          const amount0Desired = amountToBN(token0Amount || '0', canonicalToken?.decimals)
-          const amount1Desired = amountToBN(token1Amount || '0', hopToken?.decimals)
-
-          const bridge = sdk.bridge(canonicalToken.symbol)
-          const amm = bridge.getAmm(selectedNetwork.slug)
-          const minAmount0 = amount0Desired.mul(minBps).div(10000)
-          const minAmount1 = amount1Desired.mul(minBps).div(10000)
-          const minToMint = await amm.calculateAddLiquidityMinimum(minAmount0, minAmount1)
-
-          return bridge
-            .connect(signer as Signer)
-            .addLiquidity(amount0Desired, amount1Desired, selectedNetwork.slug, {
-              minToMint,
-              deadline: deadline(),
-            })
-        },
-      })
-
-      setTxHash(addLiquidityTx?.hash)
-      if (addLiquidityTx?.hash && selectedNetwork) {
-        addTransaction(
-          new Transaction({
-            hash: addLiquidityTx?.hash,
-            networkName: selectedNetwork?.slug,
-          })
-        )
-      }
-
-      const res = await waitForTransaction(addLiquidityTx, { networkName: selectedNetwork.slug })
-      if (res && 'replacementTx' in res) {
-        setTxHash(res.replacementTx.hash)
-      }
-
-      updateUserPoolPositions()
-    } catch (err: any) {
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err, selectedNetwork))
-      }
-      logger.error(err)
-    }
-
-    setSending(false)
-    setIsDepositing(false)
-  }
 
   async function addLiquidityAndStake() {
     try {
@@ -1232,153 +990,6 @@ const PoolsProvider: FC = ({ children }) => {
     }
   }
 
-  const removeLiquidity = async () => {
-    if (!canonicalToken) {
-      throw new Error('Canonical token is required')
-    }
-
-    if (!hopToken) {
-      throw new Error('Hop token is required')
-    }
-
-    try {
-      setError(null)
-      const networkId = Number(selectedNetwork?.networkId)
-      const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) {
-        throw new Error('wrong network connected')
-      }
-
-      setRemoving(true)
-      const bridge = sdk.bridge(canonicalToken.symbol)
-      const amm = bridge.getAmm(selectedNetwork!.slug)
-      const saddleSwap = await amm.getSaddleSwap()
-      const lpToken = bridge.getSaddleLpToken(selectedNetwork!.slug)
-      const lpTokenDecimals = 18
-      const token0Amount = token0Deposited
-      const token1Amount = token1Deposited
-      const totalAmount = token0Amount?.add(token1Amount || 0)
-      const signer = provider?.getSigner()
-      const balance = await lpToken?.balanceOf()
-      const approvalTx = await approve(balance, lpToken, saddleSwap.address)
-      await approvalTx?.wait()
-
-      const removeLiquidityTx = await txConfirm?.show({
-        kind: 'removeLiquidity',
-        inputProps: {
-          source: {
-            network: selectedNetwork
-          },
-          token0: {
-            amount: token0Amount,
-            token: canonicalToken,
-            network: selectedNetwork,
-            max: BNMin(poolReserves[0], totalAmount),
-          },
-          token1: {
-            amount: token1Amount,
-            token: hopToken,
-            network: selectedNetwork,
-            max: BNMin(poolReserves[1], totalAmount),
-          },
-          calculatePriceImpact: calculateRemoveLiquidityPriceImpactFn(balance),
-        },
-        onConfirm: async (amounts: any) => {
-          const { proportional, tokenIndex, amountPercent, amount } = amounts
-
-          if (proportional) {
-            const liquidityTokenAmount = balance.mul(amountPercent).div(100)
-            const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
-            const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
-              liquidityTokenAmountWithSlippage
-            )
-            const amount0Min = minimumAmounts[0]
-            const amount1Min = minimumAmounts[1]
-            logger.debug('removeLiquidity:', {
-              balance,
-              proportional,
-              amountPercent,
-              liquidityTokenAmount,
-              liquidityTokenAmountWithSlippage,
-              amount0Min,
-              amount1Min,
-            })
-
-            if (liquidityTokenAmount.eq(0)) {
-              throw new Error('calculation error: liquidityTokenAmount cannot be 0')
-            }
-
-            return bridge
-              .connect(signer as Signer)
-              .removeLiquidity(liquidityTokenAmount, selectedNetwork!.slug, {
-                amount0Min,
-                amount1Min,
-                deadline: deadline(),
-              })
-          } else {
-            const amount18d = shiftBNDecimals(amount, lpTokenDecimals - canonicalToken.decimals)
-            let tokenAmount = await amm.calculateRemoveLiquidityOneToken(amount18d, tokenIndex)
-            tokenAmount = shiftBNDecimals(tokenAmount, lpTokenDecimals - canonicalToken.decimals)
-            if (tokenAmount.gt(balance)) {
-              tokenAmount = balance
-            }
-            const liquidityTokenAmountWithSlippage = tokenAmount.mul(minBps).div(10000)
-            const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
-              liquidityTokenAmountWithSlippage
-            )
-            const amountMin = minimumAmounts[tokenIndex].mul(minBps).div(10000)
-
-            logger.debug('removeLiquidity:', {
-              balance,
-              amount,
-              tokenIndex,
-              tokenAmount,
-              liquidityTokenAmountWithSlippage,
-              amountMin,
-            })
-
-            if (tokenAmount.eq(0)) {
-              throw new Error('calculation error: tokenAmount cannot be 0')
-            }
-
-            return bridge
-              .connect(signer as Signer)
-              .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork!.slug, {
-                amountMin: amountMin,
-                deadline: deadline(),
-              })
-          }
-        },
-      })
-
-      setTxHash(removeLiquidityTx?.hash)
-      if (removeLiquidityTx?.hash && selectedNetwork) {
-        addTransaction(
-          new Transaction({
-            hash: removeLiquidityTx?.hash,
-            networkName: selectedNetwork?.slug,
-          })
-        )
-      }
-
-      const res = await waitForTransaction(removeLiquidityTx, {
-        networkName: selectedNetwork!.slug,
-      })
-      if (res && 'replacementTx' in res) {
-        setTxHash(res.replacementTx.hash)
-      }
-
-      updateUserPoolPositions()
-    } catch (err: any) {
-      if (!/cancelled/gi.test(err.message)) {
-        setError(formatError(err, selectedNetwork))
-      }
-      logger.error(err)
-    }
-
-    setRemoving(false)
-  }
-
   const { data: hasStaked } = useQuery(
     [
       `usePool:hasStaked:${accountAddress}:${chainSlug}:${tokenSymbol}`,
@@ -1419,11 +1030,10 @@ const PoolsProvider: FC = ({ children }) => {
     },
     {
       enabled: !!chainSlug,
-      refetchInterval: 100 * 1000
+      refetchInterval: 60 * 1000
     }
   )
 
-  // ToDo: Use BigNumber everywhere and get rid of this conversion
   const token0Balance =
     canonicalToken && canonicalBalance
       ? Number(formatUnits(canonicalBalance, tokenDecimals))
@@ -1451,6 +1061,7 @@ const PoolsProvider: FC = ({ children }) => {
   const reserve0Formatted = `${commafy(reserve0, 0) || '-'} ${canonicalTokenSymbol}`
   const reserve1Formatted = `${commafy(reserve1, 0) || '-'} ${hopTokenSymbol}`
   const feeFormatted = `${fee ? Number((fee * 100).toFixed(2)) : '-'}%`
+  const apr = _poolStats?.apr ?? 0
   const aprFormatted = toPercentDisplay(apr)
   const totalApr = _poolStats?.totalApr ?? 0
   const totalAprFormatted = _poolStats ? toPercentDisplay(_poolStats?.totalApr) : '-'
@@ -1473,11 +1084,9 @@ const PoolsProvider: FC = ({ children }) => {
   const tokenSumDepositedFormatted = tokenSumDeposited
     ? commafy(Number(formatUnits(tokenSumDeposited, tokenDecimals)), 5)
     : ''
-
   const userPoolBalanceSum = (hasBalance && userPoolBalance && tokenUsdPrice) ? (Number(formatUnits(token0Deposited || 0, tokenDecimals)) + Number(formatUnits(token1Deposited || 0, tokenDecimals))) : 0
   const userPoolBalanceUsd = tokenUsdPrice ? userPoolBalanceSum * tokenUsdPrice : 0
   const userPoolBalanceUsdFormatted = userPoolBalanceUsd ? `$${commafy(userPoolBalanceUsd, 2)}` : commafy(userPoolBalanceSum, 4)
-
   const token0BalanceFormatted = commafy(token0Balance, 4)
   const token1BalanceFormatted = commafy(token1Balance, 4)
   const depositAmountTotal = (Number(token0Amount || 0) + Number(token1Amount || 0))
@@ -1512,219 +1121,118 @@ const PoolsProvider: FC = ({ children }) => {
   const overallPoolPercentage = totalSupplyBn.gt(0) ? overallUserLpBalance.mul(oneToken).div(totalSupplyBn).mul(100) : BigNumber.from(0)
   const formattedOverallPoolPercentage = Number(formatUnits(overallPoolPercentage, lpDecimals)).toFixed(2)
   const overallUserPoolTokenPercentage = formattedOverallPoolPercentage === '0.00' ? '<0.01' : formattedOverallPoolPercentage
-
   const overallUserPoolTokenPercentageFormatted = overallUserPoolTokenPercentage ? `${commafy(overallUserPoolTokenPercentage)}%` : ''
-
-//  const overallToken0Deposited = BigNumber.from(token0Deposited || 0).add(BigNumber.from(stakedToken0Deposited || 0))
-  //const overallToken1Deposited = BigNumber.from(token1Deposited || 0).add(BigNumber.from(stakedToken1Deposited || 0))
-
   const overallToken1DepositedFormatted = overallToken1Deposited
     ? commafy(Number(formatUnits(overallToken1Deposited, tokenDecimals)), 5)
     : ''
-
   const overallToken0DepositedFormatted = overallToken0Deposited
     ? commafy(Number(formatUnits(overallToken0Deposited, tokenDecimals)), 5)
     : ''
-
   const overallUserPoolBalanceSum = (hasBalance && overallUserLpBalance && tokenUsdPrice) ? (Number(formatUnits(overallToken0Deposited || 0, tokenDecimals)) + Number(formatUnits(overallToken1Deposited || 0, tokenDecimals))) : 0
   const overallUserPoolBalanceUsd = tokenUsdPrice ? overallUserPoolBalanceSum * tokenUsdPrice : 0
   const overallUserPoolBalanceUsdFormatted = overallUserPoolBalanceUsd ? `$${commafy(overallUserPoolBalanceUsd, 4)}` : commafy(overallUserPoolBalanceSum, 4)
-
-  async function removeLiquiditySimple(amounts: any) {
-    try {
-      const networkId = Number(selectedNetwork?.networkId)
-      const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected || !selectedNetwork) {
-        throw new Error('wrong network connected')
-      }
-
-      setIsWithdrawing(true)
-      const signer = provider?.getSigner()
-      const bridge = sdk.bridge(tokenSymbol)
-      const amm = bridge.getAmm(selectedNetwork.slug)
-      const lpTokenDecimals = 18
-
-      const lpToken = bridge.getSaddleLpToken(selectedNetwork.slug)
-      const balance = await lpToken.balanceOf()
-      const { proportional, tokenIndex, amountPercent, amount } = amounts
-
-      const saddleSwap = await amm.getSaddleSwap()
-      const approvalTx = await approve(balance, lpToken, saddleSwap.address)
-      await approvalTx?.wait()
-
-      if (proportional) {
-        const liquidityTokenAmount = balance.mul(amountPercent).div(100)
-        const liquidityTokenAmountWithSlippage = liquidityTokenAmount.mul(minBps).div(10000)
-        const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
-          liquidityTokenAmountWithSlippage
-        )
-        const amount0Min = minimumAmounts[0]
-        const amount1Min = minimumAmounts[1]
-        logger.debug('removeLiquidity:', {
-          balance,
-          proportional,
-          amountPercent,
-          liquidityTokenAmount,
-          liquidityTokenAmountWithSlippage,
-          amount0Min,
-          amount1Min,
-        })
-
-        if (liquidityTokenAmount.eq(0)) {
-          throw new Error('calculation error: liquidityTokenAmount cannot be 0')
-        }
-
-        const tx = await bridge
-          .connect(signer as Signer)
-          .removeLiquidity(liquidityTokenAmount, selectedNetwork!.slug, {
-            amount0Min,
-            amount1Min,
-            deadline: deadline(),
-          })
-        await tx.wait()
-      } else {
-        const amount18d = shiftBNDecimals(amount, lpTokenDecimals - tokenDecimals)
-        let tokenAmount = await amm.calculateRemoveLiquidityOneToken(amount18d, tokenIndex)
-        tokenAmount = shiftBNDecimals(tokenAmount, lpTokenDecimals - tokenDecimals)
-        if (tokenAmount.gt(balance)) {
-          tokenAmount = balance
-        }
-        const liquidityTokenAmountWithSlippage = tokenAmount.mul(minBps).div(10000)
-        const minimumAmounts = await amm.calculateRemoveLiquidityMinimum(
-          liquidityTokenAmountWithSlippage
-        )
-        const amountMin = minimumAmounts[tokenIndex].mul(minBps).div(10000)
-
-        logger.debug('removeLiquidity:', {
-          balance,
-          amount,
-          tokenIndex,
-          tokenAmount,
-          liquidityTokenAmountWithSlippage,
-          amountMin,
-        })
-
-        if (tokenAmount.eq(0)) {
-          throw new Error('calculation error: tokenAmount cannot be 0')
-        }
-
-        const tx = await bridge
-          .connect(signer as Signer)
-          .removeLiquidityOneToken(tokenAmount, tokenIndex, selectedNetwork!.slug, {
-            amountMin: amountMin,
-            deadline: deadline(),
-          })
-        await tx.wait()
-      }
-    } catch (err: any) {
-      setError(formatError(err))
-    }
-    setIsWithdrawing(false)
-  }
-
   const hasStakeContract = !!(stakingContract || hopStakingContract)
+  const token0BalanceBn = parseUnits(token0Balance?.toString() || '0', tokenDecimals)
+  const token1BalanceBn = parseUnits(token1Balance?.toString() || '0', tokenDecimals)
 
   return (
     <PoolsContext.Provider
       value={{
-        addLiquidity,
         addLiquidityAndStake,
         address,
         apr,
-        totalApr,
-        totalAprFormatted,
+        aprFormatted,
+        assetWithoutAmm,
+        calculateRemoveLiquidityPriceImpactFn,
         canonicalBalance,
         canonicalToken,
+        canonicalTokenSymbol,
+        chainImageUrl,
+        chainName,
+        chainSlug,
+        depositAmountTotalDisplayFormatted,
+        enoughBalance,
         error,
         fee,
+        feeFormatted,
+        hasBalance,
+        hasStakeContract,
+        hasStaked: !!hasStaked,
         hopBalance,
         hopToken,
+        hopTokenSymbol,
+        isDepositing,
         isNativeToken,
+        isWithdrawing,
+        loading,
         loadingCanonicalBalance,
         loadingHopBalance,
+        lpTokenTotalSupply,
+        lpTokenTotalSupplyFormatted,
         networks: l2Networks,
+        overallToken0DepositedFormatted,
+        overallToken1DepositedFormatted,
+        overallUserPoolBalanceFormatted,
+        overallUserPoolBalanceUsdFormatted,
+        overallUserPoolTokenPercentageFormatted,
+        poolName,
         poolReserves,
         poolSharePercentage,
+        poolSharePercentageFormatted,
         priceImpact,
-        removeLiquidity,
-        unstakeAndRemoveLiquidity,
-        removing,
+        priceImpactFormatted,
+        priceImpactLabel,
+        reserve0,
+        reserve0Formatted,
+        reserve1,
+        reserve1Formatted,
         reserveTotalsUsd,
+        reserveTotalsUsdFormatted,
+        selectBothNetworks,
         selectedNetwork,
         sendButtonText,
-        sending,
-        selectBothNetworks,
         setError,
         setToken0Amount,
         setToken1Amount,
         setWarning,
         token0Amount,
+        token0Balance,
+        token0BalanceBn,
+        token0BalanceFormatted,
         token0Deposited,
+        token0DepositedFormatted,
         token0Price,
         token1Amount,
+        token1Balance,
+        token1BalanceBn,
+        token1BalanceFormatted,
         token1Deposited,
+        token1DepositedFormatted,
         token1Price,
         token1Rate,
+        tokenDecimals,
+        tokenImageUrl,
         tokenSumDeposited,
+        tokenSumDepositedFormatted,
+        tokenSymbol,
+        totalApr,
+        totalAprFormatted,
         totalSupply,
-        txHash,
+        tvlFormatted,
+        unstakeAndRemoveLiquidity,
         unsupportedAsset,
-        assetWithoutAmm,
         userPoolBalance,
         userPoolBalanceFormatted,
+        userPoolBalanceUsd,
+        userPoolBalanceUsdFormatted,
         userPoolTokenPercentage,
         userPoolTokenPercentageFormatted,
         validFormFields,
         virtualPrice,
-        warning,
-        lpTokenTotalSupply,
-        lpTokenTotalSupplyFormatted,
-        hasBalance,
-        canonicalTokenSymbol,
-        hopTokenSymbol,
-        reserve0,
-        reserve1,
-        reserve0Formatted,
-        reserve1Formatted,
-        feeFormatted,
-        aprFormatted,
-        priceImpactLabel,
-        priceImpactFormatted,
-        poolSharePercentageFormatted,
         virtualPriceFormatted,
-        reserveTotalsUsdFormatted,
-        poolName,
-        tokenImageUrl,
-        chainImageUrl,
-        tokenSymbol,
-        chainName,
-        token0DepositedFormatted,
-        token1DepositedFormatted,
-        tokenSumDepositedFormatted,
-        userPoolBalanceUsd,
-        userPoolBalanceUsdFormatted,
-        loading,
-        token0BalanceFormatted,
-        token1BalanceFormatted,
-        token0Balance,
-        token1Balance,
-        depositAmountTotalDisplayFormatted,
-        calculateRemoveLiquidityPriceImpactFn,
-        walletConnected,
-        chainSlug,
-        enoughBalance,
-        removeLiquiditySimple,
-        isWithdrawing,
-        isDepositing,
         volumeUsdFormatted,
-        overallUserPoolBalanceFormatted,
-        overallUserPoolTokenPercentageFormatted,
-        overallToken0DepositedFormatted,
-        overallToken1DepositedFormatted,
-        overallUserPoolBalanceUsdFormatted,
-        tvlFormatted,
-        hasStaked: !!hasStaked,
-        hasStakeContract
+        walletConnected,
+        warning,
       }}
     >
       {children}

@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { ChangeEvent } from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
 import { TokenIcon } from './TokenIcon'
+import { makeStyles } from '@material-ui/core/styles'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -26,17 +26,25 @@ export const useStyles = makeStyles(theme => ({
   },
 }))
 
-export function InputField (props: any) {
+type Props = {
+  disabled?: boolean
+  onChange: any
+  tokenImageUrl: string
+  tokenSymbol: string
+  value: string
+}
+
+export function InputField (props: Props) {
   const styles = useStyles()
   const {
+    disabled,
+    onChange,
     tokenImageUrl,
     tokenSymbol,
     value,
-    onChange,
-    disabled
   } = props
 
-  function handleChange(event: any) {
+  function handleChange(event: ChangeEvent<any>) {
     if (onChange) {
       onChange(event.target.value)
     }

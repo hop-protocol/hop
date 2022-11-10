@@ -18,12 +18,8 @@ export const getRpcUrl = (network: string) => {
   return networkRpcUrl
 }
 
-export function getAllRpcUrls() {
-  return {
-    arbitrum: getRpcUrl(ChainSlug.Arbitrum),
-    optimism: getRpcUrl(ChainSlug.Optimism),
-    gnosis: getRpcUrl(ChainSlug.Gnosis),
-    polygon: getRpcUrl(ChainSlug.Polygon),
-    ethereum: getRpcUrl(L1_NETWORK),
-  }
+export const getRpcUrls = (network: string) => {
+  const rpcUrl = getRpcUrl(network)
+  const fallbackRpcUrls = networks?.[network]?.fallbackRpcUrls ?? []
+  return [rpcUrl, ...fallbackRpcUrls]
 }

@@ -1,14 +1,14 @@
 import React, { useMemo, useEffect, useState } from 'react'
-import { BigNumber, Contract } from 'ethers'
-import { useApp } from 'src/contexts/AppContext'
-import { useWeb3Context } from 'src/contexts/Web3Context'
+import { BigNumber } from 'ethers'
 import { StakingRewards__factory, ERC20__factory } from '@hop-protocol/core/contracts'
-import { formatTokenDecimalString } from 'src/utils/format'
 import { commafy, getTokenImage, findMatchingBridge, isRewardsExpired as isRewardsExpiredCheck, calculateStakedPosition, findNetworkBySlug, formatError } from 'src/utils'
+import { formatTokenDecimalString } from 'src/utils/format'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { useApp } from 'src/contexts/AppContext'
 import { useApprove, useAsyncMemo } from 'src/hooks'
-import { usePoolStats } from './useNewPoolStats'
+import { usePoolStats } from './usePoolStats'
 import { useQuery } from 'react-query'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export function useStaking (chainSlug: string, tokenSymbol: string, stakingContractAddress: string) {
   const { bridges, sdk, txConfirm } = useApp()

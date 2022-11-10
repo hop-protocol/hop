@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, ChangeEvent } from 'react'
 import Box from '@material-ui/core/Box'
 
 // source: https://github.com/wayou/t-rex-runner
@@ -179,7 +179,7 @@ function createMarkup() {
 export function DinoGame() {
   const [play, setPlay] = useState(false)
 
-  function handleClick (event: any) {
+  function handleClick (event: ChangeEvent<{}>) {
     event.preventDefault()
 
     try {

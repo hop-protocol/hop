@@ -25,6 +25,7 @@ import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getProviderFromUrl } from './utils/getProviderFromUrl'
+import { getUrlFromProvider } from './utils/getUrlFromProvider'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
 export type L1Factory = L1PolygonPosRootChainManager__factory | L1XDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1OptimismTokenBridge__factory
@@ -43,6 +44,9 @@ const cacheExpireMs = 1 * 60 * 1000
 
 // cache provider
 const getProvider = memoize((network: string, chain: string) => {
+  if (!config.chains[network]?.[chain]) {
+    throw new Error(`config for chain not found: ${network} ${chain}`)
+  }
   const rpcUrl = config.chains[network][chain].rpcUrl
   if (!rpcUrl) {
     if (network === NetworkSlug.Staging) {
@@ -51,7 +55,10 @@ const getProvider = memoize((network: string, chain: string) => {
     return providers.getDefaultProvider(network)
   }
 
-  const provider = getProviderFromUrl(rpcUrl)
+  const fallbackRpcUrls = config.chains[network][chain].fallbackRpcUrls ?? []
+  const rpcUrls = [rpcUrl, ...fallbackRpcUrls]
+
+  const provider = getProviderFromUrl(rpcUrls)
   return provider
 })
 
@@ -83,8 +90,8 @@ const getContract = async (
   const signerAddress = p?.getAddress ? await p?.getAddress() : ''
   const chainId = p?.provider?._network?.chainId ?? ''
   await p?._networkPromise
-  const fallbackProviderChainId = p?._network?.chainId ?? ''
-  const rpcUrl = p?.connection?.url ?? ''
+  const fallbackProviderChainId = p?._network?.chainId ?? p?.providers?.[0]?._network?.chainId ?? ''
+  const rpcUrl = getUrlFromProvider(p)
   const cacheKey = `${signerAddress}${chainId}${fallbackProviderChainId}${rpcUrl}`
   return getContractMemo(factory, address, cacheKey)(provider)
 }
@@ -720,6 +727,10 @@ class Base {
       throw new Error(json.error)
     }
     return json.data?.[0] ?? null
+  }
+
+  getProviderRpcUrl (provider: any) {
+    return getUrlFromProvider(provider)
   }
 }
 

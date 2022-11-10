@@ -1,13 +1,13 @@
-import React from 'react'
-import { usePools } from './usePools'
+import React, { ChangeEvent } from 'react'
 import Box from '@material-ui/core/Box'
-import { PoolRow } from './PoolRow'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
 import InfoTooltip from 'src/components/InfoTooltip'
 import Skeleton from '@material-ui/lab/Skeleton'
+import Typography from '@material-ui/core/Typography'
+import { PoolRow } from './PoolRow'
 import { StakingRewardsClaim } from '../PoolDetails/StakingRewardsClaim'
+import { makeStyles } from '@material-ui/core/styles'
+import { usePools } from './usePools'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -95,21 +95,21 @@ export function PoolsOverview () {
   const { pools, userPools, filterTokens, filterChains, toggleFilterToken, toggleFilterChain, toggleColumnSort, isAccountLoading } = usePools()
 
   function handleTokenToggleFilterFn (symbol: string) {
-    return (event: any) => {
+    return (event: ChangeEvent<{}>) => {
       event.preventDefault()
       toggleFilterToken(symbol)
     }
   }
 
   function handleChainToggleFilterFn (slug: string) {
-    return (event: any) => {
+    return (event: ChangeEvent<{}>) => {
       event.preventDefault()
       toggleFilterChain(slug)
     }
   }
 
   function handleColumnSortFn(column: string) {
-    return (event: any) => {
+    return (event: ChangeEvent<{}>) => {
       event.preventDefault()
       toggleColumnSort(column)
     }
@@ -133,9 +133,9 @@ export function PoolsOverview () {
                 </Box>
               </Typography>
             </Box>
-            <StakingRewardsClaim data={{
-              claimAll: true,
-            }} />
+            <StakingRewardsClaim
+              claimAll={true}
+            />
           </Box>
           <Box overflow="auto">
             <table className={styles.table}>

@@ -110,3 +110,4 @@ export enum EventNames {
 }
 
 export const MaxDeadline: number = 9999999999
+export const LowLiquidityTokens = ['HOP', 'SNX']

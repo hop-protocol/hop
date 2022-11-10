@@ -40,6 +40,7 @@ export default async function getTransferIds (
         blockNumber
         contractAddress
         token
+        from
       }
     }
   `

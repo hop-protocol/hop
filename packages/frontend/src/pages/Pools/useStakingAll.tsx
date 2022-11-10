@@ -1,11 +1,11 @@
-import React, { useMemo, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BigNumber } from 'ethers'
-import { metadata, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import { StakingRewards__factory } from '@hop-protocol/core/contracts'
-import { useApp } from 'src/contexts/AppContext'
 import { commafy, findNetworkBySlug } from 'src/utils'
 import { formatUnits } from 'ethers/lib/utils'
+import { metadata, hopStakingRewardsContracts, reactAppNetwork } from 'src/config'
+import { useApp } from 'src/contexts/AppContext'
+import { useWeb3Context } from 'src/contexts/Web3Context'
 
 export function useStakingAll () {
   const { sdk, txConfirm } = useApp()
@@ -30,26 +30,32 @@ export function useStakingAll () {
       for (const chainSlug in contracts) {
         for (const tokenSymbol in contracts[chainSlug]) {
           promises.push(async () => {
-            const address = contracts[chainSlug][tokenSymbol]
-            const _provider = await sdk.getSignerOrProvider(chainSlug)
-            const contract = StakingRewards__factory.connect(address, _provider)
-            const earned = await contract?.earned(accountAddress)
-            _totalEarnedBn = _totalEarnedBn.add(earned)
-            if (earned.gt(0)) {
-              const network = findNetworkBySlug(chainSlug)!
-              _txList.push({
-                label: `Claim ${rewardsTokenSymbol} on ${network.name}`,
-                fn: async () => {
-                  const networkId = Number(network.networkId)
-                  const isNetworkConnected = await checkConnectedNetworkId(networkId)
-                  if (!isNetworkConnected) {
-                    throw new Error('wrong network connected')
+            try {
+              const address = contracts[chainSlug][tokenSymbol]
+              const _provider = await sdk.getSignerOrProvider(chainSlug)
+              const contract = StakingRewards__factory.connect(address, _provider)
+              const earned = await contract?.earned(accountAddress)
+              _totalEarnedBn = _totalEarnedBn.add(earned)
+              if (earned.gt(0)) {
+                const network = findNetworkBySlug(chainSlug)!
+                _txList.push({
+                  label: `Claim ${rewardsTokenSymbol} on ${network.name}`,
+                  fn: async () => {
+                    const networkId = Number(network.networkId)
+                    const isNetworkConnected = await checkConnectedNetworkId(networkId)
+                    if (!isNetworkConnected) {
+                      throw new Error('wrong network connected')
+                    }
+                    const _provider = await sdk.getSignerOrProvider(chainSlug)
+                    const contract = StakingRewards__factory.connect(address, _provider)
+                    return contract?.getReward()
                   }
-                  const _provider = await sdk.getSignerOrProvider(chainSlug)
-                  const contract = StakingRewards__factory.connect(address, _provider)
-                  return contract?.getReward()
-                }
-              })
+                })
+              }
+            } catch (err: any) {
+              if (!/(Transaction reverted|noNetwork)/.test(err.message)) {
+                console.error('useStakingAll error:', err)
+              }
             }
           })
         }

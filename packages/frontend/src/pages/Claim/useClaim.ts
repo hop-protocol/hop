@@ -53,7 +53,7 @@ export function useClaim() {
   const [contractBalance, setContractBalance] = useState<BigNumber>(BigNumber.from(0))
   const [airdropSupply, setAirdropSupply] = useState<BigNumber>(BigNumber.from(0))
   const [merkleRootSet, setMerkleRootSet] = useState<boolean>(false)
-  const [claimProvider, setClaimProvider] = useState(() => {
+  const [claimProvider, setClaimProvider] = useState<any>(() => {
     // makes mainnet rpc available when react app network is testnet
     // so claim flow doesn't break frontend
     if (reactAppNetwork !== 'mainnet' && claimChainId === 1) {

@@ -1,5 +1,5 @@
 import Logger from 'src/logger'
-import promiseTimeout from 'src/utils/promiseTimeout'
+import { promiseTimeout } from 'src/utils/promiseTimeout'
 import wait from 'src/utils/wait'
 import { Notifier } from 'src/notifier'
 import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from 'src/config'

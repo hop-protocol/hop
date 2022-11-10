@@ -51,6 +51,7 @@ type GetWatchersConfig = {
   settleBondedWithdrawalsThresholdPercent?: SettleBondedWithdrawalsThresholdPercent
   dryMode?: boolean
   syncFromDate?: string
+  resyncIntervalMs?: number
   s3Upload?: boolean
   s3Namespace?: string
 }
@@ -89,6 +90,7 @@ export async function getWatchers (config: GetWatchersConfig) {
     settleBondedWithdrawalsThresholdPercent = {},
     dryMode = false,
     syncFromDate,
+    resyncIntervalMs,
     s3Upload,
     s3Namespace
   } = config
@@ -190,6 +192,7 @@ export async function getWatchers (config: GetWatchersConfig) {
       tokenSymbol,
       bridgeContract,
       syncFromDate,
+      resyncIntervalMs,
       gasCostPollEnabled
     })
   })

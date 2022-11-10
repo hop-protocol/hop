@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import { Block, BlockTag, BlockWithTransactions, Provider as EthersProvider, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
+import { Block, BlockTag, BlockWithTransactions, Filter, FilterByBlockHash, Log, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider'
 import { Deferrable } from '@ethersproject/properties'
 import { Network } from '@ethersproject/networks'
 import { getProviderWithFallbacks } from '../utils/getProviderFromUrl'
@@ -8,7 +8,7 @@ import { rateLimitRetry } from '../utils/rateLimitRetry'
 
 // reference: https://github.com/ethers-io/ethers.js/blob/b1458989761c11bf626591706aa4ce98dae2d6a9/packages/abstract-provider/src.ts/index.ts#L225
 
-export class RetryProvider extends providers.StaticJsonRpcProvider implements EthersProvider {
+export class RetryProvider extends providers.StaticJsonRpcProvider implements providers.Provider {
   async perform (method: string, params: any): Promise<any> {
     return await super.perform(method, params)
   }
@@ -93,9 +93,9 @@ export class RetryProvider extends providers.StaticJsonRpcProvider implements Et
   })
 }
 
-export class FallbackProvider implements EthersProvider {
+export class FallbackProvider implements providers.Provider {
   private _providersFn: any[] = []
-  private _providers: EthersProvider[] = []
+  private _providers: providers.Provider[] = []
   private activeIndex = 0
   _isProvider: boolean = true
 
@@ -114,6 +114,10 @@ export class FallbackProvider implements EthersProvider {
       }
       return p
     })
+  }
+
+  get connection () {
+    return (this.getActiveProvider() as any).connection
   }
 
   private getActiveProvider () {
@@ -266,7 +270,15 @@ export class FallbackProvider implements EthersProvider {
     return this
   }
 
-  public getAvatar (address: string): Promise<string> {
+  getAvatar (address: string): Promise<string> {
     return this.tryProvider(() => (this.getActiveProvider() as any).getAvatar(address))
+  }
+
+  async detectNetwork (): Promise<Network> {
+    return this.tryProvider(() => (this.getActiveProvider() as any).detectNetwork())
+  }
+
+  getResolver (address: string): Promise<string> {
+    return this.tryProvider(() => (this.getActiveProvider() as any).getResolver(address))
   }
 }

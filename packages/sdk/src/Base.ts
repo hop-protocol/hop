@@ -434,7 +434,7 @@ class Base {
   public async getSignerOrProvider (
     chain: TChain,
     signer: TProvider = this.signer as Signer
-  ) {
+  ): Promise<Signer | providers.Provider> {
     // console.log('getSignerOrProvider')
     chain = this.toChainModel(chain)
     if (!signer) {

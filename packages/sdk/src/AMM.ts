@@ -377,7 +377,7 @@ class AMM extends Base {
     let startBlockNumber = await getBlockNumberFromDate(provider, startDate)
 
     const tokenSwapEvents: any[] = []
-    const perBatch = 1000
+    const perBatch = 2000
     let endBatchBlockNumber = Math.min(
       startBlockNumber + perBatch,
       endBlockNumber

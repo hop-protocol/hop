@@ -1,17 +1,18 @@
-import BlockDater from 'ethereum-block-by-date'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import { DateTime } from 'luxon'
+import fetch from 'node-fetch'
+import { etherscanApiKeys, etherscanApiUrls } from 'src/config'
 
-async function getBlockNumberFromDate (chain: string, timestamp: number) {
-  const provider = getRpcProvider(chain)
-  const blockDater = new BlockDater(provider)
-  const date = DateTime.fromSeconds(timestamp).toJSDate()
-  const info = await blockDater.getDate(date)
-  if (!info) {
+async function getBlockNumberFromDate (chain: string, timestamp: number): Promise<number> {
+  const apiKey = etherscanApiKeys[chain]
+  const baseUrl = etherscanApiUrls[chain]
+  const url = baseUrl + `/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${apiKey}`
+  const res = await fetch(url)
+  const resJson = await res.json()
+
+  if (resJson.status !== '1') {
     throw new Error('could not retrieve block number')
   }
 
-  return info.block
+  return Number(resJson.result)
 }
 
 export default getBlockNumberFromDate

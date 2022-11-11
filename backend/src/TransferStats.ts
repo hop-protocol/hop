@@ -898,7 +898,6 @@ class TransferStats {
             }
             const receivedHTokens = await this.getReceivedHtokens(item)
             item.receivedHTokens = receivedHTokens
-            console.log('receivedHTokens?', item.transferId, receivedHTokens)
             await this.upsertItem(item)
           }))
         }

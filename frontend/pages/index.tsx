@@ -939,6 +939,7 @@ const Index: NextPage = () => {
                   <option value="bondTimestamp">Bonded Timestamp</option>
                   <option value="bondWithinTimestamp">Bonded Within Timestamp</option>
                   <option value="receivedHTokens">Received hTokens</option>
+                  <option value="integrationPartner">Integration Partner</option>
                 </select>
               </div>
               <div>
@@ -968,7 +969,7 @@ const Index: NextPage = () => {
             <table>
               <thead>
                 <tr>
-                  <th></th><th title="Date">Date</th><th title="Source chain">Source</th><th title="Destination chain">Destination</th><th title="Transfer ID">Transfer ID</th><th title="Transfer transaction hash">Transfer Tx</th><th title="Token">Token</th><th title="Amount in token">Amount</th><th title="Amount in USD">Amount USD</th><th title="Bonder fee in token">Bonder Fee</th><th title="Bonder fee in USD">Bonder Fee USD</th><th title="Transfer token was received at destination chain">Bonded</th><th title="Bonded or receive at destination chain transaction hash">Bonded Tx</th><th title="Date transfer was received at destination chain">Bonded Date</th><th title="Time it took to receive transfer at destination chain">Bonded Within</th><th title="The address of bonder who bonded transfer">Bonder</th><th title="The sender address">Account</th><th title="The receipient address">Recipient</th>
+                  <th></th><th title="Date">Date</th><th title="Source chain">Source</th><th title="Destination chain">Destination</th><th title="Transfer ID">Transfer ID</th><th title="Transfer transaction hash">Transfer Tx</th><th title="Token">Token</th><th title="Amount in token">Amount</th><th title="Amount in USD">Amount USD</th><th title="Bonder fee in token">Bonder Fee</th><th title="Bonder fee in USD">Bonder Fee USD</th><th title="Transfer token was received at destination chain">Bonded</th><th title="Bonded or receive at destination chain transaction hash">Bonded Tx</th><th title="Date transfer was received at destination chain">Bonded Date</th><th title="Time it took to receive transfer at destination chain">Bonded Within</th><th title="The address of bonder who bonded transfer">Bonder</th><th title="The sender address">Account</th><th title="The receipient address">Recipient</th><th title="Integratino Partner">Integration Partner</th>
                 </tr>
               </thead>
               <tbody>
@@ -1109,6 +1110,12 @@ const Index: NextPage = () => {
                           </a>
                           </>
                         )}
+                      </td>
+                      <td className="bondedWithin" title={x.integrationPartnerName}>
+                        {x.integrationPartnerImageUrl && (
+                          <img width="16" height="16" src={x.integrationPartnerImageUrl} alt={x.integrationPartnerName} />
+                        )}
+                        {x.integrationPartnerName}
                       </td>
                     </tr>
                   )

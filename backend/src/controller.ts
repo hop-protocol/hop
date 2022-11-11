@@ -253,7 +253,8 @@ export class Controller {
         bondTimestamp: 'bond_timestamp',
         bondWithinTimestamp: 'bond_within_timestamp',
         receivedHTokens: 'received_htokens',
-        token: 'token'
+        token: 'token',
+        integrationPartner: 'integration_partner'
       }
       sortBy = sortBys[sortBy]
     }
@@ -359,6 +360,21 @@ export class Controller {
       }
 
       x.hopExplorerUrl = `https://${isGoerli ? 'goerli.explorer.hop.exchange' : 'explorer.hop.exchange'}/?transferId=${x.transferId}`
+
+      if (x.integrationPartner) {
+        const names = {
+          socket: 'Socket',
+          lifi: 'LI.FI',
+          metamask: 'MetaMask'
+        }
+        const imageUrls = {
+          socket: 'https://assets.hop.exchange/logos/socket.jpg',
+          lifi: 'https://assets.hop.exchange/logos/lifi.webp',
+          metamask: 'https://assets.hop.exchange/logos/metamask.svg'
+        }
+        x.integrationPartnerName = names[x.integrationPartner]
+        x.integrationPartnerImageUrl = imageUrls[x.integrationPartner]
+      }
 
       return x
     })

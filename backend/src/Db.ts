@@ -50,6 +50,15 @@ class Db {
       await this.db.query(`
         ALTER TABLE transfers ADD COLUMN IF NOT EXISTS amount_received_formatted NUMERIC
       `)
+      await this.db.query(`
+        ALTER TABLE transfers ADD COLUMN IF NOT EXISTS origin_contract_address TEXT
+      `)
+      await this.db.query(`
+        ALTER TABLE transfers ADD COLUMN IF NOT EXISTS integration_partner TEXT
+      `)
+      await this.db.query(`
+        ALTER TABLE transfers ADD COLUMN IF NOT EXISTS integration_partner_contract_address TEXT
+      `)
     }
 
     await this.db.query(`CREATE TABLE IF NOT EXISTS transfers (
@@ -106,7 +115,10 @@ class Db {
         received_htokens BOOLEAN,
         unbondable BOOLEAN,
         amount_received TEXT,
-        amount_received_formatted NUMERIC
+        amount_received_formatted NUMERIC,
+        origin_contract_address TEXT,
+        integration_partner TEXT,
+        integration_partner_contract_address TEXT
     )`)
 
     await this.db.query(`CREATE TABLE IF NOT EXISTS token_prices (
@@ -227,7 +239,10 @@ class Db {
     receivedHTokens: boolean,
     unbondable: boolean,
     amountReceived: string,
-    amountReceivedFormatted: number
+    amountReceivedFormatted: number,
+    originContractAddress: string,
+    integrationPartner: string,
+    integrationPartnerContractAddress: string
   ) {
     const args = [
       transferId,
@@ -283,7 +298,10 @@ class Db {
       receivedHTokens,
       unbondable,
       amountReceived,
-      amountReceivedFormatted
+      amountReceivedFormatted,
+      originContractAddress,
+      integrationPartner,
+      integrationPartnerContractAddress
     ]
     await this.db.query(
       `INSERT INTO transfers (
@@ -340,8 +358,11 @@ class Db {
         received_htokens,
         unbondable,
         amount_received,
-        amount_received_formatted
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54) ON CONFLICT (
+        amount_received_formatted,
+        origin_contract_address,
+        integration_partner,
+        integration_partner_contract_address
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57) ON CONFLICT (
       transfer_id
       ) DO UPDATE SET
         id = $1,
@@ -397,7 +418,10 @@ class Db {
         received_htokens = $51,
         unbondable = $52,
         amount_received = $53,
-        amount_received_formatted = $54
+        amount_received_formatted = $54,
+        origin_contract_address = $55,
+        integration_partner = $56,
+        integration_partner_contract_address = $57
       `, args
     )
   }
@@ -424,7 +448,8 @@ class Db {
       endTimestamp,
       countOnly,
       receivedHTokens,
-      amountReceived
+      amountReceived,
+      integrationPartner
     } = params
     let count = perPage
     let skip = (page * perPage)
@@ -557,6 +582,11 @@ class Db {
       }
     }
 
+    if (integrationPartner) {
+      whereClauses.push(`integration_partner = $${i++}`)
+      queryParams.push(integrationPartner)
+    }
+
     const whereClause = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : ''
 
     let sql = `
@@ -614,7 +644,10 @@ class Db {
           received_htokens AS "receivedHTokens",
           unbondable,
           amount_received AS "amountReceived",
-          amount_received_formatted AS "amountReceivedFormatted"
+          amount_received_formatted AS "amountReceivedFormatted",
+          origin_contract_address AS "originContractAddress",
+          integration_partner AS "integrationPartner",
+          integration_partner_contract_address AS "integrationPartnerContractAddress"
         FROM
           transfers
         ${whereClause}

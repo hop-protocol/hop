@@ -145,6 +145,8 @@ type Transfer = {
   unbondabe: boolean
   amountReceived: string
   amountReceivedFormatted: string
+
+  integrationPartner: string
 }
 
 export class Controller {
@@ -191,6 +193,7 @@ export class Controller {
     const countOnly = params.countOnly
     const receivedHTokens = params.receivedHTokens
     const refreshFlag = params.refresh
+    const integrationPartner = params.integrationPartner
     let bonded : any
 
     if (bondedStatus === 'pending') {
@@ -283,7 +286,8 @@ export class Controller {
       sortBy,
       sortDirection,
       receivedHTokens,
-      countOnly
+      countOnly,
+      integrationPartner
     })
     if (countOnly) {
       const [count] = transfers

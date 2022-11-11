@@ -225,6 +225,7 @@ class TransferStats {
   days = 0
   offsetDays = 0
   ready = false
+  transactionReceipts: any = {}
 
   constructor (options: Options = {}) {
     if (options.days) {
@@ -343,6 +344,9 @@ class TransferStats {
           timestamp
           token
           from
+          transaction {
+            to
+          }
         }
       }
     `
@@ -370,6 +374,9 @@ class TransferStats {
           timestamp
           token
           from
+          transaction {
+            to
+          }
         }
       }
     `
@@ -432,6 +439,9 @@ class TransferStats {
           timestamp
           token
           from
+          transaction {
+            to
+          }
         }
       }
     `
@@ -453,6 +463,9 @@ class TransferStats {
           timestamp
           token
           from
+          transaction {
+            to
+          }
         }
       }
     `
@@ -475,6 +488,9 @@ class TransferStats {
           timestamp
           token
           from
+          transaction {
+            to
+          }
         },
         transferSents2: transferSents(
           where: {
@@ -493,6 +509,9 @@ class TransferStats {
           timestamp
           token
           from
+          transaction {
+            to
+          }
         }
       }
     `
@@ -767,17 +786,17 @@ class TransferStats {
 
   async initPrices (daysN = 365) {
     console.log('fetching prices')
-    const pricesArr = await Promise.all([
-      this.getPriceHistory('usd-coin', daysN),
-      this.getPriceHistory('tether', daysN),
-      this.getPriceHistory('dai', daysN),
-      this.getPriceHistory('ethereum', daysN),
-      this.getPriceHistory('matic-network', daysN),
-      this.getPriceHistory('wrapped-bitcoin', daysN),
-      this.getPriceHistory('frax', daysN),
-      this.getPriceHistory('hop-protocol', daysN),
-      this.getPriceHistory('havven', daysN)
-    ])
+    const pricesArr = [
+      await this.getPriceHistory('usd-coin', daysN),
+      await this.getPriceHistory('tether', daysN),
+      await this.getPriceHistory('dai', daysN),
+      await this.getPriceHistory('ethereum', daysN),
+      await this.getPriceHistory('matic-network', daysN),
+      await this.getPriceHistory('wrapped-bitcoin', daysN),
+      await this.getPriceHistory('frax', daysN),
+      await this.getPriceHistory('hop-protocol', daysN),
+      await this.getPriceHistory('havven', daysN)
+    ]
     console.log('done fetching prices')
 
     const prices: any = {
@@ -810,7 +829,7 @@ class TransferStats {
         throw new Error(`rpc url not found for "${destinationChainSlug}"`)
       }
       const provider = new providers.StaticJsonRpcProvider(rpcUrl)
-      const receipt = await provider.getTransactionReceipt(bondTransactionHash)
+      const receipt = await this.getTransactionReceipt(provider, bondTransactionHash)
       const transferTopic = '0xddf252ad'
 
       if (sourceChainSlug === 'ethereum') {
@@ -903,7 +922,7 @@ class TransferStats {
         throw new Error(`rpc url not found for "${destinationChainSlug}"`)
       }
       const provider = new providers.StaticJsonRpcProvider(rpcUrl)
-      const receipt = await provider.getTransactionReceipt(bondTransactionHash)
+      const receipt = await this.getTransactionReceipt(provider, bondTransactionHash)
       const transferTopic = '0xddf252ad'
 
       let amount = BigNumber.from(0)
@@ -1307,7 +1326,10 @@ class TransferStats {
         item.receivedHTokens,
         item.unbondable,
         item.amountReceived,
-        item.amountReceivedFormatted
+        item.amountReceivedFormatted,
+        item.originContractAddress,
+        item.integrationPartner,
+        item.integrationPartnerContractAddress
       )
     } catch (err) {
       if (!(err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint'))) {
@@ -1564,7 +1586,8 @@ class TransferStats {
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
         token: x.token,
-        from: x.from
+        from: x.from,
+        originContractAddress: x?.transaction?.to?.toLowerCase()
       })
     }
     for (const x of polygonTransfers) {
@@ -1580,7 +1603,8 @@ class TransferStats {
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
         token: x.token,
-        from: x.from
+        from: x.from,
+        originContractAddress: x?.transaction?.to?.toLowerCase()
       })
     }
     for (const x of optimismTransfers) {
@@ -1596,7 +1620,8 @@ class TransferStats {
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
         token: x.token,
-        from: x.from
+        from: x.from,
+        originContractAddress: x?.transaction?.to?.toLowerCase()
       })
     }
     for (const x of arbitrumTransfers) {
@@ -1612,7 +1637,8 @@ class TransferStats {
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
         token: x.token,
-        from: x.from
+        from: x.from,
+        originContractAddress: x?.transaction?.to?.toLowerCase()
       })
     }
     for (const x of mainnetTransfers) {
@@ -1628,7 +1654,8 @@ class TransferStats {
         transactionHash: x.transactionHash,
         timestamp: Number(x.timestamp),
         token: x.token,
-        from: x.from
+        from: x.from,
+        originContractAddress: x?.transaction?.to?.toLowerCase()
       })
     }
 
@@ -1782,6 +1809,57 @@ class TransferStats {
       }
     }
 
+    const integrations = {
+      '0xc30141b657f4216252dc59af2e7cdb9d8792e1b0': 'socket',
+      '0x362fa9d0bca5d19f743db50738345ce2b40ec99f': 'lifi',
+      '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask'
+    }
+
+    if (data.length > 0) {
+      for (const item of data) {
+        const { transactionHash, sourceChain } = item
+        const sourceChainSlug = chainIdToSlugMap[sourceChain]
+
+        const _addresses = Object.values(addresses?.bridges?.[item.token]?.[sourceChainSlug] ?? {}).reduce((acc: any, address: string) => {
+          address = /^0x/.test(address) ? address?.toLowerCase() : ''
+          if (address) {
+            acc[address] = true
+          }
+          return acc
+        }, {})
+        console.log(_addresses)
+        const isOriginHop = _addresses[item?.originContractAddress]
+        if (isOriginHop) {
+          continue
+        }
+        const rpcUrl = rpcUrls[sourceChainSlug]
+        if (rpcUrl) {
+          const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+          const receipt = await this.getTransactionReceipt(provider, transactionHash)
+          if (receipt) {
+            const contractAddress = receipt.to?.toLowerCase()
+            item.originContractAddress = contractAddress
+            let integrationPartner = integrations[contractAddress]
+            if (integrationPartner) {
+              item.integrationPartner = integrationPartner
+              item.integrationPartnerContractAddress = contractAddress
+              break
+            }
+            const logs = receipt.logs
+            for (const log of logs) {
+              const address = log.address?.toLowerCase()
+              integrationPartner = integrations[address]
+              if (integrationPartner) {
+                item.integrationPartner = integrationPartner
+                item.integrationPartnerContractAddress = address
+                break
+              }
+            }
+          }
+        }
+      }
+    }
+
     const populatedData = data
       .filter(x => enabledTokens.includes(x.token))
       .filter(x => x.destinationChain && x.transferId)
@@ -1837,6 +1915,9 @@ class TransferStats {
           timestamp
           token
           from
+          transaction {
+            to
+          }
         }
       }
     `
@@ -1935,6 +2016,20 @@ class TransferStats {
     )
 
     return logs[0]
+  }
+
+  async getTransactionReceipt (provider: any, transactionHash: string) {
+    const cached = this.transactionReceipts[transactionHash]
+    if (cached) {
+      return cached
+    }
+
+    const receipt = await provider.getTransactionReceipt(transactionHash)
+    if (receipt) {
+      this.transactionReceipts[transactionHash] = receipt
+    }
+
+    return receipt
   }
 }
 

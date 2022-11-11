@@ -64,7 +64,8 @@ app.get('/v1/transfers', responseCache, async (req: any, res: any) => {
       sortDirection,
       receivedHTokens,
       countOnly,
-      refresh
+      refresh,
+      integrationPartner
     } = req.query
     const data = await controller.getTransfers({
       page,
@@ -91,7 +92,8 @@ app.get('/v1/transfers', responseCache, async (req: any, res: any) => {
       sortDirection,
       receivedHTokens,
       countOnly,
-      refresh
+      refresh,
+      integrationPartner
     })
     res.status(200).json({ status: 'ok', data })
   } catch (err) {

@@ -33,8 +33,8 @@ export enum Token {
   DAI = 'DAI',
 }
 
-const AvgBlockTimeSeconds = {
-  Ethereum: 13,
+export const AvgBlockTimeSeconds = {
+  Ethereum: 12,
   Polygon: 2,
   Gnosis: 5
 }

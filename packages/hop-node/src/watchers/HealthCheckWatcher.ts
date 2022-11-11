@@ -17,7 +17,7 @@ import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
 import { BigNumber, providers } from 'ethers'
-import { Chain, NativeChainToken, OneDayMs, RelayableChains } from 'src/constants'
+import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
@@ -713,7 +713,7 @@ export class HealthCheckWatcher {
     const now = DateTime.now().toUTC()
     const sourceChains = [Chain.Optimism, Chain.Arbitrum]
     const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum]
-    const tokens = ['USDC', 'USDT', 'DAI', 'ETH']
+    const tokens = getEnabledTokens()
     const startTime = Math.floor(now.minus({ days: this.days }).toSeconds())
     const endTime = Math.floor(now.toSeconds())
     let result: any[] = []
@@ -800,11 +800,13 @@ export class HealthCheckWatcher {
   }
 
   private async getChallengedTransferRoots (): Promise<ChallengedTransferRoot[]> {
-    const date = DateTime.now().toUTC()
-    const now = date.toSeconds()
-    const dayAgo = date.minus({ days: 1 }).toSeconds()
-    const endBlockNumber = await getBlockNumberFromDate(Chain.Ethereum, now)
-    const startBlockNumber = await getBlockNumberFromDate(Chain.Ethereum, dayAgo)
+    // This function does not use TheGraph, as that adds an additional layer/failure point.
+    
+    // Blocks on Ethereum are exactly 12s, so we know exactly how far back to look in terms of blocks
+    const blocksInDay = OneDaySeconds / AvgBlockTimeSeconds.Ethereum
+    const provider = getRpcProvider(Chain.Ethereum)!
+    const startBlockNumber = Number((await provider.getBlockNumber()).toString())
+    const endBlockNumber = startBlockNumber - blocksInDay
 
     const result: any[] = []
     for (const token of this.tokens) {

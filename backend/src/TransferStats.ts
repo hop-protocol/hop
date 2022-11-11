@@ -1014,7 +1014,6 @@ class TransferStats {
               const { amountReceived, amountReceivedFormatted } = data
               item.amountReceived = amountReceived
               item.amountReceivedFormatted = amountReceivedFormatted
-              console.log('amountReceived?', item.transferId, amountReceived, amountReceivedFormatted)
               await this.upsertItem(item)
             }
           }))
@@ -1827,7 +1826,6 @@ class TransferStats {
           }
           return acc
         }, {})
-        console.log(_addresses)
         const isOriginHop = _addresses[item?.originContractAddress]
         if (isOriginHop) {
           continue
@@ -1876,7 +1874,6 @@ class TransferStats {
 
     for (const x of populatedData) {
       const isUnbondable = (x.destinationChainSlug === 'ethereum' && (x.deadline > 0 || BigNumber.from(x.amountOutMin || 0).gt(0)))
-      console.log('isUnbondable?', isUnbondable, x.transferId, x.deadline, x.amountOutMin)
       x.unbondable = isUnbondable
     }
 

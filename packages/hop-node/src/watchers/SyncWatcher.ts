@@ -39,6 +39,7 @@ type Config = {
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L2BridgeContract
   syncFromDate?: string
+  resyncIntervalMs?: number
   gasCostPollEnabled?: boolean
 }
 
@@ -62,6 +63,11 @@ class SyncWatcher extends BaseWatcher {
     this.syncFromDate = config.syncFromDate!
     if (typeof config.gasCostPollEnabled === 'boolean') {
       this.gasCostPollEnabled = config.gasCostPollEnabled
+      this.logger.debug(`gasCostPollEnabled: ${this.gasCostPollEnabled}`)
+    }
+    if (typeof config.resyncIntervalMs === 'number') {
+      this.resyncIntervalMs = config.resyncIntervalMs
+      this.logger.debug(`resyncIntervalMs set to ${this.resyncIntervalMs}`)
     }
 
     this.init()

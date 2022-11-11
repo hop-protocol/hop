@@ -13,7 +13,7 @@ async function getBlockNumberFromDate (chain: string, timestamp: number): Promis
   const resJson = await res.json()
 
   if (resJson.status !== '1') {
-    throw new Error('could not retrieve block number')
+    throw new Error('could not retrieve block number', resJson)
   }
 
   return Number(resJson.result)

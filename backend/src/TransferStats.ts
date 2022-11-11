@@ -1270,6 +1270,14 @@ class TransferStats {
           item.amountReceivedFormatted = _item.amountReceivedFormatted
         }
       }
+      if (item.integrationPartner == null) {
+        const _item = await this.db.getTransfers({ transferId: item.transferId })
+        if (_item) {
+          item.originContractAddress = _item.originContractAddress
+          item.integrationPartner = _item.integrationPartner
+          item.integrationPartnerContractAddress = _item.integrationPartnerContractAddress
+        }
+      }
 
       await this.db.upsertTransfer(
         item.transferId,
@@ -1831,27 +1839,31 @@ class TransferStats {
         }
         const rpcUrl = rpcUrls[sourceChainSlug]
         if (rpcUrl) {
-          const provider = new providers.StaticJsonRpcProvider(rpcUrl)
-          const receipt = await this.getTransactionReceipt(provider, transactionHash)
-          if (receipt) {
-            const contractAddress = receipt.to?.toLowerCase()
-            item.originContractAddress = contractAddress
-            let integrationPartner = integrations[contractAddress]
-            if (integrationPartner) {
-              item.integrationPartner = integrationPartner
-              item.integrationPartnerContractAddress = contractAddress
-              break
-            }
-            const logs = receipt.logs
-            for (const log of logs) {
-              const address = log.address?.toLowerCase()
-              integrationPartner = integrations[address]
+          try {
+            const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+            const receipt = await this.getTransactionReceipt(provider, transactionHash)
+            if (receipt) {
+              const contractAddress = receipt.to?.toLowerCase()
+              item.originContractAddress = contractAddress
+              let integrationPartner = integrations[contractAddress]
               if (integrationPartner) {
                 item.integrationPartner = integrationPartner
-                item.integrationPartnerContractAddress = address
-                break
+                item.integrationPartnerContractAddress = contractAddress
+                continue
+              }
+              const logs = receipt.logs
+              for (const log of logs) {
+                const address = log.address?.toLowerCase()
+                integrationPartner = integrations[address]
+                if (integrationPartner) {
+                  item.integrationPartner = integrationPartner
+                  item.integrationPartnerContractAddress = address
+                  break
+                }
               }
             }
+          } catch (err: any) {
+            console.error(err)
           }
         }
       }

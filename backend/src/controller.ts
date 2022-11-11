@@ -294,7 +294,9 @@ export class Controller {
       const [count] = transfers
       return count
     }
-    let data = (transfers as any[]).map((x: any, i: number) => {
+
+    let data = transfers as any[]
+    data = data.map((x: any, i: number) => {
       x.sourceChainId = Number(x.sourceChainId)
       x.destinationChainId = Number(x.destinationChainId)
       x.amountFormatted = Number(x.amountFormatted)

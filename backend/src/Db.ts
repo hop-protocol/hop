@@ -587,6 +587,10 @@ class Db {
       queryParams.push(integrationPartner)
     }
 
+    if (sortBy === 'integration_partner') {
+      whereClauses.push('integration_partner IS NOT NULL')
+    }
+
     const whereClause = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : ''
 
     let sql = `

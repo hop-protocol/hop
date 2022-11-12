@@ -104,6 +104,10 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       availableCredit = BigNumber.from(0)
     }
 
+    if (this.tokenSymbol === 'DAI') {
+      availableCredit = BigNumber.from('0')
+    }
+
     return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance }
   }
 

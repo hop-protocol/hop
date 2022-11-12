@@ -1,5 +1,8 @@
 import { etherscanApiKeys, etherscanApiUrls } from '../config'
 
+const wait = (t: number) =>
+  new Promise(resolve => setTimeout(() => resolve(null), t))
+
 async function getBlockNumberFromDate (chain: string, timestamp: number): Promise<number> {
   const apiKey = etherscanApiKeys[chain]
   if (!apiKey) {
@@ -8,14 +11,28 @@ async function getBlockNumberFromDate (chain: string, timestamp: number): Promis
 
   const baseUrl = etherscanApiUrls[chain]
   const url = baseUrl + `/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${apiKey}`
-  const res = await fetch(url)
-  const resJson = await res.json()
 
-  if (resJson.status !== '1') {
-    throw new Error(`could not retrieve block number ${JSON.stringify(resJson)}`)
+  let retryCount = 0
+  while (true) {
+    try {
+      const res = await fetch(url)
+      const resJson = await res.json()
+
+      if (resJson.status !== '1') {
+        throw new Error(`could not retrieve block number ${JSON.stringify(resJson)}`)
+      }
+
+      return Number(resJson.result)
+    } catch (err) {
+      console.error(`getBlockNumberFromDate try number ${retryCount} err: ${err.message}`)
+      retryCount++
+      if (retryCount < 5) continue
+      await wait(1 * 1000)
+      break
+    }
   }
 
-  return Number(resJson.result)
+  throw new Error('could not retrieve block number')
 }
 
 export default getBlockNumberFromDate

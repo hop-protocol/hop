@@ -262,7 +262,6 @@ class BonderStats {
     const date = now.minus({ days: day }).startOf('day')
     const startDate = Math.floor(date.toSeconds())
     const endDate = Math.floor(date.endOf('day').toSeconds())
-    const isoDate = date.toISO()
     const address = Object.keys(jsonData[token])[0]
     if (!address) {
       throw new Error(`no address found for token "${token}"`)
@@ -278,20 +277,17 @@ class BonderStats {
     }
 
     const dbData: Record<string, any> = {}
-    await Promise.all(
-      this.chains.map(async (chain: string) => {
-        let chainFees = BigNumber.from(0)
-        const gasFees = await this.fetchBonderTxFees(
-          address,
-          chain,
-          startDate,
-          endDate
-        )
-        const chainFeesFormatted = Number(formatEther(gasFees))
-        dbData[`${chain}TxFees`] = chainFeesFormatted
-        console.log(chain, chainFeesFormatted)
-      })
-    )
+    this.chains.map(async (chain: string) => {
+      const gasFees = await this.fetchBonderTxFees(
+        address,
+        chain,
+        startDate,
+        endDate
+      )
+      const chainFeesFormatted = Number(formatEther(gasFees))
+      dbData[`${chain}TxFees`] = chainFeesFormatted
+      console.log(chain, chainFeesFormatted)
+    })
 
     const ethPrice = priceMap.ETH
     const maticPrice = priceMap.MATIC
@@ -752,10 +748,12 @@ class BonderStats {
 
         for (const sourceChain in bonderMap) {
           for (const destinationChain in bonderMap[sourceChain]) {
+            const chain = destinationChain
+            const blockTag = await getBlockNumberFromDate(chain, timestamp)
+
             chainPromises.push(
               new Promise(async (resolve, reject) => {
                 try {
-                  const chain = destinationChain
                   let provider = allProviders[chain]
                   const archiveProvider = allArchiveProviders[chain] || provider
                   const bonder = bonderMap[sourceChain][destinationChain]
@@ -791,9 +789,7 @@ class BonderStats {
                     `fetching daily bonder balance stat, chain: ${chain}, token: ${token}, timestamp: ${timestamp}`
                   )
 
-                  const blockTag = await getBlockNumberFromDate(chain, timestamp)
                   const balancePromises: Promise<any>[] = []
-
                   if (tokenAddress !== constants.AddressZero) {
                     balancePromises.push(
                       tokenContract.balanceOf(bonder, {
@@ -1351,8 +1347,11 @@ class BonderStats {
     let retries = 0
     while (true) {
       try {
-        const startBlock = await getBlockNumberFromDate(chain, startTimestamp)
         const endBlock = 99999999
+        const startBlock = await getBlockNumberFromDate(chain, startTimestamp)
+
+        // Wait here since these are two consecutive Etherscan calls
+        await wait(1 * 1000)
         const url = this.getEtherscanUrl(chain, address, startBlock, endBlock)
 
         const res = await fetch(url)

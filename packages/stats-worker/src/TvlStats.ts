@@ -118,27 +118,17 @@ class TvlStats {
   async trackTvl () {
     const daysN = this.days
     console.log('fetching prices')
-    const pricesArr = []
-
-    // Parallelizing these causes API issues
-    pricesArr.push(await this.getPriceHistory('usd-coin', daysN))
-    pricesArr.push(await this.getPriceHistory('tether', daysN))
-    pricesArr.push(await this.getPriceHistory('dai', daysN))
-    pricesArr.push(await this.getPriceHistory('ethereum', daysN))
-    pricesArr.push(await this.getPriceHistory('matic-network', daysN))
-    pricesArr.push(await this.getPriceHistory('wrapped-bitcoin', daysN))
-    pricesArr.push(await this.getPriceHistory('hop-protocol', daysN))
-    console.log('done fetching prices')
 
     const prices: any = {
-      USDC: pricesArr[0],
-      USDT: pricesArr[1],
-      DAI: pricesArr[2],
-      ETH: pricesArr[3],
-      MATIC: pricesArr[4],
-      WBTC: pricesArr[5],
-      HOP: pricesArr[6]
+      USDC: await this.getPriceHistory('usd-coin', daysN),
+      USDT: await this.getPriceHistory('tether', daysN),
+      DAI: await this.getPriceHistory('dai', daysN),
+      ETH: await this.getPriceHistory('ethereum', daysN),
+      MATIC: await this.getPriceHistory('matic-network', daysN),
+      WBTC: await this.getPriceHistory('wrapped-bitcoin', daysN),
+      HOP: await this.getPriceHistory('hop-protocol', daysN),
     }
+    console.log('done fetching prices')
 
     console.log('upserting prices')
     for (let token in prices) {

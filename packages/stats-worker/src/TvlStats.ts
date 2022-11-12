@@ -77,6 +77,7 @@ class TvlStats {
   db = new Db()
   regenesis: boolean = false
   days: number = 365
+  blockTags: Record<string, Record<number, number>> = {}
 
   constructor (options: Options = {}) {
     if (options.regenesis) {
@@ -117,15 +118,16 @@ class TvlStats {
   async trackTvl () {
     const daysN = this.days
     console.log('fetching prices')
-    const pricesArr = await Promise.all([
-      this.getPriceHistory('usd-coin', daysN),
-      this.getPriceHistory('tether', daysN),
-      this.getPriceHistory('dai', daysN),
-      this.getPriceHistory('ethereum', daysN),
-      this.getPriceHistory('matic-network', daysN),
-      this.getPriceHistory('wrapped-bitcoin', daysN),
-      this.getPriceHistory('hop-protocol', daysN)
-    ])
+    const pricesArr = []
+
+    // Parallelizing these causes API issues
+    pricesArr.push(await this.getPriceHistory('usd-coin', daysN))
+    pricesArr.push(await this.getPriceHistory('tether', daysN))
+    pricesArr.push(await this.getPriceHistory('dai', daysN))
+    pricesArr.push(await this.getPriceHistory('ethereum', daysN))
+    pricesArr.push(await this.getPriceHistory('matic-network', daysN))
+    pricesArr.push(await this.getPriceHistory('wrapped-bitcoin', daysN))
+    pricesArr.push(await this.getPriceHistory('hop-protocol', daysN))
     console.log('done fetching prices')
 
     const prices: any = {
@@ -160,6 +162,21 @@ class TvlStats {
       chains = ['optimism']
     }
     const now = DateTime.utc()
+
+    // Get block tags per day and store them in memory
+    for (const chain of chains) {
+      if (!this.blockTags[chain]) this.blockTags[chain] = {}
+      console.log(`getting block tags for chain ${chain}`)
+      for (let day = 0; day < daysN; day++) {
+        const endDate = day === 0 ? now : now.minus({ days: day }).endOf('day')
+        const endTimestamp = Math.floor(endDate.toSeconds())
+        if (this.blockTags?.[chain]?.[endTimestamp]) continue
+
+        const blockTag = await getBlockNumberFromDate(chain, endTimestamp)
+        this.blockTags[chain][day] = blockTag
+      }
+
+    }
 
     const promises: Promise<any>[] = []
     for (let token of tokens) {
@@ -197,7 +214,7 @@ class TvlStats {
                     `fetching daily tvl stats, chain: ${chain}, token: ${token}, day: ${day}`
                   )
 
-                  const blockTag = await getBlockNumberFromDate(chain, endTimestamp)
+                  const blockTag = this.blockTags[chain][endTimestamp]
                   let balance: any
                   try {
                     if (
@@ -254,8 +271,6 @@ class TvlStats {
         })
       )
     }
-    await Promise.all(promises)
-    console.log('all done')
   }
 }
 

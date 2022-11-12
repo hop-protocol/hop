@@ -1344,11 +1344,11 @@ class BonderStats {
     endDate: number
   ) {
     const startTimestamp = startDate - 86400
+    const startBlock = await getBlockNumberFromDate(chain, startTimestamp)
     let retries = 0
     while (true) {
       try {
         const endBlock = 99999999
-        const startBlock = await getBlockNumberFromDate(chain, startTimestamp)
 
         // Wait here since these are two consecutive Etherscan calls
         await wait(1 * 1000)

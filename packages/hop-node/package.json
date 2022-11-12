@@ -62,7 +62,6 @@
     "commander": "6.2.1",
     "console-clear": "1.1.1",
     "dotenv": "8.6.0",
-    "ethereum-block-by-date": "1.4.5",
     "ethereumjs-util": "7.1.5",
     "ethers": "5.7.1",
     "express": "4.18.1",

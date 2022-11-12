@@ -187,6 +187,7 @@ class YieldStats {
     }
 
     yieldData = this.normalizeResult(yieldData)
+    yieldData = await this.addCachedDataToYieldData(yieldData)
     const legacyYieldData = this.getLegacyYieldData(yieldData)
 
     console.log('yield data stats:')
@@ -268,6 +269,24 @@ class YieldStats {
     yieldData = this.removeInactiveBridges(yieldData)
     yieldData = this.removeInactiveStakingContracts(yieldData)
     yieldData = this.getOptimalYield(yieldData)
+    return yieldData
+  }
+
+  async addCachedDataToYieldData (yieldData: YieldData): Promise<YieldData> {
+    const url = `https://assets.hop.exchange/v1.1-pool-stats.json`
+    const cachedRes: any = await fetch(url)
+    const cachedData = await cachedRes.json()
+    for (const token in yieldData.pools) {
+      const tokenData = yieldData.pools[token]
+      for (const chain in tokenData) {
+        const chainData = tokenData[chain] 
+        // If APR is missing then the entire entry is missing
+        if (!chainData.apr) {
+          console.log(`Missing APR for ${chain}.${token}`, yieldData.pools[token][chain])
+          yieldData.pools[token][chain] = cachedData.data.pools[token][chain]
+        }
+      }
+    }
     return yieldData
   }
 

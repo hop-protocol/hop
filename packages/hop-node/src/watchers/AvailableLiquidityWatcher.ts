@@ -278,6 +278,10 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       return BigNumber.from(0)
     }
 
+    if (this.tokenSymbol === 'DAI') {
+      return BigNumber.from(0)
+    }
+
     return baseAvailableCredit
   }
 
@@ -285,6 +289,10 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     const destinationChain = this.chainIdToSlug(destinationChainId)
     const baseAvailableCreditIncludingVault = this.baseAvailableCreditIncludingVault[destinationChain]
     if (!baseAvailableCreditIncludingVault) {
+      return BigNumber.from(0)
+    }
+
+    if (this.tokenSymbol === 'DAI') {
       return BigNumber.from(0)
     }
 
@@ -371,6 +379,11 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       data.pendingAmounts[sourceChain] = watcher.pendingAmounts
       data.unbondedTransferRootAmounts[sourceChain] = watcher.unbondedTransferRootAmounts
       data.bonderVaultBalance = bonderVaultBalance
+
+      if (this.tokenSymbol === 'DAI') {
+        data.baseAvailableCredit[sourceChain] = watcher.baseAvailableCredit
+
+      }
     }
 
     s3JsonData[this.tokenSymbol] = data

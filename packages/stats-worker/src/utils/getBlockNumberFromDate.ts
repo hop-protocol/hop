@@ -3,6 +3,8 @@ import { etherscanApiKeys, etherscanApiUrls } from '../config'
 const wait = (t: number) =>
   new Promise(resolve => setTimeout(() => resolve(null), t))
 
+const controller = new AbortController();
+
 async function getBlockNumberFromDate (chain: string, timestamp: number): Promise<number> {
   const apiKey = etherscanApiKeys[chain]
   if (!apiKey) {
@@ -15,13 +17,14 @@ async function getBlockNumberFromDate (chain: string, timestamp: number): Promis
   let retryCount = 0
   while (true) {
     try {
-      const res = await fetch(url)
+      const timeoutId = setTimeout(() => controller.abort(), 5 * 1000);
+      const res = await fetch(url, { signal: controller.signal })
       const resJson = await res.json()
-
       if (resJson.status !== '1') {
         throw new Error(`could not retrieve block number ${JSON.stringify(resJson)}`)
       }
 
+      clearTimeout(timeoutId);
       return Number(resJson.result)
     } catch (err) {
       console.error(`getBlockNumberFromDate try number ${retryCount} err: ${err.message}`)

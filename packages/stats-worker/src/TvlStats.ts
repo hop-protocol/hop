@@ -3,6 +3,7 @@ import { BigNumber, providers, Contract, constants } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db from './Db'
+import { timestampPerBlockPerChain } from './constants'
 import {
   ethereumRpc,
   gnosisRpc,
@@ -87,6 +88,8 @@ class TvlStats {
       this.days = options.days
     }
 
+    this.blockTags = timestampPerBlockPerChain
+
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
       this.cleanUp()
@@ -163,6 +166,7 @@ class TvlStats {
         if (this.blockTags?.[chain]?.[endTimestamp]) continue
 
         const blockTag = await getBlockNumberFromDate(chain, endTimestamp)
+        console.log(`${chain} ${endTimestamp} ${blockTag} ${day}`)
         this.blockTags[chain][endTimestamp] = blockTag
       }
 

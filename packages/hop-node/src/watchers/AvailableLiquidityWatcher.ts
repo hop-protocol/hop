@@ -379,11 +379,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       data.pendingAmounts[sourceChain] = watcher.pendingAmounts
       data.unbondedTransferRootAmounts[sourceChain] = watcher.unbondedTransferRootAmounts
       data.bonderVaultBalance = bonderVaultBalance
-
-      if (this.tokenSymbol === 'DAI') {
-        data.baseAvailableCredit[sourceChain] = watcher.baseAvailableCredit
-
-      }
     }
 
     s3JsonData[this.tokenSymbol] = data

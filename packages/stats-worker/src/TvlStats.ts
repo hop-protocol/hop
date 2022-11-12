@@ -188,7 +188,7 @@ class TvlStats {
                 )
 
                 for (let day = 0; day < daysN; day++) {
-                  const endDate = now.minus({ days: day }).endOf('day')
+                  const endDate = day === 0 ? now : now.minus({ days: day }).endOf('day')
                   const startDate = endDate.startOf('day')
                   const endTimestamp = Math.floor(endDate.toSeconds())
                   const startTimestamp = Math.floor(startDate.toSeconds())

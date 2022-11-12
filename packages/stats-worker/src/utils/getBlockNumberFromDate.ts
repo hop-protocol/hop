@@ -27,7 +27,9 @@ async function getBlockNumberFromDate (chain: string, timestamp: number): Promis
       console.error(`getBlockNumberFromDate try number ${retryCount} err: ${err.message}`)
       retryCount++
       if (retryCount < 5) continue
-      await wait(1 * 1000)
+      // Add variability so that runs in parallel don't all fail at the same time
+      const waitTimeSec = Math.floor(Math.random() * 5)
+      await wait(waitTimeSec * 1000)
       break
     }
   }

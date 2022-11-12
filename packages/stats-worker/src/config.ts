@@ -20,3 +20,10 @@ export const etherscanApiKeys: Record<string, string> = {
   polygon: process.env.ETHERSCAN_POLYGON_API_KEY,
   gnosis: process.env.ETHERSCAN_GNOSIS_API_KEY
 }
+export const etherscanApiUrls: Record<string, string> = {
+  ethereum: 'https://api.etherscan.io',
+  polygon: 'https://api.polygonscan.com',
+  optimism: 'https://api-optimistic.etherscan.io',
+  arbitrum: 'https://api.arbiscan.io',
+  gnosis: 'https://api.gnosisscan.io'
+}

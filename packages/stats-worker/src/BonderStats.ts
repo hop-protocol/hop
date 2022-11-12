@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import BlockDater from 'ethereum-block-by-date'
+import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
 import { BigNumber, providers, Contract, constants } from 'ethers'
 import {
   formatUnits,
@@ -791,13 +791,7 @@ class BonderStats {
                     `fetching daily bonder balance stat, chain: ${chain}, token: ${token}, timestamp: ${timestamp}`
                   )
 
-                  const blockDater = new BlockDater(provider)
-                  const date = DateTime.fromSeconds(timestamp).toJSDate()
-                  const info = await blockDater.getDate(date)
-                  if (!info) {
-                    throw new Error('no info')
-                  }
-                  const blockTag = info.block
+                  const blockTag = await getBlockNumberFromDate(chain, timestamp)
                   const balancePromises: Promise<any>[] = []
 
                   if (tokenAddress !== constants.AddressZero) {

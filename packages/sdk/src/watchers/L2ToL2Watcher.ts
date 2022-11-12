@@ -18,7 +18,7 @@ class L2ToL2Watcher extends BaseWatcher {
 
   public async pollFn (): Promise<any> {
     try {
-      // here the await is intential so it's handled by the catch if it fails
+      // here the await is intentional so it's handled by the catch if it fails
       return await this.wrapperWatcher()
     } catch (err) {
       // console.error(err)

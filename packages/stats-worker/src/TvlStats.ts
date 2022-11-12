@@ -173,7 +173,7 @@ class TvlStats {
         if (this.blockTags?.[chain]?.[endTimestamp]) continue
 
         const blockTag = await getBlockNumberFromDate(chain, endTimestamp)
-        this.blockTags[chain][day] = blockTag
+        this.blockTags[chain][endTimestamp] = blockTag
       }
 
     }

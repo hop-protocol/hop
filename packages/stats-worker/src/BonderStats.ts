@@ -1347,17 +1347,11 @@ class BonderStats {
     startDate: number,
     endDate: number
   ) {
-    const provider = allProviders[chain]
-    const blockDater = new BlockDater(provider)
-    const date = DateTime.fromSeconds(startDate - 86400).toJSDate()
+    const startTimestamp = startDate - 86400
     let retries = 0
     while (true) {
       try {
-        const info = await blockDater.getDate(date)
-        if (!info) {
-          throw new Error('no info')
-        }
-        const startBlock = info.block
+        const startBlock = await getBlockNumberFromDate(chain, startTimestamp)
         const endBlock = 99999999
         const url = this.getEtherscanUrl(chain, address, startBlock, endBlock)
 

@@ -64,11 +64,11 @@ export const rateLimitMaxRetries = 1
 export const rpcTimeoutSeconds = 2 * 60
 
 export const etherscanApiKeys: Record<string, string> = {
-  ethereum: process.env.ETHERSCAN_API_KEY ?? '',
-  polygon: process.env.POLYGONSCAN_API_KEY ?? '',
-  optimism: process.env.OPTIMISM_API_KEY ?? '',
-  arbitrum: process.env.ARBITRUM_API_KEY ?? '',
-  gnosis: process.env.XDAI_API_KEY ?? ''
+  ethereum: process.env.ETHERSCAN_ETHEREUM_API_KEY ?? '',
+  polygon: process.env.ETHERSCAN_POLYGON_API_KEY ?? '',
+  optimism: process.env.ETHERSCAN_OPTIMISM_API_KEY ?? '',
+  arbitrum: process.env.ETHERSCAN_ARBITRUM_API_KEY ?? '',
+  gnosis: process.env.ETHERSCAN_GNOSIS_API_KEY ?? ''
 }
 
 export const etherscanApiUrls: Record<string, string> = {

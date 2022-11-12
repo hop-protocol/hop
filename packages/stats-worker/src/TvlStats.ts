@@ -1,4 +1,4 @@
-import BlockDater from 'ethereum-block-by-date'
+import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
 import { BigNumber, providers, Contract, constants } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
@@ -197,13 +197,7 @@ class TvlStats {
                     `fetching daily tvl stats, chain: ${chain}, token: ${token}, day: ${day}`
                   )
 
-                  const blockDater = new BlockDater(provider)
-                  const date = DateTime.fromSeconds(endTimestamp).toJSDate()
-                  const info = await blockDater.getDate(date)
-                  if (!info) {
-                    throw new Error('no info')
-                  }
-                  const blockTag = info.block
+                  const blockTag = await getBlockNumberFromDate(chain, endTimestamp)
                   let balance: any
                   try {
                     if (

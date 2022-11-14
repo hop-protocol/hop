@@ -340,23 +340,15 @@ class BonderStats {
 
   async getTokenPrices () {
     const priceDays = 365
-    const pricesArr = await Promise.all([
-      this.getPriceHistory('usd-coin', priceDays),
-      this.getPriceHistory('tether', priceDays),
-      this.getPriceHistory('dai', priceDays),
-      this.getPriceHistory('ethereum', priceDays),
-      this.getPriceHistory('matic-network', priceDays),
-      this.getPriceHistory('wrapped-bitcoin', priceDays),
-      this.getPriceHistory('hop-protocol', priceDays)
-    ])
     const prices: Record<string, any> = {
-      USDC: pricesArr[0],
-      USDT: pricesArr[1],
-      DAI: pricesArr[2],
-      ETH: pricesArr[3],
-      MATIC: pricesArr[4],
-      WBTC: pricesArr[5],
-      HOP: pricesArr[6]
+      USDC: await this.getPriceHistory('usd-coin', priceDays),
+      USDT: await this.getPriceHistory('tether', priceDays),
+      DAI: await this.getPriceHistory('dai', priceDays),
+      ETH: await this.getPriceHistory('ethereum', priceDays),
+      MATIC: await this.getPriceHistory('matic-network', priceDays),
+      WBTC: await this.getPriceHistory('wrapped-bitcoin', priceDays),
+      HOP: await this.getPriceHistory('hop-protocol', priceDays),
+      SNX: await this.getPriceHistory('havven', priceDays)
     }
 
     return prices

@@ -172,6 +172,7 @@ class TvlStats {
 
     }
 
+    const cachedData: any = await this.db.getTvlPoolStats()
     const promises: Promise<any>[] = []
     for (let token of tokens) {
       promises.push(
@@ -203,6 +204,9 @@ class TvlStats {
                   const startDate = endDate.startOf('day')
                   const endTimestamp = Math.floor(endDate.toSeconds())
                   const startTimestamp = Math.floor(startDate.toSeconds())
+
+                  const isCached = this.isItemCached(cachedData, chain, token, startTimestamp)
+                  if (isCached) continue
 
                   console.log(
                     `fetching daily tvl stats, chain: ${chain}, token: ${token}, day: ${day}`
@@ -265,6 +269,19 @@ class TvlStats {
         })
       )
     }
+  }
+
+  isItemCached (cachedData: any, chain: string, token: string, startTimestamp: number): boolean {
+    for (const cachedEntry of cachedData) {
+      if (
+        cachedEntry.chain === chain &&
+        cachedEntry.token === token &&
+        cachedEntry.timestamp === startTimestamp
+      ) {
+        return true
+      }
+    }
+    return false
   }
 }
 

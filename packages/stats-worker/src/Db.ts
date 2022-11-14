@@ -310,6 +310,21 @@ class Db {
     })
   }
 
+  async getTvlPoolStats () {
+    return new Promise((resolve, reject) => {
+      this.db.all(
+        'SELECT id, chain, token, amount, amount_usd, timestamp FROM tvl_pool_stats;',
+        function (err: any, rows: any[]) {
+          if (err) {
+            reject(err)
+            return
+          }
+          resolve(rows)
+        }
+      )
+    })
+  }
+
   async upsertBonderBalances (
     token: string,
     polygonBlockNumber: number,

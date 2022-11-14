@@ -86,10 +86,10 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       throw new Error(`no destination watcher for ${destinationChain}`)
     }
     const destinationBridge = destinationWatcher.bridge
-    let baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    const baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
     const vaultBalance = await destinationWatcher.getOnchainVaultBalance(bonder)
     this.logger.debug(`on-chain vault balance; bonder: ${bonder}, chain: ${destinationChain}, balance: ${vaultBalance.toString()}`)
-    let baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
+    const baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
     let availableCredit = baseAvailableCreditIncludingVault
     const isToL1 = destinationChain === Chain.Ethereum
     if (isToL1) {
@@ -102,12 +102,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
     if (availableCredit.lt(0)) {
       availableCredit = BigNumber.from(0)
-    }
-
-    if (this.tokenSymbol === 'DAI') {
-      availableCredit = BigNumber.from(0)
-      baseAvailableCredit = BigNumber.from(0)
-      baseAvailableCreditIncludingVault = BigNumber.from(0)
     }
 
     return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance }

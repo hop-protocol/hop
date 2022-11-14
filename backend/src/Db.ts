@@ -171,6 +171,10 @@ class Db {
     await this.db.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_token_prices_token_timestamp ON token_prices (token, timestamp);'
     )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_integration_partner ON transfers (integration_partner);'
+    )
   }
 
   async getPrices () {

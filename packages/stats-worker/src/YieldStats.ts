@@ -283,6 +283,10 @@ class YieldStats {
         // If APR is missing then the entire entry is missing
         if (!chainData.apr) {
           console.log(`Missing APR for ${chain}.${token}`, yieldData.pools[token][chain])
+          if (!cachedData?.data?.pools?.[token]?.[chain]) {
+            console.error(`Missing cached data for ${chain}.${token}`)
+            continue
+          }
           yieldData.pools[token][chain] = cachedData.data.pools[token][chain]
         }
       }

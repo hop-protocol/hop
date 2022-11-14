@@ -1502,6 +1502,7 @@ class SyncWatcher extends BaseWatcher {
 
     while (true) {
       try {
+        this.logger.debug('polling gas cost start')
         const timestamp = Math.floor(Date.now() / 1000)
         const deadline = Math.floor((Date.now() + OneWeekMs) / 1000)
         const payload = [
@@ -1572,6 +1573,7 @@ class SyncWatcher extends BaseWatcher {
       } catch (err) {
         this.logger.error(`pollGasCost error: ${err.message}`)
       }
+      this.logger.debug('polling gas cost end')
       await wait(this.gasCostPollMs)
     }
   }

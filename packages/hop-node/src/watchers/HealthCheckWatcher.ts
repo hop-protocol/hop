@@ -205,8 +205,7 @@ export type Config = {
 }
 
 export class HealthCheckWatcher {
-  // TODO: Add sUSD
-  tokens: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'HOP', 'SNX']
+  tokens: string[] = getEnabledTokens()
   logger: Logger = new Logger('HealthCheckWatcher')
   s3Upload: S3Upload
   s3Filename: string
@@ -229,8 +228,8 @@ export class HealthCheckWatcher {
     DAI: parseUnits('1500000', 18),
     ETH: parseUnits('8339', 18),
     MATIC: parseUnits('731804', 18),
-    SNX: parseUnits('200000', 18),
-    sUSD: parseUnits('0', 18) // TODO
+    HOP: parseUnits('2500000', 18),
+    SNX: parseUnits('200000', 18)
   }
 
   bonderLowLiquidityThreshold: number = 0.1
@@ -606,9 +605,9 @@ export class HealthCheckWatcher {
         continue
       }
       const chainAmounts: any = {}
-      const totalLiquidity = this.bonderTotalLiquidity[token]
-      if (totalLiquidity?.eq(0)) {
-        continue
+      const totalLiquidity = this.bonderTotalLiquidity?.[token]
+      if (!totalLiquidity || totalLiquidity?.eq(0)) {
+        throw new Error('Expected totalLiquidity to be defined and non-zero')
       }
       const availableAmounts = tokenData.baseAvailableCreditIncludingVault
       for (const source in availableAmounts) {
@@ -804,8 +803,8 @@ export class HealthCheckWatcher {
     // Blocks on Ethereum are exactly 12s, so we know exactly how far back to look in terms of blocks
     const blocksInDay = OneDaySeconds / AvgBlockTimeSeconds.Ethereum
     const provider = getRpcProvider(Chain.Ethereum)!
-    const startBlockNumber = Number((await provider.getBlockNumber()).toString())
-    const endBlockNumber = startBlockNumber - blocksInDay
+    const endBlockNumber = Number((await provider.getBlockNumber()).toString())
+    const startBlockNumber = endBlockNumber - blocksInDay
 
     const result: any[] = []
     for (const token of this.tokens) {
@@ -893,7 +892,7 @@ export class HealthCheckWatcher {
             for (const transfer of transfers) {
               const { transferId, amount, bonderFee, timestamp } = transfer
               const item = await db.transfers.getByTransferId(transferId)
-              if (!item?.transferSentTxHash && !item.withdrawalBonded) {
+              if (!item?.transferSentTxHash && !item?.withdrawalBonded) {
                 missedEvents.push({ token, sourceChain, transferId, amount, bonderFee, timestamp })
               }
             }

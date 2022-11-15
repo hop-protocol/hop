@@ -1908,6 +1908,7 @@ class TransferStats {
               originContractAddress: item?.originContractAddress
             }
             this.cache[cacheKey] = result
+            return result
           }
           const logs = receipt.logs
           for (const log of logs) {
@@ -1923,7 +1924,12 @@ class TransferStats {
               return result
             }
           }
-          item.integrationPartner = ''
+          const result = {
+            integrationPartner: '',
+            originContractAddress: item?.originContractAddress
+          }
+          this.cache[cacheKey] = result
+          return result
         }
       } catch (err: any) {
         console.error(err)

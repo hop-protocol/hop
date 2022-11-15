@@ -175,6 +175,18 @@ class Db {
     await this.db.query(
       'CREATE INDEX IF NOT EXISTS idx_transfers_integration_partner ON transfers (integration_partner);'
     )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_bonded ON transfers (bonded);'
+    )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_received_htokens ON transfers (received_htokens);'
+    )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_timestamp ON transfers (timestamp);'
+    )
   }
 
   async getPrices () {
@@ -532,6 +544,20 @@ class Db {
       }
     }
 
+    if (integrationPartner) {
+      whereClauses.push(`integration_partner = $${i++}`)
+      queryParams.push(integrationPartner)
+    }
+
+    if (receivedHTokens !== undefined) {
+      if (receivedHTokens === null) {
+        whereClauses.push('received_htokens IS NULL')
+      } else {
+        whereClauses.push(`received_htokens = $${i++}`)
+        queryParams.push(receivedHTokens)
+      }
+    }
+
     if (amountFormatted) {
       const cmp = cmps[amountFormattedCmp]
       if (cmp) {
@@ -556,15 +582,6 @@ class Db {
       }
     }
 
-    if (receivedHTokens !== undefined) {
-      if (receivedHTokens === null) {
-        whereClauses.push('received_htokens IS NULL')
-      } else {
-        whereClauses.push(`received_htokens = $${i++}`)
-        queryParams.push(receivedHTokens)
-      }
-    }
-
     if (amountReceived !== undefined) {
       if (amountReceived === null) {
         whereClauses.push('amount_received IS NULL')
@@ -584,11 +601,6 @@ class Db {
         whereClauses.push(`timestamp <= $${i++}`)
         queryParams.push(endTimestamp)
       }
-    }
-
-    if (integrationPartner) {
-      whereClauses.push(`integration_partner = $${i++}`)
-      queryParams.push(integrationPartner)
     }
 
     if (sortBy === 'integration_partner') {

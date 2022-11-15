@@ -226,6 +226,7 @@ class TransferStats {
   offsetDays = 0
   ready = false
   transactionReceipts: any = {}
+  cache: any = {}
 
   constructor (options: Options = {}) {
     if (options.days) {
@@ -815,14 +816,23 @@ class TransferStats {
   }
 
   async getReceivedHtokens (item: any) {
+    const cacheKey = `receivedHTokens:${item.transferId}`
+    const cached = this.cache[cacheKey]
     try {
-      const { bondTransactionHash, token, sourceChainSlug, destinationChainSlug } = item
+      if (typeof cached === 'boolean') {
+        return cached
+      }
+      const { bondTransactionHash, token, sourceChainSlug, destinationChainSlug, receivedHTokens } = item
       if (
         !bondTransactionHash ||
         !destinationChainSlug ||
         destinationChainSlug === 'ethereum'
       ) {
         return false
+      }
+      if (typeof receivedHTokens === 'boolean') {
+        this.cache[cacheKey] = receivedHTokens
+        return receivedHTokens
       }
       const rpcUrl = rpcUrls[destinationChainSlug]
       if (!rpcUrl) {
@@ -839,18 +849,22 @@ class TransferStats {
             const hTokenAddress = addresses?.bridges?.[token]?.[destinationChainSlug]?.l2HopBridgeToken
             if (hTokenAddress?.toLowerCase() === log.address?.toLowerCase() && item.recipientAddress) {
               if (log.topics[2].includes(item.recipientAddress?.toLowerCase().slice(2))) {
+                this.cache[cacheKey] = true
                 return true
               }
             }
           }
         }
+        this.cache[cacheKey] = false
         return false
       } else {
         const receivedHTokens = receipt.logs.length === 8
+        this.cache[cacheKey] = receivedHTokens
         return receivedHTokens
       }
     } catch (err) {
       console.error(err)
+      this.cache[cacheKey] = false
       return false
     }
   }
@@ -910,9 +924,14 @@ class TransferStats {
   async getReceivedAmount (item: any) {
     try {
       const { bondTransactionHash, token, destinationChainSlug } = item
+      if (item.amountReceived && item.amountReceivedFormatted) {
+        return {
+          amountReceived: item.amountReceived,
+          amountReceivedFormatted: item.amountReceivedFormatted
+        }
+      }
       if (
-        !bondTransactionHash ||
-        !destinationChainSlug
+        !(bondTransactionHash && destinationChainSlug)
       ) {
         return null
       }
@@ -1042,10 +1061,11 @@ class TransferStats {
 
     console.log('done upserting prices')
     await Promise.all([
-      this.trackReceivedHTokenStatus(),
-      this.trackReceivedAmountStatus(),
+      // this.trackReceivedHTokenStatus(),
+      // this.trackReceivedAmountStatus(),
       // this.trackAllDailyTransfers(),
       this.trackHourlyTransfers(1, 60 * 1000),
+      /*
       wait(1 * 60 * 1000).then(() => {
         const hours = 6
         const delayMs = 30 * 60 * 1000
@@ -1061,6 +1081,7 @@ class TransferStats {
         const delayMs = 12 * 60 * 60 * 1000
         return this.trackHourlyTransfers(hours, delayMs)
       }),
+      */
       wait(1 * 1000).then(() => {
         const minutes = 20
         const delayMs = 60 * 1000
@@ -1234,17 +1255,6 @@ class TransferStats {
 
     for (const item of items) {
       try {
-        if (item.bonded && item.receivedHTokens == null) {
-          item.receivedHTokens = await this.getReceivedHtokens(item)
-        }
-        if (item.bonded && item.amountReceived == null) {
-          const data: any = await this.getReceivedAmount(item)
-          if (data) {
-            const { amountReceived, amountReceivedFormatted } = data
-            item.amountReceived = amountReceived
-            item.amountReceivedFormatted = amountReceivedFormatted
-          }
-        }
         console.log('upserting', item.transferId)
         await this.upsertItem(item)
         break
@@ -1257,27 +1267,24 @@ class TransferStats {
 
   async upsertItem (item: any) {
     try {
-      if (item.receivedHTokens == null) {
-        const _item = await this.db.getTransfers({ transferId: item.transferId })
-        if (_item) {
-          item.receivedHTokens = _item.receivedHTokens
+      /*
+      const _item = await this.db.getTransfers({ transferId: item.transferId })
+      if (item.amountReceived == null && item.bonded) {
+        if (_item && _item.bonded) {
+          if (_item.amountReceived == null) {
+            const data: any = await this.getReceivedAmount(_item)
+            if (data) {
+              const { amountReceived, amountReceivedFormatted } = data
+              item.amountReceived = amountReceived
+              item.amountReceivedFormatted = amountReceivedFormatted
+            }
+          } else {
+            item.amountReceived = _item.amountReceived
+            item.amountReceivedFormatted = _item.amountReceivedFormatted
+          }
         }
       }
-      if (item.amountReceived == null) {
-        const _item = await this.db.getTransfers({ transferId: item.transferId })
-        if (_item) {
-          item.amountReceived = _item.amountReceived
-          item.amountReceivedFormatted = _item.amountReceivedFormatted
-        }
-      }
-      if (item.integrationPartner == null) {
-        const _item = await this.db.getTransfers({ transferId: item.transferId })
-        if (_item) {
-          item.originContractAddress = _item.originContractAddress
-          item.integrationPartner = _item.integrationPartner
-          item.integrationPartnerContractAddress = _item.integrationPartnerContractAddress
-        }
-      }
+      */
 
       await this.db.upsertTransfer(
         item.transferId,
@@ -1815,56 +1822,16 @@ class TransferStats {
       }
     }
 
-    const integrations = {
-      '0xc30141b657f4216252dc59af2e7cdb9d8792e1b0': 'socket',
-      '0x362fa9d0bca5d19f743db50738345ce2b40ec99f': 'lifi',
-      '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask'
-    }
-
     if (data.length > 0) {
       for (const item of data) {
-        const { transactionHash, sourceChain } = item
-        const sourceChainSlug = chainIdToSlugMap[sourceChain]
-
-        const _addresses = Object.values(addresses?.bridges?.[item.token]?.[sourceChainSlug] ?? {}).reduce((acc: any, address: string) => {
-          address = /^0x/.test(address) ? address?.toLowerCase() : ''
-          if (address) {
-            acc[address] = true
-          }
-          return acc
-        }, {})
-        const isOriginHop = _addresses[item?.originContractAddress]
-        if (isOriginHop) {
-          continue
-        }
-        const rpcUrl = rpcUrls[sourceChainSlug]
-        if (rpcUrl) {
-          try {
-            const provider = new providers.StaticJsonRpcProvider(rpcUrl)
-            const receipt = await this.getTransactionReceipt(provider, transactionHash)
-            if (receipt) {
-              const contractAddress = receipt.to?.toLowerCase()
-              item.originContractAddress = contractAddress
-              let integrationPartner = integrations[contractAddress]
-              if (integrationPartner) {
-                item.integrationPartner = integrationPartner
-                item.integrationPartnerContractAddress = contractAddress
-                continue
-              }
-              const logs = receipt.logs
-              for (const log of logs) {
-                const address = log.address?.toLowerCase()
-                integrationPartner = integrations[address]
-                if (integrationPartner) {
-                  item.integrationPartner = integrationPartner
-                  item.integrationPartnerContractAddress = address
-                  break
-                }
-              }
-            }
-          } catch (err: any) {
-            console.error(err)
-          }
+        const _data = await this.getIntegrationPartner(item)
+        if (_data) {
+          const { originContractAddress, integrationPartner, integrationPartnerContractAddress } = _data
+          item.originContractAddress = originContractAddress
+          item.integrationPartner = integrationPartner
+          item.integrationPartnerContractAddress = integrationPartnerContractAddress
+        } else {
+          item.integrationPartner = ''
         }
       }
     }
@@ -1886,9 +1853,88 @@ class TransferStats {
     for (const x of populatedData) {
       const isUnbondable = (x.destinationChainSlug === 'ethereum' && (x.deadline > 0 || BigNumber.from(x.amountOutMin || 0).gt(0)))
       x.unbondable = isUnbondable
+
+      if (typeof x.receivedHTokens !== 'boolean') {
+        x.receivedHTokens = await this.getReceivedHtokens(x)
+      }
     }
 
     return populatedData
+  }
+
+  async getIntegrationPartner (item: any) {
+    const cacheKey = `integrationPartner:${item.transferId}`
+    const cached = this.cache[cacheKey]
+    if (cached) {
+      return cached
+    }
+    const { transactionHash, sourceChain } = item
+    const sourceChainSlug = chainIdToSlugMap[sourceChain]
+    const integrations = {
+      '0xc30141b657f4216252dc59af2e7cdb9d8792e1b0': 'socket',
+      '0x362fa9d0bca5d19f743db50738345ce2b40ec99f': 'lifi',
+      '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask'
+    }
+
+    const _addresses = Object.values(addresses?.bridges?.[item.token]?.[sourceChainSlug] ?? {}).reduce((acc: any, address: string) => {
+      address = /^0x/.test(address) ? address?.toLowerCase() : ''
+      if (address) {
+        acc[address] = true
+      }
+      return acc
+    }, {})
+    const isOriginHop = _addresses[item?.originContractAddress]
+    if (isOriginHop) {
+      const result = {
+        integrationPartner: '',
+        originContractAddress: item?.originContractAddress
+      }
+      this.cache[cacheKey] = result
+      return result
+    }
+    const rpcUrl = rpcUrls[sourceChainSlug]
+    if (rpcUrl) {
+      try {
+        const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+        const receipt = await this.getTransactionReceipt(provider, transactionHash)
+        if (receipt) {
+          const contractAddress = receipt.to?.toLowerCase()
+          item.originContractAddress = contractAddress
+          let integrationPartner = integrations[contractAddress]
+          if (integrationPartner) {
+            const result = {
+              integrationPartner,
+              integrationPartnerContractAddress: contractAddress,
+              originContractAddress: item?.originContractAddress
+            }
+            this.cache[cacheKey] = result
+          }
+          const logs = receipt.logs
+          for (const log of logs) {
+            const address = log.address?.toLowerCase()
+            integrationPartner = integrations[address]
+            if (integrationPartner) {
+              const result = {
+                integrationPartner: integrationPartner,
+                integrationPartnerContractAddress: address,
+                originContractAddress: item?.originContractAddress
+              }
+              this.cache[cacheKey] = result
+              return result
+            }
+          }
+          item.integrationPartner = ''
+        }
+      } catch (err: any) {
+        console.error(err)
+      }
+    }
+    const result = {
+      integrationPartner: '',
+      originContractAddress: item?.originContractAddress
+    }
+    this.cache[cacheKey] = result
+    return result
   }
 
   async getTransfersBetweenDates (startTime: number, endTime: number) {

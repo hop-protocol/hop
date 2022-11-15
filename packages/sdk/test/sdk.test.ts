@@ -69,7 +69,7 @@ describe.skip('hop bridge token transfers', () => {
   )
 })
 
-describe.skip('tx watcher', () => {
+describe('tx watcher', () => {
   const hop = new Hop('mainnet')
   const signer = new Wallet(privateKey)
   it(
@@ -79,7 +79,7 @@ describe.skip('tx watcher', () => {
         '0xb92c61e0a1e674eb4c9a52cc692c92709c8a4e4cb66fb22eb7cd9a958cf33a70'
       console.log('tx hash:', txHash)
 
-      await new Promise(resolve => {
+      const res = await new Promise(resolve => {
         let sourceReceipt: any = null
         let destinationReceipt: any = null
 
@@ -96,35 +96,29 @@ describe.skip('tx watcher', () => {
               console.log('got destination transaction receipt')
             }
             if (sourceReceipt && destinationReceipt) {
-              resolve(null)
+              resolve(true)
             }
           })
           .on('error', (err: Error) => {
             console.error(err)
-            // expect(err).toBeFalsy()
+            resolve(false)
           })
       })
+
+      expect(res).toBeTruthy()
     },
     120 * 1000
   )
-  it.skip(
+  it(
     'receive events on token transfer from L1 -> L2 Gnosis (swap)',
     async () => {
-      /*
-      const tokenAmount = parseUnits('0.1', 18)
-      const tx = await hop
-        .connect(signer)
-        .bridge(Token.USDC)
-        .send(tokenAmount, Chain.Ethereum, Chain.Gnosis)
-      */
-
       const txHash =
         '0xda9be66e99f9b668de873aeb7b82dc0d7870188862cbf86c52a00d7f61be0be4'
       console.log('tx hash:', txHash)
 
       console.log('waiting for receipts')
 
-      await new Promise(resolve => {
+      const res = await new Promise(resolve => {
         let sourceReceipt: any = null
         let destinationReceipt: any = null
 
@@ -141,34 +135,26 @@ describe.skip('tx watcher', () => {
               console.log('got destination transaction receipt')
             }
             if (sourceReceipt && destinationReceipt) {
-              resolve(null)
+              resolve(true)
             }
           })
           .on('error', (err: Error) => {
             console.error(err)
+            resolve(false)
           })
       })
+
+      expect(res).toBeTruthy()
     },
     120 * 1000
   )
-  it.skip(
+  it(
     'receive events on token transfer from L2 -> L2',
     async () => {
-      const tokenAmount = parseUnits('0.1', 18)
-      /*
-      const tx = await hop
-        .connect(signer)
-        .bridge(Token.USDC)
-        .send(tokenAmount, Chain.Gnosis, Chain.Optimism)
-      const txHash = tx?.hash
-      console.log('tx hash:', txHash)
-      console.log('waiting for receipts')
-        */
-
       const txHash = '0xf5d14a332d072de887bbe3dd058c8eb64f3aa754b7652f76179c230ab1391948'
       console.log('tx hash:', txHash)
 
-      await new Promise(resolve => {
+      const res = await new Promise(resolve => {
         let sourceReceipt: any = null
         let destinationReceipt: any = null
 
@@ -193,33 +179,26 @@ describe.skip('tx watcher', () => {
               )
             }
             if (sourceReceipt && destinationReceipt) {
-              resolve(null)
+              resolve(true)
             }
+          })
+          .on('error', (err: Error) => {
+            console.error(err)
+            resolve(false)
           })
       })
 
-      expect(txHash).toBeTruthy()
+      expect(res).toBeTruthy()
     },
     120 * 1000
   )
-  it.skip(
+  it(
     'receive events on token transfer from L2 -> L2 (Optimism -> Arbitrum)',
     async () => {
-      const tokenAmount = parseUnits('0.1', 18)
-      /*
-      const tx = await hop
-        .connect(signer)
-        .bridge(Token.USDC)
-        .send(tokenAmount, Chain.Gnosis, Chain.Optimism)
-      const txHash = tx?.hash
-      console.log('tx hash:', txHash)
-      console.log('waiting for receipts')
-        */
-
       const txHash = '0x0be35c18107c85f13b8c50bcb045c77a184115d24424daa48f5b76ea230a926e'
       console.log('tx hash:', txHash)
 
-      await new Promise(resolve => {
+      const res = await new Promise(resolve => {
         let sourceReceipt: any = null
         let destinationReceipt: any = null
 
@@ -228,7 +207,6 @@ describe.skip('tx watcher', () => {
             // destinationHeadBlockNumber: 5661102
           })
           .on('receipt', (data: any) => {
-            console.log(data)
             const { receipt, chain } = data
             if (chain.equals(Chain.Optimism)) {
               sourceReceipt = receipt
@@ -245,29 +223,32 @@ describe.skip('tx watcher', () => {
               )
             }
             if (sourceReceipt && destinationReceipt) {
-              resolve(null)
+              resolve(true)
             }
+          })
+          .on('error', (err: Error) => {
+            console.error(err)
+            resolve(false)
           })
       })
 
-      expect(txHash).toBeTruthy()
+      expect(res).toBeTruthy()
     },
     20 * 60 * 1000
   )
-  it.skip(
+  it(
     '(mainnet) receive events on token transfer from L2 Gnosis -> L2 Polygon',
     async () => {
-      const tokenAmount = parseUnits('0.1', 18)
       const txHash =
-        '0x439ae4839621e13317933e1fa4ca9adab359074090e00e3db1105a982cf9a6ac'
+        '0x152348cfaf5344668191859ab95d858d31fd347f807c615e26e027b61fd976f3'
 
-      await new Promise(resolve => {
+      const res = await new Promise(resolve => {
         let sourceReceipt: any = null
         let destinationReceipt: any = null
 
         hop
           .watch(txHash, Token.USDC, Chain.Gnosis, Chain.Polygon, false, {
-            destinationHeadBlockNumber: 14779300 // estimate
+            // destinationHeadBlockNumber: 14779300 // estimate
           })
           .on('receipt', (data: any) => {
             const { receipt, chain } = data
@@ -278,7 +259,7 @@ describe.skip('tx watcher', () => {
                 receipt.transactionHash
               )
               expect(sourceReceipt.transactionHash).toBe(
-                '0x439ae4839621e13317933e1fa4ca9adab359074090e00e3db1105a982cf9a6ac'
+                '0x152348cfaf5344668191859ab95d858d31fd347f807c615e26e027b61fd976f3'
               )
             }
             if (chain.equals(Chain.Polygon)) {
@@ -288,36 +269,30 @@ describe.skip('tx watcher', () => {
                 receipt.transactionHash
               )
               expect(destinationReceipt.transactionHash).toBe(
-                '0xdcdf05b4171610bab3b69465062e29fab4d6ea3a70ea761336d1fa566dede4a7'
+                '0xfe413b4fdc86aa1c3e8092e4b0517ef4904a8bf16b1ff6519021ce2dd0b0cf8e'
               )
             }
             if (sourceReceipt && destinationReceipt) {
-              resolve(null)
+              resolve(true)
             }
+          })
+          .on('error', (err: Error) => {
+            console.error(err)
+            resolve(false)
           })
       })
 
-      expect(txHash).toBeTruthy()
+      expect(res).toBeTruthy()
     },
     300 * 1000
   )
-  it.skip(
+  it(
     'receive events on token transfer from L2 -> L1',
     async () => {
-      /*
-      const tokenAmount = parseUnits('0.1', 18)
-      const tx = await hop
-        .connect(signer)
-        .bridge(Token.USDC)
-        .send(tokenAmount, Chain.Ethereum, Chain.Gnosis)
-      console.log('tx hash:', tx?.hash)
-      console.log('waiting for receipts')
-        */
-
       const txHash = '0x6c9f8082a76ed7362cbd52ba93add0ba9e5b8af5c1a35d83378163dc30906f64'
       console.log('tx hash:', txHash)
 
-      await new Promise(resolve => {
+      const res = await new Promise(resolve => {
         let sourceReceipt: any = null
         let destinationReceipt: any = null
 
@@ -334,27 +309,18 @@ describe.skip('tx watcher', () => {
               console.log('got destination transaction receipt')
             }
             if (sourceReceipt && destinationReceipt) {
-              resolve(null)
+              resolve(true)
             }
+          })
+          .on('error', (err: Error) => {
+            console.error(err)
+            resolve(false)
           })
       })
 
-      expect(txHash).toBeTruthy()
+      expect(res).toBeTruthy()
     },
     120 * 1000
-  )
-  it(
-    'getAmountOut - L2 -> L2',
-    async () => {
-      const tokenAmount = parseUnits('1', 18)
-      const amountOut = await hop
-        .connect(signer)
-        .bridge(Token.USDC)
-        .getAmountOut(tokenAmount, Chain.Gnosis, Chain.Optimism)
-
-      expect(Number(formatUnits(amountOut.toString(), 18))).toBeGreaterThan(0)
-    },
-    10 * 1000
   )
 })
 
@@ -569,6 +535,22 @@ describe.skip('getSendData', () => {
     expect(adjustedDestinationTxFee).toBe(0)
     expect(totalFee).toBeGreaterThan(0)
   })
+
+  it(
+    'getAmountOut - L2 -> L2',
+    async () => {
+      const hop = new Hop('mainnet')
+      const signer = new Wallet(privateKey)
+      const tokenAmount = parseUnits('1', 18)
+      const amountOut = await hop
+        .connect(signer)
+        .bridge(Token.USDC)
+        .getAmountOut(tokenAmount, Chain.Gnosis, Chain.Optimism)
+
+      expect(Number(formatUnits(amountOut.toString(), 18))).toBeGreaterThan(0)
+    },
+    10 * 1000
+  )
 })
 
 describe('getSupportedAssets', () => {

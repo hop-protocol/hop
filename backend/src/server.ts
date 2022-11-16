@@ -9,18 +9,6 @@ import { responseCache } from './responseCache'
 const app = express()
 const controller = new Controller()
 
-const whitelist = ['http://localhost:3000', 'https://staging.explorer.hop.exchange', 'https://explorer.hop.exchange', 'https://goerli.explorer.hop.exchange']
-const corsOptions: any = {
-  origin: function (origin: string, callback: any) {
-    if (whitelist.includes(origin)) {
-      callback(null, true)
-    } else {
-      console.log('origin:', origin, 'not allowed')
-      callback(new Error('Not allowed by CORS'))
-    }
-  }
-}
-
 app.enable('trust proxy')
 app.use(cors())
 app.use(express.json({ limit: '500kb' }))

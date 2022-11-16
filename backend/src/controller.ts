@@ -87,66 +87,64 @@ function explorerLinkAddress (chain: string, address: string) {
 }
 
 type Transfer = {
-  id: string
-  transferId: string
-  transferIdTruncated: string
-  transactionHash: string
-  transactionHashTruncated: string
-  transactionHashExplorerUrl: string
-  sourceChainId: string
-  sourceChainSlug: string
-  sourceChainName: string
-  sourceChainImageUrl: string
-  destinationChainId: string
-  destinationChainSlug: string
-  destinationChainName: string
-  destinationChainImageUrl: string
   accountAddress: string
   amount: string
-  amountFormatted: string
   amountDisplay: string
+  amountFormatted: string
+  amountOutMin: string
+  amountReceived: string
+  amountReceivedFormatted: string
   amountUsd: string
   amountUsdDisplay: string
-  amountOutMin: string
-  deadline: string
-  recipientAddress: string
-  recipientAddressTruncated: string
-  recipientAddressExplorerUrl: string
-  bonderFee: string
-  bonderFeeFormatted: string
-  bonderFeeDisplay: string
-  bonderFeeUsd: string
-  bonderFeeUsdDisplay: string
-  bonded: boolean
+  bondStatusColor: string
   bondTimestamp: string
   bondTimestampIso: string
+  bondTransactionHash: string
+  bondTransactionHashExplorerUrl: string
+  bondTransactionHashTruncated: string
   bondWithinTimestamp: string
   bondWithinTimestampRelative: string
-  bondTransactionHash: string
-  bondTransactionHashTruncated: string
-  bondTransactionHashExplorerUrl: string
+  bonded: boolean
   bonderAddress: string
-  bonderAddressTruncated: string
   bonderAddressExplorerUrl: string
+  bonderAddressTruncated: string
+  bonderFee: string
+  bonderFeeDisplay: string
+  bonderFeeFormatted: string
+  bonderFeeUsd: string
+  bonderFeeUsdDisplay: string
+  convertHTokenUrl: string
+  deadline: string
+  destinationChainColor: string
+  destinationChainId: string
+  destinationChainImageUrl: string
+  destinationChainName: string
+  destinationChainSlug: string
+  hopExplorerUrl: string
+  id: string
+  integrationPartner: string
+  preregenesis: boolean
+  receivedHTokens: boolean
+  recipientAddress: string
+  recipientAddressExplorerUrl: string
+  recipientAddressTruncated: string
+  sourceChainColor: string
+  sourceChainId: string
+  sourceChainImageUrl: string
+  sourceChainName: string
+  sourceChainSlug: string
+  timestamp: string
+  timestampIso: string
   token: string
   tokenImageUrl: string
   tokenPriceUsd: string
   tokenPriceUsdDisplay: string
-  timestamp: string
-  timestampIso: string
-  preregenesis: boolean
-
-  sourceChainColor: string
-  destinationChainColor: string
-  bondStatusColor: string
-  receivedHTokens: boolean
-  convertHTokenUrl: string
-  hopExplorerUrl: string
+  transactionHash: string
+  transactionHashExplorerUrl: string
+  transactionHashTruncated: string
+  transferId: string
+  transferIdTruncated: string
   unbondabe: boolean
-  amountReceived: string
-  amountReceivedFormatted: string
-
-  integrationPartner: string
 }
 
 export class Controller {
@@ -295,8 +293,7 @@ export class Controller {
       return count
     }
 
-    let data = transfers as any[]
-    data = data.map((x: any, i: number) => {
+    let data = (transfers as any[]).map((x: any, i: number) => {
       x.sourceChainId = Number(x.sourceChainId)
       x.destinationChainId = Number(x.destinationChainId)
       x.amountFormatted = Number(x.amountFormatted)

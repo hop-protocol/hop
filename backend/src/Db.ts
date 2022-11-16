@@ -4,6 +4,66 @@ import { postgresConfig } from './config'
 
 const argv = require('minimist')(process.argv.slice(2))
 
+type DbTransfer = {
+  accountAddress: string
+  accountAddressExplorerUrl: string
+  accountAddressTruncated: string
+  amount: string
+  amountDisplay: string
+  amountFormatted: string
+  amountOutMin: string
+  amountReceived: string
+  amountReceivedFormatted: string
+  amountUsd: string
+  amountUsdDisplay: string
+  bondTimestamp: string
+  bondTimestampIso: string
+  bondTransactionHash: string
+  bondTransactionHashExplorerUrl: string
+  bondTransactionHashTruncated: string
+  bondWithinTimestamp: string
+  bondWithinTimestampRelative: string
+  bonded: boolean
+  bonderAddress: string
+  bonderAddressExplorerUrl: string
+  bonderAddressTruncated: string
+  bonderFee: string
+  bonderFeeDisplay: string
+  bonderFeeFormatted: string
+  bonderFeeUsd: string
+  bonderFeeUsdDisplay: string
+  deadline: string
+  destinationChainId: string
+  destinationChainImageUrl: string
+  destinationChainName: string
+  destinationChainSlug: string
+  id: string,
+  integrationPartner: string
+  integrationPartnerContractAddress: string
+  originContractAddress: string
+  preregenesis: string
+  received_htokens: string
+  recipientAddress: string
+  recipientAddressExplorerUrl: string
+  recipientAddressTruncated: string
+  sourceChainId: string
+  sourceChainImageUrl: string
+  sourceChainName: string
+  sourceChainSlug: string
+  timestamp: string
+  timestamp_iso: string
+  token: string
+  tokenImageUrl: string
+  tokenPriceUsd: string
+  tokenPriceUsdDisplay: string
+  transactionHash: string
+  transactionHashExplorerUrl: string
+  transactionHashTruncated: string
+  transferId: string
+  transferIdTruncated: string
+  unbondable: boolean
+}
+
 class Db {
   db: any
 
@@ -58,6 +118,9 @@ class Db {
       `)
       await this.db.query(`
         ALTER TABLE transfers ADD COLUMN IF NOT EXISTS integration_partner_contract_address TEXT
+      `)
+      await this.db.query(`
+        ALTER TABLE transfers ADD COLUMN IF NOT EXISTS reorged BOOLEAN
       `)
     }
 
@@ -118,7 +181,8 @@ class Db {
         amount_received_formatted NUMERIC,
         origin_contract_address TEXT,
         integration_partner TEXT,
-        integration_partner_contract_address TEXT
+        integration_partner_contract_address TEXT,
+        reorged BOOLEAN
     )`)
 
     await this.db.query(`CREATE TABLE IF NOT EXISTS token_prices (
@@ -186,6 +250,10 @@ class Db {
 
     await this.db.query(
       'CREATE INDEX IF NOT EXISTS idx_transfers_timestamp ON transfers (timestamp);'
+    )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_reorged ON transfers (reorged);'
     )
   }
 
@@ -442,7 +510,7 @@ class Db {
     )
   }
 
-  async getTransfers (params: any) {
+  async getTransfers (params: any): Promise<DbTransfer[] | any> {
     const {
       page = 0,
       perPage = 10,
@@ -497,6 +565,8 @@ class Db {
       lte: '<=',
       eq: '='
     }
+
+    whereClauses.push('reorged IS NULL')
 
     if (bonderAddress) {
       whereClauses.push(`bonder_address = $${i++}`)
@@ -689,6 +759,19 @@ class Db {
         ${whereClause}
         `
     }
+
+    return this.db.any(sql, queryParams)
+  }
+
+  async updateTransferReorged (transferId: string, reorged: boolean) {
+    const sql = `
+      UPDATE transfers
+      SET reorged = $2
+      WHERE
+        transfer_id = $1
+    `
+
+    const queryParams = [transferId, reorged]
 
     return this.db.any(sql, queryParams)
   }

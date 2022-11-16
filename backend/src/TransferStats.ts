@@ -771,7 +771,9 @@ class TransferStats {
     await this.initPrices()
     this.ready = true
 
-    this.pollPrices()
+    wait(30 * 60 * 1000).then(() => {
+      this.pollPrices()
+    })
   }
 
   async pollPrices () {
@@ -866,6 +868,82 @@ class TransferStats {
       console.error(err)
       this.cache[cacheKey] = false
       return false
+    }
+  }
+
+  async checkForReorgs () {
+    while (true) {
+      try {
+        const page = 0
+        const perPage = 100
+        const endTimestamp = DateTime.now().toUTC().minus({ hour: 1 })
+        const startTimestamp = endTimestamp.toUTC().minus({ hour: 1 })
+        const items = await this.db.getTransfers({
+          perPage,
+          page,
+          startTimestamp: startTimestamp.toSeconds(),
+          endTimestamp: endTimestamp.toSeconds(),
+          sortBy: 'timestamp',
+          sortDirection: 'desc',
+          bonded: false
+        })
+
+        const allIds = items.filter((x: any) => x.sourceChainSlug !== 'ethereum').map((x: any) => x.transferId)
+        const [
+          gnosisTransfers,
+          polygonTransfers,
+          optimismTransfers,
+          arbitrumTransfers,
+          mainnetTransfers
+        ] = await Promise.all([
+          enabledChains.includes('gnosis') ? this.fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
+          enabledChains.includes('polygon') ? this.fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
+          enabledChains.includes('optimism') ? this.fetchTransferEventsByTransferIds('optimism', allIds) : Promise.resolve([]),
+          enabledChains.includes('arbitrum') ? this.fetchTransferEventsByTransferIds('arbitrum', allIds) : Promise.resolve([]),
+          enabledChains.includes('ethereum') ? this.fetchTransferEventsByTransferIds('ethereum', allIds) : Promise.resolve([])
+        ])
+
+        const events = [
+          ...gnosisTransfers,
+          ...polygonTransfers,
+          ...optimismTransfers,
+          ...arbitrumTransfers,
+          ...mainnetTransfers
+        ]
+
+        const found = {}
+        for (const transferId of allIds) {
+          found[transferId] = false
+        }
+
+        for (const transferId of allIds) {
+          for (const event of events) {
+            if (event.transferId === transferId) {
+              found[transferId] = true
+            }
+          }
+        }
+
+        for (const transferId in found) {
+          const notFound = !found[transferId]
+          if (notFound) {
+            console.log(`Possible reorg: transferId ${transferId} not found from TransferSent event`)
+            await this.updateTransferReorged(transferId, true)
+            console.log('updated reorg status:', transferId)
+          }
+        }
+      } catch (err: any) {
+        console.error('checkForReorgs error:', err)
+      }
+      await wait(60 * 60 * 1000)
+    }
+  }
+
+  async updateTransferReorged (transferId: string, reorged: boolean) {
+    try {
+      await this.db.updateTransferReorged(transferId, reorged)
+    } catch (err: any) {
+      console.error('updateTransferReorged error:', err)
     }
   }
 
@@ -1091,7 +1169,8 @@ class TransferStats {
         const minutes = 2 * 60
         const delayMs = 10 * 60 * 1000
         return this.trackRecentBonds(minutes, delayMs)
-      })
+      }),
+      this.checkForReorgs()
     ])
   }
 

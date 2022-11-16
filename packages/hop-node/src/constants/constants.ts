@@ -76,11 +76,11 @@ export enum TxError {
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
 }
 
-export const MaxGasPriceMultiplier = 1.25
-export const MinPriorityFeePerGas = 4
+export const MaxGasPriceMultiplier = 1
+export const MinPriorityFeePerGas = 1
 export const PriorityFeePerGasCap = 20
-export const MinPolygonGasPrice = 90_000_000_000
-export const MinGnosisGasPrice = 20_000_000_000
+export const MinPolygonGasPrice = 60_000_000_000
+export const MinGnosisGasPrice = 5_000_000_000
 
 export enum TokenIndex {
   CanonicalToken = 0,

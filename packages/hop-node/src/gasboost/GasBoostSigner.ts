@@ -15,7 +15,6 @@ class GasBoostSigner extends Wallet {
   store: Store
   items: string[] = []
   lastTxSentTimestamp: number = 0
-  delayBetweenTxsMs: number = 7 * 1000
   chainSlug: string
   gTxFactory: GasBoostTransactionFactory
   signer: Signer

@@ -255,6 +255,10 @@ class Db {
     await this.db.query(
       'CREATE INDEX IF NOT EXISTS idx_transfers_reorged ON transfers (reorged);'
     )
+
+    await this.db.query(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_reorged_null ON transfers ((1)) WHERE reorged IS NULL;'
+    )
   }
 
   async getPrices () {
@@ -566,8 +570,6 @@ class Db {
       eq: '='
     }
 
-    whereClauses.push('reorged IS NULL')
-
     if (bonderAddress) {
       whereClauses.push(`bonder_address = $${i++}`)
       queryParams.push(bonderAddress.toLowerCase())
@@ -676,6 +678,8 @@ class Db {
     if (sortBy === 'integration_partner') {
       whereClauses.push('integration_partner IS NOT NULL')
     }
+
+    // whereClauses.push('reorged IS NULL') // disabled because it makes queries slow
 
     const whereClause = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : ''
 

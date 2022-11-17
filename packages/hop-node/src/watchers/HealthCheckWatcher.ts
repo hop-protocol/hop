@@ -60,6 +60,7 @@ type UnbondedTransfer = {
   bonderFee: string
   bonderFeeFormatted: number
   isBonderFeeTooLow: boolean
+  isUnbondable: boolean
 }
 
 type UnbondedTransferRoot = {
@@ -394,7 +395,7 @@ export class HealthCheckWatcher {
 
     if (!unsyncedSubgraphs.length) {
       for (const item of unbondedTransfers) {
-        if (item.isBonderFeeTooLow) {
+        if (item.isBonderFeeTooLow || item.isUnbondable) {
           continue
         }
 
@@ -657,7 +658,9 @@ export class HealthCheckWatcher {
         amount: item.amount,
         amountFormatted: Number(item.formattedAmount),
         bonderFee: item.bonderFee,
-        bonderFeeFormatted: Number(item.formattedBonderFee)
+        bonderFeeFormatted: Number(item.formattedBonderFee),
+        deadline: item.deadline,
+        amountOutMin: item.amountOutMin
       }
     })
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
@@ -674,7 +677,13 @@ export class HealthCheckWatcher {
       (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && l1Chains.includes(x.destinationChain)) ||
       (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && l2Chains.includes(x.destinationChain))
 
+      const isUnbondable = (
+        l1Chains.includes(x.destinationChain) &&
+        ((x.deadline && x.deadline !== '0') || (x.amountOutMin && x.amountOutMin !== '0'))
+      )
+
       x.isBonderFeeTooLow = isBonderFeeTooLow
+      x.isUnbondable = isUnbondable
       return x
     })
 

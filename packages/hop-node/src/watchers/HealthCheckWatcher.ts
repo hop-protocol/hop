@@ -648,11 +648,6 @@ export class HealthCheckWatcher {
     const timestamp = DateTime.now().toUTC().toSeconds()
     let result = await getUnbondedTransfers(this.days, this.offsetDays)
     result = result.map(item => {
-      console.log('shane--------------', item.destinationChain, item.deadline, item.amountOutMin)
-      console.log('shane--------------', typeof item.destinationChain, typeof item.deadline, typeof item.amountOutMin)
-      console.log('shane--------------', typeof item.destinationChain, item.deadline === '0', item.amountOutMin === '0')
-      console.log('shane--------------', typeof item.destinationChain, !item.deadline, !item.amountOutMin)
-      console.log('shane===========================================================================================')
       return {
         sourceChain: item.sourceChainSlug,
         destinationChain: item.destinationChainSlug,

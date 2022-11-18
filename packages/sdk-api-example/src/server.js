@@ -5,7 +5,7 @@ const port = process.env.PORT || 8000
 const app = express()
 const hop = new Hop('mainnet')
 
-app.get('/quote', async (req, res) => {
+app.get('/v1/quote', async (req, res) => {
   const { amount, token, fromChain, toChain, slippage } = req.query
 
   try {
@@ -25,7 +25,7 @@ app.get('/quote', async (req, res) => {
   }
 })
 
-app.get('/status', async (req, res) => {
+app.get('/v1/transfer-status', async (req, res) => {
   const { token, transferId, transactionHash } = req.query
 
   try {
@@ -37,7 +37,7 @@ app.get('/status', async (req, res) => {
   }
 })
 
-app.get('/build-tx', async (req, res) => {
+app.get('/v1/build-tx', async (req, res) => {
   const { token, amount, fromChain, toChain, recipient } = req.query
 
   try {
@@ -54,7 +54,7 @@ app.get('/build-tx', async (req, res) => {
   }
 })
 
-app.get('/approval/check-allowance', async (req, res) => {
+app.get('/v1/approval/check-allowance', async (req, res) => {
   const { token, amount, fromChain, account } = req.query
 
   try {
@@ -69,7 +69,7 @@ app.get('/approval/check-allowance', async (req, res) => {
   }
 })
 
-app.get('/approval/build-tx', async (req, res) => {
+app.get('/v1/approval/build-tx', async (req, res) => {
   const { token, amount, fromChain } = req.query
 
   try {

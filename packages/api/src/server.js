@@ -58,11 +58,14 @@ app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req,
     if (!tId) {
       throw new Error('transferId or transactionHash is required')
     }
+    if (transferId && transactionHash) {
+      throw new Error('cannot use both transferId and transactionHash. Only use one option.')
+    }
     if (transferId && !transferId.startsWith('0x')) {
-      throw new Error('transferId must be a hex string')
+      throw new Error('transferId must be a hex string. Example: transferId=0x123...')
     }
     if (transactionHash && !transactionHash.startsWith('0x')) {
-      throw new Error('transactionHash must be a hex string')
+      throw new Error('transactionHash must be a hex string. Example: transactionHash=0x123...')
     }
     const status = await hop.getTransferStatus(tId)
     res.json(status)

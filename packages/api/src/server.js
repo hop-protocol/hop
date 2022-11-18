@@ -17,6 +17,22 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
   const { amount, token, fromChain, toChain, slippage } = req.query
 
   try {
+    if (!amount) {
+      throw new Error('"amount" query param is required. Value must be in smallest unit. Example: amount=1000000')
+    }
+    if (!token) {
+      throw new Error('"token" query param is required. Example: token=USDC')
+    }
+    if (!fromChain) {
+      throw new Error('"fromChain" query param is required. Example: fromChain=optimism')
+    }
+    if (!toChain) {
+      throw new Error('"toChain" query param is required. Example: toChain=arbitrum')
+    }
+    if (!slippage) {
+      throw new Error('"slippage" query param value is required. Example: slippage=0.5')
+    }
+
     const bridge = hop.bridge(token)
     const data = await bridge.getSendData(amount, fromChain, toChain)
     const { totalFee, amountOut, estimatedReceived } = data
@@ -24,6 +40,7 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
 
     res.json({
       amountIn: amount.toString(),
+      slippage: slippage.toString(),
       amountOutMin: amountOutMin.toString(),
       bonderFee: totalFee.toString(),
       estimatedRecieved: estimatedReceived.toString()
@@ -37,7 +54,17 @@ app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req,
   const { transferId, transactionHash } = req.query
 
   try {
-    const status = await hop.getTransferStatus(transferId || transactionHash)
+    const tId = transferId || transactionHash
+    if (!tId) {
+      throw new Error('transferId or transactionHash is required')
+    }
+    if (transferId && !transferId.startsWith('0x')) {
+      throw new Error('transferId must be a hex string')
+    }
+    if (transactionHash && !transactionHash.startsWith('0x')) {
+      throw new Error('transactionHash must be a hex string')
+    }
+    const status = await hop.getTransferStatus(tId)
     res.json(status)
   } catch (err) {
     res.json({ error: err.message })

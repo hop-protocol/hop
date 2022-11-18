@@ -11,9 +11,8 @@ if (trustProxy) {
   app.enable('trust proxy') // if using ELB
 }
 app.use(cors())
-app.use(ipRateLimitMiddleware)
 
-app.get('/v1/quote', async (req, res) => {
+app.get('/v1/quote', ipRateLimitMiddleware, async (req, res) => {
   const { amount, token, fromChain, toChain, slippage } = req.query
 
   try {
@@ -33,7 +32,7 @@ app.get('/v1/quote', async (req, res) => {
   }
 })
 
-app.get('/v1/transfer-status', async (req, res) => {
+app.get('/v1/transfer-status', ipRateLimitMiddleware, async (req, res) => {
   const { transferId, transactionHash } = req.query
 
   try {

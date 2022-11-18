@@ -1,8 +1,9 @@
 const express = require('express')
 const { Hop } = require('@hop-protocol/sdk')
 const cors = require('cors')
-const { ipRateLimitMiddleware } = require('./rateLimit')
 const { port, trustProxy } = require('./config')
+const { ipRateLimitMiddleware } = require('./rateLimit')
+const { responseCache } = require('./responseCache')
 
 const app = express()
 const hop = new Hop('mainnet')
@@ -12,7 +13,7 @@ if (trustProxy) {
 }
 app.use(cors())
 
-app.get('/v1/quote', ipRateLimitMiddleware, async (req, res) => {
+app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
   const { amount, token, fromChain, toChain, slippage } = req.query
 
   try {
@@ -32,7 +33,7 @@ app.get('/v1/quote', ipRateLimitMiddleware, async (req, res) => {
   }
 })
 
-app.get('/v1/transfer-status', ipRateLimitMiddleware, async (req, res) => {
+app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req, res) => {
   const { transferId, transactionHash } = req.query
 
   try {
@@ -44,7 +45,7 @@ app.get('/v1/transfer-status', ipRateLimitMiddleware, async (req, res) => {
 })
 
 app.get('/health', async (req, res) => {
-  res.json({status: 'OK'})
+  res.json({ status: 'OK' })
 })
 
 app.listen(port, () => {

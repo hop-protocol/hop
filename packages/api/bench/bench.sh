@@ -1,6 +1,7 @@
 #!/bin/bash
 
-HOST="https://api.hop.exchange"
+#HOST="https://api.hop.exchange"
+HOST="http://localhost:8000"
 PATH="/v1/quote?amount=1000000&token=USDC&fromChain=polygon&toChain=gnosis&slippage=0.5"
 #PATH="/health"
 URL="$HOST$PATH"

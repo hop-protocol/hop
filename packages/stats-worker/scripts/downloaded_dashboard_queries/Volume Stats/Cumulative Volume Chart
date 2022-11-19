@@ -1,0 +1,1 @@
+select day, total_usd from (select timestamp, strftime('%m - %d  - %Y ', datetime(timestamp, 'unixepoch', 'utc')) as day, sum(amount_usd) OVER (order by timestamp asc) as total_usd from volume_stats order by timestamp desc) group by day order by timestamp asc;

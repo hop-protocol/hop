@@ -1,0 +1,1 @@
+select token, sum(amount_usd) as total_usd,  strftime('%m - %d  - %Y ', datetime(timestamp, 'unixepoch', 'utc')) as day from volume_stats where datetime(timestamp, 'unixepoch', 'utc') > DATETIME('now', '-7 day') and chain = 'polygon' group by token, timestamp order by timestamp;

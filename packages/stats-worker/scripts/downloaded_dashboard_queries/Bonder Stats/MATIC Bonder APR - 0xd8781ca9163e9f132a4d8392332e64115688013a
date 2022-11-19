@@ -1,0 +1,7 @@
+select
+((result * 365) / 6026000.00) as apr
+from bonder_balances
+where
+token = 'MATIC'
+order by timestamp desc
+limit 1

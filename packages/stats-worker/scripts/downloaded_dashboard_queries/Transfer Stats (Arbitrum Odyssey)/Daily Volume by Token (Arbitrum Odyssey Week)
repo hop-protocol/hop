@@ -1,0 +1,1 @@
+select token, sum(amount_usd) as USD, date_trunc('day', to_timestamp("timestamp")) as date from transfers where "timestamp" > 1655830800 and timestamp < 1656349140 group by (token, date_trunc('day', to_timestamp("timestamp")))

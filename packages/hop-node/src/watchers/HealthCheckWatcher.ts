@@ -921,7 +921,7 @@ export class HealthCheckWatcher {
 
   async getInvalidBondWithdrawals (): Promise<InvalidBondWithdrawal[]> {
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: 1 })
+    const endDate = now.minus({ hours: 2 })
     const startDate = endDate.minus({ days: this.days })
     const items = await getInvalidBondWithdrawals(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     return items.map((item: any) => {

@@ -30,3 +30,9 @@ docker-tag-and-push: docker-image-tag docker-registry-push
 
 docker-start:
 	docker run --env-file .env hopprotocol/hop-api
+
+curl-quote:
+	curl "http://localhost:8000/v1/quote?amount=1000000&token=USDC&fromChain=polygon&toChain=gnosis&slippage=0.5"
+
+curl-transfer-status:
+	curl "http://localhost:8000/v1/transfer-status?transferId=0x5a15b2abd4d0f2e5d0ea3d5fc93758374b14940096487d70f7c95b5393fc9c89"

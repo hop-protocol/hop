@@ -221,7 +221,7 @@ const RemoveLiquidity = (props: Props) => {
           <div className={styles.details}>
             <DetailRow
               title={priceImpactLabel}
-              tooltip="Withdrawing overpooled assets will give you bonus tokens. Withdrawaing underpooled assets will give you less tokens."
+              tooltip="Withdrawing overpooled assets will give you bonus tokens. Withdrawing underpooled assets will give you less tokens."
               value={`${priceImpactFormatted}`}
             />
           </div>

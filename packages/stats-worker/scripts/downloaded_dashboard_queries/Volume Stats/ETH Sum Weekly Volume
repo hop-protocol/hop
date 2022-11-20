@@ -1,0 +1,1 @@
+select sum(amount_usd) as total_usd, strftime('%m - %d  - %Y ', datetime(timestamp, 'unixepoch', 'utc')) as week from volume_stats where token = 'ETH' group by strftime('%W', datetime(timestamp, 'unixepoch', 'utc')) order by timestamp;

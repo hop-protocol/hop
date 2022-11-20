@@ -282,7 +282,7 @@ export function WithdrawForm(props: any) {
           <Box>
             <Typography variant="subtitle2" color="secondary">
               <Box display="flex" alignItems="center">
-                Price Impact <InfoTooltip title="Withdrawing overpooled assets will give you bonus tokens. Withdrawaing underpooled assets will give you less tokens." />
+                Price Impact <InfoTooltip title="Withdrawing overpooled assets will give you bonus tokens. Withdrawing underpooled assets will give you less tokens." />
               </Box>
             </Typography>
           </Box>

@@ -1,0 +1,1 @@
+select sum(amount_formatted) as amount_transferred from transfers where "timestamp" > 1655830800 and timestamp < 1656349140 and token = 'ETH'

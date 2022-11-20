@@ -1,0 +1,1 @@
+select sum(amount_usd) as total from transfers;

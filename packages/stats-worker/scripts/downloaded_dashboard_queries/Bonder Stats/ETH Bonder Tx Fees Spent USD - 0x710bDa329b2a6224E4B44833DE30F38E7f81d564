@@ -1,0 +1,1 @@
+select total_tx_fees as usd, strftime('%m - %d  - %Y', datetime(timestamp, 'unixepoch', 'utc')) as day from bonder_tx_fees where token = 'ETH' AND strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) >= '2022-01-01'

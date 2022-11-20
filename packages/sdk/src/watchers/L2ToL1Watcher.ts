@@ -25,8 +25,6 @@ class L2ToL1Watcher extends BaseWatcher {
     if (!transferHash) {
       return false
     }
-    let startBlock : number
-    let endBlock : number
     const filter = l1Bridge.filters.WithdrawalBonded()
     const handleEvent = async (...args: any[]) => {
       const event = args[args.length - 1]

@@ -58,9 +58,24 @@ export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
 export const minEthBonderFeeBn = parseEther('0.00001')
-export const pendingCountCommitThreshold = 256
+export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PENDING_COUNT_COMMIT_THRESHOLD) ?? 921 // 90% of 1024
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
+
+export const etherscanApiKeys: Record<string, string> = {
+  [Chain.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',
+  [Chain.Polygon]: process.env.POLYGONSCAN_API_KEY ?? '',
+  [Chain.Optimism]: process.env.OPTIMISM_API_KEY ?? '',
+  [Chain.Arbitrum]: process.env.ARBITRUM_API_KEY ?? '',
+  [Chain.Gnosis]: process.env.XDAI_API_KEY ?? ''
+}
+export const etherscanApiUrls: Record<string, string> = {
+  [Chain.Ethereum]: 'https://api.etherscan.io',
+  [Chain.Polygon]: 'https://api.polygonscan.com',
+  [Chain.Optimism]: 'https://api-optimistic.etherscan.io',
+  [Chain.Arbitrum]: 'https://api.arbiscan.io',
+  [Chain.Gnosis]: 'https://api.gnosisscan.io'
+}
 
 // TODO: Remove this when the exit system is fully live
 export const IsExitSystemLive = process.env.IS_EXIT_SYSTEM_LIVE ?? false

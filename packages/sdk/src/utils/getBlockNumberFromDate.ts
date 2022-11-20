@@ -1,34 +1,22 @@
-import BlockDater from 'ethereum-block-by-date'
-import { TProvider } from '../types'
+import fetch from 'isomorphic-fetch'
+import { etherscanApiKeys, etherscanApiUrls } from '../config'
 
-// BlockDater.getDate() recursively calls itself until it finds the block number. Depending on the parameters
-// this may cause a call stack size error. ORUs with short block times may be more susceptible to this.
-// Retrying is necessary to avoid this error until a better solution is implemented.
-
-async function getBlockNumberFromDate (provider: TProvider, date: Date) {
-  const blockDater = new BlockDater(provider)
-
-  let retryCount = 0
-  let info
-  while (true) {
-    try {
-      info = await blockDater.getDate(date)
-      if (!info) {
-        throw new Error('could not retrieve block number')
-      }
-    } catch (err) {
-      retryCount++
-      console.log(`getBlockNumberFromDate: retrying ${retryCount}`)
-      if (retryCount < 5) continue
-      break
-    }
-    break
+async function getBlockNumberFromDate (chain: string, timestamp: number): Promise<number> {
+  const apiKey = etherscanApiKeys[chain]
+  if (!apiKey) {
+    throw new Error('Please add an etherscan api key for ' + chain)
   }
 
-  if (!info) {
-    throw new Error('could not retrieve block number')
+  const baseUrl = etherscanApiUrls[chain]
+  const url = baseUrl + `/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${apiKey}`
+  const res = await fetch(url)
+  const resJson = await res.json()
+
+  if (resJson.status !== '1') {
+    throw new Error(`could not retrieve block number for timestamp ${timestamp}: ${JSON.stringify(resJson)}`)
   }
-  return info.block
+
+  return Number(resJson.result)
 }
 
 export default getBlockNumberFromDate

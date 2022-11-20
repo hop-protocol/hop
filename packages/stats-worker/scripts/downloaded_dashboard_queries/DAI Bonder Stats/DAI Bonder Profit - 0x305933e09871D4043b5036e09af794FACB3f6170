@@ -1,0 +1,7 @@
+select
+result3 as result
+from bonder_balances
+where
+token = 'DAI'
+order by timestamp desc
+limit 1

@@ -73,6 +73,7 @@ async function getTransfersData (startTime: number, endTime: number) {
       amount: x.amount,
       bonderFee: x.bonderFee,
       recipient: x.recipient,
+      amountOutMin: x.amountOutMin,
       deadline: x.deadline,
       transferId: x.transferId,
       transactionHash: x.transactionHash,

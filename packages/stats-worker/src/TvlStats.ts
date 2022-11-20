@@ -1,8 +1,9 @@
-import BlockDater from 'ethereum-block-by-date'
+import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
 import { BigNumber, providers, Contract, constants } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db from './Db'
+import { timestampPerBlockPerChain } from './constants'
 import {
   ethereumRpc,
   gnosisRpc,
@@ -77,6 +78,7 @@ class TvlStats {
   db = new Db()
   regenesis: boolean = false
   days: number = 365
+  blockTags: Record<string, Record<number, number>> = {}
 
   constructor (options: Options = {}) {
     if (options.regenesis) {
@@ -85,6 +87,8 @@ class TvlStats {
     if (options.days) {
       this.days = options.days
     }
+
+    this.blockTags = timestampPerBlockPerChain
 
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
@@ -117,26 +121,17 @@ class TvlStats {
   async trackTvl () {
     const daysN = this.days
     console.log('fetching prices')
-    const pricesArr = await Promise.all([
-      this.getPriceHistory('usd-coin', daysN),
-      this.getPriceHistory('tether', daysN),
-      this.getPriceHistory('dai', daysN),
-      this.getPriceHistory('ethereum', daysN),
-      this.getPriceHistory('matic-network', daysN),
-      this.getPriceHistory('wrapped-bitcoin', daysN),
-      this.getPriceHistory('hop-protocol', daysN)
-    ])
-    console.log('done fetching prices')
 
     const prices: any = {
-      USDC: pricesArr[0],
-      USDT: pricesArr[1],
-      DAI: pricesArr[2],
-      ETH: pricesArr[3],
-      MATIC: pricesArr[4],
-      WBTC: pricesArr[5],
-      HOP: pricesArr[6]
+      USDC: await this.getPriceHistory('usd-coin', daysN),
+      USDT: await this.getPriceHistory('tether', daysN),
+      DAI: await this.getPriceHistory('dai', daysN),
+      ETH: await this.getPriceHistory('ethereum', daysN),
+      MATIC: await this.getPriceHistory('matic-network', daysN),
+      WBTC: await this.getPriceHistory('wrapped-bitcoin', daysN),
+      HOP: await this.getPriceHistory('hop-protocol', daysN),
     }
+    console.log('done fetching prices')
 
     console.log('upserting prices')
     for (let token in prices) {
@@ -161,6 +156,23 @@ class TvlStats {
     }
     const now = DateTime.utc()
 
+    // Get block tags per day and store them in memory
+    for (const chain of chains) {
+      if (!this.blockTags[chain]) this.blockTags[chain] = {}
+      console.log(`getting block tags for chain ${chain}`)
+      for (let day = 0; day < daysN; day++) {
+        const endDate = day === 0 ? now : now.minus({ days: day }).endOf('day')
+        const endTimestamp = Math.floor(endDate.toSeconds())
+        if (this.blockTags?.[chain]?.[endTimestamp]) continue
+
+        const blockTag = await getBlockNumberFromDate(chain, endTimestamp)
+        console.log(`${chain} ${endTimestamp} ${blockTag} ${day}`)
+        this.blockTags[chain][endTimestamp] = blockTag
+      }
+
+    }
+
+    const cachedData: any = await this.db.getTvlPoolStats()
     const promises: Promise<any>[] = []
     for (let token of tokens) {
       promises.push(
@@ -188,22 +200,19 @@ class TvlStats {
                 )
 
                 for (let day = 0; day < daysN; day++) {
-                  const endDate = now.minus({ days: day }).endOf('day')
+                  const endDate = day === 0 ? now : now.minus({ days: day }).endOf('day')
                   const startDate = endDate.startOf('day')
                   const endTimestamp = Math.floor(endDate.toSeconds())
                   const startTimestamp = Math.floor(startDate.toSeconds())
+
+                  const isCached = this.isItemCached(cachedData, chain, token, startTimestamp)
+                  if (isCached) continue
 
                   console.log(
                     `fetching daily tvl stats, chain: ${chain}, token: ${token}, day: ${day}`
                   )
 
-                  const blockDater = new BlockDater(provider)
-                  const date = DateTime.fromSeconds(endTimestamp).toJSDate()
-                  const info = await blockDater.getDate(date)
-                  if (!info) {
-                    throw new Error('no info')
-                  }
-                  const blockTag = info.block
+                  const blockTag = this.blockTags[chain][endTimestamp]
                   let balance: any
                   try {
                     if (
@@ -260,8 +269,19 @@ class TvlStats {
         })
       )
     }
-    await Promise.all(promises)
-    console.log('all done')
+  }
+
+  isItemCached (cachedData: any, chain: string, token: string, startTimestamp: number): boolean {
+    for (const cachedEntry of cachedData) {
+      if (
+        cachedEntry.chain === chain &&
+        cachedEntry.token === token &&
+        cachedEntry.timestamp === startTimestamp
+      ) {
+        return true
+      }
+    }
+    return false
   }
 }
 

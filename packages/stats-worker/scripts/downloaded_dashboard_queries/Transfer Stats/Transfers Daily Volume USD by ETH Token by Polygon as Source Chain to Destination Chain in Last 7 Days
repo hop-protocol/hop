@@ -1,0 +1,1 @@
+select destination_chain_slug, sum(amount_usd) as USD, date_trunc('day', to_timestamp("timestamp")) as date from transfers where token = 'ETH' and source_chain_slug = 'polygon' and to_timestamp(timestamp) > now() - INTERVAL '6 day' group by (destination_chain_slug, date_trunc('day', to_timestamp("timestamp")))

@@ -3,15 +3,14 @@ import getBlockNumberFromDate from './utils/getBlockNumberFromDate'
 import shiftBNDecimals from './utils/shiftBNDecimals'
 import { BigNumber, BigNumberish, constants } from 'ethers'
 import { Chain } from './models'
-import { DateTime } from 'luxon'
+import { SecondsInDay, TokenIndex, TokenSymbol } from './constants'
 import { Swap__factory } from '@hop-protocol/core/contracts/factories/Swap__factory'
 import { TAmount, TChain, TProvider } from './types'
-import { TokenIndex, TokenSymbol } from './constants'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { formatUnits } from 'ethers/lib/utils'
 
 /**
- * Class reprensenting AMM contract
+ * Class representing AMM contract
  * @namespace AMM
  */
 class AMM extends Base {
@@ -126,7 +125,7 @@ class AMM extends Base {
 
   /**
    * @desc Sends transaction to remove liquidity from AMM.
-   * @param {Object} liqudityTokenAmount - Amount of LP tokens to burn.
+   * @param {Object} liquidityTokenAmount - Amount of LP tokens to burn.
    * @param {Number} amount0Min - Minimum amount of token #0 to receive in order
    * for transaction to be successful.
    * @param {Number} amount1Min - Minimum amount of token #1 to receive in order
@@ -154,7 +153,7 @@ class AMM extends Base {
   }
 
   public async populateRemoveLiquidityTx (
-    liqudityTokenAmount: TAmount,
+    liquidityTokenAmount: TAmount,
     amount0Min: TAmount = 0,
     amount1Min: TAmount = 0,
     deadline: BigNumberish = this.defaultDeadlineSeconds
@@ -163,7 +162,7 @@ class AMM extends Base {
     const saddleSwap = await this.getSaddleSwap()
     const amounts = [amount0Min, amount1Min]
     const payload = [
-      liqudityTokenAmount,
+      liquidityTokenAmount,
       amounts,
       deadline
     ] as const
@@ -349,16 +348,15 @@ class AMM extends Base {
     return Number(formatUnits(swapFee.toString(), poolFeePrecision))
   }
 
-  public async getYieldStatsForDay (unixTimestamp: number): Promise<any> {
+  public async getYieldStatsForDay (unixTimestamp: number, days: number = 1): Promise<any> {
     if (this.tokenSymbol === 'HOP') {
       throw new Error('getYieldStatsForDay: Unsupported, there is no AMM for HOP token.')
     }
     const token = this.toTokenModel(this.tokenSymbol)
-    const provider = this.chain.provider
     const saddleSwap = await this.getSaddleSwap()
 
-    const date = DateTime.fromSeconds(unixTimestamp).toJSDate()
-    let endBlockNumber = await getBlockNumberFromDate(provider, date)
+    const endTimestamp = unixTimestamp
+    let endBlockNumber = await getBlockNumberFromDate(this.chain.slug, endTimestamp)
     endBlockNumber = endBlockNumber - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
     const callOverrides = {
@@ -371,10 +369,8 @@ class AMM extends Base {
       saddleSwap.swapStorage(callOverrides)
     ])
 
-    const startDate = DateTime.fromSeconds(unixTimestamp)
-      .minus({ days: 1 })
-      .toJSDate()
-    let startBlockNumber = await getBlockNumberFromDate(provider, startDate)
+    const startTimestamp = endTimestamp - (days * SecondsInDay)
+    let startBlockNumber = await getBlockNumberFromDate(this.chain.slug, startTimestamp)
 
     const tokenSwapEvents: any[] = []
     const perBatch = 2000
@@ -451,23 +447,15 @@ class AMM extends Base {
     const provider = this.chain.provider
     const block = await provider.getBlock('latest')
     const endTimestamp = block.timestamp
-    const startTimestamp = DateTime.fromSeconds(endTimestamp)
-      .minus({ days })
-      .toSeconds()
 
     const {
       totalFeesFormatted: feesEarnedToday,
       totalLiquidityFormatted: totalLiquidityToday,
       totalVolume,
       totalVolumeFormatted
-    } = await this.getYieldStatsForDay(endTimestamp)
+    } = await this.getYieldStatsForDay(endTimestamp, days)
 
-    let feesEarnedDaysAgo = 0
-    if (days > 1) {
-      ;({ totalFeesFormatted: feesEarnedDaysAgo } = await this.getYieldStatsForDay(startTimestamp))
-    }
-
-    const { apr, apy } = this.calcYield(feesEarnedToday, feesEarnedDaysAgo, totalLiquidityToday, days)
+    const { apr, apy } = this.calcYield(feesEarnedToday, totalLiquidityToday, days)
 
     return {
       apr: Math.max(apr, 0),
@@ -477,8 +465,8 @@ class AMM extends Base {
     }
   }
 
-  public calcYield (feesEarned: number, feesEarnedAgo: number, principal: number, days: number) {
-    const rate = (feesEarned - feesEarnedAgo) / principal
+  public calcYield (feesEarned: number, principal: number, days: number) {
+    const rate = feesEarned / principal
     const period = 365 / days
     const apr = rate * period
     const apy = (1 + rate) ** period - 1

@@ -2236,10 +2236,8 @@ class TransferStats {
               }
             }
           } else if (log.topics[0] === '0x0a0607688c86ec1775abcdbab7b33a3a35a6c9cde677c9be880150c231cc6b0b') {
-            console.log('HERe1')
             const iface = new ethers.utils.Interface(l1BridgeAbi)
             const decoded = iface.parseLog(log)
-            console.log('DEC', decoded)
             if (decoded) {
               destinationChainId = Number(decoded?.args.chainId.toString())
               destinationChainSlug = chainIdToSlugMap[destinationChainId]

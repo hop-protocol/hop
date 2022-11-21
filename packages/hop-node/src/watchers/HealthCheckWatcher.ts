@@ -113,9 +113,9 @@ type ChallengedTransferRoot = {
 
 type UnsyncedSubgraph = {
   chain: string
-  headBlockNumber: number
   syncedBlockNumber: number
-  diffBlockNumber: number
+  syncedTimestamp: number
+  outOfSyncTimestamp: number
 }
 
 type MissedEvent = {
@@ -237,14 +237,6 @@ export class HealthCheckWatcher {
   unbondedTransfersMinTimeToWaitMinutes: number = 30
   unbondedTransferRootsMinTimeToWaitHours: number = 1
   incompleteSettlementsMinTimeToWaitHours: number = 4
-  // Targeting roughly 1 hour
-  minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
-    [Chain.Ethereum]: 300,
-    [Chain.Polygon]: 2000,
-    [Chain.Gnosis]: 750,
-    [Chain.Optimism]: 5000,
-    [Chain.Arbitrum]: 5000
-  }
 
   chainsIgnoredByBonder: Record<string, string[]> = {
     '0x547d28cdd6a69e3366d6ae3ec39543f09bd09417': ['gnosis', 'arbitrum', 'polygon']
@@ -478,7 +470,7 @@ export class HealthCheckWatcher {
     }
     if (shouldSendUnsyncedSubgraphNotification) {
       for (const item of unsyncedSubgraphs) {
-        const msg = `UnsyncedSubgraph: chain: ${item.chain}, syncedBlockNumber: ${item.syncedBlockNumber}, headBlockNumber: ${item.headBlockNumber}, diffBlockNumber: ${item.diffBlockNumber}`
+        const msg = `UnsyncedSubgraph: chain: ${item.chain}, syncedBlockNumber: ${item.syncedBlockNumber}, syncedTimestamp: ${item.syncedTimestamp}, outOfSyncTimestamp: ${item.outOfSyncTimestamp}`
         messages.push(msg)
         this.lastUnsyncedSubgraphNotificationSentAt = Date.now()
       }
@@ -851,20 +843,27 @@ export class HealthCheckWatcher {
   }
 
   async getUnsyncedSubgraphs (): Promise<UnsyncedSubgraph[]> {
+    const now = DateTime.now().toUTC()
+    const outOfSyncTimestamp = Math.floor(now.minus({ hours: 1 }).toSeconds())
     const chains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
+
     const result: any = []
     for (const chain of chains) {
       const provider = getRpcProvider(chain)!
       const syncedBlockNumber = await getSubgraphLastBlockSynced(chain)
-      const headBlockNumber = Number((await provider.getBlockNumber()).toString())
-      const diffBlockNumber = headBlockNumber - syncedBlockNumber
-      this.logger.debug(`subgraph sync status: syncedBlockNumber: chain: ${chain}, ${syncedBlockNumber}, headBlockNumber: ${headBlockNumber}, diffBlockNumber: ${diffBlockNumber}`)
-      if (diffBlockNumber > this.minSubgraphSyncDiffBlockNumbers[chain]) {
+      const syncedBlock = await provider.getBlock(syncedBlockNumber)
+      if (!syncedBlock) {
+        this.logger.error(`unable to get synced block for ${chain}, block number ${syncedBlockNumber}`)
+      }
+      const syncedTimestamp = syncedBlock.timestamp
+      const isOutOfSync = syncedTimestamp < outOfSyncTimestamp
+      this.logger.debug(`subgraph sync status: syncedBlockNumber: chain: ${chain}, ${syncedBlockNumber}, syncedTimestamp: ${syncedTimestamp}, syncedTimestamp: ${syncedTimestamp}, outOfSyncTimestamp: ${outOfSyncTimestamp}`)
+      if (isOutOfSync) {
         result.push({
           chain,
-          headBlockNumber,
           syncedBlockNumber,
-          diffBlockNumber
+          syncedTimestamp,
+          outOfSyncTimestamp
         })
       }
     }

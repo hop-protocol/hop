@@ -67,8 +67,32 @@ app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req,
     if (transactionHash && !transactionHash.startsWith('0x')) {
       throw new Error('transactionHash must be a hex string. Example: transactionHash=0x123...')
     }
-    const status = await hop.getTransferStatus(tId)
-    res.json(status)
+
+    const json = await hop.getTransferStatus(tId)
+    const result = {
+      transferId: json.transferId,
+      transactionHash: json.transactionHash,
+      sourceChainId: json.sourceChainId,
+      sourceChainSlug: json.sourceChainSlug,
+      destinationChainId: json.destinationChainId,
+      destinationChainSlug: json.destinationChainSlug,
+      accountAddress: json.accountAddress,
+      amount: json.amount,
+      amountFormatted: json.amountFormatted,
+      amountUsd: json.amountUsd,
+      amountOutMin: json.amountOutMin,
+      deadline: json.deadline,
+      recipientAddress: json.recipientAddress,
+      bonderFee: json.bonderFee,
+      bonderFeeFormatted: json.bonderFeeFormatted,
+      bonderFeeUsd: json.bonderFeeUsd,
+      bonded: json.bonded,
+      bondTransactionHash: json.bondTransactionHash,
+      bonderAddress: json.bonderAddress,
+      token: json.token,
+      timestamp: json.timestamp
+    }
+    res.json(result)
   } catch (err) {
     res.json({ error: err.message })
   }

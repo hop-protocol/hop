@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-fetch'
-import { Contract, providers, BigNumber } from 'ethers'
+import { ethers, Contract, providers, BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db, { getInstance } from './Db'
@@ -7,6 +7,8 @@ import { chunk } from 'lodash'
 import toHex from 'to-hex'
 import wait from 'wait'
 import { mainnet as addresses } from '@hop-protocol/core/addresses'
+import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
+import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import { isGoerli } from './config'
 
 let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX']
@@ -107,6 +109,14 @@ const chainIdToSlugMap: any = {
   42161: 'arbitrum',
   421611: 'arbitrum',
   421613: 'arbitrum'
+}
+
+const chainSlugToIdMap: any = {
+  ethereum: 1,
+  optimism: 10,
+  gnosis: 100,
+  polygon: 137,
+  arbitrum: 42161
 }
 
 const chainSlugToNameMap: any = {
@@ -218,6 +228,8 @@ type Options = {
   offsetDays?: number
 }
 
+const transactionReceipts: any = {}
+
 class TransferStats {
   db : Db = getInstance()
   regenesis = false
@@ -225,7 +237,6 @@ class TransferStats {
   days = 0
   offsetDays = 0
   ready = false
-  transactionReceipts: any = {}
   cache: any = {}
 
   constructor (options: Options = {}) {
@@ -2158,17 +2169,130 @@ class TransferStats {
   }
 
   async getTransactionReceipt (provider: any, transactionHash: string) {
-    const cached = this.transactionReceipts[transactionHash]
+    return TransferStats.getTransactionReceipt(provider, transactionHash)
+  }
+
+  static async getTransactionReceipt (provider: any, transactionHash: string) {
+    const cached = transactionReceipts[transactionHash]
     if (cached) {
       return cached
     }
 
     const receipt = await provider.getTransactionReceipt(transactionHash)
     if (receipt) {
-      this.transactionReceipts[transactionHash] = receipt
+      transactionReceipts[transactionHash] = receipt
     }
 
     return receipt
+  }
+
+  static async getTransferStatusForTxHash (transactionHash: string) {
+    for (const chainSlug in rpcUrls) {
+      const rpcUrl = rpcUrls[chainSlug]
+      const provider = new providers.StaticJsonRpcProvider(rpcUrl)
+      const receipt = await this.getTransactionReceipt(provider, transactionHash)
+      let transferId = ''
+      const sourceChainId = chainSlugToIdMap[chainSlug]
+      const sourceChainSlug = chainIdToSlugMap[sourceChainId]
+      const sourceChainSlugName = chainSlugToNameMap[chainSlug]
+      let destinationChainSlug = ''
+      let destinationChainId = 0
+      let destinationChainName = ''
+      let timestamp = 0
+      let recipient = ''
+      let deadline = 0
+      let bonderFee = 0
+      let bonderFeeFormatted = 0
+      let amount = 0
+      let amountFormatted = 0
+      let token = ''
+      const bonded = false
+      const bondTransactionHash = ''
+      if (receipt) {
+        const block = await provider.getBlock(receipt.blockNumber)
+        timestamp = block.timestamp
+        const logs = receipt.logs
+        for (const log of logs) {
+          if (log.topics[0] === '0xe35dddd4ea75d7e9b3fe93af4f4e40e778c3da4074c9d93e7c6536f1e803c1eb') {
+            const iface = new ethers.utils.Interface(l2BridgeAbi)
+            const decoded = iface.parseLog(log)
+            if (decoded) {
+              transferId = decoded?.args?.transferId
+              destinationChainId = Number(decoded?.args.chainId.toString())
+              destinationChainSlug = chainIdToSlugMap[destinationChainId]
+              destinationChainName = chainSlugToNameMap[destinationChainSlug]
+              recipient = decoded?.args?.recipient.toString()
+              amount = decoded?.args?.amount?.toString()
+              bonderFee = decoded?.args?.bonderFee.toString()
+              deadline = Number(decoded?.args?.deadline.toString())
+            }
+            for (const _token of enabledTokens) {
+              const _addreses = addresses?.bridges?.[_token]?.[sourceChainSlug]
+              if (
+                _addreses?.l2AmmWrapper?.toLowerCase() === receipt.to?.toLowerCase() ||
+                _addreses?.l2Bridge?.toLowerCase() === receipt.to?.toLowerCase()
+              ) {
+                token = _token
+              }
+            }
+          } else if (log.topics[0] === '0x0a0607688c86ec1775abcdbab7b33a3a35a6c9cde677c9be880150c231cc6b0b') {
+            console.log('HERe1')
+            const iface = new ethers.utils.Interface(l1BridgeAbi)
+            const decoded = iface.parseLog(log)
+            console.log('DEC', decoded)
+            if (decoded) {
+              destinationChainId = Number(decoded?.args.chainId.toString())
+              destinationChainSlug = chainIdToSlugMap[destinationChainId]
+              destinationChainName = chainSlugToNameMap[destinationChainSlug]
+              recipient = decoded?.args?.recipient.toString()
+              amount = decoded?.args?.amount?.toString()
+              bonderFee = decoded?.args?.relayerFee.toString()
+              deadline = Number(decoded?.args?.deadline.toString())
+            }
+            for (const _token of enabledTokens) {
+              const _addreses = addresses?.bridges?.[_token]?.[sourceChainSlug]
+              if (
+                _addreses?.l1Bridge?.toLowerCase() === receipt.to?.toLowerCase()
+              ) {
+                token = _token
+              }
+            }
+          }
+
+          if (token) {
+            const decimals = tokenDecimals[token]
+            if (amount) {
+              amountFormatted = Number(formatUnits(amount, decimals))
+            }
+            if (bonderFee) {
+              bonderFeeFormatted = Number(formatUnits(bonderFee, decimals))
+            }
+          }
+        }
+        return {
+          id: transferId || transactionHash,
+          transferId,
+          transactionHash,
+          sourceChainSlug,
+          destinationChainSlug,
+          accountAddress: receipt.from,
+          bonded,
+          bondTransactionHash,
+          timestamp,
+          sourceChainId,
+          sourceChainSlugName,
+          destinationChainId,
+          destinationChainName,
+          recipient,
+          deadline,
+          bonderFee,
+          bonderFeeFormatted,
+          amount,
+          amountFormatted,
+          token
+        }
+      }
+    }
   }
 }
 

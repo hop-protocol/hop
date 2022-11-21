@@ -19,3 +19,6 @@ docker-push:
 
 # Build docker image and push to AWS registry
 docker-build-and-push: docker-build docker-tag docker-push
+
+curl-request:
+	curl http://localhost:8000/v1/transfers?transferId=0xbe6953dac8149e3f4d3a5719445170fb9835c461a980cbdaf9ad5cce10c9d27c

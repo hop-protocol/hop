@@ -3,6 +3,7 @@ import Db, { getInstance } from './Db'
 import { DateTime } from 'luxon'
 import Worker from './worker'
 import { isGoerli } from './config'
+import TransferStats from './TransferStats'
 
 const colorsMap: any = {
   ethereum: '#868dac',
@@ -293,90 +294,10 @@ export class Controller {
       return count
     }
 
-    let data = (transfers as any[]).map((x: any, i: number) => {
-      x.sourceChainId = Number(x.sourceChainId)
-      x.destinationChainId = Number(x.destinationChainId)
-      x.amountFormatted = Number(x.amountFormatted)
-      x.amountUsd = Number(x.amountUsd)
-      x.deadline = x.deadline ? Number(x.deadline) : null
-      x.bonderFeeFormatted = x.bonderFeeFormatted ? Number(x.bonderFeeFormatted) : null
-      x.bonderFeeUsd = x.bonderFeeUsd ? Number(x.bonderFeeUsd) : null
-      x.bondTimestamp = x.bondTimestamp ? Number(x.bondTimestamp) : null
-      x.bondWithinTimestamp = x.bondWithinTimestamp ? Number(x.bondWithinTimestamp) : null
-      x.tokenPriceUsd = x.tokenPriceUsd ? Number(x.tokenPriceUsd) : null
-      x.timestamp = x.timestamp ? Number(x.timestamp) : null
-      if (x.amountReceivedFormatted) {
-        x.amountReceivedFormatted = Number(x.amountReceivedFormatted)
-      }
+    let data = (transfers as any[])
+    const transferIdNotFound = transferId && data?.length === 0
 
-      x.i = i
-      x.bonded = !!x.bonded
-      x.timestampRelative = DateTime.fromSeconds(x.timestamp).toRelative()
-
-      const transferTime = DateTime.fromSeconds(x.timestamp)
-
-      x.receiveStatusUnknown = x.sourceChainId === getSourceChainId('ethereum') && !x.bondTxExplorerUrl && DateTime.now().toUTC().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
-      if (x.receiveStatusUnknown) {
-        // x.bonded = true
-      }
-      x.preregenesis = !!x.preregenesis
-      x.bondTimestampRelative = x.bondTimestamp ? DateTime.fromSeconds(x.bondTimestamp).toRelative() : ''
-
-      if (!x.accountAddressTruncated) {
-        x.accountAddressTruncated = truncateAddress(x.accountAddress)
-      }
-
-      if (!x.accountAddressExplorerUrl) {
-        x.accountAddressExplorerUrl = explorerLinkAddress(x.sourceChainSlug, x.accountAddress)
-      }
-
-      if (!x.recipientAddressTruncated) {
-        x.recipientAddressTruncated = truncateAddress(x.recipientAddress)
-      }
-
-      // TODO: rerun worker
-      if (!x.recipientAddressExplorerUrl || x.recipientAddressExplorerUrl?.includes('undefined')) {
-        x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recipientAddress)
-      }
-
-      if (!x.sourceChainColor) {
-        x.sourceChainColor = colorsMap[x.sourceChainSlug] ?? colorsMap.fallback
-      }
-
-      if (!x.destinationChainColor) {
-        x.destinationChainColor = colorsMap[x.destinationChainSlug] ?? colorsMap.fallback
-      }
-
-      if (!x.bondStatusColor) {
-        x.bondStatusColor = x.bonded ? colorsMap.bonded : colorsMap.pending
-      }
-
-      if (typeof x.receivedHTokens !== 'boolean') {
-        x.receivedHTokens = false
-      }
-      if (!x.convertHTokenUrl) {
-        x.convertHTokenUrl = `https://${isGoerli ? 'goerli.hop.exchange' : 'app.hop.exchange'}/#/convert/amm?token=${x.token}&sourceNetwork=${x.destinationChainSlug}&fromHToken=true`
-      }
-
-      x.hopExplorerUrl = `https://${isGoerli ? 'goerli.explorer.hop.exchange' : 'explorer.hop.exchange'}/?transferId=${x.transferId}`
-
-      if (x.integrationPartner) {
-        const names = {
-          socket: 'Socket',
-          lifi: 'LI.FI',
-          metamask: 'MetaMask'
-        }
-        const imageUrls = {
-          socket: 'https://assets.hop.exchange/logos/socket.jpg',
-          lifi: 'https://assets.hop.exchange/logos/lifi.webp',
-          metamask: 'https://assets.hop.exchange/logos/metamask.svg'
-        }
-        x.integrationPartnerName = names[x.integrationPartner]
-        x.integrationPartnerImageUrl = imageUrls[x.integrationPartner]
-      }
-
-      return x
-    })
+    data = data.map(this.populatedData)
     console.timeEnd(_key)
 
     if (bondedStatus === 'pending') {
@@ -408,11 +329,106 @@ export class Controller {
       }
     }
 
-    // fetch transfer that may not be indexed
-    if (transferId && data?.length === 0) {
+    if (transferIdNotFound) {
+      // fetch transfer that may not be indexed
       this.worker?.transferStats?.updateTransferDataForTransferId(transferId)
+
+      try {
+        // attempt to get on-chain data for transferId
+        if (transferId?.length === 66) {
+          const _data = await TransferStats.getTransferStatusForTxHash(transferId)
+          if (_data) {
+            data = [_data].map(this.populatedData)
+          }
+        }
+      } catch (err) { }
     }
 
     return data
+  }
+
+  populatedData = (x: any, i: number) => {
+    x.sourceChainId = Number(x.sourceChainId)
+    x.destinationChainId = Number(x.destinationChainId)
+    x.amountFormatted = Number(x.amountFormatted)
+    x.amountUsd = Number(x.amountUsd)
+    x.deadline = x.deadline ? Number(x.deadline) : null
+    x.bonderFeeFormatted = x.bonderFeeFormatted ? Number(x.bonderFeeFormatted) : null
+    x.bonderFeeUsd = x.bonderFeeUsd ? Number(x.bonderFeeUsd) : null
+    x.bondTimestamp = x.bondTimestamp ? Number(x.bondTimestamp) : null
+    x.bondWithinTimestamp = x.bondWithinTimestamp ? Number(x.bondWithinTimestamp) : null
+    x.tokenPriceUsd = x.tokenPriceUsd ? Number(x.tokenPriceUsd) : null
+    x.timestamp = x.timestamp ? Number(x.timestamp) : null
+    if (x.amountReceivedFormatted) {
+      x.amountReceivedFormatted = Number(x.amountReceivedFormatted)
+    }
+
+    x.i = i
+    x.bonded = !!x.bonded
+    if (x.timestamp) {
+      x.timestampRelative = DateTime.fromSeconds(x.timestamp).toRelative()
+      const transferTime = DateTime.fromSeconds(x.timestamp)
+      x.receiveStatusUnknown = x.sourceChainId === getSourceChainId('ethereum') && !x.bondTxExplorerUrl && DateTime.now().toUTC().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
+    }
+    if (x.receiveStatusUnknown) {
+      // x.bonded = true
+    }
+    x.preregenesis = !!x.preregenesis
+    x.bondTimestampRelative = x.bondTimestamp ? DateTime.fromSeconds(x.bondTimestamp).toRelative() : ''
+
+    if (!x.accountAddressTruncated) {
+      x.accountAddressTruncated = truncateAddress(x.accountAddress)
+    }
+
+    if (!x.accountAddressExplorerUrl) {
+      x.accountAddressExplorerUrl = explorerLinkAddress(x.sourceChainSlug, x.accountAddress)
+    }
+
+    if (!x.recipientAddressTruncated) {
+      x.recipientAddressTruncated = truncateAddress(x.recipientAddress)
+    }
+
+    // TODO: rerun worker
+    if (!x.recipientAddressExplorerUrl || x.recipientAddressExplorerUrl?.includes('undefined')) {
+      x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recipientAddress)
+    }
+
+    if (!x.sourceChainColor) {
+      x.sourceChainColor = colorsMap[x.sourceChainSlug] ?? colorsMap.fallback
+    }
+
+    if (!x.destinationChainColor) {
+      x.destinationChainColor = colorsMap[x.destinationChainSlug] ?? colorsMap.fallback
+    }
+
+    if (!x.bondStatusColor) {
+      x.bondStatusColor = x.bonded ? colorsMap.bonded : colorsMap.pending
+    }
+
+    if (typeof x.receivedHTokens !== 'boolean') {
+      x.receivedHTokens = false
+    }
+    if (!x.convertHTokenUrl) {
+      x.convertHTokenUrl = `https://${isGoerli ? 'goerli.hop.exchange' : 'app.hop.exchange'}/#/convert/amm?token=${x.token}&sourceNetwork=${x.destinationChainSlug}&fromHToken=true`
+    }
+
+    x.hopExplorerUrl = `https://${isGoerli ? 'goerli.explorer.hop.exchange' : 'explorer.hop.exchange'}/?transferId=${x.transferId}`
+
+    if (x.integrationPartner) {
+      const names = {
+        socket: 'Socket',
+        lifi: 'LI.FI',
+        metamask: 'MetaMask'
+      }
+      const imageUrls = {
+        socket: 'https://assets.hop.exchange/logos/socket.jpg',
+        lifi: 'https://assets.hop.exchange/logos/lifi.webp',
+        metamask: 'https://assets.hop.exchange/logos/metamask.svg'
+      }
+      x.integrationPartnerName = names[x.integrationPartner]
+      x.integrationPartnerImageUrl = imageUrls[x.integrationPartner]
+    }
+
+    return x
   }
 }

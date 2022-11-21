@@ -70,6 +70,7 @@ Example response
   "amount": "2996498",
   "amountFormatted": 2.996498,
   "amountUsd": 3.004011668430896,
+  "amountOutMin": "2502392",
   "deadline": 1662159408,
   "recipientAddress": "0xd813a52b1158fc08f69ba52ca72ca4360e255ba3",
   "bonderFee": "479123",

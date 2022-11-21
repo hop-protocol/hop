@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
-    "build": "cp -r src/* dist/",
+    "build": "mkdir -p dist && cp -r src/* dist/",
     "lint": "standard --fix src/*.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

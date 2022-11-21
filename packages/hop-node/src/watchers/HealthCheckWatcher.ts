@@ -214,6 +214,7 @@ export class HealthCheckWatcher {
   days: number = 1 // days back to check for
   offsetDays: number = 0
   pollIntervalSeconds: number = 30 * 60
+  healthCheckFinalityTimeHours: number = 1
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
   // These values target appx 100 transactions on an average gas day
@@ -844,7 +845,7 @@ export class HealthCheckWatcher {
 
   async getUnsyncedSubgraphs (): Promise<UnsyncedSubgraph[]> {
     const now = DateTime.now().toUTC()
-    const outOfSyncTimestamp = Math.floor(now.minus({ hours: 1 }).toSeconds())
+    const outOfSyncTimestamp = Math.floor(now.minus({ hours: this.healthCheckFinalityTimeHours }).toSeconds())
     const chains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
 
     const result: any = []
@@ -875,7 +876,7 @@ export class HealthCheckWatcher {
     const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum]
     const tokens = getEnabledTokens()
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: 1 })
+    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours })
     const startDate = endDate.minus({ days: this.days })
     const filters = {
       startDate: startDate.toISO(),
@@ -920,7 +921,7 @@ export class HealthCheckWatcher {
 
   async getInvalidBondWithdrawals (): Promise<InvalidBondWithdrawal[]> {
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: 2 })
+    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours * 2 })
     const startDate = endDate.minus({ days: this.days })
     const items = await getInvalidBondWithdrawals(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     return items.map((item: any) => {
@@ -937,7 +938,7 @@ export class HealthCheckWatcher {
 
   async getUnrelayedTransfers (): Promise<UnrelayedTransfer[]> {
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: 1 })
+    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours })
     const startDate = endDate.minus({ days: this.days })
     const endDateSeconds = Math.floor(endDate.toSeconds())
     const startDateSeconds = Math.floor(startDate.toSeconds())
@@ -997,7 +998,7 @@ export class HealthCheckWatcher {
 
   async getUnsetTransferRoots (): Promise<UnsetTransferRoot[]> {
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: 1 })
+    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours })
     const startDate = endDate.minus({ days: this.days })
     const items = await getUnsetTransferRoots(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     return items.map((item: any) => {

@@ -472,9 +472,10 @@ export class Controller {
     if (!x.bonded && x.sourceChainSlug && x.destinationChainSlug) {
       const minutes = transferTimes?.[x.sourceChainSlug]?.[x.destinationChainSlug]
       if (minutes) {
+        const bufferMinutes = 5 // to allow for enough time for indexer
         const transferTime = DateTime.fromSeconds(x.timestamp)
         const now = DateTime.now().toUTC()
-        const estimatedDate = transferTime.plus({ minutes: minutes + 1 })
+        const estimatedDate = transferTime.plus({ minutes: minutes + bufferMinutes })
         const unixTimestamp = Math.floor(estimatedDate.toSeconds())
         const estimatedSeconds = Math.floor(estimatedDate.toSeconds() - now.toSeconds())
         const relativeTime = estimatedDate.toRelative()

@@ -20,7 +20,7 @@ const transferTimes = {
   ethereum: {
     optimism: 10,
     arbitrum: 16,
-    polygon: 18,
+    polygon: 25,
     gnosis: 5
   },
   optimism: {

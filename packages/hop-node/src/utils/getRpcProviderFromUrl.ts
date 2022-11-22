@@ -10,7 +10,12 @@ const getRpcProviderFromUrl = (
   if (cache[cacheKey]) {
     return cache[cacheKey]
   }
-  const provider = new Provider(rpcUrl)
+  const options = {
+    url: rpcUrl,
+    timeout: 60 * 1000,
+    throttleLimit: 1
+  }
+  const provider = new Provider(options)
   cache[cacheKey] = provider
   return provider
 }

@@ -23,8 +23,8 @@ if (monitorProviderCalls) {
 export class Provider extends providers.StaticJsonRpcProvider implements EthersProvider {
   metrics: Metrics
 
-  constructor (rpcUrl: string) {
-    super(rpcUrl)
+  constructor (rpcUrlOrOptions: string | any) {
+    super(rpcUrlOrOptions)
     this.metrics = new Metrics()
   }
 

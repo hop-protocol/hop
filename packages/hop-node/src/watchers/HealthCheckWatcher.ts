@@ -15,8 +15,8 @@ import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
-import { BigNumber, providers } from 'ethers'
 import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains } from 'src/constants'
+import { BigNumber, providers } from 'ethers'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
@@ -808,7 +808,7 @@ export class HealthCheckWatcher {
 
   private async getChallengedTransferRoots (): Promise<ChallengedTransferRoot[]> {
     // This function does not use TheGraph, as that adds an additional layer/failure point.
-    
+
     // Blocks on Ethereum are exactly 12s, so we know exactly how far back to look in terms of blocks
     const blocksInDay = OneDaySeconds / AvgBlockTimeSeconds.Ethereum
     const provider = getRpcProvider(Chain.Ethereum)!

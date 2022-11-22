@@ -34,7 +34,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     this.l2Wallet = wallets.get(Chain.Arbitrum)
 
     const rpcUrl = getRpcUrl(Chain.Arbitrum)
-    this.defaultL2Provider = new providers.JsonRpcProvider(rpcUrl)
+    this.defaultL2Provider = new providers.StaticJsonRpcProvider(rpcUrl)
   }
 
   async relayXDomainMessage (

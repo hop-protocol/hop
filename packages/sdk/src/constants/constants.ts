@@ -54,7 +54,8 @@ export enum CanonicalToken {
   sBTC = 'sBTC',
   sETH = 'sETH',
   HOP = 'HOP',
-  SNX = 'SNX'
+  SNX = 'SNX',
+  sUSD = 'sUSD'
 }
 
 export enum WrappedToken {
@@ -96,7 +97,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
 export const LpFeeBps = '4'
 export const PendingAmountBuffer = '50000'
 export const MinPolygonGasPrice = 30_000_000_000
-export const MinPolygonGasLimit = BigNumber.from(500_000)
+export const MinPolygonGasLimit = BigNumber.from(1_000_000)
 
 export enum Errors {
   NotEnoughAllowance = 'Not enough allowance. Please call `approve` on the token contract to allow contract to move tokens and make sure you are connected to the correct network.',
@@ -109,3 +110,5 @@ export enum EventNames {
 }
 
 export const MaxDeadline: number = 9999999999
+export const LowLiquidityTokens = ['HOP', 'SNX']
+export const SecondsInDay = 86400

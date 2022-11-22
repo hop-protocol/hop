@@ -1,0 +1,1 @@
+select sum(amount_usd) as total_usd, strftime('%m - %d  - %Y ', datetime(timestamp, 'unixepoch', 'utc')) as week from volume_stats where datetime(timestamp, 'unixepoch', 'utc') >= date('now','start of month','-6 months') and chain = 'optimism' group by strftime('%W', datetime(timestamp, 'unixepoch', 'utc')) order by timestamp;

@@ -13,6 +13,7 @@ import { BigNumber, Contract } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 import { formatUnits } from 'ethers/lib/utils'
+import { getEnabledTokens } from 'src/config/config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
@@ -36,7 +37,7 @@ class IncompleteSettlementsWatcher {
     Chain.Polygon
   ]
 
-  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'HOP', 'SNX']
+  tokens: string[] = getEnabledTokens()
 
   days: number = 7
   offsetDays: number = 0
@@ -114,7 +115,8 @@ class IncompleteSettlementsWatcher {
         if (['optimism', 'arbitrum'].includes(chain) && token === 'MATIC') {
           continue
         }
-        if (['arbitrum', 'polygon', 'gnosis'].includes(chain) && token === 'SNX') {
+        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis']
+        if (nonSynthChains.includes(chain) && (token === 'SNX' || token === 'sUSD')) {
           continue
         }
         if (chain === 'ethereum') {
@@ -139,7 +141,7 @@ class IncompleteSettlementsWatcher {
     await Promise.all(this.chains.map(async (chain: string) => {
       this.logger.debug(`${chain} - getting start and end block numbers`)
       const date = DateTime.fromMillis(Date.now()).minus({ days: this.days + this.offsetDays })
-      const timestamp = date.toSeconds()
+      const timestamp = Math.floor(date.toSeconds())
       const startBlockNumber = await getBlockNumberFromDate(chain, timestamp)
       this.startBlockNumbers[chain] = startBlockNumber
 

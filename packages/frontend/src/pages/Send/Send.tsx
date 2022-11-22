@@ -379,7 +379,9 @@ const Send: FC = () => {
 
     const networkId = Number(fromNetwork.networkId)
     const isNetworkConnected = await checkConnectedNetworkId(networkId)
-    if (!isNetworkConnected) return
+    if (!isNetworkConnected) {
+      throw new Error('wrong network connected')
+    }
 
     const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
     const bridge = sdk.bridge(sourceToken.symbol)
@@ -434,9 +436,14 @@ const Send: FC = () => {
           }
           console.log(json.data.refund)
           const { refundAmountInRefundToken, refundAmountInUsd, refundTokenSymbol } = json.data.refund
-          setFeeRefund(refundAmountInRefundToken.toFixed(4))
-          setFeeRefundUsd(refundAmountInUsd.toFixed(2))
           setFeeRefundTokenSymbol(refundTokenSymbol)
+          if (refundAmountInUsd > 0) {
+            setFeeRefund(refundAmountInRefundToken.toFixed(4))
+            setFeeRefundUsd(refundAmountInUsd.toFixed(2))
+          } else {
+            setFeeRefund('')
+            setFeeRefundUsd('')
+          }
         } else {
           setFeeRefund('')
           setFeeRefundUsd('')

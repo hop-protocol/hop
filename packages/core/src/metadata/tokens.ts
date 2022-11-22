@@ -2,6 +2,7 @@ import {
   ARBImage,
   DAIImage,
   ETHImage,
+  GNOImage,
   HOPImage,
   MATICImage,
   OPImage,
@@ -11,7 +12,8 @@ import {
   WBTCImage,
   XDAIImage,
   sBTCImage,
-  sETHImage
+  sETHImage,
+  sUSDImage
 } from './assets'
 import { Tokens } from './types'
 
@@ -93,5 +95,17 @@ export const tokens: Tokens = {
     name: 'Synthetix Network Token',
     decimals: 18,
     image: SNXImage
+  },
+  sUSD: {
+    symbol: 'sUSD',
+    name: 'Synth sUSD',
+    decimals: 18,
+    image: sUSDImage
+  },
+  GNO: {
+    symbol: 'GNO',
+    name: 'Gnosis',
+    decimals: 18,
+    image: GNOImage
   }
 }

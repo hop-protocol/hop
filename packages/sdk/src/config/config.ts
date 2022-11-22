@@ -25,14 +25,6 @@ const bonders: {[network: string]: {[token: string]: Record<string, Record<strin
   goerli: goerli.bonders
 }
 
-type Bps = {
-  ethereum: number
-  polygon: number
-  gnosis: number
-  optimism: number
-  arbitrum: number
-}
-
 const bonderFeeBps: {[network: string]: {[token: string]: Record<string, number>}} = {
   mainnet: mainnet.bonderFeeBps,
   staging: staging.bonderFeeBps,
@@ -67,3 +59,22 @@ export { metadata, config }
 
 export const bondableChains = ['optimism', 'arbitrum']
 export const relayableChains = ['arbitrum']
+
+export const rateLimitMaxRetries = 1
+export const rpcTimeoutSeconds = 2 * 60
+
+export const etherscanApiKeys: Record<string, string> = {
+  ethereum: process.env.ETHERSCAN_ETHEREUM_API_KEY ?? '',
+  polygon: process.env.ETHERSCAN_POLYGON_API_KEY ?? '',
+  optimism: process.env.ETHERSCAN_OPTIMISM_API_KEY ?? '',
+  arbitrum: process.env.ETHERSCAN_ARBITRUM_API_KEY ?? '',
+  gnosis: process.env.ETHERSCAN_GNOSIS_API_KEY ?? ''
+}
+
+export const etherscanApiUrls: Record<string, string> = {
+  ethereum: 'https://api.etherscan.io',
+  polygon: 'https://api.polygonscan.com',
+  optimism: 'https://api-optimistic.etherscan.io',
+  arbitrum: 'https://api.arbiscan.io',
+  gnosis: 'https://api.gnosisscan.io'
+}

@@ -15,11 +15,11 @@ const client = new S3Client({
 })
 
 class S3Upload {
-  async upload (data: any) {
+  async upload (key: string, data: any) {
     console.log('uploading')
     const input = {
       Bucket: 'assets.hop.exchange',
-      Key: 'v1-pool-stats.json',
+      Key: key,
       Body: JSON.stringify(data, null, 2),
       ACL: 'public-read'
     }

@@ -5,8 +5,6 @@ on:
       - production
       - preprod
       - mainnet
-      - mainnet2
-      - staging
 
 jobs:
   set_environment:

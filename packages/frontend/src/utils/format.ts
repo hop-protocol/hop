@@ -97,10 +97,13 @@ export function truncateHash(hash) {
   return `${hash.substring(0, 6)}…${hash.substring(62, 66)}`
 }
 
-export function formatTokenString(value, tokenDecimals = 18, trailingDecimals = 2) {
+export function formatTokenString(value: BigNumber, tokenDecimals = 18, trailingDecimals = 2) {
+  if (tokenDecimals <= 1) {
+    return value.toString()
+  }
   return fixedDecimals(toTokenDisplay(value, tokenDecimals), trailingDecimals)
 }
 
-export function formatTokenDecimalString(value, tokenDecimals = 18, trailingDecimals = 2) {
+export function formatTokenDecimalString(value: any, tokenDecimals = 18, trailingDecimals = 2) {
   return commafy(formatTokenString(value, tokenDecimals, trailingDecimals))
 }

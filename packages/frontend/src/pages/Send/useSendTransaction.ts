@@ -100,7 +100,9 @@ export function useSendTransaction (props: any) {
 
       const networkId = Number(fromNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       try {
         if (customRecipient) {
@@ -218,7 +220,9 @@ export function useSendTransaction (props: any) {
 
         const networkId = Number(fromNetwork.networkId)
         const isNetworkConnected = await checkConnectedNetworkId(networkId)
-        if (!isNetworkConnected) return
+        if (!isNetworkConnected) {
+          throw new Error('wrong network connected')
+        }
 
         const relayerFeeWithId = getBonderFeeWithId(totalFee)
 
@@ -258,7 +262,9 @@ export function useSendTransaction (props: any) {
 
         const networkId = Number(fromNetwork.networkId)
         const isNetworkConnected = await checkConnectedNetworkId(networkId)
-        if (!isNetworkConnected) return
+        if (!isNetworkConnected) {
+          throw new Error('wrong network connected')
+        }
 
         const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
@@ -300,7 +306,9 @@ export function useSendTransaction (props: any) {
 
         const networkId = Number(fromNetwork.networkId)
         const isNetworkConnected = await checkConnectedNetworkId(networkId)
-        if (!isNetworkConnected) return
+        if (!isNetworkConnected) {
+          throw new Error('wrong network connected')
+        }
 
         const bonderFeeWithId = getBonderFeeWithId(totalFee)
 

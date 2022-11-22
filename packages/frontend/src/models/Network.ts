@@ -8,6 +8,7 @@ export type NetworkProps = {
   slug: string
   imageUrl: string
   rpcUrl: string
+  fallbackRpcUrls: string[]
   networkId: number
   chainId?: number
   nativeTokenSymbol: string
@@ -24,6 +25,7 @@ class Network {
   readonly imageUrl: string
   readonly provider: ethers.providers.Provider
   readonly rpcUrl: string
+  readonly fallbackRpcUrls: string[]
   readonly networkId: number
   readonly chainId: number
   readonly nativeTokenSymbol: string
@@ -38,7 +40,9 @@ class Network {
     this.slug = props.slug
     this.imageUrl = props.imageUrl
     this.rpcUrl = props.rpcUrl
-    this.provider = getProvider(props.rpcUrl)
+    this.fallbackRpcUrls = props.fallbackRpcUrls ?? []
+    const rpcUrls = [this.rpcUrl, ...this.fallbackRpcUrls]
+    this.provider = getProvider(rpcUrls)
     this.networkId = props.networkId
     this.chainId = props.networkId
     this.nativeTokenSymbol = props.nativeTokenSymbol

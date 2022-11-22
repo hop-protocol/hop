@@ -1,0 +1,1 @@
+select amount_usd, strftime('%m - %d  - %Y ', datetime(timestamp, 'unixepoch', 'utc')) as day from tvl_pool_stats where timestamp > 1623826800 and chain = 'gnosis' and token = 'USDT' order by timestamp asc;

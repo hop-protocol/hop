@@ -2,8 +2,10 @@ import Logger from 'src/logger'
 import MerkleTree from 'src/utils/MerkleTree'
 import fs from 'fs'
 import path from 'path'
+import { Chain } from 'src/constants'
 import { Command } from 'commander'
 import {
+  getAllChains,
   config as globalConfig,
   parseConfigFile,
   setGlobalConfigFromConfigFile,
@@ -108,4 +110,32 @@ export function getWithdrawalProofData (
     transferIndex,
     leaves
   }
+}
+
+export function getSourceChains (token: string, settlementChain: string | null = null): string[] {
+  const allChains = getAllChains()
+  const sourceChains: string[] = []
+  for (const chain of allChains) {
+    if (
+      chain === Chain.Ethereum ||
+      chain === settlementChain
+    ) continue
+
+    if (token === 'MATIC') {
+      if (
+        chain === Chain.Arbitrum ||
+        chain === Chain.Optimism
+      ) continue
+    }
+
+    if (token === 'SNX') {
+      if (
+        chain !== Chain.Optimism
+      ) continue
+    }
+
+    sourceChains.push(chain)
+  }
+
+  return sourceChains
 }

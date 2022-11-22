@@ -13,12 +13,12 @@ docker run --rm --name server -p 8000:8000 server
 
 ## Endpoints
 
-## GET /quote
+## GET /v1/quote
 
 Example request
 
 ```sh
-curl "http://localhost:8000/quote?amount=1&token=USDC&fromChain=polygon&toChain=gnosis&slippage=0.5"
+curl "http://localhost:8000/v1/quote?amount=1&token=USDC&fromChain=polygon&toChain=gnosis&slippage=0.5"
 ```
 
 Example response
@@ -27,12 +27,12 @@ Example response
 {"bonderFee":"250396","amountOutMin":"993444","estimatedRecieved":"748041"}
 ```
 
-## GET /status
+## GET /transfer-status
 
 Example request
 
 ```sh
-curl "http://localhost:8000/status?token=USDC&transferId=0x5a15b2abd4d0f2e5d0ea3d5fc93758374b14940096487d70f7c95b5393fc9c89"
+curl "http://localhost:8000/v1/transfer-status?token=USDC&transferId=0x5a15b2abd4d0f2e5d0ea3d5fc93758374b14940096487d70f7c95b5393fc9c89"
 ```
 
 Example response
@@ -41,12 +41,12 @@ Example response
 {"transferId":"0x5a15b2abd4d0f2e5d0ea3d5fc93758374b14940096487d70f7c95b5393fc9c89","transactionHash":"0xbe6953dac8149e3f4d3a5719445170fb9835c461a980cbdaf9ad5cce10c9d27c", ... }
 ```
 
-## GET /build-tx
+## GET /v1/build-tx
 
 Example request
 
 ```sh
-curl "http://localhost:8000/build-tx?token=USDC&amount=1&fromChain=optimism&toChain=arbitrum&recipient=0x1234567899999999999999999999999999999999"
+curl "http://localhost:8000/v1/build-tx?token=USDC&amount=1&fromChain=optimism&toChain=arbitrum&recipient=0x1234567899999999999999999999999999999999"
 ```
 
 Example response
@@ -55,12 +55,12 @@ Example response
 {"tx":{"data":"0xeea0d7b2000000000000000000000000000000000000000000000000000000000000a4b1000000000000000000000000123456789999999999999999999999999999999900000000000000000000000000000000000000000000000000000000000f4240000000000000000000000000000000000000000000000000000000000008284e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006312951600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000063129516","to":"0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796"}}
 ```
 
-## GET /approval/check-allowance
+## GET /v1/approval/check-allowance
 
 Example request
 
 ```sh
-curl "http://localhost:8000/approval/check-allowance?token=USDC&amount=1&fromChain=optimism&account=0x1234567899999999999999999999999999999999"
+curl "http://localhost:8000/v1/approval/check-allowance?token=USDC&amount=1&fromChain=optimism&account=0x1234567899999999999999999999999999999999"
 ```
 
 Example response
@@ -69,12 +69,12 @@ Example response
 {"needsApproval":true}
 ```
 
-## GET /approval/build-tx
+## GET /v1/approval/build-tx
 
 Example request
 
 ```sh
-curl "http://localhost:8000/approval/build-tx?token=USDC&amount=1&fromChain=optimism"
+curl "http://localhost:8000/v1/approval/build-tx?token=USDC&amount=1&fromChain=optimism"
 ```
 
 Example response

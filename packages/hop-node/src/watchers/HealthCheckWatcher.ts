@@ -7,7 +7,6 @@ import chainIdToSlug from 'src/utils/chainIdToSlug'
 import contracts from 'src/contracts'
 import fetch from 'node-fetch'
 import fs from 'fs'
-import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferFromL1Completed from 'src/theGraph/getTransferFromL1Completed'
@@ -16,8 +15,8 @@ import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
+import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains } from 'src/constants'
 import { BigNumber, providers } from 'ethers'
-import { Chain, NativeChainToken, OneDayMs, RelayableChains } from 'src/constants'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
 import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
@@ -61,6 +60,7 @@ type UnbondedTransfer = {
   bonderFee: string
   bonderFeeFormatted: number
   isBonderFeeTooLow: boolean
+  isUnbondable: boolean
 }
 
 type UnbondedTransferRoot = {
@@ -113,9 +113,9 @@ type ChallengedTransferRoot = {
 
 type UnsyncedSubgraph = {
   chain: string
-  headBlockNumber: number
   syncedBlockNumber: number
-  diffBlockNumber: number
+  syncedTimestamp: number
+  outOfSyncTimestamp: number
 }
 
 type MissedEvent = {
@@ -206,42 +206,41 @@ export type Config = {
 }
 
 export class HealthCheckWatcher {
-  tokens: string[] = ['USDC', 'USDT', 'DAI', 'ETH', 'MATIC', 'HOP']
+  tokens: string[] = getEnabledTokens()
   logger: Logger = new Logger('HealthCheckWatcher')
   s3Upload: S3Upload
   s3Filename: string
   cacheFile: string
   days: number = 1 // days back to check for
   offsetDays: number = 0
-  pollIntervalSeconds: number = 300
+  pollIntervalSeconds: number = 30 * 60
+  healthCheckFinalityTimeHours: number = 1
   notifier: Notifier
   sentMessages: Record<string, boolean> = {}
+  // These values target appx 100 transactions on an average gas day
   lowBalanceThresholds: Record<string, BigNumber> = {
     [NativeChainToken.ETH]: parseEther('0.5'),
-    [NativeChainToken.XDAI]: parseEther('100'),
-    [NativeChainToken.MATIC]: parseEther('100')
+    [NativeChainToken.XDAI]: parseEther('10'),
+    [NativeChainToken.MATIC]: parseEther('10')
   }
 
   bonderTotalLiquidity: Record<string, BigNumber> = {
     USDC: parseUnits('6026000', 6),
-    USDT: parseUnits('2121836', 6),
-    DAI: parseUnits('5000000', 18),
-    ETH: parseUnits('4659', 18),
-    MATIC: parseUnits('731948.94', 18),
-    SNX: parseUnits('0', 6) // TODO
+    USDT: parseUnits('1500000', 6),
+    DAI: parseUnits('1500000', 18),
+    ETH: parseUnits('8009', 18),
+    MATIC: parseUnits('731804', 18),
+    HOP: parseUnits('2500000', 18),
+    SNX: parseUnits('200000', 18)
   }
 
-  bonderLowLiquidityThreshold: number = 0.10
+  bonderLowLiquidityThreshold: number = 0.1
   unbondedTransfersMinTimeToWaitMinutes: number = 30
   unbondedTransferRootsMinTimeToWaitHours: number = 1
   incompleteSettlementsMinTimeToWaitHours: number = 4
-  // Targeting roughly 1 hour
-  minSubgraphSyncDiffBlockNumbers: Record<string, number> = {
-    [Chain.Ethereum]: 300,
-    [Chain.Polygon]: 2000,
-    [Chain.Gnosis]: 750,
-    [Chain.Optimism]: 5000,
-    [Chain.Arbitrum]: 5000
+
+  chainsIgnoredByBonder: Record<string, string[]> = {
+    '0x547d28cdd6a69e3366d6ae3ec39543f09bd09417': ['gnosis', 'arbitrum', 'polygon']
   }
 
   enabledChecks: EnabledChecks = {
@@ -370,6 +369,7 @@ export class HealthCheckWatcher {
   private async sendNotifications (result: Result) {
     const {
       lowBonderBalances,
+      lowAvailableLiquidityBonders,
       unbondedTransfers,
       unbondedTransferRoots,
       incompleteSettlements,
@@ -388,7 +388,7 @@ export class HealthCheckWatcher {
 
     if (!unsyncedSubgraphs.length) {
       for (const item of unbondedTransfers) {
-        if (item.isBonderFeeTooLow) {
+        if (item.isBonderFeeTooLow || item.isUnbondable) {
           continue
         }
 
@@ -444,6 +444,11 @@ export class HealthCheckWatcher {
       messages.push(msg)
     }
 
+    for (const item of lowAvailableLiquidityBonders) {
+      const msg = `LowAvailableLiquidityBonders: token: ${item.bridge}, availableLiquidityFormatted: ${item.availableLiquidityFormatted}, totalLiquidityFormatted: ${item.totalLiquidityFormatted}, thresholdAmountFormatted: ${item.thresholdAmountFormatted}`
+      messages.push(msg)
+    }
+
     for (const item of dnsNameserversChanged) {
       const msg = `Possible DNS Nameserver changed: domain: ${item.domain}, expectedNameservers: ${JSON.stringify(item.expectedNameservers)}, gotNameservers: ${JSON.stringify(item.gotNameservers)}`
       messages.push(msg)
@@ -466,7 +471,7 @@ export class HealthCheckWatcher {
     }
     if (shouldSendUnsyncedSubgraphNotification) {
       for (const item of unsyncedSubgraphs) {
-        const msg = `UnsyncedSubgraph: chain: ${item.chain}, syncedBlockNumber: ${item.syncedBlockNumber}, headBlockNumber: ${item.headBlockNumber}, diffBlockNumber: ${item.diffBlockNumber}`
+        const msg = `UnsyncedSubgraph: chain: ${item.chain}, syncedBlockNumber: ${item.syncedBlockNumber}, syncedTimestamp: ${item.syncedTimestamp}, outOfSyncTimestamp: ${item.outOfSyncTimestamp}`
         messages.push(msg)
         this.lastUnsyncedSubgraphNotificationSentAt = Date.now()
       }
@@ -512,6 +517,7 @@ export class HealthCheckWatcher {
   }
 
   private async getLowBonderBalances (): Promise<LowBonderBalance[]> {
+    // TODO: Add Arbitrum and Optimism
     const chainProviders: Record<string, providers.Provider> = {
       [Chain.Ethereum]: getRpcProvider(Chain.Ethereum)!,
       [Chain.Gnosis]: getRpcProvider(Chain.Gnosis)!,
@@ -541,7 +547,8 @@ export class HealthCheckWatcher {
         chainProviders[Chain.Polygon].getBalance(bonder)
       ])
 
-      if (ethBalance.lt(this.lowBalanceThresholds.ETH)) {
+      const excludedChains = this.chainsIgnoredByBonder[bonder]
+      if (ethBalance.lt(this.lowBalanceThresholds.ETH) && excludedChains && !excludedChains.includes(Chain.Ethereum)) {
         result.push({
           bonder,
           bridge,
@@ -552,7 +559,7 @@ export class HealthCheckWatcher {
         })
       }
 
-      if (xdaiBalance.lt(this.lowBalanceThresholds.XDAI)) {
+      if (xdaiBalance.lt(this.lowBalanceThresholds.XDAI) && excludedChains && !excludedChains.includes(Chain.Gnosis)) {
         result.push({
           bonder,
           bridge,
@@ -563,7 +570,7 @@ export class HealthCheckWatcher {
         })
       }
 
-      if (maticBalance.lt(this.lowBalanceThresholds.MATIC)) {
+      if (maticBalance.lt(this.lowBalanceThresholds.MATIC) && excludedChains && !excludedChains.includes(Chain.Polygon)) {
         result.push({
           bonder,
           bridge,
@@ -592,9 +599,9 @@ export class HealthCheckWatcher {
         continue
       }
       const chainAmounts: any = {}
-      const totalLiquidity = this.bonderTotalLiquidity[token]
-      if (totalLiquidity?.eq(0)) {
-        continue
+      const totalLiquidity = this.bonderTotalLiquidity?.[token]
+      if (!totalLiquidity || totalLiquidity?.eq(0)) {
+        throw new Error('Expected totalLiquidity to be defined and non-zero')
       }
       const availableAmounts = tokenData.baseAvailableCreditIncludingVault
       for (const source in availableAmounts) {
@@ -644,7 +651,9 @@ export class HealthCheckWatcher {
         amount: item.amount,
         amountFormatted: Number(item.formattedAmount),
         bonderFee: item.bonderFee,
-        bonderFeeFormatted: Number(item.formattedBonderFee)
+        bonderFeeFormatted: Number(item.formattedBonderFee),
+        deadline: item.deadline,
+        amountOutMin: item.amountOutMin
       }
     })
     result = result.filter((x: any) => timestamp > (Number(x.timestamp) + (this.unbondedTransfersMinTimeToWaitMinutes * 60)))
@@ -661,7 +670,13 @@ export class HealthCheckWatcher {
       (x.token !== 'ETH' && x.bonderFeeFormatted < 1 && l1Chains.includes(x.destinationChain)) ||
       (x.token !== 'ETH' && x.bonderFeeFormatted < 0.25 && l2Chains.includes(x.destinationChain))
 
+      const isUnbondable = (
+        l1Chains.includes(x.destinationChain) &&
+        ((x.deadline && x.deadline !== '0') || (x.amountOutMin && x.amountOutMin !== '0'))
+      )
+
       x.isBonderFeeTooLow = isBonderFeeTooLow
+      x.isUnbondable = isUnbondable
       return x
     })
 
@@ -698,7 +713,7 @@ export class HealthCheckWatcher {
     const now = DateTime.now().toUTC()
     const sourceChains = [Chain.Optimism, Chain.Arbitrum]
     const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum]
-    const tokens = ['USDC', 'USDT', 'DAI', 'ETH']
+    const tokens = getEnabledTokens()
     const startTime = Math.floor(now.minus({ days: this.days }).toSeconds())
     const endTime = Math.floor(now.toSeconds())
     let result: any[] = []
@@ -785,11 +800,13 @@ export class HealthCheckWatcher {
   }
 
   private async getChallengedTransferRoots (): Promise<ChallengedTransferRoot[]> {
-    const date = DateTime.now().toUTC()
-    const now = date.toSeconds()
-    const dayAgo = date.minus({ days: 1 }).toSeconds()
-    const endBlockNumber = await getBlockNumberFromDate(Chain.Ethereum, now)
-    const startBlockNumber = await getBlockNumberFromDate(Chain.Ethereum, dayAgo)
+    // This function does not use TheGraph, as that adds an additional layer/failure point.
+
+    // Blocks on Ethereum are exactly 12s, so we know exactly how far back to look in terms of blocks
+    const blocksInDay = OneDaySeconds / AvgBlockTimeSeconds.Ethereum
+    const provider = getRpcProvider(Chain.Ethereum)!
+    const endBlockNumber = Number((await provider.getBlockNumber()).toString())
+    const startBlockNumber = endBlockNumber - blocksInDay
 
     const result: any[] = []
     for (const token of this.tokens) {
@@ -827,20 +844,27 @@ export class HealthCheckWatcher {
   }
 
   async getUnsyncedSubgraphs (): Promise<UnsyncedSubgraph[]> {
+    const now = DateTime.now().toUTC()
+    const outOfSyncTimestamp = Math.floor(now.minus({ hours: this.healthCheckFinalityTimeHours }).toSeconds())
     const chains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
+
     const result: any = []
     for (const chain of chains) {
       const provider = getRpcProvider(chain)!
       const syncedBlockNumber = await getSubgraphLastBlockSynced(chain)
-      const headBlockNumber = Number((await provider.getBlockNumber()).toString())
-      const diffBlockNumber = headBlockNumber - syncedBlockNumber
-      this.logger.debug(`subgraph sync status: syncedBlockNumber: chain: ${chain}, ${syncedBlockNumber}, headBlockNumber: ${headBlockNumber}, diffBlockNumber: ${diffBlockNumber}`)
-      if (diffBlockNumber > this.minSubgraphSyncDiffBlockNumbers[chain]) {
+      const syncedBlock = await provider.getBlock(syncedBlockNumber)
+      if (!syncedBlock) {
+        this.logger.error(`unable to get synced block for ${chain}, block number ${syncedBlockNumber}`)
+      }
+      const syncedTimestamp = syncedBlock.timestamp
+      const isOutOfSync = syncedTimestamp < outOfSyncTimestamp
+      this.logger.debug(`subgraph sync status: syncedBlockNumber: chain: ${chain}, ${syncedBlockNumber}, syncedTimestamp: ${syncedTimestamp}, syncedTimestamp: ${syncedTimestamp}, outOfSyncTimestamp: ${outOfSyncTimestamp}`)
+      if (isOutOfSync) {
         result.push({
           chain,
-          headBlockNumber,
           syncedBlockNumber,
-          diffBlockNumber
+          syncedTimestamp,
+          outOfSyncTimestamp
         })
       }
     }
@@ -852,7 +876,7 @@ export class HealthCheckWatcher {
     const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum]
     const tokens = getEnabledTokens()
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: 1 })
+    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours })
     const startDate = endDate.minus({ days: this.days })
     const filters = {
       startDate: startDate.toISO(),
@@ -864,7 +888,8 @@ export class HealthCheckWatcher {
         if (['arbitrum', 'optimism'].includes(sourceChain) && token === 'MATIC') {
           continue
         }
-        if (['arbitrum', 'polygon', 'gnosis'].includes(sourceChain) && token === 'SNX') {
+        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis']
+        if (nonSynthChains.includes(sourceChain) && (token === 'SNX' || token === 'sUSD')) {
           continue
         }
         promises.push(new Promise(async (resolve, reject) => {
@@ -876,7 +901,7 @@ export class HealthCheckWatcher {
             for (const transfer of transfers) {
               const { transferId, amount, bonderFee, timestamp } = transfer
               const item = await db.transfers.getByTransferId(transferId)
-              if (!item?.transferSentTxHash && !item.withdrawalBonded) {
+              if (!item?.transferSentTxHash && !item?.withdrawalBonded) {
                 missedEvents.push({ token, sourceChain, transferId, amount, bonderFee, timestamp })
               }
             }
@@ -896,7 +921,7 @@ export class HealthCheckWatcher {
 
   async getInvalidBondWithdrawals (): Promise<InvalidBondWithdrawal[]> {
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: 1 })
+    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours * 2 })
     const startDate = endDate.minus({ days: this.days })
     const items = await getInvalidBondWithdrawals(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     return items.map((item: any) => {
@@ -913,7 +938,7 @@ export class HealthCheckWatcher {
 
   async getUnrelayedTransfers (): Promise<UnrelayedTransfer[]> {
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: 1 })
+    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours })
     const startDate = endDate.minus({ days: this.days })
     const endDateSeconds = Math.floor(endDate.toSeconds())
     const startDateSeconds = Math.floor(startDate.toSeconds())
@@ -973,7 +998,7 @@ export class HealthCheckWatcher {
 
   async getUnsetTransferRoots (): Promise<UnsetTransferRoot[]> {
     const now = DateTime.now().toUTC()
-    const endDate = now.minus({ hours: 1 })
+    const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours })
     const startDate = endDate.minus({ days: this.days })
     const items = await getUnsetTransferRoots(Math.floor(startDate.toSeconds()), Math.floor(endDate.toSeconds()))
     return items.map((item: any) => {

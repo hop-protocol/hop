@@ -1,8 +1,8 @@
 import Logger from 'src/logger'
-import promiseTimeout from 'src/utils/promiseTimeout'
 import wait from 'src/utils/wait'
 import { Notifier } from 'src/notifier'
 import { hostname, rateLimitMaxRetries, rpcTimeoutSeconds } from 'src/config'
+import { promiseTimeout } from 'src/utils/promiseTimeout'
 
 const _logger = new Logger('rateLimitRetry')
 const notifier = new Notifier(`rateLimitRetry, host: ${hostname}`)

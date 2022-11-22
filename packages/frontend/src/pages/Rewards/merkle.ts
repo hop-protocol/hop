@@ -3,8 +3,9 @@ import { solidityKeccak256 } from 'ethers/lib/utils'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
 
-function hashLeaf ([address, entry]: any) {
-  return solidityKeccak256(['address', 'uint256'], [address, entry.balance])
+function hashLeaf ([address, entry]) {
+  const salt = keccak256('MERKLE_REWARDS_LEAF_HASH')
+  return solidityKeccak256(['bytes32', 'address', 'uint256'], [salt, address, entry.balance])
 }
 
 export function getEntryProofIndex (address: string, entry: any, proof: any) {

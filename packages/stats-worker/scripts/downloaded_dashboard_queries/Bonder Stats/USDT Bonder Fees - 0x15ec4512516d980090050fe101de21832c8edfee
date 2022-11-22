@@ -1,0 +1,1 @@
+select total_fees_amount as fees, strftime('%m - %d  - %Y', datetime(timestamp, 'unixepoch', 'utc')) as day from bonder_fees where token = 'USDT' AND strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch', 'utc')) >= '2022-01-27' 

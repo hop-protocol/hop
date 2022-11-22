@@ -34,6 +34,7 @@ export type Networks = {
   [key: string]: {
     networkId: number
     rpcUrl: string
+    fallbackRpcUrls: string[]
     explorerUrl: string
     nativeBridgeUrl?: string
     waitConfirmations?: number

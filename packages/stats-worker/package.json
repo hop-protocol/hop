@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "scripts": {
     "start": "ts-node src/index.ts",
-    "start:apr": "ts-node src/index.ts --apr",
+    "start:yields": "ts-node src/index.ts --yields",
     "start:volume": "ts-node src/index.ts --volume",
     "start:tvl": "ts-node src/index.ts --tvl",
     "start:bonder": "ts-node src/index.ts --bonder --bonderDays=30",
@@ -22,13 +22,12 @@
   "license": "MIT",
   "dependencies": {
     "@aws-sdk/client-s3": "3.29.0",
-    "@hop-protocol/core": "0.0.1-beta.91",
-    "@hop-protocol/sdk": "0.0.1-beta.375",
+    "@hop-protocol/core": "0.0.1-beta.106",
+    "@hop-protocol/sdk": "0.0.1-beta.404",
     "@pinata/sdk": "1.1.26",
     "comment-json": "4.2.2",
     "csv-writer": "1.6.0",
     "dotenv": "10.0.0",
-    "ethereum-block-by-date": "1.4.5",
     "ethers": "5.7.1",
     "luxon": "2.5.0",
     "minimist": "1.2.6",

@@ -1,0 +1,10 @@
+select
+    integration_partner,
+    usd,
+    date
+from (
+    select coalesce(nullif(integration_partner, ''), 'hop') as integration_partner, sum(amount_usd) as USD, date_trunc('day', to_timestamp("timestamp")) as date from transfers where (integration_partner IS NULL or integration_partner = '') and "timestamp" > 1668067200 group by (integration_partner, date_trunc('day', to_timestamp("timestamp")))
+) a
+union (
+ select integration_partner, sum(amount_usd) as USD, date_trunc('day', to_timestamp("timestamp")) as date from transfers where integration_partner IS NOT NULL and integration_partner != '' and "timestamp" > 1668067200 group by (integration_partner, date_trunc('day', to_timestamp("timestamp")))
+)

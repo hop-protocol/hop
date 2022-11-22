@@ -1,0 +1,1 @@
+select sum(amount_usd) as total_usd, date_trunc('day', to_timestamp(timestamp)) as day from transfers where to_timestamp(timestamp) > now() - INTERVAL '6 day' and token = 'ETH' group by day order by day;

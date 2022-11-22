@@ -21,8 +21,10 @@ import {
 import {
   BondTransferGasLimit,
   CanonicalToken,
+  ChainSlug,
   Errors,
   HToken,
+  LowLiquidityTokens,
   LpFeeBps,
   PendingAmountBuffer,
   SettlementGasLimitPerTx,
@@ -1211,6 +1213,10 @@ class HopBridge extends Base {
     sourceChain: TChain,
     destinationChain: TChain
   ): Promise<BigNumber> {
+    if (!(this.isSupportedAsset(sourceChain) && this.isSupportedAsset(destinationChain))) {
+      return BigNumber.from(0)
+    }
+
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     const token = this.toTokenModel(this.tokenSymbol)
@@ -1243,8 +1249,10 @@ class HopBridge extends Base {
         }
       }))
 
+      const isLowLiquidityToken = LowLiquidityTokens.includes(token.canonicalSymbol)
+      const buffer: string = isLowLiquidityToken ? '0' : PendingAmountBuffer
       const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
-      const bufferAmountBn = parseUnits(PendingAmountBuffer, token.decimals)
+      const bufferAmountBn = parseUnits(buffer, token.decimals)
       const precision = parseUnits('1', token.decimals)
       const bufferAmountTokensBn = bufferAmountBn.div(tokenPriceBn).mul(precision)
 
@@ -1561,6 +1569,28 @@ class HopBridge extends Base {
   public async getReservesTotal (chain: TChain = this.sourceChain) {
     const [reserve0, reserve1] = await this.getSaddleSwapReserves(chain)
     return reserve0.add(reserve1)
+  }
+
+  public async getTvl (chain: TChain = this.sourceChain) {
+    return this.getReservesTotal(chain)
+  }
+
+  public async getTvlUsd (chain: TChain = this.sourceChain): Promise<number> {
+    const token = this.toTokenModel(this.tokenSymbol)
+    const [tvl, tokenPrice] = await Promise.all([
+      this.getTvl(chain),
+      this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
+    ])
+    if (tvl.lte(0)) {
+      return 0
+    }
+    const tvlFormatted = this.formatUnits(tvl)
+    let tvlUsd = tvlFormatted * tokenPrice
+    if (tvlUsd < 0) {
+      tvlUsd = 0
+    }
+
+    return tvlUsd
   }
 
   /**
@@ -2248,7 +2278,8 @@ class HopBridge extends Base {
   isSupportedAsset (chain: TChain) {
     chain = this.toChainModel(chain)
     const supported = this.getSupportedAssets()
-    return !!supported[chain.slug]?.[this.tokenSymbol]
+    const token = this.toTokenModel(this.tokenSymbol)
+    return !!supported[chain.slug]?.[token.canonicalSymbol] ?? false
   }
 
   async getBonderAddress (sourceChain: TChain, destinationChain: TChain): Promise<string> {
@@ -2329,16 +2360,16 @@ class HopBridge extends Base {
     return token.needsApproval(spender, amount, address)
   }
 
-  parseUnits (value: TAmount):BigNumber {
+  parseUnits (value: TAmount, decimals?: number):BigNumber {
     value = value.toString() || '0'
     const token = this.toTokenModel(this.tokenSymbol)
-    return parseUnits(value, token.decimals)
+    return parseUnits(value, decimals ?? token.decimals)
   }
 
-  formatUnits (value: TAmount):number {
+  formatUnits (value: TAmount, decimals?: number):number {
     value = value.toString() || '0'
     const token = this.toTokenModel(this.tokenSymbol)
-    return Number(formatUnits(value, token.decimals))
+    return Number(formatUnits(value, decimals ?? token.decimals))
   }
 
   calcAmountOutMin (amountOut: TAmount, slippageTolerance: number) {
@@ -2353,6 +2384,68 @@ class HopBridge extends Base {
     const l1Bridge = await this.getL1Bridge()
     const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
     return isPaused
+  }
+
+  // chains that the asset supports
+  get supportedChains (): string[] {
+    const supported = new Set()
+    const token = this.toTokenModel(this.tokenSymbol)
+    for (const chain in this.chains) {
+      if (this.addresses[token.canonicalSymbol][chain]) {
+        supported.add(chain)
+      }
+    }
+    return Array.from(supported) as string[]
+  }
+
+  // L2 chains that the asset supports to LP
+  get supportedLpChains (): string[] {
+    const token = this.toTokenModel(this.tokenSymbol)
+    const supported = new Set()
+    for (const chain of this.supportedChains) {
+      if (chain === ChainSlug.Ethereum || token.canonicalSymbol === TokenModel.HOP) {
+        continue
+      }
+      supported.add(chain)
+    }
+    return Array.from(supported) as string[]
+  }
+
+  getSupportedLpChains (): string[] {
+    return this.supportedLpChains
+  }
+
+  async getAccountLpBalance (chain: TChain, account?: string) {
+    const lpToken = this.getSaddleLpToken(chain)
+    const balance = await lpToken.balanceOf(account)
+    return balance
+  }
+
+  async getAccountLpCanonicalBalance (chain: TChain, account?: string) {
+    const token = this.toTokenModel(this.tokenSymbol)
+    const lpToken = this.getSaddleLpToken(chain)
+    const balance = await lpToken.balanceOf(account)
+    const amm = this.getAmm(chain)
+    const virtualPrice = await amm.getVirtualPrice()
+    const canonicalBalance = balance.mul(virtualPrice).div(parseUnits('1', 18))
+    return canonicalBalance
+  }
+
+  async getAccountLpCanonicalBalanceUsd (chain: TChain, account?: string) {
+    const token = this.toTokenModel(this.tokenSymbol)
+    const [balance, tokenPrice] = await Promise.all([
+      this.getAccountLpCanonicalBalance(chain, account),
+      this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol)
+    ])
+    if (balance.lte(0)) {
+      return 0
+    }
+    const balanceFormatted = this.formatUnits(balance, 18)
+    let balanceUsd = balanceFormatted * tokenPrice
+    if (balanceUsd < 0) {
+      balanceUsd = 0
+    }
+    return balanceUsd
   }
 }
 

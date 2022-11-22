@@ -104,9 +104,17 @@ export type Bonders = {
   WBTC?: Routes
   HOP?: Routes
   SNX?: Routes
+  sUSD?: Routes
+}
+
+export type RewardsContracts = {
+  [tokenSymbol: string]: {
+    [chain: string]: string[]
+  }
 }
 
 export type Addresses = {
   bridges: Bridges
   bonders: Bonders
+  rewardsContracts?: RewardsContracts
 }

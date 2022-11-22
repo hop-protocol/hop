@@ -21,6 +21,7 @@ export const networks: Networks = {
   ethereum: {
     networkId: _networks.ethereum.networkId,
     rpcUrl: _networks.ethereum.publicRpcUrl,
+    fallbackRpcUrls: _networks.ethereum.fallbackPublicRpcUrls,
     explorerUrl: _networks.ethereum.explorerUrls[0],
     nativeBridgeUrl: _networks.ethereum.nativeBridgeUrl,
     waitConfirmations: _networks.ethereum.waitConfirmations,
@@ -28,6 +29,7 @@ export const networks: Networks = {
   optimism: {
     networkId: _networks.optimism.networkId,
     rpcUrl: _networks.optimism.publicRpcUrl,
+    fallbackRpcUrls: _networks.optimism.fallbackPublicRpcUrls,
     explorerUrl: _networks.optimism.explorerUrls[0],
     nativeBridgeUrl: _networks.optimism.nativeBridgeUrl,
     waitConfirmations: _networks.optimism.waitConfirmations,
@@ -35,6 +37,7 @@ export const networks: Networks = {
   gnosis: {
     networkId: _networks.gnosis.networkId,
     rpcUrl: _networks.gnosis.publicRpcUrl,
+    fallbackRpcUrls: _networks.gnosis.fallbackPublicRpcUrls,
     explorerUrl: _networks.gnosis.explorerUrls[0],
     nativeBridgeUrl: _networks.gnosis.nativeBridgeUrl,
     waitConfirmations: _networks.gnosis.waitConfirmations,

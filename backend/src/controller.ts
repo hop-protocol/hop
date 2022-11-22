@@ -16,6 +16,39 @@ const colorsMap: any = {
   fallback: '#9f9fa3'
 }
 
+const transferTimes = {
+  ethereum: {
+    optimism: 10,
+    arbitrum: 16,
+    polygon: 18,
+    gnosis: 5
+  },
+  optimism: {
+    ethereum: 1,
+    arbitrum: 1,
+    polygon: 1,
+    gnosis: 1
+  },
+  arbitrum: {
+    ethereum: 1,
+    optimism: 1,
+    polygon: 1,
+    gnosis: 1
+  },
+  polygon: {
+    ethereum: 5,
+    optimism: 5,
+    arbitrum: 5,
+    gnosis: 5
+  },
+  gnosis: {
+    ethereum: 1,
+    optimism: 1,
+    arbitrum: 1,
+    polygon: 1
+  }
+}
+
 function truncateAddress (address :string) {
   return truncateString(address, 4)
 }
@@ -146,6 +179,9 @@ type Transfer = {
   transferId: string
   transferIdTruncated: string
   unbondabe: boolean
+  estimatedUnixTimeUntilBond: number
+  estimatedSecondsUntilBond: number
+  estimatedRelativeTimeUntilBond: string
 }
 
 export class Controller {
@@ -427,6 +463,27 @@ export class Controller {
       }
       x.integrationPartnerName = names[x.integrationPartner]
       x.integrationPartnerImageUrl = imageUrls[x.integrationPartner]
+    }
+
+    x.estimatedUnixTimeUntilBond = 0
+    x.estimatedSecondsUntilBond = 0
+    x.estimatedRelativeTimeUntilBond = 0
+
+    if (!x.bonded && x.sourceChainSlug && x.destinationChainSlug) {
+      const minutes = transferTimes?.[x.sourceChainSlug]?.[x.destinationChainSlug]
+      if (minutes) {
+        const transferTime = DateTime.fromSeconds(x.timestamp)
+        const now = DateTime.now().toUTC()
+        const estimatedDate = transferTime.plus({ minutes: minutes + 1 })
+        const unixTimestamp = Math.floor(estimatedDate.toSeconds())
+        const estimatedSeconds = Math.floor(estimatedDate.toSeconds() - now.toSeconds())
+        const relativeTime = estimatedDate.toRelative()
+        if (estimatedSeconds > 0) {
+          x.estimatedUnixTimeUntilBond = unixTimestamp
+          x.estimatedSecondsUntilBond = estimatedSeconds
+          x.estimatedRelativeTimeUntilBond = relativeTime
+        }
+      }
     }
 
     return x

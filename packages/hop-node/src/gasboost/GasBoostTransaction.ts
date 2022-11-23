@@ -3,6 +3,7 @@ import BNMin from 'src/utils/BNMin'
 import Logger from 'src/logger'
 import Store from './Store'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import fetch from 'node-fetch'
 import getBumpedBN from 'src/utils/getBumpedBN'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
@@ -15,7 +16,13 @@ import { EventEmitter } from 'events'
 import { EstimateGasError, NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
-import { gasBoostErrorSlackChannel, gasBoostWarnSlackChannel, hostname } from 'src/config'
+import {
+  blocknativeApiKey,
+  gasBoostErrorSlackChannel,
+  gasBoostWarnSlackChannel,
+  hostname,
+  maxPriorityFeeConfidenceLevel
+} from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
 
 enum State {
@@ -379,8 +386,24 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
-    const { maxPriorityFeePerGas } = await this.getGasFeeData()
-    return maxPriorityFeePerGas! // eslint-disable-line
+    try {
+      const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
+      const url = baseUrl + maxPriorityFeeConfidenceLevel
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': blocknativeApiKey
+        },
+      })
+
+      const gasData = await res.json()
+      const maxPriorityFeePerGas = gasData.blockPrices[0].estimatedPrices[0].maxPriorityFeePerGas
+      return this.parseGwei(maxPriorityFeePerGas)
+    } catch (err) {
+      this.logger.error(`blocknative priority fee call failed: ${err}`)
+      const { maxPriorityFeePerGas } = await this.getGasFeeData()
+      return maxPriorityFeePerGas! // eslint-disable-line
+    }
   }
 
   getMaxGasPrice () {

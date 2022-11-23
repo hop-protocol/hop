@@ -15,7 +15,6 @@ import { EventEmitter } from 'events'
 
 import { EstimateGasError, NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
-import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
 import {
   blocknativeApiKey,
   gasBoostErrorSlackChannel,
@@ -23,6 +22,7 @@ import {
   hostname,
   maxPriorityFeeConfidenceLevel
 } from 'src/config'
+import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
 import { v4 as uuidv4 } from 'uuid'
 
 enum State {
@@ -392,8 +392,8 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
       const res = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': blocknativeApiKey
-        },
+          Authorization: blocknativeApiKey
+        }
       })
 
       const gasData = await res.json()

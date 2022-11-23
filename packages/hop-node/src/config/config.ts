@@ -62,7 +62,7 @@ export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PEN
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 
-export const maxPriorityFeeConfidenceLevel = process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL ?? 95
+export const maxPriorityFeeConfidenceLevel = process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL ?? '95'
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
 
 export const etherscanApiKeys: Record<string, string> = {

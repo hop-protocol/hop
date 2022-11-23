@@ -386,24 +386,28 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
-    try {
-      const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
-      const url = baseUrl + maxPriorityFeeConfidenceLevel
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Authorization: blocknativeApiKey
-        }
-      })
+    const isMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum
+    if (isMainnet) {
+      try {
+        const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
+        const url = baseUrl + maxPriorityFeeConfidenceLevel
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Authorization: blocknativeApiKey
+          }
+        })
 
-      const gasData = await res.json()
-      const maxPriorityFeePerGas = gasData.blockPrices[0].estimatedPrices[0].maxPriorityFeePerGas
-      return this.parseGwei(maxPriorityFeePerGas)
-    } catch (err) {
-      this.logger.error(`blocknative priority fee call failed: ${err}`)
-      const { maxPriorityFeePerGas } = await this.getGasFeeData()
-      return maxPriorityFeePerGas! // eslint-disable-line
+        const gasData = await res.json()
+        const maxPriorityFeePerGas = gasData.blockPrices[0].estimatedPrices[0].maxPriorityFeePerGas
+        return this.parseGwei(maxPriorityFeePerGas)
+      } catch (err) {
+        this.logger.error(`blocknative priority fee call failed: ${err}`)
+      }
     }
+
+    const { maxPriorityFeePerGas } = await this.getGasFeeData()
+    return maxPriorityFeePerGas! // eslint-disable-line
   }
 
   getMaxGasPrice () {

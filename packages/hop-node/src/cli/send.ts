@@ -172,7 +172,7 @@ async function sendTokens (
   isHToken: boolean,
   shouldSendMax: boolean
 ) {
-  const isFromNative = nativeChainTokens[fromChain] === token
+  const isFromNative = nativeChainTokens[fromChain] === token && !isHToken
 
   if (!amount && !shouldSendMax) {
     throw new Error('max flag or amount is required. E.g. 100')
@@ -269,5 +269,5 @@ async function sendTokens (
   await tx.wait()
   balance = await (isFromNative ? wallet.getBalance() : tokenClass.getBalance())
   logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
-  logger.debug('tokens should arrive at destination in 5-15 minutes')
+  // logger.debug('tokens should arrive at destination in 5-15 minutes')
 }

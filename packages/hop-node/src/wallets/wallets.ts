@@ -7,6 +7,7 @@ import {
   getNetworkMaxGasPrice,
   config as globalConfig,
   initialTxGasPriceMultiplier,
+  maxPriorityFeeConfidenceLevel,
   minPriorityFeePerGas,
   priorityFeePerGasCap,
   timeTilBoostMs
@@ -30,7 +31,8 @@ const constructWallet = memoize(
       minPriorityFeePerGas,
       priorityFeePerGasCap,
       timeTilBoostMs,
-      reorgWaitConfirmations
+      reorgWaitConfirmations,
+      maxPriorityFeeConfidenceLevel
     })
     return signer
   }

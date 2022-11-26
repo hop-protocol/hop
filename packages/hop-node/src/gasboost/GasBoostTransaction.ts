@@ -3,19 +3,31 @@ import BNMin from 'src/utils/BNMin'
 import Logger from 'src/logger'
 import Store from './Store'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import fetch from 'node-fetch'
 import getBumpedBN from 'src/utils/getBumpedBN'
 import getBumpedGasPrice from 'src/utils/getBumpedGasPrice'
 import getProviderChainSlug from 'src/utils/getProviderChainSlug'
 import getTransferIdFromCalldata from 'src/utils/getTransferIdFromCalldata'
 import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
-import { Chain, MaxGasPriceMultiplier, MinPriorityFeePerGas, PriorityFeePerGasCap } from 'src/constants'
+import {
+  Chain,
+  MaxGasPriceMultiplier,
+  MaxPriorityFeeConfidenceLevel,
+  MinPriorityFeePerGas,
+  PriorityFeePerGasCap
+} from 'src/constants'
 import { EventEmitter } from 'events'
 
 import { EstimateGasError, NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
+import {
+  blocknativeApiKey,
+  gasBoostErrorSlackChannel,
+  gasBoostWarnSlackChannel,
+  hostname
+} from 'src/config'
 import { formatUnits, hexlify, parseUnits } from 'ethers/lib/utils'
-import { gasBoostErrorSlackChannel, gasBoostWarnSlackChannel, hostname } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
 
 enum State {
@@ -58,6 +70,7 @@ export type Options = {
   priorityFeePerGasCap: number
   compareMarketGasPrice: boolean
   reorgWaitConfirmations: number
+  maxPriorityFeeConfidenceLevel: number
 }
 
 type Type0GasData = {
@@ -85,6 +98,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   maxRebroadcastIndexReached: boolean = false
   minPriorityFeePerGas: number = MinPriorityFeePerGas // we use this priorityFeePerGas or the ethers suggestions; which ever one is greater
   priorityFeePerGasCap: number = PriorityFeePerGasCap // this the max we'll keep bumping maxPriorityFeePerGas to in type 2 txs. Since maxPriorityFeePerGas is already a type 2 argument, it uses the term cap instead
+  maxPriorityFeeConfidenceLevel: number = MaxPriorityFeeConfidenceLevel
   compareMarketGasPrice: boolean = true
   warnEthBalance: number = 0.1 // how low ETH balance of signer must get before we log a warning
   boostIndex: number = 0 // number of times transaction has been boosted
@@ -379,6 +393,26 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   }
 
   async getMarketMaxPriorityFeePerGas (): Promise<BigNumber> {
+    const isMainnet = typeof this._is1559Supported === 'boolean' && this._is1559Supported && this.chainSlug === Chain.Ethereum
+    if (isMainnet) {
+      try {
+        const baseUrl = 'https://api.blocknative.com/gasprices/blockprices?confidenceLevels='
+        const url = baseUrl + this.maxPriorityFeeConfidenceLevel.toString()
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Authorization: blocknativeApiKey
+          }
+        })
+
+        const gasData = await res.json()
+        const maxPriorityFeePerGas = gasData.blockPrices[0].estimatedPrices[0].maxPriorityFeePerGas
+        return this.parseGwei(maxPriorityFeePerGas)
+      } catch (err) {
+        this.logger.error(`blocknative priority fee call failed: ${err}`)
+      }
+    }
+
     const { maxPriorityFeePerGas } = await this.getGasFeeData()
     return maxPriorityFeePerGas! // eslint-disable-line
   }
@@ -516,6 +550,9 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     if (options.reorgWaitConfirmations) {
       this.reorgWaitConfirmations = options.reorgWaitConfirmations
+    }
+    if (options.maxPriorityFeeConfidenceLevel) {
+      this.maxPriorityFeeConfidenceLevel = options.maxPriorityFeeConfidenceLevel
     }
   }
 

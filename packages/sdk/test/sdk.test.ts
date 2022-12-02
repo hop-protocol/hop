@@ -863,3 +863,16 @@ describe('fallback provider', () => {
     expect(network.name).toBe('optimism')
   }, 60 * 1000)
 })
+
+describe('AMM calculateSwap', () => {
+  it('should call calculateSwap', async () => {
+    const hop = new Hop('mainnet')
+    const token = 'USDC'
+    const chain = 'optimism'
+    const bridge = hop.bridge(token)
+    const amm = bridge.getAmm(chain)
+    const amountOut = await amm.calculateSwap(0, 1, parseUnits('10', 6))
+    console.log(token, chain, amountOut)
+    expect(amountOut.gt(0)).toBe(true)
+  }, 10 * 60 * 1000)
+})

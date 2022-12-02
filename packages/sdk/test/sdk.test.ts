@@ -866,7 +866,9 @@ describe('fallback provider', () => {
 
 describe('AMM calculateSwap', () => {
   it('should call calculateSwap', async () => {
-    const hop = new Hop('mainnet')
+    const provider = new providers.StaticJsonRpcProvider('https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213')
+    const signer = new Wallet(privateKey, provider)
+    const hop = new Hop('mainnet', signer)
     const token = 'USDC'
     const chain = 'optimism'
     const bridge = hop.bridge(token)

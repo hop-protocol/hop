@@ -1963,7 +1963,11 @@ class TransferStats {
     const integrations = {
       '0xc30141b657f4216252dc59af2e7cdb9d8792e1b0': 'socket',
       '0x362fa9d0bca5d19f743db50738345ce2b40ec99f': 'lifi',
-      '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask'
+      '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask',
+      '0xf26055894aeaAe23d136dEfAa355A041a43D7DFd': 'chainhop',
+      '0xF762C3fC745948fF49a3dA00CCdC6b755e44305e': 'chainhop',
+      '0xf80dd9Cef747710B0bB6A113405eb6Bc394cE050': 'chainhop',
+      '0x696c91CdC3e79a74785c2CDD07Ccc1bf0bc7b788': 'chainhop'
     }
 
     const _addresses = Object.values(addresses?.bridges?.[item.token]?.[sourceChainSlug] ?? {}).reduce((acc: any, address: string) => {

@@ -454,12 +454,14 @@ export class Controller {
       const names = {
         socket: 'Socket',
         lifi: 'LI.FI',
-        metamask: 'MetaMask'
+        metamask: 'MetaMask',
+        chainhop: 'ChainHop'
       }
       const imageUrls = {
         socket: 'https://assets.hop.exchange/logos/socket.jpg',
         lifi: 'https://assets.hop.exchange/logos/lifi.webp',
-        metamask: 'https://assets.hop.exchange/logos/metamask.svg'
+        metamask: 'https://assets.hop.exchange/logos/metamask.svg',
+        chainhop: 'https://assets.hop.exchange/logos/chainhop.png'
       }
       x.integrationPartnerName = names[x.integrationPartner]
       x.integrationPartnerImageUrl = imageUrls[x.integrationPartner]

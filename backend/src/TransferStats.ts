@@ -1963,7 +1963,11 @@ class TransferStats {
     const integrations = {
       '0xc30141b657f4216252dc59af2e7cdb9d8792e1b0': 'socket',
       '0x362fa9d0bca5d19f743db50738345ce2b40ec99f': 'lifi',
-      '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask'
+      '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask',
+      '0xf26055894aeaae23d136defaa355a041a43d7dfd': 'chainhop',
+      '0xf762c3fc745948ff49a3da00ccdc6b755e44305e': 'chainhop',
+      '0xf80dd9cef747710b0bb6a113405eb6bc394ce050': 'chainhop',
+      '0x696c91cdc3e79a74785c2cdd07ccc1bf0bc7b788': 'chainhop'
     }
 
     const _addresses = Object.values(addresses?.bridges?.[item.token]?.[sourceChainSlug] ?? {}).reduce((acc: any, address: string) => {
@@ -1990,7 +1994,7 @@ class TransferStats {
         if (receipt) {
           const contractAddress = receipt.to?.toLowerCase()
           item.originContractAddress = contractAddress
-          let integrationPartner = integrations[contractAddress]
+          let integrationPartner = integrations[contractAddress]?.toLowerCase()
           if (integrationPartner) {
             const result = {
               integrationPartner,
@@ -2003,7 +2007,7 @@ class TransferStats {
           const logs = receipt.logs
           for (const log of logs) {
             const address = log.address?.toLowerCase()
-            integrationPartner = integrations[address]
+            integrationPartner = integrations[address]?.toLowerCase()
             if (integrationPartner) {
               const result = {
                 integrationPartner: integrationPartner,

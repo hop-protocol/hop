@@ -2112,13 +2112,12 @@ class HopBridge extends Base {
       return amount
     }
 
-    const amm = this.getAmm(chain)
-    const saddleSwap = await amm.getSaddleSwap()
     if (amount.eq(0)) {
       return BigNumber.from(0)
     }
 
-    const amountOut = await saddleSwap.calculateSwap(
+    const amm = this.getAmm(chain)
+    const amountOut = await amm.calculateSwap(
       TokenIndex.CanonicalToken,
       TokenIndex.HopBridgeToken,
       amount
@@ -2139,12 +2138,12 @@ class HopBridge extends Base {
       return BigNumber.from(amount)
     }
 
-    const amm = this.getAmm(chain)
-    const saddleSwap = await amm.getSaddleSwap()
     if (amount.eq(0)) {
       return BigNumber.from(0)
     }
-    const amountOut = await saddleSwap.calculateSwap(
+
+    const amm = this.getAmm(chain)
+    const amountOut = await amm.calculateSwap(
       TokenIndex.HopBridgeToken,
       TokenIndex.CanonicalToken,
       amount

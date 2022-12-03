@@ -14,7 +14,7 @@ if (trustProxy) {
 app.use(cors())
 
 app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
-  const { amount, token, fromChain, toChain, slippage } = req.query
+  const { amount, token, fromChain, toChain, slippage, rpcUrl } = req.query
 
   try {
     if (!amount) {
@@ -33,7 +33,32 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
       throw new Error('"slippage" query param value is required. Example: slippage=0.5')
     }
 
-    const bridge = hop.bridge(token)
+    const customRpcProviderUrls = {}
+    const validChains = ['ethereum', 'optimism', 'arbitrum', 'polygon', 'gnosis']
+    if (rpcUrl) {
+      if (!(rpcUrl instanceof Object)) {
+        throw new Error('"rpcUrl" query param should be in the form of rpcUrl[chain]. Example: rpcUrl[optimism]=https://mainnet.optimism.io')
+      }
+      for (const chain in rpcUrl) {
+        if (!validChains.includes(chain)) {
+          throw new Error(`"rpcUrl[${chain}]" is an invalid chain. Valid chains are: ${validChains.toString(',')}`)
+        }
+        const url = rpcUrl[chain]
+        try {
+          customRpcProviderUrls[chain] = new URL(url).toString()
+        } catch (err) {
+          throw new Error(`"rpcUrl[${chain}]" has an invalid url "${url}"`)
+        }
+      }
+    }
+
+    let instance = hop
+    if (Object.keys(customRpcProviderUrls)) {
+      instance = new Hop('mainnet')
+      instance.setChainProviderUrls(customRpcProviderUrls)
+    }
+
+    const bridge = instance.bridge(token)
     const data = await bridge.getSendData(amount, fromChain, toChain)
     const { totalFee, amountOut, estimatedReceived } = data
     const amountOutMin = bridge.calcAmountOutMin(amountOut, slippage)

@@ -24,6 +24,7 @@ import {
   ChainSlug,
   Errors,
   HToken,
+  LowLiquidityTokenBufferAmounts,
   LowLiquidityTokens,
   LpFeeBps,
   PendingAmountBuffer,
@@ -1250,7 +1251,7 @@ class HopBridge extends Base {
       }))
 
       const isLowLiquidityToken = LowLiquidityTokens.includes(token.canonicalSymbol)
-      const buffer: string = isLowLiquidityToken ? '0' : PendingAmountBuffer
+      const buffer: string = isLowLiquidityToken ? LowLiquidityTokenBufferAmounts[this.tokenSymbol] : PendingAmountBuffer
       const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
       const bufferAmountBn = parseUnits(buffer, token.decimals)
       const precision = parseUnits('1', token.decimals)

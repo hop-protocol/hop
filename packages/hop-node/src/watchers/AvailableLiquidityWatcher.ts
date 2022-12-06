@@ -121,6 +121,12 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       baseAvailableCreditIncludingVault = BigNumber.from('0')
     }
 
+    if (destinationChain === 'gnosis') {
+      availableCredit = BigNumber.from('0')
+      baseAvailableCredit = BigNumber.from('0')
+      baseAvailableCreditIncludingVault = BigNumber.from('0')
+    }
+
     return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance }
   }
 

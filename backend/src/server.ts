@@ -136,6 +136,71 @@ app.get('/v1/transfers/count', responseCache, async (req: any, res: any) => {
   }
 })
 
+app.get('/v1/accounts', responseCache, async (req: any, res: any) => {
+  try {
+    const {
+      page,
+      perPage,
+      source: sourceChainSlug,
+      destination: destinationChainSlug,
+      token,
+      bonded,
+      bonder: bonderAddress,
+      account: accountAddress,
+      recipient: recipientAddress,
+      amount: amountFormatted,
+      amountCmp: amountFormattedCmp,
+      amountUsd,
+      amountUsdCmp,
+      bonderFeeUsd,
+      bonderFeeUsdCmp,
+      transferId,
+      startDate,
+      endDate,
+      startTimestamp,
+      endTimestamp,
+      sortBy,
+      sortDirection,
+      receivedHTokens,
+      countOnly,
+      refresh,
+      integrationPartner
+    } = req.query
+    const data = await controller.getTransfers({
+      page,
+      perPage,
+      sourceChainSlug,
+      destinationChainSlug,
+      token,
+      bonded,
+      bonderAddress,
+      accountAddress,
+      recipientAddress,
+      amountFormatted,
+      amountFormattedCmp,
+      amountUsd,
+      amountUsdCmp,
+      bonderFeeUsd,
+      bonderFeeUsdCmp,
+      transferId,
+      startDate,
+      endDate,
+      startTimestamp,
+      endTimestamp,
+      sortBy,
+      sortDirection,
+      receivedHTokens,
+      countOnly,
+      refresh,
+      integrationPartner,
+      accountsOnly: true
+    })
+    res.status(200).json({ status: 'ok', data })
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
+})
+
 app.get('/index', (req: any, res: any) => {
   res.sendFile(path.resolve(__dirname, '..', 'public/index.html'))
 })

@@ -537,7 +537,8 @@ class Db {
       countOnly,
       receivedHTokens,
       amountReceived,
-      integrationPartner
+      integrationPartner,
+      accountsOnly
     } = params
     let count = perPage
     let skip = (page * perPage)
@@ -761,6 +762,26 @@ class Db {
         FROM
           transfers
         ${whereClause}
+        `
+    }
+
+    if (accountsOnly) {
+      sql = `
+        SELECT
+          account_address as "accountAddress",
+          SUM(amount_usd) AS "volumeUsd"
+        FROM
+          transfers
+        ${whereClause}
+        GROUP BY
+          account_address
+        ORDER BY
+          "volumeUsd"
+        DESC
+        LIMIT
+          $1
+        OFFSET
+          $2
         `
     }
 

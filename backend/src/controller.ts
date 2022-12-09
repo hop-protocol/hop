@@ -226,6 +226,7 @@ export class Controller {
     let sortBy = params.sortBy
     const sortDirection = params.sortDirection
     const countOnly = params.countOnly
+    const accountsOnly = params.accountsOnly
     const receivedHTokens = params.receivedHTokens
     const refreshFlag = params.refresh
     const integrationPartner = params.integrationPartner
@@ -323,11 +324,16 @@ export class Controller {
       sortDirection,
       receivedHTokens,
       countOnly,
-      integrationPartner
+      integrationPartner,
+      accountsOnly
     })
     if (countOnly) {
       const [count] = transfers
       return count
+    }
+    if (accountsOnly) {
+      const accounts = transfers
+      return accounts
     }
 
     let data = (transfers as any[])

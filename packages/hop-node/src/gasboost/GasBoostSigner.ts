@@ -110,11 +110,8 @@ class GasBoostSigner extends Wallet {
     console.time(_timeId)
     const logger = this.logger.create({ id })
     // logger.debug('_sendTransaction getDbNonce start')
-    const nonce = await this.getDbNonce()
+    tx.nonce = await this.getDbNonce()
     // logger.debug('_sendTransaction getDbNonce done')
-    if (!tx.nonce) {
-      tx.nonce = nonce
-    }
     const gTx = this.gTxFactory.createTransaction(tx, id)
     await gTx.save()
     try {

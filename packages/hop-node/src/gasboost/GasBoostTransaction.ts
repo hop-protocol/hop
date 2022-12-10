@@ -12,6 +12,7 @@ import wait from 'src/utils/wait'
 import { BigNumber, Signer, providers } from 'ethers'
 import {
   Chain,
+  InitialTxGasPriceMultiplier,
   MaxGasPriceMultiplier,
   MaxPriorityFeeConfidenceLevel,
   MinPriorityFeePerGas,
@@ -91,7 +92,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
   pollMs: number = 10 * 1000
   timeTilBoostMs: number = 3 * 60 * 1000
   gasPriceMultiplier: number = MaxGasPriceMultiplier // multiplier for gasPrice
-  initialTxGasPriceMultiplier: number = MaxGasPriceMultiplier // multiplier for gasPrice for first tx
+  initialTxGasPriceMultiplier: number = InitialTxGasPriceMultiplier // multiplier for gasPrice for first tx
   maxGasPriceGwei: number = 500 // the max we'll keep bumping gasPrice in type 0 txs
   maxGasPriceReached: boolean = false // this is set to true when gasPrice is greater than maxGasPrice
   maxRebroadcastIndex: number = 10
@@ -449,6 +450,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     }
     const prevMaxPriorityFeePerGas = this.maxPriorityFeePerGas ?? marketMaxPriorityFeePerGas
     const minPriorityFeePerGas = this.getMinPriorityFeePerGas()
+    this.logger.debug(`getting bumped maxPriorityFeePerGas. this.maxPriorityFeePerGas: ${this.maxPriorityFeePerGas?.toString()}, marketMaxPriorityFeePerGas: ${marketMaxPriorityFeePerGas.toString()}`)
     let bumpedMaxPriorityFeePerGas = getBumpedBN(prevMaxPriorityFeePerGas, multiplier)
     bumpedMaxPriorityFeePerGas = BNMax(minPriorityFeePerGas, bumpedMaxPriorityFeePerGas)
     if (!this.compareMarketGasPrice) {
@@ -696,11 +698,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const isMaxFeePerGasReached = gasFeeData.maxFeePerGas?.gt(maxGasPrice)
     const isMaxPriorityFeePerGasReached = gasFeeData.maxPriorityFeePerGas?.gt(priorityFeePerGasCap)
     let isMaxReached = isGasPriceMaxReached ?? isMaxFeePerGasReached
+    this.logger.debug(`isGasPriceMaxReached: ${isGasPriceMaxReached}, isMaxFeePerGasReached: ${isMaxFeePerGasReached}, isMaxPriorityFeePerGasReached: ${isMaxPriorityFeePerGasReached}`)
 
     // clamp maxPriorityFeePerGas to max allowed if it exceeds max and
     // gasPrice or maxFeePerGas are still under max
     if (!isMaxReached && isMaxPriorityFeePerGasReached && this.maxPriorityFeePerGas) {
       const clampedGasFeeData = this.clampMaxGasFeeData(gasFeeData)
+      this.logger.debug(`checking if maxPriorityFeePerGas is max. clamping with clampedGasFeeData: ${clampedGasFeeData}`)
       gasFeeData.maxPriorityFeePerGas = clampedGasFeeData.maxPriorityFeePerGas
 
       // if last used maxPriorityFeePerGas already equals max allowed then

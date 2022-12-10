@@ -77,7 +77,7 @@ export enum TxError {
 }
 
 export const MaxPriorityFeeConfidenceLevel = 95
-export const MaxGasPriceMultiplier = 1
+export const MaxGasPriceMultiplier = 1.25
 export const MinPriorityFeePerGas = 0.1
 export const PriorityFeePerGasCap = 20
 export const MinPolygonGasPrice = 60_000_000_000

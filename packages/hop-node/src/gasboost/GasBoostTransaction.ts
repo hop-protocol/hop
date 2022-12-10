@@ -704,7 +704,7 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     // gasPrice or maxFeePerGas are still under max
     if (!isMaxReached && isMaxPriorityFeePerGasReached && this.maxPriorityFeePerGas) {
       const clampedGasFeeData = this.clampMaxGasFeeData(gasFeeData)
-      this.logger.debug(`checking if maxPriorityFeePerGas is max. clamping with clampedGasFeeData: ${clampedGasFeeData}`)
+      this.logger.debug(`checking if maxPriorityFeePerGas is max. clamping with clampedGasFeeData: ${JSON.stringify(clampedGasFeeData)}`)
       gasFeeData.maxPriorityFeePerGas = clampedGasFeeData.maxPriorityFeePerGas
 
       // if last used maxPriorityFeePerGas already equals max allowed then

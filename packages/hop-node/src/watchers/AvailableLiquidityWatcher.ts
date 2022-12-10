@@ -10,10 +10,10 @@ import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   getConfigBonderForRoute,
   config as globalConfig,
-  modifiedLiquidityTokens,
-  modifiedLiquiditySourceChains,
   modifiedLiquidityDestChains,
-  oruChains,
+  modifiedLiquiditySourceChains,
+  modifiedLiquidityTokens,
+  oruChains
 } from 'src/config'
 
 type Config = {

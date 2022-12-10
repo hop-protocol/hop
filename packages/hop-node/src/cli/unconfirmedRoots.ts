@@ -49,7 +49,6 @@ async function main (source: any) {
       rootData.push(rootsCommitted[root])
     }
 
-
     console.log('\nroot, totalAmount, sourceChain, destinationChain, committedAt, transactionHash')
     rootData.sort(sortItems)
     for (const root of rootData) {

@@ -10,10 +10,10 @@ import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   getConfigBonderForRoute,
   config as globalConfig,
-  modifiedLiquidityTokens,
-  modifiedLiquiditySourceChains,
   modifiedLiquidityDestChains,
-  oruChains,
+  modifiedLiquiditySourceChains,
+  modifiedLiquidityTokens,
+  oruChains
 } from 'src/config'
 
 type Config = {
@@ -116,12 +116,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       modifiedLiquiditySourceChains.includes(this.chainSlug) &&
       modifiedLiquidityDestChains.includes(destinationChain)
     ) {
-      availableCredit = BigNumber.from('0')
-      baseAvailableCredit = BigNumber.from('0')
-      baseAvailableCreditIncludingVault = BigNumber.from('0')
-    }
-
-    if (destinationChain === 'gnosis') {
       availableCredit = BigNumber.from('0')
       baseAvailableCredit = BigNumber.from('0')
       baseAvailableCreditIncludingVault = BigNumber.from('0')

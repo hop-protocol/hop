@@ -13,6 +13,7 @@ function responseCache (req, res, next) {
 
   res.sendResponse = res.send
   res.send = (body) => {
+    console.log('responseCache cacheKey:', key)
     mcache.put(key, body, responseCacheDurationMs)
     res.sendResponse(body)
   }

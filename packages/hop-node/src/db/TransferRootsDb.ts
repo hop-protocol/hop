@@ -9,7 +9,13 @@ import {
   RelayableChains,
   RootSetSettleDelayMs
 } from 'src/constants'
-import { IsExitSystemLive, TxRetryDelayMs, oruChains, wrapperConfirmationChains } from 'src/config'
+import {
+  IsExitSystemLive,
+  TxRetryDelayMs,
+  oruChains,
+  shouldExitOrus,
+  wrapperConfirmationChains
+} from 'src/config'
 import { normalizeDbItem } from './utils'
 
 interface BaseTransferRoot {
@@ -535,14 +541,16 @@ class TransferRootsDb extends BaseDb {
           committedAtMs + oruExitTimeMs < Date.now()
       }
 
-      // Do not exit ORU if there is no risk of challenge
+      // Do not exit ORU if there is no risk of challenge and the config is not set otherwise
       let oruShouldExit = true
-      const isChallenged = item?.challenged === true
-      if (isSourceOru && item?.bondedAt && !isChallenged) {
-        const bondedAtMs: number = item.bondedAt * 1000
-        const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
-        if (isChallengePeriodOver) {
-          oruShouldExit = false
+      if (!shouldExitOrus) {
+        const isChallenged = item?.challenged === true
+        if (isSourceOru && item?.bondedAt && !isChallenged) {
+          const bondedAtMs: number = item.bondedAt * 1000
+          const isChallengePeriodOver = bondedAtMs + ChallengePeriodMs < Date.now()
+          if (isChallengePeriodOver) {
+            oruShouldExit = false
+          }
         }
       }
 

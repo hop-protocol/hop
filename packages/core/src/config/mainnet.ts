@@ -3,18 +3,18 @@ import { Config } from './types'
 export const config : Config = {
   bonderFeeBps: {
     USDC: {
-      ethereum: 10,
-      polygon: 10,
-      gnosis: 10,
-      optimism: 10,
-      arbitrum: 10
+      ethereum: 8,
+      polygon: 8,
+      gnosis: 8,
+      optimism: 8,
+      arbitrum: 8
     },
     USDT: {
-      ethereum: 26,
-      polygon: 26,
-      gnosis: 30,
-      optimism: 26,
-      arbitrum: 26
+      ethereum: 20,
+      polygon: 20,
+      gnosis: 20,
+      optimism: 20,
+      arbitrum: 20
     },
     DAI: {
       ethereum: 26,
@@ -24,16 +24,16 @@ export const config : Config = {
       arbitrum: 26
     },
     MATIC: {
-      ethereum: 20,
-      polygon: 20,
-      gnosis: 25,
+      ethereum: 5,
+      polygon: 5,
+      gnosis: 5,
       optimism: 0,
       arbitrum: 0
     },
     ETH: {
       ethereum: 5,
       polygon: 5,
-      gnosis: 12,
+      gnosis: 5,
       optimism: 5,
       arbitrum: 5
     },

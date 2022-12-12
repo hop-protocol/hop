@@ -60,8 +60,8 @@ export { metadata, config }
 export const bondableChains = ['optimism', 'arbitrum']
 export const relayableChains = ['arbitrum']
 
-export const rateLimitMaxRetries = 1
-export const rpcTimeoutSeconds = 2 * 60
+export const rateLimitMaxRetries = 3
+export const rpcTimeoutSeconds = 60
 
 export const etherscanApiKeys: Record<string, string> = {
   ethereum: process.env.ETHERSCAN_ETHEREUM_API_KEY ?? '',

@@ -5,14 +5,14 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
-    "build": "cp -r src/* dist/",
+    "build": "mkdir -p dist && cp -r src/* dist/",
     "lint": "standard --fix src/*.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@hop-protocol/sdk": "0.0.1-beta.404",
+    "@hop-protocol/sdk": "0.0.1-beta.406",
     "cors": "^2.8.5",
     "express": "^4.18.1",
     "express-rate-limit": "^6.7.0",

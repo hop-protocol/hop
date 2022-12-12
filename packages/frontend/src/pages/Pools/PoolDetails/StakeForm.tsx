@@ -180,7 +180,7 @@ export function StakeForm(props: Props) {
         {canWithdraw && (
           <Box mt={4}>
             <Button text fullWidth onClick={handleWithdrawClick} disabled={withdrawButtonDisabled} loading={isWithdrawing}>
-              Withdraw
+              Unstake
             </Button>
           </Box>
         )}

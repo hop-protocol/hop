@@ -24,6 +24,7 @@ import {
   ChainSlug,
   Errors,
   HToken,
+  LowLiquidityTokenBufferAmounts,
   LowLiquidityTokens,
   LpFeeBps,
   PendingAmountBuffer,
@@ -1250,7 +1251,7 @@ class HopBridge extends Base {
       }))
 
       const isLowLiquidityToken = LowLiquidityTokens.includes(token.canonicalSymbol)
-      const buffer: string = isLowLiquidityToken ? '0' : PendingAmountBuffer
+      const buffer: string = isLowLiquidityToken ? LowLiquidityTokenBufferAmounts[this.tokenSymbol] : PendingAmountBuffer
       const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
       const bufferAmountBn = parseUnits(buffer, token.decimals)
       const precision = parseUnits('1', token.decimals)
@@ -2112,13 +2113,12 @@ class HopBridge extends Base {
       return amount
     }
 
-    const amm = this.getAmm(chain)
-    const saddleSwap = await amm.getSaddleSwap()
     if (amount.eq(0)) {
       return BigNumber.from(0)
     }
 
-    const amountOut = await saddleSwap.calculateSwap(
+    const amm = this.getAmm(chain)
+    const amountOut = await amm.calculateSwap(
       TokenIndex.CanonicalToken,
       TokenIndex.HopBridgeToken,
       amount
@@ -2139,12 +2139,12 @@ class HopBridge extends Base {
       return BigNumber.from(amount)
     }
 
-    const amm = this.getAmm(chain)
-    const saddleSwap = await amm.getSaddleSwap()
     if (amount.eq(0)) {
       return BigNumber.from(0)
     }
-    const amountOut = await saddleSwap.calculateSwap(
+
+    const amm = this.getAmm(chain)
+    const amountOut = await amm.calculateSwap(
       TokenIndex.HopBridgeToken,
       TokenIndex.CanonicalToken,
       amount

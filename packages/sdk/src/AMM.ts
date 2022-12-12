@@ -8,6 +8,7 @@ import { Swap__factory } from '@hop-protocol/core/contracts/factories/Swap__fact
 import { TAmount, TChain, TProvider } from './types'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { formatUnits } from 'ethers/lib/utils'
+import { rateLimitRetry } from './utils/rateLimitRetry'
 
 /**
  * Class representing AMM contract
@@ -528,14 +529,14 @@ class AMM extends Base {
     return priceImpact
   }
 
-  private async calculateSwap (
+  calculateSwap = rateLimitRetry(async (
     fromIndex: TokenIndex,
     toIndex: TokenIndex,
     amount: BigNumberish
-  ) {
+  ) => {
     const saddleSwap = await this.getSaddleSwap()
     return saddleSwap.calculateSwap(fromIndex, toIndex, amount)
-  }
+  })
 
   /**
    * @readonly

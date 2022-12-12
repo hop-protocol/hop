@@ -7,7 +7,14 @@ import { Chain, TenMinutesMs } from 'src/constants'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { getConfigBonderForRoute, config as globalConfig, oruChains } from 'src/config'
+import {
+  getConfigBonderForRoute,
+  config as globalConfig,
+  modifiedLiquidityDestChains,
+  modifiedLiquiditySourceChains,
+  modifiedLiquidityTokens,
+  oruChains
+} from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -86,10 +93,10 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       throw new Error(`no destination watcher for ${destinationChain}`)
     }
     const destinationBridge = destinationWatcher.bridge
-    const baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    let baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
     const vaultBalance = await destinationWatcher.getOnchainVaultBalance(bonder)
     this.logger.debug(`on-chain vault balance; bonder: ${bonder}, chain: ${destinationChain}, balance: ${vaultBalance.toString()}`)
-    const baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
+    let baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
     let availableCredit = baseAvailableCreditIncludingVault
     const isToL1 = destinationChain === Chain.Ethereum
     if (isToL1) {
@@ -102,6 +109,16 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
     if (availableCredit.lt(0)) {
       availableCredit = BigNumber.from(0)
+    }
+
+    if (
+      modifiedLiquidityTokens.includes(this.tokenSymbol) &&
+      modifiedLiquiditySourceChains.includes(this.chainSlug) &&
+      modifiedLiquidityDestChains.includes(destinationChain)
+    ) {
+      availableCredit = BigNumber.from('0')
+      baseAvailableCredit = BigNumber.from('0')
+      baseAvailableCreditIncludingVault = BigNumber.from('0')
     }
 
     return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance }

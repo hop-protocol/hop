@@ -981,7 +981,7 @@ const Index: NextPage = () => {
           </div>
           <div>
           {!!accountCumulativeVolumeUsd && (
-            <div className="cumulativeVolume" title="Cumulative volume in USD for this account">Cumulative Volume USD: {accountCumulativeVolumeUsd}</div>
+            <div className="cumulativeVolume" title="Cumulative volume in USD for this account">Account Cumulative Volume: {accountCumulativeVolumeUsd}</div>
           )}
           </div>
           <div className="pagination">

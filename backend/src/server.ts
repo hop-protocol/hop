@@ -162,7 +162,6 @@ app.get('/v1/accounts', responseCache, async (req: any, res: any) => {
       sortBy,
       sortDirection,
       receivedHTokens,
-      countOnly,
       refresh,
       integrationPartner
     } = req.query
@@ -190,7 +189,6 @@ app.get('/v1/accounts', responseCache, async (req: any, res: any) => {
       sortBy,
       sortDirection,
       receivedHTokens,
-      countOnly,
       refresh,
       integrationPartner,
       accountsOnly: true

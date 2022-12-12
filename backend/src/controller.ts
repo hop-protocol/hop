@@ -3,7 +3,7 @@ import Db, { getInstance } from './Db'
 import { DateTime } from 'luxon'
 import Worker from './worker'
 import { isGoerli } from './config'
-import TransferStats from './TransferStats'
+import { TransferStats, formatCurrency } from './TransferStats'
 
 const colorsMap: any = {
   ethereum: '#868dac',
@@ -210,7 +210,7 @@ export class Controller {
     const token = params.token
     const bondedStatus = params.bonded
     const bonderAddress = params.bonderAddress
-    const accountAddress = params.accountAddress
+    let accountAddress = params.accountAddress
     const recipientAddress = params.recipientAddress
     const amountFormatted = Number(params.amountFormatted)
     const amountFormattedCmp = params.amountFormattedCmp
@@ -301,6 +301,10 @@ export class Controller {
       }
     }
 
+    if (accountAddress) {
+      accountAddress = accountAddress.toLowerCase()
+    }
+
     const transfers = await this.db.getTransfers({
       page,
       perPage,
@@ -332,7 +336,10 @@ export class Controller {
       return count
     }
     if (accountsOnly) {
-      const accounts = transfers
+      const accounts = transfers.map((item: any) => {
+        item.volumeUsdDisplay = formatCurrency(item.volumeUsd || 0, 'USD')
+        return item
+      })
       return accounts
     }
 

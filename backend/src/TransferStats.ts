@@ -72,7 +72,7 @@ function explorerLink (chain: string) {
   return base
 }
 
-function formatCurrency (value: any, token: any) {
+export function formatCurrency (value: any, token: any) {
   const currencyFormatter = new Intl.NumberFormat('en-US', {
     // style: 'currency',
     // currency: 'USD'
@@ -230,7 +230,7 @@ type Options = {
 
 const transactionReceipts: any = {}
 
-class TransferStats {
+export class TransferStats {
   db : Db = getInstance()
   regenesis = false
   prices: any = {}

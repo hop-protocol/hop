@@ -1124,9 +1124,12 @@ const Index: NextPage = () => {
                       </td>
                       <td className="bondedWithin" title={x.accountAddress}>
                         {x.accountAddressExplorerUrl && (
-                          <a className="bonder" href={x.accountAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.accountAddress}`}>
-                            { x.accountAddressTruncated }
-                          </a>
+                          <>
+                            <a className="clipboard" data-clipboard-text={x.accountAddress} rel="noreferrer noopener" title="Copy account address to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
+                            <a className="bonder" href={x.accountAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.accountAddress}`}>
+                              { x.accountAddressTruncated }
+                            </a>
+                          </>
                         )}
                       </td>
                       <td className="bondedWithin" title={x.recipientAddress}>

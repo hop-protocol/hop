@@ -229,6 +229,7 @@ function useData () {
   const [transfers, setTransfers] = useState<any>([])
   const [showBanner, setShowBanner] = useState<boolean>(false)
   const [unsyncedSubgraphUrl, setUnsyncedSubgraphUrl] = useState<string>('')
+  const [accountCumulativeVolumeUsd, setAccountCumulativeVolumeUsd] = useState<string>('')
   const [page, setPage] = useState(Number(queryParams.page || 1))
   const [perPage, setPerPage] = useState(() => {
       try {
@@ -290,6 +291,28 @@ function useData () {
     }
     update().catch(console.error)
   }, [])
+
+  useEffect(() => {
+    const update = async () => {
+      try {
+        if (!filterAccount) {
+          setAccountCumulativeVolumeUsd('')
+          return
+        }
+        const url = `${apiBaseUrl}/v1/accounts?account=${filterAccount}`
+        const res = await fetch(url)
+        const json = await res.json()
+        if (json.data?.length > 0) {
+          if (json.data?.[0]?.volumeUsdDisplay) {
+            setAccountCumulativeVolumeUsd(json.data[0].volumeUsdDisplay)
+          }
+        }
+      } catch (err: any) {
+        setAccountCumulativeVolumeUsd('')
+      }
+    }
+    update().catch(console.error)
+  }, [filterAccount])
 
   async function updateChart (data: any[]) {
     const links = data.map((x: any) => {
@@ -681,7 +704,8 @@ function useData () {
     resetFilters,
     handleRefreshClick,
     showBanner,
-    unsyncedSubgraphUrl
+    unsyncedSubgraphUrl,
+    accountCumulativeVolumeUsd
   }
 }
 
@@ -742,7 +766,8 @@ const Index: NextPage = () => {
     resetFilters,
     handleRefreshClick,
     showBanner,
-    unsyncedSubgraphUrl
+    unsyncedSubgraphUrl,
+    accountCumulativeVolumeUsd
   } = useData()
 
   return (
@@ -953,6 +978,11 @@ const Index: NextPage = () => {
                 <button onClick={resetFilters}>Reset</button>
               </div>
             </div>
+          </div>
+          <div>
+          {!!accountCumulativeVolumeUsd && (
+            <div className="cumulativeVolume" title="Cumulative volume in USD for this account">Cumulative Volume USD: {accountCumulativeVolumeUsd}</div>
+          )}
           </div>
           <div className="pagination">
             {hasFirstPage && (

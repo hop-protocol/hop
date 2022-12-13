@@ -766,7 +766,7 @@ describe('getWaitConfirmations', () => {
   it('should return waitConfirmations', () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('USDC')
-    expect(bridge.getWaitConfirmations('polygon')).toBe(128)
+    expect(bridge.getWaitConfirmations('polygon')).toBe(256)
   })
 })
 

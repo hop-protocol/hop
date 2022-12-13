@@ -49,7 +49,7 @@ function useData(props: any) {
   const [hasPreviousPage, setHasPreviousPage] = useState<boolean>(false)
   const [hasNextPage, setHasNextPage] = useState<boolean>(false)
 
-const queryKey = `accountTransfersHistory:${address}:${perPage}:${page}`
+  const queryKey = `accountTransfersHistory:${address}:${perPage}:${page}`
   const { isLoading, data, error } = useQuery(
     [queryKey, address, page, perPage],
     async () => {
@@ -70,6 +70,30 @@ const queryKey = `accountTransfersHistory:${address}:${perPage}:${page}`
     {
       enabled: !!address,
       refetchInterval: 10 * 1000,
+    }
+  )
+
+  const queryKeyVolume = `accountVolumeUsd:${address}`
+  const { data: volumeUsd } = useQuery(
+    [queryKeyVolume, address],
+    async () => {
+      if (!address) {
+        return []
+      }
+      const baseUrl = reactAppNetwork === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
+      // const baseUrl = 'http://localhost:8000'
+      const url = `${baseUrl}/v1/accounts?account=${address}`
+      const res = await fetch(url)
+      const json = await res.json()
+      const _volumeUsd = json.data?.[0]?.volumeUsdDisplay
+      if (!_volumeUsd) {
+        return ''
+      }
+      return _volumeUsd
+    },
+    {
+      enabled: !!address,
+      refetchInterval: 60 * 1000,
     }
   )
 
@@ -106,7 +130,8 @@ const queryKey = `accountTransfersHistory:${address}:${perPage}:${page}`
     hasPreviousPage,
     hasNextPage,
     handlePreviousPageClick,
-    handleNextPageClick
+    handleNextPageClick,
+    volumeUsd
   }
 }
 
@@ -117,7 +142,7 @@ type Props = {
 export function AccountTransferHistory (props: Props) {
   const { address } = props
   const theme = useTheme()
-  const { isLoading, items, hasPreviousPage, hasNextPage, handlePreviousPageClick, handleNextPageClick } = useData({ address })
+  const { isLoading, items, hasPreviousPage, hasNextPage, handlePreviousPageClick, handleNextPageClick, volumeUsd } = useData({ address })
 
   if (!items.length && !isLoading) {
     return (
@@ -225,7 +250,7 @@ export function AccountTransferHistory (props: Props) {
             )
           })}
         </Box>
-        <Box display="flex" justifyContent="center">
+        <Box mb={2} display="flex" justifyContent="center">
           {hasPreviousPage && (
             <IconButton onClick={handlePreviousPageClick}><NavigateBeforeIcon fontSize="large" /></IconButton>
           )}
@@ -233,6 +258,13 @@ export function AccountTransferHistory (props: Props) {
             <IconButton onClick={handleNextPageClick}><NavigateNextIcon fontSize="large" /></IconButton>
           )}
         </Box>
+        {!!volumeUsd && (
+          <Box mb={2} display="flex" justifyContent="center">
+            <Typography variant="body2" component="span" title="Cumulative volume in USD on Hop from connected account">
+              Cumulative Volume: {volumeUsd}
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Box>
   )

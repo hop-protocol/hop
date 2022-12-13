@@ -29,8 +29,8 @@ export const networks: Networks = {
     networkId: 10,
     publicRpcUrl: 'https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [
-      'https://mainnet.optimism.io',
-      'https://rpc.ankr.com/optimism'
+      'https://rpc.ankr.com/optimism',
+      'https://mainnet.optimism.io'
     ],
     explorerUrls: ['https://optimistic.etherscan.io'],
     nativeBridgeUrl: 'https://gateway.optimism.io/welcome',

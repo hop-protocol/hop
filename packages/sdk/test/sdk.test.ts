@@ -861,7 +861,7 @@ describe('fallback provider', () => {
     const network = await provider.getNetwork()
     console.log('network:', network)
     expect(network.name).toBe('optimism')
-  }, 60 * 1000)
+  }, 10 * 60 * 1000)
 })
 
 describe('AMM calculateSwap', () => {

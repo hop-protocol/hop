@@ -109,5 +109,5 @@ describe('fallback provider', () => {
     const resolver = await ethProvider.getResolver('vitalik.eth')
     console.log('resolver:', resolver)
     expect(resolver).toBeTruthy()
-  }, 60 * 1000)
+  }, 10 * 60 * 1000)
 })

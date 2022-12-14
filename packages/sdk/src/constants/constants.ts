@@ -95,7 +95,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
 }
 
 export const LpFeeBps = '4'
-export const PendingAmountBuffer = '50000'
+export const PendingAmountBufferUsd = '50000'
 export const MinPolygonGasPrice = 30_000_000_000
 export const MinPolygonGasLimit = BigNumber.from(1_000_000)
 
@@ -112,8 +112,8 @@ export enum EventNames {
 export const MaxDeadline: number = 9999999999
 // Low liquidity or single-chain tokens should have a buffer of appx 10% of their L1 stake
 export const LowLiquidityTokens: string[] = ['HOP', 'SNX']
-export const LowLiquidityTokenBufferAmounts: Record<string, string> = {
-  HOP: '100000',
-  SNX: '20000'
+export const LowLiquidityTokenBufferAmountsUsd: Record<string, string> = {
+  HOP: '8000',
+  SNX: '40000'
 }
 export const SecondsInDay = 86400

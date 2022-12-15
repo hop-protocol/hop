@@ -719,7 +719,7 @@ describe('PriceFeed', () => {
     console.log(price)
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(5)
-  })
+  }, 60 * 1000)
 })
 
 describe.skip('getMessengerWrapperAddress', () => {

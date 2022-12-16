@@ -719,7 +719,7 @@ describe('PriceFeed', () => {
     console.log(price)
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(5)
-  })
+  }, 60 * 1000)
 })
 
 describe.skip('getMessengerWrapperAddress', () => {
@@ -766,7 +766,7 @@ describe('getWaitConfirmations', () => {
   it('should return waitConfirmations', () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('USDC')
-    expect(bridge.getWaitConfirmations('polygon')).toBe(128)
+    expect(bridge.getWaitConfirmations('polygon')).toBe(256)
   })
 })
 

@@ -1,4 +1,4 @@
-## Hop SDK API Server Example
+## Hop v1 SDK API Server Example
 
 > An simple example of the Hop SDK wrapped as a REST API. Useful for devs that want to integrate the Hop SDK but don't use JavaScript.
 

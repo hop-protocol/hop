@@ -1,4 +1,4 @@
-# Hop Node
+# v1 Hop Node
 
 > Hop node for bonding transfers
 

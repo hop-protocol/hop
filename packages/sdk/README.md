@@ -1,4 +1,4 @@
-# @hop-protocol/sdk
+# Hop v1 SDK
 
 > The Hop Protocol JavaScript SDK
 

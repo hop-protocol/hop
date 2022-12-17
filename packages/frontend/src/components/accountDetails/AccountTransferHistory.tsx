@@ -150,13 +150,23 @@ export function AccountTransferHistory (props: Props) {
     )
   }
 
+  const baseUrl = reactAppNetwork === 'goerli' ? 'https://goerli.explorer.hop.exchange' : 'https://explorer.hop.exchange'
+  const explorerLink = `${baseUrl}/?account=${address}`
+
   return (
     <Box>
       <Box mt={4} mb={2}>
         <Box mb={2} width="100%" style={{ borderTop: `1px solid ${theme.palette.secondary.light}`, width: '100%', opacity: 0.5 }}></Box>
-        <Typography variant="body1">
-          Account transfer history
-        </Typography>
+        <Box display="flex" justifyContent="space-between">
+          <Typography variant="body1">
+            Account transfer history
+          </Typography>
+          {items?.length > 0 && (
+            <Typography variant="body2">
+              <ExternalLink href={explorerLink}>View in explorer</ExternalLink>
+            </Typography>
+          )}
+        </Box>
       </Box>
       <Box>
         <Box>
@@ -261,7 +271,7 @@ export function AccountTransferHistory (props: Props) {
         {!!volumeUsd && (
           <Box mb={2} display="flex" justifyContent="center">
             <Typography variant="body2" component="span" title="Cumulative volume in USD on Hop from connected account">
-              Cumulative Volume: {volumeUsd}
+              <span aria-label="Medal">🏅</span> Cumulative Volume: {volumeUsd}
             </Typography>
           </Box>
         )}

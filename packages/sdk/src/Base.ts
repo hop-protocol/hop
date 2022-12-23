@@ -631,13 +631,17 @@ class Base {
   }
 
   async getS3ConfigData () {
-    const controller = new AbortController()
-    const timeoutMs = 5 * 1000
-    setTimeout(() => controller.abort(), timeoutMs)
+    let signal : any
+    if (typeof AbortController !== 'undefined') {
+      const controller = new AbortController()
+      const timeoutMs = 5 * 1000
+      setTimeout(() => controller.abort(), timeoutMs)
+      signal = controller.signal
+    }
     const cacheBust = Date.now()
     const url = `https://assets.hop.exchange/${this.network}/v1-core-config.json?cb=${cacheBust}`
     const res = await fetch(url, {
-      signal: controller.signal
+      signal
     })
     const json = await res.json()
     if (!json) {
@@ -719,7 +723,7 @@ class Base {
   }
 
   async getTransferStatus (transferIdOrTxHash: String):Promise<any> {
-    const baseApiUrl = 'https://explorer-api.hop.exchange'
+    const baseApiUrl = this.network === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
     const res = await fetch(url)
     const json = await res.json()

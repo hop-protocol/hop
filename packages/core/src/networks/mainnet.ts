@@ -39,9 +39,10 @@ export const networks: Networks = {
   gnosis: {
     name: chains.gnosis.name,
     networkId: 100,
-    publicRpcUrl: 'https://rpc.gnosischain.com/',
+    publicRpcUrl: 'https://rpc.gnosis.gateway.fm',
     fallbackPublicRpcUrls: [
-      'https://rpc.ankr.com/gnosis'
+      'https://rpc.ankr.com/gnosis',
+      'https://rpc.gnosischain.com'
     ],
     explorerUrls: ['https://gnosisscan.io/'],
     nativeBridgeUrl: 'https://omni.xdaichain.com/',

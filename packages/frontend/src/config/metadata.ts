@@ -5,6 +5,7 @@ import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
 import OptimismLogo from 'src/assets/logos/optimism.svg'
 import GnosisLogo from 'src/assets/logos/gnosis.svg'
 import PolygonLogo from 'src/assets/logos/polygon.svg'
+import NovaLogo from 'src/assets/logos/nova.svg'
 import { TokenSymbol, Slug } from '@hop-protocol/sdk'
 import { hopAppNetwork } from 'src/config'
 
@@ -80,6 +81,12 @@ export const metadata: Metadata = {
       isLayer1: false,
       image: PolygonLogo,
       nativeTokenSymbol: 'MATIC',
+    },
+    nova: {
+      name: 'Nova',
+      isLayer1: false,
+      image: NovaLogo,
+      nativeTokenSymbol: 'ETH',
     },
   },
 }

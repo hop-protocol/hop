@@ -35,6 +35,7 @@ class RelayWatcher extends BaseWatcher {
       bridgeContract: config.bridgeContract,
       dryMode: config.dryMode
     })
+    // This is a Nova relay watcher when config.chainSlug is Nova
     this.relayWatcher = new ArbitrumBridgeWatcher({
       chainSlug: config.chainSlug,
       tokenSymbol: this.tokenSymbol,

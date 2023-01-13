@@ -7,8 +7,9 @@ type RelayChain = ArbitrumRelayerFee
 class RelayerFee {
   relayerFee: {[chain: string]: RelayChain} = {}
 
-  constructor (network: string, token: string) {
-    this.relayerFee[Chain.Arbitrum.slug] = new ArbitrumRelayerFee(network, token)
+  constructor (network: string, token: string, chain: string) {
+    this.relayerFee[Chain.Arbitrum.slug] = new ArbitrumRelayerFee(network, token, Chain.Arbitrum.slug)
+    this.relayerFee[Chain.Nova.slug] = new ArbitrumRelayerFee(network, token, Chain.Nova.slug)
   }
 
   async getRelayCost (chainSlug: string): Promise<BigNumber> {

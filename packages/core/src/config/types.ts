@@ -4,6 +4,7 @@ type Bps = {
   gnosis?: number
   optimism?: number
   arbitrum?: number
+  nova?: number
 }
 
 export type Fees = {
@@ -23,6 +24,7 @@ type RelayerFee = {
   gnosis?: boolean
   optimism?: boolean
   arbitrum?: boolean
+  nova?: boolean
 }
 
 export type Config = {

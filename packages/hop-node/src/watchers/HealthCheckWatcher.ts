@@ -240,7 +240,7 @@ export class HealthCheckWatcher {
   incompleteSettlementsMinTimeToWaitHours: number = 4
 
   chainsIgnoredByBonder: Record<string, string[]> = {
-    '0x547d28cdd6a69e3366d6ae3ec39543f09bd09417': ['gnosis', 'arbitrum', 'polygon']
+    '0x547d28cdd6a69e3366d6ae3ec39543f09bd09417': ['gnosis', 'arbitrum', 'polygon', 'nova']
   }
 
   enabledChecks: EnabledChecks = {
@@ -661,7 +661,7 @@ export class HealthCheckWatcher {
 
     // TODO: clean up these bonder fee too low checks and use the same logic that bonders do
     const l1Chains: string[] = [Chain.Ethereum]
-    const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
+    const l2Chains: string[] = [Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis, Chain.Nova]
     result = result.map((x: any) => {
       const isBonderFeeTooLow =
       x.bonderFeeFormatted === 0 ||
@@ -885,10 +885,10 @@ export class HealthCheckWatcher {
     const promises: Array<Promise<null>> = []
     for (const sourceChain of sourceChains) {
       for (const token of tokens) {
-        if (['arbitrum', 'optimism'].includes(sourceChain) && token === 'MATIC') {
+        if (['arbitrum', 'optimism', 'nova'].includes(sourceChain) && token === 'MATIC') {
           continue
         }
-        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis']
+        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis', 'nova']
         if (nonSynthChains.includes(sourceChain) && (token === 'SNX' || token === 'sUSD')) {
           continue
         }

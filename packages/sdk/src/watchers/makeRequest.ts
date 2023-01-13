@@ -39,6 +39,9 @@ function getUrl (network: string, chain: string) {
     if (chain === 'optimism') {
       chain = 'optimism-goerli'
     }
+    if (chain === 'nova') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
     if (chain === 'arbitrum') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }

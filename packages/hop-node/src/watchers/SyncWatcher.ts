@@ -1542,7 +1542,7 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (RelayableChains.includes(this.chainSlug)) {
-          const relayerFee = new RelayerFee(globalConfig.network, this.tokenSymbol)
+          const relayerFee = new RelayerFee(globalConfig.network, this.tokenSymbol, this.chainSlug)
           const gasCost = await relayerFee.getRelayCost(this.chainSlug)
           logger.debug('pollGasCost got relayGasCost')
           estimates.push({ gasLimit: gasCost, transactionType: GasCostTransactionType.Relay })

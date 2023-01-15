@@ -118,7 +118,7 @@ export function useClaim() {
           try {
             votes = await getVotes(claimProvider, inputValue)
           } catch (err) {
-            console.error(err)
+            console.error('getVotes error:', err)
           }
           return setDelegate({
             ensName: ensName || '',
@@ -136,7 +136,7 @@ export function useClaim() {
           try {
             votes = await getVotes(claimProvider, ensAddress)
           } catch (err) {
-            console.error(err)
+            console.error('getVotes error:', err)
           }
           return setDelegate({
             ensName,
@@ -273,7 +273,7 @@ export function useClaim() {
         setClaiming(false)
         return receipt
       } catch (err: any) {
-        console.error(err)
+        console.error('sendClaimToken error:', err)
         setClaiming(false)
         setClaimed(false)
         setError(formatError(err.message))
@@ -306,7 +306,7 @@ export function useClaim() {
       const tooMany = diff > threshold
       return tooMany
     } catch (err) {
-      console.error(err)
+      console.error('hasManyVotes error:', err)
     }
     return false
   }

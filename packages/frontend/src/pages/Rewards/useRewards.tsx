@@ -316,22 +316,21 @@ export const useRewards = (props: Props) => {
   async function claim() {
     try {
       setError('')
-      if (!(
-        contract &&
-        provider &&
-        address &&
-        claimRecipient &&
-        onchainRoot &&
-        merkleBaseUrl
-      )) {
-        return
+      if (!claimRecipient) {
+        throw new Error('claim recipient value not found')
+      }
+      if (!address) {
+        throw new Error('address value not found')
+      }
+      if (!contract) {
+        throw new Error('contract value not found')
+      }
+      if (!provider) {
+        throw new Error('provider value not found')
       }
       const isNetworkConnected = await checkConnectedNetworkId(requiredChainId)
       if (!isNetworkConnected) {
         throw new Error('wrong network connected')
-      }
-      if (!onchainRootSet) {
-        return
       }
 
       setClaiming(true)
@@ -341,6 +340,15 @@ export const useRewards = (props: Props) => {
         _totalAmount = claimProofBalance
         _claimProof = claimProof
       } else {
+        if (!merkleBaseUrl) {
+          throw new Error('merkleBaseUrl value not found')
+        }
+        if (!onchainRoot) {
+          throw new Error('onchain root value not found')
+        }
+        if (!onchainRootSet) {
+          throw new Error('onchain root set value not found')
+        }
         const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
         const [entry, proof] = await shardedMerkleTree.getProof(claimRecipient)
         console.log('entry', entry)
@@ -350,8 +358,11 @@ export const useRewards = (props: Props) => {
         _totalAmount = BigNumber.from(entry.balance)
         _claimProof = proof
       }
-      console.log('proof', _claimProof)
-      console.log('totalAmount:', _totalAmount.toString())
+      console.log('claimContractAddress', contract.address)
+      console.log('claimAccount', claimRecipient)
+      console.log('claimTotalAmount:', _totalAmount.toString())
+      console.log('claimProof (bytes32[])', `${JSON.stringify(_claimProof).replaceAll('"', '').replaceAll('[', '').replaceAll(']', '')}`)
+      console.log('claimProof (json array)', _claimProof)
       const tx = await contract.connect(provider.getSigner()).claim(claimRecipient, _totalAmount, _claimProof)
       console.log('tx sent:', tx)
       const receipt = await tx.wait()

@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { useInterval } from 'react-use'
 import { formatError } from 'src/utils/format'
 import { BigNumber, Contract } from 'ethers'
+import { getAddress } from 'ethers/lib/utils'
 import { ShardedMerkleTree } from './merkle'
 import useQueryParams from 'src/hooks/useQueryParams'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
@@ -38,8 +39,9 @@ export const useRewards = (props: Props) => {
   const [tokenSymbol, setTokenSymbol] = useState('')
   const [latestRootTotal, setLatestRootTotal] = useState(BigNumber.from(0))
   const [estimatedDate, setEstimatedDate] = useState(0)
-  const claimRecipient = queryParams.address as string ?? address?.address
+  const [claimRecipient, setClaimRecipient] = useState(queryParams.address as string ?? address?.address)
   const [countdown, setCountdown] = useState('')
+  const [inputValue, setInputValue] = useState('')
   const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
   // const apiBaseUrl = 'http://localhost:8000'
   const pollUnclaimableAmountFromBackend = true
@@ -336,7 +338,13 @@ export const useRewards = (props: Props) => {
       setClaiming(true)
       let _totalAmount = BigNumber.from(0)
       let _claimProof :any[] = []
-      if (pollUnclaimableAmountFromBackend && claimProofBalance?.gt(0) && claimProof) {
+      if (pollUnclaimableAmountFromBackend) {
+        if (claimProofBalance?.eq(0)) {
+          throw new Error('claim total amount is required')
+        }
+        if (!claimProof) {
+          throw new Error('claim proof not found')
+        }
         _totalAmount = claimProofBalance
         _claimProof = claimProof
       } else {
@@ -350,7 +358,7 @@ export const useRewards = (props: Props) => {
           throw new Error('onchain root set value not found')
         }
         const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
-        const [entry, proof] = await shardedMerkleTree.getProof(claimRecipient)
+        const [entry, proof] = await shardedMerkleTree.getProof(claimRecipient.toLowerCase())
         console.log('entry', entry)
         if (!entry) {
           throw new Error('no entry')
@@ -370,7 +378,9 @@ export const useRewards = (props: Props) => {
       setClaimableAmount(BigNumber.from(0))
     } catch (err: any) {
       console.error(err)
-      setError(formatError(err))
+      if (!/ACTION_REJECTED|cancelled/gi.test(err.message)) {
+        setError(formatError(err))
+      }
     }
     setClaiming(false)
   }
@@ -385,6 +395,27 @@ export const useRewards = (props: Props) => {
   }
 
   const repoUrl = (merkleBaseUrl ?? '').replace(/.*\.com\/(.*)\/master/gi, 'https://github.com/$1')
+
+  function handleInputChange (event: any) {
+    event.preventDefault()
+    const { value } = event.target
+    setInputValue(value)
+  }
+
+  useEffect(() => {
+    try {
+      if (!inputValue) {
+        if (address?.address) {
+          setClaimRecipient(address?.address)
+        }
+      } else {
+        const recipient = getAddress(inputValue)
+        setClaimRecipient(recipient)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }, [inputValue, address])
 
   return {
     tokenDecimals,
@@ -405,6 +436,8 @@ export const useRewards = (props: Props) => {
     txHistoryLink,
     tokenImageUrl,
     repoUrl,
-    countdown
+    countdown,
+    inputValue,
+    handleInputChange
   }
 }

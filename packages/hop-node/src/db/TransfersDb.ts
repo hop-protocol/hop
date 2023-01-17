@@ -531,7 +531,7 @@ class TransfersDb extends BaseDb {
 
     return transfers.filter((item: any) => {
       // TODO: Remove after Nova is live
-      if (item.destinationChainId === 42170) {
+      if (!item?.destinationChainId || item?.destinationChainId === 42170) {
         return false
       }
 

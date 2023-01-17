@@ -733,14 +733,14 @@ class SyncWatcher extends BaseWatcher {
 
     const logger = this.logger.create({ id: transferId })
 
-    if (!dbTransfer.sourceChainId) {
-      logger.warn('populateTransferDbItem marking item not found. Missing sourceChainId (possibly due to missing TransferSent event). isNotFound: true')
-      await this.db.transfers.update(transferId, { isNotFound: true })
+    // TODO: Remove after Nova is live
+    if (dbTransfer?.destinationChainId === 42170) {
       return
     }
 
-    // TODO: Remove after Nova is live
-    if (dbTransfer?.destinationChainId === 42170) {
+    if (!dbTransfer.sourceChainId) {
+      logger.warn('populateTransferDbItem marking item not found. Missing sourceChainId (possibly due to missing TransferSent event). isNotFound: true')
+      await this.db.transfers.update(transferId, { isNotFound: true })
       return
     }
 

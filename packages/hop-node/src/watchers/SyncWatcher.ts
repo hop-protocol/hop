@@ -739,6 +739,11 @@ class SyncWatcher extends BaseWatcher {
       return
     }
 
+    // TODO: Remove after Nova is live
+    if (dbTransfer?.destinationChainId === 42170) {
+      return
+    }
+
     await this.populateTransferSentTimestamp(transferId)
     await this.populateTransferSender(transferId)
     await this.populateTransferWithdrawalBonder(transferId)

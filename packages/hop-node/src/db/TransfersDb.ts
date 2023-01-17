@@ -540,6 +540,11 @@ class TransfersDb extends BaseDb {
         return false
       }
 
+    // TODO: Remove after Nova is live
+      if (item.destinationChainId === 42170) {
+        return false
+      }
+
       return this.subDbIncompletes.isItemIncomplete(item)
     })
   }

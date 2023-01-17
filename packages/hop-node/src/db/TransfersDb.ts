@@ -530,6 +530,11 @@ class TransfersDb extends BaseDb {
     const transfers = batchedItems.map(this.normalizeItem)
 
     return transfers.filter((item: any) => {
+      // TODO: Remove after Nova is live
+      if (item.destinationChainId === 42170) {
+        return false
+      }
+
       if (filter.sourceChainId && item.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false
@@ -537,11 +542,6 @@ class TransfersDb extends BaseDb {
       }
 
       if (item.isNotFound) {
-        return false
-      }
-
-    // TODO: Remove after Nova is live
-      if (item.destinationChainId === 42170) {
         return false
       }
 

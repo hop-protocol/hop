@@ -281,6 +281,12 @@ class TransfersDb extends BaseDb {
     if (!item) {
       return null
     }
+
+    // TODO: Remove after Nova is live
+    if (item?.destinationChainId === 42170) {
+      return null
+    }
+
     if (item.destinationChainId) {
       item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
     }

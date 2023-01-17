@@ -1,4 +1,4 @@
-# stats-worker
+# Hop v1 stats worker
 
 > Various stats workers
 

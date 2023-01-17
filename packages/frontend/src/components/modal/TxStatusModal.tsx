@@ -31,7 +31,7 @@ function TxStatusModal(props: Props) {
   // const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
   let timeEstimate = '5 minutes'
   if (sourceChain?.isL1) {
-    timeEstimate = '15 minutes'
+    timeEstimate = '25 minutes'
   } else if (sourceChain?.equals(Chain.Polygon)) {
     timeEstimate = '10 minutes'
   }

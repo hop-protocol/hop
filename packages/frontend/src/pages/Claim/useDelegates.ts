@@ -117,7 +117,7 @@ export function useDelegates() {
           const votesFormatted = '...'
           delegate.votesFormatted = votesFormatted
         } catch (err) {
-          console.error(err)
+          console.error('delegates error:', err)
         }
         return delegate
       }))

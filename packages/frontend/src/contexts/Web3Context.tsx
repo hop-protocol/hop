@@ -312,14 +312,18 @@ const Web3ContextProvider: FC = ({ children }) => {
     const signerNetworkId = (await provider.getNetwork())?.chainId
     logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
 
-    // TODO: this block of code is too confident. use separate hook to check last-minute tx details
-    if (networkId === signerNetworkId) {
-      return true
-    }
+    try {
+      // NOTE: some mobile wallets don't support wallet_switchEthereumChain or wallet_addEthereumChain.
+      // NOTE: Trust Wallet hangs indefinteily on wallet_switchEthereumChain, see issues on discord.
+      // Therefore if provider is already connected to correct network,
+      // then there's no need to attempt to call network switcher.
+      if (signerNetworkId === networkId) {
+        return true
+      }
 
-    onboard.config({ networkId })
-    if (onboard.getState().address) {
-      try {
+      const state = onboard.getState()
+      if (state.address) {
+        onboard.config({ networkId })
         const wantNetworkName = networkNames[networkId] || 'local'
         const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
           wantNetworkName
@@ -358,12 +362,14 @@ const Web3ContextProvider: FC = ({ children }) => {
 
           await provider?.send('wallet_addEthereumChain', [rpcObj])
         }
-      } catch (err) {
-        logger.error(err)
       }
+    } catch (err) {
+      logger.error('checkConnectedNetworkId error:', err)
     }
-    const p = await provider.getNetwork()
-    if (p.chainId === networkId) {
+
+    // after network switch, recheck if provider is connected to correct network.
+    const net = await provider.getNetwork()
+    if (net.chainId === networkId) {
       return true
     }
 

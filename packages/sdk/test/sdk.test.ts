@@ -473,7 +473,7 @@ describe('custom chain providers', () => {
     let polygonProvider = bridge.getChainProvider('polygon')
     let gnosisProvider = bridge.getChainProvider('gnosis')
     const currentPolygonUrl = 'https://polygon-rpc.com'
-    const currentGnosisUrl = 'https://rpc.gnosischain.com/'
+    const currentGnosisUrl = 'https://rpc.gnosis.gateway.fm'
     const newPolygonUrl = 'https://polygon-rpc2.com'
     const newGnosisUrl = 'https://rpc.gnosischain2.com'
     expect(bridge.getProviderRpcUrl(polygonProvider)).toBe(currentPolygonUrl)
@@ -719,7 +719,7 @@ describe('PriceFeed', () => {
     console.log(price)
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(5)
-  })
+  }, 60 * 1000)
 })
 
 describe.skip('getMessengerWrapperAddress', () => {

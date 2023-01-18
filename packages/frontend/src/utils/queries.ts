@@ -39,6 +39,8 @@ export function getUrl(chain: Slug | string) {
     // is a different process than the centralized subgraph.
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet`
     // return 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
+  } else if (chain === Slug.nova) {
+    return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
   } else {
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
   }

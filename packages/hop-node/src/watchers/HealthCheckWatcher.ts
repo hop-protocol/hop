@@ -711,8 +711,8 @@ export class HealthCheckWatcher {
 
   private async getUnbondedTransferRoots (): Promise<UnbondedTransferRoot[]> {
     const now = DateTime.now().toUTC()
-    const sourceChains = [Chain.Optimism, Chain.Arbitrum]
-    const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum]
+    const sourceChains = [Chain.Optimism, Chain.Arbitrum, Chain.Nova]
+    const destinationChains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Nova]
     const tokens = getEnabledTokens()
     const startTime = Math.floor(now.minus({ days: this.days }).toSeconds())
     const endTime = Math.floor(now.toSeconds())
@@ -848,6 +848,7 @@ export class HealthCheckWatcher {
     const outOfSyncTimestamp = Math.floor(now.minus({ hours: this.healthCheckFinalityTimeHours }).toSeconds())
     const chains = [Chain.Ethereum, Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Gnosis]
 
+    // Note: Nova is unsupported here since there is no index-node subgraph for nova
     const result: any = []
     for (const chain of chains) {
       const provider = getRpcProvider(chain)!
@@ -873,7 +874,7 @@ export class HealthCheckWatcher {
 
   async getMissedEvents (): Promise<MissedEvent[]> {
     const missedEvents: MissedEvent[] = []
-    const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum]
+    const sourceChains = [Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova]
     const tokens = getEnabledTokens()
     const now = DateTime.now().toUTC()
     const endDate = now.minus({ hours: this.healthCheckFinalityTimeHours })

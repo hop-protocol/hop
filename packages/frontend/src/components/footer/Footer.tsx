@@ -58,7 +58,6 @@ const Footer = () => {
   const { blockNumber } = useBlockNumber()
   return (
     <Box
-      width="100%"
       px={3}
       my={3}
       mt={5}

@@ -147,6 +147,13 @@ export const addresses: Addresses = {
         gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
         nova: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
+      },
+      nova: {
+        ethereum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        arbitrum: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        gnosis: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        optimism: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564',
+        polygon: '0x710bDa329b2a6224E4B44833DE30F38E7f81d564'
       }
     },
     HOP: {

@@ -58,5 +58,14 @@ export const networks: Networks = {
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
     waitConfirmations: 256
+  },
+  nova: {
+    name: chains.nova.name,
+    networkId: 42170,
+    publicRpcUrl: 'https://nova.arbitrum.io/rpc',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://nova.arbiscan.io/'],
+    nativeBridgeUrl: 'https://bridge.arbitrum.io/',
+    waitConfirmations: 20
   }
 }

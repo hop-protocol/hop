@@ -7,7 +7,8 @@ export const config : Config = {
       polygon: 8,
       gnosis: 8,
       optimism: 8,
-      arbitrum: 8
+      arbitrum: 8,
+      nova: 8
     },
     USDT: {
       ethereum: 20,
@@ -64,6 +65,7 @@ export const config : Config = {
     polygon: false,
     gnosis: false,
     optimism: false,
-    arbitrum: false
+    arbitrum: false,
+    nova: false
   }
 }

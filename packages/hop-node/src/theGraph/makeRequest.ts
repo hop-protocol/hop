@@ -18,7 +18,13 @@ async function _makeRequest (
   if (chain === 'gnosis') {
     chain = 'xdai'
   }
-  let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
+
+  let url
+  if (chain === Chain.Nova) {
+    url = 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop'
+  } else {
+    url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
+  }
   if (chain === Chain.Ethereum) {
     // In order to use the decentralized service, please ensure the decentralized subgraph is pushed and published. This
     // is a different process than the centralized subgraph.

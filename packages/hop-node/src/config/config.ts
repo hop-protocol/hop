@@ -50,8 +50,8 @@ const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
-export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum])
-export const wrapperConfirmationChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Polygon])
+export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova])
+export const wrapperConfirmationChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Nova])
 export const rateLimitMaxRetries = 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
@@ -74,14 +74,16 @@ export const etherscanApiKeys: Record<string, string> = {
   [Chain.Polygon]: process.env.POLYGONSCAN_API_KEY ?? '',
   [Chain.Optimism]: process.env.OPTIMISM_API_KEY ?? '',
   [Chain.Arbitrum]: process.env.ARBITRUM_API_KEY ?? '',
-  [Chain.Gnosis]: process.env.XDAI_API_KEY ?? ''
+  [Chain.Gnosis]: process.env.XDAI_API_KEY ?? '',
+  [Chain.Nova]: process.env.NOVA_API_KEY ?? ''
 }
 export const etherscanApiUrls: Record<string, string> = {
   [Chain.Ethereum]: 'https://api.etherscan.io',
   [Chain.Polygon]: 'https://api.polygonscan.com',
   [Chain.Optimism]: 'https://api-optimistic.etherscan.io',
   [Chain.Arbitrum]: 'https://api.arbiscan.io',
-  [Chain.Gnosis]: 'https://api.gnosisscan.io'
+  [Chain.Gnosis]: 'https://api.gnosisscan.io',
+  [Chain.Nova]: 'https://api-nova.arbiscan.io'
 }
 
 // TODO: Remove this when the exit system is fully live
@@ -106,6 +108,7 @@ type Bps = {
   gnosis: number
   optimism: number
   arbitrum: number
+  nova: number
 }
 
 export type Fees = Record<string, Bps>
@@ -129,6 +132,7 @@ export type VaultChain = {
   gnosis?: VaultChainTokenConfig
   optimism?: VaultChainTokenConfig
   arbitrum?: VaultChainTokenConfig
+  nova?: VaultChainTokenConfig
 }
 
 export type Vault = Record<string, VaultChain>
@@ -224,6 +228,10 @@ export const config: Config = {
     },
     [Chain.Gnosis]: {
       totalBlocks: TotalBlocks.Gnosis,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.Nova]: {
+      totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
     }
   },

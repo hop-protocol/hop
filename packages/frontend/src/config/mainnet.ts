@@ -62,4 +62,12 @@ export const mainnetNetworks: Networks = {
     nativeBridgeUrl: _networks.gnosis.nativeBridgeUrl,
     waitConfirmations: _networks.gnosis.waitConfirmations,
   },
+  nova: {
+    networkId: _networks.nova.networkId,
+    rpcUrl: _networks.nova.publicRpcUrl,
+    fallbackRpcUrls: _networks.nova.fallbackPublicRpcUrls,
+    explorerUrl: _networks.nova.explorerUrls[0],
+    nativeBridgeUrl: _networks.nova.nativeBridgeUrl,
+    waitConfirmations: _networks.nova.waitConfirmations,
+  },
 }

@@ -25,7 +25,7 @@ type RelayWatchers = ArbitrumBridgeWatcher
 
 class RelayWatcher extends BaseWatcher {
   siblingWatchers: { [chainId: string]: RelayWatcher }
-  relayWatchers: { [chainId: number]: RelayWatchers }
+  relayWatchers: { [chainId: number]: RelayWatchers } = {}
 
   constructor (config: Config) {
     super({

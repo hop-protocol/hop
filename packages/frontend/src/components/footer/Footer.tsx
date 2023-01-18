@@ -1,5 +1,7 @@
 import React from 'react'
 import Typography from '@material-ui/core/Typography'
+import Box from '@material-ui/core/Box'
+import { gitRevision } from 'src/config/config'
 import { ReactComponent as discord } from 'src/assets/logos/discord.svg'
 import { ReactComponent as github } from 'src/assets/logos/github.svg'
 import { ReactComponent as medium } from 'src/assets/logos/medium.svg'
@@ -17,6 +19,31 @@ import {
 import { Flex, SvgImg } from '../ui'
 import { StyledLink } from '../ui/StyledLink'
 import { useThemeMode } from 'src/theme/ThemeProvider'
+import { useBlockNumber } from './useBlockNumber'
+import { makeStyles } from '@material-ui/core/styles'
+
+const useStyles = makeStyles((theme: any) => ({
+  container: {
+    '& > div': {
+      [theme.breakpoints.down('xs')]: {
+        marginBottom: '2rem'
+      }
+    },
+    '& > div a': {
+      [theme.breakpoints.down('xs')]: {
+        marginLeft: '1rem'
+      }
+    },
+    '& > div a:first-child': {
+      [theme.breakpoints.down('xs')]: {
+        marginLeft: '0'
+      }
+    },
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column'
+    }
+  }
+}))
 
 const iconLinks = [
   { url: discordUrl, image: discord },
@@ -26,18 +53,22 @@ const iconLinks = [
 ]
 
 const Footer = () => {
+  const styles = useStyles()
   const { isDarkMode } = useThemeMode()
+  const { blockNumber } = useBlockNumber()
   return (
-    <Flex
-      fullWidth
+    <Box
       px={3}
       my={3}
       mt={5}
-      height={'8rem'}
-      alignCenter
-      justifyContent={['space-around', 'space-between']}
+      mb={4}
+      display="flex"
+      textAlign="center"
+      alignItems="center"
+      justifyContent="space-between"
+      className={styles.container}
     >
-      <Flex alignCenter mx={[3, 5]} justifyAround width={['40%', '40%', '20%']}>
+      <Flex alignCenter mx={[5]} justifyAround width={['20%']}>
         {iconLinks.map((il, i) => (
           <StyledLink
             key={il.url}
@@ -50,21 +81,49 @@ const Footer = () => {
         ))}
       </Flex>
 
-      <Flex alignCenter mx={[3, 5]} justifyAround width={['40%', '40%', '20%']}>
-        <StyledLink href={faqUrl} ml={[0, '1.6rem']} opacity={0.6}>
+      <Box display="flex" alignItems="center" style={{ opacity: 0.5 }}>
+        {!!blockNumber && (
+          <Box display="flex" alignItems="center" mr={2} title="Latest Ethereum block number">
+            <Box mr={0.5} style={{
+              display: 'inline-block',
+              width: '8px',
+              height: '8px',
+              minHeight: '8px',
+              minWidth: '8px',
+              borderRadius: '50%',
+              position: 'relative',
+              backgroundColor: 'rgb(118, 209, 145)',
+              transition: 'background-color 250ms ease 0s'
+            }}></Box>
+            <Typography variant="body2" color="secondary">
+              {blockNumber}
+            </Typography>
+          </Box>
+        )}
+        {!!gitRevision && (
+          <Box title="Build git revision number">
+            <Typography variant="body2" color="secondary">
+              rev:{gitRevision}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      <Flex alignCenter mx={[5]} justifyAround width={['20%']}>
+        <StyledLink href={faqUrl} ml={['1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">FAQ</Typography>
         </StyledLink>
         <StyledLink href={docsUrl} ml={['1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">Docs</Typography>
         </StyledLink>
-        <StyledLink href={forumUrl} ml={[0, '1.6rem']} opacity={0.6}>
+        <StyledLink href={forumUrl} ml={['1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">Forum</Typography>
         </StyledLink>
         <StyledLink href={careersUrl} ml={['1.6rem']} opacity={0.6}>
           <Typography variant="subtitle2">Careers</Typography>
         </StyledLink>
       </Flex>
-    </Flex>
+    </Box>
   )
 }
 

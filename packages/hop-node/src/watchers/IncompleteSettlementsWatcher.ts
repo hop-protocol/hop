@@ -34,7 +34,8 @@ class IncompleteSettlementsWatcher {
     Chain.Arbitrum,
     Chain.Optimism,
     Chain.Gnosis,
-    Chain.Polygon
+    Chain.Polygon,
+    Chain.Nova
   ]
 
   tokens: string[] = getEnabledTokens()
@@ -112,10 +113,10 @@ class IncompleteSettlementsWatcher {
       const promises: Array<Promise<any>> = []
       for (const token of this.tokens) {
         this.logger.debug(`${chain} ${token} reading events`)
-        if (['optimism', 'arbitrum'].includes(chain) && token === 'MATIC') {
+        if (['optimism', 'arbitrum', 'nova'].includes(chain) && token === 'MATIC') {
           continue
         }
-        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis']
+        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis', 'nova']
         if (nonSynthChains.includes(chain) && (token === 'SNX' || token === 'sUSD')) {
           continue
         }

@@ -13,6 +13,7 @@ export function getExplorerTxUrl(networkName?: Slug | ChainSlug | string, txHash
     switch (networkName) {
       case ChainSlug.Ethereum:
       case ChainSlug.Arbitrum:
+      case ChainSlug.Nova:
       case ChainSlug.Gnosis:
       case ChainSlug.Polygon: {
         return `${explorerUrl}/tx/${txHash}`

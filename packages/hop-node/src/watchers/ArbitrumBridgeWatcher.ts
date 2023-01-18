@@ -15,6 +15,7 @@ type Config = {
   dryMode?: boolean
 }
 
+// Arbitrum applies to both Arbitrum one and to Nova
 class ArbitrumBridgeWatcher extends BaseWatcher {
   l1Wallet: Wallet
   l2Wallet: Wallet
@@ -31,9 +32,9 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     })
 
     this.l1Wallet = wallets.get(Chain.Ethereum)
-    this.l2Wallet = wallets.get(Chain.Arbitrum)
+    this.l2Wallet = wallets.get(config.chainSlug)
 
-    const rpcUrl = getRpcUrl(Chain.Arbitrum)
+    const rpcUrl = getRpcUrl(config.chainSlug)
     this.defaultL2Provider = new providers.StaticJsonRpcProvider(rpcUrl)
   }
 

@@ -16,6 +16,7 @@ class Chain {
   static Arbitrum = newChain(ChainSlug.Arbitrum, mainnet.arbitrum.networkId)
   static Gnosis = newChain(ChainSlug.Gnosis, mainnet.gnosis.networkId)
   static Polygon = newChain(ChainSlug.Polygon, mainnet.polygon.networkId)
+  static Nova = newChain(ChainSlug.Nova, mainnet.nova.networkId)
 
   static fromSlug (slug: Slug | string) {
     if (slug === 'xdai') {

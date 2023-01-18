@@ -151,6 +151,8 @@ class Transaction extends EventEmitter {
       return this._gnosisLink()
     } else if (this.networkName.startsWith(ChainSlug.Polygon)) {
       return this._polygonLink()
+    } else if (this.networkName.startsWith(ChainSlug.Nova)) {
+      return this._novaLink()
     } else {
       return ''
     }
@@ -169,6 +171,8 @@ class Transaction extends EventEmitter {
       return this._gnosisLink(this.destTxHash)
     } else if (this.destNetworkName?.startsWith(ChainSlug.Polygon)) {
       return this._polygonLink(this.destTxHash)
+    } else if (this.destNetworkName?.startsWith(ChainSlug.Nova)) {
+      return this._novaLink(this.destTxHash)
     } else {
       return ''
     }
@@ -341,6 +345,10 @@ class Transaction extends EventEmitter {
 
   private _polygonLink(txHash: string = this.hash) {
     return `${getBaseExplorerUrl('polygon')}/tx/${txHash}`
+  }
+
+  private _novaLink(txHash: string = this.hash) {
+    return `${getBaseExplorerUrl('nova')}/tx/${txHash}`
   }
 
   private setPendingDestinationConfirmed() {

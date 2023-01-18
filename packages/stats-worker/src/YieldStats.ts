@@ -5,7 +5,8 @@ import {
   gnosisRpc,
   polygonRpc,
   optimismRpc,
-  arbitrumRpc
+  arbitrumRpc,
+  novaRpc,
 } from './config'
 import { Hop } from '@hop-protocol/sdk'
 import { mainnet as mainnetAddresses, Bridges, RewardsContracts } from '@hop-protocol/core/addresses'
@@ -120,7 +121,8 @@ class YieldStats {
       gnosis: gnosisRpc,
       polygon: polygonRpc,
       optimism: optimismRpc,
-      arbitrum: arbitrumRpc
+      arbitrum: arbitrumRpc,
+      nova: novaRpc
     })
 
     this.bridges = mainnetAddresses.bridges

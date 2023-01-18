@@ -36,7 +36,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.Ethereum) ? fetchTransfers(Chain.Ethereum, startTime, endTime) : Promise.resolve([])
   ])
 
-  console.log('getTransfersData: got transfers', gnosisTransfers.length, polygonTransfers.length, optimismTransfers.length, arbitrumTransfers.length, novaTransfers.length mainnetTransfers.length)
+  console.log('getTransfersData: got transfers', gnosisTransfers.length, polygonTransfers.length, optimismTransfers.length, arbitrumTransfers.length, novaTransfers.length, mainnetTransfers.length)
 
   for (const x of gnosisTransfers) {
     data.push({

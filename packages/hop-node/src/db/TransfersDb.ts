@@ -282,11 +282,6 @@ class TransfersDb extends BaseDb {
       return null
     }
 
-    // TODO: Remove after Nova is live
-    if (item?.destinationChainId === 42170) {
-      return null
-    }
-
     if (item.destinationChainId) {
       item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
     }
@@ -530,11 +525,6 @@ class TransfersDb extends BaseDb {
     const transfers = batchedItems.map(this.normalizeItem)
 
     return transfers.filter((item: any) => {
-      // TODO: Remove after Nova is live
-      if (!item?.destinationChainId || item?.destinationChainId === 42170) {
-        return false
-      }
-
       if (filter.sourceChainId && item.sourceChainId) {
         if (filter.sourceChainId !== item.sourceChainId) {
           return false

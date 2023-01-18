@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { useInterval } from 'react-use'
 import { formatError } from 'src/utils/format'
 import { BigNumber, Contract } from 'ethers'
+import { getAddress } from 'ethers/lib/utils'
 import { ShardedMerkleTree } from './merkle'
 import useQueryParams from 'src/hooks/useQueryParams'
 import useAsyncMemo from 'src/hooks/useAsyncMemo'
@@ -29,7 +30,8 @@ export const useRewards = (props: Props) => {
   const [claiming, setClaiming] = useState(false)
   const [claimableAmount, setClaimableAmount] = useState(BigNumber.from(0))
   const [unclaimableAmount, setUnclaimableAmount] = useState(BigNumber.from(0))
-  const [entryTotal, setEntryTotal] = useState(BigNumber.from(0))
+  const [claimProofBalance, setClaimProofBalance] = useState(BigNumber.from(0))
+  const [claimProof, setClaimProof] = useState<any>(null)
   const [onchainRoot, setOnchainRoot] = useState('')
   const [onchainRootSet, setOnchainRootSet] = useState(false)
   const [latestRoot, setLatestRoot] = useState('')
@@ -37,8 +39,9 @@ export const useRewards = (props: Props) => {
   const [tokenSymbol, setTokenSymbol] = useState('')
   const [latestRootTotal, setLatestRootTotal] = useState(BigNumber.from(0))
   const [estimatedDate, setEstimatedDate] = useState(0)
-  const claimRecipient = queryParams.address as string ?? address?.address
+  const [claimRecipient, setClaimRecipient] = useState(queryParams.address as string ?? address?.address)
   const [countdown, setCountdown] = useState('')
+  const [inputValue, setInputValue] = useState('')
   const apiBaseUrl = reactAppNetwork === 'goerli' ? 'https://hop-merkle-rewards-backend.hop.exchange' : 'https://optimism-fee-refund-api.hop.exchange'
   // const apiBaseUrl = 'http://localhost:8000'
   const pollUnclaimableAmountFromBackend = true
@@ -107,8 +110,11 @@ export const useRewards = (props: Props) => {
 
   useInterval(getOnchainRoot, 30 * 1000)
 
-  const getLatestRoot = async () => {
+  const getLatestRootFromRepo = async () => {
     try {
+      if (pollUnclaimableAmountFromBackend) {
+        return
+      }
       if (!merkleBaseUrl) {
         return
       }
@@ -126,12 +132,12 @@ export const useRewards = (props: Props) => {
   }
 
   useEffect(() => {
-    getLatestRoot().catch(console.error)
+    getLatestRootFromRepo().catch(console.error)
   }, [contract, merkleBaseUrl])
 
-  useInterval(getLatestRoot, 30 * 1000)
+  useInterval(getLatestRootFromRepo, 30 * 1000)
 
-  const getClaimableAmount = async () => {
+  const getClaimableAmountFromRepo = async () => {
     try {
       if (pollUnclaimableAmountFromBackend) {
         return
@@ -158,7 +164,7 @@ export const useRewards = (props: Props) => {
       const withdrawn = await contract.withdrawn(claimRecipient)
       const amount = total.sub(withdrawn)
       setClaimableAmount(amount)
-      setEntryTotal(total)
+      setClaimProofBalance(total)
     } catch (err) {
       console.error(err)
       setClaimableAmount(BigNumber.from(0))
@@ -167,10 +173,10 @@ export const useRewards = (props: Props) => {
   }
 
   useEffect(() => {
-    getClaimableAmount().catch(console.error)
+    getClaimableAmountFromRepo().catch(console.error)
   }, [contract, claimRecipient, onchainRoot, onchainRootSet, merkleBaseUrl])
 
-  useInterval(getClaimableAmount, 10 * 1000)
+  useInterval(getClaimableAmountFromRepo, 10 * 1000)
 
   const getUnclaimableAmountFromRepo = async () => {
     try {
@@ -184,7 +190,7 @@ export const useRewards = (props: Props) => {
         merkleBaseUrl &&
         claimRecipient &&
         claimableAmount &&
-        entryTotal
+        claimProofBalance
       )) {
         setUnclaimableAmount(BigNumber.from(0))
         return
@@ -200,7 +206,7 @@ export const useRewards = (props: Props) => {
         return
       }
       const total = BigNumber.from(entry.balance)
-      let amount = total.sub(entryTotal)
+      let amount = total.sub(claimProofBalance)
       if (amount.lt(0)) {
         amount = BigNumber.from(0)
       }
@@ -213,7 +219,7 @@ export const useRewards = (props: Props) => {
 
   useEffect(() => {
     getUnclaimableAmountFromRepo().catch(console.error)
-  }, [onchainRoot, claimRecipient, latestRoot, merkleBaseUrl, claimableAmount, entryTotal])
+  }, [onchainRoot, claimRecipient, latestRoot, merkleBaseUrl, claimableAmount, claimProofBalance])
 
   useInterval(getUnclaimableAmountFromRepo, 10 * 1000)
 
@@ -236,6 +242,12 @@ export const useRewards = (props: Props) => {
       }
       if (json.data.rewards.balance) {
         setClaimableAmount(BigNumber.from(json.data.rewards.balance))
+      }
+      if (json.data.rewards.claimableProofBalance) {
+        setClaimProofBalance(BigNumber.from(json.data.rewards.claimableProofBalance))
+      }
+      if (json.data.rewards.claimableProof) {
+        setClaimProof(json.data.rewards.claimableProof)
       }
     } catch (err: any) {
       if (!/Invalid Entry/.test(err.message)) {
@@ -266,6 +278,12 @@ export const useRewards = (props: Props) => {
         if (json.data.estimatedDateMs) {
           setEstimatedDate(json.data.estimatedDateMs)
         }
+      }
+      if (json.data.repoLatestRoot) {
+        setLatestRootTotal(json.data.repoLatestRoot)
+      }
+      if (json.data.repoLatestRootTotal) {
+        setLatestRootTotal(BigNumber.from(json.data.repoLatestRootTotal))
       }
     } catch (err) {
       console.error(err)
@@ -300,40 +318,69 @@ export const useRewards = (props: Props) => {
   async function claim() {
     try {
       setError('')
-      if (!(
-        contract &&
-        provider &&
-        address &&
-        claimRecipient &&
-        onchainRoot &&
-        merkleBaseUrl
-      )) {
-        return
+      if (!claimRecipient) {
+        throw new Error('claim recipient value not found')
+      }
+      if (!address) {
+        throw new Error('address value not found')
+      }
+      if (!contract) {
+        throw new Error('contract value not found')
+      }
+      if (!provider) {
+        throw new Error('provider value not found')
       }
       const isNetworkConnected = await checkConnectedNetworkId(requiredChainId)
       if (!isNetworkConnected) {
         throw new Error('wrong network connected')
       }
-      if (!onchainRootSet) {
-        return
-      }
 
       setClaiming(true)
-      const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
-      const [entry, proof] = await shardedMerkleTree.getProof(claimRecipient)
-      console.log('entry', entry)
-      console.log('proof', proof)
-      if (!entry) {
-        throw new Error('no entry')
+      let _totalAmount = BigNumber.from(0)
+      let _claimProof :any[] = []
+      if (pollUnclaimableAmountFromBackend) {
+        if (claimProofBalance?.eq(0)) {
+          throw new Error('claim total amount is required')
+        }
+        if (!claimProof) {
+          throw new Error('claim proof not found')
+        }
+        _totalAmount = claimProofBalance
+        _claimProof = claimProof
+      } else {
+        if (!merkleBaseUrl) {
+          throw new Error('merkleBaseUrl value not found')
+        }
+        if (!onchainRoot) {
+          throw new Error('onchain root value not found')
+        }
+        if (!onchainRootSet) {
+          throw new Error('onchain root set value not found')
+        }
+        const shardedMerkleTree = await ShardedMerkleTree.fetchTree(merkleBaseUrl, onchainRoot)
+        const [entry, proof] = await shardedMerkleTree.getProof(claimRecipient.toLowerCase())
+        console.log('entry', entry)
+        if (!entry) {
+          throw new Error('no entry')
+        }
+        _totalAmount = BigNumber.from(entry.balance)
+        _claimProof = proof
       }
-      const totalAmount = BigNumber.from(entry.balance)
-      console.log('totalAmount:', totalAmount.toString())
-      const tx = await contract.connect(provider.getSigner()).claim(claimRecipient, totalAmount, proof)
-      console.log(tx)
-      await tx.wait()
+      console.log('claimContractAddress', contract.address)
+      console.log('claimAccount', claimRecipient)
+      console.log('claimTotalAmount:', _totalAmount.toString())
+      console.log('claimProof (bytes32[])', `${JSON.stringify(_claimProof).replaceAll('"', '').replaceAll('[', '').replaceAll(']', '')}`)
+      console.log('claimProof (json array)', _claimProof)
+      const tx = await contract.connect(provider.getSigner()).claim(claimRecipient, _totalAmount, _claimProof)
+      console.log('tx sent:', tx)
+      const receipt = await tx.wait()
+      console.log('receipt:', receipt)
+      setClaimableAmount(BigNumber.from(0))
     } catch (err: any) {
       console.error(err)
-      setError(formatError(err))
+      if (!/ACTION_REJECTED|cancelled/gi.test(err.message)) {
+        setError(formatError(err))
+      }
     }
     setClaiming(false)
   }
@@ -348,6 +395,27 @@ export const useRewards = (props: Props) => {
   }
 
   const repoUrl = (merkleBaseUrl ?? '').replace(/.*\.com\/(.*)\/master/gi, 'https://github.com/$1')
+
+  function handleInputChange (event: any) {
+    event.preventDefault()
+    const { value } = event.target
+    setInputValue(value)
+  }
+
+  useEffect(() => {
+    try {
+      if (!inputValue) {
+        if (address?.address) {
+          setClaimRecipient(address?.address)
+        }
+      } else {
+        const recipient = getAddress(inputValue)
+        setClaimRecipient(recipient)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }, [inputValue, address])
 
   return {
     tokenDecimals,
@@ -368,6 +436,8 @@ export const useRewards = (props: Props) => {
     txHistoryLink,
     tokenImageUrl,
     repoUrl,
-    countdown
+    countdown,
+    inputValue,
+    handleInputChange
   }
 }

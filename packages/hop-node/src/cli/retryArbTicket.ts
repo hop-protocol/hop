@@ -38,6 +38,6 @@ async function main (source: any) {
 
   messageIndex = messageIndex ?? 0
   for (const txHash of txHashes) {
-    await watcher.sendRelayTx(destinationChainId, txHash, messageIndex)
+    await watcher.sendRelayTx(chainId, txHash, messageIndex)
   }
 }

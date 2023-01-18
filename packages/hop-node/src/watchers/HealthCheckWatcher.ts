@@ -893,6 +893,9 @@ export class HealthCheckWatcher {
         if (nonSynthChains.includes(sourceChain) && (token === 'SNX' || token === 'sUSD')) {
           continue
         }
+        if (sourceChain === Chain.Nova && token !== 'ETH') {
+          continue
+        }
         promises.push(new Promise(async (resolve, reject) => {
           try {
             const db = getDbSet(token)

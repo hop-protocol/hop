@@ -120,6 +120,9 @@ class IncompleteSettlementsWatcher {
         if (nonSynthChains.includes(chain) && (token === 'SNX' || token === 'sUSD')) {
           continue
         }
+        if (chain === Chain.Nova && token !== 'ETH') {
+          continue
+        }
         if (chain === 'ethereum') {
           promises.push(this.setTransferRootConfirmeds(chain, token))
         }

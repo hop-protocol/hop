@@ -561,7 +561,7 @@ const Send: FC = () => {
 
   useEffect(() => {
     if (
-      toNetwork?.slug === ChainSlug.Arbitrum &&
+      (toNetwork?.slug === ChainSlug.Arbitrum || toNetwork?.slug === ChainSlug.Nova) &&
       customRecipient &&
       !address?.eq(customRecipient)
     ) {

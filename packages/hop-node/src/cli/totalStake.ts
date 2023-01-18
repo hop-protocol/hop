@@ -21,7 +21,7 @@ async function main (source: any) {
     throw new Error('bonder is required')
   }
 
-  const chains = [Chain.Ethereum, Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum]
+  const chains = [Chain.Ethereum, Chain.Polygon, Chain.Gnosis, Chain.Optimism, Chain.Arbitrum, Chain.Nova]
   for (const chain of chains) {
     let totalStake = BigNumber.from('0')
 

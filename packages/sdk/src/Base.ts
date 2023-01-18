@@ -622,8 +622,8 @@ class Base {
       return BigNumber.from(0)
     }
 
-    if (destinationChain.equals(Chain.Arbitrum)) {
-      const relayerFee = new RelayerFee(this.network, tokenSymbol)
+    if (destinationChain.equals(Chain.Arbitrum) || destinationChain.equals(Chain.Nova)) {
+      const relayerFee = new RelayerFee(this.network, tokenSymbol, destinationChain.slug)
       return relayerFee.getRelayCost(destinationChain.slug)
     }
 

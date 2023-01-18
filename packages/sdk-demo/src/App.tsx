@@ -52,6 +52,7 @@ function ChainDropdown (props: any) {
       >
         <MenuItem value="ethereum">Ethereum</MenuItem>
         <MenuItem value="arbitrum">Arbitrum</MenuItem>
+        <MenuItem value="nova">Nova</MenuItem>
         <MenuItem value="optimism">Optimism</MenuItem>
         <MenuItem value="polygon">Polygon</MenuItem>
         <MenuItem value="gnosis">Gnosis</MenuItem>

@@ -13,6 +13,7 @@ export enum ChainId {
   Arbitrum = 42161,
   Polygon = 137,
   Gnosis = 100,
+  Nova = 42170,
 }
 
 export enum ChainName {
@@ -21,6 +22,7 @@ export enum ChainName {
   Arbitrum = 'Arbitrum',
   Polygon = 'Polygon',
   Gnosis = 'Gnosis',
+  Nova = 'Nova',
 }
 
 export enum ChainSlug {
@@ -29,6 +31,7 @@ export enum ChainSlug {
   Arbitrum = 'arbitrum',
   Polygon = 'polygon',
   Gnosis = 'gnosis',
+  Nova = 'nova',
 }
 
 export enum Slug {
@@ -41,6 +44,7 @@ export enum Slug {
   optimism = 'optimism',
   gnosis = 'gnosis',
   polygon = 'polygon',
+  nova = 'nova',
 }
 
 export enum CanonicalToken {
@@ -83,7 +87,8 @@ export enum TokenIndex {
 export enum BondTransferGasLimit {
   Ethereum = '165000',
   Optimism = '100000000',
-  Arbitrum = '2500000'
+  Arbitrum = '2500000',
+  Nova = '2500000'
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -91,7 +96,8 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   polygon: 5933,
   gnosis: 3218,
   optimism: 8545,
-  arbitrum: 19843
+  arbitrum: 19843,
+  nova: 19843
 }
 
 export const LpFeeBps = '4'

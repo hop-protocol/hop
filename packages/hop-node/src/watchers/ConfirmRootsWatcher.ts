@@ -30,6 +30,7 @@ export type ConfirmRootsData = {
   rootCommittedAt: number
 }
 
+// Nova and Arbitrum One both use the same Arbitrum Bridge Watcher
 type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
 
 class ConfirmRootsWatcher extends BaseWatcher {
@@ -76,6 +77,14 @@ class ConfirmRootsWatcher extends BaseWatcher {
     }
     if (this.chainSlug === Chain.Arbitrum && enabledNetworks.includes(Chain.Arbitrum)) {
       this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+    if (this.chainSlug === Chain.Nova && enabledNetworks.includes(Chain.Nova)) {
+      this.watchers[Chain.Nova] = new ArbitrumBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,

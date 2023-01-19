@@ -32,6 +32,11 @@ export const metadata: any = {
       name: 'Polygon',
       isLayer1: false,
       nativeTokenSymbol: 'MATIC'
+    },
+    nova: {
+      name: 'Nova',
+      isLayer1: false,
+      nativeTokenSymbol: 'ETH'
     }
   }
 }

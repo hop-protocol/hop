@@ -12,6 +12,7 @@ export enum Chain {
   Arbitrum = 'arbitrum',
   Polygon = 'polygon',
   Gnosis = 'gnosis',
+  Nova = 'nova',
 }
 
 export enum NativeChainToken {
@@ -25,7 +26,8 @@ export const nativeChainTokens: Record<string, string> = {
   arbitrum: NativeChainToken.ETH,
   optimism: NativeChainToken.ETH,
   polygon: NativeChainToken.MATIC,
-  gnosis: NativeChainToken.XDAI
+  gnosis: NativeChainToken.XDAI,
+  nova: NativeChainToken.ETH
 }
 
 export enum Token {
@@ -44,7 +46,8 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   polygon: 5933,
   gnosis: 3218,
   optimism: 8545,
-  arbitrum: 19843
+  arbitrum: 19843,
+  nova: 19843
 }
 
 export const DefaultBatchBlocks = 10000
@@ -96,7 +99,8 @@ export enum GasCostTransactionType {
 }
 
 export const RelayableChains: string[] = [
-  Chain.Arbitrum
+  Chain.Arbitrum,
+  Chain.Nova
 ]
 
 export const MaxDeadline: number = 9999999999

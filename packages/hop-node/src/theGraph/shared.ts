@@ -14,7 +14,8 @@ export const chainIdToSlug: any = {
   10: 'optimism',
   100: 'gnosis',
   137: 'polygon',
-  42161: 'arbitrum'
+  42161: 'arbitrum',
+  42170: 'nova'
 }
 
 export function normalizeEntity (x: any) {

@@ -10,7 +10,8 @@ import {
   gnosisArchiveRpc,
   polygonRpc,
   optimismRpc,
-  arbitrumRpc
+  arbitrumRpc,
+  novaRpc
 } from './config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { erc20Abi } from '@hop-protocol/core/abi'
@@ -20,7 +21,8 @@ const allProviders: any = {
   gnosis: new providers.StaticJsonRpcProvider(gnosisRpc),
   polygon: new providers.StaticJsonRpcProvider(polygonRpc),
   optimism: new providers.StaticJsonRpcProvider(optimismRpc),
-  arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc)
+  arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc),
+  nova: new providers.StaticJsonRpcProvider(novaRpc)
 }
 
 const allArchiveProviders: any = {
@@ -150,7 +152,7 @@ class TvlStats {
     console.log('done upserting prices')
 
     let tokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'HOP']
-    let chains = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'ethereum']
+    let chains = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'ethereum', 'nova']
     if (this.regenesis) {
       chains = ['optimism']
     }
@@ -184,7 +186,7 @@ class TvlStats {
                 const archiveProvider = allArchiveProviders[chain] || provider
                 if (
                   token === 'MATIC' &&
-                  ['optimism', 'arbitrum'].includes(chain)
+                  ['optimism', 'arbitrum', 'nova'].includes(chain)
                 ) {
                   return
                 }

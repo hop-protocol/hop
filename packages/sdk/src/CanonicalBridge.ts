@@ -220,6 +220,20 @@ class CanonicalBridge extends Base {
         recipient,
         amount
       )
+    } else if ((chain as Chain).equals(Chain.Nova)) {
+      const arbChain = this.getArbChainAddress(this.tokenSymbol, chain)
+      const bridge = await this.getContract(
+        ArbitrumGlobalInbox__factory,
+        bridgeAddress,
+        provider
+      )
+      await this.checkMaxTokensAllowed(chain, bridge, amount)
+      return bridge.depositERC20Message(
+        arbChain,
+        tokenAddress,
+        recipient,
+        amount
+      )
     } else if ((chain as Chain).equals(Chain.Polygon)) {
       const bridgeAddress = this.getL1PosRootChainManagerAddress(
         this.tokenSymbol,
@@ -373,6 +387,18 @@ class CanonicalBridge extends Base {
       }
       const bridge = ArbERC20__factory.connect(bridgeAddress, provider)
       return bridge.withdraw(recipient, amount)
+    } else if ((chain as Chain).equals(Chain.Nova)) {
+      const bridgeAddress = this.getL2CanonicalTokenAddress(
+        this.tokenSymbol,
+        chain
+      )
+      if (!bridgeAddress) {
+        throw new Error(
+          `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
+        )
+      }
+      const bridge = ArbERC20__factory.connect(bridgeAddress, provider)
+      return bridge.withdraw(recipient, amount)
     } else if ((chain as Chain).equals(Chain.Polygon)) {
       const tokenAddress = this.getL2CanonicalTokenAddress(
         this.tokenSymbol,
@@ -485,6 +511,8 @@ class CanonicalBridge extends Base {
       factory = L2XDaiToken__factory
     } else if (this.chain.equals(Chain.Arbitrum)) {
       factory = ArbERC20__factory
+    } else if (this.chain.equals(Chain.Nova)) {
+      factory = ArbERC20__factory
     } else if (this.chain.equals(Chain.Optimism)) {
       factory = L2OptimismTokenBridge__factory
     }
@@ -508,6 +536,8 @@ class CanonicalBridge extends Base {
     } else if (this.chain.equals(Chain.Gnosis)) {
       factory = L1XDaiForeignOmniBridge__factory
     } else if (this.chain.equals(Chain.Arbitrum)) {
+      factory = ArbitrumGlobalInbox__factory
+    } else if (this.chain.equals(Chain.Nova)) {
       factory = ArbitrumGlobalInbox__factory
     } else if (this.chain.equals(Chain.Optimism)) {
       factory = L1OptimismTokenBridge__factory

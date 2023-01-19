@@ -214,7 +214,7 @@ export class WithdrawalProof {
   }
 
   private async findTransfer (transferId: string) {
-    const chains = ['polygon', 'xdai', 'arbitrum', 'optimism']
+    const chains = ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova']
     let transfer : Transfer
     for (const chain of chains) {
       transfer = await this.queryTransfer(transferId, chain)

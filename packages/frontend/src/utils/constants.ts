@@ -44,5 +44,6 @@ export interface NetworkTokenEntity {
 }
 
 export const RelayableChains: string[] = [
-  ChainSlug.Arbitrum
+  ChainSlug.Arbitrum,
+  ChainSlug.Nova
 ]

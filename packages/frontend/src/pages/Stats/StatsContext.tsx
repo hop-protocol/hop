@@ -417,6 +417,15 @@ const StatsProvider: FC = ({ children }) => {
         const messengerWrapperAddress: string = tokenConfig.l1MessengerWrapper
         addressDatas.push(['ethereum', `${token.symbol} Wrapper`, messengerWrapperAddress, token.symbol])
       }
+      const novaSlug = 'nova'
+      for (const token of tokens) {
+        const tokenConfig = config.addresses.tokens[token.symbol][novaSlug]
+        if (!tokenConfig) {
+          continue
+        }
+        const messengerWrapperAddress: string = tokenConfig.l1MessengerWrapper
+        addressDatas.push(['ethereum', `${token.symbol} Wrapper`, messengerWrapperAddress, token.symbol])
+      }
       const promises: Promise<any>[] = []
       for (const addressData of addressDatas) {
         const slug: string = addressData[0]

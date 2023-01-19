@@ -82,7 +82,11 @@ class VolumeStats {
       return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
     }
 
-    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+    if (chain === 'nova') {
+      return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
+    } else {
+      return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+    }
   }
 
   async queryFetch (url: string, query: string, variables?: any) {

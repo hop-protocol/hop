@@ -8,14 +8,16 @@ import { getProviderFromUrl } from '../utils/getProviderFromUrl'
 export class ArbitrumRelayerFee implements IRelayerFee {
   network: string
   token: string
+  chain: string
 
-  constructor (network: string, token: string) {
+  constructor (network: string, token: string, chain: string) {
     this.network = network
     this.token = token
+    this.chain = chain
   }
 
   async getRelayCost (): Promise<BigNumber> {
-    const arbitrumRpcUrl = config.chains[this.network][Chain.Arbitrum.slug].rpcUrl
+    const arbitrumRpcUrl = config.chains[this.network][this.chain].rpcUrl
     const provider = getProviderFromUrl(arbitrumRpcUrl)
 
     // Submission Cost
@@ -125,7 +127,7 @@ export class ArbitrumRelayerFee implements IRelayerFee {
   }
 
   private _getMessengerWrapperAddress (): string {
-    const messengerWrapperAddress = config?.addresses?.[this.network]?.[this.token]?.[Chain.Arbitrum.slug]?.l1MessengerWrapper
+    const messengerWrapperAddress = config?.addresses?.[this.network]?.[this.token]?.[this.chain]?.l1MessengerWrapper
     if (!messengerWrapperAddress) {
       throw new Error('messengerWrapperAddress not found')
     }
@@ -133,7 +135,7 @@ export class ArbitrumRelayerFee implements IRelayerFee {
   }
 
   private _getL2BridgeAddress (): string {
-    const l2BridgeAddress = config?.addresses?.[this.network]?.[this.token]?.[Chain.Arbitrum.slug]?.l2Bridge
+    const l2BridgeAddress = config?.addresses?.[this.network]?.[this.token]?.[this.chain]?.l2Bridge
     if (!l2BridgeAddress) {
       throw new Error('l2BridgeAddress not found')
     }
@@ -141,7 +143,7 @@ export class ArbitrumRelayerFee implements IRelayerFee {
   }
 
   private _getBonderAddress (): string {
-    const bonderAddress = config?.bonders?.[this.network]?.[this.token]?.[Chain.Arbitrum.slug]?.[Chain.Ethereum.slug]
+    const bonderAddress = config?.bonders?.[this.network]?.[this.token]?.[this.chain]?.[Chain.Ethereum.slug]
     if (!bonderAddress) {
       throw new Error('bonderAddress not found')
     }

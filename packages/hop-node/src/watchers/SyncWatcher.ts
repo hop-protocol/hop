@@ -733,11 +733,6 @@ class SyncWatcher extends BaseWatcher {
 
     const logger = this.logger.create({ id: transferId })
 
-    // TODO: Remove after Nova is live
-    if (dbTransfer?.destinationChainId === 42170) {
-      return
-    }
-
     if (!dbTransfer.sourceChainId) {
       logger.warn('populateTransferDbItem marking item not found. Missing sourceChainId (possibly due to missing TransferSent event). isNotFound: true')
       await this.db.transfers.update(transferId, { isNotFound: true })
@@ -1547,7 +1542,7 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (RelayableChains.includes(this.chainSlug)) {
-          const relayerFee = new RelayerFee(globalConfig.network, this.tokenSymbol)
+          const relayerFee = new RelayerFee(globalConfig.network, this.tokenSymbol, this.chainSlug)
           const gasCost = await relayerFee.getRelayCost(this.chainSlug)
           logger.debug('pollGasCost got relayGasCost')
           estimates.push({ gasLimit: gasCost, transactionType: GasCostTransactionType.Relay })

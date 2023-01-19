@@ -12,7 +12,7 @@ import { useWeb3Context } from 'src/contexts/Web3Context'
 import Button from 'src/components/buttons/Button'
 import InfoTooltip from 'src/components/InfoTooltip'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
     maxWidth: '680px',
     margin: '0 auto',

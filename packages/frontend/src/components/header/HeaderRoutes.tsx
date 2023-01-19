@@ -8,7 +8,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { useTheme } from '@material-ui/core'
 import { useHasRewards } from 'src/pages/Rewards/useHasRewards'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: any) => ({
   tabs: {
     "& .MuiTabs-flexContainer": {
       flexWrap: 'wrap',

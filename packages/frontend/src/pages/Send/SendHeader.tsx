@@ -5,7 +5,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import RaisedSelect from 'src/components/selects/RaisedSelect'
 import SelectOption from 'src/components/selects/SelectOption'
 
-function SendHeader(props) {
+function SendHeader(props: any) {
   const { styles, bridges, selectedBridge, handleBridgeChange } = props
 
   return (
@@ -15,7 +15,7 @@ function SendHeader(props) {
           Send
         </Typography>
         <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleBridgeChange}>
-          {bridges.map(bridge => (
+          {bridges.map((bridge: any) => (
             <MenuItem value={bridge.getTokenSymbol()} key={bridge.getTokenSymbol()}>
               <SelectOption
                 value={bridge.getTokenSymbol()}

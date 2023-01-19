@@ -43,6 +43,9 @@ function getSourceChainId (chain: string) {
     }
     return 42161
   }
+  if (chain === 'nova') {
+    return 42170
+  }
   throw new Error(`unsupported chain "${chain}"`)
 }
 
@@ -73,7 +76,7 @@ function Spinner() {
 
 const poll = true
 const pollInterval = 15 * 1000
-let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
+let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova']
 if (isGoerli) {
   enabledChains = ['ethereum', 'polygon', 'arbitrum', 'optimism']
 }
@@ -110,6 +113,7 @@ const chainSlugToNameMap: any = {
   polygon: 'Polygon',
   arbitrum: 'Arbitrum',
   optimism: 'Optimism',
+  nova: 'Nova'
 }
 
 const colorsMap: any = {
@@ -118,6 +122,7 @@ const colorsMap: any = {
   polygon: '#8b57e1',
   optimism: '#e64b5d',
   arbitrum: '#289fef',
+  nova: '#ec772c',
   fallback: '#9f9fa3'
 }
 
@@ -848,6 +853,7 @@ const Index: NextPage = () => {
                   <option value="gnosis">Gnosis</option>
                   <option value="optimism">Optimism</option>
                   <option value="arbitrum">Arbitrum</option>
+                  <option value="nova">Nova</option>
                 </select>
               </div>
               <div>
@@ -859,6 +865,7 @@ const Index: NextPage = () => {
                   <option value="gnosis">Gnosis</option>
                   <option value="optimism">Optimism</option>
                   <option value="arbitrum">Arbitrum</option>
+                  <option value="nova">Nova</option>
                 </select>
               </div>
               <div>

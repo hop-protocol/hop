@@ -12,7 +12,7 @@ import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import { isGoerli } from './config'
 
 let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX']
-let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
+let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova']
 
 if (isGoerli) {
   enabledTokens = ['USDC', 'ETH']
@@ -24,7 +24,8 @@ const rpcUrls = {
   polygon: process.env.POLYGON_RPC,
   arbitrum: process.env.ARBITRUM_RPC,
   optimism: process.env.OPTIMISM_RPC,
-  ethereum: process.env.ETHEREUM_RPC
+  ethereum: process.env.ETHEREUM_RPC,
+  nova: process.env.NOVA_RPC
 }
 
 console.log('rpcUrls:', rpcUrls)
@@ -62,6 +63,8 @@ function explorerLink (chain: string) {
     }
   } else if (chain === 'arbitrum') {
     base = 'https://arbiscan.io'
+  } else if (chain === 'nova') {
+    base = 'https://nova.arbiscan.io'
   } else {
     base = 'https://etherscan.io'
     if (isGoerli) {
@@ -108,7 +111,8 @@ const chainIdToSlugMap: any = {
   80001: 'polygon',
   42161: 'arbitrum',
   421611: 'arbitrum',
-  421613: 'arbitrum'
+  421613: 'arbitrum',
+  42170: 'nova'
 }
 
 const chainSlugToIdMap: any = {
@@ -116,7 +120,8 @@ const chainSlugToIdMap: any = {
   optimism: 10,
   gnosis: 100,
   polygon: 137,
-  arbitrum: 42161
+  arbitrum: 42161,
+  nova: 42170
 }
 
 const chainSlugToNameMap: any = {
@@ -124,7 +129,8 @@ const chainSlugToNameMap: any = {
   gnosis: 'Gnosis',
   polygon: 'Polygon',
   arbitrum: 'Arbitrum',
-  optimism: 'Optimism'
+  optimism: 'Optimism',
+  nova: 'Nova'
 }
 
 function getSourceChainId (chain: string) {
@@ -154,6 +160,9 @@ function getSourceChainId (chain: string) {
       return 421613
     }
     return 42161
+  }
+  if (chain === 'nova') {
+    return 42170
   }
   throw new Error(`unsupported chain "${chain}"`)
 }
@@ -187,6 +196,7 @@ const colorsMap: any = {
   polygon: '#8b57e1',
   optimism: '#e64b5d',
   arbitrum: '#289fef',
+  nova: '#ec772c',
   fallback: '#9f9fa3'
 }
 */
@@ -196,7 +206,8 @@ const chainLogosMap: any = {
   gnosis: 'https://assets.hop.exchange/logos/gnosis.svg',
   polygon: 'https://assets.hop.exchange/logos/polygon.svg',
   optimism: 'https://assets.hop.exchange/logos/optimism.svg',
-  arbitrum: 'https://assets.hop.exchange/logos/arbitrum.svg'
+  arbitrum: 'https://assets.hop.exchange/logos/arbitrum.svg',
+  nova: 'https://assets.hop.exchange/logos/nova.svg'
 }
 
 const tokenLogosMap: any = {
@@ -303,12 +314,20 @@ export class TransferStats {
       if (chain === 'arbitrum') {
         throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
       }
+      if (chain === 'nova') {
+        throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+      }
       if (chain === 'xdai') {
         throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
       }
     }
 
-    const url = `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+    let url: string
+    if (chain === 'nova') {
+      url = `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
+    } else {
+      url = `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+    }
     return url
   }
 
@@ -905,12 +924,14 @@ export class TransferStats {
           polygonTransfers,
           optimismTransfers,
           arbitrumTransfers,
+          novaTransfers,
           mainnetTransfers
         ] = await Promise.all([
           enabledChains.includes('gnosis') ? this.fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
           enabledChains.includes('polygon') ? this.fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
           enabledChains.includes('optimism') ? this.fetchTransferEventsByTransferIds('optimism', allIds) : Promise.resolve([]),
           enabledChains.includes('arbitrum') ? this.fetchTransferEventsByTransferIds('arbitrum', allIds) : Promise.resolve([]),
+          enabledChains.includes('nova') ? this.fetchTransferEventsByTransferIds('nova', allIds) : Promise.resolve([]),
           enabledChains.includes('ethereum') ? this.fetchTransferEventsByTransferIds('ethereum', allIds) : Promise.resolve([])
         ])
 
@@ -919,6 +940,7 @@ export class TransferStats {
           ...polygonTransfers,
           ...optimismTransfers,
           ...arbitrumTransfers,
+          ...novaTransfers,
           ...mainnetTransfers
         ]
 
@@ -1315,12 +1337,14 @@ export class TransferStats {
       polygonTransfers,
       optimismTransfers,
       arbitrumTransfers,
+      novaTransfers,
       mainnetTransfers
     ] = await Promise.all([
       enabledChains.includes('gnosis') ? this.fetchTransfersForTransferId('gnosis', transferId) : Promise.resolve([]),
       enabledChains.includes('polygon') ? this.fetchTransfersForTransferId('polygon', transferId) : Promise.resolve([]),
       enabledChains.includes('optimism') ? this.fetchTransfersForTransferId('optimism', transferId) : Promise.resolve([]),
       enabledChains.includes('arbitrum') ? this.fetchTransfersForTransferId('arbitrum', transferId) : Promise.resolve([]),
+      enabledChains.includes('nova') ? this.fetchTransfersForTransferId('nova', transferId) : Promise.resolve([]),
       enabledChains.includes('ethereum') ? this.fetchTransfersForTransferId('ethereum', transferId) : Promise.resolve([])
     ])
 
@@ -1329,6 +1353,7 @@ export class TransferStats {
       polygonTransfers,
       optimismTransfers,
       arbitrumTransfers,
+      novaTransfers,
       mainnetTransfers
     }
   }
@@ -1624,12 +1649,14 @@ export class TransferStats {
       polygonTransfers,
       optimismTransfers,
       arbitrumTransfers,
+      novaTransfers,
       mainnetTransfers
     ] = await Promise.all([
       enabledChains.includes('gnosis') ? this.fetchTransfers('gnosis', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('polygon') ? this.fetchTransfers('polygon', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('optimism') ? this.fetchTransfers('optimism', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('arbitrum') ? this.fetchTransfers('arbitrum', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('nova') ? this.fetchTransfers('nova', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('ethereum') ? this.fetchTransfers('ethereum', startTime, endTime) : Promise.resolve([])
     ])
 
@@ -1638,6 +1665,7 @@ export class TransferStats {
       polygonTransfers,
       optimismTransfers,
       arbitrumTransfers,
+      novaTransfers,
       mainnetTransfers
     }
   }
@@ -1648,12 +1676,14 @@ export class TransferStats {
       polygonBonds,
       optimismBonds,
       arbitrumBonds,
+      novaBonds,
       mainnetBonds
     ] = await Promise.all([
       enabledChains.includes('gnosis') ? this.fetchBondTransferIdEvents('gnosis', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('polygon') ? this.fetchBondTransferIdEvents('polygon', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('optimism') ? this.fetchBondTransferIdEvents('optimism', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('arbitrum') ? this.fetchBondTransferIdEvents('arbitrum', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('nova') ? this.fetchBondTransferIdEvents('nova', startTime, endTime) : Promise.resolve([]),
       enabledChains.includes('ethereum') ? this.fetchBondTransferIdEvents('ethereum', startTime, endTime) : Promise.resolve([])
     ])
 
@@ -1662,6 +1692,7 @@ export class TransferStats {
       polygonBonds,
       optimismBonds,
       arbitrumBonds,
+      novaBonds,
       mainnetBonds
     }
   }
@@ -1672,6 +1703,7 @@ export class TransferStats {
       polygonTransfers,
       optimismTransfers,
       arbitrumTransfers,
+      novaTransfers,
       mainnetTransfers
     } = events
     const data :any[] = []
@@ -1744,6 +1776,23 @@ export class TransferStats {
         originContractAddress: x?.transaction?.to?.toLowerCase()
       })
     }
+    for (const x of novaTransfers) {
+      data.push({
+        sourceChain: getSourceChainId('nova'),
+        destinationChain: x.destinationChainId,
+        amount: x.amount,
+        amountOutMin: x.amountOutMin,
+        bonderFee: x.bonderFee,
+        recipient: x.recipient,
+        deadline: Number(x.deadline),
+        transferId: x.transferId,
+        transactionHash: x.transactionHash,
+        timestamp: Number(x.timestamp),
+        token: x.token,
+        from: x.from,
+        originContractAddress: x?.transaction?.to?.toLowerCase()
+      })
+    }
     for (const x of mainnetTransfers) {
       data.push({
         sourceChain: getSourceChainId('ethereum'),
@@ -1789,12 +1838,14 @@ export class TransferStats {
       polygonBondedWithdrawals,
       optimismBondedWithdrawals,
       arbitrumBondedWithdrawals,
+      novaBondedWithdrawals,
       mainnetBondedWithdrawals
     ] = await Promise.all([
       enabledChains.includes('gnosis') ? this.fetchBonds('gnosis', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('polygon') ? this.fetchBonds('polygon', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('optimism') ? this.fetchBonds('optimism', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('arbitrum') ? this.fetchBonds('arbitrum', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('nova') ? this.fetchBonds('nova', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('ethereum') ? this.fetchBonds('ethereum', filterTransferIds) : Promise.resolve([])
     ])
 
@@ -1803,12 +1854,14 @@ export class TransferStats {
       polygonWithdrews,
       optimismWithdrews,
       arbitrumWithdrews,
+      novaWithdrews,
       mainnetWithdrews
     ] = await Promise.all([
       enabledChains.includes('gnosis') ? this.fetchWithdrews('gnosis', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('polygon') ? this.fetchWithdrews('polygon', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('optimism') ? this.fetchWithdrews('optimism', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('arbitrum') ? this.fetchWithdrews('arbitrum', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('nova') ? this.fetchWithdrews('nova', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('ethereum') ? this.fetchWithdrews('ethereum', filterTransferIds) : Promise.resolve([])
     ])
 
@@ -1816,18 +1869,21 @@ export class TransferStats {
       gnosisFromL1Completeds,
       polygonFromL1Completeds,
       optimismFromL1Completeds,
-      arbitrumFromL1Completeds
+      arbitrumFromL1Completeds,
+      novaFromL1Completeds
     ] = await Promise.all([
       enabledChains.includes('gnosis') ? this.fetchTransferFromL1Completeds('gnosis', startTime, endTime, undefined) : Promise.resolve([]),
       enabledChains.includes('polygon') ? this.fetchTransferFromL1Completeds('polygon', startTime, endTime, undefined) : Promise.resolve([]),
       enabledChains.includes('optimism') ? this.fetchTransferFromL1Completeds('optimism', startTime, endTime, undefined) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? this.fetchTransferFromL1Completeds('arbitrum', startTime, endTime, undefined) : Promise.resolve([])
+      enabledChains.includes('arbitrum') ? this.fetchTransferFromL1Completeds('arbitrum', startTime, endTime, undefined) : Promise.resolve([]),
+      enabledChains.includes('nova') ? this.fetchTransferFromL1Completeds('nova', startTime, endTime, undefined) : Promise.resolve([])
     ])
 
     const gnosisBonds = [...gnosisBondedWithdrawals, ...gnosisWithdrews]
     const polygonBonds = [...polygonBondedWithdrawals, ...polygonWithdrews]
     const optimismBonds = [...optimismBondedWithdrawals, ...optimismWithdrews]
     const arbitrumBonds = [...arbitrumBondedWithdrawals, ...arbitrumWithdrews]
+    const novaBonds = [...novaBondedWithdrawals, ...novaWithdrews]
     const mainnetBonds = [...mainnetBondedWithdrawals, ...mainnetWithdrews]
 
     const bondsMap: any = {
@@ -1835,6 +1891,7 @@ export class TransferStats {
       polygon: polygonBonds,
       optimism: optimismBonds,
       arbitrum: arbitrumBonds,
+      nova: novaBonds,
       ethereum: mainnetBonds
     }
 
@@ -1842,7 +1899,8 @@ export class TransferStats {
       gnosis: gnosisFromL1Completeds,
       polygon: polygonFromL1Completeds,
       optimism: optimismFromL1Completeds,
-      arbitrum: arbitrumFromL1Completeds
+      arbitrum: arbitrumFromL1Completeds,
+      nova: novaFromL1Completeds
     }
 
     for (const x of data) {
@@ -2103,6 +2161,7 @@ export class TransferStats {
       polygonBonds,
       optimismBonds,
       arbitrumBonds,
+      novaBonds,
       mainnetBonds
     } = await this.getBondTransferIdEventsBetweenDates(startTime, endTime)
 
@@ -2119,6 +2178,9 @@ export class TransferStats {
     for (const item of arbitrumBonds) {
       allIds.push(item.transferId)
     }
+    for (const item of novaBonds) {
+      allIds.push(item.transferId)
+    }
     for (const item of mainnetBonds) {
       allIds.push(item.transferId)
     }
@@ -2128,12 +2190,14 @@ export class TransferStats {
       polygonTransfers,
       optimismTransfers,
       arbitrumTransfers,
+      novaTransfers,
       mainnetTransfers
     ] = await Promise.all([
       enabledChains.includes('gnosis') ? this.fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
       enabledChains.includes('polygon') ? this.fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
       enabledChains.includes('optimism') ? this.fetchTransferEventsByTransferIds('optimism', allIds) : Promise.resolve([]),
       enabledChains.includes('arbitrum') ? this.fetchTransferEventsByTransferIds('arbitrum', allIds) : Promise.resolve([]),
+      enabledChains.includes('nova') ? this.fetchTransferEventsByTransferIds('nova', allIds) : Promise.resolve([]),
       enabledChains.includes('ethereum') ? this.fetchTransferEventsByTransferIds('ethereum', allIds) : Promise.resolve([])
     ])
 
@@ -2142,6 +2206,7 @@ export class TransferStats {
       polygonTransfers,
       optimismTransfers,
       arbitrumTransfers,
+      novaTransfers,
       mainnetTransfers
     }
 

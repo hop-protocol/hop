@@ -11,6 +11,7 @@ const colorsMap: any = {
   polygon: '#8b57e1',
   optimism: '#e64b5d',
   arbitrum: '#289fef',
+  nova: '#ec772c',
   bonded: '#81ff81',
   pending: '#ffc55a',
   fallback: '#9f9fa3'
@@ -21,31 +22,43 @@ const transferTimes = {
     optimism: 10,
     arbitrum: 16,
     polygon: 25,
-    gnosis: 5
+    gnosis: 5,
+    nova: 16
   },
   optimism: {
     ethereum: 1,
     arbitrum: 1,
     polygon: 1,
-    gnosis: 1
+    gnosis: 1,
+    nova: 1
   },
   arbitrum: {
     ethereum: 1,
     optimism: 1,
     polygon: 1,
-    gnosis: 1
+    gnosis: 1,
+    nova: 1
   },
   polygon: {
     ethereum: 5,
     optimism: 5,
     arbitrum: 5,
-    gnosis: 5
+    gnosis: 5,
+    nova: 5
   },
   gnosis: {
     ethereum: 1,
     optimism: 1,
     arbitrum: 1,
-    polygon: 1
+    polygon: 1,
+    nova: 1
+  },
+  nova: {
+    ethereum: 1,
+    optimism: 1,
+    arbitrum: 1,
+    polygon: 1,
+    gnosis: 1
   }
 }
 
@@ -86,6 +99,9 @@ function getSourceChainId (chain: string) {
     }
     return 42161
   }
+  if (chain === 'nova') {
+    return 42170
+  }
   throw new Error(`unsupported chain "${chain}"`)
 }
 
@@ -105,6 +121,8 @@ function explorerLink (chain: string) {
     }
   } else if (chain === 'arbitrum') {
     base = 'https://arbiscan.io'
+  } else if (chain === 'nova') {
+    base = 'https://nova.arbiscan.io'
   } else {
     base = 'https://etherscan.io'
     if (isGoerli) {

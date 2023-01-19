@@ -178,7 +178,7 @@ type Transfer = {
   transactionHashTruncated: string
   transferId: string
   transferIdTruncated: string
-  unbondabe: boolean
+  unbondable: boolean
   estimatedUnixTimeUntilBond: number
   estimatedSecondsUntilBond: number
   estimatedRelativeTimeUntilBond: string

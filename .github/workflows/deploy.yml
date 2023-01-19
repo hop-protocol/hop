@@ -117,7 +117,7 @@ jobs:
         with:
           pin-name: Hop ${{ github.sha }}
           path: './packages/frontend/build'
-          verbose: false
+          verbose: true
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
 

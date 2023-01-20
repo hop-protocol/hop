@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/core/styles'
 
-export const useSendStyles = makeStyles(theme => ({
+export const useSendStyles = makeStyles((theme: any) => ({
   header: {
     display: 'flex',
     justifyContent: 'center',

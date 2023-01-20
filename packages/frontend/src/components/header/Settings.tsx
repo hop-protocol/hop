@@ -12,7 +12,7 @@ import Alert from 'src/components/alert/Alert'
 import { sanitizeNumericalString } from 'src/utils'
 import { Icon, Flex } from 'src/components/ui'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
     display: 'flex',
     alignItems: 'center',

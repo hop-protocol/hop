@@ -170,4 +170,5 @@ export {
   stakingRewardsContracts,
   rewardTokenAddresses,
   hopStakingRewardsContracts,
+  enabledChains
 }

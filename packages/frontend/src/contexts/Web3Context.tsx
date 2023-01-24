@@ -9,8 +9,8 @@ import React, {
 import Onboard from 'bnc-onboard'
 import { ethers, BigNumber } from 'ethers'
 import Address from 'src/models/Address'
-import { networkIdToSlug, networkSlugToId, getRpcUrl, getBaseExplorerUrl } from 'src/utils'
-import { blocknativeDappid, reactAppNetwork } from 'src/config'
+import { networkIdToSlug, networkSlugToId, getRpcUrl, getBaseExplorerUrl, getRpcUrlOrThrow } from 'src/utils'
+import { blocknativeDappid, reactAppNetwork, enabledChains } from 'src/config'
 import { l1Network } from 'src/config/networks'
 import './onboardStyles.css'
 import logger from 'src/logger'
@@ -53,7 +53,7 @@ const networkNames: any = {
   137: 'Polygon',
 }
 
-const getRpcUrls = (): Record<string, string> => {
+const getWalletConnectRpcUrls = (): Record<string, string> => {
   if (reactAppNetwork === 'goerli') {
     return {
       5: getRpcUrl(ChainSlug.Ethereum),
@@ -64,13 +64,13 @@ const getRpcUrls = (): Record<string, string> => {
   } else {
     return {
       1: getRpcUrl(ChainSlug.Ethereum),
-      42: getRpcUrl(ChainSlug.Ethereum),
+      // 42: getRpcUrl(ChainSlug.Ethereum), // kovan
       42161: getRpcUrl(ChainSlug.Arbitrum),
-      421611: getRpcUrl(ChainSlug.Arbitrum),
+      // 421611: getRpcUrl(ChainSlug.Arbitrum), // arbitrum rinkeby
       42170: getRpcUrl(ChainSlug.Nova),
-      200: getRpcUrl(ChainSlug.Arbitrum),
+      // 200: getRpcUrl(ChainSlug.Arbitrum), // arbitrum on xdai
       10: getRpcUrl(ChainSlug.Optimism),
-      69: getRpcUrl(ChainSlug.Optimism),
+      // 69: getRpcUrl(ChainSlug.Optimism), // optimism kovan
       100: getRpcUrl(ChainSlug.Gnosis),
       137: getRpcUrl(ChainSlug.Polygon),
     }
@@ -100,7 +100,7 @@ const walletSelectOptions = (networkId: number): WalletSelectModuleOptions => {
         walletName: 'walletConnect',
         label: 'Wallet Connect',
         preferred: true,
-        rpc: getRpcUrls(),
+        rpc: getWalletConnectRpcUrls(),
       },
       {
         walletName: 'gnosis',
@@ -357,7 +357,7 @@ const Web3ContextProvider: FC = ({ children }) => {
           const rpcObj = {
             chainId: `0x${Number(networkId).toString(16)}`,
             chainName: networkNames[networkId],
-            rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
+            rpcUrls: [getRpcUrlOrThrow(networkIdToSlug(networkId.toString()))],
             blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
             nativeCurrency,
           }

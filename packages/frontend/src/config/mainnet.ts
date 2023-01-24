@@ -3,7 +3,6 @@ import {
   staging as stagingAddresses,
 } from '@hop-protocol/core/addresses'
 import { mainnet as _mainnetNetworks } from '@hop-protocol/core/networks'
-
 import { HopAddresses, Networks } from './interfaces'
 
 const isStaging = process.env.REACT_APP_NETWORK === 'staging'

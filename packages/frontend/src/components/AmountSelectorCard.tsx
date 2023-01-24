@@ -1,6 +1,6 @@
 import React, { useMemo, FC, ChangeEvent, useCallback } from 'react'
 import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
+import { formatUnits, parseEther } from 'ethers/lib/utils'
 import Card from '@material-ui/core/Card'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -106,6 +106,14 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
       let totalAmount = balance.sub(nativeTokenMaxGasCost)
       if (totalAmount.lt(0)) {
         totalAmount = BigNumber.from(0)
+      }
+      const tokenSymbol = options?.token?.symbol
+      const smallAmount = tokenSymbol === 'XDAI' || tokenSymbol === 'MATIC' ? parseEther('1') : parseEther('0.001')
+      if (tokenSymbol === 'XDAI' || tokenSymbol === 'MATIC' || tokenSymbol === 'ETH') {
+        if (totalAmount.gt(smallAmount)) {
+          // leave a little bit of native token for gas
+          totalAmount = totalAmount.sub(smallAmount)
+        }
       }
       return formatUnits(totalAmount, selectedToken.decimals)
     }

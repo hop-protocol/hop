@@ -1,7 +1,7 @@
 import { Chains } from './types'
 import {
   arbitrumImage,
-  consensysZkEvmImage,
+  consensyszkImage,
   ethereumImage,
   gnosisImage,
   novaImage,
@@ -46,9 +46,9 @@ export const chains: Chains = {
     slug: 'zksync',
     image: zksyncImage
   },
-  consensysZkEvm: {
-    name: 'Consensys zkEvm',
-    slug: 'consensysZkEvm',
-    image: consensysZkEvmImage
+  consensyszk: {
+    name: 'ConsenSys zkEVM',
+    slug: 'consensyszk',
+    image: consensyszkImage
   }
 }

@@ -6,7 +6,7 @@ export enum ChainSlug {
   arbitrum = 'arbitrum',
   nova = 'nova',
   zkSync = 'zksync',
-  consensysZkEvm = 'consensysZkEvm',
+  consensyszk= 'consensyszk',
 }
 
 export enum AssetSymbol {

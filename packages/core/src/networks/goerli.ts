@@ -40,5 +40,25 @@ export const networks: Networks = {
     explorerUrls: ['https://goerli-rollup-explorer.arbitrum.io'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 1
+  },
+  zksync: {
+    name: chains.zksync.name,
+    image: chains.zksync.image,
+    networkId: 280,
+    publicRpcUrl: 'https://zksync2-testnet.zksync.dev',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: [''],
+    nativeBridgeUrl: '',
+    waitConfirmations: 1
+  },
+  consensyszk: {
+    name: chains.consensyszk.name,
+    image: chains.consensyszk.image,
+    networkId: 59140,
+    publicRpcUrl: 'https://consensys-zkevm-goerli-prealpha.infura.io/v3/84842078b09946638c03157f83405213',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://explorer.goerli.zkevm.consensys.net'],
+    nativeBridgeUrl: '',
+    waitConfirmations: 1
   }
 }

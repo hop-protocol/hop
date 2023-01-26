@@ -38,7 +38,7 @@ export const config : Config = {
       optimism: 5,
       arbitrum: 5,
       zksync: 0, // TODO
-      consensysZkEvm: 0 // TODO
+      consensyszk: 0 // TODO
     },
     WBTC: {
       ethereum: 23,
@@ -70,6 +70,6 @@ export const config : Config = {
     arbitrum: false,
     nova: false,
     zksync: false,
-    consensysZkEvm: false
+    consensyszk: false
   }
 }

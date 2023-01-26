@@ -73,7 +73,8 @@ export const networks: Networks = {
     explorerUrls: ['https://nova.arbiscan.io/'],
     nativeBridgeUrl: 'https://bridge.arbitrum.io/',
     waitConfirmations: 20
-  },
+  }
+  /*
   zksync: {
     name: chains.zksync.name,
     image: chains.zksync.image,
@@ -83,11 +84,10 @@ export const networks: Networks = {
     explorerUrls: ['https://explorer.zksync.io/'],
     nativeBridgeUrl: '',
     waitConfirmations: 1
-  }
-  /*
-  consensysZkEvm: {
-    name: chains.consensysZkEvm.name,
-    image: chains.consensysZkEvm.image,
+  },
+  consensyszk: {
+    name: chains.consensyszk.name,
+    image: chains.consensyszk.image,
     networkId: 0,
     publicRpcUrl: '',
     fallbackPublicRpcUrls: [],

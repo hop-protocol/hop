@@ -9,34 +9,44 @@ export const metadata: any = {
   },
   networks: {
     ethereum: {
-      name: 'Ethereum',
+      name: hopMetadata.chains.ethereum.name,
       isLayer1: true,
-      nativeTokenSymbol: 'ETH'
+      nativeTokenSymbol: hopMetadata.chains.ethereum.nativeTokenSymbol
     },
     arbitrum: {
-      name: 'Arbitrum',
+      name: hopMetadata.chains.arbitrum.name,
       isLayer1: false,
-      nativeTokenSymbol: 'ETH'
+      nativeTokenSymbol: hopMetadata.chains.arbitrum.nativeTokenSymbol
     },
     optimism: {
-      name: 'Optimism',
+      name: hopMetadata.chains.optimism.name,
       isLayer1: false,
-      nativeTokenSymbol: 'ETH'
+      nativeTokenSymbol: hopMetadata.chains.optimism.nativeTokenSymbol
     },
     gnosis: {
-      name: 'Gnosis',
+      name: hopMetadata.chains.gnosis.name,
       isLayer1: false,
-      nativeTokenSymbol: 'XDAI'
+      nativeTokenSymbol: hopMetadata.chains.gnosis.nativeTokenSymbol
     },
     polygon: {
-      name: 'Polygon',
+      name: hopMetadata.chains.polygon.name,
       isLayer1: false,
-      nativeTokenSymbol: 'MATIC'
+      nativeTokenSymbol: hopMetadata.chains.polygon.nativeTokenSymbol
     },
     nova: {
-      name: 'Nova',
+      name: hopMetadata.chains.nova.name,
       isLayer1: false,
-      nativeTokenSymbol: 'ETH'
+      nativeTokenSymbol: hopMetadata.chains.nova.nativeTokenSymbol
+    },
+    zksync: {
+      name: hopMetadata.chains.zksync.name,
+      isLayer1: false,
+      nativeTokenSymbol: hopMetadata.chains.zksync.nativeTokenSymbol
+    },
+    consensyszk: {
+      name: hopMetadata.chains.consensyszk.name,
+      isLayer1: false,
+      nativeTokenSymbol: hopMetadata.chains.consensyszk.nativeTokenSymbol
     }
   }
 }

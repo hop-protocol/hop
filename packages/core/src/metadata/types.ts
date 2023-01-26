@@ -15,6 +15,7 @@ export interface Chain {
   name: string
   slug: string
   image: string
+  nativeTokenSymbol: string
 }
 
 export interface Chains {

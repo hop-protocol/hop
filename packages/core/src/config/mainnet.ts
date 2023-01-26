@@ -37,8 +37,9 @@ export const config : Config = {
       gnosis: 5,
       optimism: 5,
       arbitrum: 5,
-      zksync: 0, // TODO
-      consensyszk: 0 // TODO
+      nova: 8,
+      zksync: 5, // TODO
+      consensyszk: 5 // TODO
     },
     WBTC: {
       ethereum: 23,

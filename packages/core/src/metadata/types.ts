@@ -1,3 +1,5 @@
+import { AssetSymbol } from '../config/types'
+
 export interface Token {
   symbol: string
   name: string
@@ -5,13 +7,14 @@ export interface Token {
   image: string
 }
 
-export interface Tokens {
-  [key: string]: Token
-}
+export type Tokens = {
+  [key in AssetSymbol]: Token
+} & { ARB: Token } & { XDAI: Token } & { OP: Token } & { GNO: Token }
 
 export interface Chain {
   name: string
   slug: string
+  image: string
 }
 
 export interface Chains {
@@ -19,5 +22,5 @@ export interface Chains {
 }
 
 export interface Metadata {
-  tokens: Partial<Tokens>
+  tokens: Tokens
 }

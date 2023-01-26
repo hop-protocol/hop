@@ -36,7 +36,9 @@ export const config : Config = {
       polygon: 5,
       gnosis: 5,
       optimism: 5,
-      arbitrum: 5
+      arbitrum: 5,
+      zksync: 0, // TODO
+      consensysZkEvm: 0 // TODO
     },
     WBTC: {
       ethereum: 23,
@@ -66,6 +68,8 @@ export const config : Config = {
     gnosis: false,
     optimism: false,
     arbitrum: false,
-    nova: false
+    nova: false,
+    zksync: false,
+    consensysZkEvm: false
   }
 }

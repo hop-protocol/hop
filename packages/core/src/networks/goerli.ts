@@ -4,6 +4,7 @@ import { chains } from '../metadata'
 export const networks: Networks = {
   ethereum: {
     name: chains.ethereum.name,
+    image: chains.ethereum.image,
     networkId: 5,
     publicRpcUrl: 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213', // from ethers
     fallbackPublicRpcUrls: [],
@@ -12,6 +13,7 @@ export const networks: Networks = {
   },
   polygon: {
     name: chains.polygon.name,
+    image: chains.polygon.image,
     networkId: 80001,
     publicRpcUrl: 'https://matic-testnet-archive-rpc.bwarelabs.com',
     fallbackPublicRpcUrls: [],
@@ -21,6 +23,7 @@ export const networks: Networks = {
   },
   optimism: {
     name: chains.optimism.name,
+    image: chains.optimism.image,
     networkId: 420,
     publicRpcUrl: 'https://goerli.optimism.io',
     fallbackPublicRpcUrls: [],
@@ -30,6 +33,7 @@ export const networks: Networks = {
   },
   arbitrum: {
     name: chains.arbitrum.name,
+    image: chains.arbitrum.image,
     networkId: 421613,
     publicRpcUrl: 'https://goerli-rollup.arbitrum.io/rpc',
     fallbackPublicRpcUrls: [],

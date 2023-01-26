@@ -9,9 +9,10 @@ export enum ChainSlug {
   consensysZkEvm = 'consensysZkEvm',
 }
 
-export enum AssetSymbol {
+export enum TokenSymbol {
   USDC = 'USDC',
   USDT = 'USDT',
+  XDAI = 'XDAI',
   DAI = 'DAI',
   MATIC = 'MATIC',
   ETH = 'ETH',
@@ -19,8 +20,6 @@ export enum AssetSymbol {
   HOP = 'HOP',
   SNX = 'SNX',
   sUSD = 'sUSD',
-  sBTC = 'sBTC',
-  sETH = 'sETH',
   rETH = 'rETH'
 }
 
@@ -29,7 +28,7 @@ export type Bps = {
 }
 
 export type Fees = {
-  [key in AssetSymbol]: Partial<Bps>
+  [key in TokenSymbol]: Partial<Bps>
 }
 
 type RelayerFee = {

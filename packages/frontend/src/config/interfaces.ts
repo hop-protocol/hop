@@ -26,8 +26,8 @@ export interface HopAddresses {
     stakingRewards: string
     governorAlpha: string
   }
-  tokens: Bridges
-  bonders: Bonders
+  tokens: Partial<Bridges>
+  bonders: Partial<Bonders>
 }
 
 export type Networks = {

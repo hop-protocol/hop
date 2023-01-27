@@ -84,6 +84,7 @@ export enum HToken {
   hUSDT = 'hUSDT',
   hDAI = 'hDAI',
   hHop = 'hHOP',
+  hrETH = 'hrETH',
 }
 
 export type TokenSymbol = CanonicalToken | WrappedToken | HToken | string

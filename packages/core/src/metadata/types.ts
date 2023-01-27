@@ -1,4 +1,4 @@
-import { AssetSymbol } from '../config/types'
+import { AssetSymbol, ChainSlug } from '../config/types'
 
 export interface Token {
   symbol: string
@@ -18,10 +18,11 @@ export interface Chain {
   nativeTokenSymbol: string
 }
 
-export interface Chains {
-  [key: string]: Chain
+export type Chains = {
+  [key in ChainSlug]: Chain
 }
 
 export interface Metadata {
   tokens: Tokens
+  chains: Chains
 }

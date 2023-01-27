@@ -31,7 +31,7 @@ class Chain {
 
   constructor (name: ChainName | string, chainId?: number, provider?: providers.Provider) {
     this.name = name
-    this.slug = (name || '').trim().replaceAll(' ', '').toLowerCase()
+    this.slug = (name || '').trim().replace(/\s+/gi, '').toLowerCase()
     if (this.slug.startsWith('consensys')) {
       this.slug = 'consensyszk'
     }

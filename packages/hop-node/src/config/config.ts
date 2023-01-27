@@ -4,6 +4,7 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
+import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import { Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
@@ -102,15 +103,6 @@ type MetricsConfig = {
   port?: number
 }
 
-type Bps = {
-  ethereum: number
-  polygon: number
-  gnosis: number
-  optimism: number
-  arbitrum: number
-  nova: number
-}
-
 export type Fees = Record<string, Bps>
 export type Routes = Record<string, Record<string, boolean>>
 export type CommitTransfersConfig = {
@@ -127,12 +119,7 @@ export type VaultChainTokenConfig = {
 }
 
 export type VaultChain = {
-  ethereum?: VaultChainTokenConfig
-  polygon?: VaultChainTokenConfig
-  gnosis?: VaultChainTokenConfig
-  optimism?: VaultChainTokenConfig
-  arbitrum?: VaultChainTokenConfig
-  nova?: VaultChainTokenConfig
+  [key in ChainSlug]: VaultChainTokenConfig
 }
 
 export type Vault = Record<string, VaultChain>
@@ -145,7 +132,7 @@ export type BlocklistConfig = {
 export type Config = {
   isMainnet: boolean
   tokens: Tokens
-  addresses: Bridges & {[network: string]: any}
+  addresses: Partial<Bridges> & {[network: string]: any}
   network: string
   networks: Networks & {[network: string]: any}
   bonderPrivateKey: string

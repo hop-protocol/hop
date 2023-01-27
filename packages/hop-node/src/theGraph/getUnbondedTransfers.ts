@@ -21,23 +21,42 @@ async function getTransfersData (startTime: number, endTime: number) {
   console.log('getTransfersData: fetching transfers')
   let data: any[] = []
   const [
+    mainnetTransfers,
     gnosisTransfers,
     polygonTransfers,
     optimismTransfers,
     arbitrumTransfers,
     novaTransfers,
-    mainnetTransfers
+    zksyncTransfers,
+    consensysZkTransfers
   ] = await Promise.all([
+    enabledChains.includes(Chain.Ethereum) ? fetchTransfers(Chain.Ethereum, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Gnosis) ? fetchTransfers(Chain.Gnosis, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Polygon) ? fetchTransfers(Chain.Polygon, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Optimism) ? fetchTransfers(Chain.Optimism, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Arbitrum) ? fetchTransfers(Chain.Arbitrum, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Nova) ? fetchTransfers(Chain.Nova, startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes(Chain.Ethereum) ? fetchTransfers(Chain.Ethereum, startTime, endTime) : Promise.resolve([])
+    enabledChains.includes(Chain.ZkSync) ? fetchTransfers(Chain.ZkSync, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.ConsenSysZk) ? fetchTransfers(Chain.ConsenSysZk, startTime, endTime) : Promise.resolve([])
   ])
 
   console.log('getTransfersData: got transfers', gnosisTransfers.length, polygonTransfers.length, optimismTransfers.length, arbitrumTransfers.length, novaTransfers.length, mainnetTransfers.length)
 
+  for (const x of mainnetTransfers) {
+    data.push({
+      sourceChain: 1,
+      destinationChain: x.destinationChainId,
+      amount: x.amount,
+      amountOutMin: x.amountOutMin,
+      recipient: x.recipient,
+      bonderFee: x.relayerFee,
+      deadline: x.deadline,
+      transferId: x.id,
+      transactionHash: x.transactionHash,
+      timestamp: Number(x.timestamp),
+      token: x.token
+    })
+  }
   for (const x of gnosisTransfers) {
     data.push({
       sourceChain: 100,
@@ -113,16 +132,31 @@ async function getTransfersData (startTime: number, endTime: number) {
       token: x.token
     })
   }
-  for (const x of mainnetTransfers) {
+  for (const x of zksyncTransfers) {
     data.push({
-      sourceChain: 1,
+      sourceChain: 324,
       destinationChain: x.destinationChainId,
       amount: x.amount,
       amountOutMin: x.amountOutMin,
+      bonderFee: x.bonderFee,
       recipient: x.recipient,
-      bonderFee: x.relayerFee,
       deadline: x.deadline,
-      transferId: x.id,
+      transferId: x.transferId,
+      transactionHash: x.transactionHash,
+      timestamp: Number(x.timestamp),
+      token: x.token
+    })
+  }
+  for (const x of consensysZkTransfers) {
+    data.push({
+      sourceChain: -1, // TODO
+      destinationChain: x.destinationChainId,
+      amount: x.amount,
+      amountOutMin: x.amountOutMin,
+      bonderFee: x.bonderFee,
+      recipient: x.recipient,
+      deadline: x.deadline,
+      transferId: x.transferId,
       transactionHash: x.transactionHash,
       timestamp: Number(x.timestamp),
       token: x.token

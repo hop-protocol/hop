@@ -1,3 +1,4 @@
+import { chains } from '@hop-protocol/core/metadata'
 
 export enum Network {
   Mainnet = 'mainnet',
@@ -13,6 +14,8 @@ export enum Chain {
   Polygon = 'polygon',
   Gnosis = 'gnosis',
   Nova = 'nova',
+  ZkSync = 'zksync',
+  ConsenSysZk = 'consensyszk'
 }
 
 export enum NativeChainToken {
@@ -21,14 +24,12 @@ export enum NativeChainToken {
   MATIC = 'MATIC'
 }
 
-export const nativeChainTokens: Record<string, string> = {
-  ethereum: NativeChainToken.ETH,
-  arbitrum: NativeChainToken.ETH,
-  optimism: NativeChainToken.ETH,
-  polygon: NativeChainToken.MATIC,
-  gnosis: NativeChainToken.XDAI,
-  nova: NativeChainToken.ETH
+const nativeChainTokens: Record<string, string> = {}
+for (const chain in chains) {
+  nativeChainTokens[chain] = (chains as any)[chain].nativeTokenSymbol
 }
+
+export { nativeChainTokens }
 
 export enum Token {
   USDC = 'USDC',
@@ -47,7 +48,9 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   gnosis: 3218,
   optimism: 8545,
   arbitrum: 19843,
-  nova: 19843
+  nova: 19843,
+  zksync: 10000, // TODO
+  consensyszk: 10000 // TODO
 }
 
 export const DefaultBatchBlocks = 10000

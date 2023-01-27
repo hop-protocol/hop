@@ -135,7 +135,7 @@ export function getSourceChains (token: string, settlementChain: string | null =
       ) continue
     }
 
-    if (chain === Chain.Nova) {
+    if (chain === Chain.Nova || chain === Chain.ZkSync || chain === Chain.ConsenSysZk) {
       if (
         token !== 'ETH'
       ) continue

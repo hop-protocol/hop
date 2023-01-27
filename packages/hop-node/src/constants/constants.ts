@@ -31,11 +31,6 @@ for (const chain in chains) {
 
 export { nativeChainTokens }
 
-export enum Token {
-  USDC = 'USDC',
-  DAI = 'DAI',
-}
-
 export const AvgBlockTimeSeconds = {
   Ethereum: 12,
   Polygon: 2,
@@ -111,3 +106,5 @@ export const MaxDeadline: number = 9999999999
 export const ChainHasFinalizationTag: Record<string, boolean> = {
   ethereum: true
 }
+
+export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])

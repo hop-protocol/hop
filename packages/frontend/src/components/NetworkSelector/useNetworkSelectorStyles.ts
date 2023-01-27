@@ -1,11 +1,11 @@
 import { makeStyles } from '@material-ui/core'
 
-export const useNetworkSelectorStyles = makeStyles(theme => ({
+export const useNetworkSelectorStyles = makeStyles((theme: any) => ({
   networkSelectionBox: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    transition: 'all 0.15s ease-out',
+    transition: 'all 0.15s ease-out'
   },
   networkLabel: {
     display: 'flex',

@@ -26,7 +26,7 @@ export class WithdrawalProof {
   transfer?: Transfer
   transferRoot ?: TransferRoot
 
-  constructor(transferId) {
+  constructor(transferId: string) {
     if (!transferId) {
       throw new Error('Transfer ID is required')
     }

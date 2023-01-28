@@ -18,9 +18,9 @@ jobs:
       run: |
         if [[ "${GITHUB_REF#refs/heads/}" == "production" || "${GITHUB_REF#refs/heads/}" == "preprod" ]]
         then
-          echo "::set-output name=env_name::production"
+          echo "env_name=production" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=env_name::mainnet"
+          echo "env_name=mainnet" >> $GITHUB_OUTPUT
         fi
 
     - name: Set dnslink var
@@ -28,9 +28,9 @@ jobs:
       run: |
         if [[ "${GITHUB_REF#refs/heads/}" == "production" ]]
         then
-          echo "::set-output name=dnslink_subdomain::_dnslink.app"
+          echo "dnslink_subdomain=_dnslink.app" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=dnslink_subdomain::_dnslink.${GITHUB_REF#refs/heads/}"
+          echo "dnslink_subdomain=_dnslink.${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
         fi
 
   bump_version:
@@ -117,7 +117,7 @@ jobs:
         with:
           pin-name: Hop ${{ github.sha }}
           path: './packages/frontend/build'
-          verbose: false
+          verbose: true
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
 
@@ -139,7 +139,7 @@ jobs:
 
       - name: Set short sha
         id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         id: create_release

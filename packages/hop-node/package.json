@@ -88,7 +88,8 @@
     "subleveldown": "6.0.1",
     "to-hex": "0.0.18",
     "uuid": "8.3.2",
-    "web3-utils": "1.7.5"
+    "web3-utils": "1.7.5",
+    "zksync-web3": "^0.12.5"
   },
   "devDependencies": {
     "@types/commander": "^2.12.2",

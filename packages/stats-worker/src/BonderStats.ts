@@ -24,6 +24,7 @@ import { erc20Abi } from '@hop-protocol/core/abi'
 import { createObjectCsvWriter } from 'csv-writer'
 import { chunk } from 'lodash'
 import { parse } from 'comment-json'
+import { PriceFeed } from './PriceFeed'
 
 const jsonData = parse(
   fs
@@ -86,6 +87,7 @@ class BonderStats {
   trackOnlyTxFees = false
   trackOnlyFees = false
   writeCsv = false
+  priceFeed: PriceFeed
 
   tokenDecimals: Record<string, number> = {
     USDC: 6,
@@ -128,6 +130,7 @@ class BonderStats {
     this.trackOnlyProfit = !!options.trackBonderProfit
     this.trackOnlyTxFees = !!options.trackBonderTxFees
     this.trackOnlyFees = !!options.trackBonderFees
+    this.priceFeed = new PriceFeed()
 
     console.log(
       `trackOnlyProfit: ${this.trackOnlyProfit}, trackOnlyTxFees: ${this.trackOnlyTxFees}, trackOnlyFees: ${this.trackOnlyFees}`
@@ -341,14 +344,14 @@ class BonderStats {
   async getTokenPrices () {
     const priceDays = 365
     const prices: Record<string, any> = {
-      USDC: await this.getPriceHistory('usd-coin', priceDays),
-      USDT: await this.getPriceHistory('tether', priceDays),
-      DAI: await this.getPriceHistory('dai', priceDays),
-      ETH: await this.getPriceHistory('ethereum', priceDays),
-      MATIC: await this.getPriceHistory('matic-network', priceDays),
-      WBTC: await this.getPriceHistory('wrapped-bitcoin', priceDays),
-      HOP: await this.getPriceHistory('hop-protocol', priceDays),
-      SNX: await this.getPriceHistory('havven', priceDays)
+      USDC: await this.priceFeed.getPriceHistory('USDC', priceDays),
+      USDT: await this.priceFeed.getPriceHistory('USDT', priceDays),
+      DAI: await this.priceFeed.getPriceHistory('DAI', priceDays),
+      ETH: await this.priceFeed.getPriceHistory('ETH', priceDays),
+      MATIC: await this.priceFeed.getPriceHistory('MATIC', priceDays),
+      WBTC: await this.priceFeed.getPriceHistory('WBTC', priceDays),
+      HOP: await this.priceFeed.getPriceHistory('HOP', priceDays),
+      SNX: await this.priceFeed.getPriceHistory('SNX', priceDays)
     }
 
     return prices
@@ -1214,22 +1217,6 @@ class BonderStats {
     return {
       resultFormatted
     }
-  }
-
-  async getPriceHistory (coinId: string, days: number) {
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
-    return fetch(url)
-      .then(res => res.json())
-      .then(json => {
-        if (!json.prices) {
-          console.log(json)
-          throw new Error(`got api error: ${JSON.stringify(json)}`)
-        }
-        return json.prices.map((data: any[]) => {
-          data[0] = Math.floor(data[0] / 1000)
-          return data
-        })
-      })
   }
 
   getChainNativeTokenSymbol (chain: string) {

@@ -3,7 +3,7 @@ import { goerli, mainnet } from '@hop-protocol/core/networks'
 import { metadata } from '../config'
 import { providers } from 'ethers'
 
-class Chain {
+export class Chain {
   chainId: number
   name: ChainName | string = ''
   slug: Slug | string = ''

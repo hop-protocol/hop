@@ -357,7 +357,7 @@ class AMM extends Base {
     const saddleSwap = await this.getSaddleSwap()
 
     const endTimestamp = unixTimestamp
-    let endBlockNumber = await getBlockNumberFromDate(this.chain.slug, endTimestamp)
+    let endBlockNumber = await getBlockNumberFromDate(this.chain, endTimestamp)
     endBlockNumber = endBlockNumber - 10 // make sure block exists by adding a negative buffer to prevent rpc errors with gnosis rpc
 
     const callOverrides = {
@@ -371,7 +371,7 @@ class AMM extends Base {
     ])
 
     const startTimestamp = endTimestamp - (days * SecondsInDay)
-    let startBlockNumber = await getBlockNumberFromDate(this.chain.slug, startTimestamp)
+    let startBlockNumber = await getBlockNumberFromDate(this.chain, startTimestamp)
 
     const tokenSwapEvents: any[] = []
     const perBatch = 2000

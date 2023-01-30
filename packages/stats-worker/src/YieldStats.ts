@@ -6,10 +6,14 @@ import {
   polygonRpc,
   optimismRpc,
   arbitrumRpc,
-  novaRpc,
+  novaRpc
 } from './config'
 import { Hop } from '@hop-protocol/sdk'
-import { mainnet as mainnetAddresses, Bridges, RewardsContracts } from '@hop-protocol/core/addresses'
+import {
+  mainnet as mainnetAddresses,
+  Bridges,
+  RewardsContracts
+} from '@hop-protocol/core/addresses'
 import {
   ERC20__factory,
   StakingRewards__factory
@@ -281,10 +285,13 @@ class YieldStats {
     for (const token in yieldData.pools) {
       const tokenData = yieldData.pools[token]
       for (const chain in tokenData) {
-        const chainData = tokenData[chain] 
+        const chainData = tokenData[chain]
         // If APR is missing then the entire entry is missing
         if (!chainData.apr) {
-          console.log(`Missing APR for ${chain}.${token}`, yieldData.pools[token][chain])
+          console.log(
+            `Missing APR for ${chain}.${token}`,
+            yieldData.pools[token][chain]
+          )
           if (!cachedData?.data?.pools?.[token]?.[chain]) {
             console.error(`Missing cached data for ${chain}.${token}`)
             continue
@@ -449,7 +456,9 @@ class YieldStats {
     const amm = bridge.getAmm(chain)
 
     const provider = this.sdk.getChainProvider(chain)
-    const stakingRewardsAddresses = this.stakingRewardsContracts?.[token]?.[chain]
+    const stakingRewardsAddresses = this.stakingRewardsContracts?.[token]?.[
+      chain
+    ]
     if (!stakingRewardsAddresses?.length) {
       return []
     }

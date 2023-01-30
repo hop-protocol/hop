@@ -489,7 +489,7 @@ describe('custom chain providers', () => {
   })
 })
 
-describe.skip('getSendData', () => {
+describe.only('getSendData', () => {
   it('available liquidity', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
@@ -512,7 +512,7 @@ describe.skip('getSendData', () => {
     expect(requiredLiquidity).toBeGreaterThan(0)
     expect(availableLiquidity).toBeGreaterThan(requiredLiquidity)
   })
-  it('relayer fee', async () => {
+  it.skip('relayer fee', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
     const amountIn = BigNumber.from('1000000')

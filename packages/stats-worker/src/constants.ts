@@ -1,4 +1,7 @@
-export const timestampPerBlockPerChain: Record<string, Record<number, number>> = {
+export const timestampPerBlockPerChain: Record<
+  string,
+  Record<number, number>
+> = {
   ethereum: {
     1668217327: 15950721,
     1668211199: 15950211,
@@ -364,7 +367,7 @@ export const timestampPerBlockPerChain: Record<string, Record<number, number>> =
     1637107199: 13629631,
     1637020799: 13623377,
     1636934399: 13617058,
-    1636847999: 13610713,
+    1636847999: 13610713
   },
   arbitrum: {
     1668217327: 37370584,
@@ -731,7 +734,7 @@ export const timestampPerBlockPerChain: Record<string, Record<number, number>> =
     1637107199: 3091855,
     1637020799: 3067348,
     1636934399: 3046552,
-    1636847999: 3025808,
+    1636847999: 3025808
   },
   gnosis: {
     1668217327: 24944581,
@@ -1098,7 +1101,7 @@ export const timestampPerBlockPerChain: Record<string, Record<number, number>> =
     1637107199: 19107987,
     1637020799: 19091344,
     1636934399: 19074994,
-    1636847999: 19058629,
+    1636847999: 19058629
   },
   optimism: {
     1668217327: 37293423,
@@ -1465,7 +1468,7 @@ export const timestampPerBlockPerChain: Record<string, Record<number, number>> =
     1637107199: 148925,
     1637020799: 107084,
     1636934399: 82802,
-    1636847999: 54122,
+    1636847999: 54122
   },
   polygon: {
     1668223465: 35500973,
@@ -1832,6 +1835,6 @@ export const timestampPerBlockPerChain: Record<string, Record<number, number>> =
     1637107199: 21456013,
     1637020799: 21417453,
     1636934399: 21377726,
-    1636847999: 21338037,
+    1636847999: 21338037
   }
 }

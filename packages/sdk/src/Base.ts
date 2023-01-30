@@ -623,7 +623,7 @@ class Base {
     }
 
     if (destinationChain.equals(Chain.Arbitrum) || destinationChain.equals(Chain.Nova)) {
-      const relayerFee = new RelayerFee(this.network, tokenSymbol, destinationChain.slug)
+      const relayerFee = new RelayerFee(this.network, tokenSymbol)
       return relayerFee.getRelayCost(destinationChain.slug)
     }
 

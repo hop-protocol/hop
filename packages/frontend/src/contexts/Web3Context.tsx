@@ -110,6 +110,12 @@ const walletSelectOptions = (networkId: number): WalletSelectModuleOptions => {
         rpcUrl: getRpcUrl(ChainSlug.Ethereum),
         appName: 'Hop',
       },
+      {
+        walletName: 'coinbase',
+        preferred: true,
+        rpcUrl: getRpcUrl(ChainSlug.Ethereum),
+        appName: 'Hop',
+      },
     ],
   }
 }

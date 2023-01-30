@@ -707,10 +707,12 @@ class HopBridge extends Base {
       this.getLpFees(amountIn, sourceChain, destinationChain)
     ])
 
-    const amountOutWithoutFeePromise = this.calcFromHTokenAmount(
+    const calcFromHTokenPromise = this.calcFromHTokenAmount(
       hTokenAmount,
       destinationChain
     )
+
+    const amountOutWithoutFeePromise = calcFromHTokenPromise
 
     const amountInNoSlippage = BigNumber.from(1000)
     const amountOutNoSlippagePromise = this.getAmountOut(
@@ -727,11 +729,6 @@ class HopBridge extends Base {
 
     const destinationTxFeePromise = this.getDestinationTransactionFee(
       sourceChain,
-      destinationChain
-    )
-
-    const calcFromHTokenPromise = this.calcFromHTokenAmount(
-      hTokenAmount,
       destinationChain
     )
 
@@ -2195,10 +2192,7 @@ class HopBridge extends Base {
       this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol),
       onChainBonderFeeAbsolutePromise ?? Promise.resolve(BigNumber.from(0))
     ])
-    let minBonderFeeUsd = 0.25
-    if (sourceChain === Chain.Polygon) {
-      minBonderFeeUsd = 0.5
-    }
+    const minBonderFeeUsd = 0.25
     const minBonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPrice).toFixed(token.decimals),
       token.decimals

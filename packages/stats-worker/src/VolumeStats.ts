@@ -2,6 +2,7 @@ import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db from './Db'
+import { PriceFeed } from './PriceFeed'
 
 function nearestDate (dates: any[], target: any) {
   if (!target) {
@@ -51,11 +52,14 @@ type Options = {
 class VolumeStats {
   db = new Db()
   regenesis: boolean = false
+  priceFeed: PriceFeed
 
   constructor (options: Options = {}) {
     if (options.regenesis) {
       this.regenesis = options.regenesis
     }
+
+    this.priceFeed = new PriceFeed()
 
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
@@ -146,31 +150,19 @@ class VolumeStats {
     return items
   }
 
-  async getPriceHistory (coinId: string, days: number) {
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
-    return fetch(url)
-      .then(res => res.json())
-      .then(json =>
-        json.prices.map((data: any[]) => {
-          data[0] = Math.floor(data[0] / 1000)
-          return data
-        })
-      )
-  }
-
   async trackDailyVolume () {
     const daysN = 365
     console.log('fetching prices')
 
     const prices: any = {
-      USDC: await this.getPriceHistory('usd-coin', daysN),
-      USDT: await this.getPriceHistory('tether', daysN),
-      DAI: await this.getPriceHistory('dai', daysN),
-      ETH: await this.getPriceHistory('ethereum', daysN),
-      MATIC: await this.getPriceHistory('matic-network', daysN),
-      WBTC: await this.getPriceHistory('wrapped-bitcoin', daysN),
-      HOP: await this.getPriceHistory('hop-protocol', daysN),
-      SNX: await this.getPriceHistory('havven', daysN)
+      USDC: await this.priceFeed.getPriceHistory('USDC', daysN),
+      USDT: await this.priceFeed.getPriceHistory('USDT', daysN),
+      DAI: await this.priceFeed.getPriceHistory('DAI', daysN),
+      ETH: await this.priceFeed.getPriceHistory('ETH', daysN),
+      MATIC: await this.priceFeed.getPriceHistory('MATIC', daysN),
+      WBTC: await this.priceFeed.getPriceHistory('WBTC', daysN),
+      HOP: await this.priceFeed.getPriceHistory('HOP', daysN),
+      SNX: await this.priceFeed.getPriceHistory('SNX', daysN)
     }
 
     console.log('done fetching prices')

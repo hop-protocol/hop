@@ -47,7 +47,7 @@ export const networks: Networks = {
     networkId: 280,
     publicRpcUrl: 'https://zksync2-testnet.zksync.dev',
     fallbackPublicRpcUrls: [],
-    explorerUrls: [''],
+    explorerUrls: ['https://goerli.explorer.zksync.io', 'https://zksync2-testnet.zkscan.io'],
     nativeBridgeUrl: '',
     waitConfirmations: 1
   },

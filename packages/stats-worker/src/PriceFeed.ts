@@ -17,11 +17,13 @@ export class PriceFeed {
     MATIC: 'matic-network',
     WBTC: 'wrapped-bitcoin',
     HOP: 'hop-protocol',
-    SNX: 'havven'
+    SNX: 'havven',
+    SUSD: 'nusd',
+    RETH: 'rocket-pool-eth',
   }
 
   private getCoinId (tokenSymbol: string) {
-    return this.idMapping[tokenSymbol]
+    return this.idMapping[tokenSymbol?.toUpperCase()]
   }
 
   async getPriceHistory (tokenSymbol: string, days: number) {

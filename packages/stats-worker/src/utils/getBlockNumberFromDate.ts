@@ -11,7 +11,7 @@ export async function getBlockNumberFromDate (
   try {
     const useEtherscan = etherscanApiKeys[chain]
     if (useEtherscan) {
-      return getBlockNumberFromDateUsingEtherscan(chain, timestamp)
+      return await getBlockNumberFromDateUsingEtherscan(chain, timestamp)
     }
 
     return await getBlockNumberFromDateUsingLib(provider, timestamp)
@@ -52,6 +52,9 @@ async function getBlockNumberFromDateUsingLib (
   provider: any,
   timestamp: number
 ): Promise<number> {
+  if (!provider) {
+    throw new Error('provider is required')
+  }
   const blockDater = new BlockDater(provider)
   const date = DateTime.fromSeconds(timestamp).toJSDate()
 

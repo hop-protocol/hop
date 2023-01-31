@@ -17,6 +17,7 @@ import {
   polygonRpc,
   optimismRpc,
   arbitrumRpc,
+  novaRpc,
   etherscanApiKeys
 } from './config'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
@@ -54,7 +55,8 @@ const allProviders: Record<string, any> = {
   gnosis: new providers.StaticJsonRpcProvider(gnosisRpc),
   polygon: new providers.StaticJsonRpcProvider(polygonRpc),
   optimism: new providers.StaticJsonRpcProvider(optimismRpc),
-  arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc)
+  arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc),
+  nova: new providers.StaticJsonRpcProvider(novaRpc),
 }
 
 const allArchiveProviders: Record<string, any> = {

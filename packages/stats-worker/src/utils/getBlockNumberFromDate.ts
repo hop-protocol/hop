@@ -1,9 +1,27 @@
+import BlockDater from 'ethereum-block-by-date'
+import fetch from 'isomorphic-fetch'
+import { DateTime } from 'luxon'
 import { etherscanApiKeys, etherscanApiUrls } from '../config'
 
-const wait = (t: number) =>
-  new Promise(resolve => setTimeout(() => resolve(null), t))
+export async function getBlockNumberFromDate (
+  chain: string,
+  provider: any,
+  timestamp: number
+): Promise<number> {
+  try {
+    const useEtherscan = etherscanApiKeys[chain]
+    if (useEtherscan) {
+      return getBlockNumberFromDateUsingEtherscan(chain, timestamp)
+    }
 
-async function getBlockNumberFromDate (
+    return await getBlockNumberFromDateUsingLib(provider, timestamp)
+  } catch (err) {
+    return await getBlockNumberFromDateUsingLib(provider, timestamp)
+  }
+}
+
+// note: the etherscan api can be unreliable because of rate limiting
+async function getBlockNumberFromDateUsingEtherscan (
   chain: string,
   timestamp: number
 ): Promise<number> {
@@ -16,36 +34,48 @@ async function getBlockNumberFromDate (
   const url =
     baseUrl +
     `/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${apiKey}`
+  const res = await fetch(url)
+  const resJson: any = await res.json()
 
-  let retryCount = 0
-  while (true) {
-    try {
-      const res = await fetch(url)
-      const resJson = await res.json()
-
-      if (resJson.status !== '1') {
-        throw new Error(
-          `could not retrieve block number for timestamp ${timestamp}:  ${JSON.stringify(
-            resJson
-          )}`
-        )
-      }
-
-      return Number(resJson.result)
-    } catch (err) {
-      console.error(
-        `getBlockNumberFromDate try number ${retryCount} err: ${err.message}`
-      )
-      retryCount++
-      if (retryCount < 5) continue
-      // Add variability so that runs in parallel don't all fail at the same time
-      const waitTimeSec = Math.floor(Math.random() * 5)
-      await wait(waitTimeSec * 1000)
-      break
-    }
+  if (resJson.status !== '1') {
+    throw new Error(
+      `could not retrieve block number for timestamp ${timestamp}: ${JSON.stringify(
+        resJson
+      )}`
+    )
   }
 
-  throw new Error('could not retrieve block number')
+  return Number(resJson.result)
+}
+
+async function getBlockNumberFromDateUsingLib (
+  provider: any,
+  timestamp: number
+): Promise<number> {
+  const blockDater = new BlockDater(provider)
+  const date = DateTime.fromSeconds(timestamp).toJSDate()
+
+  let retryCount = 0
+  let info
+  while (true) {
+    try {
+      info = await blockDater.getDate(date)
+      if (!info) {
+        throw new Error('could not retrieve block number')
+      }
+    } catch (err) {
+      retryCount++
+      console.log(`getBlockNumberFromDate: retrying ${retryCount}`)
+      if (retryCount < 5) continue
+      break
+    }
+    break
+  }
+
+  if (!info) {
+    throw new Error('could not retrieve block number')
+  }
+  return info.block
 }
 
 export default getBlockNumberFromDate

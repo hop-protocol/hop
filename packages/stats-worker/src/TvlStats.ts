@@ -164,8 +164,12 @@ class TvlStats {
         const endDate = day === 0 ? now : now.minus({ days: day }).endOf('day')
         const endTimestamp = Math.floor(endDate.toSeconds())
         if (this.blockTags?.[chain]?.[endTimestamp]) continue
-
-        const blockTag = await getBlockNumberFromDate(chain, endTimestamp)
+        const provider = allProviders[chain]
+        const blockTag = await getBlockNumberFromDate(
+          chain,
+          provider,
+          endTimestamp
+        )
         console.log(`${chain} ${endTimestamp} ${blockTag} ${day}`)
         this.blockTags[chain][endTimestamp] = blockTag
       }

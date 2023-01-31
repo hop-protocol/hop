@@ -150,6 +150,38 @@
         "2022-02-12": "8752.88",
         "2022-07-22": "3500000.00"
       }
+    },
+    "0x10b6CbDFE187c04d63F179B87067C49e7a1E91Af": {
+      "totalStaked": "1500000.00",
+      "initialCanonicalAmounts": {},
+      "initialNativeAmounts": {
+        "ETH": {
+          "2022-10-18": "3.5"
+        },
+        "MATIC": {
+          "2022-10-18": "100.00"
+        },
+        "XDAI": {
+          "2022-10-18": "100.00"
+        }
+      },
+      "depositAmounts": {
+        "2022-10-22": "1500000.00"
+      },
+      "stakedAmounts": {
+        "2022-10-22": [
+          "650000.00",
+          "250000.00",
+          "100000.00",
+          "250000.00",
+          "250000.00"
+        ]
+      },
+      "unstakedEthAmounts": {},
+      "unstakedAmounts": {},
+      "restakedProfits": {},
+      "restakedEthProfits": {},
+      "withdrawnAmounts": {}
     }
   },
   "ETH": {

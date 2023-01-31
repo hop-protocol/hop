@@ -358,8 +358,9 @@ class BonderStats {
   }
 
   async trackProfitDay (day: number, token: string, prices: any) {
-    for (const bonderAddress in jsonData[token]) {
+    for (let bonderAddress in jsonData[token]) {
       const bonderData = jsonData[token][bonderAddress]
+      bonderAddress = bonderAddress.toLowerCase()
 
       console.log('day:', day)
       let now = this.endDate ?? DateTime.utc()
@@ -380,8 +381,12 @@ class BonderStats {
       const { bonderBalances, dbData } = await this.fetchBonderBalances(
         token,
         timestamp,
-        priceMap
+        priceMap,
       )
+
+      if (dbData.bonderAddress !== bonderAddress) {
+        return
+      }
 
       const initialAggregateBalanceInAssetToken = BigNumber.from(0)
       const initialAggregateNativeBalance = BigNumber.from(0)
@@ -565,7 +570,7 @@ class BonderStats {
         formatUnits(initialCanonicalAmount, this.tokenDecimals[token])
       )
 
-      dbData.bonderAddress = bonderAddress.toLowerCase()
+      dbData.bonderAddress = bonderAddress
 
       dbData.xdaiPriceUsd = 1
 
@@ -714,6 +719,9 @@ class BonderStats {
       }
 
       const data = Object.values(csv)
+      if (!data[0]) {
+        throw new Error('no data')
+      }
       const headers = Object.keys(data[0])
       const rows = Object.values(data)
       const csvPath = path.resolve(__dirname, '../', `${token}.csv`)
@@ -731,7 +739,11 @@ class BonderStats {
     }
   }
 
-  async fetchBonderBalances (token: string, timestamp: number, priceMap: any) {
+  async fetchBonderBalances (
+    token: string,
+    timestamp: number,
+    priceMap: any,
+  ) {
     let retries = 0
     while (true) {
       try {
@@ -744,14 +756,16 @@ class BonderStats {
         for (const sourceChain in bonderMap) {
           for (const destinationChain in bonderMap[sourceChain]) {
             const chain = destinationChain
-            const blockTag = await getBlockNumberFromDate(chain, timestamp)
 
             chainPromises.push(
               new Promise(async (resolve, reject) => {
                 try {
                   let provider = allProviders[chain]
                   const archiveProvider = allArchiveProviders[chain] || provider
-                  const bonder = bonderMap[sourceChain][destinationChain]
+                  const bonder = bonderMap[sourceChain][
+                    destinationChain
+                  ].toLowerCase()
+                  dbData.bonderAddress = bonder
                   if (bonderBalances[chain]) {
                     resolve(null)
                     return
@@ -784,6 +798,12 @@ class BonderStats {
                     `fetching daily bonder balance stat, chain: ${chain}, token: ${token}, timestamp: ${timestamp}`
                   )
 
+                  const blockTag = await getBlockNumberFromDate(
+                    chain,
+                    provider,
+                    timestamp
+                  )
+
                   const balancePromises: Promise<any>[] = []
                   if (tokenAddress !== constants.AddressZero) {
                     balancePromises.push(
@@ -811,7 +831,12 @@ class BonderStats {
 
                   if (chain === 'arbitrum') {
                     let aliasAddress = arbitrumAliases[token]
-                    if (token === 'DAI' && timestamp < 1650092400) {
+                    if (
+                      token === 'DAI' &&
+                      bonder ===
+                        '0x305933e09871d4043b5036e09af794facb3f6170' &&
+                      timestamp < 1650092400
+                    ) {
                       aliasAddress = oldArbitrumAliases[token]
                     }
                     if (token === 'ETH' && timestamp < 1650067200) {
@@ -945,6 +970,8 @@ class BonderStats {
                   // TODO: move to config
                   if (
                     token === 'DAI' &&
+                    bonder ===
+                      '0x305933e09871d4043b5036e09af794facb3f6170' &&
                     timestamp > 1656486000 &&
                     timestamp < 1656658800 &&
                     dbData.ethereumCanonicalAmount < 1500000
@@ -1172,6 +1199,7 @@ class BonderStats {
       (dbData.stakedAmount - dbData.unstakedAmount) -
       dbData.initialCanonicalAmount -
       dbData.unstakedEthAmount * dbData.ethPriceUsd
+
     const totalDeposits = dbData.depositAmount - dbData.withdrawnAmount
 
     let nativeStartingTokenAmount = 0
@@ -1327,7 +1355,12 @@ class BonderStats {
     endDate: number
   ) {
     const startTimestamp = startDate - 86400
-    const startBlock = await getBlockNumberFromDate(chain, startTimestamp)
+    const provider = allProviders[chain]
+    const startBlock = await getBlockNumberFromDate(
+      chain,
+      provider,
+      startTimestamp
+    )
     let retries = 0
     while (true) {
       try {

@@ -274,6 +274,7 @@ class Base {
     return Object.keys(this.chains)
   }
 
+  // returns supported chain slugs
   getSupportedChains (): string[] {
     return this.supportedChains
   }
@@ -651,6 +652,17 @@ class Base {
   }
 
   public getContract = getContract
+
+  // get supported list of token symbols
+  getSupportedTokens () {
+    const supported = new Set()
+
+    for (const token in this.addresses) {
+      supported.add(token)
+    }
+
+    return Array.from(supported) as string[]
+  }
 
   getSupportedAssets () {
     const supported : any = {}

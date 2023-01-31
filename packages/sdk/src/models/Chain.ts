@@ -17,7 +17,7 @@ export class Chain {
   static Gnosis = newChain(ChainSlug.Gnosis, mainnet.gnosis.networkId)
   static Polygon = newChain(ChainSlug.Polygon, mainnet.polygon.networkId)
   static Nova = newChain(ChainSlug.Nova, mainnet.nova.networkId)
-  static ZkSync = newChain(ChainSlug.ZkSync, mainnet.zksync.networkId)
+  static ZkSync = newChain(ChainSlug.ZkSync, mainnet.zksync?.networkId ?? goerli.zksync?.networkId)
   static ConsenSysZk = newChain(ChainSlug.ConsenSysZk, mainnet.consensyszk?.networkId ?? goerli.consensyszk?.networkId)
 
   static fromSlug (slug: Slug | string) {

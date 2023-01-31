@@ -15,48 +15,56 @@ export const chains: Chains = {
     name: 'Ethereum',
     slug: 'ethereum',
     image: ethereumImage,
-    nativeTokenSymbol: 'ETH'
+    nativeTokenSymbol: 'ETH',
+    isLayer1: true
   },
   gnosis: {
     name: 'Gnosis',
     slug: 'gnosis',
     image: gnosisImage,
-    nativeTokenSymbol: 'XDAI'
+    nativeTokenSymbol: 'XDAI',
+    isLayer1: false
   },
   polygon: {
     name: 'Polygon',
     slug: 'polygon',
     image: polygonImage,
-    nativeTokenSymbol: 'MATIC'
+    nativeTokenSymbol: 'MATIC',
+    isLayer1: false
   },
   arbitrum: {
     name: 'Arbitrum',
     slug: 'arbitrum',
     image: arbitrumImage,
-    nativeTokenSymbol: 'ETH'
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
   },
   optimism: {
     name: 'Optimism',
     slug: 'optimism',
     image: optimismImage,
-    nativeTokenSymbol: 'ETH'
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
   },
   nova: {
     name: 'Nova',
     slug: 'nova',
     image: novaImage,
-    nativeTokenSymbol: 'ETH'
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
   },
   zksync: {
     name: 'zkSync',
     slug: 'zksync',
     image: zksyncImage,
-    nativeTokenSymbol: 'ETH'
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
   },
   consensyszk: {
     name: 'ConsenSys zkEVM',
     slug: 'consensyszk',
     image: consensyszkImage,
-    nativeTokenSymbol: 'ETH'
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
   }
 }

@@ -16,6 +16,7 @@ export interface Chain {
   slug: string
   image: string
   nativeTokenSymbol: string
+  isLayer1: boolean
 }
 
 export type Chains = {

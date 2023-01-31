@@ -130,9 +130,7 @@ class Db {
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_token_prices_token_timestamp ON token_prices (token, timestamp);'
       )
-      this.db.run(
-        'DROP INDEX IF EXISTS idx_bonder_balances_token_timestamp;'
-      )
+      this.db.run('DROP INDEX IF EXISTS idx_bonder_balances_token_timestamp;')
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_balances_token_bonder_timestamp ON bonder_balances (token, bonder_address, timestamp);'
       )

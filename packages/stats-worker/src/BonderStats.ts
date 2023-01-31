@@ -56,7 +56,7 @@ const allProviders: Record<string, any> = {
   polygon: new providers.StaticJsonRpcProvider(polygonRpc),
   optimism: new providers.StaticJsonRpcProvider(optimismRpc),
   arbitrum: new providers.StaticJsonRpcProvider(arbitrumRpc),
-  nova: new providers.StaticJsonRpcProvider(novaRpc),
+  nova: new providers.StaticJsonRpcProvider(novaRpc)
 }
 
 const allArchiveProviders: Record<string, any> = {
@@ -383,11 +383,11 @@ class BonderStats {
       const { bonderBalances, dbData } = await this.fetchBonderBalances(
         token,
         timestamp,
-        priceMap,
+        priceMap
       )
 
       if (dbData.bonderAddress !== bonderAddress) {
-        return
+        // return
       }
 
       const initialAggregateBalanceInAssetToken = BigNumber.from(0)
@@ -709,7 +709,7 @@ class BonderStats {
         .map((n, i) => n + i)
       const chunkSize = 10
       const allChunks = chunk(days, chunkSize)
-      const csv: any[] = []
+      let csv: any[] = []
       for (const chunks of allChunks) {
         csv.push(
           ...(await Promise.all(
@@ -720,6 +720,7 @@ class BonderStats {
         )
       }
 
+      csv = csv.filter(x => x)
       const data = Object.values(csv)
       if (!data[0]) {
         throw new Error('no data')
@@ -741,11 +742,7 @@ class BonderStats {
     }
   }
 
-  async fetchBonderBalances (
-    token: string,
-    timestamp: number,
-    priceMap: any,
-  ) {
+  async fetchBonderBalances (token: string, timestamp: number, priceMap: any) {
     let retries = 0
     while (true) {
       try {
@@ -835,8 +832,7 @@ class BonderStats {
                     let aliasAddress = arbitrumAliases[token]
                     if (
                       token === 'DAI' &&
-                      bonder ===
-                        '0x305933e09871d4043b5036e09af794facb3f6170' &&
+                      bonder === '0x305933e09871d4043b5036e09af794facb3f6170' &&
                       timestamp < 1650092400
                     ) {
                       aliasAddress = oldArbitrumAliases[token]
@@ -972,8 +968,7 @@ class BonderStats {
                   // TODO: move to config
                   if (
                     token === 'DAI' &&
-                    bonder ===
-                      '0x305933e09871d4043b5036e09af794facb3f6170' &&
+                    bonder === '0x305933e09871d4043b5036e09af794facb3f6170' &&
                     timestamp > 1656486000 &&
                     timestamp < 1656658800 &&
                     dbData.ethereumCanonicalAmount < 1500000

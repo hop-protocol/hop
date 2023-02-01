@@ -2,7 +2,6 @@ import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { providers } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -23,11 +22,12 @@ class ConsenSysZkBridgeWatcher extends BaseWatcher {
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {
-    throw new Error('not implemented')
+    // L2->L1 messages on ConsenSys zkEMV are automatically executed by the operator so no need to execute transactions on L1.
+    // https://consensys.net/docs/zk-evm/en/latest/developers/use-message-bridge/
   }
 
-  async relayXDomainMessage (commitTxHash: string): Promise<providers.TransactionResponse> {
-    throw new Error('not implemented')
+  async relayXDomainMessage (commitTxHash: string): Promise<void> {
+    // noop
   }
 }
 

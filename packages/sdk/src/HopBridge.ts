@@ -1246,8 +1246,11 @@ class HopBridge extends Base {
     if (destinationChain.isL1) {
       let pendingAmounts = BigNumber.from(0)
       await Promise.all(bondableChains.map(async (bondableChain: string) => {
-        const l2BridgeAddress = this.getL2BridgeAddress(this.tokenSymbol, bondableChain)
-        if (l2BridgeAddress) {
+        let validChain = false
+        try {
+          validChain = !!this.getL2BridgeAddress(this.tokenSymbol, bondableChain)
+        } catch (err) {}
+        if (validChain) {
           const bondableBridge = await this.getBridgeContract(bondableChain)
           const pendingAmount = await bondableBridge.pendingAmountForChainId(Chain.Ethereum.chainId)
           pendingAmounts = pendingAmounts.add(pendingAmount)

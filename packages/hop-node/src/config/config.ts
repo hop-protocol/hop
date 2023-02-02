@@ -220,6 +220,14 @@ export const config: Config = {
     [Chain.Nova]: {
       totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.ZkSync]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.ConsenSysZk]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
     }
   },
   metrics: {

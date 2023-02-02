@@ -39,6 +39,8 @@ export type Bridges = {
     polygon: PolygonBridgeProps,
     gnosis: GnosisBridgeProps,
     nova: L2BridgeProps
+    zksync: L2BridgeProps
+    consensyszk: L2BridgeProps
   }>
 }
 

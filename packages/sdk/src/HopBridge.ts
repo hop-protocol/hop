@@ -1022,11 +1022,15 @@ class HopBridge extends Base {
         return false
       }
       if (sourceChain.isL1) {
-        await destinationChain.provider.estimateGas({
-          value: BigNumber.from('1'),
-          from: bonderAddress,
-          to: recipient
-        })
+        if (destinationChain.equals(Chain.ConsenSysZk)) {
+          // TODO
+        } else {
+          await destinationChain.provider.estimateGas({
+            value: BigNumber.from('1'),
+            from: bonderAddress,
+            to: recipient
+          })
+        }
         return false
       } else {
         const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain, recipient)

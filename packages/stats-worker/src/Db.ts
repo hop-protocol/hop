@@ -80,11 +80,11 @@ class Db {
           unstaked_eth_amount NUMERIC,
           bonder_address TEXT NOT NULL,
           deposit_event TEXT,
-          withdraw_event TEXT,
           restaked_eth_amount NUMERIC,
           initial_eth_amount NUMERIC,
           initial_matic_amount NUMERIC,
           initial_xdai_amount NUMERIC,
+          withdraw_event TEXT,
           arbitrum_messenger_wrapper_amount NUMERIC
       )`)
       if (argv.resetBonderFeesDb) {
@@ -130,8 +130,9 @@ class Db {
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_token_prices_token_timestamp ON token_prices (token, timestamp);'
       )
+      this.db.run('DROP INDEX IF EXISTS idx_bonder_balances_token_timestamp;')
       this.db.run(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_balances_token_timestamp ON bonder_balances (token, timestamp);'
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_balances_token_bonder_timestamp ON bonder_balances (token, bonder_address, timestamp);'
       )
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_tx_fees_token_timestamp ON bonder_tx_fees (token, timestamp);'

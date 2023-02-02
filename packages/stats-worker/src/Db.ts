@@ -85,7 +85,11 @@ class Db {
           initial_matic_amount NUMERIC,
           initial_xdai_amount NUMERIC,
           withdraw_event TEXT,
-          arbitrum_messenger_wrapper_amount NUMERIC
+          arbitrum_messenger_wrapper_amount NUMERIC,
+          nova_block_number INTEGER,
+          nova_canonical_amount NUMERIC,
+          nova_hToken_amount NUMERIC,
+          nova_native_amount NUMERIC
       )`)
       if (argv.resetBonderFeesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_fees`)
@@ -230,6 +234,20 @@ class Db {
             'ALTER TABLE bonder_balances ADD COLUMN arbitrum_messenger_wrapper_amount NUMERIC;'
           )
         }
+        if (migrations.includes(19)) {
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN nova_block_number INTEGER;'
+          )
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN nova_canonical_amount NUMERIC;'
+          )
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN nova_hToken_amount NUMERIC;'
+          )
+          this.db.run(
+            'ALTER TABLE bonder_balances ADD COLUMN nova_native_amount NUMERIC;'
+          )
+        }
 
         migrationRan = true
       }
@@ -326,6 +344,7 @@ class Db {
     })
   }
 
+  // keep order of args the same as when columns were created/added
   async upsertBonderBalances (
     token: string,
     polygonBlockNumber: number,
@@ -371,10 +390,14 @@ class Db {
     initialMaticAmount: number | null = null,
     initialxDaiAmount: number | null = null,
     withdrawEvent: number | null = null,
-    arbitrumMessengerWrapperAmount: number = 0
+    arbitrumMessengerWrapperAmount: number = 0,
+    novaBlockNumber: number,
+    novaCanonicalAmount: number = 0,
+    novaHTokenAmount: number = 0,
+    novaNativeAmount: number = 0
   ) {
     const stmt = this.db.prepare(
-      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR REPLACE INTO bonder_balances VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(
       uuid(),
@@ -422,7 +445,11 @@ class Db {
       initialMaticAmount,
       initialxDaiAmount,
       withdrawEvent,
-      arbitrumMessengerWrapperAmount
+      arbitrumMessengerWrapperAmount,
+      novaBlockNumber,
+      novaCanonicalAmount,
+      novaHTokenAmount,
+      novaNativeAmount
     )
     stmt.finalize()
   }

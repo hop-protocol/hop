@@ -84,7 +84,7 @@ class BonderStats {
   startDate?: DateTime
   endDate?: DateTime
   tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'WBTC', 'HOP']
-  chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum']
+  chains = ['ethereum', 'polygon', 'gnosis', 'optimism', 'arbitrum', 'nova']
   trackOnlyProfit = false
   trackOnlyTxFees = false
   trackOnlyFees = false
@@ -676,7 +676,11 @@ class BonderStats {
           dbData.initialMaticAmount,
           dbData.initialxDaiAmount,
           withdrawEvent,
-          dbData.arbitrumMessengerWrapperAmount
+          dbData.arbitrumMessengerWrapperAmount,
+          dbData.novaBlockNumber,
+          dbData.novaCanonicalAmount,
+          dbData.novaHTokenAmount,
+          dbData.novaNativeAmount
         )
         console.log(
           day,
@@ -1192,6 +1196,8 @@ class BonderStats {
       dbData.arbitrumHTokenAmount +
       dbData.optimismCanonicalAmount +
       dbData.optimismHTokenAmount +
+      (dbData.novaCanonicalAmount || 0) +
+      (dbData.novaHTokenAmount || 0) +
       dbData.ethereumCanonicalAmount +
       (dbData.stakedAmount - dbData.unstakedAmount) -
       dbData.initialCanonicalAmount -
@@ -1220,7 +1226,8 @@ class BonderStats {
         dbData.optimismNativeAmount +
         dbData.arbitrumNativeAmount +
         dbData.arbitrumAliasAmount +
-        dbData.arbitrumMessengerWrapperAmount) *
+        dbData.arbitrumMessengerWrapperAmount +
+        (dbData.novaNativeAmount || 0)) *
         dbData.ethPriceUsd
 
     if (token === 'ETH') {
@@ -1232,7 +1239,8 @@ class BonderStats {
           dbData.optimismNativeAmount +
           dbData.arbitrumNativeAmount +
           dbData.arbitrumAliasAmount +
-          dbData.arbitrumMessengerWrapperAmount)
+          dbData.arbitrumMessengerWrapperAmount +
+          (dbData.novaNativeAmount || 0))
     }
 
     nativeTokenDebt = nativeStartingTokenAmount - nativeTokenDebt

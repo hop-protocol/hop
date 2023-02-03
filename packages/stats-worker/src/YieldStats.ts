@@ -43,6 +43,7 @@ type PoolData = {
   apy: number
   tvlUsd: number
   dailyVolume: number
+  error?: boolean
 }
 
 type StakingRewardsData = {
@@ -51,6 +52,7 @@ type StakingRewardsData = {
   rewardToken: string
   rewardTokenAddress: string
   isOptimalStakingContract: boolean
+  error?: boolean
 }
 
 type OptimalYieldData = {
@@ -160,9 +162,10 @@ class YieldStats {
                 dailyVolume: res.dailyVolume
               }
             })
-            .catch(err =>
+            .catch((err: any) => {
+              yieldData.pools[token][chain].error = true
               console.error(`apr 1 day ${chain} ${token} error:`, err)
-            )
+            })
         )
         promises.push(
           this.getStakingYieldData(token, chain)
@@ -181,9 +184,9 @@ class YieldStats {
                 }
               }
             })
-            .catch(err =>
+            .catch((err: any) => {
               console.error(`staking apr 1 ${chain} ${token} error:`, err)
-            )
+            })
         )
       }
 
@@ -300,6 +303,19 @@ class YieldStats {
         }
       }
     }
+    if (yieldData?.stakingRewards) {
+      for (const token in yieldData.stakingRewards) {
+        for (const chain in yieldData.stakingRewards[token]) {
+          const item = yieldData.optimalYield[token][chain]
+          if (!item?.dailyVolume) {
+            if (cachedData?.data?.pools?.[token]?.[chain]?.dailyVolume) {
+              item.dailyVolume =
+                cachedData?.data?.pools?.[token]?.[chain]?.dailyVolume
+            }
+          }
+        }
+      }
+    }
     return yieldData
   }
 
@@ -320,7 +336,7 @@ class YieldStats {
           chainData?.apr === 0 ||
           chainData?.apr === null ||
           isNaN(chainData?.apr)
-        if (!isInactive) {
+        if (!isInactive || chainData.error) {
           areAllChainsMissing = false
           break
         }
@@ -377,6 +393,9 @@ class YieldStats {
           const stakingRewardsData =
             stakingRewardData[stakingRewardsContractAddress]
           if (stakingRewardsData.isOptimalStakingContract) {
+            if (stakingRewardsData.rewardToken === 'HOP') {
+              console.log('here0', token, chain, yieldData.pools[token][chain])
+            }
             yieldData.optimalYield[token][chain] = {
               apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
               apy: yieldData.pools[token][chain].apy + stakingRewardsData.apy,

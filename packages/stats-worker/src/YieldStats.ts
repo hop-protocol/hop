@@ -301,6 +301,11 @@ class YieldStats {
           }
           yieldData.pools[token][chain] = cachedData.data.pools[token][chain]
         }
+        if (!chainData.tvlUsd) {
+          if (cachedData?.data?.pools?.[token]?.[chain]?.tvlUsd) {
+            chainData.tvlUsd = cachedData.data.pools[token][chain].tvlUsd
+          }
+        }
       }
     }
     if (yieldData?.stakingRewards) {
@@ -309,8 +314,7 @@ class YieldStats {
           const item = yieldData.optimalYield[token][chain]
           if (!item?.dailyVolume) {
             if (cachedData?.data?.pools?.[token]?.[chain]?.dailyVolume) {
-              item.dailyVolume =
-                cachedData?.data?.pools?.[token]?.[chain]?.dailyVolume
+              item.dailyVolume = cachedData.data.pools[token][chain].dailyVolume
             }
           }
         }

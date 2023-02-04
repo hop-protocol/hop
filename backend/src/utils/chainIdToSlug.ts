@@ -1,3 +1,4 @@
+// TODO: move to config
 const chainIdToSlugMap: any = {
   1: 'ethereum',
   5: 'ethereum',
@@ -11,7 +12,8 @@ const chainIdToSlugMap: any = {
   80001: 'polygon',
   42161: 'arbitrum',
   421611: 'arbitrum',
-  421613: 'arbitrum'
+  421613: 'arbitrum',
+  42170: 'nova'
 }
 
 export function chainIdToSlug (chainId: number) {

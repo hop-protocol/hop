@@ -15,7 +15,7 @@ export const postgresConfig = {
 }
 
 let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX']
-let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
+let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova']
 
 if (isGoerli) {
   enabledTokens = ['USDC', 'ETH']
@@ -29,7 +29,8 @@ export const rpcUrls = {
   polygon: process.env.POLYGON_RPC,
   arbitrum: process.env.ARBITRUM_RPC,
   optimism: process.env.OPTIMISM_RPC,
-  ethereum: process.env.ETHEREUM_RPC
+  ethereum: process.env.ETHEREUM_RPC,
+  nova: process.env.NOVA_RPC
 }
 
 export const transferTimes = {
@@ -37,30 +38,42 @@ export const transferTimes = {
     optimism: 10,
     arbitrum: 16,
     polygon: 25,
-    gnosis: 5
+    gnosis: 5,
+    nova: 16
   },
   optimism: {
     ethereum: 1,
     arbitrum: 1,
     polygon: 1,
-    gnosis: 1
+    gnosis: 1,
+    nova: 1
   },
   arbitrum: {
     ethereum: 1,
     optimism: 1,
     polygon: 1,
-    gnosis: 1
+    gnosis: 1,
+    nova: 1
   },
   polygon: {
     ethereum: 5,
     optimism: 5,
     arbitrum: 5,
-    gnosis: 5
+    gnosis: 5,
+    nova: 5
   },
   gnosis: {
     ethereum: 1,
     optimism: 1,
     arbitrum: 1,
-    polygon: 1
+    polygon: 1,
+    nova: 1
+  },
+  nova: {
+    ethereum: 1,
+    optimism: 1,
+    arbitrum: 1,
+    polygon: 1,
+    gnosis: 1
   }
 }

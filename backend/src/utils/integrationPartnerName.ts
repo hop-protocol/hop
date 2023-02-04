@@ -1,3 +1,4 @@
+// TODO: move to config
 const names = {
   socket: 'Socket',
   lifi: 'LI.FI',

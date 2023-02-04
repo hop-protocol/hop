@@ -1,3 +1,4 @@
+// TODO: move to config
 const tokenDecimals: any = {
   USDC: 6,
   USDT: 6,

@@ -1,5 +1,6 @@
 import { isGoerli } from '../config'
 
+// TODO: move to config
 export function explorerLink (chain: string) {
   let base = ''
   if (chain === 'gnosis') {
@@ -16,6 +17,11 @@ export function explorerLink (chain: string) {
     }
   } else if (chain === 'arbitrum') {
     base = 'https://arbiscan.io'
+    if (isGoerli) {
+      base = 'https://goerli.arbiscan.io'
+    }
+  } else if (chain === 'nova') {
+    base = 'https://nova.arbiscan.io'
   } else {
     base = 'https://etherscan.io'
     if (isGoerli) {

@@ -1,9 +1,11 @@
+// TODO: move to config
 const chainSlugToNameMap: any = {
   ethereum: 'Ethereum',
   gnosis: 'Gnosis',
   polygon: 'Polygon',
   arbitrum: 'Arbitrum',
-  optimism: 'Optimism'
+  optimism: 'Optimism',
+  nova: 'Nova'
 }
 
 export function chainSlugToName (chainSlug: string) {

@@ -1,3 +1,4 @@
+// TODO: move to config
 const tokenLogosMap: any = {
   USDC: 'https://assets.hop.exchange/logos/usdc.svg',
   USDT: 'https://assets.hop.exchange/logos/usdt.svg',

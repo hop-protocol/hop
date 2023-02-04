@@ -1,5 +1,6 @@
 import { isGoerli } from '../config'
 
+// TODO: move to config
 export function getSourceChainId (chain: string) {
   if (chain === 'ethereum') {
     if (isGoerli) {
@@ -27,6 +28,9 @@ export function getSourceChainId (chain: string) {
       return 421613
     }
     return 42161
+  }
+  if (chain === 'nova') {
+    return 42170
   }
   throw new Error(`unsupported chain "${chain}"`)
 }

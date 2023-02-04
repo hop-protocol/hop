@@ -1,3 +1,4 @@
+// TODO: move to config
 const imageUrls = {
   socket: 'https://assets.hop.exchange/logos/socket.jpg',
   lifi: 'https://assets.hop.exchange/logos/lifi.webp',

@@ -18,7 +18,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/cors": "^2.8.13",
     "@types/express": "^4.17.13",
+    "@types/isomorphic-fetch": "^0.0.36",
+    "@types/lodash": "^4.14.191",
+    "@types/luxon": "^3.2.0",
     "@typescript-eslint/eslint-plugin": "^5.19.0",
     "@typescript-eslint/parser": "^5.19.0",
     "eslint": "^8.13.0",

@@ -13,3 +13,54 @@ export const postgresConfig = {
   port: process.env.POSTGRES_PORT ? parseInt(process.env.POSTGRES_PORT, 10) : 5432,
   maxConnections: process.env.POSTGRES_MAX_CONNECTIONS ? parseInt(process.env.POSTGRES_MAX_CONNECTIONS, 10) : 10
 }
+
+let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX']
+let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
+
+if (isGoerli) {
+  enabledTokens = ['USDC', 'ETH']
+  enabledChains = ['ethereum', 'polygon', 'optimism']
+}
+
+export { enabledTokens, enabledChains }
+
+export const rpcUrls = {
+  gnosis: process.env.GNOSIS_RPC,
+  polygon: process.env.POLYGON_RPC,
+  arbitrum: process.env.ARBITRUM_RPC,
+  optimism: process.env.OPTIMISM_RPC,
+  ethereum: process.env.ETHEREUM_RPC
+}
+
+export const transferTimes = {
+  ethereum: {
+    optimism: 10,
+    arbitrum: 16,
+    polygon: 25,
+    gnosis: 5
+  },
+  optimism: {
+    ethereum: 1,
+    arbitrum: 1,
+    polygon: 1,
+    gnosis: 1
+  },
+  arbitrum: {
+    ethereum: 1,
+    optimism: 1,
+    polygon: 1,
+    gnosis: 1
+  },
+  polygon: {
+    ethereum: 5,
+    optimism: 5,
+    arbitrum: 5,
+    gnosis: 5
+  },
+  gnosis: {
+    ethereum: 1,
+    optimism: 1,
+    arbitrum: 1,
+    polygon: 1
+  }
+}

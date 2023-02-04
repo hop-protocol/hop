@@ -2,123 +2,15 @@ import mcache from 'memory-cache'
 import Db, { getInstance } from './Db'
 import { DateTime } from 'luxon'
 import Worker from './worker'
-import { isGoerli } from './config'
-import { TransferStats, formatCurrency } from './TransferStats'
-
-const colorsMap: any = {
-  ethereum: '#868dac',
-  gnosis: '#46a4a1',
-  polygon: '#8b57e1',
-  optimism: '#e64b5d',
-  arbitrum: '#289fef',
-  bonded: '#81ff81',
-  pending: '#ffc55a',
-  fallback: '#9f9fa3'
-}
-
-const transferTimes = {
-  ethereum: {
-    optimism: 10,
-    arbitrum: 16,
-    polygon: 25,
-    gnosis: 5
-  },
-  optimism: {
-    ethereum: 1,
-    arbitrum: 1,
-    polygon: 1,
-    gnosis: 1
-  },
-  arbitrum: {
-    ethereum: 1,
-    optimism: 1,
-    polygon: 1,
-    gnosis: 1
-  },
-  polygon: {
-    ethereum: 5,
-    optimism: 5,
-    arbitrum: 5,
-    gnosis: 5
-  },
-  gnosis: {
-    ethereum: 1,
-    optimism: 1,
-    arbitrum: 1,
-    polygon: 1
-  }
-}
-
-function truncateAddress (address :string) {
-  return truncateString(address, 4)
-}
-
-function truncateString (str: string, splitNum: number) {
-  if (!str) return ''
-  return str.substring(0, 2 + splitNum) + '…' + str.substring(str.length - splitNum, str.length)
-}
-
-function getSourceChainId (chain: string) {
-  if (chain === 'ethereum') {
-    if (isGoerli) {
-      return 5
-    }
-    return 1
-  }
-  if (chain === 'gnosis') {
-    return 100
-  }
-  if (chain === 'polygon') {
-    if (isGoerli) {
-      return 80001
-    }
-    return 137
-  }
-  if (chain === 'optimism') {
-    if (isGoerli) {
-      return 420
-    }
-    return 10
-  }
-  if (chain === 'arbitrum') {
-    if (isGoerli) {
-      return 421613
-    }
-    return 42161
-  }
-  throw new Error(`unsupported chain "${chain}"`)
-}
-
-function explorerLink (chain: string) {
-  let base = ''
-  if (chain === 'gnosis') {
-    base = 'https://blockscout.com/xdai/mainnet'
-  } else if (chain === 'polygon') {
-    base = 'https://polygonscan.com'
-    if (isGoerli) {
-      base = 'https://mumbai.polygonscan.com'
-    }
-  } else if (chain === 'optimism') {
-    base = 'https://optimistic.etherscan.io'
-    if (isGoerli) {
-      base = 'https://goerli-optimism.etherscan.io'
-    }
-  } else if (chain === 'arbitrum') {
-    base = 'https://arbiscan.io'
-  } else {
-    base = 'https://etherscan.io'
-    if (isGoerli) {
-      base = 'https://goerli.etherscan.io'
-    }
-  }
-
-  return base
-}
-
-function explorerLinkAddress (chain: string, address: string) {
-  const base = explorerLink(chain)
-  return `${base}/address/${address}`
-}
+import { isGoerli, transferTimes } from './config'
+import { TransferStats } from './TransferStats'
+import { formatCurrency } from './utils/formatCurrency'
+import { getColor } from './utils/getColor'
+import { truncateAddress } from './utils/truncateAddress'
+import { explorerLinkAddress } from './utils/explorerLinkAddress'
+import { getSourceChainId } from './utils/getSourceChainId'
+import { integrationPartnerName } from './utils/integrationPartnerName'
+import { integrationPartnerImage } from './utils/integrationPartnerImage'
 
 type Transfer = {
   accountAddress: string
@@ -397,10 +289,20 @@ export class Controller {
   }
 
   populatedData = (x: any, i: number) => {
-    x.sourceChainId = Number(x.sourceChainId)
-    x.destinationChainId = Number(x.destinationChainId)
-    x.amountFormatted = Number(x.amountFormatted)
-    x.amountUsd = Number(x.amountUsd)
+    x.i = i
+
+    if (x.sourceChainId && typeof x.sourceChainId !== 'number') {
+      x.sourceChainId = Number(x.sourceChainId)
+    }
+    if (x.destinationChainId && typeof x.destinationChainId !== 'number') {
+      x.destinationChainId = Number(x.destinationChainId)
+    }
+    if (typeof x.amountFormatted !== 'number') {
+      x.amountFormatted = Number(x.amountFormatted)
+    }
+    if (typeof x.amountUsd !== 'number') {
+      x.amountUsd = Number(x.amountUsd)
+    }
     x.deadline = x.deadline ? Number(x.deadline) : null
     x.bonderFeeFormatted = x.bonderFeeFormatted ? Number(x.bonderFeeFormatted) : null
     x.bonderFeeUsd = x.bonderFeeUsd ? Number(x.bonderFeeUsd) : null
@@ -408,12 +310,13 @@ export class Controller {
     x.bondWithinTimestamp = x.bondWithinTimestamp ? Number(x.bondWithinTimestamp) : null
     x.tokenPriceUsd = x.tokenPriceUsd ? Number(x.tokenPriceUsd) : null
     x.timestamp = x.timestamp ? Number(x.timestamp) : null
-    if (x.amountReceivedFormatted) {
+    if (x.amountReceivedFormatted && typeof x.amountReceivedFormatted !== 'number') {
       x.amountReceivedFormatted = Number(x.amountReceivedFormatted)
     }
 
-    x.i = i
-    x.bonded = !!x.bonded
+    if (typeof x.bonded !== 'boolean') {
+      x.bonded = !!x.bonded
+    }
     if (x.timestamp) {
       x.timestampRelative = DateTime.fromSeconds(x.timestamp).toRelative()
       const transferTime = DateTime.fromSeconds(x.timestamp)
@@ -425,15 +328,15 @@ export class Controller {
     x.preregenesis = !!x.preregenesis
     x.bondTimestampRelative = x.bondTimestamp ? DateTime.fromSeconds(x.bondTimestamp).toRelative() : ''
 
-    if (!x.accountAddressTruncated) {
+    if (!x.accountAddressTruncated && x.accountAddress) {
       x.accountAddressTruncated = truncateAddress(x.accountAddress)
     }
 
-    if (!x.accountAddressExplorerUrl) {
+    if (!x.accountAddressExplorerUrl && x.sourceChainSlug && x.accountAddress) {
       x.accountAddressExplorerUrl = explorerLinkAddress(x.sourceChainSlug, x.accountAddress)
     }
 
-    if (!x.recipientAddressTruncated) {
+    if (!x.recipientAddressTruncated && x.recipientAddress) {
       x.recipientAddressTruncated = truncateAddress(x.recipientAddress)
     }
 
@@ -442,16 +345,16 @@ export class Controller {
       x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recipientAddress)
     }
 
-    if (!x.sourceChainColor) {
-      x.sourceChainColor = colorsMap[x.sourceChainSlug] ?? colorsMap.fallback
+    if (!x.sourceChainColor && x.sourceChainSlug) {
+      x.sourceChainColor = getColor(x.sourceChainSlug)
     }
 
-    if (!x.destinationChainColor) {
-      x.destinationChainColor = colorsMap[x.destinationChainSlug] ?? colorsMap.fallback
+    if (!x.destinationChainColor && x.destinationChainSlug) {
+      x.destinationChainColor = getColor(x.destinationChainSlug)
     }
 
     if (!x.bondStatusColor) {
-      x.bondStatusColor = x.bonded ? colorsMap.bonded : colorsMap.pending
+      x.bondStatusColor = x.bonded ? getColor('bonded') : getColor('pending')
     }
 
     if (typeof x.receivedHTokens !== 'boolean') {
@@ -461,28 +364,24 @@ export class Controller {
       x.convertHTokenUrl = `https://${isGoerli ? 'goerli.hop.exchange' : 'app.hop.exchange'}/#/convert/amm?token=${x.token}&sourceNetwork=${x.destinationChainSlug}&fromHToken=true`
     }
 
-    x.hopExplorerUrl = `https://${isGoerli ? 'goerli.explorer.hop.exchange' : 'explorer.hop.exchange'}/?transferId=${x.transferId}`
-
-    if (x.integrationPartner) {
-      const names = {
-        socket: 'Socket',
-        lifi: 'LI.FI',
-        metamask: 'MetaMask',
-        chainhop: 'ChainHop'
-      }
-      const imageUrls = {
-        socket: 'https://assets.hop.exchange/logos/socket.jpg',
-        lifi: 'https://assets.hop.exchange/logos/lifi.webp',
-        metamask: 'https://assets.hop.exchange/logos/metamask.svg',
-        chainhop: 'https://assets.hop.exchange/logos/chainhop.png'
-      }
-      x.integrationPartnerName = names[x.integrationPartner]
-      x.integrationPartnerImageUrl = imageUrls[x.integrationPartner]
+    if (!x.hopExplorerUrl) {
+      x.hopExplorerUrl = `https://${isGoerli ? 'goerli.explorer.hop.exchange' : 'explorer.hop.exchange'}/?transferId=${x.transferId}`
     }
 
-    x.estimatedUnixTimeUntilBond = 0
-    x.estimatedSecondsUntilBond = 0
-    x.estimatedRelativeTimeUntilBond = 0
+    if (x.integrationPartner) {
+      x.integrationPartnerName = integrationPartnerName(x.integrationPartner)
+      x.integrationPartnerImageUrl = integrationPartnerImage(x.integrationPartner)
+    }
+
+    if (!x.estimatedUnixTimeUntilBond) {
+      x.estimatedUnixTimeUntilBond = 0
+    }
+    if (!x.estimatedSecondsUntilBond) {
+      x.estimatedSecondsUntilBond = 0
+    }
+    if (!x.estimatedRelativeTimeUntilBond) {
+      x.estimatedRelativeTimeUntilBond = 0
+    }
 
     if (!x.bonded && x.sourceChainSlug && x.destinationChainSlug) {
       const minutes = transferTimes?.[x.sourceChainSlug]?.[x.destinationChainSlug]

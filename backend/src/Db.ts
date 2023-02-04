@@ -1,6 +1,7 @@
 import pgp from 'pg-promise'
 import { v4 as uuid } from 'uuid'
 import { postgresConfig } from './config'
+import { populateTransfer } from './utils/populateTransfer'
 
 const argv = require('minimist')(process.argv.slice(2))
 
@@ -688,21 +689,10 @@ class Db {
         SELECT
           id,
           transfer_id AS "transferId",
-          transfer_id_truncated AS "transferIdTruncated",
           transaction_hash AS "transactionHash",
-          transaction_hash_truncated AS "transactionHashTruncated",
-          transaction_hash_explorer_url AS "transactionHashExplorerUrl",
           source_chain_id AS "sourceChainId",
-          source_chain_slug AS "sourceChainSlug",
-          source_chain_name AS "sourceChainName",
-          source_chain_image_url AS "sourceChainImageUrl",
           destination_chain_id AS "destinationChainId",
-          destination_chain_slug AS "destinationChainSlug",
-          destination_chain_name AS "destinationChainName",
-          destination_chain_image_url AS "destinationChainImageUrl",
           account_address AS "accountAddress",
-          account_address_truncated AS "accountAddressTruncated",
-          account_address_explorer_url AS "accountAddressExplorerUrl",
           amount,
           amount_formatted AS "amountFormatted",
           amount_display AS "amountDisplay",
@@ -711,8 +701,6 @@ class Db {
           amount_out_min AS "amountOutMin",
           deadline,
           recipient_address AS "recipientAddress",
-          recipient_address_truncated AS "recipientAddressTruncated",
-          recipient_address_explorer_url AS "recipientAddressExplorerUrl",
           bonder_fee AS "bonderFee",
           bonder_fee_formatted AS "bonderFeeFormatted",
           bonder_fee_display AS "bonderFeeDisplay",
@@ -724,13 +712,8 @@ class Db {
           bond_within_timestamp AS "bondWithinTimestamp",
           bond_within_timestamp_relative AS "bondWithinTimestampRelative",
           bond_transaction_hash AS "bondTransactionHash",
-          bond_transaction_hash_truncated AS "bondTransactionHashTruncated",
-          bond_transaction_hash_explorer_url AS "bondTransactionHashExplorerUrl",
           bonder_address AS "bonderAddress",
-          bonder_address_truncated AS "bonderAddressTruncated",
-          bonder_address_explorer_url AS "bonderAddressExplorerUrl",
           token,
-          token_image_url AS "tokenImageUrl",
           token_price_usd AS "tokenPriceUsd",
           token_price_usd_display AS "tokenPriceUsdDisplay",
           timestamp,
@@ -785,7 +768,8 @@ class Db {
         `
     }
 
-    return this.db.any(sql, queryParams)
+    const transfers = await this.db.any(sql, queryParams)
+    return transfers?.map((x: any) => populateTransfer(x))
   }
 
   async updateTransferReorged (transferId: string, reorged: boolean) {

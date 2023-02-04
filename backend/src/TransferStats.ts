@@ -4,224 +4,20 @@ import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db, { getInstance } from './Db'
 import { chunk } from 'lodash'
-import toHex from 'to-hex'
 import wait from 'wait'
 import { mainnet as addresses } from '@hop-protocol/core/addresses'
 import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
-import { isGoerli } from './config'
-
-let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX']
-let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism']
-
-if (isGoerli) {
-  enabledTokens = ['USDC', 'ETH']
-  enabledChains = ['ethereum', 'polygon', 'optimism']
-}
-
-const rpcUrls = {
-  gnosis: process.env.GNOSIS_RPC,
-  polygon: process.env.POLYGON_RPC,
-  arbitrum: process.env.ARBITRUM_RPC,
-  optimism: process.env.OPTIMISM_RPC,
-  ethereum: process.env.ETHEREUM_RPC
-}
+import { isGoerli, enabledChains, enabledTokens, rpcUrls } from './config'
+import { padHex } from './utils/padHex'
+import { getTokenDecimals } from './utils/getTokenDecimals'
+import { chainIdToSlug } from './utils/chainIdToSlug'
+import { chainSlugToName } from './utils/chainSlugToName'
+import { chainSlugToId } from './utils/chainSlugToId'
+import { getSourceChainId } from './utils/getSourceChainId'
+import { populateTransfer } from './utils/populateTransfer'
 
 console.log('rpcUrls:', rpcUrls)
-
-function padHex (hex: string) {
-  return toHex(hex, { evenLength: true, addPrefix: true })
-}
-
-function truncateAddress (address :string) {
-  return truncateString(address, 4)
-}
-
-function truncateHash (hash: string) {
-  return truncateString(hash, 6)
-}
-
-function truncateString (str: string, splitNum: number) {
-  if (!str) return ''
-  return str.substring(0, 2 + splitNum) + '…' + str.substring(str.length - splitNum, str.length)
-}
-
-function explorerLink (chain: string) {
-  let base = ''
-  if (chain === 'gnosis') {
-    base = 'https://blockscout.com/xdai/mainnet'
-  } else if (chain === 'polygon') {
-    base = 'https://polygonscan.com'
-    if (isGoerli) {
-      base = 'https://mumbai.polygonscan.com'
-    }
-  } else if (chain === 'optimism') {
-    base = 'https://optimistic.etherscan.io'
-    if (isGoerli) {
-      base = 'https://goerli-optimism.etherscan.io'
-    }
-  } else if (chain === 'arbitrum') {
-    base = 'https://arbiscan.io'
-  } else {
-    base = 'https://etherscan.io'
-    if (isGoerli) {
-      base = 'https://goerli.etherscan.io'
-    }
-  }
-
-  return base
-}
-
-export function formatCurrency (value: any, token: any) {
-  const currencyFormatter = new Intl.NumberFormat('en-US', {
-    // style: 'currency',
-    // currency: 'USD'
-  })
-
-  if (token === 'MATIC' || token === 'ETH') {
-    return Number(value || 0).toFixed(5)
-  }
-
-  return `$${currencyFormatter.format(value)}`
-}
-
-function explorerLinkAddress (chain: string, address: string) {
-  const base = explorerLink(chain)
-  return `${base}/address/${address}`
-}
-
-function explorerLinkTx (chain: string, transactionHash: string) {
-  const base = explorerLink(chain)
-  return `${base}/tx/${transactionHash}`
-}
-
-const chainIdToSlugMap: any = {
-  1: 'ethereum',
-  5: 'ethereum',
-  42: 'ethereum',
-  10: 'optimism',
-  69: 'optimism',
-  420: 'optimism',
-  77: 'gnosis',
-  100: 'gnosis',
-  137: 'polygon',
-  80001: 'polygon',
-  42161: 'arbitrum',
-  421611: 'arbitrum',
-  421613: 'arbitrum'
-}
-
-const chainSlugToIdMap: any = {
-  ethereum: 1,
-  optimism: 10,
-  gnosis: 100,
-  polygon: 137,
-  arbitrum: 42161
-}
-
-const chainSlugToNameMap: any = {
-  ethereum: 'Ethereum',
-  gnosis: 'Gnosis',
-  polygon: 'Polygon',
-  arbitrum: 'Arbitrum',
-  optimism: 'Optimism'
-}
-
-function getSourceChainId (chain: string) {
-  if (chain === 'ethereum') {
-    if (isGoerli) {
-      return 5
-    }
-    return 1
-  }
-  if (chain === 'gnosis') {
-    return 100
-  }
-  if (chain === 'polygon') {
-    if (isGoerli) {
-      return 80001
-    }
-    return 137
-  }
-  if (chain === 'optimism') {
-    if (isGoerli) {
-      return 420
-    }
-    return 10
-  }
-  if (chain === 'arbitrum') {
-    if (isGoerli) {
-      return 421613
-    }
-    return 42161
-  }
-  throw new Error(`unsupported chain "${chain}"`)
-}
-
-function nearestDate (dates: any[], target: any) {
-  if (!target) {
-    target = Date.now()
-  } else if (target instanceof Date) {
-    target = target.getTime()
-  }
-
-  let nearest = Infinity
-  let winner = -1
-
-  dates.forEach(function (date, index) {
-    if (date instanceof Date) date = date.getTime()
-    const distance = Math.abs(date - target)
-    if (distance < nearest) {
-      nearest = distance
-      winner = index
-    }
-  })
-
-  return winner
-}
-
-/*
-const colorsMap: any = {
-  ethereum: '#868dac',
-  gnosis: '#46a4a1',
-  polygon: '#8b57e1',
-  optimism: '#e64b5d',
-  arbitrum: '#289fef',
-  fallback: '#9f9fa3'
-}
-*/
-
-const chainLogosMap: any = {
-  ethereum: 'https://assets.hop.exchange/logos/ethereum.svg',
-  gnosis: 'https://assets.hop.exchange/logos/gnosis.svg',
-  polygon: 'https://assets.hop.exchange/logos/polygon.svg',
-  optimism: 'https://assets.hop.exchange/logos/optimism.svg',
-  arbitrum: 'https://assets.hop.exchange/logos/arbitrum.svg'
-}
-
-const tokenLogosMap: any = {
-  USDC: 'https://assets.hop.exchange/logos/usdc.svg',
-  USDT: 'https://assets.hop.exchange/logos/usdt.svg',
-  DAI: 'https://assets.hop.exchange/logos/dai.svg',
-  MATIC: 'https://assets.hop.exchange/logos/matic.svg',
-  ETH: 'https://assets.hop.exchange/logos/eth.svg',
-  WBTC: 'https://assets.hop.exchange/logos/wbtc.svg',
-  FRAX: 'https://assets.hop.exchange/logos/frax.svg',
-  HOP: 'https://assets.hop.exchange/logos/hop.svg',
-  SNX: 'https://assets.hop.exchange/logos/snx.svg'
-}
-
-const tokenDecimals: any = {
-  USDC: 6,
-  USDT: 6,
-  DAI: 18,
-  MATIC: 18,
-  ETH: 18,
-  FRAX: 18,
-  HOP: 18,
-  WBTC: 8,
-  SNX: 18
-}
 
 type Options = {
   days?: number
@@ -1064,7 +860,7 @@ export class TransferStats {
 
       if (amount.gt(0)) {
         const amountReceived = amount.toString()
-        const decimals = tokenDecimals[item.token]
+        const decimals = getTokenDecimals(item.token)
         const amountReceivedFormatted = Number(formatUnits(amountReceived, decimals))
         return { amountReceived, amountReceivedFormatted }
       }
@@ -1441,176 +1237,6 @@ export class TransferStats {
     }
   }
 
-  populateTransfer (x: any, prices: any) {
-    if (!x.accountAddress) {
-      x.accountAddress = x.from?.toLowerCase()
-    }
-
-    if (!x.accountAddressTruncated && x.accountAddress) {
-      x.accountAddressTruncated = truncateAddress(x.accountAddress)
-    }
-
-    if (!x.recipientAddressExplorerUrl && x.recipientAddress) {
-      x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recipientAddress)
-    }
-
-    if (!x.transactionHashTruncated) {
-      x.transactionHashTruncated = truncateHash(x.transactionHash)
-    }
-
-    const transferTime = DateTime.fromSeconds(x.timestamp)
-    if (!x.transferIdTruncated) {
-      x.transferIdTruncated = truncateHash(x.transferId)
-    }
-    if (!x.timestampIso) {
-      x.timestampIso = transferTime.toISO()
-    }
-    if (!x.relativeTimestamp) {
-      x.relativeTimestamp = transferTime.toRelative()
-    }
-
-    if (!x.sourceChainId) {
-      x.sourceChainId = x.sourceChain
-    }
-
-    if (!x.destinationChainId) {
-      x.destinationChainId = x.destinationChain
-    }
-
-    if (!x.sourceChainSlug) {
-      x.sourceChainSlug = chainIdToSlugMap[x.sourceChain]
-    }
-    if (!x.destinationChainSlug) {
-      x.destinationChainSlug = chainIdToSlugMap[x.destinationChain]
-    }
-
-    if (!x.sourceChainName) {
-      x.sourceChainName = chainSlugToNameMap[x.sourceChainSlug]
-    }
-    if (!x.destinationChainName) {
-      x.destinationChainName = chainSlugToNameMap[x.destinationChainSlug]
-    }
-
-    if (!x.sourceChainImageUrl) {
-      x.sourceChainImageUrl = chainLogosMap[x.sourceChainSlug]
-    }
-    if (!x.destinationChainImageUrl) {
-      x.destinationChainImageUrl = chainLogosMap[x.destinationChainSlug]
-    }
-
-    if (!x.transactionHashExplorerUrl) {
-      x.transactionHashExplorerUrl = explorerLinkTx(x.sourceChainSlug, x.transactionHash)
-    }
-    if (!x.bondTransactionHashExplorerUrl) {
-      x.bondTransactionHashExplorerUrl = x.bondTransactionHash ? explorerLinkTx(x.destinationChainSlug, x.bondTransactionHash) : ''
-    }
-    if (x.preregenesis) {
-      x.bondTransactionHashExplorerUrl = `https://expedition.dev/tx/${x.bondTransactionHash}?rpcUrl=https%3A%2F%2Fmainnet-replica-4.optimism.io`
-    }
-
-    if (!x.accountAddressExplorerUrl) {
-      x.accountAddressExplorerUrl = explorerLinkAddress(x.sourceChainSlug, x.accountAddress)
-    }
-
-    if (!x.recipientAddress) {
-      x.recipientAddress = x.recipient?.toLowerCase()
-    }
-
-    if (!x.recipientAddressTruncated && x.recipientAddress) {
-      x.recipientAddressTruncated = truncateAddress(x.recipientAddress)
-    }
-
-    if (!x.recipientAddressExplorerUrl && x.recipientAddress) {
-      x.recipientAddressExplorerUrl = explorerLinkAddress(x.destinationChainSlug, x.recipientAddress)
-    }
-
-    if (!x.bonderAddress) {
-      x.bonderAddress = x.bonder?.toLowerCase()
-    }
-
-    if (!x.bonderAddressTruncated) {
-      x.bonderAddressTruncated = truncateAddress(x.bonderAddress)
-    }
-
-    if (!x.bonderAddressExplorerUrl) {
-      x.bonderAddressExplorerUrl = x.bonderAddress ? explorerLinkAddress(x.destinationChainSlug, x.bonderAddress) : ''
-    }
-    if (!x.bondTransactionHashTruncated) {
-      x.bondTransactionHashTruncated = x.bondTransactionHash ? truncateHash(x.bondTransactionHash) : ''
-    }
-
-    if (!x.receiveStatusUnknown) {
-      x.receiveStatusUnknown = x.sourceChainId === getSourceChainId('ethereum') && !x.bondTxExplorerUrl && DateTime.now().toSeconds() > transferTime.toSeconds() + (60 * 60 * 2)
-    }
-    if (x.receiveStatusUnknown) {
-      // x.bonded = true
-    }
-
-    if (!x.bondTimestamp) {
-      x.bondTimestamp = x.bondedTimestamp
-    }
-
-    if (x.bondTimestamp) {
-      const bondedTime = DateTime.fromSeconds(x.bondTimestamp)
-      x.bondTimestampIso = bondedTime.toISO()
-      x.relativeBondedTimestamp = bondedTime.toRelative()
-      const diff = bondedTime.diff(transferTime, ['days', 'hours', 'minutes'])
-      const diffObj = diff.toObject()
-      x.bondWithinTimestamp = (((diff.days * 24 * 60) + (diff.hours * 60) + diff.values.minutes) * 60)
-      let hours = Number(diffObj.hours.toFixed(0))
-      let minutes = Number(diffObj.minutes.toFixed(0))
-      if (hours < 0) {
-        hours = 0
-      }
-      if (minutes < 1) {
-        minutes = 1
-      }
-      if (hours || minutes) {
-        x.bondWithinTimestampRelative = `${hours ? `${hours} hour${hours > 1 ? 's' : ''} ` : ''}${minutes ? `${minutes} minute${minutes > 1 ? 's' : ''}` : ''}`
-      }
-    }
-
-    const decimals = tokenDecimals[x.token]
-    if (!x.amountFormatted) {
-      x.amountFormatted = Number(formatUnits(x.amount, decimals))
-    }
-    if (!x.amountDisplay) {
-      x.amountDisplay = x.amountFormatted.toFixed(4)
-    }
-    if (!x.bonderFeeFormatted) {
-      x.bonderFeeFormatted = x.bonderFee ? Number(formatUnits(x.bonderFee, decimals)) : 0
-    }
-    if (!x.bonderFeeDisplay) {
-      x.bonderFeeDisplay = x.bonderFeeFormatted.toFixed(4)
-    }
-    if (!x.tokenImageUrl) {
-      x.tokenImageUrl = tokenLogosMap[x.token]
-    }
-
-    x.amountUsd = ''
-    x.amountUsdDisplay = ''
-    x.tokenPriceUsd = ''
-    x.tokenPriceUsdDisplay = ''
-    x.bonderFeeUsd = ''
-    x.bonderFeeUsdDisplay = ''
-
-    if (prices && prices[x.token]) {
-      const dates = prices[x.token].reverse().map((x: any) => x[0])
-      const nearest = nearestDate(dates, x.timestamp)
-      if (prices[x.token][nearest]) {
-        const price = prices[x.token][nearest][1]
-        x.amountUsd = price * x.amountFormatted
-        x.amountUsdDisplay = formatCurrency(x.amountUsd, 'USD')
-        x.tokenPriceUsd = price
-        x.tokenPriceUsdDisplay = formatCurrency(x.tokenPriceUsd, 'USD')
-        x.bonderFeeUsd = x.tokenPriceUsd * x.bonderFeeFormatted
-        x.bonderFeeUsdDisplay = formatCurrency(x.bonderFeeUsd, 'USD')
-      }
-    }
-
-    return x
-  }
-
   async getTransfersForDay (filterDate: string) {
     const endDate = DateTime.fromFormat(filterDate, 'yyyy-MM-dd').toUTC().plus({ days: 1 }).endOf('day')
     const startTime = Math.floor(endDate.minus({ days: this.days }).startOf('day').toSeconds())
@@ -1846,7 +1472,7 @@ export class TransferStats {
     }
 
     for (const x of data) {
-      const bonds = bondsMap[chainIdToSlugMap[x.destinationChain]]
+      const bonds = bondsMap[chainIdToSlug(x.destinationChain)]
       if (bonds) {
         for (const bond of bonds) {
           if (bond.transferId === x.transferId) {
@@ -1861,11 +1487,11 @@ export class TransferStats {
     }
 
     for (const x of data) {
-      const sourceChain = chainIdToSlugMap[x.sourceChain]
+      const sourceChain = chainIdToSlug(x.sourceChain)
       if (sourceChain !== 'ethereum') {
         continue
       }
-      const events = l1CompletedsMap[chainIdToSlugMap[x.destinationChain]]
+      const events = l1CompletedsMap[chainIdToSlug(x.destinationChain)]
       if (events) {
         for (const event of events) {
           if (
@@ -1894,7 +1520,7 @@ export class TransferStats {
     if (data.length > 0) {
       const regenesisTimestamp = 1636531200
       for (const item of data) {
-        if (!item.bonded && item.timestamp < regenesisTimestamp && chainIdToSlugMap[item.destinationChain] === 'optimism' && chainIdToSlugMap[item.sourceChain] !== 'ethereum') {
+        if (!item.bonded && item.timestamp < regenesisTimestamp && chainIdToSlug(item.destinationChain) === 'optimism' && chainIdToSlug(item.sourceChain) !== 'ethereum') {
           try {
             const event = await this.getPreRegenesisBondEvent(item.transferId, item.token)
             if (event) {
@@ -1932,7 +1558,7 @@ export class TransferStats {
       .filter(x => {
         return !unbondableTransfers.includes(x.transferId)
       })
-      .map((x: any) => this.populateTransfer(x, this.prices))
+      .map((x: any) => populateTransfer(x, this.prices))
       .filter(x => enabledChains.includes(x.sourceChainSlug) && enabledChains.includes(x.destinationChainSlug))
       .sort((a, b) => b.timestamp - a.timestamp)
       .map((x, i) => {
@@ -1959,7 +1585,7 @@ export class TransferStats {
       return cached
     }
     const { transactionHash, sourceChain } = item
-    const sourceChainSlug = chainIdToSlugMap[sourceChain]
+    const sourceChainSlug = chainIdToSlug(sourceChain)
     const integrations = {
       '0xc30141b657f4216252dc59af2e7cdb9d8792e1b0': 'socket',
       '0x362fa9d0bca5d19f743db50738345ce2b40ec99f': 'lifi',
@@ -2196,9 +1822,9 @@ export class TransferStats {
       const provider = new providers.StaticJsonRpcProvider(rpcUrl)
       const receipt = await this.getTransactionReceipt(provider, transactionHash)
       let transferId = ''
-      const sourceChainId = chainSlugToIdMap[chainSlug]
-      const sourceChainSlug = chainIdToSlugMap[sourceChainId]
-      const sourceChainSlugName = chainSlugToNameMap[chainSlug]
+      const sourceChainId = chainSlugToId(chainSlug)
+      const sourceChainSlug = chainIdToSlug(sourceChainId)
+      const sourceChainSlugName = chainSlugToName(chainSlug)
       let destinationChainSlug = ''
       let destinationChainId = 0
       let destinationChainName = ''
@@ -2223,8 +1849,8 @@ export class TransferStats {
             if (decoded) {
               transferId = decoded?.args?.transferId
               destinationChainId = Number(decoded?.args.chainId.toString())
-              destinationChainSlug = chainIdToSlugMap[destinationChainId]
-              destinationChainName = chainSlugToNameMap[destinationChainSlug]
+              destinationChainSlug = chainIdToSlug(destinationChainId)
+              destinationChainName = chainSlugToName(destinationChainSlug)
               recipient = decoded?.args?.recipient.toString()
               amount = decoded?.args?.amount?.toString()
               bonderFee = decoded?.args?.bonderFee.toString()
@@ -2244,8 +1870,8 @@ export class TransferStats {
             const decoded = iface.parseLog(log)
             if (decoded) {
               destinationChainId = Number(decoded?.args.chainId.toString())
-              destinationChainSlug = chainIdToSlugMap[destinationChainId]
-              destinationChainName = chainSlugToNameMap[destinationChainSlug]
+              destinationChainSlug = chainIdToSlug(destinationChainId)
+              destinationChainName = chainSlugToName(destinationChainSlug)
               recipient = decoded?.args?.recipient.toString()
               amount = decoded?.args?.amount?.toString()
               bonderFee = decoded?.args?.relayerFee.toString()
@@ -2262,7 +1888,7 @@ export class TransferStats {
           }
 
           if (token) {
-            const decimals = tokenDecimals[token]
+            const decimals = getTokenDecimals(token)
             if (amount) {
               amountFormatted = Number(formatUnits(amount, decimals))
             }

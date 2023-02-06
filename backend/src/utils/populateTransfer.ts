@@ -141,7 +141,7 @@ export function populateTransfer (x: any, prices?: any) {
     x.bondTimestamp = x.bondedTimestamp
   }
 
-  if (x.bondTimestamp && transferTime) {
+  if (x.bondTimestamp && transferTime && (!x.bondTimestampIso || !x.relativeBondedTimestamp || !x.bondWithinTimestamp || !x.bondWithinTimestampRelative)) {
     const bondedTime = DateTime.fromSeconds(x.bondTimestamp)
     x.bondTimestampIso = bondedTime.toISO()
     x.relativeBondedTimestamp = bondedTime.toRelative()
@@ -178,12 +178,24 @@ export function populateTransfer (x: any, prices?: any) {
     x.tokenImageUrl = getTokenLogo(x.token)
   }
 
-  x.amountUsd = ''
-  x.amountUsdDisplay = ''
-  x.tokenPriceUsd = ''
-  x.tokenPriceUsdDisplay = ''
-  x.bonderFeeUsd = ''
-  x.bonderFeeUsdDisplay = ''
+  if (!x.amountUsd) {
+    x.amountUsd = ''
+  }
+  if (!x.amountUsdDisplay) {
+    x.amountUsdDisplay = ''
+  }
+  if (!x.tokenPriceUsd) {
+    x.tokenPriceUsd = ''
+  }
+  if (!x.tokenPriceUsdDisplay) {
+    x.tokenPriceUsdDisplay = ''
+  }
+  if (!x.bonderFeeUsd) {
+    x.bonderFeeUsd = ''
+  }
+  if (!x.bonderFeeUsdDisplay) {
+    x.bonderFeeUsdDisplay = ''
+  }
 
   if (prices && prices[x.token]) {
     const dates = prices[x.token].reverse().map((x: any) => x[0])

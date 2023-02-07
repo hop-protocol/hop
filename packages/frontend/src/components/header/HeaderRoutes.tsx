@@ -6,7 +6,7 @@ import { isMainnet, showRewards } from 'src/config'
 import { useClaim } from 'src/pages/Claim/useClaim'
 import { makeStyles } from '@material-ui/core/styles'
 import { useTheme } from '@material-ui/core'
-import { useHasRewards } from 'src/pages/Rewards/useHasRewards'
+// import { useHasRewards } from 'src/pages/Rewards/useHasRewards'
 
 const useStyles = makeStyles((theme: any) => ({
   tabs: {
@@ -37,9 +37,9 @@ const HeaderRoutes: FC = () => {
   }
   const { canClaim } = useClaim()
 
-  let hasRewards = false
+  const hasRewards = false
   if (showRewards) {
-    ({ hasRewards } = useHasRewards())
+    // ({ hasRewards } = useHasRewards()) // disabled to reduce polling and rpc calls
   }
 
   return (

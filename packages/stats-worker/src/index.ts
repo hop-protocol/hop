@@ -8,6 +8,7 @@ function main () {
   const worker = new Worker({
     yields: argv.yields,
     tvl: argv.tvl,
+    amm: argv.amm,
     volume: argv.volume,
     bonder: argv.bonder,
     bonderProfit: argv.bonderProfit,

@@ -1,49 +1,10 @@
-import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db from './Db'
 import { PriceFeed } from './PriceFeed'
-
-function nearestDate (dates: any[], target: any) {
-  if (!target) {
-    target = Date.now()
-  } else if (target instanceof Date) {
-    target = target.getTime()
-  }
-
-  var nearest = Infinity
-  var winner = -1
-
-  dates.forEach(function (date, index) {
-    if (date instanceof Date) date = date.getTime()
-    var distance = Math.abs(date - target)
-    if (distance < nearest) {
-      nearest = distance
-      winner = index
-    }
-  })
-
-  return winner
-}
-
-const tokenDecimals: any = {
-  USDC: 6,
-  USDT: 6,
-  DAI: 18,
-  MATIC: 18,
-  ETH: 18,
-  HOP: 18,
-  SNX: 18
-}
-
-function sumAmounts (items: any) {
-  let sum = BigNumber.from(0)
-  for (let item of items) {
-    const amount = BigNumber.from(item.amount)
-    sum = sum.add(amount)
-  }
-  return sum
-}
+import { queryFetch } from './utils/queryFetch'
+import { nearestDate } from './utils/nearestDate'
+import { getTokenDecimals } from './utils/getTokenDecimals'
 
 type Options = {
   regenesis?: boolean
@@ -93,22 +54,6 @@ class VolumeStats {
     }
   }
 
-  async queryFetch (url: string, query: string, variables?: any) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
-      body: JSON.stringify({
-        query,
-        variables: variables || {}
-      })
-    })
-    const jsonRes = await res.json()
-    return jsonRes.data
-  }
-
   async fetchDailyVolume (chain: string, startDate: number) {
     const query = `
       query DailyVolume($startDate: Int, $endDate: Int) {
@@ -128,7 +73,7 @@ class VolumeStats {
       }
     `
     const url = this.getUrl(chain)
-    const data = await this.queryFetch(url, query, {
+    const data = await queryFetch(url, query, {
       startDate
     })
 
@@ -200,7 +145,7 @@ class VolumeStats {
           const amount = item.amount
           const timestamp = item.date
           const token = item.token
-          const decimals = tokenDecimals[token]
+          const decimals = getTokenDecimals(token)
           const formattedAmount = Number(formatUnits(amount, decimals))
           if (!prices[token]) {
             console.log('not found', token)

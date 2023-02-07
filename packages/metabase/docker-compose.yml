@@ -7,6 +7,6 @@ services:
     restart: unless-stopped
     volumes:
     - ./metabase-db:/metabase.db
-    - ./db/sqlite3.db:/sqlite3.db
+    - ./db/sqlite3.db:/db/sqlite3.db
     ports:
       - 3000:3000

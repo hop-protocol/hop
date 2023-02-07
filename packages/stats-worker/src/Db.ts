@@ -35,6 +35,16 @@ class Db {
           price NUMERIC NOT NULL,
           timestamp INTEGER NOT NULL
       )`)
+      this.db.run(`CREATE TABLE IF NOT EXISTS amm_stats (
+          id TEXT PRIMARY KEY,
+          chain TEXT NOT NULL,
+          token TEXT NOT NULL,
+          volume NUMERIC NOT NULL,
+          volume_usd NUMERIC NOT NULL,
+          fees NUMERIC NOT NULL,
+          fees_usd NUMERIC NOT NULL,
+          timestamp INTEGER NOT NULL
+      )`)
       if (argv.resetBonderBalancesDb) {
         this.db.run(`DROP TABLE IF EXISTS bonder_balances`)
       }
@@ -140,6 +150,9 @@ class Db {
       )
       this.db.run(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_tx_fees_token_timestamp ON bonder_tx_fees (token, timestamp);'
+      )
+      this.db.run(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_amm_stats_chain_token_timestamp ON amm_stats (chain, token, timestamp);'
       )
       if (argv.migrations && !migrationRan) {
         const migrations = JSON.parse(argv.migrations)
@@ -311,6 +324,22 @@ class Db {
       'INSERT OR REPLACE INTO tvl_pool_stats VALUES (?, ?, ?, ?, ?, ?)'
     )
     stmt.run(uuid(), chain, token, amount, amountUsd, timestamp)
+    stmt.finalize()
+  }
+
+  async upsertAmmStat (
+    chain: string,
+    token: string,
+    volume: number,
+    volumeUsd: number,
+    fees: number,
+    feesUsd: number,
+    timestamp: number
+  ) {
+    const stmt = this.db.prepare(
+      'INSERT OR REPLACE INTO amm_stats VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    )
+    stmt.run(uuid(), chain, token, volume, volumeUsd, fees, feesUsd, timestamp)
     stmt.finalize()
   }
 

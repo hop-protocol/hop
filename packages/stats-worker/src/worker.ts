@@ -1,6 +1,7 @@
 import YieldStats from './YieldStats'
 import VolumeStats from './VolumeStats'
 import TvlStats from './TvlStats'
+import { AmmStats } from './AmmStats'
 import BonderStats from './BonderStats'
 import S3Upload from './S3Upload'
 import wait from 'wait'
@@ -8,6 +9,7 @@ import wait from 'wait'
 type Options = {
   yields?: boolean
   tvl?: boolean
+  amm?: boolean
   volume?: boolean
   bonder?: boolean
   bonderProfit?: boolean
@@ -27,11 +29,13 @@ class Worker {
   yieldStats: YieldStats
   volumeStats: VolumeStats
   tvlStats: TvlStats
+  ammStats: AmmStats
   bonderStats: BonderStats
   hosting = new S3Upload()
   pollIntervalMs: number = 60 * 60 * 1000
   yields: boolean = false
   tvl: boolean = false
+  amm: boolean = false
   volume: boolean = false
   bonder: boolean = false
 
@@ -39,6 +43,7 @@ class Worker {
     let {
       yields,
       tvl,
+      amm,
       volume,
       regenesis,
       days,
@@ -55,6 +60,7 @@ class Worker {
     } = options
     this.yields = yields
     this.tvl = tvl
+    this.amm = amm
     this.volume = volume
     if (pollIntervalSeconds) {
       this.pollIntervalMs = pollIntervalSeconds * 1000
@@ -68,6 +74,10 @@ class Worker {
       regenesis
     })
     this.tvlStats = new TvlStats({
+      regenesis,
+      days
+    })
+    this.ammStats = new AmmStats({
       regenesis,
       days
     })
@@ -92,6 +102,9 @@ class Worker {
     }
     if (this.tvl) {
       promises.push(this.tvlStatsPoll())
+    }
+    if (this.amm) {
+      promises.push(this.ammStatsPoll())
     }
     if (this.volume) {
       promises.push(this.volumeStatsPoll())
@@ -126,6 +139,20 @@ class Worker {
         console.log(`fetching tvl stats (${new Date()})`)
         await this.tvlStats.trackTvl()
         console.log('done tracking tvl stats')
+      } catch (err) {
+        console.error(err)
+      }
+      await wait(this.pollIntervalMs)
+    }
+  }
+
+  async ammStatsPoll () {
+    console.log('ammStatsPoll started')
+    while (true) {
+      try {
+        console.log(`fetching amm stats (${new Date()})`)
+        await this.ammStats.trackAmm()
+        console.log('done tracking amm stats')
       } catch (err) {
         console.error(err)
       }

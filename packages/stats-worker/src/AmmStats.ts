@@ -178,6 +178,12 @@ export class AmmStats {
           ) {
             continue
           }
+          if (
+            chain === 'nova' &&
+            !['ETH'].includes(token)
+          ) {
+            continue
+          }
           promises.push(
             (async () => {
               const tokenDecimals = getTokenDecimals(token)

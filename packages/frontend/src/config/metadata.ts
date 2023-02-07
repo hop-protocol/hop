@@ -1,11 +1,5 @@
 import deepmerge from 'deepmerge'
 import * as hopMetadata from '@hop-protocol/core/metadata'
-import MainnetLogo from 'src/assets/logos/mainnet.svg'
-import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
-import OptimismLogo from 'src/assets/logos/optimism.svg'
-import GnosisLogo from 'src/assets/logos/gnosis.svg'
-import PolygonLogo from 'src/assets/logos/polygon.svg'
-import NovaLogo from 'src/assets/logos/nova.svg'
 import { TokenSymbol, Slug } from '@hop-protocol/sdk'
 import { hopAppNetwork } from 'src/config'
 
@@ -29,64 +23,76 @@ type Metadata = {
   }
 }
 
-const { tokens } = hopMetadata[hopAppNetwork]
+const { tokens, chains } = hopMetadata[hopAppNetwork]
 
 export const metadata: Metadata = {
   tokens,
   networks: {
     ethereum: {
-      name: 'Ethereum',
+      name: chains.ethereum.name,
       isLayer1: true,
-      image: MainnetLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.ethereum.image,
+      nativeTokenSymbol: chains.ethereum.nativeTokenSymbol,
     },
     kovan: {
       name: 'Kovan',
       isLayer1: true,
-      image: MainnetLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.ethereum.image,
+      nativeTokenSymbol: chains.ethereum.nativeTokenSymbol,
     },
     goerli: {
       name: 'Goerli',
       isLayer1: true,
-      image: MainnetLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.ethereum.image,
+      nativeTokenSymbol: chains.ethereum.nativeTokenSymbol,
     },
     mainnet: {
-      name: 'Mainnet',
+      name: chains.ethereum.name,
       isLayer1: true,
-      image: MainnetLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.ethereum.image,
+      nativeTokenSymbol: chains.ethereum.nativeTokenSymbol,
     },
     arbitrum: {
-      name: 'Arbitrum',
+      name: chains.arbitrum.name,
       isLayer1: false,
-      image: ArbitrumLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.arbitrum.image,
+      nativeTokenSymbol: chains.arbitrum.nativeTokenSymbol,
     },
     optimism: {
-      name: 'Optimism',
+      name: chains.optimism.name,
       isLayer1: false,
-      image: OptimismLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.optimism.image,
+      nativeTokenSymbol: chains.optimism.nativeTokenSymbol,
     },
     gnosis: {
-      name: 'Gnosis',
+      name: chains.gnosis.name,
       isLayer1: false,
-      image: GnosisLogo,
-      nativeTokenSymbol: 'xDAI',
+      image: chains.gnosis.image,
+      nativeTokenSymbol: chains.gnosis.nativeTokenSymbol,
     },
     polygon: {
-      name: 'Polygon',
+      name: chains.polygon.name,
       isLayer1: false,
-      image: PolygonLogo,
-      nativeTokenSymbol: 'MATIC',
+      image: chains.polygon.image,
+      nativeTokenSymbol: chains.polygon.nativeTokenSymbol,
     },
     nova: {
-      name: 'Nova',
+      name: chains.nova.name,
       isLayer1: false,
-      image: NovaLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.nova.image,
+      nativeTokenSymbol: chains.nova.nativeTokenSymbol,
+    },
+    zksync: {
+      name: chains.zksync.name,
+      isLayer1: false,
+      image: chains.zksync.image,
+      nativeTokenSymbol: chains.zksync.nativeTokenSymbol,
+    },
+    consensyszk: {
+      name: chains.consensyszk.name,
+      isLayer1: false,
+      image: chains.consensyszk.image,
+      nativeTokenSymbol: chains.consensyszk.nativeTokenSymbol,
     },
   },
 }

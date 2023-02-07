@@ -296,24 +296,33 @@ const Send: FC = () => {
   }, [estimatedReceived, adjustedDestinationTxFee])
 
   useEffect(() => {
-    let message = noLiquidityWarning || minimumSendWarning
+    try {
+      let message = noLiquidityWarning || minimumSendWarning
 
-    const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
-    const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
-    const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
+      const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
+      const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
+      const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
+      const bonderFeeMajority = sourceToken?.decimals && estimatedReceived && totalFee && ((Number(formatUnits(totalFee, sourceToken?.decimals)) / Number(fromTokenAmount)) > 0.5)
 
-    if (sufficientBalanceWarning) {
-      message = sufficientBalanceWarning
-    } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
-      message = 'Bonder fee greater than estimated received'
-    } else if (estimatedReceived?.lte(0)) {
-      message = 'Estimated received too low. Send a higher amount to cover the fees.'
-    } else if (showPriceImpactWarning) {
-      message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
+      if (sufficientBalanceWarning) {
+        message = sufficientBalanceWarning
+      } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
+        message = 'Bonder fee greater than estimated received'
+      } else if (estimatedReceived?.lte(0)) {
+        message = 'Estimated received too low. Send a higher amount to cover the fees.'
+      } else if (showPriceImpactWarning) {
+        message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
+      } else if (bonderFeeMajority) {
+        message = 'Warning: More than 50% of amount will go towards bonder fee'
+      }
+
+      setWarning(message)
+    } catch (err: any) {
+      console.error(err)
+      setWarning('')
     }
-
-    setWarning(message)
   }, [
+    sourceToken,
     noLiquidityWarning,
     minimumSendWarning,
     sufficientBalanceWarning,
@@ -321,6 +330,7 @@ const Send: FC = () => {
     priceImpact,
     fromTokenAmount,
     toTokenAmount,
+    totalFee
   ])
 
   useEffect(() => {

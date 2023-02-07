@@ -16,30 +16,17 @@ export const addresses: HopAddresses = {
 }
 
 const _networks = kovanNetworks as any
+const networks: Networks = {}
 
-export const networks: Networks = {
-  ethereum: {
-    networkId: _networks.ethereum.networkId,
-    rpcUrl: _networks.ethereum.publicRpcUrl,
-    fallbackRpcUrls: _networks.ethereum.fallbackPublicRpcUrls,
-    explorerUrl: _networks.ethereum.explorerUrls[0],
-    nativeBridgeUrl: _networks.ethereum.nativeBridgeUrl,
-    waitConfirmations: _networks.ethereum.waitConfirmations,
-  },
-  optimism: {
-    networkId: _networks.optimism.networkId,
-    rpcUrl: _networks.optimism.publicRpcUrl,
-    fallbackRpcUrls: _networks.optimism.fallbackPublicRpcUrls,
-    explorerUrl: _networks.optimism.explorerUrls[0],
-    nativeBridgeUrl: _networks.optimism.nativeBridgeUrl,
-    waitConfirmations: _networks.optimism.waitConfirmations,
-  },
-  gnosis: {
-    networkId: _networks.gnosis.networkId,
-    rpcUrl: _networks.gnosis.publicRpcUrl,
-    fallbackRpcUrls: _networks.gnosis.fallbackPublicRpcUrls,
-    explorerUrl: _networks.gnosis.explorerUrls[0],
-    nativeBridgeUrl: _networks.gnosis.nativeBridgeUrl,
-    waitConfirmations: _networks.gnosis.waitConfirmations,
-  },
+for (const chainSlug in _networks) {
+  networks[chainSlug] = {
+    networkId: _networks[chainSlug].networkId,
+    rpcUrl: _networks[chainSlug].publicRpcUrl,
+    fallbackRpcUrls: _networks[chainSlug].fallbackPublicRpcUrls,
+    explorerUrl: _networks[chainSlug].explorerUrls[0],
+    nativeBridgeUrl: _networks[chainSlug].nativeBridgeUrl,
+    waitConfirmations: _networks[chainSlug].waitConfirmations
+  }
 }
+
+export { networks }

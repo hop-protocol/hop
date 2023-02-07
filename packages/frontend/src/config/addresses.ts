@@ -9,7 +9,7 @@ let hopAppNetwork = reactAppNetwork
 if (reactAppNetwork === Slug.staging) {
   hopAppNetwork = Slug.mainnet
 }
-let addresses = kovanAddresses
+let addresses: any = kovanAddresses
 let networks = kovanNetworks
 const isMainnet = hopAppNetwork === Slug.mainnet
 
@@ -44,6 +44,10 @@ if (enabledChains) {
     }
   }
   networks = filteredNetworks
+}
+
+if (!enabledChains) {
+  enabledChains = ['ethereum', 'polygon', 'gnosis']
 }
 
 if (process.env.NODE_ENV !== 'test') {

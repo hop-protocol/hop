@@ -720,6 +720,14 @@ describe('PriceFeed', () => {
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(5)
   }, 60 * 1000)
+  it('should return rETH price', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('rETH')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('rETH')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(10000)
+  }, 60 * 1000)
 })
 
 describe.skip('getMessengerWrapperAddress', () => {

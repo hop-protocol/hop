@@ -9,10 +9,10 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { NonceTooLowError, RelayerFeeTooLowError } from 'src/types/error'
 import { RelayableTransferRoot } from 'src/db/TransferRootsDb'
 import { Transfer, UnrelayedSentTransfer } from 'src/db/TransfersDb'
+import { getEnabledNetworks, relayTransactionBatchSize } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
 import { promiseQueue } from 'src/utils/promiseQueue'
 import { providers } from 'ethers'
-import { relayTransactionBatchSize } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -36,21 +36,27 @@ class RelayWatcher extends BaseWatcher {
       dryMode: config.dryMode
     })
 
-    const arbitrumChainId = this.chainSlugToId(Chain.Arbitrum)
-    this.relayWatchers[arbitrumChainId] = new ArbitrumBridgeWatcher({
-      chainSlug: Chain.Arbitrum,
-      tokenSymbol: this.tokenSymbol,
-      bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
-    })
+    const enabledNetworks = getEnabledNetworks()
 
-    const novaChainId = this.chainSlugToId(Chain.Nova)
-    this.relayWatchers[novaChainId] = new ArbitrumBridgeWatcher({
-      chainSlug: Chain.Nova,
-      tokenSymbol: this.tokenSymbol,
-      bridgeContract: config.bridgeContract,
-      dryMode: config.dryMode
-    })
+    if (enabledNetworks.includes(Chain.Arbitrum)) {
+      const arbitrumChainId = this.chainSlugToId(Chain.Arbitrum)
+      this.relayWatchers[arbitrumChainId] = new ArbitrumBridgeWatcher({
+        chainSlug: Chain.Arbitrum,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+
+    if (enabledNetworks.includes(Chain.Nova)) {
+      const novaChainId = this.chainSlugToId(Chain.Nova)
+      this.relayWatchers[novaChainId] = new ArbitrumBridgeWatcher({
+        chainSlug: Chain.Nova,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
   }
 
   async pollHandler () {

@@ -7,6 +7,7 @@ export enum NetworkSlug {
   Kovan = 'kovan'
 }
 
+// mainnet chain ids
 export enum ChainId {
   Ethereum = 1,
   Optimism = 10,
@@ -14,6 +15,7 @@ export enum ChainId {
   Polygon = 137,
   Gnosis = 100,
   Nova = 42170,
+  ZkSync = 324
 }
 
 export enum ChainName {
@@ -23,6 +25,8 @@ export enum ChainName {
   Polygon = 'Polygon',
   Gnosis = 'Gnosis',
   Nova = 'Nova',
+  ZkSync = 'zkSync',
+  ConsenSysZk = 'ConsenSys zkEVM'
 }
 
 export enum ChainSlug {
@@ -32,6 +36,8 @@ export enum ChainSlug {
   Polygon = 'polygon',
   Gnosis = 'gnosis',
   Nova = 'nova',
+  ZkSync = 'zksync',
+  ConsenSysZk = 'consensyszk'
 }
 
 export enum Slug {
@@ -45,6 +51,8 @@ export enum Slug {
   gnosis = 'gnosis',
   polygon = 'polygon',
   nova = 'nova',
+  zksync = 'zksync',
+  consensyszk = 'consensyszk'
 }
 
 export enum CanonicalToken {
@@ -59,7 +67,8 @@ export enum CanonicalToken {
   sETH = 'sETH',
   HOP = 'HOP',
   SNX = 'SNX',
-  sUSD = 'sUSD'
+  sUSD = 'sUSD',
+  rETH = 'rETH'
 }
 
 export enum WrappedToken {
@@ -75,6 +84,7 @@ export enum HToken {
   hUSDT = 'hUSDT',
   hDAI = 'hDAI',
   hHop = 'hHOP',
+  hrETH = 'hrETH',
 }
 
 export type TokenSymbol = CanonicalToken | WrappedToken | HToken | string
@@ -88,7 +98,9 @@ export enum BondTransferGasLimit {
   Ethereum = '165000',
   Optimism = '100000000',
   Arbitrum = '2500000',
-  Nova = '2500000'
+  Nova = '2500000',
+  ZkSync = '100000', // TODO
+  ConsenSysZk = '100000' // TODO
 }
 
 export const SettlementGasLimitPerTx: Record<string, number> = {
@@ -97,7 +109,9 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   gnosis: 3218,
   optimism: 8545,
   arbitrum: 19843,
-  nova: 19843
+  nova: 19843,
+  zksync: 10000, // TODO
+  consensyzk: 10000 // TODO
 }
 
 export const LpFeeBps = '4'

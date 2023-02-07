@@ -15,7 +15,7 @@ type Options = {
 export class AmmStats {
   db = new Db()
   regenesis: boolean = false
-  days: number = 365
+  days: number = 1
   priceFeed: PriceFeed
 
   constructor (options: Options = {}) {

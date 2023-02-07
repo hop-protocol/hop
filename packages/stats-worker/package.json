@@ -11,7 +11,7 @@
     "start:yields": "ts-node src/index.ts --yields",
     "start:volume": "ts-node src/index.ts --volume",
     "start:tvl": "ts-node src/index.ts --tvl",
-    "start:amm": "ts-node src/index.ts --amm --days=7",
+    "start:amm": "ts-node src/index.ts --amm --ammDays=7",
     "start:bonder": "ts-node src/index.ts --bonder --bonderDays=30",
     "start:bonder:migration": "ts-node src/index.ts --bonder --bonderDays=30 --migrations=[19]",
     "start:bonderProfit": "ts-node src/index.ts --bonderStartDate=2021-08-01 --bonderEndDate=2022-08-18 --bonderTokens=USDT --bonderProfit",

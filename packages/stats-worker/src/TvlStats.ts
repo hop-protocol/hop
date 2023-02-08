@@ -193,8 +193,14 @@ class TvlStats {
                 }
 
                 const config = (mainnetAddresses as any).bridges[token][chain]
+                if (!config) {
+                  return
+                }
                 const tokenAddress =
-                  config.l2CanonicalToken ?? config.l1CanonicalToken
+                  config?.l2CanonicalToken ?? config.l1CanonicalToken
+                if (!tokenAddress) {
+                  return
+                }
                 const spender = config.l2SaddleSwap ?? config.l1Bridge
                 const tokenContract = new Contract(
                   tokenAddress,

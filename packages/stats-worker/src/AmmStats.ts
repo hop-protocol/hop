@@ -10,13 +10,19 @@ import { getTokenDecimals } from './utils/getTokenDecimals'
 type Options = {
   regenesis?: boolean
   days?: number
+  offsetDays?: number
+  tokens?: string[]
+  chains?: string[]
 }
 
 export class AmmStats {
   db = new Db()
   regenesis: boolean = false
   days: number = 1
+  offsetDays: number = 0
   priceFeed: PriceFeed
+  tokens: string[] = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'SNX']
+  chains: string[] = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'nova']
 
   constructor (options: Options = {}) {
     if (options.regenesis) {
@@ -24,6 +30,15 @@ export class AmmStats {
     }
     if (options.days) {
       this.days = options.days
+    }
+    if (options.offsetDays) {
+      this.offsetDays = options.offsetDays
+    }
+    if (options.tokens) {
+      this.tokens = options.tokens
+    }
+    if (options.chains) {
+      this.chains = options.chains
     }
 
     this.priceFeed = new PriceFeed()
@@ -157,103 +172,104 @@ export class AmmStats {
     for (let i = 0; i < this.days; i++) {
       const promises: any[] = []
       const now = DateTime.utc()
-      const startDate = now.minus({ day: i }).startOf('day')
-      const endDate = now.endOf('day')
+      const startDate = now.minus({ day: i + this.offsetDays }).startOf('day')
+      const endDate = startDate.endOf('day')
       const startDateUnix = Math.floor(startDate.toSeconds())
       const endDateUnix = Math.floor(endDate.toSeconds())
 
-      const tokens = ['ETH', 'USDC', 'USDT', 'DAI', 'MATIC', 'SNX']
-      const chains = ['polygon', 'gnosis', 'arbitrum', 'optimism', 'nova']
-      for (const token of tokens) {
-        for (const chain of chains) {
-          if (
-            token === 'MATIC' &&
-            !['polygon', 'gnosis'].includes(chain)
-          ) {
+      for (const token of this.tokens) {
+        for (const chain of this.chains) {
+          if (token === 'MATIC' && !['polygon', 'gnosis'].includes(chain)) {
             continue
           }
-          if (
-            token === 'SNX' &&
-            !['optimism'].includes(chain)
-          ) {
+          if (token === 'SNX' && !['optimism'].includes(chain)) {
             continue
           }
-          if (
-            chain === 'nova' &&
-            !['ETH'].includes(token)
-          ) {
+          if (chain === 'nova' && !['ETH'].includes(token)) {
             continue
           }
           promises.push(
             (async () => {
-              const tokenDecimals = getTokenDecimals(token)
-              const events = await this.fetchTokenSwaps(
-                chain,
-                token,
-                startDateUnix,
-                endDateUnix
-              )
-              let volume = BigNumber.from(0)
-              for (const event of events) {
-                const amount = BigNumber.from(event.tokensSold)
-                volume = volume.add(amount)
-              }
-              const volumeFormatted = Number(formatUnits(volume, tokenDecimals))
-
-              const oneToken = parseUnits('1')
-              const lpFee = BigNumber.from(4)
-              const lpFeeBN = parseUnits(lpFee.toString(), tokenDecimals)
-              const fees = volume
-                .mul(lpFeeBN)
-                .div(oneToken)
-                .div(10000)
-
-              const feesFormatted = Number(formatUnits(fees, tokenDecimals))
-              console.log(
-                startDate.toISO(),
-                startDateUnix,
-                chain,
-                token,
-                'volume',
-                volumeFormatted,
-                'fees',
-                feesFormatted,
-                'events',
-                events.length
-              )
-
-              if (!prices[token]) {
-                console.log('price not found', token)
-                return
-              }
-
-              const dates = prices[token].reverse().map((x: any) => x[0])
-              const nearest = nearestDate(dates, startDateUnix)
-              const price = prices[token][nearest][1]
-
-              const volumeFormattedUsd = price * volumeFormatted
-              const feesFormattedUsd = price * feesFormatted
-
               try {
-                console.log('upserting amm stat', chain, token, i)
-                this.db.upsertAmmStat(
+                const tokenDecimals = getTokenDecimals(token)
+                console.log('fetching token swaps', chain, token, i)
+                const events = await this.fetchTokenSwaps(
                   chain,
                   token,
+                  startDateUnix,
+                  endDateUnix
+                )
+                let volume = BigNumber.from(0)
+                for (const event of events) {
+                  const amount = BigNumber.from(event.tokensSold)
+                  volume = volume.add(amount)
+                }
+                const volumeFormatted = Number(
+                  formatUnits(volume, tokenDecimals)
+                )
+
+                const oneToken = parseUnits('1', tokenDecimals)
+                const lpFee = BigNumber.from(4)
+                const lpFeeBN = parseUnits(lpFee.toString(), tokenDecimals)
+                const fees = volume
+                  .mul(lpFeeBN)
+                  .div(oneToken)
+                  .div(10000)
+
+                const feesFormatted = Number(formatUnits(fees, tokenDecimals))
+
+                if (!prices[token]) {
+                  console.log('price not found', token)
+                  return
+                }
+
+                const dates = prices[token].reverse().map((x: any) => x[0])
+                const nearest = nearestDate(dates, startDateUnix)
+                const price = prices[token][nearest][1]
+
+                const volumeFormattedUsd = price * volumeFormatted
+                const feesFormattedUsd = price * feesFormatted
+                console.log(
+                  startDate.toISO(),
+                  startDateUnix,
+                  chain,
+                  token,
+                  'events',
+                  events.length,
+                  'volume',
                   volumeFormatted,
+                  'volume usd',
                   volumeFormattedUsd,
+                  'fees',
                   feesFormatted,
-                  feesFormattedUsd,
-                  startDateUnix
+                  'fees usd',
+                  feesFormattedUsd
+                )
+
+                try {
+                  console.log('upserting amm stat', chain, token, i)
+                  this.db.upsertAmmStat(
+                    chain,
+                    token,
+                    volumeFormatted,
+                    volumeFormattedUsd,
+                    feesFormatted,
+                    feesFormattedUsd,
+                    startDateUnix
+                  )
+                } catch (err) {
+                  if (!err.message.includes('UNIQUE constraint failed')) {
+                    console.log('error', chain, token)
+                    throw err
+                  }
+                  console.error(err)
+                }
+                console.log(
+                  `done fetching amm daily volume stats, chain: ${chain}, token: ${token}`
                 )
               } catch (err) {
-                if (!err.message.includes('UNIQUE constraint failed')) {
-                  console.log('error', chain, token)
-                  throw err
-                }
+                console.error('amm stats error:', err)
               }
-              console.log(
-                `done fetching amm daily volume stats, chain: ${chain}, token: ${token}`
-              )
             })()
           )
         }

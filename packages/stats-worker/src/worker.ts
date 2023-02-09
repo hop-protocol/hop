@@ -10,6 +10,10 @@ type Options = {
   yields?: boolean
   tvl?: boolean
   amm?: boolean
+  ammDays?: number
+  ammOffsetDays?: number
+  ammTokens?: string[]
+  ammChains?: string[]
   volume?: boolean
   bonder?: boolean
   bonderProfit?: boolean
@@ -44,6 +48,10 @@ class Worker {
       yields,
       tvl,
       amm,
+      ammDays,
+      ammOffsetDays,
+      ammTokens,
+      ammChains,
       volume,
       regenesis,
       days,
@@ -79,7 +87,10 @@ class Worker {
     })
     this.ammStats = new AmmStats({
       regenesis,
-      days
+      days: ammDays,
+      offsetDays: ammOffsetDays,
+      tokens: ammTokens,
+      chains: ammChains
     })
     this.bonderStats = new BonderStats({
       days: bonderDays,

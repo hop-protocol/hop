@@ -188,7 +188,9 @@ class HopConvertOption extends ConvertOption {
 
     const {
       destinationTxFeeDisplay,
+      destinationTxFeeUsdDisplay,
       bonderFeeDisplay,
+      bonderFeeUsdDisplay,
       totalBonderFeeDisplay,
       estimatedReceivedDisplay,
     } = getConvertedFees(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, token)
@@ -199,7 +201,7 @@ class HopConvertOption extends ConvertOption {
           <DetailRow
             title={'Fees'}
             tooltip={
-              <FeeDetails bonderFee={bonderFeeDisplay} destinationTxFee={destinationTxFeeDisplay} />
+              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} />
             }
             value={totalBonderFeeDisplay}
             large

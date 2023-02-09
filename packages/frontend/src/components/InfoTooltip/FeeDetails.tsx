@@ -1,5 +1,6 @@
 import React, { FC } from 'react'
 import Typography from '@material-ui/core/Typography'
+import Box from '@material-ui/core/Box'
 import { makeStyles } from '@material-ui/core/styles'
 import DetailRow from 'src/components/InfoTooltip/DetailRow'
 
@@ -15,13 +16,15 @@ const useStyles = makeStyles(theme => ({
 }))
 
 type Props = {
-  bonderFee: string | undefined
-  destinationTxFee: string | undefined
+  bonderFee?: string
+  bonderFeeUsd?: string
+  destinationTxFee?: string
+  destinationTxFeeUsd?: string
 }
 
 const FeeDetails: FC<Props> = props => {
   const styles = useStyles()
-  const { bonderFee, destinationTxFee } = props
+  const { bonderFee, bonderFeeUsd, destinationTxFee, destinationTxFeeUsd } = props
 
   return (
     <div className={styles.root}>
@@ -34,8 +37,18 @@ const FeeDetails: FC<Props> = props => {
       <Typography variant="body1" className={styles.text}>
         LP fees are included in the swap price.
       </Typography>
-      <DetailRow title="Bonder fee" value={bonderFee} contrastText />
-      <DetailRow title="Destination tx cost" value={destinationTxFee} contrastText />
+      <DetailRow title="Bonder fee" value={<>
+        {!!bonderFeeUsd && (
+          <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{bonderFeeUsd}</small></Box>
+        )}
+        <Box display="inline-block">{bonderFee}</Box>
+      </>} contrastText />
+      <DetailRow title="Destination tx cost" value={<>
+        {!!bonderFeeUsd && (
+          <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{destinationTxFeeUsd}</small></Box>
+        )}
+        <Box display="inline-block">{destinationTxFee}</Box>
+      </>} contrastText />
     </div>
   )
 }

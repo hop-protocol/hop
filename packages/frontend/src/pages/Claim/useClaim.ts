@@ -232,7 +232,7 @@ export function useClaim() {
     }
   }
 
-  useInterval(checkClaim, 5 * 1000)
+  useInterval(checkClaim, 60 * 1000)
 
   // Sets warning about claimable tokens
   useEffect(() => {

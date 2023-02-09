@@ -174,7 +174,9 @@ const Send: FC = () => {
   // Convert fees to displayed values
   const {
     destinationTxFeeDisplay,
+    destinationTxFeeUsdDisplay,
     bonderFeeDisplay,
+    bonderFeeUsdDisplay,
     totalBonderFee,
     totalBonderFeeDisplay,
     estimatedReceivedDisplay,
@@ -717,7 +719,7 @@ const Send: FC = () => {
           <DetailRow
             title={'Fees'}
             tooltip={
-              <FeeDetails bonderFee={bonderFeeDisplay} destinationTxFee={destinationTxFeeDisplay} />
+              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} />
             }
             value={totalBonderFeeDisplay}
             large

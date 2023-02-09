@@ -21,10 +21,19 @@ export function getUrl(chain: Slug | string) {
     if (chain === 'optimism') {
       chain = 'optimism-goerli'
     }
+    if (chain === 'nova') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
     if (chain === 'arbitrum') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
     if (chain === 'xdai') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
+    if (chain === 'zksync') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
+    if (chain === 'consensyszk') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
 
@@ -35,13 +44,16 @@ export function getUrl(chain: Slug | string) {
     // In order to use the decentralized service, please ensure the decentralized subgraph is pushed and published. This
     // is a different process than the centralized subgraph.
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-mainnet`
+    // TODO: Reintroduce this
     // return 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
+  } else if (chain === Slug.nova) {
+    return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
   } else {
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
   }
 }
 
-async function queryFetch(url, query, variables?: any) {
+async function queryFetch(url: string, query: string, variables?: any) {
   try {
     const res = await fetch(url, {
       method: 'POST',

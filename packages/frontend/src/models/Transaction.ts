@@ -151,6 +151,12 @@ class Transaction extends EventEmitter {
       return this._gnosisLink()
     } else if (this.networkName.startsWith(ChainSlug.Polygon)) {
       return this._polygonLink()
+    } else if (this.networkName.startsWith(ChainSlug.Nova)) {
+      return this._novaLink()
+    } else if (this.networkName.startsWith(ChainSlug.ZkSync)) {
+      return this._zksyncLink()
+    } else if (this.networkName.startsWith(ChainSlug.ConsenSysZk)) {
+      return this._consensysZkLink()
     } else {
       return ''
     }
@@ -169,6 +175,12 @@ class Transaction extends EventEmitter {
       return this._gnosisLink(this.destTxHash)
     } else if (this.destNetworkName?.startsWith(ChainSlug.Polygon)) {
       return this._polygonLink(this.destTxHash)
+    } else if (this.destNetworkName?.startsWith(ChainSlug.Nova)) {
+      return this._novaLink(this.destTxHash)
+    } else if (this.networkName.startsWith(ChainSlug.ZkSync)) {
+      return this._zksyncLink(this.destTxHash)
+    } else if (this.networkName.startsWith(ChainSlug.ConsenSysZk)) {
+      return this._consensysZkLink(this.destTxHash)
     } else {
       return ''
     }
@@ -341,6 +353,18 @@ class Transaction extends EventEmitter {
 
   private _polygonLink(txHash: string = this.hash) {
     return `${getBaseExplorerUrl('polygon')}/tx/${txHash}`
+  }
+
+  private _novaLink(txHash: string = this.hash) {
+    return `${getBaseExplorerUrl('nova')}/tx/${txHash}`
+  }
+
+  private _zksyncLink(txHash: string = this.hash) {
+    return `${getBaseExplorerUrl('zksync')}/tx/${txHash}`
+  }
+
+  private _consensysZkLink(txHash: string = this.hash) {
+    return `${getBaseExplorerUrl('consensyszk')}/tx/${txHash}`
   }
 
   private setPendingDestinationConfirmed() {

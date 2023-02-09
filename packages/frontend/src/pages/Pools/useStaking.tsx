@@ -9,6 +9,7 @@ import { useApprove, useAsyncMemo } from 'src/hooks'
 import { usePoolStats } from './usePoolStats'
 import { useQuery } from 'react-query'
 import { useWeb3Context } from 'src/contexts/Web3Context'
+import { stableCoins } from 'src/utils/constants'
 
 export function useStaking (chainSlug: string, tokenSymbol: string, stakingContractAddress: string) {
   const { bridges, sdk, txConfirm } = useApp()
@@ -297,8 +298,8 @@ export function useStaking (chainSlug: string, tokenSymbol: string, stakingContr
         const amm = bridge.getAmm(chainSlug)
         const userStakedTotal = await amm.calculateTotalAmountForLpToken(depositedAmountBn)
         const canonToken = bridge.getCanonicalToken(chainSlug)
-        const tokenUsdPrice = ['USDC', 'USDT', 'DAI'].includes(tokenSymbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
-        const rewardTokenUsdPrice = ['USDC', 'USDT', 'DAI'].includes(rewardsTokenSymbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(rewardsTokenSymbol)
+        const tokenUsdPrice = stableCoins.has(tokenSymbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(tokenSymbol)
+        const rewardTokenUsdPrice = stableCoins.has(rewardsTokenSymbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(rewardsTokenSymbol)
 
         const stakedPosition = calculateStakedPosition(
           earnedAmountBn,

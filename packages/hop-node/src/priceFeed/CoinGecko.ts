@@ -59,7 +59,8 @@ class CoinGecko {
     ZRX: '0xE41d2489571d322189246DaFA5ebDe1F4699F498',
     HOP: '0xc5102fE9359FD9a28f877a67E36B0F050d81a3CC',
     SNX: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
-    SUSD: '0x57Ab1ec28D129707052df4dF418D58a2D46d5f51'
+    SUSD: '0x57Ab1ec28D129707052df4dF418D58a2D46d5f51',
+    RETH: '0xae78736cd615f374d3085123a210448e74fc6393'
   }
 
   private readonly _nonEthTokens: { [key: string]: string } = {

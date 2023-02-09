@@ -43,7 +43,8 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
     }
 
     const customRpcProviderUrls = {}
-    const validChains = ['ethereum', 'optimism', 'arbitrum', 'polygon', 'gnosis']
+    const instance = new Hop(network)
+    const validChains = instance.getSupportedChains()
     if (rpcUrl) {
       if (!(rpcUrl instanceof Object)) {
         throw new Error('"rpcUrl" query param should be in the form of rpcUrl[chain]. Example: rpcUrl[optimism]=https://mainnet.optimism.io')
@@ -61,7 +62,6 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
       }
     }
 
-    const instance = new Hop(network)
     if (Object.keys(customRpcProviderUrls)) {
       instance.setChainProviderUrls(customRpcProviderUrls)
     }

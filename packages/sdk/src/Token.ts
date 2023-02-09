@@ -243,7 +243,11 @@ class Token extends Base {
       this._symbol === TokenModel.ETH &&
       (this.chain.equals(Chain.Ethereum) ||
         this.chain.equals(Chain.Arbitrum) ||
-        this.chain.equals(Chain.Optimism))
+        this.chain.equals(Chain.Nova) ||
+        this.chain.equals(Chain.Optimism) ||
+        this.chain.equals(Chain.ZkSync) ||
+        this.chain.equals(Chain.ConsenSysZk)
+      )
     const isMatic =
       this._symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
     const isxDai =

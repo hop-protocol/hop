@@ -2,7 +2,7 @@ import { CanonicalToken, NetworkSlug, TokenSymbol } from '../constants'
 import { ethers } from 'ethers'
 import { metadata } from '../config'
 
-class Token {
+export class Token {
   public readonly chainId: number
   public readonly address: string
   public readonly decimals: number
@@ -25,6 +25,7 @@ class Token {
   static OP = 'OP'
   static SNX = 'SNX'
   static sUSD = 'sUSD'
+  static rETH = 'rETH'
 
   constructor (
     chainId: number | string,

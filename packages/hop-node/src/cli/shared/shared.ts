@@ -124,6 +124,7 @@ export function getSourceChains (token: string, settlementChain: string | null =
     if (token === 'MATIC') {
       if (
         chain === Chain.Arbitrum ||
+        chain === Chain.Nova ||
         chain === Chain.Optimism
       ) continue
     }
@@ -131,6 +132,12 @@ export function getSourceChains (token: string, settlementChain: string | null =
     if (token === 'SNX') {
       if (
         chain !== Chain.Optimism
+      ) continue
+    }
+
+    if (chain === Chain.Nova || chain === Chain.ZkSync || chain === Chain.ConsenSysZk) {
+      if (
+        token !== 'ETH'
       ) continue
     }
 

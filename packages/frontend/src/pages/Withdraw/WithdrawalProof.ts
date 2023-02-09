@@ -26,7 +26,7 @@ export class WithdrawalProof {
   transfer?: Transfer
   transferRoot ?: TransferRoot
 
-  constructor(transferId) {
+  constructor(transferId: string) {
     if (!transferId) {
       throw new Error('Transfer ID is required')
     }
@@ -214,7 +214,7 @@ export class WithdrawalProof {
   }
 
   private async findTransfer (transferId: string) {
-    const chains = ['polygon', 'xdai', 'arbitrum', 'optimism']
+    const chains = ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova'] // chain slugs that have subgraphs
     let transfer : Transfer
     for (const chain of chains) {
       transfer = await this.queryTransfer(transferId, chain)

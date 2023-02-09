@@ -11,6 +11,7 @@ import {
   USDTImage,
   WBTCImage,
   XDAIImage,
+  rETHImage,
   sBTCImage,
   sETHImage,
   sUSDImage
@@ -107,5 +108,11 @@ export const tokens: Tokens = {
     name: 'Gnosis',
     decimals: 18,
     image: GNOImage
+  },
+  rETH: {
+    symbol: 'rETH',
+    name: 'Rocket Pool ETH',
+    decimals: 18,
+    image: rETHImage
   }
 }

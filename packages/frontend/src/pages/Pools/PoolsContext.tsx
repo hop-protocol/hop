@@ -18,6 +18,7 @@ import { StakingRewards__factory } from '@hop-protocol/core/contracts'
 import { Token } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
 import { commafy, shiftBNDecimals, toTokenDisplay, toPercentDisplay, getTokenDecimals } from 'src/utils'
+import { stableCoins } from 'src/utils/constants'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
 import { hopStakingRewardsContracts, stakingRewardsContracts, reactAppNetwork } from 'src/config'
@@ -231,7 +232,7 @@ const PoolsProvider: FC = ({ children }) => {
       }
       const bridge = sdk.bridge(canonicalToken.symbol)
       const token = bridge.getL1Token()
-      return ['USDC', 'USDT', 'DAI'].includes(token.symbol) ? 1 : bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
+      return stableCoins.has(token.symbol) ? 1 : bridge.priceFeed.getPriceByTokenSymbol(token.symbol)
     } catch (err) {
       console.error(err)
     }

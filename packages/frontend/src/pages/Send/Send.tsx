@@ -1,6 +1,7 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
 import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
+import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
@@ -174,10 +175,14 @@ const Send: FC = () => {
   // Convert fees to displayed values
   const {
     destinationTxFeeDisplay,
+    destinationTxFeeUsdDisplay,
     bonderFeeDisplay,
+    bonderFeeUsdDisplay,
     totalBonderFee,
     totalBonderFeeDisplay,
+    totalBonderFeeUsdDisplay,
     estimatedReceivedDisplay,
+    estimatedReceivedUsdDisplay,
   } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
 
   const { estimateSend } = useEstimateTxCost(fromNetwork)
@@ -296,24 +301,33 @@ const Send: FC = () => {
   }, [estimatedReceived, adjustedDestinationTxFee])
 
   useEffect(() => {
-    let message = noLiquidityWarning || minimumSendWarning
+    try {
+      let message = noLiquidityWarning || minimumSendWarning
 
-    const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
-    const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
-    const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
+      const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
+      const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
+      const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
+      const bonderFeeMajority = sourceToken?.decimals && estimatedReceived && totalFee && ((Number(formatUnits(totalFee, sourceToken?.decimals)) / Number(fromTokenAmount)) > 0.5)
 
-    if (sufficientBalanceWarning) {
-      message = sufficientBalanceWarning
-    } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
-      message = 'Bonder fee greater than estimated received'
-    } else if (estimatedReceived?.lte(0)) {
-      message = 'Estimated received too low. Send a higher amount to cover the fees.'
-    } else if (showPriceImpactWarning) {
-      message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
+      if (sufficientBalanceWarning) {
+        message = sufficientBalanceWarning
+      } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
+        message = 'Bonder fee greater than estimated received'
+      } else if (estimatedReceived?.lte(0)) {
+        message = 'Estimated received too low. Send a higher amount to cover the fees.'
+      } else if (showPriceImpactWarning) {
+        message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
+      } else if (bonderFeeMajority) {
+        message = 'Warning: More than 50% of amount will go towards bonder fee'
+      }
+
+      setWarning(message)
+    } catch (err: any) {
+      console.error(err)
+      setWarning('')
     }
-
-    setWarning(message)
   }, [
+    sourceToken,
     noLiquidityWarning,
     minimumSendWarning,
     sufficientBalanceWarning,
@@ -321,6 +335,7 @@ const Send: FC = () => {
     priceImpact,
     fromTokenAmount,
     toTokenAmount,
+    totalFee
   ])
 
   useEffect(() => {
@@ -561,7 +576,7 @@ const Send: FC = () => {
 
   useEffect(() => {
     if (
-      toNetwork?.slug === ChainSlug.Arbitrum &&
+      (toNetwork?.slug === ChainSlug.Arbitrum || toNetwork?.slug === ChainSlug.Nova) &&
       customRecipient &&
       !address?.eq(customRecipient)
     ) {
@@ -707,9 +722,13 @@ const Send: FC = () => {
           <DetailRow
             title={'Fees'}
             tooltip={
-              <FeeDetails bonderFee={bonderFeeDisplay} destinationTxFee={destinationTxFeeDisplay} />
+              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} />
             }
-            value={totalBonderFeeDisplay}
+            value={<>
+              <InfoTooltip title={totalBonderFeeUsdDisplay}>
+                <Box>{totalBonderFeeDisplay}</Box>
+              </InfoTooltip>
+            </>}
             large
           />
 
@@ -723,7 +742,11 @@ const Send: FC = () => {
                 amountOutMinDisplay={amountOutMinDisplay}
               />
             }
-            value={estimatedReceivedDisplay}
+            value={<>
+              <InfoTooltip title={estimatedReceivedUsdDisplay}>
+                <Box>{estimatedReceivedDisplay}</Box>
+              </InfoTooltip>
+            </>}
             xlarge
             bold
           />

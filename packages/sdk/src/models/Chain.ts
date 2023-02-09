@@ -1,9 +1,9 @@
 import { ChainName, ChainSlug, Errors, NetworkSlug, Slug } from '../constants'
-import { mainnet } from '@hop-protocol/core/networks'
+import { goerli, mainnet } from '@hop-protocol/core/networks'
 import { metadata } from '../config'
 import { providers } from 'ethers'
 
-class Chain {
+export class Chain {
   chainId: number
   name: ChainName | string = ''
   slug: Slug | string = ''
@@ -16,6 +16,9 @@ class Chain {
   static Arbitrum = newChain(ChainSlug.Arbitrum, mainnet.arbitrum.networkId)
   static Gnosis = newChain(ChainSlug.Gnosis, mainnet.gnosis.networkId)
   static Polygon = newChain(ChainSlug.Polygon, mainnet.polygon.networkId)
+  static Nova = newChain(ChainSlug.Nova, mainnet.nova.networkId)
+  static ZkSync = newChain(ChainSlug.ZkSync, mainnet.zksync?.networkId ?? goerli.zksync?.networkId)
+  static ConsenSysZk = newChain(ChainSlug.ConsenSysZk, mainnet.consensyszk?.networkId ?? goerli.consensyszk?.networkId)
 
   static fromSlug (slug: Slug | string) {
     if (slug === 'xdai') {
@@ -28,7 +31,10 @@ class Chain {
 
   constructor (name: ChainName | string, chainId?: number, provider?: providers.Provider) {
     this.name = name
-    this.slug = (name || '').trim().toLowerCase()
+    this.slug = (name || '').trim().replace(/\s+/gi, '').toLowerCase()
+    if (this.slug.startsWith('consensys')) {
+      this.slug = 'consensyszk'
+    }
     if (
       this.slug === NetworkSlug.Kovan ||
       this.slug === NetworkSlug.Goerli ||
@@ -46,7 +52,11 @@ class Chain {
       this.provider = provider
     }
 
-    this.nativeTokenSymbol = metadata.networks[this.slug].nativeTokenSymbol
+    this.nativeTokenSymbol = metadata.networks[this.slug]?.nativeTokenSymbol
+    if (!this.nativeTokenSymbol) {
+      console.log(this.slug, metadata)
+      throw new Error(`nativeTokenSymbol not found for chain ${name}`)
+    }
   }
 
   equals (other: Chain) {

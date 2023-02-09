@@ -15,6 +15,7 @@ import {
   modifiedLiquidityTokens,
   oruChains
 } from 'src/config'
+import { getEnabledNetworks } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -259,7 +260,11 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
   async getOruToL1PendingAmount () {
     let pendingAmounts = BigNumber.from(0)
+    const enabledNetworks = getEnabledNetworks()
     for (const chain of oruChains) {
+      if (!enabledNetworks.includes(chain)) {
+        continue
+      }
       const watcher = this.getSiblingWatcherByChainSlug(chain)
       if (!watcher) {
         continue

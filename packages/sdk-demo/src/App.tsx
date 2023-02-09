@@ -18,7 +18,7 @@ import { Hop } from '@hop-protocol/sdk'
 import './App.css'
 
 function TokenDropdown (props: any) {
-  const { label, value, handleChange } = props
+  const { label, tokens, value, handleChange } = props
   return (
     <FormControl fullWidth>
       <InputLabel id="select-label">{label}</InputLabel>
@@ -29,17 +29,18 @@ function TokenDropdown (props: any) {
         label={label}
         onChange={handleChange}
       >
-        <MenuItem value="USDC">USDC</MenuItem>
-        <MenuItem value="USDT">USDT</MenuItem>
-        <MenuItem value="DAI">DAI</MenuItem>
-        <MenuItem value="ETH">ETH</MenuItem>
+        {tokens?.map((token: any, i: number) => {
+          return (
+            <MenuItem key={i} value={token.symbol}>{token.symbol}</MenuItem>
+          )
+        })}
       </Select>
     </FormControl>
   )
 }
 
 function ChainDropdown (props: any) {
-  const { label, value, handleChange } = props
+  const { label, chains, value, handleChange } = props
   return (
     <FormControl fullWidth>
       <InputLabel id="select-label">{label}</InputLabel>
@@ -50,11 +51,11 @@ function ChainDropdown (props: any) {
         label={label}
         onChange={handleChange}
       >
-        <MenuItem value="ethereum">Ethereum</MenuItem>
-        <MenuItem value="arbitrum">Arbitrum</MenuItem>
-        <MenuItem value="optimism">Optimism</MenuItem>
-        <MenuItem value="polygon">Polygon</MenuItem>
-        <MenuItem value="gnosis">Gnosis</MenuItem>
+        {chains?.map((chain: any, i: number) => {
+          return (
+            <MenuItem key={i} value={chain.slug}>{chain.name}</MenuItem>
+          )
+        })}
       </Select>
     </FormControl>
   )
@@ -86,6 +87,16 @@ function App () {
     const bridge = hop.bridge(tokenSymbol)
     return bridge
   }, [tokenSymbol, signer])
+
+  const supportedChains = useMemo(() => {
+    const _chains = bridge.getSupportedChains()
+    return _chains.map((chainSlug: string) => bridge.toChainModel(chainSlug))
+  }, [bridge])
+
+  const supportedTokens = useMemo(() => {
+    const _tokens = bridge.getSupportedTokens()
+    return _tokens.map((tokenSymbol: string) => bridge.toTokenModel(tokenSymbol))
+  }, [bridge])
 
   const updateBalance = async () => {
     try {
@@ -319,17 +330,17 @@ main().catch(console.error)
                   </Typography>
                 </Box>
                 <Box mb={2}>
-                  <TokenDropdown label="Token" value={tokenSymbol} handleChange={(event: any) => {
+                  <TokenDropdown tokens={supportedTokens} label="Token" value={tokenSymbol} handleChange={(event: any) => {
                     setTokenSymbol(event.target.value)
                   }} />
                 </Box>
                 <Box mb={2}>
-                  <ChainDropdown label="From Chain" value={fromChain} handleChange={(event: any) => {
+                  <ChainDropdown label="From Chain" chains={supportedChains} value={fromChain} handleChange={(event: any) => {
                     setFromChain(event.target.value)
                   }} />
                 </Box>
                 <Box mb={2}>
-                  <ChainDropdown label="To Chain" value={toChain} handleChange={(event: any) => {
+                  <ChainDropdown label="To Chain" chains={supportedChains} value={toChain} handleChange={(event: any) => {
                     setToChain(event.target.value)
                   }} />
                 </Box>

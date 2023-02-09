@@ -7,7 +7,8 @@ export const config : Config = {
       polygon: 8,
       gnosis: 8,
       optimism: 8,
-      arbitrum: 8
+      arbitrum: 8,
+      nova: 8
     },
     USDT: {
       ethereum: 20,
@@ -35,7 +36,10 @@ export const config : Config = {
       polygon: 5,
       gnosis: 5,
       optimism: 5,
-      arbitrum: 5
+      arbitrum: 5,
+      nova: 8,
+      zksync: 5, // TODO
+      consensyszk: 5 // TODO
     },
     WBTC: {
       ethereum: 23,
@@ -64,6 +68,9 @@ export const config : Config = {
     polygon: false,
     gnosis: false,
     optimism: false,
-    arbitrum: false
+    arbitrum: false,
+    nova: false,
+    zksync: false,
+    consensyszk: false
   }
 }

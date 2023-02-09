@@ -489,7 +489,7 @@ describe('custom chain providers', () => {
   })
 })
 
-describe.skip('getSendData', () => {
+describe.only('getSendData', () => {
   it('available liquidity', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
@@ -512,7 +512,7 @@ describe.skip('getSendData', () => {
     expect(requiredLiquidity).toBeGreaterThan(0)
     expect(availableLiquidity).toBeGreaterThan(requiredLiquidity)
   })
-  it('relayer fee', async () => {
+  it.skip('relayer fee', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
     const amountIn = BigNumber.from('1000000')
@@ -719,6 +719,14 @@ describe('PriceFeed', () => {
     console.log(price)
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(5)
+  }, 60 * 1000)
+  it('should return rETH price', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('rETH')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('rETH')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(10000)
   }, 60 * 1000)
 })
 

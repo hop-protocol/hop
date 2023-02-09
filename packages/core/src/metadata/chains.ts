@@ -1,24 +1,70 @@
 import { Chains } from './types'
+import {
+  arbitrumImage,
+  consensyszkImage,
+  ethereumImage,
+  gnosisImage,
+  novaImage,
+  optimismImage,
+  polygonImage,
+  zksyncImage
+} from './assets'
 
 export const chains: Chains = {
   ethereum: {
     name: 'Ethereum',
-    slug: 'ethereum'
+    slug: 'ethereum',
+    image: ethereumImage,
+    nativeTokenSymbol: 'ETH',
+    isLayer1: true
   },
   gnosis: {
     name: 'Gnosis',
-    slug: 'gnosis'
+    slug: 'gnosis',
+    image: gnosisImage,
+    nativeTokenSymbol: 'XDAI',
+    isLayer1: false
   },
   polygon: {
     name: 'Polygon',
-    slug: 'polygon'
+    slug: 'polygon',
+    image: polygonImage,
+    nativeTokenSymbol: 'MATIC',
+    isLayer1: false
   },
   arbitrum: {
     name: 'Arbitrum',
-    slug: 'arbitrum'
+    slug: 'arbitrum',
+    image: arbitrumImage,
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
   },
   optimism: {
     name: 'Optimism',
-    slug: 'optimism'
+    slug: 'optimism',
+    image: optimismImage,
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
+  },
+  nova: {
+    name: 'Nova',
+    slug: 'nova',
+    image: novaImage,
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
+  },
+  zksync: {
+    name: 'zkSync',
+    slug: 'zksync',
+    image: zksyncImage,
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
+  },
+  consensyszk: {
+    name: 'ConsenSys zkEVM',
+    slug: 'consensyszk',
+    image: consensyszkImage,
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
   }
 }

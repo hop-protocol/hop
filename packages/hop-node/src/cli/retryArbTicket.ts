@@ -10,13 +10,17 @@ root
   .option('--token <symbol>', 'Token', parseString)
   .option('--message-index <number>', 'Message index of redemption transaction', parseNumber)
   .option('--tx-hashes <hash, ...>', 'Comma-separated L1 tx hashes', parseStringArray)
+  .option('--chain-id <slug>', 'Destination chain Id', parseNumber)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let { token, messageIndex, txHashes } = source
+  let { token, messageIndex, txHashes, chainId } = source
 
   if (!token) {
     throw new Error('Token not found')
+  }
+  if (!chainId) {
+    throw new Error('Destination chain ID not found')
   }
   if (!txHashes?.length) {
     throw new Error('Tx hash not found')
@@ -34,6 +38,6 @@ async function main (source: any) {
 
   messageIndex = messageIndex ?? 0
   for (const txHash of txHashes) {
-    await watcher.sendRelayTx(txHash, messageIndex)
+    await watcher.sendRelayTx(chainId, txHash, messageIndex)
   }
 }

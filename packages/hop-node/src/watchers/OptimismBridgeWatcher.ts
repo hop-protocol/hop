@@ -1,13 +1,13 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract, Wallet, providers } from 'ethers'
+import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Watcher } from '@eth-optimism/core-utils'
-import { getContractFactory, predeploys } from '@eth-optimism/contracts'
-import { getMessagesAndProofsForL2Transaction } from '@eth-optimism/message-relayer'
+import { Wallet, providers } from 'ethers'
+
 type Config = {
   chainSlug: string
   tokenSymbol: string
@@ -20,9 +20,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
   l2Provider: any
   l1Wallet: Wallet
   l2Wallet: Wallet
-  l1Messenger: Contract
-  scc: Contract
-  watcher: Watcher
+  csm: CrossChainMessenger
+  chainId: number
 
   constructor (config: Config) {
     super({
@@ -38,59 +37,29 @@ class OptimismBridgeWatcher extends BaseWatcher {
     this.l1Provider = this.l1Wallet.provider
     this.l2Provider = this.l2Wallet.provider
 
-    const sccAddress = '0xBe5dAb4A2e9cd0F27300dB4aB94BeE3A233AEB19'
-    const l1MessengerAddress = '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1'
-    const l2MessengerAddress = '0x4200000000000000000000000000000000000007'
+    this.chainId = chainSlugToId(config.chainSlug)
 
-    this.watcher = new Watcher({
-      l1: {
-        provider: this.l1Provider,
-        messengerAddress: l1MessengerAddress
-      },
-      l2: {
-        provider: this.l2Provider,
-        messengerAddress: l2MessengerAddress
-      }
+    this.csm = new CrossChainMessenger({
+      l1ChainId: this.chainId === 420 ? 5 : 1,
+      l2ChainId: this.chainId,
+      l1SignerOrProvider: this.l1Wallet,
+      l2SignerOrProvider: this.l2Wallet
     })
-
-    this.l1Messenger = getContractFactory('IL1CrossDomainMessenger')
-      .connect(this.l1Wallet)
-      .attach(this.watcher.l1.messengerAddress)
-    this.scc = getContractFactory('IStateCommitmentChain')
-      .connect(this.l1Wallet)
-      .attach(sccAddress)
   }
 
   async relayXDomainMessage (
     txHash: string
-  ): Promise<providers.TransactionResponse> {
-    const messagePairs = await getMessagesAndProofsForL2Transaction(
-      this.l1Provider,
-      this.l2Provider,
-      this.scc.address,
-      predeploys.L2CrossDomainMessenger,
-      txHash
-    )
-
-    if (!messagePairs) {
-      throw new Error('messagePairs not found')
+  ): Promise<providers.TransactionResponse | undefined> {
+    const messageStatus = await this.csm.getMessageStatus(txHash)
+    if (messageStatus === MessageStatus.READY_FOR_RELAY) {
+      console.log('ready for relay')
+    } else {
+      console.log(`not ready for relay. statusCode: ${messageStatus}`)
+      return
     }
 
-    const { message, proof } = messagePairs[0]
-    const inChallengeWindow = await this.scc.insideFraudProofWindow(proof.stateRootBatchHeader)
-    if (inChallengeWindow) {
-      throw new Error('exit within challenge window')
-    }
-
-    return this.l1Messenger
-      .connect(this.l1Wallet)
-      .relayMessage(
-        message.target,
-        message.sender,
-        message.message,
-        message.messageNonce,
-        proof
-      )
+    const tx = await this.csm.finalizeMessage(txHash)
+    return tx
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {

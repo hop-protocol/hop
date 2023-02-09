@@ -1,9 +1,10 @@
+import wait from 'src/utils/wait'
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { CrossChainMessenger, MessageStatus } from '@eth-optimism/sdk'
+import { CrossChainMessenger, MessageStatus, hashLowLevelMessage } from '@eth-optimism/sdk'
 import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
 import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
 import { Wallet, providers } from 'ethers'
@@ -51,7 +52,35 @@ class OptimismBridgeWatcher extends BaseWatcher {
   async relayXDomainMessage (
     txHash: string
   ): Promise<providers.TransactionResponse | undefined> {
-    const messageStatus = await this.csm.getMessageStatus(txHash)
+    let messageStatus = await this.csm.getMessageStatus(txHash)
+    if (messageStatus === MessageStatus.READY_TO_PROVE) {
+      console.log('message ready to prove')
+      const resolved = await this.csm.toCrossChainMessage(txHash)
+      const tx = await this.csm.proveMessage(resolved)
+      await tx.wait()
+      console.log('waiting challenge period')
+      const challengePeriod = await this.csm.getChallengePeriodSeconds()
+      await wait(challengePeriod * 1000)
+    }
+
+    messageStatus = await this.csm.getMessageStatus(txHash)
+    if (messageStatus === MessageStatus.IN_CHALLENGE_PERIOD) {
+      console.log('message in challenge period')
+      const challengePeriod = await this.csm.getChallengePeriodSeconds()
+      const latestBlock = await this.csm.l1Provider.getBlock('latest')
+      const resolved = await this.csm.toCrossChainMessage(txHash)
+      const withdrawal = await this.csm.toLowLevelMessage(resolved)
+      const provenWithdrawal =
+        await this.csm.contracts.l1.OptimismPortal.provenWithdrawals(
+          hashLowLevelMessage(withdrawal)
+        )
+      const timestamp = provenWithdrawal.timestamp.toNumber()
+      const secondsLeft = (timestamp + challengePeriod) - latestBlock.timestamp
+      console.log('seconds left:', secondsLeft)
+      return
+    }
+
+    messageStatus = await this.csm.getMessageStatus(txHash)
     if (messageStatus === MessageStatus.READY_FOR_RELAY) {
       console.log('ready for relay')
     } else {

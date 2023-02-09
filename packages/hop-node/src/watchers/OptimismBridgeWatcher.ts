@@ -40,6 +40,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
     this.chainId = chainSlugToId(config.chainSlug)
 
     this.csm = new CrossChainMessenger({
+      bedrock: this.chainId === 420,
       l1ChainId: this.chainId === 420 ? 5 : 1,
       l2ChainId: this.chainId,
       l1SignerOrProvider: this.l1Wallet,
@@ -54,6 +55,7 @@ class OptimismBridgeWatcher extends BaseWatcher {
     if (messageStatus === MessageStatus.READY_FOR_RELAY) {
       console.log('ready for relay')
     } else {
+      console.log(MessageStatus)
       console.log(`not ready for relay. statusCode: ${messageStatus}`)
       return
     }

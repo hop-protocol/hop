@@ -1,6 +1,7 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
 import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
+import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
@@ -179,7 +180,9 @@ const Send: FC = () => {
     bonderFeeUsdDisplay,
     totalBonderFee,
     totalBonderFeeDisplay,
+    totalBonderFeeUsdDisplay,
     estimatedReceivedDisplay,
+    estimatedReceivedUsdDisplay,
   } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
 
   const { estimateSend } = useEstimateTxCost(fromNetwork)
@@ -721,7 +724,11 @@ const Send: FC = () => {
             tooltip={
               <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} />
             }
-            value={totalBonderFeeDisplay}
+            value={<>
+              <InfoTooltip title={totalBonderFeeUsdDisplay}>
+                <Box>{totalBonderFeeDisplay}</Box>
+              </InfoTooltip>
+            </>}
             large
           />
 
@@ -735,7 +742,11 @@ const Send: FC = () => {
                 amountOutMinDisplay={amountOutMinDisplay}
               />
             }
-            value={estimatedReceivedDisplay}
+            value={<>
+              <InfoTooltip title={estimatedReceivedUsdDisplay}>
+                <Box>{estimatedReceivedDisplay}</Box>
+              </InfoTooltip>
+            </>}
             xlarge
             bold
           />

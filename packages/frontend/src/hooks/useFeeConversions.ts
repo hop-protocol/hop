@@ -1,6 +1,5 @@
 import { BigNumber } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils'
-import { toTokenDisplay } from 'src/utils'
+import { toTokenDisplay, toUsdDisplay } from 'src/utils'
 import { useMemo } from 'react'
 import { useTokenPrice } from 'src/hooks/useTokenPrice'
 
@@ -15,31 +14,10 @@ export function getConvertedFees(destinationTxFee?: BigNumber, bonderFee?: BigNu
     tokenSymbol,
   )
 
-  const destinationTxFeeUsdDisplay = (() => {
-    try {
-      if (!(tokenUsdPrice && destinationTxFee)) {
-        return ''
-      }
-
-      return `$${(Number(formatUnits(destinationTxFee?.toString(), tokenDecimals)) * tokenUsdPrice).toFixed(2)}`
-    } catch (err) {
-      return ''
-    }
-  })()
+  const destinationTxFeeUsdDisplay = toUsdDisplay(destinationTxFee, tokenDecimals, tokenUsdPrice)
 
   const bonderFeeDisplay = toTokenDisplay(bonderFee, tokenDecimals, tokenSymbol)
-
-  const bonderFeeUsdDisplay = (() => {
-    try {
-      if (!(tokenUsdPrice && bonderFee)) {
-        return ''
-      }
-
-      return `$${(Number(formatUnits(bonderFee?.toString(), tokenDecimals)) * tokenUsdPrice).toFixed(2)}`
-    } catch (err) {
-      return ''
-    }
-  })()
+  const bonderFeeUsdDisplay = toUsdDisplay(bonderFee, tokenDecimals, tokenUsdPrice)
 
   const totalBonderFee =
     destinationTxFee && bonderFee ? destinationTxFee.add(bonderFee) : destinationTxFee
@@ -48,11 +26,16 @@ export function getConvertedFees(destinationTxFee?: BigNumber, bonderFee?: BigNu
     tokenDecimals,
     tokenSymbol
   )
+
+  const totalBonderFeeUsdDisplay = toUsdDisplay(totalBonderFee, tokenDecimals, tokenUsdPrice)
+
   const estimatedReceivedDisplay = toTokenDisplay(
     estimatedReceived,
     tokenDecimals,
     tokenSymbol
   )
+
+  const estimatedReceivedUsdDisplay = toUsdDisplay(estimatedReceived, tokenDecimals, tokenUsdPrice)
 
   return {
     destinationTxFeeDisplay,
@@ -61,7 +44,9 @@ export function getConvertedFees(destinationTxFee?: BigNumber, bonderFee?: BigNu
     bonderFeeUsdDisplay,
     totalBonderFee,
     totalBonderFeeDisplay,
+    totalBonderFeeUsdDisplay,
     estimatedReceivedDisplay,
+    estimatedReceivedUsdDisplay,
   }
 }
 

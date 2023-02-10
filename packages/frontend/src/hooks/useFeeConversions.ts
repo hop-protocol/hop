@@ -47,6 +47,7 @@ export function getConvertedFees(destinationTxFee?: BigNumber, bonderFee?: BigNu
     totalBonderFeeUsdDisplay,
     estimatedReceivedDisplay,
     estimatedReceivedUsdDisplay,
+    tokenUsdPrice
   }
 }
 

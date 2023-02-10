@@ -9,13 +9,13 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   getConfigBonderForRoute,
+  getEnabledNetworks,
   config as globalConfig,
   modifiedLiquidityDestChains,
   modifiedLiquiditySourceChains,
-  modifiedLiquidityTokens,
-  oruChains
+  modifiedLiquidityTokens
+  , oruChains
 } from 'src/config'
-import { getEnabledNetworks } from 'src/config'
 
 type Config = {
   chainSlug: string

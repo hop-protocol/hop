@@ -13,11 +13,11 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
-import { hopAppNetwork, reactAppNetwork, showRewards } from 'src/config'
+import { hopAppNetwork, reactAppNetwork, showRewards, transferTimes } from 'src/config'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
@@ -67,6 +67,7 @@ const Send: FC = () => {
   const [toTokenAmount, setToTokenAmount] = useState<string>()
   const [approving, setApproving] = useState<boolean>(false)
   const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
+  const [amountOutMinUsdDisplay, setAmountOutMinUsdDisplay] = useState<string>()
   const [warning, setWarning] = useState<any>(null)
   const [error, setError] = useState<string | null | undefined>(null)
   const [noLiquidityWarning, setNoLiquidityWarning] = useState<any>(null)
@@ -183,6 +184,7 @@ const Send: FC = () => {
     totalBonderFeeUsdDisplay,
     estimatedReceivedDisplay,
     estimatedReceivedUsdDisplay,
+    tokenUsdPrice
   } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
 
   const { estimateSend } = useEstimateTxCost(fromNetwork)
@@ -341,6 +343,7 @@ const Send: FC = () => {
   useEffect(() => {
     if (!amountOutMin || !destToken) {
       setAmountOutMinDisplay(undefined)
+      setAmountOutMinUsdDisplay(undefined)
       return
     }
     let _amountOutMin = amountOutMin
@@ -352,9 +355,11 @@ const Send: FC = () => {
       _amountOutMin = BigNumber.from(0)
     }
 
-    const amountOutMinFormatted = commafy(formatUnits(_amountOutMin, destToken.decimals), 4)
-    setAmountOutMinDisplay(`${amountOutMinFormatted} ${destToken.symbol}`)
-  }, [amountOutMin])
+    const amountOutMinDisplay = toTokenDisplay(_amountOutMin, destToken.decimals, destToken.symbol)
+    const amountOutMinUsdDisplay = toUsdDisplay(_amountOutMin, destToken.decimals, tokenUsdPrice)
+    setAmountOutMinDisplay(amountOutMinDisplay)
+    setAmountOutMinUsdDisplay(amountOutMinUsdDisplay)
+  }, [amountOutMin, tokenUsdPrice])
 
   // ==============================================================================================
   // Approve fromNetwork / fromToken
@@ -594,6 +599,15 @@ const Send: FC = () => {
     // setManualError('')
   }, [fromNetwork?.slug, toNetwork?.slug])
 
+  const transferTime = useMemo(() => {
+    if (fromNetwork && toNetwork) {
+      const minutes = transferTimes?.[fromNetwork?.slug]?.[toNetwork?.slug]
+      if (minutes) {
+        return `~${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`
+      }
+    }
+  }, [fromNetwork, toNetwork])
+
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, sourceToken?.symbol)
 
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
@@ -740,6 +754,8 @@ const Send: FC = () => {
                 slippageTolerance={slippageTolerance}
                 priceImpact={priceImpact}
                 amountOutMinDisplay={amountOutMinDisplay}
+                amountOutMinUsdDisplay={amountOutMinUsdDisplay}
+                transferTime={transferTime}
               />
             }
             value={<>

@@ -1,7 +1,7 @@
-import wait from 'src/utils/wait'
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { CrossChainMessenger, MessageStatus, hashLowLevelMessage } from '@eth-optimism/sdk'
@@ -49,10 +49,18 @@ class OptimismBridgeWatcher extends BaseWatcher {
     })
   }
 
+  // order: L2 Tx -> wait for state root to be published on L1 (240 seconds) -> proveMessage -> wait challenge period (7 days) -> finalizeMessage
   async relayXDomainMessage (
     txHash: string
   ): Promise<providers.TransactionResponse | undefined> {
     let messageStatus = await this.csm.getMessageStatus(txHash)
+    if (messageStatus === MessageStatus.STATE_ROOT_NOT_PUBLISHED) {
+      console.log('waiting for state root to be published')
+      // wait a max of 240 seconds for state root to be published on L1
+      await wait(240 * 1000)
+    }
+
+    messageStatus = await this.csm.getMessageStatus(txHash)
     if (messageStatus === MessageStatus.READY_TO_PROVE) {
       console.log('message ready to prove')
       const resolved = await this.csm.toCrossChainMessage(txHash)
@@ -65,7 +73,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
 
     messageStatus = await this.csm.getMessageStatus(txHash)
     if (messageStatus === MessageStatus.IN_CHALLENGE_PERIOD) {
-      console.log('message in challenge period')
+      console.log('message is in challenge period')
+      // challenge period is a few seconds on goerli, 7 days in production
       const challengePeriod = await this.csm.getChallengePeriodSeconds()
       const latestBlock = await this.csm.l1Provider.getBlock('latest')
       const resolved = await this.csm.toCrossChainMessage(txHash)
@@ -74,23 +83,21 @@ class OptimismBridgeWatcher extends BaseWatcher {
         await this.csm.contracts.l1.OptimismPortal.provenWithdrawals(
           hashLowLevelMessage(withdrawal)
         )
-      const timestamp = provenWithdrawal.timestamp.toNumber()
-      const secondsLeft = (timestamp + challengePeriod) - latestBlock.timestamp
+      const timestamp = Number(provenWithdrawal.timestamp.toString())
+      const secondsLeft = (timestamp + challengePeriod) - Number(latestBlock.timestamp.toString())
       console.log('seconds left:', secondsLeft)
-      return
+      await wait(secondsLeft * 1000)
     }
 
     messageStatus = await this.csm.getMessageStatus(txHash)
     if (messageStatus === MessageStatus.READY_FOR_RELAY) {
       console.log('ready for relay')
-    } else {
-      console.log(MessageStatus)
-      console.log(`not ready for relay. statusCode: ${messageStatus}`)
-      return
+      const tx = await this.csm.finalizeMessage(txHash)
+      return tx
     }
 
-    const tx = await this.csm.finalizeMessage(txHash)
-    return tx
+    console.log(MessageStatus)
+    console.log(`not ready for relay. statusCode: ${messageStatus}`)
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {

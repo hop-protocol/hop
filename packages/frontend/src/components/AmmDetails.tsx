@@ -2,6 +2,7 @@ import React, { FC } from 'react'
 import { makeStyles } from '@material-ui/core'
 import { DetailRow } from 'src/components/InfoTooltip'
 import { commafy } from 'src/utils'
+import Box from '@material-ui/core/Box'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -15,12 +16,13 @@ type Props = {
   slippageTolerance?: number
   priceImpact?: number
   amountOutMinDisplay?: string
+  amountOutMinUsdDisplay?: string
   transferTime?: string
 }
 
 const AmmDetails: FC<Props> = props => {
   const styles = useStyles()
-  const { rate, slippageTolerance, priceImpact, amountOutMinDisplay, transferTime } = props
+  const { rate, slippageTolerance, priceImpact, amountOutMinDisplay, amountOutMinUsdDisplay, transferTime } = props
 
   return (
     <div className={styles.root}>
@@ -37,7 +39,12 @@ const AmmDetails: FC<Props> = props => {
         }
         contrastText
       />
-      <DetailRow title="Minimum received" value={amountOutMinDisplay} contrastText />
+      <DetailRow title="Minimum received" value={<>
+        {!!amountOutMinUsdDisplay && (
+          <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{amountOutMinUsdDisplay}</small></Box>
+        )}
+        <Box display="inline-block">{amountOutMinDisplay}</Box>
+      </>} contrastText />
       {!!transferTime && (
         <DetailRow title="Transfer Time" value={transferTime} contrastText />
       )}

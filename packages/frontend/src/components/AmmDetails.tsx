@@ -11,15 +11,16 @@ const useStyles = makeStyles(theme => ({
 }))
 
 type Props = {
-  rate: number | undefined
-  slippageTolerance: number | undefined
-  priceImpact: number | undefined
-  amountOutMinDisplay: string | undefined
+  rate?: number
+  slippageTolerance?: number
+  priceImpact?: number
+  amountOutMinDisplay?: string
+  transferTime?: string
 }
 
 const AmmDetails: FC<Props> = props => {
   const styles = useStyles()
-  const { rate, slippageTolerance, priceImpact, amountOutMinDisplay } = props
+  const { rate, slippageTolerance, priceImpact, amountOutMinDisplay, transferTime } = props
 
   return (
     <div className={styles.root}>
@@ -37,6 +38,9 @@ const AmmDetails: FC<Props> = props => {
         contrastText
       />
       <DetailRow title="Minimum received" value={amountOutMinDisplay} contrastText />
+      {!!transferTime && (
+        <DetailRow title="Transfer Time" value={transferTime} contrastText />
+      )}
     </div>
   )
 }

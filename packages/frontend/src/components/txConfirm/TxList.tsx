@@ -7,7 +7,6 @@ import { formatError } from 'src/utils'
 import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
-import StepContent from '@material-ui/core/StepContent';
 import Alert from 'src/components/alert/Alert'
 import StepIcon from '@material-ui/core/StepIcon';
 import Check from '@material-ui/icons/Check'
@@ -18,6 +17,11 @@ import CloseIcon from '@material-ui/icons/Close'
 const useStyles = makeStyles(() => ({
   root: {
   },
+  stepper: {
+    '& .MuiStepConnector-root': {
+      marginLeft: '7px'
+    }
+  }
 }))
 
 interface Props {
@@ -96,7 +100,7 @@ export function TxList (props: Props) {
         </Typography>
       </Box>
       <Box margin={'0 auto'} maxWidth="350px">
-        <Stepper orientation="vertical" activeStep={activeStep}>
+        <Stepper orientation="vertical" activeStep={activeStep} className={styles.stepper}>
           {txList.map((tx, index) => {
             const active = index <= activeStep
             let icon = <CropSquare fontSize="inherit" style={{ color: '#D9D9D9' }}/>

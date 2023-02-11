@@ -3,9 +3,7 @@
 }
 body {
   margin: auto;
-  background: #151417;
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
 }
 [v-cloak] {
   display: none;
@@ -56,6 +54,10 @@ body {
 }
 .header h1 {
   font-size: 2rem;
+  font-weight: 500;
+}
+.logo {
+  height: 50px;
 }
 .chartHeader {
   display: flex;
@@ -72,6 +74,7 @@ details > summary {
   display: block;
   list-style: none;
   cursor: pointer;
+  margin-bottom: 1rem;
 }
 details > summary::marker {
   display: none;
@@ -97,21 +100,25 @@ details > summary::marker {
   }
 }
 #transfers {
-  overflow: auto;
 }
 table {
   border-collapse: separate;
   width: 100%;
-  background: #161a1ca8;
   padding: 2rem;
   border-radius: 10px;
-  min-width: 2500px;
+  min-width: 2700px;
+}
+table a {
+  text-decoration: none !important;
+}
+table th {
+  font-weight: bold !important;
 }
 thead {
   text-align: left;
 }
 table tbody tr:hover {
-  background: #1f2528;
+
 }
 table a {
   text-decoration: none;
@@ -129,19 +136,17 @@ table img {
 }
 .index {
   font-weight: normal;
-  color: #ffffff33;
+  opacity: 0.5;
 }
 .timestamp,
 .bondedDate,
 .bondedWithin {
   font-weight: normal;
-  color: #ffffff8a;
 }
 .token,
 .amount,
 .bonderFee {
   font-weight: normal;
-  color: #ffffffcc;
 }
 .number {
   text-align: right;
@@ -158,26 +163,22 @@ table img {
   color: #ff7878;
 }
 .bonder {
-  color: #ffffff8a;
+
 }
 .na {
-  color: #ffffff33;
+  opacity: 0.5;
 }
 .transferId {
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
 }
-.transferId .clipboard,
-.transferTx .clipboard,
-.bondTx .clipboard {
+table .clipboard {
   display: inline-block;
   opacity: 0.2;
   filter: grayscale(1);
 }
-.transferId:hover .clipboard,
-.transferTx:hover .clipboard,
-.bondTx:hover .clipboard {
+table .clipboard:hover {
   opacity: 1;
   filter: grayscale(0);
 }
@@ -204,8 +205,6 @@ table img {
   border: none;
   background: none;
   padding: 1rem;
-  font-size: 1rem;
-  color: #ff00ef;
   cursor: pointer;
 }
 .tableHeader,
@@ -216,6 +215,9 @@ table img {
 }
 .tableHeader {
   margin-top: 1rem;
+}
+label[for] {
+  cursor: pointer;
 }
 .filters {
   width: 100%;
@@ -228,17 +230,22 @@ table img {
   margin-bottom: 0.4rem;
 }
 .filters label {
-  display: inline-block;
-  margin-right: 0.5rem;
+  display: block;
 }
 .filters .select {
-  width: 80px;
+  min-width: 140px;
 }
 .filters .selectSmall {
-  width: 30px;
+  min-width: 30px;
 }
 .filters input {
-  width: 140px;
+  min-width: 140px;
+}
+.datePicker {
+  max-width: 140px;
+}
+.filterTransferId {
+  min-width: 650px;
 }
 
 .perPageSelection {
@@ -289,11 +296,9 @@ table img {
   margin: 0 auto;
 }
 .filterAmount {
-  width: 100px;
+  min-width: 140px;
 }
 .loadingData {
-  display: inline-block;
-  margin-left: 2rem;
 }
 #spinner {
   display: inline-block;
@@ -303,4 +308,18 @@ table img {
 }
 .cumulativeVolume {
   margin-top: 1rem;
+}
+
+::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+  background: none;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #999;
+}
+
+::-webkit-scrollbar-corner {
+  background: none;
 }

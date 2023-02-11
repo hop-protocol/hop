@@ -1,10 +1,38 @@
 import { useInterval } from 'react-use'
 import Clipboard from 'clipboard'
 import * as luxon from 'luxon'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
 import type {NextPage} from 'next'
 import Head from 'next/head'
 import Script from 'next/script'
 import React, {useEffect, useState } from 'react'
+// import bgImage from './assets/circles-bg.svg'
+import styled from 'styled-components'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import CheckIcon from '@mui/icons-material/Check'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import MuiTableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Paper from '@mui/material/Paper'
+import Link from '@mui/material/Link'
+import Button from '@mui/material/Button'
+import Checkbox from '@mui/material/Checkbox'
+import MenuItem from '@mui/material/MenuItem'
+import FormControl from '@mui/material/FormControl'
+import Select, { SelectChangeEvent } from '@mui/material/Select'
+import { useTheme } from './_useTheme'
+import { withStyles } from '@mui/styles'
+import TextField from '@mui/material/TextField'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker'
+import dayjs, { Dayjs } from 'dayjs'
 
 const isGoerli = process.env.NEXT_PUBLIC_NETWORK === 'goerli'
 let apiBaseUrl = 'https://explorer-api.hop.exchange'
@@ -94,6 +122,7 @@ let queryParams: any = {}
 
 const currentDate = luxon.DateTime.now().toFormat('yyyy-MM-dd')
 const defaultStartDate = luxon.DateTime.now().minus({ days: isGoerli ? 7 : 1 }).toFormat('yyyy-MM-dd')
+const defaultEndDate = luxon.DateTime.now().toFormat('yyyy-MM-dd')
 const defaultSortBy = 'timestamp'
 const defaultSortDirection = 'desc'
 
@@ -466,25 +495,29 @@ function useData () {
   }
 
   function updateFilterBonded (event: any) {
-    const value = event.target.value
+    let value = event.target.value
+    if (value === 'all') value = ''
     setFilterBonded(value)
     updateQueryParams({ bonded: value })
   }
 
   function updateFilterSource (event: any) {
-    const value = event.target.value
+    let value = event.target.value
+    if (value === 'all') value = ''
     setFilterSource(value)
     updateQueryParams({ source: value })
   }
 
   function updateFilterDestination (event: any) {
-    const value = event.target.value
+    let value = event.target.value
+    if (value === 'all') value = ''
     setFilterDestination(value)
     updateQueryParams({ destination: value })
   }
 
   function updateFilterToken (event: any) {
-    const value = event.target.value
+    let value = event.target.value
+    if (value === 'all') value = ''
     setFilterToken(value)
     updateQueryParams({ token: value })
   }
@@ -558,14 +591,14 @@ function useData () {
     setChartSelection(value)
   }
 
-  function updateFilterStartDate (event: any) {
-    const value = event.target.value
+  function updateFilterStartDate (newValue: any) {
+    const value = newValue.format('YYYY-MM-DD')
     setFilterStartDate(value)
     updateQueryParams({ startDate: value })
   }
 
-  function updateFilterEndDate (event: any) {
-    const value = event.target.value
+  function updateFilterEndDate (newValue: any) {
+    const value = newValue.format('YYYY-MM-DD')
     setFilterEndDate(value)
     updateQueryParams({ endDate: value })
   }
@@ -713,6 +746,28 @@ function useData () {
     accountCumulativeVolumeUsd
   }
 }
+const TableCell = withStyles({
+  root: {
+    borderBottom: 'none',
+    padding: '0.1rem 0'
+  }
+})(MuiTableCell)
+
+const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
+const logo = 'https://user-images.githubusercontent.com/168240/218271509-66a35bed-94f7-46da-ab41-71c806ac9a96.svg'
+const bgImage = 'https://user-images.githubusercontent.com/168240/218269980-c26e1bb2-90d8-4816-b0cb-c8752e32cde1.svg'
+const bgImageDark = 'https://user-images.githubusercontent.com/168240/218270008-16c5fe2a-33da-49c9-9fad-5286cbd6191d.svg'
+
+const AppWrapper = styled(Box)<any>`
+  align-items: stretch;
+  background-image: url(https://user-images.githubusercontent.com/168240/218270008-16c5fe2a-33da-49c9-9fad-5286cbd6191d.svg);
+  background-color: #272332;
+  background-image: ${({ dark }) => (dark ? `url(${bgImageDark})` : `url(${bgImage})`)};
+  background-color: ${({ theme }) => theme.palette.background.default};
+  background-size: 120%;
+  transition: background 0.15s ease-out;
+  min-height: 100vh;
+`
 
 const Index: NextPage = () => {
   const {
@@ -775,8 +830,26 @@ const Index: NextPage = () => {
     accountCumulativeVolumeUsd
   } = useData()
 
+  const { theme, dark } = useTheme()
+  const [copied, setCopied] = useState<string>('')
+
+  function setCopiedTimeout (value: string) {
+    setTimeout(() => {
+      setCopied(value)
+    }, 1)
+    setTimeout(() => {
+      setCopied('')
+    }, 1000)
+  }
+
+  function setCopiedTimeoutFn (value: string) {
+    return (event: any) => {
+      setCopiedTimeout(value)
+    }
+  }
+
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <Script strategy="beforeInteractive" src="/lib/d3.v3.min.js" />
       <Script strategy="beforeInteractive" src="/lib/d3.chart.min.js" />
       <Script strategy="beforeInteractive" src="/lib/sankey.patched.js" />
@@ -793,401 +866,506 @@ const Index: NextPage = () => {
         <meta name="application-name" content="Hop" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <AppWrapper dark={dark} theme={theme}>
       {showBanner && (
         <div id="banner">
           <div>
-            <span>⚠️</span> The <a href={unsyncedSubgraphUrl} target="_blank" rel="noreferrer noopener">subgraph</a> is currently experiencing some issues so the table might not reflect the latest state.
+            <span>⚠️</span> The <Link href={unsyncedSubgraphUrl} target="_blank" rel="noreferrer noopener">subgraph</Link> is currently experiencing some issues so the table might not reflect the latest state.
           </div>
         </div>
       )}
-      <div id="app">
-        <div className="chartView">
+      <Box id="app">
+        <Box className="header" mt={2} display="flex" alignItems="center" justifyContent="center">
+          <Box mr={2}>
+            <img className="logo" src={dark ? logoDark : logo} alt="Hop" />
+          </Box>
+          <Typography variant="h1" color="secondary">Explorer</Typography>
+        </Box>
+        <Box mb={4} className="chartView">
           <details open>
-            <summary>Chart ▾</summary>
-            <header className="header">
-              <h1 className="rainbow rainbow-animated">Hop transfers</h1>
-            </header>
-            <div className="chartHeader">
-              <label>Source</label>
-              <label className="arrow rainbow rainbow-animated animation-delay">⟶</label>
-              <label>Destination</label>
-            </div>
-            <div className="chartContainer">
-              <div id="chart"></div>
-            </div>
-            <label htmlFor="amountSizeCheckbox">
-              <input type="checkbox" id="amountSizeCheckbox" value={chartAmountSize.toString()} onChange={enableChartAmountSize} />
-              Amount size
-            </label>
-            <div id="chartSelection">{ chartSelection }</div>
+            <summary><Typography variant="body1" color="secondary">Chart ▾</Typography></summary>
+              <Box p={2}>
+                <div className="chartHeader">
+                  <label><Typography variant="body1" color="secondary">Source</Typography></label>
+                  <label className="arrow">
+                    <Typography variant="body1" color="secondary">
+                      <ArrowForwardIcon />
+                    </Typography>
+                  </label>
+                  <label><Typography variant="body1" color="secondary">Destination</Typography></label>
+                </div>
+                <div className="chartContainer">
+                  <div id="chart"></div>
+                </div>
+                <label htmlFor="amountSizeCheckbox">
+                  <Box display="flex" alignItems="center">
+                    <Checkbox id="amountSizeCheckbox" value={chartAmountSize.toString()} onChange={enableChartAmountSize} />
+                    <Typography variant="body1" component="span" color="secondary">
+                      Amount size
+                    </Typography>
+                  </Box>
+                </label>
+                <div id="chartSelection"><Typography variant="body1" color="secondary">{ chartSelection }</Typography></div>
+              </Box>
           </details>
-        </div>
+        </Box>
         <details open>
         <summary>
-          <span>Transfers ▾</span>
-          <button onClick={handleRefreshClick} className="refreshButton">Refresh</button>
-          {loadingData && (
-            <span className="loadingData">
-              <Spinner /> Loading...
-            </span>
-          )}
+          <span><Typography variant="body1" color="secondary">Filters ▾</Typography></span>
         </summary>
-          <div className="tableHeader">
-            <div className="filters">
-              <div>
-                <label>Per page:</label>
-                <select className="perPageSelection select" value={perPage} onChange={updatePerPage}>
-                  <option value="5">5</option>
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </div>
-              <div>
-                <label>Source:</label>
-                <select className="select" value={filterSource} onChange={updateFilterSource}>
-                  <option value="">All</option>
-                  <option value="ethereum">Ethereum</option>
-                  <option value="polygon">Polygon</option>
-                  <option value="gnosis">Gnosis</option>
-                  <option value="optimism">Optimism</option>
-                  <option value="arbitrum">Arbitrum</option>
-                  <option value="nova">Nova</option>
-                </select>
-              </div>
-              <div>
-                <label>Destination:</label>
-                <select className="select" value={filterDestination} onChange={updateFilterDestination}>
-                  <option value="">All</option>
-                  <option value="ethereum">Ethereum</option>
-                  <option value="polygon">Polygon</option>
-                  <option value="gnosis">Gnosis</option>
-                  <option value="optimism">Optimism</option>
-                  <option value="arbitrum">Arbitrum</option>
-                  <option value="nova">Nova</option>
-                </select>
-              </div>
-              <div>
-                <label>Token:</label>
-                <select className="select" value={filterToken} onChange={updateFilterToken}>
-                  <option value="">All</option>
-                  <option value="USDC">USDC</option>
-                  <option value="USDT">USDT</option>
-                  <option value="MATIC">MATIC</option>
-                  <option value="ETH">ETH</option>
-                  <option value="DAI">DAI</option>
-                  <option value="WBTC">WBTC</option>
-                  <option value="FRAX">FRAX</option>
-                  <option value="HOP">HOP</option>
-                  <option value="SNX">SNX</option>
-                </select>
-              </div>
-              <div>
-                <label>Bonded:</label>
-                <select className="select" value={filterBonded} onChange={updateFilterBonded}>
-                  <option value="">All</option>
-                  <option value="pending">Pending</option>
-                  <option value="bonded">Bonded</option>
-                </select>
-              </div>
-              <div>
-                <label>Amount:</label>
-                <select className="select selectSmall" value={filterAmountComparator} onChange={updateFilterAmountComparator}>
-                  <option value="eq">=</option>
-                  <option value="gt">&gt;</option>
-                  <option value="lt">&lt;</option>
-                </select>
-                <input className="filterAmount" value={filterAmount} onChange={updateFilterAmount} placeholder="amount" />
-              </div>
-              <div>
-                <label>Amount USD:</label>
-                <select className="select selectSmall" value={filterAmountUsdComparator} onChange={updateFilterAmountUsdComparator}>
-                  <option value="eq">=</option>
-                  <option value="gt">&gt;</option>
-                  <option value="lt">&lt;</option>
-                </select>
-                <input className="filterAmountUsd" value={filterAmountUsd} onChange={updateFilterAmountUsd} placeholder="amount USD" />
-              </div>
-              <div>
-                <label>Bonder Fee USD:</label>
-                <select className="select selectSmall" value={filterBonderFeeUsdComparator} onChange={updateFilterBonderFeeUsdComparator}>
-                  <option value="eq">=</option>
-                  <option value="gt">&gt;</option>
-                  <option value="lt">&lt;</option>
-                </select>
-                <input className="filterBonderFeeUsd" value={filterBonderFeeUsd} onChange={updateFilterBonderFeeUsd} placeholder="bonder fee USD" />
-              </div>
-              <div>
-                <label>Bonder:</label>
-                <input className="filterBonder" value={filterBonder} onChange={updateFilterBonder} placeholder="bonder" />
-              </div>
-              <div>
-                <label>Transfer ID:</label>
-                <input className="filterTransferId" value={filterTransferId} onChange={updateFilterTransferId} placeholder="transfer ID or tx hash" />
-              </div>
-              <div>
-                <label>Account:</label>
-                <input className="filterAccount" value={filterAccount} onChange={updateFilterAccount} placeholder="Account address" />
-              </div>
-              <div>
-                <label>Recipient:</label>
-                <input className="filterRecipient" value={filterRecipient} onChange={updateFilterRecipient} placeholder="Recipient address" />
-              </div>
-              <div>
-                <label>Start Date:</label>
-                <input type="date" id="date" name="date"
-                value={filterStartDate}
-                min={minDate}
-                max={maxDate}
-                onChange={updateFilterStartDate}
-                 />
-              </div>
-              <div>
-                <label>End Date:</label>
-                <input type="date" id="date" name="date"
-                value={filterEndDate}
-                min={minDate}
-                max={maxDate}
-                onChange={updateFilterEndDate}
-                 />
-              </div>
-              <div>
-                <label>Sort By:</label>
-                <select className="select" value={filterSortBy} onChange={updateFilterSortBy}>
-                  <option value="timestamp">Timestamp</option>
-                  <option value="source">Source</option>
-                  <option value="destination">Destination</option>
-                  <option value="token">Token</option>
-                  <option value="bonded">Bonded</option>
-                  <option value="amount">Amount</option>
-                  <option value="amountUsd">Amount USD</option>
-                  <option value="bonderFee">Bonder Fee</option>
-                  <option value="bonderFeeUsd">BonderFee USD</option>
-                  <option value="bonder">Bonder</option>
-                  <option value="transferId">Transfer ID</option>
-                  <option value="account">Account</option>
-                  <option value="recipient">Recipient</option>
-                  <option value="bondTimestamp">Bonded Timestamp</option>
-                  <option value="bondWithinTimestamp">Bonded Within Timestamp</option>
-                  <option value="receivedHTokens">Received hTokens</option>
-                  <option value="integrationPartner">Integration Partner</option>
-                </select>
-              </div>
-              <div>
-                <label>Sort Order:</label>
-                <select className="select" value={filterSortDirection} onChange={updateFilterSortDirection}>
-                  <option value="desc">↓ Descending</option>
-                  <option value="asc">↑ Ascending</option>
-                </select>
-              </div>
-              <div>
-                <button onClick={resetFilters}>Reset</button>
-              </div>
-            </div>
-          </div>
+          <Box mb={4} className="tableHeader">
+            <Paper className="filters">
+              <Box p={4} display="flex" flexDirection="column">
+                <Box display="flex" flexWrap="wrap">
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Transfer ID</Typography></label>
+                  <TextField className="filterTransferId" value={filterTransferId} onChange={updateFilterTransferId} placeholder="transfer ID or tx hash" />
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Source</Typography></label>
+                  <Select className="select" value={filterSource || 'all'} onChange={updateFilterSource}>
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="ethereum">Ethereum</MenuItem>
+                    <MenuItem value="polygon">Polygon</MenuItem>
+                    <MenuItem value="gnosis">Gnosis</MenuItem>
+                    <MenuItem value="optimism">Optimism</MenuItem>
+                    <MenuItem value="arbitrum">Arbitrum</MenuItem>
+                    <MenuItem value="nova">Nova</MenuItem>
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Destination</Typography></label>
+                  <Select className="select" value={filterDestination || 'all'} onChange={updateFilterDestination}>
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="ethereum">Ethereum</MenuItem>
+                    <MenuItem value="polygon">Polygon</MenuItem>
+                    <MenuItem value="gnosis">Gnosis</MenuItem>
+                    <MenuItem value="optimism">Optimism</MenuItem>
+                    <MenuItem value="arbitrum">Arbitrum</MenuItem>
+                    <MenuItem value="nova">Nova</MenuItem>
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Token</Typography></label>
+                  <Select className="select" value={filterToken || 'all'} onChange={updateFilterToken}>
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="USDC">USDC</MenuItem>
+                    <MenuItem value="USDT">USDT</MenuItem>
+                    <MenuItem value="MATIC">MATIC</MenuItem>
+                    <MenuItem value="ETH">ETH</MenuItem>
+                    <MenuItem value="DAI">DAI</MenuItem>
+                    <MenuItem value="WBTC">WBTC</MenuItem>
+                    <MenuItem value="FRAX">FRAX</MenuItem>
+                    <MenuItem value="HOP">HOP</MenuItem>
+                    <MenuItem value="SNX">SNX</MenuItem>
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Bonded</Typography></label>
+                  <Select className="select" value={filterBonded || 'all'} onChange={updateFilterBonded}>
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="pending">Pending</MenuItem>
+                    <MenuItem value="bonded">Bonded</MenuItem>
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Amount</Typography></label>
+                  <Box display="flex">
+                    <Select className="select selectSmall" value={filterAmountComparator} onChange={updateFilterAmountComparator}>
+                      <MenuItem value="eq">=</MenuItem>
+                      <MenuItem value="gt">&gt;</MenuItem>
+                      <MenuItem value="lt">&lt;</MenuItem>
+                    </Select>
+                    <TextField className="filterAmount" value={filterAmount} onChange={updateFilterAmount} placeholder="Amount" />
+                  </Box>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Amount USD</Typography></label>
+                  <Box display="flex">
+                    <Select className="select selectSmall" value={filterAmountUsdComparator} onChange={updateFilterAmountUsdComparator}>
+                      <MenuItem value="eq">=</MenuItem>
+                      <MenuItem value="gt">&gt;</MenuItem>
+                      <MenuItem value="lt">&lt;</MenuItem>
+                    </Select>
+                    <TextField className="filterAmountUsd" value={filterAmountUsd} onChange={updateFilterAmountUsd} placeholder="Amount USD" />
+                  </Box>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Bonder Fee USD</Typography></label>
+                  <Box display="flex">
+                    <Select className="select selectSmall" value={filterBonderFeeUsdComparator} onChange={updateFilterBonderFeeUsdComparator}>
+                      <MenuItem value="eq">=</MenuItem>
+                      <MenuItem value="gt">&gt;</MenuItem>
+                      <MenuItem value="lt">&lt;</MenuItem>
+                    </Select>
+                    <TextField className="filterBonderFeeUsd" value={filterBonderFeeUsd} onChange={updateFilterBonderFeeUsd} placeholder="Bonder fee USD" />
+                  </Box>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Bonder</Typography></label>
+                  <TextField className="filterBonder" value={filterBonder} onChange={updateFilterBonder} placeholder="Bonder address" />
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Account</Typography></label>
+                  <TextField className="filterAccount" value={filterAccount} onChange={updateFilterAccount} placeholder="Account address" />
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Recipient</Typography></label>
+                  <TextField className="filterRecipient" value={filterRecipient} onChange={updateFilterRecipient} placeholder="Recipient address" />
+                </Box>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <Box display="flex" flexDirection="column">
+                    <label><Typography variant="body1" color="secondary">Start Date</Typography></label>
+                    <MobileDatePicker
+                    inputFormat="YYYY-MM-DD"
+                    value={filterStartDate || defaultStartDate}
+                    onChange={updateFilterStartDate}
+                    renderInput={(params) => <TextField {...params} className="datePicker" />}
+                    />
+                  </Box>
+                </LocalizationProvider>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <Box display="flex" flexDirection="column">
+                    <label><Typography variant="body1" color="secondary">End Date</Typography></label>
+                    <MobileDatePicker
+                    inputFormat="YYYY-MM-DD"
+                    value={filterEndDate || defaultEndDate}
+                    onChange={updateFilterEndDate}
+                    renderInput={(params) => <TextField {...params} className="datePicker" />}
+                    />
+                  </Box>
+                </LocalizationProvider>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Sort By</Typography></label>
+                  <Select className="select" value={filterSortBy} onChange={updateFilterSortBy}>
+                    <MenuItem value="timestamp">Timestamp</MenuItem>
+                    <MenuItem value="source">Source</MenuItem>
+                    <MenuItem value="destination">Destination</MenuItem>
+                    <MenuItem value="token">Token</MenuItem>
+                    <MenuItem value="bonded">Bonded</MenuItem>
+                    <MenuItem value="amount">Amount</MenuItem>
+                    <MenuItem value="amountUsd">Amount USD</MenuItem>
+                    <MenuItem value="bonderFee">Bonder Fee</MenuItem>
+                    <MenuItem value="bonderFeeUsd">BonderFee USD</MenuItem>
+                    <MenuItem value="bonder">Bonder</MenuItem>
+                    <MenuItem value="transferId">Transfer ID</MenuItem>
+                    <MenuItem value="account">Account</MenuItem>
+                    <MenuItem value="recipient">Recipient</MenuItem>
+                    <MenuItem value="bondTimestamp">Bonded Timestamp</MenuItem>
+                    <MenuItem value="bondWithinTimestamp">Bonded Within Timestamp</MenuItem>
+                    <MenuItem value="receivedHTokens">Received hTokens</MenuItem>
+                    <MenuItem value="integrationPartner">Integration Partner</MenuItem>
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Sort Order</Typography></label>
+                  <Select className="select" value={filterSortDirection} onChange={updateFilterSortDirection}>
+                    <MenuItem value="desc">↓ Descending</MenuItem>
+                    <MenuItem value="asc">↑ Ascending</MenuItem>
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Per page</Typography></label>
+                  <Select className="perPageSelection select" value={perPage} onChange={updatePerPage}>
+                    <MenuItem value="5">5</MenuItem>
+                    <MenuItem value="10">10</MenuItem>
+                    <MenuItem value="25">25</MenuItem>
+                    <MenuItem value="50">50</MenuItem>
+                    <MenuItem value="100">100</MenuItem>
+                  </Select>
+                </Box>
+              </Box>
+              <Box display="flex" flexDirection="column" alignItems="flex-start">
+                <Button onClick={resetFilters}>Reset</Button>
+              </Box>
+            </Box>
+            </Paper>
+          </Box>
+          </details>
+          <details open>
+          <summary>
+            <span><Typography variant="body1" color="secondary">Transfers ▾</Typography></span>
+          </summary>
           <div>
           {!!accountCumulativeVolumeUsd && (
             <div className="cumulativeVolume" title="Cumulative volume in USD for this account">Account Cumulative Volume: {accountCumulativeVolumeUsd}</div>
           )}
           </div>
-          <div className="pagination">
-            {hasFirstPage && (
-              <button onClick={firstPage} className="paginationButton">first page</button>
-            )}
-            {hasPreviousPage && (
-              <button onClick={previousPage} className="paginationButton">previous page</button>
-            )}
-            {hasNextPage && (
-              <button onClick={nextPage} className="paginationButton">next page</button>
-            )}
-          </div>
-          <div id="transfers">
-            <table>
-              <thead>
-                <tr>
-                  <th></th><th title="Date">Date</th><th title="Source chain">Source</th><th title="Destination chain">Destination</th><th title="Transfer ID">Transfer ID</th><th title="Transfer transaction hash">Transfer Tx</th><th title="Token">Token</th><th title="Amount in token">Amount</th><th title="Amount in USD">Amount USD</th><th title="Bonder fee in token">Bonder Fee</th><th title="Bonder fee in USD">Bonder Fee USD</th><th title="Transfer token was received at destination chain">Bonded</th><th title="Bonded or receive at destination chain transaction hash">Bonded Tx</th><th title="Date transfer was received at destination chain or estimated time until received at destination if pending">Bonded Date</th><th title="Time it took to receive transfer at destination chain">Bonded Within</th><th title="The address of bonder who bonded transfer">Bonder</th><th title="The sender address">Account</th><th title="The receipient address">Recipient</th><th title="Integration Partner">Integration Partner</th>
-                </tr>
-              </thead>
-              <tbody>
+          <Box display="flex" justifyContent="space-between">
+            <Box display="flex" alignItems="center">
+              <Button onClick={handleRefreshClick} className="refreshButton">Refresh</Button>
+              {loadingData && (
+                <Typography variant="body1" color="secondary">
+                  <Box ml={2} className="loadingData" display="flex" alignItems="center">
+                    <Spinner /> <Box ml={1}>Loading...</Box>
+                  </Box>
+                </Typography>
+              )}
+            </Box>
+            <Box className="pagination">
+              {hasFirstPage && (
+                <Button onClick={firstPage} className="paginationButton">First page</Button>
+              )}
+              {hasPreviousPage && (
+                <Button onClick={previousPage} className="paginationButton">Previous page</Button>
+              )}
+              {hasNextPage && (
+                <Button onClick={nextPage} className="paginationButton">Next page</Button>
+              )}
+            </Box>
+          </Box>
+          <Box mb={4} id="transfers">
+            <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>#</TableCell><TableCell title="Date">Date</TableCell><TableCell title="Source chain">Source</TableCell><TableCell title="Destination chain">Destination</TableCell><TableCell title="Transfer ID">Transfer ID</TableCell><TableCell title="Transfer transaction hash">Transfer Tx</TableCell><TableCell title="Token">Token</TableCell><TableCell title="Amount in token">Amount</TableCell><TableCell title="Amount in USD">Amount USD</TableCell><TableCell title="Bonder fee in token">Bonder Fee</TableCell><TableCell title="Bonder fee in USD">Bonder Fee USD</TableCell><TableCell title="Transfer token was received at destination chain">Bonded</TableCell><TableCell title="Bonded or receive at destination chain transaction hash">Bonded Tx</TableCell><TableCell title="Date transfer was received at destination chain or estimated time until received at destination if pending">Bonded Date</TableCell><TableCell title="Time it took to receive transfer at destination chain">Bonded Within</TableCell><TableCell title="The address of bonder who bonded transfer">Bonder</TableCell><TableCell title="The sender address">Account</TableCell><TableCell title="The receipient address">Recipient</TableCell><TableCell title="Integration Partner">Integration Partner</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {transfers.map((x: any, index: number) => {
                   x.isDifferentRecipient = false
                   if (x.recipientAddress && x.accountAddress) {
                     x.isDifferentRecipient = x.recipientAddress !== x.accountAddress
                   }
                   return (
-                    <tr key={index}>
-                      <td className="index">{ ((Math.max(page-1, 0) * perPage) + index + 1) }</td>
-                      <td className="timestamp" title={x.timestampIso}>{ x.timestampRelative }</td>
-                      <td className={x.sourceChainSlug}>
-                        <img width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
-                        { x.sourceChainName }
-                        <span className="small-arrow">⟶</span>
-                      </td>
-                      <td className={x.destinationChainSlug}>
-                        <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                        { x.destinationChainName }
-                      </td>
-                      <td className="transferId">
-                        <a className="clipboard" data-clipboard-text={x.transferId} rel="noreferrer noopener" title="Copy transfer ID to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
-                        <a className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transferId}`}>
-                          { x.transferIdTruncated }
-                        </a>
-                      </td>
-                      <td className="transferTx">
-                        <a className="clipboard" data-clipboard-text={x.transactionHash} rel="noreferrer noopener" title="Copy transaction hash to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
-                        <a className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transactionHash}`}>
-                          { x.transactionHashTruncated }
-                        </a>
-                      </td>
-                      <td className="token">
-                        <img width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
-                        { x.token }
-                      </td>
-                      <td className="amount number" title={x.amount}>{ x.amountDisplay }</td>
-                      <td className="amount number" title={`${x.amountUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>{ x.amountUsdDisplay }</td>
-                      <td className="bonderFee number" title={x.bonderFee}>
-                        {x.sourceChainId !== getSourceChainId('ethereum') && (
-                          <span>
-                            { x.bonderFeeDisplay }
-                          </span>
-                        )}
-                        {x.sourceChainId === getSourceChainId('ethereum') && (
-                          <span className="na">
-                            <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
-                          </span>
-                        )}
-                      </td>
-                      <td className="bonderFee number" title={`${x.bonderFeeUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>
-                        {x.sourceChainId !== getSourceChainId('ethereum') && (
-                          <span>
-                            { x.bonderFeeUsdDisplay }
-                          </span>
-                        )}
-                        {x.sourceChainId === getSourceChainId('ethereum') && (
-                          <span className="na">
-                            <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
-                          </span>
-                        )}
-                      </td>
-                      <td className="bonded">
-                        {x.bonded && (
-                        <a className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title="View on block explorer">
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Typography variant="body1" color="secondary" className="index">
+                          { ((Math.max(page-1, 0) * perPage) + index + 1) }
+                        </Typography>
+                        </TableCell>
+                      <TableCell title={x.timestampIso}>
+                        <Typography variant="body1" color="secondary" className="timestamp">
+                          { x.timestampRelative }
+                        </Typography>
+                        </TableCell>
+                      <TableCell>
+                        <Box display="flex" alignItems="center">
+                          <img width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
+                          <Typography variant="body1" color="secondary" className={x.sourceChainSlug}>
+                            { x.sourceChainName }
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box display="flex" alignItems="center">
                           <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                          <Typography variant="body1" color="secondary" className={x.destinationChainSlug}>
+                            { x.destinationChainName }
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell className="transferId">
+                        <Box display="flex" alignItems="center">
+                          <Link className="clipboard" data-clipboard-text={x.transferId} rel="noreferrer noopener" title="Copy transfer ID to clipboard" onClick={setCopiedTimeoutFn(x.transferId)}>{copied === x.transferId ? <CheckIcon /> : <ContentCopyIcon />}</Link>
+                          <Typography variant="body1" color="secondary">
+                            <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transferId}`}>
+                              { x.transferIdTruncated }
+                            </Link>
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell className="transferTx">
+                        <Box display="flex" alignItems="center">
+                          <Link className="clipboard" data-clipboard-text={x.transactionHash} rel="noreferrer noopener" title="Copy transaction hash to clipboard" onClick={setCopiedTimeoutFn(x.transactionHash)}>{copied === x.transactionHash ? <CheckIcon /> : <ContentCopyIcon />}</Link>
+                          <Typography variant="body1" color="secondary">
+                            <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transactionHash}`}>
+                              { x.transactionHashTruncated }
+                            </Link>
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell className="token">
+                        <Box display="flex" alignItems="center">
+                          <img width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
+                          <Typography variant="body1" color="secondary">
+                            { x.token }
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell className="amount number" title={x.amount}>
+                        <Typography variant="body1" color="secondary">
+                          { x.amountDisplay }
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="amount number" title={`${x.amountUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>
+                        <Typography variant="body1" color="secondary">
+                          { x.amountUsdDisplay }
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bonderFee number" title={x.bonderFee}>
+                        <Typography variant="body1" color="secondary">
                           {x.sourceChainId !== getSourceChainId('ethereum') && (
                             <span>
-                              Bonded
+                              { x.bonderFeeDisplay }
                             </span>
                           )}
                           {x.sourceChainId === getSourceChainId('ethereum') && (
-                            <span>
-                              Received
+                            <span className="na">
+                              <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
                             </span>
                           )}
-                          {x.receivedHTokens && (
-                            <span title={`Received h${x.token}`}> ⚠️</span>
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bonderFee number" title={`${x.bonderFeeUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>
+                        <Typography variant="body1" color="secondary" mr={2}>
+                          {x.sourceChainId !== getSourceChainId('ethereum') && (
+                            <span>
+                              { x.bonderFeeUsdDisplay }
+                            </span>
                           )}
-                        </a>
-                        )}
-                        {x.unbondable ?
-                          <span className="unbondable" title="This transfer is unbondable because of invalid parameters">
-                            ⚠️ Unbondable
-                          </span>
-                        : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
-                          <span className="no">
+                          {x.sourceChainId === getSourceChainId('ethereum') && (
+                            <span className="na">
+                              <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
+                            </span>
+                          )}
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bonded">
+                        <Typography variant="body1" color="secondary">
+                          {x.bonded && (
+                          <Link className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title="View on block explorer">
                             <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                            Pending
-                          </span>
-                        )}</>
-                         }
-                      </td>
-                      <td className="bondTx">
-                        {x.preregenesis && (
-                          <span title="This transaction occurred before the Optimism Regenesis">
-                            (pre-regenesis)
-                          </span>
-                        )}
-                        {x.bondTransactionHash && (
-                          <span>
-                            <a className="clipboard" data-clipboard-text={x.bondTransactionHash} title="Copy transaction hash to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
-                            <a className={x.destinationChainSlug} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bondTransactionHash}`}>
-                              { x.bondTransactionHashTruncated }
-                            </a>
-                          </span>
-                        )}
-                      </td>
-                      <td className="bondedDate" title={x.bondTimestampIso}>
-                        { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }
-                      </td>
-                      <td className="bondedWithin" title={x.bondTimestampIso}>
-                        { x.bondWithinTimestampRelative }
-                      </td>
-                      <td className="bondedWithin" title={x.bonderAddress}>
-                        {x.bonderAddressExplorerUrl && (
-                          <a className="bonder" href={x.bonderAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bonderAddress}`}>
-                            { x.bonderAddressTruncated }
-                          </a>
-                        )}
-                      </td>
-                      <td className="bondedWithin" title={x.accountAddress}>
-                        {x.accountAddressExplorerUrl && (
-                          <>
-                            <a className="clipboard" data-clipboard-text={x.accountAddress} rel="noreferrer noopener" title="Copy account address to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
-                            <a className="bonder" href={x.accountAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.accountAddress}`}>
-                              { x.accountAddressTruncated }
-                            </a>
-                          </>
-                        )}
-                      </td>
-                      <td className="bondedWithin" title={x.recipientAddress}>
-                        {x.recipientAddressExplorerUrl && (
-                          <>
-                          {x.isDifferentRecipient && (
-                            <span title="The recipient is different than the sender. If this was not expected then make sure that the website you sent from was not a scam site. The official website is app.hop.exchange">⚠️ </span>
+                            {x.sourceChainId !== getSourceChainId('ethereum') && (
+                              <span>
+                                Bonded
+                              </span>
+                            )}
+                            {x.sourceChainId === getSourceChainId('ethereum') && (
+                              <span>
+                                Received
+                              </span>
+                            )}
+                            {x.receivedHTokens && (
+                              <span title={`Received h${x.token}`}> ⚠️</span>
+                            )}
+                          </Link>
                           )}
-                          <a className="bonder" href={x.recipientAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.recipientAddress}`}>
-                            { x.recipientAddressTruncated }
-                          </a>
-                          </>
-                        )}
-                      </td>
-                      <td className="bondedWithin" title={x.integrationPartnerName}>
-                        {x.integrationPartnerImageUrl && (
-                          <img width="16" height="16" src={x.integrationPartnerImageUrl} alt={x.integrationPartnerName} />
-                        )}
-                        {x.integrationPartnerName}
-                      </td>
-                    </tr>
+                          {x.unbondable ?
+                            <span className="unbondable" title="This transfer is unbondable because of invalid parameters">
+                              ⚠️ Unbondable
+                            </span>
+                          : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
+                            <span className="no">
+                              <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                              Pending
+                            </span>
+                          )}</>
+                          }
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bondTx">
+                        <Box display="flex" alignItems="center">
+                          <Typography variant="body1" color="secondary">
+                            {x.preregenesis && (
+                              <span title="This transaction occurred before the Optimism Regenesis">
+                                (pre-regenesis)
+                              </span>
+                            )}
+                            {x.bondTransactionHash && (
+                              <Box display="flex" alignItems="center">
+                                <Link className="clipboard" data-clipboard-text={x.bondTransactionHash} title="Copy transaction hash to clipboard" onClick={setCopiedTimeoutFn(x.bondTransactionHash)}>{copied === x.bondTransactionHash ? <CheckIcon /> : <ContentCopyIcon />}</Link>
+                                <Link className={x.destinationChainSlug} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bondTransactionHash}`}>
+                                  { x.bondTransactionHashTruncated }
+                                </Link>
+                              </Box>
+                            )}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell className="bondedDate" title={x.bondTimestampIso}>
+                        <Typography variant="body1" color="secondary">
+                          { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bondedWithin" title={x.bondTimestampIso}>
+                        <Typography variant="body1" color="secondary">
+                          { x.bondWithinTimestampRelative }
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bondedWithin" title={x.bonderAddress}>
+                        <Typography variant="body1" color="secondary">
+                          {x.bonderAddressExplorerUrl && (
+                            <Box display="flex" alignItems="center">
+                              <Link className="clipboard" data-clipboard-text={x.bonderAddress} rel="noreferrer noopener" title="Copy bonder address to clipboard" onClick={setCopiedTimeoutFn(x.bonderAddress)}>{copied === x.bonderAddress ? <CheckIcon /> : <ContentCopyIcon />}</Link>
+                              <Link className="bonder" href={x.bonderAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bonderAddress}`}>
+                                { x.bonderAddressTruncated }
+                              </Link>
+                            </Box>
+                          )}
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bondedWithin" title={x.accountAddress}>
+                        <Typography variant="body1" color="secondary">
+                          {x.accountAddressExplorerUrl && (
+                            <Box display="flex" alignItems="center">
+                              <Link className="clipboard" data-clipboard-text={x.accountAddress} rel="noreferrer noopener" title="Copy account address to clipboard" onClick={setCopiedTimeoutFn(x.accountAddress)}>{copied === x.accountAddress ? <CheckIcon /> : <ContentCopyIcon />}</Link>
+                              <Link className="bonder" href={x.accountAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.accountAddress}`}>
+                                { x.accountAddressTruncated }
+                              </Link>
+                            </Box>
+                          )}
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bondedWithin" title={x.recipientAddress}>
+                        <Typography variant="body1" color="secondary">
+                          {x.recipientAddressExplorerUrl && (
+                            <Box display="flex" alignItems="center">
+                            <Link className="clipboard" data-clipboard-text={x.recipientAddress} rel="noreferrer noopener" title="Copy account address to clipboard" onClick={setCopiedTimeoutFn(x.recipientAddress)}>{copied === x.recipientAddress ? <CheckIcon /> : <ContentCopyIcon />}</Link>
+                            {x.isDifferentRecipient && (
+                              <span title="The recipient is different than the sender. If this was not expected then make sure that the website you sent from was not a scam site. The official website is app.hop.exchange">⚠️ </span>
+                            )}
+                            <Link className="bonder" href={x.recipientAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.recipientAddress}`}>
+                              { x.recipientAddressTruncated }
+                            </Link>
+                            </Box>
+                          )}
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bondedWithin" title={x.integrationPartnerName}>
+                        <Box display="flex" alignItems="center">
+                          {x.integrationPartnerImageUrl && (
+                            <img width="16" height="16" src={x.integrationPartnerImageUrl} alt={x.integrationPartnerName} />
+                          )}
+                          <Typography variant="body1" color="secondary">
+                            {x.integrationPartnerName}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
                   )
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
+            </TableContainer>
+          </Box>
+          <div className="tableFooter">
+            <div>
+              <Select className="perPageSelection" value={perPage} onChange={updatePerPage}>
+                <MenuItem value="5">5</MenuItem>
+                <MenuItem value="10">10</MenuItem>
+                <MenuItem value="25">25</MenuItem>
+                <MenuItem value="50">50</MenuItem>
+                <MenuItem value="100">100</MenuItem>
+              </Select>
+            </div>
+            <div className="pagination">
+              {hasFirstPage && (
+                <Button onClick={firstPage} className="paginationButton">First page</Button>
+              )}
+              {hasPreviousPage && (
+                <Button onClick={previousPage} className="paginationButton">Previous page</Button>
+              )}
+              {hasNextPage && (
+                <Button onClick={nextPage} className="paginationButton">Next page</Button>
+              )}
+            </div>
           </div>
         </details>
-        <div className="tableFooter">
-          <div>
-            <select className="perPageSelection" value={perPage} onChange={updatePerPage}>
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-          <div className="pagination">
-            {hasFirstPage && (
-              <button onClick={firstPage} className="paginationButton">first page</button>
-            )}
-            {hasPreviousPage && (
-              <button onClick={previousPage} className="paginationButton">previous page</button>
-            )}
-            {hasNextPage && (
-              <button onClick={nextPage} className="paginationButton">next page</button>
-            )}
-          </div>
-        </div>
-      </div>
-  </>
+      </Box>
+      </AppWrapper>
+    </ThemeProvider>
   )
 }
 

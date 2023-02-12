@@ -49,8 +49,7 @@ body {
   stroke-opacity: 1;
 }
 .header {
-  margin-bottom: 1rem;
-  text-align: center;
+
 }
 .header h1 {
   font-size: 2rem;
@@ -231,6 +230,7 @@ label[for] {
 }
 .filters label {
   display: block;
+  margin-bottom: 0.5em;
 }
 .filters .select {
   min-width: 140px;
@@ -322,4 +322,24 @@ label[for] {
 
 ::-webkit-scrollbar-corner {
   background: none;
+}
+
+@media (max-width: 600px) {
+  .filters {
+    flex-direction: column;
+  }
+  .filters > div {
+    max-width: 300px;
+  }
+  .filters .select {
+    min-width: 0;
+    width: auto;
+  }
+  .filters input {
+    min-width: 0;
+    width: auto;
+  }
+  .filterTransferId {
+    min-width: 0;
+  }
 }

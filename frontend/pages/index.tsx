@@ -24,6 +24,7 @@ import Link from '@mui/material/Link'
 import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox'
 import MenuItem from '@mui/material/MenuItem'
+import IconButton from '@mui/material/IconButton'
 import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
 import { useTheme } from './_useTheme'
@@ -33,6 +34,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker'
 import dayjs, { Dayjs } from 'dayjs'
+import LightModeIcon from '@mui/icons-material/LightMode'
+import DarkModeIcon from '@mui/icons-material/DarkMode'
 
 const isGoerli = process.env.NEXT_PUBLIC_NETWORK === 'goerli'
 let apiBaseUrl = 'https://explorer-api.hop.exchange'
@@ -762,14 +765,14 @@ const AppWrapper = styled(Box)<any>`
   align-items: stretch;
   background-image: url(https://user-images.githubusercontent.com/168240/218270008-16c5fe2a-33da-49c9-9fad-5286cbd6191d.svg);
   background-color: #272332;
-  background-image: ${({ dark }) => (dark ? `url(${bgImageDark})` : `url(${bgImage})`)};
+  background-image: ${({ light }) => (light ? `url(${bgImage})` : `url(${bgImageDark})`)};
   background-color: ${({ theme }) => theme.palette.background.default};
   background-size: 120%;
   transition: background 0.15s ease-out;
   min-height: 100vh;
 `
 
-const Index: NextPage = () => {
+const Index: NextPage = (props: any) => {
   const {
     filterStartDate,
     filterEndDate,
@@ -830,7 +833,7 @@ const Index: NextPage = () => {
     accountCumulativeVolumeUsd
   } = useData()
 
-  const { theme, dark } = useTheme()
+  const { theme, dark, toggleTheme } = props
   const [copied, setCopied] = useState<string>('')
 
   function setCopiedTimeout (value: string) {
@@ -849,7 +852,7 @@ const Index: NextPage = () => {
   }
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <Script strategy="beforeInteractive" src="/lib/d3.v3.min.js" />
       <Script strategy="beforeInteractive" src="/lib/d3.chart.min.js" />
       <Script strategy="beforeInteractive" src="/lib/sankey.patched.js" />
@@ -866,7 +869,7 @@ const Index: NextPage = () => {
         <meta name="application-name" content="Hop" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <AppWrapper dark={dark} theme={theme}>
+      <AppWrapper light={!dark} theme={theme}>
       {showBanner && (
         <div id="banner">
           <div>
@@ -875,11 +878,18 @@ const Index: NextPage = () => {
         </div>
       )}
       <Box id="app">
-        <Box className="header" mt={2} display="flex" alignItems="center" justifyContent="center">
-          <Box mr={2}>
-            <img className="logo" src={dark ? logoDark : logo} alt="Hop" />
+        <Box mb={2} mt={2} display="flex" justifyContent="space-between">
+          <Box className="header" display="flex" alignItems="center" justifyContent="center">
+            <Box mr={1}>
+              <img className="logo" src={dark ? logoDark : logo} alt="Hop" />
+            </Box>
+            <Typography variant="h1" color="secondary">Explorer</Typography>
           </Box>
-          <Typography variant="h1" color="secondary">Explorer</Typography>
+          <Box>
+            <IconButton onClick={toggleTheme}>
+              { dark ? <LightModeIcon /> : <DarkModeIcon /> }
+            </IconButton>
+          </Box>
         </Box>
         <Box mb={4} className="chartView">
           <details open>
@@ -914,9 +924,9 @@ const Index: NextPage = () => {
           <span><Typography variant="body1" color="secondary">Filters ▾</Typography></span>
         </summary>
           <Box mb={4} className="tableHeader">
-            <Paper className="filters">
+            <Paper style={{ overflow: 'auto' }}>
               <Box p={4} display="flex" flexDirection="column">
-                <Box display="flex" flexWrap="wrap">
+                <Box display="flex" flexWrap="wrap" className="filters">
                 <Box display="flex" flexDirection="column">
                   <label><Typography variant="body1" color="secondary">Transfer ID</Typography></label>
                   <TextField className="filterTransferId" value={filterTransferId} onChange={updateFilterTransferId} placeholder="transfer ID or tx hash" />
@@ -1365,7 +1375,7 @@ const Index: NextPage = () => {
         </details>
       </Box>
       </AppWrapper>
-    </ThemeProvider>
+    </>
   )
 }
 

@@ -28,7 +28,6 @@ function TxStatusModal(props: Props) {
     }
   }
 
-console.log('tx', tx)
   const sourceChain = tx?.networkName ? Chain.fromSlug(tx.networkName) : null
   const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
   const timeEstimate = sourceChain && destinationChain ? getTransferTimeString(sourceChain?.slug, destinationChain?.slug) : ''
@@ -38,13 +37,6 @@ console.log('tx', tx)
     tx.networkName
   )
   const { success, addTokenToDestNetwork } = useAddTokenToMetamask(tx.token, tx.destNetworkName)
-
-  // TODO: if no complaints after a week or so of this feature being live,
-  // we can revert to using this and only display add-to-mm button if tx is completed
-  // const showAddToMM =
-  //   (completed && destCompleted) ||
-  //   (completed && !tx.destNetworkName) ||
-  //   (completed && tx.destNetworkName === tx.networkName)
 
   return (
     <Modal onClose={handleTxStatusClose}>

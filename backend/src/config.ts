@@ -36,44 +36,44 @@ export const rpcUrls = {
 export const transferTimes = {
   ethereum: {
     optimism: 10,
-    arbitrum: 16,
-    polygon: 25,
+    arbitrum: 20,
+    polygon: 30,
     gnosis: 5,
-    nova: 16
+    nova: 20
   },
   optimism: {
     ethereum: 1,
     arbitrum: 1,
-    polygon: 1,
+    polygon: 5,
     gnosis: 1,
     nova: 1
   },
   arbitrum: {
     ethereum: 1,
     optimism: 1,
-    polygon: 1,
+    polygon: 5,
     gnosis: 1,
     nova: 1
   },
   polygon: {
+    ethereum: 15,
+    optimism: 15,
+    arbitrum: 15,
+    gnosis: 15,
+    nova: 15
+  },
+  gnosis: {
     ethereum: 5,
     optimism: 5,
     arbitrum: 5,
-    gnosis: 5,
+    polygon: 5,
     nova: 5
-  },
-  gnosis: {
-    ethereum: 1,
-    optimism: 1,
-    arbitrum: 1,
-    polygon: 1,
-    nova: 1
   },
   nova: {
     ethereum: 1,
     optimism: 1,
     arbitrum: 1,
-    polygon: 1,
+    polygon: 5,
     gnosis: 1
   }
 }

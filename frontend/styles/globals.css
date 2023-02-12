@@ -107,11 +107,16 @@ table {
   border-radius: 10px;
   min-width: 2700px;
 }
+/* TODO: not use !important */
 table a {
   text-decoration: none !important;
 }
 table th {
   font-weight: bold !important;
+}
+table td, table th {
+  border-bottom: none !important;
+  padding: 0.1rem 0 !important;
 }
 thead {
   text-align: left;

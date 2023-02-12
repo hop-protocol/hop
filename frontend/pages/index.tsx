@@ -1,3 +1,4 @@
+import React, {useEffect, useState, useCallback } from 'react'
 import { useInterval } from 'react-use'
 import Clipboard from 'clipboard'
 import * as luxon from 'luxon'
@@ -5,7 +6,6 @@ import { createTheme, ThemeProvider } from '@mui/material/styles'
 import type {NextPage} from 'next'
 import Head from 'next/head'
 import Script from 'next/script'
-import React, {useEffect, useState } from 'react'
 // import bgImage from './assets/circles-bg.svg'
 import styled from 'styled-components'
 import Box from '@mui/material/Box'
@@ -15,7 +15,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import CheckIcon from '@mui/icons-material/Check'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
-import MuiTableCell from '@mui/material/TableCell'
+import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
@@ -27,7 +27,6 @@ import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
 import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
-import { useTheme } from './_useTheme'
 import { withStyles } from '@mui/styles'
 import TextField from '@mui/material/TextField'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -396,12 +395,20 @@ function useData () {
         .iterations(0)
         .draw(graph)
 
+      const $chartSelection: any = document.querySelector('#chartSelection')
       chart.on('link:mouseout', function (item: any) {
-        setChartSelection('')
+        // note: this makes ui lag because of too many re-renders
+        // setChartSelection('')
+        if ($chartSelection) {
+          $chartSelection.innerText = ''
+        }
       })
       chart.on('link:mouseover', function (item: any) {
         const value = `${item.source.name}⟶${item.target.name} ${item.amountDisplay} ${item.token}`
-        setChartSelection(value)
+        // setChartSelection(value)
+        if ($chartSelection) {
+          $chartSelection.innerText = value
+        }
       })
 
       function label (node: any) {
@@ -749,28 +756,11 @@ function useData () {
     accountCumulativeVolumeUsd
   }
 }
-const TableCell = withStyles({
-  root: {
-    borderBottom: 'none',
-    padding: '0.1rem 0'
-  }
-})(MuiTableCell)
 
 const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
 const logo = 'https://user-images.githubusercontent.com/168240/218271509-66a35bed-94f7-46da-ab41-71c806ac9a96.svg'
 const bgImage = 'https://user-images.githubusercontent.com/168240/218269980-c26e1bb2-90d8-4816-b0cb-c8752e32cde1.svg'
 const bgImageDark = 'https://user-images.githubusercontent.com/168240/218270008-16c5fe2a-33da-49c9-9fad-5286cbd6191d.svg'
-
-const AppWrapper = styled(Box)<any>`
-  align-items: stretch;
-  background-image: url(https://user-images.githubusercontent.com/168240/218270008-16c5fe2a-33da-49c9-9fad-5286cbd6191d.svg);
-  background-color: #272332;
-  background-image: ${({ light }) => (light ? `url(${bgImage})` : `url(${bgImageDark})`)};
-  background-color: ${({ theme }) => theme.palette.background.default};
-  background-size: 120%;
-  transition: background 0.15s ease-out;
-  min-height: 100vh;
-`
 
 const Index: NextPage = (props: any) => {
   const {
@@ -836,20 +826,20 @@ const Index: NextPage = (props: any) => {
   const { theme, dark, toggleTheme } = props
   const [copied, setCopied] = useState<string>('')
 
-  function setCopiedTimeout (value: string) {
+  const setCopiedTimeout = useCallback((value: string) => {
     setTimeout(() => {
       setCopied(value)
-    }, 1)
+    }, 0)
     setTimeout(() => {
       setCopied('')
     }, 1000)
-  }
+  }, [])
 
-  function setCopiedTimeoutFn (value: string) {
+  const setCopiedTimeoutFn = useCallback((value: string) => {
     return (event: any) => {
       setCopiedTimeout(value)
     }
-  }
+  }, [setCopiedTimeout])
 
   return (
     <>
@@ -869,7 +859,15 @@ const Index: NextPage = (props: any) => {
         <meta name="application-name" content="Hop" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <AppWrapper light={!dark} theme={theme}>
+      <Box
+      style={{
+        alignItems: 'stretch',
+        backgroundImage: !dark ? `url(${bgImage})` : `url(${bgImageDark})`,
+        backgroundColor: theme?.palette?.background?.default,
+        backgroundSize: '120%',
+        transition: 'background 0.15s ease-out',
+        minHeight: '100vh'
+      }}>
       {showBanner && (
         <div id="banner">
           <div>
@@ -898,7 +896,7 @@ const Index: NextPage = (props: any) => {
                 <div className="chartHeader">
                   <label><Typography variant="body1" color="secondary">Source</Typography></label>
                   <label className="arrow">
-                    <Typography variant="body1" color="secondary">
+                    <Typography variant="body1" color="secondary" component="div">
                       <ArrowForwardIcon />
                     </Typography>
                   </label>
@@ -915,7 +913,7 @@ const Index: NextPage = (props: any) => {
                     </Typography>
                   </Box>
                 </label>
-                <div id="chartSelection"><Typography variant="body1" color="secondary">{ chartSelection }</Typography></div>
+                <Box><Typography variant="body1" color="secondary" id="chartSelection">{ chartSelection }</Typography></Box>
               </Box>
           </details>
         </Box>
@@ -1105,7 +1103,7 @@ const Index: NextPage = (props: any) => {
             <Box display="flex" alignItems="center">
               <Button onClick={handleRefreshClick} className="refreshButton">Refresh</Button>
               {loadingData && (
-                <Typography variant="body1" color="secondary">
+                <Typography variant="body1" color="secondary" component="div">
                   <Box ml={2} className="loadingData" display="flex" alignItems="center">
                     <Spinner /> <Box ml={1}>Loading...</Box>
                   </Box>
@@ -1153,7 +1151,7 @@ const Index: NextPage = (props: any) => {
                       <TableCell>
                         <Box display="flex" alignItems="center">
                           <img width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
-                          <Typography variant="body1" color="secondary" className={x.sourceChainSlug}>
+                          <Typography variant="body1" color="secondary" className={x.sourceChainSlug} style={{ color: colorsMap[x.sourceChainSlug] }}>
                             { x.sourceChainName }
                           </Typography>
                         </Box>
@@ -1161,7 +1159,7 @@ const Index: NextPage = (props: any) => {
                       <TableCell>
                         <Box display="flex" alignItems="center">
                           <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                          <Typography variant="body1" color="secondary" className={x.destinationChainSlug}>
+                          <Typography variant="body1" color="secondary" className={x.destinationChainSlug} style={{ color: colorsMap[x.destinationChainSlug] }}>
                             { x.destinationChainName }
                           </Typography>
                         </Box>
@@ -1169,8 +1167,8 @@ const Index: NextPage = (props: any) => {
                       <TableCell className="transferId">
                         <Box display="flex" alignItems="center">
                           <Link className="clipboard" data-clipboard-text={x.transferId} rel="noreferrer noopener" title="Copy transfer ID to clipboard" onClick={setCopiedTimeoutFn(x.transferId)}>{copied === x.transferId ? <CheckIcon /> : <ContentCopyIcon />}</Link>
-                          <Typography variant="body1" color="secondary">
-                            <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transferId}`}>
+                          <Typography variant="body1" color="secondary" component="div">
+                            <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transferId}`} style={{ color: colorsMap[x.sourceChainSlug] }}>
                               { x.transferIdTruncated }
                             </Link>
                           </Typography>
@@ -1179,8 +1177,8 @@ const Index: NextPage = (props: any) => {
                       <TableCell className="transferTx">
                         <Box display="flex" alignItems="center">
                           <Link className="clipboard" data-clipboard-text={x.transactionHash} rel="noreferrer noopener" title="Copy transaction hash to clipboard" onClick={setCopiedTimeoutFn(x.transactionHash)}>{copied === x.transactionHash ? <CheckIcon /> : <ContentCopyIcon />}</Link>
-                          <Typography variant="body1" color="secondary">
-                            <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transactionHash}`}>
+                          <Typography variant="body1" color="secondary" component="div">
+                            <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transactionHash}`} style={{ color: colorsMap[x.sourceChainSlug] }}>
                               { x.transactionHashTruncated }
                             </Link>
                           </Typography>
@@ -1205,7 +1203,7 @@ const Index: NextPage = (props: any) => {
                         </Typography>
                       </TableCell>
                       <TableCell className="bonderFee number" title={x.bonderFee}>
-                        <Typography variant="body1" color="secondary">
+                        <Typography variant="body1" color="secondary" component="div">
                           {x.sourceChainId !== getSourceChainId('ethereum') && (
                             <span>
                               { x.bonderFeeDisplay }
@@ -1219,7 +1217,7 @@ const Index: NextPage = (props: any) => {
                         </Typography>
                       </TableCell>
                       <TableCell className="bonderFee number" title={`${x.bonderFeeUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>
-                        <Typography variant="body1" color="secondary" mr={2}>
+                        <Typography variant="body1" color="secondary" mr={2} component="div">
                           {x.sourceChainId !== getSourceChainId('ethereum') && (
                             <span>
                               { x.bonderFeeUsdDisplay }
@@ -1233,7 +1231,7 @@ const Index: NextPage = (props: any) => {
                         </Typography>
                       </TableCell>
                       <TableCell className="bonded">
-                        <Typography variant="body1" color="secondary">
+                        <Typography variant="body1" color="secondary" component="div">
                           {x.bonded && (
                           <Link className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title="View on block explorer">
                             <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
@@ -1267,7 +1265,7 @@ const Index: NextPage = (props: any) => {
                       </TableCell>
                       <TableCell className="bondTx">
                         <Box display="flex" alignItems="center">
-                          <Typography variant="body1" color="secondary">
+                          <Typography variant="body1" color="secondary" component="div">
                             {x.preregenesis && (
                               <span title="This transaction occurred before the Optimism Regenesis">
                                 (pre-regenesis)
@@ -1295,7 +1293,7 @@ const Index: NextPage = (props: any) => {
                         </Typography>
                       </TableCell>
                       <TableCell className="bondedWithin" title={x.bonderAddress}>
-                        <Typography variant="body1" color="secondary">
+                        <Typography variant="body1" color="secondary" component="div">
                           {x.bonderAddressExplorerUrl && (
                             <Box display="flex" alignItems="center">
                               <Link className="clipboard" data-clipboard-text={x.bonderAddress} rel="noreferrer noopener" title="Copy bonder address to clipboard" onClick={setCopiedTimeoutFn(x.bonderAddress)}>{copied === x.bonderAddress ? <CheckIcon /> : <ContentCopyIcon />}</Link>
@@ -1307,7 +1305,7 @@ const Index: NextPage = (props: any) => {
                         </Typography>
                       </TableCell>
                       <TableCell className="bondedWithin" title={x.accountAddress}>
-                        <Typography variant="body1" color="secondary">
+                        <Typography variant="body1" color="secondary" component="div">
                           {x.accountAddressExplorerUrl && (
                             <Box display="flex" alignItems="center">
                               <Link className="clipboard" data-clipboard-text={x.accountAddress} rel="noreferrer noopener" title="Copy account address to clipboard" onClick={setCopiedTimeoutFn(x.accountAddress)}>{copied === x.accountAddress ? <CheckIcon /> : <ContentCopyIcon />}</Link>
@@ -1319,7 +1317,7 @@ const Index: NextPage = (props: any) => {
                         </Typography>
                       </TableCell>
                       <TableCell className="bondedWithin" title={x.recipientAddress}>
-                        <Typography variant="body1" color="secondary">
+                        <Typography variant="body1" color="secondary" component="div">
                           {x.recipientAddressExplorerUrl && (
                             <Box display="flex" alignItems="center">
                             <Link className="clipboard" data-clipboard-text={x.recipientAddress} rel="noreferrer noopener" title="Copy account address to clipboard" onClick={setCopiedTimeoutFn(x.recipientAddress)}>{copied === x.recipientAddress ? <CheckIcon /> : <ContentCopyIcon />}</Link>
@@ -1374,7 +1372,7 @@ const Index: NextPage = (props: any) => {
           </div>
         </details>
       </Box>
-      </AppWrapper>
+      </Box>
     </>
   )
 }

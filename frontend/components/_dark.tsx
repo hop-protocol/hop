@@ -36,5 +36,8 @@ export const palette = {
     primary: '#E3DDF1',
     secondary: '#968FA8',
     disabled: '#968FA87f',
+  },
+  table: {
+    hover: '#00000033'
   }
 }

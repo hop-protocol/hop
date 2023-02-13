@@ -8,13 +8,13 @@ body {
 [v-cloak] {
   display: none;
 }
-#app a[target="_blank"]::after {
+#app table a[target="_blank"]::after {
   display: inline-block;
   content: "↗";
   margin: 0 3px 0 5px;
   visibility: hidden;
 }
-#app a[target="_blank"]:hover::after {
+#app table a[target="_blank"]:hover::after {
   visibility: visible;
 }
 #app {
@@ -69,13 +69,16 @@ body {
 .arrow {
   font-size: 1.6rem;
 }
+
+
 details > summary {
   display: block;
   list-style: none;
   cursor: pointer;
   margin-bottom: 1rem;
 }
-details > summary::marker {
+details > summary::marker,
+details > summary::-webkit-details-marker /* Safari */ {
   display: none;
 }
 #chartView {
@@ -228,7 +231,7 @@ label[for] {
   display: flex;
   flex-flow: row wrap;
 }
-.filters div {
+.filters > div {
   display: flex;
   margin-right: 1rem;
   margin-bottom: 0.4rem;

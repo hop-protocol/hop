@@ -35,6 +35,15 @@ import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker'
 import dayjs, { Dayjs } from 'dayjs'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
+import RefreshIcon from '@mui/icons-material/Refresh'
+import RestartAltIcon from '@mui/icons-material/RestartAlt'
+import FirstPageIcon from '@mui/icons-material/FirstPage'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
+import GitHubIcon from '@mui/icons-material/GitHub'
+import TwitterIcon from '@mui/icons-material/Twitter'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { chains, tokens } from '@hop-protocol/core/metadata'
 
 const isGoerli = process.env.NEXT_PUBLIC_NETWORK === 'goerli'
 let apiBaseUrl = 'https://explorer-api.hop.exchange'
@@ -762,6 +771,15 @@ const logo = 'https://user-images.githubusercontent.com/168240/218271509-66a35be
 const bgImage = 'https://user-images.githubusercontent.com/168240/218269980-c26e1bb2-90d8-4816-b0cb-c8752e32cde1.svg'
 const bgImageDark = 'https://user-images.githubusercontent.com/168240/218270008-16c5fe2a-33da-49c9-9fad-5286cbd6191d.svg'
 
+function MenuItemIcon (props: any) {
+  const { src } = props
+  return (
+    <Box mr={0.5} display="inline-flex" alignItems="center" justifyContent="center">
+      <img src={src} alt="" width="16px" />
+    </Box>
+  )
+}
+
 const Index: NextPage = (props: any) => {
   const {
     filterStartDate,
@@ -825,6 +843,7 @@ const Index: NextPage = (props: any) => {
 
   const { theme, dark, toggleTheme } = props
   const [copied, setCopied] = useState<string>('')
+  const [showMoreFilters, setShowMoreFilters] = useState<boolean>(false)
 
   const setCopiedTimeout = useCallback((value: string) => {
     setTimeout(() => {
@@ -840,6 +859,10 @@ const Index: NextPage = (props: any) => {
       setCopiedTimeout(value)
     }
   }, [setCopiedTimeout])
+
+  const showMoreFiltersFn = useCallback(() => {
+    setShowMoreFilters(true)
+  }, [])
 
   return (
     <>
@@ -878,13 +901,15 @@ const Index: NextPage = (props: any) => {
       <Box id="app">
         <Box mb={2} mt={2} display="flex" justifyContent="space-between">
           <Box className="header" display="flex" alignItems="center" justifyContent="center">
-            <Box mr={1}>
-              <img className="logo" src={dark ? logoDark : logo} alt="Hop" />
-            </Box>
-            <Typography variant="h1" color="secondary">Explorer</Typography>
+            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
+              <Box mr={1}>
+                <img className="logo" src={dark ? logoDark : logo} alt="Hop" />
+              </Box>
+              <Typography variant="h1" color="secondary">Explorer</Typography>
+            </Link>
           </Box>
           <Box>
-            <IconButton onClick={toggleTheme}>
+            <IconButton onClick={toggleTheme} title="Toggle theme color mode">
               { dark ? <LightModeIcon /> : <DarkModeIcon /> }
             </IconButton>
           </Box>
@@ -922,8 +947,8 @@ const Index: NextPage = (props: any) => {
           <span><Typography variant="body1" color="secondary">Filters ▾</Typography></span>
         </summary>
           <Box mb={4} className="tableHeader">
-            <Paper style={{ overflow: 'auto' }}>
-              <Box p={4} display="flex" flexDirection="column">
+            <Paper style={{ overflowY: 'hidden', overflowX: 'auto', position: 'relative', width: '100%' }}>
+              <Box p={4} display="flex" flexDirection="column" style={{ maxHeight: showMoreFilters ? '100%' : '170px' }}>
                 <Box display="flex" flexWrap="wrap" className="filters">
                 <Box display="flex" flexDirection="column">
                   <label><Typography variant="body1" color="secondary">Transfer ID</Typography></label>
@@ -933,39 +958,39 @@ const Index: NextPage = (props: any) => {
                   <label><Typography variant="body1" color="secondary">Source</Typography></label>
                   <Select className="select" value={filterSource || 'all'} onChange={updateFilterSource}>
                     <MenuItem value="all">All</MenuItem>
-                    <MenuItem value="ethereum">Ethereum</MenuItem>
-                    <MenuItem value="polygon">Polygon</MenuItem>
-                    <MenuItem value="gnosis">Gnosis</MenuItem>
-                    <MenuItem value="optimism">Optimism</MenuItem>
-                    <MenuItem value="arbitrum">Arbitrum</MenuItem>
-                    <MenuItem value="nova">Nova</MenuItem>
+                    <MenuItem value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>
+                    <MenuItem value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>
+                    <MenuItem value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>
+                    <MenuItem value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>
+                    <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
+                    <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">
                   <label><Typography variant="body1" color="secondary">Destination</Typography></label>
                   <Select className="select" value={filterDestination || 'all'} onChange={updateFilterDestination}>
                     <MenuItem value="all">All</MenuItem>
-                    <MenuItem value="ethereum">Ethereum</MenuItem>
-                    <MenuItem value="polygon">Polygon</MenuItem>
-                    <MenuItem value="gnosis">Gnosis</MenuItem>
-                    <MenuItem value="optimism">Optimism</MenuItem>
-                    <MenuItem value="arbitrum">Arbitrum</MenuItem>
-                    <MenuItem value="nova">Nova</MenuItem>
+                    <MenuItem value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>
+                    <MenuItem value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>
+                    <MenuItem value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>
+                    <MenuItem value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>
+                    <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
+                    <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">
                   <label><Typography variant="body1" color="secondary">Token</Typography></label>
                   <Select className="select" value={filterToken || 'all'} onChange={updateFilterToken}>
                     <MenuItem value="all">All</MenuItem>
-                    <MenuItem value="USDC">USDC</MenuItem>
-                    <MenuItem value="USDT">USDT</MenuItem>
-                    <MenuItem value="MATIC">MATIC</MenuItem>
-                    <MenuItem value="ETH">ETH</MenuItem>
-                    <MenuItem value="DAI">DAI</MenuItem>
-                    <MenuItem value="WBTC">WBTC</MenuItem>
-                    <MenuItem value="FRAX">FRAX</MenuItem>
-                    <MenuItem value="HOP">HOP</MenuItem>
-                    <MenuItem value="SNX">SNX</MenuItem>
+                    <MenuItem value="ETH"><MenuItemIcon src={tokens.ETH.image} /> ETH</MenuItem>
+                    <MenuItem value="USDC"><MenuItemIcon src={tokens.USDC.image} /> USDC</MenuItem>
+                    <MenuItem value="USDT"><MenuItemIcon src={tokens.USDT.image} /> USDT</MenuItem>
+                    <MenuItem value="DAI"><MenuItemIcon src={tokens.DAI.image} /> DAI</MenuItem>
+                    <MenuItem value="MATIC"><MenuItemIcon src={tokens.MATIC.image} /> MATIC</MenuItem>
+                    <MenuItem value="HOP"><MenuItemIcon src={tokens.HOP.image} /> HOP</MenuItem>
+                    <MenuItem value="SNX"><MenuItemIcon src={tokens.SNX.image} /> SNX</MenuItem>
+                    <MenuItem value="WBTC"><MenuItemIcon src={tokens.WBTC.image} /> WBTC</MenuItem>
+                    {/* <MenuItem value="FRAX"><MenuItemIcon src={tokens.FRAX.image} /> FRAX</MenuItem> */}
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">
@@ -1084,9 +1109,14 @@ const Index: NextPage = (props: any) => {
                 </Box>
               </Box>
               <Box display="flex" flexDirection="column" alignItems="flex-start">
-                <Button onClick={resetFilters}>Reset</Button>
+                <Button onClick={resetFilters} startIcon={<RestartAltIcon />}>Reset</Button>
               </Box>
             </Box>
+            {!showMoreFilters && (
+              <Box display="flex" alignItems="center" justifyContent="center" style={{ background: dark ? 'rgb(39 35 50 / 84%)' : 'rgb(255 255 255 / 68%)', position: 'absolute', bottom: 0, left: 0, width: '100%' }}>
+                <Button onClick={showMoreFiltersFn} endIcon={<ExpandMoreIcon />}>More filters</Button>
+              </Box>
+            )}
             </Paper>
           </Box>
           </details>
@@ -1101,7 +1131,7 @@ const Index: NextPage = (props: any) => {
           </div>
           <Box display="flex" justifyContent="space-between">
             <Box display="flex" alignItems="center">
-              <Button onClick={handleRefreshClick} className="refreshButton">Refresh</Button>
+              <Button onClick={handleRefreshClick} className="refreshButton" startIcon={<RefreshIcon />}>Refresh</Button>
               {loadingData && (
                 <Typography variant="body1" color="secondary" component="div">
                   <Box ml={2} className="loadingData" display="flex" alignItems="center">
@@ -1112,19 +1142,25 @@ const Index: NextPage = (props: any) => {
             </Box>
             <Box className="pagination">
               {hasFirstPage && (
-                <Button onClick={firstPage} className="paginationButton">First page</Button>
+                <Button onClick={firstPage} className="paginationButton" startIcon={<FirstPageIcon />}>First</Button>
               )}
               {hasPreviousPage && (
-                <Button onClick={previousPage} className="paginationButton">Previous page</Button>
+                <Button onClick={previousPage} className="paginationButton" startIcon={<NavigateBeforeIcon />}>Previous</Button>
               )}
               {hasNextPage && (
-                <Button onClick={nextPage} className="paginationButton">Next page</Button>
+                <Button onClick={nextPage} className="paginationButton" endIcon={<NavigateNextIcon />}>Next</Button>
               )}
             </Box>
           </Box>
           <Box mb={4} id="transfers">
             <TableContainer>
-            <Table>
+            <Table
+              sx={{
+                "& .MuiTableRow-root:hover": {
+                  backgroundColor: "table.hover"
+                }
+              }}
+            >
               <TableHead>
                 <TableRow>
                   <TableCell>#</TableCell><TableCell title="Date">Date</TableCell><TableCell title="Source chain">Source</TableCell><TableCell title="Destination chain">Destination</TableCell><TableCell title="Transfer ID">Transfer ID</TableCell><TableCell title="Transfer transaction hash">Transfer Tx</TableCell><TableCell title="Token">Token</TableCell><TableCell title="Amount in token">Amount</TableCell><TableCell title="Amount in USD">Amount USD</TableCell><TableCell title="Bonder fee in token">Bonder Fee</TableCell><TableCell title="Bonder fee in USD">Bonder Fee USD</TableCell><TableCell title="Transfer token was received at destination chain">Bonded</TableCell><TableCell title="Bonded or receive at destination chain transaction hash">Bonded Tx</TableCell><TableCell title="Date transfer was received at destination chain or estimated time until received at destination if pending">Bonded Date</TableCell><TableCell title="Time it took to receive transfer at destination chain">Bonded Within</TableCell><TableCell title="The address of bonder who bonded transfer">Bonder</TableCell><TableCell title="The sender address">Account</TableCell><TableCell title="The receipient address">Recipient</TableCell><TableCell title="Integration Partner">Integration Partner</TableCell>
@@ -1360,17 +1396,25 @@ const Index: NextPage = (props: any) => {
             </div>
             <div className="pagination">
               {hasFirstPage && (
-                <Button onClick={firstPage} className="paginationButton">First page</Button>
+                <Button onClick={firstPage} className="paginationButton" startIcon={<FirstPageIcon />}>First</Button>
               )}
               {hasPreviousPage && (
-                <Button onClick={previousPage} className="paginationButton">Previous page</Button>
+                <Button onClick={previousPage} className="paginationButton" startIcon={<NavigateBeforeIcon />}>Previous</Button>
               )}
               {hasNextPage && (
-                <Button onClick={nextPage} className="paginationButton">Next page</Button>
+                <Button onClick={nextPage} className="paginationButton" endIcon={<NavigateNextIcon />}>Next</Button>
               )}
             </div>
           </div>
         </details>
+        <Box mb={6} display="flex" alignItem="center" justifyContent="center">
+          <Box>
+            <Link href="https://twitter.com/hopprotocol" target="_blank" rel="noreferrer noopener"><TwitterIcon  /></Link>
+          </Box>
+          <Box ml={2}>
+            <Link href="https://github.com/hop-protocol/explorer" target="_blank" rel="noreferrer noopener"><GitHubIcon  /></Link>
+          </Box>
+        </Box>
       </Box>
       </Box>
     </>

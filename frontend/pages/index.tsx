@@ -1407,7 +1407,7 @@ const Index: NextPage = (props: any) => {
             </div>
           </div>
         </details>
-        <Box mb={6} display="flex" alignItems="center" justifyContent="center">
+        <Box mt={6} mb={6} display="flex" alignItems="center" justifyContent="center">
           <Box>
             <Link href="https://twitter.com/hopprotocol" target="_blank" rel="noreferrer noopener"><TwitterIcon  /></Link>
           </Box>

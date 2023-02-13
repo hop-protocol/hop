@@ -17,10 +17,11 @@ import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, t
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
-import { hopAppNetwork, reactAppNetwork, showRewards, transferTimes } from 'src/config'
+import { hopAppNetwork, reactAppNetwork, showRewards } from 'src/config'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
+import { getTransferTimeString } from 'src/utils/getTransferTimeString'
 import { useSendStyles } from './useSendStyles'
 import SendHeader from './SendHeader'
 import CustomRecipientDropdown from './CustomRecipientDropdown'
@@ -601,10 +602,7 @@ const Send: FC = () => {
 
   const transferTime = useMemo(() => {
     if (fromNetwork && toNetwork) {
-      const minutes = transferTimes?.[fromNetwork?.slug]?.[toNetwork?.slug]
-      if (minutes) {
-        return `~${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`
-      }
+      return getTransferTimeString(fromNetwork?.slug, toNetwork?.slug)
     }
   }, [fromNetwork, toNetwork])
 

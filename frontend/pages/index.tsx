@@ -845,6 +845,12 @@ const Index: NextPage = (props: any) => {
   const [copied, setCopied] = useState<string>('')
   const [showMoreFilters, setShowMoreFilters] = useState<boolean>(false)
 
+  useEffect(() => {
+    try {
+      setShowMoreFilters((document as any)?.body?.clientWidth > 960)
+    } catch (err) {}
+  }, [])
+
   const setCopiedTimeout = useCallback((value: string) => {
     setTimeout(() => {
       setCopied(value)

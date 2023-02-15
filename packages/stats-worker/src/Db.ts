@@ -135,25 +135,6 @@ class Db {
           xdai_price_usd NUMERIC NOT NULL
       )`)
 
-      this.db.run(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_volume_stats_chain_token_timestamp ON volume_stats (chain, token, timestamp);'
-      )
-      this.db.run(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvl_pool_stats_chain_token_timestamp ON tvl_pool_stats (chain, token, timestamp);'
-      )
-      this.db.run(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_token_prices_token_timestamp ON token_prices (token, timestamp);'
-      )
-      this.db.run('DROP INDEX IF EXISTS idx_bonder_balances_token_timestamp;')
-      this.db.run(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_balances_token_bonder_timestamp ON bonder_balances (token, bonder_address, timestamp);'
-      )
-      this.db.run(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_tx_fees_token_timestamp ON bonder_tx_fees (token, timestamp);'
-      )
-      this.db.run(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_amm_stats_chain_token_timestamp ON amm_stats (chain, token, timestamp);'
-      )
       if (argv.migrations && !migrationRan) {
         const migrations = JSON.parse(argv.migrations)
         if (migrations.includes(0)) {
@@ -264,6 +245,26 @@ class Db {
 
         migrationRan = true
       }
+
+      this.db.run(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_volume_stats_chain_token_timestamp ON volume_stats (chain, token, timestamp);'
+      )
+      this.db.run(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvl_pool_stats_chain_token_timestamp ON tvl_pool_stats (chain, token, timestamp);'
+      )
+      this.db.run(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_token_prices_token_timestamp ON token_prices (token, timestamp);'
+      )
+      this.db.run('DROP INDEX IF EXISTS idx_bonder_balances_token_timestamp;')
+      this.db.run(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_balances_token_bonder_timestamp ON bonder_balances (token, bonder_address, timestamp);'
+      )
+      this.db.run(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_bonder_tx_fees_token_timestamp ON bonder_tx_fees (token, timestamp);'
+      )
+      this.db.run(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_amm_stats_chain_token_timestamp ON amm_stats (chain, token, timestamp);'
+      )
     })
   }
 

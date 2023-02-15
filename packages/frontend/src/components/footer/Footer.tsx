@@ -95,16 +95,20 @@ const Footer = () => {
               backgroundColor: 'rgb(118, 209, 145)',
               transition: 'background-color 250ms ease 0s'
             }}></Box>
-            <Typography variant="body2" color="secondary">
-              {blockNumber}
-            </Typography>
+            <a href={`https://etherscan.io/block/${blockNumber}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+              <Typography variant="body2" color="secondary">
+                {blockNumber}
+              </Typography>
+            </a>
           </Box>
         )}
         {!!gitRevision && (
           <Box title="Build git revision number">
-            <Typography variant="body2" color="secondary">
+            <a href={`https://github.com/hop-protocol/hop/releases/tag/${gitRevision}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+              <Typography variant="body2" color="secondary" component="span">
               rev:{gitRevision}
-            </Typography>
+              </Typography>
+            </a>
           </Box>
         )}
       </Box>

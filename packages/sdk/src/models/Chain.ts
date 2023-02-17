@@ -19,6 +19,7 @@ export class Chain {
   static Nova = newChain(ChainSlug.Nova, mainnet.nova.networkId)
   static ZkSync = newChain(ChainSlug.ZkSync, mainnet.zksync?.networkId ?? goerli.zksync?.networkId)
   static ConsenSysZk = newChain(ChainSlug.ConsenSysZk, mainnet.consensyszk?.networkId ?? goerli.consensyszk?.networkId)
+  static ScrollZk = newChain(ChainSlug.ScrollZk, mainnet.scrollzk?.networkId ?? goerli.scrollzk?.networkId)
 
   static fromSlug (slug: Slug | string) {
     if (slug === 'xdai') {
@@ -31,9 +32,14 @@ export class Chain {
 
   constructor (name: ChainName | string, chainId?: number, provider?: providers.Provider) {
     this.name = name
+
+    // TODO: better way
     this.slug = (name || '').trim().replace(/\s+/gi, '').toLowerCase()
     if (this.slug.startsWith('consensys')) {
       this.slug = 'consensyszk'
+    }
+    if (this.slug.startsWith('scroll')) {
+      this.slug = 'scrollzk'
     }
     if (
       this.slug === NetworkSlug.Kovan ||

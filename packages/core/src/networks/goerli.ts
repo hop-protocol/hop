@@ -64,11 +64,11 @@ export const networks: Networks = {
   scrollzk: {
     name: chains.scrollzk.name,
     image: chains.scrollzk.image,
-    networkId: 0, // TODO
-    publicRpcUrl: '', // TODO
+    networkId: 534354,
+    publicRpcUrl: 'https://prealpha-rpc.scroll.io/l2',
     fallbackPublicRpcUrls: [],
-    explorerUrls: [''], // TODO
-    nativeBridgeUrl: '', // TODO
+    explorerUrls: ['https://l2scan.scroll.io'],
+    nativeBridgeUrl: 'https://scroll.io/prealpha/bridge',
     waitConfirmations: 1
   }
 }

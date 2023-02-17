@@ -18,6 +18,7 @@ export enum ChainId {
   ZkSync = 324
 }
 
+// TODO: read from core package
 export enum ChainName {
   Ethereum = 'Ethereum',
   Optimism = 'Optimism',
@@ -26,9 +27,11 @@ export enum ChainName {
   Gnosis = 'Gnosis',
   Nova = 'Nova',
   ZkSync = 'zkSync',
-  ConsenSysZk = 'ConsenSys zkEVM'
+  ConsenSysZk = 'ConsenSys zkEVM',
+  ScrollZk = 'Scroll zkEVM'
 }
 
+// TODO: read from core package
 export enum ChainSlug {
   Ethereum = 'ethereum',
   Optimism = 'optimism',
@@ -37,7 +40,8 @@ export enum ChainSlug {
   Gnosis = 'gnosis',
   Nova = 'nova',
   ZkSync = 'zksync',
-  ConsenSysZk = 'consensyszk'
+  ConsenSysZk = 'consensyszk',
+  ScrollZk = 'scrollzk'
 }
 
 export enum Slug {
@@ -52,7 +56,8 @@ export enum Slug {
   polygon = 'polygon',
   nova = 'nova',
   zksync = 'zksync',
-  consensyszk = 'consensyszk'
+  consensyszk = 'consensyszk',
+  scrollzk = 'scrollzk',
 }
 
 export enum CanonicalToken {

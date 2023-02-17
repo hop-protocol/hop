@@ -7,7 +7,10 @@ export const config : Config = {
       polygon: 1,
       gnosis: 1,
       optimism: 1,
-      arbitrum: 1
+      arbitrum: 1,
+      zksync: 1,
+      consensyszk: 1,
+      scrollzk: 1
     },
     USDC: {
       ethereum: 1,
@@ -26,6 +29,9 @@ export const config : Config = {
   relayerFeeEnabled: {
     polygon: false,
     optimism: false,
-    arbitrum: false
+    arbitrum: false,
+    zksync: false,
+    consensyszk: false,
+    scrollzk: false
   }
 }

@@ -60,5 +60,15 @@ export const networks: Networks = {
     explorerUrls: ['https://explorer.goerli.zkevm.consensys.net'],
     nativeBridgeUrl: 'https://bridge.goerli.zkevm.consensys.net',
     waitConfirmations: 1
+  },
+  scrollzk: {
+    name: chains.scrollzk.name,
+    image: chains.scrollzk.image,
+    networkId: 0, // TODO
+    publicRpcUrl: '', // TODO
+    fallbackPublicRpcUrls: [],
+    explorerUrls: [''], // TODO
+    nativeBridgeUrl: '', // TODO
+    waitConfirmations: 1
   }
 }

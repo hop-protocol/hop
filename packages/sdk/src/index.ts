@@ -5,6 +5,7 @@ export { default as CanonicalBridge } from './CanonicalBridge'
 export { default as AMM } from './AMM'
 export { default as Token } from './Token'
 export { default as Base } from './Base'
+export * as utils from './utils'
 
 export { Chain } from './models'
 export { RelayerFee } from './relayerFee'

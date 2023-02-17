@@ -1,4 +1,5 @@
 import { ChainName, ChainSlug, Errors, NetworkSlug, Slug } from '../constants'
+import { getChainSlugFromName } from '../utils/getChainSlugFromName'
 import { goerli, mainnet } from '@hop-protocol/core/networks'
 import { metadata } from '../config'
 import { providers } from 'ethers'
@@ -32,24 +33,9 @@ export class Chain {
 
   constructor (name: ChainName | string, chainId?: number, provider?: providers.Provider) {
     this.name = name
-
-    // TODO: better way
-    this.slug = (name || '').trim().replace(/\s+/gi, '').toLowerCase()
-    if (this.slug.startsWith('consensys')) {
-      this.slug = 'consensyszk'
-    }
-    if (this.slug.startsWith('scroll')) {
-      this.slug = 'scrollzk'
-    }
-    if (
-      this.slug === NetworkSlug.Kovan ||
-      this.slug === NetworkSlug.Goerli ||
-      this.slug === NetworkSlug.Mainnet ||
-      this.slug === NetworkSlug.Staging ||
-      this.slug === ChainSlug.Ethereum
-    ) {
+    this.slug = getChainSlugFromName(name)
+    if (this.slug === ChainSlug.Ethereum) {
       this.isL1 = true
-      this.slug = ChainSlug.Ethereum
     }
     if (chainId) {
       this.chainId = chainId

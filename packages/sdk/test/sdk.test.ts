@@ -10,6 +10,7 @@ import * as addresses from '@hop-protocol/core/addresses'
 // @ts-ignore
 import pkg from '../package.json'
 import { FallbackProvider } from '../src/provider'
+import { getChainSlugFromName } from '../src/utils'
 
 describe('sdk setup', () => {
   const hop = new Hop('kovan')
@@ -885,4 +886,18 @@ describe('AMM calculateSwap', () => {
     console.log(token, chain, amountOut)
     expect(amountOut.gt(0)).toBe(true)
   }, 10 * 60 * 1000)
+})
+
+describe('utils', () => {
+  it('getChainSlugFromName', async () => {
+    expect(getChainSlugFromName('Ethereum')).toBe('ethereum')
+    expect(getChainSlugFromName('Goerli')).toBe('ethereum')
+    expect(getChainSlugFromName('Arbitrum')).toBe('arbitrum')
+    expect(getChainSlugFromName('Optimism')).toBe('optimism')
+    expect(getChainSlugFromName('Polygon')).toBe('polygon')
+    expect(getChainSlugFromName('xDai')).toBe('gnosis')
+    expect(getChainSlugFromName('Gnosis')).toBe('gnosis')
+    expect(getChainSlugFromName('Gnosis Chain')).toBe('gnosis')
+    expect(getChainSlugFromName('ConsenSys zkEVM')).toBe('consensyszk')
+  })
 })

@@ -1,6 +1,6 @@
 import { ethers, providers } from 'ethers'
 import { EventEmitter } from 'events'
-import { Hop, Token, ChainSlug } from '@hop-protocol/sdk'
+import { Hop, Token, ChainSlug, utils as sdkUtils } from '@hop-protocol/sdk'
 import {
   getBaseExplorerUrl,
   findTransferFromL1CompletedLog,
@@ -141,53 +141,24 @@ class Transaction extends EventEmitter {
   }
 
   get explorerLink(): string {
-    if (this.networkName.startsWith(ChainSlug.Ethereum)) {
-      return this._etherscanLink()
-    } else if (this.networkName.startsWith(ChainSlug.Arbitrum)) {
-      return this._arbitrumLink()
-    } else if (this.networkName.startsWith(ChainSlug.Optimism)) {
-      return this._optimismLink()
-    } else if (this.networkName.startsWith(ChainSlug.Gnosis)) {
-      return this._gnosisLink()
-    } else if (this.networkName.startsWith(ChainSlug.Polygon)) {
-      return this._polygonLink()
-    } else if (this.networkName.startsWith(ChainSlug.Nova)) {
-      return this._novaLink()
-    } else if (this.networkName.startsWith(ChainSlug.ZkSync)) {
-      return this._zksyncLink()
-    } else if (this.networkName.startsWith(ChainSlug.ConsenSysZk)) {
-      return this._consensysZkLink()
-    } else if (this.networkName.startsWith(ChainSlug.ScrollZk)) {
-      return this._scrollZkLink()
-    } else {
-      return ''
+    if (!(this.networkName)) return ''
+
+    const chainSlug = sdkUtils.getChainSlugFromName(this.networkName)
+    let url = getBaseExplorerUrl(chainSlug)
+    if (this.hash) {
+      url = `${url}/tx/${this.hash}`
     }
+    console.log('url', url)
+    return url
   }
 
   get destExplorerLink(): string {
-    if (!this.destTxHash) return ''
+    if (!(this.destTxHash && this.destNetworkName)) return ''
 
-    if (this.destNetworkName?.startsWith(ChainSlug.Ethereum)) {
-      return this._etherscanLink(ChainSlug.Ethereum, this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlug.Arbitrum)) {
-      return this._arbitrumLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlug.Optimism)) {
-      return this._optimismLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlug.Gnosis)) {
-      return this._gnosisLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlug.Polygon)) {
-      return this._polygonLink(this.destTxHash)
-    } else if (this.destNetworkName?.startsWith(ChainSlug.Nova)) {
-      return this._novaLink(this.destTxHash)
-    } else if (this.networkName.startsWith(ChainSlug.ZkSync)) {
-      return this._zksyncLink(this.destTxHash)
-    } else if (this.networkName.startsWith(ChainSlug.ConsenSysZk)) {
-      return this._consensysZkLink(this.destTxHash)
-    } else if (this.networkName.startsWith(ChainSlug.ScrollZk)) {
-      return this._scrollZkLink(this.destTxHash)
-    } else {
-      return ''
-    }
+    const chainSlug = sdkUtils.getChainSlugFromName(this.destNetworkName)
+    const url = `${getBaseExplorerUrl(chainSlug)}/tx/${this.destTxHash}`
+    console.log('url2', url)
+    return url
   }
 
   get truncatedHash(): string {
@@ -338,6 +309,7 @@ class Transaction extends EventEmitter {
     return `${getBaseExplorerUrl(networkName)}/tx/${txHash}`
   }
 
+<<<<<<< HEAD
   private _arbitrumLink(txHash: string = this.hash) {
     return `${getBaseExplorerUrl('arbitrum')}/tx/${txHash}`
   }
@@ -375,6 +347,8 @@ class Transaction extends EventEmitter {
     return `${getBaseExplorerUrl('scrollzk')}/tx/${txHash}`
   }
 
+=======
+>>>>>>> develop
   private setPendingDestinationConfirmed() {
     this.pendingDestinationConfirmation = false
     this.emit('pendingDestinationConfirmation', false, this)

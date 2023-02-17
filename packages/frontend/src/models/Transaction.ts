@@ -148,7 +148,6 @@ class Transaction extends EventEmitter {
     if (this.hash) {
       url = `${url}/tx/${this.hash}`
     }
-    console.log('url', url)
     return url
   }
 
@@ -157,7 +156,6 @@ class Transaction extends EventEmitter {
 
     const chainSlug = sdkUtils.getChainSlugFromName(this.destNetworkName)
     const url = `${getBaseExplorerUrl(chainSlug)}/tx/${this.destTxHash}`
-    console.log('url2', url)
     return url
   }
 

@@ -88,9 +88,12 @@ class Hop extends Base {
    */
   public bridge (token: TToken) {
     const hopBridge = new HopBridge(this.network, this.signer, token, this.chainProviders)
+    // port over exiting properties
     if (this.priceFeedApiKeys) {
       hopBridge.priceFeed.setApiKeys(this.priceFeedApiKeys)
     }
+    hopBridge.baseConfigUrl = this.baseConfigUrl
+    hopBridge.configFileFetchEnabled = this.configFileFetchEnabled
     return hopBridge
   }
 

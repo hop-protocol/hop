@@ -194,9 +194,12 @@ class HopBridge extends Base {
       this.chainProviders
     )
 
+    // port over exiting properties
     if (this.priceFeedApiKeys) {
       hopBridge.setPriceFeedApiKeys(this.priceFeedApiKeys)
     }
+    hopBridge.baseConfigUrl = this.baseConfigUrl
+    hopBridge.configFileFetchEnabled = this.configFileFetchEnabled
 
     return hopBridge
   }
@@ -1299,7 +1302,7 @@ class HopBridge extends Base {
 
   async fetchBonderAvailableLiquidityData () {
     const cacheBust = Date.now()
-    const url = `https://assets.hop.exchange/${this.network}/v1-available-liquidity.json?cb=${cacheBust}`
+    const url = `${this.baseConfigUrl}/${this.network}/v1-available-liquidity.json?cb=${cacheBust}`
     const res = await fetch(url)
     const json = await res.json()
     if (!json) {

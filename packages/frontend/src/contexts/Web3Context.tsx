@@ -60,7 +60,8 @@ const getWalletConnectRpcUrls = (): Record<string, string> => {
       421613: getRpcUrl(ChainSlug.Arbitrum),
       420: getRpcUrl(ChainSlug.Optimism),
       80001: getRpcUrl(ChainSlug.Polygon),
-      59140: getRpcUrl(ChainSlug.ConsenSysZk)
+      59140: getRpcUrl(ChainSlug.ConsenSysZk),
+      534354: getRpcUrl(ChainSlug.ScrollZk)
     }
   } else {
     return {

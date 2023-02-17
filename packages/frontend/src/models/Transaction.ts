@@ -157,6 +157,8 @@ class Transaction extends EventEmitter {
       return this._zksyncLink()
     } else if (this.networkName.startsWith(ChainSlug.ConsenSysZk)) {
       return this._consensysZkLink()
+    } else if (this.networkName.startsWith(ChainSlug.ScrollZk)) {
+      return this._scrollZkLink()
     } else {
       return ''
     }
@@ -181,6 +183,8 @@ class Transaction extends EventEmitter {
       return this._zksyncLink(this.destTxHash)
     } else if (this.networkName.startsWith(ChainSlug.ConsenSysZk)) {
       return this._consensysZkLink(this.destTxHash)
+    } else if (this.networkName.startsWith(ChainSlug.ScrollZk)) {
+      return this._scrollZkLink(this.destTxHash)
     } else {
       return ''
     }
@@ -365,6 +369,10 @@ class Transaction extends EventEmitter {
 
   private _consensysZkLink(txHash: string = this.hash) {
     return `${getBaseExplorerUrl('consensyszk')}/tx/${txHash}`
+  }
+
+  private _scrollZkLink(txHash: string = this.hash) {
+    return `${getBaseExplorerUrl('scrollzk')}/tx/${txHash}`
   }
 
   private setPendingDestinationConfirmed() {

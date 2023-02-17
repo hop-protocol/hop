@@ -26,7 +26,7 @@ async function estimateGasCost(network: Network, estimatedGasLimit: BigNumber) {
     } catch (err) {
       gasPrice = await network.provider.getGasPrice()
     }
-    console.log('gasPrice estimate:', gasPrice.toString(), formatUnits(gasPrice.toString(), 9))
+    // console.log('gasPrice estimate:', gasPrice.toString(), formatUnits(gasPrice.toString(), 9))
     // Add some wiggle room
     const bufferGas = BigNumber.from(70_000)
     return (estimatedGasLimit.add(bufferGas)).mul(gasPrice)

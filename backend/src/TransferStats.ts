@@ -1871,6 +1871,7 @@ export class TransferStats {
     return receipt
   }
 
+  // gets on-chain origin transfer data
   static async getTransferStatusForTxHash (transactionHash: string) {
     for (const chainSlug in rpcUrls) {
       const rpcUrl = rpcUrls[chainSlug]
@@ -1891,14 +1892,14 @@ export class TransferStats {
       let amount = 0
       let amountFormatted = 0
       let token = ''
-      const bonded = false
+      let bonded = false
       const bondTransactionHash = ''
       if (receipt) {
         const block = await provider.getBlock(receipt.blockNumber)
         timestamp = block.timestamp
         const logs = receipt.logs
         for (const log of logs) {
-          if (log.topics[0] === '0xe35dddd4ea75d7e9b3fe93af4f4e40e778c3da4074c9d93e7c6536f1e803c1eb') {
+          if (log.topics[0] === '0xe35dddd4ea75d7e9b3fe93af4f4e40e778c3da4074c9d93e7c6536f1e803c1eb') { // TransferSent
             const iface = new ethers.utils.Interface(l2BridgeAbi)
             const decoded = iface.parseLog(log)
             if (decoded) {
@@ -1914,13 +1915,13 @@ export class TransferStats {
             for (const _token of enabledTokens) {
               const _addreses = addresses?.bridges?.[_token]?.[sourceChainSlug]
               if (
-                _addreses?.l2AmmWrapper?.toLowerCase() === receipt.to?.toLowerCase() ||
-                _addreses?.l2Bridge?.toLowerCase() === receipt.to?.toLowerCase()
+                _addreses?.l2AmmWrapper?.toLowerCase() === log.address?.toLowerCase() ||
+                _addreses?.l2Bridge?.toLowerCase() === log.address?.toLowerCase()
               ) {
                 token = _token
               }
             }
-          } else if (log.topics[0] === '0x0a0607688c86ec1775abcdbab7b33a3a35a6c9cde677c9be880150c231cc6b0b') {
+          } else if (log.topics[0] === '0x0a0607688c86ec1775abcdbab7b33a3a35a6c9cde677c9be880150c231cc6b0b') { // TransferSentToL2
             const iface = new ethers.utils.Interface(l1BridgeAbi)
             const decoded = iface.parseLog(log)
             if (decoded) {
@@ -1935,7 +1936,7 @@ export class TransferStats {
             for (const _token of enabledTokens) {
               const _addreses = addresses?.bridges?.[_token]?.[sourceChainSlug]
               if (
-                _addreses?.l1Bridge?.toLowerCase() === receipt.to?.toLowerCase()
+                _addreses?.l1Bridge?.toLowerCase() === log.address?.toLowerCase()
               ) {
                 token = _token
               }
@@ -1950,6 +1951,24 @@ export class TransferStats {
             if (bonderFee) {
               bonderFeeFormatted = Number(formatUnits(bonderFee, decimals))
             }
+          }
+        }
+        if (destinationChainId && token) {
+          try {
+            const bridgeAddress = addresses?.bridges?.[token]?.[destinationChainSlug]?.l2Bridge || addresses?.bridges?.[token]?.[destinationChainSlug]?.l1Bridge
+            if (!bridgeAddress) {
+              throw new Error('bridge address not found')
+            }
+            const _provider = new providers.StaticJsonRpcProvider(rpcUrls[destinationChainSlug])
+            const contract = new Contract(bridgeAddress, bridgeAbi, _provider)
+            const logs = await contract.queryFilter(
+              contract.filters.WithdrawalBonded(transferId)
+            )
+            if (logs.length === 1) {
+              bonded = true
+            }
+          } catch (err: any) {
+            console.error('getTransferStatusForTxHash: queryFilter error:', err)
           }
         }
         return {

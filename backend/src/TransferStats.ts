@@ -1150,6 +1150,26 @@ export class TransferStats {
     const data = await this.normalizeTransferEvents(events)
     if (!data?.length) {
       console.log('no data for transferId', transferId)
+
+      // if subgraph transfer data is not found but db item is found,
+      // then fetch state from chain an update db item accordingly.
+      const _items = await this.db.getTransfers({ transferId })
+      const _item = _items?.[0]
+      if (_item?.transactionHash && !_item?.bonded) {
+        const onchainData = await TransferStats.getTransferStatusForTxHash(_item?.transactionHash)
+        if (onchainData?.bonded) {
+          _item.bonded = onchainData?.bonded
+          _item.bondTransactionHash = onchainData?.bondTransactionHash
+          try {
+            console.log('upserting', _item.transferId)
+            await this.upsertItem(_item)
+          } catch (err: any) {
+            console.error('upsert error:', err)
+            console.log(_item)
+          }
+        }
+      }
+
       return
     }
     const items = await this.getRemainingData(data)
@@ -1893,7 +1913,7 @@ export class TransferStats {
       let amountFormatted = 0
       let token = ''
       let bonded = false
-      const bondTransactionHash = ''
+      let bondTransactionHash = ''
       if (receipt) {
         const block = await provider.getBlock(receipt.blockNumber)
         timestamp = block.timestamp
@@ -1953,7 +1973,7 @@ export class TransferStats {
             }
           }
         }
-        if (destinationChainId && token) {
+        if (transferId && destinationChainId && token) {
           try {
             const bridgeAddress = addresses?.bridges?.[token]?.[destinationChainSlug]?.l2Bridge || addresses?.bridges?.[token]?.[destinationChainSlug]?.l1Bridge
             if (!bridgeAddress) {
@@ -1966,6 +1986,7 @@ export class TransferStats {
             )
             if (logs.length === 1) {
               bonded = true
+              bondTransactionHash = logs[0].transactionHash
             }
           } catch (err: any) {
             console.error('getTransferStatusForTxHash: queryFilter error:', err)

@@ -60,5 +60,15 @@ export const networks: Networks = {
     explorerUrls: ['https://explorer.goerli.zkevm.consensys.net'],
     nativeBridgeUrl: 'https://bridge.goerli.zkevm.consensys.net',
     waitConfirmations: 1
+  },
+  base: {
+    name: chains.base.name,
+    image: chains.base.image,
+    networkId: 84531,
+    publicRpcUrl: 'https://goerli.base.org',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://goerli.basescan.org'],
+    nativeBridgeUrl: 'https://bridge.base.org',
+    waitConfirmations: 1
   }
 }

@@ -7,7 +7,9 @@ export const config : Config = {
       polygon: 1,
       gnosis: 1,
       optimism: 1,
-      arbitrum: 1
+      arbitrum: 1,
+      consensyszk: 1,
+      base: 1
     },
     USDC: {
       ethereum: 1,

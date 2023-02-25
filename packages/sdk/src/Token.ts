@@ -246,7 +246,8 @@ class Token extends Base {
         this.chain.equals(Chain.Nova) ||
         this.chain.equals(Chain.Optimism) ||
         this.chain.equals(Chain.ZkSync) ||
-        this.chain.equals(Chain.ConsenSysZk)
+        this.chain.equals(Chain.ConsenSysZk) ||
+        this.chain.equals(Chain.Base)
       )
     const isMatic =
       this._symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)

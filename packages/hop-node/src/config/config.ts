@@ -228,6 +228,10 @@ export const config: Config = {
     [Chain.ConsenSysZk]: {
       totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.Base]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
     }
   },
   metrics: {

@@ -96,6 +96,11 @@ const getContract = async (
   return getContractMemo(factory, address, cacheKey)(provider)
 }
 
+// TODO: keep track of options configured and pass properties to child instances,
+// so we don't have to use global vars here.
+let globalConfigFileFetchEnabled = true
+let globalBaseConfigUrl = 'https://assets.hop.exchange'
+
 /**
  * Class with base methods.
  * @namespace Base
@@ -118,6 +123,8 @@ class Base {
   relayerFeeEnabled: Record<string, boolean>
 
   baseExplorerUrl: string = 'https://explorer.hop.exchange'
+  baseConfigUrl: string = globalBaseConfigUrl
+  configFileFetchEnabled : boolean = globalConfigFileFetchEnabled
 
   /**
    * @desc Instantiates Base class.
@@ -158,7 +165,9 @@ class Base {
       this.baseExplorerUrl = 'https://goerli.explorer.hop.exchange'
     }
 
-    this.init()
+    setTimeout(() => {
+      this.init()
+    }, 0)
   }
 
   async init () {
@@ -170,6 +179,9 @@ class Base {
   }
 
   async fetchConfigFromS3 () {
+    if (!this.configFileFetchEnabled) {
+      return
+    }
     try {
       let cached = s3FileCache[this.network]
       const isExpired = s3FileCacheTimestamp + cacheExpireMs < Date.now()
@@ -631,6 +643,19 @@ class Base {
     return BigNumber.from(0)
   }
 
+  setBaseConfigUrl (url: string) {
+    if (!url) {
+      throw new Error('url is required')
+    }
+    this.baseConfigUrl = url?.replace(/\/$/, '')
+    globalBaseConfigUrl = this.baseConfigUrl
+  }
+
+  setConfigFileFetchEnabled (enabled: boolean) {
+    this.configFileFetchEnabled = enabled
+    globalConfigFileFetchEnabled = this.configFileFetchEnabled
+  }
+
   async getS3ConfigData () {
     let signal : any
     if (typeof AbortController !== 'undefined') {
@@ -640,7 +665,7 @@ class Base {
       signal = controller.signal
     }
     const cacheBust = Date.now()
-    const url = `https://assets.hop.exchange/${this.network}/v1-core-config.json?cb=${cacheBust}`
+    const url = `${this.baseConfigUrl}/${this.network}/v1-core-config.json?cb=${cacheBust}`
     const res = await fetch(url, {
       signal
     })

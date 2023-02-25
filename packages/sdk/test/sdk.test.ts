@@ -901,3 +901,20 @@ describe('utils', () => {
     expect(getChainSlugFromName('ConsenSys zkEVM')).toBe('consensyszk')
   })
 })
+
+describe('sdk base config file fetching', () => {
+  it('configFileFetchEnabled', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.baseConfigUrl).toBe('https://assets.hop.exchange')
+    hop.setBaseConfigUrl('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    expect(hop.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    expect(hop.configFileFetchEnabled).toBe(true)
+    hop.setConfigFileFetchEnabled(false)
+    expect(hop.configFileFetchEnabled).toBe(false)
+    const bridge = hop.bridge('USDC')
+    expect(bridge.configFileFetchEnabled).toBe(false)
+    expect(hop.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    hop.setConfigFileFetchEnabled(true)
+    expect(hop.configFileFetchEnabled).toBe(true)
+  })
+})

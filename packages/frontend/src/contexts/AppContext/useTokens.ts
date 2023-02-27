@@ -10,7 +10,7 @@ const useTokens = () => {
         ? tokenSymbol.replace(/^W/, '')
         : tokenSymbol
       const tokenMeta = metadata.tokens[canonicalSymbol]
-      const supportedNetworks = Object.keys(addresses.tokens[canonicalSymbol])
+      const supportedNetworks = Object.keys(addresses.tokens[canonicalSymbol] as any)
       return new Token({
         symbol: tokenMeta.symbol as TokenSymbol,
         tokenName: tokenMeta.name,

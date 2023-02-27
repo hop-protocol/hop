@@ -7,6 +7,7 @@ import { formatTokenDecimalString } from 'src/utils/format'
 import { formatUnits } from 'ethers/lib/utils'
 import { getTokenImage } from 'src/utils/tokens'
 import { toPercentDisplay, commafy } from 'src/utils'
+import { stableCoins } from 'src/utils/constants'
 import { useApp } from 'src/contexts/AppContext'
 import { usePoolStats } from '../usePoolStats'
 import { useQuery } from 'react-query'
@@ -187,7 +188,7 @@ export function usePools () {
               lpToken.totalSupply(),
               lpToken.balanceOf(accountAddress)
             ])
-            const tokenUsdPrice = ['USDC', 'USDT', 'DAI'].includes(pool.token.symbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
+            const tokenUsdPrice = stableCoins.has(pool.token.symbol) ? 1 : await bridge.priceFeed.getPriceByTokenSymbol(pool.token.symbol)
             if (lpTokenTotalSupplyBn.gt(0)) {
               if (lpBalance.gt(0)) {
                 const token0Deposited = lpBalance.mul(BigNumber.from(poolReserves[0] || 0)).div(lpTokenTotalSupplyBn)

@@ -6,10 +6,14 @@ import {
   polygonRpc,
   optimismRpc,
   arbitrumRpc,
-  novaRpc,
+  novaRpc
 } from './config'
 import { Hop } from '@hop-protocol/sdk'
-import { mainnet as mainnetAddresses, Bridges, RewardsContracts } from '@hop-protocol/core/addresses'
+import {
+  mainnet as mainnetAddresses,
+  Bridges,
+  RewardsContracts
+} from '@hop-protocol/core/addresses'
 import {
   ERC20__factory,
   StakingRewards__factory
@@ -39,6 +43,7 @@ type PoolData = {
   apy: number
   tvlUsd: number
   dailyVolume: number
+  error?: boolean
 }
 
 type StakingRewardsData = {
@@ -47,6 +52,7 @@ type StakingRewardsData = {
   rewardToken: string
   rewardTokenAddress: string
   isOptimalStakingContract: boolean
+  error?: boolean
 }
 
 type OptimalYieldData = {
@@ -156,9 +162,10 @@ class YieldStats {
                 dailyVolume: res.dailyVolume
               }
             })
-            .catch(err =>
+            .catch((err: any) => {
+              yieldData.pools[token][chain].error = true
               console.error(`apr 1 day ${chain} ${token} error:`, err)
-            )
+            })
         )
         promises.push(
           this.getStakingYieldData(token, chain)
@@ -177,9 +184,9 @@ class YieldStats {
                 }
               }
             })
-            .catch(err =>
+            .catch((err: any) => {
               console.error(`staking apr 1 ${chain} ${token} error:`, err)
-            )
+            })
         )
       }
 
@@ -281,15 +288,35 @@ class YieldStats {
     for (const token in yieldData.pools) {
       const tokenData = yieldData.pools[token]
       for (const chain in tokenData) {
-        const chainData = tokenData[chain] 
+        const chainData = tokenData[chain]
         // If APR is missing then the entire entry is missing
         if (!chainData.apr) {
-          console.log(`Missing APR for ${chain}.${token}`, yieldData.pools[token][chain])
+          console.log(
+            `Missing APR for ${chain}.${token}`,
+            yieldData.pools[token][chain]
+          )
           if (!cachedData?.data?.pools?.[token]?.[chain]) {
             console.error(`Missing cached data for ${chain}.${token}`)
             continue
           }
           yieldData.pools[token][chain] = cachedData.data.pools[token][chain]
+        }
+        if (!chainData.tvlUsd) {
+          if (cachedData?.data?.pools?.[token]?.[chain]?.tvlUsd) {
+            chainData.tvlUsd = cachedData.data.pools[token][chain].tvlUsd
+          }
+        }
+      }
+    }
+    if (yieldData?.stakingRewards) {
+      for (const token in yieldData.stakingRewards) {
+        for (const chain in yieldData.stakingRewards[token]) {
+          const item = yieldData.optimalYield[token][chain]
+          if (!item?.dailyVolume) {
+            if (cachedData?.data?.pools?.[token]?.[chain]?.dailyVolume) {
+              item.dailyVolume = cachedData.data.pools[token][chain].dailyVolume
+            }
+          }
         }
       }
     }
@@ -313,7 +340,7 @@ class YieldStats {
           chainData?.apr === 0 ||
           chainData?.apr === null ||
           isNaN(chainData?.apr)
-        if (!isInactive) {
+        if (!isInactive || chainData.error) {
           areAllChainsMissing = false
           break
         }
@@ -370,6 +397,9 @@ class YieldStats {
           const stakingRewardsData =
             stakingRewardData[stakingRewardsContractAddress]
           if (stakingRewardsData.isOptimalStakingContract) {
+            if (stakingRewardsData.rewardToken === 'HOP') {
+              console.log('here0', token, chain, yieldData.pools[token][chain])
+            }
             yieldData.optimalYield[token][chain] = {
               apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
               apy: yieldData.pools[token][chain].apy + stakingRewardsData.apy,
@@ -449,7 +479,9 @@ class YieldStats {
     const amm = bridge.getAmm(chain)
 
     const provider = this.sdk.getChainProvider(chain)
-    const stakingRewardsAddresses = this.stakingRewardsContracts?.[token]?.[chain]
+    const stakingRewardsAddresses = this.stakingRewardsContracts?.[token]?.[
+      chain
+    ]
     if (!stakingRewardsAddresses?.length) {
       return []
     }

@@ -6,22 +6,32 @@ export const addresses: Addresses = {
       ethereum: {
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
       polygon: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
       optimism: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
       arbitrum: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+      },
+      consensyszk: {
+        ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       }
     },
     USDC: {
@@ -115,6 +125,18 @@ export const addresses: Addresses = {
         l2SaddleSwap: '0xa50395bdEaca7062255109fedE012eFE63d6D402',
         l2SaddleLpToken: '0x2105a73D7739f1034Becc1bd87f4F7820d575644',
         bridgeDeployedBlockNumber: 407263
+      },
+      consensyszk: {
+        l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l1MessengerWrapper: '0xBB9D66F7a7744C11550079045A177090E0015364',
+        l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
+        l2CanonicalToken: '0x2C1b868d6596a18e32E61B901E4060C872647b6C',
+        l2Bridge: '0x3E4a3a4796d16c0Cd582C382691998f7c06420B6',
+        l2HopBridgeToken: '0xA49600627D913B61714fF2a205Fb1096f1bceAb2',
+        l2AmmWrapper: '0xC08055b634D43F2176d721E26A3428D3b7E7DdB5',
+        l2SaddleSwap: '0x7191061D5d4C60f598214cC6913502184BAddf18',
+        l2SaddleLpToken: '0xa16768F69667e2ec8ebacdD4c9A9092ae2fFe2ca',
+        bridgeDeployedBlockNumber: 59449
       }
     },
     USDC: {

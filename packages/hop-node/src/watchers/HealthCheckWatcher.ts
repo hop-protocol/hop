@@ -15,7 +15,7 @@ import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getUnbondedTransferRoots from 'src/theGraph/getUnbondedTransferRoots'
 import getUnsetTransferRoots from 'src/theGraph/getUnsetTransferRoots'
 import wait from 'src/utils/wait'
-import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains } from 'src/constants'
+import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, RelayableChains, stableCoins } from 'src/constants'
 import { BigNumber, providers } from 'ethers'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
@@ -697,7 +697,7 @@ export class HealthCheckWatcher {
       if (x.destinationChain === 'ethereum') {
         return Number(x.bonderFeeFormatted) > 0.001
       }
-      if (['USDC', 'USDT', 'DAI'].includes(x.token)) {
+      if (stableCoins.has(x.token)) {
         return Number(x.bonderFeeFormatted) > 0.25
       }
       return Number(x.bonderFeeFormatted) > 0.0001

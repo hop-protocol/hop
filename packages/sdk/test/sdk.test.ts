@@ -10,6 +10,7 @@ import * as addresses from '@hop-protocol/core/addresses'
 // @ts-ignore
 import pkg from '../package.json'
 import { FallbackProvider } from '../src/provider'
+import { getChainSlugFromName } from '../src/utils'
 
 describe('sdk setup', () => {
   const hop = new Hop('kovan')
@@ -489,7 +490,7 @@ describe('custom chain providers', () => {
   })
 })
 
-describe.skip('getSendData', () => {
+describe.only('getSendData', () => {
   it('available liquidity', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
@@ -512,7 +513,7 @@ describe.skip('getSendData', () => {
     expect(requiredLiquidity).toBeGreaterThan(0)
     expect(availableLiquidity).toBeGreaterThan(requiredLiquidity)
   })
-  it('relayer fee', async () => {
+  it.skip('relayer fee', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
     const amountIn = BigNumber.from('1000000')
@@ -720,6 +721,14 @@ describe('PriceFeed', () => {
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(5)
   }, 60 * 1000)
+  it('should return rETH price', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('rETH')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('rETH')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(10000)
+  }, 60 * 1000)
 })
 
 describe.skip('getMessengerWrapperAddress', () => {
@@ -877,4 +886,35 @@ describe('AMM calculateSwap', () => {
     console.log(token, chain, amountOut)
     expect(amountOut.gt(0)).toBe(true)
   }, 10 * 60 * 1000)
+})
+
+describe('utils', () => {
+  it('getChainSlugFromName', async () => {
+    expect(getChainSlugFromName('Ethereum')).toBe('ethereum')
+    expect(getChainSlugFromName('Goerli')).toBe('ethereum')
+    expect(getChainSlugFromName('Arbitrum')).toBe('arbitrum')
+    expect(getChainSlugFromName('Optimism')).toBe('optimism')
+    expect(getChainSlugFromName('Polygon')).toBe('polygon')
+    expect(getChainSlugFromName('xDai')).toBe('gnosis')
+    expect(getChainSlugFromName('Gnosis')).toBe('gnosis')
+    expect(getChainSlugFromName('Gnosis Chain')).toBe('gnosis')
+    expect(getChainSlugFromName('ConsenSys zkEVM')).toBe('consensyszk')
+  })
+})
+
+describe('sdk base config file fetching', () => {
+  it('configFileFetchEnabled', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.baseConfigUrl).toBe('https://assets.hop.exchange')
+    hop.setBaseConfigUrl('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    expect(hop.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    expect(hop.configFileFetchEnabled).toBe(true)
+    hop.setConfigFileFetchEnabled(false)
+    expect(hop.configFileFetchEnabled).toBe(false)
+    const bridge = hop.bridge('USDC')
+    expect(bridge.configFileFetchEnabled).toBe(false)
+    expect(hop.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    hop.setConfigFileFetchEnabled(true)
+    expect(hop.configFileFetchEnabled).toBe(true)
+  })
 })

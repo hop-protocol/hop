@@ -40,7 +40,7 @@ export const populateUnbondedTransfers = (item: any) => {
     sourceChain: sourceChain?.imageUrl,
     destinationChain: destinationChain?.imageUrl,
     token: token,
-    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
+    timestamp: item.timestamp ? DateTime.fromSeconds(Number(item.timestamp)).toRelative() : '',
     transferId: item.transferId,
     transactionHash: item.transactionHash,
     amount: item.amountFormatted?.toFixed(4),
@@ -59,7 +59,7 @@ export const populateUnbondedTransferRoots = (item: any) => {
     destinationChain: destinationChain?.imageUrl,
     transferRootHash: item.transferRootHash,
     token: token,
-    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
+    timestamp: item.timestamp ? DateTime.fromSeconds(Number(item.timestamp)).toRelative() : '',
     totalAmount: item.totalAmountFormatted?.toFixed(4)
   }
 }
@@ -81,7 +81,7 @@ export const populateIncompleteSettlements = (item: any) => {
   })
 
   return {
-    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
+    timestamp: item.timestamp ? DateTime.fromSeconds(Number(item.timestamp)).toRelative() : '',
     transferRootHash: item.transferRootHash,
     sourceChain: sourceChain?.imageUrl,
     destinationChain: destinationChain?.imageUrl,
@@ -126,7 +126,7 @@ export const populateMissedEvents = (item: any) => {
   const token = getTokenImage(item.token)
 
   return {
-    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
+    timestamp: item.timestamp ? DateTime.fromSeconds(Number(item.timestamp)).toRelative() : '',
     sourceChain: chain?.imageUrl,
     token,
     transferId: item.transferId
@@ -138,7 +138,7 @@ export const populateInvalidBondWithdrawals = (item: any) => {
   const token = getTokenImage(item.token)
 
   return {
-    timestamp: DateTime.fromSeconds(item.timestamp).toRelative(),
+    timestamp: item.timestamp ? DateTime.fromSeconds(Number(item.timestamp)).toRelative() : '',
     destinationChain: chain?.imageUrl,
     token,
     transferId: item.transferId

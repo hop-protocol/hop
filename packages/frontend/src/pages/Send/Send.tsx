@@ -1,6 +1,7 @@
 import React, { FC, useState, useMemo, useEffect, ChangeEvent } from 'react'
 import Button from 'src/components/buttons/Button'
 import SendIcon from '@material-ui/icons/Send'
+import Box from '@material-ui/core/Box'
 import ArrowDownIcon from '@material-ui/icons/ArrowDownwardRounded'
 import SendAmountSelectorCard from 'src/pages/Send/SendAmountSelectorCard'
 import Alert from 'src/components/alert/Alert'
@@ -12,7 +13,7 @@ import Network from 'src/models/Network'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import { useApp } from 'src/contexts/AppContext'
 import logger from 'src/logger'
-import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay } from 'src/utils'
+import { commafy, findMatchingBridge, sanitizeNumericalString, toTokenDisplay, toUsdDisplay } from 'src/utils'
 import useSendData from 'src/pages/Send/useSendData'
 import AmmDetails from 'src/components/AmmDetails'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
@@ -20,6 +21,7 @@ import { hopAppNetwork, reactAppNetwork, showRewards } from 'src/config'
 import InfoTooltip from 'src/components/InfoTooltip'
 import { ChainSlug } from '@hop-protocol/sdk'
 import { amountToBN, formatError } from 'src/utils/format'
+import { getTransferTimeString } from 'src/utils/getTransferTimeString'
 import { useSendStyles } from './useSendStyles'
 import SendHeader from './SendHeader'
 import CustomRecipientDropdown from './CustomRecipientDropdown'
@@ -66,6 +68,7 @@ const Send: FC = () => {
   const [toTokenAmount, setToTokenAmount] = useState<string>()
   const [approving, setApproving] = useState<boolean>(false)
   const [amountOutMinDisplay, setAmountOutMinDisplay] = useState<string>()
+  const [amountOutMinUsdDisplay, setAmountOutMinUsdDisplay] = useState<string>()
   const [warning, setWarning] = useState<any>(null)
   const [error, setError] = useState<string | null | undefined>(null)
   const [noLiquidityWarning, setNoLiquidityWarning] = useState<any>(null)
@@ -174,10 +177,15 @@ const Send: FC = () => {
   // Convert fees to displayed values
   const {
     destinationTxFeeDisplay,
+    destinationTxFeeUsdDisplay,
     bonderFeeDisplay,
+    bonderFeeUsdDisplay,
     totalBonderFee,
     totalBonderFeeDisplay,
+    totalBonderFeeUsdDisplay,
     estimatedReceivedDisplay,
+    estimatedReceivedUsdDisplay,
+    tokenUsdPrice
   } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
 
   const { estimateSend } = useEstimateTxCost(fromNetwork)
@@ -296,24 +304,33 @@ const Send: FC = () => {
   }, [estimatedReceived, adjustedDestinationTxFee])
 
   useEffect(() => {
-    let message = noLiquidityWarning || minimumSendWarning
+    try {
+      let message = noLiquidityWarning || minimumSendWarning
 
-    const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
-    const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
-    const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
+      const isFavorableSlippage = Number(toTokenAmount) >= Number(fromTokenAmount)
+      const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
+      const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
+      const bonderFeeMajority = sourceToken?.decimals && estimatedReceived && totalFee && ((Number(formatUnits(totalFee, sourceToken?.decimals)) / Number(fromTokenAmount)) > 0.5)
 
-    if (sufficientBalanceWarning) {
-      message = sufficientBalanceWarning
-    } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
-      message = 'Bonder fee greater than estimated received'
-    } else if (estimatedReceived?.lte(0)) {
-      message = 'Estimated received too low. Send a higher amount to cover the fees.'
-    } else if (showPriceImpactWarning) {
-      message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
+      if (sufficientBalanceWarning) {
+        message = sufficientBalanceWarning
+      } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
+        message = 'Bonder fee greater than estimated received'
+      } else if (estimatedReceived?.lte(0)) {
+        message = 'Estimated received too low. Send a higher amount to cover the fees.'
+      } else if (showPriceImpactWarning) {
+        message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
+      } else if (bonderFeeMajority) {
+        message = 'Warning: More than 50% of amount will go towards bonder fee'
+      }
+
+      setWarning(message)
+    } catch (err: any) {
+      console.error(err)
+      setWarning('')
     }
-
-    setWarning(message)
   }, [
+    sourceToken,
     noLiquidityWarning,
     minimumSendWarning,
     sufficientBalanceWarning,
@@ -321,11 +338,13 @@ const Send: FC = () => {
     priceImpact,
     fromTokenAmount,
     toTokenAmount,
+    totalFee
   ])
 
   useEffect(() => {
     if (!amountOutMin || !destToken) {
       setAmountOutMinDisplay(undefined)
+      setAmountOutMinUsdDisplay(undefined)
       return
     }
     let _amountOutMin = amountOutMin
@@ -337,9 +356,11 @@ const Send: FC = () => {
       _amountOutMin = BigNumber.from(0)
     }
 
-    const amountOutMinFormatted = commafy(formatUnits(_amountOutMin, destToken.decimals), 4)
-    setAmountOutMinDisplay(`${amountOutMinFormatted} ${destToken.symbol}`)
-  }, [amountOutMin])
+    const amountOutMinDisplay = toTokenDisplay(_amountOutMin, destToken.decimals, destToken.symbol)
+    const amountOutMinUsdDisplay = toUsdDisplay(_amountOutMin, destToken.decimals, tokenUsdPrice)
+    setAmountOutMinDisplay(amountOutMinDisplay)
+    setAmountOutMinUsdDisplay(amountOutMinUsdDisplay)
+  }, [amountOutMin, tokenUsdPrice])
 
   // ==============================================================================================
   // Approve fromNetwork / fromToken
@@ -579,6 +600,12 @@ const Send: FC = () => {
     // setManualError('')
   }, [fromNetwork?.slug, toNetwork?.slug])
 
+  const transferTime = useMemo(() => {
+    if (fromNetwork && toNetwork) {
+      return getTransferTimeString(fromNetwork?.slug, toNetwork?.slug)
+    }
+  }, [fromNetwork, toNetwork])
+
   const { disabledTx } = useDisableTxs(fromNetwork, toNetwork, sourceToken?.symbol)
 
   const approveButtonActive = !needsTokenForFee && !unsupportedAsset && needsApproval
@@ -707,9 +734,13 @@ const Send: FC = () => {
           <DetailRow
             title={'Fees'}
             tooltip={
-              <FeeDetails bonderFee={bonderFeeDisplay} destinationTxFee={destinationTxFeeDisplay} />
+              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} />
             }
-            value={totalBonderFeeDisplay}
+            value={<>
+              <InfoTooltip title={totalBonderFeeUsdDisplay}>
+                <Box>{totalBonderFeeDisplay}</Box>
+              </InfoTooltip>
+            </>}
             large
           />
 
@@ -721,9 +752,15 @@ const Send: FC = () => {
                 slippageTolerance={slippageTolerance}
                 priceImpact={priceImpact}
                 amountOutMinDisplay={amountOutMinDisplay}
+                amountOutMinUsdDisplay={amountOutMinUsdDisplay}
+                transferTime={transferTime}
               />
             }
-            value={estimatedReceivedDisplay}
+            value={<>
+              <InfoTooltip title={estimatedReceivedUsdDisplay}>
+                <Box>{estimatedReceivedDisplay}</Box>
+              </InfoTooltip>
+            </>}
             xlarge
             bold
           />

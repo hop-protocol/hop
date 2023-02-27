@@ -67,7 +67,9 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Chain.Arbitrum,
     Chain.Gnosis,
     Chain.Polygon,
-    Chain.Nova
+    Chain.Nova,
+    Chain.ZkSync,
+    Chain.ConsenSysZk
   ]
 
   const validTokenKeys = [
@@ -79,7 +81,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'WBTC',
     'HOP',
     'SNX',
-    'sUSD'
+    'sUSD',
+    'rETH'
   ]
 
   const sectionKeys = Object.keys(config)

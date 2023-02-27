@@ -12,6 +12,7 @@ import { Div, Flex, Icon } from '../ui'
 import { StyledButton } from '../buttons/StyledButton'
 import MetaMaskLogo from 'src/assets/logos/metamask.png'
 import { useTransactionStatus } from 'src/hooks'
+import { getTransferTimeString } from 'src/utils/getTransferTimeString'
 
 type Props = {
   tx: Transaction
@@ -28,26 +29,14 @@ function TxStatusModal(props: Props) {
   }
 
   const sourceChain = tx?.networkName ? Chain.fromSlug(tx.networkName) : null
-  // const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
-  let timeEstimate = '5 minutes'
-  if (sourceChain?.isL1) {
-    timeEstimate = '25 minutes'
-  } else if (sourceChain?.equals(Chain.Polygon)) {
-    timeEstimate = '10 minutes'
-  }
+  const destinationChain = tx?.destNetworkName ? Chain.fromSlug(tx.destNetworkName) : null
+  const timeEstimate = sourceChain && destinationChain ? getTransferTimeString(sourceChain?.slug, destinationChain?.slug) : ''
 
   const { completed, destCompleted, confirmations, networkConfirmations } = useTransactionStatus(
     tx,
     tx.networkName
   )
   const { success, addTokenToDestNetwork } = useAddTokenToMetamask(tx.token, tx.destNetworkName)
-
-  // TODO: if no complaints after a week or so of this feature being live,
-  // we can revert to using this and only display add-to-mm button if tx is completed
-  // const showAddToMM =
-  //   (completed && destCompleted) ||
-  //   (completed && !tx.destNetworkName) ||
-  //   (completed && tx.destNetworkName === tx.networkName)
 
   return (
     <Modal onClose={handleTxStatusClose}>
@@ -61,9 +50,9 @@ function TxStatusModal(props: Props) {
 
       <Box display="flex" alignItems="center" className={styles.txStatusInfo}>
         <Typography variant="body1">
-          {tx && tx.token ? (
+          {(tx && tx.token && timeEstimate) ? (
             <em>
-              Your transfer will arrive at the destination around <strong>{timeEstimate}</strong>{' '}
+              Your transfer will arrive at the destination in <strong>{timeEstimate}</strong>{' '}
               after your transaction is confirmed.
             </em>
           ) : (

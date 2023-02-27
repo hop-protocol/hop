@@ -47,3 +47,5 @@ export const RelayableChains: string[] = [
   ChainSlug.Arbitrum,
   ChainSlug.Nova
 ]
+
+export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])

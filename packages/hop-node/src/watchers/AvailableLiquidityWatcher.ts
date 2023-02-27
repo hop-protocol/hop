@@ -9,11 +9,12 @@ import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bri
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import {
   getConfigBonderForRoute,
+  getEnabledNetworks,
   config as globalConfig,
   modifiedLiquidityDestChains,
   modifiedLiquiditySourceChains,
-  modifiedLiquidityTokens,
-  oruChains
+  modifiedLiquidityTokens
+  , oruChains
 } from 'src/config'
 
 type Config = {
@@ -259,7 +260,11 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
   async getOruToL1PendingAmount () {
     let pendingAmounts = BigNumber.from(0)
+    const enabledNetworks = getEnabledNetworks()
     for (const chain of oruChains) {
+      if (!enabledNetworks.includes(chain)) {
+        continue
+      }
       const watcher = this.getSiblingWatcherByChainSlug(chain)
       if (!watcher) {
         continue

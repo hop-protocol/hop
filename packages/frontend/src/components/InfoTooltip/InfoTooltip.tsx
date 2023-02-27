@@ -21,7 +21,7 @@ const InfoTooltip: FC<Props> = props => {
   return (
     <Tooltip
       title={props.title}
-      style={{
+      style={children ? ({}) : {
         opacity: 0.5,
         verticalAlign: 'middle',
         cursor: 'help',

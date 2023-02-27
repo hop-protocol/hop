@@ -31,6 +31,12 @@ export function getUrl(chain: Slug | string) {
     if (chain === 'xdai') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
+    if (chain === 'zksync') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
+    if (chain === 'consensyszk') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
 
     return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
   }
@@ -48,7 +54,7 @@ export function getUrl(chain: Slug | string) {
   }
 }
 
-async function queryFetch(url, query, variables?: any) {
+async function queryFetch(url: string, query: string, variables?: any) {
   try {
     const res = await fetch(url, {
       method: 'POST',

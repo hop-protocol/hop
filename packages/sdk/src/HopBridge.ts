@@ -194,9 +194,12 @@ class HopBridge extends Base {
       this.chainProviders
     )
 
+    // port over exiting properties
     if (this.priceFeedApiKeys) {
       hopBridge.setPriceFeedApiKeys(this.priceFeedApiKeys)
     }
+    hopBridge.baseConfigUrl = this.baseConfigUrl
+    hopBridge.configFileFetchEnabled = this.configFileFetchEnabled
 
     return hopBridge
   }
@@ -707,10 +710,12 @@ class HopBridge extends Base {
       this.getLpFees(amountIn, sourceChain, destinationChain)
     ])
 
-    const amountOutWithoutFeePromise = this.calcFromHTokenAmount(
+    const calcFromHTokenPromise = this.calcFromHTokenAmount(
       hTokenAmount,
       destinationChain
     )
+
+    const amountOutWithoutFeePromise = calcFromHTokenPromise
 
     const amountInNoSlippage = BigNumber.from(1000)
     const amountOutNoSlippagePromise = this.getAmountOut(
@@ -727,11 +732,6 @@ class HopBridge extends Base {
 
     const destinationTxFeePromise = this.getDestinationTransactionFee(
       sourceChain,
-      destinationChain
-    )
-
-    const calcFromHTokenPromise = this.calcFromHTokenAmount(
-      hTokenAmount,
       destinationChain
     )
 
@@ -1025,11 +1025,15 @@ class HopBridge extends Base {
         return false
       }
       if (sourceChain.isL1) {
-        await destinationChain.provider.estimateGas({
-          value: BigNumber.from('1'),
-          from: bonderAddress,
-          to: recipient
-        })
+        if (destinationChain.equals(Chain.ConsenSysZk)) {
+          // TODO
+        } else {
+          await destinationChain.provider.estimateGas({
+            value: BigNumber.from('1'),
+            from: bonderAddress,
+            to: recipient
+          })
+        }
         return false
       } else {
         const populatedTx = await this.populateBondWithdrawalTx(sourceChain, destinationChain, recipient)
@@ -1245,8 +1249,11 @@ class HopBridge extends Base {
     if (destinationChain.isL1) {
       let pendingAmounts = BigNumber.from(0)
       await Promise.all(bondableChains.map(async (bondableChain: string) => {
-        const l2BridgeAddress = this.getL2BridgeAddress(this.tokenSymbol, bondableChain)
-        if (l2BridgeAddress) {
+        let validChain = false
+        try {
+          validChain = !!this.getL2BridgeAddress(this.tokenSymbol, bondableChain)
+        } catch (err) {}
+        if (validChain) {
           const bondableBridge = await this.getBridgeContract(bondableChain)
           const pendingAmount = await bondableBridge.pendingAmountForChainId(Chain.Ethereum.chainId)
           pendingAmounts = pendingAmounts.add(pendingAmount)
@@ -1295,7 +1302,7 @@ class HopBridge extends Base {
 
   async fetchBonderAvailableLiquidityData () {
     const cacheBust = Date.now()
-    const url = `https://assets.hop.exchange/${this.network}/v1-available-liquidity.json?cb=${cacheBust}`
+    const url = `${this.baseConfigUrl}/${this.network}/v1-available-liquidity.json?cb=${cacheBust}`
     const res = await fetch(url)
     const json = await res.json()
     if (!json) {
@@ -2195,10 +2202,7 @@ class HopBridge extends Base {
       this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol),
       onChainBonderFeeAbsolutePromise ?? Promise.resolve(BigNumber.from(0))
     ])
-    let minBonderFeeUsd = 0.25
-    if (sourceChain === Chain.Polygon) {
-      minBonderFeeUsd = 0.5
-    }
+    const minBonderFeeUsd = 0.25
     const minBonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPrice).toFixed(token.decimals),
       token.decimals

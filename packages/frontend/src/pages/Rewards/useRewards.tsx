@@ -102,13 +102,11 @@ export const useRewards = (props: Props) => {
     update().catch(console.error)
   }, [token])
 
-  useInterval(getOnchainRoot, 30 * 1000)
-
   useEffect(() => {
     getOnchainRoot().catch(console.error)
   }, [contract])
 
-  useInterval(getOnchainRoot, 30 * 1000)
+  useInterval(getOnchainRoot, 10 * 60 * 1000)
 
   const getLatestRootFromRepo = async () => {
     try {
@@ -135,7 +133,7 @@ export const useRewards = (props: Props) => {
     getLatestRootFromRepo().catch(console.error)
   }, [contract, merkleBaseUrl])
 
-  useInterval(getLatestRootFromRepo, 30 * 1000)
+  useInterval(getLatestRootFromRepo, 10 * 60 * 1000)
 
   const getClaimableAmountFromRepo = async () => {
     try {
@@ -176,7 +174,7 @@ export const useRewards = (props: Props) => {
     getClaimableAmountFromRepo().catch(console.error)
   }, [contract, claimRecipient, onchainRoot, onchainRootSet, merkleBaseUrl])
 
-  useInterval(getClaimableAmountFromRepo, 10 * 1000)
+  useInterval(getClaimableAmountFromRepo, 10 * 60 * 1000)
 
   const getUnclaimableAmountFromRepo = async () => {
     try {
@@ -221,7 +219,7 @@ export const useRewards = (props: Props) => {
     getUnclaimableAmountFromRepo().catch(console.error)
   }, [onchainRoot, claimRecipient, latestRoot, merkleBaseUrl, claimableAmount, claimProofBalance])
 
-  useInterval(getUnclaimableAmountFromRepo, 10 * 1000)
+  useInterval(getUnclaimableAmountFromRepo, 10 * 60 * 1000)
 
   const getUnclaimableAmountFromBackend = async () => {
     try {
@@ -261,7 +259,7 @@ export const useRewards = (props: Props) => {
     getUnclaimableAmountFromBackend().catch(console.error)
   }, [claimRecipient])
 
-  useInterval(getUnclaimableAmountFromBackend, 10 * 1000)
+  useInterval(getUnclaimableAmountFromBackend, 2 * 60 * 1000)
 
   const getRewardsInfoFromBackend = async () => {
     try {

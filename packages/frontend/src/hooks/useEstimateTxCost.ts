@@ -26,7 +26,7 @@ async function estimateGasCost(network: Network, estimatedGasLimit: BigNumber) {
     } catch (err) {
       gasPrice = await network.provider.getGasPrice()
     }
-    console.log('gasPrice estimate:', gasPrice.toString(), formatUnits(gasPrice.toString(), 9))
+    // console.log('gasPrice estimate:', gasPrice.toString(), formatUnits(gasPrice.toString(), 9))
     // Add some wiggle room
     const bufferGas = BigNumber.from(70_000)
     return (estimatedGasLimit.add(bufferGas)).mul(gasPrice)
@@ -129,6 +129,9 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
             gnosis: token.symbol === 'ETH' ? 260000 : 390000,
             polygon: token.symbol === 'ETH' ? 260000 : 260000,
             nova: token.symbol === 'ETH' ? 500000 : 700000,
+            consensyszk: token.symbol === 'ETH' ? 500000 : 700000,
+            scrollzk: token.symbol === 'ETH' ? 500000 : 700000,
+            base: token.symbol === 'ETH' ? 500000 : 700000
           }
           const defaultGasLimit = defaultSendGasLimits[fromNetwork.slug]
           logger.debug('using default gasLimit:', defaultGasLimit)

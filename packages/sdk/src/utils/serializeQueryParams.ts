@@ -3,7 +3,7 @@ interface IOptions {
   omitFalsy: boolean
 }
 
-const serializeQueryParams = (
+export const serializeQueryParams = (
   params: any,
   options: Partial<IOptions> = {
     omitFalsy: false

@@ -112,8 +112,8 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   consensyzk: 10000 // TODO
 }
 
-export const LpFeeBps = '4'
-export const PendingAmountBufferUsd = '50000'
+export const LpFeeBps = 4
+export const PendingAmountBufferUsd = 50000
 export const MinPolygonGasPrice = 30_000_000_000
 export const MinPolygonGasLimit = BigNumber.from(1_000_000)
 

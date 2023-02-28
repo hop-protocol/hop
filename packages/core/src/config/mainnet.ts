@@ -37,7 +37,7 @@ export const config : Config = {
       gnosis: 5,
       optimism: 5,
       arbitrum: 5,
-      nova: 8,
+      nova: 5,
       zksync: 5, // TODO
       consensyszk: 5 // TODO
     },

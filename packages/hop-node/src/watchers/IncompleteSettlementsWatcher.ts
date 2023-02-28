@@ -4,7 +4,7 @@ import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
-import getTransfer from 'src/theGraph/getTransfer'
+import getTransferSent from 'src/theGraph/getTransferSent'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
@@ -274,7 +274,7 @@ class IncompleteSettlementsWatcher {
     const batchSize = 10000
     let start = startBlockNumber
     let end = start + batchSize
-    while (end < endBlockNumber) {
+    while (end <= endBlockNumber) {
       const _logs = await contract.queryFilter(
         filter,
         start,
@@ -282,8 +282,18 @@ class IncompleteSettlementsWatcher {
       )
 
       logs.push(..._logs)
-      start = end
-      end = start + batchSize
+
+      // Add 1 so that boundary blocks are not double counted
+      start = end + 1
+
+      // If the batch is less than the batchSize, use the endBlockNumber
+      const newEnd = start + batchSize
+      end = Math.min(endBlockNumber, newEnd)
+
+      // For the last batch, start will be greater than end because end is capped at endBlockNumber
+      if (start > end) {
+        break
+      }
     }
     return logs
   }
@@ -456,7 +466,7 @@ class IncompleteSettlementsWatcher {
       this.logger.debug(`rootHash transferIds processing item ${i + 1}/${transferIds.length}`)
       const bondWithdrawalEvent = await getBondedWithdrawal(destinationChain, token, transferId)
       if (!bondWithdrawalEvent) {
-        const { amount } = await getTransfer(sourceChain, token, transferId)
+        const { amount } = await getTransferSent(sourceChain, transferId)
         const amountFormatted = Number(formatUnits(amount, tokenDecimals))
         unsettledTransfers.push({
           bonded: false,

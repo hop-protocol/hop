@@ -288,7 +288,7 @@ class IncompleteSettlementsWatcher {
 
       // If the batch is less than the batchSize, use the endBlockNumber
       const newEnd = start + batchSize
-      end = newEnd > endBlockNumber ? endBlockNumber : newEnd
+      end = Math.min(endBlockNumber, newEnd)
 
       // For the last batch, start will be greater than end because end is capped at endBlockNumber
       if (start > end) {
@@ -466,7 +466,12 @@ class IncompleteSettlementsWatcher {
       this.logger.debug(`rootHash transferIds processing item ${i + 1}/${transferIds.length}`)
       const bondWithdrawalEvent = await getBondedWithdrawal(destinationChain, token, transferId)
       if (!bondWithdrawalEvent) {
-        const { amount } = await getTransferSent(sourceChain, token, transferId)
+        // Return if it is withdrawn. Do it after checking if it is bonded so we only make RPC calls when necessary.
+        const isWithdrawn = await contract.isTransferIdSpent(transferId)
+        if (isWithdrawn) {
+          return
+        }
+        const { amount } = await getTransferSent(sourceChain, transferId)
         const amountFormatted = Number(formatUnits(amount, tokenDecimals))
         unsettledTransfers.push({
           bonded: false,

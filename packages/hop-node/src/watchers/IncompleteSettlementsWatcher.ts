@@ -466,6 +466,11 @@ class IncompleteSettlementsWatcher {
       this.logger.debug(`rootHash transferIds processing item ${i + 1}/${transferIds.length}`)
       const bondWithdrawalEvent = await getBondedWithdrawal(destinationChain, token, transferId)
       if (!bondWithdrawalEvent) {
+        // Return if it is withdrawn. Do it after checking if it is bonded so we only make RPC calls when necessary.
+        const isWithdrawn = await contract.isTransferIdSpent(transferId)
+        if (isWithdrawn) {
+          return
+        }
         const { amount } = await getTransferSent(sourceChain, transferId)
         const amountFormatted = Number(formatUnits(amount, tokenDecimals))
         unsettledTransfers.push({

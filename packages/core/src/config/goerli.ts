@@ -26,6 +26,7 @@ export const config : Config = {
   relayerFeeEnabled: {
     polygon: false,
     optimism: false,
-    arbitrum: false
+    arbitrum: false,
+    consensyszk: false
   }
 }

@@ -109,7 +109,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   arbitrum: 19843,
   nova: 19843,
   zksync: 10000, // TODO
-  consensyzk: 10000 // TODO
+  consensyszk: 10000 // TODO
 }
 
 export const LpFeeBps = 4

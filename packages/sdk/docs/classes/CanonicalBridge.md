@@ -21,11 +21,13 @@ CanonicalBridge
 ### Properties
 
 - [addresses](CanonicalBridge.md#addresses)
+- [baseConfigUrl](CanonicalBridge.md#baseconfigurl)
 - [baseExplorerUrl](CanonicalBridge.md#baseexplorerurl)
 - [bonders](CanonicalBridge.md#bonders)
 - [chain](CanonicalBridge.md#chain)
 - [chainProviders](CanonicalBridge.md#chainproviders)
 - [chains](CanonicalBridge.md#chains)
+- [configFileFetchEnabled](CanonicalBridge.md#configfilefetchenabled)
 - [destinationFeeGasPriceMultiplier](CanonicalBridge.md#destinationfeegaspricemultiplier)
 - [fees](CanonicalBridge.md#fees)
 - [gasPriceMultiplier](CanonicalBridge.md#gaspricemultiplier)
@@ -96,6 +98,7 @@ CanonicalBridge
 - [getSupportedAssets](CanonicalBridge.md#getsupportedassets)
 - [getSupportedAssetsForChain](CanonicalBridge.md#getsupportedassetsforchain)
 - [getSupportedChains](CanonicalBridge.md#getsupportedchains)
+- [getSupportedTokens](CanonicalBridge.md#getsupportedtokens)
 - [getTransferStatus](CanonicalBridge.md#gettransferstatus)
 - [getWaitConfirmations](CanonicalBridge.md#getwaitconfirmations)
 - [getWithdrawApprovalAddress](CanonicalBridge.md#getwithdrawapprovaladdress)
@@ -103,10 +106,12 @@ CanonicalBridge
 - [isValidChain](CanonicalBridge.md#isvalidchain)
 - [isValidNetwork](CanonicalBridge.md#isvalidnetwork)
 - [sendTransaction](CanonicalBridge.md#sendtransaction)
+- [setBaseConfigUrl](CanonicalBridge.md#setbaseconfigurl)
 - [setChainProvider](CanonicalBridge.md#setchainprovider)
 - [setChainProviderUrls](CanonicalBridge.md#setchainproviderurls)
 - [setChainProviders](CanonicalBridge.md#setchainproviders)
 - [setConfigAddresses](CanonicalBridge.md#setconfigaddresses)
+- [setConfigFileFetchEnabled](CanonicalBridge.md#setconfigfilefetchenabled)
 - [setGasPriceMultiplier](CanonicalBridge.md#setgaspricemultiplier)
 - [toCanonicalToken](CanonicalBridge.md#tocanonicaltoken)
 - [toChainModel](CanonicalBridge.md#tochainmodel)
@@ -162,6 +167,16 @@ const bridge = new CanonicalBridge('kovan', signer, 'USDC', Chain.Optimism)
 
 ___
 
+### <a id="baseconfigurl" name="baseconfigurl"></a> baseConfigUrl
+
+• **baseConfigUrl**: `string` = `globalBaseConfigUrl`
+
+#### Inherited from
+
+[Base](Base.md).[baseConfigUrl](Base.md#baseconfigurl)
+
+___
+
 ### <a id="baseexplorerurl" name="baseexplorerurl"></a> baseExplorerUrl
 
 • **baseExplorerUrl**: `string` = `'https://explorer.hop.exchange'`
@@ -207,6 +222,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[chains](Base.md#chains)
+
+___
+
+### <a id="configfilefetchenabled" name="configfilefetchenabled"></a> configFileFetchEnabled
+
+• **configFileFetchEnabled**: `boolean` = `globalConfigFileFetchEnabled`
+
+#### Inherited from
+
+[Base](Base.md).[configFileFetchEnabled](Base.md#configfilefetchenabled)
 
 ___
 
@@ -1397,6 +1422,20 @@ ___
 
 ___
 
+### <a id="getsupportedtokens" name="getsupportedtokens"></a> getSupportedTokens
+
+▸ **getSupportedTokens**(): `string`[]
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+[Base](Base.md).[getSupportedTokens](Base.md#getsupportedtokens)
+
+___
+
 ### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
 
 ▸ **getTransferStatus**(`transferIdOrTxHash`): `Promise`<`any`\>
@@ -1528,6 +1567,26 @@ ___
 
 ___
 
+### <a id="setbaseconfigurl" name="setbaseconfigurl"></a> setBaseConfigUrl
+
+▸ **setBaseConfigUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[Base](Base.md).[setBaseConfigUrl](Base.md#setbaseconfigurl)
+
+___
+
 ### <a id="setchainprovider" name="setchainprovider"></a> setChainProvider
 
 ▸ **setChainProvider**(`chain`, `provider`): `void`
@@ -1606,6 +1665,26 @@ ___
 #### Inherited from
 
 [Base](Base.md).[setConfigAddresses](Base.md#setconfigaddresses)
+
+___
+
+### <a id="setconfigfilefetchenabled" name="setconfigfilefetchenabled"></a> setConfigFileFetchEnabled
+
+▸ **setConfigFileFetchEnabled**(`enabled`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `enabled` | `boolean` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[Base](Base.md).[setConfigFileFetchEnabled](Base.md#setconfigfilefetchenabled)
 
 ___
 

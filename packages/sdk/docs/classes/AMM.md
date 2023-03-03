@@ -21,11 +21,14 @@ AMM
 ### Properties
 
 - [addresses](AMM.md#addresses)
+- [baseConfigUrl](AMM.md#baseconfigurl)
 - [baseExplorerUrl](AMM.md#baseexplorerurl)
 - [bonders](AMM.md#bonders)
+- [calculateSwap](AMM.md#calculateswap)
 - [chain](AMM.md#chain)
 - [chainProviders](AMM.md#chainproviders)
 - [chains](AMM.md#chains)
+- [configFileFetchEnabled](AMM.md#configfilefetchenabled)
 - [destinationFeeGasPriceMultiplier](AMM.md#destinationfeegaspricemultiplier)
 - [fees](AMM.md#fees)
 - [gasPriceMultiplier](AMM.md#gaspricemultiplier)
@@ -105,6 +108,7 @@ AMM
 - [getSupportedAssets](AMM.md#getsupportedassets)
 - [getSupportedAssetsForChain](AMM.md#getsupportedassetsforchain)
 - [getSupportedChains](AMM.md#getsupportedchains)
+- [getSupportedTokens](AMM.md#getsupportedtokens)
 - [getSwapFee](AMM.md#getswapfee)
 - [getTransferStatus](AMM.md#gettransferstatus)
 - [getVirtualPrice](AMM.md#getvirtualprice)
@@ -121,10 +125,12 @@ AMM
 - [removeLiquidityImbalance](AMM.md#removeliquidityimbalance)
 - [removeLiquidityOneToken](AMM.md#removeliquidityonetoken)
 - [sendTransaction](AMM.md#sendtransaction)
+- [setBaseConfigUrl](AMM.md#setbaseconfigurl)
 - [setChainProvider](AMM.md#setchainprovider)
 - [setChainProviderUrls](AMM.md#setchainproviderurls)
 - [setChainProviders](AMM.md#setchainproviders)
 - [setConfigAddresses](AMM.md#setconfigaddresses)
+- [setConfigFileFetchEnabled](AMM.md#setconfigfilefetchenabled)
 - [setGasPriceMultiplier](AMM.md#setgaspricemultiplier)
 - [toChainModel](AMM.md#tochainmodel)
 - [toTokenModel](AMM.md#totokenmodel)
@@ -179,6 +185,16 @@ const amm = new AMM('mainnet', 'USDC', Chain.Gnosis)
 
 ___
 
+### <a id="baseconfigurl" name="baseconfigurl"></a> baseConfigUrl
+
+• **baseConfigUrl**: `string` = `globalBaseConfigUrl`
+
+#### Inherited from
+
+[Base](Base.md).[baseConfigUrl](Base.md#baseconfigurl)
+
+___
+
 ### <a id="baseexplorerurl" name="baseexplorerurl"></a> baseExplorerUrl
 
 • **baseExplorerUrl**: `string` = `'https://explorer.hop.exchange'`
@@ -196,6 +212,26 @@ ___
 #### Inherited from
 
 [Base](Base.md).[bonders](Base.md#bonders)
+
+___
+
+### <a id="calculateswap" name="calculateswap"></a> calculateSwap
+
+• **calculateSwap**: (...`args`: [fromIndex: TokenIndex, toIndex: TokenIndex, amount: BigNumberish]) => `Promise`<`any`\>
+
+#### Type declaration
+
+▸ (...`args`): `Promise`<`any`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `...args` | [fromIndex: TokenIndex, toIndex: TokenIndex, amount: BigNumberish] |
+
+##### Returns
+
+`Promise`<`any`\>
 
 ___
 
@@ -224,6 +260,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[chains](Base.md#chains)
+
+___
+
+### <a id="configfilefetchenabled" name="configfilefetchenabled"></a> configFileFetchEnabled
+
+• **configFileFetchEnabled**: `boolean` = `globalConfigFileFetchEnabled`
+
+#### Inherited from
+
+[Base](Base.md).[configFileFetchEnabled](Base.md#configfilefetchenabled)
 
 ___
 
@@ -1569,6 +1615,20 @@ ___
 
 ___
 
+### <a id="getsupportedtokens" name="getsupportedtokens"></a> getSupportedTokens
+
+▸ **getSupportedTokens**(): `string`[]
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+[Base](Base.md).[getSupportedTokens](Base.md#getsupportedtokens)
+
+___
+
 ### <a id="getswapfee" name="getswapfee"></a> getSwapFee
 
 ▸ **getSwapFee**(): `Promise`<`number`\>
@@ -1864,6 +1924,26 @@ ___
 
 ___
 
+### <a id="setbaseconfigurl" name="setbaseconfigurl"></a> setBaseConfigUrl
+
+▸ **setBaseConfigUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[Base](Base.md).[setBaseConfigUrl](Base.md#setbaseconfigurl)
+
+___
+
 ### <a id="setchainprovider" name="setchainprovider"></a> setChainProvider
 
 ▸ **setChainProvider**(`chain`, `provider`): `void`
@@ -1942,6 +2022,26 @@ ___
 #### Inherited from
 
 [Base](Base.md).[setConfigAddresses](Base.md#setconfigaddresses)
+
+___
+
+### <a id="setconfigfilefetchenabled" name="setconfigfilefetchenabled"></a> setConfigFileFetchEnabled
+
+▸ **setConfigFileFetchEnabled**(`enabled`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `enabled` | `boolean` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[Base](Base.md).[setConfigFileFetchEnabled](Base.md#setconfigfilefetchenabled)
 
 ___
 

@@ -578,7 +578,7 @@ describe('getSendData', () => {
     expect(destinationChainGasPrice.gt(0)).toBeTruthy()
   })
 
-  it.only('getSendData', async () => {
+  it('getSendData', async () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('ETH')
     const amountIn = parseUnits('0.5', 18)
@@ -625,11 +625,20 @@ describe('getSendData', () => {
   })
 })
 
-describe('getSupportedAssets', () => {
+describe('supported assets', () => {
   it('should return list of supported assets per chain', () => {
     const hop = new Hop('mainnet')
     const assets = hop.getSupportedAssets()
+    console.log(assets)
     expect(assets).toBeTruthy()
+  })
+  it('should check if asset is supported on chain', () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('SNX')
+    expect(bridge.isSupportedAsset('polygon')).toBe(false)
+    expect(bridge.isSupportedAsset(Chain.fromSlug('polygon'))).toBe(false)
+    expect(bridge.isSupportedAsset('optimism')).toBe(true)
+    expect(bridge.isSupportedAsset(Chain.fromSlug('optimism'))).toBe(true)
   })
 })
 

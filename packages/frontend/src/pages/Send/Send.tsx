@@ -378,12 +378,22 @@ const Send: FC = () => {
       const bridge = sdk.bridge(sourceToken.symbol)
 
       const spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
+
+      /*
+      if (reactAppNetwork === 'goerli' && sourceToken?.symbol === 'ETH') {
+        if (toNetwork?.slug === 'consensyszk') {
+          const l1BridgeWrapper = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+          spender = l1BridgeWrapper
+        }
+      }
+      */
+
       return checkApproval(parsedAmount, sourceToken, spender)
     } catch (err: any) {
       logger.error(err)
       return false
     }
-  }, [sdk, fromNetwork, sourceToken, fromTokenAmount, checkApproval])
+  }, [sdk, fromNetwork, toNetwork, sourceToken, fromTokenAmount, checkApproval])
 
   const approveFromToken = async () => {
     if (!fromNetwork) {

@@ -494,6 +494,7 @@ class HopBridge extends Base {
     isHTokenTransfer: boolean = false
   ) {
     sourceChain = this.toChainModel(sourceChain)
+
     if (sourceChain.equals(Chain.Ethereum)) {
       return this.getL1BridgeAddress(this.tokenSymbol, sourceChain)
     }
@@ -1932,17 +1933,22 @@ class HopBridge extends Base {
       amountOutMin = BigNumber.from(0)
     }
 
-    const value = isNativeToken ? amount : undefined
+    let value = isNativeToken ? amount : undefined
 
-    if (this.network === NetworkSlug.Goerli) {
+    let isUsingBridgeWrapper = false
+    if (this.network === NetworkSlug.Goerli && this.tokenSymbol === TokenModel.ETH) {
       if (destinationChain.equals(Chain.ConsenSysZk)) {
-        // TODO: point to bridge wrapper
-        // const l1BridgeWrapper = '0x...'
-        // const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
-        // l1Bridge = L1ERC20Bridge__factory.connect(l1BridgeWrapper, provider)
+        const hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+        const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
+        l1Bridge = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
 
-        // const messageFee = parseEther('0.01') // TODO: read from chain
-        // value = BigNumber.from(value || 0).add(messageFee)
+        const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
+        const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
+        const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
+        const messageFee = ethers.BigNumber.from(callResult)
+
+        value = BigNumber.from(value || 0).add(messageFee)
+        isUsingBridgeWrapper = true
       }
     }
 
@@ -1960,14 +1966,18 @@ class HopBridge extends Base {
       }
     ] as const
 
-    const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
-    if (isPaused) {
-      throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+    if (!isUsingBridgeWrapper) {
+      const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
+      if (isPaused) {
+        throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+      }
     }
 
-    return l1Bridge.populateTransaction.sendToL2(
+    const tx = await l1Bridge.populateTransaction.sendToL2(
       ...txOptions
     )
+
+    return tx
   }
 
   private async populateSendL2ToL1Tx (input: SendL2ToL1Input) {

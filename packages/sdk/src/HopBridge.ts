@@ -27,15 +27,15 @@ import {
   LowLiquidityTokenBufferAmountsUsd,
   LowLiquidityTokens,
   LpFeeBps,
+  NetworkSlug,
   PendingAmountBufferUsd,
   SettlementGasLimitPerTx,
   TokenIndex,
-  TokenSymbol,
-  NetworkSlug
+  TokenSymbol
 } from './constants'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata, relayableChains } from './config'
-import { getAddress as checksumAddress, formatUnits, parseUnits, parseEther } from 'ethers/lib/utils'
+import { getAddress as checksumAddress, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0
@@ -1941,7 +1941,7 @@ class HopBridge extends Base {
         // const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
         // l1Bridge = L1ERC20Bridge__factory.connect(l1BridgeWrapper, provider)
 
-        // const messageFee = parseEther('0.01')
+        // const messageFee = parseEther('0.01') // TODO: read from chain
         // value = BigNumber.from(value || 0).add(messageFee)
       }
     }

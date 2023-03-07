@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { BigNumber, Signer } from 'ethers'
-import { getAddress } from 'ethers/lib/utils'
+import { getAddress, parseEther } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
@@ -10,6 +10,7 @@ import { amountToBN, formatError } from 'src/utils/format'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
 import { useTransactionReplacement } from 'src/hooks'
 import EventEmitter from 'eventemitter3'
+import { reactAppNetwork } from 'src/config'
 
 export type TransactionHandled = {
   transaction: any
@@ -225,6 +226,16 @@ export function useSendTransaction (props: any) {
         }
 
         const relayerFeeWithId = getBonderFeeWithId(totalFee)
+
+        const shouldSendEthToWrapper = reactAppNetwork === 'goerli' && bridge.network === 'goerli' && toNetwork?.slug === sdk.Chain.ConsenSysZk.slug
+        if (shouldSendEthToWrapper) {
+          console.log('sending eth to wrapper to pay for fee')
+
+          const l1MessengerWrapper = await bridge.getMessengerWrapperAddress(toNetwork?.slug)
+          const fee = parseEther('0.01') // TODO: read from chain
+          const tx = await bridge.sendTransaction({ to: l1MessengerWrapper, value: fee }, sdk.Chain.Ethereum)
+          await tx.wait()
+        }
 
         return bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
           deadline: deadline(),

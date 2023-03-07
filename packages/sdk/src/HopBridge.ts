@@ -30,11 +30,12 @@ import {
   PendingAmountBufferUsd,
   SettlementGasLimitPerTx,
   TokenIndex,
-  TokenSymbol
+  TokenSymbol,
+  NetworkSlug
 } from './constants'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata, relayableChains } from './config'
-import { getAddress as checksumAddress, formatUnits, parseUnits } from 'ethers/lib/utils'
+import { getAddress as checksumAddress, formatUnits, parseUnits, parseEther } from 'ethers/lib/utils'
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0
@@ -998,8 +999,8 @@ class HopBridge extends Base {
       txFeeEth = destinationChainGasPrice.mul(bondTransferGasLimitWithSettlement)
     }
 
-    const oneEth = ethers.utils.parseEther('1')
-    const rateBN = ethers.utils.parseUnits(
+    const oneEth = parseEther('1')
+    const rateBN = parseUnits(
       rate.toFixed(canonicalToken.decimals),
       canonicalToken.decimals
     )
@@ -1013,7 +1014,7 @@ class HopBridge extends Base {
       destinationChain.equals(Chain.Arbitrum) ||
       destinationChain.equals(Chain.Nova)
     ) {
-      const multiplier = ethers.utils.parseEther(this.getDestinationFeeGasPriceMultiplier().toString())
+      const multiplier = parseEther(this.getDestinationFeeGasPriceMultiplier().toString())
       if (multiplier.gt(0)) {
         destinationTxFee = destinationTxFee.mul(multiplier).div(oneEth)
       }
@@ -1932,6 +1933,18 @@ class HopBridge extends Base {
     }
 
     const value = isNativeToken ? amount : undefined
+
+    if (this.network === NetworkSlug.Goerli) {
+      if (destinationChain.equals(Chain.ConsenSysZk)) {
+        // TODO: point to bridge wrapper
+        // const l1BridgeWrapper = '0x...'
+        // const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
+        // l1Bridge = L1ERC20Bridge__factory.connect(l1BridgeWrapper, provider)
+
+        // const messageFee = parseEther('0.01')
+        // value = BigNumber.from(value || 0).add(messageFee)
+      }
+    }
 
     const txOptions = [
       destinationChainId,

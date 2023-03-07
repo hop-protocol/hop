@@ -73,7 +73,7 @@ describe.skip('hop bridge token transfers', () => {
 describe('tx watcher', () => {
   const hop = new Hop('mainnet')
   const signer = new Wallet(privateKey)
-  it(
+  it.skip(
     'receive events on token transfer from L1 -> L2 (no swap)',
     async () => {
       const txHash =

@@ -634,7 +634,36 @@ class HopBridge extends Base {
         throw new Error('Bonder fee should be 0 when sending hToken to a non-relayable L2')
       }
 
+      let l1Bridge = await this.getL1Bridge(sourceChain.provider)
       const isNativeToken = this.isNativeToken(sourceChain)
+      let value = isNativeToken ? tokenAmount : undefined
+      let isUsingBridgeWrapper = false
+
+      if (this.network === NetworkSlug.Goerli) {
+        if (destinationChain.equals(Chain.ConsenSysZk)) {
+          let hopL1BridgeWrapperAddress = ''
+          if (this.tokenSymbol === TokenModel.ETH) {
+            hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+          }
+          if (this.tokenSymbol === TokenModel.USDC) {
+            hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+          }
+
+          if (hopL1BridgeWrapperAddress) {
+            const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
+            l1Bridge = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
+
+            const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
+            const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
+            const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
+            const messageFee = ethers.BigNumber.from(callResult)
+
+            value = BigNumber.from(value || 0).add(messageFee)
+            isUsingBridgeWrapper = true
+          }
+        }
+      }
+
       const txOptions = [
         destinationChain.chainId,
         recipient,
@@ -645,17 +674,19 @@ class HopBridge extends Base {
         bonderFee,
         {
           ...(await this.txOverrides(Chain.Ethereum)),
-          value: isNativeToken ? tokenAmount : undefined
+          value
         }
       ] as const
 
-      const l1Bridge = await this.getL1Bridge(sourceChain.provider)
-      const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
-      if (isPaused) {
-        throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+      if (!isUsingBridgeWrapper) {
+        const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
+        if (isPaused) {
+          throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+        }
       }
 
-      return l1Bridge.populateTransaction.sendToL2(...txOptions)
+      const tx = await l1Bridge.populateTransaction.sendToL2(...txOptions)
+      return tx
     } else {
       if (bonderFee.eq(0)) {
         throw new Error('Send at least the minimum Bonder fee')
@@ -1934,21 +1965,30 @@ class HopBridge extends Base {
     }
 
     let value = isNativeToken ? amount : undefined
-
     let isUsingBridgeWrapper = false
-    if (this.network === NetworkSlug.Goerli && this.tokenSymbol === TokenModel.ETH) {
+
+    if (this.network === NetworkSlug.Goerli) {
       if (destinationChain.equals(Chain.ConsenSysZk)) {
-        const hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
-        const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
-        l1Bridge = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
+        let hopL1BridgeWrapperAddress = ''
+        if (this.tokenSymbol === TokenModel.ETH) {
+          hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+        }
+        if (this.tokenSymbol === TokenModel.USDC) {
+          hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+        }
 
-        const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
-        const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
-        const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
-        const messageFee = ethers.BigNumber.from(callResult)
+        if (hopL1BridgeWrapperAddress) {
+          const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
+          l1Bridge = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
 
-        value = BigNumber.from(value || 0).add(messageFee)
-        isUsingBridgeWrapper = true
+          const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
+          const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
+          const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
+          const messageFee = ethers.BigNumber.from(callResult)
+
+          value = BigNumber.from(value || 0).add(messageFee)
+          isUsingBridgeWrapper = true
+        }
       }
     }
 

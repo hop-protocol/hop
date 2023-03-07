@@ -377,16 +377,20 @@ const Send: FC = () => {
       const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
       const bridge = sdk.bridge(sourceToken.symbol)
 
-      const spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
+      let spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
 
-      /*
-      if (reactAppNetwork === 'goerli' && sourceToken?.symbol === 'ETH') {
+      if (reactAppNetwork === 'goerli') {
         if (toNetwork?.slug === 'consensyszk') {
-          const l1BridgeWrapper = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
-          spender = l1BridgeWrapper
+          if (sourceToken?.symbol === 'ETH') {
+            const l1BridgeWrapper = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+            spender = l1BridgeWrapper
+          }
+          if (sourceToken?.symbol === 'USDC') {
+            const l1BridgeWrapper = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+            spender = l1BridgeWrapper
+          }
         }
       }
-      */
 
       return checkApproval(parsedAmount, sourceToken, spender)
     } catch (err: any) {
@@ -417,7 +421,21 @@ const Send: FC = () => {
     const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
     const bridge = sdk.bridge(sourceToken.symbol)
 
-    const spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
+    let spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
+
+    if (reactAppNetwork === 'goerli') {
+      if (toNetwork?.slug === 'consensyszk') {
+        if (sourceToken?.symbol === 'ETH') {
+          const l1BridgeWrapper = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+          spender = l1BridgeWrapper
+        }
+        if (sourceToken?.symbol === 'USDC') {
+          const l1BridgeWrapper = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+          spender = l1BridgeWrapper
+        }
+      }
+    }
+
     const tx = await approve(parsedAmount, sourceToken, spender)
 
     await tx?.wait()

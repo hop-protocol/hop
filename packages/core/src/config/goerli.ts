@@ -27,6 +27,7 @@ export const config : Config = {
     polygon: false,
     optimism: false,
     arbitrum: false,
-    consensyszk: false
+    consensyszk: false,
+    base: false
   }
 }

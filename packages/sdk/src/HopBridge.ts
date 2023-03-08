@@ -1092,7 +1092,9 @@ class HopBridge extends Base {
         return false
       }
       if (sourceChain.isL1) {
-        if (destinationChain.equals(Chain.ConsenSysZk)) {
+        if (destinationChain.equals(Chain.Base)) {
+          // TODO
+        } else if (destinationChain.equals(Chain.ConsenSysZk)) {
           // TODO
         } else {
           await destinationChain.provider.estimateGas({

@@ -67,8 +67,8 @@ export const networks: Networks = {
     networkId: 84531,
     publicRpcUrl: 'https://goerli.base.org',
     fallbackPublicRpcUrls: [],
-    explorerUrls: ['https://goerli.basescan.org/'],
-    nativeBridgeUrl: 'https://bridge.base.org/deposit',
+    explorerUrls: ['https://goerli.basescan.org'],
+    nativeBridgeUrl: 'https://bridge.base.org',
     waitConfirmations: 1
   }
 }

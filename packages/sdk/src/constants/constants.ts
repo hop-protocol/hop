@@ -26,7 +26,8 @@ export enum ChainName {
   Gnosis = 'Gnosis',
   Nova = 'Nova',
   ZkSync = 'zkSync',
-  ConsenSysZk = 'ConsenSys zkEVM'
+  ConsenSysZk = 'ConsenSys zkEVM',
+  Base = 'Base'
 }
 
 export enum ChainSlug {
@@ -37,7 +38,8 @@ export enum ChainSlug {
   Gnosis = 'gnosis',
   Nova = 'nova',
   ZkSync = 'zksync',
-  ConsenSysZk = 'consensyszk'
+  ConsenSysZk = 'consensyszk',
+  Base = 'base'
 }
 
 export enum Slug {
@@ -52,7 +54,8 @@ export enum Slug {
   polygon = 'polygon',
   nova = 'nova',
   zksync = 'zksync',
-  consensyszk = 'consensyszk'
+  consensyszk = 'consensyszk',
+  base = 'base',
 }
 
 export enum CanonicalToken {
@@ -109,7 +112,8 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   arbitrum: 19843,
   nova: 19843,
   zksync: 10000, // TODO
-  consensyszk: 10000 // TODO
+  consensyzk: 10000, // TODO
+  base: 10000 // TODO
 }
 
 export const LpFeeBps = 4

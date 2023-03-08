@@ -7,8 +7,10 @@
 - [Arbitrum](ChainId.md#arbitrum)
 - [Ethereum](ChainId.md#ethereum)
 - [Gnosis](ChainId.md#gnosis)
+- [Nova](ChainId.md#nova)
 - [Optimism](ChainId.md#optimism)
 - [Polygon](ChainId.md#polygon)
+- [ZkSync](ChainId.md#zksync)
 
 ## Enumeration Members
 
@@ -30,6 +32,12 @@ ___
 
 ___
 
+### <a id="nova" name="nova"></a> Nova
+
+• **Nova** = ``42170``
+
+___
+
 ### <a id="optimism" name="optimism"></a> Optimism
 
 • **Optimism** = ``10``
@@ -39,3 +47,9 @@ ___
 ### <a id="polygon" name="polygon"></a> Polygon
 
 • **Polygon** = ``137``
+
+___
+
+### <a id="zksync" name="zksync"></a> ZkSync
+
+• **ZkSync** = ``324``

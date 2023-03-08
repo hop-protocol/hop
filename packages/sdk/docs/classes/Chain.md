@@ -15,10 +15,13 @@
 - [provider](Chain.md#provider)
 - [slug](Chain.md#slug)
 - [Arbitrum](Chain.md#arbitrum)
+- [ConsenSysZk](Chain.md#consensyszk)
 - [Ethereum](Chain.md#ethereum)
 - [Gnosis](Chain.md#gnosis)
+- [Nova](Chain.md#nova)
 - [Optimism](Chain.md#optimism)
 - [Polygon](Chain.md#polygon)
+- [ZkSync](Chain.md#zksync)
 
 ### Accessors
 
@@ -87,6 +90,12 @@ ___
 
 ___
 
+### <a id="consensyszk" name="consensyszk"></a> ConsenSysZk
+
+▪ `Static` **ConsenSysZk**: [`Chain`](Chain.md)
+
+___
+
 ### <a id="ethereum" name="ethereum"></a> Ethereum
 
 ▪ `Static` **Ethereum**: [`Chain`](Chain.md)
@@ -99,6 +108,12 @@ ___
 
 ___
 
+### <a id="nova" name="nova"></a> Nova
+
+▪ `Static` **Nova**: [`Chain`](Chain.md)
+
+___
+
 ### <a id="optimism" name="optimism"></a> Optimism
 
 ▪ `Static` **Optimism**: [`Chain`](Chain.md)
@@ -108,6 +123,12 @@ ___
 ### <a id="polygon" name="polygon"></a> Polygon
 
 ▪ `Static` **Polygon**: [`Chain`](Chain.md)
+
+___
+
+### <a id="zksync" name="zksync"></a> ZkSync
+
+▪ `Static` **ZkSync**: [`Chain`](Chain.md)
 
 ## Accessors
 

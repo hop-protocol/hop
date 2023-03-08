@@ -780,22 +780,6 @@ export class HealthCheckWatcher {
       }
     })
 
-    result = result.filter((item: any) => {
-      if (item.unsettledTransfers?.length) {
-        let totalAmountUnbonded = BigNumber.from(0)
-        for (const transfer of item.unsettledTransfers) {
-          if (!transfer.bonded) {
-            totalAmountUnbonded = totalAmountUnbonded.add(BigNumber.from(transfer.amount))
-          }
-        }
-        const isAllSettled = BigNumber.from(item.diffAmount).eq(totalAmountUnbonded)
-        if (isAllSettled) {
-          return false
-        }
-      }
-      return true
-    })
-
     return result
   }
 

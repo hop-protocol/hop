@@ -29,10 +29,12 @@ Base
 ### Properties
 
 - [addresses](Base.md#addresses)
+- [baseConfigUrl](Base.md#baseconfigurl)
 - [baseExplorerUrl](Base.md#baseexplorerurl)
 - [bonders](Base.md#bonders)
 - [chainProviders](Base.md#chainproviders)
 - [chains](Base.md#chains)
+- [configFileFetchEnabled](Base.md#configfilefetchenabled)
 - [destinationFeeGasPriceMultiplier](Base.md#destinationfeegaspricemultiplier)
 - [fees](Base.md#fees)
 - [gasPriceMultiplier](Base.md#gaspricemultiplier)
@@ -89,16 +91,19 @@ Base
 - [getSupportedAssets](Base.md#getsupportedassets)
 - [getSupportedAssetsForChain](Base.md#getsupportedassetsforchain)
 - [getSupportedChains](Base.md#getsupportedchains)
+- [getSupportedTokens](Base.md#getsupportedtokens)
 - [getTransferStatus](Base.md#gettransferstatus)
 - [getWaitConfirmations](Base.md#getwaitconfirmations)
 - [init](Base.md#init)
 - [isValidChain](Base.md#isvalidchain)
 - [isValidNetwork](Base.md#isvalidnetwork)
 - [sendTransaction](Base.md#sendtransaction)
+- [setBaseConfigUrl](Base.md#setbaseconfigurl)
 - [setChainProvider](Base.md#setchainprovider)
 - [setChainProviderUrls](Base.md#setchainproviderurls)
 - [setChainProviders](Base.md#setchainproviders)
 - [setConfigAddresses](Base.md#setconfigaddresses)
+- [setConfigFileFetchEnabled](Base.md#setconfigfilefetchenabled)
 - [setGasPriceMultiplier](Base.md#setgaspricemultiplier)
 - [toChainModel](Base.md#tochainmodel)
 - [toTokenModel](Base.md#totokenmodel)
@@ -131,6 +136,12 @@ Returns a new Base class instance.
 
 ___
 
+### <a id="baseconfigurl" name="baseconfigurl"></a> baseConfigUrl
+
+• **baseConfigUrl**: `string` = `globalBaseConfigUrl`
+
+___
+
 ### <a id="baseexplorerurl" name="baseexplorerurl"></a> baseExplorerUrl
 
 • **baseExplorerUrl**: `string` = `'https://explorer.hop.exchange'`
@@ -152,6 +163,12 @@ ___
 ### <a id="chains" name="chains"></a> chains
 
 • **chains**: `Record`<`string`, `any`\>
+
+___
+
+### <a id="configfilefetchenabled" name="configfilefetchenabled"></a> configFileFetchEnabled
+
+• **configFileFetchEnabled**: `boolean` = `globalConfigFileFetchEnabled`
 
 ___
 
@@ -907,6 +924,16 @@ ___
 
 ___
 
+### <a id="getsupportedtokens" name="getsupportedtokens"></a> getSupportedTokens
+
+▸ **getSupportedTokens**(): `string`[]
+
+#### Returns
+
+`string`[]
+
+___
+
 ### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
 
 ▸ **getTransferStatus**(`transferIdOrTxHash`): `Promise`<`any`\>
@@ -998,6 +1025,22 @@ ___
 
 ___
 
+### <a id="setbaseconfigurl" name="setbaseconfigurl"></a> setBaseConfigUrl
+
+▸ **setBaseConfigUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+___
+
 ### <a id="setchainprovider" name="setchainprovider"></a> setChainProvider
 
 ▸ **setChainProvider**(`chain`, `provider`): `void`
@@ -1056,6 +1099,22 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `addresses` | `Addresses` |
+
+#### Returns
+
+`void`
+
+___
+
+### <a id="setconfigfilefetchenabled" name="setconfigfilefetchenabled"></a> setConfigFileFetchEnabled
+
+▸ **setConfigFileFetchEnabled**(`enabled`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `enabled` | `boolean` |
 
 #### Returns
 

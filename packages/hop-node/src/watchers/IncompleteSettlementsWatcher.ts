@@ -430,6 +430,23 @@ class IncompleteSettlementsWatcher {
       this.logger.debug(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, isSet: ${isSet}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}, unsettledTransfers: ${JSON.stringify(unsettledTransfers)}, unsettledTransferBonders: ${JSON.stringify(unsettledTransferBonders)}`)
     }, { concurrency })
 
+    // Check to see if the only remaining unsettled amounts are withdrawn
+    incompletes = incompletes.filter((item: any) => {
+      if (item.unsettledTransfers?.length) {
+        let totalAmountUnbonded = BigNumber.from(0)
+        for (const transfer of item.unsettledTransfers) {
+          if (!transfer.bonded) {
+            totalAmountUnbonded = totalAmountUnbonded.add(BigNumber.from(transfer.amount))
+          }
+        }
+        const isAllSettled = BigNumber.from(item.diff).eq(totalAmountUnbonded)
+        if (isAllSettled) {
+          return false
+        }
+      }
+      return true
+    })
+
     incompletes = incompletes.sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))
 
     this.logger.debug('done checking root diffs')

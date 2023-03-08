@@ -21,10 +21,12 @@ HopBridge
 ### Properties
 
 - [addresses](HopBridge.md#addresses)
+- [baseConfigUrl](HopBridge.md#baseconfigurl)
 - [baseExplorerUrl](HopBridge.md#baseexplorerurl)
 - [bonders](HopBridge.md#bonders)
 - [chainProviders](HopBridge.md#chainproviders)
 - [chains](HopBridge.md#chains)
+- [configFileFetchEnabled](HopBridge.md#configfilefetchenabled)
 - [defaultDeadlineMinutes](HopBridge.md#defaultdeadlineminutes)
 - [destinationChain](HopBridge.md#destinationchain)
 - [destinationFeeGasPriceMultiplier](HopBridge.md#destinationfeegaspricemultiplier)
@@ -91,6 +93,7 @@ HopBridge
 - [getDebit](HopBridge.md#getdebit)
 - [getDestinationFeeGasPriceMultiplier](HopBridge.md#getdestinationfeegaspricemultiplier)
 - [getDestinationTransactionFee](HopBridge.md#getdestinationtransactionfee)
+- [getDestinationTransactionFeeData](HopBridge.md#getdestinationtransactionfeedata)
 - [getEthBalance](HopBridge.md#getethbalance)
 - [getExplorerUrl](HopBridge.md#getexplorerurl)
 - [getExplorerUrlForAccount](HopBridge.md#getexplorerurlforaccount)
@@ -135,6 +138,7 @@ HopBridge
 - [getSupportedAssetsForChain](HopBridge.md#getsupportedassetsforchain)
 - [getSupportedChains](HopBridge.md#getsupportedchains)
 - [getSupportedLpChains](HopBridge.md#getsupportedlpchains)
+- [getSupportedTokens](HopBridge.md#getsupportedtokens)
 - [getTimeSlot](HopBridge.md#gettimeslot)
 - [getTokenBalance](HopBridge.md#gettokenbalance)
 - [getTokenDecimals](HopBridge.md#gettokendecimals)
@@ -168,10 +172,12 @@ HopBridge
 - [sendApproval](HopBridge.md#sendapproval)
 - [sendHToken](HopBridge.md#sendhtoken)
 - [sendTransaction](HopBridge.md#sendtransaction)
+- [setBaseConfigUrl](HopBridge.md#setbaseconfigurl)
 - [setChainProvider](HopBridge.md#setchainprovider)
 - [setChainProviderUrls](HopBridge.md#setchainproviderurls)
 - [setChainProviders](HopBridge.md#setchainproviders)
 - [setConfigAddresses](HopBridge.md#setconfigaddresses)
+- [setConfigFileFetchEnabled](HopBridge.md#setconfigfilefetchenabled)
 - [setGasPriceMultiplier](HopBridge.md#setgaspricemultiplier)
 - [setPriceFeedApiKeys](HopBridge.md#setpricefeedapikeys)
 - [shouldAttemptSwap](HopBridge.md#shouldattemptswap)
@@ -231,6 +237,16 @@ const bridge = new HopBridge('kovan', signer, Token.USDC, Chain.Optimism, Chain.
 
 ___
 
+### <a id="baseconfigurl" name="baseconfigurl"></a> baseConfigUrl
+
+• **baseConfigUrl**: `string` = `globalBaseConfigUrl`
+
+#### Inherited from
+
+[Base](Base.md).[baseConfigUrl](Base.md#baseconfigurl)
+
+___
+
 ### <a id="baseexplorerurl" name="baseexplorerurl"></a> baseExplorerUrl
 
 • **baseExplorerUrl**: `string` = `'https://explorer.hop.exchange'`
@@ -268,6 +284,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[chains](Base.md#chains)
+
+___
+
+### <a id="configfilefetchenabled" name="configfilefetchenabled"></a> configFileFetchEnabled
+
+• **configFileFetchEnabled**: `boolean` = `globalConfigFileFetchEnabled`
+
+#### Inherited from
+
+[Base](Base.md).[configFileFetchEnabled](Base.md#configfilefetchenabled)
 
 ___
 
@@ -1296,6 +1322,23 @@ ___
 
 ___
 
+### <a id="getdestinationtransactionfeedata" name="getdestinationtransactionfeedata"></a> getDestinationTransactionFeeData
+
+▸ **getDestinationTransactionFeeData**(`sourceChain`, `destinationChain`): `Promise`<`any`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`Promise`<`any`\>
+
+___
+
 ### <a id="getethbalance" name="getethbalance"></a> getEthBalance
 
 ▸ **getEthBalance**(`chain?`, `address?`): `Promise`<`BigNumber`\>
@@ -2017,7 +2060,7 @@ ___
 
 ### <a id="getsenddata" name="getsenddata"></a> getSendData
 
-▸ **getSendData**(`amountIn`, `sourceChain`, `destinationChain`, `isHTokenSend?`): `Promise`<{ `adjustedBonderFee`: `BigNumber` ; `adjustedDestinationTxFee`: `BigNumber` ; `amountOut`: `BigNumber` ; `estimatedReceived`: `BigNumber` ; `lpFees`: `BigNumber` ; `priceImpact`: `number` ; `rate`: `number` ; `requiredLiquidity`: `BigNumber` = hTokenAmount; `totalFee`: `BigNumber`  }\>
+▸ **getSendData**(`amountIn`, `sourceChain`, `destinationChain`, `isHTokenSend?`): `Promise`<{ `adjustedBonderFee`: `BigNumber` ; `adjustedDestinationTxFee`: `any` ; `amountOut`: `BigNumber` ; `bonderFeeRelative`: `BigNumber` ; `chainNativeTokenPrice`: `any` = destinationTxFeeData.chainNativeTokenPrice; `destinationChainGasPrice`: `any` = destinationTxFeeData.destinationChainGasPrice; `destinationTxFee`: `any` ; `estimatedReceived`: `BigNumber` ; `feeBps`: `number` ; `lpFeeBps`: `number` = LpFeeBps; `lpFees`: `BigNumber` ; `priceImpact`: `number` ; `rate`: `number` ; `requiredLiquidity`: `BigNumber` = hTokenAmount; `tokenPrice`: `any` = destinationTxFeeData.tokenPrice; `tokenPriceRate`: `any` = destinationTxFeeData.rate; `totalFee`: `BigNumber`  }\>
 
 #### Parameters
 
@@ -2030,7 +2073,7 @@ ___
 
 #### Returns
 
-`Promise`<{ `adjustedBonderFee`: `BigNumber` ; `adjustedDestinationTxFee`: `BigNumber` ; `amountOut`: `BigNumber` ; `estimatedReceived`: `BigNumber` ; `lpFees`: `BigNumber` ; `priceImpact`: `number` ; `rate`: `number` ; `requiredLiquidity`: `BigNumber` = hTokenAmount; `totalFee`: `BigNumber`  }\>
+`Promise`<{ `adjustedBonderFee`: `BigNumber` ; `adjustedDestinationTxFee`: `any` ; `amountOut`: `BigNumber` ; `bonderFeeRelative`: `BigNumber` ; `chainNativeTokenPrice`: `any` = destinationTxFeeData.chainNativeTokenPrice; `destinationChainGasPrice`: `any` = destinationTxFeeData.destinationChainGasPrice; `destinationTxFee`: `any` ; `estimatedReceived`: `BigNumber` ; `feeBps`: `number` ; `lpFeeBps`: `number` = LpFeeBps; `lpFees`: `BigNumber` ; `priceImpact`: `number` ; `rate`: `number` ; `requiredLiquidity`: `BigNumber` = hTokenAmount; `tokenPrice`: `any` = destinationTxFeeData.tokenPrice; `tokenPriceRate`: `any` = destinationTxFeeData.rate; `totalFee`: `BigNumber`  }\>
 
 ___
 
@@ -2166,6 +2209,20 @@ ___
 #### Returns
 
 `string`[]
+
+___
+
+### <a id="getsupportedtokens" name="getsupportedtokens"></a> getSupportedTokens
+
+▸ **getSupportedTokens**(): `string`[]
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+[Base](Base.md).[getSupportedTokens](Base.md#getsupportedtokens)
 
 ___
 
@@ -2772,6 +2829,26 @@ ___
 
 ___
 
+### <a id="setbaseconfigurl" name="setbaseconfigurl"></a> setBaseConfigUrl
+
+▸ **setBaseConfigUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[Base](Base.md).[setBaseConfigUrl](Base.md#setbaseconfigurl)
+
+___
+
 ### <a id="setchainprovider" name="setchainprovider"></a> setChainProvider
 
 ▸ **setChainProvider**(`chain`, `provider`): `void`
@@ -2850,6 +2927,26 @@ ___
 #### Inherited from
 
 [Base](Base.md).[setConfigAddresses](Base.md#setconfigaddresses)
+
+___
+
+### <a id="setconfigfilefetchenabled" name="setconfigfilefetchenabled"></a> setConfigFileFetchEnabled
+
+▸ **setConfigFileFetchEnabled**(`enabled`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `enabled` | `boolean` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[Base](Base.md).[setConfigFileFetchEnabled](Base.md#setconfigfilefetchenabled)
 
 ___
 

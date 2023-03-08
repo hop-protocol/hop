@@ -10,6 +10,7 @@
 - [hMATIC](HToken.md#hmatic)
 - [hUSDC](HToken.md#husdc)
 - [hUSDT](HToken.md#husdt)
+- [hrETH](HToken.md#hreth)
 
 ## Enumeration Members
 
@@ -46,3 +47,9 @@ ___
 ### <a id="husdt" name="husdt"></a> hUSDT
 
 • **hUSDT** = ``"hUSDT"``
+
+___
+
+### <a id="hreth" name="hreth"></a> hrETH
+
+• **hrETH** = ``"hrETH"``

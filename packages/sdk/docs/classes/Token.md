@@ -23,11 +23,13 @@ Token
 - [\_symbol](Token.md#_symbol)
 - [address](Token.md#address)
 - [addresses](Token.md#addresses)
+- [baseConfigUrl](Token.md#baseconfigurl)
 - [baseExplorerUrl](Token.md#baseexplorerurl)
 - [bonders](Token.md#bonders)
 - [chain](Token.md#chain)
 - [chainProviders](Token.md#chainproviders)
 - [chains](Token.md#chains)
+- [configFileFetchEnabled](Token.md#configfilefetchenabled)
 - [contract](Token.md#contract)
 - [decimals](Token.md#decimals)
 - [destinationFeeGasPriceMultiplier](Token.md#destinationfeegaspricemultiplier)
@@ -101,6 +103,7 @@ Token
 - [getSupportedAssets](Token.md#getsupportedassets)
 - [getSupportedAssetsForChain](Token.md#getsupportedassetsforchain)
 - [getSupportedChains](Token.md#getsupportedchains)
+- [getSupportedTokens](Token.md#getsupportedtokens)
 - [getTransferStatus](Token.md#gettransferstatus)
 - [getWaitConfirmations](Token.md#getwaitconfirmations)
 - [getWethContract](Token.md#getwethcontract)
@@ -115,10 +118,12 @@ Token
 - [populateUnwrapTokenTx](Token.md#populateunwraptokentx)
 - [populateWrapTokenTx](Token.md#populatewraptokentx)
 - [sendTransaction](Token.md#sendtransaction)
+- [setBaseConfigUrl](Token.md#setbaseconfigurl)
 - [setChainProvider](Token.md#setchainprovider)
 - [setChainProviderUrls](Token.md#setchainproviderurls)
 - [setChainProviders](Token.md#setchainproviders)
 - [setConfigAddresses](Token.md#setconfigaddresses)
+- [setConfigFileFetchEnabled](Token.md#setconfigfilefetchenabled)
 - [setGasPriceMultiplier](Token.md#setgaspricemultiplier)
 - [toChainModel](Token.md#tochainmodel)
 - [toJSON](Token.md#tojson)
@@ -182,6 +187,16 @@ ___
 
 ___
 
+### <a id="baseconfigurl" name="baseconfigurl"></a> baseConfigUrl
+
+• **baseConfigUrl**: `string` = `globalBaseConfigUrl`
+
+#### Inherited from
+
+[Base](Base.md).[baseConfigUrl](Base.md#baseconfigurl)
+
+___
+
 ### <a id="baseexplorerurl" name="baseexplorerurl"></a> baseExplorerUrl
 
 • **baseExplorerUrl**: `string` = `'https://explorer.hop.exchange'`
@@ -225,6 +240,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[chains](Base.md#chains)
+
+___
+
+### <a id="configfilefetchenabled" name="configfilefetchenabled"></a> configFileFetchEnabled
+
+• **configFileFetchEnabled**: `boolean` = `globalConfigFileFetchEnabled`
+
+#### Inherited from
+
+[Base](Base.md).[configFileFetchEnabled](Base.md#configfilefetchenabled)
 
 ___
 
@@ -1437,6 +1462,20 @@ ___
 
 ___
 
+### <a id="getsupportedtokens" name="getsupportedtokens"></a> getSupportedTokens
+
+▸ **getSupportedTokens**(): `string`[]
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+[Base](Base.md).[getSupportedTokens](Base.md#getsupportedtokens)
+
+___
+
 ### <a id="gettransferstatus" name="gettransferstatus"></a> getTransferStatus
 
 ▸ **getTransferStatus**(`transferIdOrTxHash`): `Promise`<`any`\>
@@ -1665,6 +1704,26 @@ ___
 
 ___
 
+### <a id="setbaseconfigurl" name="setbaseconfigurl"></a> setBaseConfigUrl
+
+▸ **setBaseConfigUrl**(`url`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[Base](Base.md).[setBaseConfigUrl](Base.md#setbaseconfigurl)
+
+___
+
 ### <a id="setchainprovider" name="setchainprovider"></a> setChainProvider
 
 ▸ **setChainProvider**(`chain`, `provider`): `void`
@@ -1743,6 +1802,26 @@ ___
 #### Inherited from
 
 [Base](Base.md).[setConfigAddresses](Base.md#setconfigaddresses)
+
+___
+
+### <a id="setconfigfilefetchenabled" name="setconfigfilefetchenabled"></a> setConfigFileFetchEnabled
+
+▸ **setConfigFileFetchEnabled**(`enabled`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `enabled` | `boolean` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[Base](Base.md).[setConfigFileFetchEnabled](Base.md#setconfigfilefetchenabled)
 
 ___
 

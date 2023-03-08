@@ -311,6 +311,7 @@ const Send: FC = () => {
       const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
       const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
       const bonderFeeMajority = sourceToken?.decimals && estimatedReceived && totalFee && ((Number(formatUnits(totalFee, sourceToken?.decimals)) / Number(fromTokenAmount)) > 0.5)
+      const isToConsenSysZk = toNetwork?.slug === 'consensyszk' && fromTokenAmount
 
       if (sufficientBalanceWarning) {
         message = sufficientBalanceWarning
@@ -322,6 +323,8 @@ const Send: FC = () => {
         message = `Warning: Price impact is high. Slippage is ${commafy(priceImpact)}%`
       } else if (bonderFeeMajority) {
         message = 'Warning: More than 50% of amount will go towards bonder fee'
+      } else if (isToConsenSysZk) {
+        message = 'Non-whitelisted users risk losing access to any tokens bridged to zkEVM. To get whitelisted, reach out to the ConsenSys zkEVM team.'
       }
 
       setWarning(message)
@@ -338,7 +341,8 @@ const Send: FC = () => {
     priceImpact,
     fromTokenAmount,
     toTokenAmount,
-    totalFee
+    totalFee,
+    toNetwork
   ])
 
   useEffect(() => {
@@ -377,13 +381,27 @@ const Send: FC = () => {
       const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
       const bridge = sdk.bridge(sourceToken.symbol)
 
-      const spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
+      let spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
+
+      if (reactAppNetwork === 'goerli') {
+        if (toNetwork?.slug === 'consensyszk') {
+          if (sourceToken?.symbol === 'ETH') {
+            const l1BridgeWrapper = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+            spender = l1BridgeWrapper
+          }
+          if (sourceToken?.symbol === 'USDC') {
+            const l1BridgeWrapper = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+            spender = l1BridgeWrapper
+          }
+        }
+      }
+
       return checkApproval(parsedAmount, sourceToken, spender)
     } catch (err: any) {
       logger.error(err)
       return false
     }
-  }, [sdk, fromNetwork, sourceToken, fromTokenAmount, checkApproval])
+  }, [sdk, fromNetwork, toNetwork, sourceToken, fromTokenAmount, checkApproval])
 
   const approveFromToken = async () => {
     if (!fromNetwork) {
@@ -407,7 +425,21 @@ const Send: FC = () => {
     const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
     const bridge = sdk.bridge(sourceToken.symbol)
 
-    const spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
+    let spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
+
+    if (reactAppNetwork === 'goerli') {
+      if (toNetwork?.slug === 'consensyszk') {
+        if (sourceToken?.symbol === 'ETH') {
+          const l1BridgeWrapper = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+          spender = l1BridgeWrapper
+        }
+        if (sourceToken?.symbol === 'USDC') {
+          const l1BridgeWrapper = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+          spender = l1BridgeWrapper
+        }
+      }
+    }
+
     const tx = await approve(parsedAmount, sourceToken, spender)
 
     await tx?.wait()

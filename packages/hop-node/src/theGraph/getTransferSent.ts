@@ -2,7 +2,7 @@ import makeRequest from './makeRequest'
 import { normalizeEntity } from './shared'
 
 export default async function getTransferSent (chain: string, transferId: string): Promise<any> {
-  let query = `
+  const query = `
     query TransferSents($transferId: String) {
       transferSents(
         where: {
@@ -32,11 +32,11 @@ export default async function getTransferSent (chain: string, transferId: string
       }
     }
   `
-  let jsonRes = await makeRequest(chain, query, {
+  const jsonRes = await makeRequest(chain, query, {
     transferId
   })
 
-  let transfer = jsonRes.transferSents?.[0]
+  const transfer = jsonRes.transferSents?.[0]
   if (!transfer) {
     return
   }

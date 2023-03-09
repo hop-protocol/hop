@@ -53,7 +53,8 @@ const networkNames: any = {
   100: 'Gnosis',
   80001: 'Polygon (Mumbai)',
   137: 'Polygon',
-  59140: 'ConsenSys zkEVM (Goerli)'
+  59140: 'ConsenSys zkEVM (Goerli)',
+  84531: 'Base (Goerli)'
 }
 
 const getWalletConnectRpcUrls = (): Record<string, string> => {

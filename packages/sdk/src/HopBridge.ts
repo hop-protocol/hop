@@ -863,6 +863,7 @@ class HopBridge extends Base {
 
     const priceImpact = this.getPriceImpact(rate, marketRate)
 
+    const relayFeeEth = await this.getRelayFeeEth(sourceChain, destinationChain)
     let estimatedReceived = amountOut
     if (totalFee.gt(0)) {
       estimatedReceived = estimatedReceived.sub(totalFee)
@@ -889,7 +890,8 @@ class HopBridge extends Base {
       tokenPriceRate: destinationTxFeeData.rate,
       chainNativeTokenPrice: destinationTxFeeData.chainNativeTokenPrice,
       tokenPrice: destinationTxFeeData.tokenPrice,
-      destinationChainGasPrice: destinationTxFeeData.destinationChainGasPrice
+      destinationChainGasPrice: destinationTxFeeData.destinationChainGasPrice,
+      relayFeeEth
     }
   }
 
@@ -2559,20 +2561,36 @@ class HopBridge extends Base {
     return balanceUsd
   }
 
-  private async getConsenSysZkRelayFee (sourceChain: Chain, destinationChain: Chain) {
-    if (sourceChain.isL1) {
-      const provider = await this.getSignerOrProvider(sourceChain, this.signer)
-      const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
-      const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
-      const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
-      const relayFee = BigNumber.from(callResult)
-      return relayFee
-    } else {
-      throw new Error('getConsenSysZkRelayFee: not implemented for non L1')
+  private async getRelayFeeEth (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
+    if (this.network === NetworkSlug.Goerli) {
+      if (sourceChain.isL1) {
+        if (destinationChain.equals(Chain.ConsenSysZk)) {
+          return this.getConsenSysZkRelayFee(sourceChain, destinationChain)
+        }
+        if (destinationChain.equals(Chain.ScrollZk)) {
+          return this.getScrollZkRelayFee(sourceChain, destinationChain)
+        }
+      }
+    }
+    return BigNumber.from(0)
+  }
+
+  private async getConsenSysZkRelayFee (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
+    if (this.network === NetworkSlug.Goerli) {
+      if (sourceChain.isL1) {
+        const provider = await this.getSignerOrProvider(sourceChain, this.signer)
+        const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
+        const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
+        const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
+        const relayFee = BigNumber.from(callResult)
+        return relayFee
+      } else {
+        throw new Error('getConsenSysZkRelayFee: not implemented for non L1')
+      }
     }
   }
 
-  private async getScrollZkRelayFee (sourceChain: Chain, destinationChain: Chain) {
+  private async getScrollZkRelayFee (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
     if (this.network === NetworkSlug.Goerli) {
       if (sourceChain.isL1) {
         const l2GasPriceOracle = '0x37D61987d0281Fb17DE079C9B8E56B367b1800c4'
@@ -2583,7 +2601,7 @@ class HopBridge extends Base {
           data: feeMethodId
         })
         const baseFee = BigNumber.from(callResult)
-        const gasLimit = 500000
+        const gasLimit = 2000000
         const fee = baseFee.mul(gasLimit)
         return fee
       } else {
@@ -2595,7 +2613,7 @@ class HopBridge extends Base {
           data: feeMethodId
         })
         const baseFee = BigNumber.from(callResult)
-        const gasLimit = 500000
+        const gasLimit = 2000000
         const fee = baseFee.mul(gasLimit)
         return fee
       }

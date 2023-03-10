@@ -9,6 +9,7 @@ import L1MessengerWrapper from './classes/L1MessengerWrapper'
 import NovaBridgeWatcher from './NovaBridgeWatcher'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
+import ScrollZkBridgeWatcher from './ScrollZkBridgeWatcher'
 import ZkSyncBridgeWatcher from './ZkSyncBridgeWatcher'
 import contracts from 'src/contracts'
 import { BigNumber } from 'ethers'
@@ -34,7 +35,7 @@ export type ConfirmRootsData = {
   rootCommittedAt: number
 }
 
-type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | ConsenSysZkBridgeWatcher
+type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | ConsenSysZkBridgeWatcher | ScrollZkBridgeWatcher
 
 class ConfirmRootsWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
@@ -112,6 +113,14 @@ class ConfirmRootsWatcher extends BaseWatcher {
     }
     if (this.chainSlug === Chain.ConsenSysZk && enabledNetworks.includes(Chain.ConsenSysZk)) {
       this.watchers[Chain.ConsenSysZk] = new ConsenSysZkBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+    if (this.chainSlug === Chain.ScrollZk && enabledNetworks.includes(Chain.ScrollZk)) {
+      this.watchers[Chain.ScrollZk] = new ScrollZkBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,

@@ -37,10 +37,11 @@ export const config : Config = {
       gnosis: 5,
       optimism: 5,
       arbitrum: 5,
-      nova: 8,
+      nova: 5,
       zksync: 5,
       consensyszk: 5,
-      scrollzk: 5
+      scrollzk: 5,
+      base: 5
     },
     WBTC: {
       ethereum: 23,
@@ -50,11 +51,11 @@ export const config : Config = {
       arbitrum: 23
     },
     HOP: {
-      ethereum: 10,
-      polygon: 10,
-      gnosis: 20,
-      optimism: 10,
-      arbitrum: 10
+      ethereum: 5,
+      polygon: 5,
+      gnosis: 5,
+      optimism: 5,
+      arbitrum: 5
     },
     SNX: {
       ethereum: 20

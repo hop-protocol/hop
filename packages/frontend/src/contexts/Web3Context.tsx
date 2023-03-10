@@ -34,6 +34,8 @@ type Props = {
   checkConnectedNetworkId: (networkId: number) => Promise<boolean>
 }
 
+class NetworkSwitchError extends Error {}
+
 // TODO: modularize
 const networkNames: any = {
   1: 'Mainnet',
@@ -49,8 +51,10 @@ const networkNames: any = {
   420: 'Optimism',
   77: 'Gnosis',
   100: 'Gnosis',
-  80001: 'Polygon',
+  80001: 'Polygon (Mumbai)',
   137: 'Polygon',
+  59140: 'ConsenSys zkEVM (Goerli)',
+  84531: 'Base (Goerli)'
 }
 
 const getWalletConnectRpcUrls = (): Record<string, string> => {
@@ -61,7 +65,8 @@ const getWalletConnectRpcUrls = (): Record<string, string> => {
       420: getRpcUrl(ChainSlug.Optimism),
       80001: getRpcUrl(ChainSlug.Polygon),
       59140: getRpcUrl(ChainSlug.ConsenSysZk),
-      534354: getRpcUrl(ChainSlug.ScrollZk)
+      534354: getRpcUrl(ChainSlug.ScrollZk),
+      84531: getRpcUrl(ChainSlug.Base)
     }
   } else {
     return {
@@ -346,7 +351,15 @@ const Web3ContextProvider: FC = ({ children }) => {
             },
           ])
         } else {
-          let nativeCurrency: any
+          const shouldSkipAddingChain = Number(networkId) === 59140 // consensyszk, NOTE: this is temporary until rpc enables writing
+          if (shouldSkipAddingChain) {
+            throw new NetworkSwitchError(`Please add or switch to ConsenSys zkEVM (Goerli) [networkId ${59140}] in your wallet first and then try again. More info: https://docs.zkevm.consensys.net/use-zkevm/set-up-your-wallet`)
+          }
+          let nativeCurrency: any = {
+            name: 'ETH',
+            symbol: 'ETH',
+            decimals: 18
+          }
 
           if (networkId === ChainId.Gnosis) {
             nativeCurrency = {
@@ -373,8 +386,11 @@ const Web3ContextProvider: FC = ({ children }) => {
           await provider?.send('wallet_addEthereumChain', [rpcObj])
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       logger.error('checkConnectedNetworkId error:', err)
+      if (err instanceof NetworkSwitchError) {
+        throw err
+      }
     }
 
     // after network switch, recheck if provider is connected to correct network.

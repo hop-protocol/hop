@@ -7,7 +7,8 @@ export enum ChainSlug {
   nova = 'nova',
   zkSync = 'zksync',
   consensyszk = 'consensyszk',
-  scrollzk = 'scrollzk'
+  scrollzk = 'scrollzk',
+  base = 'base'
 }
 
 export enum AssetSymbol {

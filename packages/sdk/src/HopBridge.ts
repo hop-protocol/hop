@@ -27,6 +27,7 @@ import {
   LowLiquidityTokenBufferAmountsUsd,
   LowLiquidityTokens,
   LpFeeBps,
+  NetworkSlug,
   PendingAmountBufferUsd,
   SettlementGasLimitPerTx,
   TokenIndex,
@@ -34,7 +35,7 @@ import {
 } from './constants'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
 import { bondableChains, metadata, relayableChains } from './config'
-import { getAddress as checksumAddress, formatUnits, parseUnits } from 'ethers/lib/utils'
+import { getAddress as checksumAddress, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0
@@ -194,9 +195,12 @@ class HopBridge extends Base {
       this.chainProviders
     )
 
+    // port over exiting properties
     if (this.priceFeedApiKeys) {
       hopBridge.setPriceFeedApiKeys(this.priceFeedApiKeys)
     }
+    hopBridge.baseConfigUrl = this.baseConfigUrl
+    hopBridge.configFileFetchEnabled = this.configFileFetchEnabled
 
     return hopBridge
   }
@@ -490,6 +494,7 @@ class HopBridge extends Base {
     isHTokenTransfer: boolean = false
   ) {
     sourceChain = this.toChainModel(sourceChain)
+
     if (sourceChain.equals(Chain.Ethereum)) {
       return this.getL1BridgeAddress(this.tokenSymbol, sourceChain)
     }
@@ -629,7 +634,36 @@ class HopBridge extends Base {
         throw new Error('Bonder fee should be 0 when sending hToken to a non-relayable L2')
       }
 
+      let l1Bridge = await this.getL1Bridge(sourceChain.provider)
       const isNativeToken = this.isNativeToken(sourceChain)
+      let value = isNativeToken ? tokenAmount : undefined
+      let isUsingBridgeWrapper = false
+
+      if (this.network === NetworkSlug.Goerli) {
+        if (destinationChain.equals(Chain.ConsenSysZk)) {
+          let hopL1BridgeWrapperAddress = ''
+          if (this.tokenSymbol === TokenModel.ETH) {
+            hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+          }
+          if (this.tokenSymbol === TokenModel.USDC) {
+            hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+          }
+
+          if (hopL1BridgeWrapperAddress) {
+            const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
+            l1Bridge = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
+
+            const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
+            const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
+            const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
+            const messageFee = ethers.BigNumber.from(callResult)
+
+            value = BigNumber.from(value || 0).add(messageFee)
+            isUsingBridgeWrapper = true
+          }
+        }
+      }
+
       const txOptions = [
         destinationChain.chainId,
         recipient,
@@ -640,17 +674,19 @@ class HopBridge extends Base {
         bonderFee,
         {
           ...(await this.txOverrides(Chain.Ethereum)),
-          value: isNativeToken ? tokenAmount : undefined
+          value
         }
       ] as const
 
-      const l1Bridge = await this.getL1Bridge(sourceChain.provider)
-      const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
-      if (isPaused) {
-        throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+      if (!isUsingBridgeWrapper) {
+        const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
+        if (isPaused) {
+          throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+        }
       }
 
-      return l1Bridge.populateTransaction.sendToL2(...txOptions)
+      const tx = await l1Bridge.populateTransaction.sendToL2(...txOptions)
+      return tx
     } else {
       if (bonderFee.eq(0)) {
         throw new Error('Send at least the minimum Bonder fee')
@@ -702,9 +738,10 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    const [hTokenAmount, lpFees] = await Promise.all([
+    const [hTokenAmount, lpFees, feeBps] = await Promise.all([
       this.calcToHTokenAmount(amountIn, sourceChain),
-      this.getLpFees(amountIn, sourceChain, destinationChain)
+      this.getLpFees(amountIn, sourceChain, destinationChain),
+      this.getFeeBps(this.tokenSymbol, destinationChain)
     ])
 
     const calcFromHTokenPromise = this.calcFromHTokenAmount(
@@ -727,7 +764,7 @@ class HopBridge extends Base {
       destinationChain
     )
 
-    const destinationTxFeePromise = this.getDestinationTransactionFee(
+    const destinationTxFeeDataPromise = this.getDestinationTransactionFeeData(
       sourceChain,
       destinationChain
     )
@@ -736,15 +773,17 @@ class HopBridge extends Base {
       amountOutWithoutFee,
       amountOutNoSlippage,
       bonderFeeRelative,
-      destinationTxFee,
+      destinationTxFeeData,
       amountOut
     ] = await Promise.all([
       amountOutWithoutFeePromise,
       amountOutNoSlippagePromise,
       bonderFeeRelativePromise,
-      destinationTxFeePromise,
+      destinationTxFeeDataPromise,
       calcFromHTokenPromise
     ])
+
+    const { destinationTxFee } = destinationTxFeeData
 
     let adjustedBonderFee
     let adjustedDestinationTxFee
@@ -818,10 +857,18 @@ class HopBridge extends Base {
       priceImpact,
       requiredLiquidity: hTokenAmount,
       lpFees,
+      bonderFeeRelative,
       adjustedBonderFee,
+      destinationTxFee,
       adjustedDestinationTxFee,
       totalFee,
-      estimatedReceived
+      estimatedReceived,
+      feeBps,
+      lpFeeBps: LpFeeBps,
+      tokenPriceRate: destinationTxFeeData.rate,
+      chainNativeTokenPrice: destinationTxFeeData.chainNativeTokenPrice,
+      tokenPrice: destinationTxFeeData.tokenPrice,
+      destinationChainGasPrice: destinationTxFeeData.destinationChainGasPrice
     }
   }
 
@@ -933,13 +980,30 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
+    const { destinationTxFee } = await this.getDestinationTransactionFeeData(sourceChain, destinationChain)
+    return destinationTxFee
+  }
+
+  public async getDestinationTransactionFeeData (
+    sourceChain: TChain,
+    destinationChain: TChain
+  ): Promise<any> {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
     if (sourceChain.isL1 && !relayableChains.includes(destinationChain.slug)) {
-      return BigNumber.from(0)
+      return {
+        destinationTxFee: BigNumber.from(0),
+        rate: null,
+        chainNativeTokenPrice: null,
+        tokenPrice: null,
+        destinationChainGasPrice: null
+      }
     }
 
     const canonicalToken = this.getCanonicalToken(sourceChain)
     const chainNativeToken = this.getChainNativeToken(destinationChain)
-    const [chainNativeTokenPrice, tokenPrice, gasPrice, bondTransferGasLimit, l1FeeInWei] = await Promise.all([
+    const [chainNativeTokenPrice, tokenPrice, destinationChainGasPrice, bondTransferGasLimit, l1FeeInWei] = await Promise.all([
       this.priceFeed.getPriceByTokenSymbol(
         chainNativeToken.symbol
       ),
@@ -964,17 +1028,17 @@ class HopBridge extends Base {
     if (sourceChain.isL1 && relayableChains.includes(destinationChain.slug)) {
       txFeeEth = await this.getRelayerFee(destinationChain, this.tokenSymbol)
     } else {
-      txFeeEth = gasPrice.mul(bondTransferGasLimitWithSettlement)
+      txFeeEth = destinationChainGasPrice.mul(bondTransferGasLimitWithSettlement)
     }
 
-    const oneEth = ethers.utils.parseEther('1')
-    const rateBN = ethers.utils.parseUnits(
+    const oneEth = parseEther('1')
+    const rateBN = parseUnits(
       rate.toFixed(canonicalToken.decimals),
       canonicalToken.decimals
     )
 
     txFeeEth = txFeeEth.add(l1FeeInWei)
-    let fee = txFeeEth.mul(rateBN).div(oneEth)
+    let destinationTxFee = txFeeEth.mul(rateBN).div(oneEth)
 
     if (
       destinationChain.equals(Chain.Ethereum) ||
@@ -982,13 +1046,19 @@ class HopBridge extends Base {
       destinationChain.equals(Chain.Arbitrum) ||
       destinationChain.equals(Chain.Nova)
     ) {
-      const multiplier = ethers.utils.parseEther(this.getDestinationFeeGasPriceMultiplier().toString())
+      const multiplier = parseEther(this.getDestinationFeeGasPriceMultiplier().toString())
       if (multiplier.gt(0)) {
-        fee = fee.mul(multiplier).div(oneEth)
+        destinationTxFee = destinationTxFee.mul(multiplier).div(oneEth)
       }
     }
 
-    return fee
+    return {
+      destinationTxFee,
+      rate,
+      chainNativeTokenPrice,
+      tokenPrice,
+      destinationChainGasPrice
+    }
   }
 
   async getOptimismL1Fee (
@@ -1024,9 +1094,11 @@ class HopBridge extends Base {
       if (sourceChain.isL1) {
         if (destinationChain.equals(Chain.ZkSync)) {
           // TODO
-        } if (destinationChain.equals(Chain.ConsenSysZk)) {
+        } else if (destinationChain.equals(Chain.ConsenSysZk)) {
           // TODO
-        } if (destinationChain.equals(Chain.ScrollZk)) {
+        } else if (destinationChain.equals(Chain.ScrollZk)) {
+          // TODO
+        } else if (destinationChain.equals(Chain.Base)) {
           // TODO
         } else {
           await destinationChain.provider.estimateGas({
@@ -1262,7 +1334,7 @@ class HopBridge extends Base {
       }))
 
       const isLowLiquidityToken = LowLiquidityTokens.includes(token.canonicalSymbol)
-      const buffer: string = isLowLiquidityToken ? LowLiquidityTokenBufferAmountsUsd[this.tokenSymbol] : PendingAmountBufferUsd
+      const buffer: string = isLowLiquidityToken ? LowLiquidityTokenBufferAmountsUsd[this.tokenSymbol] : PendingAmountBufferUsd?.toString()
       const tokenPriceBn = parseUnits(tokenPrice.toString(), token.decimals)
       const bufferAmountBn = parseUnits(buffer, token.decimals)
       const precision = parseUnits('1', token.decimals)
@@ -1303,7 +1375,7 @@ class HopBridge extends Base {
 
   async fetchBonderAvailableLiquidityData () {
     const cacheBust = Date.now()
-    const url = `https://assets.hop.exchange/${this.network}/v1-available-liquidity.json?cb=${cacheBust}`
+    const url = `${this.baseConfigUrl}/${this.network}/v1-available-liquidity.json?cb=${cacheBust}`
     const res = await fetch(url)
     const json = await res.json()
     if (!json) {
@@ -1898,6 +1970,34 @@ class HopBridge extends Base {
       amountOutMin = BigNumber.from(0)
     }
 
+    let value = isNativeToken ? amount : undefined
+    let isUsingBridgeWrapper = false
+
+    if (this.network === NetworkSlug.Goerli) {
+      if (destinationChain.equals(Chain.ConsenSysZk)) {
+        let hopL1BridgeWrapperAddress = ''
+        if (this.tokenSymbol === TokenModel.ETH) {
+          hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+        }
+        if (this.tokenSymbol === TokenModel.USDC) {
+          hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+        }
+
+        if (hopL1BridgeWrapperAddress) {
+          const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
+          l1Bridge = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
+
+          const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
+          const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
+          const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
+          const messageFee = ethers.BigNumber.from(callResult)
+
+          value = BigNumber.from(value || 0).add(messageFee)
+          isUsingBridgeWrapper = true
+        }
+      }
+    }
+
     const txOptions = [
       destinationChainId,
       recipient,
@@ -1908,18 +2008,22 @@ class HopBridge extends Base {
       relayerFee || BigNumber.from(0),
       {
         ...(await this.txOverrides(Chain.Ethereum)),
-        value: isNativeToken ? amount : undefined
+        value
       }
     ] as const
 
-    const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
-    if (isPaused) {
-      throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+    if (!isUsingBridgeWrapper) {
+      const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
+      if (isPaused) {
+        throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+      }
     }
 
-    return l1Bridge.populateTransaction.sendToL2(
+    const tx = await l1Bridge.populateTransaction.sendToL2(
       ...txOptions
     )
+
+    return tx
   }
 
   private async populateSendL2ToL1Tx (input: SendL2ToL1Input) {

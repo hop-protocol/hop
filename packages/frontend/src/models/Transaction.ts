@@ -303,50 +303,6 @@ class Transaction extends EventEmitter {
     return ['sendToL2', 'swapAndSend'].includes(this.methodName)
   }
 
-  private _etherscanLink(networkName: string = this.networkName, txHash: string = this.hash) {
-    return `${getBaseExplorerUrl(networkName)}/tx/${txHash}`
-  }
-
-<<<<<<< HEAD
-  private _arbitrumLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('arbitrum')}/tx/${txHash}`
-  }
-
-  private _optimismLink(txHash: string = this.hash) {
-    try {
-      const url = new URL(getBaseExplorerUrl('optimism'))
-      return `${url.origin}${url.pathname}/tx/${txHash}${url.search}`
-    } catch (err) {
-      return ''
-    }
-  }
-
-  private _gnosisLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('gnosis')}/tx/${txHash}`
-  }
-
-  private _polygonLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('polygon')}/tx/${txHash}`
-  }
-
-  private _novaLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('nova')}/tx/${txHash}`
-  }
-
-  private _zksyncLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('zksync')}/tx/${txHash}`
-  }
-
-  private _consensysZkLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('consensyszk')}/tx/${txHash}`
-  }
-
-  private _scrollZkLink(txHash: string = this.hash) {
-    return `${getBaseExplorerUrl('scrollzk')}/tx/${txHash}`
-  }
-
-=======
->>>>>>> develop
   private setPendingDestinationConfirmed() {
     this.pendingDestinationConfirmation = false
     this.emit('pendingDestinationConfirmation', false, this)

@@ -28,7 +28,8 @@ export enum ChainName {
   Nova = 'Nova',
   ZkSync = 'zkSync',
   ConsenSysZk = 'ConsenSys zkEVM',
-  ScrollZk = 'Scroll zkEVM'
+  ScrollZk = 'Scroll zkEVM',
+  Base = 'Base'
 }
 
 // TODO: read from core package
@@ -41,7 +42,8 @@ export enum ChainSlug {
   Nova = 'nova',
   ZkSync = 'zksync',
   ConsenSysZk = 'consensyszk',
-  ScrollZk = 'scrollzk'
+  ScrollZk = 'scrollzk',
+  Base = 'base'
 }
 
 export enum Slug {
@@ -58,6 +60,7 @@ export enum Slug {
   zksync = 'zksync',
   consensyszk = 'consensyszk',
   scrollzk = 'scrollzk',
+  base = 'base',
 }
 
 export enum CanonicalToken {
@@ -114,11 +117,12 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   arbitrum: 19843,
   nova: 19843,
   zksync: 10000, // TODO
-  consensyzk: 10000 // TODO
+  consensyzk: 10000, // TODO
+  base: 10000 // TODO
 }
 
-export const LpFeeBps = '4'
-export const PendingAmountBufferUsd = '50000'
+export const LpFeeBps = 4
+export const PendingAmountBufferUsd = 50000
 export const MinPolygonGasPrice = 30_000_000_000
 export const MinPolygonGasLimit = BigNumber.from(1_000_000)
 

@@ -8,6 +8,9 @@ export function getChainSlugFromName (name: string) {
   if (slug.startsWith('xdai')) {
     slug = ChainSlug.Gnosis
   }
+  if (slug.startsWith('scroll')) {
+    slug = ChainSlug.ScrollZk
+  }
   if (
     slug === NetworkSlug.Kovan ||
     slug === NetworkSlug.Goerli ||

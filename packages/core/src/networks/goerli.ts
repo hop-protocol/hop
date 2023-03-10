@@ -15,7 +15,7 @@ export const networks: Networks = {
     name: chains.polygon.name,
     image: chains.polygon.image,
     networkId: 80001,
-    publicRpcUrl: 'https://matic-testnet-archive-rpc.bwarelabs.com',
+    publicRpcUrl: 'https://rpc.ankr.com/polygon_mumbai',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://mumbai.polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
@@ -25,7 +25,7 @@ export const networks: Networks = {
     name: chains.optimism.name,
     image: chains.optimism.image,
     networkId: 420,
-    publicRpcUrl: 'https://goerli.optimism.io',
+    publicRpcUrl: 'https://rpc.ankr.com/optimism_testnet',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://goerli-optimism.etherscan.io/'],
     nativeBridgeUrl: 'https://app.optimism.io/bridge',
@@ -55,7 +55,7 @@ export const networks: Networks = {
     name: chains.consensyszk.name,
     image: chains.consensyszk.image,
     networkId: 59140,
-    publicRpcUrl: 'https://consensys-zkevm-goerli-prealpha.infura.io/v3/9d6a30e37af5474a98d9acf6470473de',
+    publicRpcUrl: 'https://consensys-zkevm-goerli-prealpha.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.goerli.zkevm.consensys.net'],
     nativeBridgeUrl: 'https://bridge.goerli.zkevm.consensys.net',
@@ -69,6 +69,16 @@ export const networks: Networks = {
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://l2scan.scroll.io'],
     nativeBridgeUrl: 'https://scroll.io/prealpha/bridge',
+    waitConfirmations: 1
+  },
+  base: {
+    name: chains.base.name,
+    image: chains.base.image,
+    networkId: 84531,
+    publicRpcUrl: 'https://goerli.base.org',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://goerli.basescan.org'],
+    nativeBridgeUrl: 'https://bridge.base.org',
     waitConfirmations: 1
   }
 }

@@ -100,5 +100,11 @@ export const metadata: Metadata = {
       image: chains.scrollzk.image,
       nativeTokenSymbol: chains.scrollzk.nativeTokenSymbol,
     },
+    base: {
+      name: chains.base.name,
+      isLayer1: false,
+      image: chains.base.image,
+      nativeTokenSymbol: chains.base.nativeTokenSymbol,
+    },
   },
 }

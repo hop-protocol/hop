@@ -35,7 +35,8 @@ const AppContextProvider: FC = ({ children }) => {
   const { provider } = useWeb3Context()
 
   const sdk = useMemo(() => {
-    return new Hop(reactAppNetwork, provider?.getSigner())
+    const hop = new Hop(reactAppNetwork, provider?.getSigner())
+    return hop
   }, [provider])
 
   const { bridges, selectedBridge, setSelectedBridge } = useBridges(sdk)

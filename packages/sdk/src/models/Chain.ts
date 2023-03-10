@@ -21,6 +21,7 @@ export class Chain {
   static ZkSync = newChain(ChainSlug.ZkSync, mainnet.zksync?.networkId ?? goerli.zksync?.networkId)
   static ConsenSysZk = newChain(ChainSlug.ConsenSysZk, mainnet.consensyszk?.networkId ?? goerli.consensyszk?.networkId)
   static ScrollZk = newChain(ChainSlug.ScrollZk, mainnet.scrollzk?.networkId ?? goerli.scrollzk?.networkId)
+  static Base = newChain(ChainSlug.Base, mainnet.base?.networkId ?? goerli.base?.networkId)
 
   static fromSlug (slug: Slug | string) {
     if (slug === 'xdai') {

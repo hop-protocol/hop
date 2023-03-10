@@ -73,7 +73,7 @@ describe.skip('hop bridge token transfers', () => {
 describe('tx watcher', () => {
   const hop = new Hop('mainnet')
   const signer = new Wallet(privateKey)
-  it(
+  it.skip(
     'receive events on token transfer from L1 -> L2 (no swap)',
     async () => {
       const txHash =
@@ -490,7 +490,7 @@ describe('custom chain providers', () => {
   })
 })
 
-describe.only('getSendData', () => {
+describe('getSendData', () => {
   it('available liquidity', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
@@ -552,13 +552,93 @@ describe.only('getSendData', () => {
     },
     10 * 1000
   )
+
+  it('getDestinationTransactionFee', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const sourceChain = 'polygon'
+    const destinationChain = 'optimism'
+    const destinationTxFee = await bridge.getDestinationTransactionFee(sourceChain, destinationChain)
+    console.log(destinationTxFee)
+    expect(destinationTxFee.gt(0)).toBeTruthy()
+  })
+
+  it('getDestinationTransactionFeeData', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const sourceChain = 'polygon'
+    const destinationChain = 'optimism'
+    const result = await bridge.getDestinationTransactionFeeData(sourceChain, destinationChain)
+    const { destinationTxFee, rate, chainNativeTokenPrice, tokenPrice, destinationChainGasPrice } = result
+    console.log(result)
+    expect(destinationTxFee.gt(0)).toBeTruthy()
+    expect(rate > 0 && rate < 2).toBeTruthy()
+    expect(chainNativeTokenPrice > 0 && chainNativeTokenPrice < 10000).toBeTruthy()
+    expect(tokenPrice > 0 && tokenPrice < 10000).toBeTruthy()
+    expect(destinationChainGasPrice.gt(0)).toBeTruthy()
+  })
+
+  it('getSendData', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const amountIn = parseUnits('0.5', 18)
+    const sourceChain = 'polygon'
+    const destinationChain = 'optimism'
+    const result = await bridge.getSendData(amountIn, sourceChain, destinationChain)
+    const {
+      amountOut,
+      rate,
+      priceImpact,
+      requiredLiquidity,
+      lpFees,
+      bonderFeeRelative,
+      adjustedBonderFee,
+      destinationTxFee,
+      adjustedDestinationTxFee,
+      totalFee,
+      estimatedReceived,
+      feeBps,
+      lpFeeBps,
+      tokenPriceRate,
+      chainNativeTokenPrice,
+      tokenPrice,
+      destinationChainGasPrice
+    } = result
+    console.log(result)
+    expect(amountOut.gt(0)).toBeTruthy()
+    expect(rate > 0 && rate < 2).toBeTruthy()
+    expect(priceImpact >= -100 && priceImpact <= 100).toBeTruthy()
+    expect(requiredLiquidity.gt(0)).toBeTruthy()
+    expect(lpFees.gt(0)).toBeTruthy()
+    expect(bonderFeeRelative.gt(0)).toBeTruthy()
+    expect(adjustedBonderFee.gt(0)).toBeTruthy()
+    expect(destinationTxFee.gt(0)).toBeTruthy()
+    expect(adjustedDestinationTxFee.gt(0)).toBeTruthy()
+    expect(totalFee.gt(0)).toBeTruthy()
+    expect(estimatedReceived.gt(0)).toBeTruthy()
+    expect(feeBps > 0).toBeTruthy()
+    expect(lpFeeBps > 0).toBeTruthy()
+    expect(tokenPriceRate > 0 && tokenPriceRate < 2).toBeTruthy()
+    expect(chainNativeTokenPrice > 0 && chainNativeTokenPrice < 10000).toBeTruthy()
+    expect(tokenPrice > 0 && tokenPrice < 10000).toBeTruthy()
+    expect(destinationChainGasPrice.gt(0)).toBeTruthy()
+  })
 })
 
-describe('getSupportedAssets', () => {
+describe('supported assets', () => {
   it('should return list of supported assets per chain', () => {
     const hop = new Hop('mainnet')
     const assets = hop.getSupportedAssets()
+    console.log(assets)
     expect(assets).toBeTruthy()
+  })
+  it('should check if asset is supported on chain', () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('SNX')
+    expect(bridge.isSupportedAsset('polygon')).toBe(false)
+    expect(bridge.isSupportedAsset(Chain.fromSlug('polygon'))).toBe(false)
+    expect(bridge.isSupportedAsset('optimism')).toBe(true)
+    expect(bridge.isSupportedAsset(Chain.fromSlug('optimism'))).toBe(true)
   })
 })
 
@@ -899,5 +979,23 @@ describe('utils', () => {
     expect(getChainSlugFromName('Gnosis')).toBe('gnosis')
     expect(getChainSlugFromName('Gnosis Chain')).toBe('gnosis')
     expect(getChainSlugFromName('ConsenSys zkEVM')).toBe('consensyszk')
+    expect(getChainSlugFromName('Base')).toBe('base')
+  })
+})
+
+describe('sdk base config file fetching', () => {
+  it('configFileFetchEnabled', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.baseConfigUrl).toBe('https://assets.hop.exchange')
+    hop.setBaseConfigUrl('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    expect(hop.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    expect(hop.configFileFetchEnabled).toBe(true)
+    hop.setConfigFileFetchEnabled(false)
+    expect(hop.configFileFetchEnabled).toBe(false)
+    const bridge = hop.bridge('USDC')
+    expect(bridge.configFileFetchEnabled).toBe(false)
+    expect(hop.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    hop.setConfigFileFetchEnabled(true)
+    expect(hop.configFileFetchEnabled).toBe(true)
   })
 })

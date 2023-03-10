@@ -232,6 +232,10 @@ export const config: Config = {
     [Chain.ScrollZk]: {
       totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.Base]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
     }
   },
   metrics: {

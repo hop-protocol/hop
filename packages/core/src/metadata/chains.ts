@@ -1,6 +1,7 @@
 import { Chains } from './types'
 import {
   arbitrumImage,
+  baseImage,
   consensyszkImage,
   ethereumImage,
   gnosisImage,
@@ -72,6 +73,13 @@ export const chains: Chains = {
     name: 'Scroll zkEVM',
     slug: 'scrollzk',
     image: scrollzkImage,
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
+  },
+  base: {
+    name: 'Base',
+    slug: 'base',
+    image: baseImage,
     nativeTokenSymbol: 'ETH',
     isLayer1: false
   }

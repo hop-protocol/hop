@@ -17,7 +17,8 @@ export enum Chain {
   Nova = 'nova',
   ZkSync = 'zksync',
   ConsenSysZk = 'consensyszk',
-  ScrollZk = 'scrollzk'
+  ScrollZk = 'scrollzk',
+  Base = 'base'
 }
 
 export enum NativeChainToken {
@@ -48,7 +49,8 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   nova: 19843,
   zksync: 10000, // TODO
   consensyszk: 10000, // TODO
-  scrollzk: 10000 // TODO
+  scrollzk: 10000, // TODO
+  base: 10000 // TODO
 }
 
 export const DefaultBatchBlocks = 10000

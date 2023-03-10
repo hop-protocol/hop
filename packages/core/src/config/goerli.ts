@@ -10,7 +10,8 @@ export const config : Config = {
       arbitrum: 1,
       zksync: 1,
       consensyszk: 1,
-      scrollzk: 1
+      scrollzk: 1,
+      base: 1
     },
     USDC: {
       ethereum: 1,
@@ -32,6 +33,7 @@ export const config : Config = {
     arbitrum: false,
     zksync: false,
     consensyszk: false,
-    scrollzk: false
+    scrollzk: false,
+    base: false
   }
 }

@@ -1109,9 +1109,12 @@ export class TransferStats {
     }
     const { transactionHash, sourceChain } = item
     const sourceChainSlug = chainIdToSlug(sourceChain)
+
+    // note: keep the addresses lowercased
     const integrations = {
       '0xc30141b657f4216252dc59af2e7cdb9d8792e1b0': 'socket',
       '0x362fa9d0bca5d19f743db50738345ce2b40ec99f': 'lifi',
+      '0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae': 'lifi',
       '0x82e0b8cdd80af5930c4452c684e71c861148ec8a': 'metamask',
       '0xf26055894aeaae23d136defaa355a041a43d7dfd': 'chainhop',
       '0xf762c3fc745948ff49a3da00ccdc6b755e44305e': 'chainhop',

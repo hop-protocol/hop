@@ -67,6 +67,10 @@ export const modifiedLiquidityTokens = process.env.MODIFIED_LIQUIDITY_TOKENS?.sp
 export const modifiedLiquiditySourceChains = process.env.MODIFIED_LIQUIDITY_SOURCE_CHAINS?.split(',') ?? []
 export const modifiedLiquidityDestChains = process.env.MODIFIED_LIQUIDITY_DEST_CHAINS?.split(',') ?? []
 
+export const modifiedStakeTokens = process.env.MODIFIED_STAKE_TOKENS?.split(',') ?? []
+export const modifiedStakeChains = process.env.MODIFIED_STAKE_CHAINS?.split(',') ?? []
+export const modifiedStakeAmount = process.env.MODIFIED_STAKE_AMOUNT ?? '0'
+
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
 
@@ -226,6 +230,10 @@ export const config: Config = {
       batchBlocks: DefaultBatchBlocks
     },
     [Chain.ConsenSysZk]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.ScrollZk]: {
       totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
     },

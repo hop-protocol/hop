@@ -13,8 +13,11 @@ import {
   config as globalConfig,
   modifiedLiquidityDestChains,
   modifiedLiquiditySourceChains,
-  modifiedLiquidityTokens
-  , oruChains
+  modifiedLiquidityTokens,
+  modifiedStakeTokens,
+  modifiedStakeChains,
+  modifiedStakeAmount,
+  oruChains
 } from 'src/config'
 
 type Config = {
@@ -108,10 +111,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       availableCredit = availableCredit.sub(unbondedTransferRootAmounts)
     }
 
-    if (availableCredit.lt(0)) {
-      availableCredit = BigNumber.from(0)
-    }
-
     if (
       modifiedLiquidityTokens.includes(this.tokenSymbol) &&
       modifiedLiquiditySourceChains.includes(this.chainSlug) &&
@@ -120,6 +119,17 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       availableCredit = BigNumber.from('0')
       baseAvailableCredit = BigNumber.from('0')
       baseAvailableCreditIncludingVault = BigNumber.from('0')
+    }
+
+    if (
+      modifiedStakeTokens.includes(this.tokenSymbol) &&
+      modifiedStakeChains.includes(this.chainSlug)
+    ) {
+      availableCredit = availableCredit.sub(modifiedStakeAmount)
+    }
+
+    if (availableCredit.lt(0)) {
+      availableCredit = BigNumber.from(0)
     }
 
     return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance }

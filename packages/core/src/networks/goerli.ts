@@ -61,6 +61,16 @@ export const networks: Networks = {
     nativeBridgeUrl: 'https://bridge.goerli.zkevm.consensys.net',
     waitConfirmations: 1
   },
+  scrollzk: {
+    name: chains.scrollzk.name,
+    image: chains.scrollzk.image,
+    networkId: 534354,
+    publicRpcUrl: 'https://prealpha-rpc.scroll.io/l2',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://l2scan.scroll.io'],
+    nativeBridgeUrl: 'https://scroll.io/prealpha/bridge',
+    waitConfirmations: 1
+  },
   base: {
     name: chains.base.name,
     image: chains.base.image,

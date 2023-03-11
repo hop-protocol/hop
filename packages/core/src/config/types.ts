@@ -7,6 +7,7 @@ export enum ChainSlug {
   nova = 'nova',
   zkSync = 'zksync',
   consensyszk = 'consensyszk',
+  scrollzk = 'scrollzk',
   base = 'base'
 }
 

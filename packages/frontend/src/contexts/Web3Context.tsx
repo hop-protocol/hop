@@ -53,7 +53,8 @@ const networkNames: any = {
   100: 'Gnosis',
   80001: 'Polygon (Mumbai)',
   137: 'Polygon',
-  59140: 'ConsenSys zkEVM (Goerli)'
+  59140: 'ConsenSys zkEVM (Goerli)',
+  84531: 'Base (Goerli)'
 }
 
 const getWalletConnectRpcUrls = (): Record<string, string> => {
@@ -64,6 +65,7 @@ const getWalletConnectRpcUrls = (): Record<string, string> => {
       420: getRpcUrl(ChainSlug.Optimism),
       80001: getRpcUrl(ChainSlug.Polygon),
       59140: getRpcUrl(ChainSlug.ConsenSysZk),
+      534354: getRpcUrl(ChainSlug.ScrollZk),
       84531: getRpcUrl(ChainSlug.Base)
     }
   } else {

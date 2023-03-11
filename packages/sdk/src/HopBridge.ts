@@ -635,33 +635,19 @@ class HopBridge extends Base {
       }
 
       let l1Bridge = await this.getL1Bridge(sourceChain.provider)
+
+      const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
+      if (isPaused) {
+        throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+      }
+
       const isNativeToken = this.isNativeToken(sourceChain)
       let value = isNativeToken ? tokenAmount : undefined
-      let isUsingBridgeWrapper = false
 
-      if (this.network === NetworkSlug.Goerli) {
-        if (destinationChain.equals(Chain.ConsenSysZk)) {
-          let hopL1BridgeWrapperAddress = ''
-          if (this.tokenSymbol === TokenModel.ETH) {
-            hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
-          }
-          if (this.tokenSymbol === TokenModel.USDC) {
-            hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
-          }
-
-          if (hopL1BridgeWrapperAddress) {
-            const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
-            l1Bridge = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
-
-            const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
-            const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
-            const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
-            const messageFee = ethers.BigNumber.from(callResult)
-
-            value = BigNumber.from(value || 0).add(messageFee)
-            isUsingBridgeWrapper = true
-          }
-        }
+      const bridgeWrapperData = await this.getBridgeWrapperData(sourceChain, destinationChain, value)
+      if (bridgeWrapperData) {
+        l1Bridge = bridgeWrapperData.l1BridgeWrapper
+        value = bridgeWrapperData.value
       }
 
       const txOptions = [
@@ -677,13 +663,6 @@ class HopBridge extends Base {
           value
         }
       ] as const
-
-      if (!isUsingBridgeWrapper) {
-        const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
-        if (isPaused) {
-          throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
-        }
-      }
 
       const tx = await l1Bridge.populateTransaction.sendToL2(...txOptions)
       return tx
@@ -704,6 +683,48 @@ class HopBridge extends Base {
 
       const l2Bridge = await this.getL2Bridge(sourceChain, sourceChain.provider)
       return l2Bridge.populateTransaction.send(...txOptions)
+    }
+  }
+
+  private async getBridgeWrapperData (sourceChain: Chain, destinationChain: Chain, value: BigNumberish) {
+    if (this.network === NetworkSlug.Goerli) {
+      if (sourceChain.isL1) {
+        if (destinationChain.equals(Chain.ConsenSysZk)) {
+          let hopL1BridgeWrapperAddress = ''
+          if (this.tokenSymbol === TokenModel.ETH) {
+            hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+          }
+          if (this.tokenSymbol === TokenModel.USDC) {
+            hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+          }
+
+          if (hopL1BridgeWrapperAddress) {
+            const provider = await this.getSignerOrProvider(sourceChain, this.signer)
+            const l1BridgeWrapper = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
+            const relayFee = await this.getConsenSysZkRelayFee(sourceChain, destinationChain)
+            value = BigNumber.from(value || 0).add(relayFee)
+
+            return {
+              l1BridgeWrapper,
+              value
+            }
+          }
+        } else if (destinationChain.equals(Chain.ScrollZk)) {
+          let hopL1BridgeWrapperAddress = ''
+          if (this.tokenSymbol === TokenModel.ETH) {
+            hopL1BridgeWrapperAddress = '' // TODO
+          }
+          const provider = await this.getSignerOrProvider(sourceChain, this.signer)
+          const l1BridgeWrapper = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
+          const relayFee = await this.getScrollZkRelayFee(sourceChain, destinationChain)
+          value = BigNumber.from(value || 0).add(relayFee)
+
+          return {
+            l1BridgeWrapper,
+            value
+          }
+        }
+      }
     }
   }
 
@@ -842,6 +863,7 @@ class HopBridge extends Base {
 
     const priceImpact = this.getPriceImpact(rate, marketRate)
 
+    const relayFeeEth = await this.getRelayFeeEth(sourceChain, destinationChain)
     let estimatedReceived = amountOut
     if (totalFee.gt(0)) {
       estimatedReceived = estimatedReceived.sub(totalFee)
@@ -868,7 +890,8 @@ class HopBridge extends Base {
       tokenPriceRate: destinationTxFeeData.rate,
       chainNativeTokenPrice: destinationTxFeeData.chainNativeTokenPrice,
       tokenPrice: destinationTxFeeData.tokenPrice,
-      destinationChainGasPrice: destinationTxFeeData.destinationChainGasPrice
+      destinationChainGasPrice: destinationTxFeeData.destinationChainGasPrice,
+      relayFeeEth
     }
   }
 
@@ -1092,9 +1115,13 @@ class HopBridge extends Base {
         return false
       }
       if (sourceChain.isL1) {
-        if (destinationChain.equals(Chain.Base)) {
+        if (destinationChain.equals(Chain.ZkSync)) {
           // TODO
         } else if (destinationChain.equals(Chain.ConsenSysZk)) {
+          // TODO
+        } else if (destinationChain.equals(Chain.ScrollZk)) {
+          // TODO
+        } else if (destinationChain.equals(Chain.Base)) {
           // TODO
         } else {
           await destinationChain.provider.estimateGas({
@@ -1966,32 +1993,17 @@ class HopBridge extends Base {
       amountOutMin = BigNumber.from(0)
     }
 
+    const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
+    if (isPaused) {
+      throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
+    }
+
     let value = isNativeToken ? amount : undefined
-    let isUsingBridgeWrapper = false
 
-    if (this.network === NetworkSlug.Goerli) {
-      if (destinationChain.equals(Chain.ConsenSysZk)) {
-        let hopL1BridgeWrapperAddress = ''
-        if (this.tokenSymbol === TokenModel.ETH) {
-          hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
-        }
-        if (this.tokenSymbol === TokenModel.USDC) {
-          hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
-        }
-
-        if (hopL1BridgeWrapperAddress) {
-          const provider = await this.getSignerOrProvider(Chain.Ethereum, this.signer)
-          l1Bridge = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
-
-          const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
-          const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
-          const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
-          const messageFee = ethers.BigNumber.from(callResult)
-
-          value = BigNumber.from(value || 0).add(messageFee)
-          isUsingBridgeWrapper = true
-        }
-      }
+    const bridgeWrapperData = await this.getBridgeWrapperData(sourceChain, destinationChain, value)
+    if (bridgeWrapperData) {
+      l1Bridge = bridgeWrapperData.l1BridgeWrapper
+      value = bridgeWrapperData.value
     }
 
     const txOptions = [
@@ -2007,13 +2019,6 @@ class HopBridge extends Base {
         value
       }
     ] as const
-
-    if (!isUsingBridgeWrapper) {
-      const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
-      if (isPaused) {
-        throw new Error(`deposits to destination chain "${destinationChain.name}" are currently paused. Please check official announcement channels for status updates.`)
-      }
-    }
 
     const tx = await l1Bridge.populateTransaction.sendToL2(
       ...txOptions
@@ -2554,6 +2559,67 @@ class HopBridge extends Base {
       balanceUsd = 0
     }
     return balanceUsd
+  }
+
+  private async getRelayFeeEth (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
+    if (this.network === NetworkSlug.Goerli) {
+      if (sourceChain.isL1) {
+        if (destinationChain.equals(Chain.ConsenSysZk)) {
+          return this.getConsenSysZkRelayFee(sourceChain, destinationChain)
+        }
+        if (destinationChain.equals(Chain.ScrollZk)) {
+          return this.getScrollZkRelayFee(sourceChain, destinationChain)
+        }
+      }
+    }
+    return BigNumber.from(0)
+  }
+
+  private async getConsenSysZkRelayFee (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
+    if (this.network === NetworkSlug.Goerli) {
+      if (sourceChain.isL1) {
+        const provider = await this.getSignerOrProvider(sourceChain, this.signer)
+        const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
+        const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
+        const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
+        const relayFee = BigNumber.from(callResult)
+        return relayFee
+      } else {
+        throw new Error('getConsenSysZkRelayFee: not implemented for non L1')
+      }
+    }
+  }
+
+  private async getScrollZkRelayFee (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
+    if (this.network === NetworkSlug.Goerli) {
+      if (sourceChain.isL1) {
+        const l2GasPriceOracle = '0x37D61987d0281Fb17DE079C9B8E56B367b1800c4'
+        const provider = sourceChain.provider
+        const feeMethodId = ethers.utils.id('l2BaseFee()').slice(0, 10)
+        const callResult = await provider.call({
+          to: l2GasPriceOracle,
+          data: feeMethodId
+        })
+        const baseFee = BigNumber.from(callResult)
+        const gasLimit = 2000000
+        const fee = baseFee.mul(gasLimit)
+        return fee
+      } else {
+        const l1GasPriceOracle = '0x5300000000000000000000000000000000000002'
+        const provider = sourceChain.provider
+        const feeMethodId = ethers.utils.id('l1BaseFee()').slice(0, 10)
+        const callResult = await provider.call({
+          to: l1GasPriceOracle,
+          data: feeMethodId
+        })
+        const baseFee = BigNumber.from(callResult)
+        const gasLimit = 2000000
+        const fee = baseFee.mul(gasLimit)
+        return fee
+      }
+    }
+
+    throw new Error('getScrollZkRelayFee not implemented for "mainnet" network')
   }
 }
 

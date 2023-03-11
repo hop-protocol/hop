@@ -20,11 +20,13 @@ type Props = {
   bonderFeeUsd?: string
   destinationTxFee?: string
   destinationTxFeeUsd?: string
+  relayFee?: string
+  relayFeeUsd?: string
 }
 
 const FeeDetails: FC<Props> = props => {
   const styles = useStyles()
-  const { bonderFee, bonderFeeUsd, destinationTxFee, destinationTxFeeUsd } = props
+  const { bonderFee, bonderFeeUsd, destinationTxFee, destinationTxFeeUsd, relayFee, relayFeeUsd } = props
 
   return (
     <div className={styles.root}>
@@ -37,6 +39,14 @@ const FeeDetails: FC<Props> = props => {
       <Typography variant="body1" className={styles.text}>
         LP fees are included in the swap price.
       </Typography>
+      {!!relayFee && (
+        <DetailRow title="Relay Fee" value={<>
+          {relayFeeUsd && (
+            <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{relayFeeUsd}</small></Box>
+          )}
+          <Box display="inline-block">{relayFee}</Box>
+        </>} contrastText />
+      )}
       <DetailRow title="Bonder fee" value={<>
         {!!bonderFeeUsd && (
           <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{bonderFeeUsd}</small></Box>

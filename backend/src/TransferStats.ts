@@ -460,7 +460,7 @@ export class TransferStats {
       // this.trackReceivedHTokenStatus(),
       // this.trackReceivedAmountStatus(),
       this.trackRecentTransfers({ lookbackHours: 1, pollIntervalMs: 60 * 1000 }),
-      this.trackRecentTransfers({ lookbackHours: 4, pollIntervalMs: 5 * 60 * 1000 }),
+      this.trackRecentTransfers({ lookbackHours: 4, pollIntervalMs: 60 * 60 * 1000 }),
       this.trackRecentTransferBonds({ lookbackMinutes: 20, pollIntervalMs: 60 * 1000 }),
       this.trackRecentTransferBonds({ lookbackMinutes: 120, pollIntervalMs: 10 * 60 * 1000 }),
       this.checkForReorgs()
@@ -478,7 +478,7 @@ export class TransferStats {
 
         console.log('fetching all transfers data for hour', startTime)
         const items = await this.getTransfersBetweenDates(startTime, endTime)
-        console.log('items:', items.length)
+        console.log('recentTransfers items:', items.length, 'hours:', lookbackHours)
         for (const item of items) {
           let retries = 0
           while (retries < 5) {
@@ -513,7 +513,7 @@ export class TransferStats {
 
         console.log('fetching all bonds data for hour', startTime)
         const items = await this.getTransferBondsBetweenDates(startTime, endTime)
-        console.log('items:', items.length)
+        console.log('recenTransferBonds items:', items.length, 'minutes:', lookbackMinutes)
         for (const item of items) {
           let retries = 0
           while (retries < 5) {

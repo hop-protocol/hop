@@ -2,6 +2,7 @@ import { padHex } from './utils/padHex'
 import { isGoerli } from './config'
 import fetch from 'isomorphic-fetch'
 import { chunk } from 'lodash'
+import { promiseTimeout } from './utils/promiseTimeout'
 
 // TODO: move to config
 export function getUrl (chain: string) {
@@ -13,7 +14,8 @@ export function getUrl (chain: string) {
     chain = 'mainnet'
   }
 
-  if (this.regenesis) {
+  const regenesis = false
+  if (regenesis) {
     return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
   }
 
@@ -48,6 +50,10 @@ export function getUrl (chain: string) {
 }
 
 export async function queryFetch (url: string, query: string, variables?: any) {
+  return promiseTimeout(_queryFetch(url, query, variables), 60 * 1000)
+}
+
+export async function _queryFetch (url: string, query: string, variables?: any) {
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -129,7 +135,7 @@ export async function fetchTransfers (chain: string, startTime: number, endTime:
   `
   let url :string
   try {
-    url = this.getUrl(chain)
+    url = getUrl(chain)
   } catch (err) {
     return []
   }
@@ -140,7 +146,7 @@ export async function fetchTransfers (chain: string, startTime: number, endTime:
   if (!lastId) {
     lastId = '0'
   }
-  const data = await this.queryFetch(url, query, {
+  const data = await queryFetch(url, query, {
     perPage: 1000,
     startTime,
     endTime,
@@ -264,7 +270,7 @@ export async function fetchTransfersForTransferId (chain: string, transferId: st
   `
   let url :string
   try {
-    url = this.getUrl(chain)
+    url = getUrl(chain)
   } catch (err) {
     return []
   }
@@ -273,7 +279,7 @@ export async function fetchTransfersForTransferId (chain: string, transferId: st
     transferId = padHex(transferId)
     query = queryL2
   }
-  const data = await this.queryFetch(url, query, {
+  const data = await queryFetch(url, query, {
     transferId
   })
 
@@ -312,14 +318,14 @@ export async function fetchBondTransferIdEvents (chain: string, startTime: numbe
 
   let url :string
   try {
-    url = this.getUrl(chain)
+    url = getUrl(chain)
   } catch (err) {
     return []
   }
   if (!lastId) {
     lastId = '0'
   }
-  const data = await this.queryFetch(url, query, {
+  const data = await queryFetch(url, query, {
     perPage: 1000,
     startTime,
     endTime,
@@ -330,7 +336,7 @@ export async function fetchBondTransferIdEvents (chain: string, startTime: numbe
 
   if (bonds.length === 1000) {
     lastId = bonds[bonds.length - 1].id
-    bonds = bonds.concat(...(await this.fetchBondTransferIdEvents(
+    bonds = bonds.concat(...(await fetchBondTransferIdEvents(
       chain,
       startTime,
       endTime,
@@ -380,7 +386,7 @@ export async function fetchTransferBonds (chain: string, transferIds: string[]) 
   transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
   let url :string
   try {
-    url = this.getUrl(chain)
+    url = getUrl(chain)
   } catch (err) {
     return []
   }
@@ -388,7 +394,7 @@ export async function fetchTransferBonds (chain: string, transferIds: string[]) 
   const chunkSize = 1000
   const allChunks = chunk(transferIds, chunkSize)
   for (const _transferIds of allChunks) {
-    const data = await this.queryFetch(url, query, {
+    const data = await queryFetch(url, query, {
       transferIds: _transferIds
     })
 
@@ -421,7 +427,7 @@ export async function fetchWithdrews (chain: string, transferIds: string[]) {
   transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
   let url :string
   try {
-    url = this.getUrl(chain)
+    url = getUrl(chain)
   } catch (err) {
     return []
   }
@@ -429,7 +435,7 @@ export async function fetchWithdrews (chain: string, transferIds: string[]) {
   const chunkSize = 1000
   const allChunks = chunk(transferIds, chunkSize)
   for (const _transferIds of allChunks) {
-    const data = await this.queryFetch(url, query, {
+    const data = await queryFetch(url, query, {
       transferIds: _transferIds
     })
 
@@ -466,11 +472,11 @@ export async function fetchTransferFromL1Completeds (chain: string, startTime: n
 
   let url :string
   try {
-    url = this.getUrl(chain)
+    url = getUrl(chain)
   } catch (err) {
     return []
   }
-  const data = await this.queryFetch(url, query, {
+  const data = await queryFetch(url, query, {
     startTime,
     endTime,
     lastId
@@ -479,7 +485,7 @@ export async function fetchTransferFromL1Completeds (chain: string, startTime: n
 
   if (events.length === 1000) {
     lastId = events[events.length - 1].id
-    events = events.concat(...(await this.fetchTransferFromL1Completeds(
+    events = events.concat(...(await fetchTransferFromL1Completeds(
       chain,
       startTime,
       endTime,
@@ -526,7 +532,7 @@ export async function fetchTransferEventsByTransferIds (chain: string, transferI
   transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
   let url :string
   try {
-    url = this.getUrl(chain)
+    url = getUrl(chain)
   } catch (err) {
     return []
   }
@@ -534,7 +540,7 @@ export async function fetchTransferEventsByTransferIds (chain: string, transferI
   const chunkSize = 1000
   const allChunks = chunk(transferIds, chunkSize)
   for (const _transferIds of allChunks) {
-    const data = await this.queryFetch(url, query, {
+    const data = await queryFetch(url, query, {
       transferIds: _transferIds
     })
 

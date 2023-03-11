@@ -427,7 +427,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       modifiedLiquidityTokens.length > 0 ||
       modifiedStakeTokens.length > 0 ||
       modifiedStakeChains.length > 0 ||
-      modifiedStakeAmount != '0'
+      modifiedStakeAmount !== '0'
     ) {
       console.log('modifiedLiquidityDestChains', modifiedLiquidityDestChains)
       console.log('modifiedLiquiditySourceChains', modifiedLiquiditySourceChains)

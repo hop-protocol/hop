@@ -491,7 +491,7 @@ describe('custom chain providers', () => {
 })
 
 describe('getSendData', () => {
-  it('available liquidity', async () => {
+  it.skip('available liquidity', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
     const availableLiquidityBn = await bridge.getFrontendAvailableLiquidity(

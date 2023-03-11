@@ -155,6 +155,7 @@ const Send: FC = () => {
     adjustedDestinationTxFee,
     totalFee,
     requiredLiquidity,
+    relayFeeEth,
     loading: loadingSendData,
     estimatedReceived,
     error: sendDataError,
@@ -185,8 +186,16 @@ const Send: FC = () => {
     totalBonderFeeUsdDisplay,
     estimatedReceivedDisplay,
     estimatedReceivedUsdDisplay,
-    tokenUsdPrice
-  } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
+    tokenUsdPrice,
+    relayFeeEthDisplay,
+    relayFeeUsdDisplay,
+  } = useFeeConversions({
+    destinationTxFee: adjustedDestinationTxFee,
+    bonderFee: adjustedBonderFee,
+    estimatedReceived,
+    destToken,
+    relayFee: relayFeeEth
+  })
 
   const { estimateSend } = useEstimateTxCost(fromNetwork)
 
@@ -766,7 +775,7 @@ const Send: FC = () => {
           <DetailRow
             title={'Fees'}
             tooltip={
-              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} />
+              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} relayFee={relayFeeEthDisplay} relayFeeUsd={relayFeeUsdDisplay} />
             }
             value={<>
               <InfoTooltip title={totalBonderFeeUsdDisplay}>

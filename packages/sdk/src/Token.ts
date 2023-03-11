@@ -238,6 +238,7 @@ class Token extends Base {
     )
   }
 
+  // TODO: read from core instead
   get isNativeToken () {
     const isEth =
       this._symbol === TokenModel.ETH &&
@@ -247,6 +248,7 @@ class Token extends Base {
         this.chain.equals(Chain.Optimism) ||
         this.chain.equals(Chain.ZkSync) ||
         this.chain.equals(Chain.ConsenSysZk) ||
+        this.chain.equals(Chain.ScrollZk) ||
         this.chain.equals(Chain.Base)
       )
     const isMatic =

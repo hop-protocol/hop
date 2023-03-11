@@ -8,7 +8,9 @@ export const config : Config = {
       gnosis: 1,
       optimism: 1,
       arbitrum: 1,
+      zksync: 1,
       consensyszk: 1,
+      scrollzk: 1,
       base: 1
     },
     USDC: {
@@ -29,7 +31,9 @@ export const config : Config = {
     polygon: false,
     optimism: false,
     arbitrum: false,
+    zksync: false,
     consensyszk: false,
+    scrollzk: false,
     base: false
   }
 }

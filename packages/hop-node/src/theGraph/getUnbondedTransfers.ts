@@ -29,6 +29,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     novaTransfers,
     zksyncTransfers,
     consensysZkTransfers,
+    scrollZkTransfers,
     baseTransfers
   ] = await Promise.all([
     enabledChains.includes(Chain.Ethereum) ? fetchTransfers(Chain.Ethereum, startTime, endTime) : Promise.resolve([]),
@@ -39,6 +40,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.Nova) ? fetchTransfers(Chain.Nova, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.ZkSync) ? fetchTransfers(Chain.ZkSync, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.ConsenSysZk) ? fetchTransfers(Chain.ConsenSysZk, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.ScrollZk) ? fetchTransfers(Chain.ScrollZk, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Base) ? fetchTransfers(Chain.Base, startTime, endTime) : Promise.resolve([])
   ])
 
@@ -150,6 +152,21 @@ async function getTransfersData (startTime: number, endTime: number) {
     })
   }
   for (const x of consensysZkTransfers) {
+    data.push({
+      sourceChain: -1, // TODO
+      destinationChain: x.destinationChainId,
+      amount: x.amount,
+      amountOutMin: x.amountOutMin,
+      bonderFee: x.bonderFee,
+      recipient: x.recipient,
+      deadline: x.deadline,
+      transferId: x.transferId,
+      transactionHash: x.transactionHash,
+      timestamp: Number(x.timestamp),
+      token: x.token
+    })
+  }
+  for (const x of scrollZkTransfers) {
     data.push({
       sourceChain: -1, // TODO
       destinationChain: x.destinationChainId,

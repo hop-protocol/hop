@@ -8,6 +8,7 @@ import {
   novaImage,
   optimismImage,
   polygonImage,
+  scrollzkImage,
   zksyncImage
 } from './assets'
 
@@ -65,6 +66,13 @@ export const chains: Chains = {
     name: 'ConsenSys zkEVM',
     slug: 'consensyszk',
     image: consensyszkImage,
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
+  },
+  scrollzk: {
+    name: 'Scroll zkEVM',
+    slug: 'scrollzk',
+    image: scrollzkImage,
     nativeTokenSymbol: 'ETH',
     isLayer1: false
   },

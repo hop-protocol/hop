@@ -303,10 +303,6 @@ class Transaction extends EventEmitter {
     return ['sendToL2', 'swapAndSend'].includes(this.methodName)
   }
 
-  private _etherscanLink(networkName: string = this.networkName, txHash: string = this.hash) {
-    return `${getBaseExplorerUrl(networkName)}/tx/${txHash}`
-  }
-
   private setPendingDestinationConfirmed() {
     this.pendingDestinationConfirmation = false
     this.emit('pendingDestinationConfirmation', false, this)

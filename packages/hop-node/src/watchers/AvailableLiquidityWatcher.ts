@@ -125,7 +125,8 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       modifiedStakeTokens.includes(this.tokenSymbol) &&
       modifiedStakeChains.includes(this.chainSlug)
     ) {
-      availableCredit = availableCredit.sub(modifiedStakeAmount)
+      const modifiedStakeAmountWei = this.bridge.parseUnits(modifiedStakeAmount)
+      availableCredit = availableCredit.sub(modifiedStakeAmountWei)
     }
 
     if (availableCredit.lt(0)) {

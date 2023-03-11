@@ -1,4 +1,3 @@
-import fetch from 'isomorphic-fetch'
 import { ethers, Contract, providers, BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
@@ -8,14 +7,24 @@ import wait from 'wait'
 import { mainnet as addresses } from '@hop-protocol/core/addresses'
 import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
-import { isGoerli, enabledChains, enabledTokens, rpcUrls } from './config'
-import { padHex } from './utils/padHex'
+import { enabledChains, enabledTokens, rpcUrls } from './config'
 import { getTokenDecimals } from './utils/getTokenDecimals'
 import { chainIdToSlug } from './utils/chainIdToSlug'
 import { chainSlugToName } from './utils/chainSlugToName'
 import { chainSlugToId } from './utils/chainSlugToId'
 import { getSourceChainId } from './utils/getSourceChainId'
 import { populateTransfer } from './utils/populateTransfer'
+import { getPriceHistory } from './price'
+import {
+  fetchTransfers,
+  fetchTransfersForTransferId,
+  fetchBondTransferIdEvents,
+  fetchTransferBonds,
+  fetchWithdrews,
+  fetchTransferFromL1Completeds,
+  fetchTransferEventsByTransferIds
+} from './theGraph'
+import { getPreRegenesisBondEvent, bridgeAbi } from './preregenesis'
 
 console.log('rpcUrls:', rpcUrls)
 
@@ -73,516 +82,6 @@ export class TransferStats {
     // this.db.close()
   }
 
-  // TODO: move to config
-  getUrl (chain: string) {
-    if (chain === 'gnosis') {
-      chain = 'xdai'
-    }
-
-    if (chain === 'ethereum') {
-      chain = 'mainnet'
-    }
-
-    if (this.regenesis) {
-      return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
-    }
-
-    if (isGoerli) {
-      if (chain === 'mainnet') {
-        chain = 'goerli'
-      }
-      if (chain === 'polygon') {
-        chain = 'mumbai'
-      }
-      if (chain === 'optimism') {
-        chain = 'optimism-goerli'
-      }
-      if (chain === 'arbitrum') {
-        throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-      }
-      if (chain === 'nova') {
-        throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-      }
-      if (chain === 'xdai') {
-        throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-      }
-    }
-
-    let url: string
-    if (chain === 'nova') {
-      url = `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
-    } else {
-      url = `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-    }
-    return url
-  }
-
-  async queryFetch (url: string, query: string, variables?: any) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
-      body: JSON.stringify({
-        query,
-        variables: variables || {}
-      })
-    })
-    const jsonRes = await res.json()
-    if (jsonRes.errors?.length) {
-      console.log('error query:', query)
-      throw new Error(jsonRes.errors[0].message)
-    }
-    return jsonRes.data
-  }
-
-  async fetchTransfers (chain: string, startTime: number, endTime: number, lastId?: string) {
-    const queryL1 = `
-      query TransferSentToL2($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
-        transferSents: transferSentToL2S(
-          where: {
-            timestamp_gte: $startTime,
-            timestamp_lte: $endTime,
-            id_gt: $lastId
-          },
-          first: $perPage,
-          orderBy: id,
-          orderDirection: asc
-        ) {
-          id
-          destinationChainId
-          amount
-          amountOutMin
-          relayerFee
-          recipient
-          deadline
-          transactionHash
-          timestamp
-          token
-          from
-          transaction {
-            to
-          }
-        }
-      }
-    `
-    const queryL2 = `
-      query TransferSents($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
-        transferSents(
-          where: {
-            timestamp_gte: $startTime,
-            timestamp_lte: $endTime,
-            id_gt: $lastId
-          },
-          first: $perPage,
-          orderBy: id,
-          orderDirection: asc
-        ) {
-          id
-          transferId
-          destinationChainId
-          amount
-          amountOutMin
-          bonderFee
-          recipient
-          deadline
-          transactionHash
-          timestamp
-          token
-          from
-          transaction {
-            to
-          }
-        }
-      }
-    `
-    let url :string
-    try {
-      url = this.getUrl(chain)
-    } catch (err) {
-      return []
-    }
-    let query = queryL1
-    if (chain !== 'ethereum') {
-      query = queryL2
-    }
-    if (!lastId) {
-      lastId = '0'
-    }
-    const data = await this.queryFetch(url, query, {
-      perPage: 1000,
-      startTime,
-      endTime,
-      lastId
-    })
-
-    let transfers = data.transferSents
-      .filter((x: any) => x)
-      .map((x: any) => {
-        x.destinationChainId = Number(x.destinationChainId)
-        return x
-      })
-
-    if (transfers.length === 1000) {
-      lastId = transfers[transfers.length - 1].id
-      transfers = transfers.concat(...(await this.fetchTransfers(
-        chain,
-        startTime,
-        endTime,
-        lastId
-      )))
-    }
-
-    return transfers
-  }
-
-  async fetchTransfersForTransferId (chain: string, transferId: string) {
-    const queryL1TransferId = `
-      query TransferSentToL2($transferId: String) {
-        transferSents: transferSentToL2S(
-          where: {
-            id: $transferId
-          }
-        ) {
-          id
-          destinationChainId
-          amount
-          amountOutMin
-          relayerFee
-          recipient
-          deadline
-          transactionHash
-          timestamp
-          token
-          from
-          transaction {
-            to
-          }
-        }
-      }
-    `
-    const queryL1TxHash = `
-      query TransferSentToL2($transferId: String) {
-        transferSents: transferSentToL2S(
-          where: {
-            transactionHash: $transferId
-          }
-        ) {
-          id
-          destinationChainId
-          amount
-          amountOutMin
-          relayerFee
-          recipient
-          deadline
-          transactionHash
-          timestamp
-          token
-          from
-          transaction {
-            to
-          }
-        }
-      }
-    `
-    const queryL2 = `
-      query TransferSents($transferId: String) {
-        transferSents: transferSents(
-          where: {
-            transferId: $transferId
-          }
-        ) {
-          id
-          transferId
-          destinationChainId
-          amount
-          amountOutMin
-          bonderFee
-          recipient
-          deadline
-          transactionHash
-          timestamp
-          token
-          from
-          transaction {
-            to
-          }
-        },
-        transferSents2: transferSents(
-          where: {
-            transactionHash: $transferId
-          }
-        ) {
-          id
-          transferId
-          destinationChainId
-          amount
-          amountOutMin
-          bonderFee
-          recipient
-          deadline
-          transactionHash
-          timestamp
-          token
-          from
-          transaction {
-            to
-          }
-        }
-      }
-    `
-    let url :string
-    try {
-      url = this.getUrl(chain)
-    } catch (err) {
-      return []
-    }
-    let query = transferId.length === 66 ? queryL1TxHash : queryL1TransferId
-    if (chain !== 'ethereum') {
-      transferId = padHex(transferId)
-      query = queryL2
-    }
-    const data = await this.queryFetch(url, query, {
-      transferId
-    })
-
-    const transfers = data.transferSents.concat(data.transferSents2 || [])
-      .filter((x: any) => x)
-      .map((x: any) => {
-        x.destinationChainId = Number(x.destinationChainId)
-        return x
-      })
-
-    return transfers
-  }
-
-  async fetchBondTransferIdEvents (chain: string, startTime: number, endTime: number, lastId?: string) {
-    const query = `
-      query WithdrawalBondeds($perPage: Int, $startTime: Int, $endTime: Int, $lastId: String) {
-        withdrawalBondeds: withdrawalBondeds(
-          where: {
-            timestamp_gte: $startTime,
-            timestamp_lte: $endTime,
-            id_gt: $lastId
-          },
-          first: $perPage,
-          orderBy: id,
-          orderDirection: asc
-        ) {
-          id
-          transferId
-          transactionHash
-          timestamp
-          token
-          from
-        }
-      }
-    `
-
-    let url :string
-    try {
-      url = this.getUrl(chain)
-    } catch (err) {
-      return []
-    }
-    if (!lastId) {
-      lastId = '0'
-    }
-    const data = await this.queryFetch(url, query, {
-      perPage: 1000,
-      startTime,
-      endTime,
-      lastId
-    })
-
-    let bonds = data.withdrawalBondeds.filter((x: any) => x)
-
-    if (bonds.length === 1000) {
-      lastId = bonds[bonds.length - 1].id
-      bonds = bonds.concat(...(await this.fetchBondTransferIdEvents(
-        chain,
-        startTime,
-        endTime,
-        lastId
-      )))
-    }
-
-    return bonds
-  }
-
-  async fetchBonds (chain: string, transferIds: string[]) {
-    const query = `
-      query WithdrawalBondeds($transferIds: [String]) {
-        withdrawalBondeds1: withdrawalBondeds(
-          where: {
-            transferId_in: $transferIds
-          },
-          first: 1000,
-          orderBy: id,
-          orderDirection: asc
-        ) {
-          id
-          transferId
-          transactionHash
-          timestamp
-          token
-          from
-        },
-        withdrawalBondeds2: withdrawalBondeds(
-          where: {
-            transactionHash_in: $transferIds
-          },
-          first: 1000,
-          orderBy: id,
-          orderDirection: asc,
-        ) {
-          id
-          transferId
-          transactionHash
-          timestamp
-          token
-          from
-        }
-      }
-    `
-
-    transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
-    let url :string
-    try {
-      url = this.getUrl(chain)
-    } catch (err) {
-      return []
-    }
-    let bonds: any = []
-    const chunkSize = 1000
-    const allChunks = chunk(transferIds, chunkSize)
-    for (const _transferIds of allChunks) {
-      const data = await this.queryFetch(url, query, {
-        transferIds: _transferIds
-      })
-
-      bonds = bonds.concat((data.withdrawalBondeds1 || []).concat(data.withdrawalBondeds2 || []))
-    }
-
-    return bonds
-  }
-
-  async fetchWithdrews (chain: string, transferIds: string[]) {
-    const query = `
-      query Withdrews($transferIds: [String]) {
-        withdrews(
-          where: {
-            transferId_in: $transferIds
-          },
-          first: 1000,
-          orderBy: id,
-          orderDirection: asc
-        ) {
-          id
-          transferId
-          transactionHash
-          timestamp
-          token
-          from
-        }
-      }
-    `
-    transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
-    let url :string
-    try {
-      url = this.getUrl(chain)
-    } catch (err) {
-      return []
-    }
-    let withdrawals: any = []
-    const chunkSize = 1000
-    const allChunks = chunk(transferIds, chunkSize)
-    for (const _transferIds of allChunks) {
-      const data = await this.queryFetch(url, query, {
-        transferIds: _transferIds
-      })
-
-      withdrawals = withdrawals.concat(data.withdrews)
-    }
-
-    return withdrawals
-  }
-
-  async fetchTransferFromL1Completeds (chain: string, startTime: number, endTime: number, lastId = '0') {
-    const query = `
-      query TransferFromL1Completed($startTime: Int, $endTime: Int, $lastId: ID) {
-        events: transferFromL1Completeds(
-          where: {
-            timestamp_gte: $startTime,
-            timestamp_lte: $endTime,
-            id_gt: $lastId
-          },
-          first: 1000,
-          orderBy: id,
-          orderDirection: asc
-        ) {
-          id
-          recipient
-          amount
-          amountOutMin
-          deadline
-          transactionHash
-          from
-          timestamp
-        }
-      }
-    `
-
-    let url :string
-    try {
-      url = this.getUrl(chain)
-    } catch (err) {
-      return []
-    }
-    const data = await this.queryFetch(url, query, {
-      startTime,
-      endTime,
-      lastId
-    })
-    let events = data.events || []
-
-    if (events.length === 1000) {
-      lastId = events[events.length - 1].id
-      events = events.concat(...(await this.fetchTransferFromL1Completeds(
-        chain,
-        startTime,
-        endTime,
-        lastId
-      )))
-    }
-
-    return events
-  }
-
-  async getPriceHistory (coinId: string, days: number) {
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
-    console.log(url)
-    return Promise.race([fetch(url)
-      .then(async (res: any) => {
-        if (res.status > 400) {
-          throw await res.text()
-        }
-        return res.json()
-      })
-      .then((json: any) => {
-        console.log('fetched', coinId)
-        return json.prices.map((data: any[]) => {
-          data[0] = Math.floor(data[0] / 1000)
-          return data
-        })
-      }),
-    new Promise((resolve, reject) => {
-      setTimeout(() => reject(new Error('request timeout: ' + url)), 2 * 60 * 1000)
-    })
-    ])
-  }
-
   async init () {
     await this.initPrices()
     this.ready = true
@@ -606,15 +105,15 @@ export class TransferStats {
   async initPrices (daysN = 365) {
     console.log('fetching prices')
     const pricesArr = [
-      await this.getPriceHistory('usd-coin', daysN),
-      await this.getPriceHistory('tether', daysN),
-      await this.getPriceHistory('dai', daysN),
-      await this.getPriceHistory('ethereum', daysN),
-      await this.getPriceHistory('matic-network', daysN),
-      await this.getPriceHistory('wrapped-bitcoin', daysN),
-      await this.getPriceHistory('frax', daysN),
-      await this.getPriceHistory('hop-protocol', daysN),
-      await this.getPriceHistory('havven', daysN)
+      await getPriceHistory('usd-coin', daysN),
+      await getPriceHistory('tether', daysN),
+      await getPriceHistory('dai', daysN),
+      await getPriceHistory('ethereum', daysN),
+      await getPriceHistory('matic-network', daysN),
+      await getPriceHistory('wrapped-bitcoin', daysN),
+      await getPriceHistory('frax', daysN),
+      await getPriceHistory('hop-protocol', daysN),
+      await getPriceHistory('havven', daysN)
     ]
     console.log('done fetching prices')
 
@@ -631,6 +130,85 @@ export class TransferStats {
     }
 
     this.prices = prices
+  }
+
+  async checkForReorgs () {
+    while (true) {
+      try {
+        const page = 0
+        const perPage = 100
+        const endTimestamp = DateTime.now().toUTC().minus({ hour: 1 })
+        const startTimestamp = endTimestamp.toUTC().minus({ hour: 1 })
+        const items = await this.db.getTransfers({
+          perPage,
+          page,
+          startTimestamp: startTimestamp.toSeconds(),
+          endTimestamp: endTimestamp.toSeconds(),
+          sortBy: 'timestamp',
+          sortDirection: 'desc',
+          bonded: false
+        })
+
+        const allIds = items.filter((x: any) => x.sourceChainSlug !== 'ethereum').map((x: any) => x.transferId)
+        const [
+          gnosisTransfers,
+          polygonTransfers,
+          optimismTransfers,
+          arbitrumTransfers,
+          novaTransfers,
+          mainnetTransfers
+        ] = await Promise.all([
+          enabledChains.includes('gnosis') ? fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
+          enabledChains.includes('polygon') ? fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
+          enabledChains.includes('optimism') ? fetchTransferEventsByTransferIds('optimism', allIds) : Promise.resolve([]),
+          enabledChains.includes('arbitrum') ? fetchTransferEventsByTransferIds('arbitrum', allIds) : Promise.resolve([]),
+          enabledChains.includes('nova') ? fetchTransferEventsByTransferIds('nova', allIds) : Promise.resolve([]),
+          enabledChains.includes('ethereum') ? fetchTransferEventsByTransferIds('ethereum', allIds) : Promise.resolve([])
+        ])
+
+        const events = [
+          ...gnosisTransfers,
+          ...polygonTransfers,
+          ...optimismTransfers,
+          ...arbitrumTransfers,
+          ...novaTransfers,
+          ...mainnetTransfers
+        ]
+
+        const found = {}
+        for (const transferId of allIds) {
+          found[transferId] = false
+        }
+
+        for (const transferId of allIds) {
+          for (const event of events) {
+            if (event.transferId === transferId) {
+              found[transferId] = true
+            }
+          }
+        }
+
+        for (const transferId in found) {
+          const notFound = !found[transferId]
+          if (notFound) {
+            console.log(`Possible reorg: transferId ${transferId} not found from TransferSent event`)
+            await this.updateTransferReorged(transferId, true)
+            console.log('updated reorg status:', transferId)
+          }
+        }
+      } catch (err: any) {
+        console.error('checkForReorgs error:', err)
+      }
+      await wait(60 * 60 * 1000)
+    }
+  }
+
+  async updateTransferReorged (transferId: string, reorged: boolean) {
+    try {
+      await this.db.updateTransferReorged(transferId, reorged)
+    } catch (err: any) {
+      console.error('updateTransferReorged error:', err)
+    }
   }
 
   async getReceivedHtokens (item: any) {
@@ -684,85 +262,6 @@ export class TransferStats {
       console.error(err)
       this.cache[cacheKey] = false
       return false
-    }
-  }
-
-  async checkForReorgs () {
-    while (true) {
-      try {
-        const page = 0
-        const perPage = 100
-        const endTimestamp = DateTime.now().toUTC().minus({ hour: 1 })
-        const startTimestamp = endTimestamp.toUTC().minus({ hour: 1 })
-        const items = await this.db.getTransfers({
-          perPage,
-          page,
-          startTimestamp: startTimestamp.toSeconds(),
-          endTimestamp: endTimestamp.toSeconds(),
-          sortBy: 'timestamp',
-          sortDirection: 'desc',
-          bonded: false
-        })
-
-        const allIds = items.filter((x: any) => x.sourceChainSlug !== 'ethereum').map((x: any) => x.transferId)
-        const [
-          gnosisTransfers,
-          polygonTransfers,
-          optimismTransfers,
-          arbitrumTransfers,
-          novaTransfers,
-          mainnetTransfers
-        ] = await Promise.all([
-          enabledChains.includes('gnosis') ? this.fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
-          enabledChains.includes('polygon') ? this.fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
-          enabledChains.includes('optimism') ? this.fetchTransferEventsByTransferIds('optimism', allIds) : Promise.resolve([]),
-          enabledChains.includes('arbitrum') ? this.fetchTransferEventsByTransferIds('arbitrum', allIds) : Promise.resolve([]),
-          enabledChains.includes('nova') ? this.fetchTransferEventsByTransferIds('nova', allIds) : Promise.resolve([]),
-          enabledChains.includes('ethereum') ? this.fetchTransferEventsByTransferIds('ethereum', allIds) : Promise.resolve([])
-        ])
-
-        const events = [
-          ...gnosisTransfers,
-          ...polygonTransfers,
-          ...optimismTransfers,
-          ...arbitrumTransfers,
-          ...novaTransfers,
-          ...mainnetTransfers
-        ]
-
-        const found = {}
-        for (const transferId of allIds) {
-          found[transferId] = false
-        }
-
-        for (const transferId of allIds) {
-          for (const event of events) {
-            if (event.transferId === transferId) {
-              found[transferId] = true
-            }
-          }
-        }
-
-        for (const transferId in found) {
-          const notFound = !found[transferId]
-          if (notFound) {
-            console.log(`Possible reorg: transferId ${transferId} not found from TransferSent event`)
-            await this.updateTransferReorged(transferId, true)
-            console.log('updated reorg status:', transferId)
-          }
-        }
-      } catch (err: any) {
-        console.error('checkForReorgs error:', err)
-      }
-      await wait(60 * 60 * 1000)
-    }
-  }
-
-  async updateTransferReorged (transferId: string, reorged: boolean) {
-    try {
-      await this.db.updateTransferReorged(transferId, reorged)
-    } catch (err: any) {
-      console.error('updateTransferReorged error:', err)
     }
   }
 
@@ -960,7 +459,6 @@ export class TransferStats {
     await Promise.all([
       // this.trackReceivedHTokenStatus(),
       // this.trackReceivedAmountStatus(),
-      // this.trackAllDailyTransfers(),
       this.trackHourlyTransfers(1, 60 * 1000),
       /*
       wait(1 * 60 * 1000).then(() => {
@@ -982,12 +480,12 @@ export class TransferStats {
       wait(1 * 1000).then(() => {
         const minutes = 20
         const delayMs = 60 * 1000
-        this.trackRecentBonds(minutes, delayMs)
+        this.trackRecentTransferBonds(minutes, delayMs)
       }),
       wait(0 * 60 * 1000).then(() => {
         const minutes = 2 * 60
         const delayMs = 10 * 60 * 1000
-        return this.trackRecentBonds(minutes, delayMs)
+        return this.trackRecentTransferBonds(minutes, delayMs)
       }),
       this.checkForReorgs()
     ])
@@ -1028,7 +526,7 @@ export class TransferStats {
     }
   }
 
-  async trackRecentBonds (minutes: number, delayMs: number) {
+  async trackRecentTransferBonds (minutes: number, delayMs: number) {
     await this.tilReady()
     while (true) {
       try {
@@ -1038,7 +536,7 @@ export class TransferStats {
         const endTime = Math.floor(now.toSeconds())
 
         console.log('fetching all bonds data for hour', startTime)
-        const items = await this.getBondsBetweenDates(startTime, endTime)
+        const items = await this.getTransferBondsBetweenDates(startTime, endTime)
         console.log('items:', items.length)
         for (const item of items) {
           let retries = 0
@@ -1078,25 +576,6 @@ export class TransferStats {
     }
   }
 
-  async trackAllDailyTransfers () {
-    await this.tilReady()
-
-    const days = []
-    for (let day = 0; day < this.days; day++) {
-      days.push(day)
-    }
-
-    const chunkSize = 5
-    const allChunks = chunk(days, chunkSize)
-    for (const chunks of allChunks) {
-      await Promise.all(chunks.map(async (day: number) => {
-        const now = DateTime.now().toUTC().minus({ days: this.offsetDays })
-        const startDate = now.minus({ days: day }).toFormat('yyyy-MM-dd')
-        await this.updateTransferDataForDay(startDate)
-      }))
-    }
-  }
-
   async updateTransferDataForDay (startDate: string) {
     await this.tilReady()
     console.log('fetching all transfers data for day', startDate)
@@ -1126,12 +605,12 @@ export class TransferStats {
       novaTransfers,
       mainnetTransfers
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? this.fetchTransfersForTransferId('gnosis', transferId) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? this.fetchTransfersForTransferId('polygon', transferId) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? this.fetchTransfersForTransferId('optimism', transferId) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? this.fetchTransfersForTransferId('arbitrum', transferId) : Promise.resolve([]),
-      enabledChains.includes('nova') ? this.fetchTransfersForTransferId('nova', transferId) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? this.fetchTransfersForTransferId('ethereum', transferId) : Promise.resolve([])
+      enabledChains.includes('gnosis') ? fetchTransfersForTransferId('gnosis', transferId) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? fetchTransfersForTransferId('polygon', transferId) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? fetchTransfersForTransferId('optimism', transferId) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? fetchTransfersForTransferId('arbitrum', transferId) : Promise.resolve([]),
+      enabledChains.includes('nova') ? fetchTransfersForTransferId('nova', transferId) : Promise.resolve([]),
+      enabledChains.includes('ethereum') ? fetchTransfersForTransferId('ethereum', transferId) : Promise.resolve([])
     ])
 
     return {
@@ -1288,12 +767,12 @@ export class TransferStats {
       novaTransfers,
       mainnetTransfers
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? this.fetchTransfers('gnosis', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? this.fetchTransfers('polygon', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? this.fetchTransfers('optimism', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? this.fetchTransfers('arbitrum', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('nova') ? this.fetchTransfers('nova', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? this.fetchTransfers('ethereum', startTime, endTime) : Promise.resolve([])
+      enabledChains.includes('gnosis') ? fetchTransfers('gnosis', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? fetchTransfers('polygon', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? fetchTransfers('optimism', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? fetchTransfers('arbitrum', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('nova') ? fetchTransfers('nova', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('ethereum') ? fetchTransfers('ethereum', startTime, endTime) : Promise.resolve([])
     ])
 
     return {
@@ -1315,12 +794,12 @@ export class TransferStats {
       novaBonds,
       mainnetBonds
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? this.fetchBondTransferIdEvents('gnosis', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? this.fetchBondTransferIdEvents('polygon', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? this.fetchBondTransferIdEvents('optimism', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? this.fetchBondTransferIdEvents('arbitrum', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('nova') ? this.fetchBondTransferIdEvents('nova', startTime, endTime) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? this.fetchBondTransferIdEvents('ethereum', startTime, endTime) : Promise.resolve([])
+      enabledChains.includes('gnosis') ? fetchBondTransferIdEvents('gnosis', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? fetchBondTransferIdEvents('polygon', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? fetchBondTransferIdEvents('optimism', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? fetchBondTransferIdEvents('arbitrum', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('nova') ? fetchBondTransferIdEvents('nova', startTime, endTime) : Promise.resolve([]),
+      enabledChains.includes('ethereum') ? fetchBondTransferIdEvents('ethereum', startTime, endTime) : Promise.resolve([])
     ])
 
     return {
@@ -1477,12 +956,12 @@ export class TransferStats {
       novaBondedWithdrawals,
       mainnetBondedWithdrawals
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? this.fetchBonds('gnosis', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? this.fetchBonds('polygon', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? this.fetchBonds('optimism', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? this.fetchBonds('arbitrum', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('nova') ? this.fetchBonds('nova', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? this.fetchBonds('ethereum', filterTransferIds) : Promise.resolve([])
+      enabledChains.includes('gnosis') ? fetchTransferBonds('gnosis', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? fetchTransferBonds('polygon', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? fetchTransferBonds('optimism', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? fetchTransferBonds('arbitrum', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('nova') ? fetchTransferBonds('nova', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('ethereum') ? fetchTransferBonds('ethereum', filterTransferIds) : Promise.resolve([])
     ])
 
     const [
@@ -1493,12 +972,12 @@ export class TransferStats {
       novaWithdrews,
       mainnetWithdrews
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? this.fetchWithdrews('gnosis', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? this.fetchWithdrews('polygon', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? this.fetchWithdrews('optimism', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? this.fetchWithdrews('arbitrum', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('nova') ? this.fetchWithdrews('nova', filterTransferIds) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? this.fetchWithdrews('ethereum', filterTransferIds) : Promise.resolve([])
+      enabledChains.includes('gnosis') ? fetchWithdrews('gnosis', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? fetchWithdrews('polygon', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? fetchWithdrews('optimism', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? fetchWithdrews('arbitrum', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('nova') ? fetchWithdrews('nova', filterTransferIds) : Promise.resolve([]),
+      enabledChains.includes('ethereum') ? fetchWithdrews('ethereum', filterTransferIds) : Promise.resolve([])
     ])
 
     const [
@@ -1508,11 +987,11 @@ export class TransferStats {
       arbitrumFromL1Completeds,
       novaFromL1Completeds
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? this.fetchTransferFromL1Completeds('gnosis', startTime, endTime, undefined) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? this.fetchTransferFromL1Completeds('polygon', startTime, endTime, undefined) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? this.fetchTransferFromL1Completeds('optimism', startTime, endTime, undefined) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? this.fetchTransferFromL1Completeds('arbitrum', startTime, endTime, undefined) : Promise.resolve([]),
-      enabledChains.includes('nova') ? this.fetchTransferFromL1Completeds('nova', startTime, endTime, undefined) : Promise.resolve([])
+      enabledChains.includes('gnosis') ? fetchTransferFromL1Completeds('gnosis', startTime, endTime, undefined) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? fetchTransferFromL1Completeds('polygon', startTime, endTime, undefined) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? fetchTransferFromL1Completeds('optimism', startTime, endTime, undefined) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? fetchTransferFromL1Completeds('arbitrum', startTime, endTime, undefined) : Promise.resolve([]),
+      enabledChains.includes('nova') ? fetchTransferFromL1Completeds('nova', startTime, endTime, undefined) : Promise.resolve([])
     ])
 
     const gnosisBonds = [...gnosisBondedWithdrawals, ...gnosisWithdrews]
@@ -1590,7 +1069,7 @@ export class TransferStats {
       for (const item of data) {
         if (!item.bonded && item.timestamp < regenesisTimestamp && chainIdToSlug(item.destinationChain) === 'optimism' && chainIdToSlug(item.sourceChain) !== 'ethereum') {
           try {
-            const event = await this.getPreRegenesisBondEvent(item.transferId, item.token)
+            const event = await getPreRegenesisBondEvent(item.transferId, item.token)
             if (event) {
               const [receipt, block] = await Promise.all([event.getTransactionReceipt(), event.getBlock()])
               item.bonded = true
@@ -1737,61 +1216,7 @@ export class TransferStats {
     return this.getRemainingData(data)
   }
 
-  async fetchTransferEventsByTransferIds (chain: string, transferIds: string[]) {
-    if (chain === 'mainnet' || chain === 'ethereum') {
-      return []
-    }
-    const query = `
-      query TransferSents($transferIds: [String]) {
-        transferSents: transferSents(
-          where: {
-            transferId_in: $transferIds
-          },
-          first: 1000,
-          orderBy: id,
-          orderDirection: asc
-        ) {
-          id
-          transferId
-          destinationChainId
-          amount
-          amountOutMin
-          bonderFee
-          recipient
-          deadline
-          transactionHash
-          timestamp
-          token
-          from
-          transaction {
-            to
-          }
-        }
-      }
-    `
-
-    transferIds = transferIds?.filter(x => x).map((x: string) => padHex(x)) ?? []
-    let url :string
-    try {
-      url = this.getUrl(chain)
-    } catch (err) {
-      return []
-    }
-    let transferSents: any = []
-    const chunkSize = 1000
-    const allChunks = chunk(transferIds, chunkSize)
-    for (const _transferIds of allChunks) {
-      const data = await this.queryFetch(url, query, {
-        transferIds: _transferIds
-      })
-
-      transferSents = transferSents.concat(data.transferSents || [])
-    }
-
-    return transferSents.filter((x: any) => x)
-  }
-
-  async getBondsBetweenDates (startTime: number, endTime: number) {
+  async getTransferBondsBetweenDates (startTime: number, endTime: number) {
     const {
       gnosisBonds,
       polygonBonds,
@@ -1829,12 +1254,12 @@ export class TransferStats {
       novaTransfers,
       mainnetTransfers
     ] = await Promise.all([
-      enabledChains.includes('gnosis') ? this.fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
-      enabledChains.includes('polygon') ? this.fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
-      enabledChains.includes('optimism') ? this.fetchTransferEventsByTransferIds('optimism', allIds) : Promise.resolve([]),
-      enabledChains.includes('arbitrum') ? this.fetchTransferEventsByTransferIds('arbitrum', allIds) : Promise.resolve([]),
-      enabledChains.includes('nova') ? this.fetchTransferEventsByTransferIds('nova', allIds) : Promise.resolve([]),
-      enabledChains.includes('ethereum') ? this.fetchTransferEventsByTransferIds('ethereum', allIds) : Promise.resolve([])
+      enabledChains.includes('gnosis') ? fetchTransferEventsByTransferIds('gnosis', allIds) : Promise.resolve([]),
+      enabledChains.includes('polygon') ? fetchTransferEventsByTransferIds('polygon', allIds) : Promise.resolve([]),
+      enabledChains.includes('optimism') ? fetchTransferEventsByTransferIds('optimism', allIds) : Promise.resolve([]),
+      enabledChains.includes('arbitrum') ? fetchTransferEventsByTransferIds('arbitrum', allIds) : Promise.resolve([]),
+      enabledChains.includes('nova') ? fetchTransferEventsByTransferIds('nova', allIds) : Promise.resolve([]),
+      enabledChains.includes('ethereum') ? fetchTransferEventsByTransferIds('ethereum', allIds) : Promise.resolve([])
     ])
 
     const events = {
@@ -1848,29 +1273,6 @@ export class TransferStats {
 
     const data = await this.normalizeTransferEvents(events)
     return this.getRemainingData(data)
-  }
-
-  async getPreRegenesisBondEvent (transferId: string, token: string) {
-    const rpcUrl = 'https://mainnet-replica-4.optimism.io'
-    const provider = new providers.StaticJsonRpcProvider(rpcUrl)
-    const bridgeAddresses: any = {
-      USDC: '0xa81D244A1814468C734E5b4101F7b9c0c577a8fC',
-      USDT: '0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61',
-      DAI: '0x7191061D5d4C60f598214cC6913502184BAddf18',
-      ETH: '0x83f6244Bd87662118d96D9a6D44f09dffF14b30E'
-    }
-
-    const bridgeAddress = bridgeAddresses[token]
-    if (!bridgeAddress) {
-      return
-    }
-
-    const contract = new Contract(bridgeAddress, bridgeAbi, provider)
-    const logs = await contract.queryFilter(
-      contract.filters.WithdrawalBonded(transferId)
-    )
-
-    return logs[0]
   }
 
   async getTransactionReceipt (provider: any, transactionHash: string) {
@@ -2018,7 +1420,5 @@ export class TransferStats {
     }
   }
 }
-
-const bridgeAbi = [{ inputs: [{ internalType: 'address', name: '_l1Governance', type: 'address' }, { internalType: 'contract HopBridgeToken', name: '_hToken', type: 'address' }, { internalType: 'address', name: '_l1BridgeAddress', type: 'address' }, { internalType: 'uint256[]', name: '_activeChainIds', type: 'uint256[]' }, { internalType: 'address[]', name: 'bonders', type: 'address[]' }], stateMutability: 'nonpayable', type: 'constructor' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'address', name: 'newBonder', type: 'address' }], name: 'BonderAdded', type: 'event' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'address', name: 'previousBonder', type: 'address' }], name: 'BonderRemoved', type: 'event' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'address', name: 'bonder', type: 'address' }, { indexed: true, internalType: 'bytes32', name: 'rootHash', type: 'bytes32' }, { indexed: false, internalType: 'uint256', name: 'totalBondsSettled', type: 'uint256' }], name: 'MultipleWithdrawalsSettled', type: 'event' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'address', name: 'account', type: 'address' }, { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' }], name: 'Stake', type: 'event' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'address', name: 'recipient', type: 'address' }, { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' }, { indexed: false, internalType: 'uint256', name: 'amountOutMin', type: 'uint256' }, { indexed: false, internalType: 'uint256', name: 'deadline', type: 'uint256' }, { indexed: true, internalType: 'address', name: 'relayer', type: 'address' }, { indexed: false, internalType: 'uint256', name: 'relayerFee', type: 'uint256' }], name: 'TransferFromL1Completed', type: 'event' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'bytes32', name: 'rootHash', type: 'bytes32' }, { indexed: false, internalType: 'uint256', name: 'totalAmount', type: 'uint256' }], name: 'TransferRootSet', type: 'event' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'bytes32', name: 'transferId', type: 'bytes32' }, { indexed: true, internalType: 'uint256', name: 'chainId', type: 'uint256' }, { indexed: true, internalType: 'address', name: 'recipient', type: 'address' }, { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' }, { indexed: false, internalType: 'bytes32', name: 'transferNonce', type: 'bytes32' }, { indexed: false, internalType: 'uint256', name: 'bonderFee', type: 'uint256' }, { indexed: false, internalType: 'uint256', name: 'index', type: 'uint256' }, { indexed: false, internalType: 'uint256', name: 'amountOutMin', type: 'uint256' }, { indexed: false, internalType: 'uint256', name: 'deadline', type: 'uint256' }], name: 'TransferSent', type: 'event' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'uint256', name: 'destinationChainId', type: 'uint256' }, { indexed: true, internalType: 'bytes32', name: 'rootHash', type: 'bytes32' }, { indexed: false, internalType: 'uint256', name: 'totalAmount', type: 'uint256' }, { indexed: false, internalType: 'uint256', name: 'rootCommittedAt', type: 'uint256' }], name: 'TransfersCommitted', type: 'event' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'address', name: 'account', type: 'address' }, { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' }], name: 'Unstake', type: 'event' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'address', name: 'bonder', type: 'address' }, { indexed: true, internalType: 'bytes32', name: 'transferId', type: 'bytes32' }, { indexed: true, internalType: 'bytes32', name: 'rootHash', type: 'bytes32' }], name: 'WithdrawalBondSettled', type: 'event' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'bytes32', name: 'transferId', type: 'bytes32' }, { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' }], name: 'WithdrawalBonded', type: 'event' }, { anonymous: false, inputs: [{ indexed: true, internalType: 'bytes32', name: 'transferId', type: 'bytes32' }, { indexed: true, internalType: 'address', name: 'recipient', type: 'address' }, { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' }, { indexed: false, internalType: 'bytes32', name: 'transferNonce', type: 'bytes32' }], name: 'Withdrew', type: 'event' }, { inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], name: 'activeChainIds', outputs: [{ internalType: 'bool', name: '', type: 'bool' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'uint256[]', name: 'chainIds', type: 'uint256[]' }], name: 'addActiveChainIds', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: 'bonder', type: 'address' }], name: 'addBonder', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [], name: 'ammWrapper', outputs: [{ internalType: 'contract L2_AmmWrapper', name: '', type: 'address' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'address', name: 'recipient', type: 'address' }, { internalType: 'uint256', name: 'amount', type: 'uint256' }, { internalType: 'bytes32', name: 'transferNonce', type: 'bytes32' }, { internalType: 'uint256', name: 'bonderFee', type: 'uint256' }], name: 'bondWithdrawal', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: 'recipient', type: 'address' }, { internalType: 'uint256', name: 'amount', type: 'uint256' }, { internalType: 'bytes32', name: 'transferNonce', type: 'bytes32' }, { internalType: 'uint256', name: 'bonderFee', type: 'uint256' }, { internalType: 'uint256', name: 'amountOutMin', type: 'uint256' }, { internalType: 'uint256', name: 'deadline', type: 'uint256' }], name: 'bondWithdrawalAndDistribute', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'uint256', name: 'destinationChainId', type: 'uint256' }], name: 'commitTransfers', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: 'recipient', type: 'address' }, { internalType: 'uint256', name: 'amount', type: 'uint256' }, { internalType: 'uint256', name: 'amountOutMin', type: 'uint256' }, { internalType: 'uint256', name: 'deadline', type: 'uint256' }, { internalType: 'address', name: 'relayer', type: 'address' }, { internalType: 'uint256', name: 'relayerFee', type: 'uint256' }], name: 'distribute', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: 'bonder', type: 'address' }, { internalType: 'bytes32', name: 'transferId', type: 'bytes32' }], name: 'getBondedWithdrawalAmount', outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [], name: 'getChainId', outputs: [{ internalType: 'uint256', name: 'chainId', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'address', name: 'bonder', type: 'address' }], name: 'getCredit', outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'address', name: 'bonder', type: 'address' }], name: 'getDebitAndAdditionalDebit', outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'address', name: 'maybeBonder', type: 'address' }], name: 'getIsBonder', outputs: [{ internalType: 'bool', name: '', type: 'bool' }], stateMutability: 'view', type: 'function' }, { inputs: [], name: 'getNextTransferNonce', outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'address', name: 'bonder', type: 'address' }], name: 'getRawDebit', outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'uint256', name: 'chainId', type: 'uint256' }, { internalType: 'address', name: 'recipient', type: 'address' }, { internalType: 'uint256', name: 'amount', type: 'uint256' }, { internalType: 'bytes32', name: 'transferNonce', type: 'bytes32' }, { internalType: 'uint256', name: 'bonderFee', type: 'uint256' }, { internalType: 'uint256', name: 'amountOutMin', type: 'uint256' }, { internalType: 'uint256', name: 'deadline', type: 'uint256' }], name: 'getTransferId', outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }], stateMutability: 'pure', type: 'function' }, { inputs: [{ internalType: 'bytes32', name: 'rootHash', type: 'bytes32' }, { internalType: 'uint256', name: 'totalAmount', type: 'uint256' }], name: 'getTransferRoot', outputs: [{ components: [{ internalType: 'uint256', name: 'total', type: 'uint256' }, { internalType: 'uint256', name: 'amountWithdrawn', type: 'uint256' }, { internalType: 'uint256', name: 'createdAt', type: 'uint256' }], internalType: 'struct Bridge.TransferRoot', name: '', type: 'tuple' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'bytes32', name: 'rootHash', type: 'bytes32' }, { internalType: 'uint256', name: 'totalAmount', type: 'uint256' }], name: 'getTransferRootId', outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }], stateMutability: 'pure', type: 'function' }, { inputs: [], name: 'hToken', outputs: [{ internalType: 'contract HopBridgeToken', name: '', type: 'address' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'bytes32', name: 'transferId', type: 'bytes32' }], name: 'isTransferIdSpent', outputs: [{ internalType: 'bool', name: '', type: 'bool' }], stateMutability: 'view', type: 'function' }, { inputs: [], name: 'l1BridgeAddress', outputs: [{ internalType: 'address', name: '', type: 'address' }], stateMutability: 'view', type: 'function' }, { inputs: [], name: 'l1BridgeCaller', outputs: [{ internalType: 'address', name: '', type: 'address' }], stateMutability: 'view', type: 'function' }, { inputs: [], name: 'l1Governance', outputs: [{ internalType: 'address', name: '', type: 'address' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], name: 'lastCommitTimeForChainId', outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [], name: 'maxPendingTransfers', outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [], name: 'minBonderBps', outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [], name: 'minBonderFeeAbsolute', outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [], name: 'minimumForceCommitDelay', outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], name: 'pendingAmountForChainId', outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }, { internalType: 'uint256', name: '', type: 'uint256' }], name: 'pendingTransferIdsForChainId', outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'uint256[]', name: 'chainIds', type: 'uint256[]' }], name: 'removeActiveChainIds', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: 'bonder', type: 'address' }], name: 'removeBonder', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'bytes32', name: 'rootHash', type: 'bytes32' }, { internalType: 'uint256', name: 'originalAmount', type: 'uint256' }, { internalType: 'address', name: 'recipient', type: 'address' }], name: 'rescueTransferRoot', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'uint256', name: 'chainId', type: 'uint256' }, { internalType: 'address', name: 'recipient', type: 'address' }, { internalType: 'uint256', name: 'amount', type: 'uint256' }, { internalType: 'uint256', name: 'bonderFee', type: 'uint256' }, { internalType: 'uint256', name: 'amountOutMin', type: 'uint256' }, { internalType: 'uint256', name: 'deadline', type: 'uint256' }], name: 'send', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'contract L2_AmmWrapper', name: '_ammWrapper', type: 'address' }], name: 'setAmmWrapper', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: 'newOwner', type: 'address' }], name: 'setHopBridgeTokenOwner', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: '_l1BridgeAddress', type: 'address' }], name: 'setL1BridgeAddress', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: '_l1BridgeCaller', type: 'address' }], name: 'setL1BridgeCaller', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: '_l1Governance', type: 'address' }], name: 'setL1Governance', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'uint256', name: '_maxPendingTransfers', type: 'uint256' }], name: 'setMaxPendingTransfers', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'uint256', name: '_minBonderBps', type: 'uint256' }, { internalType: 'uint256', name: '_minBonderFeeAbsolute', type: 'uint256' }], name: 'setMinimumBonderFeeRequirements', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'uint256', name: '_minimumForceCommitDelay', type: 'uint256' }], name: 'setMinimumForceCommitDelay', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'bytes32', name: 'rootHash', type: 'bytes32' }, { internalType: 'uint256', name: 'totalAmount', type: 'uint256' }], name: 'setTransferRoot', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: 'bonder', type: 'address' }, { internalType: 'bytes32', name: 'transferId', type: 'bytes32' }, { internalType: 'bytes32', name: 'rootHash', type: 'bytes32' }, { internalType: 'uint256', name: 'transferRootTotalAmount', type: 'uint256' }, { internalType: 'uint256', name: 'transferIdTreeIndex', type: 'uint256' }, { internalType: 'bytes32[]', name: 'siblings', type: 'bytes32[]' }, { internalType: 'uint256', name: 'totalLeaves', type: 'uint256' }], name: 'settleBondedWithdrawal', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: 'bonder', type: 'address' }, { internalType: 'bytes32[]', name: 'transferIds', type: 'bytes32[]' }, { internalType: 'uint256', name: 'totalAmount', type: 'uint256' }], name: 'settleBondedWithdrawals', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: 'bonder', type: 'address' }, { internalType: 'uint256', name: 'amount', type: 'uint256' }], name: 'stake', outputs: [], stateMutability: 'payable', type: 'function' }, { inputs: [], name: 'transferNonceIncrementer', outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }], stateMutability: 'view', type: 'function' }, { inputs: [{ internalType: 'uint256', name: 'amount', type: 'uint256' }], name: 'unstake', outputs: [], stateMutability: 'nonpayable', type: 'function' }, { inputs: [{ internalType: 'address', name: 'recipient', type: 'address' }, { internalType: 'uint256', name: 'amount', type: 'uint256' }, { internalType: 'bytes32', name: 'transferNonce', type: 'bytes32' }, { internalType: 'uint256', name: 'bonderFee', type: 'uint256' }, { internalType: 'uint256', name: 'amountOutMin', type: 'uint256' }, { internalType: 'uint256', name: 'deadline', type: 'uint256' }, { internalType: 'bytes32', name: 'rootHash', type: 'bytes32' }, { internalType: 'uint256', name: 'transferRootTotalAmount', type: 'uint256' }, { internalType: 'uint256', name: 'transferIdTreeIndex', type: 'uint256' }, { internalType: 'bytes32[]', name: 'siblings', type: 'bytes32[]' }, { internalType: 'uint256', name: 'totalLeaves', type: 'uint256' }], name: 'withdraw', outputs: [], stateMutability: 'nonpayable', type: 'function' }]
 
 export default TransferStats

@@ -14,9 +14,9 @@ import {
   modifiedLiquidityDestChains,
   modifiedLiquiditySourceChains,
   modifiedLiquidityTokens,
-  modifiedStakeTokens,
-  modifiedStakeChains,
   modifiedStakeAmount,
+  modifiedStakeChains,
+  modifiedStakeTokens,
   oruChains
 } from 'src/config'
 
@@ -426,7 +426,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
   }
 
-  private logModifications(): void {
+  private logModifications (): void {
     if (
       modifiedLiquidityDestChains.length > 0 ||
       modifiedLiquiditySourceChains.length > 0 ||

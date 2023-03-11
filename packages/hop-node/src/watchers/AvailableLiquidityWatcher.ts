@@ -69,6 +69,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
         key: `${config.s3Namespace ?? globalConfig.network}/v1-available-liquidity.json`
       })
     }
+
+    this.logModifications()
+    this.logger.debug('syncing bonder credit')
   }
 
   async syncBonderCredit () {
@@ -119,14 +122,17 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       availableCredit = BigNumber.from('0')
       baseAvailableCredit = BigNumber.from('0')
       baseAvailableCreditIncludingVault = BigNumber.from('0')
+      this.logger.debug('modifiedLiquidity: updatedAvailableCredit: 0')
     }
 
     if (
       modifiedStakeTokens.includes(this.tokenSymbol) &&
-      modifiedStakeChains.includes(this.chainSlug)
+      modifiedStakeChains.includes(destinationChain)
     ) {
       const modifiedStakeAmountWei = this.bridge.parseUnits(modifiedStakeAmount)
+      this.logger.debug(`modifiedStake: modifiedStakeAmountWei - ${modifiedStakeAmountWei.toString()}`)
       availableCredit = availableCredit.sub(modifiedStakeAmountWei)
+      this.logger.debug(`modifiedStake: updatedAvailableCredit - ${availableCredit.toString()}`)
     }
 
     if (availableCredit.lt(0)) {
@@ -411,6 +417,24 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       s3LastUpload = Date.now()
       await this.s3Upload.upload(s3JsonData)
       this.logger.debug(`s3 uploaded data: ${JSON.stringify(s3JsonData)}`)
+    }
+  }
+
+  private logModifications(): void {
+    if (
+      modifiedLiquidityDestChains.length > 0 ||
+      modifiedLiquiditySourceChains.length > 0 ||
+      modifiedLiquidityTokens.length > 0 ||
+      modifiedStakeTokens.length > 0 ||
+      modifiedStakeChains.length > 0 ||
+      modifiedStakeAmount != '0'
+    ) {
+      console.log('modifiedLiquidityDestChains', modifiedLiquidityDestChains)
+      console.log('modifiedLiquiditySourceChains', modifiedLiquiditySourceChains)
+      console.log('modifiedLiquidityTokens', modifiedLiquidityTokens)
+      console.log('modifiedStakeTokens', modifiedStakeTokens)
+      console.log('modifiedStakeChains', modifiedStakeChains)
+      console.log('modifiedStakeAmount', modifiedStakeAmount)
     }
   }
 }

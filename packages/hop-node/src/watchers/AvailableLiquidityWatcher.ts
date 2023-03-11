@@ -119,10 +119,15 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       modifiedLiquiditySourceChains.includes(this.chainSlug) &&
       modifiedLiquidityDestChains.includes(destinationChain)
     ) {
+      this.logger.debug(`modifiedLiquidity: currentAvailableCredit - ${availableCredit.toString()}`)
+      this.logger.debug(`modifiedLiquidity: currentBaseAvailableCredit - ${baseAvailableCredit.toString()}`)
+      this.logger.debug(`modifiedLiquidity: currentAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()}`)
       availableCredit = BigNumber.from('0')
       baseAvailableCredit = BigNumber.from('0')
       baseAvailableCreditIncludingVault = BigNumber.from('0')
-      this.logger.debug('modifiedLiquidity: updatedAvailableCredit: 0')
+      this.logger.debug(`modifiedLiquidity: updatedAvailableCredit - ${availableCredit.toString()}`)
+      this.logger.debug(`modifiedLiquidity: updatedBaseAvailableCredit - ${baseAvailableCredit.toString()}`)
+      this.logger.debug(`modifiedLiquidity: updatedAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()}`)
     }
 
     if (
@@ -131,6 +136,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     ) {
       const modifiedStakeAmountWei = this.bridge.parseUnits(modifiedStakeAmount)
       this.logger.debug(`modifiedStake: modifiedStakeAmountWei - ${modifiedStakeAmountWei.toString()}`)
+      this.logger.debug(`modifiedStake: currentAvailableCredit - ${availableCredit.toString()}`)
       availableCredit = availableCredit.sub(modifiedStakeAmountWei)
       this.logger.debug(`modifiedStake: updatedAvailableCredit - ${availableCredit.toString()}`)
     }

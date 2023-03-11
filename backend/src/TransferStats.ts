@@ -459,45 +459,21 @@ export class TransferStats {
     await Promise.all([
       // this.trackReceivedHTokenStatus(),
       // this.trackReceivedAmountStatus(),
-      this.trackHourlyTransfers(1, 60 * 1000),
-      /*
-      wait(1 * 60 * 1000).then(() => {
-        const hours = 6
-        const delayMs = 30 * 60 * 1000
-        return this.trackHourlyTransfers(hours, delayMs)
-      }),
-      wait(15 * 60 * 1000).then(() => {
-        const hours = 12
-        const delayMs = 2 * 60 * 60 * 1000
-        return this.trackHourlyTransfers(hours, delayMs)
-      }),
-      wait(30 * 60 * 1000).then(() => {
-        const hours = 24
-        const delayMs = 12 * 60 * 60 * 1000
-        return this.trackHourlyTransfers(hours, delayMs)
-      }),
-      */
-      wait(1 * 1000).then(() => {
-        const minutes = 20
-        const delayMs = 60 * 1000
-        this.trackRecentTransferBonds(minutes, delayMs)
-      }),
-      wait(0 * 60 * 1000).then(() => {
-        const minutes = 2 * 60
-        const delayMs = 10 * 60 * 1000
-        return this.trackRecentTransferBonds(minutes, delayMs)
-      }),
+      this.trackRecentTransfers({ lookbackHours: 1, pollIntervalMs: 60 * 1000 }),
+      this.trackRecentTransfers({ lookbackHours: 4, pollIntervalMs: 5 * 60 * 1000 }),
+      this.trackRecentTransferBonds({ lookbackMinutes: 20, pollIntervalMs: 60 * 1000 }),
+      this.trackRecentTransferBonds({ lookbackMinutes: 120, pollIntervalMs: 10 * 60 * 1000 }),
       this.checkForReorgs()
     ])
   }
 
-  async trackHourlyTransfers (hours: number, delayMs: number) {
+  async trackRecentTransfers ({ lookbackHours, pollIntervalMs }: { lookbackHours: number, pollIntervalMs: number }) {
     await this.tilReady()
     while (true) {
       try {
-        console.log('tracking hourly transfers, hours: ', hours)
+        console.log('tracking recent transfers, hours: ', lookbackHours)
         const now = DateTime.now().toUTC()
-        const startTime = Math.floor(now.minus({ hour: hours }).toSeconds())
+        const startTime = Math.floor(now.minus({ hour: lookbackHours }).toSeconds())
         const endTime = Math.floor(now.toSeconds())
 
         console.log('fetching all transfers data for hour', startTime)
@@ -518,21 +494,21 @@ export class TransferStats {
           }
         }
 
-        console.log('done fetching transfers data for hours:', hours)
+        console.log('done fetching transfers data for hours:', lookbackHours)
       } catch (err) {
         console.error(err)
       }
-      await wait(delayMs)
+      await wait(pollIntervalMs)
     }
   }
 
-  async trackRecentTransferBonds (minutes: number, delayMs: number) {
+  async trackRecentTransferBonds ({ lookbackMinutes, pollIntervalMs }: { lookbackMinutes: number, pollIntervalMs: number }) {
     await this.tilReady()
     while (true) {
       try {
-        console.log('tracking recent bonds, minutes: ', minutes)
+        console.log('tracking recent bonds, minutes: ', lookbackMinutes)
         const now = DateTime.now().toUTC()
-        const startTime = Math.floor(now.minus({ minute: minutes }).toSeconds())
+        const startTime = Math.floor(now.minus({ minute: lookbackMinutes }).toSeconds())
         const endTime = Math.floor(now.toSeconds())
 
         console.log('fetching all bonds data for hour', startTime)
@@ -553,11 +529,11 @@ export class TransferStats {
           }
         }
 
-        console.log('done fetching bonds data for minutes:', minutes)
+        console.log('done fetching bonds data for minutes:', lookbackMinutes)
       } catch (err) {
         console.error(err)
       }
-      await wait(delayMs)
+      await wait(pollIntervalMs)
     }
   }
 

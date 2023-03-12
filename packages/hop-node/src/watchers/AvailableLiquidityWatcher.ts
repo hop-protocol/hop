@@ -117,9 +117,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       modifiedLiquiditySourceChains.includes(this.chainSlug) &&
       modifiedLiquidityDestChains.includes(destinationChain)
     ) {
-      this.logger.debug(`modifiedLiquidity: currentAvailableCredit - ${availableCredit.toString()}`)
-      this.logger.debug(`modifiedLiquidity: currentBaseAvailableCredit - ${baseAvailableCredit.toString()}`)
-      this.logger.debug(`modifiedLiquidity: currentAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()}`)
+      this.logger.debug(`modifiedLiquidity: currentAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: currentBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: currentAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
 
       if (modifiedLiquidityDecrease !== '0') {
         const decreaseAmount = this.bridge.parseUnits(modifiedLiquidityDecrease)
@@ -132,9 +132,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
         baseAvailableCreditIncludingVault = BigNumber.from('0')
       }
 
-      this.logger.debug(`modifiedLiquidity: updatedAvailableCredit - ${availableCredit.toString()}`)
-      this.logger.debug(`modifiedLiquidity: updatedBaseAvailableCredit - ${baseAvailableCredit.toString()}`)
-      this.logger.debug(`modifiedLiquidity: updatedAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()}`)
+      this.logger.debug(`modifiedLiquidity: updatedAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: updatedBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: updatedAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
     }
 
     if (availableCredit.lt(0)) {

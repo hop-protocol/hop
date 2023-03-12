@@ -613,6 +613,11 @@ export class HealthCheckWatcher {
       for (const amount in chainAmounts) {
         availableLiquidity = availableLiquidity.add(chainAmounts[amount])
       }
+
+      if (availableLiquidity.lt(0)) {
+        availableLiquidity = BigNumber.from(0)
+      }
+
       const tokenDecimals = getTokenDecimals(token)!
       const availableLiquidityFormatted = Number(formatUnits(availableLiquidity, tokenDecimals))
       const totalLiquidityFormatted = Number(formatUnits(totalLiquidity, tokenDecimals))
@@ -620,7 +625,7 @@ export class HealthCheckWatcher {
       const thresholdPercent = parseUnits(this.bonderLowLiquidityThreshold.toString(), tokenDecimals)
       const thresholdAmount = totalLiquidity.mul(thresholdPercent).div(oneToken)
       const thresholdAmountFormatted = Number(formatUnits(thresholdAmount, tokenDecimals))
-      if (availableLiquidity.lt(thresholdAmount)) {
+      if (availableLiquidity.lt(thresholdAmount) && availableLiquidity.gt(0)) {
         result.push({
           bridge: token,
           availableLiquidity: availableLiquidity.toString(),

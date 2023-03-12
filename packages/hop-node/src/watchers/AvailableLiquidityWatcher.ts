@@ -14,9 +14,7 @@ import {
   modifiedLiquidityDestChains,
   modifiedLiquiditySourceChains,
   modifiedLiquidityTokens,
-  modifiedStakeTokens,
-  modifiedStakeChains,
-  modifiedStakeAmount,
+  modifiedLiquidityDecrease,
   oruChains
 } from 'src/config'
 
@@ -122,23 +120,21 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       this.logger.debug(`modifiedLiquidity: currentAvailableCredit - ${availableCredit.toString()}`)
       this.logger.debug(`modifiedLiquidity: currentBaseAvailableCredit - ${baseAvailableCredit.toString()}`)
       this.logger.debug(`modifiedLiquidity: currentAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()}`)
-      availableCredit = BigNumber.from('0')
-      baseAvailableCredit = BigNumber.from('0')
-      baseAvailableCreditIncludingVault = BigNumber.from('0')
+
+      if (modifiedLiquidityDecrease !== '0') {
+        const decreaseAmount = this.bridge.parseUnits(modifiedLiquidityDecrease)
+        availableCredit = availableCredit.sub(decreaseAmount)
+        baseAvailableCredit = baseAvailableCredit.sub(decreaseAmount)
+        baseAvailableCreditIncludingVault = baseAvailableCreditIncludingVault.sub(decreaseAmount)
+      } else {
+        availableCredit = BigNumber.from('0')
+        baseAvailableCredit = BigNumber.from('0')
+        baseAvailableCreditIncludingVault = BigNumber.from('0')
+      }
+
       this.logger.debug(`modifiedLiquidity: updatedAvailableCredit - ${availableCredit.toString()}`)
       this.logger.debug(`modifiedLiquidity: updatedBaseAvailableCredit - ${baseAvailableCredit.toString()}`)
       this.logger.debug(`modifiedLiquidity: updatedAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()}`)
-    }
-
-    if (
-      modifiedStakeTokens.includes(this.tokenSymbol) &&
-      modifiedStakeChains.includes(destinationChain)
-    ) {
-      const modifiedStakeAmountWei = this.bridge.parseUnits(modifiedStakeAmount)
-      this.logger.debug(`modifiedStake: modifiedStakeAmountWei - ${modifiedStakeAmountWei.toString()}`)
-      this.logger.debug(`modifiedStake: currentAvailableCredit - ${availableCredit.toString()}`)
-      availableCredit = availableCredit.sub(modifiedStakeAmountWei)
-      this.logger.debug(`modifiedStake: updatedAvailableCredit - ${availableCredit.toString()}`)
     }
 
     if (availableCredit.lt(0)) {
@@ -426,21 +422,17 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
   }
 
-  private logModifications(): void {
+  private logModifications (): void {
     if (
       modifiedLiquidityDestChains.length > 0 ||
       modifiedLiquiditySourceChains.length > 0 ||
       modifiedLiquidityTokens.length > 0 ||
-      modifiedStakeTokens.length > 0 ||
-      modifiedStakeChains.length > 0 ||
-      modifiedStakeAmount !== '0'
+      modifiedLiquidityDecrease !== '0'
     ) {
-      console.log('modifiedLiquidityDestChains', modifiedLiquidityDestChains)
-      console.log('modifiedLiquiditySourceChains', modifiedLiquiditySourceChains)
-      console.log('modifiedLiquidityTokens', modifiedLiquidityTokens)
-      console.log('modifiedStakeTokens', modifiedStakeTokens)
-      console.log('modifiedStakeChains', modifiedStakeChains)
-      console.log('modifiedStakeAmount', modifiedStakeAmount)
+      this.logger.debug('modifiedLiquidityDestChains', modifiedLiquidityDestChains)
+      this.logger.debug('modifiedLiquiditySourceChains', modifiedLiquiditySourceChains)
+      this.logger.debug('modifiedLiquidityTokens', modifiedLiquidityTokens)
+      this.logger.debug('modifiedLiquidityDecrease', modifiedLiquidityDecrease)
     }
   }
 }

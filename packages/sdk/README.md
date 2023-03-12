@@ -2,7 +2,7 @@
 
 > The Hop Protocol JavaScript SDK
 
-[![Documentation](https://img.shields.io/badge/documentation-available-green.svg?style=flat)](https://docs.hop.exchange/js-sdk/)
+[![Documentation](https://img.shields.io/badge/documentation-available-green.svg?style=flat)](https://docs.hop.exchange/v/developer-docs/js-sdk/js-sdk)
 [![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/@hop-protocol/sdk/master/LICENSE)
 [![dependencies Status](https://david-dm.org/@hop-protocol/sdk/status.svg)](https://david-dm.org/@hop-protocol/sdk)
 [![NPM version](https://badge.fury.io/js/%40hop-protocol%2Fsdk.svg)](https://badge.fury.io/js/%40hop-protocol%2Fsdk)

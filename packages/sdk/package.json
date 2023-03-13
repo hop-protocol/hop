@@ -26,6 +26,7 @@
     "dist-tag:next": "npm dist-tag add \"@hop-protocol/sdk@$(jq -r .version <package.json)\" next",
     "lerna:sync": "lerna-sync-version",
     "release": "npm run clean && npm test && npm run publish:latest",
+    "bump": "npm run clean && npm run build && npm test && npm run version:bump && npm run lerna:sync",
     "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
     "prepare": "npm run lint && npm run build && npm run build:browser",
     "docs": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",

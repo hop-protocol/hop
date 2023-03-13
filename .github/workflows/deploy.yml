@@ -10,6 +10,7 @@ on:
 
 jobs:
   set_environment:
+    name: Set Environment
     if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet')
     outputs:
       env_name: ${{ steps.setenv.outputs.env_name }}
@@ -53,7 +54,7 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   bump_version:
-    name: Bump Version
+    name: Bump Github Release Version
     if: contains(github.ref, 'production')
     runs-on: ubuntu-latest
     outputs:
@@ -73,7 +74,7 @@ jobs:
 
   build:
     if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet')
-    name: Deploy
+    name: Build and Deploy
     runs-on: ubuntu-latest
     needs: [set_environment, call-workflow2]
     outputs:

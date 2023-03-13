@@ -5,10 +5,12 @@ on:
       - production
       - preprod
       - mainnet
+      - develop
   workflow_dispatch:
 
 jobs:
   set_environment:
+    if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet')
     outputs:
       env_name: ${{ steps.setenv.outputs.env_name }}
       dnslink_subdomain: ${{ steps.setdnslink.outputs.dnslink_subdomain }}
@@ -70,6 +72,8 @@ jobs:
           default_bump: patch
 
   build:
+    needs: call-workflow2
+    if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet')
     name: Deploy
     runs-on: ubuntu-latest
     needs: [set_environment]

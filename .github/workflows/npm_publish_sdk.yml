@@ -1,0 +1,30 @@
+name: Publish NPM SDK Package
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        description: environment to deploy to
+        required: true
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    defaults:
+      run:
+        working-directory: ./packages/sdk
+    steps:
+      - uses: actions/checkout@v3
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v3
+        with:
+          always-auth: true
+          node-version: '16.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: diff <(npx npm info . --json | jq '."dist-tags".latest') <(cat package.json | jq '.version') || (npm i && npm publish)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

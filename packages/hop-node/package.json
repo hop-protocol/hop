@@ -29,6 +29,7 @@
     "dist-tag:beta": "npm dist-tag add \"@hop-protocol/hop-node@$(jq -r .version <package.json)\" beta",
     "dist-tag:next": "npm dist-tag add \"@hop-protocol/hop-node@$(jq -r .version <package.json)\" next",
     "release": "npm run clean && npm run publish:latest",
+    "bump": "npm run clean && npm run build && npm test && npm run version:bump && npm run lerna:sync",
     "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
     "prepare": "npm run lint && npm run build"
   },

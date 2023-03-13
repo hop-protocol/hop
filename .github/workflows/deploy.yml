@@ -5,6 +5,7 @@ on:
       - production
       - preprod
       - mainnet
+  workflow_dispatch:
 
 jobs:
   set_environment:
@@ -32,6 +33,22 @@ jobs:
         else
           echo "dnslink_subdomain=_dnslink.${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
         fi
+
+  call-workflow1:
+    name: Publish NPM Core Package If Necessary
+    uses: ./.github/workflows/npm_publish_core.yml
+    with:
+      environment: production
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  call-workflow2:
+    needs: call-workflow1
+    name: Publish NPM SDK Package If Necessary
+    uses: ./.github/workflows/npm_publish_sdk.yml
+    with:
+      environment: production
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   bump_version:
     name: Bump Version
@@ -63,6 +80,7 @@ jobs:
     env:
       ENV_NAME: ${{ needs.set_environment.outputs.env_name }}
       RECORD_NAME: ${{ needs.set_environment.outputs.dnslink_subdomain }}
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     defaults:
       run:
         working-directory: ./packages/frontend

@@ -28,6 +28,6 @@ jobs:
       - name: Check version and publish if necessary
         id: check_version_publish
         run: |
-          diff <(npx npm info . --json | jq '."dist-tags".latest') <(cat package.json | jq '.version') || (npm i && npm publish)
+          diff <(npx npm info . --json | jq '."dist-tags".latest') <(cat package.json | jq '.version') || (npm i --legacy-peer-deps && npm publish)
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

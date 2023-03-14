@@ -5,8 +5,8 @@ import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/static
 import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/static/ArbitrumGlobalInbox__factory'
 import { Chain } from './models'
 import { Contract, Signer, ethers } from 'ethers'
-import { L1OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L1OptimismTokenBridge__factory'
 import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/static/L1_HomeAMBNativeToErc20__factory'
+import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_OptimismTokenBridge__factory'
 import { L1_PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/static/L1_PolygonPosRootChainManager__factory'
 import { L1_xDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_xDaiForeignOmniBridge__factory'
 import { L2_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L2_OptimismTokenBridge__factory'
@@ -200,7 +200,7 @@ class CanonicalBridge extends Base {
         )
       }
       const bridge = await this.getContract(
-        L1OptimismTokenBridge__factory,
+        L1_OptimismTokenBridge__factory,
         bridgeAddress,
         provider
       )
@@ -540,7 +540,7 @@ class CanonicalBridge extends Base {
     } else if (this.chain.equals(Chain.Nova)) {
       factory = ArbitrumGlobalInbox__factory
     } else if (this.chain.equals(Chain.Optimism)) {
-      factory = L1OptimismTokenBridge__factory
+      factory = L1_OptimismTokenBridge__factory
     }
     return this.getContract(factory, address, provider)
   }

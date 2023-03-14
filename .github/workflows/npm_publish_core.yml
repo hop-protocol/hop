@@ -1,4 +1,4 @@
-name: Publish NPM Core Package
+name: Publish NPM Core Package If Necessary
 on:
   workflow_call:
     inputs:
@@ -25,6 +25,9 @@ jobs:
           always-auth: true
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: diff <(npx npm info . --json | jq '."dist-tags".latest') <(cat package.json | jq '.version') || (npm i && npm publish)
+      - name: Check version and publish if necessary
+        id: check_version_publish
+        run: |
+          diff <(npx npm info . --json | jq '."dist-tags".latest') <(cat package.json | jq '.version') || (npm i && npm publish)
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

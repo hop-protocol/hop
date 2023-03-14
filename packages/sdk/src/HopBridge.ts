@@ -1043,6 +1043,9 @@ class HopBridge extends Base {
 
     // Include the cost to settle an individual transfer
     const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[destinationChain.slug]
+    if (!settlementGasLimitPerTx) {
+      throw new Error(`settlementGasLimitPerTx not found for chain "${destinationChain.slug}"`)
+    }
     const bondTransferGasLimitWithSettlement = bondTransferGasLimit.add(settlementGasLimitPerTx)
 
     let txFeeEth: BigNumber

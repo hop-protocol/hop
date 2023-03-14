@@ -1,4 +1,3 @@
-import fetch from 'isomorphic-fetch'
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
 import { ArbERC20 } from '@hop-protocol/core/contracts/ArbERC20'
@@ -23,6 +22,7 @@ import { L2XDaiToken__factory } from '@hop-protocol/core/contracts/factories/L2X
 import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
+import { fetchJsonOrThrow } from './utils/fetchJsonOrThrow'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getProviderFromUrl } from './utils/getProviderFromUrl'
 import { getUrlFromProvider } from './utils/getUrlFromProvider'
@@ -98,8 +98,12 @@ const getContract = async (
 
 // TODO: keep track of options configured and pass properties to child instances,
 // so we don't have to use global vars here.
+// The downside is having to convert individual constructor parameters to be
+// a single input object which would be a breaking change.
 let globalConfigFileFetchEnabled = true
 let globalBaseConfigUrl = 'https://assets.hop.exchange'
+let globalCustomCoreConfigJsonUrl = '' // should be blank
+let globalCustomAvailableLiquidityJsonUrl = '' // should be blank
 
 /**
  * Class with base methods.
@@ -125,6 +129,9 @@ class Base {
   baseExplorerUrl: string = 'https://explorer.hop.exchange'
   baseConfigUrl: string = globalBaseConfigUrl
   configFileFetchEnabled : boolean = globalConfigFileFetchEnabled
+
+  customCoreConfigJsonUrl: string = globalCustomCoreConfigJsonUrl
+  customAvailableLiquidityJsonUrl: string = globalCustomAvailableLiquidityJsonUrl
 
   /**
    * @desc Instantiates Base class.
@@ -174,7 +181,8 @@ class Base {
     try {
       await this.fetchConfigFromS3()
     } catch (err) {
-      console.error('sdk init error:', err)
+      console.error('hop sdk init error:', err)
+      throw new Error(`hop sdk init error: ${err.message}`)
     }
   }
 
@@ -189,7 +197,7 @@ class Base {
         cached = null
       }
 
-      const data = cached || await this.getS3ConfigData()
+      const data = cached || await this.fetchCoreConfigData()
       if (data) {
         if (data.bonders) {
           this.bonders = data.bonders
@@ -211,7 +219,8 @@ class Base {
       }
       return data
     } catch (err: any) {
-      console.error('fetchConfigFromS3 error:', err)
+      console.error('hop sdk fetchConfigFromS3 error:', err)
+      throw new Error(`hop sdk fetchConfigFromS3 error: ${err.message}`)
     }
   }
 
@@ -643,12 +652,16 @@ class Base {
     return BigNumber.from(0)
   }
 
-  setBaseConfigUrl (url: string) {
+  async setBaseConfigUrl (url: string) {
     if (!url) {
       throw new Error('url is required')
     }
     this.baseConfigUrl = url?.replace(/\/$/, '')
     globalBaseConfigUrl = this.baseConfigUrl
+
+    // attempt to fetch or throw
+    await this.fetchCoreConfigData()
+    await this.fetchBonderAvailableLiquidityData()
   }
 
   setConfigFileFetchEnabled (enabled: boolean) {
@@ -656,24 +669,61 @@ class Base {
     globalConfigFileFetchEnabled = this.configFileFetchEnabled
   }
 
-  async getS3ConfigData () {
-    let signal : any
-    if (typeof AbortController !== 'undefined') {
-      const controller = new AbortController()
-      const timeoutMs = 5 * 1000
-      setTimeout(() => controller.abort(), timeoutMs)
-      signal = controller.signal
-    }
+  async fetchCoreConfigData () {
     const cacheBust = Date.now()
-    const url = `${this.baseConfigUrl}/${this.network}/v1-core-config.json?cb=${cacheBust}`
-    const res = await fetch(url, {
-      signal
-    })
-    const json = await res.json()
-    if (!json) {
-      throw new Error('expected json object')
+    const url = `${this.coreConfigJsonUrl}?cb=${cacheBust}`
+    return fetchJsonOrThrow(url)
+  }
+
+  async getS3ConfigData () {
+    console.warn('The method "getS3ConfigData" method is going to be deprecated. Please use method "fetchCoreConfigData" instead.')
+    return this.fetchCoreConfigData()
+  }
+
+  async setCoreConfigJsonUrl (url: string) {
+    this.customCoreConfigJsonUrl = url
+    globalCustomCoreConfigJsonUrl = this.customCoreConfigJsonUrl
+
+    // attempt to fetch or throw
+    await this.fetchCoreConfigData()
+  }
+
+  get coreConfigJsonUrl () {
+    if (this.customCoreConfigJsonUrl) {
+      return this.customCoreConfigJsonUrl
     }
-    return json
+    const url = `${this.baseConfigUrl}/${this.network}/v1-core-config.json`
+    return url
+  }
+
+  async fetchBonderAvailableLiquidityData () {
+    const cacheBust = Date.now()
+    const url = `${this.availableLiqudityJsonUrl}?cb=${cacheBust}`
+    const json = await fetchJsonOrThrow(url)
+    const { timestamp, data } = json
+    const tenMinutes = 10 * 60 * 1000
+    const isOutdated = Date.now() - timestamp > tenMinutes
+    if (isOutdated) {
+      return
+    }
+
+    return data
+  }
+
+  async setAvailableLiqudityJsonUrl (url: string) {
+    this.customAvailableLiquidityJsonUrl = url
+    globalCustomAvailableLiquidityJsonUrl = this.customAvailableLiquidityJsonUrl
+
+    // attempt to fetch or throw
+    await this.fetchBonderAvailableLiquidityData()
+  }
+
+  get availableLiqudityJsonUrl () {
+    if (this.customAvailableLiquidityJsonUrl) {
+      return this.customAvailableLiquidityJsonUrl
+    }
+    const url = `${this.baseConfigUrl}/${this.network}/v1-available-liquidity.json`
+    return url
   }
 
   public getContract = getContract
@@ -762,11 +812,7 @@ class Base {
   async getTransferStatus (transferIdOrTxHash: String):Promise<any> {
     const baseApiUrl = this.network === 'goerli' ? 'https://goerli-explorer-api.hop.exchange' : 'https://explorer-api.hop.exchange'
     const url = `${baseApiUrl}/v1/transfers?transferId=${transferIdOrTxHash}`
-    const res = await fetch(url)
-    const json = await res.json()
-    if (json.error) {
-      throw new Error(json.error)
-    }
+    const json = await fetchJsonOrThrow(url)
     return json.data?.[0] ?? null
   }
 

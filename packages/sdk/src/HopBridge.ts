@@ -3,8 +3,6 @@ import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
 import Token from './Token'
 import TokenModel from './models/Token'
-import fetch from 'isomorphic-fetch'
-
 import { L1ERC20Bridge__factory } from '@hop-protocol/core/contracts/factories/L1ERC20Bridge__factory'
 import { L1HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/L1HomeAMBNativeToErc20__factory'
 import { L2AmmWrapper__factory } from '@hop-protocol/core/contracts/factories/L2AmmWrapper__factory'
@@ -1045,6 +1043,9 @@ class HopBridge extends Base {
 
     // Include the cost to settle an individual transfer
     const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[destinationChain.slug]
+    if (!settlementGasLimitPerTx) {
+      throw new Error(`settlementGasLimitPerTx not found for chain "${destinationChain.slug}"`)
+    }
     const bondTransferGasLimitWithSettlement = bondTransferGasLimit.add(settlementGasLimitPerTx)
 
     let txFeeEth: BigNumber
@@ -1393,24 +1394,6 @@ class HopBridge extends Base {
     const data = await this.fetchBonderAvailableLiquidityData()
     s3FileCache[this.network] = data
     s3FileCacheTimestamp = Date.now()
-    return data
-  }
-
-  async fetchBonderAvailableLiquidityData () {
-    const cacheBust = Date.now()
-    const url = `${this.baseConfigUrl}/${this.network}/v1-available-liquidity.json?cb=${cacheBust}`
-    const res = await fetch(url)
-    const json = await res.json()
-    if (!json) {
-      throw new Error('expected json object')
-    }
-    const { timestamp, data } = json
-    const tenMinutes = 10 * 60 * 1000
-    const isOutdated = Date.now() - timestamp > tenMinutes
-    if (isOutdated) {
-      return
-    }
-
     return data
   }
 

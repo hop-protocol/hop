@@ -3,11 +3,11 @@ import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
 import Token from './Token'
 import TokenModel from './models/Token'
-import { L1ERC20Bridge__factory } from '@hop-protocol/core/contracts/factories/L1ERC20Bridge__factory'
-import { L1HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/L1HomeAMBNativeToErc20__factory'
-import { L2AmmWrapper__factory } from '@hop-protocol/core/contracts/factories/L2AmmWrapper__factory'
-import { L2Bridge } from '@hop-protocol/core/contracts/L2Bridge'
-import { L2Bridge__factory } from '@hop-protocol/core/contracts/factories/L2Bridge__factory'
+import { L1_ERC20_Bridge__factory } from '@hop-protocol/core/contracts/factories/generated/L1_ERC20_Bridge__factory'
+import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/static/L1_HomeAMBNativeToErc20__factory'
+import { L2_AmmWrapper__factory } from '@hop-protocol/core/contracts/factories/generated/L2_AmmWrapper__factory'
+import { L2_Bridge } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L2_Bridge__factory } from '@hop-protocol/core/contracts/factories/generated/L2_Bridge__factory'
 
 import { ApiKeys, PriceFeed } from './priceFeed'
 import {
@@ -698,7 +698,7 @@ class HopBridge extends Base {
 
           if (hopL1BridgeWrapperAddress) {
             const provider = await this.getSignerOrProvider(sourceChain, this.signer)
-            const l1BridgeWrapper = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
+            const l1BridgeWrapper = L1_ERC20_Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
             const relayFee = await this.getConsenSysZkRelayFee(sourceChain, destinationChain)
             value = BigNumber.from(value || 0).add(relayFee)
 
@@ -713,7 +713,7 @@ class HopBridge extends Base {
             hopL1BridgeWrapperAddress = '' // TODO
           }
           const provider = await this.getSignerOrProvider(sourceChain, this.signer)
-          const l1BridgeWrapper = L1ERC20Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
+          const l1BridgeWrapper = L1_ERC20_Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
           const relayFee = await this.getScrollZkRelayFee(sourceChain, destinationChain)
           value = BigNumber.from(value || 0).add(relayFee)
 
@@ -1204,7 +1204,7 @@ class HopBridge extends Base {
           from: bonder
         }
       ] as const
-      return (destinationBridge as L2Bridge).populateTransaction.bondWithdrawalAndDistribute(
+      return (destinationBridge as L2_Bridge).populateTransaction.bondWithdrawalAndDistribute(
         ...payload
       )
     } else {
@@ -1589,7 +1589,7 @@ class HopBridge extends Base {
       throw new Error(`token "${this.tokenSymbol}" is unsupported`)
     }
     const provider = await this.getSignerOrProvider(Chain.Ethereum, signer)
-    return L1ERC20Bridge__factory.connect(bridgeAddress, provider)
+    return L1_ERC20_Bridge__factory.connect(bridgeAddress, provider)
   }
 
   /**
@@ -1607,7 +1607,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return L2Bridge__factory.connect(bridgeAddress, provider)
+    return L2_Bridge__factory.connect(bridgeAddress, provider)
   }
 
   // ToDo: Docs
@@ -1638,7 +1638,7 @@ class HopBridge extends Base {
       )
     }
     const provider = await this.getSignerOrProvider(chain, signer)
-    return L2AmmWrapper__factory.connect(ammWrapperAddress, provider)
+    return L2_AmmWrapper__factory.connect(ammWrapperAddress, provider)
   }
 
   /**
@@ -2339,11 +2339,11 @@ class HopBridge extends Base {
     if (chain.equals(Chain.Ethereum)) {
       const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
       const provider = await this.getSignerOrProvider(Chain.Ethereum)
-      return L1HomeAMBNativeToErc20__factory.connect(address, provider)
+      return L1_HomeAMBNativeToErc20__factory.connect(address, provider)
     }
     const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
     const provider = await this.getSignerOrProvider(Chain.Gnosis)
-    return L1HomeAMBNativeToErc20__factory.connect(address, provider)
+    return L1_HomeAMBNativeToErc20__factory.connect(address, provider)
   }
 
   getChainNativeToken (chain: TChain) {

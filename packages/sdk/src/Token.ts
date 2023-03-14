@@ -2,10 +2,10 @@ import Base, { ChainProviders } from './Base'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
-import { ERC20__factory } from '@hop-protocol/core/contracts/factories/ERC20__factory'
+import { ERC20__factory } from '@hop-protocol/core/contracts/factories/generated/ERC20__factory'
 import { TAmount, TChain } from './types'
 import { TokenSymbol, WrappedToken } from './constants'
-import { WETH9__factory } from '@hop-protocol/core/contracts/factories/WETH9__factory'
+import { WETH9__factory } from '@hop-protocol/core/contracts/factories/static/WETH9__factory'
 
 /**
  * Class reprensenting ERC20 Token

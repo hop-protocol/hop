@@ -1,17 +1,17 @@
 import Base, { ChainProviders, L1Factory, L2Factory } from './Base'
 import Token from './models/Token'
 import TokenClass from './Token'
-import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/ArbERC20__factory'
-import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/ArbitrumGlobalInbox__factory'
+import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/static/ArbERC20__factory'
+import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/static/ArbitrumGlobalInbox__factory'
 import { Chain } from './models'
 import { Contract, Signer, ethers } from 'ethers'
-import { L1HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/L1HomeAMBNativeToErc20__factory'
 import { L1OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L1OptimismTokenBridge__factory'
-import { L1PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/L1PolygonPosRootChainManager__factory'
-import { L1XDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/L1XDaiForeignOmniBridge__factory'
-import { L2OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L2OptimismTokenBridge__factory'
-import { L2PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/L2PolygonChildERC20__factory'
-import { L2XDaiToken__factory } from '@hop-protocol/core/contracts/factories/L2XDaiToken__factory'
+import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/static/L1_HomeAMBNativeToErc20__factory'
+import { L1_PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/static/L1_PolygonPosRootChainManager__factory'
+import { L1_xDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_xDaiForeignOmniBridge__factory'
+import { L2_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L2_OptimismTokenBridge__factory'
+import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/static/L2_PolygonChildERC20__factory'
+import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts/factories/static/L2_xDaiToken__factory'
 import { TAmount, TChain, TProvider, TToken } from './types'
 import { TokenSymbol } from './constants'
 import { formatUnits } from 'ethers/lib/utils'
@@ -180,7 +180,7 @@ class CanonicalBridge extends Base {
 
     if ((chain as Chain).equals(Chain.Gnosis)) {
       const bridge = await this.getContract(
-        L1XDaiForeignOmniBridge__factory,
+        L1_xDaiForeignOmniBridge__factory,
         bridgeAddress,
         provider
       )
@@ -245,7 +245,7 @@ class CanonicalBridge extends Base {
         )
       }
       const bridge = await this.getContract(
-        L1PolygonPosRootChainManager__factory,
+        L1_PolygonPosRootChainManager__factory,
         bridgeAddress,
         provider
       )
@@ -328,7 +328,7 @@ class CanonicalBridge extends Base {
         )
       }
       const bridge = await this.getContract(
-        L2XDaiToken__factory,
+        L2_xDaiToken__factory,
         tokenAddress,
         provider
       )
@@ -365,7 +365,7 @@ class CanonicalBridge extends Base {
         )
       }
       const bridge = await this.getContract(
-        L2OptimismTokenBridge__factory,
+        L2_OptimismTokenBridge__factory,
         bridgeAddress,
         provider
       )
@@ -409,7 +409,7 @@ class CanonicalBridge extends Base {
           `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
         )
       }
-      const token = L2PolygonChildERC20__factory.connect(tokenAddress, provider)
+      const token = L2_PolygonChildERC20__factory.connect(tokenAddress, provider)
       return token.withdraw(amount)
     } else {
       throw new Error('not implemented')
@@ -486,11 +486,11 @@ class CanonicalBridge extends Base {
     if (chain.equals(Chain.Ethereum)) {
       const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
       const provider = await this.getSignerOrProvider(Chain.Ethereum)
-      return this.getContract(L1HomeAMBNativeToErc20__factory, address, provider)
+      return this.getContract(L1_HomeAMBNativeToErc20__factory, address, provider)
     }
     const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
     const provider = await this.getSignerOrProvider(Chain.Gnosis)
-    return this.getContract(L1HomeAMBNativeToErc20__factory, address, provider)
+    return this.getContract(L1_HomeAMBNativeToErc20__factory, address, provider)
   }
 
   async getL2CanonicalBridge () {
@@ -506,15 +506,15 @@ class CanonicalBridge extends Base {
     const provider = await this.getSignerOrProvider(this.chain)
     let factory: L2Factory
     if (this.chain.equals(Chain.Polygon)) {
-      factory = L2PolygonChildERC20__factory
+      factory = L2_PolygonChildERC20__factory
     } else if (this.chain.equals(Chain.Gnosis)) {
-      factory = L2XDaiToken__factory
+      factory = L2_xDaiToken__factory
     } else if (this.chain.equals(Chain.Arbitrum)) {
       factory = ArbERC20__factory
     } else if (this.chain.equals(Chain.Nova)) {
       factory = ArbERC20__factory
     } else if (this.chain.equals(Chain.Optimism)) {
-      factory = L2OptimismTokenBridge__factory
+      factory = L2_OptimismTokenBridge__factory
     }
     return this.getContract(factory, address, provider)
   }
@@ -532,9 +532,9 @@ class CanonicalBridge extends Base {
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
     let factory: L1Factory
     if (this.chain.equals(Chain.Polygon)) {
-      factory = L1PolygonPosRootChainManager__factory
+      factory = L1_PolygonPosRootChainManager__factory
     } else if (this.chain.equals(Chain.Gnosis)) {
-      factory = L1XDaiForeignOmniBridge__factory
+      factory = L1_xDaiForeignOmniBridge__factory
     } else if (this.chain.equals(Chain.Arbitrum)) {
       factory = ArbitrumGlobalInbox__factory
     } else if (this.chain.equals(Chain.Nova)) {

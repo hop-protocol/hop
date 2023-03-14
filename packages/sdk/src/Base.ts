@@ -1,24 +1,24 @@
 import memoize from 'fast-memoize'
 import { Addresses } from '@hop-protocol/core/addresses'
-import { ArbERC20 } from '@hop-protocol/core/contracts/ArbERC20'
-import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/ArbERC20__factory'
-import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/ArbitrumGlobalInbox'
-import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/ArbitrumGlobalInbox__factory'
+import { ArbERC20 } from '@hop-protocol/core/contracts/static/ArbERC20'
+import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/static/ArbERC20__factory'
+import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/static/ArbitrumGlobalInbox'
+import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/static/ArbitrumGlobalInbox__factory'
 import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
 import { ChainSlug, Errors, MinPolygonGasLimit, MinPolygonGasPrice, NetworkSlug } from './constants'
-import { L1OptimismTokenBridge } from '@hop-protocol/core/contracts/L1OptimismTokenBridge'
-import { L1OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L1OptimismTokenBridge__factory'
-import { L1PolygonPosRootChainManager } from '@hop-protocol/core/contracts/L1PolygonPosRootChainManager'
-import { L1PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/L1PolygonPosRootChainManager__factory'
-import { L1XDaiForeignOmniBridge } from '@hop-protocol/core/contracts/L1XDaiForeignOmniBridge'
-import { L1XDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/L1XDaiForeignOmniBridge__factory'
-import { L2OptimismTokenBridge } from '@hop-protocol/core/contracts/L2OptimismTokenBridge'
-import { L2OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L2OptimismTokenBridge__factory'
-import { L2PolygonChildERC20 } from '@hop-protocol/core/contracts/L2PolygonChildERC20'
-import { L2PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/L2PolygonChildERC20__factory'
-import { L2XDaiToken } from '@hop-protocol/core/contracts/L2XDaiToken'
-import { L2XDaiToken__factory } from '@hop-protocol/core/contracts/factories/L2XDaiToken__factory'
+import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts/static/L1_OptimismTokenBridge'
+import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_OptimismTokenBridge__factory'
+import { L1_PolygonPosRootChainManager } from '@hop-protocol/core/contracts/static/L1_PolygonPosRootChainManager'
+import { L1_PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/static/L1_PolygonPosRootChainManager__factory'
+import { L1_xDaiForeignOmniBridge } from '@hop-protocol/core/contracts/static/L1_xDaiForeignOmniBridge'
+import { L1_xDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_xDaiForeignOmniBridge__factory'
+import { L2_OptimismTokenBridge } from '@hop-protocol/core/contracts/static/L2_OptimismTokenBridge'
+import { L2_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L2_OptimismTokenBridge__factory'
+import { L2_PolygonChildERC20 } from '@hop-protocol/core/contracts/static/L2_PolygonChildERC20'
+import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/static/L2_PolygonChildERC20__factory'
+import { L2_xDaiToken } from '@hop-protocol/core/contracts/static/L2_xDaiToken'
+import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts/factories/static/L2_xDaiToken__factory'
 import { RelayerFee } from './relayerFee'
 import { TChain, TProvider, TToken } from './types'
 import { config, metadata } from './config'
@@ -28,11 +28,11 @@ import { getProviderFromUrl } from './utils/getProviderFromUrl'
 import { getUrlFromProvider } from './utils/getUrlFromProvider'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
 
-export type L1Factory = L1PolygonPosRootChainManager__factory | L1XDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1OptimismTokenBridge__factory
-export type L1Contract = L1PolygonPosRootChainManager | L1XDaiForeignOmniBridge | ArbitrumGlobalInbox | L1OptimismTokenBridge
+export type L1Factory = L1_PolygonPosRootChainManager__factory | L1_xDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1_OptimismTokenBridge__factory
+export type L1Contract = L1_PolygonPosRootChainManager | L1_xDaiForeignOmniBridge | ArbitrumGlobalInbox | L1_OptimismTokenBridge
 
-export type L2Factory = L2PolygonChildERC20__factory | L2XDaiToken__factory | ArbERC20__factory | L2OptimismTokenBridge__factory
-export type L2Contract = L2PolygonChildERC20 | L2XDaiToken | ArbERC20 | L2OptimismTokenBridge
+export type L2Factory = L2_PolygonChildERC20__factory | L2_xDaiToken__factory | ArbERC20__factory | L2_OptimismTokenBridge__factory
+export type L2Contract = L2_PolygonChildERC20 | L2_xDaiToken | ArbERC20 | L2_OptimismTokenBridge
 
 type Factory = L1Factory | L2Factory
 

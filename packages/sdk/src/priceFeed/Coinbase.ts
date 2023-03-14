@@ -1,4 +1,4 @@
-import fetch from 'isomorphic-fetch'
+import { fetchJsonOrThrow } from '../utils/fetchJsonOrThrow'
 
 class Coinbase {
   private readonly _baseUrl: string = 'https://api.pro.coinbase.com'
@@ -9,8 +9,7 @@ class Coinbase {
       return 1
     }
     const url = `${this._baseUrl}/products/${symbol}-${base}/ticker`
-    const res = await fetch(url)
-    const json = await res.json()
+    const json = await fetchJsonOrThrow(url)
     const value = json.price
     if (!value) {
       throw new Error('coinbase: invalid price response')

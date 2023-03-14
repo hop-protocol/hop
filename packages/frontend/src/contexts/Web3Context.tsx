@@ -44,17 +44,19 @@ const networkNames: any = {
   5: 'Goerli',
   42: 'Kovan',
   42161: 'Arbitrum',
-  421611: 'Arbitrum',
+  421613: 'Arbitrum (Goerli)',
+  421611: 'Arbitrum (Rinkeby)',
   42170: 'Nova',
   10: 'Optimism',
-  69: 'Optimism',
-  420: 'Optimism',
-  77: 'Gnosis',
+  69: 'Optimism (Kovan)',
+  420: 'Optimism (Goerli)',
+  77: 'Gnosis (Testnet)',
   100: 'Gnosis',
   80001: 'Polygon (Mumbai)',
   137: 'Polygon',
   59140: 'ConsenSys zkEVM (Goerli)',
-  84531: 'Base (Goerli)'
+  84531: 'Base (Goerli)',
+  534354: 'Scroll zkEVM (Goerli)'
 }
 
 const getWalletConnectRpcUrls = (): Record<string, string> => {

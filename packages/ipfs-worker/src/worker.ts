@@ -17,7 +17,7 @@ type Options = {
 }
 
 class Worker {
-  pollIntervalMs: number = 60 * 60 * 1000
+  pollIntervalMs: number = 10 * 60 * 1000
   ipfsUpload: IpfsUpload
   cloudflare: Cloudflare
 

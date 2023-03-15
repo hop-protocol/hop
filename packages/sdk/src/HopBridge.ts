@@ -1391,7 +1391,7 @@ class HopBridge extends Base {
     if (cached && !isExpired) {
       return cached
     }
-    const data = await this.fetchBonderAvailableLiquidityData()
+    const data = await this.fetchBonderAvailableLiquidityDataWithIpfsFallback()
     s3FileCache[this.network] = data
     s3FileCacheTimestamp = Date.now()
     return data

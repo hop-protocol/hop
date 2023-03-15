@@ -1093,3 +1093,45 @@ describe('sdk config file fetching', () => {
     await hop.setAvailableLiqudityJsonUrl('')
   })
 })
+
+describe('ipfs', () => {
+  it('resolveDnslink', async () => {
+    const hop = new Hop('mainnet')
+    const dnslinkDomain = '_dnslink.ipfs-assets.hop.exchange'
+    const ipfsHash = await hop.resolveDnslink(dnslinkDomain)
+    console.log(ipfsHash)
+    expect(ipfsHash).toBeTruthy()
+  })
+
+  it('fetchIpfsCoreConfigData', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchIpfsCoreConfigData()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.bonders).toBeTruthy()
+  })
+
+  it('fetchIpfsBonderAvailableLiquidity', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchIpfsBonderAvailableLiquidityData()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.ETH).toBeTruthy()
+  })
+
+  it('fetchCoreConfigDataWithIpfsFallback', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchCoreConfigDataWithIpfsFallback()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.bonders).toBeTruthy()
+  })
+
+  it('fetchBonderAvailableLiquidityDataWithIpfsFallback', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchBonderAvailableLiquidityDataWithIpfsFallback()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.ETH).toBeTruthy()
+  })
+})

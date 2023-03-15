@@ -27,6 +27,7 @@ import { getContractFactory, predeploys } from '@eth-optimism/contracts'
 import { getProviderFromUrl } from './utils/getProviderFromUrl'
 import { getUrlFromProvider } from './utils/getUrlFromProvider'
 import { parseEther, serializeTransaction } from 'ethers/lib/utils'
+import { promiseTimeout } from './utils/promiseTimeout'
 
 export type L1Factory = L1_PolygonPosRootChainManager__factory | L1_xDaiForeignOmniBridge__factory | ArbitrumGlobalInbox__factory | L1_OptimismTokenBridge__factory
 export type L1Contract = L1_PolygonPosRootChainManager | L1_xDaiForeignOmniBridge | ArbitrumGlobalInbox | L1_OptimismTokenBridge
@@ -96,12 +97,14 @@ const getContract = async (
   return getContractMemo(factory, address, cacheKey)(provider)
 }
 
+const defaultBaseConfigUrl = 'https://assets.hop.exchange'
+
 // TODO: keep track of options configured and pass properties to child instances,
 // so we don't have to use global vars here.
 // The downside is having to convert individual constructor parameters to be
 // a single input object which would be a breaking change.
 let globalConfigFileFetchEnabled = true
-let globalBaseConfigUrl = 'https://assets.hop.exchange'
+let globalBaseConfigUrl = defaultBaseConfigUrl
 let globalCustomCoreConfigJsonUrl = '' // should be blank
 let globalCustomAvailableLiquidityJsonUrl = '' // should be blank
 
@@ -197,7 +200,7 @@ class Base {
         cached = null
       }
 
-      const data = cached || await this.fetchCoreConfigData()
+      const data = cached || await this.fetchCoreConfigDataWithIpfsFallback()
       if (data) {
         if (data.bonders) {
           this.bonders = data.bonders
@@ -675,6 +678,18 @@ class Base {
     return fetchJsonOrThrow(url)
   }
 
+  async fetchCoreConfigDataWithIpfsFallback () {
+    try {
+      return await this.fetchCoreConfigData()
+    } catch (err: any) {
+      if (this.baseConfigUrl === defaultBaseConfigUrl) {
+        return await this.fetchIpfsCoreConfigData()
+      } else {
+        throw err
+      }
+    }
+  }
+
   async getS3ConfigData () {
     console.warn('The method "getS3ConfigData" method is going to be deprecated. Please use method "fetchCoreConfigData" instead.')
     return this.fetchCoreConfigData()
@@ -708,6 +723,18 @@ class Base {
     }
 
     return data
+  }
+
+  async fetchBonderAvailableLiquidityDataWithIpfsFallback () {
+    try {
+      return await this.fetchBonderAvailableLiquidityData()
+    } catch (err: any) {
+      if (this.baseConfigUrl === defaultBaseConfigUrl) {
+        return await this.fetchIpfsBonderAvailableLiquidityData()
+      } else {
+        throw err
+      }
+    }
   }
 
   async setAvailableLiqudityJsonUrl (url: string) {
@@ -818,6 +845,68 @@ class Base {
 
   getProviderRpcUrl (provider: any) {
     return getUrlFromProvider(provider)
+  }
+
+  async resolveDnslink (dnslinkDomain: string): Promise<string|null> {
+    let dns : any
+
+    try {
+      dns = require('dns')
+    } catch (err: any) {
+      return null
+    }
+
+    try {
+      const timeoutMs = 5 * 10000
+      const ipfsHash = await promiseTimeout(new Promise((resolve, reject) => {
+        dns.resolveTxt(dnslinkDomain, (err: any, records: any) => {
+          if (err) {
+            reject(err)
+            return
+          }
+          resolve(records?.[0]?.[0]?.split('ipfs/')?.[1])
+        })
+      }), timeoutMs)
+      if (!ipfsHash) {
+        return null
+      }
+      return ipfsHash as string
+    } catch (err: any) {
+      throw new Error(`resolveDnslink error: ${err.message}`)
+    }
+  }
+
+  getIpfsBaseConfigUrl (ipfsHash: string) {
+    const url = `https://hop.mypinata.cloud/ipfs/${ipfsHash}/sdk/${this.network}`
+    return url
+  }
+
+  async fetchIpfsCoreConfigData () {
+    const dnslinkDomain = '_dnslink.ipfs-assets.hop.exchange'
+    const ipfsHash = await this.resolveDnslink(dnslinkDomain)
+    if (!ipfsHash) {
+      return null
+    }
+    const url = `${this.getIpfsBaseConfigUrl(ipfsHash)}/v1-core-config.json`
+    const json = await fetchJsonOrThrow(url)
+    return json
+  }
+
+  async fetchIpfsBonderAvailableLiquidityData () {
+    const dnslinkDomain = '_dnslink.ipfs-assets.hop.exchange'
+    const ipfsHash = await this.resolveDnslink(dnslinkDomain)
+    if (!ipfsHash) {
+      return null
+    }
+    const url = `${this.getIpfsBaseConfigUrl(ipfsHash)}/v1-available-liquidity.json`
+    const json = await fetchJsonOrThrow(url)
+    const { timestamp, data } = json
+    const tenMinutes = 10 * 60 * 1000
+    const isOutdated = Date.now() - timestamp > tenMinutes
+    if (isOutdated) {
+      return
+    }
+    return data
   }
 }
 

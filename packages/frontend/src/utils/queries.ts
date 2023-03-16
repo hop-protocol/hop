@@ -34,6 +34,12 @@ export function getUrl(chain: Slug | string) {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
     if (chain === 'consensyszk') {
+      return 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
+    }
+    if (chain === 'scrollzk') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
+    if (chain === 'base') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
 

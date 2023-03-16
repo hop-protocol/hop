@@ -29,6 +29,7 @@
     "dist-tag:beta": "npm dist-tag add \"@hop-protocol/hop-node@$(jq -r .version <package.json)\" beta",
     "dist-tag:next": "npm dist-tag add \"@hop-protocol/hop-node@$(jq -r .version <package.json)\" next",
     "release": "npm run clean && npm run publish:latest",
+    "bump": "npm run clean && npm run build && npm test && npm run version:bump && npm run lerna:sync",
     "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
     "prepare": "npm run lint && npm run build"
   },
@@ -47,8 +48,8 @@
     "@eth-optimism/watcher": "0.0.1-alpha.9",
     "@ethersproject/hdnode": "5.0.9",
     "@fxportal/maticjs-fxportal": "1.1.1",
-    "@hop-protocol/core": "0.0.1-beta.118",
-    "@hop-protocol/sdk": "0.0.1-beta.427",
+    "@hop-protocol/core": "0.0.1-beta.122",
+    "@hop-protocol/sdk": "0.0.1-beta.434",
     "@maticnetwork/maticjs": "3.2.0",
     "@maticnetwork/maticjs-ethers": "1.0.2",
     "@slack/web-api": "6.7.2",

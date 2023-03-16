@@ -1,4 +1,5 @@
 import ArbitrumBridgeWatcher from 'src/watchers/ArbitrumBridgeWatcher'
+import BaseZkBridgeWatcher from 'src/watchers/BaseZkBridgeWatcher'
 import GnosisBridgeWatcher from 'src/watchers/GnosisBridgeWatcher'
 import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
@@ -8,7 +9,7 @@ import { actionHandler, parseBool, parseInputFileList, parseString, parseStringA
 import { getConfirmRootsWatcher } from 'src/watchers/watchers'
 
 // Nova and Arbitrum One both use the same Arbitrum Bridge Watcher
-type ExitWatcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
+type ExitWatcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher
 
 root
   .command('confirm-root')

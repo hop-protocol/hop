@@ -3,7 +3,17 @@ import { toTokenDisplay, toUsdDisplay } from 'src/utils'
 import { useMemo } from 'react'
 import { useTokenPrice } from 'src/hooks/useTokenPrice'
 
-export function getConvertedFees(destinationTxFee?: BigNumber, bonderFee?: BigNumber, estimatedReceived?: BigNumber, destToken?: any, tokenUsdPrice?: number) {
+type Input = {
+  destinationTxFee?: BigNumber
+  bonderFee?: BigNumber
+  estimatedReceived?: BigNumber,
+  destToken?: any
+  relayFee?: BigNumber
+  tokenUsdPrice?: number
+}
+
+export function getConvertedFees(input: Input) {
+  const { destinationTxFee, bonderFee, estimatedReceived, destToken, tokenUsdPrice, relayFee } = input
   const tokenSymbol = destToken?.symbol
   const tokenDecimals = destToken?.decimals
 
@@ -37,6 +47,14 @@ export function getConvertedFees(destinationTxFee?: BigNumber, bonderFee?: BigNu
 
   const estimatedReceivedUsdDisplay = toUsdDisplay(estimatedReceived, tokenDecimals, tokenUsdPrice)
 
+  const relayFeeEthDisplay = relayFee?.gt(0) ? toTokenDisplay(
+    relayFee,
+    18,
+    'ETH'
+  ) : ''
+
+  const relayFeeUsdDisplay = relayFee?.gt(0) ? toUsdDisplay(relayFee, 18, tokenUsdPrice) : ''
+
   return {
     destinationTxFeeDisplay,
     destinationTxFeeUsdDisplay,
@@ -47,15 +65,24 @@ export function getConvertedFees(destinationTxFee?: BigNumber, bonderFee?: BigNu
     totalBonderFeeUsdDisplay,
     estimatedReceivedDisplay,
     estimatedReceivedUsdDisplay,
-    tokenUsdPrice
+    tokenUsdPrice,
+    relayFeeEthDisplay,
+    relayFeeUsdDisplay,
   }
 }
 
-export function useFeeConversions(destinationTxFee?: BigNumber, bonderFee?: BigNumber, estimatedReceived?: BigNumber, destToken?: any) {
-  const { priceUsd } = useTokenPrice(destToken?.symbol)
+export function useFeeConversions(input: Input) {
+  const {
+    destinationTxFee,
+    bonderFee,
+    estimatedReceived,
+    destToken,
+    relayFee
+  } = input
+  const { priceUsd: tokenUsdPrice } = useTokenPrice(destToken?.symbol)
 
   const convertedFees = useMemo(() => {
-    return getConvertedFees(destinationTxFee, bonderFee, estimatedReceived, destToken, priceUsd)
+    return getConvertedFees({ destinationTxFee, bonderFee, estimatedReceived, destToken, tokenUsdPrice, relayFee })
   }, [destinationTxFee, bonderFee, estimatedReceived, destToken])
 
   return convertedFees

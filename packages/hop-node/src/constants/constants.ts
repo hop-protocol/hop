@@ -7,6 +7,7 @@ export enum Network {
   Kovan = 'kovan',
 }
 
+// TODO: read from core
 export enum Chain {
   Ethereum = 'ethereum',
   Optimism = 'optimism',
@@ -15,7 +16,9 @@ export enum Chain {
   Gnosis = 'gnosis',
   Nova = 'nova',
   ZkSync = 'zksync',
-  ConsenSysZk = 'consensyszk'
+  ConsenSysZk = 'consensyszk',
+  ScrollZk = 'scrollzk',
+  Base = 'base'
 }
 
 export enum NativeChainToken {
@@ -45,7 +48,9 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   arbitrum: 19843,
   nova: 19843,
   zksync: 10000, // TODO
-  consensyszk: 10000 // TODO
+  consensyszk: 10000, // TODO
+  scrollzk: 10000, // TODO
+  base: 10000 // TODO
 }
 
 export const DefaultBatchBlocks = 10000

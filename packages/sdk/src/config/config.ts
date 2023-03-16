@@ -57,7 +57,7 @@ const config = {
 
 export { metadata, config }
 
-export const bondableChains = ['optimism', 'arbitrum', 'nova', 'zksync', 'consensyszk']
+export const bondableChains = ['optimism', 'arbitrum', 'nova', 'zksync', 'consensyszk', 'scrollzk', 'base']
 export const relayableChains = ['arbitrum', 'nova']
 
 export const rateLimitMaxRetries = 3

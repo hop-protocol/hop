@@ -225,12 +225,12 @@ export class HealthCheckWatcher {
   }
 
   bonderTotalLiquidity: Record<string, BigNumber> = {
-    USDC: parseUnits('6521000', 6),
-    USDT: parseUnits('1500000', 6),
+    USDC: parseUnits('4271000', 6),
+    USDT: parseUnits('750000', 6),
     DAI: parseUnits('1500000', 18),
-    ETH: parseUnits('8009', 18),
-    MATIC: parseUnits('731804', 18),
-    HOP: parseUnits('2500000', 18),
+    ETH: parseUnits('7949', 18),
+    MATIC: parseUnits('766730', 18),
+    HOP: parseUnits('3500000', 18),
     SNX: parseUnits('200000', 18)
   }
 
@@ -613,6 +613,11 @@ export class HealthCheckWatcher {
       for (const amount in chainAmounts) {
         availableLiquidity = availableLiquidity.add(chainAmounts[amount])
       }
+
+      if (availableLiquidity.lt(0)) {
+        availableLiquidity = BigNumber.from(0)
+      }
+
       const tokenDecimals = getTokenDecimals(token)!
       const availableLiquidityFormatted = Number(formatUnits(availableLiquidity, tokenDecimals))
       const totalLiquidityFormatted = Number(formatUnits(totalLiquidity, tokenDecimals))
@@ -620,7 +625,7 @@ export class HealthCheckWatcher {
       const thresholdPercent = parseUnits(this.bonderLowLiquidityThreshold.toString(), tokenDecimals)
       const thresholdAmount = totalLiquidity.mul(thresholdPercent).div(oneToken)
       const thresholdAmountFormatted = Number(formatUnits(thresholdAmount, tokenDecimals))
-      if (availableLiquidity.lt(thresholdAmount)) {
+      if (availableLiquidity.lt(thresholdAmount) && availableLiquidity.gt(0)) {
         result.push({
           bridge: token,
           availableLiquidity: availableLiquidity.toString(),

@@ -55,10 +55,30 @@ export const networks: Networks = {
     name: chains.consensyszk.name,
     image: chains.consensyszk.image,
     networkId: 59140,
-    publicRpcUrl: 'https://consensys-zkevm-goerli-prealpha.infura.io/v3/9d6a30e37af5474a98d9acf6470473de',
+    publicRpcUrl: 'https://consensys-zkevm-goerli-prealpha.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.goerli.zkevm.consensys.net'],
     nativeBridgeUrl: 'https://bridge.goerli.zkevm.consensys.net',
+    waitConfirmations: 1
+  },
+  scrollzk: {
+    name: chains.scrollzk.name,
+    image: chains.scrollzk.image,
+    networkId: 534354,
+    publicRpcUrl: 'https://prealpha-rpc.scroll.io/l2',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://l2scan.scroll.io'],
+    nativeBridgeUrl: 'https://scroll.io/prealpha/bridge',
+    waitConfirmations: 1
+  },
+  base: {
+    name: chains.base.name,
+    image: chains.base.image,
+    networkId: 84531,
+    publicRpcUrl: 'https://goerli.base.org',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://goerli.basescan.org'],
+    nativeBridgeUrl: 'https://bridge.base.org',
     waitConfirmations: 1
   }
 }

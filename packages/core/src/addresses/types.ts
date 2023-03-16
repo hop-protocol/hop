@@ -41,6 +41,8 @@ export type Bridges = {
     nova: L2BridgeProps
     zksync: L2BridgeProps
     consensyszk: L2BridgeProps
+    scrollzk: L2BridgeProps
+    base: L2BridgeProps
   }>
 }
 

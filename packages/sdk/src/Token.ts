@@ -1,11 +1,20 @@
-import Base, { ChainProviders } from './Base'
+import Base, { BaseConstructorOptions, ChainProviders } from './Base'
 import Chain from './models/Chain'
 import TokenModel from './models/Token'
 import { BigNumber, Contract, Signer, ethers, providers } from 'ethers'
-import { ERC20__factory } from '@hop-protocol/core/contracts/factories/ERC20__factory'
+import { ERC20__factory } from '@hop-protocol/core/contracts/factories/generated/ERC20__factory'
 import { TAmount, TChain } from './types'
 import { TokenSymbol, WrappedToken } from './constants'
-import { WETH9__factory } from '@hop-protocol/core/contracts/factories/WETH9__factory'
+import { WETH9__factory } from '@hop-protocol/core/contracts/factories/static/WETH9__factory'
+
+export type TokenConstructorOptions = {
+  chain: TChain,
+  address: string,
+  decimals: number,
+  symbol: TokenSymbol,
+  name: string,
+  image: string,
+} & BaseConstructorOptions
 
 /**
  * Class reprensenting ERC20 Token
@@ -23,31 +32,49 @@ class Token extends Base {
   // TODO: clean up and remove unused parameters.
   /**
    * @desc Instantiates Token class.
-   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
-   * @param {Number} chainId - Chain ID.
-   * @param {String} address - Token address.
-   * @param {Number} decimals - Token decimals.
-   * @param {String} symbol - Token symbol.
-   * @param {String} name - Token name.
-   * @param {Object} signer - Ethers signer.
-   * @returns {Object} Token class instance.
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param chain - Chain
+   * @param address - Token address.
+   * @param decimals - Token decimals.
+   * @param symbol - Token symbol.
+   * @param name - Token name.
+   * @param signer - Ethers signer.
+   * @returns Token class instance.
    */
   constructor (
-    network: string,
-    chain: TChain,
-    address: string,
-    decimals: number,
-    symbol: TokenSymbol,
-    name: string,
-    image: string,
+    networkOrOptionsObject: string | TokenConstructorOptions,
+    chain?: TChain,
+    address?: string,
+    decimals?: number,
+    symbol?: TokenSymbol,
+    name?: string,
+    image?: string,
     signer?: Signer | providers.Provider,
     chainProviders?: ChainProviders
   ) {
-    super(network, signer, chainProviders)
+    super(networkOrOptionsObject, signer, chainProviders)
+
+    if (networkOrOptionsObject instanceof Object) {
+      const options = networkOrOptionsObject as TokenConstructorOptions
+      if (chain || address || decimals || symbol || name || image || signer || chainProviders) {
+        throw new Error('expected only single options parameter')
+      }
+      decimals = options.decimals
+      address = options.address
+      symbol = options.symbol
+      name = options.name
+      image = options.image
+      chain = options.chain
+    }
+
+    if (!chain) {
+      throw new Error('chain is required')
+    }
 
     if (!address) {
       throw new Error('address is required')
     }
+
     this.address = ethers.utils.getAddress(address)
     this.decimals = decimals
     this._symbol = symbol
@@ -65,10 +92,10 @@ class Token extends Base {
 
   /**
    * @desc Returns a token instance with signer connected. Used for adding or changing signer.
-   * @param {Object} signer - Ethers `Signer` for signing transactions.
-   * @returns {Object} New Token SDK instance with connected signer.
+   * @param signer - Ethers `Signer` for signing transactions.
+   * @returns New Token SDK instance with connected signer.
    */
-  public connect (signer: Signer | providers.Provider) {
+  public connect (signer: Signer | providers.Provider): Token {
     return new Token(
       this.network,
       this.chain,
@@ -84,8 +111,8 @@ class Token extends Base {
 
   /**
    * @desc Returns token allowance.
-   * @param {String} spender - spender address.
-   * @returns {Object} Ethers Transaction object.
+   * @param spender - spender address.
+   * @returns Ethers Transaction object.
    * @example
    *```js
    *import { Hop, Chain } from '@hop-protocol/sdk'
@@ -99,7 +126,7 @@ class Token extends Base {
    *console.log(allowance)
    *```
    */
-  public async allowance (spender: string, address?: string) {
+  public async allowance (spender: string, address?: string): Promise<BigNumber> {
     const tokenContract = await this.getErc20()
     address = address ?? await this.getSignerAddress()
     if (!address) {
@@ -108,8 +135,7 @@ class Token extends Base {
     return tokenContract.allowance(address, spender)
   }
 
-  // TODO: docs
-  public async needsApproval (spender: string, amount: TAmount, address?: string) {
+  public async needsApproval (spender: string, amount: TAmount, address?: string): Promise<boolean> {
     if (this.isNativeToken) {
       return false
     }
@@ -119,8 +145,8 @@ class Token extends Base {
 
   /**
    * @desc Returns token balance of signer.
-   * @param {String} spender - spender address.
-   * @returns {Object} Ethers Transaction object.
+   * @param address - account address.
+   * @returns Ethers Transaction object.
    * @example
    *```js
    *import { Hop, Chain } from '@hop-protocol/sdk'
@@ -144,9 +170,9 @@ class Token extends Base {
 
   /**
    * @desc ERC20 token transfer
-   * @param {String} recipient - recipient address.
-   * @param {String} amount - Token amount.
-   * @returns {Object} Ethers Transaction object.
+   * @param recipient - recipient address.
+   * @param amount - Token amount.
+   * @returns Ethers Transaction object.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -157,7 +183,7 @@ class Token extends Base {
    *const tx = await bridge.erc20Transfer(spender, amount)
    *```
    */
-  public async transfer (recipient: string, amount: TAmount) {
+  public async transfer (recipient: string, amount: TAmount): Promise<any> {
     if (this.isNativeToken) {
       return this.sendTransaction({
         to: recipient,
@@ -170,10 +196,9 @@ class Token extends Base {
 
   /**
    * @desc Approve address to spend tokens if not enough allowance .
-   * @param {Object} chain - Chain model.
-   * @param {String} spender - spender address.
-   * @param {String} amount - amount allowed to spend.
-   * @returns {Object} Ethers Transaction object.
+   * @param spender - spender address.
+   * @param amount - amount allowed to spend.
+   * @returns Ethers Transaction object.
    * @example
    *```js
    *import { Hop, Chain } from '@hop-protocol/sdk'
@@ -187,7 +212,7 @@ class Token extends Base {
   public async approve (
     spender: string,
     amount: TAmount = ethers.constants.MaxUint256
-  ) {
+  ): Promise<any> {
     const [populatedTx, allowance] = await Promise.all([
       this.populateApproveTx(spender, amount),
       this.allowance(spender)
@@ -210,8 +235,7 @@ class Token extends Base {
 
   /**
    * @desc Returns a token Ethers contract instance.
-   * @param {Object} chain - Chain model.
-   * @returns {Object} Ethers contract instance.
+   * @returns Ethers contract instance.
    */
   public async getErc20 (): Promise<any> {
     if (this.isNativeToken) {
@@ -221,12 +245,12 @@ class Token extends Base {
     return ERC20__factory.connect(this.address, provider)
   }
 
-  public async overrides () {
+  public async overrides (): Promise<any> {
     return this.txOverrides(this.chain)
   }
 
-  // ToDo: Remove chainId. This is added to comply with the token model type
-  get chainId () {
+  // This is added to comply with the token model type
+  get chainId (): number {
     throw new Error('chainId should not be accessed')
   }
 
@@ -238,7 +262,8 @@ class Token extends Base {
     )
   }
 
-  get isNativeToken () {
+  // TODO: read from core instead
+  get isNativeToken (): boolean {
     const isEth =
       this._symbol === TokenModel.ETH &&
       (this.chain.equals(Chain.Ethereum) ||
@@ -246,7 +271,9 @@ class Token extends Base {
         this.chain.equals(Chain.Nova) ||
         this.chain.equals(Chain.Optimism) ||
         this.chain.equals(Chain.ZkSync) ||
-        this.chain.equals(Chain.ConsenSysZk)
+        this.chain.equals(Chain.ConsenSysZk) ||
+        this.chain.equals(Chain.ScrollZk) ||
+        this.chain.equals(Chain.Base)
       )
     const isMatic =
       this._symbol === TokenModel.MATIC && this.chain.equals(Chain.Polygon)
@@ -256,7 +283,7 @@ class Token extends Base {
     return isEth || isMatic || isxDai
   }
 
-  get nativeTokenSymbol () {
+  get nativeTokenSymbol (): string {
     return this.chain.nativeTokenSymbol
   }
 
@@ -273,32 +300,32 @@ class Token extends Base {
     return WETH9__factory.connect(this.address, provider)
   }
 
-  getWrappedToken () {
+  getWrappedToken (): Token {
     if (!this.isNativeToken) {
       return this
     }
 
-    return new Token(
-      this.network,
-      this.chain,
-      this.address,
-      this.decimals,
-      `W${this._symbol}` as WrappedToken,
-      this.name,
-      this.image,
-      this.signer,
-      this.chainProviders
-    )
+    return new Token({
+      network: this.network,
+      chain: this.chain,
+      address: this.address,
+      decimals: this.decimals,
+      symbol: `W${this._symbol}` as WrappedToken,
+      name: this.name,
+      image: this.image,
+      signer: this.signer,
+      chainProviders: this.chainProviders
+    })
   }
 
-  async populateWrapTokenTx (amount: TAmount) {
+  async populateWrapTokenTx (amount: TAmount): Promise<any> {
     const contract = await this.getWethContract()
     return contract.populateTransaction.deposit({
       value: amount
     })
   }
 
-  async wrapToken (amount: TAmount, estimateGasOnly: boolean = false) {
+  async wrapToken (amount: TAmount, estimateGasOnly: boolean = false): Promise<any> {
     const contract = await this.getWethContract()
     if (estimateGasOnly) {
       // a `from` address is required if using only provider (not signer)
@@ -313,19 +340,19 @@ class Token extends Base {
     return this.sendTransaction(populatedTx, this.chain)
   }
 
-  async populateUnwrapTokenTx (amount: TAmount) {
+  async populateUnwrapTokenTx (amount: TAmount): Promise<any> {
     const contract = await this.getWethContract()
     return contract.populateTransaction.withdraw(amount)
   }
 
-  async unwrapToken (amount: TAmount) {
+  async unwrapToken (amount: TAmount): Promise<any> {
     const populatedTx = await this.populateUnwrapTokenTx(amount)
     return this.sendTransaction(populatedTx, this.chain)
   }
 
   async getWrapTokenEstimatedGas (
     chain: TChain
-  ) {
+  ): Promise<any> {
     chain = this.toChainModel(chain)
     const amount = BigNumber.from(1)
     const contract = await this.getWethContract()
@@ -348,7 +375,7 @@ class Token extends Base {
     }
   }
 
-  private async getGasEstimateFromAddress () {
+  private async getGasEstimateFromAddress (): Promise<string> {
     let address = await this.getSignerAddress()
     if (!address) {
       address = await this._getBonderAddress(this._symbol, this.chain, Chain.Ethereum)
@@ -365,18 +392,18 @@ class Token extends Base {
   }
 
   static fromJSON (json: any): Token {
-    return new Token(
-      json.network,
-      json.chain,
-      json.address,
-      json.decimals,
-      json.symbol,
-      json.name,
-      json.image
-    )
+    return new Token({
+      network: json.network,
+      chain: json.chain,
+      address: json.address,
+      decimals: json.decimals,
+      symbol: json.symbol,
+      name: json.name,
+      image: json.image
+    })
   }
 
-  toJSON () {
+  toJSON () :any {
     return {
       address: this.address,
       decimals: this.decimals,
@@ -387,11 +414,11 @@ class Token extends Base {
     }
   }
 
-  get imageUrl () {
+  get imageUrl (): string {
     return this.image
   }
 
-  getImageUrl () {
+  getImageUrl (): string {
     return this.imageUrl
   }
 }

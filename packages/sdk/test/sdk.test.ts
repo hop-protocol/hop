@@ -489,6 +489,23 @@ describe('custom chain providers', () => {
     expect(bridge.getProviderRpcUrl(polygonProvider)).toBe(newPolygonUrl)
     expect(bridge.getProviderRpcUrl(gnosisProvider)).toBe(newGnosisUrl)
   })
+
+  it('constructor chainProviders option', () => {
+    const newPolygonUrl = 'https://polygon-rpc2.com'
+    const newGnosisUrl = 'https://rpc.gnosischain2.com'
+    const polygonProvider = new providers.StaticJsonRpcProvider(newPolygonUrl)
+    const gnosisProvider = new providers.StaticJsonRpcProvider(newGnosisUrl)
+    const sdk = new Hop({
+      network: 'mainnet',
+      chainProviders: {
+        polygon: polygonProvider,
+        gnosis: gnosisProvider
+      }
+    })
+    const bridge = sdk.bridge('USDC')
+    expect(bridge.getChainProvider('polygon')).toBe(polygonProvider)
+    expect(bridge.getChainProvider('gnosis')).toBe(gnosisProvider)
+  })
 })
 
 describe('getSendData', () => {
@@ -1060,6 +1077,18 @@ describe('sdk config file fetching', () => {
     const bridge = hop.bridge('USDC')
     expect(bridge.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
     await hop.setBaseConfigUrl('https://assets.hop.exchange')
+  })
+
+  it('baseConfigUrl option', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.baseConfigUrl).toBe('https://assets.hop.exchange')
+
+    const hop2 = new Hop({
+      network: 'mainnet',
+      baseConfigUrl: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange'
+    })
+    const bridge = hop2.bridge('USDC')
+    expect(bridge.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
   })
 
   it('configFileFetchEnabled', async () => {

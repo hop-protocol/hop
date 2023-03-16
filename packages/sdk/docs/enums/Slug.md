@@ -5,6 +5,7 @@
 ### Enumeration Members
 
 - [arbitrum](Slug.md#arbitrum)
+- [base](Slug.md#base)
 - [consensyszk](Slug.md#consensyszk)
 - [ethereum](Slug.md#ethereum)
 - [gnosis](Slug.md#gnosis)
@@ -14,6 +15,7 @@
 - [nova](Slug.md#nova)
 - [optimism](Slug.md#optimism)
 - [polygon](Slug.md#polygon)
+- [scrollzk](Slug.md#scrollzk)
 - [staging](Slug.md#staging)
 - [zksync](Slug.md#zksync)
 
@@ -22,6 +24,12 @@
 ### <a id="arbitrum" name="arbitrum"></a> arbitrum
 
 • **arbitrum** = ``"arbitrum"``
+
+___
+
+### <a id="base" name="base"></a> base
+
+• **base** = ``"base"``
 
 ___
 
@@ -76,6 +84,12 @@ ___
 ### <a id="polygon" name="polygon"></a> polygon
 
 • **polygon** = ``"polygon"``
+
+___
+
+### <a id="scrollzk" name="scrollzk"></a> scrollzk
+
+• **scrollzk** = ``"scrollzk"``
 
 ___
 

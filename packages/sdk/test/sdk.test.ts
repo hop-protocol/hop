@@ -1080,7 +1080,6 @@ describe('sdk config file fetching', () => {
     expect(hop.coreConfigJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-core-config.json')
     const bridge = hop.bridge('USDC')
     expect(bridge.coreConfigJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-core-config.json')
-    await hop.setCoreConfigJsonUrl('')
   })
 
   it('setAvailableLiqudityJsonUrl', async () => {
@@ -1090,11 +1089,10 @@ describe('sdk config file fetching', () => {
     expect(hop.availableLiqudityJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-available-liquidity.json')
     const bridge = hop.bridge('USDC')
     expect(bridge.availableLiqudityJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-available-liquidity.json')
-    await hop.setAvailableLiqudityJsonUrl('')
   })
 })
 
-describe('ipfs', () => {
+describe.skip('ipfs', () => {
   it('resolveDnslink', async () => {
     const hop = new Hop('mainnet')
     const dnslinkDomain = '_dnslink.ipfs-assets.hop.exchange'

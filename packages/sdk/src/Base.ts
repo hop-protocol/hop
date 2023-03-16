@@ -97,22 +97,26 @@ const getContract = async (
   return getContractMemo(factory, address, cacheKey)(provider)
 }
 
-const defaultBaseConfigUrl = 'https://assets.hop.exchange'
+export type ConfigFileOptions = {
+  baseConfigUrl?: string
+  configFileFetchEnabled?: boolean
+  customCoreConfigJsonUrl?: string
+  customAvailableLiquidityJsonUrl?: string
+}
 
-// TODO: keep track of options configured and pass properties to child instances,
-// so we don't have to use global vars here.
-// The downside is having to convert individual constructor parameters to be
-// a single input object which would be a breaking change.
-let globalConfigFileFetchEnabled = true
-let globalBaseConfigUrl = defaultBaseConfigUrl
-let globalCustomCoreConfigJsonUrl = '' // should be blank
-let globalCustomAvailableLiquidityJsonUrl = '' // should be blank
+export type BaseConstructorOptions = {
+  network?: NetworkSlug | string
+  signer?: TProvider,
+  chainProviders?: ChainProviders
+} & ConfigFileOptions
+
+const defaultBaseConfigUrl = 'https://assets.hop.exchange'
 
 /**
  * Class with base methods.
  * @namespace Base
  */
-class Base {
+export class Base {
   /** Network name */
   public network: NetworkSlug | string
 
@@ -130,23 +134,48 @@ class Base {
   relayerFeeEnabled: Record<string, boolean>
 
   baseExplorerUrl: string = 'https://explorer.hop.exchange'
-  baseConfigUrl: string = globalBaseConfigUrl
-  configFileFetchEnabled : boolean = globalConfigFileFetchEnabled
+  baseConfigUrl: string = defaultBaseConfigUrl
+  configFileFetchEnabled : boolean = true
 
-  customCoreConfigJsonUrl: string = globalCustomCoreConfigJsonUrl
-  customAvailableLiquidityJsonUrl: string = globalCustomAvailableLiquidityJsonUrl
+  customCoreConfigJsonUrl: string = ''
+  customAvailableLiquidityJsonUrl: string = ''
 
   /**
    * @desc Instantiates Base class.
    * Returns a new Base class instance.
-   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
-   * @returns {Object} New Base class instance.
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @returns New Base class instance.
    */
   constructor (
-    network: NetworkSlug | string,
+    networkOrOptionsObject: NetworkSlug | string | BaseConstructorOptions,
     signer: TProvider,
     chainProviders?: ChainProviders
   ) {
+    let network: any
+    if (networkOrOptionsObject instanceof Object) {
+      const options = networkOrOptionsObject as BaseConstructorOptions
+      if (signer || chainProviders) {
+        throw new Error('expected only single options parameter')
+      }
+      network = options.network
+      signer = options.signer
+      chainProviders = options.chainProviders
+      if (options.baseConfigUrl) {
+        this.baseConfigUrl = options.baseConfigUrl
+      }
+      if (typeof options.configFileFetchEnabled === 'boolean') {
+        this.configFileFetchEnabled = options.configFileFetchEnabled
+      }
+      if (options.customCoreConfigJsonUrl) {
+        this.customCoreConfigJsonUrl = options.customCoreConfigJsonUrl
+      }
+      if (options.customAvailableLiquidityJsonUrl) {
+        this.customAvailableLiquidityJsonUrl = options.customAvailableLiquidityJsonUrl
+      }
+    } else {
+      network = networkOrOptionsObject as string
+    }
+
     if (!network) {
       throw new Error(`network is required. Options are: ${this.supportedNetworks.join(',')}`)
     }
@@ -189,7 +218,7 @@ class Base {
     }
   }
 
-  async fetchConfigFromS3 () {
+  async fetchConfigFromS3 (): Promise<any> {
     if (!this.configFileFetchEnabled) {
       return
     }
@@ -227,12 +256,12 @@ class Base {
     }
   }
 
-  sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain) {
+  sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain): Promise<any> {
     const chainId = this.toChainModel(chain).chainId
     return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
   }
 
-  setConfigAddresses (addresses: Addresses) {
+  setConfigAddresses (addresses: Addresses): void {
     if (addresses.bridges) {
       this.addresses = addresses.bridges
     }
@@ -241,7 +270,7 @@ class Base {
     }
   }
 
-  setChainProvider (chain: TChain, provider: providers.Provider) {
+  setChainProvider (chain: TChain, provider: providers.Provider): void {
     chain = this.toChainModel(chain)
     if (!this.isValidChain(chain.slug)) {
       throw new Error(
@@ -251,7 +280,7 @@ class Base {
     this.chainProviders[chain.slug] = provider
   }
 
-  setChainProviders (chainProviders: ChainProviders) {
+  setChainProviders (chainProviders: ChainProviders): void {
     for (const chainSlug in chainProviders) {
       const chain = this.toChainModel(chainSlug)
       if (!this.isValidChain(chain.slug)) {
@@ -265,7 +294,7 @@ class Base {
     }
   }
 
-  setChainProviderUrls (chainProviders: Record<string, string>) {
+  setChainProviderUrls (chainProviders: Record<string, string>): void {
     for (const chainSlug in chainProviders) {
       const chain = this.toChainModel(chainSlug)
       if (!this.isValidChain(chain.slug)) {
@@ -279,11 +308,11 @@ class Base {
     }
   }
 
-  get supportedNetworks () {
+  get supportedNetworks (): string[] {
     return Object.keys(this.chains || config.chains)
   }
 
-  isValidNetwork (network: string) {
+  isValidNetwork (network: string): boolean {
     return this.supportedNetworks.includes(network)
   }
 
@@ -307,14 +336,14 @@ class Base {
     return this.configChains
   }
 
-  isValidChain (chain: string) {
+  isValidChain (chain: string): boolean {
     return this.configChains.includes(chain)
   }
 
   /**
    * @desc Returns a Chain model instance with connected provider.
-   * @param {Object} - Chain name or model.
-   * @returns {Object} - Chain model with connected provider.
+   * @param chain - Chain name or model.
+   * @returns Chain model with connected provider.
    */
   public toChainModel (chain: TChain): Chain {
     if (typeof chain === 'string') {
@@ -343,10 +372,10 @@ class Base {
 
   /**
    * @desc Returns a Token instance.
-   * @param {Object} - Token name or model.
-   * @returns {Object} - Token model.
+   * @param token - Token name or model.
+   * @returns Token model.
    */
-  public toTokenModel (token: TToken) {
+  public toTokenModel (token: TToken): TokenModel {
     if (typeof token === 'string') {
       const canonicalSymbol = TokenModel.getCanonicalSymbol(token)
       const { name, decimals } = metadata.tokens[this.network][canonicalSymbol]
@@ -358,9 +387,9 @@ class Base {
 
   /**
    * @desc Calculates current gas price plus increased percentage amount.
-   * @param {Object} - Ether's Signer
-   * @param {number} - Percentage to bump by.
-   * @returns {BigNumber} Bumped as price as BigNumber
+   * @param signer - Ether's Signer
+   * @param percent - Percentage to bump by.
+   * @returns Bumped as price as BigNumber
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -370,27 +399,27 @@ class Base {
    *console.log(bumpedGasPrice.toNumber())
    *```
    */
-  public async getBumpedGasPrice (signer: TProvider, percent: number) {
+  public async getBumpedGasPrice (signer: TProvider, percent: number): Promise<BigNumber> {
     const gasPrice = await signer.getGasPrice()
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }
 
   /**
    * @desc Returns Chain ID for specified Chain model.
-   * @param {Object} - Chain model.
-   * @returns {Number} - Chain ID.
+   * @param chain - Chain model.
+   * @returns - Chain ID.
    */
-  public getChainId (chain: Chain) {
+  public getChainId (chain: Chain): number {
     const { chainId } = this.chains[chain.slug]
     return Number(chainId)
   }
 
   /**
    * @desc Returns Ethers provider for specified Chain model.
-   * @param {Object} - Chain model.
-   * @returns {Object} - Ethers provider.
+   * @param chain - Chain model.
+   * @returns Ethers provider.
    */
-  public getChainProvider (chain: Chain | string) {
+  public getChainProvider (chain: Chain | string): any {
     let chainSlug: string
     if (chain instanceof Chain && chain?.slug) {
       chainSlug = chain?.slug
@@ -411,7 +440,7 @@ class Base {
     return getProvider(this.network, chainSlug)
   }
 
-  public getChainProviders = () => {
+  public getChainProviders (): any {
     const obj : Record<string, providers.Provider> = {}
     for (const chainSlug of this.configChains) {
       const provider = this.getChainProvider(chainSlug)
@@ -421,7 +450,7 @@ class Base {
     return obj
   }
 
-  public getChainProviderUrls = () => {
+  public getChainProviderUrls (): any {
     const obj : Record<string, string> = {}
     for (const chainSlug of this.configChains) {
       const provider = this.getChainProvider(chainSlug)
@@ -433,7 +462,7 @@ class Base {
 
   /**
    * @desc Returns the connected signer address.
-   * @returns {String} Ethers signer address.
+   * @returns Ethers signer address.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -443,7 +472,7 @@ class Base {
    *console.log(address)
    *```
    */
-  public async getSignerAddress () {
+  public async getSignerAddress (): Promise<string> {
     if (Signer.isSigner(this.signer)) {
       return this.signer.getAddress()
     }
@@ -452,9 +481,9 @@ class Base {
   /**
    * @desc Returns the connected signer if it's connected to the specified
    * chain id, otherwise it returns a regular provider for the specified chain.
-   * @param {Object} chain - Chain name or model
-   * @param {Object} signer - Ethers signer or provider
-   * @returns {Object} Ethers signer or provider
+   * @param chain - Chain name or model
+   * @param signer - Ethers signer or provider
+   * @returns Ethers signer or provider
    */
   public async getSignerOrProvider (
     chain: TChain,
@@ -492,79 +521,79 @@ class Base {
     }
   }
 
-  public getConfigAddresses (token: TToken, chain: TChain) {
+  public getConfigAddresses (token: TToken, chain: TChain): any {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
     return this.addresses?.[token.canonicalSymbol]?.[chain.slug]
   }
 
-  public getL1BridgeAddress (token: TToken, chain: TChain) {
+  public getL1BridgeAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l1Bridge
   }
 
-  public getL2BridgeAddress (token: TToken, chain: TChain) {
+  public getL2BridgeAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l2Bridge
   }
 
-  public getL1CanonicalBridgeAddress (token: TToken, chain: TChain) {
+  public getL1CanonicalBridgeAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l1CanonicalBridge
   }
 
-  public getL2CanonicalBridgeAddress (token: TToken, chain: TChain) {
+  public getL2CanonicalBridgeAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l2CanonicalBridge
   }
 
-  public getL1CanonicalTokenAddress (token: TToken, chain: TChain) {
+  public getL1CanonicalTokenAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l1CanonicalToken
   }
 
-  public getL2CanonicalTokenAddress (token: TToken, chain: TChain) {
+  public getL2CanonicalTokenAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l2CanonicalToken
   }
 
-  public getL2HopBridgeTokenAddress (token: TToken, chain: TChain) {
+  public getL2HopBridgeTokenAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l2HopBridgeToken
   }
 
-  public getL2AmmWrapperAddress (token: TToken, chain: TChain) {
+  public getL2AmmWrapperAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l2AmmWrapper
   }
 
-  public getL2SaddleSwapAddress (token: TToken, chain: TChain) {
+  public getL2SaddleSwapAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l2SaddleSwap
   }
 
-  public getL2SaddleLpTokenAddress (token: TToken, chain: TChain) {
+  public getL2SaddleLpTokenAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l2SaddleLpToken
   }
 
   // Arbitrum ARB Chain address
-  public getArbChainAddress (token: TToken, chain: TChain) {
+  public getArbChainAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.arbChain
   }
 
   // Gnosis L1 Home AMB bridge address
-  public getL1AmbBridgeAddress (token: TToken, chain: TChain) {
+  public getL1AmbBridgeAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l1Amb
   }
 
   // Gnosis L2 AMB bridge address
-  public getL2AmbBridgeAddress (token: TToken, chain: TChain) {
+  public getL2AmbBridgeAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l2Amb
   }
 
   // Polygon Root Chain Manager address
-  public getL1PosRootChainManagerAddress (token: TToken, chain: TChain) {
+  public getL1PosRootChainManagerAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l1PosRootChainManager
   }
 
   // Polygon ERC20 Predicate address
-  public getL1PosErc20PredicateAddress (token: TToken, chain: TChain) {
+  public getL1PosErc20PredicateAddress (token: TToken, chain: TChain): string {
     return this.getConfigAddresses(token, chain)?.l1PosPredicate
   }
 
   // Transaction overrides options
-  public async txOverrides (chain: Chain) {
+  public async txOverrides (chain: Chain): Promise<any> {
     const txOptions: any = {}
     if (this.gasPriceMultiplier > 0) {
       txOptions.gasPrice = await this.getBumpedGasPrice(
@@ -612,7 +641,7 @@ class Base {
     return messengerWrapper
   }
 
-  public async getFeeBps (token: TToken, destinationChain: TChain) {
+  public async getFeeBps (token: TToken, destinationChain: TChain): Promise<number> {
     await this.fetchConfigFromS3()
     token = this.toTokenModel(token)
     destinationChain = this.toChainModel(destinationChain)
@@ -631,11 +660,11 @@ class Base {
     return feeBps
   }
 
-  setGasPriceMultiplier (gasPriceMultiplier: number) {
+  setGasPriceMultiplier (gasPriceMultiplier: number): number {
     return (this.gasPriceMultiplier = gasPriceMultiplier)
   }
 
-  getDestinationFeeGasPriceMultiplier () {
+  getDestinationFeeGasPriceMultiplier (): number {
     return this.destinationFeeGasPriceMultiplier
   }
 
@@ -655,30 +684,28 @@ class Base {
     return BigNumber.from(0)
   }
 
-  async setBaseConfigUrl (url: string) {
+  async setBaseConfigUrl (url: string): Promise<void> {
     if (!url) {
       throw new Error('url is required')
     }
     this.baseConfigUrl = url?.replace(/\/$/, '')
-    globalBaseConfigUrl = this.baseConfigUrl
 
     // attempt to fetch or throw
     await this.fetchCoreConfigData()
     await this.fetchBonderAvailableLiquidityData()
   }
 
-  setConfigFileFetchEnabled (enabled: boolean) {
+  setConfigFileFetchEnabled (enabled: boolean): void {
     this.configFileFetchEnabled = enabled
-    globalConfigFileFetchEnabled = this.configFileFetchEnabled
   }
 
-  async fetchCoreConfigData () {
+  async fetchCoreConfigData (): Promise<any> {
     const cacheBust = Date.now()
     const url = `${this.coreConfigJsonUrl}?cb=${cacheBust}`
     return fetchJsonOrThrow(url)
   }
 
-  async fetchCoreConfigDataWithIpfsFallback () {
+  async fetchCoreConfigDataWithIpfsFallback (): Promise<any> {
     try {
       return await this.fetchCoreConfigData()
     } catch (err: any) {
@@ -690,20 +717,19 @@ class Base {
     }
   }
 
-  async getS3ConfigData () {
+  async getS3ConfigData (): Promise<any> {
     console.warn('The method "getS3ConfigData" method is going to be deprecated. Please use method "fetchCoreConfigData" instead.')
     return this.fetchCoreConfigData()
   }
 
-  async setCoreConfigJsonUrl (url: string) {
+  async setCoreConfigJsonUrl (url: string): Promise<any> {
     this.customCoreConfigJsonUrl = url
-    globalCustomCoreConfigJsonUrl = this.customCoreConfigJsonUrl
 
     // attempt to fetch or throw
     await this.fetchCoreConfigData()
   }
 
-  get coreConfigJsonUrl () {
+  get coreConfigJsonUrl (): string {
     if (this.customCoreConfigJsonUrl) {
       return this.customCoreConfigJsonUrl
     }
@@ -711,7 +737,7 @@ class Base {
     return url
   }
 
-  async fetchBonderAvailableLiquidityData () {
+  async fetchBonderAvailableLiquidityData (): Promise<any> {
     const cacheBust = Date.now()
     const url = `${this.availableLiqudityJsonUrl}?cb=${cacheBust}`
     const json = await fetchJsonOrThrow(url)
@@ -725,7 +751,7 @@ class Base {
     return data
   }
 
-  async fetchBonderAvailableLiquidityDataWithIpfsFallback () {
+  async fetchBonderAvailableLiquidityDataWithIpfsFallback (): Promise<any> {
     try {
       return await this.fetchBonderAvailableLiquidityData()
     } catch (err: any) {
@@ -737,15 +763,14 @@ class Base {
     }
   }
 
-  async setAvailableLiqudityJsonUrl (url: string) {
+  async setAvailableLiqudityJsonUrl (url: string): Promise<void> {
     this.customAvailableLiquidityJsonUrl = url
-    globalCustomAvailableLiquidityJsonUrl = this.customAvailableLiquidityJsonUrl
 
     // attempt to fetch or throw
     await this.fetchBonderAvailableLiquidityData()
   }
 
-  get availableLiqudityJsonUrl () {
+  get availableLiqudityJsonUrl (): string {
     if (this.customAvailableLiquidityJsonUrl) {
       return this.customAvailableLiquidityJsonUrl
     }
@@ -756,7 +781,7 @@ class Base {
   public getContract = getContract
 
   // get supported list of token symbols
-  getSupportedTokens () {
+  getSupportedTokens (): string[] {
     const supported = new Set()
 
     for (const token in this.addresses) {
@@ -766,7 +791,7 @@ class Base {
     return Array.from(supported) as string[]
   }
 
-  getSupportedAssets () {
+  getSupportedAssets (): any {
     const supported : any = {}
 
     for (const token in this.addresses) {
@@ -780,7 +805,7 @@ class Base {
     return supported
   }
 
-  getSupportedAssetsForChain (chain: TChain) {
+  getSupportedAssetsForChain (chain: TChain) : any {
     chain = this.toChainModel(chain)
     const supported = this.getSupportedAssets()
     return supported[chain.slug]
@@ -790,7 +815,7 @@ class Base {
     gasLimit : BigNumberish,
     data: string = '0x',
     to: string = constants.AddressZero
-  ) {
+  ) : Promise<any> {
     gasLimit = BigNumber.from(gasLimit.toString())
     const chain = this.toChainModel(Chain.Optimism)
     const gasPrice = await chain.provider.getGasPrice()
@@ -843,7 +868,7 @@ class Base {
     return json.data?.[0] ?? null
   }
 
-  getProviderRpcUrl (provider: any) {
+  getProviderRpcUrl (provider: any): string {
     return getUrlFromProvider(provider)
   }
 
@@ -876,12 +901,12 @@ class Base {
     }
   }
 
-  getIpfsBaseConfigUrl (ipfsHash: string) {
+  getIpfsBaseConfigUrl (ipfsHash: string): string {
     const url = `https://hop.mypinata.cloud/ipfs/${ipfsHash}/sdk/${this.network}`
     return url
   }
 
-  async fetchIpfsCoreConfigData () {
+  async fetchIpfsCoreConfigData (): Promise<any> {
     const dnslinkDomain = '_dnslink.ipfs-assets.hop.exchange'
     const ipfsHash = await this.resolveDnslink(dnslinkDomain)
     if (!ipfsHash) {
@@ -892,7 +917,7 @@ class Base {
     return json
   }
 
-  async fetchIpfsBonderAvailableLiquidityData () {
+  async fetchIpfsBonderAvailableLiquidityData (): Promise<any> {
     const dnslinkDomain = '_dnslink.ipfs-assets.hop.exchange'
     const ipfsHash = await this.resolveDnslink(dnslinkDomain)
     if (!ipfsHash) {

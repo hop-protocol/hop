@@ -1,5 +1,5 @@
 import AMM from './AMM'
-import Base, { ChainProviders } from './Base'
+import Base, { BaseConstructorOptions, ChainProviders } from './Base'
 import Chain from './models/Chain'
 import Token from './Token'
 import TokenModel from './models/Token'
@@ -38,6 +38,10 @@ import { getAddress as checksumAddress, formatUnits, parseEther, parseUnits } fr
 const s3FileCache : Record<string, any> = {}
 let s3FileCacheTimestamp: number = 0
 const cacheExpireMs = 1 * 60 * 1000
+
+export type HopBridgeConstructorOptions = {
+  token: TToken,
+} & BaseConstructorOptions
 
 type SendL1ToL2Input = {
   destinationChain: Chain
@@ -133,12 +137,10 @@ class HopBridge extends Base {
   /**
    * @desc Instantiates Hop Bridge.
    * Returns a new Hop Bridge instance.
-   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
-   * @param {Object} signer - Ethers `Signer` for signing transactions.
-   * @param {Object} token - Token symbol or model
-   * @param {Object} sourceChain - Source chain model
-   * @param {Object} destinationChain - Destination chain model
-   * @returns {Object} HopBridge SDK instance.
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param signer - Ethers `Signer` for signing transactions.
+   * @param token - Token symbol or model
+   * @returns HopBridge SDK instance.
    * @example
    *```js
    *import { HopBridge, Chain, Token } from '@hop-protocol/sdk'
@@ -149,12 +151,20 @@ class HopBridge extends Base {
    *```
    */
   constructor (
-    network: string,
-    signer: TProvider,
-    token: TToken,
+    networkOrOptionsObject: string | HopBridgeConstructorOptions,
+    signer?: TProvider,
+    token?: TToken,
     chainProviders?: ChainProviders
   ) {
-    super(network, signer, chainProviders)
+    super(networkOrOptionsObject, signer, chainProviders)
+
+    if (networkOrOptionsObject instanceof Object) {
+      const options = networkOrOptionsObject as HopBridgeConstructorOptions
+      if (signer || token || chainProviders) {
+        throw new Error('expected only single options parameter')
+      }
+      token = options.token
+    }
 
     if (token instanceof Token || token instanceof TokenModel) {
       this.tokenSymbol = token.symbol
@@ -172,8 +182,8 @@ class HopBridge extends Base {
 
   /**
    * @desc Returns hop bridge instance with signer connected. Used for adding or changing signer.
-   * @param {Object} signer - Ethers `Signer` for signing transactions.
-   * @returns {Object} New HopBridge SDK instance with connected signer.
+   * @param signer - Ethers `Signer` for signing transactions.
+   * @returns New HopBridge SDK instance with connected signer.
    * @example
    *```js
    *import { Hop, Token } from '@hop-protocol/sdk'
@@ -185,13 +195,15 @@ class HopBridge extends Base {
    *const bridge = hop.bridge(Token.USDC).connect(signer)
    *```
    */
-  public connect (signer: Signer) {
-    const hopBridge = new HopBridge(
-      this.network,
+  public connect (signer: Signer): HopBridge {
+    const hopBridge = new HopBridge({
+      network: this.network,
       signer,
-      this.tokenSymbol,
-      this.chainProviders
-    )
+      token: this.tokenSymbol,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
 
     // port over exiting properties
     if (this.priceFeedApiKeys) {
@@ -203,15 +215,15 @@ class HopBridge extends Base {
     return hopBridge
   }
 
-  public getL1Token () {
+  public getL1Token (): any {
     return this.toCanonicalToken(this.tokenSymbol, this.network, Chain.Ethereum)
   }
 
-  public getCanonicalToken (chain: TChain) {
+  public getCanonicalToken (chain: TChain): any {
     return this.toCanonicalToken(this.tokenSymbol, this.network, chain)
   }
 
-  public getL2HopToken (chain: TChain) {
+  public getL2HopToken (chain: TChain): any {
     return this.toHopToken(this.tokenSymbol, this.network, chain)
   }
 
@@ -219,7 +231,7 @@ class HopBridge extends Base {
     token: TToken,
     network: string,
     chain: TChain
-  ) {
+  ): Token {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
     let { name, symbol, decimals, image } = metadata.tokens[network][token.canonicalSymbol]
@@ -235,24 +247,26 @@ class HopBridge extends Base {
       address = this.getL2CanonicalTokenAddress(token.symbol, chain)
     }
 
-    return new Token(
+    return new Token({
       network,
       chain,
       address,
       decimals,
-      symbol as never,
+      symbol: symbol as never,
       name,
       image,
-      this.signer,
-      this.chainProviders
-    )
+      signer: this.signer,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
   }
 
   public toHopToken (
     token: TToken,
     network: string,
     chain: TChain
-  ) {
+  ): Token {
     chain = this.toChainModel(chain)
     token = this.toTokenModel(token)
     if (chain.isL1) {
@@ -269,25 +283,27 @@ class HopBridge extends Base {
       formattedName = `Hop ${formattedName}`
     }
 
-    return new Token(
+    return new Token({
       network,
       chain,
       address,
       decimals,
-      formattedSymbol,
-      formattedName,
+      symbol: formattedSymbol,
+      name: formattedName,
       image,
-      this.signer,
-      this.chainProviders
-    )
+      signer: this.signer,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
   }
 
   /**
    * @desc Send tokens to another chain.
-   * @param {String} tokenAmount - Token amount to send denominated in smallest unit.
-   * @param {Object} sourceChain - Source chain model.
-   * @param {Object} destinationChain - Destination chain model.
-   * @returns {Object} Ethers Transaction object.
+   * @param tokenAmount - Token amount to send denominated in smallest unit.
+   * @param sourceChain - Source chain model.
+   * @param destinationChain - Destination chain model.
+   * @returns Ethers Transaction object.
    * @example
    *```js
    *import { Hop, Chain, Token } from '@hop-protocol/sdk'
@@ -304,7 +320,7 @@ class HopBridge extends Base {
     sourceChain?: TChain,
     destinationChain?: TChain,
     options: Partial<SendOptions> = {}
-  ) {
+  ): Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
     const populatedTx = await this.populateSendTx(
       tokenAmount,
@@ -450,7 +466,7 @@ class HopBridge extends Base {
     sourceChain: TChain,
     destinationChain: TChain,
     options: Partial<SendOptions> = {}
-  ) {
+  ): Promise<BigNumber> {
     const populatedTx = await this.populateSendTx(tokenAmount, sourceChain, destinationChain, options)
     return this.getEstimatedGasLimit(sourceChain, destinationChain, populatedTx)
   }
@@ -459,7 +475,7 @@ class HopBridge extends Base {
     sourceChain: TChain,
     destinationChain: TChain,
     populatedTx: any
-  ) {
+  ) : Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     if (!populatedTx.from) {
       // a `from` address is required if using only provider (not signer)
@@ -476,7 +492,7 @@ class HopBridge extends Base {
     sourceChain: TChain,
     destinationChain: TChain,
     options: Partial<SendOptions> = {}
-  ) {
+  ) : Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     const populatedTx = await this.populateSendTx(tokenAmount, sourceChain, destinationChain, options)
     const [estimatedGasLimit, gasPrice] = await Promise.all([
@@ -486,11 +502,10 @@ class HopBridge extends Base {
     return gasPrice.mul(estimatedGasLimit)
   }
 
-  // ToDo: Docs
   public getSendApprovalAddress (
     sourceChain: TChain,
     isHTokenTransfer: boolean = false
-  ) {
+  ) : string {
     sourceChain = this.toChainModel(sourceChain)
 
     if (sourceChain.equals(Chain.Ethereum)) {
@@ -521,7 +536,7 @@ class HopBridge extends Base {
     isHTokenTransfer: boolean = false
   ):Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
-    const spender = await this.getSendApprovalAddress(sourceChain, isHTokenTransfer)
+    const spender = this.getSendApprovalAddress(sourceChain, isHTokenTransfer)
     const isNativeToken = this.isNativeToken(sourceChain)
     if (isNativeToken) {
       return null
@@ -543,7 +558,7 @@ class HopBridge extends Base {
     sourceChain: TChain,
     destinationChain: TChain, // might need to keep this param for backward compatibility
     isHTokenTransfer: boolean = false
-  ) {
+  ) : Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
     const populatedTx = await this.populateSendApprovalTx(tokenAmount, sourceChain, isHTokenTransfer)
     if (populatedTx) {
@@ -552,13 +567,12 @@ class HopBridge extends Base {
     }
   }
 
-  // ToDo: Docs
   public async sendHToken (
     tokenAmount: TAmount,
     sourceChain: TChain,
     destinationChain: TChain,
     options: Partial<SendOptions> = {}
-  ) {
+  ) : Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
     const populatedTx = await this.populateSendHTokensTx(tokenAmount, sourceChain, destinationChain, options)
     await this.checkConnectedChain(this.signer, sourceChain)
@@ -570,7 +584,7 @@ class HopBridge extends Base {
     sourceChain: TChain,
     destinationChain: TChain,
     options: Partial<SendOptions> = {}
-  ) {
+  ) : Promise<BigNumber> {
     const populatedTx = await this.populateSendHTokensTx(tokenAmount, sourceChain, destinationChain, options)
     return this.getEstimatedGasLimit(sourceChain, destinationChain, populatedTx)
   }
@@ -684,7 +698,7 @@ class HopBridge extends Base {
     }
   }
 
-  private async getBridgeWrapperData (sourceChain: Chain, destinationChain: Chain, value: BigNumberish) {
+  private async getBridgeWrapperData (sourceChain: Chain, destinationChain: Chain, value: BigNumberish): Promise<any> {
     if (this.network === NetworkSlug.Goerli) {
       if (sourceChain.isL1) {
         if (destinationChain.equals(Chain.ConsenSysZk)) {
@@ -726,13 +740,11 @@ class HopBridge extends Base {
     }
   }
 
-  // ToDo: Docs
-  public getTokenSymbol () {
+  public getTokenSymbol (): string {
     return this.tokenSymbol
   }
 
-  // ToDo: Docs
-  public getTokenImage () {
+  public getTokenImage (): string {
     return this.getL1Token()?.image
   }
 
@@ -746,13 +758,12 @@ class HopBridge extends Base {
     return token.balanceOf(address)
   }
 
-  // ToDo: Docs
   public async getSendData (
     amountIn: BigNumberish,
     sourceChain: TChain,
     destinationChain: TChain,
     isHTokenSend: boolean = false
-  ) {
+  ) : Promise<any> {
     amountIn = BigNumber.from(amountIn)
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
@@ -893,13 +904,12 @@ class HopBridge extends Base {
     }
   }
 
-  // ToDo: Docs
   public async getAmmData (
     chain: TChain,
     amountIn: BigNumberish,
     isToHToken: boolean,
     slippageTolerance: number
-  ) {
+  ) :Promise<any> {
     chain = this.toChainModel(chain)
     amountIn = BigNumber.from(amountIn)
     const canonicalToken = this.getCanonicalToken(chain)
@@ -1088,7 +1098,7 @@ class HopBridge extends Base {
   async getOptimismL1Fee (
     sourceChain: TChain,
     destinationChain: TChain
-  ) {
+  ) : Promise<BigNumber> {
     try {
       const [gasLimit, { data, to }] = await Promise.all([
         this.estimateBondWithdrawalGasLimit(sourceChain, destinationChain),
@@ -1225,10 +1235,10 @@ class HopBridge extends Base {
 
   /**
    * @desc Estimate token amount out.
-   * @param {String} tokenAmountIn - Token amount input.
-   * @param {Object} sourceChain - Source chain model.
-   * @param {Object} destinationChain - Destination chain model.
-   * @returns {Object} Amount as BigNumber.
+   * @param tokenAmountIn - Token amount input.
+   * @param sourceChain - Source chain model.
+   * @param destinationChain - Destination chain model.
+   * @returns Amount as BigNumber.
    * @example
    *```js
    *import { Hop, Chain } from '@hop-protocol/sdk'
@@ -1243,7 +1253,7 @@ class HopBridge extends Base {
     tokenAmountIn: TAmount,
     sourceChain?: TChain,
     destinationChain?: TChain
-  ) {
+  ) : Promise<BigNumber> {
     tokenAmountIn = BigNumber.from(tokenAmountIn.toString())
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
@@ -1262,10 +1272,9 @@ class HopBridge extends Base {
 
   /**
    * @desc Estimate the bonder liquidity needed at the destination.
-   * @param {String} tokenAmountIn - Token amount input.
-   * @param {Object} sourceChain - Source chain model.
-   * @param {Object} destinationChain - Destination chain model.
-   * @returns {Object} Amount as BigNumber.
+   * @param tokenAmountIn - Token amount input.
+   * @param sourceChain - Source chain model.
+   * @returns Amount as BigNumber.
    * @example
    *```js
    *import { Hop, Chain } from '@hop-protocol/sdk'
@@ -1310,9 +1319,9 @@ class HopBridge extends Base {
 
   /**
    * @desc Returns available liquidity for Hop bridge at specified chain.
-   * @param {Object} sourceChain - Source chain model.
-   * @param {Object} destinationChain - Destination chain model.
-   * @returns {Object} Available liquidity as BigNumber.
+   * @param sourceChain - Source chain model.
+   * @param destinationChain - Destination chain model.
+   * @returns Available liquidity as BigNumber.
    */
   public async getFrontendAvailableLiquidity (
     sourceChain: TChain,
@@ -1381,11 +1390,11 @@ class HopBridge extends Base {
     return availableLiquidity
   }
 
-  private isOruToL1 (sourceChain: Chain, destinationChain: Chain) {
+  private isOruToL1 (sourceChain: Chain, destinationChain: Chain): boolean {
     return destinationChain.isL1 && bondableChains.includes(sourceChain.slug)
   }
 
-  async getBonderAvailableLiquidityData () {
+  async getBonderAvailableLiquidityData (): Promise<any> {
     const cached = s3FileCache[this.network]
     const isExpired = s3FileCacheTimestamp + cacheExpireMs < Date.now()
     if (cached && !isExpired) {
@@ -1400,7 +1409,7 @@ class HopBridge extends Base {
   async getUnbondedTransferRootAmount (
     sourceChain: TChain,
     destinationChain: TChain
-  ) {
+  ) : Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     try {
@@ -1422,7 +1431,7 @@ class HopBridge extends Base {
   private async getBaseAvailableCreditIncludingVault (
     sourceChain: TChain,
     destinationChain: TChain
-  ) {
+  ) : Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
     try {
@@ -1461,10 +1470,10 @@ class HopBridge extends Base {
 
   /**
    * @desc Returns bridge contract instance for specified chain.
-   * @param {Object} chain - chain model.
-   * @returns {Object} Ethers contract instance.
+   * @param chain - chain model.
+   * @returns Ethers contract instance.
    */
-  public async getBridgeContract (chain: TChain) {
+  public async getBridgeContract (chain: TChain): Promise<any> {
     chain = this.toChainModel(chain)
     let bridge: ethers.Contract
     if (chain.isL1) {
@@ -1477,8 +1486,8 @@ class HopBridge extends Base {
 
   /**
    * @desc Returns total credit that bonder holds on Hop bridge at specified chain.
-   * @param {Object} chain - Chain model.
-   * @returns {Object} Total credit as BigNumber.
+   * @param sourceChain - Chain model.
+   * @returns Total credit as BigNumber.
    */
   public async getCredit (
     sourceChain: TChain,
@@ -1490,8 +1499,8 @@ class HopBridge extends Base {
 
   /**
    * @desc Returns total debit, including sliding window debit, that bonder holds on Hop bridge at specified chain.
-   * @param {Object} chain - Chain model.
-   * @returns {Object} Total debit as BigNumber.
+   * @param sourceChain - Chain model.
+   * @returns Total debit as BigNumber.
    */
   public async getTotalDebit (
     sourceChain: TChain,
@@ -1503,8 +1512,8 @@ class HopBridge extends Base {
 
   /**
    * @desc Returns total debit that bonder holds on Hop bridge at specified chain.
-   * @param {Object} chain - Chain model.
-   * @returns {Object} Total debit as BigNumber.
+   * @param sourceChain - Chain model.
+   * @returns Total debit as BigNumber.
    */
   public async getDebit (
     sourceChain: TChain,
@@ -1516,13 +1525,13 @@ class HopBridge extends Base {
 
   /**
    * @desc Sends transaction to execute swap on Saddle contract.
-   * @param {Object} sourceChain - Source chain model.
-   * @param {Boolean} toHop - Converts to Hop token only if set to true.
-   * @param {Object} amount - Amount of token to swap.
-   * @param {Object} minAmountOut - Minimum amount of tokens to receive in order
+   * @param sourceChain - Source chain model.
+   * @param toHop - Converts to Hop token only if set to true.
+   * @param amount - Amount of token to swap.
+   * @param minAmountOut - Minimum amount of tokens to receive in order
    * for transaction to be successful.
-   * @param {Number} deadline - Transaction deadline in seconds.
-   * @returns {Object} Ethers transaction object.
+   * @param deadline - Transaction deadline in seconds.
+   * @returns Ethers transaction object.
    */
   public async execSaddleSwap (
     sourceChain: TChain,
@@ -1530,7 +1539,7 @@ class HopBridge extends Base {
     amount: TAmount,
     minAmountOut: TAmount,
     deadline: BigNumberish
-  ) {
+  ) : Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
     let tokenIndexFrom: number
     let tokenIndexTo: number
@@ -1577,8 +1586,8 @@ class HopBridge extends Base {
 
   /**
    * @desc Returns Hop L1 Bridge Ethers contract instance.
-   * @param {Object} signer - Ethers signer
-   * @returns {Object} Ethers contract instance.
+   * @param signer - Ethers signer
+   * @returns Ethers contract instance.
    */
   public async getL1Bridge (signer: TProvider = this.signer): Promise<any> {
     const bridgeAddress = this.getL1BridgeAddress(
@@ -1594,9 +1603,9 @@ class HopBridge extends Base {
 
   /**
    * @desc Returns Hop L2 Bridge Ethers contract instance.
-   * @param {Object} chain - Chain model.
-   * @param {Object} signer - Ethers signer
-   * @returns {Object} Ethers contract instance.
+   * @param chain - Chain model.
+   * @param signer - Ethers signer
+   * @returns Ethers contract instance.
    */
   public async getL2Bridge (chain: TChain, signer: TProvider = this.signer): Promise<any> {
     chain = this.toChainModel(chain)
@@ -1610,21 +1619,28 @@ class HopBridge extends Base {
     return L2_Bridge__factory.connect(bridgeAddress, provider)
   }
 
-  // ToDo: Docs
   public getAmm (chain: TChain) {
     chain = this.toChainModel(chain)
     if (chain.isL1) {
       throw new Error('No AMM exists on L1')
     }
 
-    return new AMM(this.network, this.tokenSymbol, chain, this.signer, this.chainProviders)
+    return new AMM({
+      network: this.network,
+      tokenSymbol: this.tokenSymbol,
+      chain,
+      signer: this.signer,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
   }
 
   /**
    * @desc Returns Hop Bridge AMM wrapper Ethers contract instance.
-   * @param {Object} chain - Chain model.
-   * @param {Object} signer - Ethers signer
-   * @returns {Object} Ethers contract instance.
+   * @param chain - Chain model.
+   * @param signer - Ethers signer
+   * @returns Ethers contract instance.
    */
   public async getAmmWrapper (chain: TChain, signer: TProvider = this.signer): Promise<any> {
     chain = this.toChainModel(chain)
@@ -1643,11 +1659,11 @@ class HopBridge extends Base {
 
   /**
    * @desc Returns Hop Bridge Saddle reserve amounts.
-   * @param {Object} chain - Chain model.
-   * @returns {Array} Array containing reserve amounts for canonical token
+   * @param chain - Chain model.
+   * @returns Array containing reserve amounts for canonical token
    * and hTokens.
    */
-  public async getSaddleSwapReserves (chain: TChain = this.sourceChain) {
+  public async getSaddleSwapReserves (chain: TChain = this.sourceChain): Promise<BigNumber[]> {
     const amm = this.getAmm(chain)
     const saddleSwap = await amm.getSaddleSwap()
     return Promise.all([
@@ -1656,7 +1672,7 @@ class HopBridge extends Base {
     ])
   }
 
-  public async getReservesTotal (chain: TChain = this.sourceChain) {
+  public async getReservesTotal (chain: TChain = this.sourceChain): Promise<BigNumber> {
     const [reserve0, reserve1] = await this.getSaddleSwapReserves(chain)
     return reserve0.add(reserve1)
   }
@@ -1685,14 +1701,14 @@ class HopBridge extends Base {
 
   /**
    * @desc Returns Hop Bridge Saddle Swap LP Token Ethers contract instance.
-   * @param {Object} chain - Chain model.
-   * @param {Object} signer - Ethers signer
-   * @returns {Object} Ethers contract instance.
+   * @param chain - Chain model.
+   * @param signer - Ethers signer
+   * @returns Ethers contract instance.
    */
   public getSaddleLpToken (
     chain: TChain,
     signer: TProvider = this.signer
-  ) {
+  ) : Token {
     // ToDo: Remove ability to pass in signer like other token getters
     chain = this.toChainModel(chain)
     const saddleLpTokenAddress = this.getL2SaddleLpTokenAddress(
@@ -1706,46 +1722,50 @@ class HopBridge extends Base {
     }
 
     // ToDo: Get actual saddle LP token symbol and name
-    return new Token(
-      this.network,
+    return new Token({
+      network: this.network,
       chain,
-      saddleLpTokenAddress,
-      18,
-      `${this.tokenSymbol} LP` as TokenSymbol,
-      `${this.tokenSymbol} LP`,
-      '',
+      address: saddleLpTokenAddress,
+      decimals: 18,
+      symbol: `${this.tokenSymbol} LP` as TokenSymbol,
+      name: `${this.tokenSymbol} LP`,
+      image: '',
       signer,
-      this.chainProviders
-    )
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
   }
 
   /**
    * @desc Sends transaction to add liquidity to AMM.
-   * @param {Object} amount0Desired - Amount of token #0 in smallest unit
-   * @param {Object} amount1Desired - Amount of token #1 in smallest unit
-   * @param {Object} chain - Chain model of desired chain to add liquidity to.
-   * @param {Object} options - Method options.
-   * @returns {Object} Ethers transaction object.
+   * @param amount0Desired - Amount of token #0 in smallest unit
+   * @param amount1Desired - Amount of token #1 in smallest unit
+   * @param chain - Chain model of desired chain to add liquidity to.
+   * @param options - Method options.
+   * @returns Ethers transaction object.
    */
   public async addLiquidity (
     amount0Desired: TAmount,
     amount1Desired: TAmount,
     chain?: TChain,
     options: Partial<AddLiquidityOptions> = {}
-  ) {
+  ) :Promise<any> {
     if (!chain) {
       chain = this.sourceChain
     }
     amount0Desired = BigNumber.from(amount0Desired.toString())
     chain = this.toChainModel(chain)
 
-    const amm = new AMM(
-      this.network,
-      this.tokenSymbol,
+    const amm = new AMM({
+      network: this.network,
+      tokenSymbol: this.tokenSymbol,
       chain,
-      this.signer,
-      this.chainProviders
-    )
+      signer: this.signer,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
     return amm.addLiquidity(
       amount0Desired,
       amount1Desired,
@@ -1756,27 +1776,29 @@ class HopBridge extends Base {
 
   /**
    * @desc Sends transaction to remove liquidity from AMM.
-   * @param {Object} liquidityTokenAmount - Amount of LP tokens to burn.
-   * @param {Object} chain - Chain model of desired chain to add liquidity to.
-   * @param {Object} options - Method options.
-   * @returns {Object} Ethers transaction object.
+   * @param liquidityTokenAmount - Amount of LP tokens to burn.
+   * @param chain - Chain model of desired chain to add liquidity to.
+   * @param options - Method options.
+   * @returns Ethers transaction object.
    */
   public async removeLiquidity (
     liquidityTokenAmount: TAmount,
     chain?: TChain,
     options: Partial<RemoveLiquidityOptions> = {}
-  ) {
+  ) : Promise<any> {
     if (!chain) {
       chain = this.sourceChain
     }
     chain = this.toChainModel(chain)
-    const amm = new AMM(
-      this.network,
-      this.tokenSymbol,
+    const amm = new AMM({
+      network: this.network,
+      tokenSymbol: this.tokenSymbol,
       chain,
-      this.signer,
-      this.chainProviders
-    )
+      signer: this.signer,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
     return amm.removeLiquidity(
       liquidityTokenAmount,
       options.amount0Min,
@@ -1790,18 +1812,20 @@ class HopBridge extends Base {
     tokenIndex: number,
     chain?: TChain,
     options: Partial<RemoveLiquidityOneTokenOptions> = {}
-  ) {
+  ) : Promise<any> {
     if (!chain) {
       chain = this.sourceChain
     }
     chain = this.toChainModel(chain)
-    const amm = new AMM(
-      this.network,
-      this.tokenSymbol,
+    const amm = new AMM({
+      network: this.network,
+      tokenSymbol: this.tokenSymbol,
       chain,
-      this.signer,
-      this.chainProviders
-    )
+      signer: this.signer,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
     return amm.removeLiquidityOneToken(
       lpTokenAmount,
       tokenIndex,
@@ -1815,18 +1839,20 @@ class HopBridge extends Base {
     token1Amount: TAmount,
     chain?: TChain,
     options: Partial<RemoveLiquidityImbalanceOptions> = {}
-  ) {
+  ) : Promise<any> {
     if (!chain) {
       chain = this.sourceChain
     }
     chain = this.toChainModel(chain)
-    const amm = new AMM(
-      this.network,
-      this.tokenSymbol,
+    const amm = new AMM({
+      network: this.network,
+      tokenSymbol: this.tokenSymbol,
       chain,
-      this.signer,
-      this.chainProviders
-    )
+      signer: this.signer,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
     return amm.removeLiquidityImbalance(
       token0Amount,
       token1Amount,
@@ -1844,13 +1870,15 @@ class HopBridge extends Base {
       chain = this.sourceChain
     }
     chain = this.toChainModel(chain)
-    const amm = new AMM(
-      this.network,
-      this.tokenSymbol,
+    const amm = new AMM({
+      network: this.network,
+      tokenSymbol: this.tokenSymbol,
       chain,
-      this.signer,
-      this.chainProviders
-    )
+      signer: this.signer,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
     return amm.calculateRemoveLiquidityOneToken(
       tokenAmount,
       tokenIndex
@@ -1860,9 +1888,9 @@ class HopBridge extends Base {
   /**
    * @readonly
    * @desc The default deadline to use in seconds.
-   * @returns {Number} Deadline in seconds
+   * @returns Deadline in seconds
    */
-  public get defaultDeadlineSeconds () {
+  public get defaultDeadlineSeconds (): number {
     return (Date.now() / 1000 + this.defaultDeadlineMinutes * 60) | 0
   }
 
@@ -1904,10 +1932,9 @@ class HopBridge extends Base {
   /**
    * @readonly
    * @desc The amount bonded for a time slot for a bonder.
-   * @param {Object} chain - Chain model.
-   * @param {Number} timeSlot - Time slot to get.
-   * @param {String} bonder - Address of the bonder to check.
-   * @returns {Object} Amount bonded for the bonder for the given time slot as BigNumber.
+   * @param timeSlot - Time slot to get.
+   * @param bonder - Address of the bonder to check.
+   * @returns Amount bonded for the bonder for the given time slot as BigNumber.
    */
   public async timeSlotToAmountBonded (
     timeSlot: TTimeSlot,
@@ -1919,7 +1946,7 @@ class HopBridge extends Base {
     return bridge.timeSlotToAmountBonded(timeSlot, bonder)
   }
 
-  private async getTokenIndexes (path: string[], chain: TChain) {
+  private async getTokenIndexes (path: string[], chain: TChain) : Promise<number[]> {
     const amm = this.getAmm(chain)
     const saddleSwap = await amm.getSaddleSwap()
     const tokenIndexFrom = Number(
@@ -1932,7 +1959,7 @@ class HopBridge extends Base {
     return [tokenIndexFrom, tokenIndexTo]
   }
 
-  private async populateSendL1ToL2Tx (input: SendL1ToL2Input) {
+  private async populateSendL1ToL2Tx (input: SendL1ToL2Input) : Promise<any> {
     let {
       destinationChain,
       sourceChain,
@@ -2010,7 +2037,7 @@ class HopBridge extends Base {
     return tx
   }
 
-  private async populateSendL2ToL1Tx (input: SendL2ToL1Input) {
+  private async populateSendL2ToL1Tx (input: SendL2ToL1Input): Promise<any> {
     let {
       destinationChain,
       sourceChain,
@@ -2105,7 +2132,7 @@ class HopBridge extends Base {
     )
   }
 
-  private async populateSendL2ToL2Tx (input: SendL2ToL2Input) {
+  private async populateSendL2ToL2Tx (input: SendL2ToL2Input): Promise<any> {
     let {
       destinationChain,
       sourceChain,
@@ -2256,7 +2283,7 @@ class HopBridge extends Base {
     amountIn: TAmount,
     sourceChain: TChain,
     destinationChain: TChain
-  ) {
+  ) : Promise<BigNumber> {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
@@ -2307,7 +2334,7 @@ class HopBridge extends Base {
     amountOut: BigNumber,
     sourceToken: Token,
     destToken: Token
-  ) {
+  ) : number {
     let rateBN
     if (amountIn.eq(0)) {
       rateBN = BigNumber.from(0)
@@ -2322,11 +2349,11 @@ class HopBridge extends Base {
     return rate
   }
 
-  private getPriceImpact (rate: number, marketRate: number) {
+  private getPriceImpact (rate: number, marketRate: number) : number {
     return ((marketRate - rate) / marketRate) * 100
   }
 
-  private async checkConnectedChain (signer: TProvider, chain: Chain) {
+  private async checkConnectedChain (signer: TProvider, chain: Chain): Promise<void> {
     const connectedChainId = await (signer as Signer)?.getChainId()
     if (connectedChainId !== chain.chainId) {
       throw new Error(`invalid connected chain ID "${connectedChainId}". Make sure web3 signer provider is connected to source chain from network "${chain.slug}" chain ID "${chain.chainId}"`)
@@ -2346,7 +2373,7 @@ class HopBridge extends Base {
     return L1_HomeAMBNativeToErc20__factory.connect(address, provider)
   }
 
-  getChainNativeToken (chain: TChain) {
+  getChainNativeToken (chain: TChain): any {
     chain = this.toChainModel(chain)
     if (chain?.equals(Chain.Polygon)) {
       return this.toTokenModel(CanonicalToken.MATIC)
@@ -2357,12 +2384,12 @@ class HopBridge extends Base {
     return this.toTokenModel(CanonicalToken.ETH)
   }
 
-  isNativeToken (chain?: TChain) {
+  isNativeToken (chain?: TChain) : boolean {
     const token = this.getCanonicalToken(chain || this.sourceChain)
     return token.isNativeToken
   }
 
-  async getEthBalance (chain: TChain = this.sourceChain, address?: string) {
+  async getEthBalance (chain: TChain = this.sourceChain, address?: string): Promise<BigNumber> {
     chain = this.toChainModel(chain)
     address = address ?? await this.getSignerAddress()
     if (!address) {
@@ -2371,7 +2398,7 @@ class HopBridge extends Base {
     return chain.provider.getBalance(address)
   }
 
-  isSupportedAsset (chain: TChain) {
+  isSupportedAsset (chain: TChain) :boolean {
     chain = this.toChainModel(chain)
     const supported = this.getSupportedAssets()
     const token = this.toTokenModel(this.tokenSymbol)
@@ -2394,7 +2421,7 @@ class HopBridge extends Base {
     return amountOutMin?.gt(0) || deadline?.gt(0)
   }
 
-  private async getGasEstimateFromAddress (sourceChain: TChain, destinationChain: TChain) {
+  private async getGasEstimateFromAddress (sourceChain: TChain, destinationChain: TChain): Promise<any> {
     let address = await this.getSignerAddress()
     if (!address) {
       address = await this.getBonderAddress(sourceChain, destinationChain)
@@ -2437,22 +2464,22 @@ class HopBridge extends Base {
     return bridge.withdraw(...txOptions)
   }
 
-  setPriceFeedApiKeys (apiKeys: ApiKeys = {}) {
+  setPriceFeedApiKeys (apiKeys: ApiKeys = {}): void {
     this.priceFeedApiKeys = apiKeys
     this.priceFeed.setApiKeys(this.priceFeedApiKeys)
   }
 
-  async needsApproval (amount: TAmount, chain: TChain, address?: string) {
+  async needsApproval (amount: TAmount, chain: TChain, address?: string): Promise<boolean> {
     const token = this.getCanonicalToken(chain)
     const isHTokenTransfer = false
-    const spender = await this.getSendApprovalAddress(chain, isHTokenTransfer)
+    const spender = this.getSendApprovalAddress(chain, isHTokenTransfer)
     return token.needsApproval(spender, amount, address)
   }
 
-  async needsHTokenApproval (amount: TAmount, chain: TChain, address?: string) {
+  async needsHTokenApproval (amount: TAmount, chain: TChain, address?: string): Promise<boolean> {
     const token = this.getCanonicalToken(chain)
     const isHTokenTransfer = true
-    const spender = await this.getSendApprovalAddress(chain, isHTokenTransfer)
+    const spender = this.getSendApprovalAddress(chain, isHTokenTransfer)
     return token.needsApproval(spender, amount, address)
   }
 
@@ -2468,14 +2495,14 @@ class HopBridge extends Base {
     return Number(formatUnits(value, decimals ?? token.decimals))
   }
 
-  calcAmountOutMin (amountOut: TAmount, slippageTolerance: number) {
+  calcAmountOutMin (amountOut: TAmount, slippageTolerance: number): BigNumber {
     amountOut = BigNumber.from(amountOut.toString())
     const slippageToleranceBps = slippageTolerance * 100
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     return amountOut.mul(minBps).div(10000)
   }
 
-  async isDestinationChainPaused (destinationChain: TChain) {
+  async isDestinationChainPaused (destinationChain: TChain): Promise<boolean> {
     destinationChain = this.toChainModel(destinationChain)
     const l1Bridge = await this.getL1Bridge()
     const isPaused = await l1Bridge.isChainIdPaused(destinationChain.chainId)
@@ -2511,13 +2538,13 @@ class HopBridge extends Base {
     return this.supportedLpChains
   }
 
-  async getAccountLpBalance (chain: TChain, account?: string) {
+  async getAccountLpBalance (chain: TChain, account?: string): Promise<BigNumber> {
     const lpToken = this.getSaddleLpToken(chain)
     const balance = await lpToken.balanceOf(account)
     return balance
   }
 
-  async getAccountLpCanonicalBalance (chain: TChain, account?: string) {
+  async getAccountLpCanonicalBalance (chain: TChain, account?: string): Promise<BigNumber> {
     const token = this.toTokenModel(this.tokenSymbol)
     const lpToken = this.getSaddleLpToken(chain)
     const balance = await lpToken.balanceOf(account)

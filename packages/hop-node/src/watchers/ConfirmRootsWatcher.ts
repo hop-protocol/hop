@@ -12,6 +12,7 @@ import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import ScrollZkBridgeWatcher from './ScrollZkBridgeWatcher'
 import ZkSyncBridgeWatcher from './ZkSyncBridgeWatcher'
 import contracts from 'src/contracts'
+import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
@@ -29,10 +30,10 @@ type Config = {
 }
 
 export type ConfirmRootsData = {
-  rootHash: string
-  destinationChainId: number
-  totalAmount: BigNumber
-  rootCommittedAt: number
+  rootHashes: string[]
+  destinationChainIds: number[]
+  totalAmounts: BigNumber[]
+  rootCommittedAts: number[]
 }
 
 type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | ConsenSysZkBridgeWatcher | ScrollZkBridgeWatcher
@@ -239,30 +240,57 @@ class ConfirmRootsWatcher extends BaseWatcher {
     })
 
     logger.debug(`handling confirmable transfer root ${transferRootHash}, destination ${destinationChainId}, amount ${totalAmount.toString()}, committedAt ${committedAt}`)
-    await this.confirmRootsViaWrapper([{
-      rootHash: transferRootHash,
-      destinationChainId,
-      totalAmount,
-      rootCommittedAt: committedAt
-    }])
+    await this.confirmRootsViaWrapper({
+      rootHashes: [transferRootHash],
+      destinationChainIds: [destinationChainId],
+      totalAmounts: [totalAmount],
+      rootCommittedAts: [committedAt]
+    })
   }
 
-  async confirmRootsViaWrapper (rootData: ConfirmRootsData[]): Promise<void> {
-    const rootHashes: string[] = []
-    const destinationChainIds: number[] = []
-    const totalAmounts: BigNumber[] = []
-    const rootCommittedAt: number[] = []
-    for (const data of rootData) {
-      rootHashes.push(data.rootHash)
-      destinationChainIds.push(data.destinationChainId)
-      totalAmounts.push(data.totalAmount)
-      rootCommittedAt.push(data.rootCommittedAt)
+  async confirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
+    const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
+
+    // Data validation
+    if (
+      rootHashes.length !== destinationChainIds.length ||
+      rootHashes.length !== totalAmounts.length ||
+      rootHashes.length !== rootCommittedAts.length
+    ) {
+      throw new Error('Root data arrays must be the same length')
     }
+
+    for (const index in rootHashes) {
+      const rootHash = rootHashes[index]
+      const destinationChainId = destinationChainIds[index]
+      const totalAmount = totalAmounts[index]
+      const rootCommittedAt = rootCommittedAts[index]
+
+
+      const calculatedTransferRootId = getTransferRootId(rootHash, totalAmount)
+      const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
+      if (!dbTransferRoot) {
+        throw new Error(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
+      }
+
+      const logger = this.logger.create({ root: calculatedTransferRootId })
+      logger.debug(`confirming rootHash ${rootHash} on destinationChainId ${destinationChainId} with totalAmount ${totalAmount.toString()} and committedAt ${rootCommittedAt}`)
+
+      if (
+        rootHash !== dbTransferRoot.transferRootHash ||
+        destinationChainId !== dbTransferRoot.destinationChainId ||
+        totalAmount.toString() !== dbTransferRoot.totalAmount?.toString() ||
+        rootCommittedAt !== dbTransferRoot.committedAt
+      ) {
+        throw new Error(`DB data does not match passed in data for rootHash ${rootHash}`)
+      }
+    }
+
     this.l1MessengerWrapper.confirmRoots(
       rootHashes,
       destinationChainIds,
       totalAmounts,
-      rootCommittedAt
+      rootCommittedAts
     )
   }
 }

@@ -16,9 +16,8 @@ root
   .description('Confirm a root with an exit from the canonical bridge or with the messenger wrapper')
   .option('--chain <slug>', 'Chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
-  .option('--tx-hashes <hash, ...>', 'Comma-separated tx hashes with CommitTransfers event log', parseStringArray)
-  .option('--roots-data-file <filepath>', 'Filenamepath containing list of roots to be confirmed', parseInputFileList)
-  .option('--bypass-canonical-bridge [boolean]', 'Confirm a root via the messenger wrapper', parseBool)
+  .option('--root-hashes <hash, ...>', 'Comma-separated root hashes with CommitTransfers event log', parseStringArray)
+  .option('--wrapper-confirmation [boolean]', 'Confirm a root via the messenger wrapper', parseBool)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
@@ -30,9 +29,8 @@ async function main (source: any) {
   const {
     chain,
     token,
-    txHashes: commitTxHashes,
-    rootsDataFile: rootsDataFileList,
-    bypassCanonicalBridge,
+    rootHashes,
+    wrapperConfirmation,
     dry: dryMode
   } = source
 
@@ -42,41 +40,59 @@ async function main (source: any) {
   if (!token) {
     throw new Error('token is required')
   }
-
-  if (bypassCanonicalBridge) {
-    if (commitTxHashes?.length) {
-      throw new Error('commit tx hash is not supported when bypassing canonical bridge')
-    }
-    if (!rootsDataFileList) {
-      throw new Error('root data is required when bypassing canonical bridge')
-    }
-  } else {
-    if (!commitTxHashes?.length) {
-      throw new Error('commit tx hash is required')
-    }
-    if (rootsDataFileList) {
-      throw new Error('root is not supported when exiting via the canonical messenger')
-    }
+  if (!rootHashes?.length) {
+    throw new Error('root hashes required')
   }
+
 
   const watcher = await getConfirmRootsWatcher({ chain, token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
   }
 
-  if (bypassCanonicalBridge) {
-    const rootData: ConfirmRootsData[] = rootsDataFileList.map((data: ConfirmRootsData) => {
-      return {
-        rootHash: data.rootHash,
-        destinationChainId: Number(data.destinationChainId),
-        totalAmount: BigNumber.from(data.totalAmount),
-        rootCommittedAt: Number(data.rootCommittedAt)
+  const dbTransferRoots: any[] = []
+  for (const rootHash of rootHashes) {
+    const dbTransferRoot: any = await watcher.db.transferRoots.getByTransferRootHash(rootHash)
+    if (!dbTransferRoot) {
+      throw new Error('TransferRoot does not exist in the DB')
+    }
+    dbTransferRoots.push(dbTransferRoot)
+  }
+
+  if (wrapperConfirmation) {
+    const rootDatas: ConfirmRootsData = {
+      rootHashes: [],
+      destinationChainIds: [],
+      totalAmounts: [],
+      rootCommittedAts: []
+    }
+    for (const dbTransferRoot of dbTransferRoots) {
+      const { transferRootHash, destinationChainId, totalAmount, committedAt } = dbTransferRoot
+      if (
+        !transferRootHash ||
+        !destinationChainId ||
+        !totalAmount ||
+        !committedAt
+      ) {
+        throw new Error('TransferRoot is missing required data')
       }
-    })
-    await watcher.confirmRootsViaWrapper(rootData)
+
+      rootDatas.rootHashes.push(transferRootHash)
+      rootDatas.destinationChainIds.push(destinationChainId)
+      rootDatas.totalAmounts.push(totalAmount)
+      rootDatas.rootCommittedAts.push(committedAt)
+    }
+
+    console.log('rootDatas', rootDatas)
+    await watcher.confirmRootsViaWrapper(rootDatas)
   } else {
     const chainSpecificWatcher: ExitWatcher = watcher.watchers[chain]
-    for (const commitTxHash of commitTxHashes) {
+    for (const dbTransferRoot of dbTransferRoots) {
+      const commitTxHash = dbTransferRoot.commitTxHash
+      if(!commitTxHash) {
+        throw new Error('commitTxHash is required')
+      }
+      console.log('commitTxHash', commitTxHash)
       await chainSpecificWatcher.relayXDomainMessage(commitTxHash)
     }
   }

@@ -403,7 +403,7 @@
       },
       "gnosis": {
         "l1CanonicalBridge": "0x88ad09518695c6c3712AC10a214bE5109a655671",
-        "l1MessengerWrapper": "0x46fc3Af3A47792cA3ED06fdF3D657145A675a8D8",
+        "l1MessengerWrapper": "0xCC0ACeb13a902d0BfBa37AD5d876320C7B590099",
         "l2CanonicalBridge": "0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d",
         "l2CanonicalToken": "0x7122d7661c4564b7C6Cd4878B06766489a6028A2",
         "l2Bridge": "0x7ac71c29fEdF94BAc5A5C9aB76E1Dd12Ea885CCC",
@@ -417,7 +417,7 @@
       },
       "polygon": {
         "l1CanonicalBridge": "0xA0c68C638235ee32657e8f720a23ceC1bFc77C77",
-        "l1MessengerWrapper": "0xe6bfe2ac487EA9A6c58108FBcb6d2DB96b667cc0",
+        "l1MessengerWrapper": "0x29d591fF46194cE3B0B813CE7940569Fa06bE7fa",
         "l2CanonicalBridge": "0x0000000000000000000000000000000000001010",
         "l2CanonicalToken": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
         "l2Bridge": "0x553bC791D746767166fA3888432038193cEED5E2",
@@ -425,10 +425,10 @@
         "l2AmmWrapper": "0x884d1Aa15F9957E1aEAA86a82a72e49Bc2bfCbe3",
         "l2SaddleSwap": "0x3d4Cc8A61c7528Fd86C55cfe061a78dCBA48EDd1",
         "l2SaddleLpToken": "0xbc4FB4ED825C65fF48163AF7E59d49e32edb5269",
-        "l1FxBaseRootTunnel": "0xe6bfe2ac487EA9A6c58108FBcb6d2DB96b667cc0",
+        "l1FxBaseRootTunnel": "0x29d591fF46194cE3B0B813CE7940569Fa06bE7fa",
         "l1PosRootChainManager": "0xA0c68C638235ee32657e8f720a23ceC1bFc77C77",
         "l1PosPredicate": "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf",
-        "l2MessengerProxy": "0x2b7Cf93d722BB716468194373254125B7f5Dd4B8",
+        "l2MessengerProxy": "0xc01052c380c7D4D6df84eB81A5b93a0c4F676286",
         "bridgeDeployedBlockNumber": 17669097
       }
     },

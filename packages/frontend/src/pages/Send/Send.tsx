@@ -622,16 +622,18 @@ const Send: FC = () => {
   }
 
   useEffect(() => {
-    if (
-      (toNetwork?.slug === ChainSlug.Arbitrum || toNetwork?.slug === ChainSlug.Nova) &&
-      customRecipient &&
-      !address?.eq(customRecipient)
-    ) {
-      return setManualWarning(
+    if (customRecipient) {
+      if (gnosisEnabled && address?.eq(customRecipient)) {
+        setManualWarning(
+          'Warning: make sure gnosis safe exists at the destination chain otherwise it may result in lost funds.'
+        )
+      }
+      setManualWarning(
         'Warning: transfers to exchanges that do not support internal transactions may result in lost funds.'
       )
+    } else {
+      setManualWarning('')
     }
-    setManualWarning('')
   }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
   useEffect(() => {

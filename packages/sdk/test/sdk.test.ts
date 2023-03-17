@@ -10,6 +10,7 @@ import * as addresses from '@hop-protocol/core/addresses'
 // @ts-ignore
 import pkg from '../package.json'
 import { FallbackProvider } from '../src/provider'
+import { fetchJsonOrThrow } from '../src/utils/fetchJsonOrThrow'
 import { getChainSlugFromName } from '../src/utils'
 
 describe('sdk setup', () => {
@@ -487,6 +488,23 @@ describe('custom chain providers', () => {
     gnosisProvider = bridge.getChainProvider('gnosis')
     expect(bridge.getProviderRpcUrl(polygonProvider)).toBe(newPolygonUrl)
     expect(bridge.getProviderRpcUrl(gnosisProvider)).toBe(newGnosisUrl)
+  })
+
+  it('constructor chainProviders option', () => {
+    const newPolygonUrl = 'https://polygon-rpc2.com'
+    const newGnosisUrl = 'https://rpc.gnosischain2.com'
+    const polygonProvider = new providers.StaticJsonRpcProvider(newPolygonUrl)
+    const gnosisProvider = new providers.StaticJsonRpcProvider(newGnosisUrl)
+    const sdk = new Hop({
+      network: 'mainnet',
+      chainProviders: {
+        polygon: polygonProvider,
+        gnosis: gnosisProvider
+      }
+    })
+    const bridge = sdk.bridge('USDC')
+    expect(bridge.getChainProvider('polygon')).toBe(polygonProvider)
+    expect(bridge.getChainProvider('gnosis')).toBe(gnosisProvider)
   })
 })
 
@@ -983,19 +1001,164 @@ describe('utils', () => {
   })
 })
 
-describe('sdk base config file fetching', () => {
-  it('configFileFetchEnabled', async () => {
+describe('S3 data', () => {
+  it('should get core config json data', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchCoreConfigData()
+    // console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.bonders).toBeTruthy()
+  })
+  it('should get available liquidity json data', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchBonderAvailableLiquidityData()
+    // console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.ETH).toBeTruthy()
+  })
+})
+
+describe('fetchJsonOrThrow', () => {
+  it('should fetch json', async () => {
+    const url = 'https://assets.hop.exchange/mainnet/v1-core-config.json'
+    const json = await fetchJsonOrThrow(url)
+    // console.log(json)
+    expect(json).toBeTruthy()
+    expect(json instanceof Object).toBeTruthy()
+    expect(json.bonders).toBeTruthy()
+  }, 60 * 1000)
+  it('should throw if invalid json', async () => {
+    let error : any
+    try {
+      const url = 'https://assets.hop.exchange'
+      const json = await fetchJsonOrThrow(url)
+      expect(json).toBeFalsy()
+    } catch (err: any) {
+      error = err.message
+    }
+    console.log(error)
+    expect(error).toBeTruthy()
+    expect(/invalid/gi.test(error)).toBeTruthy()
+  }, 60 * 1000)
+  it('should throw if url request times out', async () => {
+    let error : any
+    try {
+      const url = 'https://www.google.com:81/' // this endpoint basically never responds which is useful for testing timeouts
+      const json = await fetchJsonOrThrow(url)
+      expect(json).toBeFalsy()
+    } catch (err: any) {
+      error = err.message
+    }
+    console.log(error)
+    expect(error).toBeTruthy()
+    expect(/timedout|aborted/gi.test(error)).toBeTruthy()
+  }, 60 * 1000)
+  it('should throw if invalid or incomplete url', async () => {
+    let error : any
+    try {
+      const url = 'example.com'
+      const json = await fetchJsonOrThrow(url)
+      expect(json).toBeFalsy()
+    } catch (err: any) {
+      error = err.message
+    }
+    console.log(error)
+    expect(error).toBeTruthy()
+    expect(/invalid/gi.test(error)).toBeTruthy()
+  }, 60 * 1000)
+})
+
+describe('sdk config file fetching', () => {
+  it('setBaseConfigUrl', async () => {
     const hop = new Hop('mainnet')
     expect(hop.baseConfigUrl).toBe('https://assets.hop.exchange')
-    hop.setBaseConfigUrl('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    await hop.setBaseConfigUrl('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
     expect(hop.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    const bridge = hop.bridge('USDC')
+    expect(bridge.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    await hop.setBaseConfigUrl('https://assets.hop.exchange')
+  })
+
+  it('baseConfigUrl option', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.baseConfigUrl).toBe('https://assets.hop.exchange')
+
+    const hop2 = new Hop({
+      network: 'mainnet',
+      baseConfigUrl: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange'
+    })
+    const bridge = hop2.bridge('USDC')
+    expect(bridge.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+  })
+
+  it('configFileFetchEnabled', async () => {
+    const hop = new Hop('mainnet')
     expect(hop.configFileFetchEnabled).toBe(true)
     hop.setConfigFileFetchEnabled(false)
     expect(hop.configFileFetchEnabled).toBe(false)
     const bridge = hop.bridge('USDC')
     expect(bridge.configFileFetchEnabled).toBe(false)
-    expect(hop.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
     hop.setConfigFileFetchEnabled(true)
     expect(hop.configFileFetchEnabled).toBe(true)
+  })
+
+  it('setCoreConfigJsonUrl', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.coreConfigJsonUrl).toBe('https://assets.hop.exchange/mainnet/v1-core-config.json')
+    await hop.setCoreConfigJsonUrl('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-core-config.json')
+    expect(hop.coreConfigJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-core-config.json')
+    const bridge = hop.bridge('USDC')
+    expect(bridge.coreConfigJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-core-config.json')
+  })
+
+  it('setAvailableLiqudityJsonUrl', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.availableLiqudityJsonUrl).toBe('https://assets.hop.exchange/mainnet/v1-available-liquidity.json')
+    await hop.setAvailableLiqudityJsonUrl('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-available-liquidity.json')
+    expect(hop.availableLiqudityJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-available-liquidity.json')
+    const bridge = hop.bridge('USDC')
+    expect(bridge.availableLiqudityJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-available-liquidity.json')
+  })
+})
+
+describe.skip('ipfs', () => {
+  it('resolveDnslink', async () => {
+    const hop = new Hop('mainnet')
+    const dnslinkDomain = '_dnslink.ipfs-assets.hop.exchange'
+    const ipfsHash = await hop.resolveDnslink(dnslinkDomain)
+    console.log(ipfsHash)
+    expect(ipfsHash).toBeTruthy()
+  })
+
+  it('fetchIpfsCoreConfigData', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchIpfsCoreConfigData()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.bonders).toBeTruthy()
+  })
+
+  it('fetchIpfsBonderAvailableLiquidity', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchIpfsBonderAvailableLiquidityData()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.ETH).toBeTruthy()
+  })
+
+  it('fetchCoreConfigDataWithIpfsFallback', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchCoreConfigDataWithIpfsFallback()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.bonders).toBeTruthy()
+  })
+
+  it('fetchBonderAvailableLiquidityDataWithIpfsFallback', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchBonderAvailableLiquidityDataWithIpfsFallback()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.ETH).toBeTruthy()
   })
 })

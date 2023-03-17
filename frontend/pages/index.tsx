@@ -2,12 +2,9 @@ import React, {useEffect, useState, useCallback } from 'react'
 import { useInterval } from 'react-use'
 import Clipboard from 'clipboard'
 import * as luxon from 'luxon'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
 import type {NextPage} from 'next'
 import Head from 'next/head'
 import Script from 'next/script'
-// import bgImage from './assets/circles-bg.svg'
-import styled from 'styled-components'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
@@ -25,14 +22,11 @@ import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox'
 import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
-import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
-import { withStyles } from '@mui/styles'
 import TextField from '@mui/material/TextField'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker'
-import dayjs, { Dayjs } from 'dayjs'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import RefreshIcon from '@mui/icons-material/Refresh'
@@ -44,6 +38,8 @@ import GitHubIcon from '@mui/icons-material/GitHub'
 import TwitterIcon from '@mui/icons-material/Twitter'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { chains, tokens } from '@hop-protocol/core/metadata'
+import MuiTooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip'
+import { styled } from '@mui/material/styles'
 
 const isGoerli = process.env.NEXT_PUBLIC_NETWORK === 'goerli'
 let apiBaseUrl = 'https://explorer-api.hop.exchange'
@@ -53,6 +49,14 @@ if (isGoerli) {
 if (process.env.NEXT_PUBLIC_LOCAL) {
   apiBaseUrl = 'http://localhost:8000'
 }
+
+const Tooltip = styled(({ className, ...props }: TooltipProps) => (
+  <MuiTooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    fontSize: '1em',
+  },
+}))
 
 function getSourceChainId (chain: string) {
   if (chain === 'ethereum') {
@@ -1185,89 +1189,113 @@ const Index: NextPage = (props: any) => {
                           { ((Math.max(page-1, 0) * perPage) + index + 1) }
                         </Typography>
                         </TableCell>
-                      <TableCell title={x.timestampIso}>
-                        <Typography variant="body1" color="secondary" className="timestamp">
-                          { x.timestampRelative }
-                        </Typography>
+                      <TableCell>
+                        <Tooltip title={<Box>Unix: {x.timestampIso}<br />Relative: { x.timestampRelative }</Box>}>
+                          <Typography variant="body1" color="secondary" className="timestamp">
+                            { x.timestampRelative }
+                          </Typography>
+                        </Tooltip>
                         </TableCell>
                       <TableCell>
-                        <Box display="flex" alignItems="center">
-                          <img width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
-                          <Typography variant="body1" color="secondary" className={x.sourceChainSlug} style={{ color: colorsMap[x.sourceChainSlug] }}>
-                            { x.sourceChainName }
-                          </Typography>
-                        </Box>
+                        <Tooltip title={`${x.sourceChainName} - Chain ID: ${x.sourceChainId}`}>
+                          <Box display="flex" alignItems="center">
+                            <img width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
+                            <Typography variant="body1" color="secondary" className={x.sourceChainSlug} style={{ color: colorsMap[x.sourceChainSlug] }}>
+                              { x.sourceChainName }
+                            </Typography>
+                          </Box>
+                        </Tooltip>
                       </TableCell>
                       <TableCell>
-                        <Box display="flex" alignItems="center">
-                          <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                          <Typography variant="body1" color="secondary" className={x.destinationChainSlug} style={{ color: colorsMap[x.destinationChainSlug] }}>
-                            { x.destinationChainName }
-                          </Typography>
-                        </Box>
+                        <Tooltip title={`${x.destinationChainName} - Chain ID: ${x.destinationChainId}`}>
+                          <Box display="flex" alignItems="center">
+                            <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                            <Typography variant="body1" color="secondary" className={x.destinationChainSlug} style={{ color: colorsMap[x.destinationChainSlug] }}>
+                              { x.destinationChainName }
+                            </Typography>
+                          </Box>
+                        </Tooltip>
                       </TableCell>
                       <TableCell className="transferId">
-                        <Box display="flex" alignItems="center">
-                          <Link className="clipboard" data-clipboard-text={x.transferId} rel="noreferrer noopener" title="Copy transfer ID to clipboard" onClick={setCopiedTimeoutFn(x.transferId)}>{copied === x.transferId ? <CheckIcon /> : <ContentCopyIcon />}</Link>
-                          <Typography variant="body1" color="secondary" component="div">
-                            <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transferId}`} style={{ color: colorsMap[x.sourceChainSlug] }}>
-                              { x.transferIdTruncated }
-                            </Link>
-                          </Typography>
-                        </Box>
+                          <Box display="flex" alignItems="center">
+                            <Link className="clipboard" data-clipboard-text={x.transferId} rel="noreferrer noopener" onClick={setCopiedTimeoutFn(x.transferId)}><Tooltip title="Copy transfer ID to clipboard">{copied === x.transferId ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
+                            <Typography variant="body1" color="secondary" component="div">
+                              <Tooltip title={<Box>View on {x.sourceChainName} block explorer<br />Transfer ID: {x.transferId}<br />Tx hash: {x.transactionHash}</Box>}>
+                                <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" style={{ color: colorsMap[x.sourceChainSlug] }}>
+                                  { x.transferIdTruncated }
+                                </Link>
+                              </Tooltip>
+                            </Typography>
+                          </Box>
                       </TableCell>
                       <TableCell className="transferTx">
                         <Box display="flex" alignItems="center">
-                          <Link className="clipboard" data-clipboard-text={x.transactionHash} rel="noreferrer noopener" title="Copy transaction hash to clipboard" onClick={setCopiedTimeoutFn(x.transactionHash)}>{copied === x.transactionHash ? <CheckIcon /> : <ContentCopyIcon />}</Link>
+                          <Link className="clipboard" data-clipboard-text={x.transactionHash} rel="noreferrer noopener" onClick={setCopiedTimeoutFn(x.transactionHash)}><Tooltip title="Copy transaction hash to clipboard">{copied === x.transactionHash ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
                           <Typography variant="body1" color="secondary" component="div">
-                            <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transactionHash}`} style={{ color: colorsMap[x.sourceChainSlug] }}>
-                              { x.transactionHashTruncated }
-                            </Link>
+                            <Tooltip title={<Box>View on {x.sourceChainName} block explorer<br />Tx hash: ${x.transactionHash}</Box>}>
+                              <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" style={{ color: colorsMap[x.sourceChainSlug] }}>
+                                { x.transactionHashTruncated }
+                              </Link>
+                            </Tooltip>
                           </Typography>
                         </Box>
                       </TableCell>
                       <TableCell className="token">
-                        <Box display="flex" alignItems="center">
-                          <img width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
+                        <Tooltip title={`${x.token}`}>
+                          <Box display="flex" alignItems="center">
+                            <img width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
+                            <Typography variant="body1" color="secondary">
+                              { x.token }
+                            </Typography>
+                          </Box>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="amount number">
+                        <Tooltip title={<Box>Amount: {x.amountDisplay} {x.token}<br />Raw: {x.amount}</Box>}>
                           <Typography variant="body1" color="secondary">
-                            { x.token }
+                            { x.amountDisplay }
                           </Typography>
-                        </Box>
+                        </Tooltip>
                       </TableCell>
-                      <TableCell className="amount number" title={x.amount}>
-                        <Typography variant="body1" color="secondary">
-                          { x.amountDisplay }
-                        </Typography>
+                      <TableCell className="amount number">
+                        <Tooltip title={<Box>Amount USD: {x.amountUsdDisplay}<br />{x.token} Price: {x.tokenPriceUsdDisplay}</Box>}>
+                          <Typography variant="body1" color="secondary">
+                            { x.amountUsdDisplay }
+                          </Typography>
+                        </Tooltip>
                       </TableCell>
-                      <TableCell className="amount number" title={`${x.amountUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>
-                        <Typography variant="body1" color="secondary">
-                          { x.amountUsdDisplay }
-                        </Typography>
-                      </TableCell>
-                      <TableCell className="bonderFee number" title={x.bonderFee}>
+                      <TableCell className="bonderFee number">
                         <Typography variant="body1" color="secondary" component="div">
                           {x.sourceChainId !== getSourceChainId('ethereum') && (
-                            <span>
-                              { x.bonderFeeDisplay }
-                            </span>
+                            <Tooltip title={<Box>Bonder Fee: {x.bonderFeeDisplay} {x.token}<br />Raw: {x.bonderFee}</Box>}>
+                              <span>
+                                { x.bonderFeeDisplay }
+                              </span>
+                            </Tooltip>
                           )}
                           {x.sourceChainId === getSourceChainId('ethereum') && (
                             <span className="na">
-                              <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
+                              <Tooltip title="Not Applicable — L1 to L2 transfers don't require bonding and should arrive at the destination chain within an hour.">
+                                <abbr style={{ cursor: 'help' }}>N/A</abbr>
+                              </Tooltip>
                             </span>
                           )}
                         </Typography>
                       </TableCell>
-                      <TableCell className="bonderFee number" title={`${x.bonderFeeUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>
+                      <TableCell className="bonderFee number">
                         <Typography variant="body1" color="secondary" mr={2} component="div">
                           {x.sourceChainId !== getSourceChainId('ethereum') && (
-                            <span>
-                              { x.bonderFeeUsdDisplay }
-                            </span>
+                            <Tooltip title={<Box>Bonder Fee USD: {x.bonderFeeUsdDisplay}<br />{x.token} Price: {x.tokenPriceUsdDisplay}</Box>}>
+                              <span>
+                                { x.bonderFeeUsdDisplay }
+                              </span>
+                            </Tooltip>
                           )}
                           {x.sourceChainId === getSourceChainId('ethereum') && (
                             <span className="na">
-                              <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
+                              <Tooltip title="Not Applicable — L1 to L2 transfers don't require bonding">
+                                <abbr style={{ cursor: 'help' }}>N/A</abbr>
+                              </Tooltip>
                             </span>
                           )}
                         </Typography>
@@ -1275,32 +1303,47 @@ const Index: NextPage = (props: any) => {
                       <TableCell className="bonded">
                         <Typography variant="body1" color="secondary" component="div">
                           {x.bonded && (
-                          <Link className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title="View on block explorer">
-                            <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                            {x.sourceChainId !== getSourceChainId('ethereum') && (
-                              <span>
-                                Bonded
-                              </span>
-                            )}
-                            {x.sourceChainId === getSourceChainId('ethereum') && (
-                              <span>
-                                Received
-                              </span>
-                            )}
-                            {x.receivedHTokens && (
-                              <span title={`Received h${x.token}`}> ⚠️</span>
-                            )}
+                          <Link className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener">
+                              <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                              {x.sourceChainId !== getSourceChainId('ethereum') && (
+                            <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Bond tx hash: {x.bondTransactionHash}</Box>}>
+                                <span>
+                                  Bonded
+                                </span>
+                            </Tooltip>
+                              )}
+                              {x.sourceChainId === getSourceChainId('ethereum') && (
+                            <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Received tx hash: {x.bondTransactionHash}</Box>}>
+                                <span>
+                                  Received
+                                </span>
+                            </Tooltip>
+                              )}
+                              {x.receivedHTokens && (
+                                <Tooltip title={<Box>Received h${x.token}<br />Go to the <Link href={x.convertHTokenUrl} target="_blank" rel="noreferrer noopener">Hop Convert Page</Link></Box>}>
+                                  <span style={{ cursor: 'help' }}> ⚠️</span>
+                                </Tooltip>
+                              )}
                           </Link>
                           )}
                           {x.unbondable ?
-                            <span className="unbondable" title="This transfer is unbondable because of invalid parameters">
-                              ⚠️ Unbondable
+                            <span className="unbondable">
+                              <Tooltip title={<Box>This transfer is unbondable because of invalid parameters, therefore bonder will not process it.<br />This transfer can be manually withdrawn at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page</Link>.</Box>}>
+                                <span>⚠️ Unbondable</span>
+                              </Tooltip>
                             </span>
                           : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
-                            <span className="no">
-                              <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                              Pending
-                            </span>
+                              <Tooltip title={<Box>This transaction is still waiting to be bonded or received at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page</Link>.</Box>}</Box>}>
+                              <span className="no">
+                                <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                                <span>Pending</span>
+                                {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
+                                  <Box ml={2}>
+                                  <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw</Link>
+                                  </Box>
+                                )}
+                              </span>
+                            </Tooltip>
                           )}</>
                           }
                         </Typography>
@@ -1309,79 +1352,97 @@ const Index: NextPage = (props: any) => {
                         <Box display="flex" alignItems="center">
                           <Typography variant="body1" color="secondary" component="div">
                             {x.preregenesis && (
-                              <span title="This transaction occurred before the Optimism Regenesis">
+                              <Tooltip title={'This transaction occurred before the Optimism Regenesis'}>
+                                <span>
                                 (pre-regenesis)
-                              </span>
+                                </span>
+                              </Tooltip>
                             )}
                             {x.bondTransactionHash && (
                               <Box display="flex" alignItems="center">
-                                <Link className="clipboard" data-clipboard-text={x.bondTransactionHash} title="Copy transaction hash to clipboard" onClick={setCopiedTimeoutFn(x.bondTransactionHash)}>{copied === x.bondTransactionHash ? <CheckIcon /> : <ContentCopyIcon />}</Link>
-                                <Link className={x.destinationChainSlug} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bondTransactionHash}`}>
-                                  { x.bondTransactionHashTruncated }
+                                <Link className="clipboard" data-clipboard-text={x.bondTransactionHash} onClick={setCopiedTimeoutFn(x.bondTransactionHash)}><Tooltip title="Copy transaction hash to clipboard">{copied === x.bondTransactionHash ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
+                                <Link className={x.destinationChainSlug} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener">
+                                  <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Bond tx hash: {x.bondTransactionHash}</Box>}>
+                                    <span>{ x.bondTransactionHashTruncated }</span>
+                                  </Tooltip>
                                 </Link>
                               </Box>
                             )}
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell className="bondedDate" title={x.bondTimestampIso}>
-                        <Typography variant="body1" color="secondary">
-                          { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }
-                        </Typography>
+                      <TableCell className="bondedDate" >
+                        <Tooltip title={<Box>Unix: {x.bondTimestampIso}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>}>
+                          <Typography variant="body1" color="secondary">
+                            { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }
+                          </Typography>
+                        </Tooltip>
                       </TableCell>
-                      <TableCell className="bondedWithin" title={x.bondTimestampIso}>
-                        <Typography variant="body1" color="secondary">
-                          { x.bondWithinTimestampRelative }
-                        </Typography>
+                      <TableCell className="bondedWithin">
+                        <Tooltip title={<Box>Unix: {x.bondTimestampIso}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }<br />Bonded within: { x.bondWithinTimestampRelative }</Box>}>
+                          <Typography variant="body1" color="secondary">
+                            { x.bondWithinTimestampRelative }
+                          </Typography>
+                        </Tooltip>
                       </TableCell>
-                      <TableCell className="bondedWithin" title={x.bonderAddress}>
+                      <TableCell className="bondedWithin">
                         <Typography variant="body1" color="secondary" component="div">
                           {x.bonderAddressExplorerUrl && (
                             <Box display="flex" alignItems="center">
-                              <Link className="clipboard" data-clipboard-text={x.bonderAddress} rel="noreferrer noopener" title="Copy bonder address to clipboard" onClick={setCopiedTimeoutFn(x.bonderAddress)}>{copied === x.bonderAddress ? <CheckIcon /> : <ContentCopyIcon />}</Link>
-                              <Link className="bonder" href={x.bonderAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bonderAddress}`}>
-                                { x.bonderAddressTruncated }
+                              <Link className="clipboard" data-clipboard-text={x.bonderAddress} rel="noreferrer noopener" onClick={setCopiedTimeoutFn(x.bonderAddress)}><Tooltip title="Copy bonder address to clipboard">{copied === x.bonderAddress ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
+                              <Link className="bonder" href={x.bonderAddressExplorerUrl} target="_blank" rel="noreferrer noopener">
+                                <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Bonder: {x.bonderAddress}</Box>}>
+                                  <span>{ x.bonderAddressTruncated }</span>
+                                </Tooltip>
                               </Link>
                             </Box>
                           )}
                         </Typography>
                       </TableCell>
-                      <TableCell className="bondedWithin" title={x.accountAddress}>
+                      <TableCell className="bondedWithin">
                         <Typography variant="body1" color="secondary" component="div">
                           {x.accountAddressExplorerUrl && (
                             <Box display="flex" alignItems="center">
-                              <Link className="clipboard" data-clipboard-text={x.accountAddress} rel="noreferrer noopener" title="Copy account address to clipboard" onClick={setCopiedTimeoutFn(x.accountAddress)}>{copied === x.accountAddress ? <CheckIcon /> : <ContentCopyIcon />}</Link>
-                              <Link className="bonder" href={x.accountAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.accountAddress}`}>
-                                { x.accountAddressTruncated }
+                              <Link className="clipboard" data-clipboard-text={x.accountAddress} rel="noreferrer noopener" onClick={setCopiedTimeoutFn(x.accountAddress)}><Tooltip title="Copy account address to clipboard">{copied === x.accountAddress ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
+                              <Link className="bonder" href={x.accountAddressExplorerUrl} target="_blank" rel="noreferrer noopener">
+                                <Tooltip title={<Box>View on {x.sourceChainName} block explorer<br />Account: {x.accountAddress}</Box>}>
+                                  <span>{ x.accountAddressTruncated }</span>
+                                </Tooltip>
                               </Link>
                             </Box>
                           )}
                         </Typography>
                       </TableCell>
-                      <TableCell className="bondedWithin" title={x.recipientAddress}>
+                      <TableCell className="bondedWithin">
                         <Typography variant="body1" color="secondary" component="div">
                           {x.recipientAddressExplorerUrl && (
                             <Box display="flex" alignItems="center">
-                            <Link className="clipboard" data-clipboard-text={x.recipientAddress} rel="noreferrer noopener" title="Copy account address to clipboard" onClick={setCopiedTimeoutFn(x.recipientAddress)}>{copied === x.recipientAddress ? <CheckIcon /> : <ContentCopyIcon />}</Link>
+                            <Link className="clipboard" data-clipboard-text={x.recipientAddress} rel="noreferrer noopener" onClick={setCopiedTimeoutFn(x.recipientAddress)}><Tooltip title="Copy account address to clipboard">{copied === x.recipientAddress ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
                             {x.isDifferentRecipient && (
-                              <span title="The recipient is different than the sender. If this was not expected then make sure that the website you sent from was not a scam site. The official website is app.hop.exchange">⚠️ </span>
+                              <Tooltip title="The recipient is different than the sender. If this was not expected then make sure that the website you sent from was not a scam site. The official website is app.hop.exchange">
+                                <span style={{ cursor: 'help' }}>⚠️ </span>
+                              </Tooltip>
                             )}
-                            <Link className="bonder" href={x.recipientAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.recipientAddress}`}>
-                              { x.recipientAddressTruncated }
+                            <Link className="bonder" href={x.recipientAddressExplorerUrl} target="_blank" rel="noreferrer noopener">
+                              <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Recipient: {x.recipientAddress}</Box>}>
+                                <span>{ x.recipientAddressTruncated }</span>
+                              </Tooltip>
                             </Link>
                             </Box>
                           )}
                         </Typography>
                       </TableCell>
-                      <TableCell className="bondedWithin" title={x.integrationPartnerName}>
-                        <Box display="flex" alignItems="center">
-                          {x.integrationPartnerImageUrl && (
-                            <img width="16" height="16" src={x.integrationPartnerImageUrl} alt={x.integrationPartnerName} />
-                          )}
-                          <Typography variant="body1" color="secondary">
-                            {x.integrationPartnerName}
-                          </Typography>
-                        </Box>
+                      <TableCell className="bondedWithin">
+                        <Tooltip title={`This transfer was originated from a ${x.integrationPartnerName} app/integration.`}>
+                          <Box display="flex" alignItems="center">
+                            {x.integrationPartnerImageUrl && (
+                              <img width="16" height="16" src={x.integrationPartnerImageUrl} alt={x.integrationPartnerName} />
+                            )}
+                            <Typography variant="body1" color="secondary">
+                              {x.integrationPartnerName}
+                            </Typography>
+                          </Box>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   )

@@ -1,32 +1,45 @@
-type Bps = {
-  ethereum?: number
-  polygon?: number
-  gnosis?: number
-  optimism?: number
-  arbitrum?: number
+export enum ChainSlug {
+  ethereum = 'ethereum',
+  polygon = 'polygon',
+  gnosis = 'gnosis',
+  optimism = 'optimism',
+  arbitrum = 'arbitrum',
+  nova = 'nova',
+  zkSync = 'zksync',
+  consensyszk = 'consensyszk',
+  scrollzk = 'scrollzk',
+  base = 'base'
+}
+
+export enum AssetSymbol {
+  USDC = 'USDC',
+  USDT = 'USDT',
+  DAI = 'DAI',
+  MATIC = 'MATIC',
+  ETH = 'ETH',
+  WBTC = 'WBTC',
+  HOP = 'HOP',
+  SNX = 'SNX',
+  sUSD = 'sUSD',
+  sBTC = 'sBTC',
+  sETH = 'sETH',
+  rETH = 'rETH'
+}
+
+export type Bps = {
+  [key in ChainSlug]: number
 }
 
 export type Fees = {
-  USDC?: Bps
-  USDT?: Bps
-  DAI?: Bps
-  MATIC?: Bps
-  ETH?: Bps
-  WBTC?: Bps
-  HOP?: Bps
-  SNX?: Bps
-  sUSD?: Bps
+  [key in AssetSymbol]: Partial<Bps>
 }
 
 type RelayerFee = {
-  polygon?: boolean
-  gnosis?: boolean
-  optimism?: boolean
-  arbitrum?: boolean
+  [key in ChainSlug]: boolean
 }
 
 export type Config = {
-  bonderFeeBps: Fees
+  bonderFeeBps: Partial<Fees>
   destinationFeeGasPriceMultiplier: number
-  relayerFeeEnabled: RelayerFee
+  relayerFeeEnabled: Partial<RelayerFee>
 }

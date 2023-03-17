@@ -6,10 +6,10 @@ import l1Erc20BridgeAbi from '@hop-protocol/core/abi/generated/L1_ERC20_Bridge.j
 import wallets from 'src/wallets'
 import { BigNumber, Contract, constants, providers } from 'ethers'
 import { Chain, GasCostTransactionType, RelayableChains } from 'src/constants'
-import { ERC20 } from '@hop-protocol/core/contracts'
+import { ERC20 } from '@hop-protocol/core/contracts/generated/ERC20'
 import { Hop } from '@hop-protocol/sdk'
-import { L1Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
+import { L1_Bridge as L1BridgeContract, TransferBondChallengedEvent, TransferRootBondedEvent, TransferRootConfirmedEvent, TransferSentToL2Event } from '@hop-protocol/core/contracts/generated/L1_Bridge'
+import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/generated/L1_ERC20_Bridge'
 import { config as globalConfig } from 'src/config'
 
 export default class L1Bridge extends Bridge {

@@ -1,13 +1,14 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
+import chainSlugToId from 'src/utils/chainSlugToId'
+import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract, Wallet, providers } from 'ethers'
-import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { Watcher } from '@eth-optimism/core-utils'
-import { getContractFactory, predeploys } from '@eth-optimism/contracts'
-import { getMessagesAndProofsForL2Transaction } from '@eth-optimism/message-relayer'
+import { CrossChainMessenger, MessageStatus, hashLowLevelMessage } from '@eth-optimism/sdk'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { Wallet, providers } from 'ethers'
+
 type Config = {
   chainSlug: string
   tokenSymbol: string
@@ -20,9 +21,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
   l2Provider: any
   l1Wallet: Wallet
   l2Wallet: Wallet
-  l1Messenger: Contract
-  scc: Contract
-  watcher: Watcher
+  csm: CrossChainMessenger
+  chainId: number
 
   constructor (config: Config) {
     super({
@@ -38,59 +38,66 @@ class OptimismBridgeWatcher extends BaseWatcher {
     this.l1Provider = this.l1Wallet.provider
     this.l2Provider = this.l2Wallet.provider
 
-    const sccAddress = '0xBe5dAb4A2e9cd0F27300dB4aB94BeE3A233AEB19'
-    const l1MessengerAddress = '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1'
-    const l2MessengerAddress = '0x4200000000000000000000000000000000000007'
+    this.chainId = chainSlugToId(config.chainSlug)
 
-    this.watcher = new Watcher({
-      l1: {
-        provider: this.l1Provider,
-        messengerAddress: l1MessengerAddress
-      },
-      l2: {
-        provider: this.l2Provider,
-        messengerAddress: l2MessengerAddress
-      }
+    this.csm = new CrossChainMessenger({
+      bedrock: this.chainId === 420,
+      l1ChainId: this.chainId === 420 ? 5 : 1,
+      l2ChainId: this.chainId,
+      l1SignerOrProvider: this.l1Wallet,
+      l2SignerOrProvider: this.l2Wallet
     })
-
-    this.l1Messenger = getContractFactory('IL1CrossDomainMessenger')
-      .connect(this.l1Wallet)
-      .attach(this.watcher.l1.messengerAddress)
-    this.scc = getContractFactory('IStateCommitmentChain')
-      .connect(this.l1Wallet)
-      .attach(sccAddress)
   }
 
+  // order: L2 Tx -> wait for state root to be published on L1 (240 seconds) -> proveMessage -> wait challenge period (7 days) -> finalizeMessage
   async relayXDomainMessage (
     txHash: string
-  ): Promise<providers.TransactionResponse> {
-    const messagePairs = await getMessagesAndProofsForL2Transaction(
-      this.l1Provider,
-      this.l2Provider,
-      this.scc.address,
-      predeploys.L2CrossDomainMessenger,
-      txHash
-    )
-
-    if (!messagePairs) {
-      throw new Error('messagePairs not found')
+  ): Promise<providers.TransactionResponse | undefined> {
+    let messageStatus = await this.csm.getMessageStatus(txHash)
+    if (messageStatus === MessageStatus.STATE_ROOT_NOT_PUBLISHED) {
+      console.log('waiting for state root to be published')
+      // wait a max of 240 seconds for state root to be published on L1
+      await wait(240 * 1000)
     }
 
-    const { message, proof } = messagePairs[0]
-    const inChallengeWindow = await this.scc.insideFraudProofWindow(proof.stateRootBatchHeader)
-    if (inChallengeWindow) {
-      throw new Error('exit within challenge window')
+    messageStatus = await this.csm.getMessageStatus(txHash)
+    if (messageStatus === MessageStatus.READY_TO_PROVE) {
+      console.log('message ready to prove')
+      const resolved = await this.csm.toCrossChainMessage(txHash)
+      const tx = await this.csm.proveMessage(resolved)
+      await tx.wait()
+      console.log('waiting challenge period')
+      const challengePeriod = await this.csm.getChallengePeriodSeconds()
+      await wait(challengePeriod * 1000)
     }
 
-    return this.l1Messenger
-      .connect(this.l1Wallet)
-      .relayMessage(
-        message.target,
-        message.sender,
-        message.message,
-        message.messageNonce,
-        proof
-      )
+    messageStatus = await this.csm.getMessageStatus(txHash)
+    if (messageStatus === MessageStatus.IN_CHALLENGE_PERIOD) {
+      console.log('message is in challenge period')
+      // challenge period is a few seconds on goerli, 7 days in production
+      const challengePeriod = await this.csm.getChallengePeriodSeconds()
+      const latestBlock = await this.csm.l1Provider.getBlock('latest')
+      const resolved = await this.csm.toCrossChainMessage(txHash)
+      const withdrawal = await this.csm.toLowLevelMessage(resolved)
+      const provenWithdrawal =
+        await this.csm.contracts.l1.OptimismPortal.provenWithdrawals(
+          hashLowLevelMessage(withdrawal)
+        )
+      const timestamp = Number(provenWithdrawal.timestamp.toString())
+      const secondsLeft = (timestamp + challengePeriod) - Number(latestBlock.timestamp.toString())
+      console.log('seconds left:', secondsLeft)
+      await wait(secondsLeft * 1000)
+    }
+
+    messageStatus = await this.csm.getMessageStatus(txHash)
+    if (messageStatus === MessageStatus.READY_FOR_RELAY) {
+      console.log('ready for relay')
+      const tx = await this.csm.finalizeMessage(txHash)
+      return tx
+    }
+
+    console.log(MessageStatus)
+    console.log(`not ready for relay. statusCode: ${messageStatus}`)
   }
 
   async handleCommitTxHash (commitTxHash: string, transferRootId: string, logger: Logger) {

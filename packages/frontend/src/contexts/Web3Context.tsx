@@ -9,8 +9,8 @@ import React, {
 import Onboard from 'bnc-onboard'
 import { ethers, BigNumber } from 'ethers'
 import Address from 'src/models/Address'
-import { networkIdToSlug, networkSlugToId, getRpcUrl, getBaseExplorerUrl } from 'src/utils'
-import { blocknativeDappid, reactAppNetwork } from 'src/config'
+import { networkIdToSlug, networkSlugToId, getRpcUrl, getBaseExplorerUrl, getRpcUrlOrThrow } from 'src/utils'
+import { blocknativeDappid, reactAppNetwork, enabledChains } from 'src/config'
 import { l1Network } from 'src/config/networks'
 import './onboardStyles.css'
 import logger from 'src/logger'
@@ -34,6 +34,8 @@ type Props = {
   checkConnectedNetworkId: (networkId: number) => Promise<boolean>
 }
 
+class NetworkSwitchError extends Error {}
+
 // TODO: modularize
 const networkNames: any = {
   1: 'Mainnet',
@@ -42,33 +44,42 @@ const networkNames: any = {
   5: 'Goerli',
   42: 'Kovan',
   42161: 'Arbitrum',
-  421611: 'Arbitrum',
+  421613: 'Arbitrum (Goerli)',
+  421611: 'Arbitrum (Rinkeby)',
+  42170: 'Nova',
   10: 'Optimism',
-  69: 'Optimism',
-  420: 'Optimism',
-  77: 'Gnosis',
+  69: 'Optimism (Kovan)',
+  420: 'Optimism (Goerli)',
+  77: 'Gnosis (Testnet)',
   100: 'Gnosis',
-  80001: 'Polygon',
+  80001: 'Polygon (Mumbai)',
   137: 'Polygon',
+  59140: 'ConsenSys zkEVM (Goerli)',
+  84531: 'Base (Goerli)',
+  534354: 'Scroll zkEVM (Goerli)'
 }
 
-const getRpcUrls = (): Record<string, string> => {
+const getWalletConnectRpcUrls = (): Record<string, string> => {
   if (reactAppNetwork === 'goerli') {
     return {
       5: getRpcUrl(ChainSlug.Ethereum),
       421613: getRpcUrl(ChainSlug.Arbitrum),
       420: getRpcUrl(ChainSlug.Optimism),
       80001: getRpcUrl(ChainSlug.Polygon),
+      59140: getRpcUrl(ChainSlug.ConsenSysZk),
+      534354: getRpcUrl(ChainSlug.ScrollZk),
+      84531: getRpcUrl(ChainSlug.Base)
     }
   } else {
     return {
       1: getRpcUrl(ChainSlug.Ethereum),
-      42: getRpcUrl(ChainSlug.Ethereum),
+      // 42: getRpcUrl(ChainSlug.Ethereum), // kovan
       42161: getRpcUrl(ChainSlug.Arbitrum),
-      421611: getRpcUrl(ChainSlug.Arbitrum),
-      200: getRpcUrl(ChainSlug.Arbitrum),
+      // 421611: getRpcUrl(ChainSlug.Arbitrum), // arbitrum rinkeby
+      42170: getRpcUrl(ChainSlug.Nova),
+      // 200: getRpcUrl(ChainSlug.Arbitrum), // arbitrum on xdai
       10: getRpcUrl(ChainSlug.Optimism),
-      69: getRpcUrl(ChainSlug.Optimism),
+      // 69: getRpcUrl(ChainSlug.Optimism), // optimism kovan
       100: getRpcUrl(ChainSlug.Gnosis),
       137: getRpcUrl(ChainSlug.Polygon),
     }
@@ -98,7 +109,7 @@ const walletSelectOptions = (networkId: number): WalletSelectModuleOptions => {
         walletName: 'walletConnect',
         label: 'Wallet Connect',
         preferred: true,
-        rpc: getRpcUrls(),
+        rpc: getWalletConnectRpcUrls(),
       },
       {
         walletName: 'gnosis',
@@ -106,6 +117,12 @@ const walletSelectOptions = (networkId: number): WalletSelectModuleOptions => {
       },
       {
         walletName: 'walletLink',
+        preferred: true,
+        rpcUrl: getRpcUrl(ChainSlug.Ethereum),
+        appName: 'Hop',
+      },
+      {
+        walletName: 'coinbase',
         preferred: true,
         rpcUrl: getRpcUrl(ChainSlug.Ethereum),
         appName: 'Hop',
@@ -312,14 +329,18 @@ const Web3ContextProvider: FC = ({ children }) => {
     const signerNetworkId = (await provider.getNetwork())?.chainId
     logger.debug('checkConnectedNetworkId', networkId, signerNetworkId)
 
-    // TODO: this block of code is too confident. use separate hook to check last-minute tx details
-    if (networkId === signerNetworkId) {
-      return true
-    }
+    try {
+      // NOTE: some mobile wallets don't support wallet_switchEthereumChain or wallet_addEthereumChain.
+      // NOTE: Trust Wallet hangs indefinteily on wallet_switchEthereumChain, see issues on discord.
+      // Therefore if provider is already connected to correct network,
+      // then there's no need to attempt to call network switcher.
+      if (signerNetworkId === networkId) {
+        return true
+      }
 
-    onboard.config({ networkId })
-    if (onboard.getState().address) {
-      try {
+      const state = onboard.getState()
+      if (state.address) {
+        onboard.config({ networkId })
         const wantNetworkName = networkNames[networkId] || 'local'
         const isL1 = ['Mainnet', 'Ropsten', 'Rinkeby', 'Goerli', 'Kovan'].includes(
           wantNetworkName
@@ -332,7 +353,15 @@ const Web3ContextProvider: FC = ({ children }) => {
             },
           ])
         } else {
-          let nativeCurrency: any
+          const shouldSkipAddingChain = Number(networkId) === 59140 // consensyszk, NOTE: this is temporary until rpc enables writing
+          if (shouldSkipAddingChain) {
+            throw new NetworkSwitchError(`Please add or switch to ConsenSys zkEVM (Goerli) [networkId ${59140}] in your wallet first and then try again. More info: https://docs.zkevm.consensys.net/use-zkevm/set-up-your-wallet`)
+          }
+          let nativeCurrency: any = {
+            name: 'ETH',
+            symbol: 'ETH',
+            decimals: 18
+          }
 
           if (networkId === ChainId.Gnosis) {
             nativeCurrency = {
@@ -351,19 +380,24 @@ const Web3ContextProvider: FC = ({ children }) => {
           const rpcObj = {
             chainId: `0x${Number(networkId).toString(16)}`,
             chainName: networkNames[networkId],
-            rpcUrls: [getRpcUrl(networkIdToSlug(networkId.toString()))],
+            rpcUrls: [getRpcUrlOrThrow(networkIdToSlug(networkId.toString()))],
             blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
             nativeCurrency,
           }
 
           await provider?.send('wallet_addEthereumChain', [rpcObj])
         }
-      } catch (err) {
-        logger.error(err)
+      }
+    } catch (err: any) {
+      logger.error('checkConnectedNetworkId error:', err)
+      if (err instanceof NetworkSwitchError) {
+        throw err
       }
     }
-    const p = await provider.getNetwork()
-    if (p.chainId === networkId) {
+
+    // after network switch, recheck if provider is connected to correct network.
+    const net = await provider.getNetwork()
+    if (net.chainId === networkId) {
       return true
     }
 

@@ -281,6 +281,7 @@ class TransfersDb extends BaseDb {
     if (!item) {
       return null
     }
+
     if (item.destinationChainId) {
       item.destinationChainSlug = chainIdToSlug(item.destinationChainId)
     }

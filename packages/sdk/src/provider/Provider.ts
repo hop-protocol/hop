@@ -136,7 +136,7 @@ export class FallbackProvider implements providers.Provider {
 
   async tryProvider (fn: any) {
     return fn().catch((err: any) => {
-      if (/(noNetwork|rate limit)/gi.test(err.message)) {
+      if (/(noNetwork|rate limit|SERVER_ERROR)/gi.test(err.message)) {
         console.log('tryProvider error:', err)
         this.activeIndex = (this.activeIndex + 1) % this._providersFn.length
         return fn()

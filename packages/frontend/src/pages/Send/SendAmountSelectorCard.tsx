@@ -2,6 +2,7 @@ import React, { useMemo, FC, ChangeEvent } from 'react'
 import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import Card from '@material-ui/core/Card'
+import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import Skeleton from '@material-ui/lab/Skeleton'
 import { Token } from '@hop-protocol/sdk'
@@ -130,15 +131,19 @@ const SendAmountSelectorCard: FC<Props> = props => {
       </Flex>
 
       <Flex fullWidth justifyBetween alignCenter>
-        <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} />
-        <LargeTextField
-          value={value}
-          onChange={handleInputChange}
-          placeholder="0.0"
-          units={token?.symbol}
-          disabled={disableInput}
-          loadingValue={loadingValue}
-        />
+        <Box width="45%" overflow="hidden">
+          <NetworkSelector network={selectedNetwork} setNetwork={onNetworkChange} />
+        </Box>
+        <Box width="55%">
+          <LargeTextField
+            value={value}
+            onChange={handleInputChange}
+            placeholder="0.0"
+            units={token?.symbol}
+            disabled={disableInput}
+            loadingValue={loadingValue}
+          />
+        </Box>
       </Flex>
     </Card>
   )

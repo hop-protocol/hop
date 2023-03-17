@@ -1,6 +1,6 @@
-import fetch from 'isomorphic-fetch'
 import serializeQueryParams from '../utils/serializeQueryParams'
 import wait from '../utils/wait'
+import { fetchJsonOrThrow } from '../utils/fetchJsonOrThrow'
 
 interface IResult {
   id: string
@@ -29,7 +29,8 @@ class CoinGecko {
     WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     HOP: '0xc5102fE9359FD9a28f877a67E36B0F050d81a3CC',
     SNX: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
-    SUSD: '0x57Ab1ec28D129707052df4dF418D58a2D46d5f51'
+    SUSD: '0x57Ab1ec28D129707052df4dF418D58a2D46d5f51',
+    RETH: '0xae78736cd615f374d3085123a210448e74fc6393'
   }
 
   constructor (apiKey?: string) {
@@ -96,8 +97,7 @@ class CoinGecko {
       })
 
       const url = `${this._baseUrl}/simple/token_price/ethereum?${params}`
-      const res = await fetch(url)
-      const json = await res.json()
+      const json = await fetchJsonOrThrow(url)
       const prices: number[] = []
 
       for (let i = 0; i < addresses.length; i++) {

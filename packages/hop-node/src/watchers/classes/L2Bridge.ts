@@ -8,9 +8,9 @@ import l2AmmWrapperAbi from '@hop-protocol/core/abi/generated/L2_AmmWrapper.json
 import saddleSwapAbi from '@hop-protocol/core/abi/generated/Swap.json'
 import { BigNumber, Contract, providers } from 'ethers'
 import { Chain } from 'src/constants'
-import { ERC20 } from '@hop-protocol/core/contracts'
+import { ERC20 } from '@hop-protocol/core/contracts/generated/ERC20'
 import { Hop } from '@hop-protocol/sdk'
-import { L2Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/L2Bridge'
+import { L2_Bridge as L2BridgeContract, TransferFromL1CompletedEvent, TransferSentEvent, TransfersCommittedEvent } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { config as globalConfig } from 'src/config'
 
 export default class L2Bridge extends Bridge {
@@ -313,7 +313,7 @@ export default class L2Bridge extends Bridge {
 
     // Define a max gasLimit in order to avoid gas siphoning
     let gasLimit = 500_000
-    if (this.chainSlug === Chain.Arbitrum) {
+    if (this.chainSlug === Chain.Arbitrum || this.chainSlug === Chain.Nova) {
       gasLimit = 10_000_000
     }
     txOverrides.gasLimit = gasLimit

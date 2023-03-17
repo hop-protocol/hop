@@ -13,6 +13,7 @@
 - [USDT](CanonicalToken.md#usdt)
 - [WBTC](CanonicalToken.md#wbtc)
 - [XDAI](CanonicalToken.md#xdai)
+- [rETH](CanonicalToken.md#reth)
 - [sBTC](CanonicalToken.md#sbtc)
 - [sETH](CanonicalToken.md#seth)
 - [sUSD](CanonicalToken.md#susd)
@@ -70,6 +71,12 @@ ___
 ### <a id="xdai" name="xdai"></a> XDAI
 
 • **XDAI** = ``"XDAI"``
+
+___
+
+### <a id="reth" name="reth"></a> rETH
+
+• **rETH** = ``"rETH"``
 
 ___
 

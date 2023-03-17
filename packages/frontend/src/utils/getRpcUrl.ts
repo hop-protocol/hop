@@ -2,7 +2,7 @@ import { L1_NETWORK } from 'src/utils'
 import { networks } from 'src/config'
 import { ChainSlug } from '@hop-protocol/sdk'
 
-export const getRpcUrl = (network: string) => {
+export const getRpcUrlOrThrow = (network: string) => {
   if (!network) {
     throw new Error('expected argument: network')
   }
@@ -18,8 +18,16 @@ export const getRpcUrl = (network: string) => {
   return networkRpcUrl
 }
 
+export const getRpcUrl = (network: string) => {
+  try {
+    return getRpcUrlOrThrow(network)
+  } catch (err) {
+    return ''
+  }
+}
+
 export const getRpcUrls = (network: string) => {
-  const rpcUrl = getRpcUrl(network)
+  const rpcUrl = getRpcUrlOrThrow(network)
   const fallbackRpcUrls = networks?.[network]?.fallbackRpcUrls ?? []
   return [rpcUrl, ...fallbackRpcUrls]
 }

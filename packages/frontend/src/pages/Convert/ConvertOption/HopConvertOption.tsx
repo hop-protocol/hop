@@ -10,6 +10,15 @@ import DetailRow from 'src/components/InfoTooltip/DetailRow'
 import FeeDetails from 'src/components/InfoTooltip/FeeDetails'
 import { getConvertedFees } from 'src/hooks/useFeeConversions'
 
+type GetDetailsInput = {
+  totalFee: BigNumber,
+  adjustedDestinationTxFee: BigNumber,
+  adjustedBonderFee: BigNumber,
+  estimatedReceived: BigNumber,
+  token?: Token
+  relayFeeEth?: BigNumber
+}
+
 class HopConvertOption extends ConvertOption {
   readonly name: string
   readonly slug: string
@@ -89,6 +98,7 @@ class HopConvertOption extends ConvertOption {
       totalFee,
       adjustedBonderFee,
       adjustedDestinationTxFee,
+      relayFeeEth
     } = await bridge.getSendData(amountIn, sourceNetwork.slug, destNetwork.slug, true)
     const availableLiquidity = await bridge.getFrontendAvailableLiquidity(
       sourceNetwork.slug,
@@ -96,7 +106,7 @@ class HopConvertOption extends ConvertOption {
     )
 
     let estimatedReceived = amountIn
-    let warning
+    let warning : any
 
     if (estimatedReceived && totalFee?.gt(estimatedReceived)) {
       warning = 'Bonder fee greater than estimated received'
@@ -122,7 +132,14 @@ class HopConvertOption extends ConvertOption {
     }
 
     const l1Token = bridge.getL1Token()
-    const details = this.getDetails(totalFee, adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, l1Token)
+    const details = this.getDetails({
+      totalFee,
+      adjustedDestinationTxFee,
+      adjustedBonderFee,
+      estimatedReceived,
+      token: l1Token,
+      relayFeeEth
+    })
 
     return {
       amountOut: amountIn,
@@ -183,15 +200,19 @@ class HopConvertOption extends ConvertOption {
     }
   }
 
-  private getDetails(totalFee: BigNumber, adjustedDestinationTxFee: BigNumber, adjustedBonderFee: BigNumber, estimatedReceived: BigNumber, token?: Token): ReactNode {
+  private getDetails(input: GetDetailsInput): ReactNode {
+    const { totalFee, adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, token, relayFeeEth } = input
     if (!token) return <></>
 
     const {
       destinationTxFeeDisplay,
+      destinationTxFeeUsdDisplay,
       bonderFeeDisplay,
+      bonderFeeUsdDisplay,
       totalBonderFeeDisplay,
       estimatedReceivedDisplay,
-    } = getConvertedFees(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, token)
+      relayFeeEthDisplay
+    } = getConvertedFees({ destinationTxFee: adjustedDestinationTxFee, bonderFee: adjustedBonderFee, estimatedReceived, destToken: token, relayFee: relayFeeEth })
 
     return (
       <>
@@ -199,7 +220,7 @@ class HopConvertOption extends ConvertOption {
           <DetailRow
             title={'Fees'}
             tooltip={
-              <FeeDetails bonderFee={bonderFeeDisplay} destinationTxFee={destinationTxFeeDisplay} />
+              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} relayFee={relayFeeEthDisplay} />
             }
             value={totalBonderFeeDisplay}
             large

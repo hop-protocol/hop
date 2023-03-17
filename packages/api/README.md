@@ -1,4 +1,4 @@
-## Hop API
+## Hop v1 API
 
 > A simple hop REST API for getting bonder fee estimates and transfer status.
 
@@ -8,7 +8,7 @@
 
 ```sh
 docker pull hopprotocol/hop-api
-docker run --rm --name hop-api --env-file docker.env -p 8000:8000 hopprotocol/hop-api
+docker run --rm --name hop-api -p 8000:8000 hopprotocol/hop-api
 ```
 
 ### From Source
@@ -24,6 +24,15 @@ docker run --rm --name hop-api -p 8000:8000 hop-api
 
 ```sh
 npm start
+```
+
+Available environment variables:
+
+```sh
+PORT=8000
+IP_RATE_LIMIT_REQ_PER_SEC=100
+IP_RATE_LIMIT_WINDOW_MS=1000
+RESPONSE_CACHE_DURATION_MS=10000
 ```
 
 ## Endpoints

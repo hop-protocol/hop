@@ -4,8 +4,8 @@ import getRpcUrl from 'src/utils/getRpcUrl'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
 import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
-import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Wallet, providers } from 'ethers'
 
 type Config = {
@@ -15,6 +15,7 @@ type Config = {
   dryMode?: boolean
 }
 
+// Arbitrum applies to both Arbitrum one and to Nova
 class ArbitrumBridgeWatcher extends BaseWatcher {
   l1Wallet: Wallet
   l2Wallet: Wallet
@@ -31,9 +32,9 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
     })
 
     this.l1Wallet = wallets.get(Chain.Ethereum)
-    this.l2Wallet = wallets.get(Chain.Arbitrum)
+    this.l2Wallet = wallets.get(config.chainSlug)
 
-    const rpcUrl = getRpcUrl(Chain.Arbitrum)
+    const rpcUrl = getRpcUrl(config.chainSlug)
     this.defaultL2Provider = new providers.StaticJsonRpcProvider(rpcUrl)
   }
 

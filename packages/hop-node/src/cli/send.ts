@@ -4,7 +4,6 @@ import Token from 'src/watchers/classes/Token'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import wallets from 'src/wallets'
-import { BigNumber } from 'ethers'
 import { Chain, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
 import { formatEther, parseEther } from 'ethers/lib/utils'
@@ -19,21 +18,17 @@ root
   .option('--recipient <address>', 'Recipient to send tokens to', parseString)
   .option('--htoken [boolean]', 'Send hTokens', parseBool)
   .option('--native [boolean]', 'Send the native token to a recipient', parseBool)
-  .option('--self [boolean]', 'Send to self and reset nonce', parseBool)
-  .option('--gas-price <price>', 'Gas price to use', parseString)
   .option('--max [boolean]', 'Use max tokens instead of specific amount', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { fromChain, toChain, token, amount, recipient, htoken: isHToken, native: isNativeSend, self: isSelfSend, gasPrice, max: shouldSendMax } = source
+  const { fromChain, toChain, token, amount, recipient, htoken: isHToken, native: isNativeSend, max: shouldSendMax } = source
   const isSameChain = (fromChain && toChain) && (fromChain === toChain)
   if (isHToken && isNativeSend) {
     throw new Error('Cannot use --htoken and --native flag together')
   }
 
-  if (isSelfSend) {
-    await sendToSelf(fromChain, gasPrice)
-  } else if (isSameChain) {
+  if (isSameChain) {
     await transferTokens(fromChain, token, amount, recipient, isHToken, shouldSendMax)
   } else if (isNativeSend) {
     await sendNativeToken(fromChain, amount, recipient, shouldSendMax)
@@ -87,22 +82,6 @@ async function sendNativeToken (
   await tx.wait()
   balance = await wallet.getBalance()
   logger.debug(`send complete. new balance: ${formatEther(balance)}`)
-}
-
-async function sendToSelf (chain: string, gasPrice: string) {
-  const wallet = wallets.get(chain)
-  const provider = wallet.provider
-  const selfAddress = await wallet.getAddress()
-  const nonce = await provider?.getTransactionCount(selfAddress)
-  const tx = await wallet.sendTransaction({
-    value: 0,
-    to: selfAddress,
-    nonce,
-    gasPrice: BigNumber.from(gasPrice)
-  })
-  logger.info(`send tx: ${tx.hash}`)
-  await tx.wait()
-  logger.debug(`send with ${nonce} complete`)
 }
 
 async function transferTokens (
@@ -172,7 +151,7 @@ async function sendTokens (
   isHToken: boolean,
   shouldSendMax: boolean
 ) {
-  const isFromNative = nativeChainTokens[fromChain] === token
+  const isFromNative = nativeChainTokens[fromChain] === token && !isHToken
 
   if (!amount && !shouldSendMax) {
     throw new Error('max flag or amount is required. E.g. 100')
@@ -269,5 +248,5 @@ async function sendTokens (
   await tx.wait()
   balance = await (isFromNative ? wallet.getBalance() : tokenClass.getBalance())
   logger.debug(`${label} balance: ${await tokenClass.formatUnits(balance)}`)
-  logger.debug('tokens should arrive at destination in 5-15 minutes')
+  // logger.debug('tokens should arrive at destination in 5-15 minutes')
 }

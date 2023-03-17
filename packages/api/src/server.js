@@ -6,7 +6,6 @@ const { ipRateLimitMiddleware } = require('./rateLimit')
 const { responseCache } = require('./responseCache')
 
 const app = express()
-const hop = new Hop('mainnet')
 
 if (trustProxy) {
   app.enable('trust proxy') // if using ELB
@@ -14,9 +13,19 @@ if (trustProxy) {
 app.use(cors())
 
 app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
-  const { amount, token, fromChain, toChain, slippage } = req.query
+  const { amount, token, fromChain, toChain, slippage, rpcUrl } = req.query
+  let { network } = req.query
 
   try {
+    if (!network) {
+      network = 'mainnet'
+    }
+
+    const validNetworks = ['mainnet', 'goerli']
+    if (!validNetworks.includes(network)) {
+      throw new Error(`"${network}" is an network. Valid networks are: ${validNetworks.toString(',')}`)
+    }
+
     if (!amount) {
       throw new Error('"amount" query param is required. Value must be in smallest unit. Example: amount=1000000')
     }
@@ -33,7 +42,31 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
       throw new Error('"slippage" query param value is required. Example: slippage=0.5')
     }
 
-    const bridge = hop.bridge(token)
+    const customRpcProviderUrls = {}
+    const instance = new Hop(network)
+    const validChains = instance.getSupportedChains()
+    if (rpcUrl) {
+      if (!(rpcUrl instanceof Object)) {
+        throw new Error('"rpcUrl" query param should be in the form of rpcUrl[chain]. Example: rpcUrl[optimism]=https://mainnet.optimism.io')
+      }
+      for (const chain in rpcUrl) {
+        if (!validChains.includes(chain)) {
+          throw new Error(`"rpcUrl[${chain}]" is an invalid chain. Valid chains are: ${validChains.toString(',')}`)
+        }
+        const url = rpcUrl[chain]
+        try {
+          customRpcProviderUrls[chain] = new URL(url).toString()
+        } catch (err) {
+          throw new Error(`"rpcUrl[${chain}]" has an invalid url "${url}"`)
+        }
+      }
+    }
+
+    if (Object.keys(customRpcProviderUrls)) {
+      instance.setChainProviderUrls(customRpcProviderUrls)
+    }
+
+    const bridge = instance.bridge(token)
     const data = await bridge.getSendData(amount, fromChain, toChain)
     const { totalFee, amountOut, estimatedReceived } = data
     const amountOutMin = bridge.calcAmountOutMin(amountOut, slippage)
@@ -52,8 +85,18 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
 
 app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req, res) => {
   const { transferId, transactionHash } = req.query
+  let { network } = req.query
 
   try {
+    if (!network) {
+      network = 'mainnet'
+    }
+
+    const validNetworks = ['mainnet', 'goerli']
+    if (!validNetworks.includes(network)) {
+      throw new Error(`"${network}" is an network. Valid networks are: ${validNetworks.toString(',')}`)
+    }
+
     const tId = transferId || transactionHash
     if (!tId) {
       throw new Error('transferId or transactionHash is required')
@@ -68,6 +111,7 @@ app.get('/v1/transfer-status', responseCache, ipRateLimitMiddleware, async (req,
       throw new Error('transactionHash must be a hex string. Example: transactionHash=0x123...')
     }
 
+    const hop = new Hop(network)
     const json = await hop.getTransferStatus(tId)
     const result = {
       transferId: json.transferId,

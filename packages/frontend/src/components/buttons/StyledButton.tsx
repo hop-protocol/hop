@@ -22,6 +22,7 @@ type StylishButtonProps = ComposedStyleProps & StyleProps
 export const StyledButton = styled(Button)<StylishButtonProps>`
   text-transform: 'none';
   transition: 'all 0.15s ease-out';
+  white-space: nowrap;
 
   ${({ large }: any) => {
     if (large) {

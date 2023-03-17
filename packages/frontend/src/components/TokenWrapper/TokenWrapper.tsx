@@ -92,6 +92,7 @@ const TokenWrapper: FC<Props> = (props: Props) => {
             decimalPlaces={4}
             methodName="wrapToken"
             selectedNetwork={selectedNetwork}
+            maxButtonLeaveSmallAmount={true}
           />
 
           <Flex my={3} fullWidth justifyAround alignCenter $wrap>

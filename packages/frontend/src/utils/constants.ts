@@ -20,8 +20,8 @@ export const ETHERSCAN_PREFIXES: { [networkId in NetworkId]: string } = {
 export const L1_NETWORK = ChainSlug.Ethereum
 
 export const careersUrl = 'https://hop.exchange/careers'
-export const docsUrl = 'https://docs.hop.exchange/'
-export const faqUrl = 'https://help.hop.exchange/hc/en-us'
+export const docsUrl = 'https://docs.hop.exchange/v/developer-docs/'
+export const faqUrl = 'https://docs.hop.exchange/basics/faq'
 export const discordUrl = 'https://discord.gg/PwCF88emV4'
 export const githubUrl = 'https://github.com/hop-protocol'
 export const mediumUrl = 'https://medium.com/hop-protocol'
@@ -44,5 +44,8 @@ export interface NetworkTokenEntity {
 }
 
 export const RelayableChains: string[] = [
-  ChainSlug.Arbitrum
+  ChainSlug.Arbitrum,
+  ChainSlug.Nova
 ]
+
+export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])

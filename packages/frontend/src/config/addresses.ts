@@ -2,13 +2,14 @@ import { mainnetAddresses, mainnetNetworks } from './mainnet'
 import { addresses as kovanAddresses, networks as kovanNetworks } from './kovan'
 import { addresses as goerliAddresses, networks as goerliNetworks } from './goerli'
 import { Slug } from '@hop-protocol/sdk'
+import { gitRevision } from './config'
 
 const reactAppNetwork = process.env.REACT_APP_NETWORK || Slug.mainnet
 let hopAppNetwork = reactAppNetwork
 if (reactAppNetwork === Slug.staging) {
   hopAppNetwork = Slug.mainnet
 }
-let addresses = kovanAddresses
+let addresses: any = kovanAddresses
 let networks = kovanNetworks
 const isMainnet = hopAppNetwork === Slug.mainnet
 
@@ -45,6 +46,10 @@ if (enabledChains) {
   networks = filteredNetworks
 }
 
+if (!enabledChains) {
+  enabledChains = ['ethereum', 'polygon', 'gnosis']
+}
+
 if (process.env.NODE_ENV !== 'test') {
   console.log(`
     __  __
@@ -56,7 +61,7 @@ if (process.env.NODE_ENV !== 'test') {
 
 `)
   console.log('Welcome 🐰')
-  console.debug('ui version:', process.env.REACT_APP_GIT_SHA)
+  console.debug('ui version:', gitRevision)
   console.debug('config hop app network:', hopAppNetwork)
   console.debug('config chains (networks):', networks)
   console.debug('config addresses:', addresses.tokens)
@@ -169,4 +174,5 @@ export {
   stakingRewardsContracts,
   rewardTokenAddresses,
   hopStakingRewardsContracts,
+  enabledChains
 }

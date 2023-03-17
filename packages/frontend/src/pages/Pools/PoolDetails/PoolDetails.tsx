@@ -133,7 +133,7 @@ export function PoolDetails () {
 
   const stakingEnabled = stakingRewards.length > 0
   const selectedStakingContractAddress = stakingRewards[selectedStaking]?.stakingContractAddress
-  const showStakeMessage = !loading && walletConnected && !hasStaked && hasStakeContract
+  const showStakeMessage = !loading && walletConnected && !hasStaked && hasStakeContract && hasBalance
 
   return (
     <Box maxWidth={"900px"} m={"0 auto"}>

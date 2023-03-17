@@ -4,8 +4,8 @@ import getBlockNumberFromDate from 'src/utils/getBlockNumberFromDate'
 import getBondedWithdrawal from 'src/theGraph/getBondedWithdrawal'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
-import getTransfer from 'src/theGraph/getTransfer'
 import getTransferRootId from 'src/utils/getTransferRootId'
+import getTransferSent from 'src/theGraph/getTransferSent'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import wait from 'src/utils/wait'
@@ -34,7 +34,8 @@ class IncompleteSettlementsWatcher {
     Chain.Arbitrum,
     Chain.Optimism,
     Chain.Gnosis,
-    Chain.Polygon
+    Chain.Polygon,
+    Chain.Nova
   ]
 
   tokens: string[] = getEnabledTokens()
@@ -112,11 +113,14 @@ class IncompleteSettlementsWatcher {
       const promises: Array<Promise<any>> = []
       for (const token of this.tokens) {
         this.logger.debug(`${chain} ${token} reading events`)
-        if (['optimism', 'arbitrum'].includes(chain) && token === 'MATIC') {
+        if (['optimism', 'arbitrum', 'nova'].includes(chain) && token === 'MATIC') {
           continue
         }
-        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis']
+        const nonSynthChains = ['arbitrum', 'polygon', 'gnosis', 'nova']
         if (nonSynthChains.includes(chain) && (token === 'SNX' || token === 'sUSD')) {
+          continue
+        }
+        if (chain === Chain.Nova && token !== 'ETH') {
           continue
         }
         if (chain === 'ethereum') {
@@ -270,7 +274,7 @@ class IncompleteSettlementsWatcher {
     const batchSize = 10000
     let start = startBlockNumber
     let end = start + batchSize
-    while (end < endBlockNumber) {
+    while (end <= endBlockNumber) {
       const _logs = await contract.queryFilter(
         filter,
         start,
@@ -278,8 +282,18 @@ class IncompleteSettlementsWatcher {
       )
 
       logs.push(..._logs)
-      start = end
-      end = start + batchSize
+
+      // Add 1 so that boundary blocks are not double counted
+      start = end + 1
+
+      // If the batch is less than the batchSize, use the endBlockNumber
+      const newEnd = start + batchSize
+      end = Math.min(endBlockNumber, newEnd)
+
+      // For the last batch, start will be greater than end because end is capped at endBlockNumber
+      if (start > end) {
+        break
+      }
     }
     return logs
   }
@@ -416,6 +430,23 @@ class IncompleteSettlementsWatcher {
       this.logger.debug(`root: ${rootHash}, token: ${token}, isAllSettled: ${!isIncomplete}, isConfirmed: ${isConfirmed}, isSet: ${isSet}, totalAmount: ${totalAmountFormatted}, diff: ${diffFormatted}, unsettledTransfers: ${JSON.stringify(unsettledTransfers)}, unsettledTransferBonders: ${JSON.stringify(unsettledTransferBonders)}`)
     }, { concurrency })
 
+    // Check to see if the only remaining unsettled amounts are withdrawn
+    incompletes = incompletes.filter((item: any) => {
+      if (item.unsettledTransfers?.length) {
+        let totalAmountUnbonded = BigNumber.from(0)
+        for (const transfer of item.unsettledTransfers) {
+          if (!transfer.bonded) {
+            totalAmountUnbonded = totalAmountUnbonded.add(BigNumber.from(transfer.amount))
+          }
+        }
+        const isAllSettled = BigNumber.from(item.diff).eq(totalAmountUnbonded)
+        if (isAllSettled) {
+          return false
+        }
+      }
+      return true
+    })
+
     incompletes = incompletes.sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))
 
     this.logger.debug('done checking root diffs')
@@ -452,7 +483,12 @@ class IncompleteSettlementsWatcher {
       this.logger.debug(`rootHash transferIds processing item ${i + 1}/${transferIds.length}`)
       const bondWithdrawalEvent = await getBondedWithdrawal(destinationChain, token, transferId)
       if (!bondWithdrawalEvent) {
-        const { amount } = await getTransfer(sourceChain, token, transferId)
+        // Return if it is withdrawn. Do it after checking if it is bonded so we only make RPC calls when necessary.
+        const isWithdrawn = await contract.isTransferIdSpent(transferId)
+        if (isWithdrawn) {
+          return
+        }
+        const { amount } = await getTransferSent(sourceChain, transferId)
         const amountFormatted = Number(formatUnits(amount, tokenDecimals))
         unsettledTransfers.push({
           bonded: false,

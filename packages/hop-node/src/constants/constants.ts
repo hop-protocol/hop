@@ -1,3 +1,4 @@
+import { chains } from '@hop-protocol/core/metadata'
 
 export enum Network {
   Mainnet = 'mainnet',
@@ -6,12 +7,18 @@ export enum Network {
   Kovan = 'kovan',
 }
 
+// TODO: read from core
 export enum Chain {
   Ethereum = 'ethereum',
   Optimism = 'optimism',
   Arbitrum = 'arbitrum',
   Polygon = 'polygon',
   Gnosis = 'gnosis',
+  Nova = 'nova',
+  ZkSync = 'zksync',
+  ConsenSysZk = 'consensyszk',
+  ScrollZk = 'scrollzk',
+  Base = 'base'
 }
 
 export enum NativeChainToken {
@@ -20,18 +27,12 @@ export enum NativeChainToken {
   MATIC = 'MATIC'
 }
 
-export const nativeChainTokens: Record<string, string> = {
-  ethereum: NativeChainToken.ETH,
-  arbitrum: NativeChainToken.ETH,
-  optimism: NativeChainToken.ETH,
-  polygon: NativeChainToken.MATIC,
-  gnosis: NativeChainToken.XDAI
+const nativeChainTokens: Record<string, string> = {}
+for (const chain in chains) {
+  nativeChainTokens[chain] = (chains as any)[chain].nativeTokenSymbol
 }
 
-export enum Token {
-  USDC = 'USDC',
-  DAI = 'DAI',
-}
+export { nativeChainTokens }
 
 export const AvgBlockTimeSeconds = {
   Ethereum: 12,
@@ -44,7 +45,12 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   polygon: 5933,
   gnosis: 3218,
   optimism: 8545,
-  arbitrum: 19843
+  arbitrum: 19843,
+  nova: 19843,
+  zksync: 10000, // TODO
+  consensyszk: 10000, // TODO
+  scrollzk: 10000, // TODO
+  base: 10000 // TODO
 }
 
 export const DefaultBatchBlocks = 10000
@@ -76,8 +82,10 @@ export enum TxError {
   NotEnoughLiquidity = 'NOT_ENOUGH_LIQUIDITY',
 }
 
-export const MaxGasPriceMultiplier = 1
-export const MinPriorityFeePerGas = 1
+export const MaxPriorityFeeConfidenceLevel = 95
+export const InitialTxGasPriceMultiplier = 1
+export const MaxGasPriceMultiplier = 1.25
+export const MinPriorityFeePerGas = 0.1
 export const PriorityFeePerGasCap = 20
 export const MinPolygonGasPrice = 60_000_000_000
 export const MinGnosisGasPrice = 5_000_000_000
@@ -94,7 +102,8 @@ export enum GasCostTransactionType {
 }
 
 export const RelayableChains: string[] = [
-  Chain.Arbitrum
+  Chain.Arbitrum,
+  Chain.Nova
 ]
 
 export const MaxDeadline: number = 9999999999
@@ -102,3 +111,5 @@ export const MaxDeadline: number = 9999999999
 export const ChainHasFinalizationTag: Record<string, boolean> = {
   ethereum: true
 }
+
+export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])

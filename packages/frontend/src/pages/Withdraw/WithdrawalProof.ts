@@ -26,7 +26,7 @@ export class WithdrawalProof {
   transfer?: Transfer
   transferRoot ?: TransferRoot
 
-  constructor(transferId) {
+  constructor(transferId: string) {
     if (!transferId) {
       throw new Error('Transfer ID is required')
     }
@@ -214,7 +214,7 @@ export class WithdrawalProof {
   }
 
   private async findTransfer (transferId: string) {
-    const chains = ['polygon', 'xdai', 'arbitrum', 'optimism']
+    const chains = ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova'] // chain slugs that have subgraphs
     let transfer : Transfer
     for (const chain of chains) {
       transfer = await this.queryTransfer(transferId, chain)
@@ -545,48 +545,16 @@ export class WithdrawalProof {
     }
 
     const endBlockNumber = transferCommitted.blockNumber
-    query = `
-      query TransfersSent($token: String, $startBlockNumber: String, $endBlockNumber: String, $destinationChainId: String) {
-        transferSents(
-          where: {
-            token: $token,
-            blockNumber_gte: $startBlockNumber,
-            blockNumber_lte: $endBlockNumber,
-            destinationChainId: $destinationChainId
-          },
-          orderBy: blockNumber,
-          orderDirection: asc,
-          first: 1000,
-        ) {
-          id
-          transferId
-          destinationChainId
-          recipient
-          amount
-          transferNonce
-          bonderFee
-          index
-          amountOutMin
-          deadline
-
-          transactionHash
-          transactionIndex
-          timestamp
-          blockNumber
-          contractAddress
-          token
-        }
-      }
-    `
-    jsonRes = await this.makeRequest(chain, query, {
+    const transferSents = await this.getTransferSents({
       token,
-      startBlockNumber: startBlockNumber.toString(),
+      chain,
+      startBlockNumber,
       endBlockNumber,
       destinationChainId
     })
 
     // normalize fields
-    let transferIds = jsonRes.transferSents.map((x: Transfer) => this.normalizeEntity(x))
+    let transferIds = transferSents.map((x: Transfer) => this.normalizeEntity(x))
 
     // sort by transfer id block number and index
     transferIds = transferIds.sort((a, b) => {
@@ -720,6 +688,66 @@ export class WithdrawalProof {
     transferRoot.transferIds = transferIds
 
     return transferRoot
+  }
+
+  async getTransferSents(options: any, lastId: string = '') {
+    const { token, chain, startBlockNumber, endBlockNumber, destinationChainId } = options
+
+    const query = `
+      query TransfersSent($token: String, $startBlockNumber: String, $endBlockNumber: String, $destinationChainId: String, $lastId: ID) {
+        transferSents(
+          where: {
+            token: $token,
+            id_gt: $lastId,
+            blockNumber_gte: $startBlockNumber,
+            blockNumber_lte: $endBlockNumber,
+            destinationChainId: $destinationChainId
+          },
+          orderBy: id,
+          orderDirection: asc,
+          first: 1000,
+        ) {
+          id
+          transferId
+          destinationChainId
+          recipient
+          amount
+          transferNonce
+          bonderFee
+          index
+          amountOutMin
+          deadline
+
+          transactionHash
+          transactionIndex
+          timestamp
+          blockNumber
+          contractAddress
+          token
+        }
+      }
+    `
+    const jsonRes = await this.makeRequest(chain, query, {
+      token,
+      startBlockNumber: startBlockNumber.toString(),
+      endBlockNumber: endBlockNumber.toString(),
+      destinationChainId,
+      lastId
+    })
+
+    let transferSents = jsonRes.transferSents
+    if (transferSents.length === 1000) {
+      const lastId = transferSents[transferSents.length - 1].id
+      transferSents = transferSents.concat(await this.getTransferSents({
+        token,
+        chain,
+        startBlockNumber: startBlockNumber.toString(),
+        endBlockNumber: endBlockNumber.toString(),
+        destinationChainId,
+      }, lastId))
+    }
+
+    return transferSents
   }
 
   private normalizeEntity (x: any) {

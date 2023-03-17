@@ -1,4 +1,4 @@
-import Base, { ChainProviders } from './Base'
+import Base, { BaseConstructorOptions, ChainProviders } from './Base'
 import CanonicalBridge from './CanonicalBridge'
 import CanonicalWatcher from './watchers/CanonicalWatcher'
 import EventEmitter from 'eventemitter3'
@@ -45,9 +45,9 @@ class Hop extends Base {
   /**
    * @desc Instantiates Hop SDK.
    * Returns a new Hop SDK instance.
-   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
-   * @param {Object} signer - Ethers `Signer` for signing transactions.
-   * @returns {Object} New Hop SDK instance.
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param signer - Ethers `Signer` for signing transactions.
+   * @returns New Hop SDK instance.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -65,19 +65,17 @@ class Hop extends Base {
    */
   // eslint-disable-next-line no-useless-constructor
   constructor (
-    network: string,
+    networkOrOptionsObject: string | BaseConstructorOptions,
     signer?: TProvider,
     chainProviders?: ChainProviders
   ) {
-    super(network, signer, chainProviders)
+    super(networkOrOptionsObject, signer, chainProviders)
   }
 
   /**
    * @desc Returns a bridge set instance.
-   * @param {Object} token - Token model or symbol of token of bridge to use.
-   * @param {Object} sourceChain - Source chain model.
-   * @param {Object} destinationChain - Destination chain model.
-   * @returns {Object} A HopBridge instance.
+   * @param token - Token model or symbol of token of bridge to use.
+   * @returns A HopBridge instance.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -86,19 +84,31 @@ class Hop extends Base {
    *const bridge = hop.bridge('USDC')
    *```
    */
-  public bridge (token: TToken) {
-    const hopBridge = new HopBridge(this.network, this.signer, token, this.chainProviders)
+  public bridge (token: TToken): HopBridge {
+    const hopBridge = new HopBridge({
+      network: this.network,
+      signer: this.signer,
+      token,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      customCoreConfigJsonUrl: this.customCoreConfigJsonUrl,
+      customAvailableLiquidityJsonUrl: this.customAvailableLiquidityJsonUrl
+    })
+    // port over exiting properties
     if (this.priceFeedApiKeys) {
       hopBridge.priceFeed.setApiKeys(this.priceFeedApiKeys)
     }
+    hopBridge.baseConfigUrl = this.baseConfigUrl
+    hopBridge.configFileFetchEnabled = this.configFileFetchEnabled
     return hopBridge
   }
 
   /**
    * @desc Returns a canonical bridge sdk instance.
-   * @param {Object} token - Token model or symbol of token of canonical bridge to use.
-   * @param {Object} chain - Chain model.
-   * @returns {Object} A CanonicalBridge instance.
+   * @param token - Token model or symbol of token of canonical bridge to use.
+   * @param chain - Chain model.
+   * @returns A CanonicalBridge instance.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -107,20 +117,22 @@ class Hop extends Base {
    *const bridge = hop.canonicalBridge('USDC')
    *```
    */
-  public canonicalBridge (token: TToken, chain?: TChain) {
-    return new CanonicalBridge(
-      this.network,
-      this.signer,
+  public canonicalBridge (token: TToken, chain?: TChain): CanonicalBridge {
+    return new CanonicalBridge({
+      network: this.network,
+      signer: this.signer,
       token,
       chain,
-      this.chainProviders
-    )
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
   }
 
   /**
    * @desc Returns hop instance with signer connected. Used for adding or changing signer.
-   * @param {Object} signer - Ethers `Signer` for signing transactions.
-   * @returns {Object} A new Hop SDK instance with connected Ethers Signer.
+   * @param signer - Ethers `Signer` for signing transactions.
+   * @returns A new Hop SDK instance with connected Ethers Signer.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -132,14 +144,20 @@ class Hop extends Base {
    *hop = hop.connect(signer)
    *```
    */
-  connect (signer: TProvider) {
+  connect (signer: TProvider): Hop {
     this.signer = signer
-    return new Hop(this.network, signer, this.chainProviders)
+    return new Hop({
+      network: this.network,
+      signer,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
   }
 
   /**
    * @desc Returns the SDK version.
-   * @returns {String} version string
+   * @returns version string
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'
@@ -148,16 +166,16 @@ class Hop extends Base {
    *console.log(hop.version)
    *```
    */
-  public get version () {
+  public get version () : string {
     return _version
   }
 
   /**
    * @desc Watches for Hop transaction events.
-   * @param {String} txHash - Source transaction hash.
-   * @param {Token} token - Token name or model.
-   * @param {Object} sourceChain - Source chain name or model.
-   * @param {Object} destinationChain - Destination chain name or model.
+   * @param txHash - Source transaction hash.
+   * @param token - Token name or model.
+   * @param sourceChain - Source chain name or model.
+   * @param destinationChain - Destination chain name or model.
    * @example
    *```js
    *import { Hop } from '@hop-protocol/sdk'

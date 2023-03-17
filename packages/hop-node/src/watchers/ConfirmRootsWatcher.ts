@@ -1,18 +1,23 @@
 import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
+import BaseZkBridgeWatcher from './BaseZkBridgeWatcher'
+import ConsenSysZkBridgeWatcher from './ConsenSysZkBridgeWatcher'
 import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L1MessengerWrapper from './classes/L1MessengerWrapper'
+import NovaBridgeWatcher from './NovaBridgeWatcher'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
+import ScrollZkBridgeWatcher from './ScrollZkBridgeWatcher'
+import ZkSyncBridgeWatcher from './ZkSyncBridgeWatcher'
 import contracts from 'src/contracts'
 import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
-import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/MessengerWrapper'
-import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
+import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { getEnabledNetworks } from 'src/config'
 
 type Config = {
@@ -30,7 +35,7 @@ export type ConfirmRootsData = {
   rootCommittedAt: number
 }
 
-type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher
+type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | ConsenSysZkBridgeWatcher | ScrollZkBridgeWatcher
 
 class ConfirmRootsWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
@@ -74,8 +79,48 @@ class ConfirmRootsWatcher extends BaseWatcher {
         dryMode: config.dryMode
       })
     }
+    if (this.chainSlug === Chain.Base && enabledNetworks.includes(Chain.Base)) {
+      this.watchers[Chain.Base] = new BaseZkBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
     if (this.chainSlug === Chain.Arbitrum && enabledNetworks.includes(Chain.Arbitrum)) {
       this.watchers[Chain.Arbitrum] = new ArbitrumBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+    if (this.chainSlug === Chain.Nova && enabledNetworks.includes(Chain.Nova)) {
+      this.watchers[Chain.Nova] = new NovaBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+    if (this.chainSlug === Chain.ZkSync && enabledNetworks.includes(Chain.ZkSync)) {
+      this.watchers[Chain.ZkSync] = new ZkSyncBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+    if (this.chainSlug === Chain.ConsenSysZk && enabledNetworks.includes(Chain.ConsenSysZk)) {
+      this.watchers[Chain.ConsenSysZk] = new ConsenSysZkBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+    if (this.chainSlug === Chain.ScrollZk && enabledNetworks.includes(Chain.ScrollZk)) {
+      this.watchers[Chain.ScrollZk] = new ScrollZkBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,

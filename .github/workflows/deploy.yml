@@ -5,9 +5,13 @@ on:
       - production
       - preprod
       - mainnet
+      - develop
+  workflow_dispatch:
 
 jobs:
   set_environment:
+    name: Set Environment
+    if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet')
     outputs:
       env_name: ${{ steps.setenv.outputs.env_name }}
       dnslink_subdomain: ${{ steps.setdnslink.outputs.dnslink_subdomain }}
@@ -18,9 +22,9 @@ jobs:
       run: |
         if [[ "${GITHUB_REF#refs/heads/}" == "production" || "${GITHUB_REF#refs/heads/}" == "preprod" ]]
         then
-          echo "::set-output name=env_name::production"
+          echo "env_name=production" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=env_name::mainnet"
+          echo "env_name=mainnet" >> $GITHUB_OUTPUT
         fi
 
     - name: Set dnslink var
@@ -28,13 +32,29 @@ jobs:
       run: |
         if [[ "${GITHUB_REF#refs/heads/}" == "production" ]]
         then
-          echo "::set-output name=dnslink_subdomain::_dnslink.app"
+          echo "dnslink_subdomain=_dnslink.app" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=dnslink_subdomain::_dnslink.${GITHUB_REF#refs/heads/}"
+          echo "dnslink_subdomain=_dnslink.${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
         fi
 
+  call-workflow1:
+    name: Publish NPM Core Package If Necessary
+    uses: ./.github/workflows/npm_publish_core.yml
+    with:
+      environment: production
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  call-workflow2:
+    needs: call-workflow1
+    name: Publish NPM SDK Package If Necessary
+    uses: ./.github/workflows/npm_publish_sdk.yml
+    with:
+      environment: production
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
   bump_version:
-    name: Bump Version
+    name: Bump Github Release Version
     if: contains(github.ref, 'production')
     runs-on: ubuntu-latest
     outputs:
@@ -53,9 +73,10 @@ jobs:
           default_bump: patch
 
   build:
-    name: Deploy
+    if: contains(github.ref, 'production') || contains(github.ref, 'preprod') || contains(github.ref, 'mainnet')
+    name: Build and Deploy
     runs-on: ubuntu-latest
-    needs: [set_environment]
+    needs: [set_environment, call-workflow2]
     outputs:
       hash: ${{ steps.upload.outputs.hash }}
     environment:
@@ -63,6 +84,7 @@ jobs:
     env:
       ENV_NAME: ${{ needs.set_environment.outputs.env_name }}
       RECORD_NAME: ${{ needs.set_environment.outputs.dnslink_subdomain }}
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     defaults:
       run:
         working-directory: ./packages/frontend
@@ -117,7 +139,7 @@ jobs:
         with:
           pin-name: Hop ${{ github.sha }}
           path: './packages/frontend/build'
-          verbose: false
+          verbose: true
           pinata-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__API_KEY }}
           pinata-secret-api-key: ${{ secrets.IPFS_DEPLOY_PINATA__SECRET_API_KEY }}
 
@@ -139,7 +161,7 @@ jobs:
 
       - name: Set short sha
         id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         id: create_release

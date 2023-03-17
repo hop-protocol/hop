@@ -8,6 +8,11 @@ function main () {
   const worker = new Worker({
     yields: argv.yields,
     tvl: argv.tvl,
+    amm: argv.amm,
+    ammDays: argv.ammDays,
+    ammOffsetDays: argv.ammOffsetDays,
+    ammTokens: argv.ammTokens ? argv.ammTokens.split(',') : null,
+    ammChains: argv.ammChains ? argv.ammChains.split(',') : null,
     volume: argv.volume,
     bonder: argv.bonder,
     bonderProfit: argv.bonderProfit,

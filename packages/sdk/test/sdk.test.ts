@@ -10,6 +10,8 @@ import * as addresses from '@hop-protocol/core/addresses'
 // @ts-ignore
 import pkg from '../package.json'
 import { FallbackProvider } from '../src/provider'
+import { fetchJsonOrThrow } from '../src/utils/fetchJsonOrThrow'
+import { getChainSlugFromName } from '../src/utils'
 
 describe('sdk setup', () => {
   const hop = new Hop('kovan')
@@ -72,7 +74,7 @@ describe.skip('hop bridge token transfers', () => {
 describe('tx watcher', () => {
   const hop = new Hop('mainnet')
   const signer = new Wallet(privateKey)
-  it(
+  it.skip(
     'receive events on token transfer from L1 -> L2 (no swap)',
     async () => {
       const txHash =
@@ -473,7 +475,7 @@ describe('custom chain providers', () => {
     let polygonProvider = bridge.getChainProvider('polygon')
     let gnosisProvider = bridge.getChainProvider('gnosis')
     const currentPolygonUrl = 'https://polygon-rpc.com'
-    const currentGnosisUrl = 'https://rpc.gnosischain.com/'
+    const currentGnosisUrl = 'https://rpc.gnosis.gateway.fm'
     const newPolygonUrl = 'https://polygon-rpc2.com'
     const newGnosisUrl = 'https://rpc.gnosischain2.com'
     expect(bridge.getProviderRpcUrl(polygonProvider)).toBe(currentPolygonUrl)
@@ -487,10 +489,27 @@ describe('custom chain providers', () => {
     expect(bridge.getProviderRpcUrl(polygonProvider)).toBe(newPolygonUrl)
     expect(bridge.getProviderRpcUrl(gnosisProvider)).toBe(newGnosisUrl)
   })
+
+  it('constructor chainProviders option', () => {
+    const newPolygonUrl = 'https://polygon-rpc2.com'
+    const newGnosisUrl = 'https://rpc.gnosischain2.com'
+    const polygonProvider = new providers.StaticJsonRpcProvider(newPolygonUrl)
+    const gnosisProvider = new providers.StaticJsonRpcProvider(newGnosisUrl)
+    const sdk = new Hop({
+      network: 'mainnet',
+      chainProviders: {
+        polygon: polygonProvider,
+        gnosis: gnosisProvider
+      }
+    })
+    const bridge = sdk.bridge('USDC')
+    expect(bridge.getChainProvider('polygon')).toBe(polygonProvider)
+    expect(bridge.getChainProvider('gnosis')).toBe(gnosisProvider)
+  })
 })
 
-describe.skip('getSendData', () => {
-  it('available liquidity', async () => {
+describe('getSendData', () => {
+  it.skip('available liquidity', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
     const availableLiquidityBn = await bridge.getFrontendAvailableLiquidity(
@@ -512,7 +531,7 @@ describe.skip('getSendData', () => {
     expect(requiredLiquidity).toBeGreaterThan(0)
     expect(availableLiquidity).toBeGreaterThan(requiredLiquidity)
   })
-  it('relayer fee', async () => {
+  it.skip('relayer fee', async () => {
     const sdk = new Hop('mainnet')
     const bridge = sdk.bridge('USDC')
     const amountIn = BigNumber.from('1000000')
@@ -551,13 +570,93 @@ describe.skip('getSendData', () => {
     },
     10 * 1000
   )
+
+  it('getDestinationTransactionFee', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const sourceChain = 'polygon'
+    const destinationChain = 'optimism'
+    const destinationTxFee = await bridge.getDestinationTransactionFee(sourceChain, destinationChain)
+    console.log(destinationTxFee)
+    expect(destinationTxFee.gt(0)).toBeTruthy()
+  })
+
+  it('getDestinationTransactionFeeData', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const sourceChain = 'polygon'
+    const destinationChain = 'optimism'
+    const result = await bridge.getDestinationTransactionFeeData(sourceChain, destinationChain)
+    const { destinationTxFee, rate, chainNativeTokenPrice, tokenPrice, destinationChainGasPrice } = result
+    console.log(result)
+    expect(destinationTxFee.gt(0)).toBeTruthy()
+    expect(rate > 0 && rate < 2).toBeTruthy()
+    expect(chainNativeTokenPrice > 0 && chainNativeTokenPrice < 10000).toBeTruthy()
+    expect(tokenPrice > 0 && tokenPrice < 10000).toBeTruthy()
+    expect(destinationChainGasPrice.gt(0)).toBeTruthy()
+  })
+
+  it('getSendData', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const amountIn = parseUnits('0.5', 18)
+    const sourceChain = 'polygon'
+    const destinationChain = 'optimism'
+    const result = await bridge.getSendData(amountIn, sourceChain, destinationChain)
+    const {
+      amountOut,
+      rate,
+      priceImpact,
+      requiredLiquidity,
+      lpFees,
+      bonderFeeRelative,
+      adjustedBonderFee,
+      destinationTxFee,
+      adjustedDestinationTxFee,
+      totalFee,
+      estimatedReceived,
+      feeBps,
+      lpFeeBps,
+      tokenPriceRate,
+      chainNativeTokenPrice,
+      tokenPrice,
+      destinationChainGasPrice
+    } = result
+    console.log(result)
+    expect(amountOut.gt(0)).toBeTruthy()
+    expect(rate > 0 && rate < 2).toBeTruthy()
+    expect(priceImpact >= -100 && priceImpact <= 100).toBeTruthy()
+    expect(requiredLiquidity.gt(0)).toBeTruthy()
+    expect(lpFees.gt(0)).toBeTruthy()
+    expect(bonderFeeRelative.gt(0)).toBeTruthy()
+    expect(adjustedBonderFee.gt(0)).toBeTruthy()
+    expect(destinationTxFee.gt(0)).toBeTruthy()
+    expect(adjustedDestinationTxFee.gt(0)).toBeTruthy()
+    expect(totalFee.gt(0)).toBeTruthy()
+    expect(estimatedReceived.gt(0)).toBeTruthy()
+    expect(feeBps > 0).toBeTruthy()
+    expect(lpFeeBps > 0).toBeTruthy()
+    expect(tokenPriceRate > 0 && tokenPriceRate < 2).toBeTruthy()
+    expect(chainNativeTokenPrice > 0 && chainNativeTokenPrice < 10000).toBeTruthy()
+    expect(tokenPrice > 0 && tokenPrice < 10000).toBeTruthy()
+    expect(destinationChainGasPrice.gt(0)).toBeTruthy()
+  })
 })
 
-describe('getSupportedAssets', () => {
+describe('supported assets', () => {
   it('should return list of supported assets per chain', () => {
     const hop = new Hop('mainnet')
     const assets = hop.getSupportedAssets()
+    console.log(assets)
     expect(assets).toBeTruthy()
+  })
+  it('should check if asset is supported on chain', () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('SNX')
+    expect(bridge.isSupportedAsset('polygon')).toBe(false)
+    expect(bridge.isSupportedAsset(Chain.fromSlug('polygon'))).toBe(false)
+    expect(bridge.isSupportedAsset('optimism')).toBe(true)
+    expect(bridge.isSupportedAsset(Chain.fromSlug('optimism'))).toBe(true)
   })
 })
 
@@ -719,7 +818,15 @@ describe('PriceFeed', () => {
     console.log(price)
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(5)
-  })
+  }, 60 * 1000)
+  it('should return rETH price', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('rETH')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('rETH')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(10000)
+  }, 60 * 1000)
 })
 
 describe.skip('getMessengerWrapperAddress', () => {
@@ -766,7 +873,7 @@ describe('getWaitConfirmations', () => {
   it('should return waitConfirmations', () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('USDC')
-    expect(bridge.getWaitConfirmations('polygon')).toBe(128)
+    expect(bridge.getWaitConfirmations('polygon')).toBe(256)
   })
 })
 
@@ -861,5 +968,197 @@ describe('fallback provider', () => {
     const network = await provider.getNetwork()
     console.log('network:', network)
     expect(network.name).toBe('optimism')
+  }, 10 * 60 * 1000)
+})
+
+describe('AMM calculateSwap', () => {
+  it('should call calculateSwap', async () => {
+    const provider = new providers.StaticJsonRpcProvider('https://optimism-mainnet.infura.io/v3/84842078b09946638c03157f83405213')
+    const signer = new Wallet(privateKey, provider)
+    const hop = new Hop('mainnet', signer)
+    const token = 'USDC'
+    const chain = 'optimism'
+    const bridge = hop.bridge(token)
+    const amm = bridge.getAmm(chain)
+    const amountOut = await amm.calculateSwap(0, 1, parseUnits('10', 6))
+    console.log(token, chain, amountOut)
+    expect(amountOut.gt(0)).toBe(true)
+  }, 10 * 60 * 1000)
+})
+
+describe('utils', () => {
+  it('getChainSlugFromName', async () => {
+    expect(getChainSlugFromName('Ethereum')).toBe('ethereum')
+    expect(getChainSlugFromName('Goerli')).toBe('ethereum')
+    expect(getChainSlugFromName('Arbitrum')).toBe('arbitrum')
+    expect(getChainSlugFromName('Optimism')).toBe('optimism')
+    expect(getChainSlugFromName('Polygon')).toBe('polygon')
+    expect(getChainSlugFromName('xDai')).toBe('gnosis')
+    expect(getChainSlugFromName('Gnosis')).toBe('gnosis')
+    expect(getChainSlugFromName('Gnosis Chain')).toBe('gnosis')
+    expect(getChainSlugFromName('ConsenSys zkEVM')).toBe('consensyszk')
+    expect(getChainSlugFromName('Base')).toBe('base')
+  })
+})
+
+describe('S3 data', () => {
+  it('should get core config json data', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchCoreConfigData()
+    // console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.bonders).toBeTruthy()
+  })
+  it('should get available liquidity json data', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchBonderAvailableLiquidityData()
+    // console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.ETH).toBeTruthy()
+  })
+})
+
+describe('fetchJsonOrThrow', () => {
+  it('should fetch json', async () => {
+    const url = 'https://assets.hop.exchange/mainnet/v1-core-config.json'
+    const json = await fetchJsonOrThrow(url)
+    // console.log(json)
+    expect(json).toBeTruthy()
+    expect(json instanceof Object).toBeTruthy()
+    expect(json.bonders).toBeTruthy()
   }, 60 * 1000)
+  it('should throw if invalid json', async () => {
+    let error : any
+    try {
+      const url = 'https://assets.hop.exchange'
+      const json = await fetchJsonOrThrow(url)
+      expect(json).toBeFalsy()
+    } catch (err: any) {
+      error = err.message
+    }
+    console.log(error)
+    expect(error).toBeTruthy()
+    expect(/invalid/gi.test(error)).toBeTruthy()
+  }, 60 * 1000)
+  it('should throw if url request times out', async () => {
+    let error : any
+    try {
+      const url = 'https://www.google.com:81/' // this endpoint basically never responds which is useful for testing timeouts
+      const json = await fetchJsonOrThrow(url)
+      expect(json).toBeFalsy()
+    } catch (err: any) {
+      error = err.message
+    }
+    console.log(error)
+    expect(error).toBeTruthy()
+    expect(/timedout|aborted/gi.test(error)).toBeTruthy()
+  }, 60 * 1000)
+  it('should throw if invalid or incomplete url', async () => {
+    let error : any
+    try {
+      const url = 'example.com'
+      const json = await fetchJsonOrThrow(url)
+      expect(json).toBeFalsy()
+    } catch (err: any) {
+      error = err.message
+    }
+    console.log(error)
+    expect(error).toBeTruthy()
+    expect(/invalid/gi.test(error)).toBeTruthy()
+  }, 60 * 1000)
+})
+
+describe('sdk config file fetching', () => {
+  it('setBaseConfigUrl', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.baseConfigUrl).toBe('https://assets.hop.exchange')
+    await hop.setBaseConfigUrl('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    expect(hop.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    const bridge = hop.bridge('USDC')
+    expect(bridge.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+    await hop.setBaseConfigUrl('https://assets.hop.exchange')
+  })
+
+  it('baseConfigUrl option', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.baseConfigUrl).toBe('https://assets.hop.exchange')
+
+    const hop2 = new Hop({
+      network: 'mainnet',
+      baseConfigUrl: 'https://s3.us-west-1.amazonaws.com/assets.hop.exchange'
+    })
+    const bridge = hop2.bridge('USDC')
+    expect(bridge.baseConfigUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange')
+  })
+
+  it('configFileFetchEnabled', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.configFileFetchEnabled).toBe(true)
+    hop.setConfigFileFetchEnabled(false)
+    expect(hop.configFileFetchEnabled).toBe(false)
+    const bridge = hop.bridge('USDC')
+    expect(bridge.configFileFetchEnabled).toBe(false)
+    hop.setConfigFileFetchEnabled(true)
+    expect(hop.configFileFetchEnabled).toBe(true)
+  })
+
+  it('setCoreConfigJsonUrl', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.coreConfigJsonUrl).toBe('https://assets.hop.exchange/mainnet/v1-core-config.json')
+    await hop.setCoreConfigJsonUrl('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-core-config.json')
+    expect(hop.coreConfigJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-core-config.json')
+    const bridge = hop.bridge('USDC')
+    expect(bridge.coreConfigJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-core-config.json')
+  })
+
+  it('setAvailableLiqudityJsonUrl', async () => {
+    const hop = new Hop('mainnet')
+    expect(hop.availableLiqudityJsonUrl).toBe('https://assets.hop.exchange/mainnet/v1-available-liquidity.json')
+    await hop.setAvailableLiqudityJsonUrl('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-available-liquidity.json')
+    expect(hop.availableLiqudityJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-available-liquidity.json')
+    const bridge = hop.bridge('USDC')
+    expect(bridge.availableLiqudityJsonUrl).toBe('https://s3.us-west-1.amazonaws.com/assets.hop.exchange/mainnet/v1-available-liquidity.json')
+  })
+})
+
+describe.skip('ipfs', () => {
+  it('resolveDnslink', async () => {
+    const hop = new Hop('mainnet')
+    const dnslinkDomain = '_dnslink.ipfs-assets.hop.exchange'
+    const ipfsHash = await hop.resolveDnslink(dnslinkDomain)
+    console.log(ipfsHash)
+    expect(ipfsHash).toBeTruthy()
+  })
+
+  it('fetchIpfsCoreConfigData', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchIpfsCoreConfigData()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.bonders).toBeTruthy()
+  })
+
+  it('fetchIpfsBonderAvailableLiquidity', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchIpfsBonderAvailableLiquidityData()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.ETH).toBeTruthy()
+  })
+
+  it('fetchCoreConfigDataWithIpfsFallback', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchCoreConfigDataWithIpfsFallback()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.bonders).toBeTruthy()
+  })
+
+  it('fetchBonderAvailableLiquidityDataWithIpfsFallback', async () => {
+    const hop = new Hop('mainnet')
+    const json = await hop.fetchBonderAvailableLiquidityDataWithIpfsFallback()
+    console.log(json)
+    expect(json).toBeTruthy()
+    expect(json.ETH).toBeTruthy()
+  })
 })

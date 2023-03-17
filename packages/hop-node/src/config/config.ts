@@ -4,6 +4,7 @@ import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
+import { Bps, ChainSlug } from '@hop-protocol/core/config'
 import { Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
@@ -50,8 +51,8 @@ const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
-export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum])
-export const wrapperConfirmationChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Polygon])
+export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova])
+export const wrapperConfirmationChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Nova])
 export const rateLimitMaxRetries = 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
@@ -61,20 +62,30 @@ export const minEthBonderFeeBn = parseEther('0.00001')
 export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PENDING_COUNT_COMMIT_THRESHOLD) ?? 921 // 90% of 1024
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
+export const shouldExitOrus = process.env.SHOULD_EXIT_ORUS ?? false
+export const modifiedLiquidityTokens = process.env.MODIFIED_LIQUIDITY_TOKENS?.split(',') ?? []
+export const modifiedLiquiditySourceChains = process.env.MODIFIED_LIQUIDITY_SOURCE_CHAINS?.split(',') ?? []
+export const modifiedLiquidityDestChains = process.env.MODIFIED_LIQUIDITY_DEST_CHAINS?.split(',') ?? []
+export const modifiedLiquidityDecrease = process.env.MODIFIED_LIQUIDITY_DECREASE ?? '0'
+
+export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
+export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
 
 export const etherscanApiKeys: Record<string, string> = {
   [Chain.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',
   [Chain.Polygon]: process.env.POLYGONSCAN_API_KEY ?? '',
   [Chain.Optimism]: process.env.OPTIMISM_API_KEY ?? '',
   [Chain.Arbitrum]: process.env.ARBITRUM_API_KEY ?? '',
-  [Chain.Gnosis]: process.env.XDAI_API_KEY ?? ''
+  [Chain.Gnosis]: process.env.XDAI_API_KEY ?? '',
+  [Chain.Nova]: process.env.NOVA_API_KEY ?? ''
 }
 export const etherscanApiUrls: Record<string, string> = {
   [Chain.Ethereum]: 'https://api.etherscan.io',
   [Chain.Polygon]: 'https://api.polygonscan.com',
   [Chain.Optimism]: 'https://api-optimistic.etherscan.io',
   [Chain.Arbitrum]: 'https://api.arbiscan.io',
-  [Chain.Gnosis]: 'https://api.gnosisscan.io'
+  [Chain.Gnosis]: 'https://api.gnosisscan.io',
+  [Chain.Nova]: 'https://api-nova.arbiscan.io'
 }
 
 // TODO: Remove this when the exit system is fully live
@@ -93,14 +104,6 @@ type MetricsConfig = {
   port?: number
 }
 
-type Bps = {
-  ethereum: number
-  polygon: number
-  gnosis: number
-  optimism: number
-  arbitrum: number
-}
-
 export type Fees = Record<string, Bps>
 export type Routes = Record<string, Record<string, boolean>>
 export type CommitTransfersConfig = {
@@ -117,11 +120,7 @@ export type VaultChainTokenConfig = {
 }
 
 export type VaultChain = {
-  ethereum?: VaultChainTokenConfig
-  polygon?: VaultChainTokenConfig
-  gnosis?: VaultChainTokenConfig
-  optimism?: VaultChainTokenConfig
-  arbitrum?: VaultChainTokenConfig
+  [key in ChainSlug]: VaultChainTokenConfig
 }
 
 export type Vault = Record<string, VaultChain>
@@ -134,7 +133,7 @@ export type BlocklistConfig = {
 export type Config = {
   isMainnet: boolean
   tokens: Tokens
-  addresses: Bridges & {[network: string]: any}
+  addresses: Partial<Bridges> & {[network: string]: any}
   network: string
   networks: Networks & {[network: string]: any}
   bonderPrivateKey: string
@@ -217,6 +216,26 @@ export const config: Config = {
     },
     [Chain.Gnosis]: {
       totalBlocks: TotalBlocks.Gnosis,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.Nova]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.ZkSync]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.ConsenSysZk]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.ScrollZk]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.Base]: {
+      totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
     }
   },

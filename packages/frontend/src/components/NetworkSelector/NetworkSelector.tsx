@@ -22,7 +22,7 @@ function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: P
     [availableNetworks, allNetworks]
   )
 
-  function selectNetwork(event) {
+  function selectNetwork(event: any) {
     if (onChange) {
       return onChange(event)
     }

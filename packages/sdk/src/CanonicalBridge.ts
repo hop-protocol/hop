@@ -1,21 +1,26 @@
-import Base, { ChainProviders, L1Factory, L2Factory } from './Base'
+import Base, { BaseConstructorOptions, ChainProviders, L1Factory, L2Factory } from './Base'
 import Token from './models/Token'
 import TokenClass from './Token'
-import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/ArbERC20__factory'
-import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/ArbitrumGlobalInbox__factory'
+import { ArbERC20__factory } from '@hop-protocol/core/contracts/factories/static/ArbERC20__factory'
+import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/static/ArbitrumGlobalInbox__factory'
 import { Chain } from './models'
 import { Contract, Signer, ethers } from 'ethers'
-import { L1HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/L1HomeAMBNativeToErc20__factory'
-import { L1OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L1OptimismTokenBridge__factory'
-import { L1PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/L1PolygonPosRootChainManager__factory'
-import { L1XDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/L1XDaiForeignOmniBridge__factory'
-import { L2OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/L2OptimismTokenBridge__factory'
-import { L2PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/L2PolygonChildERC20__factory'
-import { L2XDaiToken__factory } from '@hop-protocol/core/contracts/factories/L2XDaiToken__factory'
+import { L1_HomeAMBNativeToErc20__factory } from '@hop-protocol/core/contracts/factories/static/L1_HomeAMBNativeToErc20__factory'
+import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_OptimismTokenBridge__factory'
+import { L1_PolygonPosRootChainManager__factory } from '@hop-protocol/core/contracts/factories/static/L1_PolygonPosRootChainManager__factory'
+import { L1_xDaiForeignOmniBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_xDaiForeignOmniBridge__factory'
+import { L2_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L2_OptimismTokenBridge__factory'
+import { L2_PolygonChildERC20__factory } from '@hop-protocol/core/contracts/factories/static/L2_PolygonChildERC20__factory'
+import { L2_xDaiToken__factory } from '@hop-protocol/core/contracts/factories/static/L2_xDaiToken__factory'
 import { TAmount, TChain, TProvider, TToken } from './types'
 import { TokenSymbol } from './constants'
 import { formatUnits } from 'ethers/lib/utils'
 import { metadata } from './config'
+
+export type CanonicalBridgeConstructorOptions = {
+  token?: TToken,
+  chain?: TChain,
+} & BaseConstructorOptions
 
 /**
  * Class reprensenting Canonical Token Bridge.
@@ -33,11 +38,11 @@ class CanonicalBridge extends Base {
   /**
    * @desc Instantiates Canonical Token Bridge.
    * Returns a new Canonical Token Bridge instance.
-   * @param {String} network - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
-   * @param {Object} signer - Ethers `Signer` for signing transactions.
-   * @param {Object} token - Token symbol or model
-   * @param {Object} chain - Chain model
-   * @returns {Object} CanonicalBridge SDK instance.
+   * @param networkOrOptionsObject - L1 network name (e.g. 'mainnet', 'kovan', 'goerli')
+   * @param signer - Ethers `Signer` for signing transactions.
+   * @param token - Token symbol or model
+   * @param chain - Chain model
+   * @returns CanonicalBridge SDK instance.
    * @example
    *```js
    *import { CanonicalHop, Chain } from '@hop-protocol/sdk'
@@ -48,16 +53,31 @@ class CanonicalBridge extends Base {
    *```
    */
   constructor (
-    network: string,
-    signer: TProvider,
-    token: TToken,
-    chain: TChain,
+    networkOrOptionsObject: string | CanonicalBridgeConstructorOptions,
+    signer?: TProvider,
+    token?: TToken,
+    chain?: TChain,
     chainProviders?: ChainProviders
   ) {
-    super(network, signer, chainProviders)
+    super(networkOrOptionsObject, signer, chainProviders)
+
+    if (networkOrOptionsObject instanceof Object) {
+      const options = networkOrOptionsObject as CanonicalBridgeConstructorOptions
+      if (signer || token || chain || chainProviders) {
+        throw new Error('expected only single options parameter')
+      }
+      signer = options.signer
+      token = options.token
+      chain = options.chain
+    }
+
     if (!token) {
       throw new Error('token symbol is required')
     }
+    if (!chain) {
+      throw new Error('chain is required')
+    }
+
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
     if (signer) {
@@ -77,9 +97,9 @@ class CanonicalBridge extends Base {
 
   /**
    * @desc Return address of L1 canonical token bridge.
-   * @return {String} L1 canonical token bridge address
+   * @return L1 canonical token bridge address
    */
-  public get address () {
+  public get address (): string {
     if (!this.tokenSymbol) {
       return null
     }
@@ -91,17 +111,19 @@ class CanonicalBridge extends Base {
 
   /**
    * @desc Returns canonical bridge instance with signer connected. Used for adding or changing signer.
-   * @param {Object} signer - Ethers `Signer` for signing transactions.
-   * @returns {Object} New CanonicalBridge SDK instance with connected signer.
+   * @param signer - Ethers `Signer` for signing transactions.
+   * @returns New CanonicalBridge SDK instance with connected signer.
    */
-  public connect (signer: TProvider) {
-    return new CanonicalBridge(
-      this.network,
+  public connect (signer: TProvider): CanonicalBridge {
+    return new CanonicalBridge({
+      network: this.network,
       signer,
-      this.tokenSymbol,
-      this.chain,
-      this.chainProviders
-    )
+      token: this.tokenSymbol,
+      chain: this.chain,
+      chainProviders: this.chainProviders,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
   }
 
   public getDepositApprovalAddress (chain?: TChain): string {
@@ -116,11 +138,11 @@ class CanonicalBridge extends Base {
   /**
    * @desc Sends transaction to approve tokens for canonical token bridge deposit.
    * Will only send approval transaction if necessary.
-   * @param {Object} amount - Token amount to approve.
-   * @param {Object} chain - Chain model.
-   * @returns {Object} Ethers transaction object.
+   * @param amount - Token amount to approve.
+   * @param chain - Chain model.
+   * @returns Ethers transaction object.
    */
-  public async approveDeposit (amount: TAmount, chain?: TChain) {
+  public async approveDeposit (amount: TAmount, chain?: TChain): Promise<any> {
     amount = amount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
@@ -142,11 +164,11 @@ class CanonicalBridge extends Base {
 
   /**
    * @desc Sends transaction to canonical token bridge to deposit tokens into L2.
-   * @param {Object} amount - Token amount to deposit.
-   * @param {Object} chain - Chain model.
-   * @returns {Object} Ethers transaction object.
+   * @param amount - Token amount to deposit.
+   * @param chain - Chain model.
+   * @returns Ethers transaction object.
    */
-  public async deposit (amount: TAmount, chain?: TChain) {
+  public async deposit (amount: TAmount, chain?: TChain): Promise<any> {
     amount = amount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
@@ -180,7 +202,7 @@ class CanonicalBridge extends Base {
 
     if ((chain as Chain).equals(Chain.Gnosis)) {
       const bridge = await this.getContract(
-        L1XDaiForeignOmniBridge__factory,
+        L1_xDaiForeignOmniBridge__factory,
         bridgeAddress,
         provider
       )
@@ -200,13 +222,27 @@ class CanonicalBridge extends Base {
         )
       }
       const bridge = await this.getContract(
-        L1OptimismTokenBridge__factory,
+        L1_OptimismTokenBridge__factory,
         bridgeAddress,
         provider
       )
       await this.checkMaxTokensAllowed(chain, bridge, amount)
       return bridge.deposit(tokenAddress, l2TokenAddress, recipient, amount)
     } else if ((chain as Chain).equals(Chain.Arbitrum)) {
+      const arbChain = this.getArbChainAddress(this.tokenSymbol, chain)
+      const bridge = await this.getContract(
+        ArbitrumGlobalInbox__factory,
+        bridgeAddress,
+        provider
+      )
+      await this.checkMaxTokensAllowed(chain, bridge, amount)
+      return bridge.depositERC20Message(
+        arbChain,
+        tokenAddress,
+        recipient,
+        amount
+      )
+    } else if ((chain as Chain).equals(Chain.Nova)) {
       const arbChain = this.getArbChainAddress(this.tokenSymbol, chain)
       const bridge = await this.getContract(
         ArbitrumGlobalInbox__factory,
@@ -231,7 +267,7 @@ class CanonicalBridge extends Base {
         )
       }
       const bridge = await this.getContract(
-        L1PolygonPosRootChainManager__factory,
+        L1_PolygonPosRootChainManager__factory,
         bridgeAddress,
         provider
       )
@@ -255,10 +291,10 @@ class CanonicalBridge extends Base {
   /**
    * @desc Sends transaction to approve tokens for canonical token bridge withdrawal.
    * Will only send approval transaction if necessary.
-   * @param {Object} amount - Token amount to approve.
-   * @returns {Object} Ethers transaction object.
+   * @param amount - Token amount to approve.
+   * @returns Ethers transaction object.
    */
-  public async approveWithdraw (amount: TAmount) {
+  public async approveWithdraw (amount: TAmount): Promise<any> {
     amount = amount.toString()
     // no approval needed
     if (this.chain.equals(Chain.Polygon)) {
@@ -277,11 +313,11 @@ class CanonicalBridge extends Base {
 
   /**
    * @desc Sends transaction to L2 canonical token bridge to withdraw tokens into L1.
-   * @param {Object} amount - Token amount to withdraw.
-   * @param {Object} chain - Chain model.
-   * @returns {Object} Ethers transaction object.
+   * @param amount - Token amount to withdraw.
+   * @param chain - Chain model.
+   * @returns Ethers transaction object.
    */
-  public async withdraw (amount: TAmount, chain?: TChain) {
+  public async withdraw (amount: TAmount, chain?: TChain): Promise<any> {
     amount = amount.toString()
     if (chain) {
       chain = this.toChainModel(chain)
@@ -314,7 +350,7 @@ class CanonicalBridge extends Base {
         )
       }
       const bridge = await this.getContract(
-        L2XDaiToken__factory,
+        L2_xDaiToken__factory,
         tokenAddress,
         provider
       )
@@ -351,7 +387,7 @@ class CanonicalBridge extends Base {
         )
       }
       const bridge = await this.getContract(
-        L2OptimismTokenBridge__factory,
+        L2_OptimismTokenBridge__factory,
         bridgeAddress,
         provider
       )
@@ -373,6 +409,18 @@ class CanonicalBridge extends Base {
       }
       const bridge = ArbERC20__factory.connect(bridgeAddress, provider)
       return bridge.withdraw(recipient, amount)
+    } else if ((chain as Chain).equals(Chain.Nova)) {
+      const bridgeAddress = this.getL2CanonicalTokenAddress(
+        this.tokenSymbol,
+        chain
+      )
+      if (!bridgeAddress) {
+        throw new Error(
+          `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
+        )
+      }
+      const bridge = ArbERC20__factory.connect(bridgeAddress, provider)
+      return bridge.withdraw(recipient, amount)
     } else if ((chain as Chain).equals(Chain.Polygon)) {
       const tokenAddress = this.getL2CanonicalTokenAddress(
         this.tokenSymbol,
@@ -383,7 +431,7 @@ class CanonicalBridge extends Base {
           `token "${this.tokenSymbol}" on chain "${chain.slug}" is unsupported`
         )
       }
-      const token = L2PolygonChildERC20__factory.connect(tokenAddress, provider)
+      const token = L2_PolygonChildERC20__factory.connect(tokenAddress, provider)
       return token.withdraw(amount)
     } else {
       throw new Error('not implemented')
@@ -394,11 +442,11 @@ class CanonicalBridge extends Base {
    * @desc Sends transaction to finalize withdrawal.
    * This call is necessary on Polygon to finalize L2 withdrawal into L1 on
    * certain chains. Will only send transaction if necessary.
-   * @param {String} txHash - Transaction hash proving token burn on L2.
-   * @param {Object} chain - Chain model.
-   * @returns {Object} Ethers transaction object.
+   * @param txHash - Transaction hash proving token burn on L2.
+   * @param chain - Chain model.
+   * @returns Ethers transaction object.
    */
-  public async exit (txHash: string, chain: TChain) {
+  public async exit (txHash: string, chain: TChain): Promise<any> {
     chain = this.toChainModel(chain)
     const recipient = await this.getSignerAddress()
     const { MaticPOSClient } = require('@maticnetwork/maticjs')
@@ -427,15 +475,15 @@ class CanonicalBridge extends Base {
   /**
    * @desc Checks if the amount of tokens is allowed by the canonical token bridge,
    * otherwise throw an error.
-   * @param {Object} chain - Chain model.
-   * @param {Object} canonicalBridge - Ethers contract object for canonical token bridge.
-   * @param {Object} amount - Token amount.
+   * @param chain - Chain model.
+   * @param canonicalBridge - Ethers contract object for canonical token bridge.
+   * @param amount - Token amount.
    */
   private async checkMaxTokensAllowed (
     chain: Chain,
     canonicalBridge: Contract,
     amount: TAmount
-  ) {
+  ): Promise<void> {
     if (chain.equals(Chain.Gnosis)) {
       const l1CanonicalToken = this.getL1Token()
 
@@ -455,19 +503,19 @@ class CanonicalBridge extends Base {
   }
 
   // Gnosis AMB bridge
-  async getAmbBridge (chain?: TChain) {
+  async getAmbBridge (chain?: TChain): Promise<any> {
     chain = this.toChainModel(chain || this.chain)
     if (chain.equals(Chain.Ethereum)) {
       const address = this.getL1AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
       const provider = await this.getSignerOrProvider(Chain.Ethereum)
-      return this.getContract(L1HomeAMBNativeToErc20__factory, address, provider)
+      return this.getContract(L1_HomeAMBNativeToErc20__factory, address, provider)
     }
     const address = this.getL2AmbBridgeAddress(this.tokenSymbol, Chain.Gnosis)
     const provider = await this.getSignerOrProvider(Chain.Gnosis)
-    return this.getContract(L1HomeAMBNativeToErc20__factory, address, provider)
+    return this.getContract(L1_HomeAMBNativeToErc20__factory, address, provider)
   }
 
-  async getL2CanonicalBridge () {
+  async getL2CanonicalBridge (): Promise<any> {
     const address = this.getL2CanonicalBridgeAddress(
       this.tokenSymbol,
       this.chain
@@ -480,18 +528,20 @@ class CanonicalBridge extends Base {
     const provider = await this.getSignerOrProvider(this.chain)
     let factory: L2Factory
     if (this.chain.equals(Chain.Polygon)) {
-      factory = L2PolygonChildERC20__factory
+      factory = L2_PolygonChildERC20__factory
     } else if (this.chain.equals(Chain.Gnosis)) {
-      factory = L2XDaiToken__factory
+      factory = L2_xDaiToken__factory
     } else if (this.chain.equals(Chain.Arbitrum)) {
       factory = ArbERC20__factory
+    } else if (this.chain.equals(Chain.Nova)) {
+      factory = ArbERC20__factory
     } else if (this.chain.equals(Chain.Optimism)) {
-      factory = L2OptimismTokenBridge__factory
+      factory = L2_OptimismTokenBridge__factory
     }
     return this.getContract(factory, address, provider)
   }
 
-  async getL1CanonicalBridge () {
+  async getL1CanonicalBridge (): Promise<any> {
     const address = this.getL1CanonicalBridgeAddress(
       this.tokenSymbol,
       this.chain
@@ -504,31 +554,32 @@ class CanonicalBridge extends Base {
     const provider = await this.getSignerOrProvider(Chain.Ethereum)
     let factory: L1Factory
     if (this.chain.equals(Chain.Polygon)) {
-      factory = L1PolygonPosRootChainManager__factory
+      factory = L1_PolygonPosRootChainManager__factory
     } else if (this.chain.equals(Chain.Gnosis)) {
-      factory = L1XDaiForeignOmniBridge__factory
+      factory = L1_xDaiForeignOmniBridge__factory
     } else if (this.chain.equals(Chain.Arbitrum)) {
       factory = ArbitrumGlobalInbox__factory
+    } else if (this.chain.equals(Chain.Nova)) {
+      factory = ArbitrumGlobalInbox__factory
     } else if (this.chain.equals(Chain.Optimism)) {
-      factory = L1OptimismTokenBridge__factory
+      factory = L1_OptimismTokenBridge__factory
     }
     return this.getContract(factory, address, provider)
   }
 
-  // ToDo: Remove duplicated logic after refactoring token getters
-  public getL1Token () {
+  public getL1Token (): any {
     return this.toCanonicalToken(this.tokenSymbol, this.network, Chain.Ethereum)
   }
 
-  public getCanonicalToken (chain: TChain) {
+  public getCanonicalToken (chain: TChain): any {
     return this.toCanonicalToken(this.tokenSymbol, this.network, chain)
   }
 
-  public getL2HopToken (chain: TChain) {
+  public getL2HopToken (chain: TChain): any {
     return this.toHopToken(this.tokenSymbol, this.network, chain)
   }
 
-  public toCanonicalToken (token: TToken, network: string, chain: TChain) {
+  public toCanonicalToken (token: TToken, network: string, chain: TChain): TokenClass {
     token = this.toTokenModel(token)
     chain = this.toChainModel(chain)
     const { name, symbol, decimals, image } = metadata.tokens[network][
@@ -536,28 +587,31 @@ class CanonicalBridge extends Base {
     ]
     let address
     if (chain.isL1) {
-      const { l1CanonicalToken } = this.getL1CanonicalBridgeAddress(
+      const l1CanonicalToken = this.getL1CanonicalBridgeAddress(
         token.symbol,
         chain.slug
       )
       address = l1CanonicalToken
     } else {
-      const { l2CanonicalToken } = this.getL2CanonicalTokenAddress(
+      const l2CanonicalToken = this.getL2CanonicalTokenAddress(
         token.symbol,
         chain.slug
       )
       address = l2CanonicalToken
     }
 
-    return new TokenClass(
+    return new TokenClass({
       network,
       chain,
       address,
       decimals,
       symbol,
       name,
-      image
-    )
+      image,
+      signer: this.signer,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
   }
 
   public toHopToken (token: TToken, network: string, chain: TChain) {
@@ -575,20 +629,23 @@ class CanonicalBridge extends Base {
     const { name, symbol, decimals, image } = metadata.tokens[network][
       tokenSymbol
     ]
-    const { l2HopBridgeToken } = this.getL2HopBridgeTokenAddress(
+    const l2HopBridgeToken = this.getL2HopBridgeTokenAddress(
       tokenSymbol,
       chain.slug
     )
 
-    return new TokenClass(
+    return new TokenClass({
       network,
       chain,
-      l2HopBridgeToken,
+      address: l2HopBridgeToken,
       decimals,
       symbol,
       name,
-      image
-    )
+      image,
+      signer: this.signer,
+      baseConfigUrl: this.baseConfigUrl,
+      configFileFetchEnabled: this.configFileFetchEnabled
+    })
   }
 }
 

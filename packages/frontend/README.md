@@ -1,4 +1,4 @@
-# Hop UI
+# Hop v1 UI
 
 > The UI for [Hop Protocol](https://hop.exchange/)
 

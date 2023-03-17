@@ -13,7 +13,6 @@
     "nuke": "npx lerna clean"
   },
   "dependencies": {
-    "react-markdown": "^8.0.3",
-    "remark-gfm": "^3.0.1"
+
   }
 }

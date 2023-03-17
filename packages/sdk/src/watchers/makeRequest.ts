@@ -39,6 +39,9 @@ function getUrl (network: string, chain: string) {
     if (chain === 'optimism') {
       chain = 'optimism-goerli'
     }
+    if (chain === 'nova') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
     if (chain === 'arbitrum') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
@@ -53,5 +56,9 @@ function getUrl (network: string, chain: string) {
     // return 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
   }
 
-  return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+  if (chain === 'nova') {
+    return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
+  } else {
+    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+  }
 }

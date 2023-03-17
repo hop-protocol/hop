@@ -1190,7 +1190,7 @@ const Index: NextPage = (props: any) => {
                         </Typography>
                         </TableCell>
                       <TableCell>
-                        <Tooltip title={<Box>Unix: {x.timestampIso}<br />Relative: { x.timestampRelative }</Box>}>
+                        <Tooltip title={<Box>UTC: {x.timestampIso}<br />Unix: {x.timestamp}<br />Relative: { x.timestampRelative }</Box>}>
                           <Typography variant="body1" color="secondary" className="timestamp">
                             { x.timestampRelative }
                           </Typography>
@@ -1232,7 +1232,7 @@ const Index: NextPage = (props: any) => {
                         <Box display="flex" alignItems="center">
                           <Link className="clipboard" data-clipboard-text={x.transactionHash} rel="noreferrer noopener" onClick={setCopiedTimeoutFn(x.transactionHash)}><Tooltip title="Copy transaction hash to clipboard">{copied === x.transactionHash ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
                           <Typography variant="body1" color="secondary" component="div">
-                            <Tooltip title={<Box>View on {x.sourceChainName} block explorer<br />Tx hash: ${x.transactionHash}</Box>}>
+                            <Tooltip title={<Box>View on {x.sourceChainName} block explorer<br />Tx hash: {x.transactionHash}</Box>}>
                               <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" style={{ color: colorsMap[x.sourceChainSlug] }}>
                                 { x.transactionHashTruncated }
                               </Link>
@@ -1372,14 +1372,14 @@ const Index: NextPage = (props: any) => {
                         </Box>
                       </TableCell>
                       <TableCell className="bondedDate" >
-                        <Tooltip title={<Box>Unix: {x.bondTimestampIso}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>}>
+                        <Tooltip title={<Box>UTC: {x.bondTimestampIso}<br />Unix: {x.bondTimestamp}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>}>
                           <Typography variant="body1" color="secondary">
                             { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }
                           </Typography>
                         </Tooltip>
                       </TableCell>
                       <TableCell className="bondedWithin">
-                        <Tooltip title={<Box>Unix: {x.bondTimestampIso}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }<br />Bonded within: { x.bondWithinTimestampRelative }</Box>}>
+                        <Tooltip title={<Box>UTC: {x.bondTimestampIso}<br />Unix: {x.bondTimestamp}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }<br />Bonded within: { x.bondWithinTimestampRelative }</Box>}>
                           <Typography variant="body1" color="secondary">
                             { x.bondWithinTimestampRelative }
                           </Typography>

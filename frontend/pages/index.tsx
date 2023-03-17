@@ -1331,6 +1331,11 @@ const Index: NextPage = (props: any) => {
                               <Tooltip title={<Box>This transfer is unbondable because of invalid parameters, therefore bonder will not process it.<br />This transfer can be manually withdrawn at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page</Link>.</Box>}>
                                 <span>⚠️ Unbondable</span>
                               </Tooltip>
+                              {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
+                                <Box ml={2}>
+                                <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw</Link>
+                                </Box>
+                              )}
                             </span>
                           : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
                               <Tooltip title={<Box>This transaction is still waiting to be bonded or received at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page</Link>.</Box>}</Box>}>

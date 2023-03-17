@@ -44,6 +44,7 @@ const FaucetContextProvider: FC = ({ children }) => {
 
   const mintToken = async () => {
     try {
+      setError('')
       if (!selectedNetwork?.networkId) return
       const networkId = Number(selectedNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
@@ -54,7 +55,10 @@ const FaucetContextProvider: FC = ({ children }) => {
       const tokenSymbol = selectedBridge.getTokenSymbol()
       if (!tokenSymbol) return
 
-      const address = addresses.tokens[tokenSymbol][L1_NETWORK]?.l1CanonicalToken
+      let address = addresses.tokens[tokenSymbol][L1_NETWORK]?.l1CanonicalToken
+      if (tokenSymbol === 'HOP') {
+        address = '0x4ab0f372818d9efe2027F1Cc7bC899c539E39073' // faucet contract
+      }
       if (!address) {
         return
       }

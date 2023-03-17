@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
   base: dmx-io/base@2.0.88
-  slack: circleci/slack@4.4.2
 
 jobs:
   build_hop_node:
@@ -44,12 +43,6 @@ jobs:
             docker push $DOCKER_IMAGE:$CIRCLE_SHA1
             docker push $DOCKER_IMAGE:$BRANCH
             test $BRANCH == "master" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
-      - slack/notify:
-          event: pass
-          template: basic_success_1
 
 workflows:
   main:

@@ -342,7 +342,7 @@
       },
       "gnosis": {
         "l1CanonicalBridge": "0x88ad09518695c6c3712AC10a214bE5109a655671",
-        "l1MessengerWrapper": "0xC08055b634D43F2176d721E26A3428D3b7E7DdB5",
+        "l1MessengerWrapper": "0x8796860ca1677Bf5d54cE5A348Fe4b779a8212f3",
         "l2CanonicalBridge": "0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d",
         "l2CanonicalToken": "0x4ECaBa5870353805a9F068101A40E0f32ed605C6",
         "l2Bridge": "0xFD5a186A7e8453Eb867A360526c5d987A00ACaC2",
@@ -356,7 +356,7 @@
       },
       "polygon": {
         "l1CanonicalBridge": "0xA0c68C638235ee32657e8f720a23ceC1bFc77C77",
-        "l1MessengerWrapper": "0xFC047884dE7797A3D9cbA42FBc3b675388A110d5",
+        "l1MessengerWrapper": "0x1CD391bd1D915D189dE162F0F1963C07E60E4CD6",
         "l2CanonicalBridge": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
         "l2CanonicalToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
         "l2Bridge": "0x6c9a1ACF73bd85463A46B0AFc076FBdf602b690B",
@@ -364,15 +364,15 @@
         "l2AmmWrapper": "0x8741Ba6225A6BF91f9D73531A98A89807857a2B3",
         "l2SaddleSwap": "0xB2f7d27B21a69a033f85C42d5EB079043BAadC81",
         "l2SaddleLpToken": "0x3cA3218D6c52B640B0857cc19b69Aa9427BC842C",
-        "l1FxBaseRootTunnel": "0xFC047884dE7797A3D9cbA42FBc3b675388A110d5",
+        "l1FxBaseRootTunnel": "0x1CD391bd1D915D189dE162F0F1963C07E60E4CD6",
         "l1PosRootChainManager": "0xA0c68C638235ee32657e8f720a23ceC1bFc77C77",
         "l1PosPredicate": "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf",
-        "l2MessengerProxy": "0x893246FACF345c99e4235E5A7bbEE7404c988b96",
+        "l2MessengerProxy": "0x73C657d54E8512E59c691eA38a3Fa17a5e838c4c",
         "bridgeDeployedBlockNumber": 17058878
       },
       "optimism": {
         "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
-        "l1MessengerWrapper": "0xC78C53102e161094D848EE167145E5d45EAA6853",
+        "l1MessengerWrapper": "0x9fc22E269c3752620EB281ce470855886b982501",
         "l2CanonicalBridge": "0x4200000000000000000000000000000000000010",
         "l2CanonicalToken": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
         "l2Bridge": "0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61",
@@ -384,7 +384,7 @@
       },
       "arbitrum": {
         "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
-        "l1MessengerWrapper": "0x6ce9077bb3Db37EeEEDd8D863988B2f19FF2b9a3",
+        "l1MessengerWrapper": "0x967F8E2B66D624Ad544CB59a230b867Ac3dC60dc",
         "l2CanonicalBridge": "0x0000000000000000000000000000000000000000",
         "l2CanonicalToken": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
         "l2Bridge": "0x72209Fe68386b37A40d6bCA04f78356fd342491f",

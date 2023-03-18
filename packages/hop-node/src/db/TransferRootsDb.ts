@@ -598,10 +598,10 @@ class TransferRootsDb extends BaseDb {
 
       const isChallenged = item?.challenged === true
 
-      let bondTimestampOk = false
+      let confirmableTimestampOk = false
       if (item?.bondedAt) {
         const bondedAtMs = item.bondedAt * 1000
-        bondTimestampOk = bondedAtMs + ChallengePeriodMs < Date.now()
+        confirmableTimestampOk = bondedAtMs + ChallengePeriodMs < Date.now()
       }
 
       return (
@@ -617,7 +617,7 @@ class TransferRootsDb extends BaseDb {
         item.bondedAt &&
         !isChallenged &&
         timestampOk &&
-        bondTimestampOk
+        confirmableTimestampOk
       )
     })
 

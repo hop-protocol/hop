@@ -3,6 +3,7 @@ import BaseZkBridgeWatcher from 'src/watchers/BaseZkBridgeWatcher'
 import GnosisBridgeWatcher from 'src/watchers/GnosisBridgeWatcher'
 import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
+import chainSlugToId from 'src/utils/chainSlugToId'
 import { BigNumber } from 'ethers'
 import { ConfirmRootsData } from 'src/watchers/ConfirmRootsWatcher'
 import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared'
@@ -44,7 +45,6 @@ async function main (source: any) {
     throw new Error('root hashes required')
   }
 
-
   const watcher = await getConfirmRootsWatcher({ chain, token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
@@ -57,6 +57,17 @@ async function main (source: any) {
       throw new Error('TransferRoot does not exist in the DB')
     }
     dbTransferRoots.push(dbTransferRoot)
+  }
+
+  // Ensure the intended source chain is being used
+  for (const dbTransferRoot of dbTransferRoots) {
+    if (dbTransferRoot.sourceChainId !== chainSlugToId(chain)) {
+      throw new Error('TransferRoot source chain does not match passed in chain')
+    }
+
+    if (dbTransferRoot.sourceChainId !== watcher.bridge.chainSlugToId(chain)) {
+      throw new Error('TransferRoot source chain does not match watcher source chain')
+    }
   }
 
   if (wrapperConfirmation) {
@@ -75,6 +86,10 @@ async function main (source: any) {
         !committedAt
       ) {
         throw new Error('TransferRoot is missing required data')
+      }
+
+      if (destinationChainId === chainSlugToId(chain)) {
+        throw new Error('Cannot confirm a root with a destination chain of the same chain')
       }
 
       rootDatas.rootHashes.push(transferRootHash)

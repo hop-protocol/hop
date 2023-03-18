@@ -327,7 +327,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
         }
       }
 
-      // Verify that the data in the TheGraph the data passed in
+      // Verify that the data in the TheGraph matches the data passed in
       const transferCommitted = await getTransferCommitted(this.bridge.chainSlug, this.tokenSymbol, rootHash)
       if (
         rootHash !== transferCommitted?.rootHash ||

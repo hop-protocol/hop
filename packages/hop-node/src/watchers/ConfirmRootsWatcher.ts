@@ -260,8 +260,8 @@ class ConfirmRootsWatcher extends BaseWatcher {
       throw new Error('Root data arrays must be the same length')
     }
 
-    for (const index in rootHashes) {
-      const rootHash = rootHashes[index]
+    for (const [index, value] of rootHashes.entries()) {
+      const rootHash = value
       const destinationChainId = destinationChainIds[index]
       const totalAmount = totalAmounts[index]
       const rootCommittedAt = rootCommittedAts[index]

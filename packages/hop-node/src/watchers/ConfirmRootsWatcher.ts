@@ -284,6 +284,18 @@ class ConfirmRootsWatcher extends BaseWatcher {
       ) {
         throw new Error(`DB data does not match passed in data for rootHash ${rootHash}`)
       }
+
+      // Ensure the transfer root ID is not confirmed for any chain
+      const chainIds = await this.bridge.getChainIds()
+      for (const chainId of chainIds) {
+        const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
+          chainId,
+          calculatedTransferRootId
+        )
+        if (isTransferRootIdConfirmed) {
+          throw new Error(`Transfer root ${calculatedTransferRootId} already confirmed on chain ${destinationChainId} (confirmRootsViaWrapper)`)
+        }
+      }
     }
 
     this.l1MessengerWrapper.confirmRoots(

@@ -13,13 +13,15 @@ import ScrollZkBridgeWatcher from './ScrollZkBridgeWatcher'
 import ZkSyncBridgeWatcher from './ZkSyncBridgeWatcher'
 import contracts from 'src/contracts'
 import getTransferRootId from 'src/utils/getTransferRootId'
+import getTransferCommitted from 'src/theGraph/getTransferCommitted'
 import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, ChallengePeriodMs } from 'src/constants'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { getEnabledNetworks } from 'src/config'
+import { config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -249,6 +251,17 @@ class ConfirmRootsWatcher extends BaseWatcher {
   }
 
   async confirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
+    await this.validateConfirmRootsViaWrapper(rootData)
+    const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
+    await this.l1MessengerWrapper.confirmRoots(
+      rootHashes,
+      destinationChainIds,
+      totalAmounts,
+      rootCommittedAts
+    )
+  }
+
+  async validateConfirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
     const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
 
     // Data validation
@@ -266,7 +279,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
       const totalAmount = totalAmounts[index]
       const rootCommittedAt = rootCommittedAts[index]
 
-
+      // Verify that the DB has the root and associated data
       const calculatedTransferRootId = getTransferRootId(rootHash, totalAmount)
       const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
       if (!dbTransferRoot) {
@@ -276,18 +289,35 @@ class ConfirmRootsWatcher extends BaseWatcher {
       const logger = this.logger.create({ root: calculatedTransferRootId })
       logger.debug(`confirming rootHash ${rootHash} on destinationChainId ${destinationChainId} with totalAmount ${totalAmount.toString()} and committedAt ${rootCommittedAt}`)
 
+      // Verify that the data in the DB matches the data passed in
       if (
-        rootHash !== dbTransferRoot.transferRootHash ||
-        destinationChainId !== dbTransferRoot.destinationChainId ||
-        totalAmount.toString() !== dbTransferRoot.totalAmount?.toString() ||
-        rootCommittedAt !== dbTransferRoot.committedAt
+        rootHash !== dbTransferRoot?.transferRootHash ||
+        destinationChainId !== dbTransferRoot?.destinationChainId ||
+        totalAmount.toString() !== dbTransferRoot?.totalAmount?.toString() ||
+        rootCommittedAt !== dbTransferRoot?.committedAt
       ) {
         throw new Error(`DB data does not match passed in data for rootHash ${rootHash}`)
       }
 
-      // Ensure the transfer root ID is not confirmed for any chain
-      const chainIds = await this.bridge.getChainIds()
-      for (const chainId of chainIds) {
+      // Verify that the watcher is on the correct chain
+      if (this.bridge.chainId !== dbTransferRoot.sourceChainId) {
+        throw new Error(`Watcher is on chain ${this.bridge.chainId} but transfer root ${calculatedTransferRootId} source is on chain ${dbTransferRoot.sourceChainId}`)
+      }
+
+      if (this.bridge.chainId === destinationChainId) {
+        throw new Error(`Cannot confirm roots with a destination chain ${destinationChainId} from chain the same chain`)
+      }
+
+      // Verify that the transfer root ID is not confirmed for any chain
+      // Note: Manually get all chains from config here to check all possible destinations, not
+      // just the chains scoped to this watcher
+      const allChainIds: number[] = []
+      for (const key in globalConfig.networks) {
+        const { chainId } = globalConfig.networks[key]
+        allChainIds.push(chainId)
+      }
+
+      for (const chainId of allChainIds) {
         const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
           chainId,
           calculatedTransferRootId
@@ -296,14 +326,42 @@ class ConfirmRootsWatcher extends BaseWatcher {
           throw new Error(`Transfer root ${calculatedTransferRootId} already confirmed on chain ${destinationChainId} (confirmRootsViaWrapper)`)
         }
       }
-    }
 
-    await this.l1MessengerWrapper.confirmRoots(
-      rootHashes,
-      destinationChainIds,
-      totalAmounts,
-      rootCommittedAts
-    )
+      // Verify that the data in the TheGraph the data passed in
+      const transferCommitted = await getTransferCommitted(this.bridge.chainSlug, this.tokenSymbol, rootHash)
+      if (
+        rootHash !== transferCommitted?.rootHash ||
+        destinationChainId !== transferCommitted?.destinationChainId ||
+        totalAmount.toString() !== transferCommitted?.totalAmount?.toString() ||
+        rootCommittedAt.toString() !== transferCommitted?.rootCommittedAt
+      ) {
+        throw new Error(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
+      }
+
+      // Verify that the wrapper being used is correct
+      const wrapperL2ChainId = await this.l1MessengerWrapper.l2ChainId()
+      if (
+        Number(wrapperL2ChainId) !== dbTransferRoot?.sourceChainId ||
+        Number(wrapperL2ChainId) !== this.bridge.chainId
+      ) {
+        throw new Error(`Wrapper l2ChainId is unexpected: ${wrapperL2ChainId} (expected ${dbTransferRoot?.sourceChainId})`)
+      }
+
+      // Verify that the root can be confirmed
+      const { createdAt, challengeStartTime } = await this.l1Bridge.getTransferBond(calculatedTransferRootId)
+      if (!createdAt || !challengeStartTime) {
+        throw new Error('Transfer bond not found')
+      }
+      const createdAtMs = Number(createdAt) * 1000
+      const timeSinceBondCreation = Date.now() - createdAtMs
+      if (
+          createdAt.toString() === '0' ||
+          challengeStartTime.toString() !== '0' ||
+          timeSinceBondCreation <= ChallengePeriodMs
+      ) {
+        throw new Error('Transfer root is not confirmable')
+      }
+    }
   }
 }
 

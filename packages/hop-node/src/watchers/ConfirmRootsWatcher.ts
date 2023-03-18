@@ -298,7 +298,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
       }
     }
 
-    this.l1MessengerWrapper.confirmRoots(
+    await this.l1MessengerWrapper.confirmRoots(
       rootHashes,
       destinationChainIds,
       totalAmounts,

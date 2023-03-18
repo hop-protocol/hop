@@ -59,7 +59,7 @@ async function main (source: any) {
     dbTransferRoots.push(dbTransferRoot)
   }
 
-  // Ensure the intended source chain is being used
+  // Verify that the intended source chain is being used
   for (const dbTransferRoot of dbTransferRoots) {
     if (dbTransferRoot.sourceChainId !== chainSlugToId(chain)) {
       throw new Error('TransferRoot source chain does not match passed in chain')

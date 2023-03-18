@@ -20,7 +20,7 @@ import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { getEnabledNetworks } from 'src/config'
+import { getEnabledNetworks, ExitSystemSupportedTokens } from 'src/config'
 import { config as globalConfig } from 'src/config'
 
 type Config = {
@@ -171,6 +171,12 @@ class ConfirmRootsWatcher extends BaseWatcher {
     if (!dbTransferRoots.length) {
       return
     }
+
+    // TODO: Remove this when the exit system is fully live
+    if (!ExitSystemSupportedTokens.includes(this.tokenSymbol)) {
+      return
+    }
+
     this.logger.debug(
       `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
     )
@@ -327,7 +333,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
         }
       }
 
-      // Verify that the data in the TheGraph the data passed in
+      // Verify that the data in the TheGraph matches the data passed in
       const transferCommitted = await getTransferCommitted(this.bridge.chainSlug, this.tokenSymbol, rootHash)
       if (
         rootHash !== transferCommitted?.rootHash ||

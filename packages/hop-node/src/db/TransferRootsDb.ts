@@ -14,7 +14,6 @@ import {
   TxRetryDelayMs,
   oruChains,
   shouldExitOrus,
-  wrapperConfirmationChains
 } from 'src/config'
 import { normalizeDbItem } from './utils'
 
@@ -599,14 +598,11 @@ class TransferRootsDb extends BaseDb {
 
       const isChallenged = item?.challenged === true
 
-      let bondTimestampOk = true
+      let confirmableTimestampOk = false
       if (item?.bondedAt) {
         const bondedAtMs = item.bondedAt * 1000
-        bondTimestampOk = bondedAtMs + ChallengePeriodMs < Date.now()
+        confirmableTimestampOk = bondedAtMs + ChallengePeriodMs < Date.now()
       }
-
-      const sourceChain = chainIdToSlug(item.sourceChainId)
-      const isWrapperConfirmableChain = wrapperConfirmationChains.has(sourceChain)
 
       return (
         item.commitTxHash &&
@@ -621,8 +617,7 @@ class TransferRootsDb extends BaseDb {
         item.bondedAt &&
         !isChallenged &&
         timestampOk &&
-        bondTimestampOk &&
-        isWrapperConfirmableChain
+        confirmableTimestampOk
       )
     })
 

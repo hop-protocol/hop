@@ -141,6 +141,7 @@ HopBridge
 - [getSaddleSwapReserves](HopBridge.md#getsaddleswapreserves)
 - [getSendApprovalAddress](HopBridge.md#getsendapprovaladdress)
 - [getSendData](HopBridge.md#getsenddata)
+- [getSendDataAmountOutMins](HopBridge.md#getsenddataamountoutmins)
 - [getSendEstimatedGasCost](HopBridge.md#getsendestimatedgascost)
 - [getSignerAddress](HopBridge.md#getsigneraddress)
 - [getSignerOrProvider](HopBridge.md#getsignerorprovider)
@@ -2229,6 +2230,31 @@ ___
 #### Returns
 
 `Promise`<`any`\>
+
+___
+
+### <a id="getsenddataamountoutmins" name="getsenddataamountoutmins"></a> getSendDataAmountOutMins
+
+▸ **getSendDataAmountOutMins**(`getSendDataResponse`, `slippageTolerance`): `Object`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `getSendDataResponse` | `any` |
+| `slippageTolerance` | `number` |
+
+#### Returns
+
+`Object`
+
+| Name | Type |
+| :------ | :------ |
+| `amount` | `any` |
+| `amountOutMin` | `BigNumber` |
+| `deadline` | `number` |
+| `destinationAmountOutMin` | `BigNumber` |
+| `destinationDeadline` | `number` |
 
 ___
 

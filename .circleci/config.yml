@@ -142,11 +142,11 @@ workflows:
           filters:
             branches:
               only:
-                - develop
+                - stats-worker
               ignore: /.*/
       - build_hop_api:
           filters:
             branches:
               only:
-                - develop
+                - hop-api
               ignore: /.*/

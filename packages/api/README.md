@@ -50,10 +50,13 @@ Example response
 ```json
 {
   "amountIn": "1000000",
-  "slippage": "0.5",
-  "amountOutMin": "994836",
-  "bonderFee": "250613",
-  "estimatedRecieved": "749223"
+  "slippage": 0.5,
+  "amountOutMin": "743633",
+  "destinationAmountOutMin": "742915",
+  "bonderFee": "250515",
+  "estimatedRecieved": "747908",
+  "deadline": 1679862208,
+  "destinationDeadline": 1679862208
 }
 ```
 

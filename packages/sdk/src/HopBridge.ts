@@ -883,6 +883,10 @@ class HopBridge extends Base {
     }
 
     return {
+      amountIn,
+      sourceChain,
+      destinationChain,
+      isHTokenSend,
       amountOut,
       rate,
       priceImpact,
@@ -901,6 +905,43 @@ class HopBridge extends Base {
       tokenPrice: destinationTxFeeData.tokenPrice,
       destinationChainGasPrice: destinationTxFeeData.destinationChainGasPrice,
       relayFeeEth
+    }
+  }
+
+  getSendDataAmountOutMins (getSendDataResponse: any, slippageTolerance: number) {
+    const { sourceChain, destinationChain, requiredLiquidity, amountIn, amountOut, totalFee } = getSendDataResponse
+
+    const amountOutMin = this.calcAmountOutMin(amountOut, slippageTolerance)
+
+    // l1->l2
+    if (sourceChain.isL1) {
+      return {
+        amount: amountIn,
+        amountOutMin: amountOutMin.sub(totalFee),
+        destinationAmountOutMin: null,
+        deadline: this.defaultDeadlineSeconds,
+        destinationDeadline: null
+      }
+    }
+
+    // l2->l1
+    if (destinationChain.isL1) {
+      return {
+        amount: amountIn,
+        amountOutMin: amountOutMin.sub(totalFee),
+        destinationAmountOutMin: BigNumber.from(0),
+        deadline: this.defaultDeadlineSeconds,
+        destinationDeadline: 0
+      }
+    }
+
+    // l2->l2
+    return {
+      amount: amountIn,
+      amountOutMin: this.calcAmountOutMin(requiredLiquidity, slippageTolerance).sub(totalFee),
+      destinationAmountOutMin: amountOutMin.sub(totalFee),
+      deadline: this.defaultDeadlineSeconds,
+      destinationDeadline: this.defaultDeadlineSeconds
     }
   }
 

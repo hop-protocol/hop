@@ -173,7 +173,10 @@ class ConfirmRootsWatcher extends BaseWatcher {
     }
 
     // TODO: Remove this when the exit system is fully live
-    if (!ExitSystemSupportedTokens.includes(this.tokenSymbol)) {
+    if (
+      ExitSystemSupportedTokens.length !== 0 &&
+      !ExitSystemSupportedTokens.includes(this.tokenSymbol)
+    ) {
       return
     }
 

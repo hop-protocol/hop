@@ -702,7 +702,11 @@ export class Base {
   async fetchCoreConfigData (): Promise<any> {
     const cacheBust = Date.now()
     const url = `${this.coreConfigJsonUrl}?cb=${cacheBust}`
-    return fetchJsonOrThrow(url)
+    try {
+      return await fetchJsonOrThrow(url)
+    } catch (err: any) {
+      throw new Error(`fetchCoreConfigData error: ${err.message}, url: ${url}`)
+    }
   }
 
   async fetchCoreConfigDataWithIpfsFallback (): Promise<any> {
@@ -740,15 +744,19 @@ export class Base {
   async fetchBonderAvailableLiquidityData (): Promise<any> {
     const cacheBust = Date.now()
     const url = `${this.availableLiqudityJsonUrl}?cb=${cacheBust}`
-    const json = await fetchJsonOrThrow(url)
-    const { timestamp, data } = json
-    const tenMinutes = 10 * 60 * 1000
-    const isOutdated = Date.now() - timestamp > tenMinutes
-    if (isOutdated) {
-      return
-    }
+    try {
+      const json = await fetchJsonOrThrow(url)
+      const { timestamp, data } = json
+      const tenMinutes = 10 * 60 * 1000
+      const isOutdated = Date.now() - timestamp > tenMinutes
+      if (isOutdated) {
+        return
+      }
 
-    return data
+      return data
+    } catch (err: any) {
+      throw new Error(`fetchBonderAvailableLiquidityData error: ${err.message}, url: ${url}`)
+    }
   }
 
   async fetchBonderAvailableLiquidityDataWithIpfsFallback (): Promise<any> {

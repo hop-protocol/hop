@@ -88,7 +88,7 @@ export const etherscanApiUrls: Record<string, string> = {
 }
 
 // TODO: Remove this when the exit system is fully live
-export const IsExitSystemLive = process.env.IS_EXIT_SYSTEM_LIVE ?? false
+export const IsExitSystemLive = process.env.IS_EXIT_SYSTEM_LIVE ?? true
 export const ExitSystemSupportedTokens = process.env.EXIT_SYSTEM_SUPPORTED_TOKENS?.split(',') ?? []
 
 type SyncConfig = {

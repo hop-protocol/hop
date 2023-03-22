@@ -12,7 +12,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@hop-protocol/sdk": "0.0.1-beta.438",
+    "@hop-protocol/sdk": "0.0.1-beta.440",
     "express": "^4.18.1"
   },
   "devDependencies": {

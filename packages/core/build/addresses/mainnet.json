@@ -635,7 +635,7 @@
       },
       "optimism": {
         "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
-        "l1MessengerWrapper": "0x30ca9afabA0DA59F507756cA43619f96f176d214",
+        "l1MessengerWrapper": "0xf0727B1eB1A4c9319A5c34A68bcD5E6530850D47",
         "l2CanonicalBridge": "0x4200000000000000000000000000000000000010",
         "l2CanonicalToken": "0x8700dAec35aF8Ff88c16BdF0418774CB3D7599B4",
         "l2Bridge": "0x16284c7323c35F4960540583998C98B1CfC581a7",

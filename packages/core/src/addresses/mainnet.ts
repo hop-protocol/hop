@@ -424,7 +424,7 @@ export const addresses: Addresses = {
       },
       gnosis: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x723194C6Cfed24883b598931Ee802ab80952C001',
+        l1MessengerWrapper: '0xC3d56808907F6A45042c7e81A8a7Db72C5F7F9F6',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
         l2CanonicalToken: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
         l2Bridge: '0x0460352b91D7CF42B0E1C1c30f06B602D9ef2238',
@@ -438,7 +438,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1MessengerWrapper: '0x2e929203D8F2Fcf88C4Ff7b7362d08169b6F661c',
+        l1MessengerWrapper: '0x172cAbe34c757472249aD4Bd97560373fBbf0DA3',
         l2CanonicalBridge: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
         l2CanonicalToken: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
         l2Bridge: '0xEcf268Be00308980B5b3fcd0975D47C4C8e1382a',
@@ -446,15 +446,15 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x28529fec439cfF6d7D1D5917e956dEE62Cd3BE5c',
         l2SaddleSwap: '0x25FB92E505F752F730cAD0Bd4fa17ecE4A384266',
         l2SaddleLpToken: '0x8b7aA8f5cc9996216A88D900df8B8a0a3905939A',
-        l1FxBaseRootTunnel: '0x2e929203D8F2Fcf88C4Ff7b7362d08169b6F661c',
+        l1FxBaseRootTunnel: '0x172cAbe34c757472249aD4Bd97560373fBbf0DA3',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
-        l2MessengerProxy: '0x340A633F6940f6893F350EBa8a6606D8d1575CDb',
+        l2MessengerProxy: '0x60013Ae36DdD3aF49b2bdB7Fb1545c5C1CF21638',
         bridgeDeployedBlockNumber: 19112518
       },
       optimism: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x4285CaAB762f2e405CD256069D0D47D13bf05B00',
+        l1MessengerWrapper: '0x115F423b958A2847af0F5bF314DB0f27c644c308',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
         l2Bridge: '0x7191061D5d4C60f598214cC6913502184BAddf18',
@@ -466,7 +466,7 @@ export const addresses: Addresses = {
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x8FF53dE7469B32b9a1e8c8431001b029E3B0c87a',
+        l1MessengerWrapper: '0x2d6fd82C7f531328BCaCA96EF985325C0894dB62',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
         l2Bridge: '0x7aC115536FE3A185100B2c4DE4cb328bf3A58Ba6',

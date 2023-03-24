@@ -620,7 +620,8 @@ describe('getSendData', () => {
       tokenPriceRate,
       chainNativeTokenPrice,
       tokenPrice,
-      destinationChainGasPrice
+      destinationChainGasPrice,
+      isLiquidityAvailable
     } = result
     console.log(result)
     expect(amountOut.gt(0)).toBeTruthy()
@@ -640,6 +641,7 @@ describe('getSendData', () => {
     expect(chainNativeTokenPrice > 0 && chainNativeTokenPrice < 10000).toBeTruthy()
     expect(tokenPrice > 0 && tokenPrice < 10000).toBeTruthy()
     expect(destinationChainGasPrice.gt(0)).toBeTruthy()
+    expect(typeof isLiquidityAvailable).toBe('boolean')
   })
 })
 

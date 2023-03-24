@@ -226,9 +226,9 @@ export const addresses: Addresses = {
         l2CanonicalToken: '0x964FF70695da981027c81020B1c58d833D49A640',
         l2Bridge: '0xB5d7924CB4FE74203c09E0D6D9800D2a1525585f',
         l2HopBridgeToken: '0x83f6244Bd87662118d96D9a6D44f09dffF14b30E',
-        l2AmmWrapper: '0xa08899fE012395864F0684b8ba8a0b1B3DE0FCB3',
-        l2SaddleSwap: '0x32219766597DFbb10297127238D921E7CCF5D920',
-        l2SaddleLpToken: '0xB8824200d185b5456C4df4F7edb0fB9211D67d20',
+        l2AmmWrapper: '0x6C928f435d1F3329bABb42d69CCF043e3900EcF1',
+        l2SaddleSwap: '0x27D28D3898271dc1f669D4e310F8dBcd8CbAD45f',
+        l2SaddleLpToken: '0xE0beF5C91895186E484076E1E15673EE6E59A5D4',
         bridgeDeployedBlockNumber: 160808
       }
     },

@@ -58,6 +58,8 @@ const FaucetContextProvider: FC = ({ children }) => {
       let address = addresses.tokens[tokenSymbol][L1_NETWORK]?.l1CanonicalToken
       if (tokenSymbol === 'HOP') {
         address = '0x4ab0f372818d9efe2027F1Cc7bC899c539E39073' // faucet contract
+      } else if (tokenSymbol === 'USDC') {
+        address = '0x1C1cb8744633ce0F785C5895389dFA04DE5C1acE' // faucet contract
       }
       if (!address) {
         return

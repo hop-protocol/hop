@@ -27,7 +27,7 @@ export enum ChainName {
   Gnosis = 'Gnosis',
   Nova = 'Nova',
   ZkSync = 'zkSync',
-  ConsenSysZk = 'ConsenSys zkEVM',
+  ConsenSysZk = 'Linea',
   ScrollZk = 'Scroll zkEVM',
   Base = 'Base'
 }

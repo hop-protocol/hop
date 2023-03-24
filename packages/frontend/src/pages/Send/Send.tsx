@@ -333,7 +333,7 @@ const Send: FC = () => {
       } else if (bonderFeeMajority) {
         message = 'Warning: More than 50% of amount will go towards bonder fee'
       } else if (isToConsenSysZk) {
-        message = 'Non-whitelisted users risk losing access to any tokens bridged to zkEVM. To get whitelisted, reach out to the ConsenSys zkEVM team.'
+        message = 'Non-whitelisted users risk losing access to any tokens bridged to Linea. To get whitelisted, reach out to the Linea team.'
       }
 
       setWarning(message)

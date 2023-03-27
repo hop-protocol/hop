@@ -18,11 +18,12 @@ jobs:
           command: |
             apk update
             apk upgrade
-            apk add --no-cache bash
-            apk add --no-cache curl
-            apk add --no-cache jq
-            apk add --no-cache py-pip=9.0.0-r1
-            apk add --no-cache diffutils
+            apk add bash
+            apk add curl
+            apk add jq
+            apk add py-pip=9.0.0-r1
+            apk add diffutils
+            apk add nodejs npm
             pip install \
               docker-compose==1.12.0 \
               awscli==1.11.76
@@ -61,11 +62,12 @@ jobs:
           command: |
             apk update
             apk upgrade
-            apk add --no-cache bash
-            apk add --no-cache curl
-            apk add --no-cache jq
-            apk add --no-cache py-pip=9.0.0-r1
-            apk add --no-cache diffutils
+            apk add bash
+            apk add curl
+            apk add jq
+            apk add py-pip=9.0.0-r1
+            apk add diffutils
+            apk add nodejs npm
             pip install \
               docker-compose==1.12.0 \
               awscli==1.11.76
@@ -104,11 +106,12 @@ jobs:
           command: |
             apk update
             apk upgrade
-            apk add --no-cache bash
-            apk add --no-cache curl
-            apk add --no-cache jq
-            apk add --no-cache py-pip=9.0.0-r1
-            apk add --no-cache diffutils
+            apk add bash
+            apk add curl
+            apk add jq
+            apk add py-pip=9.0.0-r1
+            apk add diffutils
+            apk add nodejs npm
             pip install \
               docker-compose==1.12.0 \
               awscli==1.11.76

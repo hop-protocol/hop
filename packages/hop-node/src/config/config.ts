@@ -226,7 +226,7 @@ export const config: Config = {
       totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
     },
-    [Chain.ConsenSysZk]: {
+    [Chain.Linea]: {
       totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
     },

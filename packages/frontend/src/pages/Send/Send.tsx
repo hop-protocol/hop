@@ -46,6 +46,7 @@ import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
+import IconButton from '@material-ui/core/IconButton'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -727,9 +728,11 @@ const Send: FC = () => {
         setWarning={setWarning}
       />
 
-      <Flex justifyCenter alignCenter my={1} onClick={handleSwitchDirection} pointer hover>
-        <ArrowDownIcon color="primary" className={styles.downArrow} />
-      </Flex>
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <IconButton onClick={handleSwitchDirection} title="Click to switch direction">
+          <ArrowDownIcon color="primary" className={styles.downArrow} />
+        </IconButton>
+      </Box>
 
       <SendAmountSelectorCard
         value={toTokenAmount}

@@ -30,7 +30,7 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/hop-node
-            ./ci/package_check.sh
+            bash ./ci/package_check.sh
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -73,7 +73,7 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/stats-worker
-            ./ci/package_check.sh
+            bash ./ci/package_check.sh
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -116,7 +116,7 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/api
-            ./ci/package_check.sh
+            bash ./ci/package_check.sh
             docker build \
               -f Dockerfile \
               --no-cache \

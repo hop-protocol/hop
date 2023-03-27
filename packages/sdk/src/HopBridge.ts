@@ -882,6 +882,12 @@ class HopBridge extends Base {
       estimatedReceived = BigNumber.from(0)
     }
 
+    let isLiquidityAvailable = true
+    if (!sourceChain?.isL1) {
+      const availableLiquidity = await this.getFrontendAvailableLiquidity(sourceChain, destinationChain)
+      isLiquidityAvailable = availableLiquidity.gte(hTokenAmount)
+    }
+
     return {
       amountIn,
       sourceChain,
@@ -904,7 +910,8 @@ class HopBridge extends Base {
       chainNativeTokenPrice: destinationTxFeeData.chainNativeTokenPrice,
       tokenPrice: destinationTxFeeData.tokenPrice,
       destinationChainGasPrice: destinationTxFeeData.destinationChainGasPrice,
-      relayFeeEth
+      relayFeeEth,
+      isLiquidityAvailable
     }
   }
 

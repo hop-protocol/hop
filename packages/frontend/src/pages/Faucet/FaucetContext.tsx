@@ -61,6 +61,9 @@ const FaucetContextProvider: FC = ({ children }) => {
       } else if (tokenSymbol === 'USDC') {
         address = '0x1C1cb8744633ce0F785C5895389dFA04DE5C1acE' // faucet contract
       }
+      if (tokenSymbol === 'USDC') {
+        address = '0x1C1cb8744633ce0F785C5895389dFA04DE5C1acE' // faucet contract
+      }
       if (!address) {
         return
       }

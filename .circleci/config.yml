@@ -18,9 +18,11 @@ jobs:
           command: |
             apk update
             apk upgrade
-            apk add --no-cache curl
-            apk add --no-cache jq
-            apk add --no-cache py-pip=9.0.0-r1
+            apk add bash
+            apk add curl
+            apk add jq
+            apk add py-pip=9.0.0-r1
+            apk add diffutils
             pip install \
               docker-compose==1.12.0 \
               awscli==1.11.76
@@ -28,6 +30,7 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/hop-node
+            bash ./ci/package_check.sh
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -58,9 +61,11 @@ jobs:
           command: |
             apk update
             apk upgrade
-            apk add --no-cache curl
-            apk add --no-cache jq
-            apk add --no-cache py-pip=9.0.0-r1
+            apk add bash
+            apk add curl
+            apk add jq
+            apk add py-pip=9.0.0-r1
+            apk add diffutils
             pip install \
               docker-compose==1.12.0 \
               awscli==1.11.76
@@ -68,6 +73,7 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/stats-worker
+            bash ./ci/package_check.sh
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -98,9 +104,11 @@ jobs:
           command: |
             apk update
             apk upgrade
-            apk add --no-cache curl
-            apk add --no-cache jq
-            apk add --no-cache py-pip=9.0.0-r1
+            apk add bash
+            apk add curl
+            apk add jq
+            apk add py-pip=9.0.0-r1
+            apk add diffutils
             pip install \
               docker-compose==1.12.0 \
               awscli==1.11.76
@@ -108,6 +116,7 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/api
+            bash ./ci/package_check.sh
             docker build \
               -f Dockerfile \
               --no-cache \

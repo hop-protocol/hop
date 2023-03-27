@@ -63,7 +63,7 @@ export const chains: Chains = {
     isLayer1: false
   },
   consensyszk: {
-    name: 'ConsenSys zkEVM',
+    name: 'Linea',
     slug: 'consensyszk',
     image: consensyszkImage,
     nativeTokenSymbol: 'ETH',

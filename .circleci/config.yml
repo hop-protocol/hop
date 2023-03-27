@@ -28,6 +28,8 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/hop-node
+            diff <(npx npm info @hop-protocol/core --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/core"') || (sleep 180)
+            diff <(npx npm info @hop-protocol/sdk --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/sdk"') || (sleep 180)
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -36,8 +38,6 @@ jobs:
       - deploy:
           name: Push Hop Node Docker image to Docker Hub
           command: |
-            diff <(npx npm info @hop-protocol/core --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/core"') || (sleep 180)
-            diff <(npx npm info @hop-protocol/sdk --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/sdk"') || (sleep 180)
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             export BRANCH=$(echo $CIRCLE_BRANCH | sed 's/\//-/g' | sed 's/-bonder//g')
             docker tag app $DOCKER_IMAGE:$CIRCLE_SHA1
@@ -70,6 +70,8 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/stats-worker
+            diff <(npx npm info @hop-protocol/core --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/core"') || (sleep 180)
+            diff <(npx npm info @hop-protocol/sdk --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/sdk"') || (sleep 180)
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -78,8 +80,6 @@ jobs:
       - deploy:
           name: Push Hop Stats Worker Docker image to Docker Hub
           command: |
-            diff <(npx npm info @hop-protocol/core --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/core"') || (sleep 180)
-            diff <(npx npm info @hop-protocol/sdk --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/sdk"') || (sleep 180)
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             export BRANCH=$(echo $CIRCLE_BRANCH | sed 's/\//-/g')
             docker tag app $DOCKER_IMAGE:$CIRCLE_SHA1
@@ -112,6 +112,8 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/api
+            diff <(npx npm info @hop-protocol/core --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/core"') || (sleep 180)
+            diff <(npx npm info @hop-protocol/sdk --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/sdk"') || (sleep 180)
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -120,8 +122,6 @@ jobs:
       - deploy:
           name: Push Hop Api Docker image to Docker Hub
           command: |
-            diff <(npx npm info @hop-protocol/core --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/core"') || (sleep 180)
-            diff <(npx npm info @hop-protocol/sdk --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/sdk"') || (sleep 180)
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             export BRANCH=$(echo $CIRCLE_BRANCH | sed 's/\//-/g')
             docker tag app $DOCKER_IMAGE:$CIRCLE_SHA1

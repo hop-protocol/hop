@@ -1067,7 +1067,7 @@ describe('utils', () => {
     expect(getChainSlugFromName('xDai')).toBe('gnosis')
     expect(getChainSlugFromName('Gnosis')).toBe('gnosis')
     expect(getChainSlugFromName('Gnosis Chain')).toBe('gnosis')
-    expect(getChainSlugFromName('Linea')).toBe('consensyszk')
+    expect(getChainSlugFromName('ConsenSys zkEVM')).toBe('consensyszk')
     expect(getChainSlugFromName('Base')).toBe('base')
   })
 })

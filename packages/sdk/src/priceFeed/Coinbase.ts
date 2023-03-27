@@ -12,7 +12,10 @@ class Coinbase {
     const json = await fetchJsonOrThrow(url)
     const value = json.price
     if (!value) {
-      throw new Error('coinbase: invalid price response')
+      if (json.message) {
+        throw new Error(`coinbase: "${symbol}": ${json.message}`)
+      }
+      throw new Error(`coinbase: "${symbol}": invalid price response`)
     }
 
     const price = Number(value)

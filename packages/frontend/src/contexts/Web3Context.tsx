@@ -353,10 +353,6 @@ const Web3ContextProvider: FC = ({ children }) => {
             },
           ])
         } else {
-          const shouldSkipAddingChain = Number(networkId) === 59140 // consensyszk, NOTE: this is temporary until rpc enables writing
-          if (shouldSkipAddingChain) {
-            throw new NetworkSwitchError(`Please add or switch to ConsenSys zkEVM (Goerli) [networkId ${59140}] in your wallet first and then try again. More info: https://docs.zkevm.consensys.net/use-zkevm/set-up-your-wallet`)
-          }
           let nativeCurrency: any = {
             name: 'ETH',
             symbol: 'ETH',

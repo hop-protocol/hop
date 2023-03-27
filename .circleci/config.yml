@@ -18,6 +18,7 @@ jobs:
           command: |
             apk update
             apk upgrade
+            apk add --no-cache bash
             apk add --no-cache curl
             apk add --no-cache jq
             apk add --no-cache py-pip=9.0.0-r1
@@ -29,8 +30,7 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/hop-node
-            diff <(npx npm info @hop-protocol/core --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/core"') || sleep 180
-            diff <(npx npm info @hop-protocol/sdk --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/sdk"') || sleep 180
+            ./ci/package_check.sh
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -61,6 +61,7 @@ jobs:
           command: |
             apk update
             apk upgrade
+            apk add --no-cache bash
             apk add --no-cache curl
             apk add --no-cache jq
             apk add --no-cache py-pip=9.0.0-r1
@@ -72,8 +73,7 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/stats-worker
-            diff <(npx npm info @hop-protocol/core --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/core"') || sleep 180
-            diff <(npx npm info @hop-protocol/sdk --json | jq '."dist-tags".latest') <(cat package.json | jq '.dependencies."@hop-protocol/sdk"') || sleep 180
+            ./ci/package_check.sh
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -104,6 +104,7 @@ jobs:
           command: |
             apk update
             apk upgrade
+            apk add --no-cache bash
             apk add --no-cache curl
             apk add --no-cache jq
             apk add --no-cache py-pip=9.0.0-r1

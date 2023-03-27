@@ -27,7 +27,7 @@ export enum ChainName {
   Gnosis = 'Gnosis',
   Nova = 'Nova',
   ZkSync = 'zkSync',
-  ConsenSysZk = 'Linea',
+  Linea = 'Linea',
   ScrollZk = 'Scroll zkEVM',
   Base = 'Base'
 }
@@ -41,7 +41,7 @@ export enum ChainSlug {
   Gnosis = 'gnosis',
   Nova = 'nova',
   ZkSync = 'zksync',
-  ConsenSysZk = 'consensyszk',
+  Linea = 'linea',
   ScrollZk = 'scrollzk',
   Base = 'base'
 }
@@ -58,7 +58,7 @@ export enum Slug {
   polygon = 'polygon',
   nova = 'nova',
   zksync = 'zksync',
-  consensyszk = 'consensyszk',
+  linea = 'linea',
   scrollzk = 'scrollzk',
   base = 'base',
 }
@@ -117,7 +117,7 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   arbitrum: 19843,
   nova: 19843,
   zksync: 10000, // TODO
-  consensyszk: 10000, // TODO
+  linea: 10000, // TODO
   scrollzk: 10000, // TODO
   base: 10000 // TODO
 }

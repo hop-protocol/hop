@@ -19,7 +19,7 @@ export class Chain {
   static Polygon = newChain(ChainSlug.Polygon, mainnet.polygon.networkId)
   static Nova = newChain(ChainSlug.Nova, mainnet.nova.networkId)
   static ZkSync = newChain(ChainSlug.ZkSync, mainnet.zksync?.networkId ?? goerli.zksync?.networkId)
-  static ConsenSysZk = newChain(ChainSlug.ConsenSysZk, mainnet.consensyszk?.networkId ?? goerli.consensyszk?.networkId)
+  static Linea = newChain(ChainSlug.Linea, mainnet.linea?.networkId ?? goerli.linea?.networkId)
   static ScrollZk = newChain(ChainSlug.ScrollZk, mainnet.scrollzk?.networkId ?? goerli.scrollzk?.networkId)
   static Base = newChain(ChainSlug.Base, mainnet.base?.networkId ?? goerli.base?.networkId)
 

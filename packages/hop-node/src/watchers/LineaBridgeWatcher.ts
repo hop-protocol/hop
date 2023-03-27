@@ -10,7 +10,7 @@ type Config = {
   dryMode?: boolean
 }
 
-class ConsenSysZkBridgeWatcher extends BaseWatcher {
+class LineaBridgeWatcher extends BaseWatcher {
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
@@ -31,4 +31,4 @@ class ConsenSysZkBridgeWatcher extends BaseWatcher {
   }
 }
 
-export default ConsenSysZkBridgeWatcher
+export default LineaBridgeWatcher

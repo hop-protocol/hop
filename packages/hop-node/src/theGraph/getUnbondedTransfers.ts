@@ -28,7 +28,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrumTransfers,
     novaTransfers,
     zksyncTransfers,
-    consensysZkTransfers,
+    lineaTransfers,
     scrollZkTransfers,
     baseTransfers
   ] = await Promise.all([
@@ -39,7 +39,7 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.Arbitrum) ? fetchTransfers(Chain.Arbitrum, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Nova) ? fetchTransfers(Chain.Nova, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.ZkSync) ? fetchTransfers(Chain.ZkSync, startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes(Chain.ConsenSysZk) ? fetchTransfers(Chain.ConsenSysZk, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.Linea) ? fetchTransfers(Chain.Linea, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.ScrollZk) ? fetchTransfers(Chain.ScrollZk, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Base) ? fetchTransfers(Chain.Base, startTime, endTime) : Promise.resolve([])
   ])
@@ -151,7 +151,7 @@ async function getTransfersData (startTime: number, endTime: number) {
       token: x.token
     })
   }
-  for (const x of consensysZkTransfers) {
+  for (const x of lineaTransfers) {
     data.push({
       sourceChain: -1, // TODO
       destinationChain: x.destinationChainId,

@@ -390,7 +390,7 @@ const Send: FC = () => {
       let spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
 
       if (reactAppNetwork === 'goerli') {
-        if (toNetwork?.slug === 'consensyszk') {
+        if (toNetwork?.slug === 'linea') {
           if (sourceToken?.symbol === 'ETH') {
             const l1BridgeWrapper = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
             spender = l1BridgeWrapper
@@ -434,7 +434,7 @@ const Send: FC = () => {
     let spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
 
     if (reactAppNetwork === 'goerli') {
-      if (toNetwork?.slug === 'consensyszk') {
+      if (toNetwork?.slug === 'linea') {
         if (sourceToken?.symbol === 'ETH') {
           const l1BridgeWrapper = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
           spender = l1BridgeWrapper

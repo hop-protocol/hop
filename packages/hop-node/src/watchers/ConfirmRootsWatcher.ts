@@ -2,7 +2,7 @@ import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import BaseZkBridgeWatcher from './BaseZkBridgeWatcher'
-import ConsenSysZkBridgeWatcher from './ConsenSysZkBridgeWatcher'
+import LineaBridgeWatcher from './LineaBridgeWatcher'
 import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L1MessengerWrapper from './classes/L1MessengerWrapper'
@@ -38,7 +38,7 @@ export type ConfirmRootsData = {
   rootCommittedAts: number[]
 }
 
-type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | ConsenSysZkBridgeWatcher | ScrollZkBridgeWatcher
+type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
 
 class ConfirmRootsWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
@@ -114,8 +114,8 @@ class ConfirmRootsWatcher extends BaseWatcher {
         dryMode: config.dryMode
       })
     }
-    if (this.chainSlug === Chain.ConsenSysZk && enabledNetworks.includes(Chain.ConsenSysZk)) {
-      this.watchers[Chain.ConsenSysZk] = new ConsenSysZkBridgeWatcher({
+    if (this.chainSlug === Chain.Linea && enabledNetworks.includes(Chain.Linea)) {
+      this.watchers[Chain.Linea] = new LineaBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,

@@ -2,7 +2,7 @@ import { Chains } from './types'
 import {
   arbitrumImage,
   baseImage,
-  consensyszkImage,
+  lineaImage,
   ethereumImage,
   gnosisImage,
   novaImage,
@@ -62,10 +62,10 @@ export const chains: Chains = {
     nativeTokenSymbol: 'ETH',
     isLayer1: false
   },
-  consensyszk: {
+  linea: {
     name: 'Linea',
-    slug: 'consensyszk',
-    image: consensyszkImage,
+    slug: 'linea',
+    image: lineaImage,
     nativeTokenSymbol: 'ETH',
     isLayer1: false
   },

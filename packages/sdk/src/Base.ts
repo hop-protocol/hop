@@ -203,19 +203,6 @@ export class Base {
     if (this.network === NetworkSlug.Goerli) {
       this.baseExplorerUrl = 'https://goerli.explorer.hop.exchange'
     }
-
-    setTimeout(() => {
-      this.init()
-    }, 0)
-  }
-
-  async init () {
-    try {
-      await this.fetchConfigFromS3()
-    } catch (err) {
-      console.error('hop sdk init error:', err)
-      throw new Error(`hop sdk init error: ${err.message}`)
-    }
   }
 
   async fetchConfigFromS3 (): Promise<any> {

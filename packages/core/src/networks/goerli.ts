@@ -51,11 +51,11 @@ export const networks: Networks = {
     nativeBridgeUrl: '',
     waitConfirmations: 1
   },
-  consensyszk: {
-    name: chains.consensyszk.name,
-    image: chains.consensyszk.image,
+  linea: {
+    name: chains.linea.name,
+    image: chains.linea.image,
     networkId: 59140,
-    publicRpcUrl: 'https://consensys-zkevm-goerli-prealpha.infura.io/v3/faf4bc4ea7344e5da5e56c55de087480',
+    publicRpcUrl: 'https://rpc.goerli.linea.build',
     fallbackPublicRpcUrls: [],
     explorerUrls: ['https://explorer.goerli.zkevm.consensys.net'],
     nativeBridgeUrl: 'https://bridge.goerli.zkevm.consensys.net',

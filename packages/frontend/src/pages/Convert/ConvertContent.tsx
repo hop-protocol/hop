@@ -17,6 +17,7 @@ import { ButtonsWrapper } from 'src/components/buttons/ButtonsWrapper'
 import AmmConvertOption from 'src/pages/Convert/ConvertOption/AmmConvertOption'
 import CustomRecipientDropdown from 'src/pages/Send/CustomRecipientDropdown'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
+import IconButton from '@material-ui/core/IconButton'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -233,9 +234,16 @@ const ConvertContent: FC = () => {
             selectedNetwork={sourceNetwork}
             destNetwork={destNetwork}
           />
-          <Flex justifyCenter alignCenter my={1} onClick={switchDirection} pointer hover>
-            <ArrowDownIcon color="primary" className={styles.downArrow} />
-          </Flex>
+          <Box display="flex" style={{ position: 'relative' }}>
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <IconButton onClick={switchDirection} title="Click to switch direction">
+                <ArrowDownIcon color="primary" className={styles.downArrow} />
+              </IconButton>
+            </Box>
+            <Box style={{ position: 'absolute', left: '65px', top: '22px', width: '200px' }} onClick={switchDirection}>
+              <Typography variant="body2" style={{ opacity: '0.2' }}>click to switch direction</Typography>
+            </Box>
+          </Box>
           <AmountSelectorCard
             className={styles.lastSelector}
             value={destTokenAmount as string}

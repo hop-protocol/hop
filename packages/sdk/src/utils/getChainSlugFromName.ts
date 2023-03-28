@@ -2,8 +2,8 @@ import { ChainSlug, NetworkSlug } from '../constants'
 
 export function getChainSlugFromName (name: string) {
   let slug = (name || '').trim().toLowerCase().split(' ')[0]
-  if (slug.startsWith('consensys')) {
-    slug = ChainSlug.ConsenSysZk
+  if (slug.startsWith('consensys') || slug.startsWith('linea')) {
+    slug = ChainSlug.Linea
   }
   if (slug.startsWith('xdai')) {
     slug = ChainSlug.Gnosis

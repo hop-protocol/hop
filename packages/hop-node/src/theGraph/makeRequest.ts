@@ -22,6 +22,8 @@ async function _makeRequest (
   let url
   if (chain === Chain.Nova) {
     url = 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop'
+  } else if (chain === Chain.Linea) {
+    url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
   } else {
     url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
   }

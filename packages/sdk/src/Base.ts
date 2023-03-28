@@ -663,7 +663,11 @@ export class Base {
       return BigNumber.from(0)
     }
 
-    if (destinationChain.equals(Chain.Arbitrum) || destinationChain.equals(Chain.Nova)) {
+    if (
+      destinationChain.equals(Chain.Arbitrum) ||
+      destinationChain.equals(Chain.Nova) ||
+      destinationChain.equals(Chain.Linea)
+    ) {
       const relayerFee = new RelayerFee(this.network, tokenSymbol)
       return relayerFee.getRelayCost(destinationChain.slug)
     }

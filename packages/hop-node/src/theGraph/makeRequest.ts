@@ -35,7 +35,7 @@ async function _makeRequest (
   }
 
   // Linea is the only subgraph not suffixed with the chain name
-  if (chain === Chain.Linea) {
+  if (chain === Chain.Linea || chain === 'consensyszk') {
     url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
   }
 

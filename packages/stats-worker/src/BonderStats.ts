@@ -760,6 +760,13 @@ class BonderStats {
           for (const destinationChain in bonderMap[sourceChain]) {
             const chain = destinationChain
 
+            // nova throws error when quering hTokenContract.balanceOf
+            // so disabling it here but it's something to look into it. I think
+            // we just need to make sure `timestamp` is greater than contract deployed at timestamp.
+            if (chain === 'nova') {
+              continue
+            }
+
             chainPromises.push(
               new Promise(async (resolve, reject) => {
                 try {
@@ -768,6 +775,9 @@ class BonderStats {
                   const bonder = bonderMap[sourceChain][
                     destinationChain
                   ].toLowerCase()
+                  if (!bonder) {
+                    throw new Error('bonder address is missing')
+                  }
                   dbData.bonderAddress = bonder
                   if (bonderBalances[chain]) {
                     resolve(null)
@@ -810,9 +820,15 @@ class BonderStats {
                   const balancePromises: Promise<any>[] = []
                   if (tokenAddress !== constants.AddressZero) {
                     balancePromises.push(
-                      tokenContract.balanceOf(bonder, {
-                        blockTag
-                      })
+                      tokenContract
+                        .balanceOf(bonder, {
+                          blockTag
+                        })
+                        .catch((err: any) => {
+                          throw new Error(
+                            `tokenContract balanceOf ${token} ${chain} error: ${err.message}`
+                          )
+                        })
                     )
                   } else {
                     balancePromises.push(Promise.resolve(0))
@@ -820,9 +836,15 @@ class BonderStats {
 
                   if (hTokenContract) {
                     balancePromises.push(
-                      hTokenContract.balanceOf(bonder, {
-                        blockTag
-                      })
+                      hTokenContract
+                        .balanceOf(bonder, {
+                          blockTag
+                        })
+                        .catch((err: any) => {
+                          throw new Error(
+                            `hTokenContract balanceOf ${token} ${chain} error: ${err.message}`
+                          )
+                        })
                     )
                   } else {
                     balancePromises.push(Promise.resolve(0))
@@ -935,9 +957,15 @@ class BonderStats {
                       provider
                     )
 
-                    const wethBalance = await wethContract.balanceOf(bonder, {
-                      blockTag
-                    })
+                    const wethBalance = await wethContract
+                      .balanceOf(bonder, {
+                        blockTag
+                      })
+                      .catch((err: any) => {
+                        throw new Error(
+                          `wethContract balanceOf ${token} ${chain} error: ${err.message}`
+                        )
+                      })
 
                     dbData[`${chain}WethAmount`] = Number(
                       formatEther(wethBalance.toString())

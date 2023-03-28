@@ -9,7 +9,10 @@ import { privateKey } from './config'
 import * as addresses from '@hop-protocol/core/addresses'
 // @ts-ignore
 import pkg from '../package.json'
+import { CoinGecko } from '../src/priceFeed/CoinGecko'
+import { Coinbase } from '../src/priceFeed/Coinbase'
 import { Coinpaprika } from '../src/priceFeed/Coinpaprika'
+import { CoinCodex } from '../src/priceFeed/CoinCodex'
 import { FallbackProvider } from '../src/provider'
 import { fetchJsonOrThrow } from '../src/utils/fetchJsonOrThrow'
 import { getChainSlugFromName } from '../src/utils'
@@ -874,6 +877,22 @@ describe.skip('PriceFeed', () => {
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(2)
   }, 60 * 1000)
+  it('should return ETH price', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('ETH')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('ETH')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(50)
+  }, 60 * 1000)
+  it('should return HOP price', async () => {
+    const hop = new Hop('mainnet')
+    const bridge = hop.bridge('HOP')
+    const price = await bridge.priceFeed.getPriceByTokenSymbol('HOP')
+    console.log(price)
+    expect(price).toBeGreaterThan(0)
+    expect(price).toBeLessThan(50)
+  }, 60 * 1000)
   it('should return SNX price', async () => {
     const hop = new Hop('mainnet')
     const bridge = hop.bridge('SNX')
@@ -882,24 +901,161 @@ describe.skip('PriceFeed', () => {
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(50)
   }, 60 * 1000)
-  // TODO: coinbase api doesn't support sUSD so need to find backup price api
-  it.skip('should return sUSD price', async () => {
-    const hop = new Hop('mainnet')
-    const bridge = hop.bridge('sUSD')
-    const price = await bridge.priceFeed.getPriceByTokenSymbol('sUSD')
-    console.log(price)
-    expect(price).toBeGreaterThan(0)
-    expect(price).toBeLessThan(5)
-  }, 60 * 1000)
-  // TODO: coinbase api doesn't support sUSD so need to find backup price api
-  it.skip('should return rETH price', async () => {
-    const hop = new Hop('mainnet')
-    const bridge = hop.bridge('rETH')
-    const price = await bridge.priceFeed.getPriceByTokenSymbol('rETH')
-    console.log(price)
-    expect(price).toBeGreaterThan(0)
-    expect(price).toBeLessThan(10000)
-  }, 60 * 1000)
+
+  describe.skip('CoinGecko', () => {
+    it('ETH', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('ETH')
+      console.log('ETH', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('BTC', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('BTC')
+      console.log('BTC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('USDC', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('USDC')
+      console.log('USDC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('DAI', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('DAI')
+      console.log('DAI', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('USDT', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('USDT')
+      console.log('DAI', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('MATIC', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('MATIC')
+      console.log('MATIC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it.only('HOP', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('HOP')
+      console.log('HOP', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('SNX', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('SNX')
+      console.log('SNX', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('sUSD', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('sUSD')
+      console.log('SUSD', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('rETH', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('rETH')
+      console.log('rETH', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('GNO', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('GNO')
+      console.log('GNO', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('TUSD', async () => {
+      const priceFeed = new CoinGecko()
+      const price = await priceFeed.getPriceByTokenSymbol('TUSD')
+      console.log('TUSD', price)
+      expect(price).toBeGreaterThan(0)
+    })
+  })
+
+  describe.skip('Coinbase', () => {
+    it('ETH', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('ETH')
+      console.log('ETH', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('BTC', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('BTC')
+      console.log('BTC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    // USDC is unsupported
+    it.skip('USDC', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('USDC')
+      console.log('USDC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('DAI', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('DAI')
+      console.log('DAI', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('USDT', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('USDT')
+      console.log('DAI', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('MATIC', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('MATIC')
+      console.log('MATIC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    // HOP is unsupported
+    it.skip('HOP', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('HOP')
+      console.log('HOP', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('SNX', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('SNX')
+      console.log('SNX', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    // sUSD is unsupported
+    it.skip('sUSD', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('sUSD')
+      console.log('SUSD', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    // rETH is unsupported
+    it.skip('rETH', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('rETH')
+      console.log('rETH', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('GNO', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('GNO')
+      console.log('GNO', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    // TUSD is unsupported
+    it.skip('TUSD', async () => {
+      const priceFeed = new Coinbase()
+      const price = await priceFeed.getPriceByTokenSymbol('TUSD')
+      console.log('TUSD', price)
+      expect(price).toBeGreaterThan(0)
+    })
+  })
 
   describe.skip('Coinpaprika', () => {
     it('ETH', async () => {
@@ -923,7 +1079,7 @@ describe.skip('PriceFeed', () => {
     it('DAI', async () => {
       const priceFeed = new Coinpaprika()
       const price = await priceFeed.getPriceByTokenSymbol('DAI')
-      console.log(price)
+      console.log('DAI', price)
       expect(price).toBeGreaterThan(0)
     })
     it('USDT', async () => {
@@ -970,6 +1126,81 @@ describe.skip('PriceFeed', () => {
     })
     it('TUSD', async () => {
       const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('TUSD')
+      console.log('TUSD', price)
+      expect(price).toBeGreaterThan(0)
+    })
+  })
+
+  describe.skip('CoinCodex', () => {
+    it('ETH', async () => {
+      const priceFeed = new CoinCodex()
+      const price = await priceFeed.getPriceByTokenSymbol('ETH')
+      console.log('ETH', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('BTC', async () => {
+      const priceFeed = new CoinCodex()
+      const price = await priceFeed.getPriceByTokenSymbol('BTC')
+      console.log('BTC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('USDC', async () => {
+      const priceFeed = new CoinCodex()
+      const price = await priceFeed.getPriceByTokenSymbol('USDC')
+      console.log('USDC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('DAI', async () => {
+      const priceFeed = new CoinCodex()
+      const price = await priceFeed.getPriceByTokenSymbol('DAI')
+      console.log('DAI', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('USDT', async () => {
+      const priceFeed = new CoinCodex()
+      const price = await priceFeed.getPriceByTokenSymbol('USDT')
+      console.log('DAI', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('MATIC', async () => {
+      const priceFeed = new CoinCodex()
+      const price = await priceFeed.getPriceByTokenSymbol('MATIC')
+      console.log('MATIC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('HOP', async () => {
+      const priceFeed = new CoinCodex()
+      const price = await priceFeed.getPriceByTokenSymbol('HOP')
+      console.log('HOP', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('SNX', async () => {
+      const priceFeed = new CoinCodex()
+      const price = await priceFeed.getPriceByTokenSymbol('SNX')
+      console.log('SNX', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('sUSD', async () => {
+      const priceFeed = new CoinCodex()
+      const price = await priceFeed.getPriceByTokenSymbol('sUSD')
+      console.log('SUSD', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('rETH', async () => {
+      const priceFeed = new CoinCodex()
+      const price = await priceFeed.getPriceByTokenSymbol('rETH')
+      console.log('rETH', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('GNO', async () => {
+      const priceFeed = new CoinCodex()
+      const price = await priceFeed.getPriceByTokenSymbol('GNO')
+      console.log('GNO', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('TUSD', async () => {
+      const priceFeed = new CoinCodex()
       const price = await priceFeed.getPriceByTokenSymbol('TUSD')
       console.log('TUSD', price)
       expect(price).toBeGreaterThan(0)

@@ -1,3 +1,4 @@
+import { CoinCodex } from './CoinCodex'
 import { CoinGecko } from './CoinGecko'
 import { Coinbase } from './Coinbase'
 import { Coinpaprika } from './Coinpaprika'
@@ -43,7 +44,7 @@ class PriceFeed {
   }
 
   private setServices () {
-    this.services = [new CoinGecko(this.apiKeys?.coingecko), new Coinbase(), new Coinpaprika()]
+    this.services = [new CoinGecko(this.apiKeys?.coingecko), new Coinbase(), new Coinpaprika(), new CoinCodex()]
   }
 
   async getPriceByTokenSymbol (tokenSymbol: string) {
@@ -67,7 +68,7 @@ class PriceFeed {
     for (const service of this.services) {
       try {
         const price = await service.getPriceByTokenSymbol(tokenSymbol)
-        if (price === null) {
+        if (price == null) {
           throw new Error(`null price for ${tokenSymbol}`)
         }
         return price

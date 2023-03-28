@@ -55,6 +55,12 @@ export class CoinGecko {
     if (['WXDAI', 'XDAI'].includes(symbol)) {
       symbol = 'DAI'
     }
+    if (symbol === 'WMATIC') {
+      symbol = 'MATIC'
+    }
+    if (symbol === 'BTC') {
+      symbol = 'WBTC'
+    }
     const prices = await this.getPricesByTokenSymbol([symbol], base)
     return prices[0]
   }

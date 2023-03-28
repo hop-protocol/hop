@@ -746,6 +746,31 @@ export class Base {
     }
   }
 
+  public getL1BridgeWrapperAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): string {
+    if (!(token && sourceChain && destinationChain)) {
+      return
+    }
+
+    token = this.toTokenModel(token)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    if (this.network === NetworkSlug.Goerli) {
+      if (sourceChain.isL1) {
+        if (destinationChain.equals(Chain.Linea)) {
+          if (token.symbol === TokenModel.ETH) {
+            const hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+            return hopL1BridgeWrapperAddress
+          }
+          if (token.symbol === TokenModel.USDC) {
+            const hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+            return hopL1BridgeWrapperAddress
+          }
+        }
+      }
+    }
+  }
+
   async fetchBonderAvailableLiquidityDataWithIpfsFallback (): Promise<any> {
     try {
       return await this.fetchBonderAvailableLiquidityData()

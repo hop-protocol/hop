@@ -381,28 +381,15 @@ const Send: FC = () => {
 
   const needsApproval = useAsyncMemo(async () => {
     try {
-      if (!(fromNetwork && sourceToken && fromTokenAmount)) {
+      if (!(fromNetwork && toNetwork && sourceToken && fromTokenAmount)) {
         return false
       }
 
       const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
       const bridge = sdk.bridge(sourceToken.symbol)
 
-      let spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
-
-      if (reactAppNetwork === 'goerli') {
-        if (toNetwork?.slug === 'linea') {
-          if (sourceToken?.symbol === 'ETH') {
-            const l1BridgeWrapper = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
-            spender = l1BridgeWrapper
-          }
-          if (sourceToken?.symbol === 'USDC') {
-            const l1BridgeWrapper = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
-            spender = l1BridgeWrapper
-          }
-        }
-      }
-
+      const isHTokenTransfer = false
+      const spender: string = bridge.getSendApprovalAddress(fromNetwork.slug, isHTokenTransfer, toNetwork.slug)
       return checkApproval(parsedAmount, sourceToken, spender)
     } catch (err: any) {
       logger.error(err)
@@ -413,6 +400,10 @@ const Send: FC = () => {
   const approveFromToken = async () => {
     if (!fromNetwork) {
       throw new Error('No fromNetwork selected')
+    }
+
+    if (!toNetwork) {
+      throw new Error('No toNetwork selected')
     }
 
     if (!sourceToken) {
@@ -432,21 +423,8 @@ const Send: FC = () => {
     const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
     const bridge = sdk.bridge(sourceToken.symbol)
 
-    let spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
-
-    if (reactAppNetwork === 'goerli') {
-      if (toNetwork?.slug === 'linea') {
-        if (sourceToken?.symbol === 'ETH') {
-          const l1BridgeWrapper = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
-          spender = l1BridgeWrapper
-        }
-        if (sourceToken?.symbol === 'USDC') {
-          const l1BridgeWrapper = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
-          spender = l1BridgeWrapper
-        }
-      }
-    }
-
+    const isHTokenTransfer = false
+    const spender: string = bridge.getSendApprovalAddress(fromNetwork.slug, isHTokenTransfer, toNetwork.slug)
     const tx = await approve(parsedAmount, sourceToken, spender)
 
     await tx?.wait()

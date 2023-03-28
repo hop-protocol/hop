@@ -9,6 +9,7 @@ import { privateKey } from './config'
 import * as addresses from '@hop-protocol/core/addresses'
 // @ts-ignore
 import pkg from '../package.json'
+import { Coinpaprika } from '../src/priceFeed/Coinpaprika'
 import { FallbackProvider } from '../src/provider'
 import { fetchJsonOrThrow } from '../src/utils/fetchJsonOrThrow'
 import { getChainSlugFromName } from '../src/utils'
@@ -860,6 +861,7 @@ describe.skip('get estimated gas (no signer connected)', () => {
   })
 })
 
+// skipped since it might trigger rate limits and cause test suite to fail
 describe.skip('PriceFeed', () => {
   it('should return USDC price', async () => {
     const hop = new Hop('mainnet')
@@ -898,6 +900,81 @@ describe.skip('PriceFeed', () => {
     expect(price).toBeGreaterThan(0)
     expect(price).toBeLessThan(10000)
   }, 60 * 1000)
+
+  describe.skip('Coinpaprika', () => {
+    it('ETH', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('ETH')
+      console.log('ETH', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('BTC', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('BTC')
+      console.log('BTC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('USDC', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('USDC')
+      console.log('USDC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('DAI', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('DAI')
+      console.log(price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('USDT', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('USDT')
+      console.log('DAI', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('MATIC', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('MATIC')
+      console.log('MATIC', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('HOP', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('HOP')
+      console.log('HOP', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('SNX', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('SNX')
+      console.log('SNX', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('sUSD', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('sUSD')
+      console.log('SUSD', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('rETH', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('rETH')
+      console.log('rETH', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('GNO', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('GNO')
+      console.log('GNO', price)
+      expect(price).toBeGreaterThan(0)
+    })
+    it('TUSD', async () => {
+      const priceFeed = new Coinpaprika()
+      const price = await priceFeed.getPriceByTokenSymbol('TUSD')
+      console.log('TUSD', price)
+      expect(price).toBeGreaterThan(0)
+    })
+  })
 })
 
 describe.skip('getMessengerWrapperAddress', () => {

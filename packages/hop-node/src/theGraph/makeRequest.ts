@@ -22,8 +22,6 @@ async function _makeRequest (
   let url
   if (chain === Chain.Nova) {
     url = 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop'
-  } else if (chain === Chain.Linea) {
-    url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
   } else {
     url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
   }
@@ -34,6 +32,11 @@ async function _makeRequest (
     // url = 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
   } else {
     url = `${url}-${chain}`
+  }
+
+  // Linea is the only subgraph not suffixed with the chain name
+  if (chain === Chain.Linea) {
+    url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
   }
 
   const res = await fetch(url, {

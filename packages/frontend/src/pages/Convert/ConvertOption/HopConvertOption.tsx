@@ -152,7 +152,8 @@ class HopConvertOption extends ConvertOption {
   async getTargetAddress(
     sdk: Hop,
     l1TokenSymbol?: TokenSymbol,
-    sourceNetwork?: Network
+    sourceNetwork?: Network,
+    destNetwork?: Network,
   ): Promise<string> {
     if (!l1TokenSymbol) {
       throw new Error('Token symbol is required to get target address')
@@ -164,7 +165,7 @@ class HopConvertOption extends ConvertOption {
 
     const bridge = sdk.bridge(l1TokenSymbol)
     if (sourceNetwork.isLayer1) {
-      const l1Bridge = await bridge.getL1Bridge()
+      const l1Bridge = await bridge.getL1BridgeWrapperOrL1Bridge(sourceNetwork.slug, destNetwork?.slug)
       return l1Bridge.address
     } else {
       const l2Bridge = await bridge.getL2Bridge(sourceNetwork.slug)

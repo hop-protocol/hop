@@ -663,7 +663,11 @@ export class Base {
       return BigNumber.from(0)
     }
 
-    if (destinationChain.equals(Chain.Arbitrum) || destinationChain.equals(Chain.Nova)) {
+    if (
+      destinationChain.equals(Chain.Arbitrum) ||
+      destinationChain.equals(Chain.Nova) ||
+      destinationChain.equals(Chain.Linea)
+    ) {
       const relayerFee = new RelayerFee(this.network, tokenSymbol)
       return relayerFee.getRelayCost(destinationChain.slug)
     }
@@ -743,6 +747,31 @@ export class Base {
       return data
     } catch (err: any) {
       throw new Error(`fetchBonderAvailableLiquidityData error: ${err.message}, url: ${url}`)
+    }
+  }
+
+  public getL1BridgeWrapperAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): string {
+    if (!(token && sourceChain && destinationChain)) {
+      return
+    }
+
+    token = this.toTokenModel(token)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    if (this.network === NetworkSlug.Goerli) {
+      if (sourceChain.isL1) {
+        if (destinationChain.equals(Chain.Linea)) {
+          if (token.symbol === TokenModel.ETH) {
+            const hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+            return hopL1BridgeWrapperAddress
+          }
+          if (token.symbol === TokenModel.USDC) {
+            const hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+            return hopL1BridgeWrapperAddress
+          }
+        }
+      }
     }
   }
 

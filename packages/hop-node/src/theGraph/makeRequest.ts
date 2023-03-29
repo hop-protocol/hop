@@ -34,6 +34,11 @@ async function _makeRequest (
     url = `${url}-${chain}`
   }
 
+  // Linea is the only subgraph not suffixed with the chain name
+  if (chain === Chain.Linea || chain === 'consensyszk') {
+    url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
+  }
+
   const res = await fetch(url, {
     method: 'POST',
     headers: {

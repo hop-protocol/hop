@@ -1,5 +1,7 @@
-import CoinGecko from './CoinGecko'
-import Coinbase from './Coinbase'
+import { CoinCodex } from './CoinCodex'
+import { CoinGecko } from './CoinGecko'
+import { Coinbase } from './Coinbase'
+import { Coinpaprika } from './Coinpaprika'
 
 const cache: {
   [tokenSymbol: string]: Promise<any>
@@ -25,8 +27,8 @@ class PriceFeed {
   aliases: { [tokenSymbol: string]: string } = {
     WETH: 'ETH',
     WMATIC: 'MATIC',
-    XDAI: 'DAI',
-    WXDAI: 'DAI'
+    WXDAI: 'DAI',
+    XDAI: 'DAI'
   }
 
   constructor (apiKeysMap: ApiKeys = {}) {
@@ -42,7 +44,7 @@ class PriceFeed {
   }
 
   private setServices () {
-    this.services = [new CoinGecko(this.apiKeys?.coingecko), new Coinbase()]
+    this.services = [new CoinGecko(this.apiKeys?.coingecko), new Coinbase(), new Coinpaprika(), new CoinCodex()]
   }
 
   async getPriceByTokenSymbol (tokenSymbol: string) {
@@ -66,7 +68,7 @@ class PriceFeed {
     for (const service of this.services) {
       try {
         const price = await service.getPriceByTokenSymbol(tokenSymbol)
-        if (price === null) {
+        if (price == null) {
           throw new Error(`null price for ${tokenSymbol}`)
         }
         return price

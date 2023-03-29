@@ -582,16 +582,6 @@ class TransferRootsDb extends BaseDb {
         return false
       }
 
-      // TODO: Remove this when the exit system is fully live
-      const rootsToExit = [
-        '0x713bedf189da8097f0d679f7cd22e81a705b61157a05af71f30b98dadf39e3e5',
-        '0xe2842ede3852fbf731d27e922ca4c6c4fcdfa0e4912e86e12ba0f2caf120552d'
-      ]
-
-      if (rootsToExit.includes(item.transferRootHash!)) {
-        return false
-      }
-
       if (!item.sourceChainId) {
         return false
       }

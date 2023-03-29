@@ -4,9 +4,8 @@ import GnosisBridgeWatcher from 'src/watchers/GnosisBridgeWatcher'
 import OptimismBridgeWatcher from 'src/watchers/OptimismBridgeWatcher'
 import PolygonBridgeWatcher from 'src/watchers/PolygonBridgeWatcher'
 import chainSlugToId from 'src/utils/chainSlugToId'
-import { BigNumber } from 'ethers'
 import { ConfirmRootsData } from 'src/watchers/ConfirmRootsWatcher'
-import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared'
+import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 import { getConfirmRootsWatcher } from 'src/watchers/watchers'
 
 // Nova and Arbitrum One both use the same Arbitrum Bridge Watcher
@@ -104,7 +103,7 @@ async function main (source: any) {
     const chainSpecificWatcher: ExitWatcher = watcher.watchers[chain]
     for (const dbTransferRoot of dbTransferRoots) {
       const commitTxHash = dbTransferRoot.commitTxHash
-      if(!commitTxHash) {
+      if (!commitTxHash) {
         throw new Error('commitTxHash is required')
       }
       console.log('commitTxHash', commitTxHash)

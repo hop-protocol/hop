@@ -19,7 +19,7 @@ interface Service {
   getPriceByTokenSymbol(symbol: string): Promise<number>
 }
 
-class PriceFeed {
+export class PriceFeed {
   cacheTimeMs = 5 * 60 * 1000
   apiKeys: ApiKeys = {}
   services: Service[] = []

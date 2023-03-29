@@ -1,14 +1,14 @@
-import getTransferRootSet from 'src/theGraph/getTransferRootSet'
-import getRpcProvider from 'src/utils/getRpcProvider'
-import { BigNumber, Contract, providers } from 'ethers'
-import { Chain } from 'src/constants'
-import { config as globalConfig } from 'src/config'
 import bridgeAbi from '@hop-protocol/core/abi/generated/Bridge.json'
+import getRpcProvider from 'src/utils/getRpcProvider'
+import getTransferRootSet from 'src/theGraph/getTransferRootSet'
+import { BigNumber, Contract } from 'ethers'
+import { Chain } from 'src/constants'
 import {
   actionHandler,
   parseString,
   root
 } from './shared'
+import { config as globalConfig } from 'src/config'
 
 root
   .command('unwithdrawn-transfers')
@@ -46,7 +46,7 @@ export async function main (source: any) {
   for (const setTransferRoot of setTransferRoots) {
     const rootHash = setTransferRoot.rootHash
     const totalAmount = setTransferRoot.totalAmount
-    const transferRoot = await contract.getTransferRoot(rootHash, totalAmount!)
+    const transferRoot = await contract.getTransferRoot(rootHash, totalAmount)
     const amountUnwithdrawn = transferRoot.total.sub(transferRoot.amountWithdrawn)
     amountUnwithdrawnTotal = amountUnwithdrawnTotal.add(amountUnwithdrawn)
   }

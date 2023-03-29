@@ -2,23 +2,25 @@ import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import BaseZkBridgeWatcher from './BaseZkBridgeWatcher'
-import ConsenSysZkBridgeWatcher from './ConsenSysZkBridgeWatcher'
 import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L1MessengerWrapper from './classes/L1MessengerWrapper'
+import LineaBridgeWatcher from './LineaBridgeWatcher'
 import NovaBridgeWatcher from './NovaBridgeWatcher'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import ScrollZkBridgeWatcher from './ScrollZkBridgeWatcher'
 import ZkSyncBridgeWatcher from './ZkSyncBridgeWatcher'
 import contracts from 'src/contracts'
+import getTransferCommitted from 'src/theGraph/getTransferCommitted'
+import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, ChallengePeriodMs } from 'src/constants'
+import { ExitSystemSupportedTokens, getEnabledNetworks, config as globalConfig } from 'src/config'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { getEnabledNetworks } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -29,13 +31,13 @@ type Config = {
 }
 
 export type ConfirmRootsData = {
-  rootHash: string
-  destinationChainId: number
-  totalAmount: BigNumber
-  rootCommittedAt: number
+  rootHashes: string[]
+  destinationChainIds: number[]
+  totalAmounts: BigNumber[]
+  rootCommittedAts: number[]
 }
 
-type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | ConsenSysZkBridgeWatcher | ScrollZkBridgeWatcher
+type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
 
 class ConfirmRootsWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
@@ -111,8 +113,8 @@ class ConfirmRootsWatcher extends BaseWatcher {
         dryMode: config.dryMode
       })
     }
-    if (this.chainSlug === Chain.ConsenSysZk && enabledNetworks.includes(Chain.ConsenSysZk)) {
-      this.watchers[Chain.ConsenSysZk] = new ConsenSysZkBridgeWatcher({
+    if (this.chainSlug === Chain.Linea && enabledNetworks.includes(Chain.Linea)) {
+      this.watchers[Chain.Linea] = new LineaBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,
@@ -168,6 +170,15 @@ class ConfirmRootsWatcher extends BaseWatcher {
     if (!dbTransferRoots.length) {
       return
     }
+
+    // TODO: Remove this when the exit system is fully live
+    if (
+      ExitSystemSupportedTokens.length !== 0 &&
+      !ExitSystemSupportedTokens.includes(this.tokenSymbol)
+    ) {
+      return
+    }
+
     this.logger.debug(
       `checking ${dbTransferRoots.length} unconfirmed transfer roots db items`
     )
@@ -239,31 +250,126 @@ class ConfirmRootsWatcher extends BaseWatcher {
     })
 
     logger.debug(`handling confirmable transfer root ${transferRootHash}, destination ${destinationChainId}, amount ${totalAmount.toString()}, committedAt ${committedAt}`)
-    await this.confirmRootsViaWrapper([{
-      rootHash: transferRootHash,
-      destinationChainId,
-      totalAmount,
-      rootCommittedAt: committedAt
-    }])
+    await this.confirmRootsViaWrapper({
+      rootHashes: [transferRootHash],
+      destinationChainIds: [destinationChainId],
+      totalAmounts: [totalAmount],
+      rootCommittedAts: [committedAt]
+    })
   }
 
-  async confirmRootsViaWrapper (rootData: ConfirmRootsData[]): Promise<void> {
-    const rootHashes: string[] = []
-    const destinationChainIds: number[] = []
-    const totalAmounts: BigNumber[] = []
-    const rootCommittedAt: number[] = []
-    for (const data of rootData) {
-      rootHashes.push(data.rootHash)
-      destinationChainIds.push(data.destinationChainId)
-      totalAmounts.push(data.totalAmount)
-      rootCommittedAt.push(data.rootCommittedAt)
-    }
-    this.l1MessengerWrapper.confirmRoots(
+  async confirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
+    await this.validateConfirmRootsViaWrapper(rootData)
+    const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
+    await this.l1MessengerWrapper.confirmRoots(
       rootHashes,
       destinationChainIds,
       totalAmounts,
-      rootCommittedAt
+      rootCommittedAts
     )
+  }
+
+  async validateConfirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
+    const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
+
+    // Data validation
+    if (
+      rootHashes.length !== destinationChainIds.length ||
+      rootHashes.length !== totalAmounts.length ||
+      rootHashes.length !== rootCommittedAts.length
+    ) {
+      throw new Error('Root data arrays must be the same length')
+    }
+
+    for (const [index, value] of rootHashes.entries()) {
+      const rootHash = value
+      const destinationChainId = destinationChainIds[index]
+      const totalAmount = totalAmounts[index]
+      const rootCommittedAt = rootCommittedAts[index]
+
+      // Verify that the DB has the root and associated data
+      const calculatedTransferRootId = getTransferRootId(rootHash, totalAmount)
+      const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
+      if (!dbTransferRoot) {
+        throw new Error(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
+      }
+
+      const logger = this.logger.create({ root: calculatedTransferRootId })
+      logger.debug(`confirming rootHash ${rootHash} on destinationChainId ${destinationChainId} with totalAmount ${totalAmount.toString()} and committedAt ${rootCommittedAt}`)
+
+      // Verify that the data in the DB matches the data passed in
+      if (
+        rootHash !== dbTransferRoot?.transferRootHash ||
+        destinationChainId !== dbTransferRoot?.destinationChainId ||
+        totalAmount.toString() !== dbTransferRoot?.totalAmount?.toString() ||
+        rootCommittedAt !== dbTransferRoot?.committedAt
+      ) {
+        throw new Error(`DB data does not match passed in data for rootHash ${rootHash}`)
+      }
+
+      // Verify that the watcher is on the correct chain
+      if (this.bridge.chainId !== dbTransferRoot.sourceChainId) {
+        throw new Error(`Watcher is on chain ${this.bridge.chainId} but transfer root ${calculatedTransferRootId} source is on chain ${dbTransferRoot.sourceChainId}`)
+      }
+
+      if (this.bridge.chainId === destinationChainId) {
+        throw new Error(`Cannot confirm roots with a destination chain ${destinationChainId} from chain the same chain`)
+      }
+
+      // Verify that the transfer root ID is not confirmed for any chain
+      // Note: Manually get all chains from config here to check all possible destinations, not
+      // just the chains scoped to this watcher
+      const allChainIds: number[] = []
+      for (const key in globalConfig.networks) {
+        const { chainId } = globalConfig.networks[key]
+        allChainIds.push(chainId)
+      }
+
+      for (const chainId of allChainIds) {
+        const isTransferRootIdConfirmed = await this.l1Bridge.isTransferRootIdConfirmed(
+          chainId,
+          calculatedTransferRootId
+        )
+        if (isTransferRootIdConfirmed) {
+          throw new Error(`Transfer root ${calculatedTransferRootId} already confirmed on chain ${destinationChainId} (confirmRootsViaWrapper)`)
+        }
+      }
+
+      // Verify that the data in the TheGraph matches the data passed in
+      const transferCommitted = await getTransferCommitted(this.bridge.chainSlug, this.tokenSymbol, rootHash)
+      if (
+        rootHash !== transferCommitted?.rootHash ||
+        destinationChainId !== transferCommitted?.destinationChainId ||
+        totalAmount.toString() !== transferCommitted?.totalAmount?.toString() ||
+        rootCommittedAt.toString() !== transferCommitted?.rootCommittedAt
+      ) {
+        throw new Error(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
+      }
+
+      // Verify that the wrapper being used is correct
+      const wrapperL2ChainId = await this.l1MessengerWrapper.l2ChainId()
+      if (
+        Number(wrapperL2ChainId) !== dbTransferRoot?.sourceChainId ||
+        Number(wrapperL2ChainId) !== this.bridge.chainId
+      ) {
+        throw new Error(`Wrapper l2ChainId is unexpected: ${wrapperL2ChainId} (expected ${dbTransferRoot?.sourceChainId})`)
+      }
+
+      // Verify that the root can be confirmed
+      const { createdAt, challengeStartTime } = await this.l1Bridge.getTransferBond(calculatedTransferRootId)
+      if (!createdAt || !challengeStartTime) {
+        throw new Error('Transfer bond not found')
+      }
+      const createdAtMs = Number(createdAt) * 1000
+      const timeSinceBondCreation = Date.now() - createdAtMs
+      if (
+        createdAt.toString() === '0' ||
+          challengeStartTime.toString() !== '0' ||
+          timeSinceBondCreation <= ChallengePeriodMs
+      ) {
+        throw new Error('Transfer root is not confirmable')
+      }
+    }
   }
 }
 

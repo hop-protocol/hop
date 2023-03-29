@@ -85,9 +85,9 @@ export const networks: Networks = {
     nativeBridgeUrl: '',
     waitConfirmations: 1
   }
-  consensyszk: {
-    name: chains.consensyszk.name,
-    image: chains.consensyszk.image,
+  linea: {
+    name: chains.linea.name,
+    image: chains.linea.image,
     networkId: 0,
     publicRpcUrl: '',
     fallbackPublicRpcUrls: [],

@@ -326,7 +326,7 @@ export const addresses: Addresses = {
       },
       gnosis: {
         l1CanonicalBridge: '0x88ad09518695c6c3712AC10a214bE5109a655671',
-        l1MessengerWrapper: '0xC08055b634D43F2176d721E26A3428D3b7E7DdB5',
+        l1MessengerWrapper: '0x8796860ca1677Bf5d54cE5A348Fe4b779a8212f3',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
         l2CanonicalToken: '0x4ECaBa5870353805a9F068101A40E0f32ed605C6',
         l2Bridge: '0xFD5a186A7e8453Eb867A360526c5d987A00ACaC2',
@@ -340,7 +340,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1MessengerWrapper: '0xFC047884dE7797A3D9cbA42FBc3b675388A110d5',
+        l1MessengerWrapper: '0x1CD391bd1D915D189dE162F0F1963C07E60E4CD6',
         l2CanonicalBridge: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
         l2CanonicalToken: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
         l2Bridge: '0x6c9a1ACF73bd85463A46B0AFc076FBdf602b690B',
@@ -348,15 +348,15 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x8741Ba6225A6BF91f9D73531A98A89807857a2B3',
         l2SaddleSwap: '0xB2f7d27B21a69a033f85C42d5EB079043BAadC81',
         l2SaddleLpToken: '0x3cA3218D6c52B640B0857cc19b69Aa9427BC842C',
-        l1FxBaseRootTunnel: '0xFC047884dE7797A3D9cbA42FBc3b675388A110d5',
+        l1FxBaseRootTunnel: '0x1CD391bd1D915D189dE162F0F1963C07E60E4CD6',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
-        l2MessengerProxy: '0x893246FACF345c99e4235E5A7bbEE7404c988b96',
+        l2MessengerProxy: '0x73C657d54E8512E59c691eA38a3Fa17a5e838c4c',
         bridgeDeployedBlockNumber: 17058878
       },
       optimism: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0xC78C53102e161094D848EE167145E5d45EAA6853',
+        l1MessengerWrapper: '0x9fc22E269c3752620EB281ce470855886b982501',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
         l2Bridge: '0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61',
@@ -368,7 +368,7 @@ export const addresses: Addresses = {
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x6ce9077bb3Db37EeEEDd8D863988B2f19FF2b9a3',
+        l1MessengerWrapper: '0x967F8E2B66D624Ad544CB59a230b867Ac3dC60dc',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
         l2Bridge: '0x72209Fe68386b37A40d6bCA04f78356fd342491f',
@@ -424,7 +424,7 @@ export const addresses: Addresses = {
       },
       gnosis: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x723194C6Cfed24883b598931Ee802ab80952C001',
+        l1MessengerWrapper: '0xC3d56808907F6A45042c7e81A8a7Db72C5F7F9F6',
         l2CanonicalBridge: '0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d',
         l2CanonicalToken: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
         l2Bridge: '0x0460352b91D7CF42B0E1C1c30f06B602D9ef2238',
@@ -438,7 +438,7 @@ export const addresses: Addresses = {
       },
       polygon: {
         l1CanonicalBridge: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
-        l1MessengerWrapper: '0x2e929203D8F2Fcf88C4Ff7b7362d08169b6F661c',
+        l1MessengerWrapper: '0x172cAbe34c757472249aD4Bd97560373fBbf0DA3',
         l2CanonicalBridge: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
         l2CanonicalToken: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
         l2Bridge: '0xEcf268Be00308980B5b3fcd0975D47C4C8e1382a',
@@ -446,15 +446,15 @@ export const addresses: Addresses = {
         l2AmmWrapper: '0x28529fec439cfF6d7D1D5917e956dEE62Cd3BE5c',
         l2SaddleSwap: '0x25FB92E505F752F730cAD0Bd4fa17ecE4A384266',
         l2SaddleLpToken: '0x8b7aA8f5cc9996216A88D900df8B8a0a3905939A',
-        l1FxBaseRootTunnel: '0x2e929203D8F2Fcf88C4Ff7b7362d08169b6F661c',
+        l1FxBaseRootTunnel: '0x172cAbe34c757472249aD4Bd97560373fBbf0DA3',
         l1PosRootChainManager: '0xA0c68C638235ee32657e8f720a23ceC1bFc77C77',
         l1PosPredicate: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf',
-        l2MessengerProxy: '0x340A633F6940f6893F350EBa8a6606D8d1575CDb',
+        l2MessengerProxy: '0x60013Ae36DdD3aF49b2bdB7Fb1545c5C1CF21638',
         bridgeDeployedBlockNumber: 19112518
       },
       optimism: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x4285CaAB762f2e405CD256069D0D47D13bf05B00',
+        l1MessengerWrapper: '0x115F423b958A2847af0F5bF314DB0f27c644c308',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
         l2Bridge: '0x7191061D5d4C60f598214cC6913502184BAddf18',
@@ -466,7 +466,7 @@ export const addresses: Addresses = {
       },
       arbitrum: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x8FF53dE7469B32b9a1e8c8431001b029E3B0c87a',
+        l1MessengerWrapper: '0x2d6fd82C7f531328BCaCA96EF985325C0894dB62',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
         l2Bridge: '0x7aC115536FE3A185100B2c4DE4cb328bf3A58Ba6',
@@ -619,7 +619,7 @@ export const addresses: Addresses = {
       },
       optimism: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
-        l1MessengerWrapper: '0x30ca9afabA0DA59F507756cA43619f96f176d214',
+        l1MessengerWrapper: '0xf0727B1eB1A4c9319A5c34A68bcD5E6530850D47',
         l2CanonicalBridge: '0x4200000000000000000000000000000000000010',
         l2CanonicalToken: '0x8700dAec35aF8Ff88c16BdF0418774CB3D7599B4',
         l2Bridge: '0x16284c7323c35F4960540583998C98B1CfC581a7',

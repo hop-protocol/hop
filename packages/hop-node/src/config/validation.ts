@@ -69,7 +69,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Chain.Polygon,
     Chain.Nova,
     Chain.ZkSync,
-    Chain.ConsenSysZk,
+    Chain.Linea,
     Chain.ScrollZk,
     Chain.Base
   ]

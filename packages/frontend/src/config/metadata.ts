@@ -88,11 +88,11 @@ export const metadata: Metadata = {
       image: chains.zksync.image,
       nativeTokenSymbol: chains.zksync.nativeTokenSymbol,
     },
-    consensyszk: {
-      name: chains.consensyszk.name,
+    linea: {
+      name: chains.linea.name,
       isLayer1: false,
-      image: chains.consensyszk.image,
-      nativeTokenSymbol: chains.consensyszk.nativeTokenSymbol,
+      image: chains.linea.image,
+      nativeTokenSymbol: chains.linea.nativeTokenSymbol,
     },
     scrollzk: {
       name: chains.scrollzk.name,

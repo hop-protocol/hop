@@ -271,7 +271,7 @@ class Token extends Base {
         this.chain.equals(Chain.Nova) ||
         this.chain.equals(Chain.Optimism) ||
         this.chain.equals(Chain.ZkSync) ||
-        this.chain.equals(Chain.ConsenSysZk) ||
+        this.chain.equals(Chain.Linea) ||
         this.chain.equals(Chain.ScrollZk) ||
         this.chain.equals(Chain.Base)
       )

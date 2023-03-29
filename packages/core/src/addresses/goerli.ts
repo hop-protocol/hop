@@ -7,31 +7,31 @@ export const addresses: Addresses = {
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         base: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
       polygon: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         base: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
       optimism: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         base: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
       arbitrum: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
+        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         base: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
-      consensyszk: {
+      linea: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
@@ -43,7 +43,7 @@ export const addresses: Addresses = {
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       }
     },
     USDC: {
@@ -51,27 +51,27 @@ export const addresses: Addresses = {
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
       polygon: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
       optimism: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         arbitrum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
       arbitrum: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
-        consensyszk: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
+        linea: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7'
       },
-      consensyszk: {
+      linea: {
         ethereum: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         polygon: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
         optimism: '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
@@ -148,7 +148,7 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0x2105a73D7739f1034Becc1bd87f4F7820d575644',
         bridgeDeployedBlockNumber: 407263
       },
-      consensyszk: {
+      linea: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l1MessengerWrapper: '0xBB9D66F7a7744C11550079045A177090E0015364',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
@@ -219,16 +219,16 @@ export const addresses: Addresses = {
         l2SaddleLpToken: '0xac1621E4C005D2dE18cD0CB226c60a4d94aE474E',
         bridgeDeployedBlockNumber: 407913
       },
-      consensyszk: {
+      linea: {
         l1CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l1MessengerWrapper: '0x2e929203D8F2Fcf88C4Ff7b7362d08169b6F661c',
         l2CanonicalBridge: '0x0000000000000000000000000000000000000000',
         l2CanonicalToken: '0x964FF70695da981027c81020B1c58d833D49A640',
         l2Bridge: '0xB5d7924CB4FE74203c09E0D6D9800D2a1525585f',
         l2HopBridgeToken: '0x83f6244Bd87662118d96D9a6D44f09dffF14b30E',
-        l2AmmWrapper: '0xa08899fE012395864F0684b8ba8a0b1B3DE0FCB3',
-        l2SaddleSwap: '0x32219766597DFbb10297127238D921E7CCF5D920',
-        l2SaddleLpToken: '0xB8824200d185b5456C4df4F7edb0fB9211D67d20',
+        l2AmmWrapper: '0x8b3708d4797f71F0510202b9C2d7CE84b1c7a019',
+        l2SaddleSwap: '0xe13A2d5eb0e3E34022556ddF44a1Ff1a5A930ba3',
+        l2SaddleLpToken: '0x6fbf1d9034ea804eba3076fb76187b47fe6729da',
         bridgeDeployedBlockNumber: 160808
       }
     },

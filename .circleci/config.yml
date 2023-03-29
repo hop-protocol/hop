@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
   base: dmx-io/base@2.0.88
-  slack: circleci/slack@4.4.2
 
 jobs:
   build_hop_node:
@@ -19,9 +18,11 @@ jobs:
           command: |
             apk update
             apk upgrade
-            apk add --no-cache curl
-            apk add --no-cache jq
-            apk add --no-cache py-pip=9.0.0-r1
+            apk add bash
+            apk add curl
+            apk add jq
+            apk add py-pip=9.0.0-r1
+            apk add diffutils
             pip install \
               docker-compose==1.12.0 \
               awscli==1.11.76
@@ -29,6 +30,7 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/hop-node
+            bash ./ci/package_check.sh
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -44,12 +46,6 @@ jobs:
             docker push $DOCKER_IMAGE:$CIRCLE_SHA1
             docker push $DOCKER_IMAGE:$BRANCH
             test $BRANCH == "production" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
-      - slack/notify:
-          event: pass
-          template: basic_success_1
 
   build_stats_worker:
     working_directory: /app
@@ -65,9 +61,11 @@ jobs:
           command: |
             apk update
             apk upgrade
-            apk add --no-cache curl
-            apk add --no-cache jq
-            apk add --no-cache py-pip=9.0.0-r1
+            apk add bash
+            apk add curl
+            apk add jq
+            apk add py-pip=9.0.0-r1
+            apk add diffutils
             pip install \
               docker-compose==1.12.0 \
               awscli==1.11.76
@@ -75,6 +73,7 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/stats-worker
+            bash ./ci/package_check.sh
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -105,9 +104,11 @@ jobs:
           command: |
             apk update
             apk upgrade
-            apk add --no-cache curl
-            apk add --no-cache jq
-            apk add --no-cache py-pip=9.0.0-r1
+            apk add bash
+            apk add curl
+            apk add jq
+            apk add py-pip=9.0.0-r1
+            apk add diffutils
             pip install \
               docker-compose==1.12.0 \
               awscli==1.11.76
@@ -115,6 +116,7 @@ jobs:
           name: Build application Docker image
           command: |
             cd packages/api
+            bash ./ci/package_check.sh
             docker build \
               -f Dockerfile \
               --no-cache \
@@ -149,11 +151,11 @@ workflows:
           filters:
             branches:
               only:
-                - develop
+                - stats-worker
               ignore: /.*/
       - build_hop_api:
           filters:
             branches:
               only:
-                - develop
+                - hop-api
               ignore: /.*/

@@ -51,8 +51,7 @@ const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
-export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova])
-export const wrapperConfirmationChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Nova])
+export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base])
 export const rateLimitMaxRetries = 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
@@ -89,7 +88,8 @@ export const etherscanApiUrls: Record<string, string> = {
 }
 
 // TODO: Remove this when the exit system is fully live
-export const IsExitSystemLive = process.env.IS_EXIT_SYSTEM_LIVE ?? false
+export const IsExitSystemLive = process.env.IS_EXIT_SYSTEM_LIVE ?? true
+export const ExitSystemSupportedTokens = process.env.EXIT_SYSTEM_SUPPORTED_TOKENS?.split(',') ?? []
 
 type SyncConfig = {
   totalBlocks?: number
@@ -226,7 +226,7 @@ export const config: Config = {
       totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
     },
-    [Chain.ConsenSysZk]: {
+    [Chain.Linea]: {
       totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
     },

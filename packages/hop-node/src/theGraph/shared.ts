@@ -2,6 +2,7 @@ import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { DateTime } from 'luxon'
 import { formatUnits } from 'ethers/lib/utils'
 import { mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
+import { goerli as goerliNetworks } from '@hop-protocol/core/networks'
 
 export type Filters = {
   startDate: string
@@ -14,6 +15,10 @@ const chainIdToSlug: Record<string, string> = {}
 
 for (const network in mainnetNetworks) {
   chainIdToSlug[(mainnetNetworks as any)[network].networkId] = network
+}
+
+for (const network in goerliNetworks) {
+  chainIdToSlug[(goerliNetworks as any)[network].networkId] = network
 }
 
 export { chainIdToSlug }

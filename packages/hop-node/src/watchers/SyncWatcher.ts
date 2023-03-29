@@ -11,7 +11,7 @@ import { BigNumber } from 'ethers'
 import { Chain, GasCostTransactionType, OneWeekMs, RelayableChains } from 'src/constants'
 import { DateTime } from 'luxon'
 import {
-  L1Bridge as L1BridgeContract,
+  L1_Bridge as L1BridgeContract,
   MultipleWithdrawalsSettledEvent,
   TransferBondChallengedEvent,
   TransferRootBondedEvent,
@@ -21,12 +21,12 @@ import {
   WithdrawalBondSettledEvent,
   WithdrawalBondedEvent,
   WithdrewEvent
-} from '@hop-protocol/core/contracts/L1Bridge'
+} from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import {
-  L2Bridge as L2BridgeContract,
+  L2_Bridge as L2BridgeContract,
   TransferSentEvent,
   TransfersCommittedEvent
-} from '@hop-protocol/core/contracts/L2Bridge'
+} from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { RelayerFee } from '@hop-protocol/sdk'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'

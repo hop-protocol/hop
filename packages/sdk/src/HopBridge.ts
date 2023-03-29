@@ -339,6 +339,7 @@ class HopBridge extends Base {
     } else {
       balance = await canonicalToken.balanceOf()
     }
+
     if (balance.lt(tokenAmount)) {
       throw new Error(Errors.NotEnoughAllowance)
     }
@@ -504,11 +505,17 @@ class HopBridge extends Base {
 
   public getSendApprovalAddress (
     sourceChain: TChain,
-    isHTokenTransfer: boolean = false
+    isHTokenTransfer: boolean = false,
+    destinationChain?: TChain // this param was later added hence it's after the boolean param for backward compatibility
   ) : string {
     sourceChain = this.toChainModel(sourceChain)
 
     if (sourceChain.equals(Chain.Ethereum)) {
+      const l1BridgeWrapperAddress = this.getL1BridgeWrapperAddress(this.tokenSymbol, sourceChain, destinationChain)
+      if (l1BridgeWrapperAddress) {
+        return l1BridgeWrapperAddress
+      }
+
       return this.getL1BridgeAddress(this.tokenSymbol, sourceChain)
     }
 
@@ -533,10 +540,11 @@ class HopBridge extends Base {
   public async populateSendApprovalTx (
     tokenAmount: TAmount,
     sourceChain: TChain,
-    isHTokenTransfer: boolean = false
+    isHTokenTransfer: boolean = false,
+    destinationChain?: TChain // this param was later added hence it's after the boolean param for backward compatibility
   ):Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
-    const spender = this.getSendApprovalAddress(sourceChain, isHTokenTransfer)
+    const spender = this.getSendApprovalAddress(sourceChain, isHTokenTransfer, destinationChain)
     const isNativeToken = this.isNativeToken(sourceChain)
     if (isNativeToken) {
       return null
@@ -556,11 +564,11 @@ class HopBridge extends Base {
   public async sendApproval (
     tokenAmount: TAmount,
     sourceChain: TChain,
-    destinationChain: TChain, // might need to keep this param for backward compatibility
+    destinationChain: TChain,
     isHTokenTransfer: boolean = false
   ) : Promise<any> {
     sourceChain = this.toChainModel(sourceChain)
-    const populatedTx = await this.populateSendApprovalTx(tokenAmount, sourceChain, isHTokenTransfer)
+    const populatedTx = await this.populateSendApprovalTx(tokenAmount, sourceChain, isHTokenTransfer, destinationChain)
     if (populatedTx) {
       await this.checkConnectedChain(this.signer, sourceChain)
       return this.sendTransaction(populatedTx, sourceChain)
@@ -698,43 +706,40 @@ class HopBridge extends Base {
     }
   }
 
-  private async getBridgeWrapperData (sourceChain: Chain, destinationChain: Chain, value: BigNumberish): Promise<any> {
+  private async getBridgeWrapperData (sourceChain: TChain, destinationChain?: TChain, value?: BigNumberish): Promise<any> {
+    if (!(sourceChain && destinationChain)) {
+      return
+    }
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
     if (this.network === NetworkSlug.Goerli) {
-      if (sourceChain.isL1) {
-        if (destinationChain.equals(Chain.ConsenSysZk)) {
-          let hopL1BridgeWrapperAddress = ''
-          if (this.tokenSymbol === TokenModel.ETH) {
-            hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
-          }
-          if (this.tokenSymbol === TokenModel.USDC) {
-            hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
-          }
+      const l1BridgeWrapperAddress = this.getL1BridgeWrapperAddress(this.tokenSymbol, sourceChain, destinationChain)
 
-          if (hopL1BridgeWrapperAddress) {
-            const provider = await this.getSignerOrProvider(sourceChain, this.signer)
-            const l1BridgeWrapper = L1_ERC20_Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
-            const relayFee = await this.getConsenSysZkRelayFee(sourceChain, destinationChain)
-            value = BigNumber.from(value || 0).add(relayFee)
+      if (l1BridgeWrapperAddress) {
+        const provider = await this.getSignerOrProvider(sourceChain, this.signer)
+        const l1BridgeWrapper = L1_ERC20_Bridge__factory.connect(l1BridgeWrapperAddress, provider)
+        const relayFee = await this.getLineaRelayFee(sourceChain, destinationChain)
+        value = BigNumber.from(value || 0).add(relayFee)
 
-            return {
-              l1BridgeWrapper,
-              value
-            }
-          }
-        } else if (destinationChain.equals(Chain.ScrollZk)) {
-          let hopL1BridgeWrapperAddress = ''
-          if (this.tokenSymbol === TokenModel.ETH) {
-            hopL1BridgeWrapperAddress = '' // TODO
-          }
-          const provider = await this.getSignerOrProvider(sourceChain, this.signer)
-          const l1BridgeWrapper = L1_ERC20_Bridge__factory.connect(hopL1BridgeWrapperAddress, provider)
-          const relayFee = await this.getScrollZkRelayFee(sourceChain, destinationChain)
-          value = BigNumber.from(value || 0).add(relayFee)
+        return {
+          l1BridgeWrapper,
+          value
+        }
+      }
+    } else if (destinationChain.equals(Chain.ScrollZk)) {
+      let l1BridgeWrapperAddress = ''
+      if (this.tokenSymbol === TokenModel.ETH) {
+        l1BridgeWrapperAddress = '' // TODO
+      }
+      if (l1BridgeWrapperAddress) {
+        const provider = await this.getSignerOrProvider(sourceChain, this.signer)
+        const l1BridgeWrapper = L1_ERC20_Bridge__factory.connect(l1BridgeWrapperAddress, provider)
+        const relayFee = await this.getScrollZkRelayFee(sourceChain, destinationChain)
+        value = BigNumber.from(value || 0).add(relayFee)
 
-          return {
-            l1BridgeWrapper,
-            value
-          }
+        return {
+          l1BridgeWrapper,
+          value
         }
       }
     }
@@ -882,7 +887,17 @@ class HopBridge extends Base {
       estimatedReceived = BigNumber.from(0)
     }
 
+    let isLiquidityAvailable = true
+    if (!sourceChain?.isL1) {
+      const availableLiquidity = await this.getFrontendAvailableLiquidity(sourceChain, destinationChain)
+      isLiquidityAvailable = availableLiquidity.gte(hTokenAmount)
+    }
+
     return {
+      amountIn,
+      sourceChain,
+      destinationChain,
+      isHTokenSend,
       amountOut,
       rate,
       priceImpact,
@@ -900,7 +915,45 @@ class HopBridge extends Base {
       chainNativeTokenPrice: destinationTxFeeData.chainNativeTokenPrice,
       tokenPrice: destinationTxFeeData.tokenPrice,
       destinationChainGasPrice: destinationTxFeeData.destinationChainGasPrice,
-      relayFeeEth
+      relayFeeEth,
+      isLiquidityAvailable
+    }
+  }
+
+  getSendDataAmountOutMins (getSendDataResponse: any, slippageTolerance: number) {
+    const { sourceChain, destinationChain, requiredLiquidity, amountIn, amountOut, totalFee } = getSendDataResponse
+
+    const amountOutMin = this.calcAmountOutMin(amountOut, slippageTolerance)
+
+    // l1->l2
+    if (sourceChain.isL1) {
+      return {
+        amount: amountIn,
+        amountOutMin: amountOutMin.sub(totalFee),
+        destinationAmountOutMin: null,
+        deadline: this.defaultDeadlineSeconds,
+        destinationDeadline: null
+      }
+    }
+
+    // l2->l1
+    if (destinationChain.isL1) {
+      return {
+        amount: amountIn,
+        amountOutMin: amountOutMin.sub(totalFee),
+        destinationAmountOutMin: BigNumber.from(0),
+        deadline: this.defaultDeadlineSeconds,
+        destinationDeadline: 0
+      }
+    }
+
+    // l2->l2
+    return {
+      amount: amountIn,
+      amountOutMin: this.calcAmountOutMin(requiredLiquidity, slippageTolerance).sub(totalFee),
+      destinationAmountOutMin: amountOutMin.sub(totalFee),
+      deadline: this.defaultDeadlineSeconds,
+      destinationDeadline: this.defaultDeadlineSeconds
     }
   }
 
@@ -1128,7 +1181,7 @@ class HopBridge extends Base {
       if (sourceChain.isL1) {
         if (destinationChain.equals(Chain.ZkSync)) {
           // TODO
-        } else if (destinationChain.equals(Chain.ConsenSysZk)) {
+        } else if (destinationChain.equals(Chain.Linea)) {
           // TODO
         } else if (destinationChain.equals(Chain.ScrollZk)) {
           // TODO
@@ -1601,6 +1654,16 @@ class HopBridge extends Base {
     return L1_ERC20_Bridge__factory.connect(bridgeAddress, provider)
   }
 
+  async getL1BridgeWrapperOrL1Bridge (sourceChain: TChain, destinationChain?: TChain): Promise<any> {
+    const bridgeWrapperData = await this.getBridgeWrapperData(sourceChain, destinationChain)
+    if (bridgeWrapperData) {
+      const l1Bridge = bridgeWrapperData.l1BridgeWrapper
+      return l1Bridge
+    }
+
+    return this.getL1Bridge()
+  }
+
   /**
    * @desc Returns Hop L2 Bridge Ethers contract instance.
    * @param chain - Chain model.
@@ -1990,9 +2053,11 @@ class HopBridge extends Base {
     if (checkAllowance) {
       await this.checkConnectedChain(this.signer, sourceChain)
       l1Bridge = await this.getL1Bridge(this.signer)
+      const l1BridgeWrapper = this.getL1BridgeWrapperAddress(this.tokenSymbol, sourceChain, destinationChain)
+      const spender = l1BridgeWrapper || l1Bridge.address
       if (!isNativeToken) {
         const l1Token = this.getL1Token()
-        const allowance = await l1Token.allowance(l1Bridge.address)
+        const allowance = await l1Token.allowance(spender)
         if (allowance.lt(BigNumber.from(amount))) {
           throw new Error(Errors.NotEnoughAllowance)
         }
@@ -2469,17 +2534,27 @@ class HopBridge extends Base {
     this.priceFeed.setApiKeys(this.priceFeedApiKeys)
   }
 
-  async needsApproval (amount: TAmount, chain: TChain, address?: string): Promise<boolean> {
-    const token = this.getCanonicalToken(chain)
+  async needsApproval (
+    amount: TAmount,
+    sourceChain: TChain,
+    address?: string,
+    destinationChain?: TChain // this param was later added hence it's after the address param for backward compatibility
+  ): Promise<boolean> {
+    const token = this.getCanonicalToken(sourceChain)
     const isHTokenTransfer = false
-    const spender = this.getSendApprovalAddress(chain, isHTokenTransfer)
+    const spender = this.getSendApprovalAddress(sourceChain, isHTokenTransfer, destinationChain)
     return token.needsApproval(spender, amount, address)
   }
 
-  async needsHTokenApproval (amount: TAmount, chain: TChain, address?: string): Promise<boolean> {
-    const token = this.getCanonicalToken(chain)
+  async needsHTokenApproval (
+    amount: TAmount,
+    sourceChain: TChain,
+    address?: string,
+    destinationChain?: TChain // this param was later added hence it's after the address param for backward compatibility
+  ): Promise<boolean> {
+    const token = this.getCanonicalToken(sourceChain)
     const isHTokenTransfer = true
-    const spender = this.getSendApprovalAddress(chain, isHTokenTransfer)
+    const spender = this.getSendApprovalAddress(sourceChain, isHTokenTransfer, destinationChain)
     return token.needsApproval(spender, amount, address)
   }
 
@@ -2574,8 +2649,8 @@ class HopBridge extends Base {
   private async getRelayFeeEth (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
     if (this.network === NetworkSlug.Goerli) {
       if (sourceChain.isL1) {
-        if (destinationChain.equals(Chain.ConsenSysZk)) {
-          return this.getConsenSysZkRelayFee(sourceChain, destinationChain)
+        if (destinationChain.equals(Chain.Linea)) {
+          return this.getLineaRelayFee(sourceChain, destinationChain)
         }
         if (destinationChain.equals(Chain.ScrollZk)) {
           return this.getScrollZkRelayFee(sourceChain, destinationChain)
@@ -2585,17 +2660,17 @@ class HopBridge extends Base {
     return BigNumber.from(0)
   }
 
-  private async getConsenSysZkRelayFee (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
+  private async getLineaRelayFee (sourceChain: Chain, destinationChain: Chain): Promise<BigNumber> {
     if (this.network === NetworkSlug.Goerli) {
       if (sourceChain.isL1) {
         const provider = await this.getSignerOrProvider(sourceChain, this.signer)
-        const consensysL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
+        const lineaL1BridgeAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
         const minimumFeeMethodId = ethers.utils.id('minimumFee()').slice(0, 10)
-        const callResult = await provider.call({ to: consensysL1BridgeAddress, data: minimumFeeMethodId })
+        const callResult = await provider.call({ to: lineaL1BridgeAddress, data: minimumFeeMethodId })
         const relayFee = BigNumber.from(callResult)
         return relayFee
       } else {
-        throw new Error('getConsenSysZkRelayFee: not implemented for non L1')
+        throw new Error('getLineaRelayFee: not implemented for non L1')
       }
     }
   }

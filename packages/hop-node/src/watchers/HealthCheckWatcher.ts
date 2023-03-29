@@ -19,7 +19,7 @@ import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, 
 import { BigNumber, providers } from 'ethers'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
-import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
+import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { appTld, expectedNameservers, config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getDbSet } from 'src/db'

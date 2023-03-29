@@ -229,7 +229,7 @@ export function useSendTransaction (props: any) {
 
         /*
         // This is only temporary until bridge wrapper is setup
-        const shouldSendEthToWrapper = reactAppNetwork === 'goerli' && bridge.network === 'goerli' && toNetwork?.slug === sdk.Chain.ConsenSysZk.slug
+        const shouldSendEthToWrapper = reactAppNetwork === 'goerli' && bridge.network === 'goerli' && toNetwork?.slug === sdk.Chain.Linea.slug
         if (shouldSendEthToWrapper) {
           console.log('sending eth to wrapper to pay for fee')
 

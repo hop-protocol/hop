@@ -203,19 +203,6 @@ export class Base {
     if (this.network === NetworkSlug.Goerli) {
       this.baseExplorerUrl = 'https://goerli.explorer.hop.exchange'
     }
-
-    setTimeout(() => {
-      this.init()
-    }, 0)
-  }
-
-  async init () {
-    try {
-      await this.fetchConfigFromS3()
-    } catch (err) {
-      console.error('hop sdk init error:', err)
-      throw new Error(`hop sdk init error: ${err.message}`)
-    }
   }
 
   async fetchConfigFromS3 (): Promise<any> {
@@ -676,7 +663,11 @@ export class Base {
       return BigNumber.from(0)
     }
 
-    if (destinationChain.equals(Chain.Arbitrum) || destinationChain.equals(Chain.Nova)) {
+    if (
+      destinationChain.equals(Chain.Arbitrum) ||
+      destinationChain.equals(Chain.Nova) ||
+      destinationChain.equals(Chain.Linea)
+    ) {
       const relayerFee = new RelayerFee(this.network, tokenSymbol)
       return relayerFee.getRelayCost(destinationChain.slug)
     }
@@ -702,7 +693,11 @@ export class Base {
   async fetchCoreConfigData (): Promise<any> {
     const cacheBust = Date.now()
     const url = `${this.coreConfigJsonUrl}?cb=${cacheBust}`
-    return fetchJsonOrThrow(url)
+    try {
+      return await fetchJsonOrThrow(url)
+    } catch (err: any) {
+      throw new Error(`fetchCoreConfigData error: ${err.message}, url: ${url}`)
+    }
   }
 
   async fetchCoreConfigDataWithIpfsFallback (): Promise<any> {
@@ -740,15 +735,44 @@ export class Base {
   async fetchBonderAvailableLiquidityData (): Promise<any> {
     const cacheBust = Date.now()
     const url = `${this.availableLiqudityJsonUrl}?cb=${cacheBust}`
-    const json = await fetchJsonOrThrow(url)
-    const { timestamp, data } = json
-    const tenMinutes = 10 * 60 * 1000
-    const isOutdated = Date.now() - timestamp > tenMinutes
-    if (isOutdated) {
+    try {
+      const json = await fetchJsonOrThrow(url)
+      const { timestamp, data } = json
+      const tenMinutes = 10 * 60 * 1000
+      const isOutdated = Date.now() - timestamp > tenMinutes
+      if (isOutdated) {
+        return
+      }
+
+      return data
+    } catch (err: any) {
+      throw new Error(`fetchBonderAvailableLiquidityData error: ${err.message}, url: ${url}`)
+    }
+  }
+
+  public getL1BridgeWrapperAddress (token: TToken, sourceChain: TChain, destinationChain: TChain): string {
+    if (!(token && sourceChain && destinationChain)) {
       return
     }
 
-    return data
+    token = this.toTokenModel(token)
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+
+    if (this.network === NetworkSlug.Goerli) {
+      if (sourceChain.isL1) {
+        if (destinationChain.equals(Chain.Linea)) {
+          if (token.symbol === TokenModel.ETH) {
+            const hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+            return hopL1BridgeWrapperAddress
+          }
+          if (token.symbol === TokenModel.USDC) {
+            const hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+            return hopL1BridgeWrapperAddress
+          }
+        }
+      }
+    }
   }
 
   async fetchBonderAvailableLiquidityDataWithIpfsFallback (): Promise<any> {

@@ -39,7 +39,7 @@ export const config : Config = {
       arbitrum: 5,
       nova: 5,
       zksync: 5,
-      consensyszk: 5,
+      linea: 5,
       scrollzk: 5,
       base: 5
     },
@@ -73,7 +73,7 @@ export const config : Config = {
     arbitrum: false,
     nova: false,
     zksync: false,
-    consensyszk: false,
+    linea: false,
     scrollzk: false
   }
 }

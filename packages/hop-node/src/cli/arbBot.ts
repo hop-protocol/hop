@@ -14,7 +14,9 @@ root
 async function main (source: any) {
   const { dry: dryMode } = source
 
-  const arbBot = new ArbBot()
+  const arbBot = new ArbBot({
+    dryMode
+  })
   try {
     await arbBot.start()
   } catch (err: any) {

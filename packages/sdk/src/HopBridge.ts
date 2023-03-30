@@ -878,6 +878,10 @@ class HopBridge extends Base {
     const priceImpact = this.getPriceImpact(rate, marketRate)
 
     const relayFeeEth = await this.getRelayFeeEth(sourceChain, destinationChain)
+    if (relayFeeEth.gt(0)) {
+      totalFee = totalFee.add(relayFeeEth)
+    }
+
     let estimatedReceived = amountOut
     if (totalFee.gt(0)) {
       estimatedReceived = estimatedReceived.sub(totalFee)

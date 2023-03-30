@@ -29,8 +29,13 @@ export function getConvertedFees(input: Input) {
   const bonderFeeDisplay = toTokenDisplay(bonderFee, tokenDecimals, tokenSymbol)
   const bonderFeeUsdDisplay = toUsdDisplay(bonderFee, tokenDecimals, tokenUsdPrice)
 
-  const totalBonderFee =
-    destinationTxFee && bonderFee ? destinationTxFee.add(bonderFee) : destinationTxFee
+  let totalBonderFee = destinationTxFee ?? BigNumber.from('0')
+  if (bonderFee) {
+    totalBonderFee = totalBonderFee.add(bonderFee)
+  }
+  if (relayFee) {
+    totalBonderFee = totalBonderFee.add(relayFee)
+  }
   const totalBonderFeeDisplay = toTokenDisplay(
     totalBonderFee,
     tokenDecimals,

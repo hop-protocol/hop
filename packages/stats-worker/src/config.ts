@@ -30,3 +30,4 @@ export const etherscanApiUrls: Record<string, string> = {
   gnosis: 'https://api.gnosisscan.io',
   nova: 'https://api-nova.arbiscan.io'
 }
+export const coingeckoApiKey = process.env.COINGECKO_API_KEY ?? ''

@@ -2,6 +2,7 @@ import { BigNumber } from 'ethers'
 import { toTokenDisplay, toUsdDisplay } from 'src/utils'
 import { useMemo } from 'react'
 import { useTokenPrice } from 'src/hooks/useTokenPrice'
+import { parseUnits, formatUnits } from 'ethers/lib/utils'
 
 type Input = {
   destinationTxFee?: BigNumber
@@ -29,13 +30,8 @@ export function getConvertedFees(input: Input) {
   const bonderFeeDisplay = toTokenDisplay(bonderFee, tokenDecimals, tokenSymbol)
   const bonderFeeUsdDisplay = toUsdDisplay(bonderFee, tokenDecimals, tokenUsdPrice)
 
-  let totalBonderFee = destinationTxFee ?? BigNumber.from('0')
-  if (bonderFee) {
-    totalBonderFee = totalBonderFee.add(bonderFee)
-  }
-  if (relayFee) {
-    totalBonderFee = totalBonderFee.add(relayFee)
-  }
+  const totalBonderFee =
+    destinationTxFee && bonderFee ? destinationTxFee.add(bonderFee) : destinationTxFee
   const totalBonderFeeDisplay = toTokenDisplay(
     totalBonderFee,
     tokenDecimals,

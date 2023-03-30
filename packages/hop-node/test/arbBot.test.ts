@@ -1,11 +1,11 @@
-import { ArbBot } from 'src/arbBot'
-import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
+import { ArbBot } from '../src/arbBot'
 
-describe('ArbBot', () => {
-  it('arbBot', async () => {
-    // const arbBot = new ArbBot({ dryMode: true })
-    const toChain = 5
-    const items = await getTransfersCommitted('linea', 'ETH', 0, toChain)
-    console.log('items', items)
-  })
-})
+async function main () {
+  const arbBot = new ArbBot({ dryMode: true })
+  const l2CommitTxHash = '0xfff19a34001aef8a82a6235344837f4175044931259e0d68d7781777a447e96e'
+  const rootData = await arbBot.getTransferRootHashDataFromCommitHash(l2CommitTxHash)
+  console.log(rootData)
+  expect(rootData).toBeTruthy()
+}
+
+// main().catch(console.error)

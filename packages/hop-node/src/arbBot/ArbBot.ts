@@ -1,12 +1,14 @@
+import '../moduleAlias'
 import L1Bridge from 'src/watchers/classes/L1Bridge'
 import L2Bridge from 'src/watchers/classes/L2Bridge'
 import contracts from 'src/contracts'
 import getTransferId from 'src/theGraph/getTransfer'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
-import { constructWallet } from 'src/wallets'
-import { BigNumber, Contract } from 'ethers'
+import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
+import { Contract } from 'ethers'
 import { abi } from './lineaAbi'
+import { constructWallet } from 'src/wallets'
 import { getWithdrawalProofData } from 'src/cli/shared'
 import { wait } from 'src/utils/wait'
 
@@ -43,7 +45,7 @@ export class ArbBot {
       throw new Error('ARB_BOT_PRIVATE_KEY is required')
     }
 
-    this.ammSigner = constructWallet(this.network, privateKey)
+    this.ammSigner = constructWallet(this.l2ChainSlug, privateKey)
   }
 
   async start () {
@@ -73,7 +75,7 @@ export class ArbBot {
     const tx3 = await this.commitTransfersToL1()
     await tx3?.wait()
     await wait(10 * 1000)
-    const tx4 = await this.bondTransferRootOnL1(tx3.hash)
+    const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
     await tx4?.wait()
     await wait(10 * 1000)
     const tx5 = await this.withdrawTransferOnL1()
@@ -109,8 +111,8 @@ export class ArbBot {
     console.log('withdrawAmmHTokens()')
     const amount = this.bridge.parseUnits('3000')
 
-    // TODO
-    const amountMin = BigNumber.from(0)
+    const slippageTolerance = 0.5
+    const amountMin = this.bridge.calcAmountOutMin(amount, slippageTolerance)
 
     const deadline = this.getDeadline()
     const hTokenIndex = 1
@@ -166,15 +168,22 @@ export class ArbBot {
     return l2Bridge.commitTransfers(destinationChainId)
   }
 
-  async bondTransferRootOnL1 (l2CommitTransfersTxHash: string) {
+  async bondTransferRootOnL1 (l2CommitTransfersTxHash?: string) {
     console.log('bondTransferRootOnL1()')
+    if (!l2CommitTransfersTxHash) {
+      throw new Error('expected l2CommitTransfersTxHash')
+    }
     const tokenContracts = contracts.get(this.tokenSymbol, this.l1ChainSlug)
     const l1BridgeContract = tokenContracts.l1Bridge
     const l1Bridge = new L1Bridge(l1BridgeContract)
     const destinationChainId = this.l1ChainId
-    // TODO: fetch data from thegraph
-    const transferRootHash = ''
-    const totalAmount = BigNumber.from(0)
+
+    const rootData = await this.getTransferRootHashDataFromCommitHash(l2CommitTransfersTxHash)
+    if (!rootData) {
+      throw new Error('theGraph root data not found for commit tx hash')
+    }
+
+    const { transferRootHash, totalAmount } = rootData
 
     if (this.dryMode) {
       return
@@ -189,7 +198,7 @@ export class ArbBot {
 
   async withdrawTransferOnL1 () {
     console.log('withdrawTransferOnL1()')
-    // TODO
+    // TODO: get transfer id from the graph
     const transferId = ''
     const chain = this.l2ChainSlug
     const token = this.tokenSymbol
@@ -271,5 +280,19 @@ export class ArbBot {
   getDeadline () {
     const deadline = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60)
     return deadline
+  }
+
+  async getTransferRootHashDataFromCommitHash (l2CommitTxHash: string) {
+    const startTimestamp = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60)
+    const items = await getTransfersCommitted(this.l2ChainSlug, this.tokenSymbol, startTimestamp, this.l1ChainId)
+
+    for (const item of items) {
+      if (item.transactionHash === l2CommitTxHash) {
+        return {
+          totalAmount: item.totalAmount,
+          transferRootHash: item.rootHash
+        }
+      }
+    }
   }
 }

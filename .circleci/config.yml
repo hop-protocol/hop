@@ -88,7 +88,7 @@ jobs:
             docker tag app $DOCKER_IMAGE:$BRANCH
             docker push $DOCKER_IMAGE:$CIRCLE_SHA1
             docker push $DOCKER_IMAGE:$BRANCH
-            test $BRANCH == "develop" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
+            test $BRANCH == "stats-worker" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
 
   build_hop_api:
     working_directory: /app
@@ -131,7 +131,7 @@ jobs:
             docker tag app $DOCKER_IMAGE:$BRANCH
             docker push $DOCKER_IMAGE:$CIRCLE_SHA1
             docker push $DOCKER_IMAGE:$BRANCH
-            test $BRANCH == "develop" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
+            test $BRANCH == "hop-api" && docker tag app $DOCKER_IMAGE:latest && docker push $DOCKER_IMAGE:latest; true
 workflows:
   main:
     jobs:

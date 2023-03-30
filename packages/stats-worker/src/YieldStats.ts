@@ -18,6 +18,7 @@ import {
   ERC20__factory,
   StakingRewards__factory
 } from '@hop-protocol/core/contracts'
+import { coingeckoApiKey } from './config'
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 const oneYearDays = 365
@@ -129,6 +130,10 @@ class YieldStats {
       optimism: optimismRpc,
       arbitrum: arbitrumRpc,
       nova: novaRpc
+    })
+
+    this.sdk.setPriceFeedApiKeys({
+      coingecko: coingeckoApiKey
     })
 
     this.bridges = mainnetAddresses.bridges

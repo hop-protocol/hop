@@ -1,33 +1,30 @@
 export const abi = [
   {
-    type: 'function',
-    name: 'dispatchMessage',
-    constant: false,
     inputs: [
       {
+        internalType: 'address',
         name: '_to',
-        type: 'address',
-        baseType: 'address'
+        type: 'address'
       },
       {
+        internalType: 'uint256',
         name: '_fee',
-        type: 'uint256',
-        baseType: 'uint256'
+        type: 'uint256'
       },
       {
+        internalType: 'uint256',
         name: '_deadline',
-        type: 'uint256',
-        baseType: 'uint256'
+        type: 'uint256'
       },
       {
+        internalType: 'bytes',
         name: '_calldata',
-        type: 'bytes',
-        baseType: 'bytes'
+        type: 'bytes'
       }
     ],
+    name: 'dispatchMessage',
     outputs: [],
-    payable: true,
     stateMutability: 'payable',
-    _isFragment: true
+    type: 'function'
   }
 ]

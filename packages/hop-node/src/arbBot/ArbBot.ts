@@ -6,9 +6,11 @@ import getTransferId from 'src/theGraph/getTransfer'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
-import { Contract } from 'ethers'
+import { Contract, providers } from 'ethers'
 import { abi } from './lineaAbi'
 import { constructWallet } from 'src/wallets'
+import { getRpcProvider } from 'src/utils/getRpcProvider'
+import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
 import { getWithdrawalProofData } from 'src/cli/shared'
 import { wait } from 'src/utils/wait'
 
@@ -31,8 +33,14 @@ export class ArbBot {
     if (options?.dryMode) {
       this.dryMode = options.dryMode
     }
+    console.log('dryMode:', this.dryMode)
     this.network = 'goerli'
-    this.sdk = new Hop(this.network)
+    this.sdk = new Hop({
+      network: this.network,
+      chainProviders: {
+        linea: new providers.StaticJsonRpcProvider('https://rpc.goerli.linea.build')
+      }
+    })
     this.tokenSymbol = 'ETH'
     this.l1ChainSlug = Chain.Ethereum.slug
     this.l1ChainId = 5
@@ -66,23 +74,36 @@ export class ArbBot {
     if (!poolThresholdMet) {
       return
     }
-    const tx = await this.withdrawAmmHTokens()
-    await tx?.wait()
+
+    const tx1 = await this.withdrawAmmHTokens()
+    console.log('withdraw amm hTokens tx:', tx1?.hash)
+    await tx1?.wait()
     await wait(10 * 1000)
+
     const tx2 = await this.sendHTokensToL1()
+    console.log('send hTokens to L1 tx:', tx2?.hash)
     await tx2?.wait()
     await wait(10 * 1000)
+
     const tx3 = await this.commitTransfersToL1()
+    console.log('l2 commit transfers tx:', tx3?.hash)
     await tx3?.wait()
-    await wait(10 * 1000)
+    await wait(60 * 1000) // wait for theGraph to index event
+
     const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
+    console.log('l1 bond transfer root tx:', tx4?.hash)
     await tx4?.wait()
     await wait(10 * 1000)
-    const tx5 = await this.withdrawTransferOnL1()
+
+    const tx5 = await this.withdrawTransferOnL1(tx2?.hash)
+    console.log('l1 withdraw tx:', tx5?.hash)
     await tx5?.wait()
     await wait(10 * 1000)
+
     const tx6 = await this.l1CanonicalBridgeSendToL2()
+    console.log('l1 canonical send to l2 tx:', tx6?.hash)
     await tx6?.wait()
+    await wait(10 * 1000)
   }
 
   async checkPools () {
@@ -109,7 +130,17 @@ export class ArbBot {
 
   async withdrawAmmHTokens () {
     console.log('withdrawAmmHTokens()')
-    const amount = this.bridge.parseUnits('3000')
+    // let amount = this.bridge.parseUnits('3000')
+    let amount = this.bridge.parseUnits('0.001')
+
+    const recipient = await this.ammSigner.getAddress()
+    const lpBalance = await this.bridge.getAccountLpBalance(this.l2ChainSlug, recipient)
+
+    if (lpBalance.lt(amount)) {
+      amount = lpBalance
+    }
+
+    console.log('amount:', this.bridge.formatUnits(amount))
 
     const slippageTolerance = 0.5
     const amountMin = this.bridge.calcAmountOutMin(amount, slippageTolerance)
@@ -131,10 +162,12 @@ export class ArbBot {
 
   async sendHTokensToL1 () {
     console.log('sendHTokensToL1()')
-    const amount = this.bridge.parseUnits('3000')
+    // let amount = this.bridge.parseUnits('3000')
+    const amount = this.bridge.parseUnits('0.01')
+
+    const recipient = await this.ammSigner.getAddress()
     const isHTokenTransfer = true
     const sendData = await this.bridge.getSendData(amount, this.l2ChainSlug, this.l1ChainSlug, isHTokenTransfer)
-    const recipient = await this.ammSigner.getAddress()
     const bonderFee = sendData.totalFee
     const slippageTolerance = 0.5 // 0.5%
     const deadline = this.getDeadline()
@@ -144,14 +177,16 @@ export class ArbBot {
       return
     }
 
-    return this.bridge.send(amount, this.l2ChainSlug, this.l1ChainSlug, {
-      recipient,
-      bonderFee,
-      amountOutMin,
-      deadline,
-      destinationAmountOutMin: 0,
-      destinationDeadline: 0
-    })
+    return this.bridge
+      .connect(this.ammSigner)
+      .send(amount, this.l2ChainSlug, this.l1ChainSlug, {
+        recipient,
+        bonderFee,
+        amountOutMin,
+        deadline,
+        destinationAmountOutMin: 0,
+        destinationDeadline: 0
+      })
   }
 
   async commitTransfersToL1 () {
@@ -185,6 +220,12 @@ export class ArbBot {
 
     const { transferRootHash, totalAmount } = rootData
 
+    console.log(
+      transferRootHash,
+      destinationChainId,
+      totalAmount
+    )
+
     if (this.dryMode) {
       return
     }
@@ -196,10 +237,14 @@ export class ArbBot {
     )
   }
 
-  async withdrawTransferOnL1 () {
+  async withdrawTransferOnL1 (l2TransferTxHash: string) {
     console.log('withdrawTransferOnL1()')
-    // TODO: get transfer id from the graph
-    const transferId = ''
+    const { transferId } = await getTransferIdFromTxHash(l2TransferTxHash, this.l2ChainSlug)
+
+    if (!transferId) {
+      throw new Error('transferId not found on theGraph')
+    }
+
     const chain = this.l2ChainSlug
     const token = this.tokenSymbol
 
@@ -259,22 +304,33 @@ export class ArbBot {
   async l1CanonicalBridgeSendToL2 () {
     console.log('l1CanonicalBridgeSendToL2()')
 
-    if (this.dryMode) {
-      return
+    if (this.l2ChainSlug === Chain.Linea.slug) {
+      return this.lineal1CanonicalBridgeSendToL2()
     }
 
-    return this.lineal1CanonicalBridgeSendToL2()
+    throw new Error('l1CanonicalBridgeSendToL2 not implemented')
   }
 
   async lineal1CanonicalBridgeSendToL2 () {
+    // const amount = this.bridge.parseUnits('3500')
+    const amount = this.bridge.parseUnits('0.01')
+
     const recipient = await this.ammSigner.getAddress()
     const l1MessengerAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
     const fee = this.bridge.parseUnits('0.01')
     const deadline = this.getDeadline()
     const calldata = '0x'
 
-    const messenger = new Contract(l1MessengerAddress, abi, this.ammSigner)
-    return messenger.dispatchMessage(recipient, fee, deadline, calldata)
+    const provider = getRpcProvider(this.l1ChainSlug)
+    const messenger = new Contract(l1MessengerAddress, abi, this.ammSigner.connect(provider))
+
+    if (this.dryMode) {
+      return
+    }
+
+    return messenger.dispatchMessage(recipient, fee, deadline, calldata, {
+      value: amount
+    })
   }
 
   getDeadline () {

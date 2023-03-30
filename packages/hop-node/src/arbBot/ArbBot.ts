@@ -65,13 +65,19 @@ export class ArbBot {
   }
 
   async checkPools () {
+    console.log('checkPools()')
     const [canonicalTokenBalance, hTokenBalance] = await this.bridge.getSaddleSwapReserves(this.l2ChainSlug)
+
+    console.log('canonicalTokenBalance:', this.bridge.formatUnits(canonicalTokenBalance))
+    console.log('hTokenBalance:', this.bridge.formatUnits(hTokenBalance))
+
     // TODO
-    const thresholdMet = hTokenBalance.sub(canonicalTokenBalance)
+    const thresholdMet = hTokenBalance.sub(canonicalTokenBalance).gt(0)
     return thresholdMet
   }
 
   async withdrawAmmHTokens () {
+    console.log('withdrawAmmHTokens()')
     const amount = this.bridge.parseUnits('3000')
 
     // TODO
@@ -89,6 +95,7 @@ export class ArbBot {
   }
 
   async sendHTokensToL1 () {
+    console.log('sendHTokensToL1()')
     const amount = this.bridge.parseUnits('3000')
     const isHTokenTransfer = true
     const sendData = await this.bridge.getSendData(amount, this.l2ChainSlug, this.l1ChainSlug, isHTokenTransfer)
@@ -109,6 +116,7 @@ export class ArbBot {
   }
 
   async commitTransfersToL1 () {
+    console.log('commitTransfersToL1()')
     const destinationChainId = this.l1ChainId
     const tokenContracts = contracts.get(this.tokenSymbol, this.l2ChainSlug)
     const l2BridgeContract = tokenContracts.l2Bridge
@@ -117,6 +125,7 @@ export class ArbBot {
   }
 
   async bondTransferRootOnL1 () {
+    console.log('bondTransferRootOnL1()')
     const tokenContracts = contracts.get(this.tokenSymbol, this.l1ChainSlug)
     const l1BridgeContract = tokenContracts.l1Bridge
     const l1Bridge = new L1Bridge(l1BridgeContract)
@@ -132,6 +141,7 @@ export class ArbBot {
   }
 
   async withdrawTransferOnL1 () {
+    console.log('withdrawTransferOnL1()')
     // TODO
     const transferId = ''
     const chain = this.l2ChainSlug
@@ -187,6 +197,7 @@ export class ArbBot {
   }
 
   async l1CanonicalBridgeSendToL2 () {
+    console.log('l1CanonicalBridgeSendToL2()')
     return this.lineal1CanonicalBridgeSendToL2()
   }
 

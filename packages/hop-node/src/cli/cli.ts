@@ -3,6 +3,7 @@ import Logger from 'src/logger'
 import packageJson from '../../package.json'
 import { program } from './shared'
 
+import './arbBot'
 import './bondTransferRoot'
 import './bondWithdrawal'
 import './challenger'

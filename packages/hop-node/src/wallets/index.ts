@@ -1,1 +1,1 @@
-export { default } from './wallets'
+export { default, constructWallet } from './wallets'

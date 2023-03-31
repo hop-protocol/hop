@@ -1,5 +1,6 @@
 import OsWatcher from 'src/watchers/OsWatcher'
 import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
+import { ArbBot } from 'src/arbBot'
 import {
   bondWithdrawalBatchSize,
   gitRev,
@@ -37,6 +38,7 @@ root
   .option('--heapdump [boolean]', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
   .option('--enabled-checks <enabledChecks>', 'Enabled checks. Options are: lowBonderBalances,unbondedTransfers,unbondedTransferRoots,incompleteSettlements,challengedTransferRoots,unsyncedSubgraphs,lowAvailableLiquidityBonders', parseStringArray)
   .option('--resync-interval-ms <number>', 'The sync interval for the SyncWatcher', parseNumber)
+  .option('--arb-bot [boolean]', 'Run the Goerli arb bot', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {
@@ -44,7 +46,7 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, resyncIntervalMs } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, resyncIntervalMs, arbBot: runArbBot } = source
   if (!config) {
     throw new Error('config file is required')
   }
@@ -166,6 +168,15 @@ async function main (source: any) {
         s3Namespace,
         cacheFile: healthCheckCacheFile,
         enabledChecks: enabledChecksObj
+      }).start()
+      resolve()
+    }))
+  }
+
+  if (runArbBot) {
+    promises.push(new Promise((resolve) => {
+      new ArbBot({
+        dryMode
       }).start()
       resolve()
     }))

@@ -9,6 +9,7 @@ import lineaAbi from './lineaAbi'
 import wethAbi from './wethAbi'
 import { BigNumber, Contract, Wallet, providers } from 'ethers'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
+import { Logger } from 'src/logger'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
 import { getWithdrawalProofData } from 'src/cli/shared'
@@ -29,6 +30,7 @@ export class ArbBot {
   l1ChainId: number
   ammSigner: any
   dryMode: boolean = false
+  logger: Logger
 
   amount: BigNumber = parseUnits('3000', 18)
   // amount: BigNumber = parseUnits('0.01', 18)
@@ -37,7 +39,8 @@ export class ArbBot {
     if (options?.dryMode) {
       this.dryMode = options.dryMode
     }
-    console.log('dryMode:', this.dryMode)
+    this.logger = new Logger('ArbBot')
+    this.logger.log('dryMode:', this.dryMode)
     this.network = 'goerli'
     this.sdk = new Hop({
       network: this.network,
@@ -63,12 +66,12 @@ export class ArbBot {
   async start () {
     while (true) {
       try {
-        console.log('poll')
+        this.logger.log('poll')
         await this.poll()
       } catch (err: any) {
         console.error('ArbBot error:', err)
       }
-      console.log('poll end')
+      this.logger.log('poll end')
       await wait(60 * 1000)
     }
   }
@@ -80,70 +83,70 @@ export class ArbBot {
     }
 
     const tx1 = await this.withdrawAmmHTokens()
-    console.log('withdraw amm hTokens tx:', tx1?.hash)
+    this.logger.info('withdraw amm hTokens tx:', tx1?.hash)
     await tx1?.wait()
     await wait(10 * 1000)
 
     const tx2 = await this.sendHTokensToL1()
-    console.log('send hTokens to L1 tx:', tx2?.hash)
+    this.logger.info('send hTokens to L1 tx:', tx2?.hash)
     await tx2?.wait()
     await wait(10 * 1000)
 
     const tx3 = await this.commitTransfersToL1()
-    console.log('l2 commit transfers tx:', tx3?.hash)
+    this.logger.info('l2 commit transfers tx:', tx3?.hash)
     await tx3?.wait()
     await wait(2 * 60 * 1000) // wait for theGraph to index event
 
     const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
-    console.log('l1 bond transfer root tx:', tx4?.hash)
+    this.logger.info('l1 bond transfer root tx:', tx4?.hash)
     await tx4?.wait()
     await wait(10 * 1000)
 
     const tx5 = await this.withdrawTransferOnL1(tx2?.hash)
-    console.log('l1 withdraw tx:', tx5?.hash)
+    this.logger.info('l1 withdraw tx:', tx5?.hash)
     await tx5?.wait()
     await wait(10 * 1000)
 
     const tx6 = await this.l1CanonicalBridgeSendToL2()
-    console.log('l1 canonical send to l2 tx:', tx6?.hash)
+    this.logger.info('l1 canonical send to l2 tx:', tx6?.hash)
     await tx6?.wait()
     await wait(20 * 60 * 1000) // wait to receive tokens on L2
 
     const tx7 = await this.wrapEthToWethOnL2()
-    console.log('l2 wrap eth tx:', tx7?.hash)
+    this.logger.info('l2 wrap eth tx:', tx7?.hash)
     await tx7?.wait()
 
     while (true) {
-      console.log('amm deposit loop poll')
+      this.logger.log('amm deposit loop poll')
       const l2WethBalance = await this.getL2WethBalance()
       if (l2WethBalance.eq(0)) {
-        console.log('no weth balance')
+        this.logger.log('no weth balance')
         break
       }
       const shouldDeposit = await this.checkAmmShouldDeposit()
       if (!shouldDeposit) {
-        console.log('should not deposit yet')
+        this.logger.log('should not deposit yet')
         await wait(60 * 1000)
         continue
       }
       const tx8 = await this.depositAmmCanonicalTokens()
-      console.log('l2 amm deposit canonical tokens tx:', tx8?.hash)
+      this.logger.info('l2 amm deposit canonical tokens tx:', tx8?.hash)
       await tx8?.wait()
-      console.log('amm deposit loop wait')
+      this.logger.log('amm deposit loop wait')
       await wait(60 * 1000)
-      console.log('amm deposit loop end')
+      this.logger.log('amm deposit loop end')
     }
   }
 
   async checkAmmShouldWithdraw () {
-    console.log('checkAmmShouldWithdraw()')
+    this.logger.log('checkAmmShouldWithdraw()')
     const [canonicalTokenBalanceBn, hTokenBalanceBn] = await this.bridge.getSaddleSwapReserves(this.l2ChainSlug)
 
     const canonicalTokenBalance = this.bridge.formatUnits(canonicalTokenBalanceBn)
     const hTokenBalance = this.bridge.formatUnits(hTokenBalanceBn)
 
-    console.log('canonicalTokenBalance:', canonicalTokenBalance)
-    console.log('hTokenBalance:', hTokenBalance)
+    this.logger.log('canonicalTokenBalance:', canonicalTokenBalance)
+    this.logger.log('hTokenBalance:', hTokenBalance)
 
     if (canonicalTokenBalance > hTokenBalance) {
       return false
@@ -163,7 +166,7 @@ export class ArbBot {
   }
 
   async withdrawAmmHTokens () {
-    console.log('withdrawAmmHTokens()')
+    this.logger.log('withdrawAmmHTokens()')
     let amount = this.amount
 
     const recipient = await this.ammSigner.getAddress()
@@ -173,7 +176,7 @@ export class ArbBot {
       amount = lpBalance
     }
 
-    console.log('amount:', this.bridge.formatUnits(amount))
+    this.logger.log('amount:', this.bridge.formatUnits(amount))
 
     const slippageTolerance = 5
     const amountMin = this.bridge.calcAmountOutMin(amount, slippageTolerance)
@@ -195,7 +198,7 @@ export class ArbBot {
   }
 
   async sendHTokensToL1 () {
-    console.log('sendHTokensToL1()')
+    this.logger.log('sendHTokensToL1()')
     let amount = this.amount
 
     const hTokenBalance = await this.bridge.getL2HopToken(this.l2ChainSlug)
@@ -203,7 +206,7 @@ export class ArbBot {
       amount = hTokenBalance
     }
 
-    console.log('amount:', this.bridge.formatUnits(amount))
+    this.logger.log('amount:', this.bridge.formatUnits(amount))
 
     const recipient = await this.ammSigner.getAddress()
     const isHTokenTransfer = true
@@ -231,7 +234,7 @@ export class ArbBot {
   }
 
   async commitTransfersToL1 () {
-    console.log('commitTransfersToL1()')
+    this.logger.log('commitTransfersToL1()')
     const destinationChainId = this.l1ChainId
     const tokenContracts = contracts.get(this.tokenSymbol, this.l2ChainSlug)
     const l2BridgeContract = tokenContracts.l2Bridge
@@ -245,7 +248,7 @@ export class ArbBot {
   }
 
   async bondTransferRootOnL1 (l2CommitTransfersTxHash?: string) {
-    console.log('bondTransferRootOnL1()')
+    this.logger.log('bondTransferRootOnL1()')
     if (!l2CommitTransfersTxHash) {
       throw new Error('expected l2CommitTransfersTxHash')
     }
@@ -261,7 +264,7 @@ export class ArbBot {
 
     const { transferRootHash, totalAmount } = rootData
 
-    console.log(
+    this.logger.log(
       transferRootHash,
       destinationChainId,
       totalAmount
@@ -279,7 +282,7 @@ export class ArbBot {
   }
 
   async withdrawTransferOnL1 (l2TransferTxHash: string) {
-    console.log('withdrawTransferOnL1()')
+    this.logger.log('withdrawTransferOnL1()')
     const { transferId } = await getTransferIdFromTxHash(l2TransferTxHash, this.l2ChainSlug)
 
     if (!transferId) {
@@ -342,7 +345,7 @@ export class ArbBot {
   }
 
   async l1CanonicalBridgeSendToL2 () {
-    console.log('l1CanonicalBridgeSendToL2()')
+    this.logger.log('l1CanonicalBridgeSendToL2()')
 
     if (this.l2ChainSlug === Chain.Linea.slug) {
       return this.lineal1CanonicalBridgeSendToL2()
@@ -365,7 +368,7 @@ export class ArbBot {
       amount = ethBalance.sub(BigNumber.from(parseUnits('0.02', 18))) // account for message fee and gas fee
     }
 
-    console.log('amount:', this.bridge.formatUnits(amount))
+    this.logger.log('amount:', this.bridge.formatUnits(amount))
 
     const l1MessengerAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
     const fee = this.bridge.parseUnits('0.01')
@@ -397,7 +400,7 @@ export class ArbBot {
       amount = ethBalance.sub(BigNumber.from(parseUnits('0.01', 18))) // account for fee
     }
 
-    console.log('amount:', this.bridge.formatUnits(amount))
+    this.logger.log('amount:', this.bridge.formatUnits(amount))
 
     const l2WethAddress = '0x2C1b868d6596a18e32E61B901E4060C872647b6C' // linea weth
     const weth = new Contract(l2WethAddress, wethAbi, this.ammSigner.connect(provider))
@@ -413,14 +416,14 @@ export class ArbBot {
   }
 
   async checkAmmShouldDeposit () {
-    console.log('checkAmmShouldDeposit()')
+    this.logger.log('checkAmmShouldDeposit()')
     const [canonicalTokenBalanceBn, hTokenBalanceBn] = await this.bridge.getSaddleSwapReserves(this.l2ChainSlug)
 
     const canonicalTokenBalance = this.bridge.formatUnits(canonicalTokenBalanceBn)
     const hTokenBalance = this.bridge.formatUnits(hTokenBalanceBn)
 
-    console.log('canonicalTokenBalance:', canonicalTokenBalance)
-    console.log('hTokenBalance:', hTokenBalance)
+    this.logger.log('canonicalTokenBalance:', canonicalTokenBalance)
+    this.logger.log('hTokenBalance:', hTokenBalance)
 
     if (canonicalTokenBalance > hTokenBalance) {
       return false
@@ -438,13 +441,13 @@ export class ArbBot {
     const weth = new Contract(l2WethAddress, wethAbi, this.ammSigner.connect(provider))
     const l2WethBalance = await weth.balanceOf(recipient)
 
-    console.log('l2WethBalance:', this.bridge.formatUnits(l2WethBalance))
+    this.logger.log('l2WethBalance:', this.bridge.formatUnits(l2WethBalance))
 
     return l2WethBalance
   }
 
   async depositAmmCanonicalTokens () {
-    console.log('depositAmmCanonicalTokens()')
+    this.logger.log('depositAmmCanonicalTokens()')
     let amount = this.amount
 
     const l2WethBalance = await this.getL2WethBalance()
@@ -452,7 +455,7 @@ export class ArbBot {
       amount = l2WethBalance
     }
 
-    console.log('amount:', this.bridge.formatUnits(amount))
+    this.logger.log('amount:', this.bridge.formatUnits(amount))
 
     const amount0Desired = amount
     const amount1Desired = 0

@@ -5,14 +5,15 @@ import contracts from 'src/contracts'
 import getTransferId from 'src/theGraph/getTransfer'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
+import lineaAbi from './lineaAbi'
+import wethAbi from './wethAbi'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
-import { Contract, providers } from 'ethers'
-import { abi } from './lineaAbi'
-import { constructWallet } from 'src/wallets'
+import { Contract, Wallet, providers } from 'ethers'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
 import { getWithdrawalProofData } from 'src/cli/shared'
 import { wait } from 'src/utils/wait'
+// import { parseUnits } from 'ethers/lib/utils'
 
 export type Options = {
   dryMode: boolean
@@ -53,7 +54,7 @@ export class ArbBot {
       throw new Error('ARB_BOT_PRIVATE_KEY is required')
     }
 
-    this.ammSigner = constructWallet(this.l2ChainSlug, privateKey)
+    this.ammSigner = new Wallet(privateKey)
   }
 
   async start () {
@@ -70,8 +71,8 @@ export class ArbBot {
   }
 
   async poll () {
-    const poolThresholdMet = await this.checkPools()
-    if (!poolThresholdMet) {
+    const shouldWithdraw = await this.checkAmmShouldWithdraw()
+    if (!shouldWithdraw) {
       return
     }
 
@@ -88,7 +89,7 @@ export class ArbBot {
     const tx3 = await this.commitTransfersToL1()
     console.log('l2 commit transfers tx:', tx3?.hash)
     await tx3?.wait()
-    await wait(60 * 1000) // wait for theGraph to index event
+    await wait(2 * 60 * 1000) // wait for theGraph to index event
 
     const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
     console.log('l1 bond transfer root tx:', tx4?.hash)
@@ -103,11 +104,36 @@ export class ArbBot {
     const tx6 = await this.l1CanonicalBridgeSendToL2()
     console.log('l1 canonical send to l2 tx:', tx6?.hash)
     await tx6?.wait()
-    await wait(10 * 1000)
+    await wait(20 * 60 * 1000) // wait to receive tokens on L2
+
+    const tx7 = await this.wrapEthToWethOnL2()
+    console.log('l2 wrap eth tx:', tx7?.hash)
+    await tx7?.wait()
+
+    while (true) {
+      console.log('amm deposit loop poll')
+      const l2WethBalance = await this.getL2WethBalance()
+      if (l2WethBalance.eq(0)) {
+        console.log('no weth balance')
+        break
+      }
+      const shouldDeposit = await this.checkAmmShouldDeposit()
+      if (!shouldDeposit) {
+        console.log('should not deposit yet')
+        await wait(60 * 1000)
+        continue
+      }
+      const tx8 = await this.depositAmmCanonicalTokens()
+      console.log('l2 amm deposit canonical tokens tx:', tx8?.hash)
+      await tx8?.wait()
+      console.log('amm deposit loop wait')
+      await wait(60 * 1000)
+      console.log('amm deposit loop end')
+    }
   }
 
-  async checkPools () {
-    console.log('checkPools()')
+  async checkAmmShouldWithdraw () {
+    console.log('checkAmmShouldWithdraw()')
     const [canonicalTokenBalanceBn, hTokenBalanceBn] = await this.bridge.getSaddleSwapReserves(this.l2ChainSlug)
 
     const canonicalTokenBalance = this.bridge.formatUnits(canonicalTokenBalanceBn)
@@ -142,7 +168,7 @@ export class ArbBot {
 
     console.log('amount:', this.bridge.formatUnits(amount))
 
-    const slippageTolerance = 0.5
+    const slippageTolerance = 5
     const amountMin = this.bridge.calcAmountOutMin(amount, slippageTolerance)
 
     const deadline = this.getDeadline()
@@ -152,8 +178,10 @@ export class ArbBot {
       return
     }
 
+    const provider = getRpcProvider(this.l2ChainSlug)
+
     return this.bridge
-      .connect(this.ammSigner)
+      .connect(this.ammSigner.connect(provider))
       .removeLiquidityOneToken(amount, hTokenIndex, this.l2ChainSlug, {
         amountMin,
         deadline
@@ -169,7 +197,7 @@ export class ArbBot {
     const isHTokenTransfer = true
     const sendData = await this.bridge.getSendData(amount, this.l2ChainSlug, this.l1ChainSlug, isHTokenTransfer)
     const bonderFee = sendData.totalFee
-    const slippageTolerance = 0.5 // 0.5%
+    const slippageTolerance = 5
     const deadline = this.getDeadline()
     const { amountOutMin } = this.bridge.getSendDataAmountOutMins(sendData, slippageTolerance)
 
@@ -177,8 +205,10 @@ export class ArbBot {
       return
     }
 
+    const provider = getRpcProvider(this.l2ChainSlug)
+
     return this.bridge
-      .connect(this.ammSigner)
+      .connect(this.ammSigner.connect(provider))
       .send(amount, this.l2ChainSlug, this.l1ChainSlug, {
         recipient,
         bonderFee,
@@ -312,7 +342,7 @@ export class ArbBot {
   }
 
   async lineal1CanonicalBridgeSendToL2 () {
-    // const amount = this.bridge.parseUnits('3500')
+    // const amount = this.bridge.parseUnits('3000')
     const amount = this.bridge.parseUnits('0.01')
 
     const recipient = await this.ammSigner.getAddress()
@@ -322,7 +352,7 @@ export class ArbBot {
     const calldata = '0x'
 
     const provider = getRpcProvider(this.l1ChainSlug)
-    const messenger = new Contract(l1MessengerAddress, abi, this.ammSigner.connect(provider))
+    const messenger = new Contract(l1MessengerAddress, lineaAbi, this.ammSigner.connect(provider))
 
     if (this.dryMode) {
       return
@@ -333,8 +363,89 @@ export class ArbBot {
     })
   }
 
+  async wrapEthToWethOnL2 () {
+    // const amount = this.bridge.parseUnits('3000')
+    const amount = this.bridge.parseUnits('0.001')
+    const provider = getRpcProvider(this.l2ChainSlug)
+    const l2WethAddress = '0x2C1b868d6596a18e32E61B901E4060C872647b6C' // linea weth
+    const weth = new Contract(l2WethAddress, wethAbi, this.ammSigner.connect(provider))
+
+    if (this.dryMode) {
+      return
+    }
+
+    return weth.deposit({
+      value: amount
+      // gasPrice: parseUnits('2', 9)
+    })
+  }
+
+  async checkAmmShouldDeposit () {
+    console.log('checkAmmShouldDeposit()')
+    const [canonicalTokenBalanceBn, hTokenBalanceBn] = await this.bridge.getSaddleSwapReserves(this.l2ChainSlug)
+
+    const canonicalTokenBalance = this.bridge.formatUnits(canonicalTokenBalanceBn)
+    const hTokenBalance = this.bridge.formatUnits(hTokenBalanceBn)
+
+    console.log('canonicalTokenBalance:', canonicalTokenBalance)
+    console.log('hTokenBalance:', hTokenBalance)
+
+    if (canonicalTokenBalance > hTokenBalance) {
+      return false
+    }
+
+    const thresholdMet = (hTokenBalance - canonicalTokenBalance) <= 500
+    return thresholdMet
+  }
+
+  async getL2WethBalance () {
+    const provider = getRpcProvider(this.l2ChainSlug)
+    const recipient = await this.ammSigner.getAddress()
+    const l2WethAddress = '0x2C1b868d6596a18e32E61B901E4060C872647b6C' // linea weth
+    const weth = new Contract(l2WethAddress, wethAbi, this.ammSigner.connect(provider))
+    const l2WethBalance = await weth.balanceOf(recipient)
+
+    console.log('l2WethBalance:', this.bridge.formatUnits(l2WethBalance))
+
+    return l2WethBalance
+  }
+
+  async depositAmmCanonicalTokens () {
+    console.log('depositAmmCanonicalTokens()')
+    // let amount = this.bridge.parseUnits('500')
+    let amount = this.bridge.parseUnits('0.001')
+
+    const l2WethBalance = await this.getL2WethBalance()
+
+    if (l2WethBalance.lt(amount)) {
+      amount = l2WethBalance
+    }
+
+    console.log('amount:', this.bridge.formatUnits(amount))
+
+    if (this.dryMode) {
+      return
+    }
+
+    const amount0Desired = amount
+    const amount1Desired = 0
+
+    const slippageTolerance = 5
+    const minToMint = this.bridge.calcAmountOutMin(amount, slippageTolerance)
+    const deadline = this.getDeadline()
+
+    const provider = getRpcProvider(this.l2ChainSlug)
+
+    return this.bridge
+      .connect(this.ammSigner.connect(provider))
+      .addLiquidity(amount0Desired, amount1Desired, this.l2ChainSlug, {
+        minToMint,
+        deadline
+      })
+  }
+
   getDeadline () {
-    const deadline = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60)
+    const deadline = Math.floor(Date.now() / 1000) + (60 * 24 * 60 * 60)
     return deadline
   }
 

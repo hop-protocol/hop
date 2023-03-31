@@ -7,13 +7,13 @@ import getTransferRoot from 'src/theGraph/getTransferRoot'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import lineaAbi from './lineaAbi'
 import wethAbi from './wethAbi'
+import { BigNumber, Contract, Wallet, providers } from 'ethers'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
-import { Contract, Wallet, providers } from 'ethers'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
 import { getWithdrawalProofData } from 'src/cli/shared'
+import { parseUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils/wait'
-// import { parseUnits } from 'ethers/lib/utils'
 
 export type Options = {
   dryMode: boolean
@@ -29,6 +29,9 @@ export class ArbBot {
   l1ChainId: number
   ammSigner: any
   dryMode: boolean = false
+
+  amount: BigNumber = parseUnits('3000', 18)
+  // amount: BigNumber = parseUnits('0.01', 18)
 
   constructor (options?: Partial<Options>) {
     if (options?.dryMode) {
@@ -146,6 +149,11 @@ export class ArbBot {
       return false
     }
 
+    const amount = this.bridge.formatUnits(this.amount)
+    if (amount < hTokenBalance) {
+      return false
+    }
+
     const ratio = canonicalTokenBalance / hTokenBalance
     const threshold = 0.3
 
@@ -156,8 +164,7 @@ export class ArbBot {
 
   async withdrawAmmHTokens () {
     console.log('withdrawAmmHTokens()')
-    // let amount = this.bridge.parseUnits('3000')
-    let amount = this.bridge.parseUnits('0.001')
+    let amount = this.amount
 
     const recipient = await this.ammSigner.getAddress()
     const lpBalance = await this.bridge.getAccountLpBalance(this.l2ChainSlug, recipient)
@@ -173,12 +180,11 @@ export class ArbBot {
 
     const deadline = this.getDeadline()
     const hTokenIndex = 1
+    const provider = getRpcProvider(this.l2ChainSlug)
 
     if (this.dryMode) {
       return
     }
-
-    const provider = getRpcProvider(this.l2ChainSlug)
 
     return this.bridge
       .connect(this.ammSigner.connect(provider))
@@ -190,8 +196,14 @@ export class ArbBot {
 
   async sendHTokensToL1 () {
     console.log('sendHTokensToL1()')
-    // let amount = this.bridge.parseUnits('3000')
-    const amount = this.bridge.parseUnits('0.01')
+    let amount = this.amount
+
+    const hTokenBalance = await this.bridge.getL2HopToken(this.l2ChainSlug)
+    if (hTokenBalance.lt(amount)) {
+      amount = hTokenBalance
+    }
+
+    console.log('amount:', this.bridge.formatUnits(amount))
 
     const recipient = await this.ammSigner.getAddress()
     const isHTokenTransfer = true
@@ -200,12 +212,11 @@ export class ArbBot {
     const slippageTolerance = 5
     const deadline = this.getDeadline()
     const { amountOutMin } = this.bridge.getSendDataAmountOutMins(sendData, slippageTolerance)
+    const provider = getRpcProvider(this.l2ChainSlug)
 
     if (this.dryMode) {
       return
     }
-
-    const provider = getRpcProvider(this.l2ChainSlug)
 
     return this.bridge
       .connect(this.ammSigner.connect(provider))
@@ -291,8 +302,7 @@ export class ArbBot {
       transferNonce,
       bonderFee,
       amountOutMin,
-      deadline,
-      destinationChainId
+      deadline
     } = transfer
 
     const transferRoot = await getTransferRoot(
@@ -342,16 +352,26 @@ export class ArbBot {
   }
 
   async lineal1CanonicalBridgeSendToL2 () {
-    // const amount = this.bridge.parseUnits('3000')
-    const amount = this.bridge.parseUnits('0.01')
+    let amount = this.amount
 
     const recipient = await this.ammSigner.getAddress()
+    const provider = getRpcProvider(this.l1ChainSlug)
+    if (!provider) {
+      throw new Error('expected provider')
+    }
+
+    const ethBalance = await provider.getBalance(recipient)
+    if (amount.lt(ethBalance)) {
+      amount = ethBalance.sub(BigNumber.from(parseUnits('0.02', 18))) // account for message fee and gas fee
+    }
+
+    console.log('amount:', this.bridge.formatUnits(amount))
+
     const l1MessengerAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
     const fee = this.bridge.parseUnits('0.01')
     const deadline = this.getDeadline()
     const calldata = '0x'
 
-    const provider = getRpcProvider(this.l1ChainSlug)
     const messenger = new Contract(l1MessengerAddress, lineaAbi, this.ammSigner.connect(provider))
 
     if (this.dryMode) {
@@ -364,9 +384,21 @@ export class ArbBot {
   }
 
   async wrapEthToWethOnL2 () {
-    // const amount = this.bridge.parseUnits('3000')
-    const amount = this.bridge.parseUnits('0.001')
+    let amount = this.amount
+
+    const recipient = await this.ammSigner.getAddress()
     const provider = getRpcProvider(this.l2ChainSlug)
+    if (!provider) {
+      throw new Error('expected provider')
+    }
+
+    const ethBalance = await provider.getBalance(recipient)
+    if (amount.lt(ethBalance)) {
+      amount = ethBalance.sub(BigNumber.from(parseUnits('0.01', 18))) // account for fee
+    }
+
+    console.log('amount:', this.bridge.formatUnits(amount))
+
     const l2WethAddress = '0x2C1b868d6596a18e32E61B901E4060C872647b6C' // linea weth
     const weth = new Contract(l2WethAddress, wethAbi, this.ammSigner.connect(provider))
 
@@ -394,7 +426,8 @@ export class ArbBot {
       return false
     }
 
-    const thresholdMet = (hTokenBalance - canonicalTokenBalance) <= 500
+    const thresholdEth = 500
+    const thresholdMet = (hTokenBalance - canonicalTokenBalance) <= thresholdEth
     return thresholdMet
   }
 
@@ -412,20 +445,14 @@ export class ArbBot {
 
   async depositAmmCanonicalTokens () {
     console.log('depositAmmCanonicalTokens()')
-    // let amount = this.bridge.parseUnits('500')
-    let amount = this.bridge.parseUnits('0.001')
+    let amount = this.amount
 
     const l2WethBalance = await this.getL2WethBalance()
-
     if (l2WethBalance.lt(amount)) {
       amount = l2WethBalance
     }
 
     console.log('amount:', this.bridge.formatUnits(amount))
-
-    if (this.dryMode) {
-      return
-    }
 
     const amount0Desired = amount
     const amount1Desired = 0
@@ -435,6 +462,10 @@ export class ArbBot {
     const deadline = this.getDeadline()
 
     const provider = getRpcProvider(this.l2ChainSlug)
+
+    if (this.dryMode) {
+      return
+    }
 
     return this.bridge
       .connect(this.ammSigner.connect(provider))

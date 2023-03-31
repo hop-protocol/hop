@@ -1,6 +1,6 @@
 import OsWatcher from 'src/watchers/OsWatcher'
-import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import { ArbBot } from 'src/arbBot'
+import { HealthCheckWatcher } from 'src/watchers/HealthCheckWatcher'
 import {
   bondWithdrawalBatchSize,
   gitRev,

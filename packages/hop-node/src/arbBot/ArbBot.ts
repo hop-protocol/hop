@@ -159,38 +159,80 @@ export class ArbBot {
     const tx1 = await this.withdrawAmmHTokens()
     this.logger.info('withdraw amm hTokens tx:', tx1?.hash)
     await tx1?.wait(10)
-    await wait(10 * 1000)
+    if (!this.dryMode) {
+      await wait(10 * 1000)
+    }
 
     const tx2 = await this.sendHTokensToL1()
     this.logger.info('send hTokens to L1 tx:', tx2?.hash)
     await tx2?.wait(10)
-    await wait(10 * 1000)
+    if (!this.dryMode) {
+      await wait(10 * 1000)
+    }
 
     const tx3 = await this.commitTransfersToL1()
     this.logger.info('l2 commit transfers tx:', tx3?.hash)
     await tx3?.wait(10)
-    await wait(60 * 60 * 1000) // wait for theGraph to index event and for transfer root to be bonded
+    if (!this.dryMode) {
+      await wait(60 * 60 * 1000) // wait for theGraph to index event and for transfer root to be bonded
+    }
 
     // const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
     // this.logger.info('l1 bond transfer root tx:', tx4?.hash)
     // await tx4?.wait(10)
     // await wait(10 * 1000)
 
-    const tx5 = await this.withdrawTransferOnL1(tx2?.hash)
-    this.logger.info('l1 withdraw tx:', tx5?.hash)
-    await tx5?.wait(10)
-    await wait(10 * 1000)
+    if (tx2?.hash) {
+      const tx5 = await this.withdrawTransferOnL1(tx2?.hash)
+      this.logger.info('l1 withdraw tx:', tx5?.hash)
+      await tx5?.wait(10)
+      if (!this.dryMode) {
+        await wait(10 * 1000)
+      }
+    }
 
     const tx6 = await this.l1CanonicalBridgeSendToL2()
     this.logger.info('l1 canonical send to l2 tx:', tx6?.hash)
     await tx6?.wait(10)
-    await wait(20 * 60 * 1000) // wait to receive tokens on L2
+
+    if (!this.dryMode) {
+      // await wait(20 * 60 * 1000) // wait to receive tokens on L2
+      await this.waitForCanonicalBridgeTokensArriveOnL2()
+    }
 
     const tx7 = await this.wrapEthToWethOnL2()
     this.logger.info('l2 wrap eth tx:', tx7?.hash)
     await tx7?.wait(10)
 
     await this.pollAmmDeposit()
+  }
+
+  async pollAmmDeposit () {
+    while (true) {
+      this.logger.log('amm deposit loop poll')
+      const l2WethBalance = await this.getL2WethBalance()
+      if (l2WethBalance.eq(0)) {
+        this.logger.log('no weth balance')
+        break
+      }
+      const shouldDeposit = await this.checkAmmShouldDeposit()
+      if (!shouldDeposit) {
+        this.logger.log('should not deposit yet')
+        if (!this.dryMode) {
+          await wait(60 * 1000)
+        }
+        continue
+      }
+      const tx8 = await this.depositAmmCanonicalTokens()
+      this.logger.info('l2 amm deposit canonical tokens tx:', tx8?.hash)
+      await tx8?.wait()
+
+      if (!this.dryMode) {
+        this.logger.log('amm deposit loop wait')
+        await wait(60 * 1000)
+      }
+      this.logger.log('amm deposit loop end')
+    }
   }
 
   async checkAmmShouldWithdraw () {
@@ -208,12 +250,15 @@ export class ArbBot {
     }
 
     const amount = this.bridge.formatUnits(this.amount)
-    if (amount < hTokenBalance) {
+    if (hTokenBalance < amount) {
+      this.logger.log('pool hToken balance < amount')
       return false
     }
 
     const ratio = canonicalTokenBalance / hTokenBalance
     const threshold = 0.3
+
+    this.logger.log('ratio:', ratio)
 
     // if canonicalTokenBalance is 30% or less than hTokenBalance
     const thresholdMet = ratio < threshold
@@ -255,14 +300,15 @@ export class ArbBot {
     this.logger.log('sendHTokensToL1()')
     let amount = this.amount
 
-    const hTokenBalance = await this.bridge.getL2HopToken(this.l2ChainSlug)
+    const recipient = await this.ammSigner.getAddress()
+    const hToken = await this.bridge.getL2HopToken(this.l2ChainSlug)
+    const hTokenBalance = await hToken.balanceOf(recipient)
     if (hTokenBalance.lt(amount)) {
       amount = hTokenBalance
     }
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
-    const recipient = await this.ammSigner.getAddress()
     const isHTokenTransfer = true
     const sendData = await this.bridge.getSendData(amount, this.l2ChainSlug, this.l1ChainSlug, isHTokenTransfer)
     const bonderFee = sendData.totalFee
@@ -335,9 +381,12 @@ export class ArbBot {
   }
 
   async withdrawTransferOnL1 (l2TransferTxHash: string) {
+    if (!l2TransferTxHash) {
+      throw new Error('expected l2TransferTxHash')
+    }
+
     this.logger.log('withdrawTransferOnL1()')
     const { transferId } = await getTransferIdFromTxHash(l2TransferTxHash, this.l2ChainSlug)
-
     if (!transferId) {
       throw new Error('transferId not found on theGraph')
     }
@@ -541,29 +590,6 @@ export class ArbBot {
       })
   }
 
-  async pollAmmDeposit () {
-    while (true) {
-      this.logger.log('amm deposit loop poll')
-      const l2WethBalance = await this.getL2WethBalance()
-      if (l2WethBalance.eq(0)) {
-        this.logger.log('no weth balance')
-        break
-      }
-      const shouldDeposit = await this.checkAmmShouldDeposit()
-      if (!shouldDeposit) {
-        this.logger.log('should not deposit yet')
-        await wait(60 * 1000)
-        continue
-      }
-      const tx8 = await this.depositAmmCanonicalTokens()
-      this.logger.info('l2 amm deposit canonical tokens tx:', tx8?.hash)
-      await tx8?.wait()
-      this.logger.log('amm deposit loop wait')
-      await wait(60 * 1000)
-      this.logger.log('amm deposit loop end')
-    }
-  }
-
   async txOverrides (chain: string) {
     const txOptions: any = {}
     const provider = getRpcProvider(chain)
@@ -591,7 +617,24 @@ export class ArbBot {
     return txOptions
   }
 
-  public async getBumpedGasPrice (provider: providers.Provider, percent: number): Promise<BigNumber> {
+  async waitForCanonicalBridgeTokensArriveOnL2 () {
+    while (true) {
+      console.log('waitForCanonicalBridgeTokensArriveOnL2()')
+      const provider = getRpcProvider(this.l1ChainSlug)
+      if (!provider) {
+        throw new Error('expected provider')
+      }
+      const recipient = await this.ammSigner.getAddress()
+      const ethBalance = await provider.getBalance(recipient)
+      const arrived = ethBalance.gte(this.amount.sub(parseEther('1')))
+      if (arrived) {
+        break
+      }
+      await wait(60 * 1000)
+    }
+  }
+
+  async getBumpedGasPrice (provider: providers.Provider, percent: number): Promise<BigNumber> {
     const gasPrice = await provider.getGasPrice()
     return gasPrice.mul(BigNumber.from(percent * 100)).div(BigNumber.from(100))
   }

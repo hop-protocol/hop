@@ -157,50 +157,49 @@ export class ArbBot {
   async poll () {
     const shouldWithdraw = await this.checkAmmShouldWithdraw()
     this.logger.log('shouldWithdraw:', shouldWithdraw)
-    if (!shouldWithdraw) {
-      return
+    if (shouldWithdraw) {
+      const tx1 = await this.withdrawAmmHTokens()
+      this.logger.info('withdraw amm hTokens tx:', tx1?.hash)
+      await tx1?.wait(10)
     }
 
-    const tx1 = await this.withdrawAmmHTokens()
-    this.logger.info('withdraw amm hTokens tx:', tx1?.hash)
-    await tx1?.wait(10)
+    const shouldSendHTokensToL1 = await this.checkShouldSendHTokensToL1()
+    if (shouldSendHTokensToL1) {
+      const tx2 = await this.sendHTokensToL1()
+      this.logger.info('send hTokens to L1 tx:', tx2?.hash)
+      await tx2?.wait(10)
 
-    const tx2 = await this.sendHTokensToL1()
-    this.logger.info('send hTokens to L1 tx:', tx2?.hash)
-    await tx2?.wait(10)
-
-    const tx3 = await this.commitTransfersToL1()
-    this.logger.info('l2 commit transfers tx:', tx3?.hash)
-    await tx3?.wait(10)
-    if (!this.dryMode) {
-      await wait(2 * 60 * 1000) // wait for theGraph to index event
-    }
-
-    const shouldBondRoot = true
-    if (shouldBondRoot) {
-      const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
-      this.logger.info('l1 bond transfer root tx:', tx4?.hash)
-      await tx4?.wait(10)
-    } else {
+      const tx3 = await this.commitTransfersToL1()
+      this.logger.info('l2 commit transfers tx:', tx3?.hash)
+      await tx3?.wait(10)
       if (!this.dryMode) {
-        await wait(24 * 60 * 60 * 1000) // wait for transferRoot to be bonded
+        await wait(2 * 60 * 1000) // wait for theGraph to index event
+      }
+
+      const shouldBondRoot = true
+      if (shouldBondRoot) {
+        const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
+        this.logger.info('l1 bond transfer root tx:', tx4?.hash)
+        await tx4?.wait(10)
+      } else {
+        if (!this.dryMode) {
+          await wait(24 * 60 * 60 * 1000) // wait for transferRoot to be bonded
+        }
+      }
+
+      if (tx2?.hash) {
+        const tx5 = await this.withdrawTransferOnL1(tx2?.hash)
+        this.logger.info('l1 withdraw tx:', tx5?.hash)
+        await tx5?.wait(10)
       }
     }
 
-    // can't withdraw this one for some reason
-    // const tx2 = { hash: '0xec8a77d18c2e5d22106191b5df8e43edb16dcef115545bfc8be08d960856f56e'}
-    // l2 commit transfers tx: 0x4f39d725d446e35ba0fa179dbea3623d3951b42c790ecafb8bf5a158e1b3c001
-    // l1 bond transfer root tx: 0xfb9cfe2e0b88eee8a0f42ef019d90978dc58b8dfbb47e8e9b64efe65ccf06c3f
-
-    if (tx2?.hash) {
-      const tx5 = await this.withdrawTransferOnL1(tx2?.hash)
-      this.logger.info('l1 withdraw tx:', tx5?.hash)
-      await tx5?.wait(10)
+    const shouldSendTokensToL2 = await this.checkShouldSendTokensToL2()
+    if (shouldSendTokensToL2) {
+      const tx6 = await this.l1CanonicalBridgeSendToL2()
+      this.logger.info('l1 canonical send to l2 tx:', tx6?.hash)
+      await tx6?.wait(10)
     }
-
-    const tx6 = await this.l1CanonicalBridgeSendToL2()
-    this.logger.info('l1 canonical send to l2 tx:', tx6?.hash)
-    await tx6?.wait(10)
 
     if (!this.dryMode) {
       await this.waitForCanonicalBridgeTokensArriveOnL2()
@@ -302,6 +301,17 @@ export class ArbBot {
       })
   }
 
+  async checkShouldSendHTokensToL1 () {
+    this.logger.log('checkShouldSendHTokensToL1()')
+    const amount = this.amount
+
+    const recipient = await this.ammSigner.getAddress()
+    const hToken = await this.bridge.getL2HopToken(this.l2ChainSlug)
+    const hTokenBalance = await hToken.balanceOf(recipient)
+    const shouldSend = hTokenBalance.gte(amount.sub(parseEther('10')))
+    return shouldSend
+  }
+
   async sendHTokensToL1 () {
     this.logger.log('sendHTokensToL1()')
     let amount = this.amount
@@ -396,6 +406,7 @@ export class ArbBot {
   }
 
   async withdrawTransferOnL1 (l2TransferTxHash: string) {
+    this.logger.log('withdrawTransferOnL1()')
     if (!l2TransferTxHash) {
       throw new Error('expected l2TransferTxHash')
     }
@@ -466,6 +477,19 @@ export class ArbBot {
     )
   }
 
+  async checkShouldSendTokensToL2 () {
+    this.logger.log('checkShouldSendTokensToL2()')
+    const recipient = await this.ammSigner.getAddress()
+    const provider = getRpcProvider(this.l1ChainSlug)
+    if (!provider) {
+      throw new Error('expected provider')
+    }
+    const amount = this.amount
+    const ethBalance = await provider.getBalance(recipient)
+    const shouldSend = ethBalance.gte(amount)
+    return shouldSend
+  }
+
   async l1CanonicalBridgeSendToL2 () {
     this.logger.log('l1CanonicalBridgeSendToL2()')
 
@@ -532,7 +556,8 @@ export class ArbBot {
     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
     if (amount.lte(0)) {
-      throw new Error('expected amount to be greater than 0')
+      this.logger.log('no eth to convert to weth')
+      return
     }
 
     const weth = await this.getL2WethContract()

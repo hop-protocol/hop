@@ -27,6 +27,7 @@ export type Options = {
   slippageTolerance: number
   pollIntervalSeconds: number
   ammDepositThresholdAmount: number
+  waitConfirmations: number
 }
 
 export class ArbBot {
@@ -44,6 +45,7 @@ export class ArbBot {
   pollIntervalMs: number = 60 * 1000
   ammDepositThresholdAmount: number = 500
   amount: BigNumber = parseUnits('3000', 18)
+  waitConfirmations: number = 1
 
   l2ChainWriteProvider: any = new providers.StaticJsonRpcProvider('https://rpc.goerli.linea.build')
 
@@ -69,6 +71,9 @@ export class ArbBot {
     if (process.env.ARB_BOT_AMM_THRESHOLD_AMOUNT) {
       this.ammDepositThresholdAmount = Number(process.env.ARB_BOT_AMM_TRESHOLD_AMOUNT)
     }
+    if (process.env.ARB_BOT_WAIT_CONFIRMATIONS) {
+      this.waitConfirmations = Number(process.env.ARB_BOT_WAIT_CONFIRMATIONS)
+    }
 
     if (options?.dryMode) {
       this.dryMode = options.dryMode
@@ -93,6 +98,9 @@ export class ArbBot {
     }
     if (options?.ammDepositThresholdAmount) {
       this.ammDepositThresholdAmount = options.ammDepositThresholdAmount
+    }
+    if (options?.waitConfirmations) {
+      this.waitConfirmations = options.waitConfirmations
     }
 
     this.l1ChainId = this.network === 'mainnet' ? 1 : 5
@@ -160,18 +168,18 @@ export class ArbBot {
     if (shouldWithdraw) {
       const tx1 = await this.withdrawAmmHTokens()
       this.logger.info('withdraw amm hTokens tx:', tx1?.hash)
-      await tx1?.wait(10)
+      await tx1?.wait(this.waitConfirmations)
     }
 
     const shouldSendHTokensToL1 = await this.checkShouldSendHTokensToL1()
     if (shouldSendHTokensToL1) {
       const tx2 = await this.sendHTokensToL1()
       this.logger.info('send hTokens to L1 tx:', tx2?.hash)
-      await tx2?.wait(10)
+      await tx2?.wait(this.waitConfirmations)
 
       const tx3 = await this.commitTransfersToL1()
       this.logger.info('l2 commit transfers tx:', tx3?.hash)
-      await tx3?.wait(10)
+      await tx3?.wait(this.waitConfirmations)
       if (!this.dryMode) {
         await wait(2 * 60 * 1000) // wait for theGraph to index event
       }
@@ -180,7 +188,7 @@ export class ArbBot {
       if (shouldBondRoot) {
         const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
         this.logger.info('l1 bond transfer root tx:', tx4?.hash)
-        await tx4?.wait(10)
+        await tx4?.wait(this.waitConfirmations)
       } else {
         if (!this.dryMode) {
           await wait(24 * 60 * 60 * 1000) // wait for transferRoot to be bonded
@@ -190,7 +198,7 @@ export class ArbBot {
       if (tx2?.hash) {
         const tx5 = await this.withdrawTransferOnL1(tx2?.hash)
         this.logger.info('l1 withdraw tx:', tx5?.hash)
-        await tx5?.wait(10)
+        await tx5?.wait(this.waitConfirmations)
       }
     }
 
@@ -198,7 +206,7 @@ export class ArbBot {
     if (shouldSendTokensToL2) {
       const tx6 = await this.l1CanonicalBridgeSendToL2()
       this.logger.info('l1 canonical send to l2 tx:', tx6?.hash)
-      await tx6?.wait(10)
+      await tx6?.wait(this.waitConfirmations)
     }
 
     if (!this.dryMode) {
@@ -207,7 +215,7 @@ export class ArbBot {
 
     const tx7 = await this.wrapEthToWethOnL2()
     this.logger.info('l2 wrap eth tx:', tx7?.hash)
-    await tx7?.wait(10)
+    await tx7?.wait(this.waitConfirmations)
 
     await this.pollAmmDeposit()
   }
@@ -230,7 +238,7 @@ export class ArbBot {
       }
       const tx8 = await this.depositAmmCanonicalTokens()
       this.logger.info('l2 amm deposit canonical tokens tx:', tx8?.hash)
-      await tx8?.wait()
+      await tx8?.wait(this.waitConfirmations)
 
       if (!this.dryMode) {
         this.logger.log('amm deposit loop wait')
@@ -669,7 +677,7 @@ export class ArbBot {
   async waitForCanonicalBridgeTokensArriveOnL2 () {
     while (true) {
       console.log('waitForCanonicalBridgeTokensArriveOnL2()')
-      const provider = getRpcProvider(this.l1ChainSlug)
+      const provider = getRpcProvider(this.l2ChainSlug)
       if (!provider) {
         throw new Error('expected provider')
       }

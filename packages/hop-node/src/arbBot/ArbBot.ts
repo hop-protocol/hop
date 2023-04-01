@@ -213,7 +213,7 @@ export class ArbBot {
   }
 
   async pollAmmDeposit () {
-    console.log('pollAmmDeposit()')
+    this.logger.log('pollAmmDeposit()')
     const arrived = await this.checkCanonicalBridgeTokensArriveOnL2()
     if (arrived) {
       const tx7 = await this.wrapEthToWethOnL2()
@@ -538,7 +538,7 @@ export class ArbBot {
   }
 
   async wrapEthToWethOnL2 () {
-    console.log('wrapEthToWethOnL2()')
+    this.logger.log('wrapEthToWethOnL2()')
     let amount = this.amount
 
     const recipient = await this.ammSigner.getAddress()
@@ -673,7 +673,7 @@ export class ArbBot {
     const recipient = await this.ammSigner.getAddress()
     const ethBalance = await provider.getBalance(recipient)
     const arrived = ethBalance.gte(this.amount.sub(parseEther('1')))
-    console.log('eth balance:', this.bridge.formatUnits(ethBalance))
+    this.logger.log('eth balance:', this.bridge.formatUnits(ethBalance))
     return arrived
   }
 

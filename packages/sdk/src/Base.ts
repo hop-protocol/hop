@@ -656,6 +656,7 @@ export class Base {
   }
 
   public async getRelayerFee (destinationChain: TChain, tokenSymbol: string): Promise<BigNumber> {
+    await this.fetchConfigFromS3()
     destinationChain = this.toChainModel(destinationChain)
     const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
     if (!isFeeEnabled) {

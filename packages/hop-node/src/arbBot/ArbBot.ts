@@ -149,6 +149,7 @@ export class ArbBot {
       }
       // break
       this.logger.log('poll end')
+      this.logger.log('waiting for next poll', this.pollIntervalMs)
       await wait(this.pollIntervalMs)
     }
   }
@@ -561,7 +562,7 @@ export class ArbBot {
       return false
     }
 
-    const thresholdMet = (hTokenBalance - canonicalTokenBalance) <= this.ammDepositThresholdAmount
+    const thresholdMet = (canonicalTokenBalance - hTokenBalance) <= this.ammDepositThresholdAmount
     return thresholdMet
   }
 

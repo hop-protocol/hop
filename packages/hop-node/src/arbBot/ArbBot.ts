@@ -45,6 +45,8 @@ export class ArbBot {
   ammDepositThresholdAmount: number = 500
   amount: BigNumber = parseUnits('1', 18)
 
+  l2ChainWriteProvider: any = new providers.StaticJsonRpcProvider('https://rpc.goerli.linea.build')
+
   constructor (options?: Partial<Options>) {
     if (process.env.ARB_BOT_NETWORK) {
       this.network = process.env.ARB_BOT_NETWORK
@@ -282,14 +284,14 @@ export class ArbBot {
 
     const deadline = this.getDeadline()
     const hTokenIndex = 1
-    const provider = getRpcProvider(this.l2ChainSlug)
+    // const provider = getRpcProvider(this.l2ChainSlug)
 
     if (this.dryMode) {
       return
     }
 
     return this.bridge
-      .connect(this.ammSigner.connect(provider))
+      .connect(this.ammSigner.connect(this.l2ChainWriteProvider))
       .removeLiquidityOneToken(amount, hTokenIndex, this.l2ChainSlug, {
         amountMin,
         deadline
@@ -314,14 +316,14 @@ export class ArbBot {
     const bonderFee = sendData.totalFee
     const deadline = this.getDeadline()
     const { amountOutMin } = this.bridge.getSendDataAmountOutMins(sendData, this.slippageTolerance)
-    const provider = getRpcProvider(this.l2ChainSlug)
+    // const provider = getRpcProvider(this.l2ChainSlug)
 
     if (this.dryMode) {
       return
     }
 
     return this.bridge
-      .connect(this.ammSigner.connect(provider))
+      .connect(this.ammSigner.connect(this.l2ChainWriteProvider))
       .send(amount, this.l2ChainSlug, this.l1ChainSlug, {
         recipient,
         bonderFee,
@@ -517,7 +519,7 @@ export class ArbBot {
       return
     }
 
-    return weth.deposit({
+    return weth.connect(this.l2ChainWriteProvider).deposit({
       ...txOptions,
       value: amount
     })
@@ -583,7 +585,7 @@ export class ArbBot {
     }
 
     return this.bridge
-      .connect(this.ammSigner.connect(provider))
+      .connect(this.ammSigner.connect(this.l2ChainWriteProvider))
       .addLiquidity(amount0Desired, amount1Desired, this.l2ChainSlug, {
         minToMint,
         deadline

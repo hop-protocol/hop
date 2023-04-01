@@ -43,7 +43,7 @@ export class ArbBot {
   slippageTolerance: number = 5 // 5%
   pollIntervalMs: number = 60 * 1000
   ammDepositThresholdAmount: number = 500
-  amount: BigNumber = parseUnits('1', 18)
+  amount: BigNumber = parseUnits('3000', 18)
 
   l2ChainWriteProvider: any = new providers.StaticJsonRpcProvider('https://rpc.goerli.linea.build')
 
@@ -145,7 +145,9 @@ export class ArbBot {
         await this.poll()
       } catch (err: any) {
         this.logger.error('ArbBot error:', err)
+        process.exit(1)
       }
+      // break
       this.logger.log('poll end')
       await wait(this.pollIntervalMs)
     }
@@ -161,36 +163,38 @@ export class ArbBot {
     const tx1 = await this.withdrawAmmHTokens()
     this.logger.info('withdraw amm hTokens tx:', tx1?.hash)
     await tx1?.wait(10)
-    if (!this.dryMode) {
-      await wait(10 * 1000)
-    }
 
     const tx2 = await this.sendHTokensToL1()
     this.logger.info('send hTokens to L1 tx:', tx2?.hash)
     await tx2?.wait(10)
-    if (!this.dryMode) {
-      await wait(10 * 1000)
-    }
 
     const tx3 = await this.commitTransfersToL1()
     this.logger.info('l2 commit transfers tx:', tx3?.hash)
     await tx3?.wait(10)
     if (!this.dryMode) {
-      await wait(60 * 60 * 1000) // wait for theGraph to index event and for transfer root to be bonded
+      await wait(2 * 60 * 1000) // wait for theGraph to index event
     }
 
-    // const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
-    // this.logger.info('l1 bond transfer root tx:', tx4?.hash)
-    // await tx4?.wait(10)
-    // await wait(10 * 1000)
+    const shouldBondRoot = true
+    if (shouldBondRoot) {
+      const tx4 = await this.bondTransferRootOnL1(tx3?.hash)
+      this.logger.info('l1 bond transfer root tx:', tx4?.hash)
+      await tx4?.wait(10)
+    } else {
+      if (!this.dryMode) {
+        await wait(2 * 60 * 60 * 1000) // wait for transferRoot to be bonded
+      }
+    }
+
+    // can't withdraw this one for some reason
+    // const tx2 = { hash: '0xec8a77d18c2e5d22106191b5df8e43edb16dcef115545bfc8be08d960856f56e'}
+    // l2 commit transfers tx: 0x4f39d725d446e35ba0fa179dbea3623d3951b42c790ecafb8bf5a158e1b3c001
+    // l1 bond transfer root tx: 0xfb9cfe2e0b88eee8a0f42ef019d90978dc58b8dfbb47e8e9b64efe65ccf06c3f
 
     if (tx2?.hash) {
       const tx5 = await this.withdrawTransferOnL1(tx2?.hash)
       this.logger.info('l1 withdraw tx:', tx5?.hash)
       await tx5?.wait(10)
-      if (!this.dryMode) {
-        await wait(10 * 1000)
-      }
     }
 
     const tx6 = await this.l1CanonicalBridgeSendToL2()
@@ -198,7 +202,6 @@ export class ArbBot {
     await tx6?.wait(10)
 
     if (!this.dryMode) {
-      // await wait(20 * 60 * 1000) // wait to receive tokens on L2
       await this.waitForCanonicalBridgeTokensArriveOnL2()
     }
 
@@ -314,8 +317,9 @@ export class ArbBot {
     const isHTokenTransfer = true
     const sendData = await this.bridge.getSendData(amount, this.l2ChainSlug, this.l1ChainSlug, isHTokenTransfer)
     const bonderFee = sendData.totalFee
-    const deadline = this.getDeadline()
-    const { amountOutMin } = this.bridge.getSendDataAmountOutMins(sendData, this.slippageTolerance)
+    const deadline = 0
+    const amountOutMin = 0
+    // const { amountOutMin } = this.bridge.getSendDataAmountOutMins(sendData, this.slippageTolerance)
     // const provider = getRpcProvider(this.l2ChainSlug)
 
     if (this.dryMode) {
@@ -324,7 +328,7 @@ export class ArbBot {
 
     return this.bridge
       .connect(this.ammSigner.connect(this.l2ChainWriteProvider))
-      .send(amount, this.l2ChainSlug, this.l1ChainSlug, {
+      .sendHToken(amount, this.l2ChainSlug, this.l1ChainSlug, {
         recipient,
         bonderFee,
         amountOutMin,
@@ -371,6 +375,14 @@ export class ArbBot {
       totalAmount
     )
 
+    const transferRootId = l1Bridge.getTransferRootId(transferRootHash, totalAmount)
+    const isBonded = await l1Bridge.isTransferRootIdBonded(transferRootId)
+
+    if (!isBonded) {
+      this.logger.error('transfer root already bonded')
+      return
+    }
+
     if (this.dryMode) {
       return
     }
@@ -391,6 +403,15 @@ export class ArbBot {
     const { transferId } = await getTransferIdFromTxHash(l2TransferTxHash, this.l2ChainSlug)
     if (!transferId) {
       throw new Error('transferId not found on theGraph')
+    }
+
+    const tokenContracts = contracts.get(this.tokenSymbol, this.l1ChainSlug)
+    const l1BridgeContract = tokenContracts.l1Bridge
+    const l1Bridge = new L1Bridge(l1BridgeContract)
+    const isBonded = await l1Bridge.isTransferIdSpent(transferId)
+    if (isBonded) {
+      this.logger.log('transfer id already bonded or withdrawn')
+      return
     }
 
     const chain = this.l2ChainSlug
@@ -424,10 +445,6 @@ export class ArbBot {
       proof,
       transferIndex
     } = getWithdrawalProofData(transferId, transferRoot)
-
-    const tokenContracts = contracts.get(this.tokenSymbol, this.l1ChainSlug)
-    const l1BridgeContract = tokenContracts.l1Bridge
-    const l1Bridge = new L1Bridge(l1BridgeContract)
 
     if (this.dryMode) {
       return
@@ -475,7 +492,7 @@ export class ArbBot {
     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
     if (amount.lte(0)) {
-      throw new Error('expected amoun to be greater than 0')
+      throw new Error('expected amount to be greater than 0')
     }
 
     const l1MessengerAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
@@ -497,6 +514,7 @@ export class ArbBot {
   }
 
   async wrapEthToWethOnL2 () {
+    console.log('wrapEthToWethOnL2()')
     let amount = this.amount
 
     const recipient = await this.ammSigner.getAddress()
@@ -506,11 +524,15 @@ export class ArbBot {
     }
 
     const ethBalance = await provider.getBalance(recipient)
-    if (amount.lt(ethBalance)) {
-      amount = ethBalance.sub(BigNumber.from(parseUnits('0.01', 18))) // account for fee
+    if (amount.lte(ethBalance)) {
+      amount = ethBalance.sub(BigNumber.from(parseEther('0.1')))
     }
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+    if (amount.lte(0)) {
+      throw new Error('expected amount to be greater than 0')
+    }
 
     const weth = await this.getL2WethContract()
     const txOptions = await this.txOverrides(this.l2ChainSlug)
@@ -519,7 +541,7 @@ export class ArbBot {
       return
     }
 
-    return weth.connect(this.l2ChainWriteProvider).deposit({
+    return weth.connect(this.ammSigner.connect(this.l2ChainWriteProvider)).deposit({
       ...txOptions,
       value: amount
     })
@@ -613,7 +635,6 @@ export class ArbBot {
         provider,
         multiplier
       )
-      txOptions.chainId = this.l1ChainId
     }
 
     return txOptions
@@ -629,6 +650,7 @@ export class ArbBot {
       const recipient = await this.ammSigner.getAddress()
       const ethBalance = await provider.getBalance(recipient)
       const arrived = ethBalance.gte(this.amount.sub(parseEther('1')))
+      console.log('eth balance:', this.bridge.formatUnits(ethBalance))
       if (arrived) {
         break
       }

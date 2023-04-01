@@ -656,23 +656,14 @@ export class Base {
   }
 
   public async getRelayerFee (destinationChain: TChain, tokenSymbol: string): Promise<BigNumber> {
-    await this.fetchConfigFromS3()
     destinationChain = this.toChainModel(destinationChain)
     const isFeeEnabled = this.relayerFeeEnabled[destinationChain.slug]
     if (!isFeeEnabled) {
       return BigNumber.from(0)
     }
 
-    if (
-      destinationChain.equals(Chain.Arbitrum) ||
-      destinationChain.equals(Chain.Nova) ||
-      destinationChain.equals(Chain.Linea)
-    ) {
-      const relayerFee = new RelayerFee(this.network, tokenSymbol)
-      return relayerFee.getRelayCost(destinationChain.slug)
-    }
-
-    return BigNumber.from(0)
+    const relayerFee = new RelayerFee()
+    return relayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
   }
 
   async setBaseConfigUrl (url: string): Promise<void> {

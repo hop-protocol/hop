@@ -32,7 +32,7 @@ import {
   TokenSymbol
 } from './constants'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
-import { bondableChains, metadata, relayableChains } from './config'
+import { bondableChains, metadata } from './config'
 import { getAddress as checksumAddress, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 
 const s3FileCache : Record<string, any> = {}
@@ -650,8 +650,8 @@ class HopBridge extends Base {
     const relayer = await this.getBonderAddress(sourceChain, destinationChain)
 
     if (sourceChain.isL1) {
-      if (bonderFee.gt(0) && !relayableChains.includes(destinationChain.slug)) {
-        throw new Error('Bonder fee should be 0 when sending hToken to a non-relayable L2')
+      if (bonderFee.gt(0) && !this.relayerFeeEnabled[destinationChain.slug]) {
+        throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer fee is disabled')
       }
 
       let l1Bridge = await this.getL1Bridge(sourceChain.provider)
@@ -823,11 +823,11 @@ class HopBridge extends Base {
     let adjustedBonderFee
     let adjustedDestinationTxFee
     let totalFee
-    if (sourceChain.isL1 && !relayableChains.includes(destinationChain.slug)) {
+    if (sourceChain.isL1 && !this.relayerFeeEnabled[destinationChain.slug]) {
       adjustedBonderFee = BigNumber.from(0)
       adjustedDestinationTxFee = BigNumber.from(0)
       totalFee = BigNumber.from(0)
-    } else if (sourceChain.isL1 && relayableChains.includes(destinationChain.slug)) {
+    } else if (sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]) {
       adjustedBonderFee = BigNumber.from(0)
       adjustedDestinationTxFee = destinationTxFee
       totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
@@ -1075,7 +1075,7 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    if (sourceChain.isL1 && !relayableChains.includes(destinationChain.slug)) {
+    if (sourceChain.isL1 && !this.relayerFeeEnabled[destinationChain.slug]) {
       return {
         destinationTxFee: BigNumber.from(0),
         rate: null,
@@ -1112,7 +1112,7 @@ class HopBridge extends Base {
     const bondTransferGasLimitWithSettlement = bondTransferGasLimit.add(settlementGasLimitPerTx)
 
     let txFeeEth: BigNumber
-    if (sourceChain.isL1 && relayableChains.includes(destinationChain.slug)) {
+    if (sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]) {
       txFeeEth = await this.getRelayerFee(destinationChain, this.tokenSymbol)
     } else {
       txFeeEth = destinationChainGasPrice.mul(bondTransferGasLimitWithSettlement)

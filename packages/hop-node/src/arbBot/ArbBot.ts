@@ -149,20 +149,21 @@ export class ArbBot {
   async start () {
     while (true) {
       try {
-        this.logger.log('poll')
-        await this.poll()
+        await this.pollAmmWithdraw()
+        await this.pollAmmDeposit()
       } catch (err: any) {
         this.logger.error('ArbBot error:', err)
         process.exit(1)
       }
       // break
       this.logger.log('poll end')
-      this.logger.log('waiting for next poll', this.pollIntervalMs)
+      this.logger.log(`waiting for next poll ${this.pollIntervalMs / 1000}s`)
       await wait(this.pollIntervalMs)
     }
   }
 
-  async poll () {
+  async pollAmmWithdraw () {
+    this.logger.log('pollAmmWithdraw()')
     const shouldWithdraw = await this.checkAmmShouldWithdraw()
     this.logger.log('shouldWithdraw:', shouldWithdraw)
     if (shouldWithdraw) {
@@ -208,44 +209,34 @@ export class ArbBot {
       this.logger.info('l1 canonical send to l2 tx:', tx6?.hash)
       await tx6?.wait(this.waitConfirmations)
     }
-
-    if (!this.dryMode) {
-      await this.waitForCanonicalBridgeTokensArriveOnL2()
-    }
-
-    const tx7 = await this.wrapEthToWethOnL2()
-    this.logger.info('l2 wrap eth tx:', tx7?.hash)
-    await tx7?.wait(this.waitConfirmations)
-
-    await this.pollAmmDeposit()
+    this.logger.log('pollAmmWithdraw() end')
   }
 
   async pollAmmDeposit () {
-    while (true) {
-      this.logger.log('amm deposit loop poll')
-      const l2WethBalance = await this.getL2WethBalance()
-      if (l2WethBalance.eq(0)) {
-        this.logger.log('no weth balance')
-        break
-      }
-      const shouldDeposit = await this.checkAmmShouldDeposit()
-      if (!shouldDeposit) {
-        this.logger.log('should not deposit yet')
-        if (!this.dryMode) {
-          await wait(60 * 1000)
-        }
-        continue
-      }
-      const tx8 = await this.depositAmmCanonicalTokens()
-      this.logger.info('l2 amm deposit canonical tokens tx:', tx8?.hash)
-      await tx8?.wait(this.waitConfirmations)
-
-      if (!this.dryMode) {
-        this.logger.log('amm deposit loop wait')
-        await wait(60 * 1000)
-      }
-      this.logger.log('amm deposit loop end')
+    console.log('pollAmmDeposit()')
+    const arrived = await this.checkCanonicalBridgeTokensArriveOnL2()
+    if (arrived) {
+      const tx7 = await this.wrapEthToWethOnL2()
+      this.logger.info('l2 wrap eth tx:', tx7?.hash)
+      await tx7?.wait(this.waitConfirmations)
     }
+
+    this.logger.log('amm deposit loop poll')
+    const l2WethBalance = await this.getL2WethBalance()
+    if (l2WethBalance.eq(0)) {
+      this.logger.log('no weth balance')
+      return
+    }
+    const shouldDeposit = await this.checkAmmShouldDeposit()
+    if (!shouldDeposit) {
+      this.logger.log('should not deposit yet')
+      return
+    }
+    const tx8 = await this.depositAmmCanonicalTokens()
+    this.logger.info('l2 amm deposit canonical tokens tx:', tx8?.hash)
+    await tx8?.wait(this.waitConfirmations)
+
+    this.logger.log('pollAmmDeposit() end')
   }
 
   async checkAmmShouldWithdraw () {
@@ -674,22 +665,16 @@ export class ArbBot {
     return txOptions
   }
 
-  async waitForCanonicalBridgeTokensArriveOnL2 () {
-    while (true) {
-      console.log('waitForCanonicalBridgeTokensArriveOnL2()')
-      const provider = getRpcProvider(this.l2ChainSlug)
-      if (!provider) {
-        throw new Error('expected provider')
-      }
-      const recipient = await this.ammSigner.getAddress()
-      const ethBalance = await provider.getBalance(recipient)
-      const arrived = ethBalance.gte(this.amount.sub(parseEther('1')))
-      console.log('eth balance:', this.bridge.formatUnits(ethBalance))
-      if (arrived) {
-        break
-      }
-      await wait(60 * 1000)
+  async checkCanonicalBridgeTokensArriveOnL2 () {
+    const provider = getRpcProvider(this.l2ChainSlug)
+    if (!provider) {
+      throw new Error('expected provider')
     }
+    const recipient = await this.ammSigner.getAddress()
+    const ethBalance = await provider.getBalance(recipient)
+    const arrived = ethBalance.gte(this.amount.sub(parseEther('1')))
+    console.log('eth balance:', this.bridge.formatUnits(ethBalance))
+    return arrived
   }
 
   async getBumpedGasPrice (provider: providers.Provider, percent: number): Promise<BigNumber> {

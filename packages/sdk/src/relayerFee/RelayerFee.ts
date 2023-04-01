@@ -1,21 +1,24 @@
 import { ArbitrumRelayerFee } from './ArbitrumRelayerFee'
 import { BigNumber } from 'ethers'
 import { Chain } from '../models'
-import { LineaRelayerFee } from './LineaRelayerFee'
+import { NetworkSlug } from '../constants'
+import { defaultRelayerFeeEth } from '../config'
+import { parseEther } from 'ethers/lib/utils'
 
-type RelayChain = ArbitrumRelayerFee | LineaRelayerFee
+const RelayerFees = {
+  [Chain.Arbitrum.slug]: ArbitrumRelayerFee,
+  [Chain.Nova.slug]: ArbitrumRelayerFee
+}
 
 class RelayerFee {
-  relayerFee: {[chain: string]: RelayChain} = {}
+  async getRelayCost (network: string, chainSlug: string, token: string): Promise<BigNumber> {
+    // Relayer fees shouldn't be calculated for non-mainnet chains since some fee calculations rely on chain-specific data
+    // that is less useful on testnets. Instead, we use a default value for testnets.
+    if (!RelayerFees[chainSlug] || network !== NetworkSlug.Mainnet) {
+      return parseEther(defaultRelayerFeeEth)
+    }
 
-  constructor (network: string, token: string) {
-    this.relayerFee[Chain.Arbitrum.slug] = new ArbitrumRelayerFee(network, token, Chain.Arbitrum.slug)
-    this.relayerFee[Chain.Nova.slug] = new ArbitrumRelayerFee(network, token, Chain.Nova.slug)
-    this.relayerFee[Chain.Linea.slug] = new LineaRelayerFee(network, token, Chain.Linea.slug)
-  }
-
-  async getRelayCost (chainSlug: string): Promise<BigNumber> {
-    return this.relayerFee[chainSlug].getRelayCost()
+    return (new RelayerFees[chainSlug](network, token, chainSlug)).getRelayCost()
   }
 }
 

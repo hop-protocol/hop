@@ -671,16 +671,8 @@ export class Base {
       return BigNumber.from(0)
     }
 
-    if (
-      destinationChain.equals(Chain.Arbitrum) ||
-      destinationChain.equals(Chain.Nova) ||
-      destinationChain.equals(Chain.Linea)
-    ) {
-      const relayerFee = new RelayerFee(this.network, tokenSymbol)
-      return relayerFee.getRelayCost(destinationChain.slug)
-    }
-
-    return BigNumber.from(0)
+    const relayerFee = new RelayerFee()
+    return relayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
   }
 
   async setBaseConfigUrl (url: string): Promise<void> {

@@ -183,7 +183,7 @@ export class ArbBot {
       await tx4?.wait(10)
     } else {
       if (!this.dryMode) {
-        await wait(2 * 60 * 60 * 1000) // wait for transferRoot to be bonded
+        await wait(24 * 60 * 60 * 1000) // wait for transferRoot to be bonded
       }
     }
 

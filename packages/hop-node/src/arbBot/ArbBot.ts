@@ -136,6 +136,7 @@ export class ArbBot {
     this.logger.log('amount:', this.bridge.formatUnits(this.amount))
     this.logger.log('pollIntervalMs:', this.pollIntervalMs)
     this.logger.log('slippageTolerance:', this.slippageTolerance)
+    this.logger.log('waitConfirmations:', this.waitConfirmations)
 
     const privateKey = process.env.ARB_BOT_PRIVATE_KEY
 
@@ -182,7 +183,7 @@ export class ArbBot {
       this.logger.info('l2 commit transfers tx:', tx3?.hash)
       await tx3?.wait(this.waitConfirmations)
       if (!this.dryMode) {
-        await wait(2 * 60 * 1000) // wait for theGraph to index event
+        await wait(5 * 60 * 1000) // wait for theGraph to index event
       }
 
       const shouldBondRoot = true
@@ -197,6 +198,7 @@ export class ArbBot {
       }
 
       if (tx2?.hash) {
+        await wait(5 * 60 * 1000) // wait for root bond to be indexed by the graph
         const tx5 = await this.withdrawTransferOnL1(tx2?.hash)
         this.logger.info('l1 withdraw tx:', tx5?.hash)
         await tx5?.wait(this.waitConfirmations)
@@ -259,13 +261,9 @@ export class ArbBot {
       return false
     }
 
-    const ratio = canonicalTokenBalance / hTokenBalance
-    const threshold = 0.3
+    const diff = hTokenBalance - canonicalTokenBalance
 
-    this.logger.log('ratio:', ratio)
-
-    // if canonicalTokenBalance is 30% or less than hTokenBalance
-    const thresholdMet = ratio < threshold
+    const thresholdMet = diff >= amount
     return thresholdMet
   }
 

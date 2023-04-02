@@ -305,6 +305,9 @@ export const getNetworkMaxGasPrice = (network: string) => {
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
   const networks = Object.keys(config.networks)
   for (const network of networks) {
+    if (!syncConfigs[network]) {
+      continue
+    }
     if (!config.sync[network]) {
       config.sync = config.sync ?? {}
       config.sync[network] = {}

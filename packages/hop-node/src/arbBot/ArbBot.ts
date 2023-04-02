@@ -257,8 +257,16 @@ export class ArbBot {
 
     const amount = this.bridge.formatUnits(this.amount)
     if (hTokenBalance < amount) {
-      this.logger.log('pool hToken balance < amount')
+      this.logger.log('reserve hToken balance < amount')
       return false
+    }
+
+    const recipient = await this.ammSigner.getAddress()
+    const lpBalance = await this.bridge.getAccountLpBalance(this.l2ChainSlug, recipient)
+
+    if (lpBalance.lt(this.amount)) {
+      this.logger.log('user lp balance < amount')
+      return
     }
 
     const diff = hTokenBalance - canonicalTokenBalance

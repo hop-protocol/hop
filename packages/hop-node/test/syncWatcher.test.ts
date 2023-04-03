@@ -16,6 +16,9 @@ const transferRootHashes = [
 ]
 */
 
+// run this test with:
+// npx ts-node test/syncWatcher.test.ts
+
 const transferRootHashes = [
   '0x11b3d88d87621bd7ec731dd1164e2048741203bfe6094c1629fde90e54e04e6f',
   '0x5b9af53450a79166dc2853e632b76bce79efa7686369b79a04af448f1974b2ff',
@@ -1057,7 +1060,7 @@ async function main () {
       }
       const { sourceChainId, destinationChainId, commitTxBlockNumber } = dbItem
       if (!(sourceChainId && destinationChainId && commitTxBlockNumber)) {
-        throw new Error('expected values')
+        throw new Error(`expected values for ${transferRootHash}`)
       }
       const sourceBridge = watcher.getSiblingWatcherByChainId(sourceChainId)
         .bridge

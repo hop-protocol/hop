@@ -598,6 +598,14 @@ export class Base {
       txOptions.gasLimit = MinPolygonGasLimit
     }
 
+    if (chain.equals(Chain.Linea)) {
+      const gasPriceMultiplier = 2
+      txOptions.gasPrice = await this.getBumpedGasPrice(
+        this.signer,
+        gasPriceMultiplier
+      )
+    }
+
     return txOptions
   }
 

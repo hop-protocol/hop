@@ -12,10 +12,18 @@ const RelayerFees = {
 
 class RelayerFee {
   async getRelayCost (network: string, chainSlug: string, token: string): Promise<BigNumber> {
+    if (!RelayerFees[chainSlug]) {
+      return parseEther(defaultRelayerFeeEth)
+    }
+
     // Relayer fees shouldn't be calculated for non-mainnet chains since some fee calculations rely on chain-specific data
     // that is less useful on testnets. Instead, we use a default value for testnets.
-    if (!RelayerFees[chainSlug] || network !== NetworkSlug.Mainnet) {
-      return parseEther(defaultRelayerFeeEth)
+    if (network !== NetworkSlug.Mainnet) {
+      if (token === 'ETH') {
+        return parseEther(defaultRelayerFeeEth)
+      } else {
+        return BigNumber.from(0)
+      }
     }
 
     return (new RelayerFees[chainSlug](network, token, chainSlug)).getRelayCost()

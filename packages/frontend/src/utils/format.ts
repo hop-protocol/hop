@@ -57,6 +57,8 @@ export function formatError(error: any, network?: Network) {
     errMsg = `An RPC error occurred. Please check your wallet network settings are correct and try again. Consider using a different RPC provider if you are seeing this error frequently. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
   } else if (errMsg.includes('sequencer transaction forwarding not configured') || errMsg.includes('rate limit') || errMsg.includes('compute units') || errMsg.includes('Optimism sequencer global transaction limit exceeded')) {
     errMsg = `An RPC error occurred. Please try again. Consider using a different RPC provider if you are seeing this error often. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
+  } else if (errMsg.includes('already minted')) {
+    errMsg = 'Account has already minted tokens. Only one mint per account is allowed.'
   }
 
   return prettifyErrorMessage(errMsg)

@@ -35,7 +35,7 @@ const useStyles = makeStyles(theme => ({
 const Faucet: FC = () => {
   const styles = useStyles()
   const { bridges, selectedBridge, setSelectedBridge } = useApp()
-  const { mintToken, mintAmount, isMinting, error, setError, tokens, selectedNetwork } = useFaucet()
+  const { mintToken, mintAmount, isMinting, error, setError, success, setSuccess, tokens, selectedNetwork } = useFaucet()
 
   const handleMint = () => {
     mintToken()
@@ -47,6 +47,11 @@ const Faucet: FC = () => {
     if (bridge) {
       setSelectedBridge(bridge)
     }
+  }
+
+  let selectedToken = selectedBridge?.getTokenSymbol()
+  if (selectedToken === 'ETH') {
+    selectedToken = 'USDC'
   }
 
   return (
@@ -61,7 +66,7 @@ const Faucet: FC = () => {
           <Typography variant="body1" className={styles.text}>
             Mint {mintAmount} {selectedNetwork?.name}
           </Typography>
-          <RaisedSelect value={selectedBridge?.getTokenSymbol()} onChange={handleTokenChange}>
+          <RaisedSelect value={selectedToken} onChange={handleTokenChange}>
             {tokens.filter(token => token.symbol !== 'ETH').map(token => (
               <MenuItem value={token.symbol} key={token.symbol}>
                 {token.symbol}
@@ -69,12 +74,6 @@ const Faucet: FC = () => {
             ))}
           </RaisedSelect>
         </Box>
-        <Alert
-          className={styles.alert}
-          severity="error"
-          onClose={() => setError(null)}
-          text={error}
-        />
         <Button
           className={styles.button}
           onClick={handleMint}
@@ -84,6 +83,18 @@ const Faucet: FC = () => {
         >
           Mint {selectedBridge?.getTokenSymbol()}
         </Button>
+        <Alert
+          className={styles.alert}
+          severity="error"
+          onClose={() => setError('')}
+          text={error}
+        />
+        <Alert
+          className={styles.alert}
+          severity="success"
+          onClose={() => setSuccess('')}
+          text={success}
+        />
       </Box>
     </Box>
   )

@@ -40,7 +40,7 @@ const FeeDetails: FC<Props> = props => {
         LP fees are included in the swap price.
       </Typography>
       {!!relayFee && (
-        <DetailRow title="Relay Fee" value={<>
+        <DetailRow title="Message Relay Fee" value={<>
           {relayFeeUsd && (
             <Box mr={0.5} display="inline-block" style={{ opacity: 0.6 }}><small>{relayFeeUsd}</small></Box>
           )}

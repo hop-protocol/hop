@@ -59,6 +59,8 @@ export function formatError(error: any, network?: Network) {
     errMsg = `An RPC error occurred. Please try again. Consider using a different RPC provider if you are seeing this error often. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
   } else if (errMsg.includes('already minted')) {
     errMsg = 'Account has already minted tokens. Only one mint per account is allowed.'
+  } else if (errMsg.includes('user rejected transaction') || errMsg.includes('ACTION_REJECTED')) {
+    errMsg = 'Cancelled'
   }
 
   return prettifyErrorMessage(errMsg)

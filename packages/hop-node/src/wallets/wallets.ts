@@ -14,7 +14,7 @@ import {
 } from 'src/config'
 import { getGasBoostDb } from 'src/db'
 
-const constructWallet = memoize(
+export const constructWallet = memoize(
   (network: string, privateKey: string): Wallet => {
     if (!privateKey) {
       throw new Error('private key is required to instantiate wallet')

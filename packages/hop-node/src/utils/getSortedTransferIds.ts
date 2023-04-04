@@ -6,6 +6,7 @@ type Transfer = {
   index: number
 }
 
+// TODO: simplify this
 export function getSortedTransferIds (_transfers: Transfer[], startBlockNumber: number = 0): any {
   let transfers: any[] = _transfers.sort((a: any, b: any) => {
     if (a.index > b.index) return 1
@@ -22,7 +23,7 @@ export function getSortedTransferIds (_transfers: Transfer[], startBlockNumber: 
 
   transfers = transfers.filter((x: any, i: number) => {
     if (seen[x.index]) {
-      if (x.index > 100 && x.blockNumber > seen[x.index].blockNumber && x.blockNumber > startBlockNumber) {
+      if (x.blockNumber > seen[x.index].blockNumber && x.blockNumber > startBlockNumber) {
         replace[x.index] = x
       }
       return false
@@ -35,8 +36,13 @@ export function getSortedTransferIds (_transfers: Transfer[], startBlockNumber: 
     return x.index === i
   })
 
+  const firstBlockNumber = transfers[0]?.blockNumber
+
   for (const i in replace) {
-    transfers[i as any] = replace[i]
+    const idx = i as any
+    if (idx > 100 || firstBlockNumber > transfers[idx].blockNumber) {
+      transfers[idx] = replace[i]
+    }
   }
 
   const lastIndex = transfers[transfers.length - 1]?.index

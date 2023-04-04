@@ -185,6 +185,8 @@ const Send: FC = () => {
     totalBonderFee,
     totalBonderFeeDisplay,
     totalBonderFeeUsdDisplay,
+    totalFeeDisplay, // bonderFee + messageRelayFee
+    totalFeeUsdDisplay, // bonderFee + messageRelayFee
     estimatedReceivedDisplay,
     estimatedReceivedUsdDisplay,
     tokenUsdPrice,
@@ -321,11 +323,14 @@ const Send: FC = () => {
       const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
       const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
       const bonderFeeMajority = sourceToken?.decimals && estimatedReceived && totalFee && ((Number(formatUnits(totalFee, sourceToken?.decimals)) / Number(fromTokenAmount)) > 0.5)
+      const insufficientRelayFeeFunds = sourceToken?.symbol === 'ETH' && fromTokenAmountBN?.gt(0) && relayFeeEth?.gt(0) && fromBalance && fromTokenAmountBN.gt(fromBalance.sub(relayFeeEth))
 
       if (sufficientBalanceWarning) {
         message = sufficientBalanceWarning
       } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
         message = 'Bonder fee greater than estimated received'
+      } else if (insufficientRelayFeeFunds) {
+        message = `Insufficient balance to cover the cost of tx. Please add ${sourceToken.nativeTokenSymbol} to pay for tx fees.`
       } else if (estimatedReceived?.lte(0)) {
         message = 'Estimated received too low. Send a higher amount to cover the fees.'
       } else if (showPriceImpactWarning) {
@@ -347,9 +352,12 @@ const Send: FC = () => {
     estimatedReceived,
     priceImpact,
     fromTokenAmount,
+    fromTokenAmountBN,
     toTokenAmount,
     totalFee,
-    toNetwork
+    toNetwork,
+    relayFeeEth,
+    fromBalance
   ])
 
   useEffect(() => {
@@ -701,6 +709,7 @@ const Send: FC = () => {
         toNetwork={toNetwork}
         fromNetwork={fromNetwork}
         setWarning={setWarning}
+        maxButtonFixedAmountToSubtract={sourceToken?.symbol === 'ETH' ? relayFeeEth : 0}
       />
 
       <Box display="flex" justifyContent="center" alignItems="center">
@@ -758,8 +767,8 @@ const Send: FC = () => {
               <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} relayFee={relayFeeEthDisplay} relayFeeUsd={relayFeeUsdDisplay} />
             }
             value={<>
-              <InfoTooltip title={totalBonderFeeUsdDisplay}>
-                <Box>{totalBonderFeeDisplay}</Box>
+              <InfoTooltip title={totalFeeUsdDisplay}>
+                <Box>{totalFeeDisplay}</Box>
               </InfoTooltip>
             </>}
             large

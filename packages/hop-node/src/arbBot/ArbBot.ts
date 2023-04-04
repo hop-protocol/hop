@@ -616,7 +616,7 @@ export class ArbBot {
 
   async depositAmmCanonicalTokens () {
     this.logger.log('depositAmmCanonicalTokens()')
-    let amount = this.amount
+    let amount = this.ammDepositThresholdAmount
 
     const l2WethBalance = await this.getL2WethBalance()
     if (l2WethBalance.lt(amount)) {
@@ -630,8 +630,6 @@ export class ArbBot {
 
     const minToMint = this.bridge.calcAmountOutMin(amount, this.slippageTolerance)
     const deadline = this.getDeadline()
-
-    const provider = getRpcProvider(this.l2ChainSlug)
 
     if (this.dryMode) {
       return

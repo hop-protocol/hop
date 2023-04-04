@@ -43,8 +43,8 @@ export class ArbBot {
   logger: Logger
   slippageTolerance: number = 5 // 5%
   pollIntervalMs: number = 60 * 1000
-  ammDepositThresholdAmount: number = 500
-  amount: BigNumber = parseUnits('3000', 18)
+  ammDepositThresholdAmount: number = 10
+  amount: BigNumber = parseUnits('100', 18)
   waitConfirmations: number = 1
 
   l2ChainWriteProvider: any = new providers.StaticJsonRpcProvider('https://rpc.goerli.linea.build')
@@ -69,7 +69,7 @@ export class ArbBot {
       this.slippageTolerance = Number(process.env.ARB_BOT_SLIPPAGE_TOLERANCE)
     }
     if (process.env.ARB_BOT_AMM_THRESHOLD_AMOUNT) {
-      this.ammDepositThresholdAmount = Number(process.env.ARB_BOT_AMM_TRESHOLD_AMOUNT)
+      this.ammDepositThresholdAmount = Number(process.env.ARB_BOT_AMM_THRESHOLD_AMOUNT)
     }
     if (process.env.ARB_BOT_WAIT_CONFIRMATIONS) {
       this.waitConfirmations = Number(process.env.ARB_BOT_WAIT_CONFIRMATIONS)
@@ -616,7 +616,7 @@ export class ArbBot {
 
   async depositAmmCanonicalTokens () {
     this.logger.log('depositAmmCanonicalTokens()')
-    let amount = this.amount
+    let amount = this.ammDepositThresholdAmount
 
     const l2WethBalance = await this.getL2WethBalance()
     if (l2WethBalance.lt(amount)) {
@@ -630,8 +630,6 @@ export class ArbBot {
 
     const minToMint = this.bridge.calcAmountOutMin(amount, this.slippageTolerance)
     const deadline = this.getDeadline()
-
-    const provider = getRpcProvider(this.l2ChainSlug)
 
     if (this.dryMode) {
       return

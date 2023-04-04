@@ -25,7 +25,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.29.0",
     "@hop-protocol/core": "0.0.1-beta.135",
-    "@hop-protocol/sdk": "0.0.1-beta.464",
+    "@hop-protocol/sdk": "0.0.1-beta.465",
     "@pinata/sdk": "1.1.26",
     "@types/isomorphic-fetch": "^0.0.36",
     "comment-json": "4.2.2",

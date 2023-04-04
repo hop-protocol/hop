@@ -66,7 +66,7 @@ const getWalletConnectRpcUrls = (): Record<string, string> => {
       421613: getRpcUrl(ChainSlug.Arbitrum),
       420: getRpcUrl(ChainSlug.Optimism),
       80001: getRpcUrl(ChainSlug.Polygon),
-      59140: getRpcUrl(ChainSlug.Linea),
+      59140: 'https://rpc.goerli.linea.build',
       534354: getRpcUrl(ChainSlug.ScrollZk),
       84531: getRpcUrl(ChainSlug.Base)
     }

@@ -13,7 +13,7 @@ import {
   IsExitSystemLive,
   TxRetryDelayMs,
   oruChains,
-  shouldExitOrus,
+  shouldExitOrus
 } from 'src/config'
 import { normalizeDbItem } from './utils'
 

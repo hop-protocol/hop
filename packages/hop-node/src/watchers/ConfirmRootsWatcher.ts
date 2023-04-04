@@ -2,26 +2,25 @@ import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
 import BaseZkBridgeWatcher from './BaseZkBridgeWatcher'
-import LineaBridgeWatcher from './LineaBridgeWatcher'
 import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L1MessengerWrapper from './classes/L1MessengerWrapper'
+import LineaBridgeWatcher from './LineaBridgeWatcher'
 import NovaBridgeWatcher from './NovaBridgeWatcher'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
 import ScrollZkBridgeWatcher from './ScrollZkBridgeWatcher'
 import ZkSyncBridgeWatcher from './ZkSyncBridgeWatcher'
 import contracts from 'src/contracts'
-import getTransferRootId from 'src/utils/getTransferRootId'
 import getTransferCommitted from 'src/theGraph/getTransferCommitted'
+import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber } from 'ethers'
 import { Chain, ChallengePeriodMs } from 'src/constants'
+import { ExitSystemSupportedTokens, getEnabledNetworks, config as globalConfig } from 'src/config'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { getEnabledNetworks, ExitSystemSupportedTokens } from 'src/config'
-import { config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -364,7 +363,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
       const createdAtMs = Number(createdAt) * 1000
       const timeSinceBondCreation = Date.now() - createdAtMs
       if (
-          createdAt.toString() === '0' ||
+        createdAt.toString() === '0' ||
           challengeStartTime.toString() !== '0' ||
           timeSinceBondCreation <= ChallengePeriodMs
       ) {

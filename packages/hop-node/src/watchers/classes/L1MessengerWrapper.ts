@@ -26,9 +26,8 @@ export default class L1MessengerWrapper extends ContractBase {
   private isValidCaller (): boolean {
     // From https://stackoverflow.com/questions/30162577/how-to-get-caller-function-class-name
     try {
-      throw new Error();
-    }
-    catch (err) {
+      throw new Error()
+    } catch (err) {
       const expectedCaller = 'ConfirmRootsWatcher.confirmRootsViaWrapper'
       const caller = err.stack?.split('\n')[3].trim().substring(3, 45)
       if (caller !== expectedCaller) {
@@ -36,5 +35,5 @@ export default class L1MessengerWrapper extends ContractBase {
       }
     }
     return true
-  } 
+  }
 }

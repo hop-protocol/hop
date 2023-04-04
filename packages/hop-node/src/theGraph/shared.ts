@@ -1,8 +1,7 @@
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { DateTime } from 'luxon'
 import { formatUnits } from 'ethers/lib/utils'
-import { mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
-import { goerli as goerliNetworks } from '@hop-protocol/core/networks'
+import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
 
 export type Filters = {
   startDate: string

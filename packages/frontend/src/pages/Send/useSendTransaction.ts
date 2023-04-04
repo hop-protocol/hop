@@ -201,6 +201,12 @@ export function useSendTransaction (props: any) {
   }
 
   const sendl1ToL2 = async () => {
+    if (sourceToken.symbol === sdk.Token.ETH && fromNetwork.isL1 && toNetwork.slug === sdk.Chain.Linea.slug) {
+      if (parsedAmount.gt(parseEther('10'))) {
+        throw new Error('Deposits into Linea are limited to 10 ETH maximum. Please send 10 ETH or less.')
+      }
+    }
+
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {

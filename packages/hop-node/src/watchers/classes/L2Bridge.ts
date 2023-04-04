@@ -293,6 +293,7 @@ export default class L2Bridge extends Bridge {
       const gasLimit = 15_000_000
       txOverrides.gasLimit = gasLimit
     }
+
     const tx = await contract.commitTransfers(
       destinationChainId,
       txOverrides

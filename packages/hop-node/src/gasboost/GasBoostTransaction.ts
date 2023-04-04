@@ -786,28 +786,32 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
 
         this.logger.debug(`tx index ${i} completed`)
         return tx
-      } catch (err) {
+      } catch (err: any) {
         this.logger.debug(`tx index ${i} error: ${err.message}`)
 
         const {
           nonceTooLow,
           estimateGasFailed,
           isAlreadyKnown,
-          isFeeTooLow
+          isFeeTooLow,
+          serverError
         } = this.parseErrorString(err.message)
 
         // nonceTooLow error checks must be done first since the following errors can be true while nonce is too low
         if (nonceTooLow) {
           this.logger.error(`nonce ${this.nonce} too low`)
           throw new NonceTooLowError('NonceTooLow')
-        } else if (estimateGasFailed) {
+        } else if (estimateGasFailed && !serverError) {
           this.logger.error('estimateGas failed')
           throw new EstimateGasError('EstimateGasError')
         }
 
-        const shouldRetry = (isAlreadyKnown || isFeeTooLow) && i < maxRetries
+        const shouldRetry = (isAlreadyKnown || isFeeTooLow || serverError) && i < maxRetries
         if (shouldRetry) {
           continue
+        }
+        if (estimateGasFailed) {
+          throw new EstimateGasError('EstimateGasError')
         }
         throw err
       }
@@ -932,11 +936,13 @@ class GasBoostTransaction extends EventEmitter implements providers.TransactionR
     const estimateGasFailed = /eth_estimateGas/i.test(errMessage)
     const isAlreadyKnown = /(AlreadyKnown|already known)/i.test(errMessage) // tx is already in mempool
     const isFeeTooLow = /FeeTooLowToCompete|transaction underpriced/i.test(errMessage)
+    const serverError = /SERVER_ERROR/g.test(errMessage)
     return {
       nonceTooLow,
       estimateGasFailed,
       isAlreadyKnown,
-      isFeeTooLow
+      isFeeTooLow,
+      serverError
     }
   }
 

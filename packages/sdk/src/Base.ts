@@ -6,7 +6,7 @@ import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/static/Arbitru
 import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/static/ArbitrumGlobalInbox__factory'
 import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { ChainSlug, Errors, MinPolygonGasLimit, MinPolygonGasPrice, NetworkSlug } from './constants'
+import { ChainSlug, Errors, MinGoerliGasLimit, MinPolygonGasLimit, MinPolygonGasPrice, NetworkSlug } from './constants'
 import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts/static/L1_OptimismTokenBridge'
 import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_OptimismTokenBridge__factory'
 import { L1_PolygonPosRootChainManager } from '@hop-protocol/core/contracts/static/L1_PolygonPosRootChainManager'
@@ -598,6 +598,18 @@ export class Base {
       txOptions.gasLimit = MinPolygonGasLimit
     }
 
+    if (chain.equals(Chain.Linea)) {
+      const gasPriceMultiplier = 2
+      txOptions.gasPrice = await this.getBumpedGasPrice(
+        this.signer,
+        gasPriceMultiplier
+      )
+    }
+
+    if (this.network === NetworkSlug.Goerli) {
+      txOptions.gasLimit = MinGoerliGasLimit
+    }
+
     return txOptions
   }
 
@@ -663,16 +675,8 @@ export class Base {
       return BigNumber.from(0)
     }
 
-    if (
-      destinationChain.equals(Chain.Arbitrum) ||
-      destinationChain.equals(Chain.Nova) ||
-      destinationChain.equals(Chain.Linea)
-    ) {
-      const relayerFee = new RelayerFee(this.network, tokenSymbol)
-      return relayerFee.getRelayCost(destinationChain.slug)
-    }
-
-    return BigNumber.from(0)
+    const relayerFee = new RelayerFee()
+    return relayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
   }
 
   async setBaseConfigUrl (url: string): Promise<void> {

@@ -338,6 +338,12 @@ const Web3ContextProvider: FC = ({ children }) => {
         return true
       }
 
+      let rpcUrl = getRpcUrlOrThrow(networkIdToSlug(networkId.toString()))
+      const lineaChainId = 59140
+      if (Number(networkId) === lineaChainId) {
+        rpcUrl = 'https://rpc.goerli.linea.build'
+      }
+
       const state = onboard.getState()
       if (state.address) {
         onboard.config({ networkId })
@@ -376,7 +382,7 @@ const Web3ContextProvider: FC = ({ children }) => {
           const rpcObj = {
             chainId: `0x${Number(networkId).toString(16)}`,
             chainName: networkNames[networkId],
-            rpcUrls: [getRpcUrlOrThrow(networkIdToSlug(networkId.toString()))],
+            rpcUrls: [rpcUrl],
             blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
             nativeCurrency,
           }

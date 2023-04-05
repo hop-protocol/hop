@@ -465,13 +465,11 @@ export class TransferStats {
     await Promise.all([
       // this.trackReceivedHTokenStatus(),
       // this.trackReceivedAmountStatus(),
-      this.trackRecentTransfers({ lookbackHours: 1, pollIntervalMs: 60 * 1000 })
-      /*
+      this.trackRecentTransfers({ lookbackHours: 1, pollIntervalMs: 60 * 1000 }),
       this.trackRecentTransfers({ lookbackHours: 4, pollIntervalMs: 60 * 60 * 1000 }),
       this.trackRecentTransferBonds({ lookbackMinutes: 20, pollIntervalMs: 60 * 1000 }),
       this.trackRecentTransferBonds({ lookbackMinutes: 120, pollIntervalMs: 10 * 60 * 1000 }),
       this.checkForReorgs()
-      */
     ])
   }
 
@@ -959,8 +957,6 @@ export class TransferStats {
     const transferIds = data.map(x => x.transferId)
     const filterTransferIds = transferIds
 
-    console.log('here0')
-
     const [
       gnosisBondedWithdrawals,
       polygonBondedWithdrawals,
@@ -978,8 +974,6 @@ export class TransferStats {
       enabledChains.includes('linea') ? fetchTransferBonds('linea', filterTransferIds) : Promise.resolve([]),
       enabledChains.includes('ethereum') ? fetchTransferBonds('ethereum', filterTransferIds) : Promise.resolve([])
     ])
-
-    console.log('here1')
 
     const [
       gnosisWithdrews,
@@ -999,8 +993,6 @@ export class TransferStats {
       enabledChains.includes('ethereum') ? fetchWithdrews('ethereum', filterTransferIds) : Promise.resolve([])
     ])
 
-    console.log('here2')
-
     const [
       gnosisFromL1Completeds,
       polygonFromL1Completeds,
@@ -1016,8 +1008,6 @@ export class TransferStats {
       enabledChains.includes('nova') ? fetchTransferFromL1Completeds('nova', startTime, endTime, undefined) : Promise.resolve([]),
       enabledChains.includes('linea') ? fetchTransferFromL1Completeds('linea', startTime, endTime, undefined) : Promise.resolve([])
     ])
-
-    console.log('here3')
 
     const gnosisBonds = [...gnosisBondedWithdrawals, ...gnosisWithdrews]
     const polygonBonds = [...polygonBondedWithdrawals, ...polygonWithdrews]
@@ -1092,8 +1082,6 @@ export class TransferStats {
       '0x0131496b64dbd1f7821ae9f7d78f28f9a78ff23cd85e8851b8a2e4e49688f648'
     ]
 
-    console.log('here4')
-
     if (data.length > 0) {
       const regenesisTimestamp = 1636531200
       for (const item of data) {
@@ -1115,8 +1103,6 @@ export class TransferStats {
       }
     }
 
-    console.log('here5')
-
     if (data.length > 0) {
       for (const item of data) {
         const _data = await this.getIntegrationPartner(item)
@@ -1130,8 +1116,6 @@ export class TransferStats {
         }
       }
     }
-
-    console.log('here6')
 
     const populatedData = data
       .filter(x => enabledTokens.includes(x.token))
@@ -1155,8 +1139,6 @@ export class TransferStats {
         x.receivedHTokens = await this.getReceivedHtokens(x)
       }
     }
-
-    console.log('here7')
 
     return populatedData
   }

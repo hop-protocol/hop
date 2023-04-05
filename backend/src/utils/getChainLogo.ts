@@ -5,7 +5,10 @@ const chainLogosMap: any = {
   polygon: 'https://assets.hop.exchange/logos/polygon.svg',
   optimism: 'https://assets.hop.exchange/logos/optimism.svg',
   arbitrum: 'https://assets.hop.exchange/logos/arbitrum.svg',
-  nova: 'https://assets.hop.exchange/logos/nova.svg'
+  nova: 'https://assets.hop.exchange/logos/nova.svg',
+  linea: 'https://assets.hop.exchange/logos/linea.svg',
+  base: 'https://assets.hop.exchange/logos/base.svg',
+  scroll: 'https://assets.hop.exchange/logos/scroll.svg'
 }
 
 export function getChainLogo (chainSlug: string) {

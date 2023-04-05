@@ -38,6 +38,9 @@ export function getUrl (chain: string) {
     if (chain === 'xdai') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
+    if (chain === 'base') {
+      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+    }
   }
 
   let url: string
@@ -46,6 +49,11 @@ export function getUrl (chain: string) {
   } else {
     url = `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
   }
+
+  if (isGoerli && chain === 'linea') {
+    url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
+  }
+
   return url
 }
 
@@ -162,7 +170,7 @@ export async function fetchTransfers (chain: string, startTime: number, endTime:
 
   if (transfers.length === 1000) {
     lastId = transfers[transfers.length - 1].id
-    transfers = transfers.concat(...(await this.fetchTransfers(
+    transfers = transfers.concat(...(await fetchTransfers(
       chain,
       startTime,
       endTime,

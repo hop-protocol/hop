@@ -22,6 +22,18 @@ export function explorerLink (chain: string) {
     }
   } else if (chain === 'nova') {
     base = 'https://nova.arbiscan.io'
+  } else if (chain === 'linea') {
+    if (isGoerli) {
+      base = 'https://explorer.goerli.linea.build'
+    }
+  } else if (chain === 'base') {
+    if (isGoerli) {
+      base = 'https://goerli.basescan.org'
+    }
+  } else if (chain === 'scroll') {
+    if (isGoerli) {
+      base = 'https://l2scan.scroll.io'
+    }
   } else {
     base = 'https://etherscan.io'
     if (isGoerli) {

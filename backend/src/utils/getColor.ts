@@ -6,6 +6,9 @@ const colorsMap: any = {
   optimism: '#e64b5d',
   arbitrum: '#289fef',
   nova: '#ec772c',
+  linea: '#121212',
+  base: '#0052ff',
+  scroll: '#e5d1b8',
   bonded: '#81ff81',
   pending: '#ffc55a',
   fallback: '#9f9fa3'

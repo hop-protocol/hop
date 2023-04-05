@@ -652,10 +652,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@hop-protocol/core@^0.0.1-beta.114":
-  "integrity" "sha512-u+sKs+5d8X+GuPBkb+ffVx/QO3Vc8mL80YDrWnVaAVn3ZnU6aeBUm+h6NgxOavz7IGwtSuh2o2wQqrbLsYswJA=="
-  "resolved" "https://registry.npmjs.org/@hop-protocol/core/-/core-0.0.1-beta.114.tgz"
-  "version" "0.0.1-beta.114"
+"@hop-protocol/core@^0.0.1-beta.136":
+  "integrity" "sha512-Cg8CIaUOJiuaR5dgGm8HuHUVvyrOQ/KbyHvUjxkwp71vzhJJS4QIDQ+XNxaWBLeLtF8bAY1sVKZFXO/aqnuuZA=="
+  "resolved" "https://registry.npmjs.org/@hop-protocol/core/-/core-0.0.1-beta.136.tgz"
+  "version" "0.0.1-beta.136"
   dependencies:
     "ethers" "5.7.1"
 

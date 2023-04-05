@@ -5,7 +5,10 @@ const chainSlugToNameMap: any = {
   polygon: 'Polygon',
   arbitrum: 'Arbitrum',
   optimism: 'Optimism',
-  nova: 'Nova'
+  nova: 'Nova',
+  linea: 'Linea',
+  base: 'Base',
+  scroll: 'Scroll'
 }
 
 export function chainSlugToName (chainSlug: string) {

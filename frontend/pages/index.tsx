@@ -89,6 +89,21 @@ function getSourceChainId (chain: string) {
   if (chain === 'nova') {
     return 42170
   }
+  if (chain === 'linea') {
+    if (isGoerli) {
+      return 59140
+    }
+  }
+  if (chain === 'base') {
+    if (isGoerli) {
+      return 84531
+    }
+  }
+  if (chain === 'scroll') {
+    if (isGoerli) {
+      return 534354
+    }
+  }
   throw new Error(`unsupported chain "${chain}"`)
 }
 
@@ -121,7 +136,7 @@ const poll = true
 const pollInterval = 15 * 1000
 let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova']
 if (isGoerli) {
-  enabledChains = ['ethereum', 'polygon', 'arbitrum', 'optimism']
+  enabledChains = ['ethereum', 'polygon', 'arbitrum', 'optimism', 'linea']
 }
 
 let queryParams: any = {}
@@ -157,7 +172,10 @@ const chainSlugToNameMap: any = {
   polygon: 'Polygon',
   arbitrum: 'Arbitrum',
   optimism: 'Optimism',
-  nova: 'Nova'
+  nova: 'Nova',
+  linea: 'Linea',
+  base: 'Base',
+  scroll: 'Scroll',
 }
 
 const colorsMap: any = {
@@ -167,6 +185,9 @@ const colorsMap: any = {
   optimism: '#e64b5d',
   arbitrum: '#289fef',
   nova: '#ec772c',
+  linea: '#121212',
+  base: '#0052ff',
+  scroll: '#e5d1b8',
   fallback: '#9f9fa3'
 }
 
@@ -374,6 +395,7 @@ function useData () {
         transferId: x.transferId
       }
     })
+    .filter((x: any) => Boolean(x.source) && Boolean(x.target))
 
     const nodes = []
     for (let i = 0; i < enabledChains.length; i++) {
@@ -908,7 +930,7 @@ const Index: NextPage = (props: any) => {
           </div>
         </div>
       )}
-      <Box id="app">
+      <Box id="app" className={dark ? 'dark' : 'light'}>
         <Box mb={2} mt={2} display="flex" justifyContent="space-between">
           <Box className="header" display="flex" alignItems="center" justifyContent="center">
             <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
@@ -974,6 +996,7 @@ const Index: NextPage = (props: any) => {
                     <MenuItem value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>
                     <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
                     <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
+                    <MenuItem value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">
@@ -986,6 +1009,7 @@ const Index: NextPage = (props: any) => {
                     <MenuItem value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>
                     <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
                     <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
+                    <MenuItem value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">

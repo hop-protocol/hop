@@ -32,5 +32,20 @@ export function getSourceChainId (chain: string) {
   if (chain === 'nova') {
     return 42170
   }
+  if (chain === 'linea') {
+    if (isGoerli) {
+      return 59140
+    }
+  }
+  if (chain === 'base') {
+    if (isGoerli) {
+      return 84531
+    }
+  }
+  if (chain === 'scroll') {
+    if (isGoerli) {
+      return 534354
+    }
+  }
   throw new Error(`unsupported chain "${chain}"`)
 }

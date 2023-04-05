@@ -13,7 +13,10 @@ const chainIdToSlugMap: any = {
   42161: 'arbitrum',
   421611: 'arbitrum',
   421613: 'arbitrum',
-  42170: 'nova'
+  42170: 'nova',
+  59140: 'linea',
+  84531: 'base',
+  534354: 'scroll'
 }
 
 export function chainIdToSlug (chainId: number) {

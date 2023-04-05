@@ -18,8 +18,8 @@ let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX'
 let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova']
 
 if (isGoerli) {
-  enabledTokens = ['USDC', 'ETH']
-  enabledChains = ['ethereum', 'polygon', 'optimism']
+  enabledTokens = ['USDC', 'ETH', 'HOP']
+  enabledChains = ['ethereum', 'polygon', 'optimism', 'arbitrum', 'linea']
 }
 
 export { enabledTokens, enabledChains }
@@ -30,7 +30,10 @@ export const rpcUrls = {
   arbitrum: process.env.ARBITRUM_RPC,
   optimism: process.env.OPTIMISM_RPC,
   ethereum: process.env.ETHEREUM_RPC,
-  nova: process.env.NOVA_RPC
+  nova: process.env.NOVA_RPC,
+  linea: process.env.LINEA_RPC,
+  base: process.env.BASE_RPC,
+  scroll: process.env.SCROLL_RPC
 }
 
 export const transferTimes = {
@@ -70,6 +73,27 @@ export const transferTimes = {
     nova: 5
   },
   nova: {
+    ethereum: 1,
+    optimism: 1,
+    arbitrum: 1,
+    polygon: 5,
+    gnosis: 1
+  },
+  linea: {
+    ethereum: 1,
+    optimism: 1,
+    arbitrum: 1,
+    polygon: 5,
+    gnosis: 1
+  },
+  base: {
+    ethereum: 1,
+    optimism: 1,
+    arbitrum: 1,
+    polygon: 5,
+    gnosis: 1
+  },
+  scroll: {
     ethereum: 1,
     optimism: 1,
     arbitrum: 1,

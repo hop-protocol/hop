@@ -163,6 +163,9 @@ table img {
 .bonded .yes {
   color: #81ff81;
 }
+.light .bonded .yes {
+    color: #19a819 !important;
+}
 .bonded .no {
   color: #ffc55a;
 }
@@ -192,6 +195,9 @@ table .clipboard:hover {
 .ethereum {
   color: #868dac;
 }
+.light .ethereum {
+  color: #4c4c4c !important;
+}
 .gnosis {
   color: #46a4a1;
 }
@@ -204,9 +210,22 @@ table .clipboard:hover {
 .arbitrum {
   color: #289fef;
 }
-.nova{
+.nova {
   color: #ec772c;
 }
+.linea {
+  color: #121212;
+}
+.dark .linea {
+  color: #afafaf !important;
+}
+.base {
+  color: #0052ff;
+}
+.scroll {
+  color: #e5d1b8;
+}
+
 .paginationButton {
   appearance: none;
   border: none;

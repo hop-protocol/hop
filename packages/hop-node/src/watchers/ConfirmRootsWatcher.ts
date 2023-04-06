@@ -16,7 +16,7 @@ import getTransferCommitted from 'src/theGraph/getTransferCommitted'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber } from 'ethers'
 import { Chain, ChallengePeriodMs } from 'src/constants'
-import { ExitSystemSupportedTokens, getEnabledNetworks, config as globalConfig } from 'src/config'
+import { getEnabledNetworks, config as globalConfig } from 'src/config'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
@@ -168,14 +168,6 @@ class ConfirmRootsWatcher extends BaseWatcher {
   async checkConfirmableTransferRootsFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getConfirmableTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
-      return
-    }
-
-    // TODO: Remove this when the exit system is fully live
-    if (
-      ExitSystemSupportedTokens.length !== 0 &&
-      !ExitSystemSupportedTokens.includes(this.tokenSymbol)
-    ) {
       return
     }
 

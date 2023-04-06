@@ -10,7 +10,6 @@ import {
   RootSetSettleDelayMs
 } from 'src/constants'
 import {
-  IsExitSystemLive,
   TxRetryDelayMs,
   oruChains,
   shouldExitOrus
@@ -577,10 +576,6 @@ class TransferRootsDb extends BaseDb {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     const filtered = transferRoots.filter(item => {
-      // TODO: Remove this when the exit system is fully live
-      if (!IsExitSystemLive) {
-        return false
-      }
 
       if (!item.sourceChainId) {
         return false

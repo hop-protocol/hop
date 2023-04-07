@@ -5,6 +5,7 @@ import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber } from 'ethers'
 import { Chain, PreRegenesisRootsCommitted } from 'src/constants'
 import { actionHandler, parseString, root } from './shared'
+import { DateTime } from 'luxon'
 
 root
   .command('bonded-unconfirmed-roots')
@@ -14,11 +15,17 @@ root
   .action(actionHandler(main))
 
 export async function main (source: any) {
-  const { token, chain } = source
+  let { token, chain, endTimestamp } = source
 
-  const rootsCommittedAndTotalAmounts = await getRootsCommittedAndTotalAmounts(chain, token)
-  const rootsConfirmed = await getTransferRootConfirmed(Chain.Ethereum, token)
-  const rootsBonded = await getTransferRootBonded(Chain.Ethereum, token)
+  if (!endTimestamp) {
+    const now = DateTime.now().toUTC()
+    endTimestamp = Math.floor(now.toSeconds())
+  }
+
+  const startTimestamp = 0
+  const rootsCommittedAndTotalAmounts = await getRootsCommittedAndTotalAmounts(chain, token, startTimestamp, endTimestamp)
+  const rootsConfirmed = await getTransferRootConfirmed(Chain.Ethereum, token, startTimestamp, endTimestamp)
+  const rootsBonded = await getTransferRootBonded(Chain.Ethereum, token, startTimestamp, endTimestamp)
 
   const rootHashesConfirmed = rootsConfirmed.map((rootConfirmed: any) => rootConfirmed.rootHash)
   const rootHashesBonded = rootsBonded.map((rootBonded: any) => rootBonded.root)
@@ -34,9 +41,16 @@ export async function main (source: any) {
   return bondedUnconfirmedRootAmount
 }
 
-async function getRootsCommittedAndTotalAmounts (chain: string, token: string): Promise<Record<string, BigNumber>> {
+async function getRootsCommittedAndTotalAmounts (
+  chain: string,
+  token: string,
+  startTimestamp: number,
+  endTimestamp: number
+): Promise<Record<string, BigNumber>> {
   const rootsCommittedAmounts: Record<string, BigNumber> = {}
-  const commitsRes = await getTransfersCommitted(chain, token)
+  // This represents all destination chains
+  const destinationChainId = 0
+  const commitsRes = await getTransfersCommitted(chain, token, destinationChainId, startTimestamp, endTimestamp)
   for (const res of commitsRes) {
     rootsCommittedAmounts[res.rootHash] = BigNumber.from(res.totalAmount)
   }

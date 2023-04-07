@@ -71,6 +71,10 @@ const UnwithdrawnTransfers: UnwithdrawnTransfers = {
     [Chain.Optimism]: '0',
     [Chain.Arbitrum]: '0',
   },
+  [Token.SNX]: {
+    [Chain.Ethereum]: '0',
+    [Chain.Optimism]: '0',
+  },
 }
 
 // There are no Optimism pre-regenesis values here since all L1 to Optimism pre-regenesis transfers have been relayed
@@ -115,6 +119,9 @@ const InFlightL1ToL2Transfers: InFlightL1ToL2Transfers = {
     [Chain.Optimism]: '0',
     [Chain.Arbitrum]: '0',
   },
+  [Token.SNX]: {
+    [Chain.Optimism]: '0',
+  },
 }
 
 const L1TokensSentDirectlyToBridge: L1TokensSentDirectlyToBridge = {
@@ -126,6 +133,7 @@ const L1TokensSentDirectlyToBridge: L1TokensSentDirectlyToBridge = {
   [Token.ETH]: '0',
   [Token.MATIC]: '0',
   [Token.HOP]: '0',
+  [Token.SNX]: '0',
 }
 
 const L1InvalidRoot: L1InvalidRoot = {
@@ -135,6 +143,7 @@ const L1InvalidRoot: L1InvalidRoot = {
   [Token.ETH]: '38497139540773520376',
   [Token.MATIC]: '0',
   [Token.HOP]: '0',
+  [Token.SNX]: '0',
 }
 
 

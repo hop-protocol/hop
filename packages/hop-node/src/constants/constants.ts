@@ -28,7 +28,8 @@ export enum Token {
   DAI = 'DAI',
   ETH = 'ETH',
   MATIC = 'MATIC',
-  HOP = 'HOP'
+  HOP = 'HOP',
+  SNX = 'SNX',
 }
 
 export enum NativeChainToken {

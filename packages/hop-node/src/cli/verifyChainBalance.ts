@@ -14,6 +14,7 @@ import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
 import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled'
+import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 
 import { getRecentUnrelayedL1ToL2Transfers } from './shared/utils'
 
@@ -24,7 +25,6 @@ interface MetaBlockData {
   blockTag: providers.BlockTag
   blockTimestamp: number
 }
-const metaBlockData: Record<string, MetaBlockData> = {}
 
 type TokenAdjustmentData = {
   l1TokensInContract: BigNumber
@@ -87,7 +87,7 @@ root
   .option('--log-output [boolean]', 'Log values', parseBool)
   .action(actionHandler(main))
 
-async function main (source: any) {
+export async function main (source: any) {
   let { token, logOutput } = source
 
   if (!token) {
@@ -101,6 +101,7 @@ async function main (source: any) {
     l2ChainsForToken.push(chain as Chain)
   }
 
+  const metaBlockData: Record<string, MetaBlockData> = {}
   const l1Provider = getRpcProvider(Chain.Ethereum)!
   const l1Block = await l1Provider.getBlock('latest')
   metaBlockData[Chain.Ethereum] = {
@@ -118,6 +119,17 @@ async function main (source: any) {
     }
   }
 
+
+  // Subgraphs may be out of sync. If they are too far out of sync, we need to wait until they
+  // are back in sync, as they are a sole source of truth for some pieces of data
+  const isSubgraphSynced = await getIsSubgraphSynced(metaBlockData, l1Provider, l2Providers)
+  if (!isSubgraphSynced) {
+    return {
+      tokenChainBalanceDiff: BigNumber.from(0),
+      chainBalanceHTokenDiff: BigNumber.from(0)
+    }
+  }
+
   // Get addresses
   const addresses = globalConfig.addresses[token]
   if (!addresses) {
@@ -130,7 +142,8 @@ async function main (source: any) {
     hTokenAdjustments
   } = await getAdjustments(
     token,
-    l2ChainsForToken
+    l2ChainsForToken,
+    metaBlockData
   )
 
   const adjustedToken: BigNumber = getAdjustedToken(tokenAdjustments)
@@ -147,15 +160,19 @@ async function main (source: any) {
     totalAdjustedHToken = totalAdjustedHToken.add(adjustedHTokens[chain])
   }
 
-  const tokenChainBalanceDiff = adjustedToken.sub(totalAdjustedChainBalance)
-  const chainBalanceHTokenDiff =  totalAdjustedChainBalance.sub(totalAdjustedHToken)
-  
   if (logOutput) {
     logValues(token, tokenAdjustments, chainBalanceAdjustments, hTokenAdjustments)
   }
+
+  const tokenChainBalanceDiff = adjustedToken.sub(totalAdjustedChainBalance)
+  const chainBalanceHTokenDiff =  totalAdjustedChainBalance.sub(totalAdjustedHToken)
+  return {
+    tokenChainBalanceDiff,
+    chainBalanceHTokenDiff
+  }
 }
 
-async function getAdjustments (token: Token, l2ChainsForToken: Chain[]) {
+async function getAdjustments (token: Token, l2ChainsForToken: Chain[], metaBlockData: Record<string, MetaBlockData>) {
   const {
     l1Bridge,
     l1CanonicalToken
@@ -165,7 +182,8 @@ async function getAdjustments (token: Token, l2ChainsForToken: Chain[]) {
   const tokenAdjustments = await getTokenAdjustments(
     token,
     l1Bridge,
-    l1CanonicalToken
+    l1CanonicalToken,
+    metaBlockData
   )
 
   const chainBalanceAdjustmentPromises: Array<Promise<ChainBalanceAdjustmentData>> = []
@@ -174,12 +192,14 @@ async function getAdjustments (token: Token, l2ChainsForToken: Chain[]) {
     chainBalanceAdjustmentPromises.push(getChainBalanceAdjustments(
       token,
       chain,
-      l1Bridge
+      l1Bridge,
+      metaBlockData
     ))
     hTokenAdjustmentPromises.push(getHTokenAdjustments(
       token,
       chain,
       l2ChainsForToken,
+      metaBlockData
     ))
   }
   const chainBalanceAdjustments: ChainBalanceAdjustmentData[] = await Promise.all([...chainBalanceAdjustmentPromises])
@@ -240,7 +260,8 @@ function getAdjustedHToken (hTokenAdjustments: HTokenAdjustmentData) {
 async function getTokenAdjustments (
   token: Token,
   l1Bridge: Contract,
-  l1CanonicalToken: Contract
+  l1CanonicalToken: Contract,
+  metaBlockData: Record<string, MetaBlockData>
 ): Promise<TokenAdjustmentData> {
   // Constants
   const l1Provider = getRpcProvider(Chain.Ethereum)!
@@ -291,7 +312,8 @@ async function getTokenAdjustments (
 async function getChainBalanceAdjustments (
   token: Token,
   chain: Chain,
-  l1Bridge: Contract
+  l1Bridge: Contract,
+  metaBlockData: Record<string, MetaBlockData>
 ): Promise<ChainBalanceAdjustmentData> {
   // Constants
   const chainId = chainSlugToId(chain)
@@ -317,7 +339,8 @@ async function getChainBalanceAdjustments (
 async function getHTokenAdjustments (
   token: Token,
   chain: Chain,
-  l2ChainsForToken: string[]
+  l2ChainsForToken: string[],
+  metaBlockData: Record<string, MetaBlockData>
 ): Promise<HTokenAdjustmentData> {
   // Constants
   const chainId = chainSlugToId(chain)
@@ -569,8 +592,46 @@ function logValues(
   console.log('Adjusted ChainBalance:', ethersUtils.formatUnits(totalAdjustedChainBalance, decimals))
   console.log('Adjusted hToken:', ethersUtils.formatUnits(totalAdjustedHToken, decimals))
 
-  console.log('\nCanonical Token - ChainBalance:', ethersUtils.formatUnits(totalAdjustedToken.sub(totalAdjustedChainBalance), decimals))
-  console.log('ChainBalance - hToken:', ethersUtils.formatUnits(totalAdjustedChainBalance.sub(totalAdjustedHToken), decimals))
+  const tokenChainBalanceDiff = totalAdjustedToken.sub(totalAdjustedChainBalance)
+  const chainBalanceHTokenDiff =  totalAdjustedChainBalance.sub(totalAdjustedHToken)
+  console.log('\nCanonical Token - ChainBalance:', ethersUtils.formatUnits(tokenChainBalanceDiff, decimals))
+  console.log('ChainBalance - hToken:', ethersUtils.formatUnits(chainBalanceHTokenDiff, decimals))
 
-  Token - ChainBalan is neg then maybe someone withdrew
+  // Log possible reasons why values might be wrong
+  if (tokenChainBalanceDiff.isNegative()) {
+    console.log('Token - ChainBalance is negative. Did someone withdraw tokens that existed in the UnwithdrawnTransfers archive data')
+  }
+}
+
+async function getIsSubgraphSynced(
+  metaBlockData: any,
+  l1Provider: providers.Provider,
+  l2Providers: Record<string, providers.Provider>
+): Promise<boolean> {
+  for (const chain in metaBlockData) {
+    if (chain === Chain.Nova) {
+      // Nova does not have a sync subgraph
+      continue
+    }
+
+    const provider = chain === Chain.Ethereum ? l1Provider : l2Providers[chain]
+
+    // Use timestamp since ORUs have inconsistent block lengths
+    const syncedBlockNumber = await getSubgraphLastBlockSynced(chain)
+    const syncedBlock = await provider.getBlock(syncedBlockNumber)
+    if (!syncedBlock) {
+      console.log(`Unable to get synced block for ${chain}, block number ${syncedBlockNumber}`)
+      return false
+    }
+
+    const syncedTimestamp = syncedBlock.timestamp
+    const syncDiff = metaBlockData[chain].blockTimestamp - syncedTimestamp
+
+    const oneMinuteSeconds = 60
+    if (syncDiff > oneMinuteSeconds) {
+      console.log(chain, 'Subgraph is out of sync by', syncDiff, 'seconds. Please wait for the subgraph to sync before trying again.')
+      return false
+    }
+  }
+  return true
 }

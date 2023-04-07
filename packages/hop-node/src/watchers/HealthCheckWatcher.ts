@@ -28,6 +28,7 @@ import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawal
 import { getNameservers } from 'src/utils/getNameservers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
+import { main as verifyChainBalance } from 'src/cli/verifyChainBalance'
 
 type LowBonderBalance = {
   bridge: string
@@ -164,6 +165,12 @@ type LowOsResource = {
   percent: string
 }
 
+type InvalidChainBalance = {
+  token: string
+  tokenChainBalanceDiff: BigNumber
+  chainBalanceHTokenDiff: BigNumber
+}
+
 type Result = {
   lowBonderBalances: LowBonderBalance[]
   lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
@@ -178,6 +185,7 @@ type Result = {
   unsetTransferRoots: UnsetTransferRoot[]
   dnsNameserversChanged: DnsNameserversChanged[]
   lowOsResources: LowOsResource[]
+  invalidChainBalance: InvalidChainBalance[]
 }
 
 export type EnabledChecks = {
@@ -194,6 +202,7 @@ export type EnabledChecks = {
   unsetTransferRoots: boolean
   dnsNameserversChanged: boolean
   lowOsResources: boolean
+  invalidChainBalance: boolean
 }
 
 export type Config = {
@@ -256,7 +265,8 @@ export class HealthCheckWatcher {
     unrelayedTransfers: true,
     unsetTransferRoots: true,
     dnsNameserversChanged: true,
-    lowOsResources: true
+    lowOsResources: true,
+    invalidChainBalance: true
   }
 
   lastUnsyncedSubgraphNotificationSentAt: number
@@ -332,7 +342,8 @@ export class HealthCheckWatcher {
       unrelayedTransfers,
       unsetTransferRoots,
       dnsNameserversChanged,
-      lowOsResources
+      lowOsResources,
+      invalidChainBalance
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
       this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([]),
@@ -346,7 +357,8 @@ export class HealthCheckWatcher {
       this.enabledChecks.unrelayedTransfers ? this.getUnrelayedTransfers() : Promise.resolve([]),
       this.enabledChecks.unsetTransferRoots ? this.getUnsetTransferRoots() : Promise.resolve([]),
       this.enabledChecks.dnsNameserversChanged ? this.getDnsServersChanged() : Promise.resolve([]),
-      this.enabledChecks.lowOsResources ? this.getLowOsResources() : Promise.resolve([])
+      this.enabledChecks.lowOsResources ? this.getLowOsResources() : Promise.resolve([]),
+      this.enabledChecks.invalidChainBalance ? this.getInvalidChainBalance() : Promise.resolve([])
     ])
 
     return {
@@ -362,7 +374,8 @@ export class HealthCheckWatcher {
       unrelayedTransfers,
       unsetTransferRoots,
       dnsNameserversChanged,
-      lowOsResources
+      lowOsResources,
+      invalidChainBalance
     }
   }
 
@@ -380,7 +393,8 @@ export class HealthCheckWatcher {
       unrelayedTransfers,
       unsetTransferRoots,
       dnsNameserversChanged,
-      lowOsResources
+      lowOsResources,
+      invalidChainBalance
     } = result
 
     this.logger.debug('sending notifications', JSON.stringify(result, null, 2))
@@ -425,6 +439,11 @@ export class HealthCheckWatcher {
 
       for (const item of unsetTransferRoots) {
         const msg = `Possible unset transferRoot: transferRootHash: ${item.transferRootHash}, totalAmount: ${item.totalAmount}, timestamp: ${item.timestamp}`
+        messages.push(msg)
+      }
+
+      for (const item of invalidChainBalance) {
+        const msg = `Possible invalid chainBalance: token: ${item.token}, tokenChainBalanceDiff: ${item.tokenChainBalanceDiff}, chainBalanceHTokenDiff: ${item.chainBalanceHTokenDiff}`
         messages.push(msg)
       }
     }
@@ -1082,5 +1101,29 @@ export class HealthCheckWatcher {
     }
 
     return lowOsResources
+  }
+
+  async getInvalidChainBalance (): Promise<InvalidChainBalance[]> {
+    this.logger.debug('checking for an invalid chainBalance')
+    let invalidChainBalance: InvalidChainBalance[] = []
+    for (const token of this.tokens) {
+      this.logger.debug(`checking ${token} for invalid chainBalance`)
+      const { 
+        tokenChainBalanceDiff,
+        chainBalanceHTokenDiff
+      }= await verifyChainBalance({ token })
+
+      if (tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)) {
+        continue
+      }
+
+      invalidChainBalance.push({
+        token,
+        tokenChainBalanceDiff,
+        chainBalanceHTokenDiff
+      })
+    }
+
+    return invalidChainBalance
   }
 }

@@ -21,6 +21,17 @@ export enum Chain {
   Base = 'base'
 }
 
+// TODO: read from core
+export enum Token {
+  USDC = 'USDC',
+  USDT = 'USDT',
+  DAI = 'DAI',
+  ETH = 'ETH',
+  MATIC = 'MATIC',
+  HOP = 'HOP',
+  SNX = 'SNX',
+}
+
 export enum NativeChainToken {
   ETH = 'ETH',
   XDAI = 'XDAI',

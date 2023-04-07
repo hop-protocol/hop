@@ -71,7 +71,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Chain.ZkSync,
     Chain.Linea,
     Chain.ScrollZk,
-    Chain.Base
+    Chain.Base,
+    Chain.PolygonZk
   ]
 
   const validTokenKeys = [

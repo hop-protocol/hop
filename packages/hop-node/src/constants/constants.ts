@@ -18,7 +18,8 @@ export enum Chain {
   ZkSync = 'zksync',
   Linea = 'linea',
   ScrollZk = 'scrollzk',
-  Base = 'base'
+  Base = 'base',
+  PolygonZk = 'polygonzk',
 }
 
 export enum NativeChainToken {

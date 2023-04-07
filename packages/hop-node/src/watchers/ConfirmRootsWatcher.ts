@@ -9,6 +9,7 @@ import LineaBridgeWatcher from './LineaBridgeWatcher'
 import NovaBridgeWatcher from './NovaBridgeWatcher'
 import OptimismBridgeWatcher from './OptimismBridgeWatcher'
 import PolygonBridgeWatcher from './PolygonBridgeWatcher'
+import PolygonZkBridgeWatcher from './PolygonZkBridgeWatcher'
 import ScrollZkBridgeWatcher from './ScrollZkBridgeWatcher'
 import ZkSyncBridgeWatcher from './ZkSyncBridgeWatcher'
 import contracts from 'src/contracts'
@@ -123,6 +124,14 @@ class ConfirmRootsWatcher extends BaseWatcher {
     }
     if (this.chainSlug === Chain.ScrollZk && enabledNetworks.includes(Chain.ScrollZk)) {
       this.watchers[Chain.ScrollZk] = new ScrollZkBridgeWatcher({
+        chainSlug: config.chainSlug,
+        tokenSymbol: this.tokenSymbol,
+        bridgeContract: config.bridgeContract,
+        dryMode: config.dryMode
+      })
+    }
+    if (this.chainSlug === Chain.PolygonZk && enabledNetworks.includes(Chain.PolygonZk)) {
+      this.watchers[Chain.PolygonZk] = new PolygonZkBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,

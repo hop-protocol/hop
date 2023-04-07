@@ -1,6 +1,6 @@
 import makeRequest from './makeRequest'
-import { normalizeEntity } from './shared'
 import { MaxInt32 } from 'src/constants'
+import { normalizeEntity } from './shared'
 
 export default async function getTransferRootSet (
   chain: string,

@@ -1,9 +1,9 @@
-import { BigNumber, providers } from 'ethers'
+import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { DateTime } from 'luxon'
 
-import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getTransferFromL1Completed from 'src/theGraph/getTransferFromL1Completed'
+import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 
 export async function getHistoricalUnrelayedL1ToL2Transfers (
   token: string,
@@ -18,7 +18,7 @@ export async function getHistoricalUnrelayedL1ToL2Transfers (
 
   const startTimestamp = 0
   const l1ToL2TransfersReceived = await getTransferFromL1Completed(chain, token, startTimestamp, endTimestamp)
-  
+
   // For historical data, we want to ignore the in-flight transfers at the time of the snapshot, since we are
   // not concerned with that level of granularity
   const thirtyMinutesSeconds = 30 * 60

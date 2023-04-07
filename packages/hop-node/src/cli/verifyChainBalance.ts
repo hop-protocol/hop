@@ -1,25 +1,25 @@
-import { actionHandler, parseBool, parseString, root } from './shared'
-import { BigNumber, Contract, providers, utils as ethersUtils } from 'ethers'
-import { config as globalConfig } from 'src/config'
-import {
-  Chain,
-  Token,
-  ChainBalanceArchiveData,
-} from 'src/constants'
-import contracts from 'src/contracts'
 import chainSlugToId from 'src/utils/chainSlugToId'
-import getTokenDecimals from 'src/utils/getTokenDecimals'
+import contracts from 'src/contracts'
+import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled'
 import getRpcProvider from 'src/utils/getRpcProvider'
-import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
+import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
-import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled'
+import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
+import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
+import {
+  Chain,
+  ChainBalanceArchiveData,
+  Token
+} from 'src/constants'
+import { actionHandler, parseBool, parseString, root } from './shared'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
+import { config as globalConfig } from 'src/config'
 
 import { getRecentUnrelayedL1ToL2Transfers } from './shared/utils'
 
-import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers'
 import { main as getBondedUnconfirmedRoots } from './bondedUnconfirmedRoots'
+import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers'
 
 interface MetaBlockData {
   blockTag: providers.BlockTag
@@ -58,22 +58,22 @@ const inactiveBonders = [
   '0x15ec4512516d980090050fe101de21832c8edfee',
   '0x81682250D4566B2986A2B33e23e7c52D401B7aB7',
   '0xad103c0928acfde91dfd4e9e21225bcf9c7cbe62',
-  '0x924AC9910C09A0215b06458653b30471A152022F',
+  '0x924AC9910C09A0215b06458653b30471A152022F'
 ]
 
 /**
  * Verify the chainBalance against all relevant data sources. It compares (1) the tokens in the L1 contract against the
  * chainBalance, and (2) the chainBalance against the hToken total supply. If the system is unhealthy, then these
  * values would not match.
- * 
+ *
  * Definitions:
  * Adjusted Token - The amount of token after everything that can be directly withdrawn on L1 is withdrawn
  * Adjusted ChainBalance - The maximum number of hTokens that can still leave the L2.
  * Adjusted hToken - The number of hTokens plus balances that could be converted to hTokens.
- * 
+ *
  * An important note for the above definitions, roots that have been committed but not yet seen on L1 are counted as
  * an increased hToken balance on the source chain (the chain the root was committed on).
- * 
+ *
  * Possible reasons for discrepancies:
  *   - An archive transfer from L1 to L2 that was never relayed has recently been relayed
  *   - Tokens have been sent directly to the L1 bridge contract
@@ -88,7 +88,7 @@ root
   .action(actionHandler(main))
 
 export async function main (source: any) {
-  let { token, logOutput } = source
+  const { token, logOutput } = source
 
   if (!token) {
     throw new Error('token is required')
@@ -118,7 +118,6 @@ export async function main (source: any) {
       blockTimestamp: l2Block.timestamp
     }
   }
-
 
   // Subgraphs may be out of sync. If they are too far out of sync, we need to wait until they
   // are back in sync, as they are a sole source of truth for some pieces of data
@@ -165,7 +164,7 @@ export async function main (source: any) {
   }
 
   const tokenChainBalanceDiff = adjustedToken.sub(totalAdjustedChainBalance)
-  const chainBalanceHTokenDiff =  totalAdjustedChainBalance.sub(totalAdjustedHToken)
+  const chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
   return {
     tokenChainBalanceDiff,
     chainBalanceHTokenDiff
@@ -177,7 +176,6 @@ async function getAdjustments (token: Token, l2ChainsForToken: Chain[], metaBloc
     l1Bridge,
     l1CanonicalToken
   } = contracts.get(token, Chain.Ethereum)
-
 
   const tokenAdjustments = await getTokenAdjustments(
     token,
@@ -218,7 +216,7 @@ function getAdjustedToken (tokenAdjustments: TokenAdjustmentData) {
     l1Stake,
     l1TokensSentDirectlyToBridge,
     l1TransfersUnwithdrawn,
-    l1RootsInvalid,
+    l1RootsInvalid
   } = tokenAdjustments
 
   return l1TokensInContract
@@ -231,7 +229,7 @@ function getAdjustedToken (tokenAdjustments: TokenAdjustmentData) {
 function getAdjustedChainBalance (chainBalanceAdjustments: ChainBalanceAdjustmentData) {
   const {
     chainBalance,
-    rootsBondedNotConfirmed,
+    rootsBondedNotConfirmed
   } = chainBalanceAdjustments
 
   return chainBalance.sub(rootsBondedNotConfirmed)
@@ -280,7 +278,7 @@ async function getTokenAdjustments (
   }
 
   // L1 stake
-  let l1Stake: BigNumber = await getAllBonderStakes(l1Bridge, blockTag)
+  const l1Stake: BigNumber = await getAllBonderStakes(l1Bridge, blockTag)
 
   // Unwithdrawn transfers to L1
   // NOTE: The end timestamp in this function is meant to be for each individual L2. Since this function
@@ -289,7 +287,7 @@ async function getTokenAdjustments (
     token,
     chain: Chain.Ethereum,
     startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp,
-    endTimestamp: blockTimestamp,
+    endTimestamp: blockTimestamp
   })
   const l1UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token][Chain.Ethereum]
   const l1TransfersUnwithdrawn = l1UnwithdrawnTransfersNew.add(l1UnwithdrawnTransfersArchive!)
@@ -305,7 +303,7 @@ async function getTokenAdjustments (
     l1Stake,
     l1TransfersUnwithdrawn,
     l1RootsInvalid,
-    l1TokensSentDirectlyToBridge,
+    l1TokensSentDirectlyToBridge
   }
 }
 
@@ -321,12 +319,12 @@ async function getChainBalanceAdjustments (
   // ChainBalance
   const { blockTag: l1BlockTag } = metaBlockData[Chain.Ethereum]
   const chainBalance = await l1Bridge.chainBalance(chainId, { blockTag: l1BlockTag })
-  
+
   // Bonded but unconfirmed roots
   // NOTE: Roots that have been committed but neither bonded nor confirmed will be included in inFlightOutboundRoots
   const rootsBondedNotConfirmed: BigNumber = await getBondedUnconfirmedRoots({
     token,
-    chain,
+    chain
   })
 
   return {
@@ -354,13 +352,13 @@ async function getHTokenAdjustments (
   const hTokenTotalSupply = await l2HopBridgeToken.totalSupply({ blockTag })
 
   // L2 stake
-  let l2Stake: BigNumber = await getAllBonderStakes(l2Bridge, blockTag)
+  const l2Stake: BigNumber = await getAllBonderStakes(l2Bridge, blockTag)
 
   // Unwithdrawn transfers on the chain
   const l2UnwithdrawnTransfersNew = await getUnwithdrawnTransfers({
     token,
     chain,
-    startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp,
+    startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp
   })
   const l2UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token][chain]
   const l2TransfersUnwithdrawn = l2UnwithdrawnTransfersNew.add(l2UnwithdrawnTransfersArchive!)
@@ -451,7 +449,7 @@ async function getAllBonderStakes (bridge: Contract, blockTag: providers.BlockTa
 }
 
 function getAllBonderAddresses (): string[] {
-  let activeBonders: string[] = []
+  const activeBonders: string[] = []
   const activeBonderData: any = globalConfig.bonders
   for (const token in activeBonderData) {
     const tokenData = activeBonderData[token]
@@ -491,7 +489,7 @@ async function getAllPossibleInFlightRoots (
   const l2RootHashesSettled = l2RootsSettled.map((root: any) => root.rootHash)
 
   // Get all roots committed on L2 in the given time. Add the sourceChainId to the object for convenience
-  let allRootsCommitted: Record<string, any> = {}
+  const allRootsCommitted: Record<string, any> = {}
   for (const l2SourceChain of l2ChainsForToken) {
     const sourceChainId = chainSlugToId(l2SourceChain)
 
@@ -511,11 +509,11 @@ async function getAllPossibleInFlightRoots (
   }
 }
 
-function logValues(
+function logValues (
   token: Token,
   tokenAdjustments: TokenAdjustmentData,
   chainBalanceAdjustments: ChainBalanceAdjustmentData[],
-  hTokenAdjustments: HTokenAdjustmentData[],
+  hTokenAdjustments: HTokenAdjustmentData[]
 ): void {
   const decimals: number = getTokenDecimals(token)
 
@@ -524,7 +522,7 @@ function logValues(
     l1Stake,
     l1TokensSentDirectlyToBridge,
     l1TransfersUnwithdrawn,
-    l1RootsInvalid,
+    l1RootsInvalid
   } = tokenAdjustments
   console.log('\n\nToken Adjustments\n', {
     tokenAdjustments: {
@@ -532,10 +530,10 @@ function logValues(
       l1Stake: ethersUtils.formatUnits(l1Stake, decimals),
       l1TokensSentDirectlyToBridge: ethersUtils.formatUnits(l1TokensSentDirectlyToBridge, decimals),
       l1TransfersUnwithdrawn: ethersUtils.formatUnits(l1TransfersUnwithdrawn, decimals),
-      l1RootsInvalid: ethersUtils.formatUnits(l1RootsInvalid, decimals),
+      l1RootsInvalid: ethersUtils.formatUnits(l1RootsInvalid, decimals)
     }
   })
-  
+
   const totalAdjustedToken: BigNumber = getAdjustedToken(tokenAdjustments)
   let totalAdjustedChainBalance: BigNumber = BigNumber.from(0)
   let totalAdjustedHToken: BigNumber = BigNumber.from(0)
@@ -543,13 +541,13 @@ function logValues(
     const {
       chain,
       chainBalance,
-      rootsBondedNotConfirmed,
+      rootsBondedNotConfirmed
     } = chainBalanceAdjustments[i]
 
     console.log(`\n\n${chain} ChainBalance Adjustments\n`, {
       chainBalanceAdjustments: {
         chainBalance: ethersUtils.formatUnits(chainBalance, decimals),
-        rootsBondedNotConfirmed: ethersUtils.formatUnits(rootsBondedNotConfirmed, decimals),
+        rootsBondedNotConfirmed: ethersUtils.formatUnits(rootsBondedNotConfirmed, decimals)
       }
     })
 
@@ -560,7 +558,7 @@ function logValues(
       l2TransfersPendingOutbound,
       l2TransfersInFlightFromL1ToL2,
       l2RootsInFlightOutbound,
-      l2RootsInFlightInbound,
+      l2RootsInFlightInbound
     } = hTokenAdjustments[i]
 
     console.log(`\n\n${chain} hToken Adjustments\n`, {
@@ -571,7 +569,7 @@ function logValues(
         l2TransfersPendingOutbound: ethersUtils.formatUnits(l2TransfersPendingOutbound, decimals),
         l2TransfersInFlightFromL1ToL2: ethersUtils.formatUnits(l2TransfersInFlightFromL1ToL2, decimals),
         l2RootsInFlightOutbound: ethersUtils.formatUnits(l2RootsInFlightOutbound, decimals),
-        l2RootsInFlightInbound: ethersUtils.formatUnits(l2RootsInFlightInbound, decimals),
+        l2RootsInFlightInbound: ethersUtils.formatUnits(l2RootsInFlightInbound, decimals)
       }
     })
 
@@ -593,7 +591,7 @@ function logValues(
   console.log('Adjusted hToken:', ethersUtils.formatUnits(totalAdjustedHToken, decimals))
 
   const tokenChainBalanceDiff = totalAdjustedToken.sub(totalAdjustedChainBalance)
-  const chainBalanceHTokenDiff =  totalAdjustedChainBalance.sub(totalAdjustedHToken)
+  const chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
   console.log('\nCanonical Token - ChainBalance:', ethersUtils.formatUnits(tokenChainBalanceDiff, decimals))
   console.log('ChainBalance - hToken:', ethersUtils.formatUnits(chainBalanceHTokenDiff, decimals))
 
@@ -603,7 +601,7 @@ function logValues(
   }
 }
 
-async function getIsSubgraphSynced(
+async function getIsSubgraphSynced (
   metaBlockData: any,
   l1Provider: providers.Provider,
   l2Providers: Record<string, providers.Provider>

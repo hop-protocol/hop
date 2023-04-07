@@ -4,8 +4,8 @@ import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber } from 'ethers'
 import { Chain, PreRegenesisRootsCommitted } from 'src/constants'
-import { actionHandler, parseString, root } from './shared'
 import { DateTime } from 'luxon'
+import { actionHandler, parseString, root } from './shared'
 
 root
   .command('bonded-unconfirmed-roots')

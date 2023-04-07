@@ -10,7 +10,6 @@ export type Options = {
 
 export async function startArbBots (options?: Options) {
   let configJson = arbBotsConfig as any
-  console.log('here00', path.resolve(options!.configFilePath!))
   if (options?.configFilePath) {
     configJson = JSON.parse(fs.readFileSync(path.resolve(options.configFilePath)).toString())
   }
@@ -47,6 +46,8 @@ export async function startArbBots (options?: Options) {
       continue
     }
 
+    const privateKey = process.env[`ARB_BOT_${label.toUpperCase()}_PRIVATE_KEY`]
+
     bots.push(
       new ArbBot({
         label,
@@ -59,7 +60,8 @@ export async function startArbBots (options?: Options) {
         slippageTolerance,
         pollIntervalSeconds,
         ammDepositThresholdAmount,
-        waitConfirmations
+        waitConfirmations,
+        privateKey
       }).start()
     )
   }

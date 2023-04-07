@@ -368,17 +368,24 @@ export class ArbBot {
   }
 
   async commitTransfersToL1 () {
-    this.logger.log('commitTransfersToL1()')
-    const destinationChainId = this.l1ChainId
-    const tokenContracts = contracts.get(this.tokenSymbol, this.l2ChainSlug)
-    const l2BridgeContract = tokenContracts.l2Bridge
-    const l2Bridge = new L2Bridge(l2BridgeContract)
+    try {
+      this.logger.log('commitTransfersToL1()')
+      const destinationChainId = this.l1ChainId
+      const tokenContracts = contracts.get(this.tokenSymbol, this.l2ChainSlug)
+      const l2BridgeContract = tokenContracts.l2Bridge
+      const l2Bridge = new L2Bridge(l2BridgeContract)
 
-    if (this.dryMode) {
-      return
+      if (this.dryMode) {
+        return
+      }
+
+      return await l2Bridge.commitTransfers(destinationChainId)
+    } catch (err: any) {
+      if (err.message.includes('Must commit at least 1 Transfer') || err.message.includes('NonceTooLow')) {
+        return
+      }
+      throw err
     }
-
-    return l2Bridge.commitTransfers(destinationChainId)
   }
 
   async bondTransferRootOnL1 (l2CommitTransfersTxHash?: string) {
@@ -511,6 +518,10 @@ export class ArbBot {
       return this.lineal1CanonicalBridgeSendToL2()
     }
 
+    if (this.l2ChainSlug === Chain.Base.slug) {
+      return this.basel1CanonicalBridgeSendToL2()
+    }
+
     throw new Error('l1CanonicalBridgeSendToL2 not implemented')
   }
 
@@ -547,6 +558,29 @@ export class ArbBot {
     })
   }
 
+  async basel1CanonicalBridgeSendToL2 () {
+    let amount = this.amount
+
+    const recipient = await this.ammSigner.getAddress()
+    const ethBalance = await this.l1ChainProvider.getBalance(recipient)
+    if (amount.lt(ethBalance)) {
+      amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
+    }
+
+    this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+    if (amount.lte(0)) {
+      throw new Error('expected amount to be greater than 0')
+    }
+
+    const l1NativeBridgeAddress = '0xe93c8cd0d409341205a592f8c4ac1a5fe5585cfa'
+
+    return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
+      to: l1NativeBridgeAddress,
+      value: amount
+    })
+  }
+
   async wrapEthToWethOnL2 () {
     this.logger.log('wrapEthToWethOnL2()')
     let amount = this.amount
@@ -554,7 +588,7 @@ export class ArbBot {
     const recipient = await this.ammSigner.getAddress()
     const ethBalance = await this.l2ChainProvider.getBalance(recipient)
     if (amount.lte(ethBalance)) {
-      amount = ethBalance.sub(BigNumber.from(parseEther('0.1')))
+      amount = ethBalance.sub(BigNumber.from(parseEther('1')))
     }
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))

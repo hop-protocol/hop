@@ -9,20 +9,20 @@
     "amount": 3000,
     "slippageTolerance": 5,
     "pollIntervalSeconds": 600,
-    "ammDepositThresholdAmount": 500,
+    "ammDepositThresholdAmount": 1000,
     "waitConfirmations": 4
   },
   "base": {
-    "enabled": false,
-    "dryMode": true,
+    "enabled": true,
+    "dryMode": false,
     "network": "goerli",
     "l1ChainSlug": "ethereum",
     "l2ChainSlug": "base",
     "tokenSymbol": "ETH",
-    "amount": 10,
+    "amount": 50,
     "slippageTolerance": 5,
     "pollIntervalSeconds": 600,
-    "ammDepositThresholdAmount": 5,
+    "ammDepositThresholdAmount": 20,
     "waitConfirmations": 4
   }
 }

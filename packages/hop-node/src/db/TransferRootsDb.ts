@@ -576,7 +576,6 @@ class TransferRootsDb extends BaseDb {
     await this.tilReady()
     const transferRoots: TransferRoot[] = await this.getTransferRootsFromTwoWeeks()
     const filtered = transferRoots.filter(item => {
-
       if (!item.sourceChainId) {
         return false
       }

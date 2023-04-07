@@ -57,7 +57,7 @@ const config = {
 
 export { metadata, config }
 
-export const bondableChains = ['optimism', 'arbitrum', 'nova', 'zksync', 'linea', 'scrollzk', 'base']
+export const bondableChains = ['optimism', 'arbitrum', 'nova', 'zksync', 'linea', 'scrollzk', 'base', 'polygonzk']
 
 export const rateLimitMaxRetries = 3
 export const rpcTimeoutSeconds = 60

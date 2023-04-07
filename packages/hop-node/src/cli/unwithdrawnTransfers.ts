@@ -4,7 +4,7 @@ import getRpcProvider from 'src/utils/getRpcProvider'
 import getTransferRootSet from 'src/theGraph/getTransferRootSet'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber, Contract } from 'ethers'
-import { Chain } from 'src/constants'
+import { Chain, OneHourSeconds } from 'src/constants'
 import { DateTime } from 'luxon'
 import {
   actionHandler,
@@ -102,7 +102,7 @@ async function getTransferRootsToChain (
       if (!Number.isNaN(endTimestamp)) {
         // Roots can be committed up to 3 hours before they are set on the destination chain, so we need to ignore
         // any roots that were committed within the last 3 hours.
-        const threeHoursSeconds = 3 * 60 * 60
+        const threeHoursSeconds = 3 * OneHourSeconds
         endTimestamp = endTimestamp - threeHoursSeconds
         if (startTimestamp > endTimestamp) {
           throw new Error('startTimestamp must be less than the adjusted endTimestamp')

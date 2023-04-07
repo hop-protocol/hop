@@ -1,29 +1,24 @@
 import { actionHandler, parseString, root } from './shared'
-import { BigNumber, providers, utils as ethersUtils } from 'ethers'
+import { BigNumber, Contract, providers, utils as ethersUtils } from 'ethers'
+import { DateTime } from 'luxon'
+import { config as globalConfig } from 'src/config'
+import { Chain } from 'src/constants'
+import contracts from 'src/contracts'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getRpcProvider from 'src/utils/getRpcProvider'
-import { Chain } from 'src/constants'
-
-import contracts from 'src/contracts'
-
-import { DateTime } from 'luxon'
-
-import { config as globalConfig } from 'src/config'
-
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
 import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled'
 
+import { getRecentUnrelayedL1ToL2Transfers } from './shared/utils'
+
 import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers'
 import { main as getBondedUnconfirmedRoots } from './bondedUnconfirmedRoots'
 
-import { getUnrelayedL1ToL2Transfers } from './shared/utils'
-
-import { Contract } from 'ethers'
-
 const ArchiveDataTimestamp = 1680764400
+const blockTags: Record<string, providers.BlockTag> = {}
 
 const Tokens = {
   USDC: 'USDC',
@@ -88,10 +83,14 @@ async function main (source: any) {
      supportedL2ChainsForToken.push(chain)
   }
 
+  const l1Provider = getRpcProvider(Chain.Ethereum)!
+  blockTags[Chain.Ethereum] = await l1Provider.getBlockNumber()
   const decimals: number = getTokenDecimals(token)
   const l2Providers: Record<string, providers.Provider> = {}
   for (const supportedL2ChainForToken of supportedL2ChainsForToken) {
-    l2Providers[supportedL2ChainForToken] = getRpcProvider(supportedL2ChainForToken)!
+    const l2Provider = getRpcProvider(supportedL2ChainForToken)!
+    l2Providers[supportedL2ChainForToken] = l2Provider
+    blockTags[supportedL2ChainForToken] = await l2Provider.getBlockNumber()
   }
 
   // Get addresses
@@ -224,26 +223,22 @@ async function getL1TokenAdjustments (
   // Constants
   const l1Provider = getRpcProvider(Chain.Ethereum)!
   const l1BridgeAddress = l1Bridge.address
+  const blockTag = blockTags[Chain.Ethereum]
 
   // Tokens in contract
   let l1TokensInContract: BigNumber = BigNumber.from('0')
   if (token === Tokens.ETH) {
-    l1TokensInContract = await l1Provider.getBalance(l1BridgeAddress)
+    l1TokensInContract = await l1Provider.getBalance(l1BridgeAddress, blockTag)
   } else {
-    l1TokensInContract = await l1CanonicalToken.balanceOf(l1BridgeAddress)
+    l1TokensInContract = await l1CanonicalToken.balanceOf(l1BridgeAddress, { blockTag })
   }
 
   // L1 stake
-  let l1Stake: BigNumber = BigNumber.from('0')
-  const allBonderAddresses: string[] = getAllBonderAddresses()
-  for (const bonderAddress of allBonderAddresses) {
-    const credit = await l1Bridge.getCredit(bonderAddress)
-    const rawDebit = await l1Bridge.getRawDebit(bonderAddress)
-    const stake  = credit.sub(rawDebit)
-    l1Stake = l1Stake.add(stake)
-  }
+  let l1Stake: BigNumber = await getAllBonderStakes(l1Bridge, blockTag)
 
   // Unwithdrawn transfers to L1
+  // Do not use a block tag here since there should be no unwithdrawn transfers and if there are they will
+  // likely not occur at single-block granularity
   const l1UnwithdrawnTransfersArchive = getUnwithdrawnTransfersArchive(token, Chain.Ethereum, decimals)
   const l1UnwithdrawnTransfersNew = await getUnwithdrawnTransfers({
     token,
@@ -274,13 +269,15 @@ async function getChainData (
   l1Bridge: Contract,
   decimals: number
 ): Promise<L2ChainData> {
-  const supportedL2ChainId = chainSlugToId(supportedL2Chain)
-  const { l2Bridge, l2HopBridgeToken } = contracts.get(token, supportedL2Chain)
-
   console.log(`Getting ${token} values for ${supportedL2Chain}...`)
 
+  // Constants
+  const supportedL2ChainId = chainSlugToId(supportedL2Chain)
+  const { l2Bridge, l2HopBridgeToken } = contracts.get(token, supportedL2Chain)
+  const blockTag = blockTags[supportedL2Chain]
+
   // ChainBalance
-  const chainBalance = await l1Bridge.chainBalance(supportedL2ChainId)
+  const chainBalance = await l1Bridge.chainBalance(supportedL2ChainId, { blockTag: blockTags[Chain.Ethereum] })
   
   // Bonded but unconfirmed roots
   // NOTE: Roots that have been committed but neither bonded nor confirmed will be included in inFlightOutboundRoots
@@ -290,7 +287,7 @@ async function getChainData (
   })
 
   // hToken total supply
-  const hTokenTotalSupply = await l2HopBridgeToken.totalSupply()
+  const hTokenTotalSupply = await l2HopBridgeToken.totalSupply({ blockTag })
 
   // Unwithdrawn transfers on the chain
   const l2UnwithdrawnTransfersArchive = getUnwithdrawnTransfersArchive(token, supportedL2Chain, decimals)
@@ -302,14 +299,7 @@ async function getChainData (
   const l2UnwithdrawnTransfers = l2UnwithdrawnTransfersArchive.add(l2UnwithdrawnTransfersNew)
 
   // L2 stake
-  const allBonderAddresses: string[] = getAllBonderAddresses()
-  let l2Stake = BigNumber.from('0')
-  for (const bonderAddress of allBonderAddresses) {
-    const credit = await l2Bridge.getCredit(bonderAddress)
-    const rawDebit = await l2Bridge.getRawDebit(bonderAddress)
-    const stake = credit.sub(rawDebit)
-    l2Stake = l2Stake.add(stake)
-  }
+  let l2Stake: BigNumber = await getAllBonderStakes(l2Bridge, blockTag)
 
   // Pending outgoing tokens
   let transfers_pendingOutbound: BigNumber = BigNumber.from('0')
@@ -318,23 +308,21 @@ async function getChainData (
     if (supportedChains === supportedL2Chain) continue
 
     const destinationChainId = chainSlugToId(supportedChains)
-    const pendingAmountForL2ChainId = await l2Bridge.pendingAmountForChainId(destinationChainId)
+    const pendingAmountForL2ChainId = await l2Bridge.pendingAmountForChainId(destinationChainId, { blockTag })
     transfers_pendingOutbound = transfers_pendingOutbound.add(pendingAmountForL2ChainId)
   }
 
   // L1 to L2 in flight inbound transfers
+  // NOTE: Because block times across chains vary, we need to get the timestamp of both the L1 blockTag and
+  // the L2 blockTag so that we remain consistent with the state of each chain
   const transfers_inFlightFromL1ToL2Archive = getInFlightL1ToL2TransfersArchive(token, supportedL2Chain, decimals)
-  const now = DateTime.now().toUTC()
-  const startTimestamp = now.minus({ minutes: 30 })
-  const startTimestampSeconds = Math.floor(startTimestamp.toSeconds())
-  const endTimestampSeconds = Math.floor(now.toSeconds())
-  const shouldIncludeInFlightTransfers = true
-  const transfers_inFlightFromL1ToL2New: BigNumber = await getUnrelayedL1ToL2Transfers(
+  const l1BlockTimestamp = (await l1Bridge.provider.getBlock(blockTags[Chain.Ethereum])).timestamp
+  const l2BlockTimestamp = (await l2Bridge.provider.getBlock(blockTag)).timestamp
+  const transfers_inFlightFromL1ToL2New: BigNumber = await getRecentUnrelayedL1ToL2Transfers(
     token,
     supportedL2Chain,
-    startTimestampSeconds,
-    endTimestampSeconds,
-    shouldIncludeInFlightTransfers
+    l1BlockTimestamp,
+    l2BlockTimestamp
   )
   const transfers_inFlightFromL1ToL2 = transfers_inFlightFromL1ToL2Archive.add(transfers_inFlightFromL1ToL2New)
 
@@ -382,7 +370,20 @@ async function getChainData (
   }
 }
 
-function getAllBonderAddresses(): string[] {
+async function getAllBonderStakes (bridge: Contract, blockTag: providers.BlockTag): Promise<BigNumber> {
+  let totalStake = BigNumber.from('0')
+  const allBonderAddresses: string[] = getAllBonderAddresses()
+  for (const bonderAddress of allBonderAddresses) {
+    const credit = await bridge.getCredit(bonderAddress, { blockTag })
+    const rawDebit = await bridge.getRawDebit(bonderAddress, { blockTag })
+    const stake = credit.sub(rawDebit)
+    totalStake = totalStake.add(stake)
+  }
+
+  return totalStake
+}
+
+function getAllBonderAddresses (): string[] {
   let activeBonders: string[] = []
   const activeBonderData: any = globalConfig.bonders
   for (const token in activeBonderData) {
@@ -414,7 +415,7 @@ async function getAllPossibleInFlightRoots (token: string, chain: string, suppor
   const l2RootsSettled = await getMultipleWithdrawalsSettled(chain, token, ArchiveDataTimestamp)
   const l2RootHashesSettled = l2RootsSettled.map((root: any) => root.rootHash)
 
-  // Get all roots committed to L2 in the given time. Add the sourceChainId to the object for convenience
+  // Get all roots committed on L2 in the given time. Add the sourceChainId to the object for convenience
   let allRootsCommitted: Record<string, any> = {}
   for (const l2SourceChain of supportedL2ChainsForToken) {
     const sourceChainId = chainSlugToId(l2SourceChain)
@@ -560,9 +561,6 @@ const inFlightL1ToL2TransfersArchive: Record<string, Record<string, string>> = {
   },
 }
 
-// Data from Dune - https://gist.github.com/shanefontaine/2da8c8c997a173f000f2906518c4e03a
-// NOTE: Does not work for ETH. To retrieve ETH values, you must look at incoming transfers, self-destructed transfers,
-// block rewards, etc.
 const l1TokensSentDirectlyToBridgeArchive: Record<string, string> = {
   // 0x7b3aa56febe5c71ed6606988a4e12525cb722f35229828e906b7f7f1ad3a899c, 5
   // 0xa7eb6588cc3bef7d21c0bfdf911d32005983547ae30709b6ef968696aed00f68, 52.295549
@@ -574,7 +572,6 @@ const l1TokensSentDirectlyToBridgeArchive: Record<string, string> = {
   [Tokens.HOP]: '0',
 }
 
-// Data from archive Arbitrum RPC endpoint
 const l1InvalidRootArchive: Record<string, string> = {
   [Tokens.USDC]: '10025.137464',
   [Tokens.USDT]: '0',

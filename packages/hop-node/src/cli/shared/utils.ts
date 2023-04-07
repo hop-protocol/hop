@@ -1,30 +1,54 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
+import { DateTime } from 'luxon'
 
 import getTransferSentToL2 from 'src/theGraph/getTransferSentToL2'
 import getTransferFromL1Completed from 'src/theGraph/getTransferFromL1Completed'
 
-export async function getUnrelayedL1ToL2Transfers (
+export async function getHistoricalUnrelayedL1ToL2Transfers (
   token: string,
   chain: string,
-  startTimestamp: number,
-  endTimestamp: number,
-  shouldIncludeInFlightTransfers: boolean = false
+  endTimestamp: number
 ): Promise<BigNumber> {
-  // Note: shouldIncludeInFlightTransfers represents transfers that have been sent in the last 30 minutes and
-  // might not have yet been relayed. If this is false, then we will adjust the endTimestamp to ignore transfers
-  // that have been sent 30 minutes prior to the endTimestamp of when transfers were sent from L1 as if to ignore
-  // these transfers, since we are then only looking for unrelayed transfers in the past.
-
-  const l1ToL2TransfersReceived = await getTransferFromL1Completed(chain, token, startTimestamp, endTimestamp)
-
-  // Ignore transfers sent in the last 30 minutes, since they might not have been relayed yet
-  if (!shouldIncludeInFlightTransfers) {
-    const thirtyMinutesSeconds = 30 * 60
-    endTimestamp = endTimestamp - thirtyMinutesSeconds
+  // It is not possible to get Optimism pre-regenesis data from TheGraph. However, there are no unrelayed messages
+  // from pre-regenesis, so we can return 0
+  if (chain === Chain.Optimism) {
+    return BigNumber.from('0')
   }
+
+  const startTimestamp = 0
+  const l1ToL2TransfersReceived = await getTransferFromL1Completed(chain, token, startTimestamp, endTimestamp)
+  
+  // For historical data, we want to ignore the in-flight transfers at the time of the snapshot, since we are
+  // not concerned with that level of granularity
+  const thirtyMinutesSeconds = 30 * 60
+  endTimestamp = endTimestamp - thirtyMinutesSeconds
   const l1ToL2TransfersSent = await getTransferSentToL2(Chain.Ethereum, token, startTimestamp, endTimestamp)
 
+  return getUnrelayedL1ToL2Transfers(chain, l1ToL2TransfersSent, l1ToL2TransfersReceived)
+}
+
+export async function getRecentUnrelayedL1ToL2Transfers (
+  token: string,
+  chain: string,
+  l1EndTimestamp: number,
+  l2EndTimestamp: number
+): Promise<BigNumber> {
+  const now = DateTime.now().toUTC()
+  const startTimestamp = now.minus({ minutes: 30 })
+  const startTimestampSeconds = Math.floor(startTimestamp.toSeconds())
+
+  const l1ToL2TransfersReceived = await getTransferFromL1Completed(chain, token, startTimestampSeconds, l2EndTimestamp)
+  const l1ToL2TransfersSent = await getTransferSentToL2(Chain.Ethereum, token, startTimestampSeconds, l1EndTimestamp)
+
+  return getUnrelayedL1ToL2Transfers(chain, l1ToL2TransfersSent, l1ToL2TransfersReceived)
+}
+
+async function getUnrelayedL1ToL2Transfers (
+  chain: string,
+  l1ToL2TransfersSent: any,
+  l1ToL2TransfersReceived: any
+): Promise<BigNumber> {
   // Track the index of transfers we've seen. There may be transfers that have identical fields, but different indexes
   // since the indexes are not relevant to on-chain data
   const seenIndexes: number[] = []

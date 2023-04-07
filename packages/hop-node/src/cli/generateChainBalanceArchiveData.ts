@@ -3,7 +3,7 @@ import { BigNumber } from 'ethers'
 import { Chain } from 'src/constants'
 import { config as globalConfig } from 'src/config'
 import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers'
-import { getUnrelayedL1ToL2Transfers } from './shared/utils'
+import { getHistoricalUnrelayedL1ToL2Transfers } from './shared/utils'
 
 root
   .command('generate-chain-balance-archive-data')
@@ -59,9 +59,13 @@ async function getL1ArchiveData (token: string, timestamp: number): Promise<void
   console.log(`${Chain.Ethereum} l1UnwithdrawnTransfers: ${l1UnwithdrawnTransfers.toString()}`)
 
   // L1 tokens sent directly to bridge contract
+  // Data from Dune - https://gist.github.com/shanefontaine/2da8c8c997a173f000f2906518c4e03a
+  // NOTE: Does not work for ETH. To retrieve ETH values, you must look at incoming transfers, self-destructed transfers,
+  // block rewards, etc.
   console.log(`${Chain.Ethereum} l1TokensSentDirectlyToBridge: (Run attached Dune query)`)
 
   // L1 invalid root
+  // Data from archive Arbitrum RPC endpoint
   console.log(`${Chain.Ethereum} l1InvalidRoot: (Query archive RPC node)`)
 }
 
@@ -73,14 +77,7 @@ async function getL2ArchiveData (token: string, chain: string, timestamp: number
   })
   console.log(`${chain} l2UnwithdrawnTransfers: ${l2UnwithdrawnTransfers.toString()}`)
 
-  const startTimestamp = 0
   const endTimestamp = timestamp
-  const inFlightL1ToL2Transfers: BigNumber = await getUnrelayedL1ToL2Transfers(token, chain, startTimestamp, endTimestamp)
-  if (chain === Chain.Optimism) {
-    // It is not possible to get Optimism pre-regenesis data from TheGraph. However, there are no unrelayed messages
-    // from pre-regenesis, so we can return 0
-    console.log(`${chain} inFlightL1ToL2Transfers: 0`)
-  } else {
-    console.log(`${chain} inFlightL1ToL2Transfers: ${inFlightL1ToL2Transfers.toString()}`)
-  }
+  const inFlightL1ToL2Transfers: BigNumber = await getHistoricalUnrelayedL1ToL2Transfers(token, chain, endTimestamp)
+  console.log(`${chain} inFlightL1ToL2Transfers: ${inFlightL1ToL2Transfers.toString()}`)
 }

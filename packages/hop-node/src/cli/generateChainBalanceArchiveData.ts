@@ -1,13 +1,13 @@
-import { actionHandler, parseString, root } from './shared'
 import { BigNumber } from 'ethers'
 import {
   Chain,
   ChainBalanceArchiveData,
-  Token,
+  Token
 } from 'src/constants'
-import { config as globalConfig } from 'src/config'
-import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers'
+import { actionHandler, parseString, root } from './shared'
 import { getHistoricalUnrelayedL1ToL2Transfers } from './shared/utils'
+import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers'
+import { config as globalConfig } from 'src/config'
 
 root
   .command('generate-chain-balance-archive-data')
@@ -24,7 +24,7 @@ enum ArchiveType {
 }
 
 async function main (source: any) {
-  let { token, timestamp } = source
+  const { token, timestamp } = source
 
   if (!token) {
     throw new Error('token is required')
@@ -94,7 +94,7 @@ async function getL2ArchiveData (token: Token, chain: Chain, timestamp: number):
   compare(ArchiveType.InFlightL1ToL2Transfers, chain, expected, inFlightL1ToL2Transfers)
 }
 
-function compare(type: ArchiveType, chain: string, expected: string, actual: BigNumber): void {
+function compare (type: ArchiveType, chain: string, expected: string, actual: BigNumber): void {
   const expectedBn: BigNumber = BigNumber.from(expected)
   if (!expectedBn.eq(actual)) {
     console.log(`(${chain}) ${type}: Expected: ${expected}, Actual: ${actual}`)

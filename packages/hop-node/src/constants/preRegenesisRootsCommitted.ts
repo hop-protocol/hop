@@ -3479,5 +3479,5 @@ export const PreRegenesisRootsCommitted: Record<string, RootsCommitted> = {
     rootCommittedAt: '',
     transactionHash: '',
     token: 'ETH'
-  },
+  }
 }

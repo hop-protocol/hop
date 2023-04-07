@@ -1,6 +1,10 @@
 import { actionHandler, parseString, root } from './shared'
 import { BigNumber } from 'ethers'
-import { Chain } from 'src/constants'
+import {
+  Chain,
+  ChainBalanceArchiveData,
+  Token,
+} from 'src/constants'
 import { config as globalConfig } from 'src/config'
 import { main as getUnwithdrawnTransfers } from './unwithdrawnTransfers'
 import { getHistoricalUnrelayedL1ToL2Transfers } from './shared/utils'
@@ -11,6 +15,13 @@ root
   .option('--token <symbol>', 'Token', parseString)
   .option('--timestamp <timestamp>', 'Timestamp in seconds', parseString)
   .action(actionHandler(main))
+
+enum ArchiveType {
+  UnwithdrawnTransfers = 'UnwithdrawnTransfers',
+  InFlightL1ToL2Transfers = 'InFlightL1ToL2Transfers',
+  L1TokensSentDirectlyToBridge = 'L1TokensSentDirectlyToBridge',
+  L1InvalidRoot = 'L1InvalidRoot'
+}
 
 async function main (source: any) {
   let { token, timestamp } = source
@@ -33,22 +44,22 @@ async function main (source: any) {
   const promises: Array<Promise<void>> = []
   for (const supportedChainForToken of supportedChainsForToken) {
     promises.push(getArchiveData(
-      token,
-      supportedChainForToken,
+      token as Token,
+      supportedChainForToken as Chain,
       Number(timestamp)
     ))
   }
   await Promise.all([...promises])
 }
 
-async function getArchiveData (token: string, chain: string, timestamp: number): Promise<void> {
+async function getArchiveData (token: Token, chain: Chain, timestamp: number): Promise<void> {
   if (chain === Chain.Ethereum) {
     return getL1ArchiveData(token, timestamp)
   }
   return getL2ArchiveData(token, chain, timestamp)
 }
 
-async function getL1ArchiveData (token: string, timestamp: number): Promise<void> {
+async function getL1ArchiveData (token: Token, timestamp: number): Promise<void> {
   // Unwithdrawn Transfers
   const l1UnwithdrawnTransfers = await getUnwithdrawnTransfers({
     token,
@@ -56,28 +67,36 @@ async function getL1ArchiveData (token: string, timestamp: number): Promise<void
     startDate: 0,
     endDate: timestamp
   })
-  console.log(`${Chain.Ethereum} l1UnwithdrawnTransfers: ${l1UnwithdrawnTransfers.toString()}`)
+  const expected = ChainBalanceArchiveData.UnwithdrawnTransfers[token][Chain.Ethereum]!
+  compare(ArchiveType.UnwithdrawnTransfers, Chain.Ethereum, expected, l1UnwithdrawnTransfers)
 
   // L1 tokens sent directly to bridge contract
   // Data from Dune - https://gist.github.com/shanefontaine/2da8c8c997a173f000f2906518c4e03a
   // NOTE: Does not work for ETH. To retrieve ETH values, you must look at incoming transfers, self-destructed transfers,
   // block rewards, etc.
-  console.log(`${Chain.Ethereum} l1TokensSentDirectlyToBridge: (Run attached Dune query)`)
 
   // L1 invalid root
   // Data from archive Arbitrum RPC endpoint
-  console.log(`${Chain.Ethereum} l1InvalidRoot: (Query archive RPC node)`)
 }
 
-async function getL2ArchiveData (token: string, chain: string, timestamp: number): Promise<void> {
+async function getL2ArchiveData (token: Token, chain: Chain, timestamp: number): Promise<void> {
   const l2UnwithdrawnTransfers = await getUnwithdrawnTransfers({
     token,
-    chain: chain,
+    chain,
     endDate: timestamp
   })
-  console.log(`${chain} l2UnwithdrawnTransfers: ${l2UnwithdrawnTransfers.toString()}`)
+  let expected = ChainBalanceArchiveData.UnwithdrawnTransfers[token][chain]!
+  compare(ArchiveType.UnwithdrawnTransfers, chain, expected, l2UnwithdrawnTransfers)
 
   const endTimestamp = timestamp
   const inFlightL1ToL2Transfers: BigNumber = await getHistoricalUnrelayedL1ToL2Transfers(token, chain, endTimestamp)
-  console.log(`${chain} inFlightL1ToL2Transfers: ${inFlightL1ToL2Transfers.toString()}`)
+  expected = ChainBalanceArchiveData.InFlightL1ToL2Transfers[token][chain]!
+  compare(ArchiveType.InFlightL1ToL2Transfers, chain, expected, inFlightL1ToL2Transfers)
+}
+
+function compare(type: ArchiveType, chain: string, expected: string, actual: BigNumber): void {
+  const expectedBn: BigNumber = BigNumber.from(expected)
+  if (!expectedBn.eq(actual)) {
+    console.log(`(${chain}) ${type}: Expected: ${expected}, Actual: ${actual}`)
+  }
 }

@@ -49,12 +49,8 @@ export async function main (source: any) {
   }
 
   // Get contracts
-  let bridgeAddress = ''
-  if (destinationChain === Chain.Ethereum) {
-    bridgeAddress = addresses[destinationChain].l1Bridge
-  } else {
-    bridgeAddress = addresses[destinationChain].l2Bridge
-  }
+  const contractAddresses = addresses[destinationChain]
+  const bridgeAddress = destinationChain === Chain.Ethereum ? contractAddresses.l1Bridge : contractAddresses.l2Bridge
 
   // Get transfer roots to chain
   // NOTE: For most chains, we can look up the roots that have been set on the chain. For chains with a regenesis,
@@ -87,6 +83,7 @@ async function getTransferRootsToChain (
   endTimestamp: number
 ): Promise<TransferRootsToChain[]> {
   const transferRootsToChain: TransferRootsToChain[] = []
+  // We need to look up the roots that have been committed before the Optimism Regenesis.
   if (destinationChain === Chain.Optimism) {
     const destinationChainId = chainSlugToId(destinationChain)
     const sourceChains: string[] = []

@@ -53,7 +53,7 @@ export function formatError(error: any, network?: Network) {
     errMsg = `An RPC error occurred. Please refresh page to try again. Error: ${errMsg}`
   } else if (errMsg.includes('transaction underpriced')) {
     errMsg = `An RPC error occurred. The transaction is underpriced. Please try again and increase gas price. If you are seeing is error a lot, try resetting the nonce for your wallet account. Error: ${errMsg}`
-  } else if (errMsg.includes('header not found')) {
+  } else if (errMsg.includes('header not found') || errMsg.includes('intrinsic gas too low')) {
     errMsg = `An RPC error occurred. Please check your wallet network settings are correct and try again. Consider using a different RPC provider if you are seeing this error frequently. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
   } else if (errMsg.includes('sequencer transaction forwarding not configured') || errMsg.includes('rate limit') || errMsg.includes('compute units') || errMsg.includes('Optimism sequencer global transaction limit exceeded')) {
     errMsg = `An RPC error occurred. Please try again. Consider using a different RPC provider if you are seeing this error often. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`

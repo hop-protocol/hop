@@ -131,7 +131,8 @@ export function useEstimateTxCost(selectedNetwork?: Network) {
             nova: token.symbol === 'ETH' ? 500000 : 700000,
             linea: token.symbol === 'ETH' ? 500000 : 700000,
             scrollzk: token.symbol === 'ETH' ? 500000 : 700000,
-            base: token.symbol === 'ETH' ? 500000 : 700000
+            base: token.symbol === 'ETH' ? 500000 : 700000,
+            polygonzk: token.symbol === 'ETH' ? 500000 : 700000
           }
           const defaultGasLimit = defaultSendGasLimits[fromNetwork.slug]
           logger.debug('using default gasLimit:', defaultGasLimit)

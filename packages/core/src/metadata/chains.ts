@@ -2,15 +2,15 @@ import { Chains } from './types'
 import {
   arbitrumImage,
   baseImage,
-  lineaImage,
   ethereumImage,
   gnosisImage,
+  lineaImage,
   novaImage,
   optimismImage,
   polygonImage,
+  polygonzkImage,
   scrollzkImage,
-  zksyncImage,
-  polygonzkImage
+  zksyncImage
 } from './assets'
 
 export const chains: Chains = {

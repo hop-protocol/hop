@@ -56,7 +56,8 @@ const networkNames: any = {
   137: 'Polygon',
   59140: 'Linea (Goerli)',
   84531: 'Base (Goerli)',
-  534354: 'Scroll zkEVM (Goerli)'
+  534354: 'Scroll zkEVM (Goerli)',
+  1442: 'Polygon zkEVM (Goerli)'
 }
 
 const getWalletConnectRpcUrls = (): Record<string, string> => {
@@ -68,7 +69,8 @@ const getWalletConnectRpcUrls = (): Record<string, string> => {
       80001: getRpcUrl(ChainSlug.Polygon),
       59140: getRpcUrl(ChainSlug.Linea),
       534354: getRpcUrl(ChainSlug.ScrollZk),
-      84531: getRpcUrl(ChainSlug.Base)
+      84531: getRpcUrl(ChainSlug.Base),
+      1442: getRpcUrl(ChainSlug.PolygonZk),
     }
   } else {
     return {

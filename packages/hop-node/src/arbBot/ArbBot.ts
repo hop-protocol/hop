@@ -648,7 +648,7 @@ export class ArbBot {
 
   async depositAmmCanonicalTokens () {
     this.logger.log('depositAmmCanonicalTokens()')
-    let amount = this.ammDepositThresholdAmount
+    let amount = this.bridge.parseUnits(this.ammDepositThresholdAmount)
 
     const l2WethBalance = await this.getL2WethBalance()
     if (l2WethBalance.lt(amount)) {

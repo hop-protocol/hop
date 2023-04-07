@@ -80,5 +80,15 @@ export const networks: Networks = {
     explorerUrls: ['https://goerli.basescan.org'],
     nativeBridgeUrl: 'https://bridge.base.org',
     waitConfirmations: 1
+  },
+  polygonzk: {
+    name: chains.polygonzk.name,
+    image: chains.polygonzk.image,
+    networkId: 1442,
+    publicRpcUrl: 'https://rpc.public.zkevm-test.net',
+    fallbackPublicRpcUrls: [],
+    explorerUrls: ['https://explorer.public.zkevm-test.net'],
+    nativeBridgeUrl: 'https://public.zkevm-test.net',
+    waitConfirmations: 1
   }
 }

@@ -9,7 +9,8 @@ import {
   optimismImage,
   polygonImage,
   scrollzkImage,
-  zksyncImage
+  zksyncImage,
+  polygonzkImage
 } from './assets'
 
 export const chains: Chains = {
@@ -80,6 +81,13 @@ export const chains: Chains = {
     name: 'Base',
     slug: 'base',
     image: baseImage,
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
+  },
+  polygonzk: {
+    name: 'Polygon zkEVM',
+    slug: 'polygonzk',
+    image: polygonzkImage,
     nativeTokenSymbol: 'ETH',
     isLayer1: false
   }

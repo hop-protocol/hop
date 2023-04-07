@@ -11,7 +11,8 @@ export const config : Config = {
       zksync: 500,
       linea: 500,
       scrollzk: 500,
-      base: 500
+      base: 500,
+      polygonzk: 500
     },
     USDC: {
       ethereum: 5,
@@ -34,6 +35,7 @@ export const config : Config = {
     zksync: true,
     linea: true,
     scrollzk: true,
-    base: true
+    base: true,
+    polygonzk: true
   }
 }

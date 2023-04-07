@@ -43,6 +43,7 @@ export type Bridges = {
     linea: L2BridgeProps
     scrollzk: L2BridgeProps
     base: L2BridgeProps
+    polygonzk: L2BridgeProps
   }>
 }
 

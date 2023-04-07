@@ -38,9 +38,6 @@ export function getUrl (chain: string) {
     if (chain === 'xdai') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
-    if (chain === 'base') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
-    }
   }
 
   let url: string
@@ -50,8 +47,20 @@ export function getUrl (chain: string) {
     url = `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
   }
 
-  if (isGoerli && chain === 'linea') {
-    url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
+  if (chain === 'linea') {
+    if (isGoerli) {
+      url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
+    } else {
+      throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
+    }
+  }
+
+  if (chain === 'base') {
+    if (isGoerli) {
+      url = 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
+    } else {
+      throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
+    }
   }
 
   return url

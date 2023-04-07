@@ -19,7 +19,7 @@ let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'n
 
 if (isGoerli) {
   enabledTokens = ['USDC', 'ETH', 'HOP']
-  enabledChains = ['ethereum', 'polygon', 'optimism', 'arbitrum', 'linea']
+  enabledChains = ['ethereum', 'polygon', 'optimism', 'arbitrum', 'linea', 'base']
 }
 
 export { enabledTokens, enabledChains }

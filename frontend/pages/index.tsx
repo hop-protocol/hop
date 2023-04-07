@@ -136,7 +136,7 @@ const poll = true
 const pollInterval = 15 * 1000
 let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova']
 if (isGoerli) {
-  enabledChains = ['ethereum', 'polygon', 'arbitrum', 'optimism', 'linea']
+  enabledChains = ['ethereum', 'polygon', 'arbitrum', 'optimism', 'linea', 'base']
 }
 
 let queryParams: any = {}

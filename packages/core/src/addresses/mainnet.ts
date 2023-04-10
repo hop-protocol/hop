@@ -195,6 +195,14 @@ export const addresses: Addresses = {
       optimism: {
         ethereum: '0x547d28cDd6A69e3366d6aE3EC39543F09Bd09417'
       }
+    },
+    sUSD: {
+      ethereum: {
+        optimism: '0x547d28cDd6A69e3366d6aE3EC39543F09Bd09417'
+      },
+      optimism: {
+        ethereum: '0x547d28cDd6A69e3366d6aE3EC39543F09Bd09417'
+      }
     }
   },
   rewardsContracts: {

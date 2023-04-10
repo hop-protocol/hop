@@ -195,6 +195,14 @@ export const addresses: Addresses = {
       optimism: {
         ethereum: '0x547d28cDd6A69e3366d6aE3EC39543F09Bd09417'
       }
+    },
+    sUSD: {
+      ethereum: {
+        optimism: '0x547d28cDd6A69e3366d6aE3EC39543F09Bd09417'
+      },
+      optimism: {
+        ethereum: '0x547d28cDd6A69e3366d6aE3EC39543F09Bd09417'
+      }
     }
   },
   rewardsContracts: {
@@ -253,6 +261,12 @@ export const addresses: Addresses = {
       optimism: [
         '0x25a5A48C35e75BD2EFf53D94f0BB60d5A00E36ea',
         '0x09992Dd7B32f7b35D347DE9Bdaf1919a57d38E82'
+      ]
+    },
+    sUSD: {
+      optimism: [
+        '0x2935008eE9943f859C4fbb863c5402fFC06f462E',
+        '0x25FB92E505F752F730cAD0Bd4fa17ecE4A384266'
       ]
     }
   },

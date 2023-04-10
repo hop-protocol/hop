@@ -97,7 +97,7 @@ async function getRootsCommitted (
   }
 
   // Sanity check
-  let rootHashesSeen: string[] = []
+  const rootHashesSeen: string[] = []
   for (const rootCommitted of rootsCommitted) {
     if (rootHashesSeen.includes(rootCommitted.rootHash)) {
       throw new Error(`Duplicate root hash: ${rootCommitted.rootHash}`)

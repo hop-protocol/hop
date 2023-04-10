@@ -1,5 +1,5 @@
-import { ArbBot } from 'src/arbBot'
-import { actionHandler, parseBool, root } from './shared'
+import { actionHandler, parseBool, parseString, root } from './shared'
+import { startArbBots } from 'src/arbBot'
 
 root
   .command('arb-bot')
@@ -9,16 +9,18 @@ root
     'Start in dry mode. If enabled, no transactions will be sent.',
     parseBool
   )
+  .option(
+    '--arb-bot-config <path>',
+    'Arb bot(s) config JSON file',
+    parseString
+  )
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { dry: dryMode } = source
+  const { dry: dryMode, arbBotConfig } = source
 
-  const arbBot = new ArbBot({
-    dryMode
-  })
   try {
-    await arbBot.start()
+    await startArbBots({ dryMode, configFilePath: arbBotConfig })
   } catch (err: any) {
     throw new Error(`arb bot cli error: ${err.message}`)
   }

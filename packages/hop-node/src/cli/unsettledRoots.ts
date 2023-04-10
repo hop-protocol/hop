@@ -40,7 +40,7 @@ async function main (source: any) {
 
     // Get all roots that were committed at the source
     const settlementChainId = chainSlugToId(settlementChain)
-    const commitsRes = await getTransfersCommitted(chain, token, startTimestamp, settlementChainId)
+    const commitsRes = await getTransfersCommitted(chain, token, settlementChainId, startTimestamp)
     const rootsCommitted: any = {}
     for (const res of commitsRes) {
       rootsCommitted[res.rootHash] = BigNumber.from(res.totalAmount)

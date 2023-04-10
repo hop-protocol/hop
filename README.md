@@ -21,13 +21,13 @@
 
 Install dependencies & link packages
 
-    yarn install
-    yarn run bootstrap
+    npm install
+    npm run bootstrap
 
 Run frontend app in development
 
     cd packages/frontend
-    REACT_APP_NETWORK=mainnet yarn run dev
+    REACT_APP_NETWORK=mainnet npm run dev
 
 Visit [http://localhost:3000/](http://localhost:3000/)
 

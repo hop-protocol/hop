@@ -3479,5 +3479,5 @@ export const PreRegenesisRootsCommitted: RootsCommitted[] = [
     rootCommittedAt: '',
     transactionHash: '',
     token: 'ETH'
-  },
+  }
 ]

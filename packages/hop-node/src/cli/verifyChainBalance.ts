@@ -129,12 +129,6 @@ export async function main (source: any) {
     }
   }
 
-  // Get addresses
-  const addresses = globalConfig.addresses[token]
-  if (!addresses) {
-    throw new Error('addresses not found')
-  }
-
   const {
     tokenAdjustments,
     chainBalanceAdjustments,
@@ -354,7 +348,7 @@ async function getHTokenAdjustments (
   // L2 stake
   const l2Stake: BigNumber = await getAllBonderStakes(l2Bridge, blockTag)
 
-  // Unwithdrawn transfers on the chain
+  // Unwithdrawn transfers
   const l2UnwithdrawnTransfersNew = await getUnwithdrawnTransfers({
     token,
     chain,
@@ -375,8 +369,8 @@ async function getHTokenAdjustments (
   }
 
   // L1 to L2 in flight inbound transfers
-  // NOTE: Because block times across chains vary, we need to get the timestamp of both the L1 blockTag and
-  // the L2 blockTag so that we remain consistent with the state of each chain
+  // NOTE: Because block times across chains vary, we need to get the timestamp of both L1 and L2
+  // so that we remain consistent with the state of each chain
   const { blockTimestamp: l1BlockTimestamp } = metaBlockData[Chain.Ethereum]
   const l2TransfersInFlightFromL1ToL2New: BigNumber = await getRecentUnrelayedL1ToL2Transfers(
     token,
@@ -390,7 +384,7 @@ async function getHTokenAdjustments (
   const {
     allRootsCommitted,
     rootHashesSeenOnL1,
-    l2RootHashesSettled
+    rootHashesSettledOnL2
   } = await getAllPossibleInFlightRoots(
     token,
     chain,
@@ -416,7 +410,7 @@ async function getHTokenAdjustments (
 
     if (root.destinationChainId !== chainId) continue
     if (!rootHashesSeenOnL1.includes(rootHash)) continue
-    if (l2RootHashesSettled.includes(rootHash)) continue
+    if (rootHashesSettledOnL2.includes(rootHash)) continue
 
     l2RootsInFlightInbound = l2RootsInFlightInbound.add(root.totalAmount)
   }
@@ -486,7 +480,7 @@ async function getAllPossibleInFlightRoots (
 
   // Get all roots settled on L2
   const l2RootsSettled = await getMultipleWithdrawalsSettled(chain, token, archiveDataTimestamp, endTimestamp)
-  const l2RootHashesSettled = l2RootsSettled.map((root: any) => root.rootHash)
+  const rootHashesSettledOnL2 = l2RootsSettled.map((root: any) => root.rootHash)
 
   // Get all roots committed on L2 in the given time. Add the sourceChainId to the object for convenience
   const allRootsCommitted: Record<string, any> = {}
@@ -505,7 +499,7 @@ async function getAllPossibleInFlightRoots (
   return {
     allRootsCommitted,
     rootHashesSeenOnL1,
-    l2RootHashesSettled
+    rootHashesSettledOnL2
   }
 }
 

@@ -240,7 +240,8 @@ export class HealthCheckWatcher {
     ETH: parseUnits('7949', 18),
     MATIC: parseUnits('766730', 18),
     HOP: parseUnits('3500000', 18),
-    SNX: parseUnits('200000', 18)
+    SNX: parseUnits('200000', 18),
+    sUSD: parseUnits('500000', 18),
   }
 
   bonderLowLiquidityThreshold: number = 0.1

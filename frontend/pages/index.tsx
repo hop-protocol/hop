@@ -1,10 +1,45 @@
+import React, {useEffect, useState, useCallback } from 'react'
 import { useInterval } from 'react-use'
 import Clipboard from 'clipboard'
 import * as luxon from 'luxon'
 import type {NextPage} from 'next'
 import Head from 'next/head'
 import Script from 'next/script'
-import React, {useEffect, useState } from 'react'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import CheckIcon from '@mui/icons-material/Check'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Paper from '@mui/material/Paper'
+import Link from '@mui/material/Link'
+import Button from '@mui/material/Button'
+import Checkbox from '@mui/material/Checkbox'
+import MenuItem from '@mui/material/MenuItem'
+import IconButton from '@mui/material/IconButton'
+import Select, { SelectChangeEvent } from '@mui/material/Select'
+import TextField from '@mui/material/TextField'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker'
+import LightModeIcon from '@mui/icons-material/LightMode'
+import DarkModeIcon from '@mui/icons-material/DarkMode'
+import RefreshIcon from '@mui/icons-material/Refresh'
+import RestartAltIcon from '@mui/icons-material/RestartAlt'
+import FirstPageIcon from '@mui/icons-material/FirstPage'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
+import GitHubIcon from '@mui/icons-material/GitHub'
+import TwitterIcon from '@mui/icons-material/Twitter'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { chains, tokens } from '@hop-protocol/core/metadata'
+import MuiTooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip'
+import { styled } from '@mui/material/styles'
 
 const isGoerli = process.env.NEXT_PUBLIC_NETWORK === 'goerli'
 let apiBaseUrl = 'https://explorer-api.hop.exchange'
@@ -14,6 +49,14 @@ if (isGoerli) {
 if (process.env.NEXT_PUBLIC_LOCAL) {
   apiBaseUrl = 'http://localhost:8000'
 }
+
+const Tooltip = styled(({ className, ...props }: TooltipProps) => (
+  <MuiTooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    fontSize: '1em',
+  },
+}))
 
 function getSourceChainId (chain: string) {
   if (chain === 'ethereum') {
@@ -45,6 +88,21 @@ function getSourceChainId (chain: string) {
   }
   if (chain === 'nova') {
     return 42170
+  }
+  if (chain === 'linea') {
+    if (isGoerli) {
+      return 59140
+    }
+  }
+  if (chain === 'base') {
+    if (isGoerli) {
+      return 84531
+    }
+  }
+  if (chain === 'scroll') {
+    if (isGoerli) {
+      return 534354
+    }
   }
   throw new Error(`unsupported chain "${chain}"`)
 }
@@ -78,7 +136,7 @@ const poll = true
 const pollInterval = 15 * 1000
 let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova']
 if (isGoerli) {
-  enabledChains = ['ethereum', 'polygon', 'arbitrum', 'optimism']
+  enabledChains = ['ethereum', 'polygon', 'arbitrum', 'optimism', 'linea', 'base']
 }
 
 let queryParams: any = {}
@@ -94,6 +152,7 @@ let queryParams: any = {}
 
 const currentDate = luxon.DateTime.now().toFormat('yyyy-MM-dd')
 const defaultStartDate = luxon.DateTime.now().minus({ days: isGoerli ? 7 : 1 }).toFormat('yyyy-MM-dd')
+const defaultEndDate = luxon.DateTime.now().toFormat('yyyy-MM-dd')
 const defaultSortBy = 'timestamp'
 const defaultSortDirection = 'desc'
 
@@ -113,7 +172,10 @@ const chainSlugToNameMap: any = {
   polygon: 'Polygon',
   arbitrum: 'Arbitrum',
   optimism: 'Optimism',
-  nova: 'Nova'
+  nova: 'Nova',
+  linea: 'Linea',
+  base: 'Base',
+  scroll: 'Scroll',
 }
 
 const colorsMap: any = {
@@ -123,6 +185,9 @@ const colorsMap: any = {
   optimism: '#e64b5d',
   arbitrum: '#289fef',
   nova: '#ec772c',
+  linea: '#121212',
+  base: '#0052ff',
+  scroll: '#e5d1b8',
   fallback: '#9f9fa3'
 }
 
@@ -330,6 +395,7 @@ function useData () {
         transferId: x.transferId
       }
     })
+    .filter((x: any) => Boolean(x.source) && Boolean(x.target))
 
     const nodes = []
     for (let i = 0; i < enabledChains.length; i++) {
@@ -364,12 +430,20 @@ function useData () {
         .iterations(0)
         .draw(graph)
 
+      const $chartSelection: any = document.querySelector('#chartSelection')
       chart.on('link:mouseout', function (item: any) {
-        setChartSelection('')
+        // note: this makes ui lag because of too many re-renders
+        // setChartSelection('')
+        if ($chartSelection) {
+          $chartSelection.innerText = ''
+        }
       })
       chart.on('link:mouseover', function (item: any) {
         const value = `${item.source.name}⟶${item.target.name} ${item.amountDisplay} ${item.token}`
-        setChartSelection(value)
+        // setChartSelection(value)
+        if ($chartSelection) {
+          $chartSelection.innerText = value
+        }
       })
 
       function label (node: any) {
@@ -466,25 +540,29 @@ function useData () {
   }
 
   function updateFilterBonded (event: any) {
-    const value = event.target.value
+    let value = event.target.value
+    if (value === 'all') value = ''
     setFilterBonded(value)
     updateQueryParams({ bonded: value })
   }
 
   function updateFilterSource (event: any) {
-    const value = event.target.value
+    let value = event.target.value
+    if (value === 'all') value = ''
     setFilterSource(value)
     updateQueryParams({ source: value })
   }
 
   function updateFilterDestination (event: any) {
-    const value = event.target.value
+    let value = event.target.value
+    if (value === 'all') value = ''
     setFilterDestination(value)
     updateQueryParams({ destination: value })
   }
 
   function updateFilterToken (event: any) {
-    const value = event.target.value
+    let value = event.target.value
+    if (value === 'all') value = ''
     setFilterToken(value)
     updateQueryParams({ token: value })
   }
@@ -558,14 +636,14 @@ function useData () {
     setChartSelection(value)
   }
 
-  function updateFilterStartDate (event: any) {
-    const value = event.target.value
+  function updateFilterStartDate (newValue: any) {
+    const value = newValue.format('YYYY-MM-DD')
     setFilterStartDate(value)
     updateQueryParams({ startDate: value })
   }
 
-  function updateFilterEndDate (event: any) {
-    const value = event.target.value
+  function updateFilterEndDate (newValue: any) {
+    const value = newValue.format('YYYY-MM-DD')
     setFilterEndDate(value)
     updateQueryParams({ endDate: value })
   }
@@ -714,7 +792,21 @@ function useData () {
   }
 }
 
-const Index: NextPage = () => {
+const logoDark = 'https://user-images.githubusercontent.com/168240/218285469-4df03677-43de-4abd-986d-b6dd99a3b961.svg'
+const logo = 'https://user-images.githubusercontent.com/168240/218271509-66a35bed-94f7-46da-ab41-71c806ac9a96.svg'
+const bgImage = 'https://user-images.githubusercontent.com/168240/218269980-c26e1bb2-90d8-4816-b0cb-c8752e32cde1.svg'
+const bgImageDark = 'https://user-images.githubusercontent.com/168240/218270008-16c5fe2a-33da-49c9-9fad-5286cbd6191d.svg'
+
+function MenuItemIcon (props: any) {
+  const { src } = props
+  return (
+    <Box mr={0.5} display="inline-flex" alignItems="center" justifyContent="center">
+      <img src={src} alt="" width="16px" />
+    </Box>
+  )
+}
+
+const Index: NextPage = (props: any) => {
   const {
     filterStartDate,
     filterEndDate,
@@ -775,6 +867,35 @@ const Index: NextPage = () => {
     accountCumulativeVolumeUsd
   } = useData()
 
+  const { theme, dark, toggleTheme } = props
+  const [copied, setCopied] = useState<string>('')
+  const [showMoreFilters, setShowMoreFilters] = useState<boolean>(false)
+
+  useEffect(() => {
+    try {
+      setShowMoreFilters((document as any)?.body?.clientWidth > 960)
+    } catch (err) {}
+  }, [])
+
+  const setCopiedTimeout = useCallback((value: string) => {
+    setTimeout(() => {
+      setCopied(value)
+    }, 0)
+    setTimeout(() => {
+      setCopied('')
+    }, 1000)
+  }, [])
+
+  const setCopiedTimeoutFn = useCallback((value: string) => {
+    return (event: any) => {
+      setCopiedTimeout(value)
+    }
+  }, [setCopiedTimeout])
+
+  const showMoreFiltersFn = useCallback(() => {
+    setShowMoreFilters(true)
+  }, [])
+
   return (
     <>
       <Script strategy="beforeInteractive" src="/lib/d3.v3.min.js" />
@@ -793,402 +914,607 @@ const Index: NextPage = () => {
         <meta name="application-name" content="Hop" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <Box
+      style={{
+        alignItems: 'stretch',
+        backgroundImage: !dark ? `url(${bgImage})` : `url(${bgImageDark})`,
+        backgroundColor: theme?.palette?.background?.default,
+        backgroundSize: '120%',
+        transition: 'background 0.15s ease-out',
+        minHeight: '100vh'
+      }}>
       {showBanner && (
         <div id="banner">
           <div>
-            <span>⚠️</span> The <a href={unsyncedSubgraphUrl} target="_blank" rel="noreferrer noopener">subgraph</a> is currently experiencing some issues so the table might not reflect the latest state.
+            <span>⚠️</span> The <Link href={unsyncedSubgraphUrl} target="_blank" rel="noreferrer noopener">subgraph</Link> is currently experiencing some issues so the table might not reflect the latest state.
           </div>
         </div>
       )}
-      <div id="app">
-        <div className="chartView">
+      <Box id="app" className={dark ? 'dark' : 'light'}>
+        <Box mb={2} mt={2} display="flex" justifyContent="space-between">
+          <Box className="header" display="flex" alignItems="center" justifyContent="center">
+            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
+              <Box mr={1}>
+                <img className="logo" src={dark ? logoDark : logo} alt="Hop" />
+              </Box>
+              <Typography variant="h1" color="secondary">Explorer</Typography>
+            </Link>
+          </Box>
+          <Box>
+            <IconButton onClick={toggleTheme} title="Toggle theme color mode">
+              { dark ? <LightModeIcon /> : <DarkModeIcon /> }
+            </IconButton>
+          </Box>
+        </Box>
+        <Box mb={4} className="chartView">
           <details open>
-            <summary>Chart ▾</summary>
-            <header className="header">
-              <h1 className="rainbow rainbow-animated">Hop transfers</h1>
-            </header>
-            <div className="chartHeader">
-              <label>Source</label>
-              <label className="arrow rainbow rainbow-animated animation-delay">⟶</label>
-              <label>Destination</label>
-            </div>
-            <div className="chartContainer">
-              <div id="chart"></div>
-            </div>
-            <label htmlFor="amountSizeCheckbox">
-              <input type="checkbox" id="amountSizeCheckbox" value={chartAmountSize.toString()} onChange={enableChartAmountSize} />
-              Amount size
-            </label>
-            <div id="chartSelection">{ chartSelection }</div>
+            <summary><Typography variant="body1" color="secondary">Chart ▾</Typography></summary>
+              <Box p={2}>
+                <div className="chartHeader">
+                  <label><Typography variant="body1" color="secondary">Source</Typography></label>
+                  <label className="arrow">
+                    <Typography variant="body1" color="secondary" component="div">
+                      <ArrowForwardIcon />
+                    </Typography>
+                  </label>
+                  <label><Typography variant="body1" color="secondary">Destination</Typography></label>
+                </div>
+                <div className="chartContainer">
+                  <div id="chart"></div>
+                </div>
+                <label htmlFor="amountSizeCheckbox">
+                  <Box display="flex" alignItems="center">
+                    <Checkbox id="amountSizeCheckbox" value={chartAmountSize.toString()} onChange={enableChartAmountSize} />
+                    <Typography variant="body1" component="span" color="secondary">
+                      Amount size
+                    </Typography>
+                  </Box>
+                </label>
+                <Box><Typography variant="body1" color="secondary" id="chartSelection">{ chartSelection }</Typography></Box>
+              </Box>
           </details>
-        </div>
+        </Box>
         <details open>
         <summary>
-          <span>Transfers ▾</span>
-          <button onClick={handleRefreshClick} className="refreshButton">Refresh</button>
-          {loadingData && (
-            <span className="loadingData">
-              <Spinner /> Loading...
-            </span>
-          )}
+          <span><Typography variant="body1" color="secondary">Filters ▾</Typography></span>
         </summary>
-          <div className="tableHeader">
-            <div className="filters">
-              <div>
-                <label>Per page:</label>
-                <select className="perPageSelection select" value={perPage} onChange={updatePerPage}>
-                  <option value="5">5</option>
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </div>
-              <div>
-                <label>Source:</label>
-                <select className="select" value={filterSource} onChange={updateFilterSource}>
-                  <option value="">All</option>
-                  <option value="ethereum">Ethereum</option>
-                  <option value="polygon">Polygon</option>
-                  <option value="gnosis">Gnosis</option>
-                  <option value="optimism">Optimism</option>
-                  <option value="arbitrum">Arbitrum</option>
-                  <option value="nova">Nova</option>
-                </select>
-              </div>
-              <div>
-                <label>Destination:</label>
-                <select className="select" value={filterDestination} onChange={updateFilterDestination}>
-                  <option value="">All</option>
-                  <option value="ethereum">Ethereum</option>
-                  <option value="polygon">Polygon</option>
-                  <option value="gnosis">Gnosis</option>
-                  <option value="optimism">Optimism</option>
-                  <option value="arbitrum">Arbitrum</option>
-                  <option value="nova">Nova</option>
-                </select>
-              </div>
-              <div>
-                <label>Token:</label>
-                <select className="select" value={filterToken} onChange={updateFilterToken}>
-                  <option value="">All</option>
-                  <option value="USDC">USDC</option>
-                  <option value="USDT">USDT</option>
-                  <option value="MATIC">MATIC</option>
-                  <option value="ETH">ETH</option>
-                  <option value="DAI">DAI</option>
-                  <option value="WBTC">WBTC</option>
-                  <option value="FRAX">FRAX</option>
-                  <option value="HOP">HOP</option>
-                  <option value="SNX">SNX</option>
-                  <option value="sUSD">sUSD</option>
-                </select>
-              </div>
-              <div>
-                <label>Bonded:</label>
-                <select className="select" value={filterBonded} onChange={updateFilterBonded}>
-                  <option value="">All</option>
-                  <option value="pending">Pending</option>
-                  <option value="bonded">Bonded</option>
-                </select>
-              </div>
-              <div>
-                <label>Amount:</label>
-                <select className="select selectSmall" value={filterAmountComparator} onChange={updateFilterAmountComparator}>
-                  <option value="eq">=</option>
-                  <option value="gt">&gt;</option>
-                  <option value="lt">&lt;</option>
-                </select>
-                <input className="filterAmount" value={filterAmount} onChange={updateFilterAmount} placeholder="amount" />
-              </div>
-              <div>
-                <label>Amount USD:</label>
-                <select className="select selectSmall" value={filterAmountUsdComparator} onChange={updateFilterAmountUsdComparator}>
-                  <option value="eq">=</option>
-                  <option value="gt">&gt;</option>
-                  <option value="lt">&lt;</option>
-                </select>
-                <input className="filterAmountUsd" value={filterAmountUsd} onChange={updateFilterAmountUsd} placeholder="amount USD" />
-              </div>
-              <div>
-                <label>Bonder Fee USD:</label>
-                <select className="select selectSmall" value={filterBonderFeeUsdComparator} onChange={updateFilterBonderFeeUsdComparator}>
-                  <option value="eq">=</option>
-                  <option value="gt">&gt;</option>
-                  <option value="lt">&lt;</option>
-                </select>
-                <input className="filterBonderFeeUsd" value={filterBonderFeeUsd} onChange={updateFilterBonderFeeUsd} placeholder="bonder fee USD" />
-              </div>
-              <div>
-                <label>Bonder:</label>
-                <input className="filterBonder" value={filterBonder} onChange={updateFilterBonder} placeholder="bonder" />
-              </div>
-              <div>
-                <label>Transfer ID:</label>
-                <input className="filterTransferId" value={filterTransferId} onChange={updateFilterTransferId} placeholder="transfer ID or tx hash" />
-              </div>
-              <div>
-                <label>Account:</label>
-                <input className="filterAccount" value={filterAccount} onChange={updateFilterAccount} placeholder="Account address" />
-              </div>
-              <div>
-                <label>Recipient:</label>
-                <input className="filterRecipient" value={filterRecipient} onChange={updateFilterRecipient} placeholder="Recipient address" />
-              </div>
-              <div>
-                <label>Start Date:</label>
-                <input type="date" id="date" name="date"
-                value={filterStartDate}
-                min={minDate}
-                max={maxDate}
-                onChange={updateFilterStartDate}
-                 />
-              </div>
-              <div>
-                <label>End Date:</label>
-                <input type="date" id="date" name="date"
-                value={filterEndDate}
-                min={minDate}
-                max={maxDate}
-                onChange={updateFilterEndDate}
-                 />
-              </div>
-              <div>
-                <label>Sort By:</label>
-                <select className="select" value={filterSortBy} onChange={updateFilterSortBy}>
-                  <option value="timestamp">Timestamp</option>
-                  <option value="source">Source</option>
-                  <option value="destination">Destination</option>
-                  <option value="token">Token</option>
-                  <option value="bonded">Bonded</option>
-                  <option value="amount">Amount</option>
-                  <option value="amountUsd">Amount USD</option>
-                  <option value="bonderFee">Bonder Fee</option>
-                  <option value="bonderFeeUsd">BonderFee USD</option>
-                  <option value="bonder">Bonder</option>
-                  <option value="transferId">Transfer ID</option>
-                  <option value="account">Account</option>
-                  <option value="recipient">Recipient</option>
-                  <option value="bondTimestamp">Bonded Timestamp</option>
-                  <option value="bondWithinTimestamp">Bonded Within Timestamp</option>
-                  <option value="receivedHTokens">Received hTokens</option>
-                  <option value="integrationPartner">Integration Partner</option>
-                </select>
-              </div>
-              <div>
-                <label>Sort Order:</label>
-                <select className="select" value={filterSortDirection} onChange={updateFilterSortDirection}>
-                  <option value="desc">↓ Descending</option>
-                  <option value="asc">↑ Ascending</option>
-                </select>
-              </div>
-              <div>
-                <button onClick={resetFilters}>Reset</button>
-              </div>
-            </div>
-          </div>
+          <Box mb={4} className="tableHeader">
+            <Paper style={{ overflowY: 'hidden', overflowX: 'auto', position: 'relative', width: '100%' }}>
+              <Box p={4} display="flex" flexDirection="column" style={{ maxHeight: showMoreFilters ? '100%' : '170px' }}>
+                <Box display="flex" flexWrap="wrap" className="filters">
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Transfer ID</Typography></label>
+                  <TextField className="filterTransferId" value={filterTransferId} onChange={updateFilterTransferId} placeholder="transfer ID or tx hash" />
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Source</Typography></label>
+                  <Select className="select" value={filterSource || 'all'} onChange={updateFilterSource}>
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>
+                    <MenuItem value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>
+                    <MenuItem value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>
+                    <MenuItem value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>
+                    <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
+                    <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
+                    <MenuItem value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Destination</Typography></label>
+                  <Select className="select" value={filterDestination || 'all'} onChange={updateFilterDestination}>
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>
+                    <MenuItem value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>
+                    <MenuItem value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>
+                    <MenuItem value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>
+                    <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
+                    <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
+                    <MenuItem value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Token</Typography></label>
+                  <Select className="select" value={filterToken || 'all'} onChange={updateFilterToken}>
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="ETH"><MenuItemIcon src={tokens.ETH.image} /> ETH</MenuItem>
+                    <MenuItem value="USDC"><MenuItemIcon src={tokens.USDC.image} /> USDC</MenuItem>
+                    <MenuItem value="USDT"><MenuItemIcon src={tokens.USDT.image} /> USDT</MenuItem>
+                    <MenuItem value="DAI"><MenuItemIcon src={tokens.DAI.image} /> DAI</MenuItem>
+                    <MenuItem value="MATIC"><MenuItemIcon src={tokens.MATIC.image} /> MATIC</MenuItem>
+                    <MenuItem value="HOP"><MenuItemIcon src={tokens.HOP.image} /> HOP</MenuItem>
+                    <MenuItem value="SNX"><MenuItemIcon src={tokens.SNX.image} /> SNX</MenuItem>
+                    <MenuItem value="sUSD"><MenuItemIcon src={tokens.sUSD.image} /> SNX</MenuItem>
+                    {/* <MenuItem value="WBTC"><MenuItemIcon src={tokens.WBTC.image} /> WBTC</MenuItem> */}
+                    {/* <MenuItem value="FRAX"><MenuItemIcon src={tokens.FRAX.image} /> FRAX</MenuItem> */}
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Bonded</Typography></label>
+                  <Select className="select" value={filterBonded || 'all'} onChange={updateFilterBonded}>
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="pending">Pending</MenuItem>
+                    <MenuItem value="bonded">Bonded</MenuItem>
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Amount</Typography></label>
+                  <Box display="flex">
+                    <Select className="select selectSmall" value={filterAmountComparator} onChange={updateFilterAmountComparator}>
+                      <MenuItem value="eq">=</MenuItem>
+                      <MenuItem value="gt">&gt;</MenuItem>
+                      <MenuItem value="lt">&lt;</MenuItem>
+                    </Select>
+                    <TextField className="filterAmount" value={filterAmount} onChange={updateFilterAmount} placeholder="Amount" />
+                  </Box>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Amount USD</Typography></label>
+                  <Box display="flex">
+                    <Select className="select selectSmall" value={filterAmountUsdComparator} onChange={updateFilterAmountUsdComparator}>
+                      <MenuItem value="eq">=</MenuItem>
+                      <MenuItem value="gt">&gt;</MenuItem>
+                      <MenuItem value="lt">&lt;</MenuItem>
+                    </Select>
+                    <TextField className="filterAmountUsd" value={filterAmountUsd} onChange={updateFilterAmountUsd} placeholder="Amount USD" />
+                  </Box>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Bonder Fee USD</Typography></label>
+                  <Box display="flex">
+                    <Select className="select selectSmall" value={filterBonderFeeUsdComparator} onChange={updateFilterBonderFeeUsdComparator}>
+                      <MenuItem value="eq">=</MenuItem>
+                      <MenuItem value="gt">&gt;</MenuItem>
+                      <MenuItem value="lt">&lt;</MenuItem>
+                    </Select>
+                    <TextField className="filterBonderFeeUsd" value={filterBonderFeeUsd} onChange={updateFilterBonderFeeUsd} placeholder="Bonder fee USD" />
+                  </Box>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Bonder</Typography></label>
+                  <TextField className="filterBonder" value={filterBonder} onChange={updateFilterBonder} placeholder="Bonder address" />
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Account</Typography></label>
+                  <TextField className="filterAccount" value={filterAccount} onChange={updateFilterAccount} placeholder="Account address" />
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Recipient</Typography></label>
+                  <TextField className="filterRecipient" value={filterRecipient} onChange={updateFilterRecipient} placeholder="Recipient address" />
+                </Box>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <Box display="flex" flexDirection="column">
+                    <label><Typography variant="body1" color="secondary">Start Date</Typography></label>
+                    <MobileDatePicker
+                    inputFormat="YYYY-MM-DD"
+                    value={filterStartDate || defaultStartDate}
+                    onChange={updateFilterStartDate}
+                    renderInput={(params) => <TextField {...params} className="datePicker" />}
+                    />
+                  </Box>
+                </LocalizationProvider>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <Box display="flex" flexDirection="column">
+                    <label><Typography variant="body1" color="secondary">End Date</Typography></label>
+                    <MobileDatePicker
+                    inputFormat="YYYY-MM-DD"
+                    value={filterEndDate || defaultEndDate}
+                    onChange={updateFilterEndDate}
+                    renderInput={(params) => <TextField {...params} className="datePicker" />}
+                    />
+                  </Box>
+                </LocalizationProvider>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Sort By</Typography></label>
+                  <Select className="select" value={filterSortBy} onChange={updateFilterSortBy}>
+                    <MenuItem value="timestamp">Timestamp</MenuItem>
+                    <MenuItem value="source">Source</MenuItem>
+                    <MenuItem value="destination">Destination</MenuItem>
+                    <MenuItem value="token">Token</MenuItem>
+                    <MenuItem value="bonded">Bonded</MenuItem>
+                    <MenuItem value="amount">Amount</MenuItem>
+                    <MenuItem value="amountUsd">Amount USD</MenuItem>
+                    <MenuItem value="bonderFee">Bonder Fee</MenuItem>
+                    <MenuItem value="bonderFeeUsd">BonderFee USD</MenuItem>
+                    <MenuItem value="bonder">Bonder</MenuItem>
+                    <MenuItem value="transferId">Transfer ID</MenuItem>
+                    <MenuItem value="account">Account</MenuItem>
+                    <MenuItem value="recipient">Recipient</MenuItem>
+                    <MenuItem value="bondTimestamp">Bonded Timestamp</MenuItem>
+                    <MenuItem value="bondWithinTimestamp">Bonded Within Timestamp</MenuItem>
+                    <MenuItem value="receivedHTokens">Received hTokens</MenuItem>
+                    <MenuItem value="integrationPartner">Integration Partner</MenuItem>
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Sort Order</Typography></label>
+                  <Select className="select" value={filterSortDirection} onChange={updateFilterSortDirection}>
+                    <MenuItem value="desc">↓ Descending</MenuItem>
+                    <MenuItem value="asc">↑ Ascending</MenuItem>
+                  </Select>
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <label><Typography variant="body1" color="secondary">Per page</Typography></label>
+                  <Select className="perPageSelection select" value={perPage} onChange={updatePerPage}>
+                    <MenuItem value="5">5</MenuItem>
+                    <MenuItem value="10">10</MenuItem>
+                    <MenuItem value="25">25</MenuItem>
+                    <MenuItem value="50">50</MenuItem>
+                    <MenuItem value="100">100</MenuItem>
+                  </Select>
+                </Box>
+              </Box>
+              <Box display="flex" flexDirection="column" alignItems="flex-start">
+                <Button onClick={resetFilters} startIcon={<RestartAltIcon />}>Reset</Button>
+              </Box>
+            </Box>
+            {!showMoreFilters && (
+              <Box display="flex" alignItems="center" justifyContent="center" style={{ background: dark ? 'rgb(39 35 50 / 84%)' : 'rgb(255 255 255 / 68%)', position: 'absolute', bottom: 0, left: 0, width: '100%' }}>
+                <Button onClick={showMoreFiltersFn} endIcon={<ExpandMoreIcon />}>More filters</Button>
+              </Box>
+            )}
+            </Paper>
+          </Box>
+          </details>
+          <details open>
+          <summary>
+            <span><Typography variant="body1" color="secondary">Transfers ▾</Typography></span>
+          </summary>
           <div>
           {!!accountCumulativeVolumeUsd && (
             <div className="cumulativeVolume" title="Cumulative volume in USD for this account">Account Cumulative Volume: {accountCumulativeVolumeUsd}</div>
           )}
           </div>
-          <div className="pagination">
-            {hasFirstPage && (
-              <button onClick={firstPage} className="paginationButton">first page</button>
-            )}
-            {hasPreviousPage && (
-              <button onClick={previousPage} className="paginationButton">previous page</button>
-            )}
-            {hasNextPage && (
-              <button onClick={nextPage} className="paginationButton">next page</button>
-            )}
-          </div>
-          <div id="transfers">
-            <table>
-              <thead>
-                <tr>
-                  <th></th><th title="Date">Date</th><th title="Source chain">Source</th><th title="Destination chain">Destination</th><th title="Transfer ID">Transfer ID</th><th title="Transfer transaction hash">Transfer Tx</th><th title="Token">Token</th><th title="Amount in token">Amount</th><th title="Amount in USD">Amount USD</th><th title="Bonder fee in token">Bonder Fee</th><th title="Bonder fee in USD">Bonder Fee USD</th><th title="Transfer token was received at destination chain">Bonded</th><th title="Bonded or receive at destination chain transaction hash">Bonded Tx</th><th title="Date transfer was received at destination chain or estimated time until received at destination if pending">Bonded Date</th><th title="Time it took to receive transfer at destination chain">Bonded Within</th><th title="The address of bonder who bonded transfer">Bonder</th><th title="The sender address">Account</th><th title="The receipient address">Recipient</th><th title="Integration Partner">Integration Partner</th>
-                </tr>
-              </thead>
-              <tbody>
+          <Box display="flex" justifyContent="space-between">
+            <Box display="flex" alignItems="center">
+              <Button onClick={handleRefreshClick} className="refreshButton" startIcon={<RefreshIcon />}>Refresh</Button>
+              {loadingData && (
+                <Typography variant="body1" color="secondary" component="div">
+                  <Box ml={2} className="loadingData" display="flex" alignItems="center">
+                    <Spinner /> <Box ml={1}>Loading...</Box>
+                  </Box>
+                </Typography>
+              )}
+            </Box>
+            <Box className="pagination">
+              {hasFirstPage && (
+                <Button onClick={firstPage} className="paginationButton" startIcon={<FirstPageIcon />}>First</Button>
+              )}
+              {hasPreviousPage && (
+                <Button onClick={previousPage} className="paginationButton" startIcon={<NavigateBeforeIcon />}>Previous</Button>
+              )}
+              {hasNextPage && (
+                <Button onClick={nextPage} className="paginationButton" endIcon={<NavigateNextIcon />}>Next</Button>
+              )}
+            </Box>
+          </Box>
+          <Box mb={4} id="transfers">
+            <TableContainer>
+            <Table
+              sx={{
+                "& .MuiTableRow-root:hover": {
+                  backgroundColor: "table.hover"
+                }
+              }}
+            >
+              <TableHead>
+                <TableRow>
+                  <TableCell>#</TableCell><TableCell title="Date">Date</TableCell><TableCell title="Source chain">Source</TableCell><TableCell title="Destination chain">Destination</TableCell><TableCell title="Transfer ID">Transfer ID</TableCell><TableCell title="Transfer transaction hash">Transfer Tx</TableCell><TableCell title="Token">Token</TableCell><TableCell title="Amount in token">Amount</TableCell><TableCell title="Amount in USD">Amount USD</TableCell><TableCell title="Bonder fee in token">Bonder Fee</TableCell><TableCell title="Bonder fee in USD">Bonder Fee USD</TableCell><TableCell title="Transfer token was received at destination chain">Bonded</TableCell><TableCell title="Bonded or receive at destination chain transaction hash">Bonded Tx</TableCell><TableCell title="Date transfer was received at destination chain or estimated time until received at destination if pending">Bonded Date</TableCell><TableCell title="Time it took to receive transfer at destination chain">Bonded Within</TableCell><TableCell title="The address of bonder who bonded transfer">Bonder</TableCell><TableCell title="The sender address">Account</TableCell><TableCell title="The receipient address">Recipient</TableCell><TableCell title="Integration Partner">Integration Partner</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {transfers.map((x: any, index: number) => {
                   x.isDifferentRecipient = false
                   if (x.recipientAddress && x.accountAddress) {
                     x.isDifferentRecipient = x.recipientAddress !== x.accountAddress
                   }
                   return (
-                    <tr key={index}>
-                      <td className="index">{ ((Math.max(page-1, 0) * perPage) + index + 1) }</td>
-                      <td className="timestamp" title={x.timestampIso}>{ x.timestampRelative }</td>
-                      <td className={x.sourceChainSlug}>
-                        <img width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
-                        { x.sourceChainName }
-                        <span className="small-arrow">⟶</span>
-                      </td>
-                      <td className={x.destinationChainSlug}>
-                        <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                        { x.destinationChainName }
-                      </td>
-                      <td className="transferId">
-                        <a className="clipboard" data-clipboard-text={x.transferId} rel="noreferrer noopener" title="Copy transfer ID to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
-                        <a className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transferId}`}>
-                          { x.transferIdTruncated }
-                        </a>
-                      </td>
-                      <td className="transferTx">
-                        <a className="clipboard" data-clipboard-text={x.transactionHash} rel="noreferrer noopener" title="Copy transaction hash to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
-                        <a className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.transactionHash}`}>
-                          { x.transactionHashTruncated }
-                        </a>
-                      </td>
-                      <td className="token">
-                        <img width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
-                        { x.token }
-                      </td>
-                      <td className="amount number" title={x.amount}>{ x.amountDisplay }</td>
-                      <td className="amount number" title={`${x.amountUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>{ x.amountUsdDisplay }</td>
-                      <td className="bonderFee number" title={x.bonderFee}>
-                        {x.sourceChainId !== getSourceChainId('ethereum') && (
-                          <span>
-                            { x.bonderFeeDisplay }
-                          </span>
-                        )}
-                        {x.sourceChainId === getSourceChainId('ethereum') && (
-                          <span className="na">
-                            <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
-                          </span>
-                        )}
-                      </td>
-                      <td className="bonderFee number" title={`${x.bonderFeeUsdDisplay} @ ${x.tokenPriceUsdDisplay}`}>
-                        {x.sourceChainId !== getSourceChainId('ethereum') && (
-                          <span>
-                            { x.bonderFeeUsdDisplay }
-                          </span>
-                        )}
-                        {x.sourceChainId === getSourceChainId('ethereum') && (
-                          <span className="na">
-                            <abbr title="Not Applicable — L1 to L2 transfers don't require bonding">N/A</abbr>
-                          </span>
-                        )}
-                      </td>
-                      <td className="bonded">
-                        {x.bonded && (
-                        <a className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title="View on block explorer">
-                          <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Typography variant="body1" color="secondary" className="index">
+                          { ((Math.max(page-1, 0) * perPage) + index + 1) }
+                        </Typography>
+                        </TableCell>
+                      <TableCell>
+                        <Tooltip title={<Box>UTC: {x.timestampIso}<br />Unix: {x.timestamp}<br />Relative: { x.timestampRelative }</Box>}>
+                          <Typography variant="body1" color="secondary" className="timestamp">
+                            { x.timestampRelative }
+                          </Typography>
+                        </Tooltip>
+                        </TableCell>
+                      <TableCell>
+                        <Tooltip title={`${x.sourceChainName} - Chain ID: ${x.sourceChainId}`}>
+                          <Box display="flex" alignItems="center">
+                            <img width="16" height="16" src={x.sourceChainImageUrl} alt={x.sourceChainName} />
+                            <Typography variant="body1" color="secondary" className={x.sourceChainSlug} style={{ color: colorsMap[x.sourceChainSlug] }}>
+                              { x.sourceChainName }
+                            </Typography>
+                          </Box>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip title={`${x.destinationChainName} - Chain ID: ${x.destinationChainId}`}>
+                          <Box display="flex" alignItems="center">
+                            <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                            <Typography variant="body1" color="secondary" className={x.destinationChainSlug} style={{ color: colorsMap[x.destinationChainSlug] }}>
+                              { x.destinationChainName }
+                            </Typography>
+                          </Box>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="transferId">
+                          <Box display="flex" alignItems="center">
+                            <Link className="clipboard" data-clipboard-text={x.transferId} rel="noreferrer noopener" onClick={setCopiedTimeoutFn(x.transferId)}><Tooltip title="Copy transfer ID to clipboard">{copied === x.transferId ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
+                            <Typography variant="body1" color="secondary" component="div">
+                              <Tooltip title={<Box>View on {x.sourceChainName} block explorer<br />Transfer ID: {x.transferId}<br />Tx hash: {x.transactionHash}</Box>}>
+                                <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" style={{ color: colorsMap[x.sourceChainSlug] }}>
+                                  { x.transferIdTruncated }
+                                </Link>
+                              </Tooltip>
+                            </Typography>
+                          </Box>
+                      </TableCell>
+                      <TableCell className="transferTx">
+                        <Box display="flex" alignItems="center">
+                          <Link className="clipboard" data-clipboard-text={x.transactionHash} rel="noreferrer noopener" onClick={setCopiedTimeoutFn(x.transactionHash)}><Tooltip title="Copy transaction hash to clipboard">{copied === x.transactionHash ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
+                          <Typography variant="body1" color="secondary" component="div">
+                            <Tooltip title={<Box>View on {x.sourceChainName} block explorer<br />Tx hash: {x.transactionHash}</Box>}>
+                              <Link className={x.sourceChainSlug} href={x.transactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" style={{ color: colorsMap[x.sourceChainSlug] }}>
+                                { x.transactionHashTruncated }
+                              </Link>
+                            </Tooltip>
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell className="token">
+                        <Tooltip title={`${x.token}`}>
+                          <Box display="flex" alignItems="center">
+                            <img width="16" height="16" src={x.tokenImageUrl} alt={x.token} />
+                            <Typography variant="body1" color="secondary">
+                              { x.token }
+                            </Typography>
+                          </Box>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="amount number">
+                        <Tooltip title={<Box>Amount: {x.amountDisplay} {x.token}<br />Raw: {x.amount}</Box>}>
+                          <Typography variant="body1" color="secondary">
+                            { x.amountDisplay }
+                          </Typography>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="amount number">
+                        <Tooltip title={<Box>Amount USD: {x.amountUsdDisplay}<br />{x.token} Price: {x.tokenPriceUsdDisplay}</Box>}>
+                          <Typography variant="body1" color="secondary">
+                            { x.amountUsdDisplay }
+                          </Typography>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="bonderFee number">
+                        <Typography variant="body1" color="secondary" component="div">
                           {x.sourceChainId !== getSourceChainId('ethereum') && (
-                            <span>
-                              Bonded
-                            </span>
+                            <Tooltip title={<Box>Bonder Fee: {x.bonderFeeDisplay} {x.token}<br />Raw: {x.bonderFee}</Box>}>
+                              <span>
+                                { x.bonderFeeDisplay }
+                              </span>
+                            </Tooltip>
                           )}
                           {x.sourceChainId === getSourceChainId('ethereum') && (
-                            <span>
-                              Received
+                            <span className="na">
+                              <Tooltip title="Not Applicable — L1 to L2 transfers don't require bonding and should arrive at the destination chain within an hour.">
+                                <abbr style={{ cursor: 'help' }}>N/A</abbr>
+                              </Tooltip>
                             </span>
                           )}
-                          {x.receivedHTokens && (
-                            <span title={`Received h${x.token}`}> ⚠️</span>
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bonderFee number">
+                        <Typography variant="body1" color="secondary" mr={2} component="div">
+                          {x.sourceChainId !== getSourceChainId('ethereum') && (
+                            <Tooltip title={<Box>Bonder Fee USD: {x.bonderFeeUsdDisplay}<br />{x.token} Price: {x.tokenPriceUsdDisplay}</Box>}>
+                              <span>
+                                { x.bonderFeeUsdDisplay }
+                              </span>
+                            </Tooltip>
                           )}
-                        </a>
-                        )}
-                        {x.unbondable ?
-                          <span className="unbondable" title="This transfer is unbondable because of invalid parameters">
-                            ⚠️ Unbondable
-                          </span>
-                        : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
-                          <span className="no">
-                            <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
-                            Pending
-                          </span>
-                        )}</>
-                         }
-                      </td>
-                      <td className="bondTx">
-                        {x.preregenesis && (
-                          <span title="This transaction occurred before the Optimism Regenesis">
-                            (pre-regenesis)
-                          </span>
-                        )}
-                        {x.bondTransactionHash && (
-                          <span>
-                            <a className="clipboard" data-clipboard-text={x.bondTransactionHash} title="Copy transaction hash to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
-                            <a className={x.destinationChainSlug} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bondTransactionHash}`}>
-                              { x.bondTransactionHashTruncated }
-                            </a>
-                          </span>
-                        )}
-                      </td>
-                      <td className="bondedDate" title={x.bondTimestampIso}>
-                        { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }
-                      </td>
-                      <td className="bondedWithin" title={x.bondTimestampIso}>
-                        { x.bondWithinTimestampRelative }
-                      </td>
-                      <td className="bondedWithin" title={x.bonderAddress}>
-                        {x.bonderAddressExplorerUrl && (
-                          <a className="bonder" href={x.bonderAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.bonderAddress}`}>
-                            { x.bonderAddressTruncated }
-                          </a>
-                        )}
-                      </td>
-                      <td className="bondedWithin" title={x.accountAddress}>
-                        {x.accountAddressExplorerUrl && (
-                          <>
-                            <a className="clipboard" data-clipboard-text={x.accountAddress} rel="noreferrer noopener" title="Copy account address to clipboard" onClick={(event: any) => { event.target.innerText='✅';setTimeout(()=>event.target.innerText='📋',1000)}}>📋</a>
-                            <a className="bonder" href={x.accountAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.accountAddress}`}>
-                              { x.accountAddressTruncated }
-                            </a>
-                          </>
-                        )}
-                      </td>
-                      <td className="bondedWithin" title={x.recipientAddress}>
-                        {x.recipientAddressExplorerUrl && (
-                          <>
-                          {x.isDifferentRecipient && (
-                            <span title="The recipient is different than the sender. If this was not expected then make sure that the website you sent from was not a scam site. The official website is app.hop.exchange">⚠️ </span>
+                          {x.sourceChainId === getSourceChainId('ethereum') && (
+                            <span className="na">
+                              <Tooltip title="Not Applicable — L1 to L2 transfers don't require bonding">
+                                <abbr style={{ cursor: 'help' }}>N/A</abbr>
+                              </Tooltip>
+                            </span>
                           )}
-                          <a className="bonder" href={x.recipientAddressExplorerUrl} target="_blank" rel="noreferrer noopener" title={`View on block explorer - ${x.recipientAddress}`}>
-                            { x.recipientAddressTruncated }
-                          </a>
-                          </>
-                        )}
-                      </td>
-                      <td className="bondedWithin" title={x.integrationPartnerName}>
-                        {x.integrationPartnerImageUrl && (
-                          <img width="16" height="16" src={x.integrationPartnerImageUrl} alt={x.integrationPartnerName} />
-                        )}
-                        {x.integrationPartnerName}
-                      </td>
-                    </tr>
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bonded">
+                        <Typography variant="body1" color="secondary" component="div">
+                          {x.bonded && (
+                          <Link className={`${x.bonded ? 'yes' : 'no'}`} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener">
+                              <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                              {x.sourceChainId !== getSourceChainId('ethereum') && (
+                            <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Bond tx hash: {x.bondTransactionHash}</Box>}>
+                                <span>
+                                  Bonded
+                                </span>
+                            </Tooltip>
+                              )}
+                              {x.sourceChainId === getSourceChainId('ethereum') && (
+                            <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Received tx hash: {x.bondTransactionHash}</Box>}>
+                                <span>
+                                  Received
+                                </span>
+                            </Tooltip>
+                              )}
+                              {x.receivedHTokens && (
+                                <Tooltip title={<Box>Received h${x.token}<br />Go to the <Link href={x.convertHTokenUrl} target="_blank" rel="noreferrer noopener">Hop Convert Page</Link></Box>}>
+                                  <span style={{ cursor: 'help' }}> ⚠️</span>
+                                </Tooltip>
+                              )}
+                          </Link>
+                          )}
+                          {x.unbondable ?
+                            <span className="unbondable">
+                              <Tooltip title={<Box>This transfer is unbondable because of invalid parameters, therefore bonder will not process it.<br />This transfer can be manually withdrawn at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page</Link>.</Box>}>
+                                <span>⚠️ Unbondable</span>
+                              </Tooltip>
+                              {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
+                                <Box ml={2}>
+                                <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw</Link>
+                                </Box>
+                              )}
+                            </span>
+                          : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
+                              <Tooltip title={<Box>This transaction is still waiting to be bonded or received at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page</Link>.</Box>}</Box>}>
+                              <span className="no">
+                                <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
+                                <span>Pending</span>
+                                {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
+                                  <Box ml={2}>
+                                  <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw</Link>
+                                  </Box>
+                                )}
+                              </span>
+                            </Tooltip>
+                          )}</>
+                          }
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bondTx">
+                        <Box display="flex" alignItems="center">
+                          <Typography variant="body1" color="secondary" component="div">
+                            {x.preregenesis && (
+                              <Tooltip title={'This transaction occurred before the Optimism Regenesis'}>
+                                <span>
+                                (pre-regenesis)
+                                </span>
+                              </Tooltip>
+                            )}
+                            {x.bondTransactionHash && (
+                              <Box display="flex" alignItems="center">
+                                <Link className="clipboard" data-clipboard-text={x.bondTransactionHash} onClick={setCopiedTimeoutFn(x.bondTransactionHash)}><Tooltip title="Copy transaction hash to clipboard">{copied === x.bondTransactionHash ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
+                                <Link className={x.destinationChainSlug} href={x.bondTransactionHashExplorerUrl} target="_blank" rel="noreferrer noopener">
+                                  <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Bond tx hash: {x.bondTransactionHash}</Box>}>
+                                    <span>{ x.bondTransactionHashTruncated }</span>
+                                  </Tooltip>
+                                </Link>
+                              </Box>
+                            )}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell className="bondedDate" >
+                        <Tooltip title={<Box>UTC: {x.bondTimestampIso}<br />Unix: {x.bondTimestamp}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>}>
+                          <Typography variant="body1" color="secondary">
+                            { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }
+                          </Typography>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="bondedWithin">
+                        <Tooltip title={<Box>UTC: {x.bondTimestampIso}<br />Unix: {x.bondTimestamp}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }<br />Bonded within: { x.bondWithinTimestampRelative }</Box>}>
+                          <Typography variant="body1" color="secondary">
+                            { x.bondWithinTimestampRelative }
+                          </Typography>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="bondedWithin">
+                        <Typography variant="body1" color="secondary" component="div">
+                          {x.bonderAddressExplorerUrl && (
+                            <Box display="flex" alignItems="center">
+                              <Link className="clipboard" data-clipboard-text={x.bonderAddress} rel="noreferrer noopener" onClick={setCopiedTimeoutFn(x.bonderAddress)}><Tooltip title="Copy bonder address to clipboard">{copied === x.bonderAddress ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
+                              <Link className="bonder" href={x.bonderAddressExplorerUrl} target="_blank" rel="noreferrer noopener">
+                                <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Bonder: {x.bonderAddress}</Box>}>
+                                  <span>{ x.bonderAddressTruncated }</span>
+                                </Tooltip>
+                              </Link>
+                            </Box>
+                          )}
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bondedWithin">
+                        <Typography variant="body1" color="secondary" component="div">
+                          {x.accountAddressExplorerUrl && (
+                            <Box display="flex" alignItems="center">
+                              <Link className="clipboard" data-clipboard-text={x.accountAddress} rel="noreferrer noopener" onClick={setCopiedTimeoutFn(x.accountAddress)}><Tooltip title="Copy account address to clipboard">{copied === x.accountAddress ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
+                              <Link className="bonder" href={x.accountAddressExplorerUrl} target="_blank" rel="noreferrer noopener">
+                                <Tooltip title={<Box>View on {x.sourceChainName} block explorer<br />Account: {x.accountAddress}</Box>}>
+                                  <span>{ x.accountAddressTruncated }</span>
+                                </Tooltip>
+                              </Link>
+                            </Box>
+                          )}
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bondedWithin">
+                        <Typography variant="body1" color="secondary" component="div">
+                          {x.recipientAddressExplorerUrl && (
+                            <Box display="flex" alignItems="center">
+                            <Link className="clipboard" data-clipboard-text={x.recipientAddress} rel="noreferrer noopener" onClick={setCopiedTimeoutFn(x.recipientAddress)}><Tooltip title="Copy account address to clipboard">{copied === x.recipientAddress ? <CheckIcon /> : <ContentCopyIcon />}</Tooltip></Link>
+                            {x.isDifferentRecipient && (
+                              <Tooltip title="The recipient is different than the sender. If this was not expected then make sure that the website you sent from was not a scam site. The official website is app.hop.exchange">
+                                <span style={{ cursor: 'help' }}>⚠️ </span>
+                              </Tooltip>
+                            )}
+                            <Link className="bonder" href={x.recipientAddressExplorerUrl} target="_blank" rel="noreferrer noopener">
+                              <Tooltip title={<Box>View on {x.destinationChainName} block explorer<br />Recipient: {x.recipientAddress}</Box>}>
+                                <span>{ x.recipientAddressTruncated }</span>
+                              </Tooltip>
+                            </Link>
+                            </Box>
+                          )}
+                        </Typography>
+                      </TableCell>
+                      <TableCell className="bondedWithin">
+                        <Tooltip title={`This transfer was originated from a ${x.integrationPartnerName} app/integration.`}>
+                          <Box display="flex" alignItems="center">
+                            {x.integrationPartnerImageUrl && (
+                              <img width="16" height="16" src={x.integrationPartnerImageUrl} alt={x.integrationPartnerName} />
+                            )}
+                            <Typography variant="body1" color="secondary">
+                              {x.integrationPartnerName}
+                            </Typography>
+                          </Box>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
                   )
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
+            </TableContainer>
+          </Box>
+          <div className="tableFooter">
+            <div>
+              <Select className="perPageSelection" value={perPage} onChange={updatePerPage}>
+                <MenuItem value="5">5</MenuItem>
+                <MenuItem value="10">10</MenuItem>
+                <MenuItem value="25">25</MenuItem>
+                <MenuItem value="50">50</MenuItem>
+                <MenuItem value="100">100</MenuItem>
+              </Select>
+            </div>
+            <div className="pagination">
+              {hasFirstPage && (
+                <Button onClick={firstPage} className="paginationButton" startIcon={<FirstPageIcon />}>First</Button>
+              )}
+              {hasPreviousPage && (
+                <Button onClick={previousPage} className="paginationButton" startIcon={<NavigateBeforeIcon />}>Previous</Button>
+              )}
+              {hasNextPage && (
+                <Button onClick={nextPage} className="paginationButton" endIcon={<NavigateNextIcon />}>Next</Button>
+              )}
+            </div>
           </div>
         </details>
-        <div className="tableFooter">
-          <div>
-            <select className="perPageSelection" value={perPage} onChange={updatePerPage}>
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-          <div className="pagination">
-            {hasFirstPage && (
-              <button onClick={firstPage} className="paginationButton">first page</button>
-            )}
-            {hasPreviousPage && (
-              <button onClick={previousPage} className="paginationButton">previous page</button>
-            )}
-            {hasNextPage && (
-              <button onClick={nextPage} className="paginationButton">next page</button>
-            )}
-          </div>
-        </div>
-      </div>
-  </>
+        <Box mt={6} mb={6} display="flex" alignItems="center" justifyContent="center">
+          <Box>
+            <Link href="https://twitter.com/hopprotocol" target="_blank" rel="noreferrer noopener"><TwitterIcon  /></Link>
+          </Box>
+          <Box ml={2}>
+            <Link href="https://github.com/hop-protocol/explorer" target="_blank" rel="noreferrer noopener"><GitHubIcon  /></Link>
+          </Box>
+        </Box>
+      </Box>
+      </Box>
+    </>
   )
 }
 

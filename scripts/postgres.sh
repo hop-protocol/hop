@@ -8,6 +8,7 @@ docker run \
         -d \
         --name pg \
         --net mynetwork \
+        --restart=unless-stopped \
         --log-driver=awslogs \
         --log-opt awslogs-region=us-east-1 \
         --log-opt awslogs-group=$log_group_name \

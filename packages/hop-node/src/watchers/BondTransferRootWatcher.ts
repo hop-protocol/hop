@@ -104,7 +104,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.debug(
         `too early to bond. Must wait ${Math.abs(
           delta
-        )} seconds`
+        )} milliseconds`
       )
       return
     }

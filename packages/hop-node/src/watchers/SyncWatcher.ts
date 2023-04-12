@@ -1183,7 +1183,7 @@ class SyncWatcher extends BaseWatcher {
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
 
     logger.debug('startBlockNumber:', startBlockNumber)
-    logger.debug('endBlockNumber:', startBlockNumber)
+    logger.debug('endBlockNumber:', endBlockNumber)
 
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)

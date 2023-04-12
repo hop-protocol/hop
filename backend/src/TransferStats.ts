@@ -11,7 +11,7 @@ import l2BridgeAbi from '@hop-protocol/core/abi/generated/L2_Bridge.json'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import { isGoerli } from './config'
 
-let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX']
+let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX', 'sUSD']
 let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova']
 
 if (isGoerli) {
@@ -219,7 +219,8 @@ const tokenLogosMap: any = {
   WBTC: 'https://assets.hop.exchange/logos/wbtc.svg',
   FRAX: 'https://assets.hop.exchange/logos/frax.svg',
   HOP: 'https://assets.hop.exchange/logos/hop.svg',
-  SNX: 'https://assets.hop.exchange/logos/snx.svg'
+  SNX: 'https://assets.hop.exchange/logos/snx.svg',
+  sUSD: 'https://assets.hop.exchange/logos/susd.svg'
 }
 
 const tokenDecimals: any = {
@@ -231,7 +232,8 @@ const tokenDecimals: any = {
   FRAX: 18,
   HOP: 18,
   WBTC: 8,
-  SNX: 18
+  SNX: 18,
+  sUSD: 18
 }
 
 type Options = {
@@ -828,7 +830,8 @@ export class TransferStats {
       await this.getPriceHistory('wrapped-bitcoin', daysN),
       await this.getPriceHistory('frax', daysN),
       await this.getPriceHistory('hop-protocol', daysN),
-      await this.getPriceHistory('havven', daysN)
+      await this.getPriceHistory('havven', daysN),
+      await this.getPriceHistory('nusd', daysN)
     ]
     console.log('done fetching prices')
 
@@ -841,7 +844,8 @@ export class TransferStats {
       WBTC: pricesArr[5],
       FRAX: pricesArr[6],
       HOP: pricesArr[7],
-      SNX: pricesArr[8]
+      SNX: pricesArr[8],
+      sUSD: pricesArr[0]
     }
 
     this.prices = prices

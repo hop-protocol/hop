@@ -19,7 +19,7 @@ import { AvgBlockTimeSeconds, Chain, NativeChainToken, OneDayMs, OneDaySeconds, 
 import { BigNumber, providers } from 'ethers'
 import { DateTime } from 'luxon'
 import { Notifier } from 'src/notifier'
-import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/L1Bridge'
+import { TransferBondChallengedEvent } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { appTld, expectedNameservers, config as globalConfig, healthCheckerWarnSlackChannel, hostname } from 'src/config'
 import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getDbSet } from 'src/db'
@@ -28,6 +28,7 @@ import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawal
 import { getNameservers } from 'src/utils/getNameservers'
 import { getSubgraphLastBlockSynced } from 'src/theGraph/getSubgraphLastBlockSynced'
 import { getUnbondedTransfers } from 'src/theGraph/getUnbondedTransfers'
+import { main as verifyChainBalance } from 'src/cli/verifyChainBalance'
 
 type LowBonderBalance = {
   bridge: string
@@ -164,6 +165,12 @@ type LowOsResource = {
   percent: string
 }
 
+type InvalidChainBalance = {
+  token: string
+  tokenChainBalanceDiff: BigNumber
+  chainBalanceHTokenDiff: BigNumber
+}
+
 type Result = {
   lowBonderBalances: LowBonderBalance[]
   lowAvailableLiquidityBonders: LowAvailableLiquidityBonder[]
@@ -178,6 +185,7 @@ type Result = {
   unsetTransferRoots: UnsetTransferRoot[]
   dnsNameserversChanged: DnsNameserversChanged[]
   lowOsResources: LowOsResource[]
+  invalidChainBalance: InvalidChainBalance[]
 }
 
 export type EnabledChecks = {
@@ -194,6 +202,7 @@ export type EnabledChecks = {
   unsetTransferRoots: boolean
   dnsNameserversChanged: boolean
   lowOsResources: boolean
+  invalidChainBalance: boolean
 }
 
 export type Config = {
@@ -225,13 +234,14 @@ export class HealthCheckWatcher {
   }
 
   bonderTotalLiquidity: Record<string, BigNumber> = {
-    USDC: parseUnits('6521000', 6),
-    USDT: parseUnits('1500000', 6),
+    USDC: parseUnits('4271000', 6),
+    USDT: parseUnits('750000', 6),
     DAI: parseUnits('1500000', 18),
-    ETH: parseUnits('8009', 18),
-    MATIC: parseUnits('731804', 18),
-    HOP: parseUnits('2500000', 18),
-    SNX: parseUnits('200000', 18)
+    ETH: parseUnits('7949', 18),
+    MATIC: parseUnits('766730', 18),
+    HOP: parseUnits('3500000', 18),
+    SNX: parseUnits('200000', 18),
+    sUSD: parseUnits('500000', 18)
   }
 
   bonderLowLiquidityThreshold: number = 0.1
@@ -256,7 +266,8 @@ export class HealthCheckWatcher {
     unrelayedTransfers: true,
     unsetTransferRoots: true,
     dnsNameserversChanged: true,
-    lowOsResources: true
+    lowOsResources: true,
+    invalidChainBalance: true
   }
 
   lastUnsyncedSubgraphNotificationSentAt: number
@@ -332,7 +343,8 @@ export class HealthCheckWatcher {
       unrelayedTransfers,
       unsetTransferRoots,
       dnsNameserversChanged,
-      lowOsResources
+      lowOsResources,
+      invalidChainBalance
     ] = await Promise.all([
       this.enabledChecks.lowBonderBalances ? this.getLowBonderBalances() : Promise.resolve([]),
       this.enabledChecks.lowAvailableLiquidityBonders ? this.getLowAvailableLiquidityBonders() : Promise.resolve([]),
@@ -346,7 +358,8 @@ export class HealthCheckWatcher {
       this.enabledChecks.unrelayedTransfers ? this.getUnrelayedTransfers() : Promise.resolve([]),
       this.enabledChecks.unsetTransferRoots ? this.getUnsetTransferRoots() : Promise.resolve([]),
       this.enabledChecks.dnsNameserversChanged ? this.getDnsServersChanged() : Promise.resolve([]),
-      this.enabledChecks.lowOsResources ? this.getLowOsResources() : Promise.resolve([])
+      this.enabledChecks.lowOsResources ? this.getLowOsResources() : Promise.resolve([]),
+      this.enabledChecks.invalidChainBalance ? this.getInvalidChainBalance() : Promise.resolve([])
     ])
 
     return {
@@ -362,7 +375,8 @@ export class HealthCheckWatcher {
       unrelayedTransfers,
       unsetTransferRoots,
       dnsNameserversChanged,
-      lowOsResources
+      lowOsResources,
+      invalidChainBalance
     }
   }
 
@@ -380,7 +394,8 @@ export class HealthCheckWatcher {
       unrelayedTransfers,
       unsetTransferRoots,
       dnsNameserversChanged,
-      lowOsResources
+      lowOsResources,
+      invalidChainBalance
     } = result
 
     this.logger.debug('sending notifications', JSON.stringify(result, null, 2))
@@ -425,6 +440,11 @@ export class HealthCheckWatcher {
 
       for (const item of unsetTransferRoots) {
         const msg = `Possible unset transferRoot: transferRootHash: ${item.transferRootHash}, totalAmount: ${item.totalAmount}, timestamp: ${item.timestamp}`
+        messages.push(msg)
+      }
+
+      for (const item of invalidChainBalance) {
+        const msg = `Possible invalid chainBalance: token: ${item.token}, tokenChainBalanceDiff: ${item.tokenChainBalanceDiff}, chainBalanceHTokenDiff: ${item.chainBalanceHTokenDiff}`
         messages.push(msg)
       }
     }
@@ -613,6 +633,11 @@ export class HealthCheckWatcher {
       for (const amount in chainAmounts) {
         availableLiquidity = availableLiquidity.add(chainAmounts[amount])
       }
+
+      if (availableLiquidity.lt(0)) {
+        availableLiquidity = BigNumber.from(0)
+      }
+
       const tokenDecimals = getTokenDecimals(token)!
       const availableLiquidityFormatted = Number(formatUnits(availableLiquidity, tokenDecimals))
       const totalLiquidityFormatted = Number(formatUnits(totalLiquidity, tokenDecimals))
@@ -620,7 +645,7 @@ export class HealthCheckWatcher {
       const thresholdPercent = parseUnits(this.bonderLowLiquidityThreshold.toString(), tokenDecimals)
       const thresholdAmount = totalLiquidity.mul(thresholdPercent).div(oneToken)
       const thresholdAmountFormatted = Number(formatUnits(thresholdAmount, tokenDecimals))
-      if (availableLiquidity.lt(thresholdAmount)) {
+      if (availableLiquidity.lt(thresholdAmount) && availableLiquidity.gt(0)) {
         result.push({
           bridge: token,
           availableLiquidity: availableLiquidity.toString(),
@@ -1077,5 +1102,29 @@ export class HealthCheckWatcher {
     }
 
     return lowOsResources
+  }
+
+  async getInvalidChainBalance (): Promise<InvalidChainBalance[]> {
+    this.logger.debug('checking for an invalid chainBalance')
+    const invalidChainBalance: InvalidChainBalance[] = []
+    for (const token of this.tokens) {
+      this.logger.debug(`checking ${token} for invalid chainBalance`)
+      const {
+        tokenChainBalanceDiff,
+        chainBalanceHTokenDiff
+      } = await verifyChainBalance({ token })
+
+      if (tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)) {
+        continue
+      }
+
+      invalidChainBalance.push({
+        token,
+        tokenChainBalanceDiff,
+        chainBalanceHTokenDiff
+      })
+    }
+
+    return invalidChainBalance
   }
 }

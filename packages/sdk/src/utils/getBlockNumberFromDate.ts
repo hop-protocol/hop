@@ -1,8 +1,8 @@
 import BlockDater from 'ethereum-block-by-date'
-import fetch from 'isomorphic-fetch'
 import { Chain } from '../models/Chain'
 import { DateTime } from 'luxon'
 import { etherscanApiKeys, etherscanApiUrls } from '../config'
+import { fetchJsonOrThrow } from './fetchJsonOrThrow'
 
 export async function getBlockNumberFromDate (chain: Chain, timestamp: number): Promise<number> {
   const chainSlug = chain.slug
@@ -15,7 +15,7 @@ export async function getBlockNumberFromDate (chain: Chain, timestamp: number): 
   return getBlockNumberFromDateUsingLib(chainProvider, timestamp)
 }
 
-async function getBlockNumberFromDateUsingEtherscan (chain: string, timestamp: number): Promise<number> {
+export async function getBlockNumberFromDateUsingEtherscan (chain: string, timestamp: number): Promise<number> {
   const apiKey = etherscanApiKeys[chain]
   if (!apiKey) {
     throw new Error('Please add an etherscan api key for ' + chain)
@@ -23,17 +23,16 @@ async function getBlockNumberFromDateUsingEtherscan (chain: string, timestamp: n
 
   const baseUrl = etherscanApiUrls[chain]
   const url = baseUrl + `/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=before&apikey=${apiKey}`
-  const res = await fetch(url)
-  const resJson = await res.json()
+  const json = await fetchJsonOrThrow(url)
 
-  if (resJson.status !== '1') {
-    throw new Error(`could not retrieve block number for timestamp ${timestamp}: ${JSON.stringify(resJson)}`)
+  if (json.status !== '1') {
+    throw new Error(`could not retrieve block number for timestamp ${timestamp}: ${JSON.stringify(json)}`)
   }
 
-  return Number(resJson.result)
+  return Number(json.result)
 }
 
-async function getBlockNumberFromDateUsingLib (provider: any, timestamp: number): Promise<number> {
+export async function getBlockNumberFromDateUsingLib (provider: any, timestamp: number): Promise<number> {
   const blockDater = new BlockDater(provider)
   const date = DateTime.fromSeconds(timestamp).toJSDate()
 

@@ -34,6 +34,8 @@ type Props = {
   checkConnectedNetworkId: (networkId: number) => Promise<boolean>
 }
 
+class NetworkSwitchError extends Error {}
+
 // TODO: modularize
 const networkNames: any = {
   1: 'Mainnet',
@@ -42,15 +44,19 @@ const networkNames: any = {
   5: 'Goerli',
   42: 'Kovan',
   42161: 'Arbitrum',
-  421611: 'Arbitrum',
+  421613: 'Arbitrum (Goerli)',
+  421611: 'Arbitrum (Rinkeby)',
   42170: 'Nova',
   10: 'Optimism',
-  69: 'Optimism',
-  420: 'Optimism',
-  77: 'Gnosis',
+  69: 'Optimism (Kovan)',
+  420: 'Optimism (Goerli)',
+  77: 'Gnosis (Testnet)',
   100: 'Gnosis',
-  80001: 'Polygon',
+  80001: 'Polygon (Mumbai)',
   137: 'Polygon',
+  59140: 'Linea (Goerli)',
+  84531: 'Base (Goerli)',
+  534354: 'Scroll zkEVM (Goerli)'
 }
 
 const getWalletConnectRpcUrls = (): Record<string, string> => {
@@ -60,7 +66,9 @@ const getWalletConnectRpcUrls = (): Record<string, string> => {
       421613: getRpcUrl(ChainSlug.Arbitrum),
       420: getRpcUrl(ChainSlug.Optimism),
       80001: getRpcUrl(ChainSlug.Polygon),
-      59140: getRpcUrl(ChainSlug.ConsenSysZk)
+      59140: getRpcUrl(ChainSlug.Linea),
+      534354: getRpcUrl(ChainSlug.ScrollZk),
+      84531: getRpcUrl(ChainSlug.Base)
     }
   } else {
     return {
@@ -330,6 +338,12 @@ const Web3ContextProvider: FC = ({ children }) => {
         return true
       }
 
+      let rpcUrl = getRpcUrlOrThrow(networkIdToSlug(networkId.toString()))
+      const lineaChainId = 59140
+      if (Number(networkId) === lineaChainId) {
+        rpcUrl = 'https://rpc.goerli.linea.build'
+      }
+
       const state = onboard.getState()
       if (state.address) {
         onboard.config({ networkId })
@@ -345,7 +359,11 @@ const Web3ContextProvider: FC = ({ children }) => {
             },
           ])
         } else {
-          let nativeCurrency: any
+          let nativeCurrency: any = {
+            name: 'ETH',
+            symbol: 'ETH',
+            decimals: 18
+          }
 
           if (networkId === ChainId.Gnosis) {
             nativeCurrency = {
@@ -364,7 +382,7 @@ const Web3ContextProvider: FC = ({ children }) => {
           const rpcObj = {
             chainId: `0x${Number(networkId).toString(16)}`,
             chainName: networkNames[networkId],
-            rpcUrls: [getRpcUrlOrThrow(networkIdToSlug(networkId.toString()))],
+            rpcUrls: [rpcUrl],
             blockExplorerUrls: [getBaseExplorerUrl(networkIdToSlug(networkId.toString()))],
             nativeCurrency,
           }
@@ -372,8 +390,11 @@ const Web3ContextProvider: FC = ({ children }) => {
           await provider?.send('wallet_addEthereumChain', [rpcObj])
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       logger.error('checkConnectedNetworkId error:', err)
+      if (err instanceof NetworkSwitchError) {
+        throw err
+      }
     }
 
     // after network switch, recheck if provider is connected to correct network.

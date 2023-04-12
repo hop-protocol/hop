@@ -26,6 +26,7 @@
 - [WMATIC](TokenModel.md#wmatic)
 - [WXDAI](TokenModel.md#wxdai)
 - [XDAI](TokenModel.md#xdai)
+- [rETH](TokenModel.md#reth)
 - [sBTC](TokenModel.md#sbtc)
 - [sETH](TokenModel.md#seth)
 - [sUSD](TokenModel.md#susd)
@@ -161,6 +162,12 @@ ___
 ### <a id="xdai" name="xdai"></a> XDAI
 
 ▪ `Static` **XDAI**: `string` = `'XDAI'`
+
+___
+
+### <a id="reth" name="reth"></a> rETH
+
+▪ `Static` **rETH**: `string` = `'rETH'`
 
 ___
 

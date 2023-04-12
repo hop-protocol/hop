@@ -18,6 +18,7 @@ export enum ChainId {
   ZkSync = 324
 }
 
+// TODO: read from core package
 export enum ChainName {
   Ethereum = 'Ethereum',
   Optimism = 'Optimism',
@@ -26,9 +27,12 @@ export enum ChainName {
   Gnosis = 'Gnosis',
   Nova = 'Nova',
   ZkSync = 'zkSync',
-  ConsenSysZk = 'ConsenSys zkEVM'
+  Linea = 'Linea',
+  ScrollZk = 'Scroll zkEVM',
+  Base = 'Base'
 }
 
+// TODO: read from core package
 export enum ChainSlug {
   Ethereum = 'ethereum',
   Optimism = 'optimism',
@@ -37,7 +41,9 @@ export enum ChainSlug {
   Gnosis = 'gnosis',
   Nova = 'nova',
   ZkSync = 'zksync',
-  ConsenSysZk = 'consensyszk'
+  Linea = 'linea',
+  ScrollZk = 'scrollzk',
+  Base = 'base'
 }
 
 export enum Slug {
@@ -52,7 +58,9 @@ export enum Slug {
   polygon = 'polygon',
   nova = 'nova',
   zksync = 'zksync',
-  consensyszk = 'consensyszk'
+  linea = 'linea',
+  scrollzk = 'scrollzk',
+  base = 'base',
 }
 
 export enum CanonicalToken {
@@ -109,13 +117,16 @@ export const SettlementGasLimitPerTx: Record<string, number> = {
   arbitrum: 19843,
   nova: 19843,
   zksync: 10000, // TODO
-  consensyszk: 10000 // TODO
+  linea: 10000, // TODO
+  scrollzk: 10000, // TODO
+  base: 10000 // TODO
 }
 
 export const LpFeeBps = 4
 export const PendingAmountBufferUsd = 50000
 export const MinPolygonGasPrice = 30_000_000_000
 export const MinPolygonGasLimit = BigNumber.from(1_000_000)
+export const MinGoerliGasLimit = BigNumber.from(1_000_000)
 
 export enum Errors {
   NotEnoughAllowance = 'Not enough allowance. Please call `approve` on the token contract to allow contract to move tokens and make sure you are connected to the correct network.',
@@ -129,9 +140,10 @@ export enum EventNames {
 
 export const MaxDeadline: number = 9999999999
 // Low liquidity or single-chain tokens should have a buffer of appx 10% of their L1 stake
-export const LowLiquidityTokens: string[] = ['HOP', 'SNX']
+export const LowLiquidityTokens: string[] = ['HOP', 'SNX', 'sUSD']
 export const LowLiquidityTokenBufferAmountsUsd: Record<string, string> = {
   HOP: '8000',
-  SNX: '40000'
+  SNX: '40000',
+  sUSD: '40000'
 }
 export const SecondsInDay = 86400

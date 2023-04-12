@@ -11,6 +11,7 @@ import {
 
 import { actionHandler, logger, parseBool, parseNumber, parseString, parseStringArray, root } from './shared'
 import { printHopArt } from './shared/art'
+import { startArbBots } from 'src/arbBot'
 import {
   startWatchers
 } from 'src/watchers/watchers'
@@ -37,6 +38,12 @@ root
   .option('--heapdump [boolean]', 'Write heapdump snapshot to a file every 5 minutes', parseBool)
   .option('--enabled-checks <enabledChecks>', 'Enabled checks. Options are: lowBonderBalances,unbondedTransfers,unbondedTransferRoots,incompleteSettlements,challengedTransferRoots,unsyncedSubgraphs,lowAvailableLiquidityBonders', parseStringArray)
   .option('--resync-interval-ms <number>', 'The sync interval for the SyncWatcher', parseNumber)
+  .option('--arb-bot [boolean]', 'Run the Goerli arb bot', parseBool)
+  .option(
+    '--arb-bot-config <path>',
+    'Arb bot(s) config JSON file',
+    parseString
+  )
   .action(actionHandler(main))
 
 async function main (source: any) {
@@ -44,7 +51,7 @@ async function main (source: any) {
   logger.debug('starting hop node')
   logger.debug(`git revision: ${gitRev}`)
 
-  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, resyncIntervalMs } = source
+  const { config, syncFromDate, s3Upload, s3Namespace, clearDb, heapdump, healthCheckDays, healthCheckCacheFile, enabledChecks, dry: dryMode, resyncIntervalMs, arbBot: runArbBot, arbBotConfig } = source
   if (!config) {
     throw new Error('config file is required')
   }
@@ -167,6 +174,13 @@ async function main (source: any) {
         cacheFile: healthCheckCacheFile,
         enabledChecks: enabledChecksObj
       }).start()
+      resolve()
+    }))
+  }
+
+  if (runArbBot) {
+    promises.push(new Promise((resolve) => {
+      startArbBots({ dryMode, configFilePath: arbBotConfig })
       resolve()
     }))
   }

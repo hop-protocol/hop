@@ -1,4 +1,4 @@
-import React, { FC, createContext, useContext, useState } from 'react'
+import React, { FC, createContext, useContext, useState, useEffect } from 'react'
 import { parseUnits } from 'ethers/lib/utils'
 import { Contract } from 'ethers'
 import erc20Abi from '@hop-protocol/core/abi/static/ERC20Mintable.json'
@@ -19,8 +19,10 @@ type FaucetContextProps = {
   mintAmount: string
   isMinting: boolean
   tokens: Token[]
-  error: string | null | undefined
-  setError: (error: string | null | undefined) => void
+  error: string
+  setError: (error: string) => void
+  success: string
+  setSuccess: (error: string) => void
   selectedNetwork: Network
 }
 
@@ -29,8 +31,10 @@ const FaucetContext = createContext<FaucetContextProps>({
   mintAmount: '',
   isMinting: false,
   tokens: [],
-  error: null,
-  setError: (error: string | null | undefined) => {},
+  error: '',
+  setError: (error: string) => {},
+  success: '',
+  setSuccess: (error: string) => {},
   selectedNetwork: l1Network,
 })
 
@@ -40,10 +44,18 @@ const FaucetContextProvider: FC = ({ children }) => {
   const { selectedBridge, txHistory, tokens } = useApp()
   const selectedNetwork = l1Network
   const { checkConnectedNetworkId, address, provider } = useWeb3Context()
-  const [error, setError] = useState<string | null | undefined>(null)
+  const [error, setError] = useState<string>('')
+  const [success, setSuccess] = useState<string>('')
+
+  useEffect(() => {
+    setError('')
+    setSuccess('')
+  }, [selectedBridge])
 
   const mintToken = async () => {
     try {
+      setError('')
+      setSuccess('')
       if (!selectedNetwork?.networkId) return
       const networkId = Number(selectedNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
@@ -54,7 +66,15 @@ const FaucetContextProvider: FC = ({ children }) => {
       const tokenSymbol = selectedBridge.getTokenSymbol()
       if (!tokenSymbol) return
 
-      const address = addresses.tokens[tokenSymbol][L1_NETWORK]?.l1CanonicalToken
+      let address = addresses.tokens[tokenSymbol][L1_NETWORK]?.l1CanonicalToken
+      if (tokenSymbol === 'HOP') {
+        address = '0x4ab0f372818d9efe2027F1Cc7bC899c539E39073' // faucet contract
+      } else if (tokenSymbol === 'USDC') {
+        address = '0x1C1cb8744633ce0F785C5895389dFA04DE5C1acE' // faucet contract
+      }
+      if (tokenSymbol === 'USDC') {
+        address = '0x1C1cb8744633ce0F785C5895389dFA04DE5C1acE' // faucet contract
+      }
       if (!address) {
         return
       }
@@ -84,6 +104,7 @@ const FaucetContextProvider: FC = ({ children }) => {
         })
       )
       await tx?.wait()
+      setSuccess(`Successfully minted ${mintAmount} ${tokenSymbol}`)
     } catch (err: any) {
       setError(formatError(err, selectedNetwork))
       logger.error(err)
@@ -101,6 +122,8 @@ const FaucetContextProvider: FC = ({ children }) => {
         tokens,
         error,
         setError,
+        success,
+        setSuccess
       }}
     >
       {children}

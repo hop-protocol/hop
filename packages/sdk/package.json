@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/sdk",
-  "version": "0.0.1-beta.427",
+  "version": "0.0.1-beta.469",
   "description": "The Hop Protocol JavaScript SDK",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -26,6 +26,7 @@
     "dist-tag:next": "npm dist-tag add \"@hop-protocol/sdk@$(jq -r .version <package.json)\" next",
     "lerna:sync": "lerna-sync-version",
     "release": "npm run clean && npm test && npm run publish:latest",
+    "bump": "npm run clean && npm run build && npm test && npm run version:bump && npm run lerna:sync",
     "bump-release": "npm run version:bump && npm run lerna:sync && npm run release",
     "prepare": "npm run lint && npm run build && npm run build:browser",
     "docs": "npm run clean:docs && typedoc --plugin typedoc-plugin-markdown --theme markdown --hideGenerator --excludeExternals --excludePrivate --disableSources --hideBreadcrumbs --namedAnchors --out docs src/index.ts",
@@ -37,7 +38,7 @@
   "license": "MIT",
   "dependencies": {
     "@eth-optimism/contracts": "0.5.2",
-    "@hop-protocol/core": "0.0.1-beta.118",
+    "@hop-protocol/core": "0.0.1-beta.139",
     "@maticnetwork/maticjs": "3.4.0-beta.0",
     "dotenv": "8.6.0",
     "ethereum-block-by-date": "^1.4.6",

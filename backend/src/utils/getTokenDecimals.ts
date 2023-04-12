@@ -8,7 +8,8 @@ const tokenDecimals: any = {
   FRAX: 18,
   HOP: 18,
   WBTC: 8,
-  SNX: 18
+  SNX: 18,
+  sUSD: 18
 }
 
 export function getTokenDecimals (tokenSymbol: string) {

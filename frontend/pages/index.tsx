@@ -1023,7 +1023,7 @@ const Index: NextPage = (props: any) => {
                     <MenuItem value="MATIC"><MenuItemIcon src={tokens.MATIC.image} /> MATIC</MenuItem>
                     <MenuItem value="HOP"><MenuItemIcon src={tokens.HOP.image} /> HOP</MenuItem>
                     <MenuItem value="SNX"><MenuItemIcon src={tokens.SNX.image} /> SNX</MenuItem>
-                    <MenuItem value="sUSD"><MenuItemIcon src={tokens.sUSD.image} /> SNX</MenuItem>
+                    <MenuItem value="sUSD"><MenuItemIcon src={tokens.sUSD.image} /> sUSD</MenuItem>
                     {/* <MenuItem value="WBTC"><MenuItemIcon src={tokens.WBTC.image} /> WBTC</MenuItem> */}
                     {/* <MenuItem value="FRAX"><MenuItemIcon src={tokens.FRAX.image} /> FRAX</MenuItem> */}
                   </Select>

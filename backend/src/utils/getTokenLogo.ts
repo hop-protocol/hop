@@ -8,7 +8,8 @@ const tokenLogosMap: any = {
   WBTC: 'https://assets.hop.exchange/logos/wbtc.svg',
   FRAX: 'https://assets.hop.exchange/logos/frax.svg',
   HOP: 'https://assets.hop.exchange/logos/hop.svg',
-  SNX: 'https://assets.hop.exchange/logos/snx.svg'
+  SNX: 'https://assets.hop.exchange/logos/snx.svg',
+  sUSD: 'https://assets.hop.exchange/logos/susd.svg'
 }
 
 export function getTokenLogo (tokenSymbol: string) {

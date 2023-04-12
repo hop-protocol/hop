@@ -75,12 +75,12 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
     res.json({
       amountIn: amount.toString(),
       slippage,
-      amountOutMin: amountOutMin.toString(),
-      destinationAmountOutMin: destinationAmountOutMin.toString(),
-      bonderFee: totalFee.toString(),
-      estimatedRecieved: estimatedReceived.toString(),
-      deadline,
-      destinationDeadline
+      amountOutMin: amountOutMin ? amountOutMin.toString() : null,
+      destinationAmountOutMin: destinationAmountOutMin ? destinationAmountOutMin.toString() : null,
+      bonderFee: totalFee ? totalFee.toString() : null,
+      estimatedRecieved: estimatedReceived ? estimatedReceived.toString() : null,
+      deadline: deadline ? deadline : null,
+      destinationDeadline: destinationDeadline ? destinationDeadline : null
     })
   } catch (err) {
     res.json({ error: err.message })

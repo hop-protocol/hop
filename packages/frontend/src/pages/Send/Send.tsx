@@ -46,6 +46,7 @@ import useAvailableLiquidity from './useAvailableLiquidity'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { ExternalLink } from 'src/components/Link'
 import { FeeRefund } from './FeeRefund'
+import IconButton from '@material-ui/core/IconButton'
 
 const Send: FC = () => {
   const styles = useSendStyles()
@@ -155,6 +156,7 @@ const Send: FC = () => {
     adjustedDestinationTxFee,
     totalFee,
     requiredLiquidity,
+    relayFeeEth,
     loading: loadingSendData,
     estimatedReceived,
     error: sendDataError,
@@ -183,10 +185,20 @@ const Send: FC = () => {
     totalBonderFee,
     totalBonderFeeDisplay,
     totalBonderFeeUsdDisplay,
+    totalFeeDisplay, // bonderFee + messageRelayFee
+    totalFeeUsdDisplay, // bonderFee + messageRelayFee
     estimatedReceivedDisplay,
     estimatedReceivedUsdDisplay,
-    tokenUsdPrice
-  } = useFeeConversions(adjustedDestinationTxFee, adjustedBonderFee, estimatedReceived, destToken)
+    tokenUsdPrice,
+    relayFeeEthDisplay,
+    relayFeeUsdDisplay,
+  } = useFeeConversions({
+    destinationTxFee: adjustedDestinationTxFee,
+    bonderFee: adjustedBonderFee,
+    estimatedReceived,
+    destToken,
+    relayFee: relayFeeEth
+  })
 
   const { estimateSend } = useEstimateTxCost(fromNetwork)
 
@@ -311,11 +323,14 @@ const Send: FC = () => {
       const isHighPriceImpact = priceImpact && priceImpact !== 100 && Math.abs(priceImpact) >= 1
       const showPriceImpactWarning = isHighPriceImpact && !isFavorableSlippage
       const bonderFeeMajority = sourceToken?.decimals && estimatedReceived && totalFee && ((Number(formatUnits(totalFee, sourceToken?.decimals)) / Number(fromTokenAmount)) > 0.5)
+      const insufficientRelayFeeFunds = sourceToken?.symbol === 'ETH' && fromTokenAmountBN?.gt(0) && relayFeeEth?.gt(0) && fromBalance && fromTokenAmountBN.gt(fromBalance.sub(relayFeeEth))
 
       if (sufficientBalanceWarning) {
         message = sufficientBalanceWarning
       } else if (estimatedReceived && adjustedBonderFee?.gt(estimatedReceived)) {
         message = 'Bonder fee greater than estimated received'
+      } else if (insufficientRelayFeeFunds) {
+        message = `Insufficient balance to cover the cost of tx. Please add ${sourceToken.nativeTokenSymbol} to pay for tx fees.`
       } else if (estimatedReceived?.lte(0)) {
         message = 'Estimated received too low. Send a higher amount to cover the fees.'
       } else if (showPriceImpactWarning) {
@@ -337,8 +352,12 @@ const Send: FC = () => {
     estimatedReceived,
     priceImpact,
     fromTokenAmount,
+    fromTokenAmountBN,
     toTokenAmount,
-    totalFee
+    totalFee,
+    toNetwork,
+    relayFeeEth,
+    fromBalance
   ])
 
   useEffect(() => {
@@ -370,24 +389,29 @@ const Send: FC = () => {
 
   const needsApproval = useAsyncMemo(async () => {
     try {
-      if (!(fromNetwork && sourceToken && fromTokenAmount)) {
+      if (!(fromNetwork && toNetwork && sourceToken && fromTokenAmount)) {
         return false
       }
 
       const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
       const bridge = sdk.bridge(sourceToken.symbol)
 
-      const spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
+      const isHTokenTransfer = false
+      const spender: string = bridge.getSendApprovalAddress(fromNetwork.slug, isHTokenTransfer, toNetwork.slug)
       return checkApproval(parsedAmount, sourceToken, spender)
     } catch (err: any) {
       logger.error(err)
       return false
     }
-  }, [sdk, fromNetwork, sourceToken, fromTokenAmount, checkApproval])
+  }, [sdk, fromNetwork, toNetwork, sourceToken, fromTokenAmount, checkApproval])
 
   const approveFromToken = async () => {
     if (!fromNetwork) {
       throw new Error('No fromNetwork selected')
+    }
+
+    if (!toNetwork) {
+      throw new Error('No toNetwork selected')
     }
 
     if (!sourceToken) {
@@ -407,7 +431,8 @@ const Send: FC = () => {
     const parsedAmount = amountToBN(fromTokenAmount, sourceToken.decimals)
     const bridge = sdk.bridge(sourceToken.symbol)
 
-    const spender: string = await bridge.getSendApprovalAddress(fromNetwork.slug)
+    const isHTokenTransfer = false
+    const spender: string = bridge.getSendApprovalAddress(fromNetwork.slug, isHTokenTransfer, toNetwork.slug)
     const tx = await approve(parsedAmount, sourceToken, spender)
 
     await tx?.wait()
@@ -581,16 +606,18 @@ const Send: FC = () => {
   }
 
   useEffect(() => {
-    if (
-      (toNetwork?.slug === ChainSlug.Arbitrum || toNetwork?.slug === ChainSlug.Nova) &&
-      customRecipient &&
-      !address?.eq(customRecipient)
-    ) {
-      return setManualWarning(
+    if (customRecipient) {
+      if (gnosisEnabled && address?.eq(customRecipient)) {
+        setManualWarning(
+          'Warning: make sure gnosis safe exists at the destination chain otherwise it may result in lost funds.'
+        )
+      }
+      setManualWarning(
         'Warning: transfers to exchanges that do not support internal transactions may result in lost funds.'
       )
+    } else {
+      setManualWarning('')
     }
-    setManualWarning('')
   }, [fromNetwork?.slug, toNetwork?.slug, customRecipient, address])
 
   useEffect(() => {
@@ -682,11 +709,14 @@ const Send: FC = () => {
         toNetwork={toNetwork}
         fromNetwork={fromNetwork}
         setWarning={setWarning}
+        maxButtonFixedAmountToSubtract={sourceToken?.symbol === 'ETH' ? relayFeeEth : 0}
       />
 
-      <Flex justifyCenter alignCenter my={1} onClick={handleSwitchDirection} pointer hover>
-        <ArrowDownIcon color="primary" className={styles.downArrow} />
-      </Flex>
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <IconButton onClick={handleSwitchDirection} title="Click to switch direction">
+          <ArrowDownIcon color="primary" className={styles.downArrow} />
+        </IconButton>
+      </Box>
 
       <SendAmountSelectorCard
         value={toTokenAmount}
@@ -734,11 +764,11 @@ const Send: FC = () => {
           <DetailRow
             title={'Fees'}
             tooltip={
-              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} />
+              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} relayFee={relayFeeEthDisplay} relayFeeUsd={relayFeeUsdDisplay} />
             }
             value={<>
-              <InfoTooltip title={totalBonderFeeUsdDisplay}>
-                <Box>{totalBonderFeeDisplay}</Box>
+              <InfoTooltip title={totalFeeUsdDisplay}>
+                <Box>{totalFeeDisplay}</Box>
               </InfoTooltip>
             </>}
             large

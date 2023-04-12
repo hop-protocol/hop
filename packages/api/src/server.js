@@ -13,8 +13,9 @@ if (trustProxy) {
 app.use(cors())
 
 app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
-  const { amount, token, fromChain, toChain, slippage, rpcUrl } = req.query
+  const { amount, token, fromChain, toChain, rpcUrl } = req.query
   let { network } = req.query
+  const slippage = Number(req.query.slippage)
 
   try {
     if (!network) {
@@ -68,15 +69,18 @@ app.get('/v1/quote', responseCache, ipRateLimitMiddleware, async (req, res) => {
 
     const bridge = instance.bridge(token)
     const data = await bridge.getSendData(amount, fromChain, toChain)
-    const { totalFee, amountOut, estimatedReceived } = data
-    const amountOutMin = bridge.calcAmountOutMin(amountOut, slippage)
+    const { totalFee, estimatedReceived } = data
+    const { amountOutMin, destinationAmountOutMin, deadline, destinationDeadline } = bridge.getSendDataAmountOutMins(data, slippage)
 
     res.json({
       amountIn: amount.toString(),
-      slippage: slippage.toString(),
-      amountOutMin: amountOutMin.toString(),
-      bonderFee: totalFee.toString(),
-      estimatedRecieved: estimatedReceived.toString()
+      slippage,
+      amountOutMin: amountOutMin ? amountOutMin.toString() : null,
+      destinationAmountOutMin: destinationAmountOutMin ? destinationAmountOutMin.toString() : null,
+      bonderFee: totalFee ? totalFee.toString() : null,
+      estimatedRecieved: estimatedReceived ? estimatedReceived.toString() : null,
+      deadline: deadline ? deadline : null,
+      destinationDeadline: destinationDeadline ? destinationDeadline : null
     })
   } catch (err) {
     res.json({ error: err.message })

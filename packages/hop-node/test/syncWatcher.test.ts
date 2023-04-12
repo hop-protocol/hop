@@ -16,6 +16,9 @@ const transferRootHashes = [
 ]
 */
 
+// run this test with:
+// npx ts-node test/syncWatcher.test.ts
+
 const transferRootHashes = [
   '0x11b3d88d87621bd7ec731dd1164e2048741203bfe6094c1629fde90e54e04e6f',
   '0x5b9af53450a79166dc2853e632b76bce79efa7686369b79a04af448f1974b2ff',
@@ -89,7 +92,7 @@ const transferRootHashes = [
   '0x2736103e0044fd44cb7be2e077953354231f796c30db89c0ae1ec63d3e21d3ec',
   '0x2c0ec0e39b5f26ad8d5b60dd63ef5c6c25fb7591a46f438f8be1b74d6b5803be',
   '0x25178698c29015c10fab60ee25f170d16f6e0e210f7aaa5bdd9e283e4b4fbe92',
-  '0x469c3b5f431cca093b09b631fcc17aef5d2e3ae068555003daf474bfb8aef7c2',
+  // '0x469c3b5f431cca093b09b631fcc17aef5d2e3ae068555003daf474bfb8aef7c2', // no longer found in db
   '0xb1d65ec4a286253f647960a4ca40441b8765965a58c4942dba7b91f0cfebfc44',
   '0xfb6649d9d9833e5143e3f93d881a9f865aa1714ad38c287bb23c9318c576c757',
   '0xbc530d19b4dd1d805d93ce44d5111107c34933ab3fc1e2a16b353ad30f6d720c',
@@ -190,7 +193,7 @@ const transferRootHashes = [
   '0x7ca9641fa5084ef8e05ef56ba515fb491304e223bb80b1db446e412f9536467d',
   '0x51b5391fbeeb9b2d259d980ca8d95f84bbaeb812ddae049f6c734f78ecc48b1d',
   '0x34955de943517ee2db9687916f203cb9229466cdb3deb72be1cc270139749fe4',
-  '0x66494e3d845e96eac5d488dfefc80496dc17b028e6b1d5d5db95a790958f2144',
+  // '0x66494e3d845e96eac5d488dfefc80496dc17b028e6b1d5d5db95a790958f2144', // no longer found in db
   '0x19567305600277cf55167ca4f3eed3e9a57cbb033a3125ae7d390143e33ccbd6',
   '0x9711144b89ea40ab895b7f196b945161f10859d79a464fc692196ba988ada212',
   '0x19072460ed0a73a2f1c6d66ca2ec4fa2bbadcbb55c181d474b774291af10d86c',
@@ -215,7 +218,7 @@ const transferRootHashes = [
   '0x14661c77547be89f091989fb220d1adb6ccae36ac68f4eac606cab5f89894a44',
   '0x1c955eb13abb79b9f2974833f0ef5bd0693cd5d90fd900d9d915e6fe7c5ec1ff',
   '0xd9ac7b83ebde451ec423bd4a8589e046a599d97b8a6e023e31196a9fcedd4685',
-  '0x8e4fd0d48ddd2405b9219337296304827f69b50d069cfc446ff3b2b9f2c811d1',
+  // '0x8e4fd0d48ddd2405b9219337296304827f69b50d069cfc446ff3b2b9f2c811d1', // no longer found db
   '0xcfdabfe9cd593899b2f60f8f73ad3725c7cc4c5667cf094ea9ecc2ce8a63b6af',
   '0xba0181871c7f246b61b727a2d9895176cf31c493c4cba4e31e8bf7ee2fbd30bf',
   '0x6fe483dfd6b0cfc732932dc5df0a7aa4ebd19c696f8d917bcf4acdf5524df387',
@@ -540,7 +543,7 @@ const transferRootHashes = [
   '0x121e6984efffc3716d1f357f2f358a8a9bca636d542354b59260b739bfaf748d',
   '0x0e668cd2732224e94f341e770109aa7bc75bdf5faec60ccbab8d334d6c950431',
   '0x8d1f771d17de6e5775fe4cd2dd871c1f35c2f9071d1af375b6b729a006a72881',
-  '0x05a35429e004ebf12ca3ce67d8d852352bfa49541fb3f4b5bb57fd3ed13a37d9',
+  // '0x05a35429e004ebf12ca3ce67d8d852352bfa49541fb3f4b5bb57fd3ed13a37d9', // no longer found in db
   '0xdd7241ab683e4a8b9f6e3a5db2b739515db9eff8106beb80bebd20b7981cda6c',
   '0xc790f002b5734632b91f1a8be0b5a79797a8f4a5e7701aef027aaa2d7413c14e',
   '0xc404aa18b1a667686e03672e21d6ba562177ab7cebee22a2d000178a7474e91c',
@@ -646,7 +649,7 @@ const transferRootHashes = [
   '0xc06165491dcb02ae907af308fcad12efb6be5857d5ba8fd6135f25ace2a3fb35',
   '0x28e223d835c418d326a5ad01cc245bdcfee1d17a79f9a4b4725d50359bebc097',
   '0x0ced6d790a4a062cb49d9af1f9e00480e0afd378672980dad03752ec17a6f05b',
-  '0x9be4d3730b0d811797133faa0b2d715a0ec3b3b0e3593907fee7fedb761a7c08',
+  // '0x9be4d3730b0d811797133faa0b2d715a0ec3b3b0e3593907fee7fedb761a7c08', // no longer found in db
   '0xd6e2039083868e779c670147bca7532c15301942db1514c828a889e5f994d490',
   '0x2c47b6d8c6795b3d1d534dd1bdccd031e54ae0acc0f41d56e6fef77eca6727fb',
   '0x8998bcf79d66a151b004e78dde2e028ed0e823cad9c8dce5c8fc82b95b0f6e3b',
@@ -666,7 +669,7 @@ const transferRootHashes = [
   '0xdbfcc43911dc3805619b0295f3bcafacfbd86d37ae1d721748736f27050fc56a',
   '0xf548e307873ab1bd4c1bdfcb2f193149b8bea1fb7d54bf4e7707f8c5dcf6fdd1',
   '0x47005da127b5c300ac7e1b08a1548cb8f9b89ebab784bb33c5f0a10ffaaecb29',
-  '0xee4537f9a98735224555d3679d6d7d244a6ae5da7c6dd1c8bdf7770841e0be2e',
+  // '0xee4537f9a98735224555d3679d6d7d244a6ae5da7c6dd1c8bdf7770841e0be2e', // no longer found in db
   '0xfd6a3f0c07d4162af132bb1c3ec5e2e17e807ecaf12d79a123b0a9d98575b523',
   '0x196dafd4bddbdf0a3838d1e94675669174272413f8a1d6d43972f22068f9fe12',
   '0x46ae1b5385c33888c4ebb7c3c924ea85793eab76a733cc0145e9ff6d68dc1c7a',
@@ -829,7 +832,7 @@ const transferRootHashes = [
   '0xa6623a5f093c10a9f53e2107619029c106cae94a923efed8c56b6ccdfc83e73f',
   '0x0e2168a3e29e878c9b048f70c102e0aa5de921278b74e093edd7a78f2c0fd5d2',
   '0x762e5abd1f29150cc28aadb26a53988c441ffab274ca4777a4b1a8d9bf168b68',
-  '0x0e23f69563fcd99072e7ca613c9f358fb74efac3c26cae376c58853f7ec4bf2a',
+  // '0x0e23f69563fcd99072e7ca613c9f358fb74efac3c26cae376c58853f7ec4bf2a', // no longer found in db
   '0xd7c826073c1d5456b8d4274c86b909a5b997a694407ca9397a8486d19ee278fb',
   '0x649ddd2c99ae35dc1ada1978432d3d2b79eac08094676f3ab4838bbba55877a6',
   '0x24f117b87f835e6ffe65a5d0a290a56416c580a1350025a71a507edeb3f0a0ce',
@@ -859,7 +862,7 @@ const transferRootHashes = [
   '0x6721909612fccb2c84a51c243be8f99c803db90d72b3857077bc3c0ab96d0cef',
   '0x1c41d235b2badf74287126b286cd9e4e633f8e000c572e27909c7aae6c79c472',
   '0xfc183ed5a6d30940e4d1831a825fc2f5485c9a892b214152b99f0c0f5a12d6dc',
-  '0x275bf2c8c35f345e37698758a375fe17779e8887a8cc8c82933c140966ab75b7',
+  // '0x275bf2c8c35f345e37698758a375fe17779e8887a8cc8c82933c140966ab75b7', // no longer found in db
   '0xb1fcff2b8455327aa86b52515ce9aa9e9c762234a23f8b6006e4b751d05bddea',
   '0xdd5563f8cc5434f88b9d6d0505c61ba7ca94edba13dbc120cc9af61544e4c944',
   '0x71d99855ccfe39f577f4ba4d546059d892edac46e0e80bb6fbf47798550c9e27',
@@ -1057,7 +1060,7 @@ async function main () {
       }
       const { sourceChainId, destinationChainId, commitTxBlockNumber } = dbItem
       if (!(sourceChainId && destinationChainId && commitTxBlockNumber)) {
-        throw new Error('expected values')
+        throw new Error(`db item not found: expected values for root ${transferRootHash}`)
       }
       const sourceBridge = watcher.getSiblingWatcherByChainId(sourceChainId)
         .bridge
@@ -1076,7 +1079,7 @@ async function main () {
     }
   }, { concurrency: 20 })
 
-  console.log('done checking all')
+  console.log('done checking all. All passed.')
 }
 
 main().catch(console.error).finally(() => process.exit(0))

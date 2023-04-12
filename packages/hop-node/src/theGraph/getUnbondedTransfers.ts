@@ -28,7 +28,9 @@ async function getTransfersData (startTime: number, endTime: number) {
     arbitrumTransfers,
     novaTransfers,
     zksyncTransfers,
-    consensysZkTransfers
+    lineaTransfers,
+    scrollZkTransfers,
+    baseTransfers
   ] = await Promise.all([
     enabledChains.includes(Chain.Ethereum) ? fetchTransfers(Chain.Ethereum, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Gnosis) ? fetchTransfers(Chain.Gnosis, startTime, endTime) : Promise.resolve([]),
@@ -37,7 +39,9 @@ async function getTransfersData (startTime: number, endTime: number) {
     enabledChains.includes(Chain.Arbitrum) ? fetchTransfers(Chain.Arbitrum, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.Nova) ? fetchTransfers(Chain.Nova, startTime, endTime) : Promise.resolve([]),
     enabledChains.includes(Chain.ZkSync) ? fetchTransfers(Chain.ZkSync, startTime, endTime) : Promise.resolve([]),
-    enabledChains.includes(Chain.ConsenSysZk) ? fetchTransfers(Chain.ConsenSysZk, startTime, endTime) : Promise.resolve([])
+    enabledChains.includes(Chain.Linea) ? fetchTransfers(Chain.Linea, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.ScrollZk) ? fetchTransfers(Chain.ScrollZk, startTime, endTime) : Promise.resolve([]),
+    enabledChains.includes(Chain.Base) ? fetchTransfers(Chain.Base, startTime, endTime) : Promise.resolve([])
   ])
 
   console.log('getTransfersData: got transfers', gnosisTransfers.length, polygonTransfers.length, optimismTransfers.length, arbitrumTransfers.length, novaTransfers.length, mainnetTransfers.length)
@@ -147,7 +151,37 @@ async function getTransfersData (startTime: number, endTime: number) {
       token: x.token
     })
   }
-  for (const x of consensysZkTransfers) {
+  for (const x of lineaTransfers) {
+    data.push({
+      sourceChain: -1, // TODO
+      destinationChain: x.destinationChainId,
+      amount: x.amount,
+      amountOutMin: x.amountOutMin,
+      bonderFee: x.bonderFee,
+      recipient: x.recipient,
+      deadline: x.deadline,
+      transferId: x.transferId,
+      transactionHash: x.transactionHash,
+      timestamp: Number(x.timestamp),
+      token: x.token
+    })
+  }
+  for (const x of scrollZkTransfers) {
+    data.push({
+      sourceChain: -1, // TODO
+      destinationChain: x.destinationChainId,
+      amount: x.amount,
+      amountOutMin: x.amountOutMin,
+      bonderFee: x.bonderFee,
+      recipient: x.recipient,
+      deadline: x.deadline,
+      transferId: x.transferId,
+      transactionHash: x.transactionHash,
+      timestamp: Number(x.timestamp),
+      token: x.token
+    })
+  }
+  for (const x of baseTransfers) {
     data.push({
       sourceChain: -1, // TODO
       destinationChain: x.destinationChainId,

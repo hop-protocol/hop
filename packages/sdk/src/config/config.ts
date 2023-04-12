@@ -57,8 +57,7 @@ const config = {
 
 export { metadata, config }
 
-export const bondableChains = ['optimism', 'arbitrum', 'nova', 'zksync', 'consensyszk']
-export const relayableChains = ['arbitrum', 'nova']
+export const bondableChains = ['optimism', 'arbitrum', 'nova', 'zksync', 'linea', 'scrollzk', 'base']
 
 export const rateLimitMaxRetries = 3
 export const rpcTimeoutSeconds = 60
@@ -80,3 +79,5 @@ export const etherscanApiUrls: Record<string, string> = {
   gnosis: 'https://api.gnosisscan.io',
   nova: 'https://api-nova.arbiscan.io'
 }
+
+export const defaultRelayerFeeEth: string = '0.01'

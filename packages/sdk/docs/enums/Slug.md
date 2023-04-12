@@ -5,20 +5,37 @@
 ### Enumeration Members
 
 - [arbitrum](Slug.md#arbitrum)
+- [base](Slug.md#base)
+- [consensyszk](Slug.md#consensyszk)
 - [ethereum](Slug.md#ethereum)
 - [gnosis](Slug.md#gnosis)
 - [goerli](Slug.md#goerli)
 - [kovan](Slug.md#kovan)
 - [mainnet](Slug.md#mainnet)
+- [nova](Slug.md#nova)
 - [optimism](Slug.md#optimism)
 - [polygon](Slug.md#polygon)
+- [scrollzk](Slug.md#scrollzk)
 - [staging](Slug.md#staging)
+- [zksync](Slug.md#zksync)
 
 ## Enumeration Members
 
 ### <a id="arbitrum" name="arbitrum"></a> arbitrum
 
 • **arbitrum** = ``"arbitrum"``
+
+___
+
+### <a id="base" name="base"></a> base
+
+• **base** = ``"base"``
+
+___
+
+### <a id="consensyszk" name="consensyszk"></a> consensyszk
+
+• **consensyszk** = ``"consensyszk"``
 
 ___
 
@@ -52,6 +69,12 @@ ___
 
 ___
 
+### <a id="nova" name="nova"></a> nova
+
+• **nova** = ``"nova"``
+
+___
+
 ### <a id="optimism" name="optimism"></a> optimism
 
 • **optimism** = ``"optimism"``
@@ -64,6 +87,18 @@ ___
 
 ___
 
+### <a id="scrollzk" name="scrollzk"></a> scrollzk
+
+• **scrollzk** = ``"scrollzk"``
+
+___
+
 ### <a id="staging" name="staging"></a> staging
 
 • **staging** = ``"staging"``
+
+___
+
+### <a id="zksync" name="zksync"></a> zksync
+
+• **zksync** = ``"zksync"``

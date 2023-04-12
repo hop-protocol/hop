@@ -1,7 +1,7 @@
 import BaseWatcher from './classes/BaseWatcher'
 import Logger from 'src/logger'
-import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 
 type Config = {
   chainSlug: string
@@ -10,7 +10,7 @@ type Config = {
   dryMode?: boolean
 }
 
-class ConsenSysZkBridgeWatcher extends BaseWatcher {
+class LineaBridgeWatcher extends BaseWatcher {
   constructor (config: Config) {
     super({
       chainSlug: config.chainSlug,
@@ -31,4 +31,4 @@ class ConsenSysZkBridgeWatcher extends BaseWatcher {
   }
 }
 
-export default ConsenSysZkBridgeWatcher
+export default LineaBridgeWatcher

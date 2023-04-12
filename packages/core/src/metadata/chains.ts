@@ -1,12 +1,14 @@
 import { Chains } from './types'
 import {
   arbitrumImage,
-  consensyszkImage,
+  baseImage,
   ethereumImage,
   gnosisImage,
+  lineaImage,
   novaImage,
   optimismImage,
   polygonImage,
+  scrollzkImage,
   zksyncImage
 } from './assets'
 
@@ -60,10 +62,24 @@ export const chains: Chains = {
     nativeTokenSymbol: 'ETH',
     isLayer1: false
   },
-  consensyszk: {
-    name: 'ConsenSys zkEVM',
-    slug: 'consensyszk',
-    image: consensyszkImage,
+  linea: {
+    name: 'Linea',
+    slug: 'linea',
+    image: lineaImage,
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
+  },
+  scrollzk: {
+    name: 'Scroll zkEVM',
+    slug: 'scrollzk',
+    image: scrollzkImage,
+    nativeTokenSymbol: 'ETH',
+    isLayer1: false
+  },
+  base: {
+    name: 'Base',
+    slug: 'base',
+    image: baseImage,
     nativeTokenSymbol: 'ETH',
     isLayer1: false
   }

@@ -11,7 +11,7 @@ import { BigNumber } from 'ethers'
 import { Chain, GasCostTransactionType, OneWeekMs, RelayableChains } from 'src/constants'
 import { DateTime } from 'luxon'
 import {
-  L1Bridge as L1BridgeContract,
+  L1_Bridge as L1BridgeContract,
   MultipleWithdrawalsSettledEvent,
   TransferBondChallengedEvent,
   TransferRootBondedEvent,
@@ -21,12 +21,12 @@ import {
   WithdrawalBondSettledEvent,
   WithdrawalBondedEvent,
   WithdrewEvent
-} from '@hop-protocol/core/contracts/L1Bridge'
+} from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import {
-  L2Bridge as L2BridgeContract,
+  L2_Bridge as L2BridgeContract,
   TransferSentEvent,
   TransfersCommittedEvent
-} from '@hop-protocol/core/contracts/L2Bridge'
+} from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { RelayerFee } from '@hop-protocol/sdk'
 import { Transfer } from 'src/db/TransfersDb'
 import { TransferRoot } from 'src/db/TransferRootsDb'
@@ -1183,7 +1183,7 @@ class SyncWatcher extends BaseWatcher {
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
 
     logger.debug('startBlockNumber:', startBlockNumber)
-    logger.debug('endBlockNumber:', startBlockNumber)
+    logger.debug('endBlockNumber:', endBlockNumber)
 
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
@@ -1542,8 +1542,8 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (RelayableChains.includes(this.chainSlug)) {
-          const relayerFee = new RelayerFee(globalConfig.network, this.tokenSymbol)
-          const gasCost = await relayerFee.getRelayCost(this.chainSlug)
+          const relayerFee = new RelayerFee()
+          const gasCost = await relayerFee.getRelayCost(globalConfig.network, this.chainSlug, this.tokenSymbol)
           logger.debug('pollGasCost got relayGasCost')
           estimates.push({ gasLimit: gasCost, transactionType: GasCostTransactionType.Relay })
         }

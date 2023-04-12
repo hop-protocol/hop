@@ -1,6 +1,6 @@
-import fetch from 'isomorphic-fetch'
 import serializeQueryParams from '../utils/serializeQueryParams'
 import wait from '../utils/wait'
+import { fetchJsonOrThrow } from '../utils/fetchJsonOrThrow'
 
 interface IResult {
   id: string
@@ -10,7 +10,7 @@ interface IResult {
   priceUsd: number
 }
 
-class CoinGecko {
+export class CoinGecko {
   apiKey: string
   private _baseUrl: string = 'https://api.coingecko.com/api/v3'
   private _maxPerPage: number = 100
@@ -21,16 +21,16 @@ class CoinGecko {
     DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     ETH: '0x0000000000000000000000000000000000000000',
     GNO: '0x6810e776880C02933D47DB1b9fc05908e5386b96',
+    HOP: '0xc5102fE9359FD9a28f877a67E36B0F050d81a3CC',
     MATIC: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0',
+    RETH: '0xae78736cd615f374d3085123a210448e74fc6393',
+    SNX: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
+    SUSD: '0x57Ab1ec28D129707052df4dF418D58a2D46d5f51',
     TUSD: '0x0000000000085d4780B73119b644AE5ecd22b376',
     USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     WBTC: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-    WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-    HOP: '0xc5102fE9359FD9a28f877a67E36B0F050d81a3CC',
-    SNX: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
-    SUSD: '0x57Ab1ec28D129707052df4dF418D58a2D46d5f51',
-    RETH: '0xae78736cd615f374d3085123a210448e74fc6393'
+    WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
   }
 
   constructor (apiKey?: string) {
@@ -54,6 +54,12 @@ class CoinGecko {
     }
     if (['WXDAI', 'XDAI'].includes(symbol)) {
       symbol = 'DAI'
+    }
+    if (symbol === 'WMATIC') {
+      symbol = 'MATIC'
+    }
+    if (symbol === 'BTC') {
+      symbol = 'WBTC'
     }
     const prices = await this.getPricesByTokenSymbol([symbol], base)
     return prices[0]
@@ -97,8 +103,7 @@ class CoinGecko {
       })
 
       const url = `${this._baseUrl}/simple/token_price/ethereum?${params}`
-      const res = await fetch(url)
-      const json = await res.json()
+      const json = await fetchJsonOrThrow(url)
       const prices: number[] = []
 
       for (let i = 0; i < addresses.length; i++) {

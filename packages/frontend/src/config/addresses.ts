@@ -87,10 +87,12 @@ const stakingRewardsContracts = {
     },
     optimism: {
       SNX: '0x09992Dd7B32f7b35D347DE9Bdaf1919a57d38E82', // OP rewards
+      sUSD: '0x25fb92e505f752f730cad0bd4fa17ece4a384266', // OP rewards
     }
   }
 }
 
+// keep addresses lowercased since they are keys
 export const stakingRewardTokens = {
   mainnet: {
     polygon: {
@@ -107,7 +109,8 @@ export const stakingRewardTokens = {
       '0x2c2ab81cf235e86374468b387e241df22459a265': 'GNO',
     },
     optimism: {
-      '0x09992dd7b32f7b35d347de9bdaf1919a57d38e82': 'OP'
+      '0x09992dd7b32f7b35d347de9bdaf1919a57d38e82': 'OP',
+      '0x25fb92e505f752f730cad0bd4fa17ece4a384266': 'OP'
     }
   }
 }
@@ -119,6 +122,7 @@ const rewardTokenAddresses = {
   }
 }
 
+// keep addresses lowercased since they are keys
 const hopStakingRewardsContracts = {
   mainnet: {
     polygon: {
@@ -145,6 +149,7 @@ const hopStakingRewardsContracts = {
       DAI: '0x392B9780cFD362bD6951edFA9eBc31e68748b190',
       USDT: '0xAeB1b49921E0D2D96FcDBe0D486190B2907B3e0B',
       SNX: '0x25a5A48C35e75BD2EFf53D94f0BB60d5A00E36ea',
+      sUSD: '0x2935008ee9943f859c4fbb863c5402ffc06f462e',
     }
   },
   goerli: {

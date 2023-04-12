@@ -51,9 +51,8 @@ const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
-export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova])
-export const wrapperConfirmationChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Polygon, Chain.Nova])
-export const rateLimitMaxRetries = 5
+export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base])
+export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
@@ -66,6 +65,7 @@ export const shouldExitOrus = process.env.SHOULD_EXIT_ORUS ?? false
 export const modifiedLiquidityTokens = process.env.MODIFIED_LIQUIDITY_TOKENS?.split(',') ?? []
 export const modifiedLiquiditySourceChains = process.env.MODIFIED_LIQUIDITY_SOURCE_CHAINS?.split(',') ?? []
 export const modifiedLiquidityDestChains = process.env.MODIFIED_LIQUIDITY_DEST_CHAINS?.split(',') ?? []
+export const modifiedLiquidityDecrease = process.env.MODIFIED_LIQUIDITY_DECREASE ?? '0'
 
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
@@ -86,9 +86,6 @@ export const etherscanApiUrls: Record<string, string> = {
   [Chain.Gnosis]: 'https://api.gnosisscan.io',
   [Chain.Nova]: 'https://api-nova.arbiscan.io'
 }
-
-// TODO: Remove this when the exit system is fully live
-export const IsExitSystemLive = process.env.IS_EXIT_SYSTEM_LIVE ?? false
 
 type SyncConfig = {
   totalBlocks?: number
@@ -225,7 +222,15 @@ export const config: Config = {
       totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
     },
-    [Chain.ConsenSysZk]: {
+    [Chain.Linea]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.ScrollZk]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.Base]: {
       totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
     }
@@ -296,6 +301,9 @@ export const getNetworkMaxGasPrice = (network: string) => {
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
   const networks = Object.keys(config.networks)
   for (const network of networks) {
+    if (!syncConfigs[network]) {
+      continue
+    }
     if (!config.sync[network]) {
       config.sync = config.sync ?? {}
       config.sync[network] = {}

@@ -34,6 +34,26 @@ async function _makeRequest (
     url = `${url}-${chain}`
   }
 
+  if (chain === 'linea') {
+    // TODO: read from config
+    const isGoerli = true
+    if (isGoerli) {
+      url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
+    } else {
+      throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
+    }
+  }
+
+  if (chain === 'base') {
+    // TODO: read from config
+    const isGoerli = true
+    if (isGoerli) {
+      url = 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
+    } else {
+      throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
+    }
+  }
+
   const res = await fetch(url, {
     method: 'POST',
     headers: {

@@ -5,6 +5,7 @@
 ### Namespaces
 
 - [eventTopics](modules/eventTopics.md)
+- [utils](modules/utils.md)
 
 ### Enumerations
 

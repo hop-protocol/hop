@@ -402,9 +402,6 @@ class YieldStats {
           const stakingRewardsData =
             stakingRewardData[stakingRewardsContractAddress]
           if (stakingRewardsData.isOptimalStakingContract) {
-            if (stakingRewardsData.rewardToken === 'HOP') {
-              console.log('here0', token, chain, yieldData.pools[token][chain])
-            }
             yieldData.optimalYield[token][chain] = {
               apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
               apy: yieldData.pools[token][chain].apy + stakingRewardsData.apy,

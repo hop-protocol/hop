@@ -3,10 +3,15 @@ import { metadata, addresses } from 'src/config'
 import { normalizeTokenSymbol } from 'src/utils/normalizeTokenSymbol'
 
 export function getTokenImage(tokenSymbol: string = 'ETH') {
+  if (!tokenSymbol) {
+    console.error('expected tokenSymbol')
+    return ''
+  }
   tokenSymbol = normalizeTokenSymbol(tokenSymbol)
   const token = metadata.tokens[tokenSymbol]
   if (!token) {
     console.error(`could not find token: ${tokenSymbol}`)
+    console.error(tokenSymbol, metadata.tokens)
     return ''
   }
   return token.image

@@ -6,7 +6,7 @@ import { Chain } from 'src/constants'
 import { IL1ToL2MessageWriter, L1ToL2MessageStatus, L1TransactionReceipt, L2TransactionReceipt } from '@arbitrum/sdk'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Wallet, providers } from 'ethers'
+import { Signer, providers } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -17,8 +17,8 @@ type Config = {
 
 // Arbitrum applies to both Arbitrum one and to Nova
 class ArbitrumBridgeWatcher extends BaseWatcher {
-  l1Wallet: Wallet
-  l2Wallet: Wallet
+  l1Wallet: Signer
+  l2Wallet: Signer
   defaultL2Provider: providers.Provider
   ready: boolean
 
@@ -41,7 +41,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
   async relayXDomainMessage (
     txHash: string
   ): Promise<providers.TransactionResponse> {
-    const txReceipt = await this.l2Wallet.provider.getTransactionReceipt(txHash)
+    const txReceipt = await this.l2Wallet.provider!.getTransactionReceipt(txHash)
     const initiatingTxnReceipt = new L2TransactionReceipt(
       txReceipt
     )
@@ -52,7 +52,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
       )
     }
 
-    const outGoingMessagesFromTxn = await initiatingTxnReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider)
+    const outGoingMessagesFromTxn = await initiatingTxnReceipt.getL2ToL1Messages(this.l1Wallet, this.l2Wallet.provider!)
     if (outGoingMessagesFromTxn.length === 0) {
       throw new Error(`tx hash ${txHash} did not initiate an outgoing messages`)
     }
@@ -106,7 +106,7 @@ class ArbitrumBridgeWatcher extends BaseWatcher {
 
   async getL1ToL2Messages (l1TxHash: string, useDefaultProvider: boolean = false): Promise<IL1ToL2MessageWriter[]> {
     const l2Wallet = useDefaultProvider ? this.l2Wallet.connect(this.defaultL2Provider) : this.l2Wallet
-    const txReceipt = await this.l1Wallet.provider.getTransactionReceipt(l1TxHash)
+    const txReceipt = await this.l1Wallet.provider!.getTransactionReceipt(l1TxHash)
     const l1TxnReceipt = new L1TransactionReceipt(txReceipt)
     return l1TxnReceipt.getL1ToL2Messages(l2Wallet)
   }

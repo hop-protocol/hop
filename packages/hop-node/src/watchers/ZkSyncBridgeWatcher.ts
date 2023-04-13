@@ -3,7 +3,8 @@ import Logger from 'src/logger'
 import l1BridgeAbi from '@hop-protocol/core/abi/generated/L1_Bridge.json'
 import wallets from 'src/wallets'
 import { Chain } from 'src/constants'
-import { Contract, ethers, providers } from 'ethers'
+import { Contract, Signer, providers } from 'ethers'
+import { Interface, keccak256 } from 'ethers/lib/utils'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Provider, utils } from 'zksync-web3'
@@ -70,7 +71,7 @@ type Config = {
 class ZkSyncBridgeWatcher extends BaseWatcher {
   zkSyncProvider: Provider
   zkSyncMessageWrapper: Contract
-  l1Wallet: any
+  l1Wallet: Signer
   l1Provider: any
 
   constructor (config: Config) {
@@ -119,7 +120,7 @@ class ZkSyncBridgeWatcher extends BaseWatcher {
     const index = proofInfo.id
     const proof = proofInfo.proof
 
-    const mailboxL1Contract = new ethers.Contract(zkAddress, utils.ZKSYNC_MAIN_ABI, this.l1Provider)
+    const mailboxL1Contract = new Contract(zkAddress, utils.ZKSYNC_MAIN_ABI, this.l1Provider)
 
     // all the information of the message sent from L2
     const messageInfo = {
@@ -171,7 +172,7 @@ class ZkSyncBridgeWatcher extends BaseWatcher {
   }
 
   private async getEncodedMessage (transferRootId: string) {
-    const iface = new ethers.utils.Interface(l1BridgeAbi)
+    const iface = new Interface(l1BridgeAbi)
 
     const {
       chainId,
@@ -190,7 +191,7 @@ class ZkSyncBridgeWatcher extends BaseWatcher {
     ]
 
     const message = iface.encodeFunctionData('confirmTransferRoot', args)
-    const messageHash = ethers.utils.keccak256(message)
+    const messageHash = keccak256(message)
 
     return {
       message,

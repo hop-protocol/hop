@@ -1125,6 +1125,6 @@ export class HealthCheckWatcher {
       })
     }
 
-    return invalidChainBalance
+    return []
   }
 }

@@ -153,12 +153,18 @@ export async function main (source: any) {
     totalAdjustedHToken = totalAdjustedHToken.add(adjustedHTokens[chain])
   }
 
-  if (logOutput) {
-    logValues(token, tokenAdjustments, chainBalanceAdjustments, hTokenAdjustments)
-  }
 
   const tokenChainBalanceDiff = adjustedToken.sub(totalAdjustedChainBalance)
   const chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
+
+  // Log data if explicitly requested or if there is a discrepancy
+  const isOutputExpected = tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)
+  if (!isOutputExpected || logOutput) {
+    if (!isOutputExpected) {
+      console.log(`Unexpected output for token ${token}`)
+    }
+    logValues(token, tokenAdjustments, chainBalanceAdjustments, hTokenAdjustments)
+  }
   return {
     tokenChainBalanceDiff,
     chainBalanceHTokenDiff

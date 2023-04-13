@@ -1,9 +1,11 @@
 import ContractBase from './ContractBase'
 import getTokenMetadata from 'src/utils/getTokenMetadata'
 import isL1ChainId from 'src/utils/isL1ChainId'
+import isNativeToken from 'src/utils/isNativeToken'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { Hop } from '@hop-protocol/sdk'
+import { PayableOverrides } from '@ethersproject/contracts'
 import { formatUnits } from 'ethers/lib/utils'
 import { config as globalConfig } from 'src/config'
 
@@ -47,7 +49,7 @@ export default class L2AmmWrapper extends ContractBase {
     const minBps = Math.ceil(10000 - slippageToleranceBps)
     const amountOutMin = amountOut.mul(minBps).div(10000)
     let destinationAmountOutMin = amountOutMin
-    const isNativeToken = token === 'MATIC' && this.chainSlug === Chain.Polygon
+    const isNativeTokenSend = isNativeToken(this.chainSlug, token)
     const tokenDecimals = getTokenMetadata(token)?.decimals
     if (destinationChain === Chain.Ethereum) {
       destinationDeadline = 0
@@ -56,6 +58,11 @@ export default class L2AmmWrapper extends ContractBase {
 
     if (totalFee.gt(amount)) {
       throw new Error(`amount must be greater than bonder fee. Estimated bonder fee is ${formatUnits(totalFee, tokenDecimals)}`)
+    }
+
+    const overrides: PayableOverrides = {
+      ...(await this.txOverrides()),
+      value: isNativeTokenSend ? amount : undefined
     }
 
     return this.contract.swapAndSend(
@@ -67,10 +74,7 @@ export default class L2AmmWrapper extends ContractBase {
       deadline,
       destinationAmountOutMin,
       destinationDeadline,
-      {
-        ...(await this.txOverrides()),
-        value: isNativeToken ? amount : undefined
-      }
+      overrides
     )
   }
 }

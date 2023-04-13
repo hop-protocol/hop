@@ -4,10 +4,19 @@ import L2Bridge from './classes/L2Bridge'
 import S3Upload from 'src/aws/s3Upload'
 import { BigNumber } from 'ethers'
 import { Chain, TenMinutesMs } from 'src/constants'
-import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { getConfigBonderForRoute, config as globalConfig, oruChains } from 'src/config'
+import {
+  getConfigBonderForRoute,
+  getEnabledNetworks,
+  config as globalConfig,
+  modifiedLiquidityDecrease,
+  modifiedLiquidityDestChains,
+  modifiedLiquiditySourceChains,
+  modifiedLiquidityTokens,
+  oruChains
+} from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -58,6 +67,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
         key: `${config.s3Namespace ?? globalConfig.network}/v1-available-liquidity.json`
       })
     }
+
+    this.logModifications()
+    this.logger.debug('syncing bonder credit')
   }
 
   async syncBonderCredit () {
@@ -86,10 +98,10 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       throw new Error(`no destination watcher for ${destinationChain}`)
     }
     const destinationBridge = destinationWatcher.bridge
-    const baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
+    let baseAvailableCredit = await destinationBridge.getBaseAvailableCredit(bonder)
     const vaultBalance = await destinationWatcher.getOnchainVaultBalance(bonder)
-    this.logger.debug(`vault balance ${destinationChain} ${vaultBalance.toString()}`)
-    const baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
+    this.logger.debug(`on-chain vault balance; bonder: ${bonder}, chain: ${destinationChain}, balance: ${vaultBalance.toString()}`)
+    let baseAvailableCreditIncludingVault = baseAvailableCredit.add(vaultBalance)
     let availableCredit = baseAvailableCreditIncludingVault
     const isToL1 = destinationChain === Chain.Ethereum
     if (isToL1) {
@@ -98,6 +110,31 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
       const unbondedTransferRootAmounts = await this.getOruToAllUnbondedTransferRootAmounts()
       availableCredit = availableCredit.sub(unbondedTransferRootAmounts)
+    }
+
+    if (
+      modifiedLiquidityTokens.includes(this.tokenSymbol) &&
+      modifiedLiquiditySourceChains.includes(this.chainSlug) &&
+      modifiedLiquidityDestChains.includes(destinationChain)
+    ) {
+      this.logger.debug(`modifiedLiquidity: currentAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: currentBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: currentAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
+
+      if (modifiedLiquidityDecrease !== '0') {
+        const decreaseAmount = this.bridge.parseUnits(modifiedLiquidityDecrease)
+        availableCredit = availableCredit.sub(decreaseAmount)
+        baseAvailableCredit = baseAvailableCredit.sub(decreaseAmount)
+        baseAvailableCreditIncludingVault = baseAvailableCreditIncludingVault.sub(decreaseAmount)
+      } else {
+        availableCredit = BigNumber.from('0')
+        baseAvailableCredit = BigNumber.from('0')
+        baseAvailableCreditIncludingVault = BigNumber.from('0')
+      }
+
+      this.logger.debug(`modifiedLiquidity: updatedAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: updatedBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: updatedAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
     }
 
     if (availableCredit.lt(0)) {
@@ -155,7 +192,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
   async getBonderAddress (destinationChain: string): Promise<string> {
     const routeBonder = getConfigBonderForRoute(this.tokenSymbol, this.chainSlug, destinationChain)
-    return routeBonder || await this.bridge.getBonderAddress()
+    return (routeBonder || await this.bridge.getBonderAddress())?.toLowerCase()
   }
 
   private async updatePendingAmountsMap (destinationChainId: number) {
@@ -242,7 +279,11 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
   async getOruToL1PendingAmount () {
     let pendingAmounts = BigNumber.from(0)
+    const enabledNetworks = getEnabledNetworks()
     for (const chain of oruChains) {
+      if (!enabledNetworks.includes(chain)) {
+        continue
+      }
       const watcher = this.getSiblingWatcherByChainSlug(chain)
       if (!watcher) {
         continue
@@ -332,6 +373,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
   }
 
   async getOnchainVaultBalance (bonder?: string) {
+    this.logger.debug(`getOnchainVaultBalance, bonder: ${bonder}, vault: ${!!this.vault}`)
     if (!this.vault) {
       return BigNumber.from(0)
     }
@@ -377,6 +419,20 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       s3LastUpload = Date.now()
       await this.s3Upload.upload(s3JsonData)
       this.logger.debug(`s3 uploaded data: ${JSON.stringify(s3JsonData)}`)
+    }
+  }
+
+  private logModifications (): void {
+    if (
+      modifiedLiquidityDestChains.length > 0 ||
+      modifiedLiquiditySourceChains.length > 0 ||
+      modifiedLiquidityTokens.length > 0 ||
+      modifiedLiquidityDecrease !== '0'
+    ) {
+      this.logger.debug('modifiedLiquidityDestChains', modifiedLiquidityDestChains)
+      this.logger.debug('modifiedLiquiditySourceChains', modifiedLiquiditySourceChains)
+      this.logger.debug('modifiedLiquidityTokens', modifiedLiquidityTokens)
+      this.logger.debug('modifiedLiquidityDecrease', modifiedLiquidityDecrease)
     }
   }
 }

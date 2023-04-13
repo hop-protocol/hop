@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
-import { BigNumber, constants, Signer } from 'ethers'
-import { getAddress } from 'ethers/lib/utils'
+import { BigNumber, Signer } from 'ethers'
+import { getAddress, parseEther } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
@@ -10,6 +10,7 @@ import { amountToBN, formatError } from 'src/utils/format'
 import { Hop, HopBridge } from '@hop-protocol/sdk'
 import { useTransactionReplacement } from 'src/hooks'
 import EventEmitter from 'eventemitter3'
+import { reactAppNetwork } from 'src/config'
 
 export type TransactionHandled = {
   transaction: any
@@ -17,11 +18,11 @@ export type TransactionHandled = {
 }
 
 function handleTransaction(
-  tx,
-  fromNetwork,
-  toNetwork,
-  sourceToken,
-  addTransaction
+  tx: any,
+  fromNetwork: any,
+  toNetwork: any,
+  sourceToken: any,
+  addTransaction: any
 ): TransactionHandled {
   const txModel = createTransaction(tx, fromNetwork, toNetwork, sourceToken)
   addTransaction(txModel)
@@ -32,7 +33,7 @@ function handleTransaction(
   }
 }
 
-export function useSendTransaction(props) {
+export function useSendTransaction (props: any) {
   const {
     amountOutMin,
     customRecipient,
@@ -50,6 +51,7 @@ export function useSendTransaction(props) {
   } = props
   const [tx, setTx] = useState<Transaction>()
   const [sending, setSending] = useState<boolean>(false)
+  const [isGnosisSafeWallet, setIsGnosisSafeWallet] = useState<boolean>(false)
   const { provider, address, checkConnectedNetworkId, walletName } = useWeb3Context()
   const [recipient, setRecipient] = useState<string>()
   const [signer, setSigner] = useState<Signer>()
@@ -99,7 +101,9 @@ export function useSendTransaction(props) {
 
       const networkId = Number(fromNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       try {
         if (customRecipient) {
@@ -142,7 +146,7 @@ export function useSendTransaction(props) {
       )
 
       if (watcher instanceof EventEmitter) {
-        watcher.once(sdk.Event.DestinationTxReceipt, async data => {
+        watcher.once(sdk.Event.DestinationTxReceipt, async (data: any) => {
           logger.debug(`dest tx receipt event data:`, data)
           if (txModel && !txModel.destTxHash) {
             const opts = {
@@ -175,7 +179,7 @@ export function useSendTransaction(props) {
           fromNetwork.slug,
           toNetwork.slug
         )
-        replacementWatcher.once(sdk.Event.DestinationTxReceipt, async data => {
+        replacementWatcher.once(sdk.Event.DestinationTxReceipt, async (data: any) => {
           logger.debug(`replacement dest tx receipt event data:`, data)
           if (txModelReplacement && !txModelReplacement.destTxHash) {
             const opts = {
@@ -197,10 +201,17 @@ export function useSendTransaction(props) {
   }
 
   const sendl1ToL2 = async () => {
+    if (sourceToken.symbol === sdk.Token.ETH && fromNetwork.isL1 && toNetwork.slug === sdk.Chain.Linea.slug) {
+      if (parsedAmount.gt(parseEther('10'))) {
+        throw new Error('Deposits into Linea are limited to 10 ETH maximum. Please send 10 ETH or less.')
+      }
+    }
+
     const tx: any = await txConfirm?.show({
       kind: 'send',
       inputProps: {
         customRecipient,
+        isGnosisSafeWallet,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -216,14 +227,30 @@ export function useSendTransaction(props) {
 
         const networkId = Number(fromNetwork.networkId)
         const isNetworkConnected = await checkConnectedNetworkId(networkId)
-        if (!isNetworkConnected) return
+        if (!isNetworkConnected) {
+          throw new Error('wrong network connected')
+        }
+
+        const relayerFeeWithId = getBonderFeeWithId(totalFee)
+
+        /*
+        // This is only temporary until bridge wrapper is setup
+        const shouldSendEthToWrapper = reactAppNetwork === 'goerli' && bridge.network === 'goerli' && toNetwork?.slug === sdk.Chain.Linea.slug
+        if (shouldSendEthToWrapper) {
+          console.log('sending eth to wrapper to pay for fee')
+
+          const l1MessengerWrapper = await bridge.getMessengerWrapperAddress(toNetwork?.slug)
+          const fee = parseEther('0.01') // TODO: read from chain
+          const tx = await bridge.sendTransaction({ to: l1MessengerWrapper, value: fee }, sdk.Chain.Ethereum)
+          await tx.wait()
+        }
+        */
 
         return bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
           deadline: deadline(),
-          relayer: constants.AddressZero,
-          relayerFee: 0,
+          relayerFee: relayerFeeWithId,
           recipient,
-          amountOutMin,
+          amountOutMin: amountOutMin.sub(relayerFeeWithId),
         })
       },
     })
@@ -236,6 +263,7 @@ export function useSendTransaction(props) {
       kind: 'send',
       inputProps: {
         customRecipient,
+        isGnosisSafeWallet,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -254,7 +282,9 @@ export function useSendTransaction(props) {
 
         const networkId = Number(fromNetwork.networkId)
         const isNetworkConnected = await checkConnectedNetworkId(networkId)
-        if (!isNetworkConnected) return
+        if (!isNetworkConnected) {
+          throw new Error('wrong network connected')
+        }
 
         const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
@@ -277,6 +307,7 @@ export function useSendTransaction(props) {
       kind: 'send',
       inputProps: {
         customRecipient,
+        isGnosisSafeWallet,
         source: {
           amount: fromTokenAmount,
           token: sourceToken,
@@ -295,7 +326,9 @@ export function useSendTransaction(props) {
 
         const networkId = Number(fromNetwork.networkId)
         const isNetworkConnected = await checkConnectedNetworkId(networkId)
-        if (!isNetworkConnected) return
+        if (!isNetworkConnected) {
+          throw new Error('wrong network connected')
+        }
 
         const bonderFeeWithId = getBonderFeeWithId(totalFee)
 
@@ -318,5 +351,6 @@ export function useSendTransaction(props) {
     sending,
     tx,
     setTx,
+    setIsGnosisSafeWallet
   }
 }

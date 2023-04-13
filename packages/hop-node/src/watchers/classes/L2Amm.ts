@@ -22,12 +22,14 @@ export default class L2Amm extends ContractBase {
   }
 
   swap = async (fromTokenIndex: number, toTokenIndex: number, amountIn: BigNumber, minAmountOut: BigNumber = BigNumber.from(0), deadline: BigNumber = this.defaultDeadline()): Promise<BigNumber> => {
+    const txOverrides = await this.txOverrides()
     return this.contract.swap(
       fromTokenIndex,
       toTokenIndex,
       amountIn,
       minAmountOut,
-      deadline
+      deadline,
+      txOverrides
     )
   }
 

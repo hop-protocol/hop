@@ -12,14 +12,15 @@ export const OverflowText = styled(Div)`
 
 export interface EthAddressProps {
   width?: string | number
-  value: string
+  value?: string
   children?: any
   full?: boolean
   length?: number
+  textAlign?: 'left' | 'center' | 'right'
 }
 
 export function EthAddress(props: EthAddressProps) {
-  const { width = '100%', value, full, length = 4, children } = props
+  const { width = '100%', value = '', full, length = 4, children, textAlign = 'left' } = props
 
   const displayedAddress = React.useMemo(() => {
     if (full || !value) return value
@@ -27,7 +28,7 @@ export function EthAddress(props: EthAddressProps) {
   }, [value, full, length])
 
   return (
-    <Div width={width}>
+    <Div width={width} textAlign={textAlign}>
       <OverflowText>{displayedAddress || children}</OverflowText>
     </Div>
   )

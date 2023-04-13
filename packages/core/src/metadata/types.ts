@@ -1,3 +1,5 @@
+import { AssetSymbol, ChainSlug } from '../config/types'
+
 export interface Token {
   symbol: string
   name: string
@@ -5,19 +7,23 @@ export interface Token {
   image: string
 }
 
-export interface Tokens {
-  [key: string]: Token
-}
+export type Tokens = {
+  [key in AssetSymbol]: Token
+} & { ARB: Token } & { XDAI: Token } & { OP: Token } & { GNO: Token }
 
 export interface Chain {
   name: string
   slug: string
+  image: string
+  nativeTokenSymbol: string
+  isLayer1: boolean
 }
 
-export interface Chains {
-  [key: string]: Chain
+export type Chains = {
+  [key in ChainSlug]: Chain
 }
 
 export interface Metadata {
-  tokens: Partial<Tokens>
+  tokens: Tokens
+  chains: Chains
 }

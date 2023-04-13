@@ -5,9 +5,9 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 
 const useStyles = makeStyles(theme => ({
   root: ({ value }: any) => ({
-    color: value === 'default' ? 'white' : theme.palette.text.secondary,
+    color: value === 'default' ? '#fff' : theme.palette.text.secondary,
     background: value === 'default' ? theme.bgGradient.flat : theme.palette.action.disabled,
-    width: '13.5rem',
+    minWidth: '13.5rem',
     borderRadius: '2.3rem',
     padding: '0 2.8rem 0 0',
     '&.MuiSelect-select': {
@@ -21,7 +21,8 @@ const useStyles = makeStyles(theme => ({
       backgroundColor: theme.palette.action.disabled,
     },
     [theme.breakpoints.down('xs')]: {
-      width: '12rem',
+      minWidth: 0,
+      maxWidth: '100%',
     },
   }),
   selectMenu: {
@@ -31,7 +32,7 @@ const useStyles = makeStyles(theme => ({
   icon: ({ value }: any) => ({
     top: 'calc(50% - 0.75rem)',
     right: '0.8rem',
-    color: value === 'default' ? 'white' : theme.palette.text.secondary,
+    color: value === 'default' ? '#fff' : theme.palette.text.secondary,
   }),
 }))
 

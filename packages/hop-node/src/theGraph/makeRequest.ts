@@ -18,12 +18,40 @@ async function _makeRequest (
   if (chain === 'gnosis') {
     chain = 'xdai'
   }
-  let url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
+
+  let url
+  if (chain === Chain.Nova) {
+    url = 'https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop'
+  } else {
+    url = 'https://api.thegraph.com/subgraphs/name/hop-protocol/hop'
+  }
   if (chain === Chain.Ethereum) {
-    // url = `${url}-mainnet`
-    url = 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
+    // In order to use the decentralized service, please ensure the decentralized subgraph is pushed and published. This
+    // is a different process than the centralized subgraph.
+    url = `${url}-mainnet`
+    // url = 'https://gateway.thegraph.com/api/bd5bd4881b83e6c2c93d8dc80c9105ba/subgraphs/id/Cjv3tykF4wnd6m9TRmQV7weiLjizDnhyt6x2tTJB42Cy'
   } else {
     url = `${url}-${chain}`
+  }
+
+  if (chain === 'linea') {
+    // TODO: read from config
+    const isGoerli = true
+    if (isGoerli) {
+      url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
+    } else {
+      throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
+    }
+  }
+
+  if (chain === 'base') {
+    // TODO: read from config
+    const isGoerli = true
+    if (isGoerli) {
+      url = 'https://base-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-base-goerli'
+    } else {
+      throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
+    }
   }
 
   const res = await fetch(url, {
@@ -39,6 +67,7 @@ async function _makeRequest (
   })
   const jsonRes = await res.json()
   if (Array.isArray(jsonRes.errors) && jsonRes.errors.length) {
+    console.error('query:', query)
     throw new Error(jsonRes.errors[0].message)
   }
   return jsonRes.data

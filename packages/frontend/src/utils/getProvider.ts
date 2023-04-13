@@ -1,28 +1,23 @@
 import { ethers } from 'ethers'
 import memoize from 'fast-memoize'
-import { getAllRpcUrls, getRpcUrl } from '.'
+import { networks } from 'src/config'
+import { getRpcUrls } from './getRpcUrl'
+import { FallbackProvider } from '@hop-protocol/sdk'
 
-export const getProvider = memoize((rpcUrl: string) => {
-  if (rpcUrl.startsWith('ws')) {
-    return new ethers.providers.WebSocketProvider(rpcUrl)
-  }
-
-  return new ethers.providers.StaticJsonRpcProvider({
-    url: rpcUrl,
-    timeout: 60 * 1000,
-  })
+export const getProvider = memoize((rpcUrl: string | string[]) => {
+  const rpcUrls = Array.isArray(rpcUrl) ? rpcUrl : [rpcUrl]
+  return FallbackProvider.fromUrls(rpcUrls)
 })
 
 export function getProviderByNetworkName(networkName: string) {
-  const rpcUrl = getRpcUrl(networkName)
-  return getProvider(rpcUrl)
+  const rpcUrls = getRpcUrls(networkName)
+  return getProvider(rpcUrls)
 }
 
 export function getAllProviders() {
-  const allRpcUrls = getAllRpcUrls()
   const allProviders = {}
-  for (const networkKey in allRpcUrls) {
-    allProviders[networkKey] = getProvider(allRpcUrls[networkKey])
+  for (const chain in networks) {
+    allProviders[chain] = getProvider(chain)
   }
   return allProviders
 }

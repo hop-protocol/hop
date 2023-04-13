@@ -18,6 +18,7 @@ export const allNetworks = Object.keys(networks).map(key => {
     slug: key,
     imageUrl: meta.image,
     rpcUrl: net.rpcUrl,
+    fallbackRpcUrls: net.fallbackRpcUrls ?? [],
     networkId: net.networkId,
     nativeTokenSymbol: meta.nativeTokenSymbol,
     isLayer1: meta.isLayer1,

@@ -1,49 +1,83 @@
-import AprStats from './AprStats'
+import YieldStats from './YieldStats'
 import VolumeStats from './VolumeStats'
 import TvlStats from './TvlStats'
+import { AmmStats } from './AmmStats'
 import BonderStats from './BonderStats'
 import S3Upload from './S3Upload'
 import wait from 'wait'
 
 type Options = {
-  apr?: boolean
+  yields?: boolean
   tvl?: boolean
+  amm?: boolean
+  ammDays?: number
+  ammOffsetDays?: number
+  ammTokens?: string[]
+  ammChains?: string[]
   volume?: boolean
   bonder?: boolean
+  bonderProfit?: boolean
+  bonderFees?: boolean
+  bonderTxFees?: boolean
   regenesis?: boolean
   days?: number
+  offsetDays?: number
   bonderDays?: number
+  bonderStartDate?: string
+  bonderEndDate?: string
   bonderTokens?: string[]
+  pollIntervalSeconds?: number
 }
 
 class Worker {
-  aprStats: AprStats
+  yieldStats: YieldStats
   volumeStats: VolumeStats
   tvlStats: TvlStats
+  ammStats: AmmStats
   bonderStats: BonderStats
   hosting = new S3Upload()
   pollIntervalMs: number = 60 * 60 * 1000
-  apr: boolean = false
+  yields: boolean = false
   tvl: boolean = false
+  amm: boolean = false
   volume: boolean = false
   bonder: boolean = false
 
   constructor (options: Options = {}) {
-    const {
-      apr,
+    let {
+      yields,
       tvl,
+      amm,
+      ammDays,
+      ammOffsetDays,
+      ammTokens,
+      ammChains,
       volume,
       regenesis,
       days,
+      offsetDays,
       bonder,
+      bonderProfit,
+      bonderFees,
+      bonderTxFees,
       bonderDays,
-      bonderTokens
+      bonderStartDate,
+      bonderEndDate,
+      bonderTokens,
+      pollIntervalSeconds
     } = options
-    this.apr = apr
+    this.yields = yields
     this.tvl = tvl
+    this.amm = amm
     this.volume = volume
-    this.bonder = bonder
-    this.aprStats = new AprStats()
+    if (pollIntervalSeconds) {
+      this.pollIntervalMs = pollIntervalSeconds * 1000
+    }
+
+    if (bonder || bonderProfit || bonderFees || bonderTxFees) {
+      this.bonder = true
+    }
+    this.yieldStats = new YieldStats()
     this.volumeStats = new VolumeStats({
       regenesis
     })
@@ -51,9 +85,22 @@ class Worker {
       regenesis,
       days
     })
+    this.ammStats = new AmmStats({
+      regenesis,
+      days: ammDays,
+      offsetDays: ammOffsetDays,
+      tokens: ammTokens,
+      chains: ammChains
+    })
     this.bonderStats = new BonderStats({
       days: bonderDays,
-      tokens: bonderTokens
+      offsetDays: offsetDays,
+      startDate: bonderStartDate,
+      endDate: bonderEndDate,
+      tokens: bonderTokens,
+      trackBonderProfit: bonderProfit ?? bonder,
+      trackBonderFees: bonderFees ?? bonder,
+      trackBonderTxFees: bonderTxFees ?? bonder
     })
   }
 
@@ -61,11 +108,14 @@ class Worker {
     console.log('worker started')
     console.log(`polling every ${this.pollIntervalMs}ms`)
     const promises: Promise<any>[] = []
-    if (this.apr) {
-      promises.push(this.aprStatsPoll())
+    if (this.yields) {
+      promises.push(this.yieldStatsPoll())
     }
     if (this.tvl) {
       promises.push(this.tvlStatsPoll())
+    }
+    if (this.amm) {
+      promises.push(this.ammStatsPoll())
     }
     if (this.volume) {
       promises.push(this.volumeStatsPoll())
@@ -83,7 +133,7 @@ class Worker {
     console.log('volumeStatsPoll started')
     while (true) {
       try {
-        console.log('fetching volume stats')
+        console.log(`fetching volume stats (${new Date()})`)
         await this.volumeStats.trackDailyVolume()
         console.log('done tracking volume stats')
       } catch (err) {
@@ -97,7 +147,7 @@ class Worker {
     console.log('tvlStatsPoll started')
     while (true) {
       try {
-        console.log('fetching tvl stats')
+        console.log(`fetching tvl stats (${new Date()})`)
         await this.tvlStats.trackTvl()
         console.log('done tracking tvl stats')
       } catch (err) {
@@ -107,14 +157,32 @@ class Worker {
     }
   }
 
-  async aprStatsPoll () {
-    console.log('aprStatsPoll started')
+  async ammStatsPoll () {
+    console.log('ammStatsPoll started')
     while (true) {
       try {
-        console.log('fetching apr stats')
-        const data = await this.aprStats.getAllAprs()
-        await this.hosting.upload(data)
-        console.log('done uploading apr stats')
+        console.log(`fetching amm stats (${new Date()})`)
+        await this.ammStats.trackAmm()
+        console.log('done tracking amm stats')
+      } catch (err) {
+        console.error(err)
+      }
+      await wait(this.pollIntervalMs)
+    }
+  }
+
+  async yieldStatsPoll () {
+    console.log('yieldStatsPoll started')
+    while (true) {
+      try {
+        console.log(`fetching yield stats (${new Date()})`)
+        const res = await this.yieldStats.getAllYields()
+        const { legacyYieldData, yieldData } = res.yieldDatas
+        const legacyKey = 'v1-pool-stats.json'
+        await this.hosting.upload(legacyKey, legacyYieldData)
+        const key = 'v1.1-pool-stats.json'
+        await this.hosting.upload(key, yieldData)
+        console.log('done uploading yield stats')
       } catch (err) {
         console.error(err)
       }
@@ -126,7 +194,7 @@ class Worker {
     console.log('bonderStatsPoll started')
     while (true) {
       try {
-        console.log('fetching bonder stats')
+        console.log(`fetching bonder stats (${new Date()})`)
         await this.bonderStats.run()
         console.log('done tracking bonder stats')
       } catch (err) {

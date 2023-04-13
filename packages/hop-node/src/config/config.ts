@@ -1,11 +1,14 @@
 import buildInfo from 'src/.build-info.json'
+import normalizeEnvVarArray from './utils/normalizeEnvVarArray'
 import normalizeEnvVarNumber from './utils/normalizeEnvVarNumber'
 import os from 'os'
 import path from 'path'
 import { Addresses, Bonders, Bridges } from '@hop-protocol/core/addresses'
-import { Chain, DefaultBatchBlocks, Network, TotalBlocks } from 'src/constants'
+import { Bps, ChainSlug } from '@hop-protocol/core/config'
+import { Chain, DefaultBatchBlocks, Network, OneHourMs, TotalBlocks } from 'src/constants'
 import { Tokens as Metadata } from '@hop-protocol/core/metadata'
 import { Networks } from '@hop-protocol/core/networks'
+import { parseEther } from 'ethers/lib/utils'
 import * as goerliConfig from './goerli'
 import * as kovanConfig from './kovan'
 import * as mainnetConfig from './mainnet'
@@ -28,6 +31,7 @@ export const gasBoostWarnSlackChannel = process.env.GAS_BOOST_WARN_SLACK_CHANNEL
 export const gasBoostErrorSlackChannel = process.env.GAS_BOOST_ERROR_SLACK_CHANNEL // optional
 export const healthCheckerWarnSlackChannel = process.env.HEALTH_CHECKER_WARN_SLACK_CHANNEL // optional
 export const gasPriceMultiplier = normalizeEnvVarNumber(process.env.GAS_PRICE_MULTIPLIER)
+export const initialTxGasPriceMultiplier = normalizeEnvVarNumber(process.env.INITIAL_TX_GAS_PRICE_MULTIPLIER)
 export const minPriorityFeePerGas = normalizeEnvVarNumber(process.env.MIN_PRIORITY_FEE_PER_GAS)
 export const priorityFeePerGasCap = normalizeEnvVarNumber(process.env.PRIORITY_FEE_PER_GAS_CAP)
 export const maxGasPriceGwei = normalizeEnvVarNumber(process.env.MAX_GAS_PRICE_GWEI)
@@ -38,16 +42,50 @@ export const awsRegion = process.env.AWS_REGION ?? 'us-east-1'
 export const awsProfile = process.env.AWS_PROFILE
 export const gitRev = buildInfo.rev
 export const monitorProviderCalls = process.env.MONITOR_PROVIDER_CALLS
-const envNetwork = process.env.NETWORK ?? Network.Kovan
+export const setLatestNonceOnStart = process.env.SET_LATEST_NONCE_ON_START
+export const TxRetryDelayMs = process.env.TX_RETRY_DELAY_MS ? Number(process.env.TX_RETRY_DELAY_MS) : OneHourMs
+export const bondWithdrawalBatchSize = normalizeEnvVarNumber(process.env.BOND_WITHDRAWAL_BATCH_SIZE) ?? 100
+export const relayTransactionBatchSize = bondWithdrawalBatchSize
+export const zeroAvailableCreditTest = !!process.env.ZERO_AVAILABLE_CREDIT_TEST
+const envNetwork = process.env.NETWORK ?? Network.Mainnet
 const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
-export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum])
-export const rateLimitMaxRetries = 5
+export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base])
+export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
 export const defaultKeystoreFilePath = `${defaultConfigDir}/keystore.json`
+export const minEthBonderFeeBn = parseEther('0.00001')
+export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PENDING_COUNT_COMMIT_THRESHOLD) ?? 921 // 90% of 1024
+export const appTld = process.env.APP_TLD ?? 'hop.exchange'
+export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
+export const shouldExitOrus = process.env.SHOULD_EXIT_ORUS ?? false
+export const modifiedLiquidityTokens = process.env.MODIFIED_LIQUIDITY_TOKENS?.split(',') ?? []
+export const modifiedLiquiditySourceChains = process.env.MODIFIED_LIQUIDITY_SOURCE_CHAINS?.split(',') ?? []
+export const modifiedLiquidityDestChains = process.env.MODIFIED_LIQUIDITY_DEST_CHAINS?.split(',') ?? []
+export const modifiedLiquidityDecrease = process.env.MODIFIED_LIQUIDITY_DECREASE ?? '0'
+
+export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
+export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''
+
+export const etherscanApiKeys: Record<string, string> = {
+  [Chain.Ethereum]: process.env.ETHERSCAN_API_KEY ?? '',
+  [Chain.Polygon]: process.env.POLYGONSCAN_API_KEY ?? '',
+  [Chain.Optimism]: process.env.OPTIMISM_API_KEY ?? '',
+  [Chain.Arbitrum]: process.env.ARBITRUM_API_KEY ?? '',
+  [Chain.Gnosis]: process.env.XDAI_API_KEY ?? '',
+  [Chain.Nova]: process.env.NOVA_API_KEY ?? ''
+}
+export const etherscanApiUrls: Record<string, string> = {
+  [Chain.Ethereum]: 'https://api.etherscan.io',
+  [Chain.Polygon]: 'https://api.polygonscan.com',
+  [Chain.Optimism]: 'https://api-optimistic.etherscan.io',
+  [Chain.Arbitrum]: 'https://api.arbiscan.io',
+  [Chain.Gnosis]: 'https://api.gnosisscan.io',
+  [Chain.Nova]: 'https://api-nova.arbiscan.io'
+}
 
 type SyncConfig = {
   totalBlocks?: number
@@ -60,14 +98,6 @@ type DbConfig = {
 type MetricsConfig = {
   enabled: boolean
   port?: number
-}
-
-type Bps = {
-  ethereum: number
-  polygon: number
-  gnosis: number
-  optimism: number
-  arbitrum: number
 }
 
 export type Fees = Record<string, Bps>
@@ -85,10 +115,29 @@ export type SignerConfig = {
   awsRegion?: string
 }
 
+export type VaultChainTokenConfig = {
+  depositThresholdAmount: number
+  depositAmount: number
+  autoDeposit: boolean
+  autoWithdraw: boolean
+  strategy: string
+}
+
+export type VaultChain = {
+  [key in ChainSlug]: VaultChainTokenConfig
+}
+
+export type Vault = Record<string, VaultChain>
+
+export type BlocklistConfig = {
+  path: string
+  addresses: Record<string, boolean>
+}
+
 export type Config = {
   isMainnet: boolean
   tokens: Tokens
-  addresses: Bridges & {[network: string]: any}
+  addresses: Partial<Bridges> & {[network: string]: any}
   network: string
   networks: Networks & {[network: string]: any}
   bonderPrivateKey: string
@@ -101,6 +150,8 @@ export type Config = {
   fees: Fees
   routes: Routes
   signerConfig: SignerConfig
+  vault: Vault
+  blocklist: BlocklistConfig
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -118,14 +169,15 @@ const normalizeNetwork = (network: string) => {
   return network
 }
 
-const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'networks' | 'metadata' | 'isMainnet'> => {
-  const { addresses, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
+const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresses' | 'bonders' | 'networks' | 'metadata' | 'isMainnet'> => {
+  const { addresses, bonders, networks, metadata } = isTestMode ? networkConfigs.test : (networkConfigs as any)?.[network]
   network = normalizeNetwork(network)
   const isMainnet = network === Network.Mainnet
 
   return {
     network,
     addresses,
+    bonders,
     networks,
     metadata,
     isMainnet
@@ -133,7 +185,7 @@ const getConfigByNetwork = (network: string): Pick<Config, 'network' | 'addresse
 }
 
 // get default config
-const { addresses, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
+const { addresses, bonders, network, networks, metadata, isMainnet } = getConfigByNetwork(envNetwork)
 
 // defaults
 export const config: Config = {
@@ -144,7 +196,7 @@ export const config: Config = {
   tokens: {},
   bonderPrivateKey: bonderPrivateKey ?? '',
   metadata,
-  bonders: {},
+  bonders,
   fees: {},
   routes: {},
   db: {
@@ -153,7 +205,7 @@ export const config: Config = {
   sync: {
     [Chain.Ethereum]: {
       totalBlocks: TotalBlocks.Ethereum,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 2000
     },
     [Chain.Arbitrum]: {
       totalBlocks: 100_000,
@@ -165,10 +217,30 @@ export const config: Config = {
     },
     [Chain.Polygon]: {
       totalBlocks: TotalBlocks.Polygon,
-      batchBlocks: DefaultBatchBlocks
+      batchBlocks: 2000
     },
     [Chain.Gnosis]: {
       totalBlocks: TotalBlocks.Gnosis,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.Nova]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.ZkSync]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.Linea]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.ScrollZk]: {
+      totalBlocks: 100_000,
+      batchBlocks: DefaultBatchBlocks
+    },
+    [Chain.Base]: {
+      totalBlocks: 100_000,
       batchBlocks: DefaultBatchBlocks
     }
   },
@@ -180,6 +252,11 @@ export const config: Config = {
   },
   signerConfig: {
     type: 'keystore'
+  },
+  vault: {},
+  blocklist: {
+    path: '',
+    addresses: {}
   }
 }
 
@@ -236,6 +313,9 @@ export const getNetworkMaxGasPrice = (network: string) => {
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
   const networks = Object.keys(config.networks)
   for (const network of networks) {
+    if (!syncConfigs[network]) {
+      continue
+    }
     if (!config.sync[network]) {
       config.sync = config.sync ?? {}
       config.sync[network] = {}
@@ -299,6 +379,14 @@ export const setSignerConfig = (signerConfig: SignerConfig) => {
   config.signerConfig = { ...config.signerConfig, ...signerConfig }
 }
 
+export const setVaultConfig = (vault: Vault) => {
+  config.vault = { ...config.vault, ...vault }
+}
+
+export const setBlocklistConfig = (blocklist: BlocklistConfig) => {
+  config.blocklist = { ...config.blocklist, ...blocklist }
+}
+
 export const getBonderConfig = (tokens: Tokens) => {
   config.tokens = { ...config.tokens, ...tokens }
 }
@@ -311,7 +399,8 @@ export enum Watchers {
   Challenge = 'challenge',
   CommitTransfers = 'commitTransfers',
   SettleBondedWithdrawals = 'settleBondedWithdrawals',
-  xDomainMessageRelay = 'xDomainMessageRelay',
+  ConfirmRoots = 'confirmRoots',
+  L1ToL2Relay = 'L1ToL2Relay',
 }
 
 export { Bonders }

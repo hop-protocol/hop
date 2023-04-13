@@ -1,0 +1,8 @@
+*.env
+dist
+build
+_data
+generated
+sqlite3.db
+*.csv
+out

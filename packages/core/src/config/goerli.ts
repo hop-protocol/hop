@@ -2,14 +2,38 @@ import { Config } from './types'
 
 export const config : Config = {
   bonderFeeBps: {
-    USDC: {
-      ethereum: 0,
-      polygon: 0
+    ETH: {
+      ethereum: 500,
+      polygon: 500,
+      gnosis: 500,
+      optimism: 500,
+      arbitrum: 500,
+      zksync: 500,
+      linea: 500,
+      scrollzk: 500,
+      base: 500
     },
-    DAI: {
-      ethereum: 0,
-      polygon: 0
+    USDC: {
+      ethereum: 5,
+      polygon: 5,
+      optimism: 5,
+      arbitrum: 5
+    },
+    HOP: {
+      ethereum: 5,
+      polygon: 5,
+      optimism: 5,
+      arbitrum: 5
     }
   },
-  destinationFeeGasPriceMultiplier: 1
+  destinationFeeGasPriceMultiplier: 1.2,
+  relayerFeeEnabled: {
+    polygon: true,
+    optimism: true,
+    arbitrum: true,
+    zksync: true,
+    linea: true,
+    scrollzk: true,
+    base: true
+  }
 }

@@ -12,5 +12,7 @@
     "bootstrap": "npx lerna bootstrap",
     "nuke": "npx lerna clean"
   },
-  "dependencies": {}
+  "dependencies": {
+
+  }
 }

@@ -1,18 +1,18 @@
-import ContractBase, { TxOverrides } from './ContractBase'
+import ContractBase from './ContractBase'
 import Logger from 'src/logger'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTokenMetadataByAddress from 'src/utils/getTokenMetadataByAddress'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, Contract, providers } from 'ethers'
-import { Chain, SettlementGasLimitPerTx } from 'src/constants'
+import { Chain, ChainHasFinalizationTag, GasCostTransactionType, SettlementGasLimitPerTx } from 'src/constants'
 import { DbSet, getDbSet } from 'src/db'
 import { Event } from 'src/types'
-import { L1Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/L1Bridge'
-import { L1ERC20Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/L1ERC20Bridge'
-import { L2Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/L2Bridge'
-import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/Bridge'
-import { PriceFeed } from 'src/priceFeed'
+import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
+import { L1_ERC20_Bridge as L1ERC20BridgeContract } from '@hop-protocol/core/contracts/generated/L1_ERC20_Bridge'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { MultipleWithdrawalsSettledEvent, TransferRootSetEvent, WithdrawalBondSettledEvent, WithdrawalBondedEvent, WithdrewEvent } from '@hop-protocol/core/contracts/generated/Bridge'
+import { PriceFeed } from '@hop-protocol/sdk'
 import { State } from 'src/db/SyncStateDb'
 import { formatUnits, parseEther, parseUnits, serializeTransaction } from 'ethers/lib/utils'
 import { getContractFactory, predeploys } from '@eth-optimism/contracts'
@@ -437,6 +437,14 @@ export default class Bridge extends ContractBase {
     bonderFee: BigNumber
   ): Promise<providers.TransactionResponse> => {
     const txOverrides = await this.txOverrides()
+
+    // Define a max gasLimit in order to avoid gas siphoning
+    let gasLimit = 500_000
+    if (this.chainSlug === Chain.Arbitrum || this.chainSlug === Chain.Nova) {
+      gasLimit = 10_000_000
+    }
+    txOverrides.gasLimit = gasLimit
+
     const payload = [
       recipient,
       amount,
@@ -444,11 +452,6 @@ export default class Bridge extends ContractBase {
       bonderFee,
       txOverrides
     ] as const
-
-    if (this.chainSlug === Chain.Ethereum) {
-      const gasLimit = await this.bridgeContract.estimateGas.bondWithdrawal(...payload)
-      ;(payload[payload.length - 1] as TxOverrides).gasLimit = gasLimit.add(50_000)
-    }
 
     const tx = await this.bridgeContract.bondWithdrawal(...payload)
     return tx
@@ -509,7 +512,10 @@ export default class Bridge extends ContractBase {
   }
 
   formatUnits (value: BigNumber) {
-    return Number(formatUnits(value.toString(), this.tokenDecimals))
+    if (!value) {
+      return 0
+    }
+    return Number(formatUnits(value?.toString() ?? '', this.tokenDecimals))
   }
 
   parseUnits (value: string | number) {
@@ -609,8 +615,13 @@ export default class Bridge extends ContractBase {
     let start: number
     let totalBlocksInBatch: number
     const { totalBlocks, batchBlocks } = globalConfig.sync[this.chainSlug]
-    const currentBlockNumber = await this.getBlockNumber()
-    const currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+    let currentBlockNumberWithFinality: number
+    if (ChainHasFinalizationTag[this.chainSlug]) {
+      currentBlockNumberWithFinality = await this.getFinalizedBlockNumber()
+    } else {
+      const currentBlockNumber = await this.getBlockNumber()
+      currentBlockNumberWithFinality = currentBlockNumber - this.waitConfirmations
+    }
     const isInitialSync = !state?.latestBlockSynced && startBlockNumber && !endBlockNumber
     const isSync = state?.latestBlockSynced && startBlockNumber && !endBlockNumber
 
@@ -666,7 +677,10 @@ export default class Bridge extends ContractBase {
     return `${chainId}:${address}:${key}`
   }
 
-  shouldAttemptSwap (amountOutMin: BigNumber, deadline: BigNumber): boolean {
+  shouldAttemptSwapDuringBondWithdrawal (amountOutMin: BigNumber, deadline: BigNumber): boolean {
+    // Do not check if the asset uses an AMM. This function only cares about the amountOutMin and deadline
+    // so that it knows what function to call on-chain. This function is unconcerned with wether or not
+    // an asset uses an AMM, since a non-AMM asset can still provide amountOutMin and deadline values.
     return amountOutMin?.gt(0) || deadline?.gt(0)
   }
 
@@ -705,7 +719,10 @@ export default class Bridge extends ContractBase {
       return BigNumber.from(0)
     }
 
-    const minBonderFeeUsd = 0.25
+    let minBonderFeeUsd = 0.25
+    if (destinationChain === Chain.Optimism) {
+      minBonderFeeUsd = 0.10
+    }
     const tokenDecimals = getTokenDecimals(tokenSymbol)
     let minBonderFeeAbsolute = parseUnits(
       (minBonderFeeUsd / tokenPriceUsd).toFixed(tokenDecimals),
@@ -753,24 +770,25 @@ export default class Bridge extends ContractBase {
     chain: string,
     tokenSymbol: string,
     gasLimit: BigNumber,
+    transactionType: GasCostTransactionType,
     data?: string,
     to?: string
   ) {
     const chainNativeTokenSymbol = this.getChainNativeTokenSymbol(chain)
     const provider = getRpcProvider(chain)!
-    let gasPrice = await provider.getGasPrice()
-    // Arbitrum returns a gasLimit & gasPriceBid that exceeds the actual used.
-    // The values change as they collect more data. 2x here is generous but they should never go under this.
-    if (this.chainSlug === Chain.Arbitrum) {
-      gasPrice = gasPrice.div(2)
-      gasLimit = gasLimit.div(2)
+    const gasPrice = await provider.getGasPrice()
+
+    let gasCost: BigNumber = BigNumber.from('0')
+    if (transactionType === GasCostTransactionType.Relay) {
+      // Relay transactions use the gasLimit as the gasCost
+      gasCost = gasLimit
+    } else {
+      // Include the cost to settle an individual transfer
+      const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[chain]
+      const gasLimitWithSettlement = gasLimit.add(settlementGasLimitPerTx)
+
+      gasCost = gasLimitWithSettlement.mul(gasPrice)
     }
-
-    // Include the cost to settle an individual transfer
-    const settlementGasLimitPerTx: number = SettlementGasLimitPerTx[chain]
-    const gasLimitWithSettlement = gasLimit.add(settlementGasLimitPerTx)
-
-    let gasCost = gasLimitWithSettlement.mul(gasPrice)
 
     if (this.chainSlug === Chain.Optimism && data && to) {
       try {
@@ -840,5 +858,14 @@ export default class Bridge extends ContractBase {
     }
 
     return 'ETH'
+  }
+
+  async isTransferRootSet (transferRootHash: string, totalAmount: BigNumber): Promise<boolean> {
+    const transferRootStruct = await this.getTransferRoot(transferRootHash, totalAmount)
+    if (!transferRootStruct) {
+      throw new Error('transfer root struct not found')
+    }
+    const createdAt = Number(transferRootStruct.createdAt?.toString())
+    return createdAt > 0
   }
 }

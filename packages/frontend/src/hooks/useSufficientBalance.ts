@@ -1,13 +1,12 @@
 import { Token } from '@hop-protocol/sdk'
 import { BigNumber } from 'ethers'
 import { useEffect, useState } from 'react'
-import { useWeb3Context } from 'src/contexts/Web3Context'
 import useIsSmartContractWallet from 'src/hooks/useIsSmartContractWallet'
 import { toTokenDisplay } from 'src/utils'
 
 export function useSufficientBalance(
   token?: Token,
-  amount?: BigNumber,
+  amount?: BigNumber, // input amount
   estimatedGasCost?: BigNumber,
   tokenBalance: BigNumber = BigNumber.from(0)
 ) {
@@ -17,7 +16,7 @@ export function useSufficientBalance(
 
   useEffect(() => {
     async function checkEnoughBalance() {
-      if (!(token && amount)) {
+      if (!(amount && token && token.signer)) {
         setWarning('')
         return setSufficientBalance(false)
       }
@@ -27,7 +26,7 @@ export function useSufficientBalance(
       let enoughTokenBalance: boolean
       let message: string = ''
 
-      const ntb = await token.getNativeTokenBalance()
+      const nativeTokenBalance = await token.getNativeTokenBalance()
 
       if (!estimatedGasCost) {
         const gasPrice = await token.signer.getGasPrice()
@@ -36,11 +35,11 @@ export function useSufficientBalance(
 
       if (token.isNativeToken) {
         totalCost = estimatedGasCost.add(amount)
-        enoughFeeBalance = ntb.gte(totalCost)
+        enoughFeeBalance = nativeTokenBalance.gte(totalCost)
         enoughTokenBalance = enoughFeeBalance
       } else {
         totalCost = estimatedGasCost
-        enoughFeeBalance = ntb.gte(totalCost)
+        enoughFeeBalance = nativeTokenBalance.gte(totalCost)
         enoughTokenBalance = tokenBalance.gte(amount)
       }
 
@@ -50,7 +49,7 @@ export function useSufficientBalance(
       }
 
       if (!enoughFeeBalance) {
-        const diff = totalCost.sub(ntb)
+        const diff = totalCost.sub(nativeTokenBalance)
         message = `Insufficient balance to cover the cost of tx. Please add ${
           token.symbol
         } to pay for tx fees or reduce the amount by approximately ${toTokenDisplay(diff)} ${

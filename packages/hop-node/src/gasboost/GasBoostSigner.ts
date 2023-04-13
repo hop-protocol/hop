@@ -9,13 +9,13 @@ import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
 import { Signer, providers } from 'ethers'
 import { defineReadOnly } from 'ethers/lib/utils'
-import { hostname } from 'src/config'
+import { hostname, setLatestNonceOnStart } from 'src/config'
+import { v4 as uuidv4 } from 'uuid'
 
 class GasBoostSigner extends Signer {
   store: Store
   items: string[] = []
   lastTxSentTimestamp: number = 0
-  delayBetweenTxsMs: number = 7 * 1000
   chainSlug: string
   gTxFactory: GasBoostTransactionFactory
   signer: Signer
@@ -25,6 +25,7 @@ class GasBoostSigner extends Signer {
   mutex: Mutex
   ready: boolean = false
   options: Partial<Options>
+  private _count: number = 0
 
   constructor (signer: Signer, store: Store = new MemoryStore(), options: Partial<Options> = {}) {
     super()
@@ -78,7 +79,23 @@ class GasBoostSigner extends Signer {
   }
 
   private async init () {
-    await this.setLatestNonce()
+    // prevent additional bonder instances from overriding db nonce (ie when running separate cli commands)
+    const shouldUpdate = await this.shouldSetLatestNonce()
+    if (shouldUpdate) {
+      await this.setLatestNonce()
+    }
+  }
+
+  private async shouldSetLatestNonce () {
+    if (setLatestNonceOnStart) {
+      return true
+    }
+    const item = await this.store.getItem('nonce')
+    const timeWindowMs = 5 * 60 * 1000
+    if (item?.updatedAt && Number(item.updatedAt) + timeWindowMs < Date.now()) {
+      return false
+    }
+    return true
   }
 
   protected async tilReady (): Promise<boolean> {
@@ -99,32 +116,47 @@ class GasBoostSigner extends Signer {
   async sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
     await this.tilReady()
     return await this.mutex.runExclusive(async () => {
-      this.logger.debug(`unlocked tx: ${JSON.stringify(tx)}`)
-      return await this._sendTransaction(tx)
+      const id = uuidv4()
+      const logger = this.logger.create({ id })
+      logger.debug(`in-memory count: ${this._count}`)
+      logger.debug(`unlocked tx: ${JSON.stringify(tx)}`)
+      this._count++
+      return await this._sendTransaction(tx, id)
     })
   }
 
-  async _sendTransaction (tx: providers.TransactionRequest): Promise<providers.TransactionResponse> {
-    const nonce = await this.getDbNonce()
-    if (!tx.nonce) {
-      tx.nonce = nonce
-    }
-    const gTx = this.gTxFactory.createTransaction(tx)
+  private async _sendTransaction (tx: providers.TransactionRequest, id: string): Promise<providers.TransactionResponse> {
+    const _timeId = `GasBoostTransaction elapsed ${id} `
+    console.time(_timeId)
+    const logger = this.logger.create({ id })
+    // logger.debug('_sendTransaction getDbNonce start')
+    tx.nonce = await this.getDbNonce()
+    // logger.debug('_sendTransaction getDbNonce done')
+    const gTx = this.gTxFactory.createTransaction(tx, id)
     await gTx.save()
     try {
+      logger.debug('_sendTransaction send start')
       await gTx.send()
+      logger.debug('_sendTransaction send done')
     } catch (err) {
       // if nonce too low then we still want to increment the tracked nonce
       // before throwing error
       if (err instanceof NonceTooLowError) {
+        // logger.debug('_sendTransaction inNonce in catch start')
         await this.incNonce()
+        // logger.debug('_sendTransaction inNonce in catch done')
+        // logger.debug('_sendTransaction getDbNonce in catch start')
         const newNonce = await this.getDbNonce()
-        this.logger.debug(`increment for NonceTooLowError. new nonce ${newNonce}`)
+        // logger.debug('_sendTransaction getDbNonce in catch done')
+        logger.debug(`increment for NonceTooLowError. new nonce ${newNonce}`)
       }
       throw err
     }
+    // logger.debug('_sendTransaction incNonce start')
     await this.incNonce()
+    // logger.debug('_sendTransaction incNonce done')
     this.lastTxSentTimestamp = Date.now()
+    console.timeEnd(_timeId)
     return gTx
   }
 
@@ -148,7 +180,10 @@ class GasBoostSigner extends Signer {
   }
 
   private async setDbNonce (nonce: number) {
-    await this.store.updateItem('nonce', { nonce })
+    await this.store.updateItem('nonce', {
+      nonce,
+      updatedAt: Date.now()
+    })
   }
 
   setPollMs (pollMs: number) {
@@ -166,6 +201,12 @@ class GasBoostSigner extends Signer {
   setGasPriceMultiplier (gasPriceMultiplier: number) {
     this.setOptions({
       gasPriceMultiplier
+    })
+  }
+
+  setInitialTxGasPriceMultiplier (initialTxGasPriceMultiplier: number) {
+    this.setOptions({
+      initialTxGasPriceMultiplier
     })
   }
 

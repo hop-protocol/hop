@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import Network from 'src/models/Network'
-import { defaultL2Network, l2Networks } from 'src/config/networks'
-import { findNetworkBySlug, networkIdToSlug, networkSlugToId } from 'src/utils'
+import { defaultL2Network as _defaultL2Network, l2Networks } from 'src/config/networks'
+import { findNetworkBySlug, networkSlugToId } from 'src/utils'
 import useQueryParams from './useQueryParams'
 import { SafeInfo } from '@gnosis.pm/safe-apps-sdk'
 import { ChainSlug } from '@hop-protocol/sdk'
@@ -10,9 +10,19 @@ interface Options {
   l2Only?: boolean
   availableNetworks?: Network[]
   gnosisSafe?: SafeInfo
+  preferredDefault?: string
 }
 
 export function useSelectedNetwork(opts: Options = { l2Only: false }) {
+  const [defaultL2Network] = useState<Network>(() => {
+    if (opts.preferredDefault) {
+      const found = findNetworkBySlug(opts.preferredDefault)
+      if (found) {
+        return found
+      }
+    }
+    return _defaultL2Network
+  })
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(defaultL2Network)
   const { queryParams, updateQueryParams } = useQueryParams()
 

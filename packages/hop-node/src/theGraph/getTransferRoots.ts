@@ -1,12 +1,10 @@
 import makeRequest from './makeRequest'
-import { constants } from 'ethers'
 import { normalizeEntity } from './shared'
-import { padHex } from 'src/utils/padHex'
 
 export default async function getTransferRoots (
   chain: string,
   token: string,
-  lastId: string = constants.AddressZero
+  lastId: string = '0'
 ): Promise<any[]> {
   const query = `
     query TransferRoots($token: String, $lastId: ID) {
@@ -36,7 +34,7 @@ export default async function getTransferRoots (
   `
   const jsonRes = await makeRequest(chain, query, {
     token,
-    lastId: padHex(lastId)
+    lastId
   })
 
   let roots = jsonRes.transfersCommitteds.map((x: any) => normalizeEntity(x))

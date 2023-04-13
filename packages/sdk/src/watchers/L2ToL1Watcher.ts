@@ -25,8 +25,6 @@ class L2ToL1Watcher extends BaseWatcher {
     if (!transferHash) {
       return false
     }
-    let startBlock : number
-    let endBlock : number
     const filter = l1Bridge.filters.WithdrawalBonded()
     const handleEvent = async (...args: any[]) => {
       const event = args[args.length - 1]
@@ -50,7 +48,7 @@ class L2ToL1Watcher extends BaseWatcher {
       if (!transferId) {
         return
       }
-      const events = await getWithdrawalBondedEvents(this.destinationChain.slug, transferId)
+      const events = await getWithdrawalBondedEvents(this.network, this.destinationChain.slug, transferId)
       if (events.length) {
         const event = events[0]
         const destTx = await this.destinationChain.provider.getTransaction(event.transactionHash)
@@ -61,7 +59,7 @@ class L2ToL1Watcher extends BaseWatcher {
   }
 }
 
-async function getWithdrawalBondedEvents (chain: string, transferId: string) {
+async function getWithdrawalBondedEvents (network: string, chain: string, transferId: string) {
   const query = `
     query WithdrawalBonded($transferId: String) {
       events: withdrawalBondeds(
@@ -78,7 +76,7 @@ async function getWithdrawalBondedEvents (chain: string, transferId: string) {
     }
   `
 
-  const data = await makeRequest(chain, query, {
+  const data = await makeRequest(network, chain, query, {
     transferId
   })
 

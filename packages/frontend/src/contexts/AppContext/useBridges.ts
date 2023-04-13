@@ -14,11 +14,18 @@ const useBridges = (sdk: Hop) => {
   }, [sdk])
 
   const queryParamBridge = useMemo(
-    () => findMatchingBridge(bridges, queryParams.token as string),
-    [bridges, queryParams]
+    () => {
+      return findMatchingBridge(bridges, queryParams.token as string)
+    }, [bridges, queryParams]
   )
 
   const [selectedBridge, _setSelectedBridge] = useState<HopBridge>(queryParamBridge ?? bridges[0])
+
+  useEffect(() => {
+    if (queryParamBridge) {
+      _setSelectedBridge(queryParamBridge)
+    }
+  }, [queryParamBridge])
 
   const setSelectedBridge = (bridge: HopBridge) => {
     if (!location.pathname.startsWith('/tx')) {

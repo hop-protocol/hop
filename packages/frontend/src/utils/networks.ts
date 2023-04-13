@@ -63,7 +63,7 @@ export const networkIdToSlug = (networkId: string | number | undefined): Slug | 
     }
   }
 
-  return ''
+  return { 1: 'ethereum', 4: 'rinkeby', 5: 'goerli', 42: 'kovan' }[networkId] || ''
 }
 
 export const networkIdToName = (networkId: string | number) => {

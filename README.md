@@ -1,6 +1,6 @@
-# Hop Monorepo
+# Hop v1 Monorepo
 
-> The [Hop Protocol](https://hop.exchange/) monorepo
+> The [Hop Protocol](https://hop.exchange/) v1 monorepo
 
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
 
@@ -21,15 +21,19 @@
 
 Install dependencies & link packages
 
-    yarn install
-    yarn run bootstrap
+    npm install
+    npm run bootstrap
 
 Run frontend app in development
 
     cd packages/frontend
-    REACT_APP_NETWORK=mainnet yarn run dev
+    REACT_APP_NETWORK=mainnet npm run dev
 
 Visit [http://localhost:3000/](http://localhost:3000/)
+
+## Contributing
+
+See [./CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## License
 

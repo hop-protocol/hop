@@ -25,14 +25,6 @@ const bonders: {[network: string]: {[token: string]: Record<string, Record<strin
   goerli: goerli.bonders
 }
 
-type Bps = {
-  ethereum: number
-  polygon: number
-  gnosis: number
-  optimism: number
-  arbitrum: number
-}
-
 const bonderFeeBps: {[network: string]: {[token: string]: Record<string, number>}} = {
   mainnet: mainnet.bonderFeeBps,
   staging: staging.bonderFeeBps,
@@ -47,14 +39,45 @@ const destinationFeeGasPriceMultiplier: {[network: string]: number} = {
   goerli: goerli.destinationFeeGasPriceMultiplier
 }
 
+const relayerFeeEnabled: {[network: string]: Record<string, boolean>} = {
+  mainnet: mainnet.relayerFeeEnabled,
+  staging: staging.relayerFeeEnabled,
+  kovan: kovan.relayerFeeEnabled,
+  goerli: goerli.relayerFeeEnabled
+}
+
 const config = {
   addresses,
   chains,
   bonders,
   bonderFeeBps,
-  destinationFeeGasPriceMultiplier
+  destinationFeeGasPriceMultiplier,
+  relayerFeeEnabled
 }
 
 export { metadata, config }
 
-export const bondableChains = ['optimism', 'arbitrum']
+export const bondableChains = ['optimism', 'arbitrum', 'nova', 'zksync', 'linea', 'scrollzk', 'base']
+
+export const rateLimitMaxRetries = 3
+export const rpcTimeoutSeconds = 60
+
+export const etherscanApiKeys: Record<string, string> = {
+  ethereum: process.env.ETHERSCAN_ETHEREUM_API_KEY ?? '',
+  polygon: process.env.ETHERSCAN_POLYGON_API_KEY ?? '',
+  optimism: process.env.ETHERSCAN_OPTIMISM_API_KEY ?? '',
+  arbitrum: process.env.ETHERSCAN_ARBITRUM_API_KEY ?? '',
+  gnosis: process.env.ETHERSCAN_GNOSIS_API_KEY ?? '',
+  nova: process.env.ETHERSCAN_NOVA_API_KEY ?? ''
+}
+
+export const etherscanApiUrls: Record<string, string> = {
+  ethereum: 'https://api.etherscan.io',
+  polygon: 'https://api.polygonscan.com',
+  optimism: 'https://api-optimistic.etherscan.io',
+  arbitrum: 'https://api.arbiscan.io',
+  gnosis: 'https://api.gnosisscan.io',
+  nova: 'https://api-nova.arbiscan.io'
+}
+
+export const defaultRelayerFeeEth: string = '0.01'

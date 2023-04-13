@@ -56,12 +56,20 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
 
   // TODO: mv to useBridges or new hook (useNetworkBridges)
   const canonicalToken = useMemo(() => {
-    if (selectedNetwork?.slug) {
-      return selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+    try {
+      if (selectedNetwork?.slug) {
+        return selectedBridge?.getCanonicalToken(selectedNetwork.slug)
+      }
+    } catch (err) {
+      console.error('getCanonicalToken error:', err)
     }
   }, [selectedBridge, selectedNetwork])
   const wrappedToken = useMemo(() => {
-    return canonicalToken?.getWrappedToken()
+    try {
+      return canonicalToken?.getWrappedToken()
+    } catch (err) {
+      console.error('getWrappedToken error:', err)
+    }
   }, [canonicalToken])
 
   const signer = provider?.getSigner()
@@ -106,7 +114,9 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
       if (!selectedNetwork?.networkId) return
       const networkId = Number(selectedNetwork.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setError(null)
       setWrapping(true)
@@ -139,6 +149,10 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           },
         },
         onConfirm: async () => {
+          const isNetworkConnected = await checkConnectedNetworkId(networkId)
+          if (!isNetworkConnected) {
+            throw new Error('wrong network connected')
+          }
           return wrappedToken.connect(signer as Signer).wrapToken(parsedAmount)
         },
       })
@@ -166,7 +180,9 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
     try {
       const networkId = Number(selectedNetwork?.networkId)
       const isNetworkConnected = await checkConnectedNetworkId(networkId)
-      if (!isNetworkConnected) return
+      if (!isNetworkConnected) {
+        throw new Error('wrong network connected')
+      }
 
       setError(null)
       setUnwrapping(true)
@@ -196,6 +212,10 @@ const TokenWrapperContextProvider: FC = ({ children }) => {
           },
         },
         onConfirm: async () => {
+          const isNetworkConnected = await checkConnectedNetworkId(networkId)
+          if (!isNetworkConnected) {
+            throw new Error('wrong network connected')
+          }
           return wrappedToken.connect(signer as Signer).unwrapToken(parsedAmount)
         },
       })

@@ -26,14 +26,15 @@ export interface HopAddresses {
     stakingRewards: string
     governorAlpha: string
   }
-  tokens: Bridges
-  bonders: Bonders
+  tokens: Partial<Bridges>
+  bonders: Partial<Bonders>
 }
 
 export type Networks = {
   [key: string]: {
     networkId: number
     rpcUrl: string
+    fallbackRpcUrls: string[]
     explorerUrl: string
     nativeBridgeUrl?: string
     waitConfirmations?: number

@@ -1,20 +1,26 @@
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import { DateTime } from 'luxon'
 import { formatUnits } from 'ethers/lib/utils'
+import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-protocol/core/networks'
 
 export type Filters = {
   startDate: string
   endDate: string
   orderDesc: boolean
+  destinationChainId?: number
 }
 
-export const chainIdToSlug: any = {
-  1: 'ethereum',
-  10: 'optimism',
-  100: 'gnosis',
-  137: 'polygon',
-  42161: 'arbitrum'
+const chainIdToSlug: Record<string, string> = {}
+
+for (const network in mainnetNetworks) {
+  chainIdToSlug[(mainnetNetworks as any)[network].networkId] = network
 }
+
+for (const network in goerliNetworks) {
+  chainIdToSlug[(goerliNetworks as any)[network].networkId] = network
+}
+
+export { chainIdToSlug }
 
 export function normalizeEntity (x: any) {
   if (!x) {

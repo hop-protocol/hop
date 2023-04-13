@@ -1,46 +1,10 @@
-import { BigNumber } from 'ethers'
 import { formatUnits } from 'ethers/lib/utils'
 import { DateTime } from 'luxon'
 import Db from './Db'
-
-function nearestDate (dates: any[], target: any) {
-  if (!target) {
-    target = Date.now()
-  } else if (target instanceof Date) {
-    target = target.getTime()
-  }
-
-  var nearest = Infinity
-  var winner = -1
-
-  dates.forEach(function (date, index) {
-    if (date instanceof Date) date = date.getTime()
-    var distance = Math.abs(date - target)
-    if (distance < nearest) {
-      nearest = distance
-      winner = index
-    }
-  })
-
-  return winner
-}
-
-const tokenDecimals: any = {
-  USDC: 6,
-  USDT: 6,
-  DAI: 18,
-  MATIC: 18,
-  ETH: 18
-}
-
-function sumAmounts (items: any) {
-  let sum = BigNumber.from(0)
-  for (let item of items) {
-    const amount = BigNumber.from(item.amount)
-    sum = sum.add(amount)
-  }
-  return sum
-}
+import { PriceFeed } from './PriceFeed'
+import { queryFetch } from './utils/queryFetch'
+import { nearestDate } from './utils/nearestDate'
+import { getTokenDecimals } from './utils/getTokenDecimals'
 
 type Options = {
   regenesis?: boolean
@@ -49,11 +13,14 @@ type Options = {
 class VolumeStats {
   db = new Db()
   regenesis: boolean = false
+  priceFeed: PriceFeed
 
   constructor (options: Options = {}) {
     if (options.regenesis) {
       this.regenesis = options.regenesis
     }
+
+    this.priceFeed = new PriceFeed()
 
     process.once('uncaughtException', async err => {
       console.error('uncaughtException:', err)
@@ -80,23 +47,11 @@ class VolumeStats {
       return `http://localhost:8000/subgraphs/name/hop-protocol/hop-${chain}`
     }
 
-    return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
-  }
-
-  async queryFetch (url: string, query: string, variables?: any) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
-      body: JSON.stringify({
-        query,
-        variables: variables || {}
-      })
-    })
-    const jsonRes = await res.json()
-    return jsonRes.data
+    if (chain === 'nova') {
+      return `https://nova.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-${chain}`
+    } else {
+      return `https://api.thegraph.com/subgraphs/name/hop-protocol/hop-${chain}`
+    }
   }
 
   async fetchDailyVolume (chain: string, startDate: number) {
@@ -118,7 +73,7 @@ class VolumeStats {
       }
     `
     const url = this.getUrl(chain)
-    const data = await this.queryFetch(url, query, {
+    const data = await queryFetch(url, query, {
       startDate
     })
 
@@ -140,39 +95,22 @@ class VolumeStats {
     return items
   }
 
-  async getPriceHistory (coinId: string, days: number) {
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}&interval=daily`
-    return fetch(url)
-      .then(res => res.json())
-      .then(json =>
-        json.prices.map((data: any[]) => {
-          data[0] = Math.floor(data[0] / 1000)
-          return data
-        })
-      )
-  }
-
   async trackDailyVolume () {
     const daysN = 365
     console.log('fetching prices')
-    const pricesArr = await Promise.all([
-      this.getPriceHistory('usd-coin', daysN),
-      this.getPriceHistory('tether', daysN),
-      this.getPriceHistory('dai', daysN),
-      this.getPriceHistory('ethereum', daysN),
-      this.getPriceHistory('matic-network', daysN),
-      this.getPriceHistory('wrapped-bitcoin', daysN)
-    ])
-    console.log('done fetching prices')
 
     const prices: any = {
-      USDC: pricesArr[0],
-      USDT: pricesArr[1],
-      DAI: pricesArr[2],
-      ETH: pricesArr[3],
-      MATIC: pricesArr[4],
-      WBTC: pricesArr[5]
+      USDC: await this.priceFeed.getPriceHistory('USDC', daysN),
+      USDT: await this.priceFeed.getPriceHistory('USDT', daysN),
+      DAI: await this.priceFeed.getPriceHistory('DAI', daysN),
+      ETH: await this.priceFeed.getPriceHistory('ETH', daysN),
+      MATIC: await this.priceFeed.getPriceHistory('MATIC', daysN),
+      WBTC: await this.priceFeed.getPriceHistory('WBTC', daysN),
+      HOP: await this.priceFeed.getPriceHistory('HOP', daysN),
+      SNX: await this.priceFeed.getPriceHistory('SNX', daysN)
     }
+
+    console.log('done fetching prices')
 
     console.log('upserting prices')
     for (let token in prices) {
@@ -207,8 +145,12 @@ class VolumeStats {
           const amount = item.amount
           const timestamp = item.date
           const token = item.token
-          const decimals = tokenDecimals[token]
+          const decimals = getTokenDecimals(token)
           const formattedAmount = Number(formatUnits(amount, decimals))
+          if (!prices[token]) {
+            console.log('not found', token)
+            return
+          }
 
           const dates = prices[token].reverse().map((x: any) => x[0])
           const nearest = nearestDate(dates, timestamp)
@@ -225,6 +167,7 @@ class VolumeStats {
             )
           } catch (err) {
             if (!err.message.includes('UNIQUE constraint failed')) {
+              console.log('error', chain, item.token)
               throw err
             }
           }

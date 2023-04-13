@@ -1,6 +1,7 @@
 import MerkleTree from 'src/utils/MerkleTree'
 import makeRequest from './makeRequest'
 import { mainnet as addresses } from '@hop-protocol/core/addresses'
+import { getSortedTransferIds } from 'src/utils/getSortedTransferIds'
 import { normalizeEntity } from './shared'
 
 export default async function getTransferIdsForTransferRoot (
@@ -130,43 +131,30 @@ export default async function getTransferIdsForTransferRoot (
   })
 
   // normalize fields
-  let transferIds = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
+  const _transfers = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
+  const { sortedTransfers } = getSortedTransferIds(_transfers, startBlockNumber)
 
-  // sort by transfer id block number and index
-  transferIds = transferIds.sort((a: any, b: any) => {
-    if (a.index > b.index) return 1
-    if (a.index < b.index) return -1
-    if (a.blockNumber > b.blockNumber) return 1
-    if (a.blockNumber < b.blockNumber) return -1
-    return 0
-  })
-
-  const seen: { [key: string]: boolean } = {}
-
-  // remove any transfer id after a second index of 0,
-  // which occurs if commit transfers is triggered on a transfer sent
-  transferIds = transferIds.filter((x: any, i: number) => {
-    if (seen[x.index]) {
-      return false
-    }
-    seen[x.index] = true
-    return true
-  })
-    .filter((x: any, i: number) => {
-    // filter out any transfers ids after sequence breaks
-      return x.index === i
-    })
-
-  // filter only transfer ids for leaves
-  const leaves = transferIds.map((x: any) => {
-    return x.transferId
-  })
-
-  // verify that the computed root matches the original root hash
-  const tree = new MerkleTree(leaves)
-  if (tree.getHexRoot() !== rootHash) {
-    throw new Error('computed transfer root hash does not match')
+  const shouldLog = false
+  if (shouldLog) {
+    console.log(JSON.stringify(sortedTransfers.map((x: any) => {
+      return {
+        transferId: x.transferId,
+        transactionHash: x.transactionHash,
+        index: x.index,
+        blockNumber: x.blockNumber,
+        timestamp: x.timestamp
+      }
+    }), null, 2))
   }
 
-  return transferIds
+  const transferIds = sortedTransfers.map((x: any) => x.transferId)
+
+  // verify that the computed root matches the original root hash
+  const tree = new MerkleTree(transferIds)
+  const treeRoot = tree.getHexRoot()
+  if (treeRoot !== rootHash) {
+    throw new Error(`computed transfer root hash does not match; got: ${treeRoot}, expected: ${rootHash}`)
+  }
+
+  return sortedTransfers
 }

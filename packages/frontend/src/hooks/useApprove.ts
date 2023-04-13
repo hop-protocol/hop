@@ -6,7 +6,7 @@ import Transaction from 'src/models/Transaction'
 import { toTokenDisplay } from 'src/utils'
 import { useTransactionReplacement } from './useTransactionReplacement'
 
-const useApprove = token => {
+const useApprove = (token: any) => {
   const { provider } = useWeb3Context()
   const { txConfirm } = useApp()
   const { waitForTransaction, addTransaction } = useTransactionReplacement()
@@ -29,6 +29,7 @@ const useApprove = token => {
 
       return true
     } catch (err: any) {
+      console.error('checkApproval error:', err)
       return false
     }
   }
@@ -61,8 +62,8 @@ const useApprove = token => {
           network: {
             slug: token.chain?.slug,
             networkId: token.chain?.chainId,
-          }
-        }
+          },
+        },
       },
       onConfirm: async (approveAll: boolean) => {
         const approveAmount = approveAll ? constants.MaxUint256 : amount

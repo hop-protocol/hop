@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/core/styles'
 
-export const useSendStyles = makeStyles(theme => ({
+export const useSendStyles = makeStyles((theme: any) => ({
   header: {
     display: 'flex',
     justifyContent: 'center',
@@ -116,6 +116,9 @@ export const useSendStyles = makeStyles(theme => ({
     transition: 'all 0.15s ease-out, box-shadow 0.15s ease-out',
   },
   smartContractWalletWarning: {
+    marginTop: theme.padding.light,
+  },
+  pausedWarning: {
     marginTop: theme.padding.light,
   }
 }))

@@ -22,6 +22,6 @@ describe('Base', () => {
 
     cleanupMock(warn)
 
-    expect(p.connection.url).toBe('https://rpc.gnosischain.com/')
+    expect(base.getProviderRpcUrl(p)).toBe('https://rpc.gnosis.gateway.fm')
   })
 })

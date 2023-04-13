@@ -4,6 +4,7 @@ import { WithdrawalProof } from './WithdrawalProof'
 import { makeStyles } from '@material-ui/core/styles'
 import LargeTextField from 'src/components/LargeTextField'
 import Typography from '@material-ui/core/Typography'
+import Box from '@material-ui/core/Box'
 import Alert from 'src/components/alert/Alert'
 import { toTokenDisplay } from 'src/utils'
 import { formatError } from 'src/utils/format'
@@ -11,8 +12,10 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import Button from 'src/components/buttons/Button'
 import InfoTooltip from 'src/components/InfoTooltip'
+import useQueryParams from 'src/hooks/useQueryParams'
+import { updateQueryParams } from 'src/utils/updateQueryParams'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
     maxWidth: '680px',
     margin: '0 auto',
@@ -43,14 +46,22 @@ export const Withdraw: FC = () => {
   const styles = useStyles()
   const { sdk, networks, txConfirm } = useApp()
   const { checkConnectedNetworkId } = useWeb3Context()
+  const { queryParams } = useQueryParams()
   const [transferIdOrTxHash, setTransferIdOrTxHash] = useState<string>(() => {
-    return localStorage.getItem('withdrawTransferIdOrTxHash') || ''
+    return localStorage.getItem('withdrawTransferIdOrTxHash') || queryParams?.transferId as string || ''
   })
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
-    localStorage.setItem('withdrawTransferIdOrTxHash', transferIdOrTxHash)
+    try {
+      localStorage.setItem('withdrawTransferIdOrTxHash', transferIdOrTxHash)
+      updateQueryParams({
+        transferId: transferIdOrTxHash || ''
+      })
+    } catch (err: any) {
+      console.error(err)
+    }
   }, [transferIdOrTxHash])
 
   async function handleSubmit(event: ChangeEvent<any>) {
@@ -90,7 +101,7 @@ export const Withdraw: FC = () => {
                 const networkId = Number(wp.transfer.destinationChainId)
                 const isNetworkConnected = await checkConnectedNetworkId(networkId)
                 if (!isNetworkConnected) {
-                  return
+                  throw new Error('wrong network connected')
                 }
                 const {
                   recipient,
@@ -156,9 +167,14 @@ export const Withdraw: FC = () => {
               Transfer ID
               <InfoTooltip
                 title={
-                  'Enter the transfer ID or transaction hash of transfer to withdraw at the destination. You can use this to withdraw unbonded transfers after the transfer root has been propagated to the destination.'
+                  'Enter the transfer ID or origin transaction hash of transfer to withdraw at the destination. You can use this to withdraw unbonded transfers after the transfer root has been propagated to the destination. The transfer ID can be found in the Hop explorer.'
                 }
               />
+              <Box ml={2} display="inline-flex">
+                <Typography variant="body2" color="secondary" component="span">
+                  Enter transfer ID or origin transaction hash
+                </Typography>
+              </Box>
             </Typography>
             <LargeTextField
               value={transferIdOrTxHash}

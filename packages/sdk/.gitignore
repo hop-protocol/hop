@@ -7,6 +7,7 @@ src/package.json
 *.map
 .env
 *.env
-docs/*
+!docs/*
 !docs/README.md
 /hop.js
+.prettierrc

@@ -47,7 +47,9 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'fees',
     'routes',
     'bonders',
-    'signer'
+    'signer',
+    'vault',
+    'blocklist'
   ]
 
   const validWatcherKeys = [
@@ -56,7 +58,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Watchers.Challenge,
     Watchers.CommitTransfers,
     Watchers.SettleBondedWithdrawals,
-    Watchers.xDomainMessageRelay
+    Watchers.ConfirmRoots,
+    Watchers.L1ToL2Relay
   ]
 
   const validChainKeys = [
@@ -64,7 +67,12 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Chain.Optimism,
     Chain.Arbitrum,
     Chain.Gnosis,
-    Chain.Polygon
+    Chain.Polygon,
+    Chain.Nova,
+    Chain.ZkSync,
+    Chain.Linea,
+    Chain.ScrollZk,
+    Chain.Base
   ]
 
   const validTokenKeys = [
@@ -73,13 +81,17 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'DAI',
     'ETH',
     'MATIC',
-    'WBTC'
+    'WBTC',
+    'HOP',
+    'SNX',
+    'sUSD',
+    'rETH'
   ]
 
   const sectionKeys = Object.keys(config)
   validateKeys(validSectionKeys, sectionKeys)
 
-  const enabledChains = Object.keys(config.chains)
+  const enabledChains: string[] = Object.keys(config.chains)
   if (!enabledChains.includes(Chain.Ethereum)) {
     throw new Error(`config for chain "${Chain.Ethereum}" is required`)
   }
@@ -216,7 +228,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     }
     const tokens = Object.keys(bonders)
     validateKeys(enabledTokens, tokens)
-    for (const token in bonders) {
+    for (const token of enabledTokens) {
       if (!(bonders[token] instanceof Object)) {
         throw new Error(`bonders config for "${token}" should be an object`)
       }
@@ -230,6 +242,32 @@ export async function validateConfigFileStructure (config?: FileConfig) {
         validateKeys(enabledChains, destinationChains)
       }
     }
+  }
+
+  if (config.vault) {
+    const vaultConfig = config.vault as any
+    const vaultTokens = Object.keys(vaultConfig)
+    validateKeys(validTokenKeys, vaultTokens)
+    for (const tokenSymbol in vaultConfig) {
+      const vaultChains = Object.keys(vaultConfig[tokenSymbol])
+      validateKeys(validChainKeys, vaultChains)
+      for (const chain in vaultConfig[tokenSymbol]) {
+        const chainTokenConfig = vaultConfig[tokenSymbol][chain]
+        const validConfigKeys = ['depositThresholdAmount', 'depositAmount', 'strategy', 'autoWithdraw', 'autoDeposit']
+        const chainTokenConfigKeys = Object.keys(chainTokenConfig)
+        validateKeys(validConfigKeys, chainTokenConfigKeys)
+      }
+    }
+  }
+
+  if (config.blocklist) {
+    const blocklistConfig = config.blocklist as any
+    if (!(blocklistConfig instanceof Object)) {
+      throw new Error('blocklist config must be an object')
+    }
+    const validBlocklistKeys = ['path', 'addresses']
+    const keys = Object.keys(blocklistConfig)
+    validateKeys(validBlocklistKeys, keys)
   }
 }
 
@@ -280,10 +318,12 @@ export async function validateConfigValues (config?: Config) {
     }
   }
 
+  const enabledTokens = getEnabledTokens()
+
   if (config.commitTransfers) {
     const { minThresholdAmount } = config.commitTransfers
     if (Object.keys(minThresholdAmount).length) {
-      for (const token of getEnabledTokens()) {
+      for (const token of enabledTokens) {
         for (const sourceChain in config.routes) {
           if (sourceChain === Chain.Ethereum) {
             continue
@@ -300,7 +340,7 @@ export async function validateConfigValues (config?: Config) {
 
   if (config.bonders) {
     const bonders = config.bonders as any
-    for (const token in bonders) {
+    for (const token of enabledTokens) {
       for (const sourceChain in bonders[token]) {
         for (const destinationChain in bonders[token][sourceChain]) {
           const bonderAddress = bonders[token][sourceChain][destinationChain]
@@ -314,6 +354,40 @@ export async function validateConfigValues (config?: Config) {
           }
         }
       }
+    }
+  }
+
+  if (config.vault) {
+    const vaultConfig = config.vault as any
+    for (const tokenSymbol in vaultConfig) {
+      for (const chain in vaultConfig[tokenSymbol]) {
+        const chainTokenConfig = vaultConfig[tokenSymbol][chain]
+        if (typeof chainTokenConfig.autoDeposit !== 'boolean') {
+          throw new Error('autoDeposit should be boolean')
+        }
+        if (chainTokenConfig.autoDeposit) {
+          if (typeof chainTokenConfig.depositThresholdAmount !== 'number') {
+            throw new Error('depositThresholdAmount should be a number')
+          }
+          if (typeof chainTokenConfig.depositAmount !== 'number') {
+            throw new Error('depositAmount should be a number')
+          }
+        }
+        if (typeof chainTokenConfig.autoWithdraw !== 'boolean') {
+          throw new Error('autoWithdraw should be boolean')
+        }
+
+        const validStrategies = new Set(['yearn', 'aave'])
+        if (!validStrategies.has(chainTokenConfig.strategy)) {
+          throw new Error('strategy is invalid. Valid options are: yearn, aave')
+        }
+      }
+    }
+  }
+
+  if (config.blocklist) {
+    if (typeof config.blocklist.path !== 'string') {
+      throw new Error('blocklist.path must be a string')
     }
   }
 }

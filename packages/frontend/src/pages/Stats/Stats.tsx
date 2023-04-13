@@ -51,7 +51,7 @@ const Stats: FC = () => {
             justifyCenter
             width={['100%', '100%', 'auto']}
           >
-            <Group title="Native Token Balances" clickTitle={() => toggleGroup('balance')}>
+            <Group title="Native Token Balance" clickTitle={() => toggleGroup('balance')}>
               {groups.balance && <BalanceStats />}
             </Group>
             <Group title="Debit Window Stats" clickTitle={() => toggleGroup('debitWindow')}>

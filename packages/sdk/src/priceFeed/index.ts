@@ -1,1 +1,1 @@
-export { default as PriceFeed } from './PriceFeed'
+export { default as PriceFeed, ApiKeys } from './PriceFeed'

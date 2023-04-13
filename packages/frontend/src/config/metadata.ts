@@ -1,18 +1,5 @@
 import deepmerge from 'deepmerge'
 import * as hopMetadata from '@hop-protocol/core/metadata'
-import MainnetLogo from 'src/assets/logos/mainnet.svg'
-import ArbitrumLogo from 'src/assets/logos/arbitrum.svg'
-import OptimismLogo from 'src/assets/logos/optimism.svg'
-import GnosisLogo from 'src/assets/logos/gnosis.svg'
-import PolygonLogo from 'src/assets/logos/polygon.svg'
-import DaiLogo from 'src/assets/logos/dai.svg'
-import SynthEthLogo from 'src/assets/logos/seth.svg'
-import SynthBtcLogo from 'src/assets/logos/sbtc.svg'
-import UsdcLogo from 'src/assets/logos/usdc.svg'
-import usdtLogo from 'src/assets/logos/usdt.svg'
-import wBtcLogo from 'src/assets/logos/wbtc.svg'
-import ethLogo from 'src/assets/logos/eth.svg'
-import maticLogo from 'src/assets/logos/matic.svg'
 import { TokenSymbol, Slug } from '@hop-protocol/sdk'
 import { hopAppNetwork } from 'src/config'
 
@@ -36,75 +23,88 @@ type Metadata = {
   }
 }
 
-const images = {
-  DAI: DaiLogo,
-  ARB: ArbitrumLogo,
-  sETH: SynthEthLogo,
-  sBTC: SynthBtcLogo,
-  USDC: UsdcLogo,
-  USDT: usdtLogo,
-  WBTC: wBtcLogo,
-  ETH: ethLogo,
-  MATIC: maticLogo,
-}
-
-const tokens = Object.keys(images).reduce((obj, token) => {
-  obj[token] = deepmerge(hopMetadata[hopAppNetwork].tokens[token], {
-    image: images[token],
-  })
-  return obj
-}, {})
+const { tokens, chains } = hopMetadata[hopAppNetwork]
 
 export const metadata: Metadata = {
   tokens,
   networks: {
     ethereum: {
-      name: 'Ethereum',
+      name: chains.ethereum.name,
       isLayer1: true,
-      image: MainnetLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.ethereum.image,
+      nativeTokenSymbol: chains.ethereum.nativeTokenSymbol,
     },
     kovan: {
       name: 'Kovan',
       isLayer1: true,
-      image: MainnetLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.ethereum.image,
+      nativeTokenSymbol: chains.ethereum.nativeTokenSymbol,
     },
     goerli: {
       name: 'Goerli',
       isLayer1: true,
-      image: MainnetLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.ethereum.image,
+      nativeTokenSymbol: chains.ethereum.nativeTokenSymbol,
     },
     mainnet: {
-      name: 'Mainnet',
+      name: chains.ethereum.name,
       isLayer1: true,
-      image: MainnetLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.ethereum.image,
+      nativeTokenSymbol: chains.ethereum.nativeTokenSymbol,
     },
     arbitrum: {
-      name: 'Arbitrum',
+      name: chains.arbitrum.name,
       isLayer1: false,
-      image: ArbitrumLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.arbitrum.image,
+      nativeTokenSymbol: chains.arbitrum.nativeTokenSymbol,
     },
     optimism: {
-      name: 'Optimism',
+      name: chains.optimism.name,
       isLayer1: false,
-      image: OptimismLogo,
-      nativeTokenSymbol: 'ETH',
+      image: chains.optimism.image,
+      nativeTokenSymbol: chains.optimism.nativeTokenSymbol,
     },
     gnosis: {
-      name: 'Gnosis',
+      name: chains.gnosis.name,
       isLayer1: false,
-      image: GnosisLogo,
-      nativeTokenSymbol: 'xDAI',
+      image: chains.gnosis.image,
+      nativeTokenSymbol: chains.gnosis.nativeTokenSymbol,
     },
     polygon: {
-      name: 'Polygon',
+      name: chains.polygon.name,
       isLayer1: false,
-      image: PolygonLogo,
-      nativeTokenSymbol: 'MATIC',
+      image: chains.polygon.image,
+      nativeTokenSymbol: chains.polygon.nativeTokenSymbol,
+    },
+    nova: {
+      name: chains.nova.name,
+      isLayer1: false,
+      image: chains.nova.image,
+      nativeTokenSymbol: chains.nova.nativeTokenSymbol,
+    },
+    zksync: {
+      name: chains.zksync.name,
+      isLayer1: false,
+      image: chains.zksync.image,
+      nativeTokenSymbol: chains.zksync.nativeTokenSymbol,
+    },
+    linea: {
+      name: chains.linea.name,
+      isLayer1: false,
+      image: chains.linea.image,
+      nativeTokenSymbol: chains.linea.nativeTokenSymbol,
+    },
+    scrollzk: {
+      name: chains.scrollzk.name,
+      isLayer1: false,
+      image: chains.scrollzk.image,
+      nativeTokenSymbol: chains.scrollzk.nativeTokenSymbol,
+    },
+    base: {
+      name: chains.base.name,
+      isLayer1: false,
+      image: chains.base.image,
+      nativeTokenSymbol: chains.base.nativeTokenSymbol,
     },
   },
 }

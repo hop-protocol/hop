@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "engines": {
-    "node": ">=16"
+    "node": ">=14"
   },
   "scripts": {
     "start": "ts-node src/index.ts",

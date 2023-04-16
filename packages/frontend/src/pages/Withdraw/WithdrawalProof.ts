@@ -4,6 +4,7 @@ import { networkIdToSlug } from 'src/utils/networks'
 import { getTokenDecimals } from 'src/utils/tokens'
 import { getUrl } from 'src/utils/queries'
 import { reactAppNetwork } from 'src/config'
+import { ChainsWithSubgraphs } from 'src/utils/constants'
 
 class MerkleTree extends MerkleTreeLib {
   constructor (leaves: string[]) {
@@ -215,11 +216,9 @@ export class WithdrawalProof {
   }
 
   private async findTransfer (transferId: string) {
-    let chainsWithSubgraphs: string[]
-    if (reactAppNetwork === 'goerli') {
-      chainsWithSubgraphs = ['polygon', 'optimism', 'linea', 'base']
-    } else {
-      chainsWithSubgraphs = ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova']
+    const chainsWithSubgraphs: string[] = ChainsWithSubgraphs[reactAppNetwork]
+    if (!chainsWithSubgraphs) {
+      throw new Error('Expected chains with subgraphs for network: ' + reactAppNetwork)
     }
     let transfer : Transfer
     for (const chain of chainsWithSubgraphs) {

@@ -3,6 +3,7 @@ import { keccak256 } from 'ethereumjs-util'
 import { networkIdToSlug } from 'src/utils/networks'
 import { getTokenDecimals } from 'src/utils/tokens'
 import { getUrl } from 'src/utils/queries'
+import { reactAppNetwork } from 'src/config'
 
 class MerkleTree extends MerkleTreeLib {
   constructor (leaves: string[]) {
@@ -214,9 +215,14 @@ export class WithdrawalProof {
   }
 
   private async findTransfer (transferId: string) {
-    const chains = ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova'] // chain slugs that have subgraphs
+    let chainsWithSubgraphs: string[]
+    if (reactAppNetwork === 'goerli') {
+      chainsWithSubgraphs = ['polygon', 'optimism', 'linea', 'base']
+    } else {
+      chainsWithSubgraphs = ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova']
+    }
     let transfer : Transfer
-    for (const chain of chains) {
+    for (const chain of chainsWithSubgraphs) {
       transfer = await this.queryTransfer(transferId, chain)
       if (transfer) {
         break
@@ -224,7 +230,7 @@ export class WithdrawalProof {
     }
 
     if (!transfer) {
-      for (const chain of chains) {
+      for (const chain of chainsWithSubgraphs) {
         transfer = await this.queryTransferByTransactionHash(transferId, chain)
         if (transfer) {
           break

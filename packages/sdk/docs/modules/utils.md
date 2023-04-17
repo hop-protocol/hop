@@ -2,12 +2,24 @@
 
 ## Table of contents
 
+### Classes
+
+- [WithdrawalProof](../classes/utils.WithdrawalProof.md)
+
+### Variables
+
+- [ChainsWithSubgraphs](utils.md#chainswithsubgraphs)
+
 ### Functions
 
+- [chainIdToSlug](utils.md#chainidtoslug)
 - [getBlockNumberFromDate](utils.md#getblocknumberfromdate)
+- [getBlockNumberFromDateUsingEtherscan](utils.md#getblocknumberfromdateusingetherscan)
+- [getBlockNumberFromDateUsingLib](utils.md#getblocknumberfromdateusinglib)
 - [getChainSlugFromName](utils.md#getchainslugfromname)
 - [getProviderFromUrl](utils.md#getproviderfromurl)
 - [getProviderWithFallbacks](utils.md#getproviderwithfallbacks)
+- [getTokenDecimals](utils.md#gettokendecimals)
 - [getUrlFromProvider](utils.md#geturlfromprovider)
 - [promiseTimeout](utils.md#promisetimeout)
 - [rateLimitRetry](utils.md#ratelimitretry)
@@ -15,7 +27,30 @@
 - [shiftBNDecimals](utils.md#shiftbndecimals)
 - [wait](utils.md#wait)
 
+## Variables
+
+### <a id="chainswithsubgraphs" name="chainswithsubgraphs"></a> ChainsWithSubgraphs
+
+• `Const` **ChainsWithSubgraphs**: `Record`<`string`, `string`[]\>
+
 ## Functions
+
+### <a id="chainidtoslug" name="chainidtoslug"></a> chainIdToSlug
+
+▸ **chainIdToSlug**(`network`, `chainId`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `network` | `string` |
+| `chainId` | `string` \| `number` |
+
+#### Returns
+
+`string`
+
+___
 
 ### <a id="getblocknumberfromdate" name="getblocknumberfromdate"></a> getBlockNumberFromDate
 
@@ -26,6 +61,40 @@
 | Name | Type |
 | :------ | :------ |
 | `chain` | [`Chain`](../classes/Chain.md) |
+| `timestamp` | `number` |
+
+#### Returns
+
+`Promise`<`number`\>
+
+___
+
+### <a id="getblocknumberfromdateusingetherscan" name="getblocknumberfromdateusingetherscan"></a> getBlockNumberFromDateUsingEtherscan
+
+▸ **getBlockNumberFromDateUsingEtherscan**(`chain`, `timestamp`): `Promise`<`number`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chain` | `string` |
+| `timestamp` | `number` |
+
+#### Returns
+
+`Promise`<`number`\>
+
+___
+
+### <a id="getblocknumberfromdateusinglib" name="getblocknumberfromdateusinglib"></a> getBlockNumberFromDateUsingLib
+
+▸ **getBlockNumberFromDateUsingLib**(`provider`, `timestamp`): `Promise`<`number`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `provider` | `any` |
 | `timestamp` | `number` |
 
 #### Returns
@@ -75,6 +144,22 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `rpcUrls` | `string`[] |
+
+#### Returns
+
+`any`
+
+___
+
+### <a id="gettokendecimals" name="gettokendecimals"></a> getTokenDecimals
+
+▸ **getTokenDecimals**(`tokenSymbol`): `any`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `tokenSymbol` | `string` |
 
 #### Returns
 

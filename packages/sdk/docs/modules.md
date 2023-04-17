@@ -2,6 +2,10 @@
 
 ## Table of contents
 
+### References
+
+- [WithdrawalProof](modules.md#withdrawalproof)
+
 ### Namespaces
 
 - [eventTopics](modules/eventTopics.md)
@@ -26,6 +30,7 @@
 - [FallbackProvider](classes/FallbackProvider.md)
 - [Hop](classes/Hop.md)
 - [HopBridge](classes/HopBridge.md)
+- [PriceFeed](classes/PriceFeed.md)
 - [RelayerFee](classes/RelayerFee.md)
 - [RetryProvider](classes/RetryProvider.md)
 - [Route](classes/Route.md)
@@ -42,6 +47,12 @@
 - [TTimeSlot](modules.md#ttimeslot)
 - [TToken](modules.md#ttoken)
 - [TokenSymbol](modules.md#tokensymbol)
+
+## References
+
+### <a id="withdrawalproof" name="withdrawalproof"></a> WithdrawalProof
+
+Re-exports [WithdrawalProof](classes/utils.WithdrawalProof.md)
 
 ## Type Aliases
 

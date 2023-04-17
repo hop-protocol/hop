@@ -32,6 +32,7 @@ import {
   TokenSymbol
 } from './constants'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
+import { WithdrawalProof } from './utils/WithdrawalProof'
 import { bondableChains, metadata } from './config'
 import { getAddress as checksumAddress, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 
@@ -2495,7 +2496,7 @@ class HopBridge extends Base {
   }
 
   async withdraw (
-    chain: Chain,
+    chain: TChain,
     recipient: string,
     amount: BigNumberish,
     transferNonce: string,
@@ -2509,7 +2510,41 @@ class HopBridge extends Base {
     totalLeaves: number
   ) {
     chain = this.toChainModel(chain)
-    const txOptions = [
+    await this.checkConnectedChain(this.signer, chain)
+    const populatedTx = await this.populateWithdrawTx(
+      chain,
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      transferRootHash,
+      rootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves
+    )
+    return this.sendTransaction(populatedTx, chain)
+  }
+
+  async populateWithdrawTx (
+    chain: TChain,
+    recipient: string,
+    amount: BigNumberish,
+    transferNonce: string,
+    bonderFee: BigNumberish,
+    amountOutMin: BigNumberish,
+    deadline: number,
+    transferRootHash: string,
+    rootTotalAmount: BigNumberish,
+    transferIdTreeIndex: number,
+    siblings: string[],
+    totalLeaves: number
+  ) {
+    chain = this.toChainModel(chain)
+    const txOptions = await this.txOverrides(chain)
+    const args = [
       recipient,
       amount,
       transferNonce,
@@ -2521,12 +2556,52 @@ class HopBridge extends Base {
       transferIdTreeIndex,
       siblings,
       totalLeaves,
-      await this.txOverrides(chain)
+      txOptions
     ] as const
 
-    await this.checkConnectedChain(this.signer, chain)
     const bridge = await this.getBridgeContract(chain)
-    return bridge.withdraw(...txOptions)
+    return bridge.populateTransaction.withdraw(...args)
+  }
+
+  async populateWithdrawTransferTx (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string) {
+    sourceChain = this.toChainModel(sourceChain)
+    const wp = new WithdrawalProof(this.network, transferIdOrTransactionHash)
+    await wp.generateProof()
+    await wp.checkWithdrawable()
+    const {
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      transferRootHash,
+      rootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves
+    } = wp.getTxPayload()
+    return this.populateWithdrawTx(
+      wp.transfer.destinationChain,
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      transferRootHash!,
+      rootTotalAmount!,
+      transferIdTreeIndex!,
+      siblings!,
+      totalLeaves!
+    )
+  }
+
+  async withdrawTransfer (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    const populatedTx = await this.populateWithdrawTransferTx(sourceChain, destinationChain, transferIdOrTransactionHash)
+    return this.sendTransaction(populatedTx, destinationChain)
   }
 
   setPriceFeedApiKeys (apiKeys: ApiKeys = {}): void {

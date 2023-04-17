@@ -107,6 +107,14 @@ export type CommitTransfersConfig = {
 }
 type Tokens = Record<string, boolean>
 
+export type SignerType = 'keystore' | 'kms'
+
+export type SignerConfig = {
+  type: SignerType
+  keyId?: string
+  awsRegion?: string
+}
+
 export type VaultChainTokenConfig = {
   depositThresholdAmount: number
   depositAmount: number
@@ -141,6 +149,7 @@ export type Config = {
   commitTransfers: CommitTransfersConfig
   fees: Fees
   routes: Routes
+  signerConfig: SignerConfig
   vault: Vault
   blocklist: BlocklistConfig
 }
@@ -240,6 +249,9 @@ export const config: Config = {
   },
   commitTransfers: {
     minThresholdAmount: {}
+  },
+  signerConfig: {
+    type: 'keystore'
   },
   vault: {},
   blocklist: {
@@ -361,6 +373,10 @@ export const setCommitTransfersConfig = (commitTransfers: CommitTransfersConfig)
 
 export const setConfigTokens = (tokens: Tokens) => {
   config.tokens = { ...config.tokens, ...tokens }
+}
+
+export const setSignerConfig = (signerConfig: SignerConfig) => {
+  config.signerConfig = { ...config.signerConfig, ...signerConfig }
 }
 
 export const setVaultConfig = (vault: Vault) => {

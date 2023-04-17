@@ -47,6 +47,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'fees',
     'routes',
     'bonders',
+    'signer',
     'vault',
     'blocklist'
   ]

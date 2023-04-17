@@ -577,7 +577,7 @@ export class WithdrawalProof {
     // which occurs if commit transfers is triggered on a transfer sent
     transferIds = transferIds.filter((x: any, i: number) => {
       if (seen[x.index]) {
-        if (x.index > 100 && x.blockNumber > seen[x.index].blockNumber && x.blockNumber > startBlockNumber) {
+        if (x.blockNumber > seen[x.index].blockNumber && x.blockNumber > startBlockNumber) {
           replace[x.index] = x
         }
         return false
@@ -591,8 +591,13 @@ export class WithdrawalProof {
       return x.index === i
     })
 
+    const firstBlockNumber = transferIds[0]?.blockNumber
+
     for (const i in replace) {
-      transferIds[i] = replace[i]
+      const idx = i as any
+      if (idx > 100 || firstBlockNumber > transferIds[idx].blockNumber) {
+        transferIds[idx] = replace[i]
+      }
     }
 
     // filter only transfer ids for leaves

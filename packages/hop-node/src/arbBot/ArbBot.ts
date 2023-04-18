@@ -7,7 +7,7 @@ import getTransferRoot from 'src/theGraph/getTransferRoot'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import lineaAbi from './lineaAbi'
 import wethAbi from './wethAbi'
-import { BigNumber, Contract, Wallet, providers } from 'ethers'
+import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
 import { Logger } from 'src/logger'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
@@ -308,7 +308,23 @@ export class ArbBot {
     const deadline = this.getDeadline()
     const hTokenIndex = 1
 
+    const lpToken = this.bridge.getSaddleLpToken(this.l2ChainSlug)
+    const amm = this.bridge.getAmm(this.l2ChainSlug)
+    const saddleSwap = await amm.getSaddleSwap()
+    const spender = saddleSwap.address
+    const allowance = await lpToken.allowance(spender)
+    if (allowance.lt(lpBalance)) {
+      if (this.dryMode) {
+        this.logger.log('skipping amm withdraw approval tx, dryMode: true')
+      } else {
+        const tx = await lpToken.approve(spender, constants.MaxUint256)
+        this.logger.log('amm withdraw approval tx:', tx.hash)
+        await tx.wait(this.waitConfirmations)
+      }
+    }
+
     if (this.dryMode) {
+      this.logger.log('skipping amm remove liquidity tx, dryMode: true')
       return
     }
 
@@ -345,6 +361,20 @@ export class ArbBot {
     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
     const isHTokenTransfer = true
+    const needsApproval = await this.bridge.needsHTokenApproval(amount, this.l2ChainSlug, recipient)
+    if (needsApproval) {
+      this.logger.log('needs approval')
+
+      if (this.dryMode) {
+        this.logger.log('skipping send hTokens approval tx, dryMode: true')
+      } else {
+        const tx = await this.bridge
+          .connect(this.ammSigner.connect(this.l2ChainWriteProvider))
+          .sendApproval(amount, this.l2ChainSlug, this.l1ChainSlug, isHTokenTransfer)
+        await tx.wait(this.waitConfirmations)
+      }
+    }
+
     const sendData = await this.bridge.getSendData(amount, this.l2ChainSlug, this.l1ChainSlug, isHTokenTransfer)
     const bonderFee = sendData.totalFee
     const deadline = 0
@@ -352,6 +382,7 @@ export class ArbBot {
     // const { amountOutMin } = this.bridge.getSendDataAmountOutMins(sendData, this.slippageTolerance)
 
     if (this.dryMode) {
+      this.logger.log('skipping send hTokens tx, dryMode: true')
       return
     }
 
@@ -376,6 +407,7 @@ export class ArbBot {
       const l2Bridge = new L2Bridge(l2BridgeContract)
 
       if (this.dryMode) {
+        this.logger.log('skipping commitTransfers tx, dryMode: true')
         return
       }
 
@@ -420,6 +452,7 @@ export class ArbBot {
     }
 
     if (this.dryMode) {
+      this.logger.log('skipping bondTransferRoot tx, dryMode: true')
       return
     }
 
@@ -484,6 +517,7 @@ export class ArbBot {
     } = getWithdrawalProofData(transferId, transferRoot)
 
     if (this.dryMode) {
+      this.logger.log('skipping withdraw tx, dryMode: true')
       return
     }
 
@@ -549,6 +583,7 @@ export class ArbBot {
     const txOptions = await this.txOverrides(this.l1ChainSlug)
 
     if (this.dryMode) {
+      this.logger.log('skipping canonical send tx, dryMode: true')
       return
     }
 
@@ -602,6 +637,7 @@ export class ArbBot {
     const txOptions = await this.txOverrides(this.l2ChainSlug)
 
     if (this.dryMode) {
+      this.logger.log('skipping weth deposit tx, dryMode: true')
       return
     }
 
@@ -663,7 +699,27 @@ export class ArbBot {
     const minToMint = this.bridge.calcAmountOutMin(amount, this.slippageTolerance)
     const deadline = this.getDeadline()
 
+    const amm = this.bridge.getAmm(this.l2ChainSlug)
+    const saddleSwap = await amm.getSaddleSwap()
+    const spender = saddleSwap.address
+    let token = this.bridge.getCanonicalToken(this.l2ChainSlug)
+    if (token.isNativeToken) {
+      token = token.getWrappedToken()
+    }
+
+    const allowance = await token.allowance(spender)
+    if (allowance.lt(amount0Desired)) {
+      if (this.dryMode) {
+        this.logger.log('skipping amm deposit approval tx, dryMode: true')
+      } else {
+        const tx = await token.approve(spender)
+        this.logger.log('amm deposit approval tx:', tx.hash)
+        await tx.wait(this.waitConfirmations)
+      }
+    }
+
     if (this.dryMode) {
+      this.logger.log('skipping amm add liquidity tx, dryMode: true')
       return
     }
 

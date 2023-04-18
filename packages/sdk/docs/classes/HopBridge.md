@@ -165,6 +165,7 @@ HopBridge
 - [getUnbondedTransferRootAmount](HopBridge.md#getunbondedtransferrootamount)
 - [getVaultBalance](HopBridge.md#getvaultbalance)
 - [getWaitConfirmations](HopBridge.md#getwaitconfirmations)
+- [getWithdrawProof](HopBridge.md#getwithdrawproof)
 - [isDestinationChainPaused](HopBridge.md#isdestinationchainpaused)
 - [isNativeToken](HopBridge.md#isnativetoken)
 - [isSupportedAsset](HopBridge.md#issupportedasset)
@@ -2664,6 +2665,24 @@ ___
 #### Inherited from
 
 [Base](Base.md).[getWaitConfirmations](Base.md#getwaitconfirmations)
+
+___
+
+### <a id="getwithdrawproof" name="getwithdrawproof"></a> getWithdrawProof
+
+▸ **getWithdrawProof**(`sourceChain`, `destinationChain`, `transferIdOrTransactionHash`): `Promise`<`string`[]\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
+| `transferIdOrTransactionHash` | `string` |
+
+#### Returns
+
+`Promise`<`string`[]\>
 
 ___
 

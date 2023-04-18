@@ -2604,6 +2604,12 @@ class HopBridge extends Base {
     return this.sendTransaction(populatedTx, destinationChain)
   }
 
+  async getWithdrawProof (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string) {
+    sourceChain = this.toChainModel(sourceChain)
+    const wp = new WithdrawalProof(this.network, transferIdOrTransactionHash)
+    return wp.generateProof()
+  }
+
   setPriceFeedApiKeys (apiKeys: ApiKeys = {}): void {
     this.priceFeedApiKeys = apiKeys
     this.priceFeed.setApiKeys(this.priceFeedApiKeys)

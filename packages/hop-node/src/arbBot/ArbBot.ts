@@ -12,6 +12,7 @@ import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
 import { Logger } from 'src/logger'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
+import { getUnwithdrawnTransfers } from 'src/theGraph/getUnwithdrawnTransfers'
 import { getWithdrawalProofData } from 'src/cli/shared'
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 import { parseEther, parseUnits } from 'ethers/lib/utils'
@@ -168,6 +169,7 @@ export class ArbBot {
       try {
         await this.pollAmmWithdraw()
         await this.pollAmmDeposit()
+        await this.pollUnwithdrawnTransfers()
       } catch (err: any) {
         this.logger.error('ArbBot error:', err)
       }
@@ -176,6 +178,23 @@ export class ArbBot {
       this.logger.log(`waiting for next poll ${this.pollIntervalMs / 1000}s`)
       await wait(this.pollIntervalMs)
     }
+  }
+
+  async pollUnwithdrawnTransfers () {
+    this.logger.log('pollUnwithdrawnTransfers()')
+    await wait(60 * 1000) // wait for theGraph to sync
+    const account = await this.ammSigner.getAddress()
+    const unwithdrawnTransfers = await getUnwithdrawnTransfers(this.network, this.l2ChainSlug, this.l1ChainSlug, this.tokenSymbol, { account })
+
+    this.logger.info('unwithdrawnTransfers count:', unwithdrawnTransfers.length)
+
+    for (const transfer of unwithdrawnTransfers) {
+      const tx = await this.withdrawTransferOnL1(transfer.transactionHash)
+      this.logger.info('l1 withdraw tx:', tx?.hash)
+      await tx?.wait(this.waitConfirmations)
+    }
+
+    this.logger.log('pollUnwithdrawnTransfers() end')
   }
 
   async pollAmmWithdraw () {
@@ -287,7 +306,7 @@ export class ArbBot {
 
     if (lpBalance.lt(this.amount)) {
       this.logger.log('user lp balance < amount')
-      return
+      return false
     }
 
     const diff = hTokenBalance - canonicalTokenBalance

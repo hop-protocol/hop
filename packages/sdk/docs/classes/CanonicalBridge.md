@@ -85,6 +85,7 @@ CanonicalBridge
 - [getIpfsBaseConfigUrl](CanonicalBridge.md#getipfsbaseconfigurl)
 - [getL1AmbBridgeAddress](CanonicalBridge.md#getl1ambbridgeaddress)
 - [getL1BridgeAddress](CanonicalBridge.md#getl1bridgeaddress)
+- [getL1BridgeWrapperAddress](CanonicalBridge.md#getl1bridgewrapperaddress)
 - [getL1CanonicalBridge](CanonicalBridge.md#getl1canonicalbridge)
 - [getL1CanonicalBridgeAddress](CanonicalBridge.md#getl1canonicalbridgeaddress)
 - [getL1CanonicalTokenAddress](CanonicalBridge.md#getl1canonicaltokenaddress)
@@ -113,7 +114,6 @@ CanonicalBridge
 - [getTransferStatus](CanonicalBridge.md#gettransferstatus)
 - [getWaitConfirmations](CanonicalBridge.md#getwaitconfirmations)
 - [getWithdrawApprovalAddress](CanonicalBridge.md#getwithdrawapprovaladdress)
-- [init](CanonicalBridge.md#init)
 - [isValidChain](CanonicalBridge.md#isvalidchain)
 - [isValidNetwork](CanonicalBridge.md#isvalidnetwork)
 - [resolveDnslink](CanonicalBridge.md#resolvednslink)
@@ -1129,6 +1129,28 @@ ___
 
 ___
 
+### <a id="getl1bridgewrapperaddress" name="getl1bridgewrapperaddress"></a> getL1BridgeWrapperAddress
+
+▸ **getL1BridgeWrapperAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+[Base](Base.md).[getL1BridgeWrapperAddress](Base.md#getl1bridgewrapperaddress)
+
+___
+
 ### <a id="getl1canonicalbridge" name="getl1canonicalbridge"></a> getL1CanonicalBridge
 
 ▸ **getL1CanonicalBridge**(): `Promise`<`any`\>
@@ -1655,20 +1677,6 @@ ___
 #### Returns
 
 `string`
-
-___
-
-### <a id="init" name="init"></a> init
-
-▸ **init**(): `Promise`<`void`\>
-
-#### Returns
-
-`Promise`<`void`\>
-
-#### Inherited from
-
-[Base](Base.md).[init](Base.md#init)
 
 ___
 

@@ -6,9 +6,9 @@
 
 - [Arbitrum](ChainSlug.md#arbitrum)
 - [Base](ChainSlug.md#base)
-- [ConsenSysZk](ChainSlug.md#consensyszk)
 - [Ethereum](ChainSlug.md#ethereum)
 - [Gnosis](ChainSlug.md#gnosis)
+- [Linea](ChainSlug.md#linea)
 - [Nova](ChainSlug.md#nova)
 - [Optimism](ChainSlug.md#optimism)
 - [Polygon](ChainSlug.md#polygon)
@@ -29,12 +29,6 @@ ___
 
 ___
 
-### <a id="consensyszk" name="consensyszk"></a> ConsenSysZk
-
-• **ConsenSysZk** = ``"consensyszk"``
-
-___
-
 ### <a id="ethereum" name="ethereum"></a> Ethereum
 
 • **Ethereum** = ``"ethereum"``
@@ -44,6 +38,12 @@ ___
 ### <a id="gnosis" name="gnosis"></a> Gnosis
 
 • **Gnosis** = ``"gnosis"``
+
+___
+
+### <a id="linea" name="linea"></a> Linea
+
+• **Linea** = ``"linea"``
 
 ___
 

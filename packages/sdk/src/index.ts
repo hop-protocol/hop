@@ -7,6 +7,7 @@ export { default as Token } from './Token'
 export { default as Base } from './Base'
 export { PriceFeed } from './priceFeed/PriceFeed'
 export * as utils from './utils'
+export { WithdrawalProof } from './utils/WithdrawalProof'
 
 export { Chain } from './models'
 export { RelayerFee } from './relayerFee'

@@ -939,7 +939,7 @@ describe.skip('PriceFeed', () => {
       console.log('MATIC', price)
       expect(price).toBeGreaterThan(0)
     })
-    it.only('HOP', async () => {
+    it('HOP', async () => {
       const priceFeed = new CoinGecko()
       const price = await priceFeed.getPriceByTokenSymbol('HOP')
       console.log('HOP', price)
@@ -1540,4 +1540,27 @@ describe.skip('ipfs', () => {
     expect(json).toBeTruthy()
     expect(json.ETH).toBeTruthy()
   })
+})
+
+describe.skip('WithdrawalProof', () => {
+  it('should get populated withdrawal tx', async () => {
+    const sourceChain = 'optimism'
+    const destinationChain = 'ethereum'
+    const transferId = '0xbc24dd151ced6ad0d725c753b513a2164e669868faeebea8224dd0b92e751df7'
+    const sdk = new Hop('mainnet')
+    const bridge = sdk.bridge('ETH')
+    const txData = await bridge.populateWithdrawTransferTx(sourceChain, destinationChain, transferId)
+    console.log(txData)
+    expect(txData).toBeTruthy()
+  }, 10 * 1000)
+  it('should get withdrawal proof', async () => {
+    const sourceChain = 'optimism'
+    const destinationChain = 'ethereum'
+    const transferId = '0xbc24dd151ced6ad0d725c753b513a2164e669868faeebea8224dd0b92e751df7'
+    const sdk = new Hop('mainnet')
+    const bridge = sdk.bridge('ETH')
+    const proof = await bridge.getWithdrawProof(sourceChain, destinationChain, transferId)
+    console.log(proof)
+    expect(proof).toBeTruthy()
+  }, 10 * 1000)
 })

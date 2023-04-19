@@ -265,8 +265,11 @@ export class ArbBot {
         return
       }
     } else {
-      // TODO
-      throw new Error('pollAmmDeposit not implemented for non-ETH tokens')
+      const tokenBalance = await this.getTokenBalance(this.l2ChainSlug)
+      if (tokenBalance.eq(0)) {
+        this.logger.log('no token balance')
+        return
+      }
     }
 
     const shouldDeposit = await this.checkAmmShouldDeposit()
@@ -570,9 +573,17 @@ export class ArbBot {
       const shouldSend = ethBalance.gte(amount)
       return shouldSend
     } else {
-      // TODO
-      throw new Error('checkShouldSendTokensToL2 not implemented for non-ETH tokens')
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      const shouldSend = tokenBalance.gte(amount)
+      return shouldSend
     }
+  }
+
+  async getTokenBalance (chain: string) {
+    const recipient = await this.ammSigner.getAddress()
+    const token = this.bridge.getCanonicalToken(chain)
+    const balance = await token.balanceOf(recipient)
+    return balance
   }
 
   async l1CanonicalBridgeSendToL2 () {
@@ -600,8 +611,12 @@ export class ArbBot {
         amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
       }
     } else {
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
       // TODO
-      throw new Error('depositAmmCanonicalTokens not implemented for non-ETH tokens')
+      throw new Error('lineal1CanonicalBridgeSendToL2 not implemented for tokens')
     }
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
@@ -625,7 +640,7 @@ export class ArbBot {
 
     return messenger.dispatchMessage(recipient, fee, deadline, calldata, {
       ...txOptions,
-      value: amount
+      value: this.tokenSymbol === 'ETH' ? amount : 0
     })
   }
 
@@ -640,8 +655,7 @@ export class ArbBot {
         amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
       }
     } else {
-      // TODO
-      throw new Error('depositAmmCanonicalTokens not implemented for non-ETH tokens')
+      amount = await this.getTokenBalance(this.l1ChainSlug)
     }
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
@@ -654,7 +668,7 @@ export class ArbBot {
 
     return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
       to: l1NativeBridgeAddress,
-      value: amount
+      value: this.tokenSymbol === 'ETH' ? amount : 0
     })
   }
 
@@ -734,8 +748,10 @@ export class ArbBot {
         amount = l2WethBalance
       }
     } else {
-      // TODO
-      throw new Error('depositAmmCanonicalTokens not implemented for non-ETH tokens')
+      const tokenBalance = await this.getTokenBalance(this.l2ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
     }
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
@@ -808,8 +824,10 @@ export class ArbBot {
       this.logger.log('eth balance:', this.bridge.formatUnits(ethBalance))
       return arrived
     } else {
-      // TODO
-      throw new Error('checkCanonicalBridgeTokensArriveOnL2 not implemented for non-ETH tokens')
+      const tokenBalance = await this.getTokenBalance(this.l2ChainSlug)
+      const arrived = tokenBalance.gte(this.amount)
+      this.logger.log('token balance:', this.bridge.formatUnits(tokenBalance))
+      return arrived
     }
   }
 

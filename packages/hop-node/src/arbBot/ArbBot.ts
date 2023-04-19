@@ -10,12 +10,12 @@ import wethAbi from './wethAbi'
 import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
 import { Logger } from 'src/logger'
+import { defaultAbiCoder, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
 import { getUnwithdrawnTransfers } from 'src/theGraph/getUnwithdrawnTransfers'
 import { getWithdrawalProofData } from 'src/cli/shared'
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils/wait'
 
 export type Options = {
@@ -610,38 +610,82 @@ export class ArbBot {
       if (amount.lt(ethBalance)) {
         amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
       }
-    } else {
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(0)) {
+        throw new Error('expected amount to be greater than 0')
+      }
+
+      const l1MessengerAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
+      const fee = this.bridge.parseUnits('0.01')
+      const deadline = this.getDeadline()
+      const calldata = '0x'
+
+      const messenger = new Contract(l1MessengerAddress, lineaAbi, this.ammSigner.connect(this.l1ChainProvider))
+      const txOptions = await this.txOverrides(this.l1ChainSlug)
+
+      if (this.dryMode) {
+        this.logger.log('skipping canonical send tx, dryMode: true')
+        return
+      }
+
+      return messenger.dispatchMessage(recipient, fee, deadline, calldata, {
+        ...txOptions,
+        value: this.tokenSymbol === 'ETH' ? amount : 0
+      })
+    } else if (this.tokenSymbol === 'USDC') {
       const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
       if (amount.lt(tokenBalance)) {
         amount = tokenBalance
       }
-      // TODO
-      throw new Error('lineal1CanonicalBridgeSendToL2 not implemented for tokens')
+
+      const deadlineSeconds = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60)
+      const method = '0xf0634c82000000000000000000000000'
+      const address = recipient.replace('0x', '').toLowerCase()
+      const fee = BigNumber.from('0x2aa1efb94dffff')
+      const feeHex = defaultAbiCoder.encode(['uint256'], [fee]).replace('0x', '')
+      const deadline = defaultAbiCoder.encode(['uint256'], [deadlineSeconds]).replace('0x', '')
+      const amountHex = defaultAbiCoder.encode(['uint256'], [amount]).replace('0x', '')
+      const data = `${method}${address}${feeHex}${deadline}${amountHex}`
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(0)) {
+        throw new Error('expected amount to be greater than 0')
+      }
+
+      const tokenWrapper = '0x73feE82ba7f6B98D27BCDc2bEFc1d3f6597fb02D'
+      const txOptions = await this.txOverrides(this.l1ChainSlug)
+
+      const spender = tokenWrapper
+      const token = this.bridge.getCanonicalToken(this.l2ChainSlug)
+
+      const allowance = await token.allowance(spender)
+      if (allowance.lt(amount)) {
+        if (this.dryMode) {
+          this.logger.log('lineal1CanonicalBridgeSendToL2 approval tx, dryMode: true')
+        } else {
+          const tx = await token.approve(spender)
+          this.logger.log('lineal1CanonicalBridgeSendToL2 approval tx:', tx.hash)
+          await tx.wait(this.waitConfirmations)
+        }
+      }
+
+      if (this.dryMode) {
+        this.logger.log('skipping canonical send tx, dryMode: true')
+        return
+      }
+
+      return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
+        ...txOptions,
+        value: fee,
+        to: tokenWrapper,
+        data
+      })
+    } else {
+      throw new Error('lineal1CanonicalBridgeSendToL2 token not supported')
     }
-
-    this.logger.log('amount:', this.bridge.formatUnits(amount))
-
-    if (amount.lte(0)) {
-      throw new Error('expected amount to be greater than 0')
-    }
-
-    const l1MessengerAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
-    const fee = this.bridge.parseUnits('0.01')
-    const deadline = this.getDeadline()
-    const calldata = '0x'
-
-    const messenger = new Contract(l1MessengerAddress, lineaAbi, this.ammSigner.connect(this.l1ChainProvider))
-    const txOptions = await this.txOverrides(this.l1ChainSlug)
-
-    if (this.dryMode) {
-      this.logger.log('skipping canonical send tx, dryMode: true')
-      return
-    }
-
-    return messenger.dispatchMessage(recipient, fee, deadline, calldata, {
-      ...txOptions,
-      value: this.tokenSymbol === 'ETH' ? amount : 0
-    })
   }
 
   async basel1CanonicalBridgeSendToL2 () {

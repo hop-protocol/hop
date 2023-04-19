@@ -1217,6 +1217,9 @@ const Index: NextPage = (props: any) => {
                   if (x.bondTimestamp) {
                     x.localBondTimestampIso = luxon.DateTime.fromSeconds(x.bondTimestamp).toLocal().toISO()
                   }
+                  if (x.deadline && x.bondTimestamp && x.receivedHTokens) {
+                    x.deadlineExpiredSeconds = x.bondTimestamp - x.deadline
+                  }
                   return (
                     <TableRow key={index}>
                       <TableCell>
@@ -1355,7 +1358,7 @@ const Index: NextPage = (props: any) => {
                             </Tooltip>
                               )}
                               {x.receivedHTokens && (
-                                <Tooltip title={<Box>Received h{x.token}<br />Go to the <Link href={x.convertHTokenUrl} target="_blank" rel="noreferrer noopener">Hop Convert Page</Link></Box>}>
+                                <Tooltip title={<Box>Received h{x.token}.<br />h{x.token} can be swapped for {x.token} on the <Link href={x.convertHTokenUrl} target="_blank" rel="noreferrer noopener">Hop Convert Page ↗</Link><br /><br />Parameters used:<br /><small>Deadline: {x.deadline}<br />AmountOutMin: {x.amountOutMinFormatted || x.amountOutMin}<br /><br />{x.deadline < x.bondTimestamp ? <>AMM swap failed due to expired deadline so user received h{x.token}. Deadline expired {x.deadlineExpiredSeconds} seconds before AMM swap.</> : <>AMM swap failed due to amountOutMin being too low so user received h{x.token}. Use a slightly higher slippage percentage for AMM swap to succeed next time.</>}</small></Box>}>
                                   <span style={{ cursor: 'help' }}> ⚠️</span>
                                 </Tooltip>
                               )}
@@ -1363,7 +1366,7 @@ const Index: NextPage = (props: any) => {
                           )}
                           {(x.unbondable && !x.bonded) ?
                             <span className="unbondable">
-                              <Tooltip title={<Box>This transfer is unbondable because of invalid parameters, therefore bonder will not process it.<br />This transfer can be manually withdrawn at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page</Link>.</Box>}>
+                              <Tooltip title={<Box>This transfer is unbondable because of invalid parameters, therefore bonder will not process it.<br />Your funds are safe.<br />This transfer can be manually withdrawn at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page ↗</Link>.<br /><br />Parameters used:<br /><small>Deadline: {x.deadline}<br />AmountOutMin: {x.amountOutMinFormatted || x.amountOutMin}</small>{x.destinationChainSlug === 'ethereum' ? <><br /><br /><small>These parameters should be 0 when sending to Ethereum, otherwise transfer will be invalid.</small></> : ''}</Box>}>
                                 <span>⚠️ Unbondable</span>
                               </Tooltip>
                               {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
@@ -1373,13 +1376,13 @@ const Index: NextPage = (props: any) => {
                               )}
                             </span>
                           : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
-                              <Tooltip title={<Box>This transaction is still waiting to be bonded or received at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page</Link>.</Box>}</Box>}>
+                              <Tooltip title={<Box>This transaction is still waiting to be bonded or received at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>Your funds are safe. If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page ↗</Link>.</Box>}</Box>}>
                               <span className="no">
                                 <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                                 <span>Pending</span>
                                 {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
                                   <Box ml={2}>
-                                  <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw</Link>
+                                  <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw ↗</Link>
                                   </Box>
                                 )}
                               </span>

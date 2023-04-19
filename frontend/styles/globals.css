@@ -337,6 +337,10 @@ label[for] {
   margin-top: 1rem;
 }
 
+.MuiTooltip-popper a {
+  color: #f74af1;
+}
+
 ::-webkit-scrollbar {
   height: 8px;
   width: 8px;

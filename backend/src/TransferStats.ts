@@ -660,7 +660,7 @@ export class TransferStats {
 
       return
     }
-    const items = await this.getRemainingData(data)
+    const items = await this.getRemainingData(data, { refetch: true })
 
     for (const item of items) {
       try {
@@ -987,10 +987,11 @@ export class TransferStats {
     return data
   }
 
-  async getRemainingData (data: any[]) {
+  async getRemainingData (data: any[], options: any): Promise<any[]> {
     if (!data.length) {
       return []
     }
+    const refetch = options?.refetch
     data = data.sort((a, b) => b.timestamp - a.timestamp)
     let startTime = data.length ? data[data.length - 1].timestamp : 0
     let endTime = data.length ? data[0].timestamp : 0
@@ -1200,7 +1201,7 @@ export class TransferStats {
       x.unbondable = isUnbondable
 
       if (this.shouldCheckReceivedHTokens) {
-        if (typeof x.receivedHTokens !== 'boolean') {
+        if (typeof x.receivedHTokens !== 'boolean' || refetch) {
           x.receivedHTokens = await this.getReceivedHtokens(x)
         }
       }

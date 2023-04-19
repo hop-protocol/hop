@@ -153,7 +153,6 @@ export async function main (source: any) {
     totalAdjustedHToken = totalAdjustedHToken.add(adjustedHTokens[chain])
   }
 
-
   const tokenChainBalanceDiff = adjustedToken.sub(totalAdjustedChainBalance)
   const chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
 

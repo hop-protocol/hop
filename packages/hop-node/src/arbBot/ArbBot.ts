@@ -7,14 +7,15 @@ import getTransferRoot from 'src/theGraph/getTransferRoot'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import lineaAbi from './lineaAbi'
 import wethAbi from './wethAbi'
-import { BigNumber, Contract, Wallet, providers } from 'ethers'
+import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
 import { Logger } from 'src/logger'
+import { defaultAbiCoder, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
+import { getUnwithdrawnTransfers } from 'src/theGraph/getUnwithdrawnTransfers'
 import { getWithdrawalProofData } from 'src/cli/shared'
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
-import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { wait } from 'src/utils/wait'
 
 export type Options = {
@@ -168,6 +169,7 @@ export class ArbBot {
       try {
         await this.pollAmmWithdraw()
         await this.pollAmmDeposit()
+        await this.pollUnwithdrawnTransfers()
       } catch (err: any) {
         this.logger.error('ArbBot error:', err)
       }
@@ -176,6 +178,23 @@ export class ArbBot {
       this.logger.log(`waiting for next poll ${this.pollIntervalMs / 1000}s`)
       await wait(this.pollIntervalMs)
     }
+  }
+
+  async pollUnwithdrawnTransfers () {
+    this.logger.log('pollUnwithdrawnTransfers()')
+    await wait(60 * 1000) // wait for theGraph to sync
+    const account = await this.ammSigner.getAddress()
+    const unwithdrawnTransfers = await getUnwithdrawnTransfers(this.network, this.l2ChainSlug, this.l1ChainSlug, this.tokenSymbol, { account })
+
+    this.logger.info('unwithdrawnTransfers count:', unwithdrawnTransfers.length)
+
+    for (const transfer of unwithdrawnTransfers) {
+      const tx = await this.withdrawTransferOnL1(transfer.transactionHash)
+      this.logger.info('l1 withdraw tx:', tx?.hash)
+      await tx?.wait(this.waitConfirmations)
+    }
+
+    this.logger.log('pollUnwithdrawnTransfers() end')
   }
 
   async pollAmmWithdraw () {
@@ -239,11 +258,20 @@ export class ArbBot {
     }
 
     this.logger.log('amm deposit loop poll')
-    const l2WethBalance = await this.getL2WethBalance()
-    if (l2WethBalance.eq(0)) {
-      this.logger.log('no weth balance')
-      return
+    if (this.tokenSymbol === 'ETH') {
+      const l2WethBalance = await this.getL2WethBalance()
+      if (l2WethBalance.eq(0)) {
+        this.logger.log('no weth balance')
+        return
+      }
+    } else {
+      const tokenBalance = await this.getTokenBalance(this.l2ChainSlug)
+      if (tokenBalance.eq(0)) {
+        this.logger.log('no token balance')
+        return
+      }
     }
+
     const shouldDeposit = await this.checkAmmShouldDeposit()
     if (!shouldDeposit) {
       this.logger.log('should not deposit yet')
@@ -281,7 +309,7 @@ export class ArbBot {
 
     if (lpBalance.lt(this.amount)) {
       this.logger.log('user lp balance < amount')
-      return
+      return false
     }
 
     const diff = hTokenBalance - canonicalTokenBalance
@@ -308,7 +336,23 @@ export class ArbBot {
     const deadline = this.getDeadline()
     const hTokenIndex = 1
 
+    const lpToken = this.bridge.getSaddleLpToken(this.l2ChainSlug)
+    const amm = this.bridge.getAmm(this.l2ChainSlug)
+    const saddleSwap = await amm.getSaddleSwap()
+    const spender = saddleSwap.address
+    const allowance = await lpToken.allowance(spender)
+    if (allowance.lt(lpBalance)) {
+      if (this.dryMode) {
+        this.logger.log('skipping amm withdraw approval tx, dryMode: true')
+      } else {
+        const tx = await lpToken.approve(spender, constants.MaxUint256)
+        this.logger.log('amm withdraw approval tx:', tx.hash)
+        await tx.wait(this.waitConfirmations)
+      }
+    }
+
     if (this.dryMode) {
+      this.logger.log('skipping amm remove liquidity tx, dryMode: true')
       return
     }
 
@@ -345,6 +389,20 @@ export class ArbBot {
     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
     const isHTokenTransfer = true
+    const needsApproval = await this.bridge.needsHTokenApproval(amount, this.l2ChainSlug, recipient)
+    if (needsApproval) {
+      this.logger.log('needs approval')
+
+      if (this.dryMode) {
+        this.logger.log('skipping send hTokens approval tx, dryMode: true')
+      } else {
+        const tx = await this.bridge
+          .connect(this.ammSigner.connect(this.l2ChainWriteProvider))
+          .sendApproval(amount, this.l2ChainSlug, this.l1ChainSlug, isHTokenTransfer)
+        await tx.wait(this.waitConfirmations)
+      }
+    }
+
     const sendData = await this.bridge.getSendData(amount, this.l2ChainSlug, this.l1ChainSlug, isHTokenTransfer)
     const bonderFee = sendData.totalFee
     const deadline = 0
@@ -352,6 +410,7 @@ export class ArbBot {
     // const { amountOutMin } = this.bridge.getSendDataAmountOutMins(sendData, this.slippageTolerance)
 
     if (this.dryMode) {
+      this.logger.log('skipping send hTokens tx, dryMode: true')
       return
     }
 
@@ -376,6 +435,7 @@ export class ArbBot {
       const l2Bridge = new L2Bridge(l2BridgeContract)
 
       if (this.dryMode) {
+        this.logger.log('skipping commitTransfers tx, dryMode: true')
         return
       }
 
@@ -420,6 +480,7 @@ export class ArbBot {
     }
 
     if (this.dryMode) {
+      this.logger.log('skipping bondTransferRoot tx, dryMode: true')
       return
     }
 
@@ -484,6 +545,7 @@ export class ArbBot {
     } = getWithdrawalProofData(transferId, transferRoot)
 
     if (this.dryMode) {
+      this.logger.log('skipping withdraw tx, dryMode: true')
       return
     }
 
@@ -506,9 +568,22 @@ export class ArbBot {
     this.logger.log('checkShouldSendTokensToL2()')
     const recipient = await this.ammSigner.getAddress()
     const amount = this.amount
-    const ethBalance = await this.l1ChainProvider.getBalance(recipient)
-    const shouldSend = ethBalance.gte(amount)
-    return shouldSend
+    if (this.tokenSymbol === 'ETH') {
+      const ethBalance = await this.l1ChainProvider.getBalance(recipient)
+      const shouldSend = ethBalance.gte(amount)
+      return shouldSend
+    } else {
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      const shouldSend = tokenBalance.gte(amount)
+      return shouldSend
+    }
+  }
+
+  async getTokenBalance (chain: string) {
+    const recipient = await this.ammSigner.getAddress()
+    const token = this.bridge.getCanonicalToken(chain)
+    const balance = await token.balanceOf(recipient)
+    return balance
   }
 
   async l1CanonicalBridgeSendToL2 () {
@@ -529,42 +604,102 @@ export class ArbBot {
     let amount = this.amount
 
     const recipient = await this.ammSigner.getAddress()
-    const ethBalance = await this.l1ChainProvider.getBalance(recipient)
-    if (amount.lt(ethBalance)) {
-      amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
+
+    if (this.tokenSymbol === 'ETH') {
+      const ethBalance = await this.l1ChainProvider.getBalance(recipient)
+      if (amount.lt(ethBalance)) {
+        amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
+      }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(0)) {
+        throw new Error('expected amount to be greater than 0')
+      }
+
+      const l1MessengerAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
+      const fee = this.bridge.parseUnits('0.01')
+      const deadline = this.getDeadline()
+      const calldata = '0x'
+
+      const messenger = new Contract(l1MessengerAddress, lineaAbi, this.ammSigner.connect(this.l1ChainProvider))
+      const txOptions = await this.txOverrides(this.l1ChainSlug)
+
+      if (this.dryMode) {
+        this.logger.log('skipping canonical send tx, dryMode: true')
+        return
+      }
+
+      return messenger.dispatchMessage(recipient, fee, deadline, calldata, {
+        ...txOptions,
+        value: this.tokenSymbol === 'ETH' ? amount : 0
+      })
+    } else if (this.tokenSymbol === 'USDC') {
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
+
+      const deadlineSeconds = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60)
+      const method = '0xf0634c82000000000000000000000000'
+      const address = recipient.replace('0x', '').toLowerCase()
+      const fee = BigNumber.from('0x2aa1efb94dffff')
+      const feeHex = defaultAbiCoder.encode(['uint256'], [fee]).replace('0x', '')
+      const deadline = defaultAbiCoder.encode(['uint256'], [deadlineSeconds]).replace('0x', '')
+      const amountHex = defaultAbiCoder.encode(['uint256'], [amount]).replace('0x', '')
+      const data = `${method}${address}${feeHex}${deadline}${amountHex}`
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(0)) {
+        throw new Error('expected amount to be greater than 0')
+      }
+
+      const tokenWrapper = '0x73feE82ba7f6B98D27BCDc2bEFc1d3f6597fb02D'
+      const txOptions = await this.txOverrides(this.l1ChainSlug)
+
+      const spender = tokenWrapper
+      const token = this.bridge.getCanonicalToken(this.l2ChainSlug)
+
+      const allowance = await token.allowance(spender)
+      if (allowance.lt(amount)) {
+        if (this.dryMode) {
+          this.logger.log('lineal1CanonicalBridgeSendToL2 approval tx, dryMode: true')
+        } else {
+          const tx = await token.approve(spender)
+          this.logger.log('lineal1CanonicalBridgeSendToL2 approval tx:', tx.hash)
+          await tx.wait(this.waitConfirmations)
+        }
+      }
+
+      if (this.dryMode) {
+        this.logger.log('skipping canonical send tx, dryMode: true')
+        return
+      }
+
+      return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
+        ...txOptions,
+        value: fee,
+        to: tokenWrapper,
+        data
+      })
+    } else {
+      throw new Error('lineal1CanonicalBridgeSendToL2 token not supported')
     }
-
-    this.logger.log('amount:', this.bridge.formatUnits(amount))
-
-    if (amount.lte(0)) {
-      throw new Error('expected amount to be greater than 0')
-    }
-
-    const l1MessengerAddress = '0xe87d317eb8dcc9afe24d9f63d6c760e52bc18a40'
-    const fee = this.bridge.parseUnits('0.01')
-    const deadline = this.getDeadline()
-    const calldata = '0x'
-
-    const messenger = new Contract(l1MessengerAddress, lineaAbi, this.ammSigner.connect(this.l1ChainProvider))
-    const txOptions = await this.txOverrides(this.l1ChainSlug)
-
-    if (this.dryMode) {
-      return
-    }
-
-    return messenger.dispatchMessage(recipient, fee, deadline, calldata, {
-      ...txOptions,
-      value: amount
-    })
   }
 
   async basel1CanonicalBridgeSendToL2 () {
     let amount = this.amount
 
     const recipient = await this.ammSigner.getAddress()
-    const ethBalance = await this.l1ChainProvider.getBalance(recipient)
-    if (amount.lt(ethBalance)) {
-      amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
+
+    if (this.tokenSymbol === 'ETH') {
+      const ethBalance = await this.l1ChainProvider.getBalance(recipient)
+      if (amount.lt(ethBalance)) {
+        amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
+      }
+    } else {
+      amount = await this.getTokenBalance(this.l1ChainSlug)
     }
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
@@ -577,7 +712,7 @@ export class ArbBot {
 
     return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
       to: l1NativeBridgeAddress,
-      value: amount
+      value: this.tokenSymbol === 'ETH' ? amount : 0
     })
   }
 
@@ -602,6 +737,7 @@ export class ArbBot {
     const txOptions = await this.txOverrides(this.l2ChainSlug)
 
     if (this.dryMode) {
+      this.logger.log('skipping weth deposit tx, dryMode: true')
       return
     }
 
@@ -650,9 +786,16 @@ export class ArbBot {
     this.logger.log('depositAmmCanonicalTokens()')
     let amount = this.bridge.parseUnits(this.ammDepositThresholdAmount)
 
-    const l2WethBalance = await this.getL2WethBalance()
-    if (l2WethBalance.lt(amount)) {
-      amount = l2WethBalance
+    if (this.tokenSymbol === 'ETH') {
+      const l2WethBalance = await this.getL2WethBalance()
+      if (l2WethBalance.lt(amount)) {
+        amount = l2WethBalance
+      }
+    } else {
+      const tokenBalance = await this.getTokenBalance(this.l2ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
     }
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
@@ -663,7 +806,27 @@ export class ArbBot {
     const minToMint = this.bridge.calcAmountOutMin(amount, this.slippageTolerance)
     const deadline = this.getDeadline()
 
+    const amm = this.bridge.getAmm(this.l2ChainSlug)
+    const saddleSwap = await amm.getSaddleSwap()
+    const spender = saddleSwap.address
+    let token = this.bridge.getCanonicalToken(this.l2ChainSlug)
+    if (token.isNativeToken) {
+      token = token.getWrappedToken()
+    }
+
+    const allowance = await token.allowance(spender)
+    if (allowance.lt(amount0Desired)) {
+      if (this.dryMode) {
+        this.logger.log('skipping amm deposit approval tx, dryMode: true')
+      } else {
+        const tx = await token.approve(spender)
+        this.logger.log('amm deposit approval tx:', tx.hash)
+        await tx.wait(this.waitConfirmations)
+      }
+    }
+
     if (this.dryMode) {
+      this.logger.log('skipping amm add liquidity tx, dryMode: true')
       return
     }
 
@@ -699,10 +862,17 @@ export class ArbBot {
 
   async checkCanonicalBridgeTokensArriveOnL2 () {
     const recipient = await this.ammSigner.getAddress()
-    const ethBalance = await this.l2ChainProvider.getBalance(recipient)
-    const arrived = ethBalance.gte(this.amount.sub(parseEther('1')))
-    this.logger.log('eth balance:', this.bridge.formatUnits(ethBalance))
-    return arrived
+    if (this.tokenSymbol === 'ETH') {
+      const ethBalance = await this.l2ChainProvider.getBalance(recipient)
+      const arrived = ethBalance.gte(this.amount.sub(parseEther('1')))
+      this.logger.log('eth balance:', this.bridge.formatUnits(ethBalance))
+      return arrived
+    } else {
+      const tokenBalance = await this.getTokenBalance(this.l2ChainSlug)
+      const arrived = tokenBalance.gte(this.amount)
+      this.logger.log('token balance:', this.bridge.formatUnits(tokenBalance))
+      return arrived
+    }
   }
 
   async getBumpedGasPrice (provider: providers.Provider, percent: number): Promise<BigNumber> {

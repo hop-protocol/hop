@@ -16,9 +16,9 @@
 - [slug](Chain.md#slug)
 - [Arbitrum](Chain.md#arbitrum)
 - [Base](Chain.md#base)
-- [ConsenSysZk](Chain.md#consensyszk)
 - [Ethereum](Chain.md#ethereum)
 - [Gnosis](Chain.md#gnosis)
+- [Linea](Chain.md#linea)
 - [Nova](Chain.md#nova)
 - [Optimism](Chain.md#optimism)
 - [Polygon](Chain.md#polygon)
@@ -98,12 +98,6 @@ ___
 
 ___
 
-### <a id="consensyszk" name="consensyszk"></a> ConsenSysZk
-
-▪ `Static` **ConsenSysZk**: [`Chain`](Chain.md)
-
-___
-
 ### <a id="ethereum" name="ethereum"></a> Ethereum
 
 ▪ `Static` **Ethereum**: [`Chain`](Chain.md)
@@ -113,6 +107,12 @@ ___
 ### <a id="gnosis" name="gnosis"></a> Gnosis
 
 ▪ `Static` **Gnosis**: [`Chain`](Chain.md)
+
+___
+
+### <a id="linea" name="linea"></a> Linea
+
+▪ `Static` **Linea**: [`Chain`](Chain.md)
 
 ___
 

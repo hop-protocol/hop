@@ -49,7 +49,3 @@ export const RelayableChains: string[] = [
 ]
 
 export const stableCoins = new Set(['USDC', 'USDT', 'DAI', 'sUSD'])
-export const ChainsWithSubgraphs: Record<string, string[]> = {
-  mainnet: ['polygon', 'xdai', 'arbitrum', 'optimism', 'nova'],
-  goerli: ['polygon', 'optimism', 'linea', 'base'],
-}

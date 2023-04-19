@@ -85,6 +85,7 @@ Hop
 - [getIpfsBaseConfigUrl](Hop.md#getipfsbaseconfigurl)
 - [getL1AmbBridgeAddress](Hop.md#getl1ambbridgeaddress)
 - [getL1BridgeAddress](Hop.md#getl1bridgeaddress)
+- [getL1BridgeWrapperAddress](Hop.md#getl1bridgewrapperaddress)
 - [getL1CanonicalBridgeAddress](Hop.md#getl1canonicalbridgeaddress)
 - [getL1CanonicalTokenAddress](Hop.md#getl1canonicaltokenaddress)
 - [getL1PosErc20PredicateAddress](Hop.md#getl1poserc20predicateaddress)
@@ -108,7 +109,6 @@ Hop
 - [getSupportedTokens](Hop.md#getsupportedtokens)
 - [getTransferStatus](Hop.md#gettransferstatus)
 - [getWaitConfirmations](Hop.md#getwaitconfirmations)
-- [init](Hop.md#init)
 - [isValidChain](Hop.md#isvalidchain)
 - [isValidNetwork](Hop.md#isvalidnetwork)
 - [resolveDnslink](Hop.md#resolvednslink)
@@ -1110,6 +1110,28 @@ ___
 
 ___
 
+### <a id="getl1bridgewrapperaddress" name="getl1bridgewrapperaddress"></a> getL1BridgeWrapperAddress
+
+▸ **getL1BridgeWrapperAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+[Base](Base.md).[getL1BridgeWrapperAddress](Base.md#getl1bridgewrapperaddress)
+
+___
+
 ### <a id="getl1canonicalbridgeaddress" name="getl1canonicalbridgeaddress"></a> getL1CanonicalBridgeAddress
 
 ▸ **getL1CanonicalBridgeAddress**(`token`, `chain`): `string`
@@ -1574,20 +1596,6 @@ ___
 #### Inherited from
 
 [Base](Base.md).[getWaitConfirmations](Base.md#getwaitconfirmations)
-
-___
-
-### <a id="init" name="init"></a> init
-
-▸ **init**(): `Promise`<`void`\>
-
-#### Returns
-
-`Promise`<`void`\>
-
-#### Inherited from
-
-[Base](Base.md).[init](Base.md#init)
 
 ___
 

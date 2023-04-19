@@ -258,6 +258,9 @@ const queryTransfers = async (params: any) => {
       filtered['startDate'] = defaultStartDate
     }
   }
+  if (queryParams.refresh) {
+    filtered['refresh'] = true
+  }
   const serializedParams = new URLSearchParams(filtered).toString()
   const url = `${apiBaseUrl}/v1/transfers?${serializedParams}`
   const res = await fetch(url)
@@ -722,7 +725,8 @@ function useData () {
       endTimestamp: null,
       page: null,
       sortBy: null,
-      sortDirection: null
+      sortDirection: null,
+      refresh: null
     })
   }
 
@@ -1345,13 +1349,13 @@ const Index: NextPage = (props: any) => {
                             </Tooltip>
                               )}
                               {x.receivedHTokens && (
-                                <Tooltip title={<Box>Received h${x.token}<br />Go to the <Link href={x.convertHTokenUrl} target="_blank" rel="noreferrer noopener">Hop Convert Page</Link></Box>}>
+                                <Tooltip title={<Box>Received h{x.token}<br />Go to the <Link href={x.convertHTokenUrl} target="_blank" rel="noreferrer noopener">Hop Convert Page</Link></Box>}>
                                   <span style={{ cursor: 'help' }}> ⚠️</span>
                                 </Tooltip>
                               )}
                           </Link>
                           )}
-                          {x.unbondable ?
+                          {(x.unbondable && !x.bonded) ?
                             <span className="unbondable">
                               <Tooltip title={<Box>This transfer is unbondable because of invalid parameters, therefore bonder will not process it.<br />This transfer can be manually withdrawn at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page</Link>.</Box>}>
                                 <span>⚠️ Unbondable</span>

@@ -25,6 +25,7 @@ import {
   fetchTransferEventsByTransferIds
 } from './theGraph'
 import { getPreRegenesisBondEvent, bridgeAbi } from './preregenesis'
+import { populateData } from './populateData'
 
 console.log('rpcUrls:', rpcUrls)
 
@@ -43,6 +44,8 @@ export class TransferStats {
   offsetDays = 0
   ready = false
   cache: any = {}
+  shouldCheckIntegrationPartner = true
+  shouldCheckReceivedHTokens = true
 
   constructor (options: Options = {}) {
     if (options.days) {
@@ -150,8 +153,9 @@ export class TransferStats {
           sortDirection: 'desc',
           bonded: false
         })
+        const transfers = items.map(populateData)
 
-        const allIds = items.filter((x: any) => x.sourceChainSlug !== 'ethereum').map((x: any) => x.transferId)
+        const allIds = transfers.filter((x: any) => x.sourceChainSlug !== 'ethereum').map((x: any) => x.transferId)
         const [
           gnosisTransfers,
           polygonTransfers,
@@ -229,7 +233,7 @@ export class TransferStats {
       if (typeof cached === 'boolean') {
         return cached
       }
-      const { bondTransactionHash, token, sourceChainSlug, destinationChainSlug, receivedHTokens } = item
+      const { bondTransactionHash, token, destinationChainSlug, receivedHTokens } = item
       if (
         !bondTransactionHash ||
         !destinationChainSlug ||
@@ -249,7 +253,7 @@ export class TransferStats {
       const receipt = await this.getTransactionReceipt(provider, bondTransactionHash)
       const transferTopic = '0xddf252ad'
 
-      if (sourceChainSlug === 'ethereum') {
+      if (destinationChainSlug !== 'ethereum') {
         for (const log of receipt.logs) {
           const topic = log.topics[0]
           if (topic.startsWith(transferTopic)) {
@@ -288,6 +292,7 @@ export class TransferStats {
           perPage,
           page,
           receivedHTokens: null,
+          bonded: true,
           startTimestamp,
           endTimestamp,
           sortBy: 'timestamp',
@@ -306,8 +311,9 @@ export class TransferStats {
           continue
         }
 
+        const transfers = items.map(populateData)
         const chunkSize = 10
-        const allChunks = chunk(items, chunkSize)
+        const allChunks = chunk(transfers, chunkSize)
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (item: any) => {
             if (
@@ -424,8 +430,9 @@ export class TransferStats {
           continue
         }
 
+        const transfers = items.map(populateData)
         const chunkSize = 10
-        const allChunks = chunk(items, chunkSize)
+        const allChunks = chunk(transfers, chunkSize)
         for (const chunks of allChunks) {
           await Promise.all(chunks.map(async (item: any) => {
             if (
@@ -467,15 +474,19 @@ export class TransferStats {
     }
 
     console.log('done upserting prices')
-    await Promise.all([
-      // this.trackReceivedHTokenStatus(),
-      // this.trackReceivedAmountStatus(),
+    const promises = [
+      this.trackReceivedHTokenStatus(),
+      this.checkForReorgs(),
+      // this.trackReceivedAmountStatus(), // needs to be fixed
+      /*
       this.trackRecentTransfers({ lookbackHours: 1, pollIntervalMs: 60 * 1000 }),
       this.trackRecentTransfers({ lookbackHours: 4, pollIntervalMs: 60 * 60 * 1000 }),
       this.trackRecentTransferBonds({ lookbackMinutes: 20, pollIntervalMs: 60 * 1000 }),
       this.trackRecentTransferBonds({ lookbackMinutes: 120, pollIntervalMs: 10 * 60 * 1000 }),
-      this.checkForReorgs()
-    ])
+      */
+      this.trackDailyTransfers({ days: this.days, offsetDays: this.offsetDays })
+    ]
+    await Promise.all(promises)
   }
 
   async trackRecentTransfers ({ lookbackHours, pollIntervalMs }: { lookbackHours: number, pollIntervalMs: number }) {
@@ -548,14 +559,20 @@ export class TransferStats {
     }
   }
 
-  async trackDailyTransfers () {
+  async trackDailyTransfers (options: any) {
     await this.tilReady()
+    const { days, offsetDays } = options
+    if (days <= 1 && offsetDays === 0) {
+      return
+    }
     while (true) {
       try {
-        console.log('tracking daily transfers')
-        const now = DateTime.now().toUTC()
-        const startDate = now.toFormat('yyyy-MM-dd')
-        await this.updateTransferDataForDay(startDate)
+        console.log('tracking daily transfers for days', days)
+        for (let i = 0; i < days; i++) {
+          const now = DateTime.now().toUTC()
+          const startDate = now.minus({ days: i + offsetDays }).toFormat('yyyy-MM-dd')
+          await this.updateTransferDataForDay(startDate)
+        }
       } catch (err) {
         console.error(err)
       }
@@ -625,7 +642,8 @@ export class TransferStats {
 
       // if subgraph transfer data is not found but db item is found,
       // then fetch state from chain an update db item accordingly.
-      const _items = await this.db.getTransfers({ transferId })
+      let _items = await this.db.getTransfers({ transferId })
+      _items = _items?.map(populateData)
       const _item = _items?.[0]
       if (_item?.transactionHash && !_item?.bonded) {
         const onchainData = await TransferStats.getTransferStatusForTxHash(_item?.transactionHash)
@@ -745,13 +763,14 @@ export class TransferStats {
   }
 
   async getTransfersForDay (filterDate: string) {
-    const endDate = DateTime.fromFormat(filterDate, 'yyyy-MM-dd').toUTC().plus({ days: 1 }).endOf('day')
-    const startTime = Math.floor(endDate.minus({ days: this.days }).startOf('day').toSeconds())
+    const endDate = DateTime.fromFormat(filterDate, 'yyyy-MM-dd').toUTC().endOf('day')
+    const startTime = Math.floor(endDate.startOf('day').toSeconds())
     const endTime = Math.floor(endDate.toSeconds())
     return this.getTransfersBetweenDates(startTime, endTime)
   }
 
   async getTransferEventsBetweenDates (startTime: number, endTime: number) {
+    console.log('querying fetchTransfers')
     const [
       gnosisTransfers,
       polygonTransfers,
@@ -989,6 +1008,7 @@ export class TransferStats {
     const transferIds = data.map(x => x.transferId)
     const filterTransferIds = transferIds
 
+    console.log('querying fetchTransferBonds')
     const [
       gnosisBondedWithdrawals,
       polygonBondedWithdrawals,
@@ -1009,6 +1029,7 @@ export class TransferStats {
       enabledChains.includes('ethereum') ? fetchTransferBonds('ethereum', filterTransferIds) : Promise.resolve([])
     ])
 
+    console.log('querying fetchWithdrews')
     const [
       gnosisWithdrews,
       polygonWithdrews,
@@ -1029,6 +1050,7 @@ export class TransferStats {
       enabledChains.includes('ethereum') ? fetchWithdrews('ethereum', filterTransferIds) : Promise.resolve([])
     ])
 
+    console.log('querying fetchTransferFromL1Completeds')
     const [
       gnosisFromL1Completeds,
       polygonFromL1Completeds,
@@ -1144,7 +1166,9 @@ export class TransferStats {
       }
     }
 
-    if (data.length > 0) {
+    console.log('items to populate', data.length)
+    console.log('checking getIntegrationPartner for items')
+    if (data.length > 0 && this.shouldCheckIntegrationPartner) {
       for (const item of data) {
         const _data = await this.getIntegrationPartner(item)
         if (_data) {
@@ -1158,6 +1182,7 @@ export class TransferStats {
       }
     }
 
+    console.log('checking getReceivedHtokens for items')
     const populatedData = data
       .filter(x => enabledTokens.includes(x.token))
       .filter(x => x.destinationChain && x.transferId)
@@ -1176,12 +1201,15 @@ export class TransferStats {
       const isUnbondable = (x.destinationChainSlug === 'ethereum' && (x.deadline > 0 || BigNumber.from(x.amountOutMin || 0).gt(0)))
       x.unbondable = isUnbondable
 
-      if (typeof x.receivedHTokens !== 'boolean') {
-        x.receivedHTokens = await this.getReceivedHtokens(x)
+      if (this.shouldCheckReceivedHTokens) {
+        if (typeof x.receivedHTokens !== 'boolean') {
+          x.receivedHTokens = await this.getReceivedHtokens(x)
+        }
       }
     }
 
-    return populatedData
+    console.log('returning getRemainingData')
+    return populatedData.map(populateData)
   }
 
   async getIntegrationPartner (item: any) {
@@ -1279,7 +1307,7 @@ export class TransferStats {
     const events = await this.getTransferEventsBetweenDates(startTime, endTime)
     let data = await this.normalizeTransferEvents(events)
     data = await this.getRemainingData(data)
-    console.log('done', data.length)
+    console.log('getTransfersBetweenDates done', data.length)
     return data
   }
 

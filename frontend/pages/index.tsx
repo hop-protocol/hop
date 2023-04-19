@@ -1211,6 +1211,12 @@ const Index: NextPage = (props: any) => {
                   if (x.recipientAddress && x.accountAddress) {
                     x.isDifferentRecipient = x.recipientAddress !== x.accountAddress
                   }
+                  if (x.timestamp) {
+                    x.localTimestampIso = luxon.DateTime.fromSeconds(x.timestamp).toLocal().toISO()
+                  }
+                  if (x.bondTimestamp) {
+                    x.localBondTimestampIso = luxon.DateTime.fromSeconds(x.bondTimestamp).toLocal().toISO()
+                  }
                   return (
                     <TableRow key={index}>
                       <TableCell>
@@ -1219,7 +1225,7 @@ const Index: NextPage = (props: any) => {
                         </Typography>
                         </TableCell>
                       <TableCell>
-                        <Tooltip title={<Box>UTC: {x.timestampIso}<br />Unix: {x.timestamp}<br />Relative: { x.timestampRelative }</Box>}>
+                        <Tooltip title={<Box>UTC: {x.timestampIso}<br />Local: {x.localTimestampIso}<br />Unix: {x.timestamp}<br />Relative: { x.timestampRelative }</Box>}>
                           <Typography variant="body1" color="secondary" className="timestamp">
                             { x.timestampRelative }
                           </Typography>
@@ -1406,7 +1412,11 @@ const Index: NextPage = (props: any) => {
                         </Box>
                       </TableCell>
                       <TableCell className="bondedDate" >
-                        <Tooltip title={<Box>UTC: {x.bondTimestampIso}<br />Unix: {x.bondTimestamp}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>}>
+                        <Tooltip title={
+                          !!x.bondTimestamp ? (
+                            <Box>UTC: {x.bondTimestampIso}<br />Local: {x.localBondTimestampIso}<br />Unix: {x.bondTimestamp}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>
+                          ) : <Box>Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>
+                          }>
                           <Typography variant="body1" color="secondary">
                             { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }
                           </Typography>

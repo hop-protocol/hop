@@ -12,6 +12,7 @@ type Transfer = {
   amountDisplay: string
   amountFormatted: string
   amountOutMin: string
+  amountOutMinFormatted: string
   amountReceived: string
   amountReceivedFormatted: string
   amountUsd: string

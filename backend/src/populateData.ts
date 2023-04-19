@@ -6,6 +6,8 @@ import { explorerLinkAddress } from './utils/explorerLinkAddress'
 import { getSourceChainId } from './utils/getSourceChainId'
 import { integrationPartnerName } from './utils/integrationPartnerName'
 import { integrationPartnerImage } from './utils/integrationPartnerImage'
+import { getTokenDecimals } from './utils/getTokenDecimals'
+import { formatUnits } from 'ethers/lib/utils'
 
 export function populateData (x: any, i: number) {
   x.i = i
@@ -31,6 +33,10 @@ export function populateData (x: any, i: number) {
   x.timestamp = x.timestamp ? Number(x.timestamp) : null
   if (x.amountReceivedFormatted && typeof x.amountReceivedFormatted !== 'number') {
     x.amountReceivedFormatted = Number(x.amountReceivedFormatted)
+  }
+
+  if (x.amountOutMin) {
+    x.amountOutMinFormatted = Number(formatUnits(x.amountOutMin, getTokenDecimals(x.token)))
   }
 
   if (typeof x.bonded !== 'boolean') {

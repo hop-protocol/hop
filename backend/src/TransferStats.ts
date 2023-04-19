@@ -233,7 +233,7 @@ export class TransferStats {
       if (typeof cached === 'boolean') {
         return cached
       }
-      const { bondTransactionHash, token, destinationChainSlug, receivedHTokens } = item
+      const { bondTransactionHash, token, sourceChainSlug, destinationChainSlug, receivedHTokens } = item
       if (
         !bondTransactionHash ||
         !destinationChainSlug ||
@@ -253,7 +253,7 @@ export class TransferStats {
       const receipt = await this.getTransactionReceipt(provider, bondTransactionHash)
       const transferTopic = '0xddf252ad'
 
-      if (destinationChainSlug !== 'ethereum') {
+      if (sourceChainSlug === 'ethereum' || destinationChainSlug !== 'ethereum') {
         for (const log of receipt.logs) {
           const topic = log.topics[0]
           if (topic.startsWith(transferTopic)) {
@@ -987,7 +987,7 @@ export class TransferStats {
     return data
   }
 
-  async getRemainingData (data: any[], options: any): Promise<any[]> {
+  async getRemainingData (data: any[], options?: any): Promise<any[]> {
     if (!data.length) {
       return []
     }

@@ -478,12 +478,10 @@ export class TransferStats {
       this.trackReceivedHTokenStatus(),
       this.checkForReorgs(),
       // this.trackReceivedAmountStatus(), // needs to be fixed
-      /*
       this.trackRecentTransfers({ lookbackHours: 1, pollIntervalMs: 60 * 1000 }),
       this.trackRecentTransfers({ lookbackHours: 4, pollIntervalMs: 60 * 60 * 1000 }),
       this.trackRecentTransferBonds({ lookbackMinutes: 20, pollIntervalMs: 60 * 1000 }),
       this.trackRecentTransferBonds({ lookbackMinutes: 120, pollIntervalMs: 10 * 60 * 1000 }),
-      */
       this.trackDailyTransfers({ days: this.days, offsetDays: this.offsetDays })
     ]
     await Promise.all(promises)

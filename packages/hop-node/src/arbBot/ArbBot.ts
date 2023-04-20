@@ -722,22 +722,33 @@ export class ArbBot {
       if (amount.lt(ethBalance)) {
         amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
       }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(0)) {
+        throw new Error('expected amount to be greater than 0')
+      }
+
+      const l1NativeBridgeAddress = '0xe93c8cd0d409341205a592f8c4ac1a5fe5585cfa'
+
+      return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
+        to: l1NativeBridgeAddress,
+        value: this.tokenSymbol === 'ETH' ? amount : 0
+      })
     } else {
-      amount = await this.getTokenBalance(this.l1ChainSlug)
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(0)) {
+        throw new Error('expected amount to be greater than 0')
+      }
+
+      throw new Error('base erc20 canonical bridge not implemented')
     }
-
-    this.logger.log('amount:', this.bridge.formatUnits(amount))
-
-    if (amount.lte(0)) {
-      throw new Error('expected amount to be greater than 0')
-    }
-
-    const l1NativeBridgeAddress = '0xe93c8cd0d409341205a592f8c4ac1a5fe5585cfa'
-
-    return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
-      to: l1NativeBridgeAddress,
-      value: this.tokenSymbol === 'ETH' ? amount : 0
-    })
   }
 
   async optimisml1CanonicalBridgeSendToL2 () {
@@ -766,7 +777,12 @@ export class ArbBot {
       const tx = await csm.depositETH(amount)
       return tx
     } else {
-      amount = await this.getTokenBalance(this.l1ChainSlug)
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
 
       if (amount.lte(BigNumber.from(0))) {
         this.logger.log('not enough tokens to send')
@@ -805,6 +821,8 @@ export class ArbBot {
         amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
       }
 
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
       if (amount.lte(BigNumber.from(0))) {
         this.logger.log('not enough eth to send')
         return
@@ -819,7 +837,12 @@ export class ArbBot {
 
       return tx
     } else {
-      amount = await this.getTokenBalance(this.l1ChainSlug)
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
 
       if (amount.lte(BigNumber.from(0))) {
         this.logger.log('not enough tokens to send')
@@ -860,12 +883,14 @@ export class ArbBot {
     if (this.tokenSymbol === 'ETH') {
       const ethBalance = await this.l1ChainProvider.getBalance(recipient)
       if (amount.lt(ethBalance)) {
-        // amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
+        amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
       }
 
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
       if (amount.lte(BigNumber.from(0))) {
-        // this.logger.log('not enough eth to send')
-        // return
+        this.logger.log('not enough eth to send')
+        return
       }
 
       const data = `0x4faa8a26000000000000000000000000${recipient.replace('0x', '').toLowerCase()}`
@@ -878,7 +903,12 @@ export class ArbBot {
         data
       })
     } else {
-      amount = await this.getTokenBalance(this.l1ChainSlug)
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
 
       if (amount.lte(BigNumber.from(0))) {
         this.logger.log('not enough tokens to send')

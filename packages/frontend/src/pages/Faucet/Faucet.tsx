@@ -37,10 +37,6 @@ const Faucet: FC = () => {
   const { bridges, selectedBridge, setSelectedBridge } = useApp()
   const { mintToken, mintAmount, isMinting, error, setError, success, setSuccess, tokens, selectedNetwork } = useFaucet()
 
-  const handleMint = () => {
-    mintToken()
-  }
-
   const handleTokenChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
     const bridge = findMatchingBridge(bridges, tokenSymbol)
@@ -54,6 +50,10 @@ const Faucet: FC = () => {
     selectedToken = 'USDC'
   }
 
+  const handleMint = () => {
+    mintToken(selectedToken)
+  }
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <Box display="flex" alignItems="center">
@@ -64,7 +64,7 @@ const Faucet: FC = () => {
       <Box display="flex" alignItems="center" className={styles.box}>
         <Box display="flex" alignItems="center" flexDirection="row" className={styles.selectBox}>
           <Typography variant="body1" className={styles.text}>
-            Mint {mintAmount} {selectedNetwork?.name}
+            Mint {mintAmount} {selectedToken}
           </Typography>
           <RaisedSelect value={selectedToken} onChange={handleTokenChange}>
             {tokens.filter(token => token.symbol !== 'ETH').map(token => (
@@ -81,7 +81,7 @@ const Faucet: FC = () => {
           highlighted
           loading={isMinting}
         >
-          Mint {selectedBridge?.getTokenSymbol()}
+          Mint {selectedToken}
         </Button>
         <Alert
           className={styles.alert}

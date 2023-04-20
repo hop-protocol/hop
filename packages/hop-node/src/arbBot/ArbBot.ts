@@ -9,6 +9,7 @@ import lineaAbi from './lineaAbi'
 import wethAbi from './wethAbi'
 import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
+import { CrossChainMessenger } from '@eth-optimism/sdk'
 import { Logger } from 'src/logger'
 import { defaultAbiCoder, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
@@ -597,6 +598,10 @@ export class ArbBot {
       return this.basel1CanonicalBridgeSendToL2()
     }
 
+    if (this.l2ChainSlug === Chain.Optimism.slug) {
+      return this.optimisml1CanonicalBridgeSendToL2()
+    }
+
     throw new Error('l1CanonicalBridgeSendToL2 not implemented')
   }
 
@@ -690,7 +695,6 @@ export class ArbBot {
 
   async basel1CanonicalBridgeSendToL2 () {
     let amount = this.amount
-
     const recipient = await this.ammSigner.getAddress()
 
     if (this.tokenSymbol === 'ETH') {
@@ -714,6 +718,49 @@ export class ArbBot {
       to: l1NativeBridgeAddress,
       value: this.tokenSymbol === 'ETH' ? amount : 0
     })
+  }
+
+  async optimisml1CanonicalBridgeSendToL2 () {
+    const csm = new CrossChainMessenger({
+      bedrock: true,
+      l1ChainId: 5,
+      l2ChainId: 420,
+      l1SignerOrProvider: this.ammSigner.connect(this.l1ChainProvider),
+      l2SignerOrProvider: this.l2ChainProvider
+    })
+
+    let amount = this.amount
+    const recipient = await this.ammSigner.getAddress()
+
+    if (this.tokenSymbol === 'ETH') {
+      const ethBalance = await this.l1ChainProvider.getBalance(recipient)
+      if (amount.lt(ethBalance)) {
+        amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
+      }
+      const tx = await csm.depositETH(amount)
+      return tx
+    } else {
+      amount = await this.getTokenBalance(this.l1ChainSlug)
+
+      const spender = '0x636Af16bf2f682dD3109e60102b8E1A089FedAa8' // optimism bridge
+      const token = this.bridge.getCanonicalToken(this.l1ChainSlug)
+      const allowance = await token.allowance(spender)
+      if (allowance.lt(amount)) {
+        if (this.dryMode) {
+          this.logger.log('optimisml1CanonicalBridgeSendToL2 approval tx, dryMode: true')
+        } else {
+          const tx = await token.approve(spender)
+          this.logger.log('optimisml1CanonicalBridgeSendToL2 approval tx:', tx.hash)
+          await tx.wait(this.waitConfirmations)
+        }
+      }
+
+      const addresses = this.network === 'mainnet' ? (mainnetAddresses as any) : (goerliAddresses as any)
+      const l1TokenAddress = addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug]?.l1CanonicalToken
+      const l2TokenAddress = addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug]?.l2CanonicalToken
+      const tx = await csm.depositERC20(l1TokenAddress, l2TokenAddress, amount)
+      return tx
+    }
   }
 
   async wrapEthToWethOnL2 () {

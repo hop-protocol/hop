@@ -57,6 +57,7 @@
     "@maticnetwork/maticjs-ethers": "1.0.2",
     "@slack/web-api": "6.7.2",
     "@yfi/sdk": "2.1.0",
+    "asn1.js": "5.4.1",
     "async-mutex": "0.3.2",
     "aws-sdk": "2.1361.0",
     "bip39": "3.0.4",

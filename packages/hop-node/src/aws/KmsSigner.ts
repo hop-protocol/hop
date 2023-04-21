@@ -1,6 +1,17 @@
 import { BigNumber, Signer, providers } from 'ethers'
 import { GetPublicKeyCommand, KMSClient, SignCommand } from '@aws-sdk/client-kms'
-import { arrayify, defineReadOnly, hashMessage, joinSignature, keccak256, recoverAddress, resolveProperties, serializeTransaction } from 'ethers/lib/utils'
+import {
+  arrayify,
+  defineReadOnly,
+  getAddress as checksumAddress,
+  hashMessage,
+  joinSignature,
+  keccak256,
+  recoverAddress,
+  resolveProperties,
+  serializeTransaction,
+  splitSignature
+} from 'ethers/lib/utils'
 import { awsAccessKeyId, awsSecretAccessKey } from '../config'
 import * as asn1 from 'asn1.js'
 
@@ -59,11 +70,11 @@ export class KmsSigner extends Signer {
     return this.config.keyId
   }
 
-  connect (provider: providers.Provider) {
+  connect (provider: providers.Provider): KmsSigner {
     return new KmsSigner(this.config, provider)
   }
 
-  async getAddress () {
+  async getAddress (): Promise<string> {
     if (this.address) {
       return this.address
     }
@@ -73,12 +84,12 @@ export class KmsSigner extends Signer {
     return address
   }
 
-  async signMessage (msg: Buffer | string) {
+  async signMessage (msg: Buffer | string): Promise<string> {
     const hash = Buffer.from(hashMessage(msg).slice(2), 'hex')
     return this._signDigest(hash)
   }
 
-  async signTransaction (transaction: providers.TransactionRequest) {
+  async signTransaction (transaction: providers.TransactionRequest): Promise<string> {
     const unsignedTx: any = await resolveProperties(transaction)
     const serializedTx = serializeTransaction(unsignedTx)
     const hash = Buffer.from(keccak256(serializedTx).slice(2), 'hex')
@@ -86,7 +97,7 @@ export class KmsSigner extends Signer {
     return serializeTransaction(unsignedTx, txSig)
   }
 
-  private async _getKmsPublicKey () {
+  private async _getKmsPublicKey (): Promise<Buffer> {
     const command = new GetPublicKeyCommand({
       KeyId: this.keyId
     })
@@ -94,7 +105,7 @@ export class KmsSigner extends Signer {
     return Buffer.from(res.PublicKey)
   }
 
-  private async _kmsSign (msg: Buffer) {
+  private async _kmsSign (msg: Buffer): Promise<Buffer> {
     const params = {
       KeyId: this.keyId,
       Message: msg,
@@ -106,7 +117,7 @@ export class KmsSigner extends Signer {
     return Buffer.from(res.Signature)
   }
 
-  private _getEthereumAddress (publicKey: Buffer) {
+  private _getEthereumAddress (publicKey: Buffer): string {
     const res = EcdsaPubKey.decode(publicKey, 'der')
     const pubKeyBuffer = res.pubKey.data.slice(1)
     const addressBuf = Buffer.from(keccak256(pubKeyBuffer).slice(2), 'hex')
@@ -114,7 +125,7 @@ export class KmsSigner extends Signer {
     return address
   }
 
-  private async _signDigest (digest: Buffer | string) {
+  private async _signDigest (digest: Buffer | string): Promise<string> {
     const msg = Buffer.from(arrayify(digest))
     const signature = await this._kmsSign(msg)
     const { r, s } = this._getSigRs(signature)
@@ -123,7 +134,7 @@ export class KmsSigner extends Signer {
     return joinedSignature
   }
 
-  private async _getSigV (msgHash: Buffer, { r, s }: {r: string, s: string}) {
+  private async _getSigV (msgHash: Buffer, { r, s }: { r: string, s: string }) {
     const address = await this.getAddress()
     let v = 17
     let recovered = recoverAddress(msgHash, { r, s, v })
@@ -141,6 +152,8 @@ export class KmsSigner extends Signer {
     const decoded = EcdsaSigAsnParse.decode(signature, 'der')
     const rBn = BigNumber.from(`0x${decoded.r.toString(16)}`)
     let sBn = BigNumber.from(`0x${decoded.s.toString(16)}`)
+    // max value on the curve - https://www.secg.org/sec2-v2.pdf
+    // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.8.3/contracts/utils/cryptography/ECDSA.sol#L138-L149
     const secp256k1N = BigNumber.from('0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141')
     const secp256k1halfN = secp256k1N.div(BigNumber.from(2))
     if (sBn.gt(secp256k1halfN)) {
@@ -151,7 +164,7 @@ export class KmsSigner extends Signer {
     return { r, s }
   }
 
-  private _addressEquals (address1: string, address2: string) {
+  private _addressEquals (address1: string, address2: string): boolean {
     return address1.toLowerCase() === address2.toLowerCase()
   }
 }

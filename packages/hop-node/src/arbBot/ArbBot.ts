@@ -9,13 +9,19 @@ import lineaAbi from './lineaAbi'
 import wethAbi from './wethAbi'
 import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
+import { CrossChainMessenger } from '@eth-optimism/sdk'
+import { Erc20Bridger, EthBridger, getL2Network } from '@arbitrum/sdk'
+import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { Logger } from 'src/logger'
+import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
+import { chainSlugToId } from 'src/utils/chainSlugToId'
 import { defaultAbiCoder, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
 import { getUnwithdrawnTransfers } from 'src/theGraph/getUnwithdrawnTransfers'
 import { getWithdrawalProofData } from 'src/cli/shared'
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { use } from '@maticnetwork/maticjs'
 import { wait } from 'src/utils/wait'
 
 export type Options = {
@@ -39,8 +45,9 @@ export class ArbBot {
   bridge: HopBridge
   tokenSymbol: string = 'ETH'
   l1ChainSlug: string = 'ethereum'
-  l1ChainId: number
   l2ChainSlug: string = 'linea'
+  l1ChainId: number
+  l2ChainId: number
   ammSigner: any
   dryMode: boolean = false
   logger: Logger
@@ -108,6 +115,7 @@ export class ArbBot {
     }
 
     this.l1ChainId = this.network === 'mainnet' ? 1 : 5
+    this.l2ChainId = chainSlugToId(this.l2ChainSlug)
     this.logger = new Logger(`ArbBot${options?.label ? `:${options?.label}` : ''}`)
     this.sdk = new Hop({
       network: this.network,
@@ -167,6 +175,10 @@ export class ArbBot {
   async start () {
     while (true) {
       try {
+        // test
+        // const tx = await this.l1CanonicalBridgeSendToL2()
+        // console.log('tx', tx.hash)
+
         await this.pollAmmWithdraw()
         await this.pollAmmDeposit()
         await this.pollUnwithdrawnTransfers()
@@ -336,7 +348,7 @@ export class ArbBot {
     const deadline = this.getDeadline()
     const hTokenIndex = 1
 
-    const lpToken = this.bridge.getSaddleLpToken(this.l2ChainSlug)
+    const lpToken = this.bridge.connect(this.ammSigner.connect(this.l2ChainProvider)).getSaddleLpToken(this.l2ChainSlug)
     const amm = this.bridge.getAmm(this.l2ChainSlug)
     const saddleSwap = await amm.getSaddleSwap()
     const spender = saddleSwap.address
@@ -597,6 +609,18 @@ export class ArbBot {
       return this.basel1CanonicalBridgeSendToL2()
     }
 
+    if (this.l2ChainSlug === Chain.Optimism.slug) {
+      return this.optimisml1CanonicalBridgeSendToL2()
+    }
+
+    if (this.l2ChainSlug === Chain.Arbitrum.slug) {
+      return this.arbitruml1CanonicalBridgeSendToL2()
+    }
+
+    if (this.l2ChainSlug === Chain.Polygon.slug) {
+      return this.polygonl1CanonicalBridgeSendToL2()
+    }
+
     throw new Error('l1CanonicalBridgeSendToL2 not implemented')
   }
 
@@ -640,7 +664,7 @@ export class ArbBot {
         amount = tokenBalance
       }
 
-      const deadlineSeconds = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60)
+      const deadlineSeconds = Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60)
       const method = '0xf0634c82000000000000000000000000'
       const address = recipient.replace('0x', '').toLowerCase()
       const fee = BigNumber.from('0x2aa1efb94dffff')
@@ -659,7 +683,7 @@ export class ArbBot {
       const txOptions = await this.txOverrides(this.l1ChainSlug)
 
       const spender = tokenWrapper
-      const token = this.bridge.getCanonicalToken(this.l2ChainSlug)
+      const token = this.bridge.connect(this.ammSigner.connect(this.l1ChainProvider)).getCanonicalToken(this.l1ChainSlug)
 
       const allowance = await token.allowance(spender)
       if (allowance.lt(amount)) {
@@ -679,7 +703,8 @@ export class ArbBot {
 
       return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
         ...txOptions,
-        value: fee,
+        gasLimit: 900000,
+        value: parseEther('0.012'),
         to: tokenWrapper,
         data
       })
@@ -690,7 +715,6 @@ export class ArbBot {
 
   async basel1CanonicalBridgeSendToL2 () {
     let amount = this.amount
-
     const recipient = await this.ammSigner.getAddress()
 
     if (this.tokenSymbol === 'ETH') {
@@ -698,22 +722,246 @@ export class ArbBot {
       if (amount.lt(ethBalance)) {
         amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
       }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(0)) {
+        throw new Error('expected amount to be greater than 0')
+      }
+
+      const l1NativeBridgeAddress = '0xe93c8cd0d409341205a592f8c4ac1a5fe5585cfa'
+
+      return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
+        to: l1NativeBridgeAddress,
+        value: this.tokenSymbol === 'ETH' ? amount : 0
+      })
     } else {
-      amount = await this.getTokenBalance(this.l1ChainSlug)
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(0)) {
+        throw new Error('expected amount to be greater than 0')
+      }
+
+      throw new Error('base erc20 canonical bridge not implemented')
     }
+  }
 
-    this.logger.log('amount:', this.bridge.formatUnits(amount))
-
-    if (amount.lte(0)) {
-      throw new Error('expected amount to be greater than 0')
-    }
-
-    const l1NativeBridgeAddress = '0xe93c8cd0d409341205a592f8c4ac1a5fe5585cfa'
-
-    return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
-      to: l1NativeBridgeAddress,
-      value: this.tokenSymbol === 'ETH' ? amount : 0
+  async optimisml1CanonicalBridgeSendToL2 () {
+    const csm = new CrossChainMessenger({
+      bedrock: true,
+      l1ChainId: 5,
+      l2ChainId: 420,
+      l1SignerOrProvider: this.ammSigner.connect(this.l1ChainProvider),
+      l2SignerOrProvider: this.l2ChainProvider
     })
+
+    let amount = this.amount
+    const recipient = await this.ammSigner.getAddress()
+
+    if (this.tokenSymbol === 'ETH') {
+      const ethBalance = await this.l1ChainProvider.getBalance(recipient)
+      if (amount.lt(ethBalance)) {
+        amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
+      }
+
+      if (amount.lte(BigNumber.from(0))) {
+        this.logger.log('not enough eth to send')
+        return
+      }
+
+      const tx = await csm.depositETH(amount)
+      return tx
+    } else {
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(BigNumber.from(0))) {
+        this.logger.log('not enough tokens to send')
+        return
+      }
+
+      const spender = '0x636Af16bf2f682dD3109e60102b8E1A089FedAa8' // optimism bridge
+      const token = this.bridge.connect(this.ammSigner.connect(this.l1ChainProvider)).getCanonicalToken(this.l1ChainSlug)
+      const allowance = await token.allowance(spender)
+      if (allowance.lt(amount)) {
+        if (this.dryMode) {
+          this.logger.log('optimisml1CanonicalBridgeSendToL2 approval tx, dryMode: true')
+        } else {
+          const tx = await token.approve(spender)
+          this.logger.log('optimisml1CanonicalBridgeSendToL2 approval tx:', tx.hash)
+          await tx.wait(this.waitConfirmations)
+        }
+      }
+
+      const addresses = this.network === 'mainnet' ? (mainnetAddresses as any) : (goerliAddresses as any)
+      const l1TokenAddress = addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug]?.l1CanonicalToken
+      const l2TokenAddress = addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug]?.l2CanonicalToken
+      const tx = await csm.depositERC20(l1TokenAddress, l2TokenAddress, amount)
+      return tx
+    }
+  }
+
+  async arbitruml1CanonicalBridgeSendToL2 () {
+    let amount = this.amount
+    const recipient = await this.ammSigner.getAddress()
+    const l2Network = await getL2Network(this.l2ChainProvider)
+
+    if (this.tokenSymbol === 'ETH') {
+      const ethBalance = await this.l1ChainProvider.getBalance(recipient)
+      if (amount.lt(ethBalance)) {
+        amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
+      }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(BigNumber.from(0))) {
+        this.logger.log('not enough eth to send')
+        return
+      }
+
+      const ethBridger = new EthBridger(l2Network)
+      const tx = await ethBridger.deposit({
+        amount,
+        l1Signer: this.ammSigner.connect(this.l1ChainProvider),
+        l2Provider: this.l2ChainProvider
+      })
+
+      return tx
+    } else {
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(BigNumber.from(0))) {
+        this.logger.log('not enough tokens to send')
+        return
+      }
+
+      const spender = '0x715d99480b77a8d9d603638e593a539e21345fdf'
+      const token = this.bridge.connect(this.ammSigner.connect(this.l1ChainProvider)).getCanonicalToken(this.l1ChainSlug)
+      const allowance = await token.allowance(spender)
+      if (allowance.lt(amount)) {
+        if (this.dryMode) {
+          this.logger.log('arbitruml1CanonicalBridgeSendToL2 approval tx, dryMode: true')
+        } else {
+          const tx = await token.approve(spender)
+          this.logger.log('arbitruml1CanonicalBridgeSendToL2 approval tx:', tx.hash)
+          await tx.wait(this.waitConfirmations)
+        }
+      }
+
+      const addresses = this.network === 'mainnet' ? (mainnetAddresses as any) : (goerliAddresses as any)
+      const l1TokenAddress = addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug]?.l1CanonicalToken
+      const erc20Bridger = new Erc20Bridger(l2Network)
+      const tx = await erc20Bridger.deposit({
+        erc20L1Address: l1TokenAddress,
+        amount,
+        l1Signer: this.ammSigner.connect(this.l1ChainProvider),
+        l2Provider: this.l2ChainProvider
+      })
+
+      return tx
+    }
+  }
+
+  async polygonl1CanonicalBridgeSendToL2 () {
+    let amount = this.amount
+    const recipient = await this.ammSigner.getAddress()
+
+    if (this.tokenSymbol === 'ETH') {
+      const ethBalance = await this.l1ChainProvider.getBalance(recipient)
+      if (amount.lt(ethBalance)) {
+        amount = ethBalance.sub(parseEther('1')) // account for message fee and gas fee
+      }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(BigNumber.from(0))) {
+        this.logger.log('not enough eth to send')
+        return
+      }
+
+      const data = `0x4faa8a26000000000000000000000000${recipient.replace('0x', '').toLowerCase()}`
+      const txOptions = await this.txOverrides(this.l2ChainSlug)
+
+      return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
+        ...txOptions,
+        value: amount,
+        to: '0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74',
+        data
+      })
+    } else {
+      const tokenBalance = await this.getTokenBalance(this.l1ChainSlug)
+      if (amount.lt(tokenBalance)) {
+        amount = tokenBalance
+      }
+
+      this.logger.log('amount:', this.bridge.formatUnits(amount))
+
+      if (amount.lte(BigNumber.from(0))) {
+        this.logger.log('not enough tokens to send')
+        return
+      }
+
+      const spender = '0xdd6596f2029e6233deffaca316e6a95217d4dc34'
+      const token = this.bridge.connect(this.ammSigner.connect(this.l1ChainProvider)).getCanonicalToken(this.l1ChainSlug)
+      const allowance = await token.allowance(spender)
+      if (allowance.lt(amount)) {
+        if (this.dryMode) {
+          this.logger.log('polygonl1CanonicalBridgeSendToL2 approval tx, dryMode: true')
+        } else {
+          const tx = await token.approve(spender)
+          this.logger.log('polygonl1CanonicalBridgeSendToL2 approval tx:', tx.hash)
+          await tx.wait(this.waitConfirmations)
+        }
+      }
+
+      const addresses = this.network === 'mainnet' ? (mainnetAddresses as any) : (goerliAddresses as any)
+      const l1TokenAddress = addresses?.bridges?.[this.tokenSymbol]?.[this.l1ChainSlug]?.l1CanonicalToken
+
+      use(Web3ClientPlugin)
+
+      const maticClient = new FxPortalClient()
+      const rootTunnel = addresses?.bridges?.[this.tokenSymbol]?.[this.l2ChainSlug]?.l1FxBaseRootTunnel
+      await maticClient.init({
+        network: this.network === 'mainnet' ? 'mainnet' : 'testnet',
+        version: this.network === 'mainnet' ? 'v1' : 'mumbai',
+        parent: {
+          provider: this.ammSigner.connect(this.l1ChainProvider),
+          defaultConfig: {
+            from: recipient
+          }
+        },
+        child: {
+          provider: this.l2ChainProvider,
+          defaultConfig: {
+            from: recipient
+          }
+        },
+        erc20: {
+          rootTunnel
+        }
+      })
+
+      const tx = await maticClient.erc20(l1TokenAddress, true).deposit(this.bridge.formatUnits(amount), recipient)
+
+      return {
+        hash: await tx.getTransactionHash(),
+        wait: async () => tx.getReceipt()
+      }
+    }
   }
 
   async wrapEthToWethOnL2 () {
@@ -785,6 +1033,7 @@ export class ArbBot {
   async depositAmmCanonicalTokens () {
     this.logger.log('depositAmmCanonicalTokens()')
     let amount = this.bridge.parseUnits(this.ammDepositThresholdAmount)
+    const recipient = await this.ammSigner.getAddress()
 
     if (this.tokenSymbol === 'ETH') {
       const l2WethBalance = await this.getL2WethBalance()
@@ -809,7 +1058,7 @@ export class ArbBot {
     const amm = this.bridge.getAmm(this.l2ChainSlug)
     const saddleSwap = await amm.getSaddleSwap()
     const spender = saddleSwap.address
-    let token = this.bridge.getCanonicalToken(this.l2ChainSlug)
+    let token = this.bridge.connect(this.ammSigner.connect(this.l2ChainProvider)).getCanonicalToken(this.l2ChainSlug)
     if (token.isNativeToken) {
       token = token.getWrappedToken()
     }

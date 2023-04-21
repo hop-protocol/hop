@@ -15,7 +15,7 @@ import { addresses } from 'src/config'
 import { getTokenDecimals } from 'src/utils/tokens'
 
 type FaucetContextProps = {
-  mintToken: () => void
+  mintToken: (tokenSymbol: string) => void
   mintAmount: string
   isMinting: boolean
   tokens: Token[]
@@ -27,7 +27,7 @@ type FaucetContextProps = {
 }
 
 const FaucetContext = createContext<FaucetContextProps>({
-  mintToken: () => {},
+  mintToken: (tokenSymbol: string) => {},
   mintAmount: '',
   isMinting: false,
   tokens: [],
@@ -52,7 +52,7 @@ const FaucetContextProvider: FC = ({ children }) => {
     setSuccess('')
   }, [selectedBridge])
 
-  const mintToken = async () => {
+  const mintToken = async (tokenSymbol: string) => {
     try {
       setError('')
       setSuccess('')
@@ -63,14 +63,11 @@ const FaucetContextProvider: FC = ({ children }) => {
         throw new Error('wrong network connected')
       }
 
-      const tokenSymbol = selectedBridge.getTokenSymbol()
       if (!tokenSymbol) return
 
       let address = addresses.tokens[tokenSymbol][L1_NETWORK]?.l1CanonicalToken
       if (tokenSymbol === 'HOP') {
         address = '0x4ab0f372818d9efe2027F1Cc7bC899c539E39073' // faucet contract
-      } else if (tokenSymbol === 'USDC') {
-        address = '0x1C1cb8744633ce0F785C5895389dFA04DE5C1acE' // faucet contract
       }
       if (tokenSymbol === 'USDC') {
         address = '0x1C1cb8744633ce0F785C5895389dFA04DE5C1acE' // faucet contract

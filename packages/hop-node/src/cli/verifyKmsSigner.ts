@@ -15,11 +15,11 @@ root
 
 async function main (source: any) {
   const { sendTestTx } = source
-  if (globalConfig.signerConfig.type !== 'kms') {
+  const { type, keyId, awsRegion } = globalConfig.signerConfig
+  if (type !== 'kms') {
     throw new Error('signer type must be kms')
   }
 
-  const { keyId, awsRegion } = globalConfig.signerConfig
   if (!keyId || !awsRegion) {
     throw new Error('keyId and awsRegion are required')
   }

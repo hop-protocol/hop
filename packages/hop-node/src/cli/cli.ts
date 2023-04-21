@@ -42,6 +42,7 @@ import './updateConfig'
 import './vault'
 import './verifyChainBalance'
 import './verifyCommits'
+import './verifyKmsSigner'
 import './withdraw'
 import './withdrawalProof'
 

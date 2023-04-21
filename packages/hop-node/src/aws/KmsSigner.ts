@@ -85,16 +85,22 @@ export class KmsSigner extends Signer {
   }
 
   async signMessage (msg: Buffer | string): Promise<string> {
-    const hash = Buffer.from(hashMessage(msg).slice(2), 'hex')
+    const hash = hashMessage(msg)
     return this._signDigest(hash)
   }
 
   async signTransaction (transaction: providers.TransactionRequest): Promise<string> {
     const unsignedTx: any = await resolveProperties(transaction)
     const serializedTx = serializeTransaction(unsignedTx)
-    const hash = Buffer.from(keccak256(serializedTx).slice(2), 'hex')
+    const hash = keccak256(serializedTx)
     const txSig = await this._signDigest(hash)
     return serializeTransaction(unsignedTx, txSig)
+  }
+
+  recoverAddressFromSig(msg: Buffer | string, signature: string): string {
+    const msgHash = hashMessage(msg)
+    const { r, s, v } = splitSignature(signature)
+    return recoverAddress(msgHash, { r, s, v })
   }
 
   private async _getKmsPublicKey (): Promise<Buffer> {
@@ -120,9 +126,9 @@ export class KmsSigner extends Signer {
   private _getEthereumAddress (publicKey: Buffer): string {
     const res = EcdsaPubKey.decode(publicKey, 'der')
     const pubKeyBuffer = res.pubKey.data.slice(1)
-    const addressBuf = Buffer.from(keccak256(pubKeyBuffer).slice(2), 'hex')
-    const address = `0x${addressBuf.slice(-20).toString('hex')}`
-    return address
+    const pubKeyHash = keccak256(pubKeyBuffer)
+    const address = `0x${pubKeyHash.slice(-40)}`
+    return checksumAddress(address)
   }
 
   private async _signDigest (digest: Buffer | string): Promise<string> {

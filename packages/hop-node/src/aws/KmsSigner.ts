@@ -136,7 +136,7 @@ export class KmsSigner extends Signer {
 
   private async _getSigV (msgHash: Buffer, { r, s }: { r: string, s: string }) {
     const address = await this.getAddress()
-    let v = 17
+    let v = 27
     let recovered = recoverAddress(msgHash, { r, s, v })
     if (!this._addressEquals(recovered, address)) {
       v = 28

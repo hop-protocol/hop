@@ -4,12 +4,13 @@ import { getRpcProvider } from 'src/utils/getRpcProvider'
 
 describe.skip('KmsSigner', () => {
   const keyId = process.env.TEST_KMS_KEY_ID!
-  const region = 'us-east-1'
+  const region = process.env.TEST_KMS_KEY_REGION!
+  const ethereumAddressOfKmsKey = process.env.ETHEREUM_ADDRESS_OF_KMS_KEY!
   const signer = new KmsSigner({ keyId, region })
   it('getAddress', async () => {
     const address = await signer.getAddress()
     console.log('address:', address)
-    expect(address).toBe('0x7A4f3c58B52f3e8cD5100f01b9C8bF01F20C5A70')
+    expect(address).toBe(ethereumAddressOfKmsKey)
   })
   it('signMessage', async () => {
     const msg = 'Hello World'

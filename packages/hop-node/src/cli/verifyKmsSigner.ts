@@ -41,12 +41,18 @@ async function main (source: any) {
 
   // Send tx to self
   if (sendTestTx) {
+    console.log('\nSending test transaction to self...')
     const address = await signer.getAddress()
     const transaction = {
       to: address
     }
     const provider = getRpcProvider(Chain.Ethereum)
     const tx = await signer.connect(provider!).sendTransaction(transaction)
+    const receipt = await tx.wait()
     console.log(`Transaction sent: ${tx.hash}`)
+    if (receipt.from !== address) {
+      throw new Error(`Transaction sent from ${receipt.from} but expected ${address}`)
+    }
+    console.log('Transaction verified')
   }
 }

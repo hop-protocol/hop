@@ -2,6 +2,7 @@ import GasBoostSigner from 'src/gasboost/GasBoostSigner'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import memoize from 'fast-memoize'
 import { KmsSigner } from 'src/aws/KmsSigner'
+import { LambdaSigner } from 'src/aws/LambdaSigner'
 import { Signer, Wallet } from 'ethers'
 import {
   gasPriceMultiplier,
@@ -24,6 +25,9 @@ export const constructSigner = memoize((network: string, privateKey: string): Si
   if (globalConfig.signerConfig.type === 'kms') {
     const { keyId, awsRegion } = globalConfig.signerConfig
     wallet = new KmsSigner({ keyId: keyId!, region: awsRegion }, provider)
+  } else if (globalConfig.signerConfig.type === 'lambda') {
+    const { keyId, awsRegion, lambdaFunctionName } = globalConfig.signerConfig
+    wallet = new LambdaSigner({ keyId: keyId!, region: awsRegion, lambdaFunctionName: lambdaFunctionName! }, provider)
   } else {
     if (!privateKey) {
       throw new Error('private key is required to instantiate wallet')

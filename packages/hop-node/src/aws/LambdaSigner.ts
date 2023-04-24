@@ -106,13 +106,8 @@ export class LambdaSigner extends AwsSigner {
   private async _lambdaPayloadToBuffer (payload: any): Promise<Buffer> {
     const decoder = new TextDecoder()
     const decodedSignature: string = decoder.decode(payload)
-    const jsonSignature: any = JSON.parse(decodedSignature)
-
-    let signatureNumberArray: number[] = []
-    for (const index in jsonSignature) {
-      signatureNumberArray.push(jsonSignature[index])
-    }
-    const uint8ArrayPayload: Uint8Array = Uint8Array.from(signatureNumberArray)
-    return Buffer.from(uint8ArrayPayload)
+    const jsonSignature: Record<string, number> = JSON.parse(decodedSignature)
+    const payloadArray = Object.values(jsonSignature)
+    return Buffer.from(payloadArray)
   }
 }

@@ -44,11 +44,6 @@ export function formatError(error: any, network?: Network) {
     errMsg.includes('Non-200 status code')
   ) {
     errMsg = `There was a network error. Please disable any ad blockers and check your wallet network settings are correct and refresh page to try again. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
-  } else if (errMsg.includes('Internal JSON-RPC error') || errMsg.includes('Internal error')) {
-    const feeToken = network?.nativeTokenSymbol || 'funds'
-    errMsg = `An RPC error occurred. Please check you have enough ${feeToken} to pay for fees and check your wallet network settings are correct. Refresh to try again. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
-  } else if (errMsg.includes('call revert exception') || errMsg.includes('missing revert data')) {
-    errMsg = `An RPC error occurred. Please check your wallet network settings are correct and refresh page to try again. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
   } else if (errMsg.includes('unsupported block number') || errMsg.includes('rlp: expected List') || errMsg.includes('PermissionDenied, permission denied for tx type: Call')) {
     errMsg = `An RPC error occurred. Please refresh page to try again. Error: ${errMsg}`
   } else if (errMsg.includes('transaction underpriced')) {
@@ -61,6 +56,13 @@ export function formatError(error: any, network?: Network) {
     errMsg = 'Account has already minted tokens. Only one mint per account is allowed.'
   } else if (errMsg.includes('user rejected transaction') || errMsg.includes('ACTION_REJECTED')) {
     errMsg = 'Cancelled'
+  } else if (errMsg.includes('Cannot transfer staked or escrowed SNX')) {
+    errMsg = `Cannot transfer staked or escrowed SNX. Error: ${errMsg}`
+  } else if (errMsg.includes('Internal JSON-RPC error') || errMsg.includes('Internal error')) {
+    const feeToken = network?.nativeTokenSymbol || 'funds'
+    errMsg = `An RPC error occurred. Please check you have enough ${feeToken} to pay for fees and check your wallet network settings are correct. Refresh to try again. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
+  } else if (errMsg.includes('call revert exception') || errMsg.includes('missing revert data')) {
+    errMsg = `An RPC error occurred. Please check your wallet network settings are correct and refresh page to try again. More info: ${rpcEndpointsDocs}. Error: ${errMsg}`
   }
 
   return prettifyErrorMessage(errMsg)

@@ -1,8 +1,8 @@
+import { Chain } from 'src/constants'
 import { KmsSigner } from 'src/aws/KmsSigner'
 import { LambdaSigner } from 'src/aws/LambdaSigner'
 import { actionHandler, parseBool, root } from './shared'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
-import { Chain } from 'src/constants'
 import {
   config as globalConfig
 } from 'src/config'
@@ -31,7 +31,7 @@ async function main (source: any) {
   }
 
   let signer
-  if(lambdaSigner) {
+  if (lambdaSigner) {
     signer = new LambdaSigner({ keyId, region: awsRegion, lambdaFunctionName: lambdaFunctionName! })
   } else {
     signer = new KmsSigner({ keyId, region: awsRegion })

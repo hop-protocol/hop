@@ -1,11 +1,11 @@
 import { BigNumber, Signer, providers } from 'ethers'
 import {
-  defineReadOnly,
   getAddress as checksumAddress,
+  defineReadOnly,
   hashMessage,
   joinSignature,
-  parseTransaction,
   keccak256,
+  parseTransaction,
   recoverAddress,
   resolveProperties,
   serializeTransaction,
@@ -59,13 +59,13 @@ export abstract class AwsSigner extends Signer {
     return this.config.keyId
   }
 
-  recoverAddressFromSig(msg: Buffer | string, signature: string): string {
+  recoverAddressFromSig (msg: Buffer | string, signature: string): string {
     const msgHash = hashMessage(msg)
     const { r, s, v } = splitSignature(signature)
     return recoverAddress(msgHash, { r, s, v })
   }
 
-  async recoverAddressFromTxSig(transaction: providers.TransactionRequest, signature: string): Promise<string> {
+  async recoverAddressFromTxSig (transaction: providers.TransactionRequest, signature: string): Promise<string> {
     const unsignedTx: any = await resolveProperties(transaction)
     const serializedTx = serializeTransaction(unsignedTx)
     const hash = keccak256(serializedTx)
@@ -88,7 +88,7 @@ export abstract class AwsSigner extends Signer {
     return checksumAddress(address)
   }
 
-  async getJoinedSignature(msg: Buffer, signature: Buffer): Promise<string> {
+  async getJoinedSignature (msg: Buffer, signature: Buffer): Promise<string> {
     const { r, s } = this.getSigRs(signature)
     const { v } = await this.getSigV(msg, { r, s })
     const joinedSignature = joinSignature({ r, s, v })

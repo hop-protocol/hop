@@ -1,5 +1,5 @@
-import { LambdaSigner } from 'src/aws/LambdaSigner'
 import { Chain } from 'src/constants'
+import { LambdaSigner } from 'src/aws/LambdaSigner'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 
 describe.skip('LambdaSigner', () => {

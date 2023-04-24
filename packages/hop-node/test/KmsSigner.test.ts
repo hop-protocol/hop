@@ -1,5 +1,5 @@
-import { KmsSigner } from 'src/aws/KmsSigner'
 import { Chain } from 'src/constants'
+import { KmsSigner } from 'src/aws/KmsSigner'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 
 describe.skip('KmsSigner', () => {

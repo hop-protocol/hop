@@ -1,4 +1,3 @@
-import { providers } from 'ethers'
 import { AwsSigner, AwsSignerConfig } from './AwsSigner'
 import { GetPublicKeyCommand, KMSClient, SignCommand } from '@aws-sdk/client-kms'
 import {
@@ -9,6 +8,7 @@ import {
   serializeTransaction
 } from 'ethers/lib/utils'
 import { awsAccessKeyId, awsSecretAccessKey } from '../config'
+import { providers } from 'ethers'
 
 type KmsSignerConfig = AwsSignerConfig
 
@@ -69,7 +69,7 @@ export class KmsSigner extends AwsSigner {
     const command = new GetPublicKeyCommand({
       KeyId: this.keyId
     })
-    const res: any = await (this.client as KMSClient).send(command)
+    const res: any = await this.client.send(command)
     return Buffer.from(res.PublicKey)
   }
 
@@ -81,7 +81,7 @@ export class KmsSigner extends AwsSigner {
       MessageType: 'DIGEST'
     }
     const command = new SignCommand(params)
-    const res: any = await (this.client as KMSClient).send(command)
+    const res: any = await this.client.send(command)
     return Buffer.from(res.Signature)
   }
 }

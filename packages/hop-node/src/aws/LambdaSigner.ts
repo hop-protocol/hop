@@ -1,7 +1,6 @@
-import { TextDecoder } from 'util'
-import { providers } from 'ethers'
-import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
 import { AwsSigner, AwsSignerConfig } from './AwsSigner'
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
+import { TextDecoder } from 'util'
 import {
   arrayify,
   keccak256,
@@ -9,6 +8,7 @@ import {
   serializeTransaction
 } from 'ethers/lib/utils'
 import { awsAccessKeyId, awsSecretAccessKey } from '../config'
+import { providers } from 'ethers'
 
 type LambdaSignerConfig = AwsSignerConfig & {
   lambdaFunctionName: string
@@ -76,14 +76,14 @@ export class LambdaSigner extends AwsSigner {
     return this.getJoinedSignature(msg, signature)
   }
 
-  private async _getPublicKey(): Promise<Buffer> {
+  private async _getPublicKey (): Promise<Buffer> {
     const myObj = {
       keyId: this.keyId,
       actionType: ActionTypes.GetPublicKey
     }
     const params = {
       FunctionName: this.lambdaFunctionName,
-      InvocationType: "RequestResponse",
+      InvocationType: 'RequestResponse',
       Payload: Buffer.from(JSON.stringify(myObj))
     }
     const command = new InvokeCommand(params)
@@ -100,7 +100,7 @@ export class LambdaSigner extends AwsSigner {
     }
     const params = {
       FunctionName: this.lambdaFunctionName,
-      InvocationType: "RequestResponse",
+      InvocationType: 'RequestResponse',
       Payload: Buffer.from(JSON.stringify(transactionRequest))
     }
     const command = new InvokeCommand(params)

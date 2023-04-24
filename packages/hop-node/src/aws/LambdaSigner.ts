@@ -14,6 +14,11 @@ type LambdaSignerConfig = AwsSignerConfig & {
   lambdaFunctionName: string
 }
 
+const enum ActionTypes {
+  GetPublicKey = 'getPublicKey',
+  Sign = 'sign',
+}
+
 export class LambdaSigner extends AwsSigner {
   config: LambdaSignerConfig
   address: string
@@ -74,7 +79,7 @@ export class LambdaSigner extends AwsSigner {
   private async _getPublicKey(): Promise<Buffer> {
     const myObj = {
       keyId: this.keyId,
-      shouldReturnPublicKey: true
+      actionType: ActionTypes.GetPublicKey
     }
     const params = {
       FunctionName: this.lambdaFunctionName,
@@ -90,7 +95,8 @@ export class LambdaSigner extends AwsSigner {
   private async _getSig (msg: Buffer, transaction?: providers.TransactionRequest): Promise<Buffer> {
     const transactionRequest = {
       keyId: this.keyId,
-      transaction
+      transaction,
+      actionType: ActionTypes.Sign
     }
     const params = {
       FunctionName: this.lambdaFunctionName,

@@ -3,6 +3,7 @@ import {
   defineReadOnly,
   getAddress as checksumAddress,
   hashMessage,
+  joinSignature,
   parseTransaction,
   keccak256,
   recoverAddress,
@@ -85,6 +86,13 @@ export abstract class AwsSigner extends Signer {
     const pubKeyHash = keccak256(pubKeyBuffer)
     const address = `0x${pubKeyHash.slice(-40)}`
     return checksumAddress(address)
+  }
+
+  async getJoinedSignature(msg: Buffer, signature: Buffer): Promise<string> {
+    const { r, s } = this.getSigRs(signature)
+    const { v } = await this.getSigV(msg, { r, s })
+    const joinedSignature = joinSignature({ r, s, v })
+    return joinedSignature
   }
 
   async getSigV (msgHash: Buffer, { r, s }: { r: string, s: string }) {

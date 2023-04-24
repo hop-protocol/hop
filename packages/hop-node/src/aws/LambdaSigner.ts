@@ -4,7 +4,6 @@ import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
 import { AwsSigner, AwsSignerConfig } from './AwsSigner'
 import {
   arrayify,
-  joinSignature,
   keccak256,
   resolveProperties,
   serializeTransaction
@@ -69,10 +68,7 @@ export class LambdaSigner extends AwsSigner {
   private async _signDigest (digest: Buffer | string, transaction?: providers.TransactionRequest): Promise<string> {
     const msg = Buffer.from(arrayify(digest))
     const signature = await this._getSig(msg, transaction)
-    const { r, s } = this.getSigRs(signature)
-    const { v } = await this.getSigV(msg, { r, s })
-    const joinedSignature = joinSignature({ r, s, v })
-    return joinedSignature
+    return this.getJoinedSignature(msg, signature)
   }
 
   private async _getPublicKey(): Promise<Buffer> {
@@ -87,8 +83,8 @@ export class LambdaSigner extends AwsSigner {
     }
     const command = new InvokeCommand(params)
     const res: any = await this.client.send(command)
-    const publicKey: Uint8Array = await this._lambdaPayloadToUint8Array(res.Payload)
-    return Buffer.from(publicKey)
+    const publicKey: Buffer = await this._lambdaPayloadToBuffer(res.Payload)
+    return publicKey
   }
 
   private async _getSig (msg: Buffer, transaction?: providers.TransactionRequest): Promise<Buffer> {
@@ -103,11 +99,11 @@ export class LambdaSigner extends AwsSigner {
     }
     const command = new InvokeCommand(params)
     const res: any = await this.client.send(command)
-    const signature: Uint8Array = await this._lambdaPayloadToUint8Array(res.Payload)
-    return Buffer.from(signature)
+    const signature: Buffer = await this._lambdaPayloadToBuffer(res.Payload)
+    return signature
   }
 
-  private async _lambdaPayloadToUint8Array (payload: any): Promise<Uint8Array> {
+  private async _lambdaPayloadToBuffer (payload: any): Promise<Buffer> {
     const decoder = new TextDecoder()
     const decodedSignature: string = decoder.decode(payload)
     const jsonSignature: any = JSON.parse(decodedSignature)
@@ -116,6 +112,7 @@ export class LambdaSigner extends AwsSigner {
     for (const index in jsonSignature) {
       signatureNumberArray.push(jsonSignature[index])
     }
-    return Uint8Array.from(signatureNumberArray)
+    const uint8ArrayPayload: Uint8Array = Uint8Array.from(signatureNumberArray)
+    return Buffer.from(uint8ArrayPayload)
   }
 }

@@ -2,7 +2,7 @@ import { LambdaSigner } from 'src/aws/LambdaSigner'
 import { Chain } from 'src/constants'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 
-describe.only('KmsSigner', () => {
+describe.skip('LambdaSigner', () => {
   const keyId = process.env.TEST_KMS_KEY_ID!
   const region = process.env.TEST_KMS_KEY_REGION!
   const ethereumAddressOfKmsKey = process.env.ETHEREUM_ADDRESS_OF_KMS_KEY!

@@ -10,15 +10,16 @@ import {
 root
   .command('verify-aws-signer')
   .description('Verify an AWS signer')
-  .option('--lambda-signer [boolean]', 'Use the Lambda signer', parseBool)
   .option('--send-test-tx [boolean]', 'Send a test transaction', parseBool)
   .action(actionHandler(main))
 
 async function main (source: any) {
-  const { sendTestTx, lambdaSigner } = source
+  const { sendTestTx } = source
   const { type, keyId, awsRegion, lambdaFunctionName } = globalConfig.signerConfig
+  const lambdaSigner = type === 'lambda'
+
   if (type !== 'kms' && type !== 'lambda') {
-    throw new Error('signer type must be kms')
+    throw new Error('signer type must be kms or lambda')
   }
 
   if (!keyId || !awsRegion) {

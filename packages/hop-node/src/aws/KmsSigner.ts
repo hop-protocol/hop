@@ -4,7 +4,6 @@ import { GetPublicKeyCommand, KMSClient, SignCommand } from '@aws-sdk/client-kms
 import {
   arrayify,
   hashMessage,
-  joinSignature,
   keccak256,
   resolveProperties,
   serializeTransaction
@@ -63,10 +62,7 @@ export class KmsSigner extends AwsSigner {
   private async _signDigest (digest: Buffer | string): Promise<string> {
     const msg = Buffer.from(arrayify(digest))
     const signature = await this._getSig(msg)
-    const { r, s } = this.getSigRs(signature)
-    const { v } = await this.getSigV(msg, { r, s })
-    const joinedSignature = joinSignature({ r, s, v })
-    return joinedSignature
+    return this.getJoinedSignature(msg, signature)
   }
 
   private async _getPublicKey (): Promise<Buffer> {

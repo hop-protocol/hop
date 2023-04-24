@@ -43,6 +43,7 @@
     "@aave/math-utils": "1.4.0",
     "@arbitrum/sdk": "2.0.18",
     "@aws-sdk/client-kms": "3.316.0",
+    "@aws-sdk/client-lambda": "3.316.0",
     "@aws-sdk/client-s3": "3.316.0",
     "@eth-optimism/contracts": "^0.5.40",
     "@eth-optimism/core-utils": "^0.5.2",

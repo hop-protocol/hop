@@ -107,12 +107,13 @@ export type CommitTransfersConfig = {
 }
 type Tokens = Record<string, boolean>
 
-export type SignerType = 'keystore' | 'kms'
+export type SignerType = 'keystore' | 'kms' | 'lambda'
 
 export type SignerConfig = {
   type: SignerType
   keyId?: string
   awsRegion?: string
+  lambdaFunctionName?: string
 }
 
 export type VaultChainTokenConfig = {

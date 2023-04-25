@@ -398,7 +398,7 @@ function useData () {
         transferId: x.transferId
       }
     })
-    .filter((x: any) => Boolean(x.source) && Boolean(x.target))
+    .filter((x: any) => x.source != undefined && x.target != undefined)
 
     const nodes = []
     for (let i = 0; i < enabledChains.length; i++) {

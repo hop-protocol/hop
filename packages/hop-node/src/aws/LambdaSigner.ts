@@ -66,13 +66,16 @@ export class LambdaSigner extends AwsSigner {
     const unsignedTx: any = await resolveProperties(transaction)
     const serializedTx = serializeTransaction(unsignedTx)
     const hash = keccak256(serializedTx)
-    const txSig = await this._signDigest(hash, transaction)
+    const txSig: string = await this._signDigest(hash, transaction)
     return serializeTransaction(unsignedTx, txSig)
   }
 
   private async _signDigest (digest: Buffer | string, transaction?: providers.TransactionRequest): Promise<string> {
     const msg = Buffer.from(arrayify(digest))
-    const signature = await this._getSig(msg, transaction)
+    const signature: Buffer = await this._getSig(msg, transaction)
+    if (signature.length === 0) {
+      throw new Error('Error signing message')
+    }
     return this.getJoinedSignature(msg, signature)
   }
 
@@ -112,8 +115,12 @@ export class LambdaSigner extends AwsSigner {
   private async _lambdaPayloadToBuffer (payload: any): Promise<Buffer> {
     const decoder = new TextDecoder()
     const decodedSignature: string = decoder.decode(payload)
-    const jsonSignature: Record<string, number> = JSON.parse(decodedSignature)
-    const payloadArray = Object.values(jsonSignature)
+    // Successful response will return number values and error response will return string values
+    const jsonSignature: Record<string, number | string> = JSON.parse(decodedSignature)
+    if (typeof jsonSignature?.errorType === 'string') {
+      return Buffer.from('')
+    }
+    const payloadArray = Object.values(jsonSignature as Record<string, number>)
     return Buffer.from(payloadArray)
   }
 }

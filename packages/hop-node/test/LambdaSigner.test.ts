@@ -16,13 +16,13 @@ describe.skip('LambdaSigner', () => {
   it('signMessage', async () => {
     const msg = 'Hello World'
     const errMsg = 'Signing arbitrary messages is not supported. LambdaSigner performs validation on transactions. Validation can be bypassed with arbitrary data.'
-    expect(signer.signMessage(msg)).rejects.toThrow(errMsg)
+    await expect(signer.signMessage(msg)).rejects.toThrow(errMsg)
   })
   it('signTransaction', async () => {
     const address = await signer.getAddress()
     const transaction: any = {
-      to: address,
-      data: '0x12345678',
+      to: '0x3d4Cc8A61c7528Fd86C55cfe061a78dCBA48EDd1',
+      data: '0x8d8798bf',
       value: '0x'
     }
     const txSignature = await signer.signTransaction(transaction)
@@ -31,6 +31,33 @@ describe.skip('LambdaSigner', () => {
 
     const recovered = await signer.recoverAddressFromTxSig(transaction, txSignature)
     expect(address).toBe(recovered)
+  })
+  it('sign invalid tx (to)', async () => {
+    const transaction: any = {
+      to: '0x3d4Cc8A61c7528Fd86C55cfe061a78dCBA48EDd2',
+      data: '0x8d8798bf',
+      value: '0x'
+    }
+    const errMsg = 'Error signing message'
+    await expect(signer.signTransaction(transaction)).rejects.toThrow(errMsg)
+  })
+  it('sign invalid tx (data)', async () => {
+    const transaction: any = {
+      to: '0x3d4Cc8A61c7528Fd86C55cfe061a78dCBA48EDd1',
+      data: '0x8d8798ba',
+      value: '0x'
+    }
+    const errMsg = 'Error signing message'
+    await expect(signer.signTransaction(transaction)).rejects.toThrow(errMsg)
+  })
+  it('sign invalid tx (value)', async () => {
+    const transaction: any = {
+      to: '0x3d4Cc8A61c7528Fd86C55cfe061a78dCBA48EDd1',
+      data: '0x8d8798bf',
+      value: '0x1'
+    }
+    const errMsg = 'Error signing message'
+    await expect(signer.signTransaction(transaction)).rejects.toThrow(errMsg)
   })
   it.skip('sendTransaction', async () => {
     const address = await signer.getAddress()

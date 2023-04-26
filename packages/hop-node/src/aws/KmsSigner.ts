@@ -55,13 +55,13 @@ export class KmsSigner extends AwsSigner {
     const unsignedTx: any = await resolveProperties(transaction)
     const serializedTx = serializeTransaction(unsignedTx)
     const hash = keccak256(serializedTx)
-    const txSig = await this._signDigest(hash)
+    const txSig: string = await this._signDigest(hash)
     return serializeTransaction(unsignedTx, txSig)
   }
 
   private async _signDigest (digest: Buffer | string): Promise<string> {
     const msg = Buffer.from(arrayify(digest))
-    const signature = await this._getSig(msg)
+    const signature: Buffer = await this._getSig(msg)
     return this.getJoinedSignature(msg, signature)
   }
 

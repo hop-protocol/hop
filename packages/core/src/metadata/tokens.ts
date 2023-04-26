@@ -7,6 +7,7 @@ import {
   MATICImage,
   OPImage,
   SNXImage,
+  UNIImage,
   USDCImage,
   USDTImage,
   WBTCImage,
@@ -114,5 +115,11 @@ export const tokens: Tokens = {
     name: 'Rocket Pool ETH',
     decimals: 18,
     image: rETHImage
+  },
+  UNI: {
+    symbol: 'UNI',
+    name: 'Uniswap',
+    decimals: 18,
+    image: UNIImage
   }
 }

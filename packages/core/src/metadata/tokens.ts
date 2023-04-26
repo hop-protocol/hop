@@ -7,6 +7,7 @@ import {
   MATICImage,
   OPImage,
   SNXImage,
+  UNIImage,
   USDCImage,
   USDTImage,
   WBTCImage,
@@ -14,8 +15,7 @@ import {
   rETHImage,
   sBTCImage,
   sETHImage,
-  sUSDImage,
-  UNIImage
+  sUSDImage
 } from './assets'
 import { Tokens } from './types'
 

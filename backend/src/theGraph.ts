@@ -30,7 +30,7 @@ export function getUrl (chain: string) {
       chain = 'optimism-goerli'
     }
     if (chain === 'arbitrum') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+      return 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli'
     }
     if (chain === 'nova') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)

@@ -975,6 +975,14 @@ describe.skip('PriceFeed', () => {
       console.log('TUSD', price)
       expect(price).toBeGreaterThan(0)
     })
+    it('should return UNI price', async () => {
+      const hop = new Hop('mainnet')
+      const bridge = hop.bridge('UNI')
+      const price = await bridge.priceFeed.getPriceByTokenSymbol('UNI')
+      console.log(price)
+      expect(price).toBeGreaterThan(0)
+      expect(price).toBeLessThan(50)
+    }, 60 * 1000)
   })
 
   describe.skip('Coinbase', () => {

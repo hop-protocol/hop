@@ -14,7 +14,8 @@ import {
   rETHImage,
   sBTCImage,
   sETHImage,
-  sUSDImage
+  sUSDImage,
+  UNIImage
 } from './assets'
 import { Tokens } from './types'
 
@@ -114,5 +115,11 @@ export const tokens: Tokens = {
     name: 'Rocket Pool ETH',
     decimals: 18,
     image: rETHImage
+  },
+  UNI: {
+    symbol: 'UNI',
+    name: 'Uniswap',
+    decimals: 18,
+    image: UNIImage
   }
 }

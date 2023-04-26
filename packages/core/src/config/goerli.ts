@@ -13,17 +13,41 @@ export const config : Config = {
       scrollzk: 500,
       base: 500
     },
-    USDC: {
-      ethereum: 5,
-      polygon: 5,
-      optimism: 5,
-      arbitrum: 5
-    },
     HOP: {
-      ethereum: 5,
-      polygon: 5,
-      optimism: 5,
-      arbitrum: 5
+      ethereum: 500,
+      polygon: 500,
+      optimism: 500,
+      arbitrum: 500
+    },
+    USDT: {
+      ethereum: 500,
+      polygon: 500,
+      optimism: 500,
+      arbitrum: 500,
+      zksync: 500,
+      linea: 500,
+      scrollzk: 500,
+      base: 500
+    },
+    DAI: {
+      ethereum: 500,
+      polygon: 500,
+      optimism: 500,
+      arbitrum: 500,
+      zksync: 500,
+      linea: 500,
+      scrollzk: 500,
+      base: 500
+    },
+    UNI: {
+      ethereum: 500,
+      polygon: 500,
+      optimism: 500,
+      arbitrum: 500,
+      zksync: 500,
+      linea: 500,
+      scrollzk: 500,
+      base: 500
     }
   },
   destinationFeeGasPriceMultiplier: 1.2,

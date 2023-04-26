@@ -1,12 +1,13 @@
 import { Chain } from 'src/constants'
-import { KmsSigner } from 'src/aws/KmsSigner'
+import { LambdaSigner } from 'src/aws/LambdaSigner'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 
-describe.skip('KmsSigner', () => {
+describe.skip('LambdaSigner', () => {
   const keyId = process.env.TEST_KMS_KEY_ID!
   const region = process.env.TEST_KMS_KEY_REGION!
   const ethereumAddressOfKmsKey = process.env.ETHEREUM_ADDRESS_OF_KMS_KEY!
-  const signer = new KmsSigner({ keyId, region })
+  const lambdaFunctionName = process.env.TEST_LAMBDA_FUNCTION_NAME!
+  const signer = new LambdaSigner({ keyId, region, lambdaFunctionName })
   it('getAddress', async () => {
     const address = await signer.getAddress()
     console.log('address:', address)
@@ -14,17 +15,8 @@ describe.skip('KmsSigner', () => {
   })
   it('signMessage', async () => {
     const msg = 'Hello World'
-    const signature = await signer.signMessage(msg)
-    console.log('signature:', signature)
-    expect(signature.startsWith('0x')).toBeTruthy()
-  })
-  it('recoverAddressFromSig', async () => {
-    const msg = 'Hello World'
-    const signature = await signer.signMessage(msg)
-
-    const address = await signer.getAddress()
-    const recovered = signer.recoverAddressFromSig(msg, signature)
-    expect(address).toBe(recovered)
+    const errMsg = 'Signing arbitrary messages is not supported. LambdaSigner performs validation on transactions. Validation can be bypassed with arbitrary data.'
+    expect(signer.signMessage(msg)).rejects.toThrow(errMsg)
   })
   it('signTransaction', async () => {
     const address = await signer.getAddress()
@@ -40,7 +32,7 @@ describe.skip('KmsSigner', () => {
     const recovered = await signer.recoverAddressFromTxSig(transaction, txSignature)
     expect(address).toBe(recovered)
   })
-  it('sendTransaction', async () => {
+  it.skip('sendTransaction', async () => {
     const address = await signer.getAddress()
     const transaction = { to: address }
     const provider = getRpcProvider(Chain.Ethereum)

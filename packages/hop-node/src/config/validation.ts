@@ -75,6 +75,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Chain.Base
   ]
 
+  // TODO: read from core
   const validTokenKeys = [
     'USDC',
     'USDT',
@@ -85,7 +86,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'HOP',
     'SNX',
     'sUSD',
-    'rETH'
+    'rETH',
+    'UNI'
   ]
 
   const sectionKeys = Object.keys(config)

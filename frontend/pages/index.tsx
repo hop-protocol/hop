@@ -1001,6 +1001,7 @@ const Index: NextPage = (props: any) => {
                     <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
                     <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
                     <MenuItem value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>
+                    <MenuItem value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">
@@ -1014,6 +1015,7 @@ const Index: NextPage = (props: any) => {
                     <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
                     <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
                     <MenuItem value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>
+                    <MenuItem value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">

@@ -56,8 +56,10 @@ async function main (source: any) {
   if (sendTestTx) {
     console.log('\nSending test transaction to self...')
     const address = await signer.getAddress()
+    const validFunctionSig = '0x0f7aadb7'
     const transaction = {
-      to: address
+      to: address,
+      data: validFunctionSig
     }
     const provider = getRpcProvider(Chain.Ethereum)
     const tx = await signer.connect(provider!).sendTransaction(transaction)

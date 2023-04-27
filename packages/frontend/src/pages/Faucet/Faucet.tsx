@@ -53,7 +53,7 @@ const Faucet: FC = () => {
   }
 
   let selectedToken = selectedBridge?.getTokenSymbol()
-  if (selectedToken === 'ETH') {
+  if (selectedToken === 'ETH' || selectedToken === 'USDC') {
     selectedToken = 'HOP'
   }
 

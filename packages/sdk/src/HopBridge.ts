@@ -183,7 +183,8 @@ class HopBridge extends Base {
       this.doesUseAmm = !(
         this.tokenSymbol === CanonicalToken.USDT ||
         this.tokenSymbol === CanonicalToken.DAI ||
-        this.tokenSymbol === CanonicalToken.UNI
+        this.tokenSymbol === CanonicalToken.UNI ||
+        this.tokenSymbol === CanonicalToken.HOP
       )
     }
   }

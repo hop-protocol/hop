@@ -233,14 +233,8 @@ export function useSendTransaction (props: any) {
 
         let relayerFeeWithId = getBonderFeeWithId(totalFee)
         if (reactAppNetwork === 'goerli') {
-          if (
-            sourceToken.symbol === sdk.Token.USDT ||
-            sourceToken.symbol === sdk.Token.DAI ||
-            sourceToken.symbol === sdk.Token.UNI
-          ) {
-            // Do not use an ID for a relayer fee on Goerli
-            relayerFeeWithId = getBonderFeeWithId(totalFee, '')
-          }
+          // Do not use an ID for a relayer fee on Goerli
+          relayerFeeWithId = getBonderFeeWithId(totalFee, '')
         }
 
         return bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {

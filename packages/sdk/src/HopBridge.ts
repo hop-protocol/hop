@@ -179,6 +179,13 @@ class HopBridge extends Base {
 
     this.priceFeed = new PriceFeed(this.priceFeedApiKeys)
     this.doesUseAmm = this.tokenSymbol !== CanonicalToken.HOP
+    if (this.network === NetworkSlug.Goerli) {
+      this.doesUseAmm = !(
+        this.tokenSymbol === CanonicalToken.USDT ||
+        this.tokenSymbol === CanonicalToken.DAI ||
+        this.tokenSymbol === CanonicalToken.UNI
+      )
+    }
   }
 
   /**

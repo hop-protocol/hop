@@ -77,7 +77,7 @@ export enum CanonicalToken {
   SNX = 'SNX',
   sUSD = 'sUSD',
   rETH = 'rETH',
-  UNIT = 'UNIT'
+  UNI = 'UNI'
 }
 
 export enum WrappedToken {

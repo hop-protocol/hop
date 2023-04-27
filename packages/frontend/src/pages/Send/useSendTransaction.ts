@@ -232,25 +232,21 @@ export function useSendTransaction (props: any) {
         }
 
         const relayerFeeWithId = getBonderFeeWithId(totalFee)
-
-        /*
-        // This is only temporary until bridge wrapper is setup
-        const shouldSendEthToWrapper = reactAppNetwork === 'goerli' && bridge.network === 'goerli' && toNetwork?.slug === sdk.Chain.Linea.slug
-        if (shouldSendEthToWrapper) {
-          console.log('sending eth to wrapper to pay for fee')
-
-          const l1MessengerWrapper = await bridge.getMessengerWrapperAddress(toNetwork?.slug)
-          const fee = parseEther('0.01') // TODO: read from chain
-          const tx = await bridge.sendTransaction({ to: l1MessengerWrapper, value: fee }, sdk.Chain.Ethereum)
-          await tx.wait()
+        let relayer
+        if (
+          sourceToken === sdk.Token.USDT ||
+          sourceToken === sdk.Token.DAI ||
+          sourceToken === sdk.Token.UNI
+        ) {
+          relayer = '0x0000000000000000000000000000000000000000'
         }
-        */
 
         return bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
           deadline: deadline(),
           relayerFee: relayerFeeWithId,
           recipient,
           amountOutMin: amountOutMin.sub(relayerFeeWithId),
+          relayer
         })
       },
     })

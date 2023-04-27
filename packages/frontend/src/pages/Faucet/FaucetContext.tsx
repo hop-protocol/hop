@@ -17,6 +17,7 @@ import { getTokenDecimals } from 'src/utils/tokens'
 type FaucetContextProps = {
   mintToken: (tokenSymbol: string) => void
   mintAmount: string
+  setMintAmount: (amount: string) => void
   isMinting: boolean
   tokens: Token[]
   error: string
@@ -29,6 +30,7 @@ type FaucetContextProps = {
 const FaucetContext = createContext<FaucetContextProps>({
   mintToken: (tokenSymbol: string) => {},
   mintAmount: '',
+  setMintAmount: (amount: string) => {},
   isMinting: false,
   tokens: [],
   error: '',
@@ -39,7 +41,7 @@ const FaucetContext = createContext<FaucetContextProps>({
 })
 
 const FaucetContextProvider: FC = ({ children }) => {
-  const [mintAmount] = useState<string>('10')
+  const [mintAmount, setMintAmount] = useState<string>('')
   const [isMinting, setMinting] = useState<boolean>(false)
   const { selectedBridge, txHistory, tokens } = useApp()
   const selectedNetwork = l1Network
@@ -131,6 +133,7 @@ const FaucetContextProvider: FC = ({ children }) => {
       value={{
         mintToken,
         mintAmount,
+        setMintAmount,
         isMinting,
         selectedNetwork,
         tokens,

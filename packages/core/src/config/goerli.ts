@@ -16,8 +16,24 @@ export const config : Config = {
     HOP: {
       ethereum: 500,
       polygon: 500,
+      gnosis: 500,
       optimism: 500,
-      arbitrum: 500
+      arbitrum: 500,
+      zksync: 500,
+      linea: 500,
+      scrollzk: 500,
+      base: 500
+    },
+    USDC: {
+      ethereum: 500,
+      polygon: 500,
+      gnosis: 500,
+      optimism: 500,
+      arbitrum: 500,
+      zksync: 500,
+      linea: 500,
+      scrollzk: 500,
+      base: 500
     },
     USDT: {
       ethereum: 500,

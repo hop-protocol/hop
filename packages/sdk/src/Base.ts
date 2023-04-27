@@ -766,14 +766,19 @@ export class Base {
     if (this.network === NetworkSlug.Goerli) {
       if (sourceChain.isL1) {
         if (destinationChain.equals(Chain.Linea)) {
+          let hopL1BridgeWrapperAddress
           if (token.symbol === TokenModel.ETH) {
-            const hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
-            return hopL1BridgeWrapperAddress
+            hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+          } else if (token.symbol === TokenModel.USDC) {
+            hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+          } else if (token.symbol === TokenModel.USDT) {
+            hopL1BridgeWrapperAddress = '0x53B94FAf104A484ff4E7c66bFe311fd48ce3D887'
+          } else if (token.symbol === TokenModel.DAI) {
+            hopL1BridgeWrapperAddress = '0xAa1603822b43e592e33b58d34B4423E1bcD8b4dC'
+          } else if (token.symbol === TokenModel.UNI) {
+            hopL1BridgeWrapperAddress = '0x9D3A7fB18CA7F1237F977Dc5572883f8b24F5638'
           }
-          if (token.symbol === TokenModel.USDC) {
-            const hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
-            return hopL1BridgeWrapperAddress
-          }
+          return hopL1BridgeWrapperAddress
         }
       }
     }

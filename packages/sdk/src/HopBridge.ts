@@ -2685,6 +2685,15 @@ class HopBridge extends Base {
       if (chain === ChainSlug.Ethereum || token.canonicalSymbol === TokenModel.HOP) {
         continue
       }
+      if (this.network === NetworkSlug.Goerli) {
+        if (
+          token.canonicalSymbol === TokenModel.USDT ||
+          token.canonicalSymbol === TokenModel.DAI ||
+          token.canonicalSymbol === TokenModel.UNI
+        ) {
+          continue
+        }
+      }
       supported.add(chain)
     }
     return Array.from(supported) as string[]

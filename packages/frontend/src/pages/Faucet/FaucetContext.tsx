@@ -100,12 +100,13 @@ const FaucetContextProvider: FC = ({ children }) => {
       const contract = new Contract(address, erc20Abi, signer)
 
       const txOptions: any = {}
-      if (tokenSymbol === 'USDT' || tokenSymbol === 'DAI' || tokenSymbol === 'UNI') {
+      if (tokenSymbol === 'USDT' || tokenSymbol === 'DAI' || tokenSymbol === 'UNI' || tokenSymbol === 'HOP') {
         const oneEth = parseEther('1')
         const tokenRates = {
           USDT: BigNumber.from('2000000000'),
           DAI: BigNumber.from('2000000000000000000000'),
           UNI: BigNumber.from('378071833650000000000'),
+          HOP: BigNumber.from('10000000000000000000000'),
         }
         const msgValue = parsedAmount.mul(oneEth).div(tokenRates[tokenSymbol])
         txOptions.value = msgValue

@@ -75,7 +75,7 @@ const Faucet: FC = () => {
             Mint {mintAmount} {selectedToken}
           </Typography>
           <RaisedSelect value={selectedToken} onChange={handleTokenChange}>
-            {tokens.filter(token => token.symbol !== 'ETH').map(token => (
+            {tokens.filter(token => token.symbol !== 'ETH').filter(token => token.symbol !== 'USDC').map(token => (
               <MenuItem value={token.symbol} key={token.symbol}>
                 {token.symbol}
               </MenuItem>

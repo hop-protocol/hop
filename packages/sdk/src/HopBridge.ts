@@ -2385,6 +2385,9 @@ class HopBridge extends Base {
         const l2Bridge = await this.getL2Bridge(sourceChain)
         onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
       }
+    } else if (this.network === NetworkSlug.Goerli) {
+      const l2Bridge = await this.getL2Bridge(sourceChain)
+      onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
     }
 
     const [tokenPrice, onChainBonderFeeAbsolute] = await Promise.all([

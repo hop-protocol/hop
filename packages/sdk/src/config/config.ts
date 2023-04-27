@@ -80,4 +80,4 @@ export const etherscanApiUrls: Record<string, string> = {
   nova: 'https://api-nova.arbiscan.io'
 }
 
-export const defaultRelayerFeeEth: string = '0.1'
+export const defaultRelayerFeeEth: string = '0.01'

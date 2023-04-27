@@ -60,7 +60,7 @@ const Faucet: FC = () => {
   const handleMint = () => {
     mintToken(selectedToken)
   }
-  setMintAmount(mintAmounts[selectedToken].toString())
+  setMintAmount(mintAmounts[selectedToken])
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">

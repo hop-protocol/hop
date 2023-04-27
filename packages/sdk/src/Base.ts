@@ -768,9 +768,11 @@ export class Base {
         if (destinationChain.equals(Chain.Linea)) {
           let hopL1BridgeWrapperAddress
           if (token.symbol === TokenModel.ETH) {
-            hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
+            hopL1BridgeWrapperAddress = '0x953c6AEB1137377C0c24C8d5D9A5c9517bf4616a'
+          } else if (token.symbol === TokenModel.HOP) {
+            hopL1BridgeWrapperAddress = '0x9051Dc48d27dAb53DbAB9E844f8E48c469603938'
           } else if (token.symbol === TokenModel.USDC) {
-            hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
+            hopL1BridgeWrapperAddress = '0x889CD829cE211c92b31fDFE1d75299482839ea2b'
           } else if (token.symbol === TokenModel.USDT) {
             hopL1BridgeWrapperAddress = '0x53B94FAf104A484ff4E7c66bFe311fd48ce3D887'
           } else if (token.symbol === TokenModel.DAI) {

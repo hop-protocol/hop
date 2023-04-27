@@ -33,7 +33,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const mintAmounts = {
-  HOP: '10',
+  HOP: '1000',
   USDT: '100',
   DAI: '100',
   UNI: '10',

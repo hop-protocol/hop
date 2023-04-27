@@ -2,8 +2,8 @@ import { ArbitrumRelayerFee } from './ArbitrumRelayerFee'
 import { BigNumber } from 'ethers'
 import { Chain } from '../models'
 import { NetworkSlug } from '../constants'
-import { defaultRelayerFeeEth } from '../config'
-import { parseEther } from 'ethers/lib/utils'
+import { defaultRelayerFeeEth, metadata } from '../config'
+import { parseEther, parseUnits } from 'ethers/lib/utils'
 
 const RelayerFees = {
   [Chain.Arbitrum.slug]: ArbitrumRelayerFee,
@@ -18,7 +18,8 @@ class RelayerFee {
       if (token === 'ETH') {
         return parseEther(defaultRelayerFeeEth)
       } else {
-        return BigNumber.from(0)
+        const { decimals } = metadata.tokens[network][token]
+        return parseUnits('1', decimals)
       }
     }
 

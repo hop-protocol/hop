@@ -1119,21 +1119,20 @@ class HopBridge extends Base {
     }
     const bondTransferGasLimitWithSettlement = bondTransferGasLimit.add(settlementGasLimitPerTx)
 
-    let txFeeEth: BigNumber
-    if (sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]) {
-      txFeeEth = await this.getRelayerFee(destinationChain, this.tokenSymbol)
-    } else {
-      txFeeEth = destinationChainGasPrice.mul(bondTransferGasLimitWithSettlement)
-    }
-
     const oneEth = parseEther('1')
-    const rateBN = parseUnits(
-      rate.toFixed(canonicalToken.decimals),
-      canonicalToken.decimals
-    )
+    let destinationTxFee: BigNumber
 
-    txFeeEth = txFeeEth.add(l1FeeInWei)
-    let destinationTxFee = txFeeEth.mul(rateBN).div(oneEth)
+    const isRelayerFee = sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]
+    if (isRelayerFee) {
+      destinationTxFee = await this.getRelayerFee(destinationChain, this.tokenSymbol)
+    } else {
+      const rateBN = parseUnits(
+        rate.toFixed(canonicalToken.decimals),
+        canonicalToken.decimals
+      )
+      const txFeeInWei = destinationChainGasPrice.mul(bondTransferGasLimitWithSettlement).add(l1FeeInWei)
+      destinationTxFee = txFeeInWei.mul(rateBN).div(oneEth)
+    }
 
     if (
       destinationChain.equals(Chain.Ethereum) ||

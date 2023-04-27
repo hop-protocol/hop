@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { BigNumber, Signer } from 'ethers'
-import { getAddress, parseEther } from 'ethers/lib/utils'
+import { getAddress, parseEther, parseUnits } from 'ethers/lib/utils'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import logger from 'src/logger'
 import Transaction from 'src/models/Transaction'
@@ -231,22 +231,23 @@ export function useSendTransaction (props: any) {
           throw new Error('wrong network connected')
         }
 
-        const relayerFeeWithId = getBonderFeeWithId(totalFee)
-        let relayer
-        if (
-          sourceToken.symbol === sdk.Token.USDT ||
-          sourceToken.symbol === sdk.Token.DAI ||
-          sourceToken.symbol === sdk.Token.UNI
-        ) {
-          relayer = '0x0000000000000000000000000000000000000000'
+        let relayerFeeWithId = getBonderFeeWithId(totalFee)
+        if (reactAppNetwork === 'goerli') {
+          if (
+            sourceToken.symbol === sdk.Token.USDT ||
+            sourceToken.symbol === sdk.Token.DAI ||
+            sourceToken.symbol === sdk.Token.UNI
+          ) {
+            // Do not use an ID for a relayer fee on Goerli
+            relayerFeeWithId = getBonderFeeWithId(totalFee, '')
+          }
         }
 
         return bridge.send(parsedAmount, sdk.Chain.Ethereum, toNetwork?.slug, {
           deadline: deadline(),
           relayerFee: relayerFeeWithId,
           recipient,
-          amountOutMin: amountOutMin.sub(relayerFeeWithId),
-          relayer
+          amountOutMin: amountOutMin.sub(relayerFeeWithId)
         })
       },
     })

@@ -768,7 +768,7 @@ export class Base {
         if (destinationChain.equals(Chain.Linea)) {
           let hopL1BridgeWrapperAddress
           if (token.symbol === TokenModel.ETH) {
-            hopL1BridgeWrapperAddress = '0x953c6AEB1137377C0c24C8d5D9A5c9517bf4616a'
+            hopL1BridgeWrapperAddress = '0xd9e10C6b1bd26dE4E2749ce8aFe8Dd64294BcBF5'
           } else if (token.symbol === TokenModel.HOP) {
             hopL1BridgeWrapperAddress = '0x9051Dc48d27dAb53DbAB9E844f8E48c469603938'
           } else if (token.symbol === TokenModel.USDC) {

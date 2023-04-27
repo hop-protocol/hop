@@ -234,9 +234,9 @@ export function useSendTransaction (props: any) {
         const relayerFeeWithId = getBonderFeeWithId(totalFee)
         let relayer
         if (
-          sourceToken === sdk.Token.USDT ||
-          sourceToken === sdk.Token.DAI ||
-          sourceToken === sdk.Token.UNI
+          sourceToken.symbol === sdk.Token.USDT ||
+          sourceToken.symbol === sdk.Token.DAI ||
+          sourceToken.symbol === sdk.Token.UNI
         ) {
           relayer = '0x0000000000000000000000000000000000000000'
         }

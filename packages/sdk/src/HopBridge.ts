@@ -179,6 +179,14 @@ class HopBridge extends Base {
 
     this.priceFeed = new PriceFeed(this.priceFeedApiKeys)
     this.doesUseAmm = this.tokenSymbol !== CanonicalToken.HOP
+    if (this.network === NetworkSlug.Goerli) {
+      this.doesUseAmm = !(
+        this.tokenSymbol === CanonicalToken.USDT ||
+        this.tokenSymbol === CanonicalToken.DAI ||
+        this.tokenSymbol === CanonicalToken.UNI ||
+        this.tokenSymbol === CanonicalToken.HOP
+      )
+    }
   }
 
   /**
@@ -1112,21 +1120,20 @@ class HopBridge extends Base {
     }
     const bondTransferGasLimitWithSettlement = bondTransferGasLimit.add(settlementGasLimitPerTx)
 
-    let txFeeEth: BigNumber
-    if (sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]) {
-      txFeeEth = await this.getRelayerFee(destinationChain, this.tokenSymbol)
-    } else {
-      txFeeEth = destinationChainGasPrice.mul(bondTransferGasLimitWithSettlement)
-    }
-
     const oneEth = parseEther('1')
-    const rateBN = parseUnits(
-      rate.toFixed(canonicalToken.decimals),
-      canonicalToken.decimals
-    )
+    let destinationTxFee: BigNumber
 
-    txFeeEth = txFeeEth.add(l1FeeInWei)
-    let destinationTxFee = txFeeEth.mul(rateBN).div(oneEth)
+    const isRelayerFee = sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]
+    if (isRelayerFee) {
+      destinationTxFee = await this.getRelayerFee(destinationChain, this.tokenSymbol)
+    } else {
+      const rateBN = parseUnits(
+        rate.toFixed(canonicalToken.decimals),
+        canonicalToken.decimals
+      )
+      const txFeeInWei = destinationChainGasPrice.mul(bondTransferGasLimitWithSettlement).add(l1FeeInWei)
+      destinationTxFee = txFeeInWei.mul(rateBN).div(oneEth)
+    }
 
     if (
       destinationChain.equals(Chain.Ethereum) ||
@@ -2372,12 +2379,19 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     const token = this.toTokenModel(this.tokenSymbol)
 
+    console.log('aaa', this.network, NetworkSlug.Goerli)
     let onChainBonderFeeAbsolutePromise : any
     if (token.canonicalSymbol === TokenModel.ETH) {
       if (Chain.Gnosis.equals(sourceChain) || Chain.Polygon.equals(sourceChain)) {
         const l2Bridge = await this.getL2Bridge(sourceChain)
         onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
       }
+    }
+
+    if (this.network === NetworkSlug.Goerli) {
+      console.log('bbb')
+      const l2Bridge = await this.getL2Bridge(sourceChain)
+      onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
     }
 
     const [tokenPrice, onChainBonderFeeAbsolute] = await Promise.all([
@@ -2390,7 +2404,9 @@ class HopBridge extends Base {
       token.decimals
     )
 
+    console.log('ccc', onChainBonderFeeAbsolute)
     const absoluteFee = onChainBonderFeeAbsolute.gt(minBonderFeeAbsolute) ? onChainBonderFeeAbsolute : minBonderFeeAbsolute
+    console.log('ddd', absoluteFee)
 
     return absoluteFee
   }
@@ -2684,6 +2700,16 @@ class HopBridge extends Base {
     for (const chain of this.supportedChains) {
       if (chain === ChainSlug.Ethereum || token.canonicalSymbol === TokenModel.HOP) {
         continue
+      }
+      if (this.network === NetworkSlug.Goerli) {
+        if (
+          token.canonicalSymbol === TokenModel.USDT ||
+          token.canonicalSymbol === TokenModel.DAI ||
+          token.canonicalSymbol === TokenModel.UNI ||
+          token.canonicalSymbol === TokenModel.HOP
+        ) {
+          continue
+        }
       }
       supported.add(chain)
     }

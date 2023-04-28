@@ -32,10 +32,17 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
+const mintAmounts = {
+  HOP: '1000',
+  USDT: '100',
+  DAI: '100',
+  UNI: '10',
+}
+
 const Faucet: FC = () => {
   const styles = useStyles()
   const { bridges, selectedBridge, setSelectedBridge } = useApp()
-  const { mintToken, mintAmount, isMinting, error, setError, success, setSuccess, tokens, selectedNetwork } = useFaucet()
+  const { mintToken, mintAmount, setMintAmount, isMinting, error, setError, success, setSuccess, tokens, selectedNetwork } = useFaucet()
 
   const handleTokenChange = (event: ChangeEvent<{ value: unknown }>) => {
     const tokenSymbol = event.target.value as string
@@ -46,13 +53,14 @@ const Faucet: FC = () => {
   }
 
   let selectedToken = selectedBridge?.getTokenSymbol()
-  if (selectedToken === 'ETH') {
-    selectedToken = 'USDC'
+  if (selectedToken === 'ETH' || selectedToken === 'USDC') {
+    selectedToken = 'HOP'
   }
 
   const handleMint = () => {
     mintToken(selectedToken)
   }
+  setMintAmount(mintAmounts[selectedToken])
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
@@ -67,7 +75,7 @@ const Faucet: FC = () => {
             Mint {mintAmount} {selectedToken}
           </Typography>
           <RaisedSelect value={selectedToken} onChange={handleTokenChange}>
-            {tokens.filter(token => token.symbol !== 'ETH').map(token => (
+            {tokens.filter(token => token.symbol !== 'ETH').filter(token => token.symbol !== 'USDC').map(token => (
               <MenuItem value={token.symbol} key={token.symbol}>
                 {token.symbol}
               </MenuItem>

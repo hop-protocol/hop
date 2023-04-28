@@ -9,6 +9,7 @@ import serializeQueryParams from 'src/utils/serializeQueryParams'
 import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
 import { Chain, nativeChainTokens } from 'src/constants'
+import { SwapInput } from '../types'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
@@ -205,17 +206,6 @@ class OneInch {
       value
     }
   }
-}
-
-type SwapInput = {
-  chain: string
-  fromToken: string
-  toToken: string
-  amount: number
-  max: boolean
-  slippage: number
-  recipient: string
-  dryMode: boolean
 }
 
 // 1inch uses 0xeee…eee address for native tokens (eth, matic, xdai, etc)

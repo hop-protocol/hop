@@ -1,7 +1,6 @@
 import '../moduleAlias'
 import ArbitrumBridgeWatcher from './ArbitrumBridgeWatcher'
 import BaseWatcher from './classes/BaseWatcher'
-import BaseZkBridgeWatcher from './BaseZkBridgeWatcher'
 import GnosisBridgeWatcher from './GnosisBridgeWatcher'
 import L1Bridge from './classes/L1Bridge'
 import L1MessengerWrapper from './classes/L1MessengerWrapper'
@@ -16,11 +15,11 @@ import getTransferCommitted from 'src/theGraph/getTransferCommitted'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber } from 'ethers'
 import { Chain, ChallengePeriodMs } from 'src/constants'
-import { ExitSystemSupportedTokens, getEnabledNetworks, config as globalConfig } from 'src/config'
 import { ExitableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { getEnabledNetworks, config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -37,7 +36,7 @@ export type ConfirmRootsData = {
   rootCommittedAts: number[]
 }
 
-type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | BaseZkBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
+type Watcher = GnosisBridgeWatcher | PolygonBridgeWatcher | OptimismBridgeWatcher | ArbitrumBridgeWatcher | NovaBridgeWatcher | ZkSyncBridgeWatcher | LineaBridgeWatcher | ScrollZkBridgeWatcher
 
 class ConfirmRootsWatcher extends BaseWatcher {
   l1Bridge: L1Bridge
@@ -75,14 +74,6 @@ class ConfirmRootsWatcher extends BaseWatcher {
     }
     if (this.chainSlug === Chain.Optimism && enabledNetworks.includes(Chain.Optimism)) {
       this.watchers[Chain.Optimism] = new OptimismBridgeWatcher({
-        chainSlug: config.chainSlug,
-        tokenSymbol: this.tokenSymbol,
-        bridgeContract: config.bridgeContract,
-        dryMode: config.dryMode
-      })
-    }
-    if (this.chainSlug === Chain.Base && enabledNetworks.includes(Chain.Base)) {
-      this.watchers[Chain.Base] = new BaseZkBridgeWatcher({
         chainSlug: config.chainSlug,
         tokenSymbol: this.tokenSymbol,
         bridgeContract: config.bridgeContract,
@@ -168,14 +159,6 @@ class ConfirmRootsWatcher extends BaseWatcher {
   async checkConfirmableTransferRootsFromDb () {
     const dbTransferRoots = await this.db.transferRoots.getConfirmableTransferRoots(await this.getFilterRoute())
     if (!dbTransferRoots.length) {
-      return
-    }
-
-    // TODO: Remove this when the exit system is fully live
-    if (
-      ExitSystemSupportedTokens.length !== 0 &&
-      !ExitSystemSupportedTokens.includes(this.tokenSymbol)
-    ) {
       return
     }
 

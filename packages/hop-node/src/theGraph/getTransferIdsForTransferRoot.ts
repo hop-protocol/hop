@@ -134,6 +134,19 @@ export default async function getTransferIdsForTransferRoot (
   const _transfers = jsonRes.transferSents.map((x: any) => normalizeEntity(x))
   const { sortedTransfers } = getSortedTransferIds(_transfers, startBlockNumber)
 
+  const shouldLog = false
+  if (shouldLog) {
+    console.log(JSON.stringify(sortedTransfers.map((x: any) => {
+      return {
+        transferId: x.transferId,
+        transactionHash: x.transactionHash,
+        index: x.index,
+        blockNumber: x.blockNumber,
+        timestamp: x.timestamp
+      }
+    }), null, 2))
+  }
+
   const transferIds = sortedTransfers.map((x: any) => x.transferId)
 
   // verify that the computed root matches the original root hash

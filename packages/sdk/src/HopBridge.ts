@@ -32,7 +32,8 @@ import {
   TokenSymbol
 } from './constants'
 import { TAmount, TChain, TProvider, TTime, TTimeSlot, TToken } from './types'
-import { bondableChains, metadata, relayableChains } from './config'
+import { WithdrawalProof } from './utils/WithdrawalProof'
+import { bondableChains, metadata } from './config'
 import { getAddress as checksumAddress, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 
 const s3FileCache : Record<string, any> = {}
@@ -178,6 +179,14 @@ class HopBridge extends Base {
 
     this.priceFeed = new PriceFeed(this.priceFeedApiKeys)
     this.doesUseAmm = this.tokenSymbol !== CanonicalToken.HOP
+    if (this.network === NetworkSlug.Goerli) {
+      this.doesUseAmm = !(
+        this.tokenSymbol === CanonicalToken.USDT ||
+        this.tokenSymbol === CanonicalToken.DAI ||
+        this.tokenSymbol === CanonicalToken.UNI ||
+        this.tokenSymbol === CanonicalToken.HOP
+      )
+    }
   }
 
   /**
@@ -650,8 +659,8 @@ class HopBridge extends Base {
     const relayer = await this.getBonderAddress(sourceChain, destinationChain)
 
     if (sourceChain.isL1) {
-      if (bonderFee.gt(0) && !relayableChains.includes(destinationChain.slug)) {
-        throw new Error('Bonder fee should be 0 when sending hToken to a non-relayable L2')
+      if (bonderFee.gt(0) && !this.relayerFeeEnabled[destinationChain.slug]) {
+        throw new Error('Bonder fee should be 0 when sending from L1 to L2 and relayer fee is disabled')
       }
 
       let l1Bridge = await this.getL1Bridge(sourceChain.provider)
@@ -823,11 +832,11 @@ class HopBridge extends Base {
     let adjustedBonderFee
     let adjustedDestinationTxFee
     let totalFee
-    if (sourceChain.isL1 && !relayableChains.includes(destinationChain.slug)) {
+    if (sourceChain.isL1 && !this.relayerFeeEnabled[destinationChain.slug]) {
       adjustedBonderFee = BigNumber.from(0)
       adjustedDestinationTxFee = BigNumber.from(0)
       totalFee = BigNumber.from(0)
-    } else if (sourceChain.isL1 && relayableChains.includes(destinationChain.slug)) {
+    } else if (sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]) {
       adjustedBonderFee = BigNumber.from(0)
       adjustedDestinationTxFee = destinationTxFee
       totalFee = adjustedBonderFee.add(adjustedDestinationTxFee)
@@ -1075,7 +1084,7 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     destinationChain = this.toChainModel(destinationChain)
 
-    if (sourceChain.isL1 && !relayableChains.includes(destinationChain.slug)) {
+    if (sourceChain.isL1 && !this.relayerFeeEnabled[destinationChain.slug]) {
       return {
         destinationTxFee: BigNumber.from(0),
         rate: null,
@@ -1111,21 +1120,20 @@ class HopBridge extends Base {
     }
     const bondTransferGasLimitWithSettlement = bondTransferGasLimit.add(settlementGasLimitPerTx)
 
-    let txFeeEth: BigNumber
-    if (sourceChain.isL1 && relayableChains.includes(destinationChain.slug)) {
-      txFeeEth = await this.getRelayerFee(destinationChain, this.tokenSymbol)
-    } else {
-      txFeeEth = destinationChainGasPrice.mul(bondTransferGasLimitWithSettlement)
-    }
-
     const oneEth = parseEther('1')
-    const rateBN = parseUnits(
-      rate.toFixed(canonicalToken.decimals),
-      canonicalToken.decimals
-    )
+    let destinationTxFee: BigNumber
 
-    txFeeEth = txFeeEth.add(l1FeeInWei)
-    let destinationTxFee = txFeeEth.mul(rateBN).div(oneEth)
+    const isRelayerFee = sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]
+    if (isRelayerFee) {
+      destinationTxFee = await this.getRelayerFee(destinationChain, this.tokenSymbol)
+    } else {
+      const rateBN = parseUnits(
+        rate.toFixed(canonicalToken.decimals),
+        canonicalToken.decimals
+      )
+      const txFeeInWei = destinationChainGasPrice.mul(bondTransferGasLimitWithSettlement).add(l1FeeInWei)
+      destinationTxFee = txFeeInWei.mul(rateBN).div(oneEth)
+    }
 
     if (
       destinationChain.equals(Chain.Ethereum) ||
@@ -2371,12 +2379,19 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     const token = this.toTokenModel(this.tokenSymbol)
 
+    console.log('aaa', this.network, NetworkSlug.Goerli)
     let onChainBonderFeeAbsolutePromise : any
     if (token.canonicalSymbol === TokenModel.ETH) {
       if (Chain.Gnosis.equals(sourceChain) || Chain.Polygon.equals(sourceChain)) {
         const l2Bridge = await this.getL2Bridge(sourceChain)
         onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
       }
+    }
+
+    if (this.network === NetworkSlug.Goerli) {
+      console.log('bbb')
+      const l2Bridge = await this.getL2Bridge(sourceChain)
+      onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
     }
 
     const [tokenPrice, onChainBonderFeeAbsolute] = await Promise.all([
@@ -2389,7 +2404,9 @@ class HopBridge extends Base {
       token.decimals
     )
 
+    console.log('ccc', onChainBonderFeeAbsolute)
     const absoluteFee = onChainBonderFeeAbsolute.gt(minBonderFeeAbsolute) ? onChainBonderFeeAbsolute : minBonderFeeAbsolute
+    console.log('ddd', absoluteFee)
 
     return absoluteFee
   }
@@ -2495,7 +2512,7 @@ class HopBridge extends Base {
   }
 
   async withdraw (
-    chain: Chain,
+    chain: TChain,
     recipient: string,
     amount: BigNumberish,
     transferNonce: string,
@@ -2509,7 +2526,41 @@ class HopBridge extends Base {
     totalLeaves: number
   ) {
     chain = this.toChainModel(chain)
-    const txOptions = [
+    await this.checkConnectedChain(this.signer, chain)
+    const populatedTx = await this.populateWithdrawTx(
+      chain,
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      transferRootHash,
+      rootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves
+    )
+    return this.sendTransaction(populatedTx, chain)
+  }
+
+  async populateWithdrawTx (
+    chain: TChain,
+    recipient: string,
+    amount: BigNumberish,
+    transferNonce: string,
+    bonderFee: BigNumberish,
+    amountOutMin: BigNumberish,
+    deadline: number,
+    transferRootHash: string,
+    rootTotalAmount: BigNumberish,
+    transferIdTreeIndex: number,
+    siblings: string[],
+    totalLeaves: number
+  ) {
+    chain = this.toChainModel(chain)
+    const txOptions = await this.txOverrides(chain)
+    const args = [
       recipient,
       amount,
       transferNonce,
@@ -2521,12 +2572,58 @@ class HopBridge extends Base {
       transferIdTreeIndex,
       siblings,
       totalLeaves,
-      await this.txOverrides(chain)
+      txOptions
     ] as const
 
-    await this.checkConnectedChain(this.signer, chain)
     const bridge = await this.getBridgeContract(chain)
-    return bridge.withdraw(...txOptions)
+    return bridge.populateTransaction.withdraw(...args)
+  }
+
+  async populateWithdrawTransferTx (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string) {
+    sourceChain = this.toChainModel(sourceChain)
+    const wp = new WithdrawalProof(this.network, transferIdOrTransactionHash)
+    await wp.generateProof()
+    await wp.checkWithdrawable()
+    const {
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      transferRootHash,
+      rootTotalAmount,
+      transferIdTreeIndex,
+      siblings,
+      totalLeaves
+    } = wp.getTxPayload()
+    return this.populateWithdrawTx(
+      wp.transfer.destinationChain,
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      transferRootHash!,
+      rootTotalAmount!,
+      transferIdTreeIndex!,
+      siblings!,
+      totalLeaves!
+    )
+  }
+
+  async withdrawTransfer (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string) {
+    sourceChain = this.toChainModel(sourceChain)
+    destinationChain = this.toChainModel(destinationChain)
+    const populatedTx = await this.populateWithdrawTransferTx(sourceChain, destinationChain, transferIdOrTransactionHash)
+    return this.sendTransaction(populatedTx, destinationChain)
+  }
+
+  async getWithdrawProof (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string) {
+    sourceChain = this.toChainModel(sourceChain)
+    const wp = new WithdrawalProof(this.network, transferIdOrTransactionHash)
+    return wp.generateProof()
   }
 
   setPriceFeedApiKeys (apiKeys: ApiKeys = {}): void {
@@ -2603,6 +2700,16 @@ class HopBridge extends Base {
     for (const chain of this.supportedChains) {
       if (chain === ChainSlug.Ethereum || token.canonicalSymbol === TokenModel.HOP) {
         continue
+      }
+      if (this.network === NetworkSlug.Goerli) {
+        if (
+          token.canonicalSymbol === TokenModel.USDT ||
+          token.canonicalSymbol === TokenModel.DAI ||
+          token.canonicalSymbol === TokenModel.UNI ||
+          token.canonicalSymbol === TokenModel.HOP
+        ) {
+          continue
+        }
       }
       supported.add(chain)
     }

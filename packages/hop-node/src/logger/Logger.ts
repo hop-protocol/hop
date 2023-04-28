@@ -44,7 +44,7 @@ export const setLogLevel = (_logLevel: LogLevels | string) => {
   logLevel = _logLevel
 }
 
-class Logger {
+export class Logger {
   private readonly tag: string = ''
   private readonly prefix: string = ''
   private readonly options: any = {}

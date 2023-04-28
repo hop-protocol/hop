@@ -7,7 +7,7 @@ import { Chain } from 'src/constants'
 import { CrossChainMessenger, MessageStatus, hashLowLevelMessage } from '@eth-optimism/sdk'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Wallet, providers } from 'ethers'
+import { Signer, providers } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -19,8 +19,8 @@ type Config = {
 class OptimismBridgeWatcher extends BaseWatcher {
   l1Provider: any
   l2Provider: any
-  l1Wallet: Wallet
-  l2Wallet: Wallet
+  l1Wallet: Signer
+  l2Wallet: Signer
   csm: CrossChainMessenger
   chainId: number
 
@@ -64,7 +64,9 @@ class OptimismBridgeWatcher extends BaseWatcher {
     if (messageStatus === MessageStatus.READY_TO_PROVE) {
       console.log('message ready to prove')
       const resolved = await this.csm.toCrossChainMessage(txHash)
+      console.log('sending proveMessage tx')
       const tx = await this.csm.proveMessage(resolved)
+      console.log('proveMessage tx:', tx?.hash)
       await tx.wait()
       console.log('waiting challenge period')
       const challengePeriod = await this.csm.getChallengePeriodSeconds()
@@ -84,7 +86,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
           hashLowLevelMessage(withdrawal)
         )
       const timestamp = Number(provenWithdrawal.timestamp.toString())
-      const secondsLeft = (timestamp + challengePeriod) - Number(latestBlock.timestamp.toString())
+      const bufferSeconds = 10
+      const secondsLeft = (timestamp + challengePeriod + bufferSeconds) - Number(latestBlock.timestamp.toString())
       console.log('seconds left:', secondsLeft)
       await wait(secondsLeft * 1000)
     }
@@ -92,8 +95,15 @@ class OptimismBridgeWatcher extends BaseWatcher {
     messageStatus = await this.csm.getMessageStatus(txHash)
     if (messageStatus === MessageStatus.READY_FOR_RELAY) {
       console.log('ready for relay')
+      console.log('sending finalizeMessage tx')
       const tx = await this.csm.finalizeMessage(txHash)
+      console.log('finalizeMessage tx:', tx.hash)
       return tx
+    }
+
+    if (messageStatus === MessageStatus.RELAYED) {
+      console.log('message already relayed')
+      return
     }
 
     console.log(MessageStatus)

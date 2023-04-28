@@ -114,6 +114,8 @@ HopBridge
 - [getL1AmbBridgeAddress](HopBridge.md#getl1ambbridgeaddress)
 - [getL1Bridge](HopBridge.md#getl1bridge)
 - [getL1BridgeAddress](HopBridge.md#getl1bridgeaddress)
+- [getL1BridgeWrapperAddress](HopBridge.md#getl1bridgewrapperaddress)
+- [getL1BridgeWrapperOrL1Bridge](HopBridge.md#getl1bridgewrapperorl1bridge)
 - [getL1CanonicalBridgeAddress](HopBridge.md#getl1canonicalbridgeaddress)
 - [getL1CanonicalTokenAddress](HopBridge.md#getl1canonicaltokenaddress)
 - [getL1PosErc20PredicateAddress](HopBridge.md#getl1poserc20predicateaddress)
@@ -163,7 +165,7 @@ HopBridge
 - [getUnbondedTransferRootAmount](HopBridge.md#getunbondedtransferrootamount)
 - [getVaultBalance](HopBridge.md#getvaultbalance)
 - [getWaitConfirmations](HopBridge.md#getwaitconfirmations)
-- [init](HopBridge.md#init)
+- [getWithdrawProof](HopBridge.md#getwithdrawproof)
 - [isDestinationChainPaused](HopBridge.md#isdestinationchainpaused)
 - [isNativeToken](HopBridge.md#isnativetoken)
 - [isSupportedAsset](HopBridge.md#issupportedasset)
@@ -176,6 +178,8 @@ HopBridge
 - [populateSendApprovalTx](HopBridge.md#populatesendapprovaltx)
 - [populateSendHTokensTx](HopBridge.md#populatesendhtokenstx)
 - [populateSendTx](HopBridge.md#populatesendtx)
+- [populateWithdrawTransferTx](HopBridge.md#populatewithdrawtransfertx)
+- [populateWithdrawTx](HopBridge.md#populatewithdrawtx)
 - [removeLiquidity](HopBridge.md#removeliquidity)
 - [removeLiquidityImbalance](HopBridge.md#removeliquidityimbalance)
 - [removeLiquidityOneToken](HopBridge.md#removeliquidityonetoken)
@@ -204,6 +208,7 @@ HopBridge
 - [txOverrides](HopBridge.md#txoverrides)
 - [willTransferFail](HopBridge.md#willtransferfail)
 - [withdraw](HopBridge.md#withdraw)
+- [withdrawTransfer](HopBridge.md#withdrawtransfer)
 
 ## Constructors
 
@@ -427,7 +432,7 @@ ___
 
 ### <a id="pricefeed" name="pricefeed"></a> priceFeed
 
-• **priceFeed**: `PriceFeed`
+• **priceFeed**: [`PriceFeed`](PriceFeed.md)
 
 ___
 
@@ -1694,6 +1699,45 @@ ___
 
 ___
 
+### <a id="getl1bridgewrapperaddress" name="getl1bridgewrapperaddress"></a> getL1BridgeWrapperAddress
+
+▸ **getL1BridgeWrapperAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+[Base](Base.md).[getL1BridgeWrapperAddress](Base.md#getl1bridgewrapperaddress)
+
+___
+
+### <a id="getl1bridgewrapperorl1bridge" name="getl1bridgewrapperorl1bridge"></a> getL1BridgeWrapperOrL1Bridge
+
+▸ **getL1BridgeWrapperOrL1Bridge**(`sourceChain`, `destinationChain?`): `Promise`<`any`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain?` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`Promise`<`any`\>
+
+___
+
 ### <a id="getl1canonicalbridgeaddress" name="getl1canonicalbridgeaddress"></a> getL1CanonicalBridgeAddress
 
 ▸ **getL1CanonicalBridgeAddress**(`token`, `chain`): `string`
@@ -2199,7 +2243,7 @@ ___
 
 ### <a id="getsendapprovaladdress" name="getsendapprovaladdress"></a> getSendApprovalAddress
 
-▸ **getSendApprovalAddress**(`sourceChain`, `isHTokenTransfer?`): `string`
+▸ **getSendApprovalAddress**(`sourceChain`, `isHTokenTransfer?`, `destinationChain?`): `string`
 
 #### Parameters
 
@@ -2207,6 +2251,7 @@ ___
 | :------ | :------ | :------ |
 | `sourceChain` | [`TChain`](../modules.md#tchain) | `undefined` |
 | `isHTokenTransfer` | `boolean` | `false` |
+| `destinationChain?` | [`TChain`](../modules.md#tchain) | `undefined` |
 
 #### Returns
 
@@ -2623,17 +2668,21 @@ ___
 
 ___
 
-### <a id="init" name="init"></a> init
+### <a id="getwithdrawproof" name="getwithdrawproof"></a> getWithdrawProof
 
-▸ **init**(): `Promise`<`void`\>
+▸ **getWithdrawProof**(`sourceChain`, `destinationChain`, `transferIdOrTransactionHash`): `Promise`<`string`[]\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
+| `transferIdOrTransactionHash` | `string` |
 
 #### Returns
 
-`Promise`<`void`\>
-
-#### Inherited from
-
-[Base](Base.md).[init](Base.md#init)
+`Promise`<`string`[]\>
 
 ___
 
@@ -2727,15 +2776,16 @@ ___
 
 ### <a id="needsapproval" name="needsapproval"></a> needsApproval
 
-▸ **needsApproval**(`amount`, `chain`, `address?`): `Promise`<`boolean`\>
+▸ **needsApproval**(`amount`, `sourceChain`, `address?`, `destinationChain?`): `Promise`<`boolean`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chain` | [`TChain`](../modules.md#tchain) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
 | `address?` | `string` |
+| `destinationChain?` | [`TChain`](../modules.md#tchain) |
 
 #### Returns
 
@@ -2745,15 +2795,16 @@ ___
 
 ### <a id="needshtokenapproval" name="needshtokenapproval"></a> needsHTokenApproval
 
-▸ **needsHTokenApproval**(`amount`, `chain`, `address?`): `Promise`<`boolean`\>
+▸ **needsHTokenApproval**(`amount`, `sourceChain`, `address?`, `destinationChain?`): `Promise`<`boolean`\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `amount` | `BigNumberish` |
-| `chain` | [`TChain`](../modules.md#tchain) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
 | `address?` | `string` |
+| `destinationChain?` | [`TChain`](../modules.md#tchain) |
 
 #### Returns
 
@@ -2798,7 +2849,7 @@ ___
 
 ### <a id="populatesendapprovaltx" name="populatesendapprovaltx"></a> populateSendApprovalTx
 
-▸ **populateSendApprovalTx**(`tokenAmount`, `sourceChain`, `isHTokenTransfer?`): `Promise`<`any`\>
+▸ **populateSendApprovalTx**(`tokenAmount`, `sourceChain`, `isHTokenTransfer?`, `destinationChain?`): `Promise`<`any`\>
 
 #### Parameters
 
@@ -2807,6 +2858,7 @@ ___
 | `tokenAmount` | `BigNumberish` | `undefined` |
 | `sourceChain` | [`TChain`](../modules.md#tchain) | `undefined` |
 | `isHTokenTransfer` | `boolean` | `false` |
+| `destinationChain?` | [`TChain`](../modules.md#tchain) | `undefined` |
 
 #### Returns
 
@@ -2845,6 +2897,51 @@ ___
 | `sourceChain?` | [`TChain`](../modules.md#tchain) |
 | `destinationChain?` | [`TChain`](../modules.md#tchain) |
 | `options` | `Partial`<`SendOptions`\> |
+
+#### Returns
+
+`Promise`<`any`\>
+
+___
+
+### <a id="populatewithdrawtransfertx" name="populatewithdrawtransfertx"></a> populateWithdrawTransferTx
+
+▸ **populateWithdrawTransferTx**(`sourceChain`, `destinationChain`, `transferIdOrTransactionHash`): `Promise`<`any`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
+| `transferIdOrTransactionHash` | `string` |
+
+#### Returns
+
+`Promise`<`any`\>
+
+___
+
+### <a id="populatewithdrawtx" name="populatewithdrawtx"></a> populateWithdrawTx
+
+▸ **populateWithdrawTx**(`chain`, `recipient`, `amount`, `transferNonce`, `bonderFee`, `amountOutMin`, `deadline`, `transferRootHash`, `rootTotalAmount`, `transferIdTreeIndex`, `siblings`, `totalLeaves`): `Promise`<`any`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `chain` | [`TChain`](../modules.md#tchain) |
+| `recipient` | `string` |
+| `amount` | `BigNumberish` |
+| `transferNonce` | `string` |
+| `bonderFee` | `BigNumberish` |
+| `amountOutMin` | `BigNumberish` |
+| `deadline` | `number` |
+| `transferRootHash` | `string` |
+| `rootTotalAmount` | `BigNumberish` |
+| `transferIdTreeIndex` | `number` |
+| `siblings` | `string`[] |
+| `totalLeaves` | `number` |
 
 #### Returns
 
@@ -3417,7 +3514,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `chain` | [`Chain`](Chain.md) |
+| `chain` | [`TChain`](../modules.md#tchain) |
 | `recipient` | `string` |
 | `amount` | `BigNumberish` |
 | `transferNonce` | `string` |
@@ -3429,6 +3526,24 @@ ___
 | `transferIdTreeIndex` | `number` |
 | `siblings` | `string`[] |
 | `totalLeaves` | `number` |
+
+#### Returns
+
+`Promise`<`any`\>
+
+___
+
+### <a id="withdrawtransfer" name="withdrawtransfer"></a> withdrawTransfer
+
+▸ **withdrawTransfer**(`sourceChain`, `destinationChain`, `transferIdOrTransactionHash`): `Promise`<`any`\>
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
+| `transferIdOrTransactionHash` | `string` |
 
 #### Returns
 

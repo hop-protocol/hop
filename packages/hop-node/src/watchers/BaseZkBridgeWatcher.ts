@@ -5,7 +5,7 @@ import { Chain } from 'src/constants'
 import { CrossChainMessenger } from '@eth-optimism/sdk'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { Wallet } from 'ethers'
+import { Signer } from 'ethers'
 
 type Config = {
   chainSlug: string
@@ -17,8 +17,8 @@ type Config = {
 class BaseZkBridgeWatcher extends OptimismBridgeWatcher {
   l1Provider: any
   l2Provider: any
-  l1Wallet: Wallet
-  l2Wallet: Wallet
+  l1Wallet: Signer
+  l2Wallet: Signer
   csm: CrossChainMessenger
   chainId: number
 
@@ -38,8 +38,9 @@ class BaseZkBridgeWatcher extends OptimismBridgeWatcher {
     this.chainId = chainSlugToId(config.chainSlug)
 
     this.csm = new CrossChainMessenger({
-      bedrock: this.chainId === 420,
-      l1ChainId: this.chainId === 420 ? 5 : 1,
+      // TODO: I'm not sure when Base is updating to use Bedrock
+      bedrock: false,
+      l1ChainId: this.chainId === 84531 ? 5 : 1,
       l2ChainId: this.chainId,
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet

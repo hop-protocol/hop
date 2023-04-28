@@ -7,11 +7,12 @@ import wait from 'src/utils/wait'
 import { Mutex } from 'async-mutex'
 import { NonceTooLowError } from 'src/types/error'
 import { Notifier } from 'src/notifier'
-import { Signer, Wallet, providers } from 'ethers'
+import { Signer, providers } from 'ethers'
+import { defineReadOnly } from 'ethers/lib/utils'
 import { hostname, setLatestNonceOnStart } from 'src/config'
 import { v4 as uuidv4 } from 'uuid'
 
-class GasBoostSigner extends Wallet {
+class GasBoostSigner extends Signer {
   store: Store
   items: string[] = []
   lastTxSentTimestamp: number = 0
@@ -23,11 +24,13 @@ class GasBoostSigner extends Wallet {
   notifier: Notifier
   mutex: Mutex
   ready: boolean = false
+  options: Partial<Options>
   private _count: number = 0
 
-  constructor (privateKey: string, provider?: providers.Provider, store: Store = new MemoryStore(), options: Partial<Options> = {}) {
-    super(privateKey, provider)
-    this.signer = new Wallet(privateKey, provider)
+  constructor (signer: Signer, store: Store = new MemoryStore(), options: Partial<Options> = {}) {
+    super()
+    this.signer = signer
+    defineReadOnly(this, 'provider', signer.provider)
     if (store != null) {
       this.store = store
     }
@@ -56,6 +59,23 @@ class GasBoostSigner extends Wallet {
         this.logger.debug(`current nonce: ${nonce}`)
         this.ready = true
       })
+  }
+
+  connect (provider: providers.Provider) {
+    const _signer = this.signer.connect(provider)
+    return new GasBoostSigner(_signer, this.store, this.options)
+  }
+
+  async getAddress () {
+    return this.signer.getAddress()
+  }
+
+  async signMessage (msg: Buffer | string) {
+    return this.signer.signMessage(msg)
+  }
+
+  async signTransaction (transaction: providers.TransactionRequest) {
+    return this.signer.signTransaction(transaction)
   }
 
   private async init () {
@@ -211,6 +231,7 @@ class GasBoostSigner extends Wallet {
   setOptions (options: Partial<Options> = {}): void {
     this.logger.debug('options:', JSON.stringify(options))
     this.gTxFactory.setOptions(options)
+    this.options = options
   }
 }
 

@@ -1183,7 +1183,7 @@ class SyncWatcher extends BaseWatcher {
     let startBlockNumber = sourceBridge.bridgeDeployedBlockNumber
 
     logger.debug('startBlockNumber:', startBlockNumber)
-    logger.debug('endBlockNumber:', startBlockNumber)
+    logger.debug('endBlockNumber:', endBlockNumber)
 
     await sourceBridge.eventsBatch(async (start: number, end: number) => {
       let events = await sourceBridge.getTransfersCommittedEvents(start, end)
@@ -1542,8 +1542,8 @@ class SyncWatcher extends BaseWatcher {
         }
 
         if (RelayableChains.includes(this.chainSlug)) {
-          const relayerFee = new RelayerFee(globalConfig.network, this.tokenSymbol)
-          const gasCost = await relayerFee.getRelayCost(this.chainSlug)
+          const relayerFee = new RelayerFee()
+          const gasCost = await relayerFee.getRelayCost(globalConfig.network, this.chainSlug, this.tokenSymbol)
           logger.debug('pollGasCost got relayGasCost')
           estimates.push({ gasLimit: gasCost, transactionType: GasCostTransactionType.Relay })
         }

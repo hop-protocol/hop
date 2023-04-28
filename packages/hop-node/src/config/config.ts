@@ -52,7 +52,7 @@ const isTestMode = !!process.env.TEST_MODE
 const bonderPrivateKey = process.env.BONDER_PRIVATE_KEY
 
 export const oruChains: Set<string> = new Set([Chain.Optimism, Chain.Arbitrum, Chain.Nova, Chain.Base])
-export const rateLimitMaxRetries = 5
+export const rateLimitMaxRetries = normalizeEnvVarNumber(process.env.RATE_LIMIT_MAX_RETRIES) ?? 5
 export const rpcTimeoutSeconds = 90
 export const defaultConfigDir = `${os.homedir()}/.hop-node`
 export const defaultConfigFilePath = `${defaultConfigDir}/config.json`
@@ -87,10 +87,6 @@ export const etherscanApiUrls: Record<string, string> = {
   [Chain.Nova]: 'https://api-nova.arbiscan.io'
 }
 
-// TODO: Remove this when the exit system is fully live
-export const IsExitSystemLive = process.env.IS_EXIT_SYSTEM_LIVE ?? true
-export const ExitSystemSupportedTokens = process.env.EXIT_SYSTEM_SUPPORTED_TOKENS?.split(',') ?? []
-
 type SyncConfig = {
   totalBlocks?: number
   batchBlocks?: number
@@ -110,6 +106,15 @@ export type CommitTransfersConfig = {
   minThresholdAmount: Record<string, Record<string, Record<string, any>>>
 }
 type Tokens = Record<string, boolean>
+
+export type SignerType = 'keystore' | 'kms' | 'lambda'
+
+export type SignerConfig = {
+  type: SignerType
+  keyId?: string
+  awsRegion?: string
+  lambdaFunctionName?: string
+}
 
 export type VaultChainTokenConfig = {
   depositThresholdAmount: number
@@ -145,6 +150,7 @@ export type Config = {
   commitTransfers: CommitTransfersConfig
   fees: Fees
   routes: Routes
+  signerConfig: SignerConfig
   vault: Vault
   blocklist: BlocklistConfig
 }
@@ -245,6 +251,9 @@ export const config: Config = {
   commitTransfers: {
     minThresholdAmount: {}
   },
+  signerConfig: {
+    type: 'keystore'
+  },
   vault: {},
   blocklist: {
     path: '',
@@ -305,6 +314,9 @@ export const getNetworkMaxGasPrice = (network: string) => {
 export const setSyncConfig = (syncConfigs: SyncConfigs = {}) => {
   const networks = Object.keys(config.networks)
   for (const network of networks) {
+    if (!syncConfigs[network]) {
+      continue
+    }
     if (!config.sync[network]) {
       config.sync = config.sync ?? {}
       config.sync[network] = {}
@@ -362,6 +374,10 @@ export const setCommitTransfersConfig = (commitTransfers: CommitTransfersConfig)
 
 export const setConfigTokens = (tokens: Tokens) => {
   config.tokens = { ...config.tokens, ...tokens }
+}
+
+export const setSignerConfig = (signerConfig: SignerConfig) => {
+  config.signerConfig = { ...config.signerConfig, ...signerConfig }
 }
 
 export const setVaultConfig = (vault: Vault) => {

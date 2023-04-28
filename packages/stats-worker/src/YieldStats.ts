@@ -18,6 +18,7 @@ import {
   ERC20__factory,
   StakingRewards__factory
 } from '@hop-protocol/core/contracts'
+import { coingeckoApiKey } from './config'
 
 const TOTAL_AMOUNTS_DECIMALS = 18
 const oneYearDays = 365
@@ -129,6 +130,10 @@ class YieldStats {
       optimism: optimismRpc,
       arbitrum: arbitrumRpc,
       nova: novaRpc
+    })
+
+    this.sdk.setPriceFeedApiKeys({
+      coingecko: coingeckoApiKey
     })
 
     this.bridges = mainnetAddresses.bridges
@@ -397,9 +402,6 @@ class YieldStats {
           const stakingRewardsData =
             stakingRewardData[stakingRewardsContractAddress]
           if (stakingRewardsData.isOptimalStakingContract) {
-            if (stakingRewardsData.rewardToken === 'HOP') {
-              console.log('here0', token, chain, yieldData.pools[token][chain])
-            }
             yieldData.optimalYield[token][chain] = {
               apr: yieldData.pools[token][chain].apr + stakingRewardsData.apr,
               apy: yieldData.pools[token][chain].apy + stakingRewardsData.apy,

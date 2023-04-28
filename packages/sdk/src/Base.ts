@@ -6,7 +6,7 @@ import { ArbitrumGlobalInbox } from '@hop-protocol/core/contracts/static/Arbitru
 import { ArbitrumGlobalInbox__factory } from '@hop-protocol/core/contracts/factories/static/ArbitrumGlobalInbox__factory'
 import { BigNumber, BigNumberish, Signer, constants, providers } from 'ethers'
 import { Chain, Token as TokenModel } from './models'
-import { ChainSlug, Errors, MinPolygonGasLimit, MinPolygonGasPrice, NetworkSlug } from './constants'
+import { ChainSlug, Errors, MinGoerliGasLimit, MinPolygonGasLimit, MinPolygonGasPrice, NetworkSlug } from './constants'
 import { L1_OptimismTokenBridge } from '@hop-protocol/core/contracts/static/L1_OptimismTokenBridge'
 import { L1_OptimismTokenBridge__factory } from '@hop-protocol/core/contracts/factories/static/L1_OptimismTokenBridge__factory'
 import { L1_PolygonPosRootChainManager } from '@hop-protocol/core/contracts/static/L1_PolygonPosRootChainManager'
@@ -598,6 +598,18 @@ export class Base {
       txOptions.gasLimit = MinPolygonGasLimit
     }
 
+    if (chain.equals(Chain.Linea)) {
+      const gasPriceMultiplier = 2
+      txOptions.gasPrice = await this.getBumpedGasPrice(
+        this.signer,
+        gasPriceMultiplier
+      )
+    }
+
+    if (this.network === NetworkSlug.Goerli) {
+      txOptions.gasLimit = MinGoerliGasLimit
+    }
+
     return txOptions
   }
 
@@ -663,16 +675,8 @@ export class Base {
       return BigNumber.from(0)
     }
 
-    if (
-      destinationChain.equals(Chain.Arbitrum) ||
-      destinationChain.equals(Chain.Nova) ||
-      destinationChain.equals(Chain.Linea)
-    ) {
-      const relayerFee = new RelayerFee(this.network, tokenSymbol)
-      return relayerFee.getRelayCost(destinationChain.slug)
-    }
-
-    return BigNumber.from(0)
+    const relayerFee = new RelayerFee()
+    return relayerFee.getRelayCost(this.network, destinationChain.slug, tokenSymbol)
   }
 
   async setBaseConfigUrl (url: string): Promise<void> {
@@ -762,14 +766,21 @@ export class Base {
     if (this.network === NetworkSlug.Goerli) {
       if (sourceChain.isL1) {
         if (destinationChain.equals(Chain.Linea)) {
+          let hopL1BridgeWrapperAddress
           if (token.symbol === TokenModel.ETH) {
-            const hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
-            return hopL1BridgeWrapperAddress
+            hopL1BridgeWrapperAddress = '0xd9e10C6b1bd26dE4E2749ce8aFe8Dd64294BcBF5'
+          } else if (token.symbol === TokenModel.HOP) {
+            hopL1BridgeWrapperAddress = '0x9051Dc48d27dAb53DbAB9E844f8E48c469603938'
+          } else if (token.symbol === TokenModel.USDC) {
+            hopL1BridgeWrapperAddress = '0x889CD829cE211c92b31fDFE1d75299482839ea2b'
+          } else if (token.symbol === TokenModel.USDT) {
+            hopL1BridgeWrapperAddress = '0x53B94FAf104A484ff4E7c66bFe311fd48ce3D887'
+          } else if (token.symbol === TokenModel.DAI) {
+            hopL1BridgeWrapperAddress = '0xAa1603822b43e592e33b58d34B4423E1bcD8b4dC'
+          } else if (token.symbol === TokenModel.UNI) {
+            hopL1BridgeWrapperAddress = '0x9D3A7fB18CA7F1237F977Dc5572883f8b24F5638'
           }
-          if (token.symbol === TokenModel.USDC) {
-            const hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
-            return hopL1BridgeWrapperAddress
-          }
+          return hopL1BridgeWrapperAddress
         }
       }
     }

@@ -30,6 +30,7 @@ type Props = {
   disableInput?: boolean
   deadline?: any
   setWarning?: (message: string) => void
+  maxButtonFixedAmountToSubtract?: BigNumber
 }
 
 const SendAmountSelectorCard: FC<Props> = props => {
@@ -49,6 +50,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
     disableInput = false,
     deadline,
     setWarning,
+    maxButtonFixedAmountToSubtract
   } = props
   const styles = useAmountSelectorCardStyles()
 
@@ -95,7 +97,7 @@ const SendAmountSelectorCard: FC<Props> = props => {
       }
     }
 
-    let totalAmount = balance.sub(nativeTokenMaxGasCost)
+    let totalAmount = balance.sub(nativeTokenMaxGasCost).sub(maxButtonFixedAmountToSubtract || 0)
     if (totalAmount.lt(0)) {
       totalAmount = BigNumber.from(0)
     }

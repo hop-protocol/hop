@@ -43,5 +43,6 @@
     "@typescript-eslint/return-await": 0,
     "@typescript-eslint/consistent-type-definitions": 0,
     "@typescript-eslint/method-signature-style": 0
-  }
+  },
+  "ignorePatterns": ["src/**.json", "src/arbBot/example/*.json", "*.md"]
 }

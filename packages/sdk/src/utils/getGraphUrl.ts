@@ -20,7 +20,7 @@ export function getGraphUrl (network: string, chain: string) {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
     if (chain === 'arbitrum') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+      return 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli'
     }
     if (chain === 'xdai') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)

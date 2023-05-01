@@ -117,7 +117,8 @@ export class TransferStats {
       await getPriceHistory('frax', daysN),
       await getPriceHistory('hop-protocol', daysN),
       await getPriceHistory('havven', daysN),
-      await getPriceHistory('nusd', daysN)
+      await getPriceHistory('nusd', daysN),
+      await getPriceHistory('uniswap', daysN)
     ]
     console.log('done fetching prices')
 
@@ -131,7 +132,8 @@ export class TransferStats {
       FRAX: pricesArr[6],
       HOP: pricesArr[7],
       SNX: pricesArr[8],
-      sUSD: pricesArr[0]
+      sUSD: pricesArr[9],
+      UNI: pricesArr[10]
     }
 
     this.prices = prices

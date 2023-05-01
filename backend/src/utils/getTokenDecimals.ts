@@ -9,7 +9,8 @@ const tokenDecimals: any = {
   HOP: 18,
   WBTC: 8,
   SNX: 18,
-  sUSD: 18
+  sUSD: 18,
+  UNI: 18
 }
 
 export function getTokenDecimals (tokenSymbol: string) {

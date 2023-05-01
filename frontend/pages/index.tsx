@@ -258,6 +258,9 @@ const queryTransfers = async (params: any) => {
       filtered['startDate'] = defaultStartDate
     }
   }
+  if (queryParams.refresh) {
+    filtered['refresh'] = true
+  }
   const serializedParams = new URLSearchParams(filtered).toString()
   const url = `${apiBaseUrl}/v1/transfers?${serializedParams}`
   const res = await fetch(url)
@@ -395,7 +398,7 @@ function useData () {
         transferId: x.transferId
       }
     })
-    .filter((x: any) => Boolean(x.source) && Boolean(x.target))
+    .filter((x: any) => x.source != undefined && x.target != undefined)
 
     const nodes = []
     for (let i = 0; i < enabledChains.length; i++) {
@@ -722,7 +725,8 @@ function useData () {
       endTimestamp: null,
       page: null,
       sortBy: null,
-      sortDirection: null
+      sortDirection: null,
+      refresh: null
     })
   }
 
@@ -997,6 +1001,7 @@ const Index: NextPage = (props: any) => {
                     <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
                     <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
                     <MenuItem value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>
+                    <MenuItem value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">
@@ -1010,6 +1015,7 @@ const Index: NextPage = (props: any) => {
                     <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
                     <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
                     <MenuItem value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>
+                    <MenuItem value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">
@@ -1207,6 +1213,15 @@ const Index: NextPage = (props: any) => {
                   if (x.recipientAddress && x.accountAddress) {
                     x.isDifferentRecipient = x.recipientAddress !== x.accountAddress
                   }
+                  if (x.timestamp) {
+                    x.localTimestampIso = luxon.DateTime.fromSeconds(x.timestamp).toLocal().toISO()
+                  }
+                  if (x.bondTimestamp) {
+                    x.localBondTimestampIso = luxon.DateTime.fromSeconds(x.bondTimestamp).toLocal().toISO()
+                  }
+                  if (x.deadline && x.bondTimestamp && x.receivedHTokens) {
+                    x.deadlineExpiredSeconds = x.bondTimestamp - x.deadline
+                  }
                   return (
                     <TableRow key={index}>
                       <TableCell>
@@ -1215,7 +1230,7 @@ const Index: NextPage = (props: any) => {
                         </Typography>
                         </TableCell>
                       <TableCell>
-                        <Tooltip title={<Box>UTC: {x.timestampIso}<br />Unix: {x.timestamp}<br />Relative: { x.timestampRelative }</Box>}>
+                        <Tooltip title={<Box>UTC: {x.timestampIso}<br />Local: {x.localTimestampIso}<br />Unix: {x.timestamp}<br />Relative: { x.timestampRelative }</Box>}>
                           <Typography variant="body1" color="secondary" className="timestamp">
                             { x.timestampRelative }
                           </Typography>
@@ -1345,15 +1360,15 @@ const Index: NextPage = (props: any) => {
                             </Tooltip>
                               )}
                               {x.receivedHTokens && (
-                                <Tooltip title={<Box>Received h${x.token}<br />Go to the <Link href={x.convertHTokenUrl} target="_blank" rel="noreferrer noopener">Hop Convert Page</Link></Box>}>
+                                <Tooltip title={<Box>Received h{x.token}.<br />h{x.token} can be swapped for {x.token} on the <Link href={x.convertHTokenUrl} target="_blank" rel="noreferrer noopener">Hop Convert Page ↗</Link><br /><br />Parameters used:<br /><small>Deadline: {x.deadline}<br />AmountOutMin: {x.amountOutMinFormatted || x.amountOutMin}<br /><br />{x.deadline < x.bondTimestamp ? <>AMM swap failed due to expired deadline so user received h{x.token}. Deadline expired {x.deadlineExpiredSeconds} seconds before AMM swap.</> : <>AMM swap failed due to amountOutMin being too low so user received h{x.token}. Use a slightly higher slippage percentage for AMM swap to succeed next time.</>}</small></Box>}>
                                   <span style={{ cursor: 'help' }}> ⚠️</span>
                                 </Tooltip>
                               )}
                           </Link>
                           )}
-                          {x.unbondable ?
+                          {(x.unbondable && !x.bonded) ?
                             <span className="unbondable">
-                              <Tooltip title={<Box>This transfer is unbondable because of invalid parameters, therefore bonder will not process it.<br />This transfer can be manually withdrawn at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page</Link>.</Box>}>
+                              <Tooltip title={<Box>This transfer is unbondable because of invalid parameters, therefore bonder will not process it.<br />Your funds are safe.<br />This transfer can be manually withdrawn at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page ↗</Link>.<br /><br />Parameters used:<br /><small>Deadline: {x.deadline}<br />AmountOutMin: {x.amountOutMinFormatted || x.amountOutMin}</small>{x.destinationChainSlug === 'ethereum' ? <><br /><br /><small>These parameters should be 0 when sending to Ethereum, otherwise transfer will be invalid.</small></> : ''}</Box>}>
                                 <span>⚠️ Unbondable</span>
                               </Tooltip>
                               {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
@@ -1363,13 +1378,13 @@ const Index: NextPage = (props: any) => {
                               )}
                             </span>
                           : <>{(!x.receiveStatusUnknown && !x.bondTransactionHashExplorerUrl && !x.bonded) && (
-                              <Tooltip title={<Box>This transaction is still waiting to be bonded or received at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page</Link>.</Box>}</Box>}>
+                              <Tooltip title={<Box>This transaction is still waiting to be bonded or received at the destination. {(x.timestamp < (Date.now()/1000) - (12 * 60 * 60)) && <Box>Your funds are safe. If this transaction has been pending for more than a day, you can try manullay withdrawing the transfer at the destination on the <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Hop Withdraw Page ↗</Link>.</Box>}</Box>}>
                               <span className="no">
                                 <img width="16" height="16" src={x.destinationChainImageUrl} alt={x.destinationChainName} />
                                 <span>Pending</span>
                                 {(x.timestamp < (Date.now()/1000) - (24 * 60 * 60)) && (
                                   <Box ml={2}>
-                                  <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw</Link>
+                                  <Link href={`https://app.hop.exchange/#/withdraw?transferId=${x.transferId}`} target="_blank" rel="noreferrer noopener">Withdraw ↗</Link>
                                   </Box>
                                 )}
                               </span>
@@ -1402,7 +1417,11 @@ const Index: NextPage = (props: any) => {
                         </Box>
                       </TableCell>
                       <TableCell className="bondedDate" >
-                        <Tooltip title={<Box>UTC: {x.bondTimestampIso}<br />Unix: {x.bondTimestamp}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>}>
+                        <Tooltip title={
+                          !!x.bondTimestamp ? (
+                            <Box>UTC: {x.bondTimestampIso}<br />Local: {x.localBondTimestampIso}<br />Unix: {x.bondTimestamp}<br />Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>
+                          ) : <Box>Relative: { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }</Box>
+                          }>
                           <Typography variant="body1" color="secondary">
                             { x.estimatedRelativeTimeUntilBond || x.bondTimestampRelative }
                           </Typography>

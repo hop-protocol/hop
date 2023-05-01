@@ -2379,7 +2379,6 @@ class HopBridge extends Base {
     sourceChain = this.toChainModel(sourceChain)
     const token = this.toTokenModel(this.tokenSymbol)
 
-    console.log('aaa', this.network, NetworkSlug.Goerli)
     let onChainBonderFeeAbsolutePromise : any
     if (token.canonicalSymbol === TokenModel.ETH) {
       if (Chain.Gnosis.equals(sourceChain) || Chain.Polygon.equals(sourceChain)) {
@@ -2389,7 +2388,6 @@ class HopBridge extends Base {
     }
 
     if (this.network === NetworkSlug.Goerli) {
-      console.log('bbb')
       const l2Bridge = await this.getL2Bridge(sourceChain)
       onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
     }
@@ -2404,9 +2402,7 @@ class HopBridge extends Base {
       token.decimals
     )
 
-    console.log('ccc', onChainBonderFeeAbsolute)
     const absoluteFee = onChainBonderFeeAbsolute.gt(minBonderFeeAbsolute) ? onChainBonderFeeAbsolute : minBonderFeeAbsolute
-    console.log('ddd', absoluteFee)
 
     return absoluteFee
   }

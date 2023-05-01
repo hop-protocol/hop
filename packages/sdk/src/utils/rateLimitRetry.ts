@@ -8,12 +8,15 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
   return async (...args: Parameters<FN>): Promise<Awaited<ReturnType<FN>>> => {
     let retries = 0
     const retry = () => promiseTimeout(fn(...args), rpcTimeoutSeconds * 1000) // eslint-disable-line
+    const showDebugLogs = false
     while (true) {
       try {
         // the await here is intentional so it's caught in the try/catch below.
         const result = await retry()
         if (retries > 0) {
-          console.debug(logPrefix, `attempt #${retries} successful`)
+          if (showDebugLogs) {
+            console.debug(logPrefix, `attempt #${retries} successful`)
+          }
         }
         return result
       } catch (err) {
@@ -69,14 +72,17 @@ export function rateLimitRetry<FN extends (...args: any[]) => Promise<any>> (fn:
         }
 
         const delayMs = (1 << retries) * 1000
-        console.warn(
-          logPrefix,
-          `retry attempt #${retries} failed with error "${
-            errMsg
-          }". retrying again in ${delayMs / 1000} seconds.`
-        )
-        // this must be a regular console log to print original function name
-        console.log(fn, id, ...args)
+        if (showDebugLogs) {
+          console.warn(
+            logPrefix,
+            `retry attempt #${retries} failed with error "${
+              errMsg
+            }". retrying again in ${delayMs / 1000} seconds.`
+          )
+          // this must be a regular console log to print original function name
+          console.log(fn, id, ...args)
+        }
+
         // exponential backoff wait
         await wait(delayMs)
       }

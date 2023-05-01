@@ -9,6 +9,7 @@ import serializeQueryParams from 'src/utils/serializeQueryParams'
 import wallets from 'src/wallets'
 import { BigNumber } from 'ethers'
 import { Chain, nativeChainTokens } from 'src/constants'
+import { SwapInput } from '../types'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
 
@@ -207,17 +208,6 @@ class OneInch {
   }
 }
 
-type SwapInput = {
-  chain: string
-  fromToken: string
-  toToken: string
-  amount: number
-  max: boolean
-  slippage: number
-  recipient: string
-  dryMode: boolean
-}
-
 // 1inch uses 0xeee…eee address for native tokens (eth, matic, xdai, etc)
 const nativeTokenAddress = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
 
@@ -310,20 +300,22 @@ export async function swap (input: SwapInput) {
   logger.debug('allowance:', formatUnits(allowance, fromDecimals))
 
   if (BigNumber.from(allowance).lt(amount)) {
-    const txData = await oneInch.getApproveTx({ tokenAddress, amount })
-    logger.debug('approval data:', txData)
+    const approveTxData = await oneInch.getApproveTx({ tokenAddress, amount })
+
+    // RPC providers do not return a high enough Polygon gasPrice
+    const modifiedApproveTxData: any = approveTxData
+    if (chain === Chain.Polygon) {
+      modifiedApproveTxData.gasPrice = '150000000000'
+    }
+
+    console.log('approve tx calldata:')
+    console.log(JSON.stringify(modifiedApproveTxData))
 
     if (dryMode) {
       logger.warn(`dry: ${dryMode}, skipping approve tx`)
     } else {
       logger.debug('sending approve tx')
-
-      // RPC providers do not return a high enough Polygon gasPrice
-      const modifiedTxData: any = txData
-      if (chain === Chain.Polygon) {
-        modifiedTxData.gasPrice = '150000000000'
-      }
-      const tx = await wallet.sendTransaction(modifiedTxData)
+      const tx = await wallet.sendTransaction(modifiedApproveTxData)
       logger.debug('approval tx:', tx.hash)
       await tx.wait()
     }
@@ -346,20 +338,23 @@ export async function swap (input: SwapInput) {
   logger.debug('getting swap data')
 
   const fromAddress = walletAddress
-  const txData = await oneInch.getSwapTx({ fromTokenAddress, toTokenAddress, fromAddress, amount, slippage, destReceiver: recipient })
-  logger.debug('swap data:', txData)
+  const swapTxData = await oneInch.getSwapTx({ fromTokenAddress, toTokenAddress, fromAddress, amount, slippage, destReceiver: recipient })
+
+  // RPC providers do not return a high enough Polygon gasPrice
+  const modifiedSwapTxData: any = swapTxData
+  if (chain === Chain.Polygon) {
+    modifiedSwapTxData.gasPrice = '150000000000'
+  }
+
+  console.log('swap tx calldata:')
+  console.log(JSON.stringify(modifiedSwapTxData))
 
   if (dryMode) {
     logger.warn(`dry: ${dryMode}, skipping dex swap tx`)
   } else {
     logger.debug('sending swap tx')
 
-    // RPC providers do not return a high enough Polygon gasPrice
-    const modifiedTxData: any = txData
-    if (chain === Chain.Polygon) {
-      modifiedTxData.gasPrice = '150000000000'
-    }
-    const tx = await wallet.sendTransaction(modifiedTxData)
+    const tx = await wallet.sendTransaction(modifiedSwapTxData)
     logger.debug('swap tx:', tx.hash)
     return tx
   }

@@ -67,7 +67,6 @@ class L1ToL2Watcher extends BaseWatcher {
         if (event.recipient.toLowerCase() === recipient.toLowerCase()) {
           if (event.amount.toString() === amount.toString()) {
             const destTx = await this.destinationChain.provider.getTransaction(event.transactionHash)
-            console.log(destTx.hash)
             return handleDestTx(destTx)
           }
         }

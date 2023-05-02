@@ -1091,7 +1091,7 @@ export class ArbBot {
     const txOptions: any = {}
 
     if (chain === this.l2ChainSlug) {
-      const multiplier = 2
+      const multiplier = 3
       txOptions.gasPrice = await this.getBumpedGasPrice(
         this.l2ChainProvider,
         multiplier
@@ -1099,7 +1099,7 @@ export class ArbBot {
     }
 
     if (chain === this.l1ChainSlug) {
-      const multiplier = 1.5
+      const multiplier = 3
       txOptions.gasPrice = await this.getBumpedGasPrice(
         this.l1ChainProvider,
         multiplier

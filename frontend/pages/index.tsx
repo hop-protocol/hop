@@ -994,46 +994,79 @@ const Index: NextPage = (props: any) => {
                   <label><Typography variant="body1" color="secondary">Source</Typography></label>
                   <Select className="select" value={filterSource || 'all'} onChange={updateFilterSource}>
                     <MenuItem value="all">All</MenuItem>
-                    <MenuItem value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>
-                    <MenuItem value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>
-                    <MenuItem value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>
-                    <MenuItem value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>
-                    <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
-                    <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
-                    <MenuItem value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>
-                    <MenuItem value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
+                    {isGoerli ?
+                      [
+                        <MenuItem key="ethereum" value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>,
+                        <MenuItem key="polygon" value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>,
+                        <MenuItem key="optimism" value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>,
+                        <MenuItem key="arbitrum" value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>,
+                        <MenuItem key="linea" value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>,
+                        <MenuItem key="base" value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
+                      ]
+                    :
+                      [
+                        <MenuItem key="ethereum" value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>,
+                        <MenuItem key="polygon" value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>,
+                        <MenuItem key="gnosis" value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>,
+                        <MenuItem key="optimism" value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>,
+                        <MenuItem key="arbitrum" value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>,
+                        <MenuItem key="nova" value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
+                      ]
+                    }
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">
                   <label><Typography variant="body1" color="secondary">Destination</Typography></label>
                   <Select className="select" value={filterDestination || 'all'} onChange={updateFilterDestination}>
                     <MenuItem value="all">All</MenuItem>
-                    <MenuItem value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>
-                    <MenuItem value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>
-                    <MenuItem value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>
-                    <MenuItem value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>
-                    <MenuItem value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>
-                    <MenuItem value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
-                    <MenuItem value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>
-                    <MenuItem value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
+                    {isGoerli ?
+                      [
+                        <MenuItem key="ethereum" value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>,
+                        <MenuItem key="polygon" value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>,
+                        <MenuItem key="optimism" value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>,
+                        <MenuItem key="arbitrum" value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>,
+                        <MenuItem key="linea" value="linea"><MenuItemIcon src={chains.linea.image} /> Linea</MenuItem>,
+                        <MenuItem key="base" value="base"><MenuItemIcon src={chains.base.image} /> Base</MenuItem>
+                      ]
+                    :
+                      [
+                        <MenuItem key="ethereum" value="ethereum"><MenuItemIcon src={chains.ethereum.image} /> Ethereum</MenuItem>,
+                        <MenuItem key="polygon" value="polygon"><MenuItemIcon src={chains.polygon.image} /> Polygon</MenuItem>,
+                        <MenuItem key="gnosis" value="gnosis"><MenuItemIcon src={chains.gnosis.image} /> Gnosis</MenuItem>,
+                        <MenuItem key="optimism" value="optimism"><MenuItemIcon src={chains.optimism.image} /> Optimism</MenuItem>,
+                        <MenuItem key="arbitrum" value="arbitrum"><MenuItemIcon src={chains.arbitrum.image} /> Arbitrum</MenuItem>,
+                        <MenuItem key="nova" value="nova"><MenuItemIcon src={chains.nova.image} /> Nova</MenuItem>
+                      ]
+                    }
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">
                   <label><Typography variant="body1" color="secondary">Token</Typography></label>
                   <Select className="select" value={filterToken || 'all'} onChange={updateFilterToken}>
                     <MenuItem value="all">All</MenuItem>
-                    <MenuItem value="ETH"><MenuItemIcon src={tokens.ETH.image} /> ETH</MenuItem>
-                    <MenuItem value="USDC"><MenuItemIcon src={tokens.USDC.image} /> USDC</MenuItem>
-                    <MenuItem value="USDT"><MenuItemIcon src={tokens.USDT.image} /> USDT</MenuItem>
-                    <MenuItem value="DAI"><MenuItemIcon src={tokens.DAI.image} /> DAI</MenuItem>
-                    <MenuItem value="MATIC"><MenuItemIcon src={tokens.MATIC.image} /> MATIC</MenuItem>
-                    <MenuItem value="HOP"><MenuItemIcon src={tokens.HOP.image} /> HOP</MenuItem>
-                    <MenuItem value="SNX"><MenuItemIcon src={tokens.SNX.image} /> SNX</MenuItem>
-                    <MenuItem value="sUSD"><MenuItemIcon src={tokens.sUSD.image} /> sUSD</MenuItem>
-                    <MenuItem value="UNI"><MenuItemIcon src={tokens.UNI.image} /> UNI</MenuItem>
-                    <MenuItem value="rETH"><MenuItemIcon src={tokens.rETH.image} /> rETH</MenuItem>
-                    {/* <MenuItem value="WBTC"><MenuItemIcon src={tokens.WBTC.image} /> WBTC</MenuItem> */}
-                    {/* <MenuItem value="FRAX"><MenuItemIcon src={tokens.FRAX.image} /> FRAX</MenuItem> */}
+                    {isGoerli ?
+                      [
+                        <MenuItem key="ETH" value="ETH"><MenuItemIcon src={tokens.ETH.image} /> ETH</MenuItem>,
+                        <MenuItem key="USDC" value="USDC"><MenuItemIcon src={tokens.USDC.image} /> USDC</MenuItem>,
+                        <MenuItem key="USDT" value="USDT"><MenuItemIcon src={tokens.USDT.image} /> USDT</MenuItem>,
+                        <MenuItem key="DAI" value="DAI"><MenuItemIcon src={tokens.DAI.image} /> DAI</MenuItem>,
+                        <MenuItem key="HOP" value="HOP"><MenuItemIcon src={tokens.HOP.image} /> HOP</MenuItem>,
+                        <MenuItem key="UNI" value="UNI"><MenuItemIcon src={tokens.UNI.image} /> UNI</MenuItem>
+                      ]
+                    :
+                      [
+                        <MenuItem key="ETH" value="ETH"><MenuItemIcon src={tokens.ETH.image} /> ETH</MenuItem>,
+                        <MenuItem key="USDC" value="USDC"><MenuItemIcon src={tokens.USDC.image} /> USDC</MenuItem>,
+                        <MenuItem key="USDT" value="USDT"><MenuItemIcon src={tokens.USDT.image} /> USDT</MenuItem>,
+                        <MenuItem key="DAI" value="DAI"><MenuItemIcon src={tokens.DAI.image} /> DAI</MenuItem>,
+                        <MenuItem key="MATIC" value="MATIC"><MenuItemIcon src={tokens.MATIC.image} /> MATIC</MenuItem>,
+                        <MenuItem key="HOP" value="HOP"><MenuItemIcon src={tokens.HOP.image} /> HOP</MenuItem>,
+                        <MenuItem key="SNX" value="SNX"><MenuItemIcon src={tokens.SNX.image} /> SNX</MenuItem>,
+                        <MenuItem key="sUSD" value="sUSD"><MenuItemIcon src={tokens.sUSD.image} /> sUSD</MenuItem>,
+                        <MenuItem key="rETH" value="rETH"><MenuItemIcon src={tokens.rETH.image} /> rETH</MenuItem>,
+                        <MenuItem key="WBTC" value="WBTC"><MenuItemIcon src={tokens.WBTC.image} /> WBTC</MenuItem>
+                      ]
+                    }
                   </Select>
                 </Box>
                 <Box display="flex" flexDirection="column">

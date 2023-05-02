@@ -69,9 +69,13 @@ export class PriceFeed {
       try {
         const price = await service.getPriceByTokenSymbol(tokenSymbol)
         if (price == null) {
-          throw new Error(`null price for ${tokenSymbol}`)
+          throw new Error(`null price for token "${tokenSymbol}"`)
         }
-        return price
+        const formattedPrice = this.formatPrice(tokenSymbol, price)
+        if (formattedPrice <= 0) {
+          throw new Error(`received invalid price of "${formattedPrice}" for token "${tokenSymbol}"`)
+        }
+        return formattedPrice
       } catch (err) {
         const isLastService = this.services.indexOf(service) === this.services.length - 1
         errors.push(err.message)
@@ -82,6 +86,14 @@ export class PriceFeed {
         }
       }
     }
+  }
+
+  formatPrice (tokenSymbol: string, price: number) {
+    if (tokenSymbol === 'USDC' || tokenSymbol === 'USDT') {
+      return Number(price.toFixed(6))
+    }
+
+    return price
   }
 }
 

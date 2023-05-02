@@ -60,9 +60,13 @@ export const config : Config = {
     SNX: {
       ethereum: 20
     },
-    // TODO
     sUSD: {
       ethereum: 20
+    },
+    rETH: {
+      ethereum: 20,
+      optimism: 20,
+      arbitrum: 20
     }
   },
   destinationFeeGasPriceMultiplier: 1.2,

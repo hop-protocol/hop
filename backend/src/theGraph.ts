@@ -49,7 +49,7 @@ export function getUrl (chain: string) {
 
   if (chain === 'linea') {
     if (isGoerli) {
-      url = 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea'
+      url = 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
     } else {
       throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
     }

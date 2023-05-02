@@ -10,7 +10,8 @@ const tokenLogosMap: any = {
   HOP: 'https://assets.hop.exchange/logos/hop.svg',
   SNX: 'https://assets.hop.exchange/logos/snx.svg',
   sUSD: 'https://assets.hop.exchange/logos/susd.svg',
-  UNI: 'https://assets.hop.exchange/logos/uni.svg'
+  UNI: 'https://assets.hop.exchange/logos/uni.svg',
+  rETH: 'https://assets.hop.exchange/logos/reth.svg'
 }
 
 export function getTokenLogo (tokenSymbol: string) {

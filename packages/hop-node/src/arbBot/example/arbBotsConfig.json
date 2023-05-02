@@ -1,6 +1,6 @@
 {
   "linea": {
-    "enabled": true,
+    "enabled": false,
     "dryMode": false,
     "network": "goerli",
     "l1ChainSlug": "ethereum",
@@ -13,7 +13,7 @@
     "waitConfirmations": 4
   },
   "base": {
-    "enabled": true,
+    "enabled": false,
     "dryMode": false,
     "network": "goerli",
     "l1ChainSlug": "ethereum",

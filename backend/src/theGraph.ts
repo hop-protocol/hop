@@ -114,6 +114,8 @@ export async function fetchTransfers (chain: string, startTime: number, endTime:
         timestamp
         token
         from
+        relayer
+        relayerFee
         transaction {
           to
         }

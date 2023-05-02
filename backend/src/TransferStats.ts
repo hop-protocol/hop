@@ -1125,7 +1125,10 @@ export class TransferStats {
             event.recipient === x.recipient &&
             event.amount === x.amount &&
             event.amountOutMin === x.amountOutMin &&
-            event.deadline.toString() === x.deadline.toString()
+            event.deadline.toString() === x.deadline.toString() &&
+            event.relayer?.toString() === x.relayer?.toString() &&
+            event.relayerFee?.toString() === x.relayerFee?.toString() &&
+            Number(event.timestamp.toString()) - Number(x.timestamp.toString()) <= 1800 && Number(event.timestamp.toString()) - Number(x.timestamp.toString()) > 0
           ) {
             x.bonded = true
             x.bonder = event.from

@@ -1030,6 +1030,8 @@ const Index: NextPage = (props: any) => {
                     <MenuItem value="HOP"><MenuItemIcon src={tokens.HOP.image} /> HOP</MenuItem>
                     <MenuItem value="SNX"><MenuItemIcon src={tokens.SNX.image} /> SNX</MenuItem>
                     <MenuItem value="sUSD"><MenuItemIcon src={tokens.sUSD.image} /> sUSD</MenuItem>
+                    <MenuItem value="UNI"><MenuItemIcon src={tokens.UNI.image} /> UNI</MenuItem>
+                    <MenuItem value="rETH"><MenuItemIcon src={tokens.rETH.image} /> rETH</MenuItem>
                     {/* <MenuItem value="WBTC"><MenuItemIcon src={tokens.WBTC.image} /> WBTC</MenuItem> */}
                     {/* <MenuItem value="FRAX"><MenuItemIcon src={tokens.FRAX.image} /> FRAX</MenuItem> */}
                   </Select>

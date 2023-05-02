@@ -38,7 +38,7 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
-    "@hop-protocol/core": "^0.0.1-beta.70",
+    "@hop-protocol/core": "^0.0.1-beta.145",
     "@types/memory-cache": "^0.2.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",

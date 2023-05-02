@@ -14,11 +14,11 @@ export const postgresConfig = {
   maxConnections: process.env.POSTGRES_MAX_CONNECTIONS ? parseInt(process.env.POSTGRES_MAX_CONNECTIONS, 10) : 10
 }
 
-let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX', 'sUSD']
+let enabledTokens = ['USDC', 'USDT', 'DAI', 'MATIC', 'ETH', 'WBTC', 'HOP', 'SNX', 'sUSD', 'rETH']
 let enabledChains = ['ethereum', 'gnosis', 'polygon', 'arbitrum', 'optimism', 'nova']
 
 if (isGoerli) {
-  enabledTokens = ['USDC', 'ETH', 'HOP']
+  enabledTokens = ['USDC', 'ETH', 'HOP', 'USDT', 'DAI', 'UNI']
   enabledChains = ['ethereum', 'polygon', 'optimism', 'arbitrum', 'linea', 'base']
 }
 

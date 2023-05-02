@@ -4,7 +4,7 @@ import { isGoerli } from '../config'
 export function explorerLink (chain: string) {
   let base = ''
   if (chain === 'gnosis') {
-    base = 'https://blockscout.com/xdai/mainnet'
+    base = 'https://gnosisscan.io'
   } else if (chain === 'polygon') {
     base = 'https://polygonscan.com'
     if (isGoerli) {

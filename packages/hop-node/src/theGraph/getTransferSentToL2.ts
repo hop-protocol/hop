@@ -32,6 +32,7 @@ export default async function getTransferSentToL2 (
         relayer
         relayerFee
         token
+        from
       }
     }
   `
@@ -40,7 +41,7 @@ export default async function getTransferSentToL2 (
     startDate,
     endDate,
     lastId
-  })
+  }, true)
   let transfers = jsonRes.transferSentToL2S.map((x: any) => normalizeEntity(x))
 
   const maxItemsLength = 1000

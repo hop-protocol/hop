@@ -47,8 +47,7 @@ export class Chain {
 
     this.nativeTokenSymbol = metadata.networks[this.slug]?.nativeTokenSymbol
     if (!this.nativeTokenSymbol) {
-      console.log(this.slug, metadata)
-      throw new Error(`nativeTokenSymbol not found for chain ${name}`)
+      throw new Error(`nativeTokenSymbol not found for chain "${name}", slug "${this.slug}"`)
     }
   }
 

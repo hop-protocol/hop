@@ -349,8 +349,9 @@ export class ArbBot {
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
-    amountFmt = this.bridge.formatUnits(amount, 18)
-    const amountMin = this.bridge.calcAmountOutMin(this.bridge.parseUnits(amountFmt), this.slippageTolerance)
+    // TODO: This needs to use the updated amount, but it needs to first be converted to the hToken amount
+    // const amountMin = this.bridge.calcAmountOutMin(this.bridge.parseUnits(amountFmt), this.slippageTolerance)
+    const amountMin = 1
 
     const deadline = this.getDeadline()
     const hTokenIndex = 1

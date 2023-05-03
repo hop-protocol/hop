@@ -21,8 +21,9 @@ import { loadState, saveState } from 'src/utils/localStorage'
 import { ChainId, ChainSlug } from '@hop-protocol/sdk'
 import Onboard from '@web3-onboard/core'
 import injectedModule from '@web3-onboard/injected-wallets'
-// import coinbaseWalletModule from '@web3-onboard/coinbase'
-// import walletConnectModule from '@web3-onboard/walletconnect'
+import coinbaseWalletModule from '@web3-onboard/coinbase'
+import walletConnectModule from '@web3-onboard/walletconnect'
+import gnosisModule from '@web3-onboard/gnosis'
 
 const injected = injectedModule()
 
@@ -93,8 +94,6 @@ const getWalletConnectRpcUrls = (): Record<string, string> => {
   }
 }
 
-// const coinbaseWalletSdk = coinbaseWalletModule({ darkMode: false })
-
 const wcV2InitOptions: any = {
   version: 2,
   /**
@@ -103,9 +102,9 @@ const wcV2InitOptions: any = {
   projectId: 'abc123...'
 }
 
-// initialize the module with options
-// If version isn't set it will default to V1 until V1 sunset
-// const walletConnect = walletConnectModule(wcV2InitOptions)
+const walletConnect = walletConnectModule(wcV2InitOptions)
+const coinbaseWalletSdk = coinbaseWalletModule({ darkMode: false })
+const gnosis = gnosisModule()
 
 const Web3Context = createContext<Props | undefined>(undefined)
 
@@ -282,11 +281,10 @@ const Web3ContextProvider: FC = ({ children }) => {
           enabled: false,
         }
       },
-
       notify: {
         enabled: false
       },
-      wallets: [injected],
+      wallets: [injected, walletConnect, gnosis, coinbaseWalletSdk],
       chains: getOnboardChains(),
       appMetadata: {
         name: 'Hop',

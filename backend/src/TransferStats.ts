@@ -241,7 +241,8 @@ export class TransferStats {
       if (
         !bondTransactionHash ||
         !destinationChainSlug ||
-        destinationChainSlug === 'ethereum'
+        destinationChainSlug === 'ethereum' ||
+        token === 'HOP'
       ) {
         return false
       }
@@ -1312,7 +1313,7 @@ export class TransferStats {
   async getTransfersBetweenDates (startTime: number, endTime: number) {
     const events = await this.getTransferEventsBetweenDates(startTime, endTime)
     let data = await this.normalizeTransferEvents(events)
-    data = await this.getRemainingData(data)
+    data = await this.getRemainingData(data, { refetch: false })
     console.log('getTransfersBetweenDates done', data.length)
     return data
   }

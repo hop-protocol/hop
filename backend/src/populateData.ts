@@ -82,7 +82,7 @@ export function populateData (x: any, i: number) {
     x.bondStatusColor = x.bonded ? getColor('bonded') : getColor('pending')
   }
 
-  if (typeof x.receivedHTokens !== 'boolean') {
+  if (typeof x.receivedHTokens !== 'boolean' || x.token === 'HOP') {
     x.receivedHTokens = false
   }
   if (!x.convertHTokenUrl) {

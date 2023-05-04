@@ -14,7 +14,6 @@ import { useConvert } from 'src/pages/Convert/ConvertContext'
 import { findMatchingBridge } from 'src/utils'
 import { l2Networks } from 'src/config/networks'
 import { Flex } from 'src/components/ui'
-import styled from 'styled-components'
 
 const useStyles = makeStyles(theme => ({
   title: {
@@ -38,6 +37,13 @@ const useStyles = makeStyles(theme => ({
   },
   box: {
     marginBottom: '42px',
+  },
+  tablebg: {
+    marginBottom: '42px',
+    background: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.grey.A100}`,
+    borderRadius: '20px',
+    padding: '16px',
   },
 }))
 
@@ -67,16 +73,8 @@ const Convert: FC = () => {
     })
   }
 
-  const AppWrapper = styled(Flex)<any>`
-    background: ${({ theme }) => theme.colors.table.default};
-    border-radius: 20px;
-    border: 1px solid ${({ theme }) => theme.colors.border.default};
-    padding: 16px;
-    z-index: 1;
-  `
-
   return (
-    <AppWrapper>
+    <div className={styles.tablebg}>
       <Box display="flex" flexDirection="column" alignItems="center">
         <Box display="flex" alignItems="center">
           <Typography variant="h4" className={styles.title}>
@@ -138,7 +136,7 @@ const Convert: FC = () => {
           <ConvertContent />
         </div>
       </Box>
-    </AppWrapper>
+    </div>
   )
 }
 

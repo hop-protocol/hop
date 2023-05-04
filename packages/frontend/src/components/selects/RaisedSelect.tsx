@@ -5,7 +5,7 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: theme.palette.grey.A100,
     height: '32px',
     borderRadius: '16px',
     padding: '4px 8px 4px 8px',

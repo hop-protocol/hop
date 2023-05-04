@@ -26,7 +26,6 @@ import { useSendStyles } from './useSendStyles'
 import SendHeader from './SendHeader'
 import CustomRecipientDropdown from './CustomRecipientDropdown'
 import { Div, Flex } from 'src/components/ui'
-import styled from 'styled-components'
 import { useSendTransaction } from './useSendTransaction'
 import {
   useAssets,
@@ -678,188 +677,182 @@ const Send: FC = () => {
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
   const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
 
-  const AppWrapper = styled(Flex)<any>`
-    background: ${({ theme }) => theme.colors.table.default};
-    border-radius: 20px;
-    border: 1px solid ${({ theme }) => theme.colors.border.default};
-    padding: 16px;
-    z-index: 1;
-  `
-
   return (
-    <AppWrapper
-      column
-      alignCenter
-    >
-      <SendHeader
-        styles={styles}
-        bridges={bridges}
-        selectedBridge={selectedBridge}
-        handleBridgeChange={handleBridgeChange}
-      />
+    <div className={styles.tablebg}>
+      <Flex
+        column
+        alignCenter
+      >
+        <SendHeader
+          styles={styles}
+          bridges={bridges}
+          selectedBridge={selectedBridge}
+          handleBridgeChange={handleBridgeChange}
+        />
 
-      <SendAmountSelectorCard
-        value={fromTokenAmount}
-        token={sourceToken ?? placeholderToken}
-        label={'From'}
-        onChange={value => {
-          if (!value) {
-            setFromTokenAmount('')
-            setToTokenAmount('')
-            return
-          }
+        <SendAmountSelectorCard
+          value={fromTokenAmount}
+          token={sourceToken ?? placeholderToken}
+          label={'From'}
+          onChange={value => {
+            if (!value) {
+              setFromTokenAmount('')
+              setToTokenAmount('')
+              return
+            }
 
-          const amountIn = sanitizeNumericalString(value)
-          setFromTokenAmount(amountIn)
-        }}
-        selectedNetwork={fromNetwork}
-        networkOptions={networks}
-        onNetworkChange={handleFromNetworkChange}
-        balance={fromBalance}
-        loadingBalance={loadingFromBalance}
-        deadline={deadline}
-        toNetwork={toNetwork}
-        fromNetwork={fromNetwork}
-        setWarning={setWarning}
-        maxButtonFixedAmountToSubtract={sourceToken?.symbol === 'ETH' ? relayFeeEth : 0}
-      />
+            const amountIn = sanitizeNumericalString(value)
+            setFromTokenAmount(amountIn)
+          }}
+          selectedNetwork={fromNetwork}
+          networkOptions={networks}
+          onNetworkChange={handleFromNetworkChange}
+          balance={fromBalance}
+          loadingBalance={loadingFromBalance}
+          deadline={deadline}
+          toNetwork={toNetwork}
+          fromNetwork={fromNetwork}
+          setWarning={setWarning}
+          maxButtonFixedAmountToSubtract={sourceToken?.symbol === 'ETH' ? relayFeeEth : 0}
+        />
 
-      <Box display="flex" justifyContent="center" alignItems="center">
-        <IconButton onClick={handleSwitchDirection} title="Click to switch direction">
-          <ArrowDownIcon color="primary" className={styles.downArrow} />
-        </IconButton>
-      </Box>
+        <Box display="flex" justifyContent="center" alignItems="center">
+          <IconButton onClick={handleSwitchDirection} title="Click to switch direction">
+            <ArrowDownIcon color="primary" className={styles.downArrow} />
+          </IconButton>
+        </Box>
 
-      <SendAmountSelectorCard
-        value={toTokenAmount}
-        token={destToken ?? placeholderToken}
-        label={'To (estimated)'}
-        selectedNetwork={toNetwork}
-        networkOptions={networks}
-        onNetworkChange={handleToNetworkChange}
-        balance={toBalance}
-        loadingBalance={loadingToBalance}
-        loadingValue={loadingSendData}
-        disableInput
-      />
+        <SendAmountSelectorCard
+          value={toTokenAmount}
+          token={destToken ?? placeholderToken}
+          label={'To (estimated)'}
+          selectedNetwork={toNetwork}
+          networkOptions={networks}
+          onNetworkChange={handleToNetworkChange}
+          balance={toBalance}
+          loadingBalance={loadingToBalance}
+          loadingValue={loadingSendData}
+          disableInput
+        />
 
-      <CustomRecipientDropdown
-        styles={styles}
-        customRecipient={customRecipient}
-        handleCustomRecipientInput={handleCustomRecipientInput}
-        isOpen={customRecipient || isSmartContractWallet}
-      />
+        <CustomRecipientDropdown
+          styles={styles}
+          customRecipient={customRecipient}
+          handleCustomRecipientInput={handleCustomRecipientInput}
+          isOpen={customRecipient || isSmartContractWallet}
+        />
 
-      <div className={styles.smartContractWalletWarning}>
-        <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
-      </div>
-
-      {destinationChainPaused && (
-        <div className={styles.pausedWarning}>
-          <Alert severity="warning">Deposits to destination chain {toNetwork?.name} are currently paused. Please check official announcement channels for status updates.</Alert>
+        <div className={styles.smartContractWalletWarning}>
+          <Alert severity={gnosisSafeWarning.severity}>{gnosisSafeWarning.text}</Alert>
         </div>
-      )}
 
-      {disabledTx && (
-        <Alert severity={disabledTx?.message?.severity ||  'warning'}>
-          <ExternalLink
-            href={disabledTx.message?.href}
-            text={disabledTx.message?.text}
-            linkText={disabledTx.message?.linkText}
-            postText={disabledTx.message?.postText}
-          />
-        </Alert>
-      )}
+        {destinationChainPaused && (
+          <div className={styles.pausedWarning}>
+            <Alert severity="warning">Deposits to destination chain {toNetwork?.name} are currently paused. Please check official announcement channels for status updates.</Alert>
+          </div>
+        )}
 
-      <div className={styles.details}>
-        <div className={styles.destinationTxFeeAndAmount}>
-          <DetailRow
-            title={'Fees'}
-            tooltip={
-              <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} relayFee={relayFeeEthDisplay} relayFeeUsd={relayFeeUsdDisplay} />
-            }
-            value={<>
-              <InfoTooltip title={totalFeeUsdDisplay}>
-                <Box>{totalFeeDisplay}</Box>
-              </InfoTooltip>
-            </>}
-            large
-          />
-
-          <DetailRow
-            title="Estimated Received"
-            tooltip={
-              <AmmDetails
-                rate={rate}
-                slippageTolerance={slippageTolerance}
-                priceImpact={priceImpact}
-                amountOutMinDisplay={amountOutMinDisplay}
-                amountOutMinUsdDisplay={amountOutMinUsdDisplay}
-                transferTime={transferTime}
-              />
-            }
-            value={<>
-              <InfoTooltip title={estimatedReceivedUsdDisplay}>
-                <Box>{estimatedReceivedDisplay}</Box>
-              </InfoTooltip>
-            </>}
-            xlarge
-            bold
-          />
-
-          {showFeeRefund && (
-            <FeeRefund
-              title={`OP Onboarding Reward`}
-              tokenSymbol={feeRefundTokenSymbol}
-              tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism. This refund includes a percentage of the source transaction cost + bonder fee + AMM LP fee. The refund is capped at 20 OP per transfer.`}
-              value={feeRefundDisplay}
+        {disabledTx && (
+          <Alert severity={disabledTx?.message?.severity ||  'warning'}>
+            <ExternalLink
+              href={disabledTx.message?.href}
+              text={disabledTx.message?.text}
+              linkText={disabledTx.message?.linkText}
+              postText={disabledTx.message?.postText}
             />
-          )}
+          </Alert>
+        )}
+
+        <div className={styles.details}>
+          <div className={styles.destinationTxFeeAndAmount}>
+            <DetailRow
+              title={'Fees'}
+              tooltip={
+                <FeeDetails bonderFee={bonderFeeDisplay} bonderFeeUsd={bonderFeeUsdDisplay} destinationTxFee={destinationTxFeeDisplay} destinationTxFeeUsd={destinationTxFeeUsdDisplay} relayFee={relayFeeEthDisplay} relayFeeUsd={relayFeeUsdDisplay} />
+              }
+              value={<>
+                <InfoTooltip title={totalFeeUsdDisplay}>
+                  <Box>{totalFeeDisplay}</Box>
+                </InfoTooltip>
+              </>}
+              large
+            />
+
+            <DetailRow
+              title="Estimated Received"
+              tooltip={
+                <AmmDetails
+                  rate={rate}
+                  slippageTolerance={slippageTolerance}
+                  priceImpact={priceImpact}
+                  amountOutMinDisplay={amountOutMinDisplay}
+                  amountOutMinUsdDisplay={amountOutMinUsdDisplay}
+                  transferTime={transferTime}
+                />
+              }
+              value={<>
+                <InfoTooltip title={estimatedReceivedUsdDisplay}>
+                  <Box>{estimatedReceivedDisplay}</Box>
+                </InfoTooltip>
+              </>}
+              xlarge
+              bold
+            />
+
+            {showFeeRefund && (
+              <FeeRefund
+                title={`OP Onboarding Reward`}
+                tokenSymbol={feeRefundTokenSymbol}
+                tooltip={`The estimated amount you'll be able to claim as a refund when bridging into Optimism. This refund includes a percentage of the source transaction cost + bonder fee + AMM LP fee. The refund is capped at 20 OP per transfer.`}
+                value={feeRefundDisplay}
+              />
+            )}
+          </div>
         </div>
-      </div>
 
-      <Alert severity="error" onClose={() => setError(null)} text={error} />
-      {!error && <Alert severity="warning">{warning}</Alert>}
-      <Alert severity="warning">{manualWarning}</Alert>
-      <Alert severity="error">{manualError}</Alert>
+        <Alert severity="error" onClose={() => setError(null)} text={error} />
+        {!error && <Alert severity="warning">{warning}</Alert>}
+        <Alert severity="warning">{manualWarning}</Alert>
+        <Alert severity="error">{manualError}</Alert>
 
-      <ButtonsWrapper>
-        {!sendButtonActive && (
-          <Div mb={[3]} fullWidth={approveButtonActive}>
+        <ButtonsWrapper>
+          {!sendButtonActive && (
+            <Div mb={[3]} fullWidth={approveButtonActive}>
+              <Button
+                className={styles.button}
+                large
+                highlighted={!!needsApproval}
+                disabled={!approveButtonActive}
+                onClick={handleApprove}
+                loading={approving}
+                fullWidth
+              >
+                Approve
+              </Button>
+            </Div>
+          )}
+          <Div mb={[3]} fullWidth={sendButtonActive}>
             <Button
               className={styles.button}
+              startIcon={sendButtonActive && <SendIcon />}
+              onClick={send}
+              disabled={!sendButtonActive}
+              loading={sending}
               large
-              highlighted={!!needsApproval}
-              disabled={!approveButtonActive}
-              onClick={handleApprove}
-              loading={approving}
               fullWidth
+              highlighted
             >
-              Approve
+              Send
             </Button>
           </Div>
-        )}
-        <Div mb={[3]} fullWidth={sendButtonActive}>
-          <Button
-            className={styles.button}
-            startIcon={sendButtonActive && <SendIcon />}
-            onClick={send}
-            disabled={!sendButtonActive}
-            loading={sending}
-            large
-            fullWidth
-            highlighted
-          >
-            Send
-          </Button>
-        </Div>
-      </ButtonsWrapper>
+        </ButtonsWrapper>
 
-      <Flex mt={1}>
-        <Alert severity="info" onClose={() => setInfo(null)} text={info} />
-        {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}
+        <Flex mt={1}>
+          <Alert severity="info" onClose={() => setInfo(null)} text={info} />
+          {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}
+        </Flex>
       </Flex>
-    </AppWrapper>
+    </div>
   )
 }
 

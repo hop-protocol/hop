@@ -9,16 +9,11 @@ export const palette = {
   },
   background: {
     default: 'radial-gradient(100% 100% at 50% 0%, rgba(25, 179, 128, 0.15) 0%, rgba(52, 200, 157, 0.1) 50%, rgba(55, 212, 164, 0) 100%), rgb(255, 255, 255)',
-    paper: 'radial-gradient(100% 100% at 50% 0%, rgba(25, 179, 128, 0.15) 0%, rgba(52, 200, 157, 0.1) 50%, rgba(55, 212, 164, 0) 100%), rgb(255, 255, 255)',
+    paper: '#fcfdff',
     contrast: '#FFFFFF',
   },
-  table: {
-    default: '#fcfdff',
-    light: '#fcfdff1e',
-  },
-  border: {
-    default: '#D2D9EE',
-    light: '#D2D9EE80',
+  grey: {
+    A100: '#D2D9EE',
   },
   action: {
     active: '#089E71',

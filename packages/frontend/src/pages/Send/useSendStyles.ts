@@ -120,5 +120,12 @@ export const useSendStyles = makeStyles((theme: any) => ({
   },
   pausedWarning: {
     marginTop: theme.padding.light,
-  }
+  },
+  tablebg: {
+    marginBottom: '42px',
+    background: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.grey.A100}`,
+    borderRadius: '20px',
+    padding: '16px',
+  },
 }))

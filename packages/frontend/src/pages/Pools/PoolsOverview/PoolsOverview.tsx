@@ -9,7 +9,6 @@ import { StakingRewardsClaim } from '../PoolDetails/StakingRewardsClaim'
 import { makeStyles } from '@material-ui/core/styles'
 import { usePools } from './usePools'
 import { Flex } from 'src/components/ui'
-import styled from 'styled-components'
 
 export const useStyles = makeStyles(theme => ({
   box: {
@@ -66,7 +65,14 @@ export const useStyles = makeStyles(theme => ({
   },
   chipImage: {
     width: '18px'
-  }
+  },
+  tablebg: {
+    marginBottom: '42px',
+    background: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.grey.A100}`,
+    borderRadius: '20px',
+    padding: '16px',
+  },
 }))
 
 function Chip(props: any) {
@@ -117,14 +123,6 @@ export function PoolsOverview () {
     }
   }
 
-  const AppWrapper = styled(Flex)<any>`
-    background: ${({ theme }) => theme.colors.table.default};
-    border-radius: 20px;
-    border: 1px solid ${({ theme }) => theme.colors.border.default};
-    padding: 16px;
-    z-index: 1;
-  `
-
   return (
     <Box maxWidth={"900px"} m={"0 auto"} alignItems= {"stretch"}>
       <Box mb={4} p={1} textAlign="left">
@@ -134,7 +132,7 @@ export function PoolsOverview () {
       </Box>
 
       {(userPools.length > 0 || isAccountLoading) && (
-        <AppWrapper>
+        <div className={styles.tablebg}>
           <Box className={styles.box} mb={6}>
             <Box justifyContent="space-between" alignItems="center" mb={4} className={styles.header}>
               <Box p={1} textAlign="left">
@@ -221,9 +219,9 @@ export function PoolsOverview () {
               </table>
             </Box>
           </Box>
-        </AppWrapper>
+        </div>
       )}
-      <AppWrapper>
+      <div className={styles.tablebg}>
         <Box className={styles.box}>
           <Box justifyContent="space-between" alignItems="center" mb={4} overflow="auto">
             <Box p={1} textAlign="left">
@@ -379,7 +377,7 @@ export function PoolsOverview () {
             </table>
           </Box>
         </Box>
-      </AppWrapper>
+      </div>
     </Box>
   )
 }

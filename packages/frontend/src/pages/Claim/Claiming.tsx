@@ -25,7 +25,7 @@ export function Claiming(props: any) {
         p={3}
         px={4}
         alignCenter
-        bg={isDarkMode ? '#1F1E23' : 'white'}
+        bg={isDarkMode ? '#131A2A' : 'white'}
         borderRadius={'25px'}
         boxShadow={'0px 4px 25px 10px rgba(255, 255, 255, 0.01)'}
       >

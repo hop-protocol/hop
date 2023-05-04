@@ -59,17 +59,6 @@ const useInputStyles = makeStyles(theme => ({
     borderRadius: '12px',
     width: '100%',
     boxShadow: defaultShadow ? theme.boxShadow.input.normal : 'none',
-    '&:hover': {
-      boxShadow: () => {
-        if (hideShadow) {
-          return 'none'
-        } else if (defaultShadow) {
-          return theme.boxShadow.input.bold
-        } else {
-          return theme.boxShadow.input.normal
-        }
-      },
-    },
     [theme.breakpoints.down('xs')]: {
       width: '100%',
       padding: '4px 6px',

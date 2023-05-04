@@ -3,23 +3,23 @@ export const defaultTransition = 'all 0.15s ease-out'
 export const palette = {
   primary: {
     light: '#c462fc',
-    main: '#B32EFF',
+    main: '#089E71',
     dark: '#7213a8',
     contrastText: 'white',
   },
   background: {
     default: 'radial-gradient(100% 100% at 50% 0%, rgba(0, 156, 109, 0.2) 0%, rgba(141, 255, 221, 0.05) 55%, rgba(0, 0, 0, 0) 100%), rgb(10, 12, 17)',
     paper: 'radial-gradient(100% 100% at 50% 0%, rgba(0, 156, 109, 0.2) 0%, rgba(141, 255, 221, 0.05) 55%, rgba(0, 0, 0, 0) 100%), rgb(10, 12, 17)',
-    contrast: '#1F1E23',
+    contrast: '#131A2A',
   },
   table: {
     default: '#0D111C',
-    light: '#2172e51e',
+    light: '#0D111C1e',
   },
   action: {
-    active: '#B32EFF',
+    active: '#089E71',
     hover: '#af64c5',
-    selected: '#B32EFF',
+    selected: '#089E71',
     disabled: '#66607738',
   },
   secondary: {
@@ -86,12 +86,12 @@ export const overridesDark = {
   MuiButton: {
     root: {
       margin: 'inherit',
-      backgroundColor: '#272332',
+      backgroundColor: '#1b2233',
       boxShadow: boxShadows.button.default,
       color: palette.primary.main,
       transition: defaultTransition,
       '&:disabled': {
-        background: '#272332',
+        background: '#1b2233',
         boxShadow: boxShadows.button.disabled,
         color: palette.text.disabled,
       },
@@ -109,10 +109,10 @@ export const overridesDark = {
     root: {
       transition: defaultTransition,
       '&$selected': {
-        backgroundColor: '#b32eff19',
+        backgroundColor: '#1a2337',
         color: palette.text.primary,
         '&:hover': {
-          backgroundColor: '#b32eff1e',
+          backgroundColor: '#089E711e',
         },
       },
     },
@@ -140,6 +140,9 @@ export const overridesDark = {
       backgroundColor: '#131A2A',
       transition: defaultTransition,
     },
+    elevation1: {
+      boxShadow: 'none',
+    },
   },
   MuiPopover: {
     paper: {
@@ -154,7 +157,7 @@ export const overridesDark = {
   },
   MuiSelect: {
     root: {
-      backgroundColor: '#66607738',
+      backgroundColor: '#293249',
       // boxShadow: boxShadows.select,
       transition: defaultTransition,
     },

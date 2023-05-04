@@ -111,7 +111,7 @@ export const useStyles = makeStyles(theme => ({
     cursor: 'pointer'
   },
   notStakedMessageColor: {
-    color: '#B32EFF'
+    color: '#089E71'
   },
   bolt: {
     '& path': {

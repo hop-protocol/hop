@@ -36,11 +36,11 @@ const useStyles = makeStyles(theme => ({
     background: text ? 'none' : (highlighted
       ? theme.bgGradient.main
       : isDarkMode
-      ? '#3A3547'
+      ? '#0BB481'
       : flat
-      ? '#E2E2E5'
+      ? '#6A83FF'
       : 'none'),
-    boxShadow: text ? 'none' : (highlighted ? theme.boxShadow.button.highlighted : theme.boxShadow.button.default),
+    // boxShadow: text ? 'none' : (highlighted ? theme.boxShadow.button.highlighted : theme.boxShadow.button.default),
     '&:hover': {
       color: text ? theme.palette.text.primary : (highlighted ? 'white' : theme.palette.text.primary),
       background: text ? 'none' : (highlighted
@@ -51,7 +51,7 @@ const useStyles = makeStyles(theme => ({
     },
     transition: 'background-color 0.15s ease-out, box-shadow 0.15s ease-out',
     '&:disabled': {
-      // background: '#272332',
+      // background: '#0D111D',
       // boxShadow: theme.boxShadow.button.default,
       // color: '#0202027f',
     },

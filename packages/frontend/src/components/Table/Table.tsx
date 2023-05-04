@@ -85,7 +85,7 @@ function Table({ columns, data, loading }) {
                     ...headerGroup.style,
                     textAlign: i === 0 ? 'left' : 'center',
                     fontSize: i === 0 ? '20px' : '16px',
-                    color: i === 0 ? '#B32EFF' : 'inherit',
+                    color: i === 0 ? '#089E71' : 'inherit',
                   },
                 },
               ])}
@@ -104,7 +104,7 @@ function Table({ columns, data, loading }) {
                   ])}
                 >
                   {column.render('Header')}
-                  <span style={{ color: '#B32EFF' }}>
+                  <span style={{ color: '#089E71' }}>
                     {column.isSorted ? ' ↑' : column.isSortedDesc && ' ↓'}
                   </span>
                 </th>

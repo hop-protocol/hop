@@ -16,7 +16,7 @@ export function TokenIcon(props: any) {
       boxSizing: 'border-box',
       padding: showRing ? '4px' : 0,
       borderRadius: '50%',
-      background: showRing ? 'linear-gradient(99.85deg, #B32EFF -18.29%, #F2A498 109.86%)' : 'none'
+      background: showRing ? 'linear-gradient(99.85deg, #089E71 -18.29%, #F2A498 109.86%)' : 'none'
     }}>
       <img width="100%" src={src} alt={alt} title={title} style={{
         background: '#fff',

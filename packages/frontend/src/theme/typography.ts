@@ -16,27 +16,27 @@ export const typographyOptions: TypographyOptions = {
   ].join(','),
   h1: {
     fontSize: '24px',
-    fontWeight: 300,
+    fontWeight: 600,
   },
   h2: {
-    fontSize: '20px',
-    fontWeight: 300,
+    fontSize: '22px',
+    fontWeight: 600,
   },
   h3: {
+    fontSize: '20px',
+    fontWeight: 600,
+  },
+  h4: {
     fontSize: '18px',
     fontWeight: 400,
   },
-  h4: {
-    fontSize: '16px',
-    fontWeight: 600,
-  },
   h5: {
     fontSize: '16px',
-    fontWeight: 600,
+    fontWeight: 400,
   },
   h6: {
     fontSize: '14px',
-    fontWeight: 600,
+    fontWeight: 400,
   },
   subtitle1: {
     fontSize: '16px',

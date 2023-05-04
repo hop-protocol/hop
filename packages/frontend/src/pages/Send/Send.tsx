@@ -679,7 +679,6 @@ const Send: FC = () => {
   const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
 
   const AppWrapper = styled(Flex)<any>`
-    position: relative;
     background: ${({ theme }) => theme.colors.table.default};
     border-radius: 20px;
     border: 1px solid #98A1C03d;

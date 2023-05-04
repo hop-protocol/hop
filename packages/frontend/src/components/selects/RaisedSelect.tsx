@@ -8,24 +8,21 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: theme.palette.background.paper,
     height: '32px',
     borderRadius: '16px',
-    paddingTop: '0px',
-    paddingLeft: '18px',
-    paddingBottom: '0px',
-    paddingRight: '28px',
+    padding: '4px 8px 4px 8px',
     '&.MuiSelect-select': {
       paddingRight: '28px',
     },
-    fontSize: '18px',
+    fontSize: '20px',
     fontWeight: 600,
     lineHeight: '46px',
     '&:focus': {
       borderRadius: '16px',
     },
-    boxShadow: theme.boxShadow.select,
+    // boxShadow: theme.boxShadow.select,
   },
   selectMenu: {
     paddingRight: '48px',
-    height: '46px',
+    height: '32px',
   },
   icon: ({ value }: any) => ({
     top: 'calc(50% - 8px)',

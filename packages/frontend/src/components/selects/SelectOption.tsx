@@ -29,8 +29,8 @@ const useStyles = makeStyles(theme => ({
   },
   image: {
     width: 'auto',
-    maxWidth: '30px',
-    height: '30px',
+    maxWidth: '24px',
+    height: '24px',
     objectFit: 'contain',
   },
 }))
@@ -70,7 +70,7 @@ const SelectOption: FC<Props> = props => {
         </ListItemIcon>
       )}
       {label && (
-        <Typography component="span" variant="h6">
+        <Typography component="span" variant="h5">
           {label}
         </Typography>
       )}

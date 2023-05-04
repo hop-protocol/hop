@@ -3,7 +3,7 @@ export const defaultTransition = 'all 0.15s ease-out'
 export const palette = {
   primary: {
     light: '#c462fc',
-    main: '#B32EFF',
+    main: '#089E71',
     dark: '#7213a8',
     contrastText: 'white',
   },
@@ -13,13 +13,13 @@ export const palette = {
     contrast: '#FFFFFF',
   },
   table: {
-    default: '#0D111C',
-    light: '#2172e51e',
+    default: '#fcfdff',
+    light: '#fcfdff1e',
   },
   action: {
-    active: '#B32EFF',
+    active: '#089E71',
     hover: '#e8c1ff',
-    selected: '#B32EFF',
+    selected: '#089E71',
     disabled: 'white',
   },
   secondary: {
@@ -91,7 +91,7 @@ export const overridesLight = {
       color: palette.primary.main,
       transition: defaultTransition,
       '&:disabled': {
-        background: '#FDF7F9',
+        background: '#F3F6FC',
         boxShadow: boxShadows.button.default,
         color: palette.text.disabled,
       },
@@ -99,8 +99,8 @@ export const overridesLight = {
   },
   MuiCard: {
     root: {
-      padding: '28px',
-      borderRadius: '16px',
+      padding: '12px',
+      borderRadius: '12px',
       // boxShadow: boxShadows.card,
       transition: defaultTransition,
     },
@@ -109,10 +109,10 @@ export const overridesLight = {
     root: {
       transition: defaultTransition,
       '&$selected': {
-        backgroundColor: '#b32eff19',
+        backgroundColor: '#d9e0ee',
         color: palette.text.primary,
         '&:hover': {
-          backgroundColor: '#b32eff1e',
+          backgroundColor: '#089E711e',
         },
       },
     },
@@ -137,8 +137,11 @@ export const overridesLight = {
   },
   MuiPaper: {
     root: {
-      backgroundColor: '#FDF7F9',
+      backgroundColor: '#F3F6FC',
       transition: defaultTransition,
+    },
+    elevation1: {
+      boxShadow: 'none',
     },
   },
   MuiPopover: {
@@ -154,7 +157,7 @@ export const overridesLight = {
   },
   MuiSelect: {
     root: {
-      backgroundColor: 'white',
+      backgroundColor: '#e8edfb',
       // boxShadow: boxShadows.select,
       transition: defaultTransition,
     },

@@ -14,9 +14,9 @@ aside.bn-onboard-modal {
 
 /* The container for the modal content. */
 .bn-onboard-custom.bn-onboard-modal-content {
-  font-family: 'Source Code Pro';
+  font-family: 'Inter';
   max-width: 350px;
-  background-color: #272332;
+  background-color: #0D111D;
   color: #e3ddf1;
 }
 
@@ -45,7 +45,7 @@ aside.bn-onboard-modal {
   margin-top: 5px;
   margin-bottom: 5px;
   margin-bottom: 10px;
-  background-color: #1f1e23;
+  background-color: #131A2A;
   color: #e3ddf1;
   border-radius: 10px;
   height: 60px;

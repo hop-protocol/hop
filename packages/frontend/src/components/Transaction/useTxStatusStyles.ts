@@ -28,12 +28,12 @@ export const useTxStatusStyles = makeStyles((theme: Theme) => ({
     marginBottom: '10px',
   },
   completed: {
-    color: '#B32EFF',
+    color: '#089E71',
     zIndex: 1,
     height: 22,
     fontSize: '4em',
     '& $line': {
-      borderColor: '#B32EFF',
+      borderColor: '#089E71',
     },
   },
   txStatusInfo: {

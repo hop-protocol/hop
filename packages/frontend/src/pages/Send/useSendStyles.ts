@@ -54,7 +54,10 @@ export const useSendStyles = makeStyles((theme: any) => ({
     fontWeight: 700,
   },
   destinationTxFeeAndAmount: {
-    marginTop: '24px',
+    margin: '0 12px 0 12px',
+    [theme.breakpoints.down('xs')]: {
+      margin: '0',
+    },
   },
   detailsDropdown: {
     width: '440px',
@@ -105,7 +108,6 @@ export const useSendStyles = makeStyles((theme: any) => ({
   },
   customRecipientLabel: {
     textAlign: 'right',
-    marginBottom: '16px',
   },
   buttons: {
     marginTop: theme.padding.light,

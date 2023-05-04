@@ -6,8 +6,7 @@ import { useApp } from 'src/contexts/AppContext'
 import { useWeb3Context } from 'src/contexts/Web3Context'
 import HeaderRoutes from 'src/components/header/HeaderRoutes'
 import TxPill from 'src/components/header/TxPill'
-import HopLogoBlack from 'src/assets/logos/hop-logo-black.svg'
-import HopLogoWhite from 'src/assets/logos/hop-logo-white.svg'
+import HopLogoWhite from 'src/assets/logos/suki.svg'
 import { isMainnet, showBannerMessage } from 'src/config'
 import { l1Network } from 'src/config/networks'
 import Settings from 'src/components/header/Settings'
@@ -50,9 +49,9 @@ const useStyles = makeStyles((theme: Theme) => ({
   hopLogo: {
     display: 'flex',
     alignItems: 'center',
-    width: '82px',
+    width: '48px',
     [theme.breakpoints.down('sm')]: {
-      width: '70px',
+      width: '32px',
     },
   },
   label: {
@@ -149,19 +148,20 @@ const Header: FC = () => {
         <Banner>{showBannerMessage}</Banner>
       )}
       <Box className={styles.root} display="flex" flexDirection="row" alignItems="center">
-        <Box display="flex" flexDirection="row" justifyContent="flex-start" flex={1}>
-          <Link to="/" style={{ position: 'relative' }}>
-            <img
-              className={styles.hopLogo}
-              src={isDarkMode ? HopLogoWhite : HopLogoBlack}
-              alt="Hop"
-            />
-            {!isMainnet && <span className={styles.label}>{l1Network.name}</span>}
-          </Link>
-        </Box>
-
-        <Box display="flex" flexDirection="row" justifyContent="center" alignSelf="center" flex={1} width="100%" flexWrap="wrap">
-          <HeaderRoutes />
+        <Box display="flex" flexDirection="row" justifyContent="flex-start">
+          <Box alignSelf="center" width="100%" flexWrap="wrap">
+            <Link to="/" style={{ position: 'relative' }}>
+              <img
+                className={styles.hopLogo}
+                src={HopLogoWhite}
+                alt="Suki"
+              />
+              {!isMainnet && <span className={styles.label}>{l1Network.name}</span>}
+            </Link>
+          </Box>
+          <Box alignSelf="center" width="100%" flexWrap="wrap">
+            <HeaderRoutes />
+          </Box>
         </Box>
 
         <Box

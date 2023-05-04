@@ -7,7 +7,7 @@
 Install dependencies:
 
 ```bash
-yarn install
+npm install
 ```
 
 Lerna link:
@@ -19,13 +19,13 @@ npx lerna link
 Start app (uses `kovan` network by default):
 
 ```bash
-yarn run dev
+npm run dev
 ```
 
 Start app using a different network (e.g. `mainnet`, `goerli`, `kovan`)
 
 ```bash
-REACT_APP_NETWORK=mainnet yarn run dev
+REACT_APP_NETWORK=mainnet npm run dev
 ```
 
 Visit [https://localhost:3000/](https://localhost:3000/)

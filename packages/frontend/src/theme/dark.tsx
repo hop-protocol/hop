@@ -16,6 +16,10 @@ export const palette = {
     default: '#0D111C',
     light: '#0D111C1e',
   },
+  border: {
+    default: '#98A1C03d',
+    light: '#98A1C070',
+  },
   action: {
     active: '#089E71',
     hover: '#af64c5',
@@ -117,6 +121,12 @@ export const overridesDark = {
       },
     },
     button: {
+      '&:hover': {
+        backgroundColor: palette.action.hover,
+      },
+      transition: defaultTransition,
+    },
+    depositLink: {
       '&:hover': {
         backgroundColor: palette.action.hover,
       },

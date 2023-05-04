@@ -16,6 +16,10 @@ export const palette = {
     default: '#fcfdff',
     light: '#fcfdff1e',
   },
+  border: {
+    default: '#D2D9EE',
+    light: '#D2D9EE80',
+  },
   action: {
     active: '#089E71',
     hover: '#e8c1ff',

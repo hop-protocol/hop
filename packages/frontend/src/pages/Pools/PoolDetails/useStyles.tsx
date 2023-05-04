@@ -49,7 +49,7 @@ export const useStyles = makeStyles(theme => ({
     },
   },
   poolStats: {
-    boxShadow: theme.boxShadow.inner,
+    // boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
     borderRadius: '16px'
   },
@@ -59,7 +59,7 @@ export const useStyles = makeStyles(theme => ({
     },
   },
   poolDetails: {
-    boxShadow: theme.boxShadow.inner,
+    // boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
     borderRadius: '16px',
     [theme.breakpoints.down('xs')]: {
@@ -98,7 +98,7 @@ export const useStyles = makeStyles(theme => ({
     padding: '6px 24px',
     '&[data-selected="true"]': {
       borderRadius: '16px',
-      boxShadow: theme.palette.type === 'dark' ? '-6px 6px 12px 0px #121212, -5px -5px 14px 0px #00000026 inset, -6px 6px 12px 0px #26262666 inset' : '5px -5px 12px 0px #FFFFFF, -6px 6px 12px 0px #D8D5DC, -5px -5px 14px 0px #FFFFFF26 inset, -6px 6px 12px 0px #E9E5E866 inset',
+      // boxShadow: theme.palette.type === 'dark' ? '-6px 6px 12px 0px #121212, -5px -5px 14px 0px #00000026 inset, -6px 6px 12px 0px #26262666 inset' : '5px -5px 12px 0px #FFFFFF, -6px 6px 12px 0px #D8D5DC, -5px -5px 14px 0px #FFFFFF26 inset, -6px 6px 12px 0px #E9E5E866 inset',
     }
   },
   stakingTabImage: {

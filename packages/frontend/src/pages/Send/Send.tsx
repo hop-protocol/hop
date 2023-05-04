@@ -681,7 +681,7 @@ const Send: FC = () => {
   const AppWrapper = styled(Flex)<any>`
     background: ${({ theme }) => theme.colors.table.default};
     border-radius: 20px;
-    border: 1px solid #98A1C03d;
+    border: 1px solid ${({ theme }) => theme.colors.border.default};
     padding: 16px;
     z-index: 1;
   `

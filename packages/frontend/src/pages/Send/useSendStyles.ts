@@ -98,7 +98,7 @@ export const useSendStyles = makeStyles((theme: any) => ({
     marginTop: '10px',
     boxSizing: 'border-box',
     borderRadius: '16px',
-    boxShadow: theme.boxShadow.inner,
+    // boxShadow: theme.boxShadow.inner,
     [theme.breakpoints.down('xs')]: {
       width: '100%',
     },

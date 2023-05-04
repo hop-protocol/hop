@@ -20,7 +20,7 @@ interface Props {
 
 export const useStyles = makeStyles(theme => ({
   box: {
-    boxShadow: theme.boxShadow.inner,
+    // boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
     minHeight: '200px',
   },

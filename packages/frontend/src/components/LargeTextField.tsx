@@ -58,7 +58,7 @@ const useInputStyles = makeStyles(theme => ({
     transition: 'all 0.15s ease-out',
     borderRadius: '12px',
     width: '100%',
-    boxShadow: defaultShadow ? theme.boxShadow.input.normal : 'none',
+    // boxShadow: defaultShadow ? theme.boxShadow.input.normal : 'none',
     [theme.breakpoints.down('xs')]: {
       width: '100%',
       padding: '4px 6px',
@@ -82,7 +82,7 @@ const useInputStyles = makeStyles(theme => ({
   }),
   focused: {
     borderRadius: '12px',
-    boxShadow: theme.boxShadow.input.normal,
+    // boxShadow: theme.boxShadow.input.normal,
   },
 }))
 

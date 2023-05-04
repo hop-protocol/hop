@@ -33,7 +33,7 @@ const useStyles = makeStyles<Theme, StyleProps>(theme => {
         return theme.palette.text.secondary
       }
     },
-    fontWeight: ({ bold }) => (bold ? 700 : 600),
+    fontWeight: ({ bold }) => (bold ? 600 : 400),
   }
 
   return {

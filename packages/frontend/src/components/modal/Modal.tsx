@@ -89,7 +89,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     overflow: 'auto',
     maxHeight: '100%',
     border: isDarkMode(theme) ? '1px solid #353535' : 'none',
-    boxShadow: isDarkMode(theme) ? 'none' : theme.boxShadow.card,
+    // boxShadow: isDarkMode(theme) ? 'none' : theme.boxShadow.card,
   },
   content: {
     padding: '40px',

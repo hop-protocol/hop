@@ -25,7 +25,7 @@ const useInputStyles = makeStyles(theme => ({
   root: (props: StyleProps) => ({
     padding: '2px 4px',
     borderRadius: '12px',
-    boxShadow: theme.boxShadow.input.normal,
+    // boxShadow: theme.boxShadow.input.normal,
   }),
   input: ({ centerAlign }: StyleProps) => ({
     textAlign: centerAlign ? 'center' : 'right',
@@ -36,7 +36,7 @@ const useInputStyles = makeStyles(theme => ({
   }),
   focused: {
     borderRadius: '12px',
-    boxShadow: theme.boxShadow.input.normal,
+    // boxShadow: theme.boxShadow.input.normal,
   },
 }))
 

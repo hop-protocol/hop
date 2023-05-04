@@ -103,7 +103,7 @@ export function PoolRow (props: Props) {
     <tr className={styles.tr}>
       <td>
         <Link to={depositLink} className={styles.poolLink}>
-          <Box p={1} display="flex" className={styles.poolName}>
+          <Box p={2} display="flex" className={styles.poolName}>
             <Box mr={2}>
               <Box className={styles.imageContainer}>
                 <img className={styles.chainImage} src={chain.imageUrl} alt={chain.name} title={chain.name} />
@@ -113,7 +113,7 @@ export function PoolRow (props: Props) {
             <Box display="flex" flexDirection="column">
               <Box>
                 <Typography variant="body1" title="Pool">
-                  <strong>{poolName}</strong>
+                  {poolName}
                 </Typography>
               </Box>
               <Box>
@@ -165,7 +165,7 @@ export function PoolRow (props: Props) {
           <Box display="inline-block">
           {totalAprFormatted === '' ? <Skeleton animation="wave" width={'100%'} title="loading" /> : <Box p={1} display="flex" justifyContent="flex-start" alignItems="center">
               <Typography variant="body1" title="Total APR which is AMM APR + any staking rewards APR">
-                <strong>{totalAprFormatted}</strong>
+                {totalAprFormatted}
               </Typography>
               {stakingRewards.length > 0 ? <Box ml={1} display="flex" justifyContent="center" alignItems="center">
                 <span title="Boosted APR"><Bolt className={styles.bolt} /></span>
@@ -202,7 +202,7 @@ export function PoolRow (props: Props) {
             <Link to={depositLink} className={styles.poolLink}>
               <MuiButton variant="text" className={styles.depositLink} onClick={() => history.push(depositLink)}>
                   <Typography variant="body1" component="span" title="Deposit into pool">
-                    <strong>Add Liquidity</strong>
+                    Add Liquidity
                   </Typography>
                 </MuiButton>
             </Link>

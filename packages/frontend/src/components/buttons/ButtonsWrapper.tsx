@@ -5,7 +5,7 @@ export function ButtonsWrapper(props) {
   const { children } = props
 
   return (
-    <Flex my="1rem" justifyAround alignCenter $wrap maxWidth={['450px']} width="100%">
+    <Flex my="10px" justifyAround alignCenter $wrap maxWidth={['450px']} width="100%">
       {children}
     </Flex>
   )

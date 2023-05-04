@@ -122,7 +122,7 @@ export function TxList (props: Props) {
                         {tx.label}
                       </Typography>
                     </Box>
-                    <Box display="flex" justifyContent="center" alignItems="center" style={{ fontSize: '3rem' }}>
+                    <Box display="flex" justifyContent="center" alignItems="center" style={{ fontSize: '30px' }}>
                       {icon}
                     </Box>
                   </Box>
@@ -140,7 +140,7 @@ export function TxList (props: Props) {
                     Complete ✨
                   </Typography>
                 </Box>
-                <Box display="flex" justifyContent="center" alignItems="center" style={{ fontSize: '3rem' }}>
+                <Box display="flex" justifyContent="center" alignItems="center" style={{ fontSize: '30px' }}>
                   {finalIcon}
                 </Box>
               </Box>

@@ -8,9 +8,13 @@ export const palette = {
     contrastText: 'white',
   },
   background: {
-    default: '#FDF7F9',
-    paper: '#FDF7F9',
+    default: 'radial-gradient(100% 100% at 50% 0%, rgba(25, 179, 128, 0.15) 0%, rgba(52, 200, 157, 0.1) 50%, rgba(55, 212, 164, 0) 100%), rgb(255, 255, 255)',
+    paper: 'radial-gradient(100% 100% at 50% 0%, rgba(25, 179, 128, 0.15) 0%, rgba(52, 200, 157, 0.1) 50%, rgba(55, 212, 164, 0) 100%), rgb(255, 255, 255)',
     contrast: '#FFFFFF',
+  },
+  table: {
+    default: '#0D111C',
+    light: '#2172e51e',
   },
   action: {
     active: '#B32EFF',
@@ -95,9 +99,9 @@ export const overridesLight = {
   },
   MuiCard: {
     root: {
-      padding: '2.8rem',
-      borderRadius: '3.0rem',
-      boxShadow: boxShadows.card,
+      padding: '28px',
+      borderRadius: '16px',
+      // boxShadow: boxShadows.card,
       transition: defaultTransition,
     },
   },
@@ -121,8 +125,8 @@ export const overridesLight = {
   },
   MuiMenuItem: {
     root: {
-      fontWeight: 700,
-      fontSize: '1.8rem',
+      fontWeight: 600,
+      fontSize: '18px',
       transition: defaultTransition,
     },
   },
@@ -140,7 +144,7 @@ export const overridesLight = {
   MuiPopover: {
     paper: {
       transition: defaultTransition,
-      borderRadius: '3.0rem',
+      borderRadius: '16px',
       boxShadow: `
           0px 5px 15px -3px rgba(0,0,0,0.1),
           0px 8px 20px 1px rgba(0,0,0,0.07),
@@ -175,7 +179,7 @@ export const overridesLight = {
       height: 3,
     },
     valueLabel: {
-      fontSize: '1.4rem',
+      fontSize: '14px',
     },
   },
   MuiTabs: {
@@ -189,7 +193,7 @@ export const overridesLight = {
       '&.MuiTab-root': {
         color: palette.text.secondary,
         minWidth: 0,
-        borderRadius: '3rem',
+        borderRadius: '16px',
       },
       '&$selected': {
         color: palette.primary.main,
@@ -201,7 +205,7 @@ export const overridesLight = {
   },
   MuiTooltip: {
     tooltip: {
-      fontSize: '1.6rem',
+      fontSize: '16px',
     },
   },
   MuiTypography: {

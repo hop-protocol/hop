@@ -44,12 +44,13 @@ const StyledInput: React.FC<InputProps> = styled.input`
   box-sizing: border-box;
 
   ${({ bold }: any) => bold && 'font-weight: bold;'}
-  font-family: 'Nunito';
+  font-family: 'Inter';
   ${({ mono }: any) => mono && 'font-family: "Source Code Pro";'}
-  font-size: 1em;
+  font-size: 16px;
   padding: 0.75em;
   width: 100%;
   border: none;
+  box-shadow: none;
   border-radius: 1em;
 
   ${composedStyleFns}

@@ -2,30 +2,30 @@ import { Theme, makeStyles } from '@material-ui/core/styles'
 
 export const useTxStatusStyles = makeStyles((theme: Theme) => ({
   header: {
-    fontSize: '1.8rem',
+    fontSize: '18px',
   },
   row: {
     display: 'flex',
     justifyContent: 'space-between',
-    marginBottom: '1rem',
+    marginBottom: '10px',
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
     },
   },
   network: {
     display: 'inline-block',
-    marginRight: '0.5rem',
+    marginRight: '6px',
   },
   clearButton: {
-    fontSize: '1.2rem',
-    borderRadius: '2rem',
+    fontSize: '12px',
+    borderRadius: '12px',
     boxShadow: 'none',
   },
   recentsHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '1rem',
+    marginBottom: '10px',
   },
   completed: {
     color: '#B32EFF',
@@ -42,7 +42,7 @@ export const useTxStatusStyles = makeStyles((theme: Theme) => ({
     alignItems: 'center',
   },
   txStatusCloseButton: {
-    marginTop: '1rem',
+    marginTop: '10px',
   },
   topLabel: {
     opacity: '0.5',

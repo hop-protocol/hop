@@ -7,7 +7,7 @@ export const useStyles = makeStyles(theme => ({
     textDecoration: 'none'
   },
   backLinkIcon: {
-    fontSize: '5rem',
+    fontSize: '50px',
     width: '40px',
     height: '40px',
     display: 'flex',
@@ -35,10 +35,10 @@ export const useStyles = makeStyles(theme => ({
   },
   topBox: {
     background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
-    borderRadius: '2rem',
+    borderRadius: '12px',
     width: '100%',
     [theme.breakpoints.down('xs')]: {
-      marginBottom: '1rem',
+      marginBottom: '10px',
       marginLeft: 0,
       width: '90%'
     },
@@ -51,7 +51,7 @@ export const useStyles = makeStyles(theme => ({
   poolStats: {
     boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
-    borderRadius: '3rem'
+    borderRadius: '16px'
   },
   poolStatBoxes: {
     [theme.breakpoints.down('xs')]: {
@@ -61,7 +61,7 @@ export const useStyles = makeStyles(theme => ({
   poolDetails: {
     boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
-    borderRadius: '3rem',
+    borderRadius: '16px',
     [theme.breakpoints.down('xs')]: {
       padding: 0
     },
@@ -77,14 +77,14 @@ export const useStyles = makeStyles(theme => ({
     },
   },
   tabs: {
-    marginTop: '0.8rem',
+    marginTop: '8px',
     [theme.breakpoints.down('xs')]: {
       marginTop: 0,
       margin: '0 auto'
     },
   },
   tab: {
-    fontSize: '2rem'
+    fontSize: '20px'
   },
   stakingAprChainImage: {
     width: '20px',
@@ -95,9 +95,9 @@ export const useStyles = makeStyles(theme => ({
     },
   },
   stakingTabButtonBox: {
-    padding: '0.5rem 2.5rem',
+    padding: '6px 24px',
     '&[data-selected="true"]': {
-      borderRadius: '3rem',
+      borderRadius: '16px',
       boxShadow: theme.palette.type === 'dark' ? '-6px 6px 12px 0px #121212, -5px -5px 14px 0px #00000026 inset, -6px 6px 12px 0px #26262666 inset' : '5px -5px 12px 0px #FFFFFF, -6px 6px 12px 0px #D8D5DC, -5px -5px 14px 0px #FFFFFF26 inset, -6px 6px 12px 0px #E9E5E866 inset',
     }
   },
@@ -106,7 +106,7 @@ export const useStyles = makeStyles(theme => ({
   },
   notStakedMessage: {
     background: 'rgba(179, 46, 255, 0.1)',
-    borderRadius: '0.5rem',
+    borderRadius: '6px',
     maxWidth: '100px',
     cursor: 'pointer'
   },

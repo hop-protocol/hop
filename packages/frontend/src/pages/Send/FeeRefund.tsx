@@ -7,10 +7,10 @@ import { getTokenImage } from 'src/utils/tokens'
 
 export const useStyles = makeStyles(theme => ({
   root: {
-    width: '47rem',
+    width: '470px',
     background: 'white',
-    padding: '1rem 2rem',
-    marginBottom: '2rem',
+    padding: '10px 20px',
+    marginBottom: '20px',
     marginLeft: '-20px',
     borderRadius: '50px',
     [theme.breakpoints.down('xs')]: {

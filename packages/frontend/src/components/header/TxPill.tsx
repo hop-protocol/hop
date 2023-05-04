@@ -13,16 +13,16 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    fontSize: '1rem',
+    fontSize: '12px',
     [theme.breakpoints.down('sm')]: {
-      fontSize: '.8rem',
+      fontSize: '8px',
     },
   },
   pendingButton: {
     backgroundColor: 'rgba(179, 46, 255, 0.12)',
   },
   spinner: {
-    marginLeft: '1rem',
+    marginLeft: '10px',
   },
 }))
 

@@ -22,18 +22,18 @@ const useStyles = makeStyles((theme: any) => ({
     margin: '0 auto',
   },
   header: {
-    marginBottom: '4rem',
+    marginBottom: '40px',
     textAlign: 'center',
   },
   form: {
     display: 'block',
-    marginBottom: '4rem',
+    marginBottom: '40px',
   },
   card: {
-    marginBottom: '4rem',
+    marginBottom: '40px',
   },
   loader: {
-    marginTop: '2rem',
+    marginTop: '20px',
     textAlign: 'center',
   },
   notice: {

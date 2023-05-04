@@ -21,23 +21,23 @@ const useStyles = makeStyles(theme => ({
     textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   selection: {
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   proportionalAmount: {
-    marginBottom: '1rem',
+    marginBottom: '10px',
   },
   amountInput: {
-    marginTop: '1rem',
-    marginBottom: '2rem',
+    marginTop: '10px',
+    marginBottom: '20px',
   },
   action: {},
   sendButton: {},
   details: {
-    width: '20rem',
-    margin: '0 auto 3rem auto',
+    width: '200px',
+    margin: '0 auto 30px auto',
   },
 }))
 

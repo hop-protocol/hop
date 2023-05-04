@@ -16,31 +16,31 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   connectedWallet: {
     border: '1px solid #fff',
-    padding: '2rem',
-    marginBottom: '3rem',
-    borderRadius: '1rem',
+    padding: '12px',
+    marginBottom: '12px',
+    borderRadius: '12px',
   },
   changeButton: {
     position: 'absolute',
-    top: '1rem',
-    right: '1rem',
-    borderRadius: '1.5rem',
+    top: '10px',
+    right: '10px',
+    borderRadius: '12px',
     boxShadow: 'none',
   },
   disconnectButton: {
     position: 'absolute',
-    bottom: '1rem',
-    right: '1rem',
-    fontSize: '1.2rem',
+    bottom: '10px',
+    right: '12px',
+    fontSize: '16px',
     marginBottom: 0,
-    borderRadius: '1.5rem',
+    borderRadius: '12px',
     boxShadow: 'none',
   },
   address: {
-    fontSize: '2rem',
+    fontSize: '18px',
   },
   copyButton: {
-    marginLeft: '0.5rem',
+    marginLeft: '6px',
   },
 }))
 

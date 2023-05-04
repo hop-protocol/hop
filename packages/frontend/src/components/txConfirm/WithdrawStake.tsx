@@ -18,14 +18,14 @@ const useStyles = makeStyles(() => ({
     textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   amounts: {
-    fontSize: '2rem',
+    fontSize: '20px',
   },
   amountInput: {
-    marginTop: '1rem',
-    marginBottom: '2rem',
+    marginTop: '10px',
+    marginBottom: '20px',
   },
   action: {},
   sendButton: {}

@@ -278,8 +278,8 @@ export function PoolDetails () {
                                 const selected = selectedStaking === value
                                 return (
                                   <Tab key={stakingReward.rewardTokenSymbol} label={<Box style={{
-                                    paddingLeft: '1rem',
-                                    paddingBottom: '1rem',
+                                    paddingLeft: '10px',
+                                    paddingBottom: '10px',
                                     transition: 'translate(0, 5px)',
                                   }} >
                                   <Box display="flex" alignItems="center" data-selected={selected} className={styles.stakingTabButtonBox}>

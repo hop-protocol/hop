@@ -16,10 +16,10 @@ import { l2Networks } from 'src/config/networks'
 
 const useStyles = makeStyles(theme => ({
   title: {
-    marginBottom: '4.2rem',
+    marginBottom: '42px',
   },
   selects: {
-    marginBottom: '4.4rem',
+    marginBottom: '44px',
     display: 'flex',
     justifyContent: 'center',
     flexWrap: 'wrap',
@@ -27,15 +27,15 @@ const useStyles = makeStyles(theme => ({
   select: {
     display: 'flex',
     alignItems: 'center',
-    margin: '0 1rem 1rem',
+    margin: '0 10px 10px',
   },
   help: {
     display: 'flex',
     alignItems: 'center',
-    marginLeft: '1rem',
+    marginLeft: '10px',
   },
   box: {
-    marginBottom: '4.2rem',
+    marginBottom: '42px',
   },
 }))
 

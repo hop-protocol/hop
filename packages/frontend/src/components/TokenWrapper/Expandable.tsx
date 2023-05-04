@@ -4,15 +4,15 @@ import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles(theme => ({
   details: {
-    width: '46.0rem',
-    marginBottom: '3.4rem',
+    width: '460px',
+    marginBottom: '34px',
     [theme.breakpoints.down('xs')]: {
       width: '100%',
     },
   },
   detailsDropdown: {
-    margin: '1rem 0',
-    padding: '1rem',
+    margin: '10px 0',
+    padding: '10px',
     width: '100%',
     '&[open] summary span::before': {
       content: '"▾"',
@@ -43,7 +43,7 @@ const useStyles = makeStyles(theme => ({
       content: '"▸"',
       position: 'absolute',
       top: '0',
-      right: '-1.5rem',
+      right: '-15px',
     },
   },
 }))

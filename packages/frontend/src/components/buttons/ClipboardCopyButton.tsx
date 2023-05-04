@@ -11,7 +11,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     appearance: 'none',
     border: 0,
     outline: 0,
-    padding: '0.1rem',
+    padding: '4px',
     margin: 0,
     background: 'none',
     display: 'inline-flex',
@@ -22,8 +22,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   },
   label: {
-    marginLeft: '0.5em',
-    fontSize: '1.2rem',
+    marginLeft: '6px',
+    fontSize: '12px',
     opacity: 0.5,
     '&:hover': {
       opacity: 0.7,
@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 const tooltipStyles = {
   tooltip: {
-    fontSize: '1.4rem',
+    fontSize: '14px',
   },
 }
 

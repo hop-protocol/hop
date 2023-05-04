@@ -7,17 +7,17 @@ const useStyles = makeStyles(theme => ({
   root: ({ value }: any) => ({
     color: value === 'default' ? '#fff' : theme.palette.text.secondary,
     background: value === 'default' ? theme.bgGradient.flat : theme.palette.action.disabled,
-    minWidth: '13.5rem',
-    borderRadius: '2.3rem',
-    padding: '0 2.8rem 0 0',
+    minWidth: '135px',
+    borderRadius: '16px',
+    padding: '0 28px 0 0',
     '&.MuiSelect-select': {
-      paddingRight: '2.8rem',
+      paddingRight: '28px',
     },
-    fontSize: '1.8rem',
-    fontWeight: 700,
-    lineHeight: '3.6rem',
+    fontSize: '18px',
+    fontWeight: 600,
+    lineHeight: '36px',
     '&:focus': {
-      borderRadius: '2.3rem',
+      borderRadius: '16px',
       backgroundColor: theme.palette.action.disabled,
     },
     [theme.breakpoints.down('xs')]: {
@@ -26,12 +26,12 @@ const useStyles = makeStyles(theme => ({
     },
   }),
   selectMenu: {
-    paddingRight: '4.8rem',
-    height: '3.6rem',
+    paddingRight: '48px',
+    height: '36px',
   },
   icon: ({ value }: any) => ({
-    top: 'calc(50% - 0.75rem)',
-    right: '0.8rem',
+    top: 'calc(50% - 8px)',
+    right: '8px',
     color: value === 'default' ? '#fff' : theme.palette.text.secondary,
   }),
 }))

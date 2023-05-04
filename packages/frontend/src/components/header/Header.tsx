@@ -34,51 +34,51 @@ const useStyles = makeStyles((theme: Theme) => ({
   root: {
     display: 'flex',
     flexWrap: 'wrap',
-    minHeight: '8rem',
-    padding: '0 4.2rem',
+    minHeight: '80px',
+    padding: '0 42px',
     [theme.breakpoints.down('sm')]: {
-      minHeight: '7rem',
-      padding: '0 2rem',
+      minHeight: '70px',
+      padding: '0 20px',
     },
     [theme.breakpoints.down('xs')]: {
       flexDirection: 'column',
-      paddingTop: '2rem',
-      marginBottom: '4rem',
+      paddingTop: '20px',
+      marginBottom: '40px',
     },
     transition: 'all 0.15s ease-out',
   },
   hopLogo: {
     display: 'flex',
     alignItems: 'center',
-    width: '8.2rem',
+    width: '82px',
     [theme.breakpoints.down('sm')]: {
-      width: '7rem',
+      width: '70px',
     },
   },
   label: {
-    fontSize: '1rem',
+    fontSize: '10px',
     position: 'absolute',
-    bottom: '-1rem',
+    bottom: '-10px',
     right: '0',
     opacity: '0.2',
   },
   walletPill: {
-    margin: '0rem 1rem',
+    margin: '0px 10px',
   },
   balancePill: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: '3rem',
-    marginLeft: '1rem',
-    padding: '1.2rem 2rem',
+    borderRadius: '16px',
+    marginLeft: '10px',
+    padding: '12px 20px',
     boxShadow: ({ isDarkMode }: any) =>
       isDarkMode
         ? theme.boxShadow.inner
         : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`,
     color: theme.palette.text.secondary,
     [theme.breakpoints.down('sm')]: {
-      fontSize: '.8rem',
+      fontSize: '10px',
     },
     [theme.breakpoints.down('xs')]: {
       display: 'none',
@@ -90,14 +90,14 @@ const useStyles = makeStyles((theme: Theme) => ({
     alignContent: 'center',
     justifyContent: 'center',
     fontWeight: 'bold',
-    fontSize: '1.5rem',
+    fontSize: '16px',
     whiteSpace: 'nowrap',
     [theme.breakpoints.down('sm')]: {
-      fontSize: '1.2rem',
+      fontSize: '12px',
     },
   },
   image: {
-    marginRight: '0.5rem',
+    marginRight: '6px',
     width: '16px',
     [theme.breakpoints.down('sm')]: {
       width: '12px',
@@ -183,16 +183,16 @@ const Header: FC = () => {
             <Flex
               justifyCenter
               alignCenter
-              borderRadius={'3rem'}
+              borderRadius={'16px'}
               mx={1}
-              p={'1.2rem 2rem'}
+              p={'12px 20px'}
               boxShadow={
                 isDarkMode && theme
                   ? theme.boxShadow.inner
                   : `rgba(255, 255, 255, 0.5) -3px -3px 6px inset, rgba(174, 174, 192, 0.16) 3px 3px 6px inset`
               }
               color="text.secondary"
-              fontSize={['.8rem', '1rem']}
+              fontSize={['8px', '10px']}
               display={['none', 'flex']}
             >
               <div className={styles.balance}>
@@ -202,7 +202,7 @@ const Header: FC = () => {
             </Flex>
           )}
 
-          <Flex alignCenter justifyCenter mx={1} fontSize={['.8rem', '1rem']}>
+          <Flex alignCenter justifyCenter mx={1} fontSize={['8px', '10px']}>
             {address ? <TxPill /> : <ConnectWalletButton mode={theme?.palette.type} />}
           </Flex>
         </Box>

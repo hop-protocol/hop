@@ -13,7 +13,7 @@ import { Div, Flex } from '../ui'
 const useStyles = makeStyles(theme => ({
   button: {
     margin: `0 ${theme.padding.light}`,
-    minWidth: '11rem',
+    minWidth: '110px',
     transition: 'all 0.15s ease-out, box-shadow 0.15s ease-out',
   },
   warning: {

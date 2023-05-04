@@ -14,7 +14,7 @@ import { Flex } from './components/ui'
 const AppWrapper = styled(Flex)<any>`
   align-items: stretch;
   background-image: ${({ isDarkMode }) => (isDarkMode ? `url(${bgImageDark})` : `url(${bgImage})`)};
-  background-color: ${({ theme }) => theme.colors.background.default};
+  background: ${({ theme }) => theme.colors.background.default};
   background-size: 120%;
   transition: background 0.15s ease-out;
   min-height: 100vh;

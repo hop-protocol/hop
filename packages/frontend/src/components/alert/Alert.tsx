@@ -6,9 +6,9 @@ import { prettifyErrorMessage } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   root: {
-    fontSize: '1.6rem',
-    borderRadius: '2rem',
-    maxWidth: '51.6rem',
+    fontSize: '16px',
+    borderRadius: '12px',
+    maxWidth: '440px',
     overflow: 'auto',
   },
 }))

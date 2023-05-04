@@ -75,7 +75,7 @@ export function TopPoolStats (props: Props) {
                 <Typography variant="body2" component="div">
                   <Box display="flex" justifyContent="center" alignItems="center" className={styles.notStakedMessageColor}>
                     <Box mr={0.5} display="flex" justifyContent="center" alignItems="center">
-                      <ErrorIcon className={styles.notStakedMessageColor} style={{ fontSize: '2.5rem' }}/>
+                      <ErrorIcon className={styles.notStakedMessageColor} style={{ fontSize: '24px' }}/>
                     </Box>
                     <strong>Not staked</strong>
                   </Box>

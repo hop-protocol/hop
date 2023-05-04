@@ -2,7 +2,7 @@ import { TypographyOptions } from '@material-ui/core/styles/createTypography'
 
 export const typographyOptions: TypographyOptions = {
   fontFamily: [
-    'Nunito',
+    'Inter',
     '-apple-system',
     'BlinkMacSystemFont',
     '"Segoe UI"',
@@ -15,48 +15,48 @@ export const typographyOptions: TypographyOptions = {
     '"Segoe UI Symbol"',
   ].join(','),
   h1: {
-    fontSize: '8.2rem',
+    fontSize: '24px',
     fontWeight: 300,
   },
   h2: {
-    fontSize: '6.0rem',
+    fontSize: '20px',
     fontWeight: 300,
   },
   h3: {
-    fontSize: '4.1rem',
+    fontSize: '18px',
     fontWeight: 400,
   },
   h4: {
-    fontSize: '2.7rem',
-    fontWeight: 700,
+    fontSize: '16px',
+    fontWeight: 600,
   },
   h5: {
-    fontSize: '2.4rem',
-    fontWeight: 700,
+    fontSize: '16px',
+    fontWeight: 600,
   },
   h6: {
-    fontSize: '2.0rem',
-    fontWeight: 700,
+    fontSize: '14px',
+    fontWeight: 600,
   },
   subtitle1: {
-    fontSize: '1.8rem',
-    fontWeight: 700,
+    fontSize: '16px',
+    fontWeight: 600,
   },
   subtitle2: {
-    fontSize: '1.6rem',
-    fontWeight: 700,
+    fontSize: '14px',
+    fontWeight: 600,
   },
   body1: {
-    fontSize: '1.4rem',
+    fontSize: '16px',
     fontWeight: 400,
   },
   body2: {
-    fontSize: '1.2rem',
+    fontSize: '14px',
     fontWeight: 400,
   },
   button: {
-    fontSize: '1.8rem',
-    fontWeight: 700,
+    fontSize: '16px',
+    fontWeight: 600,
     textTransform: 'capitalize',
   },
 }

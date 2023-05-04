@@ -6,7 +6,7 @@ import { Div } from '../ui'
 import Skeleton from '@material-ui/lab/Skeleton'
 
 const Styles = styled.div`
-  padding: 0.25rem;
+  padding: 2px;
 
   table {
     border-spacing: 0;
@@ -54,7 +54,7 @@ const Styles = styled.div`
     td {
       transition: background 0.15s ease-out;
       margin: 0;
-      padding: 0.5rem 1rem;
+      padding: 6px 10px;
       border-bottom: 1px solid #dbdbdb;
 
       :last-child {
@@ -84,7 +84,7 @@ function Table({ columns, data, loading }) {
                   style: {
                     ...headerGroup.style,
                     textAlign: i === 0 ? 'left' : 'center',
-                    fontSize: i === 0 ? '2rem' : '1.5rem',
+                    fontSize: i === 0 ? '20px' : '16px',
                     color: i === 0 ? '#B32EFF' : 'inherit',
                   },
                 },

@@ -1,11 +1,11 @@
 aside.bn-onboard-modal {
   --webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
-  font-family: 'Nunito' !important;
+  font-family: 'Inter' !important;
 }
 
 .bn-onboard-custom .bn-onboard-modal {
-  font-family: 'Nunito';
+  font-family: 'Inter';
 }
 
 .bn-onboard-custom.bn-onboard-modal-content-header-icon {
@@ -25,7 +25,7 @@ aside.bn-onboard-modal {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Nunito';
+  font-family: 'Inter';
 }
 
 /* Modal Heading */
@@ -44,12 +44,12 @@ aside.bn-onboard-modal {
 .bn-onboard-custom.bn-onboard-icon-button {
   margin-top: 5px;
   margin-bottom: 5px;
-  margin-bottom: 1rem;
+  margin-bottom: 10px;
   background-color: #1f1e23;
   color: #e3ddf1;
-  border-radius: 1rem;
+  border-radius: 10px;
   height: 60px;
-  font-family: 'Nunito';
+  font-family: 'Inter';
 }
 
 /* Wallet button */
@@ -63,7 +63,7 @@ aside.bn-onboard-modal {
   align-items: center;
   border-color: #c462fc;
   color: #c462fc;
-  font-family: 'Nunito';
+  font-family: 'Inter';
   line-height: normal;
 }
 
@@ -73,7 +73,7 @@ aside.bn-onboard-modal {
 
 /* What is a wallet? */
 .bn-onboard-custom.bn-onboard-select-wallet-info.svelte-w9ftfy {
-  font-family: 'Nunito' !important;
+  font-family: 'Inter' !important;
   color: #fff;
 }
 

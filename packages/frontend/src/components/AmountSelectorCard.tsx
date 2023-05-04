@@ -166,14 +166,14 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
 
   return (
     <Card className={clsx(styles.root, className)}>
-      <Flex justifyBetween alignCenter mb="1.8rem" fullWidth>
+      <Flex justifyBetween alignCenter mb="12px" fullWidth>
         {!!label && (
           <Typography variant="subtitle2" color="textSecondary">
-            {loadingBalance ? <Skeleton variant="text" width="15.0rem"></Skeleton> : label}
+            {loadingBalance ? <Skeleton variant="text" width="150px"></Skeleton> : label}
           </Typography>
         )}
         {loadingSecondaryBalance ? (
-          <Skeleton variant="text" width="15.0rem"></Skeleton>
+          <Skeleton variant="text" width="150px"></Skeleton>
         ) : secondaryBalance ? (
           <div className={styles.balance}>
             {!hideMaxButton && secondaryBalance.gt(0) && !disableInput ? (
@@ -191,7 +191,7 @@ const AmountSelectorCard: FC<AmountSelectorProps> = props => {
           </div>
         ) : null}
         {loadingBalance ? (
-          <Skeleton variant="text" width="15.0rem"></Skeleton>
+          <Skeleton variant="text" width="150px"></Skeleton>
         ) : balance ? (
           <div className={styles.balance}>
             {!hideMaxButton && balance.gt(0) && !disableInput ? (

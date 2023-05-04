@@ -50,7 +50,7 @@ function ConnectWalletButton({ mode }) {
       onClick={handleRequestWallet}
       boxShadow={isDarkMode ? 'top' : 'bottom'}
       fontSize={[0, 0, 1, 2]}
-      minWidth="12rem"
+      minWidth="120px"
     >
       Connect a Wallet
     </StyledButton>

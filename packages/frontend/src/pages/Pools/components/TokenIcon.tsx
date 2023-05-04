@@ -14,7 +14,7 @@ export function TokenIcon(props: any) {
   return (
     <Box display="flex" justifyContent="center" alignItems="center" width={width} style={{
       boxSizing: 'border-box',
-      padding: showRing ? '0.3rem' : 0,
+      padding: showRing ? '4px' : 0,
       borderRadius: '50%',
       background: showRing ? 'linear-gradient(99.85deg, #B32EFF -18.29%, #F2A498 109.86%)' : 'none'
     }}>

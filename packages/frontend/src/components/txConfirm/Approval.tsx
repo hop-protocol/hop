@@ -15,16 +15,16 @@ const useStyles = makeStyles(() => ({
     textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   tagline: {
-    marginTop: '1rem',
+    marginTop: '10px',
   },
   approveAll: {
     display: 'flex',
     justifyContent: 'center',
     alignContent: 'center',
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   action: {},
   sendButton: {},

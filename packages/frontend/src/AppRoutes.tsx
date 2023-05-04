@@ -39,8 +39,8 @@ const AppRoutes: FC = () => {
     <Switch>
       <Route exact path="/" component={() => <Redirect to="/send" />} />
       <Route exact path="/airdrop" component={() => <Redirect to="/airdrop/preview" />} />
-      <Div flexGrow={1}>
-        <Div p={['2.2rem', '2.5rem']} flexGrow={1}>
+      <Div flexGrow={1} display="flex" flexDirection="column" alignItems="center">
+        <Div p={['12px', '16px']} flexGrow={1}>
           <Suspense fallback={<Loading />}>
             <Route exact path="/stats" component={Stats} />
             <Route exact path="/send" component={Send} />

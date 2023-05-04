@@ -10,19 +10,19 @@ export const useNetworkSelectorStyles = makeStyles((theme: any) => ({
   networkLabel: {
     display: 'flex',
     flexDirection: 'row',
-    marginLeft: '0.4rem',
+    marginLeft: '4px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
   networkIconContainer: {
     display: 'flex',
     justifyContent: 'center',
-    width: '4rem',
-    height: '4rem',
+    width: '40px',
+    height: '40px',
   },
   networkIcon: {
     display: 'flex',
-    height: '2.2rem',
-    margin: '0.7rem',
+    height: '22px',
+    margin: '8px',
   },
 }))

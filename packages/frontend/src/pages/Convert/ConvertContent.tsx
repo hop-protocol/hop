@@ -21,17 +21,17 @@ import IconButton from '@material-ui/core/IconButton'
 
 const useStyles = makeStyles(theme => ({
   title: {
-    marginBottom: '4.2rem',
+    marginBottom: '42px',
   },
   switchDirectionButton: {
     padding: 0,
     minWidth: 0,
-    margin: '1.0rem',
+    margin: '10px',
   },
   downArrow: {
-    margin: '0.8rem',
-    height: '2.4rem',
-    width: '2.4rem',
+    margin: '8px',
+    height: '24px',
+    width: '24px',
   },
   lastSelector: {
     marginBottom: '0'
@@ -41,7 +41,7 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'column',
     justifyContent: 'space-between',
     marginBottom: '0',
-    width: '46.0rem',
+    width: '460px',
     [theme.breakpoints.down('xs')]: {
       width: '90%',
     },
@@ -51,10 +51,10 @@ const useStyles = makeStyles(theme => ({
   },
   button: {
     margin: `0 ${theme.padding.light}`,
-    minWidth: '17.5rem',
+    minWidth: '180px',
   },
   customRecipientBox: {
-    marginBottom: '5.4rem',
+    marginBottom: '54px',
   },
   detailRow: {},
   detailLabel: {
@@ -63,8 +63,8 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
   },
   detailsDropdown: {
-    width: '51.6rem',
-    marginTop: '2rem',
+    width: '480px',
+    marginTop: '20px',
     '&[open] summary span::before': {
       content: '"▾"',
     },
@@ -77,7 +77,7 @@ const useStyles = makeStyles(theme => ({
     display: 'block',
     textAlign: 'right',
     fontWeight: 'normal',
-    paddingRight: '4rem',
+    paddingRight: '40px',
     '&::marker': {
       display: 'none',
     },
@@ -96,14 +96,14 @@ const useStyles = makeStyles(theme => ({
       content: '"▸"',
       position: 'absolute',
       top: '0',
-      right: '-1.5rem',
+      right: '-16px',
     },
   },
   customRecipient: {
-    width: '51.6rem',
-    marginTop: '1rem',
+    width: '440px',
+    marginTop: '10px',
     boxSizing: 'border-box',
-    borderRadius: '3rem',
+    borderRadius: '16px',
     boxShadow: theme.boxShadow.inner,
     [theme.breakpoints.down('xs')]: {
       width: '100%',
@@ -111,7 +111,7 @@ const useStyles = makeStyles(theme => ({
   },
   customRecipientLabel: {
     textAlign: 'right',
-    marginBottom: '1.5rem',
+    marginBottom: '16px',
   },
   smartContractWalletWarning: {
     marginTop: theme.padding.light,

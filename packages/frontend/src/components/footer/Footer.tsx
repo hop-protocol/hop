@@ -26,12 +26,12 @@ const useStyles = makeStyles((theme: any) => ({
   container: {
     '& > div': {
       [theme.breakpoints.down('xs')]: {
-        marginBottom: '2rem'
+        marginBottom: '20px'
       }
     },
     '& > div a': {
       [theme.breakpoints.down('xs')]: {
-        marginLeft: '1rem'
+        marginLeft: '10px'
       }
     },
     '& > div a:first-child': {
@@ -73,7 +73,7 @@ const Footer = () => {
           <StyledLink
             key={il.url}
             href={il.url}
-            mr={i === iconLinks.length - 1 ? 0 : '1rem'}
+            mr={i === iconLinks.length - 1 ? 0 : '10px'}
             opacity={0.4}
           >
             <SvgImg color={isDarkMode ? '#E3DDF1' : 'black'} component={il.image} />
@@ -114,16 +114,16 @@ const Footer = () => {
       </Box>
 
       <Flex alignCenter mx={[5]} justifyAround width={['20%']}>
-        <StyledLink href={faqUrl} ml={['1.6rem']} opacity={0.6}>
+        <StyledLink href={faqUrl} ml={['16px']} opacity={0.6}>
           <Typography variant="subtitle2">FAQ</Typography>
         </StyledLink>
-        <StyledLink href={docsUrl} ml={['1.6rem']} opacity={0.6}>
+        <StyledLink href={docsUrl} ml={['16px']} opacity={0.6}>
           <Typography variant="subtitle2">Docs</Typography>
         </StyledLink>
-        <StyledLink href={forumUrl} ml={['1.6rem']} opacity={0.6}>
+        <StyledLink href={forumUrl} ml={['16px']} opacity={0.6}>
           <Typography variant="subtitle2">Forum</Typography>
         </StyledLink>
-        <StyledLink href={careersUrl} ml={['1.6rem']} opacity={0.6}>
+        <StyledLink href={careersUrl} ml={['16px']} opacity={0.6}>
           <Typography variant="subtitle2">Careers</Typography>
         </StyledLink>
       </Flex>

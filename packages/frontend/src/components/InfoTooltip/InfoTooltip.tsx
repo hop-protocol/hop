@@ -10,7 +10,7 @@ type Props = {
 
 const useStyles = makeStyles(theme => ({
   tooltip: {
-    maxWidth: '100rem',
+    maxWidth: '1000px',
   },
 }))
 
@@ -25,8 +25,8 @@ const InfoTooltip: FC<Props> = props => {
         opacity: 0.5,
         verticalAlign: 'middle',
         cursor: 'help',
-        fontSize: '1.4rem',
-        marginLeft: '0.2rem',
+        fontSize: '14px',
+        marginLeft: '2px',
       }}
       classes={{
         tooltip: styles.tooltip,

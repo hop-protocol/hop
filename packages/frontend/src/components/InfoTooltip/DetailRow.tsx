@@ -33,7 +33,7 @@ const useStyles = makeStyles<Theme, StyleProps>(theme => {
         return theme.palette.text.secondary
       }
     },
-    fontWeight: ({ bold }) => (bold ? 800 : 700),
+    fontWeight: ({ bold }) => (bold ? 700 : 600),
   }
 
   return {
@@ -44,10 +44,10 @@ const useStyles = makeStyles<Theme, StyleProps>(theme => {
     label,
     xlabel: Object.assign(
       {
-        fontSize: '2.8rem',
+        fontSize: '28px',
         textAlign: 'right',
         [theme.breakpoints.down('xs')]: {
-          fontSize: '2rem',
+          fontSize: '20px',
         },
       } as any,
       label
@@ -70,7 +70,7 @@ const DetailRow: FC<DetailRowProps> = props => {
   const variant = xlarge || large ? 'h6' : 'subtitle2'
 
   return (
-    <Flex justifyBetween alignCenter fullWidth mt="1rem">
+    <Flex justifyBetween alignCenter fullWidth mt="10px">
       <Typography
         variant={variant}
         color="textSecondary"

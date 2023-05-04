@@ -8,9 +8,13 @@ export const palette = {
     contrastText: 'white',
   },
   background: {
-    default: '#272332',
-    paper: '#272332',
+    default: 'radial-gradient(100% 100% at 50% 0%, rgba(0, 156, 109, 0.2) 0%, rgba(141, 255, 221, 0.05) 55%, rgba(0, 0, 0, 0) 100%), rgb(10, 12, 17)',
+    paper: 'radial-gradient(100% 100% at 50% 0%, rgba(0, 156, 109, 0.2) 0%, rgba(141, 255, 221, 0.05) 55%, rgba(0, 0, 0, 0) 100%), rgb(10, 12, 17)',
     contrast: '#1F1E23',
+  },
+  table: {
+    default: '#0D111C',
+    light: '#2172e51e',
   },
   action: {
     active: '#B32EFF',
@@ -95,9 +99,9 @@ export const overridesDark = {
   },
   MuiCard: {
     root: {
-      padding: '2.8rem',
-      borderRadius: '3.0rem',
-      boxShadow: boxShadows.card,
+      padding: '12px',
+      borderRadius: '12px',
+      // boxShadow: boxShadows.card,
       transition: defaultTransition,
     },
   },
@@ -121,8 +125,8 @@ export const overridesDark = {
   },
   MuiMenuItem: {
     root: {
-      fontWeight: 700,
-      fontSize: '1.8rem',
+      fontWeight: 600,
+      fontSize: '18px',
       transition: defaultTransition,
     },
   },
@@ -133,14 +137,14 @@ export const overridesDark = {
   },
   MuiPaper: {
     root: {
-      backgroundColor: '#272332',
+      backgroundColor: '#131A2A',
       transition: defaultTransition,
     },
   },
   MuiPopover: {
     paper: {
       transition: defaultTransition,
-      borderRadius: '3.0rem',
+      borderRadius: '16px',
       boxShadow: `
           0px 5px 15px -3px rgba(0,0,0,0.1),
           0px 8px 20px 1px rgba(0,0,0,0.07),
@@ -175,7 +179,7 @@ export const overridesDark = {
       height: 3,
     },
     valueLabel: {
-      fontSize: '1.4rem',
+      fontSize: '14px',
     },
   },
   MuiTabs: {
@@ -189,7 +193,7 @@ export const overridesDark = {
       '&.MuiTab-root': {
         color: palette.text.secondary,
         minWidth: 0,
-        borderRadius: '3rem',
+        borderRadius: '16px',
       },
       '&$selected': {
         color: palette.primary.main,
@@ -201,7 +205,7 @@ export const overridesDark = {
   },
   MuiTooltip: {
     tooltip: {
-      fontSize: '1.6rem',
+      fontSize: '16px',
     },
   },
   MuiTypography: {

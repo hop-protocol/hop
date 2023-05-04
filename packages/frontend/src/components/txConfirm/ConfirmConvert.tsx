@@ -15,15 +15,15 @@ const useStyles = makeStyles(() => ({
     textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   customRecipient: {
-    marginTop: '2rem',
+    marginTop: '20px',
   },
   action: {},
   sendButton: {},
   warning: {
-    marginTop: '2rem',
+    marginTop: '20px',
   },
 }))
 

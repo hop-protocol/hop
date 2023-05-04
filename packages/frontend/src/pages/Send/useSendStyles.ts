@@ -8,27 +8,27 @@ export const useSendStyles = makeStyles((theme: any) => ({
     transition: 'all 0.15s ease-out',
   },
   sendSelect: {
-    marginBottom: '4.2rem',
+    marginBottom: '42px',
   },
   sendLabel: {
-    marginRight: '1.8rem',
+    marginRight: '18px',
   },
   downArrow: {
-    margin: '0.8rem',
-    height: '2.4rem',
-    width: '2.4rem',
+    margin: '8px',
+    height: '24px',
+    width: '24px',
   },
   switchDirectionButton: {
     padding: 0,
     minWidth: 0,
-    margin: '1.0rem',
+    margin: '10px',
   },
   details: {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
-    minHeight: '12rem',
-    width: '46.0rem',
+    minHeight: '12px',
+    width: '460px',
     [theme.breakpoints.down('xs')]: {
       width: '90%',
     },
@@ -45,20 +45,20 @@ export const useSendStyles = makeStyles((theme: any) => ({
     alignItems: 'center',
   },
   txStatusCloseButton: {
-    marginTop: '1rem',
+    marginTop: '10px',
   },
   semiBold: {
     fontWeight: 600,
   },
   extraBold: {
-    fontWeight: 800,
+    fontWeight: 700,
   },
   destinationTxFeeAndAmount: {
-    marginTop: '2.4rem',
+    marginTop: '24px',
   },
   detailsDropdown: {
-    width: '51.6rem',
-    marginTop: '2rem',
+    width: '440px',
+    marginTop: '20px',
     '&[open] summary span::before': {
       content: '"▾"',
     },
@@ -71,7 +71,7 @@ export const useSendStyles = makeStyles((theme: any) => ({
     display: 'block',
     textAlign: 'right',
     fontWeight: 'normal',
-    paddingRight: '4rem',
+    paddingRight: '40px',
     '&::marker': {
       display: 'none',
     },
@@ -90,14 +90,14 @@ export const useSendStyles = makeStyles((theme: any) => ({
       content: '"▸"',
       position: 'absolute',
       top: '0',
-      right: '-1.5rem',
+      right: '-16px',
     },
   },
   customRecipient: {
-    width: '51.6rem',
-    marginTop: '1rem',
+    width: '440px',
+    marginTop: '10px',
     boxSizing: 'border-box',
-    borderRadius: '3rem',
+    borderRadius: '16px',
     boxShadow: theme.boxShadow.inner,
     [theme.breakpoints.down('xs')]: {
       width: '100%',
@@ -105,14 +105,14 @@ export const useSendStyles = makeStyles((theme: any) => ({
   },
   customRecipientLabel: {
     textAlign: 'right',
-    marginBottom: '1.5rem',
+    marginBottom: '16px',
   },
   buttons: {
     marginTop: theme.padding.light,
   },
   button: {
     margin: `0 ${theme.padding.light}`,
-    minWidth: '17.5rem',
+    minWidth: '180px',
     transition: 'all 0.15s ease-out, box-shadow 0.15s ease-out',
   },
   smartContractWalletWarning: {

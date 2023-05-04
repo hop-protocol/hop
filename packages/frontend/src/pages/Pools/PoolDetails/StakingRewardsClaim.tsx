@@ -16,7 +16,7 @@ export const useStyles = makeStyles(theme => ({
   },
   claimRewardsBox: {
     background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
-    borderRadius: '1rem',
+    borderRadius: '8px',
   },
   claimRewardsFlex: {
     [theme.breakpoints.down('xs')]: {

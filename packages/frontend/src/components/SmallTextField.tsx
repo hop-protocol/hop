@@ -17,14 +17,14 @@ const useStyles = makeStyles(theme => ({
   root: {},
   adornment: {
     marginRight: '0',
-    fontSize: '1.4rem',
+    fontSize: '14px',
   },
 }))
 
 const useInputStyles = makeStyles(theme => ({
   root: (props: StyleProps) => ({
-    padding: '0.1rem 0.4rem',
-    borderRadius: '2rem',
+    padding: '2px 4px',
+    borderRadius: '12px',
     boxShadow: theme.boxShadow.input.normal,
   }),
   input: ({ centerAlign }: StyleProps) => ({
@@ -35,7 +35,7 @@ const useInputStyles = makeStyles(theme => ({
     textOverflow: 'ellipsis',
   }),
   focused: {
-    borderRadius: '2rem',
+    borderRadius: '12px',
     boxShadow: theme.boxShadow.input.normal,
   },
 }))

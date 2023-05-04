@@ -13,10 +13,10 @@ export const useStyles = makeStyles(theme => ({
   box: {
     boxShadow: theme.boxShadow.inner,
     transition: 'all 0.15s ease-out',
-    borderRadius: '3rem',
+    borderRadius: '16px',
     [theme.breakpoints.down('xs')]: {
-      paddingLeft: '1rem',
-      paddingRight: '1rem'
+      paddingLeft: '10px',
+      paddingRight: '10px'
     },
   },
   header: {
@@ -54,12 +54,12 @@ export const useStyles = makeStyles(theme => ({
   chips: {
     display: 'flex',
     flexWrap: 'wrap',
-    rowGap: '1rem'
+    rowGap: '10px'
   },
   chip: {
-    padding: '0.5rem 1rem',
+    padding: '6px 10px',
     background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
-    borderRadius: '1rem',
+    borderRadius: '10px',
     cursor: 'pointer'
   },
   chipImage: {

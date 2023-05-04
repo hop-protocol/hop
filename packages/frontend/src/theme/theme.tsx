@@ -79,10 +79,10 @@ declare module '@material-ui/core/styles/createTheme' {
 }
 
 const padding = {
-  thick: '4.2rem',
-  default: '2.8rem',
-  light: '1.8rem',
-  extraLight: '1.2rem',
+  thick: '42px',
+  default: '28px',
+  light: '18px',
+  extraLight: '12px',
 }
 
 const breakpoints = createBreakpoints({})
@@ -103,7 +103,7 @@ export const lightTheme = createMuiTheme({
       root: {
         ...overridesLight.MuiTab.root,
         [breakpoints.down('sm')]: {
-          fontSize: '1.5rem',
+          fontSize: '16px',
         },
       },
     },
@@ -126,7 +126,7 @@ export const darkTheme = createMuiTheme({
       root: {
         ...overridesDark.MuiTab.root,
         [breakpoints.down('sm')]: {
-          fontSize: '1.5rem',
+          fontSize: '16px',
         },
       },
     },

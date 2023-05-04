@@ -18,24 +18,24 @@ const useStyles = makeStyles((theme: any) => ({
     alignItems: 'center',
   },
   header: {
-    fontSize: '1.7rem',
+    fontSize: '17px',
     fontWeight: 'bold',
   },
   box: {
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   label: {
     fontWeight: 'bold',
-    marginBottom: '0.5rem',
+    marginBottom: '6px',
     display: 'flex',
     justifyContent: 'flex-start',
     alignItems: 'left',
   },
   inlineLabel: {
-    marginLeft: '0.5rem',
+    marginLeft: '6px',
   },
   settingsContent: {
-    padding: '3rem',
+    padding: '30px',
     width: '300px',
     textAlign: 'center',
     [theme.breakpoints.down('xs')]: {
@@ -46,10 +46,10 @@ const useStyles = makeStyles((theme: any) => ({
     justifyContent: 'center',
   },
   settingsIcon: {
-    fontSize: '2rem',
+    fontSize: '20px',
   },
   warningBox: {
-    marginTop: '1rem',
+    marginTop: '10px',
   },
 }))
 

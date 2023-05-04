@@ -12,23 +12,23 @@ import { findMatchingBridge } from 'src/utils'
 
 const useStyles = makeStyles(theme => ({
   title: {
-    marginBottom: '4.2rem',
+    marginBottom: '42px',
   },
   box: {
-    marginBottom: '2rem',
+    marginBottom: '20px',
     flexDirection: 'column',
   },
   text: {
-    fontSize: '2rem',
-    marginRight: '1rem',
+    fontSize: '20px',
+    marginRight: '10px',
   },
   selectBox: {
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   button: {},
   alert: {
-    marginTop: '2rem',
-    marginBottom: '1.2rem',
+    marginTop: '20px',
+    marginBottom: '12px',
   },
 }))
 

@@ -15,7 +15,7 @@ const useStyles = makeStyles((theme) => ({
   },
   boxWrapper: {
     background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
-    borderRadius: '2rem'
+    borderRadius: '20px'
   }
 }))
 

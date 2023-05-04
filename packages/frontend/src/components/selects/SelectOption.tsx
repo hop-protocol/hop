@@ -19,7 +19,7 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 0,
-    marginRight: '1rem',
+    marginRight: '10px',
   },
   icon: {
     display: 'flex',
@@ -29,8 +29,8 @@ const useStyles = makeStyles(theme => ({
   },
   image: {
     width: 'auto',
-    maxWidth: '3rem',
-    height: '3rem',
+    maxWidth: '30px',
+    height: '30px',
     objectFit: 'contain',
   },
 }))

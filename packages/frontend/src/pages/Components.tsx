@@ -11,16 +11,16 @@ import MenuItem from '@material-ui/core/MenuItem'
 
 const useStyles = makeStyles(() => ({
   container: {
-    maxWidth: '96.0rem',
+    maxWidth: '960px',
   },
   section: {
-    margin: '2.1rem',
+    margin: '20px',
   },
   sectionTitle: {
-    marginBottom: '2.8rem',
+    marginBottom: '28px',
   },
   largeButton: {
-    marginBottom: '2.8rem',
+    marginBottom: '28px',
   },
 }))
 

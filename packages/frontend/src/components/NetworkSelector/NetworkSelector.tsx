@@ -36,11 +36,11 @@ function NetworkSelector({ network, setNetwork, availableNetworks, onChange }: P
   return (
     <FlatSelect value={network?.slug || 'default'} onChange={selectNetwork}>
       <MenuItem value="default">
-        <Flex alignCenter height="3.8rem" pl="1.2rem">
+        <Flex alignCenter height="38pxm" pl="12px">
           <Text
-            fontSize="1.6rem"
-            fontWeight={700}
-            ml=".4rem"
+            fontSize="16px"
+            fontWeight={600}
+            ml="4px"
             overflow="hidden"
             textOverflow="ellipsis"
           >

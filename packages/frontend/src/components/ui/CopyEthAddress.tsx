@@ -6,7 +6,7 @@ import { Div, EthAddress, EthAddressProps } from '.'
 
 const tooltipStyles = {
   tooltip: {
-    fontSize: '1.4rem',
+    fontSize: '14px',
   },
 }
 

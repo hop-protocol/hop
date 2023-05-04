@@ -25,7 +25,7 @@ function TransactionRow({ tx, styles, rmTx }: { tx: Transaction; styles: any; rm
   }, [replaced])
 
   return (
-    <Flex justifyBetween mb=".5rem" alignCenter marginBottom="1rem" paddingBottom="1rem">
+    <Flex justifyBetween mb="6px" alignCenter marginBottom="10px" paddingBottom="10px">
       <Flex flexDirection="column" alignItems="flex-start" width="50%">
         <div>
           <span className={styles.network}>{networkSlugToName(tx.networkName)}:</span>

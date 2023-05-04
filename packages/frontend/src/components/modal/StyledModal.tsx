@@ -34,11 +34,11 @@ const useStyles = makeStyles((theme: Theme) => ({
     position: 'absolute',
     top: 0,
     right: 0,
-    padding: '2rem',
+    padding: '20px',
     display: 'inline-block',
     color: '#000',
     opacity: 0.4,
-    fontSize: '2rem',
+    fontSize: '20px',
     fontWeight: 'bold',
     zIndex: 1,
     '&:hover': {
@@ -57,7 +57,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     left: '50%',
     transform: 'translate(-50%, -50%)',
     transition: 'all 0.15s ease-out',
-    padding: '5rem',
+    padding: '50px',
     '&.entering': {
       opacity: 0,
       transform: 'translate(-50%, -50%) scale(0.8)',

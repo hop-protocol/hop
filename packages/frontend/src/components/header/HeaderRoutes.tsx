@@ -67,8 +67,8 @@ const HeaderRoutes: FC = () => {
         <Tab label="Claim HOP" value="/claim" className="rainbow-animated" style={{
           // background: 'rgba(0, 0, 0, 0) linear-gradient(99.85deg, rgb(179, 46, 255) -18.29%, rgb(242, 164, 152) 109.86%) repeat scroll 0% 0%',
           color: '#fff',
-          padding: '1rem 3rem',
-          margin: '1rem 0 1rem 1rem',
+          padding: '10px 30px',
+          margin: '10px 0 10px 10px',
           opacity: 1
         }}/>
       )}

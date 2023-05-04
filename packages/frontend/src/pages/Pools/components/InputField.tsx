@@ -7,16 +7,16 @@ import { makeStyles } from '@material-ui/core/styles'
 export const useStyles = makeStyles(theme => ({
   box: {
     background: theme.palette.type === 'dark' ? '#0000003d' : '#fff',
-    borderRadius: '1rem',
+    borderRadius: '8px',
     position: 'relative'
   },
   label: {
     'white-space': 'nowrap'
   },
   input: {
-    fontSize: '2rem',
+    fontSize: '20px',
     fontWeight: 'bold',
-    fontFamily: 'Nunito,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"',
+    fontFamily: 'Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"',
     border: 0,
     outline: 0,
     width: '100%',

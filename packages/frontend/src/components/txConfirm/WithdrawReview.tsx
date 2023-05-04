@@ -19,7 +19,7 @@ const useStyles = makeStyles(() => ({
     textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   action: {},
   doneButton: {},
@@ -75,7 +75,7 @@ const WithdrawReview = (props: Props) => {
       <div className={styles.title}>
         <div
           style={{
-            marginBottom: '1rem',
+            marginBottom: '10px',
           }}
         >
           <Typography variant="h6" color="textSecondary">

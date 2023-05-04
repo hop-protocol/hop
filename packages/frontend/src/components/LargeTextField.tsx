@@ -53,10 +53,10 @@ const useInputStyles = makeStyles(theme => ({
     },
   },
   root: ({ defaultShadow, hideShadow }: StyleProps) => ({
-    padding: '0.8rem 0',
-    marginLeft: '.7rem',
+    padding: '8px 0',
+    marginLeft: '8px',
     transition: 'all 0.15s ease-out',
-    borderRadius: '1.5rem',
+    borderRadius: '12px',
     width: '100%',
     boxShadow: defaultShadow ? theme.boxShadow.input.normal : 'none',
     '&:hover': {
@@ -72,13 +72,13 @@ const useInputStyles = makeStyles(theme => ({
     },
     [theme.breakpoints.down('xs')]: {
       width: '100%',
-      padding: '.5rem .6rem',
+      padding: '4px 6px',
       fontSize: theme.typography.subtitle2.fontSize,
     },
   }),
   input: ({ centerAlign, leftAlign, loadingValue, smallFontSize }: StyleProps) => ({
     textAlign: leftAlign ? 'left' : centerAlign ? 'center' : 'right',
-    fontSize: smallFontSize ? '1.6rem' : theme.typography.h4.fontSize,
+    fontSize: smallFontSize ? '16px' : theme.typography.h4.fontSize,
     fontWeight: smallFontSize ? 'normal' : theme.typography.h4.fontWeight,
     color: theme.palette.text.primary,
     textOverflow: 'clip',
@@ -87,12 +87,12 @@ const useInputStyles = makeStyles(theme => ({
       ? `loadingEffect 1s ${theme.transitions.easing.sharp} infinite`
       : 'none',
     [theme.breakpoints.down('xs')]: {
-      fontSize: smallFontSize ? '1.6rem' : theme.typography.subtitle2.fontSize,
-      padding: '.5rem',
+      fontSize: smallFontSize ? '16px' : theme.typography.subtitle2.fontSize,
+      padding: '6px',
     },
   }),
   focused: {
-    borderRadius: '1.5rem',
+    borderRadius: '12px',
     boxShadow: theme.boxShadow.input.normal,
   },
 }))

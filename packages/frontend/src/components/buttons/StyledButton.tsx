@@ -27,15 +27,15 @@ export const StyledButton = styled(Button)<StylishButtonProps>`
   ${({ large }: any) => {
     if (large) {
       return `
-        font-size: 2.2rem;
-        padding: 0.8rem 4.2rem;
-        height: 5.5rem;
+        font-size: 20px;
+        padding: 8px 42px;
+        height: 55px;
         `
     }
     return `
-        font-size: 1.5rem;
-        padding: 0.8rem 2.8rem;
-        height: 4.0rem;
+        font-size: 16px;
+        padding: 8px 28px;
+        height: 40px;
       `
   }};
   ${({ disabled }: any) => {

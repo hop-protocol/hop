@@ -26,6 +26,7 @@ import { useSendStyles } from './useSendStyles'
 import SendHeader from './SendHeader'
 import CustomRecipientDropdown from './CustomRecipientDropdown'
 import { Div, Flex } from 'src/components/ui'
+import styled from 'styled-components'
 import { useSendTransaction } from './useSendTransaction'
 import {
   useAssets,
@@ -677,8 +678,20 @@ const Send: FC = () => {
   const showFeeRefund = feeRefundEnabled && toNetwork?.slug === ChainSlug.Optimism && !!feeRefund && !!feeRefundUsd && !!feeRefundTokenSymbol
   const feeRefundDisplay = feeRefund && feeRefundUsd && feeRefundTokenSymbol ? `${feeRefund} ($${feeRefundUsd})` : ''
 
+  const AppWrapper = styled(Flex)<any>`
+    position: relative;
+    background: ${({ theme }) => theme.colors.table.default};
+    border-radius: 20px;
+    border: 1px solid #98A1C03d;
+    padding: 16px;
+    z-index: 1;
+  `
+
   return (
-    <Flex column alignCenter>
+    <AppWrapper
+      column
+      alignCenter
+    >
       <SendHeader
         styles={styles}
         bridges={bridges}
@@ -847,7 +860,7 @@ const Send: FC = () => {
         <Alert severity="info" onClose={() => setInfo(null)} text={info} />
         {tx && <TxStatusModal onClose={() => setTx(undefined)} tx={tx} />}
       </Flex>
-    </Flex>
+    </AppWrapper>
   )
 }
 

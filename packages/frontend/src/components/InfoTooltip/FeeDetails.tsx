@@ -7,7 +7,7 @@ import DetailRow from 'src/components/InfoTooltip/DetailRow'
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.padding.extraLight,
-    width: '32.0rem',
+    width: '320px',
   },
   text: {
     color: theme.palette.primary.contrastText,

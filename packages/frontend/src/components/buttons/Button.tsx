@@ -26,11 +26,11 @@ export type ButtonProps = Partial<StyleProps> &
 
 const useStyles = makeStyles(theme => ({
   root: ({ highlighted, large, flat, text, isDarkMode, fullWidth }: StyleProps) => ({
-    borderRadius: '3.0rem',
+    borderRadius: '16px',
     textTransform: 'none',
-    padding: large ? '0.8rem 4.2rem' : '0.8rem 2.8rem',
-    minHeight: large ? '5.5rem' : '4.0rem',
-    fontSize: large ? '2.2rem' : '1.5rem',
+    padding: large ? '8px 42px' : '8px 28px',
+    minHeight: large ? '54px' : '40px',
+    fontSize: large ? '20px' : '16px',
     width: fullWidth ? '100%' : 'auto',
     color: text ? theme.palette.text.secondary : (highlighted ? 'white' : theme.palette.text.primary),
     background: text ? 'none' : (highlighted
@@ -62,7 +62,7 @@ const useStyles = makeStyles(theme => ({
   },
   spinner: {
     display: 'inline-flex',
-    marginLeft: '1rem',
+    marginLeft: '10px',
   },
 }))
 
@@ -87,7 +87,7 @@ const LargeButton: FC<ButtonProps> = props => {
   const styles = useStyles({ highlighted, large, flat, text, isDarkMode, fullWidth })
 
   return (
-    <Flex justifyCenter alignCenter borderRadius={borderRadius || '3.0rem'} fullWidth>
+    <Flex justifyCenter alignCenter borderRadius={borderRadius || '16px'} fullWidth>
       <MuiButton
         {...buttonProps}
         disabled={disabled || loading}
@@ -97,7 +97,7 @@ const LargeButton: FC<ButtonProps> = props => {
         {children}
         {loading ? (
           <div className={styles.spinner}>
-            <CircularProgress size={large ? '2rem' : size} />
+            <CircularProgress size={large ? '20px' : size} />
           </div>
         ) : null}
       </MuiButton>

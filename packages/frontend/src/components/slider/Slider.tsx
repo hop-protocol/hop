@@ -11,10 +11,10 @@ const useStyles = makeStyles(() => ({
     textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   amounts: {
-    fontSize: '2rem',
+    fontSize: '20px',
   },
   action: {},
   sendButton: {},
@@ -22,7 +22,7 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   slider: {
     width: '100%',

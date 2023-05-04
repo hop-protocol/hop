@@ -7,7 +7,7 @@ import Box from '@material-ui/core/Box'
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.padding.extraLight,
-    width: '32.0rem',
+    width: '320px',
   },
 }))
 

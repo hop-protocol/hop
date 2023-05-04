@@ -16,13 +16,13 @@ const useStyles = makeStyles(() => ({
     textAlign: 'center',
   },
   title: {
-    marginBottom: '2rem',
+    marginBottom: '20px',
   },
   customRecipient: {
-    marginTop: '2rem',
+    marginTop: '20px',
   },
   warning: {
-    marginTop: '2rem',
+    marginTop: '20px',
   },
   action: {},
   sendButton: {},
@@ -60,7 +60,7 @@ const ConfirmSend = (props: Props) => {
       <div className={styles.title}>
         <div
           style={{
-            marginBottom: '1rem',
+            marginBottom: '10px',
           }}
         >
           <Typography variant="h6" color="textSecondary">

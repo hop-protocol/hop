@@ -13,10 +13,7 @@ import { goerli as goerliNetworks, mainnet as mainnetNetworks } from '@hop-proto
 import { networkIdToSlug, networkSlugToId, getRpcUrl, getBaseExplorerUrl, getRpcUrlOrThrow } from 'src/utils'
 import { blocknativeDappid, reactAppNetwork, enabledChains } from 'src/config'
 import { l1Network } from 'src/config/networks'
-import './onboardStyles.css'
 import logger from 'src/logger'
-// import { WalletCheckInit, WalletSelectModuleOptions } from 'bnc-onboard/dist/src/interfaces'
-// import mmLogo from 'src/assets/logos/metamask.png'
 import { loadState, saveState } from 'src/utils/localStorage'
 import { ChainId, ChainSlug } from '@hop-protocol/sdk'
 import Onboard from '@web3-onboard/core'
@@ -96,10 +93,7 @@ const getWalletConnectRpcUrls = (): Record<string, string> => {
 
 const wcV2InitOptions: any = {
   version: 2,
-  /**
-   * Project ID associated with [WalletConnect account](https://cloud.walletconnect.com)
-   */
-  projectId: 'abc123...'
+  projectId: '651b16cdb6b0f490f68e0c4c5f5c35ce'
 }
 
 const walletConnect = walletConnectModule(wcV2InitOptions)

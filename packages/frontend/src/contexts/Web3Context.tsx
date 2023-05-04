@@ -37,18 +37,6 @@ export type Props = {
 
 class NetworkSwitchError extends Error {}
 
-const wcV2InitOptions: any = {
-  version: 2,
-  projectId: '651b16cdb6b0f490f68e0c4c5f5c35ce'
-}
-
-const injected = injectedModule()
-const walletConnect = walletConnectModule(wcV2InitOptions)
-const coinbaseWallet = coinbaseWalletModule({ darkMode: false })
-const gnosis = gnosisModule()
-
-const Web3Context = createContext<Props | undefined>(undefined)
-
 function getOnboardChains(): any {
   if (reactAppNetwork === 'goerli') {
     return [
@@ -86,7 +74,7 @@ function getOnboardChains(): any {
         id: chainIdToHex(goerliChains.linea.networkId),
         token: 'ETH',
         label: 'Linea Goerli',
-        rpcUrl: goerliChains.linea.publicRpcUrl
+        rpcUrl: 'https://rpc.goerli.linea.build' // NOTE: this rpc url has write access but it's more rate limitted
       },
       {
         id: chainIdToHex(goerliChains.scrollzk.networkId),
@@ -136,6 +124,22 @@ function getOnboardChains(): any {
     ]
   }
 }
+
+const injected = injectedModule()
+const coinbaseWallet = coinbaseWalletModule({ darkMode: false })
+const gnosis = gnosisModule()
+const walletConnect = walletConnectModule({
+  version: 2,
+  bridge: 'https://bridge.walletconnect.org',
+  qrcodeModalOptions: {
+    mobileLinks: ['metamask', 'argent', 'trust']
+  },
+  connectFirstChainId: true,
+  projectId: '651b16cdb6b0f490f68e0c4c5f5c35ce',
+  requiredChains: getOnboardChains().map((chain: any) => Number(chain.id)),
+})
+
+const Web3Context = createContext<Props | undefined>(undefined)
 
 const Web3ContextProvider: FC = ({ children }) => {
   // logger.debug('Web3ContextProvider render')

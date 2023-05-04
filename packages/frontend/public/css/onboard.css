@@ -39,8 +39,10 @@
   }
 
   button.wallet-button-styling:hover {
+    /*
     background: var(--onboard-wallet-button-background-hover, var(--foreground-color)) !important;
     color: var(--onboard-wallet-button-color-hover) !important;
+    */
   }
 
   .wallet-button-container-inner {
@@ -102,8 +104,14 @@
 }
 
 .modal .container {
-  color: rgb(74, 74, 74) !important;
-  background-color: rgb(253, 247, 249) !important;
+  /*
+  background-color: #fdf7f9 !important;
+  color: #4a4a4a !important;
+  */
+  /*
+  background-color: #272332 !important;
+  color: #e3ddf1 !important;
+  */
 }
 
 .scroll-container .container {
@@ -151,8 +159,6 @@ button.wallet-button-styling {
 .wallet-button-container-inner {
   margin-top: 5px;
   margin-bottom: 1rem;
-  background-color: #1f1e23;
-  color: #e3ddf1;
   border: none;
   border-radius: 1rem;
   height: 60px;
@@ -160,8 +166,17 @@ button.wallet-button-styling {
   width: 2rem !important;
   min-width: auto !important;
 
-  background-color: rgb(255, 255, 255);
+  background-color: var(--foreground-color) !important;
+
+  /*
+  background-color: #1f1e23;
+  color: #e3ddf1;
+  */
+
+  /*
+  background-color: #fffff;
   color: rgb(15, 5, 36);
+  */
 }
 
 .wallet-button-container-inner:hover {
@@ -228,9 +243,26 @@ button.wallet-button-styling {
   font-size: 1.8rem !important;
   padding: 1rem 2rem !important;
   border: none !important;
+  background-color: var(--foreground-color) !important;
+  color: var(--text-color) !important;
 }
 
 .onboard-button-primary:hover {
   box-shadow: 0 2px 10px 0 rgb(0 0 0 / 10%);
 }
 
+.spinner-container {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-container {
+
+}
+
+.loading {
+
+}

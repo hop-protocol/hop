@@ -19,6 +19,7 @@ import injectedModule from '@web3-onboard/injected-wallets'
 import coinbaseWalletModule from '@web3-onboard/coinbase'
 import walletConnectModule from '@web3-onboard/walletconnect'
 import gnosisModule from '@web3-onboard/gnosis'
+import { useThemeMode } from 'src/theme/ThemeProvider'
 
 const goerliChains = goerliNetworks as any
 const mainnetChains = mainnetNetworks as any
@@ -143,6 +144,7 @@ const Web3Context = createContext<Props | undefined>(undefined)
 
 const Web3ContextProvider: FC = ({ children }) => {
   // logger.debug('Web3ContextProvider render')
+  const { isDarkMode } = useThemeMode()
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>()
   const [connectedNetworkId, setConnectedNetworkId] = useState<number|undefined>()
   const [walletName, setWalletName] = useState<string>('')
@@ -166,8 +168,17 @@ const Web3ContextProvider: FC = ({ children }) => {
     return l1Network.networkId
   })
 
+  const customTheme = {
+    '--w3o-background-color': isDarkMode ? '#272332' : '#fdf7f9',
+    '--w3o-foreground-color': isDarkMode ? '#1f1e23' : '#ffffff',
+    '--w3o-text-color': isDarkMode ? '#e3ddf1' : '#4a4a4a',
+    '--w3o-border-color': 'transparent',
+    '--w3o-border-radius': '2px'
+  }
+
   const onboard = useMemo(() => {
     const instance = Onboard({
+      theme: customTheme,
       appMetadata: {
         name: 'Hop',
         icon: 'https://assets.hop.exchange/logos/hop.svg',
@@ -197,7 +208,7 @@ const Web3ContextProvider: FC = ({ children }) => {
     })
 
     return instance
-  }, [setProvider, setConnectedNetworkId, onboardNetworkId])
+  }, [setProvider, setConnectedNetworkId, onboardNetworkId, isDarkMode])
 
   async function handleWalletChange(wallet: any) {
     try {

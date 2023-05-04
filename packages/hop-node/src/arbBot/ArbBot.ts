@@ -337,7 +337,7 @@ export class ArbBot {
   async withdrawAmmHTokens () {
     this.logger.log('withdrawAmmHTokens()')
     // LP decimals will always be 18
-    const amountFmt = this.bridge.formatUnits(this.amount)
+    let amountFmt = this.bridge.formatUnits(this.amount)
     let amount = this.bridge.parseUnits(amountFmt, 18)
 
     const recipient = await this.ammSigner.getAddress()
@@ -349,8 +349,9 @@ export class ArbBot {
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
-    // amountOutMin is in canonical token decimals
-    const amountMin = this.bridge.calcAmountOutMin(this.bridge.parseUnits(amountFmt), this.slippageTolerance)
+    // TODO: This needs to use the updated amount, but it needs to first be converted to the hToken amount
+    // const amountMin = this.bridge.calcAmountOutMin(this.bridge.parseUnits(amountFmt), this.slippageTolerance)
+    const amountMin = 1
 
     const deadline = this.getDeadline()
     const hTokenIndex = 1

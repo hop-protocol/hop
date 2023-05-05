@@ -9,6 +9,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "start:yields": "ts-node src/index.ts --yields",
+    "start:prices": "ts-node src/index.ts --prices",
     "start:volume": "ts-node src/index.ts --volume",
     "start:tvl": "ts-node src/index.ts --tvl",
     "start:amm": "ts-node src/index.ts --amm --ammDays=7",

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Theme, makeStyles } from '@material-ui/core/styles'
 import Box from '@material-ui/core/Box'
+import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button'
 import { useApp } from 'src/contexts/AppContext'
 import Modal from 'src/components/modal/Modal'
@@ -47,11 +48,23 @@ const useStyles = makeStyles((theme: Theme) => ({
 const ManageWallet = (props: any) => {
   const { onChange, onDisconnect } = props
   const styles = useStyles()
-  const { address, walletName } = useWeb3Context()
+  const { address, walletName, walletIcon } = useWeb3Context()
 
   return (
     <div className={styles.connectedWallet}>
-      Connected with {walletName}
+      <Box display="flex" alignItems="center">
+        <Typography>
+          Connected with&nbsp;
+        </Typography>
+        {!!walletIcon && (
+          <Box width="28px" height="28px" display="flex">
+            <img src={walletIcon} alt="" width="100%" />
+          </Box>
+        )}
+        <Typography>
+          {walletName}
+        </Typography>
+      </Box>
       <Button className={styles.changeButton} onClick={onChange}>
         Change
       </Button>

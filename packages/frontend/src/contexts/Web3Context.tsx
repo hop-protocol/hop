@@ -33,6 +33,7 @@ export type Props = {
   disconnectWallet: () => void
   walletConnected: boolean
   walletName: string
+  walletIcon: string
   checkConnectedNetworkId: (networkId: number) => Promise<boolean>
 }
 
@@ -130,6 +131,7 @@ const injected = injectedModule()
 const coinbaseWallet = coinbaseWalletModule({ darkMode: false })
 const gnosis = gnosisModule()
 const walletConnect = walletConnectModule({
+  // version: 2, // NOTE: keep commented out until version v1 is sunset since MetaMask currently only supports v1
   bridge: 'https://bridge.walletconnect.org',
   qrcodeModalOptions: {
     mobileLinks: ['metamask', 'argent', 'trust']
@@ -147,6 +149,7 @@ const Web3ContextProvider: FC = ({ children }) => {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>()
   const [connectedNetworkId, setConnectedNetworkId] = useState<number|undefined>()
   const [walletName, setWalletName] = useState<string>('')
+  const [walletIcon, setWalletIcon] = useState<string>('')
   const [address, setAddress] = useState<Address | undefined>()
   const [onboardNetworkId] = useState<number>(() => {
     try {
@@ -207,11 +210,12 @@ const Web3ContextProvider: FC = ({ children }) => {
     })
 
     return instance
-  }, [setProvider, setConnectedNetworkId, onboardNetworkId, isDarkMode])
+  }, [onboardNetworkId, isDarkMode])
 
   async function handleWalletChange(wallet: any) {
     try {
-      logger.debug('handleWalletChange wallet', wallet)
+      logger.debug('handleWalletChange')
+      // logger.debug('handleWalletChange wallet', wallet)
 
       const _address = wallet?.accounts?.[0]?.address
       if (_address) {
@@ -228,7 +232,7 @@ const Web3ContextProvider: FC = ({ children }) => {
       }
 
       if (wallet?.provider) {
-        const { name, provider } = wallet
+        const { icon, label, provider } = wallet
         const ethersProvider = new ethers.providers.Web3Provider(provider, 'any')
         if (provider.enable && !provider.isMetaMask) {
           // needed for WalletConnect and some wallets
@@ -242,9 +246,18 @@ const Web3ContextProvider: FC = ({ children }) => {
           }
         }
         setProvider(ethersProvider)
-        setWalletName(name)
+        setWalletName(label)
+
+        try {
+          const svg = new Blob([icon], { type: 'image/svg+xml' })
+          const url = URL.createObjectURL(svg)
+          setWalletIcon(url)
+        } catch (err: any) {
+          setWalletIcon('')
+        }
       } else {
         setWalletName('')
+        setWalletIcon('')
         setProvider(undefined)
         setAddress(undefined)
       }
@@ -289,11 +302,23 @@ const Web3ContextProvider: FC = ({ children }) => {
   }
 
   useEffect(() => {
-    const state = onboard.state.select()
+    const state = onboard.state.select('wallets')
+    let lastUpdate = ''
     const { unsubscribe } = state.subscribe((update) => {
-      logger.debug('onboard state update: ', update)
-      const [wallet]  = update.wallets
-      handleWalletChange(wallet)
+      let shouldUpdate = true
+      const _walletName = update?.[0]?.label
+      if (_walletName === 'WalletConnect') {
+        const str = JSON.stringify({ account: update?.[0]?.accounts, chains: update?.[0]?.chains })
+        shouldUpdate = lastUpdate !== str
+        if (shouldUpdate) {
+          lastUpdate = str
+        }
+      }
+      if (shouldUpdate) {
+        // logger.debug('onboard state update: ', update)
+        const [wallet] = update
+        handleWalletChange(wallet)
+      }
     })
 
     return () => {
@@ -351,6 +376,7 @@ const Web3ContextProvider: FC = ({ children }) => {
         requestWallet,
         disconnectWallet,
         walletName,
+        walletIcon,
         checkConnectedNetworkId,
       }}
     >

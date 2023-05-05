@@ -130,12 +130,11 @@ const injected = injectedModule()
 const coinbaseWallet = coinbaseWalletModule({ darkMode: false })
 const gnosis = gnosisModule()
 const walletConnect = walletConnectModule({
-  version: 2,
   bridge: 'https://bridge.walletconnect.org',
   qrcodeModalOptions: {
     mobileLinks: ['metamask', 'argent', 'trust']
   },
-  connectFirstChainId: true,
+  connectFirstChainId: false,
   projectId: '651b16cdb6b0f490f68e0c4c5f5c35ce',
   requiredChains: getOnboardChains().map((chain: any) => Number(chain.id)),
 })

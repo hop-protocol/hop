@@ -1118,7 +1118,7 @@ export class HealthCheckWatcher {
       const {
         tokenChainBalanceDiff,
         chainBalanceHTokenDiff
-      } = await verifyChainBalance({ token })
+      } = await verifyChainBalance({ token, allowRoundingError: true })
 
       if (tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)) {
         continue

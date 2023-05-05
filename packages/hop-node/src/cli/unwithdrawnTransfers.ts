@@ -26,7 +26,7 @@ root
   .action(actionHandler(main))
 
 export async function main (source: any) {
-  let { chain: destinationChain, token, startTimestamp, endTimestamp } = source
+  let { chain: destinationChain, token, startTimestamp, endTimestamp, blockTag } = source
   if (!destinationChain) {
     throw new Error('chain is required')
   }
@@ -68,7 +68,8 @@ export async function main (source: any) {
   for (const transferRootToChain of transferRootsToChain) {
     const rootHash = transferRootToChain.rootHash
     const totalAmount = transferRootToChain.totalAmount
-    const transferRoot = await contract.getTransferRoot(rootHash, totalAmount)
+    const txOptions = blockTag ? { blockTag } : {}
+    const transferRoot = await contract.getTransferRoot(rootHash, totalAmount, txOptions)
     const amountUnwithdrawn = transferRoot.total.sub(transferRoot.amountWithdrawn)
     amountUnwithdrawnTotal = amountUnwithdrawnTotal.add(amountUnwithdrawn)
   }

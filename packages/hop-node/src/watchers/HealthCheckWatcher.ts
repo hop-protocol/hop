@@ -1112,7 +1112,7 @@ export class HealthCheckWatcher {
 
   async getInvalidChainBalance (): Promise<InvalidChainBalance[]> {
     this.logger.debug('checking for an invalid chainBalance')
-    const invalidChainBalance: InvalidChainBalance[] = []
+    const invalidChainBalances: InvalidChainBalance[] = []
     for (const token of this.tokens) {
       this.logger.debug(`checking ${token} for invalid chainBalance`)
       const {
@@ -1124,13 +1124,13 @@ export class HealthCheckWatcher {
         continue
       }
 
-      invalidChainBalance.push({
+      invalidChainBalances.push({
         token,
         tokenChainBalanceDiff,
         chainBalanceHTokenDiff
       })
     }
 
-    return []
+    return invalidChainBalances
   }
 }

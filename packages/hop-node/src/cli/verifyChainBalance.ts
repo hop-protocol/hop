@@ -1,10 +1,10 @@
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
-import getMultipleWithdrawalsSettled from 'src/theGraph/getMultipleWithdrawalsSettled'
 import getRpcProvider from 'src/utils/getRpcProvider'
 import getTokenDecimals from 'src/utils/getTokenDecimals'
 import getTransferRootBonded from 'src/theGraph/getTransferRootBonded'
 import getTransferRootConfirmed from 'src/theGraph/getTransferRootConfirmed'
+import getTransferRootSet from 'src/theGraph/getTransferRootSet'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import { BigNumber, Contract, utils as ethersUtils, providers } from 'ethers'
 import {
@@ -65,6 +65,9 @@ const inactiveBonders = [
  * Verify the chainBalance against all relevant data sources. It compares (1) the tokens in the L1 contract against the
  * chainBalance, and (2) the chainBalance against the hToken total supply. If the system is unhealthy, then these
  * values would not match.
+ * 
+ * In order to regenerate archive data, run the generate-chain-balance-archive-data CLI command. When running it,
+ * ensure that the timestamp you use is
  *
  * Definitions:
  * Adjusted Token - The amount of token after everything that can be directly withdrawn on L1 is withdrawn
@@ -74,6 +77,11 @@ const inactiveBonders = [
  * An important note for the above definitions, roots that have been committed but not yet seen on L1 are counted as
  * an increased hToken balance on the source chain (the chain the root was committed on).
  *
+ * Known issues:
+ *   - The (chainBalance - hToken) sometimes reports a tiny, consistent, negative number. The number is on the
+ *     order of -10^-14 for 18 decimal tokens. It is consistent, but unclear why it exists. This can be considered
+ *     a rounding error and is ignored in the return data, if desired.
+ * 
  * Possible reasons for discrepancies:
  *   - An archive transfer from L1 to L2 that was never relayed has recently been relayed
  *   - Tokens have been sent directly to the L1 bridge contract
@@ -85,10 +93,11 @@ root
   .description('Verify chain balance')
   .option('--token <symbol>', 'Token', parseString)
   .option('--log-output [boolean]', 'Log values', parseBool)
+  .option('--allow-rounding-error [boolean]', 'Ignore outputs under the rounding error', parseBool)
   .action(actionHandler(main))
 
 export async function main (source: any) {
-  const { token, logOutput } = source
+  const { token, logOutput, allowRoundingError } = source
 
   if (!token) {
     throw new Error('token is required')
@@ -154,7 +163,16 @@ export async function main (source: any) {
   }
 
   const tokenChainBalanceDiff = adjustedToken.sub(totalAdjustedChainBalance)
-  const chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
+  let chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
+
+
+  if (allowRoundingError) {
+    const decimals: number = getTokenDecimals(token)
+    const roundingError = ethersUtils.parseUnits('0.0001', decimals).mul(-1)
+    if (chainBalanceHTokenDiff.isNegative() && chainBalanceHTokenDiff.gte(roundingError)) {
+      chainBalanceHTokenDiff = BigNumber.from(0)
+    }
+  }
 
   // Log data if explicitly requested or if there is a discrepancy
   const isOutputExpected = tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)
@@ -357,7 +375,8 @@ async function getHTokenAdjustments (
   const l2UnwithdrawnTransfersNew = await getUnwithdrawnTransfers({
     token,
     chain,
-    startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp
+    startTimestamp: ChainBalanceArchiveData.ArchiveDataTimestamp,
+    blockTag
   })
   const l2UnwithdrawnTransfersArchive = ChainBalanceArchiveData.UnwithdrawnTransfers[token][chain]
   const l2TransfersUnwithdrawn = l2UnwithdrawnTransfersNew.add(l2UnwithdrawnTransfersArchive!)
@@ -389,7 +408,7 @@ async function getHTokenAdjustments (
   const {
     allRootsCommitted,
     rootHashesSeenOnL1,
-    rootHashesSettledOnL2
+    rootHashesSetOnL2
   } = await getAllPossibleInFlightRoots(
     token,
     chain,
@@ -409,13 +428,15 @@ async function getHTokenAdjustments (
   }
 
   // In flight inbound roots
+  // NOTE: When a root is set, the amount is converted from l2RootsInFlightInbound to l2TransfersUnwithdrawn. That
+  // is why we check for set instead of settled.
   let l2RootsInFlightInbound: BigNumber = BigNumber.from('0')
   for (const rootHash in allRootsCommitted) {
     const root = allRootsCommitted[rootHash]
 
     if (root.destinationChainId !== chainId) continue
     if (!rootHashesSeenOnL1.includes(rootHash)) continue
-    if (rootHashesSettledOnL2.includes(rootHash)) continue
+    if (rootHashesSetOnL2.includes(rootHash)) continue
 
     l2RootsInFlightInbound = l2RootsInFlightInbound.add(root.totalAmount)
   }
@@ -484,8 +505,8 @@ async function getAllPossibleInFlightRoots (
   const rootHashesSeenOnL1 = l1RootHashesConfirmed.concat(l1RootHashesBonded)
 
   // Get all roots settled on L2
-  const l2RootsSettled = await getMultipleWithdrawalsSettled(chain, token, archiveDataTimestamp, endTimestamp)
-  const rootHashesSettledOnL2 = l2RootsSettled.map((root: any) => root.rootHash)
+  const l2RootsSet = await getTransferRootSet(chain, token, archiveDataTimestamp, endTimestamp)
+  const rootHashesSetOnL2 = l2RootsSet.map((root: any) => root.rootHash)
 
   // Get all roots committed on L2 in the given time. Add the sourceChainId to the object for convenience
   const allRootsCommitted: Record<string, any> = {}
@@ -504,7 +525,7 @@ async function getAllPossibleInFlightRoots (
   return {
     allRootsCommitted,
     rootHashesSeenOnL1,
-    rootHashesSettledOnL2
+    rootHashesSetOnL2
   }
 }
 

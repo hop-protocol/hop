@@ -83,9 +83,12 @@ const inactiveBonders = [
  *     a rounding error and is ignored in the return data, if desired.
  * 
  * Possible reasons for discrepancies:
- *   - An archive transfer from L1 to L2 that was never relayed has recently been relayed
- *   - Tokens have been sent directly to the L1 bridge contract
- *   - Other archive data
+ *   - Uncategorized
+ *     - An archive transfer from L1 to L2 that was never relayed has recently been relayed
+ *     - Tokens have been sent directly to the L1 bridge contract
+ *     - Other archive data
+ *   - Negative (token - ChainBalance)
+ *     - Someone withdraw tokens that existed in the UnwithdrawnTransfers archive data
  */
 
 root
@@ -180,7 +183,7 @@ export async function main (source: any) {
     if (!isOutputExpected) {
       console.log(`Unexpected output for token ${token}`)
     }
-    logValues(token, tokenAdjustments, chainBalanceAdjustments, hTokenAdjustments)
+    logValues(token, tokenAdjustments, chainBalanceAdjustments, hTokenAdjustments, metaBlockData)
   }
   return {
     tokenChainBalanceDiff,
@@ -533,9 +536,13 @@ function logValues (
   token: Token,
   tokenAdjustments: TokenAdjustmentData,
   chainBalanceAdjustments: ChainBalanceAdjustmentData[],
-  hTokenAdjustments: HTokenAdjustmentData[]
+  hTokenAdjustments: HTokenAdjustmentData[],
+  metaBlockData: Record<string, MetaBlockData>
 ): void {
   const decimals: number = getTokenDecimals(token)
+
+  console.log(`\n\n${token} Logs`)
+  console.log(`MetaBlockData: ${JSON.stringify(metaBlockData)}`)
 
   const {
     l1TokensInContract,

@@ -148,6 +148,18 @@ export async function setGlobalConfigFromConfigFile (
     setBonderPrivateKey(privateKey)
   }
   if (config.signer) {
+    if (!config.signer.type) {
+      throw new Error('config for signer type is required')
+    }
+    if (!config.signer.keyId) {
+      throw new Error('config for signer keyId is required')
+    }
+    if (!config.signer.awsRegion) {
+      throw new Error('config for signer awsRegion is required')
+    }
+    if (!config.signer.lambdaFunctionName) {
+      throw new Error('config for signer lambdaFunctionName is required')
+    }
     setSignerConfig(config.signer)
   }
   const network = config.network

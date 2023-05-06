@@ -9,7 +9,7 @@ import { L2_AmmWrapper__factory } from '@hop-protocol/core/contracts/factories/g
 import { L2_Bridge } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { L2_Bridge__factory } from '@hop-protocol/core/contracts/factories/generated/L2_Bridge__factory'
 
-import { ApiKeys, PriceFeed } from './priceFeed'
+import { ApiKeys, PriceFeedFromS3 } from './priceFeed'
 import {
   BigNumber,
   BigNumberish,
@@ -131,7 +131,7 @@ class HopBridge extends Base {
   /** Default deadline for transfers */
   public defaultDeadlineMinutes = 7 * 24 * 60 // 1 week
 
-  priceFeed: PriceFeed
+  priceFeed: PriceFeedFromS3
   priceFeedApiKeys: ApiKeys | null = null
   doesUseAmm: boolean
 
@@ -177,7 +177,7 @@ class HopBridge extends Base {
       throw new Error('token is required')
     }
 
-    this.priceFeed = new PriceFeed(this.priceFeedApiKeys)
+    this.priceFeed = new PriceFeedFromS3(this.priceFeedApiKeys)
     this.doesUseAmm = this.tokenSymbol !== CanonicalToken.HOP
     if (this.network === NetworkSlug.Goerli) {
       this.doesUseAmm = !(

@@ -2,12 +2,14 @@ import YieldStats from './YieldStats'
 import VolumeStats from './VolumeStats'
 import TvlStats from './TvlStats'
 import { AmmStats } from './AmmStats'
+import { PriceStats } from './PriceStats'
 import BonderStats from './BonderStats'
 import S3Upload from './S3Upload'
 import wait from 'wait'
 
 type Options = {
   yields?: boolean
+  prices?: boolean
   tvl?: boolean
   amm?: boolean
   ammDays?: number
@@ -27,17 +29,21 @@ type Options = {
   bonderEndDate?: string
   bonderTokens?: string[]
   pollIntervalSeconds?: number
+  pricesPollIntervalSeconds?: number
 }
 
 class Worker {
   yieldStats: YieldStats
+  priceStats: PriceStats
   volumeStats: VolumeStats
   tvlStats: TvlStats
   ammStats: AmmStats
   bonderStats: BonderStats
   hosting = new S3Upload()
   pollIntervalMs: number = 60 * 60 * 1000
+  pricesPollIntervalMs: number = 5 * 60 * 1000
   yields: boolean = false
+  prices: boolean = false
   tvl: boolean = false
   amm: boolean = false
   volume: boolean = false
@@ -46,6 +52,7 @@ class Worker {
   constructor (options: Options = {}) {
     let {
       yields,
+      prices,
       tvl,
       amm,
       ammDays,
@@ -64,20 +71,26 @@ class Worker {
       bonderStartDate,
       bonderEndDate,
       bonderTokens,
-      pollIntervalSeconds
+      pollIntervalSeconds,
+      pricesPollIntervalSeconds
     } = options
     this.yields = yields
+    this.prices = prices
     this.tvl = tvl
     this.amm = amm
     this.volume = volume
     if (pollIntervalSeconds) {
       this.pollIntervalMs = pollIntervalSeconds * 1000
     }
+    if (pricesPollIntervalSeconds) {
+      this.pricesPollIntervalMs = pricesPollIntervalSeconds * 1000
+    }
 
     if (bonder || bonderProfit || bonderFees || bonderTxFees) {
       this.bonder = true
     }
     this.yieldStats = new YieldStats()
+    this.priceStats = new PriceStats()
     this.volumeStats = new VolumeStats({
       regenesis
     })
@@ -110,6 +123,9 @@ class Worker {
     const promises: Promise<any>[] = []
     if (this.yields) {
       promises.push(this.yieldStatsPoll())
+    }
+    if (this.prices) {
+      promises.push(this.priceStatsPoll())
     }
     if (this.tvl) {
       promises.push(this.tvlStatsPoll())
@@ -187,6 +203,23 @@ class Worker {
         console.error(err)
       }
       await wait(this.pollIntervalMs)
+    }
+  }
+
+  async priceStatsPoll () {
+    console.log('priceStatsPoll started')
+    while (true) {
+      try {
+        console.log(`fetching price stats (${new Date()})`)
+        const json = await this.priceStats.getPricesJson()
+        const filename = 'token-prices.json'
+        await this.hosting.upload(filename, json)
+        console.log('done uploading price stats')
+      } catch (err) {
+        console.error(err)
+      }
+      console.log(`waiting ${this.pricesPollIntervalMs}ms for next prices poll`)
+      await wait(this.pricesPollIntervalMs)
     }
   }
 

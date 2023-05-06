@@ -47,6 +47,10 @@ export class PriceFeed {
     this.services = [new CoinGecko(this.apiKeys?.coingecko), new Coinbase(), new Coinpaprika(), new CoinCodex()]
   }
 
+  prependService (service: Service) {
+    this.services.unshift(service)
+  }
+
   async getPriceByTokenSymbol (tokenSymbol: string) {
     if (this.aliases[tokenSymbol]) {
       tokenSymbol = this.aliases[tokenSymbol]

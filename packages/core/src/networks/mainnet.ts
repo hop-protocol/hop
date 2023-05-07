@@ -62,7 +62,7 @@ export const networks: Networks = {
     ],
     explorerUrls: ['https://polygonscan.com'],
     nativeBridgeUrl: 'https://wallet.matic.network/bridge/',
-    waitConfirmations: 256
+    waitConfirmations: 512
   },
   nova: {
     name: chains.nova.name,

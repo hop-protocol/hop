@@ -24,6 +24,7 @@ async function getBonds (chain: string, startDate: number, endDate: number, last
         blockNumber
         contractAddress
         token
+        from
       }
     }
   `

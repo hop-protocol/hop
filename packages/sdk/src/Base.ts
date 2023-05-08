@@ -108,6 +108,7 @@ export type BaseConstructorOptions = {
   network?: NetworkSlug | string
   signer?: TProvider,
   chainProviders?: ChainProviders
+  blocklist?: Record<string, boolean> | string[] | null
 } & ConfigFileOptions
 
 const defaultBaseConfigUrl = 'https://assets.hop.exchange'
@@ -139,6 +140,7 @@ export class Base {
 
   customCoreConfigJsonUrl: string = ''
   customAvailableLiquidityJsonUrl: string = ''
+  blocklist: Record<string, boolean> | null = null
 
   /**
    * @desc Instantiates Base class.
@@ -171,6 +173,17 @@ export class Base {
       }
       if (options.customAvailableLiquidityJsonUrl) {
         this.customAvailableLiquidityJsonUrl = options.customAvailableLiquidityJsonUrl
+      }
+      if (options.blocklist) {
+        this.blocklist = {}
+        if (options.blocklist instanceof Object) {
+          this.blocklist = options.blocklist as Record<string, boolean>
+        }
+        if (Array.isArray(options.blocklist)) {
+          for (const address of options.blocklist) {
+            this.blocklist[address.toLowerCase()] = true
+          }
+        }
       }
     } else {
       network = networkOrOptionsObject as string
@@ -243,9 +256,21 @@ export class Base {
     }
   }
 
-  sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain): Promise<any> {
+  async sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain): Promise<any> {
     const chainId = this.toChainModel(chain).chainId
+    await this.checkBlocklist()
     return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
+  }
+
+  async checkBlocklist () {
+    if (this.signer && this.blocklist) {
+      const address = (await (this.signer as Signer).getAddress()).toLowerCase()
+      for (const blockAddress in this.blocklist) {
+        if (address === blockAddress) {
+          throw new Error('address is blocked')
+        }
+      }
+    }
   }
 
   setConfigAddresses (addresses: Addresses): void {

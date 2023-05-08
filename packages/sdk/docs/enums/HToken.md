@@ -8,6 +8,7 @@
 - [hETH](HToken.md#heth)
 - [hHop](HToken.md#hhop)
 - [hMATIC](HToken.md#hmatic)
+- [hUNI](HToken.md#huni)
 - [hUSDC](HToken.md#husdc)
 - [hUSDT](HToken.md#husdt)
 - [hrETH](HToken.md#hreth)
@@ -35,6 +36,12 @@ ___
 ### <a id="hmatic" name="hmatic"></a> hMATIC
 
 • **hMATIC** = ``"hMATIC"``
+
+___
+
+### <a id="huni" name="huni"></a> hUNI
+
+• **hUNI** = ``"hUNI"``
 
 ___
 

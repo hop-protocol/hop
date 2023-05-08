@@ -7,8 +7,7 @@ import wallets from 'src/wallets'
 import { BigNumber, utils as ethersUtils } from 'ethers'
 import { Chain, MinPolygonGasPrice, TokenIndex, nativeChainTokens } from 'src/constants'
 import { actionHandler, logger, parseBool, parseNumber, parseString, root } from './shared'
-
-import { swap as oneInchSwap } from 'src/1inch'
+import { swap as dexSwap } from 'src/swap'
 
 root
   .command('swap')
@@ -21,6 +20,7 @@ root
   .option('--deadline <seconds>', 'Deadline in seconds', parseNumber)
   .option('--slippage <number>', 'Slippage tolerance. E.g. 0.5', parseNumber)
   .option('--recipient <address>', 'Recipient', parseString)
+  .option('--dex <string>', 'Exchange to use. Options are: "1inch", "uniswap"', parseString)
   .option(
     '--dry [boolean]',
     'Start in dry mode. If enabled, no transactions will be sent.',
@@ -29,7 +29,7 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let { chain, from: fromToken, to: toToken, amount, max, recipient, deadline, slippage, dry: dryMode } = source
+  let { chain, from: fromToken, to: toToken, amount, max, recipient, deadline, slippage, dry: dryMode, dex } = source
   if (!chain) {
     throw new Error('chain is required')
   }
@@ -189,7 +189,7 @@ async function main (source: any) {
     }
   } else {
     logger.debug('dex swap')
-    tx = await oneInchSwap({
+    tx = await dexSwap(dex, {
       chain,
       fromToken,
       toToken,

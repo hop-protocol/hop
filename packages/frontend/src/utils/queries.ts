@@ -25,7 +25,7 @@ export function getUrl(chain: Slug | string) {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
     if (chain === 'arbitrum') {
-      throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
+      return 'https://arbitrum-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-arbitrum-goerli'
     }
     if (chain === 'xdai') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
@@ -34,7 +34,7 @@ export function getUrl(chain: Slug | string) {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)
     }
     if (chain === 'linea') {
-      return 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
+      return 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
     }
     if (chain === 'scrollzk') {
       throw new Error(`chain "${chain}" is not supported on goerli subgraphs`)

@@ -108,6 +108,7 @@ export type BaseConstructorOptions = {
   network?: NetworkSlug | string
   signer?: TProvider,
   chainProviders?: ChainProviders
+  blocklist?: Record<string, boolean> | string[] | null
 } & ConfigFileOptions
 
 const defaultBaseConfigUrl = 'https://assets.hop.exchange'
@@ -139,6 +140,7 @@ export class Base {
 
   customCoreConfigJsonUrl: string = ''
   customAvailableLiquidityJsonUrl: string = ''
+  blocklist: Record<string, boolean> | null = null
 
   /**
    * @desc Instantiates Base class.
@@ -171,6 +173,17 @@ export class Base {
       }
       if (options.customAvailableLiquidityJsonUrl) {
         this.customAvailableLiquidityJsonUrl = options.customAvailableLiquidityJsonUrl
+      }
+      if (options.blocklist) {
+        this.blocklist = {}
+        if (options.blocklist instanceof Object) {
+          this.blocklist = options.blocklist as Record<string, boolean>
+        }
+        if (Array.isArray(options.blocklist)) {
+          for (const address of options.blocklist) {
+            this.blocklist[address.toLowerCase()] = true
+          }
+        }
       }
     } else {
       network = networkOrOptionsObject as string
@@ -243,9 +256,21 @@ export class Base {
     }
   }
 
-  sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain): Promise<any> {
+  async sendTransaction (transactionRequest: providers.TransactionRequest, chain: TChain): Promise<any> {
     const chainId = this.toChainModel(chain).chainId
+    await this.checkBlocklist()
     return this.signer.sendTransaction({ ...transactionRequest, chainId } as any)
+  }
+
+  async checkBlocklist () {
+    if (this.signer && this.blocklist) {
+      const address = (await (this.signer as Signer).getAddress()).toLowerCase()
+      for (const blockAddress in this.blocklist) {
+        if (address === blockAddress) {
+          throw new Error('address is blocked')
+        }
+      }
+    }
   }
 
   setConfigAddresses (addresses: Addresses): void {
@@ -766,14 +791,21 @@ export class Base {
     if (this.network === NetworkSlug.Goerli) {
       if (sourceChain.isL1) {
         if (destinationChain.equals(Chain.Linea)) {
+          let hopL1BridgeWrapperAddress
           if (token.symbol === TokenModel.ETH) {
-            const hopL1BridgeWrapperAddress = '0xE85b69930fC6D59da385C7cc9e8Ff03f8F0469BA'
-            return hopL1BridgeWrapperAddress
+            hopL1BridgeWrapperAddress = '0xd9e10C6b1bd26dE4E2749ce8aFe8Dd64294BcBF5'
+          } else if (token.symbol === TokenModel.HOP) {
+            hopL1BridgeWrapperAddress = '0x9051Dc48d27dAb53DbAB9E844f8E48c469603938'
+          } else if (token.symbol === TokenModel.USDC) {
+            hopL1BridgeWrapperAddress = '0x889CD829cE211c92b31fDFE1d75299482839ea2b'
+          } else if (token.symbol === TokenModel.USDT) {
+            hopL1BridgeWrapperAddress = '0x53B94FAf104A484ff4E7c66bFe311fd48ce3D887'
+          } else if (token.symbol === TokenModel.DAI) {
+            hopL1BridgeWrapperAddress = '0xAa1603822b43e592e33b58d34B4423E1bcD8b4dC'
+          } else if (token.symbol === TokenModel.UNI) {
+            hopL1BridgeWrapperAddress = '0x9D3A7fB18CA7F1237F977Dc5572883f8b24F5638'
           }
-          if (token.symbol === TokenModel.USDC) {
-            const hopL1BridgeWrapperAddress = '0x71139b5d8844642aa1797435bd5df1fbc9de0813'
-            return hopL1BridgeWrapperAddress
-          }
+          return hopL1BridgeWrapperAddress
         }
       }
     }

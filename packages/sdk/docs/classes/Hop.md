@@ -26,6 +26,7 @@ Hop
 - [addresses](Hop.md#addresses)
 - [baseConfigUrl](Hop.md#baseconfigurl)
 - [baseExplorerUrl](Hop.md#baseexplorerurl)
+- [blocklist](Hop.md#blocklist)
 - [bonders](Hop.md#bonders)
 - [chainProviders](Hop.md#chainproviders)
 - [chains](Hop.md#chains)
@@ -59,6 +60,7 @@ Hop
 - [\_getMessengerWrapperAddress](Hop.md#_getmessengerwrapperaddress)
 - [bridge](Hop.md#bridge)
 - [canonicalBridge](Hop.md#canonicalbridge)
+- [checkBlocklist](Hop.md#checkblocklist)
 - [connect](Hop.md#connect)
 - [estimateOptimismL1FeeFromData](Hop.md#estimateoptimisml1feefromdata)
 - [fetchBonderAvailableLiquidityData](Hop.md#fetchbonderavailableliquiditydata)
@@ -85,6 +87,7 @@ Hop
 - [getIpfsBaseConfigUrl](Hop.md#getipfsbaseconfigurl)
 - [getL1AmbBridgeAddress](Hop.md#getl1ambbridgeaddress)
 - [getL1BridgeAddress](Hop.md#getl1bridgeaddress)
+- [getL1BridgeWrapperAddress](Hop.md#getl1bridgewrapperaddress)
 - [getL1CanonicalBridgeAddress](Hop.md#getl1canonicalbridgeaddress)
 - [getL1CanonicalTokenAddress](Hop.md#getl1canonicaltokenaddress)
 - [getL1PosErc20PredicateAddress](Hop.md#getl1poserc20predicateaddress)
@@ -108,7 +111,6 @@ Hop
 - [getSupportedTokens](Hop.md#getsupportedtokens)
 - [getTransferStatus](Hop.md#gettransferstatus)
 - [getWaitConfirmations](Hop.md#getwaitconfirmations)
-- [init](Hop.md#init)
 - [isValidChain](Hop.md#isvalidchain)
 - [isValidNetwork](Hop.md#isvalidnetwork)
 - [resolveDnslink](Hop.md#resolvednslink)
@@ -224,6 +226,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[baseExplorerUrl](Base.md#baseexplorerurl)
+
+___
+
+### <a id="blocklist" name="blocklist"></a> blocklist
+
+• **blocklist**: `Record`<`string`, `boolean`\> = `null`
+
+#### Inherited from
+
+[Base](Base.md).[blocklist](Base.md#blocklist)
 
 ___
 
@@ -609,6 +621,20 @@ const bridge = hop.canonicalBridge('USDC')
 [`CanonicalBridge`](CanonicalBridge.md)
 
 A CanonicalBridge instance.
+
+___
+
+### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
+
+▸ **checkBlocklist**(): `Promise`<`void`\>
+
+#### Returns
+
+`Promise`<`void`\>
+
+#### Inherited from
+
+[Base](Base.md).[checkBlocklist](Base.md#checkblocklist)
 
 ___
 
@@ -1110,6 +1136,28 @@ ___
 
 ___
 
+### <a id="getl1bridgewrapperaddress" name="getl1bridgewrapperaddress"></a> getL1BridgeWrapperAddress
+
+▸ **getL1BridgeWrapperAddress**(`token`, `sourceChain`, `destinationChain`): `string`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `token` | [`TToken`](../modules.md#ttoken) |
+| `sourceChain` | [`TChain`](../modules.md#tchain) |
+| `destinationChain` | [`TChain`](../modules.md#tchain) |
+
+#### Returns
+
+`string`
+
+#### Inherited from
+
+[Base](Base.md).[getL1BridgeWrapperAddress](Base.md#getl1bridgewrapperaddress)
+
+___
+
 ### <a id="getl1canonicalbridgeaddress" name="getl1canonicalbridgeaddress"></a> getL1CanonicalBridgeAddress
 
 ▸ **getL1CanonicalBridgeAddress**(`token`, `chain`): `string`
@@ -1574,20 +1622,6 @@ ___
 #### Inherited from
 
 [Base](Base.md).[getWaitConfirmations](Base.md#getwaitconfirmations)
-
-___
-
-### <a id="init" name="init"></a> init
-
-▸ **init**(): `Promise`<`void`\>
-
-#### Returns
-
-`Promise`<`void`\>
-
-#### Inherited from
-
-[Base](Base.md).[init](Base.md#init)
 
 ___
 

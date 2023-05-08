@@ -75,6 +75,7 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     Chain.Base
   ]
 
+  // TODO: read from core
   const validTokenKeys = [
     'USDC',
     'USDT',
@@ -85,7 +86,8 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     'HOP',
     'SNX',
     'sUSD',
-    'rETH'
+    'rETH',
+    'UNI'
   ]
 
   const sectionKeys = Object.keys(config)
@@ -110,6 +112,10 @@ export async function validateConfigFileStructure (config?: FileConfig) {
 
   const watcherKeys = Object.keys(config.watchers)
   validateKeys(validWatcherKeys, watcherKeys)
+
+  if (config?.keystore && config?.signer) {
+    throw new Error('You cannot have both a keystore and a signer')
+  }
 
   if (config.db) {
     const validDbKeys = ['location']
@@ -138,6 +144,17 @@ export async function validateConfigFileStructure (config?: FileConfig) {
     ]
     const keystoreProps = Object.keys(config.keystore)
     validateKeys(validKeystoreProps, keystoreProps)
+  }
+
+  if (config.signer) {
+    const validSignerProps = [
+      'type',
+      'keyId',
+      'awsRegion',
+      'lambdaFunctionName'
+    ]
+    const signerProps = Object.keys(config.signer)
+    validateKeys(validSignerProps, signerProps)
   }
 
   if (config.metrics) {

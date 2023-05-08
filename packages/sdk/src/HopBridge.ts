@@ -9,7 +9,7 @@ import { L2_AmmWrapper__factory } from '@hop-protocol/core/contracts/factories/g
 import { L2_Bridge } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { L2_Bridge__factory } from '@hop-protocol/core/contracts/factories/generated/L2_Bridge__factory'
 
-import { ApiKeys, PriceFeed } from './priceFeed'
+import { ApiKeys, PriceFeedFromS3 } from './priceFeed'
 import {
   BigNumber,
   BigNumberish,
@@ -131,7 +131,7 @@ class HopBridge extends Base {
   /** Default deadline for transfers */
   public defaultDeadlineMinutes = 7 * 24 * 60 // 1 week
 
-  priceFeed: PriceFeed
+  priceFeed: PriceFeedFromS3
   priceFeedApiKeys: ApiKeys | null = null
   doesUseAmm: boolean
 
@@ -177,8 +177,16 @@ class HopBridge extends Base {
       throw new Error('token is required')
     }
 
-    this.priceFeed = new PriceFeed(this.priceFeedApiKeys)
+    this.priceFeed = new PriceFeedFromS3(this.priceFeedApiKeys)
     this.doesUseAmm = this.tokenSymbol !== CanonicalToken.HOP
+    if (this.network === NetworkSlug.Goerli) {
+      this.doesUseAmm = !(
+        this.tokenSymbol === CanonicalToken.USDT ||
+        this.tokenSymbol === CanonicalToken.DAI ||
+        this.tokenSymbol === CanonicalToken.UNI ||
+        this.tokenSymbol === CanonicalToken.HOP
+      )
+    }
   }
 
   /**
@@ -203,7 +211,8 @@ class HopBridge extends Base {
       token: this.tokenSymbol,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
 
     // port over exiting properties
@@ -259,7 +268,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
   }
 
@@ -295,7 +305,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
   }
 
@@ -1112,21 +1123,20 @@ class HopBridge extends Base {
     }
     const bondTransferGasLimitWithSettlement = bondTransferGasLimit.add(settlementGasLimitPerTx)
 
-    let txFeeEth: BigNumber
-    if (sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]) {
-      txFeeEth = await this.getRelayerFee(destinationChain, this.tokenSymbol)
-    } else {
-      txFeeEth = destinationChainGasPrice.mul(bondTransferGasLimitWithSettlement)
-    }
-
     const oneEth = parseEther('1')
-    const rateBN = parseUnits(
-      rate.toFixed(canonicalToken.decimals),
-      canonicalToken.decimals
-    )
+    let destinationTxFee: BigNumber
 
-    txFeeEth = txFeeEth.add(l1FeeInWei)
-    let destinationTxFee = txFeeEth.mul(rateBN).div(oneEth)
+    const isRelayerFee = sourceChain.isL1 && this.relayerFeeEnabled[destinationChain.slug]
+    if (isRelayerFee) {
+      destinationTxFee = await this.getRelayerFee(destinationChain, this.tokenSymbol)
+    } else {
+      const rateBN = parseUnits(
+        rate.toFixed(canonicalToken.decimals),
+        canonicalToken.decimals
+      )
+      const txFeeInWei = destinationChainGasPrice.mul(bondTransferGasLimitWithSettlement).add(l1FeeInWei)
+      destinationTxFee = txFeeInWei.mul(rateBN).div(oneEth)
+    }
 
     if (
       destinationChain.equals(Chain.Ethereum) ||
@@ -1696,7 +1706,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
   }
 
@@ -1797,7 +1808,8 @@ class HopBridge extends Base {
       signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
   }
 
@@ -1828,7 +1840,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
     return amm.addLiquidity(
       amount0Desired,
@@ -1861,7 +1874,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
     return amm.removeLiquidity(
       liquidityTokenAmount,
@@ -1888,7 +1902,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
     return amm.removeLiquidityOneToken(
       lpTokenAmount,
@@ -1915,7 +1930,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
     return amm.removeLiquidityImbalance(
       token0Amount,
@@ -1941,7 +1957,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
     return amm.calculateRemoveLiquidityOneToken(
       tokenAmount,
@@ -2380,6 +2397,11 @@ class HopBridge extends Base {
       }
     }
 
+    if (this.network === NetworkSlug.Goerli) {
+      const l2Bridge = await this.getL2Bridge(sourceChain)
+      onChainBonderFeeAbsolutePromise = l2Bridge.minBonderFeeAbsolute()
+    }
+
     const [tokenPrice, onChainBonderFeeAbsolute] = await Promise.all([
       this.priceFeed.getPriceByTokenSymbol(token.canonicalSymbol),
       onChainBonderFeeAbsolutePromise ?? Promise.resolve(BigNumber.from(0))
@@ -2604,6 +2626,12 @@ class HopBridge extends Base {
     return this.sendTransaction(populatedTx, destinationChain)
   }
 
+  async getWithdrawProof (sourceChain: TChain, destinationChain: TChain, transferIdOrTransactionHash: string) {
+    sourceChain = this.toChainModel(sourceChain)
+    const wp = new WithdrawalProof(this.network, transferIdOrTransactionHash)
+    return wp.generateProof()
+  }
+
   setPriceFeedApiKeys (apiKeys: ApiKeys = {}): void {
     this.priceFeedApiKeys = apiKeys
     this.priceFeed.setApiKeys(this.priceFeedApiKeys)
@@ -2678,6 +2706,16 @@ class HopBridge extends Base {
     for (const chain of this.supportedChains) {
       if (chain === ChainSlug.Ethereum || token.canonicalSymbol === TokenModel.HOP) {
         continue
+      }
+      if (this.network === NetworkSlug.Goerli) {
+        if (
+          token.canonicalSymbol === TokenModel.USDT ||
+          token.canonicalSymbol === TokenModel.DAI ||
+          token.canonicalSymbol === TokenModel.UNI ||
+          token.canonicalSymbol === TokenModel.HOP
+        ) {
+          continue
+        }
       }
       supported.add(chain)
     }

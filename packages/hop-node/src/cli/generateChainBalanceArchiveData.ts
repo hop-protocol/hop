@@ -34,6 +34,11 @@ async function main (source: any) {
     throw new Error('timestamp is required')
   }
 
+  // If the timestamp is within the last hour, throw
+  if (Date.now() / 1000 - Number(timestamp) < 3600) {
+    throw new Error('timestamp must be at least 1 hour in the past')
+  }
+
   console.log(`\nRetrieving archive data for token ${token}. This may take up to an hour to run.`)
 
   const supportedChainsForToken: string[] = []

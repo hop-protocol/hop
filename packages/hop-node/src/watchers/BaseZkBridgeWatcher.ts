@@ -38,8 +38,9 @@ class BaseZkBridgeWatcher extends OptimismBridgeWatcher {
     this.chainId = chainSlugToId(config.chainSlug)
 
     this.csm = new CrossChainMessenger({
-      bedrock: this.chainId === 420,
-      l1ChainId: this.chainId === 420 ? 5 : 1,
+      // TODO: I'm not sure when Base is updating to use Bedrock
+      bedrock: false,
+      l1ChainId: this.chainId === 84531 ? 5 : 1,
       l2ChainId: this.chainId,
       l1SignerOrProvider: this.l1Wallet,
       l2SignerOrProvider: this.l2Wallet

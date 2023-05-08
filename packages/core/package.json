@@ -1,6 +1,6 @@
 {
   "name": "@hop-protocol/core",
-  "version": "0.0.1-beta.139",
+  "version": "0.0.1-beta.148",
   "description": "Hop Protocol networks config",
   "main": "index.js",
   "types": "index.d.ts",
@@ -40,7 +40,7 @@
     "ethers": "5.7.1"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.44.0",
+    "@aws-sdk/client-s3": "^3.316.0",
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.2",
     "@babel/node": "^7.7.0",

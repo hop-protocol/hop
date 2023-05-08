@@ -201,6 +201,20 @@
       "optimism": {
         "ethereum": "0x547d28cDd6A69e3366d6aE3EC39543F09Bd09417"
       }
+    },
+    "rETH": {
+      "ethereum": {
+        "optimism": "0x2A6303e6b99d451Df3566068EBb110708335658f",
+        "arbitrum": "0x2A6303e6b99d451Df3566068EBb110708335658f"
+      },
+      "optimism": {
+        "ethereum": "0x2A6303e6b99d451Df3566068EBb110708335658f",
+        "arbitrum": "0x2A6303e6b99d451Df3566068EBb110708335658f"
+      },
+      "arbitrum": {
+        "ethereum": "0x2A6303e6b99d451Df3566068EBb110708335658f",
+        "optimism": "0x2A6303e6b99d451Df3566068EBb110708335658f"
+      }
     }
   },
   "rewardsContracts": {
@@ -283,6 +297,14 @@
       "optimism": [
         "0x2935008eE9943f859C4fbb863c5402fFC06f462E",
         "0x25FB92E505F752F730cAD0Bd4fa17ecE4A384266"
+      ]
+    },
+    "rETH": {
+      "arbitrum": [
+        "0x3D4cAD734B464Ed6EdCF6254C2A3e5fA5D449b32"
+      ],
+      "optimism": [
+        "0x266e2dc3C4c59E42AA07afeE5B09E964cFFe6778"
       ]
     }
   },
@@ -677,6 +699,37 @@
         "l2SaddleSwap": "0x8d4063E82A4Db8CdAed46932E1c71e03CA69Bede",
         "l2SaddleLpToken": "0xBD08972Cef7C9a5A046C9Ef13C9c3CE13739B8d6",
         "bridgeDeployedBlockNumber": 27410328
+      }
+    },
+    "rETH": {
+      "ethereum": {
+        "l1CanonicalToken": "0xae78736Cd615f374D3085123A210448E74Fc6393",
+        "l1Bridge": "0x87269B23e73305117D0404557bAdc459CEd0dbEc",
+        "bridgeDeployedBlockNumber": 17141336
+      },
+      "optimism": {
+        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1MessengerWrapper": "0xae26bbD1FA3083E1dae3AEaA2050b97c55886f5d",
+        "l2CanonicalBridge": "0x4200000000000000000000000000000000000010",
+        "l2CanonicalToken": "0x9Bcef72be871e61ED4fBbc7630889beE758eb81D",
+        "l2Bridge": "0xA0075E8cE43dcB9970cB7709b9526c1232cc39c2",
+        "l2HopBridgeToken": "0x755569159598f3702bdD7DFF6233A317C156d3Dd",
+        "l2AmmWrapper": "0x19B2162CA4C2C6F08C6942bFB846ce5C396aCB75",
+        "l2SaddleSwap": "0x9Dd8685463285aD5a94D2c128bda3c5e8a6173c8",
+        "l2SaddleLpToken": "0x0699BC1Ca03761110929b2B56BcCBeb691fa9ca6",
+        "bridgeDeployedBlockNumber": 94877802
+      },
+      "arbitrum": {
+        "l1CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l1MessengerWrapper": "0x7fEb7af8d5B277e249868aCF7644e7BB4A5937f8",
+        "l2CanonicalBridge": "0x0000000000000000000000000000000000000000",
+        "l2CanonicalToken": "0xEC70Dcb4A1EFa46b8F2D97C310C9c4790ba5ffA8",
+        "l2Bridge": "0xc315239cFb05F1E130E7E28E603CEa4C014c57f0",
+        "l2HopBridgeToken": "0x588Bae9C85a605a7F14E551d144279984469423B",
+        "l2AmmWrapper": "0x16e08C02e4B78B0a5b3A917FF5FeaeDd349a5a95",
+        "l2SaddleSwap": "0x0Ded0d521AC7B0d312871D18EA4FDE79f03Ee7CA",
+        "l2SaddleLpToken": "0xbBA837dFFB3eCf4638D200F11B8c691eA641AdCb",
+        "bridgeDeployedBlockNumber": 85020329
       }
     }
   }

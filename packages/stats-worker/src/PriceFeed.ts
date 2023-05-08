@@ -1,4 +1,5 @@
 import fetch from 'isomorphic-fetch'
+import { PriceFeed as PriceFeedSdk } from '@hop-protocol/sdk'
 import { coingeckoApiKey } from './config'
 
 const cache: {
@@ -23,6 +24,19 @@ export class PriceFeed {
     SNX: 'havven',
     SUSD: 'nusd',
     RETH: 'rocket-pool-eth'
+  }
+
+  instance: PriceFeedSdk
+
+  constructor () {
+    this.instance = new PriceFeedSdk({
+      coingecko: coingeckoApiKey
+    })
+  }
+
+  async getPriceByTokenSymbol (tokenSymbol: string) {
+    const price = await this.instance.getPriceByTokenSymbol(tokenSymbol)
+    return price
   }
 
   private getCoinId (tokenSymbol: string) {

@@ -18,7 +18,7 @@ class RelayerFee {
       if (token === 'ETH') {
         return parseEther(defaultRelayerFeeEth)
       } else {
-        return BigNumber.from(0)
+        return BigNumber.from('0')
       }
     }
 

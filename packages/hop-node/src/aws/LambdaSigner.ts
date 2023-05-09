@@ -63,6 +63,11 @@ export class LambdaSigner extends AwsSigner {
   }
 
   async signTransaction (transaction: providers.TransactionRequest): Promise<string> {
+
+    // Ethers will not serialize a transaction with a from address if it is type 0
+    if (transaction?.type === 0 && transaction?.from) {
+      delete transaction.from
+    }
     const unsignedTx: any = await resolveProperties(transaction)
     const serializedTx = serializeTransaction(unsignedTx)
     const hash = keccak256(serializedTx)

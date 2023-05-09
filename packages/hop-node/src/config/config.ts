@@ -66,6 +66,7 @@ export const modifiedLiquidityTokens = process.env.MODIFIED_LIQUIDITY_TOKENS?.sp
 export const modifiedLiquiditySourceChains = process.env.MODIFIED_LIQUIDITY_SOURCE_CHAINS?.split(',') ?? []
 export const modifiedLiquidityDestChains = process.env.MODIFIED_LIQUIDITY_DEST_CHAINS?.split(',') ?? []
 export const modifiedLiquidityDecrease = process.env.MODIFIED_LIQUIDITY_DECREASE ?? '0'
+export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
 
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95
 export const blocknativeApiKey = process.env.BLOCKNATIVE_API_KEY ?? ''

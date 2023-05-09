@@ -65,7 +65,7 @@ const inactiveBonders = [
  * Verify the chainBalance against all relevant data sources. It compares (1) the tokens in the L1 contract against the
  * chainBalance, and (2) the chainBalance against the hToken total supply. If the system is unhealthy, then these
  * values would not match.
- * 
+ *
  * In order to regenerate archive data, run the generate-chain-balance-archive-data CLI command. When running it,
  * ensure that the timestamp you use is
  *
@@ -81,7 +81,7 @@ const inactiveBonders = [
  *   - The (chainBalance - hToken) sometimes reports a tiny, consistent, negative number. The number is on the
  *     order of -10^-14 for 18 decimal tokens. It is consistent, but unclear why it exists. This can be considered
  *     a rounding error and is ignored in the return data, if desired.
- * 
+ *
  * Possible reasons for discrepancies:
  *   - Uncategorized
  *     - An archive transfer from L1 to L2 that was never relayed has recently been relayed
@@ -167,7 +167,6 @@ export async function main (source: any) {
 
   const tokenChainBalanceDiff = adjustedToken.sub(totalAdjustedChainBalance)
   let chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
-
 
   if (allowRoundingError) {
     const decimals: number = getTokenDecimals(token)
@@ -502,7 +501,7 @@ async function getAllPossibleInFlightRoots (
   let { blockTimestamp: l2BlockTimestampForChain } = metaBlockData[chain]
   l1BlockTimestamp = Number(l1BlockTimestamp)
   l2BlockTimestampForChain = Number(l2BlockTimestampForChain)
-  
+
   const archiveDataTimestamp: number = ChainBalanceArchiveData.ArchiveDataTimestamp
 
   // Get all roots seen on L1

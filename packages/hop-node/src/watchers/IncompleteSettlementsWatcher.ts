@@ -120,6 +120,10 @@ class IncompleteSettlementsWatcher {
         if (nonSynthChains.includes(chain) && (token === 'SNX' || token === 'sUSD')) {
           continue
         }
+        const nonREthChains = ['polygon', 'gnosis', 'nova']
+        if (nonREthChains.includes(chain) && token === 'rETH') {
+          continue
+        }
         if (chain === Chain.Nova && token !== 'ETH') {
           continue
         }

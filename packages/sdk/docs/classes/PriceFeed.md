@@ -16,7 +16,9 @@
 ### Methods
 
 - [\_getPriceByTokenSymbol](PriceFeed.md#_getpricebytokensymbol)
+- [formatPrice](PriceFeed.md#formatprice)
 - [getPriceByTokenSymbol](PriceFeed.md#getpricebytokensymbol)
+- [prependService](PriceFeed.md#prependservice)
 - [setApiKeys](PriceFeed.md#setapikeys)
 
 ## Constructors
@@ -77,6 +79,23 @@ ___
 
 ___
 
+### <a id="formatprice" name="formatprice"></a> formatPrice
+
+▸ **formatPrice**(`tokenSymbol`, `price`): `number`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `tokenSymbol` | `string` |
+| `price` | `number` |
+
+#### Returns
+
+`number`
+
+___
+
 ### <a id="getpricebytokensymbol" name="getpricebytokensymbol"></a> getPriceByTokenSymbol
 
 ▸ **getPriceByTokenSymbol**(`tokenSymbol`): `Promise`<`any`\>
@@ -90,6 +109,22 @@ ___
 #### Returns
 
 `Promise`<`any`\>
+
+___
+
+### <a id="prependservice" name="prependservice"></a> prependService
+
+▸ **prependService**(`service`): `void`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `service` | `Service` |
+
+#### Returns
+
+`void`
 
 ___
 

@@ -44,7 +44,7 @@ async function _makeRequest (
     // TODO: read from config
     const isGoerli = true
     if (isGoerli) {
-      url = 'https://thegraph.goerli.zkevm.consensys.net/subgraphs/name/hop-protocol/hop'
+      url = 'https://linea-goerli.subgraph.hop.exchange/subgraphs/name/hop-protocol/hop-linea-goerli'
     } else {
       throw new Error(`chain "${chain}" is not supported on mainnet subgraphs`)
     }

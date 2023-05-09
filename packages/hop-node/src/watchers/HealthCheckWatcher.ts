@@ -241,7 +241,8 @@ export class HealthCheckWatcher {
     MATIC: parseUnits('766730', 18),
     HOP: parseUnits('3500000', 18),
     SNX: parseUnits('200000', 18),
-    sUSD: parseUnits('500000', 18)
+    sUSD: parseUnits('500000', 18),
+    rETH: parseUnits('550', 18)
   }
 
   bonderLowLiquidityThreshold: number = 0.1
@@ -895,11 +896,16 @@ export class HealthCheckWatcher {
     const promises: Array<Promise<null>> = []
     for (const sourceChain of sourceChains) {
       for (const token of tokens) {
+        // TODO: Better filtering
         if (['arbitrum', 'optimism', 'nova'].includes(sourceChain) && token === 'MATIC') {
           continue
         }
         const nonSynthChains = ['arbitrum', 'polygon', 'gnosis', 'nova']
         if (nonSynthChains.includes(sourceChain) && (token === 'SNX' || token === 'sUSD')) {
+          continue
+        }
+        const nonREthChains = ['polygon', 'gnosis', 'nova']
+        if (nonREthChains.includes(sourceChain) && token === 'rETH') {
           continue
         }
         if (sourceChain === Chain.Nova && token !== 'ETH') {
@@ -1106,25 +1112,25 @@ export class HealthCheckWatcher {
 
   async getInvalidChainBalance (): Promise<InvalidChainBalance[]> {
     this.logger.debug('checking for an invalid chainBalance')
-    const invalidChainBalance: InvalidChainBalance[] = []
+    const invalidChainBalances: InvalidChainBalance[] = []
     for (const token of this.tokens) {
       this.logger.debug(`checking ${token} for invalid chainBalance`)
       const {
         tokenChainBalanceDiff,
         chainBalanceHTokenDiff
-      } = await verifyChainBalance({ token })
+      } = await verifyChainBalance({ token, allowRoundingError: true })
 
       if (tokenChainBalanceDiff.eq(0) && chainBalanceHTokenDiff.eq(0)) {
         continue
       }
 
-      invalidChainBalance.push({
+      invalidChainBalances.push({
         token,
         tokenChainBalanceDiff,
         chainBalanceHTokenDiff
       })
     }
 
-    return []
+    return invalidChainBalances
   }
 }

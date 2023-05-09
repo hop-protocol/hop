@@ -6,6 +6,7 @@ import getTransferId from 'src/theGraph/getTransfer'
 import getTransferRoot from 'src/theGraph/getTransferRoot'
 import getTransfersCommitted from 'src/theGraph/getTransfersCommitted'
 import lineaAbi from './lineaAbi'
+import lineaErc20Abi from './lineaErc20Abi'
 import wethAbi from './wethAbi'
 import { BigNumber, Contract, Wallet, constants, providers } from 'ethers'
 import { Chain, Hop, HopBridge } from '@hop-protocol/sdk'
@@ -15,12 +16,12 @@ import { FxPortalClient } from '@fxportal/maticjs-fxportal'
 import { Logger } from 'src/logger'
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers'
 import { chainSlugToId } from 'src/utils/chainSlugToId'
-import { defaultAbiCoder, parseEther, parseUnits } from 'ethers/lib/utils'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import { getTransferIdFromTxHash } from 'src/theGraph/getTransferId'
 import { getUnwithdrawnTransfers } from 'src/theGraph/getUnwithdrawnTransfers'
 import { getWithdrawalProofData } from 'src/cli/shared'
 import { goerli as goerliAddresses, mainnet as mainnetAddresses } from '@hop-protocol/core/addresses'
+import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { use } from '@maticnetwork/maticjs'
 import { wait } from 'src/utils/wait'
 
@@ -59,6 +60,7 @@ export class ArbBot {
   l1ChainProvider: any
   l2ChainProvider: any
   l2ChainWriteProvider: any
+  decimals: number
 
   constructor (options?: Partial<Options>) {
     if (process.env.ARB_BOT_NETWORK) {
@@ -263,7 +265,9 @@ export class ArbBot {
   async pollAmmDeposit () {
     this.logger.log('pollAmmDeposit()')
     const arrived = await this.checkCanonicalBridgeTokensArriveOnL2()
-    if (arrived) {
+
+    const token = this.bridge.connect(this.ammSigner.connect(this.l2ChainProvider)).getCanonicalToken(this.l2ChainSlug)
+    if (arrived && token.isNativeToken) {
       const tx7 = await this.wrapEthToWethOnL2()
       this.logger.info('l2 wrap eth tx:', tx7?.hash)
       await tx7?.wait(this.waitConfirmations)
@@ -332,7 +336,9 @@ export class ArbBot {
 
   async withdrawAmmHTokens () {
     this.logger.log('withdrawAmmHTokens()')
-    let amount = this.amount
+    // LP decimals will always be 18
+    const amountFmt = this.bridge.formatUnits(this.amount)
+    let amount = this.bridge.parseUnits(amountFmt, 18)
 
     const recipient = await this.ammSigner.getAddress()
     const lpBalance = await this.bridge.getAccountLpBalance(this.l2ChainSlug, recipient)
@@ -343,7 +349,9 @@ export class ArbBot {
 
     this.logger.log('amount:', this.bridge.formatUnits(amount))
 
-    const amountMin = this.bridge.calcAmountOutMin(amount, this.slippageTolerance)
+    // TODO: This needs to use the updated amount, but it needs to first be converted to the hToken amount
+    // const amountMin = this.bridge.calcAmountOutMin(this.bridge.parseUnits(amountFmt), this.slippageTolerance)
+    const amountMin = 1
 
     const deadline = this.getDeadline()
     const hTokenIndex = 1
@@ -383,7 +391,7 @@ export class ArbBot {
     const recipient = await this.ammSigner.getAddress()
     const hToken = await this.bridge.getL2HopToken(this.l2ChainSlug)
     const hTokenBalance = await hToken.balanceOf(recipient)
-    const shouldSend = hTokenBalance.gte(amount.sub(parseEther('10')))
+    const shouldSend = hTokenBalance.gte(amount.sub(this.bridge.parseUnits('10')))
     return shouldSend
   }
 
@@ -664,14 +672,8 @@ export class ArbBot {
         amount = tokenBalance
       }
 
-      const deadlineSeconds = Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60)
-      const method = '0xf0634c82000000000000000000000000'
-      const address = recipient.replace('0x', '').toLowerCase()
-      const fee = BigNumber.from('0x2aa1efb94dffff')
-      const feeHex = defaultAbiCoder.encode(['uint256'], [fee]).replace('0x', '')
-      const deadline = defaultAbiCoder.encode(['uint256'], [deadlineSeconds]).replace('0x', '')
-      const amountHex = defaultAbiCoder.encode(['uint256'], [amount]).replace('0x', '')
-      const data = `${method}${address}${feeHex}${deadline}${amountHex}`
+      const l1TokenBridgeAddress = '0x9c556d2ccfb6157e4a6305aa9963edd6ca5047cb'
+      const fee = this.bridge.parseUnits('0.01', 18) // Fee is paid in ETH
 
       this.logger.log('amount:', this.bridge.formatUnits(amount))
 
@@ -679,12 +681,12 @@ export class ArbBot {
         throw new Error('expected amount to be greater than 0')
       }
 
-      const tokenWrapper = '0x73feE82ba7f6B98D27BCDc2bEFc1d3f6597fb02D'
+      const messenger = new Contract(l1TokenBridgeAddress, lineaErc20Abi, this.ammSigner.connect(this.l1ChainProvider))
+      const { data } = await messenger.populateTransaction.deposit(amount)
       const txOptions = await this.txOverrides(this.l1ChainSlug)
 
-      const spender = tokenWrapper
+      const spender = l1TokenBridgeAddress
       const token = this.bridge.connect(this.ammSigner.connect(this.l1ChainProvider)).getCanonicalToken(this.l1ChainSlug)
-
       const allowance = await token.allowance(spender)
       if (allowance.lt(amount)) {
         if (this.dryMode) {
@@ -704,8 +706,8 @@ export class ArbBot {
       return this.ammSigner.connect(this.l1ChainProvider).sendTransaction({
         ...txOptions,
         gasLimit: 900000,
-        value: parseEther('0.012'),
-        to: tokenWrapper,
+        value: fee,
+        to: l1TokenBridgeAddress,
         data
       })
     } else {
@@ -1033,7 +1035,6 @@ export class ArbBot {
   async depositAmmCanonicalTokens () {
     this.logger.log('depositAmmCanonicalTokens()')
     let amount = this.bridge.parseUnits(this.ammDepositThresholdAmount)
-    const recipient = await this.ammSigner.getAddress()
 
     if (this.tokenSymbol === 'ETH') {
       const l2WethBalance = await this.getL2WethBalance()
@@ -1091,7 +1092,7 @@ export class ArbBot {
     const txOptions: any = {}
 
     if (chain === this.l2ChainSlug) {
-      const multiplier = 2
+      const multiplier = 3
       txOptions.gasPrice = await this.getBumpedGasPrice(
         this.l2ChainProvider,
         multiplier
@@ -1099,7 +1100,7 @@ export class ArbBot {
     }
 
     if (chain === this.l1ChainSlug) {
-      const multiplier = 1.5
+      const multiplier = 3
       txOptions.gasPrice = await this.getBumpedGasPrice(
         this.l1ChainProvider,
         multiplier

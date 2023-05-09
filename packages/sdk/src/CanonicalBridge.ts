@@ -90,8 +90,7 @@ class CanonicalBridge extends Base {
     } else if (typeof token === 'string') {
       this.tokenSymbol = token
     } else {
-      console.log('token: ', token)
-      throw new Error('Invalid token')
+      throw new Error(`Invalid token "${token}"`)
     }
   }
 

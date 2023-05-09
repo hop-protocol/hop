@@ -19,6 +19,7 @@
 - [MATIC](TokenModel.md#matic)
 - [OP](TokenModel.md#op)
 - [SNX](TokenModel.md#snx)
+- [UNI](TokenModel.md#uni)
 - [USDC](TokenModel.md#usdc)
 - [USDT](TokenModel.md#usdt)
 - [WBTC](TokenModel.md#wbtc)
@@ -120,6 +121,12 @@ ___
 ### <a id="snx" name="snx"></a> SNX
 
 ▪ `Static` **SNX**: `string` = `'SNX'`
+
+___
+
+### <a id="uni" name="uni"></a> UNI
+
+▪ `Static` **UNI**: `string` = `'UNI'`
 
 ___
 

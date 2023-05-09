@@ -124,16 +124,13 @@ class AvailableLiquidityWatcher extends BaseWatcher {
             if (tokenSymbol) {
               if (tokenSymbol === this.tokenSymbol) {
                 shouldDisableRoute = true
-                break
               }
             } else {
               shouldDisableRoute = true
-              break
             }
           } else {
             if (destination === destinationChain) {
               shouldDisableRoute = true
-              break
             }
           }
         } else {
@@ -142,16 +139,13 @@ class AvailableLiquidityWatcher extends BaseWatcher {
               if (tokenSymbol) {
                 if (tokenSymbol === this.tokenSymbol) {
                   shouldDisableRoute = true
-                  break
                 }
               } else {
                 shouldDisableRoute = true
-                break
               }
             } else {
               if (destination === destinationChain) {
                 shouldDisableRoute = true
-                break
               }
             }
           }
@@ -162,6 +156,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
           availableCredit = BigNumber.from('0')
           baseAvailableCredit = BigNumber.from('0')
           baseAvailableCreditIncludingVault = BigNumber.from('0')
+          break
         }
       }
     } else {

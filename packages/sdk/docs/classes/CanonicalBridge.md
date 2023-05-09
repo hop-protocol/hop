@@ -23,6 +23,7 @@ CanonicalBridge
 - [addresses](CanonicalBridge.md#addresses)
 - [baseConfigUrl](CanonicalBridge.md#baseconfigurl)
 - [baseExplorerUrl](CanonicalBridge.md#baseexplorerurl)
+- [blocklist](CanonicalBridge.md#blocklist)
 - [bonders](CanonicalBridge.md#bonders)
 - [chain](CanonicalBridge.md#chain)
 - [chainProviders](CanonicalBridge.md#chainproviders)
@@ -54,6 +55,7 @@ CanonicalBridge
 - [\_getMessengerWrapperAddress](CanonicalBridge.md#_getmessengerwrapperaddress)
 - [approveDeposit](CanonicalBridge.md#approvedeposit)
 - [approveWithdraw](CanonicalBridge.md#approvewithdraw)
+- [checkBlocklist](CanonicalBridge.md#checkblocklist)
 - [connect](CanonicalBridge.md#connect)
 - [deposit](CanonicalBridge.md#deposit)
 - [estimateOptimismL1FeeFromData](CanonicalBridge.md#estimateoptimisml1feefromdata)
@@ -198,6 +200,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[baseExplorerUrl](Base.md#baseexplorerurl)
+
+___
+
+### <a id="blocklist" name="blocklist"></a> blocklist
+
+• **blocklist**: `Record`<`string`, `boolean`\> = `null`
+
+#### Inherited from
+
+[Base](Base.md).[blocklist](Base.md#blocklist)
 
 ___
 
@@ -544,6 +556,20 @@ Will only send approval transaction if necessary.
 `Promise`<`any`\>
 
 Ethers transaction object.
+
+___
+
+### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
+
+▸ **checkBlocklist**(): `Promise`<`void`\>
+
+#### Returns
+
+`Promise`<`void`\>
+
+#### Inherited from
+
+[Base](Base.md).[checkBlocklist](Base.md#checkblocklist)
 
 ___
 

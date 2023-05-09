@@ -211,7 +211,8 @@ class HopBridge extends Base {
       token: this.tokenSymbol,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
 
     // port over exiting properties
@@ -267,7 +268,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
   }
 
@@ -303,7 +305,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
   }
 
@@ -1703,7 +1706,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
   }
 
@@ -1804,7 +1808,8 @@ class HopBridge extends Base {
       signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
   }
 
@@ -1835,7 +1840,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
     return amm.addLiquidity(
       amount0Desired,
@@ -1868,7 +1874,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
     return amm.removeLiquidity(
       liquidityTokenAmount,
@@ -1895,7 +1902,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
     return amm.removeLiquidityOneToken(
       lpTokenAmount,
@@ -1922,7 +1930,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
     return amm.removeLiquidityImbalance(
       token0Amount,
@@ -1948,7 +1957,8 @@ class HopBridge extends Base {
       signer: this.signer,
       chainProviders: this.chainProviders,
       baseConfigUrl: this.baseConfigUrl,
-      configFileFetchEnabled: this.configFileFetchEnabled
+      configFileFetchEnabled: this.configFileFetchEnabled,
+      blocklist: this.blocklist
     })
     return amm.calculateRemoveLiquidityOneToken(
       tokenAmount,

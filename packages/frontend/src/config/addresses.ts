@@ -68,7 +68,6 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 const blocknativeDappid = process.env.REACT_APP_BNC_DAPP_ID
-const fortmaticApiKey = process.env.REACT_APP_FORTMATIC_KEY
 
 const stakingRewardsContracts = {
   mainnet: {
@@ -185,7 +184,6 @@ export {
   networks,
   isMainnet,
   blocknativeDappid,
-  fortmaticApiKey,
   stakingRewardsContracts,
   rewardTokenAddresses,
   hopStakingRewardsContracts,

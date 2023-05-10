@@ -1,4 +1,4 @@
-import { BigNumber, Signer, providers } from 'ethers'
+import { BigNumber, Signer, UnsignedTransaction, providers } from 'ethers'
 import {
   getAddress as checksumAddress,
   defineReadOnly,
@@ -86,6 +86,14 @@ export abstract class AwsSigner extends Signer {
     const pubKeyHash = keccak256(pubKeyBuffer)
     const address = `0x${pubKeyHash.slice(-40)}`
     return checksumAddress(address)
+  }
+
+  normalizeTransaction (transaction: providers.TransactionRequest):  providers.TransactionRequest {
+    // Ethers will not serialize a transaction with a from address
+    if (transaction?.from) {
+      delete transaction.from
+    }
+    return transaction
   }
 
   async getJoinedSignature (msg: Buffer, signature: Buffer): Promise<string> {

@@ -13,6 +13,7 @@ import {
   config as globalConfig,
   modifiedLiquidityDecrease,
   modifiedLiquidityDestChains,
+  modifiedLiquidityRoutes,
   modifiedLiquiditySourceChains,
   modifiedLiquidityTokens,
   oruChains
@@ -112,6 +113,58 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       availableCredit = availableCredit.sub(unbondedTransferRootAmounts)
     }
 
+    if (modifiedLiquidityRoutes?.length > 0) {
+      let shouldDisableRoute = false
+      for (const modifiedLiquidityRoute of modifiedLiquidityRoutes) {
+        const [source, destination, tokenSymbol] = modifiedLiquidityRoute.split(':')
+
+        if (source === 'all') {
+          if (destination === 'all') {
+            if (tokenSymbol) {
+              if (tokenSymbol === this.tokenSymbol) {
+                shouldDisableRoute = true
+                break
+              }
+            } else {
+              shouldDisableRoute = true
+              break
+            }
+          } else {
+            if (destination === destinationChain) {
+              shouldDisableRoute = true
+              break
+            }
+          }
+        } else {
+          if (source === this.chainSlug) {
+            if (destination === 'all') {
+              if (tokenSymbol) {
+                if (tokenSymbol === this.tokenSymbol) {
+                  shouldDisableRoute = true
+                  break
+                }
+              } else {
+                shouldDisableRoute = true
+                break
+              }
+            } else {
+              if (destination === destinationChain) {
+                shouldDisableRoute = true
+                break
+              }
+            }
+          }
+        }
+      }
+
+      this.logger.debug(`modifiedLiquidityRoutes: ${this.chainSlug}->${destinationChain} ${this.tokenSymbol}, shouldDisableRoute: ${shouldDisableRoute}`)
+      if (shouldDisableRoute) {
+        availableCredit = BigNumber.from('0')
+        baseAvailableCredit = BigNumber.from('0')
+        baseAvailableCreditIncludingVault = BigNumber.from('0')
+      }
+    }
+
     if (
       modifiedLiquidityTokens.includes(this.tokenSymbol) &&
       modifiedLiquiditySourceChains.includes(this.chainSlug) &&
@@ -139,6 +192,14 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
     if (availableCredit.lt(0)) {
       availableCredit = BigNumber.from(0)
+    }
+
+    if (baseAvailableCredit.lt(0)) {
+      baseAvailableCredit = BigNumber.from(0)
+    }
+
+    if (baseAvailableCreditIncludingVault.lt(0)) {
+      baseAvailableCreditIncludingVault = BigNumber.from(0)
     }
 
     return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance }

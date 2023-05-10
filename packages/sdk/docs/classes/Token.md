@@ -25,6 +25,7 @@ Token
 - [addresses](Token.md#addresses)
 - [baseConfigUrl](Token.md#baseconfigurl)
 - [baseExplorerUrl](Token.md#baseexplorerurl)
+- [blocklist](Token.md#blocklist)
 - [bonders](Token.md#bonders)
 - [chain](Token.md#chain)
 - [chainProviders](Token.md#chainproviders)
@@ -64,6 +65,7 @@ Token
 - [allowance](Token.md#allowance)
 - [approve](Token.md#approve)
 - [balanceOf](Token.md#balanceof)
+- [checkBlocklist](Token.md#checkblocklist)
 - [connect](Token.md#connect)
 - [eq](Token.md#eq)
 - [estimateOptimismL1FeeFromData](Token.md#estimateoptimisml1feefromdata)
@@ -218,6 +220,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[baseExplorerUrl](Base.md#baseexplorerurl)
+
+___
+
+### <a id="blocklist" name="blocklist"></a> blocklist
+
+• **blocklist**: `Record`<`string`, `boolean`\> = `null`
+
+#### Inherited from
+
+[Base](Base.md).[blocklist](Base.md#blocklist)
 
 ___
 
@@ -668,6 +680,20 @@ const allowance = bridge.allowance(Chain.Gnosis, spender)
 `Promise`<`BigNumber`\>
 
 Ethers Transaction object.
+
+___
+
+### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
+
+▸ **checkBlocklist**(): `Promise`<`void`\>
+
+#### Returns
+
+`Promise`<`void`\>
+
+#### Inherited from
+
+[Base](Base.md).[checkBlocklist](Base.md#checkblocklist)
 
 ___
 

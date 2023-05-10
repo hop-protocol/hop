@@ -23,6 +23,7 @@ HopBridge
 - [addresses](HopBridge.md#addresses)
 - [baseConfigUrl](HopBridge.md#baseconfigurl)
 - [baseExplorerUrl](HopBridge.md#baseexplorerurl)
+- [blocklist](HopBridge.md#blocklist)
 - [bonders](HopBridge.md#bonders)
 - [chainProviders](HopBridge.md#chainproviders)
 - [chains](HopBridge.md#chains)
@@ -61,6 +62,7 @@ HopBridge
 - [calcAmountOutMin](HopBridge.md#calcamountoutmin)
 - [calculateWithdrawOneToken](HopBridge.md#calculatewithdrawonetoken)
 - [challengePeriod](HopBridge.md#challengeperiod)
+- [checkBlocklist](HopBridge.md#checkblocklist)
 - [connect](HopBridge.md#connect)
 - [estimateBondWithdrawalGasLimit](HopBridge.md#estimatebondwithdrawalgaslimit)
 - [estimateOptimismL1FeeFromData](HopBridge.md#estimateoptimisml1feefromdata)
@@ -276,6 +278,16 @@ ___
 
 ___
 
+### <a id="blocklist" name="blocklist"></a> blocklist
+
+• **blocklist**: `Record`<`string`, `boolean`\> = `null`
+
+#### Inherited from
+
+[Base](Base.md).[blocklist](Base.md#blocklist)
+
+___
+
 ### <a id="bonders" name="bonders"></a> bonders
 
 • **bonders**: `Record`<`string`, `any`\>
@@ -432,7 +444,7 @@ ___
 
 ### <a id="pricefeed" name="pricefeed"></a> priceFeed
 
-• **priceFeed**: [`PriceFeed`](PriceFeed.md)
+• **priceFeed**: `PriceFeedFromS3`
 
 ___
 
@@ -684,6 +696,20 @@ The challenge period.
 `Promise`<`BigNumber`\>
 
 The challenge period for the bridge as BigNumber.
+
+___
+
+### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
+
+▸ **checkBlocklist**(): `Promise`<`void`\>
+
+#### Returns
+
+`Promise`<`void`\>
+
+#### Inherited from
+
+[Base](Base.md).[checkBlocklist](Base.md#checkblocklist)
 
 ___
 

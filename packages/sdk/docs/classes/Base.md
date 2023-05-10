@@ -31,6 +31,7 @@ Base
 - [addresses](Base.md#addresses)
 - [baseConfigUrl](Base.md#baseconfigurl)
 - [baseExplorerUrl](Base.md#baseexplorerurl)
+- [blocklist](Base.md#blocklist)
 - [bonders](Base.md#bonders)
 - [chainProviders](Base.md#chainproviders)
 - [chains](Base.md#chains)
@@ -57,6 +58,7 @@ Base
 
 - [\_getBonderAddress](Base.md#_getbonderaddress)
 - [\_getMessengerWrapperAddress](Base.md#_getmessengerwrapperaddress)
+- [checkBlocklist](Base.md#checkblocklist)
 - [estimateOptimismL1FeeFromData](Base.md#estimateoptimisml1feefromdata)
 - [fetchBonderAvailableLiquidityData](Base.md#fetchbonderavailableliquiditydata)
 - [fetchBonderAvailableLiquidityDataWithIpfsFallback](Base.md#fetchbonderavailableliquiditydatawithipfsfallback)
@@ -159,6 +161,12 @@ ___
 ### <a id="baseexplorerurl" name="baseexplorerurl"></a> baseExplorerUrl
 
 • **baseExplorerUrl**: `string` = `'https://explorer.hop.exchange'`
+
+___
+
+### <a id="blocklist" name="blocklist"></a> blocklist
+
+• **blocklist**: `Record`<`string`, `boolean`\> = `null`
 
 ___
 
@@ -346,6 +354,16 @@ ___
 #### Returns
 
 `Promise`<`string`\>
+
+___
+
+### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
+
+▸ **checkBlocklist**(): `Promise`<`void`\>
+
+#### Returns
+
+`Promise`<`void`\>
 
 ___
 

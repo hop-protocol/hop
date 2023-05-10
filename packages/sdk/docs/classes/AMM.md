@@ -23,6 +23,7 @@ AMM
 - [addresses](AMM.md#addresses)
 - [baseConfigUrl](AMM.md#baseconfigurl)
 - [baseExplorerUrl](AMM.md#baseexplorerurl)
+- [blocklist](AMM.md#blocklist)
 - [bonders](AMM.md#bonders)
 - [calculateSwap](AMM.md#calculateswap)
 - [chain](AMM.md#chain)
@@ -63,6 +64,7 @@ AMM
 - [calculateRemoveLiquidityOneToken](AMM.md#calculateremoveliquidityonetoken)
 - [calculateToHToken](AMM.md#calculatetohtoken)
 - [calculateTotalAmountForLpToken](AMM.md#calculatetotalamountforlptoken)
+- [checkBlocklist](AMM.md#checkblocklist)
 - [connect](AMM.md#connect)
 - [estimateOptimismL1FeeFromData](AMM.md#estimateoptimisml1feefromdata)
 - [fetchBonderAvailableLiquidityData](AMM.md#fetchbonderavailableliquiditydata)
@@ -216,6 +218,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[baseExplorerUrl](Base.md#baseexplorerurl)
+
+___
+
+### <a id="blocklist" name="blocklist"></a> blocklist
+
+• **blocklist**: `Record`<`string`, `boolean`\> = `null`
+
+#### Inherited from
+
+[Base](Base.md).[blocklist](Base.md#blocklist)
 
 ___
 
@@ -719,6 +731,20 @@ ___
 #### Returns
 
 `Promise`<`BigNumber`\>
+
+___
+
+### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
+
+▸ **checkBlocklist**(): `Promise`<`void`\>
+
+#### Returns
+
+`Promise`<`void`\>
+
+#### Inherited from
+
+[Base](Base.md).[checkBlocklist](Base.md#checkblocklist)
 
 ___
 

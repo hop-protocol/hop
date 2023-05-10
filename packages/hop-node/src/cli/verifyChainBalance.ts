@@ -65,7 +65,7 @@ const inactiveBonders = [
  * Verify the chainBalance against all relevant data sources. It compares (1) the tokens in the L1 contract against the
  * chainBalance, and (2) the chainBalance against the hToken total supply. If the system is unhealthy, then these
  * values would not match.
- * 
+ *
  * In order to regenerate archive data, run the generate-chain-balance-archive-data CLI command. When running it,
  * ensure that the timestamp you use is
  *
@@ -81,7 +81,7 @@ const inactiveBonders = [
  *   - The (chainBalance - hToken) sometimes reports a tiny, consistent, negative number. The number is on the
  *     order of -10^-14 for 18 decimal tokens. It is consistent, but unclear why it exists. This can be considered
  *     a rounding error and is ignored in the return data, if desired.
- * 
+ *
  * Possible reasons for discrepancies:
  *   - Uncategorized
  *     - An archive transfer from L1 to L2 that was never relayed has recently been relayed
@@ -167,7 +167,6 @@ export async function main (source: any) {
 
   const tokenChainBalanceDiff = adjustedToken.sub(totalAdjustedChainBalance)
   let chainBalanceHTokenDiff = totalAdjustedChainBalance.sub(totalAdjustedHToken)
-
 
   if (allowRoundingError) {
     const decimals: number = getTokenDecimals(token)
@@ -416,7 +415,7 @@ async function getHTokenAdjustments (
     token,
     chain,
     l2ChainsForToken,
-    l2BlockTimestamp
+    metaBlockData
   )
 
   // In flight outbound roots
@@ -495,30 +494,36 @@ async function getAllPossibleInFlightRoots (
   token: string,
   chain: string,
   l2ChainsForToken: string[],
-  endTimestamp: providers.BlockTag
+  metaBlockData: Record<string, MetaBlockData>
 ) {
-  endTimestamp = Number(endTimestamp)
+  // We need to ensure we use the correct timestamp for each chain
+  let { blockTimestamp: l1BlockTimestamp } = metaBlockData[Chain.Ethereum]
+  let { blockTimestamp: l2BlockTimestampForChain } = metaBlockData[chain]
+  l1BlockTimestamp = Number(l1BlockTimestamp)
+  l2BlockTimestampForChain = Number(l2BlockTimestampForChain)
+
   const archiveDataTimestamp: number = ChainBalanceArchiveData.ArchiveDataTimestamp
 
   // Get all roots seen on L1
-  const l1RootsConfirmed = await getTransferRootConfirmed(Chain.Ethereum, token, archiveDataTimestamp, endTimestamp)
-  const l1RootsBonded = await getTransferRootBonded(Chain.Ethereum, token, archiveDataTimestamp, endTimestamp)
+  const l1RootsConfirmed = await getTransferRootConfirmed(Chain.Ethereum, token, archiveDataTimestamp, l1BlockTimestamp)
+  const l1RootsBonded = await getTransferRootBonded(Chain.Ethereum, token, archiveDataTimestamp, l1BlockTimestamp)
   const l1RootHashesConfirmed = l1RootsConfirmed.map((l1RootConfirmed: any) => l1RootConfirmed.rootHash)
   const l1RootHashesBonded = l1RootsBonded.map((l1RootBonded: any) => l1RootBonded.root)
   const rootHashesSeenOnL1 = l1RootHashesConfirmed.concat(l1RootHashesBonded)
 
   // Get all roots settled on L2
-  const l2RootsSet = await getTransferRootSet(chain, token, archiveDataTimestamp, endTimestamp)
+  const l2RootsSet = await getTransferRootSet(chain, token, archiveDataTimestamp, l2BlockTimestampForChain)
   const rootHashesSetOnL2 = l2RootsSet.map((root: any) => root.rootHash)
 
   // Get all roots committed on L2 in the given time. Add the sourceChainId to the object for convenience
   const allRootsCommitted: Record<string, any> = {}
   for (const l2SourceChain of l2ChainsForToken) {
     const sourceChainId = chainSlugToId(l2SourceChain)
+    const sourceChainTimestamp = Number(metaBlockData[l2SourceChain].blockTimestamp)
 
     // This represents all destination chainIds
     const destinationChainId = 0
-    const rootsCommitted = await getTransfersCommitted(l2SourceChain, token, destinationChainId, archiveDataTimestamp, endTimestamp)
+    const rootsCommitted = await getTransfersCommitted(l2SourceChain, token, destinationChainId, archiveDataTimestamp, sourceChainTimestamp)
     for (const rootCommitted of rootsCommitted) {
       allRootsCommitted[rootCommitted.rootHash] = rootCommitted
       allRootsCommitted[rootCommitted.rootHash].sourceChainId = sourceChainId

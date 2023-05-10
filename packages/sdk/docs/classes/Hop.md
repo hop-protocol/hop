@@ -26,6 +26,7 @@ Hop
 - [addresses](Hop.md#addresses)
 - [baseConfigUrl](Hop.md#baseconfigurl)
 - [baseExplorerUrl](Hop.md#baseexplorerurl)
+- [blocklist](Hop.md#blocklist)
 - [bonders](Hop.md#bonders)
 - [chainProviders](Hop.md#chainproviders)
 - [chains](Hop.md#chains)
@@ -59,6 +60,7 @@ Hop
 - [\_getMessengerWrapperAddress](Hop.md#_getmessengerwrapperaddress)
 - [bridge](Hop.md#bridge)
 - [canonicalBridge](Hop.md#canonicalbridge)
+- [checkBlocklist](Hop.md#checkblocklist)
 - [connect](Hop.md#connect)
 - [estimateOptimismL1FeeFromData](Hop.md#estimateoptimisml1feefromdata)
 - [fetchBonderAvailableLiquidityData](Hop.md#fetchbonderavailableliquiditydata)
@@ -224,6 +226,16 @@ ___
 #### Inherited from
 
 [Base](Base.md).[baseExplorerUrl](Base.md#baseexplorerurl)
+
+___
+
+### <a id="blocklist" name="blocklist"></a> blocklist
+
+• **blocklist**: `Record`<`string`, `boolean`\> = `null`
+
+#### Inherited from
+
+[Base](Base.md).[blocklist](Base.md#blocklist)
 
 ___
 
@@ -609,6 +621,20 @@ const bridge = hop.canonicalBridge('USDC')
 [`CanonicalBridge`](CanonicalBridge.md)
 
 A CanonicalBridge instance.
+
+___
+
+### <a id="checkblocklist" name="checkblocklist"></a> checkBlocklist
+
+▸ **checkBlocklist**(): `Promise`<`void`\>
+
+#### Returns
+
+`Promise`<`void`\>
+
+#### Inherited from
+
+[Base](Base.md).[checkBlocklist](Base.md#checkblocklist)
 
 ___
 

@@ -88,6 +88,14 @@ export abstract class AwsSigner extends Signer {
     return checksumAddress(address)
   }
 
+  normalizeTransaction (transaction: providers.TransactionRequest):  providers.TransactionRequest {
+    // Ethers will not serialize a transaction with a from address
+    if (transaction?.from) {
+      delete transaction.from
+    }
+    return transaction
+  }
+
   async getJoinedSignature (msg: Buffer, signature: Buffer): Promise<string> {
     const { r, s } = this.getSigRs(signature)
     const { v } = await this.getSigV(msg, { r, s })

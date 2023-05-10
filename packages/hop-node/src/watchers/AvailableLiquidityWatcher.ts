@@ -114,23 +114,25 @@ class AvailableLiquidityWatcher extends BaseWatcher {
     }
 
     if (modifiedLiquidityRoutes?.length > 0) {
+      let shouldDisableRoute = false
       for (const modifiedLiquidityRoute of modifiedLiquidityRoutes) {
         const [source, destination, tokenSymbol] = modifiedLiquidityRoute.split(':')
-
-        let shouldDisableRoute = false
 
         if (source === 'all') {
           if (destination === 'all') {
             if (tokenSymbol) {
               if (tokenSymbol === this.tokenSymbol) {
                 shouldDisableRoute = true
+                break
               }
             } else {
               shouldDisableRoute = true
+              break
             }
           } else {
             if (destination === destinationChain) {
               shouldDisableRoute = true
+              break
             }
           }
         } else {
@@ -139,55 +141,65 @@ class AvailableLiquidityWatcher extends BaseWatcher {
               if (tokenSymbol) {
                 if (tokenSymbol === this.tokenSymbol) {
                   shouldDisableRoute = true
+                  break
                 }
               } else {
                 shouldDisableRoute = true
+                break
               }
             } else {
               if (destination === destinationChain) {
                 shouldDisableRoute = true
+                break
               }
             }
           }
         }
-
-        this.logger.debug(`modifiedLiquidityRoutes: ${modifiedLiquidityRoute}, shouldDisableRoute: ${shouldDisableRoute}`)
-        if (shouldDisableRoute) {
-          availableCredit = BigNumber.from('0')
-          baseAvailableCredit = BigNumber.from('0')
-          baseAvailableCreditIncludingVault = BigNumber.from('0')
-          break
-        }
       }
-    } else {
-      if (
-        modifiedLiquidityTokens.includes(this.tokenSymbol) &&
-        modifiedLiquiditySourceChains.includes(this.chainSlug) &&
-        modifiedLiquidityDestChains.includes(destinationChain)
-      ) {
-        this.logger.debug(`modifiedLiquidity: currentAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
-        this.logger.debug(`modifiedLiquidity: currentBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
-        this.logger.debug(`modifiedLiquidity: currentAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
 
-        if (modifiedLiquidityDecrease !== '0') {
-          const decreaseAmount = this.bridge.parseUnits(modifiedLiquidityDecrease)
-          availableCredit = availableCredit.sub(decreaseAmount)
-          baseAvailableCredit = baseAvailableCredit.sub(decreaseAmount)
-          baseAvailableCreditIncludingVault = baseAvailableCreditIncludingVault.sub(decreaseAmount)
-        } else {
-          availableCredit = BigNumber.from('0')
-          baseAvailableCredit = BigNumber.from('0')
-          baseAvailableCreditIncludingVault = BigNumber.from('0')
-        }
-
-        this.logger.debug(`modifiedLiquidity: updatedAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
-        this.logger.debug(`modifiedLiquidity: updatedBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
-        this.logger.debug(`modifiedLiquidity: updatedAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidityRoutes: ${this.chainSlug}->${destinationChain} ${this.tokenSymbol}, shouldDisableRoute: ${shouldDisableRoute}`)
+      if (shouldDisableRoute) {
+        availableCredit = BigNumber.from('0')
+        baseAvailableCredit = BigNumber.from('0')
+        baseAvailableCreditIncludingVault = BigNumber.from('0')
       }
+    }
+
+    if (
+      modifiedLiquidityTokens.includes(this.tokenSymbol) &&
+      modifiedLiquiditySourceChains.includes(this.chainSlug) &&
+      modifiedLiquidityDestChains.includes(destinationChain)
+    ) {
+      this.logger.debug(`modifiedLiquidity: currentAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: currentBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: currentAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
+
+      if (modifiedLiquidityDecrease !== '0') {
+        const decreaseAmount = this.bridge.parseUnits(modifiedLiquidityDecrease)
+        availableCredit = availableCredit.sub(decreaseAmount)
+        baseAvailableCredit = baseAvailableCredit.sub(decreaseAmount)
+        baseAvailableCreditIncludingVault = baseAvailableCreditIncludingVault.sub(decreaseAmount)
+      } else {
+        availableCredit = BigNumber.from('0')
+        baseAvailableCredit = BigNumber.from('0')
+        baseAvailableCreditIncludingVault = BigNumber.from('0')
+      }
+
+      this.logger.debug(`modifiedLiquidity: updatedAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: updatedBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
+      this.logger.debug(`modifiedLiquidity: updatedAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
     }
 
     if (availableCredit.lt(0)) {
       availableCredit = BigNumber.from(0)
+    }
+
+    if (baseAvailableCredit.lt(0)) {
+      baseAvailableCredit = BigNumber.from(0)
+    }
+
+    if (baseAvailableCreditIncludingVault.lt(0)) {
+      baseAvailableCreditIncludingVault = BigNumber.from(0)
     }
 
     return { availableCredit, baseAvailableCredit, baseAvailableCreditIncludingVault, vaultBalance }

@@ -1,4 +1,4 @@
-import { BigNumber, Signer, UnsignedTransaction, providers } from 'ethers'
+import { BigNumber, Signer, providers } from 'ethers'
 import {
   getAddress as checksumAddress,
   defineReadOnly,

@@ -1,10 +1,11 @@
-import { Chain } from 'src/constants'
+import { formatEther, parseEther } from 'ethers/lib/utils'
 import { KmsSigner } from 'src/aws/KmsSigner'
 import { LambdaSigner } from 'src/aws/LambdaSigner'
 import { actionHandler, parseBool, root } from './shared'
 import { getRpcProvider } from 'src/utils/getRpcProvider'
 import {
-  config as globalConfig
+  config as globalConfig,
+  getEnabledNetworks
 } from 'src/config'
 
 root
@@ -54,20 +55,32 @@ async function main (source: any) {
 
   // Send tx to self
   if (sendTestTx) {
-    console.log('\nSending test transaction to self...')
-    const address = await signer.getAddress()
-    const validFunctionSig = '0x0f7aadb7'
-    const transaction = {
-      to: address,
-      data: validFunctionSig
+    const chains = getEnabledNetworks()
+    for (const chain of chains) {
+      console.log(`\nSending test transaction to self on ${chain}...`)
+      const address = await signer.getAddress()
+      const validFunctionSig = '0x0f7aadb7'
+      const transaction = {
+        to: address,
+        data: validFunctionSig
+      }
+      const provider = getRpcProvider(chain)!
+
+      // If the bonder does not have funds on the chain, skip
+      const balance = await provider.getBalance(address)
+      const minBalance = parseEther('0.003')
+      if (balance.lte(minBalance)) {
+        console.log(`Skipping ${chain} because ${address} has too few funds (${formatEther(balance)} ETH)`)
+        continue
+      }
+
+      const tx = await signer.connect(provider!).sendTransaction(transaction)
+      const receipt = await tx.wait()
+      console.log(`Transaction sent: ${tx.hash}`)
+      if (receipt.from !== address) {
+        throw new Error(`Transaction sent from ${receipt.from} but expected ${address}`)
+      }
+      console.log('Transaction verified')
     }
-    const provider = getRpcProvider(Chain.Ethereum)
-    const tx = await signer.connect(provider!).sendTransaction(transaction)
-    const receipt = await tx.wait()
-    console.log(`Transaction sent: ${tx.hash}`)
-    if (receipt.from !== address) {
-      throw new Error(`Transaction sent from ${receipt.from} but expected ${address}`)
-    }
-    console.log('Transaction verified')
   }
 }

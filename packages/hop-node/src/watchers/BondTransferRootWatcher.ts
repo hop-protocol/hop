@@ -4,11 +4,12 @@ import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber } from 'ethers'
+import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { config as globalConfig } from 'src/config'
+import { TransferRoot } from 'src/db/TransferRootsDb'
 
 type Config = {
   chainSlug: string
@@ -171,6 +172,12 @@ class BondTransferRootWatcher extends BaseWatcher {
         destinationChainId,
         totalAmount
       )
+
+      if (!tx) {
+        // TODO: Turn off writes
+        throw new Error('Possible reorg detected. bondTransferRoot tx not sent')
+      }
+
       const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
       this.notifier.info(msg)
@@ -184,13 +191,14 @@ class BondTransferRootWatcher extends BaseWatcher {
     transferRootHash: string,
     destinationChainId: number,
     totalAmount: BigNumber
-  ) {
-    const calculatedTransferRootId = getTransferRootId(transferRootHash, totalAmount)
-    const dbEntry = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
-    const doesExistInDb = !!dbEntry
-    const isSameDestinationChainId = dbEntry?.destinationChainId === destinationChainId
-    if (!doesExistInDb || !isSameDestinationChainId) {
-      throw new Error(`Calculated transferRootId (${calculatedTransferRootId}) or destinationChainId (${destinationChainId}) does not match db entry`)
+  ): Promise<providers.TransactionResponse | void> {
+    const areParamsValid = await this.arePreTransactionParamsValid({
+      transferRootHash,
+      destinationChainId,
+      totalAmount
+    })
+    if (!areParamsValid) {
+      return
     }
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
@@ -231,6 +239,53 @@ class BondTransferRootWatcher extends BaseWatcher {
         }
       }
     })
+  }
+
+  async arePreTransactionParamsValid (params: any): Promise<boolean> {
+    // Perform this check as late as possible before the transaction is sent
+    const {
+      transferRootHash,
+      destinationChainId,
+      totalAmount
+    } = params
+
+    // Validate DB existence with calculated transferRootId
+    const calculatedTransferRootId = getTransferRootId(transferRootHash, totalAmount)
+    const logger = this.logger.create({ root: calculatedTransferRootId })
+    const calculatedDbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
+    if (calculatedDbTransferRoot?.transferRootId !== calculatedTransferRootId) {
+      logger.error(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
+      return false
+    }
+
+    // Validate that the destination chain id matches the db entry
+    if (calculatedDbTransferRoot?.destinationChainId !== destinationChainId) {
+      logger.error(`destinationChainId (${destinationChainId}) does not match destinationChainId in db (${calculatedDbTransferRoot?.destinationChainId})`)
+      return false
+    }
+
+    // Validate uniqueness for redundant reorg protection. A transferId should only exist in one transferRoot per source chain
+    const transferIds: string[] = calculatedDbTransferRoot.transferIds!.map(x => x.toLowerCase())
+    console.log(transferIds)
+    const dbTransferIds: string[] = []
+    const dbTransferRoots: TransferRoot[] = await this.db.transferRoots.getTransferRootsFromTwoWeeks()
+    for (const dbTransferRoot of dbTransferRoots) {
+      if (dbTransferRoot.sourceChainId !== this.bridge.chainId) continue
+      for (const transferId of dbTransferRoot.transferIds!) {
+        dbTransferIds.push(transferId.toLowerCase())
+      }
+    }
+
+    const areTransferIdsUnique = transferIds.every(transferId => {
+      const numOccurrences = dbTransferIds.filter(dbTransferId => dbTransferId === transferId).length
+      return numOccurrences === 1
+    })
+    if (!areTransferIdsUnique) {
+      logger.error(`transferIds (${transferIds}) are either not unique and exist in multiple transferRoots or do not exist in any root`)
+      return false
+    }
+
+    return true
   }
 }
 

@@ -5,7 +5,7 @@ import Logger from 'src/logger'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
-import { BigNumber } from 'ethers'
+import { BigNumber, providers } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError } from 'src/types/error'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -114,7 +114,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       bonderFee,
       transferNonce,
       deadline,
-      transferSentTxHash
+      transferSentTxHash,
+      transferSentIndex
     } = dbTransfer
     const logger: Logger = this.logger.create({ id: transferId })
     logger.debug('processing bondWithdrawal')
@@ -216,8 +217,13 @@ class BondWithdrawalWatcher extends BaseWatcher {
         attemptSwap: attemptSwapDuringBondWithdrawal,
         destinationChainId,
         amountOutMin,
-        deadline
+        deadline,
+        transferSentIndex
       })
+
+      if (!tx) {
+        throw new Error('Possible reorg detected. bondWithdrawal tx not sent')
+      }
 
       const sentChain = attemptSwapDuringBondWithdrawal ? `destination chain ${destinationChainId}` : 'L1'
       const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
@@ -261,7 +267,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async sendBondWithdrawalTx (params: any) {
+  async sendBondWithdrawalTx (params: any): Promise<providers.TransactionResponse | void> {
     const {
       transferId,
       destinationChainId,
@@ -274,12 +280,12 @@ class BondWithdrawalWatcher extends BaseWatcher {
       deadline
     } = params
     const logger = this.logger.create({ id: transferId })
-    const calculatedTransferId = getTransferId(destinationChainId, recipient, amount, transferNonce, bonderFee, amountOutMin, deadline)
-    const doesExistInDb = !!(await this.db.transfers.getByTransferId(calculatedTransferId))
-    if (!doesExistInDb) {
-      throw new Error(`Calculated transferId (${calculatedTransferId}) does not match transferId in db`)
-    }
 
+    const areParamsValid = await this.arePreTransactionParamsValid(params)
+    if (!areParamsValid) {
+      return
+    }
+    
     if (attemptSwap) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
@@ -346,6 +352,53 @@ class BondWithdrawalWatcher extends BaseWatcher {
         }
       }
     })
+  }
+
+  async arePreTransactionParamsValid (params: any): Promise<boolean> {
+    // Perform this check as late as possible before the transaction is sent
+    const {
+      transferId,
+      destinationChainId,
+      recipient,
+      amount,
+      transferNonce,
+      bonderFee,
+      amountOutMin,
+      deadline,
+      transferSentIndex
+    } = params
+
+    const logger = this.logger.create({ id: transferId })
+
+    // Validate DB existence with calculated transferId
+    const calculatedTransferId = getTransferId(destinationChainId, recipient, amount, transferNonce, bonderFee, amountOutMin, deadline)
+    const calculatedDbTransfer = await this.db.transfers.getByTransferId(calculatedTransferId)
+    if (calculatedDbTransfer?.transferId !== calculatedTransferId) {
+      logger.error(`Calculated transferId (${calculatedTransferId}) does not match transferId in db`)
+      return false
+    }
+
+    // Validate transferSentIndex is expected since it is not part of the transferId
+    if (calculatedDbTransfer?.transferSentIndex !== transferSentIndex) {
+      logger.error(`transferSentIndex (${transferSentIndex}) does not match transferSentIndex in db (${calculatedDbTransfer?.transferSentIndex})`)
+      return false
+    }
+
+    // Validate uniqueness for redundant reorg protection. A transferNonce should be seen exactly one time in the DB per source chain
+    const expectedTransferNonce = transferNonce
+    const dbTransfers: Transfer[] = await this.db.transfers.getTransfersFromWeek()
+    const dbTransfersFromSource: Transfer[] = dbTransfers.filter(dbTransfer => dbTransfer.sourceChainId === this.bridge.chainId)
+    const transfersWithExpectedTransferNonce: Transfer[] = dbTransfersFromSource.filter(dbTransfer => dbTransfer.transferNonce === expectedTransferNonce)
+    if (transfersWithExpectedTransferNonce.length > 1) {
+      logger.error(`transferNonce (${transferNonce}) exists in multiple transfers in db`);
+      return false;
+    }
+    if (transfersWithExpectedTransferNonce.length === 0) {
+      logger.error(`transferNonce (${transferNonce}) does not exist in db or is older than one week`);
+      return false;
+    }
+
+    return true
   }
 }
 

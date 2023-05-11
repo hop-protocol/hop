@@ -1,6 +1,8 @@
 import {
   getBondWithdrawalWatcher
 } from 'src/watchers/watchers'
+import { SendBondWithdrawalTxParams } from 'src/watchers/BondWithdrawalWatcher'
+import { Transfer } from 'src/db/TransfersDb'
 
 import { actionHandler, parseBool, parseInputFileList, parseString, parseStringArray, root } from './shared'
 
@@ -46,16 +48,29 @@ async function main (source: any) {
 
   for (const transferId of transferIds) {
     try {
-      const dbTransfer: any = await watcher.db.transfers.getByTransferId(transferId)
+      const dbTransfer: Transfer = await watcher.db.transfers.getByTransferId(transferId)
       if (!dbTransfer) {
         throw new Error('TransferId does not exist in the DB')
       }
-      dbTransfer.attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin, dbTransfer.deadline)
-      if (dbTransfer.attemptSwap && dbTransfer.destinationChainId === 1) {
+      const attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin, dbTransfer.deadline)
+      if (attemptSwap && dbTransfer.destinationChainId === 1) {
         throw new Error('Cannot bond transfer because a swap is being attempted on mainnet. Please withdraw instead.')
       }
 
-      await watcher.sendBondWithdrawalTx(dbTransfer)
+      const txParams: SendBondWithdrawalTxParams = ({
+        transferId: dbTransfer.transferId!,
+        sender: dbTransfer.sender!,
+        recipient: dbTransfer.recipient!,
+        amount: dbTransfer.amount!,
+        transferNonce: dbTransfer.transferNonce!,
+        bonderFee: dbTransfer.bonderFee!,
+        attemptSwap,
+        destinationChainId: dbTransfer.destinationChainId!,
+        amountOutMin: dbTransfer.amountOutMin!,
+        deadline: dbTransfer.deadline!,
+        transferSentIndex : dbTransfer.transferSentIndex!
+      })
+      await watcher.sendBondWithdrawalTx(txParams)
     } catch (err: any) {
       console.log(err)
       // nop

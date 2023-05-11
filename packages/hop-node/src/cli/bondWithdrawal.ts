@@ -7,6 +7,7 @@ import { actionHandler, parseBool, parseInputFileList, parseString, parseStringA
 root
   .command('bond-withdrawal')
   .description('Bond withdrawal')
+  .option('--source-chain <slug>', 'Source chain', parseString)
   .option('--token <symbol>', 'Token', parseString)
   .option('--transfer-ids <id, ...>', 'Comma-separated transfer ids', parseStringArray)
   .option('--transfer-ids-file <filepath>', 'Filenamepath containing list of transfer IDs', parseInputFileList)
@@ -18,7 +19,16 @@ root
   .action(actionHandler(main))
 
 async function main (source: any) {
-  let { token, dry: dryMode, transferIds, transferIdsFile: transferIdsFileList } = source
+  let {
+    sourceChain: chain,
+    token,
+    dry: dryMode,
+    transferIds,
+    transferIdsFile: transferIdsFileList
+  } = source
+  if (!chain) {
+    throw new Error('chain is required in order to apply correct reorg redundant protection')
+  }
   if (transferIdsFileList && !transferIds) {
     transferIds = transferIdsFileList
   }
@@ -29,7 +39,7 @@ async function main (source: any) {
     throw new Error('transfer ID is required')
   }
 
-  const watcher = await getBondWithdrawalWatcher({ token, dryMode })
+  const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode })
   if (!watcher) {
     throw new Error('watcher not found')
   }

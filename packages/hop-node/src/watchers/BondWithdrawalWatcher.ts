@@ -221,10 +221,6 @@ class BondWithdrawalWatcher extends BaseWatcher {
         transferSentIndex
       })
 
-      if (!tx) {
-        throw new Error('Possible reorg detected. bondWithdrawal tx not sent')
-      }
-
       const sentChain = attemptSwapDuringBondWithdrawal ? `destination chain ${destinationChainId}` : 'L1'
       const msg = `sent bondWithdrawal on ${sentChain} (source chain ${sourceChainId}) tx: ${tx.hash} transferId: ${transferId}`
       logger.info(msg)
@@ -267,7 +263,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     }
   }
 
-  async sendBondWithdrawalTx (params: any): Promise<providers.TransactionResponse | void> {
+  async sendBondWithdrawalTx (params: any): Promise<providers.TransactionResponse> {
     const {
       transferId,
       destinationChainId,
@@ -281,9 +277,9 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = params
     const logger = this.logger.create({ id: transferId })
 
-    const areParamsValid = await this.arePreTransactionParamsValid(params)
-    if (!areParamsValid) {
-      return
+    const isValid = await this.isPreTransactionDataValid(params)
+    if (!isValid) {
+      throw new Error('Possible reorg detected. bondWithdrawal tx not sent')
     }
     
     if (attemptSwap) {
@@ -354,7 +350,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     })
   }
 
-  async arePreTransactionParamsValid (params: any): Promise<boolean> {
+  async isPreTransactionDataValid (params: any): Promise<boolean> {
     // Perform this check as late as possible before the transaction is sent
     const {
       transferId,

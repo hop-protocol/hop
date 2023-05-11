@@ -242,7 +242,12 @@ class ConfirmRootsWatcher extends BaseWatcher {
   }
 
   async confirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
-    await this.validateConfirmRootsViaWrapper(rootData)
+    // NOTE: Since root confirmations via a wrapper can only happen after the challenge period expires, it is not
+    // possible for a reorg to occur. Therefore, we do not need to check for a reorg here.
+    const isValid = await this.isPreTransactionDataValid(rootData)
+      if (!isValid) {
+        throw new Error('Incorrect root confirmation detected. confirmRoots tx not sent')
+      }
     const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
     await this.l1MessengerWrapper.confirmRoots(
       rootHashes,
@@ -252,7 +257,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
     )
   }
 
-  async validateConfirmRootsViaWrapper (rootData: ConfirmRootsData): Promise<void> {
+  async isPreTransactionDataValid (rootData: ConfirmRootsData): Promise<boolean> {
     const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData
 
     // Data validation
@@ -261,7 +266,8 @@ class ConfirmRootsWatcher extends BaseWatcher {
       rootHashes.length !== totalAmounts.length ||
       rootHashes.length !== rootCommittedAts.length
     ) {
-      throw new Error('Root data arrays must be the same length')
+      this.logger.error('Root data arrays must be the same length')
+      return false
     }
 
     for (const [index, value] of rootHashes.entries()) {
@@ -272,12 +278,14 @@ class ConfirmRootsWatcher extends BaseWatcher {
 
       // Verify that the DB has the root and associated data
       const calculatedTransferRootId = getTransferRootId(rootHash, totalAmount)
+      const logger = this.logger.create({ root: calculatedTransferRootId })
+
       const dbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
       if (!dbTransferRoot) {
-        throw new Error(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
+        logger.error(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
+        return false
       }
 
-      const logger = this.logger.create({ root: calculatedTransferRootId })
       logger.debug(`confirming rootHash ${rootHash} on destinationChainId ${destinationChainId} with totalAmount ${totalAmount.toString()} and committedAt ${rootCommittedAt}`)
 
       // Verify that the data in the DB matches the data passed in
@@ -287,16 +295,19 @@ class ConfirmRootsWatcher extends BaseWatcher {
         totalAmount.toString() !== dbTransferRoot?.totalAmount?.toString() ||
         rootCommittedAt !== dbTransferRoot?.committedAt
       ) {
-        throw new Error(`DB data does not match passed in data for rootHash ${rootHash}`)
+        logger.error(`DB data does not match passed in data for rootHash ${rootHash}`)
+        return false
       }
 
       // Verify that the watcher is on the correct chain
       if (this.bridge.chainId !== dbTransferRoot.sourceChainId) {
-        throw new Error(`Watcher is on chain ${this.bridge.chainId} but transfer root ${calculatedTransferRootId} source is on chain ${dbTransferRoot.sourceChainId}`)
+        logger.error(`Watcher is on chain ${this.bridge.chainId} but transfer root ${calculatedTransferRootId} source is on chain ${dbTransferRoot.sourceChainId}`)
+        return false
       }
 
       if (this.bridge.chainId === destinationChainId) {
-        throw new Error(`Cannot confirm roots with a destination chain ${destinationChainId} from chain the same chain`)
+        logger.error(`Cannot confirm roots with a destination chain ${destinationChainId} from chain the same chain`)
+        return false
       }
 
       // Verify that the transfer root ID is not confirmed for any chain
@@ -314,7 +325,8 @@ class ConfirmRootsWatcher extends BaseWatcher {
           calculatedTransferRootId
         )
         if (isTransferRootIdConfirmed) {
-          throw new Error(`Transfer root ${calculatedTransferRootId} already confirmed on chain ${destinationChainId} (confirmRootsViaWrapper)`)
+          logger.error(`Transfer root ${calculatedTransferRootId} already confirmed on chain ${destinationChainId} (confirmRootsViaWrapper)`)
+          return false
         }
       }
 
@@ -326,7 +338,8 @@ class ConfirmRootsWatcher extends BaseWatcher {
         totalAmount.toString() !== transferCommitted?.totalAmount?.toString() ||
         rootCommittedAt.toString() !== transferCommitted?.rootCommittedAt
       ) {
-        throw new Error(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
+        logger.error(`TheGraph data does not match passed in data for rootHash ${rootHash}`)
+        return false
       }
 
       // Verify that the wrapper being used is correct
@@ -335,13 +348,15 @@ class ConfirmRootsWatcher extends BaseWatcher {
         Number(wrapperL2ChainId) !== dbTransferRoot?.sourceChainId ||
         Number(wrapperL2ChainId) !== this.bridge.chainId
       ) {
-        throw new Error(`Wrapper l2ChainId is unexpected: ${wrapperL2ChainId} (expected ${dbTransferRoot?.sourceChainId})`)
+        logger.error(`Wrapper l2ChainId is unexpected: ${wrapperL2ChainId} (expected ${dbTransferRoot?.sourceChainId})`)
+        return false
       }
 
       // Verify that the root can be confirmed
       const { createdAt, challengeStartTime } = await this.l1Bridge.getTransferBond(calculatedTransferRootId)
       if (!createdAt || !challengeStartTime) {
-        throw new Error('Transfer bond not found')
+        logger.error('Transfer bond not found')
+        return false
       }
       const createdAtMs = Number(createdAt) * 1000
       const timeSinceBondCreation = Date.now() - createdAtMs
@@ -350,9 +365,12 @@ class ConfirmRootsWatcher extends BaseWatcher {
           challengeStartTime.toString() !== '0' ||
           timeSinceBondCreation <= ChallengePeriodMs
       ) {
-        throw new Error('Transfer root is not confirmable')
+        logger.error('Transfer root is not confirmable')
+        return false
       }
     }
+
+    return true
   }
 }
 

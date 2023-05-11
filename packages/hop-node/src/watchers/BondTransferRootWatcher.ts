@@ -173,11 +173,6 @@ class BondTransferRootWatcher extends BaseWatcher {
         totalAmount
       )
 
-      if (!tx) {
-        // TODO: Turn off writes
-        throw new Error('Possible reorg detected. bondTransferRoot tx not sent')
-      }
-
       const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
       this.notifier.info(msg)
@@ -191,14 +186,14 @@ class BondTransferRootWatcher extends BaseWatcher {
     transferRootHash: string,
     destinationChainId: number,
     totalAmount: BigNumber
-  ): Promise<providers.TransactionResponse | void> {
-    const areParamsValid = await this.arePreTransactionParamsValid({
+  ): Promise<providers.TransactionResponse> {
+    const isValid = await this.isPreTransactionDataValid({
       transferRootHash,
       destinationChainId,
       totalAmount
     })
-    if (!areParamsValid) {
-      return
+    if (!isValid) {
+      throw new Error('Possible reorg detected. bondTransferRoot tx not sent')
     }
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
@@ -241,7 +236,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     })
   }
 
-  async arePreTransactionParamsValid (params: any): Promise<boolean> {
+  async isPreTransactionDataValid (params: any): Promise<boolean> {
     // Perform this check as late as possible before the transaction is sent
     const {
       transferRootHash,
@@ -266,7 +261,6 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     // Validate uniqueness for redundant reorg protection. A transferId should only exist in one transferRoot per source chain
     const transferIds: string[] = calculatedDbTransferRoot.transferIds!.map(x => x.toLowerCase())
-    console.log(transferIds)
     const dbTransferIds: string[] = []
     const dbTransferRoots: TransferRoot[] = await this.db.transferRoots.getTransferRootsFromTwoWeeks()
     for (const dbTransferRoot of dbTransferRoots) {

@@ -193,6 +193,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       totalAmount
     })
     if (!isValid) {
+      this.dryMode = true
       throw new Error('Possible reorg detected. bondTransferRoot tx not sent')
     }
 

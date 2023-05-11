@@ -246,6 +246,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
     // possible for a reorg to occur. Therefore, we do not need to check for a reorg here.
     const isValid = await this.isPreTransactionDataValid(rootData)
       if (!isValid) {
+        this.dryMode = true
         throw new Error('Incorrect root confirmation detected. confirmRoots tx not sent')
       }
     const { rootHashes, destinationChainIds, totalAmounts, rootCommittedAts } = rootData

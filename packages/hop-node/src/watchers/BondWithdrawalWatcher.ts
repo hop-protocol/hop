@@ -279,6 +279,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const isValid = await this.isPreTransactionDataValid(params)
     if (!isValid) {
+      this.dryMode = true
       throw new Error('Possible reorg detected. bondWithdrawal tx not sent')
     }
     

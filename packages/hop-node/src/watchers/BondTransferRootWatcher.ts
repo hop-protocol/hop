@@ -10,6 +10,7 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { config as globalConfig } from 'src/config'
 import { TransferRoot } from 'src/db/TransferRootsDb'
+import { PreTransactionValidationError } from 'src/types/error'
 
 type Config = {
   chainSlug: string
@@ -178,6 +179,10 @@ class BondTransferRootWatcher extends BaseWatcher {
       this.notifier.info(msg)
     } catch (err) {
       logger.error('sendBondTransferRoot error:', err.message)
+      if (err instanceof PreTransactionValidationError) {
+        logger.error('pre transaction validation error. turning off writes.')
+        this.dryMode = true
+      }
       throw err
     }
   }
@@ -187,15 +192,11 @@ class BondTransferRootWatcher extends BaseWatcher {
     destinationChainId: number,
     totalAmount: BigNumber
   ): Promise<providers.TransactionResponse> {
-    const isValid = await this.isPreTransactionDataValid({
+    await this.preTransactionValidation({
       transferRootHash,
       destinationChainId,
       totalAmount
-    })
-    if (!isValid) {
-      this.dryMode = true
-      throw new Error('Possible reorg detected. bondTransferRoot tx not sent')
-    }
+  })
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(
@@ -237,7 +238,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     })
   }
 
-  async isPreTransactionDataValid (params: any): Promise<boolean> {
+  async preTransactionValidation (params: any): Promise<void> {
     // Perform this check as late as possible before the transaction is sent
     const {
       transferRootHash,
@@ -250,14 +251,12 @@ class BondTransferRootWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: calculatedTransferRootId })
     const calculatedDbTransferRoot = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
     if (calculatedDbTransferRoot?.transferRootId !== calculatedTransferRootId) {
-      logger.error(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
-      return false
+      throw new PreTransactionValidationError(`Calculated calculatedTransferRootId (${calculatedTransferRootId}) does not match transferRootId in db`)
     }
 
     // Validate that the destination chain id matches the db entry
     if (calculatedDbTransferRoot?.destinationChainId !== destinationChainId) {
-      logger.error(`destinationChainId (${destinationChainId}) does not match destinationChainId in db (${calculatedDbTransferRoot?.destinationChainId})`)
-      return false
+      throw new PreTransactionValidationError(`Calculated destinationChainId (${destinationChainId}) does not match destinationChainId in db (${calculatedDbTransferRoot?.destinationChainId})`)
     }
 
     // Validate uniqueness for redundant reorg protection. A transferId should only exist in one transferRoot per source chain
@@ -276,11 +275,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       return numOccurrences === 1
     })
     if (!areTransferIdsUnique) {
-      logger.error(`transferIds (${transferIds}) are either not unique and exist in multiple transferRoots or do not exist in any root`)
-      return false
+      throw new PreTransactionValidationError(`transferIds (${transferIds}) are either not unique and exist in multiple transferRoots or do not exist in any root`)
     }
-
-    return true
   }
 }
 

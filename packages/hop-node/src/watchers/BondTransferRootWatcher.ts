@@ -163,8 +163,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping bondTransferRoot`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping bondTransferRoot`)
       return
     }
 
@@ -195,7 +195,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.error('sendBondTransferRoot error:', err.message)
       if (err instanceof PreTransactionValidationError) {
         logger.error('pre transaction validation error. turning off writes.')
-        this.dryMode = true
+        globalConfig.emergencyDryMode = true
       }
       throw err
     }

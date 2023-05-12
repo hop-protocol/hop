@@ -224,8 +224,8 @@ class ConfirmRootsWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      this.logger.warn(`dry: ${this.dryMode}, skipping confirmRootsViaWrapper`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      this.logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping confirmRootsViaWrapper`)
       return
     }
 
@@ -245,7 +245,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
       logger.error('confirmRootsViaWrapper error:', err.message)
       if (err instanceof PreTransactionValidationError) {
         logger.error('pre transaction validation error. turning off writes.')
-        this.dryMode = true
+        globalConfig.emergencyDryMode = true
       }
       throw err
     }

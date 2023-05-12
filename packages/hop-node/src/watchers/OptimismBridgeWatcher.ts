@@ -3,6 +3,7 @@ import Logger from 'src/logger'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import wait from 'src/utils/wait'
 import wallets from 'src/wallets'
+import { config as globalConfig } from 'src/config'
 import { Chain } from 'src/constants'
 import { CrossChainMessenger, MessageStatus, hashLowLevelMessage } from '@eth-optimism/sdk'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
@@ -115,8 +116,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
       `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
     )
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayXDomainMessage`)
       return
     }
 

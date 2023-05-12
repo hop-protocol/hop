@@ -1,6 +1,7 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
+import { config as globalConfig } from 'src/config'
 import { ChallengeableTransferRoot } from 'src/db/TransferRootsDb'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
@@ -98,8 +99,8 @@ class ChallengeWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping challengeTransferRootBond`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping challengeTransferRootBond`)
       return
     }
 

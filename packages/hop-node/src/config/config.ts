@@ -154,6 +154,7 @@ export type Config = {
   signerConfig: SignerConfig
   vault: Vault
   blocklist: BlocklistConfig
+  emergencyDryMode: boolean
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -259,7 +260,8 @@ export const config: Config = {
   blocklist: {
     path: '',
     addresses: {}
-  }
+  },
+  emergencyDryMode: false
 }
 
 export const setConfigByNetwork = (network: string) => {

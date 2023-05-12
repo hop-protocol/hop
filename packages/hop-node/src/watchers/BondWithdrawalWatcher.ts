@@ -180,8 +180,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping bondWithdrawalWatcher`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping bondWithdrawalWatcher`)
       return
     }
 
@@ -280,7 +280,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
       if (err instanceof PreTransactionValidationError) {
         logger.error('pre transaction validation error. turning off writes.')
-        this.dryMode = true
+        globalConfig.emergencyDryMode = true
       }
       throw err
     }

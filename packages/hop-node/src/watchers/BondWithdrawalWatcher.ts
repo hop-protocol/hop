@@ -2,6 +2,8 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
+import contracts from 'src/contracts'
+import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
@@ -9,7 +11,7 @@ import { BigNumber, providers } from 'ethers'
 import { BonderFeeTooLowError, NonceTooLowError, PreTransactionValidationError } from 'src/types/error'
 import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract, TransferSentEvent } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
 import { bondWithdrawalBatchSize, config as globalConfig, zeroAvailableCreditTest } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
@@ -410,31 +412,37 @@ class BondWithdrawalWatcher extends BaseWatcher {
     // Validate logs with backup RPC endpoint, if it exists
     const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
     const blockNumber = calculatedDbTransfer.transferSentBlockNumber
-    const sourceL2Bridge = this.bridge as L2Bridge
-    let eventParams: any
-    await sourceL2Bridge.mapTransferSentEvents(
-      async (event: TransferSentEvent) => {
-        eventParams = event
-      },
-      {
-        startBlockNumber: blockNumber,
-        endBlockNumber: blockNumber
-      }
-    )
 
-    // TODO: better way to do this
-    if (
-      (eventParams.args.transferId !== txParams.transferId) ||
-      (Number(eventParams.args.chainId) !== txParams.destinationChainId) ||
-      (eventParams.args.recipient !== txParams.recipient) ||
-      (eventParams.args.amount.toString() !== txParams.amount.toString()) ||
-      (eventParams.args.transferNonce.toString() !== txParams.transferNonce.toString()) ||
-      (eventParams.args.bonderFee.toString() !== txParams.bonderFee.toString()) ||
-      (eventParams.args.amountOutMin.toString() !== txParams.amountOutMin.toString()) ||
-      (eventParams.args.deadline.toString() !== txParams.deadline.toString()) ||
-      (eventParams.args.index.toString() !== txParams.transferSentIndex.toString())
-    ) {
-      throw new PreTransactionValidationError(`TransferSent event does not match db. eventParams: ${JSON.stringify(eventParams)}, calculatedDbTransfer: ${JSON.stringify(calculatedDbTransfer)}`)
+    const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) || []
+    for (const redundantRpcUrl of redundantRpcUrls) {
+      const redundantProvider = new providers.JsonRpcProvider(redundantRpcUrl)
+
+      // TODO: Better way to do this
+      const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge
+      const events = await l2Bridge.connect(redundantProvider).queryFilter(
+        l2Bridge.filters.TransferSent(),
+        blockNumber,
+        blockNumber
+      )
+      const eventParams = events.filter((x: any) => x.args.transferId === txParams.transferId)[0]
+      if (!eventParams) {
+        throw new PreTransactionValidationError(`TransferSent event not found for transferId ${txParams.transferId} at block ${blockNumber}`)
+      }
+
+      // TODO: better way to do this
+      if (
+        (eventParams.args.transferId !== txParams.transferId) ||
+        (Number(eventParams.args.chainId) !== txParams.destinationChainId) ||
+        (eventParams.args.recipient !== txParams.recipient) ||
+        (eventParams.args.amount.toString() !== txParams.amount.toString()) ||
+        (eventParams.args.transferNonce.toString() !== txParams.transferNonce.toString()) ||
+        (eventParams.args.bonderFee.toString() !== txParams.bonderFee.toString()) ||
+        (eventParams.args.amountOutMin.toString() !== txParams.amountOutMin.toString()) ||
+        (eventParams.args.deadline.toString() !== txParams.deadline.toString()) ||
+        (eventParams.args.index.toString() !== txParams.transferSentIndex.toString())
+      ) {
+        throw new PreTransactionValidationError(`TransferSent event does not match db. eventParams: ${JSON.stringify(eventParams)}, calculatedDbTransfer: ${JSON.stringify(calculatedDbTransfer)}`)
+      }
     }
   }
 

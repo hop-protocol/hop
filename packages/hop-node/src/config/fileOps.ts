@@ -24,6 +24,7 @@ import {
   setFeesConfig,
   setMetricsConfig,
   setNetworkMaxGasPrice,
+  setNetworkRedundantRpcUrls,
   setNetworkRpcUrl,
   setRoutesConfig,
   setSignerConfig,
@@ -176,12 +177,15 @@ export async function setGlobalConfigFromConfigFile (
   for (const k in config.chains) {
     const v = config.chains[k]
     if (v instanceof Object) {
-      const { rpcUrl, maxGasPrice } = v
+      const { rpcUrl, maxGasPrice, redundantRpcUrls } = v
       if (rpcUrl) {
         setNetworkRpcUrl(k, rpcUrl)
       }
       if (maxGasPrice) {
         setNetworkMaxGasPrice(k, maxGasPrice)
+      }
+      if (redundantRpcUrls && redundantRpcUrls.length > 0) {
+        setNetworkRedundantRpcUrls(k, redundantRpcUrls)
       }
     }
   }

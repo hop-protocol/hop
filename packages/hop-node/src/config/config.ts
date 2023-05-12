@@ -301,6 +301,13 @@ export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   }
 }
 
+export const setNetworkRedundantRpcUrls = (network: string, redundantRpcUrs: string[]) => {
+  network = normalizeNetwork(network)
+  if (config.networks[network]) {
+    config.networks[network].redundantRpcUrls = redundantRpcUrs
+  }
+}
+
 export const setNetworkMaxGasPrice = (network: string, maxGasPrice: number) => {
   network = normalizeNetwork(network)
   if (config.networks[network]) {

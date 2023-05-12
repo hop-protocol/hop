@@ -62,10 +62,6 @@ export const pendingCountCommitThreshold = normalizeEnvVarNumber(process.env.PEN
 export const appTld = process.env.APP_TLD ?? 'hop.exchange'
 export const expectedNameservers = normalizeEnvVarArray(process.env.EXPECTED_APP_NAMESERVERS)
 export const shouldExitOrus = process.env.SHOULD_EXIT_ORUS ?? false
-export const modifiedLiquidityTokens = process.env.MODIFIED_LIQUIDITY_TOKENS?.split(',') ?? []
-export const modifiedLiquiditySourceChains = process.env.MODIFIED_LIQUIDITY_SOURCE_CHAINS?.split(',') ?? []
-export const modifiedLiquidityDestChains = process.env.MODIFIED_LIQUIDITY_DEST_CHAINS?.split(',') ?? []
-export const modifiedLiquidityDecrease = process.env.MODIFIED_LIQUIDITY_DECREASE ?? '0'
 export const modifiedLiquidityRoutes = process.env.MODIFIED_LIQUIDITY_ROUTES?.split(',') ?? []
 
 export const maxPriorityFeeConfidenceLevel = normalizeEnvVarNumber(process.env.MAX_PRIORITY_FEE_CONFIDENCE_LEVEL) ?? 95

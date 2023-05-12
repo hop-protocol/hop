@@ -52,6 +52,9 @@ async function main (source: any) {
       if (!dbTransfer) {
         throw new Error('TransferId does not exist in the DB')
       }
+      if (dbTransfer.sourceChainSlug !== chain) {
+        throw new Error('Source chain from DB does not match the source chain')
+      }
       const attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin, dbTransfer.deadline)
       if (attemptSwap && dbTransfer.destinationChainId === 1) {
         throw new Error('Cannot bond transfer because a swap is being attempted on mainnet. Please withdraw instead.')

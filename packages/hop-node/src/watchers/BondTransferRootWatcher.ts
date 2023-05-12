@@ -263,6 +263,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     await this.validateDbExistence(txParams)
     await this.validateDestinationChainId(txParams)
     await this.validateUniqueness(txParams)
+    await this.validateLogsWithBackupRpc(txParams)
   }
 
   async validateDbExistence (txParams: SendBondTransferRootTxParams): Promise<void> {

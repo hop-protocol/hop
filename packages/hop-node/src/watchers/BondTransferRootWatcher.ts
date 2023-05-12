@@ -270,8 +270,8 @@ class BondTransferRootWatcher extends BaseWatcher {
   async validateDbExistence (txParams: SendBondTransferRootTxParams): Promise<void> {
     // Validate DB existence with calculated transferRootId
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
-    if (!calculatedDbTransferRoot?.transferRootId || !calculatedDbTransferRoot?.transferIds) {
-      throw new PreTransactionValidationError(`Calculated transferRootId (${calculatedDbTransferRoot?.transferRootId}) or transferIds (${calculatedDbTransferRoot?.transferIds}) is missing`)
+    if (!calculatedDbTransferRoot?.transferRootId || !txParams?.transferRootId) {
+      throw new PreTransactionValidationError(`Calculated transferRootId (${calculatedDbTransferRoot?.transferRootId}) or transferIds (${txParams?.transferRootId}) is missing`)
     }
     if (calculatedDbTransferRoot.transferRootId !== txParams.transferRootId) {
       throw new PreTransactionValidationError(`Calculated calculatedTransferRootId (${calculatedDbTransferRoot.transferRootId}) does not match transferRootId in db`)
@@ -281,8 +281,8 @@ class BondTransferRootWatcher extends BaseWatcher {
   async validateDestinationChainId (txParams: SendBondTransferRootTxParams): Promise<void> {
     // Validate that the destination chain id matches the db entry
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
-    if (!calculatedDbTransferRoot?.destinationChainId || !calculatedDbTransferRoot?.transferIds) {
-      throw new PreTransactionValidationError(`Calculated destinationChainId (${calculatedDbTransferRoot?.destinationChainId}) or transferIds (${calculatedDbTransferRoot?.transferIds}) is missing`)
+    if (!calculatedDbTransferRoot?.destinationChainId || !txParams?.destinationChainId) {
+      throw new PreTransactionValidationError(`Calculated destinationChainId (${calculatedDbTransferRoot?.destinationChainId}) or transferIds (${txParams?.destinationChainId}) is missing`)
     }
     if (calculatedDbTransferRoot.destinationChainId !== txParams.destinationChainId) {
       throw new PreTransactionValidationError(`Calculated destinationChainId (${txParams.destinationChainId}) does not match destinationChainId in db (${calculatedDbTransferRoot.destinationChainId})`)
@@ -297,9 +297,6 @@ class BondTransferRootWatcher extends BaseWatcher {
       .filter(dbTransferRoot => dbTransferRoot.transferRootId !== txParams.transferRootId)
       .filter(dbTransferRoot => dbTransferRoot.sourceChainId === this.bridge.chainId)
     const dbTransferIds: string[] = dbTransferRoots.flatMap(dbTransferRoot => dbTransferRoot.transferIds!)
-    for (const dbTransferId of dbTransferIds) {
-      console.log('debugger - 0:', dbTransferId)
-    }
 
     for (const transferId of transferIds) {
       const transferIdCount: string[] = dbTransferIds.filter((dbTransferId: string) => dbTransferId.toLowerCase() === transferId)
@@ -327,11 +324,8 @@ class BondTransferRootWatcher extends BaseWatcher {
         txParams.destinationChainId,
         txParams.transferRootHash
       )
-      console.log('debugger - a:', filter)
       const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
-      console.log('debugger - b:', events)
       const eventParams = events.find((x: any) => x.args.rootHash === txParams.transferRootHash)
-      console.log('debugger - c:', eventParams)
       if (!eventParams) {
         throw new PreTransactionValidationError(`TransfersCommitted event not found for transferRootHash ${txParams.transferRootHash} at block ${blockNumber}`)
       }

@@ -393,7 +393,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
   async validateTransferSentIndex (txParams: SendBondWithdrawalTxParams): Promise<void> {
     // Validate transferSentIndex is expected since it is not part of the transferId
     const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
-    if (!calculatedDbTransfer?.transferSentIndex || !txParams?.transferSentIndex) {
+    // Check for undefined since these values can be 0
+    if (!calculatedDbTransfer?.transferSentIndex === undefined || !txParams?.transferSentIndex === undefined) {
       throw new PreTransactionValidationError(`Calculated transferSentIndex (${calculatedDbTransfer?.transferSentIndex}) or transferSentIndex in txParams (${txParams?.transferSentIndex}) is falsy`)
     }
     if (calculatedDbTransfer.transferSentIndex !== txParams.transferSentIndex) {

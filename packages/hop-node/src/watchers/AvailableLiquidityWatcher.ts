@@ -11,11 +11,7 @@ import {
   getConfigBonderForRoute,
   getEnabledNetworks,
   config as globalConfig,
-  modifiedLiquidityDecrease,
-  modifiedLiquidityDestChains,
   modifiedLiquidityRoutes,
-  modifiedLiquiditySourceChains,
-  modifiedLiquidityTokens,
   oruChains
 } from 'src/config'
 
@@ -69,7 +65,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       })
     }
 
-    this.logModifications()
+    this.logger.debug('modified liquidity routes', modifiedLiquidityRoutes)
     this.logger.debug('syncing bonder credit')
   }
 
@@ -130,6 +126,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
               break
             }
           } else {
+            if (tokenSymbol && tokenSymbol !== this.tokenSymbol) {
+              break
+            }
             if (destination === destinationChain) {
               shouldDisableRoute = true
               break
@@ -148,6 +147,9 @@ class AvailableLiquidityWatcher extends BaseWatcher {
                 break
               }
             } else {
+              if (tokenSymbol && tokenSymbol !== this.tokenSymbol) {
+                break
+              }
               if (destination === destinationChain) {
                 shouldDisableRoute = true
                 break
@@ -163,31 +165,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
         baseAvailableCredit = BigNumber.from('0')
         baseAvailableCreditIncludingVault = BigNumber.from('0')
       }
-    }
-
-    if (
-      modifiedLiquidityTokens.includes(this.tokenSymbol) &&
-      modifiedLiquiditySourceChains.includes(this.chainSlug) &&
-      modifiedLiquidityDestChains.includes(destinationChain)
-    ) {
-      this.logger.debug(`modifiedLiquidity: currentAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
-      this.logger.debug(`modifiedLiquidity: currentBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
-      this.logger.debug(`modifiedLiquidity: currentAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
-
-      if (modifiedLiquidityDecrease !== '0') {
-        const decreaseAmount = this.bridge.parseUnits(modifiedLiquidityDecrease)
-        availableCredit = availableCredit.sub(decreaseAmount)
-        baseAvailableCredit = baseAvailableCredit.sub(decreaseAmount)
-        baseAvailableCreditIncludingVault = baseAvailableCreditIncludingVault.sub(decreaseAmount)
-      } else {
-        availableCredit = BigNumber.from('0')
-        baseAvailableCredit = BigNumber.from('0')
-        baseAvailableCreditIncludingVault = BigNumber.from('0')
-      }
-
-      this.logger.debug(`modifiedLiquidity: updatedAvailableCredit - ${availableCredit.toString()} (destination: ${destinationChain})`)
-      this.logger.debug(`modifiedLiquidity: updatedBaseAvailableCredit - ${baseAvailableCredit.toString()} (destination: ${destinationChain})`)
-      this.logger.debug(`modifiedLiquidity: updatedAvailableCreditIncludingVault - ${baseAvailableCreditIncludingVault.toString()} (destination: ${destinationChain})`)
     }
 
     if (availableCredit.lt(0)) {
@@ -480,20 +457,6 @@ class AvailableLiquidityWatcher extends BaseWatcher {
       s3LastUpload = Date.now()
       await this.s3Upload.upload(s3JsonData)
       this.logger.debug(`s3 uploaded data: ${JSON.stringify(s3JsonData)}`)
-    }
-  }
-
-  private logModifications (): void {
-    if (
-      modifiedLiquidityDestChains.length > 0 ||
-      modifiedLiquiditySourceChains.length > 0 ||
-      modifiedLiquidityTokens.length > 0 ||
-      modifiedLiquidityDecrease !== '0'
-    ) {
-      this.logger.debug('modifiedLiquidityDestChains', modifiedLiquidityDestChains)
-      this.logger.debug('modifiedLiquiditySourceChains', modifiedLiquiditySourceChains)
-      this.logger.debug('modifiedLiquidityTokens', modifiedLiquidityTokens)
-      this.logger.debug('modifiedLiquidityDecrease', modifiedLiquidityDecrease)
     }
   }
 }

@@ -421,7 +421,7 @@ class AvailableLiquidityWatcher extends BaseWatcher {
 
       const isSource = source === 'all' || source === this.chainSlug
       const isDestination = destination === 'all' || destination === destinationChain
-      const isTokenSymbol = tokenSymbol === this.tokenSymbol
+      const isTokenSymbol = tokenSymbol === 'all' || tokenSymbol === this.tokenSymbol
       if (isSource && isDestination && isTokenSymbol) {
         return true
       }

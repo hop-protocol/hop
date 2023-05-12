@@ -20,7 +20,7 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { MessengerWrapper as L1MessengerWrapperContract } from '@hop-protocol/core/contracts/generated/MessengerWrapper'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { PreTransactionValidationError } from 'src/types/error'
-import { getEnabledNetworks, config as globalConfig } from 'src/config'
+import { enableEmergencyMode, getEnabledNetworks, config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -245,7 +245,7 @@ class ConfirmRootsWatcher extends BaseWatcher {
       logger.error('confirmRootsViaWrapper error:', err.message)
       if (err instanceof PreTransactionValidationError) {
         logger.error('pre transaction validation error. turning off writes.')
-        globalConfig.emergencyDryMode = true
+        enableEmergencyMode()
       }
       throw err
     }

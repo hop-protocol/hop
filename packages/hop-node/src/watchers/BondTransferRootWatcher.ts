@@ -13,7 +13,7 @@ import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/gene
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { PreTransactionValidationError } from 'src/types/error'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { config as globalConfig } from 'src/config'
+import { enableEmergencyMode, config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -196,7 +196,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       logger.error('sendBondTransferRoot error:', err.message)
       if (err instanceof PreTransactionValidationError) {
         logger.error('pre transaction validation error. turning off writes.')
-        globalConfig.emergencyDryMode = true
+        enableEmergencyMode()
       }
       throw err
     }
@@ -264,22 +264,28 @@ class BondTransferRootWatcher extends BaseWatcher {
     await this.validateDbExistence(txParams)
     await this.validateDestinationChainId(txParams)
     await this.validateUniqueness(txParams)
-    await this.validateLogsWithBackupRpc(txParams)
+    await this.validateLogsWithRedundantRpcs(txParams)
   }
 
   async validateDbExistence (txParams: SendBondTransferRootTxParams): Promise<void> {
     // Validate DB existence with calculated transferRootId
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
-    if (calculatedDbTransferRoot?.transferRootId !== txParams.transferRootId) {
-      throw new PreTransactionValidationError(`Calculated calculatedTransferRootId (${calculatedDbTransferRoot?.transferRootId}) does not match transferRootId in db`)
+    if (!calculatedDbTransferRoot?.transferRootId || !calculatedDbTransferRoot?.transferIds) {
+      throw new PreTransactionValidationError(`Calculated transferRootId (${calculatedDbTransferRoot?.transferRootId}) or transferIds (${calculatedDbTransferRoot?.transferIds}) is missing`)
+    }
+    if (calculatedDbTransferRoot.transferRootId !== txParams.transferRootId) {
+      throw new PreTransactionValidationError(`Calculated calculatedTransferRootId (${calculatedDbTransferRoot.transferRootId}) does not match transferRootId in db`)
     }
   }
 
   async validateDestinationChainId (txParams: SendBondTransferRootTxParams): Promise<void> {
     // Validate that the destination chain id matches the db entry
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
-    if (calculatedDbTransferRoot?.destinationChainId !== txParams.destinationChainId) {
-      throw new PreTransactionValidationError(`Calculated destinationChainId (${txParams.destinationChainId}) does not match destinationChainId in db (${calculatedDbTransferRoot?.destinationChainId})`)
+    if (!calculatedDbTransferRoot?.destinationChainId || !calculatedDbTransferRoot?.transferIds) {
+      throw new PreTransactionValidationError(`Calculated destinationChainId (${calculatedDbTransferRoot?.destinationChainId}) or transferIds (${calculatedDbTransferRoot?.transferIds}) is missing`)
+    }
+    if (calculatedDbTransferRoot.destinationChainId !== txParams.destinationChainId) {
+      throw new PreTransactionValidationError(`Calculated destinationChainId (${txParams.destinationChainId}) does not match destinationChainId in db (${calculatedDbTransferRoot.destinationChainId})`)
     }
   }
 
@@ -295,33 +301,35 @@ class BondTransferRootWatcher extends BaseWatcher {
     for (const transferId of transferIds) {
       const transferIdCount: string[] = dbTransferIds.filter((dbTransferId: string) => dbTransferId.toLowerCase() === transferId)
       if (transferIdCount.length > 0) {
-        throw new PreTransactionValidationError(`transferId (${transferId}) exists in multiple transferRoots in db`)
+        const duplicateRoot = dbTransferRoots.find(dbTransferRoot => dbTransferRoot.transferIds?.includes(transferId))
+        throw new PreTransactionValidationError(`transferId (${transferId}) exists in multiple transferRoots in db with the duplicateRootId: ${duplicateRoot?.transferRootId}`)
       }
     }
   }
 
-  async validateLogsWithBackupRpc (txParams: SendBondTransferRootTxParams): Promise<void> {
-    // Validate logs with backup RPC endpoint, if it exists
+  async validateLogsWithRedundantRpcs (txParams: SendBondTransferRootTxParams): Promise<void> {
+    // Validate logs with redundant RPC endpoint, if it exists
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
-    const blockNumber = calculatedDbTransferRoot.commitTxBlockNumber
+    const blockNumber = calculatedDbTransferRoot?.commitTxBlockNumber
+    if (!blockNumber) {
+      throw new PreTransactionValidationError(`Calculated commitTxBlockNumber (${blockNumber}) is missing`)
+    }
 
     const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
       const redundantProvider = getRpcProviderFromUrl(redundantRpcUrl)
 
-      // TODO: Better way to do this
       const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge
-      const events = await l2Bridge.connect(redundantProvider).queryFilter(
-        l2Bridge.filters.TransfersCommitted(),
-        blockNumber,
-        blockNumber
+      const filter = l2Bridge.filters.TransfersCommitted(
+        txParams.destinationChainId,
+        txParams.transferRootHash
       )
-      const eventParams = events.filter((x: any) => x.args.rootHash === txParams.transferRootHash)[0]
+      const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
+      const eventParams = events.find((x: any) => x.args.rootHash === txParams.transferRootHash)
       if (!eventParams) {
         throw new PreTransactionValidationError(`TransferSent event not found for transferRootHash ${txParams.transferRootHash} at block ${blockNumber}`)
       }
 
-      // TODO: better way to do this
       if (
         (Number(eventParams.args.destinationChainId) !== txParams.destinationChainId) ||
         (eventParams.args.rootHash !== txParams.transferRootHash) ||
@@ -336,7 +344,11 @@ class BondTransferRootWatcher extends BaseWatcher {
   async getCalculatedDbTransferRoot (txParams: SendBondTransferRootTxParams): Promise<TransferRoot> {
     const { transferRootHash, totalAmount } = txParams
     const calculatedTransferRootId = getTransferRootId(transferRootHash, totalAmount)
-    return this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
+    const dbTransferRoot = this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
+    if (!dbTransferRoot) {
+      throw new PreTransactionValidationError(`Calculated dbTransferRoot (${calculatedTransferRootId}) not found in db`)
+    }
+    return dbTransferRoot
   }
 }
 

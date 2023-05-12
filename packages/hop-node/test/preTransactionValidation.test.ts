@@ -129,7 +129,7 @@ async function shouldFailTooFewTransferNoncesInDb (watcher: any, txParams: SendB
 
 async function shouldFailBondWithdrawalInvalidEventData (watcher: any, txParams: SendBondWithdrawalTxParams) {
   const params = deepClone(txParams)
-  const fn = watcher.validateLogsWithBackupRpc
+  const fn = watcher.validateLogsWithRedundantRpcs
   params.transferSentIndex = 123
 
   const errMessage = 'TransferSent event does not match db'
@@ -166,7 +166,7 @@ async function shouldFailTransferIdNotUniqueInDb (watcher: any, txParams: SendBo
 
 async function shouldFailBondTransferRootInvalidEventData (watcher: any, txParams: SendBondTransferRootTxParams) {
   const params = deepClone(txParams)
-  const fn = watcher.validateLogsWithBackupRpc
+  const fn = watcher.validateLogsWithRedundantRpcs
   params.rootCommittedAt = 123
 
   const errMessage = 'TransfersCommitted event does not match db. eventParam'

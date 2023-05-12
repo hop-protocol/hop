@@ -303,10 +303,10 @@ export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   }
 }
 
-export const setNetworkRedundantRpcUrls = (network: string, redundantRpcUrs: string[]) => {
+export const setNetworkRedundantRpcUrls = (network: string, redundantRpcUrls: string[]) => {
   network = normalizeNetwork(network)
   if (config.networks[network]) {
-    config.networks[network].redundantRpcUrls = redundantRpcUrs
+    config.networks[network].redundantRpcUrls = redundantRpcUrls
   }
 }
 
@@ -412,6 +412,10 @@ export enum Watchers {
   SettleBondedWithdrawals = 'settleBondedWithdrawals',
   ConfirmRoots = 'confirmRoots',
   L1ToL2Relay = 'L1ToL2Relay',
+}
+
+export function enableEmergencyMode () {
+  config.emergencyDryMode = true
 }
 
 export { Bonders }

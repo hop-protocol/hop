@@ -14,7 +14,7 @@ import { GasCostTransactionType, TxError } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Transfer, UnbondedSentTransfer } from 'src/db/TransfersDb'
-import { bondWithdrawalBatchSize, config as globalConfig, zeroAvailableCreditTest } from 'src/config'
+import { bondWithdrawalBatchSize, enableEmergencyMode, config as globalConfig, zeroAvailableCreditTest } from 'src/config'
 import { isExecutionError } from 'src/utils/isExecutionError'
 import { promiseQueue } from 'src/utils/promiseQueue'
 
@@ -281,7 +281,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       }
       if (err instanceof PreTransactionValidationError) {
         logger.error('pre transaction validation error. turning off writes.')
-        globalConfig.emergencyDryMode = true
+        enableEmergencyMode()
       }
       throw err
     }
@@ -376,20 +376,26 @@ class BondWithdrawalWatcher extends BaseWatcher {
     await this.validateDbExistence(txParams)
     await this.validateTransferSentIndex(txParams)
     await this.validateUniqueness(txParams)
-    await this.validateLogsWithBackupRpc(txParams)
+    await this.validateLogsWithRedundantRpcs(txParams)
   }
 
   async validateDbExistence (txParams: SendBondWithdrawalTxParams): Promise<void> {
     // Validate DB existence with calculated transferId
     const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
+    if (!calculatedDbTransfer?.transferId || !txParams?.transferId) {
+      throw new PreTransactionValidationError(`Calculated transferId (${calculatedDbTransfer?.transferId}) or transferId in txParams (${txParams?.transferId}) is falsy`)
+    }
     if (calculatedDbTransfer.transferId !== txParams.transferId) {
-      throw new PreTransactionValidationError(`Calculated transferId (${calculatedDbTransfer?.transferId}) does not match transferId in db`)
+      throw new PreTransactionValidationError(`Calculated transferId (${calculatedDbTransfer.transferId}) does not match transferId in db`)
     }
   }
 
   async validateTransferSentIndex (txParams: SendBondWithdrawalTxParams): Promise<void> {
     // Validate transferSentIndex is expected since it is not part of the transferId
     const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
+    if (!calculatedDbTransfer?.transferSentIndex || !txParams?.transferSentIndex) {
+      throw new PreTransactionValidationError(`Calculated transferSentIndex (${calculatedDbTransfer?.transferSentIndex}) or transferSentIndex in txParams (${txParams?.transferSentIndex}) is falsy`)
+    }
     if (calculatedDbTransfer.transferSentIndex !== txParams.transferSentIndex) {
       throw new PreTransactionValidationError(`transferSentIndex (${txParams.transferSentIndex}) does not match transferSentIndex in db (${calculatedDbTransfer.transferSentIndex})`)
     }
@@ -402,39 +408,41 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const dbTransfersFromSource: Transfer[] = dbTransfers.filter(dbTransfer => dbTransfer.sourceChainId === this.bridge.chainId)
     const transfersWithExpectedTransferNonce: Transfer[] = dbTransfersFromSource.filter(dbTransfer => dbTransfer.transferNonce === txTransferNonce)
     if (transfersWithExpectedTransferNonce.length > 1) {
-      throw new PreTransactionValidationError(`transferNonce (${txTransferNonce}) exists in multiple transfers in db`)
+      throw new PreTransactionValidationError(`transferNonce (${txTransferNonce}) exists in multiple transfers in db. Other transferIds: ${transfersWithExpectedTransferNonce.map(dbTransfer => dbTransfer.transferId)}`)
     }
     if (transfersWithExpectedTransferNonce.length === 0) {
       throw new PreTransactionValidationError(`transferNonce (${txTransferNonce}) does not exist in db`)
     }
   }
 
-  async validateLogsWithBackupRpc (txParams: SendBondWithdrawalTxParams): Promise<void> {
-    // Validate logs with backup RPC endpoint, if it exists
+  async validateLogsWithRedundantRpcs (txParams: SendBondWithdrawalTxParams): Promise<void> {
+    // Validate logs with redundant RPC endpoint, if it exists
     const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
-    const blockNumber = calculatedDbTransfer.transferSentBlockNumber
+    const blockNumber = calculatedDbTransfer?.transferSentBlockNumber
+    if (!blockNumber) {
+      throw new PreTransactionValidationError(`Calculated transferSentBlockNumber (${blockNumber}) is missing`)
+    }
 
     const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
       const redundantProvider = getRpcProviderFromUrl(redundantRpcUrl)
 
-      // TODO: Better way to do this
       const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge
-      const events = await l2Bridge.connect(redundantProvider).queryFilter(
-        l2Bridge.filters.TransferSent(),
-        blockNumber,
-        blockNumber
+      const filter = l2Bridge.filters.TransferSent(
+        txParams.transferId,
+        txParams.destinationChainId,
+        txParams.recipient
       )
-      const eventParams = events.filter((x: any) => x.args.transferId === txParams.transferId)[0]
+      const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
+      const eventParams = events.find((x: any) => x.args.transferId === txParams.transferId)
       if (!eventParams) {
         throw new PreTransactionValidationError(`TransferSent event not found for transferId ${txParams.transferId} at block ${blockNumber}`)
       }
 
-      // TODO: better way to do this
       if (
         (eventParams.args.transferId !== txParams.transferId) ||
         (Number(eventParams.args.chainId) !== txParams.destinationChainId) ||
-        (eventParams.args.recipient !== txParams.recipient) ||
+        (eventParams.args.recipient.toLowerCase() !== txParams.recipient.toLowerCase()) ||
         (eventParams.args.amount.toString() !== txParams.amount.toString()) ||
         (eventParams.args.transferNonce.toString() !== txParams.transferNonce.toString()) ||
         (eventParams.args.bonderFee.toString() !== txParams.bonderFee.toString()) ||
@@ -459,7 +467,11 @@ class BondWithdrawalWatcher extends BaseWatcher {
     } = txParams
 
     const calculatedTransferId = getTransferId(destinationChainId, recipient, amount, transferNonce, bonderFee, amountOutMin, deadline)
-    return this.db.transfers.getByTransferId(calculatedTransferId)
+    const dbTransfer = this.db.transfers.getByTransferId(calculatedTransferId)
+    if (!dbTransfer) {
+      throw new PreTransactionValidationError(`dbTransfer not found for transferId ${calculatedTransferId}`)
+    }
+    return dbTransfer
   }
 }
 

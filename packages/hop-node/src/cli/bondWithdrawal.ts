@@ -1,3 +1,4 @@
+import isL1ChainId from 'src/utils/isL1ChainId'
 import { SendBondWithdrawalTxParams } from 'src/watchers/BondWithdrawalWatcher'
 import { Transfer } from 'src/db/TransfersDb'
 import {
@@ -56,11 +57,11 @@ async function main (source: any) {
         throw new Error('Source chain from DB does not match the source chain')
       }
       const attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin, dbTransfer.deadline)
-      if (attemptSwap && dbTransfer.destinationChainId === 1) {
+      if (attemptSwap && isL1ChainId(dbTransfer.destinationChainId!)) {
         throw new Error('Cannot bond transfer because a swap is being attempted on mainnet. Please withdraw instead.')
       }
 
-      const txParams: SendBondWithdrawalTxParams = ({
+      const txParams: SendBondWithdrawalTxParams = {
         transferId: dbTransfer.transferId,
         sender: dbTransfer.sender!,
         recipient: dbTransfer.recipient!,
@@ -72,7 +73,7 @@ async function main (source: any) {
         amountOutMin: dbTransfer.amountOutMin!,
         deadline: dbTransfer.deadline!,
         transferSentIndex: dbTransfer.transferSentIndex!
-      })
+      }
       await watcher.sendBondWithdrawalTx(txParams)
     } catch (err: any) {
       console.log(err)

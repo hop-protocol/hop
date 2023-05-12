@@ -302,7 +302,7 @@ export async function validateConfigValues (config?: Config) {
     if (!chain) {
       throw new Error(`RPC config for chain "${chain}" is required`)
     }
-    const { rpcUrl, maxGasPrice, waitConfirmations } = chain
+    const { rpcUrl, maxGasPrice, redundantRpcUrls, waitConfirmations } = chain
     if (!rpcUrl) {
       throw new Error(`RPC url for chain "${chainSlug}" is required`)
     }
@@ -331,6 +331,25 @@ export async function validateConfigValues (config?: Config) {
       }
       if (maxGasPrice <= 0) {
         throw new Error(`maxGasPrice for chain "${chainSlug}" must be greater than 0`)
+      }
+    }
+    if (redundantRpcUrls && redundantRpcUrls.length > 0) {
+      if (!Array.isArray(redundantRpcUrls)) {
+        throw new Error(`redundantRpcUrls for chain "${chainSlug}" must be an array`)
+      }
+      for (const redundantRpcUrl of redundantRpcUrls) {
+        if (typeof redundantRpcUrl !== 'string') {
+          throw new Error(`redundantRpcUrl for chain "${chainSlug}" must be a string`)
+        }
+        try {
+          const parsed = new URL(redundantRpcUrl)
+          console.log('parsed', parsed)
+          if (!parsed.protocol || !parsed.host || !['http:', 'https:'].includes(parsed.protocol)) {
+            throw new URIError()
+          }
+        } catch (err) {
+          throw new Error(`redundantRpcUrl "${redundantRpcUrl}" is invalid`)
+        }
       }
     }
   }

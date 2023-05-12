@@ -37,7 +37,7 @@ async function main (source: any) {
 
   let count = 0
   const items = await getInvalidBondWithdrawals(startTimestamp, endTimestamp)
-  items.map((item: any) => {
+  items.forEach((item: any) => {
     console.log({
       transferId: item.transferId,
       amount: item.amount,

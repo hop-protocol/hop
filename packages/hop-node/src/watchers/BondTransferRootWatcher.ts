@@ -8,12 +8,12 @@ import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
-import { Chain } from 'src/constants'
+import { BondTransferRootDelayBufferSeconds, Chain } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { PreTransactionValidationError } from 'src/types/error'
 import { TransferRoot } from 'src/db/TransferRootsDb'
-import { enableEmergencyMode, config as globalConfig } from 'src/config'
+import { enableEmergencyMode, getFinalityTimeSeconds, config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -109,10 +109,13 @@ class BondTransferRootWatcher extends BaseWatcher {
     const logger = this.logger.create({ root: transferRootId })
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
 
-    const minDelaySec = await l1Bridge.getMinTransferRootBondDelaySeconds()
-    const minDelayMs = minDelaySec * 1000
+    // Use the greater of the min delay or the chain finality time and add a buffer for additional reorg safety
+    const minTransferRootBondDelaySeconds = await l1Bridge.getMinTransferRootBondDelaySeconds()
+    const chainFinalityTimeSec = getFinalityTimeSeconds(this.chainSlug)
+    const delaySeconds = Math.max(minTransferRootBondDelaySeconds, chainFinalityTimeSec) + BondTransferRootDelayBufferSeconds
+    const delayMs = delaySeconds * 1000
     const committedAtMs = committedAt * 1000
-    const delta = Date.now() - committedAtMs - minDelayMs
+    const delta = Date.now() - committedAtMs - delayMs
     const shouldBond = delta > 0
     if (!shouldBond) {
       logger.debug(

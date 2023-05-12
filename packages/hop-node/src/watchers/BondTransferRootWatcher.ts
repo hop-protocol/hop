@@ -3,18 +3,32 @@ import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import contracts from 'src/contracts'
+import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
+import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import getTransferRootId from 'src/utils/getTransferRootId'
-import { BigNumber } from 'ethers'
+import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { config as globalConfig } from 'src/config'
+import { PreTransactionValidationError } from 'src/types/error'
+import { TransferRoot } from 'src/db/TransferRootsDb'
+import { enableEmergencyMode, config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
   tokenSymbol: string
   bridgeContract: L1BridgeContract | L2BridgeContract
   dryMode?: boolean
+}
+
+export type SendBondTransferRootTxParams = {
+  transferRootId: string
+  transferRootHash: string
+  destinationChainId: number
+  totalAmount: BigNumber
+  transferIds: string[]
+  rootCommittedAt: number
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
@@ -125,7 +139,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferRootId:', transferRootId)
 
-    const pendingTransfers: string[] = transferIds || []
+    const pendingTransfers: string[] = transferIds ?? []
     logger.debug('transferRootHash transferIds:', pendingTransfers)
     if (pendingTransfers.length > 0) {
       const tree = new MerkleTree(pendingTransfers)
@@ -150,8 +164,8 @@ class BondTransferRootWatcher extends BaseWatcher {
       return
     }
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping bondTransferRoot`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping bondTransferRoot`)
       return
     }
 
@@ -167,31 +181,43 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     try {
       const tx = await this.sendBondTransferRoot(
+        transferRootId,
         transferRootHash,
         destinationChainId,
-        totalAmount
+        totalAmount,
+        transferIds,
+        committedAt
       )
+
       const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
       logger.info(msg)
       this.notifier.info(msg)
     } catch (err) {
       logger.error('sendBondTransferRoot error:', err.message)
+      if (err instanceof PreTransactionValidationError) {
+        logger.error('pre transaction validation error. turning off writes.')
+        enableEmergencyMode()
+      }
       throw err
     }
   }
 
   async sendBondTransferRoot (
+    transferRootId: string,
     transferRootHash: string,
     destinationChainId: number,
-    totalAmount: BigNumber
-  ) {
-    const calculatedTransferRootId = getTransferRootId(transferRootHash, totalAmount)
-    const dbEntry = await this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
-    const doesExistInDb = !!dbEntry
-    const isSameDestinationChainId = dbEntry?.destinationChainId === destinationChainId
-    if (!doesExistInDb || !isSameDestinationChainId) {
-      throw new Error(`Calculated transferRootId (${calculatedTransferRootId}) or destinationChainId (${destinationChainId}) does not match db entry`)
-    }
+    totalAmount: BigNumber,
+    transferIds: string[],
+    rootCommittedAt: number
+  ): Promise<providers.TransactionResponse> {
+    await this.preTransactionValidation({
+      transferRootId,
+      transferRootHash,
+      destinationChainId,
+      totalAmount,
+      transferIds,
+      rootCommittedAt
+    })
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(
@@ -231,6 +257,100 @@ class BondTransferRootWatcher extends BaseWatcher {
         }
       }
     })
+  }
+
+  async preTransactionValidation (txParams: SendBondTransferRootTxParams): Promise<void> {
+    // Perform this check as late as possible before the transaction is sent
+    await this.validateDbExistence(txParams)
+    await this.validateDestinationChainId(txParams)
+    await this.validateUniqueness(txParams)
+    await this.validateLogsWithRedundantRpcs(txParams)
+  }
+
+  async validateDbExistence (txParams: SendBondTransferRootTxParams): Promise<void> {
+    // Validate DB existence with calculated transferRootId
+    const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
+    if (!calculatedDbTransferRoot?.transferRootId || !txParams?.transferRootId) {
+      throw new PreTransactionValidationError(`Calculated transferRootId (${calculatedDbTransferRoot?.transferRootId}) or transferIds (${txParams?.transferRootId}) is missing`)
+    }
+    if (calculatedDbTransferRoot.transferRootId !== txParams.transferRootId) {
+      throw new PreTransactionValidationError(`Calculated calculatedTransferRootId (${calculatedDbTransferRoot.transferRootId}) does not match transferRootId in db`)
+    }
+  }
+
+  async validateDestinationChainId (txParams: SendBondTransferRootTxParams): Promise<void> {
+    // Validate that the destination chain id matches the db entry
+    const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
+    if (!calculatedDbTransferRoot?.destinationChainId || !txParams?.destinationChainId) {
+      throw new PreTransactionValidationError(`Calculated destinationChainId (${calculatedDbTransferRoot?.destinationChainId}) or transferIds (${txParams?.destinationChainId}) is missing`)
+    }
+    if (calculatedDbTransferRoot.destinationChainId !== txParams.destinationChainId) {
+      throw new PreTransactionValidationError(`Calculated destinationChainId (${txParams.destinationChainId}) does not match destinationChainId in db (${calculatedDbTransferRoot.destinationChainId})`)
+    }
+  }
+
+  async validateUniqueness (txParams: SendBondTransferRootTxParams): Promise<void> {
+    // Validate uniqueness for redundant reorg protection. A transferId should only exist in one transferRoot per source chain
+    const transferIds = txParams.transferIds.map((x: string) => x.toLowerCase())
+
+    // Only use roots that are not the current root, from the source chain, and have associated transferIds
+    const dbTransferRoots: TransferRoot[] = (await this.db.transferRoots.getTransferRootsFromTwoWeeks())
+      .filter(dbTransferRoot => dbTransferRoot.transferRootId !== txParams.transferRootId)
+      .filter(dbTransferRoot => dbTransferRoot.sourceChainId === this.bridge.chainId)
+      .filter(dbTransferRoot => dbTransferRoot?.transferIds?.length)
+    const dbTransferIds: string[] = dbTransferRoots.flatMap(dbTransferRoot => dbTransferRoot.transferIds!)
+
+    for (const transferId of transferIds) {
+      const transferIdCount: string[] = dbTransferIds.filter((dbTransferId: string) => dbTransferId.toLowerCase() === transferId)
+      if (transferIdCount.length > 0) {
+        const duplicateRoot = dbTransferRoots.find(dbTransferRoot => dbTransferRoot.transferIds?.includes(transferId))
+        throw new PreTransactionValidationError(`transferId (${transferId}) exists in multiple transferRoots in db with the duplicateRootId: ${duplicateRoot?.transferRootId}`)
+      }
+    }
+  }
+
+  async validateLogsWithRedundantRpcs (txParams: SendBondTransferRootTxParams): Promise<void> {
+    // Validate logs with redundant RPC endpoint, if it exists
+    const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
+    const blockNumber = calculatedDbTransferRoot?.commitTxBlockNumber
+    if (!blockNumber) {
+      throw new PreTransactionValidationError(`Calculated commitTxBlockNumber (${blockNumber}) is missing`)
+    }
+
+    const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
+    for (const redundantRpcUrl of redundantRpcUrls) {
+      const redundantProvider = getRpcProviderFromUrl(redundantRpcUrl)
+
+      const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge
+      const filter = l2Bridge.filters.TransfersCommitted(
+        txParams.destinationChainId,
+        txParams.transferRootHash
+      )
+      const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
+      const eventParams = events.find((x: any) => x.args.rootHash === txParams.transferRootHash)
+      if (!eventParams) {
+        throw new PreTransactionValidationError(`TransfersCommitted event not found for transferRootHash ${txParams.transferRootHash} at block ${blockNumber}`)
+      }
+
+      if (
+        (Number(eventParams.args.destinationChainId) !== txParams.destinationChainId) ||
+        (eventParams.args.rootHash !== txParams.transferRootHash) ||
+        (eventParams.args.totalAmount.toString() !== txParams.totalAmount.toString()) ||
+        (eventParams.args.rootCommittedAt.toString() !== txParams.rootCommittedAt.toString())
+      ) {
+        throw new PreTransactionValidationError(`TransfersCommitted event does not match db. eventParams: ${JSON.stringify(eventParams)}, calculatedDbTransfer: ${JSON.stringify(calculatedDbTransferRoot)}`)
+      }
+    }
+  }
+
+  async getCalculatedDbTransferRoot (txParams: SendBondTransferRootTxParams): Promise<TransferRoot> {
+    const { transferRootHash, totalAmount } = txParams
+    const calculatedTransferRootId = getTransferRootId(transferRootHash, totalAmount)
+    const dbTransferRoot = this.db.transferRoots.getByTransferRootId(calculatedTransferRootId)
+    if (!dbTransferRoot) {
+      throw new PreTransactionValidationError(`Calculated dbTransferRoot (${calculatedTransferRootId}) not found in db`)
+    }
+    return dbTransferRoot
   }
 }
 

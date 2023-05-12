@@ -27,6 +27,9 @@ async function main (source: any) {
   if (isHToken && isNativeSend) {
     throw new Error('Cannot use --htoken and --native flag together')
   }
+  if (isNativeSend && (toChain || token)) {
+    throw new Error('Cannot use --native flag with --to-chain or --token')
+  }
 
   if (isSameChain) {
     await transferTokens(fromChain, token, amount, recipient, isHToken, shouldSendMax)

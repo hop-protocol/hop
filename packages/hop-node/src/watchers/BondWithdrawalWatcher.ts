@@ -31,7 +31,7 @@ export type SendBondWithdrawalTxParams = {
   amount: BigNumber
   transferNonce: string
   bonderFee: BigNumber
-  attemptSwap: boolean,
+  attemptSwap: boolean
   destinationChainId: number
   amountOutMin: BigNumber
   deadline: BigNumber
@@ -301,7 +301,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const logger = this.logger.create({ id: transferId })
 
     await this.preTransactionValidation(params)
-    
+
     if (attemptSwap) {
       logger.debug(
         `bondWithdrawalAndAttemptSwap destinationChainId: ${destinationChainId}`
@@ -454,7 +454,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       transferNonce,
       bonderFee,
       amountOutMin,
-      deadline,
+      deadline
     } = txParams
 
     const calculatedTransferId = getTransferId(destinationChainId, recipient, amount, transferNonce, bonderFee, amountOutMin, deadline)

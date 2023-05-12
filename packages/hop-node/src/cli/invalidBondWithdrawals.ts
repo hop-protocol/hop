@@ -1,6 +1,6 @@
+import { DateTime } from 'luxon'
 import { actionHandler, parseBool, parseNumber, root } from './shared'
 import { getInvalidBondWithdrawals } from 'src/theGraph/getInvalidBondWithdrawals'
-import { DateTime } from 'luxon'
 
 root
   .command('invalid-bond-withdrawals')
@@ -48,7 +48,7 @@ async function main (source: any) {
       contractAddress,
       token,
       destinationChain,
-     from 
+      from
     } = item
     console.log({
       transferId,

@@ -1,7 +1,7 @@
+import { SendBondTransferRootTxParams } from 'src/watchers/BondTransferRootWatcher'
 import {
   getBondTransferRootWatcher
 } from 'src/watchers/watchers'
-import { SendBondTransferRootTxParams } from 'src/watchers/BondTransferRootWatcher'
 
 import { actionHandler, parseBool, parseString, parseStringArray, root } from './shared'
 

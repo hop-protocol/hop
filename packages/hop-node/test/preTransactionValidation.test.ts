@@ -1,11 +1,11 @@
+import { SendBondTransferRootTxParams } from '../src/watchers/BondTransferRootWatcher'
+import { SendBondWithdrawalTxParams } from '../src/watchers/BondWithdrawalWatcher'
+import { Transfer } from '../src/db/TransfersDb'
+import { TransferRoot } from '../src/db/TransferRootsDb'
 import {
   getBondTransferRootWatcher,
   getBondWithdrawalWatcher
 } from '../src/watchers/watchers'
-import { Transfer } from '../src/db/TransfersDb'
-import { TransferRoot } from '../src/db/TransferRootsDb'
-import { SendBondWithdrawalTxParams } from '../src/watchers/BondWithdrawalWatcher'
-import { SendBondTransferRootTxParams } from '../src/watchers/BondTransferRootWatcher'
 import {
   parseConfigFile,
   setGlobalConfigFromConfigFile
@@ -30,7 +30,7 @@ async function main () {
   await testBondTransferRootWatcher(chain, token, rootHash)
 }
 
-async function testBondWithdrawalWatcher(chain: string, token: string, transferId: string): Promise<void> {
+async function testBondWithdrawalWatcher (chain: string, token: string, transferId: string): Promise<void> {
   const watcher = await getBondWithdrawalWatcher({ chain, token, dryMode: true })
   const dbTransfer: Transfer = await watcher.db.transfers.getByTransferId(transferId)
   if (!dbTransfer) {
@@ -39,7 +39,7 @@ async function testBondWithdrawalWatcher(chain: string, token: string, transferI
 
   const attemptSwap = watcher.bridge.shouldAttemptSwapDuringBondWithdrawal(dbTransfer.amountOutMin, dbTransfer.deadline)
   const txParams: SendBondWithdrawalTxParams = ({
-    transferId: dbTransfer.transferId!,
+    transferId: dbTransfer.transferId,
     sender: dbTransfer.sender!,
     recipient: dbTransfer.recipient!,
     amount: dbTransfer.amount!,
@@ -49,7 +49,7 @@ async function testBondWithdrawalWatcher(chain: string, token: string, transferI
     destinationChainId: dbTransfer.destinationChainId!,
     amountOutMin: dbTransfer.amountOutMin!,
     deadline: dbTransfer.deadline!,
-    transferSentIndex : dbTransfer.transferSentIndex!
+    transferSentIndex: dbTransfer.transferSentIndex!
   })
 
   await shouldSucceed(watcher, txParams)
@@ -61,7 +61,7 @@ async function testBondWithdrawalWatcher(chain: string, token: string, transferI
   console.log('\n\nBondWithdrawal Test successful')
 }
 
-async function testBondTransferRootWatcher(chain: string, token: string, rootHash: string): Promise<void> {
+async function testBondTransferRootWatcher (chain: string, token: string, rootHash: string): Promise<void> {
   const watcher = await getBondTransferRootWatcher({ chain, token, dryMode: true })
   const dbTransferRoot: TransferRoot = await watcher.db.transferRoots.getByTransferRootHash(rootHash)
   if (!dbTransferRoot) {
@@ -69,12 +69,12 @@ async function testBondTransferRootWatcher(chain: string, token: string, rootHas
   }
 
   const txParams: SendBondTransferRootTxParams = ({
-    transferRootId: dbTransferRoot.transferRootId!,
+    transferRootId: dbTransferRoot.transferRootId,
     transferRootHash: dbTransferRoot.transferRootHash!,
     destinationChainId: dbTransferRoot.destinationChainId!,
     totalAmount: dbTransferRoot.totalAmount!,
     transferIds: dbTransferRoot.transferIds!,
-    rootCommittedAt: dbTransferRoot.committedAt!,
+    rootCommittedAt: dbTransferRoot.committedAt!
   })
 
   await shouldSucceed(watcher, txParams)
@@ -85,11 +85,11 @@ async function testBondTransferRootWatcher(chain: string, token: string, rootHas
   console.log('\n\nBondTransferRoot Test successful')
 }
 
-async function shouldSucceed(watcher: any, txParams: SendBondWithdrawalTxParams | SendBondTransferRootTxParams) {
+async function shouldSucceed (watcher: any, txParams: SendBondWithdrawalTxParams | SendBondTransferRootTxParams) {
   await watcher.preTransactionValidation(txParams)
 }
 
-async function shouldFailCalcTransferId(watcher: any, txParams: SendBondWithdrawalTxParams) {
+async function shouldFailCalcTransferId (watcher: any, txParams: SendBondWithdrawalTxParams) {
   const params = deepClone(txParams)
   const fn = watcher.validateDbExistence
   params.transferId = '0x1234567890123456789012345678901234567890123456789012345678901234'
@@ -98,7 +98,7 @@ async function shouldFailCalcTransferId(watcher: any, txParams: SendBondWithdraw
   await expectError(fn, watcher, params, errMessage)
 }
 
-async function shouldFailCompareTransferSentIndex(watcher: any, txParams: SendBondWithdrawalTxParams) {
+async function shouldFailCompareTransferSentIndex (watcher: any, txParams: SendBondWithdrawalTxParams) {
   const params = deepClone(txParams)
   const fn = watcher.validateTransferSentIndex
   params.transferSentIndex = 123
@@ -107,7 +107,7 @@ async function shouldFailCompareTransferSentIndex(watcher: any, txParams: SendBo
   await expectError(fn, watcher, params, errMessage)
 }
 
-async function shouldFailTooManyTransferNoncesInDb(watcher: any, txParams: SendBondWithdrawalTxParams) {
+async function shouldFailTooManyTransferNoncesInDb (watcher: any, txParams: SendBondWithdrawalTxParams) {
   const params = deepClone(txParams)
   const fn = watcher.validateUniqueness
   const duplicateNonce = '0x7400b9182bfdc11966a8d071743a77afb179fbf6a37bf6e6af7915a1b94d11c0'
@@ -117,7 +117,7 @@ async function shouldFailTooManyTransferNoncesInDb(watcher: any, txParams: SendB
   await expectError(fn, watcher, params, errMessage)
 }
 
-async function shouldFailTooFewTransferNoncesInDb(watcher: any, txParams: SendBondWithdrawalTxParams) {
+async function shouldFailTooFewTransferNoncesInDb (watcher: any, txParams: SendBondWithdrawalTxParams) {
   const params = deepClone(txParams)
   const fn = watcher.validateUniqueness
   const missingNonce = '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -127,7 +127,7 @@ async function shouldFailTooFewTransferNoncesInDb(watcher: any, txParams: SendBo
   await expectError(fn, watcher, params, errMessage)
 }
 
-async function shouldFailBondWithdrawalInvalidEventData(watcher: any, txParams: SendBondWithdrawalTxParams) {
+async function shouldFailBondWithdrawalInvalidEventData (watcher: any, txParams: SendBondWithdrawalTxParams) {
   const params = deepClone(txParams)
   const fn = watcher.validateLogsWithBackupRpc
   params.transferSentIndex = 123
@@ -136,7 +136,7 @@ async function shouldFailBondWithdrawalInvalidEventData(watcher: any, txParams: 
   await expectError(fn, watcher, params, errMessage)
 }
 
-async function shouldFailCalcTransferRoot(watcher: any, txParams: SendBondTransferRootTxParams) {
+async function shouldFailCalcTransferRoot (watcher: any, txParams: SendBondTransferRootTxParams) {
   const params = deepClone(txParams)
   const fn = watcher.validateDbExistence
   params.transferRootId = '0x1234567890123456789012345678901234567890123456789012345678901234'
@@ -145,7 +145,7 @@ async function shouldFailCalcTransferRoot(watcher: any, txParams: SendBondTransf
   await expectError(fn, watcher, params, errMessage)
 }
 
-async function shouldFailCompareDestinationChainId(watcher: any, txParams: SendBondTransferRootTxParams) {
+async function shouldFailCompareDestinationChainId (watcher: any, txParams: SendBondTransferRootTxParams) {
   const params = deepClone(txParams)
   const fn = watcher.validateDestinationChainId
   params.destinationChainId = 123
@@ -154,7 +154,7 @@ async function shouldFailCompareDestinationChainId(watcher: any, txParams: SendB
   await expectError(fn, watcher, params, errMessage)
 }
 
-async function shouldFailTransferIdNotUniqueInDb(watcher: any, txParams: SendBondTransferRootTxParams) {
+async function shouldFailTransferIdNotUniqueInDb (watcher: any, txParams: SendBondTransferRootTxParams) {
   const params = deepClone(txParams)
   const fn = watcher.validateUniqueness
   const duplicateTransferId = '0xe1286263d73ab99179835bac7b1371ad616d82919abe3725dbe71214ed4513e2'
@@ -164,7 +164,7 @@ async function shouldFailTransferIdNotUniqueInDb(watcher: any, txParams: SendBon
   await expectError(fn, watcher, params, errMessage)
 }
 
-async function shouldFailBondTransferRootInvalidEventData(watcher: any, txParams: SendBondTransferRootTxParams) {
+async function shouldFailBondTransferRootInvalidEventData (watcher: any, txParams: SendBondTransferRootTxParams) {
   const params = deepClone(txParams)
   const fn = watcher.validateLogsWithBackupRpc
   params.rootCommittedAt = 123
@@ -173,7 +173,7 @@ async function shouldFailBondTransferRootInvalidEventData(watcher: any, txParams
   await expectError(fn, watcher, params, errMessage)
 }
 
-async function expectError(fn: any, watcher: any, params: any, errMessage: string): Promise<void> {
+async function expectError (fn: any, watcher: any, params: any, errMessage: string): Promise<void> {
   try {
     await fn.bind(watcher)(params)
     throw new Error('should not reach here')
@@ -184,7 +184,7 @@ async function expectError(fn: any, watcher: any, params: any, errMessage: strin
   }
 }
 
-function deepClone(obj: any): any {
+function deepClone (obj: any): any {
   return JSON.parse(JSON.stringify(obj))
 }
 

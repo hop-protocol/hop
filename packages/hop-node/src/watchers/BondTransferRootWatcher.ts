@@ -2,17 +2,17 @@ import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
-import contracts from 'src/contracts'
 import chainSlugToId from 'src/utils/chainSlugToId'
+import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
-import { config as globalConfig } from 'src/config'
-import { TransferRoot } from 'src/db/TransferRootsDb'
 import { PreTransactionValidationError } from 'src/types/error'
+import { TransferRoot } from 'src/db/TransferRootsDb'
+import { config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -25,8 +25,8 @@ export type SendBondTransferRootTxParams = {
   transferRootId: string
   transferRootHash: string
   destinationChainId: number
-  totalAmount: BigNumber,
-  transferIds: string[],
+  totalAmount: BigNumber
+  transferIds: string[]
   rootCommittedAt: number
 }
 
@@ -216,7 +216,7 @@ class BondTransferRootWatcher extends BaseWatcher {
       totalAmount,
       transferIds,
       rootCommittedAt
-  })
+    })
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
     return l1Bridge.bondTransferRoot(

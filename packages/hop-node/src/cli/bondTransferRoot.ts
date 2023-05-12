@@ -51,7 +51,8 @@ async function main (source: any) {
       transferRootHash: rootHash,
       destinationChainId: dbTransferRoot.destinationChainId!,
       totalAmount: dbTransferRoot.totalAmount!,
-      transferIds: dbTransferRoot.transferIds!
+      transferIds: dbTransferRoot.transferIds!,
+      rootCommittedAt: dbTransferRoot.committedAt!
     }
 
     await watcher.sendBondTransferRoot(txParams)

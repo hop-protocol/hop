@@ -1,13 +1,14 @@
 import '../moduleAlias'
 import BaseWatcher from './classes/BaseWatcher'
 import L1Bridge from './classes/L1Bridge'
+import L2Bridge from './classes/L2Bridge'
 import MerkleTree from 'src/utils/MerkleTree'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
-import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
+import { L2_Bridge as L2BridgeContract, TransfersCommittedEvent } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { config as globalConfig } from 'src/config'
 import { TransferRoot } from 'src/db/TransferRootsDb'
 import { PreTransactionValidationError } from 'src/types/error'
@@ -24,7 +25,8 @@ export type SendBondTransferRootTxParams = {
   transferRootHash: string
   destinationChainId: number
   totalAmount: BigNumber,
-  transferIds: string[]
+  transferIds: string[],
+  rootCommittedAt: number
 }
 
 class BondTransferRootWatcher extends BaseWatcher {
@@ -181,7 +183,8 @@ class BondTransferRootWatcher extends BaseWatcher {
         transferRootHash,
         destinationChainId,
         totalAmount,
-        transferIds
+        transferIds,
+        committedAt
       )
 
       const msg = `L1 bondTransferRoot dest ${destinationChainId}, tx ${tx.hash} transferRootHash: ${transferRootHash}`
@@ -202,14 +205,16 @@ class BondTransferRootWatcher extends BaseWatcher {
     transferRootHash: string,
     destinationChainId: number,
     totalAmount: BigNumber,
-    transferIds: string[]
+    transferIds: string[],
+    rootCommittedAt: number
   ): Promise<providers.TransactionResponse> {
     await this.preTransactionValidation({
       transferRootId,
       transferRootHash,
       destinationChainId,
       totalAmount,
-      transferIds
+      transferIds,
+      rootCommittedAt
   })
 
     const l1Bridge = this.getSiblingWatcherByChainSlug(Chain.Ethereum).bridge as L1Bridge
@@ -289,6 +294,33 @@ class BondTransferRootWatcher extends BaseWatcher {
       if (transferIdCount.length > 0) {
         throw new PreTransactionValidationError(`transferId (${transferId}) exists in multiple transferRoots in db`)
       }
+    }
+  }
+
+  async validateLogsWithBackupRpc (txParams: SendBondTransferRootTxParams): Promise<void> {
+    // Validate logs with backup RPC endpoint, if it exists
+    const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
+    const blockNumber = calculatedDbTransferRoot.commitTxBlockNumber
+    const sourceL2Bridge = this.bridge as L2Bridge
+    let eventParams: any
+    await sourceL2Bridge.mapTransfersCommittedEvents(
+      async (event: TransfersCommittedEvent) => {
+        eventParams = event
+      },
+      {
+        startBlockNumber: blockNumber,
+        endBlockNumber: blockNumber
+      }
+    )
+
+    // TODO: better way to do this
+    if (
+      (Number(eventParams.args.destinationChainId) !== txParams.destinationChainId) ||
+      (eventParams.args.rootHash !== txParams.transferRootHash) ||
+      (eventParams.args.totalAmount.toString() !== txParams.totalAmount.toString()) ||
+      (eventParams.args.rootCommittedAt.toString() !== txParams.rootCommittedAt.toString())
+    ) {
+      throw new PreTransactionValidationError(`TransfersCommitted event does not match db. eventParams: ${JSON.stringify(eventParams)}, calculatedDbTransfer: ${JSON.stringify(calculatedDbTransferRoot)}`)
     }
   }
 

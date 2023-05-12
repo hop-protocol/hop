@@ -408,8 +408,8 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
   async validateLogsWithBackupRpc (txParams: SendBondWithdrawalTxParams): Promise<void> {
     // Validate logs with backup RPC endpoint, if it exists
-    const dbTransfer = await this.getCalculatedDbTransfer(txParams)
-    const blockNumber = dbTransfer.transferSentBlockNumber
+    const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
+    const blockNumber = calculatedDbTransfer.transferSentBlockNumber
     const sourceL2Bridge = this.bridge as L2Bridge
     let eventParams: any
     await sourceL2Bridge.mapTransferSentEvents(
@@ -434,7 +434,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
       (eventParams.args.deadline.toString() !== txParams.deadline.toString()) ||
       (eventParams.args.index.toString() !== txParams.transferSentIndex.toString())
     ) {
-      throw new PreTransactionValidationError(`TransferSent event does not match db. eventParams: ${JSON.stringify(eventParams)}, calculatedDbTransfer: ${JSON.stringify(dbTransfer)}`)
+      throw new PreTransactionValidationError(`TransferSent event does not match db. eventParams: ${JSON.stringify(eventParams)}, calculatedDbTransfer: ${JSON.stringify(calculatedDbTransfer)}`)
     }
   }
 

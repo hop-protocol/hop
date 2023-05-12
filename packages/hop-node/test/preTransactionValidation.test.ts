@@ -57,7 +57,7 @@ async function testBondWithdrawalWatcher(chain: string, token: string, transferI
   await shouldFailCompareTransferSentIndex(watcher, txParams)
   await shouldFailTooManyTransferNoncesInDb(watcher, txParams)
   await shouldFailTooFewTransferNoncesInDb(watcher, txParams)
-  await shouldFailMissingEvent(watcher, txParams)
+  await shouldFailBondWithdrawalMissingEvent(watcher, txParams)
   console.log('\n\nBondWithdrawal Test successful')
 }
 
@@ -73,14 +73,15 @@ async function testBondTransferRootWatcher(chain: string, token: string, rootHas
     transferRootHash: dbTransferRoot.transferRootHash!,
     destinationChainId: dbTransferRoot.destinationChainId!,
     totalAmount: dbTransferRoot.totalAmount!,
-    transferIds: dbTransferRoot.transferIds!
+    transferIds: dbTransferRoot.transferIds!,
+    rootCommittedAt: dbTransferRoot.committedAt!,
   })
 
   await shouldSucceed(watcher, txParams)
   await shouldFailCalcTransferRoot(watcher, txParams)
   await shouldFailCompareDestinationChainId(watcher, txParams)
   await shouldFailTransferIdNotUniqueInDb(watcher, txParams)
-  // await shouldFailMissingEvent(watcher, txParams)
+  await shouldFailBondTransferRootMissingEvent(watcher, txParams)
   console.log('\n\nBondTransferRoot Test successful')
 }
 
@@ -126,7 +127,7 @@ async function shouldFailTooFewTransferNoncesInDb(watcher: any, txParams: SendBo
   await expectError(fn, watcher, params, errMessage)
 }
 
-async function shouldFailMissingEvent(watcher: any, txParams: SendBondWithdrawalTxParams) {
+async function shouldFailBondWithdrawalMissingEvent(watcher: any, txParams: SendBondWithdrawalTxParams) {
   const params = deepClone(txParams)
   const fn = watcher.validateLogsWithBackupRpc
   params.transferSentIndex = 123
@@ -163,6 +164,14 @@ async function shouldFailTransferIdNotUniqueInDb(watcher: any, txParams: SendBon
   await expectError(fn, watcher, params, errMessage)
 }
 
+async function shouldFailBondTransferRootMissingEvent(watcher: any, txParams: SendBondTransferRootTxParams) {
+  const params = deepClone(txParams)
+  const fn = watcher.validateLogsWithBackupRpc
+  params.rootCommittedAt = 123
+
+  const errMessage = 'TransfersCommitted event does not match db. eventParam'
+  await expectError(fn, watcher, params, errMessage)
+}
 
 async function expectError(fn: any, watcher: any, params: any, errMessage: string): Promise<void> {
   try {

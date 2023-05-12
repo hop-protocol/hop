@@ -4,6 +4,7 @@ import L2Bridge from './classes/L2Bridge'
 import Logger from 'src/logger'
 import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
+import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import getTransferId from 'src/utils/getTransferId'
 import isL1ChainId from 'src/utils/isL1ChainId'
 import isNativeToken from 'src/utils/isNativeToken'
@@ -415,7 +416,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
 
     const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
-      const redundantProvider = new providers.JsonRpcProvider(redundantRpcUrl)
+      const redundantProvider = getRpcProviderFromUrl(redundantRpcUrl)
 
       // TODO: Better way to do this
       const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge

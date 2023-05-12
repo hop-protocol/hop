@@ -5,6 +5,7 @@ import MerkleTree from 'src/utils/MerkleTree'
 import chainSlugToId from 'src/utils/chainSlugToId'
 import contracts from 'src/contracts'
 import getRedundantRpcUrls from 'src/utils/getRedundantRpcUrls'
+import getRpcProviderFromUrl from 'src/utils/getRpcProviderFromUrl'
 import getTransferRootId from 'src/utils/getTransferRootId'
 import { BigNumber, providers } from 'ethers'
 import { Chain } from 'src/constants'
@@ -306,7 +307,7 @@ class BondTransferRootWatcher extends BaseWatcher {
 
     const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
-      const redundantProvider = new providers.JsonRpcProvider(redundantRpcUrl)
+      const redundantProvider = getRpcProviderFromUrl(redundantRpcUrl)
 
       // TODO: Better way to do this
       const l2Bridge = contracts.get(this.tokenSymbol, this.chainSlug)?.l2Bridge

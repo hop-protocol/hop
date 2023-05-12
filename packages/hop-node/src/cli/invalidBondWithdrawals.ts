@@ -38,29 +38,17 @@ async function main (source: any) {
   let count = 0
   const items = await getInvalidBondWithdrawals(startTimestamp, endTimestamp)
   items.map((item: any) => {
-    const {
-      transferId,
-      amount,
-      transactionHash,
-      transactionIndex,
-      timestamp,
-      blockNumber,
-      contractAddress,
-      token,
-      destinationChain,
-      from
-    } = item
     console.log({
-      transferId,
-      amount,
-      transactionHash,
-      transactionIndex,
-      timestamp,
-      blockNumber,
-      contractAddress,
-      token,
-      from,
-      destinationChain
+      transferId: item.transferId,
+      amount: item.amount,
+      transactionHash: item.transactionHash,
+      transactionIndex: item.transactionIndex,
+      timestamp: item.timestamp,
+      blockNumber: item.blockNumber,
+      contractAddress: item.contractAddress,
+      token: item.token,
+      from: item.from,
+      destinationChain: item.destinationChain,
     })
     count++
   })

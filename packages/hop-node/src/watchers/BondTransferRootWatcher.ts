@@ -297,6 +297,9 @@ class BondTransferRootWatcher extends BaseWatcher {
       .filter(dbTransferRoot => dbTransferRoot.transferRootId !== txParams.transferRootId)
       .filter(dbTransferRoot => dbTransferRoot.sourceChainId === this.bridge.chainId)
     const dbTransferIds: string[] = dbTransferRoots.flatMap(dbTransferRoot => dbTransferRoot.transferIds!)
+    for (const dbTransferId of dbTransferIds) {
+      console.log('debugger - 0:', dbTransferId)
+    }
 
     for (const transferId of transferIds) {
       const transferIdCount: string[] = dbTransferIds.filter((dbTransferId: string) => dbTransferId.toLowerCase() === transferId)
@@ -324,10 +327,13 @@ class BondTransferRootWatcher extends BaseWatcher {
         txParams.destinationChainId,
         txParams.transferRootHash
       )
+      console.log('debugger - a:', filter)
       const events = await l2Bridge.connect(redundantProvider).queryFilter(filter, blockNumber, blockNumber)
+      console.log('debugger - b:', events)
       const eventParams = events.find((x: any) => x.args.rootHash === txParams.transferRootHash)
+      console.log('debugger - c:', eventParams)
       if (!eventParams) {
-        throw new PreTransactionValidationError(`TransferSent event not found for transferRootHash ${txParams.transferRootHash} at block ${blockNumber}`)
+        throw new PreTransactionValidationError(`TransfersCommitted event not found for transferRootHash ${txParams.transferRootHash} at block ${blockNumber}`)
       }
 
       if (

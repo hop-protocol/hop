@@ -138,7 +138,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     logger.debug('totalAmount:', this.bridge.formatUnits(totalAmount))
     logger.debug('transferRootId:', transferRootId)
 
-    const pendingTransfers: string[] = transferIds || []
+    const pendingTransfers: string[] = transferIds ?? []
     logger.debug('transferRootHash transferIds:', pendingTransfers)
     if (pendingTransfers.length > 0) {
       const tree = new MerkleTree(pendingTransfers)
@@ -303,7 +303,7 @@ class BondTransferRootWatcher extends BaseWatcher {
     const calculatedDbTransferRoot = await this.getCalculatedDbTransferRoot(txParams)
     const blockNumber = calculatedDbTransferRoot.commitTxBlockNumber
 
-    const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) || []
+    const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
       const redundantProvider = new providers.JsonRpcProvider(redundantRpcUrl)
 

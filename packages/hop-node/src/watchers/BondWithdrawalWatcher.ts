@@ -413,7 +413,7 @@ class BondWithdrawalWatcher extends BaseWatcher {
     const calculatedDbTransfer = await this.getCalculatedDbTransfer(txParams)
     const blockNumber = calculatedDbTransfer.transferSentBlockNumber
 
-    const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) || []
+    const redundantRpcUrls = getRedundantRpcUrls(this.chainSlug) ?? []
     for (const redundantRpcUrl of redundantRpcUrls) {
       const redundantProvider = new providers.JsonRpcProvider(redundantRpcUrl)
 

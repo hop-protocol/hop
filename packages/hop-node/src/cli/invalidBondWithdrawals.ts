@@ -48,7 +48,7 @@ async function main (source: any) {
       contractAddress: item.contractAddress,
       token: item.token,
       from: item.from,
-      destinationChain: item.destinationChain,
+      destinationChain: item.destinationChain
     })
     count++
   })

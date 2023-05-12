@@ -8,6 +8,7 @@ import { CrossChainMessenger, MessageStatus, hashLowLevelMessage } from '@eth-op
 import { L1_Bridge as L1BridgeContract } from '@hop-protocol/core/contracts/generated/L1_Bridge'
 import { L2_Bridge as L2BridgeContract } from '@hop-protocol/core/contracts/generated/L2_Bridge'
 import { Signer, providers } from 'ethers'
+import { config as globalConfig } from 'src/config'
 
 type Config = {
   chainSlug: string
@@ -115,8 +116,8 @@ class OptimismBridgeWatcher extends BaseWatcher {
       `attempting to send relay message on optimism for commit tx hash ${commitTxHash}`
     )
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayXDomainMessage`)
       return
     }
 

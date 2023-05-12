@@ -106,9 +106,10 @@ async function main (source: any) {
     logger.debug(`slack notifications enabled. channel #${slackChannel}`)
   }
   for (const k in globalConfig.networks) {
-    const { waitConfirmations, rpcUrl } = globalConfig.networks[k]
+    const { waitConfirmations, rpcUrl, redundantRpcUrls } = globalConfig.networks[k]
     logger.info(`${k} wait confirmations: ${waitConfirmations}`)
     logger.info(`${k} rpc: ${rpcUrl}`)
+    logger.info(`${k} redundantRpcUrls: ${JSON.stringify(redundantRpcUrls)}`)
   }
   if (globalConfig.bonders) {
     logger.info(`config bonders: ${JSON.stringify(globalConfig.bonders)}`)

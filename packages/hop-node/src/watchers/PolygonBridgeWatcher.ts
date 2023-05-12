@@ -122,8 +122,8 @@ class PolygonBridgeWatcher extends BaseWatcher {
       `attempting to send relay message on polygon for commit tx hash ${commitTxHash}`
     )
 
-    if (this.dryMode) {
-      logger.warn(`dry: ${this.dryMode}, skipping relayXDomainMessage`)
+    if (this.dryMode || globalConfig.emergencyDryMode) {
+      logger.warn(`dry: ${this.dryMode}, emergencyDryMode: ${globalConfig.emergencyDryMode}, skipping relayXDomainMessage`)
       return
     }
     await this.db.transferRoots.update(transferRootId, {

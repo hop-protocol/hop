@@ -154,6 +154,7 @@ export type Config = {
   signerConfig: SignerConfig
   vault: Vault
   blocklist: BlocklistConfig
+  emergencyDryMode: boolean
 }
 
 const networkConfigs: {[key: string]: any} = {
@@ -259,7 +260,8 @@ export const config: Config = {
   blocklist: {
     path: '',
     addresses: {}
-  }
+  },
+  emergencyDryMode: false
 }
 
 export const setConfigByNetwork = (network: string) => {
@@ -298,6 +300,13 @@ export const setNetworkRpcUrl = (network: string, rpcUrl: string) => {
   network = normalizeNetwork(network)
   if (config.networks[network]) {
     config.networks[network].rpcUrl = rpcUrl
+  }
+}
+
+export const setNetworkRedundantRpcUrls = (network: string, redundantRpcUrls: string[]) => {
+  network = normalizeNetwork(network)
+  if (config.networks[network]) {
+    config.networks[network].redundantRpcUrls = redundantRpcUrls
   }
 }
 
@@ -403,6 +412,10 @@ export enum Watchers {
   SettleBondedWithdrawals = 'settleBondedWithdrawals',
   ConfirmRoots = 'confirmRoots',
   L1ToL2Relay = 'L1ToL2Relay',
+}
+
+export function enableEmergencyMode () {
+  config.emergencyDryMode = true
 }
 
 export { Bonders }
